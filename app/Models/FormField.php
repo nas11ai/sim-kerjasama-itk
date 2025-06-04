@@ -28,4 +28,9 @@ class FormField extends Model
     {
         return $this->hasMany(FormFieldOption::class);
     }
+
+    public function formFieldResponses()
+    {
+        return $this->hasMany(FormFieldResponse::class);
+    }
 }

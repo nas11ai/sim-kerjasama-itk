@@ -20,4 +20,9 @@ class FormSubmission extends Model
     {
         return $this->belongsTo(User::class, 'submitted_by');
     }
+
+    public function formFieldResponses()
+    {
+        return $this->hasMany(FormFieldResponse::class);
+    }
 }
