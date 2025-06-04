@@ -12,4 +12,9 @@ class FormType extends Model
     {
         return $this->hasMany(Form::class);
     }
+
+    public function formFields()
+    {
+        return $this->hasMany(FormField::class);
+    }
 }
