@@ -23,4 +23,9 @@ class FormField extends Model
     {
         return $this->belongsTo(FieldType::class);
     }
+
+    public function formFieldOptions()
+    {
+        return $this->hasMany(FormFieldOption::class);
+    }
 }
