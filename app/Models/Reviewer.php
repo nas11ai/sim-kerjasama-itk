@@ -28,4 +28,9 @@ class Reviewer extends Model
     {
         return $this->belongsTo(StudyProgram::class);
     }
+
+    public function submissionReviewers()
+    {
+        return $this->hasMany(SubmissionReviewer::class);
+    }
 }

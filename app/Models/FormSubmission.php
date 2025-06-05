@@ -25,4 +25,9 @@ class FormSubmission extends Model
     {
         return $this->hasMany(FormFieldResponse::class);
     }
+
+    public function submissionReviewers()
+    {
+        return $this->hasMany(SubmissionReviewer::class);
+    }
 }
