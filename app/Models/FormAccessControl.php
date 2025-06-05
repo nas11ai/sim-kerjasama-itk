@@ -23,4 +23,9 @@ class FormAccessControl extends Model
     {
         return $this->belongsTo(StudyProgram::class);
     }
+
+    public function formPhaseDetails()
+    {
+        return $this->hasMany(FormPhaseDetail::class);
+    }
 }
