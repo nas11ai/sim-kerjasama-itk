@@ -22,4 +22,9 @@ class SubmissionReviewer extends Model
     {
         return $this->belongsTo(SubmissionReviewType::class);
     }
+
+    public function submissionReview()
+    {
+        return $this->hasOne(SubmissionReview::class);
+    }
 }
