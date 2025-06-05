@@ -17,4 +17,9 @@ class SubmissionPeriod extends Model
     {
         return $this->hasMany(SubmissionDate::class);
     }
+
+    public function submissionPeriodPhases()
+    {
+        return $this->hasMany(SubmissionPeriodPhase::class);
+    }
 }

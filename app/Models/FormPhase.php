@@ -12,4 +12,9 @@ class FormPhase extends Model
     {
         return $this->hasMany(FormPhaseDetail::class);
     }
+
+    public function submissionPeriodPhases()
+    {
+        return $this->hasMany(SubmissionPeriodPhase::class);
+    }
 }
