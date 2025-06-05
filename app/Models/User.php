@@ -57,4 +57,9 @@ class User extends Authenticatable
     {
         return $this->hasMany(Reviewer::class);
     }
+
+    public function submissionReviewFixes()
+    {
+        return $this->hasMany(SubmissionReviewFix::class, 'submitted_by');
+    }
 }

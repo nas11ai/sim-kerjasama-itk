@@ -12,4 +12,9 @@ class SubmissionReview extends Model
     {
         return $this->belongsTo(SubmissionReviewer::class);
     }
+
+    public function submissionReviewFixes()
+    {
+        return $this->hasMany(SubmissionReviewFix::class);
+    }
 }
