@@ -15,4 +15,9 @@ class StudyProgram extends Model
     {
         return $this->belongsTo(Faculty::class);
     }
+
+    public function reviewers()
+    {
+        return $this->hasMany(Reviewer::class);
+    }
 }
