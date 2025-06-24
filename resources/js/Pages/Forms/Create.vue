@@ -213,7 +213,7 @@ const submit = () => {
                         </div>
 
                         <draggable v-else v-model="form.fields" item-key="temp_id" handle=".drag-handle"
-                            class="space-y-4">
+                            class="space-y-4" :animation="200">
                             <template #item="{ element: field, index }">
                                 <Card class="border-2 border-dashed">
                                     <CardContent class="pt-6">
