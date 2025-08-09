@@ -12,7 +12,7 @@ import {
     SidebarMenuButton,
     SidebarMenuItem,
     useSidebar,
-} from "@/components/ui/sidebar";
+} from "@/Components/ui/sidebar";
 import { usePage } from "@inertiajs/vue3";
 import { computed, ref } from "vue";
 import ResponsiveNavLink from "./ResponsiveNavLink.vue";

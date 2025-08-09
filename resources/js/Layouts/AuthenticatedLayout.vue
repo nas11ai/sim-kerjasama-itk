@@ -1,8 +1,8 @@
 <!-- resources/js/Layouts/AuthenticatedLayout.vue -->
 <script setup lang="ts">
 import { ref, onMounted, onUnmounted } from 'vue';
-import { SidebarProvider, SidebarTrigger, SidebarInset } from "@/components/ui/sidebar";
-import AppSidebar from "@/components/AppSidebar.vue";
+import { SidebarProvider, SidebarTrigger, SidebarInset } from "@/Components/ui/sidebar";
+import AppSidebar from "@/Components/AppSidebar.vue";
 
 // Reactive state for sidebar
 const isSidebarOpen = ref(true);
