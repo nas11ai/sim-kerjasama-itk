@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Form extends Model
 {
-    protected $fillable = ['name', 'description', 'is_active', 'form_type_id'];
+    protected $fillable = ['title', 'description', 'is_active', 'form_type_id'];
 
     public function formType()
     {
