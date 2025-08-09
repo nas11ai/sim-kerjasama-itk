@@ -16,6 +16,8 @@ class DatabaseSeeder extends Seeder
         $this->call([
             RoleSeeder::class,
             DummyUserSeeder::class,
+            FieldTypeSeeder::class,
+            FormTypeSeeder::class
         ]);
     }
 }
