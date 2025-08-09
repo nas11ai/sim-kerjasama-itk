@@ -70,7 +70,7 @@ const items = [
                             <Home class="size-4" />
                         </div>
                         <div class="grid flex-1 text-left text-sm leading-tight">
-                            <span class="truncate font-semibold">RPL Uniba</span>
+                            <span class="truncate font-semibold">SIM Kerjasama ITK</span>
                             <span class="truncate text-xs">Dashboard</span>
                         </div>
                     </SidebarMenuButton>
