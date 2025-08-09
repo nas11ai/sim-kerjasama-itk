@@ -243,7 +243,13 @@ const submit = () => {
                     <CardHeader>
                         <div class="flex items-center justify-between">
                             <CardTitle>Form Fields</CardTitle>
-                            <Button type="button" @click="addField" size="sm">
+                            <!-- Tombol Add Field hanya ditampilkan ketika tidak ada fields -->
+                            <Button
+                                v-if="form.fields.length === 0"
+                                type="button"
+                                @click="addField"
+                                size="sm"
+                            >
                                 <Plus class="h-4 w-4 mr-2" />
                                 Add Field
                             </Button>
@@ -260,281 +266,306 @@ const submit = () => {
                             </p>
                         </div>
 
-                        <draggable
-                            v-else
-                            v-model="form.fields"
-                            item-key="temp_id"
-                            handle=".drag-handle"
-                            class="space-y-4"
-                            :animation="200"
-                        >
-                            <template #item="{ element: field, index }">
-                                <Card class="border-2 border-dashed">
-                                    <CardContent class="pt-6">
-                                        <div class="flex items-start gap-4">
-                                            <div
-                                                class="drag-handle cursor-move p-1 hover:bg-muted rounded"
-                                            >
-                                                <GripVertical
-                                                    class="h-4 w-4 text-muted-foreground"
-                                                />
-                                            </div>
-
-                                            <div class="flex-1 space-y-4">
+                        <div v-else class="space-y-4">
+                            <draggable
+                                v-model="form.fields"
+                                item-key="temp_id"
+                                handle=".drag-handle"
+                                class="space-y-4"
+                                :animation="200"
+                            >
+                                <template #item="{ element: field, index }">
+                                    <Card class="border-2 border-dashed">
+                                        <CardContent class="pt-6">
+                                            <div class="flex items-start gap-4">
                                                 <div
-                                                    class="grid gap-4 md:grid-cols-2"
+                                                    class="drag-handle cursor-move p-1 hover:bg-muted rounded"
                                                 >
-                                                    <div class="space-y-2">
-                                                        <Label
-                                                            >Field Type *</Label
-                                                        >
-                                                        <Select
-                                                            v-model="
-                                                                field.field_type_id
-                                                            "
-                                                        >
-                                                            <SelectTrigger>
-                                                                <SelectValue
-                                                                    placeholder="Select field type"
-                                                                />
-                                                            </SelectTrigger>
-                                                            <SelectContent>
-                                                                <SelectItem
-                                                                    v-for="fieldType in props.fieldTypes"
-                                                                    :key="
-                                                                        fieldType.id
-                                                                    "
-                                                                    :value="
-                                                                        fieldType.id
-                                                                    "
-                                                                >
-                                                                    {{
-                                                                        fieldType.name
-                                                                    }}
-                                                                </SelectItem>
-                                                            </SelectContent>
-                                                        </Select>
-                                                    </div>
-
-                                                    <div class="space-y-2">
-                                                        <Label
-                                                            >Field Label
-                                                            *</Label
-                                                        >
-                                                        <Input
-                                                            v-model="
-                                                                field.label
-                                                            "
-                                                            placeholder="Enter field label"
-                                                        />
-                                                    </div>
-                                                </div>
-
-                                                <div
-                                                    class="flex items-center space-x-2"
-                                                >
-                                                    <Switch
-                                                        v-model="
-                                                            field.is_required
-                                                        "
-                                                        :id="`required_${index}`"
+                                                    <GripVertical
+                                                        class="h-4 w-4 text-muted-foreground"
                                                     />
-                                                    <Label
-                                                        :for="`required_${index}`"
-                                                        >Required field</Label
-                                                    >
                                                 </div>
 
-                                                <!-- Field Options -->
-                                                <div
-                                                    v-if="
-                                                        fieldTypeRequiresOptions(
-                                                            field.field_type_id
-                                                        )
-                                                    "
-                                                    class="space-y-3"
-                                                >
+                                                <div class="flex-1 space-y-4">
                                                     <div
-                                                        class="flex items-center justify-between"
+                                                        class="grid gap-4 md:grid-cols-2"
                                                     >
-                                                        <Label
-                                                            class="text-sm font-medium"
-                                                            >Options</Label
-                                                        >
-                                                        <Button
-                                                            type="button"
-                                                            size="sm"
-                                                            variant="outline"
-                                                            @click="
-                                                                addOption(index)
-                                                            "
-                                                        >
-                                                            <Plus
-                                                                class="h-3 w-3 mr-1"
-                                                            />
-                                                            Add Option
-                                                        </Button>
-                                                    </div>
+                                                        <div class="space-y-2">
+                                                            <Label
+                                                                >Field Type
+                                                                *</Label
+                                                            >
+                                                            <Select
+                                                                v-model="
+                                                                    field.field_type_id
+                                                                "
+                                                            >
+                                                                <SelectTrigger>
+                                                                    <SelectValue
+                                                                        placeholder="Select field type"
+                                                                    />
+                                                                </SelectTrigger>
+                                                                <SelectContent>
+                                                                    <SelectItem
+                                                                        v-for="fieldType in props.fieldTypes"
+                                                                        :key="
+                                                                            fieldType.id
+                                                                        "
+                                                                        :value="
+                                                                            fieldType.id
+                                                                        "
+                                                                    >
+                                                                        {{
+                                                                            fieldType.name
+                                                                        }}
+                                                                    </SelectItem>
+                                                                </SelectContent>
+                                                            </Select>
+                                                        </div>
 
-                                                    <div
-                                                        v-if="
-                                                            field.options
-                                                                .length === 0
-                                                        "
-                                                        class="text-sm text-muted-foreground"
-                                                    >
-                                                        No options added yet.
-                                                    </div>
-
-                                                    <div
-                                                        v-else
-                                                        class="space-y-2"
-                                                    >
-                                                        <div
-                                                            v-for="(
-                                                                option,
-                                                                optionIndex
-                                                            ) in field.options"
-                                                            :key="
-                                                                option.temp_id ||
-                                                                optionIndex
-                                                            "
-                                                            class="flex items-center gap-2"
-                                                        >
+                                                        <div class="space-y-2">
+                                                            <Label
+                                                                >Field Label
+                                                                *</Label
+                                                            >
                                                             <Input
                                                                 v-model="
-                                                                    option.label
+                                                                    field.label
                                                                 "
-                                                                placeholder="Option label"
-                                                                class="flex-1"
+                                                                placeholder="Enter field label"
                                                             />
+                                                        </div>
+                                                    </div>
+
+                                                    <div
+                                                        class="flex items-center space-x-2"
+                                                    >
+                                                        <Switch
+                                                            v-model="
+                                                                field.is_required
+                                                            "
+                                                            :id="`required_${index}`"
+                                                        />
+                                                        <Label
+                                                            :for="`required_${index}`"
+                                                            >Required
+                                                            field</Label
+                                                        >
+                                                    </div>
+
+                                                    <!-- Field Options -->
+                                                    <div
+                                                        v-if="
+                                                            fieldTypeRequiresOptions(
+                                                                field.field_type_id
+                                                            )
+                                                        "
+                                                        class="space-y-3"
+                                                    >
+                                                        <div
+                                                            class="flex items-center justify-between"
+                                                        >
+                                                            <Label
+                                                                class="text-sm font-medium"
+                                                                >Options</Label
+                                                            >
                                                             <Button
                                                                 type="button"
-                                                                variant="ghost"
                                                                 size="sm"
+                                                                variant="outline"
                                                                 @click="
-                                                                    removeOption(
-                                                                        index,
-                                                                        optionIndex
+                                                                    addOption(
+                                                                        index
                                                                     )
                                                                 "
                                                             >
-                                                                <Trash2
-                                                                    class="h-4 w-4 text-destructive"
+                                                                <Plus
+                                                                    class="h-3 w-3 mr-1"
                                                                 />
+                                                                Add Option
                                                             </Button>
                                                         </div>
-                                                    </div>
-                                                </div>
 
-                                                <!-- Field Preview -->
-                                                <div
-                                                    v-if="
-                                                        field.field_type_id &&
-                                                        field.label
-                                                    "
-                                                    class="mt-4 p-3 bg-muted rounded-lg"
-                                                >
-                                                    <Label
-                                                        class="text-sm text-muted-foreground mb-2 block"
-                                                        >Preview:</Label
-                                                    >
-                                                    <div class="space-y-2">
-                                                        <Label>
-                                                            {{ field.label }}
-                                                            <Badge
-                                                                v-if="
-                                                                    field.is_required
-                                                                "
-                                                                variant="destructive"
-                                                                class="ml-2 text-xs"
-                                                            >
-                                                                Required
-                                                            </Badge>
-                                                        </Label>
-
-                                                        <!-- Preview based on field type -->
                                                         <div
                                                             v-if="
-                                                                getFieldTypeName(
-                                                                    field.field_type_id
-                                                                ) === 'textarea'
-                                                            "
-                                                        >
-                                                            <Textarea
-                                                                placeholder="This is a preview"
-                                                                disabled
-                                                            />
-                                                        </div>
-                                                        <div
-                                                            v-else-if="
-                                                                fieldTypeRequiresOptions(
-                                                                    field.field_type_id
-                                                                ) &&
                                                                 field.options
-                                                                    .length > 0
+                                                                    .length ===
+                                                                0
                                                             "
+                                                            class="text-sm text-muted-foreground"
+                                                        >
+                                                            No options added
+                                                            yet.
+                                                        </div>
+
+                                                        <div
+                                                            v-else
+                                                            class="space-y-2"
                                                         >
                                                             <div
-                                                                class="space-y-1"
+                                                                v-for="(
+                                                                    option,
+                                                                    optionIndex
+                                                                ) in field.options"
+                                                                :key="
+                                                                    option.temp_id ||
+                                                                    optionIndex
+                                                                "
+                                                                class="flex items-center gap-2"
                                                             >
-                                                                <div
-                                                                    v-for="option in field.options"
-                                                                    :key="
-                                                                        option.temp_id
+                                                                <Input
+                                                                    v-model="
+                                                                        option.label
                                                                     "
-                                                                    class="flex items-center space-x-2"
+                                                                    placeholder="Option label"
+                                                                    class="flex-1"
+                                                                />
+                                                                <Button
+                                                                    type="button"
+                                                                    variant="ghost"
+                                                                    size="sm"
+                                                                    @click="
+                                                                        removeOption(
+                                                                            index,
+                                                                            optionIndex
+                                                                        )
+                                                                    "
                                                                 >
-                                                                    <input
-                                                                        :type="
-                                                                            getFieldTypeName(
-                                                                                field.field_type_id
-                                                                            ) ===
-                                                                            'checkbox'
-                                                                                ? 'checkbox'
-                                                                                : 'radio'
-                                                                        "
-                                                                        disabled
-                                                                        class="h-4 w-4"
+                                                                    <Trash2
+                                                                        class="h-4 w-4 text-destructive"
                                                                     />
-                                                                    <span
-                                                                        class="text-sm"
-                                                                        >{{
-                                                                            option.label
-                                                                        }}</span
-                                                                    >
-                                                                </div>
+                                                                </Button>
                                                             </div>
                                                         </div>
-                                                        <div v-else>
-                                                            <Input
-                                                                :type="
+                                                    </div>
+
+                                                    <!-- Field Preview -->
+                                                    <div
+                                                        v-if="
+                                                            field.field_type_id &&
+                                                            field.label
+                                                        "
+                                                        class="mt-4 p-3 bg-muted rounded-lg"
+                                                    >
+                                                        <Label
+                                                            class="text-sm text-muted-foreground mb-2 block"
+                                                            >Preview:</Label
+                                                        >
+                                                        <div class="space-y-2">
+                                                            <Label>
+                                                                {{
+                                                                    field.label
+                                                                }}
+                                                                <Badge
+                                                                    v-if="
+                                                                        field.is_required
+                                                                    "
+                                                                    variant="destructive"
+                                                                    class="ml-2 text-xs"
+                                                                >
+                                                                    Required
+                                                                </Badge>
+                                                            </Label>
+
+                                                            <!-- Preview based on field type -->
+                                                            <div
+                                                                v-if="
                                                                     getFieldTypeName(
                                                                         field.field_type_id
-                                                                    )
+                                                                    ) ===
+                                                                    'textarea'
                                                                 "
-                                                                placeholder="This is a preview"
-                                                                disabled
-                                                            />
+                                                            >
+                                                                <Textarea
+                                                                    placeholder="This is a preview"
+                                                                    disabled
+                                                                />
+                                                            </div>
+                                                            <div
+                                                                v-else-if="
+                                                                    fieldTypeRequiresOptions(
+                                                                        field.field_type_id
+                                                                    ) &&
+                                                                    field
+                                                                        .options
+                                                                        .length >
+                                                                        0
+                                                                "
+                                                            >
+                                                                <div
+                                                                    class="space-y-1"
+                                                                >
+                                                                    <div
+                                                                        v-for="option in field.options"
+                                                                        :key="
+                                                                            option.temp_id
+                                                                        "
+                                                                        class="flex items-center space-x-2"
+                                                                    >
+                                                                        <input
+                                                                            :type="
+                                                                                getFieldTypeName(
+                                                                                    field.field_type_id
+                                                                                ) ===
+                                                                                'checkbox'
+                                                                                    ? 'checkbox'
+                                                                                    : 'radio'
+                                                                            "
+                                                                            disabled
+                                                                            class="h-4 w-4"
+                                                                        />
+                                                                        <span
+                                                                            class="text-sm"
+                                                                            >{{
+                                                                                option.label
+                                                                            }}</span
+                                                                        >
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                            <div v-else>
+                                                                <Input
+                                                                    :type="
+                                                                        getFieldTypeName(
+                                                                            field.field_type_id
+                                                                        )
+                                                                    "
+                                                                    placeholder="This is a preview"
+                                                                    disabled
+                                                                />
+                                                            </div>
                                                         </div>
                                                     </div>
                                                 </div>
-                                            </div>
 
-                                            <Button
-                                                type="button"
-                                                variant="ghost"
-                                                size="sm"
-                                                @click="removeField(index)"
-                                                class="text-destructive hover:text-destructive"
-                                            >
-                                                <Trash2 class="h-4 w-4" />
-                                            </Button>
-                                        </div>
-                                    </CardContent>
-                                </Card>
-                            </template>
-                        </draggable>
+                                                <Button
+                                                    type="button"
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    @click="removeField(index)"
+                                                    class="text-destructive hover:text-destructive"
+                                                >
+                                                    <Trash2 class="h-4 w-4" />
+                                                </Button>
+                                            </div>
+                                        </CardContent>
+                                    </Card>
+                                </template>
+                            </draggable>
+
+                            <!-- Tombol Add Field di bawah ketika sudah ada fields -->
+                            <div class="flex justify-center pt-4">
+                                <Button
+                                    type="button"
+                                    @click="addField"
+                                    size="sm"
+                                    class="w-full max-w-xs"
+                                >
+                                    <Plus class="h-4 w-4 mr-2" />
+                                    Add Another Field
+                                </Button>
+                            </div>
+                        </div>
                     </CardContent>
                 </Card>
 
