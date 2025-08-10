@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\FormAccessControlController;
 use App\Http\Controllers\FormController;
 use App\Http\Controllers\FormPhaseController;
 use App\Http\Controllers\ProfileController;
@@ -37,6 +38,27 @@ Route::resource('form-phases', FormPhaseController::class)->names([
     'update' => 'form-phases.update',
     'destroy' => 'form-phases.destroy',
 ]);
+
+Route::resource('form-access-controls', FormAccessControlController::class)->names([
+    'index' => 'form-access-controls.index',
+    'create' => 'form-access-controls.create',
+    'store' => 'form-access-controls.store',
+    'show' => 'form-access-controls.show',
+    'edit' => 'form-access-controls.edit',
+    'update' => 'form-access-controls.update',
+    'destroy' => 'form-access-controls.destroy',
+]);
+
+// Additional routes for Form Access Controls
+Route::post('form-access-controls/bulk-create', [FormAccessControlController::class, 'bulkCreate'])
+    ->name('form-access-controls.bulk-create');
+
+Route::post('form-access-controls/bulk-delete', [FormAccessControlController::class, 'bulkDelete'])
+    ->name('form-access-controls.bulk-delete');
+
+// API endpoint untuk mendapatkan study programs berdasarkan faculty
+Route::get('api/study-programs', [FormAccessControlController::class, 'getStudyPrograms'])
+    ->name('api.study-programs');
 
 // API endpoint untuk mendapatkan form access controls
 Route::get('api/form-access-controls', [FormPhaseController::class, 'getFormAccessControls'])

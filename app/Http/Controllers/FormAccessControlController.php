@@ -1,0 +1,309 @@
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Models\FormAccessControl;
+use App\Models\Form;
+use App\Models\StudyProgram;
+use App\Models\Faculty;
+use Spatie\Permission\Models\Role;
+use Illuminate\Http\Request;
+use Inertia\Inertia;
+use Illuminate\Support\Facades\DB;
+
+class FormAccessControlController extends Controller
+{
+    public function index(Request $request)
+    {
+        $query = FormAccessControl::with(['form', 'role', 'studyProgram.faculty']);
+
+        // Apply filters
+        if ($request->has('form_id') && $request->form_id) {
+            $query->where('form_id', $request->form_id);
+        }
+
+        if ($request->has('role_id') && $request->role_id) {
+            $query->where('role_id', $request->role_id);
+        }
+
+        if ($request->has('faculty_id') && $request->faculty_id) {
+            $query->whereHas('studyProgram', function ($q) use ($request) {
+                $q->where('faculty_id', $request->faculty_id);
+            });
+        }
+
+        if ($request->has('study_program_id') && $request->study_program_id) {
+            $query->where('study_program_id', $request->study_program_id);
+        }
+
+        // Search functionality
+        if ($request->has('search') && $request->search) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->whereHas('form', function ($subQ) use ($search) {
+                    $subQ->where('title', 'like', "%{$search}%");
+                })
+                    ->orWhereHas('role', function ($subQ) use ($search) {
+                        $subQ->where('name', 'like', "%{$search}%");
+                    })
+                    ->orWhereHas('studyProgram', function ($subQ) use ($search) {
+                        $subQ->where('name', 'like', "%{$search}%");
+                    });
+            });
+        }
+
+        $formAccessControls = $query->orderBy('created_at', 'desc')->paginate(15);
+
+        // Get filter options
+        $forms = Form::where('is_active', true)->orderBy('title')->get(['id', 'title']);
+        $roles = Role::orderBy('name')->get(['id', 'name']);
+        $faculties = Faculty::with('studyPrograms')->orderBy('name')->get();
+
+        return Inertia::render('FormAccessControls/Index', [
+            'formAccessControls' => $formAccessControls,
+            'forms' => $forms,
+            'roles' => $roles,
+            'faculties' => $faculties,
+            'filters' => $request->only(['form_id', 'role_id', 'faculty_id', 'study_program_id', 'search'])
+        ]);
+    }
+
+    public function create()
+    {
+        $forms = Form::where('is_active', true)->orderBy('title')->get(['id', 'title']);
+        $roles = Role::orderBy('name')->get(['id', 'name']);
+        $faculties = Faculty::with('studyPrograms')->orderBy('name')->get();
+
+        return Inertia::render('FormAccessControls/Create', [
+            'forms' => $forms,
+            'roles' => $roles,
+            'faculties' => $faculties
+        ]);
+    }
+
+    public function store(Request $request)
+    {
+        $request->validate([
+            'form_id' => 'required|exists:forms,id',
+            'role_id' => 'required|exists:roles,id',
+            'study_program_id' => 'required|exists:study_programs,id',
+        ]);
+
+        // Check for duplicate combination
+        $existingControl = FormAccessControl::where([
+            'form_id' => $request->form_id,
+            'role_id' => $request->role_id,
+            'study_program_id' => $request->study_program_id,
+        ])->first();
+
+        if ($existingControl) {
+            return back()->withErrors([
+                'duplicate' => 'This combination of Form, Role, and Study Program already exists.'
+            ]);
+        }
+
+        try {
+            FormAccessControl::create([
+                'form_id' => $request->form_id,
+                'role_id' => $request->role_id,
+                'study_program_id' => $request->study_program_id,
+            ]);
+
+            return redirect()->route('form-access-controls.index')
+                ->with('success', 'Form access control created successfully.');
+
+        } catch (\Exception $e) {
+            return back()->withErrors(['error' => 'Failed to create form access control: ' . $e->getMessage()]);
+        }
+    }
+
+    public function show(FormAccessControl $formAccessControl)
+    {
+        $formAccessControl->load(['form', 'role', 'studyProgram.faculty', 'formPhaseDetails.formPhase']);
+
+        return Inertia::render('FormAccessControls/Show', [
+            'formAccessControl' => $formAccessControl
+        ]);
+    }
+
+    public function edit(FormAccessControl $formAccessControl)
+    {
+        $formAccessControl->load(['form', 'role', 'studyProgram.faculty']);
+
+        $forms = Form::where('is_active', true)->orderBy('title')->get(['id', 'title']);
+        $roles = Role::orderBy('name')->get(['id', 'name']);
+        $faculties = Faculty::with('studyPrograms')->orderBy('name')->get();
+
+        return Inertia::render('FormAccessControls/Edit', [
+            'formAccessControl' => $formAccessControl,
+            'forms' => $forms,
+            'roles' => $roles,
+            'faculties' => $faculties
+        ]);
+    }
+
+    public function update(Request $request, FormAccessControl $formAccessControl)
+    {
+        $request->validate([
+            'form_id' => 'required|exists:forms,id',
+            'role_id' => 'required|exists:roles,id',
+            'study_program_id' => 'required|exists:study_programs,id',
+        ]);
+
+        // Check for duplicate combination (excluding current record)
+        $existingControl = FormAccessControl::where([
+            'form_id' => $request->form_id,
+            'role_id' => $request->role_id,
+            'study_program_id' => $request->study_program_id,
+        ])->where('id', '!=', $formAccessControl->id)->first();
+
+        if ($existingControl) {
+            return back()->withErrors([
+                'duplicate' => 'This combination of Form, Role, and Study Program already exists.'
+            ]);
+        }
+
+        try {
+            $formAccessControl->update([
+                'form_id' => $request->form_id,
+                'role_id' => $request->role_id,
+                'study_program_id' => $request->study_program_id,
+            ]);
+
+            return redirect()->route('form-access-controls.index')
+                ->with('success', 'Form access control updated successfully.');
+
+        } catch (\Exception $e) {
+            return back()->withErrors(['error' => 'Failed to update form access control: ' . $e->getMessage()]);
+        }
+    }
+
+    public function destroy(FormAccessControl $formAccessControl)
+    {
+        try {
+            DB::beginTransaction();
+
+            // Check if this access control is being used in form phase details
+            $usageCount = $formAccessControl->formPhaseDetails()->count();
+
+            if ($usageCount > 0) {
+                return back()->withErrors([
+                    'error' => "Cannot delete this access control. It is currently being used in {$usageCount} form phase detail(s)."
+                ]);
+            }
+
+            $formAccessControl->delete();
+
+            DB::commit();
+
+            return redirect()->route('form-access-controls.index')
+                ->with('success', 'Form access control deleted successfully.');
+
+        } catch (\Exception $e) {
+            DB::rollback();
+            return back()->withErrors(['error' => 'Failed to delete form access control: ' . $e->getMessage()]);
+        }
+    }
+
+    public function bulkCreate(Request $request)
+    {
+        $request->validate([
+            'form_id' => 'required|exists:forms,id',
+            'combinations' => 'required|array|min:1',
+            'combinations.*.role_id' => 'required|exists:roles,id',
+            'combinations.*.study_program_id' => 'required|exists:study_programs,id',
+        ]);
+
+        try {
+            DB::beginTransaction();
+
+            $created = 0;
+            $skipped = 0;
+            $errors = [];
+
+            foreach ($request->combinations as $index => $combination) {
+                // Check for existing combination
+                $exists = FormAccessControl::where([
+                    'form_id' => $request->form_id,
+                    'role_id' => $combination['role_id'],
+                    'study_program_id' => $combination['study_program_id'],
+                ])->exists();
+
+                if ($exists) {
+                    $skipped++;
+                    continue;
+                }
+
+                FormAccessControl::create([
+                    'form_id' => $request->form_id,
+                    'role_id' => $combination['role_id'],
+                    'study_program_id' => $combination['study_program_id'],
+                ]);
+
+                $created++;
+            }
+
+            DB::commit();
+
+            $message = "Bulk creation completed. Created: {$created}, Skipped (duplicates): {$skipped}";
+
+            return redirect()->route('form-access-controls.index')
+                ->with('success', $message);
+
+        } catch (\Exception $e) {
+            DB::rollback();
+            return back()->withErrors(['error' => 'Failed to create form access controls: ' . $e->getMessage()]);
+        }
+    }
+
+    public function bulkDelete(Request $request)
+    {
+        $request->validate([
+            'ids' => 'required|array|min:1',
+            'ids.*' => 'exists:form_access_controls,id'
+        ]);
+
+        try {
+            DB::beginTransaction();
+
+            $accessControls = FormAccessControl::whereIn('id', $request->ids)->get();
+            $cannotDelete = [];
+            $deleted = 0;
+
+            foreach ($accessControls as $control) {
+                $usageCount = $control->formPhaseDetails()->count();
+
+                if ($usageCount > 0) {
+                    $cannotDelete[] = "ID {$control->id} (used in {$usageCount} phase details)";
+                    continue;
+                }
+
+                $control->delete();
+                $deleted++;
+            }
+
+            DB::commit();
+
+            $message = "Bulk deletion completed. Deleted: {$deleted}";
+            if (!empty($cannotDelete)) {
+                $message .= ". Could not delete: " . implode(', ', $cannotDelete);
+            }
+
+            return redirect()->route('form-access-controls.index')
+                ->with('success', $message);
+
+        } catch (\Exception $e) {
+            DB::rollback();
+            return back()->withErrors(['error' => 'Failed to delete form access controls: ' . $e->getMessage()]);
+        }
+    }
+
+    public function getStudyPrograms(Request $request)
+    {
+        $studyPrograms = StudyProgram::where('faculty_id', $request->faculty_id)
+            ->orderBy('name')
+            ->get(['id', 'name']);
+
+        return response()->json($studyPrograms);
+    }
+}
