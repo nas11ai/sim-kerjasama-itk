@@ -107,15 +107,16 @@ interface Props {
 const props = defineProps<Props>();
 
 const searchQuery = ref(props.filters.search || "");
-const selectedFormId = ref(props.filters.form_id || "");
-const selectedRoleId = ref(props.filters.role_id || "");
-const selectedFacultyId = ref(props.filters.faculty_id || "");
-const selectedStudyProgramId = ref(props.filters.study_program_id || "");
+const selectedFormId = ref(props.filters.form_id || "all");
+const selectedRoleId = ref(props.filters.role_id || "all");
+const selectedFacultyId = ref(props.filters.faculty_id || "all");
+const selectedStudyProgramId = ref(props.filters.study_program_id || "all");
 const selectedItems = ref<number[]>([]);
 const selectAll = ref(false);
 
 const studyPrograms = computed(() => {
-    if (!selectedFacultyId.value) return [];
+    if (!selectedFacultyId.value || selectedFacultyId.value === "all")
+        return [];
     const faculty = props.faculties.find(
         (f) => f.id.toString() === selectedFacultyId.value
     );
@@ -124,7 +125,7 @@ const studyPrograms = computed(() => {
 
 // Watch for faculty change to reset study program selection
 watch(selectedFacultyId, () => {
-    selectedStudyProgramId.value = "";
+    selectedStudyProgramId.value = "all";
 });
 
 // Watch for select all checkbox
@@ -151,10 +152,11 @@ watch(
 
 const hasActiveFilters = computed(() => {
     return (
-        selectedFormId.value ||
-        selectedRoleId.value ||
-        selectedFacultyId.value ||
-        selectedStudyProgramId.value ||
+        (selectedFormId.value && selectedFormId.value !== "all") ||
+        (selectedRoleId.value && selectedRoleId.value !== "all") ||
+        (selectedFacultyId.value && selectedFacultyId.value !== "all") ||
+        (selectedStudyProgramId.value &&
+            selectedStudyProgramId.value !== "all") ||
         searchQuery.value
     );
 });
@@ -163,10 +165,13 @@ const applyFilters = () => {
     const params: Filters = {};
 
     if (searchQuery.value) params.search = searchQuery.value;
-    if (selectedFormId.value) params.form_id = selectedFormId.value;
-    if (selectedRoleId.value) params.role_id = selectedRoleId.value;
-    if (selectedFacultyId.value) params.faculty_id = selectedFacultyId.value;
-    if (selectedStudyProgramId.value)
+    if (selectedFormId.value && selectedFormId.value !== "all")
+        params.form_id = selectedFormId.value;
+    if (selectedRoleId.value && selectedRoleId.value !== "all")
+        params.role_id = selectedRoleId.value;
+    if (selectedFacultyId.value && selectedFacultyId.value !== "all")
+        params.faculty_id = selectedFacultyId.value;
+    if (selectedStudyProgramId.value && selectedStudyProgramId.value !== "all")
         params.study_program_id = selectedStudyProgramId.value;
 
     router.get(route("form-access-controls.index"), params, {
@@ -177,10 +182,10 @@ const applyFilters = () => {
 
 const clearFilters = () => {
     searchQuery.value = "";
-    selectedFormId.value = "";
-    selectedRoleId.value = "";
-    selectedFacultyId.value = "";
-    selectedStudyProgramId.value = "";
+    selectedFormId.value = "all";
+    selectedRoleId.value = "all";
+    selectedFacultyId.value = "all";
+    selectedStudyProgramId.value = "all";
 
     router.get(
         route("form-access-controls.index"),
@@ -296,7 +301,9 @@ const toggleItemSelection = (id: number) => {
                                     <SelectValue placeholder="All Forms" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value="">All Forms</SelectItem>
+                                    <SelectItem value="all"
+                                        >All Forms</SelectItem
+                                    >
                                     <SelectItem
                                         v-for="form in props.forms"
                                         :key="form.id"
@@ -315,7 +322,9 @@ const toggleItemSelection = (id: number) => {
                                     <SelectValue placeholder="All Roles" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value="">All Roles</SelectItem>
+                                    <SelectItem value="all"
+                                        >All Roles</SelectItem
+                                    >
                                     <SelectItem
                                         v-for="role in props.roles"
                                         :key="role.id"
@@ -334,7 +343,7 @@ const toggleItemSelection = (id: number) => {
                                     <SelectValue placeholder="All Faculties" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value=""
+                                    <SelectItem value="all"
                                         >All Faculties</SelectItem
                                     >
                                     <SelectItem
@@ -352,7 +361,10 @@ const toggleItemSelection = (id: number) => {
                         <div>
                             <Select
                                 v-model="selectedStudyProgramId"
-                                :disabled="!selectedFacultyId"
+                                :disabled="
+                                    !selectedFacultyId ||
+                                    selectedFacultyId === 'all'
+                                "
                             >
                                 <SelectTrigger>
                                     <SelectValue
@@ -360,7 +372,7 @@ const toggleItemSelection = (id: number) => {
                                     />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value=""
+                                    <SelectItem value="all"
                                         >All Study Programs</SelectItem
                                     >
                                     <SelectItem
