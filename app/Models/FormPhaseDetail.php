@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class FormPhaseDetail extends Model
 {
-    protected $fillable = ['form_phase_id', 'form_access_control_id', 'phase_type_id', 'order'];
+    protected $fillable = ['form_phase_id', 'form_access_control_id', 'phase_type_id', 'order', 'needs_review'];
 
     public function phaseType()
     {
