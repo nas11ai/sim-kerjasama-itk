@@ -52,6 +52,7 @@ interface FormAccessControl {
 interface FormPhaseDetail {
     id: number;
     order: number;
+    needs_review: boolean;
     phase_type: PhaseType;
     form_access_control: FormAccessControl;
 }
@@ -78,6 +79,7 @@ const sortedPhaseDetails = props.formPhase.form_phase_details.sort(
 </script>
 
 <template>
+
     <Head title="Form Phase Details" />
 
     <AuthenticatedLayout>
@@ -85,22 +87,20 @@ const sortedPhaseDetails = props.formPhase.form_phase_details.sort(
             <div class="flex items-center justify-between">
                 <div class="flex items-center gap-4">
                     <Link :href="route('form-phases.index')">
-                        <Button variant="ghost" size="sm">
-                            <ArrowLeft class="h-4 w-4 mr-2" />
-                            Back to Form Phases
-                        </Button>
+                    <Button variant="ghost" size="sm">
+                        <ArrowLeft class="h-4 w-4 mr-2" />
+                        Back to Form Phases
+                    </Button>
                     </Link>
-                    <h2
-                        class="text-xl font-semibold leading-tight text-gray-800"
-                    >
+                    <h2 class="text-xl font-semibold leading-tight text-gray-800">
                         Form Phase Details
                     </h2>
                 </div>
                 <Link :href="route('form-phases.edit', props.formPhase.id)">
-                    <Button>
-                        <Edit class="h-4 w-4 mr-2" />
-                        Edit Phase
-                    </Button>
+                <Button>
+                    <Edit class="h-4 w-4 mr-2" />
+                    Edit Phase
+                </Button>
                 </Link>
             </div>
         </template>
@@ -117,9 +117,7 @@ const sortedPhaseDetails = props.formPhase.form_phase_details.sort(
                 <CardContent class="space-y-4">
                     <div class="grid gap-6 md:grid-cols-2">
                         <div>
-                            <h3
-                                class="font-medium text-sm text-muted-foreground mb-1"
-                            >
+                            <h3 class="font-medium text-sm text-muted-foreground mb-1">
                                 Title
                             </h3>
                             <p class="text-lg font-medium">
@@ -127,23 +125,14 @@ const sortedPhaseDetails = props.formPhase.form_phase_details.sort(
                             </p>
                         </div>
                         <div>
-                            <h3
-                                class="font-medium text-sm text-muted-foreground mb-1"
-                            >
+                            <h3 class="font-medium text-sm text-muted-foreground mb-1">
                                 Status
                             </h3>
-                            <Badge
-                                :variant="
-                                    props.formPhase.is_active
-                                        ? 'default'
-                                        : 'secondary'
-                                "
-                                class="flex items-center gap-1 w-fit"
-                            >
-                                <CheckCircle
-                                    v-if="props.formPhase.is_active"
-                                    class="h-3 w-3"
-                                />
+                            <Badge :variant="props.formPhase.is_active
+                                ? 'default'
+                                : 'secondary'
+                                " class="flex items-center gap-1 w-fit">
+                                <CheckCircle v-if="props.formPhase.is_active" class="h-3 w-3" />
                                 <XCircle v-else class="h-3 w-3" />
                                 {{
                                     props.formPhase.is_active
@@ -155,9 +144,7 @@ const sortedPhaseDetails = props.formPhase.form_phase_details.sort(
                     </div>
 
                     <div v-if="props.formPhase.description">
-                        <h3
-                            class="font-medium text-sm text-muted-foreground mb-1"
-                        >
+                        <h3 class="font-medium text-sm text-muted-foreground mb-1">
                             Description
                         </h3>
                         <p class="text-gray-700">
@@ -199,24 +186,21 @@ const sortedPhaseDetails = props.formPhase.form_phase_details.sort(
                     </CardTitle>
                 </CardHeader>
                 <CardContent>
-                    <div
-                        v-if="sortedPhaseDetails.length === 0"
-                        class="text-center py-8 text-muted-foreground"
-                    >
+                    <div v-if="sortedPhaseDetails.length === 0" class="text-center py-8 text-muted-foreground">
                         <Users class="h-12 w-12 mx-auto mb-4 opacity-50" />
                         <p>No phase details configured yet.</p>
                     </div>
 
                     <div v-else class="space-y-4">
-                        <div
-                            v-for="(detail, index) in sortedPhaseDetails"
-                            :key="detail.id"
-                            class="border rounded-lg p-4 bg-card"
-                        >
+                        <div v-for="(detail, index) in sortedPhaseDetails" :key="detail.id"
+                            class="border rounded-lg p-4 bg-card">
                             <div class="flex items-start justify-between mb-3">
                                 <div class="flex items-center gap-2">
                                     <Badge variant="outline" class="text-xs">
                                         Step {{ detail.order }}
+                                    </Badge>
+                                    <Badge v-if="detail.needs_review" class="text-xs">
+                                        Needs Review
                                     </Badge>
                                     <Badge class="text-xs">
                                         {{ detail.phase_type.name }}
@@ -227,17 +211,11 @@ const sortedPhaseDetails = props.formPhase.form_phase_details.sort(
                             <div class="grid gap-4 md:grid-cols-3">
                                 <!-- Form Information -->
                                 <div class="space-y-2">
-                                    <div
-                                        class="flex items-center gap-2 text-sm font-medium"
-                                    >
-                                        <FileText
-                                            class="h-4 w-4 text-muted-foreground"
-                                        />
+                                    <div class="flex items-center gap-2 text-sm font-medium">
+                                        <FileText class="h-4 w-4 text-muted-foreground" />
                                         Form
                                     </div>
-                                    <p
-                                        class="text-sm text-muted-foreground pl-6"
-                                    >
+                                    <p class="text-sm text-muted-foreground pl-6">
                                         {{
                                             detail.form_access_control.form
                                                 .title
@@ -247,17 +225,11 @@ const sortedPhaseDetails = props.formPhase.form_phase_details.sort(
 
                                 <!-- Role Information -->
                                 <div class="space-y-2">
-                                    <div
-                                        class="flex items-center gap-2 text-sm font-medium"
-                                    >
-                                        <Users
-                                            class="h-4 w-4 text-muted-foreground"
-                                        />
+                                    <div class="flex items-center gap-2 text-sm font-medium">
+                                        <Users class="h-4 w-4 text-muted-foreground" />
                                         Role
                                     </div>
-                                    <p
-                                        class="text-sm text-muted-foreground pl-6"
-                                    >
+                                    <p class="text-sm text-muted-foreground pl-6">
                                         {{
                                             detail.form_access_control.role.name
                                         }}
@@ -266,17 +238,11 @@ const sortedPhaseDetails = props.formPhase.form_phase_details.sort(
 
                                 <!-- Study Program Information -->
                                 <div class="space-y-2">
-                                    <div
-                                        class="flex items-center gap-2 text-sm font-medium"
-                                    >
-                                        <Building
-                                            class="h-4 w-4 text-muted-foreground"
-                                        />
+                                    <div class="flex items-center gap-2 text-sm font-medium">
+                                        <Building class="h-4 w-4 text-muted-foreground" />
                                         Study Program
                                     </div>
-                                    <div
-                                        class="text-sm text-muted-foreground pl-6"
-                                    >
+                                    <div class="text-sm text-muted-foreground pl-6">
                                         <p>
                                             {{
                                                 detail.form_access_control
@@ -294,10 +260,7 @@ const sortedPhaseDetails = props.formPhase.form_phase_details.sort(
                             </div>
 
                             <!-- Progress indicator for steps -->
-                            <div
-                                v-if="index < sortedPhaseDetails.length - 1"
-                                class="flex justify-center mt-4"
-                            >
+                            <div v-if="index < sortedPhaseDetails.length - 1" class="flex justify-center mt-4">
                                 <div class="w-px h-6 bg-border"></div>
                             </div>
                         </div>

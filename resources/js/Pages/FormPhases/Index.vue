@@ -68,6 +68,7 @@ interface FormAccessControl {
 interface FormPhaseDetail {
     id: number;
     order: number;
+    needs_review: boolean;
     phase_type: PhaseType;
     form_access_control: FormAccessControl;
 }
@@ -145,6 +146,7 @@ const toggleStatus = (formPhase: FormPhase) => {
 </script>
 
 <template>
+
     <Head title="Form Phases Management" />
 
     <AuthenticatedLayout>
@@ -154,10 +156,10 @@ const toggleStatus = (formPhase: FormPhase) => {
                     Form Phases Management
                 </h2>
                 <Link :href="route('form-phases.create')">
-                    <Button>
-                        <Plus class="h-4 w-4 mr-2" />
-                        Create Form Phase
-                    </Button>
+                <Button>
+                    <Plus class="h-4 w-4 mr-2" />
+                    Create Form Phase
+                </Button>
                 </Link>
             </div>
         </template>
@@ -174,11 +176,8 @@ const toggleStatus = (formPhase: FormPhase) => {
                 <CardContent>
                     <div class="flex items-center gap-4">
                         <div class="flex-1">
-                            <Input
-                                v-model="searchQuery"
-                                placeholder="Search form phases by title or description..."
-                                class="max-w-md"
-                            />
+                            <Input v-model="searchQuery" placeholder="Search form phases by title or description..."
+                                class="max-w-md" />
                         </div>
                     </div>
                 </CardContent>
@@ -202,21 +201,14 @@ const toggleStatus = (formPhase: FormPhase) => {
                                     <TableHead>Status</TableHead>
                                     <TableHead>Phase Details</TableHead>
                                     <TableHead>Created</TableHead>
-                                    <TableHead class="text-right"
-                                        >Actions</TableHead
-                                    >
+                                    <TableHead class="text-right">Actions</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                <TableRow
-                                    v-for="formPhase in filteredFormPhases"
-                                    :key="formPhase.id"
-                                >
+                                <TableRow v-for="formPhase in filteredFormPhases" :key="formPhase.id">
                                     <TableCell class="font-medium">
                                         <div class="flex items-center gap-2">
-                                            <FileText
-                                                class="h-4 w-4 text-muted-foreground"
-                                            />
+                                            <FileText class="h-4 w-4 text-muted-foreground" />
                                             {{ formPhase.title }}
                                         </div>
                                     </TableCell>
@@ -226,13 +218,10 @@ const toggleStatus = (formPhase: FormPhase) => {
                                         </div>
                                     </TableCell>
                                     <TableCell>
-                                        <Badge
-                                            :variant="
-                                                formPhase.is_active
-                                                    ? 'default'
-                                                    : 'secondary'
-                                            "
-                                        >
+                                        <Badge :variant="formPhase.is_active
+                                                ? 'default'
+                                                : 'secondary'
+                                            ">
                                             {{
                                                 formPhase.is_active
                                                     ? "Active"
@@ -242,9 +231,7 @@ const toggleStatus = (formPhase: FormPhase) => {
                                     </TableCell>
                                     <TableCell>
                                         <div class="flex items-center gap-2">
-                                            <Users
-                                                class="h-4 w-4 text-muted-foreground"
-                                            />
+                                            <Users class="h-4 w-4 text-muted-foreground" />
                                             <span class="text-sm">
                                                 {{
                                                     formPhase.form_phase_details
@@ -255,9 +242,7 @@ const toggleStatus = (formPhase: FormPhase) => {
                                         </div>
                                     </TableCell>
                                     <TableCell>
-                                        <div
-                                            class="text-sm text-muted-foreground"
-                                        >
+                                        <div class="text-sm text-muted-foreground">
                                             {{
                                                 new Date(
                                                     formPhase.created_at
@@ -268,72 +253,47 @@ const toggleStatus = (formPhase: FormPhase) => {
                                     <TableCell class="text-right">
                                         <DropdownMenu>
                                             <DropdownMenuTrigger asChild>
-                                                <Button
-                                                    variant="ghost"
-                                                    size="sm"
-                                                >
-                                                    <MoreHorizontal
-                                                        class="h-4 w-4"
-                                                    />
+                                                <Button variant="ghost" size="sm">
+                                                    <MoreHorizontal class="h-4 w-4" />
                                                 </Button>
                                             </DropdownMenuTrigger>
                                             <DropdownMenuContent align="end">
-                                                <Link
-                                                    :href="
-                                                        route(
-                                                            'form-phases.show',
-                                                            formPhase.id
-                                                        )
-                                                    "
-                                                >
-                                                    <DropdownMenuItem>
-                                                        <Eye
-                                                            class="h-4 w-4 mr-2"
-                                                        />
-                                                        View Details
-                                                    </DropdownMenuItem>
+                                                <Link :href="route(
+                                                    'form-phases.show',
+                                                    formPhase.id
+                                                )
+                                                    ">
+                                                <DropdownMenuItem>
+                                                    <Eye class="h-4 w-4 mr-2" />
+                                                    View Details
+                                                </DropdownMenuItem>
                                                 </Link>
-                                                <Link
-                                                    :href="
-                                                        route(
-                                                            'form-phases.edit',
-                                                            formPhase.id
-                                                        )
-                                                    "
-                                                >
-                                                    <DropdownMenuItem>
-                                                        <Edit
-                                                            class="h-4 w-4 mr-2"
-                                                        />
-                                                        Edit
-                                                    </DropdownMenuItem>
+                                                <Link :href="route(
+                                                    'form-phases.edit',
+                                                    formPhase.id
+                                                )
+                                                    ">
+                                                <DropdownMenuItem>
+                                                    <Edit class="h-4 w-4 mr-2" />
+                                                    Edit
+                                                </DropdownMenuItem>
                                                 </Link>
-                                                <DropdownMenuItem
-                                                    @click="
-                                                        toggleStatus(formPhase)
-                                                    "
-                                                    class="cursor-pointer"
-                                                >
-                                                    <Settings
-                                                        class="h-4 w-4 mr-2"
-                                                    />
+                                                <DropdownMenuItem @click="
+                                                    toggleStatus(formPhase)
+                                                    " class="cursor-pointer">
+                                                    <Settings class="h-4 w-4 mr-2" />
                                                     {{
                                                         formPhase.is_active
                                                             ? "Deactivate"
                                                             : "Activate"
                                                     }}
                                                 </DropdownMenuItem>
-                                                <DropdownMenuItem
-                                                    @click="
-                                                        deleteFormPhase(
-                                                            formPhase.id
-                                                        )
-                                                    "
-                                                    class="text-destructive cursor-pointer"
-                                                >
-                                                    <Trash2
-                                                        class="h-4 w-4 mr-2"
-                                                    />
+                                                <DropdownMenuItem @click="
+                                                    deleteFormPhase(
+                                                        formPhase.id
+                                                    )
+                                                    " class="text-destructive cursor-pointer">
+                                                    <Trash2 class="h-4 w-4 mr-2" />
                                                     Delete
                                                 </DropdownMenuItem>
                                             </DropdownMenuContent>
@@ -345,13 +305,8 @@ const toggleStatus = (formPhase: FormPhase) => {
                     </div>
 
                     <!-- Empty State -->
-                    <div
-                        v-if="filteredFormPhases.length === 0"
-                        class="text-center py-12"
-                    >
-                        <Settings
-                            class="h-12 w-12 mx-auto text-muted-foreground mb-4"
-                        />
+                    <div v-if="filteredFormPhases.length === 0" class="text-center py-12">
+                        <Settings class="h-12 w-12 mx-auto text-muted-foreground mb-4" />
                         <h3 class="text-lg font-medium mb-2">
                             No form phases found
                         </h3>
@@ -362,48 +317,30 @@ const toggleStatus = (formPhase: FormPhase) => {
                                     : "Get started by creating your first form phase."
                             }}
                         </p>
-                        <Link
-                            :href="route('form-phases.create')"
-                            v-if="!searchQuery"
-                        >
-                            <Button>
-                                <Plus class="h-4 w-4 mr-2" />
-                                Create Form Phase
-                            </Button>
+                        <Link :href="route('form-phases.create')" v-if="!searchQuery">
+                        <Button>
+                            <Plus class="h-4 w-4 mr-2" />
+                            Create Form Phase
+                        </Button>
                         </Link>
                     </div>
                 </CardContent>
             </Card>
 
             <!-- Pagination -->
-            <div
-                v-if="props.formPhases.last_page > 1"
-                class="flex justify-center"
-            >
+            <div v-if="props.formPhases.last_page > 1" class="flex justify-center">
                 <div class="flex items-center gap-2">
-                    <template
-                        v-for="link in props.formPhases.links"
-                        :key="link.label"
-                    >
-                        <Link
-                            v-if="link.url"
-                            :href="link.url"
-                            :class="[
-                                'px-3 py-2 text-sm rounded-md',
-                                link.active
-                                    ? 'bg-primary text-primary-foreground'
-                                    : 'bg-background border hover:bg-muted',
-                            ]"
-                            v-html="link.label"
-                        />
-                        <span
-                            v-else
-                            :class="[
-                                'px-3 py-2 text-sm rounded-md text-muted-foreground',
-                                'bg-muted cursor-not-allowed',
-                            ]"
-                            v-html="link.label"
-                        />
+                    <template v-for="link in props.formPhases.links" :key="link.label">
+                        <Link v-if="link.url" :href="link.url" :class="[
+                            'px-3 py-2 text-sm rounded-md',
+                            link.active
+                                ? 'bg-primary text-primary-foreground'
+                                : 'bg-background border hover:bg-muted',
+                        ]" v-html="link.label" />
+                        <span v-else :class="[
+                            'px-3 py-2 text-sm rounded-md text-muted-foreground',
+                            'bg-muted cursor-not-allowed',
+                        ]" v-html="link.label" />
                     </template>
                 </div>
             </div>

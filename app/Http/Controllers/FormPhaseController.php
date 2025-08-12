@@ -59,7 +59,8 @@ class FormPhaseController extends Controller
             'phase_details' => 'required|array|min:1',
             'phase_details.*.form_access_control_id' => 'required|exists:form_access_controls,id',
             'phase_details.*.phase_type_id' => 'required|exists:phase_types,id',
-            'phase_details.*.order' => 'required|integer|min:1'
+            'phase_details.*.order' => 'required|integer|min:1',
+            'phase_details.*.needs_review' => 'boolean',
         ]);
 
         try {
@@ -76,7 +77,8 @@ class FormPhaseController extends Controller
                     'form_phase_id' => $formPhase->id,
                     'form_access_control_id' => $detail['form_access_control_id'],
                     'phase_type_id' => $detail['phase_type_id'],
-                    'order' => $detail['order']
+                    'order' => $detail['order'],
+                    'needs_review' => $detail['needs_review'] ?? false,
                 ]);
             }
 
@@ -140,7 +142,8 @@ class FormPhaseController extends Controller
             'phase_details' => 'required|array|min:1',
             'phase_details.*.form_access_control_id' => 'required|exists:form_access_controls,id',
             'phase_details.*.phase_type_id' => 'required|exists:phase_types,id',
-            'phase_details.*.order' => 'required|integer|min:1'
+            'phase_details.*.order' => 'required|integer|min:1',
+            'phase_details.*.needs_review' => 'boolean',
         ]);
 
         try {
@@ -161,6 +164,7 @@ class FormPhaseController extends Controller
                     'form_phase_id' => $formPhase->id,
                     'form_access_control_id' => $detail['form_access_control_id'],
                     'phase_type_id' => $detail['phase_type_id'],
+                    'needs_review' => $detail['needs_review'] ?? false,
                     'order' => $detail['order']
                 ]);
             }
