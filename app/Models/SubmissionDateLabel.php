@@ -6,7 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class SubmissionDateLabel extends Model
 {
-    protected $fillable = ['label'];
+    protected $fillable = ['name'];
 
     public function submissionDates()
     {

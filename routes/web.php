@@ -4,6 +4,7 @@ use App\Http\Controllers\FormAccessControlController;
 use App\Http\Controllers\FormController;
 use App\Http\Controllers\FormPhaseController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\SubmissionPeriodController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -48,6 +49,19 @@ Route::resource('form-access-controls', FormAccessControlController::class)->nam
     'update' => 'form-access-controls.update',
     'destroy' => 'form-access-controls.destroy',
 ]);
+
+Route::resource('submission-periods', SubmissionPeriodController::class)->names([
+    'index' => 'submission-periods.index',
+    'create' => 'submission-periods.create',
+    'store' => 'submission-periods.store',
+    'show' => 'submission-periods.show',
+    'edit' => 'submission-periods.edit',
+    'update' => 'submission-periods.update',
+    'destroy' => 'submission-periods.destroy',
+]);
+
+Route::post('/submission-date-labels', [SubmissionPeriodController::class, 'storeLabel'])
+    ->name('submission-date-labels.store');
 
 // Additional routes for Form Access Controls
 Route::post('form-access-controls/bulk-create', [FormAccessControlController::class, 'bulkCreate'])
