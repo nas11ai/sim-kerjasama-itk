@@ -8,6 +8,8 @@ class FormSubmission extends Model
 {
     protected $fillable = [
         'form_id',
+        'is_submitted',
+        'can_proceed',
         'submitted_by'
     ];
 
