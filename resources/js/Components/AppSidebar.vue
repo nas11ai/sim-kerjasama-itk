@@ -1,5 +1,14 @@
 <script setup lang="ts">
-import { Calendar, ChevronDown, Home, Inbox, Search, Settings } from "lucide-vue-next";
+import {
+    Calendar,
+    ChevronDown,
+    Home,
+    FileText,
+    Settings,
+    Shield,
+    Clock,
+    Users
+} from "lucide-vue-next";
 import {
     Sidebar,
     SidebarContent,
@@ -13,7 +22,7 @@ import {
     SidebarMenuItem,
     useSidebar,
 } from "@/Components/ui/sidebar";
-import { usePage } from "@inertiajs/vue3";
+import { usePage, Link } from "@inertiajs/vue3";
 import { computed, ref } from "vue";
 import ResponsiveNavLink from "./ResponsiveNavLink.vue";
 
@@ -30,32 +39,61 @@ const getInitial = (name: string) => name ? name[0].toUpperCase() : 'U';
 const { state } = useSidebar();
 const isCollapsed = computed(() => state.value === 'collapsed');
 
-const items = [
+// Current route helper
+const isCurrentRoute = (routeName: string) => {
+    return page.url.startsWith(route(routeName));
+};
+
+// Menu items based on available routes
+const menuItems = [
     {
         title: "Dashboard",
         url: route("dashboard"),
         icon: Home,
+        routeName: "dashboard"
+    }
+];
+
+// Form Management Group
+const formManagementItems = [
+    {
+        title: "Forms",
+        url: route("forms.index"),
+        icon: FileText,
+        routeName: "forms.index"
     },
     {
-        title: "Inbox",
-        url: "#",
-        icon: Inbox,
-    },
-    {
-        title: "Calendar",
-        url: "#",
-        icon: Calendar,
-    },
-    {
-        title: "Search",
-        url: "#",
-        icon: Search,
-    },
-    {
-        title: "Settings",
-        url: "#",
+        title: "Form Phases",
+        url: route("form-phases.index"),
         icon: Settings,
+        routeName: "form-phases.index"
     },
+    {
+        title: "Form Access Controls",
+        url: route("form-access-controls.index"),
+        icon: Shield,
+        routeName: "form-access-controls.index"
+    }
+];
+
+// Submission Management Group
+const submissionManagementItems = [
+    {
+        title: "Submission Periods",
+        url: route("submission-periods.index"),
+        icon: Clock,
+        routeName: "submission-periods.index"
+    }
+];
+
+// User Management Group (if needed in the future)
+const userManagementItems = [
+    {
+        title: "Profile Settings",
+        url: route("profile.edit"),
+        icon: Users,
+        routeName: "profile.edit"
+    }
 ];
 </script>
 
@@ -64,7 +102,8 @@ const items = [
         <SidebarHeader>
             <SidebarMenu>
                 <SidebarMenuItem>
-                    <SidebarMenuButton size="lg" tooltip="My App Dashboard" class="flex flex-row">
+                    <SidebarMenuButton size="lg" tooltip="My App Dashboard" class="flex flex-row" as-child>
+                        <Link :href="route('dashboard')">
                         <div
                             class="flex aspect-square size-6 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
                             <Home class="size-4" />
@@ -73,20 +112,79 @@ const items = [
                             <span class="truncate font-semibold">SIM Kerjasama ITK</span>
                             <span class="truncate text-xs">Dashboard</span>
                         </div>
+                        </Link>
                     </SidebarMenuButton>
                 </SidebarMenuItem>
             </SidebarMenu>
         </SidebarHeader>
 
         <SidebarContent>
+            <!-- Main Menu -->
             <SidebarGroup>
-                <SidebarGroupLabel>Menu</SidebarGroupLabel>
+                <SidebarGroupLabel>Main Menu</SidebarGroupLabel>
                 <SidebarGroupContent>
                     <SidebarMenu>
-                        <SidebarMenuItem v-for="item in items" :key="item.title">
-                            <SidebarMenuButton :tooltip="item.title">
+                        <SidebarMenuItem v-for="item in menuItems" :key="item.title">
+                            <SidebarMenuButton :tooltip="item.title" as-child
+                                :isActive="isCurrentRoute(item.routeName)">
+                                <Link :href="item.url">
                                 <component :is="item.icon" class="size-4" />
                                 <span>{{ item.title }}</span>
+                                </Link>
+                            </SidebarMenuButton>
+                        </SidebarMenuItem>
+                    </SidebarMenu>
+                </SidebarGroupContent>
+            </SidebarGroup>
+
+            <!-- Form Management -->
+            <SidebarGroup>
+                <SidebarGroupLabel>Form Management</SidebarGroupLabel>
+                <SidebarGroupContent>
+                    <SidebarMenu>
+                        <SidebarMenuItem v-for="item in formManagementItems" :key="item.title">
+                            <SidebarMenuButton :tooltip="item.title" as-child
+                                :isActive="isCurrentRoute(item.routeName)">
+                                <Link :href="item.url">
+                                <component :is="item.icon" class="size-4" />
+                                <span>{{ item.title }}</span>
+                                </Link>
+                            </SidebarMenuButton>
+                        </SidebarMenuItem>
+                    </SidebarMenu>
+                </SidebarGroupContent>
+            </SidebarGroup>
+
+            <!-- Submission Management -->
+            <SidebarGroup>
+                <SidebarGroupLabel>Submission Management</SidebarGroupLabel>
+                <SidebarGroupContent>
+                    <SidebarMenu>
+                        <SidebarMenuItem v-for="item in submissionManagementItems" :key="item.title">
+                            <SidebarMenuButton :tooltip="item.title" as-child
+                                :isActive="isCurrentRoute(item.routeName)">
+                                <Link :href="item.url">
+                                <component :is="item.icon" class="size-4" />
+                                <span>{{ item.title }}</span>
+                                </Link>
+                            </SidebarMenuButton>
+                        </SidebarMenuItem>
+                    </SidebarMenu>
+                </SidebarGroupContent>
+            </SidebarGroup>
+
+            <!-- User Management -->
+            <SidebarGroup>
+                <SidebarGroupLabel>User Settings</SidebarGroupLabel>
+                <SidebarGroupContent>
+                    <SidebarMenu>
+                        <SidebarMenuItem v-for="item in userManagementItems" :key="item.title">
+                            <SidebarMenuButton :tooltip="item.title" as-child
+                                :isActive="isCurrentRoute(item.routeName)">
+                                <Link :href="item.url">
+                                <component :is="item.icon" class="size-4" />
+                                <span>{{ item.title }}</span>
+                                </Link>
                             </SidebarMenuButton>
                         </SidebarMenuItem>
                     </SidebarMenu>
