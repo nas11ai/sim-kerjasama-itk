@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\FacultyController;
 use App\Http\Controllers\FormAccessControlController;
 use App\Http\Controllers\FormController;
 use App\Http\Controllers\FormPhaseController;
@@ -59,6 +60,35 @@ Route::resource('submission-periods', SubmissionPeriodController::class)->names(
     'update' => 'submission-periods.update',
     'destroy' => 'submission-periods.destroy',
 ]);
+
+Route::resource('faculties', FacultyController::class)->names([
+    'index' => 'faculties.index',
+    'create' => 'faculties.create',
+    'store' => 'faculties.store',
+    'show' => 'faculties.show',
+    'edit' => 'faculties.edit',
+    'update' => 'faculties.update',
+    'destroy' => 'faculties.destroy',
+]);
+
+// Study Program Routes
+Route::get('study-programs', [FacultyController::class, 'studyPrograms'])
+    ->name('faculties.study-programs');
+
+Route::get('study-programs/create', [FacultyController::class, 'createStudyProgram'])
+    ->name('faculties.study-programs.create');
+
+Route::post('study-programs', [FacultyController::class, 'storeStudyProgram'])
+    ->name('faculties.study-programs.store');
+
+Route::get('study-programs/{studyProgram}/edit', [FacultyController::class, 'editStudyProgram'])
+    ->name('faculties.study-programs.edit');
+
+Route::put('study-programs/{studyProgram}', [FacultyController::class, 'updateStudyProgram'])
+    ->name('faculties.study-programs.update');
+
+Route::delete('study-programs/{studyProgram}', [FacultyController::class, 'destroyStudyProgram'])
+    ->name('faculties.study-programs.destroy');
 
 Route::post('/submission-date-labels', [SubmissionPeriodController::class, 'storeLabel'])
     ->name('submission-date-labels.store');

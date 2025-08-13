@@ -7,7 +7,9 @@ import {
     Settings,
     Shield,
     Clock,
-    Users
+    Users,
+    Building2,
+    GraduationCap
 } from "lucide-vue-next";
 import {
     Sidebar,
@@ -73,6 +75,22 @@ const formManagementItems = [
         url: route("form-access-controls.index"),
         icon: Shield,
         routeName: "form-access-controls.index"
+    }
+];
+
+// Academic Management Group
+const academicManagementItems = [
+    {
+        title: "Faculties",
+        url: route("faculties.index"),
+        icon: Building2,
+        routeName: "faculties.index"
+    },
+    {
+        title: "Study Programs",
+        url: route("faculties.study-programs"),
+        icon: GraduationCap,
+        routeName: "faculties.study-programs"
     }
 ];
 
@@ -143,6 +161,24 @@ const userManagementItems = [
                 <SidebarGroupContent>
                     <SidebarMenu>
                         <SidebarMenuItem v-for="item in formManagementItems" :key="item.title">
+                            <SidebarMenuButton :tooltip="item.title" as-child
+                                :isActive="isCurrentRoute(item.routeName)">
+                                <Link :href="item.url">
+                                <component :is="item.icon" class="size-4" />
+                                <span>{{ item.title }}</span>
+                                </Link>
+                            </SidebarMenuButton>
+                        </SidebarMenuItem>
+                    </SidebarMenu>
+                </SidebarGroupContent>
+            </SidebarGroup>
+
+            <!-- Academic Management -->
+            <SidebarGroup>
+                <SidebarGroupLabel>Academic Management</SidebarGroupLabel>
+                <SidebarGroupContent>
+                    <SidebarMenu>
+                        <SidebarMenuItem v-for="item in academicManagementItems" :key="item.title">
                             <SidebarMenuButton :tooltip="item.title" as-child
                                 :isActive="isCurrentRoute(item.routeName)">
                                 <Link :href="item.url">
