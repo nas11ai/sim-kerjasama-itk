@@ -1,8 +1,13 @@
 <!-- resources/js/Layouts/AuthenticatedLayout.vue -->
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue';
-import { SidebarProvider, SidebarTrigger, SidebarInset } from "@/Components/ui/sidebar";
+import { ref, onMounted, onUnmounted } from "vue";
+import {
+    SidebarProvider,
+    SidebarTrigger,
+    SidebarInset,
+} from "@/Components/ui/sidebar";
 import AppSidebar from "@/Components/AppSidebar.vue";
+import AlertContainer from "@/Components/AlertContainer.vue";
 
 // Reactive state for sidebar
 const isSidebarOpen = ref(true);
@@ -16,12 +21,10 @@ onMounted(() => {
             isSidebarOpen.value = false;
         }
     };
-
     checkMobile();
-    window.addEventListener('resize', checkMobile);
-
+    window.addEventListener("resize", checkMobile);
     onUnmounted(() => {
-        window.removeEventListener('resize', checkMobile);
+        window.removeEventListener("resize", checkMobile);
     });
 });
 
@@ -39,8 +42,10 @@ const toggleSidebar = () => {
             <!-- Main content with SidebarInset -->
             <SidebarInset class="flex flex-col flex-1 min-w-0">
                 <!-- Header -->
-                <header class="sticky top-0 z-40 flex h-16 shrink-0 items-center gap-2 border-b bg-background px-4"
-                    v-if="$slots.header">
+                <header
+                    class="sticky top-0 z-40 flex h-16 shrink-0 items-center gap-2 border-b bg-background px-4"
+                    v-if="$slots.header"
+                >
                     <SidebarTrigger class="-ml-1" />
                     <div class="h-4 w-px bg-border mx-2" />
                     <div class="flex-1">
@@ -49,8 +54,10 @@ const toggleSidebar = () => {
                 </header>
 
                 <!-- Header fallback -->
-                <header class="sticky top-0 z-40 flex h-16 shrink-0 items-center gap-2 border-b bg-background px-4"
-                    v-else>
+                <header
+                    class="sticky top-0 z-40 flex h-16 shrink-0 items-center gap-2 border-b bg-background px-4"
+                    v-else
+                >
                     <SidebarTrigger class="-ml-1" />
                 </header>
 
@@ -60,5 +67,8 @@ const toggleSidebar = () => {
                 </main>
             </SidebarInset>
         </div>
+
+        <!-- Alert Container - positioned globally -->
+        <AlertContainer />
     </SidebarProvider>
 </template>
