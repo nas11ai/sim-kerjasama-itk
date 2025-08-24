@@ -34,7 +34,7 @@ class SubmissionPeriodController extends Controller
 
         // Add computed properties for each period
         $submissionPeriods->getCollection()->transform(function ($period) {
-            $dates = $period->submissionDates->sortBy('date');
+            $dates = $period->submissionDates->sortBy('datetime');
             $period->start_date = $dates->first()?->date;
             $period->end_date = $dates->last()?->date;
             $period->is_active = $this->isPeriodActive($period);
@@ -102,7 +102,7 @@ class SubmissionPeriodController extends Controller
                 SubmissionDate::create([
                     'submission_period_id' => $submissionPeriod->id,
                     'submission_date_label_id' => SubmissionDateLabel::where('name', $dateData['label'])->first()->id,
-                    'date' => $dateData['date']
+                    'datetime' => $dateData['date']
                 ]);
             }
 
@@ -139,7 +139,7 @@ class SubmissionPeriodController extends Controller
     {
         $submissionPeriod->load([
             'submissionDates' => function ($query) {
-                $query->orderBy('date');
+                $query->orderBy('datetime');
             },
             'submissionPeriodPhases.formPhase',
             'submissionPeriodDetails.submissionRule'
@@ -159,7 +159,7 @@ class SubmissionPeriodController extends Controller
     {
         $submissionPeriod->load([
             'submissionDates' => function ($query) {
-                $query->orderBy('date');
+                $query->orderBy('datetime');
             },
             'submissionPeriodPhases.formPhase',
             'submissionPeriodDetails.submissionRule'
@@ -223,7 +223,7 @@ class SubmissionPeriodController extends Controller
                 SubmissionDate::create([
                     'submission_period_id' => $submissionPeriod->id,
                     'submission_date_label_id' => SubmissionDateLabel::where('name', $dateData['label'])->first()->id,
-                    'date' => $dateData['date']
+                    'datetime' => $dateData['date']
                 ]);
             }
 
@@ -281,7 +281,7 @@ class SubmissionPeriodController extends Controller
     private function isPeriodActive(SubmissionPeriod $period): bool
     {
         $now = Carbon::now();
-        $dates = $period->submissionDates->sortBy('date');
+        $dates = $period->submissionDates->sortBy('datetime');
 
         if ($dates->isEmpty())
             return false;
@@ -295,7 +295,7 @@ class SubmissionPeriodController extends Controller
     private function getPeriodStatus(SubmissionPeriod $period): string
     {
         $now = Carbon::now();
-        $dates = $period->submissionDates->sortBy('date');
+        $dates = $period->submissionDates->sortBy('datetime');
 
         if ($dates->isEmpty())
             return 'no_dates';
@@ -314,7 +314,7 @@ class SubmissionPeriodController extends Controller
 
     private function getDaysRemaining(SubmissionPeriod $period): ?int
     {
-        $dates = $period->submissionDates->sortBy('date');
+        $dates = $period->submissionDates->sortBy('datetime');
 
         if ($dates->isEmpty())
             return null;
