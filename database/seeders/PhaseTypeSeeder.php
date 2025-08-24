@@ -17,8 +17,6 @@ class PhaseTypeSeeder extends Seeder
         try {
             DB::transaction(function () {
                 $phase_types = [
-                    'Pra Pengajuan',
-                    'Evaluasi Pra Pengajuan',
                     'Pengajuan',
                     'Evaluasi Pengajuan',
                 ];

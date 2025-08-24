@@ -20,7 +20,8 @@ class DatabaseSeeder extends Seeder
             FormTypeSeeder::class,
             FacultySeeder::class,
             StudyProgramSeeder::class,
-            PhaseTypeSeeder::class
+            PhaseTypeSeeder::class,
+            SubmissionDateLabelSeeder::class
         ]);
     }
 }
