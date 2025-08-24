@@ -18,7 +18,8 @@ class DatabaseSeeder extends Seeder
             DummyUserSeeder::class,
             FieldTypeSeeder::class,
             FormTypeSeeder::class,
-            FacultySeeder::class
+            FacultySeeder::class,
+            StudyProgramSeeder::class
         ]);
     }
 }
