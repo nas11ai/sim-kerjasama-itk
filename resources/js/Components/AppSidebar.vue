@@ -153,7 +153,7 @@ const userManagementItems = [
 
         <SidebarContent>
             <!-- Main Menu -->
-            <SidebarGroup v-if="hasAdminAccess">
+            <SidebarGroup>
                 <SidebarGroupLabel>Main Menu</SidebarGroupLabel>
                 <SidebarGroupContent>
                     <SidebarMenu>
