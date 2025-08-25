@@ -155,7 +155,7 @@ const toggleStatus = (formPhase: FormPhase) => {
                 <h2 class="text-xl font-semibold leading-tight text-gray-800">
                     Form Phases Management
                 </h2>
-                <Link :href="route('form-phases.create')">
+                <Link :href="route('admin.form-phases.create')">
                 <Button>
                     <Plus class="h-4 w-4 mr-2" />
                     Create Form Phase
@@ -259,7 +259,7 @@ const toggleStatus = (formPhase: FormPhase) => {
                                             </DropdownMenuTrigger>
                                             <DropdownMenuContent align="end">
                                                 <Link :href="route(
-                                                    'form-phases.show',
+                                                    'admin.form-phases.show',
                                                     formPhase.id
                                                 )
                                                     ">
@@ -269,7 +269,7 @@ const toggleStatus = (formPhase: FormPhase) => {
                                                 </DropdownMenuItem>
                                                 </Link>
                                                 <Link :href="route(
-                                                    'form-phases.edit',
+                                                    'admin.form-phases.edit',
                                                     formPhase.id
                                                 )
                                                     ">
@@ -317,7 +317,7 @@ const toggleStatus = (formPhase: FormPhase) => {
                                     : "Get started by creating your first form phase."
                             }}
                         </p>
-                        <Link :href="route('form-phases.create')" v-if="!searchQuery">
+                        <Link :href="route('admin.form-phases.create')" v-if="!searchQuery">
                         <Button>
                             <Plus class="h-4 w-4 mr-2" />
                             Create Form Phase

@@ -205,7 +205,7 @@ const formatDate = (dateString: string) => {
                 <h2 class="text-xl font-semibold leading-tight text-gray-800">
                     Submission Periods Management
                 </h2>
-                <Link :href="route('submission-periods.create')">
+                <Link :href="route('admin.submission-periods.create')">
                     <Button>
                         <Plus class="h-4 w-4 mr-2" />
                         Create Submission Period
@@ -390,7 +390,7 @@ const formatDate = (dateString: string) => {
                                                 <Link
                                                     :href="
                                                         route(
-                                                            'submission-periods.show',
+                                                            'admin.submission-periods.show',
                                                             period.id
                                                         )
                                                     "
@@ -405,7 +405,7 @@ const formatDate = (dateString: string) => {
                                                 <Link
                                                     :href="
                                                         route(
-                                                            'submission-periods.edit',
+                                                            'admin.submission-periods.edit',
                                                             period.id
                                                         )
                                                     "
@@ -457,7 +457,7 @@ const formatDate = (dateString: string) => {
                             }}
                         </p>
                         <Link
-                            :href="route('submission-periods.create')"
+                            :href="route('admin.submission-periods.create')"
                             v-if="!searchQuery"
                         >
                             <Button>
