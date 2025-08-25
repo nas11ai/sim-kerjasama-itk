@@ -50,9 +50,9 @@ const isCurrentRoute = (routeName: string) => {
 const menuItems = [
     {
         title: "Dashboard",
-        url: route("dashboard"),
+        url: route("user.dashboard"),
         icon: Home,
-        routeName: "dashboard"
+        routeName: "user.dashboard"
     }
 ];
 
@@ -60,21 +60,21 @@ const menuItems = [
 const formManagementItems = [
     {
         title: "Forms",
-        url: route("forms.index"),
+        url: route("admin.forms.index"),
         icon: FileText,
-        routeName: "forms.index"
+        routeName: "admin.forms.index"
     },
     {
         title: "Form Phases",
-        url: route("form-phases.index"),
+        url: route("admin.form-phases.index"),
         icon: Settings,
-        routeName: "form-phases.index"
+        routeName: "admin.form-phases.index"
     },
     {
         title: "Form Access Controls",
-        url: route("form-access-controls.index"),
+        url: route("admin.form-access-controls.index"),
         icon: Shield,
-        routeName: "form-access-controls.index"
+        routeName: "admin.form-access-controls.index"
     }
 ];
 
@@ -82,15 +82,15 @@ const formManagementItems = [
 const academicManagementItems = [
     {
         title: "Faculties",
-        url: route("faculties.index"),
+        url: route("admin.faculties.index"),
         icon: Building2,
-        routeName: "faculties.index"
+        routeName: "admin.faculties.index"
     },
     {
         title: "Study Programs",
-        url: route("faculties.study-programs"),
+        url: route("admin.faculties.study-programs"),
         icon: GraduationCap,
-        routeName: "faculties.study-programs"
+        routeName: "admin.faculties.study-programs"
     }
 ];
 
@@ -98,9 +98,9 @@ const academicManagementItems = [
 const submissionManagementItems = [
     {
         title: "Submission Periods",
-        url: route("submission-periods.index"),
+        url: route("admin.submission-periods.index"),
         icon: Clock,
-        routeName: "submission-periods.index"
+        routeName: "admin.submission-periods.index"
     }
 ];
 
@@ -121,7 +121,7 @@ const userManagementItems = [
             <SidebarMenu>
                 <SidebarMenuItem>
                     <SidebarMenuButton size="lg" tooltip="My App Dashboard" class="flex flex-row" as-child>
-                        <Link :href="route('dashboard')">
+                        <Link :href="route('user.dashboard')">
                         <div
                             class="flex aspect-square size-6 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
                             <Home class="size-4" />
