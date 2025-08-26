@@ -47,7 +47,7 @@ class UserFormController extends Controller
             ->get()
             ->map(function ($period) use ($user) {
                 // Fix: Use correct attribute name based on your model
-                $dates = $period->submissionDates->sortBy('date'); // Changed from 'datetime' to 'date'
+                $dates = $period->submissionDates->sortBy('datetime'); // Changed from 'datetime' to 'date'
                 $now = Carbon::now();
 
                 // Determine period status and activity
@@ -58,8 +58,8 @@ class UserFormController extends Controller
                     $period->end_date = null;
                 } else {
                     // Use 'date' attribute consistently
-                    $startDate = Carbon::parse($dates->first()->date);
-                    $endDate = Carbon::parse($dates->last()->date);
+                    $startDate = Carbon::parse($dates->first()->datetime);
+                    $endDate = Carbon::parse($dates->last()->datetime);
 
                     if ($now->lt($startDate)) {
                         $period->is_active = false;
@@ -72,8 +72,8 @@ class UserFormController extends Controller
                         $period->status = 'expired';
                     }
 
-                    $period->start_date = $dates->first()->date;
-                    $period->end_date = $dates->last()->date;
+                    $period->start_date = $dates->first()->datetime;
+                    $period->end_date = $dates->last()->datetime;
                 }
 
                 // Process form phases with user progress
