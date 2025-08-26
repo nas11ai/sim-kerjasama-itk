@@ -27,6 +27,14 @@ import {
     SelectValue,
 } from "@/Components/ui/select";
 import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+} from "@/Components/ui/dialog";
+import {
     Plus,
     Search,
     MoreHorizontal,
@@ -35,7 +43,9 @@ import {
     Trash2,
     Shield,
     ToggleLeft,
-    ToggleRight
+    ToggleRight,
+    AlertTriangle,
+    Users
 } from "lucide-vue-next";
 
 interface ReviewerRole {
@@ -62,6 +72,8 @@ const props = defineProps<Props>();
 
 const searchQuery = ref(props.filters.search || "");
 const selectedStatus = ref(props.filters.status || "all");
+const showDeleteDialog = ref(false);
+const roleToDelete = ref<ReviewerRole | null>(null);
 
 const applyFilters = () => {
     const params: Record<string, any> = {};
@@ -86,9 +98,24 @@ const clearFilters = () => {
 };
 
 const deleteRole = (role: ReviewerRole) => {
-    if (confirm(`Are you sure you want to delete role "${role.name}"?`)) {
-        router.delete(route("admin.reviewer-roles.destroy", role.id));
+    roleToDelete.value = role;
+    showDeleteDialog.value = true;
+};
+
+const confirmDelete = () => {
+    if (roleToDelete.value) {
+        router.delete(route("admin.reviewer-roles.destroy", roleToDelete.value.id), {
+            onFinish: () => {
+                showDeleteDialog.value = false;
+                roleToDelete.value = null;
+            }
+        });
     }
+};
+
+const cancelDelete = () => {
+    showDeleteDialog.value = false;
+    roleToDelete.value = null;
 };
 
 const toggleRoleStatus = (role: ReviewerRole) => {
@@ -105,6 +132,14 @@ const formatDate = (dateString: string) => {
 
 const hasFilters = computed(() => {
     return searchQuery.value || (selectedStatus.value && selectedStatus.value !== "all");
+});
+
+const totalRoles = computed(() => {
+    return props.reviewerRoles?.meta?.total || props.reviewerRoles?.data?.length || 0;
+});
+
+const canDeleteRole = computed(() => {
+    return roleToDelete.value ? roleToDelete.value.reviewers_count === 0 : false;
 });
 
 const linkClass = (link: any) => [
@@ -124,7 +159,7 @@ const linkClass = (link: any) => [
         <template #header>
             <div class="flex items-center justify-between">
                 <h2 class="text-xl font-semibold leading-tight text-gray-800">
-                    Reviewer Roles
+                    Reviewer Roles ({{ totalRoles }})
                 </h2>
                 <Link :href="route('admin.reviewer-roles.create')">
                 <Button>
@@ -261,12 +296,80 @@ const linkClass = (link: any) => [
             </div>
 
             <!-- Pagination -->
-            <div v-if="props.reviewerRoles.links.length > 3" class="flex justify-center">
+            <div v-if="props.reviewerRoles.links && props.reviewerRoles.links.length > 3" class="flex justify-center">
                 <nav class="flex items-center space-x-1">
                     <Link v-for="link in props.reviewerRoles.links" :key="link.label" :href="link.url"
                         :class="linkClass(link)" v-html="link.label" />
                 </nav>
             </div>
         </div>
+
+        <!-- Delete Confirmation Dialog -->
+        <Dialog v-model:open="showDeleteDialog">
+            <DialogContent class="sm:max-w-lg">
+                <DialogHeader>
+                    <DialogTitle class="flex items-center gap-2">
+                        <AlertTriangle class="h-5 w-5 text-destructive" />
+                        Confirm Delete Role
+                    </DialogTitle>
+                    <DialogDescription>
+                        {{ canDeleteRole
+                            ? 'Are you sure you want to delete this reviewer role? This action cannot be undone.'
+                            : 'This role cannot be deleted because it has assigned reviewers.'
+                        }}
+                    </DialogDescription>
+                </DialogHeader>
+
+                <div v-if="roleToDelete" class="py-4">
+                    <div class="p-4 bg-muted rounded-lg">
+                        <div class="flex items-center gap-3">
+                            <div class="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center">
+                                <Shield class="h-6 w-6 text-primary" />
+                            </div>
+                            <div class="flex-1">
+                                <h4 class="font-semibold text-lg">{{ roleToDelete.name }}</h4>
+                                <div class="flex items-center gap-3 mt-2">
+                                    <div class="flex items-center gap-1 text-sm text-muted-foreground">
+                                        <Users class="h-4 w-4" />
+                                        <span>{{ roleToDelete.reviewers_count }} reviewers</span>
+                                    </div>
+                                    <Badge :variant="roleToDelete.is_active ? 'default' : 'destructive'"
+                                        class="text-xs">
+                                        {{ roleToDelete.is_active ? 'Active' : 'Inactive' }}
+                                    </Badge>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Warning message for roles with assigned reviewers -->
+                        <div v-if="!canDeleteRole"
+                            class="mt-4 p-3 bg-destructive/10 border border-destructive/20 rounded-md">
+                            <div class="flex items-start gap-2">
+                                <AlertTriangle class="h-5 w-5 text-destructive flex-shrink-0 mt-0.5" />
+                                <div class="text-sm">
+                                    <p class="font-medium text-destructive mb-1">Cannot Delete Role</p>
+                                    <p class="text-muted-foreground">
+                                        This role has {{ roleToDelete.reviewers_count }} assigned reviewer(s).
+                                        Please reassign or remove all reviewers before deleting this role.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <DialogFooter>
+                    <Button variant="outline" @click="cancelDelete">
+                        Cancel
+                    </Button>
+                    <Button v-if="canDeleteRole" variant="destructive" @click="confirmDelete">
+                        Delete Role
+                    </Button>
+                    <Button v-else variant="outline" disabled class="opacity-50">
+                        Cannot Delete
+                    </Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
     </AuthenticatedLayout>
 </template>
