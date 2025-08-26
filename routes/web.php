@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\ReviewerRoleController;
 use App\Http\Controllers\FacultyController;
 use App\Http\Controllers\FormAccessControlController;
 use App\Http\Controllers\FormController;
@@ -63,8 +64,8 @@ Route::middleware(['auth', 'role:Super Admin|Admin'])->prefix('admin')->name('ad
         ->name('reviewers.activate');
 
     // Reviewer Role Management
-    Route::resource('reviewer-roles', App\Http\Controllers\Admin\ReviewerRoleController::class);
-    Route::patch('reviewer-roles/{reviewerRole}/toggle-status', [App\Http\Controllers\Admin\ReviewerRoleController::class, 'toggleStatus'])
+    Route::resource('reviewer-roles', ReviewerRoleController::class);
+    Route::patch('reviewer-roles/{reviewerRole}/toggle-status', [ReviewerRoleController::class, 'toggleStatus'])
         ->name('reviewer-roles.toggle-status');
 
     Route::resource('form-phases', FormPhaseController::class)->names([

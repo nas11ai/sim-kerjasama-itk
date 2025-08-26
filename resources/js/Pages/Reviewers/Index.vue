@@ -86,8 +86,8 @@ interface Props {
 const props = defineProps<Props>();
 
 const searchQuery = ref(props.filters.search || "");
-const selectedRole = ref(props.filters.role || "");
-const selectedStatus = ref(props.filters.status || "");
+const selectedRole = ref(props.filters.role || "all");
+const selectedStatus = ref(props.filters.status || "all");
 const showDeleteDialog = ref(false);
 const reviewerToDelete = ref<Reviewer | null>(null);
 
@@ -95,8 +95,8 @@ const applyFilters = () => {
     const params: Record<string, any> = {};
 
     if (searchQuery.value) params.search = searchQuery.value;
-    if (selectedRole.value) params.role = selectedRole.value;
-    if (selectedStatus.value) params.status = selectedStatus.value;
+    if (selectedRole.value && selectedRole.value !== "all") params.role = selectedRole.value;
+    if (selectedStatus.value && selectedStatus.value !== "all") params.status = selectedStatus.value;
 
     router.get(route("admin.reviewers.index"), params, {
         preserveState: true,
@@ -106,8 +106,8 @@ const applyFilters = () => {
 
 const clearFilters = () => {
     searchQuery.value = "";
-    selectedRole.value = "";
-    selectedStatus.value = "";
+    selectedRole.value = "all";
+    selectedStatus.value = "all";
 
     router.get(route("admin.reviewers.index"), {}, {
         preserveState: true,
@@ -152,7 +152,14 @@ const formatDate = (dateString: string) => {
 };
 
 const hasFilters = computed(() => {
-    return searchQuery.value || selectedRole.value || selectedStatus.value;
+    return searchQuery.value ||
+        (selectedRole.value && selectedRole.value !== "all") ||
+        (selectedStatus.value && selectedStatus.value !== "all");
+});
+
+// Safe getter for total count
+const totalReviewers = computed(() => {
+    return props.reviewers?.meta?.total || props.reviewers?.data?.length || 0;
 });
 </script>
 
@@ -204,7 +211,7 @@ const hasFilters = computed(() => {
                                     <SelectValue placeholder="All Roles" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value="">All Roles</SelectItem>
+                                    <SelectItem value="all">All Roles</SelectItem>
                                     <SelectItem v-for="role in reviewerRoles" :key="role.id"
                                         :value="role.id.toString()">
                                         {{ role.name }}
@@ -218,7 +225,7 @@ const hasFilters = computed(() => {
                                     <SelectValue placeholder="All Status" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value="">All Status</SelectItem>
+                                    <SelectItem value="all">All Status</SelectItem>
                                     <SelectItem value="active">Active</SelectItem>
                                     <SelectItem value="inactive">Inactive</SelectItem>
                                 </SelectContent>
@@ -240,7 +247,7 @@ const hasFilters = computed(() => {
             <!-- Reviewers Table -->
             <Card>
                 <CardHeader>
-                    <CardTitle>Reviewers ({{ props.reviewers.meta.total }})</CardTitle>
+                    <CardTitle>Reviewers ({{ totalReviewers }})</CardTitle>
                     <CardDescription>
                         Manage reviewer assignments and permissions
                     </CardDescription>
@@ -340,7 +347,7 @@ const hasFilters = computed(() => {
             </Card>
 
             <!-- Pagination -->
-            <div v-if="props.reviewers.links.length > 3" class="flex justify-center">
+            <div v-if="props.reviewers.links && props.reviewers.links.length > 3" class="flex justify-center">
                 <nav class="flex items-center space-x-1">
                     <Link v-for="link in props.reviewers.links" :key="link.label" :href="link.url" :class="[
                         'px-3 py-2 text-sm font-medium rounded-md',

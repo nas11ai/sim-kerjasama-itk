@@ -61,13 +61,13 @@ interface Props {
 const props = defineProps<Props>();
 
 const searchQuery = ref(props.filters.search || "");
-const selectedStatus = ref(props.filters.status || "");
+const selectedStatus = ref(props.filters.status || "all");
 
 const applyFilters = () => {
     const params: Record<string, any> = {};
 
     if (searchQuery.value) params.search = searchQuery.value;
-    if (selectedStatus.value) params.status = selectedStatus.value;
+    if (selectedStatus.value && selectedStatus.value !== "all") params.status = selectedStatus.value;
 
     router.get(route("admin.reviewer-roles.index"), params, {
         preserveState: true,
@@ -77,7 +77,7 @@ const applyFilters = () => {
 
 const clearFilters = () => {
     searchQuery.value = "";
-    selectedStatus.value = "";
+    selectedStatus.value = "all";
 
     router.get(route("admin.reviewer-roles.index"), {}, {
         preserveState: true,
@@ -104,7 +104,7 @@ const formatDate = (dateString: string) => {
 };
 
 const hasFilters = computed(() => {
-    return searchQuery.value || selectedStatus.value;
+    return searchQuery.value || (selectedStatus.value && selectedStatus.value !== "all");
 });
 
 const linkClass = (link: any) => [
@@ -155,7 +155,7 @@ const linkClass = (link: any) => [
                                     <SelectValue placeholder="All Status" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value="">All Status</SelectItem>
+                                    <SelectItem value="all">All Status</SelectItem>
                                     <SelectItem value="active">Active</SelectItem>
                                     <SelectItem value="inactive">Inactive</SelectItem>
                                 </SelectContent>
