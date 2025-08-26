@@ -9,7 +9,6 @@ class Reviewer extends Model
     protected $fillable = [
         'user_id',
         'reviewer_role_id',
-        'study_program_id',
         'start_date',
         'end_date',
     ];
@@ -22,11 +21,6 @@ class Reviewer extends Model
     public function reviewerRole()
     {
         return $this->belongsTo(ReviewerRole::class);
-    }
-
-    public function studyProgram()
-    {
-        return $this->belongsTo(StudyProgram::class);
     }
 
     public function submissionReviewers()
