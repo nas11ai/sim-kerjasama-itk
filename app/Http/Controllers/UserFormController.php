@@ -193,7 +193,7 @@ class UserFormController extends Controller
             });
 
         if ($formAccessControls->isEmpty()) {
-            return redirect()->route('dashboard')
+            return redirect()->route('user.dashboard')
                 ->with('error', 'Anda tidak memiliki akses ke form phase ini.');
         }
 

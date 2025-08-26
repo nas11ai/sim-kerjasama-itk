@@ -192,7 +192,7 @@ const submitForm = () => {
                 nextStep();
             } else {
                 // Redirect to dashboard or show completion message
-                router.visit(route('dashboard'));
+                router.visit(route('user.dashboard'));
             }
         },
         onError: () => {
@@ -369,7 +369,7 @@ const handleFileUpload = (event: Event, fieldId: number) => {
     <AuthenticatedLayout>
         <template #header>
             <div class="flex items-center gap-4">
-                <Button variant="ghost" size="sm" @click="router.visit(route('dashboard'))">
+                <Button variant="ghost" size="sm" @click="router.visit(route('user.dashboard'))">
                     <ArrowLeft class="h-4 w-4 mr-2" />
                     Kembali ke Dashboard
                 </Button>
@@ -594,7 +594,7 @@ const handleFileUpload = (event: Event, fieldId: number) => {
                             <p class="text-muted-foreground mb-6">
                                 Anda telah menyelesaikan semua form dalam phase "{{ formPhase.title }}".
                             </p>
-                            <Button @click="router.visit(route('dashboard'))">
+                            <Button @click="router.visit(route('user.dashboard'))">
                                 Kembali ke Dashboard
                             </Button>
                         </CardContent>
