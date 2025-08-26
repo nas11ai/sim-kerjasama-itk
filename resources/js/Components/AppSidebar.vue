@@ -1,16 +1,7 @@
+<!-- resources/js/Components/AppSidebar.vue -->
 <script setup lang="ts">
-import {
-    Calendar,
-    ChevronDown,
-    Home,
-    FileText,
-    Settings,
-    Shield,
-    Clock,
-    Users,
-    Building2,
-    GraduationCap
-} from "lucide-vue-next";
+import { computed } from 'vue';
+import { usePage } from '@inertiajs/vue3';
 import {
     Sidebar,
     SidebarContent,
@@ -22,266 +13,257 @@ import {
     SidebarMenu,
     SidebarMenuButton,
     SidebarMenuItem,
-    useSidebar,
-} from "@/Components/ui/sidebar";
-import { usePage, Link } from "@inertiajs/vue3";
-import { computed, ref } from "vue";
-import ResponsiveNavLink from "./ResponsiveNavLink.vue";
+    SidebarRail,
+} from '@/Components/ui/sidebar';
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from '@/Components/ui/dropdown-menu';
+import {
+    Home,
+    FileText,
+    Settings,
+    Calendar,
+    Users,
+    Building2,
+    GraduationCap,
+    ChevronUp,
+    User2,
+    LogOut,
+    Shield,
+    BookOpen,
+    ClipboardList,
+    Filter
+} from 'lucide-vue-next';
 
 const page = usePage();
-const user = page.props.auth.user;
+const user = computed(() => page.props.auth?.user);
+const userRoles = computed(() => user.value?.roles || []);
 
-// console.log('User object:', user);
+const isAdmin = computed(() =>
+    userRoles.value.some((role: any) => ['Super Admin', 'Admin'].includes(role))
+);
 
-const hasAdminAccess = computed(() => {
-    if (!user || !user.roles) {
-        return false;
-    }
-    return user.roles.includes('admin') || user.roles.includes('Super Admin');
-});
+const isUser = computed(() =>
+    userRoles.value.some((role: any) => ['Mahasiswa', 'Tenaga Kependidikan'].includes(role))
+);
 
-// console.log('Has Admin Access:', hasAdminAccess.value);
-
-const dashboardRoute = computed(() => {
-    return hasAdminAccess.value ? route("admin.dashboard") : route("user.dashboard");
-});
-
-const isUserMenuOpen = ref(false);
-const toggleUserMenu = () => {
-    isUserMenuOpen.value = !isUserMenuOpen.value;
-};
-
-const getInitial = (name: string) => name ? name[0].toUpperCase() : 'U';
-
-const { state } = useSidebar();
-const isCollapsed = computed(() => state.value === 'collapsed');
-
-// Current route helper
-const isCurrentRoute = (routeName: string) => {
-    return page.url.startsWith(route(routeName));
-};
-
-// Menu items based on available routes
-const menuItems = [
+// Navigation items for admin
+const adminNavItems = [
     {
         title: "Dashboard",
-        url: dashboardRoute.value,
+        url: route('admin.dashboard'),
         icon: Home,
-        routeName: hasAdminAccess.value ? "admin.dashboard" : "user.dashboard"
-    }
-];
-
-// Form Management Group
-const formManagementItems = [
+    },
     {
-        title: "Forms",
-        url: route("admin.forms.index"),
+        title: "Form Management",
         icon: FileText,
-        routeName: "admin.forms.index"
+        items: [
+            {
+                title: "Forms",
+                url: route('admin.forms.index'),
+                icon: FileText,
+            },
+            {
+                title: "Form Phases",
+                url: route('admin.form-phases.index'),
+                icon: Settings,
+            },
+            {
+                title: "Access Controls",
+                url: route('admin.form-access-controls.index'),
+                icon: Shield,
+            }
+        ]
     },
     {
-        title: "Form Phases",
-        url: route("admin.form-phases.index"),
-        icon: Settings,
-        routeName: "admin.form-phases.index"
+        title: "Submission Management",
+        icon: Calendar,
+        items: [
+            {
+                title: "Submission Periods",
+                url: route('admin.submission-periods.index'),
+                icon: Calendar,
+            }
+        ]
     },
     {
-        title: "Form Access Controls",
-        url: route("admin.form-access-controls.index"),
-        icon: Shield,
-        routeName: "admin.form-access-controls.index"
-    }
-];
-
-// Academic Management Group
-const academicManagementItems = [
+        title: "Reviewer Management",
+        icon: Users, // pakai icon Users dari lucide-vue-next
+        items: [
+            {
+                title: "Reviewers",
+                url: route('admin.reviewers.index'),
+                icon: Users,
+            },
+            {
+                title: "Reviewer Roles",
+                url: route('admin.reviewer-roles.index'),
+                icon: Filter,
+            }
+        ]
+    },
     {
-        title: "Faculties",
-        url: route("admin.faculties.index"),
+        title: "Institution Management",
         icon: Building2,
-        routeName: "admin.faculties.index"
+        items: [
+            {
+                title: "Faculties",
+                url: route('admin.faculties.index'),
+                icon: Building2,
+            },
+            {
+                title: "Study Programs",
+                url: route('admin.faculties.study-programs'),
+                icon: GraduationCap,
+            }
+        ]
+    }
+];
+
+// Navigation items for regular users
+const userNavItems = [
+    {
+        title: "Dashboard",
+        url: route('user.dashboard'),
+        icon: Home,
     },
     {
-        title: "Study Programs",
-        url: route("admin.faculties.study-programs"),
-        icon: GraduationCap,
-        routeName: "admin.faculties.study-programs"
+        title: "My Forms",
+        icon: ClipboardList,
+        items: [
+            {
+                title: "Active Submissions",
+                url: route('user.dashboard'),
+                icon: BookOpen,
+            }
+        ]
     }
 ];
 
-// Submission Management Group
-const submissionManagementItems = [
-    {
-        title: "Submission Periods",
-        url: route("admin.submission-periods.index"),
-        icon: Clock,
-        routeName: "admin.submission-periods.index"
-    }
-];
+const navItems = computed(() => {
+    if (isAdmin.value) return adminNavItems;
+    return userNavItems;
+});
 
-// User Management Group (if needed in the future)
-const userManagementItems = [
-    {
-        title: "Profile Settings",
-        url: route("profile.edit"),
-        icon: Users,
-        routeName: "profile.edit"
-    }
-];
+const currentUrl = computed(() => page.url);
+
+const isActive = (url: string) => {
+    return currentUrl.value === url || currentUrl.value.startsWith(url);
+};
+
+const hasActiveChild = (items: any[]) => {
+    return items.some(item => isActive(item.url));
+};
 </script>
 
 <template>
-    <Sidebar variant="inset" collapsible="icon">
+    <Sidebar variant="inset">
         <SidebarHeader>
             <SidebarMenu>
                 <SidebarMenuItem>
-                    <SidebarMenuButton size="lg" tooltip="My App Dashboard" class="flex flex-row" as-child>
-                        <Link :href="dashboardRoute">
-                        <div
-                            class="flex aspect-square size-6 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
-                            <Home class="size-4" />
-                        </div>
-                        <div class="grid flex-1 text-left text-sm leading-tight">
-                            <span class="truncate font-semibold">SIM Kerjasama ITK</span>
-                            <span class="truncate text-xs">Dashboard</span>
-                        </div>
-                        </Link>
+                    <SidebarMenuButton size="lg" as-child>
+                        <a href="/">
+                            <div
+                                class="flex aspect-square size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+                                <FileText class="size-4" />
+                            </div>
+                            <div class="grid flex-1 text-left text-sm leading-tight">
+                                <span class="truncate font-semibold">Form System</span>
+                                <span class="truncate text-xs">{{ isAdmin ? 'Administration' : 'User Portal' }}</span>
+                            </div>
+                        </a>
                     </SidebarMenuButton>
                 </SidebarMenuItem>
             </SidebarMenu>
         </SidebarHeader>
 
         <SidebarContent>
-            <!-- Main Menu -->
-            <SidebarGroup>
-                <SidebarGroupLabel>Main Menu</SidebarGroupLabel>
-                <SidebarGroupContent>
-                    <SidebarMenu>
-                        <SidebarMenuItem v-for="item in menuItems" :key="item.title">
-                            <SidebarMenuButton :tooltip="item.title" as-child
-                                :isActive="isCurrentRoute(item.routeName)">
-                                <Link :href="item.url">
-                                <component :is="item.icon" class="size-4" />
-                                <span>{{ item.title }}</span>
-                                </Link>
-                            </SidebarMenuButton>
-                        </SidebarMenuItem>
-                    </SidebarMenu>
-                </SidebarGroupContent>
-            </SidebarGroup>
+            <SidebarGroup v-for="item in navItems" :key="item.title">
+                <SidebarGroupLabel v-if="item.items">{{ item.title }}</SidebarGroupLabel>
 
-            <!-- Form Management -->
-            <SidebarGroup v-if="hasAdminAccess">
-                <SidebarGroupLabel>Form Management</SidebarGroupLabel>
                 <SidebarGroupContent>
                     <SidebarMenu>
-                        <SidebarMenuItem v-for="item in formManagementItems" :key="item.title">
-                            <SidebarMenuButton :tooltip="item.title" as-child
-                                :isActive="isCurrentRoute(item.routeName)">
-                                <Link :href="item.url">
-                                <component :is="item.icon" class="size-4" />
-                                <span>{{ item.title }}</span>
-                                </Link>
+                        <!-- Single nav item -->
+                        <SidebarMenuItem v-if="!item.items">
+                            <SidebarMenuButton as-child :is-active="isActive(item.url)">
+                                <a :href="item.url">
+                                    <component :is="item.icon" />
+                                    <span>{{ item.title }}</span>
+                                </a>
                             </SidebarMenuButton>
                         </SidebarMenuItem>
-                    </SidebarMenu>
-                </SidebarGroupContent>
-            </SidebarGroup>
 
-            <!-- Academic Management -->
-            <SidebarGroup v-if="hasAdminAccess">
-                <SidebarGroupLabel>Academic Management</SidebarGroupLabel>
-                <SidebarGroupContent>
-                    <SidebarMenu>
-                        <SidebarMenuItem v-for="item in academicManagementItems" :key="item.title">
-                            <SidebarMenuButton :tooltip="item.title" as-child
-                                :isActive="isCurrentRoute(item.routeName)">
-                                <Link :href="item.url">
-                                <component :is="item.icon" class="size-4" />
-                                <span>{{ item.title }}</span>
-                                </Link>
-                            </SidebarMenuButton>
-                        </SidebarMenuItem>
-                    </SidebarMenu>
-                </SidebarGroupContent>
-            </SidebarGroup>
-
-            <!-- Submission Management -->
-            <SidebarGroup v-if="hasAdminAccess">
-                <SidebarGroupLabel>Submission Management</SidebarGroupLabel>
-                <SidebarGroupContent>
-                    <SidebarMenu>
-                        <SidebarMenuItem v-for="item in submissionManagementItems" :key="item.title">
-                            <SidebarMenuButton :tooltip="item.title" as-child
-                                :isActive="isCurrentRoute(item.routeName)">
-                                <Link :href="item.url">
-                                <component :is="item.icon" class="size-4" />
-                                <span>{{ item.title }}</span>
-                                </Link>
-                            </SidebarMenuButton>
-                        </SidebarMenuItem>
-                    </SidebarMenu>
-                </SidebarGroupContent>
-            </SidebarGroup>
-
-            <!-- User Management -->
-            <SidebarGroup>
-                <SidebarGroupLabel>User Settings</SidebarGroupLabel>
-                <SidebarGroupContent>
-                    <SidebarMenu>
-                        <SidebarMenuItem v-for="item in userManagementItems" :key="item.title">
-                            <SidebarMenuButton :tooltip="item.title" as-child
-                                :isActive="isCurrentRoute(item.routeName)">
-                                <Link :href="item.url">
-                                <component :is="item.icon" class="size-4" />
-                                <span>{{ item.title }}</span>
-                                </Link>
-                            </SidebarMenuButton>
-                        </SidebarMenuItem>
+                        <!-- Group with subitems -->
+                        <template v-else>
+                            <SidebarMenuItem v-for="subItem in item.items" :key="subItem.title">
+                                <SidebarMenuButton as-child :is-active="isActive(subItem.url)">
+                                    <a :href="subItem.url">
+                                        <component :is="subItem.icon" />
+                                        <span>{{ subItem.title }}</span>
+                                    </a>
+                                </SidebarMenuButton>
+                            </SidebarMenuItem>
+                        </template>
                     </SidebarMenu>
                 </SidebarGroupContent>
             </SidebarGroup>
         </SidebarContent>
 
         <SidebarFooter>
-            <div class="relative w-full">
-                <button @click="toggleUserMenu" :disabled="isCollapsed"
-                    class="w-full flex items-center space-x-2 py-3 rounded-lg transition-colors" :class="[
-                        isCollapsed ? '' : 'hover:bg-gray-100'
-                    ]">
-                    <div class="flex aspect-square size-8 items-center justify-center rounded-full bg-red text-black">
-                        <span class="text-sm font-semibold">{{ getInitial(user.name) }}</span>
-                    </div>
+            <SidebarMenu>
+                <SidebarMenuItem>
+                    <DropdownMenu>
+                        <DropdownMenuTrigger as-child>
+                            <SidebarMenuButton size="lg"
+                                class="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground">
+                                <User2 class="size-4" />
+                                <div class="grid flex-1 text-left text-sm leading-tight">
+                                    <span class="truncate font-semibold">{{ user?.name }}</span>
+                                    <span class="truncate text-xs capitalize">
+                                        {{userRoles.map((role: any) => role).join(', ')}}
+                                    </span>
+                                </div>
+                                <ChevronUp class="ml-auto size-4" />
+                            </SidebarMenuButton>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent class="w-[--radix-dropdown-menu-trigger-width] min-w-56 rounded-lg"
+                            side="bottom" align="end">
+                            <DropdownMenuItem as-child>
+                                <a :href="route('profile.edit')" class="cursor-pointer">
+                                    <User2 class="mr-2 size-4" />
+                                    Profile
+                                </a>
+                            </DropdownMenuItem>
 
-                    <!-- Hide user name/email if collapsed -->
-                    <div class="flex-1 text-left truncate transition-opacity duration-200"
-                        :class="{ 'opacity-0 w-0': isCollapsed }">
-                        <div class="text-sm font-medium text-gray-900 truncate">
-                            {{ user.name }}
-                        </div>
-                        <div class="text-xs text-gray-500 truncate">
-                            {{ user.email }}
-                        </div>
-                    </div>
+                            <!-- Switch between admin/user view if user has admin role -->
+                            <DropdownMenuItem v-if="isAdmin && !currentUrl.startsWith('/admin')" as-child>
+                                <a :href="route('admin.dashboard')" class="cursor-pointer">
+                                    <Shield class="mr-2 size-4" />
+                                    Admin Panel
+                                </a>
+                            </DropdownMenuItem>
 
-                    <!-- Chevron icon with rotation and collapsed logic -->
-                    <ChevronDown class="w-4 h-4 text-gray-500 transform transition-transform duration-300" :class="{
-                        'rotate-180': isUserMenuOpen,
-                        'opacity-0 w-0': isCollapsed
-                    }" />
-                </button>
+                            <DropdownMenuItem v-if="isAdmin && currentUrl.startsWith('/admin')" as-child>
+                                <a :href="route('user.dashboard')" class="cursor-pointer">
+                                    <User2 class="mr-2 size-4" />
+                                    User View
+                                </a>
+                            </DropdownMenuItem>
 
-                <!-- Dropdown -->
-                <div v-if="isUserMenuOpen && !isCollapsed"
-                    class="absolute bottom-12 left-4 right-4 z-50 w-[calc(100%-2rem)] rounded-lg border border-gray-200 bg-white shadow-md">
-                    <ResponsiveNavLink :href="route('profile.edit')">
-                        Profile
-                    </ResponsiveNavLink>
-                    <ResponsiveNavLink :href="route('logout')" method="post" as="button" class="text-red-500">
-                        Log Out
-                    </ResponsiveNavLink>
-                </div>
-            </div>
+                            <DropdownMenuItem as-child>
+                                <a :href="route('logout')" method="post" class="cursor-pointer text-destructive">
+                                    <LogOut class="mr-2 size-4" />
+                                    Logout
+                                </a>
+                            </DropdownMenuItem>
+                        </DropdownMenuContent>
+                    </DropdownMenu>
+                </SidebarMenuItem>
+            </SidebarMenu>
         </SidebarFooter>
+        <SidebarRail />
     </Sidebar>
 </template>
