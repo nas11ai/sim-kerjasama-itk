@@ -27,6 +27,14 @@ import {
     SelectValue,
 } from "@/Components/ui/select";
 import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+} from "@/Components/ui/dialog";
+import {
     Plus,
     Search,
     MoreHorizontal,
@@ -35,7 +43,8 @@ import {
     Trash2,
     UserCheck,
     UserX,
-    Filter
+    Filter,
+    AlertTriangle
 } from "lucide-vue-next";
 
 interface ReviewerRole {
@@ -79,13 +88,15 @@ const props = defineProps<Props>();
 const searchQuery = ref(props.filters.search || "");
 const selectedRole = ref(props.filters.role || "");
 const selectedStatus = ref(props.filters.status || "");
+const showDeleteDialog = ref(false);
+const reviewerToDelete = ref<Reviewer | null>(null);
 
 const applyFilters = () => {
     const params: Record<string, any> = {};
 
     if (searchQuery.value) params.search = searchQuery.value;
-    if (selectedRole.value && selectedRole.value !== "all") params.role = selectedRole.value;
-    if (selectedStatus.value && selectedStatus.value !== "all") params.status = selectedStatus.value;
+    if (selectedRole.value) params.role = selectedRole.value;
+    if (selectedStatus.value) params.status = selectedStatus.value;
 
     router.get(route("admin.reviewers.index"), params, {
         preserveState: true,
@@ -105,9 +116,24 @@ const clearFilters = () => {
 };
 
 const deleteReviewer = (reviewer: Reviewer) => {
-    if (confirm(`Are you sure you want to delete reviewer "${reviewer.user.name}"?`)) {
-        router.delete(route("admin.reviewers.destroy", reviewer.id));
+    reviewerToDelete.value = reviewer;
+    showDeleteDialog.value = true;
+};
+
+const confirmDelete = () => {
+    if (reviewerToDelete.value) {
+        router.delete(route("admin.reviewers.destroy", reviewerToDelete.value.id), {
+            onFinish: () => {
+                showDeleteDialog.value = false;
+                reviewerToDelete.value = null;
+            }
+        });
     }
+};
+
+const cancelDelete = () => {
+    showDeleteDialog.value = false;
+    reviewerToDelete.value = null;
 };
 
 const toggleReviewerStatus = (reviewer: Reviewer) => {
@@ -126,9 +152,7 @@ const formatDate = (dateString: string) => {
 };
 
 const hasFilters = computed(() => {
-    return searchQuery.value ||
-        (selectedRole.value && selectedRole.value !== "all") ||
-        (selectedStatus.value && selectedStatus.value !== "all");
+    return searchQuery.value || selectedRole.value || selectedStatus.value;
 });
 </script>
 
@@ -180,7 +204,7 @@ const hasFilters = computed(() => {
                                     <SelectValue placeholder="All Roles" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value="all">All Roles</SelectItem>
+                                    <SelectItem value="">All Roles</SelectItem>
                                     <SelectItem v-for="role in reviewerRoles" :key="role.id"
                                         :value="role.id.toString()">
                                         {{ role.name }}
@@ -194,7 +218,7 @@ const hasFilters = computed(() => {
                                     <SelectValue placeholder="All Status" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value="all">All Status</SelectItem>
+                                    <SelectItem value="">All Status</SelectItem>
                                     <SelectItem value="active">Active</SelectItem>
                                     <SelectItem value="inactive">Inactive</SelectItem>
                                 </SelectContent>
@@ -216,9 +240,7 @@ const hasFilters = computed(() => {
             <!-- Reviewers Table -->
             <Card>
                 <CardHeader>
-                    <CardTitle>
-                        Reviewers ({{ props.reviewers?.meta?.total || 0 }})
-                    </CardTitle>
+                    <CardTitle>Reviewers ({{ props.reviewers.meta.total }})</CardTitle>
                     <CardDescription>
                         Manage reviewer assignments and permissions
                     </CardDescription>
@@ -330,5 +352,48 @@ const hasFilters = computed(() => {
                 </nav>
             </div>
         </div>
+
+        <!-- Delete Confirmation Dialog -->
+        <Dialog v-model:open="showDeleteDialog">
+            <DialogContent class="sm:max-w-md">
+                <DialogHeader>
+                    <DialogTitle class="flex items-center gap-2">
+                        <AlertTriangle class="h-5 w-5 text-destructive" />
+                        Confirm Delete
+                    </DialogTitle>
+                    <DialogDescription>
+                        Are you sure you want to delete this reviewer? This action cannot be undone.
+                    </DialogDescription>
+                </DialogHeader>
+
+                <div v-if="reviewerToDelete" class="py-4">
+                    <div class="p-4 bg-muted rounded-lg">
+                        <div class="flex items-center gap-3">
+                            <div class="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
+                                <UserCheck class="h-5 w-5 text-primary" />
+                            </div>
+                            <div>
+                                <h4 class="font-medium">{{ reviewerToDelete.user.name }}</h4>
+                                <p class="text-sm text-muted-foreground">{{ reviewerToDelete.user.email }}</p>
+                                <div class="flex items-center gap-2 mt-1">
+                                    <Badge variant="secondary" class="text-xs">
+                                        {{ reviewerToDelete.reviewer_role.name }}
+                                    </Badge>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <DialogFooter>
+                    <Button variant="outline" @click="cancelDelete">
+                        Cancel
+                    </Button>
+                    <Button variant="destructive" @click="confirmDelete">
+                        Delete Reviewer
+                    </Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
     </AuthenticatedLayout>
 </template>
