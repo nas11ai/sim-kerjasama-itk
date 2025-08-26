@@ -85,7 +85,7 @@ const applyFilters = () => {
 
     if (searchQuery.value) params.search = searchQuery.value;
     if (selectedRole.value && selectedRole.value !== "all") params.role = selectedRole.value;
-    if (selectedStatus.value) params.status = selectedStatus.value;
+    if (selectedStatus.value && selectedStatus.value !== "all") params.status = selectedStatus.value;
 
     router.get(route("admin.reviewers.index"), params, {
         preserveState: true,
@@ -126,7 +126,9 @@ const formatDate = (dateString: string) => {
 };
 
 const hasFilters = computed(() => {
-    return searchQuery.value || selectedRole.value || selectedStatus.value;
+    return searchQuery.value ||
+        (selectedRole.value && selectedRole.value !== "all") ||
+        (selectedStatus.value && selectedStatus.value !== "all");
 });
 </script>
 
@@ -192,7 +194,7 @@ const hasFilters = computed(() => {
                                     <SelectValue placeholder="All Status" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value="">All Status</SelectItem>
+                                    <SelectItem value="all">All Status</SelectItem>
                                     <SelectItem value="active">Active</SelectItem>
                                     <SelectItem value="inactive">Inactive</SelectItem>
                                 </SelectContent>
