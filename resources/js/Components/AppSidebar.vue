@@ -31,6 +31,21 @@ import ResponsiveNavLink from "./ResponsiveNavLink.vue";
 const page = usePage();
 const user = page.props.auth.user;
 
+// console.log('User object:', user);
+
+const hasAdminAccess = computed(() => {
+    if (!user || !user.roles) {
+        return false;
+    }
+    return user.roles.includes('admin') || user.roles.includes('Super Admin');
+});
+
+// console.log('Has Admin Access:', hasAdminAccess.value);
+
+const dashboardRoute = computed(() => {
+    return hasAdminAccess.value ? route("admin.dashboard") : route("user.dashboard");
+});
+
 const isUserMenuOpen = ref(false);
 const toggleUserMenu = () => {
     isUserMenuOpen.value = !isUserMenuOpen.value;
@@ -50,9 +65,9 @@ const isCurrentRoute = (routeName: string) => {
 const menuItems = [
     {
         title: "Dashboard",
-        url: route("user.dashboard"),
+        url: dashboardRoute.value,
         icon: Home,
-        routeName: "user.dashboard"
+        routeName: hasAdminAccess.value ? "admin.dashboard" : "user.dashboard"
     }
 ];
 
@@ -121,7 +136,7 @@ const userManagementItems = [
             <SidebarMenu>
                 <SidebarMenuItem>
                     <SidebarMenuButton size="lg" tooltip="My App Dashboard" class="flex flex-row" as-child>
-                        <Link :href="route('user.dashboard')">
+                        <Link :href="dashboardRoute">
                         <div
                             class="flex aspect-square size-6 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
                             <Home class="size-4" />
@@ -156,7 +171,7 @@ const userManagementItems = [
             </SidebarGroup>
 
             <!-- Form Management -->
-            <SidebarGroup>
+            <SidebarGroup v-if="hasAdminAccess">
                 <SidebarGroupLabel>Form Management</SidebarGroupLabel>
                 <SidebarGroupContent>
                     <SidebarMenu>
@@ -174,7 +189,7 @@ const userManagementItems = [
             </SidebarGroup>
 
             <!-- Academic Management -->
-            <SidebarGroup>
+            <SidebarGroup v-if="hasAdminAccess">
                 <SidebarGroupLabel>Academic Management</SidebarGroupLabel>
                 <SidebarGroupContent>
                     <SidebarMenu>
@@ -192,7 +207,7 @@ const userManagementItems = [
             </SidebarGroup>
 
             <!-- Submission Management -->
-            <SidebarGroup>
+            <SidebarGroup v-if="hasAdminAccess">
                 <SidebarGroupLabel>Submission Management</SidebarGroupLabel>
                 <SidebarGroupContent>
                     <SidebarMenu>

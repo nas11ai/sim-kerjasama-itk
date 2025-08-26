@@ -100,7 +100,7 @@ const formatDate = (dateString: string) => {
                 <h2 class="text-xl font-semibold leading-tight text-gray-800">
                     Form Management
                 </h2>
-                <Link :href="route('forms.create')">
+                <Link :href="route('admin.forms.create')">
                     <Button>
                         <Plus class="h-4 w-4 mr-2" />
                         Create Form
@@ -136,7 +136,7 @@ const formatDate = (dateString: string) => {
                                 <DropdownMenuContent align="end">
                                     <DropdownMenuItem as-child>
                                         <Link
-                                            :href="route('forms.show', form.id)"
+                                            :href="route('admin.forms.show', form.id)"
                                         >
                                             <Eye class="h-4 w-4 mr-2" />
                                             View
@@ -144,7 +144,7 @@ const formatDate = (dateString: string) => {
                                     </DropdownMenuItem>
                                     <DropdownMenuItem as-child>
                                         <Link
-                                            :href="route('forms.edit', form.id)"
+                                            :href="route('admin.forms.edit', form.id)"
                                         >
                                             <Edit class="h-4 w-4 mr-2" />
                                             Edit
@@ -222,7 +222,7 @@ const formatDate = (dateString: string) => {
                         Get started by creating your first form.
                     </p>
                     <div class="mt-6">
-                        <Link :href="route('forms.create')">
+                        <Link :href="route('admin.forms.create')">
                             <Button>
                                 <Plus class="h-4 w-4 mr-2" />
                                 Create Form

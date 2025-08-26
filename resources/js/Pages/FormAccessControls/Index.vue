@@ -246,7 +246,7 @@ const toggleItemSelection = (id: number) => {
                         <Trash2 class="h-4 w-4 mr-2" />
                         Delete Selected ({{ selectedItems.length }})
                     </Button>
-                    <Link :href="route('form-access-controls.create')">
+                    <Link :href="route('admin.form-access-controls.create')">
                         <Button>
                             <Plus class="h-4 w-4 mr-2" />
                             Create Access Control
@@ -515,7 +515,7 @@ const toggleItemSelection = (id: number) => {
                                                 <Link
                                                     :href="
                                                         route(
-                                                            'form-access-controls.show',
+                                                            'admin.form-access-controls.show',
                                                             control.id
                                                         )
                                                     "
@@ -582,7 +582,7 @@ const toggleItemSelection = (id: number) => {
                             }}
                         </p>
                         <Link
-                            :href="route('form-access-controls.create')"
+                            :href="route('admin.form-access-controls.create')"
                             v-if="!hasActiveFilters"
                         >
                             <Button>
