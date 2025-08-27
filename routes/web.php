@@ -1,10 +1,12 @@
 <?php
 
+use App\Http\Controllers\ReviewerRoleController;
 use App\Http\Controllers\FacultyController;
 use App\Http\Controllers\FormAccessControlController;
 use App\Http\Controllers\FormController;
 use App\Http\Controllers\FormPhaseController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\ReviewerController;
 use App\Http\Controllers\SubmissionPeriodController;
 use App\Http\Controllers\UserFormController;
 use Illuminate\Foundation\Application;
@@ -53,6 +55,18 @@ Route::middleware(['auth', 'role:Super Admin|Admin'])->prefix('admin')->name('ad
     })->middleware(['auth', 'verified'])->name('dashboard');
 
     Route::resource('forms', FormController::class);
+
+    // Reviewer Management
+    Route::resource('reviewers', ReviewerController::class);
+    Route::patch('reviewers/{reviewer}/deactivate', [ReviewerController::class, 'deactivate'])
+        ->name('reviewers.deactivate');
+    Route::patch('reviewers/{reviewer}/activate', [ReviewerController::class, 'activate'])
+        ->name('reviewers.activate');
+
+    // Reviewer Role Management
+    Route::resource('reviewer-roles', ReviewerRoleController::class);
+    Route::patch('reviewer-roles/{reviewerRole}/toggle-status', [ReviewerRoleController::class, 'toggleStatus'])
+        ->name('reviewer-roles.toggle-status');
 
     Route::resource('form-phases', FormPhaseController::class)->names([
         'index' => 'form-phases.index',
