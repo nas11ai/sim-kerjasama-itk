@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, onMounted } from "vue";
+import { computed, ref, onMounted, nextTick } from "vue";
 import { Head, useForm } from "@inertiajs/vue3";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout.vue";
 import { Button } from "@/Components/ui/button";
@@ -24,7 +24,6 @@ import {
     Settings,
     FileText,
 } from "lucide-vue-next";
-import { watch } from "vue";
 
 interface FormPhase {
     id: number;
@@ -81,13 +80,12 @@ interface SubmissionPeriod {
     submission_period_details: SubmissionPeriodDetail[];
 }
 
-// Fix: Add index signature to FormData interface
 interface FormData {
     name: string;
     submission_dates: SubmissionDate[];
     form_phase_ids: number[];
     submission_rule_ids: number[];
-    [key: string]: any; // Add index signature
+    [key: string]: any;
 }
 
 interface Props {
@@ -117,16 +115,23 @@ const newLabelForm = useForm({
 // State untuk menyimpan labels yang ditambahkan secara dinamis
 const dynamicLabels = ref<SubmissionDateLabel[]>([]);
 
-// Computed untuk menggabungkan labels dari props dan yang ditambahkan secara dinamis
-const allLabels = computed(() => [
-    ...props.submissionDateLabels,
-    ...dynamicLabels.value,
-]);
+// Reactive key untuk memaksa update komponen Select
+const selectKey = ref(0);
+
+// Computed untuk menggabungkan labels
+const allLabels = computed(() => {
+    return [
+        ...props.submissionDateLabels,
+        ...dynamicLabels.value,
+    ];
+});
 
 const generateTempId = () => `temp_${Date.now()}_${Math.random()}`;
 
 // Initialize form data with existing data
-onMounted(() => {
+onMounted(async () => {
+    await nextTick();
+
     // Load existing submission dates
     form.submission_dates = props.submissionPeriod.submission_dates.map(
         (date) => ({
@@ -166,11 +171,13 @@ const formatDateForInput = (dateString: string): string => {
 };
 
 const addSubmissionDate = () => {
-    form.submission_dates.push({
+    const newDate = {
         label: "",
         datetime: "",
         temp_id: generateTempId(),
-    });
+    };
+
+    form.submission_dates.push(newDate);
 };
 
 const addNewLabel = async () => {
@@ -195,6 +202,9 @@ const addNewLabel = async () => {
                 const newLabel = await response.json();
                 dynamicLabels.value.push(newLabel);
                 newLabelForm.reset();
+
+                // Force update Select components
+                selectKey.value++;
             } else {
                 console.error("Failed to add new label:", response.statusText);
             }
@@ -246,14 +256,6 @@ const selectAllSubmissionRules = () => {
 const submit = () => {
     form.put(route("submission-periods.update", props.submissionPeriod.id));
 };
-
-watch(showAddLabelDialog, (val) => {
-    if (val) {
-        document.body.classList.add("overflow-hidden");
-    } else {
-        document.body.classList.remove("overflow-hidden");
-    }
-});
 </script>
 
 <template>
@@ -332,123 +334,42 @@ watch(showAddLabelDialog, (val) => {
                                 class="flex items-end gap-4 p-4 border rounded-lg"
                             >
                                 <div class="flex-1 space-y-2">
-                                    <div
-                                        class="flex items-center justify-between"
-                                    >
-                                        <Label :for="`date_label_${index}`"
-                                            >Date Label</Label
+                                    <div class="flex items-center justify-between">
+                                        <Label :for="`date_label_${index}`">Date Label</Label>
+                                        <Button
+                                            type="button"
+                                            variant="ghost"
+                                            size="sm"
+                                            class="text-xs h-6 px-2"
+                                            @click="showAddLabelDialog = true"
                                         >
-                                        <!-- Custom Modal instead of Dialog -->
-                                        <div>
-                                            <Button
-                                                type="button"
-                                                variant="ghost"
-                                                size="sm"
-                                                class="text-xs h-6 px-2"
-                                                @click="
-                                                    showAddLabelDialog = true
-                                                "
-                                            >
-                                                <Plus class="h-3 w-3 mr-1" />
-                                                Add New
-                                            </Button>
-
-                                            <!-- Modal Overlay -->
-                                            <div
-                                                v-if="showAddLabelDialog"
-                                                class="fixed inset-0 z-50"
-                                            >
-                                                <!-- Background hitam -->
-                                                <div
-                                                    class="absolute inset-0 bg-black/80"
-                                                    @click="
-                                                        showAddLabelDialog = false
-                                                    "
-                                                ></div>
-
-                                                <!-- Modal content -->
-                                                <div
-                                                    class="relative z-10 flex items-center justify-center min-h-screen p-4"
-                                                >
-                                                    <div
-                                                        class="bg-white rounded-lg shadow-lg w-full max-w-md p-6 max-h-[calc(100vh-2rem)] overflow-y-auto"
-                                                    >
-                                                        <h3
-                                                            class="text-lg font-semibold mb-4"
-                                                        >
-                                                            Add New Date Label
-                                                        </h3>
-                                                        <div class="space-y-4">
-                                                            <div
-                                                                class="space-y-2"
-                                                            >
-                                                                <Label
-                                                                    for="new-label"
-                                                                    >Label
-                                                                    Name</Label
-                                                                >
-                                                                <Input
-                                                                    id="new-label"
-                                                                    v-model="
-                                                                        newLabelForm.label
-                                                                    "
-                                                                    placeholder="Enter label name"
-                                                                    @keyup.enter="
-                                                                        addNewLabel
-                                                                    "
-                                                                    autofocus
-                                                                />
-                                                            </div>
-                                                            <div
-                                                                class="flex justify-end gap-2 pt-4"
-                                                            >
-                                                                <Button
-                                                                    type="button"
-                                                                    variant="outline"
-                                                                    @click="
-                                                                        showAddLabelDialog = false
-                                                                    "
-                                                                >
-                                                                    Cancel
-                                                                </Button>
-                                                                <Button
-                                                                    type="button"
-                                                                    @click="
-                                                                        addNewLabel
-                                                                    "
-                                                                    :disabled="
-                                                                        !newLabelForm.label.trim()
-                                                                    "
-                                                                >
-                                                                    Add Label
-                                                                </Button>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
+                                            <Plus class="h-3 w-3 mr-1" />
+                                            Add New
+                                        </Button>
                                     </div>
+
+                                    <!-- Main Select Component -->
                                     <Select
                                         v-model="date.label"
                                         :id="`date_label_${index}`"
+                                        :key="`select_${index}_${selectKey}`"
                                     >
-                                        <SelectTrigger>
-                                            <SelectValue
-                                                placeholder="Select date label"
-                                            />
+                                        <SelectTrigger class="w-full">
+                                            <SelectValue placeholder="Select date label" />
                                         </SelectTrigger>
-                                        <SelectContent>
+                                        <SelectContent class="z-[9999] max-h-60 overflow-auto">
                                             <SelectItem
                                                 v-for="labelOption in allLabels"
-                                                :key="labelOption.id"
+                                                :key="`item_${labelOption.id}_${selectKey}`"
                                                 :value="labelOption.name"
+                                                class="cursor-pointer hover:bg-gray-100"
                                             >
                                                 {{ labelOption.name }}
                                             </SelectItem>
                                         </SelectContent>
                                     </Select>
                                 </div>
+
                                 <div class="flex-1 space-y-2">
                                     <Label :for="`date_${index}`">Date</Label>
                                     <Input
@@ -457,15 +378,14 @@ watch(showAddLabelDialog, (val) => {
                                         type="datetime-local"
                                     />
                                 </div>
+
                                 <Button
                                     type="button"
                                     variant="ghost"
                                     size="sm"
                                     @click="removeSubmissionDate(index)"
                                     class="text-destructive hover:text-destructive"
-                                    :disabled="
-                                        form.submission_dates.length === 1
-                                    "
+                                    :disabled="form.submission_dates.length === 1"
                                 >
                                     <Trash2 class="h-4 w-4" />
                                 </Button>
@@ -479,6 +399,49 @@ watch(showAddLabelDialog, (val) => {
                         </p>
                     </CardContent>
                 </Card>
+
+                <!-- Modal for Add New Label -->
+                <div v-if="showAddLabelDialog">
+                    <div
+                        class="absolute inset-0 bg-black/80"
+                        @click="showAddLabelDialog = false"
+                    ></div>
+                    <div class="relative z-10 flex items-center justify-center min-h-screen p-4">
+                        <div class="bg-white rounded-lg shadow-lg w-full max-w-md p-6 max-h-[calc(100vh-2rem)] overflow-y-auto">
+                            <h3 class="text-lg font-semibold mb-4">
+                                Add New Date Label
+                            </h3>
+                            <div class="space-y-4">
+                                <div class="space-y-2">
+                                    <Label for="new-label">Label Name</Label>
+                                    <Input
+                                        id="new-label"
+                                        v-model="newLabelForm.label"
+                                        placeholder="Enter label name"
+                                        @keyup.enter="addNewLabel"
+                                        autofocus
+                                    />
+                                </div>
+                                <div class="flex justify-end gap-2 pt-4">
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        @click="showAddLabelDialog = false"
+                                    >
+                                        Cancel
+                                    </Button>
+                                    <Button
+                                        type="button"
+                                        @click="addNewLabel"
+                                        :disabled="!newLabelForm.label.trim()"
+                                    >
+                                        Add Label
+                                    </Button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
                 <!-- Form Phases -->
                 <Card>
@@ -524,9 +487,7 @@ watch(showAddLabelDialog, (val) => {
                                 @click="toggleFormPhase(phase.id)"
                             >
                                 <Checkbox
-                                    :checked="
-                                        form.form_phase_ids.includes(phase.id)
-                                    "
+                                    :checked="form.form_phase_ids.includes(phase.id)"
                                     @update:checked="toggleFormPhase(phase.id)"
                                 />
                                 <div class="flex-1 min-w-0">
@@ -597,14 +558,8 @@ watch(showAddLabelDialog, (val) => {
                                 @click="toggleSubmissionRule(rule.id)"
                             >
                                 <Checkbox
-                                    :checked="
-                                        form.submission_rule_ids.includes(
-                                            rule.id
-                                        )
-                                    "
-                                    @update:checked="
-                                        toggleSubmissionRule(rule.id)
-                                    "
+                                    :checked="form.submission_rule_ids.includes(rule.id)"
+                                    @update:checked="toggleSubmissionRule(rule.id)"
                                 />
                                 <div class="flex-1">
                                     <Label class="cursor-pointer font-medium">
@@ -628,53 +583,33 @@ watch(showAddLabelDialog, (val) => {
                     class="border-blue-200 bg-blue-50"
                 >
                     <CardHeader>
-                        <CardTitle class="text-blue-900"
-                            >Preview Summary</CardTitle
-                        >
+                        <CardTitle class="text-blue-900">Preview Summary</CardTitle>
                     </CardHeader>
                     <CardContent class="space-y-4">
                         <div v-if="form.name">
-                            <h4 class="font-medium text-blue-800 mb-1">
-                                Period Name
-                            </h4>
+                            <h4 class="font-medium text-blue-800 mb-1">Period Name</h4>
                             <p class="text-blue-700">{{ form.name }}</p>
                         </div>
 
                         <div
-                            v-if="
-                                form.submission_dates.some(
-                                    (d) => d.label || d.datetime
-                                )
-                            "
+                            v-if="form.submission_dates.some((d) => d.label || d.datetime)"
                         >
-                            <h4 class="font-medium text-blue-800 mb-2">
-                                Dates
-                            </h4>
+                            <h4 class="font-medium text-blue-800 mb-2">Dates</h4>
                             <div class="space-y-1">
                                 <template
-                                    v-for="(
-                                        submissionDate, index
-                                    ) in form.submission_dates"
+                                    v-for="(submissionDate, index) in form.submission_dates"
                                     :key="index"
                                 >
                                     <div
-                                        v-if="
-                                            submissionDate.label ||
-                                            submissionDate.datetime
-                                        "
+                                        v-if="submissionDate.label || submissionDate.datetime"
                                         class="text-sm text-blue-600"
                                     >
-                                        <strong
-                                            >{{
-                                                submissionDate.label ||
-                                                "Unnamed Date"
-                                            }}:</strong
-                                        >
+                                        <strong>{{
+                                            submissionDate.label || "Unnamed Date"
+                                        }}:</strong>
                                         {{
                                             submissionDate.datetime
-                                                ? new Date(
-                                                      submissionDate.datetime
-                                                  ).toLocaleString()
+                                                ? new Date(submissionDate.datetime).toLocaleString()
                                                 : "No date set"
                                         }}
                                     </div>
@@ -683,9 +618,7 @@ watch(showAddLabelDialog, (val) => {
                         </div>
 
                         <div v-if="form.form_phase_ids.length > 0">
-                            <h4 class="font-medium text-blue-800 mb-2">
-                                Selected Form Phases
-                            </h4>
+                            <h4 class="font-medium text-blue-800 mb-2">Selected Form Phases</h4>
                             <div class="flex flex-wrap gap-1">
                                 <Badge
                                     v-for="phaseId in form.form_phase_ids"
@@ -694,18 +627,14 @@ watch(showAddLabelDialog, (val) => {
                                     class="text-blue-700 border-blue-300"
                                 >
                                     {{
-                                        props.formPhases.find(
-                                            (p) => p.id === phaseId
-                                        )?.title
+                                        props.formPhases.find((p) => p.id === phaseId)?.title
                                     }}
                                 </Badge>
                             </div>
                         </div>
 
                         <div v-if="form.submission_rule_ids.length > 0">
-                            <h4 class="font-medium text-blue-800 mb-2">
-                                Selected Rules
-                            </h4>
+                            <h4 class="font-medium text-blue-800 mb-2">Selected Rules</h4>
                             <div class="flex flex-wrap gap-1">
                                 <Badge
                                     v-for="ruleId in form.submission_rule_ids"
@@ -714,9 +643,7 @@ watch(showAddLabelDialog, (val) => {
                                     class="text-blue-700 border-blue-300"
                                 >
                                     {{
-                                        props.submissionRules.find(
-                                            (r) => r.id === ruleId
-                                        )?.label
+                                        props.submissionRules.find((r) => r.id === ruleId)?.label
                                     }}
                                 </Badge>
                             </div>
@@ -729,18 +656,12 @@ watch(showAddLabelDialog, (val) => {
                     <Button
                         type="button"
                         variant="outline"
-                        @click="
-                            $inertia.visit(route('submission-periods.index'))
-                        "
+                        @click="$inertia.visit(route('submission-periods.index'))"
                     >
                         Cancel
                     </Button>
                     <Button type="submit" :disabled="form.processing">
-                        {{
-                            form.processing
-                                ? "Updating..."
-                                : "Update Submission Period"
-                        }}
+                        {{ form.processing ? "Updating..." : "Update Submission Period" }}
                     </Button>
                 </div>
             </form>

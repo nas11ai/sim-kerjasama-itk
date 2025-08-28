@@ -364,7 +364,7 @@ const submit = () => {
 
                 <!-- Form Actions -->
                 <div class="flex items-center justify-end space-x-2">
-                    <Button type="button" variant="outline" @click="$inertia.visit(route('form-phases.index'))">
+                    <Button type="button" variant="outline" @click="$inertia.visit(route('admin.form-phases.index'))">
                         Cancel
                     </Button>
                     <Button type="submit" :disabled="form.processing">
