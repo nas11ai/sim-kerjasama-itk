@@ -162,36 +162,32 @@ const isDateToday = (dateString: string) => {
 </script>
 
 <template>
+
     <Head title="Submission Period Details" />
 
     <AuthenticatedLayout>
         <template #header>
             <div class="flex items-center justify-between">
                 <div class="flex items-center gap-4">
-                    <Link :href="route('submission-periods.index')">
-                        <Button variant="ghost" size="sm">
-                            <ArrowLeft class="h-4 w-4 mr-2" />
-                            Back to Submission Periods
-                        </Button>
+                    <Link :href="route('admin.submission-periods.index')">
+                    <Button variant="ghost" size="sm">
+                        <ArrowLeft class="h-4 w-4 mr-2" />
+                        Back to Submission Periods
+                    </Button>
                     </Link>
-                    <h2
-                        class="text-xl font-semibold leading-tight text-gray-800"
-                    >
+                    <h2 class="text-xl font-semibold leading-tight text-gray-800">
                         Submission Period Details
                     </h2>
                 </div>
-                <Link
-                    :href="
-                        route(
-                            'submission-periods.edit',
-                            props.submissionPeriod.id
-                        )
-                    "
-                >
-                    <Button>
-                        <Edit class="h-4 w-4 mr-2" />
-                        Edit Period
-                    </Button>
+                <Link :href="route(
+                    'admin.submission-periods.edit',
+                    props.submissionPeriod.id
+                )
+                    ">
+                <Button>
+                    <Edit class="h-4 w-4 mr-2" />
+                    Edit Period
+                </Button>
                 </Link>
             </div>
         </template>
@@ -208,9 +204,7 @@ const isDateToday = (dateString: string) => {
                 <CardContent class="space-y-6">
                     <div class="grid gap-6 md:grid-cols-2">
                         <div>
-                            <h3
-                                class="font-medium text-sm text-muted-foreground mb-1"
-                            >
+                            <h3 class="font-medium text-sm text-muted-foreground mb-1">
                                 Period Name
                             </h3>
                             <p class="text-lg font-semibold">
@@ -218,27 +212,17 @@ const isDateToday = (dateString: string) => {
                             </p>
                         </div>
                         <div>
-                            <h3
-                                class="font-medium text-sm text-muted-foreground mb-1"
-                            >
+                            <h3 class="font-medium text-sm text-muted-foreground mb-1">
                                 Status
                             </h3>
-                            <Badge
-                                :variant="
-                                    getStatusColor(
-                                        props.submissionPeriod.status
-                                    )
-                                "
-                                class="flex items-center gap-1 w-fit"
-                            >
-                                <component
-                                    :is="
-                                        getStatusIcon(
-                                            props.submissionPeriod.status
-                                        )
-                                    "
-                                    class="h-3 w-3"
-                                />
+                            <Badge :variant="getStatusColor(
+                                props.submissionPeriod.status
+                            )
+                                " class="flex items-center gap-1 w-fit">
+                                <component :is="getStatusIcon(
+                                    props.submissionPeriod.status
+                                )
+                                    " class="h-3 w-3" />
                                 {{
                                     getStatusText(props.submissionPeriod.status)
                                 }}
@@ -246,15 +230,11 @@ const isDateToday = (dateString: string) => {
                         </div>
                     </div>
 
-                    <div
-                        v-if="
-                            props.submissionPeriod.days_remaining !== null &&
-                            props.submissionPeriod.status === 'active'
-                        "
-                    >
-                        <h3
-                            class="font-medium text-sm text-muted-foreground mb-1"
-                        >
+                    <div v-if="
+                        props.submissionPeriod.days_remaining !== null &&
+                        props.submissionPeriod.status === 'active'
+                    ">
+                        <h3 class="font-medium text-sm text-muted-foreground mb-1">
                             Days Remaining
                         </h3>
                         <div class="flex items-center gap-2">
@@ -303,19 +283,13 @@ const isDateToday = (dateString: string) => {
                     </CardTitle>
                 </CardHeader>
                 <CardContent>
-                    <div
-                        v-if="sortedDates.length === 0"
-                        class="text-center py-8 text-muted-foreground"
-                    >
+                    <div v-if="sortedDates.length === 0" class="text-center py-8 text-muted-foreground">
                         <Calendar class="h-12 w-12 mx-auto mb-4 opacity-50" />
                         <p>No submission dates configured.</p>
                     </div>
                     <div v-else class="space-y-4">
-                        <div
-                            v-for="(date, index) in sortedDates"
-                            :key="date.id"
-                            class="flex items-center justify-between p-4 border rounded-lg"
-                            :class="{
+                        <div v-for="(date, index) in sortedDates" :key="date.id"
+                            class="flex items-center justify-between p-4 border rounded-lg" :class="{
                                 'bg-green-50 border-green-200': isDateToday(
                                     date.datetime
                                 ),
@@ -325,8 +299,7 @@ const isDateToday = (dateString: string) => {
                                 'bg-blue-50 border-blue-200':
                                     !isDatePassed(date.datetime) &&
                                     !isDateToday(date.datetime),
-                            }"
-                        >
+                            }">
                             <div>
                                 <h4 class="font-medium">{{ date.label }}</h4>
                                 <p class="text-sm text-muted-foreground">
@@ -334,17 +307,10 @@ const isDateToday = (dateString: string) => {
                                 </p>
                             </div>
                             <div class="flex items-center gap-2">
-                                <Badge
-                                    v-if="isDateToday(date.datetime)"
-                                    variant="default"
-                                    class="bg-green-600"
-                                >
+                                <Badge v-if="isDateToday(date.datetime)" variant="default" class="bg-green-600">
                                     Today
                                 </Badge>
-                                <Badge
-                                    v-else-if="isDatePassed(date.datetime)"
-                                    variant="secondary"
-                                >
+                                <Badge v-else-if="isDatePassed(date.datetime)" variant="secondary">
                                     Passed
                                 </Badge>
                                 <Badge v-else variant="outline">
@@ -372,62 +338,43 @@ const isDateToday = (dateString: string) => {
                     </CardTitle>
                 </CardHeader>
                 <CardContent>
-                    <div
-                        v-if="
-                            props.submissionPeriod.submission_period_phases
-                                .length === 0
-                        "
-                        class="text-center py-8 text-muted-foreground"
-                    >
+                    <div v-if="
+                        props.submissionPeriod.submission_period_phases
+                            .length === 0
+                    " class="text-center py-8 text-muted-foreground">
                         <Settings class="h-12 w-12 mx-auto mb-4 opacity-50" />
                         <p>No form phases associated with this period.</p>
                     </div>
                     <div v-else class="space-y-6">
                         <!-- Active Phases -->
                         <div v-if="activePhases.length > 0">
-                            <h3
-                                class="font-medium text-green-700 mb-3 flex items-center gap-2"
-                            >
-                                <div
-                                    class="w-2 h-2 bg-green-500 rounded-full"
-                                ></div>
+                            <h3 class="font-medium text-green-700 mb-3 flex items-center gap-2">
+                                <div class="w-2 h-2 bg-green-500 rounded-full"></div>
                                 Active Phases ({{ activePhases.length }})
                             </h3>
                             <div class="space-y-3">
-                                <div
-                                    v-for="phase in activePhases"
-                                    :key="phase.id"
-                                    class="flex items-center justify-between p-3 border rounded-lg bg-green-50 border-green-200"
-                                >
+                                <div v-for="phase in activePhases" :key="phase.id"
+                                    class="flex items-center justify-between p-3 border rounded-lg bg-green-50 border-green-200">
                                     <div>
                                         <h4 class="font-medium">
                                             {{ phase.form_phase.title }}
                                         </h4>
-                                        <p
-                                            v-if="phase.form_phase.description"
-                                            class="text-sm text-muted-foreground"
-                                        >
+                                        <p v-if="phase.form_phase.description" class="text-sm text-muted-foreground">
                                             {{ phase.form_phase.description }}
                                         </p>
                                     </div>
                                     <div class="flex items-center gap-2">
-                                        <Badge
-                                            variant="default"
-                                            class="bg-green-600"
-                                        >
+                                        <Badge variant="default" class="bg-green-600">
                                             Active
                                         </Badge>
-                                        <Link
-                                            :href="
-                                                route(
-                                                    'form-phases.show',
-                                                    phase.form_phase.id
-                                                )
-                                            "
-                                        >
-                                            <Button variant="outline" size="sm">
-                                                View Phase
-                                            </Button>
+                                        <Link :href="route(
+                                            'form-phases.show',
+                                            phase.form_phase.id
+                                        )
+                                            ">
+                                        <Button variant="outline" size="sm">
+                                            View Phase
+                                        </Button>
                                         </Link>
                                     </div>
                                 </div>
@@ -436,28 +383,18 @@ const isDateToday = (dateString: string) => {
 
                         <!-- Inactive Phases -->
                         <div v-if="inactivePhases.length > 0">
-                            <h3
-                                class="font-medium text-gray-600 mb-3 flex items-center gap-2"
-                            >
-                                <div
-                                    class="w-2 h-2 bg-gray-400 rounded-full"
-                                ></div>
+                            <h3 class="font-medium text-gray-600 mb-3 flex items-center gap-2">
+                                <div class="w-2 h-2 bg-gray-400 rounded-full"></div>
                                 Inactive Phases ({{ inactivePhases.length }})
                             </h3>
                             <div class="space-y-3">
-                                <div
-                                    v-for="phase in inactivePhases"
-                                    :key="phase.id"
-                                    class="flex items-center justify-between p-3 border rounded-lg bg-gray-50 border-gray-200"
-                                >
+                                <div v-for="phase in inactivePhases" :key="phase.id"
+                                    class="flex items-center justify-between p-3 border rounded-lg bg-gray-50 border-gray-200">
                                     <div>
                                         <h4 class="font-medium text-gray-600">
                                             {{ phase.form_phase.title }}
                                         </h4>
-                                        <p
-                                            v-if="phase.form_phase.description"
-                                            class="text-sm text-muted-foreground"
-                                        >
+                                        <p v-if="phase.form_phase.description" class="text-sm text-muted-foreground">
                                             {{ phase.form_phase.description }}
                                         </p>
                                     </div>
@@ -465,17 +402,14 @@ const isDateToday = (dateString: string) => {
                                         <Badge variant="secondary">
                                             Inactive
                                         </Badge>
-                                        <Link
-                                            :href="
-                                                route(
-                                                    'form-phases.show',
-                                                    phase.form_phase.id
-                                                )
-                                            "
-                                        >
-                                            <Button variant="outline" size="sm">
-                                                View Phase
-                                            </Button>
+                                        <Link :href="route(
+                                            'form-phases.show',
+                                            phase.form_phase.id
+                                        )
+                                            ">
+                                        <Button variant="outline" size="sm">
+                                            View Phase
+                                        </Button>
                                         </Link>
                                     </div>
                                 </div>
@@ -501,23 +435,16 @@ const isDateToday = (dateString: string) => {
                     </CardTitle>
                 </CardHeader>
                 <CardContent>
-                    <div
-                        v-if="
-                            props.submissionPeriod.submission_period_details
-                                .length === 0
-                        "
-                        class="text-center py-8 text-muted-foreground"
-                    >
+                    <div v-if="
+                        props.submissionPeriod.submission_period_details
+                            .length === 0
+                    " class="text-center py-8 text-muted-foreground">
                         <FileText class="h-12 w-12 mx-auto mb-4 opacity-50" />
                         <p>No submission rules applied to this period.</p>
                     </div>
                     <div v-else class="grid gap-3 md:grid-cols-2">
-                        <div
-                            v-for="detail in props.submissionPeriod
-                                .submission_period_details"
-                            :key="detail.id"
-                            class="p-3 border rounded-lg"
-                        >
+                        <div v-for="detail in props.submissionPeriod
+                            .submission_period_details" :key="detail.id" class="p-3 border rounded-lg">
                             <h4 class="font-medium">
                                 {{ detail.submission_rule.label }}
                             </h4>

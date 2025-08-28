@@ -151,7 +151,7 @@ const selectAllSubmissionRules = () => {
 };
 
 const submit = () => {
-    form.post(route("submission-periods.store"));
+    form.post(route("admin.submission-periods.store"));
 };
 
 // Initialize with one date entry
@@ -176,7 +176,7 @@ watch(showAddLabelDialog, (val) => {
     <AuthenticatedLayout>
         <template #header>
             <div class="flex items-center gap-4">
-                <Button variant="ghost" size="sm" @click="$inertia.visit(route('submission-periods.index'))">
+                <Button variant="ghost" size="sm" @click="$inertia.visit(route('admin.submission-periods.index'))">
                     <ArrowLeft class="h-4 w-4 mr-2" />
                     Back
                 </Button>
@@ -439,7 +439,8 @@ watch(showAddLabelDialog, (val) => {
 
                 <!-- Form Actions -->
                 <div class="flex items-center justify-end space-x-2">
-                    <Button type="button" variant="outline" @click="$inertia.visit(route('submission-periods.index'))">
+                    <Button type="button" variant="outline"
+                        @click="$inertia.visit(route('admin.submission-periods.index'))">
                         Cancel
                     </Button>
                     <Button type="submit" :disabled="form.processing">
