@@ -86,7 +86,7 @@ const sortedPhaseDetails = props.formPhase.form_phase_details.sort(
         <template #header>
             <div class="flex items-center justify-between">
                 <div class="flex items-center gap-4">
-                    <Link :href="route('form-phases.index')">
+                    <Link :href="route('admin.form-phases.index')">
                     <Button variant="ghost" size="sm">
                         <ArrowLeft class="h-4 w-4 mr-2" />
                         Back to Form Phases
@@ -96,7 +96,7 @@ const sortedPhaseDetails = props.formPhase.form_phase_details.sort(
                         Form Phase Details
                     </h2>
                 </div>
-                <Link :href="route('form-phases.edit', props.formPhase.id)">
+                <Link :href="route('admin.form-phases.edit', props.formPhase.id)">
                 <Button>
                     <Edit class="h-4 w-4 mr-2" />
                     Edit Phase

@@ -120,13 +120,13 @@ const filteredFormPhases = computed(() => {
 
 const deleteFormPhase = (id: number) => {
     if (confirm("Are you sure you want to delete this form phase?")) {
-        router.delete(route("form-phases.destroy", id));
+        router.delete(route("admin.form-phases.destroy", id));
     }
 };
 
 const toggleStatus = (formPhase: FormPhase) => {
     router.patch(
-        route("form-phases.update-status", formPhase.id),
+        route("admin.form-phases.update-status", formPhase.id),
         {
             is_active: !formPhase.is_active,
         },
@@ -219,8 +219,8 @@ const toggleStatus = (formPhase: FormPhase) => {
                                     </TableCell>
                                     <TableCell>
                                         <Badge :variant="formPhase.is_active
-                                                ? 'default'
-                                                : 'secondary'
+                                            ? 'default'
+                                            : 'secondary'
                                             ">
                                             {{
                                                 formPhase.is_active
