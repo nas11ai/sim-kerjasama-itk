@@ -129,7 +129,7 @@ watch(facultyFilter, (newValue) => {
 
 // Update filters function
 const updateFilters = (newFilters: Partial<Filters>) => {
-    router.get(route('faculties.study-programs'), {
+    router.get(route('admin.faculties.study-programs'), {
         ...props.filters,
         ...newFilters,
     }, {
@@ -159,7 +159,7 @@ const deleteStudyProgram = async (studyProgram: StudyProgram) => {
     isDeleting.value = studyProgram.id;
 
     try {
-        await router.delete(route('faculties.study-programs.destroy', studyProgram.id), {
+        await router.delete(route('admin.faculties.study-programs.destroy', studyProgram.id), {
             preserveState: false,
         });
     } finally {
@@ -239,7 +239,7 @@ const activeFiltersCount = computed(() => {
                         <Building2 class="h-4 w-4 mr-2" />
                         Faculties
                     </Button>
-                    <Button @click="router.visit(route('faculties.study-programs.create'))">
+                    <Button @click="router.visit(route('admin.faculties.study-programs.create'))">
                         <Plus class="h-4 w-4 mr-2" />
                         Add Study Program
                     </Button>
@@ -395,7 +395,7 @@ const activeFiltersCount = computed(() => {
                                             </DropdownMenuTrigger>
                                             <DropdownMenuContent align="end">
                                                 <DropdownMenuItem
-                                                    @click="router.visit(route('faculties.study-programs.edit', program.id))">
+                                                    @click="router.visit(route('admin.faculties.study-programs.edit', program.id))">
                                                     <Edit class="h-4 w-4 mr-2" />
                                                     Edit
                                                 </DropdownMenuItem>
