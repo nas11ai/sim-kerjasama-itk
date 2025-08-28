@@ -155,9 +155,9 @@ const previewCombinations = computed(() => {
 const submit = () => {
     if (isBulkMode.value) {
         bulkForm.combinations = generateCombinations();
-        bulkForm.post(route("form-access-controls.bulk-create"));
+        bulkForm.post(route("admin.form-access-controls.bulk-create"));
     } else {
-        form.post(route("form-access-controls.store"));
+        form.post(route("admin.form-access-controls.store"));
     }
 };
 
@@ -220,16 +220,13 @@ const currentFormId = computed({
 </script>
 
 <template>
+
     <Head title="Create Form Access Control" />
 
     <AuthenticatedLayout>
         <template #header>
             <div class="flex items-center gap-4">
-                <Button
-                    variant="ghost"
-                    size="sm"
-                    @click="$inertia.visit(route('form-access-controls.index'))"
-                >
+                <Button variant="ghost" size="sm" @click="$inertia.visit(route('admin.form-access-controls.index'))">
                     <ArrowLeft class="h-4 w-4 mr-2" />
                     Back
                 </Button>
@@ -278,19 +275,12 @@ const currentFormId = computed({
                                     <SelectValue placeholder="Select a form" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem
-                                        v-for="formItem in props.forms"
-                                        :key="formItem.id"
-                                        :value="formItem.id"
-                                    >
+                                    <SelectItem v-for="formItem in props.forms" :key="formItem.id" :value="formItem.id">
                                         {{ formItem.title }}
                                     </SelectItem>
                                 </SelectContent>
                             </Select>
-                            <p
-                                v-if="errors.form_id"
-                                class="text-sm text-destructive"
-                            >
+                            <p v-if="errors.form_id" class="text-sm text-destructive">
                                 {{ errors.form_id }}
                             </p>
                         </div>
@@ -313,24 +303,15 @@ const currentFormId = computed({
                                     <Label for="role">Role *</Label>
                                     <Select v-model="form.role_id">
                                         <SelectTrigger id="role">
-                                            <SelectValue
-                                                placeholder="Select a role"
-                                            />
+                                            <SelectValue placeholder="Select a role" />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            <SelectItem
-                                                v-for="role in props.roles"
-                                                :key="role.id"
-                                                :value="role.id"
-                                            >
+                                            <SelectItem v-for="role in props.roles" :key="role.id" :value="role.id">
                                                 {{ role.name }}
                                             </SelectItem>
                                         </SelectContent>
                                     </Select>
-                                    <p
-                                        v-if="errors.role_id"
-                                        class="text-sm text-destructive"
-                                    >
+                                    <p v-if="errors.role_id" class="text-sm text-destructive">
                                         {{ errors.role_id }}
                                     </p>
                                 </div>
@@ -340,16 +321,11 @@ const currentFormId = computed({
                                     <Label for="faculty">Faculty *</Label>
                                     <Select v-model="selectedFacultyId">
                                         <SelectTrigger id="faculty">
-                                            <SelectValue
-                                                placeholder="Select a faculty"
-                                            />
+                                            <SelectValue placeholder="Select a faculty" />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            <SelectItem
-                                                v-for="faculty in props.faculties"
-                                                :key="faculty.id"
-                                                :value="faculty.id"
-                                            >
+                                            <SelectItem v-for="faculty in props.faculties" :key="faculty.id"
+                                                :value="faculty.id">
                                                 {{ faculty.name }}
                                             </SelectItem>
                                         </SelectContent>
@@ -359,32 +335,19 @@ const currentFormId = computed({
 
                             <!-- Study Program Selection -->
                             <div class="space-y-2">
-                                <Label for="study_program"
-                                    >Study Program *</Label
-                                >
-                                <Select
-                                    v-model="form.study_program_id"
-                                    :disabled="!selectedFacultyId"
-                                >
+                                <Label for="study_program">Study Program *</Label>
+                                <Select v-model="form.study_program_id" :disabled="!selectedFacultyId">
                                     <SelectTrigger id="study_program">
-                                        <SelectValue
-                                            placeholder="Select a study program"
-                                        />
+                                        <SelectValue placeholder="Select a study program" />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        <SelectItem
-                                            v-for="studyProgram in studyPrograms"
-                                            :key="studyProgram.id"
-                                            :value="studyProgram.id"
-                                        >
+                                        <SelectItem v-for="studyProgram in studyPrograms" :key="studyProgram.id"
+                                            :value="studyProgram.id">
                                             {{ studyProgram.name }}
                                         </SelectItem>
                                     </SelectContent>
                                 </Select>
-                                <p
-                                    v-if="errors.study_program_id"
-                                    class="text-sm text-destructive"
-                                >
+                                <p v-if="errors.study_program_id" class="text-sm text-destructive">
                                     {{ errors.study_program_id }}
                                 </p>
                             </div>
@@ -407,16 +370,11 @@ const currentFormId = computed({
                                 <Label for="faculty_bulk">Faculty *</Label>
                                 <Select v-model="selectedFacultyId">
                                     <SelectTrigger id="faculty_bulk">
-                                        <SelectValue
-                                            placeholder="Select a faculty"
-                                        />
+                                        <SelectValue placeholder="Select a faculty" />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        <SelectItem
-                                            v-for="faculty in props.faculties"
-                                            :key="faculty.id"
-                                            :value="faculty.id"
-                                        >
+                                        <SelectItem v-for="faculty in props.faculties" :key="faculty.id"
+                                            :value="faculty.id">
                                             {{ faculty.name }}
                                         </SelectItem>
                                     </SelectContent>
@@ -427,48 +385,31 @@ const currentFormId = computed({
                             <div v-if="selectedFacultyId" class="space-y-2">
                                 <div class="flex items-center justify-between">
                                     <Label>Study Programs *</Label>
-                                    <Button
-                                        type="button"
-                                        variant="outline"
-                                        size="sm"
-                                        @click="selectAllStudyPrograms"
-                                    >
+                                    <Button type="button" variant="outline" size="sm" @click="selectAllStudyPrograms">
                                         {{
                                             selectedStudyPrograms.length ===
-                                            studyPrograms.length
+                                                studyPrograms.length
                                                 ? "Deselect All"
                                                 : "Select All"
                                         }}
                                     </Button>
                                 </div>
-                                <div
-                                    class="grid gap-2 md:grid-cols-2 max-h-48 overflow-y-auto p-2 border rounded"
-                                >
-                                    <div
-                                        v-for="studyProgram in studyPrograms"
-                                        :key="studyProgram.id"
-                                        class="flex items-center space-x-2"
-                                    >
-                                        <Checkbox
-                                            :checked="
-                                                selectedStudyPrograms.includes(
-                                                    studyProgram.id
-                                                )
-                                            "
-                                            @update:checked="
+                                <div class="grid gap-2 md:grid-cols-2 max-h-48 overflow-y-auto p-2 border rounded">
+                                    <div v-for="studyProgram in studyPrograms" :key="studyProgram.id"
+                                        class="flex items-center space-x-2">
+                                        <Checkbox :checked="selectedStudyPrograms.includes(
+                                            studyProgram.id
+                                        )
+                                            " @update:checked="
                                                 toggleStudyProgram(
                                                     studyProgram.id
                                                 )
-                                            "
-                                        />
-                                        <Label
-                                            class="text-sm cursor-pointer"
-                                            @click="
-                                                toggleStudyProgram(
-                                                    studyProgram.id
-                                                )
-                                            "
-                                        >
+                                                " />
+                                        <Label class="text-sm cursor-pointer" @click="
+                                            toggleStudyProgram(
+                                                studyProgram.id
+                                            )
+                                            ">
                                             {{ studyProgram.name }}
                                         </Label>
                                     </div>
@@ -487,36 +428,20 @@ const currentFormId = computed({
                         <CardContent class="space-y-4">
                             <div class="flex items-center justify-between">
                                 <Label>Roles *</Label>
-                                <Button
-                                    type="button"
-                                    variant="outline"
-                                    size="sm"
-                                    @click="selectAllRoles"
-                                >
+                                <Button type="button" variant="outline" size="sm" @click="selectAllRoles">
                                     {{
                                         selectedRoles.length ===
-                                        props.roles.length
+                                            props.roles.length
                                             ? "Deselect All"
                                             : "Select All"
                                     }}
                                 </Button>
                             </div>
                             <div class="grid gap-2 md:grid-cols-2">
-                                <div
-                                    v-for="role in props.roles"
-                                    :key="role.id"
-                                    class="flex items-center space-x-2"
-                                >
-                                    <Checkbox
-                                        :checked="
-                                            selectedRoles.includes(role.id)
-                                        "
-                                        @update:checked="toggleRole(role.id)"
-                                    />
-                                    <Label
-                                        class="cursor-pointer"
-                                        @click="toggleRole(role.id)"
-                                    >
+                                <div v-for="role in props.roles" :key="role.id" class="flex items-center space-x-2">
+                                    <Checkbox :checked="selectedRoles.includes(role.id)
+                                        " @update:checked="toggleRole(role.id)" />
+                                    <Label class="cursor-pointer" @click="toggleRole(role.id)">
                                         {{ role.name }}
                                     </Label>
                                 </div>
@@ -527,31 +452,24 @@ const currentFormId = computed({
                     <!-- Preview -->
                     <Card v-if="previewCombinations.length > 0">
                         <CardHeader>
-                            <CardTitle
-                                >Preview Combinations ({{
-                                    previewCombinations.length
-                                }})</CardTitle
-                            >
+                            <CardTitle>Preview Combinations ({{
+                                previewCombinations.length
+                            }})</CardTitle>
                         </CardHeader>
                         <CardContent>
                             <div class="max-h-64 overflow-y-auto space-y-2">
-                                <div
-                                    v-for="(
-                                        combo, index
-                                    ) in previewCombinations"
-                                    :key="index"
-                                    class="flex items-center gap-2 p-2 bg-muted rounded text-sm"
-                                >
+                                <div v-for="(
+combo, index
+                                    ) in previewCombinations" :key="index"
+                                    class="flex items-center gap-2 p-2 bg-muted rounded text-sm">
                                     <Badge variant="outline">{{
                                         combo.role
-                                    }}</Badge>
+                                        }}</Badge>
                                     <span>×</span>
                                     <Badge variant="secondary">{{
                                         combo.study_program
-                                    }}</Badge>
-                                    <span class="text-muted-foreground"
-                                        >in {{ combo.faculty }}</span
-                                    >
+                                        }}</Badge>
+                                    <span class="text-muted-foreground">in {{ combo.faculty }}</span>
                                 </div>
                             </div>
                         </CardContent>
@@ -569,27 +487,19 @@ const currentFormId = computed({
 
                 <!-- Form Actions -->
                 <div class="flex items-center justify-end space-x-2">
-                    <Button
-                        type="button"
-                        variant="outline"
-                        @click="
-                            $inertia.visit(route('form-access-controls.index'))
-                        "
-                    >
+                    <Button type="button" variant="outline" @click="
+                        $inertia.visit(route('admin.form-access-controls.index'))
+                        ">
                         Cancel
                     </Button>
-                    <Button
-                        type="submit"
-                        :disabled="
-                            isBulkMode ? bulkForm.processing : form.processing
-                        "
-                    >
+                    <Button type="submit" :disabled="isBulkMode ? bulkForm.processing : form.processing
+                        ">
                         {{
                             (isBulkMode ? bulkForm.processing : form.processing)
                                 ? "Creating..."
                                 : isBulkMode
-                                ? `Create ${previewCombinations.length} Access Controls`
-                                : "Create Access Control"
+                                    ? `Create ${previewCombinations.length} Access Controls`
+                                    : "Create Access Control"
                         }}
                     </Button>
                 </div>
