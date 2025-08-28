@@ -168,7 +168,7 @@ const getPhaseTypeInfo = (id: number | null) => {
 };
 
 const submit = () => {
-    form.patch(route("form-phases.update", props.formPhase.id));
+    form.patch(route("admin.form-phases.update", props.formPhase.id));
 };
 </script>
 
@@ -443,7 +443,7 @@ const submit = () => {
                 <div class="flex items-center justify-end space-x-2">
                     <Button type="button" variant="outline" @click="
                         $inertia.visit(
-                            route('form-phases.show', props.formPhase.id)
+                            route('admin.form-phases.index')
                         )
                         ">
                         Cancel
