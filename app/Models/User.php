@@ -62,4 +62,15 @@ class User extends Authenticatable
     {
         return $this->hasMany(SubmissionReviewFix::class, 'submitted_by');
     }
+
+    public function announcementsCreated()
+    {
+        return $this->hasMany(Announcement::class, 'created_by');
+    }
+
+    public function announcementsRead()
+    {
+        return $this->belongsToMany(Announcement::class, 'announcement_user')
+            ->withTimestamps();
+    }
 }
