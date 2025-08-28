@@ -8,6 +8,7 @@ use App\Http\Controllers\FormPhaseController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ReviewerController;
 use App\Http\Controllers\SubmissionPeriodController;
+use App\Http\Controllers\SubmissionViewController;
 use App\Http\Controllers\UserFormController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
@@ -45,6 +46,16 @@ Route::middleware('auth')->prefix('user')->name('user.')->group(function () {
     // Get existing form data for editing
     Route::get('/form-submission/data', [UserFormController::class, 'getFormSubmissionData'])
         ->name('form-submission.data');
+
+    // Submission viewing routes
+    Route::get('/submissions', [SubmissionViewController::class, 'userIndex'])
+        ->name('submissions.index');
+
+    Route::get('/submissions/period/{period}', [SubmissionViewController::class, 'userShowPeriod'])
+        ->name('submissions.period');
+
+    Route::get('/submissions/{submission}', [SubmissionViewController::class, 'userShowSubmission'])
+        ->name('submissions.show');
 });
 
 // Admin Routes - only accessible by Super Admin or Admin role
@@ -55,6 +66,16 @@ Route::middleware(['auth', 'role:Super Admin|Admin'])->prefix('admin')->name('ad
     })->middleware(['auth', 'verified'])->name('dashboard');
 
     Route::resource('forms', FormController::class);
+
+    // Submission viewing routes
+    Route::get('/submissions', [SubmissionViewController::class, 'adminIndex'])
+        ->name('submissions.index');
+
+    Route::get('/submissions/period/{period}', [SubmissionViewController::class, 'adminShowPeriod'])
+        ->name('submissions.period');
+
+    Route::get('/submissions/{submission}', [SubmissionViewController::class, 'adminShowSubmission'])
+        ->name('submissions.show');
 
     // Reviewer Management
     Route::resource('reviewers', ReviewerController::class);

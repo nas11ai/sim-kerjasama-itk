@@ -35,7 +35,8 @@ import {
     Shield,
     BookOpen,
     ClipboardList,
-    Filter
+    Filter,
+    Send
 } from 'lucide-vue-next';
 
 const page = usePage();
@@ -86,6 +87,11 @@ const adminNavItems = [
                 title: "Submission Periods",
                 url: route('admin.submission-periods.index'),
                 icon: Calendar,
+            },
+            {
+                title: "View Submissions",
+                url: route('admin.submissions.index'),
+                icon: Send,
             }
         ]
     },
@@ -138,6 +144,17 @@ const userNavItems = [
                 title: "Active Submissions",
                 url: route('user.dashboard'),
                 icon: BookOpen,
+            }
+        ]
+    },
+    {
+        title: "My Submissions",
+        icon: Send,
+        items: [
+            {
+                title: "View Submissions",
+                url: route('user.submissions.index'),
+                icon: Send,
             }
         ]
     }

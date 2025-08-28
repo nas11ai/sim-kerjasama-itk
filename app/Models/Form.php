@@ -17,4 +17,9 @@ class Form extends Model
     {
         return $this->hasMany(FormField::class);
     }
+
+    public function formAccessControls()
+    {
+        return $this->hasMany(FormAccessControl::class);
+    }
 }
