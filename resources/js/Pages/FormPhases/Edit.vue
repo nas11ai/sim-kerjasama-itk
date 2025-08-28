@@ -179,7 +179,7 @@ const submit = () => {
     <AuthenticatedLayout>
         <template #header>
             <div class="flex items-center gap-4">
-                <Button variant="ghost" size="sm" @click="$inertia.visit(route('form-phases.index'))">
+                <Button variant="ghost" size="sm" @click="$inertia.visit(route('admin.form-phases.index'))">
                     <ArrowLeft class="h-4 w-4 mr-2" />
                     Back
                 </Button>

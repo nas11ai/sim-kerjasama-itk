@@ -48,7 +48,7 @@ const form = useForm<FormData>({
 });
 
 const submit = () => {
-    form.put(route("faculties.study-programs.update", props.studyProgram.id));
+    form.put(route("admin.faculties.study-programs.update", props.studyProgram.id));
 };
 
 // Check if form has changes
@@ -65,7 +65,7 @@ const hasChanges = () => {
     <AuthenticatedLayout>
         <template #header>
             <div class="flex items-center gap-4">
-                <Button variant="ghost" size="sm" @click="$inertia.visit(route('faculties.study-programs'))">
+                <Button variant="ghost" size="sm" @click="$inertia.visit(route('admin.faculties.study-programs'))">
                     <ArrowLeft class="h-4 w-4 mr-2" />
                     Back
                 </Button>
@@ -173,7 +173,7 @@ const hasChanges = () => {
 
                         <div class="flex items-center justify-end space-x-2 pt-4">
                             <Button type="button" variant="outline"
-                                @click="$inertia.visit(route('faculties.study-programs'))">
+                                @click="$inertia.visit(route('admin.faculties.study-programs'))">
                                 Cancel
                             </Button>
                             <Button type="submit" :disabled="form.processing || !hasChanges()">

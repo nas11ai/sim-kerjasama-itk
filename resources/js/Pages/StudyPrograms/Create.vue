@@ -25,7 +25,7 @@ const form = useForm({
 });
 
 const submit = () => {
-    form.post(route("faculties.study-programs.store"));
+    form.post(route("admin.faculties.study-programs.store"));
 };
 </script>
 
@@ -36,7 +36,7 @@ const submit = () => {
     <AuthenticatedLayout>
         <template #header>
             <div class="flex items-center gap-4">
-                <Button variant="ghost" size="sm" @click="$inertia.visit(route('faculties.study-programs'))">
+                <Button variant="ghost" size="sm" @click="$inertia.visit(route('admin.faculties.study-programs'))">
                     <ArrowLeft class="h-4 w-4 mr-2" />
                     Back
                 </Button>
@@ -88,7 +88,7 @@ const submit = () => {
 
                         <div class="flex items-center justify-end space-x-2 pt-4">
                             <Button type="button" variant="outline"
-                                @click="$inertia.visit(route('faculties.study-programs'))">
+                                @click="$inertia.visit(route('admin.faculties.study-programs'))">
                                 Cancel
                             </Button>
                             <Button type="submit" :disabled="form.processing">

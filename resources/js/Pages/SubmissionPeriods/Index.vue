@@ -156,7 +156,7 @@ const getStatusIcon = (status: string) => {
 
 const searchPeriods = () => {
     router.get(
-        route("submission-periods.index"),
+        route("admin.submission-periods.index"),
         { search: searchQuery.value },
         {
             preserveState: true,
@@ -168,7 +168,7 @@ const searchPeriods = () => {
 const clearSearch = () => {
     searchQuery.value = "";
     router.get(
-        route("submission-periods.index"),
+        route("admin.submission-periods.index"),
         {},
         {
             preserveState: true,
@@ -183,7 +183,7 @@ const deleteSubmissionPeriod = (id: number) => {
             "Are you sure you want to delete this submission period? This action cannot be undone."
         )
     ) {
-        router.delete(route("submission-periods.destroy", id));
+        router.delete(route("admin.submission-periods.destroy", id));
     }
 };
 
@@ -197,6 +197,7 @@ const formatDate = (dateString: string) => {
 </script>
 
 <template>
+
     <Head title="Submission Periods" />
 
     <AuthenticatedLayout>
@@ -205,11 +206,11 @@ const formatDate = (dateString: string) => {
                 <h2 class="text-xl font-semibold leading-tight text-gray-800">
                     Submission Periods Management
                 </h2>
-                <Link :href="route('admin.submission-periods.create')">
-                    <Button>
-                        <Plus class="h-4 w-4 mr-2" />
-                        Create Submission Period
-                    </Button>
+                <Link :href="route('admin.admin.submission-periods.create')">
+                <Button>
+                    <Plus class="h-4 w-4 mr-2" />
+                    Create Submission Period
+                </Button>
                 </Link>
             </div>
         </template>
@@ -226,22 +227,14 @@ const formatDate = (dateString: string) => {
                 <CardContent>
                     <div class="flex items-center gap-4">
                         <div class="flex-1">
-                            <Input
-                                v-model="searchQuery"
-                                placeholder="Search submission periods by name..."
-                                class="max-w-md"
-                                @keyup.enter="searchPeriods"
-                            />
+                            <Input v-model="searchQuery" placeholder="Search submission periods by name..."
+                                class="max-w-md" @keyup.enter="searchPeriods" />
                         </div>
                         <Button @click="searchPeriods">
                             <Search class="h-4 w-4 mr-2" />
                             Search
                         </Button>
-                        <Button
-                            v-if="searchQuery"
-                            @click="clearSearch"
-                            variant="outline"
-                        >
+                        <Button v-if="searchQuery" @click="clearSearch" variant="outline">
                             Clear
                         </Button>
                     </div>
@@ -267,48 +260,30 @@ const formatDate = (dateString: string) => {
                                     <TableHead>Form Phases</TableHead>
                                     <TableHead>Rules</TableHead>
                                     <TableHead>Dates</TableHead>
-                                    <TableHead class="text-right"
-                                        >Actions</TableHead
-                                    >
+                                    <TableHead class="text-right">Actions</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                <TableRow
-                                    v-for="period in filteredSubmissionPeriods"
-                                    :key="period.id"
-                                >
+                                <TableRow v-for="period in filteredSubmissionPeriods" :key="period.id">
                                     <TableCell class="font-medium">
                                         <div class="flex items-center gap-2">
-                                            <FileText
-                                                class="h-4 w-4 text-muted-foreground"
-                                            />
+                                            <FileText class="h-4 w-4 text-muted-foreground" />
                                             {{ period.name }}
                                         </div>
                                     </TableCell>
                                     <TableCell>
-                                        <Badge
-                                            :variant="
-                                                getStatusColor(period.status)
-                                            "
-                                            class="flex items-center gap-1 w-fit"
-                                        >
-                                            <component
-                                                :is="
-                                                    getStatusIcon(period.status)
-                                                "
-                                                class="h-3 w-3"
-                                            />
+                                        <Badge :variant="getStatusColor(period.status)
+                                            " class="flex items-center gap-1 w-fit">
+                                            <component :is="getStatusIcon(period.status)
+                                                " class="h-3 w-3" />
                                             {{ getStatusText(period.status) }}
                                         </Badge>
                                     </TableCell>
                                     <TableCell>
-                                        <div
-                                            v-if="
-                                                period.start_date &&
-                                                period.end_date
-                                            "
-                                            class="text-sm"
-                                        >
+                                        <div v-if="
+                                            period.start_date &&
+                                            period.end_date
+                                        " class="text-sm">
                                             <div>
                                                 {{
                                                     formatDate(
@@ -323,18 +298,13 @@ const formatDate = (dateString: string) => {
                                                 }}
                                             </div>
                                         </div>
-                                        <div
-                                            v-else
-                                            class="text-sm text-muted-foreground"
-                                        >
+                                        <div v-else class="text-sm text-muted-foreground">
                                             No dates configured
                                         </div>
                                     </TableCell>
                                     <TableCell>
                                         <div class="flex items-center gap-2">
-                                            <Settings
-                                                class="h-4 w-4 text-muted-foreground"
-                                            />
+                                            <Settings class="h-4 w-4 text-muted-foreground" />
                                             <span class="text-sm">
                                                 {{
                                                     period
@@ -347,9 +317,7 @@ const formatDate = (dateString: string) => {
                                     </TableCell>
                                     <TableCell>
                                         <div class="flex items-center gap-2">
-                                            <FileText
-                                                class="h-4 w-4 text-muted-foreground"
-                                            />
+                                            <FileText class="h-4 w-4 text-muted-foreground" />
                                             <span class="text-sm">
                                                 {{
                                                     period
@@ -362,9 +330,7 @@ const formatDate = (dateString: string) => {
                                     </TableCell>
                                     <TableCell>
                                         <div class="flex items-center gap-2">
-                                            <Calendar
-                                                class="h-4 w-4 text-muted-foreground"
-                                            />
+                                            <Calendar class="h-4 w-4 text-muted-foreground" />
                                             <span class="text-sm">
                                                 {{
                                                     period.submission_dates
@@ -377,57 +343,37 @@ const formatDate = (dateString: string) => {
                                     <TableCell class="text-right">
                                         <DropdownMenu>
                                             <DropdownMenuTrigger asChild>
-                                                <Button
-                                                    variant="ghost"
-                                                    size="sm"
-                                                >
-                                                    <MoreHorizontal
-                                                        class="h-4 w-4"
-                                                    />
+                                                <Button variant="ghost" size="sm">
+                                                    <MoreHorizontal class="h-4 w-4" />
                                                 </Button>
                                             </DropdownMenuTrigger>
                                             <DropdownMenuContent align="end">
-                                                <Link
-                                                    :href="
-                                                        route(
-                                                            'admin.submission-periods.show',
-                                                            period.id
-                                                        )
-                                                    "
-                                                >
-                                                    <DropdownMenuItem>
-                                                        <Eye
-                                                            class="h-4 w-4 mr-2"
-                                                        />
-                                                        View Details
-                                                    </DropdownMenuItem>
+                                                <Link :href="route(
+                                                    'admin.admin.submission-periods.show',
+                                                    period.id
+                                                )
+                                                    ">
+                                                <DropdownMenuItem>
+                                                    <Eye class="h-4 w-4 mr-2" />
+                                                    View Details
+                                                </DropdownMenuItem>
                                                 </Link>
-                                                <Link
-                                                    :href="
-                                                        route(
-                                                            'admin.submission-periods.edit',
-                                                            period.id
-                                                        )
-                                                    "
-                                                >
-                                                    <DropdownMenuItem>
-                                                        <Edit
-                                                            class="h-4 w-4 mr-2"
-                                                        />
-                                                        Edit
-                                                    </DropdownMenuItem>
+                                                <Link :href="route(
+                                                    'admin.admin.submission-periods.edit',
+                                                    period.id
+                                                )
+                                                    ">
+                                                <DropdownMenuItem>
+                                                    <Edit class="h-4 w-4 mr-2" />
+                                                    Edit
+                                                </DropdownMenuItem>
                                                 </Link>
-                                                <DropdownMenuItem
-                                                    @click="
-                                                        deleteSubmissionPeriod(
-                                                            period.id
-                                                        )
-                                                    "
-                                                    class="text-destructive cursor-pointer"
-                                                >
-                                                    <Trash2
-                                                        class="h-4 w-4 mr-2"
-                                                    />
+                                                <DropdownMenuItem @click="
+                                                    deleteSubmissionPeriod(
+                                                        period.id
+                                                    )
+                                                    " class="text-destructive cursor-pointer">
+                                                    <Trash2 class="h-4 w-4 mr-2" />
                                                     Delete
                                                 </DropdownMenuItem>
                                             </DropdownMenuContent>
@@ -439,13 +385,8 @@ const formatDate = (dateString: string) => {
                     </div>
 
                     <!-- Empty State -->
-                    <div
-                        v-if="filteredSubmissionPeriods.length === 0"
-                        class="text-center py-12"
-                    >
-                        <Calendar
-                            class="h-12 w-12 mx-auto text-muted-foreground mb-4"
-                        />
+                    <div v-if="filteredSubmissionPeriods.length === 0" class="text-center py-12">
+                        <Calendar class="h-12 w-12 mx-auto text-muted-foreground mb-4" />
                         <h3 class="text-lg font-medium mb-2">
                             No submission periods found
                         </h3>
@@ -456,48 +397,30 @@ const formatDate = (dateString: string) => {
                                     : "Get started by creating your first submission period."
                             }}
                         </p>
-                        <Link
-                            :href="route('admin.submission-periods.create')"
-                            v-if="!searchQuery"
-                        >
-                            <Button>
-                                <Plus class="h-4 w-4 mr-2" />
-                                Create Submission Period
-                            </Button>
+                        <Link :href="route('admin.admin.submission-periods.create')" v-if="!searchQuery">
+                        <Button>
+                            <Plus class="h-4 w-4 mr-2" />
+                            Create Submission Period
+                        </Button>
                         </Link>
                     </div>
                 </CardContent>
             </Card>
 
             <!-- Pagination -->
-            <div
-                v-if="props.submissionPeriods.last_page > 1"
-                class="flex justify-center"
-            >
+            <div v-if="props.submissionPeriods.last_page > 1" class="flex justify-center">
                 <div class="flex items-center gap-2">
-                    <template
-                        v-for="link in props.submissionPeriods.links"
-                        :key="link.label"
-                    >
-                        <Link
-                            v-if="link.url"
-                            :href="link.url"
-                            :class="[
-                                'px-3 py-2 text-sm rounded-md',
-                                link.active
-                                    ? 'bg-primary text-primary-foreground'
-                                    : 'bg-background border hover:bg-muted',
-                            ]"
-                            v-html="link.label"
-                        />
-                        <span
-                            v-else
-                            :class="[
-                                'px-3 py-2 text-sm rounded-md text-muted-foreground',
-                                'bg-muted cursor-not-allowed',
-                            ]"
-                            v-html="link.label"
-                        />
+                    <template v-for="link in props.submissionPeriods.links" :key="link.label">
+                        <Link v-if="link.url" :href="link.url" :class="[
+                            'px-3 py-2 text-sm rounded-md',
+                            link.active
+                                ? 'bg-primary text-primary-foreground'
+                                : 'bg-background border hover:bg-muted',
+                        ]" v-html="link.label" />
+                        <span v-else :class="[
+                            'px-3 py-2 text-sm rounded-md text-muted-foreground',
+                            'bg-muted cursor-not-allowed',
+                        ]" v-html="link.label" />
                     </template>
                 </div>
             </div>

@@ -115,7 +115,7 @@ watch(search, (newValue) => {
 
 // Update filters function
 const updateFilters = (newFilters: Partial<Filters>) => {
-    router.get(route('faculties.index'), {
+    router.get(route('admin.faculties.index'), {
         ...props.filters,
         ...newFilters,
     }, {
@@ -145,7 +145,7 @@ const deleteFaculty = async (faculty: Faculty) => {
     isDeleting.value = faculty.id;
 
     try {
-        await router.delete(route('faculties.destroy', faculty.id), {
+        await router.delete(route('admin.faculties.destroy', faculty.id), {
             preserveState: false,
         });
     } finally {
@@ -206,11 +206,11 @@ const getSortIcon = (column: string) => {
                     </h2>
                 </div>
                 <div class="flex items-center gap-2">
-                    <Button @click="router.visit(route('faculties.study-programs'))" variant="outline">
+                    <Button @click="router.visit(route('admin.faculties.study-programs'))" variant="outline">
                         <GraduationCap class="h-4 w-4 mr-2" />
                         Study Programs
                     </Button>
-                    <Button @click="router.visit(route('faculties.create'))">
+                    <Button @click="router.visit(route('admin.faculties.create'))">
                         <Plus class="h-4 w-4 mr-2" />
                         Add Faculty
                     </Button>
@@ -334,12 +334,12 @@ const getSortIcon = (column: string) => {
                                             </DropdownMenuTrigger>
                                             <DropdownMenuContent align="end">
                                                 <DropdownMenuItem
-                                                    @click="router.visit(route('faculties.show', faculty.id))">
+                                                    @click="router.visit(route('admin.faculties.show', faculty.id))">
                                                     <Eye class="h-4 w-4 mr-2" />
                                                     View
                                                 </DropdownMenuItem>
                                                 <DropdownMenuItem
-                                                    @click="router.visit(route('faculties.edit', faculty.id))">
+                                                    @click="router.visit(route('admin.faculties.edit', faculty.id))">
                                                     <Edit class="h-4 w-4 mr-2" />
                                                     Edit
                                                 </DropdownMenuItem>

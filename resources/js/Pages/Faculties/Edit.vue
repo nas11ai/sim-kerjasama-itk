@@ -36,7 +36,7 @@ const form = useForm<FormData>({
 });
 
 const submit = () => {
-    form.put(route("faculties.update", props.faculty.id));
+    form.put(route("admin.faculties.update", props.faculty.id));
 };
 </script>
 
@@ -47,7 +47,7 @@ const submit = () => {
     <AuthenticatedLayout>
         <template #header>
             <div class="flex items-center gap-4">
-                <Button variant="ghost" size="sm" @click="$inertia.visit(route('faculties.index'))">
+                <Button variant="ghost" size="sm" @click="$inertia.visit(route('admin.faculties.index'))">
                     <ArrowLeft class="h-4 w-4 mr-2" />
                     Back
                 </Button>
@@ -107,7 +107,8 @@ const submit = () => {
                         </div>
 
                         <div class="flex items-center justify-end space-x-2 pt-4">
-                            <Button type="button" variant="outline" @click="$inertia.visit(route('faculties.index'))">
+                            <Button type="button" variant="outline"
+                                @click="$inertia.visit(route('admin.faculties.index'))">
                                 Cancel
                             </Button>
                             <Button type="submit" :disabled="form.processing || form.name === faculty.name">
