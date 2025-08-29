@@ -36,7 +36,8 @@ import {
     BookOpen,
     ClipboardList,
     Filter,
-    Send
+    Send,
+    Megaphone
 } from 'lucide-vue-next';
 
 const page = usePage();
@@ -124,6 +125,17 @@ const adminNavItems = [
                 title: "Study Programs",
                 url: route('admin.faculties.study-programs'),
                 icon: GraduationCap,
+            }
+        ]
+    },
+    {
+        title: "Announcement Management",
+        icon: Building2,
+        items: [
+            {
+                title: "Announcements",
+                url: route('admin.announcements.index'),
+                icon: Megaphone,
             }
         ]
     }

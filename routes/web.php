@@ -10,7 +10,9 @@ use App\Http\Controllers\ReviewerController;
 use App\Http\Controllers\SubmissionPeriodController;
 use App\Http\Controllers\SubmissionViewController;
 use App\Http\Controllers\UserFormController;
+use App\Http\Controllers\AnnouncementController;
 use Illuminate\Foundation\Application;
+use App\Models\Announcement;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -20,6 +22,7 @@ Route::get('/', function () {
         'canRegister' => Route::has('register'),
         'laravelVersion' => Application::VERSION,
         'phpVersion' => PHP_VERSION,
+        'announcements' => Announcement::latest()->get(),
     ]);
 });
 
@@ -129,6 +132,16 @@ Route::middleware(['auth', 'role:Super Admin|Admin'])->prefix('admin')->name('ad
         'destroy' => 'faculties.destroy',
     ]);
 
+    Route::resource('announcements', AnnouncementController::class)->names([
+        'index' => 'announcements.index',
+        'create' => 'announcements.create', //belum ada
+        'store' => 'announcements.store', //belum ada
+        'show' => 'announcements.show', //belum ada
+        'edit' => 'announcements.edit', //belum ada
+        'update' => 'announcements.update', //belum ada
+        'destroy' => 'announcements.destroy', //belum ada
+    ]);
+
     // Study Program Routes
     Route::get('study-programs', [FacultyController::class, 'studyPrograms'])
         ->name('faculties.study-programs');
@@ -186,6 +199,9 @@ Route::middleware(['auth', 'role:Super Admin|Admin'])->group(function () {
     });
     Route::get('/faculties', function () {
         return redirect()->route('admin.faculties.index');
+    });
+    Route::get('/announcements', function () {
+        return redirect()->route('admin.announcements.index');
     });
 });
 
