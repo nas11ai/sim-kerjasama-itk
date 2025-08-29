@@ -21,17 +21,17 @@ class Announcement extends Model
         'expired_at' => 'datetime',
     ];
 
-    public function creator()
+    public function announcementCreator()
     {
         return $this->belongsTo(User::class, 'created_by');
     }
 
-    public function files()
+    public function announcementFiles()
     {
         return $this->hasMany(AnnouncementFile::class);
     }
 
-    public function readers()
+    public function announcementReader()
     {
         return $this->belongsToMany(User::class, 'announcement_user')
             ->withTimestamps();
