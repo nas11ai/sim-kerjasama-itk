@@ -59,7 +59,7 @@ class SubmissionViewController extends Controller
                 return $period;
             });
 
-        return Inertia::render('User/Submission/Index', [
+        return Inertia::render('User/Submissions/Index', [
             'submissionPeriods' => $submissionPeriods,
             'userRole' => $user->getRoleNames()->first(),
             'studyProgram' => $studyProgram ? [
@@ -151,7 +151,8 @@ class SubmissionViewController extends Controller
             ])
             ->get()
             ->map(function ($phase) use ($user) {
-                $phase->user_submissions = [];
+                // Use a temporary variable instead of direct assignment
+                $userSubmissions = [];
 
                 foreach ($phase->formPhaseDetails as $detail) {
                     $submission = FormSubmission::where('form_id', $detail->formAccessControl->form_id)
@@ -159,7 +160,7 @@ class SubmissionViewController extends Controller
                         ->first();
 
                     if ($submission) {
-                        $phase->user_submissions[] = [
+                        $userSubmissions[] = [
                             'id' => $submission->id,
                             'form' => $detail->formAccessControl->form,
                             'is_submitted' => $submission->is_submitted,
@@ -170,6 +171,9 @@ class SubmissionViewController extends Controller
                         ];
                     }
                 }
+
+                // Set the attribute using setAttribute or direct property assignment
+                $phase->setAttribute('user_submissions', $userSubmissions);
 
                 return $phase;
             });
@@ -249,9 +253,7 @@ class SubmissionViewController extends Controller
                 $query->orderBy('order');
             },
             'form.formFields.fieldType',
-            'form.formFields.formFieldOptions' => function ($query) {
-                $query->orderBy('order');
-            },
+            'form.formFields.formFieldOptions',
             'formFieldResponses'
         ]);
 
@@ -260,7 +262,7 @@ class SubmissionViewController extends Controller
             return [$response->form_field_id => $response->value];
         });
 
-        return Inertia::render('Submissions/UserSubmissionDetail', [
+        return Inertia::render('User/Submissions/ShowSubmission', [
             'submission' => $submission,
             'responses' => $responses
         ]);
