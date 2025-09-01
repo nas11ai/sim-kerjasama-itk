@@ -26,6 +26,8 @@ Route::get('/', function () {
     ]);
 });
 
+Route::get('announcements/{id}', [AnnouncementController::class, 'detail'])->name('announcements.detail');
+
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
