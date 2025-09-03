@@ -9,6 +9,7 @@ use App\Models\FormFieldResponse;
 use App\Models\FormAccessControl;
 use App\Models\FormPhaseDetail;
 use App\Models\Form;
+use App\SubmissionStatus;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -101,7 +102,7 @@ class UserFormController extends Controller
 
                         if ($submission && $submission->is_submitted) {
                             $completedForms++;
-                            if ($detail->needs_review && !$submission->can_proceed) {
+                            if ($detail->needs_review && !$submission->canProceed()) {
                                 $pendingReview++;
                                 $canProceed = false;
                             }
@@ -182,7 +183,7 @@ class UserFormController extends Controller
                     'user_submission' => $submission ? [
                         'id' => $submission->id,
                         'is_submitted' => $submission->is_submitted,
-                        'can_proceed' => $submission->can_proceed,
+                        'can_proceed' => $submission->canProceed(),
                         'created_at' => $submission->created_at->toISOString(),
                         'updated_at' => $submission->updated_at->toISOString(),
                         'responses' => $submission->formFieldResponses->mapWithKeys(function ($response) {
@@ -245,7 +246,6 @@ class UserFormController extends Controller
                 'submitted_by' => $user->id
             ], [
                 'is_submitted' => false,
-                'can_proceed' => false
             ]);
 
             // Delete existing responses
@@ -354,13 +354,11 @@ class UserFormController extends Controller
                 'submitted_by' => $user->id
             ], [
                 'is_submitted' => false,
-                'can_proceed' => false
             ]);
 
             // Update submission status
             $submission->update([
                 'is_submitted' => true,
-                'can_proceed' => true, // Will be updated by review process if needed
             ]);
 
             // Delete existing responses
@@ -395,8 +393,8 @@ class UserFormController extends Controller
                 })
                 ->first();
 
-            if ($formPhaseDetail && $formPhaseDetail->needs_review) {
-                $submission->update(['can_proceed' => false]);
+            if ($formPhaseDetail && !$formPhaseDetail->needs_review) {
+                $submission->update(['status' => SubmissionStatus::APPROVED]);
 
                 // TODO: Create review request or notification
                 // You can implement notification system here

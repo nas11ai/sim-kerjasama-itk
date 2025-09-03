@@ -22,6 +22,8 @@ import {
     Edit,
     Clock
 } from "lucide-vue-next";
+import { SubmissionStatus } from "@/Constants/SubmissionStatus";
+import { getSubmissionStatusInfo } from "@/Utils/getSubmissionStatusInfo";
 
 interface FieldType {
     name: string;
@@ -51,7 +53,7 @@ interface Form {
 interface FormSubmission {
     id: number;
     is_submitted: boolean;
-    can_proceed: boolean;
+    status: SubmissionStatus;
     submitted_at: string | null;
     created_at: string;
     updated_at: string;
@@ -76,25 +78,6 @@ const formatDateTime = (dateString: string) => {
         hour: '2-digit',
         minute: '2-digit',
     });
-};
-
-const getStatusInfo = () => {
-    if (props.submission.is_submitted) {
-        return {
-            variant: (props.submission.can_proceed ? 'default' : 'secondary') as BadgeVariant,
-            text: props.submission.can_proceed ? 'Submitted & Approved' : 'Submitted - Under Review',
-            icon: props.submission.can_proceed ? CheckCircle : RefreshCw,
-            description: props.submission.can_proceed
-                ? 'Your submission has been approved and processed.'
-                : 'Your submission is currently being reviewed.'
-        };
-    }
-    return {
-        variant: 'destructive' as BadgeVariant,
-        text: 'Draft',
-        icon: AlertCircle,
-        description: 'This form has not been submitted yet.'
-    };
 };
 
 const renderFieldValue = (field: FormField, value: string) => {
@@ -150,8 +133,6 @@ const isEmailField = (fieldType: string) => {
 const goBack = () => {
     window.history.back();
 };
-
-const statusInfo = getStatusInfo();
 </script>
 
 <template>
@@ -183,13 +164,15 @@ const statusInfo = getStatusInfo();
                     <div class="flex items-start justify-between">
                         <div>
                             <CardTitle class="flex items-center gap-2">
-                                <component :is="statusInfo.icon" class="h-5 w-5" />
+                                <component :is="getSubmissionStatusInfo(submission.status).icon" class="h-5 w-5" />
                                 Submission Status
                             </CardTitle>
-                            <p class="text-muted-foreground mt-1">{{ statusInfo.description }}</p>
+                            <p class="text-muted-foreground mt-1">{{
+                                getSubmissionStatusInfo(submission.status).description }}
+                            </p>
                         </div>
-                        <Badge :variant="statusInfo.variant" class="text-sm">
-                            {{ statusInfo.text }}
+                        <Badge :variant="getSubmissionStatusInfo(submission.status).variant" class="text-sm">
+                            {{ getSubmissionStatusInfo(submission.status).text }}
                         </Badge>
                     </div>
                 </CardHeader>

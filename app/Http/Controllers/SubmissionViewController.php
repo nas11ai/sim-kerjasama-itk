@@ -6,6 +6,7 @@ use App\Models\SubmissionPeriod;
 use App\Models\FormPhase;
 use App\Models\FormSubmission;
 use App\Models\FormFieldResponse;
+use App\SubmissionStatus;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
@@ -100,8 +101,8 @@ class SubmissionViewController extends Controller
                 })
                     ->selectRaw('
                         count(*) as total_submissions,
-                        count(case when can_proceed = true then 1 end) as approved_submissions,
-                        count(case when can_proceed = false then 1 end) as pending_review
+                        count(case when status = "approved" then 1 end) as approved_submissions,
+                        count(case when status != "approved" then 1 end) as pending_review
                     ')
                     ->first();
 
@@ -164,7 +165,7 @@ class SubmissionViewController extends Controller
                             'id' => $submission->id,
                             'form' => $detail->formAccessControl->form,
                             'is_submitted' => $submission->is_submitted,
-                            'can_proceed' => $submission->can_proceed,
+                            'can_proceed' => $submission->canProceed(),
                             'submitted_at' => $submission->submitted_at,
                             'created_at' => $submission->created_at,
                             'updated_at' => $submission->updated_at,
@@ -213,11 +214,7 @@ class SubmissionViewController extends Controller
         }
 
         if ($request->has('status') && $request->status !== '') {
-            if ($request->status === 'approved') {
-                $query->where('can_proceed', true);
-            } elseif ($request->status === 'pending') {
-                $query->where('can_proceed', false);
-            }
+            $query->where('status', $request->status);
         }
 
         if ($request->has('search') && $request->search) {
@@ -230,10 +227,13 @@ class SubmissionViewController extends Controller
 
         $submissions = $query->orderBy('created_at', 'desc')->paginate(15);
 
+        $submissionStatuses = SubmissionStatus::options();
+
         return Inertia::render('Submissions/ShowPeriod', [
             'submissionPeriod' => $period->load('submissionDates.submissionDateLabel'),
             'formPhases' => $formPhases,
             'submissions' => $submissions,
+            'submissionStatuses' => $submissionStatuses,
             'filters' => $request->only(['form_phase_id', 'status', 'search'])
         ]);
     }

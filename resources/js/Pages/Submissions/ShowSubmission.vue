@@ -24,6 +24,8 @@ import {
     Mail,
     GraduationCap
 } from "lucide-vue-next";
+import { getSubmissionStatusInfo } from "@/Utils/getSubmissionStatusInfo";
+import { SubmissionStatus } from "@/Constants/SubmissionStatus";
 
 interface FieldType {
     name: string;
@@ -59,7 +61,7 @@ interface SubmittedBy {
 interface FormSubmission {
     id: number;
     is_submitted: boolean;
-    can_proceed: boolean;
+    status: SubmissionStatus;
     created_at: string;
     updated_at: string;
     form: Form;
@@ -82,28 +84,6 @@ const formatDateTime = (dateString: string) => {
         hour: '2-digit',
         minute: '2-digit',
     });
-};
-
-const getStatusInfo = (): {
-    variant: "default" | "destructive" | "outline" | "secondary";
-    text: string;
-    icon: any;
-    description: string;
-} => {
-    if (props.submission.can_proceed) {
-        return {
-            variant: 'default',
-            text: 'Approved',
-            icon: CheckCircle,
-            description: 'This submission has been approved and user can proceed.'
-        };
-    }
-    return {
-        variant: 'secondary',
-        text: 'Under Review',
-        icon: AlertCircle,
-        description: 'This submission is currently under review.'
-    };
 };
 
 const renderFieldValue = (field: FormField, value: string) => {
@@ -145,8 +125,6 @@ const renderFieldValue = (field: FormField, value: string) => {
 const isFileField = (fieldType: string) => fieldType.toLowerCase() === 'file';
 const isUrlField = (fieldType: string) => fieldType.toLowerCase() === 'url';
 const isEmailField = (fieldType: string) => fieldType.toLowerCase() === 'email';
-
-const statusInfo = getStatusInfo();
 
 const goBack = () => {
     router.visit(window.history.length > 1 ? 'javascript:history.back()' : '/admin/submissions');
@@ -216,13 +194,15 @@ const goBack = () => {
                     <div class="flex items-start justify-between">
                         <div>
                             <CardTitle class="flex items-center gap-2">
-                                <component :is="statusInfo.icon" class="h-5 w-5" />
+                                <component :is="getSubmissionStatusInfo(submission.status).icon" class="h-5 w-5" />
                                 Submission Status
                             </CardTitle>
-                            <p class="text-muted-foreground mt-1">{{ statusInfo.description }}</p>
+                            <p class="text-muted-foreground mt-1">{{
+                                getSubmissionStatusInfo(submission.status).description }}
+                            </p>
                         </div>
-                        <Badge :variant="statusInfo.variant" class="text-sm">
-                            {{ statusInfo.text }}
+                        <Badge :variant="getSubmissionStatusInfo(submission.status).variant" class="text-sm">
+                            {{ getSubmissionStatusInfo(submission.status).text }}
                         </Badge>
                     </div>
                 </CardHeader>
@@ -329,7 +309,7 @@ const goBack = () => {
             </Card>
 
             <!-- Admin Actions (if needed in the future) -->
-            <Card v-if="!submission.can_proceed">
+            <Card v-if="submission.status != SubmissionStatus.APPROVED">
                 <CardHeader>
                     <CardTitle>Review Actions</CardTitle>
                 </CardHeader>

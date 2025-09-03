@@ -42,6 +42,9 @@ import {
     Eye
 } from "lucide-vue-next";
 import { ref, computed } from 'vue';
+import { SubmissionStatus } from "@/Constants/SubmissionStatus";
+import { getSubmissionStatusBadge } from "@/Utils/getSubmissionStatusBadge";
+import { SubmissionStatusOption } from "@/types/SubmissionStatusOption";
 
 interface SubmissionDateLabel {
     id: number;
@@ -105,7 +108,7 @@ interface SubmittedBy {
 interface FormSubmission {
     id: number;
     is_submitted: boolean;
-    can_proceed: boolean;
+    status: SubmissionStatus;
     created_at: string;
     updated_at: string;
     form: Form;
@@ -144,6 +147,7 @@ interface Props {
     submissionPeriod: SubmissionPeriod;
     formPhases: FormPhase[];
     submissions: PaginatedSubmissions;
+    submissionStatuses: SubmissionStatusOption[];
     filters: Filters;
 }
 
@@ -171,21 +175,6 @@ const formatDate = (dateString: string) => {
         month: 'long',
         day: 'numeric',
     });
-};
-
-const getStatusBadge = (submission: FormSubmission) => {
-    if (submission.can_proceed) {
-        return {
-            variant: 'default' as const,
-            text: 'Approved',
-            icon: CheckCircle
-        };
-    }
-    return {
-        variant: 'secondary' as const,
-        text: 'Under Review',
-        icon: AlertCircle
-    };
 };
 
 const applyFilters = () => {
@@ -258,10 +247,10 @@ const periodEndDate = computed(() => {
 // Computed properties
 const totalSubmissions = computed(() => props.submissions.total);
 const approvedSubmissions = computed(() =>
-    props.submissions.data.filter(s => s.can_proceed).length
+    props.submissions.data.filter(s => s.status == SubmissionStatus.APPROVED).length
 );
 const pendingSubmissions = computed(() =>
-    props.submissions.data.filter(s => !s.can_proceed).length
+    props.submissions.data.filter(s => s.status != SubmissionStatus.PENDING).length
 );
 </script>
 
@@ -390,9 +379,10 @@ const pendingSubmissions = computed(() =>
                                     <SelectValue placeholder="All statuses" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <!-- Remove the empty SelectItem, let the placeholder handle "All statuses" -->
-                                    <SelectItem value="approved">Approved</SelectItem>
-                                    <SelectItem value="pending">Under Review</SelectItem>
+                                    <SelectItem v-for="option in submissionStatuses" :key="option.value"
+                                        :value="option.value">
+                                        {{ option.label }}
+                                    </SelectItem>
                                 </SelectContent>
                             </Select>
                         </div>
@@ -465,9 +455,11 @@ const pendingSubmissions = computed(() =>
                                         <p class="font-medium">{{ formatDateTime(submission.created_at) }}</p>
                                     </TableCell>
                                     <TableCell>
-                                        <Badge :variant="getStatusBadge(submission).variant" class="text-sm">
-                                            <component :is="getStatusBadge(submission).icon" class="h-3 w-3 mr-1" />
-                                            {{ getStatusBadge(submission).text }}
+                                        <Badge :variant="getSubmissionStatusBadge(submission.status).variant"
+                                            class="text-sm">
+                                            <component :is="getSubmissionStatusBadge(submission.status).icon"
+                                                class="h-3 w-3 mr-1" />
+                                            {{ getSubmissionStatusBadge(submission.status).text }}
                                         </Badge>
                                     </TableCell>
                                     <TableCell>
