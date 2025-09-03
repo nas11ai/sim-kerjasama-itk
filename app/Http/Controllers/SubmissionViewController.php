@@ -279,11 +279,9 @@ class SubmissionViewController extends Controller
                 $query->orderBy('order');
             },
             'form.formFields.fieldType',
-            'form.formFields.formFieldOptions' => function ($query) {
-                $query->orderBy('order');
-            },
+            'form.formFields.formFieldOptions',
             'formFieldResponses',
-            'submittedBy.studyProgram.faculty'
+            'submittedBy:id,name,email',
         ]);
 
         // Map responses for easy access

@@ -50,26 +50,16 @@ interface Form {
     form_fields: FormField[];
 }
 
-interface StudyProgram {
-    id: number;
-    name: string;
-    faculty: {
-        name: string;
-    };
-}
-
 interface SubmittedBy {
     id: number;
     name: string;
     email: string;
-    study_program: StudyProgram;
 }
 
 interface FormSubmission {
     id: number;
     is_submitted: boolean;
     can_proceed: boolean;
-    submitted_at: string;
     created_at: string;
     updated_at: string;
     form: Form;
@@ -216,24 +206,6 @@ const goBack = () => {
                                 </p>
                             </div>
                         </div>
-
-                        <div class="space-y-4" v-if="submission.submitted_by.study_program">
-                            <div>
-                                <Label class="text-sm font-medium text-muted-foreground">Faculty</Label>
-                                <p class="font-medium flex items-center gap-2">
-                                    <Building2 class="h-4 w-4" />
-                                    {{ submission.submitted_by.study_program.faculty.name }}
-                                </p>
-                            </div>
-
-                            <div>
-                                <Label class="text-sm font-medium text-muted-foreground">Study Program</Label>
-                                <p class="font-medium flex items-center gap-2">
-                                    <GraduationCap class="h-4 w-4" />
-                                    {{ submission.submitted_by.study_program.name }}
-                                </p>
-                            </div>
-                        </div>
                     </div>
                 </CardContent>
             </Card>
@@ -265,11 +237,7 @@ const goBack = () => {
                         </div>
                         <div>
                             <Label class="text-sm font-medium text-muted-foreground">Last Updated</Label>
-                            <p class="font-medium">{{ formatDateTime(submission.updated_at) }}</p>
-                        </div>
-                        <div>
-                            <Label class="text-sm font-medium text-muted-foreground">Submitted</Label>
-                            <p class="font-medium text-green-600">{{ formatDateTime(submission.submitted_at) }}</p>
+                            <p class="font-medium text-green-600">{{ formatDateTime(submission.updated_at) }}</p>
                         </div>
                     </div>
                 </CardContent>
