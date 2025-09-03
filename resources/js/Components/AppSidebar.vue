@@ -1,7 +1,7 @@
 <!-- resources/js/Components/AppSidebar.vue -->
 <script setup lang="ts">
 import { computed } from 'vue';
-import { usePage } from '@inertiajs/vue3';
+import { router, usePage } from '@inertiajs/vue3';
 import {
     Sidebar,
     SidebarContent,
@@ -174,6 +174,11 @@ const isActive = (url: string) => {
 const hasActiveChild = (items: any[]) => {
     return items.some(item => isActive(item.url));
 };
+
+const logout = (e: Event) => {
+    e.preventDefault()
+    router.post(route('logout'))
+}
 </script>
 
 <template>
@@ -271,7 +276,7 @@ const hasActiveChild = (items: any[]) => {
                             </DropdownMenuItem>
 
                             <DropdownMenuItem as-child>
-                                <a :href="route('logout')" method="post" class="cursor-pointer text-destructive">
+                                <a href="#" @click="logout" class="cursor-pointer text-destructive flex items-center">
                                     <LogOut class="mr-2 size-4" />
                                     Logout
                                 </a>
