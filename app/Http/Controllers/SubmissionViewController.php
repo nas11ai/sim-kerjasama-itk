@@ -196,8 +196,7 @@ class SubmissionViewController extends Controller
         // Get submissions for this period with filters
         $query = FormSubmission::with([
             'form.formType',
-            'submittedBy:id,name,email,study_program_id',
-            'submittedBy.studyProgram.faculty'
+            'submittedBy:id,name,email',
         ])
             ->where('is_submitted', true)
             ->whereHas('form.formAccessControls.formPhaseDetails', function ($q) use ($period) {
