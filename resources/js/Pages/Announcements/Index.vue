@@ -73,33 +73,33 @@ const deleteAnnouncement = (announcement: Announcement) => {
     }
 };
 
-const duplicateAnnouncement = (announcement: Announcement) => {
-    router.post(
-        route("admin.announcements.duplicate", announcement.id),
-        {},
-        {
-            onSuccess: () => {
-                toast({
-                    title: "Success",
-                    description: "Announcement duplicated successfully!",
-                });
-            },
-        }
-    );
-};
+// const duplicateAnnouncement = (announcement: Announcement) => {
+//     router.post(
+//         route("admin.announcements.duplicate", announcement.id),
+//         {},
+//         {
+//             onSuccess: () => {
+//                 toast({
+//                     title: "Success",
+//                     description: "Announcement duplicated successfully!",
+//                 });
+//             },
+//         }
+//     );
+// };
 
 const formatDate = (dateString: string) => {
-
     if (!dateString) {
         return "No expiration date";
     }
 
-    return new Date(dateString).toLocaleDateString("en-US", {
+    return new Date(dateString).toLocaleDateString("en-EN", {
         year: "numeric",
         month: "short",
         day: "numeric",
         hour: "2-digit",
         minute: "2-digit",
+        timeZone: "Asia/Makassar",
     });
 };
 
@@ -107,10 +107,14 @@ const capitalize = (s: string) => {
     return s.charAt(0).toUpperCase() + s.slice(1);
 };
 
+function stripHtml(html: string) {
+    if (!html) return "";
+    const doc = new DOMParser().parseFromString(html, "text/html");
+    return doc.body.textContent || "";
+}
 </script>
 
 <template>
-
     <Head title="Announcement" />
 
     <AuthenticatedLayout>
@@ -120,10 +124,10 @@ const capitalize = (s: string) => {
                     Announcement Management
                 </h2>
                 <Link :href="route('admin.announcements.create')">
-                <Button>
-                    <Plus class="h-4 w-4 mr-2" />
-                    Create Announcement
-                </Button>
+                    <Button>
+                        <Plus class="h-4 w-4 mr-2" />
+                        Create Announcement
+                    </Button>
                 </Link>
             </div>
         </template>
@@ -131,7 +135,11 @@ const capitalize = (s: string) => {
         <div class="space-y-6">
             <!-- Forms Grid -->
             <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                <Card v-for="announcement in props.announcements.data" :key="announcement.id" class="group hover:shadow-lg transition-shadow">
+                <Card
+                    v-for="announcement in props.announcements.data"
+                    :key="announcement.id"
+                    class="group hover:shadow-lg transition-shadow"
+                >
                     <CardHeader class="pb-3">
                         <div class="flex items-start justify-between">
                             <div class="flex-1">
@@ -139,7 +147,10 @@ const capitalize = (s: string) => {
                                     capitalize(announcement.title)
                                 }}</CardTitle>
                                 <CardDescription class="mt-1 line-clamp-2">
-                                    {{ announcement.content || "No description" }}
+                                    {{
+                                        stripHtml(announcement.content) ||
+                                        "No description"
+                                    }}
                                 </CardDescription>
                             </div>
                             <DropdownMenu>
@@ -150,22 +161,37 @@ const capitalize = (s: string) => {
                                 </DropdownMenuTrigger>
                                 <DropdownMenuContent align="end">
                                     <DropdownMenuItem as-child>
-                                        <Link :href="route('admin.announcements.show', announcement.id)">
-                                        <Eye class="h-4 w-4 mr-2" />
-                                        View
+                                        <Link
+                                            :href="
+                                                route(
+                                                    'admin.announcements.show',
+                                                    announcement.id
+                                                )
+                                            " class="cursor-pointer"
+                                        >
+                                            <Eye class="h-4 w-4 mr-2" />
+                                            View
                                         </Link>
                                     </DropdownMenuItem>
                                     <DropdownMenuItem as-child>
-                                        <Link :href="route('admin.announcements.edit', announcement.id)">
-                                        <Edit class="h-4 w-4 mr-2" />
-                                        Edit
+                                        <Link
+                                            :href="
+                                                route(
+                                                    'admin.announcements.edit',
+                                                    announcement.id
+                                                )
+                                            " class="cursor-pointer"
+                                        >
+                                            <Edit class="h-4 w-4 mr-2" />
+                                            Edit
                                         </Link>
                                     </DropdownMenuItem>
-                                    <DropdownMenuItem @click="duplicateAnnouncement(announcement)">
-                                        <Copy class="h-4 w-4 mr-2" />
-                                        Duplicate
-                                    </DropdownMenuItem>
-                                    <DropdownMenuItem @click="deleteAnnouncement(announcement)" class="text-destructive">
+                                    <DropdownMenuItem
+                                        @click="
+                                            deleteAnnouncement(announcement)
+                                        "
+                                        class="text-destructive cursor-pointer"
+                                    >
                                         <Trash2 class="h-4 w-4 mr-2" />
                                         Delete
                                     </DropdownMenuItem>
@@ -176,29 +202,56 @@ const capitalize = (s: string) => {
                     <CardContent>
                         <div class="space-y-4">
                             <div class="flex items-center gap-2">
-                                <Badge variant="secondary">
-                                    {{ isPublic(announcement) ? "Public" : "Private" }}
+                                <Badge variant="outline">
+                                    {{
+                                        isPublic(announcement)
+                                            ? "Public"
+                                            : "Private"
+                                    }}
                                 </Badge>
-                                <Badge :variant=" isExpired(announcement.expired_at) ? 'destructive' : 'default' "
+                                <Badge
+                                    :variant="
+                                        isExpired(announcement.expired_at)
+                                            ? 'destructive'
+                                            : 'success'
+                                    "
                                 >
-                                    {{ isExpired(announcement.expired_at) ? "Expired" : "Active" }}
+                                    {{
+                                        isExpired(announcement.expired_at)
+                                            ? "Expired"
+                                            : "Active"
+                                    }}
                                 </Badge>
                             </div>
 
-                            <div class="flex items-center text-sm text-muted-foreground">
+                            <div
+                                class="flex items-center text-sm text-muted-foreground"
+                            >
                                 <Paperclip class="mr-2 h-4 w-4" />
                                 {{ announcement.announcement_files.length }}
-                                file {{ announcement.announcement_files.length !== 1 ? "s" : "" }} attached
+                                file
+                                {{
+                                    announcement.announcement_files.length !== 1
+                                        ? "s"
+                                        : ""
+                                }}
+                                attached
                             </div>
 
-                            <div class="space-y-1 text-xs text-muted-foreground">
+                            <div
+                                class="space-y-1 text-xs text-muted-foreground"
+                            >
                                 <div>
                                     Created:
                                     {{ formatDate(announcement.created_at) }}
                                 </div>
                                 <div>
                                     Expires:
-                                    {{ formatDate(announcement.expired_at ?? "") }}
+                                    {{
+                                        formatDate(
+                                            announcement.expired_at ?? ""
+                                        )
+                                    }}
                                 </div>
                             </div>
                         </div>
@@ -207,12 +260,23 @@ const capitalize = (s: string) => {
             </div>
 
             <!-- Empty State -->
-            <div v-if="props.announcements.data.length  === 0" class="text-center py-12">
+            <div
+                v-if="props.announcements.data.length === 0"
+                class="text-center py-12"
+            >
                 <div class="mx-auto max-w-md">
                     <div class="mx-auto h-12 w-12 text-muted-foreground">
-                        <svg fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1"
-                                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        <svg
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
+                        >
+                            <path
+                                stroke-linecap="round"
+                                stroke-linejoin="round"
+                                stroke-width="1"
+                                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                            />
                         </svg>
                     </div>
                     <h3 class="mt-2 text-sm font-medium text-gray-900">
@@ -223,25 +287,34 @@ const capitalize = (s: string) => {
                     </p>
                     <div class="mt-6">
                         <Link :href="route('admin.announcements.create')">
-                        <Button>
-                            <Plus class="h-4 w-4 mr-2" />
-                            Create Announcement
-                        </Button>
+                            <Button>
+                                <Plus class="h-4 w-4 mr-2" />
+                                Create Announcement
+                            </Button>
                         </Link>
                     </div>
                 </div>
             </div>
 
             <!-- Pagination -->
-            <div v-if="props.announcements.links.length > 3" class="flex justify-center">
+            <div
+                v-if="props.announcements.links.length > 3"
+                class="flex justify-center"
+            >
                 <nav class="flex items-center space-x-1">
-                    <Link v-for="link in props.announcements.links" :key="link.label" :href="link.url" :class="[
-                        'px-3 py-2 text-sm font-medium rounded-md',
-                        link.active
-                            ? 'bg-primary text-primary-foreground'
-                            : 'text-muted-foreground hover:bg-muted',
-                        !link.url && 'opacity-50 cursor-not-allowed',
-                    ]" v-html="link.label" />
+                    <Link
+                        v-for="link in props.announcements.links"
+                        :key="link.label"
+                        :href="link.url"
+                        :class="[
+                            'px-3 py-2 text-sm font-medium rounded-md',
+                            link.active
+                                ? 'bg-primary text-primary-foreground'
+                                : 'text-muted-foreground hover:bg-muted',
+                            !link.url && 'opacity-50 cursor-not-allowed',
+                        ]"
+                        v-html="link.label"
+                    />
                 </nav>
             </div>
         </div>

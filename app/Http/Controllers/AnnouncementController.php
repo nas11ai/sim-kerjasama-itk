@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Announcement;
 use App\Models\AnnouncementFile;
+use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -23,6 +24,17 @@ class AnnouncementController extends Controller
             ->paginate(10);
 
         return Inertia::render('Announcements/Index', [
+            'announcements' => $announcements,
+        ]);
+    }
+
+    public function userIndex()
+    {
+        $announcements = Announcement::with(['announcementFiles'])
+            ->orderBy('created_at', 'desc')
+            ->paginate(10);
+
+        return Inertia::render('User/Announcements/Index', [
             'announcements' => $announcements,
         ]);
     }
@@ -48,6 +60,7 @@ class AnnouncementController extends Controller
             'content' => 'required|string',
             'type' => 'required|in:public,private',
             'expired_at' => 'nullable|date',
+            'files' => 'required',
             'files.*' => 'file|mimes:jpg,png,pdf|max:2048',
         ]);
 
@@ -60,8 +73,8 @@ class AnnouncementController extends Controller
                 'content' => $validated['content'],
                 'expired_at' => $validated['expired_at'] ?? null,
                 'type' => $validated['type'],
-                'created_at' => now(),
-                'updated_at' => now(),
+                'created_at' => Carbon::now('Asia/Makassar'),
+                'updated_at' => Carbon::now('Asia/Makassar'),
                 'created_by' => $user->id,
             ]);
 
@@ -115,12 +128,24 @@ class AnnouncementController extends Controller
         $validated = $request->validate([
             'title' => 'required|string|max:255',
             'content' => 'required|string',
-            'type' => 'required|enum:in:public,private',
+            'type' => 'required|in:public,private',
             'expired_at' => 'nullable|date',
             'files.*' => 'file|mimes:jpg,png,pdf|max:2048',
         ]);
 
         DB::transaction(function () use ($validated, $request, $announcement) {
+            if ($request->has('deleted_files') && is_array($request->deleted_files)) {
+                foreach ($request->deleted_files as $fileId) {
+                    $file = AnnouncementFile::find($fileId);
+                    if ($file) {
+                        // Hapus file dari storage
+                        Storage::delete($file->file_path);
+                        // Hapus record dari database
+                        $file->delete();
+                    }
+                }
+            }
+
             $announcement->update([
                 'title' => $validated['title'],
                 // 'slug' => Str::slug($validated['title']), ntar kalo dipake

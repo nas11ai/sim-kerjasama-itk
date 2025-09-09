@@ -37,6 +37,10 @@ Route::middleware('auth')->group(function () {
 Route::middleware('auth')->prefix('user')->name('user.')->group(function () {
     Route::get('/dashboard', [UserFormController::class, 'dashboard'])
         ->name('dashboard');
+
+    Route::get('/announcements', [AnnouncementController::class, 'userIndex'])
+        ->name('announcements.index');
+
     // Form Phase Routes
     Route::get('/submission-period/{period}/form-phase/{phase}', [UserFormController::class, 'showFormPhase'])
         ->name('form-phase');
@@ -136,12 +140,12 @@ Route::middleware(['auth', 'role:Super Admin|Admin'])->prefix('admin')->name('ad
 
     Route::resource('announcements', AnnouncementController::class)->names([
         'index' => 'announcements.index',
-        'create' => 'announcements.create', //belum ada
-        'store' => 'announcements.store', //belum ada
-        'show' => 'announcements.show', //belum ada
-        'edit' => 'announcements.edit', //belum ada
-        'update' => 'announcements.update', //belum ada
-        'destroy' => 'announcements.destroy', //belum ada
+        'create' => 'announcements.create',
+        'store' => 'announcements.store',
+        'show' => 'announcements.show',
+        'edit' => 'announcements.edit',
+        'update' => 'announcements.update',
+        'destroy' => 'announcements.destroy',
     ]);
 
     // Study Program Routes

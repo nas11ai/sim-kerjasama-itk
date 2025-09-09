@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onBeforeUnmount } from "vue";
+import { computed } from "vue";
 import { Head, useForm } from "@inertiajs/vue3";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout.vue";
 import { Button } from "../../Components/ui/button";
@@ -14,14 +14,29 @@ import {
     SelectValue,
 } from "@/Components/ui/select";
 
-import { EditorContent, useEditor } from "@tiptap/vue-3"
-import StarterKit from "@tiptap/starter-kit"
+import { Textarea } from "@/Components/ui/textarea";
+import { ArrowLeft } from "lucide-vue-next";
+import type { DateValue } from "@internationalized/date";
+import {
+    today,
+    DateFormatter,
+    getLocalTimeZone,
+} from "@internationalized/date";
+import { Calendar as CalendarIcon } from "lucide-vue-next";
+import { cn } from "@/lib/utils";
+import { Calendar } from "@/Components/ui/calendar";
+import {
+    Popover,
+    PopoverContent,
+    PopoverTrigger,
+} from "@/Components/ui/popover";
 
 interface AnnouncementForm {
     title: string;
     content: string;
     type: string;
-    expired_at: string | undefined;
+    expired_at: DateValue | undefined;
+    expired_time?: string;
     files: File[] | null;
     [key: string]: any;
 }
@@ -31,32 +46,34 @@ const form = useForm<AnnouncementForm>({
     content: "",
     type: "public",
     expired_at: undefined,
+    expired_time: "",
     files: null,
 });
 
-const errors = computed<Partial<Record<keyof AnnouncementForm, string>>>(() => form.errors ?? {});
+const errors = computed<Partial<Record<keyof AnnouncementForm, string>>>(
+    () => form.errors ?? {}
+);
 
-
-const editor = useEditor({
-  extensions: [StarterKit],
-  content: "<p>Tulis pengumuman di sini...</p>",
-})
-
-onBeforeUnmount(() => {
-  editor.value?.destroy()
-})
-
-const handleSubmit = () => {
-  form.value.content = editor.value?.getHTML() || ""
-  console.log("Data terkirim:", form.value)
-}
+const df = new DateFormatter("en-US", { dateStyle: "long" });
+const tomorrow = today(getLocalTimeZone()).add({ days: 1 });
 
 const submit = () => {
-    form.content = editor.value?.getHTML() || ""
-    form.post(route("admin.announcements.store"));
+    form.transform((data) => {
+        let expired = undefined;
+        if (form.expired_at) {
+            const date = form.expired_at.toDate(getLocalTimeZone());
+            const yyyy = date.getFullYear();
+            const mm = String(date.getMonth() + 1).padStart(2, "0");
+            const dd = String(date.getDate()).padStart(2, "0");
+            expired = form.expired_time
+                ? `${yyyy}-${mm}-${dd}T${form.expired_time}:00`
+                : `${yyyy}-${mm}-${dd}`;
+        }
+        return { ...data, expired_at: expired };
+    }).post(route("admin.announcements.store"), {
+        onSuccess: () => form.reset(),
+    });
 };
-
-
 </script>
 
 <template>
@@ -64,8 +81,17 @@ const submit = () => {
 
     <AuthenticatedLayout>
         <template #header>
-            <div class="flex items-center justify-between">
-                <h2 class="text-xl font-semibold leading-tight text-gray-800">
+            <div class="flex items-center gap-2">
+                <Button
+                    variant="ghost"
+                    class="p-0 mr-2"
+                    size="sm"
+                    @click="$inertia.visit(route('admin.announcements.index'))"
+                >
+                    <ArrowLeft class="h-4 w-4" />
+                    Back
+                </Button>
+                <h2 class="text-xl bg font-semibold leading-tight text-gray-800">
                     Create New Announcement
                 </h2>
             </div>
@@ -86,9 +112,14 @@ const submit = () => {
                                 id="title"
                                 v-model="form.title"
                                 placeholder="Enter announcement title"
-                                :class="errors.title ? 'border-destructive' : ''"
+                                :class="
+                                    errors.title ? 'border-destructive' : ''
+                                "
                             />
-                            <p v-if="errors.title" class="text-sm text-destructive">
+                            <p
+                                v-if="errors.title"
+                                class="text-sm text-destructive"
+                            >
                                 {{ errors.title }}
                             </p>
                         </div>
@@ -101,26 +132,86 @@ const submit = () => {
                                     <SelectValue placeholder="Select type" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value="public">Public</SelectItem>
-                                    <SelectItem value="private">Private</SelectItem>
+                                    <SelectItem value="public"
+                                        >Public</SelectItem
+                                    >
+                                    <SelectItem value="private"
+                                        >Private</SelectItem
+                                    >
                                 </SelectContent>
                             </Select>
-                            <p v-if="errors.type" class="text-sm text-destructive">
+                            <p
+                                v-if="errors.type"
+                                class="text-sm text-destructive"
+                            >
                                 {{ errors.type }}
                             </p>
                         </div>
 
                         <!-- Expired At -->
-                        <div>
-                            <Label for="expired_at">Expired Date (optional)</Label>
-                            <Input
-                                id="expired_at"
-                                v-model="form.expired_at"
-                                type="datetime-local"
-                            />
-                            <p v-if="errors.expired_at" class="text-sm text-destructive">
-                                {{ errors.expired_at }}
-                            </p>
+                        <div class="flex flex-row w-full gap-2">
+                            <div class="flex w-full flex-col gap-1">
+                                <Label for="expired_at"
+                                    >Expired Date (optional)</Label
+                                >
+                                <Popover>
+                                    <PopoverTrigger as-child>
+                                        <Button
+                                            variant="outline"
+                                            :class="
+                                                cn(
+                                                    'w-full justify-start text-left font-normal',
+                                                    !form.expired_at &&
+                                                        'text-muted-foreground'
+                                                )
+                                            "
+                                        >
+                                            <CalendarIcon
+                                                class="mr-2 h-4 w-4"
+                                            />
+                                            {{
+                                                form.expired_at
+                                                    ? df.format(form.expired_at.toDate(getLocalTimeZone()))
+                                                    : "Pick a date"
+                                            }}
+                                        </Button>
+                                    </PopoverTrigger>
+                                    <PopoverContent class="w-auto p-0">
+                                        <Calendar
+                                            v-model="form.expired_at"
+                                            initial-focus
+                                            :min-value="tomorrow"
+                                        />
+                                    </PopoverContent>
+                                </Popover>
+                                <p
+                                    v-if="errors.expired_at"
+                                    class="text-sm text-destructive"
+                                >
+                                    {{ errors.expired_at }}
+                                </p>
+                            </div>
+                            <div class="flex flex-col gap-1 w-full">
+                                <Label for="expired_time"
+                                    >Expired Time (optional)</Label
+                                >
+                                <Input
+                                    id="expired_time"
+                                    type="time"
+                                    v-model="form.expired_time"
+                                    :class="
+                                        errors.expired_time
+                                            ? 'border-destructive'
+                                            : ''
+                                    "
+                                />
+                                <p
+                                    v-if="errors.expired_time"
+                                    class="text-sm text-destructive"
+                                >
+                                    {{ errors.expired_time }}
+                                </p>
+                            </div>
                         </div>
                     </CardContent>
                 </Card>
@@ -132,10 +223,16 @@ const submit = () => {
                     </CardHeader>
                     <CardContent>
                         <Label for="content">Content *</Label>
-                        <div class="border rounded p-2 min-h-[200px]">
-                            <EditorContent :editor="editor" />
-                        </div>
-                        <p v-if="errors.content" class="text-sm text-destructive">
+                        <Textarea
+                            v-model="form.content"
+                            placeholder="Enter announcement content"
+                            :class="errors.content ? 'border-destructive' : ''"
+                        >
+                        </Textarea>
+                        <p
+                            v-if="errors.content"
+                            class="text-sm text-destructive"
+                        >
                             {{ errors.content }}
                         </p>
                     </CardContent>
@@ -147,11 +244,16 @@ const submit = () => {
                         <CardTitle>Attachments</CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <input
+                        <Label for="attachments">File Attachments *</Label>
+                        <Input
                             type="file"
                             multiple
-                            @change="form.files = ($event.target as HTMLInputElement)?.files ? Array.from(($event.target as HTMLInputElement).files!) : null"
-                            class="block w-full border rounded p-2"
+                            @change="
+                                form.files = $event.target.files
+                                    ? Array.from($event.target.files)
+                                    : []
+                            "
+                            :class="errors.files ? 'border-destructive' : ''"
                         />
                         <p v-if="errors.files" class="text-sm text-destructive">
                             {{ errors.files }}
@@ -161,11 +263,21 @@ const submit = () => {
 
                 <!-- Actions -->
                 <div class="flex items-center justify-end space-x-2">
-                    <Button type="button" variant="outline" @click="$inertia.visit(route('admin.announcements.index'))">
+                    <Button
+                        type="button"
+                        variant="outline"
+                        @click="
+                            $inertia.visit(route('admin.announcements.index'))
+                        "
+                    >
                         Cancel
                     </Button>
                     <Button type="submit" :disabled="form.processing">
-                        {{ form.processing ? "Creating..." : "Create Announcement" }}
+                        {{
+                            form.processing
+                                ? "Creating..."
+                                : "Create Announcement"
+                        }}
                     </Button>
                 </div>
             </form>

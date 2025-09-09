@@ -1,8 +1,8 @@
 <script setup lang="ts">
-import { Head, Link, usePage } from '@inertiajs/vue3';
+import { Head, Link, usePage } from "@inertiajs/vue3";
 
-const page = usePage()
-const user = page.props.auth.user as { roles: string[] }
+const page = usePage();
+const user = page.props.auth.user as { roles: string[] };
 
 defineProps<{
     canLogin?: boolean;
@@ -13,86 +13,160 @@ defineProps<{
 }>();
 
 function handleImageError() {
-    document.getElementById('screenshot-container')?.classList.add('!hidden');
-    document.getElementById('docs-card')?.classList.add('!row-span-1');
-    document.getElementById('docs-card-content')?.classList.add('!flex-row');
-    document.getElementById('background')?.classList.add('!hidden');
+    document.getElementById("screenshot-container")?.classList.add("!hidden");
+    document.getElementById("docs-card")?.classList.add("!row-span-1");
+    document.getElementById("docs-card-content")?.classList.add("!flex-row");
+    document.getElementById("background")?.classList.add("!hidden");
 }
 </script>
 
 <template>
-
     <Head title="Welcome" />
     <div class="bg-gray-50 text-black/50 dark:bg-black dark:text-white/50">
         <div
-            class="relative flex min-h-screen flex-col items-center selection:bg-[#FF2D20] selection:text-white">
+            class="relative flex min-h-screen flex-col items-center selection:bg-[#FF2D20] selection:text-white"
+        >
             <div class="relative w-full">
-                <header class="grid grid-cols-2 items-center gap-2 px-6 py-10 lg:grid-cols-3 max-w-7xl mx-auto">
+                <header
+                    class="grid grid-cols-2 items-center gap-2 px-6 py-10 lg:grid-cols-3 max-w-7xl mx-auto"
+                >
                     <div class="flex lg:col-start-2 lg:justify-center">
-                        <h1 class="text-xl font-semibold text-gray-800 dark:text-white">
+                        <h1
+                            class="text-xl font-semibold text-gray-800 dark:text-white"
+                        >
                             SIM KERJASAMA ITK
                         </h1>
                     </div>
                     <nav v-if="canLogin" class="-mx-3 flex flex-1 justify-end">
-                        <Link v-if="$page.props.auth.user" :href="user.roles.includes('Super Admin') || user.roles.includes('Admin')
-                            ? route('admin.dashboard')
-                            : route('user.dashboard')"
-                            class="rounded-md px-3 py-2 text-black ring-1 ring-transparent transition hover:text-black/70 focus:outline-none focus-visible:ring-[#FF2D20] dark:text-white dark:hover:text-white/80 dark:focus-visible:ring-white">
-                        Dashboard
+                        <Link
+                            v-if="$page.props.auth.user"
+                            :href="
+                                user.roles.includes('Super Admin') ||
+                                user.roles.includes('Admin')
+                                    ? route('admin.dashboard')
+                                    : route('user.dashboard')
+                            "
+                            class="rounded-md px-3 py-2 text-black ring-1 ring-transparent transition hover:text-black/70 focus:outline-none focus-visible:ring-[#FF2D20] dark:text-white dark:hover:text-white/80 dark:focus-visible:ring-white"
+                        >
+                            Dashboard
                         </Link>
 
                         <template v-else>
-                            <Link :href="route('login')"
-                                class="rounded-md px-3 py-2 text-black ring-1 ring-transparent transition hover:text-black/70 focus:outline-none focus-visible:ring-[#FF2D20] dark:text-white dark:hover:text-white/80 dark:focus-visible:ring-white">
-                            Log in
+                            <Link
+                                :href="route('login')"
+                                class="rounded-md px-3 py-2 text-black ring-1 ring-transparent transition hover:text-black/70 focus:outline-none focus-visible:ring-[#FF2D20] dark:text-white dark:hover:text-white/80 dark:focus-visible:ring-white"
+                            >
+                                Log in
                             </Link>
 
-                            <Link v-if="canRegister" :href="route('register')"
-                                class="rounded-md px-3 py-2 text-black ring-1 ring-transparent transition hover:text-black/70 focus:outline-none focus-visible:ring-[#FF2D20] dark:text-white dark:hover:text-white/80 dark:focus-visible:ring-white">
-                            Register
+                            <Link
+                                v-if="canRegister"
+                                :href="route('register')"
+                                class="rounded-md px-3 py-2 text-black ring-1 ring-transparent transition hover:text-black/70 focus:outline-none focus-visible:ring-[#FF2D20] dark:text-white dark:hover:text-white/80 dark:focus-visible:ring-white"
+                            >
+                                Register
                             </Link>
                         </template>
                     </nav>
                 </header>
 
                 <main>
-                    <section class="bg-[#191976] py-12 text-white">
+                    <section
+                        class="bg-gradient-to-r from-blue-600 to-blue-400 py-10 text-white"
+                    >
                         <div class="max-w-7xl mx-auto px-6">
-                            <p class="text-lg">Sistem Informasi Kerja Sama Institut Teknologi Kalimantan</p>
+                            <p class="text-4xl font-bold">Pengumuman</p>
                         </div>
                     </section>
 
-                    <section class="py-12">
-                        <div class="max-w-4xl mx-auto px-6">
-                            <div class="bg-white rounded-lg shadow-md overflow-hidden divide-y divide-gray-200">
+                    <section class="flex justify-center py-12">
+                        <div class="max-w-4xl flex flex-col justify-center gap-3 px-6">
+                            <div
+                                v-for="announcement in announcements.filter(
+                                    (a) => a.type === 'public'
+                                )"
+                                :key="announcement.id"
+                                class="bg-white rounded-2xl border shadow-md"
+                            >
+                                <div class="p-6 hover:bg-gray-50">
+                                    <div
+                                        class="flex flex-col sm:flex-row gap-6"
+                                    >
+                                        <!-- Konten -->
+                                        <div class="flex-grow space-y-3">
+                                            <!-- Header kecil -->
+                                            <div
+                                                class="flex items-center gap-2 text-xs text-gray-500"
+                                            >
+                                                <span
+                                                    class="px-2 py-1 text-[11px] rounded-full bg-blue-100 text-blue-700 font-medium"
+                                                >
+                                                    {{
+                                                        new Date(
+                                                            announcement.created_at
+                                                        ).toLocaleDateString(
+                                                            "id-ID",
+                                                            {
+                                                                day: "2-digit",
+                                                                month: "long",
+                                                                year: "numeric",
+                                                            }
+                                                        )
+                                                    }}
+                                                </span>
+                                            </div>
 
-                                <div v-for="announcement in announcements.filter(a => a.type === 'public')" :key="announcement.id" class="p-6">
-                                    <div class="flex flex-col sm:flex-row items-center gap-6">
-
-                                        <img :src="announcement.image_url" :alt="announcement.title" class="w-full sm:w-48 h-32 object-cover rounded-md flex-shrink-0">
-
-                                        <div class="flex-grow">
-                                            <h3 class="text-lg font-semibold text-gray-800">    
+                                            <!-- Judul -->
+                                            <h3
+                                                class="text-xl font-semibold text-gray-800 line-clamp-3"
+                                            >
                                                 {{ announcement.title }}
                                             </h3>
 
-                                            <a :href="route('announcements.detail', announcement.id)" class="inline-block mt-2 text-blue-600 hover:underline">
-                                                Lihat Selengkapnya
+                                            <!-- Deskripsi singkat -->
+                                            <p
+                                                class="text-sm text-gray-600 line-clamp-2"
+                                            >
+                                                {{
+                                                    announcement.content
+                                                        ? announcement.content.replace(
+                                                              /<[^>]+>/g,
+                                                              ""
+                                                          )
+                                                        : "Tidak ada deskripsi."
+                                                }}
+                                            </p>
+
+                                            <!-- Link -->
+                                            <a
+                                                :href="
+                                                    route(
+                                                        'announcements.detail',
+                                                        announcement.id
+                                                    )
+                                                "
+                                                class="inline-flex items-center text-blue-600 font-medium text-sm hover:underline"
+                                            >
+                                                Lihat Selengkapnya →
                                             </a>
                                         </div>
                                     </div>
                                 </div>
 
-                                <div v-if="announcements.length === 0" class="p-6 text-center text-gray-500">
+                                <div
+                                    v-if="announcements.length === 0"
+                                    class="p-6 text-center text-gray-500"
+                                >
                                     Belum ada pengumuman saat ini.
                                 </div>
-
                             </div>
                         </div>
                     </section>
                 </main>
 
-                <footer class="py-16 text-center text-sm text-black dark:text-white/70">
+                <footer
+                    class="py-16 text-center text-sm text-black dark:text-white/70"
+                >
                     © Institut Teknologi Kalimantan 2025. All Rights Reserved.
                 </footer>
             </div>
