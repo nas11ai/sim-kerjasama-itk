@@ -1,0 +1,61 @@
+<?php
+
+namespace App\Models;
+
+use Illuminate\Database\Eloquent\Model;
+
+class ReviewComment extends Model
+{
+    protected $fillable = [
+        'review_summary_id',
+        'parent_comment_id',
+        'user_id',
+        'reviewer_id',
+        'comment_text',
+    ];
+
+    public function reviewSummary()
+    {
+        return $this->belongsTo(ReviewSummary::class);
+    }
+
+    public function parentComment()
+    {
+        return $this->belongsTo(ReviewComment::class, 'parent_comment_id');
+    }
+
+    public function replies()
+    {
+        return $this->hasMany(ReviewComment::class, 'parent_comment_id');
+    }
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
+
+    public function reviewer()
+    {
+        return $this->belongsTo(Reviewer::class);
+    }
+
+    public function scopeTopLevel($query)
+    {
+        return $query->whereNull('parent_comment_id');
+    }
+
+    public function scopeReplies($query)
+    {
+        return $query->whereNotNull('parent_comment_id');
+    }
+
+    public function getAuthorAttribute()
+    {
+        return $this->user ?: $this->reviewer?->user;
+    }
+
+    public function getAuthorTypeAttribute()
+    {
+        return $this->reviewer_id ? 'reviewer' : 'submitter';
+    }
+}
