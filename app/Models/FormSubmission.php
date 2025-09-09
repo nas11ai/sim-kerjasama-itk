@@ -38,28 +38,28 @@ class FormSubmission extends Model
         return $this->hasMany(SubmissionReviewer::class);
     }
 
-    public function revisions()
-    {
-        return $this->hasMany(SubmissionReviewFix::class);
-    }
+    // public function revisions()
+    // {
+    //     return $this->hasMany(SubmissionReviewFix::class);
+    // }
 
-    public function latestRevision()
-    {
-        return $this->hasOne(SubmissionReviewFix::class)->latest();
-    }
+    // public function latestRevision()
+    // {
+    //     return $this->hasOne(SubmissionReviewFix::class)->latest();
+    // }
 
     // Helper methods
-    public function allReviewersApproved()
-    {
-        $totalReviewers = $this->submissionReviewers()->count();
-        $approvedReviewers = $this->submissionReviewers()
-            ->whereHas('submissionReview', function ($q) {
-                $q->where('decision', 'approved');
-            })
-            ->count();
+    // public function allReviewersApproved()
+    // {
+    //     $totalReviewers = $this->submissionReviewers()->count();
+    //     $approvedReviewers = $this->submissionReviewers()
+    //         ->whereHas('submissionReview', function ($q) {
+    //             $q->where('decision', 'approved');
+    //         })
+    //         ->count();
 
-        return $totalReviewers > 0 && $totalReviewers === $approvedReviewers;
-    }
+    //     return $totalReviewers > 0 && $totalReviewers === $approvedReviewers;
+    // }
 
     public function canProceed()
     {
@@ -86,21 +86,21 @@ class FormSubmission extends Model
         $this->save();
     }
 
-    private function hasRejectedReviews()
-    {
-        return $this->submissionReviewers()
-            ->whereHas('submissionReview', function ($q) {
-                $q->where('decision', 'needs_revision');
-            })
-            ->exists();
-    }
+    // private function hasRejectedReviews()
+    // {
+    //     return $this->submissionReviewers()
+    //         ->whereHas('submissionReview', function ($q) {
+    //             $q->where('decision', 'needs_revision');
+    //         })
+    //         ->exists();
+    // }
 
-    private function hasAnyReviews()
-    {
-        return $this->submissionReviewers()
-            ->whereHas('submissionReview')
-            ->exists();
-    }
+    // private function hasAnyReviews()
+    // {
+    //     return $this->submissionReviewers()
+    //         ->whereHas('submissionReview')
+    //         ->exists();
+    // }
 
     // Scopes
     public function scopeByStatus($query, SubmissionStatus $status)

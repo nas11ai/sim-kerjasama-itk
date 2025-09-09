@@ -6,7 +6,11 @@ use Illuminate\Database\Eloquent\Model;
 
 class SubmissionReviewer extends Model
 {
-    protected $fillable = ['form_submission_id', 'reviewer_id', 'submission_review_type_id'];
+    protected $fillable = [
+        'form_submission_id',
+        'reviewer_id',
+        'submission_review_type_id',
+    ];
 
     public function formSubmission()
     {
@@ -21,10 +25,5 @@ class SubmissionReviewer extends Model
     public function submissionReviewType()
     {
         return $this->belongsTo(SubmissionReviewType::class);
-    }
-
-    public function submissionReview()
-    {
-        return $this->hasOne(SubmissionReview::class);
     }
 }
