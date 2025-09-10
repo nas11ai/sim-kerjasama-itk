@@ -22,4 +22,9 @@ class ReviewSummary extends Model
     {
         return $this->belongsTo(Reviewer::class);
     }
+
+    public function reviewSummaryAttachments()
+    {
+        return $this->hasMany(ReviewSummaryAttachment::class);
+    }
 }
