@@ -29,6 +29,11 @@ class ReviewComment extends Model
         return $this->hasMany(ReviewComment::class, 'parent_comment_id');
     }
 
+    public function attachments()
+    {
+        return $this->hasMany(ReviewCommentAttachment::class);
+    }
+
     public function user()
     {
         return $this->belongsTo(User::class);
