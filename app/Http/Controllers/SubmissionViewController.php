@@ -2,11 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\ReviewComment;
 use App\Models\SubmissionPeriod;
 use App\Models\FormPhase;
 use App\Models\FormSubmission;
 use App\Models\FormFieldResponse;
 use App\SubmissionStatus;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
@@ -242,8 +244,10 @@ class SubmissionViewController extends Controller
     {
         $user = Auth::user();
 
-        // Ensure user can only view their own submissions
-        if ($submission->submitted_by !== $user->id) {
+        // User can view their own submissions OR submissions they are assigned to review
+        $canView = $submission->submitted_by === $user->id || $this->canUserReview($submission, $user);
+
+        if (!$canView) {
             abort(403, 'Unauthorized access to submission');
         }
 
@@ -253,17 +257,57 @@ class SubmissionViewController extends Controller
             },
             'form.formFields.fieldType',
             'form.formFields.formFieldOptions',
-            'formFieldResponses'
+            'formFieldResponses',
+            'submittedBy:id,name,email', // Add this for reviewer view
+            // Load review data
+            'reviewSummaries' => function ($query) {
+                $query->with([
+                    'reviewer.user:id,name',
+                    'reviewer.reviewerRole:id,name',
+                    'attachments'
+                ]);
+            }
         ]);
+
+        // Load review comments
+        $reviewComments = ReviewComment::whereIn('review_summary_id', $submission->reviewSummaries->pluck('id'))
+            ->with([
+                'user:id,name',
+                'reviewer.user:id,name',
+                'attachments',
+                'replies' => function ($q) {
+                    $q->with(['user:id,name', 'reviewer.user:id,name', 'attachments'])
+                        ->orderBy('created_at', 'asc');
+                }
+            ])
+            ->whereNull('parent_comment_id')
+            ->orderBy('created_at', 'desc')
+            ->get();
 
         // Map responses for easy access
         $responses = $submission->formFieldResponses->mapWithKeys(function ($response) {
             return [$response->form_field_id => $response->value];
         });
 
+        // Get review statistics
+        $reviewStats = [
+            'total_reviewers' => $submission->reviewSummaries->count(),
+            'open_reviews' => $submission->reviewSummaries->where('status', 'open')->count(),
+            'resolved_reviews' => $submission->reviewSummaries->where('status', 'resolved')->count(),
+            'closed_reviews' => $submission->reviewSummaries->where('status', 'closed')->count(),
+            'total_comments' => $reviewComments->count(),
+        ];
+
+        $userRole = $this->getUserRoleForSubmission($submission, $user);
+
         return Inertia::render('User/Submissions/ShowSubmission', [
-            'submission' => $submission,
-            'responses' => $responses
+            'submission' => $submission->append(['review_comments' => $reviewComments]),
+            'responses' => $responses,
+            'reviewStats' => $reviewStats,
+            'canCreateThread' => true, // User can always create threads
+            'canReview' => $this->canUserReview($submission, $user),
+            'userRole' => $userRole,
+            'isOwnSubmission' => $submission->submitted_by === $user->id,
         ]);
     }
 
@@ -282,16 +326,222 @@ class SubmissionViewController extends Controller
             'form.formFields.formFieldOptions',
             'formFieldResponses',
             'submittedBy:id,name,email',
+            // Load review data using existing models
+            'reviewSummaries' => function ($query) {
+                $query->with([
+                    'reviewer.user:id,name,email',
+                    'reviewer.reviewerRole:id,name',
+                    'attachments'
+                ]);
+            }
         ]);
+
+        // Load review comments separately untuk avoid conflict
+        $reviewComments = ReviewComment::whereHas('reviewSummary', function ($query) use ($submission) {
+            $query->where('form_submission_id', $submission->id);
+        })
+            ->with([
+                'user:id,name',
+                'reviewer.user:id,name',
+                'attachments',
+                'replies' => function ($q) {
+                    $q->with(['user:id,name', 'reviewer.user:id,name', 'attachments'])
+                        ->orderBy('created_at', 'asc');
+                }
+            ])
+            ->whereNull('parent_comment_id') // Only top-level comments
+            ->orderBy('created_at', 'desc')
+            ->get();
 
         // Map responses for easy access
         $responses = $submission->formFieldResponses->mapWithKeys(function ($response) {
             return [$response->form_field_id => $response->value];
         });
 
+        // Get review statistics
+        $reviewStats = [
+            'total_reviewers' => $submission->reviewSummaries->count(),
+            'open_reviews' => $submission->reviewSummaries->where('status', 'open')->count(),
+            'resolved_reviews' => $submission->reviewSummaries->where('status', 'resolved')->count(),
+            'closed_reviews' => $submission->reviewSummaries->where('status', 'closed')->count(),
+            'total_comments' => $reviewComments->count(),
+        ];
+
+        // Get available reviewers for assignment (exclude submission owner)
+        $assignedReviewerIds = $submission->reviewSummaries->pluck('reviewer_id')->filter()->toArray();
+
+        $today = Carbon::today();
+        $availableReviewers = \App\Models\Reviewer::with(['user', 'reviewerRole'])
+            ->where(function ($q) use ($today) {
+                $q->whereNull('start_date')->orWhere('start_date', '<=', $today);
+            })
+            ->where(function ($q) use ($today) {
+                $q->whereNull('end_date')->orWhere('end_date', '>=', $today);
+            })
+            ->whereNotIn('id', $assignedReviewerIds)
+            // Exclude submission owner from being reviewer of their own submission
+            ->whereHas('user', function ($query) use ($submission) {
+                $query->where('id', '!=', $submission->submitted_by);
+            })
+            ->get()
+            ->map(function ($reviewer) {
+                return [
+                    'id' => $reviewer->id,
+                    'name' => $reviewer->user->name,
+                    'email' => $reviewer->user->email,
+                    'role' => $reviewer->reviewerRole->name,
+                ];
+            });
+
+        // Convert submission to array dan add review_comments secara manual
+        $submissionArray = $submission->toArray();
+        $submissionArray['review_comments'] = $reviewComments->toArray();
+
         return Inertia::render('Submissions/ShowSubmission', [
-            'submission' => $submission,
-            'responses' => $responses
+            'submission' => $submissionArray,
+            'responses' => $responses,
+            'reviewStats' => $reviewStats,
+            'availableReviewers' => $availableReviewers,
+            'canAssignReviewers' => auth()->user()->hasRole(['Super Admin', 'Admin']),
+            'canReview' => $this->canUserReview($submission, auth()->user()),
+            'userRole' => $this->getUserRoleForSubmission($submission, auth()->user()),
+        ]);
+    }
+
+    // Helper method to check if user can review
+    private function canUserReview(FormSubmission $submission, $user): bool
+    {
+        if ($user->hasRole(['Super Admin', 'Admin'])) {
+            return true;
+        }
+
+        $reviewer = \App\Models\Reviewer::where('user_id', $user->id)->first();
+        if ($reviewer) {
+            return \App\Models\ReviewSummary::where([
+                'form_submission_id' => $submission->id,
+                'reviewer_id' => $reviewer->id
+            ])->exists();
+        }
+
+        return false;
+    }
+
+    // Helper method to determine user's role for this submission
+    private function getUserRoleForSubmission(FormSubmission $submission, $user): string
+    {
+        if ($user->hasRole(['Super Admin', 'Admin'])) {
+            return 'admin';
+        }
+
+        if ($submission->submitted_by === $user->id) {
+            return 'submitter';
+        }
+
+        $reviewer = \App\Models\Reviewer::where('user_id', $user->id)->first();
+        if ($reviewer) {
+            $isAssignedReviewer = \App\Models\ReviewSummary::where([
+                'form_submission_id' => $submission->id,
+                'reviewer_id' => $reviewer->id
+            ])->exists();
+
+            if ($isAssignedReviewer) {
+                return 'reviewer';
+            }
+        }
+
+        return 'user';
+    }
+
+    // Method untuk reviewer dashboard (optional - jika ingin ada dashboard khusus reviewer)
+    public function reviewerDashboard()
+    {
+        $user = Auth::user();
+        $reviewer = \App\Models\Reviewer::where('user_id', $user->id)->first();
+
+        if (!$reviewer) {
+            abort(403, 'You are not registered as a reviewer');
+        }
+
+        // Get submissions assigned to this reviewer
+        $assignedSubmissions = FormSubmission::whereHas('reviewSummaries', function ($query) use ($reviewer) {
+            $query->where('reviewer_id', $reviewer->id);
+        })
+            ->with([
+                'form:id,title',
+                'submittedBy:id,name,email',
+                'reviewSummaries' => function ($query) use ($reviewer) {
+                    $query->where('reviewer_id', $reviewer->id);
+                }
+            ])
+            ->orderBy('created_at', 'desc')
+            ->paginate(10);
+
+        // Statistics
+        $stats = [
+            'total_assigned' => \App\Models\ReviewSummary::where('reviewer_id', $reviewer->id)->count(),
+            'pending_reviews' => \App\Models\ReviewSummary::where('reviewer_id', $reviewer->id)
+                ->where('status', 'open')->count(),
+            'completed_reviews' => \App\Models\ReviewSummary::where('reviewer_id', $reviewer->id)
+                ->where('status', 'resolved')->count(),
+            'rejected_reviews' => \App\Models\ReviewSummary::where('reviewer_id', $reviewer->id)
+                ->where('status', 'closed')->count(),
+        ];
+
+        return Inertia::render('Reviewer/Dashboard', [
+            'assignedSubmissions' => $assignedSubmissions,
+            'stats' => $stats,
+            'reviewer' => $reviewer->load('reviewerRole')
+        ]);
+    }
+
+    // Method untuk melihat semua submissions yang bisa direview oleh user (sebagai reviewer)
+    public function reviewerSubmissions(Request $request)
+    {
+        $user = Auth::user();
+        $reviewer = \App\Models\Reviewer::where('user_id', $user->id)->first();
+
+        if (!$reviewer) {
+            abort(403, 'You are not registered as a reviewer');
+        }
+
+        $query = FormSubmission::whereHas('reviewSummaries', function ($q) use ($reviewer) {
+            $q->where('reviewer_id', $reviewer->id);
+        })
+            ->with([
+                'form:id,title',
+                'submittedBy:id,name,email',
+                'reviewSummaries' => function ($q) use ($reviewer) {
+                    $q->where('reviewer_id', $reviewer->id);
+                }
+            ]);
+
+        // Filter by status
+        if ($request->has('status') && $request->status !== '') {
+            $query->whereHas('reviewSummaries', function ($q) use ($reviewer, $request) {
+                $q->where('reviewer_id', $reviewer->id)
+                    ->where('status', $request->status);
+            });
+        }
+
+        // Search by submitter name or form title
+        if ($request->has('search') && $request->search) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->whereHas('submittedBy', function ($query) use ($search) {
+                    $query->where('name', 'like', "%{$search}%");
+                })
+                    ->orWhereHas('form', function ($query) use ($search) {
+                        $query->where('title', 'like', "%{$search}%");
+                    });
+            });
+        }
+
+        $submissions = $query->orderBy('created_at', 'desc')->paginate(15);
+
+        return Inertia::render('Reviewer/Submissions/Index', [
+            'submissions' => $submissions,
+            'filters' => $request->only(['status', 'search']),
+            'reviewer' => $reviewer->load('reviewerRole')
         ]);
     }
 }

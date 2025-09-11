@@ -48,6 +48,9 @@ class User extends Authenticatable
         ];
     }
 
+    // App\Models\User.php
+    protected $appends = ['is_reviewer'];
+
     public function formSubmissions()
     {
         return $this->hasMany(FormSubmission::class, 'submitted_by');
@@ -56,5 +59,15 @@ class User extends Authenticatable
     public function reviewers()
     {
         return $this->hasMany(Reviewer::class);
+    }
+
+    public function getIsReviewerAttribute()
+    {
+        return $this->reviewer()->exists();
+    }
+
+    public function reviewer()
+    {
+        return $this->hasOne(Reviewer::class);
     }
 }

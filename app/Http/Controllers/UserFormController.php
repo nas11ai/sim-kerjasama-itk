@@ -28,6 +28,10 @@ class UserFormController extends Controller
         $userRoles = $user->getRoleNames();
         $primaryRole = $userRoles->first() ?? 'user';
 
+        // Check if user is a reviewer
+        $reviewer = \App\Models\Reviewer::where('user_id', $user->id)->first();
+        $isReviewer = $reviewer !== null;
+
         // Get submission periods with accessible form phases
         $submissionPeriods = SubmissionPeriod::with([
             'submissionDates.submissionDateLabel',
@@ -128,6 +132,20 @@ class UserFormController extends Controller
                 return $period;
             });
 
+        // Get review stats if user is reviewer
+        $reviewStats = null;
+        if ($isReviewer) {
+            $reviewStats = [
+                'total_assigned' => \App\Models\ReviewSummary::where('reviewer_id', $reviewer->id)->count(),
+                'pending_reviews' => \App\Models\ReviewSummary::where('reviewer_id', $reviewer->id)
+                    ->where('status', 'open')->count(),
+                'completed_reviews' => \App\Models\ReviewSummary::where('reviewer_id', $reviewer->id)
+                    ->where('status', 'resolved')->count(),
+                'rejected_reviews' => \App\Models\ReviewSummary::where('reviewer_id', $reviewer->id)
+                    ->where('status', 'closed')->count(),
+            ];
+        }
+
         return Inertia::render('User/Dashboard', [
             'submissionPeriods' => $submissionPeriods,
             'userRole' => $primaryRole,
@@ -137,7 +155,64 @@ class UserFormController extends Controller
                 'faculty' => [
                     'name' => $studyProgram->faculty->name
                 ]
+            ] : null,
+            'isReviewer' => $isReviewer,
+            'reviewStats' => $reviewStats,
+            'reviewer' => $reviewer ? [
+                'id' => $reviewer->id,
+                'reviewer_role' => $reviewer->reviewerRole->name
             ] : null
+        ]);
+    }
+
+    // Add method untuk reviewer submissions
+    public function reviewerSubmissions(Request $request)
+    {
+        $user = Auth::user();
+        $reviewer = \App\Models\Reviewer::where('user_id', $user->id)->first();
+
+        if (!$reviewer) {
+            abort(403, 'You are not registered as a reviewer');
+        }
+
+        $query = FormSubmission::whereHas('reviewSummaries', function ($q) use ($reviewer) {
+            $q->where('reviewer_id', $reviewer->id);
+        })
+            ->with([
+                'form:id,title',
+                'submittedBy:id,name,email',
+                'reviewSummaries' => function ($q) use ($reviewer) {
+                    $q->where('reviewer_id', $reviewer->id);
+                }
+            ]);
+
+        // Filter by status
+        if ($request->has('status') && $request->status !== '') {
+            $query->whereHas('reviewSummaries', function ($q) use ($reviewer, $request) {
+                $q->where('reviewer_id', $reviewer->id)
+                    ->where('status', $request->status);
+            });
+        }
+
+        // Search by submitter name or form title
+        if ($request->has('search') && $request->search) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->whereHas('submittedBy', function ($query) use ($search) {
+                    $query->where('name', 'like', "%{$search}%");
+                })
+                    ->orWhereHas('form', function ($query) use ($search) {
+                        $query->where('title', 'like', "%{$search}%");
+                    });
+            });
+        }
+
+        $submissions = $query->orderBy('created_at', 'desc')->paginate(15);
+
+        return Inertia::render('Reviewer/Submissions/Index', [
+            'submissions' => $submissions,
+            'filters' => $request->only(['status', 'search']),
+            'reviewer' => $reviewer->load('reviewerRole')
         ]);
     }
 

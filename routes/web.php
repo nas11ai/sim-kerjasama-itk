@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\ReviewController;
 use App\Http\Controllers\ReviewerRoleController;
 use App\Http\Controllers\FacultyController;
 use App\Http\Controllers\FormAccessControlController;
@@ -23,13 +24,36 @@ Route::get('/', function () {
     ]);
 });
 
-Route::middleware('auth')->group(function () {
+Route::middleware(['auth', 'check_reviewer_status'])->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+
+    // Complete review - untuk assigned reviewer saja
+    Route::patch('/review-summaries/{reviewSummary}/complete', [ReviewController::class, 'completeReview'])
+        ->name('review-summaries.complete');
+
+    // Update review status - untuk assigned reviewer atau admin
+    Route::patch('/review-summaries/{reviewSummary}/status', [ReviewController::class, 'updateReviewStatus'])
+        ->name('review-summaries.update-status');
+
+    // Create thread - untuk submission owner, assigned reviewer, atau admin
+    Route::post('/submissions/{submission}/review-threads', [ReviewController::class, 'createReviewThread'])
+        ->name('review-threads.store');
+
+    // Add comments - untuk submission owner, assigned reviewer, atau admin
+    Route::post('/review-summaries/{reviewSummary}/comments', [ReviewController::class, 'addComment'])
+        ->name('review-comments.store');
+
+    // File download
+    Route::get('/review-attachments/download', [ReviewController::class, 'downloadAttachment'])
+        ->name('review-attachments.download');
+
+    Route::get('/submissions', [UserFormController::class, 'reviewerSubmissions'])
+        ->name('submissions.index');
 });
 
-Route::middleware('auth')->prefix('user')->name('user.')->group(function () {
+Route::middleware(['auth', 'check_reviewer_status'])->prefix('user')->name('user.')->group(function () {
     Route::get('/dashboard', [UserFormController::class, 'dashboard'])
         ->name('dashboard');
     // Form Phase Routes
@@ -56,10 +80,45 @@ Route::middleware('auth')->prefix('user')->name('user.')->group(function () {
 
     Route::get('/submissions/{submission}', [SubmissionViewController::class, 'userShowSubmission'])
         ->name('submissions.show');
+
+    // Review routes dengan prefix user
+    Route::post('/submissions/{submission}/review-threads', [ReviewController::class, 'createReviewThread'])
+        ->name('review-threads.store');
+
+    Route::post('/review-summaries/{reviewSummary}/comments', [ReviewController::class, 'addComment'])
+        ->name('review-comments.store');
+});
+
+// Reviewer Routes - untuk user yang bertindak sebagai reviewer
+Route::middleware(['auth', 'check_reviewer_status'])->prefix('reviewer')->name('reviewer.')->group(function () {
+
+    // Dashboard khusus reviewer (optional)
+    Route::get('/dashboard', [SubmissionViewController::class, 'reviewerDashboard'])
+        ->name('dashboard');
+
+    // List submissions yang di-assign untuk review
+    Route::get('/submissions', [SubmissionViewController::class, 'reviewerSubmissions'])
+        ->name('submissions.index');
+
+    // Complete review
+    Route::patch('/review-summaries/{reviewSummary}/complete', [ReviewController::class, 'completeReview'])
+        ->name('review-summaries.complete');
+
+    // Update review status
+    Route::patch('/review-summaries/{reviewSummary}/status', [ReviewController::class, 'updateReviewStatus'])
+        ->name('review-summaries.update-status');
+
+    // Create thread sebagai reviewer
+    Route::post('/submissions/{submission}/review-threads', [ReviewController::class, 'createReviewThread'])
+        ->name('review-threads.store');
+
+    // Add comments sebagai reviewer
+    Route::post('/review-summaries/{reviewSummary}/comments', [ReviewController::class, 'addComment'])
+        ->name('review-comments.store');
 });
 
 // Admin Routes - only accessible by Super Admin or Admin role
-Route::middleware(['auth', 'role:Super Admin|Admin'])->prefix('admin')->name('admin.')->group(function () {
+Route::middleware(['auth', 'role:Super Admin|Admin', 'check_reviewer_status'])->prefix('admin')->name('admin.')->group(function () {
     // Admin Dashboard
     Route::get('/dashboard', function () {
         return Inertia::render('Dashboard');
@@ -76,6 +135,33 @@ Route::middleware(['auth', 'role:Super Admin|Admin'])->prefix('admin')->name('ad
 
     Route::get('/submissions/{submission}', [SubmissionViewController::class, 'adminShowSubmission'])
         ->name('submissions.show');
+
+    // Reviewer assignment (hanya admin)
+    Route::post('/submissions/{submission}/assign-reviewers', [ReviewController::class, 'assignReviewers'])
+        ->name('submissions.assign-reviewers');
+
+    Route::delete('/submissions/{submission}/reviewers/{reviewer}', [ReviewController::class, 'removeReviewer'])
+        ->name('submissions.remove-reviewer');
+
+    // Get available reviewers
+    Route::get('/submissions/{submission}/available-reviewers', [ReviewController::class, 'getAvailableReviewers'])
+        ->name('submissions.available-reviewers');
+
+    // Admin create review thread
+    Route::post('/submissions/{submission}/review-threads', [ReviewController::class, 'createReviewThread'])
+        ->name('review-threads.store');
+
+    // Admin update review status
+    Route::patch('/review-summaries/{reviewSummary}/status', [ReviewController::class, 'updateReviewStatus'])
+        ->name('review-summaries.update-status');
+
+    // Admin delete review thread
+    Route::delete('/review-summaries/{reviewSummary}', [ReviewController::class, 'deleteReviewThread'])
+        ->name('review-summaries.destroy');
+
+    // Admin add comments
+    Route::post('/review-summaries/{reviewSummary}/comments', [ReviewController::class, 'addComment'])
+        ->name('review-comments.store');
 
     // Reviewer Management
     Route::resource('reviewers', ReviewerController::class);
@@ -171,7 +257,7 @@ Route::middleware(['auth', 'role:Super Admin|Admin'])->prefix('admin')->name('ad
 });
 
 // For backwards compatibility, you can add redirects for admin routes without prefix
-Route::middleware(['auth', 'role:Super Admin|Admin'])->group(function () {
+Route::middleware(['auth', 'role:Super Admin|Admin', 'check_reviewer_status'])->group(function () {
     Route::get('/forms', function () {
         return redirect()->route('admin.forms.index');
     });

@@ -36,20 +36,30 @@ import {
     BookOpen,
     ClipboardList,
     Filter,
-    Send
+    Send,
+    MessageSquare,
+    CheckCircle,
+    Clock,
+    Star
 } from 'lucide-vue-next';
 
-const page = usePage();
-const user = computed(() => page.props.auth?.user);
-const userRoles = computed(() => user.value?.roles || []);
+const page = usePage()
+const user = computed(() => page.props.auth?.user)
+const userRoles = computed(() => user.value?.roles || [])
 
 const isAdmin = computed(() =>
     userRoles.value.some((role: any) => ['Super Admin', 'Admin'].includes(role))
-);
+)
 
 const isUser = computed(() =>
     userRoles.value.some((role: any) => ['Mahasiswa', 'Tenaga Kependidikan'].includes(role))
-);
+)
+
+const isReviewer = computed(() => {
+    // Flag dikirim dari backend (middleware CheckReviewer)
+    return user.value?.is_reviewer || false
+})
+
 
 // Navigation items for admin
 const adminNavItems = [
@@ -96,8 +106,29 @@ const adminNavItems = [
         ]
     },
     {
+        title: "Review Management",
+        icon: MessageSquare,
+        items: [
+            {
+                title: "Review Overview",
+                url: route('admin.submissions.index') + '?tab=review',
+                icon: MessageSquare,
+            },
+            {
+                title: "Pending Reviews",
+                url: route('admin.submissions.index') + '?status=under_review',
+                icon: Clock,
+            },
+            {
+                title: "Completed Reviews",
+                url: route('admin.submissions.index') + '?status=approved',
+                icon: CheckCircle,
+            }
+        ]
+    },
+    {
         title: "Reviewer Management",
-        icon: Users, // pakai icon Users dari lucide-vue-next
+        icon: Users,
         items: [
             {
                 title: "Reviewers",
@@ -129,46 +160,88 @@ const adminNavItems = [
     }
 ];
 
-// Navigation items for regular users
-const userNavItems = [
-    {
-        title: "Dashboard",
-        url: route('user.dashboard'),
-        icon: Home,
-    },
-    {
-        title: "My Forms",
-        icon: ClipboardList,
-        items: [
-            {
-                title: "Active Submissions",
-                url: route('user.dashboard'),
-                icon: BookOpen,
-            }
-        ]
-    },
-    {
-        title: "My Submissions",
-        icon: Send,
-        items: [
-            {
-                title: "View Submissions",
-                url: route('user.submissions.index'),
-                icon: Send,
-            }
-        ]
+// Navigation items for regular users (termasuk reviewer)
+const userNavItems = computed(() => {
+    const baseItems = [
+        {
+            title: "Dashboard",
+            url: route('user.dashboard'),
+            icon: Home,
+        },
+        {
+            title: "My Forms",
+            icon: ClipboardList,
+            items: [
+                {
+                    title: "Active Submissions",
+                    url: route('user.dashboard'),
+                    icon: BookOpen,
+                }
+            ]
+        },
+        {
+            title: "My Submissions",
+            icon: Send,
+            items: [
+                {
+                    title: "View Submissions",
+                    url: route('user.submissions.index'),
+                    icon: Send,
+                },
+                {
+                    title: "Under Review",
+                    url: route('user.submissions.index') + '?status=under_review',
+                    icon: Clock,
+                },
+                {
+                    title: "Approved",
+                    url: route('user.submissions.index') + '?status=approved',
+                    icon: CheckCircle,
+                }
+            ]
+        }
+    ];
+
+    // Add Review Tasks menu if user is reviewer
+    if (isReviewer.value) {
+        baseItems.push({
+            title: "Review Tasks",
+            icon: MessageSquare,
+            items: [
+                {
+                    title: "Assigned Reviews",
+                    url: route('reviewer.submissions.index'),
+                    icon: MessageSquare,
+                },
+                {
+                    title: "Pending Reviews",
+                    url: route('reviewer.submissions.index') + '?status=open',
+                    icon: Clock,
+                },
+                {
+                    title: "Completed Reviews",
+                    url: route('reviewer.submissions.index') + '?status=resolved',
+                    icon: CheckCircle,
+                }
+            ]
+        });
     }
-];
+
+    return baseItems;
+});
 
 const navItems = computed(() => {
     if (isAdmin.value) return adminNavItems;
-    return userNavItems;
+    return userNavItems.value;
 });
 
 const currentUrl = computed(() => page.url);
 
 const isActive = (url: string) => {
-    return currentUrl.value === url || currentUrl.value.startsWith(url);
+    // Remove query parameters for comparison
+    const cleanUrl = url.split('?')[0];
+    const cleanCurrentUrl = currentUrl.value.split('?')[0];
+    return cleanCurrentUrl === cleanUrl || cleanCurrentUrl.startsWith(cleanUrl);
 };
 
 const hasActiveChild = (items: any[]) => {
@@ -179,6 +252,22 @@ const logout = (e: Event) => {
     e.preventDefault()
     router.post(route('logout'))
 }
+
+// Helper to determine current context
+const getCurrentContext = computed(() => {
+    const url = currentUrl.value;
+    if (url.startsWith('/admin')) return 'admin';
+    return 'user';
+});
+
+const getContextLabel = computed(() => {
+    switch (getCurrentContext.value) {
+        case 'admin':
+            return 'Administration';
+        default:
+            return isReviewer.value ? 'User & Reviewer Portal' : 'User Portal';
+    }
+});
 </script>
 
 <template>
@@ -194,7 +283,7 @@ const logout = (e: Event) => {
                             </div>
                             <div class="grid flex-1 text-left text-sm leading-tight">
                                 <span class="truncate font-semibold">Form System</span>
-                                <span class="truncate text-xs">{{ isAdmin ? 'Administration' : 'User Portal' }}</span>
+                                <span class="truncate text-xs">{{ getContextLabel }}</span>
                             </div>
                         </a>
                     </SidebarMenuButton>
@@ -246,6 +335,7 @@ const logout = (e: Event) => {
                                     <span class="truncate font-semibold">{{ user?.name }}</span>
                                     <span class="truncate text-xs capitalize">
                                         {{userRoles.map((role: any) => role).join(', ')}}
+                                        <span v-if="isReviewer" class="text-blue-600">• Reviewer</span>
                                     </span>
                                 </div>
                                 <ChevronUp class="ml-auto size-4" />
