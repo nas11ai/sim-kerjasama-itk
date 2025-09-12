@@ -25,7 +25,7 @@ class ReviewController extends Controller
         ]);
 
         foreach ($request->reviewer_ids as $reviewerId) {
-            // Create review summary (thread) for each reviewer
+            // TODO: change this to SubmissionReviewer
             ReviewSummary::firstOrCreate([
                 'form_submission_id' => $submission->id,
                 'reviewer_id' => $reviewerId,

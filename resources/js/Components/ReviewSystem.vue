@@ -409,7 +409,7 @@ const handleFileUpload = (event: Event) => {
                         <MessageSquare class="h-5 w-5" />
                         Review Threads
                     </CardTitle>
-                    <Dialog v-if="props.userRole === 'reviewer'" v-model:open="showThreadDialog">
+                    <Dialog v-model:open="showThreadDialog">
                         <DialogTrigger asChild>
                             <Button size="sm">
                                 <Plus class="h-4 w-4 mr-2" />
@@ -584,7 +584,7 @@ const handleFileUpload = (event: Event) => {
                                             <div class="flex-1">
                                                 <div class="flex items-center gap-2 mb-1">
                                                     <span class="text-sm font-medium">{{ getAuthorDisplay(reply).name
-                                                        }}</span>
+                                                    }}</span>
                                                     <span class="text-xs text-muted-foreground">
                                                         {{ formatDate(reply.created_at) }}
                                                     </span>
