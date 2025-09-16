@@ -318,94 +318,178 @@ class SubmissionViewController extends Controller
             abort(404, 'Submission not found');
         }
 
-        $submission->load([
-            'form.formFields' => function ($query) {
-                $query->orderBy('order');
-            },
-            'form.formFields.fieldType',
-            'form.formFields.formFieldOptions',
-            'formFieldResponses',
-            'submittedBy:id,name,email',
-            // Load review data using existing models
-            'reviewSummaries' => function ($query) {
-                $query->with([
-                    'reviewer.user:id,name,email',
-                    'reviewer.reviewerRole:id,name',
-                    'attachments'
-                ]);
+        try {
+            $submission->load([
+                'form.formFields' => function ($query) {
+                    $query->orderBy('order');
+                },
+                'form.formFields.fieldType',
+                'form.formFields.formFieldOptions',
+                'formFieldResponses',
+                'submittedBy:id,name,email',
+                // Load assigned reviewers melalui SubmissionReviewer
+                'submissionReviewers.reviewer.user:id,name,email',
+                'submissionReviewers.reviewer.reviewerRole:id,name',
+            ]);
+
+            // Load review summaries separately - bisa ada multiple per reviewer atau general threads
+            $reviewSummaries = [];
+            if (class_exists('App\Models\ReviewSummary')) {
+                $reviewSummaries = \App\Models\ReviewSummary::where('form_submission_id', $submission->id)
+                    ->with([
+                        'reviewer.user:id,name,email',
+                        'reviewer.reviewerRole:id,name',
+                        'attachments'
+                    ])
+                    ->get()
+                    ->toArray();
             }
-        ]);
 
-        // Load review comments separately untuk avoid conflict
-        $reviewComments = ReviewComment::whereHas('reviewSummary', function ($query) use ($submission) {
-            $query->where('form_submission_id', $submission->id);
-        })
-            ->with([
-                'user:id,name',
-                'reviewer.user:id,name',
-                'attachments',
-                'replies' => function ($q) {
-                    $q->with(['user:id,name', 'reviewer.user:id,name', 'attachments'])
-                        ->orderBy('created_at', 'asc');
+            // Load review comments
+            $reviewComments = [];
+            if (class_exists('App\Models\ReviewComment') && !empty($reviewSummaries)) {
+                $reviewSummaryIds = collect($reviewSummaries)->pluck('id')->toArray();
+
+                if (!empty($reviewSummaryIds)) {
+                    $reviewComments = ReviewComment::whereIn('review_summary_id', $reviewSummaryIds)
+                        ->with([
+                            'user:id,name',
+                            'reviewer.user:id,name',
+                            'attachments',
+                            'replies' => function ($q) {
+                                $q->with(['user:id,name', 'reviewer.user:id,name', 'attachments'])
+                                    ->orderBy('created_at', 'asc');
+                            }
+                        ])
+                        ->whereNull('parent_comment_id')
+                        ->orderBy('created_at', 'desc')
+                        ->get()
+                        ->toArray();
                 }
-            ])
-            ->whereNull('parent_comment_id') // Only top-level comments
-            ->orderBy('created_at', 'desc')
-            ->get();
+            }
 
-        // Map responses for easy access
-        $responses = $submission->formFieldResponses->mapWithKeys(function ($response) {
-            return [$response->form_field_id => $response->value];
-        });
-
-        // Get review statistics
-        $reviewStats = [
-            'total_reviewers' => $submission->reviewSummaries->count(),
-            'open_reviews' => $submission->reviewSummaries->where('status', 'open')->count(),
-            'resolved_reviews' => $submission->reviewSummaries->where('status', 'resolved')->count(),
-            'closed_reviews' => $submission->reviewSummaries->where('status', 'closed')->count(),
-            'total_comments' => $reviewComments->count(),
-        ];
-
-        // Get available reviewers for assignment (exclude submission owner)
-        $assignedReviewerIds = $submission->reviewSummaries->pluck('reviewer_id')->filter()->toArray();
-
-        $today = Carbon::today();
-        $availableReviewers = \App\Models\Reviewer::with(['user', 'reviewerRole'])
-            ->where(function ($q) use ($today) {
-                $q->whereNull('start_date')->orWhere('start_date', '<=', $today);
-            })
-            ->where(function ($q) use ($today) {
-                $q->whereNull('end_date')->orWhere('end_date', '>=', $today);
-            })
-            ->whereNotIn('id', $assignedReviewerIds)
-            // Exclude submission owner from being reviewer of their own submission
-            ->whereHas('user', function ($query) use ($submission) {
-                $query->where('id', '!=', $submission->submitted_by);
-            })
-            ->get()
-            ->map(function ($reviewer) {
-                return [
-                    'id' => $reviewer->id,
-                    'name' => $reviewer->user->name,
-                    'email' => $reviewer->user->email,
-                    'role' => $reviewer->reviewerRole->name,
-                ];
+            // Map responses for easy access
+            $responses = $submission->formFieldResponses->mapWithKeys(function ($response) {
+                return [$response->form_field_id => $response->value];
             });
 
-        // Convert submission to array dan add review_comments secara manual
-        $submissionArray = $submission->toArray();
-        $submissionArray['review_comments'] = $reviewComments->toArray();
+            // Get review statistics from ReviewSummary
+            $reviewStats = [
+                'total_reviewers' => $submission->submissionReviewers->count(), // dari SubmissionReviewer
+                'open_reviews' => collect($reviewSummaries)->where('status', 'open')->count(),
+                'resolved_reviews' => collect($reviewSummaries)->where('status', 'resolved')->count(),
+                'closed_reviews' => collect($reviewSummaries)->where('status', 'closed')->count(),
+                'total_comments' => count($reviewComments),
+            ];
 
-        return Inertia::render('Submissions/ShowSubmission', [
-            'submission' => $submissionArray,
-            'responses' => $responses,
-            'reviewStats' => $reviewStats,
-            'availableReviewers' => $availableReviewers,
-            'canAssignReviewers' => auth()->user()->hasRole(['Super Admin', 'Admin']),
-            'canReview' => $this->canUserReview($submission, auth()->user()),
-            'userRole' => $this->getUserRoleForSubmission($submission, auth()->user()),
-        ]);
+            // Get assigned reviewers dari SubmissionReviewer (untuk display)
+            $assignedReviewers = $submission->submissionReviewers->map(function ($submissionReviewer) {
+                return [
+                    'id' => $submissionReviewer->reviewer->id,
+                    'user' => [
+                        'id' => $submissionReviewer->reviewer->user->id,
+                        'name' => $submissionReviewer->reviewer->user->name,
+                        'email' => $submissionReviewer->reviewer->user->email,
+                    ],
+                    'reviewer_role' => [
+                        'id' => $submissionReviewer->reviewer->reviewerRole->id,
+                        'name' => $submissionReviewer->reviewer->reviewerRole->name,
+                    ]
+                ];
+            })->toArray();
+
+            // Get available reviewers for assignment (exclude already assigned + submission owner)
+            $assignedReviewerIds = $submission->submissionReviewers->pluck('reviewer_id')->toArray();
+
+            $availableReviewers = [];
+            if (class_exists('App\Models\Reviewer')) {
+                $today = Carbon::today();
+                $availableReviewers = \App\Models\Reviewer::with(['user', 'reviewerRole'])
+                    ->where(function ($q) use ($today) {
+                        $q->whereNull('start_date')->orWhere('start_date', '<=', $today);
+                    })
+                    ->where(function ($q) use ($today) {
+                        $q->whereNull('end_date')->orWhere('end_date', '>=', $today);
+                    })
+                    ->whereNotIn('id', $assignedReviewerIds)
+                    ->whereHas('user', function ($query) use ($submission) {
+                        $query->where('id', '!=', $submission->submitted_by);
+                    })
+                    ->get()
+                    ->map(function ($reviewer) {
+                        return [
+                            'id' => $reviewer->id,
+                            'name' => $reviewer->user->name,
+                            'email' => $reviewer->user->email,
+                            'role' => $reviewer->reviewerRole->name,
+                        ];
+                    })
+                    ->toArray();
+            }
+
+            // Convert submission to array safely
+            $submissionData = [
+                'id' => $submission->id,
+                'is_submitted' => $submission->is_submitted,
+                'status' => $submission->status,
+                'created_at' => $submission->created_at,
+                'updated_at' => $submission->updated_at,
+                'submitted_by' => $submission->submittedBy->toArray(),
+                'form' => $submission->form->toArray(),
+                'review_summaries' => $reviewSummaries,
+                'review_comments' => $reviewComments,
+                'assigned_reviewers' => $assignedReviewers, // dari SubmissionReviewer
+            ];
+
+            return Inertia::render('Submissions/ShowSubmission', [
+                'submission' => $submissionData,
+                'responses' => $responses,
+                'reviewStats' => $reviewStats,
+                'availableReviewers' => $availableReviewers,
+                'canAssignReviewers' => auth()->user()->hasRole(['Super Admin', 'Admin']),
+                'canReview' => $this->canUserReview($submission, auth()->user()),
+                'userRole' => $this->getUserRoleForSubmission($submission, auth()->user()),
+            ]);
+
+        } catch (\Exception $e) {
+            // Log error for debugging
+            \Log::error('Error in adminShowSubmission: ' . $e->getMessage(), [
+                'submission_id' => $submission->id,
+                'trace' => $e->getTraceAsString()
+            ]);
+
+            // Fallback to basic view
+            $submission->load([
+                'form.formFields' => function ($query) {
+                    $query->orderBy('order');
+                },
+                'form.formFields.fieldType',
+                'form.formFields.formFieldOptions',
+                'formFieldResponses',
+                'submittedBy:id,name,email',
+            ]);
+
+            $responses = $submission->formFieldResponses->mapWithKeys(function ($response) {
+                return [$response->form_field_id => $response->value];
+            });
+
+            return Inertia::render('Submissions/ShowSubmission', [
+                'submission' => $submission->toArray(),
+                'responses' => $responses,
+                'reviewStats' => [
+                    'total_reviewers' => 0,
+                    'open_reviews' => 0,
+                    'resolved_reviews' => 0,
+                    'closed_reviews' => 0,
+                    'total_comments' => 0,
+                ],
+                'availableReviewers' => [],
+                'canAssignReviewers' => auth()->user()->hasRole(['Super Admin', 'Admin']),
+                'canReview' => false,
+                'userRole' => $this->getUserRoleForSubmission($submission, auth()->user()),
+                'error' => 'Review system temporarily unavailable',
+            ]);
+        }
     }
 
     // Helper method to check if user can review

@@ -126,6 +126,18 @@ interface FormSubmission {
     submitted_by: SubmittedBy;
     review_summaries?: ReviewSummary[];
     review_comments?: ReviewComment[];
+    assigned_reviewers?: Array<{
+        id: number;
+        user: {
+            id: number;
+            name: string;
+            email: string;
+        };
+        reviewer_role: {
+            id: number;
+            name: string;
+        };
+    }>;
 }
 
 interface Props {
@@ -162,6 +174,7 @@ const canReview = props.canReview || false;
 const userRole = props.userRole || 'admin';
 const reviewSummaries = props.submission.review_summaries || [];
 const reviewComments = props.submission.review_comments || [];
+const assignedReviewers = props.submission.assigned_reviewers || [];
 
 const formatDateTime = (dateString: string) => {
     return new Date(dateString).toLocaleString("id-ID", {
@@ -437,7 +450,7 @@ const goBack = () => {
                     <ReviewSystem :submission-id="submission.id" :review-summaries="reviewSummaries"
                         :review-comments="reviewComments" :available-reviewers="availableReviewers"
                         :can-assign-reviewers="canAssignReviewers" :can-review="canReview" :user-role="userRole"
-                        :review-stats="reviewStats" />
+                        :assigned-reviewers="assignedReviewers" :review-stats="reviewStats" />
                 </TabsContent>
             </Tabs>
         </div>

@@ -1,6 +1,6 @@
-<!-- components/ReviewSystem.vue (Corrected) -->
+<!-- components/ReviewSystem.vue (Fixed) -->
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, watch } from 'vue'
 import { router, usePage } from '@inertiajs/vue3'
 import { Button } from '@/Components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card'
@@ -9,7 +9,7 @@ import { Label } from '@/Components/ui/label'
 import { Textarea } from '@/Components/ui/textarea'
 import { Input } from '@/Components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/Components/ui/dialog'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from '@/Components/ui/dialog'
 import { Avatar, AvatarFallback } from '@/Components/ui/avatar'
 import { Separator } from '@/Components/ui/separator'
 import {
@@ -33,6 +33,19 @@ interface Reviewer {
     name: string
     email: string
     role: string
+}
+
+interface AssignedReviewer {
+    id: number
+    user: {
+        id: number
+        name: string
+        email: string
+    }
+    reviewer_role: {
+        id: number
+        name: string
+    }
 }
 
 interface ReviewSummary {
@@ -88,6 +101,7 @@ interface Props {
     reviewSummaries: ReviewSummary[]
     reviewComments: ReviewComment[]
     availableReviewers: Reviewer[]
+    assignedReviewers: AssignedReviewer[] // Add this prop
     canAssignReviewers: boolean
     canReview: boolean
     userRole: 'admin' | 'submitter' | 'reviewer' | 'user'
@@ -109,6 +123,8 @@ const showThreadDialog = ref(false)
 const selectedReviewers = ref<number[]>([])
 const newThreadNotes = ref('')
 const newThreadAttachments = ref<File[]>([])
+const isAssigning = ref(false) // Loading state untuk assign
+const removingReviewerId = ref<number | null>(null) // Loading state untuk remove
 
 // Comment states
 const newComments = ref<Record<number, string>>({})
@@ -123,11 +139,17 @@ const reviewSummaryText = ref('')
 // Computed
 const currentUser = computed(() => page.props.auth.user as any)
 
-const assignedReviewers = computed(() =>
-    props.reviewSummaries
-        .filter(rs => rs.reviewer_id !== null && rs.reviewer !== undefined)
-        .map(rs => rs.reviewer as NonNullable<ReviewSummary['reviewer']>)
-)
+// FIXED: Use assignedReviewers prop instead of deriving from reviewSummaries
+const displayedAssignedReviewers = computed(() => props.assignedReviewers || [])
+
+// Watch for flash messages to refresh data
+watch(() => (page.props.flash as any), (flash) => {
+    if (flash?.refresh_data) {
+        router.reload({
+            only: ['submission', 'assignedReviewers', 'availableReviewers', 'reviewStats']
+        })
+    }
+}, { deep: true })
 
 const getStatusInfo = (status: string) => {
     switch (status) {
@@ -196,18 +218,45 @@ const canUpdateReviewStatus = (reviewSummary: ReviewSummary): boolean => {
 const assignReviewers = () => {
     if (selectedReviewers.value.length === 0) return
 
+    isAssigning.value = true
+
     router.post(`/admin/submissions/${props.submissionId}/assign-reviewers`, {
         reviewer_ids: selectedReviewers.value
     }, {
+        preserveState: false, // Force full page reload
+        preserveScroll: true,
+        onBefore: () => {
+            isAssigning.value = true
+        },
         onSuccess: () => {
             showAssignDialog.value = false
             selectedReviewers.value = []
+        },
+        onError: () => {
+            isAssigning.value = false
+        },
+        onFinish: () => {
+            isAssigning.value = false
         }
     })
 }
 
+// FIXED: Use correct reviewer ID for removal with confirmation
 const removeReviewer = (reviewerId: number) => {
-    router.delete(`/admin/submissions/${props.submissionId}/reviewers/${reviewerId}`)
+    if (confirm('Are you sure you want to remove this reviewer?')) {
+        removingReviewerId.value = reviewerId
+
+        router.delete(`/admin/submissions/${props.submissionId}/reviewers/${reviewerId}`, {
+            preserveState: false, // Force full page reload
+            preserveScroll: true,
+            onError: () => {
+                removingReviewerId.value = null
+            },
+            onFinish: () => {
+                removingReviewerId.value = null
+            }
+        })
+    }
 }
 
 const createThread = () => {
@@ -218,10 +267,8 @@ const createThread = () => {
         formData.append(`attachments[${index}]`, file)
     })
 
-    const routeName = props.userRole === 'admin' ? 'admin' :
-        props.userRole === 'reviewer' ? 'reviewer' : 'user'
-
-    router.post(`/${routeName}/submissions/${props.submissionId}/review-threads`, formData, {
+    // Use the correct route name based on your routes
+    router.post(`/submissions/${props.submissionId}/review-threads`, formData, {
         onSuccess: () => {
             showThreadDialog.value = false
             newThreadNotes.value = ''
@@ -234,10 +281,7 @@ const addComment = (reviewSummaryId: number, parentId?: number) => {
     const commentText = parentId ? newReply.value : newComments.value[reviewSummaryId]
     if (!commentText?.trim()) return
 
-    const routeName = props.userRole === 'admin' ? 'admin' :
-        props.userRole === 'reviewer' ? 'reviewer' : 'user'
-
-    router.post(`/${routeName}/review-summaries/${reviewSummaryId}/comments`, {
+    router.post(`/review-summaries/${reviewSummaryId}/comments`, {
         comment_text: commentText,
         parent_comment_id: parentId || null
     }, {
@@ -253,9 +297,7 @@ const addComment = (reviewSummaryId: number, parentId?: number) => {
 }
 
 const updateReviewStatus = (reviewSummaryId: number, status: string) => {
-    const routeName = props.userRole === 'admin' ? 'admin' : 'reviewer'
-
-    router.patch(`/${routeName}/review-summaries/${reviewSummaryId}/status`, {
+    router.patch(`/review-summaries/${reviewSummaryId}/status`, {
         status: status
     })
 }
@@ -349,6 +391,9 @@ const handleFileUpload = (event: Event) => {
                         <DialogContent>
                             <DialogHeader>
                                 <DialogTitle>Assign Reviewers</DialogTitle>
+                                <DialogDescription>
+                                    Select one or more reviewers to assign to this submission.
+                                </DialogDescription>
                             </DialogHeader>
                             <div class="space-y-4">
                                 <div>
@@ -367,8 +412,19 @@ const handleFileUpload = (event: Event) => {
                                 </div>
                                 <div class="flex justify-end gap-2">
                                     <Button variant="outline" @click="showAssignDialog = false">Cancel</Button>
-                                    <Button @click="assignReviewers" :disabled="selectedReviewers.length === 0">
-                                        Assign
+                                    <Button @click="assignReviewers"
+                                        :disabled="selectedReviewers.length === 0 || isAssigning">
+                                        <span v-if="isAssigning" class="mr-2">
+                                            <svg class="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg"
+                                                fill="none" viewBox="0 0 24 24">
+                                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
+                                                    stroke-width="4"></circle>
+                                                <path class="opacity-75" fill="currentColor"
+                                                    d="m4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                                                </path>
+                                            </svg>
+                                        </span>
+                                        {{ isAssigning ? 'Assigning...' : 'Assign' }}
                                     </Button>
                                 </div>
                             </div>
@@ -377,11 +433,19 @@ const handleFileUpload = (event: Event) => {
                 </div>
             </CardHeader>
             <CardContent>
-                <div v-if="assignedReviewers.length === 0" class="text-center py-6 text-muted-foreground">
+                <!-- DEBUG: Show assigned reviewers count -->
+                <div v-if="displayedAssignedReviewers.length === 0" class="text-center py-6 text-muted-foreground">
                     No reviewers assigned yet
+                    <!-- DEBUG INFO -->
+                    <div class="text-xs mt-2">
+                        <p>Available reviewers: {{ availableReviewers.length }}</p>
+                        <p>Review summaries: {{ reviewSummaries.length }}</p>
+                        <p>Assigned reviewers prop: {{ assignedReviewers.length }}</p>
+                    </div>
                 </div>
                 <div v-else class="space-y-3">
-                    <div v-for="reviewer in assignedReviewers" :key="reviewer.user.id"
+                    <!-- FIXED: Use correct data structure -->
+                    <div v-for="reviewer in displayedAssignedReviewers" :key="reviewer.id"
                         class="flex items-center justify-between p-3 border rounded-lg">
                         <div class="flex items-center gap-3">
                             <Avatar>
@@ -393,7 +457,17 @@ const handleFileUpload = (event: Event) => {
                             </div>
                         </div>
                         <Button v-if="canAssignReviewers" variant="outline" size="sm"
-                            @click="removeReviewer(reviewer.user.id)">
+                            @click="removeReviewer(reviewer.id)" :disabled="removingReviewerId === reviewer.id">
+                            <span v-if="removingReviewerId === reviewer.id" class="mr-1">
+                                <svg class="animate-spin h-3 w-3" xmlns="http://www.w3.org/2000/svg" fill="none"
+                                    viewBox="0 0 24 24">
+                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
+                                        stroke-width="4"></circle>
+                                    <path class="opacity-75" fill="currentColor"
+                                        d="m4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
+                                    </path>
+                                </svg>
+                            </span>
                             <X class="h-4 w-4" />
                         </Button>
                     </div>
