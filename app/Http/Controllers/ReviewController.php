@@ -107,30 +107,22 @@ class ReviewController extends Controller
         $user = Auth::user();
         $reviewerId = null;
 
-        // Check if user is an assigned reviewer for this submission
-        if ($user->hasRole('Reviewer') || $user->reviewer) {
-            $reviewer = $user->reviewer ?? Reviewer::where('user_id', $user->id)->first();
-            if ($reviewer) {
-                // Cek apakah reviewer ini assigned ke submission ini
-                $submissionReviewer = SubmissionReviewer::where([
-                    'form_submission_id' => $submission->id,
-                    'reviewer_id' => $reviewer->id
-                ])->first();
-
-                if ($submissionReviewer) {
-                    $reviewerId = $reviewer->id;
-                }
-            }
-        }
-
-        // Authorization check
-        $canCreate = $user->hasRole(['Super Admin', 'Admin']) ||
-            $submission->submitted_by === $user->id ||
-            $reviewerId;
-
-        if (!$canCreate) {
+        if (!$user->is_reviewer) {
             abort(403, 'Unauthorized to create review thread');
         }
+
+        $reviewer = $user->reviewer ?? Reviewer::where('user_id', $user->id)->first();
+
+        $submissionReviewer = SubmissionReviewer::where([
+            'form_submission_id' => $submission->id,
+            'reviewer_id' => $reviewer->id
+        ])->first();
+
+        if (!$submissionReviewer) {
+            abort(403, 'Unauthorized to create review thread');
+        }
+
+        $reviewerId = $reviewer->id;
 
         $reviewSummary = ReviewSummary::create([
             'form_submission_id' => $submission->id,
@@ -344,15 +336,15 @@ class ReviewController extends Controller
         $reviewSummaries = ReviewSummary::where('form_submission_id', $submission->id)->get();
 
         if ($reviewSummaries->isEmpty()) {
-            $submission->status = \App\SubmissionStatus::PENDING;
+            $submission->status = SubmissionStatus::PENDING;
         } elseif ($reviewSummaries->where('status', 'closed')->isNotEmpty()) {
-            $submission->status = \App\SubmissionStatus::REJECTED;
+            $submission->status = SubmissionStatus::REJECTED;
         } elseif ($reviewSummaries->where('status', 'open')->isNotEmpty()) {
-            $submission->status = \App\SubmissionStatus::NEEDS_REVISION;
+            $submission->status = SubmissionStatus::NEEDS_REVISION;
         } elseif ($reviewSummaries->every(fn($r) => $r->status === 'resolved')) {
-            $submission->status = \App\SubmissionStatus::APPROVED;
+            $submission->status = SubmissionStatus::APPROVED;
         } else {
-            $submission->status = \App\SubmissionStatus::UNDER_REVIEW;
+            $submission->status = SubmissionStatus::UNDER_REVIEW;
         }
 
         $submission->save();
