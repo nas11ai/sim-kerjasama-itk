@@ -51,6 +51,26 @@ Route::middleware(['auth', 'check_reviewer_status'])->group(function () {
 
     Route::get('/submissions', [UserFormController::class, 'reviewerSubmissions'])
         ->name('submissions.index');
+
+    // Update submission status directly (untuk reviewer dan admin)
+    Route::patch('/submissions/{submission}/status', [ReviewController::class, 'updateSubmissionStatus'])
+        ->name('submissions.update-status');
+
+    // Create review thread (hanya assigned reviewer)
+    Route::post('/submissions/{submission}/review-threads', [ReviewController::class, 'createReviewThread'])
+        ->name('review-threads.store');
+
+    // Add comments to review thread
+    Route::post('/review-summaries/{reviewSummary}/comments', [ReviewController::class, 'addComment'])
+        ->name('review-comments.store');
+
+    // Update review thread status
+    Route::patch('/review-summaries/{reviewSummary}/status', [ReviewController::class, 'updateReviewStatus'])
+        ->name('review-summaries.update-status');
+
+    // File download
+    Route::get('/review-attachments/download', [ReviewController::class, 'downloadAttachment'])
+        ->name('review-attachments.download');
 });
 
 Route::middleware(['auth', 'check_reviewer_status'])->prefix('user')->name('user.')->group(function () {
@@ -80,13 +100,6 @@ Route::middleware(['auth', 'check_reviewer_status'])->prefix('user')->name('user
 
     Route::get('/submissions/{submission}', [SubmissionViewController::class, 'userShowSubmission'])
         ->name('submissions.show');
-
-    // Review routes dengan prefix user
-    Route::post('/submissions/{submission}/review-threads', [ReviewController::class, 'createReviewThread'])
-        ->name('review-threads.store');
-
-    Route::post('/review-summaries/{reviewSummary}/comments', [ReviewController::class, 'addComment'])
-        ->name('review-comments.store');
 });
 
 // Reviewer Routes - untuk user yang bertindak sebagai reviewer

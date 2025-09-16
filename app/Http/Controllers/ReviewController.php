@@ -1,5 +1,4 @@
 <?php
-// app/Http/Controllers/ReviewController.php (Corrected)
 
 namespace App\Http\Controllers;
 
@@ -15,11 +14,10 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
-use Inertia\Inertia;
 
 class ReviewController extends Controller
 {
-    // Assign reviewers to submission menggunakan SubmissionReviewer
+    // Assign reviewers to submission
     public function assignReviewers(Request $request, FormSubmission $submission)
     {
         $request->validate([
@@ -29,7 +27,6 @@ class ReviewController extends Controller
 
         DB::transaction(function () use ($request, $submission) {
             foreach ($request->reviewer_ids as $reviewerId) {
-                // Hanya buat record di SubmissionReviewer
                 SubmissionReviewer::firstOrCreate([
                     'form_submission_id' => $submission->id,
                     'reviewer_id' => $reviewerId,
@@ -55,95 +52,126 @@ class ReviewController extends Controller
                 'reviewer_id' => $reviewer->id
             ])->delete();
 
-            // Hapus semua ReviewSummary yang dibuat oleh reviewer ini untuk submission ini
+            // Hapus semua ReviewSummary yang dibuat oleh reviewer ini
             $reviewSummaries = ReviewSummary::where([
                 'form_submission_id' => $submission->id,
                 'reviewer_id' => $reviewer->id
             ])->get();
 
             foreach ($reviewSummaries as $summary) {
-                // Hapus comments dan attachments
-                $comments = ReviewComment::where('review_summary_id', $summary->id)->get();
-                foreach ($comments as $comment) {
-                    // Hapus comment attachments
-                    foreach ($comment->attachments as $attachment) {
-                        if (Storage::disk('public')->exists($attachment->file_path)) {
-                            Storage::disk('public')->delete($attachment->file_path);
-                        }
-                        $attachment->delete();
-                    }
-                    $comment->delete();
-                }
-
-                // Hapus summary attachments
-                foreach ($summary->attachments as $attachment) {
-                    if (Storage::disk('public')->exists($attachment->file_path)) {
-                        Storage::disk('public')->delete($attachment->file_path);
-                    }
-                    $attachment->delete();
-                }
-
-                $summary->delete();
+                $this->deleteReviewSummaryWithComments($summary);
             }
 
             // Update submission status jika tidak ada reviewer lagi
             if ($submission->submissionReviewers()->count() === 0) {
                 $submission->update(['status' => SubmissionStatus::PENDING]);
+            } else {
+                // Update status berdasarkan review yang tersisa
+                $this->updateSubmissionStatusBasedOnReviews($submission);
             }
         });
 
         return back()->with('success', 'Reviewer berhasil dihapus dari submission ini.');
     }
 
-    // Create review thread (ReviewSummary)
+    // BARU: Direct submission status update by reviewer or admin
+    public function updateSubmissionStatus(Request $request, FormSubmission $submission)
+    {
+        $request->validate([
+            'status' => 'required|in:approved,needs_revision,rejected',
+        ]);
+
+        $user = Auth::user();
+        $canUpdate = false;
+
+        // Check if user can update status
+        if ($user->hasRole(['Super Admin', 'Admin'])) {
+            $canUpdate = true;
+        } else {
+            // Check if user is assigned reviewer
+            $reviewer = Reviewer::where('user_id', $user->id)->first();
+            if ($reviewer) {
+                $isAssigned = SubmissionReviewer::where([
+                    'form_submission_id' => $submission->id,
+                    'reviewer_id' => $reviewer->id
+                ])->exists();
+
+                if ($isAssigned) {
+                    $canUpdate = true;
+                }
+            }
+        }
+
+        if (!$canUpdate) {
+            abort(403, 'Unauthorized to update submission status');
+        }
+
+        // Map frontend status to enum
+        $newStatus = match ($request->status) {
+            'approved' => SubmissionStatus::APPROVED,
+            'needs_revision' => SubmissionStatus::NEEDS_REVISION,
+            'rejected' => SubmissionStatus::REJECTED,
+        };
+
+        DB::transaction(function () use ($submission, $newStatus, $request, $user) {
+            // Update submission status
+            $submission->update(['status' => $newStatus]);
+        });
+
+        return back()->with('success', "Status submission berhasil diubah menjadi {$newStatus->label()}.");
+    }
+
+    // Create review thread (hanya untuk assigned reviewer)
     public function createReviewThread(Request $request, FormSubmission $submission)
     {
         $request->validate([
             'summary_notes' => 'required|string|max:2000',
             'attachments' => 'nullable|array|max:5',
-            'attachments.*' => 'file|max:10240' // 10MB
+            'attachments.*' => 'file|mimes:pdf,doc,docx,png,jpg,jpeg,gif|max:10240'
         ]);
 
         $user = Auth::user();
-        $reviewerId = null;
 
-        if (!$user->is_reviewer) {
-            abort(403, 'Unauthorized to create review thread');
+        // Hanya assigned reviewer yang bisa create thread
+        $reviewer = Reviewer::where('user_id', $user->id)->first();
+        if (!$reviewer) {
+            abort(403, 'You are not registered as a reviewer');
         }
 
-        $reviewer = $user->reviewer ?? Reviewer::where('user_id', $user->id)->first();
-
-        $submissionReviewer = SubmissionReviewer::where([
+        $isAssigned = SubmissionReviewer::where([
             'form_submission_id' => $submission->id,
             'reviewer_id' => $reviewer->id
-        ])->first();
+        ])->exists();
 
-        if (!$submissionReviewer) {
-            abort(403, 'Unauthorized to create review thread');
+        if (!$isAssigned) {
+            abort(403, 'You are not assigned as reviewer for this submission');
         }
 
-        $reviewerId = $reviewer->id;
+        DB::transaction(function () use ($request, $submission, $reviewer) {
+            $reviewSummary = ReviewSummary::create([
+                'form_submission_id' => $submission->id,
+                'reviewer_id' => $reviewer->id,
+                'status' => 'open',
+                'summary_notes' => $request->summary_notes,
+            ]);
 
-        $reviewSummary = ReviewSummary::create([
-            'form_submission_id' => $submission->id,
-            'reviewer_id' => $reviewerId,
-            'status' => 'open',
-            'summary_notes' => $request->summary_notes,
-        ]);
+            // Handle attachments
+            if ($request->hasFile('attachments')) {
+                foreach ($request->file('attachments') as $file) {
+                    $path = $file->store('review-attachments/' . $submission->id, 'public');
 
-        // Handle attachments
-        if ($request->hasFile('attachments')) {
-            foreach ($request->file('attachments') as $file) {
-                $path = $file->store('review-attachments', 'public');
-
-                ReviewSummaryAttachment::create([
-                    'review_summary_id' => $reviewSummary->id,
-                    'file_path' => $path,
-                ]);
+                    ReviewSummaryAttachment::create([
+                        'review_summary_id' => $reviewSummary->id,
+                        'file_path' => $path,
+                    ]);
+                }
             }
-        }
 
-        return back()->with('success', 'Thread review berhasil dibuat');
+            // Update submission status to needs revision since thread is created
+            $submission->update(['status' => SubmissionStatus::NEEDS_REVISION]);
+        });
+
+        return back()->with('success', 'Review thread berhasil dibuat.');
     }
 
     // Add comment to review thread
@@ -153,57 +181,62 @@ class ReviewController extends Controller
             'comment_text' => 'required|string|max:2000',
             'parent_comment_id' => 'nullable|exists:review_comments,id',
             'attachments' => 'nullable|array|max:3',
-            'attachments.*' => 'file|max:5120' // 5MB
+            'attachments.*' => 'file|mimes:pdf,doc,docx,png,jpg,jpeg,gif|max:5120'
         ]);
 
         $user = Auth::user();
         $reviewerId = null;
 
-        // Check if user is an assigned reviewer for this submission
-        if ($user->hasRole('Reviewer') || $user->reviewer) {
-            $reviewer = $user->reviewer ?? Reviewer::where('user_id', $user->id)->first();
+        // Check authorization: admin, submitter, atau assigned reviewer
+        $canComment = false;
+
+        if ($user->hasRole(['Super Admin', 'Admin'])) {
+            $canComment = true;
+        } elseif ($reviewSummary->formSubmission->submitted_by === $user->id) {
+            $canComment = true; // Submitter can comment
+        } else {
+            // Check if assigned reviewer
+            $reviewer = Reviewer::where('user_id', $user->id)->first();
             if ($reviewer) {
-                $submissionReviewer = SubmissionReviewer::where([
+                $isAssigned = SubmissionReviewer::where([
                     'form_submission_id' => $reviewSummary->form_submission_id,
                     'reviewer_id' => $reviewer->id
-                ])->first();
+                ])->exists();
 
-                if ($submissionReviewer) {
+                if ($isAssigned) {
+                    $canComment = true;
                     $reviewerId = $reviewer->id;
                 }
             }
         }
 
-        // Authorization check
-        $canComment = $user->hasRole(['Super Admin', 'Admin']) ||
-            $reviewSummary->formSubmission->submitted_by === $user->id ||
-            $reviewerId;
-
         if (!$canComment) {
             abort(403, 'Unauthorized to comment on this review');
         }
 
-        $comment = ReviewComment::create([
-            'review_summary_id' => $reviewSummary->id,
-            'parent_comment_id' => $request->parent_comment_id,
-            'user_id' => $reviewerId ? null : $user->id,
-            'reviewer_id' => $reviewerId,
-            'comment_text' => $request->comment_text,
-        ]);
+        DB::transaction(function () use ($request, $reviewSummary, $user, $reviewerId) {
+            $comment = ReviewComment::create([
+                'review_summary_id' => $reviewSummary->id,
+                'parent_comment_id' => $request->parent_comment_id,
+                'user_id' => $reviewerId ? null : $user->id,
+                'reviewer_id' => $reviewerId,
+                'comment_text' => $request->comment_text,
+            ]);
 
-        // Handle attachments
-        if ($request->hasFile('attachments')) {
-            foreach ($request->file('attachments') as $file) {
-                $path = $file->store('review-attachments', 'public');
+            // Handle attachments
+            if ($request->hasFile('attachments')) {
+                foreach ($request->file('attachments') as $file) {
+                    $path = $file->store('review-attachments/' . $reviewSummary->form_submission_id, 'public');
 
-                ReviewCommentAttachment::create([
-                    'review_comment_id' => $comment->id,
-                    'file_path' => $path,
-                ]);
+                    ReviewCommentAttachment::create([
+                        'review_comment_id' => $comment->id,
+                        'file_path' => $path,
+                    ]);
+                }
             }
-        }
+        });
 
-        return back()->with('success', 'Komentar berhasil ditambahkan');
+        return back()->with('success', 'Komentar berhasil ditambahkan.');
     }
 
     // Update review thread status
@@ -215,28 +248,30 @@ class ReviewController extends Controller
         ]);
 
         $user = Auth::user();
+        $canUpdate = false;
 
-        // Check authorization
-        $canUpdate = $user->hasRole(['Super Admin', 'Admin']);
-
-        if (!$canUpdate && $reviewSummary->reviewer_id) {
-            $reviewer = $user->reviewer ?? Reviewer::where('user_id', $user->id)->first();
+        if ($user->hasRole(['Super Admin', 'Admin'])) {
+            $canUpdate = true;
+        } elseif ($reviewSummary->reviewer_id) {
+            $reviewer = Reviewer::where('user_id', $user->id)->first();
             if ($reviewer && $reviewSummary->reviewer_id === $reviewer->id) {
                 $canUpdate = true;
             }
         }
 
         if (!$canUpdate) {
-            abort(403, 'Unauthorized to update review status');
+            abort(403, 'Unauthorized to update review thread status');
         }
 
-        $reviewSummary->update([
-            'status' => $request->status,
-            'summary_notes' => $request->summary_notes ?? $reviewSummary->summary_notes,
-        ]);
+        DB::transaction(function () use ($request, $reviewSummary) {
+            $reviewSummary->update([
+                'status' => $request->status,
+                'summary_notes' => $request->summary_notes ?? $reviewSummary->summary_notes,
+            ]);
 
-        // Update submission status based on all review summaries
-        $this->updateSubmissionStatus($reviewSummary->formSubmission);
+            // Update overall submission status based on all review threads
+            $this->updateSubmissionStatusBasedOnReviews($reviewSummary->formSubmission);
+        });
 
         $statusText = match ($request->status) {
             'resolved' => 'diselesaikan',
@@ -244,53 +279,10 @@ class ReviewController extends Controller
             'open' => 'dibuka kembali'
         };
 
-        return back()->with('success', "Review berhasil {$statusText}");
+        return back()->with('success', "Review thread berhasil {$statusText}.");
     }
 
-    // Complete review with final decision (hanya untuk assigned reviewer)
-    public function completeReview(Request $request, ReviewSummary $reviewSummary)
-    {
-        $request->validate([
-            'decision' => 'required|in:approved,needs_revision,rejected',
-            'summary_notes' => 'required|string|max:2000'
-        ]);
-
-        $user = Auth::user();
-        $reviewer = $user->reviewer ?? Reviewer::where('user_id', $user->id)->first();
-
-        // Only assigned reviewer can complete their own review
-        if (!$reviewer || $reviewSummary->reviewer_id !== $reviewer->id) {
-            abort(403, 'Unauthorized to complete this review');
-        }
-
-        $status = match ($request->decision) {
-            'approved' => 'resolved',
-            'needs_revision' => 'open',
-            'rejected' => 'closed'
-        };
-
-        $reviewSummary->update([
-            'status' => $status,
-            'summary_notes' => $request->summary_notes,
-        ]);
-
-        // Add system comment about the decision
-        ReviewComment::create([
-            'review_summary_id' => $reviewSummary->id,
-            'reviewer_id' => $reviewer->id,
-            'comment_text' => "Review diselesaikan dengan keputusan: " . match ($request->decision) {
-                'approved' => 'Disetujui',
-                'needs_revision' => 'Perlu Revisi',
-                'rejected' => 'Ditolak'
-            },
-        ]);
-
-        $this->updateSubmissionStatus($reviewSummary->formSubmission);
-
-        return back()->with('success', 'Review berhasil diselesaikan');
-    }
-
-    // Get available reviewers for assignment (exclude already assigned)
+    // Get available reviewers for assignment
     public function getAvailableReviewers(FormSubmission $submission)
     {
         $assignedReviewerIds = SubmissionReviewer::where('form_submission_id', $submission->id)
@@ -298,12 +290,10 @@ class ReviewController extends Controller
             ->toArray();
 
         $availableReviewers = Reviewer::with(['user', 'reviewerRole'])
-            ->where('is_active', true)
-            ->whereNotIn('id', $assignedReviewerIds)
-            // Exclude submission owner from being reviewer
             ->whereHas('user', function ($query) use ($submission) {
                 $query->where('id', '!=', $submission->submitted_by);
             })
+            ->whereNotIn('id', $assignedReviewerIds)
             ->get()
             ->map(function ($reviewer) {
                 return [
@@ -330,23 +320,53 @@ class ReviewController extends Controller
         return response()->download($fullPath);
     }
 
-    // Private helper to update submission status
-    private function updateSubmissionStatus(FormSubmission $submission)
+    // Private helpers
+    private function deleteReviewSummaryWithComments(ReviewSummary $summary)
+    {
+        // Delete all comments and their attachments
+        $comments = ReviewComment::where('review_summary_id', $summary->id)->get();
+        foreach ($comments as $comment) {
+            // Delete comment attachments
+            foreach ($comment->attachments as $attachment) {
+                if (Storage::disk('public')->exists($attachment->file_path)) {
+                    Storage::disk('public')->delete($attachment->file_path);
+                }
+                $attachment->delete();
+            }
+            $comment->delete();
+        }
+
+        // Delete summary attachments
+        foreach ($summary->attachments as $attachment) {
+            if (Storage::disk('public')->exists($attachment->file_path)) {
+                Storage::disk('public')->delete($attachment->file_path);
+            }
+            $attachment->delete();
+        }
+
+        $summary->delete();
+    }
+
+    private function updateSubmissionStatusBasedOnReviews(FormSubmission $submission)
     {
         $reviewSummaries = ReviewSummary::where('form_submission_id', $submission->id)->get();
 
+        // Jika tidak ada review threads, status tetap under_review (reviewer belum action)
         if ($reviewSummaries->isEmpty()) {
-            $submission->status = SubmissionStatus::PENDING;
-        } elseif ($reviewSummaries->where('status', 'closed')->isNotEmpty()) {
-            $submission->status = SubmissionStatus::REJECTED;
-        } elseif ($reviewSummaries->where('status', 'open')->isNotEmpty()) {
-            $submission->status = SubmissionStatus::NEEDS_REVISION;
-        } elseif ($reviewSummaries->every(fn($r) => $r->status === 'resolved')) {
-            $submission->status = SubmissionStatus::APPROVED;
-        } else {
-            $submission->status = SubmissionStatus::UNDER_REVIEW;
+            return; // Keep current status
         }
 
-        $submission->save();
+        // Jika ada thread yang ditutup (rejected), submission ditolak
+        if ($reviewSummaries->where('status', 'closed')->isNotEmpty()) {
+            $submission->update(['status' => SubmissionStatus::REJECTED]);
+        }
+        // Jika ada thread yang masih open, submission needs revision
+        elseif ($reviewSummaries->where('status', 'open')->isNotEmpty()) {
+            $submission->update(['status' => SubmissionStatus::NEEDS_REVISION]);
+        }
+        // Jika semua thread resolved, submission approved
+        elseif ($reviewSummaries->every(fn($r) => $r->status === 'resolved')) {
+            $submission->update(['status' => SubmissionStatus::APPROVED]);
+        }
     }
 }
