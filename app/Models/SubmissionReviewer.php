@@ -9,6 +9,7 @@ class SubmissionReviewer extends Model
     protected $fillable = [
         'form_submission_id',
         'reviewer_id',
+        'evaluation_status',
     ];
 
     public function formSubmission()
