@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { computed, onMounted, ref } from "vue";
-import { Head, useForm } from "@inertiajs/vue3";
+import { computed, handleError, onMounted, ref } from "vue";
+import { Head, useForm, usePage } from "@inertiajs/vue3";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout.vue";
 import { Button } from "../../Components/ui/button";
 import { Input } from "@/Components/ui/input";
@@ -108,6 +108,19 @@ onMounted(() => {
     }
 });
 
+const newFiles = ref<File[]>([]);
+
+const handleFileSelect = (event: Event) => {
+    const target = event.target as HTMLInputElement;
+    if (!target.files?.length) return;
+
+    newFiles.value.push(...Array.from(target.files));
+
+    if (fileInputRef.value) {
+        fileInputRef.value.value = "";
+    }
+};
+
 // Function untuk menghapus file dari tampilan
 const deleteFile = (fileId: number) => {
     // Tambahkan ke array deleted_files
@@ -123,6 +136,7 @@ const deleteFile = (fileId: number) => {
 };
 
 const submit = () => {
+    form.files = newFiles.value;
     form.transform((data) => {
         let expired: string | undefined;
 
@@ -144,7 +158,7 @@ const submit = () => {
         preserveScroll: true,
         preserveState: false,
         onSuccess: () => {
-            // Reset file input setelah berhasil submit
+            newFiles.value = [];
             form.files = null;
             if (fileInputRef.value) {
                 fileInputRef.value.value = "";
@@ -322,7 +336,7 @@ const submit = () => {
                 <!-- Existing Files -->
                 <Card v-if="existingFiles.length > 0">
                     <CardHeader>
-                        <CardTitle>Existing Attachments</CardTitle>
+                        <CardTitle>Attachments</CardTitle>
                     </CardHeader>
                     <CardContent>
                         <ul class="space-y-2">
@@ -356,6 +370,27 @@ const submit = () => {
                                     Delete
                                 </Button>
                             </li>
+                            <li
+                                v-for="(file, index) in newFiles"
+                                :key="index"
+                                class="flex items-center justify-between p-3 bg-gray-50 rounded-md"
+                            >
+                                <div class="flex items-center gap-2">
+                                    <span>{{ file.name }}</span>
+                                    <span class="text-xs text-gray-500">
+                                        ({{ file.type }},
+                                        {{ (file.size / 1024).toFixed(1) }} KB)
+                                    </span>
+                                </div>
+                                <Button
+                                    type="button"
+                                    variant="destructive"
+                                    size="sm"
+                                    @click="newFiles.splice(index, 1)"
+                                >
+                                    <X class="h-4 w-4" /> Remove
+                                </Button>
+                            </li>
                         </ul>
                     </CardContent>
                 </Card>
@@ -373,11 +408,7 @@ const submit = () => {
                             ref="fileInputRef"
                             type="file"
                             multiple
-                            @change="
-                                form.files = $event.target.files
-                                    ? Array.from($event.target.files)
-                                    : []
-                            "
+                            @change="handleFileSelect"
                             :class="errors.files ? 'border-destructive' : ''"
                         />
                         <p class="text-sm text-gray-500 mt-1">
