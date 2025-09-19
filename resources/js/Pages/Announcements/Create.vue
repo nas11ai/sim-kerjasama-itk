@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed } from "vue";
+import { computed, ref } from "vue";
 import { Head, useForm } from "@inertiajs/vue3";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout.vue";
 import { Button } from "../../Components/ui/button";
@@ -15,7 +15,7 @@ import {
 } from "@/Components/ui/select";
 
 import { Textarea } from "@/Components/ui/textarea";
-import { ArrowLeft } from "lucide-vue-next";
+import { ArrowLeft, X } from "lucide-vue-next";
 import type { DateValue } from "@internationalized/date";
 import {
     today,
@@ -41,6 +41,12 @@ interface AnnouncementForm {
     [key: string]: any;
 }
 
+// Ref untuk input file
+const fileInputRef = ref<HTMLInputElement | null>(null);
+
+// State untuk menampilkan file yang dipilih
+const selectedFiles = ref<File[]>([]);
+
 const form = useForm<AnnouncementForm>({
     title: "",
     content: "",
@@ -51,13 +57,33 @@ const form = useForm<AnnouncementForm>({
 });
 
 const errors = computed<Partial<Record<keyof AnnouncementForm, string>>>(
-    () => form.errors ?? {}
+    () => {
+        console.log('Form errors:', form.errors);
+        return form.errors ?? {};
+    }
 );
 
 const df = new DateFormatter("en-US", { dateStyle: "long" });
 const tomorrow = today(getLocalTimeZone()).add({ days: 1 });
 
+const handleFileSelect = (event: Event) => {
+    const target = event.target as HTMLInputElement;
+    if (!target.files?.length) return;
+
+    selectedFiles.value.push(...Array.from(target.files));
+
+    if (fileInputRef.value) {
+        fileInputRef.value.value = "";
+    }
+};
+
+// Function untuk menghapus file dari tampilan
+const removeFile = (index: number) => {
+    selectedFiles.value.splice(index, 1);
+};
+
 const submit = () => {
+    form.files = selectedFiles.value;
     form.transform((data) => {
         let expired = undefined;
         if (form.expired_at) {
@@ -71,7 +97,19 @@ const submit = () => {
         }
         return { ...data, expired_at: expired };
     }).post(route("admin.announcements.store"), {
-        onSuccess: () => form.reset(),
+        forceFormData: true, // WAJIB saat ada File
+        preserveScroll: true,
+        onSuccess: () => {
+            form.reset();
+            selectedFiles.value = [];
+            if (fileInputRef.value) {
+                fileInputRef.value.value = "";
+            }
+        },
+        onError: (errors) => {
+            // Errors akan otomatis di-handle oleh useForm
+            console.log('Validation errors:', errors);
+        }
     });
 };
 </script>
@@ -91,7 +129,7 @@ const submit = () => {
                     <ArrowLeft class="h-4 w-4" />
                     Back
                 </Button>
-                <h2 class="text-xl bg font-semibold leading-tight text-gray-800">
+                <h2 class="text-xl font-semibold leading-tight text-gray-800">
                     Create New Announcement
                 </h2>
             </div>
@@ -118,7 +156,7 @@ const submit = () => {
                             />
                             <p
                                 v-if="errors.title"
-                                class="text-sm text-destructive"
+                                class="text-sm text-destructive mt-1"
                             >
                                 {{ errors.title }}
                             </p>
@@ -142,7 +180,7 @@ const submit = () => {
                             </Select>
                             <p
                                 v-if="errors.type"
-                                class="text-sm text-destructive"
+                                class="text-sm text-destructive mt-1"
                             >
                                 {{ errors.type }}
                             </p>
@@ -186,7 +224,7 @@ const submit = () => {
                                 </Popover>
                                 <p
                                     v-if="errors.expired_at"
-                                    class="text-sm text-destructive"
+                                    class="text-sm text-destructive mt-1"
                                 >
                                     {{ errors.expired_at }}
                                 </p>
@@ -207,7 +245,7 @@ const submit = () => {
                                 />
                                 <p
                                     v-if="errors.expired_time"
-                                    class="text-sm text-destructive"
+                                    class="text-sm text-destructive mt-1"
                                 >
                                     {{ errors.expired_time }}
                                 </p>
@@ -216,7 +254,7 @@ const submit = () => {
                     </CardContent>
                 </Card>
 
-                <!-- Content -->
+                        <!-- Content -->
                 <Card>
                     <CardHeader>
                         <CardTitle>Announcement Content</CardTitle>
@@ -224,38 +262,69 @@ const submit = () => {
                     <CardContent>
                         <Label for="content">Content *</Label>
                         <Textarea
+                            id="content"
                             v-model="form.content"
                             placeholder="Enter announcement content"
                             :class="errors.content ? 'border-destructive' : ''"
-                        >
-                        </Textarea>
+                            rows="5"
+                        />
                         <p
                             v-if="errors.content"
-                            class="text-sm text-destructive"
+                            class="text-sm text-destructive mt-1"
                         >
                             {{ errors.content }}
                         </p>
                     </CardContent>
                 </Card>
 
-                <!-- Files -->
+                <!-- Selected Files Preview -->
+                <Card v-if="selectedFiles.length > 0">
+                    <CardHeader>
+                        <CardTitle>Selected Files</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                        <ul class="space-y-2">
+                            <li
+                                v-for="(file, index) in selectedFiles"
+                                :key="index"
+                                class="flex items-center justify-between p-3 bg-gray-50 rounded-md"
+                            >
+                                <div class="flex items-center gap-2">
+                                    <span>{{ file.name }}</span>
+                                    <span class="text-xs text-gray-500">
+                                        ({{ file.type }},
+                                        {{ (file.size / 1024).toFixed(1) }} KB)
+                                    </span>
+                                </div>
+                                <Button
+                                    type="button"
+                                    variant="destructive"
+                                    size="sm"
+                                    @click="removeFile(index)"
+                                >
+                                    <X class="h-4 w-4" /> Remove
+                                </Button>
+                            </li>
+                        </ul>
+                    </CardContent>
+                </Card>
+
+                <!-- Files Upload -->
                 <Card>
                     <CardHeader>
                         <CardTitle>Attachments</CardTitle>
                     </CardHeader>
                     <CardContent>
                         <Label for="attachments">File Attachments *</Label>
+                        <p class="text-xs mb-1 text-gray-500 italic">Max Size: 2mb</p>
                         <Input
+                            ref="fileInputRef"
                             type="file"
                             multiple
-                            @change="
-                                form.files = $event.target.files
-                                    ? Array.from($event.target.files)
-                                    : []
-                            "
+                            @change="handleFileSelect"
                             :class="errors.files ? 'border-destructive' : ''"
                         />
-                        <p v-if="errors.files" class="text-sm text-destructive">
+                        <p v-if="errors.files" class="text-sm text-destructive mt-1">
                             {{ errors.files }}
                         </p>
                     </CardContent>

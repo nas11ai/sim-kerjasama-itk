@@ -84,8 +84,19 @@ const form = useForm<AnnouncementForm>({
 });
 
 const errors = computed<Partial<Record<keyof AnnouncementForm, string>>>(
-    () => form.errors ?? {}
+    () => {
+        console.log('Form errors:', form.errors);
+        return form.errors ?? {};
+    }
 );
+
+// Computed untuk mengecek apakah masih ada file
+const hasFiles = computed(() => {
+    return existingFiles.value.length > 0 || newFiles.value.length > 0;
+});
+
+// Computed untuk validasi client-side
+const clientErrors = ref<{ files?: string }>({});
 
 const df = new DateFormatter("en-US", { dateStyle: "long" });
 const tomorrow = today(getLocalTimeZone()).add({ days: 1 });
@@ -116,6 +127,11 @@ const handleFileSelect = (event: Event) => {
 
     newFiles.value.push(...Array.from(target.files));
 
+    // Clear client-side validation error ketika file ditambahkan
+    if (clientErrors.value.files) {
+        delete clientErrors.value.files;
+    }
+
     if (fileInputRef.value) {
         fileInputRef.value.value = "";
     }
@@ -135,7 +151,30 @@ const deleteFile = (fileId: number) => {
     );
 };
 
+// Function untuk menghapus new file
+const removeNewFile = (index: number) => {
+    newFiles.value.splice(index, 1);
+};
+
+// Client-side validation
+const validateFiles = () => {
+    if (!hasFiles.value) {
+        clientErrors.value.files = "At least one file is required.";
+        return false;
+    }
+    delete clientErrors.value.files;
+    return true;
+};
+
 const submit = () => {
+    // Reset client errors
+    clientErrors.value = {};
+
+    // Validate files client-side
+    if (!validateFiles()) {
+        return;
+    }
+
     form.files = newFiles.value;
     form.transform((data) => {
         let expired: string | undefined;
@@ -154,16 +193,20 @@ const submit = () => {
         // spoof method agar Laravel tetap masuk ke route update (PUT)
         return { ...data, expired_at: expired, _method: "put" };
     }).post(route("admin.announcements.update", props.announcement.id), {
-        forceFormData: true, // WAJIB saat ada File
+        forceFormData: true,
         preserveScroll: true,
         preserveState: false,
         onSuccess: () => {
             newFiles.value = [];
             form.files = null;
+            clientErrors.value = {};
             if (fileInputRef.value) {
                 fileInputRef.value.value = "";
             }
         },
+        onError: (errors) => {
+            console.log('Validation errors:', errors);
+        }
     });
 };
 </script>
@@ -210,7 +253,7 @@ const submit = () => {
                             />
                             <p
                                 v-if="errors.title"
-                                class="text-sm text-destructive"
+                                class="text-sm text-destructive mt-1"
                             >
                                 {{ errors.title }}
                             </p>
@@ -234,7 +277,7 @@ const submit = () => {
                             </Select>
                             <p
                                 v-if="errors.type"
-                                class="text-sm text-destructive"
+                                class="text-sm text-destructive mt-1"
                             >
                                 {{ errors.type }}
                             </p>
@@ -282,7 +325,7 @@ const submit = () => {
                                 </Popover>
                                 <p
                                     v-if="errors.expired_at"
-                                    class="text-sm text-destructive"
+                                    class="text-sm text-destructive mt-1"
                                 >
                                     {{ errors.expired_at }}
                                 </p>
@@ -303,7 +346,7 @@ const submit = () => {
                                 />
                                 <p
                                     v-if="errors.expired_time"
-                                    class="text-sm text-destructive"
+                                    class="text-sm text-destructive mt-1"
                                 >
                                     {{ errors.expired_time }}
                                 </p>
@@ -320,103 +363,135 @@ const submit = () => {
                     <CardContent>
                         <Label for="content">Content *</Label>
                         <Textarea
+                            id="content"
                             v-model="form.content"
                             placeholder="Enter announcement content"
                             :class="errors.content ? 'border-destructive' : ''"
+                            rows="5"
                         />
                         <p
                             v-if="errors.content"
-                            class="text-sm text-destructive"
+                            class="text-sm text-destructive mt-1"
                         >
                             {{ errors.content }}
                         </p>
                     </CardContent>
                 </Card>
 
-                <!-- Existing Files -->
-                <Card v-if="existingFiles.length > 0">
+                <!-- Current Attachments -->
+                <Card>
                     <CardHeader>
-                        <CardTitle>Attachments</CardTitle>
+                        <CardTitle>Current Attachments</CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <ul class="space-y-2">
-                            <li
-                                v-for="file in existingFiles"
-                                :key="file.id"
-                                class="flex items-center justify-between p-3 bg-gray-50 rounded-md"
-                            >
-                                <div class="flex items-center gap-2">
-                                    <a
-                                        :href="file.file_path"
-                                        target="_blank"
-                                        class="text-blue-600 underline hover:text-blue-800"
-                                    >
-                                        {{ file.file_name }}
-                                    </a>
-                                    <span class="text-xs text-gray-500"
-                                        >({{ file.mime_type }},
-                                        {{ (file.file_size / 1024).toFixed(1) }}
-                                        KB)</span
-                                    >
-                                </div>
-                                <Button
-                                    type="button"
-                                    variant="destructive"
-                                    size="sm"
-                                    @click="deleteFile(file.id)"
-                                    class="ml-2"
+                        <div v-if="existingFiles.length > 0 || newFiles.length > 0">
+                            <ul class="space-y-2">
+                                <!-- Existing Files -->
+                                <li
+                                    v-for="file in existingFiles"
+                                    :key="`existing-${file.id}`"
+                                    class="flex items-center justify-between p-3 bg-gray-50 rounded-md"
                                 >
-                                    <X class="h-4 w-4" />
-                                    Delete
-                                </Button>
-                            </li>
-                            <li
-                                v-for="(file, index) in newFiles"
-                                :key="index"
-                                class="flex items-center justify-between p-3 bg-gray-50 rounded-md"
-                            >
-                                <div class="flex items-center gap-2">
-                                    <span>{{ file.name }}</span>
-                                    <span class="text-xs text-gray-500">
-                                        ({{ file.type }},
-                                        {{ (file.size / 1024).toFixed(1) }} KB)
-                                    </span>
-                                </div>
-                                <Button
-                                    type="button"
-                                    variant="destructive"
-                                    size="sm"
-                                    @click="newFiles.splice(index, 1)"
+                                    <div class="flex items-center gap-2">
+                                        <a
+                                            :href="file.file_path"
+                                            target="_blank"
+                                            class="text-blue-600 underline hover:text-blue-800"
+                                        >
+                                            {{ file.file_name }}
+                                        </a>
+                                        <span class="text-xs text-gray-500"
+                                            >({{ file.mime_type }},
+                                            {{ (file.file_size / 1024).toFixed(1) }}
+                                            KB)</span
+                                        >
+                                        <span class="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
+                                            Current
+                                        </span>
+                                    </div>
+                                    <Button
+                                        type="button"
+                                        variant="destructive"
+                                        size="sm"
+                                        @click="deleteFile(file.id)"
+                                        class="ml-2"
+                                    >
+                                        <X class="h-4 w-4" />
+                                        Delete
+                                    </Button>
+                                </li>
+
+                                <!-- New Files -->
+                                <li
+                                    v-for="(file, index) in newFiles"
+                                    :key="`new-${index}`"
+                                    class="flex items-center justify-between p-3 bg-green-50 rounded-md"
                                 >
-                                    <X class="h-4 w-4" /> Remove
-                                </Button>
-                            </li>
-                        </ul>
+                                    <div class="flex items-center gap-2">
+                                        <span>{{ file.name }}</span>
+                                        <span class="text-xs text-gray-500">
+                                            ({{ file.type }},
+                                            {{ (file.size / 1024).toFixed(1) }} KB)
+                                        </span>
+                                        <span class="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">
+                                            New
+                                        </span>
+                                    </div>
+                                    <Button
+                                        type="button"
+                                        variant="destructive"
+                                        size="sm"
+                                        @click="removeNewFile(index)"
+                                    >
+                                        <X class="h-4 w-4" /> Remove
+                                    </Button>
+                                </li>
+                            </ul>
+
+                            <!-- File validation error -->
+                            <p
+                                v-if="clientErrors.files || errors.files"
+                                class="text-sm text-destructive mt-2"
+                            >
+                                {{ clientErrors.files || errors.files }}
+                            </p>
+                        </div>
+
+                        <!-- No files message -->
+                        <div v-else class="text-center py-8">
+                            <p class="text-gray-500 mb-2">No files attached</p>
+                            <p
+                                v-if="clientErrors.files || errors.files"
+                                class="text-sm text-destructive"
+                            >
+                                {{ clientErrors.files || errors.files }}
+                            </p>
+                        </div>
                     </CardContent>
                 </Card>
 
                 <!-- Upload New Files -->
                 <Card>
                     <CardHeader>
-                        <CardTitle>Upload New Attachments</CardTitle>
+                        <CardTitle>Add New Attachments</CardTitle>
                     </CardHeader>
                     <CardContent>
                         <Label for="attachments"
-                            >File Attachments (optional)</Label
+                            >File Attachments *</Label
                         >
                         <Input
                             ref="fileInputRef"
                             type="file"
                             multiple
                             @change="handleFileSelect"
-                            :class="errors.files ? 'border-destructive' : ''"
+                            :class="(errors.files || clientErrors.files) ? 'border-destructive' : ''"
                         />
                         <p class="text-sm text-gray-500 mt-1">
-                            Select files to add as new attachments to this
-                            announcement.
+                            Select files to add as new attachments to this announcement.
+                            At least one file is required.
                         </p>
-                        <p v-if="errors.files" class="text-sm text-destructive">
-                            {{ errors.files }}
+                        <p v-if="!hasFiles" class="text-sm text-orange-600 mt-1">
+                            ⚠️ Warning: All current files will be removed. Please add new files to maintain at least one attachment.
                         </p>
                     </CardContent>
                 </Card>
@@ -432,7 +507,11 @@ const submit = () => {
                     >
                         Cancel
                     </Button>
-                    <Button type="submit" :disabled="form.processing">
+                    <Button
+                        type="submit"
+                        :disabled="form.processing"
+                        :class="!hasFiles ? 'bg-red-600 hover:bg-red-700' : ''"
+                    >
                         {{
                             form.processing
                                 ? "Updating..."
