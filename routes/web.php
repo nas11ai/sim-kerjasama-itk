@@ -44,6 +44,9 @@ Route::middleware('auth')->prefix('user')->name('user.')->group(function () {
     Route::get('/announcements', [AnnouncementController::class, 'userIndex'])
         ->name('announcements.index');
 
+    Route::get('/announcements/{id}/markRead', [AnnouncementController::class, 'markAsRead'])
+        ->name('announcements.markRead');
+
     // Form Phase Routes
     Route::get('/submission-period/{period}/form-phase/{phase}', [UserFormController::class, 'showFormPhase'])
         ->name('form-phase');

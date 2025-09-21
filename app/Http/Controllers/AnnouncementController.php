@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Announcement;
 use App\Models\AnnouncementFile;
+use App\Models\AnnouncementUser;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
@@ -69,7 +70,6 @@ class AnnouncementController extends Controller
 
             $announcement = Announcement::create([
                 'title' => $validated['title'],
-                // 'slug' => Str::slug($validated['title']), ntar kalo dipake
                 'content' => $validated['content'],
                 'expired_at' => $validated['expired_at'] ?? null,
                 'type' => $validated['type'],
@@ -80,12 +80,13 @@ class AnnouncementController extends Controller
 
             if ($request->hasFile('files')) {
                 foreach ($request->file('files') as $file) {
-                    $path = $file->store('announcements');
+                    $path = $file->store('announcements', 'public');
 
                     AnnouncementFile::create([
                         'announcement_id' => $announcement->id,
                         'file_name' => $file->getClientOriginalName(),
-                        'file_path' => $path,
+                        'file_path' => asset('storage/' . $path),
+                        // 'file_path' => $path, // buat prod
                         'mime_type' => $file->getMimeType(),
                         'file_size' => $file->getSize(),
                     ]);
@@ -138,9 +139,7 @@ class AnnouncementController extends Controller
                 foreach ($request->deleted_files as $fileId) {
                     $file = AnnouncementFile::find($fileId);
                     if ($file) {
-                        // Hapus file dari storage
-                        Storage::delete($file->file_path);
-                        // Hapus record dari database
+                        Storage::disk('public')->delete($file->file_path);
                         $file->delete();
                     }
                 }
@@ -148,7 +147,6 @@ class AnnouncementController extends Controller
 
             $announcement->update([
                 'title' => $validated['title'],
-                // 'slug' => Str::slug($validated['title']), ntar kalo dipake
                 'content' => $validated['content'],
                 'type' => $validated['type'],
                 'expired_at' => $validated['expired_at'] ?? null,
@@ -157,12 +155,13 @@ class AnnouncementController extends Controller
 
             if ($request->hasFile('files')) {
                 foreach ($request->file('files') as $file) {
-                    $path = $file->store('announcements');
+                    $path = $file->store('announcements', 'public');
 
                     AnnouncementFile::create([
                         'announcement_id' => $announcement->id,
                         'file_name' => $file->getClientOriginalName(),
-                        'file_path' => $path,
+                        'file_path' => asset('storage/' . $path),
+                        // 'file_path' => $path, // buat prod
                         'mime_type' => $file->getMimeType(),
                         'file_size' => $file->getSize(),
                     ]);
@@ -193,6 +192,26 @@ class AnnouncementController extends Controller
         $announcement->load('announcementFiles');
         return Inertia::render('AnnouncementDetail', [
             'announcement' => $announcement,
+        ]);
+    }
+
+    public function markAsRead(Announcement $announcement)
+    {
+        $user = auth()->id();
+
+        $reader = AnnouncementUser::updateOrCreate(
+            [
+                'announcement_id' => $announcement->id,
+                'user_id' => $user->id,
+            ],
+            [
+                'updated_at' => now(),
+            ]
+        );
+
+        return response()->json([
+            'message' => 'Announcement marked as read.',
+            'data' => $reader,
         ]);
     }
 }
