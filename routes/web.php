@@ -22,7 +22,10 @@ Route::get('/', function () {
         'canRegister' => Route::has('register'),
         'laravelVersion' => Application::VERSION,
         'phpVersion' => PHP_VERSION,
-        'announcements' => Announcement::latest()->get(),
+        'announcements' => Announcement::latest()
+            ->with('announcementFiles')
+            ->where('type', 'public')
+            ->get(),
     ]);
 });
 
