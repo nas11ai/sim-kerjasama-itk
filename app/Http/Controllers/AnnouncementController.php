@@ -104,7 +104,7 @@ class AnnouncementController extends Controller
      */
     public function show(Announcement $announcement)
     {
-        $announcement->load('announcementFiles');
+        $announcement->load('announcementFiles', 'announcementCreator');
         return Inertia::render('Announcements/Show', [
             'announcement' => $announcement,
         ]);

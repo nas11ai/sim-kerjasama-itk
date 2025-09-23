@@ -12,6 +12,7 @@ import {
     Clock,
     FileText,
     Paperclip,
+    User,
 } from "lucide-vue-next";
 
 interface AnnouncementFile {
@@ -32,6 +33,9 @@ interface AnnouncementDetail {
     created_at: string;
     updated_at: string;
     announcement_files: AnnouncementFile[];
+    announcement_creator: {
+        name: string;
+    };
 }
 
 interface Props {
@@ -130,6 +134,13 @@ console.log("Files:", props.announcement.announcement_files);
                     <div
                         class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-600"
                     >
+                        <div class="flex items-center gap-2">
+                            <User class="h-4 w-4" />
+                            <span
+                                >Created by:
+                                {{ announcement.announcement_creator.name }}</span
+                            >
+                        </div>
                         <div class="flex items-center gap-2">
                             <Calendar class="h-4 w-4" />
                             <span

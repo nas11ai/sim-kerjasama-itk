@@ -24,7 +24,7 @@ function handleImageError() {
 
 <template>
     <Head title="Welcome" />
-    
+
     <div class="bg-gray-50 text-black/50 dark:bg-black dark:text-white/50">
         <div
             class="relative flex min-h-screen flex-col items-center selection:bg-[#FF2D20] selection:text-white"
@@ -82,7 +82,7 @@ function handleImageError() {
                         </div>
                     </section>
 
-                    <section class="flex justify-center py-12">
+                    <section class="flex justify-center py-12 px-8">
                         <div
                             class="bg-white rounded-2xl border shadow-lg max-w-4xl w-full flex flex-col justify-center px-8 divide-y divide-gray-300"
                         >
@@ -176,7 +176,7 @@ function handleImageError() {
                                                     announcement.id
                                                 )
                                             "
-                                            class="inline-flex items-center text-blue-600 font-medium text-sm hover:underline"
+                                            class="pt-2 inline-flex items-center text-blue-600 font-medium text-sm hover:underline"
                                         >
                                             Lihat Selengkapnya →
                                         </a>

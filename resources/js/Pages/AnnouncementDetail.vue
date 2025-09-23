@@ -91,7 +91,7 @@ const formattedDate = computed(() =>
                             <!-- Title & Meta -->
                             <div class="border-b pb-4 mb-4">
                                 <h1
-                                    class="font-bold text-blue-600 break-words text-3xl sm:text-3xl md:text-4xl lg:text-5xl"
+                                    class="font-bold text-black break-words text-3xl sm:text-3xl md:text-4xl lg:text-5xl"
                                 >
                                     {{ announcement.title }}
                                 </h1>
