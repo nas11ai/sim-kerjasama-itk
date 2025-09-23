@@ -77,7 +77,7 @@ const formattedDate = computed(() =>
                     <!-- Content Section -->
                     <section>
                         <div
-                            class="max-w-4xl mx-auto px-8 sm:px-4 py-8 space-y-8"
+                            class="max-w-4xl mx-auto px-6 sm:px-8 py-8 space-y-8"
                         >
                             <!-- Back Button -->
                             <button
@@ -114,7 +114,7 @@ const formattedDate = computed(() =>
 
                             <!-- Content -->
                             <div
-                                class="prose max-w-none text-gray-700 leading-relaxed text-sm sm:text-sm md:text-lg pb-4 break-words"
+                                class="prose max-w-none text-gray-700 leading-loose text-sm sm:text-sm md:text-base pb-4 break-words"
                                 v-html="announcement.content"
                             ></div>
 

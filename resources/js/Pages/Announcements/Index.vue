@@ -143,7 +143,7 @@ function stripHtml(html: string) {
                     :key="announcement.id"
                     class="group hover:shadow-lg transition-shadow"
                 >
-                    <CardHeader class="pb-3">
+                    <CardHeader>
                         <div class="flex items-start justify-between">
                             <div class="flex-1">
                                 <CardTitle class="text-lg line-clamp-2">{{
