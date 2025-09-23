@@ -1,10 +1,12 @@
 <script setup lang="ts">
 import { Head, Link, usePage } from "@inertiajs/vue3";
+import { onMounted } from "vue";
+import { Paperclip } from "lucide-vue-next";
 
 const page = usePage();
 const user = page.props.auth.user as { roles: string[] };
 
-defineProps<{
+const props = defineProps<{
     canLogin?: boolean;
     canRegister?: boolean;
     laravelVersion: string;
@@ -22,6 +24,7 @@ function handleImageError() {
 
 <template>
     <Head title="Welcome" />
+    
     <div class="bg-gray-50 text-black/50 dark:bg-black dark:text-white/50">
         <div
             class="relative flex min-h-screen flex-col items-center selection:bg-[#FF2D20] selection:text-white"
@@ -80,76 +83,103 @@ function handleImageError() {
                     </section>
 
                     <section class="flex justify-center py-12">
-                        <div class="max-w-4xl flex flex-col justify-center gap-3 px-6">
+                        <div
+                            class="bg-white rounded-2xl border shadow-lg max-w-4xl w-full flex flex-col justify-center px-8 divide-y divide-gray-300"
+                        >
                             <div
                                 v-for="announcement in announcements.filter(
                                     (a) => a.type === 'public'
                                 )"
                                 :key="announcement.id"
-                                class="bg-white rounded-2xl border shadow-md"
+                                class="py-8"
                             >
-                                <div class="p-6 hover:bg-gray-50">
-                                    <div
-                                        class="flex flex-col sm:flex-row gap-6"
-                                    >
-                                        <!-- Konten -->
-                                        <div class="flex-grow space-y-3">
-                                            <!-- Header kecil -->
-                                            <div
-                                                class="flex items-center gap-2 text-xs text-gray-500"
-                                            >
-                                                <span
-                                                    class="px-2 py-1 text-[11px] rounded-full bg-blue-100 text-blue-700 font-medium"
-                                                >
-                                                    {{
-                                                        new Date(
-                                                            announcement.created_at
-                                                        ).toLocaleDateString(
-                                                            "id-ID",
-                                                            {
-                                                                day: "2-digit",
-                                                                month: "long",
-                                                                year: "numeric",
-                                                            }
-                                                        )
-                                                    }}
-                                                </span>
-                                            </div>
-
-                                            <!-- Judul -->
-                                            <h3
-                                                class="text-xl font-semibold text-gray-800 line-clamp-3"
-                                            >
-                                                {{ announcement.title }}
-                                            </h3>
-
-                                            <!-- Deskripsi singkat -->
-                                            <p
-                                                class="text-sm text-gray-600 line-clamp-2"
+                                <div class="flex flex-col sm:flex-row gap-6">
+                                    <!-- Konten -->
+                                    <div class="flex-grow space-y-3">
+                                        <!-- Header kecil -->
+                                        <div
+                                            class="flex items-center gap-2 text-xs text-gray-500"
+                                        >
+                                            <span
+                                                class="px-2 py-1 text-[11px] rounded-full bg-blue-100 text-blue-700 font-medium"
                                             >
                                                 {{
-                                                    announcement.content
-                                                        ? announcement.content.replace(
-                                                              /<[^>]+>/g,
-                                                              ""
-                                                          )
-                                                        : "Tidak ada deskripsi."
-                                                }}
-                                            </p>
-
-                                            <!-- Link -->
-                                            <a
-                                                :href="
-                                                    route(
-                                                        'announcements.detail',
-                                                        announcement.id
+                                                    new Date(
+                                                        announcement.created_at
+                                                    ).toLocaleDateString(
+                                                        "id-ID",
+                                                        {
+                                                            day: "2-digit",
+                                                            month: "long",
+                                                            year: "numeric",
+                                                        }
                                                     )
-                                                "
-                                                class="inline-flex items-center text-blue-600 font-medium text-sm hover:underline"
-                                            >
-                                                Lihat Selengkapnya →
-                                            </a>
+                                                }}
+                                            </span>
                                         </div>
+
+                                        <!-- Judul -->
+                                        <h3
+                                            class="text-2xl font-semibold text-gray-800 line-clamp-3"
+                                        >
+                                            {{ announcement.title }}
+                                        </h3>
+
+                                        <!-- Deskripsi singkat -->
+                                        <p
+                                            class="text-sm text-gray-600 line-clamp-2"
+                                        >
+                                            {{
+                                                announcement.content
+                                                    ? announcement.content.replace(
+                                                          /<[^>]+>/g,
+                                                          ""
+                                                      )
+                                                    : "Tidak ada deskripsi."
+                                            }}
+                                        </p>
+
+                                        <!-- Attachments -->
+                                        <div
+                                            v-if="
+                                                announcement.announcement_files
+                                                    .length
+                                            "
+                                            class="mt-4 space-y-1"
+                                        >
+                                            <div
+                                                class="flex items-center text-sm text-gray-500 font-medium"
+                                            >
+                                                <Paperclip
+                                                    class="h-4 w-4 mr-2"
+                                                />
+                                                Lampiran:
+                                            </div>
+                                            <div class="flex flex-wrap gap-2">
+                                                <a
+                                                    v-for="file in announcement.announcement_files"
+                                                    :key="file.id"
+                                                    :href="file.file_path"
+                                                    target="_blank"
+                                                    class="inline-flex items-center rounded-md border px-3 py-1 text-xs font-medium text-blue-600 hover:bg-blue-50 transition-colors"
+                                                >
+                                                    {{ file.file_name }}
+                                                </a>
+                                            </div>
+                                        </div>
+
+                                        <!-- Link -->
+                                        <a
+                                            :href="
+                                                route(
+                                                    'announcements.detail',
+                                                    announcement.id
+                                                )
+                                            "
+                                            class="inline-flex items-center text-blue-600 font-medium text-sm hover:underline"
+                                        >
+                                            Lihat Selengkapnya →
+                                        </a>
                                     </div>
                                 </div>
 

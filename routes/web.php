@@ -29,7 +29,7 @@ Route::get('/', function () {
     ]);
 });
 
-Route::get('announcements/{id}', [AnnouncementController::class, 'detail'])->name('announcements.detail');
+Route::get('announcements/{announcement}', [AnnouncementController::class, 'detail'])->name('announcements.detail');
 
 Route::middleware('auth')->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
@@ -44,7 +44,7 @@ Route::middleware('auth')->prefix('user')->name('user.')->group(function () {
     Route::get('/announcements', [AnnouncementController::class, 'userIndex'])
         ->name('announcements.index');
 
-    Route::get('/announcements/{id}/markRead', [AnnouncementController::class, 'markAsRead'])
+    Route::get('/announcements/{announcement}/markRead', [AnnouncementController::class, 'markAsRead'])
         ->name('announcements.markRead');
 
     // Form Phase Routes

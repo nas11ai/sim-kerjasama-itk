@@ -18,7 +18,7 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from "@/Components/ui/dropdown-menu";
-import { MoreHorizontal, Plus, Eye, Edit, Copy, Trash2 } from "lucide-vue-next";
+import { MoreHorizontal, Plus, Eye, Edit, Copy, Trash2, Paperclip } from "lucide-vue-next";
 import { useToast } from "@/Components/ui/toast/use-toast";
 
 interface AnnouncementFile {
@@ -36,6 +36,9 @@ interface Announcement {
     announcement_files: AnnouncementFile[];
     created_at: string;
     updated_at: string;
+    announcement_creator: {
+        name: string;
+    };
 }
 
 interface Props {
@@ -242,7 +245,11 @@ function stripHtml(html: string) {
                                 class="space-y-1 text-xs text-muted-foreground"
                             >
                                 <div>
-                                    Created:
+                                    Created by:
+                                    {{ announcement.announcement_creator.name }}
+                                </div>
+                                <div>
+                                    Created at:
                                     {{ formatDate(announcement.created_at) }}
                                 </div>
                                 <div>

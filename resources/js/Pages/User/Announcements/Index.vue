@@ -1,9 +1,7 @@
 <!-- resources/js/Pages/Announcement/Index.vue -->
 <script setup lang="ts">
-import { ref } from "vue";
 import { Head, Link, router } from "@inertiajs/vue3";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout.vue";
-import { Button } from "@/Components/ui/button";
 import {
     Card,
     CardContent,
@@ -11,23 +9,8 @@ import {
     CardHeader,
     CardTitle,
 } from "@/Components/ui/card";
-import { Badge } from "@/Components/ui/badge";
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuTrigger,
-} from "@/Components/ui/dropdown-menu";
-import {
-    MoreHorizontal,
-    Plus,
-    Eye,
-    Edit,
-    Copy,
-    Trash2,
-    Paperclip,
-} from "lucide-vue-next";
-import { useToast } from "@/Components/ui/toast/use-toast";
+import { Paperclip, Check, Eye } from "lucide-vue-next";
+import { ref } from "vue";
 
 interface AnnouncementFile {
     id: number;
@@ -44,6 +27,7 @@ interface Announcement {
     announcement_files: AnnouncementFile[];
     created_at: string;
     updated_at: string;
+    is_read?: boolean; // Add this field to track read status
 }
 
 interface Props {
@@ -55,59 +39,9 @@ interface Props {
 }
 
 const props = defineProps<Props>();
-const { toast } = useToast();
 
-const isPublic = (announcement: Announcement) => {
-    return announcement.type === "public";
-};
-
-const isExpired = (dateString: string | null) => {
-    if (!dateString) return false;
-    const today = new Date();
-    const expiryDate = new Date(dateString);
-    return expiryDate < today;
-};
-
-const deleteAnnouncement = (announcement: Announcement) => {
-    if (confirm(`Are you sure you want to delete "${announcement.title}"?`)) {
-        router.delete(route("admin.announcements.destroy", announcement.id), {
-            onSuccess: () => {
-                toast({
-                    title: "Success",
-                    description: "Announcement deleted successfully!",
-                });
-            },
-        });
-    }
-};
-
-// const duplicateAnnouncement = (announcement: Announcement) => {
-//     router.post(
-//         route("admin.announcements.duplicate", announcement.id),
-//         {},
-//         {
-//             onSuccess: () => {
-//                 toast({
-//                     title: "Success",
-//                     description: "Announcement duplicated successfully!",
-//                 });
-//             },
-//         }
-//     );
-// };
-
-const formatDate = (dateString: string) => {
-    if (!dateString) {
-        return "No expiration date";
-    }
-
-    return new Date(dateString).toLocaleDateString("en-EN", {
-        year: "numeric",
-        month: "short",
-        day: "numeric",
-        timeZone: "Asia/Makassar",
-    });
-};
+// Track loading state for mark as read buttons
+const markingAsRead = ref<Record<number, boolean>>({});
 
 const capitalize = (s: string) => {
     return s.charAt(0).toUpperCase() + s.slice(1);
@@ -118,6 +52,37 @@ function stripHtml(html: string) {
     const doc = new DOMParser().parseFromString(html, "text/html");
     return doc.body.textContent || "";
 }
+
+const markAsRead = async (announcementId: number) => {
+    try {
+        // Set loading state
+        markingAsRead.value[announcementId] = true;
+
+        // Make API call using Inertia router with GET method
+        await router.get(`/announcements/${announcementId}/markRead`, {}, {
+            preserveScroll: true,
+            preserveState: true,
+            onSuccess: () => {
+                // Update the announcement's read status locally
+                const announcement = props.announcements.data.find(a => a.id === announcementId);
+                if (announcement) {
+                    announcement.is_read = true;
+                }
+            },
+            onError: (error) => {
+                console.error('Failed to mark as read:', error);
+                // You can add toast notification here if you have one
+            },
+            onFinish: () => {
+                // Remove loading state
+                markingAsRead.value[announcementId] = false;
+            }
+        });
+    } catch (error) {
+        console.error('Error marking announcement as read:', error);
+        markingAsRead.value[announcementId] = false;
+    }
+};
 </script>
 
 <template>
@@ -135,16 +100,31 @@ function stripHtml(html: string) {
         <div class="space-y-6 flex justify-center">
             <!-- Forms Grid -->
             <div
-                class="flex flex-col flex-wrap gap-4 max-w-4xl justify-center align-middle"
+                class="flex w-full flex-col flex-wrap gap-4 max-w-5xl justify-center align-middle"
             >
                 <Card
                     v-for="announcement in props.announcements.data.filter(
                         (a) => a.type === 'private'
                     )"
                     :key="announcement.id"
-                    class="group hover:shadow-lg transition-shadow rounded-xl"
+                    class="group hover:shadow-lg transition-shadow rounded-xl relative"
+                    :class="{
+                        'border-l-4 border-l-green-500': announcement.is_read,
+                        'border-l-4 border-l-blue-500': !announcement.is_read
+                    }"
                 >
-                    <CardHeader class="pb-2">
+                    <!-- Read Status Indicator -->
+                    <div
+                        v-if="announcement.is_read"
+                        class="absolute top-4 right-4"
+                    >
+                        <div class="flex items-center gap-1 px-2 py-1 bg-green-100 text-green-700 rounded-full text-xs font-medium">
+                            <Check class="h-3 w-3" />
+                            Sudah dibaca
+                        </div>
+                    </div>
+
+                    <CardHeader class="pb-2" :class="{ 'pr-20': announcement.is_read }">
                         <span
                             class="w-fit px-2 py-1 text-[12px] rounded-full bg-blue-100 text-blue-700 font-medium"
                         >
@@ -160,6 +140,10 @@ function stripHtml(html: string) {
                         </span>
                         <CardTitle
                             class="text-lg font-semibold text-gray-800"
+                            :class="{
+                                'font-bold': !announcement.is_read,
+                                'font-medium text-gray-600': announcement.is_read
+                            }"
                         >
                             {{ capitalize(announcement.title) }}
                         </CardTitle>
@@ -196,6 +180,26 @@ function stripHtml(html: string) {
                                     {{ file.file_name }}
                                 </a>
                             </div>
+                        </div>
+
+                        <!-- Mark as Read Button -->
+                        <div
+                            v-if="!announcement.is_read"
+                            class="mt-4 flex justify-end"
+                        >
+                            <button
+                                @click="markAsRead(announcement.id)"
+                                :disabled="markingAsRead[announcement.id]"
+                                class="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 disabled:cursor-not-allowed rounded-md transition-colors"
+                            >
+                                <Eye class="h-4 w-4" />
+                                <span v-if="markingAsRead[announcement.id]">
+                                    Menandai...
+                                </span>
+                                <span v-else>
+                                    Tandai Sudah Dibaca
+                                </span>
+                            </button>
                         </div>
                     </CardContent>
                 </Card>

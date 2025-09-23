@@ -20,7 +20,7 @@ class AnnouncementController extends Controller
      */
     public function index()
     {
-        $announcements = Announcement::with(['announcementFiles'])
+        $announcements = Announcement::with(['announcementFiles', 'announcementCreator'])
             ->orderBy('created_at', 'desc')
             ->paginate(10);
 
@@ -189,7 +189,7 @@ class AnnouncementController extends Controller
 
     public function detail(Announcement $announcement)
     {
-        $announcement->load('announcementFiles');
+        $announcement->load('announcementFiles', 'announcementCreator');
         return Inertia::render('AnnouncementDetail', [
             'announcement' => $announcement,
         ]);
