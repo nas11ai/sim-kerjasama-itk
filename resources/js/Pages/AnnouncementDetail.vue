@@ -91,7 +91,7 @@ const formattedDate = computed(() =>
                             <!-- Title & Meta -->
                             <div class="border-b pb-4 mb-4">
                                 <h1
-                                    class="font-bold text-black break-words text-3xl sm:text-3xl md:text-4xl lg:text-5xl"
+                                    class="font-bold text-gray-800 break-words text-3xl sm:text-3xl md:text-4xl lg:text-5xl"
                                 >
                                     {{ announcement.title }}
                                 </h1>
@@ -120,7 +120,7 @@ const formattedDate = computed(() =>
 
                             <!-- Attachments -->
                             <div v-if="announcement.announcement_files?.length">
-                                <h2 class="font-semibold mb-2 text-lg">
+                                <h2 class="font-semibold text-gray-700 mb-2 text-lg">
                                     Lampiran
                                 </h2>
                                 <ul class="flex flex-col divide-y">
