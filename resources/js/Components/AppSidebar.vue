@@ -14,13 +14,13 @@ import {
     SidebarMenuButton,
     SidebarMenuItem,
     SidebarRail,
-} from '@/Components/ui/sidebar';
+} from "@/Components/ui/sidebar";
 import {
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuItem,
     DropdownMenuTrigger,
-} from '@/Components/ui/dropdown-menu';
+} from "@/Components/ui/dropdown-menu";
 import {
     Home,
     FileText,
@@ -65,7 +65,7 @@ const isReviewer = computed(() => {
 const adminNavItems = [
     {
         title: "Dashboard",
-        url: route('admin.dashboard'),
+        url: route("admin.dashboard"),
         icon: Home,
     },
     {
@@ -74,20 +74,20 @@ const adminNavItems = [
         items: [
             {
                 title: "Forms",
-                url: route('admin.forms.index'),
+                url: route("admin.forms.index"),
                 icon: FileText,
             },
             {
                 title: "Form Phases",
-                url: route('admin.form-phases.index'),
+                url: route("admin.form-phases.index"),
                 icon: Settings,
             },
             {
                 title: "Access Controls",
-                url: route('admin.form-access-controls.index'),
+                url: route("admin.form-access-controls.index"),
                 icon: Shield,
-            }
-        ]
+            },
+        ],
     },
     {
         title: "Submission Management",
@@ -95,13 +95,34 @@ const adminNavItems = [
         items: [
             {
                 title: "Submission Periods",
-                url: route('admin.submission-periods.index'),
+                url: route("admin.submission-periods.index"),
                 icon: Calendar,
             },
             {
                 title: "View Submissions",
-                url: route('admin.submissions.index'),
+                url: route("admin.submissions.index"),
                 icon: Send,
+            }
+        ]
+    },
+    {
+        title: "Review Management",
+        icon: MessageSquare,
+        items: [
+            {
+                title: "Review Overview",
+                url: route('admin.submissions.index') + '?tab=review',
+                icon: MessageSquare,
+            },
+            {
+                title: "Pending Reviews",
+                url: route('admin.submissions.index') + '?status=under_review',
+                icon: Clock,
+            },
+            {
+                title: "Completed Reviews",
+                url: route('admin.submissions.index') + '?status=approved',
+                icon: CheckCircle,
             }
         ]
     },
@@ -132,15 +153,15 @@ const adminNavItems = [
         items: [
             {
                 title: "Reviewers",
-                url: route('admin.reviewers.index'),
+                url: route("admin.reviewers.index"),
                 icon: Users,
             },
             {
                 title: "Reviewer Roles",
-                url: route('admin.reviewer-roles.index'),
+                url: route("admin.reviewer-roles.index"),
                 icon: Filter,
-            }
-        ]
+            },
+        ],
     },
     {
         title: "Institution Management",
@@ -148,16 +169,27 @@ const adminNavItems = [
         items: [
             {
                 title: "Faculties",
-                url: route('admin.faculties.index'),
+                url: route("admin.faculties.index"),
                 icon: Building2,
             },
             {
                 title: "Study Programs",
-                url: route('admin.faculties.study-programs'),
+                url: route("admin.faculties.study-programs"),
                 icon: GraduationCap,
-            }
-        ]
-    }
+            },
+        ],
+    },
+    {
+        title: "Announcement Management",
+        icon: Building2,
+        items: [
+            {
+                title: "Announcements",
+                url: route("admin.announcements.index"),
+                icon: Megaphone,
+            },
+        ],
+    },
 ];
 
 // Navigation items for regular users (termasuk reviewer)
@@ -165,19 +197,30 @@ const userNavItems = computed(() => {
     const baseItems = [
         {
             title: "Dashboard",
-            url: route('user.dashboard'),
+            url: route("user.dashboard"),
             icon: Home,
         },
         {
+        title: "Announcement Center",
+        icon: ClipboardList,
+        items: [
+            {
+                title: "Announcements",
+                url: route("user.announcements.index"),
+                icon: Megaphone,
+            },
+        ],
+    },
+    {
             title: "My Forms",
             icon: ClipboardList,
             items: [
                 {
                     title: "Active Submissions",
-                    url: route('user.dashboard'),
+                    url: route("user.dashboard"),
                     icon: BookOpen,
-                }
-            ]
+                },
+            ],
         },
         {
             title: "My Submissions",
@@ -185,7 +228,7 @@ const userNavItems = computed(() => {
             items: [
                 {
                     title: "View Submissions",
-                    url: route('user.submissions.index'),
+                    url: route("user.submissions.index"),
                     icon: Send,
                 },
                 {
@@ -197,9 +240,9 @@ const userNavItems = computed(() => {
                     title: "Approved",
                     url: route('user.submissions.index') + '?status=approved',
                     icon: CheckCircle,
-                }
-            ]
-        }
+                },
+            ],
+        },
     ];
 
     // Add Review Tasks menu if user is reviewer
@@ -245,7 +288,7 @@ const isActive = (url: string) => {
 };
 
 const hasActiveChild = (items: any[]) => {
-    return items.some(item => isActive(item.url));
+    return items.some((item) => isActive(item.url));
 };
 
 const logout = (e: Event) => {
@@ -278,7 +321,8 @@ const getContextLabel = computed(() => {
                     <SidebarMenuButton size="lg" as-child>
                         <a href="/">
                             <div
-                                class="flex aspect-square size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
+                                class="flex aspect-square size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground"
+                            >
                                 <FileText class="size-4" />
                             </div>
                             <div class="grid flex-1 text-left text-sm leading-tight">
@@ -293,13 +337,18 @@ const getContextLabel = computed(() => {
 
         <SidebarContent>
             <SidebarGroup v-for="item in navItems" :key="item.title">
-                <SidebarGroupLabel v-if="item.items">{{ item.title }}</SidebarGroupLabel>
+                <SidebarGroupLabel v-if="item.items">{{
+                    item.title
+                }}</SidebarGroupLabel>
 
                 <SidebarGroupContent>
                     <SidebarMenu>
                         <!-- Single nav item -->
                         <SidebarMenuItem v-if="!item.items">
-                            <SidebarMenuButton as-child :is-active="isActive(item.url)">
+                            <SidebarMenuButton
+                                as-child
+                                :is-active="isActive(item.url)"
+                            >
                                 <a :href="item.url">
                                     <component :is="item.icon" />
                                     <span>{{ item.title }}</span>
@@ -309,8 +358,14 @@ const getContextLabel = computed(() => {
 
                         <!-- Group with subitems -->
                         <template v-else>
-                            <SidebarMenuItem v-for="subItem in item.items" :key="subItem.title">
-                                <SidebarMenuButton as-child :is-active="isActive(subItem.url)">
+                            <SidebarMenuItem
+                                v-for="subItem in item.items"
+                                :key="subItem.title"
+                            >
+                                <SidebarMenuButton
+                                    as-child
+                                    :is-active="isActive(subItem.url)"
+                                >
                                     <a :href="subItem.url">
                                         <component :is="subItem.icon" />
                                         <span>{{ subItem.title }}</span>
@@ -328,11 +383,17 @@ const getContextLabel = computed(() => {
                 <SidebarMenuItem>
                     <DropdownMenu>
                         <DropdownMenuTrigger as-child>
-                            <SidebarMenuButton size="lg"
-                                class="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground">
+                            <SidebarMenuButton
+                                size="lg"
+                                class="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+                            >
                                 <User2 class="size-4" />
-                                <div class="grid flex-1 text-left text-sm leading-tight">
-                                    <span class="truncate font-semibold">{{ user?.name }}</span>
+                                <div
+                                    class="grid flex-1 text-left text-sm leading-tight"
+                                >
+                                    <span class="truncate font-semibold">{{
+                                        user?.name
+                                    }}</span>
                                     <span class="truncate text-xs capitalize">
                                         {{userRoles.map((role: any) => role).join(', ')}}
                                         <span v-if="isReviewer" class="text-blue-600">• Reviewer</span>
@@ -341,25 +402,47 @@ const getContextLabel = computed(() => {
                                 <ChevronUp class="ml-auto size-4" />
                             </SidebarMenuButton>
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent class="w-[--radix-dropdown-menu-trigger-width] min-w-56 rounded-lg"
-                            side="bottom" align="end">
+                        <DropdownMenuContent
+                            class="w-[--radix-dropdown-menu-trigger-width] min-w-56 rounded-lg"
+                            side="bottom"
+                            align="end"
+                        >
                             <DropdownMenuItem as-child>
-                                <a :href="route('profile.edit')" class="cursor-pointer">
+                                <a
+                                    :href="route('profile.edit')"
+                                    class="cursor-pointer"
+                                >
                                     <User2 class="mr-2 size-4" />
                                     Profile
                                 </a>
                             </DropdownMenuItem>
 
                             <!-- Switch between admin/user view if user has admin role -->
-                            <DropdownMenuItem v-if="isAdmin && !currentUrl.startsWith('/admin')" as-child>
-                                <a :href="route('admin.dashboard')" class="cursor-pointer">
+                            <DropdownMenuItem
+                                v-if="
+                                    isAdmin && !currentUrl.startsWith('/admin')
+                                "
+                                as-child
+                            >
+                                <a
+                                    :href="route('admin.dashboard')"
+                                    class="cursor-pointer"
+                                >
                                     <Shield class="mr-2 size-4" />
                                     Admin Panel
                                 </a>
                             </DropdownMenuItem>
 
-                            <DropdownMenuItem v-if="isAdmin && currentUrl.startsWith('/admin')" as-child>
-                                <a :href="route('user.dashboard')" class="cursor-pointer">
+                            <DropdownMenuItem
+                                v-if="
+                                    isAdmin && currentUrl.startsWith('/admin')
+                                "
+                                as-child
+                            >
+                                <a
+                                    :href="route('user.dashboard')"
+                                    class="cursor-pointer"
+                                >
                                     <User2 class="mr-2 size-4" />
                                     User View
                                 </a>

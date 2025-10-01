@@ -11,7 +11,9 @@ use App\Http\Controllers\ReviewerController;
 use App\Http\Controllers\SubmissionPeriodController;
 use App\Http\Controllers\SubmissionViewController;
 use App\Http\Controllers\UserFormController;
+use App\Http\Controllers\AnnouncementController;
 use Illuminate\Foundation\Application;
+use App\Models\Announcement;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -21,8 +23,14 @@ Route::get('/', function () {
         'canRegister' => Route::has('register'),
         'laravelVersion' => Application::VERSION,
         'phpVersion' => PHP_VERSION,
+        'announcements' => Announcement::latest()
+            ->with('announcementFiles')
+            ->where('type', 'public')
+            ->get(),
     ]);
 });
+
+Route::get('announcements/{announcement}', [AnnouncementController::class, 'detail'])->name('announcements.detail');
 
 Route::middleware(['auth', 'check_reviewer_status'])->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
@@ -76,6 +84,13 @@ Route::middleware(['auth', 'check_reviewer_status'])->group(function () {
 Route::middleware(['auth', 'check_reviewer_status'])->prefix('user')->name('user.')->group(function () {
     Route::get('/dashboard', [UserFormController::class, 'dashboard'])
         ->name('dashboard');
+
+    Route::get('/announcements', [AnnouncementController::class, 'userIndex'])
+        ->name('announcements.index');
+
+    Route::get('/announcements/{announcement}/markRead', [AnnouncementController::class, 'markAsRead'])
+        ->name('announcements.markRead');
+
     // Form Phase Routes
     Route::get('/submission-period/{period}/form-phase/{phase}', [UserFormController::class, 'showFormPhase'])
         ->name('form-phase');
@@ -228,6 +243,16 @@ Route::middleware(['auth', 'role:Super Admin|Admin', 'check_reviewer_status'])->
         'destroy' => 'faculties.destroy',
     ]);
 
+    Route::resource('announcements', AnnouncementController::class)->names([
+        'index' => 'announcements.index',
+        'create' => 'announcements.create',
+        'store' => 'announcements.store',
+        'show' => 'announcements.show',
+        'edit' => 'announcements.edit',
+        'update' => 'announcements.update',
+        'destroy' => 'announcements.destroy',
+    ]);
+
     // Study Program Routes
     Route::get('study-programs', [FacultyController::class, 'studyPrograms'])
         ->name('faculties.study-programs');
@@ -285,6 +310,9 @@ Route::middleware(['auth', 'role:Super Admin|Admin', 'check_reviewer_status'])->
     });
     Route::get('/faculties', function () {
         return redirect()->route('admin.faculties.index');
+    });
+    Route::get('/announcements', function () {
+        return redirect()->route('admin.announcements.index');
     });
 });
 

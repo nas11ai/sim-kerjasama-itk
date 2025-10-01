@@ -84,7 +84,7 @@ class FormPhaseController extends Controller
 
             DB::commit();
 
-            return redirect()->route('form-phases.index')
+            return redirect()->route('admin.form-phases.index')
                 ->with('success', 'Form phase created successfully.');
 
         } catch (\Exception $e) {

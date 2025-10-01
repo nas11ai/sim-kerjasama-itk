@@ -70,4 +70,15 @@ class User extends Authenticatable
     {
         return $this->hasOne(Reviewer::class);
     }
+
+    public function announcementCreated()
+    {
+        return $this->hasMany(Announcement::class, 'created_by');
+    }
+
+    public function announcementReads()
+    {
+        return $this->belongsToMany(Announcement::class, 'announcement_user')
+            ->withTimestamps();
+    }
 }

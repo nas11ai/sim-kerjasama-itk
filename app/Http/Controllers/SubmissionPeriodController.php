@@ -247,7 +247,7 @@ class SubmissionPeriodController extends Controller
 
             DB::commit();
 
-            return redirect()->route('submission-periods.index')
+            return redirect()->route('admin.submission-periods.index')
                 ->with('success', 'Submission period updated successfully.');
 
         } catch (\Exception $e) {
