@@ -40,7 +40,8 @@ import {
     MessageSquare,
     CheckCircle,
     Clock,
-    Star
+    Star,
+    Megaphone
 } from 'lucide-vue-next';
 
 const page = usePage()
