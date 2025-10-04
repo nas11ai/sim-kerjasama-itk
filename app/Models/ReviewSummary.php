@@ -4,11 +4,13 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
-class SubmissionReviewer extends Model
+class ReviewSummary extends Model
 {
     protected $fillable = [
         'form_submission_id',
         'reviewer_id',
+        'status',
+        'summary_notes',
     ];
 
     public function formSubmission()
@@ -19,5 +21,10 @@ class SubmissionReviewer extends Model
     public function reviewer()
     {
         return $this->belongsTo(Reviewer::class);
+    }
+
+    public function attachments()
+    {
+        return $this->hasMany(ReviewSummaryAttachment::class);
     }
 }

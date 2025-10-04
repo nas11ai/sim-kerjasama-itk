@@ -42,6 +42,9 @@ import {
     Eye
 } from "lucide-vue-next";
 import { ref, computed } from 'vue';
+import { SubmissionStatus } from "@/Constants/SubmissionStatus";
+import { getSubmissionStatusBadge } from "@/Utils/getSubmissionStatusBadge";
+import { SubmissionStatusOption } from "@/types/SubmissionStatusOption";
 
 interface SubmissionDateLabel {
     id: number;
@@ -87,7 +90,7 @@ interface FormAccessControl {
 
 interface FormPhase {
     id: number;
-    name: string;
+    title: string;
     form_phase_details: FormPhaseDetail[];
 }
 
@@ -96,24 +99,16 @@ interface Faculty {
     name: string;
 }
 
-interface StudyProgram {
-    id: number;
-    name: string;
-    faculty: Faculty;
-}
-
 interface SubmittedBy {
     id: number;
     name: string;
     email: string;
-    study_program: StudyProgram;
 }
 
 interface FormSubmission {
     id: number;
     is_submitted: boolean;
-    can_proceed: boolean;
-    submitted_at: string;
+    status: SubmissionStatus;
     created_at: string;
     updated_at: string;
     form: Form;
@@ -152,14 +147,15 @@ interface Props {
     submissionPeriod: SubmissionPeriod;
     formPhases: FormPhase[];
     submissions: PaginatedSubmissions;
+    submissionStatuses: SubmissionStatusOption[];
     filters: Filters;
 }
 
 const props = defineProps<Props>();
 
 // Reactive filter state
-const formPhaseFilter = ref(props.filters.form_phase_id || '');
-const statusFilter = ref(props.filters.status || '');
+const formPhaseFilter = ref(props.filters.form_phase_id?.toString() || undefined);
+const statusFilter = ref(props.filters.status || undefined);
 const searchFilter = ref(props.filters.search || '');
 
 const formatDateTime = (dateString: string) => {
@@ -181,21 +177,6 @@ const formatDate = (dateString: string) => {
     });
 };
 
-const getStatusBadge = (submission: FormSubmission) => {
-    if (submission.can_proceed) {
-        return {
-            variant: 'default' as const,
-            text: 'Approved',
-            icon: CheckCircle
-        };
-    }
-    return {
-        variant: 'secondary' as const,
-        text: 'Under Review',
-        icon: AlertCircle
-    };
-};
-
 const applyFilters = () => {
     const params = new URLSearchParams();
 
@@ -215,9 +196,10 @@ const applyFilters = () => {
     });
 };
 
+// Update the clearFilters function
 const clearFilters = () => {
-    formPhaseFilter.value = '';
-    statusFilter.value = '';
+    formPhaseFilter.value = undefined;
+    statusFilter.value = undefined;
     searchFilter.value = '';
 
     router.get(window.location.pathname, {}, {
@@ -265,10 +247,10 @@ const periodEndDate = computed(() => {
 // Computed properties
 const totalSubmissions = computed(() => props.submissions.total);
 const approvedSubmissions = computed(() =>
-    props.submissions.data.filter(s => s.can_proceed).length
+    props.submissions.data.filter(s => s.status == SubmissionStatus.APPROVED).length
 );
 const pendingSubmissions = computed(() =>
-    props.submissions.data.filter(s => !s.can_proceed).length
+    props.submissions.data.filter(s => s.status != SubmissionStatus.PENDING).length
 );
 </script>
 
@@ -372,6 +354,7 @@ const pendingSubmissions = computed(() =>
                 </CardHeader>
                 <CardContent>
                     <div class="grid gap-4 md:grid-cols-4">
+                        <!-- Form Phase Select -->
                         <div>
                             <Label for="form_phase">Form Phase</Label>
                             <Select v-model="formPhaseFilter">
@@ -379,15 +362,16 @@ const pendingSubmissions = computed(() =>
                                     <SelectValue placeholder="All phases" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value="">All phases</SelectItem>
+                                    <!-- Remove the empty SelectItem, let the placeholder handle "All phases" -->
                                     <SelectItem v-for="phase in formPhases" :key="phase.id"
                                         :value="phase.id.toString()">
-                                        {{ phase.name }}
+                                        {{ phase.title }}
                                     </SelectItem>
                                 </SelectContent>
                             </Select>
                         </div>
 
+                        <!-- Status Select -->
                         <div>
                             <Label for="status">Status</Label>
                             <Select v-model="statusFilter">
@@ -395,13 +379,13 @@ const pendingSubmissions = computed(() =>
                                     <SelectValue placeholder="All statuses" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value="">All statuses</SelectItem>
-                                    <SelectItem value="approved">Approved</SelectItem>
-                                    <SelectItem value="pending">Under Review</SelectItem>
+                                    <SelectItem v-for="option in submissionStatuses" :key="option.value"
+                                        :value="option.value">
+                                        {{ option.label }}
+                                    </SelectItem>
                                 </SelectContent>
                             </Select>
                         </div>
-
                         <div>
                             <Label for="search">Search</Label>
                             <div class="relative">
@@ -435,7 +419,6 @@ const pendingSubmissions = computed(() =>
                                 <TableRow>
                                     <TableHead>Submitter</TableHead>
                                     <TableHead>Form</TableHead>
-                                    <TableHead>Study Program</TableHead>
                                     <TableHead>Submitted At</TableHead>
                                     <TableHead>Status</TableHead>
                                     <TableHead class="w-[100px]">Actions</TableHead>
@@ -469,25 +452,14 @@ const pendingSubmissions = computed(() =>
                                         </div>
                                     </TableCell>
                                     <TableCell>
-                                        <div class="space-y-1" v-if="submission.submitted_by.study_program">
-                                            <p class="font-medium flex items-center gap-2">
-                                                <GraduationCap class="h-4 w-4" />
-                                                {{ submission.submitted_by.study_program.name }}
-                                            </p>
-                                            <p class="text-sm text-muted-foreground flex items-center gap-2">
-                                                <Building2 class="h-3 w-3" />
-                                                {{ submission.submitted_by.study_program.faculty.name }}
-                                            </p>
-                                        </div>
-                                        <p v-else class="text-muted-foreground">-</p>
+                                        <p class="font-medium">{{ formatDateTime(submission.created_at) }}</p>
                                     </TableCell>
                                     <TableCell>
-                                        <p class="font-medium">{{ formatDateTime(submission.submitted_at) }}</p>
-                                    </TableCell>
-                                    <TableCell>
-                                        <Badge :variant="getStatusBadge(submission).variant" class="text-sm">
-                                            <component :is="getStatusBadge(submission).icon" class="h-3 w-3 mr-1" />
-                                            {{ getStatusBadge(submission).text }}
+                                        <Badge :variant="getSubmissionStatusBadge(submission.status).variant"
+                                            class="text-sm">
+                                            <component :is="getSubmissionStatusBadge(submission.status).icon"
+                                                class="h-3 w-3 mr-1" />
+                                            {{ getSubmissionStatusBadge(submission.status).text }}
                                         </Badge>
                                     </TableCell>
                                     <TableCell>

@@ -9,6 +9,7 @@ use App\Models\FormFieldResponse;
 use App\Models\FormAccessControl;
 use App\Models\FormPhaseDetail;
 use App\Models\Form;
+use App\SubmissionStatus;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -26,6 +27,10 @@ class UserFormController extends Controller
         $studyProgram = $user->studyProgram ?? null;
         $userRoles = $user->getRoleNames();
         $primaryRole = $userRoles->first() ?? 'user';
+
+        // Check if user is a reviewer
+        $reviewer = \App\Models\Reviewer::where('user_id', $user->id)->first();
+        $isReviewer = $reviewer !== null;
 
         // Get submission periods with accessible form phases
         $submissionPeriods = SubmissionPeriod::with([
@@ -101,7 +106,7 @@ class UserFormController extends Controller
 
                         if ($submission && $submission->is_submitted) {
                             $completedForms++;
-                            if ($detail->needs_review && !$submission->can_proceed) {
+                            if ($detail->needs_review && !$submission->canProceed()) {
                                 $pendingReview++;
                                 $canProceed = false;
                             }
@@ -127,6 +132,20 @@ class UserFormController extends Controller
                 return $period;
             });
 
+        // Get review stats if user is reviewer
+        $reviewStats = null;
+        if ($isReviewer) {
+            $reviewStats = [
+                'total_assigned' => \App\Models\ReviewSummary::where('reviewer_id', $reviewer->id)->count(),
+                'pending_reviews' => \App\Models\ReviewSummary::where('reviewer_id', $reviewer->id)
+                    ->where('status', 'open')->count(),
+                'completed_reviews' => \App\Models\ReviewSummary::where('reviewer_id', $reviewer->id)
+                    ->where('status', 'resolved')->count(),
+                'rejected_reviews' => \App\Models\ReviewSummary::where('reviewer_id', $reviewer->id)
+                    ->where('status', 'closed')->count(),
+            ];
+        }
+
         return Inertia::render('User/Dashboard', [
             'submissionPeriods' => $submissionPeriods,
             'userRole' => $primaryRole,
@@ -136,7 +155,64 @@ class UserFormController extends Controller
                 'faculty' => [
                     'name' => $studyProgram->faculty->name
                 ]
+            ] : null,
+            'isReviewer' => $isReviewer,
+            'reviewStats' => $reviewStats,
+            'reviewer' => $reviewer ? [
+                'id' => $reviewer->id,
+                'reviewer_role' => $reviewer->reviewerRole->name
             ] : null
+        ]);
+    }
+
+    // Add method untuk reviewer submissions
+    public function reviewerSubmissions(Request $request)
+    {
+        $user = Auth::user();
+        $reviewer = \App\Models\Reviewer::where('user_id', $user->id)->first();
+
+        if (!$reviewer) {
+            abort(403, 'You are not registered as a reviewer');
+        }
+
+        $query = FormSubmission::whereHas('reviewSummaries', function ($q) use ($reviewer) {
+            $q->where('reviewer_id', $reviewer->id);
+        })
+            ->with([
+                'form:id,title',
+                'submittedBy:id,name,email',
+                'reviewSummaries' => function ($q) use ($reviewer) {
+                    $q->where('reviewer_id', $reviewer->id);
+                }
+            ]);
+
+        // Filter by status
+        if ($request->has('status') && $request->status !== '') {
+            $query->whereHas('reviewSummaries', function ($q) use ($reviewer, $request) {
+                $q->where('reviewer_id', $reviewer->id)
+                    ->where('status', $request->status);
+            });
+        }
+
+        // Search by submitter name or form title
+        if ($request->has('search') && $request->search) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->whereHas('submittedBy', function ($query) use ($search) {
+                    $query->where('name', 'like', "%{$search}%");
+                })
+                    ->orWhereHas('form', function ($query) use ($search) {
+                        $query->where('title', 'like', "%{$search}%");
+                    });
+            });
+        }
+
+        $submissions = $query->orderBy('created_at', 'desc')->paginate(15);
+
+        return Inertia::render('Reviewer/Submissions/Index', [
+            'submissions' => $submissions,
+            'filters' => $request->only(['status', 'search']),
+            'reviewer' => $reviewer->load('reviewerRole')
         ]);
     }
 
@@ -182,7 +258,7 @@ class UserFormController extends Controller
                     'user_submission' => $submission ? [
                         'id' => $submission->id,
                         'is_submitted' => $submission->is_submitted,
-                        'can_proceed' => $submission->can_proceed,
+                        'can_proceed' => $submission->canProceed(),
                         'created_at' => $submission->created_at->toISOString(),
                         'updated_at' => $submission->updated_at->toISOString(),
                         'responses' => $submission->formFieldResponses->mapWithKeys(function ($response) {
@@ -245,7 +321,6 @@ class UserFormController extends Controller
                 'submitted_by' => $user->id
             ], [
                 'is_submitted' => false,
-                'can_proceed' => false
             ]);
 
             // Delete existing responses
@@ -354,13 +429,11 @@ class UserFormController extends Controller
                 'submitted_by' => $user->id
             ], [
                 'is_submitted' => false,
-                'can_proceed' => false
             ]);
 
             // Update submission status
             $submission->update([
                 'is_submitted' => true,
-                'can_proceed' => true, // Will be updated by review process if needed
             ]);
 
             // Delete existing responses
@@ -395,8 +468,8 @@ class UserFormController extends Controller
                 })
                 ->first();
 
-            if ($formPhaseDetail && $formPhaseDetail->needs_review) {
-                $submission->update(['can_proceed' => false]);
+            if ($formPhaseDetail && !$formPhaseDetail->needs_review) {
+                $submission->update(['status' => SubmissionStatus::APPROVED]);
 
                 // TODO: Create review request or notification
                 // You can implement notification system here

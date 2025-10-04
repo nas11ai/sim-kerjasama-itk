@@ -12,7 +12,11 @@ import {
     FileText,
     CheckCircle,
     AlertCircle,
-    PlayCircle
+    PlayCircle,
+    MessageSquare,
+    Star,
+    Users,
+    XCircle
 } from 'lucide-vue-next';
 
 interface SubmissionPeriod {
@@ -47,6 +51,18 @@ interface FormPhase {
     };
 }
 
+interface ReviewStats {
+    total_assigned: number;
+    pending_reviews: number;
+    completed_reviews: number;
+    rejected_reviews: number;
+}
+
+interface Reviewer {
+    id: number;
+    reviewer_role: string;
+}
+
 interface Props {
     submissionPeriods: SubmissionPeriod[];
     userRole: string;
@@ -57,6 +73,9 @@ interface Props {
             name: string;
         };
     };
+    isReviewer: boolean;
+    reviewStats?: ReviewStats;
+    reviewer?: Reviewer;
 }
 
 const props = defineProps<Props>();
@@ -119,13 +138,100 @@ const getProgressPercentage = (completed: number, total: number) => {
                         {{ studyProgram.faculty.name }} - {{ studyProgram.name }}
                     </p>
                 </div>
-                <Badge variant="outline" class="capitalize">
-                    {{ userRole }}
-                </Badge>
+                <div class="flex items-center gap-2">
+                    <Badge variant="outline" class="capitalize">
+                        {{ userRole }}
+                    </Badge>
+                    <Badge v-if="isReviewer" variant="secondary" class="flex items-center gap-1">
+                        <Star class="h-3 w-3" />
+                        {{ reviewer?.reviewer_role || 'Reviewer' }}
+                    </Badge>
+                </div>
             </div>
         </template>
 
         <div class="space-y-6">
+            <!-- Review Stats (jika user adalah reviewer) -->
+            <div v-if="isReviewer && reviewStats" class="grid gap-4 md:grid-cols-4">
+                <Card>
+                    <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardTitle class="text-sm font-medium">Total Assigned</CardTitle>
+                        <Users class="h-4 w-4 text-muted-foreground" />
+                    </CardHeader>
+                    <CardContent>
+                        <div class="text-2xl font-bold">{{ reviewStats.total_assigned }}</div>
+                        <p class="text-xs text-muted-foreground">
+                            Review tasks assigned to you
+                        </p>
+                    </CardContent>
+                </Card>
+
+                <Card>
+                    <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardTitle class="text-sm font-medium">Pending Reviews</CardTitle>
+                        <Clock class="h-4 w-4 text-muted-foreground" />
+                    </CardHeader>
+                    <CardContent>
+                        <div class="text-2xl font-bold text-orange-600">{{ reviewStats.pending_reviews }}</div>
+                        <p class="text-xs text-muted-foreground">
+                            Need your attention
+                        </p>
+                    </CardContent>
+                </Card>
+
+                <Card>
+                    <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardTitle class="text-sm font-medium">Completed</CardTitle>
+                        <CheckCircle class="h-4 w-4 text-muted-foreground" />
+                    </CardHeader>
+                    <CardContent>
+                        <div class="text-2xl font-bold text-green-600">{{ reviewStats.completed_reviews }}</div>
+                        <p class="text-xs text-muted-foreground">
+                            Successfully reviewed
+                        </p>
+                    </CardContent>
+                </Card>
+
+                <Card>
+                    <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardTitle class="text-sm font-medium">Rejected</CardTitle>
+                        <XCircle class="h-4 w-4 text-muted-foreground" />
+                    </CardHeader>
+                    <CardContent>
+                        <div class="text-2xl font-bold text-red-600">{{ reviewStats.rejected_reviews }}</div>
+                        <p class="text-xs text-muted-foreground">
+                            Closed reviews
+                        </p>
+                    </CardContent>
+                </Card>
+            </div>
+
+            <!-- Quick Actions untuk Reviewer -->
+            <Card v-if="isReviewer && reviewStats && reviewStats.pending_reviews > 0">
+                <CardHeader>
+                    <CardTitle class="flex items-center gap-2">
+                        <MessageSquare class="h-5 w-5" />
+                        Review Actions
+                    </CardTitle>
+                </CardHeader>
+                <CardContent>
+                    <div class="flex items-center justify-between">
+                        <div>
+                            <h4 class="font-medium">You have {{ reviewStats.pending_reviews }} pending reviews</h4>
+                            <p class="text-sm text-muted-foreground">
+                                Review submissions assigned to you to help complete the review process.
+                            </p>
+                        </div>
+                        <Link :href="route('reviewer.submissions.index')">
+                        <Button>
+                            <MessageSquare class="h-4 w-4 mr-2" />
+                            Review Now
+                        </Button>
+                        </Link>
+                    </div>
+                </CardContent>
+            </Card>
+
             <!-- Welcome Section -->
             <Card>
                 <CardHeader>
@@ -137,8 +243,10 @@ const getProgressPercentage = (completed: number, total: number) => {
                 <CardContent>
                     <p class="text-muted-foreground">
                         Pilih periode pengajuan aktif di bawah ini untuk mulai mengisi form sesuai dengan role dan
-                        program studi
-                        Anda.
+                        program studi Anda.
+                        <span v-if="isReviewer" class="font-medium text-blue-600">
+                            Sebagai reviewer, Anda juga dapat mengelola review tasks dari menu sidebar.
+                        </span>
                     </p>
                 </CardContent>
             </Card>

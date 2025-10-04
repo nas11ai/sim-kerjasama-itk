@@ -22,6 +22,8 @@ import {
     Eye,
     RefreshCw
 } from "lucide-vue-next";
+import { SubmissionStatus } from "@/Constants/SubmissionStatus";
+import { getSubmissionStatusBadge } from "@/Utils/getSubmissionStatusBadge";
 
 interface SubmissionDate {
     id: number;
@@ -44,7 +46,7 @@ interface UserSubmission {
     id: number;
     form: Form;
     is_submitted: boolean;
-    can_proceed: boolean;
+    status: SubmissionStatus;
     submitted_at: string | null;
     created_at: string;
     updated_at: string;
@@ -71,8 +73,6 @@ interface Props {
 
 const props = defineProps<Props>();
 
-type BadgeVariant = "default" | "destructive" | "outline" | "secondary" | null | undefined;
-
 const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("id-ID", {
         year: "numeric",
@@ -90,21 +90,6 @@ const formatDateTime = (dateString: string) => {
         hour: '2-digit',
         minute: '2-digit',
     });
-};
-
-const getSubmissionBadge = (submission: UserSubmission) => {
-    if (submission.is_submitted) {
-        return {
-            variant: (submission.can_proceed ? 'default' : 'secondary') as BadgeVariant,
-            text: submission.can_proceed ? 'Submitted' : 'Under Review',
-            icon: submission.can_proceed ? CheckCircle : RefreshCw
-        };
-    }
-    return {
-        variant: 'destructive' as BadgeVariant,
-        text: 'Draft',
-        icon: AlertCircle
-    };
 };
 </script>
 
@@ -196,11 +181,11 @@ const getSubmissionBadge = (submission: UserSubmission) => {
                                                 <Badge variant="outline" class="text-xs">
                                                     {{ submission.form.form_type.name }}
                                                 </Badge>
-                                                <Badge :variant="getSubmissionBadge(submission).variant"
+                                                <Badge :variant="getSubmissionStatusBadge(submission.status).variant"
                                                     class="text-xs">
-                                                    <component :is="getSubmissionBadge(submission).icon"
+                                                    <component :is="getSubmissionStatusBadge(submission.status).icon"
                                                         class="h-3 w-3 mr-1" />
-                                                    {{ getSubmissionBadge(submission).text }}
+                                                    {{ getSubmissionStatusBadge(submission.status).text }}
                                                 </Badge>
                                             </div>
                                         </div>
