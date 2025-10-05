@@ -128,27 +128,6 @@ const adminNavItems = [
         ]
     },
     {
-        title: "Review Management",
-        icon: MessageSquare,
-        items: [
-            {
-                title: "Review Overview",
-                url: route('admin.submissions.index') + '?tab=review',
-                icon: MessageSquare,
-            },
-            {
-                title: "Pending Reviews",
-                url: route('admin.submissions.index') + '?status=under_review',
-                icon: Clock,
-            },
-            {
-                title: "Completed Reviews",
-                url: route('admin.submissions.index') + '?status=approved',
-                icon: CheckCircle,
-            }
-        ]
-    },
-    {
         title: "Reviewer Management",
         icon: Users,
         items: [
@@ -273,6 +252,8 @@ const userNavItems = computed(() => {
 
     return baseItems;
 });
+
+// console.log("tes", isReviewer.value);
 
 const navItems = computed(() => {
     if (isAdmin.value) return adminNavItems;
