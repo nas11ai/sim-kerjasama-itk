@@ -128,6 +128,12 @@ Route::middleware(['auth', 'check_reviewer_status'])->prefix('reviewer')->name('
     Route::get('/submissions', [SubmissionViewController::class, 'reviewerSubmissions'])
         ->name('submissions.index');
 
+    Route::get('/submissions/{submission}', [SubmissionViewController::class, 'reviewerShowSubmission'])
+        ->name('submissions.show');
+
+    Route::post('/submissions/{submission}/status', [SubmissionViewController::class, 'updateStatus'])
+        ->name('submissions.updateStatus');
+
     // Complete review
     Route::patch('/review-summaries/{reviewSummary}/complete', [ReviewController::class, 'completeReview'])
         ->name('review-summaries.complete');

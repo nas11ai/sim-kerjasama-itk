@@ -641,4 +641,190 @@ class SubmissionViewController extends Controller
             ]
         ]);
     }
+
+    public function reviewerShowSubmission(FormSubmission $submission)
+    {
+        $user = Auth::user();
+        $reviewer = \App\Models\Reviewer::where('user_id', $user->id)->first();
+        // dd($reviewer, $user);
+
+        if (!$reviewer) {
+            abort(403, 'You are not registered as a reviewer');
+        }
+
+        $isAssigned = \App\Models\SubmissionReviewer::where([
+            'form_submission_id' => $submission->id,
+            'reviewer_id' => $reviewer->id
+        ])->exists();
+        // dd($isAssigned);
+
+        if (!$isAssigned) {
+            abort(403, 'You are not assigned to review this submission');
+        }
+
+        $submission->load([
+            'form.formFields' => function ($query) {
+                $query->orderBy('order');
+            },
+            'form.formFields.fieldType',
+            'form.formFields.formFieldOptions',
+            'formFieldResponses',
+            'submittedBy:id,name,email',
+            'submissionReviewers.reviewer.user:id,name,email',
+            'submissionReviewers.reviewer.reviewerRole:id,name',
+        ]);
+        // dd($submission->toArray());
+
+        $responses = $submission->formFieldResponses->mapWithKeys(function ($response) {
+            return [$response->form_field_id => $response->value];
+        });
+        // dd($responses->toArray());
+
+        $reviewSummaries = [];
+        try {
+            if (class_exists('App\Models\ReviewSummary')) {
+                $reviewSummaries = \App\Models\ReviewSummary::where('form_submission_id', $submission->id)
+                    ->with([
+                        'reviewer.user:id,name,email',
+                        'reviewer.reviewerRole:id,name',
+                    ])
+                    ->get()
+                    ->toArray();
+            }
+        } catch (\Exception $e) {
+            \Log::warning('Could not load review summaries: ' . $e->getMessage());
+        }
+
+        $myReviewSummary = collect($reviewSummaries)->firstWhere('reviewer_id', $reviewer->id);
+
+        $assignedReviewers = $submission->submissionReviewers->map(function ($submissionReviewer) {
+            return [
+                'id' => $submissionReviewer->reviewer->id,
+                'user' => [
+                    'id' => $submissionReviewer->reviewer->user->id,
+                    'name' => $submissionReviewer->reviewer->user->name,
+                    'email' => $submissionReviewer->reviewer->user->email,
+                ],
+                'reviewer_role' => [
+                    'id' => $submissionReviewer->reviewer->reviewerRole->id,
+                    'name' => $submissionReviewer->reviewer->reviewerRole->name,
+                ]
+            ];
+        })->toArray();
+
+        $submissionData = [
+            'id' => $submission->id,
+            'is_submitted' => $submission->is_submitted,
+            'status' => $submission->status,
+            'created_at' => $submission->created_at ? $submission->created_at->toISOString() : null,
+            'updated_at' => $submission->updated_at ? $submission->updated_at->toISOString() : null,
+            'submitted_at' => $submission->submitted_at ? $submission->submitted_at->toISOString() : null,
+            'submitted_by' => [
+                'id' => $submission->submittedBy->id,
+                'name' => $submission->submittedBy->name,
+                'email' => $submission->submittedBy->email,
+            ],
+            'form' => [
+                'id' => $submission->form->id,
+                'title' => $submission->form->title,
+                'description' => $submission->form->description,
+                'form_fields' => $submission->form->formFields->map(function ($field) {
+                    return [
+                        'id' => $field->id,
+                        'label' => $field->label,
+                        'is_required' => $field->is_required,
+                        'order' => $field->order,
+                        'field_type' => [
+                            'name' => $field->fieldType->name,
+                        ],
+                        'form_field_options' => $field->formFieldOptions->map(function ($option) {
+                            return [
+                                'id' => $option->id,
+                                'label' => $option->label,
+                            ];
+                        })->toArray()
+                    ];
+                })->toArray()
+            ],
+            'assigned_reviewers' => $assignedReviewers,
+        ];
+
+        // dd($submissionData, $responses->toArray(), $myReviewSummary);
+
+        return Inertia::render('Reviewer/Submissions/Show', [
+            'submission' => $submissionData,
+            'responses' => $responses,
+            'myReviewSummary' => $myReviewSummary,
+            'reviewer' => [
+                'id' => $reviewer->id,
+                'reviewer_role' => [
+                    'id' => $reviewer->reviewerRole->id,
+                    'name' => $reviewer->reviewerRole->name
+                ]
+            ],
+            'canReview' => true,
+            'userRole' => 'reviewer',
+
+            'availableStatuses' => [
+                ['value' => 'resolved', 'label' => 'Resolved'],
+                ['value' => 'needs_revision', 'label' => 'Needs Revision'],
+                ['value' => 'rejected', 'label' => 'Rejected'],
+            ],
+        ]);
+    }
+
+    public function updateStatus(Request $request, FormSubmission $submission)
+    {
+        $user = Auth::user();
+        $reviewer = \App\Models\Reviewer::where('user_id', $user->id)->first();
+
+        if (!$reviewer) {
+            abort(403, 'You are not registered as a reviewer');
+        }
+
+        $isAssigned = \App\Models\SubmissionReviewer::where([
+            'form_submission_id' => $submission->id,
+            'reviewer_id' => $reviewer->id
+        ])->exists();
+
+        if (!$isAssigned) {
+            abort(403, 'You are not assigned to review this submission');
+        }
+
+        $validated = $request->validate([
+            'status' => 'required|in:resolved,needs_revision,rejected',
+            'notes' => 'nullable|string',
+        ]);
+        // dd($validated);
+
+        try {
+            $reviewSummary = \App\Models\ReviewSummary::updateOrCreate(
+                [
+                    'form_submission_id' => $submission->id,
+                    'reviewer_id' => $reviewer->id,
+                ],
+                [
+                    'status' => $validated['status'],
+                    'summary_notes' => $validated['notes'],
+                ]
+            );
+
+            if ($validated['status'] === 'resolved') {
+                $totalReviewers = \App\Models\SubmissionReviewer::where('form_submission_id', $submission->id)->count();
+                $resolvedReviews = \App\Models\ReviewSummary::where('form_submission_id', $submission->id)
+                    ->where('status', 'resolved')
+                    ->count();
+
+                if ($totalReviewers === $resolvedReviews) {
+                    $submission->update(['status' => 'approved']);
+                }
+            }
+            // dd($reviewSummary->toArray());
+
+            return back()->with('success', 'Review submitted successfully');
+        } catch (\Exception $e) {
+            \Log::error('Error updating review: ' . $e->getMessage());
+            return back()->withErrors(['error' => 'Failed to submit review']);
+        }
+    }
 }
