@@ -301,10 +301,11 @@ class SubmissionViewController extends Controller
         $userRole = $this->getUserRoleForSubmission($submission, $user);
 
         return Inertia::render('User/Submissions/ShowSubmission', [
-            'submission' => $submission->append(['review_comments' => $reviewComments]),
+            'submission' => $submission, // tanpa append()
             'responses' => $responses,
+            'reviewComments' => $reviewComments, // kirim terpisah
             'reviewStats' => $reviewStats,
-            'canCreateThread' => true, // User can always create threads
+            'canCreateThread' => true,
             'canReview' => $this->canUserReview($submission, $user),
             'userRole' => $userRole,
             'isOwnSubmission' => $submission->submitted_by === $user->id,
@@ -501,7 +502,7 @@ class SubmissionViewController extends Controller
 
         $reviewer = \App\Models\Reviewer::where('user_id', $user->id)->first();
         if ($reviewer) {
-            return \App\Models\ReviewSummary::where([
+            return \App\Models\SubmissionReviewer::where([
                 'form_submission_id' => $submission->id,
                 'reviewer_id' => $reviewer->id
             ])->exists();
