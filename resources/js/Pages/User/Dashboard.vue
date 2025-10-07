@@ -335,7 +335,7 @@ const getProgressPercentage = (completed: number, total: number) => {
                                         </div>
 
                                         <div class="ml-4">
-                                            <Link v-if="phase.user_can_access && phase.user_progress.can_proceed"
+                                            <Link v-if="phase.user_progress.can_proceed"
                                                 :href="route('user.form-phase', { period: period.id, phase: phase.id })">
                                             <Button size="sm">
                                                 <PlayCircle class="h-4 w-4 mr-2" />

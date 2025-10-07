@@ -14,13 +14,13 @@ import {
     SidebarMenuButton,
     SidebarMenuItem,
     SidebarRail,
-} from "@/Components/ui/sidebar";
+} from '@/Components/ui/sidebar';
 import {
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuItem,
     DropdownMenuTrigger,
-} from "@/Components/ui/dropdown-menu";
+} from '@/Components/ui/dropdown-menu';
 import {
     Home,
     FileText,
@@ -40,13 +40,12 @@ import {
     MessageSquare,
     CheckCircle,
     Clock,
-    Star,
-    Megaphone
+    Star
 } from 'lucide-vue-next';
 
-const page = usePage()
-const user = computed(() => page.props.auth?.user)
-const userRoles = computed(() => user.value?.roles || [])
+const page = usePage();
+const user = computed(() => page.props.auth?.user);
+const userRoles = computed(() => user.value?.roles || []);
 
 const isAdmin = computed(() =>
     userRoles.value.some((role: any) => ['Super Admin', 'Admin'].includes(role))
@@ -66,7 +65,7 @@ const isReviewer = computed(() => {
 const adminNavItems = [
     {
         title: "Dashboard",
-        url: route("admin.dashboard"),
+        url: route('admin.dashboard'),
         icon: Home,
     },
     {
@@ -75,20 +74,20 @@ const adminNavItems = [
         items: [
             {
                 title: "Forms",
-                url: route("admin.forms.index"),
+                url: route('admin.forms.index'),
                 icon: FileText,
             },
             {
                 title: "Form Phases",
-                url: route("admin.form-phases.index"),
+                url: route('admin.form-phases.index'),
                 icon: Settings,
             },
             {
                 title: "Access Controls",
-                url: route("admin.form-access-controls.index"),
+                url: route('admin.form-access-controls.index'),
                 icon: Shield,
-            },
-        ],
+            }
+        ]
     },
     {
         title: "Submission Management",
@@ -96,52 +95,31 @@ const adminNavItems = [
         items: [
             {
                 title: "Submission Periods",
-                url: route("admin.submission-periods.index"),
+                url: route('admin.submission-periods.index'),
                 icon: Calendar,
             },
             {
                 title: "View Submissions",
-                url: route("admin.submissions.index"),
+                url: route('admin.submissions.index'),
                 icon: Send,
             }
         ]
     },
     {
-        title: "Review Management",
-        icon: MessageSquare,
-        items: [
-            {
-                title: "Review Overview",
-                url: route('admin.submissions.index') + '?tab=review',
-                icon: MessageSquare,
-            },
-            {
-                title: "Pending Reviews",
-                url: route('admin.submissions.index') + '?status=under_review',
-                icon: Clock,
-            },
-            {
-                title: "Completed Reviews",
-                url: route('admin.submissions.index') + '?status=approved',
-                icon: CheckCircle,
-            }
-        ]
-    },
-    {
         title: "Reviewer Management",
-        icon: Users,
+        icon: Users, // pakai icon Users dari lucide-vue-next
         items: [
             {
                 title: "Reviewers",
-                url: route("admin.reviewers.index"),
+                url: route('admin.reviewers.index'),
                 icon: Users,
             },
             {
                 title: "Reviewer Roles",
-                url: route("admin.reviewer-roles.index"),
+                url: route('admin.reviewer-roles.index'),
                 icon: Filter,
-            },
-        ],
+            }
+        ]
     },
     {
         title: "Institution Management",
@@ -149,27 +127,16 @@ const adminNavItems = [
         items: [
             {
                 title: "Faculties",
-                url: route("admin.faculties.index"),
+                url: route('admin.faculties.index'),
                 icon: Building2,
             },
             {
                 title: "Study Programs",
-                url: route("admin.faculties.study-programs"),
+                url: route('admin.faculties.study-programs'),
                 icon: GraduationCap,
-            },
-        ],
-    },
-    {
-        title: "Announcement Management",
-        icon: Building2,
-        items: [
-            {
-                title: "Announcements",
-                url: route("admin.announcements.index"),
-                icon: Megaphone,
-            },
-        ],
-    },
+            }
+        ]
+    }
 ];
 
 // Navigation items for regular users (termasuk reviewer)
@@ -244,42 +211,18 @@ const userNavItems = computed(() => {
 
 const navItems = computed(() => {
     if (isAdmin.value) return adminNavItems;
-    return userNavItems.value;
+    return userNavItems;
 });
 
 const currentUrl = computed(() => page.url);
 
 const isActive = (url: string) => {
-    // Remove query parameters for comparison
-    const cleanUrl = url.split('?')[0];
-    const cleanCurrentUrl = currentUrl.value.split('?')[0];
-    return cleanCurrentUrl === cleanUrl || cleanCurrentUrl.startsWith(cleanUrl);
+    return currentUrl.value === url || currentUrl.value.startsWith(url);
 };
 
 const hasActiveChild = (items: any[]) => {
-    return items.some((item) => isActive(item.url));
+    return items.some(item => isActive(item.url));
 };
-
-const logout = (e: Event) => {
-    e.preventDefault()
-    router.post(route('logout'))
-}
-
-// Helper to determine current context
-const getCurrentContext = computed(() => {
-    const url = currentUrl.value;
-    if (url.startsWith('/admin')) return 'admin';
-    return 'user';
-});
-
-const getContextLabel = computed(() => {
-    switch (getCurrentContext.value) {
-        case 'admin':
-            return 'Administration';
-        default:
-            return isReviewer.value ? 'User & Reviewer Portal' : 'User Portal';
-    }
-});
 </script>
 
 <template>
@@ -290,8 +233,7 @@ const getContextLabel = computed(() => {
                     <SidebarMenuButton size="lg" as-child>
                         <a href="/">
                             <div
-                                class="flex aspect-square size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground"
-                            >
+                                class="flex aspect-square size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
                                 <FileText class="size-4" />
                             </div>
                             <div class="grid flex-1 text-left text-sm leading-tight">
@@ -306,18 +248,13 @@ const getContextLabel = computed(() => {
 
         <SidebarContent>
             <SidebarGroup v-for="item in navItems" :key="item.title">
-                <SidebarGroupLabel v-if="item.items">{{
-                    item.title
-                }}</SidebarGroupLabel>
+                <SidebarGroupLabel v-if="item.items">{{ item.title }}</SidebarGroupLabel>
 
                 <SidebarGroupContent>
                     <SidebarMenu>
                         <!-- Single nav item -->
                         <SidebarMenuItem v-if="!item.items">
-                            <SidebarMenuButton
-                                as-child
-                                :is-active="isActive(item.url)"
-                            >
+                            <SidebarMenuButton as-child :is-active="isActive(item.url)">
                                 <a :href="item.url">
                                     <component :is="item.icon" />
                                     <span>{{ item.title }}</span>
@@ -327,14 +264,8 @@ const getContextLabel = computed(() => {
 
                         <!-- Group with subitems -->
                         <template v-else>
-                            <SidebarMenuItem
-                                v-for="subItem in item.items"
-                                :key="subItem.title"
-                            >
-                                <SidebarMenuButton
-                                    as-child
-                                    :is-active="isActive(subItem.url)"
-                                >
+                            <SidebarMenuItem v-for="subItem in item.items" :key="subItem.title">
+                                <SidebarMenuButton as-child :is-active="isActive(subItem.url)">
                                     <a :href="subItem.url">
                                         <component :is="subItem.icon" />
                                         <span>{{ subItem.title }}</span>
@@ -352,17 +283,11 @@ const getContextLabel = computed(() => {
                 <SidebarMenuItem>
                     <DropdownMenu>
                         <DropdownMenuTrigger as-child>
-                            <SidebarMenuButton
-                                size="lg"
-                                class="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
-                            >
+                            <SidebarMenuButton size="lg"
+                                class="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground">
                                 <User2 class="size-4" />
-                                <div
-                                    class="grid flex-1 text-left text-sm leading-tight"
-                                >
-                                    <span class="truncate font-semibold">{{
-                                        user?.name
-                                    }}</span>
+                                <div class="grid flex-1 text-left text-sm leading-tight">
+                                    <span class="truncate font-semibold">{{ user?.name }}</span>
                                     <span class="truncate text-xs capitalize">
                                         {{userRoles.map((role: any) => role).join(', ')}}
                                         <span v-if="isReviewer" class="text-blue-600">• Reviewer</span>
@@ -371,54 +296,39 @@ const getContextLabel = computed(() => {
                                 <ChevronUp class="ml-auto size-4" />
                             </SidebarMenuButton>
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent
-                            class="w-[--radix-dropdown-menu-trigger-width] min-w-56 rounded-lg"
-                            side="bottom"
-                            align="end"
-                        >
+                        <DropdownMenuContent class="w-[--radix-dropdown-menu-trigger-width] min-w-56 rounded-lg"
+                            side="bottom" align="end">
                             <DropdownMenuItem as-child>
-                                <a
-                                    :href="route('profile.edit')"
-                                    class="cursor-pointer"
-                                >
+                                <a :href="route('profile.edit')" class="cursor-pointer">
                                     <User2 class="mr-2 size-4" />
                                     Profile
                                 </a>
                             </DropdownMenuItem>
 
                             <!-- Switch between admin/user view if user has admin role -->
-                            <DropdownMenuItem
-                                v-if="
-                                    isAdmin && !currentUrl.startsWith('/admin')
-                                "
-                                as-child
-                            >
-                                <a
-                                    :href="route('admin.dashboard')"
-                                    class="cursor-pointer"
-                                >
+                            <DropdownMenuItem v-if="isAdmin && !currentUrl.startsWith('/admin')" as-child>
+                                <a :href="route('admin.dashboard')" class="cursor-pointer">
                                     <Shield class="mr-2 size-4" />
                                     Admin Panel
                                 </a>
                             </DropdownMenuItem>
 
-                            <DropdownMenuItem
-                                v-if="
-                                    isAdmin && currentUrl.startsWith('/admin')
-                                "
-                                as-child
-                            >
-                                <a
-                                    :href="route('user.dashboard')"
-                                    class="cursor-pointer"
-                                >
+                            <DropdownMenuItem v-if="isAdmin && currentUrl.startsWith('/admin')" as-child>
+                                <a :href="route('user.dashboard')" class="cursor-pointer">
                                     <User2 class="mr-2 size-4" />
                                     User View
                                 </a>
                             </DropdownMenuItem>
 
                             <DropdownMenuItem as-child>
+<<<<<<<<< Temporary merge branch 1
                                 <a href="#" @click="logout" class="cursor-pointer text-destructive flex items-center">
+=========
+                                <a
+                                    class="cursor-pointer text-destructive"
+                                    @click="router.post(route('logout'))"
+                                    >
+>>>>>>>>> Temporary merge branch 2
                                     <LogOut class="mr-2 size-4" />
                                     Logout
                                 </a>
