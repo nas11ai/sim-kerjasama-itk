@@ -21,7 +21,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/Components/ui/select';
-import { Search, FileText, User, Calendar, Star } from 'lucide-vue-next';
+import { Search, FileText, User, Calendar, Star, Eye, CheckCircle, XCircle, Info, Filter } from 'lucide-vue-next';
 
 interface Reviewer {
     id: number;
@@ -103,6 +103,9 @@ const getStatusBadgeVariant = (status: string) => {
         resolved: 'secondary',
         closed: 'destructive',
         pending: 'outline',
+        under_review: 'default',
+        approved: 'secondary',
+        rejected: 'destructive',
     };
     return variants[status] || 'outline';
 };
@@ -114,10 +117,14 @@ const formatDate = (dateString: string) => {
         day: 'numeric',
     });
 };
+
+const viewSubmissionDetail = (submissionId: number) => {
+    router.visit(route('reviewer.submissions.show', submissionId));
+};
 </script>
 
 <template>
-    <Head title="Reviewer - Assigned Submissions"  />
+    <Head title="Reviewer - Assigned Submissions" />
 
     <AuthenticatedLayout>
         <template #header>
@@ -133,10 +140,10 @@ const formatDate = (dateString: string) => {
                         </span>
                     </p>
                 </div>
-                    <Badge variant="secondary" class="flex items-center gap-1">
-                        <Star class="h-3 w-3" />
-                        {{ reviewer.reviewer_role?.name }}
-                    </Badge>
+                <Badge variant="secondary" class="flex items-center gap-1">
+                    <Star class="h-3 w-3" />
+                    {{ reviewer.reviewer_role?.name }}
+                </Badge>
             </div>
         </template>
 
@@ -146,7 +153,7 @@ const formatDate = (dateString: string) => {
                 <div class="mb-6 grid gap-4 md:grid-cols-4">
                     <Card>
                         <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle class="text-sm font-medium">Total Submissions</CardTitle>
+                            <CardTitle class="text-sm font-medium">Total Assigned</CardTitle>
                             <FileText class="h-4 w-4 text-muted-foreground" />
                         </CardHeader>
                         <CardContent>
@@ -161,7 +168,7 @@ const formatDate = (dateString: string) => {
                             <Info class="h-4 w-4 text-muted-foreground" />
                         </CardHeader>
                         <CardContent>
-                            <div class="text-2xl font-bold">
+                            <div class="text-2xl font-bold text-green-600">
                                 {{
                                     props.submissions.data.filter(
                                         (s) => s.status === 'under_review' || s.status === 'pending'
@@ -169,7 +176,6 @@ const formatDate = (dateString: string) => {
                                 }}
                             </div>
                             <p class="text-xs text-muted-foreground">Need your review</p>
-
                         </CardContent>
                     </Card>
 
@@ -179,7 +185,7 @@ const formatDate = (dateString: string) => {
                             <CheckCircle class="h-4 w-4 text-muted-foreground" />
                         </CardHeader>
                         <CardContent>
-                            <div class="text-2xl font-bold">
+                            <div class="text-2xl font-bold text-blue-600">
                                 {{ props.submissions.data.filter((s) => s.status === 'approved').length }}
                             </div>
                             <p class="text-xs text-muted-foreground">Successfully reviewed</p>
@@ -192,7 +198,7 @@ const formatDate = (dateString: string) => {
                             <XCircle class="h-4 w-4 text-muted-foreground" />
                         </CardHeader>
                         <CardContent>
-                            <div class="text-2xl font-bold">
+                            <div class="text-2xl font-bold text-red-600">
                                 {{ props.submissions.data.filter((s) => s.status === 'rejected').length }}
                             </div>
                             <p class="text-xs text-muted-foreground">Rejected submissions</p>
@@ -203,10 +209,10 @@ const formatDate = (dateString: string) => {
                 <!-- Filters -->
                 <Card class="mb-6">
                     <CardHeader>
-                        <CardTitle>Search & Filter</CardTitle>
-                        <CardDescription>
-                            Search by submitter name or form title
-                        </CardDescription>
+                        <CardTitle class="flex items-center gap-2">
+                            <Filter class="mr-2 h-4 w-4" />
+                                Filter Submissions
+                        </CardTitle>
                     </CardHeader>
                     <CardContent>
                         <div class="flex flex-col gap-4 md:flex-row">
@@ -277,6 +283,8 @@ const formatDate = (dateString: string) => {
                                     <TableRow
                                         v-for="submission in submissions.data"
                                         :key="submission.id"
+                                        class="hover:bg-muted/50 cursor-pointer"
+                                        @click="viewSubmissionDetail(submission.id)"
                                     >
                                         <TableCell>
                                             <div class="flex items-center">
@@ -308,15 +316,15 @@ const formatDate = (dateString: string) => {
                                                 {{ formatDate(submission.created_at) }}
                                             </div>
                                         </TableCell>
-                                        <TableCell class="text-right">
-                                            <Link
-                                                :href="route('user.submissions.show', submission.id)"
-                                                as="button"
+                                        <TableCell class="text-right" @click.stop>
+                                            <Button
+                                                variant="outline"
+                                                size="sm"
+                                                @click="viewSubmissionDetail(submission.id)"
                                             >
-                                                <Button variant="outline" size="sm">
-                                                    View Details
-                                                </Button>
-                                            </Link>
+                                                <Eye class="mr-2 h-4 w-4" />
+                                                View Details
+                                            </Button>
                                         </TableCell>
                                     </TableRow>
                                 </TableBody>
