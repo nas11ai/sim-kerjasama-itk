@@ -30,8 +30,6 @@ Route::get('/', function () {
     ]);
 });
 
-Route::get('announcements/{announcement}', [AnnouncementController::class, 'detail'])->name('announcements.detail');
-
 Route::middleware(['auth', 'check_reviewer_status'])->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');

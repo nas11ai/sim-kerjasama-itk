@@ -242,7 +242,7 @@ const toggleItemSelection = (id: number) => {
                         <Trash2 class="h-4 w-4 mr-2" />
                         Delete Selected ({{ selectedItems.length }})
                     </Button>
-                    <Link :href="route('admin.form-access-controls.create')">
+                    <Link :href="route('admin.admin.form-access-controls.create')">
                     <Button>
                         <Plus class="h-4 w-4 mr-2" />
                         Create Access Control
@@ -442,7 +442,7 @@ const toggleItemSelection = (id: number) => {
                                             </DropdownMenuTrigger>
                                             <DropdownMenuContent align="end">
                                                 <Link :href="route(
-                                                    'admin.form-access-controls.show',
+                                                    'admin.admin.form-access-controls.show',
                                                     control.id
                                                 )
                                                     ">
@@ -490,7 +490,7 @@ const toggleItemSelection = (id: number) => {
                                     : "Get started by creating your first access control."
                             }}
                         </p>
-                        <Link :href="route('admin.form-access-controls.create')" v-if="!hasActiveFilters">
+                        <Link :href="route('admin.admin.form-access-controls.create')" v-if="!hasActiveFilters">
                         <Button>
                             <Plus class="h-4 w-4 mr-2" />
                             Create Access Control

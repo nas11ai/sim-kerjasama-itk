@@ -190,7 +190,7 @@ class FormPhaseController extends Controller
 
             DB::commit();
 
-            return redirect()->route('admin.form-phases.index')
+            return redirect()->route('form-phases.index')
                 ->with('success', 'Form phase deleted successfully.');
 
         } catch (\Exception $e) {

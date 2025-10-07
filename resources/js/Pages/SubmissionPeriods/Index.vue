@@ -206,7 +206,7 @@ const formatDate = (dateString: string) => {
                 <h2 class="text-xl font-semibold leading-tight text-gray-800">
                     Submission Periods Management
                 </h2>
-                <Link :href="route('admin.submission-periods.create')">
+                <Link :href="route('admin.admin.submission-periods.create')">
                 <Button>
                     <Plus class="h-4 w-4 mr-2" />
                     Create Submission Period
@@ -349,7 +349,7 @@ const formatDate = (dateString: string) => {
                                             </DropdownMenuTrigger>
                                             <DropdownMenuContent align="end">
                                                 <Link :href="route(
-                                                    'admin.submission-periods.show',
+                                                    'admin.admin.submission-periods.show',
                                                     period.id
                                                 )
                                                     ">
@@ -359,7 +359,7 @@ const formatDate = (dateString: string) => {
                                                 </DropdownMenuItem>
                                                 </Link>
                                                 <Link :href="route(
-                                                    'admin.submission-periods.edit',
+                                                    'admin.admin.submission-periods.edit',
                                                     period.id
                                                 )
                                                     ">
@@ -397,7 +397,7 @@ const formatDate = (dateString: string) => {
                                     : "Get started by creating your first submission period."
                             }}
                         </p>
-                        <Link :href="route('admin.submission-periods.create')" v-if="!searchQuery">
+                        <Link :href="route('admin.admin.submission-periods.create')" v-if="!searchQuery">
                         <Button>
                             <Plus class="h-4 w-4 mr-2" />
                             Create Submission Period
