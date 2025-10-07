@@ -588,22 +588,21 @@ class SubmissionViewController extends Controller
             abort(403, 'You are not registered as a reviewer');
         }
 
-        $query = FormSubmission::whereHas('reviewSummaries', function ($q) use ($reviewer) {
+        $query = FormSubmission::whereHas('submissionReviewers', function ($q) use ($reviewer) {
             $q->where('reviewer_id', $reviewer->id);
         })
             ->with([
                 'form:id,title',
                 'submittedBy:id,name,email',
-                'reviewSummaries' => function ($q) use ($reviewer) {
-                    $q->where('reviewer_id', $reviewer->id);
-                }
+                'reviewSummaries',
+                'submissionReviewers',
             ]);
 
         // Filter by status
         if ($request->has('status') && $request->status !== '') {
-            $query->whereHas('reviewSummaries', function ($q) use ($reviewer, $request) {
+            $query->whereHas('submissionReviewers', function ($q) use ($reviewer, $request) {
                 $q->where('reviewer_id', $reviewer->id)
-                    ->where('status', $request->status);
+                    ->where('evaluation_status', $request->status);
             });
         }
 
@@ -620,7 +619,7 @@ class SubmissionViewController extends Controller
             });
         }
 
-        $submissions = $query->orderBy('created_at', 'desc')->paginate(15);
+        $submissions = $query->orderBy('created_at', 'desc')->paginate(15)->withQueryString();
 
         return Inertia::render('Reviewer/Submissions/Index', [
             'submissions' => $submissions,

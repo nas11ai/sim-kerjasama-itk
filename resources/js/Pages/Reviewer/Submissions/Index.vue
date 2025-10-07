@@ -115,23 +115,19 @@ const formatDate = (dateString: string) => {
 const applyFilters = () => {
     const params: any = {};
 
-    if (searchTerm.value) {
-        params.search = searchTerm.value;
-    }
-
-    if (statusFilter.value) {
+    if (searchTerm.value) params.search = searchTerm.value;
+    if (statusFilter.value && statusFilter.value !== 'all')
         params.status = statusFilter.value;
-    }
 
     router.get(route('reviewer.submissions.index'), params, {
         preserveState: true,
-        preserveScroll: true
+        preserveScroll: true,
     });
 };
 
 const clearFilters = () => {
     searchTerm.value = '';
-    statusFilter.value = '';
+    statusFilter.value = 'all';
     router.get(route('reviewer.submissions.index'));
 };
 
@@ -178,7 +174,7 @@ const submissionStats = computed(() => {
                         <MessageSquare class="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                        <div class="text-2xl font-bold">{{ submissions.meta.total }}</div>
+                        <div class="text-2xl font-bold">{{ submissions.meta?.total ?? submissions.data.length }}</div>
                         <p class="text-xs text-muted-foreground">
                             All submissions assigned to you
                         </p>
@@ -252,7 +248,7 @@ const submissionStats = computed(() => {
                                     <SelectValue placeholder="All statuses" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value="">All statuses</SelectItem>
+                                    <SelectItem value="all">All statuses</SelectItem>
                                     <SelectItem value="open">Open</SelectItem>
                                     <SelectItem value="resolved">Resolved</SelectItem>
                                     <SelectItem value="closed">Closed</SelectItem>
@@ -344,19 +340,21 @@ const submissionStats = computed(() => {
                         <!-- Pagination -->
                         <div class="mt-6 flex items-center justify-between">
                             <div class="text-sm text-muted-foreground">
-                                Showing {{ submissions.meta.from || 0 }} to {{ submissions.meta.to || 0 }}
-                                of {{ submissions.meta.total }} results
+                                Showing {{ submissions.meta?.from || 0 }} to {{ submissions.meta?.to || 0 }}
+                                of {{ submissions.meta?.total || submissions.data?.length || 0 }} results
                             </div>
 
                             <div class="flex gap-2">
-                                <Link v-for="link in submissions.links" :key="link.label" :href="link.url"
-                                    v-html="link.label" :class="[
-                                        'px-3 py-2 text-sm border rounded-md',
-                                        link.active
-                                            ? 'bg-primary text-primary-foreground border-primary'
-                                            : 'bg-background hover:bg-muted border-border',
-                                        !link.url ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'
-                                    ]" />
+                                <template v-for="link in submissions.links" :key="link.label">
+                                    <Link v-if="link.url" :href="link.url" v-html="link.label"
+                                        class="px-3 py-2 text-sm border rounded-md" :class="[
+                                            link.active
+                                                ? 'bg-primary text-primary-foreground border-primary'
+                                                : 'bg-background hover:bg-muted border-border'
+                                        ]" />
+                                    <span v-else v-html="link.label"
+                                        class="px-3 py-2 text-sm border rounded-md opacity-50 cursor-not-allowed" />
+                                </template>
                             </div>
                         </div>
                     </div>
