@@ -86,8 +86,8 @@ const handleSearch = () => {
     );
 };
 
-const handleStatusChange = (value: string) => {
-    statusFilter.value = value;
+const handleStatusChange = (value: unknown) => {
+    statusFilter.value = (value ?? '').toString();
     handleSearch();
 };
 
@@ -97,8 +97,10 @@ const clearFilters = () => {
     router.get(route('reviewer.submissions.index'));
 };
 
-const getStatusBadgeVariant = (status: string) => {
-    const variants: Record<string, string> = {
+const getStatusBadgeVariant = (
+    status: string
+): 'default' | 'destructive' | 'outline' | 'secondary' | 'success' | null | undefined => {
+    const variants: Record<string, 'default' | 'destructive' | 'outline' | 'secondary' | 'success'> = {
         open: 'default',
         resolved: 'secondary',
         closed: 'destructive',
@@ -107,7 +109,7 @@ const getStatusBadgeVariant = (status: string) => {
         approved: 'secondary',
         rejected: 'destructive',
     };
-    return variants[status] || 'outline';
+    return variants[status] ?? 'outline';
 };
 
 const formatDate = (dateString: string) => {
