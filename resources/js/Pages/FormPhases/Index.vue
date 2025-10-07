@@ -1,3 +1,4 @@
+<!-- resources/js/Pages/Admin/FormPhases/Index.vue -->
 <script setup lang="ts">
 import { computed, ref } from "vue";
 import { Head, Link, router } from "@inertiajs/vue3";

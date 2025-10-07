@@ -9,6 +9,8 @@ use App\Models\ReviewSummary;
 use App\Models\ReviewComment;
 use App\Models\ReviewSummaryAttachment;
 use App\Models\ReviewCommentAttachment;
+use App\Models\ReviewEvaluationForm;
+use App\Models\ReviewerFormAssignment;
 use App\SubmissionStatus;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -17,42 +19,85 @@ use Illuminate\Support\Facades\Storage;
 
 class ReviewController extends Controller
 {
-    // Assign reviewers to submission
+    // Enhanced assign reviewers with evaluation forms
     public function assignReviewers(Request $request, FormSubmission $submission)
     {
         $request->validate([
             'reviewer_ids' => 'required|array|min:1',
-            'reviewer_ids.*' => 'exists:reviewers,id'
+            'reviewer_ids.*' => 'exists:reviewers,id',
+            'assign_evaluation_forms' => 'boolean',
+            'evaluation_form_assignments' => 'nullable|array',
+            'evaluation_form_assignments.*.form_id' => 'required|exists:review_evaluation_forms,id',
+            'evaluation_form_assignments.*.is_required' => 'boolean',
+            'evaluation_form_assignments.*.due_date' => 'nullable|date|after:now',
         ]);
 
         DB::transaction(function () use ($request, $submission) {
+            $assignedReviewers = [];
+
             foreach ($request->reviewer_ids as $reviewerId) {
-                SubmissionReviewer::firstOrCreate([
+                $submissionReviewer = SubmissionReviewer::firstOrCreate([
                     'form_submission_id' => $submission->id,
                     'reviewer_id' => $reviewerId,
                 ]);
+
+                $assignedReviewers[] = $submissionReviewer;
             }
 
-            // Update submission status jika ada reviewer yang ditugaskan
+            // Auto-assign evaluation forms if requested
+            if ($request->assign_evaluation_forms) {
+                $this->autoAssignEvaluationForms($submission, $assignedReviewers, $request->evaluation_form_assignments);
+            }
+
+            // Update submission status
             if ($submission->submissionReviewers()->count() > 0) {
-                $submission->update(['status' => SubmissionStatus::UNDER_REVIEW]);
+                $newStatus = $submission->hasPendingEvaluations()
+                    ? SubmissionStatus::UNDER_REVIEW
+                    : SubmissionStatus::UNDER_REVIEW;
+                $submission->update(['status' => $newStatus]);
             }
         });
 
         return back()->with('success', 'Reviewer berhasil ditugaskan ke submission ini.');
     }
 
-    // Remove reviewer from submission
+    // Enhanced remove reviewer to handle evaluation forms
     public function removeReviewer(FormSubmission $submission, Reviewer $reviewer)
     {
         DB::transaction(function () use ($submission, $reviewer) {
-            // Hapus assignment dari SubmissionReviewer
-            SubmissionReviewer::where([
+            $submissionReviewer = SubmissionReviewer::where([
                 'form_submission_id' => $submission->id,
                 'reviewer_id' => $reviewer->id
-            ])->delete();
+            ])->first();
 
-            // Hapus semua ReviewSummary yang dibuat oleh reviewer ini
+            if (!$submissionReviewer) {
+                throw new \Exception('Reviewer not found for this submission.');
+            }
+
+            // Check if there are submitted evaluation responses
+            $hasSubmittedEvaluations = $submissionReviewer->reviewerFormAssignments()
+                ->whereHas('reviewFormResponse', function ($query) {
+                    $query->where('status', 'submitted');
+                })
+                ->exists();
+
+            if ($hasSubmittedEvaluations) {
+                throw new \Exception('Cannot remove reviewer with submitted evaluation responses.');
+            }
+
+            // Delete evaluation form assignments and draft responses
+            foreach ($submissionReviewer->reviewerFormAssignments as $assignment) {
+                if ($assignment->reviewFormResponse && $assignment->reviewFormResponse->isDraft()) {
+                    $assignment->reviewFormResponse->reviewFormFieldResponses()->delete();
+                    $assignment->reviewFormResponse->delete();
+                }
+                $assignment->delete();
+            }
+
+            // Delete submission reviewer record
+            $submissionReviewer->delete();
+
+            // Delete all ReviewSummary created by this reviewer
             $reviewSummaries = ReviewSummary::where([
                 'form_submission_id' => $submission->id,
                 'reviewer_id' => $reviewer->id
@@ -62,11 +107,10 @@ class ReviewController extends Controller
                 $this->deleteReviewSummaryWithComments($summary);
             }
 
-            // Update submission status jika tidak ada reviewer lagi
+            // Update submission status
             if ($submission->submissionReviewers()->count() === 0) {
                 $submission->update(['status' => SubmissionStatus::PENDING]);
             } else {
-                // Update status berdasarkan review yang tersisa
                 $this->updateSubmissionStatusBasedOnReviews($submission);
             }
         });
@@ -74,7 +118,7 @@ class ReviewController extends Controller
         return back()->with('success', 'Reviewer berhasil dihapus dari submission ini.');
     }
 
-    // BARU: Direct submission status update by reviewer or admin
+    // Enhanced status update considering evaluation completion
     public function updateSubmissionStatus(Request $request, FormSubmission $submission)
     {
         $request->validate([
@@ -84,44 +128,41 @@ class ReviewController extends Controller
         $user = Auth::user();
         $canUpdate = false;
 
-        // Check if user can update status
         if ($user->hasRole(['Super Admin', 'Admin'])) {
             $canUpdate = true;
         } else {
-            // Check if user is assigned reviewer
             $reviewer = Reviewer::where('user_id', $user->id)->first();
             if ($reviewer) {
-                $isAssigned = SubmissionReviewer::where([
+                $submissionReviewer = SubmissionReviewer::where([
                     'form_submission_id' => $submission->id,
                     'reviewer_id' => $reviewer->id
-                ])->exists();
+                ])->first();
 
-                if ($isAssigned) {
+                // Reviewer can update status only if evaluation is completed or not required
+                if ($submissionReviewer && $submissionReviewer->canParticipateInDiscussions()) {
                     $canUpdate = true;
                 }
             }
         }
 
         if (!$canUpdate) {
-            abort(403, 'Unauthorized to update submission status');
+            abort(403, 'Unauthorized to update submission status. Complete your evaluation first.');
         }
 
-        // Map frontend status to enum
         $newStatus = match ($request->status) {
             'approved' => SubmissionStatus::APPROVED,
             'needs_revision' => SubmissionStatus::NEEDS_REVISION,
             'rejected' => SubmissionStatus::REJECTED,
         };
 
-        DB::transaction(function () use ($submission, $newStatus, $request, $user) {
-            // Update submission status
+        DB::transaction(function () use ($submission, $newStatus) {
             $submission->update(['status' => $newStatus]);
         });
 
         return back()->with('success', "Status submission berhasil diubah menjadi {$newStatus->label()}.");
     }
 
-    // Create review thread (hanya untuk assigned reviewer)
+    // Enhanced thread creation with evaluation check
     public function createReviewThread(Request $request, FormSubmission $submission)
     {
         $request->validate([
@@ -132,27 +173,42 @@ class ReviewController extends Controller
 
         $user = Auth::user();
 
-        // Hanya assigned reviewer yang bisa create thread
+        // Admin can always create threads
+        if ($user->hasRole(['Super Admin', 'Admin'])) {
+            return $this->performCreateReviewThread($request, $submission, null);
+        }
+
+        // Check if user is assigned reviewer and can participate in discussions
         $reviewer = Reviewer::where('user_id', $user->id)->first();
         if (!$reviewer) {
             abort(403, 'You are not registered as a reviewer');
         }
 
-        $isAssigned = SubmissionReviewer::where([
+        $submissionReviewer = SubmissionReviewer::where([
             'form_submission_id' => $submission->id,
             'reviewer_id' => $reviewer->id
-        ])->exists();
+        ])->first();
 
-        if (!$isAssigned) {
+        if (!$submissionReviewer) {
             abort(403, 'You are not assigned as reviewer for this submission');
         }
 
+        if (!$submissionReviewer->canCreateDiscussionThreads()) {
+            abort(403, 'Please complete your evaluation forms before creating discussion threads');
+        }
+
+        return $this->performCreateReviewThread($request, $submission, $reviewer);
+    }
+
+    protected function performCreateReviewThread(Request $request, FormSubmission $submission, ?Reviewer $reviewer)
+    {
         DB::transaction(function () use ($request, $submission, $reviewer) {
             $reviewSummary = ReviewSummary::create([
                 'form_submission_id' => $submission->id,
-                'reviewer_id' => $reviewer->id,
+                'reviewer_id' => $reviewer?->id,
                 'status' => 'open',
                 'summary_notes' => $request->summary_notes,
+                'is_auto_generated' => false,
             ]);
 
             // Handle attachments
@@ -167,14 +223,16 @@ class ReviewController extends Controller
                 }
             }
 
-            // Update submission status to needs revision since thread is created
-            $submission->update(['status' => SubmissionStatus::NEEDS_REVISION]);
+            // Update submission status if not already under review
+            if ($submission->status === SubmissionStatus::PENDING) {
+                $submission->update(['status' => SubmissionStatus::UNDER_REVIEW]);
+            }
         });
 
         return back()->with('success', 'Review thread berhasil dibuat.');
     }
 
-    // Add comment to review thread
+    // Enhanced comment adding with evaluation check
     public function addComment(Request $request, ReviewSummary $reviewSummary)
     {
         $request->validate([
@@ -186,24 +244,21 @@ class ReviewController extends Controller
 
         $user = Auth::user();
         $reviewerId = null;
-
-        // Check authorization: admin, submitter, atau assigned reviewer
         $canComment = false;
 
         if ($user->hasRole(['Super Admin', 'Admin'])) {
             $canComment = true;
         } elseif ($reviewSummary->formSubmission->submitted_by === $user->id) {
-            $canComment = true; // Submitter can comment
+            $canComment = true; // Submitter can always comment
         } else {
-            // Check if assigned reviewer
             $reviewer = Reviewer::where('user_id', $user->id)->first();
             if ($reviewer) {
-                $isAssigned = SubmissionReviewer::where([
+                $submissionReviewer = SubmissionReviewer::where([
                     'form_submission_id' => $reviewSummary->form_submission_id,
                     'reviewer_id' => $reviewer->id
-                ])->exists();
+                ])->first();
 
-                if ($isAssigned) {
+                if ($submissionReviewer && $submissionReviewer->canParticipateInDiscussions()) {
                     $canComment = true;
                     $reviewerId = $reviewer->id;
                 }
@@ -211,7 +266,7 @@ class ReviewController extends Controller
         }
 
         if (!$canComment) {
-            abort(403, 'Unauthorized to comment on this review');
+            abort(403, 'Complete your evaluation forms before participating in discussions');
         }
 
         DB::transaction(function () use ($request, $reviewSummary, $user, $reviewerId) {
@@ -223,7 +278,6 @@ class ReviewController extends Controller
                 'comment_text' => $request->comment_text,
             ]);
 
-            // Handle attachments
             if ($request->hasFile('attachments')) {
                 foreach ($request->file('attachments') as $file) {
                     $path = $file->store('review-attachments/' . $reviewSummary->form_submission_id, 'public');
@@ -239,7 +293,166 @@ class ReviewController extends Controller
         return back()->with('success', 'Komentar berhasil ditambahkan.');
     }
 
-    // Update review thread status
+    // Get available evaluation forms for assignment
+    public function getAvailableEvaluationForms(FormSubmission $submission)
+    {
+        $formPhase = $this->getSubmissionFormPhase($submission);
+
+        if (!$formPhase) {
+            return response()->json([]);
+        }
+
+        $availableForms = $formPhase->activeReviewEvaluationForms()
+            ->get(['id', 'title', 'description', 'is_required', 'order']);
+
+        return response()->json($availableForms);
+    }
+
+    // Get evaluation status for submission
+    public function getEvaluationStatus(FormSubmission $submission)
+    {
+        $evaluationStats = $submission->getEvaluationStats();
+        $formsSummary = $submission->getEvaluationFormsSummary();
+
+        return response()->json([
+            'evaluation_stats' => $evaluationStats,
+            'forms_summary' => $formsSummary,
+            'discussions_allowed' => $submission->discussionsAllowed(),
+            'can_proceed_to_discussions' => $submission->canProceedToDiscussions(),
+        ]);
+    }
+
+    // Assign specific evaluation forms to reviewer
+    public function assignEvaluationFormsToReviewer(Request $request, FormSubmission $submission, Reviewer $reviewer)
+    {
+        $request->validate([
+            'form_assignments' => 'required|array|min:1',
+            'form_assignments.*.form_id' => 'required|exists:review_evaluation_forms,id',
+            'form_assignments.*.is_required' => 'boolean',
+            'form_assignments.*.due_date' => 'nullable|date|after:now',
+        ]);
+
+        $submissionReviewer = SubmissionReviewer::where([
+            'form_submission_id' => $submission->id,
+            'reviewer_id' => $reviewer->id
+        ])->first();
+
+        if (!$submissionReviewer) {
+            return back()->withErrors(['error' => 'Reviewer not assigned to this submission.']);
+        }
+
+        try {
+            DB::beginTransaction();
+
+            foreach ($request->form_assignments as $assignment) {
+                $submissionReviewer->assignForm(
+                    $assignment['form_id'],
+                    $assignment['is_required'] ?? true,
+                    $assignment['due_date'] ? new \DateTime($assignment['due_date']) : null
+                );
+            }
+
+            DB::commit();
+
+            return back()->with('success', 'Evaluation forms assigned successfully.');
+
+        } catch (\Exception $e) {
+            DB::rollback();
+            return back()->withErrors(['error' => 'Failed to assign evaluation forms: ' . $e->getMessage()]);
+        }
+    }
+
+    // Enhanced available reviewers with evaluation context
+    public function getAvailableReviewers(FormSubmission $submission)
+    {
+        $assignedReviewerIds = SubmissionReviewer::where('form_submission_id', $submission->id)
+            ->pluck('reviewer_id')
+            ->toArray();
+
+        $availableReviewers = Reviewer::with(['user', 'reviewerRole'])
+            ->whereHas('user', function ($query) use ($submission) {
+                $query->where('id', '!=', $submission->submitted_by);
+            })
+            ->whereNotIn('id', $assignedReviewerIds)
+            ->get()
+            ->map(function ($reviewer) {
+                return [
+                    'id' => $reviewer->id,
+                    'name' => $reviewer->user->name,
+                    'email' => $reviewer->user->email,
+                    'role' => $reviewer->reviewerRole->name,
+                ];
+            });
+
+        // Get available evaluation forms
+        $evaluationForms = $this->getSubmissionFormPhase($submission)
+                ?->activeReviewEvaluationForms()
+            ->get(['id', 'title', 'is_required', 'order']) ?? collect();
+
+        return response()->json([
+            'reviewers' => $availableReviewers,
+            'evaluation_forms' => $evaluationForms,
+            'has_evaluation_forms' => $evaluationForms->isNotEmpty(),
+        ]);
+    }
+
+    // Auto-assign evaluation forms to new reviewers
+    protected function autoAssignEvaluationForms(FormSubmission $submission, array $submissionReviewers, ?array $formAssignments = null)
+    {
+        $formPhase = $this->getSubmissionFormPhase($submission);
+
+        if (!$formPhase || !$formPhase->hasReviewEvaluationForms()) {
+            return;
+        }
+
+        $dueDate = $this->getEvaluationDueDate($submission);
+
+        foreach ($submissionReviewers as $submissionReviewer) {
+            if ($formAssignments) {
+                // Use custom assignments
+                foreach ($formAssignments as $assignment) {
+                    $submissionReviewer->assignForm(
+                        $assignment['form_id'],
+                        $assignment['is_required'] ?? true,
+                        $assignment['due_date'] ? new \DateTime($assignment['due_date']) : $dueDate
+                    );
+                }
+            } else {
+                // Auto-assign all required forms
+                $requiredForms = $formPhase->requiredReviewEvaluationForms()->get();
+
+                foreach ($requiredForms as $form) {
+                    $submissionReviewer->assignForm($form->id, true, $dueDate);
+                }
+            }
+        }
+    }
+
+    protected function getSubmissionFormPhase(FormSubmission $submission)
+    {
+        return \App\Models\FormPhase::whereHas('formPhaseDetails.formAccessControl', function ($query) use ($submission) {
+            $query->where('form_id', $submission->form_id);
+        })->first();
+    }
+
+    protected function getEvaluationDueDate(FormSubmission $submission): ?\DateTime
+    {
+        $submissionPeriod = \App\Models\SubmissionPeriod::whereHas('submissionPeriodPhases.formPhase.formPhaseDetails.formAccessControl', function ($query) use ($submission) {
+            $query->where('form_id', $submission->form_id);
+        })->first();
+
+        if (!$submissionPeriod) {
+            return null;
+        }
+
+        $latestDate = $submissionPeriod->submissionDates()
+            ->orderBy('datetime', 'desc')
+            ->first();
+
+        return $latestDate ? $latestDate->datetime : null;
+    }
+
+    // Existing methods with minor updates...
     public function updateReviewStatus(Request $request, ReviewSummary $reviewSummary)
     {
         $request->validate([
@@ -269,7 +482,6 @@ class ReviewController extends Controller
                 'summary_notes' => $request->summary_notes ?? $reviewSummary->summary_notes,
             ]);
 
-            // Update overall submission status based on all review threads
             $this->updateSubmissionStatusBasedOnReviews($reviewSummary->formSubmission);
         });
 
@@ -282,32 +494,6 @@ class ReviewController extends Controller
         return back()->with('success', "Review thread berhasil {$statusText}.");
     }
 
-    // Get available reviewers for assignment
-    public function getAvailableReviewers(FormSubmission $submission)
-    {
-        $assignedReviewerIds = SubmissionReviewer::where('form_submission_id', $submission->id)
-            ->pluck('reviewer_id')
-            ->toArray();
-
-        $availableReviewers = Reviewer::with(['user', 'reviewerRole'])
-            ->whereHas('user', function ($query) use ($submission) {
-                $query->where('id', '!=', $submission->submitted_by);
-            })
-            ->whereNotIn('id', $assignedReviewerIds)
-            ->get()
-            ->map(function ($reviewer) {
-                return [
-                    'id' => $reviewer->id,
-                    'name' => $reviewer->user->name,
-                    'email' => $reviewer->user->email,
-                    'role' => $reviewer->reviewerRole->name,
-                ];
-            });
-
-        return response()->json($availableReviewers);
-    }
-
-    // Download attachment
     public function downloadAttachment(Request $request)
     {
         $filePath = $request->query('path');
@@ -320,13 +506,84 @@ class ReviewController extends Controller
         return response()->download($fullPath);
     }
 
-    // Private helpers
+    // Enhanced status update method considering evaluations
+    private function updateSubmissionStatusBasedOnReviews(FormSubmission $submission)
+    {
+        $reviewSummaries = ReviewSummary::where('form_submission_id', $submission->id)->get();
+
+        // Check evaluation completion first
+        if ($submission->hasPendingEvaluations()) {
+            $submission->update(['status' => SubmissionStatus::UNDER_REVIEW]);
+            return;
+        }
+
+        // If no review threads exist but evaluations are complete, submission can proceed
+        if ($reviewSummaries->isEmpty()) {
+            // Check if all evaluations are positive (this logic can be customized)
+            $allEvaluationsPositive = $this->checkIfEvaluationsArePositive($submission);
+
+            if ($allEvaluationsPositive) {
+                $submission->update(['status' => SubmissionStatus::APPROVED]);
+            } else {
+                $submission->update(['status' => SubmissionStatus::NEEDS_REVISION]);
+            }
+            return;
+        }
+
+        // Existing logic for review threads
+        if ($reviewSummaries->where('status', 'closed')->isNotEmpty()) {
+            $submission->update(['status' => SubmissionStatus::REJECTED]);
+        } elseif ($reviewSummaries->where('status', 'open')->isNotEmpty()) {
+            $submission->update(['status' => SubmissionStatus::NEEDS_REVISION]);
+        } elseif ($reviewSummaries->every(fn($r) => $r->status === 'resolved')) {
+            $submission->update(['status' => SubmissionStatus::APPROVED]);
+        }
+    }
+
+    private function checkIfEvaluationsArePositive(FormSubmission $submission): bool
+    {
+        // This is a simplified logic - you can customize based on your evaluation criteria
+        // For example, check if there are any "rejection" responses in evaluation forms
+
+        $submittedResponses = $submission->submittedReviewFormResponses()->get();
+
+        // If no evaluations submitted, default to needs review
+        if ($submittedResponses->isEmpty()) {
+            return false;
+        }
+
+        // Custom logic: check for specific field values that indicate rejection
+        foreach ($submittedResponses as $response) {
+            $fieldResponses = $response->reviewFormFieldResponses()->get();
+
+            foreach ($fieldResponses as $fieldResponse) {
+                $field = $fieldResponse->reviewFormField;
+
+                // Example: if there's a field with "recommendation" and value is "reject"
+                if (
+                    str_contains(strtolower($field->label), 'recommendation') ||
+                    str_contains(strtolower($field->label), 'decision')
+                ) {
+
+                    $value = strtolower($fieldResponse->value);
+                    if (
+                        str_contains($value, 'reject') ||
+                        str_contains($value, 'decline') ||
+                        str_contains($value, 'not approved')
+                    ) {
+                        return false;
+                    }
+                }
+            }
+        }
+
+        return true; // Default to positive if no negative indicators found
+    }
+
     private function deleteReviewSummaryWithComments(ReviewSummary $summary)
     {
-        // Delete all comments and their attachments
         $comments = ReviewComment::where('review_summary_id', $summary->id)->get();
         foreach ($comments as $comment) {
-            // Delete comment attachments
             foreach ($comment->attachments as $attachment) {
                 if (Storage::disk('public')->exists($attachment->file_path)) {
                     Storage::disk('public')->delete($attachment->file_path);
@@ -336,7 +593,6 @@ class ReviewController extends Controller
             $comment->delete();
         }
 
-        // Delete summary attachments
         foreach ($summary->attachments as $attachment) {
             if (Storage::disk('public')->exists($attachment->file_path)) {
                 Storage::disk('public')->delete($attachment->file_path);
@@ -345,28 +601,5 @@ class ReviewController extends Controller
         }
 
         $summary->delete();
-    }
-
-    private function updateSubmissionStatusBasedOnReviews(FormSubmission $submission)
-    {
-        $reviewSummaries = ReviewSummary::where('form_submission_id', $submission->id)->get();
-
-        // Jika tidak ada review threads, status tetap under_review (reviewer belum action)
-        if ($reviewSummaries->isEmpty()) {
-            return; // Keep current status
-        }
-
-        // Jika ada thread yang ditutup (rejected), submission ditolak
-        if ($reviewSummaries->where('status', 'closed')->isNotEmpty()) {
-            $submission->update(['status' => SubmissionStatus::REJECTED]);
-        }
-        // Jika ada thread yang masih open, submission needs revision
-        elseif ($reviewSummaries->where('status', 'open')->isNotEmpty()) {
-            $submission->update(['status' => SubmissionStatus::NEEDS_REVISION]);
-        }
-        // Jika semua thread resolved, submission approved
-        elseif ($reviewSummaries->every(fn($r) => $r->status === 'resolved')) {
-            $submission->update(['status' => SubmissionStatus::APPROVED]);
-        }
     }
 }

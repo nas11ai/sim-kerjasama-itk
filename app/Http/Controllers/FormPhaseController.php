@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\FieldType;
 use App\Models\FormPhase;
 use App\Models\FormPhaseDetail;
 use App\Models\FormAccessControl;
@@ -16,16 +17,21 @@ use Illuminate\Support\Facades\DB;
 
 class FormPhaseController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $formPhases = FormPhase::with([
+        $query = FormPhase::with([
             'formPhaseDetails.formAccessControl.form',
             'formPhaseDetails.formAccessControl.role',
             'formPhaseDetails.formAccessControl.studyProgram.faculty',
             'formPhaseDetails.phaseType'
-        ])
-            ->orderBy('created_at', 'desc')
-            ->paginate(10);
+        ])->withCount([
+                    'reviewEvaluationForms',
+                    'reviewEvaluationForms as required_review_evaluation_forms_count' => function ($query) {
+                        $query->where('is_required', true)->where('is_active', true);
+                    }
+                ]);
+
+        $formPhases = $query->orderBy('created_at', 'desc')->paginate(10);
 
         return Inertia::render('FormPhases/Index', [
             'formPhases' => $formPhases
@@ -99,7 +105,15 @@ class FormPhaseController extends Controller
             'formPhaseDetails.formAccessControl.form',
             'formPhaseDetails.formAccessControl.role',
             'formPhaseDetails.formAccessControl.studyProgram.faculty',
-            'formPhaseDetails.phaseType'
+            'formPhaseDetails.phaseType',
+            'reviewEvaluationForms' => function ($query) {
+                $query->active()->ordered()->withCount('reviewFormFields as fields_count')
+                    ->withCount([
+                        'reviewFormFields as required_fields_count' => function ($q) {
+                            $q->where('is_required', true);
+                        }
+                    ]);
+            }
         ]);
 
         return Inertia::render('FormPhases/Show', [
@@ -243,5 +257,21 @@ class FormPhaseController extends Controller
                 'message' => 'Failed to update status: ' . $e->getMessage()
             ], 500);
         }
+    }
+
+    public function evaluationForms(FormPhase $formPhase)
+    {
+        $formPhase->load([
+            'reviewEvaluationForms' => function ($query) {
+                $query->ordered()->with('reviewFormFields');
+            }
+        ]);
+
+        $fieldTypes = FieldType::orderBy('name')->get(['id', 'name']);
+
+        return Inertia::render('FormPhases/EvaluationForms', [
+            'formPhase' => $formPhase,
+            'fieldTypes' => $fieldTypes
+        ]);
     }
 }

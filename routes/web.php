@@ -1,6 +1,9 @@
 <?php
 
 use App\Http\Controllers\ReviewController;
+use App\Http\Controllers\ReviewEvaluationFormController;
+use App\Http\Controllers\ReviewerFormAssignmentController;
+use App\Http\Controllers\ReviewFormResponseController;
 use App\Http\Controllers\ReviewerRoleController;
 use App\Http\Controllers\FacultyController;
 use App\Http\Controllers\FormAccessControlController;
@@ -29,19 +32,16 @@ Route::middleware(['auth', 'check_reviewer_status'])->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
-    // Complete review - untuk assigned reviewer saja
+    // Enhanced review routes with evaluation integration
     Route::patch('/review-summaries/{reviewSummary}/complete', [ReviewController::class, 'completeReview'])
         ->name('review-summaries.complete');
 
-    // Update review status - untuk assigned reviewer atau admin
     Route::patch('/review-summaries/{reviewSummary}/status', [ReviewController::class, 'updateReviewStatus'])
         ->name('review-summaries.update-status');
 
-    // Create thread - untuk submission owner, assigned reviewer, atau admin
     Route::post('/submissions/{submission}/review-threads', [ReviewController::class, 'createReviewThread'])
         ->name('review-threads.store');
 
-    // Add comments - untuk submission owner, assigned reviewer, atau admin
     Route::post('/review-summaries/{reviewSummary}/comments', [ReviewController::class, 'addComment'])
         ->name('review-comments.store');
 
@@ -52,30 +52,40 @@ Route::middleware(['auth', 'check_reviewer_status'])->group(function () {
     Route::get('/submissions', [UserFormController::class, 'reviewerSubmissions'])
         ->name('submissions.index');
 
-    // Update submission status directly (untuk reviewer dan admin)
+    // Enhanced submission status update
     Route::patch('/submissions/{submission}/status', [ReviewController::class, 'updateSubmissionStatus'])
         ->name('submissions.update-status');
 
-    // Create review thread (hanya assigned reviewer)
-    Route::post('/submissions/{submission}/review-threads', [ReviewController::class, 'createReviewThread'])
-        ->name('review-threads.store');
+    // NEW: Evaluation form routes for reviewers
+    Route::prefix('reviewer/evaluation-forms')->name('reviewer.evaluation-form.')->group(function () {
+        Route::get('/{assignment}', [ReviewFormResponseController::class, 'show'])
+            ->name('show');
 
-    // Add comments to review thread
-    Route::post('/review-summaries/{reviewSummary}/comments', [ReviewController::class, 'addComment'])
-        ->name('review-comments.store');
+        Route::post('/{assignment}/save-draft', [ReviewFormResponseController::class, 'saveDraft'])
+            ->name('save-draft');
 
-    // Update review thread status
-    Route::patch('/review-summaries/{reviewSummary}/status', [ReviewController::class, 'updateReviewStatus'])
-        ->name('review-summaries.update-status');
+        Route::post('/{assignment}/submit', [ReviewFormResponseController::class, 'submit'])
+            ->name('submit');
 
-    // File download
-    Route::get('/review-attachments/download', [ReviewController::class, 'downloadAttachment'])
-        ->name('review-attachments.download');
+        Route::get('/{assignment}/submitted', [ReviewFormResponseController::class, 'showSubmitted'])
+            ->name('submitted');
+
+        Route::get('/{assignment}/download-summary', [ReviewFormResponseController::class, 'downloadSummary'])
+            ->name('download-summary');
+
+        Route::get('/{assignment}/progress', [ReviewFormResponseController::class, 'getProgress'])
+            ->name('progress');
+    });
+
+    // NEW: Reviewer assignments management
+    Route::get('/reviewer/assignments', [ReviewerFormAssignmentController::class, 'getMyAssignments'])
+        ->name('reviewer.assignments.index');
 });
 
 Route::middleware(['auth', 'check_reviewer_status'])->prefix('user')->name('user.')->group(function () {
     Route::get('/dashboard', [UserFormController::class, 'dashboard'])
         ->name('dashboard');
+
     // Form Phase Routes
     Route::get('/submission-period/{period}/form-phase/{phase}', [UserFormController::class, 'showFormPhase'])
         ->name('form-phase');
@@ -87,7 +97,6 @@ Route::middleware(['auth', 'check_reviewer_status'])->prefix('user')->name('user
     Route::post('/form-submission/submit', [UserFormController::class, 'submitForm'])
         ->name('form-submission.submit');
 
-    // Get existing form data for editing
     Route::get('/form-submission/data', [UserFormController::class, 'getFormSubmissionData'])
         ->name('form-submission.data');
 
@@ -104,8 +113,7 @@ Route::middleware(['auth', 'check_reviewer_status'])->prefix('user')->name('user
 
 // Reviewer Routes - untuk user yang bertindak sebagai reviewer
 Route::middleware(['auth', 'check_reviewer_status'])->prefix('reviewer')->name('reviewer.')->group(function () {
-
-    // Dashboard khusus reviewer (optional)
+    // Dashboard khusus reviewer
     Route::get('/dashboard', [SubmissionViewController::class, 'reviewerDashboard'])
         ->name('dashboard');
 
@@ -113,19 +121,16 @@ Route::middleware(['auth', 'check_reviewer_status'])->prefix('reviewer')->name('
     Route::get('/submissions', [SubmissionViewController::class, 'reviewerSubmissions'])
         ->name('submissions.index');
 
-    // Complete review
+    // Enhanced review actions with evaluation context
     Route::patch('/review-summaries/{reviewSummary}/complete', [ReviewController::class, 'completeReview'])
         ->name('review-summaries.complete');
 
-    // Update review status
     Route::patch('/review-summaries/{reviewSummary}/status', [ReviewController::class, 'updateReviewStatus'])
         ->name('review-summaries.update-status');
 
-    // Create thread sebagai reviewer
     Route::post('/submissions/{submission}/review-threads', [ReviewController::class, 'createReviewThread'])
         ->name('review-threads.store');
 
-    // Add comments sebagai reviewer
     Route::post('/review-summaries/{reviewSummary}/comments', [ReviewController::class, 'addComment'])
         ->name('review-comments.store');
 });
@@ -139,6 +144,27 @@ Route::middleware(['auth', 'role:Super Admin|Admin', 'check_reviewer_status'])->
 
     Route::resource('forms', FormController::class);
 
+    // NEW: Review Evaluation Forms Management
+    Route::resource('review-evaluation-forms', ReviewEvaluationFormController::class)->names([
+        'index' => 'review-evaluation-forms.index',
+        'create' => 'review-evaluation-forms.create',
+        'store' => 'review-evaluation-forms.store',
+        'show' => 'review-evaluation-forms.show',
+        'edit' => 'review-evaluation-forms.edit',
+        'update' => 'review-evaluation-forms.update',
+        'destroy' => 'review-evaluation-forms.destroy',
+    ]);
+
+    // NEW: Additional review evaluation form routes
+    Route::post('review-evaluation-forms/{reviewEvaluationForm}/duplicate', [ReviewEvaluationFormController::class, 'duplicate'])
+        ->name('review-evaluation-forms.duplicate');
+
+    Route::post('review-evaluation-forms/update-order', [ReviewEvaluationFormController::class, 'updateOrder'])
+        ->name('review-evaluation-forms.update-order');
+
+    Route::get('review-evaluation-forms/{reviewEvaluationForm}/preview', [ReviewEvaluationFormController::class, 'preview'])
+        ->name('review-evaluation-forms.preview');
+
     // Submission viewing routes
     Route::get('/submissions', [SubmissionViewController::class, 'adminIndex'])
         ->name('submissions.index');
@@ -149,16 +175,39 @@ Route::middleware(['auth', 'role:Super Admin|Admin', 'check_reviewer_status'])->
     Route::get('/submissions/{submission}', [SubmissionViewController::class, 'adminShowSubmission'])
         ->name('submissions.show');
 
-    // Reviewer assignment (hanya admin)
+    // Enhanced reviewer assignment with evaluation forms
     Route::post('/submissions/{submission}/assign-reviewers', [ReviewController::class, 'assignReviewers'])
         ->name('submissions.assign-reviewers');
 
     Route::delete('/submissions/{submission}/reviewers/{reviewer}', [ReviewController::class, 'removeReviewer'])
         ->name('submissions.remove-reviewer');
 
-    // Get available reviewers
+    // Enhanced available reviewers with evaluation context
     Route::get('/submissions/{submission}/available-reviewers', [ReviewController::class, 'getAvailableReviewers'])
         ->name('submissions.available-reviewers');
+
+    // NEW: Evaluation-specific routes
+    Route::get('/submissions/{submission}/available-evaluation-forms', [ReviewController::class, 'getAvailableEvaluationForms'])
+        ->name('submissions.available-evaluation-forms');
+
+    Route::get('/submissions/{submission}/evaluation-status', [ReviewController::class, 'getEvaluationStatus'])
+        ->name('submissions.evaluation-status');
+
+    // NEW: Reviewer form assignment management
+    Route::post('/submissions/{submission}/reviewers/{reviewer}/assign-forms', [ReviewController::class, 'assignEvaluationFormsToReviewer'])
+        ->name('submissions.assign-evaluation-forms');
+
+    Route::post('/submissions/{submission}/assign-forms-bulk', [ReviewerFormAssignmentController::class, 'bulkAssignForms'])
+        ->name('submissions.assign-forms-bulk');
+
+    Route::get('/submissions/{submission}/form-assignments', [ReviewerFormAssignmentController::class, 'getAssignmentsForSubmission'])
+        ->name('submissions.form-assignments');
+
+    Route::delete('/form-assignments/{assignment}', [ReviewerFormAssignmentController::class, 'removeFormAssignment'])
+        ->name('form-assignments.remove');
+
+    Route::patch('/form-assignments/{assignment}', [ReviewerFormAssignmentController::class, 'updateAssignment'])
+        ->name('form-assignments.update');
 
     // Admin create review thread
     Route::post('/submissions/{submission}/review-threads', [ReviewController::class, 'createReviewThread'])
@@ -197,6 +246,9 @@ Route::middleware(['auth', 'role:Super Admin|Admin', 'check_reviewer_status'])->
         'update' => 'form-phases.update',
         'destroy' => 'form-phases.destroy',
     ]);
+
+    Route::get('form-phases/{formPhase}/evaluation-forms', [FormPhaseController::class, 'evaluationForms'])
+        ->name('form-phases.evaluation-forms');
 
     Route::resource('form-access-controls', FormAccessControlController::class)->names([
         'index' => 'form-access-controls.index',
@@ -267,6 +319,10 @@ Route::middleware(['auth', 'role:Super Admin|Admin', 'check_reviewer_status'])->
 
     Route::patch('api/form-phases/{formPhase}/status', [FormPhaseController::class, 'updateStatus'])
         ->name('form-phases.update-status');
+
+    // NEW: Maintenance routes
+    Route::post('maintenance/auto-lock-overdue-assignments', [ReviewerFormAssignmentController::class, 'autoLockOverdueAssignments'])
+        ->name('maintenance.auto-lock-overdue');
 });
 
 // For backwards compatibility, you can add redirects for admin routes without prefix
@@ -285,6 +341,9 @@ Route::middleware(['auth', 'role:Super Admin|Admin', 'check_reviewer_status'])->
     });
     Route::get('/faculties', function () {
         return redirect()->route('admin.faculties.index');
+    });
+    Route::get('/review-evaluation-forms', function () {
+        return redirect()->route('admin.review-evaluation-forms.index');
     });
 });
 
