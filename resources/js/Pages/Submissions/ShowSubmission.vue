@@ -134,6 +134,14 @@ interface FormSubmission {
     assigned_reviewers?: AssignedReviewer[];
 }
 
+interface EvaluationRequirements {
+    required: boolean
+    has_forms: boolean
+    total_forms?: number
+    required_forms?: number
+    message: string
+}
+
 interface Props {
     submission: FormSubmission;
     responses: Record<number, string>;
@@ -150,11 +158,20 @@ interface Props {
     canCreateThread?: boolean;
     hasPendingEvaluations?: boolean;
     pendingEvaluationsCount?: number;
+    hasReviewEvaluationForms?: boolean; // NEW
+    evaluationRequirements?: EvaluationRequirements; // NEW
     userRole: "admin" | "submitter" | "reviewer" | "user";
     error?: string;
 }
 
 const props = defineProps<Props>();
+
+const hasReviewEvaluationForms = props.hasReviewEvaluationForms || false;
+const evaluationRequirements = props.evaluationRequirements || {
+    required: false,
+    has_forms: false,
+    message: ''
+};
 
 // Default values
 const reviewStats = props.reviewStats || {
@@ -431,7 +448,9 @@ const goBack = () => {
                         :can-assign-reviewers="canAssignReviewers" :can-review="canReview"
                         :can-create-thread="canCreateThread" :has-pending-evaluations="hasPendingEvaluations"
                         :pending-evaluations-count="pendingEvaluationsCount" :user-role="userRole"
-                        :assigned-reviewers="assignedReviewers" :review-stats="reviewStats" />
+                        :assigned-reviewers="assignedReviewers" :review-stats="reviewStats"
+                        :has-review-evaluation-forms="hasReviewEvaluationForms"
+                        :evaluation-requirements="evaluationRequirements" />
                 </TabsContent>
             </Tabs>
         </div>

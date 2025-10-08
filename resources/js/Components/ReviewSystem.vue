@@ -8,93 +8,52 @@ import { Label } from '@/Components/ui/label'
 import { Textarea } from '@/Components/ui/textarea'
 import { Avatar, AvatarFallback } from '@/Components/ui/avatar'
 import { Separator } from '@/Components/ui/separator'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger } from '@/Components/ui/dialog'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/Components/ui/dialog'
 import { Input } from '@/Components/ui/input'
-import { AlertCircle, CheckCircle, XCircle, Clock, Shield, User, MessageSquare, Users, Plus, Send, X, Download } from 'lucide-vue-next'
+import { Alert, AlertDescription } from '@/Components/ui/alert'
+import { AlertCircle, CheckCircle, XCircle, Clock, Shield, User, MessageSquare, Users, Plus, Send, X, Download, Info, FileText, Eye, ClipboardList } from 'lucide-vue-next'
 
-// Types
-interface AssignedReviewer {
+interface ReviewerFormAssignment {
     id: number
-    user: {
+    is_required: boolean
+    due_date?: string
+    review_evaluation_form: {
         id: number
-        name: string
-        email: string
+        title: string
+        description?: string
     }
-    reviewer_role: {
+    review_form_response?: {
         id: number
-        name: string
+        status: string
+        submitted_at?: string
     }
 }
 
-interface ReviewSummary {
-    id: number
-    reviewer_id: number | null
-    status: 'open' | 'resolved' | 'closed'
-    summary_notes: string | null
-    created_at: string
-    updated_at: string
-    reviewer?: {
-        user: {
-            id: number
-            name: string
-            email: string
-        }
-        reviewer_role: {
-            name: string
-        }
-    }
-    attachments: Array<{
-        id: number
-        file_path: string
-    }>
-}
-
-interface ReviewComment {
-    id: number
-    review_summary_id: number
-    parent_comment_id: number | null
-    user_id: number | null
-    reviewer_id: number | null
-    comment_text: string
-    created_at: string
-    user?: {
-        id: number
-        name: string
-    }
-    reviewer?: {
-        user: {
-            id: number
-            name: string
-        }
-    }
-    attachments: Array<{
-        id: number
-        file_path: string
-    }>
-    replies: ReviewComment[]
-}
-
-interface ReviewStats {
-    total_reviewers: number
-    open_reviews: number
-    resolved_reviews: number
-    closed_reviews: number
-    total_comments: number
+interface EvaluationRequirements {
+    required: boolean
+    has_forms: boolean
+    total_forms?: number
+    required_forms?: number
+    message: string
 }
 
 interface Props {
     submissionId: number
-    reviewSummaries: ReviewSummary[]
-    reviewComments: ReviewComment[]
+    reviewSummaries: any[]
+    reviewComments: any[]
     availableReviewers?: any[]
-    assignedReviewers: AssignedReviewer[]
+    assignedReviewers: any[]
     canAssignReviewers: boolean
     canReview: boolean
     canCreateThread: boolean
     userRole: 'admin' | 'submitter' | 'reviewer' | 'user'
-    reviewStats: ReviewStats
+    reviewStats: any
     hasPendingEvaluations: boolean
     pendingEvaluationsCount: number
+    hasReviewEvaluationForms?: boolean
+    evaluationRequirements?: EvaluationRequirements
+    reviewerFormAssignments?: ReviewerFormAssignment[]
+    submissionReviewerId?: number // NEW: For creating assignments
 }
 
 const props = defineProps<Props>()
@@ -111,25 +70,73 @@ const newReply = ref('')
 // Computed Properties
 const currentUser = computed(() => page.props.auth.user as any)
 const displayedAssignedReviewers = computed(() => props.assignedReviewers || [])
+const reviewerAssignments = computed(() => props.reviewerFormAssignments || [])
 
 const isAssignedReviewer = computed(() => {
     const user = currentUser.value
     if (!user) return false
-
-    // Check if current user is in the assigned reviewers list
     return displayedAssignedReviewers.value.some(
         reviewer => reviewer?.user?.id === user.id
     )
 })
 
-// Log for debugging
-console.log('ReviewSystem Debug:', {
-    canReview: props.canReview,
-    canCreateThread: props.canCreateThread,
-    isAssignedReviewer: isAssignedReviewer.value,
-    currentUserId: currentUser.value?.id,
-    assignedReviewers: displayedAssignedReviewers.value,
-    hasPendingEvaluations: props.hasPendingEvaluations,
+const isAdmin = computed(() => {
+    return props.userRole === 'admin'
+})
+
+// Check completed evaluations
+const completedEvaluationsCount = computed(() => {
+    return reviewerAssignments.value.filter(assignment =>
+        assignment.review_form_response?.status === 'submitted'
+    ).length
+})
+
+const totalEvaluationsCount = computed(() => {
+    return reviewerAssignments.value.length
+})
+
+// Determine if reviewer can create threads
+const canActuallyCreateThread = computed(() => {
+    // Admin can always create
+    if (isAdmin.value) return true
+
+    if (!isAssignedReviewer.value) return false
+
+    // If no evaluation forms required, can create immediately
+    if (!props.hasReviewEvaluationForms) {
+        return props.canReview
+    }
+
+    // If evaluation forms exist:
+    // - Check if assignments exist
+    if (reviewerAssignments.value.length === 0) {
+        // No assignments yet - waiting for admin
+        return false
+    }
+
+    // If evaluation forms exist and assignments exist, must complete them first
+    return props.canCreateThread && !props.hasPendingEvaluations
+})
+
+const threadCreationMessage = computed(() => {
+    if (!isAssignedReviewer.value) {
+        return 'You are not assigned as a reviewer for this submission.'
+    }
+
+    if (!props.hasReviewEvaluationForms) {
+        return 'You can create review threads for this submission.'
+    }
+
+    // Has evaluation forms
+    if (reviewerAssignments.value.length === 0) {
+        return 'Waiting for admin to assign evaluation forms. You cannot create review threads yet.'
+    }
+
+    if (props.hasPendingEvaluations) {
+        return `Complete your ${props.pendingEvaluationsCount} pending evaluation form(s) before creating review threads.`
+    }
+
+    return 'You have completed all evaluations and can now create review threads.'
 })
 
 type StatusType = "open" | "resolved" | "closed"
@@ -147,7 +154,7 @@ const getStatusInfo = (status: string) => {
     return { label: "Unknown", color: "bg-gray-100 text-gray-800", icon: Clock }
 }
 
-const getAuthorDisplay = (comment: ReviewComment) => {
+const getAuthorDisplay = (comment: any) => {
     if (comment.reviewer?.user) {
         return {
             name: comment.reviewer.user.name,
@@ -180,6 +187,37 @@ const handleFileUpload = (event: Event) => {
     const target = event.target as HTMLInputElement
     if (target.files) {
         newThreadAttachments.value = Array.from(target.files)
+    }
+}
+
+const getAssignmentStatusInfo = (assignment: ReviewerFormAssignment) => {
+    if (!assignment.review_form_response) {
+        return {
+            variant: 'secondary' as const,
+            text: 'Not Started',
+            icon: Clock
+        }
+    }
+
+    switch (assignment.review_form_response.status) {
+        case 'submitted':
+            return {
+                variant: 'default' as const,
+                text: 'Completed',
+                icon: CheckCircle
+            }
+        case 'draft':
+            return {
+                variant: 'outline' as const,
+                text: 'In Progress',
+                icon: Clock
+            }
+        default:
+            return {
+                variant: 'secondary' as const,
+                text: 'Unknown',
+                icon: AlertCircle
+            }
     }
 }
 
@@ -265,32 +303,158 @@ const downloadAttachment = (filePath: string) => {
             </CardContent>
         </Card>
 
+        <!-- Evaluation Forms Section (for reviewers) -->
+        <Card v-if="isAssignedReviewer && hasReviewEvaluationForms && reviewerAssignments.length > 0">
+            <CardHeader>
+                <div class="flex items-center justify-between">
+                    <div>
+                        <CardTitle class="flex items-center gap-2">
+                            <ClipboardList class="h-5 w-5" />
+                            Evaluation Forms
+                        </CardTitle>
+                        <p class="text-muted-foreground text-sm mt-1">
+                            Complete all evaluation forms before creating review threads
+                        </p>
+                    </div>
+                    <Badge variant="default">
+                        {{ completedEvaluationsCount }}/{{ totalEvaluationsCount }} Completed
+                    </Badge>
+                </div>
+            </CardHeader>
+            <CardContent>
+                <div class="space-y-3">
+                    <div v-for="assignment in reviewerAssignments" :key="assignment.id"
+                        class="border rounded-lg p-4 hover:bg-muted/50 transition-colors">
+                        <div class="flex items-start justify-between">
+                            <div class="flex-1">
+                                <div class="flex items-center gap-2 mb-2">
+                                    <h4 class="font-medium">{{ assignment.review_evaluation_form.title }}</h4>
+                                    <Badge :variant="assignment.is_required ? 'default' : 'outline'" class="text-xs">
+                                        {{ assignment.is_required ? 'Required' : 'Optional' }}
+                                    </Badge>
+                                    <Badge :variant="getAssignmentStatusInfo(assignment).variant" class="text-xs">
+                                        <component :is="getAssignmentStatusInfo(assignment).icon"
+                                            class="h-3 w-3 mr-1" />
+                                        {{ getAssignmentStatusInfo(assignment).text }}
+                                    </Badge>
+                                </div>
+
+                                <p v-if="assignment.review_evaluation_form.description"
+                                    class="text-sm text-muted-foreground mb-2">
+                                    {{ assignment.review_evaluation_form.description }}
+                                </p>
+
+                                <div v-if="assignment.due_date"
+                                    class="text-xs text-muted-foreground flex items-center gap-1">
+                                    <Clock class="h-3 w-3" />
+                                    Due: {{ formatDate(assignment.due_date) }}
+                                </div>
+                            </div>
+
+                            <div class="flex items-center gap-2">
+                                <!-- Start/Continue Button -->
+                                <Button
+                                    v-if="!assignment.review_form_response || assignment.review_form_response.status === 'draft'"
+                                    size="sm"
+                                    @click="router.visit(route('reviewer.evaluation-form.show', { assignment: assignment.id }))">
+                                    <FileText class="h-4 w-4 mr-1" />
+                                    {{ assignment.review_form_response ? 'Continue' : 'Start' }}
+                                </Button>
+
+                                <!-- View Submitted Button -->
+                                <Button v-if="assignment.review_form_response?.status === 'submitted'" size="sm"
+                                    variant="outline"
+                                    @click="router.visit(route('reviewer.evaluation-form.submitted', { assignment: assignment.id }))">
+                                    <Eye class="h-4 w-4 mr-1" />
+                                    View
+                                </Button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </CardContent>
+        </Card>
+
+        <!-- Submitted Evaluations (for Admin to view) -->
+        <Card v-if="isAdmin && hasReviewEvaluationForms && reviewSummaries.length > 0">
+            <CardHeader>
+                <CardTitle class="flex items-center gap-2">
+                    <ClipboardList class="h-5 w-5" />
+                    Submitted Evaluations
+                </CardTitle>
+            </CardHeader>
+            <CardContent>
+                <div class="space-y-4">
+                    <div v-for="reviewer in assignedReviewers" :key="reviewer.id" class="border rounded-lg p-4">
+                        <div class="flex items-center justify-between mb-3">
+                            <div class="flex items-center gap-3">
+                                <Avatar>
+                                    <AvatarFallback>{{ reviewer.user.name.charAt(0) }}</AvatarFallback>
+                                </Avatar>
+                                <div>
+                                    <div class="font-medium">{{ reviewer.user.name }}</div>
+                                    <div class="text-sm text-muted-foreground">{{ reviewer.reviewer_role.name }}</div>
+                                </div>
+                            </div>
+                            <Button size="sm" variant="outline">
+                                <Eye class="h-4 w-4 mr-1" />
+                                View Evaluations
+                            </Button>
+                        </div>
+                    </div>
+                </div>
+            </CardContent>
+        </Card>
+
+        <!-- Evaluation Requirements Info -->
+        <Alert v-if="isAssignedReviewer && evaluationRequirements && hasPendingEvaluations" variant="default"
+            class="border-amber-200 bg-amber-50">
+            <AlertCircle class="h-4 w-4 text-amber-600" />
+            <AlertDescription class="text-amber-800">
+                <p class="font-medium mb-1">{{ evaluationRequirements.message }}</p>
+                <p class="text-sm">
+                    Complete {{ pendingEvaluationsCount }} pending evaluation form(s) above before creating review
+                    threads.
+                </p>
+            </AlertDescription>
+        </Alert>
+
         <!-- Review Actions for Assigned Reviewers -->
         <Card v-if="isAssignedReviewer && canReview">
             <CardHeader>
                 <div class="flex items-center justify-between">
                     <CardTitle class="flex items-center gap-2">
                         <MessageSquare class="h-5 w-5" />
-                        Review Actions
+                        Review Threads
                     </CardTitle>
 
                     <!-- Create Thread Button -->
-                    <Button v-if="canCreateThread && !hasPendingEvaluations" size="sm" @click="showThreadDialog = true">
+                    <Button v-if="canActuallyCreateThread" size="sm" @click="showThreadDialog = true">
                         <Plus class="h-4 w-4 mr-2" />
                         New Thread
                     </Button>
-
-                    <!-- Pending Evaluations Warning -->
-                    <Badge v-else-if="hasPendingEvaluations" variant="secondary" class="flex items-center gap-1">
-                        <AlertCircle class="h-3 w-3" />
-                        {{ pendingEvaluationsCount }} evaluation(s) pending
-                    </Badge>
                 </div>
             </CardHeader>
-            <CardContent v-if="hasPendingEvaluations" class="text-center py-6 text-muted-foreground">
+            <CardContent v-if="hasPendingEvaluations && hasReviewEvaluationForms" class="text-center py-6">
                 <AlertCircle class="h-8 w-8 mx-auto mb-2 text-amber-500" />
-                <p class="text-sm">Complete your evaluation forms before creating review threads.</p>
+                <p class="text-sm text-muted-foreground">{{ threadCreationMessage }}</p>
             </CardContent>
+        </Card>
+
+        <!-- Admin Create Thread (always visible) -->
+        <Card v-if="isAdmin">
+            <CardHeader>
+                <div class="flex items-center justify-between">
+                    <CardTitle class="flex items-center gap-2">
+                        <MessageSquare class="h-5 w-5" />
+                        Review Threads
+                    </CardTitle>
+                    <Button size="sm" @click="showThreadDialog = true">
+                        <Plus class="h-4 w-4 mr-2" />
+                        New Thread
+                    </Button>
+                </div>
+            </CardHeader>
         </Card>
 
         <!-- Create Thread Dialog -->
@@ -322,9 +486,9 @@ const downloadAttachment = (filePath: string) => {
             </DialogContent>
         </Dialog>
 
-        <!-- Review Threads -->
+        <!-- Review Threads List -->
         <div v-if="reviewSummaries.length > 0" class="space-y-4">
-            <h3 class="text-lg font-medium">Review Threads ({{ reviewSummaries.length }})</h3>
+            <h3 class="text-lg font-medium">Discussion Threads ({{ reviewSummaries.length }})</h3>
 
             <Card v-for="reviewSummary in reviewSummaries" :key="reviewSummary.id" class="border-l-4" :class="{
                 'border-l-green-500': reviewSummary.status === 'open',
@@ -471,11 +635,11 @@ const downloadAttachment = (filePath: string) => {
                 <MessageSquare class="h-12 w-12 mx-auto text-muted-foreground mb-4" />
                 <h3 class="text-lg font-medium mb-2">No Review Threads Yet</h3>
                 <p class="text-muted-foreground mb-4">
-                    <span v-if="isAssignedReviewer && canCreateThread && !hasPendingEvaluations">
+                    <span v-if="isAssignedReviewer && canActuallyCreateThread">
                         Create a review thread to start the discussion.
                     </span>
                     <span v-else-if="isAssignedReviewer && hasPendingEvaluations">
-                        Complete your evaluation forms before creating review threads.
+                        {{ threadCreationMessage }}
                     </span>
                     <span v-else>
                         No review threads have been created for this submission yet.

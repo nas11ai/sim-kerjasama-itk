@@ -86,8 +86,10 @@ class FormSubmission extends Model
             'reviewer_form_assignment_id',
             'id',
             'id'
-        )->whereIn('reviewer_form_assignments.submission_reviewer_id',
-                   $this->submissionReviewers()->pluck('id'));
+        )->whereIn(
+                'reviewer_form_assignments.submission_reviewer_id',
+                $this->submissionReviewers()->pluck('id')
+            );
     }
 
     // NEW: Get submitted review form responses
@@ -184,7 +186,7 @@ class FormSubmission extends Model
     }
 
     // NEW: Get form phase for this submission
-    protected function getFormPhase(): ?FormPhase
+    public function getFormPhase(): ?FormPhase
     {
         return FormPhase::whereHas('formPhaseDetails.formAccessControl', function ($query) {
             $query->where('form_id', $this->form_id);
@@ -221,8 +223,8 @@ class FormSubmission extends Model
     public function canProceed()
     {
         return $this->status === SubmissionStatus::APPROVED &&
-               $this->allReviewersApproved() &&
-               $this->allReviewersCompletedEvaluations();
+            $this->allReviewersApproved() &&
+            $this->allReviewersCompletedEvaluations();
     }
 
     public function needsRevision()
@@ -355,5 +357,71 @@ class FormSubmission extends Model
         }
 
         return $summary;
+    }
+
+    // Check if form phase has any review evaluation forms
+    public function hasReviewEvaluationForms(): bool
+    {
+        $formPhase = $this->getFormPhase();
+        return $formPhase ? $formPhase->hasReviewEvaluationForms() : false;
+    }
+
+    // Check if review evaluation forms are required for this submission
+    public function requiresReviewEvaluation(): bool
+    {
+        $formPhase = $this->getFormPhase();
+        return $formPhase ? $formPhase->requiresEvaluationCompletion() : false;
+    }
+
+    // Check if a specific reviewer has completed their evaluation (or if evaluation not required)
+    public function reviewerCanCreateThreads(int $reviewerId): bool
+    {
+        // If no evaluation forms required, reviewer can create threads immediately
+        if (!$this->hasReviewEvaluationForms()) {
+            return true;
+        }
+
+        // Check if reviewer is assigned
+        $submissionReviewer = $this->submissionReviewers()
+            ->where('reviewer_id', $reviewerId)
+            ->first();
+
+        if (!$submissionReviewer) {
+            return false;
+        }
+
+        // Check if reviewer has completed required evaluations
+        return $submissionReviewer->canCreateDiscussionThreads();
+    }
+
+    // Check if a specific reviewer can participate in discussions
+    public function reviewerCanParticipate(int $reviewerId): bool
+    {
+        // Same logic as canCreateThreads
+        return $this->reviewerCanCreateThreads($reviewerId);
+    }
+
+    // Get evaluation requirements summary
+    public function getEvaluationRequirements(): array
+    {
+        if (!$this->hasReviewEvaluationForms()) {
+            return [
+                'required' => false,
+                'has_forms' => false,
+                'message' => 'No evaluation forms required for this submission.'
+            ];
+        }
+
+        $formPhase = $this->getFormPhase();
+        $formsCount = $formPhase->review_evaluation_forms_count;
+        $requiredCount = $formPhase->required_review_evaluation_forms_count;
+
+        return [
+            'required' => true,
+            'has_forms' => true,
+            'total_forms' => $formsCount,
+            'required_forms' => $requiredCount,
+            'message' => "This submission requires evaluation forms to be completed before creating review threads."
+        ];
     }
 }

@@ -178,7 +178,7 @@ class ReviewController extends Controller
             return $this->performCreateReviewThread($request, $submission, null);
         }
 
-        // Check if user is assigned reviewer and can participate in discussions
+        // Check if user is assigned reviewer
         $reviewer = Reviewer::where('user_id', $user->id)->first();
         if (!$reviewer) {
             abort(403, 'You are not registered as a reviewer');
@@ -193,9 +193,15 @@ class ReviewController extends Controller
             abort(403, 'You are not assigned as reviewer for this submission');
         }
 
-        if (!$submissionReviewer->canCreateDiscussionThreads()) {
-            abort(403, 'Please complete your evaluation forms before creating discussion threads');
+        // Check if submission has review evaluation forms
+        if ($submission->hasReviewEvaluationForms()) {
+            // If has evaluation forms, check if completed
+            if (!$submissionReviewer->canCreateDiscussionThreads()) {
+                $pendingCount = $submissionReviewer->pending_forms_count;
+                abort(403, "Please complete your {$pendingCount} pending evaluation form(s) before creating review threads");
+            }
         }
+        // If no evaluation forms, reviewer can create threads immediately
 
         return $this->performCreateReviewThread($request, $submission, $reviewer);
     }
@@ -243,30 +249,50 @@ class ReviewController extends Controller
         ]);
 
         $user = Auth::user();
+        $submission = $reviewSummary->formSubmission;
         $reviewerId = null;
         $canComment = false;
 
+        // Admin can always comment
         if ($user->hasRole(['Super Admin', 'Admin'])) {
             $canComment = true;
-        } elseif ($reviewSummary->formSubmission->submitted_by === $user->id) {
-            $canComment = true; // Submitter can always comment
-        } else {
+        }
+        // Submitter can always comment on their own submission
+        elseif ($submission->submitted_by === $user->id) {
+            $canComment = true;
+        }
+        // Check reviewer permissions
+        else {
             $reviewer = Reviewer::where('user_id', $user->id)->first();
             if ($reviewer) {
                 $submissionReviewer = SubmissionReviewer::where([
-                    'form_submission_id' => $reviewSummary->form_submission_id,
+                    'form_submission_id' => $submission->id,
                     'reviewer_id' => $reviewer->id
                 ])->first();
 
-                if ($submissionReviewer && $submissionReviewer->canParticipateInDiscussions()) {
-                    $canComment = true;
-                    $reviewerId = $reviewer->id;
+                if ($submissionReviewer) {
+                    // Check if submission has evaluation forms
+                    if ($submission->hasReviewEvaluationForms()) {
+                        // If has evaluation forms, must be completed
+                        if ($submissionReviewer->canParticipateInDiscussions()) {
+                            $canComment = true;
+                            $reviewerId = $reviewer->id;
+                        }
+                    } else {
+                        // No evaluation forms, can comment immediately
+                        $canComment = true;
+                        $reviewerId = $reviewer->id;
+                    }
                 }
             }
         }
 
         if (!$canComment) {
-            abort(403, 'Complete your evaluation forms before participating in discussions');
+            if ($submission->hasReviewEvaluationForms()) {
+                abort(403, 'Complete your evaluation forms before participating in discussions');
+            } else {
+                abort(403, 'You do not have permission to comment on this review');
+            }
         }
 
         DB::transaction(function () use ($request, $reviewSummary, $user, $reviewerId) {
@@ -290,7 +316,7 @@ class ReviewController extends Controller
             }
         });
 
-        return back()->with('success', 'Komentar berhasil ditambahkan.');
+        return back()->with('success', 'Comment added successfully.');
     }
 
     // Get available evaluation forms for assignment
@@ -601,5 +627,35 @@ class ReviewController extends Controller
         }
 
         $summary->delete();
+    }
+
+    private function canUserReview(FormSubmission $submission, $user): bool
+    {
+        if ($user->hasRole(['Super Admin', 'Admin'])) {
+            return true;
+        }
+
+        $reviewer = Reviewer::where('user_id', $user->id)->latest()->first();
+        if (!$reviewer) {
+            return false;
+        }
+
+        $submissionReviewer = SubmissionReviewer::where([
+            'form_submission_id' => $submission->id,
+            'reviewer_id' => $reviewer->id
+        ])->first();
+
+        if (!$submissionReviewer) {
+            return false;
+        }
+
+        // If no evaluation forms required, can review immediately
+        if (!$submission->hasReviewEvaluationForms()) {
+            return true;
+        }
+
+        // If has evaluation forms, must complete them first to fully participate
+        // But can view the submission
+        return true;
     }
 }

@@ -6,6 +6,7 @@ use App\Models\ReviewFormResponse;
 use App\Models\ReviewerFormAssignment;
 use App\Models\ReviewFormFieldResponse;
 use App\Models\ReviewSummary;
+use App\Models\SubmissionReviewer;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
@@ -14,6 +15,40 @@ use Inertia\Inertia;
 
 class ReviewFormResponseController extends Controller
 {
+    public function showOrCreate(Request $request)
+    {
+        $validated = $request->validate([
+            'submission_reviewer_id' => 'required|exists:submission_reviewers,id',
+            'review_evaluation_form_id' => 'required|exists:review_evaluation_forms,id',
+        ]);
+
+        $submissionReviewer = SubmissionReviewer::findOrFail($validated['submission_reviewer_id']);
+
+        // Check authorization
+        $user = Auth::user();
+        if (!$user->hasRole(['Super Admin', 'Admin'])) {
+            $reviewer = $user->reviewers()->first();
+            if (!$reviewer || $submissionReviewer->reviewer_id !== $reviewer->id) {
+                abort(403, 'Unauthorized access to this evaluation form.');
+            }
+        }
+
+        // Find or create assignment
+        $assignment = ReviewerFormAssignment::firstOrCreate(
+            [
+                'submission_reviewer_id' => $submissionReviewer->id,
+                'review_evaluation_form_id' => $validated['review_evaluation_form_id'],
+            ],
+            [
+                'is_required' => true, // Default, bisa diupdate admin nanti
+                'assigned_at' => now(),
+                'is_active' => true,
+            ]
+        );
+
+        // Redirect to show page with assignment ID
+        return redirect()->route('reviewer.evaluation-form.show', $assignment->id);
+    }
     public function show(ReviewerFormAssignment $assignment)
     {
         // Check if user can access this assignment

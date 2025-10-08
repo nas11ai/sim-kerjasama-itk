@@ -19,7 +19,9 @@ import {
     Clock,
     MessageSquare,
     ClipboardList,
-    AlertTriangle
+    AlertTriangle,
+    User,
+    Mail
 } from "lucide-vue-next";
 import { SubmissionStatus } from "@/Constants/SubmissionStatus";
 import { getSubmissionStatusInfo } from "@/Utils/getSubmissionStatusInfo";
@@ -66,6 +68,27 @@ interface ReviewerFormAssignment {
     };
 }
 
+interface AssignedReviewer {
+    id: number;
+    user: {
+        id: number;
+        name: string;
+        email: string;
+    };
+    reviewer_role: {
+        id: number;
+        name: string;
+    };
+}
+
+interface EvaluationRequirements {
+    required: boolean;
+    has_forms: boolean;
+    total_forms?: number;
+    required_forms?: number;
+    message: string;
+}
+
 interface FormSubmission {
     id: number;
     is_submitted: boolean;
@@ -77,6 +100,11 @@ interface FormSubmission {
     reviewer_form_assignments?: ReviewerFormAssignment[];
     submission_reviewers?: any[];
     review_summaries?: any[];
+    submitted_by?: {
+        id: number;
+        name: string;
+        email: string;
+    };
 }
 
 interface Props {
@@ -94,6 +122,12 @@ interface Props {
     canReview?: boolean;
     userRole: "submitter" | "reviewer" | "user";
     isOwnSubmission: boolean;
+    assignedReviewers?: AssignedReviewer[];
+    reviewerFormAssignments?: ReviewerFormAssignment[]; // NEW
+    hasReviewEvaluationForms?: boolean;
+    evaluationRequirements?: EvaluationRequirements;
+    hasPendingEvaluations?: boolean;
+    pendingEvaluationsCount?: number;
 }
 
 const props = defineProps<Props>();
@@ -109,6 +143,14 @@ const reviewStats = props.reviewStats || {
 const reviewComments = props.reviewComments || [];
 const reviewSummaries = props.submission.review_summaries || [];
 const reviewerAssignments = props.submission.reviewer_form_assignments || [];
+const assignedReviewers = props.assignedReviewers || [];
+const reviewerFormAssignments = props.reviewerFormAssignments || []; // NEW: From controller
+const hasReviewEvaluationForms = props.hasReviewEvaluationForms || false;
+const evaluationRequirements = props.evaluationRequirements || {
+    required: false,
+    has_forms: false,
+    message: ''
+};
 
 const canReview = computed(() => props.canReview || false);
 const isReviewer = computed(() => props.userRole === 'reviewer');
@@ -116,6 +158,14 @@ const isSubmitter = computed(() => props.isOwnSubmission);
 
 // Check if reviewer has pending evaluations
 const hasPendingEvaluations = computed(() => {
+    // Use from props if available (from controller)
+    if (props.hasPendingEvaluations !== undefined) {
+        return props.hasPendingEvaluations;
+    }
+
+    // Fallback: calculate from reviewer assignments
+    if (!hasReviewEvaluationForms) return false;
+
     return reviewerAssignments.some(assignment =>
         !assignment.review_form_response ||
         assignment.review_form_response.status !== 'submitted'
@@ -123,6 +173,14 @@ const hasPendingEvaluations = computed(() => {
 });
 
 const pendingEvaluationsCount = computed(() => {
+    // Use from props if available (from controller)
+    if (props.pendingEvaluationsCount !== undefined) {
+        return props.pendingEvaluationsCount;
+    }
+
+    // Fallback: calculate from reviewer assignments
+    if (!hasReviewEvaluationForms) return 0;
+
     return reviewerAssignments.filter(assignment =>
         !assignment.review_form_response ||
         assignment.review_form_response.status !== 'submitted'
@@ -232,6 +290,37 @@ const getAssignmentStatusInfo = (assignment: ReviewerFormAssignment) => {
         </template>
 
         <div class="max-w-6xl mx-auto space-y-6">
+            <!-- Submitter Information (for reviewers) -->
+            <Card v-if="isReviewer && submission.submitted_by">
+                <CardHeader>
+                    <CardTitle class="flex items-center gap-2">
+                        <User class="h-5 w-5" />
+                        Submitted By
+                    </CardTitle>
+                </CardHeader>
+                <CardContent>
+                    <div class="grid gap-4 md:grid-cols-2">
+                        <div>
+                            <Label class="text-sm font-medium text-muted-foreground">Name</Label>
+                            <p class="font-medium flex items-center gap-2">
+                                <User class="h-4 w-4" />
+                                {{ submission.submitted_by.name }}
+                            </p>
+                        </div>
+                        <div>
+                            <Label class="text-sm font-medium text-muted-foreground">Email</Label>
+                            <p class="font-medium">
+                                <a :href="`mailto:${submission.submitted_by.email}`"
+                                    class="text-blue-600 hover:underline flex items-center gap-2">
+                                    <Mail class="h-4 w-4" />
+                                    {{ submission.submitted_by.email }}
+                                </a>
+                            </p>
+                        </div>
+                    </div>
+                </CardContent>
+            </Card>
+
             <!-- Submission Status -->
             <Card>
                 <CardHeader>
@@ -266,101 +355,6 @@ const getAssignmentStatusInfo = (assignment: ReviewerFormAssignment) => {
                         <div v-if="submission.submitted_at">
                             <Label class="text-sm font-medium text-muted-foreground">Submitted</Label>
                             <p class="font-medium text-green-600">{{ formatDateTime(submission.submitted_at) }}</p>
-                        </div>
-                    </div>
-                </CardContent>
-            </Card>
-
-            <!-- Reviewer Evaluation Forms (for reviewers only) -->
-            <Card v-if="isReviewer && reviewerAssignments.length > 0">
-                <CardHeader>
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <CardTitle class="flex items-center gap-2">
-                                <ClipboardList class="h-5 w-5" />
-                                Your Evaluation Forms
-                            </CardTitle>
-                            <p class="text-muted-foreground text-sm mt-1">
-                                Complete evaluation forms before participating in discussions
-                            </p>
-                        </div>
-                        <div class="flex items-center gap-2">
-                            <Badge variant="default">
-                                {{ completedEvaluationsCount }}/{{ reviewerAssignments.length }} Completed
-                            </Badge>
-                        </div>
-                    </div>
-                </CardHeader>
-                <CardContent>
-                    <!-- Warning for pending evaluations -->
-                    <Card v-if="hasPendingEvaluations" class="border-amber-200 bg-amber-50 mb-4">
-                        <CardContent class="p-4">
-                            <div class="flex items-start gap-3">
-                                <AlertTriangle class="h-5 w-5 text-amber-600 mt-0.5" />
-                                <div>
-                                    <h4 class="text-amber-800 font-medium text-sm mb-1">
-                                        Evaluations Required
-                                    </h4>
-                                    <p class="text-amber-700 text-sm">
-                                        You have {{ pendingEvaluationsCount }} pending evaluation form(s).
-                                        Please complete them before creating review threads.
-                                    </p>
-                                </div>
-                            </div>
-                        </CardContent>
-                    </Card>
-
-                    <div class="space-y-3">
-                        <div v-for="assignment in reviewerAssignments" :key="assignment.id"
-                            class="border rounded-lg p-4 hover:bg-muted/50 transition-colors">
-                            <div class="flex items-start justify-between">
-                                <div class="flex-1">
-                                    <div class="flex items-center gap-2 mb-2">
-                                        <h4 class="font-medium">{{ assignment.review_evaluation_form.title }}</h4>
-                                        <Badge :variant="assignment.is_required ? 'default' : 'outline'"
-                                            class="text-xs">
-                                            {{ assignment.is_required ? 'Required' : 'Optional' }}
-                                        </Badge>
-                                        <Badge :variant="getAssignmentStatusInfo(assignment).variant" class="text-xs">
-                                            <component :is="getAssignmentStatusInfo(assignment).icon"
-                                                class="h-3 w-3 mr-1" />
-                                            {{ getAssignmentStatusInfo(assignment).text }}
-                                        </Badge>
-                                    </div>
-
-                                    <p v-if="assignment.review_evaluation_form.description"
-                                        class="text-sm text-muted-foreground mb-2">
-                                        {{ assignment.review_evaluation_form.description }}
-                                    </p>
-
-                                    <div v-if="assignment.due_date"
-                                        class="text-xs text-muted-foreground flex items-center gap-1">
-                                        <Clock class="h-3 w-3" />
-                                        Due: {{ formatDateTime(assignment.due_date) }}
-                                    </div>
-                                </div>
-
-                                <div class="flex items-center gap-2">
-                                    <!-- Start/Continue Button -->
-                                    <Button
-                                        v-if="!assignment.review_form_response || assignment.review_form_response.status === 'draft'"
-                                        size="sm" as-child>
-                                        <Link :href="route('reviewer.evaluation-form.show', assignment.id)">
-                                        <FileText class="h-4 w-4 mr-1" />
-                                        {{ assignment.review_form_response ? 'Continue' : 'Start' }}
-                                        </Link>
-                                    </Button>
-
-                                    <!-- View Submitted Button -->
-                                    <Button v-if="assignment.review_form_response?.status === 'submitted'" size="sm"
-                                        variant="outline" as-child>
-                                        <Link :href="route('reviewer.evaluation-form.submitted', assignment.id)">
-                                        <CheckCircle class="h-4 w-4 mr-1" />
-                                        View
-                                        </Link>
-                                    </Button>
-                                </div>
-                            </div>
                         </div>
                     </div>
                 </CardContent>
@@ -422,7 +416,7 @@ const getAssignmentStatusInfo = (assignment: ReviewerFormAssignment) => {
                                         <div v-if="isFileField(field.field_type.name) && responses[field.id]"
                                             class="flex items-center gap-2">
                                             <span class="font-medium">{{ renderFieldValue(field, responses[field.id])
-                                                }}</span>
+                                            }}</span>
                                             <Button size="sm" variant="outline">
                                                 <Download class="h-4 w-4 mr-1" />
                                                 Download
@@ -490,7 +484,10 @@ const getAssignmentStatusInfo = (assignment: ReviewerFormAssignment) => {
                         :can-review="canReview" :user-role="userRole" :review-stats="reviewStats"
                         :has-pending-evaluations="hasPendingEvaluations"
                         :pending-evaluations-count="pendingEvaluationsCount" :available-reviewers="[]"
-                        :assigned-reviewers="[]" :can-assign-reviewers="false" />
+                        :assigned-reviewers="assignedReviewers" :can-assign-reviewers="false"
+                        :has-review-evaluation-forms="hasReviewEvaluationForms"
+                        :evaluation-requirements="evaluationRequirements"
+                        :reviewer-form-assignments="reviewerFormAssignments" />
                 </TabsContent>
             </Tabs>
         </div>

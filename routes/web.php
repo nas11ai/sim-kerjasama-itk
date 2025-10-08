@@ -58,6 +58,10 @@ Route::middleware(['auth', 'check_reviewer_status'])->group(function () {
 
     // NEW: Evaluation form routes for reviewers
     Route::prefix('reviewer/evaluation-forms')->name('reviewer.evaluation-form.')->group(function () {
+        // NEW: Start or continue evaluation form (auto-create assignment)
+        Route::post('/start', [ReviewFormResponseController::class, 'showOrCreate'])
+            ->name('start');
+
         Route::get('/{assignment}', [ReviewFormResponseController::class, 'show'])
             ->name('show');
 
