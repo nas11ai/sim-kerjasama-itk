@@ -7,6 +7,7 @@ use App\Models\SubmissionPeriod;
 use App\Models\FormPhase;
 use App\Models\FormSubmission;
 use App\Models\FormFieldResponse;
+use App\Models\SubmissionReviewer;
 use App\SubmissionStatus;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -258,8 +259,13 @@ class SubmissionViewController extends Controller
             'form.formFields.fieldType',
             'form.formFields.formFieldOptions',
             'formFieldResponses',
-            'submittedBy:id,name,email', // Add this for reviewer view
-            // Load review data
+            'submittedBy:id,name,email',
+            'submissionReviewers' => function ($query) {
+                $query->with([
+                    'reviewer.user:id,name,email',
+                    'reviewer.reviewerRole:id,name'
+                ]);
+            },
             'reviewSummaries' => function ($query) {
                 $query->with([
                     'reviewer.user:id,name',
@@ -268,6 +274,42 @@ class SubmissionViewController extends Controller
                 ]);
             }
         ]);
+
+        // Load reviewer assignments if user is a reviewer
+        $reviewerAssignments = [];
+        $isAssignedReviewer = false;
+
+        if ($this->canUserReview($submission, $user)) {
+            $reviewer = $user->reviewers()->first();
+            if ($reviewer) {
+                // Check if this reviewer is assigned to this submission
+                $submissionReviewer = SubmissionReviewer::where([
+                    'form_submission_id' => $submission->id,
+                    'reviewer_id' => $reviewer->id
+                ])->first();
+
+                if ($submissionReviewer) {
+                    $isAssignedReviewer = true;
+
+                    $reviewerAssignments = $submissionReviewer->reviewerFormAssignments()
+                        ->with([
+                            'reviewEvaluationForm:id,title,description',
+                            'reviewFormResponse:id,reviewer_form_assignment_id,status,submitted_at'
+                        ])
+                        ->get()
+                        ->map(function ($assignment) {
+                            return [
+                                'id' => $assignment->id,
+                                'is_required' => $assignment->is_required,
+                                'due_date' => $assignment->due_date,
+                                'review_evaluation_form' => $assignment->reviewEvaluationForm,
+                                'review_form_response' => $assignment->reviewFormResponse,
+                            ];
+                        })
+                        ->toArray();
+                }
+            }
+        }
 
         // Load review comments
         $reviewComments = ReviewComment::whereIn('review_summary_id', $submission->reviewSummaries->pluck('id'))
@@ -284,14 +326,14 @@ class SubmissionViewController extends Controller
             ->orderBy('created_at', 'desc')
             ->get();
 
-        // Map responses for easy access
+        // Map responses
         $responses = $submission->formFieldResponses->mapWithKeys(function ($response) {
             return [$response->form_field_id => $response->value];
         });
 
-        // Get review statistics
+        // Review statistics
         $reviewStats = [
-            'total_reviewers' => $submission->reviewSummaries->count(),
+            'total_reviewers' => $submission->submissionReviewers->count(),
             'open_reviews' => $submission->reviewSummaries->where('status', 'open')->count(),
             'resolved_reviews' => $submission->reviewSummaries->where('status', 'resolved')->count(),
             'closed_reviews' => $submission->reviewSummaries->where('status', 'closed')->count(),
@@ -300,15 +342,36 @@ class SubmissionViewController extends Controller
 
         $userRole = $this->getUserRoleForSubmission($submission, $user);
 
+        // Format submission data
+        $submissionData = $submission->toArray();
+        $submissionData['reviewer_form_assignments'] = $reviewerAssignments;
+
+        // Format assigned reviewers for frontend
+        $assignedReviewers = $submission->submissionReviewers->map(function ($sr) {
+            return [
+                'id' => $sr->id,
+                'user' => [
+                    'id' => $sr->reviewer->user->id,
+                    'name' => $sr->reviewer->user->name,
+                    'email' => $sr->reviewer->user->email,
+                ],
+                'reviewer_role' => [
+                    'id' => $sr->reviewer->reviewerRole->id,
+                    'name' => $sr->reviewer->reviewerRole->name,
+                ],
+            ];
+        })->toArray();
+
         return Inertia::render('User/Submissions/ShowSubmission', [
-            'submission' => $submission, // tanpa append()
+            'submission' => $submissionData,
             'responses' => $responses,
-            'reviewComments' => $reviewComments, // kirim terpisah
+            'reviewComments' => $reviewComments,
             'reviewStats' => $reviewStats,
-            'canCreateThread' => true,
-            'canReview' => $this->canUserReview($submission, $user),
+            'canCreateThread' => $isAssignedReviewer,
+            'canReview' => $isAssignedReviewer,
             'userRole' => $userRole,
             'isOwnSubmission' => $submission->submitted_by === $user->id,
+            'assignedReviewers' => $assignedReviewers,
         ]);
     }
 
@@ -331,9 +394,11 @@ class SubmissionViewController extends Controller
                 // Load assigned reviewers melalui SubmissionReviewer
                 'submissionReviewers.reviewer.user:id,name,email',
                 'submissionReviewers.reviewer.reviewerRole:id,name',
+                'submissionReviewers.reviewerFormAssignments.reviewEvaluationForm:id,title',
+                'submissionReviewers.reviewerFormAssignments.reviewFormResponse:id,status',
             ]);
 
-            // Load review summaries separately - bisa ada multiple per reviewer atau general threads
+            // Load review summaries
             $reviewSummaries = [];
             if (class_exists('App\Models\ReviewSummary')) {
                 $reviewSummaries = \App\Models\ReviewSummary::where('form_submission_id', $submission->id)
@@ -369,24 +434,24 @@ class SubmissionViewController extends Controller
                 }
             }
 
-            // Map responses for easy access
+            // Map responses
             $responses = $submission->formFieldResponses->mapWithKeys(function ($response) {
                 return [$response->form_field_id => $response->value];
             });
 
-            // Get review statistics from ReviewSummary
+            // Get review statistics
             $reviewStats = [
-                'total_reviewers' => $submission->submissionReviewers->count(), // dari SubmissionReviewer
+                'total_reviewers' => $submission->submissionReviewers->count(),
                 'open_reviews' => collect($reviewSummaries)->where('status', 'open')->count(),
                 'resolved_reviews' => collect($reviewSummaries)->where('status', 'resolved')->count(),
                 'closed_reviews' => collect($reviewSummaries)->where('status', 'closed')->count(),
                 'total_comments' => count($reviewComments),
             ];
 
-            // Get assigned reviewers dari SubmissionReviewer (untuk display)
+            // Get assigned reviewers
             $assignedReviewers = $submission->submissionReviewers->map(function ($submissionReviewer) {
                 return [
-                    'id' => $submissionReviewer->reviewer->id,
+                    'id' => $submissionReviewer->id, // submission_reviewer id
                     'user' => [
                         'id' => $submissionReviewer->reviewer->user->id,
                         'name' => $submissionReviewer->reviewer->user->name,
@@ -399,10 +464,10 @@ class SubmissionViewController extends Controller
                 ];
             })->toArray();
 
-            // Get available reviewers for assignment (exclude already assigned + submission owner)
+            // Get available reviewers for assignment
             $assignedReviewerIds = $submission->submissionReviewers->pluck('reviewer_id')->toArray();
-
             $availableReviewers = [];
+
             if (class_exists('App\Models\Reviewer')) {
                 $today = Carbon::today();
                 $availableReviewers = \App\Models\Reviewer::with(['user', 'reviewerRole'])
@@ -428,7 +493,47 @@ class SubmissionViewController extends Controller
                     ->toArray();
             }
 
-            // Convert submission to array safely
+            // Check if current user is an assigned reviewer and get evaluation status
+            $currentUser = auth()->user();
+            $isAssignedReviewer = false;
+            $hasPendingEvaluations = false;
+            $pendingEvaluationsCount = 0;
+
+            if (!$currentUser->hasRole(['Super Admin', 'Admin'])) {
+                $reviewer = \App\Models\Reviewer::where('user_id', $currentUser->id)->first();
+
+                if ($reviewer) {
+                    $submissionReviewer = SubmissionReviewer::where([
+                        'form_submission_id' => $submission->id,
+                        'reviewer_id' => $reviewer->id
+                    ])->first();
+
+                    if ($submissionReviewer) {
+                        $isAssignedReviewer = true;
+
+                        // Check evaluation status
+                        $pendingEvaluationsCount = $submissionReviewer->reviewerFormAssignments()
+                            ->where('is_active', true)
+                            ->whereDoesntHave('reviewFormResponse', function ($q) {
+                                $q->where('status', 'submitted');
+                            })
+                            ->count();
+
+                        $hasPendingEvaluations = $pendingEvaluationsCount > 0;
+                    }
+                }
+            }
+
+            // Determine canReview and canCreateThread
+            $canReview = $this->canUserReview($submission, $currentUser);
+            $canCreateThread = $isAssignedReviewer && !$hasPendingEvaluations;
+
+            // For admins, they can always create threads
+            if ($currentUser->hasRole(['Super Admin', 'Admin'])) {
+                $canCreateThread = true;
+            }
+
+            // Convert submission to array
             $submissionData = [
                 'id' => $submission->id,
                 'is_submitted' => $submission->is_submitted,
@@ -439,7 +544,7 @@ class SubmissionViewController extends Controller
                 'form' => $submission->form->toArray(),
                 'review_summaries' => $reviewSummaries,
                 'review_comments' => $reviewComments,
-                'assigned_reviewers' => $assignedReviewers, // dari SubmissionReviewer
+                'assigned_reviewers' => $assignedReviewers,
             ];
 
             return Inertia::render('Submissions/ShowSubmission', [
@@ -447,19 +552,21 @@ class SubmissionViewController extends Controller
                 'responses' => $responses,
                 'reviewStats' => $reviewStats,
                 'availableReviewers' => $availableReviewers,
-                'canAssignReviewers' => auth()->user()->hasRole(['Super Admin', 'Admin']),
-                'canReview' => $this->canUserReview($submission, auth()->user()),
-                'userRole' => $this->getUserRoleForSubmission($submission, auth()->user()),
+                'canAssignReviewers' => $currentUser->hasRole(['Super Admin', 'Admin']),
+                'canReview' => $canReview,
+                'canCreateThread' => $canCreateThread,
+                'hasPendingEvaluations' => $hasPendingEvaluations,
+                'pendingEvaluationsCount' => $pendingEvaluationsCount,
+                'userRole' => $this->getUserRoleForSubmission($submission, $currentUser),
             ]);
 
         } catch (\Exception $e) {
-            // Log error for debugging
             \Log::error('Error in adminShowSubmission: ' . $e->getMessage(), [
                 'submission_id' => $submission->id,
                 'trace' => $e->getTraceAsString()
             ]);
 
-            // Fallback to basic view
+            // Fallback
             $submission->load([
                 'form.formFields' => function ($query) {
                     $query->orderBy('order');
@@ -487,6 +594,9 @@ class SubmissionViewController extends Controller
                 'availableReviewers' => [],
                 'canAssignReviewers' => auth()->user()->hasRole(['Super Admin', 'Admin']),
                 'canReview' => false,
+                'canCreateThread' => false,
+                'hasPendingEvaluations' => false,
+                'pendingEvaluationsCount' => 0,
                 'userRole' => $this->getUserRoleForSubmission($submission, auth()->user()),
                 'error' => 'Review system temporarily unavailable',
             ]);
@@ -500,9 +610,9 @@ class SubmissionViewController extends Controller
             return true;
         }
 
-        $reviewer = \App\Models\Reviewer::where('user_id', $user->id)->first();
+        $reviewer = \App\Models\Reviewer::where('user_id', $user->id)->latest()->first();
         if ($reviewer) {
-            return \App\Models\SubmissionReviewer::where([
+            return SubmissionReviewer::where([
                 'form_submission_id' => $submission->id,
                 'reviewer_id' => $reviewer->id
             ])->exists();
@@ -522,16 +632,8 @@ class SubmissionViewController extends Controller
             return 'submitter';
         }
 
-        $reviewer = \App\Models\Reviewer::where('user_id', $user->id)->first();
-        if ($reviewer) {
-            $isAssignedReviewer = \App\Models\ReviewSummary::where([
-                'form_submission_id' => $submission->id,
-                'reviewer_id' => $reviewer->id
-            ])->exists();
-
-            if ($isAssignedReviewer) {
-                return 'reviewer';
-            }
+        if ($this->canUserReview($submission, $user)) {
+            return 'reviewer';
         }
 
         return 'user';

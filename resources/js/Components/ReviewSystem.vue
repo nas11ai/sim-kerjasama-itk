@@ -6,34 +6,13 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card'
 import { Badge } from '@/Components/ui/badge'
 import { Label } from '@/Components/ui/label'
 import { Textarea } from '@/Components/ui/textarea'
-import { Input } from '@/Components/ui/input'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/Components/ui/select'
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogDescription } from '@/Components/ui/dialog'
 import { Avatar, AvatarFallback } from '@/Components/ui/avatar'
 import { Separator } from '@/Components/ui/separator'
-import {
-    MessageSquare,
-    Users,
-    Plus,
-    X,
-    Clock,
-    CheckCircle,
-    AlertCircle,
-    XCircle,
-    Download,
-    Send,
-    User,
-    Shield
-} from 'lucide-vue-next'
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger } from '@/Components/ui/dialog'
+import { Input } from '@/Components/ui/input'
+import { AlertCircle, CheckCircle, XCircle, Clock, Shield, User, MessageSquare, Users, Plus, Send, X, Download } from 'lucide-vue-next'
 
 // Types
-interface Reviewer {
-    id: number
-    name: string
-    email: string
-    role: string
-}
-
 interface AssignedReviewer {
     id: number
     user: {
@@ -107,66 +86,66 @@ interface Props {
     submissionId: number
     reviewSummaries: ReviewSummary[]
     reviewComments: ReviewComment[]
-    availableReviewers: Reviewer[]
+    availableReviewers?: any[]
     assignedReviewers: AssignedReviewer[]
     canAssignReviewers: boolean
     canReview: boolean
+    canCreateThread: boolean
     userRole: 'admin' | 'submitter' | 'reviewer' | 'user'
     reviewStats: ReviewStats
+    hasPendingEvaluations: boolean
+    pendingEvaluationsCount: number
 }
 
 const props = defineProps<Props>()
 const page = usePage()
 
 // State Management
-const showAssignDialog = ref(false)
 const showThreadDialog = ref(false)
-const showStatusDialog = ref(false)
-const selectedReviewers = ref<number[]>([])
 const newThreadNotes = ref('')
 const newThreadAttachments = ref<File[]>([])
 const newComments = ref<Record<number, string>>({})
 const replyingTo = ref<number | null>(null)
 const newReply = ref('')
-const selectedStatus = ref('')
-const statusNotes = ref('')
-
-// Loading States
-const isAssigning = ref(false)
-const removingReviewerId = ref<number | null>(null)
-const updatingStatus = ref(false)
 
 // Computed Properties
 const currentUser = computed(() => page.props.auth.user as any)
 const displayedAssignedReviewers = computed(() => props.assignedReviewers || [])
 
-const canUpdateSubmissionStatus = computed(() => {
-    if (props.userRole === 'admin') return true
-    if (props.userRole === 'reviewer') {
-        return props.assignedReviewers.some(reviewer =>
-            reviewer.user.id === currentUser.value?.id
-        )
-    }
-    return false
+const isAssignedReviewer = computed(() => {
+    const user = currentUser.value
+    if (!user) return false
+
+    // Check if current user is in the assigned reviewers list
+    return displayedAssignedReviewers.value.some(
+        reviewer => reviewer?.user?.id === user.id
+    )
 })
 
-type StatusType = "open" | "resolved" | "closed";
+// Log for debugging
+console.log('ReviewSystem Debug:', {
+    canReview: props.canReview,
+    canCreateThread: props.canCreateThread,
+    isAssignedReviewer: isAssignedReviewer.value,
+    currentUserId: currentUser.value?.id,
+    assignedReviewers: displayedAssignedReviewers.value,
+    hasPendingEvaluations: props.hasPendingEvaluations,
+})
 
-const statusMap: Record<
-    StatusType,
-    { label: string; color: string; icon: any }
-> = {
+type StatusType = "open" | "resolved" | "closed"
+
+const statusMap: Record<StatusType, { label: string; color: string; icon: any }> = {
     open: { label: "Open", color: "bg-green-100 text-green-800", icon: AlertCircle },
     resolved: { label: "Resolved", color: "bg-blue-100 text-blue-800", icon: CheckCircle },
     closed: { label: "Closed", color: "bg-red-100 text-red-800", icon: XCircle },
-};
+}
 
 const getStatusInfo = (status: string) => {
     if (status in statusMap) {
-        return statusMap[status as StatusType];
+        return statusMap[status as StatusType]
     }
-    return { label: "Unknown", color: "bg-gray-100 text-gray-800", icon: Clock };
-};
+    return { label: "Unknown", color: "bg-gray-100 text-gray-800", icon: Clock }
+}
 
 const getAuthorDisplay = (comment: ReviewComment) => {
     if (comment.reviewer?.user) {
@@ -204,63 +183,7 @@ const handleFileUpload = (event: Event) => {
     }
 }
 
-// Main Actions
-const assignReviewers = () => {
-    if (selectedReviewers.value.length === 0) return
-
-    isAssigning.value = true
-
-    router.post(`/admin/submissions/${props.submissionId}/assign-reviewers`, {
-        reviewer_ids: selectedReviewers.value
-    }, {
-        preserveState: false,
-        preserveScroll: true,
-        onSuccess: () => {
-            showAssignDialog.value = false
-            selectedReviewers.value = []
-        },
-        onFinish: () => {
-            isAssigning.value = false
-        }
-    })
-}
-
-const removeReviewer = (reviewerId: number) => {
-    if (!confirm('Are you sure you want to remove this reviewer?')) return
-
-    removingReviewerId.value = reviewerId
-
-    router.delete(`/admin/submissions/${props.submissionId}/reviewers/${reviewerId}`, {
-        preserveState: false,
-        preserveScroll: true,
-        onFinish: () => {
-            removingReviewerId.value = null
-        }
-    })
-}
-
-const updateSubmissionStatus = () => {
-    if (!selectedStatus.value) return
-
-    updatingStatus.value = true
-
-    router.patch(`/submissions/${props.submissionId}/status`, {
-        status: selectedStatus.value,
-        notes: statusNotes.value
-    }, {
-        preserveState: false,
-        preserveScroll: true,
-        onSuccess: () => {
-            showStatusDialog.value = false
-            selectedStatus.value = ''
-            statusNotes.value = ''
-        },
-        onFinish: () => {
-            updatingStatus.value = false
-        }
-    })
-}
-
+// Actions
 const createThread = () => {
     const formData = new FormData()
     formData.append('summary_notes', newThreadNotes.value)
@@ -270,6 +193,8 @@ const createThread = () => {
     })
 
     router.post(`/submissions/${props.submissionId}/review-threads`, formData, {
+        preserveState: false,
+        preserveScroll: true,
         onSuccess: () => {
             showThreadDialog.value = false
             newThreadNotes.value = ''
@@ -286,6 +211,8 @@ const addComment = (reviewSummaryId: number, parentId?: number) => {
         comment_text: commentText,
         parent_comment_id: parentId || null
     }, {
+        preserveState: false,
+        preserveScroll: true,
         onSuccess: () => {
             if (parentId) {
                 newReply.value = ''
@@ -297,18 +224,8 @@ const addComment = (reviewSummaryId: number, parentId?: number) => {
     })
 }
 
-const updateReviewStatus = (reviewSummaryId: number, status: string) => {
-    router.patch(`/review-summaries/${reviewSummaryId}/status`, { status })
-}
-
 const downloadAttachment = (filePath: string) => {
     window.open(`/review-attachments/download?path=${encodeURIComponent(filePath)}`, '_blank')
-}
-
-const openStatusDialog = () => {
-    showStatusDialog.value = true
-    selectedStatus.value = ''
-    statusNotes.value = ''
 }
 </script>
 
@@ -348,222 +265,62 @@ const openStatusDialog = () => {
             </CardContent>
         </Card>
 
-        <!-- Assigned Reviewers Management (Admin Only) -->
-        <Card v-if="canAssignReviewers">
-            <CardHeader>
-                <div class="flex items-center justify-between">
-                    <CardTitle class="flex items-center gap-2">
-                        <Users class="h-5 w-5" />
-                        Assigned Reviewers
-                    </CardTitle>
-
-                    <!-- Assign Reviewer Dialog -->
-                    <Dialog v-model:open="showAssignDialog">
-                        <DialogTrigger asChild>
-                            <Button size="sm">
-                                <Plus class="h-4 w-4 mr-2" />
-                                Assign Reviewer
-                            </Button>
-                        </DialogTrigger>
-                        <DialogContent>
-                            <DialogHeader>
-                                <DialogTitle>Assign Reviewers</DialogTitle>
-                                <DialogDescription>
-                                    Select one or more reviewers to assign to this submission.
-                                </DialogDescription>
-                            </DialogHeader>
-                            <div class="space-y-4">
-                                <div>
-                                    <Label>Select Reviewers</Label>
-                                    <Select v-model="selectedReviewers" multiple>
-                                        <SelectTrigger>
-                                            <SelectValue placeholder="Choose reviewers..." />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem v-for="reviewer in availableReviewers" :key="reviewer.id"
-                                                :value="reviewer.id">
-                                                {{ reviewer.name }} ({{ reviewer.role }})
-                                            </SelectItem>
-                                        </SelectContent>
-                                    </Select>
-                                </div>
-                                <div class="flex justify-end gap-2">
-                                    <Button variant="outline" @click="showAssignDialog = false">
-                                        Cancel
-                                    </Button>
-                                    <Button @click="assignReviewers"
-                                        :disabled="selectedReviewers.length === 0 || isAssigning">
-                                        <span v-if="isAssigning" class="mr-2">
-                                            <svg class="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg"
-                                                fill="none" viewBox="0 0 24 24">
-                                                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
-                                                    stroke-width="4"></circle>
-                                                <path class="opacity-75" fill="currentColor"
-                                                    d="m4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
-                                                </path>
-                                            </svg>
-                                        </span>
-                                        {{ isAssigning ? 'Assigning...' : 'Assign' }}
-                                    </Button>
-                                </div>
-                            </div>
-                        </DialogContent>
-                    </Dialog>
-                </div>
-            </CardHeader>
-            <CardContent>
-                <div v-if="displayedAssignedReviewers.length === 0" class="text-center py-6 text-muted-foreground">
-                    <p>No reviewers assigned yet</p>
-                </div>
-                <div v-else class="space-y-3">
-                    <div v-for="reviewer in displayedAssignedReviewers" :key="reviewer.id"
-                        class="flex items-center justify-between p-3 border rounded-lg">
-                        <div class="flex items-center gap-3">
-                            <Avatar>
-                                <AvatarFallback>{{ reviewer.user.name.charAt(0) }}</AvatarFallback>
-                            </Avatar>
-                            <div>
-                                <div class="font-medium">{{ reviewer.user.name }}</div>
-                                <div class="text-sm text-muted-foreground">{{ reviewer.reviewer_role.name }}</div>
-                            </div>
-                        </div>
-                        <Button variant="outline" size="sm" @click="removeReviewer(reviewer.id)"
-                            :disabled="removingReviewerId === reviewer.id">
-                            <span v-if="removingReviewerId === reviewer.id" class="mr-1">
-                                <svg class="animate-spin h-3 w-3" xmlns="http://www.w3.org/2000/svg" fill="none"
-                                    viewBox="0 0 24 24">
-                                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor"
-                                        stroke-width="4"></circle>
-                                    <path class="opacity-75" fill="currentColor"
-                                        d="m4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
-                                    </path>
-                                </svg>
-                            </span>
-                            <X class="h-4 w-4" />
-                        </Button>
-                    </div>
-                </div>
-            </CardContent>
-        </Card>
-
-        <!-- Review Actions -->
-        <Card>
+        <!-- Review Actions for Assigned Reviewers -->
+        <Card v-if="isAssignedReviewer && canReview">
             <CardHeader>
                 <div class="flex items-center justify-between">
                     <CardTitle class="flex items-center gap-2">
                         <MessageSquare class="h-5 w-5" />
                         Review Actions
                     </CardTitle>
-                    <div class="flex gap-2">
-                        <!-- Direct Status Update -->
-                        <Dialog v-if="canUpdateSubmissionStatus" v-model:open="showStatusDialog">
-                            <DialogTrigger asChild>
-                                <Button size="sm" variant="outline">
-                                    <CheckCircle class="h-4 w-4 mr-2" />
-                                    Update Status
-                                </Button>
-                            </DialogTrigger>
-                            <DialogContent>
-                                <DialogHeader>
-                                    <DialogTitle>Update Submission Status</DialogTitle>
-                                    <DialogDescription>
-                                        Change the status of this submission directly.
-                                    </DialogDescription>
-                                </DialogHeader>
-                                <div class="space-y-4">
-                                    <div>
-                                        <Label>New Status</Label>
-                                        <Select v-model="selectedStatus">
-                                            <SelectTrigger>
-                                                <SelectValue placeholder="Select new status..." />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                <SelectItem value="approved">
-                                                    <div class="flex items-center gap-2">
-                                                        <CheckCircle class="h-4 w-4 text-green-600" />
-                                                        Approved
-                                                    </div>
-                                                </SelectItem>
-                                                <SelectItem value="needs_revision">
-                                                    <div class="flex items-center gap-2">
-                                                        <AlertCircle class="h-4 w-4 text-orange-600" />
-                                                        Needs Revision
-                                                    </div>
-                                                </SelectItem>
-                                                <SelectItem value="rejected">
-                                                    <div class="flex items-center gap-2">
-                                                        <XCircle class="h-4 w-4 text-red-600" />
-                                                        Rejected
-                                                    </div>
-                                                </SelectItem>
-                                            </SelectContent>
-                                        </Select>
-                                    </div>
-                                    <div class="flex justify-end gap-2">
-                                        <Button variant="outline" @click="showStatusDialog = false">Cancel</Button>
-                                        <Button @click="updateSubmissionStatus"
-                                            :disabled="!selectedStatus || updatingStatus">
-                                            <span v-if="updatingStatus" class="mr-2">
-                                                <svg class="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg"
-                                                    fill="none" viewBox="0 0 24 24">
-                                                    <circle class="opacity-25" cx="12" cy="12" r="10"
-                                                        stroke="currentColor" stroke-width="4"></circle>
-                                                    <path class="opacity-75" fill="currentColor"
-                                                        d="m4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z">
-                                                    </path>
-                                                </svg>
-                                            </span>
-                                            {{ updatingStatus ? 'Updating...' : 'Update Status' }}
-                                        </Button>
-                                    </div>
-                                </div>
-                            </DialogContent>
-                        </Dialog>
 
-                        <!-- Create Review Thread -->
-                        <Dialog v-if="userRole === 'reviewer'" v-model:open="showThreadDialog">
-                            <DialogTrigger asChild>
-                                <Button size="sm">
-                                    <Plus class="h-4 w-4 mr-2" />
-                                    New Thread
-                                </Button>
-                            </DialogTrigger>
-                            <DialogContent class="max-w-2xl">
-                                <DialogHeader>
-                                    <DialogTitle>Create Review Thread</DialogTitle>
-                                    <DialogDescription>
-                                        Create a discussion thread for this submission review.
-                                    </DialogDescription>
-                                </DialogHeader>
-                                <div class="space-y-4">
-                                    <div>
-                                        <Label>Description</Label>
-                                        <Textarea v-model="newThreadNotes"
-                                            placeholder="Describe the issue or feedback..." rows="4" />
-                                    </div>
-                                    <div>
-                                        <Label>Attachments</Label>
-                                        <Input type="file" multiple @change="handleFileUpload"
-                                            accept=".pdf,.doc,.docx,.png,.jpg,.jpeg" />
-                                    </div>
-                                    <div class="flex justify-end gap-2">
-                                        <Button variant="outline" @click="showThreadDialog = false">Cancel</Button>
-                                        <Button @click="createThread" :disabled="!newThreadNotes.trim()">
-                                            Create Thread
-                                        </Button>
-                                    </div>
-                                </div>
-                            </DialogContent>
-                        </Dialog>
-                    </div>
+                    <!-- Create Thread Button -->
+                    <Button v-if="canCreateThread && !hasPendingEvaluations" size="sm" @click="showThreadDialog = true">
+                        <Plus class="h-4 w-4 mr-2" />
+                        New Thread
+                    </Button>
+
+                    <!-- Pending Evaluations Warning -->
+                    <Badge v-else-if="hasPendingEvaluations" variant="secondary" class="flex items-center gap-1">
+                        <AlertCircle class="h-3 w-3" />
+                        {{ pendingEvaluationsCount }} evaluation(s) pending
+                    </Badge>
                 </div>
             </CardHeader>
-            <CardContent v-if="!canUpdateSubmissionStatus && userRole !== 'reviewer'"
-                class="text-center py-6 text-muted-foreground">
-                <MessageSquare class="h-8 w-8 mx-auto mb-2 opacity-50" />
-                <p class="text-sm">You don't have permission to create threads or update status.</p>
+            <CardContent v-if="hasPendingEvaluations" class="text-center py-6 text-muted-foreground">
+                <AlertCircle class="h-8 w-8 mx-auto mb-2 text-amber-500" />
+                <p class="text-sm">Complete your evaluation forms before creating review threads.</p>
             </CardContent>
         </Card>
+
+        <!-- Create Thread Dialog -->
+        <Dialog v-model:open="showThreadDialog">
+            <DialogContent class="max-w-2xl">
+                <DialogHeader>
+                    <DialogTitle>Create Review Thread</DialogTitle>
+                    <DialogDescription>
+                        Create a discussion thread for this submission review.
+                    </DialogDescription>
+                </DialogHeader>
+                <div class="space-y-4">
+                    <div>
+                        <Label>Description</Label>
+                        <Textarea v-model="newThreadNotes" placeholder="Describe the issue or feedback..." rows="4" />
+                    </div>
+                    <div>
+                        <Label>Attachments (Optional)</Label>
+                        <Input type="file" multiple @change="handleFileUpload"
+                            accept=".pdf,.doc,.docx,.png,.jpg,.jpeg" />
+                    </div>
+                    <div class="flex justify-end gap-2">
+                        <Button variant="outline" @click="showThreadDialog = false">Cancel</Button>
+                        <Button @click="createThread" :disabled="!newThreadNotes.trim()">
+                            Create Thread
+                        </Button>
+                    </div>
+                </div>
+            </DialogContent>
+        </Dialog>
 
         <!-- Review Threads -->
         <div v-if="reviewSummaries.length > 0" class="space-y-4">
@@ -641,16 +398,6 @@ const openStatusDialog = () => {
                                     </div>
                                     <div class="bg-muted/30 p-3 rounded-lg">
                                         <div class="whitespace-pre-wrap">{{ comment.comment_text }}</div>
-
-                                        <!-- Comment Attachments -->
-                                        <div v-if="comment.attachments.length > 0" class="mt-2 flex flex-wrap gap-1">
-                                            <Button v-for="attachment in comment.attachments" :key="attachment.id"
-                                                variant="ghost" size="sm"
-                                                @click="downloadAttachment(attachment.file_path)">
-                                                <Download class="h-3 w-3 mr-1" />
-                                                File
-                                            </Button>
-                                        </div>
                                     </div>
 
                                     <!-- Replies -->
@@ -724,11 +471,11 @@ const openStatusDialog = () => {
                 <MessageSquare class="h-12 w-12 mx-auto text-muted-foreground mb-4" />
                 <h3 class="text-lg font-medium mb-2">No Review Threads Yet</h3>
                 <p class="text-muted-foreground mb-4">
-                    <span v-if="userRole === 'reviewer'">
-                        You can either create a review thread for discussion or directly update the submission status.
+                    <span v-if="isAssignedReviewer && canCreateThread && !hasPendingEvaluations">
+                        Create a review thread to start the discussion.
                     </span>
-                    <span v-else-if="canAssignReviewers">
-                        Assign reviewers to start the review process.
+                    <span v-else-if="isAssignedReviewer && hasPendingEvaluations">
+                        Complete your evaluation forms before creating review threads.
                     </span>
                     <span v-else>
                         No review threads have been created for this submission yet.
