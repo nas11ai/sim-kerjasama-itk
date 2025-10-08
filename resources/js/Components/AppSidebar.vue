@@ -21,7 +21,6 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from "@/Components/ui/dropdown-menu";
-import { Badge } from "@/Components/ui/badge";
 import {
     Home,
     FileText,
@@ -42,23 +41,12 @@ import {
     CheckCircle,
     Clock,
     Star,
-    Megaphone,
-    AlertCircle,
-    Lock
+    Megaphone
 } from 'lucide-vue-next';
 
 const page = usePage()
 const user = computed(() => page.props.auth?.user)
 const userRoles = computed(() => user.value?.roles || [])
-
-// biodata_status dari middleware
-const biodataStatus = computed(() => ({
-    required: page.props.biodataStatus?.required ?? false,
-    completed: page.props.biodataStatus?.completed ?? true,
-    showAllMenus: page.props.biodataStatus?.showAllMenus ?? true,
-    status: page.props.biodataStatus?.status ?? '',
-    message: page.props.biodataStatus?.message ?? '',
-}));
 
 const isAdmin = computed(() =>
     userRoles.value.some((role: any) => ['Super Admin', 'Admin'].includes(role))
@@ -69,13 +57,10 @@ const isUser = computed(() =>
 )
 
 const isReviewer = computed(() => {
+    // Flag dikirim dari backend (middleware CheckReviewer)
     return user.value?.is_reviewer || false
 })
 
-const shouldShowMenu = computed(() => {
-    if (isAdmin.value) return true;
-    return biodataStatus.value.showAllMenus
-})
 
 // Navigation items for admin
 const adminNavItems = [
@@ -187,87 +172,71 @@ const adminNavItems = [
     },
 ];
 
-// Navigation items for users
+// Navigation items for regular users (termasuk reviewer)
 const userNavItems = computed(() => {
     const baseItems = [
         {
             title: "Dashboard",
-            url: route("user.dashboard"),
+            url: route('user.dashboard'),
             icon: Home,
-            alwaysShow: true,
         },
+        {
+            title: "My Forms",
+            icon: ClipboardList,
+            items: [
+                {
+                    title: "Active Submissions",
+                    url: route('user.dashboard'),
+                    icon: BookOpen,
+                }
+            ]
+        },
+        {
+            title: "My Submissions",
+            icon: Send,
+            items: [
+                {
+                    title: "View Submissions",
+                    url: route('user.submissions.index'),
+                    icon: Send,
+                },
+                {
+                    title: "Under Review",
+                    url: route('user.submissions.index') + '?status=under_review',
+                    icon: Clock,
+                },
+                {
+                    title: "Approved",
+                    url: route('user.submissions.index') + '?status=approved',
+                    icon: CheckCircle,
+                }
+            ]
+        }
     ];
 
-    if (shouldShowMenu.value) {
-        baseItems.push(
-            {
-                title: "Announcement Center",
-                icon: ClipboardList,
-                items: [
-                    {
-                        title: "Announcements",
-                        url: route("user.announcements.index"),
-                        icon: Megaphone,
-                    },
-                ],
-            },
-            {
-                title: "My Forms",
-                icon: ClipboardList,
-                items: [
-                    {
-                        title: "Active Submissions",
-                        url: route("user.dashboard"),
-                        icon: BookOpen,
-                    },
-                ],
-            },
-            {
-                title: "My Submissions",
-                icon: Send,
-                items: [
-                    {
-                        title: "View Submissions",
-                        url: route("user.submissions.index"),
-                        icon: Send,
-                    },
-                    {
-                        title: "Under Review",
-                        url: route('user.submissions.index') + '?status=under_review',
-                        icon: Clock,
-                    },
-                    {
-                        title: "Approved",
-                        url: route('user.submissions.index') + '?status=approved',
-                        icon: CheckCircle,
-                    },
-                ],
-            }
-        );
-
-        if (isReviewer.value) {
-            baseItems.push({
-                title: "Review Tasks",
-                icon: MessageSquare,
-                items: [
-                    {
-                        title: "Assigned Reviews",
-                        url: route('reviewer.submissions.index'),
-                        icon: MessageSquare,
-                    },
-                    {
-                        title: "Pending Reviews",
-                        url: route('reviewer.submissions.index') + '?status=open',
-                        icon: Clock,
-                    },
-                    {
-                        title: "Completed Reviews",
-                        url: route('reviewer.submissions.index') + '?status=resolved',
-                        icon: CheckCircle,
-                    }
-                ]
-            });
-        }
+    // Add Review Tasks menu if user is reviewer
+    if (isReviewer.value) {
+        baseItems.push({
+            title: "Review Tasks",
+            icon: MessageSquare,
+            items: [
+                {
+                    title: "Assigned Reviews",
+                    url: route('reviewer.submissions.index'),
+                    icon: MessageSquare,
+                },
+                {
+                    title: "Pending Reviews",
+                    url: route('reviewer.submissions.index') + '?status=open',
+                    icon: Clock,
+                },
+                {
+                    title: "Completed Reviews",
+                    url: route('reviewer.submissions.index') + '?status=resolved',
+                    icon: CheckCircle,
+                }
+            ]
+        });
     }
 
     return baseItems;
@@ -281,6 +250,7 @@ const navItems = computed(() => {
 const currentUrl = computed(() => page.url);
 
 const isActive = (url: string) => {
+    // Remove query parameters for comparison
     const cleanUrl = url.split('?')[0];
     const cleanCurrentUrl = currentUrl.value.split('?')[0];
     return cleanCurrentUrl === cleanUrl || cleanCurrentUrl.startsWith(cleanUrl);
@@ -295,6 +265,7 @@ const logout = (e: Event) => {
     router.post(route('logout'))
 }
 
+// Helper to determine current context
 const getCurrentContext = computed(() => {
     const url = currentUrl.value;
     if (url.startsWith('/admin')) return 'admin';
@@ -307,27 +278,6 @@ const getContextLabel = computed(() => {
             return 'Administration';
         default:
             return isReviewer.value ? 'User & Reviewer Portal' : 'User Portal';
-    }
-});
-
-const getBiodataStatusBadge = computed(() => {
-    if (!biodataStatus.value.required || biodataStatus.value.completed) {
-        return null;
-    }
-
-    const status = biodataStatus.value.status;
-
-    switch (status) {
-        case 'pending':
-            return { text: 'Pending Approval', variant: 'secondary', icon: Clock };
-        case 'under_review':
-            return { text: 'Under Review', variant: 'default', icon: Clock };
-        case 'rejected':
-            return { text: 'Rejected', variant: 'destructive', icon: AlertCircle };
-        case 'needs_revision':
-            return { text: 'Needs Revision', variant: 'destructive', icon: AlertCircle };
-        default:
-            return { text: 'Incomplete', variant: 'destructive', icon: Lock };
     }
 });
 </script>
@@ -352,47 +302,13 @@ const getBiodataStatusBadge = computed(() => {
                     </SidebarMenuButton>
                 </SidebarMenuItem>
             </SidebarMenu>
-
-            <!-- biodata status -->
-            <div
-                v-if="!isAdmin && biodataStatus.required && !biodataStatus.completed"
-                class="px-3 py-2 mt-2"
-            >
-                <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
-                    <div class="flex items-start gap-2">
-                        <AlertCircle class="h-4 w-4 text-yellow-600 mt-0.5 flex-shrink-0" />
-                        <div class="flex-1 min-w-0">
-                            <p class="text-xs font-medium text-yellow-800">
-                                Biodata Required
-                            </p>
-                            <p class="text-xs text-yellow-700 mt-1">
-                                {{ biodataStatus.message }}
-                            </p>
-                            <Badge
-                                v-if="getBiodataStatusBadge"
-                                :variant="getBiodataStatusBadge.variant"
-                                class="mt-2 text-xs"
-                            >
-                                <component :is="getBiodataStatusBadge.icon" class="h-3 w-3 mr-1" />
-                                {{ getBiodataStatusBadge.text }}
-                            </Badge>
-                        </div>
-                    </div>
-                </div>
-            </div>
         </SidebarHeader>
 
         <SidebarContent>
             <SidebarGroup v-for="item in navItems" :key="item.title">
-                <SidebarGroupLabel v-if="item.items">
-                    <div class="flex items-center justify-between w-full">
-                        <span>{{ item.title }}</span>
-                        <Lock
-                            v-if="!shouldShowMenu && !item.alwaysShow"
-                            class="h-3 w-3 text-muted-foreground opacity-50"
-                        />
-                    </div>
-                </SidebarGroupLabel>
+                <SidebarGroupLabel v-if="item.items">{{
+                    item.title
+                }}</SidebarGroupLabel>
 
                 <SidebarGroupContent>
                     <SidebarMenu>
@@ -441,7 +357,9 @@ const getBiodataStatusBadge = computed(() => {
                                 class="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
                             >
                                 <User2 class="size-4" />
-                                <div class="grid flex-1 text-left text-sm leading-tight">
+                                <div
+                                    class="grid flex-1 text-left text-sm leading-tight"
+                                >
                                     <span class="truncate font-semibold">{{
                                         user?.name
                                     }}</span>
@@ -470,7 +388,9 @@ const getBiodataStatusBadge = computed(() => {
 
                             <!-- Switch between admin/user view if user has admin role -->
                             <DropdownMenuItem
-                                v-if="isAdmin && !currentUrl.startsWith('/admin')"
+                                v-if="
+                                    isAdmin && !currentUrl.startsWith('/admin')
+                                "
                                 as-child
                             >
                                 <a
@@ -483,7 +403,9 @@ const getBiodataStatusBadge = computed(() => {
                             </DropdownMenuItem>
 
                             <DropdownMenuItem
-                                v-if="isAdmin && currentUrl.startsWith('/admin')"
+                                v-if="
+                                    isAdmin && currentUrl.startsWith('/admin')
+                                "
                                 as-child
                             >
                                 <a
