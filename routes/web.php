@@ -12,6 +12,9 @@ use App\Http\Controllers\SubmissionPeriodController;
 use App\Http\Controllers\SubmissionViewController;
 use App\Http\Controllers\UserFormController;
 use App\Http\Controllers\AnnouncementController;
+use App\Http\Controllers\PermissionController;
+use App\Http\Controllers\RoleController;
+use App\Http\Controllers\UserController;
 use Illuminate\Foundation\Application;
 use App\Models\Announcement;
 use Illuminate\Support\Facades\Route;
@@ -29,6 +32,8 @@ Route::get('/', function () {
             ->get(),
     ]);
 });
+
+Route::get('announcements/{announcement}', [AnnouncementController::class, 'detail'])->name('announcements.detail');
 
 Route::middleware(['auth', 'check_reviewer_status'])->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
@@ -149,6 +154,48 @@ Route::middleware(['auth', 'role:Super Admin|Admin', 'check_reviewer_status'])->
     Route::get('/dashboard', function () {
         return Inertia::render('Dashboard');
     })->middleware(['auth', 'verified'])->name('dashboard');
+
+    // User Management
+    Route::get('/users', [UserController::class, 'index'])->name('users.index');
+    Route::get('/users/create', [UserController::class, 'create'])->name('users.create');
+    Route::post('/users/store', [UserController::class, 'store'])->name('users.store');
+    Route::get('/users/{user}', [UserController::class, 'edit'])->name('users.edit');
+    Route::put('/users/{user}', [UserController::class, 'update'])->name('users.update');
+    Route::delete('/users/{user}', [UserController::class, 'delete'])->name('users.delete');
+
+    // Role Management
+    Route::resource('roles', RoleController::class)->names([
+        'index' => 'roles.index',
+        'create' => 'roles.create',
+        'store' => 'roles.store',
+        'show' => 'roles.show',
+        'edit' => 'roles.edit',
+        'update' => 'roles.update',
+        'destroy' => 'roles.destroy',
+    ]);
+
+    // Permission Management
+    Route::resource('permissions', PermissionController::class)->names([
+        'index' => 'permissions.index',
+        'create' => 'permissions.create',
+        'store' => 'permissions.store',
+        'show' => 'permissions.show',
+        'edit' => 'permissions.edit',
+        'update' => 'permissions.update',
+        'destroy' => 'permissions.destroy',
+    ]);
+
+    // Assigning & Revoke Role for Users
+    Route::post('users/{user}/assign-role', [UserController::class, 'assignRole'])
+        ->name('users.assign-role');
+    Route::delete('users/{user}/revoke-role', [UserController::class, 'revokeRole'])
+        ->name('users.revoke-role');
+
+    // Assigning & Revoke Permissions for Roles
+    Route::post('users/{user}/give-permission', [RoleController::class, 'givePermissions'])
+        ->name('users.assign-role');
+    Route::delete('users/{user}/revoke-permission', [RoleController::class, 'revokePermissions'])
+        ->name('users.revoke-permissions');
 
     Route::resource('forms', FormController::class);
 

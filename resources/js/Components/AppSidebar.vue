@@ -41,7 +41,10 @@ import {
     CheckCircle,
     Clock,
     Star,
-    Megaphone
+    Megaphone,
+    User,
+    Bolt,
+    BookCheck
 } from 'lucide-vue-next';
 
 const page = usePage()
@@ -68,6 +71,27 @@ const adminNavItems = [
         title: "Dashboard",
         url: route("admin.dashboard"),
         icon: Home,
+    },
+    {
+        title: "User Management",
+        icon: FileText,
+        items: [
+            {
+                title: "Users",
+                url: route("admin.users.index"),
+                icon: User,
+            },
+            {
+                title: "Roles",
+                url: route("admin.roles.index"),
+                icon: Bolt,
+            },
+            {
+                title: "Permissions",
+                url: route("admin.permissions.index"),
+                icon: BookCheck,
+            },
+        ],
     },
     {
         title: "Form Management",
