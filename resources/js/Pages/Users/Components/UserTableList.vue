@@ -61,12 +61,20 @@ const columns: ColumnDef<User>[] = [
     },
     {
         header: "Actions",
-        cell: ({ row }) =>
-            h(TableActionColumn, {
+        cell: ({ row }) => {
+            const user = row.original;
+            const isSuperAdmin = user.roles.some(
+                (r) => r.name === "Super Admin"
+            );
+            console.log('Row:', user.name, 'isSuperAdmin?', isSuperAdmin);
+
+            return h(TableActionColumn, {
                 row,
                 onConfirmDelete: (userId: number) => openConfirmDialog(userId),
-                canDelete: row.original.id !== authId,
-            }),
+                canEdit: !isSuperAdmin,
+                canDelete: !isSuperAdmin && user.id !== authId,
+            });
+        },
     },
 ];
 

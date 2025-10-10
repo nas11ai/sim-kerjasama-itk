@@ -39,15 +39,19 @@ const columns: ColumnDef<Role>[] = [
     {
         accessorKey: "actions",
         header: "Actions",
-        cell: ({ row }) =>
-            h(TableActionColumn, {
+        cell: ({ row }) => {
+            const role = row.original;
+            const isSuperAdmin = role.name === "Super Admin"; // atau RoleEnum.SUPER_ADMIN
+
+            return h(TableActionColumn, {
                 row,
-                canDelete: props.can.delete,
-                canEdit: props.can.edit,
+                canDelete: props.can.delete && !isSuperAdmin,
+                canEdit: props.can.edit && !isSuperAdmin,
                 editRouteName: "admin.roles.edit",
                 onConfirmDelete: (id: number) =>
                     dataTableRef.value?.openConfirmDialog(id),
-            }),
+            });
+        },
     },
 ];
 </script>

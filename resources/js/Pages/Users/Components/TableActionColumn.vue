@@ -5,7 +5,12 @@ import { Link } from "@inertiajs/vue3";
 import { Row } from "@tanstack/vue-table";
 import { Edit, Trash } from "lucide-vue-next";
 
-const props = defineProps<{ row: Row<User>; canDelete: boolean }>();
+const props = defineProps<{
+    row: Row<User>;
+    canDelete: boolean;
+    canEdit: boolean;
+}>();
+
 const emit = defineEmits<{
     (e: "confirm-delete", userId: number): void;
 }>();
@@ -19,6 +24,7 @@ const emit = defineEmits<{
             variant="default"
             size="icon"
             class="cursor-pointer bg-yellow-400 hover:bg-yellow-400/80"
+            :disabled="!props.canEdit"
         >
             <Edit :size="16" class="text-black" />
         </Button>
