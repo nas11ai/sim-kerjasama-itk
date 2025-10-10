@@ -25,40 +25,33 @@ class ReviewController extends Controller
         $request->validate([
             'reviewer_ids' => 'required|array|min:1',
             'reviewer_ids.*' => 'exists:reviewers,id',
-            'assign_evaluation_forms' => 'boolean',
-            'evaluation_form_assignments' => 'nullable|array',
-            'evaluation_form_assignments.*.form_id' => 'required|exists:review_evaluation_forms,id',
-            'evaluation_form_assignments.*.is_required' => 'boolean',
-            'evaluation_form_assignments.*.due_date' => 'nullable|date|after:now',
+            'auto_assign_forms' => 'boolean', // NEW: control auto-assignment
         ]);
 
         DB::transaction(function () use ($request, $submission) {
-            $assignedReviewers = [];
+            $formPhase = $submission->getFormPhase();
+            $hasEvaluationForms = $formPhase && $formPhase->hasReviewEvaluationForms();
 
             foreach ($request->reviewer_ids as $reviewerId) {
+                // Create or get submission reviewer
                 $submissionReviewer = SubmissionReviewer::firstOrCreate([
                     'form_submission_id' => $submission->id,
                     'reviewer_id' => $reviewerId,
+                ], [
+                    'evaluation_status' => $hasEvaluationForms ? 'pending' : 'not_required'
                 ]);
 
-                $assignedReviewers[] = $submissionReviewer;
-            }
-
-            // Auto-assign evaluation forms if requested
-            if ($request->assign_evaluation_forms) {
-                $this->autoAssignEvaluationForms($submission, $assignedReviewers, $request->evaluation_form_assignments);
+                // Auto-assign evaluation forms if enabled and forms exist
+                if ($hasEvaluationForms && ($request->auto_assign_forms ?? true)) {
+                    $this->autoAssignEvaluationForms($submissionReviewer, $formPhase);
+                }
             }
 
             // Update submission status
-            if ($submission->submissionReviewers()->count() > 0) {
-                $newStatus = $submission->hasPendingEvaluations()
-                    ? SubmissionStatus::UNDER_REVIEW
-                    : SubmissionStatus::UNDER_REVIEW;
-                $submission->update(['status' => $newStatus]);
-            }
+            $submission->updateStatusBasedOnReviews();
         });
 
-        return back()->with('success', 'Reviewer berhasil ditugaskan ke submission ini.');
+        return back()->with('success', 'Reviewers have been assigned successfully.');
     }
 
     // Enhanced remove reviewer to handle evaluation forms
@@ -178,12 +171,13 @@ class ReviewController extends Controller
             return $this->performCreateReviewThread($request, $submission, null);
         }
 
-        // Check if user is assigned reviewer
+        // Check if user is a reviewer
         $reviewer = Reviewer::where('user_id', $user->id)->first();
         if (!$reviewer) {
             abort(403, 'You are not registered as a reviewer');
         }
 
+        // Check if reviewer is assigned to this submission
         $submissionReviewer = SubmissionReviewer::where([
             'form_submission_id' => $submission->id,
             'reviewer_id' => $reviewer->id
@@ -193,16 +187,36 @@ class ReviewController extends Controller
             abort(403, 'You are not assigned as reviewer for this submission');
         }
 
-        // Check if submission has review evaluation forms
-        if ($submission->hasReviewEvaluationForms()) {
-            // If has evaluation forms, check if completed
-            if (!$submissionReviewer->canCreateDiscussionThreads()) {
-                $pendingCount = $submissionReviewer->pending_forms_count;
-                abort(403, "Please complete your {$pendingCount} pending evaluation form(s) before creating review threads");
-            }
-        }
-        // If no evaluation forms, reviewer can create threads immediately
+        // Get form phase to check if evaluation forms exist
+        $formPhase = $submission->getFormPhase();
 
+        if (!$formPhase || !$formPhase->hasReviewEvaluationForms()) {
+            // No evaluation forms, allow thread creation immediately
+            return $this->performCreateReviewThread($request, $submission, $reviewer);
+        }
+
+        // Has evaluation forms - check if all REQUIRED forms are completed
+        $requiredForms = $formPhase->requiredReviewEvaluationForms()->pluck('id');
+
+        if ($requiredForms->isEmpty()) {
+            // No required forms, can create thread
+            return $this->performCreateReviewThread($request, $submission, $reviewer);
+        }
+
+        // Check completion of required forms
+        $completedRequired = $submissionReviewer->reviewerFormAssignments()
+            ->whereIn('review_evaluation_form_id', $requiredForms)
+            ->whereHas('reviewFormResponse', function ($q) {
+                $q->where('status', 'submitted');
+            })
+            ->count();
+
+        if ($completedRequired < $requiredForms->count()) {
+            $pendingCount = $requiredForms->count() - $completedRequired;
+            abort(403, "Please complete your {$pendingCount} required evaluation form(s) before creating review threads.");
+        }
+
+        // All required forms completed, can create thread
         return $this->performCreateReviewThread($request, $submission, $reviewer);
     }
 
@@ -214,7 +228,6 @@ class ReviewController extends Controller
                 'reviewer_id' => $reviewer?->id,
                 'status' => 'open',
                 'summary_notes' => $request->summary_notes,
-                'is_auto_generated' => false,
             ]);
 
             // Handle attachments
@@ -244,8 +257,6 @@ class ReviewController extends Controller
         $request->validate([
             'comment_text' => 'required|string|max:2000',
             'parent_comment_id' => 'nullable|exists:review_comments,id',
-            'attachments' => 'nullable|array|max:3',
-            'attachments.*' => 'file|mimes:pdf,doc,docx,png,jpg,jpeg,gif|max:5120'
         ]);
 
         $user = Auth::user();
@@ -264,6 +275,7 @@ class ReviewController extends Controller
         // Check reviewer permissions
         else {
             $reviewer = Reviewer::where('user_id', $user->id)->first();
+
             if ($reviewer) {
                 $submissionReviewer = SubmissionReviewer::where([
                     'form_submission_id' => $submission->id,
@@ -271,49 +283,30 @@ class ReviewController extends Controller
                 ])->first();
 
                 if ($submissionReviewer) {
-                    // Check if submission has evaluation forms
-                    if ($submission->hasReviewEvaluationForms()) {
-                        // If has evaluation forms, must be completed
-                        if ($submissionReviewer->canParticipateInDiscussions()) {
-                            $canComment = true;
-                            $reviewerId = $reviewer->id;
-                        }
-                    } else {
-                        // No evaluation forms, can comment immediately
+                    // Check if can participate in discussions
+                    if ($submissionReviewer->canParticipateInDiscussions()) {
                         $canComment = true;
                         $reviewerId = $reviewer->id;
+                    } else {
+                        $pendingCount = $submissionReviewer->pending_forms_count;
+                        abort(403, "Complete your {$pendingCount} pending evaluation form(s) before participating in discussions.");
                     }
                 }
             }
         }
 
         if (!$canComment) {
-            if ($submission->hasReviewEvaluationForms()) {
-                abort(403, 'Complete your evaluation forms before participating in discussions');
-            } else {
-                abort(403, 'You do not have permission to comment on this review');
-            }
+            abort(403, 'You do not have permission to comment on this review');
         }
 
         DB::transaction(function () use ($request, $reviewSummary, $user, $reviewerId) {
-            $comment = ReviewComment::create([
+            ReviewComment::create([
                 'review_summary_id' => $reviewSummary->id,
                 'parent_comment_id' => $request->parent_comment_id,
                 'user_id' => $reviewerId ? null : $user->id,
                 'reviewer_id' => $reviewerId,
                 'comment_text' => $request->comment_text,
             ]);
-
-            if ($request->hasFile('attachments')) {
-                foreach ($request->file('attachments') as $file) {
-                    $path = $file->store('review-attachments/' . $reviewSummary->form_submission_id, 'public');
-
-                    ReviewCommentAttachment::create([
-                        'review_comment_id' => $comment->id,
-                        'file_path' => $path,
-                    ]);
-                }
-            }
         });
 
         return back()->with('success', 'Comment added successfully.');
@@ -423,33 +416,26 @@ class ReviewController extends Controller
     }
 
     // Auto-assign evaluation forms to new reviewers
-    protected function autoAssignEvaluationForms(FormSubmission $submission, array $submissionReviewers, ?array $formAssignments = null)
+    protected function autoAssignEvaluationForms(SubmissionReviewer $submissionReviewer, $formPhase): void
     {
-        $formPhase = $this->getSubmissionFormPhase($submission);
+        // Get all required evaluation forms
+        $requiredForms = $formPhase->requiredReviewEvaluationForms()->get();
 
-        if (!$formPhase || !$formPhase->hasReviewEvaluationForms()) {
-            return;
-        }
+        // Get deadline from submission period
+        $dueDate = $this->getEvaluationDueDate($submissionReviewer->formSubmission);
 
-        $dueDate = $this->getEvaluationDueDate($submission);
+        foreach ($requiredForms as $form) {
+            // Only create if not already assigned
+            $exists = $submissionReviewer->reviewerFormAssignments()
+                ->where('review_evaluation_form_id', $form->id)
+                ->exists();
 
-        foreach ($submissionReviewers as $submissionReviewer) {
-            if ($formAssignments) {
-                // Use custom assignments
-                foreach ($formAssignments as $assignment) {
-                    $submissionReviewer->assignForm(
-                        $assignment['form_id'],
-                        $assignment['is_required'] ?? true,
-                        $assignment['due_date'] ? new \DateTime($assignment['due_date']) : $dueDate
-                    );
-                }
-            } else {
-                // Auto-assign all required forms
-                $requiredForms = $formPhase->requiredReviewEvaluationForms()->get();
-
-                foreach ($requiredForms as $form) {
-                    $submissionReviewer->assignForm($form->id, true, $dueDate);
-                }
+            if (!$exists) {
+                $submissionReviewer->assignForm(
+                    $form->id,
+                    true, // is_required
+                    $dueDate
+                );
             }
         }
     }
@@ -463,19 +449,24 @@ class ReviewController extends Controller
 
     protected function getEvaluationDueDate(FormSubmission $submission): ?\DateTime
     {
-        $submissionPeriod = \App\Models\SubmissionPeriod::whereHas('submissionPeriodPhases.formPhase.formPhaseDetails.formAccessControl', function ($query) use ($submission) {
-            $query->where('form_id', $submission->form_id);
-        })->first();
+        $submissionPeriod = \App\Models\SubmissionPeriod::whereHas(
+            'submissionPeriodPhases.formPhase.formPhaseDetails.formAccessControl',
+            function ($query) use ($submission) {
+                $query->where('form_id', $submission->form_id);
+            }
+        )->first();
 
         if (!$submissionPeriod) {
-            return null;
+            // Default to 7 days from now if no submission period found
+            return new \DateTime('+7 days');
         }
 
+        // Get the latest submission date as due date
         $latestDate = $submissionPeriod->submissionDates()
             ->orderBy('datetime', 'desc')
             ->first();
 
-        return $latestDate ? $latestDate->datetime : null;
+        return $latestDate ? $latestDate->datetime : new \DateTime('+7 days');
     }
 
     // Existing methods with minor updates...

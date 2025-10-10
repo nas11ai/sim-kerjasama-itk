@@ -59,24 +59,31 @@ Route::middleware(['auth', 'check_reviewer_status'])->group(function () {
     // NEW: Evaluation form routes for reviewers
     Route::prefix('reviewer/evaluation-forms')->name('reviewer.evaluation-form.')->group(function () {
         // NEW: Start or continue evaluation form (auto-create assignment)
+        // This is the key route that enables auto-assignment
         Route::post('/start', [ReviewFormResponseController::class, 'showOrCreate'])
             ->name('start');
 
+        // Show evaluation form (existing or newly created)
         Route::get('/{assignment}', [ReviewFormResponseController::class, 'show'])
             ->name('show');
 
+        // Save draft
         Route::post('/{assignment}/save-draft', [ReviewFormResponseController::class, 'saveDraft'])
             ->name('save-draft');
 
+        // Submit evaluation
         Route::post('/{assignment}/submit', [ReviewFormResponseController::class, 'submit'])
             ->name('submit');
 
+        // View submitted evaluation
         Route::get('/{assignment}/submitted', [ReviewFormResponseController::class, 'showSubmitted'])
             ->name('submitted');
 
+        // Download summary
         Route::get('/{assignment}/download-summary', [ReviewFormResponseController::class, 'downloadSummary'])
             ->name('download-summary');
 
+        // Get progress (optional - for ajax calls)
         Route::get('/{assignment}/progress', [ReviewFormResponseController::class, 'getProgress'])
             ->name('progress');
     });

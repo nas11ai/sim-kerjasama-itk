@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\ReviewComment;
+use App\Models\Reviewer;
 use App\Models\SubmissionPeriod;
 use App\Models\FormPhase;
 use App\Models\FormSubmission;
@@ -245,13 +246,15 @@ class SubmissionViewController extends Controller
     {
         $user = Auth::user();
 
-        // User can view their own submissions OR submissions they are assigned to review
-        $canView = $submission->submitted_by === $user->id || $this->canUserReview($submission, $user);
+        // Check permission
+        $canView = $submission->submitted_by === $user->id ||
+            $this->canUserReview($submission, $user);
 
         if (!$canView) {
             abort(403, 'Unauthorized access to submission');
         }
 
+        // Load submission with relationships
         $submission->load([
             'form.formFields' => function ($query) {
                 $query->orderBy('order');
@@ -260,18 +263,6 @@ class SubmissionViewController extends Controller
             'form.formFields.formFieldOptions',
             'formFieldResponses',
             'submittedBy:id,name,email',
-            'submissionReviewers' => function ($query) {
-                $query->with([
-                    'reviewer.user:id,name,email',
-                    'reviewer.reviewerRole:id,name',
-                    'reviewerFormAssignments' => function ($q) {
-                        $q->with([
-                            'reviewEvaluationForm:id,title,description',
-                            'reviewFormResponse:id,reviewer_form_assignment_id,status,submitted_at'
-                        ]);
-                    }
-                ]);
-            },
             'reviewSummaries' => function ($query) {
                 $query->with([
                     'reviewer.user:id,name',
@@ -281,97 +272,25 @@ class SubmissionViewController extends Controller
             }
         ]);
 
-        // Get evaluation requirements
-        $evaluationRequirements = $submission->getEvaluationRequirements();
-        $hasReviewEvaluationForms = $submission->hasReviewEvaluationForms();
-
-        // Load available evaluation forms from form phase
-        $availableEvaluationForms = [];
-        if ($hasReviewEvaluationForms) {
-            $formPhase = $submission->getFormPhase();
-            if ($formPhase) {
-                $availableEvaluationForms = $formPhase->activeReviewEvaluationForms()
-                    ->get()
-                    ->map(function ($form) {
-                        return [
-                            'id' => $form->id,
-                            'title' => $form->title,
-                            'description' => $form->description,
-                            'is_required' => $form->is_required,
-                            'order' => $form->order,
-                        ];
-                    })
-                    ->toArray();
-            }
-        }
-
-        // Load reviewer assignments if user is a reviewer
-        $reviewerAssignments = [];
-        $isAssignedReviewer = false;
-        $submissionReviewer = null;
-
-        if ($this->canUserReview($submission, $user)) {
-            $reviewer = $user->reviewers()->first();
-            if ($reviewer) {
-                // Check if this reviewer is assigned to this submission
-                $submissionReviewer = SubmissionReviewer::where([
-                    'form_submission_id' => $submission->id,
-                    'reviewer_id' => $reviewer->id
-                ])->first();
-
-                if ($submissionReviewer) {
-                    $isAssignedReviewer = true;
-
-                    // Load existing assignments (yang sudah mulai diisi)
-                    $existingAssignments = $submissionReviewer->reviewerFormAssignments()
-                        ->with([
-                            'reviewEvaluationForm:id,title,description',
-                            'reviewFormResponse:id,reviewer_form_assignment_id,status,submitted_at'
-                        ])
-                        ->get();
-
-                    // Map assignments by form ID
-                    $assignmentsByFormId = $existingAssignments->keyBy('review_evaluation_form_id');
-
-                    // Combine available forms with existing assignments
-                    foreach ($availableEvaluationForms as $form) {
-                        $assignment = $assignmentsByFormId->get($form['id']);
-
-                        $reviewerAssignments[] = [
-                            'id' => $assignment ? $assignment->id : null,
-                            'review_evaluation_form' => $form,
-                            'is_required' => $form['is_required'],
-                            'due_date' => $assignment ? $assignment->due_date : null,
-                            'review_form_response' => $assignment && $assignment->reviewFormResponse ? [
-                                'id' => $assignment->reviewFormResponse->id,
-                                'status' => $assignment->reviewFormResponse->status,
-                                'submitted_at' => $assignment->reviewFormResponse->submitted_at,
-                            ] : null,
-                        ];
-                    }
-                }
-            }
-        }
-
-        // Load review comments
-        $reviewComments = ReviewComment::whereIn('review_summary_id', $submission->reviewSummaries->pluck('id'))
-            ->with([
-                'user:id,name',
-                'reviewer.user:id,name',
-                'attachments',
-                'replies' => function ($q) {
-                    $q->with(['user:id,name', 'reviewer.user:id,name', 'attachments'])
-                        ->orderBy('created_at', 'asc');
-                }
-            ])
-            ->whereNull('parent_comment_id')
-            ->orderBy('created_at', 'desc')
-            ->get();
-
         // Map responses
         $responses = $submission->formFieldResponses->mapWithKeys(function ($response) {
             return [$response->form_field_id => $response->value];
         });
+
+        // Load review comments
+        $reviewComments = ReviewComment::whereIn(
+            'review_summary_id',
+            $submission->reviewSummaries->pluck('id')
+        )->with([
+                    'user:id,name',
+                    'reviewer.user:id,name',
+                    'replies' => function ($q) {
+                        $q->with(['user:id,name', 'reviewer.user:id,name'])
+                            ->orderBy('created_at', 'asc');
+                    }
+                ])->whereNull('parent_comment_id')
+            ->orderBy('created_at', 'desc')
+            ->get();
 
         // Review statistics
         $reviewStats = [
@@ -382,53 +301,103 @@ class SubmissionViewController extends Controller
             'total_comments' => $reviewComments->count(),
         ];
 
+        // Get user role
         $userRole = $this->getUserRoleForSubmission($submission, $user);
+        $isAssignedReviewer = false;
+        $submissionReviewer = null;
 
-        // Format submission data
-        $submissionData = $submission->toArray();
-        $submissionData['reviewer_form_assignments'] = $reviewerAssignments;
+        // Check if user is an assigned reviewer
+        if ($userRole === 'reviewer') {
+            $reviewer = Reviewer::where('user_id', $user->id)->first();
 
-        // Format assigned reviewers for frontend
-        $assignedReviewers = $submission->submissionReviewers->map(function ($sr) {
-            return [
-                'id' => $sr->id,
-                'user' => [
-                    'id' => $sr->reviewer->user->id,
-                    'name' => $sr->reviewer->user->name,
-                    'email' => $sr->reviewer->user->email,
-                ],
-                'reviewer_role' => [
-                    'id' => $sr->reviewer->reviewerRole->id,
-                    'name' => $sr->reviewer->reviewerRole->name,
-                ],
-            ];
-        })->toArray();
+            if ($reviewer) {
+                $submissionReviewer = SubmissionReviewer::where([
+                    'form_submission_id' => $submission->id,
+                    'reviewer_id' => $reviewer->id
+                ])->first();
 
-        // Determine canCreateThread
-        $canCreateThread = false;
+                $isAssignedReviewer = (bool) $submissionReviewer;
+            }
+        }
+
+        // Get evaluation requirements
+        $formPhase = $submission->getFormPhase();
+        $hasReviewEvaluationForms = $formPhase && $formPhase->hasReviewEvaluationForms();
+
+        // Get reviewer form assignments
+        $reviewerFormAssignments = [];
+
+        if ($isAssignedReviewer && $submissionReviewer) {
+            $reviewerFormAssignments = $this->getReviewerAssignments(
+                $submissionReviewer,
+                $formPhase
+            );
+        }
+
+        // Calculate evaluation status
         $hasPendingEvaluations = false;
         $pendingEvaluationsCount = 0;
+        $canCreateThread = false;
 
-        if ($isAssignedReviewer) {
-            if ($hasReviewEvaluationForms && !empty($availableEvaluationForms)) {
-                // Count required forms that are not completed
-                $requiredForms = collect($reviewerAssignments)->filter(fn($a) => $a['is_required']);
-                $completedRequiredForms = $requiredForms->filter(function ($a) {
-                    return isset($a['review_form_response']) &&
-                        $a['review_form_response']['status'] === 'submitted';
-                });
+        if ($isAssignedReviewer && $submissionReviewer) {
+            if ($hasReviewEvaluationForms) {
+                // Count REQUIRED forms only
+                $requiredForms = collect($reviewerFormAssignments)
+                    ->filter(fn($a) => $a['is_required']);
 
-                $pendingEvaluationsCount = $requiredForms->count() - $completedRequiredForms->count();
+                // Count completed REQUIRED forms
+                $completedRequired = $requiredForms
+                    ->filter(fn($a) => $a['review_form_response']['status'] ?? null === 'submitted');
+
+                $pendingEvaluationsCount = $requiredForms->count() - $completedRequired->count();
                 $hasPendingEvaluations = $pendingEvaluationsCount > 0;
-                $canCreateThread = !$hasPendingEvaluations;
+
+                // Can create thread if all REQUIRED forms are completed
+                $canCreateThread = !$hasPendingEvaluations && $requiredForms->count() > 0;
+
+                // If no required forms, can create immediately
+                if ($requiredForms->count() === 0) {
+                    $canCreateThread = true;
+                    $hasPendingEvaluations = false;
+                }
             } else {
-                // No evaluation forms - can create immediately
+                // No evaluation forms, can create immediately
                 $canCreateThread = true;
             }
         }
 
+        // Format assigned reviewers
+        $assignedReviewers = $submission->submissionReviewers
+            ->load(['reviewer.user', 'reviewer.reviewerRole'])
+            ->map(function ($sr) {
+                return [
+                    'id' => $sr->id,
+                    'user' => [
+                        'id' => $sr->reviewer->user->id,
+                        'name' => $sr->reviewer->user->name,
+                        'email' => $sr->reviewer->user->email,
+                    ],
+                    'reviewer_role' => [
+                        'id' => $sr->reviewer->reviewerRole->id,
+                        'name' => $sr->reviewer->reviewerRole->name,
+                    ],
+                ];
+            })->toArray();
+
+        // Evaluation requirements
+        $evaluationRequirements = [
+            'required' => $hasReviewEvaluationForms,
+            'has_forms' => $hasReviewEvaluationForms,
+            'message' => $this->getEvaluationMessage(
+                $hasReviewEvaluationForms,
+                $isAssignedReviewer,
+                count($reviewerFormAssignments),
+                $hasPendingEvaluations
+            ),
+        ];
+
         return Inertia::render('User/Submissions/ShowSubmission', [
-            'submission' => $submissionData,
+            'submission' => $submission->toArray(),
             'responses' => $responses,
             'reviewComments' => $reviewComments,
             'reviewStats' => $reviewStats,
@@ -437,9 +406,7 @@ class SubmissionViewController extends Controller
             'userRole' => $userRole,
             'isOwnSubmission' => $submission->submitted_by === $user->id,
             'assignedReviewers' => $assignedReviewers,
-            'reviewerFormAssignments' => $reviewerAssignments, // Combined: available forms + existing assignments
-            'availableEvaluationForms' => $availableEvaluationForms, // NEW: All forms from form phase
-            'submissionReviewerId' => $submissionReviewer?->id, // NEW: For creating assignments
+            'reviewerFormAssignments' => $reviewerFormAssignments,
             'hasReviewEvaluationForms' => $hasReviewEvaluationForms,
             'evaluationRequirements' => $evaluationRequirements,
             'hasPendingEvaluations' => $hasPendingEvaluations,
@@ -542,7 +509,7 @@ class SubmissionViewController extends Controller
 
             if (class_exists('App\Models\Reviewer')) {
                 $today = Carbon::today();
-                $availableReviewers = \App\Models\Reviewer::with(['user', 'reviewerRole'])
+                $availableReviewers = Reviewer::with(['user', 'reviewerRole'])
                     ->where(function ($q) use ($today) {
                         $q->whereNull('start_date')->orWhere('start_date', '<=', $today);
                     })
@@ -572,7 +539,7 @@ class SubmissionViewController extends Controller
             $pendingEvaluationsCount = 0;
 
             if (!$currentUser->hasRole(['Super Admin', 'Admin'])) {
-                $reviewer = \App\Models\Reviewer::where('user_id', $currentUser->id)->first();
+                $reviewer = Reviewer::where('user_id', $currentUser->id)->first();
 
                 if ($reviewer) {
                     $submissionReviewer = SubmissionReviewer::where([
@@ -630,7 +597,7 @@ class SubmissionViewController extends Controller
             $pendingEvaluationsCount = 0;
 
             if (!$currentUser->hasRole(['Super Admin', 'Admin'])) {
-                $reviewer = \App\Models\Reviewer::where('user_id', $currentUser->id)->first();
+                $reviewer = Reviewer::where('user_id', $currentUser->id)->first();
 
                 if ($reviewer) {
                     $submissionReviewer = SubmissionReviewer::where([
@@ -742,7 +709,7 @@ class SubmissionViewController extends Controller
             return true;
         }
 
-        $reviewer = \App\Models\Reviewer::where('user_id', $user->id)->latest()->first();
+        $reviewer = Reviewer::where('user_id', $user->id)->latest()->first();
         if ($reviewer) {
             return SubmissionReviewer::where([
                 'form_submission_id' => $submission->id,
@@ -775,7 +742,7 @@ class SubmissionViewController extends Controller
     public function reviewerDashboard()
     {
         $user = Auth::user();
-        $reviewer = \App\Models\Reviewer::where('user_id', $user->id)->first();
+        $reviewer = Reviewer::where('user_id', $user->id)->first();
 
         if (!$reviewer) {
             abort(403, 'You are not registered as a reviewer');
@@ -817,7 +784,7 @@ class SubmissionViewController extends Controller
     public function reviewerSubmissions(Request $request)
     {
         $user = Auth::user();
-        $reviewer = \App\Models\Reviewer::where('user_id', $user->id)->first();
+        $reviewer = Reviewer::where('user_id', $user->id)->first();
 
         if (!$reviewer) {
             abort(403, 'You are not registered as a reviewer');
@@ -861,5 +828,72 @@ class SubmissionViewController extends Controller
             'filters' => $request->only(['status', 'search']),
             'reviewer' => $reviewer->load('reviewerRole')
         ]);
+    }
+
+    protected function getReviewerAssignments($submissionReviewer, $formPhase)
+    {
+        if (!$formPhase || !$formPhase->hasReviewEvaluationForms()) {
+            return [];
+        }
+
+        // Get ALL available forms from form phase
+        $availableForms = $formPhase->activeReviewEvaluationForms()
+            ->get(['id', 'title', 'description', 'is_required', 'order']);
+
+        // Get existing assignments for this reviewer
+        $existingAssignments = $submissionReviewer->reviewerFormAssignments()
+            ->with([
+                'reviewEvaluationForm:id,title,description,is_required',
+                'reviewFormResponse:id,reviewer_form_assignment_id,status,submitted_at'
+            ])
+            ->get()
+            ->keyBy('review_evaluation_form_id');
+
+        $assignments = [];
+
+        // Merge available forms with assignments
+        foreach ($availableForms as $form) {
+            $assignment = $existingAssignments->get($form->id);
+
+            $assignments[] = [
+                'id' => $assignment->id ?? null, // null if not started yet
+                'review_evaluation_form' => [
+                    'id' => $form->id,
+                    'title' => $form->title,
+                    'description' => $form->description,
+                ],
+                'is_required' => $form->is_required,
+                'due_date' => $assignment->due_date ?? null,
+                'review_form_response' => $assignment && $assignment->reviewFormResponse ? [
+                    'id' => $assignment->reviewFormResponse->id,
+                    'status' => $assignment->reviewFormResponse->status,
+                    'submitted_at' => $assignment->reviewFormResponse->submitted_at,
+                ] : null,
+            ];
+        }
+
+        return $assignments;
+    }
+
+    protected function getEvaluationMessage(
+        bool $hasEvaluationForms,
+        bool $isAssignedReviewer,
+        int $assignmentsCount,
+        bool $hasPendingEvaluations
+    ): string {
+        if (!$hasEvaluationForms) {
+            return 'No evaluation forms required for this submission.';
+        }
+
+        if (!$isAssignedReviewer) {
+            return 'You are not assigned as a reviewer for this submission.';
+        }
+
+        // Has evaluation forms - reviewer is assigned
+        if ($hasPendingEvaluations) {
+            return 'Complete all required evaluation forms before creating review threads.';
+        }
+
+        return 'All required evaluations completed. You can now create review threads.';
     }
 }

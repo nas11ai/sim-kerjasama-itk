@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\FormSubmission;
+use App\Models\ReviewEvaluationForm;
 use App\Models\ReviewFormResponse;
 use App\Models\ReviewerFormAssignment;
 use App\Models\ReviewFormFieldResponse;
@@ -15,43 +17,92 @@ use Inertia\Inertia;
 
 class ReviewFormResponseController extends Controller
 {
+    /**
+     * Get default due date for evaluation
+     */
+    protected function getDefaultDueDate(FormSubmission $submission): ?\DateTime
+    {
+        $submissionPeriod = \App\Models\SubmissionPeriod::whereHas(
+            'submissionPeriodPhases.formPhase.formPhaseDetails.formAccessControl',
+            function ($query) use ($submission) {
+                $query->where('form_id', $submission->form_id);
+            }
+        )->first();
+
+        if (!$submissionPeriod) {
+            // Default to 7 days from now
+            return new \DateTime('+7 days');
+        }
+
+        // Get the latest submission date
+        $latestDate = $submissionPeriod->submissionDates()
+            ->orderBy('datetime', 'desc')
+            ->first();
+
+        if ($latestDate && $latestDate->datetime) {
+            // Pastikan dikonversi ke objek DateTime
+            return new \DateTime($latestDate->datetime);
+        }
+
+        return new \DateTime('+7 days');
+    }
+
     public function showOrCreate(Request $request)
     {
         $validated = $request->validate([
-            'submission_reviewer_id' => 'required|exists:submission_reviewers,id',
+            'submission_id' => 'required|exists:form_submissions,id',
             'review_evaluation_form_id' => 'required|exists:review_evaluation_forms,id',
         ]);
 
-        $submissionReviewer = SubmissionReviewer::findOrFail($validated['submission_reviewer_id']);
-
-        // Check authorization
         $user = Auth::user();
-        if (!$user->hasRole(['Super Admin', 'Admin'])) {
-            $reviewer = $user->reviewers()->first();
-            if (!$reviewer || $submissionReviewer->reviewer_id !== $reviewer->id) {
-                abort(403, 'Unauthorized access to this evaluation form.');
-            }
+        $submission = FormSubmission::findOrFail($validated['submission_id']);
+
+        // Get reviewer
+        $reviewer = $user->reviewers()->first();
+        if (!$reviewer) {
+            abort(403, 'You are not registered as a reviewer.');
+        }
+
+        // Check if assigned to this submission
+        $submissionReviewer = SubmissionReviewer::where([
+            'form_submission_id' => $submission->id,
+            'reviewer_id' => $reviewer->id
+        ])->first();
+
+        if (!$submissionReviewer) {
+            abort(403, 'You are not assigned as a reviewer for this submission.');
+        }
+
+        // Verify form belongs to correct form phase
+        $formPhase = $submission->getFormPhase();
+        $evaluationForm = ReviewEvaluationForm::findOrFail($validated['review_evaluation_form_id']);
+
+        if (!$formPhase || $evaluationForm->form_phase_id !== $formPhase->id) {
+            abort(403, 'This evaluation form is not available for this submission.');
         }
 
         // Find or create assignment
         $assignment = ReviewerFormAssignment::firstOrCreate(
             [
                 'submission_reviewer_id' => $submissionReviewer->id,
-                'review_evaluation_form_id' => $validated['review_evaluation_form_id'],
+                'review_evaluation_form_id' => $evaluationForm->id,
             ],
             [
-                'is_required' => true, // Default, bisa diupdate admin nanti
+                'is_required' => $evaluationForm->is_required,
                 'assigned_at' => now(),
+                'due_date' => $this->getDefaultDueDate($submission),
                 'is_active' => true,
             ]
         );
 
-        // Redirect to show page with assignment ID
+        // Update evaluation status
+        $submissionReviewer->updateEvaluationStatus();
+
+        // Redirect to show page
         return redirect()->route('reviewer.evaluation-form.show', $assignment->id);
     }
     public function show(ReviewerFormAssignment $assignment)
     {
-        // Check if user can access this assignment
         $this->authorizeAssignment($assignment);
 
         $assignment->load([
@@ -78,7 +129,7 @@ class ReviewFormResponseController extends Controller
             'status' => 'draft'
         ]);
 
-        // Map existing responses for easy access
+        // Map existing responses
         $existingResponses = $response->reviewFormFieldResponses
             ->mapWithKeys(function ($fieldResponse) {
                 return [$fieldResponse->review_form_field_id => $fieldResponse->value];
@@ -180,9 +231,6 @@ class ReviewFormResponseController extends Controller
                 throw new \Exception('Failed to submit the form response.');
             }
 
-            // Create or update review summary
-            $this->createOrUpdateReviewSummary($assignment);
-
             DB::commit();
 
             return redirect()->route('reviewer.assignments.index')
@@ -266,7 +314,7 @@ class ReviewFormResponseController extends Controller
         ]);
     }
 
-    protected function authorizeAssignment(ReviewerFormAssignment $assignment)
+    protected function authorizeAssignment(ReviewerFormAssignment $assignment): void
     {
         $user = Auth::user();
 
