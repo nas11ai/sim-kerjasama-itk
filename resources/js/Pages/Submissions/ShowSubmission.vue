@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { ref } from "vue";
 import { Head, Link, router } from "@inertiajs/vue3";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout.vue";
 import { Button } from "@/Components/ui/button";
@@ -7,20 +8,11 @@ import { Badge } from "@/Components/ui/badge";
 import { Label } from "@/Components/ui/label";
 import { Separator } from "@/Components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/Components/ui/tabs";
-import {
-    ArrowLeft,
-    FileText,
-    User,
-    CheckCircle,
-    AlertCircle,
-    Download,
-    Clock,
-    Mail,
-    MessageSquare
-} from "lucide-vue-next";
+import { ArrowLeft, FileText, User, CheckCircle, AlertCircle, Download, Clock, Mail, MessageSquare, UserPlus, Users } from "lucide-vue-next";
 import { getSubmissionStatusInfo } from "@/Utils/getSubmissionStatusInfo";
 import { SubmissionStatus } from "@/Constants/SubmissionStatus";
 import ReviewSystem from "@/Components/ReviewSystem.vue";
+import AssignReviewerDialog from "@/Components/AssignReviewerDialog.vue";
 
 interface FieldType {
     name: string;
@@ -135,11 +127,11 @@ interface FormSubmission {
 }
 
 interface EvaluationRequirements {
-    required: boolean
-    has_forms: boolean
-    total_forms?: number
-    required_forms?: number
-    message: string
+    required: boolean;
+    has_forms: boolean;
+    total_forms?: number;
+    required_forms?: number;
+    message: string;
 }
 
 interface Props {
@@ -158,8 +150,8 @@ interface Props {
     canCreateThread?: boolean;
     hasPendingEvaluations?: boolean;
     pendingEvaluationsCount?: number;
-    hasReviewEvaluationForms?: boolean; // NEW
-    evaluationRequirements?: EvaluationRequirements; // NEW
+    hasReviewEvaluationForms?: boolean;
+    evaluationRequirements?: EvaluationRequirements;
     userRole: "admin" | "submitter" | "reviewer" | "user";
     error?: string;
 }
@@ -173,7 +165,6 @@ const evaluationRequirements = props.evaluationRequirements || {
     message: ''
 };
 
-// Default values
 const reviewStats = props.reviewStats || {
     total_reviewers: 0,
     open_reviews: 0,
@@ -189,9 +180,13 @@ const canCreateThread = props.canCreateThread || false;
 const hasPendingEvaluations = props.hasPendingEvaluations || false;
 const pendingEvaluationsCount = props.pendingEvaluationsCount || 0;
 const userRole = props.userRole || 'admin';
+
 const reviewSummaries = props.submission.review_summaries || [];
 const reviewComments = props.submission.review_comments || [];
 const assignedReviewers = props.submission.assigned_reviewers || [];
+
+// Dialog state
+const showAssignReviewerDialog = ref(false);
 
 const formatDateTime = (dateString: string) => {
     return new Date(dateString).toLocaleString("id-ID", {
@@ -233,6 +228,15 @@ const isEmailField = (fieldType: string) => fieldType.toLowerCase() === 'email';
 
 const goBack = () => {
     window.history.back();
+};
+
+const openAssignReviewerDialog = () => {
+    showAssignReviewerDialog.value = true;
+};
+
+const handleReviewersAssigned = () => {
+    // Refresh the page to get updated data
+    router.visit(window.location.href, { preserveScroll: true });
 };
 </script>
 
@@ -393,7 +397,6 @@ const goBack = () => {
                                             Required
                                         </Badge>
                                     </div>
-
                                     <div class="pl-4 border-l-2 border-muted">
                                         <!-- File Field -->
                                         <div v-if="isFileField(field.field_type.name) && responses[field.id]"
@@ -405,33 +408,28 @@ const goBack = () => {
                                                 Download
                                             </Button>
                                         </div>
-
                                         <!-- URL Field -->
                                         <a v-else-if="isUrlField(field.field_type.name) && responses[field.id]"
                                             :href="responses[field.id]" target="_blank"
                                             class="text-blue-600 hover:underline font-medium">
                                             {{ renderFieldValue(field, responses[field.id]) }}
                                         </a>
-
                                         <!-- Email Field -->
                                         <a v-else-if="isEmailField(field.field_type.name) && responses[field.id]"
                                             :href="`mailto:${responses[field.id]}`"
                                             class="text-blue-600 hover:underline font-medium">
                                             {{ renderFieldValue(field, responses[field.id]) }}
                                         </a>
-
                                         <!-- Textarea Field -->
                                         <div v-else-if="field.field_type.name.toLowerCase() === 'textarea' && responses[field.id]"
                                             class="whitespace-pre-wrap bg-muted/50 p-3 rounded-lg">
                                             {{ renderFieldValue(field, responses[field.id]) }}
                                         </div>
-
                                         <!-- Other Fields -->
                                         <span v-else class="font-medium">
                                             {{ renderFieldValue(field, responses[field.id]) }}
                                         </span>
                                     </div>
-
                                     <Separator
                                         v-if="field !== submission.form.form_fields[submission.form.form_fields.length - 1]"
                                         class="mt-4" />
@@ -442,7 +440,63 @@ const goBack = () => {
                 </TabsContent>
 
                 <!-- Review System Tab -->
-                <TabsContent value="review">
+                <TabsContent value="review" class="space-y-4">
+                    <!-- Assign Reviewer Section -->
+                    <Card v-if="canAssignReviewers">
+                        <CardHeader>
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <CardTitle class="flex items-center gap-2">
+                                        <Users class="h-5 w-5" />
+                                        Assigned Reviewers
+                                    </CardTitle>
+                                    <p class="text-sm text-muted-foreground mt-1">
+                                        Manage reviewers who can evaluate this submission
+                                    </p>
+                                </div>
+                                <Button @click="openAssignReviewerDialog" size="sm">
+                                    <UserPlus class="h-4 w-4 mr-2" />
+                                    Assign Reviewer
+                                </Button>
+                            </div>
+                        </CardHeader>
+                        <CardContent>
+                            <div v-if="assignedReviewers.length === 0" class="text-center py-8">
+                                <Users class="h-12 w-12 text-muted-foreground mx-auto mb-3 opacity-50" />
+                                <p class="text-sm text-muted-foreground mb-4">
+                                    No reviewers assigned yet. Assign reviewers to start the review process.
+                                </p>
+                                <Button @click="openAssignReviewerDialog" variant="outline" size="sm">
+                                    <UserPlus class="h-4 w-4 mr-2" />
+                                    Assign First Reviewer
+                                </Button>
+                            </div>
+
+                            <div v-else class="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
+                                <div v-for="reviewer in assignedReviewers" :key="reviewer.id"
+                                    class="border rounded-lg p-3 hover:bg-muted/50 transition-colors">
+                                    <div class="flex items-start gap-3">
+                                        <div
+                                            class="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                                            <span class="text-sm font-medium text-primary">
+                                                {{ reviewer.user.name.charAt(0).toUpperCase() }}
+                                            </span>
+                                        </div>
+                                        <div class="flex-1 min-w-0">
+                                            <p class="font-medium text-sm truncate">{{ reviewer.user.name }}</p>
+                                            <p class="text-xs text-muted-foreground truncate">{{ reviewer.user.email }}
+                                            </p>
+                                            <Badge variant="secondary" class="mt-2 text-xs">
+                                                {{ reviewer.reviewer_role.name }}
+                                            </Badge>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    <!-- Review System Component -->
                     <ReviewSystem :submission-id="submission.id" :review-summaries="reviewSummaries"
                         :review-comments="reviewComments" :available-reviewers="availableReviewers"
                         :can-assign-reviewers="canAssignReviewers" :can-review="canReview"
@@ -454,5 +508,10 @@ const goBack = () => {
                 </TabsContent>
             </Tabs>
         </div>
+
+        <!-- Assign Reviewer Dialog -->
+        <AssignReviewerDialog v-model:open="showAssignReviewerDialog" :submission-id="submission.id"
+            :available-reviewers="availableReviewers" :assigned-reviewers="assignedReviewers"
+            :has-review-evaluation-forms="hasReviewEvaluationForms" @assigned="handleReviewersAssigned" />
     </AuthenticatedLayout>
 </template>
