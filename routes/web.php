@@ -168,7 +168,6 @@ Route::middleware(['auth', 'role:Super Admin|Admin', 'check_reviewer_status'])->
         'index' => 'roles.index',
         'create' => 'roles.create',
         'store' => 'roles.store',
-        'show' => 'roles.show',
         'edit' => 'roles.edit',
         'update' => 'roles.update',
         'destroy' => 'roles.destroy',

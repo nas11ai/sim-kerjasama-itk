@@ -1,4 +1,4 @@
-<!-- resources/js/Pages/UserManagements/Index.vue -->
+<!-- resources/js/Pages/Users/Index.vue -->
 <script setup lang="ts">
 import { Button } from "@/Components/ui/button";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout.vue";

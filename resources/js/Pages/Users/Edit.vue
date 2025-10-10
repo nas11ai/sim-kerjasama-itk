@@ -102,7 +102,7 @@ const table = useVueTable({
 </script>
 
 <template>
-    <Head title="Create User" />
+    <Head title="Edit User" />
 
     <AuthenticatedLayout>
         <template #header>
@@ -117,7 +117,7 @@ const table = useVueTable({
                     Back
                 </Button>
                 <h2 class="text-xl font-semibold leading-tight text-gray-800">
-                    Create New User
+                    Edit User
                 </h2>
             </div>
         </template>

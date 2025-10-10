@@ -9,7 +9,7 @@ export interface User {
     email_verified_at?: string;
     is_reviewer: boolean;
     roles: Role[];
-    permissions?: Permission[];
+    permissions: Permission[];
 }
 export interface Role {
     id: number;
@@ -17,6 +17,7 @@ export interface Role {
     guard_name: string;
     created_at?: string;
     updated_at?: string;
+    permissions: Permission[];
 }
 
 export interface Permission {

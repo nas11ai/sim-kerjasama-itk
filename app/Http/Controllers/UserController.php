@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Enums\RoleEnum;
 use App\Http\Requests\Admin\CreateUserRequest;
 use App\Http\Requests\Admin\UpdateUserRequest;
 use App\Models\User;
@@ -53,18 +54,14 @@ class UserController extends Controller
     }
 
     /**
-     * Display the specified resource.
-     */
-    public function show(string $id)
-    {
-        //
-    }
-
-    /**
      * Show the form for editing the specified resource.
      */
     public function edit(Request $request, User $user)
     {
+        if ($user->hasRole(RoleEnum::SUPER_ADMIN->value)) {
+            return to_route('admin.users.index')->with('error', 'You are not authorized to edit this user');
+        }
+
         $roles = Role::all();
         $permissions = Permission::all();
         $user = User::with(['roles', 'permissions'])->find($user->id);
@@ -80,6 +77,10 @@ class UserController extends Controller
      */
     public function update(UpdateUserRequest $request, User $user)
     {
+        if ($user->hasRole(RoleEnum::SUPER_ADMIN->value)) {
+            return to_route('admin.users.index')->with('error', 'You are not authorized to update this user');
+        }
+
         $data = $request->validated();
 
         $user->update([
@@ -97,7 +98,8 @@ class UserController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function delete(Request $request, User $user) {
+    public function delete(Request $request, User $user)
+    {
         $auth = $request->user();
 
         if ($user->hasAnyRole(['Super Admin', 'Admin']) && !$auth->hasRole('Super Admin')) {

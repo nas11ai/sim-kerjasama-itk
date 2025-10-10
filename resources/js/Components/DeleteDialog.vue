@@ -37,7 +37,7 @@ const emit = defineEmits<{
                 <Button
                     variant="destructive"
                     @click="confirmDelete"
-                    class="cursor-pointer"
+                    class="cursor-pointer bg-red-500 hover:bg-red-500/80"
                     >Yes, delete</Button
                 >
             </DialogFooter>

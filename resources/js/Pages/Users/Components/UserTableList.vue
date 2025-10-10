@@ -126,7 +126,7 @@ function confirmDelete() {
                     <TableHead
                         v-for="header in headerGroup.headers"
                         :key="header.id"
-                        class="text-bold"
+                        class="text-bold bg-muted"
                     >
                         {{ header.column.columnDef.header }}
                     </TableHead>

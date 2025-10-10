@@ -18,7 +18,7 @@ const emit = defineEmits<{
             :href="route('admin.users.edit', props.row.original.id)"
             variant="default"
             size="icon"
-            class="cursor-pointer bg-yellow-400"
+            class="cursor-pointer bg-yellow-400 hover:bg-yellow-400/80"
         >
             <Edit :size="16" class="text-black" />
         </Button>
@@ -27,7 +27,7 @@ const emit = defineEmits<{
             as="button"
             variant="destructive"
             size="icon"
-            class="cursor-pointer"
+            class="cursor-pointer bg-red-500 hover:bg-red-500/80"
             @click="emit('confirm-delete', props.row.original.id)"
             :disabled="!props.canDelete"
         >
