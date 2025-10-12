@@ -1,7 +1,7 @@
 <!-- resources/js/Components/AppSidebar.vue -->
 <script setup lang="ts">
-import { computed } from 'vue';
-import { router, usePage } from '@inertiajs/vue3';
+import { computed } from "vue";
+import { router, usePage } from "@inertiajs/vue3";
 import {
     Sidebar,
     SidebarContent,
@@ -41,26 +41,29 @@ import {
     CheckCircle,
     Clock,
     Star,
-    Megaphone
-} from 'lucide-vue-next';
+    Megaphone,
+    UserPenIcon,
+} from "lucide-vue-next";
 
-const page = usePage()
-const user = computed(() => page.props.auth?.user)
-const userRoles = computed(() => user.value?.roles || [])
+const page = usePage();
+const user = computed(() => page.props.auth?.user);
+const userRoles = computed(() => user.value?.roles || []);
 
 const isAdmin = computed(() =>
-    userRoles.value.some((role: any) => ['Super Admin', 'Admin'].includes(role))
-)
+    userRoles.value.some((role: any) => ["Super Admin", "Admin"].includes(role))
+);
 
 const isUser = computed(() =>
-    userRoles.value.some((role: any) => ['Mahasiswa', 'Tenaga Kependidikan'].includes(role))
-)
+    userRoles.value.some((role: any) =>
+        ["Mahasiswa", "Tenaga Kependidikan"].includes(role)
+    )
+);
+
 
 const isReviewer = computed(() => {
     // Flag dikirim dari backend (middleware CheckReviewer)
-    return user.value?.is_reviewer || false
-})
-
+    return user.value?.is_reviewer || false;
+});
 
 // Navigation items for admin
 const adminNavItems = [
@@ -103,8 +106,8 @@ const adminNavItems = [
                 title: "View Submissions",
                 url: route("admin.submissions.index"),
                 icon: Send,
-            }
-        ]
+            },
+        ],
     },
     {
         title: "Review Management",
@@ -112,20 +115,20 @@ const adminNavItems = [
         items: [
             {
                 title: "Review Overview",
-                url: route('admin.submissions.index') + '?tab=review',
+                url: route("admin.submissions.index") + "?tab=review",
                 icon: MessageSquare,
             },
             {
                 title: "Pending Reviews",
-                url: route('admin.submissions.index') + '?status=under_review',
+                url: route("admin.submissions.index") + "?status=under_review",
                 icon: Clock,
             },
             {
                 title: "Completed Reviews",
-                url: route('admin.submissions.index') + '?status=approved',
+                url: route("admin.submissions.index") + "?status=approved",
                 icon: CheckCircle,
-            }
-        ]
+            },
+        ],
     },
     {
         title: "Reviewer Management",
@@ -177,8 +180,19 @@ const userNavItems = computed(() => {
     const baseItems = [
         {
             title: "Dashboard",
-            url: route('user.dashboard'),
+            url: route("user.dashboard"),
             icon: Home,
+        },
+        {
+            title: "Forms Biodata",
+            icon: ClipboardList,
+            items: [
+                {
+                    title: "Biodata",
+                    url: route("user.biodata.index"),
+                    icon: UserPenIcon,
+                },
+            ],
         },
         {
             title: "My Forms",
@@ -186,10 +200,10 @@ const userNavItems = computed(() => {
             items: [
                 {
                     title: "Active Submissions",
-                    url: route('user.dashboard'),
+                    url: route("user.dashboard"),
                     icon: BookOpen,
-                }
-            ]
+                },
+            ],
         },
         {
             title: "My Submissions",
@@ -197,21 +211,23 @@ const userNavItems = computed(() => {
             items: [
                 {
                     title: "View Submissions",
-                    url: route('user.submissions.index'),
+                    url: route("user.submissions.index"),
                     icon: Send,
                 },
                 {
                     title: "Under Review",
-                    url: route('user.submissions.index') + '?status=under_review',
+                    url:
+                        route("user.submissions.index") +
+                        "?status=under_review",
                     icon: Clock,
                 },
                 {
                     title: "Approved",
-                    url: route('user.submissions.index') + '?status=approved',
+                    url: route("user.submissions.index") + "?status=approved",
                     icon: CheckCircle,
-                }
-            ]
-        }
+                },
+            ],
+        },
     ];
 
     // Add Review Tasks menu if user is reviewer
@@ -222,20 +238,22 @@ const userNavItems = computed(() => {
             items: [
                 {
                     title: "Assigned Reviews",
-                    url: route('reviewer.submissions.index'),
+                    url: route("reviewer.submissions.index"),
                     icon: MessageSquare,
                 },
                 {
                     title: "Pending Reviews",
-                    url: route('reviewer.submissions.index') + '?status=open',
+                    url: route("reviewer.submissions.index") + "?status=open",
                     icon: Clock,
                 },
                 {
                     title: "Completed Reviews",
-                    url: route('reviewer.submissions.index') + '?status=resolved',
+                    url:
+                        route("reviewer.submissions.index") +
+                        "?status=resolved",
                     icon: CheckCircle,
-                }
-            ]
+                },
+            ],
         });
     }
 
@@ -251,8 +269,8 @@ const currentUrl = computed(() => page.url);
 
 const isActive = (url: string) => {
     // Remove query parameters for comparison
-    const cleanUrl = url.split('?')[0];
-    const cleanCurrentUrl = currentUrl.value.split('?')[0];
+    const cleanUrl = url.split("?")[0];
+    const cleanCurrentUrl = currentUrl.value.split("?")[0];
     return cleanCurrentUrl === cleanUrl || cleanCurrentUrl.startsWith(cleanUrl);
 };
 
@@ -261,23 +279,23 @@ const hasActiveChild = (items: any[]) => {
 };
 
 const logout = (e: Event) => {
-    e.preventDefault()
-    router.post(route('logout'))
-}
+    e.preventDefault();
+    router.post(route("logout"));
+};
 
 // Helper to determine current context
 const getCurrentContext = computed(() => {
     const url = currentUrl.value;
-    if (url.startsWith('/admin')) return 'admin';
-    return 'user';
+    if (url.startsWith("/admin")) return "admin";
+    return "user";
 });
 
 const getContextLabel = computed(() => {
     switch (getCurrentContext.value) {
-        case 'admin':
-            return 'Administration';
+        case "admin":
+            return "Administration";
         default:
-            return isReviewer.value ? 'User & Reviewer Portal' : 'User Portal';
+            return isReviewer.value ? "User & Reviewer Portal" : "User Portal";
     }
 });
 </script>
@@ -294,9 +312,15 @@ const getContextLabel = computed(() => {
                             >
                                 <FileText class="size-4" />
                             </div>
-                            <div class="grid flex-1 text-left text-sm leading-tight">
-                                <span class="truncate font-semibold">Form System</span>
-                                <span class="truncate text-xs">{{ getContextLabel }}</span>
+                            <div
+                                class="grid flex-1 text-left text-sm leading-tight"
+                            >
+                                <span class="truncate font-semibold"
+                                    >Form System</span
+                                >
+                                <span class="truncate text-xs">{{
+                                    getContextLabel
+                                }}</span>
                             </div>
                         </a>
                     </SidebarMenuButton>
@@ -364,8 +388,16 @@ const getContextLabel = computed(() => {
                                         user?.name
                                     }}</span>
                                     <span class="truncate text-xs capitalize">
-                                        {{userRoles.map((role: any) => role).join(', ')}}
-                                        <span v-if="isReviewer" class="text-blue-600">• Reviewer</span>
+                                        {{
+                                            userRoles
+                                                .map((role: any) => role)
+                                                .join(", ")
+                                        }}
+                                        <span
+                                            v-if="isReviewer"
+                                            class="text-blue-600"
+                                            >• Reviewer</span
+                                        >
                                     </span>
                                 </div>
                                 <ChevronUp class="ml-auto size-4" />
@@ -418,7 +450,11 @@ const getContextLabel = computed(() => {
                             </DropdownMenuItem>
 
                             <DropdownMenuItem as-child>
-                                <a href="#" @click="logout" class="cursor-pointer text-destructive flex items-center">
+                                <a
+                                    href="#"
+                                    @click="logout"
+                                    class="cursor-pointer text-destructive flex items-center"
+                                >
                                     <LogOut class="mr-2 size-4" />
                                     Logout
                                 </a>

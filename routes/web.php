@@ -12,6 +12,7 @@ use App\Http\Controllers\SubmissionPeriodController;
 use App\Http\Controllers\SubmissionViewController;
 use App\Http\Controllers\UserFormController;
 use App\Http\Controllers\AnnouncementController;
+use App\Http\Controllers\BiodataController;
 use Illuminate\Foundation\Application;
 use App\Models\Announcement;
 use Illuminate\Support\Facades\Route;
@@ -81,7 +82,13 @@ Route::middleware(['auth', 'check_reviewer_status'])->group(function () {
         ->name('review-attachments.download');
 });
 
-Route::middleware(['auth', 'check_reviewer_status'])->prefix('user')->name('user.')->group(function () {
+Route::middleware(['auth'])->prefix('user')->name('user.')->group(function () {
+    // khusus form biodata
+        Route::get('/biodata', [BiodataController::class, 'showBiodataForm'])->name('biodata.index');
+        Route::post('/biodata', [BiodataController::class, 'submitForm'])->name('biodata.submit');
+});
+
+Route::middleware(['auth','check_biodata' , 'check_reviewer_status'])->prefix('user')->name('user.')->group(function () {
     Route::get('/dashboard', [UserFormController::class, 'dashboard'])
         ->name('dashboard');
 
