@@ -115,36 +115,50 @@ class ReviewController extends Controller
     public function updateSubmissionStatus(Request $request, FormSubmission $submission)
     {
         $request->validate([
-            'status' => 'required|in:approved,needs_revision,rejected',
+            'status' => 'required|in:pending,under_review,needs_revision,approved,rejected',
         ]);
 
         $user = Auth::user();
         $canUpdate = false;
 
+        // Admin can always update
         if ($user->hasRole(['Super Admin', 'Admin'])) {
             $canUpdate = true;
-        } else {
+        }
+        // Check reviewer permissions
+        else {
             $reviewer = Reviewer::where('user_id', $user->id)->first();
+
             if ($reviewer) {
                 $submissionReviewer = SubmissionReviewer::where([
                     'form_submission_id' => $submission->id,
                     'reviewer_id' => $reviewer->id
                 ])->first();
 
-                // Reviewer can update status only if evaluation is completed or not required
+                // Reviewer can update status only if:
+                // 1. They are assigned to this submission
+                // 2. Evaluations are completed or not required
                 if ($submissionReviewer && $submissionReviewer->canParticipateInDiscussions()) {
                     $canUpdate = true;
+                } else if ($submissionReviewer) {
+                    $pendingCount = $submissionReviewer->pending_forms_count;
+                    abort(403, "Complete your {$pendingCount} pending evaluation form(s) before updating submission status.");
+                } else {
+                    abort(403, 'You are not assigned as a reviewer for this submission.');
                 }
             }
         }
 
         if (!$canUpdate) {
-            abort(403, 'Unauthorized to update submission status. Complete your evaluation first.');
+            abort(403, 'Unauthorized to update submission status.');
         }
 
+        // Convert string status to enum
         $newStatus = match ($request->status) {
-            'approved' => SubmissionStatus::APPROVED,
+            'pending' => SubmissionStatus::PENDING,
+            'under_review' => SubmissionStatus::UNDER_REVIEW,
             'needs_revision' => SubmissionStatus::NEEDS_REVISION,
+            'approved' => SubmissionStatus::APPROVED,
             'rejected' => SubmissionStatus::REJECTED,
         };
 
@@ -474,18 +488,35 @@ class ReviewController extends Controller
     {
         $request->validate([
             'status' => 'required|in:open,resolved,closed',
-            'summary_notes' => 'nullable|string|max:2000'
         ]);
 
         $user = Auth::user();
         $canUpdate = false;
 
+        // Admin can always update
         if ($user->hasRole(['Super Admin', 'Admin'])) {
             $canUpdate = true;
-        } elseif ($reviewSummary->reviewer_id) {
+        }
+        // Check if it's the reviewer's own review
+        elseif ($reviewSummary->reviewer_id) {
             $reviewer = Reviewer::where('user_id', $user->id)->first();
+
             if ($reviewer && $reviewSummary->reviewer_id === $reviewer->id) {
-                $canUpdate = true;
+                // Check if reviewer has completed evaluations (if required)
+                $submissionReviewer = SubmissionReviewer::where([
+                    'form_submission_id' => $reviewSummary->form_submission_id,
+                    'reviewer_id' => $reviewer->id
+                ])->first();
+
+                if ($submissionReviewer) {
+                    // Check if evaluations are complete
+                    if ($submissionReviewer->canParticipateInDiscussions()) {
+                        $canUpdate = true;
+                    } else {
+                        $pendingCount = $submissionReviewer->pending_forms_count;
+                        abort(403, "Complete your {$pendingCount} pending evaluation form(s) before updating review status.");
+                    }
+                }
             }
         }
 
@@ -496,9 +527,9 @@ class ReviewController extends Controller
         DB::transaction(function () use ($request, $reviewSummary) {
             $reviewSummary->update([
                 'status' => $request->status,
-                'summary_notes' => $request->summary_notes ?? $reviewSummary->summary_notes,
             ]);
 
+            // Auto-update submission status based on review statuses
             $this->updateSubmissionStatusBasedOnReviews($reviewSummary->formSubmission);
         });
 
@@ -534,26 +565,20 @@ class ReviewController extends Controller
             return;
         }
 
-        // If no review threads exist but evaluations are complete, submission can proceed
+        // If no review threads exist
         if ($reviewSummaries->isEmpty()) {
-            // Check if all evaluations are positive (this logic can be customized)
-            $allEvaluationsPositive = $this->checkIfEvaluationsArePositive($submission);
-
-            if ($allEvaluationsPositive) {
-                $submission->update(['status' => SubmissionStatus::APPROVED]);
-            } else {
-                $submission->update(['status' => SubmissionStatus::NEEDS_REVISION]);
-            }
-            return;
+            return; // Keep current status
         }
 
-        // Existing logic for review threads
+        // Priority order: closed > open > resolved
         if ($reviewSummaries->where('status', 'closed')->isNotEmpty()) {
             $submission->update(['status' => SubmissionStatus::REJECTED]);
         } elseif ($reviewSummaries->where('status', 'open')->isNotEmpty()) {
             $submission->update(['status' => SubmissionStatus::NEEDS_REVISION]);
         } elseif ($reviewSummaries->every(fn($r) => $r->status === 'resolved')) {
             $submission->update(['status' => SubmissionStatus::APPROVED]);
+        } else {
+            $submission->update(['status' => SubmissionStatus::UNDER_REVIEW]);
         }
     }
 

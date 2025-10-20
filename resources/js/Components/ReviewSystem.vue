@@ -12,14 +12,22 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Alert, AlertDescription } from '@/Components/ui/alert'
 import { Input } from '@/Components/ui/input'
 import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/Components/ui/select'
+import {
     Collapsible,
     CollapsibleContent,
     CollapsibleTrigger,
 } from '@/Components/ui/collapsible'
 import {
     AlertCircle, CheckCircle, Clock, MessageSquare, Users, Plus,
-    ClipboardList, FileText, Eye, AlertTriangle, Send, X, Download,
-    XCircle, Shield, User, ChevronDown, ChevronUp, MessageCircle, Lock
+    ClipboardList, FileText, Eye, Send, X, Download,
+    XCircle, Shield, User, ChevronDown, ChevronUp, MessageCircle, Lock,
+    Edit, Settings
 } from 'lucide-vue-next'
 
 interface ReviewerFormAssignment {
@@ -103,7 +111,13 @@ interface Props {
         message: string
     }
     reviewerFormAssignments?: ReviewerFormAssignment[]
-    assignedReviewers: any[]
+    assignedReviewers: Array<{
+        id: number
+        user_id: number
+        name: string
+        role: string
+    }>
+    submissionStatus: string
 }
 
 const props = defineProps<Props>()
@@ -118,6 +132,14 @@ const replyingTo = ref<number | null>(null)
 const newReply = ref('')
 const expandedThreads = ref<Set<number>>(new Set())
 
+// Status update states
+const showUpdateReviewStatusDialog = ref(false)
+const showUpdateSubmissionStatusDialog = ref(false)
+const selectedReviewSummary = ref<ReviewSummary | null>(null)
+const selectedReviewStatus = ref('')
+const selectedSubmissionStatus = ref('')
+const statusUpdateNotes = ref('')
+
 // Computed
 const currentUser = computed(() => page.props.auth.user as any)
 const isAdmin = computed(() => props.userRole === 'admin')
@@ -131,6 +153,48 @@ const completedEvaluationsCount = computed(() => {
 })
 
 const totalEvaluationsCount = computed(() => reviewerAssignments.value.length)
+
+// Check if user can update review summary status
+const canUpdateReviewStatus = (reviewSummary: ReviewSummary) => {
+    if (isAdmin.value) return true
+    if (!isAssignedReviewer.value || !reviewSummary.reviewer_id) return false
+
+    // Check if it's reviewer's own review and evaluations are complete
+    const isOwnReview = props.assignedReviewers.some(r =>
+        r.user_id === currentUser.value?.id && r.id === reviewSummary.reviewer_id
+    )
+
+    return isOwnReview && !props.hasPendingEvaluations
+}
+
+// Check if user can update submission status
+const canUpdateSubmissionStatus = computed(() => {
+    if (isAdmin.value) return true
+    if (!isAssignedReviewer.value) return false
+
+    // Reviewer can update if they have completed evaluations
+    if (props.hasReviewEvaluationForms && props.hasPendingEvaluations) {
+        return false
+    }
+
+    return true
+})
+
+// Review status options
+const reviewStatusOptions = [
+    { value: 'open', label: 'Open', color: 'green' },
+    { value: 'resolved', label: 'Resolved', color: 'blue' },
+    { value: 'closed', label: 'Closed', color: 'red' }
+]
+
+// Submission status options
+const submissionStatusOptions = [
+    { value: 'pending', label: 'Menunggu Review', color: 'yellow' },
+    { value: 'under_review', label: 'Sedang Direview', color: 'blue' },
+    { value: 'needs_revision', label: 'Perlu Revisi', color: 'orange' },
+    { value: 'approved', label: 'Disetujui', color: 'green' },
+    { value: 'rejected', label: 'Ditolak', color: 'red' }
+]
 
 // Thread expansion
 const isThreadExpanded = (threadId: number) => expandedThreads.value.has(threadId)
@@ -222,6 +286,11 @@ const getStatusInfo = (status: string) => {
     return statusMap[status] || { label: "Unknown", color: "bg-gray-100 text-gray-800", icon: Clock }
 }
 
+const getSubmissionStatusInfo = (status: string) => {
+    const option = submissionStatusOptions.find(s => s.value === status)
+    return option || { label: status, color: 'gray' }
+}
+
 const formatDate = (dateString?: string) => {
     if (!dateString) return ''
     return new Date(dateString).toLocaleString('id-ID', {
@@ -309,10 +378,82 @@ const getAuthorDisplay = (comment: ReviewComment) => {
 const downloadAttachment = (filePath: string) => {
     window.open(`/review-attachments/download?path=${encodeURIComponent(filePath)}`, '_blank')
 }
+
+// Open update review status dialog
+const openUpdateReviewStatusDialog = (reviewSummary: ReviewSummary) => {
+    selectedReviewSummary.value = reviewSummary
+    selectedReviewStatus.value = reviewSummary.status
+    statusUpdateNotes.value = reviewSummary.summary_notes || ''
+    showUpdateReviewStatusDialog.value = true
+}
+
+// Update review summary status
+const updateReviewSummaryStatus = () => {
+    if (!selectedReviewSummary.value || !selectedReviewStatus.value) return
+
+    router.patch(`/review-summaries/${selectedReviewSummary.value.id}/status`, {
+        status: selectedReviewStatus.value,
+        summary_notes: statusUpdateNotes.value || null
+    }, {
+        preserveState: false,
+        preserveScroll: true,
+        onSuccess: () => {
+            showUpdateReviewStatusDialog.value = false
+            selectedReviewSummary.value = null
+            selectedReviewStatus.value = ''
+            statusUpdateNotes.value = ''
+        }
+    })
+}
+
+// Open update submission status dialog
+const openUpdateSubmissionStatusDialog = () => {
+    selectedSubmissionStatus.value = props.submissionStatus
+    showUpdateSubmissionStatusDialog.value = true
+}
+
+// Update submission status
+const updateSubmissionStatus = () => {
+    if (!selectedSubmissionStatus.value) return
+
+    router.patch(`/submissions/${props.submissionId}/status`, {
+        status: selectedSubmissionStatus.value
+    }, {
+        preserveState: false,
+        preserveScroll: true,
+        onSuccess: () => {
+            showUpdateSubmissionStatusDialog.value = false
+            selectedSubmissionStatus.value = ''
+        }
+    })
+}
 </script>
 
 <template>
     <div class="space-y-6">
+        <!-- Submission Status Card -->
+        <Card v-if="isAssignedReviewer || isAdmin">
+            <CardHeader>
+                <div class="flex items-center justify-between">
+                    <CardTitle class="flex items-center gap-2">
+                        <Settings class="h-5 w-5" />
+                        Submission Status
+                    </CardTitle>
+                    <div class="flex items-center gap-3">
+                        <Badge
+                            :class="`bg-${getSubmissionStatusInfo(submissionStatus).color}-100 text-${getSubmissionStatusInfo(submissionStatus).color}-800`">
+                            {{ getSubmissionStatusInfo(submissionStatus).label }}
+                        </Badge>
+                        <Button v-if="canUpdateSubmissionStatus" size="sm" variant="outline"
+                            @click="openUpdateSubmissionStatusDialog">
+                            <Edit class="h-4 w-4 mr-2" />
+                            Update Status
+                        </Button>
+                    </div>
+                </div>
+            </CardHeader>
+        </Card>
+
         <!-- Review Statistics -->
         <Card>
             <CardHeader>
@@ -502,6 +643,11 @@ const downloadAttachment = (filePath: string) => {
                                     </div>
                                 </div>
                             </div>
+                            <!-- Update Status Button -->
+                            <Button v-if="canUpdateReviewStatus(reviewSummary)" variant="ghost" size="sm"
+                                @click.stop="openUpdateReviewStatusDialog(reviewSummary)" class="ml-2">
+                                <Edit class="h-4 w-4" />
+                            </Button>
                         </div>
                     </CardHeader>
 
@@ -692,6 +838,91 @@ const downloadAttachment = (filePath: string) => {
                         <Button variant="outline" @click="showThreadDialog = false">Cancel</Button>
                         <Button @click="createThread" :disabled="!newThreadNotes.trim()">
                             Create Thread
+                        </Button>
+                    </div>
+                </div>
+            </DialogContent>
+        </Dialog>
+
+        <!-- Update Review Status Dialog -->
+        <Dialog v-model:open="showUpdateReviewStatusDialog">
+            <DialogContent class="max-w-md">
+                <DialogHeader>
+                    <DialogTitle>Update Review Thread Status</DialogTitle>
+                    <DialogDescription>
+                        Change the status of this review thread.
+                    </DialogDescription>
+                </DialogHeader>
+                <div class="space-y-4">
+                    <div>
+                        <Label>Select Status</Label>
+                        <Select v-model="selectedReviewStatus">
+                            <SelectTrigger>
+                                <SelectValue placeholder="Choose status..." />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem v-for="status in reviewStatusOptions" :key="status.value"
+                                    :value="status.value">
+                                    <div class="flex items-center gap-2">
+                                        <div :class="`w-2 h-2 rounded-full bg-${status.color}-500`"></div>
+                                        {{ status.label }}
+                                    </div>
+                                </SelectItem>
+                            </SelectContent>
+                        </Select>
+                    </div>
+                    <div>
+                        <Label>Notes (Optional)</Label>
+                        <Textarea v-model="statusUpdateNotes" placeholder="Update or add notes about this review..."
+                            rows="3" />
+                    </div>
+                    <div class="flex justify-end gap-2">
+                        <Button variant="outline" @click="showUpdateReviewStatusDialog = false">Cancel</Button>
+                        <Button @click="updateReviewSummaryStatus" :disabled="!selectedReviewStatus">
+                            Update Status
+                        </Button>
+                    </div>
+                </div>
+            </DialogContent>
+        </Dialog>
+
+        <!-- Update Submission Status Dialog -->
+        <Dialog v-model:open="showUpdateSubmissionStatusDialog">
+            <DialogContent class="max-w-md">
+                <DialogHeader>
+                    <DialogTitle>Update Submission Status</DialogTitle>
+                    <DialogDescription>
+                        Change the overall status of this submission.
+                    </DialogDescription>
+                </DialogHeader>
+                <div class="space-y-4">
+                    <div>
+                        <Label>Select Status</Label>
+                        <Select v-model="selectedSubmissionStatus">
+                            <SelectTrigger>
+                                <SelectValue placeholder="Choose status..." />
+                            </SelectTrigger>
+                            <SelectContent>
+                                <SelectItem v-for="status in submissionStatusOptions" :key="status.value"
+                                    :value="status.value">
+                                    <div class="flex items-center gap-2">
+                                        <div :class="`w-2 h-2 rounded-full bg-${status.color}-500`"></div>
+                                        {{ status.label }}
+                                    </div>
+                                </SelectItem>
+                            </SelectContent>
+                        </Select>
+                    </div>
+                    <Alert>
+                        <AlertCircle class="h-4 w-4" />
+                        <AlertDescription>
+                            This will update the submission status for all reviewers and the submitter.
+                        </AlertDescription>
+                    </Alert>
+                    <div class="flex justify-end gap-2">
+                        <Button variant="outline" @click="showUpdateSubmissionStatusDialog = false">Cancel</Button>
+                        <Button @click="updateSubmissionStatus" :disabled="!selectedSubmissionStatus">
+                            Update Status
                         </Button>
                     </div>
                 </div>

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from "vue";
+import { computed, ref } from "vue";
 import { Head, Link, router } from "@inertiajs/vue3";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout.vue";
 import { Button } from "@/Components/ui/button";
@@ -113,6 +113,22 @@ interface AssignedReviewer {
     };
 }
 
+interface ReviewerFormAssignment {
+    id: number;
+    is_required: boolean;
+    due_date?: string;
+    review_evaluation_form: {
+        id: number;
+        title: string;
+        description?: string;
+    };
+    review_form_response?: {
+        id: number;
+        status: string;
+        submitted_at?: string;
+    };
+}
+
 interface FormSubmission {
     id: number;
     is_submitted: boolean;
@@ -154,6 +170,7 @@ interface Props {
     evaluationRequirements?: EvaluationRequirements;
     userRole: "admin" | "submitter" | "reviewer" | "user";
     error?: string;
+    reviewerFormAssignments?: ReviewerFormAssignment[];
 }
 
 const props = defineProps<Props>();
@@ -184,6 +201,7 @@ const userRole = props.userRole || 'admin';
 const reviewSummaries = props.submission.review_summaries || [];
 const reviewComments = props.submission.review_comments || [];
 const assignedReviewers = props.submission.assigned_reviewers || [];
+const reviewerFormAssignments = props.reviewerFormAssignments || [];
 
 // Dialog state
 const showAssignReviewerDialog = ref(false);
@@ -238,6 +256,16 @@ const handleReviewersAssigned = () => {
     // Refresh the page to get updated data
     router.visit(window.location.href, { preserveScroll: true });
 };
+
+const mappedAssignedReviewers = computed(() =>
+    assignedReviewers.map(r => ({
+        id: r.id,
+        user_id: r.user.id,
+        name: r.user.name,
+        role: r.reviewer_role.name,
+    }))
+);
+
 </script>
 
 <template>
@@ -402,7 +430,7 @@ const handleReviewersAssigned = () => {
                                         <div v-if="isFileField(field.field_type.name) && responses[field.id]"
                                             class="flex items-center gap-2">
                                             <span class="font-medium">{{ renderFieldValue(field, responses[field.id])
-                                            }}</span>
+                                                }}</span>
                                             <Button size="sm" variant="outline">
                                                 <Download class="h-4 w-4 mr-1" />
                                                 Download
@@ -498,13 +526,14 @@ const handleReviewersAssigned = () => {
 
                     <!-- Review System Component -->
                     <ReviewSystem :submission-id="submission.id" :review-summaries="reviewSummaries"
-                        :review-comments="reviewComments" :available-reviewers="availableReviewers"
-                        :can-assign-reviewers="canAssignReviewers" :can-review="canReview"
-                        :can-create-thread="canCreateThread" :has-pending-evaluations="hasPendingEvaluations"
-                        :pending-evaluations-count="pendingEvaluationsCount" :user-role="userRole"
-                        :assigned-reviewers="assignedReviewers" :review-stats="reviewStats"
+                        :review-comments="reviewComments" :can-create-thread="!hasPendingEvaluations && canReview"
+                        :can-review="canReview" :user-role="userRole" :review-stats="reviewStats"
+                        :has-pending-evaluations="hasPendingEvaluations"
+                        :pending-evaluations-count="pendingEvaluationsCount"
+                        :assigned-reviewers="mappedAssignedReviewers"
                         :has-review-evaluation-forms="hasReviewEvaluationForms"
-                        :evaluation-requirements="evaluationRequirements" />
+                        :evaluation-requirements="evaluationRequirements"
+                        :reviewer-form-assignments="reviewerFormAssignments" :submission-status="submission.status" />
                 </TabsContent>
             </Tabs>
         </div>

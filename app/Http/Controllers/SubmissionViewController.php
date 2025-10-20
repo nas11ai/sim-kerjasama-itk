@@ -412,6 +412,7 @@ class SubmissionViewController extends Controller
             'evaluationRequirements' => $evaluationRequirements,
             'hasPendingEvaluations' => $hasPendingEvaluations,
             'pendingEvaluationsCount' => $pendingEvaluationsCount,
+            'submissionStatus' => $submission->status,
         ]);
     }
 
@@ -655,9 +656,12 @@ class SubmissionViewController extends Controller
                 'canCreateThread' => $canCreateThread,
                 'hasPendingEvaluations' => $hasPendingEvaluations,
                 'pendingEvaluationsCount' => $pendingEvaluationsCount,
-                'hasReviewEvaluationForms' => $hasReviewEvaluationForms, // NEW
-                'evaluationRequirements' => $evaluationRequirements, // NEW
+                'hasReviewEvaluationForms' => $hasReviewEvaluationForms,
+                'evaluationRequirements' => $evaluationRequirements,
                 'userRole' => $this->getUserRoleForSubmission($submission, $currentUser),
+                'assignedReviewers' => $assignedReviewers, // Already in correct format
+                'reviewerFormAssignments' => [], // Add if needed for admin
+                'submissionStatus' => $submission->status, // ADDED THIS
             ]);
 
         } catch (\Exception $e) {

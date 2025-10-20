@@ -1,4 +1,3 @@
-<!-- resources/js/Pages/User/Submissions/ShowSubmission.vue -->
 <script setup lang="ts">
 import { computed } from "vue";
 import { Head, Link, router } from "@inertiajs/vue3";
@@ -123,7 +122,7 @@ interface Props {
     userRole: "submitter" | "reviewer" | "user";
     isOwnSubmission: boolean;
     assignedReviewers?: AssignedReviewer[];
-    reviewerFormAssignments?: ReviewerFormAssignment[]; // NEW
+    reviewerFormAssignments?: ReviewerFormAssignment[];
     hasReviewEvaluationForms?: boolean;
     evaluationRequirements?: EvaluationRequirements;
     hasPendingEvaluations?: boolean;
@@ -144,7 +143,7 @@ const reviewComments = props.reviewComments || [];
 const reviewSummaries = props.submission.review_summaries || [];
 const reviewerAssignments = props.submission.reviewer_form_assignments || [];
 const assignedReviewers = props.assignedReviewers || [];
-const reviewerFormAssignments = props.reviewerFormAssignments || []; // NEW: From controller
+const reviewerFormAssignments = props.reviewerFormAssignments || [];
 const hasReviewEvaluationForms = props.hasReviewEvaluationForms || false;
 const evaluationRequirements = props.evaluationRequirements || {
     required: false,
@@ -156,14 +155,11 @@ const canReview = computed(() => props.canReview || false);
 const isReviewer = computed(() => props.userRole === 'reviewer');
 const isSubmitter = computed(() => props.isOwnSubmission);
 
-// Check if reviewer has pending evaluations
 const hasPendingEvaluations = computed(() => {
-    // Use from props if available (from controller)
     if (props.hasPendingEvaluations !== undefined) {
         return props.hasPendingEvaluations;
     }
 
-    // Fallback: calculate from reviewer assignments
     if (!hasReviewEvaluationForms) return false;
 
     return reviewerAssignments.some(assignment =>
@@ -173,12 +169,10 @@ const hasPendingEvaluations = computed(() => {
 });
 
 const pendingEvaluationsCount = computed(() => {
-    // Use from props if available (from controller)
     if (props.pendingEvaluationsCount !== undefined) {
         return props.pendingEvaluationsCount;
     }
 
-    // Fallback: calculate from reviewer assignments
     if (!hasReviewEvaluationForms) return 0;
 
     return reviewerAssignments.filter(assignment =>
@@ -265,6 +259,16 @@ const getAssignmentStatusInfo = (assignment: ReviewerFormAssignment) => {
             };
     }
 };
+
+const mappedAssignedReviewers = computed(() =>
+    assignedReviewers.map(r => ({
+        id: r.id,
+        user_id: r.user.id,
+        name: r.user.name,
+        role: r.reviewer_role.name,
+    }))
+);
+
 </script>
 
 <template>
@@ -416,7 +420,7 @@ const getAssignmentStatusInfo = (assignment: ReviewerFormAssignment) => {
                                         <div v-if="isFileField(field.field_type.name) && responses[field.id]"
                                             class="flex items-center gap-2">
                                             <span class="font-medium">{{ renderFieldValue(field, responses[field.id])
-                                            }}</span>
+                                                }}</span>
                                             <Button size="sm" variant="outline">
                                                 <Download class="h-4 w-4 mr-1" />
                                                 Download
@@ -483,11 +487,12 @@ const getAssignmentStatusInfo = (assignment: ReviewerFormAssignment) => {
                         :review-comments="reviewComments" :can-create-thread="!hasPendingEvaluations && canReview"
                         :can-review="canReview" :user-role="userRole" :review-stats="reviewStats"
                         :has-pending-evaluations="hasPendingEvaluations"
-                        :pending-evaluations-count="pendingEvaluationsCount" :available-reviewers="[]"
-                        :assigned-reviewers="assignedReviewers" :can-assign-reviewers="false"
+                        :pending-evaluations-count="pendingEvaluationsCount"
+                        :assigned-reviewers="mappedAssignedReviewers"
                         :has-review-evaluation-forms="hasReviewEvaluationForms"
                         :evaluation-requirements="evaluationRequirements"
-                        :reviewer-form-assignments="reviewerFormAssignments" />
+                        :reviewer-form-assignments="reviewerFormAssignments" :submission-status="submission.status" />
+
                 </TabsContent>
             </Tabs>
         </div>
