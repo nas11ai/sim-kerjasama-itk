@@ -284,8 +284,9 @@ class SubmissionViewController extends Controller
         )->with([
                     'user:id,name',
                     'reviewer.user:id,name',
+                    'attachments',
                     'replies' => function ($q) {
-                        $q->with(['user:id,name', 'reviewer.user:id,name'])
+                        $q->with(['user:id,name', 'reviewer.user:id,name', 'attachments'])
                             ->orderBy('created_at', 'asc');
                     }
                 ])->whereNull('parent_comment_id')

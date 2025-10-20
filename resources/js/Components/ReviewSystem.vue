@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import { router } from '@inertiajs/vue3'
+import { router, usePage } from '@inertiajs/vue3'
 import { Button } from '@/Components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card'
 import { Badge } from '@/Components/ui/badge'
@@ -12,7 +12,10 @@ import { Alert, AlertDescription } from '@/Components/ui/alert'
 import { Input } from '@/Components/ui/input'
 import {
     AlertCircle, CheckCircle, Clock, MessageSquare, Users, Plus,
-    ClipboardList, FileText, Eye, AlertTriangle, Send, X, Download
+    ClipboardList, FileText, Eye, AlertTriangle, Send, X, Download,
+    XCircle,
+    Shield,
+    User
 } from 'lucide-vue-next'
 
 interface ReviewerFormAssignment {
@@ -30,11 +33,58 @@ interface ReviewerFormAssignment {
         submitted_at?: string
     } | null
 }
+interface ReviewSummary {
+    id: number
+    reviewer_id: number | null
+    status: 'open' | 'resolved' | 'closed'
+    summary_notes: string | null
+    created_at: string
+    updated_at: string
+    reviewer?: {
+        user: {
+            id: number
+            name: string
+            email: string
+        }
+        reviewer_role: {
+            name: string
+        }
+    }
+    attachments: Array<{
+        id: number
+        file_path: string
+    }>
+}
+
+interface ReviewComment {
+    id: number
+    review_summary_id: number
+    parent_comment_id: number | null
+    user_id: number | null
+    reviewer_id: number | null
+    comment_text: string
+    created_at: string
+    user?: {
+        id: number
+        name: string
+    }
+    reviewer?: {
+        user: {
+            id: number
+            name: string
+        }
+    }
+    attachments: Array<{
+        id: number
+        file_path: string
+    }>
+    replies: ReviewComment[]
+}
 
 interface Props {
     submissionId: number
-    reviewSummaries: any[]
-    reviewComments: any[]
+    reviewSummaries: ReviewSummary[]
+    reviewComments: ReviewComment[]
     canCreateThread: boolean
     canReview: boolean
     userRole: 'admin' | 'submitter' | 'reviewer' | 'user'
@@ -60,9 +110,10 @@ const newThreadAttachments = ref<File[]>([])
 const newComments = ref<Record<number, string>>({})
 const replyingTo = ref<number | null>(null)
 const newReply = ref('')
+const page = usePage();
 
 // Computed
-const currentUser = computed(() => ({ name: 'Current User' })) // Should come from page props
+const currentUser = computed(() => page.props.auth.user as any)
 const isAdmin = computed(() => props.userRole === 'admin')
 const isAssignedReviewer = computed(() => props.userRole === 'reviewer' && props.canReview)
 
@@ -225,19 +276,45 @@ const addComment = (reviewSummaryId: number, parentId?: number) => {
     })
 }
 
-const getAuthorDisplay = (comment: any) => {
+const getAuthorDisplay = (comment: ReviewComment) => {
     if (comment.reviewer?.user) {
         return {
             name: comment.reviewer.user.name,
-            type: 'Reviewer'
+            type: 'Reviewer',
+            icon: Shield,
+            isCurrentUser: comment.reviewer.user.id === currentUser.value?.id
         }
     } else if (comment.user) {
         return {
             name: comment.user.name,
-            type: 'Submitter'
+            type: comment.user.id === currentUser.value?.id ? 'You' : 'Submitter',
+            icon: User,
+            isCurrentUser: comment.user.id === currentUser.value?.id
         }
     }
-    return { name: 'Unknown', type: 'User' }
+    return { name: 'Unknown', type: 'User', icon: User, isCurrentUser: false }
+}
+
+const statusMap: Record<
+    StatusType,
+    { label: string; color: string; icon: any }
+> = {
+    open: { label: "Open", color: "bg-green-100 text-green-800", icon: AlertCircle },
+    resolved: { label: "Resolved", color: "bg-blue-100 text-blue-800", icon: CheckCircle },
+    closed: { label: "Closed", color: "bg-red-100 text-red-800", icon: XCircle },
+};
+
+type StatusType = "open" | "resolved" | "closed";
+
+const getStatusInfo = (status: string) => {
+    if (status in statusMap) {
+        return statusMap[status as StatusType];
+    }
+    return { label: "Unknown", color: "bg-gray-100 text-gray-800", icon: Clock };
+};
+
+const downloadAttachment = (filePath: string) => {
+    window.open(`/review-attachments/download?path=${encodeURIComponent(filePath)}`, '_blank')
 }
 </script>
 
@@ -365,7 +442,7 @@ const getAuthorDisplay = (comment: any) => {
         </Alert>
 
         <!-- Review Actions -->
-        <Card v-if="isAssignedReviewer || isAdmin">
+        <!-- <Card v-if="isAssignedReviewer || isAdmin">
             <CardHeader>
                 <div class="flex items-center justify-between">
                     <CardTitle class="flex items-center gap-2">
@@ -383,7 +460,159 @@ const getAuthorDisplay = (comment: any) => {
                 <AlertCircle class="h-8 w-8 mx-auto mb-2 text-amber-500" />
                 <p class="text-sm text-muted-foreground">{{ threadCreationMessage }}</p>
             </CardContent>
-        </Card>
+        </Card> -->
+
+        <div v-if="reviewSummaries.length > 0" class="space-y-4">
+            <h3 class="text-lg font-medium">Review Threads ({{ reviewSummaries.length }})</h3>
+
+            <Card v-for="reviewSummary in reviewSummaries" :key="reviewSummary.id" class="border-l-4" :class="{
+                'border-l-green-500': reviewSummary.status === 'open',
+                'border-l-blue-500': reviewSummary.status === 'resolved',
+                'border-l-red-500': reviewSummary.status === 'closed'
+            }">
+                <CardHeader>
+                    <div class="flex items-start justify-between">
+                        <div class="flex items-center gap-3">
+                            <Avatar>
+                                <AvatarFallback>
+                                    {{ reviewSummary.reviewer?.user.name.charAt(0) || '?' }}
+                                </AvatarFallback>
+                            </Avatar>
+                            <div>
+                                <div class="font-medium">
+                                    {{ reviewSummary.reviewer?.user.name || 'General Discussion' }}
+                                </div>
+                                <div class="text-sm text-muted-foreground">
+                                    {{ reviewSummary.reviewer?.reviewer_role.name || 'Discussion Thread' }} •
+                                    {{ formatDate(reviewSummary.created_at) }}
+                                </div>
+                            </div>
+                        </div>
+                        <Badge :class="getStatusInfo(reviewSummary.status).color">
+                            <component :is="getStatusInfo(reviewSummary.status).icon" class="h-3 w-3 mr-1" />
+                            {{ getStatusInfo(reviewSummary.status).label }}
+                        </Badge>
+                    </div>
+                </CardHeader>
+
+                <CardContent class="space-y-4">
+                    <!-- Summary Notes -->
+                    <div v-if="reviewSummary.summary_notes" class="bg-muted/50 p-4 rounded-lg">
+                        <div class="whitespace-pre-wrap">{{ reviewSummary.summary_notes }}</div>
+                    </div>
+
+                    <!-- Attachments -->
+                    <div v-if="reviewSummary.attachments.length > 0" class="space-y-2">
+                        <Label class="text-sm font-medium">Attachments:</Label>
+                        <div class="flex flex-wrap gap-2">
+                            <Button v-for="attachment in reviewSummary.attachments" :key="attachment.id"
+                                variant="outline" size="sm" @click="downloadAttachment(attachment.file_path)">
+                                <Download class="h-3 w-3 mr-1" />
+                                Download File
+                            </Button>
+                        </div>
+                    </div>
+
+                    <!-- Comments Section -->
+                    <div class="space-y-4">
+                        <Separator />
+
+                        <!-- Existing Comments -->
+                        <div v-for="comment in reviewComments.filter(c => c.review_summary_id === reviewSummary.id)"
+                            :key="comment.id" class="space-y-3">
+                            <div class="flex gap-3">
+                                <Avatar class="h-8 w-8">
+                                    <AvatarFallback>{{ getAuthorDisplay(comment).name.charAt(0) }}</AvatarFallback>
+                                </Avatar>
+                                <div class="flex-1 space-y-2">
+                                    <div class="flex items-center gap-2">
+                                        <span class="font-medium">{{ getAuthorDisplay(comment).name }}</span>
+                                        <Badge variant="outline" class="text-xs">
+                                            <component :is="getAuthorDisplay(comment).icon" class="h-3 w-3 mr-1" />
+                                            {{ getAuthorDisplay(comment).type }}
+                                        </Badge>
+                                        <span class="text-xs text-muted-foreground">
+                                            {{ formatDate(comment.created_at) }}
+                                        </span>
+                                    </div>
+                                    <div class="bg-muted/30 p-3 rounded-lg">
+                                        <div class="whitespace-pre-wrap">{{ comment.comment_text }}</div>
+
+                                        <!-- Comment Attachments -->
+                                        <div v-if="comment.attachments.length > 0" class="mt-2 flex flex-wrap gap-1">
+                                            <Button v-for="attachment in comment.attachments" :key="attachment.id"
+                                                variant="ghost" size="sm"
+                                                @click="downloadAttachment(attachment.file_path)">
+                                                <Download class="h-3 w-3 mr-1" />
+                                                File
+                                            </Button>
+                                        </div>
+                                    </div>
+
+                                    <!-- Replies -->
+                                    <div v-if="comment.replies.length > 0" class="ml-4 space-y-2">
+                                        <div v-for="reply in comment.replies" :key="reply.id" class="flex gap-2">
+                                            <Avatar class="h-6 w-6">
+                                                <AvatarFallback>{{ getAuthorDisplay(reply).name.charAt(0) }}
+                                                </AvatarFallback>
+                                            </Avatar>
+                                            <div class="flex-1">
+                                                <div class="flex items-center gap-2 mb-1">
+                                                    <span class="text-sm font-medium">{{ getAuthorDisplay(reply).name
+                                                        }}</span>
+                                                    <span class="text-xs text-muted-foreground">
+                                                        {{ formatDate(reply.created_at) }}
+                                                    </span>
+                                                </div>
+                                                <div class="bg-muted/20 p-2 rounded text-sm">
+                                                    {{ reply.comment_text }}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <!-- Reply Form -->
+                                    <div v-if="replyingTo === comment.id" class="ml-4">
+                                        <div class="flex gap-2">
+                                            <Textarea v-model="newReply" placeholder="Write a reply..." rows="2"
+                                                class="flex-1" />
+                                            <div class="flex flex-col gap-1">
+                                                <Button size="sm" @click="addComment(reviewSummary.id, comment.id)"
+                                                    :disabled="!newReply.trim()">
+                                                    <Send class="h-3 w-3" />
+                                                </Button>
+                                                <Button variant="outline" size="sm" @click="replyingTo = null">
+                                                    <X class="h-3 w-3" />
+                                                </Button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <Button v-else variant="ghost" size="sm" @click="replyingTo = comment.id">
+                                        Reply
+                                    </Button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- New Comment Form -->
+                        <div class="flex gap-3">
+                            <Avatar class="h-8 w-8">
+                                <AvatarFallback>{{ currentUser?.name.charAt(0) }}</AvatarFallback>
+                            </Avatar>
+                            <div class="flex-1 space-y-2">
+                                <Textarea v-model="newComments[reviewSummary.id]" placeholder="Add a comment..."
+                                    rows="3" />
+                                <Button size="sm" @click="addComment(reviewSummary.id)"
+                                    :disabled="!newComments[reviewSummary.id]?.trim()">
+                                    <Send class="h-4 w-4 mr-2" />
+                                    Comment
+                                </Button>
+                            </div>
+                        </div>
+                    </div>
+                </CardContent>
+            </Card>
+        </div>
 
         <!-- Create Thread Dialog -->
         <Dialog v-model:open="showThreadDialog">
