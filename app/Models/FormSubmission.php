@@ -247,7 +247,8 @@ class FormSubmission extends Model
         $totalReviewers = $this->submissionReviewers()->count();
         $approvedReviewers = $this->reviewSummaries()
             ->where('status', 'resolved')
-            ->count();
+            ->distinct('reviewer_id')
+            ->count('reviewer_id');
 
         return $totalReviewers > 0 && $totalReviewers === $approvedReviewers;
     }
