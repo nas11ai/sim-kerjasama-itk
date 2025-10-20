@@ -156,16 +156,19 @@ const totalEvaluationsCount = computed(() => reviewerAssignments.value.length)
 
 // Check if user can update review summary status
 const canUpdateReviewStatus = (reviewSummary: ReviewSummary) => {
-    if (isAdmin.value) return true
-    if (!isAssignedReviewer.value || !reviewSummary.reviewer_id) return false
+    if (isAdmin.value) return true;
 
-    // Check if it's reviewer's own review and evaluations are complete
-    const isOwnReview = props.assignedReviewers.some(r =>
-        r.user_id === currentUser.value?.id && r.id === reviewSummary.reviewer_id
-    )
+    if (!isAssignedReviewer.value || !reviewSummary.reviewer_id) return false;
 
-    return isOwnReview && !props.hasPendingEvaluations
-}
+    const isOwnReview = props.assignedReviewers.some(r => {
+        const match = r.user_id === currentUser.value?.id;
+        return match;
+    });
+
+    const result = isOwnReview && !props.hasPendingEvaluations;
+
+    return result;
+};
 
 // Check if user can update submission status
 const canUpdateSubmissionStatus = computed(() => {
@@ -870,11 +873,6 @@ const updateSubmissionStatus = () => {
                                 </SelectItem>
                             </SelectContent>
                         </Select>
-                    </div>
-                    <div>
-                        <Label>Notes (Optional)</Label>
-                        <Textarea v-model="statusUpdateNotes" placeholder="Update or add notes about this review..."
-                            rows="3" />
                     </div>
                     <div class="flex justify-end gap-2">
                         <Button variant="outline" @click="showUpdateReviewStatusDialog = false">Cancel</Button>
