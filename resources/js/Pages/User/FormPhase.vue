@@ -1,4 +1,3 @@
-<!-- resources/js/Pages/User/FormPhase.vue -->
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue';
 import { Head, useForm, router } from '@inertiajs/vue3';
@@ -120,7 +119,6 @@ watch(currentForm, (form) => {
     if (form) {
         const initialData: Record<string, any> = {};
         form.form_fields.forEach(field => {
-            // Initialize different field types with appropriate default values
             switch (field.field_type.name.toLowerCase()) {
                 case 'checkbox':
                     initialData[`field_${field.id}`] = false;
@@ -137,12 +135,6 @@ watch(currentForm, (form) => {
                     break;
             }
         });
-
-        // Load existing data if user has submission
-        if (currentFormAccessControl.value?.user_submission) {
-            // Load from existing submission (you'll need to implement this API)
-            // For now, we'll initialize with empty data
-        }
 
         formData.reset();
         Object.keys(initialData).forEach(key => {
@@ -187,11 +179,9 @@ const submitForm = () => {
 
     router.post(route('user.form-submission.submit'), payload, {
         onSuccess: () => {
-            // If can proceed to next step and there is next step
             if (canGoNext.value && currentFormAccessControl.value && !currentFormAccessControl.value.needs_review) {
                 nextStep();
             } else {
-                // Redirect to dashboard or show completion message
                 router.visit(route('user.dashboard'));
             }
         },
@@ -226,109 +216,9 @@ const previousStep = () => {
 };
 
 const goToStep = (stepIndex: number) => {
-    // Only allow going to completed steps or current step
-    const targetFormAccessControl = props.formPhase.form_access_controls[stepIndex];
-    if (targetFormAccessControl?.user_submission?.is_submitted || stepIndex <= currentStepIndex.value) {
+    // Allow navigation if step is accessible
+    if (canAccessStep(stepIndex)) {
         currentStepIndex.value = stepIndex;
-    }
-};
-
-const renderFormField = (field: FormField) => {
-    const fieldKey = `field_${field.id}`;
-    const fieldType = field.field_type.name.toLowerCase();
-
-    switch (fieldType) {
-        case 'text':
-            return {
-                component: 'Input',
-                props: {
-                    type: 'text',
-                    placeholder: `Masukkan ${field.label.toLowerCase()}...`
-                }
-            };
-        case 'email':
-            return {
-                component: 'Input',
-                props: {
-                    type: 'email',
-                    placeholder: `Masukkan alamat email...`
-                }
-            };
-        case 'number':
-            return {
-                component: 'Input',
-                props: {
-                    type: 'number',
-                    placeholder: `Masukkan ${field.label.toLowerCase()}...`
-                }
-            };
-        case 'url':
-            return {
-                component: 'Input',
-                props: {
-                    type: 'url',
-                    placeholder: `Masukkan URL...`
-                }
-            };
-        case 'phone':
-            return {
-                component: 'Input',
-                props: {
-                    type: 'tel',
-                    placeholder: `Masukkan nomor telepon...`
-                }
-            };
-        case 'date':
-            return {
-                component: 'Input',
-                props: {
-                    type: 'date'
-                }
-            };
-        case 'time':
-            return {
-                component: 'Input',
-                props: {
-                    type: 'time'
-                }
-            };
-        case 'textarea':
-            return {
-                component: 'Textarea',
-                props: {
-                    placeholder: `Masukkan ${field.label.toLowerCase()}...`,
-                    rows: 4
-                }
-            };
-        case 'select':
-            return {
-                component: 'Select',
-                options: field.form_field_options
-            };
-        case 'radio':
-            return {
-                component: 'RadioGroup',
-                options: field.form_field_options
-            };
-        case 'checkbox':
-            return {
-                component: 'Checkbox'
-            };
-        case 'file':
-            return {
-                component: 'File',
-                props: {
-                    accept: '*/*'
-                }
-            };
-        default:
-            return {
-                component: 'Input',
-                props: {
-                    type: 'text',
-                    placeholder: `Masukkan ${field.label.toLowerCase()}...`
-                }
-            };
     }
 };
 
@@ -345,12 +235,32 @@ const isStepPendingReview = (stepIndex: number) => {
 };
 
 const canAccessStep = (stepIndex: number) => {
-    // Can access current step, completed steps, or next step if previous is completed
-    if (stepIndex <= currentStepIndex.value) return true;
+    // Step 0 (first step) is always accessible
     if (stepIndex === 0) return true;
 
+    // Current step is always accessible
+    if (stepIndex === currentStepIndex.value) return true;
+
+    // Can go back to any previous step
+    if (stepIndex < currentStepIndex.value) return true;
+
+    // For next steps, check if previous step allows proceeding
+    // A step allows proceeding if:
+    // 1. It's submitted AND doesn't need review, OR
+    // 2. It's submitted, needs review, AND can_proceed is true
     const previousFormAccessControl = props.formPhase.form_access_controls[stepIndex - 1];
-    return previousFormAccessControl?.user_submission?.can_proceed || false;
+
+    if (!previousFormAccessControl?.user_submission?.is_submitted) {
+        return false; // Previous step not submitted
+    }
+
+    if (previousFormAccessControl.needs_review) {
+        // If needs review, must have can_proceed = true
+        return previousFormAccessControl.user_submission?.can_proceed || false;
+    }
+
+    // If doesn't need review and is submitted, can proceed
+    return true;
 };
 
 const handleFileUpload = (event: Event, fieldId: number) => {
@@ -358,6 +268,39 @@ const handleFileUpload = (event: Event, fieldId: number) => {
     const file = target.files?.[0];
     if (file) {
         formData[`field_${fieldId}`] = file;
+    }
+};
+
+const renderFormField = (field: FormField) => {
+    const fieldType = field.field_type.name.toLowerCase();
+
+    switch (fieldType) {
+        case 'text':
+            return { component: 'Input', props: { type: 'text', placeholder: `Masukkan ${field.label.toLowerCase()}...` } };
+        case 'email':
+            return { component: 'Input', props: { type: 'email', placeholder: `Masukkan alamat email...` } };
+        case 'number':
+            return { component: 'Input', props: { type: 'number', placeholder: `Masukkan ${field.label.toLowerCase()}...` } };
+        case 'url':
+            return { component: 'Input', props: { type: 'url', placeholder: `Masukkan URL...` } };
+        case 'phone':
+            return { component: 'Input', props: { type: 'tel', placeholder: `Masukkan nomor telepon...` } };
+        case 'date':
+            return { component: 'Input', props: { type: 'date' } };
+        case 'time':
+            return { component: 'Input', props: { type: 'time' } };
+        case 'textarea':
+            return { component: 'Textarea', props: { placeholder: `Masukkan ${field.label.toLowerCase()}...`, rows: 4 } };
+        case 'select':
+            return { component: 'Select', options: field.form_field_options };
+        case 'radio':
+            return { component: 'RadioGroup', options: field.form_field_options };
+        case 'checkbox':
+            return { component: 'Checkbox' };
+        case 'file':
+            return { component: 'File', props: { accept: '*/*' } };
+        default:
+            return { component: 'Input', props: { type: 'text', placeholder: `Masukkan ${field.label.toLowerCase()}...` } };
     }
 };
 </script>
@@ -415,7 +358,7 @@ const handleFileUpload = (event: Event, fieldId: number) => {
                                         'bg-primary text-primary-foreground border-primary': index === currentStepIndex,
                                         'bg-green-50 border-green-200 text-green-800': isStepCompleted(index) && index !== currentStepIndex,
                                         'bg-yellow-50 border-yellow-200 text-yellow-800': isStepPendingReview(index) && index !== currentStepIndex,
-                                        'hover:bg-muted': canAccessStep(index) && index !== currentStepIndex && !isStepCompleted(index) && !isStepPendingReview(index),
+                                        'hover:bg-muted cursor-pointer': canAccessStep(index) && index !== currentStepIndex && !isStepCompleted(index) && !isStepPendingReview(index),
                                         'opacity-50 cursor-not-allowed': !canAccessStep(index)
                                     }">
                                     <div class="flex-shrink-0">
