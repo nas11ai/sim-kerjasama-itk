@@ -37,6 +37,7 @@ class HandleInertiaRequests extends Middleware
                     'email' => $request->user()->email,
                     // Add any other user properties you need
                     'roles' => $request->user()->getRoleNames(), // If you're using Spatie Laravel Permission
+                    'is_reviewer' => $request->user()->is_reviewer,
                 ] : null,
             ],
             'flash' => [
