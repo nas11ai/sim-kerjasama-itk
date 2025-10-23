@@ -7,29 +7,13 @@ import { Button } from "@/Components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/Components/ui/card";
 import { Badge } from "@/Components/ui/badge";
 import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
-} from "@/Components/ui/table";
-import {
     Dialog,
     DialogContent,
     DialogDescription,
     DialogFooter,
     DialogHeader,
     DialogTitle,
-    DialogTrigger,
 } from "@/Components/ui/dialog";
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from "@/Components/ui/select";
 import { Input } from "@/Components/ui/input";
 import { Label } from "@/Components/ui/label";
 import { Switch } from "@/Components/ui/switch";
@@ -38,12 +22,14 @@ import {
     Plus,
     Trash2,
     Edit,
-    FileText,
     ArrowLeft,
     Settings,
     Eye,
     Copy,
-    GripVertical
+    GripVertical,
+    FileText,
+    Building,
+    Users as UsersIcon
 } from "lucide-vue-next";
 import draggable from "vuedraggable";
 
@@ -66,18 +52,45 @@ interface ReviewEvaluationForm {
     required_fields_count: number;
 }
 
+interface FormAccessControl {
+    form: {
+        id: number;
+        title: string;
+    };
+    role: {
+        id: number;
+        name: string;
+    };
+    study_program: {
+        id: number;
+        name: string;
+        faculty: {
+            name: string;
+        };
+    };
+}
+
+interface FormPhaseDetail {
+    id: number;
+    order: number;
+    form_access_control: FormAccessControl;
+    phase_type: {
+        id: number;
+        name: string;
+    };
+    review_evaluation_forms: ReviewEvaluationForm[];
+}
+
 interface FormPhase {
     id: number;
     title: string;
     description?: string;
     is_active: boolean;
-    review_evaluation_forms: ReviewEvaluationForm[];
-    review_evaluation_forms_count: number;
-    required_review_evaluation_forms_count: number;
 }
 
 interface Props {
     formPhase: FormPhase;
+    formPhaseDetail: FormPhaseDetail;
     fieldTypes: FieldType[];
 }
 
@@ -95,7 +108,7 @@ const createFormData = useForm({
     description: '',
     is_required: true as boolean,
     is_active: true as boolean,
-    form_phase_id: props.formPhase.id
+    form_phase_detail_id: props.formPhaseDetail.id
 });
 
 const editFormData = useForm({
@@ -111,10 +124,15 @@ const updateOrderData = useForm({
     items: [] as Array<{ id: number, order: number }>
 });
 
+// Computed
+const sortedEvaluationForms = computed(() =>
+    [...props.formPhaseDetail.review_evaluation_forms].sort((a, b) => a.order - b.order)
+);
+
 // Methods
 const openCreateDialog = () => {
     createFormData.reset();
-    createFormData.form_phase_id = props.formPhase.id;
+    createFormData.form_phase_detail_id = props.formPhaseDetail.id;
     createFormDialog.value = true;
 };
 
@@ -167,7 +185,7 @@ const duplicateForm = (form: ReviewEvaluationForm) => {
 };
 
 const updateOrder = () => {
-    updateOrderData.items = props.formPhase.review_evaluation_forms.map((form, index) => ({
+    updateOrderData.items = sortedEvaluationForms.value.map((form, index) => ({
         id: form.id,
         order: index + 1
     }));
@@ -188,85 +206,98 @@ const getStatusBadge = (form: ReviewEvaluationForm): { variant: BadgeVariant; te
 
 <template>
 
-    <Head :title="`Evaluation Forms - ${formPhase.title}`" />
+    <Head :title="`Evaluation Forms - ${formPhaseDetail.form_access_control.form.title}`" />
 
     <AuthenticatedLayout>
         <template #header>
-            <div class="flex items-center gap-4">
-                <Button variant="ghost" size="sm" @click="$inertia.visit(route('admin.form-phases.index'))">
-                    <ArrowLeft class="h-4 w-4 mr-2" />
-                    Back to Form Phases
-                </Button>
-                <div>
+            <div class="flex items-center justify-between">
+                <div class="space-y-2">
+                    <div class="flex items-center gap-3">
+                        <a :href="route('admin.form-phases.show', formPhase.id)">
+                            <Button variant="ghost" size="sm">
+                                <ArrowLeft class="h-4 w-4 mr-2" />
+                                Back to Phase Details
+                            </Button>
+                        </a>
+                    </div>
                     <h2 class="text-xl font-semibold leading-tight text-gray-800">
-                        {{ formPhase.title }} - Evaluation Forms
+                        Manage Evaluation Forms
                     </h2>
                     <p class="text-sm text-muted-foreground">
-                        Manage review evaluation forms for this form phase
+                        For: {{ formPhaseDetail.form_access_control.form.title }} ({{ formPhase.title }})
                     </p>
                 </div>
+                <Button @click="openCreateDialog">
+                    <Plus class="h-4 w-4 mr-2" />
+                    Create Evaluation Form
+                </Button>
             </div>
         </template>
 
-        <div class="space-y-6">
-            <!-- Phase Info Card -->
+        <div class="max-w-6xl mx-auto space-y-6">
+            <!-- Form Phase Detail Info -->
             <Card>
-                <CardContent class="p-6">
-                    <div class="grid gap-6 md:grid-cols-2">
-                        <div>
-                            <h3 class="text-lg font-medium mb-2">{{ formPhase.title }}</h3>
-                            <p v-if="formPhase.description" class="text-muted-foreground mb-4">
-                                {{ formPhase.description }}
+                <CardHeader>
+                    <CardTitle class="text-base">Form Phase Detail Information</CardTitle>
+                </CardHeader>
+                <CardContent>
+                    <div class="grid gap-4 md:grid-cols-3">
+                        <div class="space-y-1">
+                            <div class="flex items-center gap-2 text-sm font-medium">
+                                <FileText class="h-4 w-4 text-muted-foreground" />
+                                Form
+                            </div>
+                            <p class="text-sm text-muted-foreground pl-6">
+                                {{ formPhaseDetail.form_access_control.form.title }}
                             </p>
-                            <Badge :variant="formPhase.is_active ? 'default' : 'secondary'">
-                                {{ formPhase.is_active ? 'Active' : 'Inactive' }}
-                            </Badge>
                         </div>
 
-                        <div class="grid gap-4 md:grid-cols-2">
-                            <div class="text-center p-4 bg-blue-50 rounded-lg">
-                                <div class="text-2xl font-bold text-blue-600">
-                                    {{ formPhase.review_evaluation_forms_count }}
-                                </div>
-                                <div class="text-sm text-blue-600">Total Forms</div>
+                        <div class="space-y-1">
+                            <div class="flex items-center gap-2 text-sm font-medium">
+                                <UsersIcon class="h-4 w-4 text-muted-foreground" />
+                                Role
                             </div>
-                            <div class="text-center p-4 bg-orange-50 rounded-lg">
-                                <div class="text-2xl font-bold text-orange-600">
-                                    {{ formPhase.required_review_evaluation_forms_count }}
-                                </div>
-                                <div class="text-sm text-orange-600">Required Forms</div>
+                            <p class="text-sm text-muted-foreground pl-6">
+                                {{ formPhaseDetail.form_access_control.role.name }}
+                            </p>
+                        </div>
+
+                        <div class="space-y-1">
+                            <div class="flex items-center gap-2 text-sm font-medium">
+                                <Building class="h-4 w-4 text-muted-foreground" />
+                                Study Program
+                            </div>
+                            <div class="text-sm text-muted-foreground pl-6">
+                                <p>{{ formPhaseDetail.form_access_control.study_program.name }}</p>
+                                <p class="text-xs opacity-75">
+                                    {{ formPhaseDetail.form_access_control.study_program.faculty.name }}
+                                </p>
                             </div>
                         </div>
                     </div>
                 </CardContent>
             </Card>
 
-            <!-- Evaluation Forms Management -->
+            <!-- Evaluation Forms List -->
             <Card>
                 <CardHeader>
                     <div class="flex items-center justify-between">
-                        <CardTitle>Review Evaluation Forms</CardTitle>
-                        <div class="flex space-x-2">
-                            <Dialog v-model:open="createFormDialog">
-                                <DialogTrigger as-child>
-                                    <Button @click="openCreateDialog">
-                                        <Plus class="h-4 w-4 mr-2" />
-                                        Add Evaluation Form
-                                    </Button>
-                                </DialogTrigger>
-                            </Dialog>
+                        <div>
+                            <CardTitle>Evaluation Forms ({{ sortedEvaluationForms.length }})</CardTitle>
+                            <p class="text-sm text-muted-foreground mt-1">
+                                Drag to reorder. Changes are saved automatically.
+                            </p>
                         </div>
                     </div>
                 </CardHeader>
                 <CardContent>
                     <!-- Empty State -->
-                    <div v-if="formPhase.review_evaluation_forms.length === 0" class="text-center py-8">
-                        <FileText class="h-16 w-16 mx-auto text-gray-400 mb-4" />
-                        <h3 class="text-lg font-medium text-gray-900 mb-2">
-                            No evaluation forms created
-                        </h3>
-                        <p class="text-gray-500 mb-4">
-                            Create evaluation forms that reviewers will fill out for submissions in this form phase.
+                    <div v-if="sortedEvaluationForms.length === 0"
+                        class="text-center py-12 border-2 border-dashed rounded-lg">
+                        <FileText class="h-12 w-12 mx-auto text-muted-foreground mb-4 opacity-50" />
+                        <h3 class="text-lg font-medium mb-2">No Evaluation Forms</h3>
+                        <p class="text-muted-foreground mb-4">
+                            Create your first evaluation form for this form phase detail.
                         </p>
                         <Button @click="openCreateDialog">
                             <Plus class="h-4 w-4 mr-2" />
@@ -276,19 +307,10 @@ const getStatusBadge = (form: ReviewEvaluationForm): { variant: BadgeVariant; te
 
                     <!-- Forms List -->
                     <div v-else>
-                        <!-- Update Order Button -->
-                        <div class="mb-4 flex justify-end">
-                            <Button @click="updateOrder" variant="outline" size="sm">
-                                <Settings class="h-4 w-4 mr-2" />
-                                Update Order
-                            </Button>
-                        </div>
-
-                        <!-- Draggable Forms -->
-                        <draggable v-model="formPhase.review_evaluation_forms" item-key="id" handle=".drag-handle"
+                        <draggable v-model="sortedEvaluationForms" item-key="id" handle=".drag-handle" class="space-y-3"
                             :animation="200" @end="updateOrder">
                             <template #item="{ element: form }">
-                                <Card class="mb-4 border-2 border-dashed hover:border-blue-300 transition-colors">
+                                <Card class="border">
                                     <CardContent class="p-4">
                                         <div class="flex items-center space-x-4">
                                             <!-- Drag Handle -->
@@ -365,7 +387,7 @@ const getStatusBadge = (form: ReviewEvaluationForm): { variant: BadgeVariant; te
                 <DialogHeader>
                     <DialogTitle>Create New Evaluation Form</DialogTitle>
                     <DialogDescription>
-                        Create a new evaluation form for the {{ formPhase.title }} form phase.
+                        Create a new evaluation form for {{ formPhaseDetail.form_access_control.form.title }}.
                     </DialogDescription>
                 </DialogHeader>
 

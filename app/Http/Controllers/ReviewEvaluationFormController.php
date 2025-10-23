@@ -6,6 +6,7 @@ use App\Models\ReviewEvaluationForm;
 use App\Models\ReviewFormField;
 use App\Models\ReviewFormFieldOption;
 use App\Models\FormPhase;
+use App\Models\FormPhaseDetail;
 use App\Models\FieldType;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -16,13 +17,22 @@ class ReviewEvaluationFormController extends Controller
     public function index(Request $request)
     {
         $query = ReviewEvaluationForm::with([
-            'formPhase:id,title',
+            'formPhaseDetail.formPhase:id,title',
+            'formPhaseDetail.formAccessControl.form:id,title',
+            'formPhaseDetail.formAccessControl.role:id,name',
             'reviewFormFields'
         ]);
 
         // Filter by form phase
         if ($request->has('form_phase_id') && $request->form_phase_id) {
-            $query->where('form_phase_id', $request->form_phase_id);
+            $query->whereHas('formPhaseDetail', function ($q) use ($request) {
+                $q->where('form_phase_id', $request->form_phase_id);
+            });
+        }
+
+        // Filter by form phase detail
+        if ($request->has('form_phase_detail_id') && $request->form_phase_detail_id) {
+            $query->where('form_phase_detail_id', $request->form_phase_detail_id);
         }
 
         // Search functionality
@@ -40,18 +50,33 @@ class ReviewEvaluationFormController extends Controller
             ->orderBy('title')
             ->get(['id', 'title']);
 
+        $formPhaseDetails = FormPhaseDetail::with([
+            'formPhase:id,title',
+            'formAccessControl.form:id,title'
+        ])
+            ->whereHas('formPhase', function ($q) {
+                $q->where('is_active', true);
+            })
+            ->get();
+
         return Inertia::render('ReviewEvaluationForms/Index', [
             'evaluationForms' => $evaluationForms,
             'formPhases' => $formPhases,
-            'filters' => $request->only(['form_phase_id', 'search'])
+            'formPhaseDetails' => $formPhaseDetails,
+            'filters' => $request->only(['form_phase_id', 'form_phase_detail_id', 'search'])
         ]);
     }
 
     public function create()
     {
         $formPhases = FormPhase::where('is_active', true)
+            ->with([
+                'formPhaseDetails.formAccessControl.form',
+                'formPhaseDetails.formAccessControl.role',
+                'formPhaseDetails.formAccessControl.studyProgram'
+            ])
             ->orderBy('title')
-            ->get(['id', 'title']);
+            ->get();
 
         $fieldTypes = FieldType::orderBy('name')->get(['id', 'name']);
 
@@ -66,7 +91,7 @@ class ReviewEvaluationFormController extends Controller
         $validated = $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
-            'form_phase_id' => 'required|exists:form_phases,id',
+            'form_phase_detail_id' => 'required|exists:form_phase_details,id',
             'is_required' => 'boolean',
             'is_active' => 'boolean',
             'fields' => 'array',
@@ -83,14 +108,14 @@ class ReviewEvaluationFormController extends Controller
         try {
             DB::beginTransaction();
 
-            // Get next order number for this form phase
-            $nextOrder = ReviewEvaluationForm::where('form_phase_id', $validated['form_phase_id'])
+            // Get next order number for this form phase detail
+            $nextOrder = ReviewEvaluationForm::where('form_phase_detail_id', $validated['form_phase_detail_id'])
                 ->max('order') + 1;
 
             $evaluationForm = ReviewEvaluationForm::create([
                 'title' => $validated['title'],
                 'description' => $validated['description'],
-                'form_phase_id' => $validated['form_phase_id'],
+                'form_phase_detail_id' => $validated['form_phase_detail_id'],
                 'is_required' => $validated['is_required'] ?? true,
                 'is_active' => $validated['is_active'] ?? true,
                 'order' => $nextOrder,
@@ -137,7 +162,9 @@ class ReviewEvaluationFormController extends Controller
     public function show(ReviewEvaluationForm $reviewEvaluationForm)
     {
         $reviewEvaluationForm->load([
-            'formPhase:id,title,description',
+            'formPhaseDetail.formPhase:id,title,description',
+            'formPhaseDetail.formAccessControl.form',
+            'formPhaseDetail.formAccessControl.role',
             'reviewFormFields' => function ($query) {
                 $query->ordered()->with([
                     'fieldType:id,name',
@@ -170,7 +197,8 @@ class ReviewEvaluationFormController extends Controller
     public function edit(ReviewEvaluationForm $reviewEvaluationForm)
     {
         $reviewEvaluationForm->load([
-            'formPhase:id,title',
+            'formPhaseDetail.formPhase',
+            'formPhaseDetail.formAccessControl.form',
             'reviewFormFields' => function ($query) {
                 $query->ordered()->with([
                     'fieldType:id,name',
@@ -182,8 +210,13 @@ class ReviewEvaluationFormController extends Controller
         ]);
 
         $formPhases = FormPhase::where('is_active', true)
+            ->with([
+                'formPhaseDetails.formAccessControl.form',
+                'formPhaseDetails.formAccessControl.role',
+                'formPhaseDetails.formAccessControl.studyProgram'
+            ])
             ->orderBy('title')
-            ->get(['id', 'title']);
+            ->get();
 
         $fieldTypes = FieldType::orderBy('name')->get(['id', 'name']);
 
@@ -199,7 +232,7 @@ class ReviewEvaluationFormController extends Controller
         $validated = $request->validate([
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
-            'form_phase_id' => 'required|exists:form_phases,id',
+            'form_phase_detail_id' => 'required|exists:form_phase_details,id',
             'is_required' => 'boolean',
             'is_active' => 'boolean',
             'fields' => 'array',
@@ -222,7 +255,7 @@ class ReviewEvaluationFormController extends Controller
             $reviewEvaluationForm->update([
                 'title' => $validated['title'],
                 'description' => $validated['description'],
-                'form_phase_id' => $validated['form_phase_id'],
+                'form_phase_detail_id' => $validated['form_phase_detail_id'],
                 'is_required' => $validated['is_required'] ?? true,
                 'is_active' => $validated['is_active'] ?? true,
             ]);
@@ -332,7 +365,7 @@ class ReviewEvaluationFormController extends Controller
 
             $newForm = $reviewEvaluationForm->replicate();
             $newForm->title = $reviewEvaluationForm->title . ' (Copy)';
-            $newForm->order = ReviewEvaluationForm::where('form_phase_id', $reviewEvaluationForm->form_phase_id)
+            $newForm->order = ReviewEvaluationForm::where('form_phase_detail_id', $reviewEvaluationForm->form_phase_detail_id)
                 ->max('order') + 1;
             $newForm->save();
 

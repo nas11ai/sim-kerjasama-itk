@@ -24,6 +24,8 @@ import draggable from "vuedraggable";
 interface FormPhase {
     id: number;
     title: string;
+    description?: string;
+    form_phase_details: FormPhaseDetail[];
 }
 
 interface FieldType {
@@ -53,22 +55,46 @@ interface ReviewFormField {
     review_form_field_options?: FieldOption[];
 }
 
+interface FormPhaseDetail {
+    id: number;
+    order: number;
+    form_access_control: {
+        form: {
+            id: number;
+            title: string;
+        };
+        role: {
+            id: number;
+            name: string;
+        };
+        study_program: {
+            id: number;
+            name: string;
+            faculty: {
+                name: string;
+            };
+        };
+    };
+}
+
 interface ReviewEvaluationForm {
     id: number;
     title: string;
     description: string;
-    form_phase_id: number;
+    form_phase_detail_id: number;  // ✅ New
     is_required: boolean;
     is_active: boolean;
     order: number;
-    form_phase: FormPhase;
+    form_phase_detail: FormPhaseDetail & {
+        form_phase: FormPhase;
+    };
     review_form_fields: ReviewFormField[];
 }
 
 interface ReviewEvaluationFormData {
     title: string;
     description: string;
-    form_phase_id: number;
+    form_phase_detail_id: number;
     is_required: boolean;
     is_active: boolean;
     fields: ReviewFormField[];
@@ -88,7 +114,7 @@ const props = defineProps<Props>();
 const form = useForm<ReviewEvaluationFormData>({
     title: "",
     description: "",
-    form_phase_id: 0,
+    form_phase_detail_id: 0,
     is_required: true,
     is_active: true,
     fields: [],
@@ -171,18 +197,18 @@ const hasUnsavedChanges = computed(() => {
 });
 
 const hasError = (field: string): boolean => {
-    return !!(form.errors as any)[field];
+    return !!(form.errors as Record<string, string>)[field];
 };
 
 const getError = (field: string): string => {
-    return (form.errors as any)[field] || '';
+    return (form.errors as Record<string, string>)[field] || '';
 };
 
 // Lifecycle
 onMounted(() => {
     form.title = props.evaluationForm.title;
     form.description = props.evaluationForm.description || "";
-    form.form_phase_id = props.evaluationForm.form_phase_id;
+    form.form_phase_detail_id = props.evaluationForm.form_phase_detail_id;
     form.is_required = props.evaluationForm.is_required;
     form.is_active = props.evaluationForm.is_active;
 
@@ -223,7 +249,7 @@ onMounted(() => {
                         Edit Review Evaluation Form
                     </h2>
                     <p class="text-sm text-muted-foreground">
-                        {{ evaluationForm.form_phase.title }}
+                        {{ evaluationForm.form_phase_detail.form_phase.title }}
                     </p>
                 </div>
             </div>
@@ -248,19 +274,33 @@ onMounted(() => {
                             </div>
 
                             <div class="space-y-2">
-                                <Label for="form_phase_id">Form Phase *</Label>
-                                <Select v-model="form.form_phase_id">
+                                <Label for="form_phase_detail_id">Select Form *</Label>
+                                <Select v-model="form.form_phase_detail_id">
                                     <SelectTrigger>
-                                        <SelectValue placeholder="Select form phase" />
+                                        <SelectValue placeholder="Select form phase detail" />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        <SelectItem v-for="phase in formPhases" :key="phase.id" :value="phase.id">
-                                            {{ phase.title }}
-                                        </SelectItem>
+                                        <template v-for="phase in formPhases" :key="phase.id">
+                                            <div
+                                                class="px-2 py-1.5 text-sm font-semibold text-muted-foreground bg-muted">
+                                                {{ phase.title }}
+                                            </div>
+                                            <SelectItem v-for="detail in phase.form_phase_details" :key="detail.id"
+                                                :value="detail.id" class="pl-6">
+                                                <div class="flex flex-col">
+                                                    <span class="font-medium">{{ detail.form_access_control.form.title
+                                                        }}</span>
+                                                    <span class="text-xs text-muted-foreground">
+                                                        {{ detail.form_access_control.role.name }} -
+                                                        {{ detail.form_access_control.study_program.name }}
+                                                    </span>
+                                                </div>
+                                            </SelectItem>
+                                        </template>
                                     </SelectContent>
                                 </Select>
-                                <p v-if="hasError('form_phase_id')" class="text-sm text-destructive">
-                                    {{ getError('form_phase_id') }}
+                                <p v-if="hasError('form_phase_detail_id')" class="text-sm text-destructive">
+                                    {{ getError('form_phase_detail_id') }}
                                 </p>
                             </div>
                         </div>

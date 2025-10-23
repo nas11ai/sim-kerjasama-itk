@@ -13,7 +13,6 @@ import {
     FileText,
     Users,
     Building,
-    Calendar,
     CheckCircle,
     XCircle,
     ClipboardList,
@@ -56,14 +55,6 @@ interface FormAccessControl {
     study_program: StudyProgram;
 }
 
-interface FormPhaseDetail {
-    id: number;
-    order: number;
-    needs_review: boolean;
-    phase_type: PhaseType;
-    form_access_control: FormAccessControl;
-}
-
 interface ReviewEvaluationForm {
     id: number;
     title: string;
@@ -75,6 +66,15 @@ interface ReviewEvaluationForm {
     required_fields_count: number;
 }
 
+interface FormPhaseDetail {
+    id: number;
+    order: number;
+    needs_review: boolean;
+    phase_type: PhaseType;
+    form_access_control: FormAccessControl;
+    review_evaluation_forms?: ReviewEvaluationForm[];
+}
+
 interface FormPhase {
     id: number;
     title: string;
@@ -83,7 +83,6 @@ interface FormPhase {
     created_at: string;
     updated_at: string;
     form_phase_details: FormPhaseDetail[];
-    review_evaluation_forms?: ReviewEvaluationForm[];
     review_evaluation_forms_count?: number;
     required_review_evaluation_forms_count?: number;
 }
@@ -98,10 +97,6 @@ const sortedPhaseDetails = computed(() =>
     [...props.formPhase.form_phase_details].sort((a, b) => a.order - b.order)
 );
 
-const sortedEvaluationForms = computed(() =>
-    [...(props.formPhase.review_evaluation_forms || [])].sort((a, b) => a.order - b.order)
-);
-
 const uniqueFormsCount = computed(() =>
     new Set(sortedPhaseDetails.value.map(d => d.form_access_control.form.id)).size
 );
@@ -113,6 +108,23 @@ const formatDate = (dateString: string): string => {
         year: 'numeric'
     });
 };
+
+const getEvaluationFormsForDetail = (detail: FormPhaseDetail) => {
+    if (!detail.review_evaluation_forms) return [];
+    return [...detail.review_evaluation_forms].sort((a, b) => a.order - b.order);
+};
+
+const getTotalEvaluationFormsCount = computed(() => {
+    return sortedPhaseDetails.value.reduce((total, detail) => {
+        return total + (detail.review_evaluation_forms?.length || 0);
+    }, 0);
+});
+
+const getRequiredEvaluationFormsCount = computed(() => {
+    return sortedPhaseDetails.value.reduce((total, detail) => {
+        return total + (detail.review_evaluation_forms?.filter(f => f.is_required && f.is_active).length || 0);
+    }, 0);
+});
 </script>
 
 <template>
@@ -134,15 +146,6 @@ const formatDate = (dateString: string): string => {
                     </h2>
                 </div>
                 <div class="flex items-center gap-2">
-                    <Link :href="route('admin.form-phases.evaluation-forms', formPhase.id)">
-                    <Button variant="outline">
-                        <ClipboardList class="h-4 w-4 mr-2" />
-                        Manage Evaluation Forms
-                        <Badge v-if="formPhase.review_evaluation_forms_count" variant="secondary" class="ml-2">
-                            {{ formPhase.review_evaluation_forms_count }}
-                        </Badge>
-                    </Button>
-                    </Link>
                     <Link :href="route('admin.form-phases.edit', formPhase.id)">
                     <Button>
                         <Edit class="h-4 w-4 mr-2" />
@@ -153,7 +156,7 @@ const formatDate = (dateString: string): string => {
             </div>
         </template>
 
-        <div class="max-w-4xl mx-auto space-y-6">
+        <div class="max-w-7xl mx-auto space-y-6">
             <!-- Phase Information -->
             <Card>
                 <CardHeader>
@@ -194,122 +197,22 @@ const formatDate = (dateString: string): string => {
                         </p>
                     </div>
 
-                    <Separator />
-
-                    <div class="grid gap-6 md:grid-cols-2 text-sm">
-                        <div class="flex items-center gap-2">
-                            <Calendar class="h-4 w-4 text-muted-foreground" />
-                            <span class="text-muted-foreground">Created:</span>
-                            <span>{{ formatDate(formPhase.created_at) }}</span>
+                    <div class="grid gap-6 md:grid-cols-2">
+                        <div>
+                            <h3 class="font-medium text-sm text-muted-foreground mb-1">
+                                Created
+                            </h3>
+                            <p class="text-sm">
+                                {{ formatDate(formPhase.created_at) }}
+                            </p>
                         </div>
-                        <div class="flex items-center gap-2">
-                            <Calendar class="h-4 w-4 text-muted-foreground" />
-                            <span class="text-muted-foreground">Updated:</span>
-                            <span>{{ formatDate(formPhase.updated_at) }}</span>
-                        </div>
-                    </div>
-                </CardContent>
-            </Card>
-
-            <!-- Review Evaluation Forms -->
-            <Card>
-                <CardHeader>
-                    <div class="flex items-center justify-between">
-                        <CardTitle class="flex items-center gap-2">
-                            <ClipboardList class="h-5 w-5" />
-                            Review Evaluation Forms
-                            <Badge variant="secondary">
-                                {{ formPhase.review_evaluation_forms_count || 0 }} forms
-                            </Badge>
-                        </CardTitle>
-                        <Link :href="route('admin.form-phases.evaluation-forms', formPhase.id)">
-                        <Button size="sm">
-                            <Settings class="h-4 w-4 mr-2" />
-                            Manage Forms
-                        </Button>
-                        </Link>
-                    </div>
-                </CardHeader>
-                <CardContent>
-                    <!-- Empty State -->
-                    <div v-if="sortedEvaluationForms.length === 0" class="text-center py-8 text-muted-foreground">
-                        <ClipboardList class="h-12 w-12 mx-auto mb-4 opacity-50" />
-                        <h4 class="font-medium mb-2">No evaluation forms configured</h4>
-                        <p class="text-sm mb-4">
-                            Evaluation forms allow reviewers to systematically evaluate submissions in this phase.
-                        </p>
-                        <Link :href="route('admin.form-phases.evaluation-forms', formPhase.id)">
-                        <Button size="sm">
-                            <Plus class="h-4 w-4 mr-2" />
-                            Add Evaluation Forms
-                        </Button>
-                        </Link>
-                    </div>
-
-                    <!-- Evaluation Forms List -->
-                    <div v-else class="space-y-3">
-                        <div v-for="form in sortedEvaluationForms" :key="form.id"
-                            class="border rounded-lg p-4 bg-card hover:bg-muted/50 transition-colors">
-                            <div class="flex items-start justify-between">
-                                <div class="flex-1">
-                                    <div class="flex items-center gap-2 mb-2">
-                                        <h4 class="font-medium">{{ form.title }}</h4>
-                                        <Badge :variant="form.is_required ? 'default' : 'outline'" class="text-xs">
-                                            {{ form.is_required ? 'Required' : 'Optional' }}
-                                        </Badge>
-                                        <Badge variant="outline" class="text-xs">
-                                            Order: {{ form.order }}
-                                        </Badge>
-                                    </div>
-
-                                    <p v-if="form.description" class="text-sm text-muted-foreground mb-3">
-                                        {{ form.description }}
-                                    </p>
-
-                                    <div class="flex items-center gap-4 text-xs text-muted-foreground">
-                                        <span class="flex items-center gap-1">
-                                            <FileText class="h-3 w-3" />
-                                            {{ form.fields_count }} fields
-                                        </span>
-                                        <span class="flex items-center gap-1">
-                                            <Star class="h-3 w-3" />
-                                            {{ form.required_fields_count }} required
-                                        </span>
-                                        <Badge :variant="form.is_active ? 'default' : 'secondary'" class="text-xs">
-                                            {{ form.is_active ? 'Active' : 'Inactive' }}
-                                        </Badge>
-                                    </div>
-                                </div>
-
-                                <div class="flex items-center gap-1">
-                                    <Link :href="route('admin.review-evaluation-forms.preview', form.id)">
-                                    <Button size="sm" variant="ghost">
-                                        <Eye class="h-4 w-4" />
-                                    </Button>
-                                    </Link>
-                                    <Link :href="route('admin.review-evaluation-forms.edit', form.id)">
-                                    <Button size="sm" variant="ghost">
-                                        <Edit class="h-4 w-4" />
-                                    </Button>
-                                    </Link>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Forms Summary -->
-                        <div class="pt-3 border-t">
-                            <div class="flex items-center justify-between text-sm">
-                                <span class="text-muted-foreground">
-                                    Total: {{ sortedEvaluationForms.length }} forms
-                                    ({{ formPhase.required_review_evaluation_forms_count || 0 }} required)
-                                </span>
-                                <Link :href="route('admin.form-phases.evaluation-forms', formPhase.id)">
-                                <Button variant="outline" size="sm">
-                                    <Plus class="h-4 w-4 mr-2" />
-                                    Add More Forms
-                                </Button>
-                                </Link>
-                            </div>
+                        <div>
+                            <h3 class="font-medium text-sm text-muted-foreground mb-1">
+                                Last Updated
+                            </h3>
+                            <p class="text-sm">
+                                {{ formatDate(formPhase.updated_at) }}
+                            </p>
                         </div>
                     </div>
                 </CardContent>
@@ -331,7 +234,7 @@ const formatDate = (dateString: string): string => {
                     </div>
 
                     <!-- Phase Details List -->
-                    <div v-else class="space-y-4">
+                    <div v-else class="space-y-6">
                         <div v-for="(detail, index) in sortedPhaseDetails" :key="detail.id"
                             class="border rounded-lg p-4 bg-card">
                             <div class="flex items-start justify-between mb-3">
@@ -348,7 +251,7 @@ const formatDate = (dateString: string): string => {
                                 </div>
                             </div>
 
-                            <div class="grid gap-4 md:grid-cols-3">
+                            <div class="grid gap-4 md:grid-cols-3 mb-4">
                                 <!-- Form Information -->
                                 <div class="space-y-2">
                                     <div class="flex items-center gap-2 text-sm font-medium">
@@ -386,6 +289,83 @@ const formatDate = (dateString: string): string => {
                                 </div>
                             </div>
 
+                            <!-- Evaluation Forms for this Detail -->
+                            <div v-if="getEvaluationFormsForDetail(detail).length > 0"
+                                class="mt-4 pt-4 border-t bg-muted/30 rounded-lg p-3">
+                                <div class="flex items-center justify-between mb-3">
+                                    <div class="flex items-center gap-2 text-sm font-medium">
+                                        <ClipboardList class="h-4 w-4" />
+                                        Evaluation Forms ({{ getEvaluationFormsForDetail(detail).length }})
+                                    </div>
+                                    <Link
+                                        :href="route('admin.form-phases.evaluation-forms', { formPhase: formPhase.id, detail_id: detail.id })">
+                                    <Button size="sm" variant="outline">
+                                        <Settings class="h-4 w-4 mr-2" />
+                                        Manage
+                                    </Button>
+                                    </Link>
+                                </div>
+
+                                <div class="space-y-2">
+                                    <div v-for="form in getEvaluationFormsForDetail(detail)" :key="form.id"
+                                        class="flex items-center justify-between p-2 bg-background rounded border">
+                                        <div class="flex-1">
+                                            <div class="flex items-center gap-2">
+                                                <span class="text-sm font-medium">{{ form.title }}</span>
+                                                <Badge :variant="form.is_required ? 'destructive' : 'secondary'"
+                                                    class="text-xs">
+                                                    {{ form.is_required ? 'Required' : 'Optional' }}
+                                                </Badge>
+                                            </div>
+                                            <p v-if="form.description" class="text-xs text-muted-foreground mt-1">
+                                                {{ form.description }}
+                                            </p>
+                                            <div class="flex items-center gap-2 mt-1">
+                                                <span class="text-xs text-muted-foreground">
+                                                    {{ form.fields_count }} fields
+                                                </span>
+                                                <span v-if="form.required_fields_count > 0"
+                                                    class="text-xs text-muted-foreground flex items-center gap-1">
+                                                    <Star class="h-3 w-3" />
+                                                    {{ form.required_fields_count }} required
+                                                </span>
+                                                <Badge :variant="form.is_active ? 'default' : 'secondary'"
+                                                    class="text-xs">
+                                                    {{ form.is_active ? 'Active' : 'Inactive' }}
+                                                </Badge>
+                                            </div>
+                                        </div>
+
+                                        <div class="flex items-center gap-1">
+                                            <Link :href="route('admin.review-evaluation-forms.preview', form.id)">
+                                            <Button size="sm" variant="ghost">
+                                                <Eye class="h-4 w-4" />
+                                            </Button>
+                                            </Link>
+                                            <Link :href="route('admin.review-evaluation-forms.edit', form.id)">
+                                            <Button size="sm" variant="ghost">
+                                                <Edit class="h-4 w-4" />
+                                            </Button>
+                                            </Link>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- No Evaluation Forms -->
+                            <div v-else class="mt-4 pt-4 border-t">
+                                <div class="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
+                                    <span class="text-sm text-muted-foreground">No evaluation forms configured</span>
+                                    <Link
+                                        :href="route('admin.form-phases.evaluation-forms', { formPhase: formPhase.id, detail_id: detail.id })">
+                                    <Button size="sm" variant="outline">
+                                        <Plus class="h-4 w-4 mr-2" />
+                                        Add Evaluation Forms
+                                    </Button>
+                                    </Link>
+                                </div>
+                            </div>
+
                             <!-- Progress indicator -->
                             <div v-if="index < sortedPhaseDetails.length - 1" class="flex justify-center mt-4">
                                 <div class="w-px h-6 bg-border"></div>
@@ -419,7 +399,7 @@ const formatDate = (dateString: string): string => {
                             <ClipboardList class="h-8 w-8 text-orange-500" />
                             <div>
                                 <p class="text-2xl font-bold">
-                                    {{ formPhase.review_evaluation_forms_count || 0 }}
+                                    {{ getTotalEvaluationFormsCount }}
                                 </p>
                                 <p class="text-sm text-muted-foreground">
                                     Evaluation Forms
@@ -435,7 +415,7 @@ const formatDate = (dateString: string): string => {
                             <Star class="h-8 w-8 text-red-500" />
                             <div>
                                 <p class="text-2xl font-bold">
-                                    {{ formPhase.required_review_evaluation_forms_count || 0 }}
+                                    {{ getRequiredEvaluationFormsCount }}
                                 </p>
                                 <p class="text-sm text-muted-foreground">
                                     Required Forms

@@ -19,6 +19,11 @@ class FormPhaseDetail extends Model
         'needs_review',
     ];
 
+    protected $appends = [
+        'review_evaluation_forms_count',
+        'required_review_evaluation_forms_count'
+    ];
+
     protected $casts = [
         'needs_review' => 'boolean',
     ];
@@ -50,25 +55,61 @@ class FormPhaseDetail extends Model
     /**
      * Get the review evaluation forms for this form phase detail.
      */
+    // NEW: Review evaluation forms relationship
     public function reviewEvaluationForms(): HasMany
     {
-        return $this->hasMany(ReviewEvaluationForm::class, 'form_phase_detail_id');
+        return $this->hasMany(ReviewEvaluationForm::class);
     }
 
-    /**
-     * Get active review evaluation forms.
-     */
-    public function activeReviewEvaluationForms()
+    // NEW: Active review evaluation forms
+    public function activeReviewEvaluationForms(): HasMany
     {
         return $this->reviewEvaluationForms()->active()->ordered();
     }
 
-    /**
-     * Check if this detail has review evaluation forms.
-     */
+    // NEW: Required review evaluation forms
+    public function requiredReviewEvaluationForms(): HasMany
+    {
+        return $this->reviewEvaluationForms()->required()->active()->ordered();
+    }
+
+    // NEW: Optional review evaluation forms
+    public function optionalReviewEvaluationForms(): HasMany
+    {
+        return $this->reviewEvaluationForms()
+            ->where('is_required', false)
+            ->active()
+            ->ordered();
+    }
+
+    // NEW: Check if phase has review evaluation forms
     public function hasReviewEvaluationForms(): bool
     {
-        return $this->reviewEvaluationForms()->exists();
+        return $this->activeReviewEvaluationForms()->exists();
+    }
+
+    // NEW: Get count of review evaluation forms
+    public function getReviewEvaluationFormsCountAttribute(): int
+    {
+        return $this->activeReviewEvaluationForms()->count();
+    }
+
+    // NEW: Get count of required review evaluation forms
+    public function getRequiredReviewEvaluationFormsCountAttribute(): int
+    {
+        return $this->requiredReviewEvaluationForms()->count();
+    }
+
+    // Check if any form phase details need review
+    public function needsReview(): bool
+    {
+        return $this->formPhaseDetails()->where('needs_review', true)->exists();
+    }
+
+    // NEW: Check if phase requires evaluation forms to be completed before discussion
+    public function requiresEvaluationCompletion(): bool
+    {
+        return $this->hasReviewEvaluationForms() && $this->needsReview();
     }
 
     /**
