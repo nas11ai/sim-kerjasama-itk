@@ -163,10 +163,9 @@ class FormSubmission extends Model
     // NEW: Auto-assign evaluation forms to new reviewers
     public function autoAssignEvaluationForms(): void
     {
-        // Get the form phase for this submission
-        $formPhase = $this->getFormPhase();
+        $formPhaseDetail = $this->getFormPhaseDetail();
 
-        if (!$formPhase || !$formPhase->hasReviewEvaluationForms()) {
+        if (!$formPhaseDetail || !$formPhaseDetail->hasReviewEvaluationForms()) {
             return;
         }
 
@@ -177,7 +176,7 @@ class FormSubmission extends Model
 
         foreach ($reviewersNeedingAssignment as $submissionReviewer) {
             // Assign all required forms by default
-            $requiredForms = $formPhase->requiredReviewEvaluationForms()->get();
+            $requiredForms = $formPhaseDetail->requiredReviewEvaluationForms()->get();
 
             foreach ($requiredForms as $form) {
                 $submissionReviewer->assignForm($form->id, true, $this->getEvaluationDueDate());
@@ -185,10 +184,16 @@ class FormSubmission extends Model
         }
     }
 
-    // NEW: Get form phase for this submission
     public function getFormPhase(): ?FormPhase
     {
-        return FormPhase::whereHas('formPhaseDetails.formAccessControl', function ($query) {
+        $formPhaseDetail = $this->getFormPhaseDetail();
+        return $formPhaseDetail ? $formPhaseDetail->formPhase : null;
+    }
+
+    // NEW: Get form phase for this submission
+    public function getFormPhaseDetail(): ?FormPhaseDetail
+    {
+        return FormPhaseDetail::whereHas('formAccessControl', function ($query) {
             $query->where('form_id', $this->form_id);
         })->first();
     }
@@ -196,9 +201,15 @@ class FormSubmission extends Model
     // NEW: Get evaluation due date based on submission period
     protected function getEvaluationDueDate(): ?\DateTime
     {
+        $formPhaseDetail = $this->getFormPhaseDetail();
+
+        if (!$formPhaseDetail || !$formPhaseDetail->formPhase) {
+            return null;
+        }
+
         // Get submission period for this form phase
-        $submissionPeriod = SubmissionPeriod::whereHas('submissionPeriodPhases.formPhase.formPhaseDetails.formAccessControl', function ($query) {
-            $query->where('form_id', $this->form_id);
+        $submissionPeriod = SubmissionPeriod::whereHas('submissionPeriodPhases', function ($query) use ($formPhaseDetail) {
+            $query->where('form_phase_id', $formPhaseDetail->form_phase_id);
         })->first();
 
         if (!$submissionPeriod) {
@@ -326,13 +337,13 @@ class FormSubmission extends Model
     // NEW: Get evaluation forms summary for this submission
     public function getEvaluationFormsSummary(): array
     {
-        $formPhase = $this->getFormPhase();
+        $formPhaseDetail = $this->getFormPhaseDetail();
 
-        if (!$formPhase) {
+        if (!$formPhaseDetail) {
             return [];
         }
 
-        $evaluationForms = $formPhase->activeReviewEvaluationForms()->get();
+        $evaluationForms = $formPhaseDetail->activeReviewEvaluationForms()->get();
         $summary = [];
 
         foreach ($evaluationForms as $form) {
@@ -363,15 +374,15 @@ class FormSubmission extends Model
     // Check if form phase has any review evaluation forms
     public function hasReviewEvaluationForms(): bool
     {
-        $formPhase = $this->getFormPhase();
-        return $formPhase ? $formPhase->hasReviewEvaluationForms() : false;
+        $formPhaseDetail = $this->getFormPhaseDetail();
+        return $formPhaseDetail ? $formPhaseDetail->hasReviewEvaluationForms() : false;
     }
 
     // Check if review evaluation forms are required for this submission
     public function requiresReviewEvaluation(): bool
     {
-        $formPhase = $this->getFormPhase();
-        return $formPhase ? $formPhase->requiresEvaluationCompletion() : false;
+        $formPhaseDetail = $this->getFormPhaseDetail();
+        return $formPhaseDetail ? $formPhaseDetail->requiresEvaluationCompletion() : false;
     }
 
     // Check if a specific reviewer has completed their evaluation (or if evaluation not required)
@@ -413,9 +424,17 @@ class FormSubmission extends Model
             ];
         }
 
-        $formPhase = $this->getFormPhase();
-        $formsCount = $formPhase->review_evaluation_forms_count;
-        $requiredCount = $formPhase->required_review_evaluation_forms_count;
+        $formPhaseDetail = $this->getFormPhaseDetail();
+        if (!$formPhaseDetail) {
+            return [
+                'required' => false,
+                'has_forms' => false,
+                'message' => 'No form phase detail found.'
+            ];
+        }
+
+        $formsCount = $formPhaseDetail->review_evaluation_forms_count;
+        $requiredCount = $formPhaseDetail->required_review_evaluation_forms_count;
 
         return [
             'required' => true,

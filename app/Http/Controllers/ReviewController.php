@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\FormPhaseDetail;
 use App\Models\FormSubmission;
 use App\Models\Reviewer;
 use App\Models\SubmissionReviewer;
@@ -29,8 +30,8 @@ class ReviewController extends Controller
         ]);
 
         DB::transaction(function () use ($request, $submission) {
-            $formPhase = $submission->getFormPhase();
-            $hasEvaluationForms = $formPhase && $formPhase->hasReviewEvaluationForms();
+            $formPhaseDetail = $submission->getFormPhaseDetail();
+            $hasEvaluationForms = $formPhaseDetail && $formPhaseDetail->hasReviewEvaluationForms();
 
             foreach ($request->reviewer_ids as $reviewerId) {
                 // Create or get submission reviewer
@@ -43,7 +44,7 @@ class ReviewController extends Controller
 
                 // Auto-assign evaluation forms if enabled and forms exist
                 if ($hasEvaluationForms && ($request->auto_assign_forms ?? true)) {
-                    $this->autoAssignEvaluationForms($submissionReviewer, $formPhase);
+                    $this->autoAssignEvaluationForms($submissionReviewer, $formPhaseDetail);
                 }
             }
 
@@ -202,15 +203,15 @@ class ReviewController extends Controller
         }
 
         // Get form phase to check if evaluation forms exist
-        $formPhase = $submission->getFormPhase();
+        $formPhaseDetail = $submission->getFormPhaseDetail();
 
-        if (!$formPhase || !$formPhase->hasReviewEvaluationForms()) {
+        if (!$formPhaseDetail || !$formPhaseDetail->hasReviewEvaluationForms()) {
             // No evaluation forms, allow thread creation immediately
             return $this->performCreateReviewThread($request, $submission, $reviewer);
         }
 
         // Has evaluation forms - check if all REQUIRED forms are completed
-        $requiredForms = $formPhase->requiredReviewEvaluationForms()->pluck('id');
+        $requiredForms = $formPhaseDetail->requiredReviewEvaluationForms()->pluck('id');
 
         if ($requiredForms->isEmpty()) {
             // No required forms, can create thread
@@ -329,13 +330,13 @@ class ReviewController extends Controller
     // Get available evaluation forms for assignment
     public function getAvailableEvaluationForms(FormSubmission $submission)
     {
-        $formPhase = $this->getSubmissionFormPhase($submission);
+        $formPhaseDetail = $submission->getFormPhaseDetail();
 
-        if (!$formPhase) {
+        if (!$formPhaseDetail) {
             return response()->json([]);
         }
 
-        $availableForms = $formPhase->activeReviewEvaluationForms()
+        $availableForms = $formPhaseDetail->activeReviewEvaluationForms()
             ->get(['id', 'title', 'description', 'is_required', 'order']);
 
         return response()->json($availableForms);
@@ -430,10 +431,10 @@ class ReviewController extends Controller
     }
 
     // Auto-assign evaluation forms to new reviewers
-    protected function autoAssignEvaluationForms(SubmissionReviewer $submissionReviewer, $formPhase): void
+    protected function autoAssignEvaluationForms(SubmissionReviewer $submissionReviewer, FormPhaseDetail $formPhaseDetail): void
     {
         // Get all required evaluation forms
-        $requiredForms = $formPhase->requiredReviewEvaluationForms()->get();
+        $requiredForms = $formPhaseDetail->requiredReviewEvaluationForms()->get();
 
         // Get deadline from submission period
         $dueDate = $this->getEvaluationDueDate($submissionReviewer->formSubmission);

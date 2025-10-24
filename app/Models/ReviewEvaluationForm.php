@@ -2,19 +2,22 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class ReviewEvaluationForm extends Model
 {
+    use HasFactory;
+
     protected $fillable = [
         'title',
         'description',
+        'form_phase_detail_id', // Changed from form_phase_id
         'is_required',
-        'form_phase_id',
-        'order',
         'is_active',
+        'order',
     ];
 
     protected $casts = [
@@ -22,61 +25,51 @@ class ReviewEvaluationForm extends Model
         'is_active' => 'boolean',
     ];
 
-    public function formPhase(): BelongsTo
+    /**
+     * Get the form phase detail that owns the review evaluation form.
+     */
+    public function formPhaseDetail(): BelongsTo
     {
-        return $this->belongsTo(FormPhase::class);
+        return $this->belongsTo(FormPhaseDetail::class, 'form_phase_detail_id');
     }
 
+    /**
+     * Get the review form fields for the evaluation form.
+     */
     public function reviewFormFields(): HasMany
     {
         return $this->hasMany(ReviewFormField::class);
     }
 
+    /**
+     * Get the reviewer form assignments for the evaluation form.
+     */
     public function reviewerFormAssignments(): HasMany
     {
         return $this->hasMany(ReviewerFormAssignment::class);
     }
 
-    public function reviewFormResponses(): HasMany
-    {
-        return $this->hasMany(ReviewFormResponse::class, 'reviewer_form_assignment_id');
-    }
-
-    // Scope for active forms
+    /**
+     * Scope a query to only include active forms.
+     */
     public function scopeActive($query)
     {
         return $query->where('is_active', true);
     }
 
-    // Scope for required forms
+    /**
+     * Scope a query to only include required forms.
+     */
     public function scopeRequired($query)
     {
         return $query->where('is_required', true);
     }
 
-    // Scope ordered
+    /**
+     * Scope a query to order by the order column.
+     */
     public function scopeOrdered($query)
     {
         return $query->orderBy('order');
-    }
-
-    // Check if form has any field options
-    public function hasFieldOptions(): bool
-    {
-        return $this->reviewFormFields()
-            ->whereHas('reviewFormFieldOptions')
-            ->exists();
-    }
-
-    // Get total number of fields
-    public function getFieldsCountAttribute(): int
-    {
-        return $this->reviewFormFields()->count();
-    }
-
-    // Get required fields count
-    public function getRequiredFieldsCountAttribute(): int
-    {
-        return $this->reviewFormFields()->where('is_required', true)->count();
     }
 }

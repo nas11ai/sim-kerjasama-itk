@@ -74,10 +74,10 @@ class ReviewFormResponseController extends Controller
         }
 
         // Verify form belongs to correct form phase
-        $formPhase = $submission->getFormPhase();
+        $formPhaseDetail = $submission->getFormPhaseDetail();
         $evaluationForm = ReviewEvaluationForm::findOrFail($validated['review_evaluation_form_id']);
 
-        if (!$formPhase || $evaluationForm->form_phase_id !== $formPhase->id) {
+        if (!$formPhaseDetail || $evaluationForm->form_phase_detail_id !== $formPhaseDetail->id) {
             abort(403, 'This evaluation form is not available for this submission.');
         }
 
