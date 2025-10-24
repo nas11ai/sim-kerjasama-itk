@@ -321,9 +321,9 @@ class SubmissionViewController extends Controller
             }
         }
 
-        // Get evaluation requirements
-        $formPhase = $submission->getFormPhase();
-        $hasReviewEvaluationForms = $formPhase && $formPhase->hasReviewEvaluationForms();
+        // UPDATED: Get evaluation requirements using FormPhaseDetail
+        $formPhaseDetail = $submission->getFormPhaseDetail();
+        $hasReviewEvaluationForms = $formPhaseDetail && $formPhaseDetail->hasReviewEvaluationForms();
 
         // Get reviewer form assignments
         $reviewerFormAssignments = [];
@@ -331,7 +331,7 @@ class SubmissionViewController extends Controller
         if ($isAssignedReviewer && $submissionReviewer) {
             $reviewerFormAssignments = $this->getReviewerAssignments(
                 $submissionReviewer,
-                $formPhase
+                $formPhaseDetail
             );
         }
 
@@ -348,7 +348,7 @@ class SubmissionViewController extends Controller
 
                 // Count completed REQUIRED forms
                 $completedRequired = $requiredForms
-                    ->filter(fn($a) => $a['review_form_response']['status'] ?? null === 'submitted');
+                    ->filter(fn($a) => ($a['review_form_response']['status'] ?? null) === 'submitted');
 
                 $pendingEvaluationsCount = $requiredForms->count() - $completedRequired->count();
                 $hasPendingEvaluations = $pendingEvaluationsCount > 0;
@@ -835,61 +835,58 @@ class SubmissionViewController extends Controller
         ]);
     }
 
-    protected function getReviewerAssignments($submissionReviewer, $formPhase)
+    protected function getReviewerAssignments($submissionReviewer, $formPhaseDetail)
     {
-        if (!$formPhase) {
+        if (!$formPhaseDetail) {
             return [];
         }
 
         $assignments = [];
 
-        // Loop through each form phase detail in the form phase
-        foreach ($formPhase->formPhaseDetails as $detail) {
-            // Get ALL available evaluation forms for this specific form phase detail
-            $availableForms = $detail->activeReviewEvaluationForms()
-                ->get(['id', 'title', 'description', 'is_required', 'order']);
+        // Get ALL available evaluation forms for this form phase detail
+        $availableForms = $formPhaseDetail->activeReviewEvaluationForms()
+            ->get(['id', 'title', 'description', 'is_required', 'order']);
 
-            if ($availableForms->isEmpty()) {
-                continue; // Skip if no evaluation forms for this detail
-            }
+        if ($availableForms->isEmpty()) {
+            return []; // Return empty if no evaluation forms
+        }
 
-            // Get existing assignments for this reviewer
-            $existingAssignments = $submissionReviewer->reviewerFormAssignments()
-                ->with([
-                    'reviewEvaluationForm:id,title,description,is_required,form_phase_detail_id',
-                    'reviewFormResponse:id,reviewer_form_assignment_id,status,submitted_at'
-                ])
-                ->whereHas('reviewEvaluationForm', function ($q) use ($detail) {
-                    $q->where('form_phase_detail_id', $detail->id);
-                })
-                ->get()
-                ->keyBy('review_evaluation_form_id');
+        // Get existing assignments for this reviewer
+        $existingAssignments = $submissionReviewer->reviewerFormAssignments()
+            ->with([
+                'reviewEvaluationForm:id,title,description,is_required,form_phase_detail_id',
+                'reviewFormResponse:id,reviewer_form_assignment_id,status,submitted_at'
+            ])
+            ->whereHas('reviewEvaluationForm', function ($q) use ($formPhaseDetail) {
+                $q->where('form_phase_detail_id', $formPhaseDetail->id);
+            })
+            ->get()
+            ->keyBy('review_evaluation_form_id');
 
-            // Merge available forms with assignments
-            foreach ($availableForms as $form) {
-                $assignment = $existingAssignments->get($form->id);
+        // Merge available forms with assignments
+        foreach ($availableForms as $form) {
+            $assignment = $existingAssignments->get($form->id);
 
-                $assignments[] = [
-                    'id' => $assignment->id ?? null, // null if not started yet
-                    'review_evaluation_form' => [
-                        'id' => $form->id,
-                        'title' => $form->title,
-                        'description' => $form->description,
-                    ],
-                    'form_phase_detail' => [
-                        'id' => $detail->id,
-                        'form_title' => $detail->formAccessControl->form->title ?? null,
-                        'order' => $detail->order,
-                    ],
-                    'is_required' => $form->is_required,
-                    'due_date' => $assignment->due_date ?? null,
-                    'review_form_response' => $assignment && $assignment->reviewFormResponse ? [
-                        'id' => $assignment->reviewFormResponse->id,
-                        'status' => $assignment->reviewFormResponse->status,
-                        'submitted_at' => $assignment->reviewFormResponse->submitted_at,
-                    ] : null,
-                ];
-            }
+            $assignments[] = [
+                'id' => $assignment->id ?? null, // null if not started yet
+                'review_evaluation_form' => [
+                    'id' => $form->id,
+                    'title' => $form->title,
+                    'description' => $form->description,
+                ],
+                'form_phase_detail' => [
+                    'id' => $formPhaseDetail->id,
+                    'form_title' => $formPhaseDetail->formAccessControl->form->title ?? null,
+                    'order' => $formPhaseDetail->order,
+                ],
+                'is_required' => $form->is_required,
+                'due_date' => $assignment->due_date ?? null,
+                'review_form_response' => $assignment && $assignment->reviewFormResponse ? [
+                    'id' => $assignment->reviewFormResponse->id,
+                    'status' => $assignment->reviewFormResponse->status,
+                    'submitted_at' => $assignment->reviewFormResponse->submitted_at,
+                ] : null,
+            ];
         }
 
         return $assignments;
