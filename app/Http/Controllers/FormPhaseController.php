@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\FieldType;
 use App\Models\FormPhase;
 use App\Models\FormPhaseDetail;
 use App\Models\FormAccessControl;
@@ -16,16 +17,30 @@ use Illuminate\Support\Facades\DB;
 
 class FormPhaseController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $formPhases = FormPhase::with([
+        $query = FormPhase::with([
             'formPhaseDetails.formAccessControl.form',
             'formPhaseDetails.formAccessControl.role',
             'formPhaseDetails.formAccessControl.studyProgram.faculty',
-            'formPhaseDetails.phaseType'
-        ])
-            ->orderBy('created_at', 'desc')
-            ->paginate(10);
+            'formPhaseDetails.phaseType',
+            'formPhaseDetails.reviewEvaluationForms' // Changed: now loaded through formPhaseDetails
+        ]);
+
+        $formPhases = $query->orderBy('created_at', 'desc')->paginate(10);
+
+        // Calculate review evaluation forms counts for each phase
+        $formPhases->getCollection()->transform(function ($phase) {
+            $phase->review_evaluation_forms_count = $phase->formPhaseDetails->sum(
+                fn($detail) => $detail->reviewEvaluationFormsCount
+            );
+
+            $phase->required_review_evaluation_forms_count = $phase->formPhaseDetails->sum(
+                fn($detail) => $detail->requiredReviewEvaluationFormsCount
+            );
+
+            return $phase;
+        });
 
         return Inertia::render('FormPhases/Index', [
             'formPhases' => $formPhases
@@ -99,8 +114,25 @@ class FormPhaseController extends Controller
             'formPhaseDetails.formAccessControl.form',
             'formPhaseDetails.formAccessControl.role',
             'formPhaseDetails.formAccessControl.studyProgram.faculty',
-            'formPhaseDetails.phaseType'
+            'formPhaseDetails.phaseType',
+            'formPhaseDetails.reviewEvaluationForms' => function ($query) {
+                $query->active()->ordered()->withCount('reviewFormFields as fields_count')
+                    ->withCount([
+                        'reviewFormFields as required_fields_count' => function ($q) {
+                            $q->where('is_required', true);
+                        }
+                    ]);
+            }
         ]);
+
+        // Hitung total dari seluruh detail
+        $formPhase->review_evaluation_forms_count = $formPhase->formPhaseDetails->sum(
+            fn($detail) => $detail->reviewEvaluationFormsCount
+        );
+
+        $formPhase->required_review_evaluation_forms_count = $formPhase->formPhaseDetails->sum(
+            fn($detail) => $detail->requiredReviewEvaluationFormsCount
+        );
 
         return Inertia::render('FormPhases/Show', [
             'formPhase' => $formPhase
@@ -190,7 +222,7 @@ class FormPhaseController extends Controller
 
             DB::commit();
 
-            return redirect()->route('form-phases.index')
+            return redirect()->route('admin.form-phases.index')
                 ->with('success', 'Form phase deleted successfully.');
 
         } catch (\Exception $e) {
@@ -243,5 +275,43 @@ class FormPhaseController extends Controller
                 'message' => 'Failed to update status: ' . $e->getMessage()
             ], 500);
         }
+    }
+
+    /**
+     * Show evaluation forms management page for a specific form phase detail
+     */
+    public function evaluationForms(FormPhase $formPhase, Request $request)
+    {
+        // Get the form phase detail ID from request
+        $formPhaseDetailId = $request->get('detail_id');
+
+        if (!$formPhaseDetailId) {
+            // If no detail specified, redirect to show page
+            return redirect()->route('admin.form-phases.show', $formPhase)
+                ->with('info', 'Please select a form phase detail to manage evaluation forms.');
+        }
+
+        $formPhaseDetail = FormPhaseDetail::with([
+            'formAccessControl.form',
+            'formAccessControl.role',
+            'formAccessControl.studyProgram.faculty',
+            'phaseType',
+            'reviewEvaluationForms' => function ($query) {
+                $query->ordered()->withCount('reviewFormFields');
+            }
+        ])->findOrFail($formPhaseDetailId);
+
+        // Make sure the detail belongs to this phase
+        if ($formPhaseDetail->form_phase_id !== $formPhase->id) {
+            abort(404);
+        }
+
+        $fieldTypes = FieldType::orderBy('name')->get(['id', 'name']);
+
+        return Inertia::render('FormPhases/EvaluationForms', [
+            'formPhase' => $formPhase,
+            'formPhaseDetail' => $formPhaseDetail,
+            'fieldTypes' => $fieldTypes
+        ]);
     }
 }

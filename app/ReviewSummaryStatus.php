@@ -2,7 +2,7 @@
 
 namespace App;
 
-enum ReviewSummaryStatus
+enum ReviewSummaryStatus: string
 {
     case NEEDS_REVISION = 'needs_revision';
     case APPROVED = 'approved';
@@ -55,6 +55,8 @@ enum ReviewSummaryStatus
 
     public static function forSelect(): array
     {
-        return collect(self::cases())->pluck('label', 'value')->toArray();
+        return collect(self::cases())->mapWithKeys(fn($status) => [
+            $status->value => $status->label()
+        ])->toArray();
     }
 }
