@@ -120,9 +120,35 @@ const formatDate = (dateString: string) => {
     });
 };
 
-const viewSubmissionDetail = (submissionId: number) => {
-    router.visit(route('reviewer.submissions.show', submissionId));
+const applyFilters = () => {
+    const params: any = {};
+
+    if (searchTerm.value) params.search = searchTerm.value;
+    if (statusFilter.value && statusFilter.value !== 'all')
+        params.status = statusFilter.value;
+
+    router.get(route('reviewer.submissions.index'), params, {
+        preserveState: true,
+        preserveScroll: true,
+    });
 };
+
+const clearFilters = () => {
+    searchTerm.value = '';
+    statusFilter.value = 'all';
+    router.get(route('reviewer.submissions.index'));
+};
+
+// Stats computation
+const submissionStats = computed(() => {
+    const data = props.submissions.data;
+    return {
+        total: data.length,
+        open: data.filter(s => s.review_summaries[0]?.status === 'open').length,
+        resolved: data.filter(s => s.review_summaries[0]?.status === 'resolved').length,
+        closed: data.filter(s => s.review_summaries[0]?.status === 'closed').length
+    };
+});
 </script>
 
 <template>
@@ -149,20 +175,21 @@ const viewSubmissionDetail = (submissionId: number) => {
             </div>
         </template>
 
-        <div class="py-2">
-            <div class="mx-auto max-w-7xl sm:px-6 lg:px-8">
-                <!-- Stats Cards -->
-                <div class="mb-6 grid gap-4 md:grid-cols-4">
-                    <Card>
-                        <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
-                            <CardTitle class="text-sm font-medium">Total Assigned</CardTitle>
-                            <FileText class="h-4 w-4 text-muted-foreground" />
-                        </CardHeader>
-                        <CardContent>
-                            <div class="text-2xl font-bold">{{ submissions.total }}</div>
-                            <p class="text-xs text-muted-foreground">All assigned submissions</p>
-                        </CardContent>
-                    </Card>
+        <div class="space-y-6">
+            <!-- Stats Cards -->
+            <div class="grid gap-4 md:grid-cols-4">
+                <Card>
+                    <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
+                        <CardTitle class="text-sm font-medium">Total Assigned</CardTitle>
+                        <MessageSquare class="h-4 w-4 text-muted-foreground" />
+                    </CardHeader>
+                    <CardContent>
+                        <div class="text-2xl font-bold">{{ submissions.meta?.total ?? submissions.data.length }}</div>
+                        <p class="text-xs text-muted-foreground">
+                            All submissions assigned to you
+                        </p>
+                    </CardContent>
+                </Card>
 
                     <Card>
                         <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -238,7 +265,7 @@ const viewSubmissionDetail = (submissionId: number) => {
                                     <SelectValue placeholder="Filter by status" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value="">All Status</SelectItem>
+                                    <SelectItem value="all">All statuses</SelectItem>
                                     <SelectItem value="open">Open</SelectItem>
                                     <SelectItem value="resolved">Resolved</SelectItem>
                                     <SelectItem value="closed">Closed</SelectItem>
@@ -332,42 +359,26 @@ const viewSubmissionDetail = (submissionId: number) => {
                                 </TableBody>
                             </Table>
 
-                            <!-- Pagination -->
-                            <div class="mt-4 flex items-center justify-between">
-                                <div class="text-sm text-gray-600">
-                                    Showing {{ (submissions.current_page - 1) * submissions.per_page + 1 }}
-                                    to {{ Math.min(submissions.current_page * submissions.per_page, submissions.total) }}
-                                    of {{ submissions.total }} results
-                                </div>
-                                <div class="flex gap-2">
-                                    <Link
-                                        v-for="(link, index) in submissions.links"
-                                        :key="index"
-                                        :href="link.url || '#'"
-                                        :class="[
-                                            'px-3 py-2 text-sm border rounded',
-                                            link.active
-                                                ? 'bg-primary text-primary-foreground'
-                                                : 'bg-white hover:bg-gray-50',
-                                            !link.url ? 'opacity-50 cursor-not-allowed' : '',
-                                        ]"
-                                        :disabled="!link.url"
-                                        preserve-scroll
-                                        v-html="link.label"
-                                    />
-                                </div>
+                        <!-- Pagination -->
+                        <div class="mt-6 flex items-center justify-between">
+                            <div class="text-sm text-muted-foreground">
+                                Showing {{ submissions.meta?.from || 0 }} to {{ submissions.meta?.to || 0 }}
+                                of {{ submissions.meta?.total || submissions.data?.length || 0 }} results
                             </div>
                         </div>
 
-                        <!-- Empty State -->
-                        <div v-else class="py-12 text-center">
-                            <FileText class="mx-auto h-12 w-12 text-gray-400" />
-                            <h3 class="mt-2 text-sm font-semibold text-gray-900">
-                                No submissions found
-                            </h3>
-                            <p class="mt-1 text-sm text-gray-500">
-                                You don't have any assigned submissions yet.
-                            </p>
+                            <div class="flex gap-2">
+                                <template v-for="link in submissions.links" :key="link.label">
+                                    <Link v-if="link.url" :href="link.url" v-html="link.label"
+                                        class="px-3 py-2 text-sm border rounded-md" :class="[
+                                            link.active
+                                                ? 'bg-primary text-primary-foreground border-primary'
+                                                : 'bg-background hover:bg-muted border-border'
+                                        ]" />
+                                    <span v-else v-html="link.label"
+                                        class="px-3 py-2 text-sm border rounded-md opacity-50 cursor-not-allowed" />
+                                </template>
+                            </div>
                         </div>
                     </CardContent>
                 </Card>

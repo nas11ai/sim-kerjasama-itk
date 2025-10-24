@@ -1,29 +1,30 @@
-<!-- resources/js/Pages/Submissions/UserSubmissionDetail.vue -->
 <script setup lang="ts">
+import { computed } from "vue";
 import { Head, Link, router } from "@inertiajs/vue3";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout.vue";
 import { Button } from "@/Components/ui/button";
-import {
-    Card,
-    CardContent,
-    CardHeader,
-    CardTitle,
-} from "@/Components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/Components/ui/card";
 import { Badge } from "@/Components/ui/badge";
 import { Label } from "@/Components/ui/label";
 import { Separator } from "@/Components/ui/separator";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/Components/ui/tabs";
 import {
     ArrowLeft,
     FileText,
     CheckCircle,
     AlertCircle,
-    RefreshCw,
     Download,
     Edit,
-    Clock
+    Clock,
+    MessageSquare,
+    ClipboardList,
+    AlertTriangle,
+    User,
+    Mail
 } from "lucide-vue-next";
 import { SubmissionStatus } from "@/Constants/SubmissionStatus";
 import { getSubmissionStatusInfo } from "@/Utils/getSubmissionStatusInfo";
+import ReviewSystem from "@/Components/ReviewSystem.vue";
 
 interface FieldType {
     name: string;
@@ -50,6 +51,43 @@ interface Form {
     form_fields: FormField[];
 }
 
+interface ReviewerFormAssignment {
+    id: number;
+    is_required: boolean;
+    due_date?: string;
+    review_evaluation_form: {
+        id: number;
+        title: string;
+        description?: string;
+    };
+    review_form_response?: {
+        id: number;
+        status: string;
+        submitted_at?: string;
+    };
+}
+
+interface AssignedReviewer {
+    id: number;
+    user: {
+        id: number;
+        name: string;
+        email: string;
+    };
+    reviewer_role: {
+        id: number;
+        name: string;
+    };
+}
+
+interface EvaluationRequirements {
+    required: boolean;
+    has_forms: boolean;
+    total_forms?: number;
+    required_forms?: number;
+    message: string;
+}
+
 interface FormSubmission {
     id: number;
     is_submitted: boolean;
@@ -58,16 +96,96 @@ interface FormSubmission {
     created_at: string;
     updated_at: string;
     form: Form;
+    reviewer_form_assignments?: ReviewerFormAssignment[];
+    submission_reviewers?: any[];
+    review_summaries?: any[];
+    submitted_by?: {
+        id: number;
+        name: string;
+        email: string;
+    };
 }
 
 interface Props {
     submission: FormSubmission;
     responses: Record<number, string>;
+    reviewComments?: any[];
+    reviewStats?: {
+        total_reviewers: number;
+        open_reviews: number;
+        resolved_reviews: number;
+        closed_reviews: number;
+        total_comments: number;
+    };
+    canCreateThread?: boolean;
+    canReview?: boolean;
+    userRole: "submitter" | "reviewer" | "user";
+    isOwnSubmission: boolean;
+    assignedReviewers?: AssignedReviewer[];
+    reviewerFormAssignments?: ReviewerFormAssignment[];
+    hasReviewEvaluationForms?: boolean;
+    evaluationRequirements?: EvaluationRequirements;
+    hasPendingEvaluations?: boolean;
+    pendingEvaluationsCount?: number;
 }
 
 const props = defineProps<Props>();
 
-type BadgeVariant = "default" | "destructive" | "outline" | "secondary" | null | undefined;
+const reviewStats = props.reviewStats || {
+    total_reviewers: 0,
+    open_reviews: 0,
+    resolved_reviews: 0,
+    closed_reviews: 0,
+    total_comments: 0
+};
+
+const reviewComments = props.reviewComments || [];
+const reviewSummaries = props.submission.review_summaries || [];
+const reviewerAssignments = props.submission.reviewer_form_assignments || [];
+const assignedReviewers = props.assignedReviewers || [];
+const reviewerFormAssignments = props.reviewerFormAssignments || [];
+const hasReviewEvaluationForms = props.hasReviewEvaluationForms || false;
+const evaluationRequirements = props.evaluationRequirements || {
+    required: false,
+    has_forms: false,
+    message: ''
+};
+
+const canReview = computed(() => props.canReview || false);
+const isReviewer = computed(() => props.userRole === 'reviewer');
+const isSubmitter = computed(() => props.isOwnSubmission);
+
+const hasPendingEvaluations = computed(() => {
+    if (props.hasPendingEvaluations !== undefined) {
+        return props.hasPendingEvaluations;
+    }
+
+    if (!hasReviewEvaluationForms) return false;
+
+    return reviewerAssignments.some(assignment =>
+        !assignment.review_form_response ||
+        assignment.review_form_response.status !== 'submitted'
+    );
+});
+
+const pendingEvaluationsCount = computed(() => {
+    if (props.pendingEvaluationsCount !== undefined) {
+        return props.pendingEvaluationsCount;
+    }
+
+    if (!hasReviewEvaluationForms) return 0;
+
+    return reviewerAssignments.filter(assignment =>
+        !assignment.review_form_response ||
+        assignment.review_form_response.status !== 'submitted'
+    ).length;
+});
+
+const completedEvaluationsCount = computed(() => {
+    return reviewerAssignments.filter(assignment =>
+        assignment.review_form_response?.status === 'submitted'
+    ).length;
+});
 
 const formatDateTime = (dateString: string) => {
     return new Date(dateString).toLocaleString("id-ID", {
@@ -88,51 +206,69 @@ const renderFieldValue = (field: FormField, value: string) => {
         case 'radio':
             const option = field.form_field_options.find(opt => opt.id.toString() === value);
             return option ? option.label : value;
-
         case 'checkbox':
             return value === '1' || value === 'true' ? 'Yes' : 'No';
-
         case 'date':
             try {
                 return new Date(value).toLocaleDateString("id-ID");
             } catch {
                 return value;
             }
-
-        case 'time':
-            return value;
-
-        case 'file':
-            return value; // This would typically be a file path
-
-        case 'url':
-            return value;
-
-        case 'email':
-        case 'phone':
-        case 'number':
-        case 'text':
         case 'textarea':
+        case 'text':
         default:
             return value;
     }
 };
 
-const isFileField = (fieldType: string) => {
-    return fieldType.toLowerCase() === 'file';
-};
-
-const isUrlField = (fieldType: string) => {
-    return fieldType.toLowerCase() === 'url';
-};
-
-const isEmailField = (fieldType: string) => {
-    return fieldType.toLowerCase() === 'email';
-};
+const isFileField = (fieldType: string) => fieldType.toLowerCase() === 'file';
+const isUrlField = (fieldType: string) => fieldType.toLowerCase() === 'url';
+const isEmailField = (fieldType: string) => fieldType.toLowerCase() === 'email';
 
 const goBack = () => {
     window.history.back();
 };
+
+const getAssignmentStatusInfo = (assignment: ReviewerFormAssignment) => {
+    if (!assignment.review_form_response) {
+        return {
+            variant: 'secondary' as const,
+            text: 'Not Started',
+            icon: Clock
+        };
+    }
+
+    switch (assignment.review_form_response.status) {
+        case 'submitted':
+            return {
+                variant: 'default' as const,
+                text: 'Completed',
+                icon: CheckCircle
+            };
+        case 'draft':
+            return {
+                variant: 'outline' as const,
+                text: 'In Progress',
+                icon: Clock
+            };
+        default:
+            return {
+                variant: 'secondary' as const,
+                text: 'Unknown',
+                icon: AlertCircle
+            };
+    }
+};
+
+const mappedAssignedReviewers = computed(() =>
+    assignedReviewers.map(r => ({
+        id: r.id,
+        user_id: r.user.id,
+        name: r.user.name,
+        role: r.reviewer_role.name,
+    }))
+);
+
 </script>
 
 <template>
@@ -151,13 +287,44 @@ const goBack = () => {
                         {{ submission.form.title }}
                     </h2>
                     <p class="text-sm text-muted-foreground">
-                        Submission Detail
+                        {{ isSubmitter ? 'Your Submission' : 'Submission Detail' }}
                     </p>
                 </div>
             </div>
         </template>
 
-        <div class="max-w-4xl mx-auto space-y-6">
+        <div class="max-w-6xl mx-auto space-y-6">
+            <!-- Submitter Information (for reviewers) -->
+            <Card v-if="isReviewer && submission.submitted_by">
+                <CardHeader>
+                    <CardTitle class="flex items-center gap-2">
+                        <User class="h-5 w-5" />
+                        Submitted By
+                    </CardTitle>
+                </CardHeader>
+                <CardContent>
+                    <div class="grid gap-4 md:grid-cols-2">
+                        <div>
+                            <Label class="text-sm font-medium text-muted-foreground">Name</Label>
+                            <p class="font-medium flex items-center gap-2">
+                                <User class="h-4 w-4" />
+                                {{ submission.submitted_by.name }}
+                            </p>
+                        </div>
+                        <div>
+                            <Label class="text-sm font-medium text-muted-foreground">Email</Label>
+                            <p class="font-medium">
+                                <a :href="`mailto:${submission.submitted_by.email}`"
+                                    class="text-blue-600 hover:underline flex items-center gap-2">
+                                    <Mail class="h-4 w-4" />
+                                    {{ submission.submitted_by.email }}
+                                </a>
+                            </p>
+                        </div>
+                    </div>
+                </CardContent>
+            </Card>
+
             <!-- Submission Status -->
             <Card>
                 <CardHeader>
@@ -167,8 +334,8 @@ const goBack = () => {
                                 <component :is="getSubmissionStatusInfo(submission.status).icon" class="h-5 w-5" />
                                 Submission Status
                             </CardTitle>
-                            <p class="text-muted-foreground mt-1">{{
-                                getSubmissionStatusInfo(submission.status).description }}
+                            <p class="text-muted-foreground mt-1">
+                                {{ getSubmissionStatusInfo(submission.status).description }}
                             </p>
                         </div>
                         <Badge :variant="getSubmissionStatusInfo(submission.status).variant" class="text-sm">
@@ -197,101 +364,137 @@ const goBack = () => {
                 </CardContent>
             </Card>
 
-            <!-- Form Information -->
-            <Card>
-                <CardHeader>
-                    <CardTitle class="flex items-center gap-2">
-                        <FileText class="h-5 w-5" />
-                        Form Information
-                    </CardTitle>
-                </CardHeader>
-                <CardContent>
-                    <div>
-                        <h3 class="font-semibold text-lg">{{ submission.form.title }}</h3>
-                        <p class="text-muted-foreground mt-1" v-if="submission.form.description">
-                            {{ submission.form.description }}
-                        </p>
-                    </div>
-                </CardContent>
-            </Card>
+            <!-- Main Content Tabs -->
+            <Tabs default-value="submission" class="space-y-4">
+                <TabsList class="grid w-full grid-cols-2">
+                    <TabsTrigger value="submission" class="flex items-center gap-2">
+                        <FileText class="h-4 w-4" />
+                        Submission Details
+                    </TabsTrigger>
+                    <TabsTrigger value="review" class="flex items-center gap-2">
+                        <MessageSquare class="h-4 w-4" />
+                        Review & Discussion
+                        <Badge v-if="reviewStats.total_comments > 0" variant="secondary" class="ml-1">
+                            {{ reviewStats.total_comments }}
+                        </Badge>
+                    </TabsTrigger>
+                </TabsList>
 
-            <!-- Form Responses -->
-            <Card>
-                <CardHeader>
-                    <CardTitle>Form Responses</CardTitle>
-                </CardHeader>
-                <CardContent>
-                    <div class="space-y-6">
-                        <div v-for="field in submission.form.form_fields" :key="field.id" class="space-y-2">
-                            <div class="flex items-center gap-2">
-                                <Label class="font-medium">{{ field.label }}</Label>
-                                <Badge v-if="field.is_required" variant="destructive" class="text-xs">
-                                    Required
-                                </Badge>
+                <!-- Submission Details Tab -->
+                <TabsContent value="submission" class="space-y-6">
+                    <!-- Form Information -->
+                    <Card>
+                        <CardHeader>
+                            <CardTitle class="flex items-center gap-2">
+                                <FileText class="h-5 w-5" />
+                                Form Information
+                            </CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <div>
+                                <h3 class="font-semibold text-lg">{{ submission.form.title }}</h3>
+                                <p class="text-muted-foreground mt-1" v-if="submission.form.description">
+                                    {{ submission.form.description }}
+                                </p>
                             </div>
+                        </CardContent>
+                    </Card>
 
-                            <div class="pl-4 border-l-2 border-muted">
-                                <!-- File Field -->
-                                <div v-if="isFileField(field.field_type.name) && responses[field.id]"
-                                    class="flex items-center gap-2">
-                                    <span class="font-medium">{{ renderFieldValue(field, responses[field.id]) }}</span>
-                                    <Button size="sm" variant="outline">
-                                        <Download class="h-4 w-4 mr-1" />
-                                        Download
-                                    </Button>
+                    <!-- Form Responses -->
+                    <Card>
+                        <CardHeader>
+                            <CardTitle>Form Responses</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                            <div class="space-y-6">
+                                <div v-for="field in submission.form.form_fields" :key="field.id" class="space-y-2">
+                                    <div class="flex items-center gap-2">
+                                        <Label class="font-medium">{{ field.label }}</Label>
+                                        <Badge v-if="field.is_required" variant="destructive" class="text-xs">
+                                            Required
+                                        </Badge>
+                                    </div>
+
+                                    <div class="pl-4 border-l-2 border-muted">
+                                        <!-- File Field -->
+                                        <div v-if="isFileField(field.field_type.name) && responses[field.id]"
+                                            class="flex items-center gap-2">
+                                            <span class="font-medium">{{ renderFieldValue(field, responses[field.id])
+                                                }}</span>
+                                            <Button size="sm" variant="outline">
+                                                <Download class="h-4 w-4 mr-1" />
+                                                Download
+                                            </Button>
+                                        </div>
+
+                                        <!-- URL Field -->
+                                        <a v-else-if="isUrlField(field.field_type.name) && responses[field.id]"
+                                            :href="responses[field.id]" target="_blank"
+                                            class="text-blue-600 hover:underline font-medium">
+                                            {{ renderFieldValue(field, responses[field.id]) }}
+                                        </a>
+
+                                        <!-- Email Field -->
+                                        <a v-else-if="isEmailField(field.field_type.name) && responses[field.id]"
+                                            :href="`mailto:${responses[field.id]}`"
+                                            class="text-blue-600 hover:underline font-medium">
+                                            {{ renderFieldValue(field, responses[field.id]) }}
+                                        </a>
+
+                                        <!-- Textarea Field -->
+                                        <div v-else-if="field.field_type.name.toLowerCase() === 'textarea' && responses[field.id]"
+                                            class="whitespace-pre-wrap bg-muted/50 p-3 rounded-lg">
+                                            {{ renderFieldValue(field, responses[field.id]) }}
+                                        </div>
+
+                                        <!-- Other Fields -->
+                                        <span v-else class="font-medium">
+                                            {{ renderFieldValue(field, responses[field.id]) }}
+                                        </span>
+                                    </div>
+
+                                    <Separator
+                                        v-if="field !== submission.form.form_fields[submission.form.form_fields.length - 1]"
+                                        class="mt-4" />
                                 </div>
-
-                                <!-- URL Field -->
-                                <a v-else-if="isUrlField(field.field_type.name) && responses[field.id]"
-                                    :href="responses[field.id]" target="_blank"
-                                    class="text-blue-600 hover:underline font-medium">
-                                    {{ renderFieldValue(field, responses[field.id]) }}
-                                </a>
-
-                                <!-- Email Field -->
-                                <a v-else-if="isEmailField(field.field_type.name) && responses[field.id]"
-                                    :href="`mailto:${responses[field.id]}`"
-                                    class="text-blue-600 hover:underline font-medium">
-                                    {{ renderFieldValue(field, responses[field.id]) }}
-                                </a>
-
-                                <!-- Textarea Field -->
-                                <div v-else-if="field.field_type.name.toLowerCase() === 'textarea' && responses[field.id]"
-                                    class="whitespace-pre-wrap bg-muted/50 p-3 rounded-lg">
-                                    {{ renderFieldValue(field, responses[field.id]) }}
-                                </div>
-
-                                <!-- Other Fields -->
-                                <span v-else class="font-medium">
-                                    {{ renderFieldValue(field, responses[field.id]) }}
-                                </span>
                             </div>
+                        </CardContent>
+                    </Card>
 
-                            <Separator
-                                v-if="field !== submission.form.form_fields[submission.form.form_fields.length - 1]"
-                                class="mt-4" />
-                        </div>
-                    </div>
-                </CardContent>
-            </Card>
+                    <!-- Edit Action (for submitter on draft) -->
+                    <Card v-if="isSubmitter && !submission.is_submitted">
+                        <CardContent class="pt-6">
+                            <div class="flex items-center justify-between">
+                                <div>
+                                    <h4 class="font-medium">Continue Editing</h4>
+                                    <p class="text-sm text-muted-foreground">
+                                        This form is still in draft mode. You can continue editing and submit when
+                                        ready.
+                                    </p>
+                                </div>
+                                <Button>
+                                    <Edit class="h-4 w-4 mr-2" />
+                                    Continue Editing
+                                </Button>
+                            </div>
+                        </CardContent>
+                    </Card>
+                </TabsContent>
 
-            <!-- Actions -->
-            <Card v-if="!submission.is_submitted">
-                <CardContent class="pt-6">
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <h4 class="font-medium">Continue Editing</h4>
-                            <p class="text-sm text-muted-foreground">
-                                This form is still in draft mode. You can continue editing and submit when ready.
-                            </p>
-                        </div>
-                        <Button>
-                            <Edit class="h-4 w-4 mr-2" />
-                            Continue Editing
-                        </Button>
-                    </div>
-                </CardContent>
-            </Card>
+                <!-- Review & Discussion Tab -->
+                <TabsContent value="review">
+                    <ReviewSystem :submission-id="submission.id" :review-summaries="reviewSummaries"
+                        :review-comments="reviewComments" :can-create-thread="!hasPendingEvaluations && canReview"
+                        :can-review="canReview" :user-role="userRole" :review-stats="reviewStats"
+                        :has-pending-evaluations="hasPendingEvaluations"
+                        :pending-evaluations-count="pendingEvaluationsCount"
+                        :assigned-reviewers="mappedAssignedReviewers"
+                        :has-review-evaluation-forms="hasReviewEvaluationForms"
+                        :evaluation-requirements="evaluationRequirements"
+                        :reviewer-form-assignments="reviewerFormAssignments" :submission-status="submission.status" />
+
+                </TabsContent>
+            </Tabs>
         </div>
     </AuthenticatedLayout>
 </template>

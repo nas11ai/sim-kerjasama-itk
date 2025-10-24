@@ -1,4 +1,6 @@
+<!-- resources/js/Pages/Admin/FormPhases/Show.vue -->
 <script setup lang="ts">
+import { computed } from "vue";
 import { Head, Link } from "@inertiajs/vue3";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout.vue";
 import { Button } from "@/Components/ui/button";
@@ -11,9 +13,13 @@ import {
     FileText,
     Users,
     Building,
-    Calendar,
     CheckCircle,
     XCircle,
+    ClipboardList,
+    Plus,
+    Eye,
+    Settings,
+    Star
 } from "lucide-vue-next";
 
 interface Role {
@@ -49,12 +55,24 @@ interface FormAccessControl {
     study_program: StudyProgram;
 }
 
+interface ReviewEvaluationForm {
+    id: number;
+    title: string;
+    description?: string;
+    is_required: boolean;
+    is_active: boolean;
+    order: number;
+    fields_count: number;
+    required_fields_count: number;
+}
+
 interface FormPhaseDetail {
     id: number;
     order: number;
     needs_review: boolean;
     phase_type: PhaseType;
     form_access_control: FormAccessControl;
+    review_evaluation_forms?: ReviewEvaluationForm[];
 }
 
 interface FormPhase {
@@ -65,6 +83,8 @@ interface FormPhase {
     created_at: string;
     updated_at: string;
     form_phase_details: FormPhaseDetail[];
+    review_evaluation_forms_count?: number;
+    required_review_evaluation_forms_count?: number;
 }
 
 interface Props {
@@ -73,9 +93,38 @@ interface Props {
 
 const props = defineProps<Props>();
 
-const sortedPhaseDetails = props.formPhase.form_phase_details.sort(
-    (a, b) => a.order - b.order
+const sortedPhaseDetails = computed(() =>
+    [...props.formPhase.form_phase_details].sort((a, b) => a.order - b.order)
 );
+
+const uniqueFormsCount = computed(() =>
+    new Set(sortedPhaseDetails.value.map(d => d.form_access_control.form.id)).size
+);
+
+const formatDate = (dateString: string): string => {
+    return new Date(dateString).toLocaleDateString('id-ID', {
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric'
+    });
+};
+
+const getEvaluationFormsForDetail = (detail: FormPhaseDetail) => {
+    if (!detail.review_evaluation_forms) return [];
+    return [...detail.review_evaluation_forms].sort((a, b) => a.order - b.order);
+};
+
+const getTotalEvaluationFormsCount = computed(() => {
+    return sortedPhaseDetails.value.reduce((total, detail) => {
+        return total + (detail.review_evaluation_forms?.length || 0);
+    }, 0);
+});
+
+const getRequiredEvaluationFormsCount = computed(() => {
+    return sortedPhaseDetails.value.reduce((total, detail) => {
+        return total + (detail.review_evaluation_forms?.filter(f => f.is_required && f.is_active).length || 0);
+    }, 0);
+});
 </script>
 
 <template>
@@ -96,16 +145,18 @@ const sortedPhaseDetails = props.formPhase.form_phase_details.sort(
                         Form Phase Details
                     </h2>
                 </div>
-                <Link :href="route('admin.form-phases.edit', props.formPhase.id)">
-                <Button>
-                    <Edit class="h-4 w-4 mr-2" />
-                    Edit Phase
-                </Button>
-                </Link>
+                <div class="flex items-center gap-2">
+                    <Link :href="route('admin.form-phases.edit', formPhase.id)">
+                    <Button>
+                        <Edit class="h-4 w-4 mr-2" />
+                        Edit Phase
+                    </Button>
+                    </Link>
+                </div>
             </div>
         </template>
 
-        <div class="max-w-4xl mx-auto space-y-6">
+        <div class="max-w-7xl mx-auto space-y-6">
             <!-- Phase Information -->
             <Card>
                 <CardHeader>
@@ -121,57 +172,47 @@ const sortedPhaseDetails = props.formPhase.form_phase_details.sort(
                                 Title
                             </h3>
                             <p class="text-lg font-medium">
-                                {{ props.formPhase.title }}
+                                {{ formPhase.title }}
                             </p>
                         </div>
                         <div>
                             <h3 class="font-medium text-sm text-muted-foreground mb-1">
                                 Status
                             </h3>
-                            <Badge :variant="props.formPhase.is_active
-                                ? 'default'
-                                : 'secondary'
-                                " class="flex items-center gap-1 w-fit">
-                                <CheckCircle v-if="props.formPhase.is_active" class="h-3 w-3" />
+                            <Badge :variant="formPhase.is_active ? 'default' : 'secondary'"
+                                class="flex items-center gap-1 w-fit">
+                                <CheckCircle v-if="formPhase.is_active" class="h-3 w-3" />
                                 <XCircle v-else class="h-3 w-3" />
-                                {{
-                                    props.formPhase.is_active
-                                        ? "Active"
-                                        : "Inactive"
-                                }}
+                                {{ formPhase.is_active ? 'Active' : 'Inactive' }}
                             </Badge>
                         </div>
                     </div>
 
-                    <div v-if="props.formPhase.description">
+                    <div v-if="formPhase.description">
                         <h3 class="font-medium text-sm text-muted-foreground mb-1">
                             Description
                         </h3>
                         <p class="text-gray-700">
-                            {{ props.formPhase.description }}
+                            {{ formPhase.description }}
                         </p>
                     </div>
 
-                    <Separator />
-
-                    <div class="grid gap-6 md:grid-cols-2 text-sm">
-                        <div class="flex items-center gap-2">
-                            <Calendar class="h-4 w-4 text-muted-foreground" />
-                            <span class="text-muted-foreground">Created:</span>
-                            <span>{{
-                                new Date(
-                                    props.formPhase.created_at
-                                ).toLocaleDateString()
-                            }}</span>
+                    <div class="grid gap-6 md:grid-cols-2">
+                        <div>
+                            <h3 class="font-medium text-sm text-muted-foreground mb-1">
+                                Created
+                            </h3>
+                            <p class="text-sm">
+                                {{ formatDate(formPhase.created_at) }}
+                            </p>
                         </div>
-                        <div class="flex items-center gap-2">
-                            <Calendar class="h-4 w-4 text-muted-foreground" />
-                            <span class="text-muted-foreground">Updated:</span>
-                            <span>{{
-                                new Date(
-                                    props.formPhase.updated_at
-                                ).toLocaleDateString()
-                            }}</span>
+                        <div>
+                            <h3 class="font-medium text-sm text-muted-foreground mb-1">
+                                Last Updated
+                            </h3>
+                            <p class="text-sm">
+                                {{ formatDate(formPhase.updated_at) }}
+                            </p>
                         </div>
                     </div>
                 </CardContent>
@@ -186,12 +227,14 @@ const sortedPhaseDetails = props.formPhase.form_phase_details.sort(
                     </CardTitle>
                 </CardHeader>
                 <CardContent>
+                    <!-- Empty State -->
                     <div v-if="sortedPhaseDetails.length === 0" class="text-center py-8 text-muted-foreground">
                         <Users class="h-12 w-12 mx-auto mb-4 opacity-50" />
                         <p>No phase details configured yet.</p>
                     </div>
 
-                    <div v-else class="space-y-4">
+                    <!-- Phase Details List -->
+                    <div v-else class="space-y-6">
                         <div v-for="(detail, index) in sortedPhaseDetails" :key="detail.id"
                             class="border rounded-lg p-4 bg-card">
                             <div class="flex items-start justify-between mb-3">
@@ -208,7 +251,7 @@ const sortedPhaseDetails = props.formPhase.form_phase_details.sort(
                                 </div>
                             </div>
 
-                            <div class="grid gap-4 md:grid-cols-3">
+                            <div class="grid gap-4 md:grid-cols-3 mb-4">
                                 <!-- Form Information -->
                                 <div class="space-y-2">
                                     <div class="flex items-center gap-2 text-sm font-medium">
@@ -216,10 +259,7 @@ const sortedPhaseDetails = props.formPhase.form_phase_details.sort(
                                         Form
                                     </div>
                                     <p class="text-sm text-muted-foreground pl-6">
-                                        {{
-                                            detail.form_access_control.form
-                                                .title
-                                        }}
+                                        {{ detail.form_access_control.form.title }}
                                     </p>
                                 </div>
 
@@ -230,9 +270,7 @@ const sortedPhaseDetails = props.formPhase.form_phase_details.sort(
                                         Role
                                     </div>
                                     <p class="text-sm text-muted-foreground pl-6">
-                                        {{
-                                            detail.form_access_control.role.name
-                                        }}
+                                        {{ detail.form_access_control.role.name }}
                                     </p>
                                 </div>
 
@@ -243,23 +281,92 @@ const sortedPhaseDetails = props.formPhase.form_phase_details.sort(
                                         Study Program
                                     </div>
                                     <div class="text-sm text-muted-foreground pl-6">
-                                        <p>
-                                            {{
-                                                detail.form_access_control
-                                                    .study_program.name
-                                            }}
-                                        </p>
+                                        <p>{{ detail.form_access_control.study_program.name }}</p>
                                         <p class="text-xs opacity-75">
-                                            {{
-                                                detail.form_access_control
-                                                    .study_program.faculty.name
-                                            }}
+                                            {{ detail.form_access_control.study_program.faculty.name }}
                                         </p>
                                     </div>
                                 </div>
                             </div>
 
-                            <!-- Progress indicator for steps -->
+                            <!-- Evaluation Forms for this Detail -->
+                            <div v-if="getEvaluationFormsForDetail(detail).length > 0"
+                                class="mt-4 pt-4 border-t bg-muted/30 rounded-lg p-3">
+                                <div class="flex items-center justify-between mb-3">
+                                    <div class="flex items-center gap-2 text-sm font-medium">
+                                        <ClipboardList class="h-4 w-4" />
+                                        Evaluation Forms ({{ getEvaluationFormsForDetail(detail).length }})
+                                    </div>
+                                    <Link
+                                        :href="route('admin.form-phases.evaluation-forms', { formPhase: formPhase.id, detail_id: detail.id })">
+                                    <Button size="sm" variant="outline">
+                                        <Settings class="h-4 w-4 mr-2" />
+                                        Manage
+                                    </Button>
+                                    </Link>
+                                </div>
+
+                                <div class="space-y-2">
+                                    <div v-for="form in getEvaluationFormsForDetail(detail)" :key="form.id"
+                                        class="flex items-center justify-between p-2 bg-background rounded border">
+                                        <div class="flex-1">
+                                            <div class="flex items-center gap-2">
+                                                <span class="text-sm font-medium">{{ form.title }}</span>
+                                                <Badge :variant="form.is_required ? 'destructive' : 'secondary'"
+                                                    class="text-xs">
+                                                    {{ form.is_required ? 'Required' : 'Optional' }}
+                                                </Badge>
+                                            </div>
+                                            <p v-if="form.description" class="text-xs text-muted-foreground mt-1">
+                                                {{ form.description }}
+                                            </p>
+                                            <div class="flex items-center gap-2 mt-1">
+                                                <span class="text-xs text-muted-foreground">
+                                                    {{ form.fields_count }} fields
+                                                </span>
+                                                <span v-if="form.required_fields_count > 0"
+                                                    class="text-xs text-muted-foreground flex items-center gap-1">
+                                                    <Star class="h-3 w-3" />
+                                                    {{ form.required_fields_count }} required
+                                                </span>
+                                                <Badge :variant="form.is_active ? 'default' : 'secondary'"
+                                                    class="text-xs">
+                                                    {{ form.is_active ? 'Active' : 'Inactive' }}
+                                                </Badge>
+                                            </div>
+                                        </div>
+
+                                        <div class="flex items-center gap-1">
+                                            <Link :href="route('admin.review-evaluation-forms.preview', form.id)">
+                                            <Button size="sm" variant="ghost">
+                                                <Eye class="h-4 w-4" />
+                                            </Button>
+                                            </Link>
+                                            <Link :href="route('admin.review-evaluation-forms.edit', form.id)">
+                                            <Button size="sm" variant="ghost">
+                                                <Edit class="h-4 w-4" />
+                                            </Button>
+                                            </Link>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- No Evaluation Forms -->
+                            <div v-else class="mt-4 pt-4 border-t">
+                                <div class="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
+                                    <span class="text-sm text-muted-foreground">No evaluation forms configured</span>
+                                    <Link
+                                        :href="route('admin.form-phases.evaluation-forms', { formPhase: formPhase.id, detail_id: detail.id })">
+                                    <Button size="sm" variant="outline">
+                                        <Plus class="h-4 w-4 mr-2" />
+                                        Add Evaluation Forms
+                                    </Button>
+                                    </Link>
+                                </div>
+                            </div>
+
+                            <!-- Progress indicator -->
                             <div v-if="index < sortedPhaseDetails.length - 1" class="flex justify-center mt-4">
                                 <div class="w-px h-6 bg-border"></div>
                             </div>
@@ -269,7 +376,7 @@ const sortedPhaseDetails = props.formPhase.form_phase_details.sort(
             </Card>
 
             <!-- Summary Statistics -->
-            <div class="grid gap-4 md:grid-cols-3">
+            <div class="grid gap-4 md:grid-cols-4">
                 <Card>
                     <CardContent class="p-6">
                         <div class="flex items-center gap-2">
@@ -289,21 +396,13 @@ const sortedPhaseDetails = props.formPhase.form_phase_details.sort(
                 <Card>
                     <CardContent class="p-6">
                         <div class="flex items-center gap-2">
-                            <FileText class="h-8 w-8 text-green-500" />
+                            <ClipboardList class="h-8 w-8 text-orange-500" />
                             <div>
                                 <p class="text-2xl font-bold">
-                                    {{
-                                        new Set(
-                                            sortedPhaseDetails.map(
-                                                (d) =>
-                                                    d.form_access_control.form
-                                                        .id
-                                            )
-                                        ).size
-                                    }}
+                                    {{ getTotalEvaluationFormsCount }}
                                 </p>
                                 <p class="text-sm text-muted-foreground">
-                                    Unique Forms
+                                    Evaluation Forms
                                 </p>
                             </div>
                         </div>
@@ -313,21 +412,29 @@ const sortedPhaseDetails = props.formPhase.form_phase_details.sort(
                 <Card>
                     <CardContent class="p-6">
                         <div class="flex items-center gap-2">
-                            <Building class="h-8 w-8 text-purple-500" />
+                            <Star class="h-8 w-8 text-red-500" />
                             <div>
                                 <p class="text-2xl font-bold">
-                                    {{
-                                        new Set(
-                                            sortedPhaseDetails.map(
-                                                (d) =>
-                                                    d.form_access_control.role
-                                                        .id
-                                            )
-                                        ).size
-                                    }}
+                                    {{ getRequiredEvaluationFormsCount }}
                                 </p>
                                 <p class="text-sm text-muted-foreground">
-                                    Unique Roles
+                                    Required Forms
+                                </p>
+                            </div>
+                        </div>
+                    </CardContent>
+                </Card>
+
+                <Card>
+                    <CardContent class="p-6">
+                        <div class="flex items-center gap-2">
+                            <FileText class="h-8 w-8 text-green-500" />
+                            <div>
+                                <p class="text-2xl font-bold">
+                                    {{ uniqueFormsCount }}
+                                </p>
+                                <p class="text-sm text-muted-foreground">
+                                    Unique Forms
                                 </p>
                             </div>
                         </div>
