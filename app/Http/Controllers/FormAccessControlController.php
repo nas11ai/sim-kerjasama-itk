@@ -109,7 +109,7 @@ class FormAccessControlController extends Controller
                 'study_program_id' => $request->study_program_id,
             ]);
 
-            return redirect()->route('form-access-controls.index')
+            return redirect()->route('admin.form-access-controls.index')
                 ->with('success', 'Form access control created successfully.');
 
         } catch (\Exception $e) {
@@ -170,7 +170,7 @@ class FormAccessControlController extends Controller
                 'study_program_id' => $request->study_program_id,
             ]);
 
-            return redirect()->route('form-access-controls.index')
+            return redirect()->route('admin.form-access-controls.index')
                 ->with('success', 'Form access control updated successfully.');
 
         } catch (\Exception $e) {
@@ -196,7 +196,7 @@ class FormAccessControlController extends Controller
 
             DB::commit();
 
-            return redirect()->route('form-access-controls.index')
+            return redirect()->route('admin.form-access-controls.index')
                 ->with('success', 'Form access control deleted successfully.');
 
         } catch (\Exception $e) {
@@ -247,7 +247,7 @@ class FormAccessControlController extends Controller
 
             $message = "Bulk creation completed. Created: {$created}, Skipped (duplicates): {$skipped}";
 
-            return redirect()->route('form-access-controls.index')
+            return redirect()->route('admin.form-access-controls.index')
                 ->with('success', $message);
 
         } catch (\Exception $e) {
@@ -289,7 +289,7 @@ class FormAccessControlController extends Controller
                 $message .= ". Could not delete: " . implode(', ', $cannotDelete);
             }
 
-            return redirect()->route('form-access-controls.index')
+            return redirect()->route('admin.form-access-controls.index')
                 ->with('success', $message);
 
         } catch (\Exception $e) {

@@ -78,7 +78,7 @@ class FormController extends Controller
             }
         });
 
-        return redirect()->route('forms.index')
+        return redirect()->route('admin.forms.index')
             ->with('success', 'Form created successfully!');
     }
 
@@ -179,7 +179,7 @@ class FormController extends Controller
             }
         });
 
-        return redirect()->route('forms.index')
+        return redirect()->route('admin.forms.index')
             ->with('success', 'Form updated successfully!');
     }
 
@@ -187,7 +187,7 @@ class FormController extends Controller
     {
         $form->delete();
 
-        return redirect()->route('forms.index')
+        return redirect()->route('admin.forms.index')
             ->with('success', 'Form deleted successfully!');
     }
 
@@ -211,7 +211,7 @@ class FormController extends Controller
             }
         });
 
-        return redirect()->route('forms.index')
+        return redirect()->route('admin.forms.index')
             ->with('success', 'Form duplicated successfully!');
     }
 }

@@ -400,7 +400,7 @@ const currentFormId = computed({
                                         <Checkbox :checked="selectedStudyPrograms.includes(
                                             studyProgram.id
                                         )
-                                            " @update:checked="
+                                            " @update:modelValue="
                                                 toggleStudyProgram(
                                                     studyProgram.id
                                                 )
@@ -440,7 +440,7 @@ const currentFormId = computed({
                             <div class="grid gap-2 md:grid-cols-2">
                                 <div v-for="role in props.roles" :key="role.id" class="flex items-center space-x-2">
                                     <Checkbox :checked="selectedRoles.includes(role.id)
-                                        " @update:checked="toggleRole(role.id)" />
+                                        " @update:modelValue="toggleRole(role.id)" />
                                     <Label class="cursor-pointer" @click="toggleRole(role.id)">
                                         {{ role.name }}
                                     </Label>
