@@ -386,6 +386,7 @@ Route::middleware(['auth', 'role:Super Admin|Admin', 'check_reviewer_status'])->
     });
     Route::get('/announcements', function () {
         return redirect()->route('admin.announcements.index');
+    });
     Route::get('/review-evaluation-forms', function () {
         return redirect()->route('admin.review-evaluation-forms.index');
     });
