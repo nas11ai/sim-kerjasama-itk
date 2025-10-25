@@ -104,11 +104,11 @@ Route::middleware(['auth', 'check_reviewer_status'])->group(function () {
 
 Route::middleware(['auth'])->prefix('user')->name('user.')->group(function () {
     // khusus form biodata
-        Route::get('/biodata', [BiodataController::class, 'showBiodataForm'])->name('biodata.index');
-        Route::post('/biodata', [BiodataController::class, 'submitForm'])->name('biodata.submit');
+    Route::get('/biodata', [BiodataController::class, 'showBiodataForm'])->name('biodata.index');
+    Route::post('/biodata', [BiodataController::class, 'submitForm'])->name('biodata.submit');
 });
 
-Route::middleware(['auth','check_biodata' , 'check_reviewer_status'])->prefix('user')->name('user.')->group(function () {
+Route::middleware(['auth', 'check_biodata', 'check_reviewer_status'])->prefix('user')->name('user.')->group(function () {
     Route::get('/dashboard', [UserFormController::class, 'dashboard'])
         ->name('dashboard');
 
@@ -175,6 +175,8 @@ Route::middleware(['auth', 'role:Super Admin|Admin', 'check_reviewer_status'])->
     })->middleware(['auth', 'verified'])->name('dashboard');
 
     Route::resource('forms', FormController::class);
+    Route::post('forms/{form}/duplicate', [FormController::class, 'duplicate'])
+        ->name('forms.duplicate');
 
     // NEW: Review Evaluation Forms Management
     Route::resource('review-evaluation-forms', ReviewEvaluationFormController::class)->names([
