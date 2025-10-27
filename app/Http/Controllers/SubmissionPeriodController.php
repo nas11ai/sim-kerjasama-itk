@@ -335,6 +335,7 @@ class SubmissionPeriodController extends Controller
             'name' => $request->name
         ]);
 
-        return back()->with('submissionDateLabel', $label);
+        // Kembalikan JSON, bukan redirect
+        return response()->json($label);
     }
 }

@@ -109,21 +109,24 @@ const addNewLabel = async () => {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
+                        Accept: "application/json",
                         "X-CSRF-TOKEN":
                             document
                                 .querySelector('meta[name="csrf-token"]')
                                 ?.getAttribute("content") || "",
                     },
-                    body: JSON.stringify({ label: newLabelForm.label.trim() }),
+                    body: JSON.stringify({ name: newLabelForm.label.trim() }),
                 }
             );
 
-            if (response.ok) {
-                const newLabel = await response.json();
-                dynamicLabels.value.push(newLabel);
-            } else {
-                console.error("Failed to add new label:", response.statusText);
+            if (!response.ok) {
+                const text = await response.text();
+                console.error("Request failed:", text);
+                return;
             }
+
+            const newLabel = await response.json();
+            dynamicLabels.value.push(newLabel);
             showAddLabelDialog.value = false;
         } catch (error) {
             console.error("Failed to add new label:", error);

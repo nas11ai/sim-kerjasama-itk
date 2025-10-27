@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, onMounted, nextTick } from "vue";
+import { computed, ref, onMounted, nextTick, watch } from "vue";
 import { Head, useForm } from "@inertiajs/vue3";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout.vue";
 import { Button } from "@/Components/ui/button";
@@ -184,30 +184,29 @@ const addNewLabel = async () => {
     if (newLabelForm.label.trim()) {
         try {
             const response = await fetch(
-                route("submission-date-labels.store"),
+                route("admin.submission-date-labels.store"),
                 {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
+                        Accept: "application/json",
                         "X-CSRF-TOKEN":
                             document
                                 .querySelector('meta[name="csrf-token"]')
                                 ?.getAttribute("content") || "",
                     },
-                    body: JSON.stringify({ label: newLabelForm.label.trim() }),
+                    body: JSON.stringify({ name: newLabelForm.label.trim() }),
                 }
             );
 
-            if (response.ok) {
-                const newLabel = await response.json();
-                dynamicLabels.value.push(newLabel);
-                newLabelForm.reset();
-
-                // Force update Select components
-                selectKey.value++;
-            } else {
-                console.error("Failed to add new label:", response.statusText);
+            if (!response.ok) {
+                const text = await response.text();
+                console.error("Request failed:", text);
+                return;
             }
+
+            const newLabel = await response.json();
+            dynamicLabels.value.push(newLabel);
             showAddLabelDialog.value = false;
         } catch (error) {
             console.error("Failed to add new label:", error);
@@ -256,6 +255,14 @@ const selectAllSubmissionRules = () => {
 const submit = () => {
     form.put(route("admin.submission-periods.update", props.submissionPeriod.id));
 };
+
+watch(showAddLabelDialog, (val) => {
+    if (val) {
+        document.body.classList.add("overflow-hidden");
+    } else {
+        document.body.classList.remove("overflow-hidden");
+    }
+});
 </script>
 
 <template>
@@ -329,39 +336,72 @@ const submit = () => {
                                             </Button>
 
                                             <!-- Modal Overlay -->
-                                            <div v-if="showAddLabelDialog" class="fixed inset-0 z-50">
+                                            <div
+                                                v-if="showAddLabelDialog"
+                                                class="fixed inset-0 z-50"
+                                            >
                                                 <!-- Background hitam -->
-                                                <div class="absolute inset-0 bg-black/80" @click="
-                                                    showAddLabelDialog = false
-                                                    "></div>
+                                                <div
+                                                    class="absolute inset-0 bg-black/80"
+                                                    @click="
+                                                        showAddLabelDialog = false
+                                                    "
+                                                ></div>
 
                                                 <!-- Modal content -->
                                                 <div
-                                                    class="relative z-10 flex items-center justify-center min-h-screen p-4">
+                                                    class="relative z-10 flex items-center justify-center min-h-screen p-4"
+                                                >
                                                     <div
-                                                        class="bg-white rounded-lg shadow-lg w-full max-w-md p-6 max-h-[calc(100vh-2rem)] overflow-y-auto">
-                                                        <h3 class="text-lg font-semibold mb-4">
+                                                        class="bg-white rounded-lg shadow-lg w-full max-w-md p-6 max-h-[calc(100vh-2rem)] overflow-y-auto"
+                                                    >
+                                                        <h3
+                                                            class="text-lg font-semibold mb-4"
+                                                        >
                                                             Add New Date Label
                                                         </h3>
                                                         <div class="space-y-4">
-                                                            <div class="space-y-2">
-                                                                <Label for="new-label">Label
-                                                                    Name</Label>
-                                                                <Input id="new-label" v-model="newLabelForm.label
-                                                                    " placeholder="Enter label name" @keyup.enter="
+                                                            <div
+                                                                class="space-y-2"
+                                                            >
+                                                                <Label
+                                                                    for="new-label"
+                                                                    >Label
+                                                                    Name</Label
+                                                                >
+                                                                <Input
+                                                                    id="new-label"
+                                                                    v-model="
+                                                                        newLabelForm.label
+                                                                    "
+                                                                    placeholder="Enter label name"
+                                                                    @keyup.enter="
                                                                         addNewLabel
-                                                                    " autofocus />
+                                                                    "
+                                                                    autofocus
+                                                                />
                                                             </div>
-                                                            <div class="flex justify-end gap-2 pt-4">
-                                                                <Button type="button" variant="outline" @click="
-                                                                    showAddLabelDialog = false
-                                                                    ">
+                                                            <div
+                                                                class="flex justify-end gap-2 pt-4"
+                                                            >
+                                                                <Button
+                                                                    type="button"
+                                                                    variant="outline"
+                                                                    @click="
+                                                                        showAddLabelDialog = false
+                                                                    "
+                                                                >
                                                                     Cancel
                                                                 </Button>
-                                                                <Button type="button" @click="
-                                                                    addNewLabel
-                                                                " :disabled="!newLabelForm.label.trim()
-                                                                    ">
+                                                                <Button
+                                                                    type="button"
+                                                                    @click="
+                                                                        addNewLabel
+                                                                    "
+                                                                    :disabled="
+                                                                        !newLabelForm.label.trim()
+                                                                    "
+                                                                >
                                                                     Add Label
                                                                 </Button>
                                                             </div>
@@ -400,49 +440,6 @@ const submit = () => {
                         </p>
                     </CardContent>
                 </Card>
-
-                <!-- Modal for Add New Label -->
-                <div v-if="showAddLabelDialog">
-                    <div
-                        class="absolute inset-0 bg-black/80"
-                        @click="showAddLabelDialog = false"
-                    ></div>
-                    <div class="relative z-10 flex items-center justify-center min-h-screen p-4">
-                        <div class="bg-white rounded-lg shadow-lg w-full max-w-md p-6 max-h-[calc(100vh-2rem)] overflow-y-auto">
-                            <h3 class="text-lg font-semibold mb-4">
-                                Add New Date Label
-                            </h3>
-                            <div class="space-y-4">
-                                <div class="space-y-2">
-                                    <Label for="new-label">Label Name</Label>
-                                    <Input
-                                        id="new-label"
-                                        v-model="newLabelForm.label"
-                                        placeholder="Enter label name"
-                                        @keyup.enter="addNewLabel"
-                                        autofocus
-                                    />
-                                </div>
-                                <div class="flex justify-end gap-2 pt-4">
-                                    <Button
-                                        type="button"
-                                        variant="outline"
-                                        @click="showAddLabelDialog = false"
-                                    >
-                                        Cancel
-                                    </Button>
-                                    <Button
-                                        type="button"
-                                        @click="addNewLabel"
-                                        :disabled="!newLabelForm.label.trim()"
-                                    >
-                                        Add Label
-                                    </Button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
 
                 <!-- Form Phases -->
                 <Card>
