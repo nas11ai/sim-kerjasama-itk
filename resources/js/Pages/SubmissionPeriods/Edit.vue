@@ -6,7 +6,6 @@ import { Button } from "@/Components/ui/button";
 import { Input } from "@/Components/ui/input";
 import { Label } from "@/Components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/Components/ui/card";
-import { Checkbox } from "@/Components/ui/checkbox";
 import { Badge } from "@/Components/ui/badge";
 import { Separator } from "@/Components/ui/separator";
 import {
@@ -24,6 +23,7 @@ import {
     Settings,
     FileText,
 } from "lucide-vue-next";
+import Checkbox from "@/Components/Checkbox.vue";
 
 interface FormPhase {
     id: number;
@@ -475,7 +475,7 @@ const submit = () => {
                                 class="flex items-center space-x-3 p-3 border rounded-lg hover:bg-muted/50 cursor-pointer"
                                 @click="toggleFormPhase(phase.id)">
                                 <Checkbox :checked="form.form_phase_ids.includes(phase.id)
-                                    " @update:checked="toggleFormPhase(phase.id)" />
+                                    "/>
                                 <div class="flex-1 min-w-0">
                                     <Label class="cursor-pointer font-medium">
                                         {{ phase.title }}

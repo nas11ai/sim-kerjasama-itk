@@ -6,7 +6,6 @@ import { Button } from "@/Components/ui/button";
 import { Input } from "@/Components/ui/input";
 import { Label } from "@/Components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/Components/ui/card";
-import { Checkbox } from "@/Components/ui/checkbox";
 import { Badge } from "@/Components/ui/badge";
 import { Separator } from "@/Components/ui/separator";
 import {
@@ -25,6 +24,7 @@ import {
     FileText,
 } from "lucide-vue-next";
 import { watch } from "vue";
+import Checkbox from "@/Components/Checkbox.vue";
 
 interface FormPhase {
     id: number;
@@ -409,17 +409,25 @@ watch(showAddLabelDialog, (val) => {
                                 <div class="flex-1 space-y-2">
                                     <Label :for="`date_${index}`">Date</Label>
                                     <Input
-  :id="`date_${index}`"
-  v-model="date.date"
-  type="datetime-local"
-/>
+                                        :id="`date_${index}`"
+                                        v-model="date.date"
+                                        type="datetime-local"
+                                    />
 
-<p
-  v-if="errors[`submission_dates.${index}.date`]"
-  class="text-sm text-destructive"
->
-  {{ errors[`submission_dates.${index}.date`] }}
-</p>
+                                    <p
+                                        v-if="
+                                            errors[
+                                                `submission_dates.${index}.date`
+                                            ]
+                                        "
+                                        class="text-sm text-destructive"
+                                    >
+                                        {{
+                                            errors[
+                                                `submission_dates.${index}.date`
+                                            ]
+                                        }}
+                                    </p>
                                 </div>
                                 <Button
                                     type="button"
@@ -491,7 +499,6 @@ watch(showAddLabelDialog, (val) => {
                                     :checked="
                                         form.form_phase_ids.includes(phase.id)
                                     "
-                                    @update:checked="toggleFormPhase(phase.id)"
                                 />
                                 <div class="flex-1 min-w-0">
                                     <Label class="cursor-pointer font-medium">
@@ -555,26 +562,24 @@ watch(showAddLabelDialog, (val) => {
                         </div>
                         <div v-else class="grid gap-3 md:grid-cols-2">
                             <div
-                                v-for="phase in props.formPhases"
-                                :key="phase.id"
+                                v-for="rule in props.submissionRules"
+                                :key="rule.id"
                                 class="flex w-full items-center space-x-3 p-3 border rounded-lg hover:bg-muted/50 cursor-pointer"
-                                @click="onPhaseClick(phase.id)"
+                                @click="toggleSubmissionRule(rule.id)"
                             >
                                 <Checkbox
                                     :checked="
-                                        form.form_phase_ids.includes(phase.id)
+                                        form.submission_rule_ids.includes(
+                                            rule.id
+                                        )
                                     "
-                                    @click.stop="onPhaseClick(phase.id)"
                                 />
-                                <div class="flex-1 min-w-0">
+                                <div class="flex-1">
                                     <Label class="cursor-pointer font-medium">
-                                        {{ phase.title }}
+                                        {{ rule.label }}
                                     </Label>
-                                    <p
-                                        v-if="phase.description"
-                                        class="text-sm text-muted-foreground mt-1"
-                                    >
-                                        {{ phase.description }}
+                                    <p class="text-sm text-muted-foreground">
+                                        Value: {{ rule.value }}
                                     </p>
                                 </div>
                             </div>
