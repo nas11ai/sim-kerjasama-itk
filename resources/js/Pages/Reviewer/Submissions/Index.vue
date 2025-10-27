@@ -123,7 +123,7 @@ const formatDate = (dateString: string) => {
 const applyFilters = () => {
     const params: any = {};
 
-    if (searchTerm.value) params.search = searchTerm.value;
+    if (searchQuery.value) params.search = searchQuery.value;
     if (statusFilter.value && statusFilter.value !== 'all')
         params.status = statusFilter.value;
 
@@ -133,10 +133,8 @@ const applyFilters = () => {
     });
 };
 
-const clearFilters = () => {
-    searchTerm.value = '';
-    statusFilter.value = 'all';
-    router.get(route('reviewer.submissions.index'));
+const viewSubmission = (submissionId: number) => {
+    router.visit(route('reviewer.submissions.show', submissionId));
 };
 
 // Stats computation
@@ -312,8 +310,7 @@ const submissionStats = computed(() => {
                                     <TableRow
                                         v-for="submission in submissions.data"
                                         :key="submission.id"
-                                        class="hover:bg-muted/50 cursor-pointer"
-                                        @click="viewSubmissionDetail(submission.id)"
+                                        class="hover:bg-muted/50"
                                     >
                                         <TableCell>
                                             <div class="flex items-center">
@@ -345,11 +342,11 @@ const submissionStats = computed(() => {
                                                 {{ formatDate(submission.created_at) }}
                                             </div>
                                         </TableCell>
-                                        <TableCell class="text-right" @click.stop>
+                                        <TableCell class="text-right">
                                             <Button
                                                 variant="outline"
                                                 size="sm"
-                                                @click="viewSubmissionDetail(submission.id)"
+                                                @click="viewSubmission(submission.id)"
                                             >
                                                 <Eye class="mr-2 h-4 w-4" />
                                                 View Details
@@ -358,6 +355,7 @@ const submissionStats = computed(() => {
                                     </TableRow>
                                 </TableBody>
                             </Table>
+                        </div>
 
                         <!-- Pagination -->
                         <div class="mt-6 flex items-center justify-between">
@@ -365,7 +363,6 @@ const submissionStats = computed(() => {
                                 Showing {{ submissions.meta?.from || 0 }} to {{ submissions.meta?.to || 0 }}
                                 of {{ submissions.meta?.total || submissions.data?.length || 0 }} results
                             </div>
-                        </div>
 
                             <div class="flex gap-2">
                                 <template v-for="link in submissions.links" :key="link.label">
@@ -383,6 +380,5 @@ const submissionStats = computed(() => {
                     </CardContent>
                 </Card>
             </div>
-        </div>
     </AuthenticatedLayout>
 </template>
