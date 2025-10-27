@@ -135,7 +135,7 @@ onMounted(async () => {
     // Load existing submission dates
     form.submission_dates = props.submissionPeriod.submission_dates.map(
         (date) => ({
-            label: date.submission_date_label.name,
+            label: date.submission_date_label?.name || "",
             datetime: formatDateForInput(date.datetime),
             temp_id: generateTempId(),
         })
@@ -472,7 +472,7 @@ const submit = () => {
                         </div>
                         <div v-else class="grid gap-3 md:grid-cols-2">
                             <div v-for="phase in props.formPhases" :key="phase.id"
-                                class="flex items-start space-x-3 p-3 border rounded-lg hover:bg-muted/50 cursor-pointer"
+                                class="flex items-center space-x-3 p-3 border rounded-lg hover:bg-muted/50 cursor-pointer"
                                 @click="toggleFormPhase(phase.id)">
                                 <Checkbox :checked="form.form_phase_ids.includes(phase.id)
                                     " @update:checked="toggleFormPhase(phase.id)" />
