@@ -156,6 +156,9 @@ Route::middleware(['auth', 'check_reviewer_status'])->prefix('reviewer')->name('
     Route::get('/submissions', [SubmissionViewController::class, 'reviewerSubmissions'])
         ->name('submissions.index');
 
+    Route::get('/submissions/{submission}', [SubmissionViewController::class, 'reviewerShowSubmission'])
+        ->name('submissions.show');
+
     // Enhanced review actions with evaluation context
     Route::patch('/review-summaries/{reviewSummary}/complete', [ReviewController::class, 'completeReview'])
         ->name('review-summaries.complete');
@@ -433,7 +436,7 @@ Route::middleware(['auth', 'role:Super Admin|Admin', 'check_reviewer_status'])->
     Route::get('/announcements', function () {
         return redirect()->route('admin.announcements.index');
     });
-  
+
     Route::get('/review-evaluation-forms', function () {
         return redirect()->route('admin.review-evaluation-forms.index');
     });
