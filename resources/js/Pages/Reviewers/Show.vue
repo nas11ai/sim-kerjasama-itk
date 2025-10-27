@@ -87,11 +87,6 @@ interface Props {
 
 const props = defineProps<Props>();
 
-const showDeactivateDialog = ref(false);
-const showActivateDialog = ref(false);
-const isDeactivating = ref(false);
-const isActivating = ref(false);
-
 const formatDate = (date: string) => {
     return new Date(date).toLocaleDateString('id-ID', {
         day: 'numeric',
@@ -112,46 +107,6 @@ const formatDateTime = (date: string) => {
 
 const handleEdit = () => {
     router.visit(route('admin.reviewers.edit', props.reviewer.id));
-};
-
-const handleDeactivate = () => {
-    showDeactivateDialog.value = true;
-};
-
-const confirmDeactivate = () => {
-    isDeactivating.value = true;
-
-    router.post(route('admin.reviewers.deactivate', props.reviewer.id), {}, {
-        onSuccess: () => {
-            showDeactivateDialog.value = false;
-        },
-        onError: () => {
-            isDeactivating.value = false;
-        },
-        onFinish: () => {
-            isDeactivating.value = false;
-        }
-    });
-};
-
-const handleActivate = () => {
-    showActivateDialog.value = true;
-};
-
-const confirmActivate = () => {
-    isActivating.value = true;
-
-    router.post(route('admin.reviewers.activate', props.reviewer.id), {}, {
-        onSuccess: () => {
-            showActivateDialog.value = false;
-        },
-        onError: () => {
-            isActivating.value = false;
-        },
-        onFinish: () => {
-            isActivating.value = false;
-        }
-    });
 };
 
 const goBack = () => {
@@ -222,26 +177,6 @@ const getStatusInfo = computed(() => {
                     </div>
                 </div>
                 <div class="flex items-center gap-2">
-                    <Button
-                        v-if="reviewer.is_active"
-                        variant="outline"
-                        size="sm"
-                        @click="handleDeactivate"
-                        class="gap-2"
-                    >
-                        <PowerOff class="h-4 w-4" />
-                        Deactivate
-                    </Button>
-                    <Button
-                        v-else
-                        variant="outline"
-                        size="sm"
-                        @click="handleActivate"
-                        class="gap-2"
-                    >
-                        <Power class="h-4 w-4" />
-                        Activate
-                    </Button>
                     <Button
                         variant="outline"
                         size="sm"
@@ -418,79 +353,5 @@ const getStatusInfo = computed(() => {
                 </CardContent>
             </Card>
         </div>
-
-        <!-- Deactivate Confirmation Dialog -->
-        <Dialog v-model:open="showDeactivateDialog">
-            <DialogContent>
-                <DialogHeader>
-                    <DialogTitle class="flex items-center gap-2">
-                        <PowerOff class="h-5 w-5 text-orange-600" />
-                        Konfirmasi Deaktivasi
-                    </DialogTitle>
-                    <DialogDescription>
-                        Apakah Anda yakin ingin menonaktifkan reviewer <strong>{{ reviewer.user.name }}</strong>?
-                        <br />
-                        <span class="text-sm mt-2 block">
-                            End date akan diset ke hari ini dan reviewer tidak akan dapat melakukan review baru.
-                        </span>
-                    </DialogDescription>
-                </DialogHeader>
-                <DialogFooter>
-                    <Button
-                        variant="outline"
-                        @click="showDeactivateDialog = false"
-                        :disabled="isDeactivating"
-                    >
-                        Batal
-                    </Button>
-                    <Button
-                        variant="default"
-                        @click="confirmDeactivate"
-                        :disabled="isDeactivating"
-                        class="gap-2"
-                    >
-                        <PowerOff class="h-4 w-4" />
-                        {{ isDeactivating ? 'Menonaktifkan...' : 'Deactivate' }}
-                    </Button>
-                </DialogFooter>
-            </DialogContent>
-        </Dialog>
-
-        <!-- Activate Confirmation Dialog -->
-        <Dialog v-model:open="showActivateDialog">
-            <DialogContent>
-                <DialogHeader>
-                    <DialogTitle class="flex items-center gap-2">
-                        <Power class="h-5 w-5 text-green-600" />
-                        Konfirmasi Aktivasi
-                    </DialogTitle>
-                    <DialogDescription>
-                        Apakah Anda yakin ingin mengaktifkan kembali reviewer <strong>{{ reviewer.user.name }}</strong>?
-                        <br />
-                        <span class="text-sm mt-2 block">
-                            End date akan dihapus dan reviewer dapat melakukan review kembali.
-                        </span>
-                    </DialogDescription>
-                </DialogHeader>
-                <DialogFooter>
-                    <Button
-                        variant="outline"
-                        @click="showActivateDialog = false"
-                        :disabled="isActivating"
-                    >
-                        Batal
-                    </Button>
-                    <Button
-                        variant="default"
-                        @click="confirmActivate"
-                        :disabled="isActivating"
-                        class="gap-2 bg-green-600 hover:bg-green-700"
-                    >
-                        <Power class="h-4 w-4" />
-                        {{ isActivating ? 'Mengaktifkan...' : 'Activate' }}
-                    </Button>
-                </DialogFooter>
-            </DialogContent>
-        </Dialog>
     </AuthenticatedLayout>
 </template>
