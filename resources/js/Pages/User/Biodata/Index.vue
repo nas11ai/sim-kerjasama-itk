@@ -26,7 +26,8 @@ import {
     Calendar,
     GraduationCap,
     Shield,
-    Info
+    Info,
+    ArrowLeft,
 } from "lucide-vue-next";
 
 interface FormFieldOption {
@@ -362,6 +363,10 @@ const submissionAlertMessage = computed(() => {
         return "Biodata Anda sedang dalam proses review.";
     }
 });
+
+const goBack = () => {
+    router.visit(route('user.dashboard'));
+};
 </script>
 
 <template>
@@ -371,6 +376,14 @@ const submissionAlertMessage = computed(() => {
         <template #header>
             <div class="flex items-center justify-between">
                 <div class="flex items-center gap-3">
+                    <Button
+                        variant="ghost"
+                        size="icon"
+                        @click="goBack"
+                        class="hover:bg-primary/10"
+                    >
+                        <ArrowLeft class="h-5 w-5" />
+                    </Button>
                     <div class="p-2 bg-primary/10 rounded-lg">
                         <FileText class="h-6 w-6 text-primary" />
                     </div>
@@ -394,15 +407,6 @@ const submissionAlertMessage = computed(() => {
         </template>
 
         <div class="max-w-4xl mx-auto space-y-6 py-6 px-4 sm:px-6 lg:px-8">
-            <!-- Back Button -->
-            <Button
-                variant="ghost"
-                size="sm"
-                @click="router.visit(route('user.dashboard'))"
-                class="gap-2"
-            >
-            </Button>
-
             <!-- Custom Alert -->
             <Transition name="alert">
                 <Alert
@@ -660,9 +664,19 @@ const submissionAlertMessage = computed(() => {
                         </p>
                     </div>
 
-                    <!-- Action Buttons -->
-                    <div v-if="canEdit" class="flex gap-3 sm:ml-auto">
+                    <div class="flex gap-3 sm:ml-auto">
                         <Button
+                            type="button"
+                            variant="outline"
+                            @click="goBack"
+                            class="gap-2"
+                        >
+                            <ArrowLeft class="h-4 w-4" />
+                            Kembali
+                        </Button>
+
+                        <Button
+                            v-if="canEdit"
                             type="button"
                             @click="submitForm"
                             :disabled="isSubmitting || formData.processing"
