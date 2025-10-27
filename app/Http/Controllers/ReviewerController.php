@@ -146,10 +146,10 @@ class ReviewerController extends Controller
         // Get review statistics
         $reviewer->total_reviews = $reviewer->submissionReviewers->count();
         $reviewer->pending_reviews = $reviewer->submissionReviewers()
-            ->whereNull('reviewed_at')
+            // ->whereNull('reviewed_at')
             ->count();
         $reviewer->completed_reviews = $reviewer->submissionReviewers()
-            ->whereNotNull('reviewed_at')
+            // ->whereNotNull('reviewed_at')
             ->count();
 
         return Inertia::render('Reviewers/Show', [
@@ -189,7 +189,6 @@ class ReviewerController extends Controller
     {
         // Check if reviewer has pending reviews
         $pendingReviews = $reviewer->submissionReviewers()
-            ->whereNull('reviewed_at')
             ->count();
 
         if ($pendingReviews > 0) {
