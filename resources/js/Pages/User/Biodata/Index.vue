@@ -29,6 +29,7 @@ import {
     Info,
     ArrowLeft,
 } from "lucide-vue-next";
+import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout.vue";
 
 interface FormFieldOption {
     id: number;
@@ -214,8 +215,18 @@ const submitForm = () => {
     props.form.form_fields.forEach((field) => {
         if (field.is_required) {
             const value = formData.responses[`field_${field.id}`];
-            if (!value || (typeof value === "string" && value.trim() === "")) {
-                missingFields.push(field.label);
+
+            // Special handling for checkbox - it's valid if it's true OR false (boolean)
+            if (field.field_type.name.toLowerCase() === 'checkbox') {
+                // Checkbox hanya invalid jika undefined/null
+                if (value === undefined || value === null) {
+                    missingFields.push(field.label);
+                }
+            } else {
+                // For other fields, check if empty
+                if (!value || (typeof value === "string" && value.trim() === "")) {
+                    missingFields.push(field.label);
+                }
             }
         }
     });
@@ -252,9 +263,11 @@ const submitForm = () => {
                     value: ''
                 });
             } else {
+                // Convert boolean to string for checkbox
+                const finalValue = typeof value === 'boolean' ? (value ? '1' : '0') : (value || '');
                 responses.push({
                     form_field_id: field.id,
-                    value: value || ''
+                    value: finalValue
                 });
             }
         });
@@ -285,10 +298,24 @@ const submitForm = () => {
             },
         });
     } else {
+        const responses = getFormResponses();
+
+        // Convert boolean values to string for checkbox fields
+        const processedResponses = responses.map(response => {
+            const field = props.form.form_fields.find(f => f.id === response.form_field_id);
+            if (field?.field_type.name.toLowerCase() === 'checkbox') {
+                return {
+                    ...response,
+                    value: typeof response.value === 'boolean' ? (response.value ? '1' : '0') : response.value
+                };
+            }
+            return response;
+        });
+
         const payload = {
             form_id: props.form.id,
             is_submitted: true,
-            responses: getFormResponses(),
+            responses: processedResponses,
         };
 
         console.log('=== Submit without Files ===', payload);
