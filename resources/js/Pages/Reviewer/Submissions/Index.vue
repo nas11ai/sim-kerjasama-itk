@@ -173,7 +173,7 @@ const applyFilters = () => {
 };
 
 const viewSubmission = (submissionId: number) => {
-    router.visit(route("reviewer.submissions.show", submissionId));
+    router.visit(route("user.submissions.show", submissionId));
 };
 
 // Stats computation
@@ -388,7 +388,12 @@ const submissionStats = computed(() => {
                     <CardTitle>Assigned Submissions</CardTitle>
                     <CardDescription>
                         Showing {{ submissions.data.length }} of
-                        {{ submissions.meta.total }} submissions
+                        {{
+                            submissions.meta?.total ??
+                            submissions.data?.length ??
+                            0
+                        }}
+                        submissions
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
