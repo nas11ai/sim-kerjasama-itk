@@ -217,7 +217,7 @@ Route::middleware(['auth', 'role:Super Admin|Admin', 'check_reviewer_status'])->
 
     // Assigning & Revoke Permissions for Roles
     Route::post('users/{user}/give-permission', [RoleController::class, 'givePermissions'])
-        ->name('users.assign-role');
+        ->name('users.assign-permissions');
     Route::delete('users/{user}/revoke-permission', [RoleController::class, 'revokePermissions'])
         ->name('users.revoke-permissions');
 
