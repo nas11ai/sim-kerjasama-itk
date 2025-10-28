@@ -89,7 +89,7 @@ class FacultyController extends Controller
             'name' => $request->name,
         ]);
 
-        return redirect()->route('admin.faculties.index')
+        return redirect()->route('faculties.index')
             ->with('success', 'Faculty updated successfully.');
     }
 
@@ -103,7 +103,7 @@ class FacultyController extends Controller
 
             $faculty->delete();
 
-            return redirect()->route('admin.faculties.index')
+            return redirect()->route('faculties.index')
                 ->with('success', 'Faculty deleted successfully.');
         } catch (\Exception $e) {
             return back()->withErrors(['error' => 'Failed to delete faculty: ' . $e->getMessage()]);

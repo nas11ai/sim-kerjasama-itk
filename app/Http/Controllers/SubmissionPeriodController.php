@@ -128,7 +128,6 @@ class SubmissionPeriodController extends Controller
 
             return redirect()->route('admin.submission-periods.index')
                 ->with('success', 'Submission period created successfully.');
-
         } catch (\Exception $e) {
             DB::rollback();
             return back()->withErrors(['error' => 'Failed to create submission period: ' . $e->getMessage()]);
@@ -247,9 +246,8 @@ class SubmissionPeriodController extends Controller
 
             DB::commit();
 
-            return redirect()->route('admin.submission-periods.index')
+            return redirect()->route('admin.admin.submission-periods.index')
                 ->with('success', 'Submission period updated successfully.');
-
         } catch (\Exception $e) {
             DB::rollback();
             return back()->withErrors(['error' => 'Failed to update submission period: ' . $e->getMessage()]);
@@ -269,9 +267,8 @@ class SubmissionPeriodController extends Controller
 
             DB::commit();
 
-            return redirect()->route('submission-periods.index')
+            return redirect()->route('admin.submission-periods.index')
                 ->with('success', 'Submission period deleted successfully.');
-
         } catch (\Exception $e) {
             DB::rollback();
             return back()->withErrors(['error' => 'Failed to delete submission period: ' . $e->getMessage()]);
@@ -286,8 +283,8 @@ class SubmissionPeriodController extends Controller
         if ($dates->isEmpty())
             return false;
 
-        $startDate = Carbon::parse($dates->first()->datetime);
-        $endDate = Carbon::parse($dates->last()->datetime);
+        $startDate = Carbon::parse($dates->first()->date);
+        $endDate = Carbon::parse($dates->last()->date);
 
         return $now->between($startDate, $endDate);
     }
@@ -300,8 +297,8 @@ class SubmissionPeriodController extends Controller
         if ($dates->isEmpty())
             return 'no_dates';
 
-        $startDate = Carbon::parse($dates->first()->datetime);
-        $endDate = Carbon::parse($dates->last()->datetime);
+        $startDate = Carbon::parse($dates->first()->date);
+        $endDate = Carbon::parse($dates->last()->date);
 
         if ($now->lt($startDate)) {
             return 'upcoming';
@@ -319,7 +316,7 @@ class SubmissionPeriodController extends Controller
         if ($dates->isEmpty())
             return null;
 
-        $endDate = Carbon::parse($dates->last()->datetime);
+        $endDate = Carbon::parse($dates->last()->date);
         $now = Carbon::now();
 
         if ($now->gt($endDate))
@@ -331,13 +328,14 @@ class SubmissionPeriodController extends Controller
     public function storeLabel(Request $request)
     {
         $request->validate([
-            'label' => 'required|string|max:255|unique:submission_date_labels,label'
+            'name' => 'required|string|max:255|unique:submission_date_labels,name'
         ]);
 
         $label = SubmissionDateLabel::create([
-            'label' => $request->label
+            'name' => $request->name
         ]);
 
+        // Kembalikan JSON, bukan redirect
         return response()->json($label);
     }
 }

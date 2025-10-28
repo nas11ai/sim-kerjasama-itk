@@ -1,3 +1,4 @@
+<!-- resources/js/Pages/Reviewer/Submissions/Index.vue -->
 <script setup lang="ts">
 import { ref, computed } from 'vue';
 import { Head, Link, router } from '@inertiajs/vue3';
@@ -21,7 +22,12 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/Components/ui/select';
-import { Search, FileText, User, Calendar, Star, Eye, CheckCircle, XCircle, Info, Filter } from 'lucide-vue-next';
+import { Search, FileText, User, Calendar, Star, Eye, CheckCircle, XCircle, Info, Filter, MessageSquare } from 'lucide-vue-next';
+
+interface ReviewSummary {
+    id: number;
+    status: string;
+}
 
 interface Reviewer {
     id: number;
@@ -45,6 +51,7 @@ interface Submission {
         name: string;
         email: string;
     };
+    review_summaries?: ReviewSummary[];
 }
 
 interface Props {
@@ -142,22 +149,28 @@ const submissionStats = computed(() => {
     const data = props.submissions.data;
     return {
         total: data.length,
-        open: data.filter(s => s.review_summaries[0]?.status === 'open').length,
-        resolved: data.filter(s => s.review_summaries[0]?.status === 'resolved').length,
-        closed: data.filter(s => s.review_summaries[0]?.status === 'closed').length
+        // Gunakan submission.status, bukan review_summaries
+        pending: data.filter(s => s.status === 'pending' || s.status === 'under_review').length,
+        approved: data.filter(s => s.status === 'approved').length,
+        rejected: data.filter(s => s.status === 'rejected').length,
+        // Jika tetap ingin menggunakan review_summaries (opsional)
+        open: data.filter(s => s.review_summaries?.[0]?.status === 'open').length,
+        resolved: data.filter(s => s.review_summaries?.[0]?.status === 'resolved').length,
+        closed: data.filter(s => s.review_summaries?.[0]?.status === 'closed').length
     };
 });
 </script>
 
 <template>
-    <Head title="Reviewer - Assigned Submissions" />
+
+    <Head title="Review Tasks - Assigned Submissions" />
 
     <AuthenticatedLayout>
         <template #header>
             <div class="flex items-center justify-between">
                 <div>
                     <h2 class="text-xl font-semibold leading-tight text-gray-800">
-                        Assigned Reviews
+                        Review Tasks
                     </h2>
                     <p class="mt-1 text-sm text-gray-600">
                         Submissions assigned to you for review as:

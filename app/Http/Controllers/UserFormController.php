@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\UserProfile;
 use App\Models\SubmissionPeriod;
 use App\Models\FormPhase;
 use App\Models\FormSubmission;
@@ -25,11 +24,9 @@ class UserFormController extends Controller
         $user = Auth::user();
 
         // Get user's study program and role
-        $studyProgram = UserProfile::where('user_id', $user->id)->with('studyProgram.faculty')->first()->studyProgram ?? null;
+        $studyProgram = $user->studyProgram ?? null;
         $userRoles = $user->getRoleNames();
         $primaryRole = $userRoles->first() ?? 'user';
-
-        // dd($userRoles, $primaryRole, $studyProgram);
 
         // Check if user is a reviewer
         $reviewer = \App\Models\Reviewer::where('user_id', $user->id)->first();
@@ -91,29 +88,13 @@ class UserFormController extends Controller
                     // Get user's accessible form access controls
                     $accessibleForms = $formPhase->formPhaseDetails->filter(function ($detail) use ($user) {
                         $formAccessControl = $detail->formAccessControl;
-
-                        if (!$formAccessControl) {
-                            return false;
-                        }
-
-                        //cek role
-                        $matchRole = $formAccessControl->role && $user->hasRole($formAccessControl->role->name);
-
-                        //cek prodi
-                        $userStudyProgramId = $user->userProfile?->study_program_id;
-                        $matchProdi = $formAccessControl->study_program_id === null
-                            || ($userStudyProgramId && $formAccessControl->study_program_id == $userStudyProgramId);
-
-                        return $matchRole && $matchProdi;
+                        return $formAccessControl &&
+                            $formAccessControl->role &&
+                            $user->hasRole($formAccessControl->role->name);
                     });
 
                     // Calculate progress
                     $totalForms = $accessibleForms->count();
-
-                    if ($totalForms === 0) {
-                        return null;
-                    }
-
                     $completedForms = 0;
                     $pendingReview = 0;
                     $canProceed = true;
@@ -136,7 +117,7 @@ class UserFormController extends Controller
                         'id' => $formPhase->id,
                         'title' => $formPhase->title,
                         'description' => $formPhase->description,
-                        'user_can_access' => true,
+                        'user_can_access' => $totalForms > 0,
                         'user_progress' => [
                             'total_forms' => $totalForms,
                             'completed_forms' => $completedForms,
@@ -145,13 +126,11 @@ class UserFormController extends Controller
                         ]
                     ];
                 })->filter(function ($phase) {
-                    return $phase !== null;
+                    return $phase['user_can_access'];
                 })->values();
 
                 return $period;
-            })->filter(function ($period) {
-                return $period->form_phases->count() > 0;
-            })->values();
+            });
 
         // Get review stats if user is reviewer
         $reviewStats = null;
@@ -166,13 +145,6 @@ class UserFormController extends Controller
                     ->where('status', 'closed')->count(),
             ];
         }
-
-        $form = Form::where('is_active', true)
-            ->whereHas('formAccessControls', function ($q) use ($user) {
-                $q->where('role_id', $user->role_id)
-                    ->where('study_program_id', $user->study_program_id);
-            })
-            ->get();
 
         return Inertia::render('User/Dashboard', [
             'submissionPeriods' => $submissionPeriods,
@@ -189,8 +161,7 @@ class UserFormController extends Controller
             'reviewer' => $reviewer ? [
                 'id' => $reviewer->id,
                 'reviewer_role' => $reviewer->reviewerRole->name
-            ] : null,
-            'forms' => $form
+            ] : null
         ]);
     }
 

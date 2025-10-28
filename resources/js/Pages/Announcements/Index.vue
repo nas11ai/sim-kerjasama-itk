@@ -18,8 +18,22 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from "@/Components/ui/dropdown-menu";
-import { MoreHorizontal, Plus, Eye, Edit, Copy, Trash2, Paperclip } from "lucide-vue-next";
+import {
+    MoreHorizontal,
+    Plus,
+    Eye,
+    Edit,
+    Copy,
+    Trash2,
+    Paperclip,
+    ArrowUpRightIcon,
+    FolderCode,
+    Files,
+    FilePlus,
+    FileX2,
+} from "lucide-vue-next";
 import { useToast } from "@/Components/ui/toast/use-toast";
+import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/Components/ui/empty";
 
 interface AnnouncementFile {
     id: number;
@@ -170,7 +184,8 @@ function stripHtml(html: string) {
                                                     'admin.announcements.show',
                                                     announcement.id
                                                 )
-                                            " class="cursor-pointer"
+                                            "
+                                            class="cursor-pointer"
                                         >
                                             <Eye class="h-4 w-4 mr-2" />
                                             View
@@ -183,7 +198,8 @@ function stripHtml(html: string) {
                                                     'admin.announcements.edit',
                                                     announcement.id
                                                 )
-                                            " class="cursor-pointer"
+                                            "
+                                            class="cursor-pointer"
                                         >
                                             <Edit class="h-4 w-4 mr-2" />
                                             Edit
@@ -271,36 +287,25 @@ function stripHtml(html: string) {
                 v-if="props.announcements.data.length === 0"
                 class="text-center py-12"
             >
-                <div class="mx-auto max-w-md">
-                    <div class="mx-auto h-12 w-12 text-muted-foreground">
-                        <svg
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                        >
-                            <path
-                                stroke-linecap="round"
-                                stroke-linejoin="round"
-                                stroke-width="1"
-                                d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-                            />
-                        </svg>
-                    </div>
-                    <h3 class="mt-2 text-sm font-medium text-gray-900">
-                        No announcements
-                    </h3>
-                    <p class="mt-1 text-sm text-muted-foreground">
-                        Get started by creating your first announcement.
-                    </p>
-                    <div class="mt-6">
+                <Empty>
+                    <EmptyHeader>
+                        <EmptyMedia variant="icon">
+                            <FileX2 />
+                        </EmptyMedia>
+                        <EmptyTitle>No Announcement Yet</EmptyTitle>
+                        <EmptyDescription>
+                            You haven't created any announcement yet. Get started by
+                            creating your first announcement.
+                        </EmptyDescription>
+                    </EmptyHeader>
+                    <EmptyContent>
                         <Link :href="route('admin.announcements.create')">
                             <Button>
-                                <Plus class="h-4 w-4 mr-2" />
                                 Create Announcement
                             </Button>
                         </Link>
-                    </div>
-                </div>
+                    </EmptyContent>
+                </Empty>
             </div>
 
             <!-- Pagination -->
