@@ -111,7 +111,7 @@ const assignReviewers = () => {
     isSubmitting.value = true;
 
     router.post(
-        `/submissions/${props.submissionId}/assign-reviewers`,
+        `/admin/submissions/${props.submissionId}/assign-reviewers`,
         {
             reviewer_ids: selectedReviewerIds.value,
             auto_assign_forms: autoAssignForms.value,

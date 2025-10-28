@@ -25,6 +25,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'check_reviewer_status' => CheckReviewer::class,
             'permission' => \Spatie\Permission\Middleware\PermissionMiddleware::class,
             'role_or_permission' => \Spatie\Permission\Middleware\RoleOrPermissionMiddleware::class,
+            'check_biodata' => \App\Http\Middleware\CheckBiodata::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {

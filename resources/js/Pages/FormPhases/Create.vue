@@ -123,13 +123,16 @@ const submit = () => {
 </script>
 
 <template>
-
     <Head title="Create Form Phase" />
 
     <AuthenticatedLayout>
         <template #header>
             <div class="flex items-center gap-4">
-                <Button variant="ghost" size="sm" @click="$inertia.visit(route('admin.form-phases.index'))">
+                <Button
+                    variant="ghost"
+                    size="sm"
+                    @click="$inertia.visit(route('admin.form-phases.index'))"
+                >
                     <ArrowLeft class="h-4 w-4 mr-2" />
                     Back
                 </Button>
@@ -150,9 +153,18 @@ const submit = () => {
                         <!-- Phase Title -->
                         <div class="space-y-2">
                             <Label for="title">Phase Title *</Label>
-                            <Input id="title" v-model="form.title" placeholder="Enter phase title" :class="errors.title ? 'border-destructive' : ''
-                                " />
-                            <p v-if="errors.title" class="text-sm text-destructive">
+                            <Input
+                                id="title"
+                                v-model="form.title"
+                                placeholder="Enter phase title"
+                                :class="
+                                    errors.title ? 'border-destructive' : ''
+                                "
+                            />
+                            <p
+                                v-if="errors.title"
+                                class="text-sm text-destructive"
+                            >
                                 {{ errors.title }}
                             </p>
                         </div>
@@ -160,8 +172,12 @@ const submit = () => {
                         <!-- Description -->
                         <div class="space-y-2">
                             <Label for="description">Description</Label>
-                            <Textarea id="description" v-model="form.description"
-                                placeholder="Enter phase description (optional)" rows="3" />
+                            <Textarea
+                                id="description"
+                                v-model="form.description"
+                                placeholder="Enter phase description (optional)"
+                                rows="3"
+                            />
                         </div>
 
                         <!-- Active switch -->
@@ -177,15 +193,22 @@ const submit = () => {
                     <CardHeader>
                         <div class="flex items-center justify-between">
                             <CardTitle>Phase Details</CardTitle>
-                            <Button v-if="form.phase_details.length === 0" type="button" @click="addPhaseDetail"
-                                size="sm">
+                            <Button
+                                v-if="form.phase_details.length === 0"
+                                type="button"
+                                @click="addPhaseDetail"
+                                size="sm"
+                            >
                                 <Plus class="h-4 w-4 mr-2" />
                                 Add Phase Detail
                             </Button>
                         </div>
                     </CardHeader>
                     <CardContent>
-                        <div v-if="form.phase_details.length === 0" class="text-center py-8 text-muted-foreground">
+                        <div
+                            v-if="form.phase_details.length === 0"
+                            class="text-center py-8 text-muted-foreground"
+                        >
                             <p>
                                 No phase details added yet. Click "Add Phase
                                 Detail" to get started.
@@ -193,38 +216,61 @@ const submit = () => {
                         </div>
 
                         <div v-else class="space-y-4">
-                            <draggable v-model="form.phase_details" item-key="temp_id" handle=".drag-handle"
-                                class="space-y-4" :animation="200" @end="
+                            <draggable
+                                v-model="form.phase_details"
+                                item-key="temp_id"
+                                handle=".drag-handle"
+                                class="space-y-4"
+                                :animation="200"
+                                @end="
                                     form.phase_details.forEach(
                                         (detail, idx) =>
                                             (detail.order = idx + 1)
                                     )
-                                    ">
+                                "
+                            >
                                 <template #item="{ element: detail, index }">
                                     <Card class="border-2 border-dashed">
                                         <CardContent class="pt-6">
                                             <div class="flex items-start gap-4">
-                                                <div class="drag-handle cursor-move p-1 hover:bg-muted rounded">
-                                                    <GripVertical class="h-4 w-4 text-muted-foreground" />
+                                                <div
+                                                    class="drag-handle cursor-move p-1 hover:bg-muted rounded"
+                                                >
+                                                    <GripVertical
+                                                        class="h-4 w-4 text-muted-foreground"
+                                                    />
                                                 </div>
 
                                                 <div class="flex-1 space-y-4">
-                                                    <div class="grid gap-4 md:grid-cols-2">
+                                                    <div
+                                                        class="grid gap-4 md:grid-cols-2"
+                                                    >
                                                         <!-- Form Access Control -->
                                                         <div class="space-y-2">
-                                                            <Label>Form Access
-                                                                Control *</Label>
-                                                            <Select v-model="detail.form_access_control_id
-                                                                ">
+                                                            <Label
+                                                                >Form Access
+                                                                Control *</Label
+                                                            >
+                                                            <Select
+                                                                v-model="
+                                                                    detail.form_access_control_id
+                                                                "
+                                                            >
                                                                 <SelectTrigger>
                                                                     <SelectValue
-                                                                        placeholder="Select form access control" />
+                                                                        placeholder="Select form access control"
+                                                                    />
                                                                 </SelectTrigger>
                                                                 <SelectContent>
-                                                                    <SelectItem v-for="fac in props.formAccessControls"
-                                                                        :key="fac.id
-                                                                            " :value="fac.id
-                                                                                ">
+                                                                    <SelectItem
+                                                                        v-for="fac in props.formAccessControls"
+                                                                        :key="
+                                                                            fac.id
+                                                                        "
+                                                                        :value="
+                                                                            fac.id
+                                                                        "
+                                                                    >
                                                                         {{
                                                                             fac
                                                                                 .form
@@ -249,18 +295,30 @@ const submit = () => {
 
                                                         <!-- Phase Type -->
                                                         <div class="space-y-2">
-                                                            <Label>Phase Type
-                                                                *</Label>
-                                                            <Select v-model="detail.phase_type_id
-                                                                ">
+                                                            <Label
+                                                                >Phase Type
+                                                                *</Label
+                                                            >
+                                                            <Select
+                                                                v-model="
+                                                                    detail.phase_type_id
+                                                                "
+                                                            >
                                                                 <SelectTrigger>
-                                                                    <SelectValue placeholder="Select phase type" />
+                                                                    <SelectValue
+                                                                        placeholder="Select phase type"
+                                                                    />
                                                                 </SelectTrigger>
                                                                 <SelectContent>
-                                                                    <SelectItem v-for="phaseType in props.phaseTypes"
-                                                                        :key="phaseType.id
-                                                                            " :value="phaseType.id
-                                                                                ">
+                                                                    <SelectItem
+                                                                        v-for="phaseType in props.phaseTypes"
+                                                                        :key="
+                                                                            phaseType.id
+                                                                        "
+                                                                        :value="
+                                                                            phaseType.id
+                                                                        "
+                                                                    >
                                                                         {{
                                                                             phaseType.name
                                                                         }}
@@ -271,34 +329,56 @@ const submit = () => {
                                                     </div>
 
                                                     <!-- Needs Review switch -->
-                                                    <div class="flex items-center space-x-2">
-                                                        <Switch v-model="detail.needs_review" />
-                                                        <Label>Needs Review</Label>
+                                                    <div
+                                                        class="flex items-center space-x-2"
+                                                    >
+                                                        <Switch
+                                                            v-model="
+                                                                detail.needs_review
+                                                            "
+                                                        />
+                                                        <Label
+                                                            >Needs Review</Label
+                                                        >
                                                     </div>
 
                                                     <!-- Order Display -->
-                                                    <div class="flex items-center gap-2">
-                                                        <Badge variant="outline">
+                                                    <div
+                                                        class="flex items-center gap-2"
+                                                    >
+                                                        <Badge
+                                                            variant="outline"
+                                                        >
                                                             Order:
                                                             {{ detail.order }}
                                                         </Badge>
                                                     </div>
 
                                                     <!-- Preview Info -->
-                                                    <div v-if="
-                                                        detail.form_access_control_id &&
-                                                        detail.phase_type_id
-                                                    " class="mt-4 p-3 bg-muted rounded-lg">
-                                                        <Label class="text-sm text-muted-foreground mb-2 block">
+                                                    <div
+                                                        v-if="
+                                                            detail.form_access_control_id &&
+                                                            detail.phase_type_id
+                                                        "
+                                                        class="mt-4 p-3 bg-muted rounded-lg"
+                                                    >
+                                                        <Label
+                                                            class="text-sm text-muted-foreground mb-2 block"
+                                                        >
                                                             Preview:
                                                         </Label>
-                                                        <div v-if="
-                                                            getFormAccessControlInfo(
-                                                                detail.form_access_control_id
-                                                            )
-                                                        " class="space-y-1 text-sm">
+                                                        <div
+                                                            v-if="
+                                                                getFormAccessControlInfo(
+                                                                    detail.form_access_control_id
+                                                                )
+                                                            "
+                                                            class="space-y-1 text-sm"
+                                                        >
                                                             <div>
-                                                                <strong>Form:</strong>
+                                                                <strong
+                                                                    >Form:</strong
+                                                                >
                                                                 {{
                                                                     getFormAccessControlInfo(
                                                                         detail.form_access_control_id
@@ -307,7 +387,9 @@ const submit = () => {
                                                                 }}
                                                             </div>
                                                             <div>
-                                                                <strong>Role:</strong>
+                                                                <strong
+                                                                    >Role:</strong
+                                                                >
                                                                 {{
                                                                     getFormAccessControlInfo(
                                                                         detail.form_access_control_id
@@ -315,8 +397,10 @@ const submit = () => {
                                                                 }}
                                                             </div>
                                                             <div>
-                                                                <strong>Study
-                                                                    Program:</strong>
+                                                                <strong
+                                                                    >Study
+                                                                    Program:</strong
+                                                                >
                                                                 {{
                                                                     getFormAccessControlInfo(
                                                                         detail.form_access_control_id
@@ -326,8 +410,10 @@ const submit = () => {
                                                                 }}
                                                             </div>
                                                             <div>
-                                                                <strong>Phase
-                                                                    Type:</strong>
+                                                                <strong
+                                                                    >Phase
+                                                                    Type:</strong
+                                                                >
                                                                 {{
                                                                     props.phaseTypes.find(
                                                                         (pt) =>
@@ -340,9 +426,15 @@ const submit = () => {
                                                     </div>
                                                 </div>
 
-                                                <Button type="button" variant="ghost" size="sm" @click="
-                                                    removePhaseDetail(index)
-                                                    " class="text-destructive hover:text-destructive">
+                                                <Button
+                                                    type="button"
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    @click="
+                                                        removePhaseDetail(index)
+                                                    "
+                                                    class="text-destructive hover:text-destructive"
+                                                >
                                                     <Trash2 class="h-4 w-4" />
                                                 </Button>
                                             </div>
@@ -353,8 +445,13 @@ const submit = () => {
 
                             <!-- Add Another Detail Button -->
                             <div class="flex justify-center pt-4">
-                                <Button type="button" @click="addPhaseDetail" variant="outline" size="sm"
-                                    class="w-full max-w-xs">
+                                <Button
+                                    type="button"
+                                    @click="addPhaseDetail"
+                                    variant="outline"
+                                    size="sm"
+                                    class="w-full max-w-xs"
+                                >
                                     <Plus class="h-4 w-4 mr-2" />
                                     Add Another Phase Detail
                                 </Button>
@@ -363,9 +460,19 @@ const submit = () => {
                     </CardContent>
                 </Card>
 
+                <p v-if="errors.phase_details" class="text-sm text-destructive">
+                    {{ errors.phase_details }}
+                </p>
+
                 <!-- Form Actions -->
                 <div class="flex items-center justify-end space-x-2">
-                    <Button type="button" variant="outline" @click="$inertia.visit(route('admin.form-phases.index'))">
+                    <Button
+                        type="button"
+                        variant="outline"
+                        @click="
+                            $inertia.visit(route('admin.form-phases.index'))
+                        "
+                    >
                         Cancel
                     </Button>
                     <Button type="submit" :disabled="form.processing">

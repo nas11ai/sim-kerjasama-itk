@@ -14,7 +14,13 @@ use App\Http\Controllers\ReviewerController;
 use App\Http\Controllers\SubmissionPeriodController;
 use App\Http\Controllers\SubmissionViewController;
 use App\Http\Controllers\UserFormController;
+use App\Http\Controllers\AnnouncementController;
+use App\Http\Controllers\PermissionController;
+use App\Http\Controllers\RoleController;
+use App\Http\Controllers\UserController;
+use App\Http\Controllers\BiodataController;
 use Illuminate\Foundation\Application;
+use App\Models\Announcement;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
@@ -24,8 +30,14 @@ Route::get('/', function () {
         'canRegister' => Route::has('register'),
         'laravelVersion' => Application::VERSION,
         'phpVersion' => PHP_VERSION,
+        'announcements' => Announcement::latest()
+            ->with('announcementFiles')
+            ->where('type', 'public')
+            ->get(),
     ]);
 });
+
+Route::get('announcements/{announcement}', [AnnouncementController::class, 'detail'])->name('announcements.detail');
 
 Route::middleware(['auth', 'check_reviewer_status'])->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
@@ -93,9 +105,21 @@ Route::middleware(['auth', 'check_reviewer_status'])->group(function () {
         ->name('reviewer.assignments.index');
 });
 
-Route::middleware(['auth', 'check_reviewer_status'])->prefix('user')->name('user.')->group(function () {
+Route::middleware(['auth'])->prefix('user')->name('user.')->group(function () {
+    // khusus form biodata
+    Route::get('/biodata', [BiodataController::class, 'showBiodataForm'])->name('biodata.index');
+    Route::post('/biodata', [BiodataController::class, 'submitForm'])->name('biodata.submit');
+});
+
+Route::middleware(['auth', 'check_biodata', 'check_reviewer_status'])->prefix('user')->name('user.')->group(function () {
     Route::get('/dashboard', [UserFormController::class, 'dashboard'])
         ->name('dashboard');
+
+    Route::get('/announcements', [AnnouncementController::class, 'userIndex'])
+        ->name('announcements.index');
+
+    Route::get('/announcements/{announcement}/markRead', [AnnouncementController::class, 'markAsRead'])
+        ->name('announcements.markRead');
 
     // Form Phase Routes
     Route::get('/submission-period/{period}/form-phase/{phase}', [UserFormController::class, 'showFormPhase'])
@@ -132,6 +156,9 @@ Route::middleware(['auth', 'check_reviewer_status'])->prefix('reviewer')->name('
     Route::get('/submissions', [SubmissionViewController::class, 'reviewerSubmissions'])
         ->name('submissions.index');
 
+    Route::get('/submissions/{submission}', [SubmissionViewController::class, 'reviewerShowSubmission'])
+        ->name('submissions.show');
+
     // Enhanced review actions with evaluation context
     Route::patch('/review-summaries/{reviewSummary}/complete', [ReviewController::class, 'completeReview'])
         ->name('review-summaries.complete');
@@ -153,7 +180,50 @@ Route::middleware(['auth', 'role:Super Admin|Admin', 'check_reviewer_status'])->
         return Inertia::render('Dashboard');
     })->middleware(['auth', 'verified'])->name('dashboard');
 
+    // User Management
+    Route::get('/users', [UserController::class, 'index'])->name('users.index');
+    Route::get('/users/create', [UserController::class, 'create'])->name('users.create');
+    Route::post('/users/store', [UserController::class, 'store'])->name('users.store');
+    Route::get('/users/{user}', [UserController::class, 'edit'])->name('users.edit');
+    Route::put('/users/{user}', [UserController::class, 'update'])->name('users.update');
+    Route::delete('/users/{user}', [UserController::class, 'delete'])->name('users.delete');
+
+    // Role Management
+    Route::resource('roles', RoleController::class)->names([
+        'index' => 'roles.index',
+        'create' => 'roles.create',
+        'store' => 'roles.store',
+        'edit' => 'roles.edit',
+        'update' => 'roles.update',
+        'destroy' => 'roles.destroy',
+    ]);
+
+    // Permission Management
+    Route::resource('permissions', PermissionController::class)->names([
+        'index' => 'permissions.index',
+        'create' => 'permissions.create',
+        'store' => 'permissions.store',
+        'show' => 'permissions.show',
+        'edit' => 'permissions.edit',
+        'update' => 'permissions.update',
+        'destroy' => 'permissions.destroy',
+    ]);
+
+    // Assigning & Revoke Role for Users
+    Route::post('users/{user}/assign-role', [UserController::class, 'assignRole'])
+        ->name('users.assign-role');
+    Route::delete('users/{user}/revoke-role', [UserController::class, 'revokeRole'])
+        ->name('users.revoke-role');
+
+    // Assigning & Revoke Permissions for Roles
+    Route::post('users/{user}/give-permission', [RoleController::class, 'givePermissions'])
+        ->name('users.assign-permissions');
+    Route::delete('users/{user}/revoke-permission', [RoleController::class, 'revokePermissions'])
+        ->name('users.revoke-permissions');
+
     Route::resource('forms', FormController::class);
+    Route::post('forms/{form}/duplicate', [FormController::class, 'duplicate'])
+        ->name('forms.duplicate');
 
     // NEW: Review Evaluation Forms Management
     Route::resource('review-evaluation-forms', ReviewEvaluationFormController::class)->names([
@@ -291,6 +361,16 @@ Route::middleware(['auth', 'role:Super Admin|Admin', 'check_reviewer_status'])->
         'destroy' => 'faculties.destroy',
     ]);
 
+    Route::resource('announcements', AnnouncementController::class)->names([
+        'index' => 'announcements.index',
+        'create' => 'announcements.create',
+        'store' => 'announcements.store',
+        'show' => 'announcements.show',
+        'edit' => 'announcements.edit',
+        'update' => 'announcements.update',
+        'destroy' => 'announcements.destroy',
+    ]);
+
     // Study Program Routes
     Route::get('study-programs', [FacultyController::class, 'studyPrograms'])
         ->name('faculties.study-programs');
@@ -353,6 +433,10 @@ Route::middleware(['auth', 'role:Super Admin|Admin', 'check_reviewer_status'])->
     Route::get('/faculties', function () {
         return redirect()->route('admin.faculties.index');
     });
+    Route::get('/announcements', function () {
+        return redirect()->route('admin.announcements.index');
+    });
+
     Route::get('/review-evaluation-forms', function () {
         return redirect()->route('admin.review-evaluation-forms.index');
     });

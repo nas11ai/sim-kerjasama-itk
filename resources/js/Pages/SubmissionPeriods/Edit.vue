@@ -1,12 +1,11 @@
 <script setup lang="ts">
-import { computed, ref, onMounted } from "vue";
+import { computed, ref, onMounted, nextTick, watch } from "vue";
 import { Head, useForm } from "@inertiajs/vue3";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout.vue";
 import { Button } from "@/Components/ui/button";
 import { Input } from "@/Components/ui/input";
 import { Label } from "@/Components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/Components/ui/card";
-import { Checkbox } from "@/Components/ui/checkbox";
 import { Badge } from "@/Components/ui/badge";
 import { Separator } from "@/Components/ui/separator";
 import {
@@ -24,7 +23,7 @@ import {
     Settings,
     FileText,
 } from "lucide-vue-next";
-import { watch } from "vue";
+import Checkbox from "@/Components/Checkbox.vue";
 
 interface FormPhase {
     id: number;
@@ -81,13 +80,12 @@ interface SubmissionPeriod {
     submission_period_details: SubmissionPeriodDetail[];
 }
 
-// Fix: Add index signature to FormData interface
 interface FormData {
     name: string;
     submission_dates: SubmissionDate[];
     form_phase_ids: number[];
     submission_rule_ids: number[];
-    [key: string]: any; // Add index signature
+    [key: string]: any;
 }
 
 interface Props {
@@ -117,20 +115,27 @@ const newLabelForm = useForm({
 // State untuk menyimpan labels yang ditambahkan secara dinamis
 const dynamicLabels = ref<SubmissionDateLabel[]>([]);
 
-// Computed untuk menggabungkan labels dari props dan yang ditambahkan secara dinamis
-const allLabels = computed(() => [
-    ...props.submissionDateLabels,
-    ...dynamicLabels.value,
-]);
+// Reactive key untuk memaksa update komponen Select
+const selectKey = ref(0);
+
+// Computed untuk menggabungkan labels
+const allLabels = computed(() => {
+    return [
+        ...props.submissionDateLabels,
+        ...dynamicLabels.value,
+    ];
+});
 
 const generateTempId = () => `temp_${Date.now()}_${Math.random()}`;
 
 // Initialize form data with existing data
-onMounted(() => {
+onMounted(async () => {
+    await nextTick();
+
     // Load existing submission dates
     form.submission_dates = props.submissionPeriod.submission_dates.map(
         (date) => ({
-            label: date.submission_date_label.name,
+            label: date.submission_date_label?.name || "",
             datetime: formatDateForInput(date.datetime),
             temp_id: generateTempId(),
         })
@@ -166,38 +171,42 @@ const formatDateForInput = (dateString: string): string => {
 };
 
 const addSubmissionDate = () => {
-    form.submission_dates.push({
+    const newDate = {
         label: "",
         datetime: "",
         temp_id: generateTempId(),
-    });
+    };
+
+    form.submission_dates.push(newDate);
 };
 
 const addNewLabel = async () => {
     if (newLabelForm.label.trim()) {
         try {
             const response = await fetch(
-                route("submission-date-labels.store"),
+                route("admin.submission-date-labels.store"),
                 {
                     method: "POST",
                     headers: {
                         "Content-Type": "application/json",
+                        Accept: "application/json",
                         "X-CSRF-TOKEN":
                             document
                                 .querySelector('meta[name="csrf-token"]')
                                 ?.getAttribute("content") || "",
                     },
-                    body: JSON.stringify({ label: newLabelForm.label.trim() }),
+                    body: JSON.stringify({ name: newLabelForm.label.trim() }),
                 }
             );
 
-            if (response.ok) {
-                const newLabel = await response.json();
-                dynamicLabels.value.push(newLabel);
-                newLabelForm.reset();
-            } else {
-                console.error("Failed to add new label:", response.statusText);
+            if (!response.ok) {
+                const text = await response.text();
+                console.error("Request failed:", text);
+                return;
             }
+
+            const newLabel = await response.json();
+            dynamicLabels.value.push(newLabel);
             showAddLabelDialog.value = false;
         } catch (error) {
             console.error("Failed to add new label:", error);
@@ -327,39 +336,72 @@ watch(showAddLabelDialog, (val) => {
                                             </Button>
 
                                             <!-- Modal Overlay -->
-                                            <div v-if="showAddLabelDialog" class="fixed inset-0 z-50">
+                                            <div
+                                                v-if="showAddLabelDialog"
+                                                class="fixed inset-0 z-50"
+                                            >
                                                 <!-- Background hitam -->
-                                                <div class="absolute inset-0 bg-black/80" @click="
-                                                    showAddLabelDialog = false
-                                                    "></div>
+                                                <div
+                                                    class="absolute inset-0 bg-black/80"
+                                                    @click="
+                                                        showAddLabelDialog = false
+                                                    "
+                                                ></div>
 
                                                 <!-- Modal content -->
                                                 <div
-                                                    class="relative z-10 flex items-center justify-center min-h-screen p-4">
+                                                    class="relative z-10 flex items-center justify-center min-h-screen p-4"
+                                                >
                                                     <div
-                                                        class="bg-white rounded-lg shadow-lg w-full max-w-md p-6 max-h-[calc(100vh-2rem)] overflow-y-auto">
-                                                        <h3 class="text-lg font-semibold mb-4">
+                                                        class="bg-white rounded-lg shadow-lg w-full max-w-md p-6 max-h-[calc(100vh-2rem)] overflow-y-auto"
+                                                    >
+                                                        <h3
+                                                            class="text-lg font-semibold mb-4"
+                                                        >
                                                             Add New Date Label
                                                         </h3>
                                                         <div class="space-y-4">
-                                                            <div class="space-y-2">
-                                                                <Label for="new-label">Label
-                                                                    Name</Label>
-                                                                <Input id="new-label" v-model="newLabelForm.label
-                                                                    " placeholder="Enter label name" @keyup.enter="
+                                                            <div
+                                                                class="space-y-2"
+                                                            >
+                                                                <Label
+                                                                    for="new-label"
+                                                                    >Label
+                                                                    Name</Label
+                                                                >
+                                                                <Input
+                                                                    id="new-label"
+                                                                    v-model="
+                                                                        newLabelForm.label
+                                                                    "
+                                                                    placeholder="Enter label name"
+                                                                    @keyup.enter="
                                                                         addNewLabel
-                                                                    " autofocus />
+                                                                    "
+                                                                    autofocus
+                                                                />
                                                             </div>
-                                                            <div class="flex justify-end gap-2 pt-4">
-                                                                <Button type="button" variant="outline" @click="
-                                                                    showAddLabelDialog = false
-                                                                    ">
+                                                            <div
+                                                                class="flex justify-end gap-2 pt-4"
+                                                            >
+                                                                <Button
+                                                                    type="button"
+                                                                    variant="outline"
+                                                                    @click="
+                                                                        showAddLabelDialog = false
+                                                                    "
+                                                                >
                                                                     Cancel
                                                                 </Button>
-                                                                <Button type="button" @click="
-                                                                    addNewLabel
-                                                                " :disabled="!newLabelForm.label.trim()
-                                                                    ">
+                                                                <Button
+                                                                    type="button"
+                                                                    @click="
+                                                                        addNewLabel
+                                                                    "
+                                                                    :disabled="
+                                                                        !newLabelForm.label.trim()
+                                                                    "
+                                                                >
                                                                     Add Label
                                                                 </Button>
                                                             </div>
@@ -381,6 +423,7 @@ watch(showAddLabelDialog, (val) => {
                                         </SelectContent>
                                     </Select>
                                 </div>
+
                                 <div class="flex-1 space-y-2">
                                     <Label :for="`date_${index}`">Date</Label>
                                     <Input :id="`date_${index}`" v-model="date.datetime" type="datetime-local" />
@@ -426,10 +469,10 @@ watch(showAddLabelDialog, (val) => {
                         </div>
                         <div v-else class="grid gap-3 md:grid-cols-2">
                             <div v-for="phase in props.formPhases" :key="phase.id"
-                                class="flex items-start space-x-3 p-3 border rounded-lg hover:bg-muted/50 cursor-pointer"
+                                class="flex items-center space-x-3 p-3 border rounded-lg hover:bg-muted/50 cursor-pointer"
                                 @click="toggleFormPhase(phase.id)">
                                 <Checkbox :checked="form.form_phase_ids.includes(phase.id)
-                                    " @update:checked="toggleFormPhase(phase.id)" />
+                                    "/>
                                 <div class="flex-1 min-w-0">
                                     <Label class="cursor-pointer font-medium">
                                         {{ phase.title }}
@@ -507,9 +550,7 @@ watch(showAddLabelDialog, (val) => {
                     </CardHeader>
                     <CardContent class="space-y-4">
                         <div v-if="form.name">
-                            <h4 class="font-medium text-blue-800 mb-1">
-                                Period Name
-                            </h4>
+                            <h4 class="font-medium text-blue-800 mb-1">Period Name</h4>
                             <p class="text-blue-700">{{ form.name }}</p>
                         </div>
 
@@ -546,32 +587,24 @@ submissionDate, index
                         </div>
 
                         <div v-if="form.form_phase_ids.length > 0">
-                            <h4 class="font-medium text-blue-800 mb-2">
-                                Selected Form Phases
-                            </h4>
+                            <h4 class="font-medium text-blue-800 mb-2">Selected Form Phases</h4>
                             <div class="flex flex-wrap gap-1">
                                 <Badge v-for="phaseId in form.form_phase_ids" :key="phaseId" variant="outline"
                                     class="text-blue-700 border-blue-300">
                                     {{
-                                        props.formPhases.find(
-                                            (p) => p.id === phaseId
-                                        )?.title
+                                        props.formPhases.find((p) => p.id === phaseId)?.title
                                     }}
                                 </Badge>
                             </div>
                         </div>
 
                         <div v-if="form.submission_rule_ids.length > 0">
-                            <h4 class="font-medium text-blue-800 mb-2">
-                                Selected Rules
-                            </h4>
+                            <h4 class="font-medium text-blue-800 mb-2">Selected Rules</h4>
                             <div class="flex flex-wrap gap-1">
                                 <Badge v-for="ruleId in form.submission_rule_ids" :key="ruleId" variant="outline"
                                     class="text-blue-700 border-blue-300">
                                     {{
-                                        props.submissionRules.find(
-                                            (r) => r.id === ruleId
-                                        )?.label
+                                        props.submissionRules.find((r) => r.id === ruleId)?.label
                                     }}
                                 </Badge>
                             </div>
@@ -587,11 +620,7 @@ submissionDate, index
                         Cancel
                     </Button>
                     <Button type="submit" :disabled="form.processing">
-                        {{
-                            form.processing
-                                ? "Updating..."
-                                : "Update Submission Period"
-                        }}
+                        {{ form.processing ? "Updating..." : "Update Submission Period" }}
                     </Button>
                 </div>
             </form>

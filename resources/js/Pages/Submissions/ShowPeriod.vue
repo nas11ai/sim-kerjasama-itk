@@ -213,7 +213,11 @@ const viewSubmission = (submissionId: number) => {
 };
 
 const goBack = () => {
-    router.visit(window.history.length > 1 ? 'javascript:history.back()' : '/admin/submissions');
+    if (window.history.length > 1) {
+        window.history.back();
+    } else {
+        router.visit('/admin/submissions');
+    }
 };
 
 // Computed properties for period dates
