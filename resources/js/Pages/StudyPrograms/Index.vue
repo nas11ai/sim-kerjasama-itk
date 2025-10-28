@@ -235,7 +235,7 @@ const activeFiltersCount = computed(() => {
                     </h2>
                 </div>
                 <div class="flex items-center gap-2">
-                    <Button @click="router.visit(route('faculties.index'))" variant="outline">
+                    <Button @click="router.visit(route('admin.faculties.index'))" variant="outline">
                         <Building2 class="h-4 w-4 mr-2" />
                         Faculties
                     </Button>

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, onMounted } from "vue";
+import { computed, ref, onMounted, nextTick } from "vue";
 import { Head, useForm } from "@inertiajs/vue3";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout.vue";
 import { Button } from "@/Components/ui/button";
@@ -24,7 +24,6 @@ import {
     Settings,
     FileText,
 } from "lucide-vue-next";
-import { watch } from "vue";
 
 interface FormPhase {
     id: number;
@@ -81,13 +80,12 @@ interface SubmissionPeriod {
     submission_period_details: SubmissionPeriodDetail[];
 }
 
-// Fix: Add index signature to FormData interface
 interface FormData {
     name: string;
     submission_dates: SubmissionDate[];
     form_phase_ids: number[];
     submission_rule_ids: number[];
-    [key: string]: any; // Add index signature
+    [key: string]: any;
 }
 
 interface Props {
@@ -117,16 +115,23 @@ const newLabelForm = useForm({
 // State untuk menyimpan labels yang ditambahkan secara dinamis
 const dynamicLabels = ref<SubmissionDateLabel[]>([]);
 
-// Computed untuk menggabungkan labels dari props dan yang ditambahkan secara dinamis
-const allLabels = computed(() => [
-    ...props.submissionDateLabels,
-    ...dynamicLabels.value,
-]);
+// Reactive key untuk memaksa update komponen Select
+const selectKey = ref(0);
+
+// Computed untuk menggabungkan labels
+const allLabels = computed(() => {
+    return [
+        ...props.submissionDateLabels,
+        ...dynamicLabels.value,
+    ];
+});
 
 const generateTempId = () => `temp_${Date.now()}_${Math.random()}`;
 
 // Initialize form data with existing data
-onMounted(() => {
+onMounted(async () => {
+    await nextTick();
+
     // Load existing submission dates
     form.submission_dates = props.submissionPeriod.submission_dates.map(
         (date) => ({
@@ -166,11 +171,13 @@ const formatDateForInput = (dateString: string): string => {
 };
 
 const addSubmissionDate = () => {
-    form.submission_dates.push({
+    const newDate = {
         label: "",
         datetime: "",
         temp_id: generateTempId(),
-    });
+    };
+
+    form.submission_dates.push(newDate);
 };
 
 const addNewLabel = async () => {
@@ -195,6 +202,9 @@ const addNewLabel = async () => {
                 const newLabel = await response.json();
                 dynamicLabels.value.push(newLabel);
                 newLabelForm.reset();
+
+                // Force update Select components
+                selectKey.value++;
             } else {
                 console.error("Failed to add new label:", response.statusText);
             }
@@ -246,14 +256,6 @@ const selectAllSubmissionRules = () => {
 const submit = () => {
     form.put(route("admin.submission-periods.update", props.submissionPeriod.id));
 };
-
-watch(showAddLabelDialog, (val) => {
-    if (val) {
-        document.body.classList.add("overflow-hidden");
-    } else {
-        document.body.classList.remove("overflow-hidden");
-    }
-});
 </script>
 
 <template>
@@ -381,6 +383,7 @@ watch(showAddLabelDialog, (val) => {
                                         </SelectContent>
                                     </Select>
                                 </div>
+
                                 <div class="flex-1 space-y-2">
                                     <Label :for="`date_${index}`">Date</Label>
                                     <Input :id="`date_${index}`" v-model="date.datetime" type="datetime-local" />
@@ -397,6 +400,49 @@ watch(showAddLabelDialog, (val) => {
                         </p>
                     </CardContent>
                 </Card>
+
+                <!-- Modal for Add New Label -->
+                <div v-if="showAddLabelDialog">
+                    <div
+                        class="absolute inset-0 bg-black/80"
+                        @click="showAddLabelDialog = false"
+                    ></div>
+                    <div class="relative z-10 flex items-center justify-center min-h-screen p-4">
+                        <div class="bg-white rounded-lg shadow-lg w-full max-w-md p-6 max-h-[calc(100vh-2rem)] overflow-y-auto">
+                            <h3 class="text-lg font-semibold mb-4">
+                                Add New Date Label
+                            </h3>
+                            <div class="space-y-4">
+                                <div class="space-y-2">
+                                    <Label for="new-label">Label Name</Label>
+                                    <Input
+                                        id="new-label"
+                                        v-model="newLabelForm.label"
+                                        placeholder="Enter label name"
+                                        @keyup.enter="addNewLabel"
+                                        autofocus
+                                    />
+                                </div>
+                                <div class="flex justify-end gap-2 pt-4">
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        @click="showAddLabelDialog = false"
+                                    >
+                                        Cancel
+                                    </Button>
+                                    <Button
+                                        type="button"
+                                        @click="addNewLabel"
+                                        :disabled="!newLabelForm.label.trim()"
+                                    >
+                                        Add Label
+                                    </Button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
                 <!-- Form Phases -->
                 <Card>
@@ -507,9 +553,7 @@ watch(showAddLabelDialog, (val) => {
                     </CardHeader>
                     <CardContent class="space-y-4">
                         <div v-if="form.name">
-                            <h4 class="font-medium text-blue-800 mb-1">
-                                Period Name
-                            </h4>
+                            <h4 class="font-medium text-blue-800 mb-1">Period Name</h4>
                             <p class="text-blue-700">{{ form.name }}</p>
                         </div>
 
@@ -546,32 +590,24 @@ submissionDate, index
                         </div>
 
                         <div v-if="form.form_phase_ids.length > 0">
-                            <h4 class="font-medium text-blue-800 mb-2">
-                                Selected Form Phases
-                            </h4>
+                            <h4 class="font-medium text-blue-800 mb-2">Selected Form Phases</h4>
                             <div class="flex flex-wrap gap-1">
                                 <Badge v-for="phaseId in form.form_phase_ids" :key="phaseId" variant="outline"
                                     class="text-blue-700 border-blue-300">
                                     {{
-                                        props.formPhases.find(
-                                            (p) => p.id === phaseId
-                                        )?.title
+                                        props.formPhases.find((p) => p.id === phaseId)?.title
                                     }}
                                 </Badge>
                             </div>
                         </div>
 
                         <div v-if="form.submission_rule_ids.length > 0">
-                            <h4 class="font-medium text-blue-800 mb-2">
-                                Selected Rules
-                            </h4>
+                            <h4 class="font-medium text-blue-800 mb-2">Selected Rules</h4>
                             <div class="flex flex-wrap gap-1">
                                 <Badge v-for="ruleId in form.submission_rule_ids" :key="ruleId" variant="outline"
                                     class="text-blue-700 border-blue-300">
                                     {{
-                                        props.submissionRules.find(
-                                            (r) => r.id === ruleId
-                                        )?.label
+                                        props.submissionRules.find((r) => r.id === ruleId)?.label
                                     }}
                                 </Badge>
                             </div>
@@ -587,11 +623,7 @@ submissionDate, index
                         Cancel
                     </Button>
                     <Button type="submit" :disabled="form.processing">
-                        {{
-                            form.processing
-                                ? "Updating..."
-                                : "Update Submission Period"
-                        }}
+                        {{ form.processing ? "Updating..." : "Update Submission Period" }}
                     </Button>
                 </div>
             </form>

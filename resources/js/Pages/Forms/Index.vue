@@ -158,7 +158,7 @@ const formatDate = (dateString: string) => {
                     <CardContent>
                         <div class="space-y-3">
                             <div class="flex items-center gap-2">
-                                <Badge variant="secondary">{{
+                                <Badge variant="outline">{{
                                     form.form_type.name
                                 }}</Badge>
                                 <Badge :variant="form.is_active

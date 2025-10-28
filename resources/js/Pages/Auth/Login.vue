@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import Checkbox from "@/Components/Checkbox.vue";
-import GuestLayout from "@/Layouts/GuestLayout.vue";
 import InputError from "@/Components/InputError.vue";
 import InputLabel from "@/Components/InputLabel.vue";
 import PrimaryButton from "@/Components/PrimaryButton.vue";
@@ -28,69 +27,87 @@ const submit = () => {
 </script>
 
 <template>
-    <GuestLayout>
-        <Head title="Log in" />
-
-        <div v-if="status" class="mb-4 text-sm font-medium text-green-600">
-            {{ status }}
+    <div
+        class="min-h-screen flex flex-col items-center justify-center bg-gradient-to-b from-blue-100 to-white"
+    >
+        <div class="mb-6">
+            <div class="flex items-center gap-4">
+                <img src="/images/Logo-ITK.png" alt="Logo ITK" class="h-20 w-auto object-contain mx-auto mb-2" />
+                <div>
+                    <h1 class="text-2xl font-bold text-blue-700">SIM Kerja Sama ITK</h1>
+                    <p class="text-gray-600 text-sm">Institut Teknologi Kalimantan</p>
+                </div>
+            </div>
         </div>
 
-        <form @submit.prevent="submit">
-            <div>
-                <InputLabel for="email" value="Email" />
+        <div
+            class="w-full max-w-md bg-white rounded-2xl shadow-lg p-8 border border-blue-100"
+        >
+            <Head title="Masuk ke Akun" />
 
-                <TextInput
-                    id="email"
-                    type="email"
-                    class="mt-1 block w-full"
-                    v-model="form.email"
-                    required
-                    autofocus
-                    autocomplete="username"
-                />
+            <h2 class="text-center text-xl font-semibold text-gray-800 mb-6">
+                Masuk ke Akun Anda
+            </h2>
 
-                <InputError class="mt-2" :message="form.errors.email" />
-            </div>
+            <form @submit.prevent="submit">
+                <div class="mb-4">
+                    <InputLabel for="email" value="Email" />
+                    <TextInput
+                        id="email"
+                        type="email"
+                        class="mt-1 block w-full"
+                        v-model="form.email"
+                        required
+                        autofocus
+                    />
+                    <InputError class="mt-2" :message="form.errors.email" />
+                </div>
 
-            <div class="mt-4">
-                <InputLabel for="password" value="Password" />
+                <div class="mb-4">
+                    <InputLabel for="password" value="Kata Sandi" />
+                    <TextInput
+                        id="password"
+                        type="password"
+                        class="mt-1 block w-full"
+                        v-model="form.password"
+                        required
+                    />
+                    <InputError class="mt-2" :message="form.errors.password" />
+                </div>
 
-                <TextInput
-                    id="password"
-                    type="password"
-                    class="mt-1 block w-full"
-                    v-model="form.password"
-                    required
-                    autocomplete="current-password"
-                />
+                <div class="flex items-center justify-between mb-6">
+                    <label class="flex items-center text-sm text-gray-600">
+                        <Checkbox
+                            name="remember"
+                            v-model:checked="form.remember"
+                        />
+                        <span class="ml-2">Ingat saya</span>
+                    </label>
 
-                <InputError class="mt-2" :message="form.errors.password" />
-            </div>
-
-            <div class="mt-4 block">
-                <label class="flex items-center">
-                    <Checkbox name="remember" v-model:checked="form.remember" />
-                    <span class="ms-2 text-sm text-gray-600">Remember me</span>
-                </label>
-            </div>
-
-            <div class="mt-4 flex items-center justify-end">
-                <Link
-                    v-if="canResetPassword"
-                    :href="route('password.request')"
-                    class="rounded-md text-sm text-gray-600 underline hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
-                >
-                    Forgot your password?
-                </Link>
+                    <Link
+                        v-if="canResetPassword"
+                        :href="route('password.request')"
+                        class="text-blue-600 hover:text-blue-800 text-sm"
+                    >
+                        Lupa kata sandi?
+                    </Link>
+                </div>
 
                 <PrimaryButton
-                    class="ms-4"
-                    :class="{ 'opacity-25': form.processing }"
-                    :disabled="form.processing"
+                    class="w-full bg-blue-600 hover:bg-blue-700 focus:ring-blue-500 justify-center flex items-center"
                 >
-                    Log in
+                    Masuk
                 </PrimaryButton>
-            </div>
-        </form>
-    </GuestLayout>
+
+                <p class="text-center text-sm text-gray-600 mt-4">
+                    Belum punya akun?
+                    <Link
+                        :href="route('register')"
+                        class="text-blue-600 hover:text-blue-800 font-medium"
+                        >Daftar Sekarang</Link
+                    >
+                </p>
+            </form>
+        </div>
+    </div>
 </template>

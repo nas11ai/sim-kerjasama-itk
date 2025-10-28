@@ -368,7 +368,7 @@ const isDateToday = (dateString: string) => {
                                             Active
                                         </Badge>
                                         <Link :href="route(
-                                            'form-phases.show',
+                                            'admin.form-phases.show',
                                             phase.form_phase.id
                                         )
                                             ">
@@ -403,7 +403,7 @@ const isDateToday = (dateString: string) => {
                                             Inactive
                                         </Badge>
                                         <Link :href="route(
-                                            'form-phases.show',
+                                            'admin.form-phases.show',
                                             phase.form_phase.id
                                         )
                                             ">
