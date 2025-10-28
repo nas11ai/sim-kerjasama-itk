@@ -13,7 +13,6 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/Components/ui/select";
-
 import { Textarea } from "@/Components/ui/textarea";
 import { ArrowLeft, X } from "lucide-vue-next";
 import type { DateValue } from "@internationalized/date";
@@ -30,6 +29,8 @@ import {
     PopoverContent,
     PopoverTrigger,
 } from "@/Components/ui/popover";
+import { useToast } from "@/Components/ui/toast/use-toast";
+const { toast } = useToast();
 
 interface AnnouncementForm {
     title: string;
@@ -41,11 +42,9 @@ interface AnnouncementForm {
     [key: string]: any;
 }
 
-// Ref untuk input file
 const fileInputRef = ref<HTMLInputElement | null>(null);
-
-// State untuk menampilkan file yang dipilih
 const selectedFiles = ref<File[]>([]);
+const fileError = ref<string | null>(null);
 
 const form = useForm<AnnouncementForm>({
     title: "",
@@ -56,34 +55,61 @@ const form = useForm<AnnouncementForm>({
     files: null,
 });
 
-const errors = computed<Partial<Record<keyof AnnouncementForm, string>>>(
-    () => {
-        console.log('Form errors:', form.errors);
-        return form.errors ?? {};
-    }
-);
+const errors = computed<Partial<Record<keyof AnnouncementForm, string>>>(() => {
+    return form.errors ?? {};
+});
 
 const df = new DateFormatter("en-US", { dateStyle: "long" });
 const tomorrow = today(getLocalTimeZone()).add({ days: 1 });
+
+// ✅ validasi file frontend
+const allowedTypes = ["image/jpeg", "image/png", "application/pdf"];
+const maxFileSize = 2 * 1024 * 1024; // 2MB
 
 const handleFileSelect = (event: Event) => {
     const target = event.target as HTMLInputElement;
     if (!target.files?.length) return;
 
-    selectedFiles.value.push(...Array.from(target.files));
+    const files = Array.from(target.files);
+    const validFiles: File[] = [];
+
+    fileError.value = null;
+
+    for (const file of files) {
+        if (!allowedTypes.includes(file.type)) {
+            fileError.value = `File "${file.name}" memiliki format tidak valid. Hanya boleh JPG, PNG, atau PDF.`;
+            continue;
+        }
+
+        if (file.size > maxFileSize) {
+            fileError.value = `File "${file.name}" melebihi ukuran maksimum 2MB.`;
+            continue;
+        }
+
+        validFiles.push(file);
+    }
+
+    if (validFiles.length) {
+        selectedFiles.value.push(...validFiles);
+    }
 
     if (fileInputRef.value) {
         fileInputRef.value.value = "";
     }
 };
 
-// Function untuk menghapus file dari tampilan
 const removeFile = (index: number) => {
     selectedFiles.value.splice(index, 1);
 };
 
+// ✅ Submit + Toast
 const submit = () => {
-    form.files = selectedFiles.value;
+    // Hapus error sebelumnya
+    fileError.value = null;
+
+    // Kalau tidak ada file, set null (biar backend nggak bingung)
+    form.files = selectedFiles.value.length > 0 ? selectedFiles.value : null;
+
     form.transform((data) => {
         let expired = undefined;
         if (form.expired_at) {
@@ -97,19 +123,28 @@ const submit = () => {
         }
         return { ...data, expired_at: expired };
     }).post(route("admin.announcements.store"), {
-        forceFormData: true, // WAJIB saat ada File
+        forceFormData: true,
         preserveScroll: true,
         onSuccess: () => {
+            toast({
+                title: "Success",
+                description: "Announcement created successfully!",
+            });
+
+            // Reset semua data
             form.reset();
             selectedFiles.value = [];
-            if (fileInputRef.value) {
-                fileInputRef.value.value = "";
-            }
+            if (fileInputRef.value) fileInputRef.value.value = "";
         },
         onError: (errors) => {
-            // Errors akan otomatis di-handle oleh useForm
-            console.log('Validation errors:', errors);
-        }
+            toast({
+                title: "Error",
+                description:
+                    "Failed to create announcement. Please check your input and try again.",
+                variant: "destructive",
+            });
+            console.error("Validation errors:", errors);
+        },
     });
 };
 </script>
@@ -209,7 +244,11 @@ const submit = () => {
                                             />
                                             {{
                                                 form.expired_at
-                                                    ? df.format(form.expired_at.toDate(getLocalTimeZone()))
+                                                    ? df.format(
+                                                          form.expired_at.toDate(
+                                                              getLocalTimeZone()
+                                                          )
+                                                      )
                                                     : "Pick a date"
                                             }}
                                         </Button>
@@ -254,7 +293,7 @@ const submit = () => {
                     </CardContent>
                 </Card>
 
-                        <!-- Content -->
+                <!-- Content -->
                 <Card>
                     <CardHeader>
                         <CardTitle>Announcement Content</CardTitle>
@@ -316,15 +355,31 @@ const submit = () => {
                     </CardHeader>
                     <CardContent>
                         <Label for="attachments">File Attachments *</Label>
-                        <p class="text-xs mb-1 text-gray-500 italic">Max Size: 2mb</p>
+                        <p class="text-xs mb-1 text-gray-500 italic">
+                            Max Size: 2MB (jpg, png, pdf)
+                        </p>
                         <Input
                             ref="fileInputRef"
                             type="file"
                             multiple
+                            accept=".jpg,.jpeg,.png,.pdf"
                             @change="handleFileSelect"
-                            :class="errors.files ? 'border-destructive' : ''"
+                            :class="[
+                                errors.files || fileError
+                                    ? 'border-destructive'
+                                    : '',
+                            ]"
                         />
-                        <p v-if="errors.files" class="text-sm text-destructive mt-1">
+                        <p
+                            v-if="fileError"
+                            class="text-sm text-destructive mt-1"
+                        >
+                            {{ fileError }}
+                        </p>
+                        <p
+                            v-if="errors.files"
+                            class="text-sm text-destructive mt-1"
+                        >
                             {{ errors.files }}
                         </p>
                     </CardContent>
