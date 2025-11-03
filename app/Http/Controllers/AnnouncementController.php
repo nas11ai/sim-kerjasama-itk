@@ -61,7 +61,7 @@ class AnnouncementController extends Controller
             'content' => 'required|string',
             'type' => 'required|in:public,private',
             'expired_at' => 'nullable|date',
-            'files' => 'required',
+            'files' => 'nullable|array',
             'files.*' => 'file|mimes:jpg,png,pdf|max:2048',
         ]);
 
@@ -197,7 +197,7 @@ class AnnouncementController extends Controller
 
     public function markAsRead(Announcement $announcement)
     {
-        $user = auth()->id();
+        $user = auth()->user();
 
         $reader = AnnouncementUser::updateOrCreate(
             [

@@ -31,6 +31,8 @@ import {
     PopoverContent,
     PopoverTrigger,
 } from "@/Components/ui/popover";
+import { useToast } from "@/Components/ui/toast/use-toast";
+const { toast } = useToast();
 
 interface AnnouncementFile {
     id: number;
@@ -65,13 +67,13 @@ interface Props {
     announcement: ExistingAnnouncementDetail;
 }
 
-const props = defineProps<Props>();
-
-// Ref untuk input file
 const fileInputRef = ref<HTMLInputElement | null>(null);
-
-// State untuk menampilkan file yang tidak dihapus
 const existingFiles = ref<AnnouncementFile[]>([]);
+const newFiles = ref<File[]>([]);
+const clientErrors = ref<{ files?: string }>({});
+const { announcement } = defineProps<Props>();
+const df = new DateFormatter("en-US", { dateStyle: "long" });
+const tomorrow = today(getLocalTimeZone()).add({ days: 1 });
 
 const form = useForm<AnnouncementForm>({
     title: "",
@@ -83,131 +85,74 @@ const form = useForm<AnnouncementForm>({
     deleted_files: [],
 });
 
-const errors = computed<Partial<Record<keyof AnnouncementForm, string>>>(
-    () => {
-        console.log('Form errors:', form.errors);
-        return form.errors ?? {};
-    }
+const errors = computed<Record<string, string>>(() => form.errors || {});
+const hasFiles = computed(
+    () => existingFiles.value.length > 0 || newFiles.value.length > 0
 );
 
-// Computed untuk mengecek apakah masih ada file
-const hasFiles = computed(() => {
-    return existingFiles.value.length > 0 || newFiles.value.length > 0;
-});
-
-// Computed untuk validasi client-side
-const clientErrors = ref<{ files?: string }>({});
-
-const df = new DateFormatter("en-US", { dateStyle: "long" });
-const tomorrow = today(getLocalTimeZone()).add({ days: 1 });
-
 onMounted(() => {
-    form.title = props.announcement.title;
-    form.content = props.announcement.content;
-    form.type = props.announcement.type;
-
-    // Copy existing files to local state
-    existingFiles.value = [...props.announcement.announcement_files];
-
-    if (props.announcement.expired_at) {
-        const date = new Date(props.announcement.expired_at);
-        form.expired_at = parseDate(date.toLocaleDateString("en-CA"));
-        form.expired_time = date.toLocaleTimeString("en-GB", {
-            hour: "2-digit",
-            minute: "2-digit",
-        });
-    }
+    form.title = announcement.title;
+    form.content = announcement.content;
+    form.type = announcement.type;
+    existingFiles.value = [...announcement.announcement_files];
 });
-
-const newFiles = ref<File[]>([]);
 
 const handleFileSelect = (event: Event) => {
     const target = event.target as HTMLInputElement;
     if (!target.files?.length) return;
-
     newFiles.value.push(...Array.from(target.files));
 
-    // Clear client-side validation error ketika file ditambahkan
-    if (clientErrors.value.files) {
-        delete clientErrors.value.files;
-    }
-
-    if (fileInputRef.value) {
-        fileInputRef.value.value = "";
-    }
+    // hapus error validasi client
+    if (clientErrors.value.files) delete clientErrors.value.files;
+    if (fileInputRef.value) fileInputRef.value.value = "";
 };
 
-// Function untuk menghapus file dari tampilan
 const deleteFile = (fileId: number) => {
-    // Tambahkan ke array deleted_files
-    if (!form.deleted_files) {
-        form.deleted_files = [];
-    }
+    if (!form.deleted_files) form.deleted_files = [];
     form.deleted_files.push(fileId);
-
-    // Hapus dari tampilan
-    existingFiles.value = existingFiles.value.filter(
-        (file) => file.id !== fileId
-    );
+    existingFiles.value = existingFiles.value.filter((f) => f.id !== fileId);
 };
 
-// Function untuk menghapus new file
-const removeNewFile = (index: number) => {
-    newFiles.value.splice(index, 1);
-};
+const removeNewFile = (index: number) => newFiles.value.splice(index, 1);
 
-// Client-side validation
 const validateFiles = () => {
-    if (!hasFiles.value) {
-        clientErrors.value.files = "At least one file is required.";
-        return false;
-    }
     delete clientErrors.value.files;
     return true;
 };
 
 const submit = () => {
-    // Reset client errors
     clientErrors.value = {};
-
-    // Validate files client-side
-    if (!validateFiles()) {
-        return;
-    }
+    if (!validateFiles()) return;
 
     form.files = newFiles.value;
-    form.transform((data) => {
-        let expired: string | undefined;
+    form.transform((data) => ({ ...data, _method: "put" })).post(
+        route("admin.announcements.update", announcement.id),
+        {
+            forceFormData: true,
+            preserveScroll: true,
+            preserveState: false,
+            onSuccess: () => {
+                newFiles.value = [];
+                form.files = null;
+                clientErrors.value = {};
+                if (fileInputRef.value) fileInputRef.value.value = "";
 
-        if (form.expired_at) {
-            const date = form.expired_at.toDate(getLocalTimeZone());
-            const yyyy = date.getFullYear();
-            const mm = String(date.getMonth() + 1).padStart(2, "0");
-            const dd = String(date.getDate()).padStart(2, "0");
-
-            expired = form.expired_time
-                ? `${yyyy}-${mm}-${dd}T${form.expired_time}:00`
-                : `${yyyy}-${mm}-${dd}`;
+                toast({
+                    title: "Success",
+                    description: "Announcement updated successfully!",
+                });
+            },
+            onError: (errors) => {
+                console.error("Validation errors:", errors);
+                toast({
+                    title: "Error",
+                    description:
+                        "Failed to update announcement. Please check your input.",
+                    variant: "destructive",
+                });
+            },
         }
-
-        // spoof method agar Laravel tetap masuk ke route update (PUT)
-        return { ...data, expired_at: expired, _method: "put" };
-    }).post(route("admin.announcements.update", props.announcement.id), {
-        forceFormData: true,
-        preserveScroll: true,
-        preserveState: false,
-        onSuccess: () => {
-            newFiles.value = [];
-            form.files = null;
-            clientErrors.value = {};
-            if (fileInputRef.value) {
-                fileInputRef.value.value = "";
-            }
-        },
-        onError: (errors) => {
-            console.log('Validation errors:', errors);
-        }
-    });
+    );
 };
 </script>
 
@@ -384,7 +329,11 @@ const submit = () => {
                         <CardTitle>Current Attachments</CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <div v-if="existingFiles.length > 0 || newFiles.length > 0">
+                        <div
+                            v-if="
+                                existingFiles.length > 0 || newFiles.length > 0
+                            "
+                        >
                             <ul class="space-y-2">
                                 <!-- Existing Files -->
                                 <li
@@ -402,10 +351,16 @@ const submit = () => {
                                         </a>
                                         <span class="text-xs text-gray-500"
                                             >({{ file.mime_type }},
-                                            {{ (file.file_size / 1024).toFixed(1) }}
+                                            {{
+                                                (file.file_size / 1024).toFixed(
+                                                    1
+                                                )
+                                            }}
                                             KB)</span
                                         >
-                                        <span class="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded">
+                                        <span
+                                            class="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded"
+                                        >
                                             Current
                                         </span>
                                     </div>
@@ -431,9 +386,12 @@ const submit = () => {
                                         <span>{{ file.name }}</span>
                                         <span class="text-xs text-gray-500">
                                             ({{ file.type }},
-                                            {{ (file.size / 1024).toFixed(1) }} KB)
+                                            {{ (file.size / 1024).toFixed(1) }}
+                                            KB)
                                         </span>
-                                        <span class="text-xs bg-green-100 text-green-800 px-2 py-1 rounded">
+                                        <span
+                                            class="text-xs bg-green-100 text-green-800 px-2 py-1 rounded"
+                                        >
                                             New
                                         </span>
                                     </div>
@@ -476,22 +434,33 @@ const submit = () => {
                         <CardTitle>Add New Attachments</CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <Label for="attachments"
-                            >File Attachments *</Label
-                        >
+                        <Label for="attachments">File Attachments *</Label>
+                        <p class="text-xs mb-1 text-gray-500 italic">
+                            Max Size: 2MB (jpg, png, pdf)
+                        </p>
                         <Input
                             ref="fileInputRef"
                             type="file"
                             multiple
+                            accept=".jpg,.jpeg,.png,.pdf"
                             @change="handleFileSelect"
-                            :class="(errors.files || clientErrors.files) ? 'border-destructive' : ''"
+                            :class="
+                                errors.files || clientErrors.files
+                                    ? 'border-destructive'
+                                    : ''
+                            "
                         />
                         <p class="text-sm text-gray-500 mt-1">
-                            Select files to add as new attachments to this announcement.
-                            At least one file is required.
+                            Select files to add as new attachments to this
+                            announcement. At least one file is required.
                         </p>
-                        <p v-if="!hasFiles" class="text-sm text-orange-600 mt-1">
-                            ⚠️ Warning: All current files will be removed. Please add new files to maintain at least one attachment.
+                        <p
+                            v-if="!hasFiles"
+                            class="text-sm text-orange-600 mt-1"
+                        >
+                            ⚠️ Warning: All current files will be removed.
+                            Please add new files to maintain at least one
+                            attachment.
                         </p>
                     </CardContent>
                 </Card>
