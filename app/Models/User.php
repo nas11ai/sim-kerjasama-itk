@@ -81,26 +81,4 @@ class User extends Authenticatable
         return $this->belongsToMany(Announcement::class, 'announcement_user')
             ->withTimestamps();
     }
-
-    public function studyPrograms()
-    {
-        return $this->belongsToMany(StudyProgram::class, 'user_study_program');
-    }
-
-    public function userProfile()
-    {
-        return $this->hasOne(UserProfile::class);
-    }
-
-    public function studyProgram()
-    {
-        return $this->hasOneThrough(
-            StudyProgram::class,
-            UserProfile::class,
-            'user_id',
-            'id',
-            'id',
-            'study_program_id'
-        );
-    }
 }

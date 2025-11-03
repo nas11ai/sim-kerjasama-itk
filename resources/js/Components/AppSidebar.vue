@@ -42,6 +42,9 @@ import {
     Clock,
     Star,
     Megaphone,
+    User,
+    Bolt,
+    BookCheck,
     UserPenIcon,
 } from "lucide-vue-next";
 
@@ -71,6 +74,27 @@ const adminNavItems = [
         title: "Dashboard",
         url: route("admin.dashboard"),
         icon: Home,
+    },
+    {
+        title: "User Management",
+        icon: FileText,
+        items: [
+            {
+                title: "Users",
+                url: route("admin.users.index"),
+                icon: User,
+            },
+            {
+                title: "Roles",
+                url: route("admin.roles.index"),
+                icon: Bolt,
+            },
+            {
+                title: "Permissions",
+                url: route("admin.permissions.index"),
+                icon: BookCheck,
+            },
+        ],
     },
     {
         title: "Form Management",
@@ -180,7 +204,7 @@ const userNavItems = computed(() => {
     const baseItems = [
         {
             title: "Dashboard",
-            url: route("user.dashboard"),
+            url: route('user.dashboard'),
             icon: Home,
         },
         {
@@ -200,10 +224,10 @@ const userNavItems = computed(() => {
             items: [
                 {
                     title: "Active Submissions",
-                    url: route("user.dashboard"),
+                    url: route('user.dashboard'),
                     icon: BookOpen,
-                },
-            ],
+                }
+            ]
         },
         {
             title: "My Submissions",
@@ -211,7 +235,7 @@ const userNavItems = computed(() => {
             items: [
                 {
                     title: "View Submissions",
-                    url: route("user.submissions.index"),
+                    url: route('user.submissions.index'),
                     icon: Send,
                 },
                 {
@@ -225,9 +249,9 @@ const userNavItems = computed(() => {
                     title: "Approved",
                     url: route("user.submissions.index") + "?status=approved",
                     icon: CheckCircle,
-                },
-            ],
-        },
+                }
+            ]
+        }
     ];
 
     // Add Review Tasks menu if user is reviewer
