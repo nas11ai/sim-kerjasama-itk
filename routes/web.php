@@ -30,12 +30,38 @@ Route::get('/', function () {
         'canRegister' => Route::has('register'),
         'laravelVersion' => Application::VERSION,
         'phpVersion' => PHP_VERSION,
-        'announcements' => Announcement::latest()
-            ->with('announcementFiles')
-            ->where('type', 'public')
-            ->get(),
+        // Ambil semua announcements public untuk carousel
+        // Bisa dibatasi dengan take() jika perlu
+        'announcements' => [
+            'data' => Announcement::latest()
+                ->with('announcementFiles')
+                ->where('type', 'public')
+                ->where(function ($query) {
+                    $query->whereNull('expired_at')
+                        ->orWhere('expired_at', '>', now());
+                })
+                ->take(10) // Batasi 10 pengumuman untuk performa carousel
+                ->get(),
+            'current_page' => 1,
+            'last_page' => 1,
+            'per_page' => 10,
+            'total' => Announcement::where('type', 'public')
+                ->where(function ($query) {
+                    $query->whereNull('expired_at')
+                        ->orWhere('expired_at', '>', now());
+                })
+                ->count(),
+            'from' => 1,
+            'to' => Announcement::where('type', 'public')
+                ->where(function ($query) {
+                    $query->whereNull('expired_at')
+                        ->orWhere('expired_at', '>', now());
+                })
+                ->take(10)
+                ->count(),
+        ],
     ]);
-});
+})->name('welcome');
 
 Route::get('announcements/{announcement}', [AnnouncementController::class, 'detail'])->name('announcements.detail');
 
