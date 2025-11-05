@@ -324,7 +324,7 @@ watch(showAddLabelDialog, (val) => {
                                 class="flex items-end gap-4 p-4 border rounded-lg">
                                 <div class="flex-1 space-y-2">
                                     <div class="flex items-center justify-between">
-                                        <Label :for="`date_label_${index}`">Date Label</Label>
+                                        <Label :for="`date_label_${index}`">Date Label *</Label>
                                         <!-- Custom Modal instead of Dialog -->
                                         <div>
                                             <Button type="button" variant="ghost" size="sm" class="text-xs h-6 px-2"
@@ -425,7 +425,7 @@ watch(showAddLabelDialog, (val) => {
                                 </div>
 
                                 <div class="flex-1 space-y-2">
-                                    <Label :for="`date_${index}`">Date</Label>
+                                    <Label :for="`date_${index}`">Date *</Label>
                                     <Input :id="`date_${index}`" v-model="date.datetime" type="datetime-local" />
                                 </div>
                                 <Button type="button" variant="ghost" size="sm" @click="removeSubmissionDate(index)"

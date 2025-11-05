@@ -281,7 +281,7 @@ watch(showAddLabelDialog, (val) => {
                                         class="flex items-center justify-between"
                                     >
                                         <Label :for="`date_label_${index}`"
-                                            >Date Label</Label
+                                            >Date Label *</Label
                                         >
                                         <!-- Custom Modal instead of Dialog -->
                                         <div>
@@ -410,7 +410,7 @@ watch(showAddLabelDialog, (val) => {
                                     </p>
                                 </div>
                                 <div class="flex-1 space-y-2">
-                                    <Label :for="`date_${index}`">Date</Label>
+                                    <Label :for="`date_${index}`">Date *</Label>
                                     <Input
                                         :id="`date_${index}`"
                                         v-model="date.date"
