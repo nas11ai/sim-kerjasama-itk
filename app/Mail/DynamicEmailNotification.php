@@ -4,34 +4,55 @@ namespace App\Mail;
 
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
+use Illuminate\Mail\Mailables\Content;
+use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
-use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Support\Facades\Log;
 
-class DynamicEmailNotification extends Mailable implements ShouldQueue
+class DynamicEmailNotification extends Mailable
 {
     use Queueable, SerializesModels;
-
-    protected $data;
 
     /**
      * Create a new message instance.
      */
-    public function __construct(array $data)
-    {
-        $this->data = $data;
+    public function __construct(
+        public array $data
+    ) {
+        Log::info('DynamicEmailNotification constructed', [
+            'subject' => $data['subject'] ?? 'N/A',
+            'view' => $data['view'] ?? 'N/A'
+        ]);
     }
 
     /**
-     * Build the message.
+     * Get the message envelope.
      */
-    public function build()
+    public function envelope(): Envelope
     {
-        $view = $this->data['view'] ?? 'emails.template';
-        $subject = $this->data['subject'] ?? 'Notifikasi';
-        $params = $this->data['params'] ?? [];
+        return new Envelope(
+            subject: $this->data['subject'] ?? 'Notification',
+        );
+    }
 
-        return $this->subject($subject)
-            ->view($view)
-            ->with($params);
+    /**
+     * Get the message content definition.
+     */
+    public function content(): Content
+    {
+        return new Content(
+            view: $this->data['view'] ?? 'emails.template',
+            with: $this->data['params'] ?? [],
+        );
+    }
+
+    /**
+     * Get the attachments for the message.
+     *
+     * @return array<int, \Illuminate\Mail\Mailables\Attachment>
+     */
+    public function attachments(): array
+    {
+        return [];
     }
 }
