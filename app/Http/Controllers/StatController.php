@@ -35,6 +35,46 @@ class StatController extends Controller
         ]);
     }
 
+    // form phase Index
+    public function formPhaseStatIndex()
+    {
+        $formPhase = $this->getFormPhaseStats();
+
+        return Inertia::render('Statistics/FormPhaseStats', [
+            'formPhase' => $formPhase,
+        ]);
+    }
+
+    // form submission Index
+    public function formSubmissionStatIndex()
+    {
+        $formSubmission = $this->getFormSubmissionStats();
+
+        return Inertia::render('Statistics/FormSubmissionStats', [
+            'formSubmission' => $formSubmission,
+        ]);
+    }
+
+    // submission reviewer Index
+    public function submissionReviewerStatIndex()
+    {
+        $submissionReviewer = $this->getSubmissionReviewerStats();
+
+        return Inertia::render('Statistics/SubmissionReviewerStats', [
+            'submissionReviewer' => $submissionReviewer,
+        ]);
+    }
+
+    // user Index
+    public function userStatIndex()
+    {
+        $user = $this->getUserStats();
+
+        return Inertia::render('Statistics/UserStats', [
+            'user' => $user,
+        ]);
+    }
+
     //tes data
     public function data()
     {
@@ -46,8 +86,7 @@ class StatController extends Controller
         ]);
     }
 
-
-    //form phase
+    // get form phase Data
     public function getFormPhaseStats()
     {
         $formPhaseFaculty = FormPhase::select('form_phases.id', 'form_phases.title')
@@ -148,16 +187,7 @@ class StatController extends Controller
         ];
     }
 
-    public function formPhaseStat()
-    {
-        $formPhase = $this->getFormPhaseStats();
-
-        return Inertia::render('Statistics/FormPhaseStats', [
-            'formPhase' => $formPhase,
-        ]);
-    }
-
-    //form submission
+    // get form submission Data
     public function getFormSubmissionStats()
     {
         $recentSubmissions = SubmissionPeriod::select('submission_periods.id', 'submission_periods.name')
@@ -219,58 +249,8 @@ class StatController extends Controller
         ];
     }
 
-    public function formSubmissionStat()
-    {
-        $formSubmission = $this->getFormSubmissionStats();
 
-        return Inertia::render('Statistics/FormSubmissionStats', [
-            'formSubmission' => $formSubmission,
-        ]);
-    }
-
-    //user
-    public function getUserStats()
-    {
-        $userRecent = User::where('created_at', '>=', Carbon::now()->subHours(24))
-            ->select('id', 'name', 'email', 'created_at')
-            ->get();
-
-        $totalUsers = User::count();
-
-        $totalAdmin = User::role('Admin')->count();
-
-        $totalNonAdmin = User::whereDoesntHave('roles', function ($query) {
-            $query->where('name', 'Admin');
-        })->count();
-
-        $totalProdi = UserProfile::where('study_program_id', '!=', null)->count();
-
-        $totalFaculty = UserProfile::select('users.id')
-            ->join('study_programs', 'user_profiles.study_program_id', '=', 'study_programs.id')
-            ->join('faculties', 'study_programs.faculty_id', '=', 'faculties.id')
-            ->where('faculties.id', '=', 1)
-            ->count();
-
-        return [
-            'user_recent' => $userRecent,
-            'total_users' => $totalUsers,
-            'total_admin' => $totalAdmin,
-            'total_non_admin' => $totalNonAdmin,
-            'total_prodi' => $totalProdi,
-            'total_faculty' => $totalFaculty,
-        ];
-    }
-
-    public function userStat()
-    {
-        $user = $this->getUserStats();
-
-        return Inertia::render('Statistics/UserStats', [
-            'user' => $user,
-        ]);
-    }
-
-    //submission reviewer
+    // get submission reviewer Data
     public function getSubmissionReviewerStats()
     {
         $reviewerRecent = Reviewer::where('reviewers.created_at', '>=', Carbon::now()->subHours(24))
@@ -284,7 +264,6 @@ class StatController extends Controller
             )
             ->orderBy('reviewers.id')
             ->get();
-
 
         $totalReviewers = Reviewer::count();
 
@@ -334,12 +313,36 @@ class StatController extends Controller
         ];
     }
 
-    public function submissionReviewerStat()
+    // get user Data
+    public function getUserStats()
     {
-        $submissionReviewer = $this->getSubmissionReviewerStats();
+        $userRecent = User::where('created_at', '>=', Carbon::now()->subHours(24))
+            ->select('id', 'name', 'email', 'created_at')
+            ->get();
 
-        return Inertia::render('Statistics/SubmissionReviewerStats', [
-            'submissionReviewer' => $submissionReviewer,
-        ]);
+        $totalUsers = User::count();
+
+        $totalAdmin = User::role('Admin')->count();
+
+        $totalNonAdmin = User::whereDoesntHave('roles', function ($query) {
+            $query->where('name', 'Admin');
+        })->count();
+
+        $totalProdi = UserProfile::where('study_program_id', '!=', null)->count();
+
+        $totalFaculty = UserProfile::select('users.id')
+            ->join('study_programs', 'user_profiles.study_program_id', '=', 'study_programs.id')
+            ->join('faculties', 'study_programs.faculty_id', '=', 'faculties.id')
+            ->where('faculties.id', '=', 1)
+            ->count();
+
+        return [
+            'user_recent' => $userRecent,
+            'total_users' => $totalUsers,
+            'total_admin' => $totalAdmin,
+            'total_non_admin' => $totalNonAdmin,
+            'total_prodi' => $totalProdi,
+            'total_faculty' => $totalFaculty,
+        ];
     }
 }

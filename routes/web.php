@@ -208,12 +208,12 @@ Route::middleware(['auth', 'role:Super Admin|Admin', 'check_reviewer_status'])->
     })->middleware(['auth', 'verified'])->name('dashboard');
 
     //stat
-    Route::get('/stats/form-phases', [StatController::class, 'getFormPhaseStats'])->name('stats.form-phase');
-    Route::get('/stats/form-submissions', [StatController::class, 'getFormSubmissionStats'])->name('stats.form-submission');
-    Route::get('/stats/users', [StatController::class, 'getUserStats'])->name('stats.user');
-    Route::get('/stats/reviewers', [StatController::class, 'getSubmissionReviewerStats'])->name('stats.reviewer');
+    Route::get('/stats/form-phases', [StatController::class, 'formPhaseStatIndex'])->name('stats.form-phase');
+    Route::get('/stats/form-submissions', [StatController::class, 'formSubmissionStatIndex'])->name('stats.form-submission');
+    Route::get('/stats/users', [StatController::class, 'userStatIndex'])->name('stats.user');
+    Route::get('/stats/reviewers', [StatController::class, 'submissionReviewerStatIndex'])->name('stats.reviewer');
     Route::get('/stats', [StatController::class, 'index'])->name('stats.index');
-    
+
     Route::get('/stats/data', [StatController::class, 'data'])->name('stats.data'); //testing data
 
     // User Management
