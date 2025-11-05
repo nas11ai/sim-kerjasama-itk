@@ -71,18 +71,7 @@ const form = useForm({
 
         <div class="flex items-center gap-4">
             <Button type="submit" variant="default" :disabled="form.processing"
-                >Save Profile</Button
-            >
-            <Transition
-                enter-active-class="transition ease-in-out"
-                enter-from-class="opacity-0"
-                leave-active-class="transition ease-in-out"
-                leave-to-class="opacity-0"
-            >
-                <p v-if="form.recentlySuccessful" class="text-sm text-gray-600">
-                    Saved.
-                </p>
-            </Transition>
+                >Save Profile</Button>
         </div>
     </form>
 </template>
