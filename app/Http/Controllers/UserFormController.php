@@ -9,6 +9,7 @@ use App\Models\FormFieldResponse;
 use App\Models\FormAccessControl;
 use App\Models\FormPhaseDetail;
 use App\Models\Form;
+use App\Services\EmailNotificationService;
 use App\SubmissionStatus;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -19,6 +20,12 @@ use Carbon\Carbon;
 
 class UserFormController extends Controller
 {
+    protected $emailService;
+
+    public function __construct(EmailNotificationService $emailService)
+    {
+        $this->emailService = $emailService;
+    }
     public function dashboard()
     {
         $user = Auth::user();
@@ -457,6 +464,8 @@ class UserFormController extends Controller
                     ]);
                 }
             }
+
+            $this->emailService->notifyAdminFormSubmission($submission);
 
             // Check if this form needs review
             $formPhaseDetail = FormPhaseDetail::where('form_phase_id', $validated['form_phase_id'])
