@@ -158,7 +158,8 @@ class SubmissionPeriodController extends Controller
     {
         $submissionPeriod->load([
             'submissionDates' => function ($query) {
-                $query->orderBy('datetime');
+                $query->with('submissionDateLabel')
+                    ->orderBy('datetime');
             },
             'submissionPeriodPhases.formPhase',
             'submissionPeriodDetails.submissionRule'

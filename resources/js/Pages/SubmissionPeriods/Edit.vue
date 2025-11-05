@@ -52,6 +52,7 @@ interface ExistingSubmissionDate {
     id: number;
     datetime: string;
     submission_date_label: {
+        id: number;
         name: string;
     };
 }
@@ -253,7 +254,25 @@ const selectAllSubmissionRules = () => {
 };
 
 const submit = () => {
-    form.put(route("admin.submission-periods.update", props.submissionPeriod.id));
+    const submitData = {
+        name: form.name,
+        submission_dates: form.submission_dates.map(date => ({
+            label: date.label,
+            date: date.datetime,
+        })),
+        form_phase_ids: form.form_phase_ids,
+        submission_rule_ids: form.submission_rule_ids,
+    };
+
+    form.transform(() => submitData)
+        .put(route("admin.submission-periods.update", props.submissionPeriod.id), {
+            onSuccess: () => {
+                console.log('Update successful');
+            },
+            onError: (errors) => {
+                console.error('Update failed:', errors);
+            }
+        });
 };
 
 watch(showAddLabelDialog, (val) => {
@@ -411,13 +430,23 @@ watch(showAddLabelDialog, (val) => {
                                             </div>
                                         </div>
                                     </div>
-                                    <Select v-model="date.label" :id="`date_label_${index}`">
+
+                                    <!-- Updated Select with better key and model -->
+                                    <Select
+                                        v-model="date.label"
+                                        :key="`select_${index}_${selectKey}`"
+                                    >
                                         <SelectTrigger>
-                                            <SelectValue placeholder="Select date label" />
+                                            <SelectValue
+                                                :placeholder="date.label || 'Select date label'"
+                                            />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            <SelectItem v-for="labelOption in allLabels" :key="labelOption.id"
-                                                :value="labelOption.name">
+                                            <SelectItem
+                                                v-for="labelOption in allLabels"
+                                                :key="labelOption.id"
+                                                :value="labelOption.name"
+                                            >
                                                 {{ labelOption.name }}
                                             </SelectItem>
                                         </SelectContent>
@@ -428,9 +457,15 @@ watch(showAddLabelDialog, (val) => {
                                     <Label :for="`date_${index}`">Date *</Label>
                                     <Input :id="`date_${index}`" v-model="date.datetime" type="datetime-local" />
                                 </div>
-                                <Button type="button" variant="ghost" size="sm" @click="removeSubmissionDate(index)"
-                                    class="text-destructive hover:text-destructive" :disabled="form.submission_dates.length === 1
-                                        ">
+
+                                <Button
+                                    type="button"
+                                    variant="ghost"
+                                    size="sm"
+                                    @click="removeSubmissionDate(index)"
+                                    class="text-destructive hover:text-destructive"
+                                    :disabled="form.submission_dates.length === 1"
+                                >
                                     <Trash2 class="h-4 w-4" />
                                 </Button>
                             </div>

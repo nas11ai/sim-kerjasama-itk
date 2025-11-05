@@ -46,6 +46,14 @@ import {
     Bolt,
     BookCheck,
     UserPenIcon,
+    ChartPie,
+    FileChartPie,
+    FileUserIcon,
+    FileChartPieIcon,
+    ChartPieIcon,
+    SquareKanbanIcon,
+    UserCheck2Icon,
+    FileBarChart2,
 } from "lucide-vue-next";
 
 const page = usePage();
@@ -183,6 +191,37 @@ const adminNavItems = [
                 title: "Study Programs",
                 url: route("admin.faculties.study-programs"),
                 icon: GraduationCap,
+            },
+        ],
+    },
+    {
+        title: "Statistics Management",
+        icon: ChartPie,
+        items: [
+            {
+                title: "Statistics",
+                url: route("admin.stats.index"),
+                icon: ChartPieIcon,
+            },
+            {
+                title: "Form Phase Statistics",
+                url: route("admin.stats.form-phase"),
+                icon: FileBarChart2,
+            },
+            {
+                title: "Form Submission Statistics",
+                url: route("admin.stats.form-submission"),
+                icon: FileChartPieIcon,
+            },
+            {
+                title: "Reviewer Statistics",
+                url: route("admin.stats.reviewer"),
+                icon: UserCheck2Icon,
+            },
+            {
+                title: "User Statistics",
+                url: route("admin.stats.user"),
+                icon: FileUserIcon,
             },
         ],
     },

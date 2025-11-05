@@ -19,6 +19,7 @@ use App\Http\Controllers\PermissionController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\BiodataController;
+use App\Http\Controllers\StatController;
 use Illuminate\Foundation\Application;
 use App\Models\Announcement;
 use Illuminate\Support\Facades\Route;
@@ -205,6 +206,15 @@ Route::middleware(['auth', 'role:Super Admin|Admin', 'check_reviewer_status'])->
     Route::get('/dashboard', function () {
         return Inertia::render('Dashboard');
     })->middleware(['auth', 'verified'])->name('dashboard');
+
+    //stat
+    Route::get('/stats/form-phases', [StatController::class, 'getFormPhaseStats'])->name('stats.form-phase');
+    Route::get('/stats/form-submissions', [StatController::class, 'getFormSubmissionStats'])->name('stats.form-submission');
+    Route::get('/stats/users', [StatController::class, 'getUserStats'])->name('stats.user');
+    Route::get('/stats/reviewers', [StatController::class, 'getSubmissionReviewerStats'])->name('stats.reviewer');
+    Route::get('/stats', [StatController::class, 'index'])->name('stats.index');
+    
+    Route::get('/stats/data', [StatController::class, 'data'])->name('stats.data'); //testing data
 
     // User Management
     Route::get('/users', [UserController::class, 'index'])->name('users.index');
