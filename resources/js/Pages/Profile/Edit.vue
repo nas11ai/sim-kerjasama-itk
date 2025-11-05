@@ -2,12 +2,32 @@
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout.vue";
 import UpdatePasswordForm from "./Partials/UpdatePasswordForm.vue";
 import UpdateProfileInformationForm from "./Partials/UpdateProfileInformationForm.vue";
-import { Head } from "@inertiajs/vue3";
+import { Head, router, usePage } from "@inertiajs/vue3";
+import Button from "@/Components/ui/button/Button.vue";
+import { ArrowLeft, UserPenIcon } from "lucide-vue-next";
+import { computed, unref } from "vue";
+import Card from "@/Components/ui/card/Card.vue";
+import CardHeader from "@/Components/ui/card/CardHeader.vue";
+import CardContent from "@/Components/ui/card/CardContent.vue";
+import CardTitle from "@/Components/ui/card/CardTitle.vue";
+import CardDescription from "@/Components/ui/card/CardDescription.vue";
 
-defineProps<{
+const props = defineProps<{
     mustVerifyEmail?: boolean;
     status?: string;
 }>();
+
+const page = usePage();
+const user = computed(() => page.props.auth.user);
+
+const backToDashboard = () => {
+    const roles = unref(user.value.roles);
+    const isAdmin = roles.some((role) =>
+        ["Admin", "Super Admin"].includes(role)
+    );
+
+    router.visit(route(isAdmin ? "admin.dashboard" : "user.dashboard"));
+};
 </script>
 
 <template>
@@ -15,25 +35,51 @@ defineProps<{
 
     <AuthenticatedLayout>
         <template #header>
-            <h2 class="text-xl font-semibold leading-tight text-gray-800">
-                Profile
-            </h2>
+            <div class="flex items-center gap-4">
+                <Button variant="ghost" size="sm" @click="backToDashboard">
+                    <ArrowLeft class="h-4 w-4 mr-2" />
+                    Back
+                </Button>
+                <div class="flex items-center gap-2">
+                    <UserPenIcon class="h-6 w-6 text-black" />
+                    <h2
+                        class="text-xl font-semibold leading-tight text-gray-800"
+                    >
+                        Update Your Account's Profile
+                    </h2>
+                </div>
+            </div>
         </template>
 
-        <div class="py-12">
-            <div class="mx-auto max-w-7xl space-y-6 sm:px-6 lg:px-8">
-                <div class="bg-white p-4 shadow sm:rounded-lg sm:p-8">
+        <div class="flex flex-col max-w-4xl mx-auto gap-6 pb-4">
+            <Card>
+                <CardHeader>
+                    <CardTitle class="text-xl">Profile Information</CardTitle>
+                    <CardDescription>
+                        Update your account's profile information and email
+                        address.
+                    </CardDescription>
+                </CardHeader>
+                <CardContent>
                     <UpdateProfileInformationForm
                         :must-verify-email="mustVerifyEmail"
                         :status="status"
-                        class="max-w-xl"
                     />
-                </div>
+                </CardContent>
+            </Card>
 
-                <div class="bg-white p-4 shadow sm:rounded-lg sm:p-8">
-                    <UpdatePasswordForm class="max-w-xl" />
-                </div>
-            </div>
+            <Card>
+                <CardHeader>
+                    <CardTitle class="text-xl">Update Password</CardTitle>
+                    <CardDescription>
+                        Ensure your account is using a long, random password to
+                        stay secure.
+                    </CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <UpdatePasswordForm />
+                </CardContent>
+            </Card>
         </div>
     </AuthenticatedLayout>
 </template>
