@@ -16,7 +16,7 @@ class FormController extends Controller
     public function index(Request $request)
 {
     $search = $request->get('search');
-    $perPage = $request->get('per_page', 9);
+    $perPage = $request->get('per_page', 10);
     $sortBy = $request->get('sort_by', 'created_at');
     $sortOrder = $request->get('sort_order', 'desc');
     $formTypeFilter = $request->get('form_type');

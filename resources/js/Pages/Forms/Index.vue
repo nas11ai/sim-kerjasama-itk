@@ -1,17 +1,11 @@
-<!-- filepath: e:\ITK\sim-kerjasama-itk\resources\js\Pages\Forms\Index.vue -->
+<!-- resources\js\Pages\Forms\Index.vue -->
 <script setup lang="ts">
 import { ref, watch, computed } from "vue";
 import { Head, Link, router } from "@inertiajs/vue3";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout.vue";
 import { Button } from "@/Components/ui/button";
 import { Input } from "@/Components/ui/input";
-import {
-    Card,
-    CardContent,
-    CardDescription,
-    CardHeader,
-    CardTitle,
-} from "@/Components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/Components/ui/card";
 import { Badge } from "@/Components/ui/badge";
 import {
     Select,
@@ -26,25 +20,33 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from "@/Components/ui/dropdown-menu";
-import { 
-    MoreHorizontal, 
-    Plus, 
-    Eye, 
-    Edit, 
-    Copy, 
+import {
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
+} from "@/Components/ui/table";
+import {
+    Ellipsis,
+    Plus,
+    Eye,
+    Edit,
+    Copy,
     Trash2,
     Search,
+    Filter,
     ChevronLeft,
     ChevronRight,
     FileText,
-    Filter,
     X,
-    ListFilter,
+    ArrowUpDown,
     CheckCircle,
     XCircle,
 } from "lucide-vue-next";
 import { useToast } from "@/Components/ui/toast/use-toast";
-import { debounce } from 'lodash';
+import { debounce } from "lodash";
 
 interface FormType {
     id: number;
@@ -74,10 +76,25 @@ interface PaginationLink {
     active: boolean;
 }
 
+interface PaginatedForms {
+    data: Form[];
+    links: PaginationLink[];
+    current_page: number;
+    last_page: number;
+    per_page: number;
+    total: number;
+    links: Array<{
+        url: string | null;
+        label: string;
+        active: boolean;
+    }>;
+}
+
 interface Props {
-    forms: {
-        data: Form[];
-        links: PaginationLink[];
+    forms: PaginatedForms;
+    formTypes: FormType[];
+    filters: {
+        search?: string;
         current_page: number;
         last_page: number;
         per_page: number;
@@ -99,12 +116,14 @@ interface Props {
 const props = defineProps<Props>();
 const { toast } = useToast();
 
-const search = ref(props.filters.search || '');
-const perPage = ref(props.filters.per_page || 9);
-const sortBy = ref(props.filters.sort_by || 'created_at');
-const sortOrder = ref(props.filters.sort_order || 'desc');
-const formTypeFilter = ref(props.filters.form_type || 'all');
-const isActiveFilter = ref(props.filters.is_active || 'all');
+const search = ref(props.filters.search || "");
+const perPage = ref(props.filters.per_page || 10);
+const sortBy = ref(props.filters.sort_by || "created_at");
+const sortOrder = ref(props.filters.sort_order || "desc");
+const formTypeFilter = ref(props.filters.form_type || "all");
+const isActiveFilter = ref(props.filters.is_active || "all");
+
+const isDeleting = ref<number | null>(null);
 
 const debouncedSearch = debounce((value: string) => {
     updateFilters({ search: value });
@@ -112,10 +131,6 @@ const debouncedSearch = debounce((value: string) => {
 
 watch(search, (newValue) => {
     debouncedSearch(newValue);
-});
-
-watch(perPage, (newValue) => {
-    updateFilters({ per_page: newValue });
 });
 
 watch(formTypeFilter, (newValue) => {
@@ -127,28 +142,39 @@ watch(isActiveFilter, (newValue) => {
 });
 
 const updateFilters = (newFilters: Record<string, any>) => {
-    router.get(route('admin.forms.index'), {
-        ...props.filters,
-        ...newFilters,
-    }, {
-        preserveState: true,
-        replace: true,
+    router.get(
+        route("admin.forms.index"),
+        {
+            ...props.filters,
+            ...newFilters,
+        },
+        {
+            preserveState: true,
+            replace: true,
+        }
+    );
+};
+
+const sortTable = (column: string) => {
+    const newSortOrder =
+        sortBy.value === column && sortOrder.value === "asc" ? "desc" : "asc";
+    sortBy.value = column;
+    sortOrder.value = newSortOrder;
+
+    updateFilters({
+        sort_by: column,
+        sort_order: newSortOrder,
     });
 };
 
-const clearSearch = () => {
-    search.value = '';
-    updateFilters({ search: '' });
-};
-
 const clearAllFilters = () => {
-    search.value = '';
-    formTypeFilter.value = 'all';
-    isActiveFilter.value = 'all';
-    updateFilters({ 
-        search: '', 
-        form_type: 'all', 
-        is_active: 'all' 
+    search.value = "";
+    formTypeFilter.value = "all";
+    isActiveFilter.value = "all";
+    updateFilters({
+        search: "",
+        form_type: "all",
+        is_active: "all",
     });
 };
 
@@ -160,24 +186,42 @@ const goToPage = (url: string | null) => {
     }
 };
 
+const changePerPage = (newPerPage: any) => {
+    if (newPerPage !== null && newPerPage !== undefined) {
+        let perPageNumber: number;
+        if (typeof newPerPage === "string") {
+            perPageNumber = parseInt(newPerPage);
+        } else if (typeof newPerPage === "number") {
+            perPageNumber = newPerPage;
+        } else {
+            return;
+        }
+        perPage.value = perPageNumber;
+        updateFilters({ per_page: perPageNumber });
+    }
+};
+
 const activeFiltersCount = computed(() => {
     let count = 0;
     if (search.value) count++;
-    if (formTypeFilter.value !== 'all') count++;
-    if (isActiveFilter.value !== 'all') count++;
+    if (formTypeFilter.value !== "all") count++;
+    if (isActiveFilter.value !== "all") count++;
     return count;
 });
 
-const hasActiveFilters = computed(() => activeFiltersCount.value > 0);
-
 const deleteForm = (form: Form) => {
     if (confirm(`Are you sure you want to delete "${form.title}"?`)) {
+        isDeleting.value = form.id;
         router.delete(route("admin.forms.destroy", form.id), {
             onSuccess: () => {
                 toast({
                     title: "Success",
                     description: "Form deleted successfully!",
                 });
+                isDeleting.value = null;
+            },
+            onError: () => {
+                isDeleting.value = null;
             },
         });
     }
@@ -205,6 +249,14 @@ const formatDate = (dateString: string) => {
         day: "numeric",
     });
 };
+
+// Sort icon helper
+const getSortIcon = (column: string) => {
+    if (sortBy.value !== column) return "text-gray-400";
+    return sortOrder.value === "asc"
+        ? "text-blue-600 rotate-0"
+        : "text-blue-600 rotate-180";
+};
 </script>
 
 <template>
@@ -213,8 +265,10 @@ const formatDate = (dateString: string) => {
     <AuthenticatedLayout>
         <template #header>
             <div class="flex items-center justify-between">
-                <div>
-                    <h2 class="text-xl font-semibold leading-tight text-gray-800">
+                <div class="flex items-center gap-2">
+                    <h2
+                        class="text-xl font-semibold leading-tight text-gray-800"
+                    >
                         Form Management
                     </h2>
                 </div>
@@ -228,30 +282,31 @@ const formatDate = (dateString: string) => {
         </template>
 
         <div class="space-y-6">
-            <!-- Search and Filters -->
+            <!-- Filters Card -->
             <Card>
                 <CardHeader>
                     <div class="flex items-center justify-between">
                         <CardTitle class="text-lg flex items-center gap-2">
-                            <ListFilter class="h-5 w-5" />
+                            <Filter class="h-5 w-5" />
                             Search & Filter
-                            <Badge v-if="activeFiltersCount > 0" variant="secondary">
+                            <Badge
+                                v-if="activeFiltersCount > 0"
+                                variant="secondary"
+                            >
                                 {{ activeFiltersCount }} active
                             </Badge>
                         </CardTitle>
-                        <Button 
-                            v-if="hasActiveFilters" 
-                            variant="ghost" 
-                            size="sm" 
+                        <Button
+                            v-if="activeFiltersCount > 0"
+                            variant="ghost"
+                            size="sm"
                             @click="clearAllFilters"
                         >
-                            <X class="h-4 w-4 mr-2" />
                             Clear All
                         </Button>
                     </div>
                 </CardHeader>
-                <CardContent class="space-y-4">
-                    <!-- Search Bar -->
+                <CardContent>
                     <div class="flex flex-col lg:flex-row gap-4">
                         <div class="flex-1">
                             <div class="relative">
@@ -263,57 +318,22 @@ const formatDate = (dateString: string) => {
                                     placeholder="Search forms by title, description, or type..."
                                     class="pl-10"
                                 />
-                                <Button
-                                    v-if="search"
-                                    variant="ghost"
-                                    size="sm"
-                                    class="absolute right-1 top-1/2 transform -translate-y-1/2 h-7 w-7 p-0"
-                                    @click="clearSearch"
-                                >
-                                    <X class="h-4 w-4" />
-                                </Button>
                             </div>
                         </div>
 
-                        <!-- Per Page Select -->
-                        <div class="w-full lg:w-40">
-                            <Select 
-                                :model-value="perPage.toString()" 
-                                @update:model-value="(value) => perPage = parseInt(value)"
-                            >
-                                <SelectTrigger>
-                                    <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="6">6 per page</SelectItem>
-                                    <SelectItem value="9">9 per page</SelectItem>
-                                    <SelectItem value="12">12 per page</SelectItem>
-                                    <SelectItem value="18">18 per page</SelectItem>
-                                    <SelectItem value="24">24 per page</SelectItem>
-                                </SelectContent>
-                            </Select>
-                        </div>
-                    </div>
-
-                    <!-- Filter Row -->
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <!-- Form Type Filter -->
-                        <div>
-                            <label class="text-sm font-medium text-gray-700 mb-2 block">
-                                Form Type
-                            </label>
-                            <Select 
-                                :model-value="formTypeFilter" 
-                                @update:model-value="(value) => formTypeFilter = value"
-                            >
+                        <div class="w-full lg:w-48">
+                            <Select v-model="formTypeFilter">
                                 <SelectTrigger>
-                                    <SelectValue placeholder="All Form Types" />
+                                    <SelectValue placeholder="Filter by Type" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value="all">All Form Types</SelectItem>
-                                    <SelectItem 
-                                        v-for="type in formTypes" 
-                                        :key="type.id" 
+                                    <SelectItem value="all"
+                                        >All Form Types</SelectItem
+                                    >
+                                    <SelectItem
+                                        v-for="type in formTypes"
+                                        :key="type.id"
                                         :value="type.id.toString()"
                                     >
                                         {{ type.name }}
@@ -323,31 +343,23 @@ const formatDate = (dateString: string) => {
                         </div>
 
                         <!-- Status Filter -->
-                        <div>
-                            <label class="text-sm font-medium text-gray-700 mb-2 block">
-                                Status
-                            </label>
-                            <Select 
-                                :model-value="isActiveFilter" 
-                                @update:model-value="(value) => isActiveFilter = value"
-                            >
+                        <div class="w-full lg:w-40">
+                            <Select v-model="isActiveFilter">
                                 <SelectTrigger>
-                                    <SelectValue placeholder="All Status" />
+                                    <SelectValue
+                                        placeholder="Filter by Status"
+                                    />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value="all">All Status</SelectItem>
-                                    <SelectItem value="active">
-                                        <div class="flex items-center gap-2">
-                                            <CheckCircle class="h-4 w-4 text-green-600" />
-                                            Active
-                                        </div>
-                                    </SelectItem>
-                                    <SelectItem value="inactive">
-                                        <div class="flex items-center gap-2">
-                                            <XCircle class="h-4 w-4 text-red-600" />
-                                            Inactive
-                                        </div>
-                                    </SelectItem>
+                                    <SelectItem value="all"
+                                        >All Status</SelectItem
+                                    >
+                                    <SelectItem value="active"
+                                        >Active</SelectItem
+                                    >
+                                    <SelectItem value="inactive"
+                                        >Inactive</SelectItem
+                                    >
                                 </SelectContent>
                             </Select>
                         </div>
@@ -355,166 +367,238 @@ const formatDate = (dateString: string) => {
                 </CardContent>
             </Card>
 
-            <!-- Results Info -->
-            <div v-if="props.forms.total > 0" class="flex items-center justify-between text-sm text-muted-foreground">
-                <div>
-                    Showing {{ props.forms.from }} to {{ props.forms.to }} of {{ props.forms.total }} forms
-                </div>
-                <Badge variant="outline">
-                    Page {{ props.forms.current_page }} of {{ props.forms.last_page }}
-                </Badge>
-            </div>
-
-            <!-- Forms Grid -->
-            <div v-if="props.forms.data.length > 0" class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                <Card 
-                    v-for="form in props.forms.data" 
-                    :key="form.id" 
-                    class="group hover:shadow-lg transition-shadow"
-                >
-                    <CardHeader class="pb-3">
-                        <div class="flex items-start justify-between">
-                            <div class="flex-1">
-                                <CardTitle class="text-lg line-clamp-2">
-                                    {{ form.title }}
-                                </CardTitle>
-                                <CardDescription class="mt-1 line-clamp-2">
-                                    {{ form.description || "No description" }}
-                                </CardDescription>
-                            </div>
-                            <DropdownMenu>
-                                <DropdownMenuTrigger as-child>
-                                    <Button variant="ghost" size="sm">
-                                        <MoreHorizontal class="h-4 w-4" />
-                                    </Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end">
-                                    <DropdownMenuItem as-child>
-                                        <Link :href="route('admin.forms.show', form.id)">
-                                            <Eye class="h-4 w-4 mr-2" />
-                                            View
-                                        </Link>
-                                    </DropdownMenuItem>
-                                    <DropdownMenuItem as-child>
-                                        <Link :href="route('admin.forms.edit', form.id)">
-                                            <Edit class="h-4 w-4 mr-2" />
-                                            Edit
-                                        </Link>
-                                    </DropdownMenuItem>
-                                    <DropdownMenuItem @click="duplicateForm(form)">
-                                        <Copy class="h-4 w-4 mr-2" />
-                                        Duplicate
-                                    </DropdownMenuItem>
-                                    <DropdownMenuItem 
-                                        @click="deleteForm(form)" 
-                                        class="text-destructive"
+            <!-- Data Table Card -->
+            <Card>
+                <CardHeader>
+                    <div class="flex items-center justify-between">
+                        <CardTitle class="flex items-center gap-2">
+                            <FileText class="h-5 w-5" />
+                            Forms
+                            <Badge variant="secondary"
+                                >{{ props.forms.total }} total</Badge
+                            >
+                        </CardTitle>
+                    </div>
+                </CardHeader>
+                <CardContent class="p-0">
+                    <!-- Table -->
+                    <div class="rounded-md border ml-4 mr-4 mb-4 overflow-x-auto">
+                        <Table>
+                            <TableHeader>
+                                <TableRow>
+                                    <TableHead class="w-12">#</TableHead>
+                                    <TableHead>
+                                        <button
+                                            @click="sortTable('title')"
+                                            class="flex items-center gap-1 hover:text-blue-600 font-semibold"
+                                        >
+                                            Form Title
+                                            <ArrowUpDown
+                                                class="h-4 w-4 transition-transform"
+                                                :class="getSortIcon('title')"
+                                            />
+                                        </button>
+                                    </TableHead>
+                                    <TableHead>Description</TableHead>
+                                    <TableHead>
+                                        <button
+                                            @click="sortTable('form_type')"
+                                            class="flex items-center gap-1 hover:text-blue-600 font-semibold"
+                                        >
+                                            Type
+                                            <ArrowUpDown
+                                                class="h-4 w-4 transition-transform"
+                                                :class="
+                                                    getSortIcon('form_type')
+                                                "
+                                            />
+                                        </button>
+                                    </TableHead>
+                                    <TableHead class="text-center"
+                                        >Status</TableHead
                                     >
-                                        <Trash2 class="h-4 w-4 mr-2" />
-                                        Delete
-                                    </DropdownMenuItem>
-                                </DropdownMenuContent>
-                            </DropdownMenu>
-                        </div>
-                    </CardHeader>
-                    <CardContent>
-                        <div class="space-y-3">
-                            <div class="flex items-center gap-2 flex-wrap">
-                                <Badge variant="outline">
-                                    {{ form.form_type.name }}
-                                </Badge>
-                                <Badge 
-                                    :variant="form.is_active ? 'default' : 'destructive'"
+                                    <TableHead>
+                                        <button
+                                            @click="sortTable('created_at')"
+                                            class="flex items-center gap-1 hover:text-blue-600 font-semibold"
+                                        >
+                                            Created At
+                                            <ArrowUpDown
+                                                class="h-4 w-4 transition-transform"
+                                                :class="
+                                                    getSortIcon('created_at')
+                                                "
+                                            />
+                                        </button>
+                                    </TableHead>
+                                    <TableHead class="text-center w-20"
+                                        >Actions</TableHead
+                                    >
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                <!-- Empty State -->
+                                <TableRow v-if="props.forms.data.length === 0">
+                                    <TableCell
+                                        colspan="8"
+                                        class="text-center py-8 text-gray-500"
+                                    >
+                                        <FileText
+                                            class="h-12 w-12 mx-auto mb-4 opacity-50"
+                                        />
+                                        <p class="font-medium">
+                                            No forms found
+                                        </p>
+                                        <p class="text-sm mt-1">
+                                            {{
+                                                activeFiltersCount > 0
+                                                    ? "Try adjusting your filters"
+                                                    : "Create your first form to get started"
+                                            }}
+                                        </p>
+                                    </TableCell>
+                                </TableRow>
+
+                                <!-- Data Rows -->
+                                <TableRow
+                                    v-for="(form, index) in props.forms.data"
+                                    :key="form.id"
+                                    class="hover:bg-muted/50"
                                 >
-                                    {{ form.is_active ? "Active" : "Inactive" }}
-                                </Badge>
-                            </div>
-
-                            <div class="text-sm text-muted-foreground">
-                                {{ form.form_fields.length }} field{{ form.form_fields.length !== 1 ? "s" : "" }}
-                            </div>
-
-                            <div class="text-xs text-muted-foreground">
-                                Created {{ formatDate(form.created_at) }}
-                            </div>
-                        </div>
-                    </CardContent>
-                </Card>
-            </div>
-
-            <!-- Empty State -->
-            <Card v-else>
-                <CardContent class="text-center py-12">
-                    <div class="mx-auto max-w-md">
-                        <FileText class="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                        <h3 class="text-lg font-medium text-gray-900 mb-2">
-                            {{ hasActiveFilters ? 'No forms found' : 'No forms yet' }}
-                        </h3>
-                        <p class="text-sm text-muted-foreground mb-4">
-                            {{ hasActiveFilters 
-                                ? 'No data based on your filter.' 
-                                : 'Get started by creating your first form.' 
-                            }}
-                        </p>
-                        <div class="flex gap-2 justify-center">
-                            <Link v-if="!hasActiveFilters" :href="route('admin.forms.create')">
-                                <Button>
-                                    <Plus class="h-4 w-4 mr-2" />
-                                    Create Form
-                                </Button>
-                            </Link>
-                            <Button v-else variant="outline" @click="clearAllFilters">
-                                <X class="h-4 w-4 mr-2" />
-                                Clear Filters
-                            </Button>
-                        </div>
+                                    <TableCell class="font-medium">
+                                        {{ props.forms.from + index }}
+                                    </TableCell>
+                                    <TableCell>
+                                        <div class="font-medium">
+                                            {{ form.title }}
+                                        </div>
+                                    </TableCell>
+                                    <TableCell>
+                                        <div
+                                            class="max-w-md truncate text-sm text-gray-600"
+                                        >
+                                            {{ form.description || "-" }}
+                                        </div>
+                                    </TableCell>
+                                    <TableCell>
+                                        <Badge
+                                            variant="outline"
+                                            class="bg-blue-50 text-blue-700 border-blue-200"
+                                        >
+                                            {{ form.form_type.name }}
+                                        </Badge>
+                                    </TableCell>
+                                    <TableCell class="text-center">
+                                        <Badge
+                                            :variant="
+                                                form.is_active
+                                                    ? 'default'
+                                                    : 'destructive'
+                                            "
+                                            class="flex items-center gap-1 w-fit mx-auto"
+                                        >
+                                            <CheckCircle
+                                                v-if="form.is_active"
+                                                class="h-3 w-3"
+                                            />
+                                            <XCircle v-else class="h-3 w-3" />
+                                            {{
+                                                form.is_active
+                                                    ? "Active"
+                                                    : "Inactive"
+                                            }}
+                                        </Badge>
+                                    </TableCell>
+                                    <TableCell>
+                                        {{ formatDate(form.created_at) }}
+                                    </TableCell>
+                                    <TableCell>
+                                        <DropdownMenu>
+                                            <DropdownMenuTrigger as-child>
+                                                <Button
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    :disabled="
+                                                        isDeleting === form.id
+                                                    "
+                                                >
+                                                    <Ellipsis
+                                                        class="h-4 w-4 justify-center"
+                                                    />
+                                                </Button>
+                                            </DropdownMenuTrigger>
+                                            <DropdownMenuContent align="end">
+                                                <DropdownMenuItem as-child>
+                                                    <Link
+                                                        :href="
+                                                            route(
+                                                                'admin.forms.show',
+                                                                form.id
+                                                            )
+                                                        "
+                                                    >
+                                                        <Eye
+                                                            class="h-4 w-4 mr-2"
+                                                        />
+                                                        View
+                                                    </Link>
+                                                </DropdownMenuItem>
+                                                <DropdownMenuItem as-child>
+                                                    <Link
+                                                        :href="
+                                                            route(
+                                                                'admin.forms.edit',
+                                                                form.id
+                                                            )
+                                                        "
+                                                    >
+                                                        <Edit
+                                                            class="h-4 w-4 mr-2"
+                                                        />
+                                                        Edit
+                                                    </Link>
+                                                </DropdownMenuItem>
+                                                <DropdownMenuItem
+                                                    @click="duplicateForm(form)"
+                                                >
+                                                    <Copy
+                                                        class="h-4 w-4 mr-2"
+                                                    />
+                                                    Duplicate
+                                                </DropdownMenuItem>
+                                                <DropdownMenuItem
+                                                    @click="deleteForm(form)"
+                                                    class="text-red-600"
+                                                >
+                                                    <Trash2
+                                                        class="h-4 w-4 mr-2"
+                                                    />
+                                                    Delete
+                                                </DropdownMenuItem>
+                                            </DropdownMenuContent>
+                                        </DropdownMenu>
+                                    </TableCell>
+                                </TableRow>
+                            </TableBody>
+                        </Table>
                     </div>
                 </CardContent>
             </Card>
-
             <!-- Pagination -->
-            <div v-if="props.forms.last_page > 1" class="flex flex-col sm:flex-row items-center justify-between gap-4">
-                <div class="text-sm text-gray-500">
-                    Showing {{ props.forms.from }} to {{ props.forms.to }} of {{ props.forms.total }} results
-                </div>
-                
-                <div class="flex items-center space-x-2">
-                    <!-- Previous Button -->
-                    <Button
-                        variant="outline"
-                        size="sm"
-                        @click="goToPage(props.forms.links[0].url)"
-                        :disabled="!props.forms.links[0].url"
-                    >
-                        <ChevronLeft class="h-4 w-4" />
-                        <span class="hidden sm:inline ml-2">Previous</span>
-                    </Button>
-
-                    <!-- Page Numbers -->
-                    <template v-for="link in props.forms.links.slice(1, -1)" :key="link.label">
-                        <Button
-                            variant="outline"
-                            size="sm"
-                            @click="goToPage(link.url)"
-                            :disabled="!link.url"
-                            :class="{
-                                'bg-blue-600 text-white hover:bg-blue-700 hover:text-white': link.active,
-                                'hover:bg-gray-100': !link.active
-                            }"
-                        >
-                            {{ link.label }}
-                        </Button>
+            <div v-if="props.forms.last_page > 1" class="flex justify-center">
+                <div class="flex items-center gap-2">
+                    <template v-for="link in props.forms.links" :key="link.label">
+                        <Link v-if="link.url" :href="link.url" :class="[
+                            'px-3 py-2 text-sm rounded-md',
+                            link.active
+                                ? 'bg-primary text-primary-foreground'
+                                : 'bg-background border hover:bg-muted',
+                        ]" v-html="link.label" />
+                        <span v-else :class="[
+                            'px-3 py-2 text-sm rounded-md text-muted-foreground',
+                            'bg-muted cursor-not-allowed',
+                        ]" v-html="link.label" />
                     </template>
-
-                    <!-- Next Button -->
-                    <Button
-                        variant="outline"
-                        size="sm"
-                        @click="goToPage(props.forms.links[props.forms.links.length - 1].url)"
-                        :disabled="!props.forms.links[props.forms.links.length - 1].url"
-                    >
-                        <span class="hidden sm:inline mr-2">Next</span>
-                        <ChevronRight class="h-4 w-4" />
-                    </Button>
                 </div>
             </div>
         </div>
