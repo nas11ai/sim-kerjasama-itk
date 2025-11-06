@@ -41,6 +41,8 @@ import {
     Building,
     X,
     Download,
+    ChevronDown,
+    ChevronUp,
 } from "lucide-vue-next";
 
 interface Role {
@@ -225,6 +227,29 @@ const toggleItemSelection = (id: number) => {
         selectedItems.value.push(id);
     }
 };
+
+const groupAccessControls = computed(() => {
+    const groups: Record<string, FormAccessControl[]> = {};
+    props.formAccessControls.data.forEach((control) => {
+        const formTitle = control.form.title;
+        if (!groups[formTitle]) {
+            groups[formTitle] = [];
+        }
+        groups[formTitle].push(control);
+    });
+    return groups;
+});
+
+// console.log(groupAccessControls.value);
+const openGroups = ref<string[]>([]);
+
+function toggleGroup(formTitle: string) {
+    if (openGroups.value.includes(formTitle)) {
+        openGroups.value = openGroups.value.filter((t) => t !== formTitle);
+    } else {
+        openGroups.value.push(formTitle);
+    }
+}
 </script>
 
 <template>
@@ -380,7 +405,6 @@ const toggleItemSelection = (id: number) => {
                                                 .data.length
                                             " />
                                     </TableHead>
-                                    <TableHead>Form</TableHead>
                                     <TableHead>Role</TableHead>
                                     <TableHead>Study Program</TableHead>
                                     <TableHead>Faculty</TableHead>
@@ -389,90 +413,71 @@ const toggleItemSelection = (id: number) => {
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                <TableRow v-for="control in props.formAccessControls
-                                    .data" :key="control.id">
-                                    <TableCell>
-                                        <Checkbox :checked="selectedItems.includes(
-                                            control.id
-                                        )
-                                            " @update:checked="
-                                                toggleItemSelection(control.id)
-                                                " />
-                                    </TableCell>
-                                    <TableCell class="font-medium">
-                                        <div class="flex items-center gap-2">
-                                            <FileText class="h-4 w-4 text-muted-foreground" />
-                                            {{ control.form.title }}
-                                        </div>
-                                    </TableCell>
-                                    <TableCell>
-                                        <Badge variant="outline">
-                                            {{ control.role.name }}
-                                        </Badge>
-                                    </TableCell>
-                                    <TableCell>
-                                        <div class="flex items-center gap-2">
-                                            <Building class="h-4 w-4 text-muted-foreground" />
-                                            {{ control.study_program.name }}
-                                        </div>
-                                    </TableCell>
-                                    <TableCell>
-                                        <div class="text-sm text-muted-foreground">
-                                            {{
-                                                control.study_program.faculty
-                                                    .name
-                                            }}
-                                        </div>
-                                    </TableCell>
-                                    <TableCell>
-                                        <div class="text-sm text-muted-foreground">
-                                            {{
-                                                new Date(
-                                                    control.created_at
-                                                ).toLocaleDateString()
-                                            }}
-                                        </div>
-                                    </TableCell>
-                                    <TableCell class="text-right">
-                                        <DropdownMenu>
-                                            <DropdownMenuTrigger asChild>
-                                                <Button variant="ghost" size="sm">
-                                                    <MoreHorizontal class="h-4 w-4" />
-                                                </Button>
-                                            </DropdownMenuTrigger>
-                                            <DropdownMenuContent align="end">
-                                                <Link :href="route(
-                                                    'admin.form-access-controls.show',
-                                                    control.id
-                                                )
-                                                    ">
-                                                <DropdownMenuItem>
-                                                    <Eye class="h-4 w-4 mr-2" />
-                                                    View Details
-                                                </DropdownMenuItem>
-                                                </Link>
-                                                <Link :href="route(
-                                                    'admin.form-access-controls.edit',
-                                                    control.id
-                                                )
-                                                    ">
-                                                <DropdownMenuItem>
-                                                    <Edit class="h-4 w-4 mr-2" />
-                                                    Edit
-                                                </DropdownMenuItem>
-                                                </Link>
-                                                <DropdownMenuItem @click="
-                                                    deleteFormAccessControl(
-                                                        control.id
-                                                    )
-                                                    " class="text-destructive cursor-pointer">
-                                                    <Trash2 class="h-4 w-4 mr-2" />
-                                                    Delete
-                                                </DropdownMenuItem>
-                                            </DropdownMenuContent>
-                                        </DropdownMenu>
-                                    </TableCell>
-                                </TableRow>
+                                <template v-for="(controls, formTitle) in groupAccessControls" :key="formTitle">
+                                    <TableRow class="bg-muted/50 cursor-pointer hover:bg-muted" @click="toggleGroup(formTitle)">
+                                        <TableCell colspan="7" class="font-medium">
+                                            <div class="flex items-center justify-between">
+                                                <div class="flex items-center gap-2">
+                                                    <FileText class="h-4 w-4 text-muted-foreground" />
+                                                    {{ formTitle }}
+                                                    <Badge variant="secondary">{{ controls.length }} forms</Badge>
+                                                </div>
+                                                <component
+                                                    :is="openGroups.includes(formTitle) ? ChevronUp : ChevronDown"
+                                                    class="h-4 w-4 text-muted-foreground transition-transform duration-200"
+                                                    />
+                                            </div>
+                                        </TableCell>
+                                    </TableRow>
+
+                                    <template v-if="openGroups.includes(formTitle)">
+                                        <TableRow v-for="control in controls" :key="control.id" class="border-t">
+                                            <TableCell>
+                                                <Checkbox
+                                                    :checked="selectedItems.includes(control.id)"
+                                                    @update:checked="toggleItemSelection(control.id)"
+                                                />
+                                            </TableCell>
+                                            <TableCell>
+                                                <Badge variant="outline">{{ control.role.name }}</Badge>
+                                            </TableCell>
+                                            <TableCell>{{ control.study_program.name }}</TableCell>
+                                            <TableCell>
+                                                {{ control.study_program.faculty.name }}
+                                            </TableCell>
+                                            <TableCell>
+                                                {{ new Date(control.created_at).toLocaleDateString() }}
+                                            </TableCell>
+                                            <TableCell class="text-right">
+                                                <DropdownMenu>
+                                                    <DropdownMenuTrigger asChild>
+                                                        <Button variant="ghost" size="sm">
+                                                            <MoreHorizontal class="h-4 w-4" />
+                                                        </Button>
+                                                    </DropdownMenuTrigger>
+                                                    <DropdownMenuContent align="end">
+                                                        <Link :href="route('admin.form-access-controls.show', control.id)">
+                                                            <DropdownMenuItem>
+                                                                <Eye class="h-4 w-4 mr-2" /> View Details
+                                                            </DropdownMenuItem>
+                                                        </Link>
+                                                        <Link :href="route('admin.form-access-controls.edit', control.id)">
+                                                            <DropdownMenuItem>
+                                                                <Edit class="h-4 w-4 mr-2" /> Edit
+                                                            </DropdownMenuItem>
+                                                        </Link>
+                                                        <DropdownMenuItem
+                                                            @click="deleteFormAccessControl(control.id)"
+                                                            class="text-destructive cursor-pointer"
+                                                        >
+                                                            <Trash2 class="h-4 w-4 mr-2" /> Delete
+                                                        </DropdownMenuItem>
+                                                    </DropdownMenuContent>
+                                                </DropdownMenu>
+                                            </TableCell>
+                                        </TableRow>
+                                    </template>
+                                </template>
                             </TableBody>
                         </Table>
                     </div>
