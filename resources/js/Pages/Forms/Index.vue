@@ -1,4 +1,3 @@
-<!-- resources\js\Pages\Forms\Index.vue -->
 <script setup lang="ts">
 import { ref, watch, computed } from "vue";
 import { Head, Link, router } from "@inertiajs/vue3";
@@ -8,12 +7,18 @@ import { Input } from "@/Components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/Components/ui/card";
 import { Badge } from "@/Components/ui/badge";
 import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from "@/Components/ui/select";
+    Command,
+    CommandEmpty,
+    CommandGroup,
+    CommandInput,
+    CommandItem,
+    CommandList,
+} from "@/Components/ui/command";
+import {
+    Popover,
+    PopoverContent,
+    PopoverTrigger,
+} from "@/Components/ui/popover";
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -37,16 +42,17 @@ import {
     Trash2,
     Search,
     Filter,
-    ChevronLeft,
-    ChevronRight,
     FileText,
     X,
     ArrowUpDown,
     CheckCircle,
     XCircle,
+    ChevronsUpDown,
+    Check,
 } from "lucide-vue-next";
 import { useToast } from "@/Components/ui/toast/use-toast";
 import { debounce } from "lodash";
+import { cn } from "@/lib/utils";
 
 interface FormType {
     id: number;
@@ -76,25 +82,10 @@ interface PaginationLink {
     active: boolean;
 }
 
-interface PaginatedForms {
-    data: Form[];
-    links: PaginationLink[];
-    current_page: number;
-    last_page: number;
-    per_page: number;
-    total: number;
-    links: Array<{
-        url: string | null;
-        label: string;
-        active: boolean;
-    }>;
-}
-
 interface Props {
-    forms: PaginatedForms;
-    formTypes: FormType[];
-    filters: {
-        search?: string;
+    forms: {
+        data: Form[];
+        links: PaginationLink[];
         current_page: number;
         last_page: number;
         per_page: number;
@@ -123,7 +114,29 @@ const sortOrder = ref(props.filters.sort_order || "desc");
 const formTypeFilter = ref(props.filters.form_type || "all");
 const isActiveFilter = ref(props.filters.is_active || "all");
 
+const openFormType = ref(false);
+const openStatus = ref(false);
+
 const isDeleting = ref<number | null>(null);
+
+const statusOptions = [
+    { value: "all", label: "All Status" },
+    { value: "active", label: "Active" },
+    { value: "inactive", label: "Inactive" },
+];
+
+const selectedFormTypeLabel = computed(() => {
+    if (formTypeFilter.value === "all") return "All Form Types";
+    const type = props.formTypes.find(
+        (t) => t.id.toString() === formTypeFilter.value
+    );
+    return type?.name || "Select type...";
+});
+
+const selectedStatusLabel = computed(() => {
+    const status = statusOptions.find((s) => s.value === isActiveFilter.value);
+    return status?.label || "Select status...";
+});
 
 const debouncedSearch = debounce((value: string) => {
     updateFilters({ search: value });
@@ -182,22 +195,8 @@ const goToPage = (url: string | null) => {
     if (url) {
         router.visit(url, {
             preserveState: true,
+            preserveScroll: false,
         });
-    }
-};
-
-const changePerPage = (newPerPage: any) => {
-    if (newPerPage !== null && newPerPage !== undefined) {
-        let perPageNumber: number;
-        if (typeof newPerPage === "string") {
-            perPageNumber = parseInt(newPerPage);
-        } else if (typeof newPerPage === "number") {
-            perPageNumber = newPerPage;
-        } else {
-            return;
-        }
-        perPage.value = perPageNumber;
-        updateFilters({ per_page: perPageNumber });
     }
 };
 
@@ -250,7 +249,6 @@ const formatDate = (dateString: string) => {
     });
 };
 
-// Sort icon helper
 const getSortIcon = (column: string) => {
     if (sortBy.value !== column) return "text-gray-400";
     return sortOrder.value === "asc"
@@ -282,7 +280,6 @@ const getSortIcon = (column: string) => {
         </template>
 
         <div class="space-y-6">
-            <!-- Filters Card -->
             <Card>
                 <CardHeader>
                     <div class="flex items-center justify-between">
@@ -301,7 +298,9 @@ const getSortIcon = (column: string) => {
                             variant="ghost"
                             size="sm"
                             @click="clearAllFilters"
+                            class="flex items-center"
                         >
+                            <X class="h-4 w-4 mr-2" />
                             Clear All
                         </Button>
                     </div>
@@ -321,53 +320,174 @@ const getSortIcon = (column: string) => {
                             </div>
                         </div>
 
-                        <!-- Form Type Filter -->
-                        <div class="w-full lg:w-48">
-                            <Select v-model="formTypeFilter">
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Filter by Type" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="all"
-                                        >All Form Types</SelectItem
+                        <div class="w-full lg:w-64">
+                            <Popover v-model:open="openFormType">
+                                <PopoverTrigger as-child>
+                                    <Button
+                                        variant="outline"
+                                        role="combobox"
+                                        :aria-expanded="openFormType"
+                                        class="w-full justify-between"
                                     >
-                                    <SelectItem
-                                        v-for="type in formTypes"
-                                        :key="type.id"
-                                        :value="type.id.toString()"
-                                    >
-                                        {{ type.name }}
-                                    </SelectItem>
-                                </SelectContent>
-                            </Select>
+                                        <span class="truncate">{{
+                                            selectedFormTypeLabel
+                                        }}</span>
+                                        <ChevronsUpDown
+                                            class="ml-2 h-4 w-4 shrink-0 opacity-50"
+                                        />
+                                    </Button>
+                                </PopoverTrigger>
+                                <PopoverContent class="w-[250px] p-0">
+                                    <Command>
+                                        <div
+                                            class="flex items-center border-b px-3"
+                                            cmdk-input-wrapper
+                                        >
+                                            <Search
+                                                class="mr-2 h-4 w-4 shrink-0 opacity-50"
+                                            />
+                                            <CommandInput
+                                                placeholder="Search form type..."
+                                                class="flex h-11 w-full rounded-md bg-transparent py-3 text-sm outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50 border-0 ring-0 focus:ring-0 focus:outline-none"
+                                            />
+                                        </div>
+                                        <CommandList>
+                                            <CommandEmpty
+                                                >No form type
+                                                found.</CommandEmpty
+                                            >
+                                            <CommandGroup>
+                                                <CommandItem
+                                                    value="all"
+                                                    @select="
+                                                        () => {
+                                                            formTypeFilter =
+                                                                'all';
+                                                            openFormType = false;
+                                                        }
+                                                    "
+                                                >
+                                                    <Check
+                                                        :class="
+                                                            cn(
+                                                                'mr-2 h-4 w-4',
+                                                                formTypeFilter ===
+                                                                    'all'
+                                                                    ? 'opacity-100'
+                                                                    : 'opacity-0'
+                                                            )
+                                                        "
+                                                    />
+                                                    All Form Types
+                                                </CommandItem>
+                                                <CommandItem
+                                                    v-for="type in formTypes"
+                                                    :key="type.id"
+                                                    :value="
+                                                        type.id.toString()
+                                                    "
+                                                    @select="
+                                                        () => {
+                                                            formTypeFilter =
+                                                                type.id.toString();
+                                                            openFormType = false;
+                                                        }
+                                                    "
+                                                >
+                                                    <Check
+                                                        :class="
+                                                            cn(
+                                                                'mr-2 h-4 w-4',
+                                                                formTypeFilter ===
+                                                                    type.id.toString()
+                                                                    ? 'opacity-100'
+                                                                    : 'opacity-0'
+                                                            )
+                                                        "
+                                                    />
+                                                    {{ type.name }}
+                                                </CommandItem>
+                                            </CommandGroup>
+                                        </CommandList>
+                                    </Command>
+                                </PopoverContent>
+                            </Popover>
                         </div>
 
-                        <!-- Status Filter -->
-                        <div class="w-full lg:w-40">
-                            <Select v-model="isActiveFilter">
-                                <SelectTrigger>
-                                    <SelectValue
-                                        placeholder="Filter by Status"
-                                    />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="all"
-                                        >All Status</SelectItem
+                        <div class="w-full lg:w-48">
+                            <Popover v-model:open="openStatus">
+                                <PopoverTrigger as-child>
+                                    <Button
+                                        variant="outline"
+                                        role="combobox"
+                                        :aria-expanded="openStatus"
+                                        class="w-full justify-between"
                                     >
-                                    <SelectItem value="active"
-                                        >Active</SelectItem
-                                    >
-                                    <SelectItem value="inactive"
-                                        >Inactive</SelectItem
-                                    >
-                                </SelectContent>
-                            </Select>
+                                        <span class="truncate">{{
+                                            selectedStatusLabel
+                                        }}</span>
+                                        <ChevronsUpDown
+                                            class="ml-2 h-4 w-4 shrink-0 opacity-50"
+                                        />
+                                    </Button>
+                                </PopoverTrigger>
+                                <PopoverContent class="w-[200px] p-0">
+                                    <Command>
+                                        <CommandList>
+                                            <CommandGroup>
+                                                <CommandItem
+                                                    v-for="status in statusOptions"
+                                                    :key="status.value"
+                                                    :value="status.value"
+                                                    @select="
+                                                        () => {
+                                                            isActiveFilter =
+                                                                status.value;
+                                                            openStatus = false;
+                                                        }
+                                                    "
+                                                >
+                                                    <Check
+                                                        :class="
+                                                            cn(
+                                                                'mr-2 h-4 w-4',
+                                                                isActiveFilter ===
+                                                                    status.value
+                                                                    ? 'opacity-100'
+                                                                    : 'opacity-0'
+                                                            )
+                                                        "
+                                                    />
+                                                    <div
+                                                        class="flex items-center gap-2"
+                                                    >
+                                                        <CheckCircle
+                                                            v-if="
+                                                                status.value ===
+                                                                'active'
+                                                            "
+                                                            class="h-4 w-4 text-green-600"
+                                                        />
+                                                        <XCircle
+                                                            v-else-if="
+                                                                status.value ===
+                                                                'inactive'
+                                                            "
+                                                            class="h-4 w-4 text-red-600"
+                                                        />
+                                                        {{ status.label }}
+                                                    </div>
+                                                </CommandItem>
+                                            </CommandGroup>
+                                        </CommandList>
+                                    </Command>
+                                </PopoverContent>
+                            </Popover>
                         </div>
                     </div>
                 </CardContent>
             </Card>
 
-            <!-- Data Table Card -->
             <Card>
                 <CardHeader>
                     <div class="flex items-center justify-between">
@@ -381,8 +501,9 @@ const getSortIcon = (column: string) => {
                     </div>
                 </CardHeader>
                 <CardContent class="p-0">
-                    <!-- Table -->
-                    <div class="rounded-md border ml-4 mr-4 mb-4 overflow-x-auto">
+                    <div
+                        class="rounded-md border ml-4 mr-4 mb-4 overflow-x-auto"
+                    >
                         <Table>
                             <TableHeader>
                                 <TableRow>
@@ -437,10 +558,11 @@ const getSortIcon = (column: string) => {
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                <!-- Empty State -->
-                                <TableRow v-if="props.forms.data.length === 0">
+                                <TableRow
+                                    v-if="props.forms.data.length === 0"
+                                >
                                     <TableCell
-                                        colspan="8"
+                                        colspan="7"
                                         class="text-center py-8 text-gray-500"
                                     >
                                         <FileText
@@ -459,7 +581,6 @@ const getSortIcon = (column: string) => {
                                     </TableCell>
                                 </TableRow>
 
-                                <!-- Data Rows -->
                                 <TableRow
                                     v-for="(form, index) in props.forms.data"
                                     :key="form.id"
@@ -501,7 +622,10 @@ const getSortIcon = (column: string) => {
                                                 v-if="form.is_active"
                                                 class="h-3 w-3"
                                             />
-                                            <XCircle v-else class="h-3 w-3" />
+                                            <XCircle
+                                                v-else
+                                                class="h-3 w-3"
+                                            />
                                             {{
                                                 form.is_active
                                                     ? "Active"
@@ -509,9 +633,9 @@ const getSortIcon = (column: string) => {
                                             }}
                                         </Badge>
                                     </TableCell>
-                                    <TableCell>
-                                        {{ formatDate(form.created_at) }}
-                                    </TableCell>
+                                    <TableCell>{{
+                                        formatDate(form.created_at)
+                                    }}</TableCell>
                                     <TableCell>
                                         <DropdownMenu>
                                             <DropdownMenuTrigger as-child>
@@ -523,7 +647,7 @@ const getSortIcon = (column: string) => {
                                                     "
                                                 >
                                                     <Ellipsis
-                                                        class="h-4 w-4 justify-center"
+                                                        class="h-4 w-4"
                                                     />
                                                 </Button>
                                             </DropdownMenuTrigger>
@@ -559,7 +683,9 @@ const getSortIcon = (column: string) => {
                                                     </Link>
                                                 </DropdownMenuItem>
                                                 <DropdownMenuItem
-                                                    @click="duplicateForm(form)"
+                                                    @click="
+                                                        duplicateForm(form)
+                                                    "
                                                 >
                                                     <Copy
                                                         class="h-4 w-4 mr-2"
@@ -584,20 +710,32 @@ const getSortIcon = (column: string) => {
                     </div>
                 </CardContent>
             </Card>
-            <!-- Pagination -->
+
             <div v-if="props.forms.last_page > 1" class="flex justify-center">
                 <div class="flex items-center gap-2">
-                    <template v-for="link in props.forms.links" :key="link.label">
-                        <Link v-if="link.url" :href="link.url" :class="[
-                            'px-3 py-2 text-sm rounded-md',
-                            link.active
-                                ? 'bg-primary text-primary-foreground'
-                                : 'bg-background border hover:bg-muted',
-                        ]" v-html="link.label" />
-                        <span v-else :class="[
-                            'px-3 py-2 text-sm rounded-md text-muted-foreground',
-                            'bg-muted cursor-not-allowed',
-                        ]" v-html="link.label" />
+                    <template
+                        v-for="link in props.forms.links"
+                        :key="link.label"
+                    >
+                        <Link
+                            v-if="link.url"
+                            :href="link.url"
+                            :class="[
+                                'px-3 py-2 text-sm rounded-md',
+                                link.active
+                                    ? 'bg-primary text-primary-foreground'
+                                    : 'bg-background border hover:bg-muted',
+                            ]"
+                            v-html="link.label"
+                        />
+                        <span
+                            v-else
+                            :class="[
+                                'px-3 py-2 text-sm rounded-md text-muted-foreground',
+                                'bg-muted cursor-not-allowed',
+                            ]"
+                            v-html="link.label"
+                        />
                     </template>
                 </div>
             </div>
