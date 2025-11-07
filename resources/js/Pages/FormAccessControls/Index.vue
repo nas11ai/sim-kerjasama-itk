@@ -1,3 +1,4 @@
+<!-- filepath: e:\ITK\sim-kerjasama-itk\resources\js\Pages\FormAccessControls\Index.vue -->
 <script setup lang="ts">
 import { computed, ref, watch } from "vue";
 import { Head, Link, router } from "@inertiajs/vue3";
@@ -38,12 +39,14 @@ import {
     Filter,
     FileText,
     Users,
-    Building,
     X,
-    Download,
     ChevronDown,
     ChevronUp,
+    ChevronLeft,
+    ChevronRight,
 } from "lucide-vue-next";
+import { useToast } from "@/Components/ui/toast/use-toast";
+import { debounce } from "lodash";
 
 interface Role {
     id: number;
@@ -69,24 +72,35 @@ interface Form {
 
 interface FormAccessControl {
     id: number;
-    form: Form;
+    form?: Form;
     role: Role;
     study_program: StudyProgram;
     created_at: string;
     updated_at: string;
 }
 
+interface GroupAccessControl {
+    form_id: number;
+    jumlah_access_controls: number;
+    form: Form;
+    controls: FormAccessControl[];
+}
+
+interface PaginationLink {
+    url: string | null;
+    label: string;
+    active: boolean;
+}
+
 interface PaginatedData {
-    data: FormAccessControl[];
+    data: GroupAccessControl[];
     current_page: number;
     last_page: number;
     per_page: number;
     total: number;
-    links: Array<{
-        url: string | null;
-        label: string;
-        active: boolean;
-    }>;
+    from: number;
+    to: number;
+    links: PaginationLink[];
 }
 
 interface Filters {
@@ -95,11 +109,10 @@ interface Filters {
     faculty_id?: string;
     study_program_id?: string;
     search?: string;
-    [key: string]: string | undefined; // Add index signature for Inertia compatibility
 }
 
 interface Props {
-    formAccessControls: PaginatedData;
+    groupAccessControls: PaginatedData;
     forms: Form[];
     roles: Role[];
     faculties: Faculty[];
@@ -107,14 +120,18 @@ interface Props {
 }
 
 const props = defineProps<Props>();
+const { toast } = useToast();
 
 const searchQuery = ref(props.filters.search || "");
 const selectedFormId = ref(props.filters.form_id || "all");
 const selectedRoleId = ref(props.filters.role_id || "all");
 const selectedFacultyId = ref(props.filters.faculty_id || "all");
 const selectedStudyProgramId = ref(props.filters.study_program_id || "all");
+
 const selectedItems = ref<number[]>([]);
 const selectAll = ref(false);
+
+const openGroups = ref<number[]>([]);
 
 const studyPrograms = computed(() => {
     if (!selectedFacultyId.value || selectedFacultyId.value === "all")
@@ -130,37 +147,38 @@ watch(selectedFacultyId, () => {
     selectedStudyProgramId.value = "all";
 });
 
-// Watch for select all checkbox
-watch(selectAll, (newValue) => {
-    if (newValue) {
-        selectedItems.value = props.formAccessControls.data.map(
-            (item) => item.id
-        );
-    } else {
-        selectedItems.value = [];
-    }
-});
-
-// Watch selected items to update select all state
-watch(
-    selectedItems,
-    (newValue) => {
-        selectAll.value =
-            newValue.length === props.formAccessControls.data.length &&
-            newValue.length > 0;
-    },
-    { deep: true }
-);
-
 const hasActiveFilters = computed(() => {
     return (
         (selectedFormId.value && selectedFormId.value !== "all") ||
         (selectedRoleId.value && selectedRoleId.value !== "all") ||
         (selectedFacultyId.value && selectedFacultyId.value !== "all") ||
-        (selectedStudyProgramId.value &&
-            selectedStudyProgramId.value !== "all") ||
-        searchQuery.value
+        (selectedStudyProgramId.value && selectedStudyProgramId.value !== "all") ||
+        searchQuery.value !== ""
     );
+});
+
+const activeFiltersCount = computed(() => {
+    let count = 0;
+    if (searchQuery.value) count++;
+    if (selectedFormId.value !== "all") count++;
+    if (selectedRoleId.value !== "all") count++;
+    if (selectedFacultyId.value !== "all") count++;
+    if (selectedStudyProgramId.value !== "all") count++;
+    return count;
+});
+
+// Debounced search
+const debouncedSearch = debounce(() => {
+    applyFilters();
+}, 300);
+
+watch(searchQuery, () => {
+    debouncedSearch();
+});
+
+// Watch for filter changes
+watch([selectedFormId, selectedRoleId, selectedFacultyId, selectedStudyProgramId], () => {
+    applyFilters();
 });
 
 const applyFilters = () => {
@@ -199,23 +217,38 @@ const clearFilters = () => {
     );
 };
 
-const deleteFormAccessControl = (id: number) => {
-    if (confirm("Are you sure you want to delete this form access control?")) {
-        router.delete(route("admin.form-access-controls.destroy", id));
+const toggleGroup = (formId: number) => {
+    const index = openGroups.value.indexOf(formId);
+    if (index > -1) {
+        openGroups.value.splice(index, 1);
+    } else {
+        openGroups.value.push(formId);
     }
 };
 
-const bulkDelete = () => {
-    if (selectedItems.value.length === 0) return;
+const isGroupOpen = (formId: number) => {
+    return openGroups.value.includes(formId);
+};
 
-    if (
-        confirm(
-            `Are you sure you want to delete ${selectedItems.value.length} selected items?`
-        )
-    ) {
-        router.post(route("admin.form-access-controls.bulk-delete"), {
-            ids: selectedItems.value,
-        });
+const toggleAllGroups = () => {
+    if (openGroups.value.length === props.groupAccessControls.data.length) {
+        openGroups.value = [];
+    } else {
+        openGroups.value = props.groupAccessControls.data.map((group) => group.form_id);
+    }
+};
+
+const toggleGroupSelection = (controls: FormAccessControl[]) => {
+    const controlIds = controls.map((c) => c.id);
+    const allSelected = controlIds.every((id) => selectedItems.value.includes(id));
+
+    if (allSelected) {
+        selectedItems.value = selectedItems.value.filter(
+            (id) => !controlIds.includes(id)
+        );
+    } else {
+        const newIds = controlIds.filter((id) => !selectedItems.value.includes(id));
+        selectedItems.value.push(...newIds);
     }
 };
 
@@ -228,81 +261,155 @@ const toggleItemSelection = (id: number) => {
     }
 };
 
-const groupAccessControls = computed(() => {
-    const groups: Record<string, FormAccessControl[]> = {};
-    props.formAccessControls.data.forEach((control) => {
-        const formTitle = control.form.title;
-        if (!groups[formTitle]) {
-            groups[formTitle] = [];
-        }
-        groups[formTitle].push(control);
-    });
-    return groups;
-});
+const isGroupSelected = (controls: FormAccessControl[]) => {
+    const controlIds = controls.map((c) => c.id);
+    return controlIds.every((id) => selectedItems.value.includes(id));
+};
 
-// console.log(groupAccessControls.value);
-const openGroups = ref<string[]>([]);
+const isGroupPartiallySelected = (controls: FormAccessControl[]) => {
+    const controlIds = controls.map((c) => c.id);
+    const selectedCount = controlIds.filter((id) =>
+        selectedItems.value.includes(id)
+    ).length;
+    return selectedCount > 0 && selectedCount < controlIds.length;
+};
 
-function toggleGroup(formTitle: string) {
-    if (openGroups.value.includes(formTitle)) {
-        openGroups.value = openGroups.value.filter((t) => t !== formTitle);
-    } else {
-        openGroups.value.push(formTitle);
+// dwlete single
+const deleteFormAccessControl = (id: number) => {
+    if (confirm("Are you sure you want to delete this form access control?")) {
+        router.delete(route("admin.form-access-controls.destroy", id), {
+            onSuccess: () => {
+                toast({
+                    title: "Success",
+                    description: "Form access control deleted successfully.",
+                });
+            },
+            onError: () => {
+                toast({
+                    title: "Error",
+                    description: "Failed to delete form access control.",
+                    variant: "destructive",
+                });
+            },
+        });
     }
-}
+};
+
+const bulkDelete = () => {
+    if (selectedItems.value.length === 0) return;
+
+    if (
+        confirm(
+            `Are you sure you want to delete ${selectedItems.value.length} selected items?`
+        )
+    ) {
+        router.post(
+            route("admin.form-access-controls.bulk-delete"),
+            { ids: selectedItems.value },
+            {
+                onSuccess: () => {
+                    selectedItems.value = [];
+                    toast({
+                        title: "Success",
+                        description: "Selected form access controls deleted successfully.",
+                    });
+                },
+                onError: () => {
+                    toast({
+                        title: "Error",
+                        description: "Failed to delete selected form access controls.",
+                        variant: "destructive",
+                    });
+                },
+            }
+        );
+    }
+};
+
+const goToPage = (url: string | null) => {
+    if (url) {
+        router.visit(url, {
+            preserveState: true,
+        });
+    }
+};
+
+const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString("en-US", {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+    });
+};
 </script>
 
 <template>
-
     <Head title="Form Access Controls" />
 
     <AuthenticatedLayout>
         <template #header>
             <div class="flex items-center justify-between">
-                <h2 class="text-xl font-semibold leading-tight text-gray-800">
-                    Form Access Controls
-                </h2>
                 <div class="flex items-center gap-2">
-                    <Button v-if="selectedItems.length > 0" variant="destructive" size="sm" @click="bulkDelete">
+                    <h2 class="text-xl font-semibold leading-tight text-gray-800">
+                        Form Access Controls
+                    </h2>
+                </div>
+                <div class="flex items-center gap-2">
+                    <Button
+                        v-if="selectedItems.length > 0"
+                        variant="destructive"
+                        size="sm"
+                        @click="bulkDelete"
+                    >
                         <Trash2 class="h-4 w-4 mr-2" />
                         Delete Selected ({{ selectedItems.length }})
                     </Button>
                     <Link :href="route('admin.form-access-controls.create')">
-                    <Button>
-                        <Plus class="h-4 w-4 mr-2" />
-                        Create Access Control
-                    </Button>
+                        <Button>
+                            <Plus class="h-4 w-4 mr-2" />
+                            Create Access Control
+                        </Button>
                     </Link>
                 </div>
             </div>
         </template>
 
-        <div class="max-w-7xl mx-auto space-y-6">
+        <div class="space-y-6">
             <!-- Search and Filters -->
             <Card>
                 <CardHeader>
-                    <CardTitle class="flex items-center gap-2">
-                        <Filter class="h-5 w-5" />
-                        Search & Filter
-                        <Badge v-if="hasActiveFilters" variant="secondary" class="ml-2">
-                            Filters Active
-                        </Badge>
-                    </CardTitle>
+                    <div class="flex items-center justify-between">
+                        <CardTitle class="text-lg flex items-center gap-2">
+                            <Filter class="h-5 w-5" />
+                            Search & Filter
+                            <Badge v-if="activeFiltersCount > 0" variant="secondary">
+                                {{ activeFiltersCount }} active
+                            </Badge>
+                        </CardTitle>
+                        <Button
+                            v-if="hasActiveFilters"
+                            @click="clearFilters"
+                            variant="ghost"
+                            size="sm"
+                        >
+                            <X class="h-4 w-4 mr-2" />
+                            Clear All
+                        </Button>
+                    </div>
                 </CardHeader>
                 <CardContent class="space-y-4">
                     <!-- Search Bar -->
                     <div class="flex items-center gap-2">
                         <div class="flex-1 relative">
                             <Search
-                                class="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                            <Input v-model="searchQuery"
-                                placeholder="Search by form title, role name, or study program..." class="pl-10"
-                                @keyup.enter="applyFilters" />
+                                class="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground"
+                            />
+                            <Input
+                                v-model="searchQuery"
+                                placeholder="Search by form title, role name, or study program..."
+                                class="pl-10"
+                            />
                         </div>
-                        <Button @click="applyFilters">
-                            <Search class="h-4 w-4 mr-2" />
-                            Search
-                        </Button>
                     </div>
 
                     <!-- Filter Controls -->
@@ -315,14 +422,18 @@ function toggleGroup(formTitle: string) {
                                 </SelectTrigger>
                                 <SelectContent>
                                     <SelectItem value="all">All Forms</SelectItem>
-                                    <SelectItem v-for="form in props.forms" :key="form.id" :value="form.id.toString()">
+                                    <SelectItem
+                                        v-for="form in props.forms"
+                                        :key="form.id"
+                                        :value="form.id.toString()"
+                                    >
                                         {{ form.title }}
                                     </SelectItem>
                                 </SelectContent>
                             </Select>
                         </div>
 
-                        <!-- Role Filter -->
+                        <!-- role -->
                         <div>
                             <Select v-model="selectedRoleId">
                                 <SelectTrigger>
@@ -330,14 +441,18 @@ function toggleGroup(formTitle: string) {
                                 </SelectTrigger>
                                 <SelectContent>
                                     <SelectItem value="all">All Roles</SelectItem>
-                                    <SelectItem v-for="role in props.roles" :key="role.id" :value="role.id.toString()">
+                                    <SelectItem
+                                        v-for="role in props.roles"
+                                        :key="role.id"
+                                        :value="role.id.toString()"
+                                    >
                                         {{ role.name }}
                                     </SelectItem>
                                 </SelectContent>
                             </Select>
                         </div>
 
-                        <!-- Faculty Filter -->
+                        <!-- fak -->
                         <div>
                             <Select v-model="selectedFacultyId">
                                 <SelectTrigger>
@@ -345,66 +460,111 @@ function toggleGroup(formTitle: string) {
                                 </SelectTrigger>
                                 <SelectContent>
                                     <SelectItem value="all">All Faculties</SelectItem>
-                                    <SelectItem v-for="faculty in props.faculties" :key="faculty.id"
-                                        :value="faculty.id.toString()">
+                                    <SelectItem
+                                        v-for="faculty in props.faculties"
+                                        :key="faculty.id"
+                                        :value="faculty.id.toString()"
+                                    >
                                         {{ faculty.name }}
                                     </SelectItem>
                                 </SelectContent>
                             </Select>
                         </div>
 
-                        <!-- Study Program Filter -->
+                        <!-- prodi -->
                         <div>
-                            <Select v-model="selectedStudyProgramId" :disabled="!selectedFacultyId ||
-                                selectedFacultyId === 'all'
-                                ">
+                            <Select
+                                v-model="selectedStudyProgramId"
+                                :disabled="!selectedFacultyId || selectedFacultyId === 'all'"
+                            >
                                 <SelectTrigger>
                                     <SelectValue placeholder="All Study Programs" />
                                 </SelectTrigger>
                                 <SelectContent>
                                     <SelectItem value="all">All Study Programs</SelectItem>
-                                    <SelectItem v-for="studyProgram in studyPrograms" :key="studyProgram.id"
-                                        :value="studyProgram.id.toString()">
+                                    <SelectItem
+                                        v-for="studyProgram in studyPrograms"
+                                        :key="studyProgram.id"
+                                        :value="studyProgram.id.toString()"
+                                    >
                                         {{ studyProgram.name }}
                                     </SelectItem>
                                 </SelectContent>
                             </Select>
                         </div>
                     </div>
-
-                    <!-- Filter Actions -->
-                    <div class="flex items-center gap-2">
-                        <Button @click="applyFilters" size="sm">
-                            Apply Filters
-                        </Button>
-                        <Button v-if="hasActiveFilters" @click="clearFilters" variant="outline" size="sm">
-                            <X class="h-4 w-4 mr-2" />
-                            Clear Filters
-                        </Button>
-                    </div>
                 </CardContent>
             </Card>
+
+            <div v-if="props.groupAccessControls.total > 0" class="flex items-center justify-between text-sm text-muted-foreground">
+                <div>
+                    Showing {{ props.groupAccessControls.from }} to
+                    {{ props.groupAccessControls.to }} of
+                    {{ props.groupAccessControls.total }} forms
+                </div>
+                <div class="flex items-center gap-2">
+                    <Badge variant="outline">
+                        Page {{ props.groupAccessControls.current_page }} of
+                        {{ props.groupAccessControls.last_page }}
+                    </Badge>
+                    <Button variant="ghost" size="sm" @click="toggleAllGroups">
+                        {{
+                            openGroups.length === props.groupAccessControls.data.length
+                                ? "Collapse All"
+                                : "Expand All"
+                        }}
+                    </Button>
+                </div>
+            </div>
 
             <!-- Access Controls Table -->
             <Card>
                 <CardHeader>
                     <CardTitle class="flex items-center gap-2">
-                        <Users class="h-5 w-5" />
-                        Access Controls ({{ props.formAccessControls.total }})
+                        <FileText class="h-5 w-5" />
+                        Forms with Access Controls
+                        <Badge variant="secondary">
+                            {{ props.groupAccessControls.total }} forms
+                        </Badge>
                     </CardTitle>
                 </CardHeader>
-                <CardContent>
-                    <div class="rounded-md border">
+                <CardContent class="p-0">
+                    <!-- Empty State -->
+                    <div
+                        v-if="props.groupAccessControls.data.length === 0"
+                        class="text-center py-12"
+                    >
+                        <Users class="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                        <h3 class="text-lg font-medium mb-2">No access controls found</h3>
+                        <p class="text-muted-foreground mb-4">
+                            {{
+                                hasActiveFilters
+                                    ? "Try adjusting your search criteria."
+                                    : "Get started by creating your first access control."
+                            }}
+                        </p>
+                        <Link
+                            :href="route('admin.form-access-controls.create')"
+                            v-if="!hasActiveFilters"
+                        >
+                            <Button>
+                                <Plus class="h-4 w-4 mr-2" />
+                                Create Access Control
+                            </Button>
+                        </Link>
+                        <Button v-else variant="outline" @click="clearFilters">
+                            <X class="h-4 w-4 mr-2" />
+                            Clear Filters
+                        </Button>
+                    </div>
+
+                    <!-- Table with Groups -->
+                    <div v-else class="overflow-x-auto">
                         <Table>
                             <TableHeader>
                                 <TableRow>
-                                    <TableHead class="w-12">
-                                        <Checkbox v-model="selectAll" :indeterminate="selectedItems.length > 0 &&
-                                            selectedItems.length <
-                                            props.formAccessControls
-                                                .data.length
-                                            " />
-                                    </TableHead>
+                                    <TableHead class="w-12"></TableHead>
+                                    <TableHead>Form</TableHead>
                                     <TableHead>Role</TableHead>
                                     <TableHead>Study Program</TableHead>
                                     <TableHead>Faculty</TableHead>
@@ -413,64 +573,138 @@ function toggleGroup(formTitle: string) {
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                <template v-for="(controls, formTitle) in groupAccessControls" :key="formTitle">
-                                    <TableRow class="bg-muted/50 cursor-pointer hover:bg-muted" @click="toggleGroup(formTitle)">
-                                        <TableCell colspan="7" class="font-medium">
+                                <template
+                                    v-for="group in props.groupAccessControls.data"
+                                    :key="group.form_id"
+                                >
+                                    <!-- Group Header Row -->
+                                    <TableRow
+                                        class="bg-muted/50 cursor-pointer hover:bg-muted"
+                                        @click="toggleGroup(group.form_id)"
+                                    >
+                                        <TableCell>
+                                            <Checkbox
+                                                :checked="isGroupSelected(group.controls)"
+                                                :indeterminate="
+                                                    isGroupPartiallySelected(group.controls)
+                                                "
+                                                @click.stop
+                                                @update:checked="
+                                                    toggleGroupSelection(group.controls)
+                                                "
+                                            />
+                                        </TableCell>
+                                        <TableCell colspan="5" class="font-medium">
                                             <div class="flex items-center justify-between">
                                                 <div class="flex items-center gap-2">
-                                                    <FileText class="h-4 w-4 text-muted-foreground" />
-                                                    {{ formTitle }}
-                                                    <Badge variant="secondary">{{ controls.length }} forms</Badge>
+                                                    <FileText
+                                                        class="h-4 w-4 text-muted-foreground"
+                                                    />
+                                                    {{ group.form.title }}
+                                                    <Badge variant="secondary">
+                                                        {{
+                                                            group.jumlah_access_controls
+                                                        }}
+                                                        access control{{
+                                                            group.jumlah_access_controls !== 1
+                                                                ? "s"
+                                                                : ""
+                                                        }}
+                                                    </Badge>
                                                 </div>
                                                 <component
-                                                    :is="openGroups.includes(formTitle) ? ChevronUp : ChevronDown"
+                                                    :is="
+                                                        isGroupOpen(group.form_id)
+                                                            ? ChevronUp
+                                                            : ChevronDown
+                                                    "
                                                     class="h-4 w-4 text-muted-foreground transition-transform duration-200"
-                                                    />
+                                                />
                                             </div>
                                         </TableCell>
+                                        <TableCell></TableCell>
                                     </TableRow>
 
-                                    <template v-if="openGroups.includes(formTitle)">
-                                        <TableRow v-for="control in controls" :key="control.id" class="border-t">
+                                    <!-- Group Detail Rows -->
+                                    <template v-if="isGroupOpen(group.form_id)">
+                                        <TableRow
+                                            v-for="control in group.controls"
+                                            :key="control.id"
+                                            class="border-t"
+                                        >
                                             <TableCell>
                                                 <Checkbox
-                                                    :checked="selectedItems.includes(control.id)"
-                                                    @update:checked="toggleItemSelection(control.id)"
+                                                    :checked="
+                                                        selectedItems.includes(control.id)
+                                                    "
+                                                    @update:checked="
+                                                        toggleItemSelection(control.id)
+                                                    "
                                                 />
                                             </TableCell>
-                                            <TableCell>
-                                                <Badge variant="outline">{{ control.role.name }}</Badge>
+                                            <TableCell class="pl-12">
+                                                <span class="text-sm text-muted-foreground">
+                                                    #{{ control.id }}
+                                                </span>
                                             </TableCell>
-                                            <TableCell>{{ control.study_program.name }}</TableCell>
+                                            <TableCell>
+                                                <Badge variant="outline">
+                                                    {{ control.role.name }}
+                                                </Badge>
+                                            </TableCell>
+                                            <TableCell>
+                                                {{ control.study_program.name }}
+                                            </TableCell>
                                             <TableCell>
                                                 {{ control.study_program.faculty.name }}
                                             </TableCell>
                                             <TableCell>
-                                                {{ new Date(control.created_at).toLocaleDateString() }}
+                                                {{ formatDate(control.created_at) }}
                                             </TableCell>
                                             <TableCell class="text-right">
                                                 <DropdownMenu>
-                                                    <DropdownMenuTrigger asChild>
+                                                    <DropdownMenuTrigger as-child>
                                                         <Button variant="ghost" size="sm">
                                                             <MoreHorizontal class="h-4 w-4" />
                                                         </Button>
                                                     </DropdownMenuTrigger>
                                                     <DropdownMenuContent align="end">
-                                                        <Link :href="route('admin.form-access-controls.show', control.id)">
+                                                        <Link
+                                                            :href="
+                                                                route(
+                                                                    'admin.form-access-controls.show',
+                                                                    control.id
+                                                                )
+                                                            "
+                                                        >
                                                             <DropdownMenuItem>
-                                                                <Eye class="h-4 w-4 mr-2" /> View Details
+                                                                <Eye class="h-4 w-4 mr-2" />
+                                                                View Details
                                                             </DropdownMenuItem>
                                                         </Link>
-                                                        <Link :href="route('admin.form-access-controls.edit', control.id)">
+                                                        <Link
+                                                            :href="
+                                                                route(
+                                                                    'admin.form-access-controls.edit',
+                                                                    control.id
+                                                                )
+                                                            "
+                                                        >
                                                             <DropdownMenuItem>
-                                                                <Edit class="h-4 w-4 mr-2" /> Edit
+                                                                <Edit class="h-4 w-4 mr-2" />
+                                                                Edit
                                                             </DropdownMenuItem>
                                                         </Link>
                                                         <DropdownMenuItem
-                                                            @click="deleteFormAccessControl(control.id)"
+                                                            @click="
+                                                                deleteFormAccessControl(
+                                                                    control.id
+                                                                )
+                                                            "
                                                             class="text-destructive cursor-pointer"
                                                         >
-                                                            <Trash2 class="h-4 w-4 mr-2" /> Delete
+                                                            <Trash2 class="h-4 w-4 mr-2" />
+                                                            Delete
                                                         </DropdownMenuItem>
                                                     </DropdownMenuContent>
                                                 </DropdownMenu>
@@ -481,44 +715,30 @@ function toggleGroup(formTitle: string) {
                             </TableBody>
                         </Table>
                     </div>
-
-                    <!-- Empty State -->
-                    <div v-if="props.formAccessControls.data.length === 0" class="text-center py-12">
-                        <Users class="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                        <h3 class="text-lg font-medium mb-2">
-                            No access controls found
-                        </h3>
-                        <p class="text-muted-foreground mb-4">
-                            {{
-                                hasActiveFilters
-                                    ? "Try adjusting your search criteria."
-                                    : "Get started by creating your first access control."
-                            }}
-                        </p>
-                        <Link :href="route('admin.form-access-controls.create')" v-if="!hasActiveFilters">
-                        <Button>
-                            <Plus class="h-4 w-4 mr-2" />
-                            Create Access Control
-                        </Button>
-                        </Link>
-                    </div>
                 </CardContent>
             </Card>
-
             <!-- Pagination -->
-            <div v-if="props.formAccessControls.last_page > 1" class="flex justify-center">
+            <div v-if="props.groupAccessControls.last_page > 1" class="flex justify-center mt-4">
                 <div class="flex items-center gap-2">
-                    <template v-for="link in props.formAccessControls.links" :key="link.label">
-                        <Link v-if="link.url" :href="link.url" :class="[
-                            'px-3 py-2 text-sm rounded-md',
-                            link.active
-                                ? 'bg-primary text-primary-foreground'
-                                : 'bg-background border hover:bg-muted',
-                        ]" v-html="link.label" />
-                        <span v-else :class="[
-                            'px-3 py-2 text-sm rounded-md text-muted-foreground',
-                            'bg-muted cursor-not-allowed',
-                        ]" v-html="link.label" />
+                    <template v-for="link in props.groupAccessControls.links" :key="link.label">
+                        <Link
+                            v-if="link.url"
+                            :href="link.url"
+                            :class="[
+                                'px-3 py-2 text-sm rounded-md border transition-colors duration-200',
+                                link.active
+                                    ? 'bg-primary text-primary-foreground border-primary'
+                                    : 'bg-background text-muted-foreground hover:bg-muted hover:text-foreground',
+                            ]"
+                            v-html="link.label"
+                        />
+                        <span
+                            v-else
+                            :class="[
+                                'px-3 py-2 text-sm rounded-md border text-muted-foreground bg-muted cursor-not-allowed',
+                            ]"
+                            v-html="link.label"
+                        />
                     </template>
                 </div>
             </div>
