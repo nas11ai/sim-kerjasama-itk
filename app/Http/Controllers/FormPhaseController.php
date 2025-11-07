@@ -19,6 +19,12 @@ class FormPhaseController extends Controller
 {
     public function index(Request $request)
     {
+        $search = $request->get('search');
+        $perPage = $request->get('per_page', 10);
+        $sortBy = $request->get('sort_by', 'created_at');
+        $sortOrder = $request->get('sort_order', 'desc');
+        $isActiveFilter = $request->get('is_active');
+
         $query = FormPhase::with([
             'formPhaseDetails.formAccessControl.form',
             'formPhaseDetails.formAccessControl.role',
@@ -27,7 +33,20 @@ class FormPhaseController extends Controller
             'formPhaseDetails.reviewEvaluationForms' // Changed: now loaded through formPhaseDetails
         ]);
 
-        $formPhases = $query->orderBy('created_at', 'desc')->paginate(10);
+        if ($search) {
+            $query->where(function ($q) use ($search) {
+                $q->where('title', 'like', '%' . $search . '%')
+                    ->orWhere('description', 'like', '%' . $search . '%');
+            });
+        }
+
+        if ($isActiveFilter && $isActiveFilter !== 'all') {
+            $query->where('is_active', $isActiveFilter === 'active' ? 1 : 0);
+        }
+
+        $formPhases = $query->orderBy($sortBy, $sortOrder)
+                            ->paginate($perPage)
+                            ->withQueryString();
 
         // Calculate review evaluation forms counts for each phase
         $formPhases->getCollection()->transform(function ($phase) {
@@ -40,10 +59,17 @@ class FormPhaseController extends Controller
             );
 
             return $phase;
-        });
+        });    
 
         return Inertia::render('FormPhases/Index', [
-            'formPhases' => $formPhases
+            'formPhases' => $formPhases,
+            'filters' => [
+                'search' => $search,
+                'per_page' => $perPage,
+                'sort_by' => $sortBy,
+                'sort_order' => $sortOrder,
+                'is_active' => $isActiveFilter,
+            ]
         ]);
     }
 
@@ -101,7 +127,6 @@ class FormPhaseController extends Controller
 
             return redirect()->route('admin.form-phases.index')
                 ->with('success', 'Form phase created successfully.');
-
         } catch (\Exception $e) {
             DB::rollback();
             return back()->withErrors(['error' => 'Failed to create form phase: ' . $e->getMessage()]);
@@ -205,7 +230,6 @@ class FormPhaseController extends Controller
 
             return redirect()->route('admin.form-phases.index')
                 ->with('success', 'Form phase updated successfully.');
-
         } catch (\Exception $e) {
             DB::rollback();
             return back()->withErrors(['error' => 'Failed to update form phase: ' . $e->getMessage()]);
@@ -224,7 +248,6 @@ class FormPhaseController extends Controller
 
             return redirect()->route('admin.form-phases.index')
                 ->with('success', 'Form phase deleted successfully.');
-
         } catch (\Exception $e) {
             DB::rollback();
             return back()->withErrors(['error' => 'Failed to delete form phase: ' . $e->getMessage()]);
@@ -268,7 +291,6 @@ class FormPhaseController extends Controller
                 'message' => 'Status updated successfully',
                 'is_active' => $formPhase->is_active
             ]);
-
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
