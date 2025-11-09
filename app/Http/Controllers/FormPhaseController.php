@@ -314,4 +314,32 @@ class FormPhaseController extends Controller
             'fieldTypes' => $fieldTypes
         ]);
     }
+
+    public function bulkDelete(Request $request)
+    {
+        $request->validate([
+            'ids' => 'required|array|min:1',
+            'ids.*' => 'exists:form_phases,id',
+        ]);
+
+        try {
+            DB::beginTransaction();
+
+            $formPhases = FormPhase::whereIn('id', $request->ids)->get();
+
+            foreach ($formPhases as $formPhase) {
+                $formPhase->formPhaseDetails()->delete();
+                $formPhase->delete();
+            }
+
+            DB::commit();
+
+            return redirect()->route('admin.form-phases.index')
+                ->with('success', 'Selected form phases deleted successfully.');
+
+        } catch (\Exception $e) {
+            DB::rollback();
+            return back()->withErrors(['error' => 'Failed to delete selected form phases: ' . $e->getMessage()]);
+        }
+    }
 }

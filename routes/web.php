@@ -373,6 +373,9 @@ Route::middleware(['auth', 'role:Super Admin|Admin', 'check_reviewer_status'])->
         'destroy' => 'form-phases.destroy',
     ]);
 
+    Route::post('form-phases/bulk-delete', [FormPhaseController::class, 'bulkDelete'])
+        ->name('form-phases.bulk-delete');
+
     Route::get('form-phases/{formPhase}/evaluation-forms', [FormPhaseController::class, 'evaluationForms'])
         ->name('form-phases.evaluation-forms');
 

@@ -1,6 +1,6 @@
 <!-- resources/js/Pages/Admin/FormPhases/Index.vue -->
 <script setup lang="ts">
-import { computed, ref } from "vue";
+import { computed, ref, watch } from "vue";
 import { Head, Link, router } from "@inertiajs/vue3";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout.vue";
 import { Button } from "@/Components/ui/button";
@@ -32,6 +32,8 @@ import {
     FileText,
     Settings,
 } from "lucide-vue-next";
+import Checkbox from "@/Components/ui/checkbox/Checkbox.vue";
+import { toast } from "@/Components/ui/toast";
 
 interface PhaseType {
     id: number;
@@ -103,7 +105,19 @@ interface Props {
 
 const props = defineProps<Props>();
 
+const selectedItems = ref<number[]>([]);
+const selectAll = ref(false);
 const searchQuery = ref("");
+
+watch(selectAll, (newValue) => {
+    if (newValue) {
+        selectedItems.value = props.formPhases.data.map(
+            (item) => item.id
+        );
+    } else {
+        selectedItems.value = [];
+    }
+});
 
 const filteredFormPhases = computed(() => {
     if (!searchQuery.value) return props.formPhases.data;
@@ -124,6 +138,48 @@ const deleteFormPhase = (id: number) => {
         router.delete(route("admin.form-phases.destroy", id));
     }
 };
+
+const bulkDeleteForm = () => {
+    if (selectedItems.value.length === 0) return;
+
+    if (
+        confirm(
+            `Are you sure you want to delete ${selectedItems.value.length} selected items?`
+        )
+    ) {
+        router.post(
+            route("admin.form-phases.bulk-delete"),
+            { ids: selectedItems.value },
+            {
+                onSuccess: () => {
+                    toast({
+                        title: "Success",
+                        description: `${selectedItems.value.length} form(s) deleted successfully!`,
+                    });
+                    selectedItems.value = [];
+                    selectAll.value = false;
+                },
+            }
+        );
+    }
+};
+
+const toggleItemSelection = (id: number, checked?: boolean | 'indeterminate') => {
+    const isSelected = selectedItems.value.includes(id)
+
+    const shouldSelect =
+        checked === 'indeterminate'
+            ? true
+            : typeof checked === 'boolean'
+                ? checked
+                : !isSelected
+
+    if (shouldSelect) {
+        if (!isSelected) selectedItems.value.push(id)
+    } else {
+        selectedItems.value = selectedItems.value.filter(itemId => itemId !== id)
+    }
+}
 
 const toggleStatus = (formPhase: FormPhase) => {
     router.patch(
@@ -188,17 +244,26 @@ const toggleStatus = (formPhase: FormPhase) => {
 
             <!-- Form Phases Table -->
             <Card>
-                <CardHeader>
+                <CardHeader class="flex flex-row items-center justify-between">
                     <CardTitle class="flex items-center gap-2">
                         <Settings class="h-5 w-5" />
                         Form Phases List
                     </CardTitle>
+                    <Button v-if="selectedItems.length > 0" variant="destructive" size="sm" @click="bulkDeleteForm">
+                        <Trash2 class="h-4 w-4 mr-2" />
+                        Delete Selected ({{ selectedItems.length }})
+                    </Button>
                 </CardHeader>
                 <CardContent>
                     <div class="rounded-md border">
                         <Table>
                             <TableHeader>
                                 <TableRow>
+                                    <TableHead class="w-12">
+                                        <Checkbox v-model="selectAll" :indeterminate="selectedItems.length > 0 &&
+                                            selectedItems.length < props.formPhases.data.length
+                                        " />
+                                    </TableHead>
                                     <TableHead>Title</TableHead>
                                     <TableHead>Description</TableHead>
                                     <TableHead>Status</TableHead>
@@ -209,6 +274,12 @@ const toggleStatus = (formPhase: FormPhase) => {
                             </TableHeader>
                             <TableBody>
                                 <TableRow v-for="formPhase in filteredFormPhases" :key="formPhase.id">
+                                    <TableCell>
+                                        <Checkbox
+                                            :model-value="selectedItems.includes(formPhase.id)"
+                                            @update:modelValue="(val) => toggleItemSelection(formPhase.id, val)"
+                                        />
+                                    </TableCell>
                                     <TableCell class="font-medium">
                                         <div class="flex items-center gap-2">
                                             <FileText class="h-4 w-4 text-muted-foreground" />
