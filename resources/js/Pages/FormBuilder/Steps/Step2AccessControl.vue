@@ -90,23 +90,40 @@ const bulkAddAccessControls = () => {
     selectedFacultyId.value = null;
 };
 
-const toggleRole = (roleId: number) => {
-    const index = selectedRoleIds.value.indexOf(roleId);
-    if (index > -1) {
-        selectedRoleIds.value.splice(index, 1);
-    } else {
-        selectedRoleIds.value.push(roleId);
-    }
-};
+const toggleRole: (roleId: number, checked?: boolean | 'indeterminate') => void =
+    (roleId, checked) => {
+    const isCurrentlySelected = selectedRoleIds.value.includes(roleId)
 
-const toggleStudyProgram = (studyProgramId: number) => {
-    const index = selectedStudyProgramIds.value.indexOf(studyProgramId);
-    if (index > -1) {
-        selectedStudyProgramIds.value.splice(index, 1);
+    const shouldBeChecked =
+        checked === 'indeterminate'
+        ? true
+        : typeof checked === 'boolean'
+            ? checked
+            : !isCurrentlySelected
+
+    if (shouldBeChecked) {
+        if (!isCurrentlySelected) selectedRoleIds.value.push(roleId)
     } else {
-        selectedStudyProgramIds.value.push(studyProgramId);
+        selectedRoleIds.value = selectedRoleIds.value.filter(id => id !== roleId)
     }
-};
+}
+
+const toggleStudyProgram: (studyProgramId: number, checked?: boolean | 'indeterminate') => void =
+    (studyProgramId, checked) => {
+    const isCurrentlySelected = selectedStudyProgramIds.value.includes(studyProgramId)
+
+    const shouldBeChecked =
+        checked === 'indeterminate'
+        ? true
+        : typeof checked === 'boolean'
+            ? checked
+            : !isCurrentlySelected
+    if (shouldBeChecked) {
+        if (!isCurrentlySelected) selectedStudyProgramIds.value.push(studyProgramId)
+    } else {
+        selectedStudyProgramIds.value = selectedStudyProgramIds.value.filter(id => id !== studyProgramId)
+    }
+}
 
 const selectAllRoles = () => {
     if (selectedRoleIds.value.length === props.roles.length) {
@@ -184,8 +201,10 @@ watch(selectedFacultyId, () => {
                     <div class="grid gap-2 md:grid-cols-2 max-h-48 overflow-y-auto p-2 border rounded bg-white">
                         <div v-for="studyProgram in studyPrograms" :key="studyProgram.id"
                             class="flex items-center space-x-2">
-                            <Checkbox :checked="selectedStudyProgramIds.includes(studyProgram.id)"
-                                @update:checked="toggleStudyProgram(studyProgram.id)" />
+                            <Checkbox
+                                :model-value="selectedStudyProgramIds.includes(studyProgram.id)"
+                                @update:modelValue="(val) => toggleStudyProgram(studyProgram.id, val)"
+                            />
                             <Label class="text-sm cursor-pointer" @click="toggleStudyProgram(studyProgram.id)">
                                 {{ studyProgram.name }}
                             </Label>
@@ -203,8 +222,10 @@ watch(selectedFacultyId, () => {
                     </div>
                     <div class="grid gap-2 md:grid-cols-2 p-2 border rounded bg-white">
                         <div v-for="role in roles" :key="role.id" class="flex items-center space-x-2">
-                            <Checkbox :checked="selectedRoleIds.includes(role.id)"
-                                @update:checked="toggleRole(role.id)" />
+                            <Checkbox
+                                :model-value="selectedRoleIds.includes(role.id)"
+                                @update:modelValue="(val) => toggleRole(role.id, val)"
+                            />
                             <Label class="cursor-pointer" @click="toggleRole(role.id)">
                                 {{ role.name }}
                             </Label>
