@@ -258,4 +258,14 @@ class FormController extends Controller
         return redirect()->route('admin.forms.index')
             ->with('success', 'Form duplicated successfully!');
     }
+
+    public function bulkDelete(Request $request)
+    {
+        $ids = $request->input('ids', []);
+
+        Form::whereIn('id', $ids)->delete();
+
+        return redirect()->route('admin.forms.index')
+            ->with('success', 'Selected forms deleted successfully!');
+    }
 }

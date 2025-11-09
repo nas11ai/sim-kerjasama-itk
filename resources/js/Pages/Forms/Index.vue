@@ -51,6 +51,7 @@ import TableRow from "@/Components/ui/table/TableRow.vue";
 import TableHead from "@/Components/ui/table/TableHead.vue";
 import TableBody from "@/Components/ui/table/TableBody.vue";
 import TableCell from "@/Components/ui/table/TableCell.vue";
+import Checkbox from "@/Components/ui/checkbox/Checkbox.vue";
 
 interface FormType {
     id: number;
@@ -111,6 +112,8 @@ const sortBy = ref(props.filters.sort_by || 'created_at');
 const sortOrder = ref(props.filters.sort_order || 'desc');
 const formTypeFilter = ref(props.filters.form_type || 'all');
 const isActiveFilter = ref(props.filters.is_active || 'all');
+const selectedItems = ref<number[]>([]);
+const selectAll = ref(false);
 
 const debouncedSearch = debounce((value: string) => {
     updateFilters({ search: value });
@@ -130,6 +133,16 @@ watch(formTypeFilter, (newValue) => {
 
 watch(isActiveFilter, (newValue) => {
     updateFilters({ is_active: newValue });
+});
+
+watch(selectAll, (newValue) => {
+    if (newValue) {
+        selectedItems.value = props.forms.data.map(
+            (item) => item.id
+        );
+    } else {
+        selectedItems.value = [];
+    }
 });
 
 const updateFilters = (newFilters: Record<string, any>) => {
@@ -189,6 +202,31 @@ const deleteForm = (form: Form) => {
     }
 };
 
+const bulkDeleteForm = () => {
+    if (selectedItems.value.length === 0) return;
+
+    if (
+        confirm(
+            `Are you sure you want to delete ${selectedItems.value.length} selected items?`
+        )
+    ) {
+        router.post(
+            route("admin.forms.bulk-delete"),
+            { ids: selectedItems.value },
+            {
+                onSuccess: () => {
+                    toast({
+                        title: "Success",
+                        description: `${selectedItems.value.length} form(s) deleted successfully!`,
+                    });
+                    selectedItems.value = [];
+                    selectAll.value = false;
+                },
+            }
+        );
+    }
+};
+
 const duplicateForm = (form: Form) => {
     router.post(
         route("admin.forms.duplicate", form.id),
@@ -211,6 +249,23 @@ const formatDate = (dateString: string) => {
         day: "numeric",
     });
 };
+
+const toggleItemSelection = (id: number, checked?: boolean | 'indeterminate') => {
+    const isSelected = selectedItems.value.includes(id)
+
+    const shouldSelect =
+        checked === 'indeterminate'
+            ? true
+            : typeof checked === 'boolean'
+                ? checked
+                : !isSelected
+
+    if (shouldSelect) {
+        if (!isSelected) selectedItems.value.push(id)
+    } else {
+        selectedItems.value = selectedItems.value.filter(itemId => itemId !== id)
+    }
+}
 </script>
 
 <template>
@@ -364,17 +419,28 @@ const formatDate = (dateString: string) => {
             <!-- Form Tables -->
             <div v-if="props.forms.data.length > 0">
                 <Card>
-                    <CardHeader>
+                    <CardHeader class="flex flex-row items-center justify-between">
                         <CardTitle class="flex items-center gap-2">
                             <FileText class="h-5 w-5" />
                             Form List
                         </CardTitle>
+                        <Button v-if="selectedItems.length > 0" variant="destructive" size="sm" @click="bulkDeleteForm">
+                            <Trash2 class="h-4 w-4 mr-2" />
+                            Delete Selected ({{ selectedItems.length }})
+                        </Button>
                     </CardHeader>
                     <CardContent>
                         <div class="rounded-md border">
                             <Table>
                                 <TableHeader>
                                     <TableRow>
+                                        <TableHead class="w-12">
+                                            <Checkbox v-model="selectAll" :indeterminate="selectedItems.length > 0 &&
+                                                selectedItems.length <
+                                                props.forms
+                                                    .data.length
+                                                " />
+                                        </TableHead>
                                         <TableHead>Title</TableHead>
                                         <TableHead>Description</TableHead>
                                         <TableHead>Type</TableHead>
@@ -386,6 +452,12 @@ const formatDate = (dateString: string) => {
                                 </TableHeader>
                                 <TableBody>
                                     <TableRow v-for="form in forms.data" :key="form.id">
+                                        <TableCell>
+                                            <Checkbox
+                                                :model-value="selectedItems.includes(form.id)"
+                                                @update:modelValue="(val) => toggleItemSelection(form.id, val)"
+                                            />
+                                        </TableCell>
                                         <TableCell>{{ form.title }}</TableCell>
                                         <TableCell>{{ form.description }}</TableCell>
                                         <TableCell>
