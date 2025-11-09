@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\CompleteFormBuilderController;
 use App\Http\Controllers\ReviewController;
 use App\Http\Controllers\ReviewEvaluationFormController;
 use App\Http\Controllers\ReviewerFormAssignmentController;
@@ -260,6 +261,12 @@ Route::middleware(['auth', 'role:Super Admin|Admin', 'check_reviewer_status'])->
     Route::resource('forms', FormController::class);
     Route::post('forms/{form}/duplicate', [FormController::class, 'duplicate'])
         ->name('forms.duplicate');
+
+    // Complete Form Builder Routes
+    Route::get('/form-builder/create', [CompleteFormBuilderController::class, 'create'])
+        ->name('form-builder.create');
+    Route::post('/form-builder/store', [CompleteFormBuilderController::class, 'store'])
+        ->name('form-builder.store');
 
     // NEW: Review Evaluation Forms Management
     Route::resource('review-evaluation-forms', ReviewEvaluationFormController::class)->names([

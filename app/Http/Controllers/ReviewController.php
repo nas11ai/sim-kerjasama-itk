@@ -12,6 +12,7 @@ use App\Models\ReviewSummaryAttachment;
 use App\Models\ReviewCommentAttachment;
 use App\Models\ReviewEvaluationForm;
 use App\Models\ReviewerFormAssignment;
+use App\Services\EmailNotificationService;
 use App\SubmissionStatus;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -20,6 +21,12 @@ use Illuminate\Support\Facades\Storage;
 
 class ReviewController extends Controller
 {
+    protected $emailService;
+
+    public function __construct(EmailNotificationService $emailService)
+    {
+        $this->emailService = $emailService;
+    }
     // Enhanced assign reviewers with evaluation forms
     public function assignReviewers(Request $request, FormSubmission $submission)
     {
@@ -29,7 +36,9 @@ class ReviewController extends Controller
             'auto_assign_forms' => 'boolean', // NEW: control auto-assignment
         ]);
 
-        DB::transaction(function () use ($request, $submission) {
+        $newlyAssignedReviewers = [];
+
+        DB::transaction(function () use ($request, $submission, &$newlyAssignedReviewers) {
             $formPhaseDetail = $submission->getFormPhaseDetail();
             $hasEvaluationForms = $formPhaseDetail && $formPhaseDetail->hasReviewEvaluationForms();
 
@@ -42,6 +51,10 @@ class ReviewController extends Controller
                     'evaluation_status' => $hasEvaluationForms ? 'pending' : 'not_required'
                 ]);
 
+                if ($submissionReviewer->wasRecentlyCreated) {
+                    $newlyAssignedReviewers[] = $reviewerId;
+                }
+
                 // Auto-assign evaluation forms if enabled and forms exist
                 if ($hasEvaluationForms && ($request->auto_assign_forms ?? true)) {
                     $this->autoAssignEvaluationForms($submissionReviewer, $formPhaseDetail);
@@ -50,6 +63,12 @@ class ReviewController extends Controller
 
             // Update submission status
             $submission->updateStatusBasedOnReviews();
+
+            // TAMBAHKAN: Kirim email ke reviewer yang baru di-assign
+            foreach ($newlyAssignedReviewers as $reviewerId) {
+                $reviewer = Reviewer::find($reviewerId);
+                $this->emailService->notifyReviewerAssignment($submission, $reviewer);
+            }
         });
 
         return back()->with('success', 'Reviewers have been assigned successfully.');
@@ -107,6 +126,9 @@ class ReviewController extends Controller
             } else {
                 $this->updateSubmissionStatusBasedOnReviews($submission);
             }
+
+            // TAMBAHKAN: Kirim email notifikasi removal
+            $this->emailService->notifyReviewerRemoval($submission, $reviewer);
         });
 
         return back()->with('success', 'Reviewer berhasil dihapus dari submission ini.');
@@ -164,7 +186,12 @@ class ReviewController extends Controller
         };
 
         DB::transaction(function () use ($submission, $newStatus) {
+            $oldStatus = $submission->status;
+
             $submission->update(['status' => $newStatus]);
+
+            // TAMBAHKAN: Kirim email notifikasi submission status changed
+            $this->emailService->notifySubmissionStatusChanged($submission, $oldStatus);
         });
 
         return back()->with('success', "Status submission berhasil diubah menjadi {$newStatus->label()}.");
@@ -261,6 +288,9 @@ class ReviewController extends Controller
             if ($submission->status === SubmissionStatus::PENDING) {
                 $submission->update(['status' => SubmissionStatus::UNDER_REVIEW]);
             }
+
+            // TAMBAHKAN: Kirim email notifikasi review thread created
+            $this->emailService->notifyReviewThreadCreated($reviewSummary);
         });
 
         return back()->with('success', 'Review thread berhasil dibuat.');
@@ -315,13 +345,16 @@ class ReviewController extends Controller
         }
 
         DB::transaction(function () use ($request, $reviewSummary, $user, $reviewerId) {
-            ReviewComment::create([
+            $comment = ReviewComment::create([
                 'review_summary_id' => $reviewSummary->id,
                 'parent_comment_id' => $request->parent_comment_id,
                 'user_id' => $reviewerId ? null : $user->id,
                 'reviewer_id' => $reviewerId,
                 'comment_text' => $request->comment_text,
             ]);
+
+            // TAMBAHKAN: Kirim email notifikasi comment
+            $this->emailService->notifyReviewComment($comment);
         });
 
         return back()->with('success', 'Comment added successfully.');
@@ -526,12 +559,17 @@ class ReviewController extends Controller
         }
 
         DB::transaction(function () use ($request, $reviewSummary) {
+            $oldStatus = $reviewSummary->status;
+
             $reviewSummary->update([
                 'status' => $request->status,
             ]);
 
             // Auto-update submission status based on review statuses
             $this->updateSubmissionStatusBasedOnReviews($reviewSummary->formSubmission);
+
+            // TAMBAHKAN: Kirim email notifikasi status changed
+            $this->emailService->notifyReviewStatusChanged($reviewSummary, $oldStatus);
         });
 
         $statusText = match ($request->status) {
