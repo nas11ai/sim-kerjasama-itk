@@ -1,7 +1,7 @@
 <!-- resources/js/Pages/Forms/Create.vue -->
 <script setup lang="ts">
 import { computed } from "vue";
-import { Head, useForm, InertiaForm } from "@inertiajs/vue3";
+import { Head, useForm, InertiaForm, Link } from "@inertiajs/vue3";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout.vue";
 import { Button } from "@/Components/ui/button";
 import { Input } from "@/Components/ui/input";
@@ -18,7 +18,7 @@ import {
 } from "@/Components/ui/select";
 import { Badge } from "@/Components/ui/badge";
 import { Separator } from "@/Components/ui/separator";
-import { Plus, Trash2, GripVertical } from "lucide-vue-next";
+import { Plus, Trash2, GripVertical, ArrowLeft } from "lucide-vue-next";
 import draggable from "vuedraggable";
 
 interface FormType {
@@ -137,9 +137,17 @@ const submit = () => {
     <AuthenticatedLayout>
         <template #header>
             <div class="flex items-center justify-between">
-                <h2 class="text-xl font-semibold leading-tight text-gray-800">
-                    Create New Form
-                </h2>
+                <div class="flex items-center gap-4">
+                    <Link :href="route('admin.forms.index')">
+                        <Button variant="ghost" size="sm">
+                            <ArrowLeft class="h-4 w-4 mr-2" />
+                            Back to Forms
+                        </Button>
+                    </Link>
+                    <h2 class="text-xl font-semibold leading-tight text-gray-800">
+                        Create New Form
+                    </h2>
+                </div>
             </div>
         </template>
 
