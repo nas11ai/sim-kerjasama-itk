@@ -6,7 +6,7 @@ import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout.vue";
 import { Button } from "@/Components/ui/button";
 import { Label } from "@/Components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/Components/ui/card";
-import { Checkbox } from "@/Components/ui/checkbox";
+import Checkbox from "@/Components/ui/checkbox/Checkbox.vue";
 import {
     Select,
     SelectContent,
@@ -161,23 +161,41 @@ const submit = () => {
     }
 };
 
-const toggleRole = (roleId: number) => {
-    const index = selectedRoles.value.indexOf(roleId);
-    if (index > -1) {
-        selectedRoles.value.splice(index, 1);
-    } else {
-        selectedRoles.value.push(roleId);
-    }
-};
+const toggleRole: (roleId: number, checked?: boolean | 'indeterminate') => void =
+    (roleId, checked) => {
+    const isCurrentlySelected = selectedRoles.value.includes(roleId)
 
-const toggleStudyProgram = (studyProgramId: number) => {
-    const index = selectedStudyPrograms.value.indexOf(studyProgramId);
-    if (index > -1) {
-        selectedStudyPrograms.value.splice(index, 1);
+    const shouldBeChecked =
+        checked === 'indeterminate'
+        ? true
+        : typeof checked === 'boolean'
+            ? checked
+            : !isCurrentlySelected
+
+    if (shouldBeChecked) {
+        if (!isCurrentlySelected) selectedRoles.value.push(roleId)
     } else {
-        selectedStudyPrograms.value.push(studyProgramId);
+        selectedRoles.value = selectedRoles.value.filter(id => id !== roleId)
     }
-};
+}
+
+const toggleStudyProgram: (studyProgramId: number, checked?: boolean | 'indeterminate') => void =
+    (studyProgramId, checked) => {
+    const isCurrentlySelected = selectedStudyPrograms.value.includes(studyProgramId)
+
+    const shouldBeChecked =
+        checked === 'indeterminate'
+        ? true
+        : typeof checked === 'boolean'
+            ? checked
+            : !isCurrentlySelected
+    if (shouldBeChecked) {
+        if (!isCurrentlySelected) selectedStudyPrograms.value.push(studyProgramId)
+    } else {
+        selectedStudyPrograms.value = selectedStudyPrograms.value.filter(id => id !== studyProgramId)
+    }
+}
+
 
 const selectAllRoles = () => {
     if (selectedRoles.value.length === props.roles.length) {
@@ -397,19 +415,11 @@ const currentFormId = computed({
                                 <div class="grid gap-2 md:grid-cols-2 max-h-48 overflow-y-auto p-2 border rounded">
                                     <div v-for="studyProgram in studyPrograms" :key="studyProgram.id"
                                         class="flex items-center space-x-2">
-                                        <Checkbox :checked="selectedStudyPrograms.includes(
-                                            studyProgram.id
-                                        )
-                                            " @update:modelValue="
-                                                toggleStudyProgram(
-                                                    studyProgram.id
-                                                )
-                                                " />
-                                        <Label class="text-sm cursor-pointer" @click="
-                                            toggleStudyProgram(
-                                                studyProgram.id
-                                            )
-                                            ">
+                                        <Checkbox
+                                            :model-value="selectedStudyPrograms.includes(studyProgram.id)"
+                                            @update:modelValue="(val) => toggleStudyProgram(studyProgram.id, val)"
+                                        />
+                                        <Label class="text-sm cursor-pointer" @click="toggleStudyProgram(studyProgram.id)">
                                             {{ studyProgram.name }}
                                         </Label>
                                     </div>
@@ -439,8 +449,10 @@ const currentFormId = computed({
                             </div>
                             <div class="grid gap-2 md:grid-cols-2">
                                 <div v-for="role in props.roles" :key="role.id" class="flex items-center space-x-2">
-                                    <Checkbox :checked="selectedRoles.includes(role.id)
-                                        " @update:modelValue="toggleRole(role.id)" />
+                                    <Checkbox
+                                        :model-value="selectedRoles.includes(role.id)"
+                                        @update:modelValue="(val) => toggleRole(role.id, val)"
+                                    />
                                     <Label class="cursor-pointer" @click="toggleRole(role.id)">
                                         {{ role.name }}
                                     </Label>
