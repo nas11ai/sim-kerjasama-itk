@@ -261,6 +261,8 @@ Route::middleware(['auth', 'role:Super Admin|Admin', 'check_reviewer_status'])->
     Route::resource('forms', FormController::class);
     Route::post('forms/{form}/duplicate', [FormController::class, 'duplicate'])
         ->name('forms.duplicate');
+    Route::post('forms/bulk-delete', [FormController::class, 'bulkDelete'])
+        ->name('forms.bulk-delete');
 
     // Complete Form Builder Routes
     Route::get('/form-builder/create', [CompleteFormBuilderController::class, 'create'])
