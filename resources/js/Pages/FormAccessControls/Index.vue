@@ -1,4 +1,4 @@
-<!-- filepath: e:\ITK\sim-kerjasama-itk\resources\js\Pages\FormAccessControls\Index.vue -->
+<!-- resources\js\Pages\FormAccessControls\Index.vue -->
 <script setup lang="ts">
 import { computed, ref, watch } from "vue";
 import { Head, Link, router } from "@inertiajs/vue3";
@@ -17,12 +17,18 @@ import {
     TableRow,
 } from "@/Components/ui/table";
 import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from "@/Components/ui/select";
+    Command,
+    CommandEmpty,
+    CommandGroup,
+    CommandInput,
+    CommandItem,
+    CommandList,
+} from "@/Components/ui/command";
+import {
+    Popover,
+    PopoverContent,
+    PopoverTrigger,
+} from "@/Components/ui/popover";
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -42,11 +48,12 @@ import {
     X,
     ChevronDown,
     ChevronUp,
-    ChevronLeft,
-    ChevronRight,
+    ChevronsUpDown,
+    Check,
 } from "lucide-vue-next";
 import { useToast } from "@/Components/ui/toast/use-toast";
 import { debounce } from "lodash";
+import { cn } from "@/lib/utils";
 
 interface Role {
     id: number;
@@ -128,14 +135,45 @@ const selectedRoleId = ref(props.filters.role_id || "all");
 const selectedFacultyId = ref(props.filters.faculty_id || "all");
 const selectedStudyProgramId = ref(props.filters.study_program_id || "all");
 
+const openForm = ref(false);
+const openRole = ref(false);
+const openFaculty = ref(false);
+const openStudyProgram = ref(false);
+
 const selectedItems = ref<number[]>([]);
 const selectAll = ref(false);
-
 const openGroups = ref<number[]>([]);
 
+const selectedFormLabel = computed(() => {
+    if (selectedFormId.value === "all") return "All Forms";
+    const form = props.forms.find((f) => f.id.toString() === selectedFormId.value);
+    return form?.title || "Select form...";
+});
+
+const selectedRoleLabel = computed(() => {
+    if (selectedRoleId.value === "all") return "All Roles";
+    const role = props.roles.find((r) => r.id.toString() === selectedRoleId.value);
+    return role?.name || "Select role...";
+});
+
+const selectedFacultyLabel = computed(() => {
+    if (selectedFacultyId.value === "all") return "All Faculties";
+    const faculty = props.faculties.find(
+        (f) => f.id.toString() === selectedFacultyId.value
+    );
+    return faculty?.name || "Select faculty...";
+});
+
+const selectedStudyProgramLabel = computed(() => {
+    if (selectedStudyProgramId.value === "all") return "All Study Programs";
+    const studyProgram = studyPrograms.value.find(
+        (sp) => sp.id.toString() === selectedStudyProgramId.value
+    );
+    return studyProgram?.name || "Select study program...";
+});
+
 const studyPrograms = computed(() => {
-    if (!selectedFacultyId.value || selectedFacultyId.value === "all")
-        return [];
+    if (!selectedFacultyId.value || selectedFacultyId.value === "all") return [];
     const faculty = props.faculties.find(
         (f) => f.id.toString() === selectedFacultyId.value
     );
@@ -149,10 +187,10 @@ watch(selectedFacultyId, () => {
 
 const hasActiveFilters = computed(() => {
     return (
-        (selectedFormId.value && selectedFormId.value !== "all") ||
-        (selectedRoleId.value && selectedRoleId.value !== "all") ||
-        (selectedFacultyId.value && selectedFacultyId.value !== "all") ||
-        (selectedStudyProgramId.value && selectedStudyProgramId.value !== "all") ||
+        selectedFormId.value !== "all" ||
+        selectedRoleId.value !== "all" ||
+        selectedFacultyId.value !== "all" ||
+        selectedStudyProgramId.value !== "all" ||
         searchQuery.value !== ""
     );
 });
@@ -177,21 +215,21 @@ watch(searchQuery, () => {
 });
 
 // Watch for filter changes
-watch([selectedFormId, selectedRoleId, selectedFacultyId, selectedStudyProgramId], () => {
-    applyFilters();
-});
+watch(
+    [selectedFormId, selectedRoleId, selectedFacultyId, selectedStudyProgramId],
+    () => {
+        applyFilters();
+    }
+);
 
 const applyFilters = () => {
     const params: Filters = {};
 
     if (searchQuery.value) params.search = searchQuery.value;
-    if (selectedFormId.value && selectedFormId.value !== "all")
-        params.form_id = selectedFormId.value;
-    if (selectedRoleId.value && selectedRoleId.value !== "all")
-        params.role_id = selectedRoleId.value;
-    if (selectedFacultyId.value && selectedFacultyId.value !== "all")
-        params.faculty_id = selectedFacultyId.value;
-    if (selectedStudyProgramId.value && selectedStudyProgramId.value !== "all")
+    if (selectedFormId.value !== "all") params.form_id = selectedFormId.value;
+    if (selectedRoleId.value !== "all") params.role_id = selectedRoleId.value;
+    if (selectedFacultyId.value !== "all") params.faculty_id = selectedFacultyId.value;
+    if (selectedStudyProgramId.value !== "all")
         params.study_program_id = selectedStudyProgramId.value;
 
     router.get(route("admin.form-access-controls.index"), params, {
@@ -274,7 +312,6 @@ const isGroupPartiallySelected = (controls: FormAccessControl[]) => {
     return selectedCount > 0 && selectedCount < controlIds.length;
 };
 
-// dwlete single
 const deleteFormAccessControl = (id: number) => {
     if (confirm("Are you sure you want to delete this form access control?")) {
         router.delete(route("admin.form-access-controls.destroy", id), {
@@ -412,114 +449,296 @@ const formatDate = (dateString: string) => {
                         </div>
                     </div>
 
-                    <!-- Filter Controls -->
+                    <!-- filter -->
                     <div class="grid gap-4 md:grid-cols-4">
-                        <!-- Form Filter -->
+                        <!-- form filter -->
                         <div>
-                            <Select v-model="selectedFormId">
-                                <SelectTrigger>
-                                    <SelectValue placeholder="All Forms" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="all">All Forms</SelectItem>
-                                    <SelectItem
-                                        v-for="form in props.forms"
-                                        :key="form.id"
-                                        :value="form.id.toString()"
+                            <label class="text-sm font-medium text-gray-700 mb-2 block">
+                                Form
+                            </label>
+                            <Popover v-model:open="openForm">
+                                <PopoverTrigger as-child>
+                                    <Button
+                                        variant="outline"
+                                        role="combobox"
+                                        :aria-expanded="openForm"
+                                        class="w-full justify-between"
                                     >
-                                        {{ form.title }}
-                                    </SelectItem>
-                                </SelectContent>
-                            </Select>
+                                        <span class="truncate">{{ selectedFormLabel }}</span>
+                                        <ChevronsUpDown
+                                            class="ml-2 h-4 w-4 shrink-0 opacity-50"
+                                        />
+                                    </Button>
+                                </PopoverTrigger>
+                                <PopoverContent class="w-[300px] p-0">
+                                    <Command>
+                                        <CommandInput
+                                            placeholder="Search form..."
+                                            class="flex h-11 w-full rounded-md bg-transparent py-3 text-sm outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50 border-0 ring-0 focus:ring-0 focus:outline-none"
+                                        />
+                                        <CommandList>
+                                            <CommandEmpty>No form found.</CommandEmpty>
+                                            <CommandGroup>
+                                                <CommandItem
+                                                    value="all"
+                                                    @select="() => {
+                                                            selectedFormId = 'all';
+                                                            openForm = false;
+                                                        }">
+                                                    <Check
+                                                        :class="cn('mr-2 h-4 w-4',
+                                                            selectedFormId === 'all'
+                                                                ? 'opacity-100'
+                                                                : 'opacity-0'
+                                                        )"
+                                                    />
+                                                    All Forms
+                                                </CommandItem>
+                                                <CommandItem
+                                                    v-for="form in props.forms"
+                                                    :key="form.id"
+                                                    :value="form.id.toString()"
+                                                    @select="() => {
+                                                            selectedFormId = form.id.toString();
+                                                            openForm = false;
+                                                        }">
+                                                    <Check
+                                                        :class="cn('mr-2 h-4 w-4',
+                                                            selectedFormId === form.id.toString()
+                                                                ? 'opacity-100'
+                                                                : 'opacity-0'
+                                                        )"
+                                                    />
+                                                    {{ form.title }}
+                                                </CommandItem>
+                                            </CommandGroup>
+                                        </CommandList>
+                                    </Command>
+                                </PopoverContent>
+                            </Popover>
                         </div>
 
-                        <!-- role -->
+                        <!-- role filter -->
                         <div>
-                            <Select v-model="selectedRoleId">
-                                <SelectTrigger>
-                                    <SelectValue placeholder="All Roles" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="all">All Roles</SelectItem>
-                                    <SelectItem
-                                        v-for="role in props.roles"
-                                        :key="role.id"
-                                        :value="role.id.toString()"
+                            <label class="text-sm font-medium text-gray-700 mb-2 block">
+                                Role
+                            </label>
+                            <Popover v-model:open="openRole">
+                                <PopoverTrigger as-child>
+                                    <Button
+                                        variant="outline"
+                                        role="combobox"
+                                        :aria-expanded="openRole"
+                                        class="w-full justify-between"
                                     >
-                                        {{ role.name }}
-                                    </SelectItem>
-                                </SelectContent>
-                            </Select>
+                                        <span class="truncate">{{ selectedRoleLabel }}</span>
+                                        <ChevronsUpDown
+                                            class="ml-2 h-4 w-4 shrink-0 opacity-50"
+                                        />
+                                    </Button>
+                                </PopoverTrigger>
+                                <PopoverContent class="w-[200px] p-0">
+                                    <Command>
+                                        <CommandInput
+                                            placeholder="Search role..."
+                                            class="flex h-11 w-full rounded-md bg-transparent py-3 text-sm outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50 border-0 ring-0 focus:ring-0 focus:outline-none"
+                                        />
+                                        <CommandList>
+                                            <CommandEmpty>No role found.</CommandEmpty>
+                                            <CommandGroup>
+                                                <CommandItem
+                                                    value="all"
+                                                    @select="() => {
+                                                            selectedRoleId = 'all';
+                                                            openRole = false;
+                                                        }">
+                                                    <Check
+                                                        :class="cn('mr-2 h-4 w-4',
+                                                            selectedRoleId === 'all'
+                                                                ? 'opacity-100'
+                                                                : 'opacity-0'
+                                                        )"
+                                                    />
+                                                    All Roles
+                                                </CommandItem>
+                                                <CommandItem
+                                                    v-for="role in props.roles"
+                                                    :key="role.id"
+                                                    :value="role.id.toString()"
+                                                    @select="() => {
+                                                            selectedRoleId = role.id.toString();
+                                                            openRole = false;
+                                                        }">
+                                                    <Check
+                                                        :class="cn('mr-2 h-4 w-4',
+                                                            selectedRoleId === role.id.toString()
+                                                                ? 'opacity-100'
+                                                                : 'opacity-0'
+                                                        )"
+                                                    />
+                                                    {{ role.name }}
+                                                </CommandItem>
+                                            </CommandGroup>
+                                        </CommandList>
+                                    </Command>
+                                </PopoverContent>
+                            </Popover>
                         </div>
 
-                        <!-- fak -->
+                        <!-- fak filter -->
                         <div>
-                            <Select v-model="selectedFacultyId">
-                                <SelectTrigger>
-                                    <SelectValue placeholder="All Faculties" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="all">All Faculties</SelectItem>
-                                    <SelectItem
-                                        v-for="faculty in props.faculties"
-                                        :key="faculty.id"
-                                        :value="faculty.id.toString()"
+                            <label class="text-sm font-medium text-gray-700 mb-2 block">
+                                Faculty
+                            </label>
+                            <Popover v-model:open="openFaculty">
+                                <PopoverTrigger as-child>
+                                    <Button
+                                        variant="outline"
+                                        role="combobox"
+                                        :aria-expanded="openFaculty"
+                                        class="w-full justify-between"
                                     >
-                                        {{ faculty.name }}
-                                    </SelectItem>
-                                </SelectContent>
-                            </Select>
+                                        <span class="truncate">{{ selectedFacultyLabel }}</span>
+                                        <ChevronsUpDown
+                                            class="ml-2 h-4 w-4 shrink-0 opacity-50"
+                                        />
+                                    </Button>
+                                </PopoverTrigger>
+                                <PopoverContent class="w-[250px] p-0">
+                                    <Command>
+                                        <CommandInput
+                                        placeholder="Search faculty..." 
+                                        class="flex h-11 w-full rounded-md bg-transparent py-3 text-sm outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50 border-0 ring-0 focus:ring-0 focus:outline-none"
+                                        />
+                                        <CommandList>
+                                            <CommandEmpty>No faculty found.</CommandEmpty>
+                                            <CommandGroup>
+                                                <CommandItem
+                                                    value="all"
+                                                    @select="() => {
+                                                            selectedFacultyId = 'all';
+                                                            openFaculty = false;
+                                                        }">
+                                                    <Check
+                                                        :class=" cn('mr-2 h-4 w-4',
+                                                            selectedFacultyId === 'all'
+                                                                ? 'opacity-100'
+                                                                : 'opacity-0'
+                                                        )"
+                                                    />
+                                                    All Faculties
+                                                </CommandItem>
+                                                <CommandItem
+                                                    v-for="faculty in props.faculties"
+                                                    :key="faculty.id"
+                                                    :value="faculty.id.toString()"
+                                                    @select="() => {
+                                                            selectedFacultyId =
+                                                                faculty.id.toString();
+                                                            openFaculty = false;
+                                                        }">
+                                                    <Check
+                                                        :class="cn('mr-2 h-4 w-4',
+                                                            selectedFacultyId ===
+                                                                faculty.id.toString()
+                                                                ? 'opacity-100'
+                                                                : 'opacity-0'
+                                                        )"
+                                                    />
+                                                    {{ faculty.name }}
+                                                </CommandItem>
+                                            </CommandGroup>
+                                        </CommandList>
+                                    </Command>
+                                </PopoverContent>
+                            </Popover>
                         </div>
 
-                        <!-- prodi -->
+                        <!-- prodi filter -->
                         <div>
-                            <Select
-                                v-model="selectedStudyProgramId"
-                                :disabled="!selectedFacultyId || selectedFacultyId === 'all'"
+                            <label class="text-sm font-medium text-gray-700 mb-2 block">
+                                Study Program
+                            </label>
+                            <Popover
+                                v-model:open="openStudyProgram"
+                                :disabled="
+                                    !selectedFacultyId || selectedFacultyId === 'all'
+                                "
                             >
-                                <SelectTrigger>
-                                    <SelectValue placeholder="All Study Programs" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="all">All Study Programs</SelectItem>
-                                    <SelectItem
-                                        v-for="studyProgram in studyPrograms"
-                                        :key="studyProgram.id"
-                                        :value="studyProgram.id.toString()"
+                                <PopoverTrigger as-child>
+                                    <Button
+                                        variant="outline"
+                                        role="combobox"
+                                        :aria-expanded="openStudyProgram"
+                                        :disabled="
+                                            !selectedFacultyId || selectedFacultyId === 'all'
+                                        "
+                                        class="w-full justify-between"
                                     >
-                                        {{ studyProgram.name }}
-                                    </SelectItem>
-                                </SelectContent>
-                            </Select>
+                                        <span class="truncate">{{
+                                            selectedStudyProgramLabel
+                                        }}</span>
+                                        <ChevronsUpDown
+                                            class="ml-2 h-4 w-4 shrink-0 opacity-50"
+                                        />
+                                    </Button>
+                                </PopoverTrigger>
+                                <PopoverContent class="w-[250px] p-0">
+                                    <Command>
+                                        <CommandInput
+                                        placeholder="Search study program..."
+                                        class="flex h-11 w-full rounded-md bg-transparent py-3 text-sm outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50 border-0 ring-0 focus:ring-0 focus:outline-none"
+                                        />
+                                        <CommandList>
+                                            <CommandEmpty>No study program found.</CommandEmpty>
+                                            <CommandGroup>
+                                                <CommandItem
+                                                    value="all"
+                                                    @select="() => {
+                                                            selectedStudyProgramId = 'all';
+                                                            openStudyProgram = false;
+                                                        }">
+                                                    <Check
+                                                        :class="cn('mr-2 h-4 w-4',
+                                                            selectedStudyProgramId === 'all'
+                                                                ? 'opacity-100'
+                                                                : 'opacity-0'
+                                                        )"
+                                                    />
+                                                    All Study Programs
+                                                </CommandItem>
+                                                <CommandItem
+                                                    v-for="studyProgram in studyPrograms"
+                                                    :key="studyProgram.id"
+                                                    :value="studyProgram.id.toString()"
+                                                    @select="() => {
+                                                        selectedStudyProgramId =
+                                                            studyProgram.id.toString();
+                                                        openStudyProgram = false;
+                                                    }">
+                                                    <Check
+                                                        :class="cn('mr-2 h-4 w-4',
+                                                            selectedStudyProgramId ===
+                                                                studyProgram.id.toString()
+                                                                ? 'opacity-100'
+                                                                : 'opacity-0'
+                                                        )"
+                                                    />
+                                                    {{ studyProgram.name }}
+                                                </CommandItem>
+                                            </CommandGroup>
+                                        </CommandList>
+                                    </Command>
+                                </PopoverContent>
+                            </Popover>
                         </div>
                     </div>
                 </CardContent>
             </Card>
 
-            <div v-if="props.groupAccessControls.total > 0" class="flex items-center justify-between text-sm text-muted-foreground">
-                <div>
-                    Showing {{ props.groupAccessControls.from }} to
-                    {{ props.groupAccessControls.to }} of
-                    {{ props.groupAccessControls.total }} forms
-                </div>
-                <div class="flex items-center gap-2">
-                    <Badge variant="outline">
-                        Page {{ props.groupAccessControls.current_page }} of
-                        {{ props.groupAccessControls.last_page }}
-                    </Badge>
-                    <Button variant="ghost" size="sm" @click="toggleAllGroups">
-                        {{
-                            openGroups.length === props.groupAccessControls.data.length
-                                ? "Collapse All"
-                                : "Expand All"
-                        }}
-                    </Button>
-                </div>
-            </div>
-
             <!-- Access Controls Table -->
             <Card>
-                <CardHeader>
+                <CardHeader class="flex flex-row items-center justify-between">
                     <CardTitle class="flex items-center gap-2">
                         <FileText class="h-5 w-5" />
                         Forms with Access Controls
@@ -527,6 +746,19 @@ const formatDate = (dateString: string) => {
                             {{ props.groupAccessControls.total }} forms
                         </Badge>
                     </CardTitle>
+
+                    <div
+                        v-if="props.groupAccessControls.total > 0"
+                        class="text-sm text-muted-foreground"
+                    >
+                        <Button variant="outline" size="sm" @click="toggleAllGroups">
+                            {{
+                                openGroups.length === props.groupAccessControls.data.length
+                                    ? "Collapse All"
+                                    : "Expand All"
+                            }}
+                        </Button>
+                    </div>
                 </CardHeader>
                 <CardContent class="p-0">
                     <!-- Empty State -->
@@ -602,9 +834,7 @@ const formatDate = (dateString: string) => {
                                                     />
                                                     {{ group.form.title }}
                                                     <Badge variant="secondary">
-                                                        {{
-                                                            group.jumlah_access_controls
-                                                        }}
+                                                        {{ group.jumlah_access_controls }}
                                                         access control{{
                                                             group.jumlah_access_controls !== 1
                                                                 ? "s"
@@ -634,9 +864,7 @@ const formatDate = (dateString: string) => {
                                         >
                                             <TableCell>
                                                 <Checkbox
-                                                    :checked="
-                                                        selectedItems.includes(control.id)
-                                                    "
+                                                    :checked="selectedItems.includes(control.id)"
                                                     @update:checked="
                                                         toggleItemSelection(control.id)
                                                     "
@@ -644,7 +872,7 @@ const formatDate = (dateString: string) => {
                                             </TableCell>
                                             <TableCell class="pl-12">
                                                 <span class="text-sm text-muted-foreground">
-                                                    #{{ control.id }}
+                                                    ###
                                                 </span>
                                             </TableCell>
                                             <TableCell>
@@ -697,9 +925,7 @@ const formatDate = (dateString: string) => {
                                                         </Link>
                                                         <DropdownMenuItem
                                                             @click="
-                                                                deleteFormAccessControl(
-                                                                    control.id
-                                                                )
+                                                                deleteFormAccessControl(control.id)
                                                             "
                                                             class="text-destructive cursor-pointer"
                                                         >
@@ -717,25 +943,27 @@ const formatDate = (dateString: string) => {
                     </div>
                 </CardContent>
             </Card>
+
             <!-- Pagination -->
             <div v-if="props.groupAccessControls.last_page > 1" class="flex justify-center mt-4">
                 <div class="flex items-center gap-2">
                     <template v-for="link in props.groupAccessControls.links" :key="link.label">
-                        <Link
+                        <Button
                             v-if="link.url"
-                            :href="link.url"
-                            :class="[
-                                'px-3 py-2 text-sm rounded-md border transition-colors duration-200',
-                                link.active
-                                    ? 'bg-primary text-primary-foreground border-primary'
-                                    : 'bg-background text-muted-foreground hover:bg-muted hover:text-foreground',
-                            ]"
+                            variant="outline"
+                            size="sm"
+                            @click="goToPage(link.url)"
+                            :class="{
+                                'bg-primary text-primary-foreground': link.active,
+                                'hover:bg-muted': !link.active,
+                            }"
                             v-html="link.label"
                         />
                         <span
                             v-else
                             :class="[
-                                'px-3 py-2 text-sm rounded-md border text-muted-foreground bg-muted cursor-not-allowed',
+                                'px-3 py-2 text-sm rounded-md text-muted-foreground',
+                                'bg-muted cursor-not-allowed',
                             ]"
                             v-html="link.label"
                         />

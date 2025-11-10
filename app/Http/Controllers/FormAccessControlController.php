@@ -57,7 +57,7 @@ class FormAccessControlController extends Controller
             ->groupBy('form_id')
             ->with('form')
             ->orderByRaw('MAX(created_at) DESC')
-            ->paginate(2);
+            ->paginate(10);
 
         $form_id = $groupAccessControls->pluck('form_id');
 
