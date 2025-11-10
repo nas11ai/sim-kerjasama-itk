@@ -505,16 +505,16 @@ class ReviewController extends Controller
         )->first();
 
         if (!$submissionPeriod) {
-            // Default to 7 days from now if no submission period found
             return new \DateTime('+7 days');
         }
 
-        // Get the latest submission date as due date
         $latestDate = $submissionPeriod->submissionDates()
             ->orderBy('datetime', 'desc')
             ->first();
 
-        return $latestDate ? $latestDate->datetime : new \DateTime('+7 days');
+        return $latestDate
+            ? new \DateTime($latestDate->datetime)
+            : new \DateTime('+7 days');
     }
 
     // Existing methods with minor updates...
