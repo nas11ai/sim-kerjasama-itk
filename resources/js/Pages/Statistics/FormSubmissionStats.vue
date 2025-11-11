@@ -532,7 +532,12 @@ const getStatusColor = (status: string) => {
                                     </div>
                                     <div>
                                         <CardTitle>Faculty Distribution</CardTitle>
-                                        <CardDescription>Submissions by faculty</CardDescription>
+                                        <CardDescription>Submissions by faculty
+                                            <span class="text-indigo-600 font-medium ml-1">
+                                                ({{ selectedFaculties.length }}/{{ faculties.length }} selected)
+                                            </span>
+                                        </CardDescription>
+
                                     </div>
                                 </div>
                                 <div class="flex items-center gap-2">
@@ -644,7 +649,11 @@ const getStatusColor = (status: string) => {
                                     </div>
                                     <div>
                                         <CardTitle>Program Study Distribution</CardTitle>
-                                        <CardDescription>Submissions by study program</CardDescription>
+                                        <CardDescription>Submissions by study program
+                                            <span class="text-teal-600 font-medium ml-1">
+                                                ({{ selectedStudyPrograms.length }}/{{ studyPrograms.length }} selected)
+                                            </span>
+                                        </CardDescription>
                                     </div>
                                 </div>
                                 <div class="flex items-center gap-2">
@@ -693,16 +702,16 @@ const getStatusColor = (status: string) => {
                                     <Button
                                         variant="outline"
                                         size="sm"
-                                        @click="facultyChartType = 'donut'"
-                                        :class="{ 'bg-gray-100': facultyChartType === 'donut' }"
+                                        @click="prodiChartType = 'donut'"
+                                        :class="{ 'bg-gray-100': prodiChartType === 'donut' }"
                                     >
                                         <PieChartIcon class="h-4 w-4" />
                                     </Button>
                                     <Button
                                         variant="outline"
                                         size="sm"
-                                        @click="facultyChartType = 'bar'"
-                                        :class="{ 'bg-gray-100': facultyChartType === 'bar' }"
+                                        @click="prodiChartType = 'bar'"
+                                        :class="{ 'bg-gray-100': prodiChartType === 'bar' }"
                                     >
                                         <BarChart3 class="h-4 w-4" />
                                     </Button>
