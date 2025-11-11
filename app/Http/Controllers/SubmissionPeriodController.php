@@ -158,7 +158,8 @@ class SubmissionPeriodController extends Controller
     {
         $submissionPeriod->load([
             'submissionDates' => function ($query) {
-                $query->orderBy('datetime');
+                $query->with('submissionDateLabel')
+                    ->orderBy('datetime');
             },
             'submissionPeriodPhases.formPhase',
             'submissionPeriodDetails.submissionRule'
@@ -246,7 +247,7 @@ class SubmissionPeriodController extends Controller
 
             DB::commit();
 
-            return redirect()->route('admin.admin.submission-periods.index')
+            return redirect()->route('admin.submission-periods.index')
                 ->with('success', 'Submission period updated successfully.');
         } catch (\Exception $e) {
             DB::rollback();

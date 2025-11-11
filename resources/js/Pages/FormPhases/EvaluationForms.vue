@@ -211,7 +211,7 @@ const getStatusBadge = (form: ReviewEvaluationForm): { variant: BadgeVariant; te
     <AuthenticatedLayout>
         <template #header>
             <div class="flex items-center justify-between">
-                <div class="space-y-2">
+                <div class="space-y-2 flex gap-4">
                     <div class="flex items-center gap-3">
                         <a :href="route('admin.form-phases.show', formPhase.id)">
                             <Button variant="ghost" size="sm">
@@ -220,12 +220,14 @@ const getStatusBadge = (form: ReviewEvaluationForm): { variant: BadgeVariant; te
                             </Button>
                         </a>
                     </div>
-                    <h2 class="text-xl font-semibold leading-tight text-gray-800">
-                        Manage Evaluation Forms
-                    </h2>
-                    <p class="text-sm text-muted-foreground">
-                        For: {{ formPhaseDetail.form_access_control.form.title }} ({{ formPhase.title }})
-                    </p>
+                    <div>
+                        <h2 class="text-xl font-semibold leading-tight text-gray-800">
+                            Manage Evaluation Forms
+                        </h2>
+                        <p class="text-sm text-muted-foreground">
+                            For: {{ formPhaseDetail.form_access_control.form.title }} ({{ formPhase.title }})
+                        </p>
+                    </div>
                 </div>
                 <Button @click="openCreateDialog">
                     <Plus class="h-4 w-4 mr-2" />

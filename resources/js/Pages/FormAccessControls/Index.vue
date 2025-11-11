@@ -139,17 +139,6 @@ watch(selectAll, (newValue) => {
     }
 });
 
-// Watch selected items to update select all state
-watch(
-    selectedItems,
-    (newValue) => {
-        selectAll.value =
-            newValue.length === props.formAccessControls.data.length &&
-            newValue.length > 0;
-    },
-    { deep: true }
-);
-
 const hasActiveFilters = computed(() => {
     return (
         (selectedFormId.value && selectedFormId.value !== "all") ||
@@ -217,14 +206,22 @@ const bulkDelete = () => {
     }
 };
 
-const toggleItemSelection = (id: number) => {
-    const index = selectedItems.value.indexOf(id);
-    if (index > -1) {
-        selectedItems.value.splice(index, 1);
+const toggleItemSelection = (id: number, checked?: boolean | 'indeterminate') => {
+    const isSelected = selectedItems.value.includes(id)
+
+    const shouldSelect =
+        checked === 'indeterminate'
+            ? true
+            : typeof checked === 'boolean'
+                ? checked
+                : !isSelected
+
+    if (shouldSelect) {
+        if (!isSelected) selectedItems.value.push(id)
     } else {
-        selectedItems.value.push(id);
+        selectedItems.value = selectedItems.value.filter(itemId => itemId !== id)
     }
-};
+}
 </script>
 
 <template>
@@ -238,10 +235,6 @@ const toggleItemSelection = (id: number) => {
                     Form Access Controls
                 </h2>
                 <div class="flex items-center gap-2">
-                    <Button v-if="selectedItems.length > 0" variant="destructive" size="sm" @click="bulkDelete">
-                        <Trash2 class="h-4 w-4 mr-2" />
-                        Delete Selected ({{ selectedItems.length }})
-                    </Button>
                     <Link :href="route('admin.form-access-controls.create')">
                     <Button>
                         <Plus class="h-4 w-4 mr-2" />
@@ -362,11 +355,15 @@ const toggleItemSelection = (id: number) => {
 
             <!-- Access Controls Table -->
             <Card>
-                <CardHeader>
+                <CardHeader class="flex flex-row items-center justify-between">
                     <CardTitle class="flex items-center gap-2">
                         <Users class="h-5 w-5" />
                         Access Controls ({{ props.formAccessControls.total }})
                     </CardTitle>
+                    <Button v-if="selectedItems.length > 0" variant="destructive" size="sm" @click="bulkDelete">
+                        <Trash2 class="h-4 w-4 mr-2" />
+                        Delete Selected ({{ selectedItems.length }})
+                    </Button>
                 </CardHeader>
                 <CardContent>
                     <div class="rounded-md border">
@@ -389,15 +386,12 @@ const toggleItemSelection = (id: number) => {
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                <TableRow v-for="control in props.formAccessControls
-                                    .data" :key="control.id">
+                                <TableRow v-for="control in props.formAccessControls.data" :key="control.id">
                                     <TableCell>
-                                        <Checkbox :checked="selectedItems.includes(
-                                            control.id
-                                        )
-                                            " @update:checked="
-                                                toggleItemSelection(control.id)
-                                                " />
+                                        <Checkbox
+                                            :model-value="selectedItems.includes(control.id)"
+                                            @update:modelValue="(val) => toggleItemSelection(control.id, val)"
+                                        />
                                     </TableCell>
                                     <TableCell class="font-medium">
                                         <div class="flex items-center gap-2">

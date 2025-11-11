@@ -209,8 +209,8 @@ const assignReviewers = () => {
                             class="flex items-center gap-3 p-3 hover:bg-muted/50 transition-colors cursor-pointer"
                             @click="toggleReviewer(reviewer.id)">
                             <Checkbox :id="`reviewer-${reviewer.id}`"
-                                :checked="selectedReviewerIds.includes(reviewer.id)"
-                                @update:checked="() => toggleReviewer(reviewer.id)" />
+                                :model-value="selectedReviewerIds.includes(reviewer.id)"
+                                @update:modelValue="() => toggleReviewer(reviewer.id)" />
                             <div class="flex-1 min-w-0">
                                 <div class="flex items-center gap-2">
                                     <Label :for="`reviewer-${reviewer.id}`" class="text-sm font-medium cursor-pointer">

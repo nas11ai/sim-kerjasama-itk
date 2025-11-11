@@ -84,6 +84,7 @@ const sortedFields = props.form.form_fields.sort((a, b) => a.order - b.order);
                     <Link :href="route('admin.forms.index')">
                         <Button variant="ghost" size="sm">
                             <ArrowLeft class="h-4 w-4 mr-2" />
+                            Back to Forms
                         </Button>
                     </Link>
                     <h2 class="text-xl font-semibold leading-tight text-gray-800">
