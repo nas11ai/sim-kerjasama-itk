@@ -321,6 +321,7 @@ const toggleItemSelection = (id: number, checked?: boolean | 'indeterminate') =>
 </script>
 
 <template>
+
     <Head title="Forms" />
 
     <AuthenticatedLayout>
@@ -334,10 +335,10 @@ const toggleItemSelection = (id: number, checked?: boolean | 'indeterminate') =>
                     </h2>
                 </div>
                 <Link :href="route('admin.forms.create')">
-                    <Button>
-                        <Plus class="h-4 w-4 mr-2" />
-                        Create Form
-                    </Button>
+                <Button>
+                    <Plus class="h-4 w-4 mr-2" />
+                    Create Form
+                </Button>
                 </Link>
             </div>
         </template>
