@@ -52,7 +52,24 @@ class FormAccessControlController extends Controller
             });
         }
 
-        $formAccessControls = $query->orderBy('created_at', 'desc')->paginate(15);
+        $groupAccessControls = $query->select('form_id')
+            ->selectRaw('COUNT(*) as jumlah_access_controls')
+            ->groupBy('form_id')
+            ->with('form')
+            ->orderByRaw('MAX(created_at) DESC')
+            ->paginate(10);
+
+        $form_id = $groupAccessControls->pluck('form_id');
+
+        $controls = FormAccessControl::with(['role', 'studyProgram.faculty'])
+            ->whereIn('form_id', $form_id)
+            ->get()
+            ->groupBy('form_id');
+
+        $groupAccessControls->getCollection()->transform(function ($item) use ($controls) {
+            $item->controls = $controls[$item->form_id] ?? collect();
+            return $item;
+        });
 
         // Get filter options
         $forms = Form::where('is_active', true)->orderBy('title')->get(['id', 'title']);
@@ -60,7 +77,7 @@ class FormAccessControlController extends Controller
         $faculties = Faculty::with('studyPrograms')->orderBy('name')->get();
 
         return Inertia::render('FormAccessControls/Index', [
-            'formAccessControls' => $formAccessControls,
+            'groupAccessControls' => $groupAccessControls,
             'forms' => $forms,
             'roles' => $roles,
             'faculties' => $faculties,

@@ -208,6 +208,13 @@ Route::middleware(['auth', 'role:Super Admin|Admin', 'check_reviewer_status'])->
         return Inertia::render('Dashboard');
     })->middleware(['auth', 'verified'])->name('dashboard');
 
+    // Testing get data route
+
+    Route::get('/stats/get-form-phases', [StatController::class, 'getFormPhaseStats'])->name('stats.get-form-phase');
+    Route::get('/stats/get-form-submissions', [StatController::class, 'getFormSubmissionStats'])->name('stats.get-form-submission');
+    Route::get('/stats/get-reviewers', [StatController::class, 'getSubmissionReviewerStats'])->name('stats.get-reviewer');
+    Route::get('/stats/get-users', [StatController::class, 'getUserStats'])->name('stats.get-user');
+
     //stat
     Route::get('/stats', [StatController::class, 'index'])->name('stats.index');
     Route::get('/stats/form-phases', [StatController::class, 'formPhaseStatIndex'])->name('stats.form-phase');
