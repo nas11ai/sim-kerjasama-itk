@@ -2,10 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Faculty;
 use App\Models\FormSubmission;
 use App\Models\FormPhase;
 use App\Models\Reviewer;
 use App\Models\ReviewerRole;
+use App\Models\StudyProgram;
 use App\Models\SubmissionPeriod;
 use App\Models\SubmissionReviewer;
 use App\Models\User;
@@ -38,41 +40,33 @@ class StatController extends Controller
     // form phase Index
     public function formPhaseStatIndex()
     {
-        $formPhase = $this->getFormPhaseStats();
-
-        return Inertia::render('Statistics/FormPhaseStats', [
-            'formPhase' => $formPhase,
-        ]);
+        return Inertia::render('Statistics/FormPhaseStats',
+            $this->getFormPhaseStats(),
+        );
     }
 
     // form submission Index
     public function formSubmissionStatIndex()
     {
-        $formSubmission = $this->getFormSubmissionStats();
-
-        return Inertia::render('Statistics/FormSubmissionStats', [
-            'formSubmission' => $formSubmission,
-        ]);
+        return Inertia::render('Statistics/FormSubmissionStats',
+            $this->getFormSubmissionStats(),
+        );
     }
 
     // submission reviewer Index
     public function submissionReviewerStatIndex()
     {
-        $submissionReviewer = $this->getSubmissionReviewerStats();
-
-        return Inertia::render('Statistics/SubmissionReviewerStats', [
-            'submissionReviewer' => $submissionReviewer,
-        ]);
+        return Inertia::render('Statistics/SubmissionReviewerStats',
+            $this->getSubmissionReviewerStats()
+        );
     }
 
     // user Index
     public function userStatIndex()
     {
-        $user = $this->getUserStats();
-
-        return Inertia::render('Statistics/UserStats', [
-            'user' => $user,
-        ]);
+        return Inertia::render('Statistics/UserStats',
+            $this->getUserStats(),
+        );
     }
 
     //tes data
@@ -89,7 +83,12 @@ class StatController extends Controller
     // get form phase Data
     public function getFormPhaseStats()
     {
-        $formPhaseFaculty = FormPhase::select('form_phases.id', 'form_phases.title')
+        $formPhaseFaculty = FormPhase::select(
+            'form_phases.id',
+            'form_phases.title',
+            'faculties.id as faculty_id',
+            'faculties.name as faculty_name'
+        )
             ->selectRaw('COUNT(DISTINCT forms.id) as total_forms')
             ->selectRaw('COUNT(form_submissions.id) as total_submissions')
             ->leftJoin('form_phase_details', 'form_phase_details.form_phase_id', '=', 'form_phases.id')
@@ -101,24 +100,39 @@ class StatController extends Controller
                 $join->on('form_submissions.form_id', '=', 'forms.id')
                     ->where('form_submissions.is_submitted', '=', true);
             })
-            ->where('study_programs.faculty_id', '=', 1)
-            ->groupBy('form_phases.id', 'form_phases.title')
+            ->groupBy('form_phases.id', 'form_phases.title', 'faculties.id', 'faculties.name')
             ->get();
 
-        $formPhaseProdi = FormPhase::select('form_phases.id', 'form_phases.title')
+        $formPhaseProdi = FormPhase::select(
+            'form_phases.id',
+            'form_phases.title',
+            'faculties.id as faculty_id',
+            'faculties.name as faculty_name',
+            'study_programs.id as study_program_id',
+            'study_programs.name as study_program_name'
+        )
             ->selectRaw('COUNT(DISTINCT forms.id) as total_forms')
             ->selectRaw('COUNT(form_submissions.id) as total_submissions')
             ->leftJoin('form_phase_details', 'form_phase_details.form_phase_id', '=', 'form_phases.id')
             ->leftJoin('form_access_controls', 'form_access_controls.id', '=', 'form_phase_details.form_access_control_id')
             ->leftJoin('forms', 'forms.id', '=', 'form_access_controls.form_id')
             ->leftJoin('study_programs', 'study_programs.id', '=', 'form_access_controls.study_program_id')
+            ->leftJoin('faculties', 'faculties.id', '=', 'study_programs.faculty_id')
             ->leftJoin('form_submissions', function ($join) {
                 $join->on('form_submissions.form_id', '=', 'forms.id')
                     ->where('form_submissions.is_submitted', '=', true);
             })
-            ->where('form_access_controls.study_program_id', '=', 5)
-            ->orWhere('form_access_controls.study_program_id', '=', 22)
-            ->groupBy('form_phases.id', 'form_phases.title')
+            ->groupBy(
+                'form_phases.id',
+                'form_phases.title',
+                'faculties.id',
+                'faculties.name',
+                'study_programs.id',
+                'study_programs.name'
+            )
+            ->orderBy('faculties.name', 'asc')
+            ->orderBy('study_programs.name', 'asc')
+            ->orderBy('form_phases.id', 'asc')
             ->get();
 
         $formPhaseStatus = FormPhase::select('form_phases.id', 'form_phases.title')
@@ -178,12 +192,17 @@ class StatController extends Controller
             ->groupBy('submission_periods.id', 'submission_periods.name')
             ->get();
 
+        $faculties = Faculty::select('id', 'name')->orderBy('name')->get();
+        $studyPrograms = StudyProgram::select('id', 'name', 'faculty_id')->orderBy('name')->get();
+
         return [
             'formPhaseFaculty' => $formPhaseFaculty,
             'formPhaseProdi' => $formPhaseProdi,
             'formPhaseStatus' => $formPhaseStatus,
             'formPhaseTotal' => $formPhaseTotal,
             'formPhaseByPeriod' => $formPhaseByPeriod,
+            'faculties' => $faculties,
+            'studyPrograms' => $studyPrograms,
         ];
     }
 
@@ -192,7 +211,7 @@ class StatController extends Controller
     {
         $recentSubmissions = SubmissionPeriod::select('submission_periods.id', 'submission_periods.name')
             ->selectRaw('COUNT(DISTINCT forms.id) as total_forms')
-            ->selectRaw('COUNT(form_submissions.id) as total_submissions')
+            ->selectRaw('COUNT(DISTINCT form_submissions.id) as total_submissions') // ← perbaikan di sini
             ->leftJoin('submission_period_phases', 'submission_period_phases.submission_period_id', '=', 'submission_periods.id')
             ->leftJoin('form_phase_details', 'form_phase_details.form_phase_id', '=', 'submission_period_phases.form_phase_id')
             ->leftJoin('form_access_controls', 'form_access_controls.id', '=', 'form_phase_details.form_access_control_id')
@@ -207,7 +226,7 @@ class StatController extends Controller
 
         $totalSubmissions = SubmissionPeriod::select('submission_periods.id', 'submission_periods.name')
             ->selectRaw('COUNT(DISTINCT forms.id) as total_forms')
-            ->selectRaw('COUNT(form_submissions.id) as total_submissions')
+            ->selectRaw('COUNT(DISTINCT form_submissions.id) as total_submissions') // ✅ tambahkan DISTINCT
             ->leftJoin('submission_period_phases', 'submission_period_phases.submission_period_id', '=', 'submission_periods.id')
             ->leftJoin('form_phase_details', 'form_phase_details.form_phase_id', '=', 'submission_period_phases.form_phase_id')
             ->leftJoin('form_access_controls', 'form_access_controls.id', '=', 'form_phase_details.form_access_control_id')
@@ -224,7 +243,7 @@ class StatController extends Controller
             ->groupBy('status')
             ->get();
 
-        $totalByFaculty = FormSubmission::select('faculties.name', DB::raw('count(*) as total'))
+        $totalByFaculty = FormSubmission::select('faculties.name', DB::raw('COUNT(DISTINCT form_submissions.id) as total'))
             ->join('forms', 'forms.id', '=', 'form_submissions.form_id')
             ->join('form_access_controls', 'form_access_controls.form_id', '=', 'forms.id')
             ->join('study_programs', 'study_programs.id', '=', 'form_access_controls.study_program_id')
@@ -232,13 +251,15 @@ class StatController extends Controller
             ->groupBy('faculties.name')
             ->get();
 
-        $totalByProdi = FormSubmission::select('study_programs.name', DB::raw('count(*) as total'))
+        $totalByProdi = FormSubmission::select('study_programs.name', DB::raw('COUNT(DISTINCT form_submissions.id) as total'))
             ->join('forms', 'forms.id', '=', 'form_submissions.form_id')
             ->join('form_access_controls', 'form_access_controls.form_id', '=', 'forms.id')
             ->join('study_programs', 'study_programs.id', '=', 'form_access_controls.study_program_id')
             ->groupBy('study_programs.name')
             ->get();
 
+        $faculties = Faculty::select('id', 'name')->orderBy('name')->get();
+        $studyPrograms = StudyProgram::select('id', 'name', 'faculty_id')->orderBy('name')->get();
 
         return [
             'recentSubmissions' => $recentSubmissions,
@@ -246,6 +267,8 @@ class StatController extends Controller
             'totalByStatus' => $totalByStatus,
             'totalByFaculty' => $totalByFaculty,
             'totalByProdi' => $totalByProdi,
+            'faculties' => $faculties,
+            'studyPrograms' => $studyPrograms,
         ];
     }
 
@@ -300,16 +323,20 @@ class StatController extends Controller
             ->groupBy('user_id', 'reviewer_role_id', 'is_active')
             ->get();
 
+        $faculties = Faculty::select('id', 'name')->orderBy('name')->get();
+        $studyPrograms = StudyProgram::select('id', 'name', 'faculty_id')->orderBy('name')->get();
 
         return [
-            'reviewer_recent' => $reviewerRecent,
-            'total_reviewers' => $totalReviewers,
-            'total_by_role' => $totalByRole,
-            'evaluation_status' => $evaluationStatus,
-            'reviewer_by_year' => $reviewerByYear,
-            'reviewer_by_faculty' => $reviewerByFaculty,
-            'reviewer_by_prodi' => $reviewerByProdi,
-            'reviewer_active_status' => $reviewerActiveStatus,
+            'reviewerRecent' => $reviewerRecent,
+            'totalReviewers' => $totalReviewers,
+            'totalByRole' => $totalByRole,
+            'evaluationStatus' => $evaluationStatus,
+            'reviewerByYear' => $reviewerByYear,
+            'reviewerByFaculty' => $reviewerByFaculty,
+            'reviewerByProdi' => $reviewerByProdi,
+            'reviewerActiveStatus' => $reviewerActiveStatus,
+            'faculties' => $faculties,
+            'studyPrograms' => $studyPrograms,
         ];
     }
 
@@ -337,12 +364,12 @@ class StatController extends Controller
             ->count();
 
         return [
-            'user_recent' => $userRecent,
-            'total_users' => $totalUsers,
-            'total_admin' => $totalAdmin,
-            'total_non_admin' => $totalNonAdmin,
-            'total_prodi' => $totalProdi,
-            'total_faculty' => $totalFaculty,
+            'userRecent' => $userRecent,
+            'totalUsers' => $totalUsers,
+            'totalAdmin' => $totalAdmin,
+            'totalNonAdmin' => $totalNonAdmin,
+            'totalProdi' => $totalProdi,
+            'totalFaculty' => $totalFaculty,
         ];
     }
 }

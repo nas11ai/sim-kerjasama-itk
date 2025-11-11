@@ -86,28 +86,21 @@ const data = [
                 <Card
                     class="border-l-4 border-l-gray-500 hover:shadow-lg transition-shadow"
                 >
-                    <CardContent class="p-6">
+                    <CardContent class="p-4">
                         <div class="flex items-center justify-between">
                             <div>
-                                <p class="text-sm font-medium text-gray-500">
+                                <p class="text-xs font-medium text-gray-500 uppercase">
                                     Total Users
                                 </p>
                                 <p
-                                    class="text-3xl font-bold text-gray-900 mt-2"
+                                    class="text-2xl font-bold text-gray-900 mt-1"
                                 >
                                     {{ totalUsers }}
                                 </p>
-                                <p
-                                    v-if="totalUsers === 0"
-                                    class="text-xs text-gray-400 mt-1"
-                                >
-                                    No users
-                                </p>
+                                <p class="text-xs text-gray-500 mt-1">All Users</p>
                             </div>
-                            <div
-                                class="h-12 w-12 bg-gray-100 rounded-xl flex items-center justify-center"
-                            >
-                                <Users class="h-6 w-6 text-gray-600" />
+                            <div class="h-10 w-10 bg-gray-100 rounded-lg flex items-center justify-center">
+                                <Users class="h-5 w-5 text-gray-600" />
                             </div>
                         </div>
                     </CardContent>
@@ -116,28 +109,21 @@ const data = [
                 <Card
                     class="border-l-4 border-l-purple-500 hover:shadow-lg transition-shadow"
                 >
-                    <CardContent class="p-6">
+                    <CardContent class="p-4">
                         <div class="flex items-center justify-between">
                             <div>
-                                <p class="text-sm font-medium text-gray-500">
+                                <p class="text-xs font-medium text-gray-500 uppercase">
                                     Total Admin Users
                                 </p>
                                 <p
-                                    class="text-3xl font-bold text-gray-900 mt-2"
+                                    class="text-2xl font-bold text-gray-900 mt-1"
                                 >
                                     {{ totalAdmin }}
                                 </p>
-                                <p
-                                    v-if="totalAdmin === 0"
-                                    class="text-xs text-gray-400 mt-1"
-                                >
-                                    No user with admin role
-                                </p>
+                                <p class="text-xs text-gray-500 mt-1">All Admin Users</p>
                             </div>
-                            <div
-                                class="h-12 w-12 bg-purple-100 rounded-xl flex items-center justify-center"
-                            >
-                                <Users class="h-6 w-6 text-purple-600" />
+                            <div class="h-10 w-10 bg-purple-100 rounded-lg flex items-center justify-center">
+                                <Users class="h-5 w-5 text-purple-600" />
                             </div>
                         </div>
                     </CardContent>
@@ -146,28 +132,21 @@ const data = [
                 <Card
                     class="border-l-4 border-l-blue-500 hover:shadow-lg transition-shadow"
                 >
-                    <CardContent class="p-6">
+                    <CardContent class="p-4">
                         <div class="flex items-center justify-between">
                             <div>
-                                <p class="text-sm font-medium text-gray-500">
+                                <p class="text-xs font-medium text-gray-500 uppercase">
                                     Total Regular Users
                                 </p>
                                 <p
-                                    class="text-3xl font-bold text-gray-900 mt-2"
+                                    class="text-2xl font-bold text-gray-900 mt-1"
                                 >
                                     {{ totalNonAdmin }}
                                 </p>
-                                <p
-                                    v-if="totalNonAdmin === 0"
-                                    class="text-xs text-gray-400 mt-1"
-                                >
-                                    No user with non-admin role
-                                </p>
+                                <p class="text-xs text-gray-500 mt-1">All Regular Users</p>
                             </div>
-                            <div
-                                class="h-12 w-12 bg-blue-100 rounded-xl flex items-center justify-center"
-                            >
-                                <Users class="h-6 w-6 text-blue-600" />
+                            <div class="h-10 w-10 bg-blue-100 rounded-lg flex items-center justify-center">
+                                <Users class="h-5 w-5 text-blue-600" />
                             </div>
                         </div>
                     </CardContent>
@@ -176,28 +155,21 @@ const data = [
                 <Card
                     class="border-l-4 border-l-green-500 hover:shadow-lg transition-shadow"
                 >
-                    <CardContent class="p-6">
+                    <CardContent class="p-4">
                         <div class="flex items-center justify-between">
                             <div>
-                                <p class="text-sm font-medium text-gray-500">
+                                <p class="text-xs font-medium text-gray-500 uppercase">
                                     Total Faculty Users
                                 </p>
                                 <p
-                                    class="text-3xl font-bold text-gray-900 mt-2"
+                                    class="text-2xl font-bold text-gray-900 mt-1"
                                 >
                                     {{ totalFaculty }}
                                 </p>
-                                <p
-                                    v-if="totalFaculty === 0"
-                                    class="text-xs text-gray-400 mt-1"
-                                >
-                                    No users
-                                </p>
+                                <p class="text-xs text-gray-500 mt-1">All Faculty Users</p>
                             </div>
-                            <div
-                                class="h-12 w-12 bg-green-100 rounded-xl flex items-center justify-center"
-                            >
-                                <Users class="h-6 w-6 text-green-600" />
+                            <div class="h-10 w-10 bg-green-100 rounded-lg flex items-center justify-center">
+                                <Users class="h-5 w-5 text-green-600" />
                             </div>
                         </div>
                     </CardContent>
@@ -206,28 +178,21 @@ const data = [
                 <Card
                     class="border-l-4 border-l-orange-500 hover:shadow-lg transition-shadow"
                 >
-                    <CardContent class="p-6">
+                    <CardContent class="p-4">
                         <div class="flex items-center justify-between">
                             <div>
-                                <p class="text-sm font-medium text-gray-500">
+                                <p class="text-xs font-medium text-gray-500 uppercase">
                                     Total Program Study Users
                                 </p>
                                 <p
-                                    class="text-3xl font-bold text-gray-900 mt-2"
+                                    class="text-2xl font-bold text-gray-900 mt-1"
                                 >
                                     {{ totalProdi }}
                                 </p>
-                                <p
-                                    v-if="totalProdi === 0"
-                                    class="text-xs text-gray-400 mt-1"
-                                >
-                                    No users
-                                </p>
+                                <p class="text-xs text-gray-500 mt-1">All Program Study Users</p>
                             </div>
-                            <div
-                                class="h-12 w-12 bg-orange-100 rounded-xl flex items-center justify-center"
-                            >
-                                <Users class="h-6 w-6 text-orange-600" />
+                            <div class="h-10 w-10 bg-orange-100 rounded-lg flex items-center justify-center">
+                                <Users class="h-5 w-5 text-orange-600" />
                             </div>
                         </div>
                     </CardContent>

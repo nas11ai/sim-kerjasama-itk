@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Head, Link } from "@inertiajs/vue3";
+import { Head } from "@inertiajs/vue3";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout.vue";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/Components/ui/card";
 import { Button } from "@/Components/ui/button";
@@ -15,7 +15,6 @@ import {
     AlertCircle,
     BookOpen,
     UserCheck,
-    Activity,
     Inbox,
     CircleAlert,
     Calendar,
@@ -40,23 +39,23 @@ interface FormSubmissionStats {
 }
 
 interface UserStats {
-    user_recent: any[];
-    total_users: number;
-    total_admin: number;
-    total_non_admin: number;
-    total_prodi: number;
-    total_faculty: number;
+    userRecent: any[];
+    totalUsers: number;
+    totalAdmin: number;
+    totalNonAdmin: number;
+    totalProdi: number;
+    totalFaculty: number;
 }
 
 interface SubmissionReviewerStats {
-    reviewer_recent: any[];
-    total_reviewers: number;
-    total_by_role: any[];
-    evaluation_status: any[];
-    reviewer_by_year: any[];
-    reviewer_by_faculty: any[];
-    reviewer_by_prodi: any[];
-    reviewer_active_status: any[];
+    reviewerRecent: any[];
+    totalReviewers: number;
+    totalByRole: any[];
+    evaluationStatus: any[];
+    reviewerByYear: any[];
+    reviewerByFaculty: any[];
+    reviewerByProdi: any[];
+    reviewerActiveStatus: any[];
 }
 
 const props = defineProps<{
@@ -84,16 +83,16 @@ const rejectedSubmissions = computed(() => {
     return props.formSubmission?.totalByStatus?.find(s => s.status === 'rejected')?.total || 0;
 });
 
-const recentUsers24h = computed(() => props.user?.user_recent?.length || 0);
-const recentReviewers24h = computed(() => props.submissionReviewer?.reviewer_recent?.length || 0);
+const recentUsers24h = computed(() => props.user?.userRecent?.length || 0);
+const recentReviewers24h = computed(() => props.submissionReviewer?.reviewerRecent?.length || 0);
 
 const hasFormPhaseData = computed(() => totalFormPhases.value > 0 || totalForms.value > 0);
-const hasSubmissionData = computed(() => 
-    (props.formSubmission?.recentSubmissions?.length || 0) > 0 || 
+const hasSubmissionData = computed(() =>
+    (props.formSubmission?.recentSubmissions?.length || 0) > 0 ||
     (props.formSubmission?.totalByStatus?.length || 0) > 0
 );
-const hasUserData = computed(() => (props.user?.total_users || 0) > 0);
-const hasReviewerData = computed(() => (props.submissionReviewer?.total_reviewers || 0) > 0);
+const hasUserData = computed(() => (props.user?.totalUsers || 0) > 0);
+const hasReviewerData = computed(() => (props.submissionReviewer?.totalReviewers || 0) > 0);
 </script>
 
 <template>
@@ -103,7 +102,9 @@ const hasReviewerData = computed(() => (props.submissionReviewer?.total_reviewer
         <template #header>
             <div class="flex items-center justify-between">
                 <div>
-                    <h2 class="text-2xl font-bold text-gray-900">Statistics Dashboard</h2>
+                    <h2 class="text-xl font-semibold leading-tight text-gray-800">
+                        Statistics Dashboard
+                    </h2>
                 </div>
             </div>
         </template>
@@ -150,9 +151,9 @@ const hasReviewerData = computed(() => (props.submissionReviewer?.total_reviewer
                             <div>
                                 <p class="text-sm font-medium text-gray-500">Total Users</p>
                                 <p class="text-3xl font-bold text-gray-900 mt-2">
-                                    {{ user?.total_users || 0 }}
+                                    {{ user?.totalUsers || 0 }}
                                 </p>
-                                <p v-if="!user?.total_users" class="text-xs text-gray-400 mt-1">No users</p>
+                                <p v-if="!user?.totalUsers" class="text-xs text-gray-400 mt-1">No users</p>
                             </div>
                             <div class="h-12 w-12 bg-purple-100 rounded-xl flex items-center justify-center">
                                 <Users class="h-6 w-6 text-purple-600" />
@@ -167,9 +168,9 @@ const hasReviewerData = computed(() => (props.submissionReviewer?.total_reviewer
                             <div>
                                 <p class="text-sm font-medium text-gray-500">Total Reviewers</p>
                                 <p class="text-3xl font-bold text-gray-900 mt-2">
-                                    {{ submissionReviewer?.total_reviewers || 0 }}
+                                    {{ submissionReviewer?.totalReviewers || 0 }}
                                 </p>
-                                <p v-if="!submissionReviewer?.total_reviewers" class="text-xs text-gray-400 mt-1">No reviewers</p>
+                                <p v-if="!submissionReviewer?.totalReviewers" class="text-xs text-gray-400 mt-1">No reviewers</p>
                             </div>
                             <div class="h-12 w-12 bg-orange-100 rounded-xl flex items-center justify-center">
                                 <UserCheck class="h-6 w-6 text-orange-600" />
@@ -202,7 +203,7 @@ const hasReviewerData = computed(() => (props.submissionReviewer?.total_reviewer
                         <div v-if="!hasFormPhaseData" class="text-center py-12">
                             <CircleAlert class="h-16 w-16 mx-auto text-gray-300 mb-4" />
                             <h3 class="text-lg font-semibold text-gray-500 mb-2">No Form Phase Data</h3>
-                            
+
                         </div>
 
                         <template v-else>
@@ -242,7 +243,7 @@ const hasReviewerData = computed(() => (props.submissionReviewer?.total_reviewer
                                         </div>
                                         <Badge variant="secondary">{{ period.total_submissions }} submissions</Badge>
                                     </div>
-                                    <div v-if="!formPhase.formPhaseByPeriod || formPhase.formPhaseByPeriod.length === 0" 
+                                    <div v-if="!formPhase.formPhaseByPeriod || formPhase.formPhaseByPeriod.length === 0"
                                         class="text-center py-8 bg-gray-50 rounded-lg">
                                         <Inbox class="h-10 w-10 mx-auto text-gray-300 mb-2" />
                                         <p class="text-sm text-gray-500">No period data available</p>
@@ -284,7 +285,7 @@ const hasReviewerData = computed(() => (props.submissionReviewer?.total_reviewer
                         <div v-if="!hasSubmissionData" class="text-center py-12">
                             <CircleAlert class="h-16 w-16 mx-auto text-gray-300 mb-4" />
                             <h3 class="text-lg font-semibold text-gray-500 mb-2">No Submission Data</h3>
-                            
+
                         </div>
 
                         <template v-else>
@@ -327,7 +328,7 @@ const hasReviewerData = computed(() => (props.submissionReviewer?.total_reviewer
                                         </div>
                                         <Badge variant="secondary">{{ submission.total_submissions }} new</Badge>
                                     </div>
-                                    <div v-if="!formSubmission.recentSubmissions || formSubmission.recentSubmissions.length === 0" 
+                                    <div v-if="!formSubmission.recentSubmissions || formSubmission.recentSubmissions.length === 0"
                                         class="text-center py-8 bg-gray-50 rounded-lg">
                                         <Inbox class="h-10 w-10 mx-auto text-gray-300 mb-2" />
                                         <p class="text-sm text-gray-500">No recent submissions in last 24 hours</p>
@@ -375,19 +376,19 @@ const hasReviewerData = computed(() => (props.submissionReviewer?.total_reviewer
                             <div class="grid grid-cols-2 gap-4">
                                 <div class="p-4 bg-purple-50 rounded-lg">
                                     <p class="text-sm text-gray-600">Admin Users</p>
-                                    <p class="text-2xl font-bold text-purple-600">{{ user.total_admin }}</p>
+                                    <p class="text-2xl font-bold text-purple-600">{{ user.totalAdmin }}</p>
                                 </div>
                                 <div class="p-4 bg-blue-50 rounded-lg">
                                     <p class="text-sm text-gray-600">Regular Users</p>
-                                    <p class="text-2xl font-bold text-blue-600">{{ user.total_non_admin }}</p>
+                                    <p class="text-2xl font-bold text-blue-600">{{ user.totalNonAdmin }}</p>
                                 </div>
                                 <div class="p-4 bg-green-50 rounded-lg">
                                     <p class="text-sm text-gray-600">Faculty Users</p>
-                                    <p class="text-2xl font-bold text-green-600">{{ user.total_faculty }}</p>
+                                    <p class="text-2xl font-bold text-green-600">{{ user.totalFaculty }}</p>
                                 </div>
                                 <div class="p-4 bg-orange-50 rounded-lg">
                                     <p class="text-sm text-gray-600">Program Users</p>
-                                    <p class="text-2xl font-bold text-orange-600">{{ user.total_prodi }}</p>
+                                    <p class="text-2xl font-bold text-orange-600">{{ user.totalProdi }}</p>
                                 </div>
                             </div>
 
@@ -450,12 +451,12 @@ const hasReviewerData = computed(() => (props.submissionReviewer?.total_reviewer
                                 </h4>
                                 <div class="space-y-2">
                                     <div
-                                        v-for="(role, index) in submissionReviewer.total_by_role.slice(0, 4)"
+                                        v-for="(role, index) in submissionReviewer.totalByRole.slice(0, 4)"
                                         :key="role.id"
                                         class="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
                                     >
                                         <div class="flex items-center gap-3">
-                                            <div 
+                                            <div
                                                 class="h-8 w-8 rounded-lg flex items-center justify-center text-white font-bold text-sm"
                                                 :class="[
                                                     index === 0 ? 'bg-orange-500' : '',
@@ -464,17 +465,17 @@ const hasReviewerData = computed(() => (props.submissionReviewer?.total_reviewer
                                                     index === 3 ? 'bg-lime-500' : ''
                                                 ]"
                                             >
-                                                {{ role.total_reviewers }}
+                                                {{ role.totalReviewers }}
                                             </div>
                                             <span class="font-medium text-sm text-gray-900">
                                                 {{ role.reviewer_role_name }}
                                             </span>
                                         </div>
                                         <Badge variant="outline">
-                                            {{ Math.round((role.total_reviewers / submissionReviewer.total_reviewers) * 100) }}%
+                                            {{ Math.round((role.totalReviewers / submissionReviewer.totalReviewers) * 100) }}%
                                         </Badge>
                                     </div>
-                                    <div v-if="!submissionReviewer.total_by_role || submissionReviewer.total_by_role.length === 0" 
+                                    <div v-if="!submissionReviewer.totalByRole || submissionReviewer.totalByRole.length === 0"
                                         class="text-center py-8 bg-gray-50 rounded-lg">
                                         <Inbox class="h-10 w-10 mx-auto text-gray-300 mb-2" />
                                         <p class="text-sm text-gray-500">No reviewer role data available</p>
