@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import AlertContainer from "@/Components/AlertContainer.vue";
 import Checkbox from "@/Components/Checkbox.vue";
 import InputError from "@/Components/InputError.vue";
 import InputLabel from "@/Components/InputLabel.vue";
@@ -31,7 +32,7 @@ const submit = () => {
 
 <template>
     <div
-        class="min-h-screen flex flex-col items-center justify-center bg-gradient-to-b from-white to-blue-50 z-10"
+        class="relative min-h-screen flex flex-col items-center justify-center bg-gradient-to-b from-white to-blue-50 p-10"
     >
         <div class="mb-6">
             <div class="flex items-center gap-4 drop-shadow-md">
@@ -44,7 +45,7 @@ const submit = () => {
         </div>
 
         <div
-            class="w-full max-w-md bg-white rounded-3xl shadow-lg px-8 py-8 justify-between flex flex-col gap-8 border border-blue-100"
+            class="w-full max-w-md bg-white z-10 rounded-3xl shadow-lg px-8 py-8 justify-between flex flex-col gap-8 border border-blue-100"
         >
             <Head title="Masuk ke Akun" />
 
@@ -56,7 +57,7 @@ const submit = () => {
 
             <form @submit.prevent="submit" class="flex flex-col gap-2">
                 <div class="flex flex-col gap-6">
-                    <div class="flex flex-col gap-2">
+                    <div class="flex flex-col gap-1.5">
                         <Label for="email">
                             Email
                         </Label>
@@ -68,9 +69,9 @@ const submit = () => {
                             required
                             autofocus
                         />
-                        <InputError class="mt-2" :message="form.errors.email" />
+                        <InputError :message="form.errors.email" />
                     </div>
-                    <div class="flex flex-col gap-2">
+                    <div class="flex flex-col gap-1.5">
                         <Label for="password">
                             Kata Sandi
                         </Label>
@@ -81,7 +82,7 @@ const submit = () => {
                             v-model="form.password"
                             required
                         />
-                        <InputError class="mt-2" :message="form.errors.password" />
+                        <InputError :message="form.errors.password" />
                     </div>
                 </div>
 
@@ -109,7 +110,7 @@ const submit = () => {
                     Masuk
                 </Button>
 
-                <p class="text-center text-sm text-gray-600 mt-4">
+                <p class="text-center text-sm text-gray-600 mt-1">
                     Belum punya akun?
                     <Link
                         :href="route('register')"
@@ -119,7 +120,8 @@ const submit = () => {
                 </p>
             </form>
         </div>
+        <img class="absolute left-6 top-0 h-36 z-0 rotate-180 opacity-50" src="images/Gear_Blue.webp" alt="Gambar Profil Pengajar dari Program Pascasarjana ITK">
+        <img class="absolute right-0 bottom-0 h-72 z-0 opacity-100" src="images/Gear_Yellow.webp" alt="Gambar Profil Pengajar dari Program Pascasarjana ITK">
     </div>
-    <img class="absolute left-6 top-0 h-36 z-0 rotate-180 opacity-50" src="images/Gear_Blue.webp" alt="Gambar Profil Pengajar dari Program Pascasarjana ITK">
-    <img class="absolute right-0 bottom-0 h-72 z-0 opacity-100" src="images/Gear_Yellow.webp" alt="Gambar Profil Pengajar dari Program Pascasarjana ITK">
+    <AlertContainer />
 </template>
