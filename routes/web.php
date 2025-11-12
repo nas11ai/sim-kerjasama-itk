@@ -204,9 +204,7 @@ Route::middleware(['auth', 'check_reviewer_status'])->prefix('reviewer')->name('
 // Admin Routes - only accessible by Super Admin or Admin role
 Route::middleware(['auth', 'role:Super Admin|Admin', 'check_reviewer_status'])->prefix('admin')->name('admin.')->group(function () {
     // Admin Dashboard
-    Route::get('/dashboard', function () {
-        return Inertia::render('Dashboard');
-    })->middleware(['auth', 'verified'])->name('dashboard');
+    Route::get('/dashboard', [StatController::class, 'dashboard'])->middleware(['auth', 'verified'])->name('dashboard');
 
     // Testing get data route
 
@@ -216,7 +214,6 @@ Route::middleware(['auth', 'role:Super Admin|Admin', 'check_reviewer_status'])->
     Route::get('/stats/get-users', [StatController::class, 'getUserStats'])->name('stats.get-user');
 
     //stat
-    Route::get('/stats', [StatController::class, 'index'])->name('stats.index');
     Route::get('/stats/form-phases', [StatController::class, 'formPhaseStatIndex'])->name('stats.form-phase');
     Route::get('/stats/form-submissions', [StatController::class, 'formSubmissionStatIndex'])->name('stats.form-submission');
     Route::get('/stats/reviewers', [StatController::class, 'submissionReviewerStatIndex'])->name('stats.reviewer');

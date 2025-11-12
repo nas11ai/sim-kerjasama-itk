@@ -204,11 +204,6 @@ const adminNavItems = [
         icon: ChartPie,
         items: [
             {
-                title: "Statistics",
-                url: route("admin.stats.index"),
-                icon: ChartPieIcon,
-            },
-            {
                 title: "Form Phase Statistics",
                 url: route("admin.stats.form-phase"),
                 icon: FileBarChart2,

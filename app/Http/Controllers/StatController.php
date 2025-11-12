@@ -18,23 +18,24 @@ use Illuminate\Support\Facades\DB;
 
 class StatController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
+    private function getAllStats()
     {
-        $formPhase = $this->getFormPhaseStats();
-        $formSubmission = $this->getFormSubmissionStats();
-        $user = $this->getUserStats();
-        $submissionReviewer = $this->getSubmissionReviewerStats();
+        return [
+            'formPhase' => $this->getFormPhaseStats(),
+            'formSubmission' => $this->getFormSubmissionStats(),
+            'user' => $this->getUserStats(),
+            'submissionReviewer' => $this->getSubmissionReviewerStats(),
+        ];
+    }
 
-        // dd($formPhase, $formSubmission, $user, $submissionReviewer);
-        return Inertia::render('Statistics/Index', [
-            'formPhase' => $formPhase,
-            'formSubmission' => $formSubmission,
-            'user' => $user,
-            'submissionReviewer' => $submissionReviewer,
-        ]);
+    public function dashboard()
+    {
+        return Inertia::render('Dashboard', $this->getAllStats());
+    }
+
+    public function data()
+    {
+        return response()->json($this->getAllStats());
     }
 
     // form phase Index
@@ -67,17 +68,6 @@ class StatController extends Controller
         return Inertia::render('Statistics/UserStats',
             $this->getUserStats(),
         );
-    }
-
-    //tes data
-    public function data()
-    {
-        return response()->json([
-            'formPhase' => $this->getFormPhaseStats(),
-            'formSubmission' => $this->getFormSubmissionStats(),
-            'user' => $this->getUserStats(),
-            'submissionReviewer' => $this->getSubmissionReviewerStats(),
-        ]);
     }
 
     // get form phase Data
