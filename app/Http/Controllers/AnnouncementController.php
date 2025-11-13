@@ -92,11 +92,10 @@ class AnnouncementController extends Controller
                     ]);
                 }
             }
-
-            DB::commit();
-            return redirect()->route('admin.announcements.index')
-                ->with('success', 'Announcement created successfully.');
         });
+
+        return redirect()->route('admin.announcements.index')
+            ->with('success', 'Announcement created successfully.');
     }
 
     /**
@@ -167,9 +166,9 @@ class AnnouncementController extends Controller
                     ]);
                 }
             }
-            return redirect()->route('admin.announcements.index')
-                ->with('success', 'Announcement updated successfully.');
         });
+        return redirect()->route('admin.announcements.index')
+            ->with('success', 'Announcement updated successfully.');
     }
 
     /**

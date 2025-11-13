@@ -76,9 +76,10 @@ class RegisteredUserController extends Controller
             DB::commit();
 
             event(new Registered($user));
-            Auth::login($user);
 
-            return redirect(route('user.dashboard'));
+            return redirect()
+                ->route('login')
+                ->with('success', 'Akun Anda berhasil dibuat. Silakan masuk untuk melanjutkan.');
         } catch (\Exception $e) {
             DB::rollBack();
             Log::error('Registration failed: ' . $e->getMessage());
