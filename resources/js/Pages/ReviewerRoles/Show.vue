@@ -74,15 +74,12 @@ const goBack = () => {
     <AuthenticatedLayout>
         <template #header>
             <div class="flex items-center justify-between">
-                <div class="flex items-center gap-3">
-                    <Button
-                        variant="ghost"
-                        size="icon"
-                        @click="goBack"
-                    >
-                        <ArrowLeft class="h-5 w-5" />
+                <div class="flex items-center gap-4">
+                    <Button variant="ghost" size="sm" @click="$inertia.visit(route('admin.reviewer-roles.index'))">
+                        <ArrowLeft class="h-4 w-4 mr-2" />
+                        Kembali
                     </Button>
-                    <div class="flex items-center gap-3">
+                    <div class="flex items-center gap-3 ml-4">
                         <div class="p-2 bg-primary/10 rounded-lg">
                             <Shield class="h-6 w-6 text-primary" />
                         </div>
@@ -122,16 +119,16 @@ const goBack = () => {
                 <CardHeader>
                     <CardTitle class="flex items-center gap-2">
                         <Shield class="h-5 w-5" />
-                        Role Information
+                        Informasi Role Reviewer
                     </CardTitle>
                     <CardDescription>
-                        Reviewer role information details
+                        Detail informasi role reviewer
                     </CardDescription>
                 </CardHeader>
                 <CardContent class="space-y-4">
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div class="space-y-1">
-                            <label class="text-sm font-medium text-muted-foreground">Role Name</label>
+                            <label class="text-sm font-medium text-muted-foreground">Nama Role</label>
                             <p class="text-base font-semibold">{{ reviewerRole.name }}</p>
                         </div>
 
@@ -154,7 +151,7 @@ const goBack = () => {
                         <div class="space-y-1">
                             <label class="text-sm font-medium text-muted-foreground flex items-center gap-1">
                                 <Calendar class="h-3 w-3" />
-                                Created At
+                                Dibuat Pada
                             </label>
                             <p class="text-sm">{{ formatDateTime(reviewerRole.created_at) }}</p>
                         </div>
@@ -162,7 +159,7 @@ const goBack = () => {
                         <div class="space-y-1">
                             <label class="text-sm font-medium text-muted-foreground flex items-center gap-1">
                                 <Calendar class="h-3 w-3" />
-                                Last Updated At
+                                Terakhir Diperbarui
                             </label>
                             <p class="text-sm">{{ formatDateTime(reviewerRole.updated_at) }}</p>
                         </div>

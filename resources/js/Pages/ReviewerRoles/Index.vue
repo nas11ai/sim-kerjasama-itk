@@ -104,9 +104,9 @@ const roleToDelete = ref<ReviewerRole | null>(null);
 const openStatus = ref(false);
 
 const statusOptions = [
-    { value: "all", label: "All Status" },
-    { value: "active", label: "Active" },
-    { value: "inactive", label: "Inactive" },
+    { value: "all", label: "Semua Status" },
+    { value: "active", label: "Aktif" },
+    { value: "inactive", label: "Tidak Aktif" },
 ];
 
 const selectedStatusLabel = computed(() => {
@@ -160,14 +160,14 @@ const confirmDelete = () => {
                 showDeleteDialog.value = false;
                 roleToDelete.value = null;
                 toast({
-                    title: "Success",
-                    description: "Reviewer role deleted successfully!",
+                    title: "Sukses",
+                    description: "Role reviewer berhasil dihapus!",
                 });
             },
             onError: (errors) => {
                 toast({
                     title: "Error",
-                    description: errors.error || "Failed to delete reviewer role.",
+                    description: errors.error || "Gagal menghapus role reviewer.",
                     variant: "destructive",
                 });
             },
@@ -191,16 +191,16 @@ const toggleRoleStatus = (role: ReviewerRole) => {
         {
             onSuccess: () => {
                 toast({
-                    title: "Success",
-                    description: `Reviewer role ${
-                        role.is_active ? "deactivated" : "activated"
-                    } successfully!`,
+                    title: "Sukses",
+                    description: `Role reviewer berhasil ${
+                        role.is_active ? "dinonaktifkan" : "diaktifkan"
+                    }!`,
                 });
             },
             onError: () => {
                 toast({
                     title: "Error",
-                    description: "Failed to update status.",
+                    description: "Gagal memperbarui status.",
                     variant: "destructive",
                 });
             },
@@ -241,12 +241,12 @@ const goToPage = (url: string | null) => {
         <template #header>
             <div class="flex items-center justify-between">
                 <h2 class="text-xl font-semibold leading-tight text-gray-800">
-                    Reviewer Roles ({{ totalRoles }})
+                    Role Reviewer ({{ totalRoles }})
                 </h2>
                 <Link :href="route('admin.reviewer-roles.create')">
                 <Button>
                     <Plus class="h-4 w-4 mr-2" />
-                    Add Role
+                    Tambah Role
                 </Button>
                 </Link>
             </div>
@@ -259,9 +259,9 @@ const goToPage = (url: string | null) => {
                     <div class="flex items-center justify-between">
                         <CardTitle class="text-lg flex items-center gap-2">
                             <Search class="h-5 w-5" />
-                            Search & Filter
+                            Cari & Filter
                             <Badge v-if="activeFiltersCount > 0" variant="secondary">
-                                {{ activeFiltersCount }} active
+                                {{ activeFiltersCount }} aktif
                             </Badge>
                         </CardTitle>
                         <Button
@@ -271,7 +271,7 @@ const goToPage = (url: string | null) => {
                             @click="clearFilters"
                         >
                             <X class="h-4 w-4 mr-2" />
-                            Clear All
+                            Bersihkan Semua Filter
                         </Button>
                     </div>
                 </CardHeader>
@@ -310,11 +310,11 @@ const goToPage = (url: string | null) => {
                                 <PopoverContent class="w-[200px] p-0">
                                     <Command>
                                         <CommandInput
-                                        placeholder="Search status..."
+                                        placeholder="Cari status..."
                                         class="flex h-11 w-full rounded-md bg-transparent py-3 text-sm outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50 border-0 ring-0 focus:ring-0 focus:outline-none"
                                          />
                                         <CommandList>
-                                            <CommandEmpty>No status found.</CommandEmpty>
+                                            <CommandEmpty>Tidak ada status ditemukan.</CommandEmpty>
                                             <CommandGroup>
                                                 <CommandItem
                                                     v-for="status in statusOptions"
@@ -360,21 +360,21 @@ const goToPage = (url: string | null) => {
                     <CardContent class="pt-6">
                         <Shield class="h-12 w-12 mx-auto text-muted-foreground mb-4" />
                         <h3 class="text-lg font-medium text-gray-900 mb-2">
-                            No Reviewer Roles Found
+                            Tidak Ada Role Reviewer Ditemukan
                         </h3>
                         <p class="text-sm text-muted-foreground mb-4">
-                            {{ hasFilters ? 'No roles match your search criteria.'
-                                : 'Get started by creating your first reviewer role.' }}
+                            {{ hasFilters ? 'Tidak ada role yang cocok dengan kriteria pencarian Anda.'
+                                : 'Mulai dengan membuat role reviewer pertama Anda.' }}
                         </p>
                         <Link v-if="!hasFilters" :href="route('admin.reviewer-roles.create')">
                         <Button>
                             <Plus class="h-4 w-4 mr-2" />
-                            Create First Role
+                            Buat Role Pertama
                         </Button>
                         </Link>
                         <Button v-else variant="outline" @click="clearFilters">
                             <X class="h-4 w-4 mr-2" />
-                            Clear Alls
+                            Bersihkan Semua Filter
                         </Button>
                     </CardContent>
                 </Card>
@@ -415,7 +415,7 @@ const goToPage = (url: string | null) => {
                                             :href="route('admin.reviewer-roles.show', role.id)"
                                         >
                                             <Eye class="h-4 w-4 mr-2" />
-                                            View
+                                            Lihat
                                         </Link>
                                     </DropdownMenuItem>
                                     <DropdownMenuItem as-child>
@@ -435,7 +435,7 @@ const goToPage = (url: string | null) => {
                                             class="h-4 w-4 mr-2"
                                         />
                                         <ToggleLeft v-else class="h-4 w-4 mr-2" />
-                                        {{ role.is_active ? "Deactivate" : "Activate" }}
+                                        {{ role.is_active ? "Nonaktifkan" : "Aktifkan" }}
                                     </DropdownMenuItem>
                                     <DropdownMenuItem
                                         @click="deleteRole(role)"
@@ -443,7 +443,7 @@ const goToPage = (url: string | null) => {
                                         :disabled="role.reviewers_count > 0"
                                     >
                                         <Trash2 class="h-4 w-4 mr-2" />
-                                        Delete
+                                        Hapus
                                     </DropdownMenuItem>
                                 </DropdownMenuContent>
                             </DropdownMenu>
@@ -453,13 +453,13 @@ const goToPage = (url: string | null) => {
                         <div class="space-y-3">
                             <div class="flex items-center justify-between text-sm">
                                 <div class="flex items-center gap-2 text-muted-foreground">
-                                    <span>Assigned Reviewers</span>
+                                    <span>Reviewer Ditugaskan</span>
                                 </div>
                                 <Badge variant="secondary">{{ role.reviewers_count }}</Badge>
                             </div>
 
                             <div class="flex items-center justify-between text-sm pt-2 border-t">
-                                <span class="text-muted-foreground">Created</span>
+                                <span class="text-muted-foreground">Dibuat</span>
                                 <span class="font-medium text-sm">{{
                                     formatDate(role.created_at)
                                 }}</span>
@@ -503,12 +503,12 @@ const goToPage = (url: string | null) => {
                 <DialogHeader>
                     <DialogTitle class="flex items-center gap-2">
                         <AlertTriangle class="h-5 w-5 text-destructive" />
-                        Confirm Delete Role
+                        Konfirmasi Hapus Role
                     </DialogTitle>
                     <DialogDescription>
                         {{ canDeleteRole
-                            ? 'Are you sure you want to delete this reviewer role? This action cannot be undone.'
-                            : 'This role cannot be deleted because it has assigned reviewers.'
+                            ? 'Apakah Anda yakin ingin menghapus role reviewer ini? Tindakan ini tidak dapat dibatalkan.'
+                            : 'Role ini tidak dapat dihapus karena memiliki reviewer yang ditugaskan.'
                         }}
                     </DialogDescription>
                 </DialogHeader>
@@ -524,11 +524,11 @@ const goToPage = (url: string | null) => {
                                 <div class="flex items-center gap-3 mt-2">
                                     <div class="flex items-center gap-1 text-sm text-muted-foreground">
                                         <Users class="h-4 w-4" />
-                                        <span>{{ roleToDelete.reviewers_count }} reviewers</span>
+                                        <span>{{ roleToDelete.reviewers_count }} reviewer</span>
                                     </div>
                                     <Badge :variant="roleToDelete.is_active ? 'default' : 'destructive'"
                                         class="text-xs">
-                                        {{ roleToDelete.is_active ? 'Active' : 'Inactive' }}
+                                        {{ roleToDelete.is_active ? 'Aktif' : 'Tidak Aktif' }}
                                     </Badge>
                                 </div>
                             </div>
@@ -540,10 +540,10 @@ const goToPage = (url: string | null) => {
                             <div class="flex items-start gap-2">
                                 <AlertTriangle class="h-5 w-5 text-destructive flex-shrink-0 mt-0.5" />
                                 <div class="text-sm">
-                                    <p class="font-medium text-destructive mb-1">Cannot Delete Role</p>
+                                    <p class="font-medium text-destructive mb-1">Tidak Dapat Menghapus Role</p>
                                     <p class="text-muted-foreground">
-                                        This role has {{ roleToDelete.reviewers_count }} assigned reviewer(s).
-                                        Please reassign or remove all reviewers before deleting this role.
+                                        Role ini memiliki {{ roleToDelete.reviewers_count }} reviewer yang ditugaskan.
+                                        Silakan tetapkan ulang atau hapus semua reviewer sebelum menghapus role ini.
                                     </p>
                                 </div>
                             </div>
@@ -553,13 +553,13 @@ const goToPage = (url: string | null) => {
 
                 <DialogFooter>
                     <Button variant="outline" @click="cancelDelete">
-                        Cancel
+                        Batal
                     </Button>
                     <Button v-if="canDeleteRole" variant="destructive" @click="confirmDelete">
-                        Delete Role
+                        Hapus Role
                     </Button>
                     <Button v-else variant="outline" disabled class="opacity-50">
-                        Cannot Delete
+                        Tidak Dapat Hapus
                     </Button>
                 </DialogFooter>
             </DialogContent>
