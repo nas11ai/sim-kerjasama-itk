@@ -13,18 +13,18 @@ const props = defineProps<{
 </script>
 
 <template>
-    <Head title="User Management" />
+    <Head title="Manajemen User" />
 
     <AuthenticatedLayout>
         <template #header>
             <div class="flex items-center justify-between">
                 <h2 class="text-xl font-semibold leading-tight text-gray-800">
-                    User Management
+                    Manajemen User
                 </h2>
                 <Link :href="route('admin.users.create')">
                     <Button>
                         <Plus class="h-4 w-4 mr-2" />
-                        Create User
+                        Buat User
                     </Button>
                 </Link>
             </div>

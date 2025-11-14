@@ -114,7 +114,7 @@ const table = useVueTable({
                     @click="$inertia.visit(route('admin.users.index'))"
                 >
                     <ArrowLeft class="h-4 w-4" />
-                    Back
+                    Kembali
                 </Button>
                 <h2 class="text-xl font-semibold leading-tight text-gray-800">
                     Edit User
@@ -127,14 +127,14 @@ const table = useVueTable({
                 <CardHeader>
                     <CardTitle>Edit User</CardTitle>
                     <CardDescription
-                        >Fill in the details to edit the user.</CardDescription
+                        >Isi detail untuk mengedit user.</CardDescription
                     >
                 </CardHeader>
                 <CardContent class="space-y-6">
                     <form @submit.prevent="submit" class="flex flex-col gap-6">
                         <div class="grid grid-cols-2 gap-6">
                             <div class="grid gap-2">
-                                <Label for="name">Name</Label>
+                                <Label for="name">Nama</Label>
                                 <Input
                                     id="name"
                                     type="text"
@@ -143,13 +143,13 @@ const table = useVueTable({
                                     :tabindex="1"
                                     autocomplete="name"
                                     v-model="form.name"
-                                    placeholder="Full name"
+                                    placeholder="Nama lengkap"
                                 />
                                 <InputError :message="form.errors.name" />
                             </div>
 
                             <div class="grid gap-2">
-                                <Label for="email">Email address</Label>
+                                <Label for="email">Email</Label>
                                 <Input
                                     disabled
                                     id="email"
@@ -204,7 +204,7 @@ const table = useVueTable({
                             </div>
 
                             <div class="grid col-span-2 gap-2">
-                                <Label>Direct Permissions</Label>
+                                <Label>Hak Akses Langsung</Label>
                                 <div class="rounded-md border">
                                     <Table>
                                         <TableHeader>
@@ -264,8 +264,7 @@ const table = useVueTable({
                                                         "
                                                         class="text-center"
                                                     >
-                                                        No permissions available
-                                                        yet.
+                                                        Tidak ada hak akses.
                                                     </TableCell>
                                                 </TableRow>
                                             </template>
@@ -287,7 +286,7 @@ const table = useVueTable({
                                     v-if="form.processing"
                                     class="h-4 w-4 animate-spin"
                                 />
-                                Edit account
+                                Edit user
                             </Button>
                         </div>
                     </form>
