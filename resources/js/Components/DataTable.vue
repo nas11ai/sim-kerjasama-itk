@@ -115,7 +115,7 @@ defineExpose({
                             :colspan="props.columns.length"
                             class="text-center"
                         >
-                            No data available yet.
+                            Tidak ada data yang tersedia.
                         </TableCell>
                     </TableRow>
                 </template>
@@ -128,8 +128,7 @@ defineExpose({
     <DeleteDialogue v-model="showDialog" @confirm="confirmDelete">
         <slot name="delete-dialog-content">
             <p class="text-muted-foreground text-sm">
-                This action cannot be undone. This will permanently delete the
-                data.
+                Tindakan ini tidak dapat dibatalkan. Ini akan menghapus data secara permanen.
             </p>
         </slot>
     </DeleteDialogue>
