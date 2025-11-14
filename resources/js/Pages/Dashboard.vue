@@ -36,10 +36,10 @@ const props = defineProps<{
                 <h3
                     class="text-3xl font-semibold leading-none tracking-tight mb-1"
                 >
-                    Welcome to SIM Kerjasama ITK!
+                    Selamat datang di SIM Kerjasama ITK!
                 </h3>
                 <p class="text-lg text-muted-foreground">
-                    You're successfully logged in to your dashboard.
+                    Anda telah berhasil masuk ke dashboard Anda.
                 </p>
             </div>
 
