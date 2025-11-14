@@ -126,22 +126,22 @@ const showDeleteDialog = ref(false);
 const reviewerToDelete = ref<Reviewer | null>(null);
 
 const statusOptions = [
-    { value: "all", label: "All Status" },
-    { value: "active", label: "Active" },
-    { value: "inactive", label: "Inactive" },
+    { value: "all", label: "Semua Status" },
+    { value: "active", label: "Aktif" },
+    { value: "inactive", label: "Tidak Aktif" },
 ];
 
 const selectedStatusLabel = computed(() => {
     const status = statusOptions.find((s) => s.value === selectedStatus.value);
-    return status?.label || "Select status...";
+    return status?.label || "Pilih status...";
 });
 
 const selectedRoleLabel = computed(() => {
-    if (selectedRole.value === "all") return "All Roles";
+    if (selectedRole.value === "all") return "Semua Role";
     const role = props.reviewerRoles.find(
         (r) => r.id.toString() === selectedRole.value
     );
-    return role?.name || "Select role...";
+    return role?.name || "Pilih role...";
 });
 
 const activeFiltersCount = computed(() => {
@@ -206,14 +206,14 @@ const confirmDelete = () => {
                 showDeleteDialog.value = false;
                 reviewerToDelete.value = null;
                 toast({
-                    title: "Success",
-                    description: "Reviewer deleted successfully!",
+                    title: "Sukses",
+                    description: "Reviewer Berhasil dihapus!",
                 });
             },
             onError: (errors) => {
                 toast({
                     title: "Error",
-                    description: errors.error || "Failed to delete reviewer.",
+                    description: errors.error || "Gagal menghapus reviewer.",
                     variant: "destructive",
                 });
             },
@@ -231,28 +231,36 @@ const cancelDelete = () => {
 };
 
 const toggleReviewerStatus = (reviewer: Reviewer) => {
+    const isActive = reviewer.end_date === null;
+
     router.patch(
-        route("admin.reviewers.toggle-status", reviewer.id),
+        route(
+            isActive
+                ? "admin.reviewers.deactivate"
+                : "admin.reviewers.activate",
+            reviewer.id
+        ),
         {},
         {
             onSuccess: () => {
                 toast({
-                    title: "Success",
-                    description: `Reviewer ${
-                        reviewer.is_active ? "deactivated" : "activated"
-                    } successfully!`,
+                    title: "Sukses",
+                    description: `Reviewer berhasil ${
+                        isActive ? "dinonaktifkan" : "diaktifkan kembali"
+                    }!`,
                 });
             },
             onError: () => {
                 toast({
                     title: "Error",
-                    description: "Failed to update status.",
+                    description: "Gagal memperbarui status.",
                     variant: "destructive",
                 });
             },
         }
     );
 };
+
 
 const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString("id-ID", {
@@ -287,27 +295,27 @@ console.log(props.reviewerRoles);
 </script>
 
 <template>
-    <Head title="Manage Reviewers" />
+    <Head title="Reviewer Manajemen" />
 
     <AuthenticatedLayout>
         <template #header>
             <div class="flex items-center justify-between">
                 <div class="flex items-center gap-2">
                     <h2 class="text-xl font-semibold leading-tight text-gray-800">
-                        Reviewer Management
+                        Reviewer Manajemen
                     </h2>
                 </div>
                 <div class="flex items-center gap-3">
                     <Link :href="route('admin.reviewer-roles.index')">
                         <Button variant="outline">
                             <Filter class="h-4 w-4 mr-2" />
-                            Reviewer Roles
+                            Role Reviewer
                         </Button>
                     </Link>
                     <Link :href="route('admin.reviewers.create')">
                         <Button>
                             <Plus class="h-4 w-4 mr-2" />
-                            Add Reviewer
+                            Tambah Reviewer
                         </Button>
                     </Link>
                 </div>
@@ -321,9 +329,9 @@ console.log(props.reviewerRoles);
                     <div class="flex items-center justify-between">
                         <CardTitle class="text-lg flex items-center gap-2">
                             <Filter class="h-5 w-5" />
-                            Search & Filter
+                            Cari & Filter
                             <Badge v-if="activeFiltersCount > 0" variant="secondary">
-                                {{ activeFiltersCount }} active
+                                {{ activeFiltersCount }} aktif
                             </Badge>
                         </CardTitle>
                         <Button
@@ -333,7 +341,7 @@ console.log(props.reviewerRoles);
                             @click="clearFilters"
                         >
                             <X class="h-4 w-4 mr-2" />
-                            Clear All
+                            Hapus Semua Filter
                         </Button>
                     </div>
                 </CardHeader>
@@ -347,7 +355,7 @@ console.log(props.reviewerRoles);
                                 />
                                 <Input
                                     v-model="searchQuery"
-                                    placeholder="Search by name or email..."
+                                    placeholder="Cari berdasarkan nama atau email..."
                                     class="pl-10"
                                 />
                             </div>
@@ -372,11 +380,11 @@ console.log(props.reviewerRoles);
                                 <PopoverContent class="w-[250px] p-0">
                                     <Command>
                                         <CommandInput
-                                        placeholder="Search role..."
+                                        placeholder="cari role..."
                                         class="flex h-11 w-full rounded-md bg-transparent py-3 text-sm outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50 border-0 ring-0 focus:ring-0 focus:outline-none"
                                         />
                                         <CommandList>
-                                            <CommandEmpty>No role found.</CommandEmpty>
+                                            <CommandEmpty>Tidak ada role ditemukan.</CommandEmpty>
                                             <CommandGroup>
                                                 <CommandItem
                                                     value="all"
@@ -391,7 +399,7 @@ console.log(props.reviewerRoles);
                                                             : 'opacity-0'
                                                         )"
                                                     />
-                                                    All Roles
+                                                    Semua Role
                                                 </CommandItem>
                                                 <CommandItem
                                                     v-for="role in props.reviewerRoles"
@@ -437,11 +445,11 @@ console.log(props.reviewerRoles);
                                 <PopoverContent class="w-[200px] p-0">
                                     <Command>
                                         <CommandInput
-                                        placeholder="Search status..."
+                                        placeholder="cari status..."
                                         class="flex h-11 w-full rounded-md bg-transparent py-3 text-sm outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50 border-0 ring-0 focus:ring-0 focus:outline-none"                                        
                                         />
                                         <CommandList>
-                                            <CommandEmpty>No status found.</CommandEmpty>
+                                            <CommandEmpty>Tidak ada status ditemukan.</CommandEmpty>
                                             <CommandGroup>
                                                 <CommandItem
                                                     v-for="status in statusOptions"
@@ -489,9 +497,9 @@ console.log(props.reviewerRoles);
             <!-- Reviewers Table -->
             <Card>
                 <CardHeader>
-                    <CardTitle>Reviewers ({{ totalReviewers }})</CardTitle>
+                    <CardTitle>Reviewer ({{ totalReviewers }})</CardTitle>
                     <CardDescription>
-                        Manage reviewer assignments and permissions
+                        Manajemen penugasan dan izin reviewer
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -502,24 +510,24 @@ console.log(props.reviewerRoles);
                     >
                         <UserCheck class="h-12 w-12 mx-auto text-muted-foreground mb-4" />
                         <h3 class="text-lg font-medium text-gray-900 mb-2">
-                            No Reviewers Found
+                            Tidak ada Reviewer ditemukan
                         </h3>
                         <p class="text-sm text-muted-foreground mb-4">
                             {{
                                 hasFilters
-                                    ? "No reviewers match your search criteria."
-                                    : "Get started by adding your first reviewer."
+                                    ? "Tidak ada reviewer yang cocok dengan kriteria pencarian Anda."
+                                    : "Mulailah dengan menambahkan reviewer pertama Anda."
                             }}
                         </p>
                         <Link v-if="!hasFilters" :href="route('admin.reviewers.create')">
                             <Button>
                                 <Plus class="h-4 w-4 mr-2" />
-                                Add First Reviewer
+                                Tambah Reviewer Pertama
                             </Button>
                         </Link>
                         <Button v-else variant="outline" @click="clearFilters">
                             <X class="h-4 w-4 mr-2" />
-                            Clear Filters
+                            Hapus Filter
                         </Button>
                     </div>
 
@@ -558,7 +566,7 @@ console.log(props.reviewerRoles);
                                             "
                                             class="flex items-center gap-1"
                                         >
-                                            {{ reviewer.is_active ? "Active" : "Inactive" }}
+                                            {{ reviewer.is_active ? "Aktif" : "Nonaktif" }}
                                         </Badge>
                                     </div>
                                 </div>
@@ -568,7 +576,7 @@ console.log(props.reviewerRoles);
                                 <div class="text-right text-sm text-muted-foreground hidden md:block">
                                     <div class="flex items-center gap-2 justify-end mb-1">
                                         <Calendar class="h-4 w-4" />
-                                        <span class="font-medium">Start:</span>
+                                        <span class="font-medium">Tanggal Mulai:</span>
                                         <span>{{ formatDate(reviewer.start_date) }}</span>
                                     </div>
                                     <div
@@ -576,11 +584,11 @@ console.log(props.reviewerRoles);
                                         class="flex items-center gap-2 justify-end"
                                     >
                                         <Calendar class="h-4 w-4" />
-                                        <span class="font-medium">End:</span>
+                                        <span class="font-medium">Tanggal Selesai:</span>
                                         <span>{{ formatDate(reviewer.end_date) }}</span>
                                     </div>
                                     <div v-else class="text-green-600 font-medium">
-                                        No End Date
+                                        Tidak ada tanggal selesai
                                     </div>
                                 </div>
 
@@ -598,7 +606,7 @@ console.log(props.reviewerRoles);
                                                 "
                                             >
                                                 <Eye class="h-4 w-4 mr-2" />
-                                                View Details
+                                                Lihat Detail
                                             </Link>
                                         </DropdownMenuItem>
                                         <DropdownMenuItem as-child>
@@ -620,14 +628,14 @@ console.log(props.reviewerRoles);
                                                 class="h-4 w-4 mr-2"
                                             />
                                             <UserCheck v-else class="h-4 w-4 mr-2" />
-                                            {{ reviewer.is_active ? 'Deactivate' : 'Activate' }}
+                                            {{ reviewer.is_active ? 'Nonaktifkan' : 'Aktifkan' }}
                                         </DropdownMenuItem>
                                         <DropdownMenuItem
                                             @click="deleteReviewer(reviewer)"
                                             class="text-destructive cursor-pointer"
                                         >
                                             <Trash2 class="h-4 w-4 mr-2" />
-                                            Delete
+                                            Hapus
                                         </DropdownMenuItem>
                                     </DropdownMenuContent>
                                 </DropdownMenu>
@@ -671,10 +679,10 @@ console.log(props.reviewerRoles);
                 <DialogHeader>
                     <DialogTitle class="flex items-center gap-2">
                         <AlertTriangle class="h-5 w-5 text-destructive" />
-                        Confirm Delete
+                        Konfirmasi Hapus    
                     </DialogTitle>
                     <DialogDescription>
-                        Are you sure you want to delete this reviewer? This action cannot be undone.
+                        Apakah Anda yakin ingin menghapus reviewer ini? Tindakan ini tidak dapat dibatalkan.
                     </DialogDescription>
                 </DialogHeader>
 
@@ -717,10 +725,10 @@ console.log(props.reviewerRoles);
 
                 <DialogFooter>
                     <Button variant="outline" @click="cancelDelete">
-                        Cancel
+                        Batal
                     </Button>
                     <Button variant="destructive" @click="confirmDelete">
-                        Delete Reviewer
+                        Hapus Reviewer
                     </Button>
                 </DialogFooter>
             </DialogContent>
