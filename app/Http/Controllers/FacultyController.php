@@ -55,8 +55,8 @@ class FacultyController extends Controller
             'name' => $request->name,
         ]);
 
-        return redirect()->route('faculties.index')
-            ->with('success', 'Faculty created successfully.');
+        return redirect()->route('admin.faculties.index')
+            ->with('Sukses', 'Fakultas Berhasil dibuat.');
     }
 
     public function show(Faculty $faculty)
@@ -89,8 +89,8 @@ class FacultyController extends Controller
             'name' => $request->name,
         ]);
 
-        return redirect()->route('faculties.index')
-            ->with('success', 'Faculty updated successfully.');
+        return redirect()->route('admin.faculties.index')
+            ->with('success', 'Fakultas berhasil diperbarui.');
     }
 
     public function destroy(Faculty $faculty)
@@ -98,13 +98,13 @@ class FacultyController extends Controller
         try {
             // Check if faculty has study programs
             if ($faculty->studyPrograms()->exists()) {
-                return back()->withErrors(['error' => 'Cannot delete faculty that has study programs.']);
+                return back()->withErrors(['error' => 'Tidak dapat menghapus fakultas yang memiliki program studi.']);
             }
 
             $faculty->delete();
 
-            return redirect()->route('faculties.index')
-                ->with('success', 'Faculty deleted successfully.');
+            return redirect()->route('admin.faculties.index')
+                ->with('success', 'Fakultas berhasil dihapus.');
         } catch (\Exception $e) {
             return back()->withErrors(['error' => 'Failed to delete faculty: ' . $e->getMessage()]);
         }
@@ -191,8 +191,8 @@ class FacultyController extends Controller
             'faculty_id' => $request->faculty_id,
         ]);
 
-        return redirect()->route('faculties.study-programs')
-            ->with('success', 'Study program created successfully.');
+        return redirect()->route('admin.faculties.study-programs')
+            ->with('success', 'Program Studi berhasil dibuat.');
     }
 
     public function editStudyProgram(StudyProgram $studyProgram)
@@ -219,7 +219,7 @@ class FacultyController extends Controller
             ->exists();
 
         if ($exists) {
-            return back()->withErrors(['name' => 'Study program name must be unique within the faculty.']);
+            return back()->withErrors(['name' => 'Nama program studi harus unik dalam fakultas.']);
         }
 
         $studyProgram->update([
@@ -227,24 +227,24 @@ class FacultyController extends Controller
             'faculty_id' => $request->faculty_id,
         ]);
 
-        return redirect()->route('faculties.study-programs')
-            ->with('success', 'Study program updated successfully.');
+        return redirect()->route('admin.faculties.study-programs')
+            ->with('success', 'Program Studi berhasil diperbarui.');
     }
 
     public function destroyStudyProgram(StudyProgram $studyProgram)
     {
         try {
             // Check if study program has reviewers
-            if ($studyProgram->reviewers()->exists()) {
-                return back()->withErrors(['error' => 'Cannot delete study program that has reviewers.']);
-            }
+            // if ($studyProgram->reviewers()->exists()) {
+            //     return back()->withErrors(['error' => 'Tidak dapat menghapus program studi yang memiliki reviewer.']);
+            // }
 
             $studyProgram->delete();
 
-            return redirect()->route('faculties.study-programs')
-                ->with('success', 'Study program deleted successfully.');
+            return redirect()->route('admin.faculties.study-programs')
+                ->with('success', 'Program Studi berhasil dihapus.');
         } catch (\Exception $e) {
-            return back()->withErrors(['error' => 'Failed to delete study program: ' . $e->getMessage()]);
+            return back()->withErrors(['error' => 'Gagal menghapus program studi: ' . $e->getMessage()]);
         }
     }
 }

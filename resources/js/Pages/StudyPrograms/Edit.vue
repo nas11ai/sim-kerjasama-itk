@@ -60,19 +60,19 @@ const hasChanges = () => {
 
 <template>
 
-    <Head title="Edit Study Program" />
+    <Head title="Edit Program Studi" />
 
     <AuthenticatedLayout>
         <template #header>
             <div class="flex items-center gap-4">
                 <Button variant="ghost" size="sm" @click="$inertia.visit(route('admin.faculties.study-programs'))">
                     <ArrowLeft class="h-4 w-4 mr-2" />
-                    Back
+                    Kembali
                 </Button>
                 <div class="flex items-center gap-2">
                     <GraduationCap class="h-6 w-6 text-green-600" />
                     <h2 class="text-xl font-semibold leading-tight text-gray-800">
-                        Edit Study Program: {{ studyProgram.name }}
+                        Edit Program Studi: {{ studyProgram.name }}
                     </h2>
                 </div>
             </div>
@@ -84,12 +84,12 @@ const hasChanges = () => {
                 <CardHeader>
                     <CardTitle class="text-green-900 flex items-center gap-2">
                         <GraduationCap class="h-5 w-5" />
-                        Current Study Program Information
+                        Informasi Program Studi Saat Ini
                     </CardTitle>
                 </CardHeader>
                 <CardContent class="space-y-3">
                     <div>
-                        <p class="text-sm font-medium text-green-800">Study Program Name</p>
+                        <p class="text-sm font-medium text-green-800">Nama Program Studi</p>
                         <p class="text-green-700 font-medium">{{ studyProgram.name }}</p>
                     </div>
                     <div>
@@ -101,12 +101,12 @@ const hasChanges = () => {
                     </div>
                     <div class="grid grid-cols-2 gap-4">
                         <div>
-                            <p class="text-sm font-medium text-green-800">Created</p>
+                            <p class="text-sm font-medium text-green-800">Dibuat pada</p>
                             <p class="text-sm text-green-600">{{ new Date(studyProgram.created_at).toLocaleDateString()
                             }}</p>
                         </div>
                         <div>
-                            <p class="text-sm font-medium text-green-800">Last Updated</p>
+                            <p class="text-sm font-medium text-green-800">Terakhir diperbarui</p>
                             <p class="text-sm text-green-600">{{ new Date(studyProgram.updated_at).toLocaleDateString()
                             }}</p>
                         </div>
@@ -119,17 +119,17 @@ const hasChanges = () => {
                 <CardHeader>
                     <CardTitle class="flex items-center gap-2">
                         <GraduationCap class="h-5 w-5" />
-                        Edit Study Program Information
+                        Edit Informasi Program Studi
                     </CardTitle>
                 </CardHeader>
                 <CardContent>
                     <form @submit.prevent="submit" class="space-y-6">
                         <div class="space-y-2">
-                            <Label for="faculty_id">Faculty *</Label>
+                            <Label for="faculty_id">Fakultas *</Label>
                             <Select v-model="form.faculty_id" required>
                                 <SelectTrigger
                                     :class="(form.errors as FormErrors).faculty_id ? 'border-destructive' : ''">
-                                    <SelectValue placeholder="Select faculty" />
+                                    <SelectValue placeholder="Pilih fakultas" />
                                 </SelectTrigger>
                                 <SelectContent>
                                     <SelectItem v-for="faculty in faculties" :key="faculty.id"
@@ -143,13 +143,13 @@ const hasChanges = () => {
                             </p>
                             <p v-if="form.faculty_id !== studyProgram.faculty_id.toString()"
                                 class="text-sm text-amber-600">
-                                <strong>Note:</strong> Changing faculty may affect related data.
+                                <strong>Catatan:</strong> Mengubah fakultas dapat memengaruhi data terkait.
                             </p>
                         </div>
 
                         <div class="space-y-2">
-                            <Label for="name">Study Program Name *</Label>
-                            <Input id="name" v-model="form.name" placeholder="Enter study program name"
+                            <Label for="name">Nama Program Studi *</Label>
+                            <Input id="name" v-model="form.name" placeholder="Masukkan nama program studi"
                                 :class="(form.errors as FormErrors).name ? 'border-destructive' : ''" autofocus />
                             <p v-if="(form.errors as FormErrors).name" class="text-sm text-destructive">
                                 {{ (form.errors as FormErrors).name }}
@@ -161,11 +161,11 @@ const hasChanges = () => {
                             <h4 class="font-medium text-yellow-800 mb-2">Pending Changes:</h4>
                             <div class="space-y-1 text-sm">
                                 <div v-if="form.name !== studyProgram.name" class="text-yellow-700">
-                                    <strong>Name:</strong> {{ studyProgram.name }} → {{ form.name }}
+                                    <strong>Nama:</strong> {{ studyProgram.name }} → {{ form.name }}
                                 </div>
                                 <div v-if="form.faculty_id !== studyProgram.faculty_id.toString()"
                                     class="text-yellow-700">
-                                    <strong>Faculty:</strong> {{ studyProgram.faculty.name }} →
+                                    <strong>Fakultas:</strong> {{ studyProgram.faculty.name }} →
                                     {{faculties.find(f => f.id.toString() === form.faculty_id)?.name}}
                                 </div>
                             </div>
@@ -174,10 +174,10 @@ const hasChanges = () => {
                         <div class="flex items-center justify-end space-x-2 pt-4">
                             <Button type="button" variant="outline"
                                 @click="$inertia.visit(route('admin.faculties.study-programs'))">
-                                Cancel
+                                Batal
                             </Button>
                             <Button type="submit" :disabled="form.processing || !hasChanges()">
-                                {{ form.processing ? "Updating..." : "Update Study Program" }}
+                                {{ form.processing ? "Memperbarui..." : "Perbarui Program Studi" }}
                             </Button>
                         </div>
                     </form>
