@@ -171,13 +171,13 @@ const getDaysUntilDue = (): string => {
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
     if (diffDays < 0) {
-        return `${Math.abs(diffDays)} days overdue`;
+        return `${Math.abs(diffDays)} hari terlambat`;
     } else if (diffDays === 0) {
-        return 'Due today';
+        return 'Tenggat hari ini';
     } else if (diffDays === 1) {
-        return 'Due tomorrow';
+        return 'Tenggat besok';
     } else {
-        return `${diffDays} days left`;
+        return `${diffDays} hari tersisa`;
     }
 };
 
@@ -310,21 +310,21 @@ onUnmounted(() => {
 
 <template>
 
-    <Head :title="`Evaluation: ${assignment.review_evaluation_form.title}`" />
+    <Head :title="`Evaluasi: ${assignment.review_evaluation_form.title}`" />
 
     <AuthenticatedLayout>
         <template #header>
             <div class="flex items-center gap-4">
                 <Button variant="ghost" size="sm" @click="$inertia.visit(route('reviewer.assignments.index'))">
                     <ArrowLeft class="h-4 w-4 mr-2" />
-                    Back to Assignments
+                    Kembali
                 </Button>
                 <div>
                     <h2 class="text-xl font-semibold leading-tight text-gray-800">
                         {{ assignment.review_evaluation_form.title }}
                     </h2>
                     <p class="text-sm text-muted-foreground">
-                        Evaluation for: {{ assignment.submission_reviewer.form_submission.form.title }}
+                        Evaluasi untuk: {{ assignment.submission_reviewer.form_submission.form.title }}
                     </p>
                 </div>
             </div>
@@ -339,14 +339,14 @@ onUnmounted(() => {
                         <div class="space-y-4">
                             <div>
                                 <div class="flex items-center justify-between mb-2">
-                                    <span class="text-sm font-medium">Progress</span>
+                                    <span class="text-sm font-medium">Progres</span>
                                     <span class="text-sm text-muted-foreground">
-                                        {{ completedFields }}/{{ totalFields }} fields completed
+                                        {{ completedFields }}/{{ totalFields }} isian selesai
                                     </span>
                                 </div>
                                 <Progress :value="currentCompletionPercentage" class="h-2" />
                                 <p class="text-xs text-muted-foreground mt-1">
-                                    {{ currentCompletionPercentage }}% completed
+                                    {{ currentCompletionPercentage }}% selesai
                                 </p>
                             </div>
 
@@ -359,7 +359,7 @@ onUnmounted(() => {
                                 </div>
 
                                 <Badge :variant="assignment.is_required ? 'default' : 'outline'">
-                                    {{ assignment.is_required ? 'Required' : 'Optional' }}
+                                    {{ assignment.is_required ? 'Wajib' : 'Opsional' }}
                                 </Badge>
                             </div>
                         </div>
@@ -380,12 +380,12 @@ onUnmounted(() => {
 
                             <div v-if="lastSavedAt" class="flex items-center space-x-2 text-sm text-muted-foreground">
                                 <Save class="h-4 w-4" />
-                                <span>Last saved: {{ formatDate(lastSavedAt.toISOString()) }}</span>
+                                <span>Terakhir disimpan: {{ formatDate(lastSavedAt.toISOString()) }}</span>
                             </div>
 
                             <div v-if="isSaving" class="flex items-center space-x-2 text-sm text-blue-600">
                                 <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-blue-600"></div>
-                                <span>Saving...</span>
+                                <span>Menyimpan...</span>
                             </div>
                         </div>
                     </div>
@@ -398,7 +398,7 @@ onUnmounted(() => {
                     <div class="flex items-start space-x-3">
                         <FileText class="h-5 w-5 text-blue-500 mt-0.5" />
                         <div>
-                            <h3 class="font-medium mb-2">Instructions</h3>
+                            <h3 class="font-medium mb-2">Instruksi</h3>
                             <p class="text-muted-foreground">
                                 {{ assignment.review_evaluation_form.description }}
                             </p>
@@ -427,7 +427,7 @@ onUnmounted(() => {
                                         </p>
                                     </div>
                                     <Badge v-if="field.is_required" variant="secondary" class="ml-2">
-                                        Required
+                                        Wajib
                                     </Badge>
                                 </div>
 
@@ -503,12 +503,12 @@ onUnmounted(() => {
                     <CardHeader>
                         <CardTitle class="flex items-center space-x-2">
                             <FileText class="h-5 w-5" />
-                            <span>Additional Notes (Optional)</span>
+                            <span>Catatan Tambahan (Opsional)</span>
                         </CardTitle>
                     </CardHeader>
                     <CardContent>
                         <Textarea v-model="form.final_notes"
-                            placeholder="Add any additional notes or comments about this evaluation..."
+                            placeholder="Tambahkan catatan atau komentar tambahan tentang evaluasi ini..."
                             :disabled="!canEdit" rows="4" class="w-full" />
                     </CardContent>
                 </Card>
@@ -517,11 +517,11 @@ onUnmounted(() => {
                 <div class="flex items-center justify-between bg-white border rounded-lg p-4 sticky bottom-4">
                     <div class="flex items-center space-x-4">
                         <div class="text-sm text-muted-foreground">
-                            {{ completedFields }}/{{ totalFields }} fields completed
+                            {{ completedFields }}/{{ totalFields }} isian selesai
                         </div>
                         <div v-if="!requiredFieldsCompleted" class="flex items-center space-x-2 text-amber-600">
                             <AlertTriangle class="h-4 w-4" />
-                            <span class="text-sm">Complete required fields to submit</span>
+                            <span class="text-sm">Lengkapi isian wajib untuk mengirimkan</span>
                         </div>
                     </div>
 
@@ -530,7 +530,7 @@ onUnmounted(() => {
                         <Button type="button" variant="outline" @click="saveDraft"
                             :disabled="!canEdit || isSaving || !hasChanges">
                             <Save class="h-4 w-4 mr-2" />
-                            {{ isSaving ? 'Saving...' : 'Save Draft' }}
+                            {{ isSaving ? 'Menyimpan...' : 'Simpan Draft' }}
                         </Button>
 
                         <!-- Submit Button with Confirmation -->
@@ -538,33 +538,33 @@ onUnmounted(() => {
                             <DialogTrigger as-child>
                                 <Button :disabled="!canSubmitForm" class="min-w-[120px]">
                                     <Send class="h-4 w-4 mr-2" />
-                                    Submit Evaluation
+                                    Kirim Evaluasi
                                 </Button>
                             </DialogTrigger>
                             <DialogContent>
                                 <DialogHeader>
-                                    <DialogTitle>Submit Evaluation</DialogTitle>
+                                    <DialogTitle>Kirim Evaluasi</DialogTitle>
                                     <DialogDescription>
-                                        Are you sure you want to submit this evaluation? Once submitted,
-                                        you won't be able to make changes to your responses.
+                                        Apakah Anda yakin ingin mengirim evaluasi ini? Setelah dikirim,
+                                        Anda tidak akan dapat mengubah jawaban Anda.
                                     </DialogDescription>
                                 </DialogHeader>
                                 <div class="space-y-2 py-4">
                                     <div class="text-sm">
-                                        <strong>Completion Status:</strong>
-                                        {{ completedFields }}/{{ totalFields }} fields completed
+                                        <strong>Status Penyelesaian:</strong>
+                                        {{ completedFields }}/{{ totalFields }} isian selesai
                                     </div>
                                     <div class="text-sm">
-                                        <strong>Required Fields:</strong>
-                                        {{ requiredFieldsCompleted ? 'All completed' : 'Some incomplete' }}
+                                        <strong>Isian Wajib:</strong>
+                                        {{ requiredFieldsCompleted ? 'Semua selesai' : 'Beberapa belum lengkap' }}
                                     </div>
                                 </div>
                                 <DialogFooter>
                                     <Button variant="outline" @click="showSubmitDialog = false">
-                                        Cancel
+                                        Batal
                                     </Button>
                                     <Button @click="submitEvaluation" :disabled="submitForm.processing">
-                                        {{ submitForm.processing ? 'Submitting...' : 'Submit' }}
+                                        {{ submitForm.processing ? 'Mengirim...' : 'Kirim' }}
                                     </Button>
                                 </DialogFooter>
                             </DialogContent>
@@ -572,7 +572,7 @@ onUnmounted(() => {
 
                         <!-- View Only Message -->
                         <div v-else class="text-sm text-muted-foreground">
-                            This evaluation cannot be edited
+                            Evaluasi ini tidak dapat diedit
                         </div>
                     </div>
                 </div>
