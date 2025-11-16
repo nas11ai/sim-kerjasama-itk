@@ -357,13 +357,13 @@ const updateAssignmentDueDate = (formId: number, event: Event) => {
         <Card>
             <CardHeader>
                 <CardTitle class="flex items-center justify-between">
-                    <span>Evaluation Overview</span>
+                    <span>Ringkasan Evaluasi</span>
                     <div class="flex space-x-2">
                         <Dialog v-if="hasEvaluationForms" v-model:open="bulkAssignDialog">
                             <DialogTrigger as-child>
                                 <Button @click="openBulkAssignDialog" size="sm" variant="outline">
                                     <UserPlus class="h-4 w-4 mr-2" />
-                                    Bulk Assign Forms
+                                    Penugasan Formulir Massal
                                 </Button>
                             </DialogTrigger>
                         </Dialog>
@@ -374,11 +374,11 @@ const updateAssignmentDueDate = (formId: number, event: Event) => {
                 <div class="grid gap-4 md:grid-cols-4">
                     <div class="text-center">
                         <div class="text-2xl font-bold text-blue-600">{{ evaluationStats.total_reviewers }}</div>
-                        <div class="text-sm text-muted-foreground">Total Reviewers</div>
+                        <div class="text-sm text-muted-foreground">Total Reviewer</div>
                     </div>
                     <div class="text-center">
                         <div class="text-2xl font-bold text-green-600">{{ evaluationStats.completed_evaluations }}</div>
-                        <div class="text-sm text-muted-foreground">Completed</div>
+                        <div class="text-sm text-muted-foreground">Selesai</div>
                     </div>
                     <div class="text-center">
                         <div class="text-2xl font-bold text-orange-600">{{ evaluationStats.pending_evaluations }}</div>
@@ -386,15 +386,14 @@ const updateAssignmentDueDate = (formId: number, event: Event) => {
                     </div>
                     <div class="text-center">
                         <div class="text-2xl font-bold">{{ evaluationStats.completion_percentage }}%</div>
-                        <div class="text-sm text-muted-foreground">Complete</div>
+                        <div class="text-sm text-muted-foreground">Selesai</div>
                     </div>
                 </div>
 
                 <div v-if="!hasEvaluationForms" class="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
                     <div class="flex items-center space-x-2 text-blue-800">
                         <AlertTriangle class="h-4 w-4" />
-                        <span class="text-sm font-medium">No evaluation forms available for this submission's form
-                            phase.</span>
+                        <span class="text-sm font-medium">Tidak ada formulir evaluasi yang tersedia untuk fase formulir pengajuan ini.</span>
                     </div>
                 </div>
             </CardContent>
@@ -428,7 +427,7 @@ const updateAssignmentDueDate = (formId: number, event: Event) => {
                                 <Button v-if="hasEvaluationForms" @click="openAssignFormsDialog(submissionReviewer)"
                                     size="sm" variant="outline">
                                     <Plus class="h-4 w-4 mr-1" />
-                                    Assign Forms
+                                    Tugaskan Formulir
                                 </Button>
                             </div>
                         </div>
@@ -438,11 +437,11 @@ const updateAssignmentDueDate = (formId: number, event: Event) => {
                         <Table>
                             <TableHeader>
                                 <TableRow>
-                                    <TableHead>Evaluation Form</TableHead>
+                                    <TableHead>Formulir Evaluasi</TableHead>
                                     <TableHead>Status</TableHead>
-                                    <TableHead>Due Date</TableHead>
-                                    <TableHead>Priority</TableHead>
-                                    <TableHead class="text-right">Actions</TableHead>
+                                    <TableHead>Tanggal Jatuh Tempo</TableHead>
+                                    <TableHead>Prioritas</TableHead>
+                                    <TableHead class="text-right">Aksi</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
@@ -477,7 +476,7 @@ const updateAssignmentDueDate = (formId: number, event: Event) => {
 
                                     <TableCell>
                                         <Badge :variant="assignment.is_required ? 'default' : 'outline'">
-                                            {{ assignment.is_required ? 'Required' : 'Optional' }}
+                                            {{ assignment.is_required ? 'Wajib' : 'Opsional' }}
                                         </Badge>
                                     </TableCell>
 
@@ -502,8 +501,8 @@ const updateAssignmentDueDate = (formId: number, event: Event) => {
 
                     <CardContent v-else class="text-center py-8 text-muted-foreground">
                         <FileText class="h-12 w-12 mx-auto mb-2 opacity-50" />
-                        <p>No evaluation forms assigned yet</p>
-                        <p class="text-xs">Click "Assign Forms" to add evaluation forms</p>
+                        <p>Tidak ada formulir evaluasi yang ditugaskan</p>
+                        <p class="text-xs">Klik "Tugaskan Formulir" untuk menambahkan formulir evaluasi</p>
                     </CardContent>
                 </Card>
             </div>
@@ -514,10 +513,10 @@ const updateAssignmentDueDate = (formId: number, event: Event) => {
             <CardContent class="text-center py-8">
                 <User class="h-16 w-16 mx-auto text-gray-400 mb-4" />
                 <h3 class="text-lg font-medium text-gray-900 mb-2">
-                    No reviewers assigned
+                    Tidak ada reviewer yang ditugaskan
                 </h3>
                 <p class="text-gray-500">
-                    Assign reviewers to this submission to manage evaluation forms.
+                    Tugaskan reviewer ke pengajuan ini untuk mengelola formulir evaluasi.
                 </p>
             </CardContent>
         </Card>
@@ -526,9 +525,9 @@ const updateAssignmentDueDate = (formId: number, event: Event) => {
         <Dialog v-model:open="assignFormsDialog">
             <DialogContent class="max-w-2xl">
                 <DialogHeader>
-                    <DialogTitle>Assign Evaluation Forms</DialogTitle>
+                    <DialogTitle>Tugaskan Formulir Evaluasi</DialogTitle>
                     <DialogDescription>
-                        Select evaluation forms to assign to {{ selectedReviewer?.reviewer.user.name }}.
+                        Pilih formulir evaluasi untuk ditugaskan kepada {{ selectedReviewer?.reviewer.user.name }}.
                     </DialogDescription>
                 </DialogHeader>
 
@@ -544,14 +543,14 @@ const updateAssignmentDueDate = (formId: number, event: Event) => {
                                         {{ form.description }}
                                     </p>
                                     <Badge :variant="form.is_required ? 'default' : 'outline'" class="mt-1">
-                                        {{ form.is_required ? 'Required by default' : 'Optional by default' }}
+                                        {{ form.is_required ? 'Wajib secara default' : 'Opsional secara default' }}
                                     </Badge>
                                 </div>
 
                                 <div v-if="assignFormData.evaluation_form_ids.includes(form.id)"
                                     class="grid gap-3 md:grid-cols-2">
                                     <div class="space-y-2">
-                                        <Label>Required for this reviewer</Label>
+                                        <Label>Wajib untuk reviewer ini</Label>
                                         <Switch
                                             :checked="assignFormData.assignments.find(a => a.form_id === form.id)?.is_required"
                                             @update:checked="(checked: boolean) => {
@@ -560,7 +559,7 @@ const updateAssignmentDueDate = (formId: number, event: Event) => {
                                             }" />
                                     </div>
                                     <div class="space-y-2">
-                                        <Label>Due Date</Label>
+                                        <Label>Tanggal Jatuh Tempo</Label>
                                         <Input type="datetime-local"
                                             :value="assignFormData.assignments.find(a => a.form_id === form.id)?.due_date"
                                             @input="(e: Event) => updateAssignmentDueDate(form.id, e)" />
@@ -573,11 +572,11 @@ const updateAssignmentDueDate = (formId: number, event: Event) => {
 
                 <DialogFooter>
                     <Button variant="outline" @click="assignFormsDialog = false">
-                        Cancel
+                        Batal
                     </Button>
                     <Button @click="assignForms"
                         :disabled="assignFormData.processing || assignFormData.evaluation_form_ids.length === 0">
-                        {{ assignFormData.processing ? 'Assigning...' : 'Assign Forms' }}
+                        {{ assignFormData.processing ? 'Menugaskan...' : 'Tugaskan Formulir' }}
                     </Button>
                 </DialogFooter>
             </DialogContent>
@@ -587,16 +586,16 @@ const updateAssignmentDueDate = (formId: number, event: Event) => {
         <Dialog v-model:open="bulkAssignDialog">
             <DialogContent class="max-w-3xl">
                 <DialogHeader>
-                    <DialogTitle>Bulk Assign Forms</DialogTitle>
+                    <DialogTitle>Tugaskan Formulir Secara Massal</DialogTitle>
                     <DialogDescription>
-                        Assign evaluation forms to multiple reviewers at once.
+                        Tugaskan formulir evaluasi ke beberapa reviewer sekaligus.
                     </DialogDescription>
                 </DialogHeader>
 
                 <div class="space-y-6">
                     <!-- Reviewer Selection -->
                     <div>
-                        <Label class="text-base font-medium">Select Reviewers</Label>
+                        <Label class="text-base font-medium">Pilih Reviewer</Label>
                         <div class="mt-2 space-y-2 max-h-32 overflow-y-auto border rounded-lg p-3">
                             <div v-for="submissionReviewer in submissionReviewers" :key="submissionReviewer.id"
                                 class="flex items-center space-x-3">
@@ -615,7 +614,7 @@ const updateAssignmentDueDate = (formId: number, event: Event) => {
 
                     <!-- Form Assignment Configuration -->
                     <div>
-                        <Label class="text-base font-medium">Configure Forms</Label>
+                        <Label class="text-base font-medium">Konfigurasi Formulir</Label>
                         <div class="mt-2 space-y-3 max-h-64 overflow-y-auto">
                             <div v-for="(assignment, index) in bulkAssignData.form_assignments"
                                 :key="assignment.form_id" class="border rounded-lg p-4">
@@ -641,10 +640,10 @@ const updateAssignmentDueDate = (formId: number, event: Event) => {
                                     <div class="grid gap-3 md:grid-cols-2">
                                         <div class="flex items-center space-x-2">
                                             <Switch v-model="assignment.is_required" />
-                                            <Label>Required</Label>
+                                            <Label>Wajib</Label>
                                         </div>
                                         <div class="space-y-1">
-                                            <Label class="text-xs">Due Date</Label>
+                                            <Label class="text-xs">Tanggal Jatuh Tempo</Label>
                                             <Input type="datetime-local" v-model="assignment.due_date"
                                                 class="text-xs" />
                                         </div>
@@ -657,11 +656,11 @@ const updateAssignmentDueDate = (formId: number, event: Event) => {
 
                 <DialogFooter>
                     <Button variant="outline" @click="bulkAssignDialog = false">
-                        Cancel
+                        Batal
                     </Button>
                     <Button @click="bulkAssignForms"
                         :disabled="bulkAssignData.processing || bulkAssignData.reviewer_ids.length === 0">
-                        {{ bulkAssignData.processing ? 'Assigning...' : 'Bulk Assign' }}
+                        {{ bulkAssignData.processing ? 'Menugaskan...' : 'Tugaskan Secara Massal' }}
                     </Button>
                 </DialogFooter>
             </DialogContent>
@@ -671,17 +670,17 @@ const updateAssignmentDueDate = (formId: number, event: Event) => {
         <Dialog v-model:open="removeAssignmentDialog">
             <DialogContent>
                 <DialogHeader>
-                    <DialogTitle>Remove Assignment</DialogTitle>
+                    <DialogTitle>Hapus Penugasan</DialogTitle>
                     <DialogDescription>
-                        Are you sure you want to remove this form assignment? This action cannot be undone.
+                        Apakah Anda yakin ingin menghapus penugasan formulir ini? Tindakan ini tidak dapat dibatalkan.
                     </DialogDescription>
                 </DialogHeader>
                 <DialogFooter>
                     <Button variant="outline" @click="removeAssignmentDialog = false">
-                        Cancel
+                        Batal
                     </Button>
                     <Button variant="destructive" @click="removeAssignment" :disabled="removeAssignmentData.processing">
-                        {{ removeAssignmentData.processing ? 'Removing...' : 'Remove' }}
+                        {{ removeAssignmentData.processing ? 'Menghapus...' : 'Hapus' }}
                     </Button>
                 </DialogFooter>
             </DialogContent>
