@@ -56,7 +56,7 @@ class FacultyController extends Controller
         ]);
 
         return redirect()->route('admin.faculties.index')
-            ->with('Sukses', 'Fakultas Berhasil dibuat.');
+            ->with('success', 'Fakultas Berhasil dibuat.');
     }
 
     public function show(Faculty $faculty)
@@ -106,7 +106,7 @@ class FacultyController extends Controller
             return redirect()->route('admin.faculties.index')
                 ->with('success', 'Fakultas berhasil dihapus.');
         } catch (\Exception $e) {
-            return back()->withErrors(['error' => 'Failed to delete faculty: ' . $e->getMessage()]);
+            return back()->withErrors(['error' => 'Gagal menghapus fakultas: ' . $e->getMessage()]);
         }
     }
 
@@ -183,7 +183,7 @@ class FacultyController extends Controller
             ->exists();
 
         if ($exists) {
-            return back()->withErrors(['name' => 'Study program name must be unique within the faculty.']);
+            return back()->withErrors(['name' => 'Nama program studi harus berbeda dalam fakultas.']);
         }
 
         StudyProgram::create([
