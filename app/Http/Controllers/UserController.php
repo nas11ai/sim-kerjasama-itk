@@ -50,7 +50,7 @@ class UserController extends Controller
 
         $user->assignRole($data['role']);
 
-        return to_route('admin.users.index')->with('success', 'User created successfully');
+        return to_route('admin.users.index')->with('success', 'User berhasil dibuat');
     }
 
     /**
@@ -59,7 +59,7 @@ class UserController extends Controller
     public function edit(Request $request, User $user)
     {
         if ($user->hasRole(RoleEnum::SUPER_ADMIN->value)) {
-            return to_route('admin.users.index')->with('error', 'You are not authorized to edit this user');
+            return to_route('admin.users.index')->with('error', 'Anda tidak berwenang untuk mengedit pengguna ini');
         }
 
         $roles = Role::all();
@@ -78,7 +78,7 @@ class UserController extends Controller
     public function update(UpdateUserRequest $request, User $user)
     {
         if ($user->hasRole(RoleEnum::SUPER_ADMIN->value)) {
-            return to_route('admin.users.index')->with('error', 'You are not authorized to update this user');
+            return to_route('admin.users.index')->with('error', 'Anda tidak berwenang untuk memperbarui pengguna ini');
         }
 
         $data = $request->validated();
@@ -92,7 +92,7 @@ class UserController extends Controller
         $user->syncRoles($data['role']);
         $user->syncPermissions($data['permissions'] ?? []);
 
-        return to_route('admin.users.index')->with('success', 'User updated successfully');
+        return to_route('admin.users.index')->with('success', 'User berhasil diperbarui');
     }
 
     /**
@@ -103,11 +103,11 @@ class UserController extends Controller
         $auth = $request->user();
 
         if ($user->hasAnyRole(['Super Admin', 'Admin']) && !$auth->hasRole('Super Admin')) {
-            return to_route('admin.users.index')->with('error', 'You are not authorized to delete this user');
+            return to_route('admin.users.index')->with('error', 'Anda tidak berwenang untuk menghapus pengguna ini');
         }
 
         $user->delete();
 
-        return to_route('admin.users.index')->with('success', 'User deleted successfully');
+        return to_route('admin.users.index')->with('success', 'User berhasil dihapus');
     }
 }
