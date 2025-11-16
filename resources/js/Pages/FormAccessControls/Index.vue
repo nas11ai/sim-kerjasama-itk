@@ -157,31 +157,31 @@ const selectAll = computed({
 const openGroups = ref<number[]>([]);
 
 const selectedFormLabel = computed(() => {
-    if (selectedFormId.value === "all") return "All Forms";
+    if (selectedFormId.value === "all") return "Semua Formulir";
     const form = props.forms.find((f) => f.id.toString() === selectedFormId.value);
-    return form?.title || "Select form...";
+    return form?.title || "Pilih formulir...";
 });
 
 const selectedRoleLabel = computed(() => {
-    if (selectedRoleId.value === "all") return "All Roles";
+    if (selectedRoleId.value === "all") return "Semua Role";
     const role = props.roles.find((r) => r.id.toString() === selectedRoleId.value);
-    return role?.name || "Select role...";
+    return role?.name || "Pilih role...";
 });
 
 const selectedFacultyLabel = computed(() => {
-    if (selectedFacultyId.value === "all") return "All Faculties";
+    if (selectedFacultyId.value === "all") return "Semua Fakultas";
     const faculty = props.faculties.find(
         (f) => f.id.toString() === selectedFacultyId.value
     );
-    return faculty?.name || "Select faculty...";
+    return faculty?.name || "Pilih fakultas...";
 });
 
 const selectedStudyProgramLabel = computed(() => {
-    if (selectedStudyProgramId.value === "all") return "All Study Programs";
+    if (selectedStudyProgramId.value === "all") return "Semua Program Studi";
     const studyProgram = studyPrograms.value.find(
         (sp) => sp.id.toString() === selectedStudyProgramId.value
     );
-    return studyProgram?.name || "Select study program...";
+    return studyProgram?.name || "Pilih program studi...";
 });
 
 const studyPrograms = computed(() => {
@@ -347,18 +347,18 @@ const isPartiallySelected = computed(() => {
 });
 
 const deleteFormAccessControl = (id: number) => {
-    if (confirm("Are you sure you want to delete this form access control?")) {
+    if (confirm("Apakah anda yakin ingin menghapus kontrol akses formulir ini?")) {
         router.delete(route("admin.form-access-controls.destroy", id), {
             onSuccess: () => {
                 toast({
-                    title: "Success",
-                    description: "Form access control deleted successfully.",
+                    title: "Sukses",
+                    description: "Kontrol akses formulir berhasil dihapus.",
                 });
             },
             onError: () => {
                 toast({
                     title: "Error",
-                    description: "Failed to delete form access control.",
+                    description: "Gagal menghapus kontrol akses formulir.",
                     variant: "destructive",
                 });
             },
@@ -371,7 +371,7 @@ const bulkDelete = () => {
 
     if (
         confirm(
-            `Are you sure you want to delete ${selectedItems.value.length} selected items?`
+            `Apakah Anda yakin ingin menghapus ${selectedItems.value.length} item yang dipilih?`
         )
     ) {
         router.post(
@@ -381,14 +381,14 @@ const bulkDelete = () => {
                 onSuccess: () => {
                     selectedItems.value = [];
                     toast({
-                        title: "Success",
-                        description: "Selected form access controls deleted successfully.",
+                        title: "Sukses",
+                        description: "Kontrol akses formulir yang dipilih berhasil dihapus.",
                     });
                 },
                 onError: () => {
                     toast({
                         title: "Error",
-                        description: "Failed to delete selected form access controls.",
+                        description: "Gagal menghapus kontrol akses formulir yang dipilih.",
                         variant: "destructive",
                     });
                 },
@@ -415,21 +415,21 @@ const formatDate = (dateString: string) => {
 </script>
 
 <template>
-    <Head title="Form Access Controls" />
+    <Head title="Kontrol Akses Formulir" />
 
     <AuthenticatedLayout>
         <template #header>
             <div class="flex items-center justify-between">
                 <div class="flex items-center gap-2">
                     <h2 class="text-xl font-semibold leading-tight text-gray-800">
-                        Form Access Controls
+                        Kontrol Akses Formulir
                     </h2>
                 </div>
                 <div class="flex items-center gap-2">
                     <Link :href="route('admin.form-access-controls.create')">
                         <Button>
                             <Plus class="h-4 w-4 mr-2" />
-                            Create Access Control
+                            Buat Kontrol Akses
                         </Button>
                     </Link>
                 </div>
@@ -443,9 +443,9 @@ const formatDate = (dateString: string) => {
                     <div class="flex items-center justify-between">
                         <CardTitle class="text-lg flex items-center gap-2">
                             <Filter class="h-5 w-5" />
-                            Search & Filter
+                            Cari & Filter
                             <Badge v-if="activeFiltersCount > 0" variant="secondary">
-                                {{ activeFiltersCount }} active
+                                {{ activeFiltersCount }} aktif
                             </Badge>
                         </CardTitle>
                         <Button
@@ -455,7 +455,7 @@ const formatDate = (dateString: string) => {
                             size="sm"
                         >
                             <X class="h-4 w-4 mr-2" />
-                            Clear All
+                            Bersihkan Semua Filter
                         </Button>
                     </div>
                 </CardHeader>
@@ -468,7 +468,7 @@ const formatDate = (dateString: string) => {
                             />
                             <Input
                                 v-model="searchQuery"
-                                placeholder="Search by form title, role name, or study program..."
+                                placeholder="Cari berdasarkan judul formulir, nama peran, atau program studi..."
                                 class="pl-10"
                             />
                         </div>
@@ -479,7 +479,7 @@ const formatDate = (dateString: string) => {
                         <!-- form filter -->
                         <div>
                             <label class="text-sm font-medium text-gray-700 mb-2 block">
-                                Form
+                                Formulir
                             </label>
                             <Popover v-model:open="openForm">
                                 <PopoverTrigger as-child>
@@ -502,7 +502,7 @@ const formatDate = (dateString: string) => {
                                             class="flex h-11 w-full rounded-md bg-transparent py-3 text-sm outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50 border-0 ring-0 focus:ring-0 focus:outline-none"
                                         />
                                         <CommandList>
-                                            <CommandEmpty>No form found.</CommandEmpty>
+                                            <CommandEmpty>Tidak ada formulir ditemukan.</CommandEmpty>
                                             <CommandGroup>
                                                 <CommandItem
                                                     value="all"
@@ -517,7 +517,7 @@ const formatDate = (dateString: string) => {
                                                                 : 'opacity-0'
                                                         )"
                                                     />
-                                                    All Forms
+                                                    Semua Formulir
                                                 </CommandItem>
                                                 <CommandItem
                                                     v-for="form in props.forms"
@@ -565,11 +565,11 @@ const formatDate = (dateString: string) => {
                                 <PopoverContent class="w-[200px] p-0">
                                     <Command>
                                         <CommandInput
-                                            placeholder="Search role..."
+                                            placeholder="Cari role..."
                                             class="flex h-11 w-full rounded-md bg-transparent py-3 text-sm outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50 border-0 ring-0 focus:ring-0 focus:outline-none"
                                         />
                                         <CommandList>
-                                            <CommandEmpty>No role found.</CommandEmpty>
+                                            <CommandEmpty>Tidak ada role ditemukan.</CommandEmpty>
                                             <CommandGroup>
                                                 <CommandItem
                                                     value="all"
@@ -584,7 +584,7 @@ const formatDate = (dateString: string) => {
                                                                 : 'opacity-0'
                                                         )"
                                                     />
-                                                    All Roles
+                                                    Semua Role
                                                 </CommandItem>
                                                 <CommandItem
                                                     v-for="role in props.roles"
@@ -613,7 +613,7 @@ const formatDate = (dateString: string) => {
                         <!-- fak filter -->
                         <div>
                             <label class="text-sm font-medium text-gray-700 mb-2 block">
-                                Faculty
+                                Fakultas
                             </label>
                             <Popover v-model:open="openFaculty">
                                 <PopoverTrigger as-child>
@@ -632,11 +632,11 @@ const formatDate = (dateString: string) => {
                                 <PopoverContent class="w-[250px] p-0">
                                     <Command>
                                         <CommandInput
-                                        placeholder="Search faculty..."
+                                        placeholder="Cari fakultas..."
                                         class="flex h-11 w-full rounded-md bg-transparent py-3 text-sm outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50 border-0 ring-0 focus:ring-0 focus:outline-none"
                                         />
                                         <CommandList>
-                                            <CommandEmpty>No faculty found.</CommandEmpty>
+                                            <CommandEmpty>Tidak ada fakultas ditemukan.</CommandEmpty>
                                             <CommandGroup>
                                                 <CommandItem
                                                     value="all"
@@ -651,7 +651,7 @@ const formatDate = (dateString: string) => {
                                                                 : 'opacity-0'
                                                         )"
                                                     />
-                                                    All Faculties
+                                                    Semua Fakultas
                                                 </CommandItem>
                                                 <CommandItem
                                                     v-for="faculty in props.faculties"
@@ -682,7 +682,7 @@ const formatDate = (dateString: string) => {
                         <!-- prodi filter -->
                         <div>
                             <label class="text-sm font-medium text-gray-700 mb-2 block">
-                                Study Program
+                                Program Studi
                             </label>
                             <Popover
                                 v-model:open="openStudyProgram"
@@ -711,11 +711,11 @@ const formatDate = (dateString: string) => {
                                 <PopoverContent class="w-[250px] p-0">
                                     <Command>
                                         <CommandInput
-                                        placeholder="Search study program..."
+                                        placeholder="Cari program studi..."
                                         class="flex h-11 w-full rounded-md bg-transparent py-3 text-sm outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50 border-0 ring-0 focus:ring-0 focus:outline-none"
                                         />
                                         <CommandList>
-                                            <CommandEmpty>No study program found.</CommandEmpty>
+                                            <CommandEmpty>Tidak ada program studi ditemukan.</CommandEmpty>
                                             <CommandGroup>
                                                 <CommandItem
                                                     value="all"
@@ -730,7 +730,7 @@ const formatDate = (dateString: string) => {
                                                                 : 'opacity-0'
                                                         )"
                                                     />
-                                                    All Study Programs
+                                                    Semua Program Studi
                                                 </CommandItem>
                                                 <CommandItem
                                                     v-for="studyProgram in studyPrograms"
@@ -766,15 +766,15 @@ const formatDate = (dateString: string) => {
                 <CardHeader class="flex flex-row items-center justify-between">
                     <CardTitle class="flex items-center gap-2">
                         <FileText class="h-5 w-5" />
-                        Forms with Access Controls
+                        Formulir dengan Kontrol Akses
                         <Badge variant="secondary">
-                            {{ props.groupAccessControls.total }} forms
+                            {{ props.groupAccessControls.total }} formulir
                         </Badge>
                     </CardTitle>
                     <div class="flex flex-row">
                         <Button v-if="selectedItems.length > 0" variant="destructive" size="sm" @click="bulkDelete">
                             <Trash2 class="h-4 w-4 mr-2" />
-                            Delete Selected ({{ selectedItems.length }})
+                            Hapus Terpilih ({{ selectedItems.length }})
                         </Button>
 
                         <div
@@ -784,8 +784,8 @@ const formatDate = (dateString: string) => {
                             <Button variant="outline" size="sm" @click="toggleAllGroups">
                                 {{
                                     openGroups.length === props.groupAccessControls.data.length
-                                        ? "Collapse All"
-                                        : "Expand All"
+                                        ? "Tutup Semua"
+                                        : "Perluas Semua"
                                 }}
                             </Button>
                         </div>
@@ -798,12 +798,12 @@ const formatDate = (dateString: string) => {
                         class="text-center py-12"
                     >
                         <Users class="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                        <h3 class="text-lg font-medium mb-2">No access controls found</h3>
+                        <h3 class="text-lg font-medium mb-2">Tidak ada kontrol akses ditemukan</h3>
                         <p class="text-muted-foreground mb-4">
                             {{
                                 hasActiveFilters
-                                    ? "Try adjusting your search criteria."
-                                    : "Get started by creating your first access control."
+                                    ? "Coba sesuaikan kriteria pencarian Anda."
+                                    : "Mulai dengan membuat kontrol akses pertama Anda."
                             }}
                         </p>
                         <Link
@@ -812,12 +812,12 @@ const formatDate = (dateString: string) => {
                         >
                             <Button>
                                 <Plus class="h-4 w-4 mr-2" />
-                                Create Access Control
+                                Buat Kontrol Akses Formulir
                             </Button>
                         </Link>
                         <Button v-else variant="outline" @click="clearFilters">
                             <X class="h-4 w-4 mr-2" />
-                            Clear Filters
+                            Hapus Filter
                         </Button>
                     </div>
 
@@ -832,12 +832,12 @@ const formatDate = (dateString: string) => {
                                             :indeterminate="isPartiallySelected"
                                         />
                                     </TableHead>
-                                    <TableHead>Form</TableHead>
-                                    <TableHead>Role</TableHead>
-                                    <TableHead>Study Program</TableHead>
-                                    <TableHead>Faculty</TableHead>
-                                    <TableHead>Created</TableHead>
-                                    <TableHead class="text-right">Actions</TableHead>
+                                    <TableHead>Formulir</TableHead>
+                                    <TableHead>Peran</TableHead>
+                                    <TableHead>Program Studi</TableHead>
+                                    <TableHead>Fakultas</TableHead>
+                                    <TableHead>Dibuat Pada</TableHead>
+                                    <TableHead class="text-right">Aksi</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
@@ -867,7 +867,7 @@ const formatDate = (dateString: string) => {
                                                     {{ group.form.title }}
                                                     <Badge variant="secondary">
                                                         {{ group.jumlah_access_controls }}
-                                                        access control{{
+                                                        kontrol akses{{
                                                             group.jumlah_access_controls !== 1
                                                                 ? "s"
                                                                 : ""
@@ -936,7 +936,7 @@ const formatDate = (dateString: string) => {
                                                         >
                                                             <DropdownMenuItem>
                                                                 <Eye class="h-4 w-4 mr-2" />
-                                                                View Details
+                                                                Lihat Detail
                                                             </DropdownMenuItem>
                                                         </Link>
                                                         <Link
@@ -959,7 +959,7 @@ const formatDate = (dateString: string) => {
                                                             class="text-destructive cursor-pointer"
                                                         >
                                                             <Trash2 class="h-4 w-4 mr-2" />
-                                                            Delete
+                                                            Hapus
                                                         </DropdownMenuItem>
                                                     </DropdownMenuContent>
                                                 </DropdownMenu>
