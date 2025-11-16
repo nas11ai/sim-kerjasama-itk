@@ -140,22 +140,22 @@ const selectAll = computed({
 })
 
 const statusOptions = [
-    { value: "all", label: "All Status" },
-    { value: "active", label: "Active" },
-    { value: "inactive", label: "Inactive" },
+    { value: "all", label: "Semua Status" },
+    { value: "active", label: "Aktif" },
+    { value: "inactive", label: "Nonaktif" },
 ];
 
 const selectedFormTypeLabel = computed(() => {
-    if (formTypeFilter.value === "all") return "All Form Types";
+    if (formTypeFilter.value === "all") return "Semua Tipe Formulir";
     const type = props.formTypes.find(
         (t) => t.id.toString() === formTypeFilter.value
     );
-    return type?.name || "Select type...";
+    return type?.name || "Pilih tipe...";
 });
 
 const selectedStatusLabel = computed(() => {
     const status = statusOptions.find((s) => s.value === isActiveFilter.value);
-    return status?.label || "Select status...";
+    return status?.label || "Pilih status...";
 });
 
 const debouncedSearch = debounce((value: string) => {
@@ -230,13 +230,13 @@ const activeFiltersCount = computed(() => {
 });
 
 const deleteForm = (form: Form) => {
-    if (confirm(`Are you sure you want to delete "${form.title}"?`)) {
+    if (confirm(`Apakah Anda yakin ingin menghapus "${form.title}"?`)) {
         isDeleting.value = form.id;
         router.delete(route("admin.forms.destroy", form.id), {
             onSuccess: () => {
                 toast({
-                    title: "Success",
-                    description: "Form deleted successfully!",
+                    title: "Sukses",
+                    description: "Formulir berhasil dihapus!",
                 });
                 isDeleting.value = null;
             },
@@ -254,8 +254,8 @@ const duplicateForm = (form: Form) => {
         {
             onSuccess: () => {
                 toast({
-                    title: "Success",
-                    description: "Form duplicated successfully!",
+                    title: "Sukses",
+                    description: "Formulir berhasil diduplikasi!",
                 });
             },
         }
@@ -275,7 +275,7 @@ const bulkDelete = () => {
 
     if (
         confirm(
-            `Are you sure you want to delete ${selectedItems.value.length} selected items?`
+            `Apakah Anda yakin ingin menghapus ${selectedItems.value.length} item terpilih?`
         )
     ) {
         router.post(
@@ -284,8 +284,8 @@ const bulkDelete = () => {
             {
                 onSuccess: () => {
                     toast({
-                        title: "Success",
-                        description: `${selectedItems.value.length} form(s) deleted successfully!`,
+                        title: "Sukses",
+                        description: `${selectedItems.value.length} formulir berhasil dihapus!`,
                     });
                     selectedItems.value = [];
                     selectAll.value = false;
@@ -322,7 +322,7 @@ const toggleItemSelection = (id: number, checked?: boolean | 'indeterminate') =>
 
 <template>
 
-    <Head title="Forms" />
+    <Head title="Formulir" />
 
     <AuthenticatedLayout>
         <template #header>
@@ -331,13 +331,13 @@ const toggleItemSelection = (id: number, checked?: boolean | 'indeterminate') =>
                     <h2
                         class="text-xl font-semibold leading-tight text-gray-800"
                     >
-                        Form Management
+                        Manajemen Formulir
                     </h2>
                 </div>
                 <Link :href="route('admin.forms.create')">
                 <Button>
                     <Plus class="h-4 w-4 mr-2" />
-                    Create Form
+                    Buat Formulir
                 </Button>
                 </Link>
             </div>
@@ -349,12 +349,12 @@ const toggleItemSelection = (id: number, checked?: boolean | 'indeterminate') =>
                     <div class="flex items-center justify-between">
                         <CardTitle class="text-lg flex items-center gap-2">
                             <Filter class="h-5 w-5" />
-                            Search & Filter
+                            Cari & Filter
                             <Badge
                                 v-if="activeFiltersCount > 0"
                                 variant="secondary"
                             >
-                                {{ activeFiltersCount }} active
+                                {{ activeFiltersCount }} aktif
                             </Badge>
                         </CardTitle>
                         <Button
@@ -365,7 +365,7 @@ const toggleItemSelection = (id: number, checked?: boolean | 'indeterminate') =>
                             class="flex items-center"
                         >
                             <X class="h-4 w-4 mr-2" />
-                            Clear All
+                            Bersihkan Semua Filter
                         </Button>
                     </div>
                 </CardHeader>
@@ -378,7 +378,7 @@ const toggleItemSelection = (id: number, checked?: boolean | 'indeterminate') =>
                                 />
                                 <Input
                                     v-model="search"
-                                    placeholder="Search forms by title, description, or type..."
+                                    placeholder="Cari formulir berdasarkan judul, deskripsi, atau tipe..."
                                     class="pl-10"
                                 />
                             </div>
@@ -411,14 +411,14 @@ const toggleItemSelection = (id: number, checked?: boolean | 'indeterminate') =>
                                                 class="mr-2 h-4 w-4 shrink-0 opacity-50"
                                             />
                                             <CommandInput
-                                                placeholder="Search form type..."
+                                                placeholder="Cari tipe formulir..."
                                                 class="flex h-11 w-full rounded-md bg-transparent py-3 text-sm outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50 border-0 ring-0 focus:ring-0 focus:outline-none"
                                             />
                                         </div>
                                         <CommandList>
                                             <CommandEmpty
-                                                >No form type
-                                                found.</CommandEmpty
+                                                >Tidak ada tipe formulir
+                                                ditemukan.</CommandEmpty
                                             >
                                             <CommandGroup>
                                                 <CommandItem
@@ -442,7 +442,7 @@ const toggleItemSelection = (id: number, checked?: boolean | 'indeterminate') =>
                                                             )
                                                         "
                                                     />
-                                                    All Form Types
+                                                    Semua Tipe Formulir
                                                 </CommandItem>
                                                 <CommandItem
                                                     v-for="type in formTypes"
@@ -557,14 +557,14 @@ const toggleItemSelection = (id: number, checked?: boolean | 'indeterminate') =>
                     <div class="flex items-center justify-between">
                         <CardTitle class="flex items-center gap-2">
                             <FileText class="h-5 w-5" />
-                            Forms
+                            Formulir
                             <Badge variant="secondary"
                                 >{{ props.forms.total }} total</Badge
                             >
                         </CardTitle>
                         <Button v-if="selectedItems.length > 0" variant="destructive" size="sm" @click="bulkDelete">
                             <Trash2 class="h-4 w-4 mr-2" />
-                            Delete Selected ({{ selectedItems.length }})
+                            Hapus Terpilih ({{ selectedItems.length }})
                         </Button>
                     </div>
                 </CardHeader>
@@ -583,20 +583,20 @@ const toggleItemSelection = (id: number, checked?: boolean | 'indeterminate') =>
                                             @click="sortTable('title')"
                                             class="flex items-center gap-1 hover:text-blue-600"
                                         >
-                                            Form Title
+                                            Judul Formulir
                                             <ArrowUpDown
                                                 class="h-4 w-4 transition-transform"
                                                 :class="getSortIcon('title')"
                                             />
                                         </button>
                                     </TableHead>
-                                    <TableHead>Description</TableHead>
+                                    <TableHead>Deskripsi</TableHead>
                                     <TableHead>
                                         <button
                                             @click="sortTable('form_type')"
                                             class="flex items-center gap-1 hover:text-blue-600"
                                         >
-                                            Type
+                                            Tipe
                                             <ArrowUpDown
                                                 class="h-4 w-4 transition-transform"
                                                 :class="
@@ -613,7 +613,7 @@ const toggleItemSelection = (id: number, checked?: boolean | 'indeterminate') =>
                                             @click="sortTable('created_at')"
                                             class="flex items-center gap-1 hover:text-blue-600"
                                         >
-                                            Created At
+                                            Dibuat Pada
                                             <ArrowUpDown
                                                 class="h-4 w-4 transition-transform"
                                                 :class="
@@ -623,7 +623,7 @@ const toggleItemSelection = (id: number, checked?: boolean | 'indeterminate') =>
                                         </button>
                                     </TableHead>
                                     <TableHead class="text-right"
-                                        >Actions</TableHead
+                                        >Aksi</TableHead
                                     >
                                 </TableRow>
                             </TableHeader>
@@ -639,13 +639,13 @@ const toggleItemSelection = (id: number, checked?: boolean | 'indeterminate') =>
                                             class="h-12 w-12 mx-auto mb-4 opacity-50"
                                         />
                                         <p class="font-medium">
-                                            No forms found
+                                            Tidak ada formulir ditemukan
                                         </p>
                                         <p class="text-sm mt-1">
                                             {{
                                                 activeFiltersCount > 0
-                                                    ? "Try adjusting your filters"
-                                                    : "Create your first form to get started"
+                                                    ? "Coba sesuaikan filter Anda"
+                                                    : "Buat formulir pertama Anda untuk memulai"
                                             }}
                                         </p>
                                     </TableCell>
@@ -737,7 +737,7 @@ const toggleItemSelection = (id: number, checked?: boolean | 'indeterminate') =>
                                                         <Eye
                                                             class="h-4 w-4 mr-2"
                                                         />
-                                                        View
+                                                        Lihat
                                                     </Link>
                                                 </DropdownMenuItem>
                                                 <DropdownMenuItem as-child>
@@ -763,7 +763,7 @@ const toggleItemSelection = (id: number, checked?: boolean | 'indeterminate') =>
                                                     <Copy
                                                         class="h-4 w-4 mr-2"
                                                     />
-                                                    Duplicate
+                                                    Duplikat
                                                 </DropdownMenuItem>
                                                 <DropdownMenuItem
                                                     @click="deleteForm(form)"
@@ -772,7 +772,7 @@ const toggleItemSelection = (id: number, checked?: boolean | 'indeterminate') =>
                                                     <Trash2
                                                         class="h-4 w-4 mr-2"
                                                     />
-                                                    Delete
+                                                    Hapus
                                                 </DropdownMenuItem>
                                             </DropdownMenuContent>
                                         </DropdownMenu>

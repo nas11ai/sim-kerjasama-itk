@@ -132,7 +132,7 @@ const submit = () => {
 
 <template>
 
-    <Head title="Create Form" />
+    <Head title="Buat Formulir" />
 
     <AuthenticatedLayout>
         <template #header>
@@ -141,11 +141,11 @@ const submit = () => {
                     <Link :href="route('admin.forms.index')">
                         <Button variant="ghost" size="sm">
                             <ArrowLeft class="h-4 w-4 mr-2" />
-                            Back to Forms
+                            Kembali
                         </Button>
                     </Link>
                     <h2 class="text-xl font-semibold leading-tight text-gray-800">
-                        Create New Form
+                        Buat Formulir Baru
                     </h2>
                 </div>
             </div>
@@ -156,14 +156,14 @@ const submit = () => {
                 <!-- Form Basic Info -->
                 <Card>
                     <CardHeader>
-                        <CardTitle>Form Information</CardTitle>
+                        <CardTitle>Informasi Formulir</CardTitle>
                     </CardHeader>
                     <CardContent class="space-y-6">
                         <div class="grid gap-6 md:grid-cols-2">
                             <!-- Form Title -->
                             <div class="space-y-1.5">
-                                <Label for="title">Form Title *</Label>
-                                <Input id="title" v-model="form.title" placeholder="Enter form title"
+                                <Label for="title">Judul Formulir *</Label>
+                                <Input id="title" v-model="form.title" placeholder="Masukkan judul formulir"
                                     :aria-invalid="!!errors.title" :aria-describedby="errors.title ? 'error-title' : undefined
                                         " :class="errors.title
                                             ? 'border-destructive focus-visible:ring-destructive'
@@ -176,7 +176,7 @@ const submit = () => {
 
                             <!-- Form Type -->
                             <div class="space-y-1.5">
-                                <Label for="form_type">Form Type *</Label>
+                                <Label for="form_type">Tipe Formulir *</Label>
                                 <Select v-model="form.form_type_id">
                                     <SelectTrigger id="form_type" :aria-invalid="!!errors.form_type_id"
                                         :aria-describedby="errors.form_type_id
@@ -186,7 +186,7 @@ const submit = () => {
                                                 ? 'border-destructive focus-visible:ring-destructive'
                                                 : ''
                                             ">
-                                        <SelectValue placeholder="Select form type" />
+                                        <SelectValue placeholder="Pilih tipe formulir" />
                                     </SelectTrigger>
                                     <SelectContent>
                                         <SelectItem v-for="formType in props.formTypes" :key="formType.id"
@@ -203,15 +203,15 @@ const submit = () => {
 
                         <!-- Description -->
                         <div class="space-y-1.5">
-                            <Label for="description">Description</Label>
+                            <Label for="description">Deskripsi</Label>
                             <Textarea id="description" v-model="form.description"
-                                placeholder="Enter form description (optional)" rows="3" />
+                                placeholder="Masukkan deskripsi formulir (opsional)" rows="3" />
                         </div>
 
                         <!-- Active switch -->
                         <div class="flex items-center space-x-2">
                             <Switch v-model="form.is_active" id="is_active" />
-                            <Label for="is_active">Active</Label>
+                            <Label for="is_active">Aktif</Label>
                         </div>
                     </CardContent>
                 </Card>
@@ -220,19 +220,18 @@ const submit = () => {
                 <Card>
                     <CardHeader>
                         <div class="flex items-center justify-between">
-                            <CardTitle>Form Fields</CardTitle>
+                            <CardTitle>Isian Formulir</CardTitle>
                             <!-- Tombol Add Field hanya ditampilkan ketika tidak ada fields -->
                             <Button v-if="form.fields.length === 0" type="button" @click="addField" size="sm">
                                 <Plus class="h-4 w-4 mr-2" />
-                                Add Field
+                                Tambah Isian
                             </Button>
                         </div>
                     </CardHeader>
                     <CardContent>
                         <div v-if="form.fields.length === 0" class="text-center py-8 text-muted-foreground">
                             <p>
-                                No fields added yet. Click "Add Field" to get
-                                started.
+                                Belum ada isian yang ditambahkan. Klik "Tambah Isian" untuk memulai.
                             </p>
                         </div>
 
@@ -250,12 +249,12 @@ const submit = () => {
                                                 <div class="flex-1 space-y-4">
                                                     <div class="grid gap-4 md:grid-cols-2">
                                                         <div class="space-y-2">
-                                                            <Label>Field Type
+                                                            <Label>Tipe Isian
                                                                 *</Label>
                                                             <Select v-model="field.field_type_id
                                                                 ">
                                                                 <SelectTrigger>
-                                                                    <SelectValue placeholder="Select field type" />
+                                                                    <SelectValue placeholder="Pilih tipe isian" />
                                                                 </SelectTrigger>
                                                                 <SelectContent>
                                                                     <SelectItem v-for="fieldType in props.fieldTypes"
@@ -271,18 +270,18 @@ const submit = () => {
                                                         </div>
 
                                                         <div class="space-y-2">
-                                                            <Label>Field Label
+                                                            <Label>Label Isian
                                                                 *</Label>
                                                             <Input v-model="field.label
-                                                                " placeholder="Enter field label" />
+                                                                " placeholder="Masukkan label isian" />
                                                         </div>
                                                     </div>
 
                                                     <div class="flex items-center space-x-2">
                                                         <Switch v-model="field.is_required
                                                             " :id="`required_${index}`" />
-                                                        <Label :for="`required_${index}`">Required
-                                                            field</Label>
+                                                        <Label :for="`required_${index}`">Isian Wajib
+                                                            </Label>
                                                     </div>
 
                                                     <!-- Field Options -->
@@ -292,14 +291,14 @@ const submit = () => {
                                                         )
                                                     " class="space-y-3">
                                                         <div class="flex items-center justify-between">
-                                                            <Label class="text-sm font-medium">Options</Label>
+                                                            <Label class="text-sm font-medium">Opsi</Label>
                                                             <Button type="button" size="sm" variant="outline" @click="
                                                                 addOption(
                                                                     index
                                                                 )
                                                                 ">
                                                                 <Plus class="h-3 w-3 mr-1" />
-                                                                Add Option
+                                                                Tambah Opsi
                                                             </Button>
                                                         </div>
 
@@ -308,8 +307,7 @@ const submit = () => {
                                                                 .length ===
                                                             0
                                                         " class="text-sm text-muted-foreground">
-                                                            No options added
-                                                            yet.
+                                                            Belum ada opsi yang ditambahkan.
                                                         </div>
 
                                                         <div v-else class="space-y-2">
@@ -320,7 +318,7 @@ option,
                                                                     optionIndex
                                                                     " class="flex items-center gap-2">
                                                                 <Input v-model="option.label
-                                                                    " placeholder="Option label" class="flex-1" />
+                                                                    " placeholder="Label opsi" class="flex-1" />
                                                                 <Button type="button" variant="ghost" size="sm" @click="
                                                                     removeOption(
                                                                         index,
@@ -339,7 +337,7 @@ option,
                                                         field.label
                                                     " class="mt-4 p-3 bg-muted rounded-lg">
                                                         <Label
-                                                            class="text-sm text-muted-foreground mb-2 block">Preview:</Label>
+                                                            class="text-sm text-muted-foreground mb-2 block">Pratinjau:</Label>
                                                         <div class="space-y-2">
                                                             <Label>
                                                                 {{
@@ -348,7 +346,7 @@ option,
                                                                 <Badge v-if="
                                                                     field.is_required
                                                                 " variant="destructive" class="ml-2 text-xs">
-                                                                    Required
+                                                                    Wajib
                                                                 </Badge>
                                                             </Label>
 
@@ -359,7 +357,7 @@ option,
                                                                 ) ===
                                                                 'textarea'
                                                             ">
-                                                                <Textarea placeholder="This is a preview" disabled />
+                                                                <Textarea placeholder="Ini adalah pratinjau" disabled />
                                                             </div>
                                                             <div v-else-if="
                                                                 fieldTypeRequiresOptions(
@@ -390,7 +388,7 @@ option,
                                                                 <Input :type="getFieldTypeName(
                                                                     field.field_type_id
                                                                 )
-                                                                    " placeholder="This is a preview" disabled />
+                                                                    " placeholder="Ini adalah pratinjau" disabled />
                                                             </div>
                                                         </div>
                                                     </div>
@@ -411,7 +409,7 @@ option,
                             <div class="flex justify-center pt-4">
                                 <Button type="button" @click="addField" size="sm" class="w-full max-w-xs">
                                     <Plus class="h-4 w-4 mr-2" />
-                                    Add Another Field
+                                    Tambah Field Lain
                                 </Button>
                             </div>
                         </div>
@@ -421,10 +419,10 @@ option,
                 <!-- Form Actions -->
                 <div class="flex items-center justify-end space-x-2">
                     <Button type="button" variant="outline" @click="$inertia.visit(route('admin.forms.index'))">
-                        Cancel
+                        Batal
                     </Button>
                     <Button type="submit" :disabled="form.processing">
-                        {{ form.processing ? "Creating..." : "Create Form" }}
+                        {{ form.processing ? "Membuat..." : "Buat Formulir" }}
                     </Button>
                 </div>
             </form>
