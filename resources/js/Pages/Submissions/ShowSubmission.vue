@@ -270,21 +270,21 @@ const mappedAssignedReviewers = computed(() =>
 
 <template>
 
-    <Head :title="`${submission.form.title} - Admin Submission Detail`" />
+    <Head :title="`${submission.form.title} - Detail Admin Pengajuan`" />
 
     <AuthenticatedLayout>
         <template #header>
             <div class="flex items-center gap-4">
                 <Button variant="ghost" size="sm" @click="goBack">
                     <ArrowLeft class="h-4 w-4 mr-2" />
-                    Back
+                    Kembali
                 </Button>
                 <div>
                     <h2 class="text-xl font-semibold leading-tight text-gray-800">
                         {{ submission.form.title }}
                     </h2>
                     <p class="text-sm text-muted-foreground">
-                        Submission by {{ submission.submitted_by.name }}
+                        Diajukan oleh {{ submission.submitted_by.name }}
                     </p>
                 </div>
             </div>
@@ -306,14 +306,14 @@ const mappedAssignedReviewers = computed(() =>
                 <CardHeader>
                     <CardTitle class="flex items-center gap-2">
                         <User class="h-5 w-5" />
-                        Submitted By
+                        Diajukan Oleh
                     </CardTitle>
                 </CardHeader>
                 <CardContent>
                     <div class="grid gap-4 md:grid-cols-2">
                         <div class="space-y-4">
                             <div>
-                                <Label class="text-sm font-medium text-muted-foreground">Name</Label>
+                                <Label class="text-sm font-medium text-muted-foreground">Nama</Label>
                                 <p class="font-medium flex items-center gap-2">
                                     <User class="h-4 w-4" />
                                     {{ submission.submitted_by.name }}
@@ -341,7 +341,7 @@ const mappedAssignedReviewers = computed(() =>
                         <div>
                             <CardTitle class="flex items-center gap-2">
                                 <component :is="getSubmissionStatusInfo(submission.status).icon" class="h-5 w-5" />
-                                Submission Status
+                                Status Pengajuan
                             </CardTitle>
                             <p class="text-muted-foreground mt-1">
                                 {{ getSubmissionStatusInfo(submission.status).description }}
@@ -355,20 +355,20 @@ const mappedAssignedReviewers = computed(() =>
                 <CardContent>
                     <div class="grid gap-4 md:grid-cols-3">
                         <div>
-                            <Label class="text-sm font-medium text-muted-foreground">Created</Label>
+                            <Label class="text-sm font-medium text-muted-foreground">Dibuat Pada</Label>
                             <p class="font-medium flex items-center gap-2">
                                 <Clock class="h-4 w-4" />
                                 {{ formatDateTime(submission.created_at) }}
                             </p>
                         </div>
                         <div>
-                            <Label class="text-sm font-medium text-muted-foreground">Last Updated</Label>
+                            <Label class="text-sm font-medium text-muted-foreground">Terakhir Diperbarui</Label>
                             <p class="font-medium text-green-600">{{ formatDateTime(submission.updated_at) }}</p>
                         </div>
                         <div v-if="reviewStats.total_reviewers > 0">
-                            <Label class="text-sm font-medium text-muted-foreground">Review Progress</Label>
+                            <Label class="text-sm font-medium text-muted-foreground">Progress Review</Label>
                             <p class="font-medium text-blue-600">
-                                {{ reviewStats.resolved_reviews }}/{{ reviewStats.total_reviewers }} Completed
+                                {{ reviewStats.resolved_reviews }}/{{ reviewStats.total_reviewers }} Selesai
                             </p>
                         </div>
                     </div>
@@ -380,11 +380,11 @@ const mappedAssignedReviewers = computed(() =>
                 <TabsList class="grid w-full grid-cols-2">
                     <TabsTrigger value="submission" class="flex items-center gap-2">
                         <FileText class="h-4 w-4" />
-                        Submission Details
+                        Detail Pengajuan
                     </TabsTrigger>
                     <TabsTrigger value="review" class="flex items-center gap-2">
                         <MessageSquare class="h-4 w-4" />
-                        Review System
+                        Sistem Review
                         <Badge v-if="reviewStats.total_comments > 0" variant="secondary" class="ml-1">
                             {{ reviewStats.total_comments }}
                         </Badge>
@@ -398,7 +398,7 @@ const mappedAssignedReviewers = computed(() =>
                         <CardHeader>
                             <CardTitle class="flex items-center gap-2">
                                 <FileText class="h-5 w-5" />
-                                Form Information
+                                Informasi Formulir
                             </CardTitle>
                         </CardHeader>
                         <CardContent>
@@ -414,7 +414,7 @@ const mappedAssignedReviewers = computed(() =>
                     <!-- Form Responses -->
                     <Card>
                         <CardHeader>
-                            <CardTitle>Form Responses</CardTitle>
+                            <CardTitle>Respon Formulir</CardTitle>
                         </CardHeader>
                         <CardContent>
                             <div class="space-y-6">
@@ -422,7 +422,7 @@ const mappedAssignedReviewers = computed(() =>
                                     <div class="flex items-center gap-2">
                                         <Label class="font-medium">{{ field.label }}</Label>
                                         <Badge v-if="field.is_required" variant="destructive" class="text-xs">
-                                            Required
+                                            Wajib
                                         </Badge>
                                     </div>
                                     <div class="pl-4 border-l-2 border-muted">
@@ -476,15 +476,15 @@ const mappedAssignedReviewers = computed(() =>
                                 <div>
                                     <CardTitle class="flex items-center gap-2">
                                         <Users class="h-5 w-5" />
-                                        Assigned Reviewers
+                                        Reviewer Ditugaskan
                                     </CardTitle>
                                     <p class="text-sm text-muted-foreground mt-1">
-                                        Manage reviewers who can evaluate this submission
+                                        Kelola reviewer yang dapat mengevaluasi pengajuan ini
                                     </p>
                                 </div>
                                 <Button @click="openAssignReviewerDialog" size="sm">
                                     <UserPlus class="h-4 w-4 mr-2" />
-                                    Assign Reviewer
+                                    Tugaskan Reviewer
                                 </Button>
                             </div>
                         </CardHeader>
@@ -492,11 +492,11 @@ const mappedAssignedReviewers = computed(() =>
                             <div v-if="assignedReviewers.length === 0" class="text-center py-8">
                                 <Users class="h-12 w-12 text-muted-foreground mx-auto mb-3 opacity-50" />
                                 <p class="text-sm text-muted-foreground mb-4">
-                                    No reviewers assigned yet. Assign reviewers to start the review process.
+                                    Belum ada reviewer yang ditugaskan. Tugaskan reviewer untuk memulai proses review.
                                 </p>
                                 <Button @click="openAssignReviewerDialog" variant="outline" size="sm">
                                     <UserPlus class="h-4 w-4 mr-2" />
-                                    Assign First Reviewer
+                                    Tugaskan Reviewer Pertama
                                 </Button>
                             </div>
 

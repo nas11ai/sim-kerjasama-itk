@@ -114,13 +114,13 @@ const getStatusColor = (approved: number, pending: number, total: number) => {
 
 <template>
 
-    <Head title="All Submissions - Admin" />
+    <Head title="Semua Pengajuan - Admin" />
 
     <AuthenticatedLayout>
         <template #header>
             <div class="flex items-center justify-between">
                 <h2 class="text-xl font-semibold leading-tight text-gray-800">
-                    Form Submissions Management
+                    Manajemen Pengajuan Formulir
                 </h2>
             </div>
         </template>
@@ -131,21 +131,21 @@ const getStatusColor = (approved: number, pending: number, total: number) => {
                 <CardHeader>
                     <CardTitle class="flex items-center gap-2">
                         <Search class="h-5 w-5" />
-                        Search Submission Periods
+                        Cari Periode Pengajuan
                     </CardTitle>
                 </CardHeader>
                 <CardContent>
                     <div class="flex gap-4">
                         <div class="flex-1">
-                            <Input v-model="searchQuery" placeholder="Search by period name..."
+                            <Input v-model="searchQuery" placeholder="Cari berdasarkan nama periode..."
                                 @keyup.enter="applySearch" />
                         </div>
                         <Button @click="applySearch">
                             <Search class="h-4 w-4 mr-2" />
-                            Search
+                            Cari
                         </Button>
                         <Button v-if="searchQuery" @click="clearSearch" variant="outline">
-                            Clear
+                            Bersihkan
                         </Button>
                     </div>
                 </CardContent>
@@ -157,11 +157,11 @@ const getStatusColor = (approved: number, pending: number, total: number) => {
                     <CardContent class="pt-6">
                         <Calendar class="h-12 w-12 mx-auto text-muted-foreground mb-4" />
                         <h3 class="text-lg font-medium text-gray-900 mb-2">
-                            No Submission Periods Found
+                            Tidak Ada Periode Pengajuan Ditemukan
                         </h3>
                         <p class="text-sm text-muted-foreground">
-                            {{ searchQuery ? 'No periods match your search criteria.'
-                                : 'No submission periods have been created yet.' }}
+                            {{ searchQuery ? 'Tidak ada periode yang cocok dengan kriteria pencarian anda'
+                                : 'Belum ada periode pengajuan yang dibuat.' }}
                         </p>
                     </CardContent>
                 </Card>
@@ -178,13 +178,13 @@ const getStatusColor = (approved: number, pending: number, total: number) => {
                                     {{ period.name }}
                                 </CardTitle>
                                 <CardDescription class="mt-1">
-                                    Created {{ formatDate(period.created_at) }}
+                                    Dibuat Pada {{ formatDate(period.created_at) }}
                                 </CardDescription>
                             </div>
                             <Badge
                                 :class="getStatusColor(period.approved_submissions, period.pending_review, period.total_submissions)"
                                 variant="outline">
-                                {{ getApprovalRate(period.approved_submissions, period.total_submissions) }}% Approved
+                                {{ getApprovalRate(period.approved_submissions, period.total_submissions) }}% Disetujui
                             </Badge>
                         </div>
                     </CardHeader>
@@ -195,7 +195,7 @@ const getStatusColor = (approved: number, pending: number, total: number) => {
                             <div v-if="period.submission_dates.length > 0">
                                 <h4 class="font-medium text-sm mb-2 flex items-center gap-2">
                                     <Clock class="h-4 w-4" />
-                                    Key Dates
+                                    Tanggal Penting
                                 </h4>
                                 <div class="grid gap-2">
                                     <div v-for="date in period.submission_dates.slice(0, 2)" :key="date.id"
@@ -205,7 +205,7 @@ const getStatusColor = (approved: number, pending: number, total: number) => {
                                     </div>
                                     <div v-if="period.submission_dates.length > 2"
                                         class="text-xs text-center text-muted-foreground">
-                                        +{{ period.submission_dates.length - 2 }} more dates
+                                        +{{ period.submission_dates.length - 2 }} tanggal lainnya
                                     </div>
                                 </div>
                             </div>
@@ -226,7 +226,7 @@ const getStatusColor = (approved: number, pending: number, total: number) => {
                                         {{ period.approved_submissions }}
                                         <CheckCircle class="h-4 w-4" />
                                     </div>
-                                    <div class="text-xs text-green-600">Approved</div>
+                                    <div class="text-xs text-green-600">Disetujui</div>
                                 </div>
 
                                 <div class="text-center p-3 bg-yellow-50 rounded-lg">
@@ -242,7 +242,7 @@ const getStatusColor = (approved: number, pending: number, total: number) => {
                             <!-- Progress Bar -->
                             <div class="space-y-2">
                                 <div class="flex justify-between text-sm">
-                                    <span class="text-muted-foreground">Review Progress</span>
+                                    <span class="text-muted-foreground">Progres Review</span>
                                     <span class="font-medium">{{ period.approved_submissions }}/{{
                                         period.total_submissions
                                         }}</span>
@@ -259,7 +259,7 @@ const getStatusColor = (approved: number, pending: number, total: number) => {
                                 <Link :href="route('admin.submissions.period', period.id)">
                                 <Button size="sm" :disabled="period.total_submissions === 0">
                                     <Eye class="h-4 w-4 mr-2" />
-                                    View Submissions
+                                    Lihat Pengajuan
                                 </Button>
                                 </Link>
                             </div>
