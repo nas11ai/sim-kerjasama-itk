@@ -23,7 +23,7 @@ const form = useForm({
         class="space-y-6"
     >
         <div class="flex flex-col gap-2">
-            <Label for="current_password">Current Password</Label>
+            <Label for="current_password">Kata Sandi Saat Ini</Label>
             <Input
                 id="current_password"
                 ref="currentPasswordInput"
@@ -35,7 +35,7 @@ const form = useForm({
         </div>
 
         <div class="flex flex-col gap-2">
-            <Label for="current_password">New Password</Label>
+            <Label for="current_password">Kata Sandi Baru</Label>
             <Input
                 id="password"
                 ref="passwordInput"
@@ -47,7 +47,7 @@ const form = useForm({
         </div>
 
         <div class="flex flex-col gap-2">
-            <Label for="current_password">Confirm Password</Label>
+            <Label for="current_password">Konfirmasi Kata Sandi</Label>
             <Input
                 id="password_confirmation"
                 v-model="form.password_confirmation"
@@ -62,7 +62,7 @@ const form = useForm({
 
         <div class="flex items-center gap-4">
             <Button type="submit" variant="default" :disabled="form.processing"
-                >Save New Password
+                >Simpan Kata Sandi Baru
             </Button>
         </div>
     </form>
