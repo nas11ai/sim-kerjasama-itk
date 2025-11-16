@@ -797,7 +797,7 @@ class SubmissionViewController extends Controller
         $reviewer = Reviewer::where('user_id', $user->id)->first();
 
         if (!$reviewer) {
-            abort(403, 'You are not registered as a reviewer');
+            abort(403, 'Anda tidak terdaftar sebagai reviewer.');
         }
 
         $query = FormSubmission::whereHas('submissionReviewers', function ($q) use ($reviewer) {
@@ -853,7 +853,7 @@ class SubmissionViewController extends Controller
         // dd($reviewer, $user);
 
         if (!$reviewer) {
-            abort(403, 'You are not registered as a reviewer');
+            abort(403, 'Anda tidak terdaftar sebagai reviewer.');
         }
 
         $isAssigned = \App\Models\SubmissionReviewer::where([
@@ -863,7 +863,7 @@ class SubmissionViewController extends Controller
         // dd($isAssigned);
 
         if (!$isAssigned) {
-            abort(403, 'You are not assigned to review this submission');
+            abort(403, 'Anda tidak ditugaskan untuk review pengajuan ini.');
         }
 
         $submission->load([
@@ -896,7 +896,7 @@ class SubmissionViewController extends Controller
                     ->toArray();
             }
         } catch (\Exception $e) {
-            \Log::warning('Could not load review summaries: ' . $e->getMessage());
+            \Log::warning('Tidak dapat memuat ringkasan review: ' . $e->getMessage());
         }
 
         $myReviewSummary = collect($reviewSummaries)->firstWhere('reviewer_id', $reviewer->id);
@@ -992,7 +992,7 @@ class SubmissionViewController extends Controller
         ])->exists();
 
         if (!$isAssigned) {
-            abort(403, 'You are not assigned to review this submission');
+            abort(403, 'Anda tidak ditugaskan untuk review pengajuan ini.');
         }
 
         $validated = $request->validate([
@@ -1025,7 +1025,7 @@ class SubmissionViewController extends Controller
             }
             // dd($reviewSummary->toArray());
 
-            return back()->with('success', 'Review submitted successfully');
+            return back()->with('success', 'Review berhasil dikirim');
         } catch (\Exception $e) {
             \Log::error('Error updating review: ' . $e->getMessage());
             return back()->withErrors(['error' => 'Failed to submit review']);
@@ -1096,18 +1096,18 @@ class SubmissionViewController extends Controller
         bool $hasPendingEvaluations
     ): string {
         if (!$hasEvaluationForms) {
-            return 'No evaluation forms required for this submission.';
+            return 'Tidak ada formulir evaluasi yang diperlukan untuk pengajuan ini.';
         }
 
         if (!$isAssignedReviewer) {
-            return 'You are not assigned as a reviewer for this submission.';
+            return 'Anda tidak ditugaskan sebagai reviewer untuk pengajuan ini.';
         }
 
         // Has evaluation forms - reviewer is assigned
         if ($hasPendingEvaluations) {
-            return 'Complete all required evaluation forms before creating review threads.';
+            return 'Selesaikan semua formulir evaluasi yang diperlukan sebelum membuat thread review.';
         }
 
-        return 'All required evaluations completed. You can now create review threads.';
+        return 'Semua evaluasi yang diperlukan telah selesai. Anda sekarang dapat membuat thread review.';
     }
 }

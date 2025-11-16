@@ -32,7 +32,7 @@ class ReviewerFormAssignmentController extends Controller
         ])->first();
 
         if (!$submissionReviewer) {
-            return back()->withErrors(['error' => 'Reviewer not assigned to this submission.']);
+            return back()->withErrors(['error' => 'Reviewer tidak ditugaskan untuk submission ini.']);
         }
 
         try {
@@ -45,7 +45,7 @@ class ReviewerFormAssignmentController extends Controller
                 // Validate form phase matches submission form phase
                 $formPhase = $this->getSubmissionFormPhase($submission);
                 if (!$formPhase || $evaluationForm->form_phase_id !== $formPhase->id) {
-                    throw new \Exception("Evaluation form '{$evaluationForm->title}' does not belong to the correct form phase.");
+                    throw new \Exception("Formulir evaluasi '{$evaluationForm->title}' tidak termasuk dalam tahap formulir yang benar.");
                 }
 
                 // Create or update assignment
@@ -68,11 +68,11 @@ class ReviewerFormAssignmentController extends Controller
 
             DB::commit();
 
-            return back()->with('success', 'Evaluation forms assigned successfully.');
+            return back()->with('success', 'Formulir evaluasi berhasil ditugaskan.');
 
         } catch (\Exception $e) {
             DB::rollback();
-            return back()->withErrors(['error' => 'Failed to assign evaluation forms: ' . $e->getMessage()]);
+            return back()->withErrors(['error' => 'Gagal menugaskan formulir evaluasi: ' . $e->getMessage()]);
         }
     }
 
@@ -80,7 +80,7 @@ class ReviewerFormAssignmentController extends Controller
     {
         // Check if there are any submitted responses
         if ($assignment->reviewFormResponse && $assignment->reviewFormResponse->isSubmitted()) {
-            return back()->withErrors(['error' => 'Cannot remove assignment with submitted responses.']);
+            return back()->withErrors(['error' => 'Tidak dapat menghapus penugasan dengan respons yang telah dikirim.']);
         }
 
         try {
@@ -101,11 +101,11 @@ class ReviewerFormAssignmentController extends Controller
 
             DB::commit();
 
-            return back()->with('success', 'Form assignment removed successfully.');
+            return back()->with('success', 'Penugasan formulir berhasil dihapus.');
 
         } catch (\Exception $e) {
             DB::rollback();
-            return back()->withErrors(['error' => 'Failed to remove form assignment: ' . $e->getMessage()]);
+            return back()->withErrors(['error' => 'Gagal menghapus penugasan formulir: ' . $e->getMessage()]);
         }
     }
 
@@ -118,7 +118,7 @@ class ReviewerFormAssignmentController extends Controller
 
         // Check if response is already submitted
         if ($assignment->reviewFormResponse && $assignment->reviewFormResponse->isSubmitted()) {
-            return back()->withErrors(['error' => 'Cannot modify assignment with submitted responses.']);
+            return back()->withErrors(['error' => 'Tidak dapat memodifikasi penugasan dengan respons yang telah dikirim.']);
         }
 
         try {
@@ -130,10 +130,10 @@ class ReviewerFormAssignmentController extends Controller
             // Update evaluation status
             $assignment->submissionReviewer->updateEvaluationStatus();
 
-            return back()->with('success', 'Assignment updated successfully.');
+            return back()->with('success', 'Penugasan berhasil diperbarui.');
 
         } catch (\Exception $e) {
-            return back()->withErrors(['error' => 'Failed to update assignment: ' . $e->getMessage()]);
+            return back()->withErrors(['error' => 'Gagal memperbarui penugasan: ' . $e->getMessage()]);
         }
     }
 
@@ -192,7 +192,7 @@ class ReviewerFormAssignmentController extends Controller
                 ])->first();
 
                 if (!$submissionReviewer) {
-                    $errors[] = "Reviewer ID {$reviewerId} not assigned to this submission";
+                    $errors[] = "Reviewer ID {$reviewerId} tidak ditugaskan untuk submission ini";
                     continue;
                 }
 
@@ -226,7 +226,7 @@ class ReviewerFormAssignmentController extends Controller
 
         } catch (\Exception $e) {
             DB::rollback();
-            return back()->withErrors(['error' => 'Failed to bulk assign forms: ' . $e->getMessage()]);
+            return back()->withErrors(['error' => 'Gagal menugaskan formulir secara massal: ' . $e->getMessage()]);
         }
     }
 
@@ -349,12 +349,12 @@ class ReviewerFormAssignmentController extends Controller
             }
 
             return response()->json([
-                'message' => "Successfully locked {$lockedCount} overdue assignments.",
+                'message' => "Berhasil mengunci {$lockedCount} penugasan yang terlambat.",
                 'locked_count' => $lockedCount
             ]);
 
         } catch (\Exception $e) {
-            return response()->json(['error' => 'Failed to lock overdue assignments: ' . $e->getMessage()], 500);
+            return response()->json(['error' => 'Gagal mengunci penugasan yang terlambat: ' . $e->getMessage()], 500);
         }
     }
 }

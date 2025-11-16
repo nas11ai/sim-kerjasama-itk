@@ -155,52 +155,52 @@ const getProgressPercentage = (completed: number, total: number) => {
             <div v-if="isReviewer && reviewStats" class="grid gap-4 md:grid-cols-4">
                 <Card>
                     <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle class="text-sm font-medium">Total Assigned</CardTitle>
+                        <CardTitle class="text-sm font-medium">Total Penugasan</CardTitle>
                         <Users class="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
                         <div class="text-2xl font-bold">{{ reviewStats.total_assigned }}</div>
                         <p class="text-xs text-muted-foreground">
-                            Review tasks assigned to you
+                            Tugas review yang ditugaskan kepada Anda
                         </p>
                     </CardContent>
                 </Card>
 
                 <Card>
                     <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle class="text-sm font-medium">Pending Reviews</CardTitle>
+                        <CardTitle class="text-sm font-medium">Review Pending</CardTitle>
                         <Clock class="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
                         <div class="text-2xl font-bold text-orange-600">{{ reviewStats.pending_reviews }}</div>
                         <p class="text-xs text-muted-foreground">
-                            Need your attention
+                            Perlu perhatian Anda
                         </p>
                     </CardContent>
                 </Card>
 
                 <Card>
                     <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle class="text-sm font-medium">Completed</CardTitle>
+                        <CardTitle class="text-sm font-medium">Selesai</CardTitle>
                         <CheckCircle class="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
                         <div class="text-2xl font-bold text-green-600">{{ reviewStats.completed_reviews }}</div>
                         <p class="text-xs text-muted-foreground">
-                            Successfully reviewed
+                            Review berhasil diselesaikan
                         </p>
                     </CardContent>
                 </Card>
 
                 <Card>
                     <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle class="text-sm font-medium">Rejected</CardTitle>
+                        <CardTitle class="text-sm font-medium">Ditolak</CardTitle>
                         <XCircle class="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
                         <div class="text-2xl font-bold text-red-600">{{ reviewStats.rejected_reviews }}</div>
                         <p class="text-xs text-muted-foreground">
-                            Closed reviews
+                            Review ditolak
                         </p>
                     </CardContent>
                 </Card>
@@ -211,21 +211,21 @@ const getProgressPercentage = (completed: number, total: number) => {
                 <CardHeader>
                     <CardTitle class="flex items-center gap-2">
                         <MessageSquare class="h-5 w-5" />
-                        Review Actions
+                        Tindakan Review
                     </CardTitle>
                 </CardHeader>
                 <CardContent>
                     <div class="flex items-center justify-between">
                         <div>
-                            <h4 class="font-medium">You have {{ reviewStats.pending_reviews }} pending reviews</h4>
+                            <h4 class="font-medium">Anda memiliki {{ reviewStats.pending_reviews }} review pending</h4>
                             <p class="text-sm text-muted-foreground">
-                                Review submissions assigned to you to help complete the review process.
+                                Review pengajuan yang ditugaskan kepada Anda untuk membantu menyelesaikan proses review.
                             </p>
                         </div>
                         <Link :href="route('reviewer.submissions.index')">
                         <Button>
                             <MessageSquare class="h-4 w-4 mr-2" />
-                            Review Now
+                            Review Sekarang
                         </Button>
                         </Link>
                     </div>
@@ -237,7 +237,7 @@ const getProgressPercentage = (completed: number, total: number) => {
                 <CardHeader>
                     <CardTitle class="flex items-center gap-2">
                         <FileText class="h-5 w-5" />
-                        Selamat Datang di Sistem Pengisian Form
+                        Selamat Datang di Sistem Pengisian Formulir
                     </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -245,7 +245,7 @@ const getProgressPercentage = (completed: number, total: number) => {
                         Pilih periode pengajuan aktif di bawah ini untuk mulai mengisi form sesuai dengan role dan
                         program studi Anda.
                         <span v-if="isReviewer" class="font-medium text-blue-600">
-                            Sebagai reviewer, Anda juga dapat mengelola review tasks dari menu sidebar.
+                            Sebagai reviewer, Anda juga dapat mengelola tugas review dari menu sidebar.
                         </span>
                     </p>
                 </CardContent>

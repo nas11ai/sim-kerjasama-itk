@@ -179,7 +179,7 @@ class UserFormController extends Controller
         $reviewer = \App\Models\Reviewer::where('user_id', $user->id)->first();
 
         if (!$reviewer) {
-            abort(403, 'You are not registered as a reviewer');
+            abort(403, 'Anda tidak terdaftar sebagai reviewer');
         }
 
         $query = FormSubmission::whereHas('reviewSummaries', function ($q) use ($reviewer) {

@@ -60,7 +60,7 @@ class ReviewFormResponseController extends Controller
         // Get reviewer
         $reviewer = $user->reviewers()->first();
         if (!$reviewer) {
-            abort(403, 'You are not registered as a reviewer.');
+            abort(403, 'Anda tidak terdaftar sebagai reviewer.');
         }
 
         // Check if assigned to this submission
@@ -70,7 +70,7 @@ class ReviewFormResponseController extends Controller
         ])->first();
 
         if (!$submissionReviewer) {
-            abort(403, 'You are not assigned as a reviewer for this submission.');
+            abort(403, 'Anda tidak ditugaskan sebagai reviewer untuk pengajuan ini.');
         }
 
         // Verify form belongs to correct form phase
@@ -78,7 +78,7 @@ class ReviewFormResponseController extends Controller
         $evaluationForm = ReviewEvaluationForm::findOrFail($validated['review_evaluation_form_id']);
 
         if (!$formPhaseDetail || $evaluationForm->form_phase_detail_id !== $formPhaseDetail->id) {
-            abort(403, 'This evaluation form is not available for this submission.');
+            abort(403, 'Formulir evaluasi ini tidak tersedia untuk pengajuan ini.');
         }
 
         // Find or create assignment
@@ -155,7 +155,7 @@ class ReviewFormResponseController extends Controller
         ]);
 
         if (!$response->canBeEdited()) {
-            return back()->withErrors(['error' => 'This form can no longer be edited.']);
+            return back()->withErrors(['error' => 'Formulir ini tidak dapat diedit lagi.']);
         }
 
         $validated = $request->validate([
@@ -179,11 +179,11 @@ class ReviewFormResponseController extends Controller
 
             DB::commit();
 
-            return back()->with('success', 'Draft saved successfully.');
+            return back()->with('success', 'Draft berhasil disimpan.');
 
         } catch (\Exception $e) {
             DB::rollback();
-            return back()->withErrors(['error' => 'Failed to save draft: ' . $e->getMessage()]);
+            return back()->withErrors(['error' => 'Gagal menyimpan draft: ' . $e->getMessage()]);
         }
     }
 
@@ -194,11 +194,11 @@ class ReviewFormResponseController extends Controller
         $response = $assignment->reviewFormResponse;
 
         if (!$response) {
-            return back()->withErrors(['error' => 'No draft response found. Please save a draft first.']);
+            return back()->withErrors(['error' => 'Tidak ditemukan draft respons. Silakan simpan draft terlebih dahulu.']);
         }
 
         if (!$response->canBeSubmitted()) {
-            return back()->withErrors(['error' => 'Form cannot be submitted. Please complete all required fields.']);
+            return back()->withErrors(['error' => 'Formulir tidak dapat dikirim. Harap lengkapi semua bidang yang diperlukan.']);
         }
 
         $validated = $request->validate([
@@ -228,20 +228,20 @@ class ReviewFormResponseController extends Controller
 
             // Submit the response
             if (!$response->submit()) {
-                throw new \Exception('Failed to submit the form response.');
+                throw new \Exception('Gagal mengirim respons formulir.');
             }
 
             DB::commit();
 
             return redirect()->route('reviewer.assignments.index')
-                ->with('success', 'Evaluation form submitted successfully.');
+                ->with('success', 'Formulir evaluasi berhasil dikirim.');
 
         } catch (ValidationException $e) {
             DB::rollback();
             throw $e;
         } catch (\Exception $e) {
             DB::rollback();
-            return back()->withErrors(['error' => 'Failed to submit form: ' . $e->getMessage()]);
+            return back()->withErrors(['error' => 'Gagal mengirim formulir: ' . $e->getMessage()]);
         }
     }
 
@@ -293,7 +293,7 @@ class ReviewFormResponseController extends Controller
 
         $response = $assignment->reviewFormResponse;
         if (!$response || !$response->isSubmitted()) {
-            return back()->withErrors(['error' => 'No submitted response found.']);
+            return back()->withErrors(['error' => 'Tidak ditemukan respons yang telah dikirim.']);
         }
 
         $assignment->load([
@@ -326,7 +326,7 @@ class ReviewFormResponseController extends Controller
         // Check if user is the assigned reviewer
         $reviewer = $user->reviewers()->first();
         if (!$reviewer || $assignment->submissionReviewer->reviewer_id !== $reviewer->id) {
-            abort(403, 'Unauthorized access to this evaluation form.');
+            abort(403, 'Akses tidak sah ke formulir evaluasi ini.');
         }
     }
 

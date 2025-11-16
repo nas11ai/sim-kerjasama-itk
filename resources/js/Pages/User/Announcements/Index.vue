@@ -86,13 +86,13 @@ const markAsRead = async (announcementId: number) => {
 </script>
 
 <template>
-    <Head title="Announcement" />
+    <Head title="Pengumuman" />
 
     <AuthenticatedLayout>
         <template #header>
             <div class="flex items-center justify-between">
                 <h2 class="text-xl font-semibold leading-tight text-gray-800">
-                    Announcement Center
+                    Pusat Pengumuman
                 </h2>
             </div>
         </template>

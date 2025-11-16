@@ -200,7 +200,7 @@ const submissionStats = computed(() => {
 </script>
 
 <template>
-    <Head title="Review Tasks - Assigned Submissions" />
+    <Head title="Tugas Review – Pengajuan yang Ditugaskan" />
 
     <AuthenticatedLayout>
         <template #header>
@@ -209,10 +209,10 @@ const submissionStats = computed(() => {
                     <h2
                         class="text-xl font-semibold leading-tight text-gray-800"
                     >
-                        Review Tasks
+                        Tugas Review
                     </h2>
                     <p class="mt-1 text-sm text-gray-600">
-                        Submissions assigned to you for review as:
+                        Pengajuan yang ditugaskan kepada Anda untuk ditinjau sebagai:
                         <span class="font-medium">
                             {{ reviewer.reviewer_role?.name || "N/A" }}
                         </span>
@@ -233,7 +233,7 @@ const submissionStats = computed(() => {
                         class="flex flex-row items-center justify-between space-y-0 pb-2"
                     >
                         <CardTitle class="text-sm font-medium"
-                            >Total Assigned</CardTitle
+                            >Total Ditugaskan</CardTitle
                         >
                         <MessageSquare class="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
@@ -245,7 +245,7 @@ const submissionStats = computed(() => {
                             }}
                         </div>
                         <p class="text-xs text-muted-foreground">
-                            All submissions assigned to you
+                            Semua pengajuan yang ditugaskan kepada Anda
                         </p>
                     </CardContent>
                 </Card>
@@ -255,7 +255,7 @@ const submissionStats = computed(() => {
                         class="flex flex-row items-center justify-between space-y-0 pb-2"
                     >
                         <CardTitle class="text-sm font-medium"
-                            >Open Reviews</CardTitle
+                            >Review Terbuka</CardTitle
                         >
                         <Info class="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
@@ -270,7 +270,7 @@ const submissionStats = computed(() => {
                             }}
                         </div>
                         <p class="text-xs text-muted-foreground">
-                            Need your review
+                            Membutuhkan review Anda
                         </p>
                     </CardContent>
                 </Card>
@@ -280,7 +280,7 @@ const submissionStats = computed(() => {
                         class="flex flex-row items-center justify-between space-y-0 pb-2"
                     >
                         <CardTitle class="text-sm font-medium"
-                            >Completed</CardTitle
+                            >Selesai</CardTitle
                         >
                         <CheckCircle class="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
@@ -293,7 +293,7 @@ const submissionStats = computed(() => {
                             }}
                         </div>
                         <p class="text-xs text-muted-foreground">
-                            Successfully reviewed
+                            Berhasil direview
                         </p>
                     </CardContent>
                 </Card>
@@ -303,7 +303,7 @@ const submissionStats = computed(() => {
                         class="flex flex-row items-center justify-between space-y-0 pb-2"
                     >
                         <CardTitle class="text-sm font-medium"
-                            >Closed</CardTitle
+                            >Ditutup</CardTitle
                         >
                         <XCircle class="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
@@ -316,7 +316,7 @@ const submissionStats = computed(() => {
                             }}
                         </div>
                         <p class="text-xs text-muted-foreground">
-                            Rejected submissions
+                            Pengajuan yang ditolak
                         </p>
                     </CardContent>
                 </Card>
@@ -327,7 +327,7 @@ const submissionStats = computed(() => {
                 <CardHeader>
                     <CardTitle class="flex items-center gap-2">
                         <Filter class="mr-2 h-4 w-4" />
-                        Filter Submissions
+                        Filter Pengajuan
                     </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -340,7 +340,7 @@ const submissionStats = computed(() => {
                                 <Input
                                     v-model="searchQuery"
                                     type="text"
-                                    placeholder="Search by submitter or form title..."
+                                    placeholder="Cari berdasarkan pengirim atau judul formulir..."
                                     class="pl-10"
                                     @keyup.enter="handleSearch"
                                 />
@@ -356,19 +356,19 @@ const submissionStats = computed(() => {
                             </SelectTrigger>
                             <SelectContent>
                                 <SelectItem value="all"
-                                    >All statuses</SelectItem
+                                    >Semua status</SelectItem
                                 >
-                                <SelectItem value="open">Open</SelectItem>
+                                <SelectItem value="open">Terbuka</SelectItem>
                                 <SelectItem value="resolved"
-                                    >Resolved</SelectItem
+                                    >Selesai</SelectItem
                                 >
-                                <SelectItem value="closed">Closed</SelectItem>
+                                <SelectItem value="closed">Ditutup</SelectItem>
                             </SelectContent>
                         </Select>
 
                         <Button @click="handleSearch" class="md:w-auto">
                             <Search class="mr-2 h-4 w-4" />
-                            Search
+                            Cari
                         </Button>
 
                         <Button
@@ -376,7 +376,7 @@ const submissionStats = computed(() => {
                             @click="clearFilters"
                             v-if="searchQuery || statusFilter"
                         >
-                            Clear
+                            Bersihkan
                         </Button>
                     </div>
                 </CardContent>
@@ -385,15 +385,15 @@ const submissionStats = computed(() => {
             <!-- Submissions Table -->
             <Card>
                 <CardHeader>
-                    <CardTitle>Assigned Submissions</CardTitle>
+                    <CardTitle>Pengajuan yang Ditugaskan</CardTitle>
                     <CardDescription>
-                        Showing {{ submissions.data.length }} of
+                        Menampilkan {{ submissions.data.length }} dari
                         {{
                             submissions.meta?.total ??
                             submissions.data?.length ??
                             0
                         }}
-                        submissions
+                        pengajuan
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -404,12 +404,12 @@ const submissionStats = computed(() => {
                         <Table>
                             <TableHeader>
                                 <TableRow>
-                                    <TableHead>Form Title</TableHead>
-                                    <TableHead>Submitter</TableHead>
+                                    <TableHead>Judul Formulir</TableHead>
+                                    <TableHead>Pengirim</TableHead>
                                     <TableHead>Status</TableHead>
-                                    <TableHead>Submitted Date</TableHead>
+                                    <TableHead>Tanggal Pengajuan</TableHead>
                                     <TableHead class="text-right"
-                                        >Actions</TableHead
+                                        >Aksi</TableHead
                                     >
                                 </TableRow>
                             </TableHeader>
@@ -482,7 +482,7 @@ const submissionStats = computed(() => {
                                             "
                                         >
                                             <Eye class="mr-2 h-4 w-4" />
-                                            View Details
+                                            Lihat Detail
                                         </Button>
                                     </TableCell>
                                 </TableRow>
@@ -493,14 +493,14 @@ const submissionStats = computed(() => {
                     <!-- Pagination -->
                     <div class="mt-6 flex items-center justify-between">
                         <div class="text-sm text-muted-foreground">
-                            Showing {{ submissions.meta?.from || 0 }} to
-                            {{ submissions.meta?.to || 0 }} of
+                            Menampilkan {{ submissions.meta?.from || 0 }} hingga
+                            {{ submissions.meta?.to || 0 }} dari
                             {{
                                 submissions.meta?.total ||
                                 submissions.data?.length ||
                                 0
                             }}
-                            results
+                            hasil
                         </div>
 
                         <div class="flex gap-2">
