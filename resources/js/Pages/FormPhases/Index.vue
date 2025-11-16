@@ -161,14 +161,14 @@ const selectAll = computed({
 const openStatus = ref(false);
 
 const statusOptions = [
-    { value: "all", label: "All Status" },
-    { value: "active", label: "Active" },
-    { value: "inactive", label: "Inactive" },
+    { value: "all", label: "Semua Status" },
+    { value: "active", label: "Aktif" },
+    { value: "inactive", label: "Nonaktif" },
 ];
 
 const selectedStatusLabel = computed(() => {
     const status = statusOptions.find((s) => s.value === isActiveFilter.value);
-    return status?.label || "Select status...";
+    return status?.label || "Pilih status...";
 });
 
 // Active filters count
@@ -227,18 +227,18 @@ const clearAllFilters = () => {
 };
 
 const deleteFormPhase = (id: number) => {
-    if (confirm("Are you sure you want to delete this form phase?")) {
+    if (confirm("Apakah anda yakin ingin menghapus tahap formulir ini?")) {
         router.delete(route("admin.form-phases.destroy", id), {
             onSuccess: () => {
                 toast({
                     title: "Success",
-                    description: "Form phase deleted successfully!",
+                    description: "Tahap formulir berhasil dihapus!",
                 });
             },
             onError: () => {
                 toast({
                     title: "Error",
-                    description: "Failed to delete form phase.",
+                    description: "Gagal menghapus tahap formulir.",
                     variant: "destructive",
                 });
             },
@@ -251,7 +251,7 @@ const bulkDelete = () => {
 
     if (
         confirm(
-            `Are you sure you want to delete ${selectedItems.value.length} selected items?`
+            `Apakah anda yakin ingin menghapus ${selectedItems.value.length} item yang dipilih?`
         )
     ) {
         router.post(
@@ -261,7 +261,7 @@ const bulkDelete = () => {
                 onSuccess: () => {
                     toast({
                         title: "Success",
-                        description: `${selectedItems.value.length} form(s) deleted successfully!`,
+                        description: `${selectedItems.value.length} tahap formulir berhasil dihapus!`,
                     });
                     selectedItems.value = [];
                     selectAll.value = false;
@@ -281,13 +281,13 @@ const toggleStatus = (formPhase: FormPhase) => {
             onSuccess: () => {
                 toast({
                     title: "Success",
-                    description: "Status updated successfully!",
+                    description: "Status berhasil diperbarui!",
                 });
             },
             onError: () => {
                 toast({
                     title: "Error",
-                    description: "Failed to update status.",
+                    description: "Gagal memperbarui status.",
                     variant: "destructive",
                 });
             },
@@ -314,20 +314,20 @@ const toggleItemSelection = (id: number, checked?: boolean | 'indeterminate') =>
 </script>
 
 <template>
-    <Head title="Form Phases Management" />
+    <Head title="Manajemen Tahap Formulir" />
 
     <AuthenticatedLayout>
         <template #header>
             <div class="flex items-center justify-between">
                 <div class="flex items-center gap-2">
                     <h2 class="text-xl font-semibold leading-tight text-gray-800">
-                        Form Phases Management
+                        Manajemen Tahap Formulir
                     </h2>
                 </div>
                 <Link :href="route('admin.form-phases.create')">
                     <Button>
                         <Plus class="h-4 w-4 mr-2" />
-                        Create Form Phase
+                        Buat Tahap Formulir
                     </Button>
                 </Link>
             </div>
@@ -340,9 +340,9 @@ const toggleItemSelection = (id: number, checked?: boolean | 'indeterminate') =>
                     <div class="flex items-center justify-between">
                         <CardTitle class="text-lg flex items-center gap-2">
                             <Filter class="h-5 w-5" />
-                            Search & Filter
+                            Cari & Filter
                             <Badge v-if="activeFiltersCount > 0" variant="secondary">
-                                {{ activeFiltersCount }} active
+                                {{ activeFiltersCount }} aktif
                             </Badge>
                         </CardTitle>
                         <Button
@@ -352,7 +352,7 @@ const toggleItemSelection = (id: number, checked?: boolean | 'indeterminate') =>
                             @click="clearAllFilters"
                         >
                             <X class="h-4 w-4 mr-2" />
-                            Clear All
+                            Bersihkan Semua Filter
                         </Button>
                     </div>
                 </CardHeader>
@@ -366,7 +366,7 @@ const toggleItemSelection = (id: number, checked?: boolean | 'indeterminate') =>
                                 />
                                 <Input
                                     v-model="search"
-                                    placeholder="Search form phases by title or description..."
+                                    placeholder="Cari tahap formulir berdasarkan judul atau deskripsi..."
                                     class="pl-10"
                                 />
                             </div>
@@ -441,12 +441,12 @@ const toggleItemSelection = (id: number, checked?: boolean | 'indeterminate') =>
                     <div class="flex items-center justify-between">
                         <CardTitle class="flex items-center gap-2">
                             <Settings class="h-5 w-5" />
-                            Form Phases List
+                            Daftar Tahap Formulir
                             <Badge variant="secondary">{{ props.formPhases.total }} total</Badge>
                         </CardTitle>
                         <Button v-if="selectedItems.length > 0" variant="destructive" size="sm" @click="bulkDelete">
                             <Trash2 class="h-4 w-4 mr-2" />
-                            Delete Selected ({{ selectedItems.length }})
+                            Hapus yang Dipilih ({{ selectedItems.length }})
                         </Button>
                     </div>
                 </CardHeader>
@@ -458,12 +458,12 @@ const toggleItemSelection = (id: number, checked?: boolean | 'indeterminate') =>
                                     <TableHead class="w-12">
                                         <Checkbox v-model="selectAll" :indeterminate="isPartiallySelected" />
                                     </TableHead>
-                                    <TableHead>Title</TableHead>
-                                    <TableHead>Description</TableHead>
+                                    <TableHead>Judul</TableHead>
+                                    <TableHead>Deskripsi</TableHead>
                                     <TableHead class="text-center">Status</TableHead>
-                                    <TableHead class="text-center">Phase Details</TableHead>
-                                    <TableHead>Created</TableHead>
-                                    <TableHead class="text-right">Actions</TableHead>
+                                    <TableHead class="text-center">Detail Tahap</TableHead>
+                                    <TableHead>Dibuat Pada</TableHead>
+                                    <TableHead class="text-right">Aksi</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
@@ -471,12 +471,12 @@ const toggleItemSelection = (id: number, checked?: boolean | 'indeterminate') =>
                                 <TableRow v-if="props.formPhases.data.length === 0">
                                     <TableCell colspan="7" class="text-center py-8 text-gray-500">
                                         <Settings class="h-12 w-12 mx-auto mb-4 opacity-50" />
-                                        <p class="font-medium">No form phases found</p>
+                                        <p class="font-medium">Tidak ada tahap formulir ditemukan</p>
                                         <p class="text-sm mt-1">
                                             {{
                                                 activeFiltersCount > 0
-                                                    ? "Try adjusting your filters"
-                                                    : "Create your first form phase to get started"
+                                                    ? "Coba sesuaikan filter Anda"
+                                                    : "Buat tahap formulir pertama Anda untuk memulai"
                                             }}
                                         </p>
                                     </TableCell>
@@ -517,14 +517,14 @@ const toggleItemSelection = (id: number, checked?: boolean | 'indeterminate') =>
                                                 class="h-3 w-3"
                                             />
                                             <XCircle v-else class="h-3 w-3" />
-                                            {{ formPhase.is_active ? "Active" : "Inactive" }}
+                                            {{ formPhase.is_active ? "Aktif" : "Nonaktif" }}
                                         </Badge>
                                     </TableCell>
                                     <TableCell class="text-center">
                                         <div class="flex items-center justify-center gap-2">
                                             <Users class="h-4 w-4 text-muted-foreground" />
                                             <Badge variant="secondary">
-                                                {{ formPhase.form_phase_details.length }} phases
+                                                {{ formPhase.form_phase_details.length }} Tahap
                                             </Badge>
                                         </div>
                                     </TableCell>
@@ -559,7 +559,7 @@ const toggleItemSelection = (id: number, checked?: boolean | 'indeterminate') =>
                                                         "
                                                     >
                                                         <Eye class="h-4 w-4 mr-2" />
-                                                        View Details
+                                                        Lihat Detail
                                                     </Link>
                                                 </DropdownMenuItem>
                                                 <DropdownMenuItem as-child>
@@ -591,7 +591,7 @@ const toggleItemSelection = (id: number, checked?: boolean | 'indeterminate') =>
                                                     class="text-destructive cursor-pointer"
                                                 >
                                                     <Trash2 class="h-4 w-4 mr-2" />
-                                                    Delete
+                                                    Hapus
                                                 </DropdownMenuItem>
                                             </DropdownMenuContent>
                                         </DropdownMenu>

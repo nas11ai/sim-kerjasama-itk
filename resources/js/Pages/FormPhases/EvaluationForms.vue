@@ -195,12 +195,12 @@ const updateOrder = () => {
 
 const getStatusBadge = (form: ReviewEvaluationForm): { variant: BadgeVariant; text: string } => {
     if (!form.is_active) {
-        return { variant: 'secondary' as BadgeVariant, text: 'Inactive' };
+        return { variant: 'secondary' as BadgeVariant, text: 'Nonaktif' };
     }
     if (form.is_required) {
-        return { variant: 'default' as BadgeVariant, text: 'Required' };
+        return { variant: 'default' as BadgeVariant, text: 'Wajib' };
     }
-    return { variant: 'outline' as BadgeVariant, text: 'Optional' };
+    return { variant: 'outline' as BadgeVariant, text: 'Opsional' };
 };
 </script>
 
@@ -216,22 +216,22 @@ const getStatusBadge = (form: ReviewEvaluationForm): { variant: BadgeVariant; te
                         <a :href="route('admin.form-phases.show', formPhase.id)">
                             <Button variant="ghost" size="sm">
                                 <ArrowLeft class="h-4 w-4 mr-2" />
-                                Back to Phase Details
+                                Kembali
                             </Button>
                         </a>
                     </div>
                     <div>
                         <h2 class="text-xl font-semibold leading-tight text-gray-800">
-                            Manage Evaluation Forms
+                            Kelola Formulir Evaluasi
                         </h2>
                         <p class="text-sm text-muted-foreground">
-                            For: {{ formPhaseDetail.form_access_control.form.title }} ({{ formPhase.title }})
+                            Untuk: {{ formPhaseDetail.form_access_control.form.title }} ({{ formPhase.title }})
                         </p>
                     </div>
                 </div>
                 <Button @click="openCreateDialog">
                     <Plus class="h-4 w-4 mr-2" />
-                    Create Evaluation Form
+                    Tambah Formulir Evaluasi
                 </Button>
             </div>
         </template>
@@ -240,14 +240,14 @@ const getStatusBadge = (form: ReviewEvaluationForm): { variant: BadgeVariant; te
             <!-- Form Phase Detail Info -->
             <Card>
                 <CardHeader>
-                    <CardTitle class="text-base">Form Phase Detail Information</CardTitle>
+                    <CardTitle class="text-base">Informasi Detail Tahap Formulir</CardTitle>
                 </CardHeader>
                 <CardContent>
                     <div class="grid gap-4 md:grid-cols-3">
                         <div class="space-y-1">
                             <div class="flex items-center gap-2 text-sm font-medium">
                                 <FileText class="h-4 w-4 text-muted-foreground" />
-                                Form
+                                Formulir
                             </div>
                             <p class="text-sm text-muted-foreground pl-6">
                                 {{ formPhaseDetail.form_access_control.form.title }}
@@ -267,7 +267,7 @@ const getStatusBadge = (form: ReviewEvaluationForm): { variant: BadgeVariant; te
                         <div class="space-y-1">
                             <div class="flex items-center gap-2 text-sm font-medium">
                                 <Building class="h-4 w-4 text-muted-foreground" />
-                                Study Program
+                                Program Studi
                             </div>
                             <div class="text-sm text-muted-foreground pl-6">
                                 <p>{{ formPhaseDetail.form_access_control.study_program.name }}</p>
@@ -285,9 +285,9 @@ const getStatusBadge = (form: ReviewEvaluationForm): { variant: BadgeVariant; te
                 <CardHeader>
                     <div class="flex items-center justify-between">
                         <div>
-                            <CardTitle>Evaluation Forms ({{ sortedEvaluationForms.length }})</CardTitle>
+                            <CardTitle>Formulir Evaluasi ({{ sortedEvaluationForms.length }})</CardTitle>
                             <p class="text-sm text-muted-foreground mt-1">
-                                Drag to reorder. Changes are saved automatically.
+                                Seret untuk mengurutkan ulang. Perubahan disimpan secara otomatis.
                             </p>
                         </div>
                     </div>
@@ -297,13 +297,13 @@ const getStatusBadge = (form: ReviewEvaluationForm): { variant: BadgeVariant; te
                     <div v-if="sortedEvaluationForms.length === 0"
                         class="text-center py-12 border-2 border-dashed rounded-lg">
                         <FileText class="h-12 w-12 mx-auto text-muted-foreground mb-4 opacity-50" />
-                        <h3 class="text-lg font-medium mb-2">No Evaluation Forms</h3>
+                        <h3 class="text-lg font-medium mb-2">Tidak Ada Formulir Evaluasi</h3>
                         <p class="text-muted-foreground mb-4">
-                            Create your first evaluation form for this form phase detail.
+                            Buat formulir evaluasi pertama Anda untuk detail tahap formulir ini.
                         </p>
                         <Button @click="openCreateDialog">
                             <Plus class="h-4 w-4 mr-2" />
-                            Create First Form
+                            Tambah Formulir Pertama
                         </Button>
                     </div>
 
@@ -334,10 +334,10 @@ const getStatusBadge = (form: ReviewEvaluationForm): { variant: BadgeVariant; te
                                                                 {{ getStatusBadge(form).text }}
                                                             </Badge>
                                                             <Badge variant="outline">
-                                                                Order: {{ form.order }}
+                                                                Urutan: {{ form.order }}
                                                             </Badge>
                                                             <Badge variant="outline">
-                                                                {{ form.fields_count }} fields
+                                                                {{ form.fields_count }} Isian
                                                             </Badge>
                                                         </div>
                                                     </div>
@@ -387,16 +387,16 @@ const getStatusBadge = (form: ReviewEvaluationForm): { variant: BadgeVariant; te
         <Dialog v-model:open="createFormDialog">
             <DialogContent class="max-w-2xl">
                 <DialogHeader>
-                    <DialogTitle>Create New Evaluation Form</DialogTitle>
+                    <DialogTitle>Tambah Formulir Evaluasi Baru</DialogTitle>
                     <DialogDescription>
-                        Create a new evaluation form for {{ formPhaseDetail.form_access_control.form.title }}.
+                        Buat formulir evaluasi baru untuk {{ formPhaseDetail.form_access_control.form.title }}.
                     </DialogDescription>
                 </DialogHeader>
 
                 <div class="space-y-4">
                     <div class="space-y-2">
-                        <Label for="create_title">Title *</Label>
-                        <Input id="create_title" v-model="createFormData.title" placeholder="Enter form title"
+                        <Label for="create_title">Judul *</Label>
+                        <Input id="create_title" v-model="createFormData.title" placeholder="Masukkan judul formulir"
                             :class="createFormData.errors.title ? 'border-destructive' : ''" />
                         <p v-if="createFormData.errors.title" class="text-sm text-destructive">
                             {{ createFormData.errors.title }}
@@ -404,30 +404,30 @@ const getStatusBadge = (form: ReviewEvaluationForm): { variant: BadgeVariant; te
                     </div>
 
                     <div class="space-y-2">
-                        <Label for="create_description">Description</Label>
+                        <Label for="create_description">Deskripsi</Label>
                         <Textarea id="create_description" v-model="createFormData.description"
-                            placeholder="Enter form description (optional)" rows="3" />
+                            placeholder="Masukkan deskripsi formulir (opsional)" rows="3" />
                     </div>
 
                     <div class="flex items-center space-x-6">
                         <div class="flex items-center space-x-2">
                             <Switch v-model="createFormData.is_required" id="create_is_required" />
-                            <Label for="create_is_required">Required for all reviewers</Label>
+                            <Label for="create_is_required">Wajib untuk semua reviewer</Label>
                         </div>
 
                         <div class="flex items-center space-x-2">
                             <Switch v-model="createFormData.is_active" id="create_is_active" />
-                            <Label for="create_is_active">Active</Label>
+                            <Label for="create_is_active">Aktif</Label>
                         </div>
                     </div>
                 </div>
 
                 <DialogFooter>
                     <Button variant="outline" @click="createFormDialog = false">
-                        Cancel
+                        Batal
                     </Button>
                     <Button @click="createForm" :disabled="createFormData.processing">
-                        {{ createFormData.processing ? 'Creating...' : 'Create & Add Fields' }}
+                        {{ createFormData.processing ? 'Membuat...' : 'Buat & Tambah Isian' }}
                     </Button>
                 </DialogFooter>
             </DialogContent>
@@ -437,16 +437,16 @@ const getStatusBadge = (form: ReviewEvaluationForm): { variant: BadgeVariant; te
         <Dialog v-model:open="editFormDialog">
             <DialogContent class="max-w-2xl">
                 <DialogHeader>
-                    <DialogTitle>Edit Evaluation Form</DialogTitle>
+                    <DialogTitle>Edit Formulir Evaluasi</DialogTitle>
                     <DialogDescription>
-                        Update the evaluation form settings.
+                        Perbarui pengaturan formulir evaluasi.
                     </DialogDescription>
                 </DialogHeader>
 
                 <div class="space-y-4">
                     <div class="space-y-2">
-                        <Label for="edit_title">Title *</Label>
-                        <Input id="edit_title" v-model="editFormData.title" placeholder="Enter form title"
+                        <Label for="edit_title">Judul *</Label>
+                        <Input id="edit_title" v-model="editFormData.title" placeholder="Masukkan judul formulir"
                             :class="editFormData.errors.title ? 'border-destructive' : ''" />
                         <p v-if="editFormData.errors.title" class="text-sm text-destructive">
                             {{ editFormData.errors.title }}
@@ -454,30 +454,30 @@ const getStatusBadge = (form: ReviewEvaluationForm): { variant: BadgeVariant; te
                     </div>
 
                     <div class="space-y-2">
-                        <Label for="edit_description">Description</Label>
+                        <Label for="edit_description">Deskripsi</Label>
                         <Textarea id="edit_description" v-model="editFormData.description"
-                            placeholder="Enter form description (optional)" rows="3" />
+                            placeholder="Masukkan deskripsi formulir (opsional)" rows="3" />
                     </div>
 
                     <div class="flex items-center space-x-6">
                         <div class="flex items-center space-x-2">
                             <Switch v-model="editFormData.is_required" id="edit_is_required" />
-                            <Label for="edit_is_required">Required for all reviewers</Label>
+                            <Label for="edit_is_required">Wajib untuk semua reviewer</Label>
                         </div>
 
                         <div class="flex items-center space-x-2">
                             <Switch v-model="editFormData.is_active" id="edit_is_active" />
-                            <Label for="edit_is_active">Active</Label>
+                            <Label for="edit_is_active">Aktif</Label>
                         </div>
                     </div>
                 </div>
 
                 <DialogFooter>
                     <Button variant="outline" @click="editFormDialog = false">
-                        Cancel
+                        Batal
                     </Button>
                     <Button @click="updateForm" :disabled="editFormData.processing">
-                        {{ editFormData.processing ? 'Updating...' : 'Update Form' }}
+                        {{ editFormData.processing ? 'Memperbarui...' : 'Perbarui Formulir' }}
                     </Button>
                 </DialogFooter>
             </DialogContent>
@@ -487,18 +487,18 @@ const getStatusBadge = (form: ReviewEvaluationForm): { variant: BadgeVariant; te
         <Dialog v-model:open="deleteFormDialog">
             <DialogContent>
                 <DialogHeader>
-                    <DialogTitle>Delete Evaluation Form</DialogTitle>
+                    <DialogTitle>Hapus Formulir Evaluasi</DialogTitle>
                     <DialogDescription>
-                        Are you sure you want to delete "{{ selectedForm?.title }}"?
-                        This will remove the form and all its fields permanently.
+                        Apakah anda yakin ingin menghapus "{{ selectedForm?.title }}"?
+                        Ini akan menghapus formulir dan semua isiannya secara permanen.
                     </DialogDescription>
                 </DialogHeader>
                 <DialogFooter>
                     <Button variant="outline" @click="deleteFormDialog = false">
-                        Cancel
+                        Batal
                     </Button>
                     <Button variant="destructive" @click="deleteForm" :disabled="deleteFormData.processing">
-                        {{ deleteFormData.processing ? 'Deleting...' : 'Delete' }}
+                        {{ deleteFormData.processing ? 'Menghapus...' : 'Hapus' }}
                     </Button>
                 </DialogFooter>
             </DialogContent>
