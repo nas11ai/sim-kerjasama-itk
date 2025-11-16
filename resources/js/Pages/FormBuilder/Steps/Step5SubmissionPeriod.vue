@@ -41,10 +41,10 @@ const submissionPeriodData = computed({
 
 // Hardcoded submission date labels (atau bisa ambil dari backend)
 const submissionDateLabels = [
-    { id: 1, name: 'Start Date' },
-    { id: 2, name: 'End Date' },
-    { id: 3, name: 'Review Deadline' },
-    { id: 4, name: 'Final Submission' },
+    { id: 1, name: 'Tanggal Mulai' },
+    { id: 2, name: 'Tanggal Selesai' },
+    { id: 3, name: 'Batas Waktu Review' },
+    { id: 4, name: 'Pengajuan Final' },
 ];
 
 const selectedPeriodInfo = computed(() => {
@@ -105,8 +105,8 @@ watch(
             // Initialize with default dates
             if (submissionPeriodData.value.dates.length === 0) {
                 submissionPeriodData.value.dates = [
-                    { label_id: 1, label: 'Start Date', date: '', temp_id: generateTempId() },
-                    { label_id: 2, label: 'End Date', date: '', temp_id: generateTempId() },
+                    { label_id: 1, label: 'Tanggal Mulai', date: '', temp_id: generateTempId() },
+                    { label_id: 2, label: 'Tanggal Selesai', date: '', temp_id: generateTempId() },
                 ];
             }
         }
@@ -119,8 +119,8 @@ watch(
         <!-- Option Selection -->
         <Card>
             <CardHeader>
-                <CardTitle>Submission Period Configuration</CardTitle>
-                <CardDescription>Choose to use an existing period or create a new one</CardDescription>
+                <CardTitle>Konfigurasi Periode Pengajuan</CardTitle>
+                <CardDescription>Pilih untuk menggunakan periode yang sudah ada atau membuat yang baru</CardDescription>
             </CardHeader>
             <CardContent class="space-y-4">
                 <RadioGroup v-model="useExistingString" class="space-y-3">
@@ -131,10 +131,10 @@ watch(
                         <Label for="use_existing_period" class="flex-1 cursor-pointer">
                             <div class="flex items-center gap-2 font-medium">
                                 <Calendar class="h-4 w-4" />
-                                Use Existing Submission Period
+                                Gunakan Periode Pengajuan yang Ada
                             </div>
                             <p class="text-sm text-muted-foreground mt-1">
-                                Add this form to an already active submission period
+                                Tambahkan formulir ini ke periode pengajuan yang sudah aktif
                             </p>
                         </Label>
                     </div>
@@ -146,10 +146,10 @@ watch(
                         <Label for="create_new_period" class="flex-1 cursor-pointer">
                             <div class="flex items-center gap-2 font-medium">
                                 <Plus class="h-4 w-4" />
-                                Create New Submission Period
+                                Buat Periode Pengajuan Baru
                             </div>
                             <p class="text-sm text-muted-foreground mt-1">
-                                Set up a new period with custom dates and deadlines
+                                Atur periode baru dengan tanggal dan tenggat yang disesuaikan
                             </p>
                         </Label>
                     </div>
@@ -160,21 +160,21 @@ watch(
         <!-- Existing Period Selection -->
         <Card v-if="submissionPeriodData.use_existing">
             <CardHeader>
-                <CardTitle>Select Existing Period</CardTitle>
+                <CardTitle>Pilih Periode yang Ada</CardTitle>
             </CardHeader>
             <CardContent class="space-y-4">
                 <div class="space-y-2">
-                    <Label>Submission Period *</Label>
+                    <Label>Periode Pengajuan *</Label>
                     <Select v-model="submissionPeriodData.existing_period_id">
                         <SelectTrigger>
-                            <SelectValue placeholder="Select a submission period" />
+                            <SelectValue placeholder="Pilih periode pengajuan" />
                         </SelectTrigger>
                         <SelectContent>
                             <SelectItem v-for="period in submissionPeriods" :key="period.id" :value="period.id">
                                 <div class="flex flex-col">
                                     <span class="font-medium">{{ period.name }}</span>
                                     <span v-if="period.submission_dates?.length" class="text-xs text-muted-foreground">
-                                        {{ period.submission_dates.length }} dates configured
+                                        {{ period.submission_dates.length }} tanggal telah diatur
                                     </span>
                                 </div>
                             </SelectItem>
@@ -190,9 +190,9 @@ watch(
                     <CardContent class="p-4">
                         <div class="space-y-3">
                             <div class="flex items-center justify-between">
-                                <span class="text-sm font-medium text-blue-900">Selected Period</span>
+                                <span class="text-sm font-medium text-blue-900">Periode Terpilih</span>
                                 <Badge variant="outline" class="text-blue-700">
-                                    {{ selectedPeriodInfo.submission_dates?.length || 0 }} dates
+                                    {{ selectedPeriodInfo.submission_dates?.length || 0 }} Periode
                                 </Badge>
                             </div>
                             <h4 class="font-semibold text-blue-900">{{ selectedPeriodInfo.name }}</h4>
@@ -201,7 +201,7 @@ watch(
                                 <div v-for="date in selectedPeriodInfo.submission_dates" :key="date.id"
                                     class="flex items-center justify-between text-sm">
                                     <span class="text-blue-700 font-medium">{{ date.submission_date_label?.name ||
-                                        'Date' }}:</span>
+                                        'Tanggal' }}:</span>
                                     <span class="text-blue-600">
                                         {{ formatDateForDisplay(date.datetime) }}
                                     </span>
@@ -217,13 +217,13 @@ watch(
         <template v-else>
             <Card>
                 <CardHeader>
-                    <CardTitle>Create New Period</CardTitle>
+                    <CardTitle>Buat Periode Baru</CardTitle>
                 </CardHeader>
                 <CardContent class="space-y-4">
                     <div class="space-y-2">
-                        <Label for="new_period_name">Period Name *</Label>
+                        <Label for="new_period_name">Nama Periode *</Label>
                         <Input id="new_period_name" v-model="submissionPeriodData.new_period_name"
-                            placeholder="Enter submission period name"
+                            placeholder="Masukkan nama periode pengajuan"
                             :class="errors['submission_period.new_period_name'] ? 'border-destructive' : ''" />
                         <p v-if="errors['submission_period.new_period_name']" class="text-sm text-destructive">
                             {{ errors['submission_period.new_period_name'] }}
@@ -237,19 +237,19 @@ watch(
                 <CardHeader>
                     <div class="flex items-center justify-between">
                         <CardTitle class="flex items-center gap-2">
-                            Submission Dates *
+                            Tanggal Pengajuan *
                             <Badge variant="secondary">{{ submissionPeriodData.dates.length }}</Badge>
                         </CardTitle>
                         <Button type="button" @click="addDate" size="sm" variant="outline">
                             <Plus class="h-4 w-4 mr-2" />
-                            Add Date
+                            Tambah Tanggal
                         </Button>
                     </div>
                 </CardHeader>
                 <CardContent>
                     <div v-if="submissionPeriodData.dates.length === 0" class="text-center py-8 text-muted-foreground">
                         <Clock class="h-12 w-12 mx-auto mb-4 opacity-50" />
-                        <p>No dates added yet. Click "Add Date" to set submission timeline.</p>
+                        <p>Belum ada tanggal yang ditambahkan. Klik "Tambah Tanggal" untuk mengatur jadwal pengajuan.</p>
                     </div>
 
                     <div v-else class="space-y-3">
@@ -258,10 +258,10 @@ watch(
                                 <div class="flex items-start gap-4">
                                     <div class="flex-1 grid gap-4 md:grid-cols-2">
                                         <div class="space-y-2">
-                                            <Label>Date Label *</Label>
+                                            <Label>Label Tanggal *</Label>
                                             <Select v-model="date.label_id">
                                                 <SelectTrigger>
-                                                    <SelectValue placeholder="Select date label" />
+                                                    <SelectValue placeholder="Pilih label tanggal" />
                                                 </SelectTrigger>
                                                 <SelectContent>
                                                     <SelectItem v-for="label in submissionDateLabels" :key="label.id"
@@ -273,7 +273,7 @@ watch(
                                         </div>
 
                                         <div class="space-y-2">
-                                            <Label>Date & Time *</Label>
+                                            <Label>Tanggal & Waktu *</Label>
                                             <Input type="datetime-local" v-model="date.date" />
                                         </div>
                                     </div>
@@ -309,29 +309,29 @@ watch(
                 <div class="space-y-2">
                     <div class="flex items-center gap-2">
                         <Calendar class="h-5 w-5 text-green-600" />
-                        <h3 class="font-medium text-green-900">Period Configuration Preview</h3>
+                        <h3 class="font-medium text-green-900">Pratinjau Konfigurasi Periode</h3>
                     </div>
                     <div class="grid gap-2 text-sm">
                         <div class="flex items-center justify-between">
                             <span class="text-green-700">Mode:</span>
                             <Badge variant="outline" class="text-green-700">
-                                {{ submissionPeriodData.use_existing ? 'Using Existing Period' : 'Creating New Period'
+                                {{ submissionPeriodData.use_existing ? 'Menggunakan Periode yang Ada' : 'Membuat Periode Baru'
                                 }}
                             </Badge>
                         </div>
                         <div v-if="submissionPeriodData.use_existing && selectedPeriodInfo"
                             class="flex items-center justify-between">
-                            <span class="text-green-700">Period:</span>
+                            <span class="text-green-700">Periode:</span>
                             <span class="font-medium text-green-900">{{ selectedPeriodInfo.name }}</span>
                         </div>
                         <div v-if="!submissionPeriodData.use_existing && submissionPeriodData.new_period_name"
                             class="flex items-center justify-between">
-                            <span class="text-green-700">New Period:</span>
+                            <span class="text-green-700">Periode Baru:</span>
                             <span class="font-medium text-green-900">{{ submissionPeriodData.new_period_name }}</span>
                         </div>
                         <div v-if="!submissionPeriodData.use_existing" class="flex items-center justify-between">
-                            <span class="text-green-700">Dates Configured:</span>
-                            <Badge variant="outline">{{ submissionPeriodData.dates.length }}</Badge>
+                            <span class="text-green-700">Tanggal yang Dikonfigurasi:</span>
+                            <Badge variant="outline">{{ submissionPeriodData.dates.length }} tanggal</Badge>
                         </div>
                     </div>
                 </div>

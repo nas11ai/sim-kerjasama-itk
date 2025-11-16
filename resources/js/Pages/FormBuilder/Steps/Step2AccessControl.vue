@@ -170,16 +170,16 @@ watch(selectedFacultyId, () => {
             <CardHeader>
                 <CardTitle class="flex items-center gap-2 text-blue-900">
                     <Plus class="h-5 w-5" />
-                    Bulk Add Access Controls
+                    Tambah Kontrol Akses Massal
                 </CardTitle>
             </CardHeader>
             <CardContent class="space-y-4">
                 <!-- Faculty Selection -->
                 <div class="space-y-2">
-                    <Label>Select Faculty</Label>
+                    <Label>Pilih Fakultas</Label>
                     <Select v-model="selectedFacultyId">
                         <SelectTrigger>
-                            <SelectValue placeholder="Select a faculty" />
+                            <SelectValue placeholder="Pilih fakultas" />
                         </SelectTrigger>
                         <SelectContent>
                             <SelectItem v-for="faculty in faculties" :key="faculty.id" :value="faculty.id">
@@ -192,9 +192,9 @@ watch(selectedFacultyId, () => {
                 <!-- Study Programs Multi-select -->
                 <div v-if="selectedFacultyId" class="space-y-2">
                     <div class="flex items-center justify-between">
-                        <Label>Study Programs *</Label>
+                        <Label>Program Studi *</Label>
                         <Button type="button" variant="outline" size="sm" @click="selectAllStudyPrograms">
-                            {{ selectedStudyProgramIds.length === studyPrograms.length ? 'Deselect All' : 'Select All'
+                            {{ selectedStudyProgramIds.length === studyPrograms.length ? 'Batal Pilih Semua' : 'Pilih Semua'
                             }}
                         </Button>
                     </div>
@@ -215,9 +215,9 @@ watch(selectedFacultyId, () => {
                 <!-- Roles Multi-select -->
                 <div class="space-y-2">
                     <div class="flex items-center justify-between">
-                        <Label>Roles *</Label>
+                        <Label>Role *</Label>
                         <Button type="button" variant="outline" size="sm" @click="selectAllRoles">
-                            {{ selectedRoleIds.length === roles.length ? 'Deselect All' : 'Select All' }}
+                            {{ selectedRoleIds.length === roles.length ? 'Batal Pilih Semua' : 'Pilih Semua' }}
                         </Button>
                     </div>
                     <div class="grid gap-2 md:grid-cols-2 p-2 border rounded bg-white">
@@ -236,7 +236,7 @@ watch(selectedFacultyId, () => {
                 <Button type="button" @click="bulkAddAccessControls"
                     :disabled="selectedRoleIds.length === 0 || selectedStudyProgramIds.length === 0" class="w-full">
                     <Plus class="h-4 w-4 mr-2" />
-                    Add {{ selectedRoleIds.length }} Role(s) × {{ selectedStudyProgramIds.length }} Program(s)
+                    Tambah {{ selectedRoleIds.length }} Role × {{ selectedStudyProgramIds.length }} Program Studi
                 </Button>
             </CardContent>
         </Card>
@@ -246,21 +246,21 @@ watch(selectedFacultyId, () => {
             <CardHeader>
                 <div class="flex items-center justify-between">
                     <CardTitle class="flex items-center gap-2">
-                        Access Controls
+                        Kontrol Akses
                         <Badge variant="secondary">{{ accessControls.length }}</Badge>
                     </CardTitle>
                     <Button type="button" @click="addAccessControl" size="sm" variant="outline">
                         <Plus class="h-4 w-4 mr-2" />
-                        Add Single
+                        Tambah Satu
                     </Button>
                 </div>
             </CardHeader>
             <CardContent>
                 <div v-if="accessControls.length === 0" class="text-center py-12">
                     <Users class="h-12 w-12 mx-auto text-muted-foreground mb-4 opacity-50" />
-                    <h3 class="text-lg font-medium mb-2">No Access Controls</h3>
+                    <h3 class="text-lg font-medium mb-2">Tidak Ada Kontrol Akses</h3>
                     <p class="text-muted-foreground mb-4">
-                        Add access controls to specify who can access this form.
+                        Tambahkan kontrol akses untuk menentukan siapa yang dapat mengakses formulir ini.
                     </p>
                 </div>
 
@@ -273,7 +273,7 @@ watch(selectedFacultyId, () => {
                                         <Label>Role *</Label>
                                         <Select v-model="control.role_id">
                                             <SelectTrigger>
-                                                <SelectValue placeholder="Select role" />
+                                                <SelectValue placeholder="Pilih role" />
                                             </SelectTrigger>
                                             <SelectContent>
                                                 <SelectItem v-for="role in roles" :key="role.id" :value="role.id">
@@ -284,10 +284,10 @@ watch(selectedFacultyId, () => {
                                     </div>
 
                                     <div class="space-y-2">
-                                        <Label>Study Program *</Label>
+                                        <Label>Program Studi *</Label>
                                         <Select v-model="control.study_program_id">
                                             <SelectTrigger>
-                                                <SelectValue placeholder="Select study program" />
+                                                <SelectValue placeholder="Pilih program studi" />
                                             </SelectTrigger>
                                             <SelectContent>
                                                 <template v-for="faculty in faculties" :key="faculty.id">
@@ -316,7 +316,7 @@ watch(selectedFacultyId, () => {
                                 <div class="flex items-center gap-2 text-sm">
                                     <Users class="h-4 w-4 text-muted-foreground" />
                                     <span class="font-medium">{{ getRoleName(control.role_id) }}</span>
-                                    <span class="text-muted-foreground">can access from</span>
+                                    <span class="text-muted-foreground">dapat mengakses dari</span>
                                     <Building class="h-4 w-4 text-muted-foreground" />
                                     <span class="font-medium">{{ getStudyProgramInfo(control.study_program_id).name
                                     }}</span>
