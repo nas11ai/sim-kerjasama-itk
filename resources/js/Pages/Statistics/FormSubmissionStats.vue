@@ -242,14 +242,14 @@ const getStatusColor = (status: string) => {
 </script>
 
 <template>
-    <Head title="Form Submission Statistics" />
+    <Head title="Statistik Pengajuan Formulir" />
 
     <AuthenticatedLayout>
         <template #header>
             <div class="flex items-center justify-between">
                 <div>
                     <h2 class="text-xl font-semibold leading-tight text-gray-800">
-                        Form Submission Statistics
+                        Statistik Pengajuan Formulir
                     </h2>
                 </div>
                 <div class="flex items-center gap-3">
@@ -258,7 +258,7 @@ const getStatusColor = (status: string) => {
                             <SelectValue placeholder="Filter by Year" />
                         </SelectTrigger>
                         <SelectContent>
-                            <SelectItem value="all">All Years</SelectItem>
+                            <SelectItem value="all">semua Tahun</SelectItem>
                             <SelectItem
                                 v-for="year in availableYears.slice(1)"
                                 :key="year"
@@ -279,11 +279,11 @@ const getStatusColor = (status: string) => {
                     <CardContent class="p-4">
                         <div class="flex items-center justify-between">
                             <div>
-                                <p class="text-xs font-medium text-gray-500 uppercase">Recent (24h)</p>
+                                <p class="text-xs font-medium text-gray-500 uppercase">Terbaru (24 jam)</p>
                                 <p class="text-2xl font-bold text-gray-900 mt-1">
                                     {{ recentSubmissionsCount }}
                                 </p>
-                                <p class="text-xs text-gray-500 mt-1">New submissions</p>
+                                <p class="text-xs text-gray-500 mt-1">Pengajuan baru</p>
                             </div>
                             <div class="h-10 w-10 bg-blue-100 rounded-lg flex items-center justify-center">
                                 <Clock class="h-5 w-5 text-blue-600" />
@@ -296,11 +296,11 @@ const getStatusColor = (status: string) => {
                     <CardContent class="p-4">
                         <div class="flex items-center justify-between">
                             <div>
-                                <p class="text-xs font-medium text-gray-500 uppercase">Total Submissions</p>
+                                <p class="text-xs font-medium text-gray-500 uppercase">Total Pengajuan</p>
                                 <p class="text-2xl font-bold text-gray-900 mt-1">
                                     {{ totalSubmissionsCount }}
                                 </p>
-                                <p class="text-xs text-gray-500 mt-1">All time</p>
+                                <p class="text-xs text-gray-500 mt-1">Sepanjang waktu</p>
                             </div>
                             <div class="h-10 w-10 bg-green-100 rounded-lg flex items-center justify-center">
                                 <FileText class="h-5 w-5 text-green-600" />
@@ -313,11 +313,11 @@ const getStatusColor = (status: string) => {
                     <CardContent class="p-4">
                         <div class="flex items-center justify-between">
                             <div>
-                                <p class="text-xs font-medium text-gray-500 uppercase">Total Forms</p>
+                                <p class="text-xs font-medium text-gray-500 uppercase">Total Formulir</p>
                                 <p class="text-2xl font-bold text-gray-900 mt-1">
                                     {{ totalFormsCount }}
                                 </p>
-                                <p class="text-xs text-gray-500 mt-1">Active forms</p>
+                                <p class="text-xs text-gray-500 mt-1">Formulir aktif</p>
                             </div>
                             <div class="h-10 w-10 bg-purple-100 rounded-lg flex items-center justify-center">
                                 <Calendar class="h-5 w-5 text-purple-600" />
@@ -330,11 +330,11 @@ const getStatusColor = (status: string) => {
                     <CardContent class="p-4">
                         <div class="flex items-center justify-between">
                             <div>
-                                <p class="text-xs font-medium text-gray-500 uppercase">Status Types</p>
+                                <p class="text-xs font-medium text-gray-500 uppercase">Jenis Status</p>
                                 <p class="text-2xl font-bold text-gray-900 mt-1">
                                     {{ statusData.length }}
                                 </p>
-                                <p class="text-xs text-gray-500 mt-1">Active statuses</p>
+                                <p class="text-xs text-gray-500 mt-1">Status aktif</p>
                             </div>
                             <div class="h-10 w-10 bg-orange-100 rounded-lg flex items-center justify-center">
                                 <TrendingUp class="h-5 w-5 text-orange-600" />
@@ -353,8 +353,8 @@ const getStatusColor = (status: string) => {
                                 <Clock class="h-5 w-5 text-blue-600" />
                             </div>
                             <div>
-                                <CardTitle>Recent Submissions (Last 24 Hours)</CardTitle>
-                                <CardDescription>Latest form submissions activity</CardDescription>
+                                <CardTitle>Pengajuan Terbaru (24 Jam Terakhir)</CardTitle>
+                                <CardDescription>Aktivitas pengajuan formulir terbaru</CardDescription>
                             </div>
                         </div>
                         <Badge variant="secondary" class="text-sm">
@@ -365,8 +365,8 @@ const getStatusColor = (status: string) => {
                 <CardContent>
                     <div v-if="recentSubmissionsData.length === 0" class="text-center py-12">
                         <Clock class="h-16 w-16 mx-auto text-gray-300 mb-4" />
-                        <h3 class="text-lg font-semibold text-gray-500 mb-2">No Recent Submissions</h3>
-                        <p class="text-sm text-gray-400">No submissions in the last 24 hours</p>
+                        <h3 class="text-lg font-semibold text-gray-500 mb-2">Tidak Ada Pengajuan Terbaru</h3>
+                        <p class="text-sm text-gray-400">Tidak ada pengajuan dalam 24 jam terakhir</p>
                     </div>
                     <div v-else class="space-y-3">
                         <div
@@ -380,14 +380,14 @@ const getStatusColor = (status: string) => {
                                 </div>
                                 <div>
                                     <p class="font-medium text-gray-900">{{ submission.name }}</p>
-                                    <p class="text-sm text-gray-500">{{ submission.total_forms }} forms available</p>
+                                    <p class="text-sm text-gray-500">{{ submission.total_forms }} formulir tersedia</p>
                                 </div>
                             </div>
                             <div class="text-right">
                                 <Badge variant="secondary" class="text-base">
                                     {{ submission.total_submissions }}
                                 </Badge>
-                                <p class="text-xs text-gray-500 mt-1">submissions</p>
+                                <p class="text-xs text-gray-500 mt-1">pengajuan</p>
                             </div>
                         </div>
                     </div>
@@ -397,9 +397,9 @@ const getStatusColor = (status: string) => {
             <!-- Main Charts Section -->
             <Tabs default-value="status" class="w-full">
                 <TabsList class="grid w-full grid-cols-3">
-                    <TabsTrigger value="status">By Status</TabsTrigger>
-                    <TabsTrigger value="faculty">By Faculty</TabsTrigger>
-                    <TabsTrigger value="prodi">By Program Study</TabsTrigger>
+                    <TabsTrigger value="status">berdasarkan Status</TabsTrigger>
+                    <TabsTrigger value="faculty">berdasarkan Fakultas</TabsTrigger>
+                    <TabsTrigger value="prodi">berdasarkan Program Studi</TabsTrigger>
                 </TabsList>
 
                 <!-- Status Tab -->
@@ -413,8 +413,8 @@ const getStatusColor = (status: string) => {
                                             <TrendingUp class="h-5 w-5 text-purple-600" />
                                         </div>
                                         <div>
-                                            <CardTitle>Status Distribution</CardTitle>
-                                            <CardDescription>Submission status breakdown</CardDescription>
+                                            <CardTitle>Distribusi Status</CardTitle>
+                                            <CardDescription>Distribusi status pengajuan</CardDescription>
                                         </div>
                                     </div>
                                     <div class="flex items-center gap-2">
@@ -444,7 +444,7 @@ const getStatusColor = (status: string) => {
                             <CardContent>
                                 <div v-if="statusData.length === 0" class="text-center py-12">
                                     <AlertCircle class="h-16 w-16 mx-auto text-gray-300 mb-4" />
-                                    <p class="text-gray-500">No status data available</p>
+                                    <p class="text-gray-500">Tidak ada data status tersedia</p>
                                 </div>
                                 <div v-else>
                                     <div
@@ -483,15 +483,15 @@ const getStatusColor = (status: string) => {
                                         <FileText class="h-5 w-5 text-indigo-600" />
                                     </div>
                                     <div>
-                                        <CardTitle>Status Details</CardTitle>
-                                        <CardDescription>Breakdown by status type</CardDescription>
+                                        <CardTitle>Rincian Status</CardTitle>
+                                        <CardDescription>Distribusi berdasarkan jenis status</CardDescription>
                                     </div>
                                 </div>
                             </CardHeader>
                             <CardContent>
                                 <div v-if="statusData.length === 0" class="text-center py-12">
                                     <AlertCircle class="h-16 w-16 mx-auto text-gray-300 mb-4" />
-                                    <p class="text-gray-500">No status data available</p>
+                                    <p class="text-gray-500">Tidak ada data status tersedia</p>
                                 </div>
                                 <div v-else class="space-y-3">
                                     <div
@@ -531,10 +531,10 @@ const getStatusColor = (status: string) => {
                                         <Building2 class="h-5 w-5 text-indigo-600" />
                                     </div>
                                     <div>
-                                        <CardTitle>Faculty Distribution</CardTitle>
-                                        <CardDescription>Submissions by faculty
+                                        <CardTitle>Distribusi Fakultas</CardTitle>
+                                        <CardDescription>Pengajuan berdasarkan fakultas
                                             <span class="text-indigo-600 font-medium ml-1">
-                                                ({{ selectedFaculties.length }}/{{ faculties.length }} selected)
+                                                ({{ selectedFaculties.length }}/{{ faculties.length }} dipilih)
                                             </span>
                                         </CardDescription>
 
@@ -551,14 +551,14 @@ const getStatusColor = (status: string) => {
                                         <PopoverContent class="w-80" align="end">
                                             <div class="space-y-4">
                                                 <div class="flex items-center justify-between">
-                                                    <h4 class="font-semibold text-sm">Select Faculties</h4>
+                                                    <h4 class="font-semibold text-sm">Pilih Fakultas</h4>
                                                     <Button
                                                         variant="ghost"
                                                         size="sm"
                                                         @click="selectAllFaculties"
                                                         class="h-auto py-1 px-2 text-xs"
                                                     >
-                                                        {{ selectedFaculties.length === faculties.length ? 'Deselect All' : 'Select All' }}
+                                                        {{ selectedFaculties.length === faculties.length ? 'Batal Pilih Semua' : 'Pilih Semua' }}
                                                     </Button>
                                                 </div>
                                                 <div class="max-h-[300px] overflow-y-auto space-y-2">
@@ -605,7 +605,7 @@ const getStatusColor = (status: string) => {
                         <CardContent>
                             <div v-if="facultyData.length === 0" class="text-center py-12">
                                 <Building2 class="h-16 w-16 mx-auto text-gray-300 mb-4" />
-                                <p class="text-gray-500">No faculty data available</p>
+                                <p class="text-gray-500">Tidak ada data fakultas tersedia</p>
                             </div>
                             <div v-else>
                                 <div
@@ -648,10 +648,10 @@ const getStatusColor = (status: string) => {
                                         <GraduationCap class="h-5 w-5 text-teal-600" />
                                     </div>
                                     <div>
-                                        <CardTitle>Program Study Distribution</CardTitle>
-                                        <CardDescription>Submissions by study program
+                                        <CardTitle>Distribusi Program Studi</CardTitle>
+                                        <CardDescription>Pengajuan berdasarkan program studi
                                             <span class="text-teal-600 font-medium ml-1">
-                                                ({{ selectedStudyPrograms.length }}/{{ studyPrograms.length }} selected)
+                                                ({{ selectedStudyPrograms.length }}/{{ studyPrograms.length }} dipilih)
                                             </span>
                                         </CardDescription>
                                     </div>
@@ -667,14 +667,14 @@ const getStatusColor = (status: string) => {
                                         <PopoverContent class="w-80" align="end">
                                             <div class="space-y-4">
                                                 <div class="flex items-center justify-between">
-                                                    <h4 class="font-semibold text-sm">Select Study Programs</h4>
+                                                    <h4 class="font-semibold text-sm">Pilih Program Studi</h4>
                                                     <Button
                                                         variant="ghost"
                                                         size="sm"
                                                         @click="selectAllStudyPrograms"
                                                         class="h-auto py-1 px-2 text-xs"
                                                     >
-                                                        {{ selectedStudyPrograms.length === studyPrograms.length ? 'Deselect All' : 'Select All' }}
+                                                        {{ selectedStudyPrograms.length === studyPrograms.length ? 'Batal Pilih Semua' : 'Pilih Semua' }}
                                                     </Button>
                                                 </div>
                                                 <div class="max-h-[300px] overflow-y-auto space-y-2">
@@ -721,7 +721,7 @@ const getStatusColor = (status: string) => {
                         <CardContent>
                             <div v-if="prodiData.length === 0" class="text-center py-12">
                                 <GraduationCap class="h-16 w-16 mx-auto text-gray-300 mb-4" />
-                                <p class="text-gray-500">No program study data available</p>
+                                <p class="text-gray-500">Tidak ada data program studi tersedia</p>
                             </div>
                             <div v-else>
                                 <div

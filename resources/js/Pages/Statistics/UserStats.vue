@@ -43,15 +43,15 @@ const chartType = ref<"bar" | "donut">("donut");
 
 const recentUserTotal = props.userRecent.length;
 const data = [
-    { name: "Admin Users", total: props.totalAdmin },
-    { name: "Regular Users", total: props.totalNonAdmin },
-    { name: "Faculty Users", total: props.totalFaculty },
-    { name: "Program Study Users", total: props.totalProdi },
+    { name: "User Admin", total: props.totalAdmin },
+    { name: "User Reguler", total: props.totalNonAdmin },
+    { name: "User Fakultas", total: props.totalFaculty },
+    { name: "User Program Studi", total: props.totalProdi },
 ];
 </script>
 
 <template>
-    <Head title="User Statistics" />
+    <Head title="Statistik User" />
 
     <AuthenticatedLayout>
         <template #header>
@@ -60,7 +60,7 @@ const data = [
                     <h2
                         class="text-xl font-semibold leading-tight text-gray-800"
                     >
-                        User Statistics
+                        Statistik User
                     </h2>
                 </div>
                 <div class="flex items-center gap-2">
@@ -69,11 +69,11 @@ const data = [
                         variant="outline"
                     >
                         <ChartColumn class="h-4 w-4" />
-                        Statistics
+                        Statistik
                     </Button>
                     <Button @click="router.visit(route('admin.users.index'))">
                         <User class="h-4 w-4" />
-                        User Management
+                        Manajemen User
                     </Button>
                 </div>
             </div>
@@ -90,14 +90,14 @@ const data = [
                         <div class="flex items-center justify-between">
                             <div>
                                 <p class="text-xs font-medium text-gray-500 uppercase">
-                                    Total Users
+                                    Total User
                                 </p>
                                 <p
                                     class="text-2xl font-bold text-gray-900 mt-1"
                                 >
                                     {{ totalUsers }}
                                 </p>
-                                <p class="text-xs text-gray-500 mt-1">All Users</p>
+                                <p class="text-xs text-gray-500 mt-1">Semua User</p>
                             </div>
                             <div class="h-10 w-10 bg-gray-100 rounded-lg flex items-center justify-center">
                                 <Users class="h-5 w-5 text-gray-600" />
@@ -113,14 +113,14 @@ const data = [
                         <div class="flex items-center justify-between">
                             <div>
                                 <p class="text-xs font-medium text-gray-500 uppercase">
-                                    Total Admin Users
+                                    Total User Admin
                                 </p>
                                 <p
                                     class="text-2xl font-bold text-gray-900 mt-1"
                                 >
                                     {{ totalAdmin }}
                                 </p>
-                                <p class="text-xs text-gray-500 mt-1">All Admin Users</p>
+                                <p class="text-xs text-gray-500 mt-1">Semua User Admin</p>
                             </div>
                             <div class="h-10 w-10 bg-purple-100 rounded-lg flex items-center justify-center">
                                 <Users class="h-5 w-5 text-purple-600" />
@@ -136,14 +136,14 @@ const data = [
                         <div class="flex items-center justify-between">
                             <div>
                                 <p class="text-xs font-medium text-gray-500 uppercase">
-                                    Total Regular Users
+                                    Total User Reguler
                                 </p>
                                 <p
                                     class="text-2xl font-bold text-gray-900 mt-1"
                                 >
                                     {{ totalNonAdmin }}
                                 </p>
-                                <p class="text-xs text-gray-500 mt-1">All Regular Users</p>
+                                <p class="text-xs text-gray-500 mt-1">Semua User Reguler</p>
                             </div>
                             <div class="h-10 w-10 bg-blue-100 rounded-lg flex items-center justify-center">
                                 <Users class="h-5 w-5 text-blue-600" />
@@ -159,14 +159,14 @@ const data = [
                         <div class="flex items-center justify-between">
                             <div>
                                 <p class="text-xs font-medium text-gray-500 uppercase">
-                                    Total Faculty Users
+                                    Total User Fakultas
                                 </p>
                                 <p
                                     class="text-2xl font-bold text-gray-900 mt-1"
                                 >
                                     {{ totalFaculty }}
                                 </p>
-                                <p class="text-xs text-gray-500 mt-1">All Faculty Users</p>
+                                <p class="text-xs text-gray-500 mt-1">Semua User Fakultas</p>
                             </div>
                             <div class="h-10 w-10 bg-green-100 rounded-lg flex items-center justify-center">
                                 <Users class="h-5 w-5 text-green-600" />
@@ -182,14 +182,14 @@ const data = [
                         <div class="flex items-center justify-between">
                             <div>
                                 <p class="text-xs font-medium text-gray-500 uppercase">
-                                    Total Program Study Users
+                                    Total User Program Studi
                                 </p>
                                 <p
                                     class="text-2xl font-bold text-gray-900 mt-1"
                                 >
                                     {{ totalProdi }}
                                 </p>
-                                <p class="text-xs text-gray-500 mt-1">All Program Study Users</p>
+                                <p class="text-xs text-gray-500 mt-1">Semua User Program Studi</p>
                             </div>
                             <div class="h-10 w-10 bg-orange-100 rounded-lg flex items-center justify-center">
                                 <Users class="h-5 w-5 text-orange-600" />
@@ -211,12 +211,11 @@ const data = [
                                 </div>
                                 <div>
                                     <CardTitle
-                                        >Recent User (Last 24 Hours)</CardTitle
+                                        >User Terbaru (24 Jam Terakhir)</CardTitle
                                     >
                                     <CardDescription
-                                        >Latest user created
-                                        activity</CardDescription
-                                    >
+                                        >Aktivitas pembuatan user terbaru
+                                        </CardDescription>
                                 </div>
                             </div>
                             <Badge variant="outline" class="text-sm">
@@ -229,7 +228,7 @@ const data = [
                             v-if="recentUserTotal === 0"
                             class="text-center text-gray-500 py-6"
                         >
-                            No recent user activity in the last 24 hours.
+                            Tidak ada aktivitas user terbaru dalam 24 jam terakhir.
                         </div>
                         <div
                             v-else
@@ -276,9 +275,9 @@ const data = [
                                 </div>
                                 <div>
                                     <CardTitle
-                                        >Users Chart Distribution</CardTitle
+                                        >Distribusi Grafik User</CardTitle
                                     >
-                                    <CardDescription>Breakdown</CardDescription>
+                                    <CardDescription>Rincian</CardDescription>
                                 </div>
                             </div>
                             <div class="flex items-center gap-2">
@@ -311,7 +310,7 @@ const data = [
                                 class="h-16 w-16 mx-auto text-gray-300 mb-4"
                             />
                             <p class="text-gray-500">
-                                No status data available
+                                Tidak ada data status tersedia
                             </p>
                         </div>
                         <div v-else>
