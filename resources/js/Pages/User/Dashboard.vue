@@ -297,7 +297,7 @@ const getProgressPercentage = (completed: number, total: number) => {
 
                             <!-- Form Phases -->
                             <div class="mb-6">
-                                <h4 class="font-medium mb-3">Form Phases yang Tersedia</h4>
+                                <h4 class="font-medium mb-3">Tahap formulir yang Tersedia</h4>
                                 <div class="space-y-3">
                                     <div v-for="phase in period.form_phases" :key="phase.id"
                                         class="flex items-center justify-between p-4 border rounded-lg" :class="{

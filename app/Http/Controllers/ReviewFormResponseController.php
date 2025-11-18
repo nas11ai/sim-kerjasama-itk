@@ -341,7 +341,7 @@ class ReviewFormResponseController extends Controller
                 ->first();
 
             if (!$fieldResponse || !$fieldResponse->hasValue()) {
-                $errors[] = "Field '{$field->label}' is required.";
+                $errors[] = "Field '{$field->label}' wajib diisi.";
             } else {
                 // Field-specific validation
                 $fieldErrors = $fieldResponse->validate();
@@ -375,14 +375,14 @@ class ReviewFormResponseController extends Controller
         $form = $assignment->reviewEvaluationForm;
         $reviewer = $assignment->submissionReviewer->reviewer;
 
-        $content = "EVALUATION SUMMARY\n";
+        $content = "RANGKUMAN EVALUASI\n";
         $content .= str_repeat("=", 50) . "\n\n";
 
-        $content .= "Submission: {$submission->form->title}\n";
-        $content .= "Submitted by: {$submission->submittedBy->name}\n";
+        $content .= "Pengajuan: {$submission->form->title}\n";
+        $content .= "Dikirim oleh: {$submission->submittedBy->name}\n";
         $content .= "Reviewer: {$reviewer->user->name} ({$reviewer->reviewerRole->name})\n";
-        $content .= "Evaluation Form: {$form->title}\n";
-        $content .= "Completed: {$response->submitted_at->format('d M Y H:i')}\n\n";
+        $content .= "Formulir Evaluasi: {$form->title}\n";
+        $content .= "Diselesaikan pada: {$response->submitted_at->format('d M Y H:i')}\n\n";
 
         $content .= str_repeat("-", 50) . "\n\n";
 
@@ -393,7 +393,7 @@ class ReviewFormResponseController extends Controller
 
             $content .= "{$field->label}\n";
             if ($field->description) {
-                $content .= "Description: {$field->description}\n";
+                $content .= "Deskripsi: {$field->description}\n";
             }
 
             if ($fieldResponse && $fieldResponse->hasValue()) {
@@ -406,7 +406,7 @@ class ReviewFormResponseController extends Controller
 
         if ($response->final_notes) {
             $content .= str_repeat("-", 50) . "\n";
-            $content .= "Additional Notes:\n";
+            $content .= "Catatan Tambahan:\n";
             $content .= $response->final_notes . "\n\n";
         }
 

@@ -111,7 +111,7 @@ const statusOptions = [
 
 const selectedStatusLabel = computed(() => {
     const status = statusOptions.find((s) => s.value === selectedStatus.value);
-    return status?.label || "Select status...";
+    return status?.label || "Pilih status...";
 });
 
 const debouncedSearch = debounce(() => {
@@ -285,7 +285,7 @@ const goToPage = (url: string | null) => {
                                 />
                                 <Input
                                     v-model="searchQuery"
-                                    placeholder="Search reviewer roles by name..."
+                                    placeholder="Cari reviewer roles berdasarkan nama..."
                                     class="pl-10"
                                 />
                             </div>

@@ -277,7 +277,7 @@ class UserFormController extends Controller
 
         if ($formAccessControls->isEmpty()) {
             return redirect()->route('user.dashboard')
-                ->with('error', 'Anda tidak memiliki akses ke form phase ini.');
+                ->with('error', 'Anda tidak memiliki akses ke tahap formulir ini.');
         }
 
         return Inertia::render('User/FormPhase', [
@@ -486,7 +486,7 @@ class UserFormController extends Controller
         });
 
         return redirect()->back()
-            ->with('success', 'Form berhasil diserahkan.');
+            ->with('success', 'Formulir berhasil diserahkan.');
     }
 
     public function getFormSubmissionData(Request $request)

@@ -75,7 +75,7 @@ class EmailNotificationService
                         <li><strong>Form:</strong> {$submission->form->title}</li>
                         <li><strong>Diajukan oleh:</strong> {$submission->submittedBy->name}</li>
                         <li><strong>Tanggal Submit:</strong> {$submission->created_at->format('d F Y H:i')}</li>
-                        <li><strong>Peran Reviewer:</strong> {$reviewer->reviewerRole->name}</li>
+                        <li><strong>Role Reviewer:</strong> {$reviewer->reviewerRole->name}</li>
                     </ul>
                     <p>Silakan review submission ini sesegera mungkin.</p>
                     <p><a href='" . route('reviewer.submissions.show', $submission->id) . "' style='background-color: #2196F3; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;'>Lihat Submission</a></p>

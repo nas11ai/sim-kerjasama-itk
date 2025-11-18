@@ -78,7 +78,7 @@ const isExpired = (dateString: string | null) => {
 };
 
 const deleteAnnouncement = (announcement: Announcement) => {
-    if (confirm(`Are you sure you want to delete "${announcement.title}"?`)) {
+    if (confirm(`Apakah Anda yakin ingin menghapus "${announcement.title}"?`)) {
         router.delete(route("admin.announcements.destroy", announcement.id), {
             onSuccess: () => {
                 toast({

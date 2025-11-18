@@ -70,7 +70,7 @@ const markAsRead = async (announcementId: number) => {
                 }
             },
             onError: (error) => {
-                console.error('Failed to mark as read:', error);
+                console.error('Gagal menandai sebagai dibaca:', error);
                 // You can add toast notification here if you have one
             },
             onFinish: () => {
@@ -79,7 +79,7 @@ const markAsRead = async (announcementId: number) => {
             }
         });
     } catch (error) {
-        console.error('Error marking announcement as read:', error);
+        console.error('Kesalahan saat menandai pengumuman sebagai dibaca:', error);
         markingAsRead.value[announcementId] = false;
     }
 };

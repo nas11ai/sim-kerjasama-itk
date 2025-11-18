@@ -85,7 +85,7 @@ class RegisteredUserController extends Controller
             Log::error('Registration failed: ' . $e->getMessage());
             return redirect()->back()
                 ->withInput()
-                ->withErrors(['error' => 'Registration failed. Please try again.']);
+                ->withErrors(['error' => 'Pendaftaran gagal. Periksa kembali data Anda lalu coba lagi.']);
         }
     }
 }

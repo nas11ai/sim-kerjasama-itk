@@ -210,7 +210,7 @@ class AnnouncementController extends Controller
         );
 
         return response()->json([
-            'message' => 'Announcement marked as read.',
+            'message' => 'Pengumuman berhasil ditandai sebagai dibaca.',
             'data' => $reader,
         ]);
     }

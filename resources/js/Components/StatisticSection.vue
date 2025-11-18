@@ -164,15 +164,15 @@ const hasReviewerData = computed(() => (props.submissionReviewer?.totalReviewers
                     <template v-else>
                         <div class="grid grid-cols-3 gap-4">
                             <div class="text-center p-4 bg-blue-50 rounded-lg">
-                                <p class="text-sm text-gray-600">Total Phases</p>
+                                <p class="text-sm text-gray-600">Total Tahap</p>
                                 <p class="text-2xl font-bold text-blue-600">{{ totalFormPhases }}</p>
                             </div>
                             <div class="text-center p-4 bg-green-50 rounded-lg">
-                                <p class="text-sm text-gray-600">Total Forms</p>
+                                <p class="text-sm text-gray-600">Total Formulir</p>
                                 <p class="text-2xl font-bold text-green-600">{{ totalForms }}</p>
                             </div>
                             <div class="text-center p-4 bg-purple-50 rounded-lg">
-                                <p class="text-sm text-gray-600">Submissions</p>
+                                <p class="text-sm text-gray-600">Total Pengajuan</p>
                                 <p class="text-2xl font-bold text-purple-600">{{ totalSubmissions }}</p>
                             </div>
                         </div>

@@ -109,7 +109,7 @@ const formatDate = (dateString: string) => {
                             <Input id="name" v-model="form.name" type="text" placeholder="Masukkan nama role reviewer"
                                 required />
                             <p class="text-xs text-muted-foreground">
-                                Pilih nama yang deskriptif yang dengan jelas mengidentifikasi peran dan
+                                Pilih nama yang deskriptif yang dengan jelas mengidentifikasi role dan
                                 tanggung jawab reviewer.
                             </p>
                             <p v-if="form.errors.name" class="text-sm text-destructive">

@@ -252,7 +252,7 @@ class SubmissionViewController extends Controller
             $this->canUserReview($submission, $user);
 
         if (!$canView) {
-            abort(403, 'Unauthorized access to submission');
+            abort(403, 'Akses tidak sah terhadap pengajuan.');
         }
 
         // Load submission with relationships
@@ -421,7 +421,7 @@ class SubmissionViewController extends Controller
     {
         // Only show submitted forms to admin
         if (!$submission->is_submitted) {
-            abort(404, 'Submission not found');
+            abort(404, 'Pengajuan tidak ditemukan.');
         }
 
         try {
@@ -702,7 +702,7 @@ class SubmissionViewController extends Controller
                 'hasPendingEvaluations' => false,
                 'pendingEvaluationsCount' => 0,
                 'userRole' => $this->getUserRoleForSubmission($submission, auth()->user()),
-                'error' => 'Review system temporarily unavailable',
+                'error' => 'Sistem review sedang tidak tersedia untuk sementara.',
             ]);
         }
     }

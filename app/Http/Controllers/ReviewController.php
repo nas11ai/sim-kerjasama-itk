@@ -165,15 +165,15 @@ class ReviewController extends Controller
                     $canUpdate = true;
                 } else if ($submissionReviewer) {
                     $pendingCount = $submissionReviewer->pending_forms_count;
-                    abort(403, "Selesaikan {$pendingCount} formulir evaluasi yang tertunda sebelum memperbarui status submission.");
+                    abort(403, "Selesaikan {$pendingCount} formulir evaluasi yang tertunda sebelum memperbarui status pengajuan.");
                 } else {
-                    abort(403, 'Anda tidak ditugaskan sebagai reviewer untuk submission ini.');
+                    abort(403, 'Anda tidak ditugaskan sebagai reviewer untuk pengajuan ini.');
                 }
             }
         }
 
         if (!$canUpdate) {
-            abort(403, 'Tidak berwenang untuk memperbarui status submission.');
+            abort(403, 'Tidak berwenang untuk memperbarui status pengajuan.');
         }
 
         // Convert string status to enum
@@ -194,7 +194,7 @@ class ReviewController extends Controller
             $this->emailService->notifySubmissionStatusChanged($submission, $oldStatus);
         });
 
-        return back()->with('success', "Status submission berhasil diubah menjadi {$newStatus->label()}.");
+        return back()->with('success', "Status pengajuan berhasil diubah menjadi {$newStatus->label()}.");
     }
 
     // Enhanced thread creation with evaluation check
@@ -226,7 +226,7 @@ class ReviewController extends Controller
         ])->first();
 
         if (!$submissionReviewer) {
-            abort(403, 'Anda tidak ditugaskan sebagai reviewer untuk submission ini.');
+            abort(403, 'Anda tidak ditugaskan sebagai reviewer untuk pengajuan ini.');
         }
 
         // Get form phase to check if evaluation forms exist
@@ -405,7 +405,7 @@ class ReviewController extends Controller
         ])->first();
 
         if (!$submissionReviewer) {
-            return back()->withErrors(['error' => 'Reviewer tidak ditugaskan untuk submission ini.']);
+            return back()->withErrors(['error' => 'Reviewer tidak ditugaskan untuk pengajuan ini.']);
         }
 
         try {

@@ -120,7 +120,7 @@ class ReviewerController extends Controller
 
         if ($existingReviewer) {
             return back()->withErrors([
-                'user_id' => 'User sudah memiliki peran reviewer yang aktif.'
+                'user_id' => 'User sudah memiliki role reviewer yang aktif.'
             ]);
         }
 

@@ -59,7 +59,7 @@ class RoleController extends Controller
         $user = $request->user();
 
         if ($role->name == RoleEnum::SUPER_ADMIN->value && !$user->hasRole(RoleEnum::SUPER_ADMIN->value)) {
-            return redirect()->route('admin.roles.index')->with('error', 'Anda tidak dapat mengedit peran super admin.');
+            return redirect()->route('admin.roles.index')->with('error', 'Anda tidak dapat mengedit role super admin.');
         }
 
         return inertia('Roles/Edit', [
@@ -95,11 +95,11 @@ class RoleController extends Controller
     public function destroy(Request $request, Role $role)
     {
         if ($role->name == RoleEnum::SUPER_ADMIN->value) {
-            return redirect()->route('admin.roles.index')->with('error', 'Anda tidak dapat menghapus peran super admin.');
+            return redirect()->route('admin.roles.index')->with('error', 'Anda tidak dapat menghapus role super admin.');
         }
 
         if ($role->users()->count() > 0) {
-            return redirect()->route('admin.roles.index')->with('error', 'Tidak dapat menghapus peran: peran ini sedang digunakan oleh satu atau lebih pengguna.');
+            return redirect()->route('admin.roles.index')->with('error', 'Tidak dapat menghapus role: role ini sedang digunakan oleh satu atau lebih pengguna.');
         }
 
         $role->delete();

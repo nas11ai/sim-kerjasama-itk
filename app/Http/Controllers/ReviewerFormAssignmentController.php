@@ -32,7 +32,7 @@ class ReviewerFormAssignmentController extends Controller
         ])->first();
 
         if (!$submissionReviewer) {
-            return back()->withErrors(['error' => 'Reviewer tidak ditugaskan untuk submission ini.']);
+            return back()->withErrors(['error' => 'Reviewer tidak ditugaskan untuk pengajuan ini.']);
         }
 
         try {
@@ -192,7 +192,7 @@ class ReviewerFormAssignmentController extends Controller
                 ])->first();
 
                 if (!$submissionReviewer) {
-                    $errors[] = "Reviewer ID {$reviewerId} tidak ditugaskan untuk submission ini";
+                    $errors[] = "Reviewer ID {$reviewerId} tidak ditugaskan untuk pengajuan ini";
                     continue;
                 }
 

@@ -53,7 +53,7 @@ const submit = () => {
                                 placeholder="Masukkan nama role reviewer (misalnya, Reviewer Fakultas, Reviewer Eksternal)"
                                 required />
                             <p class="text-xs text-muted-foreground">
-                                Pilih nama yang deskriptif yang dengan jelas mengidentifikasi peran dan tanggung jawab reviewer.
+                                Pilih nama yang deskriptif yang dengan jelas mengidentifikasi role dan tanggung jawab reviewer.
                             </p>
                             <p v-if="form.errors.name" class="text-sm text-destructive">
                                 {{ form.errors.name }}
@@ -70,7 +70,7 @@ const submit = () => {
                                 </Label>
                             </div>
                             <p class="text-xs text-muted-foreground">
-                                Hanya peran yang aktif yang dapat diberikan kepada reviewer. Peran yang tidak aktif akan disembunyikan dari pilihan, 
+                                Hanya role yang aktif yang dapat diberikan kepada reviewer. Role yang tidak aktif akan disembunyikan dari pilihan,
                                 tetapi tetap mempertahankan penugasan yang sudah ada.
                             </p>
                             <p v-if="form.errors.is_active" class="text-sm text-destructive">

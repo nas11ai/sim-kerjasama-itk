@@ -115,7 +115,7 @@ class FormAccessControlController extends Controller
 
         if ($existingControl) {
             return back()->withErrors([
-                'duplicate' => 'This combination of Form, Role, and Study Program already exists.'
+                'duplicate' => 'Gabungan Formulir, Role, dan Program Studi tersebut sudah terdaftar.'
             ]);
         }
 

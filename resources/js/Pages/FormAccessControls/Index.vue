@@ -468,7 +468,7 @@ const formatDate = (dateString: string) => {
                             />
                             <Input
                                 v-model="searchQuery"
-                                placeholder="Cari berdasarkan judul formulir, nama peran, atau program studi..."
+                                placeholder="Cari berdasarkan judul formulir, nama role, atau program studi..."
                                 class="pl-10"
                             />
                         </div>
@@ -833,7 +833,7 @@ const formatDate = (dateString: string) => {
                                         />
                                     </TableHead>
                                     <TableHead>Formulir</TableHead>
-                                    <TableHead>Peran</TableHead>
+                                    <TableHead>Role</TableHead>
                                     <TableHead>Program Studi</TableHead>
                                     <TableHead>Fakultas</TableHead>
                                     <TableHead>Dibuat Pada</TableHead>
