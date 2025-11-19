@@ -83,12 +83,16 @@ class UserController extends Controller
 
         $data = $request->validated();
 
-        $user->update([
+        $updateData = [
             'name' => $data['name'],
             'email' => $data['email'],
-            'password' => $data['password'] ? bcrypt($data['password']) : $user->password,
-        ]);
+        ];
 
+        if (!empty($data['password'])) {
+            $updateData['password'] = bcrypt($data['password']);
+        }
+
+        $user->update($updateData);
         $user->syncRoles($data['role']);
         $user->syncPermissions($data['permissions'] ?? []);
 
