@@ -239,7 +239,7 @@ const hasReviewerData = computed(() => (props.submissionReviewer?.totalReviewers
                 <CardContent class="p-6 space-y-4">
                     <div v-if="!hasSubmissionData" class="text-center py-12">
                         <CircleAlert class="h-16 w-16 mx-auto text-gray-300 mb-4" />
-                        <h3 class="text-lg font-semibold text-gray-500 mb-2">Belum Ada Data Pengajuan</h3>
+                        <h3 class="text-lg font-semibold text-gray-500 mb-2">Tidak ada data Pengajuan</h3>
 
                     </div>
 
@@ -324,7 +324,7 @@ const hasReviewerData = computed(() => (props.submissionReviewer?.totalReviewers
                 <CardContent class="p-6 space-y-4">
                     <div v-if="!hasUserData" class="text-center py-12">
                         <CircleAlert class="h-16 w-16 mx-auto text-gray-300 mb-4" />
-                        <h3 class="text-lg font-semibold text-gray-500 mb-2">Belum Ada Data User</h3>
+                        <h3 class="text-lg font-semibold text-gray-500 mb-2">Tidak ada data User</h3>
                     </div>
 
                     <template v-else>
@@ -395,7 +395,7 @@ const hasReviewerData = computed(() => (props.submissionReviewer?.totalReviewers
                 <CardContent class="p-6 space-y-4">
                     <div v-if="!hasReviewerData" class="text-center py-12">
                         <CircleAlert class="h-16 w-16 mx-auto text-gray-300 mb-4" />
-                        <h3 class="text-lg font-semibold text-gray-500 mb-2">Belum Ada Data Reviewer</h3>
+                        <h3 class="text-lg font-semibold text-gray-500 mb-2">Tidak ada Data Reviewer</h3>
                     </div>
 
                     <template v-else>
@@ -437,7 +437,7 @@ const hasReviewerData = computed(() => (props.submissionReviewer?.totalReviewers
                                 <div v-if="!submissionReviewer.totalByRole || submissionReviewer.totalByRole.length === 0"
                                     class="text-center py-8 bg-gray-50 rounded-lg">
                                     <Inbox class="h-10 w-10 mx-auto text-gray-300 mb-2" />
-                                    <p class="text-sm text-gray-500">Belum ada data role reviewer</p>
+                                    <p class="text-sm text-gray-500">Tidak ada data role reviewer</p>
                                 </div>
                             </div>
                         </div>
