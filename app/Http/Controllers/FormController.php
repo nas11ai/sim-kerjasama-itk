@@ -13,14 +13,58 @@ use Illuminate\Support\Facades\DB;
 
 class FormController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $forms = Form::with(['formType', 'formFields'])
-            ->orderBy('created_at', 'desc')
-            ->paginate(10);
+        $search = $request->get('search');
+        $perPage = $request->get('per_page', 10);
+        $sortBy = $request->get('sort_by', 'created_at');
+        $sortOrder = $request->get('sort_order', 'desc');
+        $formTypeFilter = $request->get('form_type');
+        $isActiveFilter = $request->get('is_active');
+
+        $query = Form::with(['formType', 'formFields']);
+
+        if ($search) {
+            $query->where(function ($q) use ($search) {
+                $q->where('title', 'like', '%' . $search . '%')
+                    ->orWhere('description', 'like', '%' . $search . '%')
+                    ->orWhereHas('formType', function ($typeQuery) use ($search) {
+                        $typeQuery->where('name', 'like', '%' . $search . '%');
+                    });
+            });
+        }
+
+        if ($formTypeFilter && $formTypeFilter !== 'all') {
+            $query->where('form_type_id', $formTypeFilter);
+        }
+
+        if ($isActiveFilter && $isActiveFilter !== 'all') {
+            $query->where('is_active', $isActiveFilter === 'active' ? 1 : 0);
+        }
+
+        if ($sortBy === 'form_type') {
+            $query->join('form_types', 'forms.form_type_id', '=', 'form_types.id')
+                ->select('forms.*')
+                ->orderBy('form_types.name', $sortOrder);
+        } else {
+            $query->orderBy($sortBy, $sortOrder);
+        }
+
+        $forms = $query->paginate($perPage)->withQueryString();
+
+        $formTypes = FormType::orderBy('name')->get();
 
         return Inertia::render('Forms/Index', [
             'forms' => $forms,
+            'formTypes' => $formTypes,
+            'filters' => [
+                'search' => $search,
+                'per_page' => $perPage,
+                'sort_by' => $sortBy,
+                'sort_order' => $sortOrder,
+                'form_type' => $formTypeFilter,
+                'is_active' => $isActiveFilter,
+            ]
         ]);
     }
 
@@ -79,7 +123,7 @@ class FormController extends Controller
         });
 
         return redirect()->route('admin.forms.index')
-            ->with('success', 'Form created successfully!');
+            ->with('success', 'Formulir berhasil dibuat!');
     }
 
     public function show(Form $form)
@@ -180,7 +224,7 @@ class FormController extends Controller
         });
 
         return redirect()->route('admin.forms.index')
-            ->with('success', 'Form updated successfully!');
+            ->with('success', 'Formulir berhasil diperbarui!');
     }
 
     public function destroy(Form $form)
@@ -188,7 +232,7 @@ class FormController extends Controller
         $form->delete();
 
         return redirect()->route('admin.forms.index')
-            ->with('success', 'Form deleted successfully!');
+            ->with('success', 'Formulir berhasil dihapus!');
     }
 
     public function duplicate(Form $form)
@@ -212,6 +256,16 @@ class FormController extends Controller
         });
 
         return redirect()->route('admin.forms.index')
-            ->with('success', 'Form duplicated successfully!');
+            ->with('success', 'Formulir berhasil diduplikasi!');
+    }
+
+    public function bulkDelete(Request $request)
+    {
+        $ids = $request->input('ids', []);
+
+        Form::whereIn('id', $ids)->delete();
+
+        return redirect()->route('admin.forms.index')
+            ->with('success', 'Formulir terpilih berhasil dihapus!');
     }
 }

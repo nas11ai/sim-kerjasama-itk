@@ -20,44 +20,69 @@ const submit = () => {
 </script>
 
 <template>
-    <GuestLayout>
-        <Head title="Forgot Password" />
-
-        <div class="mb-4 text-sm text-gray-600">
-            Forgot your password? No problem. Just let us know your email
-            address and we will email you a password reset link that will allow
-            you to choose a new one.
-        </div>
-
-        <div v-if="status" class="mb-4 text-sm font-medium text-green-600">
-            {{ status }}
-        </div>
-
-        <form @submit.prevent="submit">
-            <div>
-                <InputLabel for="email" value="Email" />
-
-                <TextInput
-                    id="email"
-                    type="email"
-                    class="mt-1 block w-full"
-                    v-model="form.email"
-                    required
-                    autofocus
-                    autocomplete="username"
+    <div
+        class="min-h-screen relative flex flex-col items-center justify-center bg-gradient-to-b from-white to-blue-50 z-10 p-10"
+    >
+        <div class="mb-6">
+            <div class="flex items-center gap-4 drop-shadow-md">
+                <img
+                    src="/images/Logo-ITK.png"
+                    alt="Logo ITK"
+                    class="h-20 w-auto object-contain mx-auto mb-2"
                 />
+                <div>
+                    <h1 class="text-2xl font-bold text-blue-600">
+                        SIM Kerja Sama ITK
+                    </h1>
+                    <p class="text-gray-500 text-xs uppercase">
+                        Institut Teknologi Kalimantan
+                    </p>
+                </div>
+            </div>
+        </div>
 
-                <InputError class="mt-2" :message="form.errors.email" />
+        <div
+            class="w-full max-w-md bg-white z-10 rounded-3xl shadow-lg px-8 py-8 justify-between flex flex-col gap-8 border border-blue-100"
+        >
+            <Head title="Forgot Password" />
+
+            <div class="mb-4 text-sm text-gray-600">
+                Lupa kata sandi? Tidak masalah. Cukup beri tahu kami alamat
+                email Anda, dan kami akan mengirimkan tautan pengaturan ulang
+                kata sandi melalui email yang memungkinkan Anda memilih kata
+                sandi baru.
             </div>
 
-            <div class="mt-4 flex items-center justify-end">
-                <PrimaryButton
-                    :class="{ 'opacity-25': form.processing }"
-                    :disabled="form.processing"
-                >
-                    Email Password Reset Link
-                </PrimaryButton>
+            <div v-if="status" class="mb-4 text-sm font-medium text-green-600">
+                {{ status }}
             </div>
-        </form>
-    </GuestLayout>
+
+            <form @submit.prevent="submit">
+                <div>
+                    <InputLabel for="email" value="Email" />
+
+                    <TextInput
+                        id="email"
+                        type="email"
+                        class="mt-1 block w-full"
+                        v-model="form.email"
+                        required
+                        autofocus
+                        autocomplete="username"
+                    />
+
+                    <InputError class="mt-2" :message="form.errors.email" />
+                </div>
+
+                <div class="mt-4 flex items-center justify-end">
+                    <PrimaryButton
+                        :class="{ 'opacity-25': form.processing }"
+                        :disabled="form.processing"
+                    >
+                        Kirim Tautan Reset Kata Sandi
+                    </PrimaryButton>
+                </div>
+            </form>
+        </div>
+    </div>
 </template>

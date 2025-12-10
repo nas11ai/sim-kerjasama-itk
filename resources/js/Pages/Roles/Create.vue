@@ -35,7 +35,7 @@ const props = defineProps<{
 </script>
 
 <template>
-    <Head title="Create Role" />
+    <Head title="Buat Role" />
 
     <AuthenticatedLayout>
         <template #header>
@@ -47,10 +47,10 @@ const props = defineProps<{
                     @click="$inertia.visit(route('admin.roles.index'))"
                 >
                     <ArrowLeft class="h-4 w-4" />
-                    Back
+                    Kembali
                 </Button>
                 <h2 class="text-xl font-semibold leading-tight text-gray-800">
-                    Create New Roles
+                    Buat Role Baru
                 </h2>
             </div>
         </template>
@@ -58,11 +58,10 @@ const props = defineProps<{
         <div class="max-w-4xl mx-auto space-y-6">
             <Card>
                 <CardHeader>
-                    <CardTitle>Create New User</CardTitle>
-                    <CardDescription
-                        >Fill in the details to create a new
-                        user.</CardDescription
-                    >
+                    <CardTitle>Buat Role Baru</CardTitle>
+                    <CardDescription>
+                        Isi detail untuk membuat role baru.
+                    </CardDescription>
                 </CardHeader>
                 <CardContent class="space-y-6">
                     <RoleForm

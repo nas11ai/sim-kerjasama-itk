@@ -123,25 +123,28 @@ const submit = () => {
 </script>
 
 <template>
-
-    <Head title="Edit Form Access Control" />
+    <Head title="Edit Akses Kontrol Formulir" />
 
     <AuthenticatedLayout>
         <template #header>
             <div class="flex items-center gap-4">
-                <Button variant="ghost" size="sm" @click="
-                    $inertia.visit(
-                        route(
-                            'admin.form-access-controls.show',
-                            props.formAccessControl.id
+                <Button
+                    variant="ghost"
+                    size="sm"
+                    @click="
+                        $inertia.visit(
+                            route(
+                                'admin.form-access-controls.show',
+                                props.formAccessControl.id
+                            )
                         )
-                    )
-                    ">
+                    "
+                >
                     <ArrowLeft class="h-4 w-4 mr-2" />
-                    Back
+                    Kembali
                 </Button>
                 <h2 class="text-xl font-semibold leading-tight text-gray-800">
-                    Edit Form Access Control
+                    Edit Akses Kontrol Formulir
                 </h2>
             </div>
         </template>
@@ -150,12 +153,14 @@ const submit = () => {
             <!-- Current Configuration Display -->
             <Card class="border-blue-200 bg-blue-50">
                 <CardHeader>
-                    <CardTitle class="text-blue-900">Current Configuration</CardTitle>
+                    <CardTitle class="text-blue-900"
+                        >Konfigurasi Saat Ini</CardTitle
+                    >
                 </CardHeader>
                 <CardContent>
                     <div class="grid gap-4 md:grid-cols-3 text-sm">
                         <div>
-                            <p class="text-blue-700 font-medium">Form</p>
+                            <p class="text-blue-700 font-medium">Formulir</p>
                             <p class="text-blue-600">
                                 {{ props.formAccessControl.form.title }}
                             </p>
@@ -168,7 +173,7 @@ const submit = () => {
                         </div>
                         <div>
                             <p class="text-blue-700 font-medium">
-                                Study Program
+                                Program Studi
                             </p>
                             <p class="text-blue-600">
                                 {{ props.formAccessControl.study_program.name }}
@@ -190,23 +195,30 @@ const submit = () => {
                     <CardHeader>
                         <CardTitle class="flex items-center gap-2">
                             <FileText class="h-5 w-5" />
-                            Form Selection
+                            Pemilihan Formulir
                         </CardTitle>
                     </CardHeader>
                     <CardContent class="space-y-4">
                         <div class="space-y-2">
-                            <Label for="form">Form *</Label>
+                            <Label for="form">Formulir *</Label>
                             <Select v-model="form.form_id">
                                 <SelectTrigger id="form">
-                                    <SelectValue placeholder="Select a form" />
+                                    <SelectValue placeholder="Pilih formulir" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem v-for="formItem in props.forms" :key="formItem.id" :value="formItem.id">
+                                    <SelectItem
+                                        v-for="formItem in props.forms"
+                                        :key="formItem.id"
+                                        :value="formItem.id"
+                                    >
                                         {{ formItem.title }}
                                     </SelectItem>
                                 </SelectContent>
                             </Select>
-                            <p v-if="errors.form_id" class="text-sm text-destructive">
+                            <p
+                                v-if="errors.form_id"
+                                class="text-sm text-destructive"
+                            >
                                 {{ errors.form_id }}
                             </p>
                         </div>
@@ -218,7 +230,7 @@ const submit = () => {
                     <CardHeader>
                         <CardTitle class="flex items-center gap-2">
                             <Users class="h-5 w-5" />
-                            Access Configuration
+                            Konfigurasi Akses
                         </CardTitle>
                     </CardHeader>
                     <CardContent class="space-y-6">
@@ -228,29 +240,41 @@ const submit = () => {
                                 <Label for="role">Role *</Label>
                                 <Select v-model="form.role_id">
                                     <SelectTrigger id="role">
-                                        <SelectValue placeholder="Select a role" />
+                                        <SelectValue placeholder="Pilih role" />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        <SelectItem v-for="role in props.roles" :key="role.id" :value="role.id">
+                                        <SelectItem
+                                            v-for="role in props.roles"
+                                            :key="role.id"
+                                            :value="role.id"
+                                        >
                                             {{ role.name }}
                                         </SelectItem>
                                     </SelectContent>
                                 </Select>
-                                <p v-if="errors.role_id" class="text-sm text-destructive">
+                                <p
+                                    v-if="errors.role_id"
+                                    class="text-sm text-destructive"
+                                >
                                     {{ errors.role_id }}
                                 </p>
                             </div>
 
                             <!-- Faculty Selection -->
                             <div class="space-y-2">
-                                <Label for="faculty">Faculty *</Label>
+                                <Label for="faculty">Fakultas *</Label>
                                 <Select v-model="selectedFacultyId">
                                     <SelectTrigger id="faculty">
-                                        <SelectValue placeholder="Select a faculty" />
+                                        <SelectValue
+                                            placeholder="Pilih fakultas"
+                                        />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        <SelectItem v-for="faculty in props.faculties" :key="faculty.id"
-                                            :value="faculty.id">
+                                        <SelectItem
+                                            v-for="faculty in props.faculties"
+                                            :key="faculty.id"
+                                            :value="faculty.id"
+                                        >
                                             {{ faculty.name }}
                                         </SelectItem>
                                     </SelectContent>
@@ -260,19 +284,30 @@ const submit = () => {
 
                         <!-- Study Program Selection -->
                         <div class="space-y-2">
-                            <Label for="study_program">Study Program *</Label>
-                            <Select v-model="form.study_program_id" :disabled="!selectedFacultyId">
+                            <Label for="study_program">Program Studi *</Label>
+                            <Select
+                                v-model="form.study_program_id"
+                                :disabled="!selectedFacultyId"
+                            >
                                 <SelectTrigger id="study_program">
-                                    <SelectValue placeholder="Select a study program" />
+                                    <SelectValue
+                                        placeholder="Pilih program studi"
+                                    />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem v-for="studyProgram in studyPrograms" :key="studyProgram.id"
-                                        :value="studyProgram.id">
+                                    <SelectItem
+                                        v-for="studyProgram in studyPrograms"
+                                        :key="studyProgram.id"
+                                        :value="studyProgram.id"
+                                    >
                                         {{ studyProgram.name }}
                                     </SelectItem>
                                 </SelectContent>
                             </Select>
-                            <p v-if="errors.study_program_id" class="text-sm text-destructive">
+                            <p
+                                v-if="errors.study_program_id"
+                                class="text-sm text-destructive"
+                            >
                                 {{ errors.study_program_id }}
                             </p>
                         </div>
@@ -295,17 +330,21 @@ const submit = () => {
                 <Card class="border-amber-200 bg-amber-50">
                     <CardContent class="p-4">
                         <div class="flex items-start gap-3">
-                            <AlertTriangle class="h-5 w-5 text-amber-600 mt-0.5" />
+                            <AlertTriangle
+                                class="h-5 w-5 text-amber-600 mt-0.5"
+                            />
                             <div>
-                                <h4 class="text-amber-800 font-medium text-sm mb-1">
-                                    Update Warning
+                                <h4
+                                    class="text-amber-800 font-medium text-sm mb-1"
+                                >
+                                    Peringatan Pembaruan
                                 </h4>
                                 <p class="text-amber-700 text-sm">
-                                    Modifying this access control may affect
-                                    users who currently have access to the
-                                    associated form. Make sure to coordinate
-                                    with relevant stakeholders before making
-                                    changes.
+                                    Perubahan pada kontrol akses ini dapat
+                                    berdampak pada pengguna yang saat ini
+                                    memiliki akses ke formulir terkait.
+                                    Disarankan untuk melakukan koordinasi dengan
+                                    pihak terkait sebelum melanjutkan.
                                 </p>
                             </div>
                         </div>
@@ -314,21 +353,25 @@ const submit = () => {
 
                 <!-- Form Actions -->
                 <div class="flex items-center justify-end space-x-2">
-                    <Button type="button" variant="outline" @click="
-                        $inertia.visit(
-                            route(
-                                'admin.form-access-controls.show',
-                                props.formAccessControl.id
+                    <Button
+                        type="button"
+                        variant="outline"
+                        @click="
+                            $inertia.visit(
+                                route(
+                                    'admin.form-access-controls.show',
+                                    props.formAccessControl.id
+                                )
                             )
-                        )
-                        ">
-                        Cancel
+                        "
+                    >
+                        Batal
                     </Button>
                     <Button type="submit" :disabled="form.processing">
                         {{
                             form.processing
-                                ? "Updating..."
-                                : "Update Access Control"
+                                ? "Memperbarui..."
+                                : "Perbarui Kontrol Akses"
                         }}
                     </Button>
                 </div>

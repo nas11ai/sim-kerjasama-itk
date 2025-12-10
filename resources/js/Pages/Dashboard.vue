@@ -1,6 +1,21 @@
 <script setup lang="ts">
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout.vue";
 import { Head } from "@inertiajs/vue3";
+import type {
+    FormPhaseStats,
+    FormSubmissionStats,
+    UserStats,
+    SubmissionReviewerStats
+} from "@/types/statistics";
+import StatisticSection from "@/Components/StatisticSection.vue";
+
+const props = defineProps<{
+    formPhase: FormPhaseStats;
+    formSubmission: FormSubmissionStats;
+    user: UserStats;
+    submissionReviewer: SubmissionReviewerStats;
+}>();
+
 </script>
 
 <template>
@@ -17,20 +32,23 @@ import { Head } from "@inertiajs/vue3";
 
         <div class="space-y-6">
             <!-- Welcome Card -->
-            <div
-                class="rounded-lg border bg-card text-card-foreground shadow-sm"
-            >
-                <div class="p-6">
-                    <h3
-                        class="text-2xl font-semibold leading-none tracking-tight mb-2"
-                    >
-                        Welcome back!
-                    </h3>
-                    <p class="text-sm text-muted-foreground">
-                        You're successfully logged in to your dashboard.
-                    </p>
-                </div>
+            <div>
+                <h3
+                    class="text-3xl font-semibold leading-none tracking-tight mb-1"
+                >
+                    Selamat datang di SIM Kerjasama ITK!
+                </h3>
+                <p class="text-lg text-muted-foreground">
+                    Anda telah berhasil masuk ke dashboard Anda.
+                </p>
             </div>
+
+            <StatisticSection
+                :form-phase="props.formPhase"
+                :form-submission="props.formSubmission"
+                :user="props.user"
+                :submission-reviewer="props.submissionReviewer"
+            />
         </div>
     </AuthenticatedLayout>
 </template>

@@ -82,10 +82,10 @@ const getStatusBadgeVariant = (submitted: number, draft: number) => {
 };
 
 const getStatusText = (submitted: number, draft: number, total: number) => {
-    if (total === 0) return 'No Submissions';
-    if (submitted === total) return 'All Submitted';
-    if (submitted > 0) return 'Partially Submitted';
-    return 'Draft Only';
+    if (total === 0) return 'Tidak Ada Pengajuan';
+    if (submitted === total) return 'Semua Pengajuan Dikirim';
+    if (submitted > 0) return 'Sebagian Pengajuan Dikirim';
+    return 'Hanya Draft';
 };
 
 const hasSubmissions = computed(() => {
@@ -95,14 +95,14 @@ const hasSubmissions = computed(() => {
 
 <template>
 
-    <Head title="My Submissions" />
+    <Head title="Pengajuan Saya" />
 
     <AuthenticatedLayout>
         <template #header>
             <div class="flex items-center justify-between">
                 <div>
                     <h2 class="text-xl font-semibold leading-tight text-gray-800">
-                        My Form Submissions
+                        Pengajuan Formulir Saya
                     </h2>
                     <p class="text-sm text-muted-foreground mt-1" v-if="studyProgram">
                         {{ studyProgram.faculty.name }} - {{ studyProgram.name }}
@@ -120,15 +120,15 @@ const hasSubmissions = computed(() => {
                 <CardContent class="text-center py-12">
                     <FileText class="h-12 w-12 mx-auto text-muted-foreground mb-4" />
                     <h3 class="text-lg font-medium text-gray-900 mb-2">
-                        No Submissions Yet
+                        Belum Ada Pengajuan
                     </h3>
                     <p class="text-sm text-muted-foreground mb-4">
-                        You haven't submitted any forms yet. Visit the dashboard to start filling out forms.
+                        Anda belum mengajukan formulir apapun. Kunjungi dashboard untuk mulai mengisi formulir.
                     </p>
                     <Link :href="route('user.dashboard')">
                     <Button>
                         <FileText class="h-4 w-4 mr-2" />
-                        Go to Dashboard
+                        Pergi ke Dashboard
                     </Button>
                     </Link>
                 </CardContent>
@@ -147,7 +147,7 @@ const hasSubmissions = computed(() => {
                                         {{ period.name }}
                                     </CardTitle>
                                     <CardDescription class="mt-1">
-                                        Created {{ formatDate(period.created_at) }}
+                                        Dibuat Pada {{ formatDate(period.created_at) }}
                                     </CardDescription>
                                 </div>
                                 <div class="flex items-center gap-2">
@@ -166,7 +166,7 @@ const hasSubmissions = computed(() => {
                                 <div v-if="period.submission_dates.length > 0">
                                     <h4 class="font-medium text-sm mb-2 flex items-center gap-2">
                                         <Clock class="h-4 w-4" />
-                                        Important Dates
+                                        Tanggal Penting
                                     </h4>
                                     <div class="grid gap-2 sm:grid-cols-2">
                                         <div v-for="date in period.submission_dates.slice(0, 4)" :key="date.id"
@@ -182,7 +182,7 @@ const hasSubmissions = computed(() => {
                                     <div class="p-3 bg-blue-50 rounded-lg">
                                         <div class="text-2xl font-bold text-blue-600">{{ period.user_submissions_count
                                             }}</div>
-                                        <div class="text-xs text-blue-600">Total Forms</div>
+                                        <div class="text-xs text-blue-600">Total Formulir</div>
                                     </div>
                                     <div class="p-3 bg-green-50 rounded-lg">
                                         <div
@@ -190,7 +190,7 @@ const hasSubmissions = computed(() => {
                                             {{ period.user_submitted_count }}
                                             <CheckCircle class="h-4 w-4" />
                                         </div>
-                                        <div class="text-xs text-green-600">Submitted</div>
+                                        <div class="text-xs text-green-600">Pengajuan dikirim</div>
                                     </div>
                                     <div class="p-3 bg-yellow-50 rounded-lg">
                                         <div
@@ -198,7 +198,7 @@ const hasSubmissions = computed(() => {
                                             {{ period.user_draft_count }}
                                             <AlertCircle class="h-4 w-4" />
                                         </div>
-                                        <div class="text-xs text-yellow-600">Drafts</div>
+                                        <div class="text-xs text-yellow-600">Draft</div>
                                     </div>
                                 </div>
 
@@ -207,7 +207,7 @@ const hasSubmissions = computed(() => {
                                     <Link :href="route('user.submissions.period', period.id)">
                                     <Button size="sm">
                                         <Eye class="h-4 w-4 mr-2" />
-                                        View Details
+                                        Lihat Detail
                                     </Button>
                                     </Link>
                                 </div>
@@ -219,23 +219,23 @@ const hasSubmissions = computed(() => {
 
             <!-- All Submission Periods (if no submissions) -->
             <div v-if="!hasSubmissions && submissionPeriods.length > 0" class="mt-8">
-                <h3 class="text-lg font-semibold mb-4">Available Submission Periods</h3>
+                <h3 class="text-lg font-semibold mb-4">Periode Pengajuan Tersedia</h3>
                 <div class="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                     <Card v-for="period in submissionPeriods" :key="period.id"
                         class="hover:shadow-lg transition-shadow opacity-75">
                         <CardHeader class="pb-3">
                             <CardTitle class="text-base">{{ period.name }}</CardTitle>
                             <CardDescription class="text-xs">
-                                Created {{ formatDate(period.created_at) }}
+                                Dibuat Pada {{ formatDate(period.created_at) }}
                             </CardDescription>
                         </CardHeader>
                         <CardContent>
                             <p class="text-xs text-muted-foreground mb-3">
-                                No submissions yet for this period
+                                Belum Ada Pengajuan untuk periode ini
                             </p>
                             <Link :href="route('user.dashboard')">
                             <Button size="sm" variant="outline" class="w-full">
-                                Start Submitting
+                                Mulai Mengajukan
                             </Button>
                             </Link>
                         </CardContent>

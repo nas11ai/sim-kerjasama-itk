@@ -137,7 +137,7 @@ const updateStatus = () => {
 </script>
 
 <template>
-    <Head :title="`Review: ${submission.form?.title || 'Submission'}`" />
+    <Head :title="`Review: ${submission.form?.title || 'Detail Pengajuan'}`" />
 
     <AuthenticatedLayout>
         <template #header>
@@ -145,14 +145,14 @@ const updateStatus = () => {
                 <div class="flex items-center gap-4">
                     <Button variant="ghost" size="sm" @click="goBack">
                         <ArrowLeft class="h-4 w-4 mr-2" />
-                        Back
+                        Kembali
                     </Button>
                     <div>
                         <h2 class="text-xl font-semibold leading-tight text-gray-800">
-                            {{ submission.form?.title || 'Submission Detail' }}
+                            {{ submission.form?.title || 'Detail Pengajuan' }}
                         </h2>
                         <p class="text-sm text-muted-foreground">
-                            Review submission from {{ submission.submitted_by?.name || 'Unknown' }}
+                            Review pengajuan dari {{ submission.submitted_by?.name || 'Tidak Diketahui' }}
                         </p>
                     </div>
                 </div>
@@ -172,13 +172,13 @@ const updateStatus = () => {
                             <component :is="getMyReviewStatus().icon" class="h-6 w-6" />
                             <div>
                                 <h3 class="font-semibold text-lg">
-                                    My Review Status: {{ getMyReviewStatus().label }}
+                                    Status Review Saya: {{ getMyReviewStatus().label }}
                                 </h3>
                                 <p class="text-sm opacity-80 mt-1" v-if="myReviewSummary">
-                                    Last updated: {{ formatDateTime(myReviewSummary.updated_at) }}
+                                    Terakhir diperbarui: {{ formatDateTime(myReviewSummary.updated_at) }}
                                 </p>
                                 <p class="text-sm opacity-80 mt-1" v-else>
-                                    You haven't started reviewing this submission yet
+                                    Anda belum memulai review pengajuan ini
                                 </p>
                             </div>
                         </div>
@@ -188,7 +188,7 @@ const updateStatus = () => {
                             class="ml-4"
                         >
                             <FileCheck class="h-4 w-4 mr-2" />
-                            {{ myReviewSummary ? 'Update Review' : 'Start Review' }}
+                            {{ myReviewSummary ? 'Perbarui Review' : 'Mulai Review' }}
                         </Button>
                     </div>
                 </CardContent>
@@ -199,32 +199,32 @@ const updateStatus = () => {
                 <CardHeader>
                     <CardTitle class="flex items-center gap-2">
                         <History class="h-5 w-5" />
-                        Review Progress
+                        Progress Review
                     </CardTitle>
                 </CardHeader>
                 <CardContent>
                     <div class="grid gap-4 md:grid-cols-4">
                         <div class="text-center p-4 bg-muted/50 rounded-lg">
                             <div class="text-2xl font-bold">{{ reviewStats.total_reviewers || 0 }}</div>
-                            <p class="text-sm text-muted-foreground mt-1">Total Reviewers</p>
+                            <p class="text-sm text-muted-foreground mt-1">Total Reviewer</p>
                         </div>
                         <div class="text-center p-4 bg-yellow-50 rounded-lg">
                             <div class="text-2xl font-bold text-yellow-600">{{ reviewStats.open_reviews || 0 }}</div>
-                            <p class="text-sm text-muted-foreground mt-1">In Progress</p>
+                            <p class="text-sm text-muted-foreground mt-1">Sedang Berlangsung</p>
                         </div>
                         <div class="text-center p-4 bg-green-50 rounded-lg">
                             <div class="text-2xl font-bold text-green-600">{{ reviewStats.resolved_reviews || 0 }}</div>
-                            <p class="text-sm text-muted-foreground mt-1">Completed</p>
+                            <p class="text-sm text-muted-foreground mt-1">Selesai</p>
                         </div>
                         <div class="text-center p-4 bg-blue-50 rounded-lg">
                             <div class="text-2xl font-bold text-blue-600">{{ reviewStats.total_comments || 0 }}</div>
-                            <p class="text-sm text-muted-foreground mt-1">Comments</p>
+                            <p class="text-sm text-muted-foreground mt-1">Komentar</p>
                         </div>
                     </div>
 
                     <!-- Assigned Reviewers -->
                     <div class="mt-6 pt-6 border-t" v-if="submission.assigned_reviewers?.length">
-                        <Label class="text-sm font-medium mb-3 block">Assigned Reviewers</Label>
+                        <Label class="text-sm font-medium mb-3 block">Reviewer yang Ditugaskan</Label>
                         <div class="flex flex-wrap gap-2">
                             <Badge
                                 v-for="rev in submission.assigned_reviewers"
@@ -248,12 +248,12 @@ const updateStatus = () => {
                     <CardHeader>
                         <CardTitle class="flex items-center gap-2 text-base">
                             <User class="h-5 w-5" />
-                            Submitted By
+                            Dikirim Oleh
                         </CardTitle>
                     </CardHeader>
                     <CardContent class="space-y-3">
                         <div>
-                            <Label class="text-sm font-medium text-muted-foreground">Name</Label>
+                            <Label class="text-sm font-medium text-muted-foreground">Nama</Label>
                             <p class="font-medium">
                                 {{ submission.submitted_by?.name || 'N/A' }}
                             </p>
@@ -276,7 +276,7 @@ const updateStatus = () => {
                     <CardHeader>
                         <CardTitle class="flex items-center gap-2 text-base">
                             <Clock class="h-5 w-5" />
-                            Submission Status
+                            Status Pengajuan
                         </CardTitle>
                     </CardHeader>
                     <CardContent class="space-y-3">
@@ -287,13 +287,13 @@ const updateStatus = () => {
                             </Badge>
                         </div>
                         <div>
-                            <Label class="text-sm font-medium text-muted-foreground">Submitted</Label>
+                            <Label class="text-sm font-medium text-muted-foreground">Dikirim Pada</Label>
                             <p class="font-medium">
                                 {{ formatDateTime(submission.submitted_at || submission.created_at) }}
                             </p>
                         </div>
                         <div>
-                            <Label class="text-sm font-medium text-muted-foreground">Last Updated</Label>
+                            <Label class="text-sm font-medium text-muted-foreground">Terakhir Diperbarui</Label>
                             <p class="font-medium text-green-600">
                                 {{ formatDateTime(submission.updated_at) }}
                             </p>
@@ -307,7 +307,7 @@ const updateStatus = () => {
                 <CardHeader>
                     <CardTitle class="flex items-center gap-2">
                         <FileText class="h-5 w-5" />
-                        Form Information
+                        Informasi Formulir
                     </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -323,9 +323,9 @@ const updateStatus = () => {
             <!-- Form Responses -->
             <Card>
                 <CardHeader>
-                    <CardTitle>Submitted Responses</CardTitle>
+                    <CardTitle>Respon yang Dikirim</CardTitle>
                     <CardDescription>
-                        All form fields and their submitted values
+                        Semua bidang formulir dan nilai yang dikirimkan
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -334,7 +334,7 @@ const updateStatus = () => {
                             <div class="flex items-center gap-2 mb-2">
                                 <Label class="font-medium">{{ field.label }}</Label>
                                 <Badge v-if="field.is_required" variant="destructive" class="text-xs">
-                                    Required
+                                    Wajib
                                 </Badge>
                                 <Badge variant="outline" class="text-xs capitalize">
                                     {{ field.field_type?.name || 'text' }}
@@ -349,7 +349,7 @@ const updateStatus = () => {
                     </div>
                     <div v-else class="text-center py-8 text-muted-foreground">
                         <FileText class="h-12 w-12 mx-auto mb-3 opacity-50" />
-                        <p>No form fields available</p>
+                        <p>Tidak ada bidang formulir tersedia</p>
                     </div>
                 </CardContent>
             </Card>
@@ -359,10 +359,10 @@ const updateStatus = () => {
                 <CardHeader>
                     <CardTitle class="flex items-center gap-2">
                         <MessageSquare class="h-5 w-5" />
-                        Review Actions
+                        Tindakan Review
                     </CardTitle>
                     <CardDescription>
-                        Submit your review and provide feedback
+                        Kirim review Anda dan berikan umpan balik
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -370,7 +370,7 @@ const updateStatus = () => {
                         <!-- Current Review Status -->
                         <div v-if="myReviewSummary" class="bg-muted/50 p-4 rounded-lg">
                             <div class="flex items-center justify-between mb-2">
-                                <Label class="text-sm font-medium">Current Review Status</Label>
+                                <Label class="text-sm font-medium">Status Review Saat Ini</Label>
                                 <Badge :variant="myReviewSummary.status === 'resolved' ? 'default' : 'outline'">
                                     {{ myReviewSummary.status }}
                                 </Badge>
@@ -379,7 +379,7 @@ const updateStatus = () => {
                                 {{ myReviewSummary.summary_notes }}
                             </p>
                             <p class="text-sm text-muted-foreground italic" v-else>
-                                No notes provided yet
+                                Belum ada catatan yang diberikan
                             </p>
                         </div>
 
@@ -391,7 +391,7 @@ const updateStatus = () => {
                                 size="lg"
                             >
                                 <Send class="h-4 w-4 mr-2" />
-                                {{ myReviewSummary ? 'Update My Review' : 'Submit Review' }}
+                                {{ myReviewSummary ? 'Perbarui Review Saya' : 'Kirim Review' }}
                             </Button>
                         </div>
                     </div>
@@ -405,20 +405,20 @@ const updateStatus = () => {
                 <DialogHeader>
                     <DialogTitle class="flex items-center gap-2">
                         <FileCheck class="h-5 w-5" />
-                        {{ myReviewSummary ? 'Update Review Status' : 'Submit Your Review' }}
+                        {{ myReviewSummary ? 'Perbarui Status Review' : 'Kirim Review Anda' }}
                     </DialogTitle>
                     <DialogDescription>
-                        Provide your review decision and feedback for this submission.
+                        Berikan keputusan review dan umpan balik Anda untuk pengajuan ini.
                     </DialogDescription>
                 </DialogHeader>
 
                 <div class="space-y-4 py-4">
                     <!-- Status Selection -->
                     <div class="space-y-2">
-                        <Label>Review Decision <span class="text-red-500">*</span></Label>
+                        <Label>Keputusan Review <span class="text-red-500">*</span></Label>
                         <Select v-model="selectedStatus">
                             <SelectTrigger>
-                                <SelectValue placeholder="Select review decision..." />
+                                <SelectValue placeholder="Pilih keputusan review..." />
                             </SelectTrigger>
                             <SelectContent>
                                 <SelectItem
@@ -434,7 +434,7 @@ const updateStatus = () => {
                             </SelectContent>
                         </Select>
                         <p class="text-xs text-muted-foreground">
-                            Choose the appropriate status based on your review
+                            Pilih status yang sesuai berdasarkan review Anda
                         </p>
                     </div>
 
@@ -443,11 +443,11 @@ const updateStatus = () => {
                         <Label>Review Notes</Label>
                         <Textarea
                             v-model="reviewNotes"
-                            placeholder="Add your review comments, suggestions, or concerns here..."
+                            placeholder="Tambahkan komentar, saran, atau kekhawatiran review Anda di sini..."
                             class="min-h-[120px] resize-none"
                         />
                         <p class="text-xs text-muted-foreground">
-                            Provide detailed feedback to help improve the submission
+                            Berikan umpan balik yang rinci untuk membantu meningkatkan pengajuan
                         </p>
                     </div>
 
@@ -459,7 +459,7 @@ const updateStatus = () => {
                                 :class="['h-4 w-4', getStatusColor(selectedStatus)]"
                             />
                             <span class="font-medium">
-                                You are about to mark this as:
+                                Anda akan menandai ini sebagai:
                                 <span :class="getStatusColor(selectedStatus)">
                                     {{ availableStatuses.find(s => s.value === selectedStatus)?.label }}
                                 </span>
@@ -474,15 +474,15 @@ const updateStatus = () => {
                         @click="showStatusModal = false"
                         :disabled="isSubmitting"
                     >
-                        Cancel
+                        Batal
                     </Button>
                     <Button
                         @click="updateStatus"
                         :disabled="!selectedStatus || isSubmitting"
                     >
                         <Send class="h-4 w-4 mr-2" v-if="!isSubmitting" />
-                        <span v-if="isSubmitting">Submitting...</span>
-                        <span v-else>{{ myReviewSummary ? 'Update Review' : 'Submit Review' }}</span>
+                        <span v-if="isSubmitting">Mengirim...</span>
+                        <span v-else>{{ myReviewSummary ? 'Perbarui Review' : 'Kirim Review' }}</span>
                     </Button>
                 </DialogFooter>
             </DialogContent>

@@ -95,21 +95,21 @@ const formatDateTime = (dateString: string) => {
 
 <template>
 
-    <Head :title="`${submissionPeriod.name} - My Submissions`" />
+    <Head :title="`${submissionPeriod.name} - Pengajuan Saya`" />
 
     <AuthenticatedLayout>
         <template #header>
             <div class="flex items-center gap-4">
                 <Button variant="ghost" size="sm" @click="$inertia.visit(route('user.submissions.index'))">
                     <ArrowLeft class="h-4 w-4 mr-2" />
-                    Back to Submissions
+                    Kembali
                 </Button>
                 <div>
                     <h2 class="text-xl font-semibold leading-tight text-gray-800">
                         {{ submissionPeriod.name }}
                     </h2>
                     <p class="text-sm text-muted-foreground">
-                        My Submissions & Drafts
+                        Pengajuan & Draft Saya
                     </p>
                 </div>
             </div>
@@ -121,18 +121,18 @@ const formatDateTime = (dateString: string) => {
                 <CardHeader>
                     <CardTitle class="flex items-center gap-2">
                         <Calendar class="h-5 w-5" />
-                        Period Information
+                        Informasi Periode
                     </CardTitle>
                 </CardHeader>
                 <CardContent>
                     <div class="grid gap-4">
                         <div>
-                            <div class="text-sm font-medium text-muted-foreground mb-1">Created</div>
+                            <div class="text-sm font-medium text-muted-foreground mb-1">Dibuat Pada</div>
                             <div>{{ formatDate(submissionPeriod.created_at) }}</div>
                         </div>
 
                         <div v-if="submissionPeriod.submission_dates.length > 0">
-                            <div class="text-sm font-medium text-muted-foreground mb-2">Important Dates</div>
+                            <div class="text-sm font-medium text-muted-foreground mb-2">Tanggal Penting</div>
                             <div class="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
                                 <div v-for="date in submissionPeriod.submission_dates" :key="date.id"
                                     class="p-3 bg-muted/50 rounded-lg">
@@ -194,10 +194,10 @@ const formatDateTime = (dateString: string) => {
                                     <div class="flex items-center space-x-2">
                                         <div class="text-right text-xs text-muted-foreground">
                                             <div v-if="submission.submitted_at">
-                                                Submitted: {{ formatDateTime(submission.submitted_at) }}
+                                                Pengajuan dikirim: {{ formatDateTime(submission.submitted_at) }}
                                             </div>
                                             <div v-else>
-                                                Last saved: {{ formatDateTime(submission.updated_at) }}
+                                                Terakhir disimpan: {{ formatDateTime(submission.updated_at) }}
                                             </div>
                                         </div>
 
@@ -205,7 +205,7 @@ const formatDateTime = (dateString: string) => {
                                             <Link :href="route('user.submissions.show', submission.id)">
                                             <Button size="sm" variant="outline">
                                                 <Eye class="h-4 w-4 mr-1" />
-                                                View
+                                                Lihat
                                             </Button>
                                             </Link>
 
@@ -215,7 +215,7 @@ const formatDateTime = (dateString: string) => {
                                             })">
                                             <Button size="sm">
                                                 <Edit class="h-4 w-4 mr-1" />
-                                                Continue
+                                                Lanjutkan
                                             </Button>
                                             </Link>
                                         </div>
@@ -231,15 +231,15 @@ const formatDateTime = (dateString: string) => {
                     <CardContent class="text-center py-12">
                         <FileText class="h-12 w-12 mx-auto text-muted-foreground mb-4" />
                         <h3 class="text-lg font-medium text-gray-900 mb-2">
-                            No Submissions Found
+                            Tidak Ada Pengajuan Ditemukan
                         </h3>
                         <p class="text-sm text-muted-foreground mb-4">
-                            You haven't submitted any forms for this period yet.
+                            Anda belum mengajukan formulir apapun untuk periode ini.
                         </p>
                         <Link :href="route('user.dashboard')">
                         <Button>
                             <FileText class="h-4 w-4 mr-2" />
-                            Go to Dashboard
+                            Pergi ke Dashboard
                         </Button>
                         </Link>
                     </CardContent>

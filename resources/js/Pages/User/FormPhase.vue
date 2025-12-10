@@ -533,9 +533,9 @@ const renderFormField = (field: FormField) => {
                     <Card v-if="currentStepIndex >= totalSteps - 1 && isStepCompleted(currentStepIndex)">
                         <CardContent class="text-center py-12">
                             <CheckCircle2 class="h-16 w-16 text-green-600 mx-auto mb-4" />
-                            <h3 class="text-xl font-semibold mb-2">Form Phase Selesai!</h3>
+                            <h3 class="text-xl font-semibold mb-2">Tahap formulir selesai!</h3>
                             <p class="text-muted-foreground mb-6">
-                                Anda telah menyelesaikan semua form dalam phase "{{ formPhase.title }}".
+                                Anda telah menyelesaikan semua formulir dalam tahap "{{ formPhase.title }}".
                             </p>
                             <Button @click="router.visit(route('user.dashboard'))">
                                 Kembali ke Dashboard

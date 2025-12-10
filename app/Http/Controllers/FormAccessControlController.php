@@ -52,7 +52,24 @@ class FormAccessControlController extends Controller
             });
         }
 
-        $formAccessControls = $query->orderBy('created_at', 'desc')->paginate(15);
+        $groupAccessControls = $query->select('form_id')
+            ->selectRaw('COUNT(*) as jumlah_access_controls')
+            ->groupBy('form_id')
+            ->with('form')
+            ->orderByRaw('MAX(created_at) DESC')
+            ->paginate(10);
+
+        $form_id = $groupAccessControls->pluck('form_id');
+
+        $controls = FormAccessControl::with(['role', 'studyProgram.faculty'])
+            ->whereIn('form_id', $form_id)
+            ->get()
+            ->groupBy('form_id');
+
+        $groupAccessControls->getCollection()->transform(function ($item) use ($controls) {
+            $item->controls = $controls[$item->form_id] ?? collect();
+            return $item;
+        });
 
         // Get filter options
         $forms = Form::where('is_active', true)->orderBy('title')->get(['id', 'title']);
@@ -60,7 +77,7 @@ class FormAccessControlController extends Controller
         $faculties = Faculty::with('studyPrograms')->orderBy('name')->get();
 
         return Inertia::render('FormAccessControls/Index', [
-            'formAccessControls' => $formAccessControls,
+            'groupAccessControls' => $groupAccessControls,
             'forms' => $forms,
             'roles' => $roles,
             'faculties' => $faculties,
@@ -98,7 +115,7 @@ class FormAccessControlController extends Controller
 
         if ($existingControl) {
             return back()->withErrors([
-                'duplicate' => 'This combination of Form, Role, and Study Program already exists.'
+                'duplicate' => 'Gabungan Formulir, Role, dan Program Studi tersebut sudah terdaftar.'
             ]);
         }
 
@@ -110,10 +127,10 @@ class FormAccessControlController extends Controller
             ]);
 
             return redirect()->route('admin.form-access-controls.index')
-                ->with('success', 'Form access control created successfully.');
+                ->with('success', 'Kontrol Akses Formulir berhasil dibuat.');
 
         } catch (\Exception $e) {
-            return back()->withErrors(['error' => 'Failed to create form access control: ' . $e->getMessage()]);
+            return back()->withErrors(['error' => 'Gagal membuat kontrol akses formulir: ' . $e->getMessage()]);
         }
     }
 
@@ -159,7 +176,7 @@ class FormAccessControlController extends Controller
 
         if ($existingControl) {
             return back()->withErrors([
-                'duplicate' => 'This combination of Form, Role, and Study Program already exists.'
+                'duplicate' => 'Kombinasi Formulir, Role, dan Program Studi ini sudah ada.'
             ]);
         }
 
@@ -171,10 +188,10 @@ class FormAccessControlController extends Controller
             ]);
 
             return redirect()->route('admin.form-access-controls.index')
-                ->with('success', 'Form access control updated successfully.');
+                ->with('success', 'Kontrol Akses Formulir berhasil diperbarui.');
 
         } catch (\Exception $e) {
-            return back()->withErrors(['error' => 'Failed to update form access control: ' . $e->getMessage()]);
+            return back()->withErrors(['error' => 'Gagal memperbarui kontrol akses formulir: ' . $e->getMessage()]);
         }
     }
 
@@ -188,7 +205,7 @@ class FormAccessControlController extends Controller
 
             if ($usageCount > 0) {
                 return back()->withErrors([
-                    'error' => "Cannot delete this access control. It is currently being used in {$usageCount} form phase detail(s)."
+                    'error' => "Tidak dapat menghapus kontrol akses ini. Kontrol akses ini sedang digunakan dalam {$usageCount} detail fase formulir."
                 ]);
             }
 
@@ -197,11 +214,11 @@ class FormAccessControlController extends Controller
             DB::commit();
 
             return redirect()->route('admin.form-access-controls.index')
-                ->with('success', 'Form access control deleted successfully.');
+                ->with('success', 'Kontrol Akses Formulir berhasil dihapus.');
 
         } catch (\Exception $e) {
             DB::rollback();
-            return back()->withErrors(['error' => 'Failed to delete form access control: ' . $e->getMessage()]);
+            return back()->withErrors(['error' => 'Gagal menghapus kontrol akses formulir: ' . $e->getMessage()]);
         }
     }
 
@@ -252,7 +269,7 @@ class FormAccessControlController extends Controller
 
         } catch (\Exception $e) {
             DB::rollback();
-            return back()->withErrors(['error' => 'Failed to create form access controls: ' . $e->getMessage()]);
+            return back()->withErrors(['error' => 'Gagal membuat kontrol akses formulir secara massal: ' . $e->getMessage()]);
         }
     }
 
@@ -294,7 +311,7 @@ class FormAccessControlController extends Controller
 
         } catch (\Exception $e) {
             DB::rollback();
-            return back()->withErrors(['error' => 'Failed to delete form access controls: ' . $e->getMessage()]);
+            return back()->withErrors(['error' => 'Gagal menghapus kontrol akses formulir secara massal: ' . $e->getMessage()]);
         }
     }
 

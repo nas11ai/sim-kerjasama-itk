@@ -19,6 +19,12 @@ class FormPhaseController extends Controller
 {
     public function index(Request $request)
     {
+        $search = $request->get('search');
+        $perPage = $request->get('per_page', 10);
+        $sortBy = $request->get('sort_by', 'created_at');
+        $sortOrder = $request->get('sort_order', 'desc');
+        $isActiveFilter = $request->get('is_active');
+
         $query = FormPhase::with([
             'formPhaseDetails.formAccessControl.form',
             'formPhaseDetails.formAccessControl.role',
@@ -27,7 +33,20 @@ class FormPhaseController extends Controller
             'formPhaseDetails.reviewEvaluationForms' // Changed: now loaded through formPhaseDetails
         ]);
 
-        $formPhases = $query->orderBy('created_at', 'desc')->paginate(10);
+        if ($search) {
+            $query->where(function ($q) use ($search) {
+                $q->where('title', 'like', '%' . $search . '%')
+                    ->orWhere('description', 'like', '%' . $search . '%');
+            });
+        }
+
+        if ($isActiveFilter && $isActiveFilter !== 'all') {
+            $query->where('is_active', $isActiveFilter === 'active' ? 1 : 0);
+        }
+
+        $formPhases = $query->orderBy($sortBy, $sortOrder)
+                            ->paginate($perPage)
+                            ->withQueryString();
 
         // Calculate review evaluation forms counts for each phase
         $formPhases->getCollection()->transform(function ($phase) {
@@ -43,7 +62,14 @@ class FormPhaseController extends Controller
         });
 
         return Inertia::render('FormPhases/Index', [
-            'formPhases' => $formPhases
+            'formPhases' => $formPhases,
+            'filters' => [
+                'search' => $search,
+                'per_page' => $perPage,
+                'sort_by' => $sortBy,
+                'sort_order' => $sortOrder,
+                'is_active' => $isActiveFilter,
+            ]
         ]);
     }
 
@@ -100,11 +126,10 @@ class FormPhaseController extends Controller
             DB::commit();
 
             return redirect()->route('admin.form-phases.index')
-                ->with('success', 'Form phase created successfully.');
-
+                ->with('success', 'Tahap Formulir berhasil dibuat.');
         } catch (\Exception $e) {
             DB::rollback();
-            return back()->withErrors(['error' => 'Failed to create form phase: ' . $e->getMessage()]);
+            return back()->withErrors(['error' => 'Gagal membuat tahap formulir: ' . $e->getMessage()]);
         }
     }
 
@@ -204,11 +229,10 @@ class FormPhaseController extends Controller
             DB::commit();
 
             return redirect()->route('admin.form-phases.index')
-                ->with('success', 'Form phase updated successfully.');
-
+                ->with('success', 'Tahap Formulir berhasil diperbarui.');
         } catch (\Exception $e) {
             DB::rollback();
-            return back()->withErrors(['error' => 'Failed to update form phase: ' . $e->getMessage()]);
+            return back()->withErrors(['error' => 'Gagal memperbarui tahap formulir: ' . $e->getMessage()]);
         }
     }
 
@@ -223,11 +247,10 @@ class FormPhaseController extends Controller
             DB::commit();
 
             return redirect()->route('admin.form-phases.index')
-                ->with('success', 'Form phase deleted successfully.');
-
+                ->with('success', 'Tahap Formulir berhasil dihapus.');
         } catch (\Exception $e) {
             DB::rollback();
-            return back()->withErrors(['error' => 'Failed to delete form phase: ' . $e->getMessage()]);
+            return back()->withErrors(['error' => 'Gagal menghapus tahap formulir: ' . $e->getMessage()]);
         }
     }
 
@@ -265,14 +288,13 @@ class FormPhaseController extends Controller
 
             return response()->json([
                 'success' => true,
-                'message' => 'Status updated successfully',
+                'message' => 'Status berhasil diperbarui',
                 'is_active' => $formPhase->is_active
             ]);
-
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Failed to update status: ' . $e->getMessage()
+                'message' => 'Gagal memperbarui status: ' . $e->getMessage()
             ], 500);
         }
     }
@@ -288,7 +310,7 @@ class FormPhaseController extends Controller
         if (!$formPhaseDetailId) {
             // If no detail specified, redirect to show page
             return redirect()->route('admin.form-phases.show', $formPhase)
-                ->with('info', 'Please select a form phase detail to manage evaluation forms.');
+                ->with('info', 'Silakan pilih detail tahap formulir untuk mengelola formulir evaluasi.');
         }
 
         $formPhaseDetail = FormPhaseDetail::with([
@@ -313,5 +335,33 @@ class FormPhaseController extends Controller
             'formPhaseDetail' => $formPhaseDetail,
             'fieldTypes' => $fieldTypes
         ]);
+    }
+
+    public function bulkDelete(Request $request)
+    {
+        $request->validate([
+            'ids' => 'required|array|min:1',
+            'ids.*' => 'exists:form_phases,id',
+        ]);
+
+        try {
+            DB::beginTransaction();
+
+            $formPhases = FormPhase::whereIn('id', $request->ids)->get();
+
+            foreach ($formPhases as $formPhase) {
+                $formPhase->formPhaseDetails()->delete();
+                $formPhase->delete();
+            }
+
+            DB::commit();
+
+            return redirect()->route('admin.form-phases.index')
+                ->with('success', 'Tahap Formulir terpilih berhasil dihapus.');
+
+        } catch (\Exception $e) {
+            DB::rollback();
+            return back()->withErrors(['error' => 'Gagal menghapus tahap formulir terpilih: ' . $e->getMessage()]);
+        }
     }
 }

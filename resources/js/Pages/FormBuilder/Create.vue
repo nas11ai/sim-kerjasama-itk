@@ -59,12 +59,12 @@ const form = useForm({
 });
 
 const steps = [
-    { number: 1, title: 'Basic Form', description: 'Create form structure' },
-    { number: 2, title: 'Access Control', description: 'Set permissions' },
-    { number: 3, title: 'Form Phase', description: 'Configure phase' },
-    { number: 4, title: 'Review Settings', description: 'Setup evaluation' },
-    { number: 5, title: 'Submission Period', description: 'Set timeline' },
-    { number: 6, title: 'Review & Submit', description: 'Confirm details' },
+    { number: 1, title: 'Form Dasar', description: 'Buat struktur formulir' },
+    { number: 2, title: 'Kontrol Akses', description: 'Atur izin akses' },
+    { number: 3, title: 'Tahap Formulir', description: 'Konfigurasi tahap' },
+    { number: 4, title: 'Pengaturan Review', description: 'Atur penilaian' },
+    { number: 5, title: 'Periode Pengajuan', description: 'Atur timeline' },
+    { number: 6, title: 'Review & Submit', description: 'Konfirmasi detail' },
 ];
 
 const progress = computed(() => (currentStep.value / totalSteps) * 100);
@@ -119,21 +119,21 @@ const submit = () => {
 
 <template>
 
-    <Head title="Complete Form Builder" />
+    <Head title="Penyusun Formulir Lengkap" />
 
     <AuthenticatedLayout>
         <template #header>
             <div class="flex items-center gap-4">
                 <Button variant="ghost" size="sm" @click="$inertia.visit(route('admin.forms.index'))">
                     <ArrowLeft class="h-4 w-4 mr-2" />
-                    Back
+                    Kembali
                 </Button>
                 <div>
                     <h2 class="text-xl font-semibold leading-tight text-gray-800">
-                        Complete Form Builder
+                        Penyusun Formulir Lengkap
                     </h2>
                     <p class="text-sm text-muted-foreground">
-                        Create a complete form with all configurations in one place
+                        Buat formulir lengkap dengan seluruh konfigurasi dalam satu tempat
                     </p>
                 </div>
             </div>
@@ -145,8 +145,8 @@ const submit = () => {
                 <CardContent class="pt-6">
                     <div class="space-y-4">
                         <div class="flex items-center justify-between text-sm">
-                            <span class="font-medium">Step {{ currentStep }} of {{ totalSteps }}</span>
-                            <span class="text-muted-foreground">{{ Math.round(progress) }}% Complete</span>
+                            <span class="font-medium">Langkah {{ currentStep }} dari {{ totalSteps }}</span>
+                            <span class="text-muted-foreground">{{ Math.round(progress) }}% Selesai</span>
                         </div>
                         <Progress :model-value="progress" class="h-2" />
                     </div>
@@ -226,20 +226,20 @@ const submit = () => {
                     <div class="flex items-center justify-between">
                         <Button v-if="currentStep > 1" @click="prevStep" variant="outline">
                             <ArrowLeft class="h-4 w-4 mr-2" />
-                            Previous
+                            Sebelumnya
                         </Button>
                         <div v-else></div>
 
                         <div class="flex items-center space-x-2">
                             <Button v-if="currentStep < totalSteps" @click="nextStep" :disabled="!canGoNext">
-                                Next
+                                Berikutnya
                                 <ArrowRight class="h-4 w-4 ml-2" />
                             </Button>
 
                             <Button v-if="currentStep === totalSteps" @click="submit" :disabled="form.processing"
                                 class="bg-green-600 hover:bg-green-700">
                                 <Save class="h-4 w-4 mr-2" />
-                                {{ form.processing ? 'Creating...' : 'Create Complete Form' }}
+                                {{ form.processing ? 'Membuat...' : 'Buat Formulir Lengkap' }}
                             </Button>
                         </div>
                     </div>

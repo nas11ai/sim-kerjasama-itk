@@ -151,11 +151,11 @@ class ReviewEvaluationFormController extends Controller
             DB::commit();
 
             return redirect()->back()
-                ->with('success', 'Review evaluation form created successfully.');
+                ->with('success', 'Formulir evaluasi review berhasil dibuat.');
 
         } catch (\Exception $e) {
             DB::rollback();
-            return back()->withErrors(['error' => 'Failed to create review evaluation form: ' . $e->getMessage()]);
+            return back()->withErrors(['error' => 'Gagal membuat formulir evaluasi review: ' . $e->getMessage()]);
         }
     }
 
@@ -318,11 +318,11 @@ class ReviewEvaluationFormController extends Controller
             DB::commit();
 
             return redirect()->back()
-                ->with('success', 'Review evaluation form updated successfully.');
+                ->with('success', 'Formulir evaluasi review berhasil diperbarui.');
 
         } catch (\Exception $e) {
             DB::rollback();
-            return back()->withErrors(['error' => 'Failed to update review evaluation form: ' . $e->getMessage()]);
+            return back()->withErrors(['error' => 'Gagal memperbarui formulir evaluasi review: ' . $e->getMessage()]);
         }
     }
 
@@ -333,7 +333,7 @@ class ReviewEvaluationFormController extends Controller
 
         if ($assignmentCount > 0) {
             return back()->withErrors([
-                'error' => "Cannot delete this evaluation form. It is currently assigned to {$assignmentCount} reviewer(s)."
+                'error' => "Tidak dapat menghapus formulir evaluasi ini. Formulir ini saat ini ditugaskan kepada {$assignmentCount} reviewer."
             ]);
         }
 
@@ -350,11 +350,11 @@ class ReviewEvaluationFormController extends Controller
             DB::commit();
 
             return redirect()->route('admin.review-evaluation-forms.index')
-                ->with('success', 'Review evaluation form deleted successfully.');
+                ->with('success', 'Formulir evaluasi review berhasil dihapus.');
 
         } catch (\Exception $e) {
             DB::rollback();
-            return back()->withErrors(['error' => 'Failed to delete review evaluation form: ' . $e->getMessage()]);
+            return back()->withErrors(['error' => 'Gagal menghapus formulir evaluasi review: ' . $e->getMessage()]);
         }
     }
 
@@ -386,11 +386,11 @@ class ReviewEvaluationFormController extends Controller
             DB::commit();
 
             return redirect()->route('admin.review-evaluation-forms.edit', $newForm)
-                ->with('success', 'Review evaluation form duplicated successfully.');
+                ->with('success', 'Formulir evaluasi review berhasil diduplikasi.');
 
         } catch (\Exception $e) {
             DB::rollback();
-            return back()->withErrors(['error' => 'Failed to duplicate review evaluation form: ' . $e->getMessage()]);
+            return back()->withErrors(['error' => 'Gagal menduplikasi formulir evaluasi review: ' . $e->getMessage()]);
         }
     }
 
@@ -412,11 +412,11 @@ class ReviewEvaluationFormController extends Controller
 
             DB::commit();
 
-            return response()->json(['message' => 'Order updated successfully.']);
+            return response()->json(['message' => 'Urutan berhasil diperbarui.']);
 
         } catch (\Exception $e) {
             DB::rollback();
-            return response()->json(['error' => 'Failed to update order.'], 500);
+            return response()->json(['error' => 'Gagal memperbarui urutan.'], 500);
         }
     }
 

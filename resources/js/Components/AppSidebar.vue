@@ -46,6 +46,14 @@ import {
     Bolt,
     BookCheck,
     UserPenIcon,
+    ChartPie,
+    FileChartPie,
+    FileUserIcon,
+    FileChartPieIcon,
+    ChartPieIcon,
+    SquareKanbanIcon,
+    UserCheck2Icon,
+    FileBarChart2,
 } from "lucide-vue-next";
 
 const page = usePage();
@@ -76,127 +84,153 @@ const adminNavItems = [
         icon: Home,
     },
     {
-        title: "User Management",
+        title: "Manajemen User & Role",
         icon: FileText,
         items: [
             {
-                title: "Users",
+                title: "User",
                 url: route("admin.users.index"),
                 icon: User,
             },
             {
-                title: "Roles",
+                title: "Role",
                 url: route("admin.roles.index"),
                 icon: Bolt,
             },
             {
-                title: "Permissions",
+                title: "Hak Akses",
                 url: route("admin.permissions.index"),
                 icon: BookCheck,
             },
         ],
     },
     {
-        title: "Form Management",
+        title: "Manajemen Formulir",
         icon: FileText,
         items: [
             {
-                title: "Form Builder", // 🌟 NEW MENU
+                title: "Form Builder",
                 url: route("admin.form-builder.create"),
                 icon: Wand2,
             },
             {
-                title: "Forms",
+                title: "Formulir",
                 url: route("admin.forms.index"),
                 icon: FileText,
             },
             {
-                title: "Form Phases",
+                title: "Tahap Formulir",
                 url: route("admin.form-phases.index"),
                 icon: Settings,
             },
             {
-                title: "Access Controls",
+                title: "Kontrol Akses",
                 url: route("admin.form-access-controls.index"),
                 icon: Shield,
             },
         ],
     },
     {
-        title: "Submission Management",
+        title: "Manajemen Pengajuan",
         icon: Calendar,
         items: [
             {
-                title: "Submission Periods",
+                title: "Periode Pengajuan",
                 url: route("admin.submission-periods.index"),
                 icon: Calendar,
             },
             {
-                title: "View Submissions",
+                title: "Lihat Pengajuan",
                 url: route("admin.submissions.index"),
                 icon: Send,
             },
         ],
     },
     {
-        title: "Review Management",
+        title: "Manajemen Review",
         icon: MessageSquare,
         items: [
             {
-                title: "Review Overview",
+                title: "Ikhtisar Review",
                 url: route("admin.submissions.index") + "?tab=review",
                 icon: MessageSquare,
             },
             {
-                title: "Pending Reviews",
+                title: "Review Tertunda",
                 url: route("admin.submissions.index") + "?status=under_review",
                 icon: Clock,
             },
             {
-                title: "Completed Reviews",
+                title: "Review Selesai",
                 url: route("admin.submissions.index") + "?status=approved",
                 icon: CheckCircle,
             },
         ],
     },
     {
-        title: "Reviewer Management",
+        title: "Manajemen Reviewer",
         icon: Users,
         items: [
             {
-                title: "Reviewers",
+                title: "Reviewer",
                 url: route("admin.reviewers.index"),
                 icon: Users,
             },
             {
-                title: "Reviewer Roles",
+                title: "Role Reviewer",
                 url: route("admin.reviewer-roles.index"),
                 icon: Filter,
             },
         ],
     },
     {
-        title: "Institution Management",
+        title: "Manajemen Fakultas & Prodi",
         icon: Building2,
         items: [
             {
-                title: "Faculties",
+                title: "Fakultas",
                 url: route("admin.faculties.index"),
                 icon: Building2,
             },
             {
-                title: "Study Programs",
+                title: "Program Studi",
                 url: route("admin.faculties.study-programs"),
                 icon: GraduationCap,
             },
         ],
     },
     {
-        title: "Announcement Management",
+        title: "Manajemen Statistik",
+        icon: ChartPie,
+        items: [
+            {
+                title: "Statistik Tahap Formulir",
+                url: route("admin.stats.form-phase"),
+                icon: FileBarChart2,
+            },
+            {
+                title: "Statistik Pengajuan Formulir",
+                url: route("admin.stats.form-submission"),
+                icon: FileChartPieIcon,
+            },
+            {
+                title: "Statistik Reviewer",
+                url: route("admin.stats.reviewer"),
+                icon: UserCheck2Icon,
+            },
+            {
+                title: "Statistik User",
+                url: route("admin.stats.user"),
+                icon: FileUserIcon,
+            },
+        ],
+    },
+    {
+        title: "Manajemen Pengumuman",
         icon: Building2,
         items: [
             {
-                title: "Announcements",
+                title: "Pengumuman",
                 url: route("admin.announcements.index"),
                 icon: Megaphone,
             },
@@ -213,7 +247,7 @@ const userNavItems = computed(() => {
             icon: Home,
         },
         {
-            title: "Forms Biodata",
+            title: "Form Biodata",
             icon: ClipboardList,
             items: [
                 {
@@ -224,34 +258,34 @@ const userNavItems = computed(() => {
             ],
         },
         {
-            title: "My Forms",
+            title: "Formulir Saya",
             icon: ClipboardList,
             items: [
                 {
-                    title: "Active Submissions",
+                    title: "Pengajuan Aktif",
                     url: route('user.dashboard'),
                     icon: BookOpen,
                 }
             ]
         },
         {
-            title: "My Submissions",
+            title: "Pengajuan Formulir",
             icon: Send,
             items: [
                 {
-                    title: "View Submissions",
+                    title: "Lihat Pengajuan",
                     url: route('user.submissions.index'),
                     icon: Send,
                 },
                 {
-                    title: "Under Review",
+                    title: "Dalam Review",
                     url:
                         route("user.submissions.index") +
                         "?status=under_review",
                     icon: Clock,
                 },
                 {
-                    title: "Approved",
+                    title: "Disetujui",
                     url: route("user.submissions.index") + "?status=approved",
                     icon: CheckCircle,
                 }
@@ -262,21 +296,21 @@ const userNavItems = computed(() => {
     // Add Review Tasks menu if user is reviewer
     if (isReviewer.value) {
         baseItems.push({
-            title: "Review Tasks",
+            title: "Tugas Review",
             icon: MessageSquare,
             items: [
                 {
-                    title: "Assigned Reviews",
+                    title: "Tugas Review Ditugaskan",
                     url: route("reviewer.submissions.index"),
                     icon: MessageSquare,
                 },
                 {
-                    title: "Pending Reviews",
+                    title: "Review Pending",
                     url: route("reviewer.submissions.index") + "?status=open",
                     icon: Clock,
                 },
                 {
-                    title: "Completed Reviews",
+                    title: "Review Selesai",
                     url:
                         route("reviewer.submissions.index") +
                         "?status=resolved",

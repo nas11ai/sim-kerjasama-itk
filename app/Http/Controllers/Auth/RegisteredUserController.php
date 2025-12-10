@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Models\UserProfile;
+use App\Models\StudyProgram;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -12,6 +14,9 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\Rules;
 use Inertia\Inertia;
 use Inertia\Response;
+use Spatie\Permission\Models\Role;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 class RegisteredUserController extends Controller
 {
@@ -20,7 +25,18 @@ class RegisteredUserController extends Controller
      */
     public function create(): Response
     {
-        return Inertia::render('Auth/Register');
+        $roles = Role::whereIn('id', [3, 4])
+            ->select('id', 'name')
+            ->get();
+
+        $studyPrograms = StudyProgram::select('id', 'name')
+            ->orderBy('id')
+            ->get();
+
+        return Inertia::render('Auth/Register', [
+            'roles' => $roles,
+            'studyPrograms' => $studyPrograms,
+        ]);
     }
 
     /**
@@ -34,18 +50,42 @@ class RegisteredUserController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|string|lowercase|email|max:255|unique:' . User::class,
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
+            'role' => 'required|exists:roles,id',
+            'study_program' => 'required|exists:study_programs,id',
         ]);
 
-        $user = User::create([
-            'name' => $request->name,
-            'email' => $request->email,
-            'password' => Hash::make($request->password),
-        ]);
+        DB::beginTransaction();
+        try {
+            $user = User::create([
+                'name' => $request->name,
+                'email' => $request->email,
+                'password' => Hash::make($request->password),
+            ]);
 
-        event(new Registered($user));
+            $role = Role::findById($request->role);
+            $user->assignRole($role->name);
 
-        Auth::login($user);
+            UserProfile::create([
+                'user_id' => $user->id,
+                'role_id' => $request->role,
+                'study_program_id' => $request->study_program,
+            ]);
 
-        return redirect(route('user.dashboard', absolute: false));
+            // dd($request->all());
+
+            DB::commit();
+
+            event(new Registered($user));
+
+            return redirect()
+                ->route('login')
+                ->with('success', 'Akun Anda berhasil dibuat. Silakan masuk untuk melanjutkan.');
+        } catch (\Exception $e) {
+            DB::rollBack();
+            Log::error('Registration failed: ' . $e->getMessage());
+            return redirect()->back()
+                ->withInput()
+                ->withErrors(['error' => 'Pendaftaran gagal. Periksa kembali data Anda lalu coba lagi.']);
+        }
     }
 }

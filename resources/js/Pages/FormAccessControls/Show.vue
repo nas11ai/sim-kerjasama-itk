@@ -76,7 +76,7 @@ const inactivePhaseDetails = props.formAccessControl.form_phase_details.filter(
 
 <template>
 
-    <Head title="Form Access Control Details" />
+    <Head title="Detail Kontrol Akses Formulir" />
 
     <AuthenticatedLayout>
         <template #header>
@@ -85,11 +85,11 @@ const inactivePhaseDetails = props.formAccessControl.form_phase_details.filter(
                     <Link :href="route('admin.form-access-controls.index')">
                     <Button variant="ghost" size="sm">
                         <ArrowLeft class="h-4 w-4 mr-2" />
-                        Back to Access Controls
+                        Kembali
                     </Button>
                     </Link>
                     <h2 class="text-xl font-semibold leading-tight text-gray-800">
-                        Form Access Control Details
+                        Detail Kontrol Akses Formulir
                     </h2>
                 </div>
                 <Link :href="route(
@@ -99,7 +99,7 @@ const inactivePhaseDetails = props.formAccessControl.form_phase_details.filter(
                     ">
                 <Button>
                     <Edit class="h-4 w-4 mr-2" />
-                    Edit Access Control
+                    Edit Kontrol Akses Formulir
                 </Button>
                 </Link>
             </div>
@@ -111,7 +111,7 @@ const inactivePhaseDetails = props.formAccessControl.form_phase_details.filter(
                 <CardHeader>
                     <CardTitle class="flex items-center gap-2">
                         <Settings class="h-5 w-5" />
-                        Access Control Information
+                        Informasi Kontrol Akses
                     </CardTitle>
                 </CardHeader>
                 <CardContent class="space-y-6">
@@ -119,14 +119,14 @@ const inactivePhaseDetails = props.formAccessControl.form_phase_details.filter(
                     <div>
                         <h3 class="font-medium text-sm text-muted-foreground mb-2 flex items-center gap-2">
                             <FileText class="h-4 w-4" />
-                            Form
+                            Formulir
                         </h3>
                         <div class="p-4 bg-muted rounded-lg">
                             <h4 class="font-semibold text-lg">
                                 {{ props.formAccessControl.form.title }}
                             </h4>
                             <p class="text-sm text-muted-foreground mt-1">
-                                Form ID: {{ props.formAccessControl.form.id }}
+                                ID Formulir: {{ props.formAccessControl.form.id }}
                             </p>
                         </div>
                     </div>
@@ -150,7 +150,7 @@ const inactivePhaseDetails = props.formAccessControl.form_phase_details.filter(
                         <div>
                             <h3 class="font-medium text-sm text-muted-foreground mb-2 flex items-center gap-2">
                                 <Building class="h-4 w-4" />
-                                Study Program
+                                Program Studi
                             </h3>
                             <div class="p-4 bg-muted rounded-lg">
                                 <h4 class="font-medium">
@@ -175,7 +175,7 @@ const inactivePhaseDetails = props.formAccessControl.form_phase_details.filter(
                     <div class="grid gap-6 md:grid-cols-2 text-sm">
                         <div class="flex items-center gap-2">
                             <Calendar class="h-4 w-4 text-muted-foreground" />
-                            <span class="text-muted-foreground">Created:</span>
+                            <span class="text-muted-foreground">Dibuat:</span>
                             <span>{{
                                 new Date(
                                     props.formAccessControl.created_at
@@ -184,7 +184,7 @@ const inactivePhaseDetails = props.formAccessControl.form_phase_details.filter(
                         </div>
                         <div class="flex items-center gap-2">
                             <Calendar class="h-4 w-4 text-muted-foreground" />
-                            <span class="text-muted-foreground">Updated:</span>
+                            <span class="text-muted-foreground">Diperbarui:</span>
                             <span>{{
                                 new Date(
                                     props.formAccessControl.updated_at
@@ -200,13 +200,13 @@ const inactivePhaseDetails = props.formAccessControl.form_phase_details.filter(
                 <CardHeader>
                     <CardTitle class="flex items-center gap-2">
                         <Settings class="h-5 w-5" />
-                        Usage in Form Phases
+                        Penggunaan dalam Tahap Formulir
                         <Badge variant="secondary" class="ml-2">
                             {{
                                 props.formAccessControl.form_phase_details
                                     .length
                             }}
-                            phases
+                            tahap
                         </Badge>
                     </CardTitle>
                 </CardHeader>
@@ -216,10 +216,10 @@ const inactivePhaseDetails = props.formAccessControl.form_phase_details.filter(
                             .length === 0
                     " class="text-center py-8 text-muted-foreground">
                         <Settings class="h-12 w-12 mx-auto mb-4 opacity-50" />
-                        <h3 class="font-medium mb-2">Not Used in Any Phase</h3>
+                        <h3 class="font-medium mb-2">Tidak Digunakan dalam Tahap Manapun</h3>
                         <p>
-                            This access control is not currently being used in
-                            any form phases.
+                            Akses kontrol ini tidak sedang digunakan dalam
+                            tahap formulir manapun.
                         </p>
                     </div>
 
@@ -228,20 +228,20 @@ const inactivePhaseDetails = props.formAccessControl.form_phase_details.filter(
                         <div v-if="activePhaseDetails.length > 0">
                             <h3 class="font-medium text-green-700 mb-3 flex items-center gap-2">
                                 <div class="w-2 h-2 bg-green-500 rounded-full"></div>
-                                Active Phases ({{ activePhaseDetails.length }})
+                                Tahap Aktif ({{ activePhaseDetails.length }})
                             </h3>
                             <div class="space-y-3">
                                 <div v-for="detail in activePhaseDetails" :key="detail.id"
                                     class="flex items-center justify-between p-3 border rounded-lg bg-green-50 border-green-200">
                                     <div class="flex items-center gap-3">
                                         <Badge variant="outline" class="text-xs">
-                                            Step {{ detail.order }}
+                                            Urutan {{ detail.order }}
                                         </Badge>
                                         <span class="font-medium">{{
                                             detail.form_phase.title
                                             }}</span>
                                         <Badge variant="default" class="text-xs bg-green-600">
-                                            Active
+                                            Aktif
                                         </Badge>
                                     </div>
                                     <Link :href="route(
@@ -250,7 +250,7 @@ const inactivePhaseDetails = props.formAccessControl.form_phase_details.filter(
                                     )
                                         ">
                                     <Button variant="outline" size="sm">
-                                        View Phase
+                                        Lihat Tahap
                                     </Button>
                                     </Link>
                                 </div>
@@ -261,7 +261,7 @@ const inactivePhaseDetails = props.formAccessControl.form_phase_details.filter(
                         <div v-if="inactivePhaseDetails.length > 0">
                             <h3 class="font-medium text-gray-600 mb-3 flex items-center gap-2">
                                 <div class="w-2 h-2 bg-gray-400 rounded-full"></div>
-                                Inactive Phases ({{
+                                Tahap Tidak Aktif ({{
                                     inactivePhaseDetails.length
                                 }})
                             </h3>
@@ -270,11 +270,11 @@ const inactivePhaseDetails = props.formAccessControl.form_phase_details.filter(
                                     class="flex items-center justify-between p-3 border rounded-lg bg-gray-50 border-gray-200">
                                     <div class="flex items-center gap-3">
                                         <Badge variant="outline" class="text-xs">
-                                            Step {{ detail.order }}
+                                            Urutan {{ detail.order }}
                                         </Badge>
                                         <span class="font-medium text-gray-600">{{ detail.form_phase.title }}</span>
                                         <Badge variant="secondary" class="text-xs">
-                                            Inactive
+                                            Tidak Aktif
                                         </Badge>
                                     </div>
                                     <Link :href="route(
@@ -283,7 +283,7 @@ const inactivePhaseDetails = props.formAccessControl.form_phase_details.filter(
                                     )
                                         ">
                                     <Button variant="outline" size="sm">
-                                        View Phase
+                                        Lihat Tahap
                                     </Button>
                                     </Link>
                                 </div>
@@ -300,14 +300,13 @@ const inactivePhaseDetails = props.formAccessControl.form_phase_details.filter(
                         <AlertTriangle class="h-5 w-5 text-amber-600 mt-0.5" />
                         <div>
                             <h4 class="text-amber-800 font-medium text-sm mb-1">
-                                Usage Warning
+                                Peringatan Penggunaan
                             </h4>
                             <p class="text-amber-700 text-sm">
-                                This access control is currently being used in
-                                {{ activePhaseDetails.length }} active form
-                                phase(s). Modifying or deleting it may affect
-                                users' access to forms and disrupt ongoing
-                                processes.
+                                Kontrol akses ini sedang digunakan dalam
+                                {{ activePhaseDetails.length }} fase formulir yang aktif.
+                                Mengubah atau menghapusnya dapat mempengaruhi akses pengguna terhadap formulir
+                                dan mengganggu proses yang sedang berlangsung.
                             </p>
                         </div>
                     </div>
@@ -328,7 +327,7 @@ const inactivePhaseDetails = props.formAccessControl.form_phase_details.filter(
                                     }}
                                 </p>
                                 <p class="text-sm text-muted-foreground">
-                                    Total Usage
+                                    Jumlah Penggunaan
                                 </p>
                             </div>
                         </div>
@@ -346,7 +345,7 @@ const inactivePhaseDetails = props.formAccessControl.form_phase_details.filter(
                                     {{ activePhaseDetails.length }}
                                 </p>
                                 <p class="text-sm text-muted-foreground">
-                                    Active Phases
+                                    Tahap Aktif
                                 </p>
                             </div>
                         </div>
@@ -364,7 +363,7 @@ const inactivePhaseDetails = props.formAccessControl.form_phase_details.filter(
                                     {{ inactivePhaseDetails.length }}
                                 </p>
                                 <p class="text-sm text-muted-foreground">
-                                    Inactive Phases
+                                    Tahap Tidak Aktif
                                 </p>
                             </div>
                         </div>

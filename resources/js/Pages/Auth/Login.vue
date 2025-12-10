@@ -1,9 +1,13 @@
 <script setup lang="ts">
+import AlertContainer from "@/Components/AlertContainer.vue";
 import Checkbox from "@/Components/Checkbox.vue";
 import InputError from "@/Components/InputError.vue";
 import InputLabel from "@/Components/InputLabel.vue";
 import PrimaryButton from "@/Components/PrimaryButton.vue";
 import TextInput from "@/Components/TextInput.vue";
+import Button from "@/Components/ui/button/Button.vue";
+import Input from "@/Components/ui/input/Input.vue";
+import Label from "@/Components/ui/label/Label.vue";
 import { Head, Link, useForm } from "@inertiajs/vue3";
 
 defineProps<{
@@ -28,61 +32,68 @@ const submit = () => {
 
 <template>
     <div
-        class="min-h-screen flex flex-col items-center justify-center bg-gradient-to-b from-blue-100 to-white"
+        class="relative min-h-screen flex flex-col items-center justify-center bg-gradient-to-b from-white to-blue-50 p-10"
     >
         <div class="mb-6">
-            <div class="flex items-center gap-4">
+            <div class="flex items-center gap-4 drop-shadow-md">
                 <img src="/images/Logo-ITK.png" alt="Logo ITK" class="h-20 w-auto object-contain mx-auto mb-2" />
                 <div>
-                    <h1 class="text-2xl font-bold text-blue-700">SIM Kerja Sama ITK</h1>
-                    <p class="text-gray-600 text-sm">Institut Teknologi Kalimantan</p>
+                    <h1 class="text-2xl font-bold text-blue-600">SIM Kerja Sama ITK</h1>
+                    <p class="text-gray-500 text-xs uppercase">Institut Teknologi Kalimantan</p>
                 </div>
             </div>
         </div>
 
         <div
-            class="w-full max-w-md bg-white rounded-2xl shadow-lg p-8 border border-blue-100"
+            class="w-full max-w-md bg-white z-10 rounded-3xl shadow-lg px-8 py-8 justify-between flex flex-col gap-8 border border-blue-100"
         >
             <Head title="Masuk ke Akun" />
 
-            <h2 class="text-center text-xl font-semibold text-gray-800 mb-6">
-                Masuk ke Akun Anda
-            </h2>
+            <div class="flex justify-center items-center">
+                <Label class="text-center text-2xl font-bold tracking-tight text-gray-800">
+                    Masuk ke Akun Anda
+                </Label>
+            </div>
 
-            <form @submit.prevent="submit">
-                <div class="mb-4">
-                    <InputLabel for="email" value="Email" />
-                    <TextInput
-                        id="email"
-                        type="email"
-                        class="mt-1 block w-full"
-                        v-model="form.email"
-                        required
-                        autofocus
-                    />
-                    <InputError class="mt-2" :message="form.errors.email" />
-                </div>
-
-                <div class="mb-4">
-                    <InputLabel for="password" value="Kata Sandi" />
-                    <TextInput
-                        id="password"
-                        type="password"
-                        class="mt-1 block w-full"
-                        v-model="form.password"
-                        required
-                    />
-                    <InputError class="mt-2" :message="form.errors.password" />
+            <form @submit.prevent="submit" class="flex flex-col gap-2">
+                <div class="flex flex-col gap-6">
+                    <div class="flex flex-col gap-1.5">
+                        <Label for="email">
+                            Email
+                        </Label>
+                        <Input
+                            id="email"
+                            type="email"
+                            class="flex w-full"
+                            v-model="form.email"
+                            required
+                            autofocus
+                        />
+                        <InputError :message="form.errors.email" />
+                    </div>
+                    <div class="flex flex-col gap-1.5">
+                        <Label for="password">
+                            Kata Sandi
+                        </Label>
+                        <Input
+                            id="password"
+                            type="password"
+                            class="flex w-full"
+                            v-model="form.password"
+                            required
+                        />
+                        <InputError :message="form.errors.password" />
+                    </div>
                 </div>
 
                 <div class="flex items-center justify-between mb-6">
-                    <label class="flex items-center text-sm text-gray-600">
+                    <Label class="flex items-center text-sm text-gray-600 font-normal">
                         <Checkbox
                             name="remember"
                             v-model:checked="form.remember"
                         />
                         <span class="ml-2">Ingat saya</span>
-                    </label>
+                    </Label>
 
                     <Link
                         v-if="canResetPassword"
@@ -93,13 +104,13 @@ const submit = () => {
                     </Link>
                 </div>
 
-                <PrimaryButton
+                <Button
                     class="w-full bg-blue-600 hover:bg-blue-700 focus:ring-blue-500 justify-center flex items-center"
                 >
                     Masuk
-                </PrimaryButton>
+                </Button>
 
-                <p class="text-center text-sm text-gray-600 mt-4">
+                <p class="text-center text-sm text-gray-600 mt-1">
                     Belum punya akun?
                     <Link
                         :href="route('register')"
@@ -109,5 +120,8 @@ const submit = () => {
                 </p>
             </form>
         </div>
+        <img class="absolute left-6 top-0 h-36 z-0 rotate-180 opacity-50" src="images/Gear_Blue.webp" alt="Gambar Profil Pengajar dari Program Pascasarjana ITK">
+        <img class="absolute right-0 bottom-0 h-72 z-0 opacity-100" src="images/Gear_Yellow.webp" alt="Gambar Profil Pengajar dari Program Pascasarjana ITK">
     </div>
+    <AlertContainer />
 </template>

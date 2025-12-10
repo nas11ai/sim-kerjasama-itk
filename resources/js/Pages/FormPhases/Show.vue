@@ -129,7 +129,7 @@ const getRequiredEvaluationFormsCount = computed(() => {
 
 <template>
 
-    <Head title="Form Phase Details" />
+    <Head title="Detail Tahap Formulir" />
 
     <AuthenticatedLayout>
         <template #header>
@@ -138,18 +138,18 @@ const getRequiredEvaluationFormsCount = computed(() => {
                     <Link :href="route('admin.form-phases.index')">
                     <Button variant="ghost" size="sm">
                         <ArrowLeft class="h-4 w-4 mr-2" />
-                        Back to Form Phases
+                        Kembali
                     </Button>
                     </Link>
                     <h2 class="text-xl font-semibold leading-tight text-gray-800">
-                        Form Phase Details
+                        Detail Tahap Formulir
                     </h2>
                 </div>
                 <div class="flex items-center gap-2">
                     <Link :href="route('admin.form-phases.edit', formPhase.id)">
                     <Button>
                         <Edit class="h-4 w-4 mr-2" />
-                        Edit Phase
+                        Edit Tahap
                     </Button>
                     </Link>
                 </div>
@@ -162,14 +162,14 @@ const getRequiredEvaluationFormsCount = computed(() => {
                 <CardHeader>
                     <CardTitle class="flex items-center gap-2">
                         <FileText class="h-5 w-5" />
-                        Phase Information
+                        Informasi Tahap
                     </CardTitle>
                 </CardHeader>
                 <CardContent class="space-y-4">
                     <div class="grid gap-6 md:grid-cols-2">
                         <div>
                             <h3 class="font-medium text-sm text-muted-foreground mb-1">
-                                Title
+                                Judul
                             </h3>
                             <p class="text-lg font-medium">
                                 {{ formPhase.title }}
@@ -183,14 +183,14 @@ const getRequiredEvaluationFormsCount = computed(() => {
                                 class="flex items-center gap-1 w-fit">
                                 <CheckCircle v-if="formPhase.is_active" class="h-3 w-3" />
                                 <XCircle v-else class="h-3 w-3" />
-                                {{ formPhase.is_active ? 'Active' : 'Inactive' }}
+                                {{ formPhase.is_active ? 'Aktif' : 'Tidak Aktif' }}
                             </Badge>
                         </div>
                     </div>
 
                     <div v-if="formPhase.description">
                         <h3 class="font-medium text-sm text-muted-foreground mb-1">
-                            Description
+                            Deskripsi
                         </h3>
                         <p class="text-gray-700">
                             {{ formPhase.description }}
@@ -200,7 +200,7 @@ const getRequiredEvaluationFormsCount = computed(() => {
                     <div class="grid gap-6 md:grid-cols-2">
                         <div>
                             <h3 class="font-medium text-sm text-muted-foreground mb-1">
-                                Created
+                                Dibuat Pada
                             </h3>
                             <p class="text-sm">
                                 {{ formatDate(formPhase.created_at) }}
@@ -208,7 +208,7 @@ const getRequiredEvaluationFormsCount = computed(() => {
                         </div>
                         <div>
                             <h3 class="font-medium text-sm text-muted-foreground mb-1">
-                                Last Updated
+                                Terakhir Diperbarui
                             </h3>
                             <p class="text-sm">
                                 {{ formatDate(formPhase.updated_at) }}
@@ -223,14 +223,14 @@ const getRequiredEvaluationFormsCount = computed(() => {
                 <CardHeader>
                     <CardTitle class="flex items-center gap-2">
                         <Users class="h-5 w-5" />
-                        Phase Details ({{ sortedPhaseDetails.length }})
+                        Detail Tahap ({{ sortedPhaseDetails.length }})
                     </CardTitle>
                 </CardHeader>
                 <CardContent>
                     <!-- Empty State -->
                     <div v-if="sortedPhaseDetails.length === 0" class="text-center py-8 text-muted-foreground">
                         <Users class="h-12 w-12 mx-auto mb-4 opacity-50" />
-                        <p>No phase details configured yet.</p>
+                        <p>Belum ada detail tahap yang dikonfigurasi.</p>
                     </div>
 
                     <!-- Phase Details List -->
@@ -240,10 +240,10 @@ const getRequiredEvaluationFormsCount = computed(() => {
                             <div class="flex items-start justify-between mb-3">
                                 <div class="flex items-center gap-2">
                                     <Badge variant="outline" class="text-xs">
-                                        Step {{ detail.order }}
+                                        Urutan {{ detail.order }}
                                     </Badge>
                                     <Badge v-if="detail.needs_review" class="text-xs">
-                                        Needs Review
+                                        Perlu Review
                                     </Badge>
                                     <Badge class="text-xs">
                                         {{ detail.phase_type.name }}
@@ -256,7 +256,7 @@ const getRequiredEvaluationFormsCount = computed(() => {
                                 <div class="space-y-2">
                                     <div class="flex items-center gap-2 text-sm font-medium">
                                         <FileText class="h-4 w-4 text-muted-foreground" />
-                                        Form
+                                        Formulir
                                     </div>
                                     <p class="text-sm text-muted-foreground pl-6">
                                         {{ detail.form_access_control.form.title }}
@@ -278,7 +278,7 @@ const getRequiredEvaluationFormsCount = computed(() => {
                                 <div class="space-y-2">
                                     <div class="flex items-center gap-2 text-sm font-medium">
                                         <Building class="h-4 w-4 text-muted-foreground" />
-                                        Study Program
+                                        Program Studi
                                     </div>
                                     <div class="text-sm text-muted-foreground pl-6">
                                         <p>{{ detail.form_access_control.study_program.name }}</p>
@@ -295,13 +295,13 @@ const getRequiredEvaluationFormsCount = computed(() => {
                                 <div class="flex items-center justify-between mb-3">
                                     <div class="flex items-center gap-2 text-sm font-medium">
                                         <ClipboardList class="h-4 w-4" />
-                                        Evaluation Forms ({{ getEvaluationFormsForDetail(detail).length }})
+                                        Formulir Evaluasi ({{ getEvaluationFormsForDetail(detail).length }})
                                     </div>
                                     <Link
                                         :href="route('admin.form-phases.evaluation-forms', { formPhase: formPhase.id, detail_id: detail.id })">
                                     <Button size="sm" variant="outline">
                                         <Settings class="h-4 w-4 mr-2" />
-                                        Manage
+                                        Kelola Formulir Evaluasi
                                     </Button>
                                     </Link>
                                 </div>
@@ -314,7 +314,7 @@ const getRequiredEvaluationFormsCount = computed(() => {
                                                 <span class="text-sm font-medium">{{ form.title }}</span>
                                                 <Badge :variant="form.is_required ? 'destructive' : 'secondary'"
                                                     class="text-xs">
-                                                    {{ form.is_required ? 'Required' : 'Optional' }}
+                                                    {{ form.is_required ? 'Wajib' : 'Opsional' }}
                                                 </Badge>
                                             </div>
                                             <p v-if="form.description" class="text-xs text-muted-foreground mt-1">
@@ -322,16 +322,16 @@ const getRequiredEvaluationFormsCount = computed(() => {
                                             </p>
                                             <div class="flex items-center gap-2 mt-1">
                                                 <span class="text-xs text-muted-foreground">
-                                                    {{ form.fields_count }} fields
+                                                    {{ form.fields_count }} isian
                                                 </span>
                                                 <span v-if="form.required_fields_count > 0"
                                                     class="text-xs text-muted-foreground flex items-center gap-1">
                                                     <Star class="h-3 w-3" />
-                                                    {{ form.required_fields_count }} required
+                                                    {{ form.required_fields_count }} wajib
                                                 </span>
                                                 <Badge :variant="form.is_active ? 'default' : 'secondary'"
                                                     class="text-xs">
-                                                    {{ form.is_active ? 'Active' : 'Inactive' }}
+                                                    {{ form.is_active ? 'Aktif' : 'Tidak Aktif' }}
                                                 </Badge>
                                             </div>
                                         </div>
@@ -355,12 +355,12 @@ const getRequiredEvaluationFormsCount = computed(() => {
                             <!-- No Evaluation Forms -->
                             <div v-else class="mt-4 pt-4 border-t">
                                 <div class="flex items-center justify-between p-3 bg-muted/30 rounded-lg">
-                                    <span class="text-sm text-muted-foreground">No evaluation forms configured</span>
+                                    <span class="text-sm text-muted-foreground">Belum ada formulir evaluasi yang dikonfigurasi</span>
                                     <Link
                                         :href="route('admin.form-phases.evaluation-forms', { formPhase: formPhase.id, detail_id: detail.id })">
                                     <Button size="sm" variant="outline">
                                         <Plus class="h-4 w-4 mr-2" />
-                                        Add Evaluation Forms
+                                        Tambah Formulir Evaluasi
                                     </Button>
                                     </Link>
                                 </div>
@@ -386,7 +386,7 @@ const getRequiredEvaluationFormsCount = computed(() => {
                                     {{ sortedPhaseDetails.length }}
                                 </p>
                                 <p class="text-sm text-muted-foreground">
-                                    Total Steps
+                                    Total Urutan
                                 </p>
                             </div>
                         </div>
@@ -402,7 +402,7 @@ const getRequiredEvaluationFormsCount = computed(() => {
                                     {{ getTotalEvaluationFormsCount }}
                                 </p>
                                 <p class="text-sm text-muted-foreground">
-                                    Evaluation Forms
+                                    Formulir Evaluasi
                                 </p>
                             </div>
                         </div>
@@ -418,7 +418,7 @@ const getRequiredEvaluationFormsCount = computed(() => {
                                     {{ getRequiredEvaluationFormsCount }}
                                 </p>
                                 <p class="text-sm text-muted-foreground">
-                                    Required Forms
+                                    Formulir Wajib
                                 </p>
                             </div>
                         </div>
@@ -434,7 +434,7 @@ const getRequiredEvaluationFormsCount = computed(() => {
                                     {{ uniqueFormsCount }}
                                 </p>
                                 <p class="text-sm text-muted-foreground">
-                                    Unique Forms
+                                    Formulir Unik
                                 </p>
                             </div>
                         </div>

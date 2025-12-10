@@ -273,21 +273,21 @@ const mappedAssignedReviewers = computed(() =>
 
 <template>
 
-    <Head :title="`${submission.form.title} - Submission Detail`" />
+    <Head :title="`${submission.form.title} - Detail Pengajuan`" />
 
     <AuthenticatedLayout>
         <template #header>
             <div class="flex items-center gap-4">
                 <Button variant="ghost" size="sm" @click="goBack">
                     <ArrowLeft class="h-4 w-4 mr-2" />
-                    Back
+                    Kembali
                 </Button>
                 <div>
                     <h2 class="text-xl font-semibold leading-tight text-gray-800">
                         {{ submission.form.title }}
                     </h2>
                     <p class="text-sm text-muted-foreground">
-                        {{ isSubmitter ? 'Your Submission' : 'Submission Detail' }}
+                        {{ isSubmitter ? 'Pengajuan Anda' : 'Detail Pengajuan' }}
                     </p>
                 </div>
             </div>
@@ -299,13 +299,13 @@ const mappedAssignedReviewers = computed(() =>
                 <CardHeader>
                     <CardTitle class="flex items-center gap-2">
                         <User class="h-5 w-5" />
-                        Submitted By
+                        Diajukan Oleh
                     </CardTitle>
                 </CardHeader>
                 <CardContent>
                     <div class="grid gap-4 md:grid-cols-2">
                         <div>
-                            <Label class="text-sm font-medium text-muted-foreground">Name</Label>
+                            <Label class="text-sm font-medium text-muted-foreground">Nama</Label>
                             <p class="font-medium flex items-center gap-2">
                                 <User class="h-4 w-4" />
                                 {{ submission.submitted_by.name }}
@@ -332,7 +332,7 @@ const mappedAssignedReviewers = computed(() =>
                         <div>
                             <CardTitle class="flex items-center gap-2">
                                 <component :is="getSubmissionStatusInfo(submission.status).icon" class="h-5 w-5" />
-                                Submission Status
+                                Status Pengajuan
                             </CardTitle>
                             <p class="text-muted-foreground mt-1">
                                 {{ getSubmissionStatusInfo(submission.status).description }}
@@ -346,18 +346,18 @@ const mappedAssignedReviewers = computed(() =>
                 <CardContent>
                     <div class="grid gap-4 md:grid-cols-3">
                         <div>
-                            <Label class="text-sm font-medium text-muted-foreground">Created</Label>
+                            <Label class="text-sm font-medium text-muted-foreground">Dibuat Pada</Label>
                             <p class="font-medium flex items-center gap-2">
                                 <Clock class="h-4 w-4" />
                                 {{ formatDateTime(submission.created_at) }}
                             </p>
                         </div>
                         <div>
-                            <Label class="text-sm font-medium text-muted-foreground">Last Updated</Label>
+                            <Label class="text-sm font-medium text-muted-foreground">Terakhir Diperbarui</Label>
                             <p class="font-medium">{{ formatDateTime(submission.updated_at) }}</p>
                         </div>
                         <div v-if="submission.submitted_at">
-                            <Label class="text-sm font-medium text-muted-foreground">Submitted</Label>
+                            <Label class="text-sm font-medium text-muted-foreground">Diajukan Pada</Label>
                             <p class="font-medium text-green-600">{{ formatDateTime(submission.submitted_at) }}</p>
                         </div>
                     </div>
@@ -369,11 +369,11 @@ const mappedAssignedReviewers = computed(() =>
                 <TabsList class="grid w-full grid-cols-2">
                     <TabsTrigger value="submission" class="flex items-center gap-2">
                         <FileText class="h-4 w-4" />
-                        Submission Details
+                        Detail Pengajuan
                     </TabsTrigger>
                     <TabsTrigger value="review" class="flex items-center gap-2">
                         <MessageSquare class="h-4 w-4" />
-                        Review & Discussion
+                        Ulasan & Diskusi
                         <Badge v-if="reviewStats.total_comments > 0" variant="secondary" class="ml-1">
                             {{ reviewStats.total_comments }}
                         </Badge>
@@ -387,7 +387,7 @@ const mappedAssignedReviewers = computed(() =>
                         <CardHeader>
                             <CardTitle class="flex items-center gap-2">
                                 <FileText class="h-5 w-5" />
-                                Form Information
+                                Informasi Formulir
                             </CardTitle>
                         </CardHeader>
                         <CardContent>
@@ -403,7 +403,7 @@ const mappedAssignedReviewers = computed(() =>
                     <!-- Form Responses -->
                     <Card>
                         <CardHeader>
-                            <CardTitle>Form Responses</CardTitle>
+                            <CardTitle>Respon Formulir</CardTitle>
                         </CardHeader>
                         <CardContent>
                             <div class="space-y-6">
@@ -411,7 +411,7 @@ const mappedAssignedReviewers = computed(() =>
                                     <div class="flex items-center gap-2">
                                         <Label class="font-medium">{{ field.label }}</Label>
                                         <Badge v-if="field.is_required" variant="destructive" class="text-xs">
-                                            Required
+                                            Wajib
                                         </Badge>
                                     </div>
 
@@ -466,15 +466,15 @@ const mappedAssignedReviewers = computed(() =>
                         <CardContent class="pt-6">
                             <div class="flex items-center justify-between">
                                 <div>
-                                    <h4 class="font-medium">Continue Editing</h4>
+                                    <h4 class="font-medium">Lanjutkan Mengedit</h4>
                                     <p class="text-sm text-muted-foreground">
-                                        This form is still in draft mode. You can continue editing and submit when
-                                        ready.
+                                        Formulir ini masih dalam mode draft. Anda dapat melanjutkan mengedit dan mengirimkan saat
+                                        siap.
                                     </p>
                                 </div>
                                 <Button>
                                     <Edit class="h-4 w-4 mr-2" />
-                                    Continue Editing
+                                    Lanjutkan Mengedit
                                 </Button>
                             </div>
                         </CardContent>

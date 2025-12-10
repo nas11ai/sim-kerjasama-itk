@@ -20,6 +20,7 @@ use App\Http\Controllers\PermissionController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\BiodataController;
+use App\Http\Controllers\StatController;
 use Illuminate\Foundation\Application;
 use App\Models\Announcement;
 use Illuminate\Support\Facades\Route;
@@ -203,9 +204,22 @@ Route::middleware(['auth', 'check_reviewer_status'])->prefix('reviewer')->name('
 // Admin Routes - only accessible by Super Admin or Admin role
 Route::middleware(['auth', 'role:Super Admin|Admin', 'check_reviewer_status'])->prefix('admin')->name('admin.')->group(function () {
     // Admin Dashboard
-    Route::get('/dashboard', function () {
-        return Inertia::render('Dashboard');
-    })->middleware(['auth', 'verified'])->name('dashboard');
+    Route::get('/dashboard', [StatController::class, 'dashboard'])->middleware(['auth', 'verified'])->name('dashboard');
+
+    // Testing get data route
+
+    Route::get('/stats/get-form-phases', [StatController::class, 'getFormPhaseStats'])->name('stats.get-form-phase');
+    Route::get('/stats/get-form-submissions', [StatController::class, 'getFormSubmissionStats'])->name('stats.get-form-submission');
+    Route::get('/stats/get-reviewers', [StatController::class, 'getSubmissionReviewerStats'])->name('stats.get-reviewer');
+    Route::get('/stats/get-users', [StatController::class, 'getUserStats'])->name('stats.get-user');
+
+    //stat
+    Route::get('/stats/form-phases', [StatController::class, 'formPhaseStatIndex'])->name('stats.form-phase');
+    Route::get('/stats/form-submissions', [StatController::class, 'formSubmissionStatIndex'])->name('stats.form-submission');
+    Route::get('/stats/reviewers', [StatController::class, 'submissionReviewerStatIndex'])->name('stats.reviewer');
+    Route::get('/stats/users', [StatController::class, 'userStatIndex'])->name('stats.user');
+
+    Route::get('/stats/data', [StatController::class, 'data'])->name('stats.data'); //testing data
 
     // User Management
     Route::get('/users', [UserController::class, 'index'])->name('users.index');
@@ -251,6 +265,8 @@ Route::middleware(['auth', 'role:Super Admin|Admin', 'check_reviewer_status'])->
     Route::resource('forms', FormController::class);
     Route::post('forms/{form}/duplicate', [FormController::class, 'duplicate'])
         ->name('forms.duplicate');
+    Route::post('forms/bulk-delete', [FormController::class, 'bulkDelete'])
+        ->name('forms.bulk-delete');
 
     // Complete Form Builder Routes
     Route::get('/form-builder/create', [CompleteFormBuilderController::class, 'create'])
@@ -360,6 +376,9 @@ Route::middleware(['auth', 'role:Super Admin|Admin', 'check_reviewer_status'])->
         'update' => 'form-phases.update',
         'destroy' => 'form-phases.destroy',
     ]);
+
+    Route::post('form-phases/bulk-delete', [FormPhaseController::class, 'bulkDelete'])
+        ->name('form-phases.bulk-delete');
 
     Route::get('form-phases/{formPhase}/evaluation-forms', [FormPhaseController::class, 'evaluationForms'])
         ->name('form-phases.evaluation-forms');

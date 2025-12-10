@@ -397,7 +397,7 @@ const goBack = () => {
 </script>
 
 <template>
-    <Head title="Form Biodata" />
+    <Head title="Formulir Biodata" />
 
     <AuthenticatedLayout>
         <template #header>

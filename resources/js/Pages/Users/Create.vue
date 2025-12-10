@@ -34,7 +34,7 @@ const submit = () => {
 </script>
 
 <template>
-    <Head title="Create User" />
+    <Head title="Buat User" />
 
     <AuthenticatedLayout>
         <template #header>
@@ -46,10 +46,10 @@ const submit = () => {
                     @click="$inertia.visit(route('admin.users.index'))"
                 >
                     <ArrowLeft class="h-4 w-4" />
-                    Back
+                    Kembali
                 </Button>
                 <h2 class="text-xl font-semibold leading-tight text-gray-800">
-                    Create New User
+                    Buat User Baru
                 </h2>
             </div>
         </template>
@@ -58,13 +58,13 @@ const submit = () => {
             <form @submit.prevent="submit" class="flex flex-col gap-6">
                 <Card>
                     <CardHeader>
-                        <CardTitle>Create New User</CardTitle>
-                        <CardDescription>Fill in the details to create a new user.</CardDescription>
+                        <CardTitle>Buat User Baru</CardTitle>
+                        <CardDescription>Isi detail untuk membuat user baru.</CardDescription>
                     </CardHeader>
                     <CardContent class="space-y-6">
                         <div class="grid grid-cols-2 gap-6">
                             <div class="flex flex-col gap-2">
-                                <Label for="name">Name</Label>
+                                <Label for="name">Nama</Label>
                                 <Input
                                     id="name"
                                     type="text"
@@ -73,13 +73,13 @@ const submit = () => {
                                     :tabindex="1"
                                     autocomplete="name"
                                     v-model="form.name"
-                                    placeholder="Full name"
+                                    placeholder="Nama lengkap"
                                 />
                                 <InputError :message="form.errors.name" />
                             </div>
 
                             <div class="flex flex-col gap-2">
-                                <Label for="email">Email address</Label>
+                                <Label for="email">Email</Label>
                                 <Input
                                     id="email"
                                     type="email"
@@ -143,7 +143,7 @@ const submit = () => {
                                     v-if="form.processing"
                                     class="h-4 w-4 animate-spin"
                                 />
-                                Create account
+                                Buat user   
                             </Button>
                         </div>
                     </CardContent>

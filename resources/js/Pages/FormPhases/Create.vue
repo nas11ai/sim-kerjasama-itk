@@ -123,7 +123,7 @@ const submit = () => {
 </script>
 
 <template>
-    <Head title="Create Form Phase" />
+    <Head title="Buat Tahap Formulir" />
 
     <AuthenticatedLayout>
         <template #header>
@@ -134,10 +134,10 @@ const submit = () => {
                     @click="$inertia.visit(route('admin.form-phases.index'))"
                 >
                     <ArrowLeft class="h-4 w-4 mr-2" />
-                    Back
+                    Kembali
                 </Button>
                 <h2 class="text-xl font-semibold leading-tight text-gray-800">
-                    Create New Form Phase
+                    Buat Tahap Formulir Baru
                 </h2>
             </div>
         </template>
@@ -147,16 +147,16 @@ const submit = () => {
                 <!-- Phase Basic Info -->
                 <Card>
                     <CardHeader>
-                        <CardTitle>Phase Information</CardTitle>
+                        <CardTitle>Informasi Tahap</CardTitle>
                     </CardHeader>
                     <CardContent class="space-y-6">
                         <!-- Phase Title -->
                         <div class="space-y-2">
-                            <Label for="title">Phase Title *</Label>
+                            <Label for="title">Judul Tahap *</Label>
                             <Input
                                 id="title"
                                 v-model="form.title"
-                                placeholder="Enter phase title"
+                                placeholder="Masukkan judul tahap"
                                 :class="
                                     errors.title ? 'border-destructive' : ''
                                 "
@@ -171,11 +171,11 @@ const submit = () => {
 
                         <!-- Description -->
                         <div class="space-y-2">
-                            <Label for="description">Description</Label>
+                            <Label for="description">Deskripsi</Label>
                             <Textarea
                                 id="description"
                                 v-model="form.description"
-                                placeholder="Enter phase description (optional)"
+                                placeholder="Masukkan deskripsi tahap (opsional)"
                                 rows="3"
                             />
                         </div>
@@ -183,7 +183,7 @@ const submit = () => {
                         <!-- Active switch -->
                         <div class="flex items-center space-x-2">
                             <Switch v-model="form.is_active" id="is_active" />
-                            <Label for="is_active">Active</Label>
+                            <Label for="is_active">Aktif</Label>
                         </div>
                     </CardContent>
                 </Card>
@@ -192,7 +192,7 @@ const submit = () => {
                 <Card>
                     <CardHeader>
                         <div class="flex items-center justify-between">
-                            <CardTitle>Phase Details</CardTitle>
+                            <CardTitle>Detail Tahap</CardTitle>
                             <Button
                                 v-if="form.phase_details.length === 0"
                                 type="button"
@@ -200,7 +200,7 @@ const submit = () => {
                                 size="sm"
                             >
                                 <Plus class="h-4 w-4 mr-2" />
-                                Add Phase Detail
+                                Tambah Detail Tahap
                             </Button>
                         </div>
                     </CardHeader>
@@ -210,8 +210,7 @@ const submit = () => {
                             class="text-center py-8 text-muted-foreground"
                         >
                             <p>
-                                No phase details added yet. Click "Add Phase
-                                Detail" to get started.
+                                Belum ada detail tahap yang ditambahkan. Klik "Tambah Detail Tahap" untuk memulai.
                             </p>
                         </div>
 
@@ -248,8 +247,7 @@ const submit = () => {
                                                         <!-- Form Access Control -->
                                                         <div class="space-y-2">
                                                             <Label
-                                                                >Form Access
-                                                                Control *</Label
+                                                                >Kontrol Akses Formulir *</Label
                                                             >
                                                             <Select
                                                                 v-model="
@@ -258,7 +256,7 @@ const submit = () => {
                                                             >
                                                                 <SelectTrigger>
                                                                     <SelectValue
-                                                                        placeholder="Select form access control"
+                                                                        placeholder="Pilih kontrol akses formulir"
                                                                     />
                                                                 </SelectTrigger>
                                                                 <SelectContent>
@@ -296,7 +294,7 @@ const submit = () => {
                                                         <!-- Phase Type -->
                                                         <div class="space-y-2">
                                                             <Label
-                                                                >Phase Type
+                                                                >Jenis Tahap
                                                                 *</Label
                                                             >
                                                             <Select
@@ -306,7 +304,7 @@ const submit = () => {
                                                             >
                                                                 <SelectTrigger>
                                                                     <SelectValue
-                                                                        placeholder="Select phase type"
+                                                                        placeholder="Pilih jenis tahap"
                                                                     />
                                                                 </SelectTrigger>
                                                                 <SelectContent>
@@ -338,7 +336,7 @@ const submit = () => {
                                                             "
                                                         />
                                                         <Label
-                                                            >Needs Review</Label
+                                                            >Perlu Review</Label
                                                         >
                                                     </div>
 
@@ -349,7 +347,7 @@ const submit = () => {
                                                         <Badge
                                                             variant="outline"
                                                         >
-                                                            Order:
+                                                            Urutan:
                                                             {{ detail.order }}
                                                         </Badge>
                                                     </div>
@@ -365,7 +363,7 @@ const submit = () => {
                                                         <Label
                                                             class="text-sm text-muted-foreground mb-2 block"
                                                         >
-                                                            Preview:
+                                                            Pratinjau:
                                                         </Label>
                                                         <div
                                                             v-if="
@@ -377,7 +375,7 @@ const submit = () => {
                                                         >
                                                             <div>
                                                                 <strong
-                                                                    >Form:</strong
+                                                                    >Formulir:</strong
                                                                 >
                                                                 {{
                                                                     getFormAccessControlInfo(
@@ -398,8 +396,7 @@ const submit = () => {
                                                             </div>
                                                             <div>
                                                                 <strong
-                                                                    >Study
-                                                                    Program:</strong
+                                                                    >Program Studi:</strong
                                                                 >
                                                                 {{
                                                                     getFormAccessControlInfo(
@@ -411,8 +408,7 @@ const submit = () => {
                                                             </div>
                                                             <div>
                                                                 <strong
-                                                                    >Phase
-                                                                    Type:</strong
+                                                                    >Jenis Tahap:</strong
                                                                 >
                                                                 {{
                                                                     props.phaseTypes.find(
@@ -453,7 +449,7 @@ const submit = () => {
                                     class="w-full max-w-xs"
                                 >
                                     <Plus class="h-4 w-4 mr-2" />
-                                    Add Another Phase Detail
+                                    Tambah Detail Tahap Lain
                                 </Button>
                             </div>
                         </div>
@@ -473,13 +469,13 @@ const submit = () => {
                             $inertia.visit(route('admin.form-phases.index'))
                         "
                     >
-                        Cancel
+                        Batal
                     </Button>
                     <Button type="submit" :disabled="form.processing">
                         {{
                             form.processing
-                                ? "Creating..."
-                                : "Create Form Phase"
+                                ? "Membuat..."
+                                : "Buat Tahap Formulir"
                         }}
                     </Button>
                 </div>

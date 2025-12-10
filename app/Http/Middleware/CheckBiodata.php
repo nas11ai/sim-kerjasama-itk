@@ -74,14 +74,14 @@ class CheckBiodata
 
     private function handleMissingBiodataForm(): void
     {
-        Log::warning('Biodata form not found or inactive in the database.');
+        Log::warning('Formulir biodata tidak ditemukan atau sedang tidak aktif di dalam database.');
 
         $this->setSessionStatus([
             'required' => false,
             'completed' => true,
             'showAllMenus' => true,
             'error' => true,
-            'message' => 'Form biodata tidak ditemukan. Silakan hubungi administrator.',
+            'message' => 'Formulir biodata tidak ditemukan. Silakan hubungi administrator.',
         ]);
     }
 

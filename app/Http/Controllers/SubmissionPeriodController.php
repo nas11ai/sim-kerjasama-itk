@@ -85,7 +85,7 @@ class SubmissionPeriodController extends Controller
             $lastDate = Carbon::parse($dates->last()['date']);
 
             if ($firstDate->gte($lastDate)) {
-                return back()->withErrors(['submission_dates' => 'End date must be after start date.']);
+                return back()->withErrors(['submission_dates' => 'Tanggal berakhir harus setelah tanggal mulai.']);
             }
         }
 
@@ -127,10 +127,10 @@ class SubmissionPeriodController extends Controller
             DB::commit();
 
             return redirect()->route('admin.submission-periods.index')
-                ->with('success', 'Submission period created successfully.');
+                ->with('success', 'Periode pengiriman berhasil dibuat.');
         } catch (\Exception $e) {
             DB::rollback();
-            return back()->withErrors(['error' => 'Failed to create submission period: ' . $e->getMessage()]);
+            return back()->withErrors(['error' => 'Gagal membuat periode pengiriman: ' . $e->getMessage()]);
         }
     }
 
@@ -158,7 +158,8 @@ class SubmissionPeriodController extends Controller
     {
         $submissionPeriod->load([
             'submissionDates' => function ($query) {
-                $query->orderBy('datetime');
+                $query->with('submissionDateLabel')
+                    ->orderBy('datetime');
             },
             'submissionPeriodPhases.formPhase',
             'submissionPeriodDetails.submissionRule'
@@ -200,7 +201,7 @@ class SubmissionPeriodController extends Controller
             $lastDate = Carbon::parse($dates->last()['date']);
 
             if ($firstDate->gte($lastDate)) {
-                return back()->withErrors(['submission_dates' => 'End date must be after start date.']);
+                return back()->withErrors(['submission_dates' => 'Tanggal berakhir harus setelah tanggal mulai.']);
             }
         }
 
@@ -246,11 +247,11 @@ class SubmissionPeriodController extends Controller
 
             DB::commit();
 
-            return redirect()->route('admin.admin.submission-periods.index')
-                ->with('success', 'Submission period updated successfully.');
+            return redirect()->route('admin.submission-periods.index')
+                ->with('success', 'Periode pengiriman berhasil diperbarui.');
         } catch (\Exception $e) {
             DB::rollback();
-            return back()->withErrors(['error' => 'Failed to update submission period: ' . $e->getMessage()]);
+            return back()->withErrors(['error' => 'Gagal memperbarui periode pengiriman: ' . $e->getMessage()]);
         }
     }
 
@@ -271,7 +272,7 @@ class SubmissionPeriodController extends Controller
                 ->with('success', 'Submission period deleted successfully.');
         } catch (\Exception $e) {
             DB::rollback();
-            return back()->withErrors(['error' => 'Failed to delete submission period: ' . $e->getMessage()]);
+            return back()->withErrors(['error' => 'Gagal menghapus periode pengiriman: ' . $e->getMessage()]);
         }
     }
 

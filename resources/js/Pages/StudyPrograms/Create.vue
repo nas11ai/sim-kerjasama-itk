@@ -31,19 +31,18 @@ const submit = () => {
 
 <template>
 
-    <Head title="Create Study Program" />
+    <Head title="Buat Program Studi" />
 
     <AuthenticatedLayout>
         <template #header>
             <div class="flex items-center gap-4">
                 <Button variant="ghost" size="sm" @click="$inertia.visit(route('admin.faculties.study-programs'))">
                     <ArrowLeft class="h-4 w-4 mr-2" />
-                    Back
+                    Kembali
                 </Button>
                 <div class="flex items-center gap-2">
-                    <GraduationCap class="h-6 w-6 text-green-600" />
                     <h2 class="text-xl font-semibold leading-tight text-gray-800">
-                        Create New Study Program
+                        Buat Program Studi
                     </h2>
                 </div>
             </div>
@@ -54,16 +53,16 @@ const submit = () => {
                 <CardHeader>
                     <CardTitle class="flex items-center gap-2">
                         <GraduationCap class="h-5 w-5" />
-                        Study Program Information
+                        Informasi Program Studi
                     </CardTitle>
                 </CardHeader>
                 <CardContent>
                     <form @submit.prevent="submit" class="space-y-6">
                         <div class="space-y-2">
-                            <Label for="faculty_id">Faculty *</Label>
+                            <Label for="faculty_id">Fakultas *</Label>
                             <Select v-model="form.faculty_id" required>
                                 <SelectTrigger :class="form.errors.faculty_id ? 'border-destructive' : ''">
-                                    <SelectValue placeholder="Select faculty" />
+                                    <SelectValue placeholder="Pilih fakultas" />
                                 </SelectTrigger>
                                 <SelectContent>
                                     <SelectItem v-for="faculty in faculties" :key="faculty.id"
@@ -78,8 +77,8 @@ const submit = () => {
                         </div>
 
                         <div class="space-y-2">
-                            <Label for="name">Study Program Name *</Label>
-                            <Input id="name" v-model="form.name" placeholder="Enter study program name"
+                            <Label for="name">Nama Program Studi *</Label>
+                            <Input id="name" v-model="form.name" placeholder="Masukkan nama program studi"
                                 :class="form.errors.name ? 'border-destructive' : ''" />
                             <p v-if="form.errors.name" class="text-sm text-destructive">
                                 {{ form.errors.name }}
@@ -92,7 +91,7 @@ const submit = () => {
                                 Cancel
                             </Button>
                             <Button type="submit" :disabled="form.processing">
-                                {{ form.processing ? "Creating..." : "Create Study Program" }}
+                                {{ form.processing ? "Membuat..." : "Buat Program Studi" }}
                             </Button>
                         </div>
                     </form>

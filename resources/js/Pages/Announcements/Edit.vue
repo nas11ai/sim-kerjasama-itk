@@ -138,8 +138,8 @@ const submit = () => {
                 if (fileInputRef.value) fileInputRef.value.value = "";
 
                 toast({
-                    title: "Success",
-                    description: "Announcement updated successfully!",
+                    title: "Sukses",
+                    description: "Pengumuman berhasil diperbarui!",
                 });
             },
             onError: (errors) => {
@@ -147,7 +147,7 @@ const submit = () => {
                 toast({
                     title: "Error",
                     description:
-                        "Failed to update announcement. Please check your input.",
+                        "Gagal memperbarui pengumuman. Silakan periksa input Anda dan coba lagi.",
                     variant: "destructive",
                 });
             },
@@ -169,10 +169,10 @@ const submit = () => {
                     @click="$inertia.visit(route('admin.announcements.index'))"
                 >
                     <ArrowLeft class="h-4 w-4" />
-                    Back
+                    Kembali
                 </Button>
                 <h2 class="text-xl font-semibold leading-tight text-gray-800">
-                    Edit Announcement
+                    Edit Pengumuman
                 </h2>
             </div>
         </template>
@@ -182,16 +182,16 @@ const submit = () => {
                 <!-- Basic Info -->
                 <Card>
                     <CardHeader>
-                        <CardTitle>Announcement Information</CardTitle>
+                        <CardTitle>Informasi Pengumuman</CardTitle>
                     </CardHeader>
                     <CardContent class="space-y-6">
                         <!-- Title -->
                         <div>
-                            <Label for="title">Title *</Label>
+                            <Label for="title">Judul *</Label>
                             <Input
                                 id="title"
                                 v-model="form.title"
-                                placeholder="Enter announcement title"
+                                placeholder="Masukkan judul pengumuman"
                                 :class="
                                     errors.title ? 'border-destructive' : ''
                                 "
@@ -206,17 +206,17 @@ const submit = () => {
 
                         <!-- Type -->
                         <div>
-                            <Label for="type">Type *</Label>
+                            <Label for="type">Tipe *</Label>
                             <Select v-model="form.type">
                                 <SelectTrigger id="type">
-                                    <SelectValue placeholder="Select type" />
+                                    <SelectValue placeholder="Pilih tipe" />
                                 </SelectTrigger>
                                 <SelectContent>
                                     <SelectItem value="public"
                                         >Public</SelectItem
                                     >
                                     <SelectItem value="private"
-                                        >Private</SelectItem
+                                        >Privat</SelectItem
                                     >
                                 </SelectContent>
                             </Select>
@@ -232,7 +232,7 @@ const submit = () => {
                         <div class="flex flex-row w-full gap-2">
                             <div class="flex w-full flex-col gap-1">
                                 <Label for="expired_at"
-                                    >Expired Date (optional)</Label
+                                    >Tanggal Kadaluarsa (opsional)</Label
                                 >
                                 <Popover>
                                     <PopoverTrigger as-child>
@@ -256,7 +256,7 @@ const submit = () => {
                                                               getLocalTimeZone()
                                                           )
                                                       )
-                                                    : "Pick a date"
+                                                    : "Pilih Tanggal"
                                             }}
                                         </Button>
                                     </PopoverTrigger>
@@ -277,7 +277,7 @@ const submit = () => {
                             </div>
                             <div class="flex flex-col gap-1 w-full">
                                 <Label for="expired_time"
-                                    >Expired Time (optional)</Label
+                                    >Waktu Kadaluarsa (opsional)</Label
                                 >
                                 <Input
                                     id="expired_time"
@@ -303,14 +303,14 @@ const submit = () => {
                 <!-- Content -->
                 <Card>
                     <CardHeader>
-                        <CardTitle>Announcement Content</CardTitle>
+                        <CardTitle>Isi Pengumuman</CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <Label for="content">Content *</Label>
+                        <Label for="content">Isi *</Label>
                         <Textarea
                             id="content"
                             v-model="form.content"
-                            placeholder="Enter announcement content"
+                            placeholder="Masukkan isi pengumuman..."
                             :class="errors.content ? 'border-destructive' : ''"
                             rows="5"
                         />
@@ -326,7 +326,7 @@ const submit = () => {
                 <!-- Current Attachments -->
                 <Card>
                     <CardHeader>
-                        <CardTitle>Current Attachments</CardTitle>
+                        <CardTitle>Lampiran Saat Ini</CardTitle>
                     </CardHeader>
                     <CardContent>
                         <div
@@ -343,9 +343,9 @@ const submit = () => {
                                 >
                                     <div class="flex items-center gap-2">
                                         <a
-                                            :href="file.file_path"
+                                            :href="`/storage/${file.file_path}`"
                                             target="_blank"
-                                            class="text-blue-600 underline hover:text-blue-800"
+                                            class="text-blue-600 underline hover:text-blue-800 max-w-xl truncate"
                                         >
                                             {{ file.file_name }}
                                         </a>
@@ -361,7 +361,7 @@ const submit = () => {
                                         <span
                                             class="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded"
                                         >
-                                            Current
+                                            Saat Ini
                                         </span>
                                     </div>
                                     <Button
@@ -372,7 +372,7 @@ const submit = () => {
                                         class="ml-2"
                                     >
                                         <X class="h-4 w-4" />
-                                        Delete
+                                        Hapus
                                     </Button>
                                 </li>
 
@@ -383,7 +383,7 @@ const submit = () => {
                                     class="flex items-center justify-between p-3 bg-green-50 rounded-md"
                                 >
                                     <div class="flex items-center gap-2">
-                                        <span>{{ file.name }}</span>
+                                        <span class="max-w-lg truncate">{{ file.name }}</span>
                                         <span class="text-xs text-gray-500">
                                             ({{ file.type }},
                                             {{ (file.size / 1024).toFixed(1) }}
@@ -392,7 +392,7 @@ const submit = () => {
                                         <span
                                             class="text-xs bg-green-100 text-green-800 px-2 py-1 rounded"
                                         >
-                                            New
+                                            Baru
                                         </span>
                                     </div>
                                     <Button
@@ -401,7 +401,7 @@ const submit = () => {
                                         size="sm"
                                         @click="removeNewFile(index)"
                                     >
-                                        <X class="h-4 w-4" /> Remove
+                                        <X class="h-4 w-4" /> Hapus
                                     </Button>
                                 </li>
                             </ul>
@@ -431,12 +431,12 @@ const submit = () => {
                 <!-- Upload New Files -->
                 <Card>
                     <CardHeader>
-                        <CardTitle>Add New Attachments</CardTitle>
+                        <CardTitle>Tambahkan Lampiran Baru</CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <Label for="attachments">File Attachments *</Label>
+                        <Label for="attachments">File Lampiran *</Label>
                         <p class="text-xs mb-1 text-gray-500 italic">
-                            Max Size: 2MB (jpg, png, pdf)
+                            Ukuran Maks: 2MB (jpg, png, pdf) 
                         </p>
                         <Input
                             ref="fileInputRef"
@@ -451,16 +451,15 @@ const submit = () => {
                             "
                         />
                         <p class="text-sm text-gray-500 mt-1">
-                            Select files to add as new attachments to this
-                            announcement. At least one file is required.
+                            Pilih file untuk ditambahkan sebagai lampiran baru
+                            pada pengumuman ini. Minimal satu file diperlukan.
                         </p>
                         <p
                             v-if="!hasFiles"
                             class="text-sm text-orange-600 mt-1"
                         >
-                            ⚠️ Warning: All current files will be removed.
-                            Please add new files to maintain at least one
-                            attachment.
+                            ⚠️ Peringatan: Semua file saat ini akan dihapus.
+                            Harap tambahkan file baru untuk mempertahankan setidaknya satu lampiran.
                         </p>
                     </CardContent>
                 </Card>
@@ -483,8 +482,8 @@ const submit = () => {
                     >
                         {{
                             form.processing
-                                ? "Updating..."
-                                : "Update Announcement"
+                                ? "Memperbarui..."
+                                : "Perbarui Pengumuman"
                         }}
                     </Button>
                 </div>

@@ -34,15 +34,15 @@ class PermissionController extends Controller
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255', 'unique:permissions,name'],
         ], [
-            'name.required' => 'The permission name is required.',
-            'name.unique' => 'The permission has already been used.',
+            'name.required' => 'Hak akses harus diisi.',
+            'name.unique' => 'Hak akses sudah digunakan.',
         ]);
 
         Permission::create([
             'name' => $validated['name'],
         ]);
 
-        return to_route('admin.permissions.index')->with('success', 'Permission created successfully.');
+        return to_route('admin.permissions.index')->with('success', 'Hak akses berhasil dibuat.');
     }
 
     /**
@@ -53,15 +53,15 @@ class PermissionController extends Controller
         $validated = $request->validate([
             'name' => ['required', 'string', 'max:255', 'unique:permissions,name,' . $permission->id],
         ], [
-            'name.required' => 'The permission name is required.',
-            'name.unique' => 'This permission has already been used.',
+            'name.required' => 'Hak akses harus diisi.',
+            'name.unique' => 'Hak akses sudah digunakan.',
         ]);
 
         $permission->update([
             'name' => $validated['name'],
         ]);
 
-        return redirect()->route('admin.permissions.index')->with('success', 'Permission updated successfully.');
+        return redirect()->route('admin.permissions.index')->with('success', 'Hak akses berhasil diperbarui.');
     }
 
     /**
@@ -70,10 +70,10 @@ class PermissionController extends Controller
     public function destroy(Request $request, Permission $permission)
     {
         if ($permission->roles()->count() > 0) {
-            return redirect()->route('admin.permissions.index')->with('error', 'Cannot delete permission: it is currently assigned to one or more roles.');
+            return redirect()->route('admin.permissions.index')->with('error', 'Tidak dapat menghapus hak akses: hak akses ini sedang digunakan oleh satu atau lebih role.');
         }
         $permission->delete();
 
-        return redirect()->route('admin.permissions.index')->with('success', 'Permission deleted successfully');
+        return redirect()->route('admin.permissions.index')->with('success', 'Hak akses berhasil dihapus.');
     }
 }
