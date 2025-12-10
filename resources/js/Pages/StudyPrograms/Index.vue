@@ -1,3 +1,4 @@
+<!-- filepath: e:\ITK\sim-kerjasama-itk\resources\js\Pages\StudyPrograms\Index.vue -->
 <script setup lang="ts">
 import { computed, ref, watch } from "vue";
 import { Head, router, usePage } from "@inertiajs/vue3";
@@ -22,6 +23,14 @@ import {
     SelectValue,
 } from "@/Components/ui/select";
 import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+} from "@/Components/ui/dialog"
+import {
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuItem,
@@ -38,9 +47,11 @@ import {
     ArrowUpDown,
     ChevronLeft,
     ChevronRight,
-    Filter
+    Filter,
+    AlertTriangle
 } from "lucide-vue-next";
 import { debounce } from 'lodash';
+import { useToast } from "@/Components/ui/toast/use-toast";
 
 interface Faculty {
     id: number;
@@ -95,12 +106,13 @@ interface Props {
 // Extend the existing PageProps interface
 interface ExtendedPageProps {
     flash?: FlashMessages;
-    auth: any; // This should match your existing auth type
-    [key: string]: any; // Allow additional properties
+    auth: any;
+    [key: string]: any;
 }
 
 const props = defineProps<Props>();
 const page = usePage<ExtendedPageProps>();
+const { toast } = useToast();
 
 // Reactive filters
 const search = ref(props.filters.search || '');
@@ -109,8 +121,32 @@ const perPage = ref(props.filters.per_page || 10);
 const sortBy = ref(props.filters.sort_by || 'name');
 const sortOrder = ref(props.filters.sort_order || 'asc');
 
+const showDeleteDialog = ref(false);
+const prodiToDelete = ref<StudyProgram | null>(null);
+
 // Loading states
 const isDeleting = ref<number | null>(null);
+
+// Watch for flash messages
+watch(
+    () => page.props.flash,
+    (flash) => {
+        if (flash?.success) {
+            toast({
+                title: "Sukses",
+                description: flash.success,
+            });
+        }
+        if (flash?.error) {
+            toast({
+                title: "Error",
+                description: flash.error,
+                variant: "destructive",
+            });
+        }
+    },
+    { immediate: true, deep: true }
+);
 
 // Search debounced function
 const debouncedSearch = debounce((value: string) => {
@@ -126,6 +162,39 @@ watch(facultyFilter, (newValue) => {
     const filterValue = newValue === 'all' ? '' : newValue;
     updateFilters({ faculty_id: filterValue });
 });
+
+const confirmDelete = () => {
+    if (prodiToDelete.value) {
+        isDeleting.value = prodiToDelete.value.id;
+        router.delete(route("admin.faculties.study-programs.destroy", prodiToDelete.value.id), {
+            onSuccess: () => {
+                showDeleteDialog.value = false;
+                prodiToDelete.value = null;
+                toast({
+                    title: "Sukses",
+                    description: "Program Studi berhasil dihapus!",
+                });
+            },
+            onError: (errors) => {
+                toast({
+                    title: "Error",
+                    description: errors.error || "Gagal menghapus program studi.",
+                    variant: "destructive",
+                });
+            },
+            onFinish: () => {
+                isDeleting.value = null;
+                showDeleteDialog.value = false;
+                prodiToDelete.value = null;
+            }
+        });
+    }
+}
+
+const cancelDelete = () => {
+    showDeleteDialog.value = false;
+    prodiToDelete.value = null;
+};
 
 // Update filters function
 const updateFilters = (newFilters: Partial<Filters>) => {
@@ -151,20 +220,9 @@ const sortTable = (column: string) => {
 };
 
 // Delete function
-const deleteStudyProgram = async (studyProgram: StudyProgram) => {
-    if (!confirm(`Are you sure you want to delete "${studyProgram.name}"?`)) {
-        return;
-    }
-
-    isDeleting.value = studyProgram.id;
-
-    try {
-        await router.delete(route('admin.faculties.study-programs.destroy', studyProgram.id), {
-            preserveState: false,
-        });
-    } finally {
-        isDeleting.value = null;
-    }
+const deleteStudyProgram = (studyProgram: StudyProgram) => {
+    prodiToDelete.value = studyProgram;
+    showDeleteDialog.value = true;
 };
 
 // Pagination function
@@ -187,7 +245,6 @@ const changePerPage = (newPerPage: any) => {
         } else if (typeof newPerPage === 'number') {
             perPageNumber = newPerPage;
         } else {
-            // Handle Record<string, any> or other types
             return;
         }
         perPage.value = perPageNumber;
@@ -198,7 +255,7 @@ const changePerPage = (newPerPage: any) => {
 // Clear filters
 const clearFilters = () => {
     search.value = '';
-    facultyFilter.value = 'all'; // Changed from '' to 'all'
+    facultyFilter.value = 'all';
     updateFilters({ search: '', faculty_id: '' });
 };
 
@@ -216,59 +273,49 @@ const getSortIcon = (column: string) => {
 const activeFiltersCount = computed(() => {
     let count = 0;
     if (search.value) count++;
-    if (facultyFilter.value && facultyFilter.value !== 'all') count++; // Updated condition
+    if (facultyFilter.value && facultyFilter.value !== 'all') count++;
     return count;
 });
 </script>
 
 <template>
-
-    <Head title="Study Programs Management" />
+    <Head title="Manajemen Program Studi" />
 
     <AuthenticatedLayout>
         <template #header>
             <div class="flex items-center justify-between">
                 <div class="flex items-center gap-2">
-                    <GraduationCap class="h-6 w-6 text-green-600" />
                     <h2 class="text-xl font-semibold leading-tight text-gray-800">
-                        Study Programs Management
+                        Manajemen Program Studi
                     </h2>
                 </div>
                 <div class="flex items-center gap-2">
                     <Button @click="router.visit(route('admin.faculties.index'))" variant="outline">
                         <Building2 class="h-4 w-4 mr-2" />
-                        Faculties
+                        Fakultas
                     </Button>
                     <Button @click="router.visit(route('admin.faculties.study-programs.create'))">
                         <Plus class="h-4 w-4 mr-2" />
-                        Add Study Program
+                        Tambah Program Studi
                     </Button>
                 </div>
             </div>
         </template>
 
         <div class="space-y-6">
-            <!-- Success/Error Messages -->
-            <div v-if="successMessage" class="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg">
-                {{ successMessage }}
-            </div>
-            <div v-if="errorMessage" class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
-                {{ errorMessage }}
-            </div>
-
             <!-- Filters Card -->
             <Card>
                 <CardHeader>
                     <div class="flex items-center justify-between">
                         <CardTitle class="text-lg flex items-center gap-2">
                             <Search class="h-5 w-5" />
-                            Search & Filter
+                            Cari & Filter
                             <Badge v-if="activeFiltersCount > 0" variant="secondary">
-                                {{ activeFiltersCount }} active
+                                {{ activeFiltersCount }} aktif
                             </Badge>
                         </CardTitle>
                         <Button v-if="activeFiltersCount > 0" variant="ghost" size="sm" @click="clearFilters">
-                            Clear All
+                            Hapus Semua Filter
                         </Button>
                     </div>
                 </CardHeader>
@@ -279,7 +326,7 @@ const activeFiltersCount = computed(() => {
                             <div class="relative">
                                 <Search
                                     class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-                                <Input v-model="search" placeholder="Search study programs or faculties..."
+                                <Input v-model="search" placeholder="Cari berdasarkan nama program studi atau fakultas..."
                                     class="pl-10" />
                             </div>
                         </div>
@@ -288,10 +335,10 @@ const activeFiltersCount = computed(() => {
                         <div class="w-full lg:w-64">
                             <Select v-model="facultyFilter">
                                 <SelectTrigger>
-                                    <SelectValue placeholder="Filter by Faculty" />
+                                    <SelectValue placeholder="Filter Berdasarkan Fakultas" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value="all">All Faculties</SelectItem>
+                                    <SelectItem value="all">Semua Fakultas</SelectItem>
                                     <SelectItem v-for="faculty in faculties" :key="faculty.id"
                                         :value="faculty.id.toString()">
                                         {{ faculty.name }}
@@ -301,16 +348,16 @@ const activeFiltersCount = computed(() => {
                         </div>
 
                         <!-- Per Page Select -->
-                        <div class="w-full lg:w-32">
+                        <div class="w-full lg:w-36">
                             <Select :model-value="perPage.toString()" @update:model-value="changePerPage">
                                 <SelectTrigger>
                                     <SelectValue />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value="5">5 per page</SelectItem>
-                                    <SelectItem value="10">10 per page</SelectItem>
-                                    <SelectItem value="25">25 per page</SelectItem>
-                                    <SelectItem value="50">50 per page</SelectItem>
+                                    <SelectItem value="5">5 per halaman</SelectItem>
+                                    <SelectItem value="10">10 per halaman</SelectItem>
+                                    <SelectItem value="25">25 per halaman</SelectItem>
+                                    <SelectItem value="50">50 per halaman</SelectItem>
                                 </SelectContent>
                             </Select>
                         </div>
@@ -323,8 +370,7 @@ const activeFiltersCount = computed(() => {
                 <CardHeader>
                     <div class="flex items-center justify-between">
                         <CardTitle class="flex items-center gap-2">
-                            <GraduationCap class="h-5 w-5" />
-                            Study Programs
+                            Program Studi
                             <Badge variant="secondary">{{ studyPrograms.total }} total</Badge>
                         </CardTitle>
                     </div>
@@ -339,7 +385,7 @@ const activeFiltersCount = computed(() => {
                                     <TableHead>
                                         <button @click="sortTable('name')"
                                             class="flex items-center gap-1 hover:text-blue-600 font-semibold">
-                                            Program Name
+                                            Nama Program Studi
                                             <ArrowUpDown class="h-4 w-4 transition-transform"
                                                 :class="getSortIcon('name')" />
                                         </button>
@@ -347,7 +393,7 @@ const activeFiltersCount = computed(() => {
                                     <TableHead>
                                         <button @click="sortTable('faculty_name')"
                                             class="flex items-center gap-1 hover:text-blue-600 font-semibold">
-                                            Faculty
+                                            Fakultas
                                             <ArrowUpDown class="h-4 w-4 transition-transform"
                                                 :class="getSortIcon('faculty_name')" />
                                         </button>
@@ -355,19 +401,19 @@ const activeFiltersCount = computed(() => {
                                     <TableHead>
                                         <button @click="sortTable('created_at')"
                                             class="flex items-center gap-1 hover:text-blue-600 font-semibold">
-                                            Created At
+                                            Dibuat Pada
                                             <ArrowUpDown class="h-4 w-4 transition-transform"
                                                 :class="getSortIcon('created_at')" />
                                         </button>
                                     </TableHead>
-                                    <TableHead class="text-center w-20">Actions</TableHead>
+                                    <TableHead class="text-center w-20">Aksi</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
                                 <TableRow v-if="studyPrograms.data.length === 0">
                                     <TableCell colspan="5" class="text-center py-8 text-gray-500">
                                         <GraduationCap class="h-12 w-12 mx-auto mb-4 opacity-50" />
-                                        <p>No study programs found</p>
+                                        <p>Tidak ada Program Studi yang ditemukan</p>
                                     </TableCell>
                                 </TableRow>
                                 <TableRow v-for="(program, index) in studyPrograms.data" :key="program.id"
@@ -384,7 +430,7 @@ const activeFiltersCount = computed(() => {
                                         </Badge>
                                     </TableCell>
                                     <TableCell>
-                                        {{ new Date(program.created_at).toLocaleDateString() }}
+                                        {{ new Date(program.created_at).toLocaleDateString('id-ID') }}
                                     </TableCell>
                                     <TableCell>
                                         <DropdownMenu>
@@ -400,9 +446,9 @@ const activeFiltersCount = computed(() => {
                                                     Edit
                                                 </DropdownMenuItem>
                                                 <DropdownMenuItem @click="deleteStudyProgram(program)"
-                                                    class="text-red-600">
+                                                    class="text-red-600 cursor-pointer">
                                                     <Trash2 class="h-4 w-4 mr-2" />
-                                                    Delete
+                                                    Hapus
                                                 </DropdownMenuItem>
                                             </DropdownMenuContent>
                                         </DropdownMenu>
@@ -416,15 +462,16 @@ const activeFiltersCount = computed(() => {
                     <div v-if="studyPrograms.last_page > 1"
                         class="flex items-center justify-between px-6 py-4 border-t">
                         <div class="text-sm text-gray-500">
-                            Showing {{ studyPrograms.from }} to {{ studyPrograms.to }} of {{ studyPrograms.total }}
-                            results
+                            Menampilkan {{ studyPrograms.from }} hingga {{ studyPrograms.to }} dari {{
+                                studyPrograms.total }}
+                            hasil
                         </div>
                         <div class="flex items-center space-x-2">
                             <!-- Previous Button -->
                             <Button variant="outline" size="sm" @click="goToPage(studyPrograms.links[0].url)"
                                 :disabled="!studyPrograms.links[0].url">
                                 <ChevronLeft class="h-4 w-4" />
-                                Previous
+                                Halaman Sebelumnya
                             </Button>
 
                             <!-- Page Numbers -->
@@ -442,7 +489,7 @@ const activeFiltersCount = computed(() => {
                             <Button variant="outline" size="sm"
                                 @click="goToPage(studyPrograms.links[studyPrograms.links.length - 1].url)"
                                 :disabled="!studyPrograms.links[studyPrograms.links.length - 1].url">
-                                Next
+                                Halaman Selanjutnya
                                 <ChevronRight class="h-4 w-4" />
                             </Button>
                         </div>
@@ -450,5 +497,73 @@ const activeFiltersCount = computed(() => {
                 </CardContent>
             </Card>
         </div>
+
+        <!-- Delete Confirmation Dialog -->
+        <Dialog v-model:open="showDeleteDialog">
+            <DialogContent class="sm:max-w-lg">
+                <DialogHeader>
+                    <DialogTitle class="flex items-center gap-2">
+                        <AlertTriangle class="h-5 w-5 text-destructive" />
+                        Konfirmasi Hapus Program Studi
+                    </DialogTitle>
+                    <DialogDescription>
+                        Apakah Anda yakin ingin menghapus program studi ini? Tindakan ini tidak dapat dibatalkan.
+                    </DialogDescription>
+                </DialogHeader>
+
+                <div v-if="prodiToDelete" class="py-4">
+                    <div class="p-4 bg-muted rounded-lg">
+                        <div class="flex items-center gap-3">
+                            <div
+                                class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
+                                <GraduationCap class="h-6 w-6 text-blue-600" />
+                            </div>
+                            <div class="flex-1 min-w-0">
+                                <h4 class="font-semibold text-lg truncate">
+                                    {{ prodiToDelete.name }}
+                                </h4>
+                                <div class="flex items-center gap-2 mt-2">
+                                    <Badge variant="outline" class="bg-blue-50 text-blue-700 border-blue-200">
+                                        {{ prodiToDelete.faculty.name }}
+                                    </Badge>
+                                </div>
+                                <p class="text-sm text-muted-foreground mt-2">
+                                    Dibuat pada: {{ new Date(prodiToDelete.created_at).toLocaleDateString('id-ID', {
+                                        year: 'numeric',
+                                        month: 'long',
+                                        day: 'numeric'
+                                    }) }}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Warning Message -->
+                    <div class="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-md">
+                        <div class="flex items-start gap-2">
+                            <AlertTriangle class="h-5 w-5 text-yellow-600 flex-shrink-0 mt-0.5" />
+                            <div class="text-sm text-yellow-800">
+                                <p class="font-medium mb-1">Perhatian</p>
+                                <p>
+                                    Menghapus program studi ini akan menghapus semua data terkait yang berhubungan
+                                    dengan program studi ini.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <DialogFooter>
+                    <Button variant="outline" @click="cancelDelete" :disabled="isDeleting !== null">
+                        Batal
+                    </Button>
+                    <Button variant="destructive" @click="confirmDelete" :disabled="isDeleting !== null">
+                        <Trash2 v-if="isDeleting === null" class="h-4 w-4 mr-2" />
+                        <span v-if="isDeleting === null">Hapus Program Studi</span>
+                        <span v-else>Menghapus...</span>
+                    </Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
     </AuthenticatedLayout>
 </template>

@@ -21,17 +21,17 @@ const submit = () => {
 
 <template>
 
-    <Head title="Create Reviewer Role" />
+    <Head title="Buat Role Reviewer" />
 
     <AuthenticatedLayout>
         <template #header>
             <div class="flex items-center gap-4">
                 <Button variant="ghost" size="sm" @click="$inertia.visit(route('admin.reviewer-roles.index'))">
                     <ArrowLeft class="h-4 w-4 mr-2" />
-                    Back to Reviewer Roles
+                    Kembali
                 </Button>
                 <h2 class="text-xl font-semibold leading-tight text-gray-800">
-                    Create Reviewer Role
+                    Buat Role Reviewer
                 </h2>
             </div>
         </template>
@@ -41,20 +41,19 @@ const submit = () => {
                 <CardHeader>
                     <CardTitle class="flex items-center gap-2">
                         <Shield class="h-5 w-5" />
-                        Role Information
+                        Informasi Role
                     </CardTitle>
                 </CardHeader>
                 <CardContent>
                     <form @submit.prevent="submit" class="space-y-6">
                         <!-- Role Name -->
                         <div class="space-y-2">
-                            <Label for="name">Role Name *</Label>
+                            <Label for="name">Nama Role *</Label>
                             <Input id="name" v-model="form.name" type="text"
-                                placeholder="Enter reviewer role name (e.g., Faculty Reviewer, External Reviewer)"
+                                placeholder="Masukkan nama role reviewer (misalnya, Reviewer Fakultas, Reviewer Eksternal)"
                                 required />
                             <p class="text-xs text-muted-foreground">
-                                Choose a descriptive name that clearly identifies the reviewer's role and
-                                responsibilities.
+                                Pilih nama yang deskriptif yang dengan jelas mengidentifikasi role dan tanggung jawab reviewer.
                             </p>
                             <p v-if="form.errors.name" class="text-sm text-destructive">
                                 {{ form.errors.name }}
@@ -67,13 +66,12 @@ const submit = () => {
                                 <Checkbox id="is_active" v-model="form.is_active" />
                                 <Label for="is_active"
                                     class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                                    Active Role
+                                    Role Aktif
                                 </Label>
                             </div>
                             <p class="text-xs text-muted-foreground">
-                                Only active roles can be assigned to reviewers. Inactive roles are hidden from selection
-                                but
-                                preserve existing assignments.
+                                Hanya role yang aktif yang dapat diberikan kepada reviewer. Role yang tidak aktif akan disembunyikan dari pilihan,
+                                tetapi tetap mempertahankan penugasan yang sudah ada.
                             </p>
                             <p v-if="form.errors.is_active" class="text-sm text-destructive">
                                 {{ form.errors.is_active }}
@@ -84,10 +82,10 @@ const submit = () => {
                         <div class="flex items-center justify-end space-x-3">
                             <Button type="button" variant="outline"
                                 @click="$inertia.visit(route('admin.reviewer-roles.index'))">
-                                Cancel
+                                Batal
                             </Button>
                             <Button type="submit" :disabled="form.processing">
-                                {{ form.processing ? "Creating..." : "Create Role" }}
+                                {{ form.processing ? "Membuat..." : "Buat Role" }}
                             </Button>
                         </div>
                     </form>

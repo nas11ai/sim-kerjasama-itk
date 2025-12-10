@@ -71,8 +71,8 @@ watch(
         <!-- Option Selection -->
         <Card>
             <CardHeader>
-                <CardTitle>Form Phase Configuration</CardTitle>
-                <CardDescription>Choose to use an existing phase or create a new one</CardDescription>
+                <CardTitle>Konfigurasi Tahap Formulir</CardTitle>
+                <CardDescription>Pilih untuk menggunakan tahap yang sudah ada atau membuat tahap baru</CardDescription>
             </CardHeader>
             <CardContent class="space-y-4">
                 <RadioGroup v-model="useExistingString" class="space-y-3">
@@ -83,10 +83,10 @@ watch(
                         <Label for="use_existing" class="flex-1 cursor-pointer">
                             <div class="flex items-center gap-2 font-medium">
                                 <Layers class="h-4 w-4" />
-                                Use Existing Form Phase
+                                Gunakan Tahap Formulir yang Ada
                             </div>
                             <p class="text-sm text-muted-foreground mt-1">
-                                Add this form to an already existing phase
+                                Tambahkan formulir ini ke tahap yang sudah ada
                             </p>
                         </Label>
                     </div>
@@ -98,10 +98,10 @@ watch(
                         <Label for="create_new" class="flex-1 cursor-pointer">
                             <div class="flex items-center gap-2 font-medium">
                                 <Plus class="h-4 w-4" />
-                                Create New Form Phase
+                                Buat Tahap Formulir Baru
                             </div>
                             <p class="text-sm text-muted-foreground mt-1">
-                                Set up a new phase with custom settings
+                                Atur tahap baru dengan pengaturan khusus
                             </p>
                         </Label>
                     </div>
@@ -112,14 +112,14 @@ watch(
         <!-- Existing Phase Selection -->
         <Card v-if="phaseData.use_existing">
             <CardHeader>
-                <CardTitle>Select Existing Phase</CardTitle>
+                <CardTitle>Pilih Tahap yang Ada</CardTitle>
             </CardHeader>
             <CardContent class="space-y-4">
                 <div class="space-y-2">
-                    <Label>Form Phase *</Label>
+                    <Label>Tahap Formulir *</Label>
                     <Select v-model="phaseData.existing_phase_id">
                         <SelectTrigger>
-                            <SelectValue placeholder="Select a form phase" />
+                            <SelectValue placeholder="Pilih tahap formulir" />
                         </SelectTrigger>
                         <SelectContent>
                             <SelectItem v-for="phase in formPhases" :key="phase.id" :value="phase.id">
@@ -142,9 +142,9 @@ watch(
                     <CardContent class="p-4">
                         <div class="space-y-2">
                             <div class="flex items-center justify-between">
-                                <span class="text-sm font-medium text-blue-900">Selected Phase</span>
+                                <span class="text-sm font-medium text-blue-900">Tahap Terpilih</span>
                                 <Badge variant="outline" class="text-blue-700">
-                                    {{ selectedPhaseInfo.form_phase_details?.length || 0 }} details
+                                    {{ selectedPhaseInfo.form_phase_details?.length || 0 }} detail
                                 </Badge>
                             </div>
                             <h4 class="font-semibold text-blue-900">{{ selectedPhaseInfo.title }}</h4>
@@ -153,7 +153,7 @@ watch(
                             </p>
                             <div class="flex items-center gap-2 text-sm text-blue-600">
                                 <Badge :variant="selectedPhaseInfo.is_active ? 'default' : 'secondary'">
-                                    {{ selectedPhaseInfo.is_active ? 'Active' : 'Inactive' }}
+                                    {{ selectedPhaseInfo.is_active ? 'Aktif' : 'Tidak Aktif' }}
                                 </Badge>
                             </div>
                         </div>
@@ -165,12 +165,12 @@ watch(
         <!-- New Phase Creation -->
         <Card v-else>
             <CardHeader>
-                <CardTitle>Create New Phase</CardTitle>
+                <CardTitle>Buat Tahap Baru</CardTitle>
             </CardHeader>
             <CardContent class="space-y-4">
                 <div class="space-y-2">
-                    <Label for="new_phase_title">Phase Title *</Label>
-                    <Input id="new_phase_title" v-model="phaseData.new_phase_title" placeholder="Enter phase title"
+                    <Label for="new_phase_title">Judul Tahap *</Label>
+                    <Input id="new_phase_title" v-model="phaseData.new_phase_title" placeholder="Masukkan judul tahap"
                         :class="errors['phase.new_phase_title'] ? 'border-destructive' : ''" />
                     <p v-if="errors['phase.new_phase_title']" class="text-sm text-destructive">
                         {{ errors['phase.new_phase_title'] }}
@@ -178,9 +178,9 @@ watch(
                 </div>
 
                 <div class="space-y-2">
-                    <Label for="new_phase_description">Phase Description</Label>
+                    <Label for="new_phase_description">Deskripsi Tahap</Label>
                     <Textarea id="new_phase_description" v-model="phaseData.new_phase_description"
-                        placeholder="Enter phase description (optional)" rows="3" />
+                        placeholder="Masukkan deskripsi tahap (opsional)" rows="3" />
                 </div>
             </CardContent>
         </Card>
@@ -188,15 +188,15 @@ watch(
         <!-- Phase Type Selection -->
         <Card>
             <CardHeader>
-                <CardTitle>Phase Type *</CardTitle>
-                <CardDescription>Select the type of phase for this form</CardDescription>
+                <CardTitle>Jenis Tahap *</CardTitle>
+                <CardDescription>Pilih jenis tahap untuk formulir ini</CardDescription>
             </CardHeader>
             <CardContent class="space-y-4">
                 <div class="space-y-2">
-                    <Label>Phase Type</Label>
+                    <Label>Jenis Tahap</Label>
                     <Select v-model="phaseData.phase_type_id">
                         <SelectTrigger>
-                            <SelectValue placeholder="Select phase type" />
+                            <SelectValue placeholder="Pilih jenis tahap" />
                         </SelectTrigger>
                         <SelectContent>
                             <SelectItem v-for="phaseType in phaseTypes" :key="phaseType.id" :value="phaseType.id">
@@ -212,9 +212,9 @@ watch(
                 <div class="flex items-center space-x-2 p-4 border rounded-lg">
                     <Switch v-model="phaseData.needs_review" id="needs_review" />
                     <Label for="needs_review" class="flex-1">
-                        <div class="font-medium">Needs Review</div>
+                        <div class="font-medium">Perlu direview</div>
                         <p class="text-sm text-muted-foreground">
-                            Enable if submissions in this phase require reviewer evaluation
+                            Aktifkan jika pengajuan pada tahap ini memerlukan review oleh reviewer
                         </p>
                     </Label>
                 </div>
@@ -227,34 +227,34 @@ watch(
                 <div class="space-y-2">
                     <div class="flex items-center gap-2">
                         <Settings class="h-5 w-5 text-green-600" />
-                        <h3 class="font-medium text-green-900">Phase Configuration Preview</h3>
+                        <h3 class="font-medium text-green-900">Pratinjau Konfigurasi Tahap</h3>
                     </div>
                     <div class="grid gap-2 text-sm">
                         <div class="flex items-center justify-between">
                             <span class="text-green-700">Mode:</span>
                             <Badge variant="outline" class="text-green-700">
-                                {{ phaseData.use_existing ? 'Using Existing Phase' : 'Creating New Phase' }}
+                                {{ phaseData.use_existing ? 'Menggunakan Tahap yang Ada' : 'Membuat Tahap Baru' }}
                             </Badge>
                         </div>
                         <div v-if="phaseData.use_existing && selectedPhaseInfo"
                             class="flex items-center justify-between">
-                            <span class="text-green-700">Phase:</span>
+                            <span class="text-green-700">Tahap:</span>
                             <span class="font-medium text-green-900">{{ selectedPhaseInfo.title }}</span>
                         </div>
                         <div v-if="!phaseData.use_existing && phaseData.new_phase_title"
                             class="flex items-center justify-between">
-                            <span class="text-green-700">New Phase:</span>
+                            <span class="text-green-700">Tahap Baru:</span>
                             <span class="font-medium text-green-900">{{ phaseData.new_phase_title }}</span>
                         </div>
                         <div class="flex items-center justify-between">
-                            <span class="text-green-700">Phase Type:</span>
+                            <span class="text-green-700">Jenis Tahap:</span>
                             <span class="font-medium text-green-900">{{ getPhaseTypeName(phaseData.phase_type_id)
                                 }}</span>
                         </div>
                         <div class="flex items-center justify-between">
-                            <span class="text-green-700">Needs Review:</span>
+                            <span class="text-green-700">Perlu direview:</span>
                             <Badge :variant="phaseData.needs_review ? 'default' : 'secondary'">
-                                {{ phaseData.needs_review ? 'Yes' : 'No' }}
+                                {{ phaseData.needs_review ? 'Ya' : 'Tidak' }}
                             </Badge>
                         </div>
                     </div>

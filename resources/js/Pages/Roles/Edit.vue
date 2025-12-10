@@ -33,10 +33,10 @@ const roleId = computed(() => props.role?.id ?? null);
                     @click="$inertia.visit(route('admin.roles.index'))"
                 >
                     <ArrowLeft class="h-4 w-4" />
-                    Back
+                    Kembali
                 </Button>
                 <h2 class="text-xl font-semibold leading-tight text-gray-800">
-                    Create New Roles
+                    Edit Role
                 </h2>
             </div>
         </template>
@@ -44,11 +44,10 @@ const roleId = computed(() => props.role?.id ?? null);
         <div class="max-w-4xl mx-auto space-y-6">
             <Card>
                 <CardHeader>
-                    <CardTitle>Create New User</CardTitle>
-                    <CardDescription
-                        >Fill in the details to create a new
-                        user.</CardDescription
-                    >
+                    <CardTitle>Edit Role</CardTitle>
+                    <CardDescription>
+                        Isi detail untuk mengedit role.
+                    </CardDescription>
                 </CardHeader>
                 <CardContent class="space-y-6">
                     <RoleForm

@@ -24,7 +24,7 @@ const form = useForm({
         class="space-y-6"
     >
         <div class="flex flex-col gap-2">
-            <Label for="name">Current Name</Label>
+            <Label for="name">Nama Saat Ini</Label>
             <Input
                 id="name"
                 type="text"
@@ -37,7 +37,7 @@ const form = useForm({
         </div>
 
         <div class="flex flex-col gap-2">
-            <Label for="name">Current Email</Label>
+            <Label for="name">Email Saat Ini</Label>
             <Input
                 id="email"
                 type="email"
@@ -50,14 +50,14 @@ const form = useForm({
 
         <div v-if="mustVerifyEmail && user.email_verified_at === null">
             <p class="mt-2 text-sm text-muted-foreground">
-                Your email address is unverified.
+                Alamat email Anda belum terverifikasi.
                 <Link
                     :href="route('verification.send')"
                     method="post"
                     as="button"
                     class="rounded-md text-sm text-gray-600 underline hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition-colors"
                 >
-                    Click here to re-send the verification email.
+                    Klik di sini untuk mengirim ulang email verifikasi.
                 </Link>
             </p>
 
@@ -65,13 +65,13 @@ const form = useForm({
                 v-show="status === 'verification-link-sent'"
                 class="mt-2 text-sm font-medium text-green-600"
             >
-                A new verification link has been sent to your email address.
+                Tautan verifikasi baru telah dikirim ke alamat email Anda.
             </div>
         </div>
 
         <div class="flex items-center gap-4">
             <Button type="submit" variant="default" :disabled="form.processing"
-                >Save Profile</Button>
+                >Simpan Profil</Button>
         </div>
     </form>
 </template>

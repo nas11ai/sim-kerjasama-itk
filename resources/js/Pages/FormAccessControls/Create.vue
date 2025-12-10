@@ -239,17 +239,17 @@ const currentFormId = computed({
 
 <template>
 
-    <Head title="Create Form Access Control" />
+    <Head title="Buat Kontrol Akses Formulir" />
 
     <AuthenticatedLayout>
         <template #header>
             <div class="flex items-center gap-4">
                 <Button variant="ghost" size="sm" @click="$inertia.visit(route('admin.form-access-controls.index'))">
                     <ArrowLeft class="h-4 w-4 mr-2" />
-                    Back
+                    Kembali
                 </Button>
                 <h2 class="text-xl font-semibold leading-tight text-gray-800">
-                    Create Form Access Control
+                    Buat Kontrol Akses Formulir
                 </h2>
             </div>
         </template>
@@ -260,16 +260,16 @@ const currentFormId = computed({
                 <CardContent class="p-6">
                     <div class="flex items-center justify-between">
                         <div>
-                            <h3 class="font-medium mb-1">Creation Mode</h3>
+                            <h3 class="font-medium mb-1">Mode Pembuatan</h3>
                             <p class="text-sm text-muted-foreground">
-                                Choose between single or bulk creation
+                                Pilih antara pembuatan tunggal atau massal
                             </p>
                         </div>
                         <Button @click="switchMode" variant="outline">
                             {{
                                 isBulkMode
-                                    ? "Switch to Single Mode"
-                                    : "Switch to Bulk Mode"
+                                    ? "Beralih ke Mode Tunggal"
+                                    : "Beralih ke Mode Massal"
                             }}
                         </Button>
                     </div>
@@ -282,15 +282,15 @@ const currentFormId = computed({
                     <CardHeader>
                         <CardTitle class="flex items-center gap-2">
                             <FileText class="h-5 w-5" />
-                            Form Selection
+                            Pemilihan Formulir
                         </CardTitle>
                     </CardHeader>
                     <CardContent class="space-y-4">
                         <div class="space-y-2">
-                            <Label for="form">Form *</Label>
+                            <Label for="form">Formulir *</Label>
                             <Select v-model="currentFormId">
                                 <SelectTrigger id="form">
-                                    <SelectValue placeholder="Select a form" />
+                                    <SelectValue placeholder="Pilih formulir" />
                                 </SelectTrigger>
                                 <SelectContent>
                                     <SelectItem v-for="formItem in props.forms" :key="formItem.id" :value="formItem.id">
@@ -311,7 +311,7 @@ const currentFormId = computed({
                         <CardHeader>
                             <CardTitle class="flex items-center gap-2">
                                 <Users class="h-5 w-5" />
-                                Access Configuration
+                                Konfigurasi Akses
                             </CardTitle>
                         </CardHeader>
                         <CardContent class="space-y-6">
@@ -321,7 +321,7 @@ const currentFormId = computed({
                                     <Label for="role">Role *</Label>
                                     <Select v-model="form.role_id">
                                         <SelectTrigger id="role">
-                                            <SelectValue placeholder="Select a role" />
+                                            <SelectValue placeholder="Pilih role" />
                                         </SelectTrigger>
                                         <SelectContent>
                                             <SelectItem v-for="role in props.roles" :key="role.id" :value="role.id">
@@ -336,10 +336,10 @@ const currentFormId = computed({
 
                                 <!-- Faculty Selection -->
                                 <div class="space-y-2">
-                                    <Label for="faculty">Faculty *</Label>
+                                    <Label for="faculty">Fakultas *</Label>
                                     <Select v-model="selectedFacultyId">
                                         <SelectTrigger id="faculty">
-                                            <SelectValue placeholder="Select a faculty" />
+                                            <SelectValue placeholder="Pilih fakultas" />
                                         </SelectTrigger>
                                         <SelectContent>
                                             <SelectItem v-for="faculty in props.faculties" :key="faculty.id"
@@ -353,10 +353,10 @@ const currentFormId = computed({
 
                             <!-- Study Program Selection -->
                             <div class="space-y-2">
-                                <Label for="study_program">Study Program *</Label>
+                                <Label for="study_program">Program Studi *</Label>
                                 <Select v-model="form.study_program_id" :disabled="!selectedFacultyId">
                                     <SelectTrigger id="study_program">
-                                        <SelectValue placeholder="Select a study program" />
+                                        <SelectValue placeholder="Pilih program studi" />
                                     </SelectTrigger>
                                     <SelectContent>
                                         <SelectItem v-for="studyProgram in studyPrograms" :key="studyProgram.id"
@@ -379,16 +379,16 @@ const currentFormId = computed({
                         <CardHeader>
                             <CardTitle class="flex items-center gap-2">
                                 <Building class="h-5 w-5" />
-                                Faculty & Study Programs
+                                Fakultas & Program Studi
                             </CardTitle>
                         </CardHeader>
                         <CardContent class="space-y-4">
                             <!-- Faculty Selection -->
                             <div class="space-y-2">
-                                <Label for="faculty_bulk">Faculty *</Label>
+                                <Label for="faculty_bulk">Fakultas *</Label>
                                 <Select v-model="selectedFacultyId">
                                     <SelectTrigger id="faculty_bulk">
-                                        <SelectValue placeholder="Select a faculty" />
+                                        <SelectValue placeholder="Pilih fakultas" />
                                     </SelectTrigger>
                                     <SelectContent>
                                         <SelectItem v-for="faculty in props.faculties" :key="faculty.id"
@@ -402,13 +402,13 @@ const currentFormId = computed({
                             <!-- Study Programs Multi-select -->
                             <div v-if="selectedFacultyId" class="space-y-2">
                                 <div class="flex items-center justify-between">
-                                    <Label>Study Programs *</Label>
+                                    <Label>Program Studi *</Label>
                                     <Button type="button" variant="outline" size="sm" @click="selectAllStudyPrograms">
                                         {{
                                             selectedStudyPrograms.length ===
                                                 studyPrograms.length
-                                                ? "Deselect All"
-                                                : "Select All"
+                                                ? "Batal Pilih Semua"
+                                                : "Pilih Semua"
                                         }}
                                     </Button>
                                 </div>
@@ -432,18 +432,18 @@ const currentFormId = computed({
                         <CardHeader>
                             <CardTitle class="flex items-center gap-2">
                                 <Users class="h-5 w-5" />
-                                Roles Selection
+                                Pemilihan Role
                             </CardTitle>
                         </CardHeader>
                         <CardContent class="space-y-4">
                             <div class="flex items-center justify-between">
-                                <Label>Roles *</Label>
+                                <Label>Role *</Label>
                                 <Button type="button" variant="outline" size="sm" @click="selectAllRoles">
                                     {{
                                         selectedRoles.length ===
                                             props.roles.length
-                                            ? "Deselect All"
-                                            : "Select All"
+                                            ? "Batal Pilih Semua"
+                                            : "Pilih Semua"
                                     }}
                                 </Button>
                             </div>
@@ -464,15 +464,13 @@ const currentFormId = computed({
                     <!-- Preview -->
                     <Card v-if="previewCombinations.length > 0">
                         <CardHeader>
-                            <CardTitle>Preview Combinations ({{
+                            <CardTitle>Pratinjau Kombinasi ({{
                                 previewCombinations.length
                             }})</CardTitle>
                         </CardHeader>
                         <CardContent>
                             <div class="max-h-64 overflow-y-auto space-y-2">
-                                <div v-for="(
-combo, index
-                                    ) in previewCombinations" :key="index"
+                                <div v-for="(combo, index) in previewCombinations" :key="index"
                                     class="flex items-center gap-2 p-2 bg-muted rounded text-sm">
                                     <Badge variant="outline">{{
                                         combo.role
@@ -502,16 +500,16 @@ combo, index
                     <Button type="button" variant="outline" @click="
                         $inertia.visit(route('admin.form-access-controls.index'))
                         ">
-                        Cancel
+                        Batal
                     </Button>
                     <Button type="submit" :disabled="isBulkMode ? bulkForm.processing : form.processing
                         ">
                         {{
                             (isBulkMode ? bulkForm.processing : form.processing)
-                                ? "Creating..."
+                                ? "Membuat..."
                                 : isBulkMode
-                                    ? `Create ${previewCombinations.length} Access Controls`
-                                    : "Create Access Control"
+                                    ? `Membuat ${previewCombinations.length} Kontrol Akses`
+                                    : "Buat Kontrol Akses"
                         }}
                     </Button>
                 </div>

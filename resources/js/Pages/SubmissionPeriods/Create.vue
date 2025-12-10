@@ -121,7 +121,7 @@ const addNewLabel = async () => {
 
             if (!response.ok) {
                 const text = await response.text();
-                console.error("Request failed:", text);
+                console.error("Permintaan gagal:", text);
                 return;
             }
 
@@ -129,7 +129,7 @@ const addNewLabel = async () => {
             dynamicLabels.value.push(newLabel);
             showAddLabelDialog.value = false;
         } catch (error) {
-            console.error("Failed to add new label:", error);
+            console.error("Gagal menambahkan label baru:", error);
         }
     }
 };
@@ -200,7 +200,7 @@ watch(showAddLabelDialog, (val) => {
 </script>
 
 <template>
-    <Head title="Create Submission Period" />
+    <Head title="Buat Periode Pengiriman" />
 
     <AuthenticatedLayout>
         <template #header>
@@ -213,10 +213,10 @@ watch(showAddLabelDialog, (val) => {
                     "
                 >
                     <ArrowLeft class="h-4 w-4 mr-2" />
-                    Back
+                    Kembali
                 </Button>
                 <h2 class="text-xl font-semibold leading-tight text-gray-800">
-                    Create New Submission Period
+                    Buat Periode Pengiriman Baru
                 </h2>
             </div>
         </template>
@@ -228,16 +228,16 @@ watch(showAddLabelDialog, (val) => {
                     <CardHeader>
                         <CardTitle class="flex items-center gap-2">
                             <Calendar class="h-5 w-5" />
-                            Period Information
+                            Informasi Periode
                         </CardTitle>
                     </CardHeader>
                     <CardContent class="space-y-4">
                         <div class="space-y-2">
-                            <Label for="name">Period Name *</Label>
+                            <Label for="name">Nama Periode *</Label>
                             <Input
                                 id="name"
                                 v-model="form.name"
-                                placeholder="Enter submission period name"
+                                placeholder="Masukkan nama periode pengiriman"
                                 :class="errors.name ? 'border-destructive' : ''"
                             />
                             <p
@@ -256,7 +256,7 @@ watch(showAddLabelDialog, (val) => {
                         <div class="flex items-center justify-between">
                             <CardTitle class="flex items-center gap-2">
                                 <Calendar class="h-5 w-5" />
-                                Submission Dates *
+                                Tanggal Pengiriman *
                             </CardTitle>
                             <Button
                                 type="button"
@@ -265,7 +265,7 @@ watch(showAddLabelDialog, (val) => {
                                 variant="outline"
                             >
                                 <Plus class="h-4 w-4 mr-2" />
-                                Add Date
+                                Tambah Tanggal
                             </Button>
                         </div>
                     </CardHeader>
@@ -281,7 +281,7 @@ watch(showAddLabelDialog, (val) => {
                                         class="flex items-center justify-between"
                                     >
                                         <Label :for="`date_label_${index}`"
-                                            >Date Label *</Label
+                                            >Label Tanggal *</Label
                                         >
                                         <!-- Custom Modal instead of Dialog -->
                                         <div>
@@ -295,7 +295,7 @@ watch(showAddLabelDialog, (val) => {
                                                 "
                                             >
                                                 <Plus class="h-3 w-3 mr-1" />
-                                                Add New
+                                                Tambah Baru
                                             </Button>
 
                                             <!-- Modal Overlay -->
@@ -321,7 +321,7 @@ watch(showAddLabelDialog, (val) => {
                                                         <h3
                                                             class="text-lg font-semibold mb-4"
                                                         >
-                                                            Add New Date Label
+                                                            Tambah Label Tanggal Baru
                                                         </h3>
                                                         <div class="space-y-4">
                                                             <div
@@ -329,9 +329,8 @@ watch(showAddLabelDialog, (val) => {
                                                             >
                                                                 <Label
                                                                     for="new-label"
-                                                                    >Label
-                                                                    Name</Label
-                                                                >
+                                                                    >Nama Label
+                                                                    </Label>
                                                                 <Input
                                                                     id="new-label"
                                                                     v-model="
@@ -354,7 +353,7 @@ watch(showAddLabelDialog, (val) => {
                                                                         showAddLabelDialog = false
                                                                     "
                                                                 >
-                                                                    Cancel
+                                                                    Batal
                                                                 </Button>
                                                                 <Button
                                                                     type="button"
@@ -365,7 +364,7 @@ watch(showAddLabelDialog, (val) => {
                                                                         !newLabelForm.label.trim()
                                                                     "
                                                                 >
-                                                                    Add Label
+                                                                    Tambah Label
                                                                 </Button>
                                                             </div>
                                                         </div>
@@ -410,7 +409,7 @@ watch(showAddLabelDialog, (val) => {
                                     </p>
                                 </div>
                                 <div class="flex-1 space-y-2">
-                                    <Label :for="`date_${index}`">Date *</Label>
+                                    <Label :for="`date_${index}`">Tanggal *</Label>
                                     <Input
                                         :id="`date_${index}`"
                                         v-model="date.date"
@@ -461,9 +460,9 @@ watch(showAddLabelDialog, (val) => {
                         <div class="flex items-center justify-between">
                             <CardTitle class="flex items-center gap-2">
                                 <Settings class="h-5 w-5" />
-                                Form Phases *
+                                Tahap Formulir *
                                 <Badge variant="secondary" class="ml-2">
-                                    {{ form.form_phase_ids.length }} selected
+                                    {{ form.form_phase_ids.length }} dipilih
                                 </Badge>
                             </CardTitle>
                             <Button
@@ -475,8 +474,8 @@ watch(showAddLabelDialog, (val) => {
                                 {{
                                     form.form_phase_ids.length ===
                                     props.formPhases.length
-                                        ? "Deselect All"
-                                        : "Select All"
+                                        ? "Batal Pilih Semua"
+                                        : "Pilih Semua"
                                 }}
                             </Button>
                         </div>
@@ -489,7 +488,7 @@ watch(showAddLabelDialog, (val) => {
                             <Settings
                                 class="h-12 w-12 mx-auto mb-4 opacity-50"
                             />
-                            <p>No active form phases available.</p>
+                            <p>Tidak ada tahap formulir aktif tersedia.</p>
                         </div>
                         <div v-else class="grid gap-3 md:grid-cols-2">
                             <div
@@ -531,10 +530,10 @@ watch(showAddLabelDialog, (val) => {
                         <div class="flex items-center justify-between">
                             <CardTitle class="flex items-center gap-2">
                                 <FileText class="h-5 w-5" />
-                                Submission Rules (Optional)
+                                Aturan Pengiriman (Opsional)
                                 <Badge variant="outline" class="ml-2">
                                     {{ form.submission_rule_ids.length }}
-                                    selected
+                                    dipilih
                                 </Badge>
                             </CardTitle>
                             <Button
@@ -547,8 +546,8 @@ watch(showAddLabelDialog, (val) => {
                                 {{
                                     form.submission_rule_ids.length ===
                                     props.submissionRules.length
-                                        ? "Deselect All"
-                                        : "Select All"
+                                        ? "Batal Pilih Semua"
+                                        : "Pilih Semua"
                                 }}
                             </Button>
                         </div>
@@ -561,7 +560,7 @@ watch(showAddLabelDialog, (val) => {
                             <FileText
                                 class="h-12 w-12 mx-auto mb-4 opacity-50"
                             />
-                            <p>No submission rules available.</p>
+                            <p>Tidak ada aturan pengiriman tersedia.</p>
                         </div>
                         <div v-else class="grid gap-3 md:grid-cols-2">
                             <div
@@ -582,7 +581,7 @@ watch(showAddLabelDialog, (val) => {
                                         {{ rule.label }}
                                     </Label>
                                     <p class="text-sm text-muted-foreground">
-                                        Value: {{ rule.value }}
+                                        Nilai: {{ rule.value }}
                                     </p>
                                 </div>
                             </div>
@@ -600,13 +599,13 @@ watch(showAddLabelDialog, (val) => {
                 >
                     <CardHeader>
                         <CardTitle class="text-blue-900"
-                            >Preview Summary</CardTitle
+                            >Pratinjau Ringkasan</CardTitle
                         >
                     </CardHeader>
                     <CardContent class="space-y-4">
                         <div v-if="form.name">
                             <h4 class="font-medium text-blue-800 mb-1">
-                                Period Name
+                                Nama Periode
                             </h4>
                             <p class="text-blue-700">{{ form.name }}</p>
                         </div>
@@ -619,7 +618,7 @@ watch(showAddLabelDialog, (val) => {
                             "
                         >
                             <h4 class="font-medium text-blue-800 mb-2">
-                                Dates
+                                Tanggal
                             </h4>
                             <div class="space-y-1">
                                 <template
@@ -638,7 +637,7 @@ watch(showAddLabelDialog, (val) => {
                                         <strong
                                             >{{
                                                 submissionDate.label ||
-                                                "Unnamed Date"
+                                                "Tanggal Tidak Bernama"
                                             }}:</strong
                                         >
                                         {{
@@ -646,7 +645,7 @@ watch(showAddLabelDialog, (val) => {
                                                 ? new Date(
                                                       submissionDate.date
                                                   ).toLocaleString()
-                                                : "No date set"
+                                                : "Tanggal Tidak Ditetapkan"
                                         }}
                                     </div>
                                 </template>
@@ -655,7 +654,7 @@ watch(showAddLabelDialog, (val) => {
 
                         <div v-if="form.form_phase_ids.length > 0">
                             <h4 class="font-medium text-blue-800 mb-2">
-                                Selected Form Phases
+                                Tahap Formulir Dipilih
                             </h4>
                             <div class="flex flex-wrap gap-1">
                                 <Badge
@@ -675,7 +674,7 @@ watch(showAddLabelDialog, (val) => {
 
                         <div v-if="form.submission_rule_ids.length > 0">
                             <h4 class="font-medium text-blue-800 mb-2">
-                                Selected Rules
+                                Aturan Pengiriman Dipilih
                             </h4>
                             <div class="flex flex-wrap gap-1">
                                 <Badge
@@ -706,13 +705,13 @@ watch(showAddLabelDialog, (val) => {
                             )
                         "
                     >
-                        Cancel
+                        Batal
                     </Button>
                     <Button type="submit" :disabled="form.processing">
                         {{
                             form.processing
-                                ? "Creating..."
-                                : "Create Submission Period"
+                                ? "Membuat..."
+                                : "Buat Periode Pengiriman"
                         }}
                     </Button>
                 </div>

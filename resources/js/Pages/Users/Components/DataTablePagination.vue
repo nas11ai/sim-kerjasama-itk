@@ -26,7 +26,7 @@ defineProps<DataTablePaginationProps>();
     <div class="flex items-center justify-center sm:justify-end">
         <div class="flex flex-col items-center sm:flex-row lg:space-x-8">
             <div class="flex items-center space-x-2">
-                <p class="text-sm font-medium">Rows per page</p>
+                <p class="text-sm font-medium">Baris per halaman</p>
                 <Select
                     :model-value="`${table.getState().pagination.pageSize}`"
                     @update:model-value="
@@ -55,9 +55,9 @@ defineProps<DataTablePaginationProps>();
                 class="flex flex-row mt-2 sm:mt-0 items-center space-x-2 sm:space-x-4"
             >
                 <div
-                    class="flex w-[100px] items-center justify-center text-sm font-medium"
+                    class="flex w-[120px] items-center justify-center text-sm font-medium"
                 >
-                    Page {{ table.getState().pagination.pageIndex + 1 }} of
+                    Halaman {{ table.getState().pagination.pageIndex + 1 }} dari
                     {{ table.getPageCount() }}
                 </div>
                 <div class="flex items-center space-x-2">
@@ -76,7 +76,7 @@ defineProps<DataTablePaginationProps>();
                         :disabled="!table.getCanPreviousPage()"
                         @click="table.previousPage()"
                     >
-                        <span class="sr-only">Go to previous page</span>
+                        <span class="sr-only">Ke halaman sebelumnya</span>
                         <ChevronLeft class="h-4 w-4" />
                     </Button>
                     <Button
@@ -85,7 +85,7 @@ defineProps<DataTablePaginationProps>();
                         :disabled="!table.getCanNextPage()"
                         @click="table.nextPage()"
                     >
-                        <span class="sr-only">Go to next page</span>
+                        <span class="sr-only">Ke halaman berikutnya</span>
                         <ChevronRight class="h-4 w-4" />
                     </Button>
                     <Button
@@ -94,7 +94,7 @@ defineProps<DataTablePaginationProps>();
                         :disabled="!table.getCanNextPage()"
                         @click="table.setPageIndex(table.getPageCount() - 1)"
                     >
-                        <span class="sr-only">Go to last page</span>
+                        <span class="sr-only">Ke halaman terakhir</span>
                         <ChevronsRight class="h-4 w-4" />
                     </Button>
                 </div>

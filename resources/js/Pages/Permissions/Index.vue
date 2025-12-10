@@ -29,10 +29,10 @@ const selectedPermission = ref<Permission | null>(null);
 const columns: ColumnDef<Permission>[] = [
     {
         accessorKey: "name",
-        header: "Permission",
+        header: "Hak Akses",
     },
     {
-        header: "Actions",
+        header: "Aksi",
         cell: ({ row }) =>
             h(TableActionColumn, {
                 row,
@@ -50,20 +50,20 @@ const columns: ColumnDef<Permission>[] = [
 </script>
 
 <template>
-    <Head title="Permission Management" />
+    <Head title="Manajemen Hak Akses" />
 
     <AuthenticatedLayout>
         <template #header>
             <div class="flex items-center justify-between">
                 <h2 class="text-xl font-semibold leading-tight text-gray-800">
-                    Permission Management
+                    Manajemen Hak Akses
                 </h2>
                 <Button
                     @click="showCreateModal = true"
                     :disabled="!props.can.create"
                 >
                     <Plus class="h-4 w-4 mr-2" />
-                    Create Permissions
+                    Buat Hak Akses
                 </Button>
                 <CreateDialogue
                     :open="showCreateModal"
@@ -81,9 +81,8 @@ const columns: ColumnDef<Permission>[] = [
             >
                 <template #delete-dialog-content>
                     <p class="text-muted-foreground text-sm">
-                        Are you sure want to delete this
-                        <strong>permission</strong>? This action cannot be
-                        undone. This will permanently delete the data.
+                        Apakah Anda yakin ingin menghapus <strong>hak akses</strong> ini?
+                        Tindakan ini tidak dapat dibatalkan. Ini akan menghapus data secara permanen.
                     </p>
                 </template>
             </DataTable>

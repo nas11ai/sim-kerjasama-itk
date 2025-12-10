@@ -1,4 +1,4 @@
-<!-- resources/js/Pages/Admin/ReviewerRoles/Edit.vue -->
+    <!-- resources/js/Pages/Admin/ReviewerRoles/Edit.vue -->
 <script setup lang="ts">
 import { Head, useForm } from "@inertiajs/vue3";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout.vue";
@@ -52,10 +52,10 @@ const formatDate = (dateString: string) => {
             <div class="flex items-center gap-4">
                 <Button variant="ghost" size="sm" @click="$inertia.visit(route('admin.reviewer-roles.index'))">
                     <ArrowLeft class="h-4 w-4 mr-2" />
-                    Back to Reviewer Roles
+                    Kembali
                 </Button>
                 <h2 class="text-xl font-semibold leading-tight text-gray-800">
-                    Edit Reviewer Role
+                    Edit Role Reviewer
                 </h2>
             </div>
         </template>
@@ -66,7 +66,7 @@ const formatDate = (dateString: string) => {
                 <CardHeader>
                     <CardTitle class="flex items-center gap-2">
                         <Info class="h-5 w-5" />
-                        Current Role Information
+                        Informasi Role Saat Ini
                     </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -79,7 +79,7 @@ const formatDate = (dateString: string) => {
                                 </h3>
                                 <div class="flex items-center gap-2 mt-2">
                                     <Badge :variant="reviewerRole.is_active ? 'default' : 'destructive'">
-                                        {{ reviewerRole.is_active ? 'Active' : 'Inactive' }}
+                                        {{ reviewerRole.is_active ? 'Aktif' : 'Nonaktif' }}
                                     </Badge>
                                     <Badge variant="outline">
                                         ID: {{ reviewerRole.id }}
@@ -99,18 +99,18 @@ const formatDate = (dateString: string) => {
             <!-- Edit Form -->
             <Card>
                 <CardHeader>
-                    <CardTitle>Update Role Details</CardTitle>
+                    <CardTitle>Perbarui Detail Role</CardTitle>
                 </CardHeader>
                 <CardContent>
                     <form @submit.prevent="submit" class="space-y-6">
                         <!-- Role Name -->
                         <div class="space-y-2">
-                            <Label for="name">Role Name *</Label>
-                            <Input id="name" v-model="form.name" type="text" placeholder="Enter reviewer role name"
+                            <Label for="name">Nama Role *</Label>
+                            <Input id="name" v-model="form.name" type="text" placeholder="Masukkan nama role reviewer"
                                 required />
                             <p class="text-xs text-muted-foreground">
-                                Choose a descriptive name that clearly identifies the reviewer's role and
-                                responsibilities.
+                                Pilih nama yang deskriptif yang dengan jelas mengidentifikasi role dan
+                                tanggung jawab reviewer.
                             </p>
                             <p v-if="form.errors.name" class="text-sm text-destructive">
                                 {{ form.errors.name }}
@@ -123,13 +123,12 @@ const formatDate = (dateString: string) => {
                                 <Checkbox id="is_active" v-model="form.is_active" />
                                 <Label for="is_active"
                                     class="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                                    Active Role
+                                    Role Aktif
                                 </Label>
                             </div>
                             <p class="text-xs text-muted-foreground">
-                                Only active roles can be assigned to reviewers. Deactivating a role will hide it from
-                                new
-                                assignments but preserve existing ones.
+                                Hanya role aktif yang dapat ditugaskan kepada reviewer. Menonaktifkan role akan menyembunyikannya dari
+                                penugasan baru tetapi mempertahankan yang sudah ada.
                             </p>
                             <p v-if="form.errors.is_active" class="text-sm text-destructive">
                                 {{ form.errors.is_active }}
@@ -149,14 +148,14 @@ const formatDate = (dateString: string) => {
                                 </div>
                                 <div class="ml-3">
                                     <h3 class="text-sm font-medium text-yellow-800">
-                                        Deactivating Role
+                                        Menonaktifkan Role
                                     </h3>
                                     <div class="mt-2 text-sm text-yellow-700">
                                         <p>
-                                            Deactivating this role will prevent it from being assigned to new reviewers.
-                                            Existing reviewers with this role will keep their assignments, but the role
-                                            won't be
-                                            available for new selections.
+                                            Menonaktifkan role ini akan mencegahnya untuk ditugaskan kepada reviewer baru.
+                                            Reviewer yang sudah memiliki role ini akan tetap mempertahankan penugasan mereka, tetapi role
+                                            ini tidak akan
+                                            tersedia untuk pilihan baru.
                                         </p>
                                     </div>
                                 </div>
@@ -176,11 +175,11 @@ const formatDate = (dateString: string) => {
                                 </div>
                                 <div class="ml-3">
                                     <h3 class="text-sm font-medium text-green-800">
-                                        Activating Role
+                                        Mengaktifkan Role
                                     </h3>
                                     <div class="mt-2 text-sm text-green-700">
                                         <p>
-                                            Activating this role will make it available for assignment to new reviewers.
+                                            Mengaktifkan role ini akan membuatnya tersedia untuk penugasan kepada reviewer baru.
                                         </p>
                                     </div>
                                 </div>
@@ -191,10 +190,10 @@ const formatDate = (dateString: string) => {
                         <div class="flex items-center justify-end space-x-3">
                             <Button type="button" variant="outline"
                                 @click="$inertia.visit(route('admin.reviewer-roles.index'))">
-                                Cancel
+                                Batal
                             </Button>
                             <Button type="submit" :disabled="form.processing">
-                                {{ form.processing ? "Updating..." : "Update Role" }}
+                                {{ form.processing ? "Memperbarui..." : "Perbarui Role" }}
                             </Button>
                         </div>
                     </form>

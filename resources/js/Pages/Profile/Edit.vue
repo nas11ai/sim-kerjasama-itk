@@ -38,14 +38,14 @@ const backToDashboard = () => {
             <div class="flex items-center gap-4">
                 <Button variant="ghost" size="sm" @click="backToDashboard">
                     <ArrowLeft class="h-4 w-4 mr-2" />
-                    Back
+                    Kembali
                 </Button>
                 <div class="flex items-center gap-2">
                     <UserPenIcon class="h-6 w-6 text-black" />
                     <h2
                         class="text-xl font-semibold leading-tight text-gray-800"
                     >
-                        Update Your Account's Profile
+                        Perbarui Profil Akun Anda
                     </h2>
                 </div>
             </div>
@@ -54,10 +54,9 @@ const backToDashboard = () => {
         <div class="flex flex-col max-w-4xl mx-auto gap-6 pb-4">
             <Card>
                 <CardHeader>
-                    <CardTitle class="text-xl">Profile Information</CardTitle>
+                    <CardTitle class="text-xl">Informasi Profil</CardTitle>
                     <CardDescription>
-                        Update your account's profile information and email
-                        address.
+                        Perbarui informasi profil dan alamat email akun Anda.
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -70,10 +69,10 @@ const backToDashboard = () => {
 
             <Card>
                 <CardHeader>
-                    <CardTitle class="text-xl">Update Password</CardTitle>
+                    <CardTitle class="text-xl">Perbarui Kata Sandi</CardTitle>
                     <CardDescription>
-                        Ensure your account is using a long, random password to
-                        stay secure.
+                        Pastikan akun Anda menggunakan kata sandi yang panjang dan acak untuk
+                        tetap aman.
                     </CardDescription>
                 </CardHeader>
                 <CardContent>

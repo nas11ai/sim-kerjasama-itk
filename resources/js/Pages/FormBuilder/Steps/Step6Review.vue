@@ -63,26 +63,26 @@ const getPeriodName = (id: number | null) => {
 const validationIssues = computed(() => {
     const issues: string[] = [];
 
-    if (!props.formData.form.title) issues.push('Form title is required');
-    if (!props.formData.form.form_type_id) issues.push('Form type is required');
-    if (props.formData.access_controls.length === 0) issues.push('At least one access control is required');
-    if (!props.formData.phase.phase_type_id) issues.push('Phase type is required');
+    if (!props.formData.form.title) issues.push('Judul formulir wajib diisi');
+    if (!props.formData.form.form_type_id) issues.push('Jenis formulir wajib diisi');
+    if (props.formData.access_controls.length === 0) issues.push('Minimal satu kontrol akses ditambahkan');
+    if (!props.formData.phase.phase_type_id) issues.push('Jenis fase wajib diisi');
 
     if (props.formData.phase.use_existing) {
-        if (!props.formData.phase.existing_phase_id) issues.push('Existing phase must be selected');
+        if (!props.formData.phase.existing_phase_id) issues.push('Tahap yang sudah ada harus dipilih');
     } else {
-        if (!props.formData.phase.new_phase_title) issues.push('New phase title is required');
+        if (!props.formData.phase.new_phase_title) issues.push('Judul tahap baru wajib diisi');
     }
 
     if (props.formData.phase.needs_review && props.formData.evaluation_forms.length === 0) {
-        issues.push('At least one evaluation form is required when review is enabled');
+        issues.push('Minimal satu formulir evaluasi wajib ditambahkan jika review diaktifkan');
     }
 
     if (props.formData.submission_period.use_existing) {
-        if (!props.formData.submission_period.existing_period_id) issues.push('Existing period must be selected');
+        if (!props.formData.submission_period.existing_period_id) issues.push('Periode yang sudah ada harus dipilih');
     } else {
-        if (!props.formData.submission_period.new_period_name) issues.push('New period name is required');
-        if (props.formData.submission_period.dates.length === 0) issues.push('At least one submission date is required');
+        if (!props.formData.submission_period.new_period_name) issues.push('Judul periode baru wajib diisi');
+        if (props.formData.submission_period.dates.length === 0) issues.push('Minimal satu tanggal pengajuan diperlukan');
     }
 
     return issues;
@@ -104,7 +104,7 @@ const totalEvaluationFields = computed(() =>
         <Alert v-if="!isValid" variant="destructive">
             <AlertCircle class="h-4 w-4" />
             <AlertDescription>
-                <div class="font-medium mb-2">Please fix the following issues:</div>
+                <div class="font-medium mb-2">Silakan perbaiki masalah berikut:</div>
                 <ul class="list-disc list-inside space-y-1">
                     <li v-for="(issue, index) in validationIssues" :key="index" class="text-sm">
                         {{ issue }}
@@ -116,7 +116,7 @@ const totalEvaluationFields = computed(() =>
         <Alert v-else class="border-green-200 bg-green-50">
             <CheckCircle2 class="h-4 w-4 text-green-600" />
             <AlertDescription class="text-green-800">
-                All required fields are filled. You're ready to create the form!
+                Semua kolom wajib telah terisi. Formulir siap dibuat!
             </AlertDescription>
         </Alert>
 
@@ -130,7 +130,7 @@ const totalEvaluationFields = computed(() =>
                         </div>
                         <div>
                             <p class="text-2xl font-bold">{{ totalFields }}</p>
-                            <p class="text-sm text-muted-foreground">Form Fields</p>
+                            <p class="text-sm text-muted-foreground">Isian Formulir</p>
                         </div>
                     </div>
                 </CardContent>
@@ -144,7 +144,7 @@ const totalEvaluationFields = computed(() =>
                         </div>
                         <div>
                             <p class="text-2xl font-bold">{{ totalAccessControls }}</p>
-                            <p class="text-sm text-muted-foreground">Access Controls</p>
+                            <p class="text-sm text-muted-foreground">Kontrol Akses</p>
                         </div>
                     </div>
                 </CardContent>
@@ -158,7 +158,7 @@ const totalEvaluationFields = computed(() =>
                         </div>
                         <div>
                             <p class="text-2xl font-bold">{{ totalEvaluationForms }}</p>
-                            <p class="text-sm text-muted-foreground">Evaluation Forms</p>
+                            <p class="text-sm text-muted-foreground">Formulir Evaluasi</p>
                         </div>
                     </div>
                 </CardContent>
@@ -172,7 +172,7 @@ const totalEvaluationFields = computed(() =>
                         </div>
                         <div>
                             <p class="text-2xl font-bold">{{ totalEvaluationFields }}</p>
-                            <p class="text-sm text-muted-foreground">Evaluation Fields</p>
+                            <p class="text-sm text-muted-foreground">Isian Evaluasi</p>
                         </div>
                     </div>
                 </CardContent>
@@ -184,41 +184,41 @@ const totalEvaluationFields = computed(() =>
             <CardHeader>
                 <CardTitle class="flex items-center gap-2">
                     <FileText class="h-5 w-5" />
-                    1. Basic Form Information
+                    1. Informasi Dasar Formulir
                 </CardTitle>
             </CardHeader>
             <CardContent class="space-y-3">
                 <div class="grid gap-3 md:grid-cols-2">
                     <div>
-                        <p class="text-sm text-muted-foreground">Title</p>
-                        <p class="font-medium">{{ formData.form.title || 'Not set' }}</p>
+                        <p class="text-sm text-muted-foreground">Judul</p>
+                        <p class="font-medium">{{ formData.form.title || 'Belum diisi' }}</p>
                     </div>
                     <div>
-                        <p class="text-sm text-muted-foreground">Type</p>
+                        <p class="text-sm text-muted-foreground">Tipe</p>
                         <Badge variant="outline">{{ getFormTypeName(formData.form.form_type_id) }}</Badge>
                     </div>
                 </div>
                 <div v-if="formData.form.description">
-                    <p class="text-sm text-muted-foreground">Description</p>
+                    <p class="text-sm text-muted-foreground">Deskripsi</p>
                     <p class="text-sm">{{ formData.form.description }}</p>
                 </div>
                 <div>
                     <p class="text-sm text-muted-foreground">Status</p>
                     <Badge :variant="formData.form.is_active ? 'default' : 'secondary'">
-                        {{ formData.form.is_active ? 'Active' : 'Inactive' }}
+                        {{ formData.form.is_active ? 'Aktif' : 'Tidak Aktif' }}
                     </Badge>
                 </div>
                 <Separator />
                 <div>
-                    <p class="text-sm text-muted-foreground mb-2">Form Fields ({{ formData.form.fields.length }})</p>
+                    <p class="text-sm text-muted-foreground mb-2">Isian Formulir ({{ formData.form.fields.length }})</p>
                     <div v-if="formData.form.fields.length > 0" class="space-y-2">
                         <div v-for="(field, index) in formData.form.fields" :key="field.temp_id"
                             class="flex items-center justify-between p-2 bg-muted rounded text-sm">
                             <span>{{ index + 1 }}. {{ field.label }}</span>
-                            <Badge v-if="field.is_required" variant="destructive" class="text-xs">Required</Badge>
+                            <Badge v-if="field.is_required" variant="destructive" class="text-xs">Wajib</Badge>
                         </div>
                     </div>
-                    <p v-else class="text-sm text-muted-foreground">No fields added</p>
+                    <p v-else class="text-sm text-muted-foreground">Belum ada isian</p>
                 </div>
             </CardContent>
         </Card>
@@ -228,7 +228,7 @@ const totalEvaluationFields = computed(() =>
             <CardHeader>
                 <CardTitle class="flex items-center gap-2">
                     <Users class="h-5 w-5" />
-                    2. Access Controls
+                    2. Kontrol Akses
                 </CardTitle>
             </CardHeader>
             <CardContent>
@@ -250,7 +250,7 @@ const totalEvaluationFields = computed(() =>
                         </div>
                     </div>
                 </div>
-                <p v-else class="text-sm text-muted-foreground">No access controls configured</p>
+                <p v-else class="text-sm text-muted-foreground">Belum ada kontrol akses yang diatur</p>
             </CardContent>
         </Card>
 
@@ -259,7 +259,7 @@ const totalEvaluationFields = computed(() =>
             <CardHeader>
                 <CardTitle class="flex items-center gap-2">
                     <Layers class="h-5 w-5" />
-                    3. Form Phase Configuration
+                    3. Konfigurasi Tahap Formulir
                 </CardTitle>
             </CardHeader>
             <CardContent class="space-y-3">
@@ -267,33 +267,33 @@ const totalEvaluationFields = computed(() =>
                     <div>
                         <p class="text-sm text-muted-foreground">Mode</p>
                         <Badge variant="outline">
-                            {{ formData.phase.use_existing ? 'Using Existing Phase' : 'Creating New Phase' }}
+                            {{ formData.phase.use_existing ? 'Menggunakan Tahap yang Ada' : 'Membuat Tahap Baru' }}
                         </Badge>
                     </div>
                     <div>
-                        <p class="text-sm text-muted-foreground">Phase Type</p>
+                        <p class="text-sm text-muted-foreground">Tipe Tahap</p>
                         <Badge variant="outline">{{ getPhaseTypeName(formData.phase.phase_type_id) }}</Badge>
                     </div>
                 </div>
                 <div>
                     <p class="text-sm text-muted-foreground">
-                        {{ formData.phase.use_existing ? 'Selected Phase' : 'New Phase Title' }}
+                        {{ formData.phase.use_existing ? 'Tahap Terpilih' : 'Judul Tahap Baru' }}
                     </p>
                     <p class="font-medium">
                         {{ formData.phase.use_existing
-                            ? getPhaseName(formData.phase.existing_phase_id) || 'Not selected'
-                            : formData.phase.new_phase_title || 'Not set'
+                            ? getPhaseName(formData.phase.existing_phase_id) || 'Belum dipilih'
+                            : formData.phase.new_phase_title || 'Belum diatur'
                         }}
                     </p>
                 </div>
                 <div v-if="!formData.phase.use_existing && formData.phase.new_phase_description">
-                    <p class="text-sm text-muted-foreground">Description</p>
+                    <p class="text-sm text-muted-foreground">Deskripsi</p>
                     <p class="text-sm">{{ formData.phase.new_phase_description }}</p>
                 </div>
                 <div>
-                    <p class="text-sm text-muted-foreground">Needs Review</p>
+                    <p class="text-sm text-muted-foreground">Perlu Review</p>
                     <Badge :variant="formData.phase.needs_review ? 'default' : 'secondary'">
-                        {{ formData.phase.needs_review ? 'Yes' : 'No' }}
+                        {{ formData.phase.needs_review ? 'Ya' : 'Tidak' }}
                     </Badge>
                 </div>
             </CardContent>
@@ -304,7 +304,7 @@ const totalEvaluationFields = computed(() =>
             <CardHeader>
                 <CardTitle class="flex items-center gap-2">
                     <ClipboardList class="h-5 w-5" />
-                    4. Evaluation Forms
+                    4. Formulir Evaluasi
                 </CardTitle>
             </CardHeader>
             <CardContent>
@@ -317,17 +317,17 @@ const totalEvaluationFields = computed(() =>
                                 <span class="font-medium">{{ evalForm.title }}</span>
                             </div>
                             <Badge :variant="evalForm.is_required ? 'destructive' : 'secondary'" class="text-xs">
-                                {{ evalForm.is_required ? 'Required' : 'Optional' }}
+                                {{ evalForm.is_required ? 'Wajib' : 'Opsional' }}
                             </Badge>
                         </div>
                         <p v-if="evalForm.description" class="text-sm text-muted-foreground">{{ evalForm.description }}
                         </p>
                         <div class="text-sm text-muted-foreground">
-                            {{ evalForm.fields.length }} field(s)
+                            {{ evalForm.fields.length }} tahap
                         </div>
                     </div>
                 </div>
-                <p v-else class="text-sm text-muted-foreground">No evaluation forms configured</p>
+                <p v-else class="text-sm text-muted-foreground">Belum ada formulir evaluasi yang diatur</p>
             </CardContent>
         </Card>
 
@@ -336,34 +336,34 @@ const totalEvaluationFields = computed(() =>
             <CardHeader>
                 <CardTitle class="flex items-center gap-2">
                     <Calendar class="h-5 w-5" />
-                    5. Submission Period
+                    5. Periode Pengajuan
                 </CardTitle>
             </CardHeader>
             <CardContent class="space-y-3">
                 <div>
                     <p class="text-sm text-muted-foreground">Mode</p>
                     <Badge variant="outline">
-                        {{ formData.submission_period.use_existing ? 'Using Existing Period' : 'Creating New Period' }}
+                        {{ formData.submission_period.use_existing ? 'Menggunakan Periode yang Ada' : 'Membuat Periode Baru' }}
                     </Badge>
                 </div>
                 <div>
                     <p class="text-sm text-muted-foreground">
-                        {{ formData.submission_period.use_existing ? 'Selected Period' : 'New Period Name' }}
+                        {{ formData.submission_period.use_existing ? 'Periode Terpilih' : 'Nama Periode Baru' }}
                     </p>
                     <p class="font-medium">
                         {{ formData.submission_period.use_existing
-                            ? getPeriodName(formData.submission_period.existing_period_id) || 'Not selected'
-                            : formData.submission_period.new_period_name || 'Not set'
+                            ? getPeriodName(formData.submission_period.existing_period_id) || 'Belum dipilih'
+                            : formData.submission_period.new_period_name || 'Belum diatur'
                         }}
                     </p>
                 </div>
                 <div v-if="!formData.submission_period.use_existing && formData.submission_period.dates.length > 0">
-                    <p class="text-sm text-muted-foreground mb-2">Configured Dates</p>
+                    <p class="text-sm text-muted-foreground mb-2">Tanggal yang Dikonfigurasi</p>
                     <div class="space-y-1">
                         <div v-for="date in formData.submission_period.dates" :key="date.temp_id"
                             class="text-sm flex items-center justify-between p-2 bg-muted rounded">
                             <span class="font-medium">{{ date.label }}</span>
-                            <span class="text-muted-foreground">{{ date.date || 'Not set' }}</span>
+                            <span class="text-muted-foreground">{{ date.date || 'Belum diatur' }}</span>
                         </div>
                     </div>
                 </div>
@@ -374,10 +374,10 @@ const totalEvaluationFields = computed(() =>
         <Alert>
             <CheckCircle2 class="h-4 w-4" />
             <AlertDescription>
-                <div class="font-medium mb-1">Ready to Create</div>
+                <div class="font-medium mb-1">Siap untuk Membuat</div>
                 <p class="text-sm">
-                    Please review all information above. Once created, you can still edit individual components,
-                    but it's easier to get it right the first time.
+                    Mohon tinjau semua informasi di atas. Setelah dibuat, Anda masih dapat mengedit komponen individual,
+                    tetapi lebih mudah untuk melakukannya dengan benar pada percobaan pertama.
                 </p>
             </AlertDescription>
         </Alert>

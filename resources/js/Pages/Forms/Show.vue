@@ -75,7 +75,7 @@ const sortedFields = props.form.form_fields.sort((a, b) => a.order - b.order);
 </script>
 
 <template>
-    <Head title="Form Details" />
+    <Head title="Detail Formulir" />
 
     <AuthenticatedLayout>
         <template #header>
@@ -84,17 +84,17 @@ const sortedFields = props.form.form_fields.sort((a, b) => a.order - b.order);
                     <Link :href="route('admin.forms.index')">
                         <Button variant="ghost" size="sm">
                             <ArrowLeft class="h-4 w-4 mr-2" />
-                            Back to Forms
+                            Kembali
                         </Button>
                     </Link>
                     <h2 class="text-xl font-semibold leading-tight text-gray-800">
-                        Form Details
+                        Detail Formulir
                     </h2>
                 </div>
                 <Link :href="route('admin.forms.edit', props.form.id)">
                     <Button class=" text-white">
                         <Edit class="h-4 w-4 mr-2" />
-                        Edit Form
+                        Edit Formulir
                     </Button>
                 </Link>
             </div>
@@ -106,14 +106,14 @@ const sortedFields = props.form.form_fields.sort((a, b) => a.order - b.order);
                 <CardHeader>
                     <CardTitle class="flex items-center gap-2">
                         <FileText class="h-5 w-5" />
-                        Form Information
+                        Informasi Formulir
                     </CardTitle>
                 </CardHeader>
                 <CardContent class="space-y-4">
                     <div class="grid gap-6 md:grid-cols-2">
                         <div>
                             <h3 class="font-medium text-sm text-muted-foreground mb-1">
-                                Title
+                                Judul
                             </h3>
                             <p class="text-lg font-medium">
                                 {{ props.form.title }}
@@ -121,7 +121,7 @@ const sortedFields = props.form.form_fields.sort((a, b) => a.order - b.order);
                         </div>
                         <div>
                             <h3 class="font-medium text-sm text-muted-foreground mb-1">
-                                Form Type
+                                Tipe Formulir
                             </h3>
                             <Badge variant="outline" class="text-sm">
                                 {{ props.form.form_type.name }}
@@ -131,7 +131,7 @@ const sortedFields = props.form.form_fields.sort((a, b) => a.order - b.order);
 
                     <div v-if="props.form.description">
                         <h3 class="font-medium text-sm text-muted-foreground mb-1">
-                            Description
+                            Deskripsi
                         </h3>
                         <p class="text-gray-700">
                             {{ props.form.description }}
@@ -148,7 +148,7 @@ const sortedFields = props.form.form_fields.sort((a, b) => a.order - b.order);
                         >
                             <CheckCircle v-if="props.form.is_active" class="h-3 w-3" />
                             <XCircle v-else class="h-3 w-3" />
-                            {{ props.form.is_active ? "Active" : "Inactive" }}
+                            {{ props.form.is_active ? "Aktif" : "Tidak Aktif" }}
                         </Badge>
                     </div>
 
@@ -157,12 +157,12 @@ const sortedFields = props.form.form_fields.sort((a, b) => a.order - b.order);
                     <div class="grid gap-6 md:grid-cols-2 text-sm">
                         <div class="flex items-center gap-2">
                             <Calendar class="h-4 w-4 text-muted-foreground" />
-                            <span class="text-muted-foreground">Created:</span>
+                            <span class="text-muted-foreground">Dibuat:</span>
                             <span>{{ formatDate(props.form.created_at) }}</span>
                         </div>
                         <div class="flex items-center gap-2">
                             <Calendar class="h-4 w-4 text-muted-foreground" />
-                            <span class="text-muted-foreground">Updated:</span>
+                            <span class="text-muted-foreground">Diperbarui:</span>
                             <span>{{ formatDate(props.form.updated_at) }}</span>
                         </div>
                     </div>
@@ -174,13 +174,13 @@ const sortedFields = props.form.form_fields.sort((a, b) => a.order - b.order);
                 <CardHeader>
                     <CardTitle class="flex items-center gap-2">
                         <List class="h-5 w-5" />
-                        Form Fields ({{ sortedFields.length }})
+                        Isian Formulir ({{ sortedFields.length }})
                     </CardTitle>
                 </CardHeader>
                 <CardContent>
                     <div v-if="sortedFields.length === 0" class="text-center py-8 text-muted-foreground">
                         <List class="h-12 w-12 mx-auto mb-4 opacity-50" />
-                        <p>No fields added to this form yet.</p>
+                        <p>Belum ada isian yang ditambahkan ke formulir ini.</p>
                     </div>
 
                     <div v-else class="space-y-4">
@@ -189,10 +189,10 @@ const sortedFields = props.form.form_fields.sort((a, b) => a.order - b.order);
                             <div class="flex items-start justify-between mb-3">
                                 <div class="flex items-center gap-2">
                                     <Badge variant="outline" class="text-xs">
-                                        Field {{ field.order }}
+                                        Isian {{ field.order }}
                                     </Badge>
                                     <Badge v-if="field.is_required" variant="destructive" class="text-xs">
-                                        Required
+                                        Wajib
                                     </Badge>
                                     <Badge variant="secondary" class="text-xs">
                                         {{ field.field_type.name }}
@@ -205,7 +205,7 @@ const sortedFields = props.form.form_fields.sort((a, b) => a.order - b.order);
                                 <div>
                                     <div class="flex items-center gap-2 text-sm font-medium mb-1">
                                         <Type class="h-4 w-4 text-muted-foreground" />
-                                        Field Label
+                                        Label Isian
                                     </div>
                                     <p class="text-gray-700 pl-6">{{ field.label }}</p>
                                 </div>
@@ -214,7 +214,7 @@ const sortedFields = props.form.form_fields.sort((a, b) => a.order - b.order);
                                 <div v-if="field.form_field_options.length > 0">
                                     <div class="flex items-center gap-2 text-sm font-medium mb-2">
                                         <Hash class="h-4 w-4 text-muted-foreground" />
-                                        Options
+                                        Opsi
                                     </div>
                                     <div class="pl-6 space-y-1">
                                         <div v-for="option in field.form_field_options.sort((a, b) => a.order - b.order)"
@@ -228,12 +228,12 @@ const sortedFields = props.form.form_fields.sort((a, b) => a.order - b.order);
 
                                 <!-- Field Preview -->
                                 <div class="mt-4 p-3 bg-muted rounded-lg">
-                                    <Label class="text-sm text-muted-foreground mb-2 block">Preview:</Label>
+                                    <Label class="text-sm text-muted-foreground mb-2 block">Pratinjau:</Label>
                                     <div class="space-y-2">
                                         <Label>
                                             {{ field.label }}
                                             <Badge v-if="field.is_required" variant="destructive" class="ml-2 text-xs">
-                                                Required
+                                                Wajib
                                             </Badge>
                                         </Label>
 
@@ -241,7 +241,7 @@ const sortedFields = props.form.form_fields.sort((a, b) => a.order - b.order);
                                         <div v-if="field.field_type.name === 'textarea'">
                                             <textarea
                                                 class="w-full p-2 border rounded-md bg-background"
-                                                placeholder="This is a preview"
+                                                placeholder="Ini adalah pratinjau"
                                                 disabled
                                                 rows="3"
                                             ></textarea>
@@ -264,7 +264,7 @@ const sortedFields = props.form.form_fields.sort((a, b) => a.order - b.order);
                                             <input
                                                 :type="field.field_type.name"
                                                 class="w-full p-2 border rounded-md bg-background"
-                                                placeholder="This is a preview"
+                                                placeholder="Ini adalah pratinjau"
                                                 disabled
                                             />
                                         </div>
@@ -292,7 +292,7 @@ const sortedFields = props.form.form_fields.sort((a, b) => a.order - b.order);
                                     {{ sortedFields.length }}
                                 </p>
                                 <p class="text-sm text-muted-foreground">
-                                    Total Fields
+                                    Total Isian
                                 </p>
                             </div>
                         </div>
@@ -308,7 +308,7 @@ const sortedFields = props.form.form_fields.sort((a, b) => a.order - b.order);
                                     {{ sortedFields.filter(f => f.is_required).length }}
                                 </p>
                                 <p class="text-sm text-muted-foreground">
-                                    Required Fields
+                                    Isian Wajib
                                 </p>
                             </div>
                         </div>
@@ -324,7 +324,7 @@ const sortedFields = props.form.form_fields.sort((a, b) => a.order - b.order);
                                     {{ sortedFields.reduce((total, field) => total + field.form_field_options.length, 0) }}
                                 </p>
                                 <p class="text-sm text-muted-foreground">
-                                    Total Options
+                                    Total Opsi
                                 </p>
                             </div>
                         </div>

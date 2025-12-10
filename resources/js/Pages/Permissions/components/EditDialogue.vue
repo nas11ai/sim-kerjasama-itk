@@ -64,11 +64,11 @@ function submit() {
             <DialogTitle>Edit Permission</DialogTitle>
          </DialogHeader>
 
-         <p class="text-muted-foreground text-sm">Fill in the form below to give the permission a new name.</p>
+         <p class="text-muted-foreground text-sm">Isi form di bawah untuk memberikan nama baru pada hak akses.</p>
 
          <form @submit.prevent="submit" class="flex flex-col gap-4">
             <div class="grid gap-2">
-               <Label for="name">Permission Name</Label>
+               <Label for="name">Nama Hak Akses</Label>
                <Input
                   id="name"
                   type="text"
@@ -77,14 +77,14 @@ function submit() {
                   :tabindex="1"
                   autocomplete="name"
                   v-model="form.name"
-                  placeholder="Enter a new permission name"
+                  placeholder="Masukkan Nama Hak Akses"
                />
                <InputError :message="form.errors.name" />
             </div>
 
             <div class="flex justify-end gap-2 pt-2">
-               <Button type="button" class="cursor-pointer" variant="ghost" @click="emit('close')">Cancel</Button>
-               <Button type="submit" class="cursor-pointer">Save</Button>
+               <Button type="button" class="cursor-pointer" variant="ghost" @click="emit('close')">Batal</Button>
+               <Button type="submit" class="cursor-pointer">Simpan</Button>
             </div>
          </form>
       </DialogContent>

@@ -123,7 +123,7 @@ class FormController extends Controller
         });
 
         return redirect()->route('admin.forms.index')
-            ->with('success', 'Form created successfully!');
+            ->with('success', 'Formulir berhasil dibuat!');
     }
 
     public function show(Form $form)
@@ -224,7 +224,7 @@ class FormController extends Controller
         });
 
         return redirect()->route('admin.forms.index')
-            ->with('success', 'Form updated successfully!');
+            ->with('success', 'Formulir berhasil diperbarui!');
     }
 
     public function destroy(Form $form)
@@ -232,7 +232,7 @@ class FormController extends Controller
         $form->delete();
 
         return redirect()->route('admin.forms.index')
-            ->with('success', 'Form deleted successfully!');
+            ->with('success', 'Formulir berhasil dihapus!');
     }
 
     public function duplicate(Form $form)
@@ -256,7 +256,7 @@ class FormController extends Controller
         });
 
         return redirect()->route('admin.forms.index')
-            ->with('success', 'Form duplicated successfully!');
+            ->with('success', 'Formulir berhasil diduplikasi!');
     }
 
     public function bulkDelete(Request $request)
@@ -266,6 +266,6 @@ class FormController extends Controller
         Form::whereIn('id', $ids)->delete();
 
         return redirect()->route('admin.forms.index')
-            ->with('success', 'Selected forms deleted successfully!');
+            ->with('success', 'Formulir terpilih berhasil dihapus!');
     }
 }

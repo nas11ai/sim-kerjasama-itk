@@ -74,7 +74,7 @@ const submit = () => {
                 <div class="flex flex-col gap-6">
                     <div class="flex flex-col gap-1.5">
                         <Label for="name">
-                            Name
+                            Nama
                         </Label>
                         <Input
                             id="name"

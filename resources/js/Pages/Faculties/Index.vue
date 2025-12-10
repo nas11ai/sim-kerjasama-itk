@@ -22,6 +22,14 @@ import {
     SelectValue,
 } from "@/Components/ui/select";
 import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+} from "@/Components/ui/dialog";
+import {
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuItem,
@@ -38,9 +46,14 @@ import {
     Building2,
     ArrowUpDown,
     ChevronLeft,
-    ChevronRight
+    ChevronRight,
+    AlertTriangle,
+    UserCheck
 } from "lucide-vue-next";
 import { debounce } from 'lodash';
+import { useToast } from "@/Components/ui/toast/use-toast";
+
+const { toast } = useToast();
 
 interface Faculty {
     id: number;
@@ -100,6 +113,9 @@ const perPage = ref(props.filters.per_page || 10);
 const sortBy = ref(props.filters.sort_by || 'name');
 const sortOrder = ref(props.filters.sort_order || 'asc');
 
+const showDeleteDialog = ref(false);
+const facultyToDelete = ref<Faculty | null>(null);
+
 // Loading states
 const isDeleting = ref<number | null>(null);
 
@@ -124,6 +140,37 @@ const updateFilters = (newFilters: Partial<Filters>) => {
     });
 };
 
+const confirmDelete = () => {
+    if (facultyToDelete.value) {
+        router.delete(route("admin.faculties.destroy", facultyToDelete.value.id), {
+            onSuccess: () => {
+                showDeleteDialog.value = false;
+                facultyToDelete.value = null;
+                toast({
+                    title: "Sukses",
+                    description: "Fakultas Berhasil dihapus!",
+                });
+            },
+            onError: (errors) => {
+                toast({
+                    title: "Error",
+                    description: errors.error || "Gagal menghapus fakultas.",
+                    variant: "destructive",
+                });
+            },
+            onFinish: () => {
+                showDeleteDialog.value = false;
+                facultyToDelete.value = null;
+            },
+        });
+    }
+};
+
+const cancelDelete = () => {
+    showDeleteDialog.value = false;
+    facultyToDelete.value = null;
+};
+
 // Sort function
 const sortTable = (column: string) => {
     const newSortOrder = sortBy.value === column && sortOrder.value === 'asc' ? 'desc' : 'asc';
@@ -137,20 +184,9 @@ const sortTable = (column: string) => {
 };
 
 // Delete function
-const deleteFaculty = async (faculty: Faculty) => {
-    if (!confirm(`Are you sure you want to delete "${faculty.name}"?`)) {
-        return;
-    }
-
-    isDeleting.value = faculty.id;
-
-    try {
-        await router.delete(route('admin.faculties.destroy', faculty.id), {
-            preserveState: false,
-        });
-    } finally {
-        isDeleting.value = null;
-    }
+const deleteFaculty = (faculty: Faculty) => {
+    facultyToDelete.value = faculty;
+    showDeleteDialog.value = true;
 };
 
 // Pagination function
@@ -194,45 +230,37 @@ const getSortIcon = (column: string) => {
 
 <template>
 
-    <Head title="Faculty Management" />
+    <Head title="Manajemen Fakultas" />
 
     <AuthenticatedLayout>
         <template #header>
             <div class="flex items-center justify-between">
                 <div class="flex items-center gap-2">
-                    <Building2 class="h-6 w-6 text-blue-600" />
                     <h2 class="text-xl font-semibold leading-tight text-gray-800">
-                        Faculty Management
+                        Manajemen Fakultas
                     </h2>
                 </div>
                 <div class="flex items-center gap-2">
                     <Button @click="router.visit(route('admin.faculties.study-programs'))" variant="outline">
                         <GraduationCap class="h-4 w-4 mr-2" />
-                        Study Programs
+                        Program Studi
                     </Button>
                     <Button @click="router.visit(route('admin.faculties.create'))">
                         <Plus class="h-4 w-4 mr-2" />
-                        Add Faculty
+                        Tambah Fakultas
                     </Button>
                 </div>
             </div>
         </template>
 
         <div class="space-y-6">
-            <!-- Success/Error Messages -->
-            <div v-if="successMessage" class="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-lg">
-                {{ successMessage }}
-            </div>
-            <div v-if="errorMessage" class="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded-lg">
-                {{ errorMessage }}
-            </div>
 
             <!-- Filters Card -->
             <Card>
                 <CardHeader>
                     <CardTitle class="text-lg flex items-center gap-2">
                         <Search class="h-5 w-5" />
-                        Search & Filter
+                        Cari & Filter
                     </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -242,21 +270,21 @@ const getSortIcon = (column: string) => {
                             <div class="relative">
                                 <Search
                                     class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-                                <Input v-model="search" placeholder="Search faculties..." class="pl-10" />
+                                <Input v-model="search" placeholder="Cari Fakultas..." class="pl-10" />
                             </div>
                         </div>
 
                         <!-- Per Page Select -->
-                        <div class="w-full sm:w-32">
+                        <div class="w-full sm:w-36">
                             <Select :model-value="perPage.toString()" @update:model-value="changePerPage">
                                 <SelectTrigger>
                                     <SelectValue />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value="5">5 per page</SelectItem>
-                                    <SelectItem value="10">10 per page</SelectItem>
-                                    <SelectItem value="25">25 per page</SelectItem>
-                                    <SelectItem value="50">50 per page</SelectItem>
+                                    <SelectItem value="5">5 per Halaman</SelectItem>
+                                    <SelectItem value="10">10 per Halaman</SelectItem>
+                                    <SelectItem value="25">25 per Halaman</SelectItem>
+                                    <SelectItem value="50">50 per Halaman</SelectItem>
                                 </SelectContent>
                             </Select>
                         </div>
@@ -269,8 +297,7 @@ const getSortIcon = (column: string) => {
                 <CardHeader>
                     <div class="flex items-center justify-between">
                         <CardTitle class="flex items-center gap-2">
-                            <Building2 class="h-5 w-5" />
-                            Faculties
+                            Fakultas
                             <Badge variant="secondary">{{ faculties.total }} total</Badge>
                         </CardTitle>
                     </div>
@@ -285,28 +312,28 @@ const getSortIcon = (column: string) => {
                                     <TableHead>
                                         <button @click="sortTable('name')"
                                             class="flex items-center gap-1 hover:text-blue-600 font-semibold">
-                                            Faculty Name
+                                            Nama Fakultas
                                             <ArrowUpDown class="h-4 w-4 transition-transform"
                                                 :class="getSortIcon('name')" />
                                         </button>
                                     </TableHead>
-                                    <TableHead class="text-center">Study Programs</TableHead>
+                                    <TableHead class="text-center">Program Studi</TableHead>
                                     <TableHead>
                                         <button @click="sortTable('created_at')"
                                             class="flex items-center gap-1 hover:text-blue-600 font-semibold">
-                                            Created At
+                                            Dibuat Pada 
                                             <ArrowUpDown class="h-4 w-4 transition-transform"
                                                 :class="getSortIcon('created_at')" />
                                         </button>
                                     </TableHead>
-                                    <TableHead class="text-center w-20">Actions</TableHead>
+                                    <TableHead class="text-center w-20">Aksi</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
                                 <TableRow v-if="faculties.data.length === 0">
                                     <TableCell colspan="5" class="text-center py-8 text-gray-500">
                                         <Building2 class="h-12 w-12 mx-auto mb-4 opacity-50" />
-                                        <p>No faculties found</p>
+                                        <p>Tidak ada fakultas ditemukan</p>
                                     </TableCell>
                                 </TableRow>
                                 <TableRow v-for="(faculty, index) in faculties.data" :key="faculty.id"
@@ -319,7 +346,7 @@ const getSortIcon = (column: string) => {
                                     </TableCell>
                                     <TableCell class="text-center">
                                         <Badge variant="outline">
-                                            {{ faculty.study_programs_count }} programs
+                                            {{ faculty.study_programs_count }} program studi
                                         </Badge>
                                     </TableCell>
                                     <TableCell>
@@ -336,7 +363,7 @@ const getSortIcon = (column: string) => {
                                                 <DropdownMenuItem
                                                     @click="router.visit(route('admin.faculties.show', faculty.id))">
                                                     <Eye class="h-4 w-4 mr-2" />
-                                                    View
+                                                    Lihat
                                                 </DropdownMenuItem>
                                                 <DropdownMenuItem
                                                     @click="router.visit(route('admin.faculties.edit', faculty.id))">
@@ -346,7 +373,7 @@ const getSortIcon = (column: string) => {
                                                 <DropdownMenuItem @click="deleteFaculty(faculty)" class="text-red-600"
                                                     :disabled="faculty.study_programs_count > 0">
                                                     <Trash2 class="h-4 w-4 mr-2" />
-                                                    Delete
+                                                    Hapus
                                                 </DropdownMenuItem>
                                             </DropdownMenuContent>
                                         </DropdownMenu>
@@ -359,14 +386,14 @@ const getSortIcon = (column: string) => {
                     <!-- Pagination -->
                     <div v-if="faculties.last_page > 1" class="flex items-center justify-between px-6 py-4 border-t">
                         <div class="text-sm text-gray-500">
-                            Showing {{ faculties.from }} to {{ faculties.to }} of {{ faculties.total }} results
+                            Menampilkan {{ faculties.from }} hingga {{ faculties.to }} dari {{ faculties.total }} hasil
                         </div>
                         <div class="flex items-center space-x-2">
                             <!-- Previous Button -->
                             <Button variant="outline" size="sm" @click="goToPage(faculties.links[0].url)"
                                 :disabled="!faculties.links[0].url">
                                 <ChevronLeft class="h-4 w-4" />
-                                Previous
+                                Halaman Sebelumnya
                             </Button>
 
                             <!-- Page Numbers -->
@@ -384,7 +411,7 @@ const getSortIcon = (column: string) => {
                             <Button variant="outline" size="sm"
                                 @click="goToPage(faculties.links[faculties.links.length - 1].url)"
                                 :disabled="!faculties.links[faculties.links.length - 1].url">
-                                Next
+                                Halaman Selanjutnya
                                 <ChevronRight class="h-4 w-4" />
                             </Button>
                         </div>
@@ -392,5 +419,49 @@ const getSortIcon = (column: string) => {
                 </CardContent>
             </Card>
         </div>
+
+        <!-- Delete Confirmation Dialog -->
+        <Dialog v-model:open="showDeleteDialog">
+            <DialogContent class="sm:max-w-md">
+                <DialogHeader>
+                    <DialogTitle class="flex items-center gap-2">
+                        <AlertTriangle class="h-5 w-5 text-destructive" />
+                        Konfirmasi Hapus    
+                    </DialogTitle>
+                    <DialogDescription>
+                        Apakah Anda yakin ingin menghapus fakultas ini? Tindakan ini tidak dapat dibatalkan.
+                    </DialogDescription>
+                </DialogHeader>
+
+                <div v-if="facultyToDelete" class="py-4">
+                    <div class="p-4 bg-muted rounded-lg">
+                        <div class="flex items-center gap-3">
+                            <div
+                                class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center"
+                            >
+                                <UserCheck class="h-6 w-6 text-blue-600" />
+                            </div>
+                            <div class="flex-1">
+                                <h4 class="font-semibold text-lg">
+                                    {{ facultyToDelete.name }}
+                                </h4>
+                                <p class="text-sm text-muted-foreground">
+                                    ID: {{ facultyToDelete.id }}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <DialogFooter>
+                    <Button variant="outline" @click="cancelDelete">
+                        Batal
+                    </Button>
+                    <Button variant="destructive" @click="confirmDelete">
+                        Hapus Fakultas
+                    </Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
     </AuthenticatedLayout>
 </template>

@@ -119,9 +119,9 @@ const fieldRequiresOptions = (fieldTypeId: number | null): boolean => {
                 <div class="flex items-center space-x-4">
                     <Switch v-model="needsReview" id="enable_review" />
                     <Label for="enable_review" class="flex-1">
-                        <div class="font-medium text-base">Enable Review & Evaluation</div>
+                        <div class="font-medium text-base">Aktifkan Review & Evaluasi</div>
                         <p class="text-sm text-muted-foreground">
-                            Require reviewers to complete evaluation forms before approving submissions
+                            Wajibkan reviewer untuk mengisi formulir evaluasi sebelum menyetujui pengajuan
                         </p>
                     </Label>
                 </div>
@@ -132,8 +132,8 @@ const fieldRequiresOptions = (fieldTypeId: number | null): boolean => {
         <Alert v-if="!needsReview">
             <AlertCircle class="h-4 w-4" />
             <AlertDescription>
-                Review is disabled. Submissions will not require evaluation forms.
-                You can skip to the next step.
+                Review dinonaktifkan. Pengajuan tidak akan memerlukan formulir evaluasi.
+                Anda dapat melewati ke langkah berikutnya.
             </AlertDescription>
         </Alert>
 
@@ -144,29 +144,29 @@ const fieldRequiresOptions = (fieldTypeId: number | null): boolean => {
                     <div class="flex items-center justify-between">
                         <div>
                             <CardTitle class="flex items-center gap-2">
-                                Evaluation Forms
+                                Formulir Evaluasi
                                 <Badge variant="secondary">{{ evaluationForms.length }}</Badge>
                             </CardTitle>
                             <CardDescription>
-                                Create forms that reviewers must complete when evaluating submissions
+                                Buat formulir yang harus diisi reviewer saat melakukan evaluasi pengajuan
                             </CardDescription>
                         </div>
                         <Button type="button" @click="addEvaluationForm" size="sm">
                             <Plus class="h-4 w-4 mr-2" />
-                            Add Form
+                            Tambah Formulir
                         </Button>
                     </div>
                 </CardHeader>
                 <CardContent>
                     <div v-if="evaluationForms.length === 0" class="text-center py-12">
                         <ClipboardList class="h-12 w-12 mx-auto text-muted-foreground mb-4 opacity-50" />
-                        <h3 class="text-lg font-medium mb-2">No Evaluation Forms</h3>
+                        <h3 class="text-lg font-medium mb-2">Tidak Ada Formulir Evaluasi</h3>
                         <p class="text-muted-foreground mb-4">
-                            Add at least one evaluation form for reviewers to complete
+                            Tambahkan setidaknya satu formulir evaluasi untuk diisi reviewer
                         </p>
                         <Button type="button" @click="addEvaluationForm">
                             <Plus class="h-4 w-4 mr-2" />
-                            Add First Form
+                            Tambah Formulir Pertama
                         </Button>
                     </div>
 
@@ -184,23 +184,24 @@ const fieldRequiresOptions = (fieldTypeId: number | null): boolean => {
                                             <div class="flex-1 space-y-4">
                                                 <div class="grid gap-4 md:grid-cols-2">
                                                     <div class="space-y-2">
-                                                        <Label>Form Title *</Label>
+                                                        <Label>Judul Formulir *</Label>
                                                         <Input v-model="evalForm.title"
-                                                            placeholder="Enter evaluation form title" />
+                                                            placeholder="Masukkan judul formulir evaluasi" />
                                                     </div>
 
                                                     <div class="flex items-center space-x-2 pt-6">
                                                         <Switch v-model="evalForm.is_required"
                                                             :id="`form_required_${formIndex}`" />
-                                                        <Label :for="`form_required_${formIndex}`">Required for all
-                                                            reviewers</Label>
+                                                        <Label :for="`form_required_${formIndex}`">
+                                                            Wajib untuk semua reviewer
+                                                        </Label>
                                                     </div>
                                                 </div>
 
                                                 <div class="space-y-2">
-                                                    <Label>Description</Label>
+                                                    <Label>Deskripsi</Label>
                                                     <Textarea v-model="evalForm.description"
-                                                        placeholder="Enter form description (optional)" rows="2" />
+                                                        placeholder="Masukkan deskripsi formulir (opsional)" rows="2" />
                                                 </div>
                                             </div>
 
@@ -215,17 +216,17 @@ const fieldRequiresOptions = (fieldTypeId: number | null): boolean => {
                                         <!-- Evaluation Form Fields -->
                                         <div class="space-y-4">
                                             <div class="flex items-center justify-between">
-                                                <Label class="text-base font-semibold">Form Fields</Label>
+                                                <Label class="text-base font-semibold">Isian Formulir</Label>
                                                 <Button type="button" @click="addField(formIndex)" size="sm"
                                                     variant="outline">
                                                     <Plus class="h-3 w-3 mr-2" />
-                                                    Add Field
+                                                    Tambah Isian
                                                 </Button>
                                             </div>
 
                                             <div v-if="evalForm.fields.length === 0"
                                                 class="text-center py-6 text-muted-foreground border-2 border-dashed rounded-lg">
-                                                <p>No fields added. Click "Add Field" to create evaluation criteria.</p>
+                                                <p>Belum ada isian. Klik “Tambah Isian” untuk membuat kriteria evaluasi.</p>
                                             </div>
 
                                             <div v-else class="space-y-3">
@@ -236,11 +237,11 @@ const fieldRequiresOptions = (fieldTypeId: number | null): boolean => {
                                                             <div class="flex-1 space-y-3">
                                                                 <div class="grid gap-3 md:grid-cols-2">
                                                                     <div class="space-y-2">
-                                                                        <Label class="text-sm">Field Type *</Label>
+                                                                        <Label class="text-sm">Tipe Isian *</Label>
                                                                         <Select v-model="field.field_type_id">
                                                                             <SelectTrigger class="h-9">
                                                                                 <SelectValue
-                                                                                    placeholder="Select type" />
+                                                                                    placeholder="Pilih tipe" />
                                                                             </SelectTrigger>
                                                                             <SelectContent>
                                                                                 <SelectItem v-for="ft in fieldTypes"
@@ -254,14 +255,14 @@ const fieldRequiresOptions = (fieldTypeId: number | null): boolean => {
                                                                     <div class="space-y-2">
                                                                         <Label class="text-sm">Label *</Label>
                                                                         <Input v-model="field.label"
-                                                                            placeholder="Field label" class="h-9" />
+                                                                            placeholder="Label isian" class="h-9" />
                                                                     </div>
                                                                 </div>
 
                                                                 <div class="space-y-2">
-                                                                    <Label class="text-sm">Description</Label>
+                                                                    <Label class="text-sm">Deskripsi</Label>
                                                                     <Input v-model="field.description"
-                                                                        placeholder="Optional field description"
+                                                                        placeholder="Deskripsi isian (opsional)"
                                                                         class="h-9" />
                                                                 </div>
 
@@ -271,7 +272,7 @@ const fieldRequiresOptions = (fieldTypeId: number | null): boolean => {
                                                                     <Label
                                                                         :for="`field_required_${formIndex}_${fieldIndex}`"
                                                                         class="text-sm">
-                                                                        Required field
+                                                                        Isian wajib
                                                                     </Label>
                                                                 </div>
 
@@ -279,21 +280,21 @@ const fieldRequiresOptions = (fieldTypeId: number | null): boolean => {
                                                                 <div v-if="fieldRequiresOptions(field.field_type_id)"
                                                                     class="space-y-2">
                                                                     <div class="flex items-center justify-between">
-                                                                        <Label class="text-sm">Options</Label>
+                                                                        <Label class="text-sm">Opsi</Label>
                                                                         <Button type="button" size="sm" variant="ghost"
                                                                             @click="addFieldOption(formIndex, fieldIndex)">
                                                                             <Plus class="h-3 w-3 mr-1" />
-                                                                            Add
+                                                                            Tambah
                                                                         </Button>
                                                                     </div>
                                                                     <div class="space-y-2">
                                                                         <div v-for="(option, optionIndex) in field.options"
                                                                             :key="option.temp_id" class="flex gap-2">
                                                                             <Input v-model="option.label"
-                                                                                placeholder="Option label"
+                                                                                placeholder="Label opsi"
                                                                                 class="h-8" />
                                                                             <Input v-model="option.value"
-                                                                                placeholder="Value (optional)"
+                                                                                placeholder="Nilai (opsional)"
                                                                                 class="h-8" />
                                                                             <Button type="button" variant="ghost"
                                                                                 size="sm"

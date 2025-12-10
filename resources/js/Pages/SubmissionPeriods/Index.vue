@@ -127,15 +127,15 @@ const getStatusColor = (status: string) => {
 const getStatusText = (status: string) => {
     switch (status) {
         case "active":
-            return "Active";
+            return "Aktif";
         case "upcoming":
-            return "Upcoming";
+            return "Akan Datang";
         case "expired":
-            return "Expired";
+            return "Kedaluwarsa";
         case "no_dates":
-            return "No Dates";
+            return "Tidak ada tanggal";
         default:
-            return "Unknown";
+            return "Tidak Diketahui";
     }
 };
 
@@ -180,7 +180,7 @@ const clearSearch = () => {
 const deleteSubmissionPeriod = (id: number) => {
     if (
         confirm(
-            "Are you sure you want to delete this submission period? This action cannot be undone."
+            "Apakah anda yakin untuk menghapus periode pengajuan ini? Tindakan ini tidak dapat dibatalkan."
         )
     ) {
         router.delete(route("admin.submission-periods.destroy", id));
@@ -198,18 +198,18 @@ const formatDate = (dateString: string) => {
 
 <template>
 
-    <Head title="Submission Periods" />
+    <Head title="Periode Pengajuan" />
 
     <AuthenticatedLayout>
         <template #header>
             <div class="flex items-center justify-between">
                 <h2 class="text-xl font-semibold leading-tight text-gray-800">
-                    Submission Periods Management
+                    Manajemen Periode Pengajuan
                 </h2>
                 <Link :href="route('admin.submission-periods.create')">
                 <Button>
                     <Plus class="h-4 w-4 mr-2" />
-                    Create Submission Period
+                    Buat Periode Pengajuan
                 </Button>
                 </Link>
             </div>
@@ -221,21 +221,21 @@ const formatDate = (dateString: string) => {
                 <CardHeader>
                     <CardTitle class="flex items-center gap-2">
                         <Search class="h-5 w-5" />
-                        Search Submission Periods
+                        Cari Periode Pengajuan
                     </CardTitle>
                 </CardHeader>
                 <CardContent>
                     <div class="flex items-center gap-4">
-                        <div class="flex-1">
-                            <Input v-model="searchQuery" placeholder="Search submission periods by name..."
-                                class="max-w-md" @keyup.enter="searchPeriods" />
+                        <div class="flex w-full">
+                            <Input v-model="searchQuery" placeholder="Cari periode pengajuan berdasarkan nama..."
+                                class="max-w-full" @keyup.enter="searchPeriods" />
                         </div>
                         <Button @click="searchPeriods">
                             <Search class="h-4 w-4 mr-2" />
-                            Search
+                            Cari
                         </Button>
                         <Button v-if="searchQuery" @click="clearSearch" variant="outline">
-                            Clear
+                            Bersihkan Semua Filter
                         </Button>
                     </div>
                 </CardContent>
@@ -246,7 +246,7 @@ const formatDate = (dateString: string) => {
                 <CardHeader>
                     <CardTitle class="flex items-center gap-2">
                         <Calendar class="h-5 w-5" />
-                        Submission Periods ({{ props.submissionPeriods.total }})
+                        Periode Pengajuan ({{ props.submissionPeriods.total }})
                     </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -254,13 +254,13 @@ const formatDate = (dateString: string) => {
                         <Table>
                             <TableHeader>
                                 <TableRow>
-                                    <TableHead>Name</TableHead>
+                                    <TableHead>Nama</TableHead>
                                     <TableHead>Status</TableHead>
-                                    <TableHead>Period</TableHead>
-                                    <TableHead>Form Phases</TableHead>
-                                    <TableHead>Rules</TableHead>
-                                    <TableHead>Dates</TableHead>
-                                    <TableHead class="text-right">Actions</TableHead>
+                                    <TableHead>Periode</TableHead>
+                                    <TableHead>Tahap Formulir</TableHead>
+                                    <TableHead>Ketentuan</TableHead>
+                                    <TableHead>Tanggal</TableHead>
+                                    <TableHead class="text-right">Aksi</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
@@ -299,7 +299,7 @@ const formatDate = (dateString: string) => {
                                             </div>
                                         </div>
                                         <div v-else class="text-sm text-muted-foreground">
-                                            No dates configured
+                                            Tidak ada tanggal dikonfigurasi
                                         </div>
                                     </TableCell>
                                     <TableCell>
@@ -311,7 +311,7 @@ const formatDate = (dateString: string) => {
                                                         .submission_period_phases
                                                         .length
                                                 }}
-                                                phases
+                                                tahap
                                             </span>
                                         </div>
                                     </TableCell>
@@ -324,7 +324,7 @@ const formatDate = (dateString: string) => {
                                                         .submission_period_details
                                                         .length
                                                 }}
-                                                rules
+                                                ketentuan
                                             </span>
                                         </div>
                                     </TableCell>
@@ -336,7 +336,7 @@ const formatDate = (dateString: string) => {
                                                     period.submission_dates
                                                         .length
                                                 }}
-                                                dates
+                                                tanggal
                                             </span>
                                         </div>
                                     </TableCell>
@@ -355,7 +355,7 @@ const formatDate = (dateString: string) => {
                                                     ">
                                                 <DropdownMenuItem>
                                                     <Eye class="h-4 w-4 mr-2" />
-                                                    View Details
+                                                    Lihat Detail
                                                 </DropdownMenuItem>
                                                 </Link>
                                                 <Link :href="route(
@@ -374,7 +374,7 @@ const formatDate = (dateString: string) => {
                                                     )
                                                     " class="text-destructive cursor-pointer">
                                                     <Trash2 class="h-4 w-4 mr-2" />
-                                                    Delete
+                                                    Hapus
                                                 </DropdownMenuItem>
                                             </DropdownMenuContent>
                                         </DropdownMenu>
@@ -388,19 +388,19 @@ const formatDate = (dateString: string) => {
                     <div v-if="filteredSubmissionPeriods.length === 0" class="text-center py-12">
                         <Calendar class="h-12 w-12 mx-auto text-muted-foreground mb-4" />
                         <h3 class="text-lg font-medium mb-2">
-                            No submission periods found
+                            Tidak ada periode pengajuan ditemukan
                         </h3>
                         <p class="text-muted-foreground mb-4">
                             {{
                                 searchQuery
-                                    ? "Try adjusting your search criteria."
-                                    : "Get started by creating your first submission period."
+                                    ? "Coba sesuaikan kriteria pencarian Anda."
+                                    : "Mulailah dengan membuat periode pengajuan pertama Anda."
                             }}
                         </p>
                         <Link :href="route('admin.submission-periods.create')" v-if="!searchQuery">
                         <Button>
                             <Plus class="h-4 w-4 mr-2" />
-                            Create Submission Period
+                            Buat Periode Pengajuan
                         </Button>
                         </Link>
                     </div>

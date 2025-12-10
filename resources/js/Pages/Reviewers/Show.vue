@@ -16,14 +16,6 @@ import {
     TableRow,
 } from '@/Components/ui/table';
 import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
-} from '@/Components/ui/dialog';
-import {
     ArrowLeft,
     Edit,
     Trash2,
@@ -196,7 +188,7 @@ const getStatusInfo = computed(() => {
                 <CardHeader>
                     <CardTitle class="flex items-center gap-2">
                         <User class="h-5 w-5" />
-                        Reviewer Information
+                        Informasi Reviewer
                     </CardTitle>
                     <CardDescription>
                         Detail informasi reviewer dan periode aktif
@@ -220,7 +212,7 @@ const getStatusInfo = computed(() => {
                         <div class="space-y-1">
                             <label class="text-sm font-medium text-muted-foreground flex items-center gap-1">
                                 <Shield class="h-3 w-3" />
-                                Reviewer Role
+                                Role Reviewer
                             </label>
                             <div>
                                 <Badge variant="outline" class="gap-1">
@@ -250,7 +242,7 @@ const getStatusInfo = computed(() => {
                         <div class="space-y-1">
                             <label class="text-sm font-medium text-muted-foreground flex items-center gap-1">
                                 <Calendar class="h-3 w-3" />
-                                Start Date
+                                Tanggal Mulai
                             </label>
                             <p class="text-sm">{{ formatDate(reviewer.start_date) }}</p>
                         </div>
@@ -258,7 +250,7 @@ const getStatusInfo = computed(() => {
                         <div class="space-y-1">
                             <label class="text-sm font-medium text-muted-foreground flex items-center gap-1">
                                 <Calendar class="h-3 w-3" />
-                                End Date
+                                Tanggal Selesai
                             </label>
                             <p class="text-sm">
                                 {{ reviewer.end_date ? formatDate(reviewer.end_date) : 'Tidak ada batas waktu' }}
@@ -299,9 +291,9 @@ const getStatusInfo = computed(() => {
                     <Table>
                         <TableHeader>
                             <TableRow>
-                                <TableHead>Form Title</TableHead>
+                                <TableHead>Judul Form</TableHead>
                                 <TableHead>Status</TableHead>
-                                <TableHead>Assigned Date</TableHead>
+                                <TableHead>Tanggal Ditugaskan</TableHead>
                             </TableRow>
                         </TableHeader>
                         <TableBody>
@@ -322,7 +314,7 @@ const getStatusInfo = computed(() => {
                                         {{ submission.evaluation_status }}
                                     </Badge>
                                     <Badge variant="secondary" v-else>
-                                        Not Started
+                                        Belum Dimulai
                                     </Badge>
                                 </TableCell>
                                 <TableCell class="text-sm text-muted-foreground">

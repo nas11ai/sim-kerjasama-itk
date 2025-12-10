@@ -47,17 +47,17 @@ const submit = () => {
 
 <template>
 
-    <Head title="Add New Reviewer" />
+    <Head title="Tambah Reviewer" />
 
     <AuthenticatedLayout>
         <template #header>
             <div class="flex items-center gap-4">
                 <Button variant="ghost" size="sm" @click="$inertia.visit(route('admin.reviewers.index'))">
                     <ArrowLeft class="h-4 w-4 mr-2" />
-                    Back to Reviewers
+                    Kembali
                 </Button>
                 <h2 class="text-xl font-semibold leading-tight text-gray-800">
-                    Add New Reviewer
+                    Tambah Reviewer
                 </h2>
             </div>
         </template>
@@ -67,7 +67,7 @@ const submit = () => {
                 <CardHeader>
                     <CardTitle class="flex items-center gap-2">
                         <UserPlus class="h-5 w-5" />
-                        Reviewer Information
+                        Informasi Reviewer
                     </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -77,7 +77,7 @@ const submit = () => {
                             <Label for="user_id">User *</Label>
                             <Select v-model="form.user_id" required>
                                 <SelectTrigger>
-                                    <SelectValue placeholder="Select a user to assign as reviewer" />
+                                    <SelectValue placeholder="Pilih user untuk ditugaskan sebagai reviewer" />
                                 </SelectTrigger>
                                 <SelectContent>
                                     <SelectItem v-for="user in props.users" :key="user.id" :value="user.id.toString()">
@@ -92,16 +92,16 @@ const submit = () => {
                                 {{ form.errors.user_id }}
                             </p>
                             <p v-if="props.users.length === 0" class="text-sm text-muted-foreground">
-                                No available users found. All eligible users may already be active reviewers.
+                                Tidak ada user yang tersedia. Semua user yang memenuhi syarat mungkin sudah menjadi reviewer aktif.
                             </p>
                         </div>
 
                         <!-- Reviewer Role -->
                         <div class="space-y-2">
-                            <Label for="reviewer_role_id">Reviewer Role *</Label>
+                            <Label for="reviewer_role_id">Role Reviewer *</Label>
                             <Select v-model="form.reviewer_role_id" required>
                                 <SelectTrigger>
-                                    <SelectValue placeholder="Select reviewer role" />
+                                    <SelectValue placeholder="Pilih role reviewer" />
                                 </SelectTrigger>
                                 <SelectContent>
                                     <SelectItem v-for="role in props.reviewerRoles" :key="role.id"
@@ -117,7 +117,7 @@ const submit = () => {
 
                         <!-- Start Date -->
                         <div class="space-y-2">
-                            <Label for="start_date">Start Date *</Label>
+                            <Label for="start_date">Tanggal Mulai *</Label>
                             <Input id="start_date" v-model="form.start_date" type="date" required />
                             <p v-if="form.errors.start_date" class="text-sm text-destructive">
                                 {{ form.errors.start_date }}
@@ -126,10 +126,10 @@ const submit = () => {
 
                         <!-- End Date -->
                         <div class="space-y-2">
-                            <Label for="end_date">End Date (Optional)</Label>
+                            <Label for="end_date">Tanggal Selesai (Opsional)</Label>
                             <Input id="end_date" v-model="form.end_date" type="date" />
                             <p class="text-xs text-muted-foreground">
-                                Leave empty for no end date (permanent reviewer assignment)
+                                Biarkan kosong jika tidak ada tanggal selesai (penugasan reviewer permanen)
                             </p>
                             <p v-if="form.errors.end_date" class="text-sm text-destructive">
                                 {{ form.errors.end_date }}
@@ -140,10 +140,10 @@ const submit = () => {
                         <div class="flex items-center justify-end space-x-3">
                             <Button type="button" variant="outline"
                                 @click="$inertia.visit(route('admin.reviewers.index'))">
-                                Cancel
+                                Batal
                             </Button>
                             <Button type="submit" :disabled="form.processing || props.users.length === 0">
-                                {{ form.processing ? "Creating..." : "Create Reviewer" }}
+                                {{ form.processing ? "Membuat..." : "Tambah Reviewer" }}
                             </Button>
                         </div>
                     </form>

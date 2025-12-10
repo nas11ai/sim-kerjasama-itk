@@ -104,15 +104,15 @@ const getStatusColor = (status: string) => {
 const getStatusText = (status: string) => {
     switch (status) {
         case "active":
-            return "Active";
+            return "Aktif";
         case "upcoming":
-            return "Upcoming";
+            return "Akan Datang";
         case "expired":
-            return "Expired";
+            return "Kedaluwarsa";
         case "no_dates":
-            return "No Dates";
+            return "Tidak ada tanggal";
         default:
-            return "Unknown";
+            return "Tidak Diketahui";
     }
 };
 
@@ -163,7 +163,7 @@ const isDateToday = (dateString: string) => {
 
 <template>
 
-    <Head title="Submission Period Details" />
+    <Head title="Detail Periode Pengajuan" />
 
     <AuthenticatedLayout>
         <template #header>
@@ -172,11 +172,11 @@ const isDateToday = (dateString: string) => {
                     <Link :href="route('admin.submission-periods.index')">
                     <Button variant="ghost" size="sm">
                         <ArrowLeft class="h-4 w-4 mr-2" />
-                        Back to Submission Periods
+                        Kembali
                     </Button>
                     </Link>
                     <h2 class="text-xl font-semibold leading-tight text-gray-800">
-                        Submission Period Details
+                        Detail Periode Pengajuan
                     </h2>
                 </div>
                 <Link :href="route(
@@ -186,7 +186,7 @@ const isDateToday = (dateString: string) => {
                     ">
                 <Button>
                     <Edit class="h-4 w-4 mr-2" />
-                    Edit Period
+                    Edit Periode
                 </Button>
                 </Link>
             </div>
@@ -198,14 +198,14 @@ const isDateToday = (dateString: string) => {
                 <CardHeader>
                     <CardTitle class="flex items-center gap-2">
                         <Calendar class="h-5 w-5" />
-                        Period Overview
+                        Ringkasan Periode
                     </CardTitle>
                 </CardHeader>
                 <CardContent class="space-y-6">
                     <div class="grid gap-6 md:grid-cols-2">
                         <div>
                             <h3 class="font-medium text-sm text-muted-foreground mb-1">
-                                Period Name
+                                Nama Periode
                             </h3>
                             <p class="text-lg font-semibold">
                                 {{ props.submissionPeriod.name }}
@@ -235,13 +235,13 @@ const isDateToday = (dateString: string) => {
                         props.submissionPeriod.status === 'active'
                     ">
                         <h3 class="font-medium text-sm text-muted-foreground mb-1">
-                            Days Remaining
+                            Sisa Hari
                         </h3>
                         <div class="flex items-center gap-2">
                             <Clock class="h-4 w-4 text-orange-500" />
                             <span class="font-medium text-orange-600">
                                 {{ props.submissionPeriod.days_remaining }}
-                                day(s) remaining
+                                hari tersisa
                             </span>
                         </div>
                     </div>
@@ -251,7 +251,7 @@ const isDateToday = (dateString: string) => {
                     <div class="grid gap-6 md:grid-cols-2 text-sm">
                         <div class="flex items-center gap-2">
                             <Calendar class="h-4 w-4 text-muted-foreground" />
-                            <span class="text-muted-foreground">Created:</span>
+                            <span class="text-muted-foreground">Dibuat:</span>
                             <span>{{
                                 formatDateShort(
                                     props.submissionPeriod.created_at
@@ -260,7 +260,7 @@ const isDateToday = (dateString: string) => {
                         </div>
                         <div class="flex items-center gap-2">
                             <Calendar class="h-4 w-4 text-muted-foreground" />
-                            <span class="text-muted-foreground">Updated:</span>
+                            <span class="text-muted-foreground">Diperbarui:</span>
                             <span>{{
                                 formatDateShort(
                                     props.submissionPeriod.updated_at
@@ -276,16 +276,16 @@ const isDateToday = (dateString: string) => {
                 <CardHeader>
                     <CardTitle class="flex items-center gap-2">
                         <Calendar class="h-5 w-5" />
-                        Submission Dates
+                        Tanggal Pengajuan
                         <Badge variant="secondary" class="ml-2">
-                            {{ sortedDates.length }} dates
+                            {{ sortedDates.length }} tanggal
                         </Badge>
                     </CardTitle>
                 </CardHeader>
                 <CardContent>
                     <div v-if="sortedDates.length === 0" class="text-center py-8 text-muted-foreground">
                         <Calendar class="h-12 w-12 mx-auto mb-4 opacity-50" />
-                        <p>No submission dates configured.</p>
+                        <p>Tidak ada tanggal pengajuan yang dikonfigurasi.</p>
                     </div>
                     <div v-else class="space-y-4">
                         <div v-for="(date, index) in sortedDates" :key="date.id"
@@ -308,13 +308,13 @@ const isDateToday = (dateString: string) => {
                             </div>
                             <div class="flex items-center gap-2">
                                 <Badge v-if="isDateToday(date.datetime)" variant="default" class="bg-green-600">
-                                    Today
+                                    Hari Ini
                                 </Badge>
                                 <Badge v-else-if="isDatePassed(date.datetime)" variant="secondary">
-                                    Passed
+                                    Lewat
                                 </Badge>
                                 <Badge v-else variant="outline">
-                                    Upcoming
+                                    Akan Datang
                                 </Badge>
                             </div>
                         </div>
@@ -327,13 +327,13 @@ const isDateToday = (dateString: string) => {
                 <CardHeader>
                     <CardTitle class="flex items-center gap-2">
                         <Settings class="h-5 w-5" />
-                        Associated Form Phases
+                        Tahap Formulir Terkait
                         <Badge variant="secondary" class="ml-2">
                             {{
                                 props.submissionPeriod.submission_period_phases
                                     .length
                             }}
-                            phases
+                            tahap
                         </Badge>
                     </CardTitle>
                 </CardHeader>
@@ -343,14 +343,14 @@ const isDateToday = (dateString: string) => {
                             .length === 0
                     " class="text-center py-8 text-muted-foreground">
                         <Settings class="h-12 w-12 mx-auto mb-4 opacity-50" />
-                        <p>No form phases associated with this period.</p>
+                        <p>Tidak ada tahap formulir yang terkait dengan periode ini.</p>
                     </div>
                     <div v-else class="space-y-6">
                         <!-- Active Phases -->
                         <div v-if="activePhases.length > 0">
                             <h3 class="font-medium text-green-700 mb-3 flex items-center gap-2">
                                 <div class="w-2 h-2 bg-green-500 rounded-full"></div>
-                                Active Phases ({{ activePhases.length }})
+                                Tahap Aktif ({{ activePhases.length }})
                             </h3>
                             <div class="space-y-3">
                                 <div v-for="phase in activePhases" :key="phase.id"
@@ -365,7 +365,7 @@ const isDateToday = (dateString: string) => {
                                     </div>
                                     <div class="flex items-center gap-2">
                                         <Badge variant="default" class="bg-green-600">
-                                            Active
+                                            Aktif
                                         </Badge>
                                         <Link :href="route(
                                             'admin.form-phases.show',
@@ -373,7 +373,7 @@ const isDateToday = (dateString: string) => {
                                         )
                                             ">
                                         <Button variant="outline" size="sm">
-                                            View Phase
+                                            Lihat Tahap
                                         </Button>
                                         </Link>
                                     </div>
@@ -385,7 +385,7 @@ const isDateToday = (dateString: string) => {
                         <div v-if="inactivePhases.length > 0">
                             <h3 class="font-medium text-gray-600 mb-3 flex items-center gap-2">
                                 <div class="w-2 h-2 bg-gray-400 rounded-full"></div>
-                                Inactive Phases ({{ inactivePhases.length }})
+                                Tahap Tidak Aktif ({{ inactivePhases.length }})
                             </h3>
                             <div class="space-y-3">
                                 <div v-for="phase in inactivePhases" :key="phase.id"
@@ -400,7 +400,7 @@ const isDateToday = (dateString: string) => {
                                     </div>
                                     <div class="flex items-center gap-2">
                                         <Badge variant="secondary">
-                                            Inactive
+                                            Tidak Aktif
                                         </Badge>
                                         <Link :href="route(
                                             'admin.form-phases.show',
@@ -408,7 +408,7 @@ const isDateToday = (dateString: string) => {
                                         )
                                             ">
                                         <Button variant="outline" size="sm">
-                                            View Phase
+                                            Lihat Tahap
                                         </Button>
                                         </Link>
                                     </div>
@@ -424,13 +424,13 @@ const isDateToday = (dateString: string) => {
                 <CardHeader>
                     <CardTitle class="flex items-center gap-2">
                         <FileText class="h-5 w-5" />
-                        Submission Rules
+                        Aturan Pengajuan
                         <Badge variant="secondary" class="ml-2">
                             {{
                                 props.submissionPeriod.submission_period_details
                                     .length
                             }}
-                            rules
+                            ketentuan
                         </Badge>
                     </CardTitle>
                 </CardHeader>
@@ -440,7 +440,7 @@ const isDateToday = (dateString: string) => {
                             .length === 0
                     " class="text-center py-8 text-muted-foreground">
                         <FileText class="h-12 w-12 mx-auto mb-4 opacity-50" />
-                        <p>No submission rules applied to this period.</p>
+                        <p>Tidak ada ketentuan pengajuan yang diterapkan pada periode ini.</p>
                     </div>
                     <div v-else class="grid gap-3 md:grid-cols-2">
                         <div v-for="detail in props.submissionPeriod
@@ -449,7 +449,7 @@ const isDateToday = (dateString: string) => {
                                 {{ detail.submission_rule.label }}
                             </h4>
                             <p class="text-sm text-muted-foreground">
-                                Value: {{ detail.submission_rule.value }}
+                                Nilai: {{ detail.submission_rule.value }}
                             </p>
                         </div>
                     </div>
@@ -467,7 +467,7 @@ const isDateToday = (dateString: string) => {
                                     {{ sortedDates.length }}
                                 </p>
                                 <p class="text-sm text-muted-foreground">
-                                    Total Dates
+                                    Total Tanggal
                                 </p>
                             </div>
                         </div>
@@ -483,7 +483,7 @@ const isDateToday = (dateString: string) => {
                                     {{ activePhases.length }}
                                 </p>
                                 <p class="text-sm text-muted-foreground">
-                                    Active Phases
+                                    Tahap Aktif
                                 </p>
                             </div>
                         </div>
@@ -502,7 +502,7 @@ const isDateToday = (dateString: string) => {
                                     }}
                                 </p>
                                 <p class="text-sm text-muted-foreground">
-                                    Applied Rules
+                                    Ketentuan Diterapkan
                                 </p>
                             </div>
                         </div>
@@ -521,7 +521,7 @@ const isDateToday = (dateString: string) => {
                                     }}
                                 </p>
                                 <p class="text-sm text-muted-foreground">
-                                    Days Left
+                                    Sisa Hari
                                 </p>
                             </div>
                         </div>

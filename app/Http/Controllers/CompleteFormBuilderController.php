@@ -228,12 +228,12 @@ class CompleteFormBuilderController extends Controller
             DB::commit();
 
             return redirect()->route('admin.forms.show', $form->id)
-                ->with('success', 'Form and all configurations created successfully!');
+                ->with('success', 'Form dan seluruh konfigurasinya berhasil dibuat!');
 
         } catch (\Exception $e) {
             DB::rollback();
             return back()
-                ->withErrors(['error' => 'Failed to create form: ' . $e->getMessage()])
+                ->withErrors(['error' => 'Gagal membuat formulir: ' . $e->getMessage()])
                 ->withInput();
         }
     }

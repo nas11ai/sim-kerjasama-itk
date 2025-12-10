@@ -70,7 +70,7 @@ const formatDate = (dateString: string) => {
             <div class="flex items-center gap-4">
                 <Button variant="ghost" size="sm" @click="$inertia.visit(route('admin.reviewers.index'))">
                     <ArrowLeft class="h-4 w-4 mr-2" />
-                    Back to Reviewers
+                    Kembali
                 </Button>
                 <h2 class="text-xl font-semibold leading-tight text-gray-800">
                     Edit Reviewer
@@ -84,7 +84,7 @@ const formatDate = (dateString: string) => {
                 <CardHeader>
                     <CardTitle class="flex items-center gap-2">
                         <UserCog class="h-5 w-5" />
-                        Current Reviewer Information
+                        Informasi Reviewer Saat Ini
                     </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -103,11 +103,11 @@ const formatDate = (dateString: string) => {
 
                         <div class="grid gap-4 md:grid-cols-2">
                             <div>
-                                <Label class="text-sm font-medium text-muted-foreground">Current Role</Label>
+                                <Label class="text-sm font-medium text-muted-foreground">Role Sekarang</Label>
                                 <p class="font-medium">{{ reviewer.reviewer_role.name }}</p>
                             </div>
                             <div>
-                                <Label class="text-sm font-medium text-muted-foreground">Start Date</Label>
+                                <Label class="text-sm font-medium text-muted-foreground">Tanggal Mulai</Label>
                                 <p class="font-medium">{{ formatDate(reviewer.start_date) }}</p>
                             </div>
                         </div>
@@ -118,16 +118,16 @@ const formatDate = (dateString: string) => {
             <!-- Edit Form -->
             <Card>
                 <CardHeader>
-                    <CardTitle>Update Reviewer Details</CardTitle>
+                    <CardTitle>Perbarui Detail Reviewer</CardTitle>
                 </CardHeader>
                 <CardContent>
                     <form @submit.prevent="submit" class="space-y-6">
                         <!-- Reviewer Role -->
                         <div class="space-y-2">
-                            <Label for="reviewer_role_id">Reviewer Role *</Label>
+                            <Label for="reviewer_role_id">Role Reviewer *</Label>
                             <Select v-model="form.reviewer_role_id" required>
                                 <SelectTrigger>
-                                    <SelectValue placeholder="Select reviewer role" />
+                                    <SelectValue placeholder="Pilih role reviewer" />
                                 </SelectTrigger>
                                 <SelectContent>
                                     <SelectItem v-for="role in props.reviewerRoles" :key="role.id"
@@ -143,7 +143,7 @@ const formatDate = (dateString: string) => {
 
                         <!-- Start Date -->
                         <div class="space-y-2">
-                            <Label for="start_date">Start Date *</Label>
+                            <Label for="start_date">Tanggal Mulai *</Label>
                             <Input id="start_date" v-model="form.start_date" type="date" required />
                             <p v-if="form.errors.start_date" class="text-sm text-destructive">
                                 {{ form.errors.start_date }}
@@ -152,10 +152,10 @@ const formatDate = (dateString: string) => {
 
                         <!-- End Date -->
                         <div class="space-y-2">
-                            <Label for="end_date">End Date (Optional)</Label>
+                            <Label for="end_date">Tanggal Selesai (Opsional)</Label>
                             <Input id="end_date" v-model="form.end_date" type="date" />
                             <p class="text-xs text-muted-foreground">
-                                Leave empty for no end date (permanent reviewer assignment)
+                                Biarkan kosong jika tidak ada tanggal selesai (penugasan reviewer permanen)
                             </p>
                             <p v-if="form.errors.end_date" class="text-sm text-destructive">
                                 {{ form.errors.end_date }}
@@ -174,13 +174,12 @@ const formatDate = (dateString: string) => {
                                 </div>
                                 <div class="ml-3">
                                     <h3 class="text-sm font-medium text-yellow-800">
-                                        Important Notice
+                                        Pemberitahuan Penting
                                     </h3>
                                     <div class="mt-2 text-sm text-yellow-700">
                                         <p>
-                                            Updating reviewer information may affect ongoing review processes.
-                                            Please ensure this change is necessary and coordinated with relevant
-                                            stakeholders.
+                                            Memperbarui informasi reviewer dapat mempengaruhi proses review yang sedang berlangsung.
+                                            Harap pastikan perubahan ini diperlukan dan dikoordinasikan dengan pemangku kepentingan terkait.
                                         </p>
                                     </div>
                                 </div>
@@ -191,10 +190,10 @@ const formatDate = (dateString: string) => {
                         <div class="flex items-center justify-end space-x-3">
                             <Button type="button" variant="outline"
                                 @click="$inertia.visit(route('admin.reviewers.index'))">
-                                Cancel
+                                Batal
                             </Button>
                             <Button type="submit" :disabled="form.processing">
-                                {{ form.processing ? "Updating..." : "Update Reviewer" }}
+                                {{ form.processing ? "Memperbarui..." : "Perbarui Reviewer" }}
                             </Button>
                         </div>
                     </form>

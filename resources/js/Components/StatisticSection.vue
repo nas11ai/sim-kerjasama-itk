@@ -70,11 +70,11 @@ const hasReviewerData = computed(() => (props.submissionReviewer?.totalReviewers
                 <CardContent class="p-6">
                     <div class="flex items-center justify-between">
                         <div>
-                            <p class="text-sm font-medium text-gray-500">Total Forms</p>
+                            <p class="text-sm font-medium text-gray-500">Total Formulir</p>
                             <p class="text-3xl font-bold text-gray-900 mt-2">
                                 {{ totalForms }}
                             </p>
-                            <p v-if="totalForms === 0" class="text-xs text-gray-400 mt-1">No data yet</p>
+                            <p v-if="totalForms === 0" class="text-xs text-gray-400 mt-1">Belum ada data</p>
                         </div>
                         <div class="h-12 w-12 bg-blue-100 rounded-xl flex items-center justify-center">
                             <FileText class="h-6 w-6 text-blue-600" />
@@ -87,11 +87,11 @@ const hasReviewerData = computed(() => (props.submissionReviewer?.totalReviewers
                 <CardContent class="p-6">
                     <div class="flex items-center justify-between">
                         <div>
-                            <p class="text-sm font-medium text-gray-500">Total Submissions</p>
+                            <p class="text-sm font-medium text-gray-500">Total Pengajuan</p>
                             <p class="text-3xl font-bold text-gray-900 mt-2">
                                 {{ totalSubmissions }}
                             </p>
-                            <p v-if="totalSubmissions === 0" class="text-xs text-gray-400 mt-1">No submissions</p>
+                            <p v-if="totalSubmissions === 0" class="text-xs text-gray-400 mt-1">Belum ada pengajuan</p>
                         </div>
                         <div class="h-12 w-12 bg-green-100 rounded-xl flex items-center justify-center">
                             <Calendar class="h-6 w-6 text-green-600" />
@@ -104,11 +104,11 @@ const hasReviewerData = computed(() => (props.submissionReviewer?.totalReviewers
                 <CardContent class="p-6">
                     <div class="flex items-center justify-between">
                         <div>
-                            <p class="text-sm font-medium text-gray-500">Total Users</p>
+                            <p class="text-sm font-medium text-gray-500">Total User</p>
                             <p class="text-3xl font-bold text-gray-900 mt-2">
                                 {{ user?.totalUsers || 0 }}
                             </p>
-                            <p v-if="!user?.totalUsers" class="text-xs text-gray-400 mt-1">No users</p>
+                            <p v-if="!user?.totalUsers" class="text-xs text-gray-400 mt-1">Belum ada user</p>
                         </div>
                         <div class="h-12 w-12 bg-purple-100 rounded-xl flex items-center justify-center">
                             <Users class="h-6 w-6 text-purple-600" />
@@ -121,11 +121,11 @@ const hasReviewerData = computed(() => (props.submissionReviewer?.totalReviewers
                 <CardContent class="p-6">
                     <div class="flex items-center justify-between">
                         <div>
-                            <p class="text-sm font-medium text-gray-500">Total Reviewers</p>
+                            <p class="text-sm font-medium text-gray-500">Total Reviewer</p>
                             <p class="text-3xl font-bold text-gray-900 mt-2">
                                 {{ submissionReviewer?.totalReviewers || 0 }}
                             </p>
-                            <p v-if="!submissionReviewer?.totalReviewers" class="text-xs text-gray-400 mt-1">No reviewers</p>
+                            <p v-if="!submissionReviewer?.totalReviewers" class="text-xs text-gray-400 mt-1">Belum ada reviewer</p>
                         </div>
                         <div class="h-12 w-12 bg-orange-100 rounded-xl flex items-center justify-center">
                             <UserCheck class="h-6 w-6 text-orange-600" />
@@ -143,13 +143,13 @@ const hasReviewerData = computed(() => (props.submissionReviewer?.totalReviewers
                             <div class="h-12 w-12 bg-blue-500 rounded-xl flex items-center justify-center">
                                 <FileText class="h-6 w-6 text-white" />
                             </div>
-                            <CardTitle class="text-xl">Form Phase</CardTitle>
+                            <CardTitle class="text-xl">Tahap Formulir</CardTitle>
                         </div>
 
                         <Button as-child variant="outline" size="sm" class="w-full sm:w-auto">
                             <a :href="route('admin.stats.form-phase')" class="flex items-center justify-center">
                                 <ArrowRight class="h-4 w-4 mr-2" />
-                                Go to Form Phase Statistics
+                                Lihat Statistik Tahap Formulir
                             </a>
                         </Button>
                     </div>
@@ -157,22 +157,22 @@ const hasReviewerData = computed(() => (props.submissionReviewer?.totalReviewers
                 <CardContent class="p-6 space-y-4">
                     <div v-if="!hasFormPhaseData" class="text-center py-12">
                         <CircleAlert class="h-16 w-16 mx-auto text-gray-300 mb-4" />
-                        <h3 class="text-lg font-semibold text-gray-500 mb-2">No Form Phase Data</h3>
+                        <h3 class="text-lg font-semibold text-gray-500 mb-2">Tidak ada data Tahap Formulir</h3>
 
                     </div>
 
                     <template v-else>
                         <div class="grid grid-cols-3 gap-4">
                             <div class="text-center p-4 bg-blue-50 rounded-lg">
-                                <p class="text-sm text-gray-600">Total Phases</p>
+                                <p class="text-sm text-gray-600">Total Tahap</p>
                                 <p class="text-2xl font-bold text-blue-600">{{ totalFormPhases }}</p>
                             </div>
                             <div class="text-center p-4 bg-green-50 rounded-lg">
-                                <p class="text-sm text-gray-600">Total Forms</p>
+                                <p class="text-sm text-gray-600">Total Formulir</p>
                                 <p class="text-2xl font-bold text-green-600">{{ totalForms }}</p>
                             </div>
                             <div class="text-center p-4 bg-purple-50 rounded-lg">
-                                <p class="text-sm text-gray-600">Submissions</p>
+                                <p class="text-sm text-gray-600">Total Pengajuan</p>
                                 <p class="text-2xl font-bold text-purple-600">{{ totalSubmissions }}</p>
                             </div>
                         </div>
@@ -180,7 +180,7 @@ const hasReviewerData = computed(() => (props.submissionReviewer?.totalReviewers
                         <div>
                             <h4 class="font-semibold text-gray-900 mb-3 flex items-center gap-2">
                                 <Clock class="h-4 w-4 text-gray-500" />
-                                Recent Periods
+                                Periode Terbaru
                             </h4>
                             <div class="space-y-2">
                                 <div
@@ -196,12 +196,12 @@ const hasReviewerData = computed(() => (props.submissionReviewer?.totalReviewers
                                             {{ period.submission_period_name }}
                                         </span>
                                     </div>
-                                    <Badge variant="secondary">{{ period.total_submissions }} submissions</Badge>
+                                    <Badge variant="secondary">{{ period.total_submissions }} pengajuan</Badge>
                                 </div>
                                 <div v-if="!formPhase.formPhaseByPeriod || formPhase.formPhaseByPeriod.length === 0"
                                     class="text-center py-8 bg-gray-50 rounded-lg">
                                     <Inbox class="h-10 w-10 mx-auto text-gray-300 mb-2" />
-                                    <p class="text-sm text-gray-500">No period data available</p>
+                                    <p class="text-sm text-gray-500">Tidak ada data periode</p>
                                 </div>
                             </div>
                         </div>
@@ -210,7 +210,7 @@ const hasReviewerData = computed(() => (props.submissionReviewer?.totalReviewers
                             <Button as-child class="w-full" size="lg">
                                 <a :href="route('admin.stats.form-phase')">
                                     <BarChart3 class="h-4 w-4 mr-2" />
-                                    View Detailed Form Phase Statistics
+                                    Lihat Statistik Detail Tahap Formulir
                                     <ArrowRight class="h-4 w-4 ml-2" />
                                 </a>
                             </Button>
@@ -226,12 +226,12 @@ const hasReviewerData = computed(() => (props.submissionReviewer?.totalReviewers
                             <div class="h-12 w-12 bg-green-500 rounded-xl flex items-center justify-center">
                                 <Calendar class="h-6 w-6 text-white" />
                                 </div>
-                                <CardTitle class="text-xl">Form Submission</CardTitle>
+                                <CardTitle class="text-xl">Form Pengajuan</CardTitle>
                             </div>
                             <Button as-child variant="outline" size="sm" class="w-full sm:w-auto">
                                 <a :href="route('admin.stats.form-submission')" class="flex items-center justify-center">
                                     <ArrowRight class="h-4 w-4 mr-2" />
-                                    Go to Form Submission Statistics
+                                    Lihat Statistik Form Pengajuan
                                 </a>
                             </Button>
                         </div>
@@ -239,7 +239,7 @@ const hasReviewerData = computed(() => (props.submissionReviewer?.totalReviewers
                 <CardContent class="p-6 space-y-4">
                     <div v-if="!hasSubmissionData" class="text-center py-12">
                         <CircleAlert class="h-16 w-16 mx-auto text-gray-300 mb-4" />
-                        <h3 class="text-lg font-semibold text-gray-500 mb-2">No Submission Data</h3>
+                        <h3 class="text-lg font-semibold text-gray-500 mb-2">Belum Ada Data Pengajuan</h3>
 
                     </div>
 
@@ -252,12 +252,12 @@ const hasReviewerData = computed(() => (props.submissionReviewer?.totalReviewers
                             </div>
                             <div class="text-center p-4 bg-green-50 rounded-lg border-2 border-green-200">
                                 <CheckCircle class="h-6 w-6 text-green-600 mx-auto mb-1" />
-                                <p class="text-sm text-gray-600">Approved</p>
+                                <p class="text-sm text-gray-600">Disetujui</p>
                                 <p class="text-2xl font-bold text-green-600">{{ approvedSubmissions }}</p>
                             </div>
                             <div class="text-center p-4 bg-red-50 rounded-lg border-2 border-red-200">
                                 <XCircle class="h-6 w-6 text-red-600 mx-auto mb-1" />
-                                <p class="text-sm text-gray-600">Rejected</p>
+                                <p class="text-sm text-gray-600">Ditolak</p>
                                 <p class="text-2xl font-bold text-red-600">{{ rejectedSubmissions }}</p>
                             </div>
                         </div>
@@ -265,7 +265,7 @@ const hasReviewerData = computed(() => (props.submissionReviewer?.totalReviewers
                         <div>
                             <h4 class="font-semibold text-gray-900 mb-3 flex items-center gap-2">
                                 <Clock class="h-4 w-4 text-gray-500" />
-                                Recent Submissions (24h)
+                                Pengajuan Terbaru (24j)
                             </h4>
                             <div class="space-y-2">
                                 <div
@@ -281,12 +281,12 @@ const hasReviewerData = computed(() => (props.submissionReviewer?.totalReviewers
                                             {{ submission.name }}
                                         </span>
                                     </div>
-                                    <Badge variant="secondary">{{ submission.total_submissions }} new</Badge>
+                                    <Badge variant="secondary">{{ submission.total_submissions }} baru</Badge>
                                 </div>
                                 <div v-if="!formSubmission.recentSubmissions || formSubmission.recentSubmissions.length === 0"
                                     class="text-center py-8 bg-gray-50 rounded-lg">
                                     <Inbox class="h-10 w-10 mx-auto text-gray-300 mb-2" />
-                                    <p class="text-sm text-gray-500">No recent submissions in last 24 hours</p>
+                                    <p class="text-sm text-gray-500">Tidak ada pengajuan terbaru dalam 24 jam terakhir</p>
                                 </div>
                             </div>
                         </div>
@@ -295,7 +295,7 @@ const hasReviewerData = computed(() => (props.submissionReviewer?.totalReviewers
                             <Button as-child class="w-full" size="lg">
                                 <a :href="route('admin.stats.form-submission')">
                                     <FileText class="h-4 w-4 mr-2" />
-                                    View Detailed Submission Statistics
+                                    Lihat Statistik Detail Pengajuan
                                     <ArrowRight class="h-4 w-4 ml-2" />
                                 </a>
                             </Button>
@@ -316,7 +316,7 @@ const hasReviewerData = computed(() => (props.submissionReviewer?.totalReviewers
                             <Button as-child variant="outline" size="sm" class="w-full sm:w-auto">
                                 <a :href="route('admin.stats.user')" class="flex items-center justify-center">
                                     <ArrowRight class="h-4 w-4 mr-2" />
-                                    Go to User Statistics
+                                    Lihat Statistik User
                                 </a>
                             </Button>
                         </div>
@@ -324,25 +324,25 @@ const hasReviewerData = computed(() => (props.submissionReviewer?.totalReviewers
                 <CardContent class="p-6 space-y-4">
                     <div v-if="!hasUserData" class="text-center py-12">
                         <CircleAlert class="h-16 w-16 mx-auto text-gray-300 mb-4" />
-                        <h3 class="text-lg font-semibold text-gray-500 mb-2">No User Data</h3>
+                        <h3 class="text-lg font-semibold text-gray-500 mb-2">Belum Ada Data User</h3>
                     </div>
 
                     <template v-else>
                         <div class="grid grid-cols-2 gap-4">
                             <div class="p-4 bg-purple-50 rounded-lg">
-                                <p class="text-sm text-gray-600">Admin Users</p>
+                                <p class="text-sm text-gray-600">Admin User</p>
                                 <p class="text-2xl font-bold text-purple-600">{{ user.totalAdmin }}</p>
                             </div>
                             <div class="p-4 bg-blue-50 rounded-lg">
-                                <p class="text-sm text-gray-600">Regular Users</p>
+                                <p class="text-sm text-gray-600">Regular User</p>
                                 <p class="text-2xl font-bold text-blue-600">{{ user.totalNonAdmin }}</p>
                             </div>
                             <div class="p-4 bg-green-50 rounded-lg">
-                                <p class="text-sm text-gray-600">Faculty Users</p>
+                                <p class="text-sm text-gray-600">User Fakultas</p>
                                 <p class="text-2xl font-bold text-green-600">{{ user.totalFaculty }}</p>
                             </div>
                             <div class="p-4 bg-orange-50 rounded-lg">
-                                <p class="text-sm text-gray-600">Program Users</p>
+                                <p class="text-sm text-gray-600">User Program Studi</p>
                                 <p class="text-2xl font-bold text-orange-600">{{ user.totalProdi }}</p>
                             </div>
                         </div>
@@ -350,13 +350,13 @@ const hasReviewerData = computed(() => (props.submissionReviewer?.totalReviewers
                         <div>
                             <h4 class="font-semibold text-gray-900 mb-3 flex items-center gap-2">
                                 <Clock class="h-4 w-4 text-gray-500" />
-                                New Users (24h)
+                                User Baru (24h)
                             </h4>
                             <div class="flex items-center justify-center p-6 bg-purple-50 rounded-lg border-2 border-purple-200">
                                 <div class="text-center">
                                     <p class="text-4xl font-bold ">{{ recentUsers24h }}</p>
                                     <p class="text-sm text-gray-600 mt-1">
-                                        {{ recentUsers24h === 0 ? 'No new registrations' : 'New registrations' }}
+                                        {{ recentUsers24h === 0 ? 'Tidak ada pendaftaran baru' : 'Pendaftaran baru' }}
                                     </p>
                                 </div>
                             </div>
@@ -366,7 +366,7 @@ const hasReviewerData = computed(() => (props.submissionReviewer?.totalReviewers
                             <Button as-child class="w-full" size="lg">
                                 <a :href="route('admin.stats.user')">
                                     <Users class="h-4 w-4 mr-2" />
-                                    View Detailed User Statistics
+                                    Lihat Statistik Detail User
                                     <ArrowRight class="h-4 w-4 ml-2" />
                                 </a>
                             </Button>
@@ -387,7 +387,7 @@ const hasReviewerData = computed(() => (props.submissionReviewer?.totalReviewers
                             <Button as-child variant="outline" size="sm" class="w-full sm:w-auto">
                                 <a :href="route('admin.stats.reviewer')" class="flex items-center justify-center">
                                     <ArrowRight class="h-4 w-4 mr-2" />
-                                    Go to Reviewer Statistics
+                                    Lihat Statistik Reviewer
                                 </a>
                             </Button>
                         </div>
@@ -395,14 +395,14 @@ const hasReviewerData = computed(() => (props.submissionReviewer?.totalReviewers
                 <CardContent class="p-6 space-y-4">
                     <div v-if="!hasReviewerData" class="text-center py-12">
                         <CircleAlert class="h-16 w-16 mx-auto text-gray-300 mb-4" />
-                        <h3 class="text-lg font-semibold text-gray-500 mb-2">No Reviewer Data</h3>
+                        <h3 class="text-lg font-semibold text-gray-500 mb-2">Belum Ada Data Reviewer</h3>
                     </div>
 
                     <template v-else>
                         <div>
                             <h4 class="font-semibold text-gray-900 mb-3 flex items-center gap-2">
                                 <BookOpen class="h-4 w-4 text-gray-500" />
-                                By Role
+                                Berdasarkan Role
                             </h4>
                             <div class="space-y-2">
                                 <div
@@ -437,7 +437,7 @@ const hasReviewerData = computed(() => (props.submissionReviewer?.totalReviewers
                                 <div v-if="!submissionReviewer.totalByRole || submissionReviewer.totalByRole.length === 0"
                                     class="text-center py-8 bg-gray-50 rounded-lg">
                                     <Inbox class="h-10 w-10 mx-auto text-gray-300 mb-2" />
-                                    <p class="text-sm text-gray-500">No reviewer role data available</p>
+                                    <p class="text-sm text-gray-500">Belum ada data role reviewer</p>
                                 </div>
                             </div>
                         </div>
@@ -445,13 +445,13 @@ const hasReviewerData = computed(() => (props.submissionReviewer?.totalReviewers
                         <div>
                             <h4 class="font-semibold text-gray-900 mb-3 flex items-center gap-2">
                                 <Clock class="h-4 w-4 text-gray-500" />
-                                New Reviewers (24h)
+                                Reviewer Baru (24h)
                             </h4>
                             <div class="flex items-center justify-center p-6 bg-orange-50 rounded-lg border-2 border-orange-200">
                                 <div class="text-center">
                                     <p class="text-4xl font-bold ">{{ recentReviewers24h }}</p>
                                     <p class="text-sm text-gray-600 mt-1">
-                                        {{ recentReviewers24h === 0 ? 'No new reviewers' : 'New reviewers added' }}
+                                        {{ recentReviewers24h === 0 ? 'Tidak ada reviewer baru' : 'Reviewer baru ditambahkan' }}
                                     </p>
                                 </div>
                             </div>
@@ -461,7 +461,7 @@ const hasReviewerData = computed(() => (props.submissionReviewer?.totalReviewers
                             <Button as-child class="w-full" size="lg">
                                 <a :href="route('admin.stats.reviewer')">
                                     <UserCheck class="h-4 w-4 mr-2" />
-                                    View Detailed Reviewer Statistics
+                                    Lihat Statistik Detail Reviewer
                                     <ArrowRight class="h-4 w-4 ml-2" />
                                 </a>
                             </Button>

@@ -78,12 +78,12 @@ const isExpired = (dateString: string | null) => {
 };
 
 const deleteAnnouncement = (announcement: Announcement) => {
-    if (confirm(`Are you sure you want to delete "${announcement.title}"?`)) {
+    if (confirm(`Apakah Anda yakin ingin menghapus "${announcement.title}"?`)) {
         router.delete(route("admin.announcements.destroy", announcement.id), {
             onSuccess: () => {
                 toast({
                     title: "Success",
-                    description: "Announcement deleted successfully!",
+                    description: "Pengumuman berhasil dihapus!",
                 });
             },
         });
@@ -107,7 +107,7 @@ const deleteAnnouncement = (announcement: Announcement) => {
 
 const formatDate = (dateString: string) => {
     if (!dateString) {
-        return "No expiration date";
+        return "Tidak ada batas waktu";
     }
 
     return new Date(dateString).toLocaleDateString("en-EN", {
@@ -138,12 +138,12 @@ function stripHtml(html: string) {
         <template #header>
             <div class="flex items-center justify-between">
                 <h2 class="text-xl font-semibold leading-tight text-gray-800">
-                    Announcement Management
+                    Manajemen Pengumuman
                 </h2>
                 <Link :href="route('admin.announcements.create')">
                     <Button>
                         <Plus class="h-4 w-4 mr-2" />
-                        Create Announcement
+                        Buat Pengumuman
                     </Button>
                 </Link>
             </div>
@@ -188,7 +188,7 @@ function stripHtml(html: string) {
                                             class="cursor-pointer"
                                         >
                                             <Eye class="h-4 w-4 mr-2" />
-                                            View
+                                            Lihat
                                         </Link>
                                     </DropdownMenuItem>
                                     <DropdownMenuItem as-child>
@@ -212,7 +212,7 @@ function stripHtml(html: string) {
                                         class="text-destructive cursor-pointer"
                                     >
                                         <Trash2 class="h-4 w-4 mr-2" />
-                                        Delete
+                                        Hapus
                                     </DropdownMenuItem>
                                 </DropdownMenuContent>
                             </DropdownMenu>
@@ -254,22 +254,22 @@ function stripHtml(html: string) {
                                         ? "s"
                                         : ""
                                 }}
-                                attached
+                                lampiran
                             </div>
 
                             <div
                                 class="space-y-1 text-xs text-muted-foreground"
                             >
                                 <div>
-                                    Created by:
+                                    Dibuat oleh:
                                     {{ announcement.announcement_creator.name }}
                                 </div>
                                 <div>
-                                    Created at:
+                                    Dibuat pada:
                                     {{ formatDate(announcement.created_at) }}
                                 </div>
                                 <div>
-                                    Expires:
+                                    Berakhir pada:
                                     {{
                                         formatDate(
                                             announcement.expired_at ?? ""
@@ -292,16 +292,16 @@ function stripHtml(html: string) {
                         <EmptyMedia variant="icon">
                             <FileX2 />
                         </EmptyMedia>
-                        <EmptyTitle>No Announcement Yet</EmptyTitle>
+                        <EmptyTitle>Belum Ada Pengumuman</EmptyTitle>
                         <EmptyDescription>
-                            You haven't created any announcement yet. Get started by
-                            creating your first announcement.
+                            Anda belum ada membuat pengumuman. Mulai dengan
+                            membuat pengumuman pertama Anda.
                         </EmptyDescription>
                     </EmptyHeader>
                     <EmptyContent>
                         <Link :href="route('admin.announcements.create')">
                             <Button>
-                                Create Announcement
+                                Buat Pengumuman
                             </Button>
                         </Link>
                     </EmptyContent>

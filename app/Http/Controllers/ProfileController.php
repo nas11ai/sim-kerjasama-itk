@@ -38,7 +38,7 @@ class ProfileController extends Controller
         unset($request->user()->is_reviewer);
         $request->user()->save();
 
-        return back()->with('success', 'Updating profile successful.');
+        return back()->with('success', 'Berhasil memperbarui profil.');
     }
 
     /**

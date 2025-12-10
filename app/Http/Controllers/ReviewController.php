@@ -71,7 +71,7 @@ class ReviewController extends Controller
             }
         });
 
-        return back()->with('success', 'Reviewers have been assigned successfully.');
+        return back()->with('success', 'Berhasil menugaskan reviewer.');
     }
 
     // Enhanced remove reviewer to handle evaluation forms
@@ -84,7 +84,7 @@ class ReviewController extends Controller
             ])->first();
 
             if (!$submissionReviewer) {
-                throw new \Exception('Reviewer not found for this submission.');
+                throw new \Exception('Reviewer tidak ditemukan untuk submission ini.');
             }
 
             // Check if there are submitted evaluation responses
@@ -95,7 +95,7 @@ class ReviewController extends Controller
                 ->exists();
 
             if ($hasSubmittedEvaluations) {
-                throw new \Exception('Cannot remove reviewer with submitted evaluation responses.');
+                throw new \Exception('Tidak dapat menghapus reviewer dengan respons evaluasi yang telah dikirim.');
             }
 
             // Delete evaluation form assignments and draft responses
@@ -165,15 +165,15 @@ class ReviewController extends Controller
                     $canUpdate = true;
                 } else if ($submissionReviewer) {
                     $pendingCount = $submissionReviewer->pending_forms_count;
-                    abort(403, "Complete your {$pendingCount} pending evaluation form(s) before updating submission status.");
+                    abort(403, "Selesaikan {$pendingCount} formulir evaluasi yang tertunda sebelum memperbarui status pengajuan.");
                 } else {
-                    abort(403, 'You are not assigned as a reviewer for this submission.');
+                    abort(403, 'Anda tidak ditugaskan sebagai reviewer untuk pengajuan ini.');
                 }
             }
         }
 
         if (!$canUpdate) {
-            abort(403, 'Unauthorized to update submission status.');
+            abort(403, 'Tidak berwenang untuk memperbarui status pengajuan.');
         }
 
         // Convert string status to enum
@@ -194,7 +194,7 @@ class ReviewController extends Controller
             $this->emailService->notifySubmissionStatusChanged($submission, $oldStatus);
         });
 
-        return back()->with('success', "Status submission berhasil diubah menjadi {$newStatus->label()}.");
+        return back()->with('success', "Status pengajuan berhasil diubah menjadi {$newStatus->label()}.");
     }
 
     // Enhanced thread creation with evaluation check
@@ -216,7 +216,7 @@ class ReviewController extends Controller
         // Check if user is a reviewer
         $reviewer = Reviewer::where('user_id', $user->id)->first();
         if (!$reviewer) {
-            abort(403, 'You are not registered as a reviewer');
+            abort(403, 'Anda tidak terdaftar sebagai reviewer');
         }
 
         // Check if reviewer is assigned to this submission
@@ -226,7 +226,7 @@ class ReviewController extends Controller
         ])->first();
 
         if (!$submissionReviewer) {
-            abort(403, 'You are not assigned as reviewer for this submission');
+            abort(403, 'Anda tidak ditugaskan sebagai reviewer untuk pengajuan ini.');
         }
 
         // Get form phase to check if evaluation forms exist
@@ -255,7 +255,7 @@ class ReviewController extends Controller
 
         if ($completedRequired < $requiredForms->count()) {
             $pendingCount = $requiredForms->count() - $completedRequired;
-            abort(403, "Please complete your {$pendingCount} required evaluation form(s) before creating review threads.");
+            abort(403, "Selesaikan {$pendingCount} formulir evaluasi yang wajib sebelum membuat thread review.");
         }
 
         // All required forms completed, can create thread
@@ -293,7 +293,7 @@ class ReviewController extends Controller
             $this->emailService->notifyReviewThreadCreated($reviewSummary);
         });
 
-        return back()->with('success', 'Review thread berhasil dibuat.');
+        return back()->with('success', 'Thread review berhasil dibuat.');
     }
 
     // Enhanced comment adding with evaluation check
@@ -334,14 +334,14 @@ class ReviewController extends Controller
                         $reviewerId = $reviewer->id;
                     } else {
                         $pendingCount = $submissionReviewer->pending_forms_count;
-                        abort(403, "Complete your {$pendingCount} pending evaluation form(s) before participating in discussions.");
+                        abort(403, "Selesaikan {$pendingCount} formulir evaluasi yang tertunda sebelum berpartisipasi dalam diskusi.");
                     }
                 }
             }
         }
 
         if (!$canComment) {
-            abort(403, 'You do not have permission to comment on this review');
+            abort(403, 'Anda tidak memiliki izin untuk mengomentari review ini');
         }
 
         DB::transaction(function () use ($request, $reviewSummary, $user, $reviewerId) {
@@ -357,7 +357,7 @@ class ReviewController extends Controller
             $this->emailService->notifyReviewComment($comment);
         });
 
-        return back()->with('success', 'Comment added successfully.');
+        return back()->with('success', 'Komentar berhasil ditambahkan.');
     }
 
     // Get available evaluation forms for assignment
@@ -405,7 +405,7 @@ class ReviewController extends Controller
         ])->first();
 
         if (!$submissionReviewer) {
-            return back()->withErrors(['error' => 'Reviewer not assigned to this submission.']);
+            return back()->withErrors(['error' => 'Reviewer tidak ditugaskan untuk pengajuan ini.']);
         }
 
         try {
@@ -421,11 +421,11 @@ class ReviewController extends Controller
 
             DB::commit();
 
-            return back()->with('success', 'Evaluation forms assigned successfully.');
+            return back()->with('success', 'Formulir evaluasi berhasil ditugaskan.');
 
         } catch (\Exception $e) {
             DB::rollback();
-            return back()->withErrors(['error' => 'Failed to assign evaluation forms: ' . $e->getMessage()]);
+            return back()->withErrors(['error' => 'Gagal menugaskan formulir evaluasi: ' . $e->getMessage()]);
         }
     }
 
@@ -548,14 +548,14 @@ class ReviewController extends Controller
                         $canUpdate = true;
                     } else {
                         $pendingCount = $submissionReviewer->pending_forms_count;
-                        abort(403, "Complete your {$pendingCount} pending evaluation form(s) before updating review status.");
+                        abort(403, "Selesaikan {$pendingCount} formulir evaluasi yang tertunda sebelum memperbarui status review.");
                     }
                 }
             }
         }
 
         if (!$canUpdate) {
-            abort(403, 'Unauthorized to update review thread status');
+            abort(403, 'Anda tidak memiliki izin untuk memperbarui status thread review');
         }
 
         DB::transaction(function () use ($request, $reviewSummary) {
@@ -578,7 +578,7 @@ class ReviewController extends Controller
             'open' => 'dibuka kembali'
         };
 
-        return back()->with('success', "Review thread berhasil {$statusText}.");
+        return back()->with('success', "Thread review berhasil {$statusText}.");
     }
 
     public function downloadAttachment(Request $request)

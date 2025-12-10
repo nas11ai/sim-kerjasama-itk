@@ -179,7 +179,7 @@ class UserFormController extends Controller
         $reviewer = \App\Models\Reviewer::where('user_id', $user->id)->first();
 
         if (!$reviewer) {
-            abort(403, 'You are not registered as a reviewer');
+            abort(403, 'Anda tidak terdaftar sebagai reviewer');
         }
 
         $query = FormSubmission::whereHas('reviewSummaries', function ($q) use ($reviewer) {
@@ -277,7 +277,7 @@ class UserFormController extends Controller
 
         if ($formAccessControls->isEmpty()) {
             return redirect()->route('user.dashboard')
-                ->with('error', 'Anda tidak memiliki akses ke form phase ini.');
+                ->with('error', 'Anda tidak memiliki akses ke tahap formulir ini.');
         }
 
         return Inertia::render('User/FormPhase', [
@@ -486,7 +486,7 @@ class UserFormController extends Controller
         });
 
         return redirect()->back()
-            ->with('success', 'Form berhasil diserahkan.');
+            ->with('success', 'Formulir berhasil diserahkan.');
     }
 
     public function getFormSubmissionData(Request $request)

@@ -127,8 +127,8 @@ const submit = () => {
         preserveScroll: true,
         onSuccess: () => {
             toast({
-                title: "Success",
-                description: "Announcement created successfully!",
+                title: "Sukses",
+                description: "Pengumuman berhasil dibuat!",
             });
 
             // Reset semua data
@@ -140,7 +140,7 @@ const submit = () => {
             toast({
                 title: "Error",
                 description:
-                    "Failed to create announcement. Please check your input and try again.",
+                    "Gagal membuat pengumuman. Silakan periksa input Anda dan coba lagi.",
                 variant: "destructive",
             });
             console.error("Validation errors:", errors);
@@ -150,7 +150,7 @@ const submit = () => {
 </script>
 
 <template>
-    <Head title="Create Announcement" />
+    <Head title="Buat Pengumuman" />
 
     <AuthenticatedLayout>
         <template #header>
@@ -162,10 +162,10 @@ const submit = () => {
                     @click="$inertia.visit(route('admin.announcements.index'))"
                 >
                     <ArrowLeft class="h-4 w-4" />
-                    Back
+                    Kembali
                 </Button>
                 <h2 class="text-xl font-semibold leading-tight text-gray-800">
-                    Create New Announcement
+                    Buat Pengumuman Baru
                 </h2>
             </div>
         </template>
@@ -175,16 +175,16 @@ const submit = () => {
                 <!-- Basic Info -->
                 <Card>
                     <CardHeader>
-                        <CardTitle>Announcement Information</CardTitle>
+                        <CardTitle>Informasi Pengumuman</CardTitle>
                     </CardHeader>
                     <CardContent class="space-y-6">
                         <!-- Title -->
                         <div>
-                            <Label for="title">Title *</Label>
+                            <Label for="title">Judul *</Label>
                             <Input
                                 id="title"
                                 v-model="form.title"
-                                placeholder="Enter announcement title"
+                                placeholder="Masukkan judul pengumuman"
                                 :class="
                                     errors.title ? 'border-destructive' : ''
                                 "
@@ -199,17 +199,17 @@ const submit = () => {
 
                         <!-- Type -->
                         <div>
-                            <Label for="type">Type *</Label>
+                            <Label for="type">Tipe *</Label>
                             <Select v-model="form.type">
                                 <SelectTrigger id="type">
-                                    <SelectValue placeholder="Select type" />
+                                    <SelectValue placeholder="Pilih tipe" />
                                 </SelectTrigger>
                                 <SelectContent>
                                     <SelectItem value="public"
-                                        >Public</SelectItem
+                                        >Publik</SelectItem
                                     >
                                     <SelectItem value="private"
-                                        >Private</SelectItem
+                                        >Privat</SelectItem
                                     >
                                 </SelectContent>
                             </Select>
@@ -225,7 +225,7 @@ const submit = () => {
                         <div class="flex flex-row w-full gap-2">
                             <div class="flex w-full flex-col gap-1">
                                 <Label for="expired_at"
-                                    >Expired Date (optional)</Label
+                                    >Tanggal Kadaluarsa (opsional)</Label
                                 >
                                 <Popover>
                                     <PopoverTrigger as-child>
@@ -249,7 +249,7 @@ const submit = () => {
                                                               getLocalTimeZone()
                                                           )
                                                       )
-                                                    : "Pick a date"
+                                                    : "Pilih Tanggal"
                                             }}
                                         </Button>
                                     </PopoverTrigger>
@@ -270,7 +270,7 @@ const submit = () => {
                             </div>
                             <div class="flex flex-col gap-1 w-full">
                                 <Label for="expired_time"
-                                    >Expired Time (optional)</Label
+                                    >Waktu Kadaluarsa (opsional)</Label
                                 >
                                 <Input
                                     id="expired_time"
@@ -296,14 +296,14 @@ const submit = () => {
                 <!-- Content -->
                 <Card>
                     <CardHeader>
-                        <CardTitle>Announcement Content</CardTitle>
+                        <CardTitle>Isi Pengumuman</CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <Label for="content">Content *</Label>
+                        <Label for="content">Isi *</Label>
                         <Textarea
                             id="content"
                             v-model="form.content"
-                            placeholder="Enter announcement content"
+                            placeholder="Masukkan isi pengumuman di sini..."
                             :class="errors.content ? 'border-destructive' : ''"
                             rows="5"
                         />
@@ -319,7 +319,7 @@ const submit = () => {
                 <!-- Selected Files Preview -->
                 <Card v-if="selectedFiles.length > 0">
                     <CardHeader>
-                        <CardTitle>Selected Files</CardTitle>
+                        <CardTitle>File Terpilih</CardTitle>
                     </CardHeader>
                     <CardContent>
                         <ul class="space-y-2">
@@ -341,7 +341,7 @@ const submit = () => {
                                     size="sm"
                                     @click="removeFile(index)"
                                 >
-                                    <X class="h-4 w-4" /> Remove
+                                    <X class="h-4 w-4" /> Hapus
                                 </Button>
                             </li>
                         </ul>
@@ -351,12 +351,12 @@ const submit = () => {
                 <!-- Files Upload -->
                 <Card>
                     <CardHeader>
-                        <CardTitle>Attachments</CardTitle>
+                        <CardTitle>Lampiran</CardTitle>
                     </CardHeader>
                     <CardContent>
-                        <Label for="attachments">File Attachments *</Label>
+                        <Label for="attachments">File Lampiran *</Label>
                         <p class="text-xs mb-1 text-gray-500 italic">
-                            Max Size: 2MB (jpg, png, pdf)
+                            Ukuran Maks: 2MB (jpg, png, pdf)
                         </p>
                         <Input
                             ref="fileInputRef"
@@ -394,13 +394,13 @@ const submit = () => {
                             $inertia.visit(route('admin.announcements.index'))
                         "
                     >
-                        Cancel
+                        Batal
                     </Button>
                     <Button type="submit" :disabled="form.processing">
                         {{
                             form.processing
-                                ? "Creating..."
-                                : "Create Announcement"
+                                ? "Membuat..."
+                                : "Buat Pengumuman"
                         }}
                     </Button>
                 </div>

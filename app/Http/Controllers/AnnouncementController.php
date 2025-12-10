@@ -85,8 +85,8 @@ class AnnouncementController extends Controller
                     AnnouncementFile::create([
                         'announcement_id' => $announcement->id,
                         'file_name' => $file->getClientOriginalName(),
-                        'file_path' => asset('storage/' . $path),
-                        // 'file_path' => $path, // buat prod
+                        // 'file_path' => asset('storage/' . $path),
+                        'file_path' => $path, // buat prod
                         'mime_type' => $file->getMimeType(),
                         'file_size' => $file->getSize(),
                     ]);
@@ -95,7 +95,7 @@ class AnnouncementController extends Controller
         });
 
         return redirect()->route('admin.announcements.index')
-            ->with('success', 'Announcement created successfully.');
+            ->with('success', 'Pengumuman berhasil dibuat.');
     }
 
     /**
@@ -130,6 +130,7 @@ class AnnouncementController extends Controller
             'content' => 'required|string',
             'type' => 'required|in:public,private',
             'expired_at' => 'nullable|date',
+            'files' => 'nullable|array',
             'files.*' => 'file|mimes:jpg,png,pdf|max:2048',
         ]);
 
@@ -159,8 +160,8 @@ class AnnouncementController extends Controller
                     AnnouncementFile::create([
                         'announcement_id' => $announcement->id,
                         'file_name' => $file->getClientOriginalName(),
-                        'file_path' => asset('storage/' . $path),
-                        // 'file_path' => $path, // buat prod
+                        // 'file_path' => asset('storage/' . $path),
+                        'file_path' => $path, // buat prod
                         'mime_type' => $file->getMimeType(),
                         'file_size' => $file->getSize(),
                     ]);
@@ -168,7 +169,7 @@ class AnnouncementController extends Controller
             }
         });
         return redirect()->route('admin.announcements.index')
-            ->with('success', 'Announcement updated successfully.');
+            ->with('success', 'Pengumuman berhasil diperbarui.');
     }
 
     /**
@@ -183,7 +184,7 @@ class AnnouncementController extends Controller
         $announcement->delete();
 
         return redirect()->route('admin.announcements.index')
-            ->with('success', 'Announcement deleted successfully.');
+            ->with('success', 'Pengumuman berhasil dihapus.');
     }
 
     public function detail(Announcement $announcement)
@@ -209,7 +210,7 @@ class AnnouncementController extends Controller
         );
 
         return response()->json([
-            'message' => 'Announcement marked as read.',
+            'message' => 'Pengumuman berhasil ditandai sebagai dibaca.',
             'data' => $reader,
         ]);
     }

@@ -32,21 +32,21 @@ function submit() {
    <Dialog :open="props.open" @update:open="(v) => !v && emit('close')">
       <DialogContent class="transition-all duration-250 sm:max-w-md">
          <DialogHeader>
-            <DialogTitle>Add New Permission</DialogTitle>
+            <DialogTitle>Tambah Hak Akses Baru</DialogTitle>
          </DialogHeader>
 
-         <p class="text-muted-foreground text-sm">Create a new permission to control user access in the system.</p>
+         <p class="text-muted-foreground text-sm">Buat hak akses baru untuk mengontrol akses pengguna dalam sistem.</p>
 
          <form @submit.prevent="submit" class="flex flex-col gap-4">
             <div class="grid gap-2">
-               <Label for="name">Permission Name</Label>
+               <Label for="name">Nama Hak Akses</Label>
                <Input id="name" type="text" required autofocus :tabindex="1" autocomplete="name" v-model="form.name" placeholder="e.g., View Data" />
                <InputError :message="form.errors.name" />
             </div>
 
             <div class="flex justify-end gap-2 pt-2">
-               <Button type="button" class="cursor-pointer" variant="ghost" @click="emit('close')">Cancel</Button>
-               <Button type="submit" class="cursor-pointer">Create</Button>
+               <Button type="button" class="cursor-pointer" variant="ghost" @click="emit('close')">Batal</Button>
+               <Button type="submit" class="cursor-pointer">Buat</Button>
             </div>
          </form>
       </DialogContent>

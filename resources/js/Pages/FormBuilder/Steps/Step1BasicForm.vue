@@ -96,8 +96,8 @@ const fieldTypeRequiresOptions = (fieldTypeId: number | null): boolean => {
         <!-- Form Basic Info -->
         <div class="grid gap-6 md:grid-cols-2">
             <div class="space-y-2">
-                <Label for="title">Form Title *</Label>
-                <Input id="title" v-model="formData.title" placeholder="Enter form title"
+                <Label for="title">Judul Formulir *</Label>
+                <Input id="title" v-model="formData.title" placeholder="Masukkan Judul Formulir"
                     :class="errors['form.title'] ? 'border-destructive' : ''" />
                 <p v-if="errors['form.title']" class="text-sm text-destructive">
                     {{ errors['form.title'] }}
@@ -105,10 +105,10 @@ const fieldTypeRequiresOptions = (fieldTypeId: number | null): boolean => {
             </div>
 
             <div class="space-y-2">
-                <Label for="form_type">Form Type *</Label>
+                <Label for="form_type">Tipe Form *</Label>
                 <Select v-model="formData.form_type_id">
                     <SelectTrigger id="form_type">
-                        <SelectValue placeholder="Select form type" />
+                        <SelectValue placeholder="Pilih tipe form" />
                     </SelectTrigger>
                     <SelectContent>
                         <SelectItem v-for="formType in formTypes" :key="formType.id" :value="formType.id">
@@ -123,30 +123,30 @@ const fieldTypeRequiresOptions = (fieldTypeId: number | null): boolean => {
         </div>
 
         <div class="space-y-2">
-            <Label for="description">Description</Label>
-            <Textarea id="description" v-model="formData.description" placeholder="Enter form description (optional)"
+            <Label for="description">Deskripsi</Label>
+            <Textarea id="description" v-model="formData.description" placeholder="Masukkan deskripsi form (opsional)"
                 rows="3" />
         </div>
 
         <div class="flex items-center space-x-2">
             <Switch v-model="formData.is_active" id="is_active" />
-            <Label for="is_active">Active</Label>
+            <Label for="is_active">Aktif</Label>
         </div>
 
         <!-- Form Fields -->
         <Card>
             <CardHeader>
                 <div class="flex items-center justify-between">
-                    <CardTitle>Form Fields</CardTitle>
+                    <CardTitle>Isian Formulir</CardTitle>
                     <Button type="button" @click="addField" size="sm" variant="outline">
                         <Plus class="h-4 w-4 mr-2" />
-                        Add Field
+                        Tambah Isian
                     </Button>
                 </div>
             </CardHeader>
             <CardContent>
                 <div v-if="formData.fields.length === 0" class="text-center py-8 text-muted-foreground">
-                    <p>No fields added yet. Click "Add Field" to get started.</p>
+                    <p>Belum ada isian yang ditambahkan. Klik "Tambah Isian" untuk memulai.</p>
                 </div>
 
                 <div v-else class="space-y-4">
@@ -163,10 +163,10 @@ const fieldTypeRequiresOptions = (fieldTypeId: number | null): boolean => {
                                         <div class="flex-1 space-y-4">
                                             <div class="grid gap-4 md:grid-cols-2">
                                                 <div class="space-y-2">
-                                                    <Label>Field Type *</Label>
+                                                    <Label>Tipe Isian *</Label>
                                                     <Select v-model="field.field_type_id">
                                                         <SelectTrigger>
-                                                            <SelectValue placeholder="Select field type" />
+                                                            <SelectValue placeholder="Pilih tipe isian" />
                                                         </SelectTrigger>
                                                         <SelectContent>
                                                             <SelectItem v-for="fieldType in fieldTypes"
@@ -178,37 +178,37 @@ const fieldTypeRequiresOptions = (fieldTypeId: number | null): boolean => {
                                                 </div>
 
                                                 <div class="space-y-2">
-                                                    <Label>Field Label *</Label>
-                                                    <Input v-model="field.label" placeholder="Enter field label" />
+                                                    <Label>Label Isian *</Label>
+                                                    <Input v-model="field.label" placeholder="Masukkan label isian" />
                                                 </div>
                                             </div>
 
                                             <div class="flex items-center space-x-2">
                                                 <Switch v-model="field.is_required" :id="`required_${index}`" />
-                                                <Label :for="`required_${index}`">Required field</Label>
+                                                <Label :for="`required_${index}`">Isian wajib diisi</Label>
                                             </div>
 
                                             <!-- Field Options -->
                                             <div v-if="fieldTypeRequiresOptions(field.field_type_id)" class="space-y-3">
                                                 <div class="flex items-center justify-between">
-                                                    <Label class="text-sm font-medium">Options</Label>
+                                                    <Label class="text-sm font-medium">Opsi</Label>
                                                     <Button type="button" size="sm" variant="outline"
                                                         @click="addOption(index)">
                                                         <Plus class="h-3 w-3 mr-1" />
-                                                        Add Option
+                                                        Tambah Opsi
                                                     </Button>
                                                 </div>
 
                                                 <div v-if="field.options.length === 0"
                                                     class="text-sm text-muted-foreground">
-                                                    No options added yet.
+                                                    Belum ada opsi yang ditambahkan.
                                                 </div>
 
                                                 <div v-else class="space-y-2">
                                                     <div v-for="(option, optionIndex) in field.options"
                                                         :key="option.temp_id || optionIndex"
                                                         class="flex items-center gap-2">
-                                                        <Input v-model="option.label" placeholder="Option label"
+                                                        <Input v-model="option.label" placeholder="Label opsi"
                                                             class="flex-1" />
                                                         <Button type="button" variant="ghost" size="sm"
                                                             @click="removeOption(index, optionIndex)">
@@ -221,18 +221,18 @@ const fieldTypeRequiresOptions = (fieldTypeId: number | null): boolean => {
                                             <!-- Field Preview -->
                                             <div v-if="field.field_type_id && field.label"
                                                 class="mt-4 p-3 bg-muted rounded-lg">
-                                                <Label class="text-sm text-muted-foreground mb-2 block">Preview:</Label>
+                                                <Label class="text-sm text-muted-foreground mb-2 block">Pratinjau:</Label>
                                                 <div class="space-y-2">
                                                     <Label>
                                                         {{ field.label }}
                                                         <Badge v-if="field.is_required" variant="destructive"
                                                             class="ml-2 text-xs">
-                                                            Required
+                                                            Wajib
                                                         </Badge>
                                                     </Label>
 
                                                     <div v-if="getFieldTypeName(field.field_type_id) === 'textarea'">
-                                                        <Textarea placeholder="This is a preview" disabled />
+                                                        <Textarea placeholder="Ini adalah pratinjau" disabled />
                                                     </div>
                                                     <div v-else-if="
                                                         fieldTypeRequiresOptions(field.field_type_id) &&
@@ -251,7 +251,7 @@ const fieldTypeRequiresOptions = (fieldTypeId: number | null): boolean => {
                                                     </div>
                                                     <div v-else>
                                                         <Input :type="getFieldTypeName(field.field_type_id)"
-                                                            placeholder="This is a preview" disabled />
+                                                            placeholder="Ini adalah pratinjau" disabled />
                                                     </div>
                                                 </div>
                                             </div>

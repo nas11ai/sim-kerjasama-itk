@@ -71,12 +71,12 @@ const isExpired = computed(() => {
     return new Date(props.announcement.expired_at) < new Date();
 });
 
-console.log("Files:", props.announcement.announcement_files);
+// console.log("Files:", props.announcement.announcement_files);
 
 </script>
 
 <template>
-    <Head :title="`Announcement: ${announcement.title}`" />
+    <Head :title="`Pengumuman: ${announcement.title}`" />
 
     <AuthenticatedLayout>
         <template #header>
@@ -91,12 +91,12 @@ console.log("Files:", props.announcement.announcement_files);
                         "
                     >
                         <ArrowLeft class="h-4 w-4" />
-                        Back
+                        Kembali
                     </Button>
                     <h2
                         class="text-xl font-semibold leading-tight text-gray-800"
                     >
-                        Announcement Details
+                        Detail Pengumuman
                     </h2>
                 </div>
             </div>
@@ -118,13 +118,13 @@ console.log("Files:", props.announcement.announcement_files);
                                 }}
                             </Badge>
                             <Badge v-if="isExpired" variant="destructive">
-                                Expired
+                                Kedaluwarsa
                             </Badge>
                             <Badge
                                 v-else-if="announcement.expired_at"
                                 variant="success"
                             >
-                                Active
+                                Aktif
                             </Badge>
                         </div>
                     </div>
@@ -137,21 +137,21 @@ console.log("Files:", props.announcement.announcement_files);
                         <div class="flex items-center gap-2">
                             <User class="h-4 w-4" />
                             <span
-                                >Created by:
+                                >Dibuat oleh:
                                 {{ announcement.announcement_creator.name }}</span
                             >
                         </div>
                         <div class="flex items-center gap-2">
                             <Calendar class="h-4 w-4" />
                             <span
-                                >Created:
+                                >Dibuat pada:
                                 {{ formatDate(announcement.created_at) }}</span
                             >
                         </div>
                         <div class="flex items-center gap-2">
                             <Clock class="h-4 w-4" />
                             <span
-                                >Updated:
+                                >Diperbarui:
                                 {{ formatDate(announcement.updated_at) }}</span
                             >
                         </div>
@@ -167,7 +167,7 @@ console.log("Files:", props.announcement.announcement_files);
                                         : 'text-orange-600'
                                 "
                             >
-                                Expires:
+                                Berakhir pada:
                                 {{ formatDate(announcement.expired_at) }}
                             </span>
                         </div>
@@ -180,7 +180,7 @@ console.log("Files:", props.announcement.announcement_files);
                 <CardHeader>
                     <CardTitle class="flex items-center gap-2">
                         <FileText class="h-5 w-5" />
-                        Content
+                        Isi
                     </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -199,7 +199,7 @@ console.log("Files:", props.announcement.announcement_files);
                 <CardHeader>
                     <CardTitle class="flex items-center gap-2">
                         <Paperclip class="h-5 w-5" />
-                        Attachments ({{ announcement.announcement_files.length }})
+                        Lampiran ({{ announcement.announcement_files.length }})
                     </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -242,7 +242,7 @@ console.log("Files:", props.announcement.announcement_files);
                                 rel="noopener noreferrer"
                                 class="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-9 px-3"
                             >
-                                Download
+                                Unduh
                             </a>
                         </div>
                     </div>
@@ -254,13 +254,13 @@ console.log("Files:", props.announcement.announcement_files);
                 <CardHeader>
                     <CardTitle class="flex items-center gap-2">
                         <Paperclip class="h-5 w-5" />
-                        Attachments
+                        Lampiran
                     </CardTitle>
                 </CardHeader>
                 <CardContent>
                     <div class="text-center py-8 text-gray-500">
                         <Paperclip class="h-12 w-12 mx-auto mb-3 opacity-50" />
-                        <p>No attachments available</p>
+                        <p>Tidak ada lampiran tersedia</p>
                     </div>
                 </CardContent>
             </Card>
@@ -271,7 +271,7 @@ console.log("Files:", props.announcement.announcement_files);
                     variant="outline"
                     @click="$inertia.visit(route('admin.announcements.index'))"
                 >
-                    Back to List
+                    Kembali ke Daftar Pengumuman
                 </Button>
                 <div class="flex items-center gap-2">
                     <Button

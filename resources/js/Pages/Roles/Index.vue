@@ -28,7 +28,7 @@ const columns: ColumnDef<Role>[] = [
         header: "Role",
     },
     {
-        header: "Permissions",
+        header: "Hak Akses",
         cell: ({ row }) =>
             h("div", { class: "max-w-[540px]" }, [
                 h(PermissionChip, {
@@ -38,7 +38,7 @@ const columns: ColumnDef<Role>[] = [
     },
     {
         accessorKey: "actions",
-        header: "Actions",
+        header: "Aksi",
         cell: ({ row }) => {
             const role = row.original;
             const isSuperAdmin = role.name === "Super Admin"; // atau RoleEnum.SUPER_ADMIN
@@ -57,18 +57,18 @@ const columns: ColumnDef<Role>[] = [
 </script>
 
 <template>
-    <Head title="Role Management" />
+    <Head title="Manajemen Role" />
 
     <AuthenticatedLayout>
         <template #header>
             <div class="flex items-center justify-between">
                 <h2 class="text-xl font-semibold leading-tight text-gray-800">
-                    Role Management
+                    Manajemen Role
                 </h2>
                 <Link :href="route('admin.roles.create')">
                     <Button>
                         <Plus class="h-4 w-4 mr-2" />
-                        Create Role
+                        Buat Role
                     </Button>
                 </Link>
             </div>
@@ -87,9 +87,8 @@ const columns: ColumnDef<Role>[] = [
             >
                 <template #delete-dialog-content>
                     <p class="text-muted-foreground text-sm">
-                        Are you sure want to delete this <strong>role</strong>?
-                        This action cannot be undone. This will permanently
-                        delete the data.
+                        Apakah Anda yakin ingin menghapus <strong>role</strong> ini?                        
+                        Tindakan ini tidak dapat dibatalkan. Ini akan menghapus data secara permanen.
                     </p>
                 </template>
             </DataTable>

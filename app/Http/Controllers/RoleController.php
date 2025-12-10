@@ -48,7 +48,7 @@ class RoleController extends Controller
         $role = Role::create(['name' => $validated['name']]);
         $role->syncPermissions($validated['permissions']);
 
-        return redirect()->route('admin.roles.index')->with('success', 'Role created successfully.');
+        return redirect()->route('admin.roles.index')->with('success', 'Role berhasil dibuat.');
     }
 
     /**
@@ -59,7 +59,7 @@ class RoleController extends Controller
         $user = $request->user();
 
         if ($role->name == RoleEnum::SUPER_ADMIN->value && !$user->hasRole(RoleEnum::SUPER_ADMIN->value)) {
-            return redirect()->route('admin.roles.index')->with('error', 'You cannot edit the super admin role.');
+            return redirect()->route('admin.roles.index')->with('error', 'Anda tidak dapat mengedit role super admin.');
         }
 
         return inertia('Roles/Edit', [
@@ -86,7 +86,7 @@ class RoleController extends Controller
         $role->update(['name' => $validated['name']]);
         $role->syncPermissions($validated['permissions']);
 
-        return redirect()->route('admin.roles.index')->with('success', 'Role updated successfully.');
+        return redirect()->route('admin.roles.index')->with('success', 'Role berhasil diperbarui.');
     }
 
     /**
@@ -95,15 +95,15 @@ class RoleController extends Controller
     public function destroy(Request $request, Role $role)
     {
         if ($role->name == RoleEnum::SUPER_ADMIN->value) {
-            return redirect()->route('admin.roles.index')->with('error', 'You cannot delete the super admin role.');
+            return redirect()->route('admin.roles.index')->with('error', 'Anda tidak dapat menghapus role super admin.');
         }
 
         if ($role->users()->count() > 0) {
-            return redirect()->route('admin.roles.index')->with('error', 'Cannot delete role: it is currently assigned to one or more users.');
+            return redirect()->route('admin.roles.index')->with('error', 'Tidak dapat menghapus role: role ini sedang digunakan oleh satu atau lebih pengguna.');
         }
 
         $role->delete();
 
-        return redirect()->route('admin.roles.index')->with('success', 'Role deleted successfully.');
+        return redirect()->route('admin.roles.index')->with('success', 'Role berhasil dihapus.');
     }
 }

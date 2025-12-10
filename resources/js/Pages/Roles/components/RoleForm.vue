@@ -85,17 +85,17 @@ const submit = () => {
     <form @submit.prevent="submit" class="flex flex-col gap-6">
         <div class="grid gap-6">
             <div class="grid gap-2">
-                <Label for="name">Role Name</Label>
+                <Label for="name">Nama Role</Label>
                 <Input
                     id="name"
                     v-model="form.name"
-                    placeholder="e.g. Editor"
+                    placeholder="contoh.. Editor"
                 />
                 <InputError :message="form.errors.name" />
             </div>
 
             <div class="grid gap-2">
-                <Label>Permissions</Label>
+                <Label>Hak Akses</Label>
                 <div class="rounded-md border">
                     <Table>
                         <TableHeader>
@@ -144,7 +144,7 @@ const submit = () => {
                                         :colspan="columns.length"
                                         class="text-center"
                                     >
-                                        No permissions available yet.
+                                        Belum ada hak akses tersedia.
                                     </TableCell>
                                 </TableRow>
                             </template>
@@ -163,7 +163,7 @@ const submit = () => {
                     v-if="form.processing"
                     class="mr-2 h-4 w-4 animate-spin"
                 />
-                {{ isEdit ? "Update Role" : "Create Role" }}
+                {{ isEdit ? "Perbarui Role" : "Buat Role" }}
             </Button>
         </div>
     </form>

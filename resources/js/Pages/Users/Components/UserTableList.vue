@@ -31,7 +31,7 @@ const authId = (pageProps.auth as Auth).user.id;
 const columns: ColumnDef<User>[] = [
     {
         accessorKey: "name",
-        header: "Name",
+        header: "Nama",
     },
     {
         accessorKey: "email",
@@ -49,7 +49,7 @@ const columns: ColumnDef<User>[] = [
     },
     {
         accessorKey: "created_at",
-        header: "Created At",
+        header: "Dibuat Pada",
         cell: ({ row }) => {
             const date = new Date(row.getValue("created_at"));
             return date.toLocaleDateString("en-US", {
@@ -60,7 +60,7 @@ const columns: ColumnDef<User>[] = [
         },
     },
     {
-        header: "Actions",
+        header: "Aksi",
         cell: ({ row }) => {
             const user = row.original;
             const isSuperAdmin = user.roles.some(

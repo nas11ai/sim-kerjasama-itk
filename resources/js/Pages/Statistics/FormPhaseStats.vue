@@ -121,10 +121,10 @@ const periodData = computed(() => {
 const statusData = computed(() => {
     const statusLabels = {
         pending: 'Pending',
-        under_review: 'Under Review',
-        approved: 'Approved',
-        rejected: 'Rejected',
-        revision: 'Revision',
+        under_review: 'Dalam Review',
+        approved: 'Disetujui',
+        rejected: 'Ditolak',
+        revision: 'Revisi',
     };
 
     if (!props.formPhaseStatus?.length) return [];
@@ -263,17 +263,17 @@ const totalStats = computed(() => {
 </script>
 
 <template>
-    <Head title="Form Phase Statistics" />
+    <Head title="Statistik Tahap Formulir" />
 
     <AuthenticatedLayout>
         <template #header>
             <div class="flex items-center justify-between">
                 <div>
                     <h2 class="text-xl font-semibold leading-tight text-gray-800">
-                        Form Phase Statistics
+                        Statistik Tahap Formulir
                     </h2>
                     <p class="text-sm text-gray-600 mt-1">
-                        Comprehensive analysis of form phases and submissions
+                        Analisis komprehensif tentang tahap formulir dan pengajuan
                     </p>
                 </div>
             </div>
@@ -286,7 +286,7 @@ const totalStats = computed(() => {
                     <CardContent class="p-4">
                         <div class="flex items-center justify-between">
                             <div>
-                                <p class="text-xs font-medium text-gray-500 uppercase">Total Phases</p>
+                                <p class="text-xs font-medium text-gray-500 uppercase">Total Tahap</p>
                                 <p class="text-2xl font-bold text-gray-900 mt-1">
                                     {{ totalStats.phases }}
                                 </p>
@@ -302,7 +302,7 @@ const totalStats = computed(() => {
                     <CardContent class="p-4">
                         <div class="flex items-center justify-between">
                             <div>
-                                <p class="text-xs font-medium text-gray-500 uppercase">Total Forms</p>
+                                <p class="text-xs font-medium text-gray-500 uppercase">Total Formulir</p>
                                 <p class="text-2xl font-bold text-gray-900 mt-1">
                                     {{ totalStats.forms }}
                                 </p>
@@ -318,7 +318,7 @@ const totalStats = computed(() => {
                     <CardContent class="p-4">
                         <div class="flex items-center justify-between">
                             <div>
-                                <p class="text-xs font-medium text-gray-500 uppercase">Total Submissions</p>
+                                <p class="text-xs font-medium text-gray-500 uppercase">Total Pengajuan</p>
                                 <p class="text-2xl font-bold text-gray-900 mt-1">
                                     {{ totalStats.submissions }}
                                 </p>
@@ -334,7 +334,7 @@ const totalStats = computed(() => {
                     <CardContent class="p-4">
                         <div class="flex items-center justify-between">
                             <div>
-                                <p class="text-xs font-medium text-gray-500 uppercase">Approved</p>
+                                <p class="text-xs font-medium text-gray-500 uppercase">Disetujui</p>
                                 <p class="text-2xl font-bold text-gray-900 mt-1">
                                     {{ totalStats.approved }}
                                 </p>
@@ -366,10 +366,10 @@ const totalStats = computed(() => {
             <!-- Main Charts Section -->
             <Tabs default-value="period" class="w-full">
                 <TabsList class="grid w-full grid-cols-4">
-                    <TabsTrigger value="period">By Period</TabsTrigger>
-                    <TabsTrigger value="status">By Status</TabsTrigger>
-                    <TabsTrigger value="faculty">By Faculty</TabsTrigger>
-                    <TabsTrigger value="prodi">By Program Study</TabsTrigger>
+                    <TabsTrigger value="period">Berdasarkan Periode</TabsTrigger>
+                    <TabsTrigger value="status">Berdasarkan Status</TabsTrigger>
+                    <TabsTrigger value="faculty">Berdasarkan Fakultas</TabsTrigger>
+                    <TabsTrigger value="prodi">Berdasarkan Program Studi</TabsTrigger>
                 </TabsList>
 
                 <!-- Period Tab -->
@@ -382,8 +382,8 @@ const totalStats = computed(() => {
                                         <Calendar class="h-5 w-5 text-blue-600" />
                                     </div>
                                     <div>
-                                        <CardTitle>Submission Period Overview</CardTitle>
-                                        <CardDescription>Forms and submissions by submission period</CardDescription>
+                                        <CardTitle>Ringkasan Periode Pengajuan</CardTitle>
+                                        <CardDescription>Formulir dan pengajuan berdasarkan periode pengajuan</CardDescription>
                                     </div>
                                 </div>
                                 <div class="flex items-center gap-2">
@@ -409,7 +409,7 @@ const totalStats = computed(() => {
                         <CardContent>
                             <div v-if="periodData.length === 0" class="text-center py-12">
                                 <Calendar class="h-16 w-16 mx-auto text-gray-300 mb-4" />
-                                <p class="text-gray-500">No period data available</p>
+                                <p class="text-gray-500">Tidak ada data periode tersedia</p>
                             </div>
                             <div v-else>
                                 <DonutChart
@@ -447,8 +447,8 @@ const totalStats = computed(() => {
                                             <PieChartIcon class="h-5 w-5 text-purple-600" />
                                         </div>
                                         <div>
-                                            <CardTitle>Status Distribution</CardTitle>
-                                            <CardDescription>Submission status breakdown</CardDescription>
+                                            <CardTitle>Distribusi Status</CardTitle>
+                                            <CardDescription>Rincian status pengajuan</CardDescription>
                                         </div>
                                     </div>
                                     <div class="flex items-center gap-2">
@@ -474,7 +474,7 @@ const totalStats = computed(() => {
                             <CardContent>
                                 <div v-if="statusData.length === 0" class="text-center py-12">
                                     <PieChartIcon class="h-16 w-16 mx-auto text-gray-300 mb-4" />
-                                    <p class="text-gray-500">No status data available</p>
+                                    <p class="text-gray-500">Tidak ada data status tersedia</p>
                                 </div>
                                 <div v-else>
                                     <DonutChart
@@ -506,8 +506,8 @@ const totalStats = computed(() => {
                                         <BarChart3 class="h-5 w-5 text-indigo-600" />
                                     </div>
                                     <div>
-                                        <CardTitle>Status Summary</CardTitle>
-                                        <CardDescription>Detailed status counts</CardDescription>
+                                        <CardTitle>Ringkasan Status</CardTitle>
+                                        <CardDescription>Rincian jumlah status</CardDescription>
                                     </div>
                                 </div>
                             </CardHeader>
@@ -523,28 +523,28 @@ const totalStats = computed(() => {
                                     <div class="flex items-center justify-between p-3 bg-blue-50 rounded-lg border border-blue-200">
                                         <div class="flex items-center gap-3">
                                             <div class="h-3 w-3 rounded-full bg-blue-500"></div>
-                                            <span class="font-medium text-gray-900">Under Review</span>
+                                            <span class="font-medium text-gray-900">Dalam Peninjauan</span>
                                         </div>
                                         <Badge variant="secondary" class="text-lg">{{ totalStats.underReview }}</Badge>
                                     </div>
                                     <div class="flex items-center justify-between p-3 bg-green-50 rounded-lg border border-green-200">
                                         <div class="flex items-center gap-3">
                                             <div class="h-3 w-3 rounded-full bg-green-500"></div>
-                                            <span class="font-medium text-gray-900">Approved</span>
+                                            <span class="font-medium text-gray-900">Disetujui</span>
                                         </div>
                                         <Badge variant="secondary" class="text-lg">{{ totalStats.approved }}</Badge>
                                     </div>
                                     <div class="flex items-center justify-between p-3 bg-red-50 rounded-lg border border-red-200">
                                         <div class="flex items-center gap-3">
                                             <div class="h-3 w-3 rounded-full bg-red-500"></div>
-                                            <span class="font-medium text-gray-900">Rejected</span>
+                                            <span class="font-medium text-gray-900">Ditolak</span>
                                         </div>
                                         <Badge variant="secondary" class="text-lg">{{ totalStats.rejected }}</Badge>
                                     </div>
                                     <div class="flex items-center justify-between p-3 bg-purple-50 rounded-lg border border-purple-200">
                                         <div class="flex items-center gap-3">
                                             <div class="h-3 w-3 rounded-full bg-purple-500"></div>
-                                            <span class="font-medium text-gray-900">Revision</span>
+                                            <span class="font-medium text-gray-900">Revisi</span>
                                         </div>
                                         <Badge variant="secondary" class="text-lg">{{ totalStats.revision }}</Badge>
                                     </div>
@@ -564,10 +564,10 @@ const totalStats = computed(() => {
                                         <Building2 class="h-5 w-5 text-indigo-600" />
                                     </div>
                                     <div>
-                                        <CardTitle>Faculty Distribution</CardTitle>
-                                        <CardDescription>Forms and submissions by faculty
+                                        <CardTitle>Distribusi Fakultas</CardTitle>
+                                        <CardDescription>Formulir dan pengajuan berdasarkan fakultas
                                             <span class="text-indigo-600 font-medium ml-1">
-                                                ({{ selectedFaculties.length }}/{{ faculties.length }} selected)
+                                                ({{ selectedFaculties.length }}/{{ faculties.length }} dipilih)
                                             </span>
                                         </CardDescription>
                                     </div>
@@ -583,14 +583,14 @@ const totalStats = computed(() => {
                                         <PopoverContent class="w-80" align="end">
                                             <div class="space-y-4">
                                                 <div class="flex items-center justify-between">
-                                                    <h4 class="font-semibold text-sm">Select Faculties</h4>
+                                                    <h4 class="font-semibold text-sm">Pilih Fakultas</h4>
                                                     <Button
                                                         variant="ghost"
                                                         size="sm"
                                                         @click="selectAllFaculties"
                                                         class="h-auto py-1 px-2 text-xs"
                                                     >
-                                                        {{ selectedFaculties.length === faculties.length ? 'Deselect All' : 'Select All' }}
+                                                        {{ selectedFaculties.length === faculties.length ? 'Batal Pilih Semua' : 'Pilih Semua' }}
                                                     </Button>
                                                 </div>
                                                 <div class="max-h-[300px] overflow-y-auto space-y-2">
@@ -637,7 +637,7 @@ const totalStats = computed(() => {
                         <CardContent>
                             <div v-if="facultyData.length === 0" class="text-center py-12">
                                 <Building2 class="h-16 w-16 mx-auto text-gray-300 mb-4" />
-                                <p class="text-gray-500">No faculty data available</p>
+                                <p class="text-gray-500">Tidak ada data fakultas tersedia</p>
                             </div>
                             <div v-else>
                                 <DonutChart
@@ -674,10 +674,10 @@ const totalStats = computed(() => {
                                         <GraduationCap class="h-5 w-5 text-teal-600" />
                                     </div>
                                     <div>
-                                        <CardTitle>Program Study Distribution</CardTitle>
-                                        <CardDescription>Forms and submissions by study program
+                                        <CardTitle>Distribusi Program Studi</CardTitle>
+                                        <CardDescription>Formulir dan pengajuan berdasarkan program studi
                                             <span class="text-teal-600 font-medium ml-1">
-                                                ({{ selectedStudyPrograms.length }}/{{ studyPrograms.length }} selected)
+                                                ({{ selectedStudyPrograms.length }}/{{ studyPrograms.length }} dipilih)
                                             </span>
                                         </CardDescription>
                                     </div>
@@ -693,14 +693,14 @@ const totalStats = computed(() => {
                                         <PopoverContent class="w-80" align="end">
                                             <div class="space-y-4">
                                                 <div class="flex items-center justify-between">
-                                                    <h4 class="font-semibold text-sm">Select Study Programs</h4>
+                                                    <h4 class="font-semibold text-sm">Pilih Program Studi</h4>
                                                     <Button
                                                         variant="ghost"
                                                         size="sm"
                                                         @click="selectAllStudyPrograms"
                                                         class="h-auto py-1 px-2 text-xs"
                                                     >
-                                                        {{ selectedStudyPrograms.length === studyPrograms.length ? 'Deselect All' : 'Select All' }}
+                                                        {{ selectedStudyPrograms.length === studyPrograms.length ? 'Batal Pilih Semua' : 'Pilih Semua' }}
                                                     </Button>
                                                 </div>
                                                 <div class="max-h-[300px] overflow-y-auto space-y-2">
@@ -747,7 +747,7 @@ const totalStats = computed(() => {
                         <CardContent>
                             <div v-if="prodiData.length === 0" class="text-center py-12">
                                 <GraduationCap class="h-16 w-16 mx-auto text-gray-300 mb-4" />
-                                <p class="text-gray-500">No program study data available</p>
+                                <p class="text-gray-500">Tidak ada data program studi tersedia</p>
                             </div>
                             <div v-else>
                                 <DonutChart

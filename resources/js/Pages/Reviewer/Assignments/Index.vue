@@ -135,14 +135,14 @@ const getStatusInfo = (assignment: ReviewerFormAssignment): {
         if (assignment.due_date && new Date(assignment.due_date) < new Date()) {
             return {
                 variant: "destructive",
-                text: "Overdue",
+                text: "Terlambat",
                 icon: AlertTriangle,
                 color: "text-red-600"
             };
         }
         return {
             variant: "secondary",
-            text: "Not Started",
+            text: "Belum Dimulai",
             icon: Clock,
             color: "text-gray-600"
         };
@@ -152,28 +152,28 @@ const getStatusInfo = (assignment: ReviewerFormAssignment): {
         case "submitted":
             return {
                 variant: "default",
-                text: "Completed",
+                text: "Selesai",
                 icon: CheckCircle,
                 color: "text-green-600"
             };
         case "draft":
             return {
                 variant: "outline",
-                text: "In Progress",
+                text: "Sedang Berlangsung",
                 icon: Clock,
                 color: "text-blue-600"
             };
         case "locked":
             return {
                 variant: "destructive",
-                text: "Locked",
+                text: "Terkunci",
                 icon: AlertTriangle,
                 color: "text-red-600"
             };
         default:
             return {
                 variant: "secondary",
-                text: "Unknown",
+                text: "Tidak Diketahui",
                 icon: Clock,
                 color: "text-gray-600"
             };
@@ -181,7 +181,7 @@ const getStatusInfo = (assignment: ReviewerFormAssignment): {
 };
 
 const getDaysUntilDue = (dueDate?: string): string => {
-    if (!dueDate) return 'No deadline';
+    if (!dueDate) return 'Tidak ada tenggat waktu';
 
     const due = new Date(dueDate);
     const now = new Date();
@@ -189,13 +189,13 @@ const getDaysUntilDue = (dueDate?: string): string => {
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
     if (diffDays < 0) {
-        return `${Math.abs(diffDays)} days overdue`;
+        return `${Math.abs(diffDays)} hari terlambat`;
     } else if (diffDays === 0) {
-        return 'Due today';
+        return 'Jatuh tempo hari ini';
     } else if (diffDays === 1) {
-        return 'Due tomorrow';
+        return 'Jatuh tempo besok';
     } else {
-        return `${diffDays} days left`;
+        return `${diffDays} hari tersisa`;
     }
 };
 
@@ -216,12 +216,12 @@ const getProgressPercentage = (): number => {
 
 <template>
 
-    <Head title="My Review Assignments" />
+    <Head title="Tugas Review Saya" />
 
     <AuthenticatedLayout>
         <template #header>
             <h2 class="text-xl font-semibold leading-tight text-gray-800">
-                My Review Assignments
+                Tugas Review Saya
             </h2>
         </template>
 
@@ -257,7 +257,7 @@ const getProgressPercentage = (): number => {
                         <div class="flex items-center space-x-2">
                             <CheckCircle class="h-5 w-5 text-green-500" />
                             <div>
-                                <p class="text-sm font-medium text-muted-foreground">Completed</p>
+                                <p class="text-sm font-medium text-muted-foreground">Selesai</p>
                                 <p class="text-2xl font-bold text-green-600">{{ stats.completed }}</p>
                             </div>
                         </div>
@@ -269,7 +269,7 @@ const getProgressPercentage = (): number => {
                         <div class="flex items-center space-x-2">
                             <AlertTriangle class="h-5 w-5 text-red-500" />
                             <div>
-                                <p class="text-sm font-medium text-muted-foreground">Overdue</p>
+                                <p class="text-sm font-medium text-muted-foreground">Terlambat</p>
                                 <p class="text-2xl font-bold text-red-600">{{ stats.overdue }}</p>
                             </div>
                         </div>
@@ -282,14 +282,14 @@ const getProgressPercentage = (): number => {
                 <CardContent class="p-6">
                     <div class="space-y-2">
                         <div class="flex items-center justify-between">
-                            <span class="text-sm font-medium">Overall Progress</span>
+                            <span class="text-sm font-medium">Progress Keseluruhan</span>
                             <span class="text-sm text-muted-foreground">
-                                {{ stats.completed }}/{{ stats.total }} completed
+                                {{ stats.completed }}/{{ stats.total }} selesai
                             </span>
                         </div>
                         <Progress :value="getProgressPercentage()" class="h-2" />
                         <p class="text-xs text-muted-foreground">
-                            {{ getProgressPercentage() }}% of assignments completed
+                            {{ getProgressPercentage() }}% tugas selesai
                         </p>
                     </div>
                 </CardContent>
@@ -298,16 +298,16 @@ const getProgressPercentage = (): number => {
             <!-- Filters -->
             <Card>
                 <CardHeader>
-                    <CardTitle>Filters</CardTitle>
+                    <CardTitle>Filter</CardTitle>
                 </CardHeader>
                 <CardContent>
                     <div class="grid gap-4 md:grid-cols-3">
                         <div class="space-y-2">
-                            <Label for="search">Search</Label>
+                            <Label for="search">Cari</Label>
                             <div class="relative">
                                 <Search class="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
                                 <Input id="search" v-model="filterForm.search"
-                                    placeholder="Search by form or submission title" class="pl-8"
+                                    placeholder="Cari berdasarkan judul form atau pengajuan" class="pl-8"
                                     @keyup.enter="searchAssignments" />
                             </div>
                         </div>
@@ -319,10 +319,10 @@ const getProgressPercentage = (): number => {
                                     <SelectValue placeholder="All statuses" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value="">All statuses</SelectItem>
+                                    <SelectItem value="">Semua status</SelectItem>
                                     <SelectItem value="pending">Pending</SelectItem>
-                                    <SelectItem value="completed">Completed</SelectItem>
-                                    <SelectItem value="overdue">Overdue</SelectItem>
+                                    <SelectItem value="completed">Selesai</SelectItem>
+                                    <SelectItem value="overdue">Terlambat</SelectItem>
                                 </SelectContent>
                             </Select>
                         </div>
@@ -333,7 +333,7 @@ const getProgressPercentage = (): number => {
                                 Filter
                             </Button>
                             <Button variant="outline" @click="clearFilters">
-                                Clear
+                                Bersihkan Filter
                             </Button>
                         </div>
                     </div>
@@ -344,7 +344,7 @@ const getProgressPercentage = (): number => {
             <Card>
                 <CardHeader>
                     <CardTitle>
-                        Review Assignments
+                        Review Tugas
                         <Badge variant="secondary" class="ml-2">
                             {{ assignments.total }} total
                         </Badge>
@@ -354,10 +354,10 @@ const getProgressPercentage = (): number => {
                     <div v-if="assignments.data.length === 0" class="text-center py-8">
                         <FileText class="h-16 w-16 mx-auto text-gray-400 mb-4" />
                         <h3 class="text-lg font-medium text-gray-900 mb-2">
-                            No assignments found
+                            Tidak ada tugas ditemukan
                         </h3>
                         <p class="text-gray-500">
-                            You don't have any review assignments at the moment.
+                            Anda tidak memiliki tugas review saat ini.
                         </p>
                     </div>
 
@@ -365,13 +365,13 @@ const getProgressPercentage = (): number => {
                         <Table>
                             <TableHeader>
                                 <TableRow>
-                                    <TableHead>Evaluation Form</TableHead>
-                                    <TableHead>Submission</TableHead>
-                                    <TableHead>Submitter</TableHead>
+                                    <TableHead>Form Evaluasi</TableHead>
+                                    <TableHead>Pengajuan</TableHead>
+                                    <TableHead>Pengirim</TableHead>
                                     <TableHead>Status</TableHead>
-                                    <TableHead>Due Date</TableHead>
-                                    <TableHead>Priority</TableHead>
-                                    <TableHead class="text-right">Actions</TableHead>
+                                    <TableHead>Tanngal Jatuh Tempo</TableHead>
+                                    <TableHead>Prioritas</TableHead>
+                                    <TableHead class="text-right">Aksi</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
@@ -424,13 +424,13 @@ const getProgressPercentage = (): number => {
                                             </div>
                                         </div>
                                         <div v-else class="text-sm text-muted-foreground">
-                                            No deadline
+                                            Tidak ada tenggat waktu
                                         </div>
                                     </TableCell>
 
                                     <TableCell>
                                         <Badge :variant="assignment.is_required ? 'default' : 'outline'">
-                                            {{ assignment.is_required ? 'Required' : 'Optional' }}
+                                            {{ assignment.is_required ? 'Wajib' : 'Opsional' }}
                                         </Badge>
                                     </TableCell>
 
@@ -442,7 +442,7 @@ const getProgressPercentage = (): number => {
                                                 size="sm" as-child>
                                                 <a :href="route('reviewer.evaluation-form.show', assignment.id)">
                                                     <FileText class="h-4 w-4 mr-1" />
-                                                    {{ assignment.review_form_response ? 'Continue' : 'Start' }}
+                                                    {{ assignment.review_form_response ? 'Lanjutkan' : 'Mulai' }}
                                                 </a>
                                             </Button>
 
@@ -451,14 +451,14 @@ const getProgressPercentage = (): number => {
                                                 size="sm" variant="outline" as-child>
                                                 <a :href="route('reviewer.evaluation-form.submitted', assignment.id)">
                                                     <Eye class="h-4 w-4 mr-1" />
-                                                    View
+                                                    Lihat
                                                 </a>
                                             </Button>
 
                                             <!-- Locked Form Info -->
                                             <Badge v-if="assignment.review_form_response?.status === 'locked'"
                                                 variant="destructive">
-                                                Locked
+                                                Terkunci
                                             </Badge>
                                         </div>
                                     </TableCell>
@@ -469,9 +469,9 @@ const getProgressPercentage = (): number => {
                         <!-- Pagination -->
                         <div v-if="assignments.last_page > 1" class="flex items-center justify-between mt-6">
                             <div class="text-sm text-muted-foreground">
-                                Showing {{ (assignments.current_page - 1) * assignments.per_page + 1 }}
-                                to {{ Math.min(assignments.current_page * assignments.per_page, assignments.total) }}
-                                of {{ assignments.total }} results
+                                Menampilkan {{ (assignments.current_page - 1) * assignments.per_page + 1 }}
+                                hingga {{ Math.min(assignments.current_page * assignments.per_page, assignments.total) }}
+                                dari {{ assignments.total }} hasil
                             </div>
 
                             <div class="flex space-x-2">

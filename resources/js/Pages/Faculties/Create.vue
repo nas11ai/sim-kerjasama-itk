@@ -18,19 +18,18 @@ const submit = () => {
 
 <template>
 
-    <Head title="Create Faculty" />
+    <Head title="Buat Fakultas" />
 
     <AuthenticatedLayout>
         <template #header>
             <div class="flex items-center gap-4">
                 <Button variant="ghost" size="sm" @click="$inertia.visit(route('admin.faculties.index'))">
                     <ArrowLeft class="h-4 w-4 mr-2" />
-                    Back
+                    Kembali
                 </Button>
                 <div class="flex items-center gap-2">
-                    <Building2 class="h-6 w-6 text-blue-600" />
                     <h2 class="text-xl font-semibold leading-tight text-gray-800">
-                        Create New Faculty
+                        Buat Fakultas Baru
                     </h2>
                 </div>
             </div>
@@ -41,14 +40,14 @@ const submit = () => {
                 <CardHeader>
                     <CardTitle class="flex items-center gap-2">
                         <Building2 class="h-5 w-5" />
-                        Faculty Information
+                        Informasi Fakultas
                     </CardTitle>
                 </CardHeader>
                 <CardContent>
                     <form @submit.prevent="submit" class="space-y-6">
                         <div class="space-y-2">
-                            <Label for="name">Faculty Name *</Label>
-                            <Input id="name" v-model="form.name" placeholder="Enter faculty name"
+                            <Label for="name">Nama Fakultas *</Label>
+                            <Input id="name" v-model="form.name" placeholder="Masukkan nama fakultas"
                                 :class="form.errors.name ? 'border-destructive' : ''" autofocus />
                             <p v-if="form.errors.name" class="text-sm text-destructive">
                                 {{ form.errors.name }}
@@ -58,10 +57,10 @@ const submit = () => {
                         <div class="flex items-center justify-end space-x-2 pt-4">
                             <Button type="button" variant="outline"
                                 @click="$inertia.visit(route('admin.faculties.index'))">
-                                Cancel
+                                Batal
                             </Button>
                             <Button type="submit" :disabled="form.processing">
-                                {{ form.processing ? "Creating..." : "Create Faculty" }}
+                                {{ form.processing ? "Membuat..." : "Buat Fakultas" }}
                             </Button>
                         </div>
                     </form>
