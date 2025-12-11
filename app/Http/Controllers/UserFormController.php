@@ -465,8 +465,6 @@ class UserFormController extends Controller
                 }
             }
 
-            $this->emailService->notifyAdminFormSubmission($submission);
-
             // Check if this form needs review
             $formPhaseDetail = FormPhaseDetail::where('form_phase_id', $validated['form_phase_id'])
                 ->whereHas('formAccessControl', function ($query) use ($validated, $user) {
@@ -482,7 +480,11 @@ class UserFormController extends Controller
 
                 // TODO: Create review request or notification
                 // You can implement notification system here
+            } else {
+                $submission->update(['status' => SubmissionStatus::PENDING]);
             }
+
+            $this->emailService->notifyAdminFormSubmission($submission);
         });
 
         return redirect()->back()
