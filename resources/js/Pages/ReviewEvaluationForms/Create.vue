@@ -186,17 +186,17 @@ const previewForm = () => {
 
 <template>
 
-    <Head title="Create Review Evaluation Form" />
+    <Head title="Buat Formulir Evaluasi Review" />
 
     <AuthenticatedLayout>
         <template #header>
             <div class="flex items-center gap-4">
                 <Button variant="ghost" size="sm" @click="$inertia.visit(route('admin.review-evaluation-forms.index'))">
                     <ArrowLeft class="h-4 w-4 mr-2" />
-                    Back
+                    Kembali
                 </Button>
                 <h2 class="text-xl font-semibold leading-tight text-gray-800">
-                    Create Review Evaluation Form
+                    Buat Formulir Evaluasi Review
                 </h2>
             </div>
         </template>
@@ -206,14 +206,14 @@ const previewForm = () => {
                 <!-- Form Information -->
                 <Card>
                     <CardHeader>
-                        <CardTitle>Form Information</CardTitle>
+                        <CardTitle>Informasi Formulir</CardTitle>
                     </CardHeader>
                     <CardContent class="space-y-6">
                         <div class="grid gap-6 md:grid-cols-2">
                             <!-- Form Title -->
                             <div class="space-y-2">
-                                <Label for="title">Form Title *</Label>
-                                <Input id="title" v-model="form.title" placeholder="Enter evaluation form title"
+                                <Label for="title">Judul Form *</Label>
+                                <Input id="title" v-model="form.title" placeholder="Masukkan judul formulir evaluasi"
                                     :class="errors.title ? 'border-destructive' : ''" />
                                 <p v-if="errors.title" class="text-sm text-destructive">
                                     {{ errors.title }}
@@ -222,10 +222,10 @@ const previewForm = () => {
 
                             <!-- Form Phase -->
                             <div class="space-y-2">
-                                <Label for="form_phase_detail_id">Select Form *</Label>
+                                <Label for="form_phase_detail_id">Pilih Tahap Form *</Label>
                                 <Select v-model="form.form_phase_detail_id">
                                     <SelectTrigger>
-                                        <SelectValue placeholder="Select form phase detail" />
+                                        <SelectValue placeholder="Pilih detail tahap formulir" />
                                     </SelectTrigger>
                                     <SelectContent>
                                         <template v-for="phase in formPhases" :key="phase.id">
@@ -255,20 +255,20 @@ const previewForm = () => {
 
                         <!-- Description -->
                         <div class="space-y-2">
-                            <Label for="description">Description</Label>
+                            <Label for="description">Deskripsi</Label>
                             <Textarea id="description" v-model="form.description"
-                                placeholder="Enter form description (optional)" rows="3" />
+                                placeholder="Masukkan deskripsi formulir (opsional)" rows="3" />
                         </div>
 
                         <!-- Form Settings -->
                         <div class="flex items-center gap-6">
                             <div class="flex items-center space-x-2">
                                 <Switch v-model="form.is_required" id="is_required" />
-                                <Label for="is_required">Required Form</Label>
+                                <Label for="is_required">Formulir Wajib</Label>
                             </div>
                             <div class="flex items-center space-x-2">
                                 <Switch v-model="form.is_active" id="is_active" />
-                                <Label for="is_active">Active</Label>
+                                <Label for="is_active">Aktif</Label>
                             </div>
                         </div>
                     </CardContent>
@@ -278,23 +278,23 @@ const previewForm = () => {
                 <Card>
                     <CardHeader>
                         <div class="flex items-center justify-between">
-                            <CardTitle>Evaluation Fields</CardTitle>
+                            <CardTitle>Isian Evaluasi</CardTitle>
                             <div class="flex gap-2">
                                 <Button v-if="form.fields.length === 0" type="button" @click="addField" size="sm">
                                     <Plus class="h-4 w-4 mr-2" />
-                                    Add Field
+                                    Tambah Isian
                                 </Button>
                                 <Button type="button" @click="previewForm" variant="outline" size="sm"
                                     :disabled="form.fields.length === 0">
                                     <Eye class="h-4 w-4 mr-2" />
-                                    Preview
+                                    Pratinjau
                                 </Button>
                             </div>
                         </div>
                     </CardHeader>
                     <CardContent>
                         <div v-if="form.fields.length === 0" class="text-center py-8 text-muted-foreground">
-                            <p>No evaluation fields added yet. Click "Add Field" to get started.</p>
+                            <p>Belum ada isian evaluasi yang ditambahkan. Klik "Tambah Isian" untuk memulai.</p>
                         </div>
 
                         <div v-else class="space-y-6">
@@ -312,10 +312,10 @@ const previewForm = () => {
                                                     <!-- Field Basic Info -->
                                                     <div class="grid gap-4 md:grid-cols-2">
                                                         <div class="space-y-2">
-                                                            <Label>Field Type *</Label>
+                                                            <Label>Tipe Isian *</Label>
                                                             <Select v-model="field.field_type_id">
                                                                 <SelectTrigger>
-                                                                    <SelectValue placeholder="Select field type" />
+                                                                    <SelectValue placeholder="Pilih tipe isian" />
                                                                 </SelectTrigger>
                                                                 <SelectContent>
                                                                     <SelectItem v-for="fieldType in props.fieldTypes"
@@ -327,36 +327,36 @@ const previewForm = () => {
                                                         </div>
 
                                                         <div class="space-y-2">
-                                                            <Label>Field Label *</Label>
+                                                            <Label>Label Isian *</Label>
                                                             <Input v-model="field.label"
-                                                                placeholder="Enter field label" />
+                                                                placeholder="Masukkan label isian" />
                                                         </div>
                                                     </div>
 
                                                     <!-- Field Description -->
                                                     <div class="space-y-2">
-                                                        <Label>Field Description</Label>
+                                                        <Label>Deskripsi Isian</Label>
                                                         <Textarea v-model="field.description"
-                                                            placeholder="Optional description to help reviewers understand this field"
+                                                            placeholder="Deskripsi opsional untuk membantu penilai memahami isian ini"
                                                             rows="2" />
                                                     </div>
 
                                                     <!-- Field Settings -->
                                                     <div class="flex items-center space-x-2">
                                                         <Switch v-model="field.is_required" :id="`required_${index}`" />
-                                                        <Label :for="`required_${index}`">Required field</Label>
+                                                        <Label :for="`required_${index}`">Isian Wajib</Label>
                                                     </div>
 
                                                     <!-- Validation Rules -->
                                                     <div v-if="isTextualField(field.field_type_id) || isNumericField(field.field_type_id)"
                                                         class="space-y-3">
-                                                        <Label class="text-sm font-medium">Validation Rules</Label>
+                                                        <Label class="text-sm font-medium">Aturan Validasi</Label>
 
                                                         <!-- Text field validation -->
                                                         <div v-if="isTextualField(field.field_type_id)"
                                                             class="grid gap-3 md:grid-cols-2">
                                                             <div class="space-y-2">
-                                                                <Label class="text-xs">Minimum Length</Label>
+                                                                <Label class="text-xs">Panjang Minimum</Label>
                                                                 <Input type="number"
                                                                     :value="field.validation_rules.min_length || ''"
                                                                     @input="addValidationRule(index, 'min_length' as const,
@@ -364,7 +364,7 @@ const previewForm = () => {
                                                                     placeholder="0" min="0" />
                                                             </div>
                                                             <div class="space-y-2">
-                                                                <Label class="text-xs">Maximum Length</Label>
+                                                                <Label class="text-xs">Panjang Maksimum</Label>
                                                                 <Input type="number"
                                                                     :value="field.validation_rules.max_length || ''"
                                                                     @input="addValidationRule(index, 'max_length' as const,
@@ -377,7 +377,7 @@ const previewForm = () => {
                                                         <div v-if="isNumericField(field.field_type_id)"
                                                             class="grid gap-3 md:grid-cols-2">
                                                             <div class="space-y-2">
-                                                                <Label class="text-xs">Minimum Value</Label>
+                                                                <Label class="text-xs">Nilai Minimum</Label>
                                                                 <Input type="number"
                                                                     :value="field.validation_rules.min_value || ''"
                                                                     @input="addValidationRule(index, 'min_value' as const,
@@ -385,7 +385,7 @@ const previewForm = () => {
                                                                     placeholder="0" min="0" />
                                                             </div>
                                                             <div class="space-y-2">
-                                                                <Label class="text-xs">Maximum Value</Label>
+                                                                <Label class="text-xs">Nilai Maksimum</Label>
                                                                 <Input type="number"
                                                                     :value="field.validation_rules.max_value || ''"
                                                                     @input="addValidationRule(index, 'max_value' as const,
@@ -403,13 +403,13 @@ const previewForm = () => {
                                                             <Button type="button" size="sm" variant="outline"
                                                                 @click="addOption(index)">
                                                                 <Plus class="h-3 w-3 mr-1" />
-                                                                Add Option
+                                                                Tambah Opsi
                                                             </Button>
                                                         </div>
 
                                                         <div v-if="field.options.length === 0"
                                                             class="text-sm text-muted-foreground">
-                                                            No options added yet.
+                                                            Belum ada opsi yang ditambahkan.
                                                         </div>
 
                                                         <div v-else class="space-y-2">
@@ -433,12 +433,12 @@ const previewForm = () => {
                                                     <div v-if="field.field_type_id && field.label"
                                                         class="mt-4 p-4 bg-muted/50 rounded-lg">
                                                         <Label
-                                                            class="text-sm text-muted-foreground mb-2 block">Preview:</Label>
+                                                            class="text-sm text-muted-foreground mb-2 block">Pratinjau:</Label>
                                                         <div class="space-y-2">
                                                             <div class="flex items-center gap-2">
                                                                 <Label class="font-medium">{{ field.label }}</Label>
                                                                 <Badge v-if="field.is_required" variant="destructive"
-                                                                    class="text-xs">Required</Badge>
+                                                                    class="text-xs">Wajib</Badge>
                                                             </div>
 
                                                             <p v-if="field.description"
@@ -450,7 +450,7 @@ const previewForm = () => {
                                                             <div class="mt-2">
                                                                 <div
                                                                     v-if="getFieldTypeName(field.field_type_id) === 'textarea'">
-                                                                    <Textarea placeholder="This is a preview" disabled
+                                                                    <Textarea placeholder="Ini adalah pratinjau" disabled
                                                                         rows="3" />
                                                                 </div>
                                                                 <div v-else-if="fieldTypeRequiresOptions(field.field_type_id) &&
@@ -469,7 +469,7 @@ const previewForm = () => {
                                                                 </div>
                                                                 <div v-else>
                                                                     <Input :type="getFieldTypeName(field.field_type_id)"
-                                                                        placeholder="This is a preview" disabled />
+                                                                        placeholder="Ini adalah pratinjau" disabled />
                                                                 </div>
                                                             </div>
                                                         </div>
@@ -491,7 +491,7 @@ const previewForm = () => {
                             <div class="flex justify-center pt-4">
                                 <Button type="button" @click="addField" size="sm" class="w-full max-w-xs">
                                     <Plus class="h-4 w-4 mr-2" />
-                                    Add Another Field
+                                    Tambah Isian Lain
                                 </Button>
                             </div>
                         </div>
@@ -502,10 +502,10 @@ const previewForm = () => {
                 <div class="flex items-center justify-end space-x-2">
                     <Button type="button" variant="outline"
                         @click="$inertia.visit(route('admin.review-evaluation-forms.index'))">
-                        Cancel
+                        Batal
                     </Button>
                     <Button type="submit" :disabled="form.processing">
-                        {{ form.processing ? "Creating..." : "Create Evaluation Form" }}
+                        {{ form.processing ? "Membuat..." : "Buat Formulir Evaluasi" }}
                     </Button>
                 </div>
             </form>

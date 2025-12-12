@@ -115,21 +115,21 @@ const totalFieldsCount = computed(() => {
 
 <template>
 
-    <Head :title="`Preview: ${evaluationForm.title}`" />
+    <Head :title="`Pratinjau: ${evaluationForm.title}`" />
 
     <AuthenticatedLayout>
         <template #header>
             <div class="flex items-center gap-4">
                 <Button variant="ghost" size="sm" @click="$inertia.visit(route('admin.review-evaluation-forms.index'))">
                     <ArrowLeft class="h-4 w-4 mr-2" />
-                    Back to Forms
+                    Kembali
                 </Button>
                 <div>
                     <h2 class="text-xl font-semibold leading-tight text-gray-800">
-                        Preview: {{ evaluationForm.title }}
+                        Pratinjau: {{ evaluationForm.title }}
                     </h2>
                     <p class="text-sm text-muted-foreground">
-                        This is how reviewers will see this evaluation form
+                        Ini adalah tampilan formulir evaluasi bagi reviewer.
                     </p>
                 </div>
             </div>
@@ -146,10 +146,10 @@ const totalFieldsCount = computed(() => {
                             </div>
                             <div>
                                 <h3 class="text-lg font-medium text-blue-900">
-                                    Preview Mode
+                                    Mode Pratinjau
                                 </h3>
                                 <p class="text-sm text-blue-700">
-                                    You are viewing how this form appears to reviewers. Fields are disabled for preview.
+                                    Anda sedang melihat bagaimana formulir ini muncul bagi reviewer. isian dinonaktifkan untuk pratinjau.
                                 </p>
                             </div>
                         </div>
@@ -157,7 +157,7 @@ const totalFieldsCount = computed(() => {
                         <Button @click="$inertia.visit(route('admin.review-evaluation-forms.edit', evaluationForm.id))"
                             variant="outline">
                             <Edit class="h-4 w-4 mr-2" />
-                            Edit Form
+                            Edit Formulir
                         </Button>
                     </div>
                 </CardContent>
@@ -177,10 +177,10 @@ const totalFieldsCount = computed(() => {
 
                             <div class="flex items-center space-x-4">
                                 <Badge :variant="evaluationForm.is_required ? 'default' : 'outline'">
-                                    {{ evaluationForm.is_required ? 'Required' : 'Optional' }}
+                                    {{ evaluationForm.is_required ? 'Wajib' : 'Opsional' }}
                                 </Badge>
                                 <Badge :variant="evaluationForm.is_active ? 'default' : 'secondary'">
-                                    {{ evaluationForm.is_active ? 'Active' : 'Inactive' }}
+                                    {{ evaluationForm.is_active ? 'Aktif' : 'Tidak Aktif' }}
                                 </Badge>
                             </div>
                         </div>
@@ -188,12 +188,12 @@ const totalFieldsCount = computed(() => {
                         <div class="space-y-4">
                             <div class="text-center p-4 bg-muted rounded-lg">
                                 <div class="text-2xl font-bold">{{ totalFieldsCount }}</div>
-                                <div class="text-sm text-muted-foreground">Total Fields</div>
+                                <div class="text-sm text-muted-foreground">Total Isian</div>
                             </div>
 
                             <div class="text-center p-4 bg-orange-100 rounded-lg">
                                 <div class="text-2xl font-bold text-orange-700">{{ requiredFieldsCount }}</div>
-                                <div class="text-sm text-orange-600">Required Fields</div>
+                                <div class="text-sm text-orange-600">Isian Wajib</div>
                             </div>
                         </div>
                     </div>
@@ -206,7 +206,7 @@ const totalFieldsCount = computed(() => {
                     <div class="flex items-start space-x-3">
                         <FileText class="h-5 w-5 text-blue-500 mt-0.5" />
                         <div>
-                            <h3 class="font-medium mb-2">Instructions</h3>
+                            <h3 class="font-medium mb-2">Instruksi</h3>
                             <p class="text-muted-foreground">{{ evaluationForm.description }}</p>
                         </div>
                     </div>
@@ -216,19 +216,19 @@ const totalFieldsCount = computed(() => {
             <!-- Form Fields Preview -->
             <div class="space-y-4">
                 <div class="flex items-center space-x-2">
-                    <h3 class="text-lg font-medium">Form Fields</h3>
-                    <Badge variant="outline">{{ evaluationForm.review_form_fields.length }} fields</Badge>
+                    <h3 class="text-lg font-medium">Isian Formulir</h3>
+                    <Badge variant="outline">{{ evaluationForm.review_form_fields.length }} isian</Badge>
                 </div>
 
                 <div v-if="evaluationForm.review_form_fields.length === 0" class="text-center py-12">
                     <FileText class="h-16 w-16 mx-auto text-gray-400 mb-4" />
-                    <h3 class="text-lg font-medium text-gray-900 mb-2">No fields added</h3>
+                    <h3 class="text-lg font-medium text-gray-900 mb-2">Belum ada isian ditambahkan</h3>
                     <p class="text-gray-500 mb-4">
-                        This form doesn't have any fields yet. Add some fields to make it functional.
+                        Formulir ini belum memiliki isian. Tambahkan beberapa isian agar formulir berfungsi.
                     </p>
                     <Button @click="$inertia.visit(route('admin.review-evaluation-forms.edit', evaluationForm.id))">
                         <Edit class="h-4 w-4 mr-2" />
-                        Add Fields
+                        Tambah Isian
                     </Button>
                 </div>
 
@@ -250,7 +250,7 @@ const totalFieldsCount = computed(() => {
                                         </div>
                                         <div class="flex items-center space-x-2">
                                             <Badge :variant="field.is_required ? 'default' : 'secondary'">
-                                                {{ field.is_required ? 'Required' : 'Optional' }}
+                                                {{ field.is_required ? 'Wajib' : 'Opsional' }}
                                             </Badge>
                                             <Badge variant="outline">
                                                 {{ field.field_type.name }}
@@ -277,7 +277,7 @@ const totalFieldsCount = computed(() => {
                                         <div v-else-if="getFieldComponent(field) === 'select'">
                                             <Select disabled>
                                                 <SelectTrigger>
-                                                    <SelectValue placeholder="Select an option" />
+                                                    <SelectValue placeholder="Pilih opsi" />
                                                 </SelectTrigger>
                                                 <SelectContent>
                                                     <SelectItem v-for="option in field.review_form_field_options"
@@ -287,7 +287,7 @@ const totalFieldsCount = computed(() => {
                                                 </SelectContent>
                                             </Select>
                                             <div class="mt-2 text-xs text-muted-foreground">
-                                                {{ field.review_form_field_options.length }} options available
+                                                {{ field.review_form_field_options.length }} opsi tersedia
                                             </div>
                                         </div>
 
@@ -326,10 +326,10 @@ const totalFieldsCount = computed(() => {
                                         <!-- Field Info -->
                                         <div class="text-xs text-muted-foreground pt-2">
                                             <div class="flex items-center space-x-4">
-                                                <span>Order: {{ field.order }}</span>
-                                                <span>Type: {{ field.field_type.name }}</span>
+                                                <span>Urutan: {{ field.order }}</span>
+                                                <span>Tipe: {{ field.field_type.name }}</span>
                                                 <span v-if="field.review_form_field_options.length > 0">
-                                                    Options: {{ field.review_form_field_options.length }}
+                                                    Opsi: {{ field.review_form_field_options.length }}
                                                 </span>
                                             </div>
                                         </div>
@@ -344,16 +344,16 @@ const totalFieldsCount = computed(() => {
                         <CardHeader>
                             <CardTitle class="flex items-center space-x-2">
                                 <FileText class="h-5 w-5" />
-                                <span>Additional Notes (Optional)</span>
+                                <span>Catatan Tambahan (Opsional)</span>
                             </CardTitle>
                         </CardHeader>
                         <CardContent>
                             <Textarea
-                                placeholder="Reviewers can add additional comments or notes about their evaluation here..."
+                                placeholder="Reviewer dapat menambahkan komentar atau catatan tambahan tentang evaluasi mereka di sini..."
                                 disabled rows="4" class="w-full" />
                             <div class="text-xs text-muted-foreground mt-2">
-                                This section allows reviewers to provide additional context or explanations for their
-                                responses.
+                                Bagian ini memungkinkan reviewer untuk memberikan konteks tambahan atau penjelasan atas
+                                tanggapan mereka.
                             </div>
                         </CardContent>
                     </Card>
@@ -365,14 +365,14 @@ const totalFieldsCount = computed(() => {
                 <CardContent class="p-4">
                     <div class="flex items-center justify-between">
                         <div class="text-sm text-muted-foreground">
-                            Form actions that reviewers will see:
+                            Tindakan formulir yang akan dilihat oleh reviewer:
                         </div>
                         <div class="flex items-center space-x-2">
                             <Button variant="outline" disabled size="sm">
-                                Save Draft
+                                Simpan Draft
                             </Button>
                             <Button disabled size="sm">
-                                Submit Evaluation
+                                Kirim Evaluasi
                             </Button>
                         </div>
                     </div>
@@ -382,26 +382,26 @@ const totalFieldsCount = computed(() => {
             <!-- Form Statistics -->
             <Card>
                 <CardHeader>
-                    <CardTitle>Form Statistics</CardTitle>
+                    <CardTitle>Statistik Formulir</CardTitle>
                 </CardHeader>
                 <CardContent>
                     <div class="grid gap-4 md:grid-cols-4">
                         <div class="text-center p-4 bg-blue-50 rounded-lg">
                             <div class="text-2xl font-bold text-blue-600">{{ totalFieldsCount }}</div>
-                            <div class="text-sm text-blue-600">Total Fields</div>
+                            <div class="text-sm text-blue-600">Total Isian</div>
                         </div>
                         <div class="text-center p-4 bg-red-50 rounded-lg">
                             <div class="text-2xl font-bold text-red-600">{{ requiredFieldsCount }}</div>
-                            <div class="text-sm text-red-600">Required Fields</div>
+                            <div class="text-sm text-red-600">Isian Wajib</div>
                         </div>
                         <div class="text-center p-4 bg-green-50 rounded-lg">
                             <div class="text-2xl font-bold text-green-600">{{ totalFieldsCount - requiredFieldsCount }}
                             </div>
-                            <div class="text-sm text-green-600">Optional Fields</div>
+                            <div class="text-sm text-green-600">Isian Opsional</div>
                         </div>
                         <div class="text-center p-4 bg-purple-50 rounded-lg">
                             <div class="text-2xl font-bold text-purple-600">{{ evaluationForm.order }}</div>
-                            <div class="text-sm text-purple-600">Form Order</div>
+                            <div class="text-sm text-purple-600">Urutan Formulir</div>
                         </div>
                     </div>
                 </CardContent>
@@ -413,17 +413,16 @@ const totalFieldsCount = computed(() => {
                     <div class="flex items-start space-x-3">
                         <AlertTriangle class="h-5 w-5 text-amber-600 mt-0.5" />
                         <div>
-                            <h3 class="font-medium text-amber-800 mb-1">Form Incomplete</h3>
+                            <h3 class="font-medium text-amber-800 mb-1">Formulir Tidak Lengkap</h3>
                             <p class="text-amber-700 text-sm mb-3">
-                                This evaluation form doesn't have any fields. Reviewers won't be able to provide
-                                meaningful
-                                evaluations without form fields.
+                                Formulir evaluasi ini tidak memiliki isian apapun. Reviewer tidak akan dapat memberikan
+                                evaluasi yang bermakna tanpa adanya isian formulir.
                             </p>
                             <Button
                                 @click="$inertia.visit(route('admin.review-evaluation-forms.edit', evaluationForm.id))"
                                 size="sm" class="bg-amber-600 hover:bg-amber-700">
                                 <Edit class="h-4 w-4 mr-2" />
-                                Add Fields Now
+                                Tambah Isian Sekarang
                             </Button>
                         </div>
                     </div>
@@ -433,16 +432,16 @@ const totalFieldsCount = computed(() => {
             <!-- Action Buttons -->
             <div class="flex items-center justify-between bg-white border rounded-lg p-4 sticky bottom-4">
                 <div class="text-sm text-muted-foreground">
-                    Preview completed. This is how reviewers will interact with your evaluation form.
+                    Pratinjau selesai. Inilah cara reviewer akan berinteraksi dengan formulir evaluasi Anda.
                 </div>
 
                 <div class="flex items-center space-x-2">
                     <Button variant="outline" @click="$inertia.visit(route('admin.review-evaluation-forms.index'))">
-                        Back to List
+                        Kembali ke Daftar
                     </Button>
                     <Button @click="$inertia.visit(route('admin.review-evaluation-forms.edit', evaluationForm.id))">
                         <Edit class="h-4 w-4 mr-2" />
-                        Edit Form
+                        Edit Formulir
                     </Button>
                 </div>
             </div>
