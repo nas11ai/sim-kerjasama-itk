@@ -242,11 +242,11 @@ onMounted(() => {
             <div class="flex items-center gap-4">
                 <Button variant="ghost" size="sm" @click="$inertia.visit(route('admin.review-evaluation-forms.index'))">
                     <ArrowLeft class="h-4 w-4 mr-2" />
-                    Back to Forms
+                    Kembali
                 </Button>
                 <div>
                     <h2 class="text-xl font-semibold leading-tight text-gray-800">
-                        Edit Review Evaluation Form
+                        Edit Formulir Evaluasi Review
                     </h2>
                     <p class="text-sm text-muted-foreground">
                         {{ evaluationForm.form_phase_detail.form_phase.title }}
@@ -260,13 +260,13 @@ onMounted(() => {
                 <!-- Basic Information -->
                 <Card>
                     <CardHeader>
-                        <CardTitle>Basic Information</CardTitle>
+                        <CardTitle>Informasi Dasar</CardTitle>
                     </CardHeader>
                     <CardContent class="space-y-6">
                         <div class="grid gap-4 md:grid-cols-2">
                             <div class="space-y-2">
-                                <Label for="title">Title *</Label>
-                                <Input id="title" v-model="form.title" placeholder="Enter form title"
+                                <Label for="title">Judul *</Label>
+                                <Input id="title" v-model="form.title" placeholder="Masukkan judul formulir"
                                     :class="hasError('title') ? 'border-destructive' : ''" />
                                 <p v-if="hasError('title')" class="text-sm text-destructive">
                                     {{ getError('title') }}
@@ -274,10 +274,10 @@ onMounted(() => {
                             </div>
 
                             <div class="space-y-2">
-                                <Label for="form_phase_detail_id">Select Form *</Label>
+                                <Label for="form_phase_detail_id">Pilih Form *</Label>
                                 <Select v-model="form.form_phase_detail_id">
                                     <SelectTrigger>
-                                        <SelectValue placeholder="Select form phase detail" />
+                                        <SelectValue placeholder="Pilih detail tahap formulir" />
                                     </SelectTrigger>
                                     <SelectContent>
                                         <template v-for="phase in formPhases" :key="phase.id">
@@ -306,20 +306,20 @@ onMounted(() => {
                         </div>
 
                         <div class="space-y-2">
-                            <Label for="description">Description</Label>
+                            <Label for="description">Deskripsi</Label>
                             <Textarea id="description" v-model="form.description"
-                                placeholder="Enter form description (optional)" rows="3" />
+                                placeholder="Masukkan deskripsi formulir (opsional)" rows="3" />
                         </div>
 
                         <div class="flex items-center space-x-6">
                             <div class="flex items-center space-x-2">
                                 <Switch v-model="form.is_required" id="is_required" />
-                                <Label for="is_required">Required for reviewers</Label>
+                                <Label for="is_required">Wajib untuk reviewer</Label>
                             </div>
 
                             <div class="flex items-center space-x-2">
                                 <Switch v-model="form.is_active" id="is_active" />
-                                <Label for="is_active">Active</Label>
+                                <Label for="is_active">Aktif</Label>
                             </div>
                         </div>
                     </CardContent>
@@ -329,16 +329,16 @@ onMounted(() => {
                 <Card>
                     <CardHeader>
                         <div class="flex items-center justify-between">
-                            <CardTitle>Form Fields</CardTitle>
+                            <CardTitle>Isian Formulir</CardTitle>
                             <Button type="button" @click="addField" size="sm">
                                 <Plus class="h-4 w-4 mr-2" />
-                                Add Field
+                                Tambah Isian
                             </Button>
                         </div>
                     </CardHeader>
                     <CardContent>
                         <div v-if="form.fields.length === 0" class="text-center py-8 text-muted-foreground">
-                            <p>No fields added yet. Click "Add Field" to get started.</p>
+                            <p>Belum ada isisan ditambahkan, Klik "Tambah Isian" untuk memulai.</p>
                         </div>
 
                         <div v-else class="space-y-4">
@@ -357,11 +357,11 @@ onMounted(() => {
                                                 <div class="flex-1 space-y-4">
                                                     <div class="grid gap-4 md:grid-cols-2">
                                                         <div class="space-y-2">
-                                                            <Label>Field Type *</Label>
+                                                            <Label>Tipe Isian *</Label>
                                                             <Select v-model="field.field_type_id"
                                                                 @update:model-value="onFieldTypeChange(index)">
                                                                 <SelectTrigger>
-                                                                    <SelectValue placeholder="Select field type" />
+                                                                    <SelectValue placeholder="Pilih tipe isian" />
                                                                 </SelectTrigger>
                                                                 <SelectContent>
                                                                     <SelectItem v-for="fieldType in fieldTypes"
@@ -375,39 +375,39 @@ onMounted(() => {
                                                         <div class="space-y-2">
                                                             <Label>Label *</Label>
                                                             <Input v-model="field.label"
-                                                                placeholder="Enter field label" />
+                                                                placeholder="Masukkan label isian" />
                                                         </div>
                                                     </div>
 
                                                     <div class="space-y-2">
-                                                        <Label>Description</Label>
+                                                        <Label>Deskripsi</Label>
                                                         <Textarea v-model="field.description"
-                                                            placeholder="Enter field description (optional)" rows="2" />
+                                                            placeholder="Masukkan deskripsi isian (opsional)" rows="2" />
                                                     </div>
 
                                                     <div class="flex items-center space-x-2">
                                                         <Switch v-model="field.is_required" />
-                                                        <Label>Required field</Label>
+                                                        <Label>Wajib diisi</Label>
                                                     </div>
 
                                                     <!-- Field Options -->
                                                     <div v-if="fieldRequiresOptions(index)" class="space-y-2">
                                                         <div class="flex items-center justify-between">
-                                                            <Label>Options</Label>
+                                                            <Label>Opsi</Label>
                                                             <Button type="button" variant="outline" size="sm"
                                                                 @click="addFieldOption(index)">
                                                                 <Plus class="h-3 w-3 mr-1" />
-                                                                Add Option
+                                                                Tambah Opsi
                                                             </Button>
                                                         </div>
 
                                                         <div class="space-y-2">
                                                             <div v-for="(option, optionIndex) in field.options"
                                                                 :key="option.temp_id" class="flex items-center gap-2">
-                                                                <Input v-model="option.label" placeholder="Option label"
+                                                                <Input v-model="option.label" placeholder="Label opsi"
                                                                     class="flex-1" />
                                                                 <Input v-model="option.value"
-                                                                    placeholder="Option value (optional)"
+                                                                    placeholder="Nilai opsi (opsional)"
                                                                     class="flex-1" />
                                                                 <Button type="button" variant="ghost" size="sm"
                                                                     @click="removeFieldOption(index, optionIndex)"
@@ -421,13 +421,13 @@ onMounted(() => {
                                                     <!-- Field Info -->
                                                     <div class="flex items-center gap-2">
                                                         <Badge variant="outline">
-                                                            Order: {{ field.order }}
+                                                            Urutan: {{ field.order }}
                                                         </Badge>
                                                         <Badge v-if="field.id" variant="secondary" class="text-xs">
-                                                            Existing
+                                                            Ada
                                                         </Badge>
                                                         <Badge v-else variant="default" class="text-xs">
-                                                            New
+                                                            Baru
                                                         </Badge>
                                                     </div>
                                                 </div>
@@ -454,12 +454,11 @@ onMounted(() => {
                             <AlertTriangle class="h-5 w-5 text-amber-600 mt-0.5" />
                             <div>
                                 <h4 class="text-amber-800 font-medium text-sm mb-1">
-                                    Update Warning
+                                    Peringatan Pembaruan
                                 </h4>
                                 <p class="text-amber-700 text-sm">
-                                    Modifying fields may affect existing draft responses. Completed submissions will not
-                                    be
-                                    affected.
+                                    Memodifikasi isian dapat memengaruhi draft tanggapan yang ada. Pengiriman yang sudah selesai tidak akan
+                                    terpengaruh.
                                 </p>
                             </div>
                         </div>
@@ -474,10 +473,10 @@ onMounted(() => {
                     </div>
                     <Button type="button" variant="outline"
                         @click="$inertia.visit(route('admin.review-evaluation-forms.index'))">
-                        Cancel
+                        Batal
                     </Button>
                     <Button type="submit" :disabled="form.processing">
-                        {{ form.processing ? "Updating..." : "Update Form" }}
+                        {{ form.processing ? "Memperbarui..." : "Perbarui Formulir" }}
                     </Button>
                 </div>
             </form>

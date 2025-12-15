@@ -24,7 +24,7 @@ class UpdateUserRequest extends FormRequest
         return [
             'name' => 'required|string|max:255',
             'email' => 'required|email|max:255',
-            'password' => 'nullable|string|min:8|confirmed',
+            'password' => 'nullable|string|min:8',
             'role' => 'required|exists:roles,name',
             'permissions' => 'array',
             'permissions.*' => 'exists:permissions,name',

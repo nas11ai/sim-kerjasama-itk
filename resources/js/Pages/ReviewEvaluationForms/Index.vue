@@ -120,23 +120,23 @@ const getFieldTypesPreview = (fields: ReviewFormField[]): string => {
 
 <template>
 
-    <Head title="Review Evaluation Forms" />
+    <Head title="Formulir Evaluasi Review" />
 
     <AuthenticatedLayout>
         <template #header>
             <div class="flex items-center justify-between">
                 <div>
                     <h2 class="text-xl font-semibold leading-tight text-gray-800">
-                        Review Evaluation Forms
+                        Formulir Evaluasi Review
                     </h2>
                     <p class="text-sm text-muted-foreground mt-1">
-                        Manage evaluation forms for reviewers to assess submissions
+                        Kelola formulir evaluasi untuk penilai menilai pengajuan
                     </p>
                 </div>
                 <Link :href="route('admin.review-evaluation-forms.create')">
                 <Button>
                     <Plus class="h-4 w-4 mr-2" />
-                    Create Evaluation Form
+                    Buat Formulir Evaluasi
                 </Button>
                 </Link>
             </div>
@@ -148,29 +148,29 @@ const getFieldTypesPreview = (fields: ReviewFormField[]): string => {
                 <CardHeader>
                     <CardTitle class="flex items-center gap-2">
                         <Filter class="h-5 w-5" />
-                        Filter Forms
+                        Filter Formulir
                     </CardTitle>
                 </CardHeader>
                 <CardContent>
                     <div class="flex gap-4 items-end">
                         <div class="flex-1">
-                            <label class="text-sm font-medium mb-2 block">Search</label>
+                            <label class="text-sm font-medium mb-2 block">Cari</label>
                             <div class="relative">
                                 <Search
                                     class="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                                <Input v-model="searchTerm" placeholder="Search evaluation forms..." class="pl-10"
+                                <Input v-model="searchTerm" placeholder="Cari formulir evaluasi..." class="pl-10"
                                     @keyup.enter="applyFilters" />
                             </div>
                         </div>
 
                         <div class="w-48">
-                            <label class="text-sm font-medium mb-2 block">Form Phase</label>
+                            <label class="text-sm font-medium mb-2 block">Tahap Formulir</label>
                             <Select v-model="formPhaseFilter">
                                 <SelectTrigger>
-                                    <SelectValue placeholder="All phases" />
+                                    <SelectValue placeholder="Semua tahap" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value="">All phases</SelectItem>
+                                    <SelectItem value="">Semua tahap</SelectItem>
                                     <SelectItem v-for="phase in formPhases" :key="phase.id"
                                         :value="phase.id.toString()">
                                         {{ phase.title }}
@@ -185,7 +185,7 @@ const getFieldTypesPreview = (fields: ReviewFormField[]): string => {
                                 Filter
                             </Button>
                             <Button variant="outline" @click="clearFilters">
-                                Clear
+                                Bersihkan Filter
                             </Button>
                         </div>
                     </div>
@@ -195,19 +195,19 @@ const getFieldTypesPreview = (fields: ReviewFormField[]): string => {
             <!-- Evaluation Forms Table -->
             <Card>
                 <CardHeader>
-                    <CardTitle>Evaluation Forms</CardTitle>
+                    <CardTitle>Formulir Evaluasi</CardTitle>
                 </CardHeader>
                 <CardContent>
                     <div v-if="evaluationForms.data.length === 0" class="text-center py-12">
                         <ClipboardList class="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                        <h3 class="text-lg font-medium mb-2">No Evaluation Forms Found</h3>
+                        <h3 class="text-lg font-medium mb-2">Tidak Ada Formulir Evaluasi Ditemukan</h3>
                         <p class="text-muted-foreground mb-4">
-                            No evaluation forms match your current filters or none have been created yet.
+                            Tidak ada formulir evaluasi yang sesuai dengan filter Anda saat ini atau belum ada yang dibuat.
                         </p>
                         <Link :href="route('admin.review-evaluation-forms.create')">
                         <Button>
                             <Plus class="h-4 w-4 mr-2" />
-                            Create First Evaluation Form
+                            Buat Formulir Evaluasi Pertama
                         </Button>
                         </Link>
                     </div>
@@ -216,12 +216,12 @@ const getFieldTypesPreview = (fields: ReviewFormField[]): string => {
                         <Table>
                             <TableHeader>
                                 <TableRow>
-                                    <TableHead>Form Title</TableHead>
-                                    <TableHead>Form Phase</TableHead>
-                                    <TableHead>Fields</TableHead>
+                                    <TableHead>Judul Formulir</TableHead>
+                                    <TableHead>Tahap Formulir</TableHead>
+                                    <TableHead>Isian</TableHead>
                                     <TableHead>Status</TableHead>
-                                    <TableHead>Usage</TableHead>
-                                    <TableHead class="text-right">Actions</TableHead>
+                                    <TableHead>Digunakan</TableHead>
+                                    <TableHead class="text-right">Aksi</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
@@ -235,9 +235,9 @@ const getFieldTypesPreview = (fields: ReviewFormField[]): string => {
                                             <div class="flex items-center gap-2 mt-1">
                                                 <Badge :variant="form.is_required ? 'destructive' : 'secondary'"
                                                     class="text-xs">
-                                                    {{ form.is_required ? 'Required' : 'Optional' }}
+                                                    {{ form.is_required ? 'Wajib' : 'Opsional' }}
                                                 </Badge>
-                                                <span class="text-xs text-muted-foreground">Order: {{ form.order
+                                                <span class="text-xs text-muted-foreground">Urutan: {{ form.order
                                                     }}</span>
                                             </div>
                                         </div>
@@ -247,26 +247,26 @@ const getFieldTypesPreview = (fields: ReviewFormField[]): string => {
                                     </TableCell>
                                     <TableCell>
                                         <div>
-                                            <div class="font-medium">{{ form.review_form_fields.length }} fields</div>
+                                            <div class="font-medium">{{ form.review_form_fields.length }} isian</div>
                                             <div v-if="form.review_form_fields.length > 0"
                                                 class="text-sm text-muted-foreground">
                                                 {{ getFieldTypesPreview(form.review_form_fields) }}
                                             </div>
                                             <div class="text-xs text-muted-foreground mt-1">
-                                                Required: {{form.review_form_fields.filter(f => f.is_required).length
+                                                Wajib: {{form.review_form_fields.filter(f => f.is_required).length
                                                 }}
                                             </div>
                                         </div>
                                     </TableCell>
                                     <TableCell>
                                         <Badge :variant="form.is_active ? 'default' : 'secondary'">
-                                            {{ form.is_active ? 'Active' : 'Inactive' }}
+                                            {{ form.is_active ? 'Aktif' : 'Tidak Aktif' }}
                                         </Badge>
                                     </TableCell>
                                     <TableCell>
                                         <div class="flex items-center gap-1 text-sm text-muted-foreground">
                                             <Users class="h-3 w-3" />
-                                            0 assignments
+                                            0 penugasan
                                         </div>
                                     </TableCell>
                                     <TableCell class="text-right">
@@ -281,7 +281,7 @@ const getFieldTypesPreview = (fields: ReviewFormField[]): string => {
                                                     <Link :href="route('admin.review-evaluation-forms.show', form.id)"
                                                         class="cursor-pointer">
                                                     <Eye class="h-4 w-4 mr-2" />
-                                                    View
+                                                    Lihat
                                                     </Link>
                                                 </DropdownMenuItem>
                                                 <DropdownMenuItem asChild>
@@ -293,20 +293,20 @@ const getFieldTypesPreview = (fields: ReviewFormField[]): string => {
                                                 </DropdownMenuItem>
                                                 <DropdownMenuItem @click="duplicateForm(form)" class="cursor-pointer">
                                                     <Copy class="h-4 w-4 mr-2" />
-                                                    Duplicate
+                                                    Duplikat
                                                 </DropdownMenuItem>
                                                 <DropdownMenuItem asChild>
                                                     <Link
                                                         :href="route('admin.review-evaluation-forms.preview', form.id)"
                                                         class="cursor-pointer">
                                                     <FileText class="h-4 w-4 mr-2" />
-                                                    Preview
+                                                    Pratinjau
                                                     </Link>
                                                 </DropdownMenuItem>
                                                 <DropdownMenuItem @click="deleteForm(form)"
                                                     class="cursor-pointer text-destructive focus:text-destructive">
                                                     <Trash2 class="h-4 w-4 mr-2" />
-                                                    Delete
+                                                    Hapus
                                                 </DropdownMenuItem>
                                             </DropdownMenuContent>
                                         </DropdownMenu>
@@ -318,8 +318,8 @@ const getFieldTypesPreview = (fields: ReviewFormField[]): string => {
                         <!-- Pagination -->
                         <div class="mt-6 flex items-center justify-between">
                             <div class="text-sm text-muted-foreground">
-                                Showing {{ evaluationForms.meta.from || 0 }} to {{ evaluationForms.meta.to || 0 }}
-                                of {{ evaluationForms.meta.total }} results
+                                Menampilkan {{ evaluationForms.meta.from || 0 }} hingga {{ evaluationForms.meta.to || 0 }}
+                                dari {{ evaluationForms.meta.total }} hasil
                             </div>
 
                             <div class="flex gap-2">
