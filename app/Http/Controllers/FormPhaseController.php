@@ -45,8 +45,8 @@ class FormPhaseController extends Controller
         }
 
         $formPhases = $query->orderBy($sortBy, $sortOrder)
-                            ->paginate($perPage)
-                            ->withQueryString();
+            ->paginate($perPage)
+            ->withQueryString();
 
         // Calculate review evaluation forms counts for each phase
         $formPhases->getCollection()->transform(function ($phase) {
@@ -113,12 +113,40 @@ class FormPhaseController extends Controller
                 'is_active' => $request->is_active ?? false
             ]);
 
-            foreach ($request->phase_details as $detail) {
+            // Normalize order: group by form_id and assign same order to same forms
+            $phaseDetails = collect($request->phase_details);
+
+            // Get form_id for each detail
+            $detailsWithFormId = $phaseDetails->map(function ($detail) {
+                $formAccessControl = FormAccessControl::with('form')->find($detail['form_access_control_id']);
+                return array_merge($detail, [
+                    'form_id' => $formAccessControl->form_id
+                ]);
+            });
+
+            // Calculate normalized order based on unique form_ids in sequence
+            $seenFormIds = [];
+            $formIdToOrder = [];
+            $currentOrder = 1;
+
+            foreach ($detailsWithFormId as $detail) {
+                $formId = $detail['form_id'];
+                if (!in_array($formId, $seenFormIds)) {
+                    $seenFormIds[] = $formId;
+                    $formIdToOrder[$formId] = $currentOrder;
+                    $currentOrder++;
+                }
+            }
+
+            // Create phase details with normalized order
+            foreach ($detailsWithFormId as $detail) {
+                $normalizedOrder = $formIdToOrder[$detail['form_id']];
+
                 FormPhaseDetail::create([
                     'form_phase_id' => $formPhase->id,
                     'form_access_control_id' => $detail['form_access_control_id'],
                     'phase_type_id' => $detail['phase_type_id'],
-                    'order' => $detail['order'],
+                    'order' => $normalizedOrder, // Use normalized order based on form_id
                     'needs_review' => $detail['needs_review'] ?? false,
                 ]);
             }
@@ -215,14 +243,42 @@ class FormPhaseController extends Controller
             // Delete existing phase details
             $formPhase->formPhaseDetails()->delete();
 
-            // Create new phase details
-            foreach ($request->phase_details as $detail) {
+            // Create new phase details with normalized order
+            // Normalize order: group by form_id and assign same order to same forms
+            $phaseDetails = collect($request->phase_details);
+
+            // Get form_id for each detail
+            $detailsWithFormId = $phaseDetails->map(function ($detail) {
+                $formAccessControl = FormAccessControl::with('form')->find($detail['form_access_control_id']);
+                return array_merge($detail, [
+                    'form_id' => $formAccessControl->form_id
+                ]);
+            });
+
+            // Calculate normalized order based on unique form_ids in sequence
+            $seenFormIds = [];
+            $formIdToOrder = [];
+            $currentOrder = 1;
+
+            foreach ($detailsWithFormId as $detail) {
+                $formId = $detail['form_id'];
+                if (!in_array($formId, $seenFormIds)) {
+                    $seenFormIds[] = $formId;
+                    $formIdToOrder[$formId] = $currentOrder;
+                    $currentOrder++;
+                }
+            }
+
+            // Create phase details with normalized order
+            foreach ($detailsWithFormId as $detail) {
+                $normalizedOrder = $formIdToOrder[$detail['form_id']];
+
                 FormPhaseDetail::create([
                     'form_phase_id' => $formPhase->id,
                     'form_access_control_id' => $detail['form_access_control_id'],
                     'phase_type_id' => $detail['phase_type_id'],
                     'needs_review' => $detail['needs_review'] ?? false,
-                    'order' => $detail['order']
+                    'order' => $normalizedOrder, // Use normalized order based on form_id
                 ]);
             }
 
@@ -358,7 +414,6 @@ class FormPhaseController extends Controller
 
             return redirect()->route('admin.form-phases.index')
                 ->with('success', 'Tahap Formulir terpilih berhasil dihapus.');
-
         } catch (\Exception $e) {
             DB::rollback();
             return back()->withErrors(['error' => 'Gagal menghapus tahap formulir terpilih: ' . $e->getMessage()]);
