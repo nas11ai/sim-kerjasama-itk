@@ -16,7 +16,8 @@ import {
     MessageSquare,
     Star,
     Users,
-    XCircle
+    XCircle,
+    ArrowUpRight
 } from 'lucide-vue-next';
 
 interface SubmissionPeriod {
@@ -121,6 +122,15 @@ const getProgressPercentage = (completed: number, total: number) => {
     if (total === 0) return 0;
     return Math.round((completed / total) * 100);
 };
+
+const isPhaseCompleted = (phase: FormPhase) => {
+    return (
+        phase.user_progress.total_forms > 0 &&
+        phase.user_progress.completed_forms === phase.user_progress.total_forms
+    );
+};
+
+console.log(props);
 </script>
 
 <template>
@@ -335,26 +345,46 @@ const getProgressPercentage = (completed: number, total: number) => {
                                         </div>
 
                                         <div class="ml-4">
-                                            <Link v-if="phase.user_can_access && phase.user_progress.can_proceed"
-                                                :href="route('user.form-phase', { period: period.id, phase: phase.id })">
-                                            <Button size="sm">
-                                                <PlayCircle class="h-4 w-4 mr-2" />
-                                                {{ phase.user_progress.completed_forms > 0 ? 'Lanjutkan' : 'Mulai' }}
-                                            </Button>
+                                            <!-- Jika phase sudah selesai -->
+                                            <Link
+                                                v-if="isPhaseCompleted(phase)"
+                                                :href="route('user.biodata.index')"
+                                            >
+                                                <Button size="sm" variant="default">
+                                                    <ArrowUpRight class="h-4 w-4 mr-2" />
+                                                    Cek Biodata
+                                                </Button>
                                             </Link>
 
-                                            <Button v-else-if="phase.user_progress.pending_review > 0" size="sm"
-                                                variant="outline" disabled>
+                                            <!-- Jika belum selesai tapi bisa lanjut -->
+                                            <Link
+                                                v-else-if="phase.user_can_access && phase.user_progress.can_proceed"
+                                                :href="route('user.form-phase', { period: period.id, phase: phase.id })"
+                                            >
+                                                <Button size="sm">
+                                                    <PlayCircle class="h-4 w-4 mr-2" />
+                                                    {{ phase.user_progress.completed_forms > 0 ? 'Lanjutkan' : 'Mulai' }}
+                                                </Button>
+                                            </Link>
+
+                                            <!-- Jika menunggu review -->
+                                            <Button
+                                                v-else-if="phase.user_progress.pending_review > 0"
+                                                size="sm"
+                                                variant="outline"
+                                                disabled
+                                            >
                                                 <AlertCircle class="h-4 w-4 mr-2" />
                                                 Menunggu Review
                                             </Button>
 
-                                            <Button v-else-if="!phase.user_can_access" size="sm" variant="outline"
-                                                disabled>
-                                                Tidak Dapat Diakses
-                                            </Button>
-
-                                            <Button v-else size="sm" variant="outline" disabled>
+                                            <!-- Jika tidak bisa diakses -->
+                                            <Button
+                                                v-else
+                                                size="sm"
+                                                variant="outline"
+                                                disabled
+                                            >
                                                 Belum Dapat Diakses
                                             </Button>
                                         </div>

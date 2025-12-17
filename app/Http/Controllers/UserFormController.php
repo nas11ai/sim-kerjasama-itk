@@ -57,7 +57,7 @@ class UserFormController extends Controller
             }
         ])
             ->get()
-            ->map(function ($period) use ($user) {
+            ->map(function ($period) use ($user, $studyProgram) {
                 // Fix: Use correct attribute name based on your model
                 $dates = $period->submissionDates->sortBy('datetime'); // Changed from 'datetime' to 'date'
                 $now = Carbon::now();
@@ -89,15 +89,29 @@ class UserFormController extends Controller
                 }
 
                 // Process form phases with user progress
-                $period->form_phases = $period->submissionPeriodPhases->map(function ($periodPhase) use ($user) {
+                $period->form_phases = $period->submissionPeriodPhases->map(function ($periodPhase) use ($user, $studyProgram) {
                     $formPhase = $periodPhase->formPhase;
 
                     // Get user's accessible form access controls
-                    $accessibleForms = $formPhase->formPhaseDetails->filter(function ($detail) use ($user) {
+                    // Filter by role AND study_program_id to avoid counting forms multiple times
+                    $accessibleForms = $formPhase->formPhaseDetails->filter(function ($detail) use ($user, $studyProgram) {
                         $formAccessControl = $detail->formAccessControl;
-                        return $formAccessControl &&
-                            $formAccessControl->role &&
-                            $user->hasRole($formAccessControl->role->name);
+
+                        if (!$formAccessControl || !$formAccessControl->role) {
+                            return false;
+                        }
+
+                        // Check role match
+                        if (!$user->hasRole($formAccessControl->role->name)) {
+                            return false;
+                        }
+
+                        // Check study program match (if user has study program)
+                        if ($studyProgram && $formAccessControl->study_program_id !== $studyProgram->id) {
+                            return false;
+                        }
+
+                        return true;
                     });
 
                     // Calculate progress

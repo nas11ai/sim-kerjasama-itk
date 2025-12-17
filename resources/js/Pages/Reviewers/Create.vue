@@ -82,8 +82,8 @@ const submit = () => {
                                 <SelectContent>
                                     <SelectItem v-for="user in props.users" :key="user.id" :value="user.id.toString()">
                                         <div class="flex flex-col">
-                                            <span class="font-medium">{{ user.name }}</span>
-                                            <span class="text-xs text-muted-foreground">{{ user.email }}</span>
+                                            {{ user.name }}
+                                            <span class="text-xs italic text-muted-foreground">({{ user.email }})</span>
                                         </div>
                                     </SelectItem>
                                 </SelectContent>
