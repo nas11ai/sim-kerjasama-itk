@@ -88,16 +88,72 @@ const props = defineProps<Props>();
 const currentStepIndex = ref(props.currentStep ? props.currentStep - 1 : 0);
 const isSubmitting = ref(false);
 
+// Group form access controls by form_id - same form with different access controls shown once
+interface GroupedForm {
+    formId: number;
+    form: Form;
+    order: number;
+    accessControls: FormAccessControl[];
+    // Use the first access control's data for the step
+    primaryAccessControl: FormAccessControl;
+    anyNeedsReview: boolean;
+    userSubmission?: FormAccessControl['user_submission'];
+}
+
+const groupedForms = computed((): GroupedForm[] => {
+    const groups: Map<number, GroupedForm> = new Map();
+    let currentOrder = 0;
+
+    // Sort by order
+    const sortedControls = [...props.formPhase.form_access_controls].sort((a, b) => a.order - b.order);
+
+    sortedControls.forEach(control => {
+        const formId = control.form.id;
+
+        if (!groups.has(formId)) {
+            currentOrder++;
+            groups.set(formId, {
+                formId,
+                form: control.form,
+                order: currentOrder,
+                accessControls: [],
+                primaryAccessControl: control,
+                anyNeedsReview: false,
+                userSubmission: undefined
+            });
+        }
+
+        const group = groups.get(formId)!;
+        group.accessControls.push(control);
+
+        // Track if any access control needs review
+        if (control.needs_review) {
+            group.anyNeedsReview = true;
+        }
+
+        // Use the user's submission if found (user matches one of the access controls)
+        if (control.user_submission) {
+            group.userSubmission = control.user_submission;
+            group.primaryAccessControl = control; // Use the control with user's submission
+        }
+    });
+
+    return Array.from(groups.values()).sort((a, b) => a.order - b.order);
+});
+
+const currentGroupedForm = computed(() => {
+    return groupedForms.value[currentStepIndex.value];
+});
+
 const currentForm = computed(() => {
-    const formAccessControl = props.formPhase.form_access_controls[currentStepIndex.value];
-    return formAccessControl?.form;
+    return currentGroupedForm.value?.form;
 });
 
 const currentFormAccessControl = computed(() => {
-    return props.formPhase.form_access_controls[currentStepIndex.value];
+    return currentGroupedForm.value?.primaryAccessControl;
 });
 
-const totalSteps = computed(() => props.formPhase.form_access_controls.length);
+const totalSteps = computed(() => groupedForms.value.length);
 
 const progress = computed(() => {
     return ((currentStepIndex.value + 1) / totalSteps.value) * 100;
@@ -223,15 +279,15 @@ const goToStep = (stepIndex: number) => {
 };
 
 const isStepCompleted = (stepIndex: number) => {
-    const formAccessControl = props.formPhase.form_access_controls[stepIndex];
-    return formAccessControl?.user_submission?.is_submitted || false;
+    const group = groupedForms.value[stepIndex];
+    return group?.userSubmission?.is_submitted || false;
 };
 
 const isStepPendingReview = (stepIndex: number) => {
-    const formAccessControl = props.formPhase.form_access_controls[stepIndex];
-    return formAccessControl?.user_submission?.is_submitted &&
-        formAccessControl?.needs_review &&
-        !formAccessControl?.user_submission?.can_proceed;
+    const group = groupedForms.value[stepIndex];
+    return group?.userSubmission?.is_submitted &&
+        group?.anyNeedsReview &&
+        !group?.userSubmission?.can_proceed;
 };
 
 const canAccessStep = (stepIndex: number) => {
@@ -248,15 +304,15 @@ const canAccessStep = (stepIndex: number) => {
     // A step allows proceeding if:
     // 1. It's submitted AND doesn't need review, OR
     // 2. It's submitted, needs review, AND can_proceed is true
-    const previousFormAccessControl = props.formPhase.form_access_controls[stepIndex - 1];
+    const previousGroup = groupedForms.value[stepIndex - 1];
 
-    if (!previousFormAccessControl?.user_submission?.is_submitted) {
+    if (!previousGroup?.userSubmission?.is_submitted) {
         return false; // Previous step not submitted
     }
 
-    if (previousFormAccessControl.needs_review) {
+    if (previousGroup.anyNeedsReview) {
         // If needs review, must have can_proceed = true
-        return previousFormAccessControl.user_submission?.can_proceed || false;
+        return previousGroup.userSubmission?.can_proceed || false;
     }
 
     // If doesn't need review and is submitted, can proceed
@@ -350,8 +406,8 @@ const renderFormField = (field: FormField) => {
                         </CardHeader>
                         <CardContent>
                             <div class="space-y-2">
-                                <button v-for="(formAccessControl, index) in formPhase.form_access_controls"
-                                    :key="formAccessControl.id" @click="goToStep(index)"
+                                <button v-for="(group, index) in groupedForms"
+                                    :key="group.formId" @click="goToStep(index)"
                                     :disabled="!canAccessStep(index)"
                                     class="w-full flex items-center gap-3 p-3 text-left rounded-lg border transition-colors"
                                     :class="{
@@ -366,12 +422,12 @@ const renderFormField = (field: FormField) => {
                                         <Clock v-else-if="isStepPendingReview(index)" class="h-5 w-5" />
                                         <span v-else
                                             class="flex items-center justify-center w-5 h-5 rounded-full text-xs font-medium border-2">
-                                            {{ index + 1 }}
+                                            {{ group.order }}
                                         </span>
                                     </div>
                                     <div class="flex-1 min-w-0">
-                                        <p class="font-medium text-sm truncate">{{ formAccessControl.form.title }}</p>
-                                        <p class="text-xs opacity-75 truncate">{{ formAccessControl.phase_type.name }}
+                                        <p class="font-medium text-sm truncate">{{ group.form.title }}</p>
+                                        <p class="text-xs opacity-75 truncate">{{ group.primaryAccessControl.phase_type.name }}
                                         </p>
                                     </div>
                                 </button>

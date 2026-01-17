@@ -185,9 +185,9 @@ const canUpdateSubmissionStatus = computed(() => {
 
 // Review status options
 const reviewStatusOptions = [
-    { value: 'open', label: 'Open', color: 'green' },
-    { value: 'resolved', label: 'Resolved', color: 'blue' },
-    { value: 'closed', label: 'Closed', color: 'red' }
+    { value: 'open', label: 'Terbuka', color: 'green' },
+    { value: 'resolved', label: 'Terselesaikan', color: 'blue' },
+    { value: 'closed', label: 'Ditutup', color: 'red' }
 ]
 
 // Submission status options
@@ -236,11 +236,11 @@ const canActuallyCreateThread = computed(() => {
 
 const threadCreationMessage = computed(() => {
     if (!isAssignedReviewer.value) {
-        return 'You are not assigned as a reviewer for this submission.'
+        return 'Anda tidak ditugaskan sebagai reviewer untuk pengajuan ini.'
     }
 
     if (!props.hasReviewEvaluationForms) {
-        return 'You can create review threads for this submission.'
+        return 'Anda dapat membuat thread review untuk pengajuan ini.'
     }
 
     const requiredForms = reviewerAssignments.value.filter(a => a.is_required)
@@ -249,15 +249,15 @@ const threadCreationMessage = computed(() => {
     )
 
     if (requiredForms.length === 0) {
-        return 'No required evaluation forms. You can create review threads.'
+        return 'Tidak ada form evaluasi wajib. Anda dapat membuat thread review.'
     }
 
     if (completedRequired.length < requiredForms.length) {
         const remaining = requiredForms.length - completedRequired.length
-        return `Complete ${remaining} required evaluation form(s) before creating review threads.`
+        return `Selesaikan ${remaining} form evaluasi wajib terlebih dahulu sebelum membuat thread review.`
     }
 
-    return 'You have completed all evaluations and can now create review threads.'
+    return 'Anda telah menyelesaikan semua evaluasi dan sekarang dapat membuat thread review.'
 })
 
 const getAssignmentStatusInfo = (assignment: ReviewerFormAssignment) => {
@@ -279,10 +279,10 @@ const getAssignmentStatusInfo = (assignment: ReviewerFormAssignment) => {
     }
 }
 
-const statusMap: Record<string, { label: string; color: string; icon: any }> = {
-    open: { label: "Open", color: "bg-green-100 text-green-800", icon: AlertCircle },
-    resolved: { label: "Resolved", color: "bg-blue-100 text-blue-800", icon: CheckCircle },
-    closed: { label: "Closed", color: "bg-red-100 text-red-800", icon: XCircle },
+const statusMap = {
+    open: { label: "Terbuka", color: "bg-green-100 text-green-800", icon: AlertCircle },
+    resolved: { label: "Terselesaikan", color: "bg-blue-100 text-blue-800", icon: CheckCircle },
+    closed: { label: "Ditutup", color: "bg-red-100 text-red-800", icon: XCircle },
 }
 
 const getStatusInfo = (status: string) => {
@@ -440,7 +440,7 @@ const updateSubmissionStatus = () => {
                 <div class="flex items-center justify-between">
                     <CardTitle class="flex items-center gap-2">
                         <Settings class="h-5 w-5" />
-                        Submission Status
+                        Status Pengajuan
                     </CardTitle>
                     <div class="flex items-center gap-3">
                         <Badge
@@ -450,7 +450,7 @@ const updateSubmissionStatus = () => {
                         <Button v-if="canUpdateSubmissionStatus" size="sm" variant="outline"
                             @click="openUpdateSubmissionStatusDialog">
                             <Edit class="h-4 w-4 mr-2" />
-                            Update Status
+                            Perbarui Status
                         </Button>
                     </div>
                 </div>
@@ -462,7 +462,7 @@ const updateSubmissionStatus = () => {
             <CardHeader>
                 <CardTitle class="flex items-center gap-2">
                     <Users class="h-5 w-5" />
-                    Review Overview
+                    Ikhtisar Review
                 </CardTitle>
             </CardHeader>
             <CardContent>
@@ -473,19 +473,19 @@ const updateSubmissionStatus = () => {
                     </div>
                     <div>
                         <div class="text-2xl font-bold text-green-600">{{ reviewStats.open_reviews }}</div>
-                        <div class="text-sm text-muted-foreground">Open</div>
+                        <div class="text-sm text-muted-foreground">Terbuka</div>
                     </div>
                     <div>
                         <div class="text-2xl font-bold text-blue-600">{{ reviewStats.resolved_reviews }}</div>
-                        <div class="text-sm text-muted-foreground">Resolved</div>
+                        <div class="text-sm text-muted-foreground">Terselesaikan</div>
                     </div>
                     <div>
                         <div class="text-2xl font-bold text-red-600">{{ reviewStats.closed_reviews }}</div>
-                        <div class="text-sm text-muted-foreground">Closed</div>
+                        <div class="text-sm text-muted-foreground">Ditutup</div>
                     </div>
                     <div>
                         <div class="text-2xl font-bold">{{ reviewStats.total_comments }}</div>
-                        <div class="text-sm text-muted-foreground">Comments</div>
+                        <div class="text-sm text-muted-foreground">Komentar</div>
                     </div>
                 </div>
             </CardContent>
@@ -498,14 +498,14 @@ const updateSubmissionStatus = () => {
                     <div>
                         <CardTitle class="flex items-center gap-2">
                             <ClipboardList class="h-5 w-5" />
-                            Evaluation Forms
+                            Form Evaluasi
                         </CardTitle>
                         <p class="text-muted-foreground text-sm mt-1">
-                            Complete required evaluation forms before creating review threads
+                            Lengkapi form evaluasi yang wajib sebelum membuat thread review
                         </p>
                     </div>
                     <Badge variant="default">
-                        {{ completedEvaluationsCount }}/{{ totalEvaluationsCount }} Completed
+                        {{ completedEvaluationsCount }}/{{ totalEvaluationsCount }} Selesai
                     </Badge>
                 </div>
             </CardHeader>
@@ -536,7 +536,7 @@ const updateSubmissionStatus = () => {
                                 <div v-if="assignment.due_date"
                                     class="text-xs text-muted-foreground flex items-center gap-1">
                                     <Clock class="h-3 w-3" />
-                                    Due: {{ formatDate(assignment.due_date) }}
+                                    Tenggat: {{ formatDate(assignment.due_date) }}
                                 </div>
                             </div>
 
@@ -544,20 +544,20 @@ const updateSubmissionStatus = () => {
                                 <Button v-if="!assignment.id" size="sm"
                                     @click="startEvaluationForm(assignment.review_evaluation_form.id)">
                                     <FileText class="h-4 w-4 mr-1" />
-                                    Start
+                                    Mulai
                                 </Button>
 
                                 <Button v-else-if="assignment.review_form_response?.status === 'draft'" size="sm"
                                     @click="router.visit(route('reviewer.evaluation-form.show', { assignment: assignment.id }))">
                                     <FileText class="h-4 w-4 mr-1" />
-                                    Continue
+                                    Lanjutkan
                                 </Button>
 
                                 <Button v-else-if="assignment.review_form_response?.status === 'submitted'" size="sm"
                                     variant="outline"
                                     @click="router.visit(route('reviewer.evaluation-form.submitted', { assignment: assignment.id }))">
                                     <Eye class="h-4 w-4 mr-1" />
-                                    View
+                                    Lihat
                                 </Button>
                             </div>
                         </div>
@@ -581,7 +581,7 @@ const updateSubmissionStatus = () => {
                 <div class="flex items-center justify-between">
                     <CardTitle class="flex items-center gap-2">
                         <MessageSquare class="h-5 w-5" />
-                        Review Threads
+                        Thread Review
                         <Badge v-if="reviewSummaries.length > 0" variant="secondary" class="ml-2">
                             {{ reviewSummaries.length }}
                         </Badge>
@@ -589,7 +589,7 @@ const updateSubmissionStatus = () => {
 
                     <Button v-if="canActuallyCreateThread" size="sm" @click="showThreadDialog = true">
                         <Plus class="h-4 w-4 mr-2" />
-                        New Thread
+                        Thread Baru
                     </Button>
                 </div>
             </CardHeader>
@@ -639,7 +639,7 @@ const updateSubmissionStatus = () => {
                                     <div class="flex items-center gap-2 mt-2">
                                         <Badge variant="outline" class="text-xs">
                                             <MessageCircle class="h-3 w-3 mr-1" />
-                                            {{ getThreadComments(reviewSummary.id).length }} Comments
+                                            {{ getThreadComments(reviewSummary.id).length }} Komentar
                                         </Badge>
                                         <component :is="isThreadExpanded(reviewSummary.id) ? ChevronUp : ChevronDown"
                                             class="h-4 w-4 text-muted-foreground" />
@@ -659,18 +659,18 @@ const updateSubmissionStatus = () => {
                         <CardContent class="space-y-4 pt-0">
                             <!-- Summary Notes -->
                             <div v-if="reviewSummary.summary_notes" class="bg-muted/50 p-4 rounded-lg">
-                                <Label class="text-sm font-medium mb-2 block">Review Notes</Label>
+                                <Label class="text-sm font-medium mb-2 block">Catatan Review</Label>
                                 <div class="whitespace-pre-wrap text-sm">{{ reviewSummary.summary_notes }}</div>
                             </div>
 
                             <!-- Attachments -->
                             <div v-if="reviewSummary.attachments.length > 0" class="space-y-2">
-                                <Label class="text-sm font-medium">Attachments:</Label>
+                                <Label class="text-sm font-medium">Lampiran:</Label>
                                 <div class="flex flex-wrap gap-2">
                                     <Button v-for="attachment in reviewSummary.attachments" :key="attachment.id"
                                         variant="outline" size="sm" @click="downloadAttachment(attachment.file_path)">
                                         <Download class="h-3 w-3 mr-1" />
-                                        Download File
+                                        Unduh File
                                     </Button>
                                 </div>
                             </div>
@@ -680,9 +680,9 @@ const updateSubmissionStatus = () => {
                             <!-- Comments Section -->
                             <div class="space-y-4">
                                 <div class="flex items-center justify-between">
-                                    <Label class="text-sm font-medium">Discussion</Label>
+                                    <Label class="text-sm font-medium">Diskusi</Label>
                                     <Badge variant="outline" class="text-xs">
-                                        {{ getThreadComments(reviewSummary.id).length }} Comments
+                                        {{ getThreadComments(reviewSummary.id).length }} Komentar
                                     </Badge>
                                 </div>
 
@@ -751,7 +751,7 @@ const updateSubmissionStatus = () => {
                                                 <div v-if="replyingTo === comment.id && canCommentOnThread(reviewSummary.status)"
                                                     class="ml-4">
                                                     <div class="flex gap-2">
-                                                        <Textarea v-model="newReply" placeholder="Write a reply..."
+                                                        <Textarea v-model="newReply" placeholder="Tulis Balasan"
                                                             rows="2" class="flex-1" />
                                                         <div class="flex flex-col gap-1">
                                                             <Button size="sm"
@@ -768,7 +768,7 @@ const updateSubmissionStatus = () => {
                                                 </div>
                                                 <Button v-else-if="canCommentOnThread(reviewSummary.status)"
                                                     variant="ghost" size="sm" @click="replyingTo = comment.id">
-                                                    Reply
+                                                    Balas
                                                 </Button>
                                             </div>
                                         </div>
@@ -778,7 +778,7 @@ const updateSubmissionStatus = () => {
                                 <!-- Empty Comments State -->
                                 <div v-else class="text-center py-8 text-muted-foreground">
                                     <MessageCircle class="h-8 w-8 mx-auto mb-2 opacity-50" />
-                                    <p class="text-sm">No comments yet. Be the first to comment!</p>
+                                    <p class="text-sm">Belum ada komentar. Jadilah yang pertama memberikan komentar!</p>
                                 </div>
 
                                 <!-- New Comment Form (Only if thread is open) -->
@@ -790,11 +790,11 @@ const updateSubmissionStatus = () => {
                                         </Avatar>
                                         <div class="flex-1 space-y-2">
                                             <Textarea v-model="newComments[reviewSummary.id]"
-                                                placeholder="Add a comment..." rows="3" />
+                                                placeholder="Tambahkan komentar..." rows="3" />
                                             <Button size="sm" @click="addComment(reviewSummary.id)"
                                                 :disabled="!newComments[reviewSummary.id]?.trim()">
                                                 <Send class="h-4 w-4 mr-2" />
-                                                Comment
+                                                Komentar
                                             </Button>
                                         </div>
                                     </div>
@@ -807,7 +807,7 @@ const updateSubmissionStatus = () => {
                                     <div>
                                         <p class="text-sm font-medium">This thread is {{ reviewSummary.status }}</p>
                                         <p class="text-xs text-muted-foreground">
-                                            Comments are disabled for {{ reviewSummary.status }} threads
+                                            Komentar dinonaktifkan untuk thread dengan status {{ reviewSummary.status }}
                                         </p>
                                     </div>
                                 </div>
@@ -822,25 +822,25 @@ const updateSubmissionStatus = () => {
         <Dialog v-model:open="showThreadDialog">
             <DialogContent class="max-w-2xl">
                 <DialogHeader>
-                    <DialogTitle>Create Review Thread</DialogTitle>
+                    <DialogTitle>Buat Thread Review</DialogTitle>
                     <DialogDescription>
-                        Create a discussion thread for this submission review.
+                        Buat thread diskusi untuk review pengajuan ini.
                     </DialogDescription>
                 </DialogHeader>
                 <div class="space-y-4">
                     <div>
-                        <Label>Description</Label>
-                        <Textarea v-model="newThreadNotes" placeholder="Describe the issue or feedback..." rows="4" />
+                        <Label>Descripsi</Label>
+                        <Textarea v-model="newThreadNotes" placeholder="Deskripsikan isu atau umpan balik..." rows="4" />
                     </div>
                     <div>
-                        <Label>Attachments (Optional)</Label>
+                        <Label>Lampiran (Opsional)</Label>
                         <Input type="file" multiple @change="handleFileUpload"
                             accept=".pdf,.doc,.docx,.png,.jpg,.jpeg" />
                     </div>
                     <div class="flex justify-end gap-2">
-                        <Button variant="outline" @click="showThreadDialog = false">Cancel</Button>
+                        <Button variant="outline" @click="showThreadDialog = false">Batal</Button>
                         <Button @click="createThread" :disabled="!newThreadNotes.trim()">
-                            Create Thread
+                            Buat Thread
                         </Button>
                     </div>
                 </div>
@@ -851,14 +851,14 @@ const updateSubmissionStatus = () => {
         <Dialog v-model:open="showUpdateReviewStatusDialog">
             <DialogContent class="max-w-md">
                 <DialogHeader>
-                    <DialogTitle>Update Review Thread Status</DialogTitle>
+                    <DialogTitle>Perbarui Status Thread Review</DialogTitle>
                     <DialogDescription>
-                        Change the status of this review thread.
+                        Ubah status thread review ini.
                     </DialogDescription>
                 </DialogHeader>
                 <div class="space-y-4">
                     <div>
-                        <Label>Select Status</Label>
+                        <Label>Pilih Status</Label>
                         <Select v-model="selectedReviewStatus">
                             <SelectTrigger>
                                 <SelectValue placeholder="Choose status..." />
@@ -875,9 +875,9 @@ const updateSubmissionStatus = () => {
                         </Select>
                     </div>
                     <div class="flex justify-end gap-2">
-                        <Button variant="outline" @click="showUpdateReviewStatusDialog = false">Cancel</Button>
+                        <Button variant="outline" @click="showUpdateReviewStatusDialog = false">Batal</Button>
                         <Button @click="updateReviewSummaryStatus" :disabled="!selectedReviewStatus">
-                            Update Status
+                            Perbarui Status
                         </Button>
                     </div>
                 </div>
@@ -888,17 +888,17 @@ const updateSubmissionStatus = () => {
         <Dialog v-model:open="showUpdateSubmissionStatusDialog">
             <DialogContent class="max-w-md">
                 <DialogHeader>
-                    <DialogTitle>Update Submission Status</DialogTitle>
+                    <DialogTitle>Perbarui Status Pengajuan</DialogTitle>
                     <DialogDescription>
-                        Change the overall status of this submission.
+                        Ubah status keseluruhan pengajuan ini.
                     </DialogDescription>
                 </DialogHeader>
                 <div class="space-y-4">
                     <div>
-                        <Label>Select Status</Label>
+                        <Label>Pilih Status</Label>
                         <Select v-model="selectedSubmissionStatus">
                             <SelectTrigger>
-                                <SelectValue placeholder="Choose status..." />
+                                <SelectValue placeholder="Pilih status..." />
                             </SelectTrigger>
                             <SelectContent>
                                 <SelectItem v-for="status in submissionStatusOptions" :key="status.value"
@@ -914,13 +914,13 @@ const updateSubmissionStatus = () => {
                     <Alert>
                         <AlertCircle class="h-4 w-4" />
                         <AlertDescription>
-                            This will update the submission status for all reviewers and the submitter.
+                            Ini akan memperbarui status pengajuan untuk semua reviewer dan pengaju.
                         </AlertDescription>
                     </Alert>
                     <div class="flex justify-end gap-2">
-                        <Button variant="outline" @click="showUpdateSubmissionStatusDialog = false">Cancel</Button>
+                        <Button variant="outline" @click="showUpdateSubmissionStatusDialog = false">Batal</Button>
                         <Button @click="updateSubmissionStatus" :disabled="!selectedSubmissionStatus">
-                            Update Status
+                            Perbarui Status
                         </Button>
                     </div>
                 </div>
@@ -931,21 +931,21 @@ const updateSubmissionStatus = () => {
         <Card v-if="reviewSummaries.length === 0" class="text-center py-12">
             <CardContent>
                 <MessageSquare class="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                <h3 class="text-lg font-medium mb-2">No Review Threads Yet</h3>
+                <h3 class="text-lg font-medium mb-2">Belum Ada Thread Review</h3>
                 <p class="text-muted-foreground mb-4">
                     <span v-if="canActuallyCreateThread">
-                        Create a review thread to start the discussion.
+                        Buat thread review untuk memulai diskusi.
                     </span>
                     <span v-else-if="isAssignedReviewer">
                         {{ threadCreationMessage }}
                     </span>
                     <span v-else>
-                        No review threads have been created for this submission yet.
+                        Belum ada thread review yang dibuat untuk pengajuan ini.
                     </span>
                 </p>
                 <Button v-if="canActuallyCreateThread" @click="showThreadDialog = true">
                     <Plus class="h-4 w-4 mr-2" />
-                    Create First Thread
+                    Buat Thread Pertama
                 </Button>
             </CardContent>
         </Card>

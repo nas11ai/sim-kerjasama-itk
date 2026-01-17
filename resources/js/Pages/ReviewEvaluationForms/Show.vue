@@ -101,21 +101,21 @@ const formatValidationRules = (rules?: Record<string, any>): string => {
 
 <template>
 
-    <Head :title="`${evaluationForm.title} - Review Evaluation Form`" />
+    <Head :title="`${evaluationForm.title} - Formulir Evaluasi Review`" />
 
     <AuthenticatedLayout>
         <template #header>
             <div class="flex items-center gap-4">
                 <Button variant="ghost" size="sm" @click="$inertia.visit(route('admin.review-evaluation-forms.index'))">
                     <ArrowLeft class="h-4 w-4 mr-2" />
-                    Back to Forms
+                    Kembali ke Daftar
                 </Button>
                 <div>
                     <h2 class="text-xl font-semibold leading-tight text-gray-800">
                         {{ evaluationForm.title }}
                     </h2>
                     <p class="text-sm text-muted-foreground">
-                        Review Evaluation Form
+                        Formulir Evaluasi Review
                     </p>
                 </div>
             </div>
@@ -126,18 +126,18 @@ const formatValidationRules = (rules?: Record<string, any>): string => {
             <Card>
                 <CardHeader>
                     <div class="flex items-center justify-between">
-                        <CardTitle>Form Information</CardTitle>
+                        <CardTitle>Informasi Formulir</CardTitle>
                         <div class="flex gap-2">
                             <Link :href="route('admin.review-evaluation-forms.preview', evaluationForm.id)">
                             <Button variant="outline" size="sm">
                                 <Eye class="h-4 w-4 mr-2" />
-                                Preview
+                                Pratinjau
                             </Button>
                             </Link>
                             <Link :href="route('admin.review-evaluation-forms.edit', evaluationForm.id)">
                             <Button size="sm">
                                 <Edit class="h-4 w-4 mr-2" />
-                                Edit Form
+                                Edit Formulir
                             </Button>
                             </Link>
                         </div>
@@ -147,17 +147,17 @@ const formatValidationRules = (rules?: Record<string, any>): string => {
                     <div class="grid gap-6 md:grid-cols-2">
                         <div class="space-y-4">
                             <div>
-                                <h3 class="font-medium text-sm text-muted-foreground">Title</h3>
+                                <h3 class="font-medium text-sm text-muted-foreground">Judul</h3>
                                 <p class="text-lg font-medium">{{ evaluationForm.title }}</p>
                             </div>
 
                             <div v-if="evaluationForm.description">
-                                <h3 class="font-medium text-sm text-muted-foreground">Description</h3>
+                                <h3 class="font-medium text-sm text-muted-foreground">Deskripsi</h3>
                                 <p class="text-sm">{{ evaluationForm.description }}</p>
                             </div>
 
                             <div>
-                                <h3 class="font-medium text-sm text-muted-foreground">Form Phase</h3>
+                                <h3 class="font-medium text-sm text-muted-foreground">Tahap Formulir</h3>
                                 <div class="flex items-center gap-2">
                                     <FileText class="h-4 w-4" />
                                     <span>{{ evaluationForm.form_phase.title }}</span>
@@ -167,29 +167,29 @@ const formatValidationRules = (rules?: Record<string, any>): string => {
 
                         <div class="space-y-4">
                             <div>
-                                <h3 class="font-medium text-sm text-muted-foreground">Status & Settings</h3>
+                                <h3 class="font-medium text-sm text-muted-foreground">Status & Pengaturan</h3>
                                 <div class="flex flex-wrap gap-2 mt-2">
                                     <Badge :variant="evaluationForm.is_active ? 'default' : 'secondary'">
-                                        {{ evaluationForm.is_active ? 'Active' : 'Inactive' }}
+                                        {{ evaluationForm.is_active ? 'Aktif' : 'Tidak Aktif' }}
                                     </Badge>
                                     <Badge :variant="evaluationForm.is_required ? 'destructive' : 'outline'">
-                                        {{ evaluationForm.is_required ? 'Required' : 'Optional' }}
+                                        {{ evaluationForm.is_required ? 'Wajib' : 'Opsional' }}
                                     </Badge>
                                     <Badge variant="outline">
-                                        Order: {{ evaluationForm.order }}
+                                        Urutan: {{ evaluationForm.order }}
                                     </Badge>
                                 </div>
                             </div>
 
                             <div>
-                                <h3 class="font-medium text-sm text-muted-foreground">Form Statistics</h3>
+                                <h3 class="font-medium text-sm text-muted-foreground">Statistik Formulir</h3>
                                 <div class="space-y-2 text-sm">
                                     <div class="flex justify-between">
-                                        <span>Total Fields:</span>
+                                        <span>Total Isian:</span>
                                         <span class="font-medium">{{ evaluationForm.review_form_fields.length }}</span>
                                     </div>
                                     <div class="flex justify-between">
-                                        <span>Required Fields:</span>
+                                        <span>Isian Wajib:</span>
                                         <span class="font-medium">{{evaluationForm.review_form_fields.filter(f =>
                                             f.is_required).length}}</span>
                                     </div>
@@ -205,24 +205,24 @@ const formatValidationRules = (rules?: Record<string, any>): string => {
                 <CardHeader>
                     <CardTitle class="flex items-center gap-2">
                         <Users class="h-5 w-5" />
-                        Usage Statistics
+                        Statistik Penggunaan
                     </CardTitle>
                 </CardHeader>
                 <CardContent>
                     <div class="grid gap-4 md:grid-cols-3">
                         <div class="text-center p-4 bg-blue-50 rounded-lg">
                             <div class="text-2xl font-bold text-blue-600">{{ assignmentStats.total_assignments }}</div>
-                            <div class="text-sm text-blue-700">Total Assignments</div>
+                            <div class="text-sm text-blue-700">Total Penugasan</div>
                         </div>
                         <div class="text-center p-4 bg-green-50 rounded-lg">
                             <div class="text-2xl font-bold text-green-600">{{ assignmentStats.completed_responses }}
                             </div>
-                            <div class="text-sm text-green-700">Completed Responses</div>
+                            <div class="text-sm text-green-700">Respon Selesai</div>
                         </div>
                         <div class="text-center p-4 bg-orange-50 rounded-lg">
                             <div class="text-2xl font-bold text-orange-600">{{ assignmentStats.pending_responses }}
                             </div>
-                            <div class="text-sm text-orange-700">Pending Responses</div>
+                            <div class="text-sm text-orange-700">Respon Tertunda</div>
                         </div>
                     </div>
                 </CardContent>
@@ -233,14 +233,14 @@ const formatValidationRules = (rules?: Record<string, any>): string => {
                 <CardHeader>
                     <CardTitle class="flex items-center gap-2">
                         <ClipboardList class="h-5 w-5" />
-                        Form Fields ({{ evaluationForm.review_form_fields.length }})
+                        Isian Formulir ({{ evaluationForm.review_form_fields.length }})
                     </CardTitle>
                 </CardHeader>
                 <CardContent>
                     <div v-if="evaluationForm.review_form_fields.length === 0"
                         class="text-center py-8 text-muted-foreground">
                         <ClipboardList class="h-12 w-12 mx-auto mb-4 opacity-50" />
-                        <p>No fields configured for this evaluation form.</p>
+                        <p>Tidak ada isian yang dikonfigurasi untuk formulir evaluasi ini.</p>
                     </div>
 
                     <div v-else class="space-y-6">
@@ -253,7 +253,7 @@ const formatValidationRules = (rules?: Record<string, any>): string => {
                                     </Badge>
                                     <h3 class="font-medium">{{ field.label }}</h3>
                                     <Badge v-if="field.is_required" variant="destructive" class="text-xs">
-                                        Required
+                                        Wajib
                                     </Badge>
                                 </div>
                                 <Badge variant="secondary" class="text-xs">
@@ -267,18 +267,18 @@ const formatValidationRules = (rules?: Record<string, any>): string => {
 
                             <div class="grid gap-4 md:grid-cols-2 text-sm">
                                 <div>
-                                    <span class="font-medium text-muted-foreground">Field Type:</span>
+                                    <span class="font-medium text-muted-foreground">Tipe Isian:</span>
                                     <span class="ml-2">{{ getFieldTypeDisplayName(field.field_type.name) }}</span>
                                 </div>
                                 <div>
-                                    <span class="font-medium text-muted-foreground">Validation:</span>
+                                    <span class="font-medium text-muted-foreground">Validasi:</span>
                                     <span class="ml-2">{{ formatValidationRules(field.validation_rules) }}</span>
                                 </div>
                             </div>
 
                             <!-- Field Options -->
                             <div v-if="field.review_form_field_options.length > 0" class="mt-4 pt-4 border-t">
-                                <h4 class="font-medium text-sm text-muted-foreground mb-2">Options:</h4>
+                                <h4 class="font-medium text-sm text-muted-foreground mb-2">Opsi:</h4>
                                 <div class="grid gap-2 md:grid-cols-2">
                                     <div v-for="option in field.review_form_field_options" :key="option.id"
                                         class="flex items-center gap-2 text-sm">
@@ -296,12 +296,12 @@ const formatValidationRules = (rules?: Record<string, any>): string => {
 
                             <!-- Field Preview -->
                             <div class="mt-4 pt-4 border-t bg-muted/30 p-3 rounded">
-                                <h4 class="font-medium text-sm text-muted-foreground mb-2">Preview:</h4>
+                                <h4 class="font-medium text-sm text-muted-foreground mb-2">Pratinjau:</h4>
                                 <div class="space-y-2">
                                     <div class="flex items-center gap-2">
                                         <span class="font-medium">{{ field.label }}</span>
                                         <Badge v-if="field.is_required" variant="destructive" class="text-xs">
-                                            Required
+                                            Wajib
                                         </Badge>
                                     </div>
 
@@ -313,7 +313,7 @@ const formatValidationRules = (rules?: Record<string, any>): string => {
                                     <div class="mt-2">
                                         <div v-if="field.field_type.name === 'textarea'"
                                             class="w-full p-2 border rounded bg-background text-muted-foreground text-sm">
-                                            [Textarea preview - {{ field.label }}]
+                                            [Pratinjau textarea - {{ field.label }}]
                                         </div>
                                         <div v-else-if="['select', 'radio', 'checkbox'].includes(field.field_type.name) &&
                                             field.review_form_field_options.length > 0">
@@ -327,14 +327,13 @@ const formatValidationRules = (rules?: Record<string, any>): string => {
                                                 </div>
                                                 <div v-if="field.review_form_field_options.length > 3"
                                                     class="text-xs text-muted-foreground">
-                                                    ... and {{ field.review_form_field_options.length - 3 }} more
-                                                    options
+                                                    ... dan {{ field.review_form_field_options.length - 3 }} opsi lagi
                                                 </div>
                                             </div>
                                         </div>
                                         <div v-else
                                             class="w-full p-2 border rounded bg-background text-muted-foreground text-sm">
-                                            [{{ getFieldTypeDisplayName(field.field_type.name) }} input preview]
+                                            [Pratinjau input {{ getFieldTypeDisplayName(field.field_type.name) }}]
                                         </div>
                                     </div>
                                 </div>
@@ -351,18 +350,18 @@ const formatValidationRules = (rules?: Record<string, any>): string => {
                 <CardContent class="p-6">
                     <div class="flex items-center justify-between">
                         <div class="text-sm text-muted-foreground">
-                            Last updated: {{ new Date().toLocaleDateString('id-ID') }}
+                            Terakhir diperbarui: {{ new Date().toLocaleDateString('id-ID') }}
                         </div>
                         <div class="flex gap-2">
                             <Button variant="outline"
                                 @click="$inertia.post(route('admin.review-evaluation-forms.duplicate', evaluationForm.id))">
                                 <Copy class="h-4 w-4 mr-2" />
-                                Duplicate Form
+                                Duplikat Formulir
                             </Button>
                             <Link :href="route('admin.review-evaluation-forms.edit', evaluationForm.id)">
                             <Button>
                                 <Edit class="h-4 w-4 mr-2" />
-                                Edit Form
+                                Edit Formulir
                             </Button>
                             </Link>
                         </div>

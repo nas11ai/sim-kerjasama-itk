@@ -51,6 +51,17 @@ class CheckBiodata
 
     private function needsBiodataCheck($user): bool
     {
+        // Skip biodata check if user is an active reviewer
+        if (\App\Models\Reviewer::where('user_id', $user->id)
+            ->where(function ($query) {
+                $query->whereNull('end_date')
+                    ->orWhere('end_date', '>=', now());
+            })
+            ->exists()
+        ) {
+            return false;
+        }
+
         $userRoles = $user->getRoleNames()->toArray();
 
         return collect($userRoles)
