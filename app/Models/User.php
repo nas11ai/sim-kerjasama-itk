@@ -81,4 +81,27 @@ class User extends Authenticatable
         return $this->belongsToMany(Announcement::class, 'announcement_user')
             ->withTimestamps();
     }
+
+    /**
+     * Get the user's profile.
+     */
+    public function userProfile()
+    {
+        return $this->hasOne(UserProfile::class);
+    }
+
+    /**
+     * Get the user's study program through their profile.
+     */
+    public function studyProgram()
+    {
+        return $this->hasOneThrough(
+            StudyProgram::class,
+            UserProfile::class,
+            'user_id',           // Foreign key on user_profiles
+            'id',                // Foreign key on study_programs
+            'id',                // Local key on users
+            'study_program_id'   // Local key on user_profiles
+        );
+    }
 }

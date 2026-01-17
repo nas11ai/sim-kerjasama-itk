@@ -168,6 +168,54 @@ const getPhaseTypeInfo = (id: number | null) => {
     return props.phaseTypes.find((pt) => pt.id === id);
 };
 
+// Calculate grouped order preview - shows what order will be displayed in detail page
+const getGroupedOrderForDetail = (index: number): number | null => {
+    const detail = form.phase_details[index];
+    if (!detail?.form_access_control_id) return null;
+
+    const formAccessControl = getFormAccessControlInfo(detail.form_access_control_id);
+    if (!formAccessControl) return null;
+
+    const formId = formAccessControl.form.id;
+
+    // Find unique form_ids in order, and get the position of this form_id
+    const seenFormIds: number[] = [];
+    for (let i = 0; i < form.phase_details.length; i++) {
+        const d = form.phase_details[i];
+        if (!d.form_access_control_id) continue;
+
+        const fac = getFormAccessControlInfo(d.form_access_control_id);
+        if (!fac) continue;
+
+        if (!seenFormIds.includes(fac.form.id)) {
+            seenFormIds.push(fac.form.id);
+        }
+
+        if (i === index) {
+            return seenFormIds.indexOf(formId) + 1;
+        }
+    }
+
+    return null;
+};
+
+// Check if this detail shares same form with another detail
+const hasSameFormAsOthers = (index: number): boolean => {
+    const detail = form.phase_details[index];
+    if (!detail?.form_access_control_id) return false;
+
+    const formAccessControl = getFormAccessControlInfo(detail.form_access_control_id);
+    if (!formAccessControl) return false;
+
+    const formId = formAccessControl.form.id;
+
+    return form.phase_details.some((d, i) => {
+        if (i === index || !d.form_access_control_id) return false;
+        const fac = getFormAccessControlInfo(d.form_access_control_id);
+        return fac?.form.id === formId;
+    });
+};
+
 const submit = () => {
     form.patch(route("admin.form-phases.update", props.formPhase.id));
 };
@@ -424,17 +472,31 @@ const submit = () => {
 
                                                     <!-- Order Display -->
                                                     <div
-                                                        class="flex items-center gap-2"
+                                                        class="flex items-center gap-2 flex-wrap"
                                                     >
                                                         <Badge
-                                                            variant="outline"
+                                                            v-if="getGroupedOrderForDetail(index)"
+                                                            variant="default"
                                                         >
                                                             Urutan:
-                                                            {{ detail.order }}
+                                                            {{ getGroupedOrderForDetail(index) }}
+                                                        </Badge>
+                                                        <Badge
+                                                            v-else
+                                                            variant="outline"
+                                                        >
+                                                            Urutan: -
+                                                        </Badge>
+                                                        <Badge
+                                                            v-if="hasSameFormAsOthers(index)"
+                                                            variant="secondary"
+                                                            class="text-xs"
+                                                        >
+                                                            ↔ Digabung (form sama)
                                                         </Badge>
                                                         <Badge
                                                             v-if="detail.id"
-                                                            variant="secondary"
+                                                            variant="outline"
                                                             class="text-xs"
                                                         >
                                                             Telah Ada

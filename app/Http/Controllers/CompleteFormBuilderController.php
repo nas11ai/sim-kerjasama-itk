@@ -143,13 +143,19 @@ class CompleteFormBuilderController extends Controller
             }
 
             // Create Form Phase Details for each access control
-            foreach ($accessControlIds as $index => $controlId) {
+            // All access controls are for the same form, so they should have the same order number
+            $nextOrder = $formPhase->formPhaseDetails()->max('order') + 1;
+            if ($nextOrder === null) {
+                $nextOrder = 1;
+            }
+
+            foreach ($accessControlIds as $controlId) {
                 $phaseDetail = FormPhaseDetail::create([
                     'form_phase_id' => $formPhase->id,
                     'form_access_control_id' => $controlId,
                     'phase_type_id' => $validated['phase']['phase_type_id'],
                     'needs_review' => $validated['phase']['needs_review'] ?? false,
-                    'order' => $index + 1,
+                    'order' => $nextOrder, // Same order for all access controls of same form
                 ]);
 
                 // Step 4: Create Evaluation Forms if needed
@@ -229,7 +235,6 @@ class CompleteFormBuilderController extends Controller
 
             return redirect()->route('admin.forms.show', $form->id)
                 ->with('success', 'Form dan seluruh konfigurasinya berhasil dibuat!');
-
         } catch (\Exception $e) {
             DB::rollback();
             return back()
