@@ -130,7 +130,8 @@ const applyFilters = () => {
     const params: Record<string, any> = {};
 
     if (searchQuery.value) params.search = searchQuery.value;
-    if (selectedStatus.value && selectedStatus.value !== "all") params.status = selectedStatus.value;
+    if (selectedStatus.value && selectedStatus.value !== "all")
+        params.status = selectedStatus.value;
 
     router.get(route("admin.reviewer-roles.index"), params, {
         preserveState: true,
@@ -142,10 +143,14 @@ const clearFilters = () => {
     searchQuery.value = "";
     selectedStatus.value = "all";
 
-    router.get(route("admin.reviewer-roles.index"), {}, {
-        preserveState: true,
-        replace: true,
-    });
+    router.get(
+        route("admin.reviewer-roles.index"),
+        {},
+        {
+            preserveState: true,
+            replace: true,
+        },
+    );
 };
 
 const deleteRole = (role: ReviewerRole) => {
@@ -155,27 +160,31 @@ const deleteRole = (role: ReviewerRole) => {
 
 const confirmDelete = () => {
     if (roleToDelete.value) {
-        router.delete(route("admin.reviewer-roles.destroy", roleToDelete.value.id), {
-            onSuccess: () => {
-                showDeleteDialog.value = false;
-                roleToDelete.value = null;
-                toast({
-                    title: "Sukses",
-                    description: "Role reviewer berhasil dihapus!",
-                });
+        router.delete(
+            route("admin.reviewer-roles.destroy", roleToDelete.value.id),
+            {
+                onSuccess: () => {
+                    showDeleteDialog.value = false;
+                    roleToDelete.value = null;
+                    toast({
+                        title: "Sukses",
+                        description: "Role reviewer berhasil dihapus!",
+                    });
+                },
+                onError: (errors) => {
+                    toast({
+                        title: "Error",
+                        description:
+                            errors.error || "Gagal menghapus role reviewer.",
+                        variant: "destructive",
+                    });
+                },
+                onFinish: () => {
+                    showDeleteDialog.value = false;
+                    roleToDelete.value = null;
+                },
             },
-            onError: (errors) => {
-                toast({
-                    title: "Error",
-                    description: errors.error || "Gagal menghapus role reviewer.",
-                    variant: "destructive",
-                });
-            },
-            onFinish: () => {
-                showDeleteDialog.value = false;
-                roleToDelete.value = null;
-            },
-        });
+        );
     }
 };
 
@@ -204,7 +213,7 @@ const toggleRoleStatus = (role: ReviewerRole) => {
                     variant: "destructive",
                 });
             },
-        }
+        },
     );
 };
 
@@ -217,21 +226,34 @@ const formatDate = (dateString: string) => {
 };
 
 const hasFilters = computed(() => {
-    return searchQuery.value || (selectedStatus.value && selectedStatus.value !== "all");
+    return (
+        searchQuery.value ||
+        (selectedStatus.value && selectedStatus.value !== "all")
+    );
 });
 
 const totalRoles = computed(() => {
-    return props.reviewerRoles?.meta?.total || props.reviewerRoles?.data?.length || 0;
+    return props.reviewerRoles?.total ?? props.reviewerRoles.data.length;
 });
 
 const canDeleteRole = computed(() => {
-    return roleToDelete.value ? roleToDelete.value.reviewers_count === 0 : false;
+    return roleToDelete.value
+        ? roleToDelete.value.reviewers_count === 0
+        : false;
+});
+
+const activeFiltersCount = computed(() => {
+    let count = 0;
+
+    if (searchQuery.value) count++;
+    if (selectedStatus.value && selectedStatus.value !== "all") count++;
+
+    return count;
 });
 
 const goToPage = (url: string | null) => {
     if (url) router.visit(url);
 };
-
 </script>
 
 <template>
@@ -244,10 +266,10 @@ const goToPage = (url: string | null) => {
                     Role Reviewer ({{ totalRoles }})
                 </h2>
                 <Link :href="route('admin.reviewer-roles.create')">
-                <Button>
-                    <Plus class="h-4 w-4 mr-2" />
-                    Tambah Role
-                </Button>
+                    <Button>
+                        <Plus class="h-4 w-4 mr-2" />
+                        Tambah Role
+                    </Button>
                 </Link>
             </div>
         </template>
@@ -260,7 +282,10 @@ const goToPage = (url: string | null) => {
                         <CardTitle class="text-lg flex items-center gap-2">
                             <Search class="h-5 w-5" />
                             Cari & Filter
-                            <Badge v-if="activeFiltersCount > 0" variant="secondary">
+                            <Badge
+                                v-if="activeFiltersCount > 0"
+                                variant="secondary"
+                            >
                                 {{ activeFiltersCount }} aktif
                             </Badge>
                         </CardTitle>
@@ -310,35 +335,53 @@ const goToPage = (url: string | null) => {
                                 <PopoverContent class="w-[200px] p-0">
                                     <Command>
                                         <CommandInput
-                                        placeholder="Cari status..."
-                                        class="flex h-11 w-full rounded-md bg-transparent py-3 text-sm outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50 border-0 ring-0 focus:ring-0 focus:outline-none"
-                                         />
+                                            placeholder="Cari status..."
+                                            class="flex h-11 w-full rounded-md bg-transparent py-3 text-sm outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50 border-0 ring-0 focus:ring-0 focus:outline-none"
+                                        />
                                         <CommandList>
-                                            <CommandEmpty>Tidak ada status ditemukan.</CommandEmpty>
+                                            <CommandEmpty
+                                                >Tidak ada status
+                                                ditemukan.</CommandEmpty
+                                            >
                                             <CommandGroup>
                                                 <CommandItem
                                                     v-for="status in statusOptions"
                                                     :key="status.value"
                                                     :value="status.value"
-                                                    @select="() => {
-                                                        selectedStatus = status.value;
-                                                        openStatus = false;
-                                                    }">
+                                                    @select="
+                                                        () => {
+                                                            selectedStatus =
+                                                                status.value;
+                                                            openStatus = false;
+                                                        }
+                                                    "
+                                                >
                                                     <Check
-                                                        :class="cn(
-                                                            'mr-2 h-4 w-4',
-                                                            selectedStatus === status.value
-                                                                ? 'opacity-100'
-                                                                : 'opacity-0'
-                                                        )"
+                                                        :class="
+                                                            cn(
+                                                                'mr-2 h-4 w-4',
+                                                                selectedStatus ===
+                                                                    status.value
+                                                                    ? 'opacity-100'
+                                                                    : 'opacity-0',
+                                                            )
+                                                        "
                                                     />
-                                                    <div class="flex items-center gap-2">
+                                                    <div
+                                                        class="flex items-center gap-2"
+                                                    >
                                                         <CheckCircle
-                                                            v-if="status.value === 'active'"
+                                                            v-if="
+                                                                status.value ===
+                                                                'active'
+                                                            "
                                                             class="h-4 w-4 text-green-600"
                                                         />
                                                         <XCircle
-                                                            v-else-if="status.value === 'inactive'"
+                                                            v-else-if="
+                                                                status.value ===
+                                                                'inactive'
+                                                            "
                                                             class="h-4 w-4 text-red-600"
                                                         />
                                                         {{ status.label }}
@@ -355,22 +398,33 @@ const goToPage = (url: string | null) => {
             </Card>
 
             <!-- Empty State -->
-            <div v-if="props.reviewerRoles.data.length === 0" class="text-center py-12">
+            <div
+                v-if="props.reviewerRoles.data.length === 0"
+                class="text-center py-12"
+            >
                 <Card>
                     <CardContent class="pt-6">
-                        <Shield class="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                        <Shield
+                            class="h-12 w-12 mx-auto text-muted-foreground mb-4"
+                        />
                         <h3 class="text-lg font-medium text-gray-900 mb-2">
                             Tidak Ada Role Reviewer Ditemukan
                         </h3>
                         <p class="text-sm text-muted-foreground mb-4">
-                            {{ hasFilters ? 'Tidak ada role yang cocok dengan kriteria pencarian Anda.'
-                                : 'Mulai dengan membuat role reviewer pertama Anda.' }}
+                            {{
+                                hasFilters
+                                    ? "Tidak ada role yang cocok dengan kriteria pencarian Anda."
+                                    : "Mulai dengan membuat role reviewer pertama Anda."
+                            }}
                         </p>
-                        <Link v-if="!hasFilters" :href="route('admin.reviewer-roles.create')">
-                        <Button>
-                            <Plus class="h-4 w-4 mr-2" />
-                            Buat Role Pertama
-                        </Button>
+                        <Link
+                            v-if="!hasFilters"
+                            :href="route('admin.reviewer-roles.create')"
+                        >
+                            <Button>
+                                <Plus class="h-4 w-4 mr-2" />
+                                Buat Role Pertama
+                            </Button>
                         </Link>
                         <Button v-else variant="outline" @click="clearFilters">
                             <X class="h-4 w-4 mr-2" />
@@ -390,16 +444,26 @@ const goToPage = (url: string | null) => {
                     <CardHeader class="pb-3">
                         <div class="flex items-start justify-between">
                             <div class="flex-1">
-                                <CardTitle class="text-lg flex items-center gap-2">
+                                <CardTitle
+                                    class="text-lg flex items-center gap-2"
+                                >
                                     <Shield class="h-5 w-5" />
                                     {{ role.name }}
                                 </CardTitle>
                                 <div class="flex items-center gap-2 mt-2">
                                     <Badge
-                                        :variant="role.is_active ? 'default' : 'destructive'"
+                                        :variant="
+                                            role.is_active
+                                                ? 'default'
+                                                : 'destructive'
+                                        "
                                         class="flex items-center gap-1"
                                     >
-                                        {{ role.is_active ? "Active" : "Inactive" }}
+                                        {{
+                                            role.is_active
+                                                ? "Active"
+                                                : "Inactive"
+                                        }}
                                     </Badge>
                                 </div>
                             </div>
@@ -412,7 +476,12 @@ const goToPage = (url: string | null) => {
                                 <DropdownMenuContent align="end">
                                     <DropdownMenuItem as-child>
                                         <Link
-                                            :href="route('admin.reviewer-roles.show', role.id)"
+                                            :href="
+                                                route(
+                                                    'admin.reviewer-roles.show',
+                                                    role.id,
+                                                )
+                                            "
                                         >
                                             <Eye class="h-4 w-4 mr-2" />
                                             Lihat
@@ -420,7 +489,12 @@ const goToPage = (url: string | null) => {
                                     </DropdownMenuItem>
                                     <DropdownMenuItem as-child>
                                         <Link
-                                            :href="route('admin.reviewer-roles.edit', role.id)"
+                                            :href="
+                                                route(
+                                                    'admin.reviewer-roles.edit',
+                                                    role.id,
+                                                )
+                                            "
                                         >
                                             <Edit class="h-4 w-4 mr-2" />
                                             Edit
@@ -434,8 +508,15 @@ const goToPage = (url: string | null) => {
                                             v-if="role.is_active"
                                             class="h-4 w-4 mr-2"
                                         />
-                                        <ToggleLeft v-else class="h-4 w-4 mr-2" />
-                                        {{ role.is_active ? "Nonaktifkan" : "Aktifkan" }}
+                                        <ToggleLeft
+                                            v-else
+                                            class="h-4 w-4 mr-2"
+                                        />
+                                        {{
+                                            role.is_active
+                                                ? "Nonaktifkan"
+                                                : "Aktifkan"
+                                        }}
                                     </DropdownMenuItem>
                                     <DropdownMenuItem
                                         @click="deleteRole(role)"
@@ -451,15 +532,25 @@ const goToPage = (url: string | null) => {
                     </CardHeader>
                     <CardContent>
                         <div class="space-y-3">
-                            <div class="flex items-center justify-between text-sm">
-                                <div class="flex items-center gap-2 text-muted-foreground">
+                            <div
+                                class="flex items-center justify-between text-sm"
+                            >
+                                <div
+                                    class="flex items-center gap-2 text-muted-foreground"
+                                >
                                     <span>Reviewer Ditugaskan</span>
                                 </div>
-                                <Badge variant="secondary">{{ role.reviewers_count }}</Badge>
+                                <Badge variant="secondary">{{
+                                    role.reviewers_count
+                                }}</Badge>
                             </div>
 
-                            <div class="flex items-center justify-between text-sm pt-2 border-t">
-                                <span class="text-muted-foreground">Dibuat</span>
+                            <div
+                                class="flex items-center justify-between text-sm pt-2 border-t"
+                            >
+                                <span class="text-muted-foreground"
+                                    >Dibuat</span
+                                >
                                 <span class="font-medium text-sm">{{
                                     formatDate(role.created_at)
                                 }}</span>
@@ -470,16 +561,23 @@ const goToPage = (url: string | null) => {
             </div>
 
             <!-- Pagination -->
-            <div v-if="props.reviewerRoles.last_page > 1" class="flex justify-center mt-4">
+            <div
+                v-if="props.reviewerRoles.last_page > 1"
+                class="flex justify-center mt-4"
+            >
                 <div class="flex items-center gap-2">
-                    <template v-for="link in props.reviewerRoles.links" :key="link.label">
+                    <template
+                        v-for="link in props.reviewerRoles.links"
+                        :key="link.label"
+                    >
                         <Button
                             v-if="link.url"
                             variant="outline"
                             size="sm"
                             @click="goToPage(link.url)"
                             :class="{
-                                'bg-primary text-primary-foreground': link.active,
+                                'bg-primary text-primary-foreground':
+                                    link.active,
                                 'hover:bg-muted': !link.active,
                             }"
                             v-html="link.label"
@@ -506,9 +604,10 @@ const goToPage = (url: string | null) => {
                         Konfirmasi Hapus Role
                     </DialogTitle>
                     <DialogDescription>
-                        {{ canDeleteRole
-                            ? 'Apakah Anda yakin ingin menghapus role reviewer ini? Tindakan ini tidak dapat dibatalkan.'
-                            : 'Role ini tidak dapat dihapus karena memiliki reviewer yang ditugaskan.'
+                        {{
+                            canDeleteRole
+                                ? "Apakah Anda yakin ingin menghapus role reviewer ini? Tindakan ini tidak dapat dibatalkan."
+                                : "Role ini tidak dapat dihapus karena memiliki reviewer yang ditugaskan."
                         }}
                     </DialogDescription>
                 </DialogHeader>
@@ -516,34 +615,66 @@ const goToPage = (url: string | null) => {
                 <div v-if="roleToDelete" class="py-4">
                     <div class="p-4 bg-muted rounded-lg">
                         <div class="flex items-center gap-3">
-                            <div class="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center">
+                            <div
+                                class="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center"
+                            >
                                 <Shield class="h-6 w-6 text-primary" />
                             </div>
                             <div class="flex-1">
-                                <h4 class="font-semibold text-lg">{{ roleToDelete.name }}</h4>
+                                <h4 class="font-semibold text-lg">
+                                    {{ roleToDelete.name }}
+                                </h4>
                                 <div class="flex items-center gap-3 mt-2">
-                                    <div class="flex items-center gap-1 text-sm text-muted-foreground">
+                                    <div
+                                        class="flex items-center gap-1 text-sm text-muted-foreground"
+                                    >
                                         <Users class="h-4 w-4" />
-                                        <span>{{ roleToDelete.reviewers_count }} reviewer</span>
+                                        <span
+                                            >{{
+                                                roleToDelete.reviewers_count
+                                            }}
+                                            reviewer</span
+                                        >
                                     </div>
-                                    <Badge :variant="roleToDelete.is_active ? 'default' : 'destructive'"
-                                        class="text-xs">
-                                        {{ roleToDelete.is_active ? 'Aktif' : 'Tidak Aktif' }}
+                                    <Badge
+                                        :variant="
+                                            roleToDelete.is_active
+                                                ? 'default'
+                                                : 'destructive'
+                                        "
+                                        class="text-xs"
+                                    >
+                                        {{
+                                            roleToDelete.is_active
+                                                ? "Aktif"
+                                                : "Tidak Aktif"
+                                        }}
                                     </Badge>
                                 </div>
                             </div>
                         </div>
 
                         <!-- Warning message for roles with assigned reviewers -->
-                        <div v-if="!canDeleteRole"
-                            class="mt-4 p-3 bg-destructive/10 border border-destructive/20 rounded-md">
+                        <div
+                            v-if="!canDeleteRole"
+                            class="mt-4 p-3 bg-destructive/10 border border-destructive/20 rounded-md"
+                        >
                             <div class="flex items-start gap-2">
-                                <AlertTriangle class="h-5 w-5 text-destructive flex-shrink-0 mt-0.5" />
+                                <AlertTriangle
+                                    class="h-5 w-5 text-destructive flex-shrink-0 mt-0.5"
+                                />
                                 <div class="text-sm">
-                                    <p class="font-medium text-destructive mb-1">Tidak Dapat Menghapus Role</p>
+                                    <p
+                                        class="font-medium text-destructive mb-1"
+                                    >
+                                        Tidak Dapat Menghapus Role
+                                    </p>
                                     <p class="text-muted-foreground">
-                                        Role ini memiliki {{ roleToDelete.reviewers_count }} reviewer yang ditugaskan.
-                                        Silakan tetapkan ulang atau hapus semua reviewer sebelum menghapus role ini.
+                                        Role ini memiliki
+                                        {{ roleToDelete.reviewers_count }}
+                                        reviewer yang ditugaskan. Silakan
+                                        tetapkan ulang atau hapus semua reviewer
+                                        sebelum menghapus role ini.
                                     </p>
                                 </div>
                             </div>
@@ -555,10 +686,19 @@ const goToPage = (url: string | null) => {
                     <Button variant="outline" @click="cancelDelete">
                         Batal
                     </Button>
-                    <Button v-if="canDeleteRole" variant="destructive" @click="confirmDelete">
+                    <Button
+                        v-if="canDeleteRole"
+                        variant="destructive"
+                        @click="confirmDelete"
+                    >
                         Hapus Role
                     </Button>
-                    <Button v-else variant="outline" disabled class="opacity-50">
+                    <Button
+                        v-else
+                        variant="outline"
+                        disabled
+                        class="opacity-50"
+                    >
                         Tidak Dapat Hapus
                     </Button>
                 </DialogFooter>

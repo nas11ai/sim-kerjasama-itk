@@ -21,9 +21,10 @@ const page = usePage();
 const user = computed(() => page.props.auth.user);
 
 const backToDashboard = () => {
-    const roles = unref(user.value.roles);
+    const roles = unref(user.value.roles) as Array<{ name: string }>;
+
     const isAdmin = roles.some((role) =>
-        ["Admin", "Super Admin"].includes(role)
+        ["Admin", "Super Admin"].includes(role.name),
     );
 
     router.visit(route(isAdmin ? "admin.dashboard" : "user.dashboard"));
@@ -71,8 +72,8 @@ const backToDashboard = () => {
                 <CardHeader>
                     <CardTitle class="text-xl">Perbarui Kata Sandi</CardTitle>
                     <CardDescription>
-                        Pastikan akun Anda menggunakan kata sandi yang panjang dan acak untuk
-                        tetap aman.
+                        Pastikan akun Anda menggunakan kata sandi yang panjang
+                        dan acak untuk tetap aman.
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
