@@ -17,7 +17,7 @@ Master data yang digunakan context lain sebagai lookup. **Tidak lagi** mencakup 
 ```mermaid
 flowchart TD
     START([Admin buka System Configuration]) --> A{Pilih entity}
-    A -->|SubmissionType| B[Read-only\nhanya via seeder]
+    A -->|SubmissionType| B[Read-only<br/>hanya via seeder]
     A -->|Tipe lainnya| C[CRUD + toggle is_active]
     C --> D{is_active?}
     D -->|false| E[Tidak muncul di pilihan user]
@@ -79,20 +79,20 @@ classDiagram
 
 ## Data per Consumer
 
-| Entity | Dikonsumsi oleh |
-|---|---|
-| `SubmissionType` | Scheme, Submission, Review, Monev |
-| `JournalType` | Research Output |
-| `IntellectualPropertyType` | Research Output |
-| `PrototypeType` | Research Output |
-| `MeetingType` | Research Output |
-| `SchemeType` | Scheme |
-| `TechnologyReadinessLevel` | Scheme |
+| Entity                     | Dikonsumsi oleh                   |
+| -------------------------- | --------------------------------- |
+| `SubmissionType`           | Scheme, Submission, Review, Monev |
+| `JournalType`              | Research Output                   |
+| `IntellectualPropertyType` | Research Output                   |
+| `PrototypeType`            | Research Output                   |
+| `MeetingType`              | Research Output                   |
+| `SchemeType`               | Scheme                            |
+| `TechnologyReadinessLevel` | Scheme                            |
 
 ## Business Rules
 
-| Kode | Rule |
-|---|---|
+| Kode     | Rule                                                    |
+| -------- | ------------------------------------------------------- |
 | BR-SC-01 | Entity tidak bisa di-delete jika masih ada relasi aktif |
-| BR-SC-02 | `SubmissionType` immutable — hanya via seeder |
-| BR-SC-03 | Perubahan nama entity tidak mengubah data historis |
+| BR-SC-02 | `SubmissionType` immutable — hanya via seeder           |
+| BR-SC-03 | Perubahan nama entity tidak mengubah data historis      |

@@ -10,8 +10,8 @@
 
 Mengelola autentikasi, profil user, hierarki organisasi, dan kontrol akses. Dua pilar utama:
 
-- **Spatie Permission** → *apa yang boleh dilakukan* (authorization)
-- **Organization tree** → *dari mana user berasal* (identity/scope)
+- **Spatie Permission** → _apa yang boleh dilakukan_ (authorization)
+- **Organization tree** → _dari mana user berasal_ (identity/scope)
 
 Keduanya independen dan menjawab pertanyaan yang berbeda.
 
@@ -23,14 +23,14 @@ Keduanya independen dan menjawab pertanyaan yang berbeda.
 
 ```mermaid
 flowchart TD
-    START([User buka /register]) --> A[Isi email @itk.ac.id\n+ password + NIDN]
-    A --> B{Domain email\nvalid ITK?}
+    START([User buka /register]) --> A[Isi email @itk.ac.id<br/>+ password + NIDN]
+    A --> B{Domain email<br/>valid ITK?}
     B -->|Tidak| ERR[❌ Tolak]
-    B -->|Ya| C[Pilih Organisasi\nvia OrgTreePicker]
+    B -->|Ya| C[Pilih Organisasi<br/>via OrgTreePicker]
     C --> D[Submit Register]
-    D --> E[Role 'researcher'\nauto-assigned]
-    E --> F[Status: pending\nbelum bisa submit proposal]
-    F --> G[Operator terima\nnotifikasi verifikasi NIDN]
+    D --> E[Role 'researcher'<br/>auto-assigned]
+    E --> F[Status: pending<br/>belum bisa submit proposal]
+    F --> G[Operator terima<br/>notifikasi verifikasi NIDN]
     G --> H{NIDN valid?}
     H -->|Tidak| I[Reject + notifikasi user]
     H -->|Ya| J[Status: active]
@@ -41,15 +41,15 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    START([Operator buat InvitationToken]) --> A[Set organization_id\nrole, expires_at, max_uses]
-    A --> B[Generate token URL\n/register?token=xxx]
-    B --> C[Operator share link\nke PIC institusi mitra]
+    START([Operator buat InvitationToken]) --> A[Set organization_id<br/>role, expires_at, max_uses]
+    A --> B[Generate token URL<br/>/register?token=xxx]
+    B --> C[Operator share link<br/>ke PIC institusi mitra]
     C --> D[User eksternal buka link]
-    D --> E{Token valid\n& belum expired?}
+    D --> E{Token valid<br/>& belum expired?}
     E -->|Tidak| ERR[❌ Link tidak valid]
-    E -->|Ya| F[Form register\norg & role pre-filled]
+    E -->|Ya| F[Form register<br/>org & role pre-filled]
     F --> G[User isi nama, email, password]
-    G --> H[Register → status: active\nlangsung tanpa verifikasi manual]
+    G --> H[Register → status: active<br/>langsung tanpa verifikasi manual]
     H --> I[used_count++]
 ```
 
@@ -57,12 +57,12 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    START([Operator buka Reviewer Management]) --> A[Cari user by NIDN\natau nama]
+    START([Operator buka Reviewer Management]) --> A[Cari user by NIDN<br/>atau nama]
     A --> B[Pilih user yang sudah ada]
-    B --> C[Set ReviewerRole\ndan periode aktif]
-    C --> D[Buat record di tabel reviewers\nstart_date, end_date]
-    D --> E[Assign role 'reviewer'\nvia Spatie — tambahan di atas researcher]
-    E --> END([User sekarang punya\ndua role: researcher + reviewer])
+    B --> C[Set ReviewerRole<br/>dan periode aktif]
+    C --> D[Buat record di tabel reviewers<br/>start_date, end_date]
+    D --> E[Assign role 'reviewer'<br/>via Spatie — tambahan di atas researcher]
+    E --> END([User sekarang punya<br/>dua role: researcher + reviewer])
 ```
 
 ---
@@ -156,12 +156,12 @@ users.verify                users.manage
 
 **Roles** (bundle permissions):
 
-| Role | Permissions |
-|---|---|
+| Role         | Permissions                                                               |
+| ------------ | ------------------------------------------------------------------------- |
 | `researcher` | submissions.create, view-own, budget.edit, members.manage, outputs.manage |
-| `reviewer` | reviewers.evaluate, submissions.view-assigned |
-| `operator` | submissions.view-all, reviewers.assign, periods.manage, users.verify |
-| `admin` | semua |
+| `reviewer`   | reviewers.evaluate, submissions.view-assigned                             |
+| `operator`   | submissions.view-all, reviewers.assign, periods.manage, users.verify      |
+| `admin`      | semua                                                                     |
 
 Satu user bisa punya beberapa role (e.g., researcher + reviewer). Permission di-check via `$user->can('submissions.create')`, bukan via role name langsung.
 
@@ -191,26 +191,26 @@ Contoh: FormAccessControl link ke Fakultas Sains → semua user dari prodi manap
 
 ## Business Rules
 
-| Kode | Rule |
-|---|---|
-| BR-IAM-01 | Email domain `@itk.ac.id` wajib untuk jalur self-register internal |
-| BR-IAM-02 | NIDN harus unik di seluruh sistem |
-| BR-IAM-03 | UserProfile wajib lengkap sebelum user bisa membuat Submission |
-| BR-IAM-04 | User berstatus `pending` tidak bisa submit proposal tapi bisa login |
-| BR-IAM-05 | Deaktivasi user tidak delete — cukup `is_active = false` |
+| Kode      | Rule                                                                                         |
+| --------- | -------------------------------------------------------------------------------------------- |
+| BR-IAM-01 | Email domain `@itk.ac.id` wajib untuk jalur self-register internal                           |
+| BR-IAM-02 | NIDN harus unik di seluruh sistem                                                            |
+| BR-IAM-03 | UserProfile wajib lengkap sebelum user bisa membuat Submission                               |
+| BR-IAM-04 | User berstatus `pending` tidak bisa submit proposal tapi bisa login                          |
+| BR-IAM-05 | Deaktivasi user tidak delete — cukup `is_active = false`                                     |
 | BR-IAM-06 | InvitationToken dianggap invalid jika `used_count >= max_uses` atau `expires_at` sudah lewat |
-| BR-IAM-07 | User dengan role `reviewer` tidak bisa me-review submission yang ia menjadi member-nya |
-| BR-IAM-08 | Organization tidak bisa di-delete jika masih ada UserProfile yang terhubung ke subtree-nya |
+| BR-IAM-07 | User dengan role `reviewer` tidak bisa me-review submission yang ia menjadi member-nya       |
+| BR-IAM-08 | Organization tidak bisa di-delete jika masih ada UserProfile yang terhubung ke subtree-nya   |
 
 ---
 
 ## Domain Events
 
-| Event | Trigger | Consumer |
-|---|---|---|
-| `UserRegistered` | User berhasil register | Notification |
-| `UserVerified` | Operator verifikasi NIDN | Notification |
-| `UserDeactivated` | Admin nonaktifkan user | Notification |
+| Event               | Trigger                  | Consumer     |
+| ------------------- | ------------------------ | ------------ |
+| `UserRegistered`    | User berhasil register   | Notification |
+| `UserVerified`      | Operator verifikasi NIDN | Notification |
+| `UserDeactivated`   | Admin nonaktifkan user   | Notification |
 | `ReviewerAppointed` | Operator assign reviewer | Notification |
 
 ---

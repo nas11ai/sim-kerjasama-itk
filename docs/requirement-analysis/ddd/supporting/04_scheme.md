@@ -20,12 +20,12 @@ Mengelola metadata aturan skema penelitian/pengabdian. Scheme **decoupled dari F
 flowchart TD
     START([Admin buka Scheme Management]) --> A{Aksi?}
 
-    A -->|Create| B[Isi metadata Scheme\nmax_budget, max_members,\nduration, code, scheme_type]
-    B --> C[Set allowed TRLs\nopsional]
-    C --> D[Link ke SubmissionPeriod\nyang relevan]
+    A -->|Create| B[Isi metadata Scheme<br/>max_budget, max_members,<br/>duration, code, scheme_type]
+    B --> C[Set allowed TRLs<br/>opsional]
+    C --> D[Link ke SubmissionPeriod<br/>yang relevan]
     D --> E[Scheme aktif]
 
-    A -->|Deactivate| F{Ada active\nSubmission\ndengan scheme ini?}
+    A -->|Deactivate| F{Ada active<br/>Submission<br/>dengan scheme ini?}
     F -->|Ya| G[❌ Tidak bisa dinonaktifkan]
     F -->|Tidak| H[Set is_active = false]
 ```
@@ -36,19 +36,19 @@ Operator menambahkan field dengan tipe `scheme_selector` ke sebuah Form jika sub
 
 ```mermaid
 flowchart TD
-    OPERATOR([Operator buka Form Builder]) --> A{Form ini butuh\nScheme?}
-    A -->|Ya| B[Tambah FormField\nfield_type = scheme_selector\nconfig: submission_period_id filter]
-    B --> C{Form ini butuh\nTRL?}
-    C -->|Ya| D[Tambah FormField\nfield_type = trl_selector\nconfig: depends_on = scheme_field_id]
-    C -->|Tidak| E[Form selesai\ntanpa TRL]
+    OPERATOR([Operator buka Form Builder]) --> A{Form ini butuh<br/>Scheme?}
+    A -->|Ya| B[Tambah FormField<br/>field_type = scheme_selector<br/>config: submission_period_id filter]
+    B --> C{Form ini butuh<br/>TRL?}
+    C -->|Ya| D[Tambah FormField<br/>field_type = trl_selector<br/>config: depends_on = scheme_field_id]
+    C -->|Tidak| E[Form selesai<br/>tanpa TRL]
     D --> E
     A -->|Tidak| E
 
-    RESEARCHER([Researcher isi form]) --> F{Ada field\nscheme_selector?}
-    F -->|Ya| G[Load daftar Scheme\nyang tersedia di period ini]
+    RESEARCHER([Researcher isi form]) --> F{Ada field<br/>scheme_selector?}
+    F -->|Ya| G[Load daftar Scheme<br/>yang tersedia di period ini]
     G --> H[Pilih Scheme]
-    H --> I{Ada field\ntrl_selector?}
-    I -->|Ya| J[Load TRLs\nberdasarkan Scheme dipilih]
+    H --> I{Ada field<br/>trl_selector?}
+    I -->|Ya| J[Load TRLs<br/>berdasarkan Scheme dipilih]
     J --> K[Pilih TRL]
     I -->|Tidak| L[Lanjut isi form]
     K --> L
@@ -88,19 +88,21 @@ scheme_allowed_trls
 Dua field type baru yang ditambahkan ke `field_types`:
 
 **`scheme_selector`** — render dropdown berisi daftar Scheme yang tersedia di SubmissionPeriod aktif. Config:
+
 ```json
 {
-  "filter_by_submission_type": true,
-  "show_max_budget": true,
-  "show_max_members": true
+    "filter_by_submission_type": true,
+    "show_max_budget": true,
+    "show_max_members": true
 }
 ```
 
 **`trl_selector`** — render dropdown TRL yang filtered berdasarkan Scheme yang dipilih. Config:
+
 ```json
 {
-  "depends_on_field_key": "scheme_field_id",
-  "allow_empty": true
+    "depends_on_field_key": "scheme_field_id",
+    "allow_empty": true
 }
 ```
 
@@ -136,21 +138,21 @@ classDiagram
 
 ## Business Rules
 
-| Kode | Rule |
-|---|---|
-| BR-SCH-01 | Scheme tidak bisa di-deactivate jika ada active Submission yang menggunakannya |
-| BR-SCH-02 | `max_budget > 0` dan `max_members > 0` |
-| BR-SCH-03 | `code` unik di seluruh sistem |
+| Kode      | Rule                                                                                      |
+| --------- | ----------------------------------------------------------------------------------------- |
+| BR-SCH-01 | Scheme tidak bisa di-deactivate jika ada active Submission yang menggunakannya            |
+| BR-SCH-02 | `max_budget > 0` dan `max_members > 0`                                                    |
+| BR-SCH-03 | `code` unik di seluruh sistem                                                             |
 | BR-SCH-04 | Form tidak diwajibkan punya `scheme_selector` field — Scheme sepenuhnya opsional per Form |
-| BR-SCH-05 | `trl_selector` hanya valid jika ada `scheme_selector` di Form yang sama |
+| BR-SCH-05 | `trl_selector` hanya valid jika ada `scheme_selector` di Form yang sama                   |
 
 ---
 
 ## Integration Map
 
-| Context | Arah | Keterangan |
-|---|---|---|
-| Form Engine | Lateral | `scheme_selector` adalah FormField type — FE render UI-nya, Scheme BC provide data-nya |
-| System Configuration | Upstream → Scheme | SchemeTypeId, TRLId, SubmissionTypeId |
-| Submission | Scheme → Downstream | Budget validation via max_budget, member count via max_members |
-| Budget | Scheme → Downstream | max_budget untuk validasi total anggaran |
+| Context              | Arah                | Keterangan                                                                             |
+| -------------------- | ------------------- | -------------------------------------------------------------------------------------- |
+| Form Engine          | Lateral             | `scheme_selector` adalah FormField type — FE render UI-nya, Scheme BC provide data-nya |
+| System Configuration | Upstream → Scheme   | SchemeTypeId, TRLId, SubmissionTypeId                                                  |
+| Submission           | Scheme → Downstream | Budget validation via max_budget, member count via max_members                         |
+| Budget               | Scheme → Downstream | max_budget untuk validasi total anggaran                                               |

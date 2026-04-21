@@ -10,11 +10,11 @@
 
 Layanan upload, storage, dan retrieval file. Consumer tidak perlu tahu storage backend yang dipakai.
 
-| Environment | Provider |
-|---|---|
-| Development | MinIO (Docker, S3-compatible) |
-| Staging | MinIO (VPS) |
-| Production | Cloudflare R2 (no egress cost) |
+| Environment | Provider                       |
+| ----------- | ------------------------------ |
+| Development | MinIO (Docker, S3-compatible)  |
+| Staging     | MinIO (VPS)                    |
+| Production  | Cloudflare R2 (no egress cost) |
 
 ---
 
@@ -22,19 +22,19 @@ Layanan upload, storage, dan retrieval file. Consumer tidak perlu tahu storage b
 
 ```mermaid
 flowchart TD
-    START([Consumer request upload]) --> A[Consumer validasi\ntype & ukuran file]
+    START([Consumer request upload]) --> A[Consumer validasi<br/>type & ukuran file]
     A --> B{Valid?}
     B -->|Tidak| ERR[Return error ke consumer]
     B -->|Ya| C[Generate UUID filename]
     C --> D[Upload ke storage backend]
     D --> E{Berhasil?}
     E -->|Tidak| ERR2[Return error ke consumer]
-    E -->|Ya| F[Return FileResult\npath + signed URL]
-    F --> G[Consumer simpan\npath & URL ke tabel-nya]
+    E -->|Ya| F[Return FileResult<br/>path + signed URL]
+    F --> G[Consumer simpan<br/>path & URL ke tabel-nya]
 
     subgraph DELETE["Soft Delete Flow"]
         H([Consumer request delete]) --> I[Set deleted_at di DB]
-        I --> J[Scheduled job\nphysical delete dari storage]
+        I --> J[Scheduled job<br/>physical delete dari storage]
     end
 ```
 

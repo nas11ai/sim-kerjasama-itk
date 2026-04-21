@@ -16,12 +16,12 @@ Mengelola semua luaran dari kegiatan yang sudah disetujui. Menggunakan **satu ta
 
 ```mermaid
 flowchart TD
-    START([Submission status: APPROVED]) --> A[Researcher buka\nmenu Luaran]
-    A --> B[Pilih tipe luaran\nbased on output_type config]
-    B --> C[Isi fields via\nRepeatableField UI\nfields driven by output_type config]
-    C --> D{Ada file\nyang perlu diupload?}
-    D -->|Ya| E[Upload files\n→ research_output_files]
-    D -->|Tidak| F[Submit\n→ research_outputs table]
+    START([Submission status: APPROVED]) --> A[Researcher buka<br/>menu Luaran]
+    A --> B[Pilih tipe luaran<br/>based on output_type config]
+    B --> C[Isi fields via<br/>RepeatableField UI<br/>fields driven by output_type config]
+    C --> D{Ada file<br/>yang perlu diupload?}
+    D -->|Ya| E[Upload files<br/>→ research_output_files]
+    D -->|Tidak| F[Submit<br/>→ research_outputs table]
     E --> F
     F --> G{Tambah luaran lain?}
     G -->|Ya| B
@@ -119,20 +119,20 @@ CREATE INDEX idx_research_outputs_metadata ON research_outputs USING GIN (metada
 
 ## Business Rules
 
-| Kode | Rule |
-|---|---|
-| BR-RO-01 | Research Output hanya bisa ditambahkan untuk Submission berstatus `APPROVED` |
+| Kode     | Rule                                                                                         |
+| -------- | -------------------------------------------------------------------------------------------- |
+| BR-RO-01 | Research Output hanya bisa ditambahkan untuk Submission berstatus `APPROVED`                 |
 | BR-RO-02 | `output_type = 'pks'` hanya valid untuk Submission dengan SubmissionType = Community Service |
-| BR-RO-03 | `metadata.end_date` boleh null untuk PKS yang ongoing |
-| BR-RO-04 | Output type `ip` dan `prototype` wajib punya minimal satu file di `research_output_files` |
-| BR-RO-05 | `output_type` harus terdaftar di `output_type_definitions` — tidak bisa arbitrary string |
+| BR-RO-03 | `metadata.end_date` boleh null untuk PKS yang ongoing                                        |
+| BR-RO-04 | Output type `ip` dan `prototype` wajib punya minimal satu file di `research_output_files`    |
+| BR-RO-05 | `output_type` harus terdaftar di `output_type_definitions` — tidak bisa arbitrary string     |
 
 ---
 
 ## Integration Map
 
-| Context | Arah | Keterangan |
-|---|---|---|
-| Submission | Upstream → Research Output | Eligibility check via APPROVED status |
-| File Management | Upstream → Research Output | Upload files ke `research_output_files` |
-| System Configuration | Upstream → Research Output | `output_type_definitions` config |
+| Context              | Arah                       | Keterangan                              |
+| -------------------- | -------------------------- | --------------------------------------- |
+| Submission           | Upstream → Research Output | Eligibility check via APPROVED status   |
+| File Management      | Upstream → Research Output | Upload files ke `research_output_files` |
+| System Configuration | Upstream → Research Output | `output_type_definitions` config        |

@@ -17,18 +17,18 @@ Mengelola rencana anggaran untuk sebuah Submission. Semua data FK ke `form_submi
 ```mermaid
 flowchart TD
     START([Researcher buka tab Budget]) --> A[Pilih Budget Component]
-    A --> B[Tambah Line Item\nitem name, volume, unit, unit price]
-    B --> C[Auto-calculate\ntotal = volume × unit_price]
+    A --> B[Tambah Line Item<br/>item name, volume, unit, unit price]
+    B --> C[Auto-calculate<br/>total = volume × unit_price]
     C --> D{Tambah item lagi?}
     D -->|Ya| A
     D -->|Tidak| E[Auto-calculate Grand Total]
-    E --> F{Total > max_budget\ndari Scheme?}
+    E --> F{Total > max_budget<br/>dari Scheme?}
     F -->|Ya| G[⚠️ Warning — kurangi anggaran]
     G --> B
-    F -->|Tidak| H[Save — sync total\nke submission display]
+    F -->|Tidak| H[Save — sync total<br/>ke submission display]
 
     subgraph LOCK["After Approval"]
-        K([Event: ProposalApproved]) --> L[is_locked = true\nbudget tidak bisa diedit]
+        K([Event: ProposalApproved]) --> L[is_locked = true<br/>budget tidak bisa diedit]
     end
 ```
 
@@ -77,18 +77,18 @@ classDiagram
 
 ## Business Rules
 
-| Kode | Rule |
-|---|---|
-| BR-BUD-01 | Total BudgetLineItems ≤ `schemes.max_budget` |
-| BR-BUD-02 | Budget tidak bisa diedit setelah Submission `APPROVED` |
-| BR-BUD-03 | Volume > 0 dan unit_price > 0 untuk setiap BudgetLineItem |
+| Kode      | Rule                                                                                  |
+| --------- | ------------------------------------------------------------------------------------- |
+| BR-BUD-01 | Total BudgetLineItems ≤ `schemes.max_budget`                                          |
+| BR-BUD-02 | Budget tidak bisa diedit setelah Submission `APPROVED`                                |
+| BR-BUD-03 | Volume > 0 dan unit_price > 0 untuk setiap BudgetLineItem                             |
 | BR-BUD-04 | SubmissionOuter hanya bisa diubah jika period config mengizinkan (`can_update_outer`) |
-| BR-BUD-05 | BudgetComponent yang `is_active = false` tidak bisa dipilih untuk item baru |
+| BR-BUD-05 | BudgetComponent yang `is_active = false` tidak bisa dipilih untuk item baru           |
 
 ---
 
 ## Domain Events
 
-| Event | Trigger | Consumer |
-|---|---|---|
-| `BudgetLocked` | ProposalApproved diterima | — |
+| Event          | Trigger                   | Consumer |
+| -------------- | ------------------------- | -------- |
+| `BudgetLocked` | ProposalApproved diterima | —        |

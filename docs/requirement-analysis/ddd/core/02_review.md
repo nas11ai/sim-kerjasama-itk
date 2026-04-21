@@ -21,12 +21,12 @@ flowchart TD
     START([Event: ProposalSubmitted]) --> A
 
     subgraph OPERATOR["🏢 LPPM Operator"]
-        A[Lihat submission\nberstatus PENDING]
-        A --> B[Pilih Reviewer\ncek conflict of interest]
-        B --> C{Jumlah reviewer\n≥ min_reviewer_count\ndari submission_rules?}
+        A[Lihat submission<br/>berstatus PENDING]
+        A --> B[Pilih Reviewer<br/>cek conflict of interest]
+        B --> C{Jumlah reviewer<br/>≥ min_reviewer_count<br/>dari submission_rules?}
         C -->|Belum| B
         C -->|Ya| D[Buat SubmissionReviewer records]
-        D --> E[Auto-assign\nReviewerFormAssignments]
+        D --> E[Auto-assign<br/>ReviewerFormAssignments]
         E --> F[status → UNDER_REVIEW]
     end
 
@@ -36,20 +36,20 @@ flowchart TD
         H --> I[Submit ReviewFormResponse]
         I --> J[evaluation_status → completed]
         J --> K{Perlu revisi?}
-        K -->|Ya| L[Buat ReviewSummary\nstatus = open]
-        L --> M[Tulis ReviewComment\ndetail revisi]
-        K -->|Tidak| N[Buat ReviewSummary\nstatus = resolved]
+        K -->|Ya| L[Buat ReviewSummary<br/>status = open]
+        L --> M[Tulis ReviewComment<br/>detail revisi]
+        K -->|Tidak| N[Buat ReviewSummary<br/>status = resolved]
     end
 
     F --> G
-    M --> O([Researcher revisi\n& resubmit])
+    M --> O([Researcher revisi<br/>& resubmit])
     O --> H
 
     subgraph SYSTEM["🔄 System"]
-        P{Semua SubmissionReviewer\nevaluation_status = completed?}
-        P -->|Ya| Q{Ada ReviewSummary\nstatus = open?}
+        P{Semua SubmissionReviewer<br/>evaluation_status = completed?}
+        P -->|Ya| Q{Ada ReviewSummary<br/>status = open?}
         Q -->|Ya| R[status → NEEDS_REVISION]
-        Q -->|Tidak| S[status → APPROVED\natau REJECTED]
+        Q -->|Tidak| S[status → APPROVED<br/>atau REJECTED]
     end
 
     N --> P
@@ -61,12 +61,12 @@ flowchart TD
 ```mermaid
 flowchart TD
     START([Reviewer submit evaluation]) --> A[Buat ReviewSummary]
-    A --> B[Tulis ReviewComment\ncatatan revisi]
-    B --> C[Researcher reply\nparent_comment_id = komentar reviewer]
-    C --> D[Reviewer reply balik\njika perlu]
+    A --> B[Tulis ReviewComment<br/>catatan revisi]
+    B --> C[Researcher reply<br/>parent_comment_id = komentar reviewer]
+    C --> D[Reviewer reply balik<br/>jika perlu]
     D --> E{Revisi memuaskan?}
     E -->|Belum| D
-    E -->|Ya| F[Update ReviewSummary\nstatus = resolved]
+    E -->|Ya| F[Update ReviewSummary<br/>status = resolved]
 ```
 
 ---
@@ -75,10 +75,10 @@ flowchart TD
 
 Tidak ada tabel `reviewer_roles`. Perbedaan internal vs eksternal dikelola via dua Spatie roles:
 
-| Spatie Role | Permission | Keterangan |
-|---|---|---|
+| Spatie Role         | Permission                                                                    | Keterangan                                    |
+| ------------------- | ----------------------------------------------------------------------------- | --------------------------------------------- |
 | `reviewer_internal` | `reviewers.evaluate`, `submissions.view-assigned`, `review.view-other-scores` | Bisa lihat skor reviewer lain setelah selesai |
-| `reviewer_external` | `reviewers.evaluate`, `submissions.view-assigned` | Tidak bisa lihat skor reviewer lain |
+| `reviewer_external` | `reviewers.evaluate`, `submissions.view-assigned`                             | Tidak bisa lihat skor reviewer lain           |
 
 `FormAccessControl` bisa reference salah satu role — memungkinkan form evaluasi yang berbeda untuk reviewer internal vs eksternal.
 
@@ -179,25 +179,25 @@ classDiagram
 
 ## Business Rules
 
-| Kode | Rule |
-|---|---|
-| BR-REV-01 | Jumlah reviewer yang di-assign harus ≥ `submission_rules.min_reviewer_count` untuk period tersebut |
-| BR-REV-02 | Reviewer tidak bisa di-assign ke submission yang ia menjadi `submitted_by` atau `ResearchMember`-nya |
-| BR-REV-03 | Reviewer yang sama tidak bisa di-assign dua kali ke submission yang sama |
-| BR-REV-04 | Reviewer hanya bisa membuat ReviewSummary setelah `evaluation_status = completed` atau `not_required` |
+| Kode      | Rule                                                                                                                                        |
+| --------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
+| BR-REV-01 | Jumlah reviewer yang di-assign harus ≥ `submission_rules.min_reviewer_count` untuk period tersebut                                          |
+| BR-REV-02 | Reviewer tidak bisa di-assign ke submission yang ia menjadi `submitted_by` atau `ResearchMember`-nya                                        |
+| BR-REV-03 | Reviewer yang sama tidak bisa di-assign dua kali ke submission yang sama                                                                    |
+| BR-REV-04 | Reviewer hanya bisa membuat ReviewSummary setelah `evaluation_status = completed` atau `not_required`                                       |
 | BR-REV-05 | Submission bisa di-approve hanya jika semua SubmissionReviewer `evaluation_status = completed` DAN tidak ada ReviewSummary berstatus `open` |
-| BR-REV-06 | ReviewFormResponse tidak bisa diedit setelah `status = submitted` |
-| BR-REV-07 | Reviewer `reviewer_internal` bisa lihat skor reviewer lain setelah semua selesai — `reviewer_external` tidak bisa |
+| BR-REV-06 | ReviewFormResponse tidak bisa diedit setelah `status = submitted`                                                                           |
+| BR-REV-07 | Reviewer `reviewer_internal` bisa lihat skor reviewer lain setelah semua selesai — `reviewer_external` tidak bisa                           |
 
 ---
 
 ## Domain Events
 
-| Event | Trigger | Consumer |
-|---|---|---|
-| `ReviewerAssigned` | Operator assign reviewer | Notification |
-| `EvaluationSubmitted` | Reviewer submit ReviewFormResponse | (internal: cek semua done) |
-| `RevisionRequested` | ReviewSummary dibuat status open | Submission (status → NEEDS_REVISION), Notification |
-| `RevisionResolved` | ReviewSummary → resolved | (internal: cek semua resolved) |
-| `ProposalApprovedByReview` | Semua reviewer done + semua resolved | Submission (status → APPROVED) |
-| `ProposalRejectedByReview` | Keputusan penolakan | Submission (status → REJECTED) |
+| Event                      | Trigger                              | Consumer                                           |
+| -------------------------- | ------------------------------------ | -------------------------------------------------- |
+| `ReviewerAssigned`         | Operator assign reviewer             | Notification                                       |
+| `EvaluationSubmitted`      | Reviewer submit ReviewFormResponse   | (internal: cek semua done)                         |
+| `RevisionRequested`        | ReviewSummary dibuat status open     | Submission (status → NEEDS_REVISION), Notification |
+| `RevisionResolved`         | ReviewSummary → resolved             | (internal: cek semua resolved)                     |
+| `ProposalApprovedByReview` | Semua reviewer done + semua resolved | Submission (status → APPROVED)                     |
+| `ProposalRejectedByReview` | Keputusan penolakan                  | Submission (status → REJECTED)                     |

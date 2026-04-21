@@ -40,15 +40,15 @@ flowchart TD
 
     subgraph BUILD["Build Form"]
         A[Buat Form — title, form_type]
-        A --> B[Tambah FormFields\nlabel, type, required, order, config]
-        B --> C[Set FormAccessControl\nrole + organization_id]
+        A --> B[Tambah FormFields<br/>label, type, required, order, config]
+        B --> C[Set FormAccessControl<br/>role + organization_id]
     end
 
     subgraph PHASE["Build FormPhase"]
-        D[Buat FormPhase\ntitle — satu per lifecycle penelitian]
-        D --> E[Tambah FormPhaseDetails\nFAC, PhaseType, order, needs_review]
-        E --> F{Detail ini butuh\nreviewer evaluation?}
-        F -->|Ya| G[Tambah ReviewEvaluationForm\nke FormPhaseDetail]
+        D[Buat FormPhase<br/>title — satu per lifecycle penelitian]
+        D --> E[Tambah FormPhaseDetails<br/>FAC, PhaseType, order, needs_review]
+        E --> F{Detail ini butuh<br/>reviewer evaluation?}
+        F -->|Ya| G[Tambah ReviewEvaluationForm<br/>ke FormPhaseDetail]
         G --> H[Tambah ReviewFormFields]
         F -->|Tidak| I[Selesai]
         H --> I
@@ -56,9 +56,9 @@ flowchart TD
 
     subgraph PERIOD["Setup Period"]
         J[Buat SubmissionPeriod]
-        J --> K[Tambah SubmissionDates\nlabeled dates]
+        J --> K[Tambah SubmissionDates<br/>labeled dates]
         K --> L[Link FormPhase ke Period]
-        L --> M[Set SubmissionRules\ne.g. min_reviewer_count=2]
+        L --> M[Set SubmissionRules<br/>e.g. min_reviewer_count=2]
     end
 
     C --> D --> J
@@ -86,7 +86,7 @@ classDiagram
         +FieldTypeId field_type_id
         +int order
         +Json config
-        note "config digunakan untuk:\n- repeatable: schema sub-fields\n- scheme_selector: filter options\n- trl_selector: depends_on\n- select/radio: ada di FormFieldOption"
+        note "config digunakan untuk:<br/>- repeatable: schema sub-fields<br/>- scheme_selector: filter options<br/>- trl_selector: depends_on<br/>- select/radio: ada di FormFieldOption"
     }
 
     class FormAccessControl {
@@ -140,7 +140,7 @@ classDiagram
         +FormSubmissionId form_submission_id
         +FormFieldId form_field_id
         +string value
-        note "scalar values only\narray/object → extension tables"
+        note "scalar values only<br/>array/object → extension tables"
     }
 
     class ReviewEvaluationForm {

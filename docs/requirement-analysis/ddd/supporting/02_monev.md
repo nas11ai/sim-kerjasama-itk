@@ -47,35 +47,35 @@ flowchart TD
     START([Researcher buka SubmissionPeriod]) --> A
 
     subgraph STEP1["Detail 1 — Pengajuan"]
-        A[Isi Form Pengajuan\ncreate FormSubmission root]
-        A --> B[Submit\nneeds_review = true]
+        A[Isi Form Pengajuan<br/>create FormSubmission root]
+        A --> B[Submit<br/>needs_review = true]
         B --> C[Status → PENDING]
     end
 
     subgraph REVIEW1["Detail 2 — Evaluasi Pengajuan"]
-        D[Reviewer isi\nReviewEvaluationForm]
-        D --> E{Revisi\ndiperlukan?}
-        E -->|Ya| F[ReviewSummary status = open\nResearcher perbaiki\nresubmit FormSubmission yang sama]
+        D[Reviewer isi<br/>ReviewEvaluationForm]
+        D --> E{Revisi<br/>diperlukan?}
+        E -->|Ya| F[ReviewSummary status = open<br/>Researcher perbaiki<br/>resubmit FormSubmission yang sama]
         F --> D
-        E -->|Tidak| G[ReviewSummary status = resolved\ncan_proceed = true]
+        E -->|Tidak| G[ReviewSummary status = resolved<br/>can_proceed = true]
     end
 
     subgraph STEP3["Detail 3 — Laporan Monev I"]
-        H[Researcher isi\nLaporan Kemajuan\nchild FormSubmission]
+        H[Researcher isi<br/>Laporan Kemajuan<br/>child FormSubmission]
         H --> I[Submit]
     end
 
     subgraph REVIEW2["Detail 4 — Evaluasi Monev I"]
-        J[Reviewer isi\nEvaluation Form Monev I]
+        J[Reviewer isi<br/>Evaluation Form Monev I]
         J --> K[ReviewSummary resolved]
     end
 
     C --> D
     G --> H
     I --> J
-    K --> MORE{Ada siklus\nMonev lagi?}
-    MORE -->|Ya| H2[Detail 5,6 — Monev II\npola yang sama]
-    MORE -->|Tidak| L[Detail 7 — Upload Luaran\nresearcher isi research outputs]
+    K --> MORE{Ada siklus<br/>Monev lagi?}
+    MORE -->|Ya| H2[Detail 5,6 — Monev II<br/>pola yang sama]
+    MORE -->|Tidak| L[Detail 7 — Upload Luaran<br/>researcher isi research outputs]
     L --> END([Lifecycle selesai])
 ```
 
@@ -83,12 +83,12 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    START([User buka FormPhase]) --> A[Load FormPhaseDetails\nyang accessible\nberdasarkan role + org]
+    START([User buka FormPhase]) --> A[Load FormPhaseDetails<br/>yang accessible<br/>berdasarkan role + org]
     A --> B{User role?}
-    B -->|researcher| C[Lihat Detail 1, 3, 5, 7\nformAccessControl.role = researcher]
-    B -->|reviewer_internal\natau reviewer_external| D[Lihat Detail 2, 4, 6\nformAccessControl.role = reviewer_*]
-    C --> E{can_proceed\nDetail sebelumnya?}
-    E -->|Tidak| F[Detail terkunci\ntampilkan status menunggu]
+    B -->|researcher| C[Lihat Detail 1, 3, 5, 7<br/>formAccessControl.role = researcher]
+    B -->|reviewer_internal<br/>atau reviewer_external| D[Lihat Detail 2, 4, 6<br/>formAccessControl.role = reviewer_*]
+    C --> E{can_proceed<br/>Detail sebelumnya?}
+    E -->|Tidak| F[Detail terkunci<br/>tampilkan status menunggu]
     E -->|Ya| G[Detail bisa diakses]
 ```
 
@@ -96,13 +96,13 @@ flowchart TD
 
 ## Tidak Ada Tabel Baru
 
-| Data | Tabel yang dipakai |
-|---|---|
-| Laporan kemajuan researcher | `form_submissions` (child) + `form_field_responses` |
-| File laporan | `form_field_responses` (field_type = file) |
-| Penilaian reviewer | `review_form_responses` + `review_form_field_responses` |
-| Diskusi & catatan | `review_summaries` + `review_comments` |
-| Luaran | `research_outputs` + `research_output_files` |
+| Data                        | Tabel yang dipakai                                      |
+| --------------------------- | ------------------------------------------------------- |
+| Laporan kemajuan researcher | `form_submissions` (child) + `form_field_responses`     |
+| File laporan                | `form_field_responses` (field_type = file)              |
+| Penilaian reviewer          | `review_form_responses` + `review_form_field_responses` |
+| Diskusi & catatan           | `review_summaries` + `review_comments`                  |
+| Luaran                      | `research_outputs` + `research_output_files`            |
 
 ---
 
@@ -110,39 +110,39 @@ flowchart TD
 
 Operator bisa tambah/hapus siklus Monev tanpa sentuh kode:
 
-| Aksi | Cara |
-|---|---|
-| Tambah Monev III | Tambah FormPhaseDetail order=9,10 ke FormPhase yang sama |
-| Hapus Monev II | Nonaktifkan FormPhaseDetail order=5,6 |
-| Ubah form laporan | Edit FormField di Form "Laporan Kemajuan" |
-| Ubah kriteria penilaian | Edit ReviewFormField di ReviewEvaluationForm |
+| Aksi                    | Cara                                                     |
+| ----------------------- | -------------------------------------------------------- |
+| Tambah Monev III        | Tambah FormPhaseDetail order=9,10 ke FormPhase yang sama |
+| Hapus Monev II          | Nonaktifkan FormPhaseDetail order=5,6                    |
+| Ubah form laporan       | Edit FormField di Form "Laporan Kemajuan"                |
+| Ubah kriteria penilaian | Edit ReviewFormField di ReviewEvaluationForm             |
 
 ---
 
 ## Business Rules
 
-| Kode | Rule |
-|---|---|
-| BR-MON-01 | Monev hanya bisa diakses setelah FormSubmission pengajuan utama berstatus `APPROVED` |
+| Kode      | Rule                                                                                                                |
+| --------- | ------------------------------------------------------------------------------------------------------------------- |
+| BR-MON-01 | Monev hanya bisa diakses setelah FormSubmission pengajuan utama berstatus `APPROVED`                                |
 | BR-MON-02 | Researcher tidak bisa mengisi Detail berikutnya sebelum `can_proceed = true` dari Detail yang `needs_review = true` |
-| BR-MON-03 | Satu researcher hanya bisa punya satu child FormSubmission per FormPhaseDetail |
-| BR-MON-04 | Reviewer yang di-assign ke Monev bisa berbeda dengan reviewer pengajuan awal |
+| BR-MON-03 | Satu researcher hanya bisa punya satu child FormSubmission per FormPhaseDetail                                      |
+| BR-MON-04 | Reviewer yang di-assign ke Monev bisa berbeda dengan reviewer pengajuan awal                                        |
 
 ---
 
 ## Domain Events
 
-| Event | Trigger | Consumer |
-|---|---|---|
-| `MonevStageOpened` | Operator aktifkan FormPhaseDetail monev | Notification |
+| Event                      | Trigger                                  | Consumer     |
+| -------------------------- | ---------------------------------------- | ------------ |
+| `MonevStageOpened`         | Operator aktifkan FormPhaseDetail monev  | Notification |
 | `MonevEvaluationSubmitted` | Reviewer submit ReviewFormResponse monev | Notification |
 
 ---
 
 ## Integration Map
 
-| Context | Arah | Keterangan |
-|---|---|---|
+| Context     | Arah             | Keterangan                                        |
+| ----------- | ---------------- | ------------------------------------------------- |
 | Form Engine | Upstream → Monev | Semua infrastruktur dari FE — tidak ada yang baru |
-| Submission | Upstream → Monev | Parent FormSubmission harus APPROVED |
-| Review | Lateral | Pola ReviewEvaluationForm + ReviewSummary identik |
+| Submission  | Upstream → Monev | Parent FormSubmission harus APPROVED              |
+| Review      | Lateral          | Pola ReviewEvaluationForm + ReviewSummary identik |

@@ -88,10 +88,10 @@ flowchart TD
 
     subgraph REGISTRATION["Registrasi"]
         REG{Tipe User?}
-        REG -->|Dosen ITK| SR[Self-register\n+ domain check]
-        REG -->|External| INV[Invitation link\nper organisasi]
-        REG -->|Reviewer| OPR_R[Ditunjuk Operator\ndari existing user]
-        SR --> VERIFY[Verifikasi NIDN\noleh Operator]
+        REG -->|Dosen ITK| SR[Self-register<br/>+ domain check]
+        REG -->|External| INV[Invitation link<br/>per organisasi]
+        REG -->|Reviewer| OPR_R[Ditunjuk Operator<br/>dari existing user]
+        SR --> VERIFY[Verifikasi NIDN<br/>oleh Operator]
         INV --> VERIFY
         VERIFY --> ACTIVE[User Active]
         OPR_R --> ACTIVE
@@ -100,38 +100,38 @@ flowchart TD
     ACTIVE --> A
 
     subgraph RESEARCHER["👤 Researcher"]
-        A[Pilih Submission Period] --> B[Pilih Scheme\nopsional — tergantung Form]
-        B --> C[Isi Form Pengajuan\ntitle, abstract, keywords, dll]
+        A[Pilih Submission Period] --> B[Pilih Scheme<br/>opsional — tergantung Form]
+        B --> C[Isi Form Pengajuan<br/>title, abstract, keywords, dll]
         C --> D[Tambah Research Members]
         D --> E[Input Budget Plan]
-        E --> F[Upload Proposal PDF\n+ Additional Files]
+        E --> F[Upload Proposal PDF<br/>+ Additional Files]
         F --> G{Lengkap?}
         G -->|Belum| C
         G -->|Ya| H[Submit]
     end
 
     subgraph OPERATOR["🏢 LPPM Operator"]
-        I[Assign Reviewer\n≥ min_reviewer_count]
+        I[Assign Reviewer<br/>≥ min_reviewer_count]
     end
 
     subgraph REVIEWER["🔍 Reviewer"]
-        J[Isi Evaluation Form\nper component & indicator]
+        J[Isi Evaluation Form<br/>per component & indicator]
         J --> K{Perlu Revisi?}
-        K -->|Ya| L[Request Revision\nvia ReviewSummary + ReviewComment]
+        K -->|Ya| L[Request Revision<br/>via ReviewSummary + ReviewComment]
         K -->|Tidak| M{Approve?}
     end
 
     H --> I --> J
-    L --> N[Researcher Revisi\n& Resubmit]
+    L --> N[Researcher Revisi<br/>& Resubmit]
     N --> J
     M -->|Tidak| REJECT[❌ Rejected → History]
     M -->|Ya| APPROVE[✅ Approved]
 
-    APPROVE --> P[Monev — dalam satu FormPhase\nyang sama dengan pengajuan]
-    P --> Q[Isi Laporan Kemajuan\nchild FormSubmission]
-    Q --> R[Reviewer Isi\nEvaluation Form Monev]
-    R --> S[Upload Research Output\nper tipe via metadata JSONB]
-    S --> T{Semua siklus\nMonev selesai?}
+    APPROVE --> P[Monev — dalam satu FormPhase<br/>yang sama dengan pengajuan]
+    P --> Q[Isi Laporan Kemajuan<br/>child FormSubmission]
+    Q --> R[Reviewer Isi<br/>Evaluation Form Monev]
+    R --> S[Upload Research Output<br/>per tipe via metadata JSONB]
+    S --> T{Semua siklus<br/>Monev selesai?}
     T -->|Belum| Q
     T -->|Ya| HISTORY[📋 Submission History]
     REJECT --> HISTORY
@@ -160,8 +160,8 @@ graph TD
     end
 
     subgraph ACCESS["Access Check"]
-        FAC["form_access_controls\nrole_id + organization_id"]
-        UP["user_profiles\norganization_id"]
+        FAC["form_access_controls<br/>role_id + organization_id"]
+        UP["user_profiles<br/>organization_id"]
         FAC -->|"user org ada di subtree?"| CHECK{✓ / ✗}
         UP --> CHECK
     end
@@ -174,19 +174,19 @@ graph TD
 ```mermaid
 graph LR
     subgraph DEV["Development"]
-        TEL["Laravel\nTelescope"]
+        TEL["Laravel<br/>Telescope"]
     end
 
     subgraph STG["Staging"]
-        GC["Grafana Cloud\nFree Tier\nLoki + Prometheus"]
+        GC["Grafana Cloud<br/>Free Tier<br/>Loki + Prometheus"]
     end
 
     subgraph PROD["Production (self-hosted)"]
-        VM["VictoriaMetrics\n~150 MB"]
-        LK["Loki + Promtail\n~200 MB"]
-        GR["Grafana\n~150 MB"]
-        UK["Uptime Kuma\n~50 MB"]
-        GT["GlitchTip\n~300 MB"]
+        VM["VictoriaMetrics<br/>~150 MB"]
+        LK["Loki + Promtail<br/>~200 MB"]
+        GR["Grafana<br/>~150 MB"]
+        UK["Uptime Kuma<br/>~50 MB"]
+        GT["GlitchTip<br/>~300 MB"]
     end
 
     APP["Laravel App"] -->|logs| TEL
