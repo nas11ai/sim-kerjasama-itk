@@ -8,46 +8,30 @@
 
 ## Responsibility
 
-Platform inti yang diwarisi dari sim-kerjasama-itk. Menyediakan infrastruktur untuk mendefinisikan form, workflow berbasis fase, access control, dan menyimpan respons. Context lain dibangun **di atas** Form Engine, tidak menggantikannya.
+Platform inti yang diwarisi dari sim-kerjasama-itk. Menyediakan infrastruktur untuk mendefinisikan form, mengatur workflow berbasis fase, mengontrol akses, dan menyimpan respons. Semua bounded context lain **dibangun di atas** Form Engine — bukan menggantikannya.
 
-Tidak ada business logic SIMPAS di sini.
-
----
-
-## Special Field Types
-
-Selain field type standar (`text`, `textarea`, `select`, `radio`, `checkbox`, `file`, `date`, `number`, `url`), Form Engine support field type khusus berikut:
-
-| Field Type        | Deskripsi                                                                                                 | Config                                              |
-| ----------------- | --------------------------------------------------------------------------------------------------------- | --------------------------------------------------- |
-| `repeatable`      | Field yang bisa diisi banyak entri. **Data dikirim ke extension tables, bukan form_field_responses.**     | `{ fields[], min_entries, max_entries, add_label }` |
-| `scheme_selector` | Dropdown scheme yang di-load berdasarkan SubmissionPeriod aktif. Saves `scheme_id` ke `form_submissions`. | `{ filter_by_period, filter_by_submission_type }`   |
-| `trl_selector`    | Dropdown TRL yang di-filter berdasarkan scheme yang dipilih.                                              | `{ depends_on: 'scheme' }`                          |
-
-Kalau `scheme_selector` tidak ada di Form → submission tidak butuh scheme.  
-Kalau `trl_selector` tidak ada di Form → submission tidak butuh TRL.  
-Ini membuat Form Engine tetap general — fitur domain-specific di-inject via field config.
+Tidak ada business logic SIMPAS di sini. Form Engine generik dan bisa dipakai untuk sistem apapun.
 
 ---
 
 ## Activity Diagram
 
-### Konfigurasi Form & Phase (Admin/Operator)
+### Alur Konfigurasi (Admin/Operator)
 
 ```mermaid
 flowchart TD
-    START([Operator buka Form Builder]) --> A
+    START([Admin buka Form Builder]) --> A
 
     subgraph BUILD["Build Form"]
-        A[Buat Form — title, form_type]
+        A[Buat Form<br/>title, description, form_type]
         A --> B[Tambah FormFields<br/>label, type, required, order, config]
-        B --> C[Set FormAccessControl<br/>role + organization_id]
+        B --> C[Set FormAccessControl<br/>permission + organization]
     end
 
-    subgraph PHASE["Build FormPhase"]
-        D[Buat FormPhase<br/>title — satu per lifecycle penelitian]
-        D --> E[Tambah FormPhaseDetails<br/>FAC, PhaseType, order, needs_review]
-        E --> F{Detail ini butuh<br/>reviewer evaluation?}
+    subgraph PHASE["Build Workflow Phase"]
+        D[Buat FormPhase<br/>title, description]
+        D --> E[Tambah FormPhaseDetails<br/>link FormAccessControl, set order, needs_review]
+        E --> F{Fase ini<br/>butuh evaluasi<br/>reviewer?}
         F -->|Ya| G[Tambah ReviewEvaluationForm<br/>ke FormPhaseDetail]
         G --> H[Tambah ReviewFormFields]
         F -->|Tidak| I[Selesai]
@@ -55,13 +39,47 @@ flowchart TD
     end
 
     subgraph PERIOD["Setup Period"]
-        J[Buat SubmissionPeriod]
+        J[Buat SubmissionPeriod<br/>name]
         J --> K[Tambah SubmissionDates<br/>labeled dates]
-        K --> L[Link FormPhase ke Period]
-        L --> M[Set SubmissionRules<br/>e.g. min_reviewer_count=2]
+        K --> L[Link FormPhases<br/>ke Period via SubmissionPeriodPhase]
     end
 
     C --> D --> J
+    I --> J
+```
+
+### Alur Submit FormSubmission
+
+```mermaid
+flowchart TD
+    START([User buka Form]) --> A[Load FormFields<br/>based on FormAccessControl]
+    A --> B[Isi field-field<br/>scalar values]
+    B --> C[Save Draft<br/>FormFieldResponse per field]
+    C --> D{Semua required<br/>field terisi?}
+    D -->|Belum| B
+    D -->|Ya| E[Submit]
+    E --> F[is_submitted = true]
+    F --> G{needs_review?}
+    G -->|Tidak| H[status → APPROVED<br/>otomatis]
+    G -->|Ya| I[status → PENDING<br/>menunggu reviewer]
+```
+
+### Alur Access Check
+
+```mermaid
+flowchart TD
+    START([User request akses Form]) --> A[Ambil semua permission<br/>user via Spatie<br/>incl. dari role maupun direct]
+    A --> B[Query FormAccessControl<br/>WHERE permission IN user_permissions<br/>AND organization_id IN org_subtree]
+    B --> C{Ada baris<br/>yang match?}
+    C -->|Tidak| D[❌ Akses ditolak]
+    C -->|Ya| E[✅ Akses diberikan]
+
+    subgraph SPATIE["Spatie Permission — dua jalur"]
+        F[User → Role → Permission<br/>inherited dari role]
+        G[User → Permission<br/>custom / direct assign]
+        F --> H[getAllPermissions]
+        G --> H
+    end
 ```
 
 ---
@@ -86,13 +104,18 @@ classDiagram
         +FieldTypeId field_type_id
         +int order
         +Json config
-        note "config digunakan untuk:<br/>- repeatable: schema sub-fields<br/>- scheme_selector: filter options<br/>- trl_selector: depends_on<br/>- select/radio: ada di FormFieldOption"
+    }
+
+    class FormFieldOption {
+        +FormFieldOptionId id
+        +FormFieldId form_field_id
+        +string label
     }
 
     class FormAccessControl {
         +FormAccessControlId id
         +FormId form_id
-        +RoleId role_id
+        +string permission
         +OrganizationId organization_id
     }
 
@@ -117,11 +140,11 @@ classDiagram
         +string name
     }
 
-    class SubmissionRule {
-        +SubmissionRuleId id
-        +string label
-        +int value
-        note "contoh: min_reviewer_count = 2"
+    class SubmissionDate {
+        +SubmissionDateId id
+        +SubmissionPeriodId period_id
+        +SubmissionDateLabelId label_id
+        +DateTime date
     }
 
     class FormSubmission {
@@ -129,9 +152,9 @@ classDiagram
         +FormId form_id
         +UserId submitted_by
         +FormSubmissionId parent_submission_id
-        +SchemeId scheme_id
         +bool is_submitted
         +SubmissionStatus status
+        +submit()
         +canProceed() bool
     }
 
@@ -140,16 +163,50 @@ classDiagram
         +FormSubmissionId form_submission_id
         +FormFieldId form_field_id
         +string value
-        note "scalar values only<br/>array/object → extension tables"
     }
 
     class ReviewEvaluationForm {
         +ReviewEvaluationFormId id
         +FormPhaseDetailId form_phase_detail_id
         +string title
+        +string description
         +bool is_required
         +bool is_active
         +int order
+    }
+
+    class ReviewFormField {
+        +ReviewFormFieldId id
+        +ReviewEvaluationFormId review_evaluation_form_id
+        +FieldTypeId field_type_id
+        +string label
+        +bool is_required
+        +int order
+        +Json validation_rules
+    }
+
+    class ReviewerFormAssignment {
+        +ReviewerFormAssignmentId id
+        +SubmissionReviewerId submission_reviewer_id
+        +ReviewEvaluationFormId review_evaluation_form_id
+        +bool is_required
+        +DateTime assigned_at
+        +DateTime due_date
+    }
+
+    class ReviewFormResponse {
+        +ReviewFormResponseId id
+        +ReviewerFormAssignmentId reviewer_form_assignment_id
+        +string status
+        +DateTime submitted_at
+        +string final_notes
+    }
+
+    class ReviewFormFieldResponse {
+        +ReviewFormFieldResponseId id
+        +ReviewFormResponseId review_form_response_id
+        +ReviewFormFieldId review_form_field_id
+        +string value
     }
 
     class ReviewSummary {
@@ -169,27 +226,115 @@ classDiagram
         +string comment_text
     }
 
-    Form "1" --> "0..*" FormField
-    Form "1" --> "0..*" FormAccessControl
-    FormPhase "1" --> "1..*" FormPhaseDetail
-    FormPhaseDetail "1" --> "0..*" ReviewEvaluationForm
+    class SubmissionReviewer {
+        +SubmissionReviewerId id
+        +FormSubmissionId form_submission_id
+        +ReviewerId reviewer_id
+        +string evaluation_status
+    }
+
+    Form "1" --> "0..*" FormField : has
+    Form "1" --> "0..*" FormAccessControl : controlled_by
+    FormField "1" --> "0..*" FormFieldOption : has
+    FormPhase "1" --> "1..*" FormPhaseDetail : has
+    FormPhaseDetail "1" --> "0..*" ReviewEvaluationForm : has
+    ReviewEvaluationForm "1" --> "1..*" ReviewFormField : has
+    FormSubmission "1" --> "0..*" FormFieldResponse : has
+    FormSubmission "1" --> "0..*" SubmissionReviewer : has
     FormSubmission "0..1" --> "0..*" FormSubmission : parent_of
-    FormSubmission "1" --> "0..*" FormFieldResponse
-    FormSubmission "1" --> "0..*" ReviewSummary
-    ReviewSummary "1" --> "0..*" ReviewComment
-    ReviewComment "0..1" --> "0..*" ReviewComment : parent_of
+    SubmissionReviewer "1" --> "0..*" ReviewerFormAssignment : has
+    ReviewerFormAssignment "1" --> "0..1" ReviewFormResponse : has
+    ReviewFormResponse "1" --> "0..*" ReviewFormFieldResponse : has
+    FormSubmission "1" --> "0..*" ReviewSummary : has
+    ReviewSummary "1" --> "0..*" ReviewComment : has
 ```
+
+---
+
+## Konsep `FormAccessControl` — Permission + Org
+
+`form_access_controls` tidak lagi menyimpan `role_id`. Yang disimpan adalah **nama permission** (string) dan `organization_id`. Ini memungkinkan dua jalur akses via Spatie yang transparan:
+
+```
+User → Role → Permission   (inherited — majority of users)
+User → Permission           (direct / custom — edge cases)
+```
+
+Keduanya ter-cover oleh satu query yang sama:
+
+```php
+$userPermissions = $user->getAllPermissions()->pluck('name');
+$userOrgSubtree  = Organization::subtreeIds($user->profile->organization_id);
+
+$canAccess = FormAccessControl::where('form_id', $form->id)
+    ->whereIn('permission', $userPermissions)
+    ->whereIn('organization_id', $userOrgSubtree)
+    ->exists();
+```
+
+Operator tidak perlu tahu apakah permission user berasal dari role atau direct assign — access check-nya identik.
+
+---
+
+## Konsep `parent_submission_id`
+
+`FormSubmission` bisa punya hierarki. Parent selalu submission pengajuan utama. Child submissions digunakan untuk:
+
+| Child Type      | Digunakan untuk          | Siapa yang isi |
+| --------------- | ------------------------ | -------------- |
+| Progress Report | Laporan kemajuan monev   | Researcher     |
+| Kelengkapan     | Upload dokumen pendukung | Researcher     |
+| Research Output | Pelaporan luaran         | Researcher     |
+
+Satu parent bisa punya banyak child dari tipe yang sama (e.g., banyak laporan per siklus monev).
+
+---
+
+## Konsep `RepeatableField`
+
+`FormField` dengan `field_type = 'repeatable'` dan kolom `config` berisi JSON schema sub-fields:
+
+```json
+{
+    "add_label": "Tambah Anggota",
+    "min_entries": 0,
+    "max_entries": 5,
+    "fields": [
+        { "key": "nidn", "label": "NIDN", "type": "text", "required": true },
+        {
+            "key": "name",
+            "label": "Nama Lengkap",
+            "type": "text",
+            "required": true
+        },
+        { "key": "role", "label": "Peran", "type": "select", "required": true }
+    ]
+}
+```
+
+**Penting:** `config` adalah **UI schema saja**. Data tidak masuk ke `form_field_responses`. Saat submit, frontend kirim data repeatable ke endpoint extension table yang sesuai (research_members, budget_line_items, dll).
 
 ---
 
 ## Business Rules
 
-| Kode     | Rule                                                                                                  |
-| -------- | ----------------------------------------------------------------------------------------------------- |
-| BR-FE-01 | FormSubmission hanya bisa dibuat selama SubmissionPeriod masih aktif                                  |
-| BR-FE-02 | User hanya bisa submit Form yang ia punya akses via FormAccessControl (role + org subtree match)      |
-| BR-FE-03 | `FormFieldResponse` hanya untuk scalar values — repeatable & structured data ke extension tables      |
-| BR-FE-04 | Child FormSubmission hanya bisa dibuat jika parent sudah `APPROVED` atau `canProceed() = true`        |
-| BR-FE-05 | ReviewFormResponse tidak bisa diedit setelah `status = submitted`                                     |
-| BR-FE-06 | Reviewer hanya bisa membuat ReviewSummary setelah `evaluation_status = completed` atau `not_required` |
-| BR-FE-07 | `scheme_id` di FormSubmission wajib diisi hanya jika Form punya field bertipe `scheme_selector`       |
+| Kode     | Rule                                                                                                             |
+| -------- | ---------------------------------------------------------------------------------------------------------------- |
+| BR-FE-01 | `FormSubmission` hanya bisa dibuat selama `SubmissionPeriod` masih aktif                                         |
+| BR-FE-02 | User hanya bisa akses Form jika ada `FormAccessControl` yang match permission user DAN organization subtree user |
+| BR-FE-03 | `FormFieldResponse` hanya menyimpan scalar values — tidak ada array atau object                                  |
+| BR-FE-04 | Child `FormSubmission` hanya bisa dibuat jika parent sudah berstatus `APPROVED`                                  |
+| BR-FE-05 | `ReviewFormResponse` tidak bisa diedit setelah `status = submitted`                                              |
+| BR-FE-06 | Reviewer hanya bisa membuat `ReviewSummary` setelah `evaluation_status = completed` atau `not_required`          |
+
+---
+
+## Integration Map
+
+| Context           | Arah                     | Keterangan                                                   |
+| ----------------- | ------------------------ | ------------------------------------------------------------ |
+| Submission        | Form Engine → Downstream | FormSubmission adalah basis Submission SIMPAS                |
+| Review            | Form Engine → Downstream | ReviewEvaluationForm, ReviewSummary, ReviewComment           |
+| Monev             | Form Engine → Downstream | FormPhase untuk monev stages, child FormSubmission           |
+| Research Output   | Form Engine → Downstream | Child FormSubmission untuk output reporting                  |
+| Identity & Access | Upstream → Form Engine   | Permission string dan OrganizationId untuk FormAccessControl |

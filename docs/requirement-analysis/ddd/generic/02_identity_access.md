@@ -1,7 +1,7 @@
 # BC: Identity & Access
 
 **Klasifikasi:** 🟢 Generic Domain  
-**Versi:** 2.0  
+**Versi:** 2.1  
 **Status:** Draft
 
 ---
@@ -12,8 +12,7 @@ Mengelola autentikasi, profil user, hierarki organisasi, dan kontrol akses. Dua 
 
 - **Spatie Permission** → _apa yang boleh dilakukan_ (authorization)
 - **Organization tree** → _dari mana user berasal_ (identity/scope)
-
-Keduanya independen dan menjawab pertanyaan yang berbeda.
+  Keduanya independen. `FormAccessControl` menggunakan **permission + org** — bukan role + org — sehingga user dengan custom permission langsung (tanpa role) tetap mendapat akses yang sesuai.
 
 ---
 
@@ -28,7 +27,7 @@ flowchart TD
     B -->|Tidak| ERR[❌ Tolak]
     B -->|Ya| C[Pilih Organisasi<br/>via OrgTreePicker]
     C --> D[Submit Register]
-    D --> E[Role 'researcher'<br/>auto-assigned]
+    D --> E[Role 'researcher'<br/>auto-assigned<br/>→ permission set researcher]
     E --> F[Status: pending<br/>belum bisa submit proposal]
     F --> G[Operator terima<br/>notifikasi verifikasi NIDN]
     G --> H{NIDN valid?}
@@ -41,13 +40,13 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    START([Operator buat InvitationToken]) --> A[Set organization_id<br/>role, expires_at, max_uses]
+    START([Operator buat InvitationToken]) --> A[Set organization_id<br/>permission set, expires_at, max_uses]
     A --> B[Generate token URL<br/>/register?token=xxx]
     B --> C[Operator share link<br/>ke PIC institusi mitra]
     C --> D[User eksternal buka link]
     D --> E{Token valid<br/>& belum expired?}
     E -->|Tidak| ERR[❌ Link tidak valid]
-    E -->|Ya| F[Form register<br/>org & role pre-filled]
+    E -->|Ya| F[Form register<br/>org & permission pre-filled]
     F --> G[User isi nama, email, password]
     G --> H[Register → status: active<br/>langsung tanpa verifikasi manual]
     H --> I[used_count++]
@@ -59,10 +58,24 @@ flowchart TD
 flowchart TD
     START([Operator buka Reviewer Management]) --> A[Cari user by NIDN<br/>atau nama]
     A --> B[Pilih user yang sudah ada]
-    B --> C[Set ReviewerRole<br/>dan periode aktif]
-    C --> D[Buat record di tabel reviewers<br/>start_date, end_date]
-    D --> E[Assign role 'reviewer'<br/>via Spatie — tambahan di atas researcher]
-    E --> END([User sekarang punya<br/>dua role: researcher + reviewer])
+    B --> C{Tipe reviewer?}
+    C -->|Internal| D[Assign Spatie role<br/>'reviewer_internal']
+    C -->|Eksternal| E[Assign Spatie role<br/>'reviewer_external']
+    D --> F[Buat record di tabel reviewers<br/>reviewer_type = internal]
+    E --> G[Buat record di tabel reviewers<br/>reviewer_type = external]
+    F --> END([User punya dua role:<br/>researcher + reviewer_internal])
+    G --> END
+```
+
+### Custom Permission untuk User Spesifik
+
+```mermaid
+flowchart TD
+    START([Admin buka User Management]) --> A[Pilih user]
+    A --> B[Tambah direct permission<br/>e.g. reviewers.evaluate]
+    B --> C[Spatie assign permission<br/>langsung ke user<br/>tanpa tambah role baru]
+    C --> D[User sekarang punya<br/>permission tersebut<br/>di samping permission dari role-nya]
+    D --> E[Access check di FormAccessControl<br/>getAllPermissions cover keduanya]
 ```
 
 ---
@@ -88,8 +101,8 @@ classDiagram
         +string password
         +bool is_active
         +DateTime email_verified_at
-        +hasRole(role) bool
-        +hasPermission(permission) bool
+        +can(permission) bool
+        +getAllPermissions() Collection
         +deactivate()
     }
 
@@ -97,7 +110,6 @@ classDiagram
         +UserProfileId id
         +UserId user_id
         +OrganizationId organization_id
-        +RoleId role_id
         +string nidn
         +string full_name
         +string phone
@@ -112,7 +124,7 @@ classDiagram
         +InvitationTokenId id
         +string token
         +OrganizationId organization_id
-        +string role
+        +string[] permissions
         +int max_uses
         +int used_count
         +DateTime expires_at
@@ -136,71 +148,94 @@ classDiagram
     User "1" --> "1" UserProfile : has
     UserProfile "*" --> "1" Organization : belongs_to
     User "many" --> "many" Role : assigned
+    User "many" --> "many" Permission : direct_permissions
     Role "many" --> "many" Permission : has
 ```
 
 ---
 
-## Spatie Role Design
+## Spatie Permission Design
 
-**Permissions** (granular, yang di-check di kode):
+**Permissions** (granular, yang di-check di kode dan di `FormAccessControl`):
 
 ```
 submissions.create          submissions.view-own
 submissions.view-all        budget.edit
 members.manage              reviewers.assign
-reviewers.evaluate          periods.manage
-schemes.manage              outputs.manage
-users.verify                users.manage
+reviewers.evaluate          reviewers.view-scores-others
+periods.manage              schemes.manage
+outputs.manage              users.verify
+users.manage
 ```
 
-**Roles** (bundle permissions):
+**Roles** (bundle permissions — mayoritas user):
 
-| Role         | Permissions                                                               |
-| ------------ | ------------------------------------------------------------------------- |
-| `researcher` | submissions.create, view-own, budget.edit, members.manage, outputs.manage |
-| `reviewer`   | reviewers.evaluate, submissions.view-assigned                             |
-| `operator`   | submissions.view-all, reviewers.assign, periods.manage, users.verify      |
-| `admin`      | semua                                                                     |
+| Role                | Permissions                                                                     |
+| ------------------- | ------------------------------------------------------------------------------- |
+| `researcher`        | submissions.create, view-own, budget.edit, members.manage, outputs.manage       |
+| `reviewer_internal` | reviewers.evaluate, submissions.view-assigned, **reviewers.view-scores-others** |
+| `reviewer_external` | reviewers.evaluate, submissions.view-assigned                                   |
+| `operator`          | submissions.view-all, reviewers.assign, periods.manage, users.verify            |
+| `admin`             | semua                                                                           |
 
-Satu user bisa punya beberapa role (e.g., researcher + reviewer). Permission di-check via `$user->can('submissions.create')`, bukan via role name langsung.
+**Custom permission (direct assign ke user):**
+
+Untuk edge case — satu user tertentu butuh akses yang tidak cocok dengan role manapun. Admin assign permission langsung ke user via Spatie tanpa membuat role baru.
+
+```php
+// Assign permission langsung ke user
+$user->givePermissionTo('reviewers.evaluate');
+
+// Access check — transparan, cover role maupun direct
+$user->can('reviewers.evaluate');           // true
+$user->getAllPermissions()->pluck('name'); // include semua sumber
+```
 
 ---
 
-## Organization Tree Access Check
+## Bagaimana Permission + Org Bekerja di FormAccessControl
 
-Access ke form ditentukan oleh intersection role + org:
+`FormAccessControl` menyimpan `permission` (string) + `organization_id`. Access check:
 
 ```php
-// Apakah user bisa akses form ini?
 function canAccessForm(User $user, Form $form): bool
 {
-    $userOrgId  = $user->profile->organization_id;
-    $userRoles  = $user->getRoleNames();
+    $userPermissions = $user->getAllPermissions()->pluck('name');
+    $userOrgSubtree  = Organization::subtreeIds(
+        $user->profile->organization_id
+    );
 
     return FormAccessControl::where('form_id', $form->id)
-        ->whereIn('role_id', Role::whereIn('name', $userRoles)->pluck('id'))
-        ->whereIn('organization_id', Organization::subtreeIds($userOrgId))
+        ->whereIn('permission', $userPermissions)
+        ->whereIn('organization_id', $userOrgSubtree)
         ->exists();
 }
 ```
 
-Contoh: FormAccessControl link ke Fakultas Sains → semua user dari prodi manapun di bawah Fakultas Sains otomatis dapat akses.
+Contoh konfigurasi FormAccessControl:
+
+| Form                  | Permission                     | Organization   | Efek                                         |
+| --------------------- | ------------------------------ | -------------- | -------------------------------------------- |
+| Form Pengajuan        | `submissions.create`           | ITK (root)     | Semua researcher ITK bisa akses              |
+| Form Pengajuan        | `submissions.create`           | Unmul (root)   | Semua researcher Unmul bisa akses            |
+| Form Evaluasi         | `reviewers.evaluate`           | ITK (root)     | Reviewer internal & eksternal ITK bisa akses |
+| Form Laporan Internal | `reviewers.view-scores-others` | Fakultas Sains | Hanya reviewer_internal dari Fakultas Sains  |
 
 ---
 
 ## Business Rules
 
-| Kode      | Rule                                                                                         |
-| --------- | -------------------------------------------------------------------------------------------- |
-| BR-IAM-01 | Email domain `@itk.ac.id` wajib untuk jalur self-register internal                           |
-| BR-IAM-02 | NIDN harus unik di seluruh sistem                                                            |
-| BR-IAM-03 | UserProfile wajib lengkap sebelum user bisa membuat Submission                               |
-| BR-IAM-04 | User berstatus `pending` tidak bisa submit proposal tapi bisa login                          |
-| BR-IAM-05 | Deaktivasi user tidak delete — cukup `is_active = false`                                     |
-| BR-IAM-06 | InvitationToken dianggap invalid jika `used_count >= max_uses` atau `expires_at` sudah lewat |
-| BR-IAM-07 | User dengan role `reviewer` tidak bisa me-review submission yang ia menjadi member-nya       |
-| BR-IAM-08 | Organization tidak bisa di-delete jika masih ada UserProfile yang terhubung ke subtree-nya   |
+| Kode      | Rule                                                                                                                               |
+| --------- | ---------------------------------------------------------------------------------------------------------------------------------- |
+| BR-IAM-01 | Email domain `@itk.ac.id` wajib untuk jalur self-register internal                                                                 |
+| BR-IAM-02 | NIDN harus unik di seluruh sistem                                                                                                  |
+| BR-IAM-03 | UserProfile wajib lengkap sebelum user bisa membuat Submission                                                                     |
+| BR-IAM-04 | User berstatus `pending` bisa login tapi tidak bisa submit proposal                                                                |
+| BR-IAM-05 | Deaktivasi user tidak delete data — cukup `is_active = false`                                                                      |
+| BR-IAM-06 | InvitationToken invalid jika `used_count >= max_uses` atau `expires_at` sudah lewat                                                |
+| BR-IAM-07 | User dengan role `reviewer_internal` atau `reviewer_external` tidak bisa me-review submission yang ia menjadi `ResearchMember`-nya |
+| BR-IAM-08 | Organization tidak bisa di-delete jika masih ada UserProfile di subtree-nya                                                        |
+| BR-IAM-09 | Direct permission ke user tidak menghapus permission dari role — keduanya additive                                                 |
 
 ---
 
@@ -215,9 +250,9 @@ Contoh: FormAccessControl link ke Fakultas Sains → semua user dari prodi manap
 
 ---
 
-## Database Notes
+## Database Notes (PostgreSQL)
 
-PostgreSQL recursive CTE untuk subtree traversal:
+Recursive CTE untuk org subtree traversal:
 
 ```sql
 WITH RECURSIVE org_subtree AS (
@@ -230,4 +265,4 @@ WITH RECURSIVE org_subtree AS (
 SELECT id FROM org_subtree;
 ```
 
-Untuk performa optimal di org tree yang dalam, pertimbangkan `ltree` extension PostgreSQL — tapi adjacency list sudah cukup untuk kebutuhan awal.
+Untuk performa, bisa di-cache di Redis dengan TTL pendek (misalnya 5 menit) karena org tree jarang berubah.
