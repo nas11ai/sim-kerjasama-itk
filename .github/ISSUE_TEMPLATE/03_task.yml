@@ -68,16 +68,13 @@ body:
     validations:
       required: false
 
-  - type: checkboxes
+  - type: textarea
     id: definition-of-done
     attributes:
       label: Definition of Done
-      options:
-        - label: Implementasi selesai dan bisa dijalankan secara lokal
-          required: true
-        - label: Larastan / ESLint tidak ada error baru
-          required: true
-        - label: Tidak ada console.log / dd() / dump() tertinggal
-          required: true
-        - label: Test ditulis jika Task ini mengandung logic yang bisa di-test
-          required: false
+      description: Checklist teknis yang harus centang sebelum PR bisa di-merge.
+      placeholder: |
+        - [ ] Implementasi selesai dan bisa dijalankan secara lokal
+        - [ ] Larastan / ESLint tidak ada error baru
+        - [ ] Tidak ada console.log / dd() / dump() tertinggal
+        - [ ] Test ditulis jika Task ini mengandung logic yang bisa di-test
