@@ -412,7 +412,7 @@ const toggleItemSelection = (id: number, checked?: boolean | 'indeterminate') =>
                                             />
                                             <CommandInput
                                                 placeholder="Cari tipe formulir..."
-                                                class="flex h-11 w-full rounded-md bg-transparent py-3 text-sm outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50 border-0 ring-0 focus:ring-0 focus:outline-none"
+                                                class="flex h-11 w-full rounded-md bg-transparent py-3 text-sm outline-hidden placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50 border-0 ring-0 focus:ring-0 focus:outline-hidden"
                                             />
                                         </div>
                                         <CommandList>

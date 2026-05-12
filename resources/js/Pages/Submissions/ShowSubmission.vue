@@ -505,7 +505,7 @@ const mappedAssignedReviewers = computed(() =>
                                     class="border rounded-lg p-3 hover:bg-muted/50 transition-colors">
                                     <div class="flex items-start gap-3">
                                         <div
-                                            class="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                                            class="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center shrink-0">
                                             <span class="text-sm font-medium text-primary">
                                                 {{ reviewer.user.name.charAt(0).toUpperCase() }}
                                             </span>

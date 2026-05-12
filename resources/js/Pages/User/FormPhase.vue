@@ -417,7 +417,7 @@ const renderFormField = (field: FormField) => {
                                         'hover:bg-muted cursor-pointer': canAccessStep(index) && index !== currentStepIndex && !isStepCompleted(index) && !isStepPendingReview(index),
                                         'opacity-50 cursor-not-allowed': !canAccessStep(index)
                                     }">
-                                    <div class="flex-shrink-0">
+                                    <div class="shrink-0">
                                         <CheckCircle2 v-if="isStepCompleted(index)" class="h-5 w-5" />
                                         <Clock v-else-if="isStepPendingReview(index)" class="h-5 w-5" />
                                         <span v-else

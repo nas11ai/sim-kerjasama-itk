@@ -482,7 +482,7 @@ const goBack = () => {
 
             <!-- Main Form -->
             <Card>
-                <CardHeader class="bg-gradient-to-r from-primary/5 to-primary/10">
+                <CardHeader class="bg-linear-to-r from-primary/5 to-primary/10">
                     <CardTitle class="flex items-center gap-2">
                         <FileText class="h-5 w-5" />
                         {{ form.title }}
@@ -504,7 +504,7 @@ const goBack = () => {
                             <div class="flex items-start gap-3">
                                 <component
                                     :is="getFieldIcon(field.field_type.name)"
-                                    class="h-5 w-5 text-muted-foreground mt-0.5 flex-shrink-0"
+                                    class="h-5 w-5 text-muted-foreground mt-0.5 shrink-0"
                                 />
                                 <div class="flex-1 space-y-2">
                                     <Label

@@ -81,7 +81,7 @@ const getFileIcon = (mimeType: string) => {
 <template>
     <Head :title="announcement.title" />
 
-    <div class="bg-gradient-to-b from-gray-50 to-white min-h-screen">
+    <div class="bg-linear-to-b from-gray-50 to-white min-h-screen">
         <header class="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div class="flex justify-between items-center h-16">
@@ -152,7 +152,7 @@ const getFileIcon = (mimeType: string) => {
 
                 <Card class="border-0 shadow-lg overflow-hidden">
 
-                    <div class="relative overflow-hidden bg-gradient-to-br from-blue-600 via-blue-700 to-blue-800 p-8 md:p-12">
+                    <div class="relative overflow-hidden bg-linear-to-br from-blue-600 via-blue-700 to-blue-800 p-8 md:p-12">
                         <div class="absolute inset-0 opacity-10">
                             <div class="absolute top-0 left-0 w-64 h-64 bg-white rounded-full blur-3xl"></div>
                             <div class="absolute bottom-0 right-0 w-64 h-64 bg-white rounded-full blur-3xl"></div>
@@ -235,7 +235,7 @@ const getFileIcon = (mimeType: string) => {
                                     class="group flex items-center justify-between p-4 rounded-lg border hover:border-blue-300 hover:bg-blue-50/50 transition-all"
                                 >
                                     <div class="flex items-center gap-3 min-w-0 flex-1">
-                                        <div class="p-2 bg-gray-100 rounded-lg group-hover:bg-blue-100 transition-colors flex-shrink-0">
+                                        <div class="p-2 bg-gray-100 rounded-lg group-hover:bg-blue-100 transition-colors shrink-0">
                                             <FileText :class="['h-5 w-5', getFileIcon(file.mime_type)]" />
                                         </div>
                                         <div class="min-w-0 flex-1">
@@ -262,7 +262,7 @@ const getFileIcon = (mimeType: string) => {
         </main>
 
         <!-- Footer -->
-        <footer class="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-gray-300 mt-20">
+        <footer class="bg-linear-to-br from-gray-900 via-gray-800 to-gray-900 text-gray-300 mt-20">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
                     <!-- About -->
@@ -323,18 +323,18 @@ const getFileIcon = (mimeType: string) => {
                         <h4 class="font-semibold text-white mb-4">Kontak</h4>
                         <ul class="space-y-3 text-sm">
                             <li class="flex items-start gap-2">
-                                <MapPin class="h-4 w-4 text-blue-400 flex-shrink-0 mt-0.5" />
+                                <MapPin class="h-4 w-4 text-blue-400 shrink-0 mt-0.5" />
                                 <span>
                                     Jl. Soekarno-Hatta Km. 15, Karang Joang,
                                     Balikpapan, Kalimantan Timur, 76127
                                 </span>
                             </li>
                             <li class="flex items-center gap-2">
-                                <Phone class="h-4 w-4 text-blue-400 flex-shrink-0" />
+                                <Phone class="h-4 w-4 text-blue-400 shrink-0" />
                                 <span>0542-8530801</span>
                             </li>
                             <li class="flex items-center gap-2">
-                                <Mail class="h-4 w-4 text-blue-400 flex-shrink-0" />
+                                <Mail class="h-4 w-4 text-blue-400 shrink-0" />
                                 <a
                                     href="mailto:humas@itk.ac.id"
                                     class="hover:text-blue-400 transition-colors"
