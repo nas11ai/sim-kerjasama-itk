@@ -7,7 +7,7 @@ body:
     attributes:
       value: |
         Story harus bisa diselesaikan dalam satu sprint (maks 1 minggu). Kalau terlalu besar, pecah jadi beberapa Story.
-        
+
         Setelah membuat Story, **set parent issue ke Epic yang sesuai** via GitHub Projects.
 
   - type: input
@@ -24,6 +24,7 @@ body:
     attributes:
       label: Aktor
       description: Siapa yang melakukan aksi ini?
+      multiple: true
       options:
         - Researcher (Dosen)
         - Reviewer Internal
@@ -38,6 +39,7 @@ body:
     id: domain
     attributes:
       label: Bounded Context
+      multiple: true
       options:
         - "Form Engine"
         - "Submission"
@@ -108,12 +110,14 @@ body:
     validations:
       required: true
 
-  - type: input
+  - type: textarea
     id: design-ref
     attributes:
       label: Referensi DDD / Desain
       description: Link ke file DDD atau halaman Figma yang relevan (jika ada).
-      placeholder: "docs/requirement-analysis/ddd/supporting/01_budget.md"
+      value: |
+        - docs/requirement-analysis/ddd/supporting/01_budget.md
+        - figma.com/design/xxx/Sim-Kerjasama-ITK?node-id=123-456
     validations:
       required: false
 

@@ -7,7 +7,7 @@ body:
     attributes:
       value: |
         Task adalah unit implementasi terkecil. Kalau Task membutuhkan lebih dari satu hari, pertimbangkan untuk dipecah lagi.
-        
+
         Setelah membuat Task, **set parent issue ke Story yang sesuai** via GitHub Projects.
 
   - type: dropdown
@@ -15,11 +15,14 @@ body:
     attributes:
       label: Layer
       description: Task ini pekerjaan di layer mana?
+      multiple: true
       options:
+        - "Backend - Config"
         - "Backend — Model / Migration"
         - "Backend — Controller / Action"
         - "Backend — Service / Repository"
         - "Backend — Test (Pest)"
+        - "Frontend - Config"
         - "Frontend — Page / Component"
         - "Frontend — Composable / Store"
         - "Frontend — Test (Vitest)"
