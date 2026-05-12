@@ -141,7 +141,7 @@ const totalFieldsCount = computed(() => {
                 <CardContent class="p-6">
                     <div class="flex items-center justify-between">
                         <div class="flex items-center space-x-3">
-                            <div class="flex-shrink-0">
+                            <div class="shrink-0">
                                 <Eye class="h-8 w-8 text-blue-600" />
                             </div>
                             <div>

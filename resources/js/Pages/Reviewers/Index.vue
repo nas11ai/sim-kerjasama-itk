@@ -381,7 +381,7 @@ console.log(props.reviewerRoles);
                                     <Command>
                                         <CommandInput
                                         placeholder="cari role..."
-                                        class="flex h-11 w-full rounded-md bg-transparent py-3 text-sm outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50 border-0 ring-0 focus:ring-0 focus:outline-none"
+                                        class="flex h-11 w-full rounded-md bg-transparent py-3 text-sm outline-hidden placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50 border-0 ring-0 focus:ring-0 focus:outline-hidden"
                                         />
                                         <CommandList>
                                             <CommandEmpty>Tidak ada role ditemukan.</CommandEmpty>
@@ -446,7 +446,7 @@ console.log(props.reviewerRoles);
                                     <Command>
                                         <CommandInput
                                         placeholder="cari status..."
-                                        class="flex h-11 w-full rounded-md bg-transparent py-3 text-sm outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50 border-0 ring-0 focus:ring-0 focus:outline-none"                                        
+                                        class="flex h-11 w-full rounded-md bg-transparent py-3 text-sm outline-hidden placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50 border-0 ring-0 focus:ring-0 focus:outline-hidden"                                        
                                         />
                                         <CommandList>
                                             <CommandEmpty>Tidak ada status ditemukan.</CommandEmpty>
@@ -539,7 +539,7 @@ console.log(props.reviewerRoles);
                             class="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors"
                         >
                             <div class="flex items-center space-x-4 flex-1">
-                                <div class="flex-shrink-0">
+                                <div class="shrink-0">
                                     <div
                                         class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center"
                                     >

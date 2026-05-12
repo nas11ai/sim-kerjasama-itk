@@ -147,7 +147,7 @@ const getResponseClass = (field: ReviewFormField): string => {
                 <CardContent class="p-6">
                     <div class="flex items-center justify-between">
                         <div class="flex items-center space-x-3">
-                            <div class="flex-shrink-0">
+                            <div class="shrink-0">
                                 <CheckCircle class="h-8 w-8 text-green-600" />
                             </div>
                             <div>

@@ -639,7 +639,7 @@ const submit = () => {
                     <CardContent class="p-4">
                         <div class="flex items-start gap-3">
                             <div
-                                class="flex-shrink-0 w-5 h-5 rounded-full bg-amber-400 flex items-center justify-center mt-0.5"
+                                class="shrink-0 w-5 h-5 rounded-full bg-amber-400 flex items-center justify-center mt-0.5"
                             >
                                 <span class="text-amber-800 text-xs font-bold"
                                     >!</span

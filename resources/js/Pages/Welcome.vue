@@ -243,7 +243,7 @@ const goToPage = (page: number) => {
         <!-- Hero Section with Parallax -->
         <section class="relative h-screen overflow-hidden bg-black">
             <!-- Background with Parallax -->
-            <div class="absolute inset-0 bg-gradient-to-br from-blue-600 via-blue-700 to-blue-900" :style="{
+            <div class="absolute inset-0 bg-linear-to-br from-blue-600 via-blue-700 to-blue-900" :style="{
                 transform: `translateY(${scrollY * 0.5}px) scale(${heroScale})`,
                 opacity: heroOpacity,
             }">
@@ -284,7 +284,7 @@ const goToPage = (page: number) => {
                             </Button>
 
                             <Button as-child size="lg" variant="outline"
-                                class="bg-transparent border-2 border-white text-white hover:bg-white hover:text-blue-600 gap-2 px-8 py-6 text-lg rounded-full backdrop-blur-sm hover:scale-105 transition-all">
+                                class="bg-transparent border-2 border-white text-white hover:bg-white hover:text-blue-600 gap-2 px-8 py-6 text-lg rounded-full backdrop-blur-xs hover:scale-105 transition-all">
                                 <a href="#announcements">
                                     Lihat Pengumuman
                                     <ArrowRight class="h-5 w-5" />
@@ -310,7 +310,7 @@ const goToPage = (page: number) => {
 
         <!-- Announcements Section with Carousel -->
         <section id="announcements"
-            class="relative h-screen bg-gradient-to-b from-gray-50 to-white overflow-hidden flex items-center">
+            class="relative h-screen bg-linear-to-b from-gray-50 to-white overflow-hidden flex items-center">
             <div class="w-full h-full flex flex-col justify-center py-16">
                 <!-- Header -->
                 <div class="px-4 sm:px-6 lg:px-8 text-center mb-12">
@@ -337,7 +337,7 @@ const goToPage = (page: number) => {
                                     <Card class="w-full max-w-4xl shadow-2xl border-0 overflow-hidden"
                                         @mouseenter="stopAutoPlay" @mouseleave="isAutoPlaying && startAutoPlay()">
                                         <!-- Card Header with Gradient -->
-                                        <div class="bg-gradient-to-r from-blue-600 to-blue-700 p-6">
+                                        <div class="bg-linear-to-r from-blue-600 to-blue-700 p-6">
                                             <div class="flex items-center gap-3 text-white">
                                                 <Calendar class="h-6 w-6" />
                                                 <span class="text-base font-semibold">
@@ -412,13 +412,13 @@ const goToPage = (page: number) => {
                             <!-- Counter & Auto-play Toggle -->
                             <div v-if="announcementsData.length > 1" class="flex items-center gap-3">
                                 <button @click="toggleAutoPlay"
-                                    class="bg-white/90 backdrop-blur-sm px-3 py-2 rounded-full shadow-lg hover:bg-white transition-colors"
+                                    class="bg-white/90 backdrop-blur-xs px-3 py-2 rounded-full shadow-lg hover:bg-white transition-colors"
                                     :aria-label="isAutoPlaying ? 'Pause autoplay' : 'Play autoplay'">
                                     <Pause v-if="isAutoPlaying" class="h-4 w-4 text-gray-700" />
                                     <Play v-else class="h-4 w-4 text-gray-700" />
                                 </button>
 
-                                <div class="bg-white/90 backdrop-blur-sm px-4 py-2 rounded-full shadow-lg">
+                                <div class="bg-white/90 backdrop-blur-xs px-4 py-2 rounded-full shadow-lg">
                                     <span class="text-sm font-semibold text-gray-900">
                                         {{ currentSlide + 1 }} / {{ announcementsData.length }}
                                     </span>
@@ -450,7 +450,7 @@ const goToPage = (page: number) => {
         </section>
 
         <!-- Footer -->
-        <footer class="bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 text-gray-300">
+        <footer class="bg-linear-to-br from-gray-900 via-gray-800 to-gray-900 text-gray-300">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
                     <div class="space-y-4">
@@ -502,18 +502,18 @@ const goToPage = (page: number) => {
                         <h4 class="font-semibold text-white mb-4">Kontak</h4>
                         <ul class="space-y-3 text-sm">
                             <li class="flex items-start gap-2">
-                                <MapPin class="h-4 w-4 text-blue-400 flex-shrink-0 mt-0.5" />
+                                <MapPin class="h-4 w-4 text-blue-400 shrink-0 mt-0.5" />
                                 <span>
                                     Jl. Soekarno-Hatta Km. 15, Karang Joang,
                                     Balikpapan, Kalimantan Timur, 76127
                                 </span>
                             </li>
                             <li class="flex items-center gap-2">
-                                <Phone class="h-4 w-4 text-blue-400 flex-shrink-0" />
+                                <Phone class="h-4 w-4 text-blue-400 shrink-0" />
                                 <span>0542-8530801</span>
                             </li>
                             <li class="flex items-center gap-2">
-                                <Mail class="h-4 w-4 text-blue-400 flex-shrink-0" />
+                                <Mail class="h-4 w-4 text-blue-400 shrink-0" />
                                 <a href="mailto:humas@itk.ac.id" class="hover:text-blue-400 transition-colors">
                                     humas@itk.ac.id
                                 </a>

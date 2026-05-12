@@ -444,7 +444,7 @@ const getContextLabel = computed(() => {
                                 <ChevronUp class="ml-auto size-4" />
                             </SidebarMenuButton>
                         </DropdownMenuTrigger>
-                        <DropdownMenuContent class="w-[--radix-dropdown-menu-trigger-width] min-w-56 rounded-lg"
+                        <DropdownMenuContent class="w-(--radix-dropdown-menu-trigger-width) min-w-56 rounded-lg"
                             side="bottom" align="end">
                             <DropdownMenuItem as-child>
                                 <a :href="route('profile.edit')" class="cursor-pointer">
