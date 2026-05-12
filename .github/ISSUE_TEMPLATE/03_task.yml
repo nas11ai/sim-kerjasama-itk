@@ -78,3 +78,5 @@ body:
         - [ ] Larastan / ESLint tidak ada error baru
         - [ ] Tidak ada console.log / dd() / dump() tertinggal
         - [ ] Test ditulis jika Task ini mengandung logic yang bisa di-test
+    validations:
+      required: true
