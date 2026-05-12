@@ -1,0 +1,97 @@
+name: "🐛 Bug Report"
+description: Sesuatu tidak berjalan sebagaimana mestinya.
+title: "[Bug] "
+labels: ["type: bug", "status: needs-discussion"]
+body:
+  - type: dropdown
+    id: severity
+    attributes:
+      label: Severity
+      options:
+        - "Critical — sistem tidak bisa digunakan / data corrupt"
+        - "High — fitur utama tidak berfungsi"
+        - "Medium — fitur berfungsi tapi ada perilaku yang salah"
+        - "Low — kosmetik / minor UX"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: domain
+    attributes:
+      label: Bounded Context
+      multiple: true
+      options:
+        - "Form Engine"
+        - "Submission"
+        - "Review"
+        - "Budget"
+        - "Monev"
+        - "Research Output"
+        - "Scheme"
+        - "Identity & Access"
+        - "Notification"
+        - "Observability"
+        - "Tidak tahu"
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Deskripsi Bug
+      description: Apa yang terjadi?
+      placeholder: "Saat researcher submit form pengajuan, total anggaran yang tersimpan ke database selalu 0 meskipun line items sudah diisi."
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Langkah Reproduksi
+      placeholder: |
+        1. Login sebagai researcher
+        2. Buka form pengajuan periode DIPA 2025
+        3. Isi semua field wajib
+        4. Tambah 2 line item anggaran dengan nilai > 0
+        5. Klik Submit
+        6. Buka detail submission → total_budget = 0
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Perilaku yang Diharapkan
+      placeholder: "total_budget di form_submissions ter-update sesuai jumlah semua line items."
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Perilaku yang Terjadi
+      placeholder: "total_budget tetap 0 meskipun budget_line_items sudah tersimpan dengan benar."
+    validations:
+      required: true
+
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      placeholder: |
+        - OS: macOS 15.1
+        - Browser: Chrome 124
+        - PHP: 8.3
+        - Node: 22.x
+        - Branch: main / feature/budget-input
+    validations:
+      required: false
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Log / Error Message
+      description: Tempel stack trace, error dari Telescope, atau output console browser.
+      render: shell
+    validations:
+      required: false
