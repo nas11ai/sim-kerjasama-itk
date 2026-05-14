@@ -95,8 +95,12 @@ jobs:
           path: node_modules
           key: ${{ runner.os }}-npm-${{ hashFiles('package-lock.json') }}
 
-      - name: Install Dependencies
+      - name: Install NPM Dependencies
         run: npm ci
+
+      # Diperlukan agar TypeScript bisa resolve type declarations dari vendor/tightenco/ziggy
+      - name: Install Composer Dependencies (for Ziggy types)
+        run: composer install --no-interaction --prefer-dist --no-scripts
 
       # TODO: Aktifkan setelah Task #57 (Setup ESLint) selesai dikerjakan
       # - name: ESLint
