@@ -1,0 +1,114 @@
+name: CI
+
+on:
+  pull_request:
+    branches: [main, develop]
+  push:
+    branches: [main]
+
+jobs:
+  # ─────────────────────────────────────────
+  # Backend Job
+  # ─────────────────────────────────────────
+  backend:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:17-alpine
+        env:
+          POSTGRES_DB: simpas_test
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports: ["5432:5432"]
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: "8.3"
+          extensions: pdo_pgsql
+
+      - name: Cache Composer
+        uses: actions/cache@v4
+        with:
+          path: vendor
+          key: ${{ runner.os }}-composer-${{ hashFiles('composer.lock') }}
+
+      - name: Install Dependencies
+        run: composer install --no-interaction --prefer-dist
+
+      - name: Copy .env
+        run: |
+          cp .env.example .env
+          php artisan key:generate
+
+      - name: Migrate
+        run: php artisan migrate --force
+        env:
+          DB_CONNECTION: pgsql
+          DB_HOST: localhost
+          DB_PORT: 5432
+          DB_DATABASE: simpas_test
+          DB_USERNAME: postgres
+          DB_PASSWORD: postgres
+
+      - name: Pint (Code Style)
+        run: ./vendor/bin/pint --test
+
+      # TODO: Aktifkan setelah Task #47 (Setup Larastan) selesai dikerjakan
+      # - name: Larastan (Static Analysis)
+      #   run: ./vendor/bin/phpstan analyse --memory-limit=512M
+
+      - name: Pest (Unit & Feature Tests)
+        run: ./vendor/bin/pest
+        env:
+          DB_CONNECTION: pgsql
+          DB_HOST: localhost
+          DB_PORT: 5432
+          DB_DATABASE: simpas_test
+          DB_USERNAME: postgres
+          DB_PASSWORD: postgres
+
+  # ─────────────────────────────────────────
+  # Frontend Job
+  # ─────────────────────────────────────────
+  frontend:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Cache NPM
+        uses: actions/cache@v4
+        with:
+          path: node_modules
+          key: ${{ runner.os }}-npm-${{ hashFiles('package-lock.json') }}
+
+      - name: Install Dependencies
+        run: npm ci
+
+      # TODO: Aktifkan setelah Task #57 (Setup ESLint) selesai dikerjakan
+      # - name: ESLint
+      #   run: npm run lint
+
+      # TODO: Aktifkan setelah Task #58 (Setup Prettier) selesai dikerjakan
+      # - name: Prettier
+      #   run: npm run format:check
+
+      # TODO: Aktifkan setelah Task #56 (Setup Vitest) selesai dikerjakan
+      # - name: Vitest
+      #   run: npm run test
+
+      - name: Build (TypeScript + Vite)
+        run: npm run build
