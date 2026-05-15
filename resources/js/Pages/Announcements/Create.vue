@@ -15,7 +15,7 @@ import {
 } from "@/Components/ui/select";
 import { Textarea } from "@/Components/ui/textarea";
 import { ArrowLeft, X } from "lucide-vue-next";
-import type { CalendarDate, CalendarDateTime, DateValue, ZonedDateTime } from "@internationalized/date";
+import type { CalendarDate } from "@internationalized/date";
 import {
     today,
     DateFormatter,
@@ -231,7 +231,7 @@ const submit = () => {
                                     </PopoverContent>
                                 </Popover>
                                 <p v-if="errors.expired_at" class="text-sm text-destructive mt-1">
-                                    {{ expiredAt }}
+                                    {{ errors.expired_at }}
                                 </p>
                             </div>
                             <div class="flex flex-col gap-1 w-full">
