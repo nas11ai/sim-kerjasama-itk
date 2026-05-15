@@ -7,7 +7,7 @@ import {
     getPaginationRowModel,
     useVueTable,
 } from "@tanstack/vue-table";
-import { computed, defineProps, ref } from "vue";
+import { computed, ref } from "vue";
 import Table from "./ui/table/Table.vue";
 import TableHeader from "./ui/table/TableHeader.vue";
 import TableRow from "./ui/table/TableRow.vue";

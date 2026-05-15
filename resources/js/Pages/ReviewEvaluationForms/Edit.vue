@@ -410,7 +410,7 @@ onMounted(() => {
                                                                     placeholder="Nilai opsi (opsional)"
                                                                     class="flex-1" />
                                                                 <Button type="button" variant="ghost" size="sm"
-                                                                    @click="removeFieldOption(index, optionIndex)"
+                                                                    @click="removeFieldOption(index, optionIndex as number)"
                                                                     class="text-destructive">
                                                                     <Trash2 class="h-4 w-4" />
                                                                 </Button>

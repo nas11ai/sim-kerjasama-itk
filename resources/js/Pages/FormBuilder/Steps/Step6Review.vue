@@ -214,7 +214,7 @@ const totalEvaluationFields = computed(() =>
                     <div v-if="formData.form.fields.length > 0" class="space-y-2">
                         <div v-for="(field, index) in formData.form.fields" :key="field.temp_id"
                             class="flex items-center justify-between p-2 bg-muted rounded text-sm">
-                            <span>{{ index + 1 }}. {{ field.label }}</span>
+                            <span>{{ index as number + 1 }}. {{ field.label }}</span>
                             <Badge v-if="field.is_required" variant="destructive" class="text-xs">Wajib</Badge>
                         </div>
                     </div>
@@ -236,7 +236,7 @@ const totalEvaluationFields = computed(() =>
                     <div v-for="(control, index) in formData.access_controls" :key="control.temp_id"
                         class="flex items-center justify-between p-3 bg-muted rounded">
                         <div class="flex items-center gap-3">
-                            <Badge variant="outline">{{ index + 1 }}</Badge>
+                            <Badge variant="outline">{{ index as number + 1 }}</Badge>
                             <div class="flex items-center gap-2 text-sm">
                                 <Users class="h-4 w-4 text-muted-foreground" />
                                 <span class="font-medium">{{ getRoleName(control.role_id) }}</span>
@@ -313,7 +313,7 @@ const totalEvaluationFields = computed(() =>
                         class="p-4 border rounded-lg space-y-2">
                         <div class="flex items-center justify-between">
                             <div class="flex items-center gap-2">
-                                <Badge variant="outline">{{ index + 1 }}</Badge>
+                                <Badge variant="outline">{{ index as number + 1 }}</Badge>
                                 <span class="font-medium">{{ evalForm.title }}</span>
                             </div>
                             <Badge :variant="evalForm.is_required ? 'destructive' : 'secondary'" class="text-xs">
