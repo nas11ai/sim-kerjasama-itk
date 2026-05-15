@@ -231,7 +231,7 @@ const submit = () => {
                                     </PopoverContent>
                                 </Popover>
                                 <p v-if="errors.expired_at" class="text-sm text-destructive mt-1">
-                                    {{ expiredAt }}
+                                    {{ errors.expired_at }}
                                 </p>
                             </div>
                             <div class="flex flex-col gap-1 w-full">
