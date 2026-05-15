@@ -180,7 +180,6 @@ const submit = () => {
 
 const previewForm = () => {
     // This would open a preview modal or navigate to preview page
-    console.log("Preview form:", form.data());
 };
 </script>
 

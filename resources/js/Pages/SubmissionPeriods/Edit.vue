@@ -267,7 +267,6 @@ const submit = () => {
     form.transform(() => submitData)
         .put(route("admin.submission-periods.update", props.submissionPeriod.id), {
             onSuccess: () => {
-                console.log('Berhasil memperbarui');
             },
             onError: (errors) => {
                 console.error('Gagal memperbarui:', errors);

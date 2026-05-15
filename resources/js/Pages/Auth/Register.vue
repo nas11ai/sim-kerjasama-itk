@@ -37,7 +37,6 @@ const form = useForm({
 });
 
 const submit = () => {
-    console.log('form data:', form.data());
 
     form.post(route("register"));
 };

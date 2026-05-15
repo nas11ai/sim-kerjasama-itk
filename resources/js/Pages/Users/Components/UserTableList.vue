@@ -66,7 +66,6 @@ const columns: ColumnDef<User>[] = [
             const isSuperAdmin = user.roles.some(
                 (r) => r.name === "Super Admin"
             );
-            console.log('Row:', user.name, 'isSuperAdmin?', isSuperAdmin);
 
             return h(TableActionColumn, {
                 row,
