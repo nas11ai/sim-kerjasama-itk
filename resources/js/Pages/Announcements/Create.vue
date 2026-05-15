@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from "vue";
+import { computed, ref, shallowRef } from "vue";
 import { Head, useForm } from "@inertiajs/vue3";
 import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout.vue";
 import { Button } from "../../Components/ui/button";
@@ -15,7 +15,7 @@ import {
 } from "@/Components/ui/select";
 import { Textarea } from "@/Components/ui/textarea";
 import { ArrowLeft, X } from "lucide-vue-next";
-import type { DateValue } from "@internationalized/date";
+import type { CalendarDate, CalendarDateTime, DateValue, ZonedDateTime } from "@internationalized/date";
 import {
     today,
     DateFormatter,
@@ -36,7 +36,7 @@ interface AnnouncementForm {
     title: string;
     content: string;
     type: string;
-    expired_at: DateValue | undefined;
+    expired_at: string | null;
     expired_time?: string;
     files: File[] | null;
     [key: string]: any;
@@ -45,12 +45,12 @@ interface AnnouncementForm {
 const fileInputRef = ref<HTMLInputElement | null>(null);
 const selectedFiles = ref<File[]>([]);
 const fileError = ref<string | null>(null);
-
+const expiredAt = shallowRef<CalendarDate | undefined>(undefined);
 const form = useForm<AnnouncementForm>({
     title: "",
     content: "",
     type: "public",
-    expired_at: undefined,
+    expired_at: null,
     expired_time: "",
     files: null,
 });
@@ -112,8 +112,8 @@ const submit = () => {
 
     form.transform((data) => {
         let expired = undefined;
-        if (form.expired_at) {
-            const date = form.expired_at.toDate(getLocalTimeZone());
+        if (expiredAt.value) {
+            const date = expiredAt.value.toDate(getLocalTimeZone());
             const yyyy = date.getFullYear();
             const mm = String(date.getMonth() + 1).padStart(2, "0");
             const dd = String(date.getDate()).padStart(2, "0");
@@ -150,17 +150,14 @@ const submit = () => {
 </script>
 
 <template>
+
     <Head title="Buat Pengumuman" />
 
     <AuthenticatedLayout>
         <template #header>
             <div class="flex items-center gap-2">
-                <Button
-                    variant="ghost"
-                    class="p-0 mr-2"
-                    size="sm"
-                    @click="$inertia.visit(route('admin.announcements.index'))"
-                >
+                <Button variant="ghost" class="p-0 mr-2" size="sm"
+                    @click="$inertia.visit(route('admin.announcements.index'))">
                     <ArrowLeft class="h-4 w-4" />
                     Kembali
                 </Button>
@@ -181,18 +178,9 @@ const submit = () => {
                         <!-- Title -->
                         <div>
                             <Label for="title">Judul *</Label>
-                            <Input
-                                id="title"
-                                v-model="form.title"
-                                placeholder="Masukkan judul pengumuman"
-                                :class="
-                                    errors.title ? 'border-destructive' : ''
-                                "
-                            />
-                            <p
-                                v-if="errors.title"
-                                class="text-sm text-destructive mt-1"
-                            >
+                            <Input id="title" v-model="form.title" placeholder="Masukkan judul pengumuman" :class="errors.title ? 'border-destructive' : ''
+                                " />
+                            <p v-if="errors.title" class="text-sm text-destructive mt-1">
                                 {{ errors.title }}
                             </p>
                         </div>
@@ -205,18 +193,11 @@ const submit = () => {
                                     <SelectValue placeholder="Pilih tipe" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value="public"
-                                        >Publik</SelectItem
-                                    >
-                                    <SelectItem value="private"
-                                        >Privat</SelectItem
-                                    >
+                                    <SelectItem value="public">Publik</SelectItem>
+                                    <SelectItem value="private">Privat</SelectItem>
                                 </SelectContent>
                             </Select>
-                            <p
-                                v-if="errors.type"
-                                class="text-sm text-destructive mt-1"
-                            >
+                            <p v-if="errors.type" class="text-sm text-destructive mt-1">
                                 {{ errors.type }}
                             </p>
                         </div>
@@ -224,68 +205,42 @@ const submit = () => {
                         <!-- Expired At -->
                         <div class="flex flex-row w-full gap-2">
                             <div class="flex w-full flex-col gap-1">
-                                <Label for="expired_at"
-                                    >Tanggal Kadaluarsa (opsional)</Label
-                                >
+                                <Label for="expired_at">Tanggal Kadaluarsa (opsional)</Label>
                                 <Popover>
                                     <PopoverTrigger as-child>
-                                        <Button
-                                            variant="outline"
-                                            :class="
-                                                cn(
-                                                    'w-full justify-start text-left font-normal',
-                                                    !form.expired_at &&
-                                                        'text-muted-foreground'
-                                                )
-                                            "
-                                        >
-                                            <CalendarIcon
-                                                class="mr-2 h-4 w-4"
-                                            />
+                                        <Button variant="outline" :class="cn(
+                                            'w-full justify-start text-left font-normal',
+                                            !expiredAt &&
+                                            'text-muted-foreground'
+                                        )
+                                            ">
+                                            <CalendarIcon class="mr-2 h-4 w-4" />
                                             {{
-                                                form.expired_at
+                                                expiredAt
                                                     ? df.format(
-                                                          form.expired_at.toDate(
-                                                              getLocalTimeZone()
-                                                          )
-                                                      )
+                                                        expiredAt.toDate(
+                                                            getLocalTimeZone()
+                                                        )
+                                                    )
                                                     : "Pilih Tanggal"
                                             }}
                                         </Button>
                                     </PopoverTrigger>
                                     <PopoverContent class="w-auto p-0">
-                                        <Calendar
-                                            v-model="form.expired_at"
-                                            initial-focus
-                                            :min-value="tomorrow"
-                                        />
+                                        <Calendar v-model="expiredAt" initial-focus :min-value="tomorrow" />
                                     </PopoverContent>
                                 </Popover>
-                                <p
-                                    v-if="errors.expired_at"
-                                    class="text-sm text-destructive mt-1"
-                                >
-                                    {{ errors.expired_at }}
+                                <p v-if="errors.expired_at" class="text-sm text-destructive mt-1">
+                                    {{ expiredAt }}
                                 </p>
                             </div>
                             <div class="flex flex-col gap-1 w-full">
-                                <Label for="expired_time"
-                                    >Waktu Kadaluarsa (opsional)</Label
-                                >
-                                <Input
-                                    id="expired_time"
-                                    type="time"
-                                    v-model="form.expired_time"
-                                    :class="
-                                        errors.expired_time
-                                            ? 'border-destructive'
-                                            : ''
-                                    "
-                                />
-                                <p
-                                    v-if="errors.expired_time"
-                                    class="text-sm text-destructive mt-1"
-                                >
+                                <Label for="expired_time">Waktu Kadaluarsa (opsional)</Label>
+                                <Input id="expired_time" type="time" v-model="form.expired_time" :class="errors.expired_time
+                                    ? 'border-destructive'
+                                    : ''
+                                    " />
+                                <p v-if="errors.expired_time" class="text-sm text-destructive mt-1">
                                     {{ errors.expired_time }}
                                 </p>
                             </div>
@@ -300,17 +255,9 @@ const submit = () => {
                     </CardHeader>
                     <CardContent>
                         <Label for="content">Isi *</Label>
-                        <Textarea
-                            id="content"
-                            v-model="form.content"
-                            placeholder="Masukkan isi pengumuman di sini..."
-                            :class="errors.content ? 'border-destructive' : ''"
-                            rows="5"
-                        />
-                        <p
-                            v-if="errors.content"
-                            class="text-sm text-destructive mt-1"
-                        >
+                        <Textarea id="content" v-model="form.content" placeholder="Masukkan isi pengumuman di sini..."
+                            :class="errors.content ? 'border-destructive' : ''" rows="5" />
+                        <p v-if="errors.content" class="text-sm text-destructive mt-1">
                             {{ errors.content }}
                         </p>
                     </CardContent>
@@ -323,11 +270,8 @@ const submit = () => {
                     </CardHeader>
                     <CardContent>
                         <ul class="space-y-2">
-                            <li
-                                v-for="(file, index) in selectedFiles"
-                                :key="index"
-                                class="flex items-center justify-between p-3 bg-gray-50 rounded-md"
-                            >
+                            <li v-for="(file, index) in selectedFiles" :key="index"
+                                class="flex items-center justify-between p-3 bg-gray-50 rounded-md">
                                 <div class="flex items-center gap-2">
                                     <span>{{ file.name }}</span>
                                     <span class="text-xs text-gray-500">
@@ -335,12 +279,7 @@ const submit = () => {
                                         {{ (file.size / 1024).toFixed(1) }} KB)
                                     </span>
                                 </div>
-                                <Button
-                                    type="button"
-                                    variant="destructive"
-                                    size="sm"
-                                    @click="removeFile(index)"
-                                >
+                                <Button type="button" variant="destructive" size="sm" @click="removeFile(index)">
                                     <X class="h-4 w-4" /> Hapus
                                 </Button>
                             </li>
@@ -358,28 +297,16 @@ const submit = () => {
                         <p class="text-xs mb-1 text-gray-500 italic">
                             Ukuran Maks: 2MB (jpg, png, pdf)
                         </p>
-                        <Input
-                            ref="fileInputRef"
-                            type="file"
-                            multiple
-                            accept=".jpg,.jpeg,.png,.pdf"
-                            @change="handleFileSelect"
-                            :class="[
+                        <Input ref="fileInputRef" type="file" multiple accept=".jpg,.jpeg,.png,.pdf"
+                            @change="handleFileSelect" :class="[
                                 errors.files || fileError
                                     ? 'border-destructive'
                                     : '',
-                            ]"
-                        />
-                        <p
-                            v-if="fileError"
-                            class="text-sm text-destructive mt-1"
-                        >
+                            ]" />
+                        <p v-if="fileError" class="text-sm text-destructive mt-1">
                             {{ fileError }}
                         </p>
-                        <p
-                            v-if="errors.files"
-                            class="text-sm text-destructive mt-1"
-                        >
+                        <p v-if="errors.files" class="text-sm text-destructive mt-1">
                             {{ errors.files }}
                         </p>
                     </CardContent>
@@ -387,13 +314,9 @@ const submit = () => {
 
                 <!-- Actions -->
                 <div class="flex items-center justify-end space-x-2">
-                    <Button
-                        type="button"
-                        variant="outline"
-                        @click="
-                            $inertia.visit(route('admin.announcements.index'))
-                        "
-                    >
+                    <Button type="button" variant="outline" @click="
+                        $inertia.visit(route('admin.announcements.index'))
+                        ">
                         Batal
                     </Button>
                     <Button type="submit" :disabled="form.processing">
