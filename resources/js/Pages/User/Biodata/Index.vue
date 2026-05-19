@@ -277,7 +277,6 @@ const submitForm = () => {
             formDataPayload.append(`responses[${index}][value]`, String(response.value));
         });
 
-        console.log('=== Submit with Files ===');
 
         formData.transform(() => formDataPayload).post(route("user.biodata.submit"), {
             forceFormData: true,
@@ -318,7 +317,6 @@ const submitForm = () => {
             responses: processedResponses,
         };
 
-        console.log('=== Submit without Files ===', payload);
 
         formData.transform(() => payload).post(route("user.biodata.submit"), {
             onSuccess: () => {

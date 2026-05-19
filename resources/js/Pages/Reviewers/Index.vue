@@ -291,7 +291,6 @@ const totalReviewers = computed(() => {
     return props.reviewers?.total || 0;
 });
 
-console.log(props.reviewerRoles);
 </script>
 
 <template>
@@ -446,7 +445,7 @@ console.log(props.reviewerRoles);
                                     <Command>
                                         <CommandInput
                                         placeholder="cari status..."
-                                        class="flex h-11 w-full rounded-md bg-transparent py-3 text-sm outline-hidden placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50 border-0 ring-0 focus:ring-0 focus:outline-hidden"                                        
+                                        class="flex h-11 w-full rounded-md bg-transparent py-3 text-sm outline-hidden placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50 border-0 ring-0 focus:ring-0 focus:outline-hidden"
                                         />
                                         <CommandList>
                                             <CommandEmpty>Tidak ada status ditemukan.</CommandEmpty>
@@ -679,7 +678,7 @@ console.log(props.reviewerRoles);
                 <DialogHeader>
                     <DialogTitle class="flex items-center gap-2">
                         <AlertTriangle class="h-5 w-5 text-destructive" />
-                        Konfirmasi Hapus    
+                        Konfirmasi Hapus
                     </DialogTitle>
                     <DialogDescription>
                         Apakah Anda yakin ingin menghapus reviewer ini? Tindakan ini tidak dapat dibatalkan.

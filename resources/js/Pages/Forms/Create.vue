@@ -322,7 +322,7 @@ option,
                                                                 <Button type="button" variant="ghost" size="sm" @click="
                                                                     removeOption(
                                                                         index,
-                                                                        optionIndex
+                                                                        optionIndex as number
                                                                     )
                                                                     ">
                                                                     <Trash2 class="h-4 w-4 text-destructive" />

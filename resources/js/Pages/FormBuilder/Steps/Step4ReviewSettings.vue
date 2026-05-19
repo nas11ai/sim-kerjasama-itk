@@ -282,7 +282,7 @@ const fieldRequiresOptions = (fieldTypeId: number | null): boolean => {
                                                                     <div class="flex items-center justify-between">
                                                                         <Label class="text-sm">Opsi</Label>
                                                                         <Button type="button" size="sm" variant="ghost"
-                                                                            @click="addFieldOption(formIndex, fieldIndex)">
+                                                                            @click="addFieldOption(formIndex, fieldIndex as number)">
                                                                             <Plus class="h-3 w-3 mr-1" />
                                                                             Tambah
                                                                         </Button>
@@ -298,7 +298,7 @@ const fieldRequiresOptions = (fieldTypeId: number | null): boolean => {
                                                                                 class="h-8" />
                                                                             <Button type="button" variant="ghost"
                                                                                 size="sm"
-                                                                                @click="removeFieldOption(formIndex, fieldIndex, optionIndex)">
+                                                                                @click="removeFieldOption(formIndex, fieldIndex as number, optionIndex as number)">
                                                                                 <Trash2
                                                                                     class="h-3 w-3 text-destructive" />
                                                                             </Button>
@@ -308,7 +308,7 @@ const fieldRequiresOptions = (fieldTypeId: number | null): boolean => {
                                                             </div>
 
                                                             <Button type="button" variant="ghost" size="sm"
-                                                                @click="removeField(formIndex, fieldIndex)"
+                                                                @click="removeField(formIndex, fieldIndex as number)"
                                                                 class="text-destructive">
                                                                 <Trash2 class="h-4 w-4" />
                                                             </Button>

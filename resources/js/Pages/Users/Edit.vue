@@ -46,7 +46,6 @@ const props = defineProps<{
 }>();
 
 const user = props.user as User;
-console.log(user);
 
 const form = useForm<UpdateUserRequest>({
     name: user.name,
@@ -67,7 +66,6 @@ const submit = () => {
     });
 };
 
-console.log(props);
 
 const columns: ColumnDef<Permission>[] = [
     {

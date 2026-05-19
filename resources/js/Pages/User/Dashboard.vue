@@ -130,7 +130,6 @@ const isPhaseCompleted = (phase: FormPhase) => {
     );
 };
 
-console.log(props);
 </script>
 
 <template>

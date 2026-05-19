@@ -71,7 +71,6 @@ const isExpired = computed(() => {
     return new Date(props.announcement.expired_at) < new Date();
 });
 
-// console.log("Files:", props.announcement.announcement_files);
 
 </script>
 
