@@ -33,6 +33,7 @@
         "clsx": "^2.1.1",
         "lodash": "^4.18.1",
         "lucide-vue-next": "^1.0.0",
+        "pinia": "^3.0.4",
         "reka-ui": "^2.6.0",
         "tailwind-merge": "^3.6.0",
         "tailwindcss-animate": "^1.0.7",
