@@ -3,5 +3,5 @@ import { test, expect } from '@playwright/test'
 
 test('halaman login bisa dibuka', async ({ page }) => {
   await page.goto('/login')
-  await expect(page.getByRole('heading', { name: /masuk/i })).toBeVisible()
+  await expect(page.getByRole('button', { name: /Masuk/i })).toBeVisible()
 })
