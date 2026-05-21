@@ -1,7 +1,7 @@
 # BC: Form Engine
 
 **Klasifikasi:** 🟢 Generic Domain  
-**Versi:** 2.1  
+**Versi:** 2.2  
 **Status:** Draft
 
 ---
@@ -28,24 +28,23 @@ flowchart TD
         B --> C[Set FormAccessControl<br/>permission + organization]
     end
 
+    subgraph PERIOD["Setup Period"]
+        J[Buat SubmissionPeriod<br/>name]
+        J --> K[Tambah SubmissionDates<br/>label + datetime per deadline]
+    end
+
     subgraph PHASE["Build Workflow Phase"]
         D[Buat FormPhase<br/>title, description]
-        D --> E[Tambah FormPhaseDetails<br/>link FormAccessControl, set order, needs_review]
-        E --> F{Fase ini<br/>butuh evaluasi<br/>reviewer?}
+        D --> E[Tambah FormPhaseDetails<br/>link FormAccessControl + SubmissionDate<br/>set order, needs_review]
+        E --> F{Fase ini butuh<br/>evaluasi reviewer?}
         F -->|Ya| G[Tambah ReviewEvaluationForm<br/>ke FormPhaseDetail]
         G --> H[Tambah ReviewFormFields]
         F -->|Tidak| I[Selesai]
         H --> I
     end
 
-    subgraph PERIOD["Setup Period"]
-        J[Buat SubmissionPeriod<br/>name]
-        J --> K[Tambah SubmissionDates<br/>labeled dates]
-        K --> L[Link FormPhases<br/>ke Period via SubmissionPeriodPhase]
-    end
-
-    C --> D --> J
-    I --> J
+    C --> J --> D
+    I --> L[Link FormPhase ke Period<br/>via SubmissionPeriodPhase]
 ```
 
 ### Alur Submit FormSubmission
@@ -64,7 +63,51 @@ flowchart TD
     G -->|Ya| I[status → PENDING<br/>menunggu reviewer]
 ```
 
-### Alur Access Check
+### Alur Temporal Access Check
+
+Setiap kali user mencoba mengakses atau mengedit sebuah FormPhaseDetail, tiga kondisi ini dicek secara berurutan.
+
+```mermaid
+flowchart TD
+    START([User request akses<br/>FormPhaseDetail]) --> L1
+
+    subgraph L1["Lapis 1 — Permission + Org"]
+        A{Permission user match<br/>FormAccessControl?<br/>DAN org di subtree?}
+        A -->|Tidak| DENY1[❌ 403 Forbidden]
+        A -->|Ya| L2
+    end
+
+    subgraph L2["Lapis 2 — Workflow Gate"]
+        B{can_proceed dari<br/>Detail sebelumnya<br/>= true?}
+        B -->|Tidak| DENY2[❌ Blocked<br/>tampilkan status menunggu]
+        B -->|Ya| L3
+    end
+
+    subgraph L3["Lapis 3 — Time Gate"]
+        C{now ≤ SubmissionDate<br/>.datetime?}
+        C -->|Ya — dalam deadline| ALLOW[✅ Akses diberikan]
+        C -->|Tidak — lewat deadline| D{Ada active<br/>FormSubmissionOverride<br/>untuk submission ini?}
+        D -->|Ya| ALLOW
+        D -->|Tidak| DENY3[❌ 403 Deadline Passed<br/>tampilkan pesan + kontak operator]
+    end
+```
+
+### Alur Override oleh Operator
+
+```mermaid
+flowchart TD
+    START([Researcher hubungi Operator<br/>minta perpanjangan akses]) --> A
+    A[Operator buka<br/>Submission Management] --> B[Pilih submission<br/>yang dimaksud]
+    B --> C[Pilih FormPhaseDetail<br/>yang akan dibuka]
+    C --> D[Isi alasan override<br/>dan expires_at opsional]
+    D --> E[Simpan FormSubmissionOverride]
+    E --> F[Researcher sekarang<br/>bisa akses kembali]
+    F --> G{expires_at<br/>diisi?}
+    G -->|Ya| H[Akses otomatis<br/>dicabut saat expires_at]
+    G -->|Tidak| I[Akses terbuka<br/>sampai operator cabut manual]
+```
+
+### Alur Access Check (Permission)
 
 ```mermaid
 flowchart TD
@@ -72,7 +115,7 @@ flowchart TD
     A --> B[Query FormAccessControl<br/>WHERE permission IN user_permissions<br/>AND organization_id IN org_subtree]
     B --> C{Ada baris<br/>yang match?}
     C -->|Tidak| D[❌ Akses ditolak]
-    C -->|Ya| E[✅ Akses diberikan]
+    C -->|Ya| E[✅ Lanjut ke lapis berikutnya]
 
     subgraph SPATIE["Spatie Permission — dua jalur"]
         F[User → Role → Permission<br/>inherited dari role]
@@ -130,9 +173,11 @@ classDiagram
         +FormPhaseDetailId id
         +FormPhaseId form_phase_id
         +FormAccessControlId form_access_control_id
+        +SubmissionDateId submission_date_id
         +PhaseTypeId phase_type_id
         +int order
         +bool needs_review
+        +isWithinDeadline() bool
     }
 
     class SubmissionPeriod {
@@ -143,8 +188,8 @@ classDiagram
     class SubmissionDate {
         +SubmissionDateId id
         +SubmissionPeriodId period_id
-        +SubmissionDateLabelId label_id
-        +DateTime date
+        +string label
+        +DateTime datetime
     }
 
     class FormSubmission {
@@ -163,6 +208,18 @@ classDiagram
         +FormSubmissionId form_submission_id
         +FormFieldId form_field_id
         +string value
+    }
+
+    class FormSubmissionOverride {
+        +FormSubmissionOverrideId id
+        +FormSubmissionId form_submission_id
+        +FormPhaseDetailId form_phase_detail_id
+        +UserId granted_by
+        +string reason
+        +DateTime expires_at
+        +bool is_active
+        +isValid() bool
+        +revoke()
     }
 
     class ReviewEvaluationForm {
@@ -237,7 +294,9 @@ classDiagram
     Form "1" --> "0..*" FormAccessControl : controlled_by
     FormField "1" --> "0..*" FormFieldOption : has
     FormPhase "1" --> "1..*" FormPhaseDetail : has
+    FormPhaseDetail "*" --> "1" SubmissionDate : deadline
     FormPhaseDetail "1" --> "0..*" ReviewEvaluationForm : has
+    FormPhaseDetail "1" --> "0..*" FormSubmissionOverride : overridden_by
     ReviewEvaluationForm "1" --> "1..*" ReviewFormField : has
     FormSubmission "1" --> "0..*" FormFieldResponse : has
     FormSubmission "1" --> "0..*" SubmissionReviewer : has
@@ -251,16 +310,39 @@ classDiagram
 
 ---
 
+## Konsep `FormPhaseDetail.submission_date_id` — Hard Deadline
+
+Setiap `FormPhaseDetail` wajib punya satu `SubmissionDate` sebagai deadline (NOT NULL). Operator set deadline ini saat konfigurasi phase — tidak ada detail tanpa batas waktu.
+
+Satu `SubmissionDate` bisa di-reference oleh banyak `FormPhaseDetail`. Misalnya "Batas Submit Pengajuan" bisa jadi deadline untuk form pengajuan utama sekaligus form upload berkas pendukung.
+
+Setelah `SubmissionDate.datetime` terlewat, akses ke detail tersebut ditutup secara hard — tidak ada pesan warning yang bisa di-bypass. Satu-satunya jalan adalah `FormSubmissionOverride` dari operator.
+
+---
+
+## Konsep `FormSubmissionOverride` — Bypass Deadline
+
+Override dibuat oleh operator untuk satu submission + satu FormPhaseDetail secara spesifik. Tidak mempengaruhi submission lain atau period secara keseluruhan.
+
+```sql
+form_submission_overrides
+  id
+  form_submission_id    FK → form_submissions
+  form_phase_detail_id  FK → form_phase_details
+  granted_by            FK → users
+  reason                text        -- wajib diisi operator
+  expires_at            timestamp nullable  -- null = tidak ada batas baru
+  is_active             boolean default true
+  created_at, updated_at
+```
+
+`is_active` bisa diset `false` oleh operator untuk mencabut override sebelum `expires_at`. Semua override tercatat permanen di tabel untuk keperluan audit trail.
+
+---
+
 ## Konsep `FormAccessControl` — Permission + Org
 
-`form_access_controls` tidak lagi menyimpan `role_id`. Yang disimpan adalah **nama permission** (string) dan `organization_id`. Ini memungkinkan dua jalur akses via Spatie yang transparan:
-
-```
-User → Role → Permission   (inherited — majority of users)
-User → Permission           (direct / custom — edge cases)
-```
-
-Keduanya ter-cover oleh satu query yang sama:
+`form_access_controls` menyimpan `permission` (string) + `organization_id`. Dua jalur Spatie ter-cover oleh satu query:
 
 ```php
 $userPermissions = $user->getAllPermissions()->pluck('name');
@@ -271,8 +353,6 @@ $canAccess = FormAccessControl::where('form_id', $form->id)
     ->whereIn('organization_id', $userOrgSubtree)
     ->exists();
 ```
-
-Operator tidak perlu tahu apakah permission user berasal dari role atau direct assign — access check-nya identik.
 
 ---
 
@@ -286,13 +366,11 @@ Operator tidak perlu tahu apakah permission user berasal dari role atau direct a
 | Kelengkapan     | Upload dokumen pendukung | Researcher     |
 | Research Output | Pelaporan luaran         | Researcher     |
 
-Satu parent bisa punya banyak child dari tipe yang sama (e.g., banyak laporan per siklus monev).
-
 ---
 
 ## Konsep `RepeatableField`
 
-`FormField` dengan `field_type = 'repeatable'` dan kolom `config` berisi JSON schema sub-fields:
+`FormField` dengan `field_type = 'repeatable'` dan `config` berisi JSON schema sub-fields. **Config adalah UI schema saja** — data dikirim ke extension table, bukan ke `form_field_responses`.
 
 ```json
 {
@@ -312,20 +390,23 @@ Satu parent bisa punya banyak child dari tipe yang sama (e.g., banyak laporan pe
 }
 ```
 
-**Penting:** `config` adalah **UI schema saja**. Data tidak masuk ke `form_field_responses`. Saat submit, frontend kirim data repeatable ke endpoint extension table yang sesuai (research_members, budget_line_items, dll).
-
 ---
 
 ## Business Rules
 
-| Kode     | Rule                                                                                                             |
-| -------- | ---------------------------------------------------------------------------------------------------------------- |
-| BR-FE-01 | `FormSubmission` hanya bisa dibuat selama `SubmissionPeriod` masih aktif                                         |
-| BR-FE-02 | User hanya bisa akses Form jika ada `FormAccessControl` yang match permission user DAN organization subtree user |
-| BR-FE-03 | `FormFieldResponse` hanya menyimpan scalar values — tidak ada array atau object                                  |
-| BR-FE-04 | Child `FormSubmission` hanya bisa dibuat jika parent sudah berstatus `APPROVED`                                  |
-| BR-FE-05 | `ReviewFormResponse` tidak bisa diedit setelah `status = submitted`                                              |
-| BR-FE-06 | Reviewer hanya bisa membuat `ReviewSummary` setelah `evaluation_status = completed` atau `not_required`          |
+| Kode     | Rule                                                                                                                                |
+| -------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| BR-FE-01 | `FormSubmission` hanya bisa dibuat selama `SubmissionPeriod` masih aktif                                                            |
+| BR-FE-02 | User hanya bisa akses Form jika ada `FormAccessControl` yang match permission user DAN organization subtree user                    |
+| BR-FE-03 | `FormFieldResponse` hanya menyimpan scalar values — tidak ada array atau object                                                     |
+| BR-FE-04 | Child `FormSubmission` hanya bisa dibuat jika parent sudah berstatus `APPROVED`                                                     |
+| BR-FE-05 | `ReviewFormResponse` tidak bisa diedit setelah `status = submitted`                                                                 |
+| BR-FE-06 | Reviewer hanya bisa membuat `ReviewSummary` setelah `evaluation_status = completed` atau `not_required`                             |
+| BR-FE-07 | `FormPhaseDetail.submission_date_id` NOT NULL — setiap detail wajib punya deadline                                                  |
+| BR-FE-08 | Akses ke `FormPhaseDetail` ditolak secara hard jika `now() > SubmissionDate.datetime` dan tidak ada active `FormSubmissionOverride` |
+| BR-FE-09 | `FormSubmissionOverride.reason` wajib diisi — tidak boleh kosong                                                                    |
+| BR-FE-10 | Override hanya berlaku untuk satu `form_submission_id` + satu `form_phase_detail_id` — tidak bisa bulk override                     |
+| BR-FE-11 | `SubmissionDate` yang sama boleh di-reference oleh banyak `FormPhaseDetail` dalam phase yang sama                                   |
 
 ---
 

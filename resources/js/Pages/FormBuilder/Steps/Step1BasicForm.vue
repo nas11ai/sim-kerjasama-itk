@@ -211,7 +211,7 @@ const fieldTypeRequiresOptions = (fieldTypeId: number | null): boolean => {
                                                         <Input v-model="option.label" placeholder="Label opsi"
                                                             class="flex-1" />
                                                         <Button type="button" variant="ghost" size="sm"
-                                                            @click="removeOption(index, optionIndex)">
+                                                            @click="removeOption(index, optionIndex as number)">
                                                             <Trash2 class="h-4 w-4 text-destructive" />
                                                         </Button>
                                                     </div>

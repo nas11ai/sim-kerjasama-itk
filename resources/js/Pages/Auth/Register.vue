@@ -37,7 +37,6 @@ const form = useForm({
 });
 
 const submit = () => {
-    console.log('form data:', form.data());
 
     form.post(route("register"));
 };
@@ -45,7 +44,7 @@ const submit = () => {
 
 <template>
     <div
-        class="min-h-screen relative flex flex-col items-center justify-center bg-gradient-to-b from-white to-blue-50 z-10 p-10"
+        class="min-h-screen relative flex flex-col items-center justify-center bg-linear-to-b from-white to-blue-50 z-10 p-10"
     >
         <div class="mb-6">
             <div class="flex items-center gap-4 drop-shadow-md">

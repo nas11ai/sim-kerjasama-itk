@@ -1,0 +1,82 @@
+name: "🔧 Task"
+description: Langkah teknis konkret untuk menyelesaikan sebuah Story. Satu Task = satu unit kerja yang bisa diselesaikan dalam satu sesi.
+title: "[Task] "
+labels: ["type: chore"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Task adalah unit implementasi terkecil. Kalau Task membutuhkan lebih dari satu hari, pertimbangkan untuk dipecah lagi.
+
+        Setelah membuat Task, **set parent issue ke Story yang sesuai** via GitHub Projects.
+
+  - type: dropdown
+    id: layer
+    attributes:
+      label: Layer
+      description: Task ini pekerjaan di layer mana?
+      multiple: true
+      options:
+        - "Backend - Config"
+        - "Backend — Model / Migration"
+        - "Backend — Controller / Action"
+        - "Backend — Service / Repository"
+        - "Backend — Test (Pest)"
+        - "Frontend - Config"
+        - "Frontend — Page / Component"
+        - "Frontend — Composable / Store"
+        - "Frontend — Test (Vitest)"
+        - "Database — Migration"
+        - "Database — Seeder"
+        - "Database — Query Optimization"
+        - "API — Endpoint"
+        - "API — Request / DTO"
+        - "Infrastructure — Docker / CI"
+        - "Infrastructure — Observability"
+        - "Docs"
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Deskripsi
+      description: Apa yang perlu dikerjakan secara spesifik? Semakin konkret semakin baik.
+      placeholder: |
+        Buat migration untuk tabel `budget_line_items`:
+        - id (bigint, PK)
+        - form_submission_id (FK → form_submissions, cascade delete)
+        - budget_component_id (FK → budget_components)
+        - item_name (varchar 255)
+        - volume (integer, unsigned)
+        - unit (varchar 50)
+        - unit_price (bigint — simpan dalam rupiah, tanpa desimal)
+        - total (bigint — generated: volume × unit_price)
+        - created_at, updated_at
+    validations:
+      required: true
+
+  - type: textarea
+    id: technical-notes
+    attributes:
+      label: Catatan Teknis
+      description: Constraint, edge case, atau keputusan teknis yang perlu diperhatikan.
+      placeholder: |
+        - Simpan nominal dalam satuan rupiah (integer), bukan float — hindari floating point error
+        - `total` bisa jadi generated column di PostgreSQL atau dikalkulasi di application layer
+        - Perlu index di `form_submission_id` untuk query budget per submission
+    validations:
+      required: false
+
+  - type: textarea
+    id: definition-of-done
+    attributes:
+      label: Definition of Done
+      description: Checklist teknis yang harus centang sebelum PR bisa di-merge.
+      placeholder: |
+        - [ ] Implementasi selesai dan bisa dijalankan secara lokal
+        - [ ] Larastan / ESLint tidak ada error baru
+        - [ ] Tidak ada console.log / dd() / dump() tertinggal
+        - [ ] Test ditulis jika Task ini mengandung logic yang bisa di-test
+    validations:
+      required: true

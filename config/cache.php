@@ -105,4 +105,17 @@ return [
 
     'prefix' => env('CACHE_PREFIX', Str::slug(env('APP_NAME', 'laravel'), '_').'_cache_'),
 
+    /*
+    |--------------------------------------------------------------------------
+    | Cache Serialization
+    |--------------------------------------------------------------------------
+    |
+    | This option controls whether cached values are serialized before being
+    | stored. When set to false, the cache will store values without enforcing
+    | PHP's native serialization, which is required by Laravel 13+.
+    |
+    */
+
+    'serializable_classes' => false,
+
 ];

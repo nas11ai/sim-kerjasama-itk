@@ -39,12 +39,12 @@ const handleDismiss = () => {
 <template>
     <div
         :class="[
-            'flex items-start gap-3 p-4 border rounded-lg shadow-sm',
+            'flex items-start gap-3 p-4 border rounded-lg shadow-xs',
             alertStyles,
         ]"
     >
         <!-- Icon -->
-        <div class="flex-shrink-0 mt-0.5">
+        <div class="shrink-0 mt-0.5">
             <CheckCircle
                 v-if="type === 'success'"
                 class="h-5 w-5"
@@ -66,7 +66,7 @@ const handleDismiss = () => {
             size="sm"
             @click="handleDismiss"
             :class="[
-                'flex-shrink-0 p-1 h-auto hover:bg-transparent',
+                'shrink-0 p-1 h-auto hover:bg-transparent',
                 type === 'success'
                     ? 'text-green-600 hover:text-green-700'
                     : 'text-red-600 hover:text-red-700',

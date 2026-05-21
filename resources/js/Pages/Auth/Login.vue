@@ -32,7 +32,7 @@ const submit = () => {
 
 <template>
     <div
-        class="relative min-h-screen flex flex-col items-center justify-center bg-gradient-to-b from-white to-blue-50 p-10"
+        class="relative min-h-screen flex flex-col items-center justify-center bg-linear-to-b from-white to-blue-50 p-10"
     >
         <div class="mb-6">
             <div class="flex items-center gap-4 drop-shadow-md">

@@ -499,7 +499,7 @@ const formatDate = (dateString: string) => {
                                     <Command>
                                         <CommandInput
                                             placeholder="Search form..."
-                                            class="flex h-11 w-full rounded-md bg-transparent py-3 text-sm outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50 border-0 ring-0 focus:ring-0 focus:outline-none"
+                                            class="flex h-11 w-full rounded-md bg-transparent py-3 text-sm outline-hidden placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50 border-0 ring-0 focus:ring-0 focus:outline-hidden"
                                         />
                                         <CommandList>
                                             <CommandEmpty>Tidak ada formulir ditemukan.</CommandEmpty>
@@ -566,7 +566,7 @@ const formatDate = (dateString: string) => {
                                     <Command>
                                         <CommandInput
                                             placeholder="Cari role..."
-                                            class="flex h-11 w-full rounded-md bg-transparent py-3 text-sm outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50 border-0 ring-0 focus:ring-0 focus:outline-none"
+                                            class="flex h-11 w-full rounded-md bg-transparent py-3 text-sm outline-hidden placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50 border-0 ring-0 focus:ring-0 focus:outline-hidden"
                                         />
                                         <CommandList>
                                             <CommandEmpty>Tidak ada role ditemukan.</CommandEmpty>
@@ -633,7 +633,7 @@ const formatDate = (dateString: string) => {
                                     <Command>
                                         <CommandInput
                                         placeholder="Cari fakultas..."
-                                        class="flex h-11 w-full rounded-md bg-transparent py-3 text-sm outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50 border-0 ring-0 focus:ring-0 focus:outline-none"
+                                        class="flex h-11 w-full rounded-md bg-transparent py-3 text-sm outline-hidden placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50 border-0 ring-0 focus:ring-0 focus:outline-hidden"
                                         />
                                         <CommandList>
                                             <CommandEmpty>Tidak ada fakultas ditemukan.</CommandEmpty>
@@ -712,7 +712,7 @@ const formatDate = (dateString: string) => {
                                     <Command>
                                         <CommandInput
                                         placeholder="Cari program studi..."
-                                        class="flex h-11 w-full rounded-md bg-transparent py-3 text-sm outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50 border-0 ring-0 focus:ring-0 focus:outline-none"
+                                        class="flex h-11 w-full rounded-md bg-transparent py-3 text-sm outline-hidden placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50 border-0 ring-0 focus:ring-0 focus:outline-hidden"
                                         />
                                         <CommandList>
                                             <CommandEmpty>Tidak ada program studi ditemukan.</CommandEmpty>

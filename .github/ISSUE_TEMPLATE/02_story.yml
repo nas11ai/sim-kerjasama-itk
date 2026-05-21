@@ -1,0 +1,133 @@
+name: "📖 Story"
+description: Unit kerja dari perspektif user. Satu Story = satu hal yang bisa dilakukan user dengan nilai bisnis yang jelas.
+title: "[Story] "
+labels: ["type: feature"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Story harus bisa diselesaikan dalam satu sprint (maks 1 minggu). Kalau terlalu besar, pecah jadi beberapa Story.
+
+        Setelah membuat Story, **set parent issue ke Epic yang sesuai** via GitHub Projects.
+
+  - type: input
+    id: user-story
+    attributes:
+      label: User Story
+      description: Format — Sebagai [aktor], aku ingin [aksi], agar [manfaat].
+      placeholder: "Sebagai researcher, aku ingin melihat total anggaran ter-update otomatis saat aku mengubah volume atau harga satuan, agar aku tahu apakah anggaran masih dalam batas skema tanpa harus hitung manual."
+    validations:
+      required: true
+
+  - type: dropdown
+    id: actor
+    attributes:
+      label: Aktor
+      description: Siapa yang melakukan aksi ini?
+      multiple: true
+      options:
+        - Researcher (Dosen)
+        - Reviewer Internal
+        - Reviewer External
+        - Operator LPPM
+        - Admin
+        - System (otomatis, tanpa interaksi user)
+    validations:
+      required: true
+
+  - type: dropdown
+    id: domain
+    attributes:
+      label: Bounded Context
+      multiple: true
+      options:
+        - "Form Engine"
+        - "Submission"
+        - "Review"
+        - "Budget"
+        - "Monev"
+        - "Research Output"
+        - "Scheme"
+        - "Identity & Access"
+        - "Notification"
+        - "Observability"
+    validations:
+      required: true
+
+  - type: dropdown
+    id: layers
+    attributes:
+      label: Layer yang Terdampak
+      multiple: true
+      options:
+        - Backend (PHP / Laravel)
+        - Frontend (Vue.js / TypeScript)
+        - Database (Migration / Query)
+        - API (Endpoint / Contract)
+        - Infrastructure
+    validations:
+      required: true
+
+  - type: textarea
+    id: acceptance-criteria
+    attributes:
+      label: Acceptance Criteria
+      description: Kondisi yang harus terpenuhi agar Story ini dianggap selesai. Tulis sebagai checklist yang bisa diverifikasi.
+      placeholder: |
+        - [ ] Total per baris ter-kalkulasi otomatis (volume × unit_price) saat salah satu nilai berubah
+        - [ ] Grand total ter-update setiap kali ada perubahan di baris manapun
+        - [ ] Warning muncul jika grand total melebihi schemes.max_budget
+        - [ ] Warning hilang jika total kembali di bawah batas
+        - [ ] Kalkulasi terjadi di frontend (realtime) dan divalidasi ulang di backend saat submit
+        - [ ] Tidak ada data yang tersimpan ke form_field_responses — semua ke budget_line_items
+    validations:
+      required: true
+
+  - type: textarea
+    id: business-rules
+    attributes:
+      label: Business Rules
+      description: Kode BR dari DDD yang relevan untuk Story ini.
+      placeholder: |
+        - BR-BUD-01: Total BudgetLineItems ≤ schemes.max_budget
+        - BR-BUD-04: volume > 0 dan unit_price > 0
+    validations:
+      required: false
+
+  - type: textarea
+    id: definition-of-done
+    attributes:
+      label: Definition of Done
+      description: Checklist teknis yang harus centang sebelum PR bisa di-merge.
+      value: |
+        - [ ] Acceptance criteria semua terpenuhi
+        - [ ] Pest feature test ditulis dan hijau
+        - [ ] Vitest unit test ditulis untuk composable/komponen yang baru (jika ada)
+        - [ ] Larastan tidak ada error baru
+        - [ ] Pint dan ESLint tidak ada violation
+        - [ ] PR di-review minimal oleh 1 orang
+        - [ ] Tidak ada console.log atau dd() tertinggal
+    validations:
+      required: true
+
+  - type: textarea
+    id: design-ref
+    attributes:
+      label: Referensi DDD / Desain
+      description: Link ke file DDD atau halaman Figma yang relevan (jika ada).
+      value: |
+        - docs/requirement-analysis/ddd/supporting/01_budget.md
+        - figma.com/design/xxx/Sim-Kerjasama-ITK?node-id=123-456
+    validations:
+      required: false
+
+  - type: textarea
+    id: notes
+    attributes:
+      label: Catatan
+      description: Apakah ada edge case, risiko, atau hal yang perlu didiskusikan sebelum dikerjakan?
+      placeholder: |
+        Perlu konfirmasi: apakah warning budget melebihi batas harus block submit atau hanya warning?
+        Saat ini BR-BUD-01 tidak eksplisit menyebut ini.
+    validations:
+      required: false

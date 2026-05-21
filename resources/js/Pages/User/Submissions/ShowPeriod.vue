@@ -163,7 +163,7 @@ const formatDateTime = (dateString: string) => {
                                 <div v-for="submission in phase.user_submissions" :key="submission.id"
                                     class="flex items-center justify-between p-4 border rounded-lg hover:bg-muted/50 transition-colors">
                                     <div class="flex items-center space-x-4">
-                                        <div class="flex-shrink-0">
+                                        <div class="shrink-0">
                                             <div
                                                 class="w-10 h-10 bg-primary/10 rounded-full flex items-center justify-center">
                                                 <FileText class="h-5 w-5 text-primary" />

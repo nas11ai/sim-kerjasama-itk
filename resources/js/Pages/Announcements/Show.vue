@@ -71,7 +71,6 @@ const isExpired = computed(() => {
     return new Date(props.announcement.expired_at) < new Date();
 });
 
-// console.log("Files:", props.announcement.announcement_files);
 
 </script>
 
@@ -210,7 +209,7 @@ const isExpired = computed(() => {
                             class="flex items-center justify-between p-3 border rounded-lg hover:bg-gray-50 transition-colors"
                         >
                             <div class="flex items-center gap-3 min-w-0 flex-1">
-                                <div class="flex-shrink-0">
+                                <div class="shrink-0">
                                     <div
                                         class="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center"
                                     >
@@ -240,7 +239,7 @@ const isExpired = computed(() => {
                                 :href="file.file_path"
                                 target="_blank"
                                 rel="noopener noreferrer"
-                                class="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-9 px-3"
+                                class="inline-flex items-center justify-center rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-hidden focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 border border-input bg-background hover:bg-accent hover:text-accent-foreground h-9 px-3"
                             >
                                 Unduh
                             </a>

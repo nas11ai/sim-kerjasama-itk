@@ -515,7 +515,7 @@ const activeFiltersCount = computed(() => {
                     <div class="p-4 bg-muted rounded-lg">
                         <div class="flex items-center gap-3">
                             <div
-                                class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
+                                class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center shrink-0">
                                 <GraduationCap class="h-6 w-6 text-blue-600" />
                             </div>
                             <div class="flex-1 min-w-0">
@@ -541,7 +541,7 @@ const activeFiltersCount = computed(() => {
                     <!-- Warning Message -->
                     <div class="mt-4 p-3 bg-yellow-50 border border-yellow-200 rounded-md">
                         <div class="flex items-start gap-2">
-                            <AlertTriangle class="h-5 w-5 text-yellow-600 flex-shrink-0 mt-0.5" />
+                            <AlertTriangle class="h-5 w-5 text-yellow-600 shrink-0 mt-0.5" />
                             <div class="text-sm text-yellow-800">
                                 <p class="font-medium mb-1">Perhatian</p>
                                 <p>

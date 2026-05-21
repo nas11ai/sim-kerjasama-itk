@@ -167,7 +167,7 @@ const submit = () => {
                             step.number > currentStep && !canGoNext ? 'opacity-50 cursor-not-allowed' : ''
                         ]">
                             <div class="flex items-start space-x-3">
-                                <div class="flex-shrink-0">
+                                <div class="shrink-0">
                                     <CheckCircle2 v-if="step.number < currentStep" class="h-5 w-5 text-green-600" />
                                     <Circle v-else :class="[
                                         'h-5 w-5',

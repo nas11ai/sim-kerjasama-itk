@@ -1,7 +1,7 @@
 # BC: Monev (Monitoring & Evaluation)
 
 **Klasifikasi:** 🟡 Supporting Domain  
-**Versi:** 2.1  
+**Versi:** 2.2  
 **Status:** Draft
 
 > "Monev" dipertahankan sebagai domain term.
@@ -20,18 +20,18 @@ Mengelola siklus monitoring dan evaluasi. Monev **bukan FormPhase terpisah** —
 FormPhase: "Penelitian DIPA 2025"
 │  (satu phase untuk seluruh lifecycle satu skema/periode)
 │
-├── Detail 1  order=1  Pengajuan         researcher  needs_review=true
-├── Detail 2  order=2  Evaluasi Pengajuan reviewer    (ReviewEvaluationForm)
+├── Detail 1  order=1  Pengajuan         researcher  needs_review=true   deadline="Batas Submit"
+├── Detail 2  order=2  Evaluasi Pengajuan reviewer    (ReviewEvaluationForm)  deadline="Batas Submit"
 │             ← gate: researcher tidak bisa akses Detail 3
 │               sebelum semua ReviewSummary resolved
 │
-├── Detail 3  order=3  Laporan Monev I   researcher  needs_review=true
-├── Detail 4  order=4  Evaluasi Monev I  reviewer    (ReviewEvaluationForm)
+├── Detail 3  order=3  Laporan Monev I   researcher  needs_review=true   deadline="Batas Monev I"
+├── Detail 4  order=4  Evaluasi Monev I  reviewer    (ReviewEvaluationForm)  deadline="Batas Monev I"
 │
-├── Detail 5  order=5  Laporan Monev II  researcher  needs_review=false
-├── Detail 6  order=6  Evaluasi Monev II reviewer    (ReviewEvaluationForm)
+├── Detail 5  order=5  Laporan Monev II  researcher  needs_review=false  deadline="Batas Monev II"
+├── Detail 6  order=6  Evaluasi Monev II reviewer    (ReviewEvaluationForm)  deadline="Batas Monev II"
 │
-└── Detail 7  order=7  Upload Luaran     researcher  needs_review=false
+└── Detail 7  order=7  Upload Luaran     researcher  needs_review=false  deadline="Batas Akhir Period"
 ```
 
 Semua FormSubmission dalam lifecycle ini punya `parent_submission_id` → FormSubmission pertama (pengajuan). Tidak ada ambiguitas "monev ini dari pengajuan yang mana."

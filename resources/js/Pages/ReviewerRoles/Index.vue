@@ -336,7 +336,7 @@ const goToPage = (url: string | null) => {
                                     <Command>
                                         <CommandInput
                                             placeholder="Cari status..."
-                                            class="flex h-11 w-full rounded-md bg-transparent py-3 text-sm outline-none placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50 border-0 ring-0 focus:ring-0 focus:outline-none"
+                                            class="flex h-11 w-full rounded-md bg-transparent py-3 text-sm outline-hidden placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50 border-0 ring-0 focus:ring-0 focus:outline-hidden"
                                         />
                                         <CommandList>
                                             <CommandEmpty
@@ -661,7 +661,7 @@ const goToPage = (url: string | null) => {
                         >
                             <div class="flex items-start gap-2">
                                 <AlertTriangle
-                                    class="h-5 w-5 text-destructive flex-shrink-0 mt-0.5"
+                                    class="h-5 w-5 text-destructive shrink-0 mt-0.5"
                                 />
                                 <div class="text-sm">
                                     <p
