@@ -8,6 +8,7 @@ use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
 
+
 class CheckReviewer
 {
     /**
@@ -22,18 +23,20 @@ class CheckReviewer
         if ($user) {
             $today = Carbon::today();
 
-            // Cek apakah user punya record reviewer yang masih aktif
             $isReviewer = Reviewer::where('user_id', $user->id)
                 ->where(function ($q) use ($today) {
-                    $q->whereNull('start_date')->orWhere('start_date', '<=', $today);
+                    $q->whereNull('start_date')
+                        ->orWhere('start_date', '<=', $today);
                 })
                 ->where(function ($q) use ($today) {
-                    $q->whereNull('end_date')->orWhere('end_date', '>=', $today);
+                    $q->whereNull('end_date')
+                        ->orWhere('end_date', '>=', $today);
                 })
                 ->exists();
 
-            // Inject ke user object
-            $user->is_reviewer = $isReviewer;
+            $user->setAttribute('is_reviewer', $isReviewer);
+
+            $user->syncOriginalAttribute('is_reviewer');
         }
 
         return $next($request);

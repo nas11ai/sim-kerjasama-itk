@@ -35,10 +35,10 @@ class ProfileController extends Controller
             $request->user()->email_verified_at = null;
         }
 
-        unset($request->user()->is_reviewer);
         $request->user()->save();
 
-        return back()->with('success', 'Berhasil memperbarui profil.');
+        return Redirect::route('profile.edit')
+            ->with('success', 'Berhasil memperbarui profil.');
     }
 
     /**
@@ -54,7 +54,7 @@ class ProfileController extends Controller
 
         Auth::logout();
 
-        $user->delete();
+        $user->forceDelete();
 
         $request->session()->invalidate();
         $request->session()->regenerateToken();

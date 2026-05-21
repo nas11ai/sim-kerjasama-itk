@@ -26,14 +26,16 @@ use App\Models\Announcement;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
+Route::get('/dashboard', function () {
+    return redirect()->route('user.dashboard');
+})->middleware(['auth', 'verified'])->name('dashboard');
+
 Route::get('/', function () {
     return Inertia::render('Welcome', [
         'canLogin' => Route::has('login'),
         'canRegister' => Route::has('register'),
         'laravelVersion' => Application::VERSION,
         'phpVersion' => PHP_VERSION,
-        // Ambil semua announcements public untuk carousel
-        // Bisa dibatasi dengan take() jika perlu
         'announcements' => [
             'data' => Announcement::latest()
                 ->with('announcementFiles')
