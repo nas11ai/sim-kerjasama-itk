@@ -37,43 +37,54 @@ const handleDismiss = () => {
 </script>
 
 <template>
-    <div
-        :class="[
-            'flex items-start gap-3 p-4 border rounded-lg shadow-xs',
-            alertStyles,
-        ]"
-    >
-        <!-- Icon -->
-        <div class="shrink-0 mt-0.5">
-            <CheckCircle
-                v-if="type === 'success'"
-                class="h-5 w-5"
-                :class="iconStyles"
-            />
-            <AlertCircle v-else class="h-5 w-5" :class="iconStyles" />
-        </div>
-
-        <!-- Content -->
-        <div class="flex-1 min-w-0">
-            <h4 v-if="title" class="font-medium mb-1">{{ title }}</h4>
-            <p class="text-sm">{{ message }}</p>
-        </div>
-
-        <!-- Dismiss button -->
-        <Button
-            v-if="dismissible"
-            variant="ghost"
-            size="sm"
-            @click="handleDismiss"
-            :class="[
-                'shrink-0 p-1 h-auto hover:bg-transparent',
-                type === 'success'
-                    ? 'text-green-600 hover:text-green-700'
-                    : 'text-red-600 hover:text-red-700',
-            ]"
-        >
-            <X class="h-4 w-4" />
-            <span class="sr-only">Dismiss</span>
-        </Button>
+  <div
+    :class="[
+      'flex items-start gap-3 p-4 border rounded-lg shadow-xs',
+      alertStyles,
+    ]"
+  >
+    <!-- Icon -->
+    <div class="shrink-0 mt-0.5">
+      <CheckCircle
+        v-if="type === 'success'"
+        class="h-5 w-5"
+        :class="iconStyles"
+      />
+      <AlertCircle
+        v-else
+        class="h-5 w-5"
+        :class="iconStyles"
+      />
     </div>
+
+    <!-- Content -->
+    <div class="flex-1 min-w-0">
+      <h4
+        v-if="title"
+        class="font-medium mb-1"
+      >
+        {{ title }}
+      </h4>
+      <p class="text-sm">
+        {{ message }}
+      </p>
+    </div>
+
+    <!-- Dismiss button -->
+    <Button
+      v-if="dismissible"
+      variant="ghost"
+      size="sm"
+      :class="[
+        'shrink-0 p-1 h-auto hover:bg-transparent',
+        type === 'success'
+          ? 'text-green-600 hover:text-green-700'
+          : 'text-red-600 hover:text-red-700',
+      ]"
+      @click="handleDismiss"
+    >
+      <X class="h-4 w-4" />
+      <span class="sr-only">Dismiss</span>
+    </Button>
+  </div>
 </template>

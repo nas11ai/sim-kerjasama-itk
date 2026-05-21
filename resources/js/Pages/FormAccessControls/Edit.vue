@@ -123,259 +123,272 @@ const submit = () => {
 </script>
 
 <template>
-    <Head title="Edit Akses Kontrol Formulir" />
+  <Head title="Edit Akses Kontrol Formulir" />
 
-    <AuthenticatedLayout>
-        <template #header>
-            <div class="flex items-center gap-4">
-                <Button
-                    variant="ghost"
-                    size="sm"
-                    @click="
-                        $inertia.visit(
-                            route(
-                                'admin.form-access-controls.show',
-                                props.formAccessControl.id
-                            )
-                        )
-                    "
-                >
-                    <ArrowLeft class="h-4 w-4 mr-2" />
-                    Kembali
-                </Button>
-                <h2 class="text-xl font-semibold leading-tight text-gray-800">
-                    Edit Akses Kontrol Formulir
-                </h2>
+  <AuthenticatedLayout>
+    <template #header>
+      <div class="flex items-center gap-4">
+        <Button
+          variant="ghost"
+          size="sm"
+          @click="
+            $inertia.visit(
+              route(
+                'admin.form-access-controls.show',
+                props.formAccessControl.id
+              )
+            )
+          "
+        >
+          <ArrowLeft class="h-4 w-4 mr-2" />
+          Kembali
+        </Button>
+        <h2 class="text-xl font-semibold leading-tight text-gray-800">
+          Edit Akses Kontrol Formulir
+        </h2>
+      </div>
+    </template>
+
+    <div class="max-w-4xl mx-auto space-y-6">
+      <!-- Current Configuration Display -->
+      <Card class="border-blue-200 bg-blue-50">
+        <CardHeader>
+          <CardTitle class="text-blue-900">
+            Konfigurasi Saat Ini
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div class="grid gap-4 md:grid-cols-3 text-sm">
+            <div>
+              <p class="text-blue-700 font-medium">
+                Formulir
+              </p>
+              <p class="text-blue-600">
+                {{ props.formAccessControl.form.title }}
+              </p>
             </div>
-        </template>
+            <div>
+              <p class="text-blue-700 font-medium">
+                Role
+              </p>
+              <p class="text-blue-600">
+                {{ props.formAccessControl.role.name }}
+              </p>
+            </div>
+            <div>
+              <p class="text-blue-700 font-medium">
+                Program Studi
+              </p>
+              <p class="text-blue-600">
+                {{ props.formAccessControl.study_program.name }}
+              </p>
+              <p class="text-blue-500 text-xs">
+                {{
+                  props.formAccessControl.study_program
+                    .faculty.name
+                }}
+              </p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
-        <div class="max-w-4xl mx-auto space-y-6">
-            <!-- Current Configuration Display -->
-            <Card class="border-blue-200 bg-blue-50">
-                <CardHeader>
-                    <CardTitle class="text-blue-900"
-                        >Konfigurasi Saat Ini</CardTitle
+      <form
+        class="space-y-6"
+        @submit.prevent="submit"
+      >
+        <!-- Form Selection -->
+        <Card>
+          <CardHeader>
+            <CardTitle class="flex items-center gap-2">
+              <FileText class="h-5 w-5" />
+              Pemilihan Formulir
+            </CardTitle>
+          </CardHeader>
+          <CardContent class="space-y-4">
+            <div class="space-y-2">
+              <Label for="form">Formulir *</Label>
+              <Select v-model="form.form_id">
+                <SelectTrigger id="form">
+                  <SelectValue placeholder="Pilih formulir" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem
+                    v-for="formItem in props.forms"
+                    :key="formItem.id"
+                    :value="formItem.id"
+                  >
+                    {{ formItem.title }}
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+              <p
+                v-if="errors.form_id"
+                class="text-sm text-destructive"
+              >
+                {{ errors.form_id }}
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+
+        <!-- Access Configuration -->
+        <Card>
+          <CardHeader>
+            <CardTitle class="flex items-center gap-2">
+              <Users class="h-5 w-5" />
+              Konfigurasi Akses
+            </CardTitle>
+          </CardHeader>
+          <CardContent class="space-y-6">
+            <div class="grid gap-6 md:grid-cols-2">
+              <!-- Role Selection -->
+              <div class="space-y-2">
+                <Label for="role">Role *</Label>
+                <Select v-model="form.role_id">
+                  <SelectTrigger id="role">
+                    <SelectValue placeholder="Pilih role" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem
+                      v-for="role in props.roles"
+                      :key="role.id"
+                      :value="role.id"
                     >
-                </CardHeader>
-                <CardContent>
-                    <div class="grid gap-4 md:grid-cols-3 text-sm">
-                        <div>
-                            <p class="text-blue-700 font-medium">Formulir</p>
-                            <p class="text-blue-600">
-                                {{ props.formAccessControl.form.title }}
-                            </p>
-                        </div>
-                        <div>
-                            <p class="text-blue-700 font-medium">Role</p>
-                            <p class="text-blue-600">
-                                {{ props.formAccessControl.role.name }}
-                            </p>
-                        </div>
-                        <div>
-                            <p class="text-blue-700 font-medium">
-                                Program Studi
-                            </p>
-                            <p class="text-blue-600">
-                                {{ props.formAccessControl.study_program.name }}
-                            </p>
-                            <p class="text-blue-500 text-xs">
-                                {{
-                                    props.formAccessControl.study_program
-                                        .faculty.name
-                                }}
-                            </p>
-                        </div>
-                    </div>
-                </CardContent>
-            </Card>
+                      {{ role.name }}
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+                <p
+                  v-if="errors.role_id"
+                  class="text-sm text-destructive"
+                >
+                  {{ errors.role_id }}
+                </p>
+              </div>
 
-            <form @submit.prevent="submit" class="space-y-6">
-                <!-- Form Selection -->
-                <Card>
-                    <CardHeader>
-                        <CardTitle class="flex items-center gap-2">
-                            <FileText class="h-5 w-5" />
-                            Pemilihan Formulir
-                        </CardTitle>
-                    </CardHeader>
-                    <CardContent class="space-y-4">
-                        <div class="space-y-2">
-                            <Label for="form">Formulir *</Label>
-                            <Select v-model="form.form_id">
-                                <SelectTrigger id="form">
-                                    <SelectValue placeholder="Pilih formulir" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem
-                                        v-for="formItem in props.forms"
-                                        :key="formItem.id"
-                                        :value="formItem.id"
-                                    >
-                                        {{ formItem.title }}
-                                    </SelectItem>
-                                </SelectContent>
-                            </Select>
-                            <p
-                                v-if="errors.form_id"
-                                class="text-sm text-destructive"
-                            >
-                                {{ errors.form_id }}
-                            </p>
-                        </div>
-                    </CardContent>
-                </Card>
-
-                <!-- Access Configuration -->
-                <Card>
-                    <CardHeader>
-                        <CardTitle class="flex items-center gap-2">
-                            <Users class="h-5 w-5" />
-                            Konfigurasi Akses
-                        </CardTitle>
-                    </CardHeader>
-                    <CardContent class="space-y-6">
-                        <div class="grid gap-6 md:grid-cols-2">
-                            <!-- Role Selection -->
-                            <div class="space-y-2">
-                                <Label for="role">Role *</Label>
-                                <Select v-model="form.role_id">
-                                    <SelectTrigger id="role">
-                                        <SelectValue placeholder="Pilih role" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem
-                                            v-for="role in props.roles"
-                                            :key="role.id"
-                                            :value="role.id"
-                                        >
-                                            {{ role.name }}
-                                        </SelectItem>
-                                    </SelectContent>
-                                </Select>
-                                <p
-                                    v-if="errors.role_id"
-                                    class="text-sm text-destructive"
-                                >
-                                    {{ errors.role_id }}
-                                </p>
-                            </div>
-
-                            <!-- Faculty Selection -->
-                            <div class="space-y-2">
-                                <Label for="faculty">Fakultas *</Label>
-                                <Select v-model="selectedFacultyId">
-                                    <SelectTrigger id="faculty">
-                                        <SelectValue
-                                            placeholder="Pilih fakultas"
-                                        />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem
-                                            v-for="faculty in props.faculties"
-                                            :key="faculty.id"
-                                            :value="faculty.id"
-                                        >
-                                            {{ faculty.name }}
-                                        </SelectItem>
-                                    </SelectContent>
-                                </Select>
-                            </div>
-                        </div>
-
-                        <!-- Study Program Selection -->
-                        <div class="space-y-2">
-                            <Label for="study_program">Program Studi *</Label>
-                            <Select
-                                v-model="form.study_program_id"
-                                :disabled="!selectedFacultyId"
-                            >
-                                <SelectTrigger id="study_program">
-                                    <SelectValue
-                                        placeholder="Pilih program studi"
-                                    />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem
-                                        v-for="studyProgram in studyPrograms"
-                                        :key="studyProgram.id"
-                                        :value="studyProgram.id"
-                                    >
-                                        {{ studyProgram.name }}
-                                    </SelectItem>
-                                </SelectContent>
-                            </Select>
-                            <p
-                                v-if="errors.study_program_id"
-                                class="text-sm text-destructive"
-                            >
-                                {{ errors.study_program_id }}
-                            </p>
-                        </div>
-                    </CardContent>
-                </Card>
-
-                <!-- Error Messages -->
-                <Card v-if="errors.duplicate" class="border-destructive">
-                    <CardContent class="p-4">
-                        <div class="flex items-center gap-2">
-                            <AlertTriangle class="h-4 w-4 text-destructive" />
-                            <p class="text-destructive text-sm">
-                                {{ errors.duplicate }}
-                            </p>
-                        </div>
-                    </CardContent>
-                </Card>
-
-                <!-- Warning about changes -->
-                <Card class="border-amber-200 bg-amber-50">
-                    <CardContent class="p-4">
-                        <div class="flex items-start gap-3">
-                            <AlertTriangle
-                                class="h-5 w-5 text-amber-600 mt-0.5"
-                            />
-                            <div>
-                                <h4
-                                    class="text-amber-800 font-medium text-sm mb-1"
-                                >
-                                    Peringatan Pembaruan
-                                </h4>
-                                <p class="text-amber-700 text-sm">
-                                    Perubahan pada kontrol akses ini dapat
-                                    berdampak pada pengguna yang saat ini
-                                    memiliki akses ke formulir terkait.
-                                    Disarankan untuk melakukan koordinasi dengan
-                                    pihak terkait sebelum melanjutkan.
-                                </p>
-                            </div>
-                        </div>
-                    </CardContent>
-                </Card>
-
-                <!-- Form Actions -->
-                <div class="flex items-center justify-end space-x-2">
-                    <Button
-                        type="button"
-                        variant="outline"
-                        @click="
-                            $inertia.visit(
-                                route(
-                                    'admin.form-access-controls.show',
-                                    props.formAccessControl.id
-                                )
-                            )
-                        "
+              <!-- Faculty Selection -->
+              <div class="space-y-2">
+                <Label for="faculty">Fakultas *</Label>
+                <Select v-model="selectedFacultyId">
+                  <SelectTrigger id="faculty">
+                    <SelectValue
+                      placeholder="Pilih fakultas"
+                    />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem
+                      v-for="faculty in props.faculties"
+                      :key="faculty.id"
+                      :value="faculty.id"
                     >
-                        Batal
-                    </Button>
-                    <Button type="submit" :disabled="form.processing">
-                        {{
-                            form.processing
-                                ? "Memperbarui..."
-                                : "Perbarui Kontrol Akses"
-                        }}
-                    </Button>
-                </div>
-            </form>
+                      {{ faculty.name }}
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <!-- Study Program Selection -->
+            <div class="space-y-2">
+              <Label for="study_program">Program Studi *</Label>
+              <Select
+                v-model="form.study_program_id"
+                :disabled="!selectedFacultyId"
+              >
+                <SelectTrigger id="study_program">
+                  <SelectValue
+                    placeholder="Pilih program studi"
+                  />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem
+                    v-for="studyProgram in studyPrograms"
+                    :key="studyProgram.id"
+                    :value="studyProgram.id"
+                  >
+                    {{ studyProgram.name }}
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+              <p
+                v-if="errors.study_program_id"
+                class="text-sm text-destructive"
+              >
+                {{ errors.study_program_id }}
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+
+        <!-- Error Messages -->
+        <Card
+          v-if="errors.duplicate"
+          class="border-destructive"
+        >
+          <CardContent class="p-4">
+            <div class="flex items-center gap-2">
+              <AlertTriangle class="h-4 w-4 text-destructive" />
+              <p class="text-destructive text-sm">
+                {{ errors.duplicate }}
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+
+        <!-- Warning about changes -->
+        <Card class="border-amber-200 bg-amber-50">
+          <CardContent class="p-4">
+            <div class="flex items-start gap-3">
+              <AlertTriangle
+                class="h-5 w-5 text-amber-600 mt-0.5"
+              />
+              <div>
+                <h4
+                  class="text-amber-800 font-medium text-sm mb-1"
+                >
+                  Peringatan Pembaruan
+                </h4>
+                <p class="text-amber-700 text-sm">
+                  Perubahan pada kontrol akses ini dapat
+                  berdampak pada pengguna yang saat ini
+                  memiliki akses ke formulir terkait.
+                  Disarankan untuk melakukan koordinasi dengan
+                  pihak terkait sebelum melanjutkan.
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <!-- Form Actions -->
+        <div class="flex items-center justify-end space-x-2">
+          <Button
+            type="button"
+            variant="outline"
+            @click="
+              $inertia.visit(
+                route(
+                  'admin.form-access-controls.show',
+                  props.formAccessControl.id
+                )
+              )
+            "
+          >
+            Batal
+          </Button>
+          <Button
+            type="submit"
+            :disabled="form.processing"
+          >
+            {{
+              form.processing
+                ? "Memperbarui..."
+                : "Perbarui Kontrol Akses"
+            }}
+          </Button>
         </div>
-    </AuthenticatedLayout>
+      </form>
+    </div>
+  </AuthenticatedLayout>
 </template>

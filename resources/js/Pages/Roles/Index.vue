@@ -57,41 +57,41 @@ const columns: ColumnDef<Role>[] = [
 </script>
 
 <template>
-    <Head title="Manajemen Role" />
+  <Head title="Manajemen Role" />
 
-    <AuthenticatedLayout>
-        <template #header>
-            <div class="flex items-center justify-between">
-                <h2 class="text-xl font-semibold leading-tight text-gray-800">
-                    Manajemen Role
-                </h2>
-                <Link :href="route('admin.roles.create')">
-                    <Button>
-                        <Plus class="h-4 w-4 mr-2" />
-                        Buat Role
-                    </Button>
-                </Link>
-            </div>
+  <AuthenticatedLayout>
+    <template #header>
+      <div class="flex items-center justify-between">
+        <h2 class="text-xl font-semibold leading-tight text-gray-800">
+          Manajemen Role
+        </h2>
+        <Link :href="route('admin.roles.create')">
+          <Button>
+            <Plus class="h-4 w-4 mr-2" />
+            Buat Role
+          </Button>
+        </Link>
+      </div>
+    </template>
+    <div class="space-y-6">
+      <DataTable
+        ref="dataTableRef"
+        :data="props.roles"
+        :columns="columns"
+        delete-route-name="admin.roles.destroy"
+        :cell-aligns="{
+          name: 'align-top',
+          permissions: 'align-top',
+          actions: 'align-top',
+        }"
+      >
+        <template #delete-dialog-content>
+          <p class="text-muted-foreground text-sm">
+            Apakah Anda yakin ingin menghapus <strong>role</strong> ini?                        
+            Tindakan ini tidak dapat dibatalkan. Ini akan menghapus data secara permanen.
+          </p>
         </template>
-        <div class="space-y-6">
-            <DataTable
-                ref="dataTableRef"
-                :data="props.roles"
-                :columns="columns"
-                deleteRouteName="admin.roles.destroy"
-                :cellAligns="{
-                    name: 'align-top',
-                    permissions: 'align-top',
-                    actions: 'align-top',
-                }"
-            >
-                <template #delete-dialog-content>
-                    <p class="text-muted-foreground text-sm">
-                        Apakah Anda yakin ingin menghapus <strong>role</strong> ini?                        
-                        Tindakan ini tidak dapat dibatalkan. Ini akan menghapus data secara permanen.
-                    </p>
-                </template>
-            </DataTable>
-        </div>
-    </AuthenticatedLayout>
+      </DataTable>
+    </div>
+  </AuthenticatedLayout>
 </template>

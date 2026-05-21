@@ -50,48 +50,48 @@ const columns: ColumnDef<Permission>[] = [
 </script>
 
 <template>
-    <Head title="Manajemen Hak Akses" />
+  <Head title="Manajemen Hak Akses" />
 
-    <AuthenticatedLayout>
-        <template #header>
-            <div class="flex items-center justify-between">
-                <h2 class="text-xl font-semibold leading-tight text-gray-800">
-                    Manajemen Hak Akses
-                </h2>
-                <Button
-                    @click="showCreateModal = true"
-                    :disabled="!props.can.create"
-                >
-                    <Plus class="h-4 w-4 mr-2" />
-                    Buat Hak Akses
-                </Button>
-                <CreateDialogue
-                    :open="showCreateModal"
-                    @close="showCreateModal = false"
-                />
-            </div>
+  <AuthenticatedLayout>
+    <template #header>
+      <div class="flex items-center justify-between">
+        <h2 class="text-xl font-semibold leading-tight text-gray-800">
+          Manajemen Hak Akses
+        </h2>
+        <Button
+          :disabled="!props.can.create"
+          @click="showCreateModal = true"
+        >
+          <Plus class="h-4 w-4 mr-2" />
+          Buat Hak Akses
+        </Button>
+        <CreateDialogue
+          :open="showCreateModal"
+          @close="showCreateModal = false"
+        />
+      </div>
+    </template>
+
+    <div class="space-y-6">
+      <DataTable
+        ref="dataTableRef"
+        :data="props.permissions"
+        :columns="columns"
+        delete-route-name="admin.permissions.destroy"
+      >
+        <template #delete-dialog-content>
+          <p class="text-muted-foreground text-sm">
+            Apakah Anda yakin ingin menghapus <strong>hak akses</strong> ini?
+            Tindakan ini tidak dapat dibatalkan. Ini akan menghapus data secara permanen.
+          </p>
         </template>
-
-        <div class="space-y-6">
-            <DataTable
-                ref="dataTableRef"
-                :data="props.permissions"
-                :columns="columns"
-                deleteRouteName="admin.permissions.destroy"
-            >
-                <template #delete-dialog-content>
-                    <p class="text-muted-foreground text-sm">
-                        Apakah Anda yakin ingin menghapus <strong>hak akses</strong> ini?
-                        Tindakan ini tidak dapat dibatalkan. Ini akan menghapus data secara permanen.
-                    </p>
-                </template>
-            </DataTable>
-            <EditDialogue
-                v-if="selectedPermission"
-                :permission="selectedPermission"
-                :open="showEditModal"
-                @close="showEditModal = false"
-            />
-        </div>
-    </AuthenticatedLayout>
+      </DataTable>
+      <EditDialogue
+        v-if="selectedPermission"
+        :permission="selectedPermission"
+        :open="showEditModal"
+        @close="showEditModal = false"
+      />
+    </div>
+  </AuthenticatedLayout>
 </template>

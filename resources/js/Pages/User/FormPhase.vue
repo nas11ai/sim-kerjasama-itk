@@ -362,244 +362,347 @@ const renderFormField = (field: FormField) => {
 </script>
 
 <template>
+  <Head :title="`${formPhase.title} - ${submissionPeriod.name}`" />
 
-    <Head :title="`${formPhase.title} - ${submissionPeriod.name}`" />
-
-    <AuthenticatedLayout>
-        <template #header>
-            <div class="flex items-center gap-4">
-                <Button variant="ghost" size="sm" @click="router.visit(route('user.dashboard'))">
-                    <ArrowLeft class="h-4 w-4 mr-2" />
-                    Kembali ke Dashboard
-                </Button>
-                <div>
-                    <h2 class="text-xl font-semibold leading-tight text-gray-800">
-                        {{ formPhase.title }}
-                    </h2>
-                    <p class="text-sm text-muted-foreground">
-                        {{ submissionPeriod.name }}
-                    </p>
-                </div>
-            </div>
-        </template>
-
-        <div class="max-w-6xl mx-auto space-y-6">
-            <!-- Progress Header -->
-            <Card>
-                <CardHeader>
-                    <div class="flex items-center justify-between mb-4">
-                        <CardTitle>Progress Pengisian Form</CardTitle>
-                        <Badge variant="outline">
-                            Step {{ currentStepIndex + 1 }} of {{ totalSteps }}
-                        </Badge>
-                    </div>
-                    <Progress :value="progress" class="h-2" />
-                </CardHeader>
-            </Card>
-
-            <div class="grid gap-6 lg:grid-cols-12">
-                <!-- Steps Sidebar -->
-                <div class="lg:col-span-3">
-                    <Card class="sticky top-6">
-                        <CardHeader>
-                            <CardTitle class="text-lg">Langkah-langkah</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <div class="space-y-2">
-                                <button v-for="(group, index) in groupedForms"
-                                    :key="group.formId" @click="goToStep(index)"
-                                    :disabled="!canAccessStep(index)"
-                                    class="w-full flex items-center gap-3 p-3 text-left rounded-lg border transition-colors"
-                                    :class="{
-                                        'bg-primary text-primary-foreground border-primary': index === currentStepIndex,
-                                        'bg-green-50 border-green-200 text-green-800': isStepCompleted(index) && index !== currentStepIndex,
-                                        'bg-yellow-50 border-yellow-200 text-yellow-800': isStepPendingReview(index) && index !== currentStepIndex,
-                                        'hover:bg-muted cursor-pointer': canAccessStep(index) && index !== currentStepIndex && !isStepCompleted(index) && !isStepPendingReview(index),
-                                        'opacity-50 cursor-not-allowed': !canAccessStep(index)
-                                    }">
-                                    <div class="shrink-0">
-                                        <CheckCircle2 v-if="isStepCompleted(index)" class="h-5 w-5" />
-                                        <Clock v-else-if="isStepPendingReview(index)" class="h-5 w-5" />
-                                        <span v-else
-                                            class="flex items-center justify-center w-5 h-5 rounded-full text-xs font-medium border-2">
-                                            {{ group.order }}
-                                        </span>
-                                    </div>
-                                    <div class="flex-1 min-w-0">
-                                        <p class="font-medium text-sm truncate">{{ group.form.title }}</p>
-                                        <p class="text-xs opacity-75 truncate">{{ group.primaryAccessControl.phase_type.name }}
-                                        </p>
-                                    </div>
-                                </button>
-                            </div>
-                        </CardContent>
-                    </Card>
-                </div>
-
-                <!-- Main Form Content -->
-                <div class="lg:col-span-9">
-                    <Card v-if="currentForm">
-                        <CardHeader>
-                            <div class="flex items-start justify-between">
-                                <div>
-                                    <CardTitle class="text-xl">{{ currentForm.title }}</CardTitle>
-                                    <p class="text-muted-foreground mt-1">{{ currentForm.description }}</p>
-                                </div>
-                                <div class="flex items-center gap-2">
-                                    <Badge v-if="currentFormAccessControl?.needs_review" variant="outline">
-                                        <AlertCircle class="h-3 w-3 mr-1" />
-                                        Perlu Review
-                                    </Badge>
-                                    <Badge variant="secondary">
-                                        {{ currentFormAccessControl?.phase_type.name }}
-                                    </Badge>
-                                </div>
-                            </div>
-                        </CardHeader>
-
-                        <CardContent>
-                            <!-- Show completed message if form is already submitted -->
-                            <div v-if="currentFormAccessControl?.user_submission?.is_submitted" class="mb-6">
-                                <div class="p-4 bg-green-50 border border-green-200 rounded-lg">
-                                    <div class="flex items-center gap-2">
-                                        <CheckCircle2 class="h-5 w-5 text-green-600" />
-                                        <div>
-                                            <p class="font-medium text-green-800">Form Sudah Diserahkan</p>
-                                            <p class="text-sm text-green-700">
-                                                Diserahkan pada {{ new
-                                                    Date(currentFormAccessControl.user_submission.created_at).toLocaleString('id-ID')
-                                                }}
-                                            </p>
-                                            <p v-if="currentFormAccessControl.needs_review && !currentFormAccessControl.user_submission.can_proceed"
-                                                class="text-sm text-yellow-700 mt-1">
-                                                Form sedang dalam proses review. Anda tidak dapat melanjutkan ke step
-                                                selanjutnya sampai review selesai.
-                                            </p>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <!-- Form Fields -->
-                            <div v-else class="space-y-6">
-                                <div v-for="field in currentForm.form_fields" :key="field.id" class="space-y-2">
-                                    <Label :for="`field_${field.id}`" class="flex items-center gap-2">
-                                        {{ field.label }}
-                                        <Badge v-if="field.is_required" variant="destructive" class="text-xs">
-                                            Wajib
-                                        </Badge>
-                                    </Label>
-
-                                    <!-- Text, Email, Number, URL, Phone, Date, Time Inputs -->
-                                    <Input
-                                        v-if="['text', 'email', 'number', 'url', 'phone', 'date', 'time'].includes(field.field_type.name.toLowerCase())"
-                                        :id="`field_${field.id}`" v-model="formData[`field_${field.id}`]"
-                                        v-bind="renderFormField(field).props" />
-
-                                    <!-- Textarea -->
-                                    <Textarea v-else-if="field.field_type.name.toLowerCase() === 'textarea'"
-                                        :id="`field_${field.id}`" v-model="formData[`field_${field.id}`]"
-                                        v-bind="renderFormField(field).props" />
-
-                                    <!-- Select Dropdown -->
-                                    <Select v-else-if="field.field_type.name.toLowerCase() === 'select'"
-                                        v-model="formData[`field_${field.id}`]">
-                                        <SelectTrigger>
-                                            <SelectValue :placeholder="`Pilih ${field.label.toLowerCase()}...`" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem v-for="option in field.form_field_options" :key="option.id"
-                                                :value="option.id.toString()">
-                                                {{ option.label }}
-                                            </SelectItem>
-                                        </SelectContent>
-                                    </Select>
-
-                                    <!-- Radio Group -->
-                                    <RadioGroup v-else-if="field.field_type.name.toLowerCase() === 'radio'"
-                                        v-model="formData[`field_${field.id}`]" class="space-y-2">
-                                        <div v-for="option in field.form_field_options" :key="option.id"
-                                            class="flex items-center space-x-2">
-                                            <RadioGroupItem :value="option.id.toString()"
-                                                :id="`${field.id}_${option.id}`" />
-                                            <Label :for="`${field.id}_${option.id}`" class="text-sm font-normal">
-                                                {{ option.label }}
-                                            </Label>
-                                        </div>
-                                    </RadioGroup>
-
-                                    <!-- Single Checkbox -->
-                                    <div v-else-if="field.field_type.name.toLowerCase() === 'checkbox'"
-                                        class="flex items-center space-x-2">
-                                        <Checkbox :id="`field_${field.id}`" v-model="formData[`field_${field.id}`]" />
-                                        <Label :for="`field_${field.id}`" class="text-sm font-normal">
-                                            Ya, saya setuju
-                                        </Label>
-                                    </div>
-
-                                    <!-- File Upload -->
-                                    <div v-else-if="field.field_type.name.toLowerCase() === 'file'" class="space-y-2">
-                                        <div class="flex items-center gap-2">
-                                            <Input :id="`field_${field.id}`" type="file"
-                                                @change="handleFileUpload($event, field.id)"
-                                                class="file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-primary-foreground hover:file:bg-primary/80" />
-                                            <Upload class="h-4 w-4 text-muted-foreground" />
-                                        </div>
-                                        <p class="text-xs text-muted-foreground">
-                                            Upload file yang sesuai dengan persyaratan
-                                        </p>
-                                    </div>
-
-                                    <!-- Fallback for unknown field types -->
-                                    <Input v-else :id="`field_${field.id}`" v-model="formData[`field_${field.id}`]"
-                                        type="text" :placeholder="`Masukkan ${field.label.toLowerCase()}...`" />
-                                </div>
-
-                                <Separator />
-
-                                <!-- Form Actions -->
-                                <div class="flex items-center justify-between">
-                                    <div class="flex items-center gap-2">
-                                        <Button type="button" variant="outline" @click="previousStep"
-                                            :disabled="!canGoPrevious">
-                                            <ArrowLeft class="h-4 w-4 mr-2" />
-                                            Sebelumnya
-                                        </Button>
-                                    </div>
-
-                                    <div class="flex items-center gap-2">
-                                        <Button type="button" variant="outline" @click="saveDraft"
-                                            :disabled="formData.processing">
-                                            <Save class="h-4 w-4 mr-2" />
-                                            Simpan Draft
-                                        </Button>
-
-                                        <Button type="button" @click="submitForm"
-                                            :disabled="isSubmitting || formData.processing">
-                                            {{ isSubmitting ? 'Menyerahkan...' : 'Serahkan Form' }}
-                                            <Check class="h-4 w-4 ml-2" />
-                                        </Button>
-                                    </div>
-                                </div>
-                            </div>
-                        </CardContent>
-                    </Card>
-
-                    <!-- Completion Card -->
-                    <Card v-if="currentStepIndex >= totalSteps - 1 && isStepCompleted(currentStepIndex)">
-                        <CardContent class="text-center py-12">
-                            <CheckCircle2 class="h-16 w-16 text-green-600 mx-auto mb-4" />
-                            <h3 class="text-xl font-semibold mb-2">Tahap formulir selesai!</h3>
-                            <p class="text-muted-foreground mb-6">
-                                Anda telah menyelesaikan semua formulir dalam tahap "{{ formPhase.title }}".
-                            </p>
-                            <Button @click="router.visit(route('user.dashboard'))">
-                                Kembali ke Dashboard
-                            </Button>
-                        </CardContent>
-                    </Card>
-                </div>
-            </div>
+  <AuthenticatedLayout>
+    <template #header>
+      <div class="flex items-center gap-4">
+        <Button
+          variant="ghost"
+          size="sm"
+          @click="router.visit(route('user.dashboard'))"
+        >
+          <ArrowLeft class="h-4 w-4 mr-2" />
+          Kembali ke Dashboard
+        </Button>
+        <div>
+          <h2 class="text-xl font-semibold leading-tight text-gray-800">
+            {{ formPhase.title }}
+          </h2>
+          <p class="text-sm text-muted-foreground">
+            {{ submissionPeriod.name }}
+          </p>
         </div>
-    </AuthenticatedLayout>
+      </div>
+    </template>
+
+    <div class="max-w-6xl mx-auto space-y-6">
+      <!-- Progress Header -->
+      <Card>
+        <CardHeader>
+          <div class="flex items-center justify-between mb-4">
+            <CardTitle>Progress Pengisian Form</CardTitle>
+            <Badge variant="outline">
+              Step {{ currentStepIndex + 1 }} of {{ totalSteps }}
+            </Badge>
+          </div>
+          <Progress
+            :value="progress"
+            class="h-2"
+          />
+        </CardHeader>
+      </Card>
+
+      <div class="grid gap-6 lg:grid-cols-12">
+        <!-- Steps Sidebar -->
+        <div class="lg:col-span-3">
+          <Card class="sticky top-6">
+            <CardHeader>
+              <CardTitle class="text-lg">
+                Langkah-langkah
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div class="space-y-2">
+                <button
+                  v-for="(group, index) in groupedForms"
+                  :key="group.formId"
+                  :disabled="!canAccessStep(index)"
+                  class="w-full flex items-center gap-3 p-3 text-left rounded-lg border transition-colors"
+                  :class="{
+                    'bg-primary text-primary-foreground border-primary': index === currentStepIndex,
+                    'bg-green-50 border-green-200 text-green-800': isStepCompleted(index) && index !== currentStepIndex,
+                    'bg-yellow-50 border-yellow-200 text-yellow-800': isStepPendingReview(index) && index !== currentStepIndex,
+                    'hover:bg-muted cursor-pointer': canAccessStep(index) && index !== currentStepIndex && !isStepCompleted(index) && !isStepPendingReview(index),
+                    'opacity-50 cursor-not-allowed': !canAccessStep(index)
+                  }"
+                  @click="goToStep(index)"
+                >
+                  <div class="shrink-0">
+                    <CheckCircle2
+                      v-if="isStepCompleted(index)"
+                      class="h-5 w-5"
+                    />
+                    <Clock
+                      v-else-if="isStepPendingReview(index)"
+                      class="h-5 w-5"
+                    />
+                    <span
+                      v-else
+                      class="flex items-center justify-center w-5 h-5 rounded-full text-xs font-medium border-2"
+                    >
+                      {{ group.order }}
+                    </span>
+                  </div>
+                  <div class="flex-1 min-w-0">
+                    <p class="font-medium text-sm truncate">
+                      {{ group.form.title }}
+                    </p>
+                    <p class="text-xs opacity-75 truncate">
+                      {{ group.primaryAccessControl.phase_type.name }}
+                    </p>
+                  </div>
+                </button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        <!-- Main Form Content -->
+        <div class="lg:col-span-9">
+          <Card v-if="currentForm">
+            <CardHeader>
+              <div class="flex items-start justify-between">
+                <div>
+                  <CardTitle class="text-xl">
+                    {{ currentForm.title }}
+                  </CardTitle>
+                  <p class="text-muted-foreground mt-1">
+                    {{ currentForm.description }}
+                  </p>
+                </div>
+                <div class="flex items-center gap-2">
+                  <Badge
+                    v-if="currentFormAccessControl?.needs_review"
+                    variant="outline"
+                  >
+                    <AlertCircle class="h-3 w-3 mr-1" />
+                    Perlu Review
+                  </Badge>
+                  <Badge variant="secondary">
+                    {{ currentFormAccessControl?.phase_type.name }}
+                  </Badge>
+                </div>
+              </div>
+            </CardHeader>
+
+            <CardContent>
+              <!-- Show completed message if form is already submitted -->
+              <div
+                v-if="currentFormAccessControl?.user_submission?.is_submitted"
+                class="mb-6"
+              >
+                <div class="p-4 bg-green-50 border border-green-200 rounded-lg">
+                  <div class="flex items-center gap-2">
+                    <CheckCircle2 class="h-5 w-5 text-green-600" />
+                    <div>
+                      <p class="font-medium text-green-800">
+                        Form Sudah Diserahkan
+                      </p>
+                      <p class="text-sm text-green-700">
+                        Diserahkan pada {{ new
+                          Date(currentFormAccessControl.user_submission.created_at).toLocaleString('id-ID')
+                        }}
+                      </p>
+                      <p
+                        v-if="currentFormAccessControl.needs_review && !currentFormAccessControl.user_submission.can_proceed"
+                        class="text-sm text-yellow-700 mt-1"
+                      >
+                        Form sedang dalam proses review. Anda tidak dapat melanjutkan ke step
+                        selanjutnya sampai review selesai.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Form Fields -->
+              <div
+                v-else
+                class="space-y-6"
+              >
+                <div
+                  v-for="field in currentForm.form_fields"
+                  :key="field.id"
+                  class="space-y-2"
+                >
+                  <Label
+                    :for="`field_${field.id}`"
+                    class="flex items-center gap-2"
+                  >
+                    {{ field.label }}
+                    <Badge
+                      v-if="field.is_required"
+                      variant="destructive"
+                      class="text-xs"
+                    >
+                      Wajib
+                    </Badge>
+                  </Label>
+
+                  <!-- Text, Email, Number, URL, Phone, Date, Time Inputs -->
+                  <Input
+                    v-if="['text', 'email', 'number', 'url', 'phone', 'date', 'time'].includes(field.field_type.name.toLowerCase())"
+                    :id="`field_${field.id}`"
+                    v-model="formData[`field_${field.id}`]"
+                    v-bind="renderFormField(field).props"
+                  />
+
+                  <!-- Textarea -->
+                  <Textarea
+                    v-else-if="field.field_type.name.toLowerCase() === 'textarea'"
+                    :id="`field_${field.id}`"
+                    v-model="formData[`field_${field.id}`]"
+                    v-bind="renderFormField(field).props"
+                  />
+
+                  <!-- Select Dropdown -->
+                  <Select
+                    v-else-if="field.field_type.name.toLowerCase() === 'select'"
+                    v-model="formData[`field_${field.id}`]"
+                  >
+                    <SelectTrigger>
+                      <SelectValue :placeholder="`Pilih ${field.label.toLowerCase()}...`" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem
+                        v-for="option in field.form_field_options"
+                        :key="option.id"
+                        :value="option.id.toString()"
+                      >
+                        {{ option.label }}
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+
+                  <!-- Radio Group -->
+                  <RadioGroup
+                    v-else-if="field.field_type.name.toLowerCase() === 'radio'"
+                    v-model="formData[`field_${field.id}`]"
+                    class="space-y-2"
+                  >
+                    <div
+                      v-for="option in field.form_field_options"
+                      :key="option.id"
+                      class="flex items-center space-x-2"
+                    >
+                      <RadioGroupItem
+                        :id="`${field.id}_${option.id}`"
+                        :value="option.id.toString()"
+                      />
+                      <Label
+                        :for="`${field.id}_${option.id}`"
+                        class="text-sm font-normal"
+                      >
+                        {{ option.label }}
+                      </Label>
+                    </div>
+                  </RadioGroup>
+
+                  <!-- Single Checkbox -->
+                  <div
+                    v-else-if="field.field_type.name.toLowerCase() === 'checkbox'"
+                    class="flex items-center space-x-2"
+                  >
+                    <Checkbox
+                      :id="`field_${field.id}`"
+                      v-model="formData[`field_${field.id}`]"
+                    />
+                    <Label
+                      :for="`field_${field.id}`"
+                      class="text-sm font-normal"
+                    >
+                      Ya, saya setuju
+                    </Label>
+                  </div>
+
+                  <!-- File Upload -->
+                  <div
+                    v-else-if="field.field_type.name.toLowerCase() === 'file'"
+                    class="space-y-2"
+                  >
+                    <div class="flex items-center gap-2">
+                      <Input
+                        :id="`field_${field.id}`"
+                        type="file"
+                        class="file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-primary-foreground hover:file:bg-primary/80"
+                        @change="handleFileUpload($event, field.id)"
+                      />
+                      <Upload class="h-4 w-4 text-muted-foreground" />
+                    </div>
+                    <p class="text-xs text-muted-foreground">
+                      Upload file yang sesuai dengan persyaratan
+                    </p>
+                  </div>
+
+                  <!-- Fallback for unknown field types -->
+                  <Input
+                    v-else
+                    :id="`field_${field.id}`"
+                    v-model="formData[`field_${field.id}`]"
+                    type="text"
+                    :placeholder="`Masukkan ${field.label.toLowerCase()}...`"
+                  />
+                </div>
+
+                <Separator />
+
+                <!-- Form Actions -->
+                <div class="flex items-center justify-between">
+                  <div class="flex items-center gap-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      :disabled="!canGoPrevious"
+                      @click="previousStep"
+                    >
+                      <ArrowLeft class="h-4 w-4 mr-2" />
+                      Sebelumnya
+                    </Button>
+                  </div>
+
+                  <div class="flex items-center gap-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      :disabled="formData.processing"
+                      @click="saveDraft"
+                    >
+                      <Save class="h-4 w-4 mr-2" />
+                      Simpan Draft
+                    </Button>
+
+                    <Button
+                      type="button"
+                      :disabled="isSubmitting || formData.processing"
+                      @click="submitForm"
+                    >
+                      {{ isSubmitting ? 'Menyerahkan...' : 'Serahkan Form' }}
+                      <Check class="h-4 w-4 ml-2" />
+                    </Button>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <!-- Completion Card -->
+          <Card v-if="currentStepIndex >= totalSteps - 1 && isStepCompleted(currentStepIndex)">
+            <CardContent class="text-center py-12">
+              <CheckCircle2 class="h-16 w-16 text-green-600 mx-auto mb-4" />
+              <h3 class="text-xl font-semibold mb-2">
+                Tahap formulir selesai!
+              </h3>
+              <p class="text-muted-foreground mb-6">
+                Anda telah menyelesaikan semua formulir dalam tahap "{{ formPhase.title }}".
+              </p>
+              <Button @click="router.visit(route('user.dashboard'))">
+                Kembali ke Dashboard
+              </Button>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    </div>
+  </AuthenticatedLayout>
 </template>
