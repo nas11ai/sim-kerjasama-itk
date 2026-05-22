@@ -2,6 +2,7 @@ import js from '@eslint/js'
 import vue from 'eslint-plugin-vue'
 import ts from '@typescript-eslint/eslint-plugin'
 import tsParser from '@typescript-eslint/parser'
+import prettierConfig from 'eslint-config-prettier'
 
 export default [
   js.configs.recommended,
@@ -20,4 +21,5 @@ export default [
       'no-console': 'warn',
     },
   },
+  prettierConfig
 ]
