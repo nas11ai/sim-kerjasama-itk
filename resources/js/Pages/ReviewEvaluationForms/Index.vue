@@ -119,223 +119,276 @@ const getFieldTypesPreview = (fields: ReviewFormField[]): string => {
 </script>
 
 <template>
+  <Head title="Formulir Evaluasi Review" />
 
-    <Head title="Formulir Evaluasi Review" />
-
-    <AuthenticatedLayout>
-        <template #header>
-            <div class="flex items-center justify-between">
-                <div>
-                    <h2 class="text-xl font-semibold leading-tight text-gray-800">
-                        Formulir Evaluasi Review
-                    </h2>
-                    <p class="text-sm text-muted-foreground mt-1">
-                        Kelola formulir evaluasi untuk penilai menilai pengajuan
-                    </p>
-                </div>
-                <Link :href="route('admin.review-evaluation-forms.create')">
-                <Button>
-                    <Plus class="h-4 w-4 mr-2" />
-                    Buat Formulir Evaluasi
-                </Button>
-                </Link>
-            </div>
-        </template>
-
-        <div class="space-y-6">
-            <!-- Filters -->
-            <Card>
-                <CardHeader>
-                    <CardTitle class="flex items-center gap-2">
-                        <Filter class="h-5 w-5" />
-                        Filter Formulir
-                    </CardTitle>
-                </CardHeader>
-                <CardContent>
-                    <div class="flex gap-4 items-end">
-                        <div class="flex-1">
-                            <label class="text-sm font-medium mb-2 block">Cari</label>
-                            <div class="relative">
-                                <Search
-                                    class="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                                <Input v-model="searchTerm" placeholder="Cari formulir evaluasi..." class="pl-10"
-                                    @keyup.enter="applyFilters" />
-                            </div>
-                        </div>
-
-                        <div class="w-48">
-                            <label class="text-sm font-medium mb-2 block">Tahap Formulir</label>
-                            <Select v-model="formPhaseFilter">
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Semua tahap" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="">Semua tahap</SelectItem>
-                                    <SelectItem v-for="phase in formPhases" :key="phase.id"
-                                        :value="phase.id.toString()">
-                                        {{ phase.title }}
-                                    </SelectItem>
-                                </SelectContent>
-                            </Select>
-                        </div>
-
-                        <div class="flex gap-2">
-                            <Button @click="applyFilters">
-                                <Search class="h-4 w-4 mr-2" />
-                                Filter
-                            </Button>
-                            <Button variant="outline" @click="clearFilters">
-                                Bersihkan Filter
-                            </Button>
-                        </div>
-                    </div>
-                </CardContent>
-            </Card>
-
-            <!-- Evaluation Forms Table -->
-            <Card>
-                <CardHeader>
-                    <CardTitle>Formulir Evaluasi</CardTitle>
-                </CardHeader>
-                <CardContent>
-                    <div v-if="evaluationForms.data.length === 0" class="text-center py-12">
-                        <ClipboardList class="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                        <h3 class="text-lg font-medium mb-2">Tidak Ada Formulir Evaluasi Ditemukan</h3>
-                        <p class="text-muted-foreground mb-4">
-                            Tidak ada formulir evaluasi yang sesuai dengan filter Anda saat ini atau belum ada yang dibuat.
-                        </p>
-                        <Link :href="route('admin.review-evaluation-forms.create')">
-                        <Button>
-                            <Plus class="h-4 w-4 mr-2" />
-                            Buat Formulir Evaluasi Pertama
-                        </Button>
-                        </Link>
-                    </div>
-
-                    <div v-else>
-                        <Table>
-                            <TableHeader>
-                                <TableRow>
-                                    <TableHead>Judul Formulir</TableHead>
-                                    <TableHead>Tahap Formulir</TableHead>
-                                    <TableHead>Isian</TableHead>
-                                    <TableHead>Status</TableHead>
-                                    <TableHead>Digunakan</TableHead>
-                                    <TableHead class="text-right">Aksi</TableHead>
-                                </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                <TableRow v-for="form in evaluationForms.data" :key="form.id">
-                                    <TableCell>
-                                        <div>
-                                            <div class="font-medium">{{ form.title }}</div>
-                                            <div v-if="form.description" class="text-sm text-muted-foreground">
-                                                {{ form.description }}
-                                            </div>
-                                            <div class="flex items-center gap-2 mt-1">
-                                                <Badge :variant="form.is_required ? 'destructive' : 'secondary'"
-                                                    class="text-xs">
-                                                    {{ form.is_required ? 'Wajib' : 'Opsional' }}
-                                                </Badge>
-                                                <span class="text-xs text-muted-foreground">Urutan: {{ form.order
-                                                    }}</span>
-                                            </div>
-                                        </div>
-                                    </TableCell>
-                                    <TableCell>
-                                        <div class="font-medium">{{ form.form_phase.title }}</div>
-                                    </TableCell>
-                                    <TableCell>
-                                        <div>
-                                            <div class="font-medium">{{ form.review_form_fields.length }} isian</div>
-                                            <div v-if="form.review_form_fields.length > 0"
-                                                class="text-sm text-muted-foreground">
-                                                {{ getFieldTypesPreview(form.review_form_fields) }}
-                                            </div>
-                                            <div class="text-xs text-muted-foreground mt-1">
-                                                Wajib: {{form.review_form_fields.filter(f => f.is_required).length
-                                                }}
-                                            </div>
-                                        </div>
-                                    </TableCell>
-                                    <TableCell>
-                                        <Badge :variant="form.is_active ? 'default' : 'secondary'">
-                                            {{ form.is_active ? 'Aktif' : 'Tidak Aktif' }}
-                                        </Badge>
-                                    </TableCell>
-                                    <TableCell>
-                                        <div class="flex items-center gap-1 text-sm text-muted-foreground">
-                                            <Users class="h-3 w-3" />
-                                            0 penugasan
-                                        </div>
-                                    </TableCell>
-                                    <TableCell class="text-right">
-                                        <DropdownMenu>
-                                            <DropdownMenuTrigger asChild>
-                                                <Button variant="ghost" size="sm">
-                                                    <MoreHorizontal class="h-4 w-4" />
-                                                </Button>
-                                            </DropdownMenuTrigger>
-                                            <DropdownMenuContent align="end">
-                                                <DropdownMenuItem asChild>
-                                                    <Link :href="route('admin.review-evaluation-forms.show', form.id)"
-                                                        class="cursor-pointer">
-                                                    <Eye class="h-4 w-4 mr-2" />
-                                                    Lihat
-                                                    </Link>
-                                                </DropdownMenuItem>
-                                                <DropdownMenuItem asChild>
-                                                    <Link :href="route('admin.review-evaluation-forms.edit', form.id)"
-                                                        class="cursor-pointer">
-                                                    <Edit class="h-4 w-4 mr-2" />
-                                                    Edit
-                                                    </Link>
-                                                </DropdownMenuItem>
-                                                <DropdownMenuItem @click="duplicateForm(form)" class="cursor-pointer">
-                                                    <Copy class="h-4 w-4 mr-2" />
-                                                    Duplikat
-                                                </DropdownMenuItem>
-                                                <DropdownMenuItem asChild>
-                                                    <Link
-                                                        :href="route('admin.review-evaluation-forms.preview', form.id)"
-                                                        class="cursor-pointer">
-                                                    <FileText class="h-4 w-4 mr-2" />
-                                                    Pratinjau
-                                                    </Link>
-                                                </DropdownMenuItem>
-                                                <DropdownMenuItem @click="deleteForm(form)"
-                                                    class="cursor-pointer text-destructive focus:text-destructive">
-                                                    <Trash2 class="h-4 w-4 mr-2" />
-                                                    Hapus
-                                                </DropdownMenuItem>
-                                            </DropdownMenuContent>
-                                        </DropdownMenu>
-                                    </TableCell>
-                                </TableRow>
-                            </TableBody>
-                        </Table>
-
-                        <!-- Pagination -->
-                        <div class="mt-6 flex items-center justify-between">
-                            <div class="text-sm text-muted-foreground">
-                                Menampilkan {{ evaluationForms.meta.from || 0 }} hingga {{ evaluationForms.meta.to || 0 }}
-                                dari {{ evaluationForms.meta.total }} hasil
-                            </div>
-
-                            <div class="flex gap-2">
-                                <Link v-for="link in evaluationForms.links" :key="link.label" :href="link.url"
-                                    v-html="link.label" :class="[
-                                        'px-3 py-2 text-sm border rounded-md',
-                                        link.active
-                                            ? 'bg-primary text-primary-foreground border-primary'
-                                            : 'bg-background hover:bg-muted border-border',
-                                        !link.url ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'
-                                    ]" />
-                            </div>
-                        </div>
-                    </div>
-                </CardContent>
-            </Card>
+  <AuthenticatedLayout>
+    <template #header>
+      <div class="flex items-center justify-between">
+        <div>
+          <h2 class="text-xl font-semibold leading-tight text-gray-800">
+            Formulir Evaluasi Review
+          </h2>
+          <p class="text-sm text-muted-foreground mt-1">
+            Kelola formulir evaluasi untuk penilai menilai pengajuan
+          </p>
         </div>
-    </AuthenticatedLayout>
+        <Link :href="route('admin.review-evaluation-forms.create')">
+          <Button>
+            <Plus class="h-4 w-4 mr-2" />
+            Buat Formulir Evaluasi
+          </Button>
+        </Link>
+      </div>
+    </template>
+
+    <div class="space-y-6">
+      <!-- Filters -->
+      <Card>
+        <CardHeader>
+          <CardTitle class="flex items-center gap-2">
+            <Filter class="h-5 w-5" />
+            Filter Formulir
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div class="flex gap-4 items-end">
+            <div class="flex-1">
+              <label class="text-sm font-medium mb-2 block">Cari</label>
+              <div class="relative">
+                <Search
+                  class="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground"
+                />
+                <Input
+                  v-model="searchTerm"
+                  placeholder="Cari formulir evaluasi..."
+                  class="pl-10"
+                  @keyup.enter="applyFilters"
+                />
+              </div>
+            </div>
+
+            <div class="w-48">
+              <label class="text-sm font-medium mb-2 block">Tahap Formulir</label>
+              <Select v-model="formPhaseFilter">
+                <SelectTrigger>
+                  <SelectValue placeholder="Semua tahap" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">
+                    Semua tahap
+                  </SelectItem>
+                  <SelectItem
+                    v-for="phase in formPhases"
+                    :key="phase.id"
+                    :value="phase.id.toString()"
+                  >
+                    {{ phase.title }}
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div class="flex gap-2">
+              <Button @click="applyFilters">
+                <Search class="h-4 w-4 mr-2" />
+                Filter
+              </Button>
+              <Button
+                variant="outline"
+                @click="clearFilters"
+              >
+                Bersihkan Filter
+              </Button>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      <!-- Evaluation Forms Table -->
+      <Card>
+        <CardHeader>
+          <CardTitle>Formulir Evaluasi</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div
+            v-if="evaluationForms.data.length === 0"
+            class="text-center py-12"
+          >
+            <ClipboardList class="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+            <h3 class="text-lg font-medium mb-2">
+              Tidak Ada Formulir Evaluasi Ditemukan
+            </h3>
+            <p class="text-muted-foreground mb-4">
+              Tidak ada formulir evaluasi yang sesuai dengan filter Anda saat ini atau belum ada yang dibuat.
+            </p>
+            <Link :href="route('admin.review-evaluation-forms.create')">
+              <Button>
+                <Plus class="h-4 w-4 mr-2" />
+                Buat Formulir Evaluasi Pertama
+              </Button>
+            </Link>
+          </div>
+
+          <div v-else>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Judul Formulir</TableHead>
+                  <TableHead>Tahap Formulir</TableHead>
+                  <TableHead>Isian</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Digunakan</TableHead>
+                  <TableHead class="text-right">
+                    Aksi
+                  </TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                <TableRow
+                  v-for="form in evaluationForms.data"
+                  :key="form.id"
+                >
+                  <TableCell>
+                    <div>
+                      <div class="font-medium">
+                        {{ form.title }}
+                      </div>
+                      <div
+                        v-if="form.description"
+                        class="text-sm text-muted-foreground"
+                      >
+                        {{ form.description }}
+                      </div>
+                      <div class="flex items-center gap-2 mt-1">
+                        <Badge
+                          :variant="form.is_required ? 'destructive' : 'secondary'"
+                          class="text-xs"
+                        >
+                          {{ form.is_required ? 'Wajib' : 'Opsional' }}
+                        </Badge>
+                        <span class="text-xs text-muted-foreground">Urutan: {{ form.order
+                        }}</span>
+                      </div>
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <div class="font-medium">
+                      {{ form.form_phase.title }}
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <div>
+                      <div class="font-medium">
+                        {{ form.review_form_fields.length }} isian
+                      </div>
+                      <div
+                        v-if="form.review_form_fields.length > 0"
+                        class="text-sm text-muted-foreground"
+                      >
+                        {{ getFieldTypesPreview(form.review_form_fields) }}
+                      </div>
+                      <div class="text-xs text-muted-foreground mt-1">
+                        Wajib: {{ form.review_form_fields.filter(f => f.is_required).length
+                        }}
+                      </div>
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <Badge :variant="form.is_active ? 'default' : 'secondary'">
+                      {{ form.is_active ? 'Aktif' : 'Tidak Aktif' }}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>
+                    <div class="flex items-center gap-1 text-sm text-muted-foreground">
+                      <Users class="h-3 w-3" />
+                      0 penugasan
+                    </div>
+                  </TableCell>
+                  <TableCell class="text-right">
+                    <DropdownMenu>
+                      <DropdownMenuTrigger as-child>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                        >
+                          <MoreHorizontal class="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem as-child>
+                          <Link
+                            :href="route('admin.review-evaluation-forms.show', form.id)"
+                            class="cursor-pointer"
+                          >
+                            <Eye class="h-4 w-4 mr-2" />
+                            Lihat
+                          </Link>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem as-child>
+                          <Link
+                            :href="route('admin.review-evaluation-forms.edit', form.id)"
+                            class="cursor-pointer"
+                          >
+                            <Edit class="h-4 w-4 mr-2" />
+                            Edit
+                          </Link>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          class="cursor-pointer"
+                          @click="duplicateForm(form)"
+                        >
+                          <Copy class="h-4 w-4 mr-2" />
+                          Duplikat
+                        </DropdownMenuItem>
+                        <DropdownMenuItem as-child>
+                          <Link
+                            :href="route('admin.review-evaluation-forms.preview', form.id)"
+                            class="cursor-pointer"
+                          >
+                            <FileText class="h-4 w-4 mr-2" />
+                            Pratinjau
+                          </Link>
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          class="cursor-pointer text-destructive focus:text-destructive"
+                          @click="deleteForm(form)"
+                        >
+                          <Trash2 class="h-4 w-4 mr-2" />
+                          Hapus
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </TableCell>
+                </TableRow>
+              </TableBody>
+            </Table>
+
+            <!-- Pagination -->
+            <div class="mt-6 flex items-center justify-between">
+              <div class="text-sm text-muted-foreground">
+                Menampilkan {{ evaluationForms.meta.from || 0 }} hingga {{ evaluationForms.meta.to || 0 }}
+                dari {{ evaluationForms.meta.total }} hasil
+              </div>
+
+              <div class="flex gap-2">
+                <Link
+                  v-for="link in evaluationForms.links"
+                  :key="link.label"
+                  :href="link.url"
+                  :class="[
+                    'px-3 py-2 text-sm border rounded-md',
+                    link.active
+                      ? 'bg-primary text-primary-foreground border-primary'
+                      : 'bg-background hover:bg-muted border-border',
+                    !link.url ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'
+                  ]"
+                  v-html="link.label"
+                />
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  </AuthenticatedLayout>
 </template>

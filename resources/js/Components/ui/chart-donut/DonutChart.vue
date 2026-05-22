@@ -62,7 +62,11 @@ const totalValue = computed(() => props.data.reduce((prev, curr) => {
 
 <template>
   <div :class="cn('w-full h-48 flex flex-col items-end', $attrs.class ?? '')">
-    <VisSingleContainer :style="{ height: isMounted ? '100%' : 'auto' }" :margin="{ left: 20, right: 20 }" :data="data">
+    <VisSingleContainer
+      :style="{ height: isMounted ? '100%' : 'auto' }"
+      :margin="{ left: 20, right: 20 }"
+      :data="data"
+    >
       <ChartSingleTooltip
         :selector="Donut.selectors.segment"
         :index="category"

@@ -19,36 +19,36 @@ const props = defineProps<{
 </script>
 
 <template>
-    <Head title="Dashboard" />
+  <Head title="Dashboard" />
 
-    <AuthenticatedLayout>
-        <template #header>
-            <div class="flex items-center gap-2">
-                <h2 class="text-xl font-semibold leading-tight text-foreground">
-                    Dashboard
-                </h2>
-            </div>
-        </template>
+  <AuthenticatedLayout>
+    <template #header>
+      <div class="flex items-center gap-2">
+        <h2 class="text-xl font-semibold leading-tight text-foreground">
+          Dashboard
+        </h2>
+      </div>
+    </template>
 
-        <div class="space-y-6">
-            <!-- Welcome Card -->
-            <div>
-                <h3
-                    class="text-3xl font-semibold leading-none tracking-tight mb-1"
-                >
-                    Selamat datang di SIM Kerjasama ITK!
-                </h3>
-                <p class="text-lg text-muted-foreground">
-                    Anda telah berhasil masuk ke dashboard Anda.
-                </p>
-            </div>
+    <div class="space-y-6">
+      <!-- Welcome Card -->
+      <div>
+        <h3
+          class="text-3xl font-semibold leading-none tracking-tight mb-1"
+        >
+          Selamat datang di SIM Kerjasama ITK!
+        </h3>
+        <p class="text-lg text-muted-foreground">
+          Anda telah berhasil masuk ke dashboard Anda.
+        </p>
+      </div>
 
-            <StatisticSection
-                :form-phase="props.formPhase"
-                :form-submission="props.formSubmission"
-                :user="props.user"
-                :submission-reviewer="props.submissionReviewer"
-            />
-        </div>
-    </AuthenticatedLayout>
+      <StatisticSection
+        :form-phase="props.formPhase"
+        :form-submission="props.formSubmission"
+        :user="props.user"
+        :submission-reviewer="props.submissionReviewer"
+      />
+    </div>
+  </AuthenticatedLayout>
 </template>

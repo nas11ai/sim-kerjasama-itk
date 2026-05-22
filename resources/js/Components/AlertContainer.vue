@@ -115,19 +115,23 @@ onMounted(() => {
 </script>
 
 <template>
-    <!-- Fixed position alert container -->
-    <div class="fixed top-4 right-4 z-50 w-full max-w-md space-y-2">
-        <TransitionGroup name="alert" tag="div" class="space-y-2">
-            <Alert
-                v-for="alert in alerts"
-                :key="alert.id"
-                :type="alert.type"
-                :title="alert.title"
-                :message="alert.message"
-                @dismiss="dismissAlert(alert.id)"
-            />
-        </TransitionGroup>
-    </div>
+  <!-- Fixed position alert container -->
+  <div class="fixed top-4 right-4 z-50 w-full max-w-md space-y-2">
+    <TransitionGroup
+      name="alert"
+      tag="div"
+      class="space-y-2"
+    >
+      <Alert
+        v-for="alert in alerts"
+        :key="alert.id"
+        :type="alert.type"
+        :title="alert.title"
+        :message="alert.message"
+        @dismiss="dismissAlert(alert.id)"
+      />
+    </TransitionGroup>
+  </div>
 </template>
 
 <style scoped>

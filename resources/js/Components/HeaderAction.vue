@@ -20,39 +20,51 @@ const emit = defineEmits<{
 </script>
 
 <template>
-   <Button
-      :as="href ? 'a' : 'button'"
-      :href="href"
-      @click="!href && emit('click')"
-      variant="outline"
-      size="default"
-      class="hidden cursor-pointer items-center gap-2 bg-black text-white sm:flex"
-      :disabled="disabled"
-   >
-      <component :is="icon" :size="4" />
-      <span>{{ label }}</span>
-   </Button>
+  <Button
+    :as="href ? 'a' : 'button'"
+    :href="href"
+    variant="outline"
+    size="default"
+    class="hidden cursor-pointer items-center gap-2 bg-black text-white sm:flex"
+    :disabled="disabled"
+    @click="!href && emit('click')"
+  >
+    <component
+      :is="icon"
+      :size="4"
+    />
+    <span>{{ label }}</span>
+  </Button>
 
-   <div class="sm:hidden">
-      <DropdownMenu>
-         <DropdownMenuTrigger as-child>
-            <EllipsisVertical :size="16" class="text-muted-foreground cursor-pointer" />
-         </DropdownMenuTrigger>
-         <DropdownMenuContent class="w-40" align="start">
-            <DropdownMenuItem>
-               <Button
-                  :as="href ? 'a' : 'button'"
-                  :href="href"
-                  @click="!href && emit('click')"
-                  variant="outline"
-                  size="default"
-                  class="hidden cursor-pointer items-center gap-2 bg-black text-white sm:flex"
-               >
-                  <component :is="icon" :size="4" />
-                  <span>{{ label }}</span>
-               </Button>
-            </DropdownMenuItem>
-         </DropdownMenuContent>
-      </DropdownMenu>
-   </div>
+  <div class="sm:hidden">
+    <DropdownMenu>
+      <DropdownMenuTrigger as-child>
+        <EllipsisVertical
+          :size="16"
+          class="text-muted-foreground cursor-pointer"
+        />
+      </DropdownMenuTrigger>
+      <DropdownMenuContent
+        class="w-40"
+        align="start"
+      >
+        <DropdownMenuItem>
+          <Button
+            :as="href ? 'a' : 'button'"
+            :href="href"
+            variant="outline"
+            size="default"
+            class="hidden cursor-pointer items-center gap-2 bg-black text-white sm:flex"
+            @click="!href && emit('click')"
+          >
+            <component
+              :is="icon"
+              :size="4"
+            />
+            <span>{{ label }}</span>
+          </Button>
+        </DropdownMenuItem>
+      </DropdownMenuContent>
+    </DropdownMenu>
+  </div>
 </template>

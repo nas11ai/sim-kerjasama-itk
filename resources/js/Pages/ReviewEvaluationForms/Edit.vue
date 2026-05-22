@@ -234,252 +234,356 @@ onMounted(() => {
 </script>
 
 <template>
+  <Head :title="`Edit: ${evaluationForm.title}`" />
 
-    <Head :title="`Edit: ${evaluationForm.title}`" />
-
-    <AuthenticatedLayout>
-        <template #header>
-            <div class="flex items-center gap-4">
-                <Button variant="ghost" size="sm" @click="$inertia.visit(route('admin.review-evaluation-forms.index'))">
-                    <ArrowLeft class="h-4 w-4 mr-2" />
-                    Kembali
-                </Button>
-                <div>
-                    <h2 class="text-xl font-semibold leading-tight text-gray-800">
-                        Edit Formulir Evaluasi Review
-                    </h2>
-                    <p class="text-sm text-muted-foreground">
-                        {{ evaluationForm.form_phase_detail.form_phase.title }}
-                    </p>
-                </div>
-            </div>
-        </template>
-
-        <div class="max-w-4xl mx-auto space-y-6">
-            <form @submit.prevent="submit" class="space-y-6">
-                <!-- Basic Information -->
-                <Card>
-                    <CardHeader>
-                        <CardTitle>Informasi Dasar</CardTitle>
-                    </CardHeader>
-                    <CardContent class="space-y-6">
-                        <div class="grid gap-4 md:grid-cols-2">
-                            <div class="space-y-2">
-                                <Label for="title">Judul *</Label>
-                                <Input id="title" v-model="form.title" placeholder="Masukkan judul formulir"
-                                    :class="hasError('title') ? 'border-destructive' : ''" />
-                                <p v-if="hasError('title')" class="text-sm text-destructive">
-                                    {{ getError('title') }}
-                                </p>
-                            </div>
-
-                            <div class="space-y-2">
-                                <Label for="form_phase_detail_id">Pilih Form *</Label>
-                                <Select v-model="form.form_phase_detail_id">
-                                    <SelectTrigger>
-                                        <SelectValue placeholder="Pilih detail tahap formulir" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <template v-for="phase in formPhases" :key="phase.id">
-                                            <div
-                                                class="px-2 py-1.5 text-sm font-semibold text-muted-foreground bg-muted">
-                                                {{ phase.title }}
-                                            </div>
-                                            <SelectItem v-for="detail in phase.form_phase_details" :key="detail.id"
-                                                :value="detail.id" class="pl-6">
-                                                <div class="flex flex-col">
-                                                    <span class="font-medium">{{ detail.form_access_control.form.title
-                                                        }}</span>
-                                                    <span class="text-xs text-muted-foreground">
-                                                        {{ detail.form_access_control.role.name }} -
-                                                        {{ detail.form_access_control.study_program.name }}
-                                                    </span>
-                                                </div>
-                                            </SelectItem>
-                                        </template>
-                                    </SelectContent>
-                                </Select>
-                                <p v-if="hasError('form_phase_detail_id')" class="text-sm text-destructive">
-                                    {{ getError('form_phase_detail_id') }}
-                                </p>
-                            </div>
-                        </div>
-
-                        <div class="space-y-2">
-                            <Label for="description">Deskripsi</Label>
-                            <Textarea id="description" v-model="form.description"
-                                placeholder="Masukkan deskripsi formulir (opsional)" rows="3" />
-                        </div>
-
-                        <div class="flex items-center space-x-6">
-                            <div class="flex items-center space-x-2">
-                                <Switch v-model="form.is_required" id="is_required" />
-                                <Label for="is_required">Wajib untuk reviewer</Label>
-                            </div>
-
-                            <div class="flex items-center space-x-2">
-                                <Switch v-model="form.is_active" id="is_active" />
-                                <Label for="is_active">Aktif</Label>
-                            </div>
-                        </div>
-                    </CardContent>
-                </Card>
-
-                <!-- Form Fields -->
-                <Card>
-                    <CardHeader>
-                        <div class="flex items-center justify-between">
-                            <CardTitle>Isian Formulir</CardTitle>
-                            <Button type="button" @click="addField" size="sm">
-                                <Plus class="h-4 w-4 mr-2" />
-                                Tambah Isian
-                            </Button>
-                        </div>
-                    </CardHeader>
-                    <CardContent>
-                        <div v-if="form.fields.length === 0" class="text-center py-8 text-muted-foreground">
-                            <p>Belum ada isisan ditambahkan, Klik "Tambah Isian" untuk memulai.</p>
-                        </div>
-
-                        <div v-else class="space-y-4">
-                            <draggable v-model="form.fields" item-key="temp_id" handle=".drag-handle" class="space-y-4"
-                                :animation="200" @end="form.fields.forEach((field, idx) => field.order = idx + 1)">
-                                <template #item="{ element: field, index }">
-                                    <Card class="border-2 border-dashed">
-                                        <CardContent class="pt-6">
-                                            <div class="flex items-start gap-4">
-                                                <!-- Drag Handle -->
-                                                <div class="drag-handle cursor-move p-1 hover:bg-muted rounded">
-                                                    <GripVertical class="h-4 w-4 text-muted-foreground" />
-                                                </div>
-
-                                                <!-- Field Content -->
-                                                <div class="flex-1 space-y-4">
-                                                    <div class="grid gap-4 md:grid-cols-2">
-                                                        <div class="space-y-2">
-                                                            <Label>Tipe Isian *</Label>
-                                                            <Select v-model="field.field_type_id"
-                                                                @update:model-value="onFieldTypeChange(index)">
-                                                                <SelectTrigger>
-                                                                    <SelectValue placeholder="Pilih tipe isian" />
-                                                                </SelectTrigger>
-                                                                <SelectContent>
-                                                                    <SelectItem v-for="fieldType in fieldTypes"
-                                                                        :key="fieldType.id" :value="fieldType.id">
-                                                                        {{ fieldType.name }}
-                                                                    </SelectItem>
-                                                                </SelectContent>
-                                                            </Select>
-                                                        </div>
-
-                                                        <div class="space-y-2">
-                                                            <Label>Label *</Label>
-                                                            <Input v-model="field.label"
-                                                                placeholder="Masukkan label isian" />
-                                                        </div>
-                                                    </div>
-
-                                                    <div class="space-y-2">
-                                                        <Label>Deskripsi</Label>
-                                                        <Textarea v-model="field.description"
-                                                            placeholder="Masukkan deskripsi isian (opsional)" rows="2" />
-                                                    </div>
-
-                                                    <div class="flex items-center space-x-2">
-                                                        <Switch v-model="field.is_required" />
-                                                        <Label>Wajib diisi</Label>
-                                                    </div>
-
-                                                    <!-- Field Options -->
-                                                    <div v-if="fieldRequiresOptions(index)" class="space-y-2">
-                                                        <div class="flex items-center justify-between">
-                                                            <Label>Opsi</Label>
-                                                            <Button type="button" variant="outline" size="sm"
-                                                                @click="addFieldOption(index)">
-                                                                <Plus class="h-3 w-3 mr-1" />
-                                                                Tambah Opsi
-                                                            </Button>
-                                                        </div>
-
-                                                        <div class="space-y-2">
-                                                            <div v-for="(option, optionIndex) in field.options"
-                                                                :key="option.temp_id" class="flex items-center gap-2">
-                                                                <Input v-model="option.label" placeholder="Label opsi"
-                                                                    class="flex-1" />
-                                                                <Input v-model="option.value"
-                                                                    placeholder="Nilai opsi (opsional)"
-                                                                    class="flex-1" />
-                                                                <Button type="button" variant="ghost" size="sm"
-                                                                    @click="removeFieldOption(index, optionIndex as number)"
-                                                                    class="text-destructive">
-                                                                    <Trash2 class="h-4 w-4" />
-                                                                </Button>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-
-                                                    <!-- Field Info -->
-                                                    <div class="flex items-center gap-2">
-                                                        <Badge variant="outline">
-                                                            Urutan: {{ field.order }}
-                                                        </Badge>
-                                                        <Badge v-if="field.id" variant="secondary" class="text-xs">
-                                                            Ada
-                                                        </Badge>
-                                                        <Badge v-else variant="default" class="text-xs">
-                                                            Baru
-                                                        </Badge>
-                                                    </div>
-                                                </div>
-
-                                                <!-- Remove Field Button -->
-                                                <Button type="button" variant="ghost" size="sm"
-                                                    @click="removeField(index)"
-                                                    class="text-destructive hover:text-destructive">
-                                                    <Trash2 class="h-4 w-4" />
-                                                </Button>
-                                            </div>
-                                        </CardContent>
-                                    </Card>
-                                </template>
-                            </draggable>
-                        </div>
-                    </CardContent>
-                </Card>
-
-                <!-- Warning Card -->
-                <Card v-if="evaluationForm.review_form_fields.length > 0" class="border-amber-200 bg-amber-50">
-                    <CardContent class="p-4">
-                        <div class="flex items-start gap-3">
-                            <AlertTriangle class="h-5 w-5 text-amber-600 mt-0.5" />
-                            <div>
-                                <h4 class="text-amber-800 font-medium text-sm mb-1">
-                                    Peringatan Pembaruan
-                                </h4>
-                                <p class="text-amber-700 text-sm">
-                                    Memodifikasi isian dapat memengaruhi draft tanggapan yang ada. Pengiriman yang sudah selesai tidak akan
-                                    terpengaruh.
-                                </p>
-                            </div>
-                        </div>
-                    </CardContent>
-                </Card>
-
-                <!-- Form Actions -->
-                <div
-                    class="flex items-center justify-end space-x-2 sticky bottom-4 bg-white border rounded-lg p-4 shadow-lg">
-                    <div class="flex-1 text-sm text-muted-foreground">
-                        <span v-if="hasUnsavedChanges" class="text-orange-600">You have unsaved changes</span>
-                    </div>
-                    <Button type="button" variant="outline"
-                        @click="$inertia.visit(route('admin.review-evaluation-forms.index'))">
-                        Batal
-                    </Button>
-                    <Button type="submit" :disabled="form.processing">
-                        {{ form.processing ? "Memperbarui..." : "Perbarui Formulir" }}
-                    </Button>
-                </div>
-            </form>
+  <AuthenticatedLayout>
+    <template #header>
+      <div class="flex items-center gap-4">
+        <Button
+          variant="ghost"
+          size="sm"
+          @click="$inertia.visit(route('admin.review-evaluation-forms.index'))"
+        >
+          <ArrowLeft class="h-4 w-4 mr-2" />
+          Kembali
+        </Button>
+        <div>
+          <h2 class="text-xl font-semibold leading-tight text-gray-800">
+            Edit Formulir Evaluasi Review
+          </h2>
+          <p class="text-sm text-muted-foreground">
+            {{ evaluationForm.form_phase_detail.form_phase.title }}
+          </p>
         </div>
-    </AuthenticatedLayout>
+      </div>
+    </template>
+
+    <div class="max-w-4xl mx-auto space-y-6">
+      <form
+        class="space-y-6"
+        @submit.prevent="submit"
+      >
+        <!-- Basic Information -->
+        <Card>
+          <CardHeader>
+            <CardTitle>Informasi Dasar</CardTitle>
+          </CardHeader>
+          <CardContent class="space-y-6">
+            <div class="grid gap-4 md:grid-cols-2">
+              <div class="space-y-2">
+                <Label for="title">Judul *</Label>
+                <Input
+                  id="title"
+                  v-model="form.title"
+                  placeholder="Masukkan judul formulir"
+                  :class="hasError('title') ? 'border-destructive' : ''"
+                />
+                <p
+                  v-if="hasError('title')"
+                  class="text-sm text-destructive"
+                >
+                  {{ getError('title') }}
+                </p>
+              </div>
+
+              <div class="space-y-2">
+                <Label for="form_phase_detail_id">Pilih Form *</Label>
+                <Select v-model="form.form_phase_detail_id">
+                  <SelectTrigger>
+                    <SelectValue placeholder="Pilih detail tahap formulir" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <template
+                      v-for="phase in formPhases"
+                      :key="phase.id"
+                    >
+                      <div
+                        class="px-2 py-1.5 text-sm font-semibold text-muted-foreground bg-muted"
+                      >
+                        {{ phase.title }}
+                      </div>
+                      <SelectItem
+                        v-for="detail in phase.form_phase_details"
+                        :key="detail.id"
+                        :value="detail.id"
+                        class="pl-6"
+                      >
+                        <div class="flex flex-col">
+                          <span class="font-medium">{{ detail.form_access_control.form.title
+                          }}</span>
+                          <span class="text-xs text-muted-foreground">
+                            {{ detail.form_access_control.role.name }} -
+                            {{ detail.form_access_control.study_program.name }}
+                          </span>
+                        </div>
+                      </SelectItem>
+                    </template>
+                  </SelectContent>
+                </Select>
+                <p
+                  v-if="hasError('form_phase_detail_id')"
+                  class="text-sm text-destructive"
+                >
+                  {{ getError('form_phase_detail_id') }}
+                </p>
+              </div>
+            </div>
+
+            <div class="space-y-2">
+              <Label for="description">Deskripsi</Label>
+              <Textarea
+                id="description"
+                v-model="form.description"
+                placeholder="Masukkan deskripsi formulir (opsional)"
+                rows="3"
+              />
+            </div>
+
+            <div class="flex items-center space-x-6">
+              <div class="flex items-center space-x-2">
+                <Switch
+                  id="is_required"
+                  v-model="form.is_required"
+                />
+                <Label for="is_required">Wajib untuk reviewer</Label>
+              </div>
+
+              <div class="flex items-center space-x-2">
+                <Switch
+                  id="is_active"
+                  v-model="form.is_active"
+                />
+                <Label for="is_active">Aktif</Label>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <!-- Form Fields -->
+        <Card>
+          <CardHeader>
+            <div class="flex items-center justify-between">
+              <CardTitle>Isian Formulir</CardTitle>
+              <Button
+                type="button"
+                size="sm"
+                @click="addField"
+              >
+                <Plus class="h-4 w-4 mr-2" />
+                Tambah Isian
+              </Button>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div
+              v-if="form.fields.length === 0"
+              class="text-center py-8 text-muted-foreground"
+            >
+              <p>Belum ada isisan ditambahkan, Klik "Tambah Isian" untuk memulai.</p>
+            </div>
+
+            <div
+              v-else
+              class="space-y-4"
+            >
+              <draggable
+                v-model="form.fields"
+                item-key="temp_id"
+                handle=".drag-handle"
+                class="space-y-4"
+                :animation="200"
+                @end="form.fields.forEach((field, idx) => field.order = idx + 1)"
+              >
+                <template #item="{ element: field, index }">
+                  <Card class="border-2 border-dashed">
+                    <CardContent class="pt-6">
+                      <div class="flex items-start gap-4">
+                        <!-- Drag Handle -->
+                        <div class="drag-handle cursor-move p-1 hover:bg-muted rounded">
+                          <GripVertical class="h-4 w-4 text-muted-foreground" />
+                        </div>
+
+                        <!-- Field Content -->
+                        <div class="flex-1 space-y-4">
+                          <div class="grid gap-4 md:grid-cols-2">
+                            <div class="space-y-2">
+                              <Label>Tipe Isian *</Label>
+                              <Select
+                                v-model="field.field_type_id"
+                                @update:model-value="onFieldTypeChange(index)"
+                              >
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Pilih tipe isian" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  <SelectItem
+                                    v-for="fieldType in fieldTypes"
+                                    :key="fieldType.id"
+                                    :value="fieldType.id"
+                                  >
+                                    {{ fieldType.name }}
+                                  </SelectItem>
+                                </SelectContent>
+                              </Select>
+                            </div>
+
+                            <div class="space-y-2">
+                              <Label>Label *</Label>
+                              <Input
+                                v-model="field.label"
+                                placeholder="Masukkan label isian"
+                              />
+                            </div>
+                          </div>
+
+                          <div class="space-y-2">
+                            <Label>Deskripsi</Label>
+                            <Textarea
+                              v-model="field.description"
+                              placeholder="Masukkan deskripsi isian (opsional)"
+                              rows="2"
+                            />
+                          </div>
+
+                          <div class="flex items-center space-x-2">
+                            <Switch v-model="field.is_required" />
+                            <Label>Wajib diisi</Label>
+                          </div>
+
+                          <!-- Field Options -->
+                          <div
+                            v-if="fieldRequiresOptions(index)"
+                            class="space-y-2"
+                          >
+                            <div class="flex items-center justify-between">
+                              <Label>Opsi</Label>
+                              <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                @click="addFieldOption(index)"
+                              >
+                                <Plus class="h-3 w-3 mr-1" />
+                                Tambah Opsi
+                              </Button>
+                            </div>
+
+                            <div class="space-y-2">
+                              <div
+                                v-for="(option, optionIndex) in field.options"
+                                :key="option.temp_id"
+                                class="flex items-center gap-2"
+                              >
+                                <Input
+                                  v-model="option.label"
+                                  placeholder="Label opsi"
+                                  class="flex-1"
+                                />
+                                <Input
+                                  v-model="option.value"
+                                  placeholder="Nilai opsi (opsional)"
+                                  class="flex-1"
+                                />
+                                <Button
+                                  type="button"
+                                  variant="ghost"
+                                  size="sm"
+                                  class="text-destructive"
+                                  @click="removeFieldOption(index, optionIndex as number)"
+                                >
+                                  <Trash2 class="h-4 w-4" />
+                                </Button>
+                              </div>
+                            </div>
+                          </div>
+
+                          <!-- Field Info -->
+                          <div class="flex items-center gap-2">
+                            <Badge variant="outline">
+                              Urutan: {{ field.order }}
+                            </Badge>
+                            <Badge
+                              v-if="field.id"
+                              variant="secondary"
+                              class="text-xs"
+                            >
+                              Ada
+                            </Badge>
+                            <Badge
+                              v-else
+                              variant="default"
+                              class="text-xs"
+                            >
+                              Baru
+                            </Badge>
+                          </div>
+                        </div>
+
+                        <!-- Remove Field Button -->
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          class="text-destructive hover:text-destructive"
+                          @click="removeField(index)"
+                        >
+                          <Trash2 class="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                </template>
+              </draggable>
+            </div>
+          </CardContent>
+        </Card>
+
+        <!-- Warning Card -->
+        <Card
+          v-if="evaluationForm.review_form_fields.length > 0"
+          class="border-amber-200 bg-amber-50"
+        >
+          <CardContent class="p-4">
+            <div class="flex items-start gap-3">
+              <AlertTriangle class="h-5 w-5 text-amber-600 mt-0.5" />
+              <div>
+                <h4 class="text-amber-800 font-medium text-sm mb-1">
+                  Peringatan Pembaruan
+                </h4>
+                <p class="text-amber-700 text-sm">
+                  Memodifikasi isian dapat memengaruhi draft tanggapan yang ada. Pengiriman yang sudah selesai tidak akan
+                  terpengaruh.
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <!-- Form Actions -->
+        <div
+          class="flex items-center justify-end space-x-2 sticky bottom-4 bg-white border rounded-lg p-4 shadow-lg"
+        >
+          <div class="flex-1 text-sm text-muted-foreground">
+            <span
+              v-if="hasUnsavedChanges"
+              class="text-orange-600"
+            >You have unsaved changes</span>
+          </div>
+          <Button
+            type="button"
+            variant="outline"
+            @click="$inertia.visit(route('admin.review-evaluation-forms.index'))"
+          >
+            Batal
+          </Button>
+          <Button
+            type="submit"
+            :disabled="form.processing"
+          >
+            {{ form.processing ? "Memperbarui..." : "Perbarui Formulir" }}
+          </Button>
+        </div>
+      </form>
+    </div>
+  </AuthenticatedLayout>
 </template>

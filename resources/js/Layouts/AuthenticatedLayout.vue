@@ -34,41 +34,41 @@ const toggleSidebar = () => {
 </script>
 
 <template>
-    <SidebarProvider :defaultOpen="isSidebarOpen">
-        <div class="flex min-h-screen w-full bg-background">
-            <!-- Sidebar -->
-            <AppSidebar />
+  <SidebarProvider :default-open="isSidebarOpen">
+    <div class="flex min-h-screen w-full bg-background">
+      <!-- Sidebar -->
+      <AppSidebar />
 
-            <!-- Main content with SidebarInset -->
-            <SidebarInset class="flex flex-col flex-1 min-w-0">
-                <!-- Header -->
-                <header
-                    class="sticky top-0 z-40 flex h-16 shrink-0 items-center gap-2 border-b bg-background px-4"
-                    v-if="$slots.header"
-                >
-                    <SidebarTrigger class="-ml-1" />
-                    <div class="h-4 w-px bg-border mx-2" />
-                    <div class="flex-1">
-                        <slot name="header" />
-                    </div>
-                </header>
+      <!-- Main content with SidebarInset -->
+      <SidebarInset class="flex flex-col flex-1 min-w-0">
+        <!-- Header -->
+        <header
+          v-if="$slots.header"
+          class="sticky top-0 z-40 flex h-16 shrink-0 items-center gap-2 border-b bg-background px-4"
+        >
+          <SidebarTrigger class="-ml-1" />
+          <div class="h-4 w-px bg-border mx-2" />
+          <div class="flex-1">
+            <slot name="header" />
+          </div>
+        </header>
 
-                <!-- Header fallback -->
-                <header
-                    class="sticky top-0 z-40 flex h-16 shrink-0 items-center gap-2 border-b bg-background px-4"
-                    v-else
-                >
-                    <SidebarTrigger class="-ml-1" />
-                </header>
+        <!-- Header fallback -->
+        <header
+          v-else
+          class="sticky top-0 z-40 flex h-16 shrink-0 items-center gap-2 border-b bg-background px-4"
+        >
+          <SidebarTrigger class="-ml-1" />
+        </header>
 
-                <!-- Page content -->
-                <main class="flex-1 p-4 md:p-6">
-                    <slot />
-                </main>
-            </SidebarInset>
-        </div>
+        <!-- Page content -->
+        <main class="flex-1 p-4 md:p-6">
+          <slot />
+        </main>
+      </SidebarInset>
+    </div>
 
-        <!-- Alert Container - positioned globally -->
-        <AlertContainer />
-    </SidebarProvider>
+    <!-- Alert Container - positioned globally -->
+    <AlertContainer />
+  </SidebarProvider>
 </template>

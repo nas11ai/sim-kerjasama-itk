@@ -13,25 +13,24 @@ const props = defineProps<{
 </script>
 
 <template>
-    <Head title="Manajemen User" />
+  <Head title="Manajemen User" />
 
-    <AuthenticatedLayout>
-        <template #header>
-            <div class="flex items-center justify-between">
-                <h2 class="text-xl font-semibold leading-tight text-gray-800">
-                    Manajemen User
-                </h2>
-                <Link :href="route('admin.users.create')">
-                    <Button>
-                        <Plus class="h-4 w-4 mr-2" />
-                        Buat User
-                    </Button>
-                </Link>
-            </div>
-        </template>
-        <div class="space-y-6">
-            <UserTableList :users="users" />
-        </div>
-
-    </AuthenticatedLayout>
+  <AuthenticatedLayout>
+    <template #header>
+      <div class="flex items-center justify-between">
+        <h2 class="text-xl font-semibold leading-tight text-gray-800">
+          Manajemen User
+        </h2>
+        <Link :href="route('admin.users.create')">
+          <Button>
+            <Plus class="h-4 w-4 mr-2" />
+            Buat User
+          </Button>
+        </Link>
+      </div>
+    </template>
+    <div class="space-y-6">
+      <UserTableList :users="users" />
+    </div>
+  </AuthenticatedLayout>
 </template>

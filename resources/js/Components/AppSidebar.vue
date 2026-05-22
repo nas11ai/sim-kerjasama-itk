@@ -364,125 +364,170 @@ const getContextLabel = computed(() => {
 </script>
 
 <template>
-    <Sidebar variant="inset">
-        <SidebarHeader>
-            <SidebarMenu>
-                <SidebarMenuItem>
-                    <SidebarMenuButton size="lg" as-child>
-                        <a href="/">
-                            <div
-                                class="flex aspect-square size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-                                <FileText class="size-4" />
-                            </div>
-                            <div class="grid flex-1 text-left text-sm leading-tight">
-                                <span class="truncate font-semibold">Form System</span>
-                                <span class="truncate text-xs">{{
-                                    getContextLabel
-                                }}</span>
-                            </div>
-                        </a>
-                    </SidebarMenuButton>
-                </SidebarMenuItem>
-            </SidebarMenu>
-        </SidebarHeader>
+  <Sidebar variant="inset">
+    <SidebarHeader>
+      <SidebarMenu>
+        <SidebarMenuItem>
+          <SidebarMenuButton
+            size="lg"
+            as-child
+          >
+            <a href="/">
+              <div
+                class="flex aspect-square size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground"
+              >
+                <FileText class="size-4" />
+              </div>
+              <div class="grid flex-1 text-left text-sm leading-tight">
+                <span class="truncate font-semibold">Form System</span>
+                <span class="truncate text-xs">{{
+                  getContextLabel
+                }}</span>
+              </div>
+            </a>
+          </SidebarMenuButton>
+        </SidebarMenuItem>
+      </SidebarMenu>
+    </SidebarHeader>
 
-        <SidebarContent>
-            <SidebarGroup v-for="item in navItems" :key="item.title">
-                <SidebarGroupLabel v-if="item.items">{{
-                    item.title
-                }}</SidebarGroupLabel>
+    <SidebarContent>
+      <SidebarGroup
+        v-for="item in navItems"
+        :key="item.title"
+      >
+        <SidebarGroupLabel v-if="item.items">
+          {{
+            item.title
+          }}
+        </SidebarGroupLabel>
 
-                <SidebarGroupContent>
-                    <SidebarMenu>
-                        <!-- Single nav item -->
-                        <SidebarMenuItem v-if="!item.items">
-                            <SidebarMenuButton as-child :is-active="isActive(item.url)">
-                                <a :href="item.url">
-                                    <component :is="item.icon" />
-                                    <span>{{ item.title }}</span>
-                                </a>
-                            </SidebarMenuButton>
-                        </SidebarMenuItem>
+        <SidebarGroupContent>
+          <SidebarMenu>
+            <!-- Single nav item -->
+            <SidebarMenuItem v-if="!item.items">
+              <SidebarMenuButton
+                as-child
+                :is-active="isActive(item.url)"
+              >
+                <a :href="item.url">
+                  <component :is="item.icon" />
+                  <span>{{ item.title }}</span>
+                </a>
+              </SidebarMenuButton>
+            </SidebarMenuItem>
 
-                        <!-- Group with subitems -->
-                        <template v-else>
-                            <SidebarMenuItem v-for="subItem in item.items" :key="subItem.title">
-                                <SidebarMenuButton as-child :is-active="isActive(subItem.url)">
-                                    <a :href="subItem.url">
-                                        <component :is="subItem.icon" />
-                                        <span>{{ subItem.title }}</span>
-                                    </a>
-                                </SidebarMenuButton>
-                            </SidebarMenuItem>
-                        </template>
-                    </SidebarMenu>
-                </SidebarGroupContent>
-            </SidebarGroup>
-        </SidebarContent>
+            <!-- Group with subitems -->
+            <template v-else>
+              <SidebarMenuItem
+                v-for="subItem in item.items"
+                :key="subItem.title"
+              >
+                <SidebarMenuButton
+                  as-child
+                  :is-active="isActive(subItem.url)"
+                >
+                  <a :href="subItem.url">
+                    <component :is="subItem.icon" />
+                    <span>{{ subItem.title }}</span>
+                  </a>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            </template>
+          </SidebarMenu>
+        </SidebarGroupContent>
+      </SidebarGroup>
+    </SidebarContent>
 
-        <SidebarFooter>
-            <SidebarMenu>
-                <SidebarMenuItem>
-                    <DropdownMenu>
-                        <DropdownMenuTrigger as-child>
-                            <SidebarMenuButton size="lg"
-                                class="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground">
-                                <User2 class="size-4" />
-                                <div class="grid flex-1 text-left text-sm leading-tight">
-                                    <span class="truncate font-semibold">{{
-                                        user?.name
-                                    }}</span>
-                                    <span class="truncate text-xs capitalize">
-                                        {{
-                                            userRoles
-                                                .map((role: any) => role)
-                                                .join(", ")
-                                        }}
-                                        <span v-if="isReviewer" class="text-blue-600">• Reviewer</span>
-                                    </span>
-                                </div>
-                                <ChevronUp class="ml-auto size-4" />
-                            </SidebarMenuButton>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent class="w-(--radix-dropdown-menu-trigger-width) min-w-56 rounded-lg"
-                            side="bottom" align="end">
-                            <DropdownMenuItem as-child>
-                                <a :href="route('profile.edit')" class="cursor-pointer">
-                                    <User2 class="mr-2 size-4" />
-                                    Profile
-                                </a>
-                            </DropdownMenuItem>
+    <SidebarFooter>
+      <SidebarMenu>
+        <SidebarMenuItem>
+          <DropdownMenu>
+            <DropdownMenuTrigger as-child>
+              <SidebarMenuButton
+                size="lg"
+                class="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+              >
+                <User2 class="size-4" />
+                <div class="grid flex-1 text-left text-sm leading-tight">
+                  <span class="truncate font-semibold">{{
+                    user?.name
+                  }}</span>
+                  <span class="truncate text-xs capitalize">
+                    {{
+                      userRoles
+                        .map((role: any) => role)
+                        .join(", ")
+                    }}
+                    <span
+                      v-if="isReviewer"
+                      class="text-blue-600"
+                    >• Reviewer</span>
+                  </span>
+                </div>
+                <ChevronUp class="ml-auto size-4" />
+              </SidebarMenuButton>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent
+              class="w-(--radix-dropdown-menu-trigger-width) min-w-56 rounded-lg"
+              side="bottom"
+              align="end"
+            >
+              <DropdownMenuItem as-child>
+                <a
+                  :href="route('profile.edit')"
+                  class="cursor-pointer"
+                >
+                  <User2 class="mr-2 size-4" />
+                  Profile
+                </a>
+              </DropdownMenuItem>
 
-                            <!-- Switch between admin/user view if user has admin role -->
-                            <DropdownMenuItem v-if="
-                                isAdmin && !currentUrl.startsWith('/admin')
-                            " as-child>
-                                <a :href="route('admin.dashboard')" class="cursor-pointer">
-                                    <Shield class="mr-2 size-4" />
-                                    Admin Panel
-                                </a>
-                            </DropdownMenuItem>
+              <!-- Switch between admin/user view if user has admin role -->
+              <DropdownMenuItem
+                v-if="
+                  isAdmin && !currentUrl.startsWith('/admin')
+                "
+                as-child
+              >
+                <a
+                  :href="route('admin.dashboard')"
+                  class="cursor-pointer"
+                >
+                  <Shield class="mr-2 size-4" />
+                  Admin Panel
+                </a>
+              </DropdownMenuItem>
 
-                            <DropdownMenuItem v-if="
-                                isAdmin && currentUrl.startsWith('/admin')
-                            " as-child>
-                                <a :href="route('user.dashboard')" class="cursor-pointer">
-                                    <User2 class="mr-2 size-4" />
-                                    User View
-                                </a>
-                            </DropdownMenuItem>
+              <DropdownMenuItem
+                v-if="
+                  isAdmin && currentUrl.startsWith('/admin')
+                "
+                as-child
+              >
+                <a
+                  :href="route('user.dashboard')"
+                  class="cursor-pointer"
+                >
+                  <User2 class="mr-2 size-4" />
+                  User View
+                </a>
+              </DropdownMenuItem>
 
-                            <DropdownMenuItem as-child>
-                                <a href="#" @click="logout" class="cursor-pointer text-destructive flex items-center">
-                                    <LogOut class="mr-2 size-4" />
-                                    Logout
-                                </a>
-                            </DropdownMenuItem>
-                        </DropdownMenuContent>
-                    </DropdownMenu>
-                </SidebarMenuItem>
-            </SidebarMenu>
-        </SidebarFooter>
-        <SidebarRail />
-    </Sidebar>
+              <DropdownMenuItem as-child>
+                <a
+                  href="#"
+                  class="cursor-pointer text-destructive flex items-center"
+                  @click="logout"
+                >
+                  <LogOut class="mr-2 size-4" />
+                  Logout
+                </a>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </SidebarMenuItem>
+      </SidebarMenu>
+    </SidebarFooter>
+    <SidebarRail />
+  </Sidebar>
 </template>

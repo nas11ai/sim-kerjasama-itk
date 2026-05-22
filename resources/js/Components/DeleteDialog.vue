@@ -18,29 +18,34 @@ const emit = defineEmits<{
 </script>
 
 <template>
-    <Dialog :open="props.modelValue" @close="emit('update:modelValue', false)">
-        <DialogContent>
-            <DialogHeader>
-                <DialogTitle>Are you sure?</DialogTitle>
-                <DialogDescription>
-                    This action cannot be undone. This will permanently delete
-                    the data.
-                </DialogDescription>
-            </DialogHeader>
-            <DialogFooter class="mt-4">
-                <Button
-                    variant="outline"
-                    @click="emit('update:modelValue', false)"
-                    class="cursor-pointer"
-                    >Cancel</Button
-                >
-                <Button
-                    variant="destructive"
-                    @click="confirmDelete"
-                    class="cursor-pointer bg-red-500 hover:bg-red-500/80"
-                    >Yes, delete</Button
-                >
-            </DialogFooter>
-        </DialogContent>
-    </Dialog>
+  <Dialog
+    :open="props.modelValue"
+    @close="emit('update:modelValue', false)"
+  >
+    <DialogContent>
+      <DialogHeader>
+        <DialogTitle>Are you sure?</DialogTitle>
+        <DialogDescription>
+          This action cannot be undone. This will permanently delete
+          the data.
+        </DialogDescription>
+      </DialogHeader>
+      <DialogFooter class="mt-4">
+        <Button
+          variant="outline"
+          class="cursor-pointer"
+          @click="emit('update:modelValue', false)"
+        >
+          Cancel
+        </Button>
+        <Button
+          variant="destructive"
+          class="cursor-pointer bg-red-500 hover:bg-red-500/80"
+          @click="confirmDelete"
+        >
+          Yes, delete
+        </Button>
+      </DialogFooter>
+    </DialogContent>
+  </Dialog>
 </template>

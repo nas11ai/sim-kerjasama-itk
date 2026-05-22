@@ -205,303 +205,396 @@ const getStatusBadge = (form: ReviewEvaluationForm): { variant: BadgeVariant; te
 </script>
 
 <template>
+  <Head :title="`Evaluation Forms - ${formPhaseDetail.form_access_control.form.title}`" />
 
-    <Head :title="`Evaluation Forms - ${formPhaseDetail.form_access_control.form.title}`" />
+  <AuthenticatedLayout>
+    <template #header>
+      <div class="flex items-center justify-between">
+        <div class="space-y-2 flex gap-4">
+          <div class="flex items-center gap-3">
+            <a :href="route('admin.form-phases.show', formPhase.id)">
+              <Button
+                variant="ghost"
+                size="sm"
+              >
+                <ArrowLeft class="h-4 w-4 mr-2" />
+                Kembali
+              </Button>
+            </a>
+          </div>
+          <div>
+            <h2 class="text-xl font-semibold leading-tight text-gray-800">
+              Kelola Formulir Evaluasi
+            </h2>
+            <p class="text-sm text-muted-foreground">
+              Untuk: {{ formPhaseDetail.form_access_control.form.title }} ({{ formPhase.title }})
+            </p>
+          </div>
+        </div>
+        <Button @click="openCreateDialog">
+          <Plus class="h-4 w-4 mr-2" />
+          Tambah Formulir Evaluasi
+        </Button>
+      </div>
+    </template>
 
-    <AuthenticatedLayout>
-        <template #header>
-            <div class="flex items-center justify-between">
-                <div class="space-y-2 flex gap-4">
-                    <div class="flex items-center gap-3">
-                        <a :href="route('admin.form-phases.show', formPhase.id)">
-                            <Button variant="ghost" size="sm">
-                                <ArrowLeft class="h-4 w-4 mr-2" />
-                                Kembali
-                            </Button>
-                        </a>
-                    </div>
-                    <div>
-                        <h2 class="text-xl font-semibold leading-tight text-gray-800">
-                            Kelola Formulir Evaluasi
-                        </h2>
-                        <p class="text-sm text-muted-foreground">
-                            Untuk: {{ formPhaseDetail.form_access_control.form.title }} ({{ formPhase.title }})
-                        </p>
-                    </div>
-                </div>
-                <Button @click="openCreateDialog">
-                    <Plus class="h-4 w-4 mr-2" />
-                    Tambah Formulir Evaluasi
-                </Button>
+    <div class="max-w-6xl mx-auto space-y-6">
+      <!-- Form Phase Detail Info -->
+      <Card>
+        <CardHeader>
+          <CardTitle class="text-base">
+            Informasi Detail Tahap Formulir
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div class="grid gap-4 md:grid-cols-3">
+            <div class="space-y-1">
+              <div class="flex items-center gap-2 text-sm font-medium">
+                <FileText class="h-4 w-4 text-muted-foreground" />
+                Formulir
+              </div>
+              <p class="text-sm text-muted-foreground pl-6">
+                {{ formPhaseDetail.form_access_control.form.title }}
+              </p>
             </div>
-        </template>
 
-        <div class="max-w-6xl mx-auto space-y-6">
-            <!-- Form Phase Detail Info -->
-            <Card>
-                <CardHeader>
-                    <CardTitle class="text-base">Informasi Detail Tahap Formulir</CardTitle>
-                </CardHeader>
-                <CardContent>
-                    <div class="grid gap-4 md:grid-cols-3">
-                        <div class="space-y-1">
-                            <div class="flex items-center gap-2 text-sm font-medium">
-                                <FileText class="h-4 w-4 text-muted-foreground" />
-                                Formulir
-                            </div>
-                            <p class="text-sm text-muted-foreground pl-6">
-                                {{ formPhaseDetail.form_access_control.form.title }}
+            <div class="space-y-1">
+              <div class="flex items-center gap-2 text-sm font-medium">
+                <UsersIcon class="h-4 w-4 text-muted-foreground" />
+                Role
+              </div>
+              <p class="text-sm text-muted-foreground pl-6">
+                {{ formPhaseDetail.form_access_control.role.name }}
+              </p>
+            </div>
+
+            <div class="space-y-1">
+              <div class="flex items-center gap-2 text-sm font-medium">
+                <Building class="h-4 w-4 text-muted-foreground" />
+                Program Studi
+              </div>
+              <div class="text-sm text-muted-foreground pl-6">
+                <p>{{ formPhaseDetail.form_access_control.study_program.name }}</p>
+                <p class="text-xs opacity-75">
+                  {{ formPhaseDetail.form_access_control.study_program.faculty.name }}
+                </p>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      <!-- Evaluation Forms List -->
+      <Card>
+        <CardHeader>
+          <div class="flex items-center justify-between">
+            <div>
+              <CardTitle>Formulir Evaluasi ({{ sortedEvaluationForms.length }})</CardTitle>
+              <p class="text-sm text-muted-foreground mt-1">
+                Seret untuk mengurutkan ulang. Perubahan disimpan secara otomatis.
+              </p>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <!-- Empty State -->
+          <div
+            v-if="sortedEvaluationForms.length === 0"
+            class="text-center py-12 border-2 border-dashed rounded-lg"
+          >
+            <FileText class="h-12 w-12 mx-auto text-muted-foreground mb-4 opacity-50" />
+            <h3 class="text-lg font-medium mb-2">
+              Tidak Ada Formulir Evaluasi
+            </h3>
+            <p class="text-muted-foreground mb-4">
+              Buat formulir evaluasi pertama Anda untuk detail tahap formulir ini.
+            </p>
+            <Button @click="openCreateDialog">
+              <Plus class="h-4 w-4 mr-2" />
+              Tambah Formulir Pertama
+            </Button>
+          </div>
+
+          <!-- Forms List -->
+          <div v-else>
+            <draggable
+              v-model="sortedEvaluationForms"
+              item-key="id"
+              handle=".drag-handle"
+              class="space-y-3"
+              :animation="200"
+              @end="updateOrder"
+            >
+              <template #item="{ element: form }">
+                <Card class="border">
+                  <CardContent class="p-4">
+                    <div class="flex items-center space-x-4">
+                      <!-- Drag Handle -->
+                      <div class="drag-handle cursor-move p-1 hover:bg-muted rounded">
+                        <GripVertical class="h-4 w-4 text-muted-foreground" />
+                      </div>
+
+                      <!-- Form Content -->
+                      <div class="flex-1">
+                        <div class="flex items-start justify-between">
+                          <div>
+                            <h4 class="font-medium">
+                              {{ form.title }}
+                            </h4>
+                            <p
+                              v-if="form.description"
+                              class="text-sm text-muted-foreground"
+                            >
+                              {{ form.description }}
                             </p>
-                        </div>
-
-                        <div class="space-y-1">
-                            <div class="flex items-center gap-2 text-sm font-medium">
-                                <UsersIcon class="h-4 w-4 text-muted-foreground" />
-                                Role
+                            <div class="flex items-center space-x-2 mt-2">
+                              <Badge :variant="getStatusBadge(form).variant">
+                                {{ getStatusBadge(form).text }}
+                              </Badge>
+                              <Badge variant="outline">
+                                Urutan: {{ form.order }}
+                              </Badge>
+                              <Badge variant="outline">
+                                {{ form.fields_count }} Isian
+                              </Badge>
                             </div>
-                            <p class="text-sm text-muted-foreground pl-6">
-                                {{ formPhaseDetail.form_access_control.role.name }}
-                            </p>
+                          </div>
+
+                          <!-- Action Buttons -->
+                          <div class="flex items-center space-x-1">
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              as-child
+                            >
+                              <a
+                                :href="route('admin.review-evaluation-forms.preview', form.id)"
+                              >
+                                <Eye class="h-4 w-4" />
+                              </a>
+                            </Button>
+
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              @click="openEditDialog(form)"
+                            >
+                              <Edit class="h-4 w-4" />
+                            </Button>
+
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              as-child
+                            >
+                              <a
+                                :href="route('admin.review-evaluation-forms.edit', form.id)"
+                              >
+                                <Settings class="h-4 w-4" />
+                              </a>
+                            </Button>
+
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              @click="duplicateForm(form)"
+                            >
+                              <Copy class="h-4 w-4" />
+                            </Button>
+
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              class="text-destructive"
+                              @click="openDeleteDialog(form)"
+                            >
+                              <Trash2 class="h-4 w-4" />
+                            </Button>
+                          </div>
                         </div>
-
-                        <div class="space-y-1">
-                            <div class="flex items-center gap-2 text-sm font-medium">
-                                <Building class="h-4 w-4 text-muted-foreground" />
-                                Program Studi
-                            </div>
-                            <div class="text-sm text-muted-foreground pl-6">
-                                <p>{{ formPhaseDetail.form_access_control.study_program.name }}</p>
-                                <p class="text-xs opacity-75">
-                                    {{ formPhaseDetail.form_access_control.study_program.faculty.name }}
-                                </p>
-                            </div>
-                        </div>
+                      </div>
                     </div>
-                </CardContent>
-            </Card>
+                  </CardContent>
+                </Card>
+              </template>
+            </draggable>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
 
-            <!-- Evaluation Forms List -->
-            <Card>
-                <CardHeader>
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <CardTitle>Formulir Evaluasi ({{ sortedEvaluationForms.length }})</CardTitle>
-                            <p class="text-sm text-muted-foreground mt-1">
-                                Seret untuk mengurutkan ulang. Perubahan disimpan secara otomatis.
-                            </p>
-                        </div>
-                    </div>
-                </CardHeader>
-                <CardContent>
-                    <!-- Empty State -->
-                    <div v-if="sortedEvaluationForms.length === 0"
-                        class="text-center py-12 border-2 border-dashed rounded-lg">
-                        <FileText class="h-12 w-12 mx-auto text-muted-foreground mb-4 opacity-50" />
-                        <h3 class="text-lg font-medium mb-2">Tidak Ada Formulir Evaluasi</h3>
-                        <p class="text-muted-foreground mb-4">
-                            Buat formulir evaluasi pertama Anda untuk detail tahap formulir ini.
-                        </p>
-                        <Button @click="openCreateDialog">
-                            <Plus class="h-4 w-4 mr-2" />
-                            Tambah Formulir Pertama
-                        </Button>
-                    </div>
+    <!-- Create Form Dialog -->
+    <Dialog v-model:open="createFormDialog">
+      <DialogContent class="max-w-2xl">
+        <DialogHeader>
+          <DialogTitle>Tambah Formulir Evaluasi Baru</DialogTitle>
+          <DialogDescription>
+            Buat formulir evaluasi baru untuk {{ formPhaseDetail.form_access_control.form.title }}.
+          </DialogDescription>
+        </DialogHeader>
 
-                    <!-- Forms List -->
-                    <div v-else>
-                        <draggable v-model="sortedEvaluationForms" item-key="id" handle=".drag-handle" class="space-y-3"
-                            :animation="200" @end="updateOrder">
-                            <template #item="{ element: form }">
-                                <Card class="border">
-                                    <CardContent class="p-4">
-                                        <div class="flex items-center space-x-4">
-                                            <!-- Drag Handle -->
-                                            <div class="drag-handle cursor-move p-1 hover:bg-muted rounded">
-                                                <GripVertical class="h-4 w-4 text-muted-foreground" />
-                                            </div>
+        <div class="space-y-4">
+          <div class="space-y-2">
+            <Label for="create_title">Judul *</Label>
+            <Input
+              id="create_title"
+              v-model="createFormData.title"
+              placeholder="Masukkan judul formulir"
+              :class="createFormData.errors.title ? 'border-destructive' : ''"
+            />
+            <p
+              v-if="createFormData.errors.title"
+              class="text-sm text-destructive"
+            >
+              {{ createFormData.errors.title }}
+            </p>
+          </div>
 
-                                            <!-- Form Content -->
-                                            <div class="flex-1">
-                                                <div class="flex items-start justify-between">
-                                                    <div>
-                                                        <h4 class="font-medium">{{ form.title }}</h4>
-                                                        <p v-if="form.description"
-                                                            class="text-sm text-muted-foreground">
-                                                            {{ form.description }}
-                                                        </p>
-                                                        <div class="flex items-center space-x-2 mt-2">
-                                                            <Badge :variant="getStatusBadge(form).variant">
-                                                                {{ getStatusBadge(form).text }}
-                                                            </Badge>
-                                                            <Badge variant="outline">
-                                                                Urutan: {{ form.order }}
-                                                            </Badge>
-                                                            <Badge variant="outline">
-                                                                {{ form.fields_count }} Isian
-                                                            </Badge>
-                                                        </div>
-                                                    </div>
+          <div class="space-y-2">
+            <Label for="create_description">Deskripsi</Label>
+            <Textarea
+              id="create_description"
+              v-model="createFormData.description"
+              placeholder="Masukkan deskripsi formulir (opsional)"
+              rows="3"
+            />
+          </div>
 
-                                                    <!-- Action Buttons -->
-                                                    <div class="flex items-center space-x-1">
-                                                        <Button size="sm" variant="ghost" as-child>
-                                                            <a
-                                                                :href="route('admin.review-evaluation-forms.preview', form.id)">
-                                                                <Eye class="h-4 w-4" />
-                                                            </a>
-                                                        </Button>
+          <div class="flex items-center space-x-6">
+            <div class="flex items-center space-x-2">
+              <Switch
+                id="create_is_required"
+                v-model="createFormData.is_required"
+              />
+              <Label for="create_is_required">Wajib untuk semua reviewer</Label>
+            </div>
 
-                                                        <Button size="sm" variant="ghost" @click="openEditDialog(form)">
-                                                            <Edit class="h-4 w-4" />
-                                                        </Button>
-
-                                                        <Button size="sm" variant="ghost" as-child>
-                                                            <a
-                                                                :href="route('admin.review-evaluation-forms.edit', form.id)">
-                                                                <Settings class="h-4 w-4" />
-                                                            </a>
-                                                        </Button>
-
-                                                        <Button size="sm" variant="ghost" @click="duplicateForm(form)">
-                                                            <Copy class="h-4 w-4" />
-                                                        </Button>
-
-                                                        <Button size="sm" variant="ghost" class="text-destructive"
-                                                            @click="openDeleteDialog(form)">
-                                                            <Trash2 class="h-4 w-4" />
-                                                        </Button>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </CardContent>
-                                </Card>
-                            </template>
-                        </draggable>
-                    </div>
-                </CardContent>
-            </Card>
+            <div class="flex items-center space-x-2">
+              <Switch
+                id="create_is_active"
+                v-model="createFormData.is_active"
+              />
+              <Label for="create_is_active">Aktif</Label>
+            </div>
+          </div>
         </div>
 
-        <!-- Create Form Dialog -->
-        <Dialog v-model:open="createFormDialog">
-            <DialogContent class="max-w-2xl">
-                <DialogHeader>
-                    <DialogTitle>Tambah Formulir Evaluasi Baru</DialogTitle>
-                    <DialogDescription>
-                        Buat formulir evaluasi baru untuk {{ formPhaseDetail.form_access_control.form.title }}.
-                    </DialogDescription>
-                </DialogHeader>
+        <DialogFooter>
+          <Button
+            variant="outline"
+            @click="createFormDialog = false"
+          >
+            Batal
+          </Button>
+          <Button
+            :disabled="createFormData.processing"
+            @click="createForm"
+          >
+            {{ createFormData.processing ? 'Membuat...' : 'Buat & Tambah Isian' }}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
 
-                <div class="space-y-4">
-                    <div class="space-y-2">
-                        <Label for="create_title">Judul *</Label>
-                        <Input id="create_title" v-model="createFormData.title" placeholder="Masukkan judul formulir"
-                            :class="createFormData.errors.title ? 'border-destructive' : ''" />
-                        <p v-if="createFormData.errors.title" class="text-sm text-destructive">
-                            {{ createFormData.errors.title }}
-                        </p>
-                    </div>
+    <!-- Edit Form Dialog -->
+    <Dialog v-model:open="editFormDialog">
+      <DialogContent class="max-w-2xl">
+        <DialogHeader>
+          <DialogTitle>Edit Formulir Evaluasi</DialogTitle>
+          <DialogDescription>
+            Perbarui pengaturan formulir evaluasi.
+          </DialogDescription>
+        </DialogHeader>
 
-                    <div class="space-y-2">
-                        <Label for="create_description">Deskripsi</Label>
-                        <Textarea id="create_description" v-model="createFormData.description"
-                            placeholder="Masukkan deskripsi formulir (opsional)" rows="3" />
-                    </div>
+        <div class="space-y-4">
+          <div class="space-y-2">
+            <Label for="edit_title">Judul *</Label>
+            <Input
+              id="edit_title"
+              v-model="editFormData.title"
+              placeholder="Masukkan judul formulir"
+              :class="editFormData.errors.title ? 'border-destructive' : ''"
+            />
+            <p
+              v-if="editFormData.errors.title"
+              class="text-sm text-destructive"
+            >
+              {{ editFormData.errors.title }}
+            </p>
+          </div>
 
-                    <div class="flex items-center space-x-6">
-                        <div class="flex items-center space-x-2">
-                            <Switch v-model="createFormData.is_required" id="create_is_required" />
-                            <Label for="create_is_required">Wajib untuk semua reviewer</Label>
-                        </div>
+          <div class="space-y-2">
+            <Label for="edit_description">Deskripsi</Label>
+            <Textarea
+              id="edit_description"
+              v-model="editFormData.description"
+              placeholder="Masukkan deskripsi formulir (opsional)"
+              rows="3"
+            />
+          </div>
 
-                        <div class="flex items-center space-x-2">
-                            <Switch v-model="createFormData.is_active" id="create_is_active" />
-                            <Label for="create_is_active">Aktif</Label>
-                        </div>
-                    </div>
-                </div>
+          <div class="flex items-center space-x-6">
+            <div class="flex items-center space-x-2">
+              <Switch
+                id="edit_is_required"
+                v-model="editFormData.is_required"
+              />
+              <Label for="edit_is_required">Wajib untuk semua reviewer</Label>
+            </div>
 
-                <DialogFooter>
-                    <Button variant="outline" @click="createFormDialog = false">
-                        Batal
-                    </Button>
-                    <Button @click="createForm" :disabled="createFormData.processing">
-                        {{ createFormData.processing ? 'Membuat...' : 'Buat & Tambah Isian' }}
-                    </Button>
-                </DialogFooter>
-            </DialogContent>
-        </Dialog>
+            <div class="flex items-center space-x-2">
+              <Switch
+                id="edit_is_active"
+                v-model="editFormData.is_active"
+              />
+              <Label for="edit_is_active">Aktif</Label>
+            </div>
+          </div>
+        </div>
 
-        <!-- Edit Form Dialog -->
-        <Dialog v-model:open="editFormDialog">
-            <DialogContent class="max-w-2xl">
-                <DialogHeader>
-                    <DialogTitle>Edit Formulir Evaluasi</DialogTitle>
-                    <DialogDescription>
-                        Perbarui pengaturan formulir evaluasi.
-                    </DialogDescription>
-                </DialogHeader>
+        <DialogFooter>
+          <Button
+            variant="outline"
+            @click="editFormDialog = false"
+          >
+            Batal
+          </Button>
+          <Button
+            :disabled="editFormData.processing"
+            @click="updateForm"
+          >
+            {{ editFormData.processing ? 'Memperbarui...' : 'Perbarui Formulir' }}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
 
-                <div class="space-y-4">
-                    <div class="space-y-2">
-                        <Label for="edit_title">Judul *</Label>
-                        <Input id="edit_title" v-model="editFormData.title" placeholder="Masukkan judul formulir"
-                            :class="editFormData.errors.title ? 'border-destructive' : ''" />
-                        <p v-if="editFormData.errors.title" class="text-sm text-destructive">
-                            {{ editFormData.errors.title }}
-                        </p>
-                    </div>
-
-                    <div class="space-y-2">
-                        <Label for="edit_description">Deskripsi</Label>
-                        <Textarea id="edit_description" v-model="editFormData.description"
-                            placeholder="Masukkan deskripsi formulir (opsional)" rows="3" />
-                    </div>
-
-                    <div class="flex items-center space-x-6">
-                        <div class="flex items-center space-x-2">
-                            <Switch v-model="editFormData.is_required" id="edit_is_required" />
-                            <Label for="edit_is_required">Wajib untuk semua reviewer</Label>
-                        </div>
-
-                        <div class="flex items-center space-x-2">
-                            <Switch v-model="editFormData.is_active" id="edit_is_active" />
-                            <Label for="edit_is_active">Aktif</Label>
-                        </div>
-                    </div>
-                </div>
-
-                <DialogFooter>
-                    <Button variant="outline" @click="editFormDialog = false">
-                        Batal
-                    </Button>
-                    <Button @click="updateForm" :disabled="editFormData.processing">
-                        {{ editFormData.processing ? 'Memperbarui...' : 'Perbarui Formulir' }}
-                    </Button>
-                </DialogFooter>
-            </DialogContent>
-        </Dialog>
-
-        <!-- Delete Confirmation Dialog -->
-        <Dialog v-model:open="deleteFormDialog">
-            <DialogContent>
-                <DialogHeader>
-                    <DialogTitle>Hapus Formulir Evaluasi</DialogTitle>
-                    <DialogDescription>
-                        Apakah anda yakin ingin menghapus "{{ selectedForm?.title }}"?
-                        Ini akan menghapus formulir dan semua isiannya secara permanen.
-                    </DialogDescription>
-                </DialogHeader>
-                <DialogFooter>
-                    <Button variant="outline" @click="deleteFormDialog = false">
-                        Batal
-                    </Button>
-                    <Button variant="destructive" @click="deleteForm" :disabled="deleteFormData.processing">
-                        {{ deleteFormData.processing ? 'Menghapus...' : 'Hapus' }}
-                    </Button>
-                </DialogFooter>
-            </DialogContent>
-        </Dialog>
-    </AuthenticatedLayout>
+    <!-- Delete Confirmation Dialog -->
+    <Dialog v-model:open="deleteFormDialog">
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Hapus Formulir Evaluasi</DialogTitle>
+          <DialogDescription>
+            Apakah anda yakin ingin menghapus "{{ selectedForm?.title }}"?
+            Ini akan menghapus formulir dan semua isiannya secara permanen.
+          </DialogDescription>
+        </DialogHeader>
+        <DialogFooter>
+          <Button
+            variant="outline"
+            @click="deleteFormDialog = false"
+          >
+            Batal
+          </Button>
+          <Button
+            variant="destructive"
+            :disabled="deleteFormData.processing"
+            @click="deleteForm"
+          >
+            {{ deleteFormData.processing ? 'Menghapus...' : 'Hapus' }}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  </AuthenticatedLayout>
 </template>

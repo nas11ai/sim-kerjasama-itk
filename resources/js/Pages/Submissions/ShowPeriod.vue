@@ -259,237 +259,312 @@ const pendingSubmissions = computed(() =>
 </script>
 
 <template>
+  <Head :title="`${submissionPeriod.name} - Pengajuan`" />
 
-    <Head :title="`${submissionPeriod.name} - Pengajuan`" />
-
-    <AuthenticatedLayout>
-        <template #header>
-            <div class="flex items-center gap-4">
-                <Button variant="ghost" size="sm" @click="goBack">
-                    <ArrowLeft class="h-4 w-4 mr-2" />
-                    Kembali
-                </Button>
-                <div>
-                    <h2 class="text-xl font-semibold leading-tight text-gray-800">
-                        {{ submissionPeriod.name }}
-                    </h2>
-                    <p class="text-sm text-muted-foreground">
-                        {{ periodStartDate }} - {{ periodEndDate }}
-                    </p>
-                </div>
-            </div>
-        </template>
-
-        <div class="max-w-7xl mx-auto space-y-6">
-            <!-- Period Information -->
-            <Card>
-                <CardHeader>
-                    <CardTitle class="flex items-center gap-2">
-                        <Calendar class="h-5 w-5" />
-                        Detail Periode Pengajuan
-                    </CardTitle>
-                </CardHeader>
-                <CardContent>
-                    <div class="grid gap-4 md:grid-cols-2">
-                        <div>
-                            <Label class="text-sm font-medium text-muted-foreground">Deskripsi</Label>
-                            <p class="font-medium">{{ submissionPeriod.description || 'Tidak ada deskripsi tersedia' }}</p>
-                        </div>
-                    </div>
-                    <div v-if="submissionPeriod.submission_dates.length > 0" class="mt-4">
-                        <Label class="text-sm font-medium text-muted-foreground">Tanggal Penting</Label>
-                        <div class="grid gap-2 mt-2 md:grid-cols-2 lg:grid-cols-3">
-                            <div v-for="date in submissionPeriod.submission_dates" :key="date.id"
-                                class="p-3 bg-muted/50 rounded-lg">
-                                <p class="font-medium text-sm">{{ date.submission_date_label.name }}</p>
-                                <p class="text-muted-foreground text-sm">{{ formatDate(date.datetime) }}</p>
-                            </div>
-                        </div>
-                    </div>
-                </CardContent>
-            </Card>
-
-            <!-- Statistics -->
-            <div class="grid gap-4 md:grid-cols-3">
-                <Card>
-                    <CardContent class="p-6">
-                        <div class="flex items-center">
-                            <FileText class="h-8 w-8 text-blue-600" />
-                            <div class="ml-4">
-                                <p class="text-sm font-medium text-muted-foreground">Total Pengajuan</p>
-                                <p class="text-2xl font-bold">{{ totalSubmissions }}</p>
-                            </div>
-                        </div>
-                    </CardContent>
-                </Card>
-
-                <Card>
-                    <CardContent class="p-6">
-                        <div class="flex items-center">
-                            <CheckCircle class="h-8 w-8 text-green-600" />
-                            <div class="ml-4">
-                                <p class="text-sm font-medium text-muted-foreground">Disetujui</p>
-                                <p class="text-2xl font-bold">{{ approvedSubmissions }}</p>
-                            </div>
-                        </div>
-                    </CardContent>
-                </Card>
-
-                <Card>
-                    <CardContent class="p-6">
-                        <div class="flex items-center">
-                            <AlertCircle class="h-8 w-8 text-yellow-600" />
-                            <div class="ml-4">
-                                <p class="text-sm font-medium text-muted-foreground">Dalam Review</p>
-                                <p class="text-2xl font-bold">{{ pendingSubmissions }}</p>
-                            </div>
-                        </div>
-                    </CardContent>
-                </Card>
-            </div>
-
-            <!-- Filters -->
-            <Card>
-                <CardHeader>
-                    <CardTitle class="flex items-center gap-2">
-                        <Filter class="h-5 w-5" />
-                        Filter
-                    </CardTitle>
-                </CardHeader>
-                <CardContent>
-                    <div class="grid gap-4 md:grid-cols-4">
-                        <!-- Form Phase Select -->
-                        <div>
-                            <Label for="form_phase">Tahap Formulir</Label>
-                            <Select v-model="formPhaseFilter">
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Semua tahap" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <!-- Remove the empty SelectItem, let the placeholder handle "All phases" -->
-                                    <SelectItem v-for="phase in formPhases" :key="phase.id"
-                                        :value="phase.id.toString()">
-                                        {{ phase.title }}
-                                    </SelectItem>
-                                </SelectContent>
-                            </Select>
-                        </div>
-
-                        <!-- Status Select -->
-                        <div>
-                            <Label for="status">Status</Label>
-                            <Select v-model="statusFilter">
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Semua status" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem v-for="option in submissionStatuses" :key="option.value"
-                                        :value="option.value">
-                                        {{ option.label }}
-                                    </SelectItem>
-                                </SelectContent>
-                            </Select>
-                        </div>
-                        <div>
-                            <Label for="search">Cari</Label>
-                            <div class="relative">
-                                <Search class="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-                                <Input id="search" v-model="searchFilter" placeholder="Cari berdasarkan nama atau email..."
-                                    class="pl-8" />
-                            </div>
-                        </div>
-
-                        <div class="flex items-end gap-2">
-                            <Button @click="applyFilters" class="flex-1">
-                                Terapkan Filter
-                            </Button>
-                            <Button variant="outline" @click="clearFilters">
-                                Bersihkan Filter
-                            </Button>
-                        </div>
-                    </div>
-                </CardContent>
-            </Card>
-
-            <!-- Submissions Table -->
-            <Card>
-                <CardHeader>
-                    <CardTitle>Pengajuan</CardTitle>
-                </CardHeader>
-                <CardContent>
-                    <div class="rounded-md border">
-                        <Table>
-                            <TableHeader>
-                                <TableRow>
-                                    <TableHead>Diajukan Oleh</TableHead>
-                                    <TableHead>Formulir</TableHead>
-                                    <TableHead>Diajukan Pada</TableHead>
-                                    <TableHead>Status</TableHead>
-                                    <TableHead class="w-[100px]">Aksi</TableHead>
-                                </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                <TableRow v-if="submissions.data.length === 0">
-                                    <TableCell colspan="6" class="text-center py-8 text-muted-foreground">
-                                        Tidak ada pengajuan yang ditemukan untuk kriteria yang dipilih.
-                                    </TableCell>
-                                </TableRow>
-                                <TableRow v-for="submission in submissions.data" :key="submission.id">
-                                    <TableCell>
-                                        <div class="space-y-1">
-                                            <p class="font-medium flex items-center gap-2">
-                                                <User class="h-4 w-4" />
-                                                {{ submission.submitted_by.name }}
-                                            </p>
-                                            <p class="text-sm text-muted-foreground flex items-center gap-2">
-                                                <Mail class="h-3 w-3" />
-                                                {{ submission.submitted_by.email }}
-                                            </p>
-                                        </div>
-                                    </TableCell>
-                                    <TableCell>
-                                        <div class="space-y-1">
-                                            <p class="font-medium">{{ submission.form.title }}</p>
-                                            <Badge variant="outline" class="text-xs">
-                                                {{ submission.form.form_type.name }}
-                                            </Badge>
-                                        </div>
-                                    </TableCell>
-                                    <TableCell>
-                                        <p class="font-medium">{{ formatDateTime(submission.created_at) }}</p>
-                                    </TableCell>
-                                    <TableCell>
-                                        <Badge :variant="getSubmissionStatusBadge(submission.status).variant"
-                                            class="text-sm">
-                                            <component :is="getSubmissionStatusBadge(submission.status).icon"
-                                                class="h-3 w-3 mr-1" />
-                                            {{ getSubmissionStatusBadge(submission.status).text }}
-                                        </Badge>
-                                    </TableCell>
-                                    <TableCell>
-                                        <Button size="sm" variant="outline" @click="viewSubmission(submission.id)">
-                                            <Eye class="h-4 w-4 mr-1" />
-                                            Lihat
-                                        </Button>
-                                    </TableCell>
-                                </TableRow>
-                            </TableBody>
-                        </Table>
-                    </div>
-
-                    <!-- Pagination -->
-                    <div class="flex items-center justify-between mt-4" v-if="submissions.last_page > 1">
-                        <div class="text-sm text-muted-foreground">
-                            Menampilkan {{ submissions.from }} hingga {{ submissions.to }} dari {{ submissions.total }} hasil
-                        </div>
-                        <div class="flex items-center gap-2">
-                            <Button v-for="link in submissions.links" :key="link.label"
-                                :variant="link.active ? 'default' : 'outline'" :disabled="!link.url" size="sm"
-                                @click="router.visit(link.url!)" v-html="link.label" />
-                        </div>
-                    </div>
-                </CardContent>
-            </Card>
+  <AuthenticatedLayout>
+    <template #header>
+      <div class="flex items-center gap-4">
+        <Button
+          variant="ghost"
+          size="sm"
+          @click="goBack"
+        >
+          <ArrowLeft class="h-4 w-4 mr-2" />
+          Kembali
+        </Button>
+        <div>
+          <h2 class="text-xl font-semibold leading-tight text-gray-800">
+            {{ submissionPeriod.name }}
+          </h2>
+          <p class="text-sm text-muted-foreground">
+            {{ periodStartDate }} - {{ periodEndDate }}
+          </p>
         </div>
-    </AuthenticatedLayout>
+      </div>
+    </template>
+
+    <div class="max-w-7xl mx-auto space-y-6">
+      <!-- Period Information -->
+      <Card>
+        <CardHeader>
+          <CardTitle class="flex items-center gap-2">
+            <Calendar class="h-5 w-5" />
+            Detail Periode Pengajuan
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div class="grid gap-4 md:grid-cols-2">
+            <div>
+              <Label class="text-sm font-medium text-muted-foreground">Deskripsi</Label>
+              <p class="font-medium">
+                {{ submissionPeriod.description || 'Tidak ada deskripsi tersedia' }}
+              </p>
+            </div>
+          </div>
+          <div
+            v-if="submissionPeriod.submission_dates.length > 0"
+            class="mt-4"
+          >
+            <Label class="text-sm font-medium text-muted-foreground">Tanggal Penting</Label>
+            <div class="grid gap-2 mt-2 md:grid-cols-2 lg:grid-cols-3">
+              <div
+                v-for="date in submissionPeriod.submission_dates"
+                :key="date.id"
+                class="p-3 bg-muted/50 rounded-lg"
+              >
+                <p class="font-medium text-sm">
+                  {{ date.submission_date_label.name }}
+                </p>
+                <p class="text-muted-foreground text-sm">
+                  {{ formatDate(date.datetime) }}
+                </p>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      <!-- Statistics -->
+      <div class="grid gap-4 md:grid-cols-3">
+        <Card>
+          <CardContent class="p-6">
+            <div class="flex items-center">
+              <FileText class="h-8 w-8 text-blue-600" />
+              <div class="ml-4">
+                <p class="text-sm font-medium text-muted-foreground">
+                  Total Pengajuan
+                </p>
+                <p class="text-2xl font-bold">
+                  {{ totalSubmissions }}
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent class="p-6">
+            <div class="flex items-center">
+              <CheckCircle class="h-8 w-8 text-green-600" />
+              <div class="ml-4">
+                <p class="text-sm font-medium text-muted-foreground">
+                  Disetujui
+                </p>
+                <p class="text-2xl font-bold">
+                  {{ approvedSubmissions }}
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent class="p-6">
+            <div class="flex items-center">
+              <AlertCircle class="h-8 w-8 text-yellow-600" />
+              <div class="ml-4">
+                <p class="text-sm font-medium text-muted-foreground">
+                  Dalam Review
+                </p>
+                <p class="text-2xl font-bold">
+                  {{ pendingSubmissions }}
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      <!-- Filters -->
+      <Card>
+        <CardHeader>
+          <CardTitle class="flex items-center gap-2">
+            <Filter class="h-5 w-5" />
+            Filter
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div class="grid gap-4 md:grid-cols-4">
+            <!-- Form Phase Select -->
+            <div>
+              <Label for="form_phase">Tahap Formulir</Label>
+              <Select v-model="formPhaseFilter">
+                <SelectTrigger>
+                  <SelectValue placeholder="Semua tahap" />
+                </SelectTrigger>
+                <SelectContent>
+                  <!-- Remove the empty SelectItem, let the placeholder handle "All phases" -->
+                  <SelectItem
+                    v-for="phase in formPhases"
+                    :key="phase.id"
+                    :value="phase.id.toString()"
+                  >
+                    {{ phase.title }}
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <!-- Status Select -->
+            <div>
+              <Label for="status">Status</Label>
+              <Select v-model="statusFilter">
+                <SelectTrigger>
+                  <SelectValue placeholder="Semua status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem
+                    v-for="option in submissionStatuses"
+                    :key="option.value"
+                    :value="option.value"
+                  >
+                    {{ option.label }}
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label for="search">Cari</Label>
+              <div class="relative">
+                <Search class="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input
+                  id="search"
+                  v-model="searchFilter"
+                  placeholder="Cari berdasarkan nama atau email..."
+                  class="pl-8"
+                />
+              </div>
+            </div>
+
+            <div class="flex items-end gap-2">
+              <Button
+                class="flex-1"
+                @click="applyFilters"
+              >
+                Terapkan Filter
+              </Button>
+              <Button
+                variant="outline"
+                @click="clearFilters"
+              >
+                Bersihkan Filter
+              </Button>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      <!-- Submissions Table -->
+      <Card>
+        <CardHeader>
+          <CardTitle>Pengajuan</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div class="rounded-md border">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Diajukan Oleh</TableHead>
+                  <TableHead>Formulir</TableHead>
+                  <TableHead>Diajukan Pada</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead class="w-[100px]">
+                    Aksi
+                  </TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                <TableRow v-if="submissions.data.length === 0">
+                  <TableCell
+                    colspan="6"
+                    class="text-center py-8 text-muted-foreground"
+                  >
+                    Tidak ada pengajuan yang ditemukan untuk kriteria yang dipilih.
+                  </TableCell>
+                </TableRow>
+                <TableRow
+                  v-for="submission in submissions.data"
+                  :key="submission.id"
+                >
+                  <TableCell>
+                    <div class="space-y-1">
+                      <p class="font-medium flex items-center gap-2">
+                        <User class="h-4 w-4" />
+                        {{ submission.submitted_by.name }}
+                      </p>
+                      <p class="text-sm text-muted-foreground flex items-center gap-2">
+                        <Mail class="h-3 w-3" />
+                        {{ submission.submitted_by.email }}
+                      </p>
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <div class="space-y-1">
+                      <p class="font-medium">
+                        {{ submission.form.title }}
+                      </p>
+                      <Badge
+                        variant="outline"
+                        class="text-xs"
+                      >
+                        {{ submission.form.form_type.name }}
+                      </Badge>
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <p class="font-medium">
+                      {{ formatDateTime(submission.created_at) }}
+                    </p>
+                  </TableCell>
+                  <TableCell>
+                    <Badge
+                      :variant="getSubmissionStatusBadge(submission.status).variant"
+                      class="text-sm"
+                    >
+                      <component
+                        :is="getSubmissionStatusBadge(submission.status).icon"
+                        class="h-3 w-3 mr-1"
+                      />
+                      {{ getSubmissionStatusBadge(submission.status).text }}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      @click="viewSubmission(submission.id)"
+                    >
+                      <Eye class="h-4 w-4 mr-1" />
+                      Lihat
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              </TableBody>
+            </Table>
+          </div>
+
+          <!-- Pagination -->
+          <div
+            v-if="submissions.last_page > 1"
+            class="flex items-center justify-between mt-4"
+          >
+            <div class="text-sm text-muted-foreground">
+              Menampilkan {{ submissions.from }} hingga {{ submissions.to }} dari {{ submissions.total }} hasil
+            </div>
+            <div class="flex items-center gap-2">
+              <Button
+                v-for="link in submissions.links"
+                :key="link.label"
+                :variant="link.active ? 'default' : 'outline'"
+                :disabled="!link.url"
+                size="sm"
+                @click="router.visit(link.url!)"
+                v-html="link.label"
+              />
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  </AuthenticatedLayout>
 </template>

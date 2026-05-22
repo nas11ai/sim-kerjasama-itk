@@ -229,239 +229,316 @@ const getSortIcon = (column: string) => {
 </script>
 
 <template>
+  <Head title="Manajemen Fakultas" />
 
-    <Head title="Manajemen Fakultas" />
+  <AuthenticatedLayout>
+    <template #header>
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <h2 class="text-xl font-semibold leading-tight text-gray-800">
+            Manajemen Fakultas
+          </h2>
+        </div>
+        <div class="flex items-center gap-2">
+          <Button
+            variant="outline"
+            @click="router.visit(route('admin.faculties.study-programs'))"
+          >
+            <GraduationCap class="h-4 w-4 mr-2" />
+            Program Studi
+          </Button>
+          <Button @click="router.visit(route('admin.faculties.create'))">
+            <Plus class="h-4 w-4 mr-2" />
+            Tambah Fakultas
+          </Button>
+        </div>
+      </div>
+    </template>
 
-    <AuthenticatedLayout>
-        <template #header>
-            <div class="flex items-center justify-between">
-                <div class="flex items-center gap-2">
-                    <h2 class="text-xl font-semibold leading-tight text-gray-800">
-                        Manajemen Fakultas
-                    </h2>
-                </div>
-                <div class="flex items-center gap-2">
-                    <Button @click="router.visit(route('admin.faculties.study-programs'))" variant="outline">
-                        <GraduationCap class="h-4 w-4 mr-2" />
-                        Program Studi
-                    </Button>
-                    <Button @click="router.visit(route('admin.faculties.create'))">
-                        <Plus class="h-4 w-4 mr-2" />
-                        Tambah Fakultas
-                    </Button>
-                </div>
+    <div class="space-y-6">
+      <!-- Filters Card -->
+      <Card>
+        <CardHeader>
+          <CardTitle class="text-lg flex items-center gap-2">
+            <Search class="h-5 w-5" />
+            Cari & Filter
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div class="flex flex-col sm:flex-row gap-4">
+            <!-- Search Input -->
+            <div class="flex-1">
+              <div class="relative">
+                <Search
+                  class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4"
+                />
+                <Input
+                  v-model="search"
+                  placeholder="Cari Fakultas..."
+                  class="pl-10"
+                />
+              </div>
             </div>
-        </template>
 
-        <div class="space-y-6">
+            <!-- Per Page Select -->
+            <div class="w-full sm:w-36">
+              <Select
+                :model-value="perPage.toString()"
+                @update:model-value="changePerPage"
+              >
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="5">
+                    5 per Halaman
+                  </SelectItem>
+                  <SelectItem value="10">
+                    10 per Halaman
+                  </SelectItem>
+                  <SelectItem value="25">
+                    25 per Halaman
+                  </SelectItem>
+                  <SelectItem value="50">
+                    50 per Halaman
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
 
-            <!-- Filters Card -->
-            <Card>
-                <CardHeader>
-                    <CardTitle class="text-lg flex items-center gap-2">
-                        <Search class="h-5 w-5" />
-                        Cari & Filter
-                    </CardTitle>
-                </CardHeader>
-                <CardContent>
-                    <div class="flex flex-col sm:flex-row gap-4">
-                        <!-- Search Input -->
-                        <div class="flex-1">
-                            <div class="relative">
-                                <Search
-                                    class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-                                <Input v-model="search" placeholder="Cari Fakultas..." class="pl-10" />
-                            </div>
-                        </div>
-
-                        <!-- Per Page Select -->
-                        <div class="w-full sm:w-36">
-                            <Select :model-value="perPage.toString()" @update:model-value="changePerPage">
-                                <SelectTrigger>
-                                    <SelectValue />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="5">5 per Halaman</SelectItem>
-                                    <SelectItem value="10">10 per Halaman</SelectItem>
-                                    <SelectItem value="25">25 per Halaman</SelectItem>
-                                    <SelectItem value="50">50 per Halaman</SelectItem>
-                                </SelectContent>
-                            </Select>
-                        </div>
+      <!-- Data Table Card -->
+      <Card>
+        <CardHeader>
+          <div class="flex items-center justify-between">
+            <CardTitle class="flex items-center gap-2">
+              Fakultas
+              <Badge variant="secondary">
+                {{ faculties.total }} total
+              </Badge>
+            </CardTitle>
+          </div>
+        </CardHeader>
+        <CardContent class="p-0">
+          <!-- Table -->
+          <div class="overflow-x-auto">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead class="w-12">
+                    #
+                  </TableHead>
+                  <TableHead>
+                    <button
+                      class="flex items-center gap-1 hover:text-blue-600 font-semibold"
+                      @click="sortTable('name')"
+                    >
+                      Nama Fakultas
+                      <ArrowUpDown
+                        class="h-4 w-4 transition-transform"
+                        :class="getSortIcon('name')"
+                      />
+                    </button>
+                  </TableHead>
+                  <TableHead class="text-center">
+                    Program Studi
+                  </TableHead>
+                  <TableHead>
+                    <button
+                      class="flex items-center gap-1 hover:text-blue-600 font-semibold"
+                      @click="sortTable('created_at')"
+                    >
+                      Dibuat Pada 
+                      <ArrowUpDown
+                        class="h-4 w-4 transition-transform"
+                        :class="getSortIcon('created_at')"
+                      />
+                    </button>
+                  </TableHead>
+                  <TableHead class="text-center w-20">
+                    Aksi
+                  </TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                <TableRow v-if="faculties.data.length === 0">
+                  <TableCell
+                    colspan="5"
+                    class="text-center py-8 text-gray-500"
+                  >
+                    <Building2 class="h-12 w-12 mx-auto mb-4 opacity-50" />
+                    <p>Tidak ada fakultas ditemukan</p>
+                  </TableCell>
+                </TableRow>
+                <TableRow
+                  v-for="(faculty, index) in faculties.data"
+                  :key="faculty.id"
+                  class="hover:bg-muted/50"
+                >
+                  <TableCell class="font-medium">
+                    {{ faculties.from + index }}
+                  </TableCell>
+                  <TableCell>
+                    <div class="font-medium">
+                      {{ faculty.name }}
                     </div>
-                </CardContent>
-            </Card>
+                  </TableCell>
+                  <TableCell class="text-center">
+                    <Badge variant="outline">
+                      {{ faculty.study_programs_count }} program studi
+                    </Badge>
+                  </TableCell>
+                  <TableCell>
+                    {{ new Date(faculty.created_at).toLocaleDateString() }}
+                  </TableCell>
+                  <TableCell>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger as-child>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          :disabled="isDeleting === faculty.id"
+                        >
+                          <MoreVertical class="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem
+                          @click="router.visit(route('admin.faculties.show', faculty.id))"
+                        >
+                          <Eye class="h-4 w-4 mr-2" />
+                          Lihat
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          @click="router.visit(route('admin.faculties.edit', faculty.id))"
+                        >
+                          <Edit class="h-4 w-4 mr-2" />
+                          Edit
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          class="text-red-600"
+                          :disabled="faculty.study_programs_count > 0"
+                          @click="deleteFaculty(faculty)"
+                        >
+                          <Trash2 class="h-4 w-4 mr-2" />
+                          Hapus
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </TableCell>
+                </TableRow>
+              </TableBody>
+            </Table>
+          </div>
 
-            <!-- Data Table Card -->
-            <Card>
-                <CardHeader>
-                    <div class="flex items-center justify-between">
-                        <CardTitle class="flex items-center gap-2">
-                            Fakultas
-                            <Badge variant="secondary">{{ faculties.total }} total</Badge>
-                        </CardTitle>
-                    </div>
-                </CardHeader>
-                <CardContent class="p-0">
-                    <!-- Table -->
-                    <div class="overflow-x-auto">
-                        <Table>
-                            <TableHeader>
-                                <TableRow>
-                                    <TableHead class="w-12">#</TableHead>
-                                    <TableHead>
-                                        <button @click="sortTable('name')"
-                                            class="flex items-center gap-1 hover:text-blue-600 font-semibold">
-                                            Nama Fakultas
-                                            <ArrowUpDown class="h-4 w-4 transition-transform"
-                                                :class="getSortIcon('name')" />
-                                        </button>
-                                    </TableHead>
-                                    <TableHead class="text-center">Program Studi</TableHead>
-                                    <TableHead>
-                                        <button @click="sortTable('created_at')"
-                                            class="flex items-center gap-1 hover:text-blue-600 font-semibold">
-                                            Dibuat Pada 
-                                            <ArrowUpDown class="h-4 w-4 transition-transform"
-                                                :class="getSortIcon('created_at')" />
-                                        </button>
-                                    </TableHead>
-                                    <TableHead class="text-center w-20">Aksi</TableHead>
-                                </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                <TableRow v-if="faculties.data.length === 0">
-                                    <TableCell colspan="5" class="text-center py-8 text-gray-500">
-                                        <Building2 class="h-12 w-12 mx-auto mb-4 opacity-50" />
-                                        <p>Tidak ada fakultas ditemukan</p>
-                                    </TableCell>
-                                </TableRow>
-                                <TableRow v-for="(faculty, index) in faculties.data" :key="faculty.id"
-                                    class="hover:bg-muted/50">
-                                    <TableCell class="font-medium">
-                                        {{ faculties.from + index }}
-                                    </TableCell>
-                                    <TableCell>
-                                        <div class="font-medium">{{ faculty.name }}</div>
-                                    </TableCell>
-                                    <TableCell class="text-center">
-                                        <Badge variant="outline">
-                                            {{ faculty.study_programs_count }} program studi
-                                        </Badge>
-                                    </TableCell>
-                                    <TableCell>
-                                        {{ new Date(faculty.created_at).toLocaleDateString() }}
-                                    </TableCell>
-                                    <TableCell>
-                                        <DropdownMenu>
-                                            <DropdownMenuTrigger as-child>
-                                                <Button variant="ghost" size="sm" :disabled="isDeleting === faculty.id">
-                                                    <MoreVertical class="h-4 w-4" />
-                                                </Button>
-                                            </DropdownMenuTrigger>
-                                            <DropdownMenuContent align="end">
-                                                <DropdownMenuItem
-                                                    @click="router.visit(route('admin.faculties.show', faculty.id))">
-                                                    <Eye class="h-4 w-4 mr-2" />
-                                                    Lihat
-                                                </DropdownMenuItem>
-                                                <DropdownMenuItem
-                                                    @click="router.visit(route('admin.faculties.edit', faculty.id))">
-                                                    <Edit class="h-4 w-4 mr-2" />
-                                                    Edit
-                                                </DropdownMenuItem>
-                                                <DropdownMenuItem @click="deleteFaculty(faculty)" class="text-red-600"
-                                                    :disabled="faculty.study_programs_count > 0">
-                                                    <Trash2 class="h-4 w-4 mr-2" />
-                                                    Hapus
-                                                </DropdownMenuItem>
-                                            </DropdownMenuContent>
-                                        </DropdownMenu>
-                                    </TableCell>
-                                </TableRow>
-                            </TableBody>
-                        </Table>
-                    </div>
+          <!-- Pagination -->
+          <div
+            v-if="faculties.last_page > 1"
+            class="flex items-center justify-between px-6 py-4 border-t"
+          >
+            <div class="text-sm text-gray-500">
+              Menampilkan {{ faculties.from }} hingga {{ faculties.to }} dari {{ faculties.total }} hasil
+            </div>
+            <div class="flex items-center space-x-2">
+              <!-- Previous Button -->
+              <Button
+                variant="outline"
+                size="sm"
+                :disabled="!faculties.links[0].url"
+                @click="goToPage(faculties.links[0].url)"
+              >
+                <ChevronLeft class="h-4 w-4" />
+                Halaman Sebelumnya
+              </Button>
 
-                    <!-- Pagination -->
-                    <div v-if="faculties.last_page > 1" class="flex items-center justify-between px-6 py-4 border-t">
-                        <div class="text-sm text-gray-500">
-                            Menampilkan {{ faculties.from }} hingga {{ faculties.to }} dari {{ faculties.total }} hasil
-                        </div>
-                        <div class="flex items-center space-x-2">
-                            <!-- Previous Button -->
-                            <Button variant="outline" size="sm" @click="goToPage(faculties.links[0].url)"
-                                :disabled="!faculties.links[0].url">
-                                <ChevronLeft class="h-4 w-4" />
-                                Halaman Sebelumnya
-                            </Button>
+              <!-- Page Numbers -->
+              <template
+                v-for="link in faculties.links.slice(1, -1)"
+                :key="link.label"
+              >
+                <Button
+                  variant="outline"
+                  size="sm"
+                  :disabled="!link.url"
+                  :class="{
+                    'bg-blue-600 text-white hover:bg-blue-700': link.active,
+                    'hover:bg-gray-100': !link.active
+                  }"
+                  @click="goToPage(link.url)"
+                >
+                  {{ link.label }}
+                </Button>
+              </template>
 
-                            <!-- Page Numbers -->
-                            <template v-for="link in faculties.links.slice(1, -1)" :key="link.label">
-                                <Button variant="outline" size="sm" @click="goToPage(link.url)" :disabled="!link.url"
-                                    :class="{
-                                        'bg-blue-600 text-white hover:bg-blue-700': link.active,
-                                        'hover:bg-gray-100': !link.active
-                                    }">
-                                    {{ link.label }}
-                                </Button>
-                            </template>
+              <!-- Next Button -->
+              <Button
+                variant="outline"
+                size="sm"
+                :disabled="!faculties.links[faculties.links.length - 1].url"
+                @click="goToPage(faculties.links[faculties.links.length - 1].url)"
+              >
+                Halaman Selanjutnya
+                <ChevronRight class="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
 
-                            <!-- Next Button -->
-                            <Button variant="outline" size="sm"
-                                @click="goToPage(faculties.links[faculties.links.length - 1].url)"
-                                :disabled="!faculties.links[faculties.links.length - 1].url">
-                                Halaman Selanjutnya
-                                <ChevronRight class="h-4 w-4" />
-                            </Button>
-                        </div>
-                    </div>
-                </CardContent>
-            </Card>
+    <!-- Delete Confirmation Dialog -->
+    <Dialog v-model:open="showDeleteDialog">
+      <DialogContent class="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle class="flex items-center gap-2">
+            <AlertTriangle class="h-5 w-5 text-destructive" />
+            Konfirmasi Hapus    
+          </DialogTitle>
+          <DialogDescription>
+            Apakah Anda yakin ingin menghapus fakultas ini? Tindakan ini tidak dapat dibatalkan.
+          </DialogDescription>
+        </DialogHeader>
+
+        <div
+          v-if="facultyToDelete"
+          class="py-4"
+        >
+          <div class="p-4 bg-muted rounded-lg">
+            <div class="flex items-center gap-3">
+              <div
+                class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center"
+              >
+                <UserCheck class="h-6 w-6 text-blue-600" />
+              </div>
+              <div class="flex-1">
+                <h4 class="font-semibold text-lg">
+                  {{ facultyToDelete.name }}
+                </h4>
+                <p class="text-sm text-muted-foreground">
+                  ID: {{ facultyToDelete.id }}
+                </p>
+              </div>
+            </div>
+          </div>
         </div>
 
-        <!-- Delete Confirmation Dialog -->
-        <Dialog v-model:open="showDeleteDialog">
-            <DialogContent class="sm:max-w-md">
-                <DialogHeader>
-                    <DialogTitle class="flex items-center gap-2">
-                        <AlertTriangle class="h-5 w-5 text-destructive" />
-                        Konfirmasi Hapus    
-                    </DialogTitle>
-                    <DialogDescription>
-                        Apakah Anda yakin ingin menghapus fakultas ini? Tindakan ini tidak dapat dibatalkan.
-                    </DialogDescription>
-                </DialogHeader>
-
-                <div v-if="facultyToDelete" class="py-4">
-                    <div class="p-4 bg-muted rounded-lg">
-                        <div class="flex items-center gap-3">
-                            <div
-                                class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center"
-                            >
-                                <UserCheck class="h-6 w-6 text-blue-600" />
-                            </div>
-                            <div class="flex-1">
-                                <h4 class="font-semibold text-lg">
-                                    {{ facultyToDelete.name }}
-                                </h4>
-                                <p class="text-sm text-muted-foreground">
-                                    ID: {{ facultyToDelete.id }}
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <DialogFooter>
-                    <Button variant="outline" @click="cancelDelete">
-                        Batal
-                    </Button>
-                    <Button variant="destructive" @click="confirmDelete">
-                        Hapus Fakultas
-                    </Button>
-                </DialogFooter>
-            </DialogContent>
-        </Dialog>
-    </AuthenticatedLayout>
+        <DialogFooter>
+          <Button
+            variant="outline"
+            @click="cancelDelete"
+          >
+            Batal
+          </Button>
+          <Button
+            variant="destructive"
+            @click="confirmDelete"
+          >
+            Hapus Fakultas
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  </AuthenticatedLayout>
 </template>

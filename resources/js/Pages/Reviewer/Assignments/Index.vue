@@ -215,276 +215,347 @@ const getProgressPercentage = (): number => {
 </script>
 
 <template>
+  <Head title="Tugas Review Saya" />
 
-    <Head title="Tugas Review Saya" />
+  <AuthenticatedLayout>
+    <template #header>
+      <h2 class="text-xl font-semibold leading-tight text-gray-800">
+        Tugas Review Saya
+      </h2>
+    </template>
 
-    <AuthenticatedLayout>
-        <template #header>
-            <h2 class="text-xl font-semibold leading-tight text-gray-800">
-                Tugas Review Saya
-            </h2>
-        </template>
+    <div class="space-y-6">
+      <!-- Stats Overview -->
+      <div class="grid gap-4 md:grid-cols-4">
+        <Card>
+          <CardContent class="p-6">
+            <div class="flex items-center space-x-2">
+              <FileText class="h-5 w-5 text-blue-500" />
+              <div>
+                <p class="text-sm font-medium text-muted-foreground">
+                  Total
+                </p>
+                <p class="text-2xl font-bold">
+                  {{ stats.total }}
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
-        <div class="space-y-6">
-            <!-- Stats Overview -->
-            <div class="grid gap-4 md:grid-cols-4">
-                <Card>
-                    <CardContent class="p-6">
-                        <div class="flex items-center space-x-2">
-                            <FileText class="h-5 w-5 text-blue-500" />
-                            <div>
-                                <p class="text-sm font-medium text-muted-foreground">Total</p>
-                                <p class="text-2xl font-bold">{{ stats.total }}</p>
-                            </div>
-                        </div>
-                    </CardContent>
-                </Card>
+        <Card>
+          <CardContent class="p-6">
+            <div class="flex items-center space-x-2">
+              <Clock class="h-5 w-5 text-orange-500" />
+              <div>
+                <p class="text-sm font-medium text-muted-foreground">
+                  Pending
+                </p>
+                <p class="text-2xl font-bold text-orange-600">
+                  {{ stats.pending }}
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
-                <Card>
-                    <CardContent class="p-6">
-                        <div class="flex items-center space-x-2">
-                            <Clock class="h-5 w-5 text-orange-500" />
-                            <div>
-                                <p class="text-sm font-medium text-muted-foreground">Pending</p>
-                                <p class="text-2xl font-bold text-orange-600">{{ stats.pending }}</p>
-                            </div>
-                        </div>
-                    </CardContent>
-                </Card>
+        <Card>
+          <CardContent class="p-6">
+            <div class="flex items-center space-x-2">
+              <CheckCircle class="h-5 w-5 text-green-500" />
+              <div>
+                <p class="text-sm font-medium text-muted-foreground">
+                  Selesai
+                </p>
+                <p class="text-2xl font-bold text-green-600">
+                  {{ stats.completed }}
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
-                <Card>
-                    <CardContent class="p-6">
-                        <div class="flex items-center space-x-2">
-                            <CheckCircle class="h-5 w-5 text-green-500" />
-                            <div>
-                                <p class="text-sm font-medium text-muted-foreground">Selesai</p>
-                                <p class="text-2xl font-bold text-green-600">{{ stats.completed }}</p>
-                            </div>
-                        </div>
-                    </CardContent>
-                </Card>
+        <Card>
+          <CardContent class="p-6">
+            <div class="flex items-center space-x-2">
+              <AlertTriangle class="h-5 w-5 text-red-500" />
+              <div>
+                <p class="text-sm font-medium text-muted-foreground">
+                  Terlambat
+                </p>
+                <p class="text-2xl font-bold text-red-600">
+                  {{ stats.overdue }}
+                </p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
 
-                <Card>
-                    <CardContent class="p-6">
-                        <div class="flex items-center space-x-2">
-                            <AlertTriangle class="h-5 w-5 text-red-500" />
-                            <div>
-                                <p class="text-sm font-medium text-muted-foreground">Terlambat</p>
-                                <p class="text-2xl font-bold text-red-600">{{ stats.overdue }}</p>
-                            </div>
-                        </div>
-                    </CardContent>
-                </Card>
+      <!-- Progress Overview -->
+      <Card>
+        <CardContent class="p-6">
+          <div class="space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="text-sm font-medium">Progress Keseluruhan</span>
+              <span class="text-sm text-muted-foreground">
+                {{ stats.completed }}/{{ stats.total }} selesai
+              </span>
+            </div>
+            <Progress
+              :value="getProgressPercentage()"
+              class="h-2"
+            />
+            <p class="text-xs text-muted-foreground">
+              {{ getProgressPercentage() }}% tugas selesai
+            </p>
+          </div>
+        </CardContent>
+      </Card>
+
+      <!-- Filters -->
+      <Card>
+        <CardHeader>
+          <CardTitle>Filter</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div class="grid gap-4 md:grid-cols-3">
+            <div class="space-y-2">
+              <Label for="search">Cari</Label>
+              <div class="relative">
+                <Search class="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input
+                  id="search"
+                  v-model="filterForm.search"
+                  placeholder="Cari berdasarkan judul form atau pengajuan"
+                  class="pl-8"
+                  @keyup.enter="searchAssignments"
+                />
+              </div>
             </div>
 
-            <!-- Progress Overview -->
-            <Card>
-                <CardContent class="p-6">
-                    <div class="space-y-2">
-                        <div class="flex items-center justify-between">
-                            <span class="text-sm font-medium">Progress Keseluruhan</span>
-                            <span class="text-sm text-muted-foreground">
-                                {{ stats.completed }}/{{ stats.total }} selesai
-                            </span>
-                        </div>
-                        <Progress :value="getProgressPercentage()" class="h-2" />
-                        <p class="text-xs text-muted-foreground">
-                            {{ getProgressPercentage() }}% tugas selesai
-                        </p>
+            <div class="space-y-2">
+              <Label>Status</Label>
+              <Select v-model="filterForm.status">
+                <SelectTrigger>
+                  <SelectValue placeholder="All statuses" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="">
+                    Semua status
+                  </SelectItem>
+                  <SelectItem value="pending">
+                    Pending
+                  </SelectItem>
+                  <SelectItem value="completed">
+                    Selesai
+                  </SelectItem>
+                  <SelectItem value="overdue">
+                    Terlambat
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div class="flex items-end space-x-2">
+              <Button
+                class="flex-1"
+                @click="searchAssignments"
+              >
+                <Filter class="h-4 w-4 mr-2" />
+                Filter
+              </Button>
+              <Button
+                variant="outline"
+                @click="clearFilters"
+              >
+                Bersihkan Filter
+              </Button>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      <!-- Assignments Table -->
+      <Card>
+        <CardHeader>
+          <CardTitle>
+            Review Tugas
+            <Badge
+              variant="secondary"
+              class="ml-2"
+            >
+              {{ assignments.total }} total
+            </Badge>
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div
+            v-if="assignments.data.length === 0"
+            class="text-center py-8"
+          >
+            <FileText class="h-16 w-16 mx-auto text-gray-400 mb-4" />
+            <h3 class="text-lg font-medium text-gray-900 mb-2">
+              Tidak ada tugas ditemukan
+            </h3>
+            <p class="text-gray-500">
+              Anda tidak memiliki tugas review saat ini.
+            </p>
+          </div>
+
+          <div v-else>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Form Evaluasi</TableHead>
+                  <TableHead>Pengajuan</TableHead>
+                  <TableHead>Pengirim</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Tanngal Jatuh Tempo</TableHead>
+                  <TableHead>Prioritas</TableHead>
+                  <TableHead class="text-right">
+                    Aksi
+                  </TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                <TableRow
+                  v-for="assignment in assignments.data"
+                  :key="assignment.id"
+                  class="hover:bg-muted/50"
+                >
+                  <TableCell>
+                    <div>
+                      <div class="font-medium">
+                        {{ assignment.review_evaluation_form.title }}
+                      </div>
+                      <div
+                        v-if="assignment.review_evaluation_form.description"
+                        class="text-sm text-muted-foreground"
+                      >
+                        {{ assignment.review_evaluation_form.description }}
+                      </div>
                     </div>
-                </CardContent>
-            </Card>
+                  </TableCell>
 
-            <!-- Filters -->
-            <Card>
-                <CardHeader>
-                    <CardTitle>Filter</CardTitle>
-                </CardHeader>
-                <CardContent>
-                    <div class="grid gap-4 md:grid-cols-3">
-                        <div class="space-y-2">
-                            <Label for="search">Cari</Label>
-                            <div class="relative">
-                                <Search class="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-                                <Input id="search" v-model="filterForm.search"
-                                    placeholder="Cari berdasarkan judul form atau pengajuan" class="pl-8"
-                                    @keyup.enter="searchAssignments" />
-                            </div>
-                        </div>
-
-                        <div class="space-y-2">
-                            <Label>Status</Label>
-                            <Select v-model="filterForm.status">
-                                <SelectTrigger>
-                                    <SelectValue placeholder="All statuses" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="">Semua status</SelectItem>
-                                    <SelectItem value="pending">Pending</SelectItem>
-                                    <SelectItem value="completed">Selesai</SelectItem>
-                                    <SelectItem value="overdue">Terlambat</SelectItem>
-                                </SelectContent>
-                            </Select>
-                        </div>
-
-                        <div class="flex items-end space-x-2">
-                            <Button @click="searchAssignments" class="flex-1">
-                                <Filter class="h-4 w-4 mr-2" />
-                                Filter
-                            </Button>
-                            <Button variant="outline" @click="clearFilters">
-                                Bersihkan Filter
-                            </Button>
-                        </div>
+                  <TableCell>
+                    <div class="font-medium">
+                      {{ assignment.submission_reviewer.form_submission.form.title }}
                     </div>
-                </CardContent>
-            </Card>
+                  </TableCell>
 
-            <!-- Assignments Table -->
-            <Card>
-                <CardHeader>
-                    <CardTitle>
-                        Review Tugas
-                        <Badge variant="secondary" class="ml-2">
-                            {{ assignments.total }} total
-                        </Badge>
-                    </CardTitle>
-                </CardHeader>
-                <CardContent>
-                    <div v-if="assignments.data.length === 0" class="text-center py-8">
-                        <FileText class="h-16 w-16 mx-auto text-gray-400 mb-4" />
-                        <h3 class="text-lg font-medium text-gray-900 mb-2">
-                            Tidak ada tugas ditemukan
-                        </h3>
-                        <p class="text-gray-500">
-                            Anda tidak memiliki tugas review saat ini.
-                        </p>
+                  <TableCell>
+                    <div class="flex items-center space-x-2">
+                      <User class="h-4 w-4 text-muted-foreground" />
+                      <span>{{ assignment.submission_reviewer.form_submission.submitted_by.name
+                      }}</span>
                     </div>
+                  </TableCell>
 
-                    <div v-else>
-                        <Table>
-                            <TableHeader>
-                                <TableRow>
-                                    <TableHead>Form Evaluasi</TableHead>
-                                    <TableHead>Pengajuan</TableHead>
-                                    <TableHead>Pengirim</TableHead>
-                                    <TableHead>Status</TableHead>
-                                    <TableHead>Tanngal Jatuh Tempo</TableHead>
-                                    <TableHead>Prioritas</TableHead>
-                                    <TableHead class="text-right">Aksi</TableHead>
-                                </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                <TableRow v-for="assignment in assignments.data" :key="assignment.id"
-                                    class="hover:bg-muted/50">
-                                    <TableCell>
-                                        <div>
-                                            <div class="font-medium">
-                                                {{ assignment.review_evaluation_form.title }}
-                                            </div>
-                                            <div v-if="assignment.review_evaluation_form.description"
-                                                class="text-sm text-muted-foreground">
-                                                {{ assignment.review_evaluation_form.description }}
-                                            </div>
-                                        </div>
-                                    </TableCell>
-
-                                    <TableCell>
-                                        <div class="font-medium">
-                                            {{ assignment.submission_reviewer.form_submission.form.title }}
-                                        </div>
-                                    </TableCell>
-
-                                    <TableCell>
-                                        <div class="flex items-center space-x-2">
-                                            <User class="h-4 w-4 text-muted-foreground" />
-                                            <span>{{ assignment.submission_reviewer.form_submission.submitted_by.name
-                                                }}</span>
-                                        </div>
-                                    </TableCell>
-
-                                    <TableCell>
-                                        <div class="flex items-center space-x-2">
-                                            <component :is="getStatusInfo(assignment).icon" class="h-4 w-4"
-                                                :class="getStatusInfo(assignment).color" />
-                                            <Badge :variant="getStatusInfo(assignment).variant">
-                                                {{ getStatusInfo(assignment).text }}
-                                            </Badge>
-                                        </div>
-                                    </TableCell>
-
-                                    <TableCell>
-                                        <div v-if="assignment.due_date">
-                                            <div class="flex items-center space-x-2">
-                                                <Calendar class="h-4 w-4 text-muted-foreground" />
-                                                <span class="text-sm">{{ formatDate(assignment.due_date) }}</span>
-                                            </div>
-                                            <div class="text-xs text-muted-foreground">
-                                                {{ getDaysUntilDue(assignment.due_date) }}
-                                            </div>
-                                        </div>
-                                        <div v-else class="text-sm text-muted-foreground">
-                                            Tidak ada tenggat waktu
-                                        </div>
-                                    </TableCell>
-
-                                    <TableCell>
-                                        <Badge :variant="assignment.is_required ? 'default' : 'outline'">
-                                            {{ assignment.is_required ? 'Wajib' : 'Opsional' }}
-                                        </Badge>
-                                    </TableCell>
-
-                                    <TableCell class="text-right">
-                                        <div class="flex items-center justify-end space-x-2">
-                                            <!-- Start/Continue Form Button -->
-                                            <Button
-                                                v-if="!assignment.review_form_response || assignment.review_form_response.status === 'draft'"
-                                                size="sm" as-child>
-                                                <a :href="route('reviewer.evaluation-form.show', assignment.id)">
-                                                    <FileText class="h-4 w-4 mr-1" />
-                                                    {{ assignment.review_form_response ? 'Lanjutkan' : 'Mulai' }}
-                                                </a>
-                                            </Button>
-
-                                            <!-- View Completed Form Button -->
-                                            <Button v-if="assignment.review_form_response?.status === 'submitted'"
-                                                size="sm" variant="outline" as-child>
-                                                <a :href="route('reviewer.evaluation-form.submitted', assignment.id)">
-                                                    <Eye class="h-4 w-4 mr-1" />
-                                                    Lihat
-                                                </a>
-                                            </Button>
-
-                                            <!-- Locked Form Info -->
-                                            <Badge v-if="assignment.review_form_response?.status === 'locked'"
-                                                variant="destructive">
-                                                Terkunci
-                                            </Badge>
-                                        </div>
-                                    </TableCell>
-                                </TableRow>
-                            </TableBody>
-                        </Table>
-
-                        <!-- Pagination -->
-                        <div v-if="assignments.last_page > 1" class="flex items-center justify-between mt-6">
-                            <div class="text-sm text-muted-foreground">
-                                Menampilkan {{ (assignments.current_page - 1) * assignments.per_page + 1 }}
-                                hingga {{ Math.min(assignments.current_page * assignments.per_page, assignments.total) }}
-                                dari {{ assignments.total }} hasil
-                            </div>
-
-                            <div class="flex space-x-2">
-                                <Button v-for="link in assignments.links" :key="link.label"
-                                    :variant="link.active ? 'default' : 'outline'" :disabled="!link.url"
-                                    @click="link.url && router.get(link.url)" size="sm">
-                                    {{ link.label }}
-                                </Button>
-                            </div>
-                        </div>
+                  <TableCell>
+                    <div class="flex items-center space-x-2">
+                      <component
+                        :is="getStatusInfo(assignment).icon"
+                        class="h-4 w-4"
+                        :class="getStatusInfo(assignment).color"
+                      />
+                      <Badge :variant="getStatusInfo(assignment).variant">
+                        {{ getStatusInfo(assignment).text }}
+                      </Badge>
                     </div>
-                </CardContent>
-            </Card>
-        </div>
-    </AuthenticatedLayout>
+                  </TableCell>
+
+                  <TableCell>
+                    <div v-if="assignment.due_date">
+                      <div class="flex items-center space-x-2">
+                        <Calendar class="h-4 w-4 text-muted-foreground" />
+                        <span class="text-sm">{{ formatDate(assignment.due_date) }}</span>
+                      </div>
+                      <div class="text-xs text-muted-foreground">
+                        {{ getDaysUntilDue(assignment.due_date) }}
+                      </div>
+                    </div>
+                    <div
+                      v-else
+                      class="text-sm text-muted-foreground"
+                    >
+                      Tidak ada tenggat waktu
+                    </div>
+                  </TableCell>
+
+                  <TableCell>
+                    <Badge :variant="assignment.is_required ? 'default' : 'outline'">
+                      {{ assignment.is_required ? 'Wajib' : 'Opsional' }}
+                    </Badge>
+                  </TableCell>
+
+                  <TableCell class="text-right">
+                    <div class="flex items-center justify-end space-x-2">
+                      <!-- Start/Continue Form Button -->
+                      <Button
+                        v-if="!assignment.review_form_response || assignment.review_form_response.status === 'draft'"
+                        size="sm"
+                        as-child
+                      >
+                        <a :href="route('reviewer.evaluation-form.show', assignment.id)">
+                          <FileText class="h-4 w-4 mr-1" />
+                          {{ assignment.review_form_response ? 'Lanjutkan' : 'Mulai' }}
+                        </a>
+                      </Button>
+
+                      <!-- View Completed Form Button -->
+                      <Button
+                        v-if="assignment.review_form_response?.status === 'submitted'"
+                        size="sm"
+                        variant="outline"
+                        as-child
+                      >
+                        <a :href="route('reviewer.evaluation-form.submitted', assignment.id)">
+                          <Eye class="h-4 w-4 mr-1" />
+                          Lihat
+                        </a>
+                      </Button>
+
+                      <!-- Locked Form Info -->
+                      <Badge
+                        v-if="assignment.review_form_response?.status === 'locked'"
+                        variant="destructive"
+                      >
+                        Terkunci
+                      </Badge>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              </TableBody>
+            </Table>
+
+            <!-- Pagination -->
+            <div
+              v-if="assignments.last_page > 1"
+              class="flex items-center justify-between mt-6"
+            >
+              <div class="text-sm text-muted-foreground">
+                Menampilkan {{ (assignments.current_page - 1) * assignments.per_page + 1 }}
+                hingga {{ Math.min(assignments.current_page * assignments.per_page, assignments.total) }}
+                dari {{ assignments.total }} hasil
+              </div>
+
+              <div class="flex space-x-2">
+                <Button
+                  v-for="link in assignments.links"
+                  :key="link.label"
+                  :variant="link.active ? 'default' : 'outline'"
+                  :disabled="!link.url"
+                  size="sm"
+                  @click="link.url && router.get(link.url)"
+                >
+                  {{ link.label }}
+                </Button>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    </div>
+  </AuthenticatedLayout>
 </template>

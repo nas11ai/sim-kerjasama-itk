@@ -395,324 +395,333 @@ const goBack = () => {
 </script>
 
 <template>
-    <Head title="Formulir Biodata" />
+  <Head title="Formulir Biodata" />
 
-    <AuthenticatedLayout>
-        <template #header>
-            <div class="flex items-center justify-between">
-                <div class="flex items-center gap-3">
-                    <Button
-                        variant="ghost"
-                        size="icon"
-                        @click="goBack"
-                        class="hover:bg-primary/10"
-                    >
-                        <ArrowLeft class="h-5 w-5" />
-                    </Button>
-                    <div class="p-2 bg-primary/10 rounded-lg">
-                        <FileText class="h-6 w-6 text-primary" />
-                    </div>
-                    <div>
-                        <h2 class="text-xl font-semibold leading-tight text-gray-800">
-                            {{ isEditing ? "Edit Biodata" : "Lengkapi Biodata" }}
-                        </h2>
-                        <p class="text-sm text-muted-foreground mt-0.5">
-                            {{ form.description || "Silakan lengkapi biodata Anda" }}
-                        </p>
-                    </div>
-                </div>
-                <Badge
-                    v-if="existingSubmission"
-                    :variant="getStatusVariant(existingSubmission.status)"
-                    class="text-xs px-3 py-1"
-                >
-                    {{ getStatusLabel(existingSubmission.status) }}
-                </Badge>
-            </div>
-        </template>
-
-        <div class="max-w-4xl mx-auto space-y-6 py-6 px-4 sm:px-6 lg:px-8">
-            <!-- Custom Alert -->
-            <Transition name="alert">
-                <Alert
-                    v-if="showAlert"
-                    :type="alertType"
-                    :title="alertTitle"
-                    :message="alertMessage"
-                    @dismiss="dismissCustomAlert"
-                />
-            </Transition>
-
-            <!-- Biodata Status Alert -->
-            <Alert
-                v-if="shouldShowBiodataAlert"
-                :type="biodataAlertType"
-                title="Perhatian"
-                :message="biodataStatus!.message!"
-                :dismissible="false"
-            />
-
-            <!-- Submission Status Alert -->
-            <Alert
-                v-if="shouldShowSubmissionAlert"
-                :type="submissionAlertType"
-                :title="`Status: ${getStatusLabel(existingSubmission!.status)}`"
-                :message="submissionAlertMessage"
-                :dismissible="false"
-            />
-
-            <!-- Progress Card (only show when editing) -->
-            <Card v-if="canEdit" class="border-primary/20">
-                <CardContent class="pt-6">
-                    <div class="flex items-center justify-between mb-2">
-                        <div class="flex items-center gap-2">
-                            <CheckCircle2 class="h-4 w-4 text-primary" />
-                            <span class="text-sm font-medium">Progress Pengisian</span>
-                        </div>
-                        <span class="text-sm font-semibold text-primary">{{ progress }}%</span>
-                    </div>
-                    <Progress :model-value="progress" class="h-2" />
-                    <p class="text-xs text-muted-foreground mt-2">
-                        {{ props.form.form_fields.length }} field tersedia
-                    </p>
-                </CardContent>
-            </Card>
-
-            <!-- Main Form -->
-            <Card>
-                <CardHeader class="bg-linear-to-r from-primary/5 to-primary/10">
-                    <CardTitle class="flex items-center gap-2">
-                        <FileText class="h-5 w-5" />
-                        {{ form.title }}
-                    </CardTitle>
-                    <CardDescription v-if="form.description">
-                        {{ form.description }}
-                    </CardDescription>
-                </CardHeader>
-
-                <CardContent class="pt-6">
-                    <form @submit.prevent="submitForm" class="space-y-8">
-                        <!-- Form Fields -->
-                        <div
-                            v-for="(field, index) in form.form_fields"
-                            :key="field.id"
-                            class="space-y-3 pb-6"
-                            :class="{ 'border-b': index < form.form_fields.length - 1 }"
-                        >
-                            <div class="flex items-start gap-3">
-                                <component
-                                    :is="getFieldIcon(field.field_type.name)"
-                                    class="h-5 w-5 text-muted-foreground mt-0.5 shrink-0"
-                                />
-                                <div class="flex-1 space-y-2">
-                                    <Label
-                                        :for="`field_${field.id}`"
-                                        class="text-base flex items-center gap-2"
-                                    >
-                                        {{ field.label }}
-                                        <Badge
-                                            v-if="field.is_required"
-                                            variant="destructive"
-                                            class="text-xs px-1.5 py-0"
-                                        >
-                                            Wajib
-                                        </Badge>
-                                    </Label>
-
-                                    <!-- Helper Text -->
-                                    <p
-                                        v-if="field.helper_text"
-                                        class="text-xs text-muted-foreground"
-                                    >
-                                        {{ field.helper_text }}
-                                    </p>
-
-                                    <!-- Text, Email, Number, URL, Phone, Date, Time -->
-                                    <Input
-                                        v-if="['text', 'email', 'number', 'url', 'phone', 'date', 'time'].includes(field.field_type.name.toLowerCase())"
-                                        v-model="formData.responses[`field_${field.id}`]"
-                                        :id="`field_${field.id}`"
-                                        :type="field.field_type.name.toLowerCase()"
-                                        :placeholder="`Masukkan ${field.label.toLowerCase()}...`"
-                                        :required="field.is_required"
-                                        :disabled="!canEdit"
-                                        class="max-w-2xl"
-                                    />
-
-                                    <!-- Textarea -->
-                                    <Textarea
-                                        v-else-if="field.field_type.name.toLowerCase() === 'textarea'"
-                                        v-model="formData.responses[`field_${field.id}`]"
-                                        :id="`field_${field.id}`"
-                                        rows="4"
-                                        :placeholder="`Masukkan ${field.label.toLowerCase()}...`"
-                                        :required="field.is_required"
-                                        :disabled="!canEdit"
-                                        class="max-w-2xl"
-                                    />
-
-                                    <!-- Select/Dropdown -->
-                                    <Select
-                                        v-else-if="field.field_type.name.toLowerCase() === 'select'"
-                                        v-model="formData.responses[`field_${field.id}`]"
-                                        :disabled="!canEdit"
-                                    >
-                                        <SelectTrigger class="max-w-md">
-                                            <SelectValue
-                                                :placeholder="`Pilih ${field.label.toLowerCase()}...`"
-                                            />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem
-                                                v-for="option in field.form_field_options"
-                                                :key="option.id"
-                                                :value="option.value"
-                                            >
-                                                {{ option.label }}
-                                            </SelectItem>
-                                        </SelectContent>
-                                    </Select>
-
-                                    <!-- Radio Group -->
-                                    <RadioGroup
-                                        v-else-if="field.field_type.name.toLowerCase() === 'radio'"
-                                        v-model="formData.responses[`field_${field.id}`]"
-                                        :disabled="!canEdit"
-                                        class="space-y-2"
-                                    >
-                                        <div
-                                            v-for="option in field.form_field_options"
-                                            :key="option.id"
-                                            class="flex items-center space-x-2"
-                                        >
-                                            <RadioGroupItem
-                                                :value="option.value"
-                                                :id="`field_${field.id}_${option.id}`"
-                                            />
-                                            <Label
-                                                :for="`field_${field.id}_${option.id}`"
-                                                class="font-normal cursor-pointer"
-                                            >
-                                                {{ option.label }}
-                                            </Label>
-                                        </div>
-                                    </RadioGroup>
-
-                                    <!-- Checkbox -->
-                                    <div
-                                        v-else-if="field.field_type.name.toLowerCase() === 'checkbox'"
-                                        class="flex items-center space-x-2"
-                                    >
-                                        <Checkbox
-                                            v-model:checked="formData.responses[`field_${field.id}`]"
-                                            :id="`field_${field.id}`"
-                                            :disabled="!canEdit"
-                                        />
-                                        <Label
-                                            :for="`field_${field.id}`"
-                                            class="font-normal cursor-pointer"
-                                        >
-                                            Ya, saya setuju
-                                        </Label>
-                                    </div>
-
-                                    <!-- File Upload -->
-                                    <div
-                                        v-else-if="field.field_type.name.toLowerCase() === 'file'"
-                                        class="space-y-2"
-                                    >
-                                        <div
-                                            class="flex items-center gap-2 p-4 border-2 border-dashed rounded-lg hover:border-primary/50 transition-colors"
-                                        >
-                                            <Input
-                                                type="file"
-                                                :id="`field_${field.id}`"
-                                                @change="handleFileUpload($event, field.id)"
-                                                :disabled="!canEdit"
-                                                class="flex-1 cursor-pointer file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-primary-foreground hover:file:bg-primary/90"
-                                            />
-                                        </div>
-                                        <p
-                                            v-if="existingResponses?.[field.id]"
-                                            class="text-xs text-muted-foreground flex items-center gap-1"
-                                        >
-                                            <CheckCircle2 class="h-3 w-3 text-green-600" />
-                                            File saat ini: {{ existingResponses[field.id] }}
-                                        </p>
-                                    </div>
-
-                                    <!-- Default fallback -->
-                                    <Input
-                                        v-else
-                                        v-model="formData.responses[`field_${field.id}`]"
-                                        :id="`field_${field.id}`"
-                                        type="text"
-                                        :placeholder="`Masukkan ${field.label.toLowerCase()}...`"
-                                        :required="field.is_required"
-                                        :disabled="!canEdit"
-                                        class="max-w-2xl"
-                                    />
-
-                                    <!-- Field Error -->
-                                    <p
-                                        v-if="(formData.errors as Record<string, any>)[`field_${field.id}`]"
-                                        class="text-xs text-destructive flex items-center gap-1"
-                                    >
-                                        <AlertCircle class="h-3 w-3" />
-                                        {{ (formData.errors as Record<string, any>)[`field_${field.id}`] }}
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-                    </form>
-                </CardContent>
-
-                <CardFooter
-                    class="bg-muted/30 flex flex-col sm:flex-row justify-between gap-4"
-                >
-                    <!-- Submission Info -->
-                    <div
-                        v-if="existingSubmission"
-                        class="text-xs text-muted-foreground space-y-1"
-                    >
-                        <p class="flex items-center gap-1">
-                            <Calendar class="h-3 w-3" />
-                            Dibuat: {{ new Date(existingSubmission.created_at).toLocaleDateString("id-ID", {
-                                dateStyle: "long"
-                            }) }}
-                        </p>
-                        <p class="flex items-center gap-1">
-                            <Calendar class="h-3 w-3" />
-                            Diperbarui: {{ new Date(existingSubmission.updated_at).toLocaleDateString("id-ID", {
-                                dateStyle: "long"
-                            }) }}
-                        </p>
-                    </div>
-
-                    <div class="flex gap-3 sm:ml-auto">
-                        <Button
-                            type="button"
-                            variant="outline"
-                            @click="goBack"
-                            class="gap-2"
-                        >
-                            <ArrowLeft class="h-4 w-4" />
-                            Kembali
-                        </Button>
-
-                        <Button
-                            v-if="canEdit"
-                            type="button"
-                            @click="submitForm"
-                            :disabled="isSubmitting || formData.processing"
-                            class="gap-2"
-                        >
-                            <Send class="h-4 w-4" />
-                            {{ isSubmitting ? "Mengirim..." : "Serahkan Biodata" }}
-                        </Button>
-                    </div>
-                </CardFooter>
-            </Card>
+  <AuthenticatedLayout>
+    <template #header>
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <Button
+            variant="ghost"
+            size="icon"
+            class="hover:bg-primary/10"
+            @click="goBack"
+          >
+            <ArrowLeft class="h-5 w-5" />
+          </Button>
+          <div class="p-2 bg-primary/10 rounded-lg">
+            <FileText class="h-6 w-6 text-primary" />
+          </div>
+          <div>
+            <h2 class="text-xl font-semibold leading-tight text-gray-800">
+              {{ isEditing ? "Edit Biodata" : "Lengkapi Biodata" }}
+            </h2>
+            <p class="text-sm text-muted-foreground mt-0.5">
+              {{ form.description || "Silakan lengkapi biodata Anda" }}
+            </p>
+          </div>
         </div>
-    </AuthenticatedLayout>
+        <Badge
+          v-if="existingSubmission"
+          :variant="getStatusVariant(existingSubmission.status)"
+          class="text-xs px-3 py-1"
+        >
+          {{ getStatusLabel(existingSubmission.status) }}
+        </Badge>
+      </div>
+    </template>
+
+    <div class="max-w-4xl mx-auto space-y-6 py-6 px-4 sm:px-6 lg:px-8">
+      <!-- Custom Alert -->
+      <Transition name="alert">
+        <Alert
+          v-if="showAlert"
+          :type="alertType"
+          :title="alertTitle"
+          :message="alertMessage"
+          @dismiss="dismissCustomAlert"
+        />
+      </Transition>
+
+      <!-- Biodata Status Alert -->
+      <Alert
+        v-if="shouldShowBiodataAlert"
+        :type="biodataAlertType"
+        title="Perhatian"
+        :message="biodataStatus!.message!"
+        :dismissible="false"
+      />
+
+      <!-- Submission Status Alert -->
+      <Alert
+        v-if="shouldShowSubmissionAlert"
+        :type="submissionAlertType"
+        :title="`Status: ${getStatusLabel(existingSubmission!.status)}`"
+        :message="submissionAlertMessage"
+        :dismissible="false"
+      />
+
+      <!-- Progress Card (only show when editing) -->
+      <Card
+        v-if="canEdit"
+        class="border-primary/20"
+      >
+        <CardContent class="pt-6">
+          <div class="flex items-center justify-between mb-2">
+            <div class="flex items-center gap-2">
+              <CheckCircle2 class="h-4 w-4 text-primary" />
+              <span class="text-sm font-medium">Progress Pengisian</span>
+            </div>
+            <span class="text-sm font-semibold text-primary">{{ progress }}%</span>
+          </div>
+          <Progress
+            :model-value="progress"
+            class="h-2"
+          />
+          <p class="text-xs text-muted-foreground mt-2">
+            {{ props.form.form_fields.length }} field tersedia
+          </p>
+        </CardContent>
+      </Card>
+
+      <!-- Main Form -->
+      <Card>
+        <CardHeader class="bg-linear-to-r from-primary/5 to-primary/10">
+          <CardTitle class="flex items-center gap-2">
+            <FileText class="h-5 w-5" />
+            {{ form.title }}
+          </CardTitle>
+          <CardDescription v-if="form.description">
+            {{ form.description }}
+          </CardDescription>
+        </CardHeader>
+
+        <CardContent class="pt-6">
+          <form
+            class="space-y-8"
+            @submit.prevent="submitForm"
+          >
+            <!-- Form Fields -->
+            <div
+              v-for="(field, index) in form.form_fields"
+              :key="field.id"
+              class="space-y-3 pb-6"
+              :class="{ 'border-b': index < form.form_fields.length - 1 }"
+            >
+              <div class="flex items-start gap-3">
+                <component
+                  :is="getFieldIcon(field.field_type.name)"
+                  class="h-5 w-5 text-muted-foreground mt-0.5 shrink-0"
+                />
+                <div class="flex-1 space-y-2">
+                  <Label
+                    :for="`field_${field.id}`"
+                    class="text-base flex items-center gap-2"
+                  >
+                    {{ field.label }}
+                    <Badge
+                      v-if="field.is_required"
+                      variant="destructive"
+                      class="text-xs px-1.5 py-0"
+                    >
+                      Wajib
+                    </Badge>
+                  </Label>
+
+                  <!-- Helper Text -->
+                  <p
+                    v-if="field.helper_text"
+                    class="text-xs text-muted-foreground"
+                  >
+                    {{ field.helper_text }}
+                  </p>
+
+                  <!-- Text, Email, Number, URL, Phone, Date, Time -->
+                  <Input
+                    v-if="['text', 'email', 'number', 'url', 'phone', 'date', 'time'].includes(field.field_type.name.toLowerCase())"
+                    :id="`field_${field.id}`"
+                    v-model="formData.responses[`field_${field.id}`]"
+                    :type="field.field_type.name.toLowerCase()"
+                    :placeholder="`Masukkan ${field.label.toLowerCase()}...`"
+                    :required="field.is_required"
+                    :disabled="!canEdit"
+                    class="max-w-2xl"
+                  />
+
+                  <!-- Textarea -->
+                  <Textarea
+                    v-else-if="field.field_type.name.toLowerCase() === 'textarea'"
+                    :id="`field_${field.id}`"
+                    v-model="formData.responses[`field_${field.id}`]"
+                    rows="4"
+                    :placeholder="`Masukkan ${field.label.toLowerCase()}...`"
+                    :required="field.is_required"
+                    :disabled="!canEdit"
+                    class="max-w-2xl"
+                  />
+
+                  <!-- Select/Dropdown -->
+                  <Select
+                    v-else-if="field.field_type.name.toLowerCase() === 'select'"
+                    v-model="formData.responses[`field_${field.id}`]"
+                    :disabled="!canEdit"
+                  >
+                    <SelectTrigger class="max-w-md">
+                      <SelectValue
+                        :placeholder="`Pilih ${field.label.toLowerCase()}...`"
+                      />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem
+                        v-for="option in field.form_field_options"
+                        :key="option.id"
+                        :value="option.value"
+                      >
+                        {{ option.label }}
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+
+                  <!-- Radio Group -->
+                  <RadioGroup
+                    v-else-if="field.field_type.name.toLowerCase() === 'radio'"
+                    v-model="formData.responses[`field_${field.id}`]"
+                    :disabled="!canEdit"
+                    class="space-y-2"
+                  >
+                    <div
+                      v-for="option in field.form_field_options"
+                      :key="option.id"
+                      class="flex items-center space-x-2"
+                    >
+                      <RadioGroupItem
+                        :id="`field_${field.id}_${option.id}`"
+                        :value="option.value"
+                      />
+                      <Label
+                        :for="`field_${field.id}_${option.id}`"
+                        class="font-normal cursor-pointer"
+                      >
+                        {{ option.label }}
+                      </Label>
+                    </div>
+                  </RadioGroup>
+
+                  <!-- Checkbox -->
+                  <div
+                    v-else-if="field.field_type.name.toLowerCase() === 'checkbox'"
+                    class="flex items-center space-x-2"
+                  >
+                    <Checkbox
+                      :id="`field_${field.id}`"
+                      v-model:checked="formData.responses[`field_${field.id}`]"
+                      :disabled="!canEdit"
+                    />
+                    <Label
+                      :for="`field_${field.id}`"
+                      class="font-normal cursor-pointer"
+                    >
+                      Ya, saya setuju
+                    </Label>
+                  </div>
+
+                  <!-- File Upload -->
+                  <div
+                    v-else-if="field.field_type.name.toLowerCase() === 'file'"
+                    class="space-y-2"
+                  >
+                    <div
+                      class="flex items-center gap-2 p-4 border-2 border-dashed rounded-lg hover:border-primary/50 transition-colors"
+                    >
+                      <Input
+                        :id="`field_${field.id}`"
+                        type="file"
+                        :disabled="!canEdit"
+                        class="flex-1 cursor-pointer file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-primary-foreground hover:file:bg-primary/90"
+                        @change="handleFileUpload($event, field.id)"
+                      />
+                    </div>
+                    <p
+                      v-if="existingResponses?.[field.id]"
+                      class="text-xs text-muted-foreground flex items-center gap-1"
+                    >
+                      <CheckCircle2 class="h-3 w-3 text-green-600" />
+                      File saat ini: {{ existingResponses[field.id] }}
+                    </p>
+                  </div>
+
+                  <!-- Default fallback -->
+                  <Input
+                    v-else
+                    :id="`field_${field.id}`"
+                    v-model="formData.responses[`field_${field.id}`]"
+                    type="text"
+                    :placeholder="`Masukkan ${field.label.toLowerCase()}...`"
+                    :required="field.is_required"
+                    :disabled="!canEdit"
+                    class="max-w-2xl"
+                  />
+
+                  <!-- Field Error -->
+                  <p
+                    v-if="(formData.errors as Record<string, any>)[`field_${field.id}`]"
+                    class="text-xs text-destructive flex items-center gap-1"
+                  >
+                    <AlertCircle class="h-3 w-3" />
+                    {{ (formData.errors as Record<string, any>)[`field_${field.id}`] }}
+                  </p>
+                </div>
+              </div>
+            </div>
+          </form>
+        </CardContent>
+
+        <CardFooter
+          class="bg-muted/30 flex flex-col sm:flex-row justify-between gap-4"
+        >
+          <!-- Submission Info -->
+          <div
+            v-if="existingSubmission"
+            class="text-xs text-muted-foreground space-y-1"
+          >
+            <p class="flex items-center gap-1">
+              <Calendar class="h-3 w-3" />
+              Dibuat: {{ new Date(existingSubmission.created_at).toLocaleDateString("id-ID", {
+                dateStyle: "long"
+              }) }}
+            </p>
+            <p class="flex items-center gap-1">
+              <Calendar class="h-3 w-3" />
+              Diperbarui: {{ new Date(existingSubmission.updated_at).toLocaleDateString("id-ID", {
+                dateStyle: "long"
+              }) }}
+            </p>
+          </div>
+
+          <div class="flex gap-3 sm:ml-auto">
+            <Button
+              type="button"
+              variant="outline"
+              class="gap-2"
+              @click="goBack"
+            >
+              <ArrowLeft class="h-4 w-4" />
+              Kembali
+            </Button>
+
+            <Button
+              v-if="canEdit"
+              type="button"
+              :disabled="isSubmitting || formData.processing"
+              class="gap-2"
+              @click="submitForm"
+            >
+              <Send class="h-4 w-4" />
+              {{ isSubmitting ? "Mengirim..." : "Serahkan Biodata" }}
+            </Button>
+          </div>
+        </CardFooter>
+      </Card>
+    </div>
+  </AuthenticatedLayout>
 </template>
