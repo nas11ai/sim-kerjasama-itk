@@ -6,7 +6,9 @@
         "dev": "vite",
         "dev-build": "vite build --mode development --watch",
         "test:e2e": "playwright test",
-        "test:e2e:ui": "playwright test --ui"
+        "test:e2e:ui": "playwright test --ui",
+        "format": "prettier --write resources/js",
+        "format:check": "prettier --check resources/js"
     },
     "devDependencies": {
         "@eslint/js": "^10.0.1",
