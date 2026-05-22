@@ -86,167 +86,170 @@ const markAsRead = async (announcementId: number) => {
 </script>
 
 <template>
-    <Head title="Pengumuman" />
+  <Head title="Pengumuman" />
 
-    <AuthenticatedLayout>
-        <template #header>
-            <div class="flex items-center justify-between">
-                <h2 class="text-xl font-semibold leading-tight text-gray-800">
-                    Pusat Pengumuman
-                </h2>
+  <AuthenticatedLayout>
+    <template #header>
+      <div class="flex items-center justify-between">
+        <h2 class="text-xl font-semibold leading-tight text-gray-800">
+          Pusat Pengumuman
+        </h2>
+      </div>
+    </template>
+
+    <div class="space-y-6 flex justify-center">
+      <!-- Forms Grid -->
+      <div
+        class="flex w-full flex-col flex-wrap gap-4 max-w-5xl justify-center align-middle"
+      >
+        <Card
+          v-for="announcement in props.announcements.data.filter(
+            (a) => a.type === 'private'
+          )"
+          :key="announcement.id"
+          class="group hover:shadow-lg transition-shadow rounded-xl relative"
+          :class="{
+            'border-l-4 border-l-green-500': announcement.is_read,
+            'border-l-4 border-l-blue-500': !announcement.is_read
+          }"
+        >
+          <!-- Read Status Indicator -->
+          <div
+            v-if="announcement.is_read"
+            class="absolute top-4 right-4"
+          >
+            <div class="flex items-center gap-1 px-2 py-1 bg-green-100 text-green-700 rounded-full text-xs font-medium">
+              <Check class="h-3 w-3" />
+              Sudah dibaca
             </div>
-        </template>
+          </div>
 
-        <div class="space-y-6 flex justify-center">
-            <!-- Forms Grid -->
-            <div
-                class="flex w-full flex-col flex-wrap gap-4 max-w-5xl justify-center align-middle"
+          <CardHeader
+            class="pb-2"
+            :class="{ 'pr-20': announcement.is_read }"
+          >
+            <span
+              class="w-fit px-2 py-1 text-[12px] rounded-full bg-blue-100 text-blue-700 font-medium"
             >
-                <Card
-                    v-for="announcement in props.announcements.data.filter(
-                        (a) => a.type === 'private'
-                    )"
-                    :key="announcement.id"
-                    class="group hover:shadow-lg transition-shadow rounded-xl relative"
-                    :class="{
-                        'border-l-4 border-l-green-500': announcement.is_read,
-                        'border-l-4 border-l-blue-500': !announcement.is_read
-                    }"
+              {{
+                new Date(
+                  announcement.created_at
+                ).toLocaleDateString("id-ID", {
+                  day: "2-digit",
+                  month: "long",
+                  year: "numeric",
+                })
+              }}
+            </span>
+            <CardTitle
+              class="text-lg font-semibold text-gray-800"
+              :class="{
+                'font-bold': !announcement.is_read,
+                'font-medium text-gray-600': announcement.is_read
+              }"
+            >
+              {{ capitalize(announcement.title) }}
+            </CardTitle>
+          </CardHeader>
+
+          <CardContent>
+            <CardDescription
+              class="mt-1 text-gray-600 leading-relaxed"
+            >
+              {{
+                stripHtml(announcement.content) ||
+                  "Tidak ada deskripsi"
+              }}
+            </CardDescription>
+
+            <!-- Attachments -->
+            <div
+              v-if="announcement.announcement_files.length"
+              class="mt-4 space-y-1"
+            >
+              <div
+                class="flex items-center text-sm text-gray-500 font-medium"
+              >
+                <Paperclip class="h-4 w-4 mr-2" /> Lampiran:
+              </div>
+              <div class="flex flex-wrap gap-2">
+                <a
+                  v-for="file in announcement.announcement_files"
+                  :key="file.id"
+                  :href="file.file_path"
+                  target="_blank"
+                  class="inline-flex items-center rounded-md border px-3 py-1 text-xs font-medium text-blue-600 hover:bg-blue-50 transition-colors"
                 >
-                    <!-- Read Status Indicator -->
-                    <div
-                        v-if="announcement.is_read"
-                        class="absolute top-4 right-4"
-                    >
-                        <div class="flex items-center gap-1 px-2 py-1 bg-green-100 text-green-700 rounded-full text-xs font-medium">
-                            <Check class="h-3 w-3" />
-                            Sudah dibaca
-                        </div>
-                    </div>
-
-                    <CardHeader class="pb-2" :class="{ 'pr-20': announcement.is_read }">
-                        <span
-                            class="w-fit px-2 py-1 text-[12px] rounded-full bg-blue-100 text-blue-700 font-medium"
-                        >
-                            {{
-                                new Date(
-                                    announcement.created_at
-                                ).toLocaleDateString("id-ID", {
-                                    day: "2-digit",
-                                    month: "long",
-                                    year: "numeric",
-                                })
-                            }}
-                        </span>
-                        <CardTitle
-                            class="text-lg font-semibold text-gray-800"
-                            :class="{
-                                'font-bold': !announcement.is_read,
-                                'font-medium text-gray-600': announcement.is_read
-                            }"
-                        >
-                            {{ capitalize(announcement.title) }}
-                        </CardTitle>
-                    </CardHeader>
-
-                    <CardContent>
-                        <CardDescription
-                            class="mt-1 text-gray-600 leading-relaxed"
-                        >
-                            {{
-                                stripHtml(announcement.content) ||
-                                "Tidak ada deskripsi"
-                            }}
-                        </CardDescription>
-
-                        <!-- Attachments -->
-                        <div
-                            v-if="announcement.announcement_files.length"
-                            class="mt-4 space-y-1"
-                        >
-                            <div
-                                class="flex items-center text-sm text-gray-500 font-medium"
-                            >
-                                <Paperclip class="h-4 w-4 mr-2" /> Lampiran:
-                            </div>
-                            <div class="flex flex-wrap gap-2">
-                                <a
-                                    v-for="file in announcement.announcement_files"
-                                    :key="file.id"
-                                    :href="file.file_path"
-                                    target="_blank"
-                                    class="inline-flex items-center rounded-md border px-3 py-1 text-xs font-medium text-blue-600 hover:bg-blue-50 transition-colors"
-                                >
-                                    {{ file.file_name }}
-                                </a>
-                            </div>
-                        </div>
-
-                        <!-- Mark as Read Button -->
-                        <div
-                            v-if="!announcement.is_read"
-                            class="mt-4 flex justify-end"
-                        >
-                            <button
-                                @click="markAsRead(announcement.id)"
-                                :disabled="markingAsRead[announcement.id]"
-                                class="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 disabled:cursor-not-allowed rounded-md transition-colors"
-                            >
-                                <Eye class="h-4 w-4" />
-                                <span v-if="markingAsRead[announcement.id]">
-                                    Menandai...
-                                </span>
-                                <span v-else>
-                                    Tandai Sudah Dibaca
-                                </span>
-                            </button>
-                        </div>
-                    </CardContent>
-                </Card>
+                  {{ file.file_name }}
+                </a>
+              </div>
             </div>
 
-            <!-- Empty State -->
+            <!-- Mark as Read Button -->
             <div
-                v-if="
-                    props.announcements.data.filter((a) => a.type === 'private')
-                        .length === 0
-                "
-                class="text-center py-12"
+              v-if="!announcement.is_read"
+              class="mt-4 flex justify-end"
             >
-                <div class="mx-auto max-w-md">
-                    <div class="mx-auto h-12 w-12 text-gray-400">
-                        <Paperclip class="h-12 w-12 mx-auto text-gray-400" />
-                    </div>
-                    <h3 class="mt-2 text-sm font-medium text-gray-900">
-                        Belum ada pengumuman
-                    </h3>
-                    <p class="mt-1 text-sm text-gray-500">
-                        Nantikan informasi terbaru dari kami.
-                    </p>
-                </div>
+              <button
+                :disabled="markingAsRead[announcement.id]"
+                class="inline-flex items-center gap-2 px-3 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 disabled:bg-blue-400 disabled:cursor-not-allowed rounded-md transition-colors"
+                @click="markAsRead(announcement.id)"
+              >
+                <Eye class="h-4 w-4" />
+                <span v-if="markingAsRead[announcement.id]">
+                  Menandai...
+                </span>
+                <span v-else>
+                  Tandai Sudah Dibaca
+                </span>
+              </button>
             </div>
+          </CardContent>
+        </Card>
+      </div>
 
-            <!-- Pagination -->
-            <div
-                v-if="props.announcements.links.length > 3"
-                class="flex justify-center"
-            >
-                <nav class="flex items-center space-x-1">
-                    <Link
-                        v-for="link in props.announcements.links"
-                        :key="link.label"
-                        :href="link.url"
-                        :class="[
-                            'px-3 py-2 text-sm font-medium rounded-md',
-                            link.active
-                                ? 'bg-primary text-primary-foreground'
-                                : 'text-muted-foreground hover:bg-muted',
-                            !link.url && 'opacity-50 cursor-not-allowed',
-                        ]"
-                        v-html="link.label"
-                    />
-                </nav>
-            </div>
+      <!-- Empty State -->
+      <div
+        v-if="
+          props.announcements.data.filter((a) => a.type === 'private')
+            .length === 0
+        "
+        class="text-center py-12"
+      >
+        <div class="mx-auto max-w-md">
+          <div class="mx-auto h-12 w-12 text-gray-400">
+            <Paperclip class="h-12 w-12 mx-auto text-gray-400" />
+          </div>
+          <h3 class="mt-2 text-sm font-medium text-gray-900">
+            Belum ada pengumuman
+          </h3>
+          <p class="mt-1 text-sm text-gray-500">
+            Nantikan informasi terbaru dari kami.
+          </p>
         </div>
-    </AuthenticatedLayout>
+      </div>
+
+      <!-- Pagination -->
+      <div
+        v-if="props.announcements.links.length > 3"
+        class="flex justify-center"
+      >
+        <nav class="flex items-center space-x-1">
+          <Link
+            v-for="link in props.announcements.links"
+            :key="link.label"
+            :href="link.url"
+            :class="[
+              'px-3 py-2 text-sm font-medium rounded-md',
+              link.active
+                ? 'bg-primary text-primary-foreground'
+                : 'text-muted-foreground hover:bg-muted',
+              !link.url && 'opacity-50 cursor-not-allowed',
+            ]"
+            v-html="link.label"
+          />
+        </nav>
+      </div>
+    </div>
+  </AuthenticatedLayout>
 </template>

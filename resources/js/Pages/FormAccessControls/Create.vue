@@ -238,282 +238,367 @@ const currentFormId = computed({
 </script>
 
 <template>
+  <Head title="Buat Kontrol Akses Formulir" />
 
-    <Head title="Buat Kontrol Akses Formulir" />
+  <AuthenticatedLayout>
+    <template #header>
+      <div class="flex items-center gap-4">
+        <Button
+          variant="ghost"
+          size="sm"
+          @click="$inertia.visit(route('admin.form-access-controls.index'))"
+        >
+          <ArrowLeft class="h-4 w-4 mr-2" />
+          Kembali
+        </Button>
+        <h2 class="text-xl font-semibold leading-tight text-gray-800">
+          Buat Kontrol Akses Formulir
+        </h2>
+      </div>
+    </template>
 
-    <AuthenticatedLayout>
-        <template #header>
-            <div class="flex items-center gap-4">
-                <Button variant="ghost" size="sm" @click="$inertia.visit(route('admin.form-access-controls.index'))">
-                    <ArrowLeft class="h-4 w-4 mr-2" />
-                    Kembali
-                </Button>
-                <h2 class="text-xl font-semibold leading-tight text-gray-800">
-                    Buat Kontrol Akses Formulir
-                </h2>
+    <div class="max-w-4xl mx-auto space-y-6">
+      <!-- Mode Switcher -->
+      <Card>
+        <CardContent class="p-6">
+          <div class="flex items-center justify-between">
+            <div>
+              <h3 class="font-medium mb-1">
+                Mode Pembuatan
+              </h3>
+              <p class="text-sm text-muted-foreground">
+                Pilih antara pembuatan tunggal atau massal
+              </p>
             </div>
+            <Button
+              variant="outline"
+              @click="switchMode"
+            >
+              {{
+                isBulkMode
+                  ? "Beralih ke Mode Tunggal"
+                  : "Beralih ke Mode Massal"
+              }}
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      <form
+        class="space-y-6"
+        @submit.prevent="submit"
+      >
+        <!-- Form Selection -->
+        <Card>
+          <CardHeader>
+            <CardTitle class="flex items-center gap-2">
+              <FileText class="h-5 w-5" />
+              Pemilihan Formulir
+            </CardTitle>
+          </CardHeader>
+          <CardContent class="space-y-4">
+            <div class="space-y-2">
+              <Label for="form">Formulir *</Label>
+              <Select v-model="currentFormId">
+                <SelectTrigger id="form">
+                  <SelectValue placeholder="Pilih formulir" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem
+                    v-for="formItem in props.forms"
+                    :key="formItem.id"
+                    :value="formItem.id"
+                  >
+                    {{ formItem.title }}
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+              <p
+                v-if="errors.form_id"
+                class="text-sm text-destructive"
+              >
+                {{ errors.form_id }}
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+
+        <!-- Single Mode -->
+        <template v-if="!isBulkMode">
+          <Card>
+            <CardHeader>
+              <CardTitle class="flex items-center gap-2">
+                <Users class="h-5 w-5" />
+                Konfigurasi Akses
+              </CardTitle>
+            </CardHeader>
+            <CardContent class="space-y-6">
+              <div class="grid gap-6 md:grid-cols-2">
+                <!-- Role Selection -->
+                <div class="space-y-2">
+                  <Label for="role">Role *</Label>
+                  <Select v-model="form.role_id">
+                    <SelectTrigger id="role">
+                      <SelectValue placeholder="Pilih role" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem
+                        v-for="role in props.roles"
+                        :key="role.id"
+                        :value="role.id"
+                      >
+                        {{ role.name }}
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <p
+                    v-if="errors.role_id"
+                    class="text-sm text-destructive"
+                  >
+                    {{ errors.role_id }}
+                  </p>
+                </div>
+
+                <!-- Faculty Selection -->
+                <div class="space-y-2">
+                  <Label for="faculty">Fakultas *</Label>
+                  <Select v-model="selectedFacultyId">
+                    <SelectTrigger id="faculty">
+                      <SelectValue placeholder="Pilih fakultas" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem
+                        v-for="faculty in props.faculties"
+                        :key="faculty.id"
+                        :value="faculty.id"
+                      >
+                        {{ faculty.name }}
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <!-- Study Program Selection -->
+              <div class="space-y-2">
+                <Label for="study_program">Program Studi *</Label>
+                <Select
+                  v-model="form.study_program_id"
+                  :disabled="!selectedFacultyId"
+                >
+                  <SelectTrigger id="study_program">
+                    <SelectValue placeholder="Pilih program studi" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem
+                      v-for="studyProgram in studyPrograms"
+                      :key="studyProgram.id"
+                      :value="studyProgram.id"
+                    >
+                      {{ studyProgram.name }}
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+                <p
+                  v-if="errors.study_program_id"
+                  class="text-sm text-destructive"
+                >
+                  {{ errors.study_program_id }}
+                </p>
+              </div>
+            </CardContent>
+          </Card>
         </template>
 
-        <div class="max-w-4xl mx-auto space-y-6">
-            <!-- Mode Switcher -->
-            <Card>
-                <CardContent class="p-6">
-                    <div class="flex items-center justify-between">
-                        <div>
-                            <h3 class="font-medium mb-1">Mode Pembuatan</h3>
-                            <p class="text-sm text-muted-foreground">
-                                Pilih antara pembuatan tunggal atau massal
-                            </p>
-                        </div>
-                        <Button @click="switchMode" variant="outline">
-                            {{
-                                isBulkMode
-                                    ? "Beralih ke Mode Tunggal"
-                                    : "Beralih ke Mode Massal"
-                            }}
-                        </Button>
-                    </div>
-                </CardContent>
-            </Card>
+        <!-- Bulk Mode -->
+        <template v-else>
+          <Card>
+            <CardHeader>
+              <CardTitle class="flex items-center gap-2">
+                <Building class="h-5 w-5" />
+                Fakultas & Program Studi
+              </CardTitle>
+            </CardHeader>
+            <CardContent class="space-y-4">
+              <!-- Faculty Selection -->
+              <div class="space-y-2">
+                <Label for="faculty_bulk">Fakultas *</Label>
+                <Select v-model="selectedFacultyId">
+                  <SelectTrigger id="faculty_bulk">
+                    <SelectValue placeholder="Pilih fakultas" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem
+                      v-for="faculty in props.faculties"
+                      :key="faculty.id"
+                      :value="faculty.id"
+                    >
+                      {{ faculty.name }}
+                    </SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
 
-            <form @submit.prevent="submit" class="space-y-6">
-                <!-- Form Selection -->
-                <Card>
-                    <CardHeader>
-                        <CardTitle class="flex items-center gap-2">
-                            <FileText class="h-5 w-5" />
-                            Pemilihan Formulir
-                        </CardTitle>
-                    </CardHeader>
-                    <CardContent class="space-y-4">
-                        <div class="space-y-2">
-                            <Label for="form">Formulir *</Label>
-                            <Select v-model="currentFormId">
-                                <SelectTrigger id="form">
-                                    <SelectValue placeholder="Pilih formulir" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem v-for="formItem in props.forms" :key="formItem.id" :value="formItem.id">
-                                        {{ formItem.title }}
-                                    </SelectItem>
-                                </SelectContent>
-                            </Select>
-                            <p v-if="errors.form_id" class="text-sm text-destructive">
-                                {{ errors.form_id }}
-                            </p>
-                        </div>
-                    </CardContent>
-                </Card>
-
-                <!-- Single Mode -->
-                <template v-if="!isBulkMode">
-                    <Card>
-                        <CardHeader>
-                            <CardTitle class="flex items-center gap-2">
-                                <Users class="h-5 w-5" />
-                                Konfigurasi Akses
-                            </CardTitle>
-                        </CardHeader>
-                        <CardContent class="space-y-6">
-                            <div class="grid gap-6 md:grid-cols-2">
-                                <!-- Role Selection -->
-                                <div class="space-y-2">
-                                    <Label for="role">Role *</Label>
-                                    <Select v-model="form.role_id">
-                                        <SelectTrigger id="role">
-                                            <SelectValue placeholder="Pilih role" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem v-for="role in props.roles" :key="role.id" :value="role.id">
-                                                {{ role.name }}
-                                            </SelectItem>
-                                        </SelectContent>
-                                    </Select>
-                                    <p v-if="errors.role_id" class="text-sm text-destructive">
-                                        {{ errors.role_id }}
-                                    </p>
-                                </div>
-
-                                <!-- Faculty Selection -->
-                                <div class="space-y-2">
-                                    <Label for="faculty">Fakultas *</Label>
-                                    <Select v-model="selectedFacultyId">
-                                        <SelectTrigger id="faculty">
-                                            <SelectValue placeholder="Pilih fakultas" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem v-for="faculty in props.faculties" :key="faculty.id"
-                                                :value="faculty.id">
-                                                {{ faculty.name }}
-                                            </SelectItem>
-                                        </SelectContent>
-                                    </Select>
-                                </div>
-                            </div>
-
-                            <!-- Study Program Selection -->
-                            <div class="space-y-2">
-                                <Label for="study_program">Program Studi *</Label>
-                                <Select v-model="form.study_program_id" :disabled="!selectedFacultyId">
-                                    <SelectTrigger id="study_program">
-                                        <SelectValue placeholder="Pilih program studi" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem v-for="studyProgram in studyPrograms" :key="studyProgram.id"
-                                            :value="studyProgram.id">
-                                            {{ studyProgram.name }}
-                                        </SelectItem>
-                                    </SelectContent>
-                                </Select>
-                                <p v-if="errors.study_program_id" class="text-sm text-destructive">
-                                    {{ errors.study_program_id }}
-                                </p>
-                            </div>
-                        </CardContent>
-                    </Card>
-                </template>
-
-                <!-- Bulk Mode -->
-                <template v-else>
-                    <Card>
-                        <CardHeader>
-                            <CardTitle class="flex items-center gap-2">
-                                <Building class="h-5 w-5" />
-                                Fakultas & Program Studi
-                            </CardTitle>
-                        </CardHeader>
-                        <CardContent class="space-y-4">
-                            <!-- Faculty Selection -->
-                            <div class="space-y-2">
-                                <Label for="faculty_bulk">Fakultas *</Label>
-                                <Select v-model="selectedFacultyId">
-                                    <SelectTrigger id="faculty_bulk">
-                                        <SelectValue placeholder="Pilih fakultas" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem v-for="faculty in props.faculties" :key="faculty.id"
-                                            :value="faculty.id">
-                                            {{ faculty.name }}
-                                        </SelectItem>
-                                    </SelectContent>
-                                </Select>
-                            </div>
-
-                            <!-- Study Programs Multi-select -->
-                            <div v-if="selectedFacultyId" class="space-y-2">
-                                <div class="flex items-center justify-between">
-                                    <Label>Program Studi *</Label>
-                                    <Button type="button" variant="outline" size="sm" @click="selectAllStudyPrograms">
-                                        {{
-                                            selectedStudyPrograms.length ===
-                                                studyPrograms.length
-                                                ? "Batal Pilih Semua"
-                                                : "Pilih Semua"
-                                        }}
-                                    </Button>
-                                </div>
-                                <div class="grid gap-2 md:grid-cols-2 max-h-48 overflow-y-auto p-2 border rounded">
-                                    <div v-for="studyProgram in studyPrograms" :key="studyProgram.id"
-                                        class="flex items-center space-x-2">
-                                        <Checkbox
-                                            :model-value="selectedStudyPrograms.includes(studyProgram.id)"
-                                            @update:modelValue="(val) => toggleStudyProgram(studyProgram.id, val)"
-                                        />
-                                        <Label class="text-sm cursor-pointer" @click="toggleStudyProgram(studyProgram.id)">
-                                            {{ studyProgram.name }}
-                                        </Label>
-                                    </div>
-                                </div>
-                            </div>
-                        </CardContent>
-                    </Card>
-
-                    <Card>
-                        <CardHeader>
-                            <CardTitle class="flex items-center gap-2">
-                                <Users class="h-5 w-5" />
-                                Pemilihan Role
-                            </CardTitle>
-                        </CardHeader>
-                        <CardContent class="space-y-4">
-                            <div class="flex items-center justify-between">
-                                <Label>Role *</Label>
-                                <Button type="button" variant="outline" size="sm" @click="selectAllRoles">
-                                    {{
-                                        selectedRoles.length ===
-                                            props.roles.length
-                                            ? "Batal Pilih Semua"
-                                            : "Pilih Semua"
-                                    }}
-                                </Button>
-                            </div>
-                            <div class="grid gap-2 md:grid-cols-2">
-                                <div v-for="role in props.roles" :key="role.id" class="flex items-center space-x-2">
-                                    <Checkbox
-                                        :model-value="selectedRoles.includes(role.id)"
-                                        @update:modelValue="(val) => toggleRole(role.id, val)"
-                                    />
-                                    <Label class="cursor-pointer" @click="toggleRole(role.id)">
-                                        {{ role.name }}
-                                    </Label>
-                                </div>
-                            </div>
-                        </CardContent>
-                    </Card>
-
-                    <!-- Preview -->
-                    <Card v-if="previewCombinations.length > 0">
-                        <CardHeader>
-                            <CardTitle>Pratinjau Kombinasi ({{
-                                previewCombinations.length
-                            }})</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <div class="max-h-64 overflow-y-auto space-y-2">
-                                <div v-for="(combo, index) in previewCombinations" :key="index"
-                                    class="flex items-center gap-2 p-2 bg-muted rounded text-sm">
-                                    <Badge variant="outline">{{
-                                        combo.role
-                                        }}</Badge>
-                                    <span>×</span>
-                                    <Badge variant="secondary">{{
-                                        combo.study_program
-                                        }}</Badge>
-                                    <span class="text-muted-foreground">in {{ combo.faculty }}</span>
-                                </div>
-                            </div>
-                        </CardContent>
-                    </Card>
-                </template>
-
-                <!-- Error Messages -->
-                <Card v-if="errors.duplicate" class="border-destructive">
-                    <CardContent class="p-4">
-                        <p class="text-destructive text-sm">
-                            {{ errors.duplicate }}
-                        </p>
-                    </CardContent>
-                </Card>
-
-                <!-- Form Actions -->
-                <div class="flex items-center justify-end space-x-2">
-                    <Button type="button" variant="outline" @click="
-                        $inertia.visit(route('admin.form-access-controls.index'))
-                        ">
-                        Batal
-                    </Button>
-                    <Button type="submit" :disabled="isBulkMode ? bulkForm.processing : form.processing
-                        ">
-                        {{
-                            (isBulkMode ? bulkForm.processing : form.processing)
-                                ? "Membuat..."
-                                : isBulkMode
-                                    ? `Membuat ${previewCombinations.length} Kontrol Akses`
-                                    : "Buat Kontrol Akses"
-                        }}
-                    </Button>
+              <!-- Study Programs Multi-select -->
+              <div
+                v-if="selectedFacultyId"
+                class="space-y-2"
+              >
+                <div class="flex items-center justify-between">
+                  <Label>Program Studi *</Label>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    @click="selectAllStudyPrograms"
+                  >
+                    {{
+                      selectedStudyPrograms.length ===
+                        studyPrograms.length
+                        ? "Batal Pilih Semua"
+                        : "Pilih Semua"
+                    }}
+                  </Button>
                 </div>
-            </form>
+                <div class="grid gap-2 md:grid-cols-2 max-h-48 overflow-y-auto p-2 border rounded">
+                  <div
+                    v-for="studyProgram in studyPrograms"
+                    :key="studyProgram.id"
+                    class="flex items-center space-x-2"
+                  >
+                    <Checkbox
+                      :model-value="selectedStudyPrograms.includes(studyProgram.id)"
+                      @update:model-value="(val) => toggleStudyProgram(studyProgram.id, val)"
+                    />
+                    <Label
+                      class="text-sm cursor-pointer"
+                      @click="toggleStudyProgram(studyProgram.id)"
+                    >
+                      {{ studyProgram.name }}
+                    </Label>
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle class="flex items-center gap-2">
+                <Users class="h-5 w-5" />
+                Pemilihan Role
+              </CardTitle>
+            </CardHeader>
+            <CardContent class="space-y-4">
+              <div class="flex items-center justify-between">
+                <Label>Role *</Label>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  @click="selectAllRoles"
+                >
+                  {{
+                    selectedRoles.length ===
+                      props.roles.length
+                      ? "Batal Pilih Semua"
+                      : "Pilih Semua"
+                  }}
+                </Button>
+              </div>
+              <div class="grid gap-2 md:grid-cols-2">
+                <div
+                  v-for="role in props.roles"
+                  :key="role.id"
+                  class="flex items-center space-x-2"
+                >
+                  <Checkbox
+                    :model-value="selectedRoles.includes(role.id)"
+                    @update:model-value="(val) => toggleRole(role.id, val)"
+                  />
+                  <Label
+                    class="cursor-pointer"
+                    @click="toggleRole(role.id)"
+                  >
+                    {{ role.name }}
+                  </Label>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <!-- Preview -->
+          <Card v-if="previewCombinations.length > 0">
+            <CardHeader>
+              <CardTitle>
+                Pratinjau Kombinasi ({{
+                  previewCombinations.length
+                }})
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div class="max-h-64 overflow-y-auto space-y-2">
+                <div
+                  v-for="(combo, index) in previewCombinations"
+                  :key="index"
+                  class="flex items-center gap-2 p-2 bg-muted rounded text-sm"
+                >
+                  <Badge variant="outline">
+                    {{
+                      combo.role
+                    }}
+                  </Badge>
+                  <span>×</span>
+                  <Badge variant="secondary">
+                    {{
+                      combo.study_program
+                    }}
+                  </Badge>
+                  <span class="text-muted-foreground">in {{ combo.faculty }}</span>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </template>
+
+        <!-- Error Messages -->
+        <Card
+          v-if="errors.duplicate"
+          class="border-destructive"
+        >
+          <CardContent class="p-4">
+            <p class="text-destructive text-sm">
+              {{ errors.duplicate }}
+            </p>
+          </CardContent>
+        </Card>
+
+        <!-- Form Actions -->
+        <div class="flex items-center justify-end space-x-2">
+          <Button
+            type="button"
+            variant="outline"
+            @click="
+              $inertia.visit(route('admin.form-access-controls.index'))
+            "
+          >
+            Batal
+          </Button>
+          <Button
+            type="submit"
+            :disabled="isBulkMode ? bulkForm.processing : form.processing
+            "
+          >
+            {{
+              (isBulkMode ? bulkForm.processing : form.processing)
+                ? "Membuat..."
+                : isBulkMode
+                  ? `Membuat ${previewCombinations.length} Kontrol Akses`
+                  : "Buat Kontrol Akses"
+            }}
+          </Button>
         </div>
-    </AuthenticatedLayout>
+      </form>
+    </div>
+  </AuthenticatedLayout>
 </template>

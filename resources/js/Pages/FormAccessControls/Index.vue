@@ -415,590 +415,633 @@ const formatDate = (dateString: string) => {
 </script>
 
 <template>
-    <Head title="Kontrol Akses Formulir" />
+  <Head title="Kontrol Akses Formulir" />
 
-    <AuthenticatedLayout>
-        <template #header>
-            <div class="flex items-center justify-between">
-                <div class="flex items-center gap-2">
-                    <h2 class="text-xl font-semibold leading-tight text-gray-800">
-                        Kontrol Akses Formulir
-                    </h2>
-                </div>
-                <div class="flex items-center gap-2">
-                    <Link :href="route('admin.form-access-controls.create')">
-                        <Button>
-                            <Plus class="h-4 w-4 mr-2" />
-                            Buat Kontrol Akses
-                        </Button>
-                    </Link>
-                </div>
-            </div>
-        </template>
-
-        <div class="max-w-7xl mx-auto space-y-6">
-            <!-- Search and Filters -->
-            <Card>
-                <CardHeader>
-                    <div class="flex items-center justify-between">
-                        <CardTitle class="text-lg flex items-center gap-2">
-                            <Filter class="h-5 w-5" />
-                            Cari & Filter
-                            <Badge v-if="activeFiltersCount > 0" variant="secondary">
-                                {{ activeFiltersCount }} aktif
-                            </Badge>
-                        </CardTitle>
-                        <Button
-                            v-if="hasActiveFilters"
-                            @click="clearFilters"
-                            variant="ghost"
-                            size="sm"
-                        >
-                            <X class="h-4 w-4 mr-2" />
-                            Bersihkan Semua Filter
-                        </Button>
-                    </div>
-                </CardHeader>
-                <CardContent class="space-y-4">
-                    <!-- Search Bar -->
-                    <div class="flex items-center gap-2">
-                        <div class="flex-1 relative">
-                            <Search
-                                class="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground"
-                            />
-                            <Input
-                                v-model="searchQuery"
-                                placeholder="Cari berdasarkan judul formulir, nama role, atau program studi..."
-                                class="pl-10"
-                            />
-                        </div>
-                    </div>
-
-                    <!-- filter -->
-                    <div class="grid gap-4 md:grid-cols-4">
-                        <!-- form filter -->
-                        <div>
-                            <label class="text-sm font-medium text-gray-700 mb-2 block">
-                                Formulir
-                            </label>
-                            <Popover v-model:open="openForm">
-                                <PopoverTrigger as-child>
-                                    <Button
-                                        variant="outline"
-                                        role="combobox"
-                                        :aria-expanded="openForm"
-                                        class="w-full justify-between"
-                                    >
-                                        <span class="truncate">{{ selectedFormLabel }}</span>
-                                        <ChevronsUpDown
-                                            class="ml-2 h-4 w-4 shrink-0 opacity-50"
-                                        />
-                                    </Button>
-                                </PopoverTrigger>
-                                <PopoverContent class="w-[300px] p-0">
-                                    <Command>
-                                        <CommandInput
-                                            placeholder="Search form..."
-                                            class="flex h-11 w-full rounded-md bg-transparent py-3 text-sm outline-hidden placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50 border-0 ring-0 focus:ring-0 focus:outline-hidden"
-                                        />
-                                        <CommandList>
-                                            <CommandEmpty>Tidak ada formulir ditemukan.</CommandEmpty>
-                                            <CommandGroup>
-                                                <CommandItem
-                                                    value="all"
-                                                    @select="() => {
-                                                            selectedFormId = 'all';
-                                                            openForm = false;
-                                                        }">
-                                                    <Check
-                                                        :class="cn('mr-2 h-4 w-4',
-                                                            selectedFormId === 'all'
-                                                                ? 'opacity-100'
-                                                                : 'opacity-0'
-                                                        )"
-                                                    />
-                                                    Semua Formulir
-                                                </CommandItem>
-                                                <CommandItem
-                                                    v-for="form in props.forms"
-                                                    :key="form.id"
-                                                    :value="form.id.toString()"
-                                                    @select="() => {
-                                                            selectedFormId = form.id.toString();
-                                                            openForm = false;
-                                                        }">
-                                                    <Check
-                                                        :class="cn('mr-2 h-4 w-4',
-                                                            selectedFormId === form.id.toString()
-                                                                ? 'opacity-100'
-                                                                : 'opacity-0'
-                                                        )"
-                                                    />
-                                                    {{ form.title }}
-                                                </CommandItem>
-                                            </CommandGroup>
-                                        </CommandList>
-                                    </Command>
-                                </PopoverContent>
-                            </Popover>
-                        </div>
-
-                        <!-- role filter -->
-                        <div>
-                            <label class="text-sm font-medium text-gray-700 mb-2 block">
-                                Role
-                            </label>
-                            <Popover v-model:open="openRole">
-                                <PopoverTrigger as-child>
-                                    <Button
-                                        variant="outline"
-                                        role="combobox"
-                                        :aria-expanded="openRole"
-                                        class="w-full justify-between"
-                                    >
-                                        <span class="truncate">{{ selectedRoleLabel }}</span>
-                                        <ChevronsUpDown
-                                            class="ml-2 h-4 w-4 shrink-0 opacity-50"
-                                        />
-                                    </Button>
-                                </PopoverTrigger>
-                                <PopoverContent class="w-[200px] p-0">
-                                    <Command>
-                                        <CommandInput
-                                            placeholder="Cari role..."
-                                            class="flex h-11 w-full rounded-md bg-transparent py-3 text-sm outline-hidden placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50 border-0 ring-0 focus:ring-0 focus:outline-hidden"
-                                        />
-                                        <CommandList>
-                                            <CommandEmpty>Tidak ada role ditemukan.</CommandEmpty>
-                                            <CommandGroup>
-                                                <CommandItem
-                                                    value="all"
-                                                    @select="() => {
-                                                            selectedRoleId = 'all';
-                                                            openRole = false;
-                                                        }">
-                                                    <Check
-                                                        :class="cn('mr-2 h-4 w-4',
-                                                            selectedRoleId === 'all'
-                                                                ? 'opacity-100'
-                                                                : 'opacity-0'
-                                                        )"
-                                                    />
-                                                    Semua Role
-                                                </CommandItem>
-                                                <CommandItem
-                                                    v-for="role in props.roles"
-                                                    :key="role.id"
-                                                    :value="role.id.toString()"
-                                                    @select="() => {
-                                                            selectedRoleId = role.id.toString();
-                                                            openRole = false;
-                                                        }">
-                                                    <Check
-                                                        :class="cn('mr-2 h-4 w-4',
-                                                            selectedRoleId === role.id.toString()
-                                                                ? 'opacity-100'
-                                                                : 'opacity-0'
-                                                        )"
-                                                    />
-                                                    {{ role.name }}
-                                                </CommandItem>
-                                            </CommandGroup>
-                                        </CommandList>
-                                    </Command>
-                                </PopoverContent>
-                            </Popover>
-                        </div>
-
-                        <!-- fak filter -->
-                        <div>
-                            <label class="text-sm font-medium text-gray-700 mb-2 block">
-                                Fakultas
-                            </label>
-                            <Popover v-model:open="openFaculty">
-                                <PopoverTrigger as-child>
-                                    <Button
-                                        variant="outline"
-                                        role="combobox"
-                                        :aria-expanded="openFaculty"
-                                        class="w-full justify-between"
-                                    >
-                                        <span class="truncate">{{ selectedFacultyLabel }}</span>
-                                        <ChevronsUpDown
-                                            class="ml-2 h-4 w-4 shrink-0 opacity-50"
-                                        />
-                                    </Button>
-                                </PopoverTrigger>
-                                <PopoverContent class="w-[250px] p-0">
-                                    <Command>
-                                        <CommandInput
-                                        placeholder="Cari fakultas..."
-                                        class="flex h-11 w-full rounded-md bg-transparent py-3 text-sm outline-hidden placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50 border-0 ring-0 focus:ring-0 focus:outline-hidden"
-                                        />
-                                        <CommandList>
-                                            <CommandEmpty>Tidak ada fakultas ditemukan.</CommandEmpty>
-                                            <CommandGroup>
-                                                <CommandItem
-                                                    value="all"
-                                                    @select="() => {
-                                                            selectedFacultyId = 'all';
-                                                            openFaculty = false;
-                                                        }">
-                                                    <Check
-                                                        :class=" cn('mr-2 h-4 w-4',
-                                                            selectedFacultyId === 'all'
-                                                                ? 'opacity-100'
-                                                                : 'opacity-0'
-                                                        )"
-                                                    />
-                                                    Semua Fakultas
-                                                </CommandItem>
-                                                <CommandItem
-                                                    v-for="faculty in props.faculties"
-                                                    :key="faculty.id"
-                                                    :value="faculty.id.toString()"
-                                                    @select="() => {
-                                                            selectedFacultyId =
-                                                                faculty.id.toString();
-                                                            openFaculty = false;
-                                                        }">
-                                                    <Check
-                                                        :class="cn('mr-2 h-4 w-4',
-                                                            selectedFacultyId ===
-                                                                faculty.id.toString()
-                                                                ? 'opacity-100'
-                                                                : 'opacity-0'
-                                                        )"
-                                                    />
-                                                    {{ faculty.name }}
-                                                </CommandItem>
-                                            </CommandGroup>
-                                        </CommandList>
-                                    </Command>
-                                </PopoverContent>
-                            </Popover>
-                        </div>
-
-                        <!-- prodi filter -->
-                        <div>
-                            <label class="text-sm font-medium text-gray-700 mb-2 block">
-                                Program Studi
-                            </label>
-                            <Popover
-                                v-model:open="openStudyProgram"
-                                :disabled="
-                                    !selectedFacultyId || selectedFacultyId === 'all'
-                                "
-                            >
-                                <PopoverTrigger as-child>
-                                    <Button
-                                        variant="outline"
-                                        role="combobox"
-                                        :aria-expanded="openStudyProgram"
-                                        :disabled="
-                                            !selectedFacultyId || selectedFacultyId === 'all'
-                                        "
-                                        class="w-full justify-between"
-                                    >
-                                        <span class="truncate">{{
-                                            selectedStudyProgramLabel
-                                        }}</span>
-                                        <ChevronsUpDown
-                                            class="ml-2 h-4 w-4 shrink-0 opacity-50"
-                                        />
-                                    </Button>
-                                </PopoverTrigger>
-                                <PopoverContent class="w-[250px] p-0">
-                                    <Command>
-                                        <CommandInput
-                                        placeholder="Cari program studi..."
-                                        class="flex h-11 w-full rounded-md bg-transparent py-3 text-sm outline-hidden placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50 border-0 ring-0 focus:ring-0 focus:outline-hidden"
-                                        />
-                                        <CommandList>
-                                            <CommandEmpty>Tidak ada program studi ditemukan.</CommandEmpty>
-                                            <CommandGroup>
-                                                <CommandItem
-                                                    value="all"
-                                                    @select="() => {
-                                                            selectedStudyProgramId = 'all';
-                                                            openStudyProgram = false;
-                                                        }">
-                                                    <Check
-                                                        :class="cn('mr-2 h-4 w-4',
-                                                            selectedStudyProgramId === 'all'
-                                                                ? 'opacity-100'
-                                                                : 'opacity-0'
-                                                        )"
-                                                    />
-                                                    Semua Program Studi
-                                                </CommandItem>
-                                                <CommandItem
-                                                    v-for="studyProgram in studyPrograms"
-                                                    :key="studyProgram.id"
-                                                    :value="studyProgram.id.toString()"
-                                                    @select="() => {
-                                                        selectedStudyProgramId =
-                                                            studyProgram.id.toString();
-                                                        openStudyProgram = false;
-                                                    }">
-                                                    <Check
-                                                        :class="cn('mr-2 h-4 w-4',
-                                                            selectedStudyProgramId ===
-                                                                studyProgram.id.toString()
-                                                                ? 'opacity-100'
-                                                                : 'opacity-0'
-                                                        )"
-                                                    />
-                                                    {{ studyProgram.name }}
-                                                </CommandItem>
-                                            </CommandGroup>
-                                        </CommandList>
-                                    </Command>
-                                </PopoverContent>
-                            </Popover>
-                        </div>
-                    </div>
-                </CardContent>
-            </Card>
-
-            <!-- Access Controls Table -->
-            <Card>
-                <CardHeader class="flex flex-row items-center justify-between">
-                    <CardTitle class="flex items-center gap-2">
-                        <FileText class="h-5 w-5" />
-                        Formulir dengan Kontrol Akses
-                        <Badge variant="secondary">
-                            {{ props.groupAccessControls.total }} formulir
-                        </Badge>
-                    </CardTitle>
-                    <div class="flex flex-row">
-                        <Button v-if="selectedItems.length > 0" variant="destructive" size="sm" @click="bulkDelete">
-                            <Trash2 class="h-4 w-4 mr-2" />
-                            Hapus Terpilih ({{ selectedItems.length }})
-                        </Button>
-
-                        <div
-                            v-if="props.groupAccessControls.total > 0"
-                            class="text-sm text-muted-foreground"
-                        >
-                            <Button variant="outline" size="sm" @click="toggleAllGroups">
-                                {{
-                                    openGroups.length === props.groupAccessControls.data.length
-                                        ? "Tutup Semua"
-                                        : "Perluas Semua"
-                                }}
-                            </Button>
-                        </div>
-                    </div>
-                </CardHeader>
-                <CardContent class="p-0">
-                    <!-- Empty State -->
-                    <div
-                        v-if="props.groupAccessControls.data.length === 0"
-                        class="text-center py-12"
-                    >
-                        <Users class="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-                        <h3 class="text-lg font-medium mb-2">Tidak ada kontrol akses ditemukan</h3>
-                        <p class="text-muted-foreground mb-4">
-                            {{
-                                hasActiveFilters
-                                    ? "Coba sesuaikan kriteria pencarian Anda."
-                                    : "Mulai dengan membuat kontrol akses pertama Anda."
-                            }}
-                        </p>
-                        <Link
-                            :href="route('admin.form-access-controls.create')"
-                            v-if="!hasActiveFilters"
-                        >
-                            <Button>
-                                <Plus class="h-4 w-4 mr-2" />
-                                Buat Kontrol Akses Formulir
-                            </Button>
-                        </Link>
-                        <Button v-else variant="outline" @click="clearFilters">
-                            <X class="h-4 w-4 mr-2" />
-                            Hapus Filter
-                        </Button>
-                    </div>
-
-                    <!-- Table with Groups -->
-                    <div v-else class="rounded-md border ml-4 mr-4 mb-4 overflow-x-auto">
-                        <Table>
-                            <TableHeader>
-                                <TableRow>
-                                    <TableHead class="w-12">
-                                        <Checkbox
-                                            v-model="selectAll"
-                                            :indeterminate="isPartiallySelected"
-                                        />
-                                    </TableHead>
-                                    <TableHead>Formulir</TableHead>
-                                    <TableHead>Role</TableHead>
-                                    <TableHead>Program Studi</TableHead>
-                                    <TableHead>Fakultas</TableHead>
-                                    <TableHead>Dibuat Pada</TableHead>
-                                    <TableHead class="text-right">Aksi</TableHead>
-                                </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                <template
-                                    v-for="group in props.groupAccessControls.data"
-                                    :key="group.form_id"
-                                >
-                                    <!-- Group Header Row -->
-                                    <TableRow
-                                        class="bg-muted/50 cursor-pointer hover:bg-muted"
-                                        @click="toggleGroup(group.form_id)"
-                                    >
-                                        <TableCell>
-                                            <Checkbox
-                                                :model-value="isGroupSelected(group.controls)"
-                                                :indeterminate="isGroupPartiallySelected(group.controls)"
-                                                @click.stop
-                                                @update:modelValue="() => toggleGroupSelection(group.controls)"
-                                            />
-                                        </TableCell>
-                                        <TableCell colspan="6" class="font-medium">
-                                            <div class="flex items-center justify-start">
-                                                <div class="flex items-center gap-2">
-                                                    <FileText
-                                                        class="h-4 w-4 text-muted-foreground"
-                                                    />
-                                                    {{ group.form.title }}
-                                                    <Badge variant="secondary">
-                                                        {{ group.jumlah_access_controls }}
-                                                        kontrol akses{{
-                                                            group.jumlah_access_controls !== 1
-                                                                ? "s"
-                                                                : ""
-                                                        }}
-                                                    </Badge>
-                                                </div>
-                                                <component
-                                                    :is="
-                                                        isGroupOpen(group.form_id)
-                                                            ? ChevronUp
-                                                            : ChevronDown
-                                                    "
-                                                    class="h-4 w-4 text-muted-foreground transition-transform duration-200"
-                                                />
-                                            </div>
-                                        </TableCell>
-                                    </TableRow>
-
-                                    <!-- Group Detail Rows -->
-                                    <template v-if="isGroupOpen(group.form_id)">
-                                        <TableRow
-                                            v-for="control in group.controls"
-                                            :key="control.id"
-                                            class="border-t"
-                                        >
-                                            <TableCell>
-                                                <Checkbox
-                                                    :model-value="selectedItems.includes(control.id)"
-                                                    @update:modelValue="() =>
-                                                        toggleItemSelection(control.id)
-                                                    "
-                                                />
-                                            </TableCell>
-                                            <TableCell class="pl-12">
-                                                <CornerDownRight class="h-4 w-4 text-muted-foreground" />
-                                            </TableCell>
-                                            <TableCell>
-                                                <Badge variant="outline">
-                                                    {{ control.role.name }}
-                                                </Badge>
-                                            </TableCell>
-                                            <TableCell>
-                                                {{ control.study_program.name }}
-                                            </TableCell>
-                                            <TableCell>
-                                                {{ control.study_program.faculty.name }}
-                                            </TableCell>
-                                            <TableCell>
-                                                {{ formatDate(control.created_at) }}
-                                            </TableCell>
-                                            <TableCell class="text-right">
-                                                <DropdownMenu>
-                                                    <DropdownMenuTrigger as-child>
-                                                        <Button variant="ghost" size="sm">
-                                                            <MoreHorizontal class="h-4 w-4" />
-                                                        </Button>
-                                                    </DropdownMenuTrigger>
-                                                    <DropdownMenuContent align="end">
-                                                        <Link
-                                                            :href="
-                                                                route(
-                                                                    'admin.form-access-controls.show',
-                                                                    control.id
-                                                                )
-                                                            "
-                                                        >
-                                                            <DropdownMenuItem>
-                                                                <Eye class="h-4 w-4 mr-2" />
-                                                                Lihat Detail
-                                                            </DropdownMenuItem>
-                                                        </Link>
-                                                        <Link
-                                                            :href="
-                                                                route(
-                                                                    'admin.form-access-controls.edit',
-                                                                    control.id
-                                                                )
-                                                            "
-                                                        >
-                                                            <DropdownMenuItem>
-                                                                <Edit class="h-4 w-4 mr-2" />
-                                                                Edit
-                                                            </DropdownMenuItem>
-                                                        </Link>
-                                                        <DropdownMenuItem
-                                                            @click="
-                                                                deleteFormAccessControl(control.id)
-                                                            "
-                                                            class="text-destructive cursor-pointer"
-                                                        >
-                                                            <Trash2 class="h-4 w-4 mr-2" />
-                                                            Hapus
-                                                        </DropdownMenuItem>
-                                                    </DropdownMenuContent>
-                                                </DropdownMenu>
-                                            </TableCell>
-                                        </TableRow>
-                                    </template>
-                                </template>
-                            </TableBody>
-                        </Table>
-                    </div>
-                </CardContent>
-            </Card>
-
-            <!-- Pagination -->
-            <div v-if="props.groupAccessControls.last_page > 1" class="flex justify-center mt-4">
-                <div class="flex items-center gap-2">
-                    <template v-for="link in props.groupAccessControls.links" :key="link.label">
-                        <Button
-                            v-if="link.url"
-                            variant="outline"
-                            size="sm"
-                            @click="goToPage(link.url)"
-                            :class="{
-                                'bg-primary text-primary-foreground': link.active,
-                                'hover:bg-muted': !link.active,
-                            }"
-                            v-html="link.label"
-                        />
-                        <span
-                            v-else
-                            :class="[
-                                'px-3 py-2 text-sm rounded-md text-muted-foreground',
-                                'bg-muted cursor-not-allowed',
-                            ]"
-                            v-html="link.label"
-                        />
-                    </template>
-                </div>
-            </div>
+  <AuthenticatedLayout>
+    <template #header>
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <h2 class="text-xl font-semibold leading-tight text-gray-800">
+            Kontrol Akses Formulir
+          </h2>
         </div>
-    </AuthenticatedLayout>
+        <div class="flex items-center gap-2">
+          <Link :href="route('admin.form-access-controls.create')">
+            <Button>
+              <Plus class="h-4 w-4 mr-2" />
+              Buat Kontrol Akses
+            </Button>
+          </Link>
+        </div>
+      </div>
+    </template>
+
+    <div class="max-w-7xl mx-auto space-y-6">
+      <!-- Search and Filters -->
+      <Card>
+        <CardHeader>
+          <div class="flex items-center justify-between">
+            <CardTitle class="text-lg flex items-center gap-2">
+              <Filter class="h-5 w-5" />
+              Cari & Filter
+              <Badge
+                v-if="activeFiltersCount > 0"
+                variant="secondary"
+              >
+                {{ activeFiltersCount }} aktif
+              </Badge>
+            </CardTitle>
+            <Button
+              v-if="hasActiveFilters"
+              variant="ghost"
+              size="sm"
+              @click="clearFilters"
+            >
+              <X class="h-4 w-4 mr-2" />
+              Bersihkan Semua Filter
+            </Button>
+          </div>
+        </CardHeader>
+        <CardContent class="space-y-4">
+          <!-- Search Bar -->
+          <div class="flex items-center gap-2">
+            <div class="flex-1 relative">
+              <Search
+                class="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground"
+              />
+              <Input
+                v-model="searchQuery"
+                placeholder="Cari berdasarkan judul formulir, nama role, atau program studi..."
+                class="pl-10"
+              />
+            </div>
+          </div>
+
+          <!-- filter -->
+          <div class="grid gap-4 md:grid-cols-4">
+            <!-- form filter -->
+            <div>
+              <label class="text-sm font-medium text-gray-700 mb-2 block">
+                Formulir
+              </label>
+              <Popover v-model:open="openForm">
+                <PopoverTrigger as-child>
+                  <Button
+                    variant="outline"
+                    role="combobox"
+                    :aria-expanded="openForm"
+                    class="w-full justify-between"
+                  >
+                    <span class="truncate">{{ selectedFormLabel }}</span>
+                    <ChevronsUpDown
+                      class="ml-2 h-4 w-4 shrink-0 opacity-50"
+                    />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent class="w-[300px] p-0">
+                  <Command>
+                    <CommandInput
+                      placeholder="Search form..."
+                      class="flex h-11 w-full rounded-md bg-transparent py-3 text-sm outline-hidden placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50 border-0 ring-0 focus:ring-0 focus:outline-hidden"
+                    />
+                    <CommandList>
+                      <CommandEmpty>Tidak ada formulir ditemukan.</CommandEmpty>
+                      <CommandGroup>
+                        <CommandItem
+                          value="all"
+                          @select="() => {
+                            selectedFormId = 'all';
+                            openForm = false;
+                          }"
+                        >
+                          <Check
+                            :class="cn('mr-2 h-4 w-4',
+                                       selectedFormId === 'all'
+                                         ? 'opacity-100'
+                                         : 'opacity-0'
+                            )"
+                          />
+                          Semua Formulir
+                        </CommandItem>
+                        <CommandItem
+                          v-for="form in props.forms"
+                          :key="form.id"
+                          :value="form.id.toString()"
+                          @select="() => {
+                            selectedFormId = form.id.toString();
+                            openForm = false;
+                          }"
+                        >
+                          <Check
+                            :class="cn('mr-2 h-4 w-4',
+                                       selectedFormId === form.id.toString()
+                                         ? 'opacity-100'
+                                         : 'opacity-0'
+                            )"
+                          />
+                          {{ form.title }}
+                        </CommandItem>
+                      </CommandGroup>
+                    </CommandList>
+                  </Command>
+                </PopoverContent>
+              </Popover>
+            </div>
+
+            <!-- role filter -->
+            <div>
+              <label class="text-sm font-medium text-gray-700 mb-2 block">
+                Role
+              </label>
+              <Popover v-model:open="openRole">
+                <PopoverTrigger as-child>
+                  <Button
+                    variant="outline"
+                    role="combobox"
+                    :aria-expanded="openRole"
+                    class="w-full justify-between"
+                  >
+                    <span class="truncate">{{ selectedRoleLabel }}</span>
+                    <ChevronsUpDown
+                      class="ml-2 h-4 w-4 shrink-0 opacity-50"
+                    />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent class="w-[200px] p-0">
+                  <Command>
+                    <CommandInput
+                      placeholder="Cari role..."
+                      class="flex h-11 w-full rounded-md bg-transparent py-3 text-sm outline-hidden placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50 border-0 ring-0 focus:ring-0 focus:outline-hidden"
+                    />
+                    <CommandList>
+                      <CommandEmpty>Tidak ada role ditemukan.</CommandEmpty>
+                      <CommandGroup>
+                        <CommandItem
+                          value="all"
+                          @select="() => {
+                            selectedRoleId = 'all';
+                            openRole = false;
+                          }"
+                        >
+                          <Check
+                            :class="cn('mr-2 h-4 w-4',
+                                       selectedRoleId === 'all'
+                                         ? 'opacity-100'
+                                         : 'opacity-0'
+                            )"
+                          />
+                          Semua Role
+                        </CommandItem>
+                        <CommandItem
+                          v-for="role in props.roles"
+                          :key="role.id"
+                          :value="role.id.toString()"
+                          @select="() => {
+                            selectedRoleId = role.id.toString();
+                            openRole = false;
+                          }"
+                        >
+                          <Check
+                            :class="cn('mr-2 h-4 w-4',
+                                       selectedRoleId === role.id.toString()
+                                         ? 'opacity-100'
+                                         : 'opacity-0'
+                            )"
+                          />
+                          {{ role.name }}
+                        </CommandItem>
+                      </CommandGroup>
+                    </CommandList>
+                  </Command>
+                </PopoverContent>
+              </Popover>
+            </div>
+
+            <!-- fak filter -->
+            <div>
+              <label class="text-sm font-medium text-gray-700 mb-2 block">
+                Fakultas
+              </label>
+              <Popover v-model:open="openFaculty">
+                <PopoverTrigger as-child>
+                  <Button
+                    variant="outline"
+                    role="combobox"
+                    :aria-expanded="openFaculty"
+                    class="w-full justify-between"
+                  >
+                    <span class="truncate">{{ selectedFacultyLabel }}</span>
+                    <ChevronsUpDown
+                      class="ml-2 h-4 w-4 shrink-0 opacity-50"
+                    />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent class="w-[250px] p-0">
+                  <Command>
+                    <CommandInput
+                      placeholder="Cari fakultas..."
+                      class="flex h-11 w-full rounded-md bg-transparent py-3 text-sm outline-hidden placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50 border-0 ring-0 focus:ring-0 focus:outline-hidden"
+                    />
+                    <CommandList>
+                      <CommandEmpty>Tidak ada fakultas ditemukan.</CommandEmpty>
+                      <CommandGroup>
+                        <CommandItem
+                          value="all"
+                          @select="() => {
+                            selectedFacultyId = 'all';
+                            openFaculty = false;
+                          }"
+                        >
+                          <Check
+                            :class=" cn('mr-2 h-4 w-4',
+                                        selectedFacultyId === 'all'
+                                          ? 'opacity-100'
+                                          : 'opacity-0'
+                            )"
+                          />
+                          Semua Fakultas
+                        </CommandItem>
+                        <CommandItem
+                          v-for="faculty in props.faculties"
+                          :key="faculty.id"
+                          :value="faculty.id.toString()"
+                          @select="() => {
+                            selectedFacultyId =
+                              faculty.id.toString();
+                            openFaculty = false;
+                          }"
+                        >
+                          <Check
+                            :class="cn('mr-2 h-4 w-4',
+                                       selectedFacultyId ===
+                                         faculty.id.toString()
+                                         ? 'opacity-100'
+                                         : 'opacity-0'
+                            )"
+                          />
+                          {{ faculty.name }}
+                        </CommandItem>
+                      </CommandGroup>
+                    </CommandList>
+                  </Command>
+                </PopoverContent>
+              </Popover>
+            </div>
+
+            <!-- prodi filter -->
+            <div>
+              <label class="text-sm font-medium text-gray-700 mb-2 block">
+                Program Studi
+              </label>
+              <Popover
+                v-model:open="openStudyProgram"
+                :disabled="
+                  !selectedFacultyId || selectedFacultyId === 'all'
+                "
+              >
+                <PopoverTrigger as-child>
+                  <Button
+                    variant="outline"
+                    role="combobox"
+                    :aria-expanded="openStudyProgram"
+                    :disabled="
+                      !selectedFacultyId || selectedFacultyId === 'all'
+                    "
+                    class="w-full justify-between"
+                  >
+                    <span class="truncate">{{
+                      selectedStudyProgramLabel
+                    }}</span>
+                    <ChevronsUpDown
+                      class="ml-2 h-4 w-4 shrink-0 opacity-50"
+                    />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent class="w-[250px] p-0">
+                  <Command>
+                    <CommandInput
+                      placeholder="Cari program studi..."
+                      class="flex h-11 w-full rounded-md bg-transparent py-3 text-sm outline-hidden placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50 border-0 ring-0 focus:ring-0 focus:outline-hidden"
+                    />
+                    <CommandList>
+                      <CommandEmpty>Tidak ada program studi ditemukan.</CommandEmpty>
+                      <CommandGroup>
+                        <CommandItem
+                          value="all"
+                          @select="() => {
+                            selectedStudyProgramId = 'all';
+                            openStudyProgram = false;
+                          }"
+                        >
+                          <Check
+                            :class="cn('mr-2 h-4 w-4',
+                                       selectedStudyProgramId === 'all'
+                                         ? 'opacity-100'
+                                         : 'opacity-0'
+                            )"
+                          />
+                          Semua Program Studi
+                        </CommandItem>
+                        <CommandItem
+                          v-for="studyProgram in studyPrograms"
+                          :key="studyProgram.id"
+                          :value="studyProgram.id.toString()"
+                          @select="() => {
+                            selectedStudyProgramId =
+                              studyProgram.id.toString();
+                            openStudyProgram = false;
+                          }"
+                        >
+                          <Check
+                            :class="cn('mr-2 h-4 w-4',
+                                       selectedStudyProgramId ===
+                                         studyProgram.id.toString()
+                                         ? 'opacity-100'
+                                         : 'opacity-0'
+                            )"
+                          />
+                          {{ studyProgram.name }}
+                        </CommandItem>
+                      </CommandGroup>
+                    </CommandList>
+                  </Command>
+                </PopoverContent>
+              </Popover>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      <!-- Access Controls Table -->
+      <Card>
+        <CardHeader class="flex flex-row items-center justify-between">
+          <CardTitle class="flex items-center gap-2">
+            <FileText class="h-5 w-5" />
+            Formulir dengan Kontrol Akses
+            <Badge variant="secondary">
+              {{ props.groupAccessControls.total }} formulir
+            </Badge>
+          </CardTitle>
+          <div class="flex flex-row">
+            <Button
+              v-if="selectedItems.length > 0"
+              variant="destructive"
+              size="sm"
+              @click="bulkDelete"
+            >
+              <Trash2 class="h-4 w-4 mr-2" />
+              Hapus Terpilih ({{ selectedItems.length }})
+            </Button>
+
+            <div
+              v-if="props.groupAccessControls.total > 0"
+              class="text-sm text-muted-foreground"
+            >
+              <Button
+                variant="outline"
+                size="sm"
+                @click="toggleAllGroups"
+              >
+                {{
+                  openGroups.length === props.groupAccessControls.data.length
+                    ? "Tutup Semua"
+                    : "Perluas Semua"
+                }}
+              </Button>
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent class="p-0">
+          <!-- Empty State -->
+          <div
+            v-if="props.groupAccessControls.data.length === 0"
+            class="text-center py-12"
+          >
+            <Users class="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+            <h3 class="text-lg font-medium mb-2">
+              Tidak ada kontrol akses ditemukan
+            </h3>
+            <p class="text-muted-foreground mb-4">
+              {{
+                hasActiveFilters
+                  ? "Coba sesuaikan kriteria pencarian Anda."
+                  : "Mulai dengan membuat kontrol akses pertama Anda."
+              }}
+            </p>
+            <Link
+              v-if="!hasActiveFilters"
+              :href="route('admin.form-access-controls.create')"
+            >
+              <Button>
+                <Plus class="h-4 w-4 mr-2" />
+                Buat Kontrol Akses Formulir
+              </Button>
+            </Link>
+            <Button
+              v-else
+              variant="outline"
+              @click="clearFilters"
+            >
+              <X class="h-4 w-4 mr-2" />
+              Hapus Filter
+            </Button>
+          </div>
+
+          <!-- Table with Groups -->
+          <div
+            v-else
+            class="rounded-md border ml-4 mr-4 mb-4 overflow-x-auto"
+          >
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead class="w-12">
+                    <Checkbox
+                      v-model="selectAll"
+                      :indeterminate="isPartiallySelected"
+                    />
+                  </TableHead>
+                  <TableHead>Formulir</TableHead>
+                  <TableHead>Role</TableHead>
+                  <TableHead>Program Studi</TableHead>
+                  <TableHead>Fakultas</TableHead>
+                  <TableHead>Dibuat Pada</TableHead>
+                  <TableHead class="text-right">
+                    Aksi
+                  </TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                <template
+                  v-for="group in props.groupAccessControls.data"
+                  :key="group.form_id"
+                >
+                  <!-- Group Header Row -->
+                  <TableRow
+                    class="bg-muted/50 cursor-pointer hover:bg-muted"
+                    @click="toggleGroup(group.form_id)"
+                  >
+                    <TableCell>
+                      <Checkbox
+                        :model-value="isGroupSelected(group.controls)"
+                        :indeterminate="isGroupPartiallySelected(group.controls)"
+                        @click.stop
+                        @update:model-value="() => toggleGroupSelection(group.controls)"
+                      />
+                    </TableCell>
+                    <TableCell
+                      colspan="6"
+                      class="font-medium"
+                    >
+                      <div class="flex items-center justify-start">
+                        <div class="flex items-center gap-2">
+                          <FileText
+                            class="h-4 w-4 text-muted-foreground"
+                          />
+                          {{ group.form.title }}
+                          <Badge variant="secondary">
+                            {{ group.jumlah_access_controls }}
+                            kontrol akses{{
+                              group.jumlah_access_controls !== 1
+                                ? "s"
+                                : ""
+                            }}
+                          </Badge>
+                        </div>
+                        <component
+                          :is="
+                            isGroupOpen(group.form_id)
+                              ? ChevronUp
+                              : ChevronDown
+                          "
+                          class="h-4 w-4 text-muted-foreground transition-transform duration-200"
+                        />
+                      </div>
+                    </TableCell>
+                  </TableRow>
+
+                  <!-- Group Detail Rows -->
+                  <template v-if="isGroupOpen(group.form_id)">
+                    <TableRow
+                      v-for="control in group.controls"
+                      :key="control.id"
+                      class="border-t"
+                    >
+                      <TableCell>
+                        <Checkbox
+                          :model-value="selectedItems.includes(control.id)"
+                          @update:model-value="() =>
+                            toggleItemSelection(control.id)
+                          "
+                        />
+                      </TableCell>
+                      <TableCell class="pl-12">
+                        <CornerDownRight class="h-4 w-4 text-muted-foreground" />
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="outline">
+                          {{ control.role.name }}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        {{ control.study_program.name }}
+                      </TableCell>
+                      <TableCell>
+                        {{ control.study_program.faculty.name }}
+                      </TableCell>
+                      <TableCell>
+                        {{ formatDate(control.created_at) }}
+                      </TableCell>
+                      <TableCell class="text-right">
+                        <DropdownMenu>
+                          <DropdownMenuTrigger as-child>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                            >
+                              <MoreHorizontal class="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <Link
+                              :href="
+                                route(
+                                  'admin.form-access-controls.show',
+                                  control.id
+                                )
+                              "
+                            >
+                              <DropdownMenuItem>
+                                <Eye class="h-4 w-4 mr-2" />
+                                Lihat Detail
+                              </DropdownMenuItem>
+                            </Link>
+                            <Link
+                              :href="
+                                route(
+                                  'admin.form-access-controls.edit',
+                                  control.id
+                                )
+                              "
+                            >
+                              <DropdownMenuItem>
+                                <Edit class="h-4 w-4 mr-2" />
+                                Edit
+                              </DropdownMenuItem>
+                            </Link>
+                            <DropdownMenuItem
+                              class="text-destructive cursor-pointer"
+                              @click="
+                                deleteFormAccessControl(control.id)
+                              "
+                            >
+                              <Trash2 class="h-4 w-4 mr-2" />
+                              Hapus
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </TableCell>
+                    </TableRow>
+                  </template>
+                </template>
+              </TableBody>
+            </Table>
+          </div>
+        </CardContent>
+      </Card>
+
+      <!-- Pagination -->
+      <div
+        v-if="props.groupAccessControls.last_page > 1"
+        class="flex justify-center mt-4"
+      >
+        <div class="flex items-center gap-2">
+          <template
+            v-for="link in props.groupAccessControls.links"
+            :key="link.label"
+          >
+            <Button
+              v-if="link.url"
+              variant="outline"
+              size="sm"
+              :class="{
+                'bg-primary text-primary-foreground': link.active,
+                'hover:bg-muted': !link.active,
+              }"
+              @click="goToPage(link.url)"
+              v-html="link.label"
+            />
+            <span
+              v-else
+              :class="[
+                'px-3 py-2 text-sm rounded-md text-muted-foreground',
+                'bg-muted cursor-not-allowed',
+              ]"
+              v-html="link.label"
+            />
+          </template>
+        </div>
+      </div>
+    </div>
+  </AuthenticatedLayout>
 </template>

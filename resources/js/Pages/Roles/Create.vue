@@ -35,41 +35,41 @@ const props = defineProps<{
 </script>
 
 <template>
-    <Head title="Buat Role" />
+  <Head title="Buat Role" />
 
-    <AuthenticatedLayout>
-        <template #header>
-            <div class="flex items-center gap-2">
-                <Button
-                    variant="ghost"
-                    class="p-0 mr-2"
-                    size="sm"
-                    @click="$inertia.visit(route('admin.roles.index'))"
-                >
-                    <ArrowLeft class="h-4 w-4" />
-                    Kembali
-                </Button>
-                <h2 class="text-xl font-semibold leading-tight text-gray-800">
-                    Buat Role Baru
-                </h2>
-            </div>
-        </template>
+  <AuthenticatedLayout>
+    <template #header>
+      <div class="flex items-center gap-2">
+        <Button
+          variant="ghost"
+          class="p-0 mr-2"
+          size="sm"
+          @click="$inertia.visit(route('admin.roles.index'))"
+        >
+          <ArrowLeft class="h-4 w-4" />
+          Kembali
+        </Button>
+        <h2 class="text-xl font-semibold leading-tight text-gray-800">
+          Buat Role Baru
+        </h2>
+      </div>
+    </template>
 
-        <div class="max-w-4xl mx-auto space-y-6">
-            <Card>
-                <CardHeader>
-                    <CardTitle>Buat Role Baru</CardTitle>
-                    <CardDescription>
-                        Isi detail untuk membuat role baru.
-                    </CardDescription>
-                </CardHeader>
-                <CardContent class="space-y-6">
-                    <RoleForm
-                        :permissions="props.permissions"
-                        :submit-url="route('admin.roles.store')"
-                    />
-                </CardContent>
-            </Card>
-        </div>
-    </AuthenticatedLayout>
+    <div class="max-w-4xl mx-auto space-y-6">
+      <Card>
+        <CardHeader>
+          <CardTitle>Buat Role Baru</CardTitle>
+          <CardDescription>
+            Isi detail untuk membuat role baru.
+          </CardDescription>
+        </CardHeader>
+        <CardContent class="space-y-6">
+          <RoleForm
+            :permissions="props.permissions"
+            :submit-url="route('admin.roles.store')"
+          />
+        </CardContent>
+      </Card>
+    </div>
+  </AuthenticatedLayout>
 </template>

@@ -58,35 +58,55 @@ function submit() {
 </script>
 
 <template>
-   <Dialog :open="props.open" @update:open="(v) => !v && emit('close')">
-      <DialogContent class="transition-all duration-300 sm:max-w-md">
-         <DialogHeader>
-            <DialogTitle>Edit Permission</DialogTitle>
-         </DialogHeader>
+  <Dialog
+    :open="props.open"
+    @update:open="(v) => !v && emit('close')"
+  >
+    <DialogContent class="transition-all duration-300 sm:max-w-md">
+      <DialogHeader>
+        <DialogTitle>Edit Permission</DialogTitle>
+      </DialogHeader>
 
-         <p class="text-muted-foreground text-sm">Isi form di bawah untuk memberikan nama baru pada hak akses.</p>
+      <p class="text-muted-foreground text-sm">
+        Isi form di bawah untuk memberikan nama baru pada hak akses.
+      </p>
 
-         <form @submit.prevent="submit" class="flex flex-col gap-4">
-            <div class="grid gap-2">
-               <Label for="name">Nama Hak Akses</Label>
-               <Input
-                  id="name"
-                  type="text"
-                  required
-                  autofocus
-                  :tabindex="1"
-                  autocomplete="name"
-                  v-model="form.name"
-                  placeholder="Masukkan Nama Hak Akses"
-               />
-               <InputError :message="form.errors.name" />
-            </div>
+      <form
+        class="flex flex-col gap-4"
+        @submit.prevent="submit"
+      >
+        <div class="grid gap-2">
+          <Label for="name">Nama Hak Akses</Label>
+          <Input
+            id="name"
+            v-model="form.name"
+            type="text"
+            required
+            autofocus
+            :tabindex="1"
+            autocomplete="name"
+            placeholder="Masukkan Nama Hak Akses"
+          />
+          <InputError :message="form.errors.name" />
+        </div>
 
-            <div class="flex justify-end gap-2 pt-2">
-               <Button type="button" class="cursor-pointer" variant="ghost" @click="emit('close')">Batal</Button>
-               <Button type="submit" class="cursor-pointer">Simpan</Button>
-            </div>
-         </form>
-      </DialogContent>
-   </Dialog>
+        <div class="flex justify-end gap-2 pt-2">
+          <Button
+            type="button"
+            class="cursor-pointer"
+            variant="ghost"
+            @click="emit('close')"
+          >
+            Batal
+          </Button>
+          <Button
+            type="submit"
+            class="cursor-pointer"
+          >
+            Simpan
+          </Button>
+        </div>
+      </form>
+    </DialogContent>
+  </Dialog>
 </template>

@@ -132,203 +132,208 @@ function stripHtml(html: string) {
 </script>
 
 <template>
-    <Head title="Announcement" />
+  <Head title="Announcement" />
 
-    <AuthenticatedLayout>
-        <template #header>
-            <div class="flex items-center justify-between">
-                <h2 class="text-xl font-semibold leading-tight text-gray-800">
-                    Manajemen Pengumuman
-                </h2>
-                <Link :href="route('admin.announcements.create')">
-                    <Button>
-                        <Plus class="h-4 w-4 mr-2" />
-                        Buat Pengumuman
-                    </Button>
-                </Link>
-            </div>
-        </template>
+  <AuthenticatedLayout>
+    <template #header>
+      <div class="flex items-center justify-between">
+        <h2 class="text-xl font-semibold leading-tight text-gray-800">
+          Manajemen Pengumuman
+        </h2>
+        <Link :href="route('admin.announcements.create')">
+          <Button>
+            <Plus class="h-4 w-4 mr-2" />
+            Buat Pengumuman
+          </Button>
+        </Link>
+      </div>
+    </template>
 
-        <div class="space-y-6">
-            <!-- Forms Grid -->
-            <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                <Card
-                    v-for="announcement in props.announcements.data"
-                    :key="announcement.id"
-                    class="group hover:shadow-lg transition-shadow"
-                >
-                    <CardHeader>
-                        <div class="flex items-start justify-between">
-                            <div class="flex-1">
-                                <CardTitle class="text-lg line-clamp-2">{{
-                                    capitalize(announcement.title)
-                                }}</CardTitle>
-                                <CardDescription class="mt-1 line-clamp-2">
-                                    {{
-                                        stripHtml(announcement.content) ||
-                                        "No description"
-                                    }}
-                                </CardDescription>
-                            </div>
-                            <DropdownMenu>
-                                <DropdownMenuTrigger as-child>
-                                    <Button variant="ghost" size="sm">
-                                        <MoreHorizontal class="h-4 w-4" />
-                                    </Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end">
-                                    <DropdownMenuItem as-child>
-                                        <Link
-                                            :href="
-                                                route(
-                                                    'admin.announcements.show',
-                                                    announcement.id
-                                                )
-                                            "
-                                            class="cursor-pointer"
-                                        >
-                                            <Eye class="h-4 w-4 mr-2" />
-                                            Lihat
-                                        </Link>
-                                    </DropdownMenuItem>
-                                    <DropdownMenuItem as-child>
-                                        <Link
-                                            :href="
-                                                route(
-                                                    'admin.announcements.edit',
-                                                    announcement.id
-                                                )
-                                            "
-                                            class="cursor-pointer"
-                                        >
-                                            <Edit class="h-4 w-4 mr-2" />
-                                            Edit
-                                        </Link>
-                                    </DropdownMenuItem>
-                                    <DropdownMenuItem
-                                        @click="
-                                            deleteAnnouncement(announcement)
-                                        "
-                                        class="text-destructive cursor-pointer"
-                                    >
-                                        <Trash2 class="h-4 w-4 mr-2" />
-                                        Hapus
-                                    </DropdownMenuItem>
-                                </DropdownMenuContent>
-                            </DropdownMenu>
-                        </div>
-                    </CardHeader>
-                    <CardContent>
-                        <div class="space-y-4">
-                            <div class="flex items-center gap-2">
-                                <Badge variant="outline">
-                                    {{
-                                        isPublic(announcement)
-                                            ? "Public"
-                                            : "Private"
-                                    }}
-                                </Badge>
-                                <Badge
-                                    :variant="
-                                        isExpired(announcement.expired_at)
-                                            ? 'destructive'
-                                            : 'success'
-                                    "
-                                >
-                                    {{
-                                        isExpired(announcement.expired_at)
-                                            ? "Expired"
-                                            : "Active"
-                                    }}
-                                </Badge>
-                            </div>
-
-                            <div
-                                class="flex items-center text-sm text-muted-foreground"
-                            >
-                                <Paperclip class="mr-2 h-4 w-4" />
-                                {{ announcement.announcement_files.length }}
-                                file
-                                {{
-                                    announcement.announcement_files.length !== 1
-                                        ? "s"
-                                        : ""
-                                }}
-                                lampiran
-                            </div>
-
-                            <div
-                                class="space-y-1 text-xs text-muted-foreground"
-                            >
-                                <div>
-                                    Dibuat oleh:
-                                    {{ announcement.announcement_creator.name }}
-                                </div>
-                                <div>
-                                    Dibuat pada:
-                                    {{ formatDate(announcement.created_at) }}
-                                </div>
-                                <div>
-                                    Berakhir pada:
-                                    {{
-                                        formatDate(
-                                            announcement.expired_at ?? ""
-                                        )
-                                    }}
-                                </div>
-                            </div>
-                        </div>
-                    </CardContent>
-                </Card>
-            </div>
-
-            <!-- Empty State -->
-            <div
-                v-if="props.announcements.data.length === 0"
-                class="text-center py-12"
-            >
-                <Empty>
-                    <EmptyHeader>
-                        <EmptyMedia variant="icon">
-                            <FileX2 />
-                        </EmptyMedia>
-                        <EmptyTitle>Belum Ada Pengumuman</EmptyTitle>
-                        <EmptyDescription>
-                            Anda belum ada membuat pengumuman. Mulai dengan
-                            membuat pengumuman pertama Anda.
-                        </EmptyDescription>
-                    </EmptyHeader>
-                    <EmptyContent>
-                        <Link :href="route('admin.announcements.create')">
-                            <Button>
-                                Buat Pengumuman
-                            </Button>
-                        </Link>
-                    </EmptyContent>
-                </Empty>
-            </div>
-
-            <!-- Pagination -->
-            <div
-                v-if="props.announcements.links.length > 3"
-                class="flex justify-center"
-            >
-                <nav class="flex items-center space-x-1">
+    <div class="space-y-6">
+      <!-- Forms Grid -->
+      <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        <Card
+          v-for="announcement in props.announcements.data"
+          :key="announcement.id"
+          class="group hover:shadow-lg transition-shadow"
+        >
+          <CardHeader>
+            <div class="flex items-start justify-between">
+              <div class="flex-1">
+                <CardTitle class="text-lg line-clamp-2">
+                  {{
+                    capitalize(announcement.title)
+                  }}
+                </CardTitle>
+                <CardDescription class="mt-1 line-clamp-2">
+                  {{
+                    stripHtml(announcement.content) ||
+                      "No description"
+                  }}
+                </CardDescription>
+              </div>
+              <DropdownMenu>
+                <DropdownMenuTrigger as-child>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                  >
+                    <MoreHorizontal class="h-4 w-4" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end">
+                  <DropdownMenuItem as-child>
                     <Link
-                        v-for="link in props.announcements.links"
-                        :key="link.label"
-                        :href="link.url"
-                        :class="[
-                            'px-3 py-2 text-sm font-medium rounded-md',
-                            link.active
-                                ? 'bg-primary text-primary-foreground'
-                                : 'text-muted-foreground hover:bg-muted',
-                            !link.url && 'opacity-50 cursor-not-allowed',
-                        ]"
-                        v-html="link.label"
-                    />
-                </nav>
+                      :href="
+                        route(
+                          'admin.announcements.show',
+                          announcement.id
+                        )
+                      "
+                      class="cursor-pointer"
+                    >
+                      <Eye class="h-4 w-4 mr-2" />
+                      Lihat
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem as-child>
+                    <Link
+                      :href="
+                        route(
+                          'admin.announcements.edit',
+                          announcement.id
+                        )
+                      "
+                      class="cursor-pointer"
+                    >
+                      <Edit class="h-4 w-4 mr-2" />
+                      Edit
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    class="text-destructive cursor-pointer"
+                    @click="
+                      deleteAnnouncement(announcement)
+                    "
+                  >
+                    <Trash2 class="h-4 w-4 mr-2" />
+                    Hapus
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
-        </div>
-    </AuthenticatedLayout>
+          </CardHeader>
+          <CardContent>
+            <div class="space-y-4">
+              <div class="flex items-center gap-2">
+                <Badge variant="outline">
+                  {{
+                    isPublic(announcement)
+                      ? "Public"
+                      : "Private"
+                  }}
+                </Badge>
+                <Badge
+                  :variant="
+                    isExpired(announcement.expired_at)
+                      ? 'destructive'
+                      : 'success'
+                  "
+                >
+                  {{
+                    isExpired(announcement.expired_at)
+                      ? "Expired"
+                      : "Active"
+                  }}
+                </Badge>
+              </div>
+
+              <div
+                class="flex items-center text-sm text-muted-foreground"
+              >
+                <Paperclip class="mr-2 h-4 w-4" />
+                {{ announcement.announcement_files.length }}
+                file
+                {{
+                  announcement.announcement_files.length !== 1
+                    ? "s"
+                    : ""
+                }}
+                lampiran
+              </div>
+
+              <div
+                class="space-y-1 text-xs text-muted-foreground"
+              >
+                <div>
+                  Dibuat oleh:
+                  {{ announcement.announcement_creator.name }}
+                </div>
+                <div>
+                  Dibuat pada:
+                  {{ formatDate(announcement.created_at) }}
+                </div>
+                <div>
+                  Berakhir pada:
+                  {{
+                    formatDate(
+                      announcement.expired_at ?? ""
+                    )
+                  }}
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      <!-- Empty State -->
+      <div
+        v-if="props.announcements.data.length === 0"
+        class="text-center py-12"
+      >
+        <Empty>
+          <EmptyHeader>
+            <EmptyMedia variant="icon">
+              <FileX2 />
+            </EmptyMedia>
+            <EmptyTitle>Belum Ada Pengumuman</EmptyTitle>
+            <EmptyDescription>
+              Anda belum ada membuat pengumuman. Mulai dengan
+              membuat pengumuman pertama Anda.
+            </EmptyDescription>
+          </EmptyHeader>
+          <EmptyContent>
+            <Link :href="route('admin.announcements.create')">
+              <Button>
+                Buat Pengumuman
+              </Button>
+            </Link>
+          </EmptyContent>
+        </Empty>
+      </div>
+
+      <!-- Pagination -->
+      <div
+        v-if="props.announcements.links.length > 3"
+        class="flex justify-center"
+      >
+        <nav class="flex items-center space-x-1">
+          <Link
+            v-for="link in props.announcements.links"
+            :key="link.label"
+            :href="link.url"
+            :class="[
+              'px-3 py-2 text-sm font-medium rounded-md',
+              link.active
+                ? 'bg-primary text-primary-foreground'
+                : 'text-muted-foreground hover:bg-muted',
+              !link.url && 'opacity-50 cursor-not-allowed',
+            ]"
+            v-html="link.label"
+          />
+        </nav>
+      </div>
+    </div>
+  </AuthenticatedLayout>
 </template>

@@ -272,229 +272,297 @@ const mappedAssignedReviewers = computed(() =>
 </script>
 
 <template>
+  <Head :title="`${submission.form.title} - Detail Pengajuan`" />
 
-    <Head :title="`${submission.form.title} - Detail Pengajuan`" />
-
-    <AuthenticatedLayout>
-        <template #header>
-            <div class="flex items-center gap-4">
-                <Button variant="ghost" size="sm" @click="goBack">
-                    <ArrowLeft class="h-4 w-4 mr-2" />
-                    Kembali
-                </Button>
-                <div>
-                    <h2 class="text-xl font-semibold leading-tight text-gray-800">
-                        {{ submission.form.title }}
-                    </h2>
-                    <p class="text-sm text-muted-foreground">
-                        {{ isSubmitter ? 'Pengajuan Anda' : 'Detail Pengajuan' }}
-                    </p>
-                </div>
-            </div>
-        </template>
-
-        <div class="max-w-6xl mx-auto space-y-6">
-            <!-- Submitter Information (for reviewers) -->
-            <Card v-if="isReviewer && submission.submitted_by">
-                <CardHeader>
-                    <CardTitle class="flex items-center gap-2">
-                        <User class="h-5 w-5" />
-                        Diajukan Oleh
-                    </CardTitle>
-                </CardHeader>
-                <CardContent>
-                    <div class="grid gap-4 md:grid-cols-2">
-                        <div>
-                            <Label class="text-sm font-medium text-muted-foreground">Nama</Label>
-                            <p class="font-medium flex items-center gap-2">
-                                <User class="h-4 w-4" />
-                                {{ submission.submitted_by.name }}
-                            </p>
-                        </div>
-                        <div>
-                            <Label class="text-sm font-medium text-muted-foreground">Email</Label>
-                            <p class="font-medium">
-                                <a :href="`mailto:${submission.submitted_by.email}`"
-                                    class="text-blue-600 hover:underline flex items-center gap-2">
-                                    <Mail class="h-4 w-4" />
-                                    {{ submission.submitted_by.email }}
-                                </a>
-                            </p>
-                        </div>
-                    </div>
-                </CardContent>
-            </Card>
-
-            <!-- Submission Status -->
-            <Card>
-                <CardHeader>
-                    <div class="flex items-start justify-between">
-                        <div>
-                            <CardTitle class="flex items-center gap-2">
-                                <component :is="getSubmissionStatusInfo(submission.status).icon" class="h-5 w-5" />
-                                Status Pengajuan
-                            </CardTitle>
-                            <p class="text-muted-foreground mt-1">
-                                {{ getSubmissionStatusInfo(submission.status).description }}
-                            </p>
-                        </div>
-                        <Badge :variant="getSubmissionStatusInfo(submission.status).variant" class="text-sm">
-                            {{ getSubmissionStatusInfo(submission.status).text }}
-                        </Badge>
-                    </div>
-                </CardHeader>
-                <CardContent>
-                    <div class="grid gap-4 md:grid-cols-3">
-                        <div>
-                            <Label class="text-sm font-medium text-muted-foreground">Dibuat Pada</Label>
-                            <p class="font-medium flex items-center gap-2">
-                                <Clock class="h-4 w-4" />
-                                {{ formatDateTime(submission.created_at) }}
-                            </p>
-                        </div>
-                        <div>
-                            <Label class="text-sm font-medium text-muted-foreground">Terakhir Diperbarui</Label>
-                            <p class="font-medium">{{ formatDateTime(submission.updated_at) }}</p>
-                        </div>
-                        <div v-if="submission.submitted_at">
-                            <Label class="text-sm font-medium text-muted-foreground">Diajukan Pada</Label>
-                            <p class="font-medium text-green-600">{{ formatDateTime(submission.submitted_at) }}</p>
-                        </div>
-                    </div>
-                </CardContent>
-            </Card>
-
-            <!-- Main Content Tabs -->
-            <Tabs default-value="submission" class="space-y-4">
-                <TabsList class="grid w-full grid-cols-2">
-                    <TabsTrigger value="submission" class="flex items-center gap-2">
-                        <FileText class="h-4 w-4" />
-                        Detail Pengajuan
-                    </TabsTrigger>
-                    <TabsTrigger value="review" class="flex items-center gap-2">
-                        <MessageSquare class="h-4 w-4" />
-                        Ulasan & Diskusi
-                        <Badge v-if="reviewStats.total_comments > 0" variant="secondary" class="ml-1">
-                            {{ reviewStats.total_comments }}
-                        </Badge>
-                    </TabsTrigger>
-                </TabsList>
-
-                <!-- Submission Details Tab -->
-                <TabsContent value="submission" class="space-y-6">
-                    <!-- Form Information -->
-                    <Card>
-                        <CardHeader>
-                            <CardTitle class="flex items-center gap-2">
-                                <FileText class="h-5 w-5" />
-                                Informasi Formulir
-                            </CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <div>
-                                <h3 class="font-semibold text-lg">{{ submission.form.title }}</h3>
-                                <p class="text-muted-foreground mt-1" v-if="submission.form.description">
-                                    {{ submission.form.description }}
-                                </p>
-                            </div>
-                        </CardContent>
-                    </Card>
-
-                    <!-- Form Responses -->
-                    <Card>
-                        <CardHeader>
-                            <CardTitle>Respon Formulir</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <div class="space-y-6">
-                                <div v-for="field in submission.form.form_fields" :key="field.id" class="space-y-2">
-                                    <div class="flex items-center gap-2">
-                                        <Label class="font-medium">{{ field.label }}</Label>
-                                        <Badge v-if="field.is_required" variant="destructive" class="text-xs">
-                                            Wajib
-                                        </Badge>
-                                    </div>
-
-                                    <div class="pl-4 border-l-2 border-muted">
-                                        <!-- File Field -->
-                                        <div v-if="isFileField(field.field_type.name) && responses[field.id]"
-                                            class="flex items-center gap-2">
-                                            <span class="font-medium">{{ renderFieldValue(field, responses[field.id])
-                                                }}</span>
-                                            <Button size="sm" variant="outline">
-                                                <Download class="h-4 w-4 mr-1" />
-                                                Download
-                                            </Button>
-                                        </div>
-
-                                        <!-- URL Field -->
-                                        <a v-else-if="isUrlField(field.field_type.name) && responses[field.id]"
-                                            :href="responses[field.id]" target="_blank"
-                                            class="text-blue-600 hover:underline font-medium">
-                                            {{ renderFieldValue(field, responses[field.id]) }}
-                                        </a>
-
-                                        <!-- Email Field -->
-                                        <a v-else-if="isEmailField(field.field_type.name) && responses[field.id]"
-                                            :href="`mailto:${responses[field.id]}`"
-                                            class="text-blue-600 hover:underline font-medium">
-                                            {{ renderFieldValue(field, responses[field.id]) }}
-                                        </a>
-
-                                        <!-- Textarea Field -->
-                                        <div v-else-if="field.field_type.name.toLowerCase() === 'textarea' && responses[field.id]"
-                                            class="whitespace-pre-wrap bg-muted/50 p-3 rounded-lg">
-                                            {{ renderFieldValue(field, responses[field.id]) }}
-                                        </div>
-
-                                        <!-- Other Fields -->
-                                        <span v-else class="font-medium">
-                                            {{ renderFieldValue(field, responses[field.id]) }}
-                                        </span>
-                                    </div>
-
-                                    <Separator
-                                        v-if="field !== submission.form.form_fields[submission.form.form_fields.length - 1]"
-                                        class="mt-4" />
-                                </div>
-                            </div>
-                        </CardContent>
-                    </Card>
-
-                    <!-- Edit Action (for submitter on draft) -->
-                    <Card v-if="isSubmitter && !submission.is_submitted">
-                        <CardContent class="pt-6">
-                            <div class="flex items-center justify-between">
-                                <div>
-                                    <h4 class="font-medium">Lanjutkan Mengedit</h4>
-                                    <p class="text-sm text-muted-foreground">
-                                        Formulir ini masih dalam mode draft. Anda dapat melanjutkan mengedit dan mengirimkan saat
-                                        siap.
-                                    </p>
-                                </div>
-                                <Button>
-                                    <Edit class="h-4 w-4 mr-2" />
-                                    Lanjutkan Mengedit
-                                </Button>
-                            </div>
-                        </CardContent>
-                    </Card>
-                </TabsContent>
-
-                <!-- Review & Discussion Tab -->
-                <TabsContent value="review">
-                    <ReviewSystem :submission-id="submission.id" :review-summaries="reviewSummaries"
-                        :review-comments="reviewComments" :can-create-thread="!hasPendingEvaluations && canReview"
-                        :can-review="canReview" :user-role="userRole" :review-stats="reviewStats"
-                        :has-pending-evaluations="hasPendingEvaluations"
-                        :pending-evaluations-count="pendingEvaluationsCount"
-                        :assigned-reviewers="mappedAssignedReviewers"
-                        :has-review-evaluation-forms="hasReviewEvaluationForms"
-                        :evaluation-requirements="evaluationRequirements"
-                        :reviewer-form-assignments="reviewerFormAssignments" :submission-status="submission.status" />
-
-                </TabsContent>
-            </Tabs>
+  <AuthenticatedLayout>
+    <template #header>
+      <div class="flex items-center gap-4">
+        <Button
+          variant="ghost"
+          size="sm"
+          @click="goBack"
+        >
+          <ArrowLeft class="h-4 w-4 mr-2" />
+          Kembali
+        </Button>
+        <div>
+          <h2 class="text-xl font-semibold leading-tight text-gray-800">
+            {{ submission.form.title }}
+          </h2>
+          <p class="text-sm text-muted-foreground">
+            {{ isSubmitter ? 'Pengajuan Anda' : 'Detail Pengajuan' }}
+          </p>
         </div>
-    </AuthenticatedLayout>
+      </div>
+    </template>
+
+    <div class="max-w-6xl mx-auto space-y-6">
+      <!-- Submitter Information (for reviewers) -->
+      <Card v-if="isReviewer && submission.submitted_by">
+        <CardHeader>
+          <CardTitle class="flex items-center gap-2">
+            <User class="h-5 w-5" />
+            Diajukan Oleh
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div class="grid gap-4 md:grid-cols-2">
+            <div>
+              <Label class="text-sm font-medium text-muted-foreground">Nama</Label>
+              <p class="font-medium flex items-center gap-2">
+                <User class="h-4 w-4" />
+                {{ submission.submitted_by.name }}
+              </p>
+            </div>
+            <div>
+              <Label class="text-sm font-medium text-muted-foreground">Email</Label>
+              <p class="font-medium">
+                <a
+                  :href="`mailto:${submission.submitted_by.email}`"
+                  class="text-blue-600 hover:underline flex items-center gap-2"
+                >
+                  <Mail class="h-4 w-4" />
+                  {{ submission.submitted_by.email }}
+                </a>
+              </p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      <!-- Submission Status -->
+      <Card>
+        <CardHeader>
+          <div class="flex items-start justify-between">
+            <div>
+              <CardTitle class="flex items-center gap-2">
+                <component
+                  :is="getSubmissionStatusInfo(submission.status).icon"
+                  class="h-5 w-5"
+                />
+                Status Pengajuan
+              </CardTitle>
+              <p class="text-muted-foreground mt-1">
+                {{ getSubmissionStatusInfo(submission.status).description }}
+              </p>
+            </div>
+            <Badge
+              :variant="getSubmissionStatusInfo(submission.status).variant"
+              class="text-sm"
+            >
+              {{ getSubmissionStatusInfo(submission.status).text }}
+            </Badge>
+          </div>
+        </CardHeader>
+        <CardContent>
+          <div class="grid gap-4 md:grid-cols-3">
+            <div>
+              <Label class="text-sm font-medium text-muted-foreground">Dibuat Pada</Label>
+              <p class="font-medium flex items-center gap-2">
+                <Clock class="h-4 w-4" />
+                {{ formatDateTime(submission.created_at) }}
+              </p>
+            </div>
+            <div>
+              <Label class="text-sm font-medium text-muted-foreground">Terakhir Diperbarui</Label>
+              <p class="font-medium">
+                {{ formatDateTime(submission.updated_at) }}
+              </p>
+            </div>
+            <div v-if="submission.submitted_at">
+              <Label class="text-sm font-medium text-muted-foreground">Diajukan Pada</Label>
+              <p class="font-medium text-green-600">
+                {{ formatDateTime(submission.submitted_at) }}
+              </p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      <!-- Main Content Tabs -->
+      <Tabs
+        default-value="submission"
+        class="space-y-4"
+      >
+        <TabsList class="grid w-full grid-cols-2">
+          <TabsTrigger
+            value="submission"
+            class="flex items-center gap-2"
+          >
+            <FileText class="h-4 w-4" />
+            Detail Pengajuan
+          </TabsTrigger>
+          <TabsTrigger
+            value="review"
+            class="flex items-center gap-2"
+          >
+            <MessageSquare class="h-4 w-4" />
+            Ulasan & Diskusi
+            <Badge
+              v-if="reviewStats.total_comments > 0"
+              variant="secondary"
+              class="ml-1"
+            >
+              {{ reviewStats.total_comments }}
+            </Badge>
+          </TabsTrigger>
+        </TabsList>
+
+        <!-- Submission Details Tab -->
+        <TabsContent
+          value="submission"
+          class="space-y-6"
+        >
+          <!-- Form Information -->
+          <Card>
+            <CardHeader>
+              <CardTitle class="flex items-center gap-2">
+                <FileText class="h-5 w-5" />
+                Informasi Formulir
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div>
+                <h3 class="font-semibold text-lg">
+                  {{ submission.form.title }}
+                </h3>
+                <p
+                  v-if="submission.form.description"
+                  class="text-muted-foreground mt-1"
+                >
+                  {{ submission.form.description }}
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+
+          <!-- Form Responses -->
+          <Card>
+            <CardHeader>
+              <CardTitle>Respon Formulir</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div class="space-y-6">
+                <div
+                  v-for="field in submission.form.form_fields"
+                  :key="field.id"
+                  class="space-y-2"
+                >
+                  <div class="flex items-center gap-2">
+                    <Label class="font-medium">{{ field.label }}</Label>
+                    <Badge
+                      v-if="field.is_required"
+                      variant="destructive"
+                      class="text-xs"
+                    >
+                      Wajib
+                    </Badge>
+                  </div>
+
+                  <div class="pl-4 border-l-2 border-muted">
+                    <!-- File Field -->
+                    <div
+                      v-if="isFileField(field.field_type.name) && responses[field.id]"
+                      class="flex items-center gap-2"
+                    >
+                      <span class="font-medium">{{ renderFieldValue(field, responses[field.id])
+                      }}</span>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                      >
+                        <Download class="h-4 w-4 mr-1" />
+                        Download
+                      </Button>
+                    </div>
+
+                    <!-- URL Field -->
+                    <a
+                      v-else-if="isUrlField(field.field_type.name) && responses[field.id]"
+                      :href="responses[field.id]"
+                      target="_blank"
+                      class="text-blue-600 hover:underline font-medium"
+                    >
+                      {{ renderFieldValue(field, responses[field.id]) }}
+                    </a>
+
+                    <!-- Email Field -->
+                    <a
+                      v-else-if="isEmailField(field.field_type.name) && responses[field.id]"
+                      :href="`mailto:${responses[field.id]}`"
+                      class="text-blue-600 hover:underline font-medium"
+                    >
+                      {{ renderFieldValue(field, responses[field.id]) }}
+                    </a>
+
+                    <!-- Textarea Field -->
+                    <div
+                      v-else-if="field.field_type.name.toLowerCase() === 'textarea' && responses[field.id]"
+                      class="whitespace-pre-wrap bg-muted/50 p-3 rounded-lg"
+                    >
+                      {{ renderFieldValue(field, responses[field.id]) }}
+                    </div>
+
+                    <!-- Other Fields -->
+                    <span
+                      v-else
+                      class="font-medium"
+                    >
+                      {{ renderFieldValue(field, responses[field.id]) }}
+                    </span>
+                  </div>
+
+                  <Separator
+                    v-if="field !== submission.form.form_fields[submission.form.form_fields.length - 1]"
+                    class="mt-4"
+                  />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          <!-- Edit Action (for submitter on draft) -->
+          <Card v-if="isSubmitter && !submission.is_submitted">
+            <CardContent class="pt-6">
+              <div class="flex items-center justify-between">
+                <div>
+                  <h4 class="font-medium">
+                    Lanjutkan Mengedit
+                  </h4>
+                  <p class="text-sm text-muted-foreground">
+                    Formulir ini masih dalam mode draft. Anda dapat melanjutkan mengedit dan mengirimkan saat
+                    siap.
+                  </p>
+                </div>
+                <Button>
+                  <Edit class="h-4 w-4 mr-2" />
+                  Lanjutkan Mengedit
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <!-- Review & Discussion Tab -->
+        <TabsContent value="review">
+          <ReviewSystem
+            :submission-id="submission.id"
+            :review-summaries="reviewSummaries"
+            :review-comments="reviewComments"
+            :can-create-thread="!hasPendingEvaluations && canReview"
+            :can-review="canReview"
+            :user-role="userRole"
+            :review-stats="reviewStats"
+            :has-pending-evaluations="hasPendingEvaluations"
+            :pending-evaluations-count="pendingEvaluationsCount"
+            :assigned-reviewers="mappedAssignedReviewers"
+            :has-review-evaluation-forms="hasReviewEvaluationForms"
+            :evaluation-requirements="evaluationRequirements"
+            :reviewer-form-assignments="reviewerFormAssignments"
+            :submission-status="submission.status"
+          />
+        </TabsContent>
+      </Tabs>
+    </div>
+  </AuthenticatedLayout>
 </template>

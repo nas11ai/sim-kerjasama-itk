@@ -136,133 +136,203 @@ const assignReviewers = () => {
 </script>
 
 <template>
-    <Dialog :open="open" @update:open="handleClose">
-        <DialogContent class="sm:max-w-[600px]">
-            <DialogHeader>
-                <DialogTitle class="flex items-center gap-2">
-                    <UserPlus class="h-5 w-5" />
-                    Assign Reviewers
-                </DialogTitle>
-                <DialogDescription>
-                    Select reviewers to assign to this submission. They will be able to review and provide feedback.
-                </DialogDescription>
-            </DialogHeader>
+  <Dialog
+    :open="open"
+    @update:open="handleClose"
+  >
+    <DialogContent class="sm:max-w-[600px]">
+      <DialogHeader>
+        <DialogTitle class="flex items-center gap-2">
+          <UserPlus class="h-5 w-5" />
+          Assign Reviewers
+        </DialogTitle>
+        <DialogDescription>
+          Select reviewers to assign to this submission. They will be able to review and provide feedback.
+        </DialogDescription>
+      </DialogHeader>
 
-            <div class="space-y-4 py-4">
-                <!-- Current Assigned Reviewers -->
-                <div v-if="assignedReviewers.length > 0" class="space-y-2">
-                    <Label class="text-sm font-medium flex items-center gap-2">
-                        <CheckCircle class="h-4 w-4 text-green-600" />
-                        Currently Assigned ({{ assignedReviewers.length }})
-                    </Label>
-                    <div class="border rounded-lg p-3 space-y-2 bg-muted/30">
-                        <div v-for="reviewer in assignedReviewers" :key="reviewer.id"
-                            class="flex items-center justify-between py-1">
-                            <div class="flex items-center gap-2">
-                                <div class="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
-                                    <span class="text-xs font-medium text-primary">
-                                        {{ reviewer.user.name.charAt(0).toUpperCase() }}
-                                    </span>
-                                </div>
-                                <div>
-                                    <p class="text-sm font-medium">{{ reviewer.user.name }}</p>
-                                    <p class="text-xs text-muted-foreground">{{ reviewer.user.email }}</p>
-                                </div>
-                            </div>
-                            <Badge variant="secondary" class="text-xs">
-                                {{ reviewer.reviewer_role.name }}
-                            </Badge>
-                        </div>
-                    </div>
+      <div class="space-y-4 py-4">
+        <!-- Current Assigned Reviewers -->
+        <div
+          v-if="assignedReviewers.length > 0"
+          class="space-y-2"
+        >
+          <Label class="text-sm font-medium flex items-center gap-2">
+            <CheckCircle class="h-4 w-4 text-green-600" />
+            Currently Assigned ({{ assignedReviewers.length }})
+          </Label>
+          <div class="border rounded-lg p-3 space-y-2 bg-muted/30">
+            <div
+              v-for="reviewer in assignedReviewers"
+              :key="reviewer.id"
+              class="flex items-center justify-between py-1"
+            >
+              <div class="flex items-center gap-2">
+                <div class="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
+                  <span class="text-xs font-medium text-primary">
+                    {{ reviewer.user.name.charAt(0).toUpperCase() }}
+                  </span>
                 </div>
-
-                <Separator />
-
-                <!-- Available Reviewers -->
-                <div class="space-y-3">
-                    <div class="flex items-center justify-between">
-                        <Label class="text-sm font-medium flex items-center gap-2">
-                            <Users class="h-4 w-4" />
-                            Available Reviewers ({{ unassignedReviewers.length }})
-                        </Label>
-                        <div class="flex gap-2">
-                            <Button type="button" variant="ghost" size="sm" @click="selectAll"
-                                :disabled="unassignedReviewers.length === 0">
-                                Select All
-                            </Button>
-                            <Button type="button" variant="ghost" size="sm" @click="clearSelection"
-                                :disabled="selectedReviewerIds.length === 0">
-                                Clear
-                            </Button>
-                        </div>
-                    </div>
-
-                    <div v-if="unassignedReviewers.length === 0" class="text-center py-8">
-                        <AlertCircle class="h-8 w-8 text-muted-foreground mx-auto mb-2" />
-                        <p class="text-sm text-muted-foreground">
-                            No available reviewers to assign
-                        </p>
-                    </div>
-
-                    <div v-else class="border rounded-lg divide-y max-h-[300px] overflow-y-auto">
-                        <div v-for="reviewer in unassignedReviewers" :key="reviewer.id"
-                            class="flex items-center gap-3 p-3 hover:bg-muted/50 transition-colors cursor-pointer"
-                            @click="toggleReviewer(reviewer.id)">
-                            <Checkbox :id="`reviewer-${reviewer.id}`"
-                                :model-value="selectedReviewerIds.includes(reviewer.id)"
-                                @update:modelValue="() => toggleReviewer(reviewer.id)" />
-                            <div class="flex-1 min-w-0">
-                                <div class="flex items-center gap-2">
-                                    <Label :for="`reviewer-${reviewer.id}`" class="text-sm font-medium cursor-pointer">
-                                        {{ reviewer.name }}
-                                    </Label>
-                                    <Badge variant="outline" class="text-xs">
-                                        {{ reviewer.role }}
-                                    </Badge>
-                                </div>
-                                <p class="text-xs text-muted-foreground truncate">
-                                    {{ reviewer.email }}
-                                </p>
-                            </div>
-                        </div>
-                    </div>
+                <div>
+                  <p class="text-sm font-medium">
+                    {{ reviewer.user.name }}
+                  </p>
+                  <p class="text-xs text-muted-foreground">
+                    {{ reviewer.user.email }}
+                  </p>
                 </div>
-
-                <!-- Auto-assign Forms Option -->
-                <div v-if="hasReviewEvaluationForms" class="border rounded-lg p-4 bg-blue-50/50 dark:bg-blue-950/20">
-                    <div class="flex items-start gap-3">
-                        <Checkbox id="auto-assign-forms" v-model:checked="autoAssignForms" />
-                        <div class="space-y-1">
-                            <Label for="auto-assign-forms" class="text-sm font-medium cursor-pointer">
-                                Automatically assign evaluation forms
-                            </Label>
-                            <p class="text-xs text-muted-foreground">
-                                When enabled, reviewers will be automatically assigned all required evaluation forms for
-                                this submission.
-                            </p>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Selection Summary -->
-                <div v-if="hasSelectedReviewers" class="flex items-center gap-2 text-sm">
-                    <CheckCircle class="h-4 w-4 text-green-600" />
-                    <span class="font-medium">
-                        {{ selectedReviewerIds.length }} reviewer(s) selected
-                    </span>
-                </div>
+              </div>
+              <Badge
+                variant="secondary"
+                class="text-xs"
+              >
+                {{ reviewer.reviewer_role.name }}
+              </Badge>
             </div>
+          </div>
+        </div>
 
-            <DialogFooter>
-                <Button type="button" variant="outline" @click="handleClose" :disabled="isSubmitting">
-                    Cancel
-                </Button>
-                <Button type="button" @click="assignReviewers" :disabled="!hasSelectedReviewers || isSubmitting">
-                    <Loader2 v-if="isSubmitting" class="h-4 w-4 mr-2 animate-spin" />
-                    <UserPlus v-else class="h-4 w-4 mr-2" />
-                    Assign {{ selectedReviewerIds.length > 0 ? `(${selectedReviewerIds.length})` : '' }}
-                </Button>
-            </DialogFooter>
-        </DialogContent>
-    </Dialog>
+        <Separator />
+
+        <!-- Available Reviewers -->
+        <div class="space-y-3">
+          <div class="flex items-center justify-between">
+            <Label class="text-sm font-medium flex items-center gap-2">
+              <Users class="h-4 w-4" />
+              Available Reviewers ({{ unassignedReviewers.length }})
+            </Label>
+            <div class="flex gap-2">
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                :disabled="unassignedReviewers.length === 0"
+                @click="selectAll"
+              >
+                Select All
+              </Button>
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                :disabled="selectedReviewerIds.length === 0"
+                @click="clearSelection"
+              >
+                Clear
+              </Button>
+            </div>
+          </div>
+
+          <div
+            v-if="unassignedReviewers.length === 0"
+            class="text-center py-8"
+          >
+            <AlertCircle class="h-8 w-8 text-muted-foreground mx-auto mb-2" />
+            <p class="text-sm text-muted-foreground">
+              No available reviewers to assign
+            </p>
+          </div>
+
+          <div
+            v-else
+            class="border rounded-lg divide-y max-h-[300px] overflow-y-auto"
+          >
+            <div
+              v-for="reviewer in unassignedReviewers"
+              :key="reviewer.id"
+              class="flex items-center gap-3 p-3 hover:bg-muted/50 transition-colors cursor-pointer"
+              @click="toggleReviewer(reviewer.id)"
+            >
+              <Checkbox
+                :id="`reviewer-${reviewer.id}`"
+                :model-value="selectedReviewerIds.includes(reviewer.id)"
+                @update:model-value="() => toggleReviewer(reviewer.id)"
+              />
+              <div class="flex-1 min-w-0">
+                <div class="flex items-center gap-2">
+                  <Label
+                    :for="`reviewer-${reviewer.id}`"
+                    class="text-sm font-medium cursor-pointer"
+                  >
+                    {{ reviewer.name }}
+                  </Label>
+                  <Badge
+                    variant="outline"
+                    class="text-xs"
+                  >
+                    {{ reviewer.role }}
+                  </Badge>
+                </div>
+                <p class="text-xs text-muted-foreground truncate">
+                  {{ reviewer.email }}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Auto-assign Forms Option -->
+        <div
+          v-if="hasReviewEvaluationForms"
+          class="border rounded-lg p-4 bg-blue-50/50 dark:bg-blue-950/20"
+        >
+          <div class="flex items-start gap-3">
+            <Checkbox
+              id="auto-assign-forms"
+              v-model:checked="autoAssignForms"
+            />
+            <div class="space-y-1">
+              <Label
+                for="auto-assign-forms"
+                class="text-sm font-medium cursor-pointer"
+              >
+                Automatically assign evaluation forms
+              </Label>
+              <p class="text-xs text-muted-foreground">
+                When enabled, reviewers will be automatically assigned all required evaluation forms for
+                this submission.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Selection Summary -->
+        <div
+          v-if="hasSelectedReviewers"
+          class="flex items-center gap-2 text-sm"
+        >
+          <CheckCircle class="h-4 w-4 text-green-600" />
+          <span class="font-medium">
+            {{ selectedReviewerIds.length }} reviewer(s) selected
+          </span>
+        </div>
+      </div>
+
+      <DialogFooter>
+        <Button
+          type="button"
+          variant="outline"
+          :disabled="isSubmitting"
+          @click="handleClose"
+        >
+          Cancel
+        </Button>
+        <Button
+          type="button"
+          :disabled="!hasSelectedReviewers || isSubmitting"
+          @click="assignReviewers"
+        >
+          <Loader2
+            v-if="isSubmitting"
+            class="h-4 w-4 mr-2 animate-spin"
+          />
+          <UserPlus
+            v-else
+            class="h-4 w-4 mr-2"
+          />
+          Assign {{ selectedReviewerIds.length > 0 ? `(${selectedReviewerIds.length})` : '' }}
+        </Button>
+      </DialogFooter>
+    </DialogContent>
+  </Dialog>
 </template>

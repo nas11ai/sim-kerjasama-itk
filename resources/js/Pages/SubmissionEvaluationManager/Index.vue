@@ -352,338 +352,453 @@ const updateAssignmentDueDate = (formId: number, event: Event) => {
 </script>
 
 <template>
-    <div class="space-y-6">
-        <!-- Evaluation Statistics -->
-        <Card>
-            <CardHeader>
-                <CardTitle class="flex items-center justify-between">
-                    <span>Ringkasan Evaluasi</span>
-                    <div class="flex space-x-2">
-                        <Dialog v-if="hasEvaluationForms" v-model:open="bulkAssignDialog">
-                            <DialogTrigger as-child>
-                                <Button @click="openBulkAssignDialog" size="sm" variant="outline">
-                                    <UserPlus class="h-4 w-4 mr-2" />
-                                    Penugasan Formulir Massal
-                                </Button>
-                            </DialogTrigger>
-                        </Dialog>
-                    </div>
-                </CardTitle>
-            </CardHeader>
-            <CardContent>
-                <div class="grid gap-4 md:grid-cols-4">
-                    <div class="text-center">
-                        <div class="text-2xl font-bold text-blue-600">{{ evaluationStats.total_reviewers }}</div>
-                        <div class="text-sm text-muted-foreground">Total Reviewer</div>
-                    </div>
-                    <div class="text-center">
-                        <div class="text-2xl font-bold text-green-600">{{ evaluationStats.completed_evaluations }}</div>
-                        <div class="text-sm text-muted-foreground">Selesai</div>
-                    </div>
-                    <div class="text-center">
-                        <div class="text-2xl font-bold text-orange-600">{{ evaluationStats.pending_evaluations }}</div>
-                        <div class="text-sm text-muted-foreground">Pending</div>
-                    </div>
-                    <div class="text-center">
-                        <div class="text-2xl font-bold">{{ evaluationStats.completion_percentage }}%</div>
-                        <div class="text-sm text-muted-foreground">Selesai</div>
-                    </div>
-                </div>
-
-                <div v-if="!hasEvaluationForms" class="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-                    <div class="flex items-center space-x-2 text-blue-800">
-                        <AlertTriangle class="h-4 w-4" />
-                        <span class="text-sm font-medium">Tidak ada formulir evaluasi yang tersedia untuk fase formulir pengajuan ini.</span>
-                    </div>
-                </div>
-            </CardContent>
-        </Card>
-
-        <!-- Reviewer Assignments -->
-        <div v-if="submissionReviewers.length > 0">
-            <div v-for="submissionReviewer in submissionReviewers" :key="submissionReviewer.id" class="mb-4">
-                <Card>
-                    <CardHeader>
-                        <div class="flex items-center justify-between">
-                            <div class="flex items-center space-x-3">
-                                <User class="h-5 w-5 text-muted-foreground" />
-                                <div>
-                                    <h4 class="font-medium">{{ submissionReviewer.reviewer.user.name }}</h4>
-                                    <p class="text-sm text-muted-foreground">
-                                        {{ submissionReviewer.reviewer.reviewer_role.name }} •
-                                        {{ submissionReviewer.reviewer.user.email }}
-                                    </p>
-                                </div>
-                            </div>
-
-                            <div class="flex items-center space-x-2">
-                                <component :is="getEvaluationStatusInfo(submissionReviewer.evaluation_status).icon"
-                                    class="h-4 w-4"
-                                    :class="getEvaluationStatusInfo(submissionReviewer.evaluation_status).color" />
-                                <Badge :variant="getEvaluationStatusInfo(submissionReviewer.evaluation_status).variant">
-                                    {{ getEvaluationStatusInfo(submissionReviewer.evaluation_status).text }}
-                                </Badge>
-
-                                <Button v-if="hasEvaluationForms" @click="openAssignFormsDialog(submissionReviewer)"
-                                    size="sm" variant="outline">
-                                    <Plus class="h-4 w-4 mr-1" />
-                                    Tugaskan Formulir
-                                </Button>
-                            </div>
-                        </div>
-                    </CardHeader>
-
-                    <CardContent v-if="submissionReviewer.reviewer_form_assignments.length > 0">
-                        <Table>
-                            <TableHeader>
-                                <TableRow>
-                                    <TableHead>Formulir Evaluasi</TableHead>
-                                    <TableHead>Status</TableHead>
-                                    <TableHead>Tanggal Jatuh Tempo</TableHead>
-                                    <TableHead>Prioritas</TableHead>
-                                    <TableHead class="text-right">Aksi</TableHead>
-                                </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                <TableRow v-for="assignment in submissionReviewer.reviewer_form_assignments"
-                                    :key="assignment.id">
-                                    <TableCell>
-                                        <div>
-                                            <div class="font-medium">{{ assignment.review_evaluation_form.title }}</div>
-                                            <div v-if="assignment.review_evaluation_form.description"
-                                                class="text-sm text-muted-foreground">
-                                                {{ assignment.review_evaluation_form.description }}
-                                            </div>
-                                        </div>
-                                    </TableCell>
-
-                                    <TableCell>
-                                        <div class="flex items-center space-x-2">
-                                            <component :is="getAssignmentStatusInfo(assignment).icon" class="h-4 w-4"
-                                                :class="getAssignmentStatusInfo(assignment).color" />
-                                            <Badge :variant="getAssignmentStatusInfo(assignment).variant">
-                                                {{ getAssignmentStatusInfo(assignment).text }}
-                                            </Badge>
-                                        </div>
-                                    </TableCell>
-
-                                    <TableCell>
-                                        <div class="flex items-center space-x-2">
-                                            <Calendar class="h-4 w-4 text-muted-foreground" />
-                                            <span class="text-sm">{{ formatDate(assignment.due_date) }}</span>
-                                        </div>
-                                    </TableCell>
-
-                                    <TableCell>
-                                        <Badge :variant="assignment.is_required ? 'default' : 'outline'">
-                                            {{ assignment.is_required ? 'Wajib' : 'Opsional' }}
-                                        </Badge>
-                                    </TableCell>
-
-                                    <TableCell class="text-right">
-                                        <div class="flex items-center justify-end space-x-1">
-                                            <Button size="sm" variant="ghost">
-                                                <Eye class="h-4 w-4" />
-                                            </Button>
-                                            <Button size="sm" variant="ghost">
-                                                <Edit class="h-4 w-4" />
-                                            </Button>
-                                            <Button size="sm" variant="ghost" class="text-destructive"
-                                                @click="openRemoveAssignmentDialog(assignment)">
-                                                <Trash2 class="h-4 w-4" />
-                                            </Button>
-                                        </div>
-                                    </TableCell>
-                                </TableRow>
-                            </TableBody>
-                        </Table>
-                    </CardContent>
-
-                    <CardContent v-else class="text-center py-8 text-muted-foreground">
-                        <FileText class="h-12 w-12 mx-auto mb-2 opacity-50" />
-                        <p>Tidak ada formulir evaluasi yang ditugaskan</p>
-                        <p class="text-xs">Klik "Tugaskan Formulir" untuk menambahkan formulir evaluasi</p>
-                    </CardContent>
-                </Card>
+  <div class="space-y-6">
+    <!-- Evaluation Statistics -->
+    <Card>
+      <CardHeader>
+        <CardTitle class="flex items-center justify-between">
+          <span>Ringkasan Evaluasi</span>
+          <div class="flex space-x-2">
+            <Dialog
+              v-if="hasEvaluationForms"
+              v-model:open="bulkAssignDialog"
+            >
+              <DialogTrigger as-child>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  @click="openBulkAssignDialog"
+                >
+                  <UserPlus class="h-4 w-4 mr-2" />
+                  Penugasan Formulir Massal
+                </Button>
+              </DialogTrigger>
+            </Dialog>
+          </div>
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div class="grid gap-4 md:grid-cols-4">
+          <div class="text-center">
+            <div class="text-2xl font-bold text-blue-600">
+              {{ evaluationStats.total_reviewers }}
             </div>
+            <div class="text-sm text-muted-foreground">
+              Total Reviewer
+            </div>
+          </div>
+          <div class="text-center">
+            <div class="text-2xl font-bold text-green-600">
+              {{ evaluationStats.completed_evaluations }}
+            </div>
+            <div class="text-sm text-muted-foreground">
+              Selesai
+            </div>
+          </div>
+          <div class="text-center">
+            <div class="text-2xl font-bold text-orange-600">
+              {{ evaluationStats.pending_evaluations }}
+            </div>
+            <div class="text-sm text-muted-foreground">
+              Pending
+            </div>
+          </div>
+          <div class="text-center">
+            <div class="text-2xl font-bold">
+              {{ evaluationStats.completion_percentage }}%
+            </div>
+            <div class="text-sm text-muted-foreground">
+              Selesai
+            </div>
+          </div>
         </div>
 
-        <!-- No Reviewers State -->
-        <Card v-else>
-            <CardContent class="text-center py-8">
-                <User class="h-16 w-16 mx-auto text-gray-400 mb-4" />
-                <h3 class="text-lg font-medium text-gray-900 mb-2">
-                    Tidak ada reviewer yang ditugaskan
-                </h3>
-                <p class="text-gray-500">
-                    Tugaskan reviewer ke pengajuan ini untuk mengelola formulir evaluasi.
-                </p>
-            </CardContent>
+        <div
+          v-if="!hasEvaluationForms"
+          class="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg"
+        >
+          <div class="flex items-center space-x-2 text-blue-800">
+            <AlertTriangle class="h-4 w-4" />
+            <span class="text-sm font-medium">Tidak ada formulir evaluasi yang tersedia untuk fase formulir pengajuan ini.</span>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+
+    <!-- Reviewer Assignments -->
+    <div v-if="submissionReviewers.length > 0">
+      <div
+        v-for="submissionReviewer in submissionReviewers"
+        :key="submissionReviewer.id"
+        class="mb-4"
+      >
+        <Card>
+          <CardHeader>
+            <div class="flex items-center justify-between">
+              <div class="flex items-center space-x-3">
+                <User class="h-5 w-5 text-muted-foreground" />
+                <div>
+                  <h4 class="font-medium">
+                    {{ submissionReviewer.reviewer.user.name }}
+                  </h4>
+                  <p class="text-sm text-muted-foreground">
+                    {{ submissionReviewer.reviewer.reviewer_role.name }} •
+                    {{ submissionReviewer.reviewer.user.email }}
+                  </p>
+                </div>
+              </div>
+
+              <div class="flex items-center space-x-2">
+                <component
+                  :is="getEvaluationStatusInfo(submissionReviewer.evaluation_status).icon"
+                  class="h-4 w-4"
+                  :class="getEvaluationStatusInfo(submissionReviewer.evaluation_status).color"
+                />
+                <Badge :variant="getEvaluationStatusInfo(submissionReviewer.evaluation_status).variant">
+                  {{ getEvaluationStatusInfo(submissionReviewer.evaluation_status).text }}
+                </Badge>
+
+                <Button
+                  v-if="hasEvaluationForms"
+                  size="sm"
+                  variant="outline"
+                  @click="openAssignFormsDialog(submissionReviewer)"
+                >
+                  <Plus class="h-4 w-4 mr-1" />
+                  Tugaskan Formulir
+                </Button>
+              </div>
+            </div>
+          </CardHeader>
+
+          <CardContent v-if="submissionReviewer.reviewer_form_assignments.length > 0">
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Formulir Evaluasi</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Tanggal Jatuh Tempo</TableHead>
+                  <TableHead>Prioritas</TableHead>
+                  <TableHead class="text-right">
+                    Aksi
+                  </TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                <TableRow
+                  v-for="assignment in submissionReviewer.reviewer_form_assignments"
+                  :key="assignment.id"
+                >
+                  <TableCell>
+                    <div>
+                      <div class="font-medium">
+                        {{ assignment.review_evaluation_form.title }}
+                      </div>
+                      <div
+                        v-if="assignment.review_evaluation_form.description"
+                        class="text-sm text-muted-foreground"
+                      >
+                        {{ assignment.review_evaluation_form.description }}
+                      </div>
+                    </div>
+                  </TableCell>
+
+                  <TableCell>
+                    <div class="flex items-center space-x-2">
+                      <component
+                        :is="getAssignmentStatusInfo(assignment).icon"
+                        class="h-4 w-4"
+                        :class="getAssignmentStatusInfo(assignment).color"
+                      />
+                      <Badge :variant="getAssignmentStatusInfo(assignment).variant">
+                        {{ getAssignmentStatusInfo(assignment).text }}
+                      </Badge>
+                    </div>
+                  </TableCell>
+
+                  <TableCell>
+                    <div class="flex items-center space-x-2">
+                      <Calendar class="h-4 w-4 text-muted-foreground" />
+                      <span class="text-sm">{{ formatDate(assignment.due_date) }}</span>
+                    </div>
+                  </TableCell>
+
+                  <TableCell>
+                    <Badge :variant="assignment.is_required ? 'default' : 'outline'">
+                      {{ assignment.is_required ? 'Wajib' : 'Opsional' }}
+                    </Badge>
+                  </TableCell>
+
+                  <TableCell class="text-right">
+                    <div class="flex items-center justify-end space-x-1">
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                      >
+                        <Eye class="h-4 w-4" />
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                      >
+                        <Edit class="h-4 w-4" />
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant="ghost"
+                        class="text-destructive"
+                        @click="openRemoveAssignmentDialog(assignment)"
+                      >
+                        <Trash2 class="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              </TableBody>
+            </Table>
+          </CardContent>
+
+          <CardContent
+            v-else
+            class="text-center py-8 text-muted-foreground"
+          >
+            <FileText class="h-12 w-12 mx-auto mb-2 opacity-50" />
+            <p>Tidak ada formulir evaluasi yang ditugaskan</p>
+            <p class="text-xs">
+              Klik "Tugaskan Formulir" untuk menambahkan formulir evaluasi
+            </p>
+          </CardContent>
         </Card>
-
-        <!-- Assign Forms Dialog -->
-        <Dialog v-model:open="assignFormsDialog">
-            <DialogContent class="max-w-2xl">
-                <DialogHeader>
-                    <DialogTitle>Tugaskan Formulir Evaluasi</DialogTitle>
-                    <DialogDescription>
-                        Pilih formulir evaluasi untuk ditugaskan kepada {{ selectedReviewer?.reviewer.user.name }}.
-                    </DialogDescription>
-                </DialogHeader>
-
-                <div class="space-y-4 max-h-96 overflow-y-auto">
-                    <div v-for="form in availableEvaluationForms" :key="form.id" class="border rounded-lg p-4">
-                        <div class="flex items-start space-x-3">
-                            <Checkbox :checked="assignFormData.evaluation_form_ids.includes(form.id)"
-                                @update:checked="(checked: boolean) => toggleFormSelection(form.id, checked)" />
-                            <div class="flex-1 space-y-3">
-                                <div>
-                                    <h4 class="font-medium">{{ form.title }}</h4>
-                                    <p v-if="form.description" class="text-sm text-muted-foreground">
-                                        {{ form.description }}
-                                    </p>
-                                    <Badge :variant="form.is_required ? 'default' : 'outline'" class="mt-1">
-                                        {{ form.is_required ? 'Wajib secara default' : 'Opsional secara default' }}
-                                    </Badge>
-                                </div>
-
-                                <div v-if="assignFormData.evaluation_form_ids.includes(form.id)"
-                                    class="grid gap-3 md:grid-cols-2">
-                                    <div class="space-y-2">
-                                        <Label>Wajib untuk reviewer ini</Label>
-                                        <Switch
-                                            :checked="assignFormData.assignments.find(a => a.form_id === form.id)?.is_required"
-                                            @update:checked="(checked: boolean) => {
-                                                const assignment = assignFormData.assignments.find(a => a.form_id === form.id);
-                                                if (assignment) assignment.is_required = checked;
-                                            }" />
-                                    </div>
-                                    <div class="space-y-2">
-                                        <Label>Tanggal Jatuh Tempo</Label>
-                                        <Input type="datetime-local"
-                                            :value="assignFormData.assignments.find(a => a.form_id === form.id)?.due_date"
-                                            @input="(e: Event) => updateAssignmentDueDate(form.id, e)" />
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <DialogFooter>
-                    <Button variant="outline" @click="assignFormsDialog = false">
-                        Batal
-                    </Button>
-                    <Button @click="assignForms"
-                        :disabled="assignFormData.processing || assignFormData.evaluation_form_ids.length === 0">
-                        {{ assignFormData.processing ? 'Menugaskan...' : 'Tugaskan Formulir' }}
-                    </Button>
-                </DialogFooter>
-            </DialogContent>
-        </Dialog>
-
-        <!-- Bulk Assign Dialog -->
-        <Dialog v-model:open="bulkAssignDialog">
-            <DialogContent class="max-w-3xl">
-                <DialogHeader>
-                    <DialogTitle>Tugaskan Formulir Secara Massal</DialogTitle>
-                    <DialogDescription>
-                        Tugaskan formulir evaluasi ke beberapa reviewer sekaligus.
-                    </DialogDescription>
-                </DialogHeader>
-
-                <div class="space-y-6">
-                    <!-- Reviewer Selection -->
-                    <div>
-                        <Label class="text-base font-medium">Pilih Reviewer</Label>
-                        <div class="mt-2 space-y-2 max-h-32 overflow-y-auto border rounded-lg p-3">
-                            <div v-for="submissionReviewer in submissionReviewers" :key="submissionReviewer.id"
-                                class="flex items-center space-x-3">
-                                <Checkbox
-                                    :checked="bulkAssignData.reviewer_ids.includes(submissionReviewer.reviewer.id)"
-                                    @update:checked="(checked: boolean) => toggleReviewerSelection(submissionReviewer.reviewer.id, checked)" />
-                                <div>
-                                    <div class="font-medium">{{ submissionReviewer.reviewer.user.name }}</div>
-                                    <div class="text-sm text-muted-foreground">
-                                        {{ submissionReviewer.reviewer.reviewer_role.name }}
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Form Assignment Configuration -->
-                    <div>
-                        <Label class="text-base font-medium">Konfigurasi Formulir</Label>
-                        <div class="mt-2 space-y-3 max-h-64 overflow-y-auto">
-                            <div v-for="(assignment, index) in bulkAssignData.form_assignments"
-                                :key="assignment.form_id" class="border rounded-lg p-4">
-                                <div class="space-y-3">
-                                    <div class="flex items-start justify-between">
-                                        <div>
-                                            <h4 class="font-medium">
-                                                {{availableEvaluationForms.find(f => f.id ===
-                                                    assignment.form_id)?.title}}
-                                            </h4>
-                                            <p class="text-sm text-muted-foreground">
-                                                {{availableEvaluationForms.find(f => f.id ===
-                                                    assignment.form_id)?.description}}
-                                            </p>
-                                        </div>
-                                        <Button variant="ghost" size="sm"
-                                            @click="bulkAssignData.form_assignments.splice(index, 1)"
-                                            class="text-destructive">
-                                            <Trash2 class="h-4 w-4" />
-                                        </Button>
-                                    </div>
-
-                                    <div class="grid gap-3 md:grid-cols-2">
-                                        <div class="flex items-center space-x-2">
-                                            <Switch v-model="assignment.is_required" />
-                                            <Label>Wajib</Label>
-                                        </div>
-                                        <div class="space-y-1">
-                                            <Label class="text-xs">Tanggal Jatuh Tempo</Label>
-                                            <Input type="datetime-local" v-model="assignment.due_date"
-                                                class="text-xs" />
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <DialogFooter>
-                    <Button variant="outline" @click="bulkAssignDialog = false">
-                        Batal
-                    </Button>
-                    <Button @click="bulkAssignForms"
-                        :disabled="bulkAssignData.processing || bulkAssignData.reviewer_ids.length === 0">
-                        {{ bulkAssignData.processing ? 'Menugaskan...' : 'Tugaskan Secara Massal' }}
-                    </Button>
-                </DialogFooter>
-            </DialogContent>
-        </Dialog>
-
-        <!-- Remove Assignment Dialog -->
-        <Dialog v-model:open="removeAssignmentDialog">
-            <DialogContent>
-                <DialogHeader>
-                    <DialogTitle>Hapus Penugasan</DialogTitle>
-                    <DialogDescription>
-                        Apakah Anda yakin ingin menghapus penugasan formulir ini? Tindakan ini tidak dapat dibatalkan.
-                    </DialogDescription>
-                </DialogHeader>
-                <DialogFooter>
-                    <Button variant="outline" @click="removeAssignmentDialog = false">
-                        Batal
-                    </Button>
-                    <Button variant="destructive" @click="removeAssignment" :disabled="removeAssignmentData.processing">
-                        {{ removeAssignmentData.processing ? 'Menghapus...' : 'Hapus' }}
-                    </Button>
-                </DialogFooter>
-            </DialogContent>
-        </Dialog>
+      </div>
     </div>
+
+    <!-- No Reviewers State -->
+    <Card v-else>
+      <CardContent class="text-center py-8">
+        <User class="h-16 w-16 mx-auto text-gray-400 mb-4" />
+        <h3 class="text-lg font-medium text-gray-900 mb-2">
+          Tidak ada reviewer yang ditugaskan
+        </h3>
+        <p class="text-gray-500">
+          Tugaskan reviewer ke pengajuan ini untuk mengelola formulir evaluasi.
+        </p>
+      </CardContent>
+    </Card>
+
+    <!-- Assign Forms Dialog -->
+    <Dialog v-model:open="assignFormsDialog">
+      <DialogContent class="max-w-2xl">
+        <DialogHeader>
+          <DialogTitle>Tugaskan Formulir Evaluasi</DialogTitle>
+          <DialogDescription>
+            Pilih formulir evaluasi untuk ditugaskan kepada {{ selectedReviewer?.reviewer.user.name }}.
+          </DialogDescription>
+        </DialogHeader>
+
+        <div class="space-y-4 max-h-96 overflow-y-auto">
+          <div
+            v-for="form in availableEvaluationForms"
+            :key="form.id"
+            class="border rounded-lg p-4"
+          >
+            <div class="flex items-start space-x-3">
+              <Checkbox
+                :checked="assignFormData.evaluation_form_ids.includes(form.id)"
+                @update:checked="(checked: boolean) => toggleFormSelection(form.id, checked)"
+              />
+              <div class="flex-1 space-y-3">
+                <div>
+                  <h4 class="font-medium">
+                    {{ form.title }}
+                  </h4>
+                  <p
+                    v-if="form.description"
+                    class="text-sm text-muted-foreground"
+                  >
+                    {{ form.description }}
+                  </p>
+                  <Badge
+                    :variant="form.is_required ? 'default' : 'outline'"
+                    class="mt-1"
+                  >
+                    {{ form.is_required ? 'Wajib secara default' : 'Opsional secara default' }}
+                  </Badge>
+                </div>
+
+                <div
+                  v-if="assignFormData.evaluation_form_ids.includes(form.id)"
+                  class="grid gap-3 md:grid-cols-2"
+                >
+                  <div class="space-y-2">
+                    <Label>Wajib untuk reviewer ini</Label>
+                    <Switch
+                      :checked="assignFormData.assignments.find(a => a.form_id === form.id)?.is_required"
+                      @update:checked="(checked: boolean) => {
+                        const assignment = assignFormData.assignments.find(a => a.form_id === form.id);
+                        if (assignment) assignment.is_required = checked;
+                      }"
+                    />
+                  </div>
+                  <div class="space-y-2">
+                    <Label>Tanggal Jatuh Tempo</Label>
+                    <Input
+                      type="datetime-local"
+                      :value="assignFormData.assignments.find(a => a.form_id === form.id)?.due_date"
+                      @input="(e: Event) => updateAssignmentDueDate(form.id, e)"
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <DialogFooter>
+          <Button
+            variant="outline"
+            @click="assignFormsDialog = false"
+          >
+            Batal
+          </Button>
+          <Button
+            :disabled="assignFormData.processing || assignFormData.evaluation_form_ids.length === 0"
+            @click="assignForms"
+          >
+            {{ assignFormData.processing ? 'Menugaskan...' : 'Tugaskan Formulir' }}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+
+    <!-- Bulk Assign Dialog -->
+    <Dialog v-model:open="bulkAssignDialog">
+      <DialogContent class="max-w-3xl">
+        <DialogHeader>
+          <DialogTitle>Tugaskan Formulir Secara Massal</DialogTitle>
+          <DialogDescription>
+            Tugaskan formulir evaluasi ke beberapa reviewer sekaligus.
+          </DialogDescription>
+        </DialogHeader>
+
+        <div class="space-y-6">
+          <!-- Reviewer Selection -->
+          <div>
+            <Label class="text-base font-medium">Pilih Reviewer</Label>
+            <div class="mt-2 space-y-2 max-h-32 overflow-y-auto border rounded-lg p-3">
+              <div
+                v-for="submissionReviewer in submissionReviewers"
+                :key="submissionReviewer.id"
+                class="flex items-center space-x-3"
+              >
+                <Checkbox
+                  :checked="bulkAssignData.reviewer_ids.includes(submissionReviewer.reviewer.id)"
+                  @update:checked="(checked: boolean) => toggleReviewerSelection(submissionReviewer.reviewer.id, checked)"
+                />
+                <div>
+                  <div class="font-medium">
+                    {{ submissionReviewer.reviewer.user.name }}
+                  </div>
+                  <div class="text-sm text-muted-foreground">
+                    {{ submissionReviewer.reviewer.reviewer_role.name }}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Form Assignment Configuration -->
+          <div>
+            <Label class="text-base font-medium">Konfigurasi Formulir</Label>
+            <div class="mt-2 space-y-3 max-h-64 overflow-y-auto">
+              <div
+                v-for="(assignment, index) in bulkAssignData.form_assignments"
+                :key="assignment.form_id"
+                class="border rounded-lg p-4"
+              >
+                <div class="space-y-3">
+                  <div class="flex items-start justify-between">
+                    <div>
+                      <h4 class="font-medium">
+                        {{ availableEvaluationForms.find(f => f.id ===
+                          assignment.form_id)?.title }}
+                      </h4>
+                      <p class="text-sm text-muted-foreground">
+                        {{ availableEvaluationForms.find(f => f.id ===
+                          assignment.form_id)?.description }}
+                      </p>
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      class="text-destructive"
+                      @click="bulkAssignData.form_assignments.splice(index, 1)"
+                    >
+                      <Trash2 class="h-4 w-4" />
+                    </Button>
+                  </div>
+
+                  <div class="grid gap-3 md:grid-cols-2">
+                    <div class="flex items-center space-x-2">
+                      <Switch v-model="assignment.is_required" />
+                      <Label>Wajib</Label>
+                    </div>
+                    <div class="space-y-1">
+                      <Label class="text-xs">Tanggal Jatuh Tempo</Label>
+                      <Input
+                        v-model="assignment.due_date"
+                        type="datetime-local"
+                        class="text-xs"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <DialogFooter>
+          <Button
+            variant="outline"
+            @click="bulkAssignDialog = false"
+          >
+            Batal
+          </Button>
+          <Button
+            :disabled="bulkAssignData.processing || bulkAssignData.reviewer_ids.length === 0"
+            @click="bulkAssignForms"
+          >
+            {{ bulkAssignData.processing ? 'Menugaskan...' : 'Tugaskan Secara Massal' }}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+
+    <!-- Remove Assignment Dialog -->
+    <Dialog v-model:open="removeAssignmentDialog">
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Hapus Penugasan</DialogTitle>
+          <DialogDescription>
+            Apakah Anda yakin ingin menghapus penugasan formulir ini? Tindakan ini tidak dapat dibatalkan.
+          </DialogDescription>
+        </DialogHeader>
+        <DialogFooter>
+          <Button
+            variant="outline"
+            @click="removeAssignmentDialog = false"
+          >
+            Batal
+          </Button>
+          <Button
+            variant="destructive"
+            :disabled="removeAssignmentData.processing"
+            @click="removeAssignment"
+          >
+            {{ removeAssignmentData.processing ? 'Menghapus...' : 'Hapus' }}
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  </div>
 </template>
