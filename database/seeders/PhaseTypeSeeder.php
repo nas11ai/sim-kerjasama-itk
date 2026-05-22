@@ -28,7 +28,6 @@ class PhaseTypeSeeder extends Seeder
                 }
             });
         } catch (\Exception $e) {
-            dd($e);
         }
     }
 }

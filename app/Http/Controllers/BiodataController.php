@@ -41,7 +41,6 @@ class BiodataController extends Controller
                 'formFields.formFieldOptions'
             ])
             ->first();
-        // dd($biodataForm);
 
         if (!$biodataForm) {
             return redirect()->route('user.dashboard')
@@ -52,7 +51,6 @@ class BiodataController extends Controller
             ->whereHas('role', fn($q) => $q->whereIn('name', $user->getRoleNames()))
             ->when($studyProgram, fn($q) => $q->where('study_program_id', $studyProgram->id))
             ->exists();
-        // dd($biodataForm->formAccessControls()->with('role')->get());
 
         if (!$hasAccess) {
             return redirect()->route('user.dashboard')
@@ -64,7 +62,6 @@ class BiodataController extends Controller
             ->where('submitted_by', $user->id)
             ->latest()
             ->first();
-        // dd($submission);
 
         $existingResponses = $submission
             ? $submission->formFieldResponses->mapWithKeys(fn($r) => [$r->form_field_id => $r->value])->toArray()

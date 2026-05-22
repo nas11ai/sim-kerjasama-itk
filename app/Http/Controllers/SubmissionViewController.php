@@ -850,7 +850,6 @@ class SubmissionViewController extends Controller
     {
         $user = Auth::user();
         $reviewer = \App\Models\Reviewer::where('user_id', $user->id)->first();
-        // dd($reviewer, $user);
 
         if (!$reviewer) {
             abort(403, 'Anda tidak terdaftar sebagai reviewer.');
@@ -860,7 +859,6 @@ class SubmissionViewController extends Controller
             'form_submission_id' => $submission->id,
             'reviewer_id' => $reviewer->id
         ])->exists();
-        // dd($isAssigned);
 
         if (!$isAssigned) {
             abort(403, 'Anda tidak ditugaskan untuk review pengajuan ini.');
@@ -877,12 +875,10 @@ class SubmissionViewController extends Controller
             'submissionReviewers.reviewer.user:id,name,email',
             'submissionReviewers.reviewer.reviewerRole:id,name',
         ]);
-        // dd($submission->toArray());
 
         $responses = $submission->formFieldResponses->mapWithKeys(function ($response) {
             return [$response->form_field_id => $response->value];
         });
-        // dd($responses->toArray());
 
         $reviewSummaries = [];
         try {
@@ -953,7 +949,6 @@ class SubmissionViewController extends Controller
             'assigned_reviewers' => $assignedReviewers,
         ];
 
-        // dd($submissionData, $responses->toArray(), $myReviewSummary);
 
         return Inertia::render('Reviewer/Submissions/Show', [
             'submission' => $submissionData,
@@ -999,7 +994,6 @@ class SubmissionViewController extends Controller
             'status' => 'required|in:resolved,needs_revision,rejected',
             'notes' => 'nullable|string',
         ]);
-        // dd($validated);
 
         try {
             $reviewSummary = \App\Models\ReviewSummary::updateOrCreate(
@@ -1023,7 +1017,6 @@ class SubmissionViewController extends Controller
                     $submission->update(['status' => 'approved']);
                 }
             }
-            // dd($reviewSummary->toArray());
 
             return back()->with('success', 'Review berhasil dikirim');
         } catch (\Exception $e) {
