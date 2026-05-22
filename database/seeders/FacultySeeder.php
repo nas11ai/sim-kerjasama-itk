@@ -29,7 +29,6 @@ class FacultySeeder extends Seeder
                 }
             });
         } catch (\Exception $e) {
-            dd($e);
         }
     }
 }

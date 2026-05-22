@@ -30,7 +30,6 @@ class FormTypeSeeder extends Seeder
                 }
             });
         } catch (\Exception $e) {
-            dd($e);
         }
     }
 }
