@@ -10,10 +10,15 @@ const delegatedProps = reactiveOmit(props, 'class')
 </script>
 
 <template>
-  <ToastAction
-    v-bind="delegatedProps"
-    :class="cn('inline-flex h-8 shrink-0 items-center justify-center rounded-md border bg-transparent px-3 text-sm font-medium transition-colors hover:bg-secondary focus:outline-hidden focus:ring-1 focus:ring-ring disabled:pointer-events-none disabled:opacity-50 group-[.destructive]:border-muted/40 hover:group-[.destructive]:border-destructive/30 hover:group-[.destructive]:bg-destructive hover:group-[.destructive]:text-destructive-foreground focus:group-[.destructive]:ring-destructive', props.class)"
-  >
-    <slot />
-  </ToastAction>
+    <ToastAction
+        v-bind="delegatedProps"
+        :class="
+            cn(
+                'inline-flex h-8 shrink-0 items-center justify-center rounded-md border bg-transparent px-3 text-sm font-medium transition-colors hover:bg-secondary focus:outline-hidden focus:ring-1 focus:ring-ring disabled:pointer-events-none disabled:opacity-50 group-[.destructive]:border-muted/40 hover:group-[.destructive]:border-destructive/30 hover:group-[.destructive]:bg-destructive hover:group-[.destructive]:text-destructive-foreground focus:group-[.destructive]:ring-destructive',
+                props.class
+            )
+        "
+    >
+        <slot />
+    </ToastAction>
 </template>

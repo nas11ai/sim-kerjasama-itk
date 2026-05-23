@@ -13,9 +13,7 @@ interface Notification {
 
 export const useNotificationStore = defineStore('notification', () => {
     const notifications = ref<Notification[]>([])
-    const unreadCount = computed(() =>
-        notifications.value.filter(n => !n.read_at).length
-    )
+    const unreadCount = computed(() => notifications.value.filter((n) => !n.read_at).length)
 
     async function fetchNotifications() {
         const res = await fetch('/api/notifications')
@@ -23,7 +21,7 @@ export const useNotificationStore = defineStore('notification', () => {
     }
 
     function markAsRead(id: string) {
-        const notif = notifications.value.find(n => n.id === id)
+        const notif = notifications.value.find((n) => n.id === id)
         if (notif) notif.read_at = new Date().toISOString()
     }
 
