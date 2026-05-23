@@ -7,6 +7,13 @@ export default defineConfig({
     test: {
         environment: 'jsdom',
         globals: true,
+        include: ['tests/**/*.test.ts', 'tests/**/*.spec.ts'],
+        exclude: [
+            'node_modules',
+            'dist',
+            'build',
+            'tests/e2e', 
+        ],
     },
     resolve: {
         alias: {
