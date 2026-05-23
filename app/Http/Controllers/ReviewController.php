@@ -2,16 +2,15 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\FormPhase;
 use App\Models\FormPhaseDetail;
 use App\Models\FormSubmission;
-use App\Models\Reviewer;
-use App\Models\SubmissionReviewer;
-use App\Models\ReviewSummary;
 use App\Models\ReviewComment;
+use App\Models\Reviewer;
+use App\Models\ReviewSummary;
 use App\Models\ReviewSummaryAttachment;
-use App\Models\ReviewCommentAttachment;
-use App\Models\ReviewEvaluationForm;
-use App\Models\ReviewerFormAssignment;
+use App\Models\SubmissionPeriod;
+use App\Models\SubmissionReviewer;
 use App\Services\EmailNotificationService;
 use App\SubmissionStatus;
 use Illuminate\Http\Request;
@@ -27,6 +26,7 @@ class ReviewController extends Controller
     {
         $this->emailService = $emailService;
     }
+
     // Enhanced assign reviewers with evaluation forms
     public function assignReviewers(Request $request, FormSubmission $submission)
     {
@@ -48,7 +48,7 @@ class ReviewController extends Controller
                     'form_submission_id' => $submission->id,
                     'reviewer_id' => $reviewerId,
                 ], [
-                    'evaluation_status' => $hasEvaluationForms ? 'pending' : 'not_required'
+                    'evaluation_status' => $hasEvaluationForms ? 'pending' : 'not_required',
                 ]);
 
                 if ($submissionReviewer->wasRecentlyCreated) {
@@ -80,7 +80,7 @@ class ReviewController extends Controller
         DB::transaction(function () use ($submission, $reviewer) {
             $submissionReviewer = SubmissionReviewer::where([
                 'form_submission_id' => $submission->id,
-                'reviewer_id' => $reviewer->id
+                'reviewer_id' => $reviewer->id,
             ])->first();
 
             if (!$submissionReviewer) {
@@ -113,7 +113,7 @@ class ReviewController extends Controller
             // Delete all ReviewSummary created by this reviewer
             $reviewSummaries = ReviewSummary::where([
                 'form_submission_id' => $submission->id,
-                'reviewer_id' => $reviewer->id
+                'reviewer_id' => $reviewer->id,
             ])->get();
 
             foreach ($reviewSummaries as $summary) {
@@ -155,7 +155,7 @@ class ReviewController extends Controller
             if ($reviewer) {
                 $submissionReviewer = SubmissionReviewer::where([
                     'form_submission_id' => $submission->id,
-                    'reviewer_id' => $reviewer->id
+                    'reviewer_id' => $reviewer->id,
                 ])->first();
 
                 // Reviewer can update status only if:
@@ -163,7 +163,7 @@ class ReviewController extends Controller
                 // 2. Evaluations are completed or not required
                 if ($submissionReviewer && $submissionReviewer->canParticipateInDiscussions()) {
                     $canUpdate = true;
-                } else if ($submissionReviewer) {
+                } elseif ($submissionReviewer) {
                     $pendingCount = $submissionReviewer->pending_forms_count;
                     abort(403, "Selesaikan {$pendingCount} formulir evaluasi yang tertunda sebelum memperbarui status pengajuan.");
                 } else {
@@ -203,7 +203,7 @@ class ReviewController extends Controller
         $request->validate([
             'summary_notes' => 'required|string|max:2000',
             'attachments' => 'nullable|array|max:5',
-            'attachments.*' => 'file|mimes:pdf,doc,docx,png,jpg,jpeg,gif|max:10240'
+            'attachments.*' => 'file|mimes:pdf,doc,docx,png,jpg,jpeg,gif|max:10240',
         ]);
 
         $user = Auth::user();
@@ -222,7 +222,7 @@ class ReviewController extends Controller
         // Check if reviewer is assigned to this submission
         $submissionReviewer = SubmissionReviewer::where([
             'form_submission_id' => $submission->id,
-            'reviewer_id' => $reviewer->id
+            'reviewer_id' => $reviewer->id,
         ])->first();
 
         if (!$submissionReviewer) {
@@ -275,7 +275,7 @@ class ReviewController extends Controller
             // Handle attachments
             if ($request->hasFile('attachments')) {
                 foreach ($request->file('attachments') as $file) {
-                    $path = $file->store('review-attachments/' . $submission->id, 'public');
+                    $path = $file->store('review-attachments/'.$submission->id, 'public');
 
                     ReviewSummaryAttachment::create([
                         'review_summary_id' => $reviewSummary->id,
@@ -324,7 +324,7 @@ class ReviewController extends Controller
             if ($reviewer) {
                 $submissionReviewer = SubmissionReviewer::where([
                     'form_submission_id' => $submission->id,
-                    'reviewer_id' => $reviewer->id
+                    'reviewer_id' => $reviewer->id,
                 ])->first();
 
                 if ($submissionReviewer) {
@@ -401,7 +401,7 @@ class ReviewController extends Controller
 
         $submissionReviewer = SubmissionReviewer::where([
             'form_submission_id' => $submission->id,
-            'reviewer_id' => $reviewer->id
+            'reviewer_id' => $reviewer->id,
         ])->first();
 
         if (!$submissionReviewer) {
@@ -425,7 +425,8 @@ class ReviewController extends Controller
 
         } catch (\Exception $e) {
             DB::rollback();
-            return back()->withErrors(['error' => 'Gagal menugaskan formulir evaluasi: ' . $e->getMessage()]);
+
+            return back()->withErrors(['error' => 'Gagal menugaskan formulir evaluasi: '.$e->getMessage()]);
         }
     }
 
@@ -453,7 +454,7 @@ class ReviewController extends Controller
 
         // Get available evaluation forms
         $evaluationForms = $this->getSubmissionFormPhase($submission)
-                ?->activeReviewEvaluationForms()
+            ?->activeReviewEvaluationForms()
             ->get(['id', 'title', 'is_required', 'order']) ?? collect();
 
         return response()->json([
@@ -490,14 +491,14 @@ class ReviewController extends Controller
 
     protected function getSubmissionFormPhase(FormSubmission $submission)
     {
-        return \App\Models\FormPhase::whereHas('formPhaseDetails.formAccessControl', function ($query) use ($submission) {
+        return FormPhase::whereHas('formPhaseDetails.formAccessControl', function ($query) use ($submission) {
             $query->where('form_id', $submission->form_id);
         })->first();
     }
 
     protected function getEvaluationDueDate(FormSubmission $submission): ?\DateTime
     {
-        $submissionPeriod = \App\Models\SubmissionPeriod::whereHas(
+        $submissionPeriod = SubmissionPeriod::whereHas(
             'submissionPeriodPhases.formPhase.formPhaseDetails.formAccessControl',
             function ($query) use ($submission) {
                 $query->where('form_id', $submission->form_id);
@@ -539,7 +540,7 @@ class ReviewController extends Controller
                 // Check if reviewer has completed evaluations (if required)
                 $submissionReviewer = SubmissionReviewer::where([
                     'form_submission_id' => $reviewSummary->form_submission_id,
-                    'reviewer_id' => $reviewer->id
+                    'reviewer_id' => $reviewer->id,
                 ])->first();
 
                 if ($submissionReviewer) {
@@ -590,6 +591,7 @@ class ReviewController extends Controller
         }
 
         $fullPath = Storage::disk('public')->path($filePath);
+
         return response()->download($fullPath);
     }
 
@@ -601,6 +603,7 @@ class ReviewController extends Controller
         // Check evaluation completion first
         if ($submission->hasPendingEvaluations()) {
             $submission->update(['status' => SubmissionStatus::UNDER_REVIEW]);
+
             return;
         }
 
@@ -614,7 +617,7 @@ class ReviewController extends Controller
             $submission->update(['status' => SubmissionStatus::REJECTED]);
         } elseif ($reviewSummaries->where('status', 'open')->isNotEmpty()) {
             $submission->update(['status' => SubmissionStatus::NEEDS_REVISION]);
-        } elseif ($reviewSummaries->every(fn($r) => $r->status === 'resolved')) {
+        } elseif ($reviewSummaries->every(fn ($r) => $r->status === 'resolved')) {
             $submission->update(['status' => SubmissionStatus::APPROVED]);
         } else {
             $submission->update(['status' => SubmissionStatus::UNDER_REVIEW]);
@@ -697,7 +700,7 @@ class ReviewController extends Controller
 
         $submissionReviewer = SubmissionReviewer::where([
             'form_submission_id' => $submission->id,
-            'reviewer_id' => $reviewer->id
+            'reviewer_id' => $reviewer->id,
         ])->first();
 
         if (!$submissionReviewer) {

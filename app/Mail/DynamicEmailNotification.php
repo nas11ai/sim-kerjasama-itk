@@ -4,6 +4,7 @@ namespace App\Mail;
 
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
+use Illuminate\Mail\Mailables\Attachment;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
@@ -21,7 +22,7 @@ class DynamicEmailNotification extends Mailable
     ) {
         Log::info('DynamicEmailNotification constructed', [
             'subject' => $data['subject'] ?? 'N/A',
-            'view' => $data['view'] ?? 'N/A'
+            'view' => $data['view'] ?? 'N/A',
         ]);
     }
 
@@ -49,7 +50,7 @@ class DynamicEmailNotification extends Mailable
     /**
      * Get the attachments for the message.
      *
-     * @return array<int, \Illuminate\Mail\Mailables\Attachment>
+     * @return array<int, Attachment>
      */
     public function attachments(): array
     {

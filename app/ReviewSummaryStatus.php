@@ -46,7 +46,7 @@ enum ReviewSummaryStatus: string
 
     public static function options(): array
     {
-        return collect(self::cases())->map(fn($status) => [
+        return collect(self::cases())->map(fn ($status) => [
             'value' => $status->value,
             'label' => $status->label(),
             'color' => $status->color(),
@@ -55,8 +55,8 @@ enum ReviewSummaryStatus: string
 
     public static function forSelect(): array
     {
-        return collect(self::cases())->mapWithKeys(fn($status) => [
-            $status->value => $status->label()
+        return collect(self::cases())->mapWithKeys(fn ($status) => [
+            $status->value => $status->label(),
         ])->toArray();
     }
 }

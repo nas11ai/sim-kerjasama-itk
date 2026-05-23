@@ -2,20 +2,20 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Form;
-use App\Models\FormType;
+use App\Models\Faculty;
 use App\Models\FieldType;
+use App\Models\Form;
 use App\Models\FormAccessControl;
 use App\Models\FormPhase;
 use App\Models\FormPhaseDetail;
+use App\Models\FormType;
 use App\Models\PhaseType;
-use App\Models\SubmissionPeriod;
-use App\Models\Faculty;
 use App\Models\ReviewEvaluationForm;
-use Spatie\Permission\Models\Role;
+use App\Models\SubmissionPeriod;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
+use Spatie\Permission\Models\Role;
 
 class CompleteFormBuilderController extends Controller
 {
@@ -237,8 +237,9 @@ class CompleteFormBuilderController extends Controller
                 ->with('success', 'Form dan seluruh konfigurasinya berhasil dibuat!');
         } catch (\Exception $e) {
             DB::rollback();
+
             return back()
-                ->withErrors(['error' => 'Gagal membuat formulir: ' . $e->getMessage()])
+                ->withErrors(['error' => 'Gagal membuat formulir: '.$e->getMessage()])
                 ->withInput();
         }
     }

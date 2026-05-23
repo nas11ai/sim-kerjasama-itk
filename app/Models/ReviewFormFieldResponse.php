@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
@@ -56,6 +57,7 @@ class ReviewFormFieldResponse extends Model
         if (is_array($values)) {
             return implode(', ', $values);
         }
+
         return $this->value;
     }
 
@@ -76,6 +78,7 @@ class ReviewFormFieldResponse extends Model
         if (is_numeric($this->value)) {
             return number_format((float) $this->value, 2);
         }
+
         return $this->value;
     }
 
@@ -83,7 +86,7 @@ class ReviewFormFieldResponse extends Model
     protected function formatDateValue(): string
     {
         try {
-            return \Carbon\Carbon::parse($this->value)->format('d M Y');
+            return Carbon::parse($this->value)->format('d M Y');
         } catch (\Exception $e) {
             return $this->value;
         }
@@ -101,6 +104,7 @@ class ReviewFormFieldResponse extends Model
         if (filter_var($this->value, FILTER_VALIDATE_URL)) {
             return "<a href='{$this->value}' target='_blank' class='text-blue-600 hover:underline'>{$this->value}</a>";
         }
+
         return $this->value;
     }
 

@@ -51,7 +51,7 @@ class PermissionController extends Controller
     public function update(Request $request, Permission $permission)
     {
         $validated = $request->validate([
-            'name' => ['required', 'string', 'max:255', 'unique:permissions,name,' . $permission->id],
+            'name' => ['required', 'string', 'max:255', 'unique:permissions,name,'.$permission->id],
         ], [
             'name.required' => 'Hak akses harus diisi.',
             'name.unique' => 'Hak akses sudah digunakan.',

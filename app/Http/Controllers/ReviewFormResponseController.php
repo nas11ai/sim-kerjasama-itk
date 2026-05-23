@@ -3,15 +3,15 @@
 namespace App\Http\Controllers;
 
 use App\Models\FormSubmission;
+use App\Models\ReviewerFormAssignment;
 use App\Models\ReviewEvaluationForm;
 use App\Models\ReviewFormResponse;
-use App\Models\ReviewerFormAssignment;
-use App\Models\ReviewFormFieldResponse;
 use App\Models\ReviewSummary;
+use App\Models\SubmissionPeriod;
 use App\Models\SubmissionReviewer;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 
@@ -22,7 +22,7 @@ class ReviewFormResponseController extends Controller
      */
     protected function getDefaultDueDate(FormSubmission $submission): ?\DateTime
     {
-        $submissionPeriod = \App\Models\SubmissionPeriod::whereHas(
+        $submissionPeriod = SubmissionPeriod::whereHas(
             'submissionPeriodPhases.formPhase.formPhaseDetails.formAccessControl',
             function ($query) use ($submission) {
                 $query->where('form_id', $submission->form_id);
@@ -66,7 +66,7 @@ class ReviewFormResponseController extends Controller
         // Check if assigned to this submission
         $submissionReviewer = SubmissionReviewer::where([
             'form_submission_id' => $submission->id,
-            'reviewer_id' => $reviewer->id
+            'reviewer_id' => $reviewer->id,
         ])->first();
 
         if (!$submissionReviewer) {
@@ -101,6 +101,7 @@ class ReviewFormResponseController extends Controller
         // Redirect to show page
         return redirect()->route('reviewer.evaluation-form.show', $assignment->id);
     }
+
     public function show(ReviewerFormAssignment $assignment)
     {
         $this->authorizeAssignment($assignment);
@@ -113,20 +114,20 @@ class ReviewFormResponseController extends Controller
                             'fieldType:id,name',
                             'reviewFormFieldOptions' => function ($opt) {
                                 $opt->ordered();
-                            }
+                            },
                         ]);
-                    }
+                    },
                 ]);
             },
             'submissionReviewer.formSubmission.form:id,title',
             'submissionReviewer.formSubmission.submittedBy:id,name',
-            'reviewFormResponse.reviewFormFieldResponses'
+            'reviewFormResponse.reviewFormFieldResponses',
         ]);
 
         // Get or create response
         $response = $assignment->reviewFormResponse ?? ReviewFormResponse::create([
             'reviewer_form_assignment_id' => $assignment->id,
-            'status' => 'draft'
+            'status' => 'draft',
         ]);
 
         // Map existing responses
@@ -151,7 +152,7 @@ class ReviewFormResponseController extends Controller
 
         $response = $assignment->reviewFormResponse ?? ReviewFormResponse::create([
             'reviewer_form_assignment_id' => $assignment->id,
-            'status' => 'draft'
+            'status' => 'draft',
         ]);
 
         if (!$response->canBeEdited()) {
@@ -174,7 +175,7 @@ class ReviewFormResponseController extends Controller
 
             // Update final notes
             $response->update([
-                'final_notes' => $validated['final_notes'] ?? null
+                'final_notes' => $validated['final_notes'] ?? null,
             ]);
 
             DB::commit();
@@ -183,7 +184,8 @@ class ReviewFormResponseController extends Controller
 
         } catch (\Exception $e) {
             DB::rollback();
-            return back()->withErrors(['error' => 'Gagal menyimpan draft: ' . $e->getMessage()]);
+
+            return back()->withErrors(['error' => 'Gagal menyimpan draft: '.$e->getMessage()]);
         }
     }
 
@@ -217,7 +219,7 @@ class ReviewFormResponseController extends Controller
 
             // Update final notes
             $response->update([
-                'final_notes' => $validated['final_notes'] ?? null
+                'final_notes' => $validated['final_notes'] ?? null,
             ]);
 
             // Validate all required fields are completed
@@ -241,7 +243,8 @@ class ReviewFormResponseController extends Controller
             throw $e;
         } catch (\Exception $e) {
             DB::rollback();
-            return back()->withErrors(['error' => 'Gagal mengirim formulir: ' . $e->getMessage()]);
+
+            return back()->withErrors(['error' => 'Gagal mengirim formulir: '.$e->getMessage()]);
         }
     }
 
@@ -259,12 +262,12 @@ class ReviewFormResponseController extends Controller
                     'fieldType:id,name',
                     'reviewFormFieldOptions' => function ($q) {
                         $q->ordered();
-                    }
+                    },
                 ]);
             },
             'submissionReviewer.formSubmission.form:id,title',
             'submissionReviewer.formSubmission.submittedBy:id,name',
-            'reviewFormResponse.reviewFormFieldResponses'
+            'reviewFormResponse.reviewFormFieldResponses',
         ]);
 
         $response = $assignment->reviewFormResponse;
@@ -275,8 +278,8 @@ class ReviewFormResponseController extends Controller
                 return [
                     $fieldResponse->review_form_field_id => [
                         'value' => $fieldResponse->value,
-                        'formatted_value' => $fieldResponse->formatted_value
-                    ]
+                        'formatted_value' => $fieldResponse->formatted_value,
+                    ],
                 ];
             });
 
@@ -302,7 +305,7 @@ class ReviewFormResponseController extends Controller
             },
             'submissionReviewer.formSubmission.form:id,title',
             'submissionReviewer.formSubmission.submittedBy:id,name',
-            'reviewFormResponse.reviewFormFieldResponses'
+            'reviewFormResponse.reviewFormFieldResponses',
         ]);
 
         $summaryContent = $this->generateSummaryContent($assignment, $response);
@@ -376,7 +379,7 @@ class ReviewFormResponseController extends Controller
         $reviewer = $assignment->submissionReviewer->reviewer;
 
         $content = "RANGKUMAN EVALUASI\n";
-        $content .= str_repeat("=", 50) . "\n\n";
+        $content .= str_repeat('=', 50)."\n\n";
 
         $content .= "Pengajuan: {$submission->form->title}\n";
         $content .= "Dikirim oleh: {$submission->submittedBy->name}\n";
@@ -384,7 +387,7 @@ class ReviewFormResponseController extends Controller
         $content .= "Formulir Evaluasi: {$form->title}\n";
         $content .= "Diselesaikan pada: {$response->submitted_at->format('d M Y H:i')}\n\n";
 
-        $content .= str_repeat("-", 50) . "\n\n";
+        $content .= str_repeat('-', 50)."\n\n";
 
         foreach ($form->reviewFormFields()->ordered()->get() as $field) {
             $fieldResponse = $response->reviewFormFieldResponses()
@@ -405,13 +408,13 @@ class ReviewFormResponseController extends Controller
         }
 
         if ($response->final_notes) {
-            $content .= str_repeat("-", 50) . "\n";
+            $content .= str_repeat('-', 50)."\n";
             $content .= "Catatan Tambahan:\n";
-            $content .= $response->final_notes . "\n\n";
+            $content .= $response->final_notes."\n\n";
         }
 
-        $content .= str_repeat("=", 50) . "\n";
-        $content .= "Generated on: " . now()->format('d M Y H:i:s') . "\n";
+        $content .= str_repeat('=', 50)."\n";
+        $content .= 'Generated on: '.now()->format('d M Y H:i:s')."\n";
 
         return $content;
     }

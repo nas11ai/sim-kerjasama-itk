@@ -2,12 +2,13 @@
 
 namespace App\Http\Middleware;
 
-use Closure;
-use Illuminate\Http\Request;
-use Symfony\Component\HttpFoundation\Response;
 use App\Models\Form;
 use App\Models\FormSubmission;
+use App\Models\Reviewer;
+use Closure;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
+use Symfony\Component\HttpFoundation\Response;
 
 class CheckBiodata
 {
@@ -41,6 +42,7 @@ class CheckBiodata
 
         if (!$biodataForm) {
             $this->handleMissingBiodataForm();
+
             return $next($request);
         }
 
@@ -52,7 +54,7 @@ class CheckBiodata
     private function needsBiodataCheck($user): bool
     {
         // Skip biodata check if user is an active reviewer
-        if (\App\Models\Reviewer::where('user_id', $user->id)
+        if (Reviewer::where('user_id', $user->id)
             ->where(function ($query) {
                 $query->whereNull('end_date')
                     ->orWhere('end_date', '>=', now());
@@ -155,7 +157,7 @@ class CheckBiodata
         if ($this->shouldRedirect($request)) {
             return redirect()
                 ->route('user.dashboard')
-                ->with('info', $statusMessage . ' Akses menu lain akan dibuka setelah biodata disetujui.');
+                ->with('info', $statusMessage.' Akses menu lain akan dibuka setelah biodata disetujui.');
         }
 
         return $next($request);

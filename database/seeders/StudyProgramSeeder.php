@@ -4,7 +4,6 @@ namespace Database\Seeders;
 
 use App\Models\Faculty;
 use App\Models\StudyProgram;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 
@@ -49,7 +48,7 @@ class StudyProgramSeeder extends Seeder
                     [
                         'faculty_id' => Faculty::where('name', 'Fakultas Sains dan Teknologi Informasi')->first()->id,
                         'name' => 'Teknik Elektro',
-                    ]
+                    ],
                 ];
 
                 $fpb_study_programs = [
@@ -80,7 +79,7 @@ class StudyProgramSeeder extends Seeder
                     [
                         'faculty_id' => Faculty::where('name', 'Fakultas Pembangunan Berkelanjutan')->first()->id,
                         'name' => 'Desain Komunikasi Visual',
-                    ]
+                    ],
                 ];
 
                 $frti_study_programs = [
