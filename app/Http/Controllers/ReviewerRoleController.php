@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Controllers\Controller;
 use App\Models\ReviewerRole;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -28,7 +27,7 @@ class ReviewerRoleController extends Controller
 
         return Inertia::render('ReviewerRoles/Index', [
             'reviewerRoles' => $reviewerRoles,
-            'filters' => $request->only(['search', 'status'])
+            'filters' => $request->only(['search', 'status']),
         ]);
     }
 
@@ -41,7 +40,7 @@ class ReviewerRoleController extends Controller
     {
         $validated = $request->validate([
             'name' => 'required|string|max:255|unique:reviewer_roles,name',
-            'is_active' => 'boolean'
+            'is_active' => 'boolean',
         ]);
 
         $validated['is_active'] = $validated['is_active'] ?? true;
@@ -58,26 +57,26 @@ class ReviewerRoleController extends Controller
             'reviewers.user:id,name,email',
             'reviewers' => function ($query) {
                 $query->orderBy('created_at', 'desc');
-            }
+            },
         ]);
 
         return Inertia::render('ReviewerRoles/Show', [
-            'reviewerRole' => $reviewerRole
+            'reviewerRole' => $reviewerRole,
         ]);
     }
 
     public function edit(ReviewerRole $reviewerRole)
     {
         return Inertia::render('ReviewerRoles/Edit', [
-            'reviewerRole' => $reviewerRole
+            'reviewerRole' => $reviewerRole,
         ]);
     }
 
     public function update(Request $request, ReviewerRole $reviewerRole)
     {
         $validated = $request->validate([
-            'name' => 'required|string|max:255|unique:reviewer_roles,name,' . $reviewerRole->id,
-            'is_active' => 'boolean'
+            'name' => 'required|string|max:255|unique:reviewer_roles,name,'.$reviewerRole->id,
+            'is_active' => 'boolean',
         ]);
 
         $reviewerRole->update($validated);
@@ -99,7 +98,7 @@ class ReviewerRoleController extends Controller
 
         if ($activeReviewers > 0) {
             return back()->withErrors([
-                'error' => 'Tidak dapat menghapus reviewer role yang masih memiliki reviewer aktif.'
+                'error' => 'Tidak dapat menghapus reviewer role yang masih memiliki reviewer aktif.',
             ]);
         }
 
@@ -112,7 +111,7 @@ class ReviewerRoleController extends Controller
     public function toggleStatus(ReviewerRole $reviewerRole)
     {
         $reviewerRole->update([
-            'is_active' => !$reviewerRole->is_active
+            'is_active' => !$reviewerRole->is_active,
         ]);
 
         $status = $reviewerRole->is_active ? 'diaktifkan' : 'dinonaktifkan';

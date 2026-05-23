@@ -2,8 +2,9 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Spatie\Permission\Models\Role;
 
 class UserProfile extends Model
 {
@@ -22,7 +23,7 @@ class UserProfile extends Model
 
     public function role()
     {
-        return $this->belongsTo(\Spatie\Permission\Models\Role::class);
+        return $this->belongsTo(Role::class);
     }
 
     public function studyProgram()

@@ -2,17 +2,17 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\FormPhase;
+use App\Models\SubmissionDate;
 use App\Models\SubmissionDateLabel;
 use App\Models\SubmissionPeriod;
-use App\Models\SubmissionDate;
 use App\Models\SubmissionPeriodDetail;
 use App\Models\SubmissionPeriodPhase;
 use App\Models\SubmissionRule;
-use App\Models\FormPhase;
-use Illuminate\Http\Request;
-use Inertia\Inertia;
-use Illuminate\Support\Facades\DB;
 use Carbon\Carbon;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Inertia\Inertia;
 
 class SubmissionPeriodController extends Controller
 {
@@ -21,7 +21,7 @@ class SubmissionPeriodController extends Controller
         $query = SubmissionPeriod::with([
             'submissionDates',
             'submissionPeriodPhases.formPhase',
-            'submissionPeriodDetails.submissionRule'
+            'submissionPeriodDetails.submissionRule',
         ]);
 
         // Search functionality
@@ -39,12 +39,13 @@ class SubmissionPeriodController extends Controller
             $period->end_date = $dates->last()?->date;
             $period->is_active = $this->isPeriodActive($period);
             $period->status = $this->getPeriodStatus($period);
+
             return $period;
         });
 
         return Inertia::render('SubmissionPeriods/Index', [
             'submissionPeriods' => $submissionPeriods,
-            'filters' => $request->only(['search'])
+            'filters' => $request->only(['search']),
         ]);
     }
 
@@ -61,7 +62,7 @@ class SubmissionPeriodController extends Controller
         return Inertia::render('SubmissionPeriods/Create', [
             'formPhases' => $formPhases,
             'submissionRules' => $submissionRules,
-            'submissionDateLabels' => $submissionDateLabels
+            'submissionDateLabels' => $submissionDateLabels,
         ]);
     }
 
@@ -75,7 +76,7 @@ class SubmissionPeriodController extends Controller
             'form_phase_ids' => 'required|array|min:1',
             'form_phase_ids.*' => 'exists:form_phases,id',
             'submission_rule_ids' => 'nullable|array',
-            'submission_rule_ids.*' => 'exists:submission_rules,id'
+            'submission_rule_ids.*' => 'exists:submission_rules,id',
         ]);
 
         // Validate date order
@@ -94,7 +95,7 @@ class SubmissionPeriodController extends Controller
 
             // Create submission period
             $submissionPeriod = SubmissionPeriod::create([
-                'name' => $request->name
+                'name' => $request->name,
             ]);
 
             // Create submission dates
@@ -102,7 +103,7 @@ class SubmissionPeriodController extends Controller
                 SubmissionDate::create([
                     'submission_period_id' => $submissionPeriod->id,
                     'submission_date_label_id' => SubmissionDateLabel::where('name', $dateData['label'])->first()->id,
-                    'datetime' => $dateData['date']
+                    'datetime' => $dateData['date'],
                 ]);
             }
 
@@ -110,7 +111,7 @@ class SubmissionPeriodController extends Controller
             foreach ($request->form_phase_ids as $formPhaseId) {
                 SubmissionPeriodPhase::create([
                     'submission_period_id' => $submissionPeriod->id,
-                    'form_phase_id' => $formPhaseId
+                    'form_phase_id' => $formPhaseId,
                 ]);
             }
 
@@ -119,7 +120,7 @@ class SubmissionPeriodController extends Controller
                 foreach ($request->submission_rule_ids as $ruleId) {
                     SubmissionPeriodDetail::create([
                         'submission_period_id' => $submissionPeriod->id,
-                        'submission_rule_id' => $ruleId
+                        'submission_rule_id' => $ruleId,
                     ]);
                 }
             }
@@ -130,7 +131,8 @@ class SubmissionPeriodController extends Controller
                 ->with('success', 'Periode pengiriman berhasil dibuat.');
         } catch (\Exception $e) {
             DB::rollback();
-            return back()->withErrors(['error' => 'Gagal membuat periode pengiriman: ' . $e->getMessage()]);
+
+            return back()->withErrors(['error' => 'Gagal membuat periode pengiriman: '.$e->getMessage()]);
         }
     }
 
@@ -141,7 +143,7 @@ class SubmissionPeriodController extends Controller
                 $query->orderBy('datetime');
             },
             'submissionPeriodPhases.formPhase',
-            'submissionPeriodDetails.submissionRule'
+            'submissionPeriodDetails.submissionRule',
         ]);
 
         // Add computed properties
@@ -150,7 +152,7 @@ class SubmissionPeriodController extends Controller
         $submissionPeriod->days_remaining = $this->getDaysRemaining($submissionPeriod);
 
         return Inertia::render('SubmissionPeriods/Show', [
-            'submissionPeriod' => $submissionPeriod
+            'submissionPeriod' => $submissionPeriod,
         ]);
     }
 
@@ -162,7 +164,7 @@ class SubmissionPeriodController extends Controller
                     ->orderBy('datetime');
             },
             'submissionPeriodPhases.formPhase',
-            'submissionPeriodDetails.submissionRule'
+            'submissionPeriodDetails.submissionRule',
         ]);
 
         $formPhases = FormPhase::where('is_active', true)
@@ -191,7 +193,7 @@ class SubmissionPeriodController extends Controller
             'form_phase_ids' => 'required|array|min:1',
             'form_phase_ids.*' => 'exists:form_phases,id',
             'submission_rule_ids' => 'nullable|array',
-            'submission_rule_ids.*' => 'exists:submission_rules,id'
+            'submission_rule_ids.*' => 'exists:submission_rules,id',
         ]);
 
         // Validate date order
@@ -210,7 +212,7 @@ class SubmissionPeriodController extends Controller
 
             // Update submission period
             $submissionPeriod->update([
-                'name' => $request->name
+                'name' => $request->name,
             ]);
 
             // Delete existing relations
@@ -223,7 +225,7 @@ class SubmissionPeriodController extends Controller
                 SubmissionDate::create([
                     'submission_period_id' => $submissionPeriod->id,
                     'submission_date_label_id' => SubmissionDateLabel::where('name', $dateData['label'])->first()->id,
-                    'datetime' => $dateData['date']
+                    'datetime' => $dateData['date'],
                 ]);
             }
 
@@ -231,7 +233,7 @@ class SubmissionPeriodController extends Controller
             foreach ($request->form_phase_ids as $formPhaseId) {
                 SubmissionPeriodPhase::create([
                     'submission_period_id' => $submissionPeriod->id,
-                    'form_phase_id' => $formPhaseId
+                    'form_phase_id' => $formPhaseId,
                 ]);
             }
 
@@ -240,7 +242,7 @@ class SubmissionPeriodController extends Controller
                 foreach ($request->submission_rule_ids as $ruleId) {
                     SubmissionPeriodDetail::create([
                         'submission_period_id' => $submissionPeriod->id,
-                        'submission_rule_id' => $ruleId
+                        'submission_rule_id' => $ruleId,
                     ]);
                 }
             }
@@ -251,7 +253,8 @@ class SubmissionPeriodController extends Controller
                 ->with('success', 'Periode pengiriman berhasil diperbarui.');
         } catch (\Exception $e) {
             DB::rollback();
-            return back()->withErrors(['error' => 'Gagal memperbarui periode pengiriman: ' . $e->getMessage()]);
+
+            return back()->withErrors(['error' => 'Gagal memperbarui periode pengiriman: '.$e->getMessage()]);
         }
     }
 
@@ -272,7 +275,8 @@ class SubmissionPeriodController extends Controller
                 ->with('success', 'Submission period deleted successfully.');
         } catch (\Exception $e) {
             DB::rollback();
-            return back()->withErrors(['error' => 'Gagal menghapus periode pengiriman: ' . $e->getMessage()]);
+
+            return back()->withErrors(['error' => 'Gagal menghapus periode pengiriman: '.$e->getMessage()]);
         }
     }
 
@@ -281,8 +285,9 @@ class SubmissionPeriodController extends Controller
         $now = Carbon::now();
         $dates = $period->submissionDates->sortBy('datetime');
 
-        if ($dates->isEmpty())
+        if ($dates->isEmpty()) {
             return false;
+        }
 
         $startDate = Carbon::parse($dates->first()->date);
         $endDate = Carbon::parse($dates->last()->date);
@@ -295,8 +300,9 @@ class SubmissionPeriodController extends Controller
         $now = Carbon::now();
         $dates = $period->submissionDates->sortBy('datetime');
 
-        if ($dates->isEmpty())
+        if ($dates->isEmpty()) {
             return 'no_dates';
+        }
 
         $startDate = Carbon::parse($dates->first()->date);
         $endDate = Carbon::parse($dates->last()->date);
@@ -314,14 +320,16 @@ class SubmissionPeriodController extends Controller
     {
         $dates = $period->submissionDates->sortBy('datetime');
 
-        if ($dates->isEmpty())
+        if ($dates->isEmpty()) {
             return null;
+        }
 
         $endDate = Carbon::parse($dates->last()->date);
         $now = Carbon::now();
 
-        if ($now->gt($endDate))
+        if ($now->gt($endDate)) {
             return 0;
+        }
 
         return $now->diffInDays($endDate, false);
     }
@@ -329,11 +337,11 @@ class SubmissionPeriodController extends Controller
     public function storeLabel(Request $request)
     {
         $request->validate([
-            'name' => 'required|string|max:255|unique:submission_date_labels,name'
+            'name' => 'required|string|max:255|unique:submission_date_labels,name',
         ]);
 
         $label = SubmissionDateLabel::create([
-            'name' => $request->name
+            'name' => $request->name,
         ]);
 
         // Kembalikan JSON, bukan redirect

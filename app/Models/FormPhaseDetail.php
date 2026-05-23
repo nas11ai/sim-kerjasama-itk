@@ -21,7 +21,7 @@ class FormPhaseDetail extends Model
 
     protected $appends = [
         'review_evaluation_forms_count',
-        'required_review_evaluation_forms_count'
+        'required_review_evaluation_forms_count',
     ];
 
     protected $casts = [

@@ -2,12 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\FieldType;
+use App\Models\FormPhase;
+use App\Models\FormPhaseDetail;
 use App\Models\ReviewEvaluationForm;
 use App\Models\ReviewFormField;
 use App\Models\ReviewFormFieldOption;
-use App\Models\FormPhase;
-use App\Models\FormPhaseDetail;
-use App\Models\FieldType;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
@@ -20,7 +20,7 @@ class ReviewEvaluationFormController extends Controller
             'formPhaseDetail.formPhase:id,title',
             'formPhaseDetail.formAccessControl.form:id,title',
             'formPhaseDetail.formAccessControl.role:id,name',
-            'reviewFormFields'
+            'reviewFormFields',
         ]);
 
         // Filter by form phase
@@ -52,7 +52,7 @@ class ReviewEvaluationFormController extends Controller
 
         $formPhaseDetails = FormPhaseDetail::with([
             'formPhase:id,title',
-            'formAccessControl.form:id,title'
+            'formAccessControl.form:id,title',
         ])
             ->whereHas('formPhase', function ($q) {
                 $q->where('is_active', true);
@@ -63,7 +63,7 @@ class ReviewEvaluationFormController extends Controller
             'evaluationForms' => $evaluationForms,
             'formPhases' => $formPhases,
             'formPhaseDetails' => $formPhaseDetails,
-            'filters' => $request->only(['form_phase_id', 'form_phase_detail_id', 'search'])
+            'filters' => $request->only(['form_phase_id', 'form_phase_detail_id', 'search']),
         ]);
     }
 
@@ -73,7 +73,7 @@ class ReviewEvaluationFormController extends Controller
             ->with([
                 'formPhaseDetails.formAccessControl.form',
                 'formPhaseDetails.formAccessControl.role',
-                'formPhaseDetails.formAccessControl.studyProgram'
+                'formPhaseDetails.formAccessControl.studyProgram',
             ])
             ->orderBy('title')
             ->get();
@@ -82,7 +82,7 @@ class ReviewEvaluationFormController extends Controller
 
         return Inertia::render('ReviewEvaluationForms/Create', [
             'formPhases' => $formPhases,
-            'fieldTypes' => $fieldTypes
+            'fieldTypes' => $fieldTypes,
         ]);
     }
 
@@ -155,7 +155,8 @@ class ReviewEvaluationFormController extends Controller
 
         } catch (\Exception $e) {
             DB::rollback();
-            return back()->withErrors(['error' => 'Gagal membuat formulir evaluasi review: ' . $e->getMessage()]);
+
+            return back()->withErrors(['error' => 'Gagal membuat formulir evaluasi review: '.$e->getMessage()]);
         }
     }
 
@@ -170,9 +171,9 @@ class ReviewEvaluationFormController extends Controller
                     'fieldType:id,name',
                     'reviewFormFieldOptions' => function ($q) {
                         $q->ordered();
-                    }
+                    },
                 ]);
-            }
+            },
         ]);
 
         // Get usage statistics
@@ -190,7 +191,7 @@ class ReviewEvaluationFormController extends Controller
 
         return Inertia::render('ReviewEvaluationForms/Show', [
             'evaluationForm' => $reviewEvaluationForm,
-            'assignmentStats' => $assignmentStats
+            'assignmentStats' => $assignmentStats,
         ]);
     }
 
@@ -204,16 +205,16 @@ class ReviewEvaluationFormController extends Controller
                     'fieldType:id,name',
                     'reviewFormFieldOptions' => function ($q) {
                         $q->ordered();
-                    }
+                    },
                 ]);
-            }
+            },
         ]);
 
         $formPhases = FormPhase::where('is_active', true)
             ->with([
                 'formPhaseDetails.formAccessControl.form',
                 'formPhaseDetails.formAccessControl.role',
-                'formPhaseDetails.formAccessControl.studyProgram'
+                'formPhaseDetails.formAccessControl.studyProgram',
             ])
             ->orderBy('title')
             ->get();
@@ -223,7 +224,7 @@ class ReviewEvaluationFormController extends Controller
         return Inertia::render('ReviewEvaluationForms/Edit', [
             'evaluationForm' => $reviewEvaluationForm,
             'formPhases' => $formPhases,
-            'fieldTypes' => $fieldTypes
+            'fieldTypes' => $fieldTypes,
         ]);
     }
 
@@ -276,7 +277,7 @@ class ReviewEvaluationFormController extends Controller
                 foreach ($validated['fields'] as $index => $fieldData) {
                     $field = isset($fieldData['id'])
                         ? ReviewFormField::find($fieldData['id'])
-                        : new ReviewFormField();
+                        : new ReviewFormField;
 
                     $field->review_evaluation_form_id = $reviewEvaluationForm->id;
                     $field->field_type_id = $fieldData['field_type_id'];
@@ -301,7 +302,7 @@ class ReviewEvaluationFormController extends Controller
                         foreach ($fieldData['options'] as $optionIndex => $optionData) {
                             $option = isset($optionData['id'])
                                 ? ReviewFormFieldOption::find($optionData['id'])
-                                : new ReviewFormFieldOption();
+                                : new ReviewFormFieldOption;
 
                             $option->review_form_field_id = $field->id;
                             $option->label = $optionData['label'];
@@ -322,7 +323,8 @@ class ReviewEvaluationFormController extends Controller
 
         } catch (\Exception $e) {
             DB::rollback();
-            return back()->withErrors(['error' => 'Gagal memperbarui formulir evaluasi review: ' . $e->getMessage()]);
+
+            return back()->withErrors(['error' => 'Gagal memperbarui formulir evaluasi review: '.$e->getMessage()]);
         }
     }
 
@@ -333,7 +335,7 @@ class ReviewEvaluationFormController extends Controller
 
         if ($assignmentCount > 0) {
             return back()->withErrors([
-                'error' => "Tidak dapat menghapus formulir evaluasi ini. Formulir ini saat ini ditugaskan kepada {$assignmentCount} reviewer."
+                'error' => "Tidak dapat menghapus formulir evaluasi ini. Formulir ini saat ini ditugaskan kepada {$assignmentCount} reviewer.",
             ]);
         }
 
@@ -354,7 +356,8 @@ class ReviewEvaluationFormController extends Controller
 
         } catch (\Exception $e) {
             DB::rollback();
-            return back()->withErrors(['error' => 'Gagal menghapus formulir evaluasi review: ' . $e->getMessage()]);
+
+            return back()->withErrors(['error' => 'Gagal menghapus formulir evaluasi review: '.$e->getMessage()]);
         }
     }
 
@@ -364,7 +367,7 @@ class ReviewEvaluationFormController extends Controller
             DB::beginTransaction();
 
             $newForm = $reviewEvaluationForm->replicate();
-            $newForm->title = $reviewEvaluationForm->title . ' (Copy)';
+            $newForm->title = $reviewEvaluationForm->title.' (Copy)';
             $newForm->order = ReviewEvaluationForm::where('form_phase_detail_id', $reviewEvaluationForm->form_phase_detail_id)
                 ->max('order') + 1;
             $newForm->save();
@@ -390,7 +393,8 @@ class ReviewEvaluationFormController extends Controller
 
         } catch (\Exception $e) {
             DB::rollback();
-            return back()->withErrors(['error' => 'Gagal menduplikasi formulir evaluasi review: ' . $e->getMessage()]);
+
+            return back()->withErrors(['error' => 'Gagal menduplikasi formulir evaluasi review: '.$e->getMessage()]);
         }
     }
 
@@ -416,6 +420,7 @@ class ReviewEvaluationFormController extends Controller
 
         } catch (\Exception $e) {
             DB::rollback();
+
             return response()->json(['error' => 'Gagal memperbarui urutan.'], 500);
         }
     }
@@ -428,13 +433,13 @@ class ReviewEvaluationFormController extends Controller
                     'fieldType:id,name',
                     'reviewFormFieldOptions' => function ($q) {
                         $q->ordered();
-                    }
+                    },
                 ]);
-            }
+            },
         ]);
 
         return Inertia::render('ReviewEvaluationForms/Preview', [
-            'evaluationForm' => $reviewEvaluationForm
+            'evaluationForm' => $reviewEvaluationForm,
         ]);
     }
 }

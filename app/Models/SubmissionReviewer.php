@@ -127,6 +127,7 @@ class SubmissionReviewer extends Model
     {
         if (!$this->hasAssignedForms()) {
             $this->update(['evaluation_status' => 'not_required']);
+
             return;
         }
 

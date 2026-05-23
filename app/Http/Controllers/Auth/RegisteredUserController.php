@@ -3,20 +3,21 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\Models\StudyProgram;
 use App\Models\User;
 use App\Models\UserProfile;
-use App\Models\StudyProgram;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\Rules;
+use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
 use Spatie\Permission\Models\Role;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Log;
 
 class RegisteredUserController extends Controller
 {
@@ -42,7 +43,7 @@ class RegisteredUserController extends Controller
     /**
      * Handle an incoming registration request.
      *
-     * @throws \Illuminate\Validation\ValidationException
+     * @throws ValidationException
      */
     public function store(Request $request): RedirectResponse
     {
@@ -50,7 +51,7 @@ class RegisteredUserController extends Controller
         if (app()->environment('testing')) {
             $request->validate([
                 'name' => 'required|string|max:255',
-                'email' => 'required|string|lowercase|email|max:255|unique:' . User::class,
+                'email' => 'required|string|lowercase|email|max:255|unique:'.User::class,
                 'password' => ['required', 'confirmed', Rules\Password::defaults()],
             ]);
 
@@ -70,7 +71,7 @@ class RegisteredUserController extends Controller
         // Production logic
         $request->validate([
             'name' => 'required|string|max:255',
-            'email' => 'required|string|lowercase|email|max:255|unique:' . User::class,
+            'email' => 'required|string|lowercase|email|max:255|unique:'.User::class,
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
             'role' => 'required|exists:roles,id',
             'study_program' => 'required|exists:study_programs,id',
@@ -104,12 +105,12 @@ class RegisteredUserController extends Controller
         } catch (\Exception $e) {
             DB::rollBack();
 
-            Log::error('Registration failed: ' . $e->getMessage());
+            Log::error('Registration failed: '.$e->getMessage());
 
             return redirect()->back()
                 ->withInput()
                 ->withErrors([
-                    'error' => 'Pendaftaran gagal. Periksa kembali data Anda lalu coba lagi.'
+                    'error' => 'Pendaftaran gagal. Periksa kembali data Anda lalu coba lagi.',
                 ]);
         }
     }

@@ -17,6 +17,7 @@ class RoleController extends Controller
     {
         $roles = Role::with('permissions')->get();
         $user = $request->user();
+
         return Inertia('Roles/Index', [
             'roles' => $roles,
             'can' => [
@@ -33,6 +34,7 @@ class RoleController extends Controller
     public function create()
     {
         $permissions = Permission::all();
+
         return inertia('Roles/Create', [
             'permissions' => $permissions,
         ]);
@@ -78,7 +80,7 @@ class RoleController extends Controller
     public function update(Request $request, Role $role)
     {
         $validated = $request->validate([
-            'name' => 'required|string|max:255|unique:roles,name,' . $role->id,
+            'name' => 'required|string|max:255|unique:roles,name,'.$role->id,
             'permissions' => ['array'],
             'permissions.*' => ['string'],
         ]);
