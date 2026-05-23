@@ -5,10 +5,7 @@ import { computed, ref, shallowRef } from 'vue'
 const TOAST_LIMIT = 1
 const TOAST_REMOVE_DELAY = 1000000
 
-export type StringOrVNode =
-    | string
-    | VNode
-    | (() => VNode)
+export type StringOrVNode = string | VNode | (() => VNode)
 
 type ToasterToast = ToastProps & {
     id: string
@@ -35,131 +32,126 @@ type ActionType = typeof actionTypes
 
 type Action =
     | {
-        type: ActionType['ADD_TOAST']
-        toast: ToasterToast
-    }
+          type: ActionType['ADD_TOAST']
+          toast: ToasterToast
+      }
     | {
-        type: ActionType['UPDATE_TOAST']
-        toast: Partial<ToasterToast>
-    }
+          type: ActionType['UPDATE_TOAST']
+          toast: Partial<ToasterToast>
+      }
     | {
-        type: ActionType['DISMISS_TOAST']
-        toastId?: ToasterToast['id']
-    }
+          type: ActionType['DISMISS_TOAST']
+          toastId?: ToasterToast['id']
+      }
     | {
-        type: ActionType['REMOVE_TOAST']
-        toastId?: ToasterToast['id']
-    }
+          type: ActionType['REMOVE_TOAST']
+          toastId?: ToasterToast['id']
+      }
 
 interface State {
     toasts: ToasterToast[]
 }
 
-const toastTimeouts = new Map < string, ReturnType<typeof setTimeout>>()
+const toastTimeouts = new Map<string, ReturnType<typeof setTimeout>>()
 
-    function addToRemoveQueue(toastId: string) {
-  if (toastTimeouts.has(toastId))
-    return
+function addToRemoveQueue(toastId: string) {
+    if (toastTimeouts.has(toastId)) return
 
-  const timeout = setTimeout(() => {
+    const timeout = setTimeout(() => {
         toastTimeouts.delete(toastId)
-    dispatch({
-        type: actionTypes.REMOVE_TOAST,
-    toastId,
-    })
-  }, TOAST_REMOVE_DELAY)
+        dispatch({
+            type: actionTypes.REMOVE_TOAST,
+            toastId,
+        })
+    }, TOAST_REMOVE_DELAY)
 
     toastTimeouts.set(toastId, timeout)
 }
 
-    const state = shallowRef<State>({
-        toasts: [],
+const state = shallowRef<State>({
+    toasts: [],
 })
 
-        function dispatch(action: Action) {
-  switch (action.type) {
-    case actionTypes.ADD_TOAST:
-        state.value.toasts = [action.toast, ...state.value.toasts].slice(0, TOAST_LIMIT)
-        break
+function dispatch(action: Action) {
+    switch (action.type) {
+        case actionTypes.ADD_TOAST:
+            state.value.toasts = [action.toast, ...state.value.toasts].slice(0, TOAST_LIMIT)
+            break
 
         case actionTypes.UPDATE_TOAST:
-      state.value.toasts = state.value.toasts.map(t =>
-        t.id === action.toast.id ? {...t, ...action.toast } : t,
-        )
-        break
+            state.value.toasts = state.value.toasts.map((t) =>
+                t.id === action.toast.id ? { ...t, ...action.toast } : t
+            )
+            break
 
         case actionTypes.DISMISS_TOAST: {
-      const {toastId} = action
+            const { toastId } = action
 
-        if (toastId) {
-            addToRemoveQueue(toastId)
-        }
-        else {
-            state.value.toasts.forEach((toast) => {
-                addToRemoveQueue(toast.id)
-            })
-        }
-
-      state.value.toasts = state.value.toasts.map(t =>
-        t.id === toastId || toastId === undefined
-        ? {
-            ...t,
-            open: false,
+            if (toastId) {
+                addToRemoveQueue(toastId)
+            } else {
+                state.value.toasts.forEach((toast) => {
+                    addToRemoveQueue(toast.id)
+                })
             }
-        : t,
-        )
-        break
-    }
+
+            state.value.toasts = state.value.toasts.map((t) =>
+                t.id === toastId || toastId === undefined
+                    ? {
+                          ...t,
+                          open: false,
+                      }
+                    : t
+            )
+            break
+        }
 
         case actionTypes.REMOVE_TOAST:
-        if (action.toastId === undefined)
-        state.value.toasts = []
-        else
-        state.value.toasts = state.value.toasts.filter(t => t.id !== action.toastId)
+            if (action.toastId === undefined) state.value.toasts = []
+            else state.value.toasts = state.value.toasts.filter((t) => t.id !== action.toastId)
 
-        break
-  }
+            break
+    }
 }
 
-        function useToast() {
-  return {
-            toasts: computed(() => state.value.toasts),
+function useToast() {
+    return {
+        toasts: computed(() => state.value.toasts),
         toast,
-    dismiss: (toastId?: string) => dispatch({type: actionTypes.DISMISS_TOAST, toastId }),
-  }
+        dismiss: (toastId?: string) => dispatch({ type: actionTypes.DISMISS_TOAST, toastId }),
+    }
 }
 
-        type Toast = Omit<ToasterToast, 'id'>
+type Toast = Omit<ToasterToast, 'id'>
 
-        function toast(props: Toast) {
-  const id = genId()
+function toast(props: Toast) {
+    const id = genId()
 
-  const update = (props: ToasterToast) =>
+    const update = (props: ToasterToast) =>
         dispatch({
             type: actionTypes.UPDATE_TOAST,
-        toast: {...props, id},
-    })
+            toast: { ...props, id },
+        })
 
-  const dismiss = () => dispatch({type: actionTypes.DISMISS_TOAST, toastId: id })
+    const dismiss = () => dispatch({ type: actionTypes.DISMISS_TOAST, toastId: id })
 
-        dispatch({
-            type: actionTypes.ADD_TOAST,
+    dispatch({
+        type: actionTypes.ADD_TOAST,
         toast: {
             ...props,
             id,
             open: true,
-      onOpenChange: (open: boolean) => {
-        if (!open)
-        dismiss()
-      },
-    },
-  })
+            onOpenChange: (open: boolean) => {
+                if (!open) dismiss()
+            },
+        },
+    })
 
-        return {
-            id,
-            dismiss,
-            update,
-  }
+    return {
+        id,
+        dismiss,
+        update,
+    }
 }
 
-        export {toast, useToast}
+export { toast, useToast }

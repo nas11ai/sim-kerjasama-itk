@@ -1,56 +1,56 @@
-import { BadgeVariant } from "@/types/BadgeVariant";
-import { CheckCircle, AlertCircle, Search, Clock, XCircle } from "lucide-vue-next";
+import { BadgeVariant } from '@/types/BadgeVariant'
+import { CheckCircle, AlertCircle, Search, Clock, XCircle } from 'lucide-vue-next'
 
 interface StatusInfo {
-    variant: BadgeVariant;
-    text: string;
-    icon: any;
-    description: string;
+    variant: BadgeVariant
+    text: string
+    icon: any
+    description: string
 }
 
 export const getSubmissionStatusInfo = (status: string): StatusInfo => {
     switch (status) {
-        case "approved":
+        case 'approved':
             return {
-                variant: "default",
-                text: "Disetujui",
+                variant: 'default',
+                text: 'Disetujui',
                 icon: CheckCircle,
-                description: "Submission ini telah disetujui dan pengguna bisa melanjutkan."
-            };
-        case "pending":
+                description: 'Submission ini telah disetujui dan pengguna bisa melanjutkan.',
+            }
+        case 'pending':
             return {
-                variant: "outline",
-                text: "Menunggu Review",
+                variant: 'outline',
+                text: 'Menunggu Review',
                 icon: Clock,
-                description: "Submission ini masih menunggu untuk direview."
-            };
-        case "under_review":
+                description: 'Submission ini masih menunggu untuk direview.',
+            }
+        case 'under_review':
             return {
-                variant: "secondary",
-                text: "Sedang Direview",
+                variant: 'secondary',
+                text: 'Sedang Direview',
                 icon: Search,
-                description: "Submission ini sedang dalam proses review."
-            };
-        case "needs_revision":
+                description: 'Submission ini sedang dalam proses review.',
+            }
+        case 'needs_revision':
             return {
-                variant: "outline",
-                text: "Perlu Revisi",
+                variant: 'outline',
+                text: 'Perlu Revisi',
                 icon: AlertCircle,
-                description: "Submission ini perlu direvisi oleh pengguna."
-            };
-        case "rejected":
+                description: 'Submission ini perlu direvisi oleh pengguna.',
+            }
+        case 'rejected':
             return {
-                variant: "destructive",
-                text: "Ditolak",
+                variant: 'destructive',
+                text: 'Ditolak',
                 icon: XCircle,
-                description: "Submission ini ditolak."
-            };
+                description: 'Submission ini ditolak.',
+            }
         default:
             return {
-                variant: "outline",
-                text: "Unknown",
+                variant: 'outline',
+                text: 'Unknown',
                 icon: AlertCircle,
-                description: "Status submission tidak diketahui."
-            };
+                description: 'Status submission tidak diketahui.',
+            }
     }
-};
+}
