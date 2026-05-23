@@ -4,6 +4,7 @@
     "scripts": {
         "build": "vue-tsc && vite build",
         "dev": "vite",
+        "lint": "eslint \"resources/js/**/*.{js,ts,vue}\"",
         "dev-build": "vite build --mode development --watch",
         "test:e2e": "playwright test",
         "test:e2e:ui": "playwright test --ui",
