@@ -4,6 +4,8 @@ import ts from '@typescript-eslint/eslint-plugin'
 import tsParser from '@typescript-eslint/parser'
 import prettierConfig from 'eslint-config-prettier'
 
+js.configs.recommended,
+...vue.configs['flat/recommended'],
 export default [
     js.configs.recommended,
     ...vue.configs['flat/recommended'],
@@ -20,6 +22,9 @@ export default [
             'vue/no-unused-vars': 'error',
             'no-console': 'warn',
         },
+        "env": {
+            "node": true
+        }
     },
-    prettierConfig
+
 ]
