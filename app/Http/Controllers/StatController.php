@@ -143,12 +143,11 @@ class StatController extends Controller
         ->select(
             'phase_id as id',
             'phase_title as title',
-            DB::raw('COUNT(submission_id) as total_submissions'),
-            DB::raw('SUM(status = "pending") as pending'),
-            DB::raw('SUM(status = "under_review") as under_review'),
-            DB::raw('SUM(status = "approved") as approved'),
-            DB::raw('SUM(status = "rejected") as rejected'),
-            DB::raw('SUM(status = "revision") as revision')
+            DB::raw("SUM(CASE WHEN status = 'pending' THEN 1 ELSE 0 END) as pending"),
+            DB::raw("SUM(CASE WHEN status = 'under_review' THEN 1 ELSE 0 END) as under_review"),
+            DB::raw("SUM(CASE WHEN status = 'approved' THEN 1 ELSE 0 END) as approved"),
+            DB::raw("SUM(CASE WHEN status = 'rejected' THEN 1 ELSE 0 END) as rejected"),
+            DB::raw("SUM(CASE WHEN status = 'revision' THEN 1 ELSE 0 END) as revision"),
         )
         ->groupBy('phase_id', 'phase_title')
         ->get();
