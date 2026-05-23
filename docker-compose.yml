@@ -3,7 +3,7 @@ services:
   # PostgreSQL — Primary Database
   # ─────────────────────────────────────────
   postgres:
-    image: postgres:17-alpine
+    image: postgres:18-alpine
     container_name: simpas_postgres
     restart: unless-stopped
     environment:
@@ -13,7 +13,7 @@ services:
     ports:
       - "${DB_PORT:-5432}:5432"
     volumes:
-      - postgres_data:/var/lib/postgresql/data
+      - postgres_data:/var/lib/postgresql
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME:-simpas} -d ${DB_DATABASE:-simpas}"]
       interval: 10s
@@ -60,6 +60,38 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+
+  # ─────────────────────────────────────────
+  # PHP App — Laravel Application
+  # ─────────────────────────────────────────
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: simpas_app
+    restart: unless-stopped
+    ports:
+      - "${APP_PORT:-8000}:8000"
+      - "${VITE_PORT:-5173}:5173"
+    environment:
+      - DB_CONNECTION=pgsql
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_DATABASE=${DB_DATABASE:-simpas}
+      - DB_USERNAME=${DB_USERNAME:-simpas}
+      - DB_PASSWORD=${DB_PASSWORD:-secret}
+      - REDIS_HOST=dragonfly
+      - REDIS_PORT=6379
+      - MINIO_ENDPOINT=http://minio:9000
+    volumes:
+      - .:/var/www/html
+    depends_on:
+      postgres:
+        condition: service_healthy
+      dragonfly:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
 
 volumes:
   postgres_data:
