@@ -24,7 +24,7 @@ services:
   # Dragonfly — Redis-compatible Cache & Queue
   # ─────────────────────────────────────────
   dragonfly:
-    image: docker.dragonflydb.io/dragonflydb/dragonfly:latest
+    image: docker.dragonflydb.io/dragonflydb/dragonfly:v1.27.1
     container_name: simpas_dragonfly
     restart: unless-stopped
     ulimits:
@@ -43,7 +43,7 @@ services:
   # MinIO — S3-compatible Local File Storage
   # ─────────────────────────────────────────
   minio:
-    image: minio/minio:latest
+    image: minio/minio:RELEASE.2024-05-10T01-41-38Z
     container_name: simpas_minio
     restart: unless-stopped
     command: server /data --console-address ":9001"
