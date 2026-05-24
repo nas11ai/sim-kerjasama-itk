@@ -1,6 +1,6 @@
 # 01 — Domain Map
 
-**Versi:** 2.1  
+**Versi:** 2.3  
 **Status:** Draft
 
 ---
@@ -15,12 +15,13 @@
 | 🟡 **Supporting** | Monev                | Penting tapi tidak differentiating                         |
 | 🟡 **Supporting** | Research Output      | Pelaporan luaran penelitian                                |
 | 🟡 **Supporting** | Scheme               | Katalog skema yang dikontrol admin                         |
+| 🟡 **Supporting** | Reporting            | Export, statistik, audit trail, cetak dokumen              |
 | 🟢 **Generic**    | Form Engine          | Platform inti dari sim-kerjasama — form, phase, submission |
 | 🟢 **Generic**    | Identity & Access    | Auth, org tree, tiga jalur registrasi                      |
 | 🟢 **Generic**    | Notification         | Laravel Notification                                       |
 | 🟢 **Generic**    | File Management      | MinIO / Cloudflare R2                                      |
 | 🟢 **Generic**    | System Configuration | Master data (tipe jurnal, tipe HKI, dll)                   |
-| 🟢 **Generic**    | Observability        | Logging, metrics, error tracking, uptime monitoring        |
+| 🟢 **Generic**    | Observability        | Logging, metrics, error tracking, uptime                   |
 
 ---
 
@@ -38,6 +39,7 @@ graph TB
         BC_MON["**Monev**"]
         BC_OUT["**Research Output**"]
         BC_SCH["**Scheme**"]
+        BC_RPT["**Reporting**"]
     end
 
     subgraph GENERIC["🟢 Generic Domain"]
@@ -52,19 +54,25 @@ graph TB
     BC_FE -->|"SK — FormSubmission"| BC_SUB
     BC_FE -->|"SK — FormSubmission"| BC_REV
     BC_FE -->|"SK — FormSubmission"| BC_MON
-    BC_FE -->|"SK — FormSubmission"| BC_OUT
     BC_SCH -->|"CF"| BC_SUB
     BC_IAM -->|"SK — UserProfile + Org"| BC_SUB
     BC_IAM -->|"SK — Reviewer"| BC_REV
     BC_FM -->|"OHS"| BC_SUB
     BC_FM -->|"OHS"| BC_OUT
+    BC_FM -->|"OHS"| BC_RPT
     BC_SC -->|"PL"| BC_SCH
     BC_SC -->|"PL"| BC_IAM
     BC_SUB -->|"SK"| BC_BUD
+    BC_SUB -->|"OHS"| BC_OUT
     BC_SUB -.->|"Events"| BC_NOT
     BC_REV -.->|"Events"| BC_NOT
     BC_MON -.->|"Events"| BC_NOT
     BC_IAM -.->|"Events"| BC_NOT
+    BC_SUB -.->|"Read"| BC_RPT
+    BC_REV -.->|"Read"| BC_RPT
+    BC_BUD -.->|"Read"| BC_RPT
+    BC_OUT -.->|"Read"| BC_RPT
+    BC_FE -.->|"Read"| BC_RPT
     BC_SUB -.->|"Logs & Metrics"| BC_OBS
     BC_REV -.->|"Logs & Metrics"| BC_OBS
     BC_FE -.->|"Logs & Metrics"| BC_OBS
@@ -74,7 +82,7 @@ graph TB
     classDef supporting fill:#fde68a,stroke:#f59e0b,color:#000
     classDef generic fill:#bbf7d0,stroke:#22c55e,color:#000
     class BC_SUB,BC_REV core
-    class BC_BUD,BC_MON,BC_OUT,BC_SCH supporting
+    class BC_BUD,BC_MON,BC_OUT,BC_SCH,BC_RPT supporting
     class BC_FE,BC_IAM,BC_NOT,BC_FM,BC_SC,BC_OBS generic
 ```
 
@@ -88,10 +96,10 @@ flowchart TD
 
     subgraph REGISTRATION["Registrasi"]
         REG{Tipe User?}
-        REG -->|Dosen ITK| SR[Self-register<br/>+ domain check]
-        REG -->|External| INV[Invitation link<br/>per organisasi]
-        REG -->|Reviewer| OPR_R[Ditunjuk Operator<br/>dari existing user]
-        SR --> VERIFY[Verifikasi NIDN<br/>oleh Operator]
+        REG -->|Dosen ITK| SR[Self-register + domain check]
+        REG -->|External| INV[Invitation link per organisasi]
+        REG -->|Reviewer| OPR_R[Ditunjuk Operator dari existing user]
+        SR --> VERIFY[Verifikasi NIDN oleh Operator]
         INV --> VERIFY
         VERIFY --> ACTIVE[User Active]
         OPR_R --> ACTIVE
@@ -101,70 +109,42 @@ flowchart TD
 
     subgraph RESEARCHER["👤 Researcher"]
         A[Pilih Submission Period] --> B[Pilih Scheme<br/>opsional — tergantung Form]
-        B --> C[Isi Form Pengajuan<br/>title, abstract, keywords, dll]
+        B --> C[Isi Form Pengajuan]
         C --> D[Tambah Research Members]
         D --> E[Input Budget Plan]
-        E --> F[Upload Proposal PDF<br/>+ Additional Files]
+        E --> F[Upload Files]
         F --> G{Lengkap?}
         G -->|Belum| C
         G -->|Ya| H[Submit]
     end
 
     subgraph OPERATOR["🏢 LPPM Operator"]
-        I[Assign Reviewer<br/>≥ min_reviewer_count]
+        I[Assign Reviewer<br/>≥ min_reviewer_count dari scheme.rules]
     end
 
     subgraph REVIEWER["🔍 Reviewer"]
-        J[Isi Evaluation Form<br/>per component & indicator]
-        J --> K{Perlu Revisi?}
-        K -->|Ya| L[Request Revision<br/>via ReviewSummary + ReviewComment]
-        K -->|Tidak| M{Approve?}
+        J[Isi ReviewEvaluationForm]
+        J --> K{Semua reviewer<br/>selesai?}
+        K -->|Belum| WAIT([Tunggu])
+        K -->|Ya| L{Ada ReviewSummary<br/>open?}
+        L -->|Ya| REV_REQ[Status → NEEDS_REVISION<br/>Otomatis]
+        L -->|Tidak| AUTO_APP[Status → APPROVED<br/>Otomatis]
     end
 
     H --> I --> J
-    L --> N[Researcher Revisi<br/>& Resubmit]
+    REV_REQ --> N[Researcher Revisi & Resubmit]
     N --> J
-    M -->|Tidak| REJECT[❌ Rejected → History]
-    M -->|Ya| APPROVE[✅ Approved]
-
+    AUTO_APP --> APPROVE[✅ Approved]
     APPROVE --> P[Monev — dalam satu FormPhase<br/>yang sama dengan pengajuan]
-    P --> Q[Isi Laporan Kemajuan<br/>child FormSubmission]
-    Q --> R[Reviewer Isi<br/>Evaluation Form Monev]
-    R --> S[Upload Research Output<br/>per tipe via metadata JSONB]
-    S --> T{Semua siklus<br/>Monev selesai?}
+    P --> Q[Laporan Kemajuan<br/>child FormSubmission]
+    Q --> R[Reviewer Isi Evaluation Monev]
+    R --> S[Upload Research Output]
+    S --> T{Semua siklus selesai?}
     T -->|Belum| Q
     T -->|Ya| HISTORY[📋 Submission History]
+
+    OPERATOR_REJ([Operator Reject Manual]) --> REJECT[❌ Rejected → History]
     REJECT --> HISTORY
-```
-
----
-
-## Organization + Access Model
-
-```mermaid
-graph TD
-    subgraph ORG["Organization Tree (adjacency list)"]
-        ITK["ITK (institution)"]
-        F1["Fakultas Sains (faculty)"]
-        F2["Fakultas Rekayasa (faculty)"]
-        J1["Jurusan Ilkom (department) — opsional"]
-        P1["Informatika (study_program)"]
-        P2["Sistem Informasi (study_program)"]
-        EXT["Unmul (institution — external)"]
-        PE1["Teknik Sipil Unmul (study_program)"]
-
-        ITK --> F1 --> J1 --> P1
-        J1 --> P2
-        ITK --> F2
-        EXT --> PE1
-    end
-
-    subgraph ACCESS["Access Check"]
-        FAC["form_access_controls<br/>role_id + organization_id"]
-        UP["user_profiles<br/>organization_id"]
-        FAC -->|"user org ada di subtree?"| CHECK{✓ / ✗}
-        UP --> CHECK
-    end
 ```
 
 ---
@@ -174,21 +154,18 @@ graph TD
 ```mermaid
 graph LR
     subgraph DEV["Development"]
-        TEL["Laravel<br/>Telescope"]
+        TEL["Laravel Telescope"]
     end
-
     subgraph STG["Staging"]
-        GC["Grafana Cloud<br/>Free Tier<br/>Loki + Prometheus"]
+        GC["Grafana Cloud<br/>Free Tier"]
     end
-
-    subgraph PROD["Production (self-hosted)"]
-        VM["VictoriaMetrics<br/>~150 MB"]
-        LK["Loki + Promtail<br/>~200 MB"]
-        GR["Grafana<br/>~150 MB"]
-        UK["Uptime Kuma<br/>~50 MB"]
-        GT["GlitchTip<br/>~300 MB"]
+    subgraph PROD["Production"]
+        VM["VictoriaMetrics"]
+        LK["Loki + Promtail"]
+        GR["Grafana"]
+        UK["Uptime Kuma"]
+        GT["GlitchTip"]
     end
-
     APP["Laravel App"] -->|logs| TEL
     APP -->|logs| GC
     APP -->|logs| LK
@@ -205,25 +182,26 @@ graph LR
 
 ```
 Phase 1 — Foundation
-├── System Configuration   (zero dependency)
-├── Identity & Access      (org tree + auth + 3 registration flows)
+├── System Configuration
+├── Identity & Access
 ├── File Management
-└── Observability          (Telescope di dev, siapkan stack prod dari awal)
+└── Observability
 
 Phase 2 — Platform
-├── Form Engine            (Form, Phase, Submission — inti sim-kerjasama)
-└── Scheme                 (decoupled dari Form, scheme_selector field type)
+├── Form Engine
+└── Scheme
 
 Phase 3 — Core Features
-├── Submission             (extension tables: members, budget)
+├── Submission
 └── Budget
 
 Phase 4 — Review Workflow
-└── Review                 (reviewer_internal + reviewer_external Spatie roles)
+└── Review
 
 Phase 5 — Post-Approval
-├── Monev                  (FormPhaseDetail dalam lifecycle yang sama)
-└── Research Output        (single table + JSONB metadata)
+├── Monev
+├── Research Output
+└── Reporting
 
 Phase 6 — Cross-cutting
 └── Notification

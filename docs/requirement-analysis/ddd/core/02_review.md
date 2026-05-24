@@ -1,14 +1,14 @@
 # BC: Review
 
 **Klasifikasi:** 🔴 Core Domain  
-**Versi:** 2.1  
+**Versi:** 2.3  
 **Status:** Draft
 
 ---
 
 ## Responsibility
 
-Mengelola penugasan reviewer, evaluasi kuantitatif, dan diskusi revisi. Tidak ada tabel `ReviewerRole` — role reviewer dikelola sepenuhnya via Spatie Permission (`reviewer_internal`, `reviewer_external`). Jumlah minimum reviewer dikonfigurasi via `submission_rules`, bukan hardcoded.
+Mengelola penugasan reviewer, evaluasi kuantitatif, dan diskusi revisi. Approval terjadi **otomatis** oleh sistem ketika kondisi terpenuhi. Rejection adalah satu-satunya transisi yang membutuhkan konfirmasi manual operator — karena berimplikasi besar bagi researcher dan butuh pertimbangan.
 
 ---
 
@@ -21,90 +21,81 @@ flowchart TD
     START([Event: ProposalSubmitted]) --> A
 
     subgraph OPERATOR["🏢 LPPM Operator"]
-        A[Lihat submission<br/>berstatus PENDING]
-        A --> B[Pilih Reviewer<br/>cek conflict of interest]
-        B --> C{Jumlah reviewer<br/>≥ min_reviewer_count<br/>dari submission_rules?}
+        A[Lihat submission status PENDING]
+        A --> B[Pilih Reviewer<br/>cek conflict of interest + workload]
+        B --> WL{Workload reviewer<br/>≥ max_reviewer_workload?}
+        WL -->|Ya| WARN[⚠️ Warning — bisa tetap assign<br/>tapi operator perlu confirm]
+        WARN --> C
+        WL -->|Tidak| C
+        C{Sudah ≥ min_reviewer_count?}
         C -->|Belum| B
         C -->|Ya| D[Buat SubmissionReviewer records]
-        D --> E[Auto-assign<br/>ReviewerFormAssignments]
-        E --> F[status → UNDER_REVIEW]
+        D --> E[Auto-assign ReviewerFormAssignments]
+        E --> F[Status → UNDER_REVIEW]
     end
 
     subgraph REVIEWER["🔍 Reviewer"]
         G[Terima notifikasi]
         G --> H[Isi ReviewEvaluationForm]
-        H --> I[Submit ReviewFormResponse]
-        I --> J[evaluation_status → completed]
-        J --> K{Perlu revisi?}
-        K -->|Ya| L[Buat ReviewSummary<br/>status = open]
-        L --> M[Tulis ReviewComment<br/>detail revisi]
-        K -->|Tidak| N[Buat ReviewSummary<br/>status = resolved]
+        H --> I[Submit ReviewFormResponse<br/>evaluation_status → completed]
+        I --> J{Perlu catatan<br/>revisi?}
+        J -->|Ya| K[Buat ReviewSummary status=open<br/>Tulis ReviewComment]
+        J -->|Tidak| L[Buat ReviewSummary status=resolved]
     end
 
     F --> G
-    M --> O([Researcher revisi<br/>& resubmit])
-    O --> H
 
-    subgraph SYSTEM["🔄 System"]
-        P{Semua SubmissionReviewer<br/>evaluation_status = completed?}
-        P -->|Ya| Q{Ada ReviewSummary<br/>status = open?}
-        Q -->|Ya| R[status → NEEDS_REVISION]
-        Q -->|Tidak| S[status → APPROVED<br/>atau REJECTED]
+    subgraph AUTO["🔄 Sistem — Auto Check"]
+        M{Semua SubmissionReviewer<br/>evaluation_status = completed?}
+        M -->|Belum| WAIT([Tunggu])
+        M -->|Ya| N{Ada ReviewSummary<br/>status = open?}
+        N -->|Ya| REV[Status → NEEDS_REVISION<br/>OTOMATIS]
+        N -->|Tidak| APP[Status → APPROVED<br/>OTOMATIS]
     end
 
-    N --> P
-    R --> O
+    K --> M
+    L --> M
+    REV --> O([Researcher revisi & resubmit])
+    O --> H
+    APP --> END_A([Event: ProposalApproved])
+
+    subgraph MANUAL_REJ["🏢 Operator — Manual Reject"]
+        P[Operator review hasil evaluasi]
+        P --> Q[Operator klik Reject]
+        Q --> R[Konfirmasi + isi alasan]
+        R --> REJ[Status → REJECTED]
+    end
 ```
 
-### Threaded Discussion
+### Alur Threaded Discussion (Revisi)
 
 ```mermaid
 flowchart TD
-    START([Reviewer submit evaluation]) --> A[Buat ReviewSummary]
-    A --> B[Tulis ReviewComment<br/>catatan revisi]
-    B --> C[Researcher reply<br/>parent_comment_id = komentar reviewer]
-    C --> D[Reviewer reply balik<br/>jika perlu]
+    START([Reviewer submit evaluasi]) --> A[Buat ReviewSummary]
+    A --> B[Tulis ReviewComment<br/>detail catatan revisi]
+    B --> C[Researcher baca komentar]
+    C --> D[Researcher reply<br/>parent_comment_id = komentar reviewer]
     D --> E{Revisi memuaskan?}
-    E -->|Belum| D
-    E -->|Ya| F[Update ReviewSummary<br/>status = resolved]
+    E -->|Belum| F[Reviewer reply balik]
+    F --> D
+    E -->|Ya| G[Update ReviewSummary status = resolved]
+    G --> H{Semua ReviewSummary<br/>resolved?}
+    H -->|Belum| WAIT([Tunggu summary lain])
+    H -->|Ya| AUTO([Sistem trigger auto approve])
 ```
 
----
+### Reviewer Reassignment
 
-## Reviewer Roles via Spatie
-
-Tidak ada tabel `reviewer_roles`. Perbedaan internal vs eksternal dikelola via dua Spatie roles:
-
-| Spatie Role         | Permission                                                                    | Keterangan                                    |
-| ------------------- | ----------------------------------------------------------------------------- | --------------------------------------------- |
-| `reviewer_internal` | `reviewers.evaluate`, `submissions.view-assigned`, `review.view-other-scores` | Bisa lihat skor reviewer lain setelah selesai |
-| `reviewer_external` | `reviewers.evaluate`, `submissions.view-assigned`                             | Tidak bisa lihat skor reviewer lain           |
-
-`FormAccessControl` bisa reference salah satu role — memungkinkan form evaluasi yang berbeda untuk reviewer internal vs eksternal.
-
-Tabel `reviewers` menyimpan `reviewer_type varchar` (`internal`/`external`) untuk keperluan display dan reporting, tanpa FK ke tabel lain:
-
-```sql
-reviewers
-  id
-  user_id           FK → users
-  reviewer_type     varchar   -- 'internal' | 'external'
-  start_date        datetime
-  end_date          datetime nullable
+```mermaid
+flowchart TD
+    START([Reviewer tidak bisa lanjutkan]) --> A[Operator buka<br/>Reviewer Management submission]
+    A --> B[Mark SubmissionReviewer lama<br/>sebagai replaced]
+    B --> C[Pilih reviewer pengganti<br/>cek conflict of interest]
+    C --> D[Buat SubmissionReviewer baru]
+    D --> E[Duplicate ReviewerFormAssignments<br/>ke reviewer baru]
+    E --> F[History review lama tetap ada]
+    F --> G[Notifikasi ke reviewer baru]
 ```
-
----
-
-## Configurable Min Reviewer
-
-Tidak hardcoded. Diambil dari `submission_rules` yang sudah ada di schema sim-kerjasama:
-
-```sql
--- submission_rules linked ke SubmissionPeriod
-label = 'min_reviewer_count', value = 2
-```
-
-Admin ubah value-nya di admin panel, langsung berlaku untuk period tersebut. Berbeda period bisa punya min_reviewer berbeda.
 
 ---
 
@@ -119,7 +110,9 @@ classDiagram
         +DateTime start_date
         +DateTime end_date
         +isActive() bool
+        +currentWorkload() int
         +isAvailableFor(submissionId) bool
+        note "reviewer_type: internal | external"
     }
 
     class SubmissionReviewer {
@@ -127,8 +120,10 @@ classDiagram
         +FormSubmissionId form_submission_id
         +ReviewerId reviewer_id
         +string evaluation_status
+        +string status
         +updateEvaluationStatus()
-        +canCreateDiscussionThreads() bool
+        note "status: active | replaced"
+        note "evaluation_status: pending | completed | not_required"
     }
 
     class ReviewerFormAssignment {
@@ -138,8 +133,6 @@ classDiagram
         +bool is_required
         +DateTime assigned_at
         +DateTime due_date
-        +isCompleted() bool
-        +isOverdue() bool
     }
 
     class ReviewFormResponse {
@@ -148,6 +141,7 @@ classDiagram
         +string status
         +DateTime submitted_at
         +string final_notes
+        note "status: draft | submitted | locked"
     }
 
     class ReviewSummary {
@@ -156,6 +150,7 @@ classDiagram
         +ReviewerId reviewer_id
         +string status
         +string summary_notes
+        note "status: open | resolved"
     }
 
     class ReviewComment {
@@ -177,27 +172,58 @@ classDiagram
 
 ---
 
+## Reviewer Roles via Spatie
+
+Tidak ada tabel `reviewer_roles`. Perbedaan dikelola via dua Spatie roles:
+
+| Spatie Role         | Permissions                                                                   | Keterangan                                          |
+| ------------------- | ----------------------------------------------------------------------------- | --------------------------------------------------- |
+| `reviewer_internal` | `reviewers.evaluate`, `submissions.view-assigned`, `review.view-other-scores` | Bisa lihat skor reviewer lain setelah semua selesai |
+| `reviewer_external` | `reviewers.evaluate`, `submissions.view-assigned`                             | Tidak bisa lihat skor reviewer lain                 |
+
+Tabel `reviewers` menyimpan `reviewer_type varchar` (`internal` / `external`) untuk display dan reporting.
+
+---
+
 ## Business Rules
 
-| Kode      | Rule                                                                                                                                        |
-| --------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
-| BR-REV-01 | Jumlah reviewer yang di-assign harus ≥ `submission_rules.min_reviewer_count` untuk period tersebut                                          |
-| BR-REV-02 | Reviewer tidak bisa di-assign ke submission yang ia menjadi `submitted_by` atau `ResearchMember`-nya                                        |
-| BR-REV-03 | Reviewer yang sama tidak bisa di-assign dua kali ke submission yang sama                                                                    |
-| BR-REV-04 | Reviewer hanya bisa membuat ReviewSummary setelah `evaluation_status = completed` atau `not_required`                                       |
-| BR-REV-05 | Submission bisa di-approve hanya jika semua SubmissionReviewer `evaluation_status = completed` DAN tidak ada ReviewSummary berstatus `open` |
-| BR-REV-06 | ReviewFormResponse tidak bisa diedit setelah `status = submitted`                                                                           |
-| BR-REV-07 | Reviewer `reviewer_internal` bisa lihat skor reviewer lain setelah semua selesai — `reviewer_external` tidak bisa                           |
+| Kode      | Rule                                                                                                                                                          |
+| --------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| BR-REV-01 | Jumlah reviewer yang di-assign harus ≥ `scheme.rules.min_reviewer_count`                                                                                      |
+| BR-REV-02 | Reviewer tidak bisa di-assign ke submission yang ia menjadi `submitted_by` atau `ResearchMember`-nya (mutual block — juga berlaku sebaliknya saat add member) |
+| BR-REV-03 | Reviewer yang sama tidak bisa di-assign dua kali ke submission yang sama dalam satu siklus                                                                    |
+| BR-REV-04 | Jika workload reviewer melebihi `scheme.rules.max_reviewer_workload`, operator mendapat warning — bukan hard block                                            |
+| BR-REV-05 | Submission di-approve **otomatis** jika: semua `evaluation_status = completed` DAN tidak ada ReviewSummary `open`                                             |
+| BR-REV-06 | Submission masuk NEEDS_REVISION **otomatis** jika: semua `evaluation_status = completed` DAN ada ReviewSummary `open`                                         |
+| BR-REV-07 | Rejection harus dikonfirmasi manual oleh Operator — tidak bisa otomatis                                                                                       |
+| BR-REV-08 | ReviewFormResponse tidak bisa diedit setelah `status = submitted`                                                                                             |
+| BR-REV-09 | Reviewer hanya aktif selama rentang `start_date` hingga `end_date`                                                                                            |
+| BR-REV-10 | Saat reviewer diganti (reassignment), SubmissionReviewer lama di-mark `replaced` — tidak dihapus                                                              |
+| BR-REV-11 | `reviewer_internal` bisa lihat skor reviewer lain setelah semua selesai — `reviewer_external` tidak bisa                                                      |
+| BR-REV-12 | Researcher hanya bisa lihat skor evaluasi reviewer setelah submission berstatus APPROVED atau REJECTED — tidak selama proses review berlangsung               |
 
 ---
 
 ## Domain Events
 
-| Event                      | Trigger                              | Consumer                                           |
-| -------------------------- | ------------------------------------ | -------------------------------------------------- |
-| `ReviewerAssigned`         | Operator assign reviewer             | Notification                                       |
-| `EvaluationSubmitted`      | Reviewer submit ReviewFormResponse   | (internal: cek semua done)                         |
-| `RevisionRequested`        | ReviewSummary dibuat status open     | Submission (status → NEEDS_REVISION), Notification |
-| `RevisionResolved`         | ReviewSummary → resolved             | (internal: cek semua resolved)                     |
-| `ProposalApprovedByReview` | Semua reviewer done + semua resolved | Submission (status → APPROVED)                     |
-| `ProposalRejectedByReview` | Keputusan penolakan                  | Submission (status → REJECTED)                     |
+| Event                      | Trigger                                                | Consumer                        |
+| -------------------------- | ------------------------------------------------------ | ------------------------------- |
+| `ReviewerAssigned`         | Operator assign reviewer                               | Notification                    |
+| `EvaluationSubmitted`      | Reviewer submit ReviewFormResponse                     | (internal: trigger auto check)  |
+| `RevisionRequested`        | ReviewSummary dibuat status open → auto NEEDS_REVISION | Submission, Notification        |
+| `RevisionResolved`         | ReviewSummary → resolved → trigger auto check          | (internal)                      |
+| `ProposalApprovedByReview` | Kondisi auto approve terpenuhi                         | Submission (status → APPROVED)  |
+| `ProposalRejectedByReview` | Operator konfirmasi reject                             | Submission (status → REJECTED)  |
+| `ReviewerReassigned`       | Operator ganti reviewer                                | Notification, Reporting (audit) |
+
+---
+
+## Integration Map
+
+| Context           | Arah                | Keterangan                                         |
+| ----------------- | ------------------- | -------------------------------------------------- |
+| Form Engine       | Upstream → Review   | ReviewEvaluationForm, ReviewSummary, ReviewComment |
+| Submission        | Upstream → Review   | Consume ProposalSubmitted                          |
+| Identity & Access | Upstream → Review   | UserProfileId untuk conflict of interest check     |
+| Submission        | Review → Downstream | Publish approved/rejected event ke Submission      |
+| Reporting         | Review → Read       | Data evaluasi untuk statistik dan export           |

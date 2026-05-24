@@ -182,6 +182,7 @@ Untuk SIMPAS, **Opsi A sudah lebih dari cukup**. Opsi B bisa dipertimbangkan kal
 | Identity & Access | `UserRegistered`           | User baru                          | Email (welcome) |
 | Identity & Access | `UserVerified`             | User                               | In-app + Email  |
 | Identity & Access | `ReviewerAppointed`        | Reviewer                           | In-app + Email  |
+| Reporting         | `ExportFailed`             | User                               | In-app          |
 
 ---
 
