@@ -22,9 +22,9 @@ flowchart TD
 
     subgraph OPERATOR["🏢 LPPM Operator"]
         A[Lihat submission status PENDING]
-        A --> B[Pilih Reviewer\ncek conflict of interest + workload]
-        B --> WL{Workload reviewer\n≥ max_reviewer_workload?}
-        WL -->|Ya| WARN[⚠️ Warning — bisa tetap assign\ntapi operator perlu confirm]
+        A --> B[Pilih Reviewer<br/>cek conflict of interest + workload]
+        B --> WL{Workload reviewer<br/>≥ max_reviewer_workload?}
+        WL -->|Ya| WARN[⚠️ Warning — bisa tetap assign<br/>tapi operator perlu confirm]
         WARN --> C
         WL -->|Tidak| C
         C{Sudah ≥ min_reviewer_count?}
@@ -37,20 +37,20 @@ flowchart TD
     subgraph REVIEWER["🔍 Reviewer"]
         G[Terima notifikasi]
         G --> H[Isi ReviewEvaluationForm]
-        H --> I[Submit ReviewFormResponse\nevaluation_status → completed]
-        I --> J{Perlu catatan\nrevisi?}
-        J -->|Ya| K[Buat ReviewSummary status=open\nTulis ReviewComment]
+        H --> I[Submit ReviewFormResponse<br/>evaluation_status → completed]
+        I --> J{Perlu catatan<br/>revisi?}
+        J -->|Ya| K[Buat ReviewSummary status=open<br/>Tulis ReviewComment]
         J -->|Tidak| L[Buat ReviewSummary status=resolved]
     end
 
     F --> G
 
     subgraph AUTO["🔄 Sistem — Auto Check"]
-        M{Semua SubmissionReviewer\nevaluation_status = completed?}
+        M{Semua SubmissionReviewer<br/>evaluation_status = completed?}
         M -->|Belum| WAIT([Tunggu])
-        M -->|Ya| N{Ada ReviewSummary\nstatus = open?}
-        N -->|Ya| REV[Status → NEEDS_REVISION\nOTOMATIS]
-        N -->|Tidak| APP[Status → APPROVED\nOTOMATIS]
+        M -->|Ya| N{Ada ReviewSummary<br/>status = open?}
+        N -->|Ya| REV[Status → NEEDS_REVISION<br/>OTOMATIS]
+        N -->|Tidak| APP[Status → APPROVED<br/>OTOMATIS]
     end
 
     K --> M
@@ -72,14 +72,14 @@ flowchart TD
 ```mermaid
 flowchart TD
     START([Reviewer submit evaluasi]) --> A[Buat ReviewSummary]
-    A --> B[Tulis ReviewComment\ndetail catatan revisi]
+    A --> B[Tulis ReviewComment<br/>detail catatan revisi]
     B --> C[Researcher baca komentar]
-    C --> D[Researcher reply\nparent_comment_id = komentar reviewer]
+    C --> D[Researcher reply<br/>parent_comment_id = komentar reviewer]
     D --> E{Revisi memuaskan?}
     E -->|Belum| F[Reviewer reply balik]
     F --> D
     E -->|Ya| G[Update ReviewSummary status = resolved]
-    G --> H{Semua ReviewSummary\nresolved?}
+    G --> H{Semua ReviewSummary<br/>resolved?}
     H -->|Belum| WAIT([Tunggu summary lain])
     H -->|Ya| AUTO([Sistem trigger auto approve])
 ```
@@ -88,11 +88,11 @@ flowchart TD
 
 ```mermaid
 flowchart TD
-    START([Reviewer tidak bisa lanjutkan]) --> A[Operator buka\nReviewer Management submission]
-    A --> B[Mark SubmissionReviewer lama\nsebagai replaced]
-    B --> C[Pilih reviewer pengganti\ncek conflict of interest]
+    START([Reviewer tidak bisa lanjutkan]) --> A[Operator buka<br/>Reviewer Management submission]
+    A --> B[Mark SubmissionReviewer lama<br/>sebagai replaced]
+    B --> C[Pilih reviewer pengganti<br/>cek conflict of interest]
     C --> D[Buat SubmissionReviewer baru]
-    D --> E[Duplicate ReviewerFormAssignments\nke reviewer baru]
+    D --> E[Duplicate ReviewerFormAssignments<br/>ke reviewer baru]
     E --> F[History review lama tetap ada]
     F --> G[Notifikasi ke reviewer baru]
 ```
