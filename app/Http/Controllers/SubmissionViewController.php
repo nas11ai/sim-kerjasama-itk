@@ -13,6 +13,7 @@ use App\Models\SubmissionReviewer;
 use App\SubmissionStatus;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 
@@ -665,7 +666,7 @@ class SubmissionViewController extends Controller
                 'submissionStatus' => $submission->status, // ADDED THIS
             ]);
         } catch (\Exception $e) {
-            \Log::error('Error in adminShowSubmission: ' . $e->getMessage(), [
+            Log::error('Error in adminShowSubmission: ' . $e->getMessage(), [
                 'submission_id' => $submission->id,
                 'trace' => $e->getTraceAsString()
             ]);
@@ -896,7 +897,7 @@ class SubmissionViewController extends Controller
                     ->toArray();
             }
         } catch (\Exception $e) {
-            \Log::warning('Tidak dapat memuat ringkasan review: ' . $e->getMessage());
+            Log::warning('Tidak dapat memuat ringkasan review: ' . $e->getMessage());
         }
 
         $myReviewSummary = collect($reviewSummaries)->firstWhere('reviewer_id', $reviewer->id);
@@ -1027,7 +1028,7 @@ class SubmissionViewController extends Controller
 
             return back()->with('success', 'Review berhasil dikirim');
         } catch (\Exception $e) {
-            \Log::error('Error updating review: ' . $e->getMessage());
+            Log::error('Error updating review: ' . $e->getMessage());
             return back()->withErrors(['error' => 'Failed to submit review']);
         }
     }

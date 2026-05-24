@@ -4,6 +4,7 @@ namespace App;
 
 enum SubmissionStatus: string
 {
+    case DRAFT = 'draft';
     case PENDING = 'pending';
     case UNDER_REVIEW = 'under_review';
     case NEEDS_REVISION = 'needs_revision';

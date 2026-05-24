@@ -4,9 +4,11 @@ namespace App\Models;
 
 use App\SubmissionStatus;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class FormSubmission extends Model
 {
+    use HasFactory;
     protected $fillable = [
         'form_id',
         'is_submitted',

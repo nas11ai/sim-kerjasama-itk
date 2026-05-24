@@ -10,6 +10,8 @@ use App\Models\ReviewComment;
 use App\Models\User;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Auth;
+
 
 class EmailNotificationService
 {
@@ -155,7 +157,7 @@ class EmailNotificationService
             $submission = $reviewSummary->formSubmission;
             $creator = $reviewSummary->reviewer
                 ? $reviewSummary->reviewer->user
-                : \Auth::user();
+                : Auth::user();
 
             $subject = "Review Thread Baru - {$submission->form->title}";
             $params = [
@@ -239,7 +241,7 @@ class EmailNotificationService
     {
         try {
             $submission = $reviewSummary->formSubmission;
-            $updater = \Auth::user();
+            $updater = Auth::user();
 
             $statusLabels = [
                 'open' => 'Dibuka',
@@ -285,7 +287,7 @@ class EmailNotificationService
     public function notifySubmissionStatusChanged(FormSubmission $submission, $oldStatus)
     {
         try {
-            $updater = \Auth::user();
+            $updater = Auth::user();
 
             $subject = "Status Submission Diubah - {$submission->form->title}";
             $params = [

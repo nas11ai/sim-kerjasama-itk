@@ -21,49 +21,16 @@ use App\Http\Controllers\RoleController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\BiodataController;
 use App\Http\Controllers\StatController;
-use Illuminate\Foundation\Application;
-use App\Models\Announcement;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
 Route::get('/', function () {
-    return Inertia::render('Welcome', [
-        'canLogin' => Route::has('login'),
-        'canRegister' => Route::has('register'),
-        'laravelVersion' => Application::VERSION,
-        'phpVersion' => PHP_VERSION,
-        // Ambil semua announcements public untuk carousel
-        // Bisa dibatasi dengan take() jika perlu
-        'announcements' => [
-            'data' => Announcement::latest()
-                ->with('announcementFiles')
-                ->where('type', 'public')
-                ->where(function ($query) {
-                    $query->whereNull('expired_at')
-                        ->orWhere('expired_at', '>', now());
-                })
-                ->take(10) // Batasi 10 pengumuman untuk performa carousel
-                ->get(),
-            'current_page' => 1,
-            'last_page' => 1,
-            'per_page' => 10,
-            'total' => Announcement::where('type', 'public')
-                ->where(function ($query) {
-                    $query->whereNull('expired_at')
-                        ->orWhere('expired_at', '>', now());
-                })
-                ->count(),
-            'from' => 1,
-            'to' => Announcement::where('type', 'public')
-                ->where(function ($query) {
-                    $query->whereNull('expired_at')
-                        ->orWhere('expired_at', '>', now());
-                })
-                ->take(10)
-                ->count(),
-        ],
-    ]);
+    return Inertia::render('Welcome');
 })->name('welcome');
+
+Route::middleware(['auth', 'verified'])->get('/dashboard', function () {
+    return redirect()->route('user.dashboard');
+})->name('dashboard');
 
 Route::get('announcements/{announcement}', [AnnouncementController::class, 'detail'])->name('announcements.detail');
 

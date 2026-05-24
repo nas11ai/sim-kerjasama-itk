@@ -29,18 +29,18 @@ class ProfileController extends Controller
      */
     public function update(ProfileUpdateRequest $request): RedirectResponse
     {
-        $request->user()->fill($request->validated());
+        $user = $request->user();
+        $user->fill($request->validated());
 
-        if ($request->user()->isDirty('email')) {
-            $request->user()->email_verified_at = null;
+        if ($user->isDirty('email')) {
+            $user->email_verified_at = null;
         }
 
-        unset($request->user()->is_reviewer);
-        $request->user()->save();
+        $user->save();
 
-        return back()->with('success', 'Berhasil memperbarui profil.');
+        // Ganti back() menjadi:
+        return Redirect::route('profile.edit')->with('success', 'Berhasil memperbarui profil.');
     }
-
     /**
      * Delete the user's account.
      */
@@ -54,7 +54,7 @@ class ProfileController extends Controller
 
         Auth::logout();
 
-        $user->delete();
+        $user->forceDelete(); // <-- ganti ini
 
         $request->session()->invalidate();
         $request->session()->regenerateToken();
