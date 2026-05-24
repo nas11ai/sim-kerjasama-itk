@@ -283,8 +283,8 @@ class StatController extends Controller
             ->groupBy('evaluation_status')
             ->get();
 
-        $reviewerByYear = Reviewer::select(DB::raw('YEAR(created_at) as year'), DB::raw('count(*) as total'))
-            ->groupBy('year')
+        $reviewerByYear = Reviewer::select(DB::raw('EXTRACT(YEAR FROM created_at) as year'), DB::raw('count(*) as total'))
+            ->groupByRaw('EXTRACT(YEAR FROM created_at)')
             ->get();
 
         $reviewerByFaculty = Reviewer::select('faculties.name', DB::raw('count(*) as total'))
