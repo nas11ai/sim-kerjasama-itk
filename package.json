@@ -3,7 +3,7 @@
     "type": "module",
     "scripts": {
         "build": "vue-tsc && vite build",
-        "dev": "vite",
+        "dev": "vite --host",
         "lint": "eslint \"resources/js/**/*.{js,ts,vue}\"",
         "dev-build": "vite build --mode development --watch",
         "test:e2e": "playwright test",
