@@ -1,0 +1,1165 @@
+parameters:
+	ignoreErrors:
+		-
+			message: '#^Access to an undefined property App\\Models\\SubmissionPeriod\:\:\$submissionDates\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Console/Commands/NotifyActiveSubmissionPeriods.php
+
+		-
+			message: '#^Relation ''submissionDates'' is not found in App\\Models\\SubmissionPeriod model\.$#'
+			identifier: larastan.relationExistence
+			count: 1
+			path: app/Console/Commands/NotifyActiveSubmissionPeriods.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Announcement\:\:\$announcementFiles\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/AnnouncementController.php
+
+		-
+			message: '#^Relation ''announcementCreator'' is not found in App\\Models\\Announcement model\.$#'
+			identifier: larastan.relationExistence
+			count: 1
+			path: app/Http/Controllers/AnnouncementController.php
+
+		-
+			message: '#^Relation ''announcementFiles'' is not found in App\\Models\\Announcement model\.$#'
+			identifier: larastan.relationExistence
+			count: 2
+			path: app/Http/Controllers/AnnouncementController.php
+
+		-
+			message: '#^Parameter \#1 \$user of class Illuminate\\Auth\\Events\\Verified constructor expects Illuminate\\Contracts\\Auth\\MustVerifyEmail, App\\Models\\User\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Http/Controllers/Auth/VerifyEmailController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Form\:\:\$formFields\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/BiodataController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\FormSubmission\:\:\$formFieldResponses\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/BiodataController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Form\|Illuminate\\Database\\Eloquent\\Collection\<int, App\\Models\\Form\>\:\:\$formFields\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/BiodataController.php
+
+		-
+			message: '#^Left side of && is always true\.$#'
+			identifier: booleanAnd.leftAlwaysTrue
+			count: 1
+			path: app/Http/Controllers/BiodataController.php
+
+		-
+			message: '#^Relation ''formAccessControls'' is not found in App\\Models\\Form model\.$#'
+			identifier: larastan.relationExistence
+			count: 1
+			path: app/Http/Controllers/BiodataController.php
+
+		-
+			message: '#^Relation ''formFieldResponses'' is not found in App\\Models\\FormSubmission model\.$#'
+			identifier: larastan.relationExistence
+			count: 1
+			path: app/Http/Controllers/BiodataController.php
+
+		-
+			message: '#^Relation ''formFields'' is not found in App\\Models\\Form model\.$#'
+			identifier: larastan.relationExistence
+			count: 2
+			path: app/Http/Controllers/BiodataController.php
+
+		-
+			message: '#^Using nullsafe property access "\?\-\>value" on left side of \?\? is unnecessary\. Use \-\> instead\.$#'
+			identifier: nullsafe.neverNull
+			count: 1
+			path: app/Http/Controllers/BiodataController.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Model\:\:reviewFormFieldOptions\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: app/Http/Controllers/CompleteFormBuilderController.php
+
+		-
+			message: '#^Relation ''studyPrograms'' is not found in App\\Models\\Faculty model\.$#'
+			identifier: larastan.relationExistence
+			count: 1
+			path: app/Http/Controllers/CompleteFormBuilderController.php
+
+		-
+			message: '#^Relation ''submissionDates'' is not found in App\\Models\\SubmissionPeriod model\.$#'
+			identifier: larastan.relationExistence
+			count: 2
+			path: app/Http/Controllers/CompleteFormBuilderController.php
+
+		-
+			message: '#^Strict comparison using \=\=\= between \(float\|int\) and null will always evaluate to false\.$#'
+			identifier: identical.alwaysFalse
+			count: 1
+			path: app/Http/Controllers/CompleteFormBuilderController.php
+
+		-
+			message: '#^Relation ''faculty'' is not found in App\\Models\\StudyProgram model\.$#'
+			identifier: larastan.relationExistence
+			count: 2
+			path: app/Http/Controllers/FacultyController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\FormAccessControl\:\:\$controls\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/FormAccessControlController.php
+
+		-
+			message: '#^Relation ''form'' is not found in App\\Models\\FormAccessControl model\.$#'
+			identifier: larastan.relationExistence
+			count: 2
+			path: app/Http/Controllers/FormAccessControlController.php
+
+		-
+			message: '#^Relation ''role'' is not found in App\\Models\\FormAccessControl model\.$#'
+			identifier: larastan.relationExistence
+			count: 1
+			path: app/Http/Controllers/FormAccessControlController.php
+
+		-
+			message: '#^Relation ''studyProgram'' is not found in App\\Models\\FormAccessControl model\.$#'
+			identifier: larastan.relationExistence
+			count: 4
+			path: app/Http/Controllers/FormAccessControlController.php
+
+		-
+			message: '#^Relation ''studyPrograms'' is not found in App\\Models\\Faculty model\.$#'
+			identifier: larastan.relationExistence
+			count: 3
+			path: app/Http/Controllers/FormAccessControlController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Form\:\:\$formFields\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/FormController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\FormFieldOption\|Illuminate\\Database\\Eloquent\\Collection\<int, App\\Models\\FormFieldOption\>\:\:\$order\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/FormController.php
+
+		-
+			message: '#^Relation ''formFields'' is not found in App\\Models\\Form model\.$#'
+			identifier: larastan.relationExistence
+			count: 1
+			path: app/Http/Controllers/FormController.php
+
+		-
+			message: '#^Relation ''formType'' is not found in App\\Models\\Form model\.$#'
+			identifier: larastan.relationExistence
+			count: 2
+			path: app/Http/Controllers/FormController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\FormPhase\:\:\$required_review_evaluation_forms_count\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Http/Controllers/FormPhaseController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\FormPhase\:\:\$review_evaluation_forms_count\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Http/Controllers/FormPhaseController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$requiredReviewEvaluationFormsCount\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Http/Controllers/FormPhaseController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$reviewEvaluationFormsCount\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Http/Controllers/FormPhaseController.php
+
+		-
+			message: '#^Relation ''form'' is not found in App\\Models\\FormAccessControl model\.$#'
+			identifier: larastan.relationExistence
+			count: 4
+			path: app/Http/Controllers/FormPhaseController.php
+
+		-
+			message: '#^Relation ''role'' is not found in App\\Models\\FormAccessControl model\.$#'
+			identifier: larastan.relationExistence
+			count: 2
+			path: app/Http/Controllers/FormPhaseController.php
+
+		-
+			message: '#^Relation ''studyProgram'' is not found in App\\Models\\FormAccessControl model\.$#'
+			identifier: larastan.relationExistence
+			count: 3
+			path: app/Http/Controllers/FormPhaseController.php
+
+		-
+			message: '#^Relation ''studyPrograms'' is not found in App\\Models\\Faculty model\.$#'
+			identifier: larastan.relationExistence
+			count: 2
+			path: app/Http/Controllers/FormPhaseController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\ReviewComment\:\:\$attachments\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/ReviewController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Reviewer\:\:\$reviewerRole\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/ReviewController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Reviewer\:\:\$user\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Http/Controllers/ReviewController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$file_path\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Http/Controllers/ReviewController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$id\.$#'
+			identifier: property.notFound
+			count: 3
+			path: app/Http/Controllers/ReviewController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$reviewFormResponse\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/ReviewController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$submitted_by\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/ReviewController.php
+
+		-
+			message: '#^Match expression does not handle remaining value\: mixed$#'
+			identifier: match.unhandled
+			count: 2
+			path: app/Http/Controllers/ReviewController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\ReviewController\:\:canUserReview\(\) is unused\.$#'
+			identifier: method.unused
+			count: 1
+			path: app/Http/Controllers/ReviewController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\ReviewController\:\:checkIfEvaluationsArePositive\(\) is unused\.$#'
+			identifier: method.unused
+			count: 1
+			path: app/Http/Controllers/ReviewController.php
+
+		-
+			message: '#^Parameter \#1 \$submission of method App\\Http\\Controllers\\ReviewController\:\:getEvaluationDueDate\(\) expects App\\Models\\FormSubmission, Illuminate\\Database\\Eloquent\\Model\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Http/Controllers/ReviewController.php
+
+		-
+			message: '#^Parameter \#1 \$submission of method App\\Http\\Controllers\\ReviewController\:\:updateSubmissionStatusBasedOnReviews\(\) expects App\\Models\\FormSubmission, Illuminate\\Database\\Eloquent\\Model\|null given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Http/Controllers/ReviewController.php
+
+		-
+			message: '#^Relation ''reviewerRole'' is not found in App\\Models\\Reviewer model\.$#'
+			identifier: larastan.relationExistence
+			count: 1
+			path: app/Http/Controllers/ReviewController.php
+
+		-
+			message: '#^Relation ''submissionPeriodPhases'' is not found in App\\Models\\SubmissionPeriod model\.$#'
+			identifier: larastan.relationExistence
+			count: 1
+			path: app/Http/Controllers/ReviewController.php
+
+		-
+			message: '#^Relation ''user'' is not found in App\\Models\\Reviewer model\.$#'
+			identifier: larastan.relationExistence
+			count: 2
+			path: app/Http/Controllers/ReviewController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/ReviewEvaluationFormController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$reviewFormFieldOptions\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/ReviewEvaluationFormController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$review_evaluation_form_id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/ReviewEvaluationFormController.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Model\:\:reviewFormFieldOptions\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: app/Http/Controllers/ReviewEvaluationFormController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$formSubmission\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/ReviewFormResponseController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$form_submission_id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/ReviewFormResponseController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$formatted_value\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/ReviewFormResponseController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$reviewEvaluationForm\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/ReviewFormResponseController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$reviewFormFieldResponses\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Http/Controllers/ReviewFormResponseController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$reviewer\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/ReviewFormResponseController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$reviewer_id\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Http/Controllers/ReviewFormResponseController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$status\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/ReviewFormResponseController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$submitted_at\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/ReviewFormResponseController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$title\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/ReviewFormResponseController.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Model\:\:canBeEdited\(\)\.$#'
+			identifier: method.notFound
+			count: 3
+			path: app/Http/Controllers/ReviewFormResponseController.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Model\:\:canBeSubmitted\(\)\.$#'
+			identifier: method.notFound
+			count: 3
+			path: app/Http/Controllers/ReviewFormResponseController.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Model\:\:getCompletionPercentage\(\)\.$#'
+			identifier: method.notFound
+			count: 2
+			path: app/Http/Controllers/ReviewFormResponseController.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Model\:\:hasAllRequiredFormsCompleted\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: app/Http/Controllers/ReviewFormResponseController.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Model\:\:hasValue\(\)\.$#'
+			identifier: method.notFound
+			count: 2
+			path: app/Http/Controllers/ReviewFormResponseController.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Model\:\:isSubmitted\(\)\.$#'
+			identifier: method.notFound
+			count: 2
+			path: app/Http/Controllers/ReviewFormResponseController.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Model\:\:reviewFormFields\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: app/Http/Controllers/ReviewFormResponseController.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Model\:\:saveFieldResponse\(\)\.$#'
+			identifier: method.notFound
+			count: 2
+			path: app/Http/Controllers/ReviewFormResponseController.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Model\:\:submit\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: app/Http/Controllers/ReviewFormResponseController.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Model\:\:validate\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: app/Http/Controllers/ReviewFormResponseController.php
+
+		-
+			message: '#^Parameter \#1 \$response of method App\\Http\\Controllers\\ReviewFormResponseController\:\:validateRequiredFields\(\) expects App\\Models\\ReviewFormResponse, Illuminate\\Database\\Eloquent\\Model given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Http/Controllers/ReviewFormResponseController.php
+
+		-
+			message: '#^Parameter \#2 \$response of method App\\Http\\Controllers\\ReviewFormResponseController\:\:generateSummaryContent\(\) expects App\\Models\\ReviewFormResponse, Illuminate\\Database\\Eloquent\\Model given\.$#'
+			identifier: argument.type
+			count: 1
+			path: app/Http/Controllers/ReviewFormResponseController.php
+
+		-
+			message: '#^Relation ''submissionPeriodPhases'' is not found in App\\Models\\SubmissionPeriod model\.$#'
+			identifier: larastan.relationExistence
+			count: 1
+			path: app/Http/Controllers/ReviewFormResponseController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Reviewer\:\:\$completed_reviews\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/ReviewerController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Reviewer\:\:\$is_active\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Http/Controllers/ReviewerController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Reviewer\:\:\$pending_reviews\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/ReviewerController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Reviewer\:\:\$submissionReviewers\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/ReviewerController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Reviewer\:\:\$total_reviews\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/ReviewerController.php
+
+		-
+			message: '#^Relation ''reviewerRole'' is not found in App\\Models\\Reviewer model\.$#'
+			identifier: larastan.relationExistence
+			count: 2
+			path: app/Http/Controllers/ReviewerController.php
+
+		-
+			message: '#^Relation ''reviewers'' is not found in App\\Models\\User model\.$#'
+			identifier: larastan.relationExistence
+			count: 1
+			path: app/Http/Controllers/ReviewerController.php
+
+		-
+			message: '#^Relation ''user'' is not found in App\\Models\\Reviewer model\.$#'
+			identifier: larastan.relationExistence
+			count: 2
+			path: app/Http/Controllers/ReviewerController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\ReviewEvaluationForm\|Illuminate\\Database\\Eloquent\\Collection\<int, App\\Models\\ReviewEvaluationForm\>\:\:\$form_phase_id\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/ReviewerFormAssignmentController.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Model\:\:isDraft\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: app/Http/Controllers/ReviewerFormAssignmentController.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Model\:\:isSubmitted\(\)\.$#'
+			identifier: method.notFound
+			count: 2
+			path: app/Http/Controllers/ReviewerFormAssignmentController.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Model\:\:reviewFormFieldResponses\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: app/Http/Controllers/ReviewerFormAssignmentController.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Model\:\:updateEvaluationStatus\(\)\.$#'
+			identifier: method.notFound
+			count: 2
+			path: app/Http/Controllers/ReviewerFormAssignmentController.php
+
+		-
+			message: '#^If condition is always true\.$#'
+			identifier: if.alwaysTrue
+			count: 1
+			path: app/Http/Controllers/ReviewerFormAssignmentController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\SubmissionPeriod\:\:\$days_remaining\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/SubmissionPeriodController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\SubmissionPeriod\:\:\$end_date\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/SubmissionPeriodController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\SubmissionPeriod\:\:\$is_active\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Http/Controllers/SubmissionPeriodController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\SubmissionPeriod\:\:\$start_date\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/SubmissionPeriodController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\SubmissionPeriod\:\:\$status\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Http/Controllers/SubmissionPeriodController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\SubmissionPeriod\:\:\$submissionDates\.$#'
+			identifier: property.notFound
+			count: 4
+			path: app/Http/Controllers/SubmissionPeriodController.php
+
+		-
+			message: '#^Method App\\Http\\Controllers\\SubmissionPeriodController\:\:getDaysRemaining\(\) should return int\|null but returns float\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Http/Controllers/SubmissionPeriodController.php
+
+		-
+			message: '#^Relation ''submissionPeriodPhases'' is not found in App\\Models\\SubmissionPeriod model\.$#'
+			identifier: larastan.relationExistence
+			count: 1
+			path: app/Http/Controllers/SubmissionPeriodController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\FormSubmission\:\:\$form\.$#'
+			identifier: property.notFound
+			count: 5
+			path: app/Http/Controllers/SubmissionViewController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\FormSubmission\:\:\$formFieldResponses\.$#'
+			identifier: property.notFound
+			count: 4
+			path: app/Http/Controllers/SubmissionViewController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\FormSubmission\:\:\$reviewSummaries\.$#'
+			identifier: property.notFound
+			count: 4
+			path: app/Http/Controllers/SubmissionViewController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\FormSubmission\:\:\$submissionReviewers\.$#'
+			identifier: property.notFound
+			count: 6
+			path: app/Http/Controllers/SubmissionViewController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\FormSubmission\:\:\$submittedBy\.$#'
+			identifier: property.notFound
+			count: 4
+			path: app/Http/Controllers/SubmissionViewController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\FormSubmission\:\:\$submitted_at\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Http/Controllers/SubmissionViewController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Reviewer\:\:\$reviewerRole\.$#'
+			identifier: property.notFound
+			count: 5
+			path: app/Http/Controllers/SubmissionViewController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Reviewer\:\:\$reviewer_role\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/SubmissionViewController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Reviewer\:\:\$user\.$#'
+			identifier: property.notFound
+			count: 4
+			path: app/Http/Controllers/SubmissionViewController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\SubmissionPeriod\:\:\$approved_submissions\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/SubmissionViewController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\SubmissionPeriod\:\:\$pending_review\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/SubmissionViewController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\SubmissionPeriod\:\:\$total_submissions\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/SubmissionViewController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\SubmissionPeriod\:\:\$user_draft_count\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/SubmissionViewController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\SubmissionPeriod\:\:\$user_submissions_count\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/SubmissionViewController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\SubmissionPeriod\:\:\$user_submitted_count\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/SubmissionViewController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\User\:\:\$studyProgram\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Http/Controllers/SubmissionViewController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$formAccessControl\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Http/Controllers/SubmissionViewController.php
+
+		-
+			message: '#^Relation ''form'' is not found in App\\Models\\FormSubmission model\.$#'
+			identifier: larastan.relationExistence
+			count: 10
+			path: app/Http/Controllers/SubmissionViewController.php
+
+		-
+			message: '#^Relation ''formAccessControls'' is not found in App\\Models\\Form model\.$#'
+			identifier: larastan.relationExistence
+			count: 2
+			path: app/Http/Controllers/SubmissionViewController.php
+
+		-
+			message: '#^Relation ''reviewSummaries'' is not found in App\\Models\\FormSubmission model\.$#'
+			identifier: larastan.relationExistence
+			count: 2
+			path: app/Http/Controllers/SubmissionViewController.php
+
+		-
+			message: '#^Relation ''reviewer'' is not found in App\\Models\\ReviewComment model\.$#'
+			identifier: larastan.relationExistence
+			count: 2
+			path: app/Http/Controllers/SubmissionViewController.php
+
+		-
+			message: '#^Relation ''reviewerRole'' is not found in App\\Models\\Reviewer model\.$#'
+			identifier: larastan.relationExistence
+			count: 2
+			path: app/Http/Controllers/SubmissionViewController.php
+
+		-
+			message: '#^Relation ''submissionDates'' is not found in App\\Models\\SubmissionPeriod model\.$#'
+			identifier: larastan.relationExistence
+			count: 1
+			path: app/Http/Controllers/SubmissionViewController.php
+
+		-
+			message: '#^Relation ''submissionPeriodPhases'' is not found in App\\Models\\SubmissionPeriod model\.$#'
+			identifier: larastan.relationExistence
+			count: 2
+			path: app/Http/Controllers/SubmissionViewController.php
+
+		-
+			message: '#^Relation ''submissionReviewers'' is not found in App\\Models\\FormSubmission model\.$#'
+			identifier: larastan.relationExistence
+			count: 3
+			path: app/Http/Controllers/SubmissionViewController.php
+
+		-
+			message: '#^Relation ''submittedBy'' is not found in App\\Models\\FormSubmission model\.$#'
+			identifier: larastan.relationExistence
+			count: 4
+			path: app/Http/Controllers/SubmissionViewController.php
+
+		-
+			message: '#^Relation ''user'' is not found in App\\Models\\Reviewer model\.$#'
+			identifier: larastan.relationExistence
+			count: 2
+			path: app/Http/Controllers/SubmissionViewController.php
+
+		-
+			message: '#^Right side of && is always true\.$#'
+			identifier: booleanAnd.rightAlwaysTrue
+			count: 2
+			path: app/Http/Controllers/SubmissionViewController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\FormSubmission\:\:\$formFieldResponses\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Http/Controllers/UserFormController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Form\|Illuminate\\Database\\Eloquent\\Collection\<int, App\\Models\\Form\>\:\:\$formFields\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/UserFormController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Reviewer\:\:\$reviewerRole\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/UserFormController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\SubmissionPeriod\:\:\$end_date\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Http/Controllers/UserFormController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\SubmissionPeriod\:\:\$form_phases\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/UserFormController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\SubmissionPeriod\:\:\$is_active\.$#'
+			identifier: property.notFound
+			count: 4
+			path: app/Http/Controllers/UserFormController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\SubmissionPeriod\:\:\$start_date\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Http/Controllers/UserFormController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\SubmissionPeriod\:\:\$status\.$#'
+			identifier: property.notFound
+			count: 4
+			path: app/Http/Controllers/UserFormController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\SubmissionPeriod\:\:\$submissionDates\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/UserFormController.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\SubmissionPeriod\:\:\$submissionPeriodPhases\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/UserFormController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$formAccessControl\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/UserFormController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$needs_review\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/UserFormController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$order\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/UserFormController.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$phaseType\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Http/Controllers/UserFormController.php
+
+		-
+			message: '#^Parameter \#1 \$callback of method Illuminate\\Database\\Eloquent\\Collection\<int,Illuminate\\Database\\Eloquent\\Model\>\:\:map\(\) contains unresolvable type\.$#'
+			identifier: argument.unresolvableType
+			count: 1
+			path: app/Http/Controllers/UserFormController.php
+
+		-
+			message: '#^Relation ''form'' is not found in App\\Models\\FormSubmission model\.$#'
+			identifier: larastan.relationExistence
+			count: 2
+			path: app/Http/Controllers/UserFormController.php
+
+		-
+			message: '#^Relation ''formFieldResponses'' is not found in App\\Models\\FormSubmission model\.$#'
+			identifier: larastan.relationExistence
+			count: 3
+			path: app/Http/Controllers/UserFormController.php
+
+		-
+			message: '#^Relation ''formFields'' is not found in App\\Models\\Form model\.$#'
+			identifier: larastan.relationExistence
+			count: 1
+			path: app/Http/Controllers/UserFormController.php
+
+		-
+			message: '#^Relation ''reviewSummaries'' is not found in App\\Models\\FormSubmission model\.$#'
+			identifier: larastan.relationExistence
+			count: 3
+			path: app/Http/Controllers/UserFormController.php
+
+		-
+			message: '#^Relation ''submissionPeriodPhases'' is not found in App\\Models\\SubmissionPeriod model\.$#'
+			identifier: larastan.relationExistence
+			count: 1
+			path: app/Http/Controllers/UserFormController.php
+
+		-
+			message: '#^Relation ''submittedBy'' is not found in App\\Models\\FormSubmission model\.$#'
+			identifier: larastan.relationExistence
+			count: 2
+			path: app/Http/Controllers/UserFormController.php
+
+		-
+			message: '#^Call to an undefined method App\\Models\\FormPhaseDetail\:\:formPhaseDetails\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: app/Models/FormPhaseDetail.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Relations\\HasMany\:\:active\(\)\.$#'
+			identifier: method.notFound
+			count: 2
+			path: app/Models/FormPhaseDetail.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Relations\\HasMany\:\:required\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: app/Models/FormPhaseDetail.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$id\.$#'
+			identifier: property.notFound
+			count: 3
+			path: app/Models/FormSubmission.php
+
+		-
+			message: '#^Method App\\Models\\FormSubmission\:\:getFormPhase\(\) should return App\\Models\\FormPhase\|null but returns Illuminate\\Database\\Eloquent\\Model\|null\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Models/FormSubmission.php
+
+		-
+			message: '#^Relation ''submissionPeriodPhases'' is not found in App\\Models\\SubmissionPeriod model\.$#'
+			identifier: larastan.relationExistence
+			count: 1
+			path: app/Models/FormSubmission.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\ReviewComment\:\:\$reviewer\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Models/ReviewComment.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\ReviewComment\:\:\$user\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Models/ReviewComment.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$name\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Models/ReviewFormField.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$is_required\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Models/ReviewFormFieldResponse.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$label\.$#'
+			identifier: property.notFound
+			count: 8
+			path: app/Models/ReviewFormFieldResponse.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$validation_rules\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Models/ReviewFormFieldResponse.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Model\:\:hasValidationRules\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: app/Models/ReviewFormFieldResponse.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Model\:\:reviewFormFieldOptions\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: app/Models/ReviewFormFieldResponse.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$reviewEvaluationForm\.$#'
+			identifier: property.notFound
+			count: 3
+			path: app/Models/ReviewFormResponse.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$submissionReviewer\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Models/ReviewFormResponse.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$value\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Models/ReviewFormResponse.php
+
+		-
+			message: '#^Match arm comparison between ''locked'' and ''locked'' is always true\.$#'
+			identifier: match.alwaysTrue
+			count: 2
+			path: app/Models/ReviewFormResponse.php
+
+		-
+			message: '#^Method App\\Models\\ReviewFormResponse\:\:saveFieldResponse\(\) should return App\\Models\\ReviewFormFieldResponse but returns Illuminate\\Database\\Eloquent\\Model\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Models/ReviewFormResponse.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$status\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Models/ReviewerFormAssignment.php
+
+		-
+			message: '#^Method App\\Models\\ReviewerFormAssignment\:\:getDaysUntilDue\(\) should return int\|null but returns float\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Models/ReviewerFormAssignment.php
+
+		-
+			message: '#^Method App\\Models\\ReviewerFormAssignment\:\:getHoursUntilDue\(\) should return int\|null but returns float\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Models/ReviewerFormAssignment.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\SubmissionDate\:\:\$date\.$#'
+			identifier: property.notFound
+			count: 4
+			path: app/Models/SubmissionDate.php
+
+		-
+			message: '#^Method App\\Models\\SubmissionDate\:\:getDaysFromNow\(\) should return int but returns float\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Models/SubmissionDate.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Model\:\:autoLockIfOverdue\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: app/Models/SubmissionReviewer.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Relations\\HasMany\:\:active\(\)\.$#'
+			identifier: method.notFound
+			count: 3
+			path: app/Models/SubmissionReviewer.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Relations\\HasMany\:\:dueSoon\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: app/Models/SubmissionReviewer.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Relations\\HasMany\:\:optional\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: app/Models/SubmissionReviewer.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Relations\\HasMany\:\:overdue\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: app/Models/SubmissionReviewer.php
+
+		-
+			message: '#^Call to an undefined method Illuminate\\Database\\Eloquent\\Relations\\HasMany\:\:required\(\)\.$#'
+			identifier: method.notFound
+			count: 1
+			path: app/Models/SubmissionReviewer.php
+
+		-
+			message: '#^Method App\\Models\\SubmissionReviewer\:\:assignForm\(\) should return App\\Models\\ReviewerFormAssignment but returns Illuminate\\Database\\Eloquent\\Model\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Models/SubmissionReviewer.php
+
+		-
+			message: '#^Method App\\Models\\SubmissionReviewer\:\:getEvaluationCompletionPercentage\(\) should return int but returns float\.$#'
+			identifier: return.type
+			count: 1
+			path: app/Models/SubmissionReviewer.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\FormSubmission\:\:\$form\.$#'
+			identifier: property.notFound
+			count: 10
+			path: app/Services/EmailNotificationService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\FormSubmission\:\:\$submittedBy\.$#'
+			identifier: property.notFound
+			count: 5
+			path: app/Services/EmailNotificationService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\ReviewComment\:\:\$reviewSummary\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Services/EmailNotificationService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\ReviewComment\:\:\$reviewer\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Services/EmailNotificationService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\ReviewComment\:\:\$user\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Services/EmailNotificationService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Reviewer\:\:\$reviewerRole\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Services/EmailNotificationService.php
+
+		-
+			message: '#^Access to an undefined property App\\Models\\Reviewer\:\:\$user\.$#'
+			identifier: property.notFound
+			count: 4
+			path: app/Services/EmailNotificationService.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Contracts\\Auth\\Authenticatable\:\:\$id\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Services/EmailNotificationService.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Contracts\\Auth\\Authenticatable\:\:\$name\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Services/EmailNotificationService.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$form\.$#'
+			identifier: property.notFound
+			count: 4
+			path: app/Services/EmailNotificationService.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$id\.$#'
+			identifier: property.notFound
+			count: 2
+			path: app/Services/EmailNotificationService.php
+
+		-
+			message: '#^Access to an undefined property Illuminate\\Database\\Eloquent\\Model\:\:\$user\.$#'
+			identifier: property.notFound
+			count: 1
+			path: app/Services/EmailNotificationService.php
+
+		-
+			message: '#^Parameter \#1 \$submission of method App\\Services\\EmailNotificationService\:\:getReviewParticipants\(\) expects App\\Models\\FormSubmission, Illuminate\\Database\\Eloquent\\Model\|null given\.$#'
+			identifier: argument.type
+			count: 2
+			path: app/Services/EmailNotificationService.php

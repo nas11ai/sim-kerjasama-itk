@@ -12,10 +12,10 @@ enum RoleEnum: string
     public function label(): string
     {
         return match ($this) {
-            static::SUPER_ADMIN => 'Super Admin',
-            static::ADMIN => 'Admin',
-            static::TENAGA_KEPENDIDIKAN => 'Tenaga Kependidikan',
-            static::MAHASISWA => 'Mahasiswa',
+            self::SUPER_ADMIN => 'Super Admin',
+            self::ADMIN => 'Admin',
+            self::TENAGA_KEPENDIDIKAN => 'Tenaga Kependidikan',
+            self::MAHASISWA => 'Mahasiswa',
         };
     }
 }

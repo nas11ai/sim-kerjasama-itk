@@ -57,7 +57,7 @@ enum SubmissionStatus: string
 
     public static function options(): array
     {
-        return collect(self::cases())->map(fn($status) => [
+        return collect(self::cases())->map(fn ($status) => [
             'value' => $status->value,
             'label' => $status->label(),
             'color' => $status->color(),

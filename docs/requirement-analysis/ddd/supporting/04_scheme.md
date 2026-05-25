@@ -1,14 +1,14 @@
 # BC: Scheme
 
 **Klasifikasi:** 🟡 Supporting Domain  
-**Versi:** 2.1  
+**Versi:** 2.3  
 **Status:** Draft
 
 ---
 
 ## Responsibility
 
-Mengelola metadata aturan skema penelitian/pengabdian. Scheme **decoupled dari Form** — Form tidak mengetahui Scheme. Sebaliknya, `form_submissions` yang opsional menyimpan `scheme_id`. Pemilihan Scheme dan TRL dikontrol oleh FormField khusus (`scheme_selector`, `trl_selector`) — jika Form tidak punya field tersebut, submission tidak butuh Scheme/TRL sama sekali.
+Mengelola metadata aturan skema penelitian/pengabdian. Scheme **decoupled dari Form** — Form tidak mengetahui Scheme. Pemilihan Scheme dikontrol oleh FormField bertipe `scheme_selector` (opsional per Form). Core rules disimpan sebagai kolom terstruktur, rule opsional di JSONB `rules`.
 
 ---
 
@@ -20,39 +20,31 @@ Mengelola metadata aturan skema penelitian/pengabdian. Scheme **decoupled dari F
 flowchart TD
     START([Admin buka Scheme Management]) --> A{Aksi?}
 
-    A -->|Create| B[Isi metadata Scheme<br/>max_budget, max_members,<br/>duration, code, scheme_type]
-    B --> C[Set allowed TRLs<br/>opsional]
-    C --> D[Link ke SubmissionPeriod<br/>yang relevan]
+    A -->|Create| B[Isi core rules<br/>name, code, max_budget, max_members, duration_months]
+    B --> C[Isi rules JSONB<br/>min_reviewer_count, max_reviewer_workload, dll]
+    C --> D[Set allowed TRLs<br/>opsional]
     D --> E[Scheme aktif]
 
-    A -->|Deactivate| F{Ada active<br/>Submission<br/>dengan scheme ini?}
-    F -->|Ya| G[❌ Tidak bisa dinonaktifkan]
-    F -->|Tidak| H[Set is_active = false]
+    A -->|Add rule baru| F[Tambah key-value ke rules JSONB<br/>melalui admin panel<br/>tanpa migration]
+
+    A -->|Deactivate| G{Ada active Submission<br/>yang pakai scheme ini?}
+    G -->|Ya| H[❌ Tidak bisa dinonaktifkan]
+    G -->|Tidak| I[Set is_active = false]
 ```
 
-### Bagaimana Scheme Terhubung ke Form
-
-Operator menambahkan field dengan tipe `scheme_selector` ke sebuah Form jika submission tersebut butuh pemilihan skema. Jika tidak ditambahkan, Form berjalan tanpa Scheme.
+### Period Close Early / Extend
 
 ```mermaid
 flowchart TD
-    OPERATOR([Operator buka Form Builder]) --> A{Form ini butuh<br/>Scheme?}
-    A -->|Ya| B[Tambah FormField<br/>field_type = scheme_selector<br/>config: submission_period_id filter]
-    B --> C{Form ini butuh<br/>TRL?}
-    C -->|Ya| D[Tambah FormField<br/>field_type = trl_selector<br/>config: depends_on = scheme_field_id]
-    C -->|Tidak| E[Form selesai<br/>tanpa TRL]
-    D --> E
-    A -->|Tidak| E
+    OPR([Operator]) --> A{Kebutuhan?}
 
-    RESEARCHER([Researcher isi form]) --> F{Ada field<br/>scheme_selector?}
-    F -->|Ya| G[Load daftar Scheme<br/>yang tersedia di period ini]
-    G --> H[Pilih Scheme]
-    H --> I{Ada field<br/>trl_selector?}
-    I -->|Ya| J[Load TRLs<br/>berdasarkan Scheme dipilih]
-    J --> K[Pilih TRL]
-    I -->|Tidak| L[Lanjut isi form]
-    K --> L
-    F -->|Tidak| L
+    A -->|Tutup period lebih awal| B[Set is_force_closed = true<br/>pada SubmissionPeriod]
+    B --> C[Semua SubmissionDate<br/>dianggap sudah lewat]
+    C --> D[Semua FormPhaseDetail terkait<br/>di-hard-block]
+
+    A -->|Perpanjang deadline| E[Update SubmissionDate.datetime<br/>ke tanggal baru]
+    E --> F[Access gate otomatis<br/>pakai tanggal baru]
+    F --> G[Notifikasi ke researcher<br/>yang punya DRAFT aktif]
 ```
 
 ---
@@ -62,51 +54,65 @@ flowchart TD
 ```sql
 schemes
   id
-  scheme_type_id      FK → scheme_types
-  submission_type_id  FK → submission_types
-  code                varchar UNIQUE
-  name                varchar
-  max_budget          bigint
-  max_members         int
-  duration_months     int
-  is_active           boolean
+  scheme_type_id       FK → scheme_types
+  submission_type_id   FK → submission_types
+  name                 varchar
+  code                 varchar UNIQUE
+  max_budget           bigint          ← core rule, selalu ada
+  max_members          int             ← core rule, selalu ada
+  duration_months      int             ← core rule, selalu ada
+  rules                jsonb nullable  ← extensible rules
+  is_active            boolean
+
+-- Contoh isi rules JSONB:
+-- {
+--   "min_reviewer_count": 2,
+--   "max_reviewer_workload": 10,
+--   "max_student_members": 5,
+--   "require_external_reviewer": false,
+--   "allowed_output_types": ["article", "book", "ip"]
+-- }
 
 scheme_allowed_trls
   scheme_id   FK → schemes
   trl_id      FK → technology_readiness_levels
+```
 
--- form_submissions dapat scheme_id nullable
--- scheme dipilih saat researcher mengisi form_field dengan type 'scheme_selector'
--- nilainya disimpan di form_field_responses.value
--- dan di-denormalize ke form_submissions.scheme_id untuk query efisien
+---
+
+## Akses Rules di Laravel
+
+```php
+class Scheme extends Model
+{
+    protected $casts = ['rules' => 'array'];
+
+    public function getRule(string $key, mixed $default = null): mixed
+    {
+        return data_get($this->rules, $key, $default);
+    }
+
+    public function minReviewerCount(): int
+    {
+        return $this->getRule('min_reviewer_count', 2);
+    }
+
+    public function maxReviewerWorkload(): int
+    {
+        return $this->getRule('max_reviewer_workload', 10);
+    }
+}
 ```
 
 ---
 
 ## Field Type: `scheme_selector` & `trl_selector`
 
-Dua field type baru yang ditambahkan ke `field_types`:
+**`scheme_selector`** — dropdown berisi daftar Scheme yang tersedia di SubmissionPeriod aktif. Opsional per Form — kalau tidak ada field ini, submission berjalan tanpa Scheme.
 
-**`scheme_selector`** — render dropdown berisi daftar Scheme yang tersedia di SubmissionPeriod aktif. Config:
+**`trl_selector`** — dropdown TRL yang filtered berdasarkan Scheme terpilih. Hanya valid jika ada `scheme_selector` di Form yang sama.
 
-```json
-{
-    "filter_by_submission_type": true,
-    "show_max_budget": true,
-    "show_max_members": true
-}
-```
-
-**`trl_selector`** — render dropdown TRL yang filtered berdasarkan Scheme yang dipilih. Config:
-
-```json
-{
-    "depends_on_field_key": "scheme_field_id",
-    "allow_empty": true
-}
-```
-
-Jika `allow_empty: true`, Researcher tidak wajib memilih TRL meskipun field ini ada di form.
+Scheme ID tidak disimpan di `form_submissions` — hanya di `form_field_responses` sebagai value dari scheme_selector field. Ini single source of truth.
 
 ---
 
@@ -118,17 +124,27 @@ classDiagram
         +SchemeId id
         +SchemeTypeId scheme_type_id
         +SubmissionTypeId submission_type_id
-        +string code
         +string name
+        +string code
         +Money max_budget
         +int max_members
         +int duration_months
+        +Json rules
         +bool is_active
+        +getRule(key, default) mixed
+        +minReviewerCount() int
+        +maxReviewerWorkload() int
     }
 
     class SchemeAllowedTrl {
         +SchemeId scheme_id
         +TechnologyReadinessLevelId trl_id
+    }
+
+    class SubmissionPeriod {
+        +SubmissionPeriodId id
+        +string name
+        +bool is_force_closed
     }
 
     Scheme "1" --> "0..*" SchemeAllowedTrl : allows
@@ -138,21 +154,25 @@ classDiagram
 
 ## Business Rules
 
-| Kode      | Rule                                                                                      |
-| --------- | ----------------------------------------------------------------------------------------- |
-| BR-SCH-01 | Scheme tidak bisa di-deactivate jika ada active Submission yang menggunakannya            |
-| BR-SCH-02 | `max_budget > 0` dan `max_members > 0`                                                    |
-| BR-SCH-03 | `code` unik di seluruh sistem                                                             |
-| BR-SCH-04 | Form tidak diwajibkan punya `scheme_selector` field — Scheme sepenuhnya opsional per Form |
-| BR-SCH-05 | `trl_selector` hanya valid jika ada `scheme_selector` di Form yang sama                   |
+| Kode      | Rule                                                                                                                                |
+| --------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| BR-SCH-01 | Scheme tidak bisa di-deactivate jika ada active Submission yang menggunakannya                                                      |
+| BR-SCH-02 | `max_budget > 0` dan `max_members > 0`                                                                                              |
+| BR-SCH-03 | `code` unik di seluruh sistem                                                                                                       |
+| BR-SCH-04 | Form tidak diwajibkan punya `scheme_selector` field — Scheme sepenuhnya opsional per Form                                           |
+| BR-SCH-05 | `trl_selector` hanya valid jika ada `scheme_selector` di Form yang sama                                                             |
+| BR-SCH-06 | Menambah rule baru ke `scheme.rules` JSONB tidak butuh migration — cukup update via admin panel                                     |
+| BR-SCH-07 | Jika `SubmissionPeriod.is_force_closed = true`, semua FormPhaseDetail di period tersebut di-hard-block terlepas dari SubmissionDate |
+| BR-SCH-08 | Perpanjangan deadline (update SubmissionDate) wajib diikuti notifikasi ke researcher yang punya DRAFT aktif                         |
 
 ---
 
 ## Integration Map
 
-| Context              | Arah                | Keterangan                                                                             |
-| -------------------- | ------------------- | -------------------------------------------------------------------------------------- |
-| Form Engine          | Lateral             | `scheme_selector` adalah FormField type — FE render UI-nya, Scheme BC provide data-nya |
-| System Configuration | Upstream → Scheme   | SchemeTypeId, TRLId, SubmissionTypeId                                                  |
-| Submission           | Scheme → Downstream | Budget validation via max_budget, member count via max_members                         |
-| Budget               | Scheme → Downstream | max_budget untuk validasi total anggaran                                               |
+| Context              | Arah                | Keterangan                                                                |
+| -------------------- | ------------------- | ------------------------------------------------------------------------- |
+| Form Engine          | Lateral             | scheme_selector adalah FormField type — FE render UI, Scheme provide data |
+| System Configuration | Upstream → Scheme   | SchemeTypeId, TRLId, SubmissionTypeId                                     |
+| Submission           | Scheme → Downstream | max_budget, max_members, duration via form_field_responses                |
+| Budget               | Scheme → Downstream | max_budget untuk validasi grand total                                     |
+| Review               | Scheme → Downstream | min_reviewer_count dan max_reviewer_workload dari rules JSONB             |

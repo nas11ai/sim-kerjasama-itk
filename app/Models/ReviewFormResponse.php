@@ -82,7 +82,7 @@ class ReviewFormResponse extends Model
 
         $this->update([
             'status' => 'submitted',
-            'submitted_at' => now()
+            'submitted_at' => now(),
         ]);
 
         // Update parent reviewer evaluation status
@@ -100,7 +100,7 @@ class ReviewFormResponse extends Model
 
         $this->update([
             'status' => 'locked',
-            'locked_at' => now()
+            'locked_at' => now(),
         ]);
 
         return true;

@@ -67,7 +67,7 @@ class ReviewSummary extends Model
         // Get submission reviewer
         $submissionReviewer = SubmissionReviewer::where([
             'form_submission_id' => $formSubmissionId,
-            'reviewer_id' => $reviewerId
+            'reviewer_id' => $reviewerId,
         ])->first();
 
         if (!$submissionReviewer) {
@@ -101,7 +101,7 @@ class ReviewSummary extends Model
     // NEW: Generate summary notes from evaluation responses
     protected static function generateSummaryFromResponses($completedResponses): string
     {
-        $summary = "Evaluation Summary\n" . str_repeat("=", 50) . "\n\n";
+        $summary = "Evaluation Summary\n".str_repeat('=', 50)."\n\n";
 
         foreach ($completedResponses as $assignment) {
             $response = $assignment->reviewFormResponse;
@@ -109,7 +109,7 @@ class ReviewSummary extends Model
 
             $summary .= "Form: {$form->title}\n";
             $summary .= "Completed: {$response->submitted_at->format('d M Y H:i')}\n";
-            $summary .= str_repeat("-", 30) . "\n";
+            $summary .= str_repeat('-', 30)."\n";
 
             // Add field responses
             $fieldResponses = $response->reviewFormFieldResponses()->with('reviewFormField')->get();
@@ -140,7 +140,7 @@ class ReviewSummary extends Model
 
         $submissionReviewer = SubmissionReviewer::where([
             'form_submission_id' => $this->form_submission_id,
-            'reviewer_id' => $this->reviewer_id
+            'reviewer_id' => $this->reviewer_id,
         ])->first();
 
         if (!$submissionReviewer) {
@@ -178,7 +178,7 @@ class ReviewSummary extends Model
 
         $submissionReviewer = SubmissionReviewer::where([
             'form_submission_id' => $this->form_submission_id,
-            'reviewer_id' => $this->reviewer_id
+            'reviewer_id' => $this->reviewer_id,
         ])->first();
 
         if (!$submissionReviewer) {
@@ -241,7 +241,7 @@ class ReviewSummary extends Model
 
         $submissionReviewer = SubmissionReviewer::where([
             'form_submission_id' => $this->form_submission_id,
-            'reviewer_id' => $this->reviewer_id
+            'reviewer_id' => $this->reviewer_id,
         ])->first();
 
         return $submissionReviewer ? $submissionReviewer->canParticipateInDiscussions() : true;

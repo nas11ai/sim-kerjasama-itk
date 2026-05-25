@@ -1,10 +1,10 @@
 <!-- resources\js\Pages\AnnouncementDetail.vue -->
 <script setup lang="ts">
-import { Head, Link , router} from "@inertiajs/vue3";
-import { Button } from "@/Components/ui/button";
-import { Card, CardContent } from "@/Components/ui/card";
-import { Badge } from "@/Components/ui/badge";
-import { Separator } from "@/Components/ui/separator";
+import { Head, Link, router } from '@inertiajs/vue3'
+import { Button } from '@/Components/ui/button'
+import { Card, CardContent } from '@/Components/ui/card'
+import { Badge } from '@/Components/ui/badge'
+import { Separator } from '@/Components/ui/separator'
 import {
     ArrowLeft,
     Calendar,
@@ -15,67 +15,67 @@ import {
     Mail,
     Phone,
     MapPin,
-} from "lucide-vue-next";
-import { computed } from "vue";
+} from 'lucide-vue-next'
+import { computed } from 'vue'
 
 interface AnnouncementFile {
-    id: number;
-    file_name: string;
-    file_path: string;
-    mime_type: string;
-    file_size: number;
+    id: number
+    file_name: string
+    file_path: string
+    mime_type: string
+    file_size: number
 }
 
 interface AnnouncementDetail {
-    id: number;
-    title: string;
-    content: string;
-    type: string;
-    expired_at: string | null;
-    created_at: string;
-    announcement_files: AnnouncementFile[];
+    id: number
+    title: string
+    content: string
+    type: string
+    expired_at: string | null
+    created_at: string
+    announcement_files: AnnouncementFile[]
     announcement_creator: {
-        name: string;
-    };
+        name: string
+    }
 }
 
 const props = defineProps<{
-    announcement: AnnouncementDetail;
-    canLogin?: boolean;
-    canRegister?: boolean;
-}>();
+    announcement: AnnouncementDetail
+    canLogin?: boolean
+    canRegister?: boolean
+}>()
 
-const { announcement } = props;
+const { announcement } = props
 
 const goBack = () => {
-    router.visit('/#announcements');
-};
+    router.visit('/#announcements')
+}
 
 const formattedDate = computed(() =>
-    new Intl.DateTimeFormat("id-ID", {
-        day: "2-digit",
-        month: "long",
-        year: "numeric",
-        hour: "2-digit",
-        minute: "2-digit",
+    new Intl.DateTimeFormat('id-ID', {
+        day: '2-digit',
+        month: 'long',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
         hour12: false,
-        timeZone: "Asia/Makassar",
+        timeZone: 'Asia/Makassar',
     }).format(new Date(announcement.created_at))
-);
+)
 
 const formatFileSize = (bytes: number) => {
-    if (bytes < 1024) return bytes + ' B';
-    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
-    return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
-};
+    if (bytes < 1024) return bytes + ' B'
+    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB'
+    return (bytes / (1024 * 1024)).toFixed(1) + ' MB'
+}
 
 const getFileIcon = (mimeType: string) => {
-    if (mimeType.includes('pdf')) return 'text-red-600';
-    if (mimeType.includes('word')) return 'text-blue-600';
-    if (mimeType.includes('excel') || mimeType.includes('spreadsheet')) return 'text-green-600';
-    if (mimeType.includes('image')) return 'text-purple-600';
-    return 'text-gray-600';
-};
+    if (mimeType.includes('pdf')) return 'text-red-600'
+    if (mimeType.includes('word')) return 'text-blue-600'
+    if (mimeType.includes('excel') || mimeType.includes('spreadsheet')) return 'text-green-600'
+    if (mimeType.includes('image')) return 'text-purple-600'
+    return 'text-gray-600'
+}
 </script>
 
 <template>
@@ -85,29 +85,24 @@ const getFileIcon = (mimeType: string) => {
         <header class="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b">
             <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div class="flex justify-between items-center h-16">
-                    <Link href="/" class="flex items-center gap-3 hover:opacity-80 transition-opacity">
+                    <Link
+                        href="/"
+                        class="flex items-center gap-3 hover:opacity-80 transition-opacity"
+                    >
                         <img
                             src="/images/Logo-ITK.png"
                             alt="Logo ITK"
                             class="h-10 w-auto object-contain"
                         />
                         <div>
-                            <h1 class="text-lg font-bold text-gray-900">
-                                SIM Kerjasama ITK
-                            </h1>
-                            <p class="text-xs text-gray-500">
-                                Institut Teknologi Kalimantan
-                            </p>
+                            <h1 class="text-lg font-bold text-gray-900">SIM Kerjasama ITK</h1>
+                            <p class="text-xs text-gray-500">Institut Teknologi Kalimantan</p>
                         </div>
                     </Link>
 
                     <!-- Nav -->
                     <nav v-if="canLogin" class="flex items-center gap-2">
-                        <Button
-                            v-if="$page.props.auth.user"
-                            as-child
-                            size="sm"
-                        >
+                        <Button v-if="$page.props.auth.user" as-child size="sm">
                             <Link :href="route('user.dashboard')">
                                 Dashboard
                                 <ArrowLeft class="ml-2 h-4 w-4 rotate-180" />
@@ -116,19 +111,11 @@ const getFileIcon = (mimeType: string) => {
 
                         <template v-else>
                             <Button as-child variant="ghost" size="sm">
-                                <Link :href="route('login')">
-                                    Masuk
-                                </Link>
+                                <Link :href="route('login')"> Masuk </Link>
                             </Button>
 
-                            <Button
-                                v-if="canRegister"
-                                as-child
-                                size="sm"
-                            >
-                                <Link :href="route('register')">
-                                    Daftar
-                                </Link>
+                            <Button v-if="canRegister" as-child size="sm">
+                                <Link :href="route('register')"> Daftar </Link>
                             </Button>
                         </template>
                     </nav>
@@ -139,23 +126,22 @@ const getFileIcon = (mimeType: string) => {
         <!-- Main Content -->
         <main class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
             <div class="space-y-6">
-
-                <Button
-                    variant="ghost"
-                    size="sm"
-                    @click="goBack"
-                    class="gap-2 hover:bg-gray-100"
-                >
+                <Button variant="ghost" size="sm" class="gap-2 hover:bg-gray-100" @click="goBack">
                     <ArrowLeft class="h-4 w-4" />
                     Kembali
                 </Button>
 
                 <Card class="border-0 shadow-lg overflow-hidden">
-
-                    <div class="relative overflow-hidden bg-linear-to-br from-blue-600 via-blue-700 to-blue-800 p-8 md:p-12">
+                    <div
+                        class="relative overflow-hidden bg-linear-to-br from-blue-600 via-blue-700 to-blue-800 p-8 md:p-12"
+                    >
                         <div class="absolute inset-0 opacity-10">
-                            <div class="absolute top-0 left-0 w-64 h-64 bg-white rounded-full blur-3xl"></div>
-                            <div class="absolute bottom-0 right-0 w-64 h-64 bg-white rounded-full blur-3xl"></div>
+                            <div
+                                class="absolute top-0 left-0 w-64 h-64 bg-white rounded-full blur-3xl"
+                            />
+                            <div
+                                class="absolute bottom-0 right-0 w-64 h-64 bg-white rounded-full blur-3xl"
+                            />
                         </div>
 
                         <div class="relative space-y-6">
@@ -174,7 +160,9 @@ const getFileIcon = (mimeType: string) => {
                             <div class="flex flex-wrap items-center gap-4 text-blue-100">
                                 <div class="flex items-center gap-2">
                                     <User class="h-4 w-4" />
-                                    <span class="text-sm">{{ announcement.announcement_creator?.name }}</span>
+                                    <span class="text-sm">{{
+                                        announcement.announcement_creator?.name
+                                    }}</span>
                                 </div>
                                 <span class="text-blue-300">•</span>
                                 <div class="flex items-center gap-2">
@@ -183,7 +171,11 @@ const getFileIcon = (mimeType: string) => {
                                         {{ formattedDate }} WITA
                                     </time>
                                 </div>
-                                <span class="text-blue-300" v-if="announcement.announcement_files?.length">•</span>
+                                <span
+                                    v-if="announcement.announcement_files?.length"
+                                    class="text-blue-300"
+                                    >•</span
+                                >
                                 <div
                                     v-if="announcement.announcement_files?.length"
                                     class="flex items-center gap-2"
@@ -202,22 +194,17 @@ const getFileIcon = (mimeType: string) => {
                         <div
                             class="prose prose-lg max-w-none text-gray-700 leading-relaxed"
                             v-html="announcement.content"
-                        ></div>
+                        />
                     </CardContent>
                 </Card>
 
                 <!-- Attachments -->
-                <Card
-                    v-if="announcement.announcement_files?.length"
-                    class="border-0 shadow-lg"
-                >
+                <Card v-if="announcement.announcement_files?.length" class="border-0 shadow-lg">
                     <CardContent class="p-8">
                         <div class="space-y-6">
                             <div class="flex items-center gap-2">
                                 <Paperclip class="h-5 w-5 text-blue-600" />
-                                <h2 class="text-xl font-semibold text-gray-900">
-                                    File Lampiran
-                                </h2>
+                                <h2 class="text-xl font-semibold text-gray-900">File Lampiran</h2>
                                 <Badge variant="secondary" class="ml-auto">
                                     {{ announcement.announcement_files.length }} File
                                 </Badge>
@@ -235,11 +222,17 @@ const getFileIcon = (mimeType: string) => {
                                     class="group flex items-center justify-between p-4 rounded-lg border hover:border-blue-300 hover:bg-blue-50/50 transition-all"
                                 >
                                     <div class="flex items-center gap-3 min-w-0 flex-1">
-                                        <div class="p-2 bg-gray-100 rounded-lg group-hover:bg-blue-100 transition-colors shrink-0">
-                                            <FileText :class="['h-5 w-5', getFileIcon(file.mime_type)]" />
+                                        <div
+                                            class="p-2 bg-gray-100 rounded-lg group-hover:bg-blue-100 transition-colors shrink-0"
+                                        >
+                                            <FileText
+                                                :class="['h-5 w-5', getFileIcon(file.mime_type)]"
+                                            />
                                         </div>
                                         <div class="min-w-0 flex-1">
-                                            <p class="font-medium text-gray-900 truncate group-hover:text-blue-600 transition-colors">
+                                            <p
+                                                class="font-medium text-gray-900 truncate group-hover:text-blue-600 transition-colors"
+                                            >
                                                 {{ file.file_name }}
                                             </p>
                                             <div class="flex items-center gap-2 mt-1">
@@ -279,8 +272,8 @@ const getFileIcon = (mimeType: string) => {
                             </div>
                         </div>
                         <p class="text-sm text-gray-400">
-                            Platform resmi Institut Teknologi Kalimantan untuk mengelola
-                            kerja sama institusional.
+                            Platform resmi Institut Teknologi Kalimantan untuk mengelola kerja sama
+                            institusional.
                         </p>
                     </div>
 
@@ -293,7 +286,10 @@ const getFileIcon = (mimeType: string) => {
                                 </Link>
                             </li>
                             <li>
-                                <Link href="/#announcements" class="hover:text-blue-400 transition-colors">
+                                <Link
+                                    href="/#announcements"
+                                    class="hover:text-blue-400 transition-colors"
+                                >
                                     Pengumuman
                                 </Link>
                             </li>
@@ -325,8 +321,8 @@ const getFileIcon = (mimeType: string) => {
                             <li class="flex items-start gap-2">
                                 <MapPin class="h-4 w-4 text-blue-400 shrink-0 mt-0.5" />
                                 <span>
-                                    Jl. Soekarno-Hatta Km. 15, Karang Joang,
-                                    Balikpapan, Kalimantan Timur, 76127
+                                    Jl. Soekarno-Hatta Km. 15, Karang Joang, Balikpapan, Kalimantan
+                                    Timur, 76127
                                 </span>
                             </li>
                             <li class="flex items-center gap-2">
@@ -366,9 +362,12 @@ const getFileIcon = (mimeType: string) => {
                 <Separator class="my-8 bg-gray-700" />
 
                 <!-- Bottom Footer -->
-                <div class="flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-gray-400">
+                <div
+                    class="flex flex-col md:flex-row justify-between items-center gap-4 text-sm text-gray-400"
+                >
                     <p>
-                        © {{ new Date().getFullYear() }} Institut Teknologi Kalimantan. All Rights Reserved.
+                        © {{ new Date().getFullYear() }} Institut Teknologi Kalimantan. All Rights
+                        Reserved.
                     </p>
                 </div>
             </div>

@@ -1,250 +1,249 @@
 <script setup lang="ts">
-import { computed, ref, watch } from "vue";
-import { Head, useForm } from "@inertiajs/vue3";
-import type { InertiaForm } from "@inertiajs/vue3";
-import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout.vue";
-import { Button } from "@/Components/ui/button";
-import { Label } from "@/Components/ui/label";
-import { Card, CardContent, CardHeader, CardTitle } from "@/Components/ui/card";
-import Checkbox from "@/Components/ui/checkbox/Checkbox.vue";
+import { computed, ref, watch } from 'vue'
+import { Head, useForm } from '@inertiajs/vue3'
+import type { InertiaForm } from '@inertiajs/vue3'
+import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
+import { Button } from '@/Components/ui/button'
+import { Label } from '@/Components/ui/label'
+import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card'
+import Checkbox from '@/Components/ui/checkbox/Checkbox.vue'
 import {
     Select,
     SelectContent,
     SelectItem,
     SelectTrigger,
     SelectValue,
-} from "@/Components/ui/select";
-import { Badge } from "@/Components/ui/badge";
-import { Separator } from "@/Components/ui/separator";
-import { ArrowLeft, Users, Building, FileText, Plus } from "lucide-vue-next";
+} from '@/Components/ui/select'
+import { Badge } from '@/Components/ui/badge'
+import { Separator } from '@/Components/ui/separator'
+import { ArrowLeft, Users, Building, FileText, Plus } from 'lucide-vue-next'
 
 interface Role {
-    id: number;
-    name: string;
+    id: number
+    name: string
 }
 
 interface StudyProgram {
-    id: number;
-    name: string;
-    faculty_id: number;
+    id: number
+    name: string
+    faculty_id: number
 }
 
 interface Faculty {
-    id: number;
-    name: string;
-    study_programs: StudyProgram[];
+    id: number
+    name: string
+    study_programs: StudyProgram[]
 }
 
 interface Form {
-    id: number;
-    title: string;
+    id: number
+    title: string
 }
 
 interface FormData {
-    form_id: number | null;
-    role_id: number | null;
-    study_program_id: number | null;
-    [key: string]: any; // Add index signature
+    form_id: number | null
+    role_id: number | null
+    study_program_id: number | null
+    [key: string]: any // Add index signature
 }
 
 interface BulkFormData {
-    form_id: number | null;
+    form_id: number | null
     combinations: Array<{
-        role_id: number;
-        study_program_id: number;
-    }>;
-    [key: string]: any; // Add index signature
+        role_id: number
+        study_program_id: number
+    }>
+    [key: string]: any // Add index signature
 }
 
 // Extended error interface to include custom error fields
 interface FormErrors {
-    form_id?: string;
-    role_id?: string;
-    study_program_id?: string;
-    duplicate?: string;
-    [key: string]: string | undefined;
+    form_id?: string
+    role_id?: string
+    study_program_id?: string
+    duplicate?: string
+    [key: string]: string | undefined
 }
 
 interface Props {
-    forms: Form[];
-    roles: Role[];
-    faculties: Faculty[];
+    forms: Form[]
+    roles: Role[]
+    faculties: Faculty[]
 }
 
-const props = defineProps<Props>();
+const props = defineProps<Props>()
 
-const isBulkMode = ref(false);
-const selectedFacultyId = ref<number | null>(null);
-const selectedRoles = ref<number[]>([]);
-const selectedStudyPrograms = ref<number[]>([]);
+const isBulkMode = ref(false)
+const selectedFacultyId = ref<number | null>(null)
+const selectedRoles = ref<number[]>([])
+const selectedStudyPrograms = ref<number[]>([])
 
 // Single form - explicitly type the form
 const form: InertiaForm<FormData> = useForm<FormData>({
     form_id: null,
     role_id: null,
     study_program_id: null,
-});
+})
 
 // Bulk form - explicitly type the form
 const bulkForm: InertiaForm<BulkFormData> = useForm<BulkFormData>({
     form_id: null,
     combinations: [],
-});
+})
 
 // Create a computed property for errors with proper typing
 const errors = computed((): FormErrors => {
-    return isBulkMode.value
-        ? (bulkForm.errors as FormErrors)
-        : (form.errors as FormErrors);
-});
+    return isBulkMode.value ? (bulkForm.errors as FormErrors) : (form.errors as FormErrors)
+})
 
 const studyPrograms = computed(() => {
-    if (!selectedFacultyId.value) return [];
-    const faculty = props.faculties.find(
-        (f) => f.id === selectedFacultyId.value
-    );
-    return faculty?.study_programs || [];
-});
+    if (!selectedFacultyId.value) return []
+    const faculty = props.faculties.find((f) => f.id === selectedFacultyId.value)
+    return faculty?.study_programs || []
+})
 
 // Watch for faculty change to reset study programs
 watch(selectedFacultyId, () => {
-    selectedStudyPrograms.value = [];
+    selectedStudyPrograms.value = []
     if (!isBulkMode.value) {
-        form.study_program_id = null;
+        form.study_program_id = null
     }
-});
+})
 
 // Generate combinations for bulk create
 const generateCombinations = () => {
-    const combinations: Array<{ role_id: number; study_program_id: number }> =
-        [];
+    const combinations: Array<{ role_id: number; study_program_id: number }> = []
 
     selectedRoles.value.forEach((roleId) => {
         selectedStudyPrograms.value.forEach((studyProgramId) => {
             combinations.push({
                 role_id: roleId,
                 study_program_id: studyProgramId,
-            });
-        });
-    });
+            })
+        })
+    })
 
-    return combinations;
-};
+    return combinations
+}
 
 const previewCombinations = computed(() => {
-    if (!isBulkMode.value || !bulkForm.form_id) return [];
+    if (!isBulkMode.value || !bulkForm.form_id) return []
 
-    const combinations = generateCombinations();
+    const combinations = generateCombinations()
     return combinations.map((combo) => {
-        const role = props.roles.find((r) => r.id === combo.role_id);
-        const studyProgram = studyPrograms.value.find(
-            (sp) => sp.id === combo.study_program_id
-        );
-        const faculty = props.faculties.find(
-            (f) => f.id === selectedFacultyId.value
-        );
+        const role = props.roles.find((r) => r.id === combo.role_id)
+        const studyProgram = studyPrograms.value.find((sp) => sp.id === combo.study_program_id)
+        const faculty = props.faculties.find((f) => f.id === selectedFacultyId.value)
 
         return {
-            role: role?.name || "",
-            study_program: studyProgram?.name || "",
-            faculty: faculty?.name || "",
-        };
-    });
-});
+            role: role?.name || '',
+            study_program: studyProgram?.name || '',
+            faculty: faculty?.name || '',
+        }
+    })
+})
 
 const submit = () => {
     if (isBulkMode.value) {
-        bulkForm.combinations = generateCombinations();
-        bulkForm.post(route("admin.form-access-controls.bulk-create"));
+        bulkForm.combinations = generateCombinations()
+        bulkForm.post(route('admin.form-access-controls.bulk-create'))
     } else {
-        form.post(route("admin.form-access-controls.store"));
+        form.post(route('admin.form-access-controls.store'))
     }
-};
+}
 
-const toggleRole: (roleId: number, checked?: boolean | 'indeterminate') => void =
-    (roleId, checked) => {
+const toggleRole: (roleId: number, checked?: boolean | 'indeterminate') => void = (
+    roleId,
+    checked
+) => {
     const isCurrentlySelected = selectedRoles.value.includes(roleId)
 
     const shouldBeChecked =
         checked === 'indeterminate'
-        ? true
-        : typeof checked === 'boolean'
-            ? checked
-            : !isCurrentlySelected
+            ? true
+            : typeof checked === 'boolean'
+              ? checked
+              : !isCurrentlySelected
 
     if (shouldBeChecked) {
         if (!isCurrentlySelected) selectedRoles.value.push(roleId)
     } else {
-        selectedRoles.value = selectedRoles.value.filter(id => id !== roleId)
+        selectedRoles.value = selectedRoles.value.filter((id) => id !== roleId)
     }
 }
 
-const toggleStudyProgram: (studyProgramId: number, checked?: boolean | 'indeterminate') => void =
-    (studyProgramId, checked) => {
+const toggleStudyProgram: (studyProgramId: number, checked?: boolean | 'indeterminate') => void = (
+    studyProgramId,
+    checked
+) => {
     const isCurrentlySelected = selectedStudyPrograms.value.includes(studyProgramId)
 
     const shouldBeChecked =
         checked === 'indeterminate'
-        ? true
-        : typeof checked === 'boolean'
-            ? checked
-            : !isCurrentlySelected
+            ? true
+            : typeof checked === 'boolean'
+              ? checked
+              : !isCurrentlySelected
     if (shouldBeChecked) {
         if (!isCurrentlySelected) selectedStudyPrograms.value.push(studyProgramId)
     } else {
-        selectedStudyPrograms.value = selectedStudyPrograms.value.filter(id => id !== studyProgramId)
+        selectedStudyPrograms.value = selectedStudyPrograms.value.filter(
+            (id) => id !== studyProgramId
+        )
     }
 }
 
-
 const selectAllRoles = () => {
     if (selectedRoles.value.length === props.roles.length) {
-        selectedRoles.value = [];
+        selectedRoles.value = []
     } else {
-        selectedRoles.value = props.roles.map((r) => r.id);
+        selectedRoles.value = props.roles.map((r) => r.id)
     }
-};
+}
 
 const selectAllStudyPrograms = () => {
     if (selectedStudyPrograms.value.length === studyPrograms.value.length) {
-        selectedStudyPrograms.value = [];
+        selectedStudyPrograms.value = []
     } else {
-        selectedStudyPrograms.value = studyPrograms.value.map((sp) => sp.id);
+        selectedStudyPrograms.value = studyPrograms.value.map((sp) => sp.id)
     }
-};
+}
 
 const switchMode = () => {
-    isBulkMode.value = !isBulkMode.value;
+    isBulkMode.value = !isBulkMode.value
 
     // Reset forms when switching modes
-    form.reset();
-    bulkForm.reset();
-    selectedFacultyId.value = null;
-    selectedRoles.value = [];
-    selectedStudyPrograms.value = [];
-};
+    form.reset()
+    bulkForm.reset()
+    selectedFacultyId.value = null
+    selectedRoles.value = []
+    selectedStudyPrograms.value = []
+}
 
 // Helper computed properties for form values to avoid v-model issues
 const currentFormId = computed({
     get: () => (isBulkMode.value ? bulkForm.form_id : form.form_id),
     set: (value: number | null) => {
         if (isBulkMode.value) {
-            bulkForm.form_id = value;
+            bulkForm.form_id = value
         } else {
-            form.form_id = value;
+            form.form_id = value
         }
     },
-});
+})
 </script>
 
 <template>
-
     <Head title="Buat Kontrol Akses Formulir" />
 
     <AuthenticatedLayout>
         <template #header>
             <div class="flex items-center gap-4">
-                <Button variant="ghost" size="sm" @click="$inertia.visit(route('admin.form-access-controls.index'))">
+                <Button
+                    variant="ghost"
+                    size="sm"
+                    @click="$inertia.visit(route('admin.form-access-controls.index'))"
+                >
                     <ArrowLeft class="h-4 w-4 mr-2" />
                     Kembali
                 </Button>
@@ -265,18 +264,14 @@ const currentFormId = computed({
                                 Pilih antara pembuatan tunggal atau massal
                             </p>
                         </div>
-                        <Button @click="switchMode" variant="outline">
-                            {{
-                                isBulkMode
-                                    ? "Beralih ke Mode Tunggal"
-                                    : "Beralih ke Mode Massal"
-                            }}
+                        <Button variant="outline" @click="switchMode">
+                            {{ isBulkMode ? 'Beralih ke Mode Tunggal' : 'Beralih ke Mode Massal' }}
                         </Button>
                     </div>
                 </CardContent>
             </Card>
 
-            <form @submit.prevent="submit" class="space-y-6">
+            <form class="space-y-6" @submit.prevent="submit">
                 <!-- Form Selection -->
                 <Card>
                     <CardHeader>
@@ -293,7 +288,11 @@ const currentFormId = computed({
                                     <SelectValue placeholder="Pilih formulir" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem v-for="formItem in props.forms" :key="formItem.id" :value="formItem.id">
+                                    <SelectItem
+                                        v-for="formItem in props.forms"
+                                        :key="formItem.id"
+                                        :value="formItem.id"
+                                    >
                                         {{ formItem.title }}
                                     </SelectItem>
                                 </SelectContent>
@@ -324,7 +323,11 @@ const currentFormId = computed({
                                             <SelectValue placeholder="Pilih role" />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            <SelectItem v-for="role in props.roles" :key="role.id" :value="role.id">
+                                            <SelectItem
+                                                v-for="role in props.roles"
+                                                :key="role.id"
+                                                :value="role.id"
+                                            >
                                                 {{ role.name }}
                                             </SelectItem>
                                         </SelectContent>
@@ -342,8 +345,11 @@ const currentFormId = computed({
                                             <SelectValue placeholder="Pilih fakultas" />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            <SelectItem v-for="faculty in props.faculties" :key="faculty.id"
-                                                :value="faculty.id">
+                                            <SelectItem
+                                                v-for="faculty in props.faculties"
+                                                :key="faculty.id"
+                                                :value="faculty.id"
+                                            >
                                                 {{ faculty.name }}
                                             </SelectItem>
                                         </SelectContent>
@@ -354,13 +360,19 @@ const currentFormId = computed({
                             <!-- Study Program Selection -->
                             <div class="space-y-2">
                                 <Label for="study_program">Program Studi *</Label>
-                                <Select v-model="form.study_program_id" :disabled="!selectedFacultyId">
+                                <Select
+                                    v-model="form.study_program_id"
+                                    :disabled="!selectedFacultyId"
+                                >
                                     <SelectTrigger id="study_program">
                                         <SelectValue placeholder="Pilih program studi" />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        <SelectItem v-for="studyProgram in studyPrograms" :key="studyProgram.id"
-                                            :value="studyProgram.id">
+                                        <SelectItem
+                                            v-for="studyProgram in studyPrograms"
+                                            :key="studyProgram.id"
+                                            :value="studyProgram.id"
+                                        >
                                             {{ studyProgram.name }}
                                         </SelectItem>
                                     </SelectContent>
@@ -391,8 +403,11 @@ const currentFormId = computed({
                                         <SelectValue placeholder="Pilih fakultas" />
                                     </SelectTrigger>
                                     <SelectContent>
-                                        <SelectItem v-for="faculty in props.faculties" :key="faculty.id"
-                                            :value="faculty.id">
+                                        <SelectItem
+                                            v-for="faculty in props.faculties"
+                                            :key="faculty.id"
+                                            :value="faculty.id"
+                                        >
                                             {{ faculty.name }}
                                         </SelectItem>
                                     </SelectContent>
@@ -403,23 +418,39 @@ const currentFormId = computed({
                             <div v-if="selectedFacultyId" class="space-y-2">
                                 <div class="flex items-center justify-between">
                                     <Label>Program Studi *</Label>
-                                    <Button type="button" variant="outline" size="sm" @click="selectAllStudyPrograms">
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        size="sm"
+                                        @click="selectAllStudyPrograms"
+                                    >
                                         {{
-                                            selectedStudyPrograms.length ===
-                                                studyPrograms.length
-                                                ? "Batal Pilih Semua"
-                                                : "Pilih Semua"
+                                            selectedStudyPrograms.length === studyPrograms.length
+                                                ? 'Batal Pilih Semua'
+                                                : 'Pilih Semua'
                                         }}
                                     </Button>
                                 </div>
-                                <div class="grid gap-2 md:grid-cols-2 max-h-48 overflow-y-auto p-2 border rounded">
-                                    <div v-for="studyProgram in studyPrograms" :key="studyProgram.id"
-                                        class="flex items-center space-x-2">
+                                <div
+                                    class="grid gap-2 md:grid-cols-2 max-h-48 overflow-y-auto p-2 border rounded"
+                                >
+                                    <div
+                                        v-for="studyProgram in studyPrograms"
+                                        :key="studyProgram.id"
+                                        class="flex items-center space-x-2"
+                                    >
                                         <Checkbox
-                                            :model-value="selectedStudyPrograms.includes(studyProgram.id)"
-                                            @update:modelValue="(val) => toggleStudyProgram(studyProgram.id, val)"
+                                            :model-value="
+                                                selectedStudyPrograms.includes(studyProgram.id)
+                                            "
+                                            @update:model-value="
+                                                (val) => toggleStudyProgram(studyProgram.id, val)
+                                            "
                                         />
-                                        <Label class="text-sm cursor-pointer" @click="toggleStudyProgram(studyProgram.id)">
+                                        <Label
+                                            class="text-sm cursor-pointer"
+                                            @click="toggleStudyProgram(studyProgram.id)"
+                                        >
                                             {{ studyProgram.name }}
                                         </Label>
                                     </div>
@@ -438,20 +469,28 @@ const currentFormId = computed({
                         <CardContent class="space-y-4">
                             <div class="flex items-center justify-between">
                                 <Label>Role *</Label>
-                                <Button type="button" variant="outline" size="sm" @click="selectAllRoles">
+                                <Button
+                                    type="button"
+                                    variant="outline"
+                                    size="sm"
+                                    @click="selectAllRoles"
+                                >
                                     {{
-                                        selectedRoles.length ===
-                                            props.roles.length
-                                            ? "Batal Pilih Semua"
-                                            : "Pilih Semua"
+                                        selectedRoles.length === props.roles.length
+                                            ? 'Batal Pilih Semua'
+                                            : 'Pilih Semua'
                                     }}
                                 </Button>
                             </div>
                             <div class="grid gap-2 md:grid-cols-2">
-                                <div v-for="role in props.roles" :key="role.id" class="flex items-center space-x-2">
+                                <div
+                                    v-for="role in props.roles"
+                                    :key="role.id"
+                                    class="flex items-center space-x-2"
+                                >
                                     <Checkbox
                                         :model-value="selectedRoles.includes(role.id)"
-                                        @update:modelValue="(val) => toggleRole(role.id, val)"
+                                        @update:model-value="(val) => toggleRole(role.id, val)"
                                     />
                                     <Label class="cursor-pointer" @click="toggleRole(role.id)">
                                         {{ role.name }}
@@ -464,22 +503,27 @@ const currentFormId = computed({
                     <!-- Preview -->
                     <Card v-if="previewCombinations.length > 0">
                         <CardHeader>
-                            <CardTitle>Pratinjau Kombinasi ({{
-                                previewCombinations.length
-                            }})</CardTitle>
+                            <CardTitle>
+                                Pratinjau Kombinasi ({{ previewCombinations.length }})
+                            </CardTitle>
                         </CardHeader>
                         <CardContent>
                             <div class="max-h-64 overflow-y-auto space-y-2">
-                                <div v-for="(combo, index) in previewCombinations" :key="index"
-                                    class="flex items-center gap-2 p-2 bg-muted rounded text-sm">
-                                    <Badge variant="outline">{{
-                                        combo.role
-                                        }}</Badge>
+                                <div
+                                    v-for="(combo, index) in previewCombinations"
+                                    :key="index"
+                                    class="flex items-center gap-2 p-2 bg-muted rounded text-sm"
+                                >
+                                    <Badge variant="outline">
+                                        {{ combo.role }}
+                                    </Badge>
                                     <span>×</span>
-                                    <Badge variant="secondary">{{
-                                        combo.study_program
-                                        }}</Badge>
-                                    <span class="text-muted-foreground">in {{ combo.faculty }}</span>
+                                    <Badge variant="secondary">
+                                        {{ combo.study_program }}
+                                    </Badge>
+                                    <span class="text-muted-foreground"
+                                        >in {{ combo.faculty }}</span
+                                    >
                                 </div>
                             </div>
                         </CardContent>
@@ -497,19 +541,23 @@ const currentFormId = computed({
 
                 <!-- Form Actions -->
                 <div class="flex items-center justify-end space-x-2">
-                    <Button type="button" variant="outline" @click="
-                        $inertia.visit(route('admin.form-access-controls.index'))
-                        ">
+                    <Button
+                        type="button"
+                        variant="outline"
+                        @click="$inertia.visit(route('admin.form-access-controls.index'))"
+                    >
                         Batal
                     </Button>
-                    <Button type="submit" :disabled="isBulkMode ? bulkForm.processing : form.processing
-                        ">
+                    <Button
+                        type="submit"
+                        :disabled="isBulkMode ? bulkForm.processing : form.processing"
+                    >
                         {{
                             (isBulkMode ? bulkForm.processing : form.processing)
-                                ? "Membuat..."
+                                ? 'Membuat...'
                                 : isBulkMode
-                                    ? `Membuat ${previewCombinations.length} Kontrol Akses`
-                                    : "Buat Kontrol Akses"
+                                  ? `Membuat ${previewCombinations.length} Kontrol Akses`
+                                  : 'Buat Kontrol Akses'
                         }}
                     </Button>
                 </div>

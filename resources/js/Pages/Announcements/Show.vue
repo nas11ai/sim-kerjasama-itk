@@ -1,77 +1,67 @@
 <script setup lang="ts">
-import { computed } from "vue";
-import { Head } from "@inertiajs/vue3";
-import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout.vue";
-import { Button } from "../../Components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/Components/ui/card";
-import { Badge } from "@/Components/ui/badge";
-import {
-    ArrowLeft,
-    Edit,
-    Calendar,
-    Clock,
-    FileText,
-    Paperclip,
-    User,
-} from "lucide-vue-next";
+import { computed } from 'vue'
+import { Head } from '@inertiajs/vue3'
+import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
+import { Button } from '../../Components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card'
+import { Badge } from '@/Components/ui/badge'
+import { ArrowLeft, Edit, Calendar, Clock, FileText, Paperclip, User } from 'lucide-vue-next'
 
 interface AnnouncementFile {
-    id: number;
-    announcement_id: number;
-    file_name: string;
-    file_path: string;
-    mime_type: string;
-    file_size: number;
+    id: number
+    announcement_id: number
+    file_name: string
+    file_path: string
+    mime_type: string
+    file_size: number
 }
 
 interface AnnouncementDetail {
-    id: number;
-    title: string;
-    content: string;
-    type: string;
-    expired_at: string | null;
-    created_at: string;
-    updated_at: string;
-    announcement_files: AnnouncementFile[];
+    id: number
+    title: string
+    content: string
+    type: string
+    expired_at: string | null
+    created_at: string
+    updated_at: string
+    announcement_files: AnnouncementFile[]
     announcement_creator: {
-        name: string;
-    };
+        name: string
+    }
 }
 
 interface Props {
-    announcement: AnnouncementDetail;
+    announcement: AnnouncementDetail
 }
 
-const props = defineProps<Props>();
+const props = defineProps<Props>()
 
 const formatDate = (dateString: string | null) => {
-    if (!dateString) return null;
-    return new Date(dateString).toLocaleString("en-EN", {
-        year: "numeric",
-        month: "long",
-        day: "numeric",
-        hour: "2-digit",
-        minute: "2-digit",
-        timeZone: "Asia/Makassar",
-    });
-};
+    if (!dateString) return null
+    return new Date(dateString).toLocaleString('en-EN', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        timeZone: 'Asia/Makassar',
+    })
+}
 
 const formatFileSize = (bytes: number) => {
-    if (bytes < 1024) return bytes + " B";
-    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + " KB";
-    return (bytes / (1024 * 1024)).toFixed(1) + " MB";
-};
+    if (bytes < 1024) return bytes + ' B'
+    if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB'
+    return (bytes / (1024 * 1024)).toFixed(1) + ' MB'
+}
 
 const typeVariant = computed(() => {
-    return props.announcement.type === "public" ? "default" : "secondary";
-});
+    return props.announcement.type === 'public' ? 'default' : 'secondary'
+})
 
 const isExpired = computed(() => {
-    if (!props.announcement.expired_at) return false;
-    return new Date(props.announcement.expired_at) < new Date();
-});
-
-
+    if (!props.announcement.expired_at) return false
+    return new Date(props.announcement.expired_at) < new Date()
+})
 </script>
 
 <template>
@@ -85,16 +75,12 @@ const isExpired = computed(() => {
                         variant="ghost"
                         class="p-0 mr-2"
                         size="sm"
-                        @click="
-                            $inertia.visit(route('admin.announcements.index'))
-                        "
+                        @click="$inertia.visit(route('admin.announcements.index'))"
                     >
                         <ArrowLeft class="h-4 w-4" />
                         Kembali
                     </Button>
-                    <h2
-                        class="text-xl font-semibold leading-tight text-gray-800"
-                    >
+                    <h2 class="text-xl font-semibold leading-tight text-gray-800">
                         Detail Pengumuman
                     </h2>
                 </div>
@@ -106,9 +92,9 @@ const isExpired = computed(() => {
             <Card>
                 <CardHeader>
                     <div class="flex items-start justify-between">
-                        <CardTitle class="text-2xl">{{
-                            announcement.title
-                        }}</CardTitle>
+                        <CardTitle class="text-2xl">
+                            {{ announcement.title }}
+                        </CardTitle>
                         <div class="flex items-center gap-2">
                             <Badge :variant="typeVariant">
                                 {{
@@ -116,13 +102,8 @@ const isExpired = computed(() => {
                                     announcement.type.slice(1)
                                 }}
                             </Badge>
-                            <Badge v-if="isExpired" variant="destructive">
-                                Kedaluwarsa
-                            </Badge>
-                            <Badge
-                                v-else-if="announcement.expired_at"
-                                variant="success"
-                            >
+                            <Badge v-if="isExpired" variant="destructive"> Kedaluwarsa </Badge>
+                            <Badge v-else-if="announcement.expired_at" variant="success">
                                 Aktif
                             </Badge>
                         </div>
@@ -130,42 +111,25 @@ const isExpired = computed(() => {
                 </CardHeader>
                 <CardContent class="space-y-4">
                     <!-- Metadata -->
-                    <div
-                        class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-600"
-                    >
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-gray-600">
                         <div class="flex items-center gap-2">
                             <User class="h-4 w-4" />
-                            <span
-                                >Dibuat oleh:
-                                {{ announcement.announcement_creator.name }}</span
-                            >
+                            <span>Dibuat oleh: {{ announcement.announcement_creator.name }}</span>
                         </div>
                         <div class="flex items-center gap-2">
                             <Calendar class="h-4 w-4" />
-                            <span
-                                >Dibuat pada:
-                                {{ formatDate(announcement.created_at) }}</span
-                            >
+                            <span>Dibuat pada: {{ formatDate(announcement.created_at) }}</span>
                         </div>
                         <div class="flex items-center gap-2">
                             <Clock class="h-4 w-4" />
-                            <span
-                                >Diperbarui:
-                                {{ formatDate(announcement.updated_at) }}</span
-                            >
+                            <span>Diperbarui: {{ formatDate(announcement.updated_at) }}</span>
                         </div>
                         <div
                             v-if="announcement.expired_at"
                             class="flex items-center gap-2 md:col-span-2"
                         >
                             <Calendar class="h-4 w-4" />
-                            <span
-                                :class="
-                                    isExpired
-                                        ? 'text-red-600'
-                                        : 'text-orange-600'
-                                "
-                            >
+                            <span :class="isExpired ? 'text-red-600' : 'text-orange-600'">
                                 Berakhir pada:
                                 {{ formatDate(announcement.expired_at) }}
                             </span>
@@ -184,9 +148,7 @@ const isExpired = computed(() => {
                 </CardHeader>
                 <CardContent>
                     <div class="prose max-w-none">
-                        <div
-                            class="whitespace-pre-wrap text-gray-700 leading-relaxed"
-                        >
+                        <div class="whitespace-pre-wrap text-gray-700 leading-relaxed">
                             {{ announcement.content }}
                         </div>
                     </div>
@@ -194,7 +156,9 @@ const isExpired = computed(() => {
             </Card>
 
             <!-- File Attachments -->
-            <Card v-if="announcement.announcement_files && announcement.announcement_files.length > 0">
+            <Card
+                v-if="announcement.announcement_files && announcement.announcement_files.length > 0"
+            >
                 <CardHeader>
                     <CardTitle class="flex items-center gap-2">
                         <Paperclip class="h-5 w-5" />
@@ -213,25 +177,17 @@ const isExpired = computed(() => {
                                     <div
                                         class="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center"
                                     >
-                                        <Paperclip
-                                            class="h-4 w-4 text-blue-600"
-                                        />
+                                        <Paperclip class="h-4 w-4 text-blue-600" />
                                     </div>
                                 </div>
                                 <div class="min-w-0 flex-1">
-                                    <p
-                                        class="text-sm font-medium text-gray-900 truncate"
-                                    >
+                                    <p class="text-sm font-medium text-gray-900 truncate">
                                         {{ file.file_name }}
                                     </p>
-                                    <div
-                                        class="flex items-center gap-2 text-xs text-gray-500"
-                                    >
+                                    <div class="flex items-center gap-2 text-xs text-gray-500">
                                         <span>{{ file.mime_type }}</span>
                                         <span>•</span>
-                                        <span>{{
-                                            formatFileSize(file.file_size)
-                                        }}</span>
+                                        <span>{{ formatFileSize(file.file_size) }}</span>
                                     </div>
                                 </div>
                             </div>
@@ -275,14 +231,7 @@ const isExpired = computed(() => {
                 <div class="flex items-center gap-2">
                     <Button
                         variant="outline"
-                        @click="
-                            $inertia.visit(
-                                route(
-                                    'admin.announcements.edit',
-                                    announcement.id
-                                )
-                            )
-                        "
+                        @click="$inertia.visit(route('admin.announcements.edit', announcement.id))"
                     >
                         Edit
                     </Button>

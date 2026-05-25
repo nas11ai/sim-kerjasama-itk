@@ -2,13 +2,14 @@
 
 namespace App\Console\Commands;
 
-use App\Services\EmailNotificationService;
 use App\Models\FormSubmission;
+use App\Services\EmailNotificationService;
 use Illuminate\Console\Command;
 
 class TestEmailNotifications extends Command
 {
     protected $signature = 'test:email-notifications';
+
     protected $description = 'Test email notification system';
 
     public function handle(EmailNotificationService $emailService)

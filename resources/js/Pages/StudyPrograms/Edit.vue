@@ -1,71 +1,82 @@
 <script setup lang="ts">
-import { Head, useForm } from "@inertiajs/vue3";
-import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout.vue";
-import { Button } from "@/Components/ui/button";
-import { Input } from "@/Components/ui/input";
-import { Label } from "@/Components/ui/label";
-import { Card, CardContent, CardHeader, CardTitle } from "@/Components/ui/card";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/Components/ui/select";
-import { Badge } from "@/Components/ui/badge";
-import { ArrowLeft, GraduationCap, Building2 } from "lucide-vue-next";
+import { Head, useForm } from '@inertiajs/vue3'
+import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
+import { Button } from '@/Components/ui/button'
+import { Input } from '@/Components/ui/input'
+import { Label } from '@/Components/ui/label'
+import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card'
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/Components/ui/select'
+import { Badge } from '@/Components/ui/badge'
+import { ArrowLeft, GraduationCap, Building2 } from 'lucide-vue-next'
 
 interface Faculty {
-    id: number;
-    name: string;
+    id: number
+    name: string
 }
 
 interface StudyProgram {
-    id: number;
-    name: string;
-    faculty_id: number;
-    faculty: Faculty;
-    created_at: string;
-    updated_at: string;
+    id: number
+    name: string
+    faculty_id: number
+    faculty: Faculty
+    created_at: string
+    updated_at: string
 }
 
 interface FormData {
-    name: string;
-    faculty_id: string;
-    [key: string]: any; // Required by Inertia's FormDataType constraint
+    name: string
+    faculty_id: string
+    [key: string]: any // Required by Inertia's FormDataType constraint
 }
 
 interface FormErrors {
-    name?: string;
-    faculty_id?: string;
-    [key: string]: string | undefined;
+    name?: string
+    faculty_id?: string
+    [key: string]: string | undefined
 }
 
 interface Props {
-    studyProgram: StudyProgram;
-    faculties: Faculty[];
+    studyProgram: StudyProgram
+    faculties: Faculty[]
 }
 
-const props = defineProps<Props>();
+const props = defineProps<Props>()
 
 const form = useForm<FormData>({
     name: props.studyProgram.name,
     faculty_id: props.studyProgram.faculty_id.toString(),
-});
+})
 
 const submit = () => {
-    form.put(route("admin.faculties.study-programs.update", props.studyProgram.id));
-};
+    form.put(route('admin.faculties.study-programs.update', props.studyProgram.id))
+}
 
 // Check if form has changes
 const hasChanges = () => {
-    return form.name !== props.studyProgram.name ||
-        form.faculty_id !== props.studyProgram.faculty_id.toString();
-};
+    return (
+        form.name !== props.studyProgram.name ||
+        form.faculty_id !== props.studyProgram.faculty_id.toString()
+    )
+}
 </script>
 
 <template>
-
     <Head title="Edit Program Studi" />
 
     <AuthenticatedLayout>
         <template #header>
             <div class="flex items-center gap-4">
-                <Button variant="ghost" size="sm" @click="$inertia.visit(route('admin.faculties.study-programs'))">
+                <Button
+                    variant="ghost"
+                    size="sm"
+                    @click="$inertia.visit(route('admin.faculties.study-programs'))"
+                >
                     <ArrowLeft class="h-4 w-4 mr-2" />
                     Kembali
                 </Button>
@@ -90,7 +101,9 @@ const hasChanges = () => {
                 <CardContent class="space-y-3">
                     <div>
                         <p class="text-sm font-medium text-green-800">Nama Program Studi</p>
-                        <p class="text-green-700 font-medium">{{ studyProgram.name }}</p>
+                        <p class="text-green-700 font-medium">
+                            {{ studyProgram.name }}
+                        </p>
                     </div>
                     <div>
                         <p class="text-sm font-medium text-green-800">Faculty</p>
@@ -102,13 +115,15 @@ const hasChanges = () => {
                     <div class="grid grid-cols-2 gap-4">
                         <div>
                             <p class="text-sm font-medium text-green-800">Dibuat pada</p>
-                            <p class="text-sm text-green-600">{{ new Date(studyProgram.created_at).toLocaleDateString()
-                            }}</p>
+                            <p class="text-sm text-green-600">
+                                {{ new Date(studyProgram.created_at).toLocaleDateString() }}
+                            </p>
                         </div>
                         <div>
                             <p class="text-sm font-medium text-green-800">Terakhir diperbarui</p>
-                            <p class="text-sm text-green-600">{{ new Date(studyProgram.updated_at).toLocaleDateString()
-                            }}</p>
+                            <p class="text-sm text-green-600">
+                                {{ new Date(studyProgram.updated_at).toLocaleDateString() }}
+                            </p>
                         </div>
                     </div>
                 </CardContent>
@@ -123,61 +138,96 @@ const hasChanges = () => {
                     </CardTitle>
                 </CardHeader>
                 <CardContent>
-                    <form @submit.prevent="submit" class="space-y-6">
+                    <form class="space-y-6" @submit.prevent="submit">
                         <div class="space-y-2">
                             <Label for="faculty_id">Fakultas *</Label>
                             <Select v-model="form.faculty_id" required>
                                 <SelectTrigger
-                                    :class="(form.errors as FormErrors).faculty_id ? 'border-destructive' : ''">
+                                    :class="
+                                        (form.errors as FormErrors).faculty_id
+                                            ? 'border-destructive'
+                                            : ''
+                                    "
+                                >
                                     <SelectValue placeholder="Pilih fakultas" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem v-for="faculty in faculties" :key="faculty.id"
-                                        :value="faculty.id.toString()">
+                                    <SelectItem
+                                        v-for="faculty in faculties"
+                                        :key="faculty.id"
+                                        :value="faculty.id.toString()"
+                                    >
                                         {{ faculty.name }}
                                     </SelectItem>
                                 </SelectContent>
                             </Select>
-                            <p v-if="(form.errors as FormErrors).faculty_id" class="text-sm text-destructive">
+                            <p
+                                v-if="(form.errors as FormErrors).faculty_id"
+                                class="text-sm text-destructive"
+                            >
                                 {{ (form.errors as FormErrors).faculty_id }}
                             </p>
-                            <p v-if="form.faculty_id !== studyProgram.faculty_id.toString()"
-                                class="text-sm text-amber-600">
-                                <strong>Catatan:</strong> Mengubah fakultas dapat memengaruhi data terkait.
+                            <p
+                                v-if="form.faculty_id !== studyProgram.faculty_id.toString()"
+                                class="text-sm text-amber-600"
+                            >
+                                <strong>Catatan:</strong> Mengubah fakultas dapat memengaruhi data
+                                terkait.
                             </p>
                         </div>
 
                         <div class="space-y-2">
                             <Label for="name">Nama Program Studi *</Label>
-                            <Input id="name" v-model="form.name" placeholder="Masukkan nama program studi"
-                                :class="(form.errors as FormErrors).name ? 'border-destructive' : ''" autofocus />
-                            <p v-if="(form.errors as FormErrors).name" class="text-sm text-destructive">
+                            <Input
+                                id="name"
+                                v-model="form.name"
+                                placeholder="Masukkan nama program studi"
+                                :class="
+                                    (form.errors as FormErrors).name ? 'border-destructive' : ''
+                                "
+                                autofocus
+                            />
+                            <p
+                                v-if="(form.errors as FormErrors).name"
+                                class="text-sm text-destructive"
+                            >
                                 {{ (form.errors as FormErrors).name }}
                             </p>
                         </div>
 
                         <!-- Changes Preview -->
-                        <div v-if="hasChanges()" class="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
+                        <div
+                            v-if="hasChanges()"
+                            class="p-4 bg-yellow-50 border border-yellow-200 rounded-lg"
+                        >
                             <h4 class="font-medium text-yellow-800 mb-2">Pending Changes:</h4>
                             <div class="space-y-1 text-sm">
                                 <div v-if="form.name !== studyProgram.name" class="text-yellow-700">
                                     <strong>Nama:</strong> {{ studyProgram.name }} → {{ form.name }}
                                 </div>
-                                <div v-if="form.faculty_id !== studyProgram.faculty_id.toString()"
-                                    class="text-yellow-700">
+                                <div
+                                    v-if="form.faculty_id !== studyProgram.faculty_id.toString()"
+                                    class="text-yellow-700"
+                                >
                                     <strong>Fakultas:</strong> {{ studyProgram.faculty.name }} →
-                                    {{faculties.find(f => f.id.toString() === form.faculty_id)?.name}}
+                                    {{
+                                        faculties.find((f) => f.id.toString() === form.faculty_id)
+                                            ?.name
+                                    }}
                                 </div>
                             </div>
                         </div>
 
                         <div class="flex items-center justify-end space-x-2 pt-4">
-                            <Button type="button" variant="outline"
-                                @click="$inertia.visit(route('admin.faculties.study-programs'))">
+                            <Button
+                                type="button"
+                                variant="outline"
+                                @click="$inertia.visit(route('admin.faculties.study-programs'))"
+                            >
                                 Batal
                             </Button>
                             <Button type="submit" :disabled="form.processing || !hasChanges()">
-                                {{ form.processing ? "Memperbarui..." : "Perbarui Program Studi" }}
+                                {{ form.processing ? 'Memperbarui...' : 'Perbarui Program Studi' }}
                             </Button>
                         </div>
                     </form>

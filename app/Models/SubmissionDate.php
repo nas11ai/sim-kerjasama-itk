@@ -14,7 +14,7 @@ class SubmissionDate extends Model
     ];
 
     protected $casts = [
-        'date' => 'datetime'
+        'date' => 'datetime',
     ];
 
     public function submissionPeriod()

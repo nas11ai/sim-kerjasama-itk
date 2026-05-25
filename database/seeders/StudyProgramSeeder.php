@@ -22,24 +22,69 @@ class StudyProgramSeeder extends Seeder
                 $frti = Faculty::firstOrCreate(['name' => 'Fakultas Rekayasa dan Teknologi Industri']);
 
                 $fsti_study_programs = [
-                    ['faculty_id' => $fsti->id, 'name' => 'Matematika'],
-                    ['faculty_id' => $fsti->id, 'name' => 'Ilmu Aktuaria'],
-                    ['faculty_id' => $fsti->id, 'name' => 'Statistika'],
-                    ['faculty_id' => $fsti->id, 'name' => 'Fisika'],
-                    ['faculty_id' => $fsti->id, 'name' => 'Informatika'],
-                    ['faculty_id' => $fsti->id, 'name' => 'Sistem Informasi'],
-                    ['faculty_id' => $fsti->id, 'name' => 'Bisnis Digital'],
-                    ['faculty_id' => $fsti->id, 'name' => 'Teknik Elektro'],
+                    [
+                        'faculty_id' => Faculty::where('name', 'Fakultas Sains dan Teknologi Informasi')->first()->id,
+                        'name' => 'Matematika',
+                    ],
+                    [
+                        'faculty_id' => Faculty::where('name', 'Fakultas Sains dan Teknologi Informasi')->first()->id,
+                        'name' => 'Ilmu Aktuaria',
+                    ],
+                    [
+                        'faculty_id' => Faculty::where('name', 'Fakultas Sains dan Teknologi Informasi')->first()->id,
+                        'name' => 'Statistika',
+                    ],
+                    [
+                        'faculty_id' => Faculty::where('name', 'Fakultas Sains dan Teknologi Informasi')->first()->id,
+                        'name' => 'Fisika',
+                    ],
+                    [
+                        'faculty_id' => Faculty::where('name', 'Fakultas Sains dan Teknologi Informasi')->first()->id,
+                        'name' => 'Informatika',
+                    ],
+                    [
+                        'faculty_id' => Faculty::where('name', 'Fakultas Sains dan Teknologi Informasi')->first()->id,
+                        'name' => 'Sistem Informasi',
+                    ],
+                    [
+                        'faculty_id' => Faculty::where('name', 'Fakultas Sains dan Teknologi Informasi')->first()->id,
+                        'name' => 'Bisnis Digital',
+                    ],
+                    [
+                        'faculty_id' => Faculty::where('name', 'Fakultas Sains dan Teknologi Informasi')->first()->id,
+                        'name' => 'Teknik Elektro',
+                    ],
                 ];
 
                 $fpb_study_programs = [
-                    ['faculty_id' => $fpb->id, 'name' => 'Teknik Perkapalan'],
-                    ['faculty_id' => $fpb->id, 'name' => 'Teknik Kelautan'],
-                    ['faculty_id' => $fpb->id, 'name' => 'Teknik Lingkungan'],
-                    ['faculty_id' => $fpb->id, 'name' => 'Teknik Sipil'],
-                    ['faculty_id' => $fpb->id, 'name' => 'Perencanaan Wilayah dan Kota'],
-                    ['faculty_id' => $fpb->id, 'name' => 'Arsitektur'],
-                    ['faculty_id' => $fpb->id, 'name' => 'Desain Komunikasi Visual'],
+                    [
+                        'faculty_id' => Faculty::where('name', 'Fakultas Pembangunan Berkelanjutan')->first()->id,
+                        'name' => 'Teknik Perkapalan',
+                    ],
+                    [
+                        'faculty_id' => Faculty::where('name', 'Fakultas Pembangunan Berkelanjutan')->first()->id,
+                        'name' => 'Teknik Kelautan',
+                    ],
+                    [
+                        'faculty_id' => Faculty::where('name', 'Fakultas Pembangunan Berkelanjutan')->first()->id,
+                        'name' => 'Teknik Lingkungan',
+                    ],
+                    [
+                        'faculty_id' => Faculty::where('name', 'Fakultas Pembangunan Berkelanjutan')->first()->id,
+                        'name' => 'Teknik Sipil',
+                    ],
+                    [
+                        'faculty_id' => Faculty::where('name', 'Fakultas Pembangunan Berkelanjutan')->first()->id,
+                        'name' => 'Perencanaan Wilayah dan Kota',
+                    ],
+                    [
+                        'faculty_id' => Faculty::where('name', 'Fakultas Pembangunan Berkelanjutan')->first()->id,
+                        'name' => 'Arsitektur',
+                    ],
+                    [
+                        'faculty_id' => Faculty::where('name', 'Fakultas Pembangunan Berkelanjutan')->first()->id,
+                        'name' => 'Desain Komunikasi Visual',
+                    ],
                 ];
 
                 $frti_study_programs = [
@@ -65,7 +110,6 @@ class StudyProgramSeeder extends Seeder
                 }
             });
         } catch (\Exception $e) {
-            dd($e);
         }
     }
 }

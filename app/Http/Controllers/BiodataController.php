@@ -2,16 +2,15 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use Inertia\Inertia;
 use App\Models\Form;
-use App\Models\FormSubmission;
 use App\Models\FormFieldResponse;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Validation\ValidationException;
+use App\Models\FormSubmission;
 use Exception;
-use SebastianBergmann\Type\TrueType;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
+use Inertia\Inertia;
 
 class BiodataController extends Controller
 {
@@ -23,11 +22,10 @@ class BiodataController extends Controller
         $biodataForm = Form::where('form_type_id', 1)
             ->where('is_active', true)
             ->whereHas('formAccessControls', function ($q) use ($user, $studyProgram) {
-                $q->whereHas('role', fn($r) => $r->whereIn('name', $user->getRoleNames()))
+                $q->whereHas('role', fn ($r) => $r->whereIn('name', $user->getRoleNames()))
                     ->when(
                         $studyProgram,
-                        fn($r) =>
-                        $r->where(function ($sub) use ($studyProgram) {
+                        fn ($r) => $r->where(function ($sub) use ($studyProgram) {
                             $sub->whereNull('study_program_id')
                                 ->orWhere('study_program_id', $studyProgram->id);
                         })
@@ -38,10 +36,9 @@ class BiodataController extends Controller
                     $query->orderBy('order');
                 },
                 'formFields.fieldType',
-                'formFields.formFieldOptions'
+                'formFields.formFieldOptions',
             ])
             ->first();
-        // dd($biodataForm);
 
         if (!$biodataForm) {
             return redirect()->route('user.dashboard')
@@ -49,10 +46,9 @@ class BiodataController extends Controller
         }
 
         $hasAccess = $biodataForm->formAccessControls()
-            ->whereHas('role', fn($q) => $q->whereIn('name', $user->getRoleNames()))
-            ->when($studyProgram, fn($q) => $q->where('study_program_id', $studyProgram->id))
+            ->whereHas('role', fn ($q) => $q->whereIn('name', $user->getRoleNames()))
+            ->when($studyProgram, fn ($q) => $q->where('study_program_id', $studyProgram->id))
             ->exists();
-        // dd($biodataForm->formAccessControls()->with('role')->get());
 
         if (!$hasAccess) {
             return redirect()->route('user.dashboard')
@@ -64,10 +60,9 @@ class BiodataController extends Controller
             ->where('submitted_by', $user->id)
             ->latest()
             ->first();
-        // dd($submission);
 
         $existingResponses = $submission
-            ? $submission->formFieldResponses->mapWithKeys(fn($r) => [$r->form_field_id => $r->value])->toArray()
+            ? $submission->formFieldResponses->mapWithKeys(fn ($r) => [$r->form_field_id => $r->value])->toArray()
             : [];
 
         $status = $submission?->status?->value ?? $submission?->status;
@@ -79,7 +74,7 @@ class BiodataController extends Controller
                 'id' => $biodataForm->id,
                 'title' => $biodataForm->title,
                 'description' => $biodataForm->description,
-                'form_fields' => $biodataForm->formFields->map(fn($field) => [
+                'form_fields' => $biodataForm->formFields->map(fn ($field) => [
                     'id' => $field->id,
                     'label' => $field->label,
                     'is_required' => $field->is_required,
@@ -89,7 +84,7 @@ class BiodataController extends Controller
                         'id' => $field->fieldType->id,
                         'name' => $field->fieldType->name,
                     ],
-                    'form_field_options' => $field->formFieldOptions->map(fn($option) => [
+                    'form_field_options' => $field->formFieldOptions->map(fn ($option) => [
                         'id' => $option->id,
                         'label' => $option->label,
                         'value' => $option->value,
@@ -120,9 +115,8 @@ class BiodataController extends Controller
                 'is_submitted' => 'required|boolean',
                 'responses' => 'required|array',
                 'responses.*.form_field_id' => 'required|exists:form_fields,id',
-                'responses.*.value' => 'nullable'
+                'responses.*.value' => 'nullable',
             ]);
-
 
             $fileUploads = [];
             if ($request->hasFile('file_uploads')) {
@@ -131,7 +125,7 @@ class BiodataController extends Controller
                         // file size max 10MB
                         if ($file->getSize() > 10 * 1024 * 1024) {
                             return back()
-                                ->withErrors(['file_' . $fieldId => 'Ukuran file terlalu besar. Maksimal 10MB.'])
+                                ->withErrors(['file_'.$fieldId => 'Ukuran file terlalu besar. Maksimal 10MB.'])
                                 ->with('error', 'Upload file gagal: File terlalu besar.')
                                 ->withInput();
                         }
@@ -146,7 +140,7 @@ class BiodataController extends Controller
             $form = Form::with([
                 'formFields' => function ($query) {
                     $query->where('is_required', true);
-                }
+                },
             ])->find($validated['form_id']);
 
             // if is_submitted = true
@@ -165,14 +159,14 @@ class BiodataController extends Controller
                         if (!$hasFile) {
 
                             return back()
-                                ->withErrors(['field_' . $field->id => "Field '{$field->label}' wajib diisi."])
+                                ->withErrors(['field_'.$field->id => "Field '{$field->label}' wajib diisi."])
                                 ->with('error', 'Silakan lengkapi semua field yang wajib diisi.')
                                 ->withInput();
                         }
                     } else {
                         if (empty(trim($value ?? '')) && $value !== '0' && $value !== 0) {
                             return back()
-                                ->withErrors(['field_' . $field->id => "Field '{$field->label}' wajib diisi."])
+                                ->withErrors(['field_'.$field->id => "Field '{$field->label}' wajib diisi."])
                                 ->with('error', 'Silakan lengkapi semua field yang wajib diisi.')
                                 ->withInput();
                         }
@@ -187,7 +181,7 @@ class BiodataController extends Controller
                 $submission = FormSubmission::updateOrCreate(
                     [
                         'form_id' => $validated['form_id'],
-                        'submitted_by' => $user->id
+                        'submitted_by' => $user->id,
                     ],
                     [
                         'is_submitted' => $validated['is_submitted'],
@@ -210,7 +204,7 @@ class BiodataController extends Controller
                         FormFieldResponse::create([
                             'form_submission_id' => $submission->id,
                             'form_field_id' => $fieldId,
-                            'value' => is_array($value) ? json_encode($value) : (string) $value
+                            'value' => is_array($value) ? json_encode($value) : (string) $value,
                         ]);
                     }
                 }
@@ -224,7 +218,7 @@ class BiodataController extends Controller
                 return redirect()
                     ->route('user.dashboard')
                     ->with('success', $message);
-            } catch (\Exception $e) {
+            } catch (Exception $e) {
                 DB::rollBack();
                 throw $e;
             }

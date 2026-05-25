@@ -1,34 +1,31 @@
 <script setup lang="ts">
-import InputError from "@/Components/InputError.vue";
-import Button from "@/Components/ui/button/Button.vue";
-import Input from "@/Components/ui/input/Input.vue";
-import Label from "@/Components/ui/label/Label.vue";
-import { Link, useForm, usePage } from "@inertiajs/vue3";
+import InputError from '@/Components/InputError.vue'
+import Button from '@/Components/ui/button/Button.vue'
+import Input from '@/Components/ui/input/Input.vue'
+import Label from '@/Components/ui/label/Label.vue'
+import { Link, useForm, usePage } from '@inertiajs/vue3'
 
 defineProps<{
-    mustVerifyEmail?: Boolean;
-    status?: String;
-}>();
+    mustVerifyEmail?: boolean
+    status?: string
+}>()
 
-const user = usePage().props.auth.user;
+const user = usePage().props.auth.user
 
 const form = useForm({
     name: user.name,
     email: user.email,
-});
+})
 </script>
 
 <template>
-    <form
-        @submit.prevent="form.patch(route('profile.update'))"
-        class="space-y-6"
-    >
+    <form class="space-y-6" @submit.prevent="form.patch(route('profile.update'))">
         <div class="flex flex-col gap-2">
             <Label for="name">Nama Saat Ini</Label>
             <Input
                 id="name"
-                type="text"
                 v-model="form.name"
+                type="text"
                 required
                 autofocus
                 autocomplete="name"
@@ -38,13 +35,7 @@ const form = useForm({
 
         <div class="flex flex-col gap-2">
             <Label for="name">Email Saat Ini</Label>
-            <Input
-                id="email"
-                type="email"
-                v-model="form.email"
-                required
-                autocomplete="username"
-            />
+            <Input id="email" v-model="form.email" type="email" required autocomplete="username" />
             <InputError class="mt-1" :message="form.errors.email" />
         </div>
 
@@ -70,8 +61,9 @@ const form = useForm({
         </div>
 
         <div class="flex items-center gap-4">
-            <Button type="submit" variant="default" :disabled="form.processing"
-                >Simpan Profil</Button>
+            <Button type="submit" variant="default" :disabled="form.processing">
+                Simpan Profil
+            </Button>
         </div>
     </form>
 </template>

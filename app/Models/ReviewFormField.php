@@ -59,6 +59,7 @@ class ReviewFormField extends Model
     public function requiresOptions(): bool
     {
         $fieldTypeName = $this->fieldType?->name;
+
         return in_array($fieldTypeName, ['select', 'radio', 'checkbox']);
     }
 

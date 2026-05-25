@@ -1,23 +1,17 @@
 <!-- resources/js/Pages/Announcement/Index.vue -->
 <script setup lang="ts">
-import { ref } from "vue";
-import { Head, Link, router } from "@inertiajs/vue3";
-import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout.vue";
-import { Button } from "@/Components/ui/button";
-import {
-    Card,
-    CardContent,
-    CardDescription,
-    CardHeader,
-    CardTitle,
-} from "@/Components/ui/card";
-import { Badge } from "@/Components/ui/badge";
+import { ref } from 'vue'
+import { Head, Link, router } from '@inertiajs/vue3'
+import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
+import { Button } from '@/Components/ui/button'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/Components/ui/card'
+import { Badge } from '@/Components/ui/badge'
 import {
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuItem,
     DropdownMenuTrigger,
-} from "@/Components/ui/dropdown-menu";
+} from '@/Components/ui/dropdown-menu'
 import {
     MoreHorizontal,
     Plus,
@@ -31,64 +25,71 @@ import {
     Files,
     FilePlus,
     FileX2,
-} from "lucide-vue-next";
-import { useToast } from "@/Components/ui/toast/use-toast";
-import { Empty, EmptyContent, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from "@/Components/ui/empty";
+} from 'lucide-vue-next'
+import { useToast } from '@/Components/ui/toast/use-toast'
+import {
+    Empty,
+    EmptyContent,
+    EmptyDescription,
+    EmptyHeader,
+    EmptyMedia,
+    EmptyTitle,
+} from '@/Components/ui/empty'
 
 interface AnnouncementFile {
-    id: number;
-    file_name: string;
-    file_path: string;
+    id: number
+    file_name: string
+    file_path: string
 }
 
 interface Announcement {
-    id: number;
-    title: string;
-    content: string;
-    type: "public" | "private";
-    expired_at: string | null;
-    announcement_files: AnnouncementFile[];
-    created_at: string;
-    updated_at: string;
+    id: number
+    title: string
+    content: string
+    type: 'public' | 'private'
+    expired_at: string | null
+    announcement_files: AnnouncementFile[]
+    created_at: string
+    updated_at: string
     announcement_creator: {
-        name: string;
-    };
+        name: string
+    }
 }
 
 interface Props {
     announcements: {
-        data: Announcement[];
-        links: any[];
-        meta: any;
-    };
+        data: Announcement[]
+        links: any[]
+        meta: any
+    }
 }
 
-const props = defineProps<Props>();
-const { toast } = useToast();
+const props = defineProps<Props>()
+const { toast } = useToast()
 
 const isPublic = (announcement: Announcement) => {
-    return announcement.type === "public";
-};
+    return announcement.type === 'public'
+}
 
 const isExpired = (dateString: string | null) => {
-    if (!dateString) return false;
-    const today = new Date();
-    const expiryDate = new Date(dateString);
-    return expiryDate < today;
-};
+    if (!dateString) return false
+    const today = new Date()
+    const expiryDate = new Date(dateString)
+    return expiryDate < today
+}
 
 const deleteAnnouncement = (announcement: Announcement) => {
     if (confirm(`Apakah Anda yakin ingin menghapus "${announcement.title}"?`)) {
-        router.delete(route("admin.announcements.destroy", announcement.id), {
+        router.delete(route('admin.announcements.destroy', announcement.id), {
             onSuccess: () => {
                 toast({
-                    title: "Success",
-                    description: "Pengumuman berhasil dihapus!",
-                });
+                    title: 'Success',
+                    description: 'Pengumuman berhasil dihapus!',
+                })
             },
-        });
+        })
     }
-};
+}
 
 // const duplicateAnnouncement = (announcement: Announcement) => {
 //     router.post(
@@ -107,27 +108,27 @@ const deleteAnnouncement = (announcement: Announcement) => {
 
 const formatDate = (dateString: string) => {
     if (!dateString) {
-        return "Tidak ada batas waktu";
+        return 'Tidak ada batas waktu'
     }
 
-    return new Date(dateString).toLocaleDateString("en-EN", {
-        year: "numeric",
-        month: "short",
-        day: "numeric",
-        hour: "2-digit",
-        minute: "2-digit",
-        timeZone: "Asia/Makassar",
-    });
-};
+    return new Date(dateString).toLocaleDateString('en-EN', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+        timeZone: 'Asia/Makassar',
+    })
+}
 
 const capitalize = (s: string) => {
-    return s.charAt(0).toUpperCase() + s.slice(1);
-};
+    return s.charAt(0).toUpperCase() + s.slice(1)
+}
 
 function stripHtml(html: string) {
-    if (!html) return "";
-    const doc = new DOMParser().parseFromString(html, "text/html");
-    return doc.body.textContent || "";
+    if (!html) return ''
+    const doc = new DOMParser().parseFromString(html, 'text/html')
+    return doc.body.textContent || ''
 }
 </script>
 
@@ -160,14 +161,11 @@ function stripHtml(html: string) {
                     <CardHeader>
                         <div class="flex items-start justify-between">
                             <div class="flex-1">
-                                <CardTitle class="text-lg line-clamp-2">{{
-                                    capitalize(announcement.title)
-                                }}</CardTitle>
+                                <CardTitle class="text-lg line-clamp-2">
+                                    {{ capitalize(announcement.title) }}
+                                </CardTitle>
                                 <CardDescription class="mt-1 line-clamp-2">
-                                    {{
-                                        stripHtml(announcement.content) ||
-                                        "No description"
-                                    }}
+                                    {{ stripHtml(announcement.content) || 'No description' }}
                                 </CardDescription>
                             </div>
                             <DropdownMenu>
@@ -180,10 +178,7 @@ function stripHtml(html: string) {
                                     <DropdownMenuItem as-child>
                                         <Link
                                             :href="
-                                                route(
-                                                    'admin.announcements.show',
-                                                    announcement.id
-                                                )
+                                                route('admin.announcements.show', announcement.id)
                                             "
                                             class="cursor-pointer"
                                         >
@@ -194,10 +189,7 @@ function stripHtml(html: string) {
                                     <DropdownMenuItem as-child>
                                         <Link
                                             :href="
-                                                route(
-                                                    'admin.announcements.edit',
-                                                    announcement.id
-                                                )
+                                                route('admin.announcements.edit', announcement.id)
                                             "
                                             class="cursor-pointer"
                                         >
@@ -206,10 +198,8 @@ function stripHtml(html: string) {
                                         </Link>
                                     </DropdownMenuItem>
                                     <DropdownMenuItem
-                                        @click="
-                                            deleteAnnouncement(announcement)
-                                        "
                                         class="text-destructive cursor-pointer"
+                                        @click="deleteAnnouncement(announcement)"
                                     >
                                         <Trash2 class="h-4 w-4 mr-2" />
                                         Hapus
@@ -222,11 +212,7 @@ function stripHtml(html: string) {
                         <div class="space-y-4">
                             <div class="flex items-center gap-2">
                                 <Badge variant="outline">
-                                    {{
-                                        isPublic(announcement)
-                                            ? "Public"
-                                            : "Private"
-                                    }}
+                                    {{ isPublic(announcement) ? 'Public' : 'Private' }}
                                 </Badge>
                                 <Badge
                                     :variant="
@@ -235,31 +221,19 @@ function stripHtml(html: string) {
                                             : 'success'
                                     "
                                 >
-                                    {{
-                                        isExpired(announcement.expired_at)
-                                            ? "Expired"
-                                            : "Active"
-                                    }}
+                                    {{ isExpired(announcement.expired_at) ? 'Expired' : 'Active' }}
                                 </Badge>
                             </div>
 
-                            <div
-                                class="flex items-center text-sm text-muted-foreground"
-                            >
+                            <div class="flex items-center text-sm text-muted-foreground">
                                 <Paperclip class="mr-2 h-4 w-4" />
                                 {{ announcement.announcement_files.length }}
                                 file
-                                {{
-                                    announcement.announcement_files.length !== 1
-                                        ? "s"
-                                        : ""
-                                }}
+                                {{ announcement.announcement_files.length !== 1 ? 's' : '' }}
                                 lampiran
                             </div>
 
-                            <div
-                                class="space-y-1 text-xs text-muted-foreground"
-                            >
+                            <div class="space-y-1 text-xs text-muted-foreground">
                                 <div>
                                     Dibuat oleh:
                                     {{ announcement.announcement_creator.name }}
@@ -270,11 +244,7 @@ function stripHtml(html: string) {
                                 </div>
                                 <div>
                                     Berakhir pada:
-                                    {{
-                                        formatDate(
-                                            announcement.expired_at ?? ""
-                                        )
-                                    }}
+                                    {{ formatDate(announcement.expired_at ?? '') }}
                                 </div>
                             </div>
                         </div>
@@ -283,10 +253,7 @@ function stripHtml(html: string) {
             </div>
 
             <!-- Empty State -->
-            <div
-                v-if="props.announcements.data.length === 0"
-                class="text-center py-12"
-            >
+            <div v-if="props.announcements.data.length === 0" class="text-center py-12">
                 <Empty>
                     <EmptyHeader>
                         <EmptyMedia variant="icon">
@@ -294,25 +261,20 @@ function stripHtml(html: string) {
                         </EmptyMedia>
                         <EmptyTitle>Belum Ada Pengumuman</EmptyTitle>
                         <EmptyDescription>
-                            Anda belum ada membuat pengumuman. Mulai dengan
-                            membuat pengumuman pertama Anda.
+                            Anda belum ada membuat pengumuman. Mulai dengan membuat pengumuman
+                            pertama Anda.
                         </EmptyDescription>
                     </EmptyHeader>
                     <EmptyContent>
                         <Link :href="route('admin.announcements.create')">
-                            <Button>
-                                Buat Pengumuman
-                            </Button>
+                            <Button> Buat Pengumuman </Button>
                         </Link>
                     </EmptyContent>
                 </Empty>
             </div>
 
             <!-- Pagination -->
-            <div
-                v-if="props.announcements.links.length > 3"
-                class="flex justify-center"
-            >
+            <div v-if="props.announcements.links.length > 3" class="flex justify-center">
                 <nav class="flex items-center space-x-1">
                     <Link
                         v-for="link in props.announcements.links"

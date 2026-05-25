@@ -1,12 +1,12 @@
 <!-- resources/js/Pages/Forms/Show.vue -->
 <script setup lang="ts">
-import { Head, Link } from "@inertiajs/vue3";
-import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout.vue";
-import { Button } from "@/Components/ui/button";
-import { Badge } from "@/Components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/Components/ui/card";
-import { Separator } from "@/Components/ui/separator";
-import { Label } from "@/Components/ui/label";
+import { Head, Link } from '@inertiajs/vue3'
+import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
+import { Button } from '@/Components/ui/button'
+import { Badge } from '@/Components/ui/badge'
+import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card'
+import { Separator } from '@/Components/ui/separator'
+import { Label } from '@/Components/ui/label'
 import {
     ArrowLeft,
     Edit,
@@ -17,61 +17,61 @@ import {
     Type,
     List,
     Hash,
-} from "lucide-vue-next";
+} from 'lucide-vue-next'
 
 interface FormType {
-    id: number;
-    name: string;
+    id: number
+    name: string
 }
 
 interface FieldType {
-    id: number;
-    name: string;
+    id: number
+    name: string
 }
 
 interface FormFieldOption {
-    id: number;
-    label: string;
-    order: number;
+    id: number
+    label: string
+    order: number
 }
 
 interface FormField {
-    id: number;
-    label: string;
-    is_required: boolean;
-    order: number;
-    field_type: FieldType;
-    form_field_options: FormFieldOption[];
+    id: number
+    label: string
+    is_required: boolean
+    order: number
+    field_type: FieldType
+    form_field_options: FormFieldOption[]
 }
 
 interface Form {
-    id: number;
-    title: string;
-    description: string;
-    is_active: boolean;
-    form_type: FormType;
-    form_fields: FormField[];
-    created_at: string;
-    updated_at: string;
+    id: number
+    title: string
+    description: string
+    is_active: boolean
+    form_type: FormType
+    form_fields: FormField[]
+    created_at: string
+    updated_at: string
 }
 
 interface Props {
-    form: Form;
+    form: Form
 }
 
-const props = defineProps<Props>();
+const props = defineProps<Props>()
 
 const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString("en-US", {
-        year: "numeric",
-        month: "long",
-        day: "numeric",
-        hour: "2-digit",
-        minute: "2-digit",
-    });
-};
+    return new Date(dateString).toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit',
+    })
+}
 
-const sortedFields = props.form.form_fields.sort((a, b) => a.order - b.order);
+const sortedFields = props.form.form_fields.sort((a, b) => a.order - b.order)
 </script>
 
 <template>
@@ -92,7 +92,7 @@ const sortedFields = props.form.form_fields.sort((a, b) => a.order - b.order);
                     </h2>
                 </div>
                 <Link :href="route('admin.forms.edit', props.form.id)">
-                    <Button class=" text-white">
+                    <Button class="text-white">
                         <Edit class="h-4 w-4 mr-2" />
                         Edit Formulir
                     </Button>
@@ -112,9 +112,7 @@ const sortedFields = props.form.form_fields.sort((a, b) => a.order - b.order);
                 <CardContent class="space-y-4">
                     <div class="grid gap-6 md:grid-cols-2">
                         <div>
-                            <h3 class="font-medium text-sm text-muted-foreground mb-1">
-                                Judul
-                            </h3>
+                            <h3 class="font-medium text-sm text-muted-foreground mb-1">Judul</h3>
                             <p class="text-lg font-medium">
                                 {{ props.form.title }}
                             </p>
@@ -130,25 +128,21 @@ const sortedFields = props.form.form_fields.sort((a, b) => a.order - b.order);
                     </div>
 
                     <div v-if="props.form.description">
-                        <h3 class="font-medium text-sm text-muted-foreground mb-1">
-                            Deskripsi
-                        </h3>
+                        <h3 class="font-medium text-sm text-muted-foreground mb-1">Deskripsi</h3>
                         <p class="text-gray-700">
                             {{ props.form.description }}
                         </p>
                     </div>
 
                     <div>
-                        <h3 class="font-medium text-sm text-muted-foreground mb-1">
-                            Status
-                        </h3>
+                        <h3 class="font-medium text-sm text-muted-foreground mb-1">Status</h3>
                         <Badge
                             :variant="props.form.is_active ? 'default' : 'secondary'"
                             class="flex items-center gap-1 w-fit"
                         >
                             <CheckCircle v-if="props.form.is_active" class="h-3 w-3" />
                             <XCircle v-else class="h-3 w-3" />
-                            {{ props.form.is_active ? "Aktif" : "Tidak Aktif" }}
+                            {{ props.form.is_active ? 'Aktif' : 'Tidak Aktif' }}
                         </Badge>
                     </div>
 
@@ -178,20 +172,30 @@ const sortedFields = props.form.form_fields.sort((a, b) => a.order - b.order);
                     </CardTitle>
                 </CardHeader>
                 <CardContent>
-                    <div v-if="sortedFields.length === 0" class="text-center py-8 text-muted-foreground">
+                    <div
+                        v-if="sortedFields.length === 0"
+                        class="text-center py-8 text-muted-foreground"
+                    >
                         <List class="h-12 w-12 mx-auto mb-4 opacity-50" />
                         <p>Belum ada isian yang ditambahkan ke formulir ini.</p>
                     </div>
 
                     <div v-else class="space-y-4">
-                        <div v-for="(field, index) in sortedFields" :key="field.id"
-                            class="border rounded-lg p-4 bg-card">
+                        <div
+                            v-for="(field, index) in sortedFields"
+                            :key="field.id"
+                            class="border rounded-lg p-4 bg-card"
+                        >
                             <div class="flex items-start justify-between mb-3">
                                 <div class="flex items-center gap-2">
                                     <Badge variant="outline" class="text-xs">
                                         Isian {{ field.order }}
                                     </Badge>
-                                    <Badge v-if="field.is_required" variant="destructive" class="text-xs">
+                                    <Badge
+                                        v-if="field.is_required"
+                                        variant="destructive"
+                                        class="text-xs"
+                                    >
                                         Wajib
                                     </Badge>
                                     <Badge variant="secondary" class="text-xs">
@@ -207,7 +211,9 @@ const sortedFields = props.form.form_fields.sort((a, b) => a.order - b.order);
                                         <Type class="h-4 w-4 text-muted-foreground" />
                                         Label Isian
                                     </div>
-                                    <p class="text-gray-700 pl-6">{{ field.label }}</p>
+                                    <p class="text-gray-700 pl-6">
+                                        {{ field.label }}
+                                    </p>
                                 </div>
 
                                 <!-- field options (if any) -->
@@ -217,10 +223,16 @@ const sortedFields = props.form.form_fields.sort((a, b) => a.order - b.order);
                                         Opsi
                                     </div>
                                     <div class="pl-6 space-y-1">
-                                        <div v-for="option in field.form_field_options.sort((a, b) => a.order - b.order)"
-                                             :key="option.id"
-                                             class="flex items-center gap-2 text-sm text-muted-foreground">
-                                            <span class="w-2 h-2 bg-muted-foreground rounded-full"></span>
+                                        <div
+                                            v-for="option in field.form_field_options.sort(
+                                                (a, b) => a.order - b.order
+                                            )"
+                                            :key="option.id"
+                                            class="flex items-center gap-2 text-sm text-muted-foreground"
+                                        >
+                                            <span
+                                                class="w-2 h-2 bg-muted-foreground rounded-full"
+                                            />
                                             {{ option.label }}
                                         </div>
                                     </div>
@@ -228,11 +240,17 @@ const sortedFields = props.form.form_fields.sort((a, b) => a.order - b.order);
 
                                 <!-- Field Preview -->
                                 <div class="mt-4 p-3 bg-muted rounded-lg">
-                                    <Label class="text-sm text-muted-foreground mb-2 block">Pratinjau:</Label>
+                                    <Label class="text-sm text-muted-foreground mb-2 block"
+                                        >Pratinjau:</Label
+                                    >
                                     <div class="space-y-2">
                                         <Label>
                                             {{ field.label }}
-                                            <Badge v-if="field.is_required" variant="destructive" class="ml-2 text-xs">
+                                            <Badge
+                                                v-if="field.is_required"
+                                                variant="destructive"
+                                                class="ml-2 text-xs"
+                                            >
                                                 Wajib
                                             </Badge>
                                         </Label>
@@ -244,15 +262,29 @@ const sortedFields = props.form.form_fields.sort((a, b) => a.order - b.order);
                                                 placeholder="Ini adalah pratinjau"
                                                 disabled
                                                 rows="3"
-                                            ></textarea>
+                                            />
                                         </div>
-                                        <div v-else-if="['select', 'radio', 'checkbox'].includes(field.field_type.name) && field.form_field_options.length > 0">
+                                        <div
+                                            v-else-if="
+                                                ['select', 'radio', 'checkbox'].includes(
+                                                    field.field_type.name
+                                                ) && field.form_field_options.length > 0
+                                            "
+                                        >
                                             <div class="space-y-1">
-                                                <div v-for="option in field.form_field_options.sort((a, b) => a.order - b.order)"
-                                                     :key="option.id"
-                                                     class="flex items-center space-x-2">
+                                                <div
+                                                    v-for="option in field.form_field_options.sort(
+                                                        (a, b) => a.order - b.order
+                                                    )"
+                                                    :key="option.id"
+                                                    class="flex items-center space-x-2"
+                                                >
                                                     <input
-                                                        :type="field.field_type.name === 'checkbox' ? 'checkbox' : 'radio'"
+                                                        :type="
+                                                            field.field_type.name === 'checkbox'
+                                                                ? 'checkbox'
+                                                                : 'radio'
+                                                        "
                                                         disabled
                                                         class="h-4 w-4"
                                                     />
@@ -273,8 +305,11 @@ const sortedFields = props.form.form_fields.sort((a, b) => a.order - b.order);
                             </div>
 
                             <!-- Progress indicator for steps -->
-                            <div v-if="index < sortedFields.length - 1" class="flex justify-center mt-4">
-                                <div class="w-px h-6 bg-border"></div>
+                            <div
+                                v-if="index < sortedFields.length - 1"
+                                class="flex justify-center mt-4"
+                            >
+                                <div class="w-px h-6 bg-border" />
                             </div>
                         </div>
                     </div>
@@ -291,9 +326,7 @@ const sortedFields = props.form.form_fields.sort((a, b) => a.order - b.order);
                                 <p class="text-xl font-bold">
                                     {{ sortedFields.length }}
                                 </p>
-                                <p class="text-sm text-muted-foreground">
-                                    Total Isian
-                                </p>
+                                <p class="text-sm text-muted-foreground">Total Isian</p>
                             </div>
                         </div>
                     </CardContent>
@@ -305,11 +338,9 @@ const sortedFields = props.form.form_fields.sort((a, b) => a.order - b.order);
                             <CheckCircle class="h-6 w-6 text-red-500" />
                             <div>
                                 <p class="text-xl font-bold">
-                                    {{ sortedFields.filter(f => f.is_required).length }}
+                                    {{ sortedFields.filter((f) => f.is_required).length }}
                                 </p>
-                                <p class="text-sm text-muted-foreground">
-                                    Isian Wajib
-                                </p>
+                                <p class="text-sm text-muted-foreground">Isian Wajib</p>
                             </div>
                         </div>
                     </CardContent>
@@ -321,11 +352,15 @@ const sortedFields = props.form.form_fields.sort((a, b) => a.order - b.order);
                             <Hash class="h-6 w-6 text-green-500" />
                             <div>
                                 <p class="text-xl font-bold">
-                                    {{ sortedFields.reduce((total, field) => total + field.form_field_options.length, 0) }}
+                                    {{
+                                        sortedFields.reduce(
+                                            (total, field) =>
+                                                total + field.form_field_options.length,
+                                            0
+                                        )
+                                    }}
                                 </p>
-                                <p class="text-sm text-muted-foreground">
-                                    Total Opsi
-                                </p>
+                                <p class="text-sm text-muted-foreground">Total Opsi</p>
                             </div>
                         </div>
                     </CardContent>

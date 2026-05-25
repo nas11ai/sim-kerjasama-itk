@@ -4,49 +4,55 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration {
-    /**
-     * Run the migrations.
-     */
+return new class extends Migration
+{
     public function up(): void
     {
         Schema::table('review_evaluation_forms', function (Blueprint $table) {
-
-            // 1. DROP FOREIGN KEY DULU (INI YANG KAMU LUPA URUTANNYA)
+            // Drop foreign key lama terlebih dahulu
             $table->dropForeign(['form_phase_id']);
 
-            // 2. BARU DROP INDEX
-            $table->dropIndex('review_evaluation_forms_form_phase_id_is_active_index');
-            $table->dropIndex('review_evaluation_forms_form_phase_id_order_index');
+            // Drop index lama yang memang ada
+            $table->dropIndex(['form_phase_id', 'is_active']);
+            $table->dropIndex(['form_phase_id', 'order']);
 
-            // 3. DROP COLUMN
+            // Drop kolom lama
             $table->dropColumn('form_phase_id');
 
-            // 4. ADD NEW COLUMN
+            // Tambah kolom baru
             $table->foreignId('form_phase_detail_id')
                 ->after('description')
                 ->constrained('form_phase_details')
                 ->onUpdate('cascade')
                 ->onDelete('cascade');
+
+            // Tambah index baru
+            $table->index(['form_phase_detail_id', 'is_active']);
+            $table->index(['form_phase_detail_id', 'order']);
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::table('review_evaluation_forms', function (Blueprint $table) {
+            // Drop index baru
+            $table->dropIndex(['form_phase_detail_id', 'is_active']);
+            $table->dropIndex(['form_phase_detail_id', 'order']);
 
-            // drop new FK
+            // Drop foreign key baru
             $table->dropForeign(['form_phase_detail_id']);
+
+            // Drop kolom baru
             $table->dropColumn('form_phase_detail_id');
 
-            // restore old column
+            // Restore kolom lama
             $table->foreignId('form_phase_id')
+                ->after('description')
                 ->constrained()
+                ->onUpdate('cascade')
                 ->onDelete('cascade');
 
+            // Restore index lama
             $table->index(['form_phase_id', 'is_active']);
             $table->index(['form_phase_id', 'order']);
         });

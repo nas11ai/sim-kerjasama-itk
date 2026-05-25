@@ -1,24 +1,18 @@
 <!-- resources\js\Pages\Reviewers\Index.vue -->
 <script setup lang="ts">
-import { ref, computed, watch } from "vue";
-import { Head, Link, router } from "@inertiajs/vue3";
-import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout.vue";
-import { Button } from "@/Components/ui/button";
-import { Input } from "@/Components/ui/input";
-import {
-    Card,
-    CardContent,
-    CardDescription,
-    CardHeader,
-    CardTitle,
-} from "@/Components/ui/card";
-import { Badge } from "@/Components/ui/badge";
+import { ref, computed, watch } from 'vue'
+import { Head, Link, router } from '@inertiajs/vue3'
+import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
+import { Button } from '@/Components/ui/button'
+import { Input } from '@/Components/ui/input'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/Components/ui/card'
+import { Badge } from '@/Components/ui/badge'
 import {
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuItem,
     DropdownMenuTrigger,
-} from "@/Components/ui/dropdown-menu";
+} from '@/Components/ui/dropdown-menu'
 import {
     Dialog,
     DialogContent,
@@ -26,7 +20,7 @@ import {
     DialogFooter,
     DialogHeader,
     DialogTitle,
-} from "@/Components/ui/dialog";
+} from '@/Components/ui/dialog'
 import {
     Command,
     CommandEmpty,
@@ -34,12 +28,8 @@ import {
     CommandInput,
     CommandItem,
     CommandList,
-} from "@/Components/ui/command";
-import {
-    Popover,
-    PopoverContent,
-    PopoverTrigger,
-} from "@/Components/ui/popover";
+} from '@/Components/ui/command'
+import { Popover, PopoverContent, PopoverTrigger } from '@/Components/ui/popover'
 import {
     Plus,
     Search,
@@ -60,237 +50,226 @@ import {
     ChevronRight,
     Users,
     Calendar,
-} from "lucide-vue-next";
-import { useToast } from "@/Components/ui/toast/use-toast";
-import { debounce } from "lodash";
-import { cn } from "@/lib/utils";
+} from 'lucide-vue-next'
+import { useToast } from '@/Components/ui/toast/use-toast'
+import { debounce } from 'lodash'
+import { cn } from '@/lib/utils'
 
 interface ReviewerRole {
-    id: number;
-    name: string;
+    id: number
+    name: string
 }
 
 interface Reviewer {
-    id: number;
-    start_date: string;
-    end_date: string | null;
-    is_active: boolean;
-    created_at: string;
+    id: number
+    start_date: string
+    end_date: string | null
+    is_active: boolean
+    created_at: string
     user: {
-        id: number;
-        name: string;
-        email: string;
-    };
+        id: number
+        name: string
+        email: string
+    }
     reviewer_role: {
-        id: number;
-        name: string;
-    };
+        id: number
+        name: string
+    }
 }
 
 interface PaginationLink {
-    url: string | null;
-    label: string;
-    active: boolean;
+    url: string | null
+    label: string
+    active: boolean
 }
 
 interface Props {
     reviewers: {
-        data: Reviewer[];
-        links: PaginationLink[];
-        current_page: number;
-        last_page: number;
-        per_page: number;
-        total: number;
-        from: number;
-        to: number;
-    };
-    reviewerRoles: ReviewerRole[];
+        data: Reviewer[]
+        links: PaginationLink[]
+        current_page: number
+        last_page: number
+        per_page: number
+        total: number
+        from: number
+        to: number
+    }
+    reviewerRoles: ReviewerRole[]
     filters: {
-        search?: string;
-        role?: string;
-        status?: string;
-    };
+        search?: string
+        role?: string
+        status?: string
+    }
 }
 
-const props = defineProps<Props>();
-const { toast } = useToast();
+const props = defineProps<Props>()
+const { toast } = useToast()
 
-const searchQuery = ref(props.filters.search || "");
-const selectedRole = ref(props.filters.role || "all");
-const selectedStatus = ref(props.filters.status || "all");
+const searchQuery = ref(props.filters.search || '')
+const selectedRole = ref(props.filters.role || 'all')
+const selectedStatus = ref(props.filters.status || 'all')
 
-const openStatus = ref(false);
-const openRole = ref(false);
+const openStatus = ref(false)
+const openRole = ref(false)
 
-const showDeleteDialog = ref(false);
-const reviewerToDelete = ref<Reviewer | null>(null);
+const showDeleteDialog = ref(false)
+const reviewerToDelete = ref<Reviewer | null>(null)
 
 const statusOptions = [
-    { value: "all", label: "Semua Status" },
-    { value: "active", label: "Aktif" },
-    { value: "inactive", label: "Tidak Aktif" },
-];
+    { value: 'all', label: 'Semua Status' },
+    { value: 'active', label: 'Aktif' },
+    { value: 'inactive', label: 'Tidak Aktif' },
+]
 
 const selectedStatusLabel = computed(() => {
-    const status = statusOptions.find((s) => s.value === selectedStatus.value);
-    return status?.label || "Pilih status...";
-});
+    const status = statusOptions.find((s) => s.value === selectedStatus.value)
+    return status?.label || 'Pilih status...'
+})
 
 const selectedRoleLabel = computed(() => {
-    if (selectedRole.value === "all") return "Semua Role";
-    const role = props.reviewerRoles.find(
-        (r) => r.id.toString() === selectedRole.value
-    );
-    return role?.name || "Pilih role...";
-});
+    if (selectedRole.value === 'all') return 'Semua Role'
+    const role = props.reviewerRoles.find((r) => r.id.toString() === selectedRole.value)
+    return role?.name || 'Pilih role...'
+})
 
 const activeFiltersCount = computed(() => {
-    let count = 0;
-    if (searchQuery.value) count++;
-    if (selectedRole.value !== "all") count++;
-    if (selectedStatus.value !== "all") count++;
-    return count;
-});
+    let count = 0
+    if (searchQuery.value) count++
+    if (selectedRole.value !== 'all') count++
+    if (selectedStatus.value !== 'all') count++
+    return count
+})
 
 const debouncedSearch = debounce(() => {
-    applyFilters();
-}, 300);
+    applyFilters()
+}, 300)
 
 watch(searchQuery, () => {
-    debouncedSearch();
-});
+    debouncedSearch()
+})
 
 watch([selectedRole, selectedStatus], () => {
-    applyFilters();
-});
+    applyFilters()
+})
 
 const applyFilters = () => {
-    const params: Record<string, any> = {};
+    const params: Record<string, any> = {}
 
-    if (searchQuery.value) params.search = searchQuery.value;
-    if (selectedRole.value && selectedRole.value !== "all")
-        params.role = selectedRole.value;
-    if (selectedStatus.value && selectedStatus.value !== "all")
-        params.status = selectedStatus.value;
+    if (searchQuery.value) params.search = searchQuery.value
+    if (selectedRole.value && selectedRole.value !== 'all') params.role = selectedRole.value
+    if (selectedStatus.value && selectedStatus.value !== 'all') params.status = selectedStatus.value
 
-    router.get(route("admin.reviewers.index"), params, {
+    router.get(route('admin.reviewers.index'), params, {
         preserveState: true,
         replace: true,
-    });
-};
+    })
+}
 
 const clearFilters = () => {
-    searchQuery.value = "";
-    selectedRole.value = "all";
-    selectedStatus.value = "all";
+    searchQuery.value = ''
+    selectedRole.value = 'all'
+    selectedStatus.value = 'all'
 
     router.get(
-        route("admin.reviewers.index"),
+        route('admin.reviewers.index'),
         {},
         {
             preserveState: true,
             replace: true,
         }
-    );
-};
+    )
+}
 
 const deleteReviewer = (reviewer: Reviewer) => {
-    reviewerToDelete.value = reviewer;
-    showDeleteDialog.value = true;
-};
+    reviewerToDelete.value = reviewer
+    showDeleteDialog.value = true
+}
 
 const confirmDelete = () => {
     if (reviewerToDelete.value) {
-        router.delete(route("admin.reviewers.destroy", reviewerToDelete.value.id), {
+        router.delete(route('admin.reviewers.destroy', reviewerToDelete.value.id), {
             onSuccess: () => {
-                showDeleteDialog.value = false;
-                reviewerToDelete.value = null;
+                showDeleteDialog.value = false
+                reviewerToDelete.value = null
                 toast({
-                    title: "Sukses",
-                    description: "Reviewer Berhasil dihapus!",
-                });
+                    title: 'Sukses',
+                    description: 'Reviewer Berhasil dihapus!',
+                })
             },
             onError: (errors) => {
                 toast({
-                    title: "Error",
-                    description: errors.error || "Gagal menghapus reviewer.",
-                    variant: "destructive",
-                });
+                    title: 'Error',
+                    description: errors.error || 'Gagal menghapus reviewer.',
+                    variant: 'destructive',
+                })
             },
             onFinish: () => {
-                showDeleteDialog.value = false;
-                reviewerToDelete.value = null;
+                showDeleteDialog.value = false
+                reviewerToDelete.value = null
             },
-        });
+        })
     }
-};
+}
 
 const cancelDelete = () => {
-    showDeleteDialog.value = false;
-    reviewerToDelete.value = null;
-};
+    showDeleteDialog.value = false
+    reviewerToDelete.value = null
+}
 
 const toggleReviewerStatus = (reviewer: Reviewer) => {
-    const isActive = reviewer.end_date === null;
+    const isActive = reviewer.end_date === null
 
     router.patch(
-        route(
-            isActive
-                ? "admin.reviewers.deactivate"
-                : "admin.reviewers.activate",
-            reviewer.id
-        ),
+        route(isActive ? 'admin.reviewers.deactivate' : 'admin.reviewers.activate', reviewer.id),
         {},
         {
             onSuccess: () => {
                 toast({
-                    title: "Sukses",
+                    title: 'Sukses',
                     description: `Reviewer berhasil ${
-                        isActive ? "dinonaktifkan" : "diaktifkan kembali"
+                        isActive ? 'dinonaktifkan' : 'diaktifkan kembali'
                     }!`,
-                });
+                })
             },
             onError: () => {
                 toast({
-                    title: "Error",
-                    description: "Gagal memperbarui status.",
-                    variant: "destructive",
-                });
+                    title: 'Error',
+                    description: 'Gagal memperbarui status.',
+                    variant: 'destructive',
+                })
             },
         }
-    );
-};
-
+    )
+}
 
 const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString("id-ID", {
-        year: "numeric",
-        month: "short",
-        day: "numeric",
-    });
-};
+    return new Date(dateString).toLocaleDateString('id-ID', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+    })
+}
 
 const hasFilters = computed(() => {
     return (
         searchQuery.value ||
-        (selectedRole.value && selectedRole.value !== "all") ||
-        (selectedStatus.value && selectedStatus.value !== "all")
-    );
-});
+        (selectedRole.value && selectedRole.value !== 'all') ||
+        (selectedStatus.value && selectedStatus.value !== 'all')
+    )
+})
 
 const goToPage = (url: string | null) => {
     if (url) {
         router.visit(url, {
             preserveState: true,
             preserveScroll: false,
-        });
+        })
     }
-};
+}
 
 const totalReviewers = computed(() => {
-    return props.reviewers?.total || 0;
-});
-
+    return props.reviewers?.total || 0
+})
 </script>
 
 <template>
@@ -333,12 +312,7 @@ const totalReviewers = computed(() => {
                                 {{ activeFiltersCount }} aktif
                             </Badge>
                         </CardTitle>
-                        <Button
-                            v-if="hasFilters"
-                            variant="ghost"
-                            size="sm"
-                            @click="clearFilters"
-                        >
+                        <Button v-if="hasFilters" variant="ghost" size="sm" @click="clearFilters">
                             <X class="h-4 w-4 mr-2" />
                             Hapus Semua Filter
                         </Button>
@@ -371,32 +345,36 @@ const totalReviewers = computed(() => {
                                         class="w-full justify-between"
                                     >
                                         <span class="truncate">{{ selectedRoleLabel }}</span>
-                                        <ChevronsUpDown
-                                            class="ml-2 h-4 w-4 shrink-0 opacity-50"
-                                        />
+                                        <ChevronsUpDown class="ml-2 h-4 w-4 shrink-0 opacity-50" />
                                     </Button>
                                 </PopoverTrigger>
                                 <PopoverContent class="w-[250px] p-0">
                                     <Command>
                                         <CommandInput
-                                        placeholder="cari role..."
-                                        class="flex h-11 w-full rounded-md bg-transparent py-3 text-sm outline-hidden placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50 border-0 ring-0 focus:ring-0 focus:outline-hidden"
+                                            placeholder="cari role..."
+                                            class="flex h-11 w-full rounded-md bg-transparent py-3 text-sm outline-hidden placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50 border-0 ring-0 focus:ring-0 focus:outline-hidden"
                                         />
                                         <CommandList>
                                             <CommandEmpty>Tidak ada role ditemukan.</CommandEmpty>
                                             <CommandGroup>
                                                 <CommandItem
                                                     value="all"
-                                                    @select="() => {
-                                                        selectedRole = 'all';
-                                                        openRole = false;
-                                                        }">
+                                                    @select="
+                                                        () => {
+                                                            selectedRole = 'all'
+                                                            openRole = false
+                                                        }
+                                                    "
+                                                >
                                                     <Check
-                                                        :class="cn('mr-2 h-4 w-4',
-                                                        selectedRole === 'all'
-                                                            ? 'opacity-100'
-                                                            : 'opacity-0'
-                                                        )"
+                                                        :class="
+                                                            cn(
+                                                                'mr-2 h-4 w-4',
+                                                                selectedRole === 'all'
+                                                                    ? 'opacity-100'
+                                                                    : 'opacity-0'
+                                                            )
+                                                        "
                                                     />
                                                     Semua Role
                                                 </CommandItem>
@@ -404,17 +382,22 @@ const totalReviewers = computed(() => {
                                                     v-for="role in props.reviewerRoles"
                                                     :key="role.id"
                                                     :value="role.id.toString()"
-                                                    @select="() => {
-                                                        selectedRole = role.id.toString();
-                                                        openRole = false;
-                                                    }">
+                                                    @select="
+                                                        () => {
+                                                            selectedRole = role.id.toString()
+                                                            openRole = false
+                                                        }
+                                                    "
+                                                >
                                                     <Check
-                                                        :class="cn('mr-2 h-4 w-4',
-                                                            selectedRole ===
-                                                                role.id.toString()
-                                                                ? 'opacity-100'
-                                                                : 'opacity-0'
-                                                        )"
+                                                        :class="
+                                                            cn(
+                                                                'mr-2 h-4 w-4',
+                                                                selectedRole === role.id.toString()
+                                                                    ? 'opacity-100'
+                                                                    : 'opacity-0'
+                                                            )
+                                                        "
                                                     />
                                                     {{ role.name }}
                                                 </CommandItem>
@@ -436,16 +419,14 @@ const totalReviewers = computed(() => {
                                         class="w-full justify-between"
                                     >
                                         {{ selectedStatusLabel }}
-                                        <ChevronsUpDown
-                                            class="ml-2 h-4 w-4 shrink-0 opacity-50"
-                                        />
+                                        <ChevronsUpDown class="ml-2 h-4 w-4 shrink-0 opacity-50" />
                                     </Button>
                                 </PopoverTrigger>
                                 <PopoverContent class="w-[200px] p-0">
                                     <Command>
                                         <CommandInput
-                                        placeholder="cari status..."
-                                        class="flex h-11 w-full rounded-md bg-transparent py-3 text-sm outline-hidden placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50 border-0 ring-0 focus:ring-0 focus:outline-hidden"
+                                            placeholder="cari status..."
+                                            class="flex h-11 w-full rounded-md bg-transparent py-3 text-sm outline-hidden placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50 border-0 ring-0 focus:ring-0 focus:outline-hidden"
                                         />
                                         <CommandList>
                                             <CommandEmpty>Tidak ada status ditemukan.</CommandEmpty>
@@ -456,8 +437,8 @@ const totalReviewers = computed(() => {
                                                     :value="status.value"
                                                     @select="
                                                         () => {
-                                                            selectedStatus = status.value;
-                                                            openStatus = false;
+                                                            selectedStatus = status.value
+                                                            openStatus = false
                                                         }
                                                     "
                                                 >
@@ -497,16 +478,11 @@ const totalReviewers = computed(() => {
             <Card>
                 <CardHeader>
                     <CardTitle>Reviewer ({{ totalReviewers }})</CardTitle>
-                    <CardDescription>
-                        Manajemen penugasan dan izin reviewer
-                    </CardDescription>
+                    <CardDescription> Manajemen penugasan dan izin reviewer </CardDescription>
                 </CardHeader>
                 <CardContent>
                     <!-- Empty State -->
-                    <div
-                        v-if="props.reviewers.data.length === 0"
-                        class="text-center py-12"
-                    >
+                    <div v-if="props.reviewers.data.length === 0" class="text-center py-12">
                         <UserCheck class="h-12 w-12 mx-auto text-muted-foreground mb-4" />
                         <h3 class="text-lg font-medium text-gray-900 mb-2">
                             Tidak ada Reviewer ditemukan
@@ -514,8 +490,8 @@ const totalReviewers = computed(() => {
                         <p class="text-sm text-muted-foreground mb-4">
                             {{
                                 hasFilters
-                                    ? "Tidak ada reviewer yang cocok dengan kriteria pencarian Anda."
-                                    : "Mulailah dengan menambahkan reviewer pertama Anda."
+                                    ? 'Tidak ada reviewer yang cocok dengan kriteria pencarian Anda.'
+                                    : 'Mulailah dengan menambahkan reviewer pertama Anda.'
                             }}
                         </p>
                         <Link v-if="!hasFilters" :href="route('admin.reviewers.create')">
@@ -565,14 +541,16 @@ const totalReviewers = computed(() => {
                                             "
                                             class="flex items-center gap-1"
                                         >
-                                            {{ reviewer.is_active ? "Aktif" : "Nonaktif" }}
+                                            {{ reviewer.is_active ? 'Aktif' : 'Nonaktif' }}
                                         </Badge>
                                     </div>
                                 </div>
                             </div>
 
                             <div class="flex items-center space-x-4">
-                                <div class="text-right text-sm text-muted-foreground hidden md:block">
+                                <div
+                                    class="text-right text-sm text-muted-foreground hidden md:block"
+                                >
                                     <div class="flex items-center gap-2 justify-end mb-1">
                                         <Calendar class="h-4 w-4" />
                                         <span class="font-medium">Tanggal Mulai:</span>
@@ -600,9 +578,7 @@ const totalReviewers = computed(() => {
                                     <DropdownMenuContent align="end">
                                         <DropdownMenuItem as-child>
                                             <Link
-                                                :href="
-                                                    route('admin.reviewers.show', reviewer.id)
-                                                "
+                                                :href="route('admin.reviewers.show', reviewer.id)"
                                             >
                                                 <Eye class="h-4 w-4 mr-2" />
                                                 Lihat Detail
@@ -610,28 +586,23 @@ const totalReviewers = computed(() => {
                                         </DropdownMenuItem>
                                         <DropdownMenuItem as-child>
                                             <Link
-                                                :href="
-                                                    route('admin.reviewers.edit', reviewer.id)
-                                                "
+                                                :href="route('admin.reviewers.edit', reviewer.id)"
                                             >
                                                 <Edit class="h-4 w-4 mr-2" />
                                                 Edit
                                             </Link>
                                         </DropdownMenuItem>
                                         <DropdownMenuItem
-                                            @click="toggleReviewerStatus(reviewer)"
                                             class="cursor-pointer"
+                                            @click="toggleReviewerStatus(reviewer)"
                                         >
-                                            <UserX
-                                                v-if="reviewer.is_active"
-                                                class="h-4 w-4 mr-2"
-                                            />
+                                            <UserX v-if="reviewer.is_active" class="h-4 w-4 mr-2" />
                                             <UserCheck v-else class="h-4 w-4 mr-2" />
                                             {{ reviewer.is_active ? 'Nonaktifkan' : 'Aktifkan' }}
                                         </DropdownMenuItem>
                                         <DropdownMenuItem
-                                            @click="deleteReviewer(reviewer)"
                                             class="text-destructive cursor-pointer"
+                                            @click="deleteReviewer(reviewer)"
                                         >
                                             <Trash2 class="h-4 w-4 mr-2" />
                                             Hapus
@@ -652,11 +623,11 @@ const totalReviewers = computed(() => {
                             v-if="link.url"
                             variant="outline"
                             size="sm"
-                            @click="goToPage(link.url)"
                             :class="{
                                 'bg-primary text-primary-foreground': link.active,
                                 'hover:bg-muted': !link.active,
                             }"
+                            @click="goToPage(link.url)"
                             v-html="link.label"
                         />
                         <span
@@ -681,7 +652,8 @@ const totalReviewers = computed(() => {
                         Konfirmasi Hapus
                     </DialogTitle>
                     <DialogDescription>
-                        Apakah Anda yakin ingin menghapus reviewer ini? Tindakan ini tidak dapat dibatalkan.
+                        Apakah Anda yakin ingin menghapus reviewer ini? Tindakan ini tidak dapat
+                        dibatalkan.
                     </DialogDescription>
                 </DialogHeader>
 
@@ -706,15 +678,11 @@ const totalReviewers = computed(() => {
                                     </Badge>
                                     <Badge
                                         :variant="
-                                            reviewerToDelete.is_active
-                                                ? 'default'
-                                                : 'destructive'
+                                            reviewerToDelete.is_active ? 'default' : 'destructive'
                                         "
                                         class="text-xs"
                                     >
-                                        {{
-                                            reviewerToDelete.is_active ? "Active" : "Inactive"
-                                        }}
+                                        {{ reviewerToDelete.is_active ? 'Active' : 'Inactive' }}
                                     </Badge>
                                 </div>
                             </div>
@@ -723,12 +691,8 @@ const totalReviewers = computed(() => {
                 </div>
 
                 <DialogFooter>
-                    <Button variant="outline" @click="cancelDelete">
-                        Batal
-                    </Button>
-                    <Button variant="destructive" @click="confirmDelete">
-                        Hapus Reviewer
-                    </Button>
+                    <Button variant="outline" @click="cancelDelete"> Batal </Button>
+                    <Button variant="destructive" @click="confirmDelete"> Hapus Reviewer </Button>
                 </DialogFooter>
             </DialogContent>
         </Dialog>

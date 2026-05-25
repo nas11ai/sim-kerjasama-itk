@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Cache;
 class NotifyActiveSubmissionPeriods extends Command
 {
     protected $signature = 'notify:active-submission-periods';
+
     protected $description = 'Notify users about newly active submission periods';
 
     protected $emailService;
