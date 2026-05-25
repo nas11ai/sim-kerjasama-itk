@@ -67,6 +67,10 @@ Route::get('/', function () {
     ]);
 })->name('welcome');
 
+Route::middleware(['auth', 'verified'])->get('/dashboard', function () {
+    return redirect()->route('user.dashboard');
+})->name('dashboard');
+
 Route::get('announcements/{announcement}', [AnnouncementController::class, 'detail'])->name('announcements.detail');
 
 Route::middleware(['auth', 'check_reviewer_status'])->group(function () {

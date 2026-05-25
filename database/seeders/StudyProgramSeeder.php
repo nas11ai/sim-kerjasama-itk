@@ -16,6 +16,11 @@ class StudyProgramSeeder extends Seeder
     {
         try {
             DB::transaction(function () {
+
+                $fsti = Faculty::firstOrCreate(['name' => 'Fakultas Sains dan Teknologi Informasi']);
+                $fpb = Faculty::firstOrCreate(['name' => 'Fakultas Pembangunan Berkelanjutan']);
+                $frti = Faculty::firstOrCreate(['name' => 'Fakultas Rekayasa dan Teknologi Industri']);
+
                 $fsti_study_programs = [
                     [
                         'faculty_id' => Faculty::where('name', 'Fakultas Sains dan Teknologi Informasi')->first()->id,
@@ -83,34 +88,13 @@ class StudyProgramSeeder extends Seeder
                 ];
 
                 $frti_study_programs = [
-                    [
-                        'faculty_id' => Faculty::where('name', 'Fakultas Rekayasa dan Teknologi Industri')->first()->id,
-                        'name' => 'Teknik Mesin',
-                    ],
-                    [
-                        'faculty_id' => Faculty::where('name', 'Fakultas Rekayasa dan Teknologi Industri')->first()->id,
-                        'name' => 'Teknik Industri',
-                    ],
-                    [
-                        'faculty_id' => Faculty::where('name', 'Fakultas Rekayasa dan Teknologi Industri')->first()->id,
-                        'name' => 'Teknik Logistik',
-                    ],
-                    [
-                        'faculty_id' => Faculty::where('name', 'Fakultas Rekayasa dan Teknologi Industri')->first()->id,
-                        'name' => 'Teknik Material dan Metalurgi',
-                    ],
-                    [
-                        'faculty_id' => Faculty::where('name', 'Fakultas Rekayasa dan Teknologi Industri')->first()->id,
-                        'name' => 'Teknologi Pangan',
-                    ],
-                    [
-                        'faculty_id' => Faculty::where('name', 'Fakultas Rekayasa dan Teknologi Industri')->first()->id,
-                        'name' => 'Teknik Kimia',
-                    ],
-                    [
-                        'faculty_id' => Faculty::where('name', 'Fakultas Rekayasa dan Teknologi Industri')->first()->id,
-                        'name' => 'Rekayasa Keselamatan',
-                    ],
+                    ['faculty_id' => $frti->id, 'name' => 'Teknik Mesin'],
+                    ['faculty_id' => $frti->id, 'name' => 'Teknik Industri'],
+                    ['faculty_id' => $frti->id, 'name' => 'Teknik Logistik'],
+                    ['faculty_id' => $frti->id, 'name' => 'Teknik Material dan Metalurgi'],
+                    ['faculty_id' => $frti->id, 'name' => 'Teknologi Pangan'],
+                    ['faculty_id' => $frti->id, 'name' => 'Teknik Kimia'],
+                    ['faculty_id' => $frti->id, 'name' => 'Rekayasa Keselamatan'],
                 ];
 
                 foreach ($fsti_study_programs as $program) {
