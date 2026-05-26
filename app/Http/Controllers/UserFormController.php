@@ -221,10 +221,10 @@ class UserFormController extends Controller
             $search = $request->search;
             $query->where(function ($q) use ($search) {
                 $q->whereHas('submittedBy', function ($query) use ($search) {
-                    $query->where('name', 'like', "%{$search}%");
+                    $query->where('name', 'ilike', "%{$search}%");
                 })
                     ->orWhereHas('form', function ($query) use ($search) {
-                        $query->where('title', 'like', "%{$search}%");
+                        $query->where('title', 'ilike', "%{$search}%");
                     });
             });
         }

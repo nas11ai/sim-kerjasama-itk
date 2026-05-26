@@ -87,7 +87,7 @@ class SubmissionViewController extends Controller
         // Search functionality
         if ($request->has('search') && $request->search) {
             $search = $request->search;
-            $query->where('name', 'like', "%{$search}%");
+            $query->where('name', 'ilike', "%{$search}%");
         }
 
         $submissionPeriods = $query->orderBy('created_at', 'desc')
@@ -226,8 +226,8 @@ class SubmissionViewController extends Controller
         if ($request->has('search') && $request->search) {
             $search = $request->search;
             $query->whereHas('submittedBy', function ($q) use ($search) {
-                $q->where('name', 'like', "%{$search}%")
-                    ->orWhere('email', 'like', "%{$search}%");
+                $q->where('name', 'ilike', "%{$search}%")
+                    ->orWhere('email', 'ilike', "%{$search}%");
             });
         }
 
@@ -824,10 +824,10 @@ class SubmissionViewController extends Controller
             $search = $request->search;
             $query->where(function ($q) use ($search) {
                 $q->whereHas('submittedBy', function ($query) use ($search) {
-                    $query->where('name', 'like', "%{$search}%");
+                    $query->where('name', 'ilike', "%{$search}%");
                 })
                     ->orWhereHas('form', function ($query) use ($search) {
-                        $query->where('title', 'like', "%{$search}%");
+                        $query->where('title', 'ilike', "%{$search}%");
                     });
             });
         }
