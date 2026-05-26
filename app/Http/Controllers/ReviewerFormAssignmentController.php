@@ -290,10 +290,10 @@ class ReviewerFormAssignmentController extends Controller
             $search = $request->search;
             $query->where(function ($q) use ($search) {
                 $q->whereHas('reviewEvaluationForm', function ($subQ) use ($search) {
-                    $subQ->where('title', 'like', "%{$search}%");
+                    $subQ->where('title', 'ilike', "%{$search}%");
                 })
                     ->orWhereHas('submissionReviewer.formSubmission.form', function ($subQ) use ($search) {
-                        $subQ->where('title', 'like', "%{$search}%");
+                        $subQ->where('title', 'ilike', "%{$search}%");
                     });
             });
         }

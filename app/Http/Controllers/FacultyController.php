@@ -20,7 +20,7 @@ class FacultyController extends Controller
 
         // Search functionality
         if ($search) {
-            $query->where('name', 'like', '%'.$search.'%');
+            $query->where('name', 'ilike', '%'.$search.'%');
         }
 
         // Sorting
@@ -123,9 +123,9 @@ class FacultyController extends Controller
         // Search functionality
         if ($search) {
             $query->where(function ($q) use ($search) {
-                $q->where('name', 'like', '%'.$search.'%')
+                $q->where('name', 'ilike', '%'.$search.'%')
                     ->orWhereHas('faculty', function ($facultyQuery) use ($search) {
-                        $facultyQuery->where('name', 'like', '%'.$search.'%');
+                        $facultyQuery->where('name', 'ilike', '%'.$search.'%');
                     });
             });
         }

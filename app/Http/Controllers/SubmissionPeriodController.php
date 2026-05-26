@@ -27,7 +27,7 @@ class SubmissionPeriodController extends Controller
         // Search functionality
         if ($request->has('search') && $request->search) {
             $search = $request->search;
-            $query->where('name', 'like', "%{$search}%");
+            $query->where('name', 'ilike', "%{$search}%");
         }
 
         $submissionPeriods = $query->orderBy('created_at', 'desc')->paginate(10);

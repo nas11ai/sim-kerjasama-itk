@@ -26,10 +26,10 @@ class FormController extends Controller
 
         if ($search) {
             $query->where(function ($q) use ($search) {
-                $q->where('title', 'like', '%'.$search.'%')
-                    ->orWhere('description', 'like', '%'.$search.'%')
+                $q->where('title', 'ilike', '%'.$search.'%')
+                    ->orWhere('description', 'ilike', '%'.$search.'%')
                     ->orWhereHas('formType', function ($typeQuery) use ($search) {
-                        $typeQuery->where('name', 'like', '%'.$search.'%');
+                        $typeQuery->where('name', 'ilike', '%'.$search.'%');
                     });
             });
         }
