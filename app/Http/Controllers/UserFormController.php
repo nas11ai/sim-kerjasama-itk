@@ -2,21 +2,21 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\SubmissionPeriod;
-use App\Models\FormPhase;
-use App\Models\FormSubmission;
-use App\Models\FormFieldResponse;
-use App\Models\FormAccessControl;
-use App\Models\FormPhaseDetail;
 use App\Models\Form;
+use App\Models\FormFieldResponse;
+use App\Models\FormPhase;
+use App\Models\FormPhaseDetail;
+use App\Models\FormSubmission;
+use App\Models\Reviewer;
+use App\Models\ReviewSummary;
+use App\Models\SubmissionPeriod;
 use App\Services\EmailNotificationService;
 use App\SubmissionStatus;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
-use Carbon\Carbon;
 
 class UserFormController extends Controller
 {
@@ -26,6 +26,7 @@ class UserFormController extends Controller
     {
         $this->emailService = $emailService;
     }
+
     public function dashboard()
     {
         $user = Auth::user();
@@ -36,7 +37,7 @@ class UserFormController extends Controller
         $primaryRole = $userRoles->first() ?? 'user';
 
         // Check if user is a reviewer
-        $reviewer = \App\Models\Reviewer::where('user_id', $user->id)->first();
+        $reviewer = Reviewer::where('user_id', $user->id)->first();
         $isReviewer = $reviewer !== null;
 
         // Get submission periods with accessible form phases
@@ -54,7 +55,7 @@ class UserFormController extends Controller
                 })
                     ->with(['formAccessControl.form.formFields', 'phaseType'])
                     ->orderBy('order');
-            }
+            },
         ])
             ->get()
             ->map(function ($period) use ($user, $studyProgram) {
@@ -143,8 +144,8 @@ class UserFormController extends Controller
                             'total_forms' => $totalForms,
                             'completed_forms' => $completedForms,
                             'pending_review' => $pendingReview,
-                            'can_proceed' => $canProceed
-                        ]
+                            'can_proceed' => $canProceed,
+                        ],
                     ];
                 })->filter(function ($phase) {
                     return $phase['user_can_access'];
@@ -157,12 +158,12 @@ class UserFormController extends Controller
         $reviewStats = null;
         if ($isReviewer) {
             $reviewStats = [
-                'total_assigned' => \App\Models\ReviewSummary::where('reviewer_id', $reviewer->id)->count(),
-                'pending_reviews' => \App\Models\ReviewSummary::where('reviewer_id', $reviewer->id)
+                'total_assigned' => ReviewSummary::where('reviewer_id', $reviewer->id)->count(),
+                'pending_reviews' => ReviewSummary::where('reviewer_id', $reviewer->id)
                     ->where('status', 'open')->count(),
-                'completed_reviews' => \App\Models\ReviewSummary::where('reviewer_id', $reviewer->id)
+                'completed_reviews' => ReviewSummary::where('reviewer_id', $reviewer->id)
                     ->where('status', 'resolved')->count(),
-                'rejected_reviews' => \App\Models\ReviewSummary::where('reviewer_id', $reviewer->id)
+                'rejected_reviews' => ReviewSummary::where('reviewer_id', $reviewer->id)
                     ->where('status', 'closed')->count(),
             ];
         }
@@ -174,15 +175,15 @@ class UserFormController extends Controller
                 'id' => $studyProgram->id,
                 'name' => $studyProgram->name,
                 'faculty' => [
-                    'name' => $studyProgram->faculty->name
-                ]
+                    'name' => $studyProgram->faculty->name,
+                ],
             ] : null,
             'isReviewer' => $isReviewer,
             'reviewStats' => $reviewStats,
             'reviewer' => $reviewer ? [
                 'id' => $reviewer->id,
-                'reviewer_role' => $reviewer->reviewerRole->name
-            ] : null
+                'reviewer_role' => $reviewer->reviewerRole->name,
+            ] : null,
         ]);
     }
 
@@ -190,7 +191,7 @@ class UserFormController extends Controller
     public function reviewerSubmissions(Request $request)
     {
         $user = Auth::user();
-        $reviewer = \App\Models\Reviewer::where('user_id', $user->id)->first();
+        $reviewer = Reviewer::where('user_id', $user->id)->first();
 
         if (!$reviewer) {
             abort(403, 'Anda tidak terdaftar sebagai reviewer');
@@ -204,7 +205,7 @@ class UserFormController extends Controller
                 'submittedBy:id,name,email',
                 'reviewSummaries' => function ($q) use ($reviewer) {
                     $q->where('reviewer_id', $reviewer->id);
-                }
+                },
             ]);
 
         // Filter by status
@@ -220,10 +221,10 @@ class UserFormController extends Controller
             $search = $request->search;
             $query->where(function ($q) use ($search) {
                 $q->whereHas('submittedBy', function ($query) use ($search) {
-                    $query->where('name', 'like', "%{$search}%");
+                    $query->where('name', 'ilike', "%{$search}%");
                 })
                     ->orWhereHas('form', function ($query) use ($search) {
-                        $query->where('title', 'like', "%{$search}%");
+                        $query->where('title', 'ilike', "%{$search}%");
                     });
             });
         }
@@ -233,7 +234,7 @@ class UserFormController extends Controller
         return Inertia::render('Reviewer/Submissions/Index', [
             'submissions' => $submissions,
             'filters' => $request->only(['status', 'search']),
-            'reviewer' => $reviewer->load('reviewerRole')
+            'reviewer' => $reviewer->load('reviewerRole'),
         ]);
     }
 
@@ -257,7 +258,7 @@ class UserFormController extends Controller
                 'formAccessControl.form.formFields',
                 'formAccessControl.form.formFields.fieldType',
                 'formAccessControl.form.formFields.formFieldOptions',
-                'phaseType'
+                'phaseType',
             ])
             ->orderBy('order')
             ->get()
@@ -284,8 +285,8 @@ class UserFormController extends Controller
                         'updated_at' => $submission->updated_at->toISOString(),
                         'responses' => $submission->formFieldResponses->mapWithKeys(function ($response) {
                             return ["field_{$response->form_field_id}" => $response->value];
-                        })
-                    ] : null
+                        }),
+                    ] : null,
                 ];
             });
 
@@ -297,15 +298,15 @@ class UserFormController extends Controller
         return Inertia::render('User/FormPhase', [
             'submissionPeriod' => [
                 'id' => $period->id,
-                'name' => $period->name
+                'name' => $period->name,
             ],
             'formPhase' => [
                 'id' => $phase->id,
                 'title' => $phase->title,
                 'description' => $phase->description,
-                'form_access_controls' => $formAccessControls
+                'form_access_controls' => $formAccessControls,
             ],
-            'currentStep' => $request->get('step', 1)
+            'currentStep' => $request->get('step', 1),
         ]);
     }
 
@@ -320,7 +321,7 @@ class UserFormController extends Controller
             'form_phase_id' => 'required|exists:form_phases,id',
             'responses' => 'required|array',
             'responses.*.form_field_id' => 'required|exists:form_fields,id',
-            'responses.*.value' => 'nullable'
+            'responses.*.value' => 'nullable',
         ]);
 
         // Handle file uploads
@@ -339,7 +340,7 @@ class UserFormController extends Controller
             // Find or create form submission
             $submission = FormSubmission::firstOrCreate([
                 'form_id' => $validated['form_id'],
-                'submitted_by' => $user->id
+                'submitted_by' => $user->id,
             ], [
                 'is_submitted' => false,
             ]);
@@ -361,7 +362,7 @@ class UserFormController extends Controller
                     FormFieldResponse::create([
                         'form_submission_id' => $submission->id,
                         'form_field_id' => $responseData['form_field_id'],
-                        'value' => is_array($value) ? json_encode($value) : (string) $value
+                        'value' => is_array($value) ? json_encode($value) : (string) $value,
                     ]);
                 }
             }
@@ -382,7 +383,7 @@ class UserFormController extends Controller
             'form_phase_id' => 'required|exists:form_phases,id',
             'responses' => 'required|array',
             'responses.*.form_field_id' => 'required|exists:form_fields,id',
-            'responses.*.value' => 'nullable'
+            'responses.*.value' => 'nullable',
         ]);
 
         // Handle file uploads
@@ -409,7 +410,7 @@ class UserFormController extends Controller
         $form = Form::with([
             'formFields' => function ($query) {
                 $query->where('is_required', true);
-            }
+            },
         ])->find($validated['form_id']);
 
         $requiredFields = $form->formFields;
@@ -430,14 +431,14 @@ class UserFormController extends Controller
                 }
                 if (!$hasFile) {
                     return redirect()->back()
-                        ->withErrors(['field_' . $field->id => "Field '{$field->label}' wajib diisi."])
+                        ->withErrors(['field_'.$field->id => "Field '{$field->label}' wajib diisi."])
                         ->with('error', 'Silakan lengkapi semua field yang wajib diisi.');
                 }
             } else {
                 // Regular field validation
                 if (!$response || (empty(trim($value)) && $value !== '0' && $value !== 0)) {
                     return redirect()->back()
-                        ->withErrors(['field_' . $field->id => "Field '{$field->label}' wajib diisi."])
+                        ->withErrors(['field_'.$field->id => "Field '{$field->label}' wajib diisi."])
                         ->with('error', 'Silakan lengkapi semua field yang wajib diisi.');
                 }
             }
@@ -447,7 +448,7 @@ class UserFormController extends Controller
             // Find or create form submission
             $submission = FormSubmission::firstOrCreate([
                 'form_id' => $validated['form_id'],
-                'submitted_by' => $user->id
+                'submitted_by' => $user->id,
             ], [
                 'is_submitted' => false,
             ]);
@@ -474,7 +475,7 @@ class UserFormController extends Controller
                     FormFieldResponse::create([
                         'form_submission_id' => $submission->id,
                         'form_field_id' => $responseData['form_field_id'],
-                        'value' => is_array($value) ? json_encode($value) : (string) $value
+                        'value' => is_array($value) ? json_encode($value) : (string) $value,
                     ]);
                 }
             }
@@ -511,7 +512,7 @@ class UserFormController extends Controller
 
         $validated = $request->validate([
             'form_id' => 'required|exists:forms,id',
-            'form_submission_id' => 'nullable|exists:form_submissions,id'
+            'form_submission_id' => 'nullable|exists:form_submissions,id',
         ]);
 
         $submission = null;

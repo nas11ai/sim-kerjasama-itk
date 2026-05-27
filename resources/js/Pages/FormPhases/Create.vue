@@ -1,98 +1,98 @@
 <!-- resources/js/Pages/Admin/FormPhases/Create.vue -->
 <script setup lang="ts">
-import { computed, ref } from "vue";
-import { Head, useForm } from "@inertiajs/vue3";
-import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout.vue";
-import { Button } from "@/Components/ui/button";
-import { Input } from "@/Components/ui/input";
-import { Label } from "@/Components/ui/label";
-import { Textarea } from "@/Components/ui/textarea";
-import { Switch } from "@/Components/ui/switch";
-import { Card, CardContent, CardHeader, CardTitle } from "@/Components/ui/card";
+import { computed, ref } from 'vue'
+import { Head, useForm } from '@inertiajs/vue3'
+import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
+import { Button } from '@/Components/ui/button'
+import { Input } from '@/Components/ui/input'
+import { Label } from '@/Components/ui/label'
+import { Textarea } from '@/Components/ui/textarea'
+import { Switch } from '@/Components/ui/switch'
+import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card'
 import {
     Select,
     SelectContent,
     SelectItem,
     SelectTrigger,
     SelectValue,
-} from "@/Components/ui/select";
-import { Badge } from "@/Components/ui/badge";
-import { Separator } from "@/Components/ui/separator";
-import { Plus, Trash2, GripVertical, ArrowLeft } from "lucide-vue-next";
-import draggable from "vuedraggable";
+} from '@/Components/ui/select'
+import { Badge } from '@/Components/ui/badge'
+import { Separator } from '@/Components/ui/separator'
+import { Plus, Trash2, GripVertical, ArrowLeft } from 'lucide-vue-next'
+import draggable from 'vuedraggable'
 
 interface Role {
-    id: number;
-    name: string;
+    id: number
+    name: string
 }
 
 interface Faculty {
-    id: number;
-    name: string;
-    study_programs: StudyProgram[];
+    id: number
+    name: string
+    study_programs: StudyProgram[]
 }
 
 interface StudyProgram {
-    id: number;
-    name: string;
-    faculty_id: number;
+    id: number
+    name: string
+    faculty_id: number
 }
 
 interface Form {
-    id: number;
-    title: string;
+    id: number
+    title: string
 }
 
 interface PhaseType {
-    id: number;
-    name: string;
+    id: number
+    name: string
 }
 
 interface FormAccessControl {
-    id: number;
-    form: Form;
-    role: Role;
-    study_program: StudyProgram;
+    id: number
+    form: Form
+    role: Role
+    study_program: StudyProgram
 }
 
 interface PhaseDetail {
-    form_access_control_id: number | null;
-    phase_type_id: number | null;
-    order: number;
-    needs_review: boolean;
-    temp_id: string;
+    form_access_control_id: number | null
+    phase_type_id: number | null
+    order: number
+    needs_review: boolean
+    temp_id: string
 }
 
 // Renamed from FormData to FormPhaseData to avoid conflict with built-in FormData
 interface FormPhaseData {
-    title: string;
-    description: string;
-    is_active: boolean;
-    phase_details: PhaseDetail[];
-    [key: string]: any; // Add index signature for Inertia compatibility
+    title: string
+    description: string
+    is_active: boolean
+    phase_details: PhaseDetail[]
+    [key: string]: any // Add index signature for Inertia compatibility
 }
 
 interface Props {
-    forms: Form[];
-    roles: Role[];
-    faculties: Faculty[];
-    phaseTypes: PhaseType[];
-    formAccessControls: FormAccessControl[];
+    forms: Form[]
+    roles: Role[]
+    faculties: Faculty[]
+    phaseTypes: PhaseType[]
+    formAccessControls: FormAccessControl[]
 }
 
-const props = defineProps<Props>();
+const props = defineProps<Props>()
 
 // Updated to use FormPhaseData instead of FormData
 const form = useForm<FormPhaseData>({
-    title: "",
-    description: "",
+    title: '',
+    description: '',
     is_active: true,
     phase_details: [],
-});
+})
 
-const errors = computed(() => (form.errors as Record<string, string>) ?? {});
+const errors = computed(() => (form.errors as Record<string, string>) ?? {})
 
-const generateTempId = () => `temp_${Date.now()}_${Math.random()}`;
+const generateTempId = () => `temp_${Date.now()}_${Math.random()}`
 
 const addPhaseDetail = () => {
     form.phase_details.push({
@@ -101,73 +101,73 @@ const addPhaseDetail = () => {
         order: form.phase_details.length + 1,
         needs_review: false,
         temp_id: generateTempId(),
-    });
-};
+    })
+}
 
 const removePhaseDetail = (index: number) => {
-    form.phase_details.splice(index, 1);
+    form.phase_details.splice(index, 1)
     // Reorder remaining items
     form.phase_details.forEach((detail, idx) => {
-        detail.order = idx + 1;
-    });
-};
+        detail.order = idx + 1
+    })
+}
 
 const getFormAccessControlInfo = (id: number | null) => {
-    if (!id) return null;
-    return props.formAccessControls.find((fac) => fac.id === id);
-};
+    if (!id) return null
+    return props.formAccessControls.find((fac) => fac.id === id)
+}
 
 // Calculate grouped order preview - shows what order will be displayed in detail page
 const getGroupedOrderForDetail = (index: number): number | null => {
-    const detail = form.phase_details[index];
-    if (!detail?.form_access_control_id) return null;
+    const detail = form.phase_details[index]
+    if (!detail?.form_access_control_id) return null
 
-    const formAccessControl = getFormAccessControlInfo(detail.form_access_control_id);
-    if (!formAccessControl) return null;
+    const formAccessControl = getFormAccessControlInfo(detail.form_access_control_id)
+    if (!formAccessControl) return null
 
-    const formId = formAccessControl.form.id;
+    const formId = formAccessControl.form.id
 
     // Find unique form_ids in order, and get the position of this form_id
-    const seenFormIds: number[] = [];
+    const seenFormIds: number[] = []
     for (let i = 0; i < form.phase_details.length; i++) {
-        const d = form.phase_details[i];
-        if (!d.form_access_control_id) continue;
+        const d = form.phase_details[i]
+        if (!d.form_access_control_id) continue
 
-        const fac = getFormAccessControlInfo(d.form_access_control_id);
-        if (!fac) continue;
+        const fac = getFormAccessControlInfo(d.form_access_control_id)
+        if (!fac) continue
 
         if (!seenFormIds.includes(fac.form.id)) {
-            seenFormIds.push(fac.form.id);
+            seenFormIds.push(fac.form.id)
         }
 
         if (i === index) {
-            return seenFormIds.indexOf(formId) + 1;
+            return seenFormIds.indexOf(formId) + 1
         }
     }
 
-    return null;
-};
+    return null
+}
 
 // Check if this detail shares same form with another detail
 const hasSameFormAsOthers = (index: number): boolean => {
-    const detail = form.phase_details[index];
-    if (!detail?.form_access_control_id) return false;
+    const detail = form.phase_details[index]
+    if (!detail?.form_access_control_id) return false
 
-    const formAccessControl = getFormAccessControlInfo(detail.form_access_control_id);
-    if (!formAccessControl) return false;
+    const formAccessControl = getFormAccessControlInfo(detail.form_access_control_id)
+    if (!formAccessControl) return false
 
-    const formId = formAccessControl.form.id;
+    const formId = formAccessControl.form.id
 
     return form.phase_details.some((d, i) => {
-        if (i === index || !d.form_access_control_id) return false;
-        const fac = getFormAccessControlInfo(d.form_access_control_id);
-        return fac?.form.id === formId;
-    });
-};
+        if (i === index || !d.form_access_control_id) return false
+        const fac = getFormAccessControlInfo(d.form_access_control_id)
+        return fac?.form.id === formId
+    })
+}
 
 const submit = () => {
-    form.post(route("admin.form-phases.store"));
-};
+    form.post(route('admin.form-phases.store'))
+}
 </script>
 
 <template>
@@ -191,7 +191,7 @@ const submit = () => {
         </template>
 
         <div class="max-w-4xl mx-auto space-y-6">
-            <form @submit.prevent="submit" class="space-y-6">
+            <form class="space-y-6" @submit.prevent="submit">
                 <!-- Phase Basic Info -->
                 <Card>
                     <CardHeader>
@@ -205,14 +205,9 @@ const submit = () => {
                                 id="title"
                                 v-model="form.title"
                                 placeholder="Masukkan judul tahap"
-                                :class="
-                                    errors.title ? 'border-destructive' : ''
-                                "
+                                :class="errors.title ? 'border-destructive' : ''"
                             />
-                            <p
-                                v-if="errors.title"
-                                class="text-sm text-destructive"
-                            >
+                            <p v-if="errors.title" class="text-sm text-destructive">
                                 {{ errors.title }}
                             </p>
                         </div>
@@ -230,7 +225,7 @@ const submit = () => {
 
                         <!-- Active switch -->
                         <div class="flex items-center space-x-2">
-                            <Switch v-model="form.is_active" id="is_active" />
+                            <Switch id="is_active" v-model="form.is_active" />
                             <Label for="is_active">Aktif</Label>
                         </div>
                     </CardContent>
@@ -244,8 +239,8 @@ const submit = () => {
                             <Button
                                 v-if="form.phase_details.length === 0"
                                 type="button"
-                                @click="addPhaseDetail"
                                 size="sm"
+                                @click="addPhaseDetail"
                             >
                                 <Plus class="h-4 w-4 mr-2" />
                                 Tambah Detail Tahap
@@ -258,7 +253,8 @@ const submit = () => {
                             class="text-center py-8 text-muted-foreground"
                         >
                             <p>
-                                Belum ada detail tahap yang ditambahkan. Klik "Tambah Detail Tahap" untuk memulai.
+                                Belum ada detail tahap yang ditambahkan. Klik "Tambah Detail Tahap"
+                                untuk memulai.
                             </p>
                         </div>
 
@@ -271,8 +267,7 @@ const submit = () => {
                                 :animation="200"
                                 @end="
                                     form.phase_details.forEach(
-                                        (detail, idx) =>
-                                            (detail.order = idx + 1)
+                                        (detail, idx) => (detail.order = idx + 1)
                                     )
                                 "
                             >
@@ -289,14 +284,10 @@ const submit = () => {
                                                 </div>
 
                                                 <div class="flex-1 space-y-4">
-                                                    <div
-                                                        class="grid gap-4 md:grid-cols-2"
-                                                    >
+                                                    <div class="grid gap-4 md:grid-cols-2">
                                                         <!-- Form Access Control -->
                                                         <div class="space-y-2">
-                                                            <Label
-                                                                >Kontrol Akses Formulir *</Label
-                                                            >
+                                                            <Label>Kontrol Akses Formulir *</Label>
                                                             <Select
                                                                 v-model="
                                                                     detail.form_access_control_id
@@ -310,30 +301,14 @@ const submit = () => {
                                                                 <SelectContent>
                                                                     <SelectItem
                                                                         v-for="fac in props.formAccessControls"
-                                                                        :key="
-                                                                            fac.id
-                                                                        "
-                                                                        :value="
-                                                                            fac.id
-                                                                        "
+                                                                        :key="fac.id"
+                                                                        :value="fac.id"
                                                                     >
-                                                                        {{
-                                                                            fac
-                                                                                .form
-                                                                                .title
-                                                                        }}
+                                                                        {{ fac.form.title }}
                                                                         -
-                                                                        {{
-                                                                            fac
-                                                                                .role
-                                                                                .name
-                                                                        }}
+                                                                        {{ fac.role.name }}
                                                                         -
-                                                                        {{
-                                                                            fac
-                                                                                .study_program
-                                                                                .name
-                                                                        }}
+                                                                        {{ fac.study_program.name }}
                                                                     </SelectItem>
                                                                 </SelectContent>
                                                             </Select>
@@ -341,15 +316,8 @@ const submit = () => {
 
                                                         <!-- Phase Type -->
                                                         <div class="space-y-2">
-                                                            <Label
-                                                                >Jenis Tahap
-                                                                *</Label
-                                                            >
-                                                            <Select
-                                                                v-model="
-                                                                    detail.phase_type_id
-                                                                "
-                                                            >
+                                                            <Label>Jenis Tahap *</Label>
+                                                            <Select v-model="detail.phase_type_id">
                                                                 <SelectTrigger>
                                                                     <SelectValue
                                                                         placeholder="Pilih jenis tahap"
@@ -358,16 +326,10 @@ const submit = () => {
                                                                 <SelectContent>
                                                                     <SelectItem
                                                                         v-for="phaseType in props.phaseTypes"
-                                                                        :key="
-                                                                            phaseType.id
-                                                                        "
-                                                                        :value="
-                                                                            phaseType.id
-                                                                        "
+                                                                        :key="phaseType.id"
+                                                                        :value="phaseType.id"
                                                                     >
-                                                                        {{
-                                                                            phaseType.name
-                                                                        }}
+                                                                        {{ phaseType.name }}
                                                                     </SelectItem>
                                                                 </SelectContent>
                                                             </Select>
@@ -375,23 +337,13 @@ const submit = () => {
                                                     </div>
 
                                                     <!-- Needs Review switch -->
-                                                    <div
-                                                        class="flex items-center space-x-2"
-                                                    >
-                                                        <Switch
-                                                            v-model="
-                                                                detail.needs_review
-                                                            "
-                                                        />
-                                                        <Label
-                                                            >Perlu Review</Label
-                                                        >
+                                                    <div class="flex items-center space-x-2">
+                                                        <Switch v-model="detail.needs_review" />
+                                                        <Label>Perlu Review</Label>
                                                     </div>
 
                                                     <!-- Order Display -->
-                                                    <div
-                                                        class="flex items-center gap-2 flex-wrap"
-                                                    >
+                                                    <div class="flex items-center gap-2 flex-wrap">
                                                         <Badge
                                                             v-if="getGroupedOrderForDetail(index)"
                                                             variant="default"
@@ -399,10 +351,7 @@ const submit = () => {
                                                             Urutan:
                                                             {{ getGroupedOrderForDetail(index) }}
                                                         </Badge>
-                                                        <Badge
-                                                            v-else
-                                                            variant="outline"
-                                                        >
+                                                        <Badge v-else variant="outline">
                                                             Urutan: -
                                                         </Badge>
                                                         <Badge
@@ -436,20 +385,15 @@ const submit = () => {
                                                             class="space-y-1 text-sm"
                                                         >
                                                             <div>
-                                                                <strong
-                                                                    >Formulir:</strong
-                                                                >
+                                                                <strong>Formulir:</strong>
                                                                 {{
                                                                     getFormAccessControlInfo(
                                                                         detail.form_access_control_id
-                                                                    )?.form
-                                                                        .title
+                                                                    )?.form.title
                                                                 }}
                                                             </div>
                                                             <div>
-                                                                <strong
-                                                                    >Role:</strong
-                                                                >
+                                                                <strong>Role:</strong>
                                                                 {{
                                                                     getFormAccessControlInfo(
                                                                         detail.form_access_control_id
@@ -457,21 +401,15 @@ const submit = () => {
                                                                 }}
                                                             </div>
                                                             <div>
-                                                                <strong
-                                                                    >Program Studi:</strong
-                                                                >
+                                                                <strong>Program Studi:</strong>
                                                                 {{
                                                                     getFormAccessControlInfo(
                                                                         detail.form_access_control_id
-                                                                    )
-                                                                        ?.study_program
-                                                                        .name
+                                                                    )?.study_program.name
                                                                 }}
                                                             </div>
                                                             <div>
-                                                                <strong
-                                                                    >Jenis Tahap:</strong
-                                                                >
+                                                                <strong>Jenis Tahap:</strong>
                                                                 {{
                                                                     props.phaseTypes.find(
                                                                         (pt) =>
@@ -488,10 +426,8 @@ const submit = () => {
                                                     type="button"
                                                     variant="ghost"
                                                     size="sm"
-                                                    @click="
-                                                        removePhaseDetail(index)
-                                                    "
                                                     class="text-destructive hover:text-destructive"
+                                                    @click="removePhaseDetail(index)"
                                                 >
                                                     <Trash2 class="h-4 w-4" />
                                                 </Button>
@@ -505,10 +441,10 @@ const submit = () => {
                             <div class="flex justify-center pt-4">
                                 <Button
                                     type="button"
-                                    @click="addPhaseDetail"
                                     variant="outline"
                                     size="sm"
                                     class="w-full max-w-xs"
+                                    @click="addPhaseDetail"
                                 >
                                     <Plus class="h-4 w-4 mr-2" />
                                     Tambah Detail Tahap Lain
@@ -527,18 +463,12 @@ const submit = () => {
                     <Button
                         type="button"
                         variant="outline"
-                        @click="
-                            $inertia.visit(route('admin.form-phases.index'))
-                        "
+                        @click="$inertia.visit(route('admin.form-phases.index'))"
                     >
                         Batal
                     </Button>
                     <Button type="submit" :disabled="form.processing">
-                        {{
-                            form.processing
-                                ? "Membuat..."
-                                : "Buat Tahap Formulir"
-                        }}
+                        {{ form.processing ? 'Membuat...' : 'Buat Tahap Formulir' }}
                     </Button>
                 </div>
             </form>

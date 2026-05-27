@@ -3,7 +3,6 @@
 namespace Database\Seeders;
 
 use App\Models\PhaseType;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 
@@ -23,12 +22,11 @@ class PhaseTypeSeeder extends Seeder
 
                 foreach ($phase_types as $phase_type) {
                     PhaseType::create([
-                        'name' => $phase_type
+                        'name' => $phase_type,
                     ]);
                 }
             });
         } catch (\Exception $e) {
-            dd($e);
         }
     }
 }

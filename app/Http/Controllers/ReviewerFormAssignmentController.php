@@ -2,14 +2,15 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\ReviewerFormAssignment;
-use App\Models\SubmissionReviewer;
-use App\Models\ReviewEvaluationForm;
+use App\Models\FormPhase;
 use App\Models\FormSubmission;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Auth;
+use App\Models\ReviewerFormAssignment;
+use App\Models\ReviewEvaluationForm;
+use App\Models\SubmissionReviewer;
 use Carbon\Carbon;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 
 class ReviewerFormAssignmentController extends Controller
@@ -28,7 +29,7 @@ class ReviewerFormAssignmentController extends Controller
         // Find submission reviewer
         $submissionReviewer = SubmissionReviewer::where([
             'form_submission_id' => $submission->id,
-            'reviewer_id' => $reviewerId
+            'reviewer_id' => $reviewerId,
         ])->first();
 
         if (!$submissionReviewer) {
@@ -72,7 +73,8 @@ class ReviewerFormAssignmentController extends Controller
 
         } catch (\Exception $e) {
             DB::rollback();
-            return back()->withErrors(['error' => 'Gagal menugaskan formulir evaluasi: ' . $e->getMessage()]);
+
+            return back()->withErrors(['error' => 'Gagal menugaskan formulir evaluasi: '.$e->getMessage()]);
         }
     }
 
@@ -105,7 +107,8 @@ class ReviewerFormAssignmentController extends Controller
 
         } catch (\Exception $e) {
             DB::rollback();
-            return back()->withErrors(['error' => 'Gagal menghapus penugasan formulir: ' . $e->getMessage()]);
+
+            return back()->withErrors(['error' => 'Gagal menghapus penugasan formulir: '.$e->getMessage()]);
         }
     }
 
@@ -133,7 +136,7 @@ class ReviewerFormAssignmentController extends Controller
             return back()->with('success', 'Penugasan berhasil diperbarui.');
 
         } catch (\Exception $e) {
-            return back()->withErrors(['error' => 'Gagal memperbarui penugasan: ' . $e->getMessage()]);
+            return back()->withErrors(['error' => 'Gagal memperbarui penugasan: '.$e->getMessage()]);
         }
     }
 
@@ -146,7 +149,7 @@ class ReviewerFormAssignmentController extends Controller
                 'submissionReviewer.reviewer.user:id,name,email',
                 'submissionReviewer.reviewer.reviewerRole:id,name',
                 'reviewEvaluationForm:id,title,description,is_required',
-                'reviewFormResponse:id,reviewer_form_assignment_id,status,submitted_at'
+                'reviewFormResponse:id,reviewer_form_assignment_id,status,submitted_at',
             ])
             ->get()
             ->groupBy('submissionReviewer.reviewer.id');
@@ -188,11 +191,12 @@ class ReviewerFormAssignmentController extends Controller
             foreach ($validated['reviewer_ids'] as $reviewerId) {
                 $submissionReviewer = SubmissionReviewer::where([
                     'form_submission_id' => $submission->id,
-                    'reviewer_id' => $reviewerId
+                    'reviewer_id' => $reviewerId,
                 ])->first();
 
                 if (!$submissionReviewer) {
                     $errors[] = "Reviewer ID {$reviewerId} tidak ditugaskan untuk pengajuan ini";
+
                     continue;
                 }
 
@@ -219,14 +223,15 @@ class ReviewerFormAssignmentController extends Controller
 
             $message = "Successfully assigned forms to {$successCount} reviewer(s).";
             if (!empty($errors)) {
-                $message .= " Errors: " . implode(', ', $errors);
+                $message .= ' Errors: '.implode(', ', $errors);
             }
 
             return back()->with('success', $message);
 
         } catch (\Exception $e) {
             DB::rollback();
-            return back()->withErrors(['error' => 'Gagal menugaskan formulir secara massal: ' . $e->getMessage()]);
+
+            return back()->withErrors(['error' => 'Gagal menugaskan formulir secara massal: '.$e->getMessage()]);
         }
     }
 
@@ -243,7 +248,7 @@ class ReviewerFormAssignmentController extends Controller
                     'pending' => 0,
                     'completed' => 0,
                     'overdue' => 0,
-                ]
+                ],
             ]);
         }
 
@@ -252,11 +257,11 @@ class ReviewerFormAssignmentController extends Controller
                 ->from('submission_reviewers')
                 ->where('reviewer_id', $reviewer->id);
         })->with([
-                    'reviewEvaluationForm:id,title,description',
-                    'submissionReviewer.formSubmission.form:id,title',
-                    'submissionReviewer.formSubmission.submittedBy:id,name',
-                    'reviewFormResponse:id,reviewer_form_assignment_id,status,submitted_at'
-                ]);
+            'reviewEvaluationForm:id,title,description',
+            'submissionReviewer.formSubmission.form:id,title',
+            'submissionReviewer.formSubmission.submittedBy:id,name',
+            'reviewFormResponse:id,reviewer_form_assignment_id,status,submitted_at',
+        ]);
 
         // Filter by status
         if ($request->has('status') && $request->status !== '') {
@@ -285,21 +290,21 @@ class ReviewerFormAssignmentController extends Controller
             $search = $request->search;
             $query->where(function ($q) use ($search) {
                 $q->whereHas('reviewEvaluationForm', function ($subQ) use ($search) {
-                    $subQ->where('title', 'like', "%{$search}%");
+                    $subQ->where('title', 'ilike', "%{$search}%");
                 })
                     ->orWhereHas('submissionReviewer.formSubmission.form', function ($subQ) use ($search) {
-                        $subQ->where('title', 'like', "%{$search}%");
+                        $subQ->where('title', 'ilike', "%{$search}%");
                     });
             });
         }
 
-        $assignments = $query->orderByRaw("
+        $assignments = $query->orderByRaw('
             CASE
                 WHEN due_date IS NOT NULL AND due_date < NOW() THEN 1
                 WHEN due_date IS NOT NULL THEN 2
                 ELSE 3
             END
-        ")
+        ')
             ->orderBy('due_date', 'asc')
             ->paginate(15);
 
@@ -312,21 +317,21 @@ class ReviewerFormAssignmentController extends Controller
 
         $stats = [
             'total' => $allAssignments->count(),
-            'pending' => $allAssignments->filter(fn($a) => !$a->isCompleted())->count(),
-            'completed' => $allAssignments->filter(fn($a) => $a->isCompleted())->count(),
-            'overdue' => $allAssignments->filter(fn($a) => $a->isOverdue())->count(),
+            'pending' => $allAssignments->filter(fn ($a) => !$a->isCompleted())->count(),
+            'completed' => $allAssignments->filter(fn ($a) => $a->isCompleted())->count(),
+            'overdue' => $allAssignments->filter(fn ($a) => $a->isOverdue())->count(),
         ];
 
         return Inertia::render('Reviewer/Assignments/Index', [
             'assignments' => $assignments,
             'stats' => $stats,
-            'filters' => $request->only(['status', 'search'])
+            'filters' => $request->only(['status', 'search']),
         ]);
     }
 
     protected function getSubmissionFormPhase(FormSubmission $submission)
     {
-        return \App\Models\FormPhase::whereHas('formPhaseDetails.formAccessControl', function ($query) use ($submission) {
+        return FormPhase::whereHas('formPhaseDetails.formAccessControl', function ($query) use ($submission) {
             $query->where('form_id', $submission->form_id);
         })->first();
     }
@@ -350,11 +355,11 @@ class ReviewerFormAssignmentController extends Controller
 
             return response()->json([
                 'message' => "Berhasil mengunci {$lockedCount} penugasan yang terlambat.",
-                'locked_count' => $lockedCount
+                'locked_count' => $lockedCount,
             ]);
 
         } catch (\Exception $e) {
-            return response()->json(['error' => 'Gagal mengunci penugasan yang terlambat: ' . $e->getMessage()], 500);
+            return response()->json(['error' => 'Gagal mengunci penugasan yang terlambat: '.$e->getMessage()], 500);
         }
     }
 }

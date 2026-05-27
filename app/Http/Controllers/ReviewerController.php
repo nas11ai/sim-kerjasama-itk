@@ -2,13 +2,12 @@
 
 namespace App\Http\Controllers;
 
-use App\Http\Controllers\Controller;
 use App\Models\Reviewer;
 use App\Models\ReviewerRole;
 use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
-use Carbon\Carbon;
 
 class ReviewerController extends Controller
 {
@@ -16,17 +15,17 @@ class ReviewerController extends Controller
     {
         $query = Reviewer::with([
             'user:id,name,email',
-            'reviewerRole:id,name'
+            'reviewerRole:id,name',
         ]);
 
         // Search functionality
         if ($request->has('search') && $request->search) {
             $search = $request->search;
             $query->whereHas('user', function ($q) use ($search) {
-                $q->where('name', 'like', "%{$search}%")
-                    ->orWhere('email', 'like', "%{$search}%");
+                $q->where('name', 'ilike', "%{$search}%")
+                    ->orWhere('email', 'ilike', "%{$search}%");
             })->orWhereHas('reviewerRole', function ($q) use ($search) {
-                $q->where('name', 'like', "%{$search}%");
+                $q->where('name', 'ilike', "%{$search}%");
             });
         }
 
@@ -58,6 +57,7 @@ class ReviewerController extends Controller
             $now = Carbon::now();
             $reviewer->is_active = $reviewer->start_date <= $now &&
                 ($reviewer->end_date === null || $reviewer->end_date >= $now);
+
             return $reviewer;
         });
 
@@ -69,7 +69,7 @@ class ReviewerController extends Controller
         return Inertia::render('Reviewers/Index', [
             'reviewers' => $reviewers,
             'reviewerRoles' => $reviewerRoles,
-            'filters' => $request->only(['search', 'role', 'status'])
+            'filters' => $request->only(['search', 'role', 'status']),
         ]);
     }
 
@@ -96,7 +96,7 @@ class ReviewerController extends Controller
 
         return Inertia::render('Reviewers/Create', [
             'users' => $users,
-            'reviewerRoles' => $reviewerRoles
+            'reviewerRoles' => $reviewerRoles,
         ]);
     }
 
@@ -106,7 +106,7 @@ class ReviewerController extends Controller
             'user_id' => 'required|exists:users,id',
             'reviewer_role_id' => 'required|exists:reviewer_roles,id',
             'start_date' => 'required|date|after_or_equal:today',
-            'end_date' => 'nullable|date|after:start_date'
+            'end_date' => 'nullable|date|after:start_date',
         ]);
 
         // Check if user already has active reviewer role
@@ -120,7 +120,7 @@ class ReviewerController extends Controller
 
         if ($existingReviewer) {
             return back()->withErrors([
-                'user_id' => 'User sudah memiliki role reviewer yang aktif.'
+                'user_id' => 'User sudah memiliki role reviewer yang aktif.',
             ]);
         }
 
@@ -135,7 +135,7 @@ class ReviewerController extends Controller
         $reviewer->load([
             'user:id,name,email',
             'reviewerRole:id,name',
-            'submissionReviewers.formSubmission.form:id,title'
+            'submissionReviewers.formSubmission.form:id,title',
         ]);
 
         // Add computed properties
@@ -153,7 +153,7 @@ class ReviewerController extends Controller
             ->count();
 
         return Inertia::render('Reviewers/Show', [
-            'reviewer' => $reviewer
+            'reviewer' => $reviewer,
         ]);
     }
 
@@ -167,7 +167,7 @@ class ReviewerController extends Controller
 
         return Inertia::render('Reviewers/Edit', [
             'reviewer' => $reviewer,
-            'reviewerRoles' => $reviewerRoles
+            'reviewerRoles' => $reviewerRoles,
         ]);
     }
 
@@ -176,7 +176,7 @@ class ReviewerController extends Controller
         $validated = $request->validate([
             'reviewer_role_id' => 'required|exists:reviewer_roles,id',
             'start_date' => 'required|date',
-            'end_date' => 'nullable|date|after:start_date'
+            'end_date' => 'nullable|date|after:start_date',
         ]);
 
         $reviewer->update($validated);
@@ -193,7 +193,7 @@ class ReviewerController extends Controller
 
         if ($pendingReviews > 0) {
             return back()->withErrors([
-                'error' => 'Tidak dapat menghapus reviewer yang masih memiliki review yang belum selesai.'
+                'error' => 'Tidak dapat menghapus reviewer yang masih memiliki review yang belum selesai.',
             ]);
         }
 
@@ -207,7 +207,7 @@ class ReviewerController extends Controller
     {
         // Set end_date to today to deactivate
         $reviewer->update([
-            'end_date' => Carbon::now()->format('Y-m-d')
+            'end_date' => Carbon::now()->format('Y-m-d'),
         ]);
 
         return redirect()->route('admin.reviewers.index')
@@ -218,7 +218,7 @@ class ReviewerController extends Controller
     {
         // Remove end_date to activate
         $reviewer->update([
-            'end_date' => null
+            'end_date' => null,
         ]);
 
         return redirect()->route('admin.reviewers.index')

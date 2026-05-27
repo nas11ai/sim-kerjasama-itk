@@ -13,7 +13,7 @@ class FormSubmission extends Model
         'form_id',
         'is_submitted',
         'status',
-        'submitted_by'
+        'submitted_by',
     ];
 
     protected $casts = [
@@ -89,9 +89,9 @@ class FormSubmission extends Model
             'id',
             'id'
         )->whereIn(
-                'reviewer_form_assignments.submission_reviewer_id',
-                $this->submissionReviewers()->pluck('id')
-            );
+            'reviewer_form_assignments.submission_reviewer_id',
+            $this->submissionReviewers()->pluck('id')
+        );
     }
 
     // NEW: Get submitted review form responses
@@ -189,6 +189,7 @@ class FormSubmission extends Model
     public function getFormPhase(): ?FormPhase
     {
         $formPhaseDetail = $this->getFormPhaseDetail();
+
         return $formPhaseDetail ? $formPhaseDetail->formPhase : null;
     }
 
@@ -377,6 +378,7 @@ class FormSubmission extends Model
     public function hasReviewEvaluationForms(): bool
     {
         $formPhaseDetail = $this->getFormPhaseDetail();
+
         return $formPhaseDetail ? $formPhaseDetail->hasReviewEvaluationForms() : false;
     }
 
@@ -384,6 +386,7 @@ class FormSubmission extends Model
     public function requiresReviewEvaluation(): bool
     {
         $formPhaseDetail = $this->getFormPhaseDetail();
+
         return $formPhaseDetail ? $formPhaseDetail->requiresEvaluationCompletion() : false;
     }
 
@@ -422,7 +425,7 @@ class FormSubmission extends Model
             return [
                 'required' => false,
                 'has_forms' => false,
-                'message' => 'No evaluation forms required for this submission.'
+                'message' => 'No evaluation forms required for this submission.',
             ];
         }
 
@@ -431,7 +434,7 @@ class FormSubmission extends Model
             return [
                 'required' => false,
                 'has_forms' => false,
-                'message' => 'No form phase detail found.'
+                'message' => 'No form phase detail found.',
             ];
         }
 
@@ -443,7 +446,7 @@ class FormSubmission extends Model
             'has_forms' => true,
             'total_forms' => $formsCount,
             'required_forms' => $requiredCount,
-            'message' => "This submission requires evaluation forms to be completed before creating review threads."
+            'message' => 'This submission requires evaluation forms to be completed before creating review threads.',
         ];
     }
 }

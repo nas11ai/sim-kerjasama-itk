@@ -1,125 +1,113 @@
 <script setup lang="ts">
-import { computed, ref, watch, onMounted } from "vue";
-import { Head, useForm } from "@inertiajs/vue3";
-import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout.vue";
-import { Button } from "@/Components/ui/button";
-import { Label } from "@/Components/ui/label";
-import { Card, CardContent, CardHeader, CardTitle } from "@/Components/ui/card";
+import { computed, ref, watch, onMounted } from 'vue'
+import { Head, useForm } from '@inertiajs/vue3'
+import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
+import { Button } from '@/Components/ui/button'
+import { Label } from '@/Components/ui/label'
+import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card'
 import {
     Select,
     SelectContent,
     SelectItem,
     SelectTrigger,
     SelectValue,
-} from "@/Components/ui/select";
-import {
-    ArrowLeft,
-    Users,
-    Building,
-    FileText,
-    AlertTriangle,
-} from "lucide-vue-next";
+} from '@/Components/ui/select'
+import { ArrowLeft, Users, Building, FileText, AlertTriangle } from 'lucide-vue-next'
 
 interface Role {
-    id: number;
-    name: string;
+    id: number
+    name: string
 }
 
 interface StudyProgram {
-    id: number;
-    name: string;
-    faculty_id: number;
+    id: number
+    name: string
+    faculty_id: number
 }
 
 interface Faculty {
-    id: number;
-    name: string;
-    study_programs: StudyProgram[];
+    id: number
+    name: string
+    study_programs: StudyProgram[]
 }
 
 interface Form {
-    id: number;
-    title: string;
+    id: number
+    title: string
 }
 
 interface FormAccessControl {
-    id: number;
-    form: Form;
-    role: Role;
+    id: number
+    form: Form
+    role: Role
     study_program: StudyProgram & {
-        faculty: Faculty;
-    };
+        faculty: Faculty
+    }
 }
 
 // Rename FormData to avoid conflict with browser's FormData
 interface FormFields {
-    form_id: number | null;
-    role_id: number | null;
-    study_program_id: number | null;
-    _method: string;
-    [key: string]: any;
+    form_id: number | null
+    role_id: number | null
+    study_program_id: number | null
+    _method: string
+    [key: string]: any
 }
 
 interface Props {
-    formAccessControl: FormAccessControl;
-    forms: Form[];
-    roles: Role[];
-    faculties: Faculty[];
+    formAccessControl: FormAccessControl
+    forms: Form[]
+    roles: Role[]
+    faculties: Faculty[]
 }
 
-const props = defineProps<Props>();
+const props = defineProps<Props>()
 
-const selectedFacultyId = ref<number | null>(null);
+const selectedFacultyId = ref<number | null>(null)
 
 const form = useForm<FormFields>({
     form_id: null,
     role_id: null,
     study_program_id: null,
-    _method: "PATCH",
-});
+    _method: 'PATCH',
+})
 
 const errors = computed(() => {
-    const formErrors = (form.errors as any) ?? {};
+    const formErrors = (form.errors as any) ?? {}
     return {
         form_id: formErrors.form_id,
         role_id: formErrors.role_id,
         study_program_id: formErrors.study_program_id,
         duplicate: formErrors.duplicate,
-    };
-});
+    }
+})
 
 const studyPrograms = computed(() => {
-    if (!selectedFacultyId.value) return [];
-    const faculty = props.faculties.find(
-        (f) => f.id === selectedFacultyId.value
-    );
-    return faculty?.study_programs || [];
-});
+    if (!selectedFacultyId.value) return []
+    const faculty = props.faculties.find((f) => f.id === selectedFacultyId.value)
+    return faculty?.study_programs || []
+})
 
 // Watch for faculty change to reset study program selection
 watch(selectedFacultyId, () => {
     // Only reset if the new faculty doesn't contain the current study program
-    const currentStudyProgram = studyPrograms.value.find(
-        (sp) => sp.id === form.study_program_id
-    );
+    const currentStudyProgram = studyPrograms.value.find((sp) => sp.id === form.study_program_id)
     if (!currentStudyProgram) {
-        form.study_program_id = null;
+        form.study_program_id = null
     }
-});
+})
 
 // Initialize form with existing data
 onMounted(() => {
-    form.form_id = props.formAccessControl.form.id;
-    form.role_id = props.formAccessControl.role.id;
-    form.study_program_id = props.formAccessControl.study_program.id;
-    selectedFacultyId.value = props.formAccessControl.study_program.faculty.id;
-});
+    form.form_id = props.formAccessControl.form.id
+    form.role_id = props.formAccessControl.role.id
+    form.study_program_id = props.formAccessControl.study_program.id
+    selectedFacultyId.value = props.formAccessControl.study_program.faculty.id
+})
 
 const submit = () => {
-    form.patch(
-        route("admin.form-access-controls.update", props.formAccessControl.id)
-    );
-};
+    form.patch(route('admin.form-access-controls.update', props.formAccessControl.id))
+}
 </script>
 
 <template>
@@ -133,10 +121,7 @@ const submit = () => {
                     size="sm"
                     @click="
                         $inertia.visit(
-                            route(
-                                'admin.form-access-controls.show',
-                                props.formAccessControl.id
-                            )
+                            route('admin.form-access-controls.show', props.formAccessControl.id)
                         )
                     "
                 >
@@ -153,9 +138,7 @@ const submit = () => {
             <!-- Current Configuration Display -->
             <Card class="border-blue-200 bg-blue-50">
                 <CardHeader>
-                    <CardTitle class="text-blue-900"
-                        >Konfigurasi Saat Ini</CardTitle
-                    >
+                    <CardTitle class="text-blue-900"> Konfigurasi Saat Ini </CardTitle>
                 </CardHeader>
                 <CardContent>
                     <div class="grid gap-4 md:grid-cols-3 text-sm">
@@ -172,24 +155,19 @@ const submit = () => {
                             </p>
                         </div>
                         <div>
-                            <p class="text-blue-700 font-medium">
-                                Program Studi
-                            </p>
+                            <p class="text-blue-700 font-medium">Program Studi</p>
                             <p class="text-blue-600">
                                 {{ props.formAccessControl.study_program.name }}
                             </p>
                             <p class="text-blue-500 text-xs">
-                                {{
-                                    props.formAccessControl.study_program
-                                        .faculty.name
-                                }}
+                                {{ props.formAccessControl.study_program.faculty.name }}
                             </p>
                         </div>
                     </div>
                 </CardContent>
             </Card>
 
-            <form @submit.prevent="submit" class="space-y-6">
+            <form class="space-y-6" @submit.prevent="submit">
                 <!-- Form Selection -->
                 <Card>
                     <CardHeader>
@@ -215,10 +193,7 @@ const submit = () => {
                                     </SelectItem>
                                 </SelectContent>
                             </Select>
-                            <p
-                                v-if="errors.form_id"
-                                class="text-sm text-destructive"
-                            >
+                            <p v-if="errors.form_id" class="text-sm text-destructive">
                                 {{ errors.form_id }}
                             </p>
                         </div>
@@ -252,10 +227,7 @@ const submit = () => {
                                         </SelectItem>
                                     </SelectContent>
                                 </Select>
-                                <p
-                                    v-if="errors.role_id"
-                                    class="text-sm text-destructive"
-                                >
+                                <p v-if="errors.role_id" class="text-sm text-destructive">
                                     {{ errors.role_id }}
                                 </p>
                             </div>
@@ -265,9 +237,7 @@ const submit = () => {
                                 <Label for="faculty">Fakultas *</Label>
                                 <Select v-model="selectedFacultyId">
                                     <SelectTrigger id="faculty">
-                                        <SelectValue
-                                            placeholder="Pilih fakultas"
-                                        />
+                                        <SelectValue placeholder="Pilih fakultas" />
                                     </SelectTrigger>
                                     <SelectContent>
                                         <SelectItem
@@ -285,14 +255,9 @@ const submit = () => {
                         <!-- Study Program Selection -->
                         <div class="space-y-2">
                             <Label for="study_program">Program Studi *</Label>
-                            <Select
-                                v-model="form.study_program_id"
-                                :disabled="!selectedFacultyId"
-                            >
+                            <Select v-model="form.study_program_id" :disabled="!selectedFacultyId">
                                 <SelectTrigger id="study_program">
-                                    <SelectValue
-                                        placeholder="Pilih program studi"
-                                    />
+                                    <SelectValue placeholder="Pilih program studi" />
                                 </SelectTrigger>
                                 <SelectContent>
                                     <SelectItem
@@ -304,10 +269,7 @@ const submit = () => {
                                     </SelectItem>
                                 </SelectContent>
                             </Select>
-                            <p
-                                v-if="errors.study_program_id"
-                                class="text-sm text-destructive"
-                            >
+                            <p v-if="errors.study_program_id" class="text-sm text-destructive">
                                 {{ errors.study_program_id }}
                             </p>
                         </div>
@@ -330,21 +292,16 @@ const submit = () => {
                 <Card class="border-amber-200 bg-amber-50">
                     <CardContent class="p-4">
                         <div class="flex items-start gap-3">
-                            <AlertTriangle
-                                class="h-5 w-5 text-amber-600 mt-0.5"
-                            />
+                            <AlertTriangle class="h-5 w-5 text-amber-600 mt-0.5" />
                             <div>
-                                <h4
-                                    class="text-amber-800 font-medium text-sm mb-1"
-                                >
+                                <h4 class="text-amber-800 font-medium text-sm mb-1">
                                     Peringatan Pembaruan
                                 </h4>
                                 <p class="text-amber-700 text-sm">
-                                    Perubahan pada kontrol akses ini dapat
-                                    berdampak pada pengguna yang saat ini
-                                    memiliki akses ke formulir terkait.
-                                    Disarankan untuk melakukan koordinasi dengan
-                                    pihak terkait sebelum melanjutkan.
+                                    Perubahan pada kontrol akses ini dapat berdampak pada pengguna
+                                    yang saat ini memiliki akses ke formulir terkait. Disarankan
+                                    untuk melakukan koordinasi dengan pihak terkait sebelum
+                                    melanjutkan.
                                 </p>
                             </div>
                         </div>
@@ -358,21 +315,14 @@ const submit = () => {
                         variant="outline"
                         @click="
                             $inertia.visit(
-                                route(
-                                    'admin.form-access-controls.show',
-                                    props.formAccessControl.id
-                                )
+                                route('admin.form-access-controls.show', props.formAccessControl.id)
                             )
                         "
                     >
                         Batal
                     </Button>
                     <Button type="submit" :disabled="form.processing">
-                        {{
-                            form.processing
-                                ? "Memperbarui..."
-                                : "Perbarui Kontrol Akses"
-                        }}
+                        {{ form.processing ? 'Memperbarui...' : 'Perbarui Kontrol Akses' }}
                     </Button>
                 </div>
             </form>

@@ -2,14 +2,14 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\FormAccessControl;
-use App\Models\Form;
-use App\Models\StudyProgram;
 use App\Models\Faculty;
-use Spatie\Permission\Models\Role;
+use App\Models\Form;
+use App\Models\FormAccessControl;
+use App\Models\StudyProgram;
 use Illuminate\Http\Request;
-use Inertia\Inertia;
 use Illuminate\Support\Facades\DB;
+use Inertia\Inertia;
+use Spatie\Permission\Models\Role;
 
 class FormAccessControlController extends Controller
 {
@@ -41,13 +41,13 @@ class FormAccessControlController extends Controller
             $search = $request->search;
             $query->where(function ($q) use ($search) {
                 $q->whereHas('form', function ($subQ) use ($search) {
-                    $subQ->where('title', 'like', "%{$search}%");
+                    $subQ->where('title', 'ilike', "%{$search}%");
                 })
                     ->orWhereHas('role', function ($subQ) use ($search) {
-                        $subQ->where('name', 'like', "%{$search}%");
+                        $subQ->where('name', 'ilike', "%{$search}%");
                     })
                     ->orWhereHas('studyProgram', function ($subQ) use ($search) {
-                        $subQ->where('name', 'like', "%{$search}%");
+                        $subQ->where('name', 'ilike', "%{$search}%");
                     });
             });
         }
@@ -68,6 +68,7 @@ class FormAccessControlController extends Controller
 
         $groupAccessControls->getCollection()->transform(function ($item) use ($controls) {
             $item->controls = $controls[$item->form_id] ?? collect();
+
             return $item;
         });
 
@@ -81,7 +82,7 @@ class FormAccessControlController extends Controller
             'forms' => $forms,
             'roles' => $roles,
             'faculties' => $faculties,
-            'filters' => $request->only(['form_id', 'role_id', 'faculty_id', 'study_program_id', 'search'])
+            'filters' => $request->only(['form_id', 'role_id', 'faculty_id', 'study_program_id', 'search']),
         ]);
     }
 
@@ -94,7 +95,7 @@ class FormAccessControlController extends Controller
         return Inertia::render('FormAccessControls/Create', [
             'forms' => $forms,
             'roles' => $roles,
-            'faculties' => $faculties
+            'faculties' => $faculties,
         ]);
     }
 
@@ -115,7 +116,7 @@ class FormAccessControlController extends Controller
 
         if ($existingControl) {
             return back()->withErrors([
-                'duplicate' => 'Gabungan Formulir, Role, dan Program Studi tersebut sudah terdaftar.'
+                'duplicate' => 'Gabungan Formulir, Role, dan Program Studi tersebut sudah terdaftar.',
             ]);
         }
 
@@ -130,7 +131,7 @@ class FormAccessControlController extends Controller
                 ->with('success', 'Kontrol Akses Formulir berhasil dibuat.');
 
         } catch (\Exception $e) {
-            return back()->withErrors(['error' => 'Gagal membuat kontrol akses formulir: ' . $e->getMessage()]);
+            return back()->withErrors(['error' => 'Gagal membuat kontrol akses formulir: '.$e->getMessage()]);
         }
     }
 
@@ -139,7 +140,7 @@ class FormAccessControlController extends Controller
         $formAccessControl->load(['form', 'role', 'studyProgram.faculty', 'formPhaseDetails.formPhase']);
 
         return Inertia::render('FormAccessControls/Show', [
-            'formAccessControl' => $formAccessControl
+            'formAccessControl' => $formAccessControl,
         ]);
     }
 
@@ -155,7 +156,7 @@ class FormAccessControlController extends Controller
             'formAccessControl' => $formAccessControl,
             'forms' => $forms,
             'roles' => $roles,
-            'faculties' => $faculties
+            'faculties' => $faculties,
         ]);
     }
 
@@ -176,7 +177,7 @@ class FormAccessControlController extends Controller
 
         if ($existingControl) {
             return back()->withErrors([
-                'duplicate' => 'Kombinasi Formulir, Role, dan Program Studi ini sudah ada.'
+                'duplicate' => 'Kombinasi Formulir, Role, dan Program Studi ini sudah ada.',
             ]);
         }
 
@@ -191,7 +192,7 @@ class FormAccessControlController extends Controller
                 ->with('success', 'Kontrol Akses Formulir berhasil diperbarui.');
 
         } catch (\Exception $e) {
-            return back()->withErrors(['error' => 'Gagal memperbarui kontrol akses formulir: ' . $e->getMessage()]);
+            return back()->withErrors(['error' => 'Gagal memperbarui kontrol akses formulir: '.$e->getMessage()]);
         }
     }
 
@@ -205,7 +206,7 @@ class FormAccessControlController extends Controller
 
             if ($usageCount > 0) {
                 return back()->withErrors([
-                    'error' => "Tidak dapat menghapus kontrol akses ini. Kontrol akses ini sedang digunakan dalam {$usageCount} detail fase formulir."
+                    'error' => "Tidak dapat menghapus kontrol akses ini. Kontrol akses ini sedang digunakan dalam {$usageCount} detail fase formulir.",
                 ]);
             }
 
@@ -218,7 +219,8 @@ class FormAccessControlController extends Controller
 
         } catch (\Exception $e) {
             DB::rollback();
-            return back()->withErrors(['error' => 'Gagal menghapus kontrol akses formulir: ' . $e->getMessage()]);
+
+            return back()->withErrors(['error' => 'Gagal menghapus kontrol akses formulir: '.$e->getMessage()]);
         }
     }
 
@@ -248,6 +250,7 @@ class FormAccessControlController extends Controller
 
                 if ($exists) {
                     $skipped++;
+
                     continue;
                 }
 
@@ -269,7 +272,8 @@ class FormAccessControlController extends Controller
 
         } catch (\Exception $e) {
             DB::rollback();
-            return back()->withErrors(['error' => 'Gagal membuat kontrol akses formulir secara massal: ' . $e->getMessage()]);
+
+            return back()->withErrors(['error' => 'Gagal membuat kontrol akses formulir secara massal: '.$e->getMessage()]);
         }
     }
 
@@ -277,7 +281,7 @@ class FormAccessControlController extends Controller
     {
         $request->validate([
             'ids' => 'required|array|min:1',
-            'ids.*' => 'exists:form_access_controls,id'
+            'ids.*' => 'exists:form_access_controls,id',
         ]);
 
         try {
@@ -292,6 +296,7 @@ class FormAccessControlController extends Controller
 
                 if ($usageCount > 0) {
                     $cannotDelete[] = "ID {$control->id} (used in {$usageCount} phase details)";
+
                     continue;
                 }
 
@@ -303,7 +308,7 @@ class FormAccessControlController extends Controller
 
             $message = "Bulk deletion completed. Deleted: {$deleted}";
             if (!empty($cannotDelete)) {
-                $message .= ". Could not delete: " . implode(', ', $cannotDelete);
+                $message .= '. Could not delete: '.implode(', ', $cannotDelete);
             }
 
             return redirect()->route('admin.form-access-controls.index')
@@ -311,7 +316,8 @@ class FormAccessControlController extends Controller
 
         } catch (\Exception $e) {
             DB::rollback();
-            return back()->withErrors(['error' => 'Gagal menghapus kontrol akses formulir secara massal: ' . $e->getMessage()]);
+
+            return back()->withErrors(['error' => 'Gagal menghapus kontrol akses formulir secara massal: '.$e->getMessage()]);
         }
     }
 

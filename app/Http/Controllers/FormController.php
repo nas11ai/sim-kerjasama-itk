@@ -2,14 +2,14 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Form;
-use App\Models\FormType;
 use App\Models\FieldType;
+use App\Models\Form;
 use App\Models\FormField;
 use App\Models\FormFieldOption;
+use App\Models\FormType;
 use Illuminate\Http\Request;
-use Inertia\Inertia;
 use Illuminate\Support\Facades\DB;
+use Inertia\Inertia;
 
 class FormController extends Controller
 {
@@ -26,10 +26,10 @@ class FormController extends Controller
 
         if ($search) {
             $query->where(function ($q) use ($search) {
-                $q->where('title', 'like', '%' . $search . '%')
-                    ->orWhere('description', 'like', '%' . $search . '%')
+                $q->where('title', 'ilike', '%'.$search.'%')
+                    ->orWhere('description', 'ilike', '%'.$search.'%')
                     ->orWhereHas('formType', function ($typeQuery) use ($search) {
-                        $typeQuery->where('name', 'like', '%' . $search . '%');
+                        $typeQuery->where('name', 'ilike', '%'.$search.'%');
                     });
             });
         }
@@ -64,7 +64,7 @@ class FormController extends Controller
                 'sort_order' => $sortOrder,
                 'form_type' => $formTypeFilter,
                 'is_active' => $isActiveFilter,
-            ]
+            ],
         ]);
     }
 
@@ -186,7 +186,7 @@ class FormController extends Controller
                 foreach ($validated['fields'] as $index => $fieldData) {
                     $field = isset($fieldData['id'])
                         ? FormField::find($fieldData['id'])
-                        : new FormField();
+                        : new FormField;
 
                     $field->form_id = $form->id;
                     $field->field_type_id = $fieldData['field_type_id'];
@@ -209,7 +209,7 @@ class FormController extends Controller
                         foreach ($fieldData['options'] as $optionIndex => $optionData) {
                             $option = isset($optionData['id'])
                                 ? FormFieldOption::find($optionData['id'])
-                                : new FormFieldOption();
+                                : new FormFieldOption;
 
                             $option->form_field_id = $field->id;
                             $option->label = $optionData['label'];
@@ -239,7 +239,7 @@ class FormController extends Controller
     {
         DB::transaction(function () use ($form) {
             $newForm = $form->replicate();
-            $newForm->title = $form->title . ' (Copy)';
+            $newForm->title = $form->title.' (Copy)';
             $newForm->save();
 
             foreach ($form->formFields as $field) {

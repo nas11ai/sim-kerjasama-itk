@@ -13,7 +13,7 @@ class CheckReviewer
     /**
      * Handle an incoming request.
      *
-     * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
+     * @param  Closure(Request): (Response)  $next
      */
     public function handle(Request $request, Closure $next): Response
     {
@@ -22,18 +22,20 @@ class CheckReviewer
         if ($user) {
             $today = Carbon::today();
 
-            // Cek apakah user punya record reviewer yang masih aktif
             $isReviewer = Reviewer::where('user_id', $user->id)
                 ->where(function ($q) use ($today) {
-                    $q->whereNull('start_date')->orWhere('start_date', '<=', $today);
+                    $q->whereNull('start_date')
+                        ->orWhere('start_date', '<=', $today);
                 })
                 ->where(function ($q) use ($today) {
-                    $q->whereNull('end_date')->orWhere('end_date', '>=', $today);
+                    $q->whereNull('end_date')
+                        ->orWhere('end_date', '>=', $today);
                 })
                 ->exists();
 
-            // Inject ke user object
-            $user->is_reviewer = $isReviewer;
+            $user->setAttribute('is_reviewer', $isReviewer);
+
+            $user->syncOriginalAttribute('is_reviewer');
         }
 
         return $next($request);

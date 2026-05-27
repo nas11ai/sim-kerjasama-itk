@@ -3,7 +3,6 @@
 namespace Database\Seeders;
 
 use App\Models\FormType;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 
@@ -20,17 +19,16 @@ class FormTypeSeeder extends Seeder
                     'Biodata',
                     'Pengajuan',
                     'Penilaian Pengajuan',
-                    'Monitoring Evaluasi Pengajuan'
+                    'Monitoring Evaluasi Pengajuan',
                 ];
 
                 foreach ($form_types as $form_type) {
                     FormType::create([
-                        'name' => $form_type
+                        'name' => $form_type,
                     ]);
                 }
             });
         } catch (\Exception $e) {
-            dd($e);
         }
     }
 }

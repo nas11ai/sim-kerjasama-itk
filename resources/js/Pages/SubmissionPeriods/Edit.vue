@@ -1,296 +1,284 @@
 <script setup lang="ts">
-import { computed, ref, onMounted, nextTick, watch } from "vue";
-import { Head, useForm } from "@inertiajs/vue3";
-import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout.vue";
-import { Button } from "@/Components/ui/button";
-import { Input } from "@/Components/ui/input";
-import { Label } from "@/Components/ui/label";
-import { Card, CardContent, CardHeader, CardTitle } from "@/Components/ui/card";
-import { Badge } from "@/Components/ui/badge";
-import { Separator } from "@/Components/ui/separator";
+import { computed, ref, onMounted, nextTick, watch } from 'vue'
+import { Head, useForm } from '@inertiajs/vue3'
+import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
+import { Button } from '@/Components/ui/button'
+import { Input } from '@/Components/ui/input'
+import { Label } from '@/Components/ui/label'
+import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card'
+import { Badge } from '@/Components/ui/badge'
+import { Separator } from '@/Components/ui/separator'
 import {
     Select,
     SelectContent,
     SelectItem,
     SelectTrigger,
     SelectValue,
-} from "@/Components/ui/select";
-import {
-    Plus,
-    Trash2,
-    ArrowLeft,
-    Calendar,
-    Settings,
-    FileText,
-} from "lucide-vue-next";
-import Checkbox from "@/Components/Checkbox.vue";
+} from '@/Components/ui/select'
+import { Plus, Trash2, ArrowLeft, Calendar, Settings, FileText } from 'lucide-vue-next'
+import Checkbox from '@/Components/Checkbox.vue'
 
 interface FormPhase {
-    id: number;
-    title: string;
-    description?: string;
+    id: number
+    title: string
+    description?: string
 }
 
 interface SubmissionRule {
-    id: number;
-    label: string;
-    value: number;
+    id: number
+    label: string
+    value: number
 }
 
 interface SubmissionDateLabel {
-    id: number;
-    name: string;
+    id: number
+    name: string
 }
 
 interface SubmissionDate {
-    label: string;
-    datetime: string;
-    temp_id: string;
+    label: string
+    datetime: string
+    temp_id: string
 }
 
 interface ExistingSubmissionDate {
-    id: number;
-    datetime: string;
+    id: number
+    datetime: string
     submission_date_label: {
-        id: number;
-        name: string;
-    };
+        id: number
+        name: string
+    }
 }
 
 interface SubmissionPeriodPhase {
     form_phase: {
-        id: number;
-        title: string;
-        description?: string;
-    };
+        id: number
+        title: string
+        description?: string
+    }
 }
 
 interface SubmissionPeriodDetail {
     submission_rule: {
-        id: number;
-        label: string;
-        value: number;
-    };
+        id: number
+        label: string
+        value: number
+    }
 }
 
 interface SubmissionPeriod {
-    id: number;
-    name: string;
-    submission_dates: ExistingSubmissionDate[];
-    submission_period_phases: SubmissionPeriodPhase[];
-    submission_period_details: SubmissionPeriodDetail[];
+    id: number
+    name: string
+    submission_dates: ExistingSubmissionDate[]
+    submission_period_phases: SubmissionPeriodPhase[]
+    submission_period_details: SubmissionPeriodDetail[]
 }
 
 interface FormData {
-    name: string;
-    submission_dates: SubmissionDate[];
-    form_phase_ids: number[];
-    submission_rule_ids: number[];
-    [key: string]: any;
+    name: string
+    submission_dates: SubmissionDate[]
+    form_phase_ids: number[]
+    submission_rule_ids: number[]
+    [key: string]: any
 }
 
 interface Props {
-    submissionPeriod: SubmissionPeriod;
-    formPhases: FormPhase[];
-    submissionRules: SubmissionRule[];
-    submissionDateLabels: SubmissionDateLabel[];
+    submissionPeriod: SubmissionPeriod
+    formPhases: FormPhase[]
+    submissionRules: SubmissionRule[]
+    submissionDateLabels: SubmissionDateLabel[]
 }
 
-const props = defineProps<Props>();
+const props = defineProps<Props>()
 
 const form = useForm<FormData>({
     name: props.submissionPeriod.name,
     submission_dates: [],
     form_phase_ids: [],
     submission_rule_ids: [],
-});
+})
 
-const errors = computed(() => (form.errors as Record<string, string>) ?? {});
+const errors = computed(() => (form.errors as Record<string, string>) ?? {})
 
 // State untuk dialog tambah label baru
-const showAddLabelDialog = ref(false);
+const showAddLabelDialog = ref(false)
 const newLabelForm = useForm({
-    label: "",
-});
+    label: '',
+})
 
 // State untuk menyimpan labels yang ditambahkan secara dinamis
-const dynamicLabels = ref<SubmissionDateLabel[]>([]);
+const dynamicLabels = ref<SubmissionDateLabel[]>([])
 
 // Reactive key untuk memaksa update komponen Select
-const selectKey = ref(0);
+const selectKey = ref(0)
 
 // Computed untuk menggabungkan labels
 const allLabels = computed(() => {
-    return [
-        ...props.submissionDateLabels,
-        ...dynamicLabels.value,
-    ];
-});
+    return [...props.submissionDateLabels, ...dynamicLabels.value]
+})
 
-const generateTempId = () => `temp_${Date.now()}_${Math.random()}`;
+const generateTempId = () => `temp_${Date.now()}_${Math.random()}`
 
 // Initialize form data with existing data
 onMounted(async () => {
-    await nextTick();
+    await nextTick()
 
     // Load existing submission dates
-    form.submission_dates = props.submissionPeriod.submission_dates.map(
-        (date) => ({
-            label: date.submission_date_label?.name || "",
-            datetime: formatDateForInput(date.datetime),
-            temp_id: generateTempId(),
-        })
-    );
+    form.submission_dates = props.submissionPeriod.submission_dates.map((date) => ({
+        label: date.submission_date_label?.name || '',
+        datetime: formatDateForInput(date.datetime),
+        temp_id: generateTempId(),
+    }))
 
     // Load existing form phase IDs
     form.form_phase_ids = props.submissionPeriod.submission_period_phases.map(
         (phase) => phase.form_phase.id
-    );
+    )
 
     // Load existing submission rule IDs
-    form.submission_rule_ids =
-        props.submissionPeriod.submission_period_details.map(
-            (detail) => detail.submission_rule.id
-        );
+    form.submission_rule_ids = props.submissionPeriod.submission_period_details.map(
+        (detail) => detail.submission_rule.id
+    )
 
     // If no submission dates exist, add one empty entry
     if (form.submission_dates.length === 0) {
-        addSubmissionDate();
+        addSubmissionDate()
     }
-});
+})
 
 // Format date for datetime-local input
 const formatDateForInput = (dateString: string): string => {
-    const date = new Date(dateString);
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, "0");
-    const day = String(date.getDate()).padStart(2, "0");
-    const hours = String(date.getHours()).padStart(2, "0");
-    const minutes = String(date.getMinutes()).padStart(2, "0");
+    const date = new Date(dateString)
+    const year = date.getFullYear()
+    const month = String(date.getMonth() + 1).padStart(2, '0')
+    const day = String(date.getDate()).padStart(2, '0')
+    const hours = String(date.getHours()).padStart(2, '0')
+    const minutes = String(date.getMinutes()).padStart(2, '0')
 
-    return `${year}-${month}-${day}T${hours}:${minutes}`;
-};
+    return `${year}-${month}-${day}T${hours}:${minutes}`
+}
 
 const addSubmissionDate = () => {
     const newDate = {
-        label: "",
-        datetime: "",
+        label: '',
+        datetime: '',
         temp_id: generateTempId(),
-    };
+    }
 
-    form.submission_dates.push(newDate);
-};
+    form.submission_dates.push(newDate)
+}
 
 const addNewLabel = async () => {
     if (newLabelForm.label.trim()) {
         try {
-            const response = await fetch(
-                route("admin.submission-date-labels.store"),
-                {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                        Accept: "application/json",
-                        "X-CSRF-TOKEN":
-                            document
-                                .querySelector('meta[name="csrf-token"]')
-                                ?.getAttribute("content") || "",
-                    },
-                    body: JSON.stringify({ name: newLabelForm.label.trim() }),
-                }
-            );
+            const response = await fetch(route('admin.submission-date-labels.store'), {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Accept: 'application/json',
+                    'X-CSRF-TOKEN':
+                        document
+                            .querySelector('meta[name="csrf-token"]')
+                            ?.getAttribute('content') || '',
+                },
+                body: JSON.stringify({ name: newLabelForm.label.trim() }),
+            })
 
             if (!response.ok) {
-                const text = await response.text();
-                console.error("Permintaan gagal:", text);
-                return;
+                const text = await response.text()
+                console.error('Permintaan gagal:', text)
+                return
             }
 
-            const newLabel = await response.json();
-            dynamicLabels.value.push(newLabel);
-            showAddLabelDialog.value = false;
+            const newLabel = await response.json()
+            dynamicLabels.value.push(newLabel)
+            showAddLabelDialog.value = false
         } catch (error) {
-            console.error("Gagal menambahkan label baru:", error);
+            console.error('Gagal menambahkan label baru:', error)
         }
     }
-};
+}
 
 const removeSubmissionDate = (index: number) => {
-    form.submission_dates.splice(index, 1);
-};
+    form.submission_dates.splice(index, 1)
+}
 
 const toggleFormPhase = (phaseId: number) => {
-    const index = form.form_phase_ids.indexOf(phaseId);
+    const index = form.form_phase_ids.indexOf(phaseId)
     if (index > -1) {
-        form.form_phase_ids.splice(index, 1);
+        form.form_phase_ids.splice(index, 1)
     } else {
-        form.form_phase_ids.push(phaseId);
+        form.form_phase_ids.push(phaseId)
     }
-};
+}
 
 const toggleSubmissionRule = (ruleId: number) => {
-    const index = form.submission_rule_ids.indexOf(ruleId);
+    const index = form.submission_rule_ids.indexOf(ruleId)
     if (index > -1) {
-        form.submission_rule_ids.splice(index, 1);
+        form.submission_rule_ids.splice(index, 1)
     } else {
-        form.submission_rule_ids.push(ruleId);
+        form.submission_rule_ids.push(ruleId)
     }
-};
+}
 
 const selectAllFormPhases = () => {
     if (form.form_phase_ids.length === props.formPhases.length) {
-        form.form_phase_ids = [];
+        form.form_phase_ids = []
     } else {
-        form.form_phase_ids = props.formPhases.map((phase) => phase.id);
+        form.form_phase_ids = props.formPhases.map((phase) => phase.id)
     }
-};
+}
 
 const selectAllSubmissionRules = () => {
     if (form.submission_rule_ids.length === props.submissionRules.length) {
-        form.submission_rule_ids = [];
+        form.submission_rule_ids = []
     } else {
-        form.submission_rule_ids = props.submissionRules.map((rule) => rule.id);
+        form.submission_rule_ids = props.submissionRules.map((rule) => rule.id)
     }
-};
+}
 
 const submit = () => {
     const submitData = {
         name: form.name,
-        submission_dates: form.submission_dates.map(date => ({
+        submission_dates: form.submission_dates.map((date) => ({
             label: date.label,
             date: date.datetime,
         })),
         form_phase_ids: form.form_phase_ids,
         submission_rule_ids: form.submission_rule_ids,
-    };
+    }
 
-    form.transform(() => submitData)
-        .put(route("admin.submission-periods.update", props.submissionPeriod.id), {
-            onSuccess: () => {
-            },
+    form.transform(() => submitData).put(
+        route('admin.submission-periods.update', props.submissionPeriod.id),
+        {
+            onSuccess: () => {},
             onError: (errors) => {
-                console.error('Gagal memperbarui:', errors);
-            }
-        });
-};
+                console.error('Gagal memperbarui:', errors)
+            },
+        }
+    )
+}
 
 watch(showAddLabelDialog, (val) => {
     if (val) {
-        document.body.classList.add("overflow-hidden");
+        document.body.classList.add('overflow-hidden')
     } else {
-        document.body.classList.remove("overflow-hidden");
+        document.body.classList.remove('overflow-hidden')
     }
-});
+})
 </script>
 
 <template>
-
     <Head title="Edit Periode Pengajuan" />
 
     <AuthenticatedLayout>
         <template #header>
             <div class="flex items-center gap-4">
-                <Button variant="ghost" size="sm" @click="$inertia.visit(route('admin.submission-periods.index'))">
+                <Button
+                    variant="ghost"
+                    size="sm"
+                    @click="$inertia.visit(route('admin.submission-periods.index'))"
+                >
                     <ArrowLeft class="h-4 w-4 mr-2" />
                     Kembali
                 </Button>
@@ -301,7 +289,7 @@ watch(showAddLabelDialog, (val) => {
         </template>
 
         <div class="max-w-4xl mx-auto space-y-6">
-            <form @submit.prevent="submit" class="space-y-6">
+            <form class="space-y-6" @submit.prevent="submit">
                 <!-- Period Basic Info -->
                 <Card>
                     <CardHeader>
@@ -313,8 +301,12 @@ watch(showAddLabelDialog, (val) => {
                     <CardContent class="space-y-4">
                         <div class="space-y-2">
                             <Label for="name">Nama Periode *</Label>
-                            <Input id="name" v-model="form.name" placeholder="Masukkan nama periode pengajuan"
-                                :class="errors.name ? 'border-destructive' : ''" />
+                            <Input
+                                id="name"
+                                v-model="form.name"
+                                placeholder="Masukkan nama periode pengajuan"
+                                :class="errors.name ? 'border-destructive' : ''"
+                            />
                             <p v-if="errors.name" class="text-sm text-destructive">
                                 {{ errors.name }}
                             </p>
@@ -330,7 +322,12 @@ watch(showAddLabelDialog, (val) => {
                                 <Calendar class="h-5 w-5" />
                                 Tanggal Pengajuan *
                             </CardTitle>
-                            <Button type="button" @click="addSubmissionDate" size="sm" variant="outline">
+                            <Button
+                                type="button"
+                                size="sm"
+                                variant="outline"
+                                @click="addSubmissionDate"
+                            >
                                 <Plus class="h-4 w-4 mr-2" />
                                 Tambah Tanggal
                             </Button>
@@ -338,17 +335,23 @@ watch(showAddLabelDialog, (val) => {
                     </CardHeader>
                     <CardContent>
                         <div class="space-y-4">
-                            <div v-for="(date, index) in form.submission_dates" :key="date.temp_id"
-                                class="flex items-end gap-4 p-4 border rounded-lg">
+                            <div
+                                v-for="(date, index) in form.submission_dates"
+                                :key="date.temp_id"
+                                class="flex items-end gap-4 p-4 border rounded-lg"
+                            >
                                 <div class="flex-1 space-y-2">
                                     <div class="flex items-center justify-between">
                                         <Label :for="`date_label_${index}`">Label Tanggal *</Label>
                                         <!-- Custom Modal instead of Dialog -->
                                         <div>
-                                            <Button type="button" variant="ghost" size="sm" class="text-xs h-6 px-2"
-                                                @click="
-                                                    showAddLabelDialog = true
-                                                    ">
+                                            <Button
+                                                type="button"
+                                                variant="ghost"
+                                                size="sm"
+                                                class="text-xs h-6 px-2"
+                                                @click="showAddLabelDialog = true"
+                                            >
                                                 <Plus class="h-3 w-3 mr-1" />
                                                 Tambah Baru
                                             </Button>
@@ -361,10 +364,8 @@ watch(showAddLabelDialog, (val) => {
                                                 <!-- Background hitam -->
                                                 <div
                                                     class="absolute inset-0 bg-black/80"
-                                                    @click="
-                                                        showAddLabelDialog = false
-                                                    "
-                                                ></div>
+                                                    @click="showAddLabelDialog = false"
+                                                />
 
                                                 <!-- Modal content -->
                                                 <div
@@ -373,28 +374,20 @@ watch(showAddLabelDialog, (val) => {
                                                     <div
                                                         class="bg-white rounded-lg shadow-lg w-full max-w-md p-6 max-h-[calc(100vh-2rem)] overflow-y-auto"
                                                     >
-                                                        <h3
-                                                            class="text-lg font-semibold mb-4"
-                                                        >
+                                                        <h3 class="text-lg font-semibold mb-4">
                                                             Tambah Label Tanggal Baru
                                                         </h3>
                                                         <div class="space-y-4">
-                                                            <div
-                                                                class="space-y-2"
-                                                            >
-                                                                <Label
-                                                                    for="new-label"
-                                                                    >Nama Label</Label>
+                                                            <div class="space-y-2">
+                                                                <Label for="new-label"
+                                                                    >Nama Label</Label
+                                                                >
                                                                 <Input
                                                                     id="new-label"
-                                                                    v-model="
-                                                                        newLabelForm.label
-                                                                    "
+                                                                    v-model="newLabelForm.label"
                                                                     placeholder="Masukkan nama label"
-                                                                    @keyup.enter="
-                                                                        addNewLabel
-                                                                    "
                                                                     autofocus
+                                                                    @keyup.enter="addNewLabel"
                                                                 />
                                                             </div>
                                                             <div
@@ -411,12 +404,10 @@ watch(showAddLabelDialog, (val) => {
                                                                 </Button>
                                                                 <Button
                                                                     type="button"
-                                                                    @click="
-                                                                        addNewLabel
-                                                                    "
                                                                     :disabled="
                                                                         !newLabelForm.label.trim()
                                                                     "
+                                                                    @click="addNewLabel"
                                                                 >
                                                                     Tambah Label
                                                                 </Button>
@@ -430,8 +421,8 @@ watch(showAddLabelDialog, (val) => {
 
                                     <!-- Updated Select with better key and model -->
                                     <Select
-                                        v-model="date.label"
                                         :key="`select_${index}_${selectKey}`"
+                                        v-model="date.label"
                                     >
                                         <SelectTrigger>
                                             <SelectValue
@@ -452,16 +443,20 @@ watch(showAddLabelDialog, (val) => {
 
                                 <div class="flex-1 space-y-2">
                                     <Label :for="`date_${index}`">Date *</Label>
-                                    <Input :id="`date_${index}`" v-model="date.datetime" type="datetime-local" />
+                                    <Input
+                                        :id="`date_${index}`"
+                                        v-model="date.datetime"
+                                        type="datetime-local"
+                                    />
                                 </div>
 
                                 <Button
                                     type="button"
                                     variant="ghost"
                                     size="sm"
-                                    @click="removeSubmissionDate(index)"
                                     class="text-destructive hover:text-destructive"
                                     :disabled="form.submission_dates.length === 1"
+                                    @click="removeSubmissionDate(index)"
                                 >
                                     <Trash2 class="h-4 w-4" />
                                 </Button>
@@ -484,32 +479,44 @@ watch(showAddLabelDialog, (val) => {
                                     {{ form.form_phase_ids.length }} dipilih
                                 </Badge>
                             </CardTitle>
-                            <Button type="button" variant="outline" size="sm" @click="selectAllFormPhases">
+                            <Button
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                @click="selectAllFormPhases"
+                            >
                                 {{
-                                    form.form_phase_ids.length ===
-                                        props.formPhases.length
-                                        ? "Batal Pilih Semua"
-                                        : "Pilih Semua"
+                                    form.form_phase_ids.length === props.formPhases.length
+                                        ? 'Batal Pilih Semua'
+                                        : 'Pilih Semua'
                                 }}
                             </Button>
                         </div>
                     </CardHeader>
                     <CardContent>
-                        <div v-if="props.formPhases.length === 0" class="text-center py-8 text-muted-foreground">
+                        <div
+                            v-if="props.formPhases.length === 0"
+                            class="text-center py-8 text-muted-foreground"
+                        >
                             <Settings class="h-12 w-12 mx-auto mb-4 opacity-50" />
                             <p>Tidak ada tahap formulir aktif tersedia.</p>
                         </div>
                         <div v-else class="grid gap-3 md:grid-cols-2">
-                            <div v-for="phase in props.formPhases" :key="phase.id"
+                            <div
+                                v-for="phase in props.formPhases"
+                                :key="phase.id"
                                 class="flex items-center space-x-3 p-3 border rounded-lg hover:bg-muted/50 cursor-pointer"
-                                @click="toggleFormPhase(phase.id)">
-                                <Checkbox :checked="form.form_phase_ids.includes(phase.id)
-                                    "/>
+                                @click="toggleFormPhase(phase.id)"
+                            >
+                                <Checkbox :checked="form.form_phase_ids.includes(phase.id)" />
                                 <div class="flex-1 min-w-0">
                                     <Label class="cursor-pointer font-medium">
                                         {{ phase.title }}
                                     </Label>
-                                    <p v-if="phase.description" class="text-sm text-muted-foreground mt-1">
+                                    <p
+                                        v-if="phase.description"
+                                        class="text-sm text-muted-foreground mt-1"
+                                    >
                                         {{ phase.description }}
                                     </p>
                                 </div>
@@ -533,32 +540,40 @@ watch(showAddLabelDialog, (val) => {
                                     dipilih
                                 </Badge>
                             </CardTitle>
-                            <Button type="button" variant="outline" size="sm" @click="selectAllSubmissionRules"
-                                v-if="props.submissionRules.length > 0">
+                            <Button
+                                v-if="props.submissionRules.length > 0"
+                                type="button"
+                                variant="outline"
+                                size="sm"
+                                @click="selectAllSubmissionRules"
+                            >
                                 {{
-                                    form.submission_rule_ids.length ===
-                                        props.submissionRules.length
-                                        ? "Batal Pilih Semua"
-                                        : "Pilih Semua"
+                                    form.submission_rule_ids.length === props.submissionRules.length
+                                        ? 'Batal Pilih Semua'
+                                        : 'Pilih Semua'
                                 }}
                             </Button>
                         </div>
                     </CardHeader>
                     <CardContent>
-                        <div v-if="props.submissionRules.length === 0" class="text-center py-8 text-muted-foreground">
+                        <div
+                            v-if="props.submissionRules.length === 0"
+                            class="text-center py-8 text-muted-foreground"
+                        >
                             <FileText class="h-12 w-12 mx-auto mb-4 opacity-50" />
                             <p>Tidak ada aturan pengiriman tersedia.</p>
                         </div>
                         <div v-else class="grid gap-3 md:grid-cols-2">
-                            <div v-for="rule in props.submissionRules" :key="rule.id"
+                            <div
+                                v-for="rule in props.submissionRules"
+                                :key="rule.id"
                                 class="flex items-center space-x-3 p-3 border rounded-lg hover:bg-muted/50 cursor-pointer"
-                                @click="toggleSubmissionRule(rule.id)">
-                                <Checkbox :checked="form.submission_rule_ids.includes(
-                                    rule.id
-                                )
-                                    " @update:checked="
-                                        toggleSubmissionRule(rule.id)
-                                        " />
+                                @click="toggleSubmissionRule(rule.id)"
+                            >
+                                <Checkbox
+                                    :checked="form.submission_rule_ids.includes(rule.id)"
+                                    @update:checked="toggleSubmissionRule(rule.id)"
+                                />
                                 <div class="flex-1">
                                     <Label class="cursor-pointer font-medium">
                                         {{ rule.label }}
@@ -573,44 +588,41 @@ watch(showAddLabelDialog, (val) => {
                 </Card>
 
                 <!-- Preview Summary -->
-                <Card v-if="
-                    form.name ||
-                    form.submission_dates.some((d) => d.label || d.datetime)
-                " class="border-blue-200 bg-blue-50">
+                <Card
+                    v-if="form.name || form.submission_dates.some((d) => d.label || d.datetime)"
+                    class="border-blue-200 bg-blue-50"
+                >
                     <CardHeader>
-                        <CardTitle class="text-blue-900">Pratinjau Ringkasan</CardTitle>
+                        <CardTitle class="text-blue-900"> Pratinjau Ringkasan </CardTitle>
                     </CardHeader>
                     <CardContent class="space-y-4">
                         <div v-if="form.name">
                             <h4 class="font-medium text-blue-800 mb-1">Nama Periode</h4>
-                            <p class="text-blue-700">{{ form.name }}</p>
+                            <p class="text-blue-700">
+                                {{ form.name }}
+                            </p>
                         </div>
 
-                        <div v-if="
-                            form.submission_dates.some(
-                                (d) => d.label || d.datetime
-                            )
-                        ">
-                            <h4 class="font-medium text-blue-800 mb-2">
-                                Dates
-                            </h4>
+                        <div v-if="form.submission_dates.some((d) => d.label || d.datetime)">
+                            <h4 class="font-medium text-blue-800 mb-2">Dates</h4>
                             <div class="space-y-1">
-                                <template v-for="(submissionDate, index
-                                    ) in form.submission_dates" :key="index">
-                                    <div v-if="
-                                        submissionDate.label ||
-                                        submissionDate.datetime
-                                    " class="text-sm text-blue-600">
-                                        <strong>{{
-                                            submissionDate.label ||
-                                            "Tanggal Tidak Bernama"
-                                        }}:</strong>
+                                <template
+                                    v-for="(submissionDate, index) in form.submission_dates"
+                                    :key="index"
+                                >
+                                    <div
+                                        v-if="submissionDate.label || submissionDate.datetime"
+                                        class="text-sm text-blue-600"
+                                    >
+                                        <strong
+                                            >{{
+                                                submissionDate.label || 'Tanggal Tidak Bernama'
+                                            }}:</strong
+                                        >
                                         {{
                                             submissionDate.datetime
-                                                ? new Date(
-                                                    submissionDate.datetime
-                                                ).toLocaleString()
-                                                : "Tidak ada tanggal yang ditetapkan"
+                                                ? new Date(submissionDate.datetime).toLocaleString()
+                                                : 'Tidak ada tanggal yang ditetapkan'
                                         }}
                                     </div>
                                 </template>
@@ -618,13 +630,17 @@ watch(showAddLabelDialog, (val) => {
                         </div>
 
                         <div v-if="form.form_phase_ids.length > 0">
-                            <h4 class="font-medium text-blue-800 mb-2">Tahap Formulir yang Dipilih</h4>
+                            <h4 class="font-medium text-blue-800 mb-2">
+                                Tahap Formulir yang Dipilih
+                            </h4>
                             <div class="flex flex-wrap gap-1">
-                                <Badge v-for="phaseId in form.form_phase_ids" :key="phaseId" variant="outline"
-                                    class="text-blue-700 border-blue-300">
-                                    {{
-                                        props.formPhases.find((p) => p.id === phaseId)?.title
-                                    }}
+                                <Badge
+                                    v-for="phaseId in form.form_phase_ids"
+                                    :key="phaseId"
+                                    variant="outline"
+                                    class="text-blue-700 border-blue-300"
+                                >
+                                    {{ props.formPhases.find((p) => p.id === phaseId)?.title }}
                                 </Badge>
                             </div>
                         </div>
@@ -632,11 +648,13 @@ watch(showAddLabelDialog, (val) => {
                         <div v-if="form.submission_rule_ids.length > 0">
                             <h4 class="font-medium text-blue-800 mb-2">Ketentuan yang Dipilih</h4>
                             <div class="flex flex-wrap gap-1">
-                                <Badge v-for="ruleId in form.submission_rule_ids" :key="ruleId" variant="outline"
-                                    class="text-blue-700 border-blue-300">
-                                    {{
-                                        props.submissionRules.find((r) => r.id === ruleId)?.label
-                                    }}
+                                <Badge
+                                    v-for="ruleId in form.submission_rule_ids"
+                                    :key="ruleId"
+                                    variant="outline"
+                                    class="text-blue-700 border-blue-300"
+                                >
+                                    {{ props.submissionRules.find((r) => r.id === ruleId)?.label }}
                                 </Badge>
                             </div>
                         </div>
@@ -645,13 +663,15 @@ watch(showAddLabelDialog, (val) => {
 
                 <!-- Form Actions -->
                 <div class="flex items-center justify-end space-x-2">
-                    <Button type="button" variant="outline" @click="
-                        $inertia.visit(route('admin.submission-periods.index'))
-                        ">
+                    <Button
+                        type="button"
+                        variant="outline"
+                        @click="$inertia.visit(route('admin.submission-periods.index'))"
+                    >
                         Batal
                     </Button>
                     <Button type="submit" :disabled="form.processing">
-                        {{ form.processing ? "Memperbarui..." : "Perbarui Periode Pengiriman" }}
+                        {{ form.processing ? 'Memperbarui...' : 'Perbarui Periode Pengiriman' }}
                     </Button>
                 </div>
             </form>

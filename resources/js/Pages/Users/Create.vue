@@ -1,36 +1,36 @@
 <script setup lang="ts">
-import { Head, useForm } from "@inertiajs/vue3";
-import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout.vue";
-import { Button } from "../../Components/ui/button";
-import { ArrowLeft, LoaderCircle } from "lucide-vue-next";
-import { Role } from "@/types";
-import { Label } from "@/Components/ui/label";
-import { Input } from "@/Components/ui/input";
-import InputError from "@/Components/InputError.vue";
+import { Head, useForm } from '@inertiajs/vue3'
+import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
+import { Button } from '../../Components/ui/button'
+import { ArrowLeft, LoaderCircle } from 'lucide-vue-next'
+import { Role } from '@/types'
+import { Label } from '@/Components/ui/label'
+import { Input } from '@/Components/ui/input'
+import InputError from '@/Components/InputError.vue'
 import {
     Select,
     SelectContent,
     SelectItem,
     SelectTrigger,
     SelectValue,
-} from "@/Components/ui/select";
-import { CreateUserRequest } from "@/types/formRequests";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/Components/ui/card";
+} from '@/Components/ui/select'
+import { CreateUserRequest } from '@/types/formRequests'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/Components/ui/card'
 
 const form = useForm<CreateUserRequest>({
-    name: "",
-    email: "",
-    password: "",
-    role: "",
-});
+    name: '',
+    email: '',
+    password: '',
+    role: '',
+})
 
 defineProps<{
-    roles: Role[];
-}>();
+    roles: Role[]
+}>()
 
 const submit = () => {
-    form.post(route("admin.users.store"));
-};
+    form.post(route('admin.users.store'))
+}
 </script>
 
 <template>
@@ -48,14 +48,12 @@ const submit = () => {
                     <ArrowLeft class="h-4 w-4" />
                     Kembali
                 </Button>
-                <h2 class="text-xl font-semibold leading-tight text-gray-800">
-                    Buat User Baru
-                </h2>
+                <h2 class="text-xl font-semibold leading-tight text-gray-800">Buat User Baru</h2>
             </div>
         </template>
 
         <div class="max-w-4xl mx-auto space-y-6">
-            <form @submit.prevent="submit" class="flex flex-col gap-6">
+            <form class="flex flex-col gap-6" @submit.prevent="submit">
                 <Card>
                     <CardHeader>
                         <CardTitle>Buat User Baru</CardTitle>
@@ -67,12 +65,12 @@ const submit = () => {
                                 <Label for="name">Nama</Label>
                                 <Input
                                     id="name"
+                                    v-model="form.name"
                                     type="text"
                                     required
                                     autofocus
                                     :tabindex="1"
                                     autocomplete="name"
-                                    v-model="form.name"
                                     placeholder="Nama lengkap"
                                 />
                                 <InputError :message="form.errors.name" />
@@ -82,11 +80,11 @@ const submit = () => {
                                 <Label for="email">Email</Label>
                                 <Input
                                     id="email"
+                                    v-model="form.email"
                                     type="email"
                                     required
                                     :tabindex="2"
                                     autocomplete="email"
-                                    v-model="form.email"
                                     placeholder="email@example.com"
                                 />
                                 <InputError :message="form.errors.email" />
@@ -96,11 +94,11 @@ const submit = () => {
                                 <Label for="password">Password</Label>
                                 <Input
                                     id="password"
+                                    v-model="form.password"
                                     type="password"
                                     required
                                     :tabindex="3"
                                     autocomplete="new-password"
-                                    v-model="form.password"
                                     placeholder="Password"
                                 />
                                 <InputError :message="form.errors.password" />
@@ -109,16 +107,14 @@ const submit = () => {
                             <div class="flex flex-col gap-2">
                                 <Label for="role">Role</Label>
                                 <Select
-                                    name="role"
                                     id="role"
                                     v-model="form.role"
+                                    name="role"
                                     :tabindex="4"
                                     placeholder="Select a role"
                                 >
                                     <SelectTrigger class="w-full">
-                                        <SelectValue
-                                            :placeholder="'Select a role'"
-                                        />
+                                        <SelectValue :placeholder="'Select a role'" />
                                     </SelectTrigger>
                                     <SelectContent side="top">
                                         <SelectItem
@@ -139,11 +135,8 @@ const submit = () => {
                                 tabindex="5"
                                 :disabled="form.processing"
                             >
-                                <LoaderCircle
-                                    v-if="form.processing"
-                                    class="h-4 w-4 animate-spin"
-                                />
-                                Buat user   
+                                <LoaderCircle v-if="form.processing" class="h-4 w-4 animate-spin" />
+                                Buat user
                             </Button>
                         </div>
                     </CardContent>

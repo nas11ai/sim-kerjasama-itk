@@ -1,31 +1,70 @@
 <?php
 
+use App\Http\Controllers\AnnouncementController;
+use App\Http\Controllers\BiodataController;
 use App\Http\Controllers\CompleteFormBuilderController;
-use App\Http\Controllers\ReviewController;
-use App\Http\Controllers\ReviewEvaluationFormController;
-use App\Http\Controllers\ReviewerFormAssignmentController;
-use App\Http\Controllers\ReviewFormResponseController;
-use App\Http\Controllers\ReviewerRoleController;
 use App\Http\Controllers\FacultyController;
 use App\Http\Controllers\FormAccessControlController;
 use App\Http\Controllers\FormController;
 use App\Http\Controllers\FormPhaseController;
+use App\Http\Controllers\PermissionController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\ReviewController;
 use App\Http\Controllers\ReviewerController;
+use App\Http\Controllers\ReviewerFormAssignmentController;
+use App\Http\Controllers\ReviewerRoleController;
+use App\Http\Controllers\ReviewEvaluationFormController;
+use App\Http\Controllers\ReviewFormResponseController;
+use App\Http\Controllers\RoleController;
+use App\Http\Controllers\StatController;
 use App\Http\Controllers\SubmissionPeriodController;
 use App\Http\Controllers\SubmissionViewController;
-use App\Http\Controllers\UserFormController;
-use App\Http\Controllers\AnnouncementController;
-use App\Http\Controllers\PermissionController;
-use App\Http\Controllers\RoleController;
 use App\Http\Controllers\UserController;
-use App\Http\Controllers\BiodataController;
-use App\Http\Controllers\StatController;
+use App\Http\Controllers\UserFormController;
+use App\Models\Announcement;
+use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
+Route::get('/dashboard', function () {
+    return redirect()->route('user.dashboard');
+})->middleware(['auth', 'verified'])->name('dashboard');
+
 Route::get('/', function () {
-    return Inertia::render('Welcome');
+    return Inertia::render('Welcome', [
+        'canLogin' => Route::has('login'),
+        'canRegister' => Route::has('register'),
+        'laravelVersion' => Application::VERSION,
+        'phpVersion' => PHP_VERSION,
+        'announcements' => [
+            'data' => Announcement::latest()
+                ->with('announcementFiles')
+                ->where('type', 'public')
+                ->where(function ($query) {
+                    $query->whereNull('expired_at')
+                        ->orWhere('expired_at', '>', now());
+                })
+                ->take(10) // Batasi 10 pengumuman untuk performa carousel
+                ->get(),
+            'current_page' => 1,
+            'last_page' => 1,
+            'per_page' => 10,
+            'total' => Announcement::where('type', 'public')
+                ->where(function ($query) {
+                    $query->whereNull('expired_at')
+                        ->orWhere('expired_at', '>', now());
+                })
+                ->count(),
+            'from' => 1,
+            'to' => Announcement::where('type', 'public')
+                ->where(function ($query) {
+                    $query->whereNull('expired_at')
+                        ->orWhere('expired_at', '>', now());
+                })
+                ->take(10)
+                ->count(),
+        ],
+    ]);
 })->name('welcome');
 
 Route::middleware(['auth', 'verified'])->get('/dashboard', function () {
@@ -180,13 +219,13 @@ Route::middleware(['auth', 'role:Super Admin|Admin', 'check_reviewer_status'])->
     Route::get('/stats/get-reviewers', [StatController::class, 'getSubmissionReviewerStats'])->name('stats.get-reviewer');
     Route::get('/stats/get-users', [StatController::class, 'getUserStats'])->name('stats.get-user');
 
-    //stat
+    // stat
     Route::get('/stats/form-phases', [StatController::class, 'formPhaseStatIndex'])->name('stats.form-phase');
     Route::get('/stats/form-submissions', [StatController::class, 'formSubmissionStatIndex'])->name('stats.form-submission');
     Route::get('/stats/reviewers', [StatController::class, 'submissionReviewerStatIndex'])->name('stats.reviewer');
     Route::get('/stats/users', [StatController::class, 'userStatIndex'])->name('stats.user');
 
-    Route::get('/stats/data', [StatController::class, 'data'])->name('stats.data'); //testing data
+    Route::get('/stats/data', [StatController::class, 'data'])->name('stats.data'); // testing data
 
     // User Management
     Route::get('/users', [UserController::class, 'index'])->name('users.index');
@@ -461,4 +500,4 @@ Route::middleware(['auth', 'role:Super Admin|Admin', 'check_reviewer_status'])->
     });
 });
 
-require __DIR__ . '/auth.php';
+require __DIR__.'/auth.php';

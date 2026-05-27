@@ -3,7 +3,6 @@
 namespace Database\Seeders;
 
 use App\Models\SubmissionDateLabel;
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 
@@ -25,12 +24,11 @@ class SubmissionDateLabelSeeder extends Seeder
 
                 foreach ($submission_date_labels as $submission_date_label) {
                     SubmissionDateLabel::create([
-                        'name' => $submission_date_label
+                        'name' => $submission_date_label,
                     ]);
                 }
             });
         } catch (\Exception $e) {
-            dd($e);
         }
     }
 }

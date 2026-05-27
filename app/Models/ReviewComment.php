@@ -73,20 +73,20 @@ class ReviewComment extends Model
             return [
                 'name' => $this->reviewer->user->name,
                 'type' => 'reviewer',
-                'is_current_user' => false // This will be handled in frontend
+                'is_current_user' => false, // This will be handled in frontend
             ];
         } elseif ($this->user) {
             return [
                 'name' => $this->user->name,
                 'type' => 'submitter',
-                'is_current_user' => false // This will be handled in frontend
+                'is_current_user' => false, // This will be handled in frontend
             ];
         }
 
         return [
             'name' => 'Unknown',
             'type' => 'user',
-            'is_current_user' => false
+            'is_current_user' => false,
         ];
     }
 

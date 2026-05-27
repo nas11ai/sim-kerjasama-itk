@@ -1,23 +1,23 @@
 <script setup lang="ts">
-import { Head } from "@inertiajs/vue3";
-import { ArrowLeft } from "lucide-vue-next";
-import { Permission } from "@/types";
-import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout.vue";
-import { Button } from "@/Components/ui/button";
-import Card from "@/Components/ui/card/Card.vue";
-import CardHeader from "@/Components/ui/card/CardHeader.vue";
-import CardTitle from "@/Components/ui/card/CardTitle.vue";
-import CardDescription from "@/Components/ui/card/CardDescription.vue";
-import CardContent from "@/Components/ui/card/CardContent.vue";
-import { computed, h } from "vue";
-import RoleForm from "./components/RoleForm.vue";
+import { Head } from '@inertiajs/vue3'
+import { ArrowLeft } from 'lucide-vue-next'
+import { Permission } from '@/types'
+import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
+import { Button } from '@/Components/ui/button'
+import Card from '@/Components/ui/card/Card.vue'
+import CardHeader from '@/Components/ui/card/CardHeader.vue'
+import CardTitle from '@/Components/ui/card/CardTitle.vue'
+import CardDescription from '@/Components/ui/card/CardDescription.vue'
+import CardContent from '@/Components/ui/card/CardContent.vue'
+import { computed, h } from 'vue'
+import RoleForm from './components/RoleForm.vue'
 
 const props = defineProps<{
-    role: { id: number; name: string; permissions: string[] };
-    permissions: Permission[];
-}>();
+    role: { id: number; name: string; permissions: string[] }
+    permissions: Permission[]
+}>()
 
-const roleId = computed(() => props.role?.id ?? null);
+const roleId = computed(() => props.role?.id ?? null)
 </script>
 
 <template>
@@ -35,9 +35,7 @@ const roleId = computed(() => props.role?.id ?? null);
                     <ArrowLeft class="h-4 w-4" />
                     Kembali
                 </Button>
-                <h2 class="text-xl font-semibold leading-tight text-gray-800">
-                    Edit Role
-                </h2>
+                <h2 class="text-xl font-semibold leading-tight text-gray-800">Edit Role</h2>
             </div>
         </template>
 
@@ -45,9 +43,7 @@ const roleId = computed(() => props.role?.id ?? null);
             <Card>
                 <CardHeader>
                     <CardTitle>Edit Role</CardTitle>
-                    <CardDescription>
-                        Isi detail untuk mengedit role.
-                    </CardDescription>
+                    <CardDescription> Isi detail untuk mengedit role. </CardDescription>
                 </CardHeader>
                 <CardContent class="space-y-6">
                     <RoleForm

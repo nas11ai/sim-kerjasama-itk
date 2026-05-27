@@ -6,7 +6,6 @@ use App\Models\Faculty;
 use App\Models\StudyProgram;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
-use Illuminate\Support\Facades\DB;
 
 class FacultyController extends Controller
 {
@@ -21,7 +20,7 @@ class FacultyController extends Controller
 
         // Search functionality
         if ($search) {
-            $query->where('name', 'like', '%' . $search . '%');
+            $query->where('name', 'ilike', '%'.$search.'%');
         }
 
         // Sorting
@@ -36,7 +35,7 @@ class FacultyController extends Controller
                 'per_page' => $perPage,
                 'sort_by' => $sortBy,
                 'sort_order' => $sortOrder,
-            ]
+            ],
         ]);
     }
 
@@ -64,7 +63,7 @@ class FacultyController extends Controller
         $faculty->load([
             'studyPrograms' => function ($query) {
                 $query->orderBy('name');
-            }
+            },
         ]);
 
         return Inertia::render('Faculties/Show', [
@@ -82,7 +81,7 @@ class FacultyController extends Controller
     public function update(Request $request, Faculty $faculty)
     {
         $request->validate([
-            'name' => 'required|string|max:255|unique:faculties,name,' . $faculty->id,
+            'name' => 'required|string|max:255|unique:faculties,name,'.$faculty->id,
         ]);
 
         $faculty->update([
@@ -106,7 +105,7 @@ class FacultyController extends Controller
             return redirect()->route('admin.faculties.index')
                 ->with('success', 'Fakultas berhasil dihapus.');
         } catch (\Exception $e) {
-            return back()->withErrors(['error' => 'Gagal menghapus fakultas: ' . $e->getMessage()]);
+            return back()->withErrors(['error' => 'Gagal menghapus fakultas: '.$e->getMessage()]);
         }
     }
 
@@ -124,9 +123,9 @@ class FacultyController extends Controller
         // Search functionality
         if ($search) {
             $query->where(function ($q) use ($search) {
-                $q->where('name', 'like', '%' . $search . '%')
+                $q->where('name', 'ilike', '%'.$search.'%')
                     ->orWhereHas('faculty', function ($facultyQuery) use ($search) {
-                        $facultyQuery->where('name', 'like', '%' . $search . '%');
+                        $facultyQuery->where('name', 'ilike', '%'.$search.'%');
                     });
             });
         }
@@ -157,7 +156,7 @@ class FacultyController extends Controller
                 'per_page' => $perPage,
                 'sort_by' => $sortBy,
                 'sort_order' => $sortOrder,
-            ]
+            ],
         ]);
     }
 
@@ -244,7 +243,7 @@ class FacultyController extends Controller
             return redirect()->route('admin.faculties.study-programs')
                 ->with('success', 'Program Studi berhasil dihapus.');
         } catch (\Exception $e) {
-            return back()->withErrors(['error' => 'Gagal menghapus program studi: ' . $e->getMessage()]);
+            return back()->withErrors(['error' => 'Gagal menghapus program studi: '.$e->getMessage()]);
         }
     }
 }

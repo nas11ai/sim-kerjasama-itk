@@ -1,13 +1,13 @@
 <!-- resources\js\Pages\FormAccessControls\Index.vue -->
 <script setup lang="ts">
-import { computed, ref, watch } from "vue";
-import { Head, Link, router } from "@inertiajs/vue3";
-import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout.vue";
-import { Button } from "@/Components/ui/button";
-import { Input } from "@/Components/ui/input";
-import { Badge } from "@/Components/ui/badge";
-import { Card, CardContent, CardHeader, CardTitle } from "@/Components/ui/card";
-import { Checkbox } from "@/Components/ui/checkbox";
+import { computed, ref, watch } from 'vue'
+import { Head, Link, router } from '@inertiajs/vue3'
+import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
+import { Button } from '@/Components/ui/button'
+import { Input } from '@/Components/ui/input'
+import { Badge } from '@/Components/ui/badge'
+import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card'
+import { Checkbox } from '@/Components/ui/checkbox'
 import {
     Table,
     TableBody,
@@ -15,7 +15,7 @@ import {
     TableHead,
     TableHeader,
     TableRow,
-} from "@/Components/ui/table";
+} from '@/Components/ui/table'
 import {
     Command,
     CommandEmpty,
@@ -23,18 +23,14 @@ import {
     CommandInput,
     CommandItem,
     CommandList,
-} from "@/Components/ui/command";
-import {
-    Popover,
-    PopoverContent,
-    PopoverTrigger,
-} from "@/Components/ui/popover";
+} from '@/Components/ui/command'
+import { Popover, PopoverContent, PopoverTrigger } from '@/Components/ui/popover'
 import {
     DropdownMenu,
     DropdownMenuContent,
     DropdownMenuItem,
     DropdownMenuTrigger,
-} from "@/Components/ui/dropdown-menu";
+} from '@/Components/ui/dropdown-menu'
 import {
     Plus,
     Search,
@@ -51,323 +47,309 @@ import {
     ChevronsUpDown,
     Check,
     CornerDownRight,
-} from "lucide-vue-next";
-import { useToast } from "@/Components/ui/toast/use-toast";
-import { debounce } from "lodash";
-import { cn } from "@/lib/utils";
+} from 'lucide-vue-next'
+import { useToast } from '@/Components/ui/toast/use-toast'
+import { debounce } from 'lodash'
+import { cn } from '@/lib/utils'
 
 interface Role {
-    id: number;
-    name: string;
+    id: number
+    name: string
 }
 
 interface Faculty {
-    id: number;
-    name: string;
-    study_programs: StudyProgram[];
+    id: number
+    name: string
+    study_programs: StudyProgram[]
 }
 
 interface StudyProgram {
-    id: number;
-    name: string;
-    faculty: Faculty;
+    id: number
+    name: string
+    faculty: Faculty
 }
 
 interface Form {
-    id: number;
-    title: string;
+    id: number
+    title: string
 }
 
 interface FormAccessControl {
-    id: number;
-    form?: Form;
-    role: Role;
-    study_program: StudyProgram;
-    created_at: string;
-    updated_at: string;
+    id: number
+    form?: Form
+    role: Role
+    study_program: StudyProgram
+    created_at: string
+    updated_at: string
 }
 
 interface GroupAccessControl {
-    form_id: number;
-    jumlah_access_controls: number;
-    form: Form;
-    controls: FormAccessControl[];
+    form_id: number
+    jumlah_access_controls: number
+    form: Form
+    controls: FormAccessControl[]
 }
 
 interface PaginationLink {
-    url: string | null;
-    label: string;
-    active: boolean;
+    url: string | null
+    label: string
+    active: boolean
 }
 
 interface PaginatedData {
-    data: GroupAccessControl[];
-    current_page: number;
-    last_page: number;
-    per_page: number;
-    total: number;
-    from: number;
-    to: number;
-    links: PaginationLink[];
+    data: GroupAccessControl[]
+    current_page: number
+    last_page: number
+    per_page: number
+    total: number
+    from: number
+    to: number
+    links: PaginationLink[]
 }
 
 interface Filters {
-    [key: string]: string | number | boolean | null | undefined;
-    form_id?: string;
-    role_id?: string;
-    faculty_id?: string;
-    study_program_id?: string;
-    search?: string;
+    [key: string]: string | number | boolean | null | undefined
+    form_id?: string
+    role_id?: string
+    faculty_id?: string
+    study_program_id?: string
+    search?: string
 }
 
 interface Props {
-    groupAccessControls: PaginatedData;
-    forms: Form[];
-    roles: Role[];
-    faculties: Faculty[];
-    filters: Filters;
+    groupAccessControls: PaginatedData
+    forms: Form[]
+    roles: Role[]
+    faculties: Faculty[]
+    filters: Filters
 }
 
-const props = defineProps<Props>();
-const { toast } = useToast();
+const props = defineProps<Props>()
+const { toast } = useToast()
 
-const searchQuery = ref(props.filters.search || "");
-const selectedFormId = ref(props.filters.form_id || "all");
-const selectedRoleId = ref(props.filters.role_id || "all");
-const selectedFacultyId = ref(props.filters.faculty_id || "all");
-const selectedStudyProgramId = ref(props.filters.study_program_id || "all");
+const searchQuery = ref(props.filters.search || '')
+const selectedFormId = ref(props.filters.form_id || 'all')
+const selectedRoleId = ref(props.filters.role_id || 'all')
+const selectedFacultyId = ref(props.filters.faculty_id || 'all')
+const selectedStudyProgramId = ref(props.filters.study_program_id || 'all')
 
-const openForm = ref(false);
-const openRole = ref(false);
-const openFaculty = ref(false);
-const openStudyProgram = ref(false);
+const openForm = ref(false)
+const openRole = ref(false)
+const openFaculty = ref(false)
+const openStudyProgram = ref(false)
 
-const selectedItems = ref<number[]>([]);
+const selectedItems = ref<number[]>([])
 const selectAll = computed({
     get() {
         return isAllSelected.value
     },
     set(value: boolean) {
-        const allIds = props.groupAccessControls.data.flatMap(group =>
-        group.controls.map(c => c.id)
+        const allIds = props.groupAccessControls.data.flatMap((group) =>
+            group.controls.map((c) => c.id)
         )
         selectedItems.value = value ? allIds : []
     },
 })
-const openGroups = ref<number[]>([]);
+const openGroups = ref<number[]>([])
 
 const selectedFormLabel = computed(() => {
-    if (selectedFormId.value === "all") return "Semua Formulir";
-    const form = props.forms.find((f) => f.id.toString() === selectedFormId.value);
-    return form?.title || "Pilih formulir...";
-});
+    if (selectedFormId.value === 'all') return 'Semua Formulir'
+    const form = props.forms.find((f) => f.id.toString() === selectedFormId.value)
+    return form?.title || 'Pilih formulir...'
+})
 
 const selectedRoleLabel = computed(() => {
-    if (selectedRoleId.value === "all") return "Semua Role";
-    const role = props.roles.find((r) => r.id.toString() === selectedRoleId.value);
-    return role?.name || "Pilih role...";
-});
+    if (selectedRoleId.value === 'all') return 'Semua Role'
+    const role = props.roles.find((r) => r.id.toString() === selectedRoleId.value)
+    return role?.name || 'Pilih role...'
+})
 
 const selectedFacultyLabel = computed(() => {
-    if (selectedFacultyId.value === "all") return "Semua Fakultas";
-    const faculty = props.faculties.find(
-        (f) => f.id.toString() === selectedFacultyId.value
-    );
-    return faculty?.name || "Pilih fakultas...";
-});
+    if (selectedFacultyId.value === 'all') return 'Semua Fakultas'
+    const faculty = props.faculties.find((f) => f.id.toString() === selectedFacultyId.value)
+    return faculty?.name || 'Pilih fakultas...'
+})
 
 const selectedStudyProgramLabel = computed(() => {
-    if (selectedStudyProgramId.value === "all") return "Semua Program Studi";
+    if (selectedStudyProgramId.value === 'all') return 'Semua Program Studi'
     const studyProgram = studyPrograms.value.find(
         (sp) => sp.id.toString() === selectedStudyProgramId.value
-    );
-    return studyProgram?.name || "Pilih program studi...";
-});
+    )
+    return studyProgram?.name || 'Pilih program studi...'
+})
 
 const studyPrograms = computed(() => {
-    if (!selectedFacultyId.value || selectedFacultyId.value === "all") return [];
-    const faculty = props.faculties.find(
-        (f) => f.id.toString() === selectedFacultyId.value
-    );
-    return faculty?.study_programs || [];
-});
+    if (!selectedFacultyId.value || selectedFacultyId.value === 'all') return []
+    const faculty = props.faculties.find((f) => f.id.toString() === selectedFacultyId.value)
+    return faculty?.study_programs || []
+})
 
 // Watch for faculty change to reset study program selection
 watch(selectedFacultyId, () => {
-    selectedStudyProgramId.value = "all";
-});
+    selectedStudyProgramId.value = 'all'
+})
 
 const hasActiveFilters = computed(() => {
     return (
-        selectedFormId.value !== "all" ||
-        selectedRoleId.value !== "all" ||
-        selectedFacultyId.value !== "all" ||
-        selectedStudyProgramId.value !== "all" ||
-        searchQuery.value !== ""
-    );
-});
+        selectedFormId.value !== 'all' ||
+        selectedRoleId.value !== 'all' ||
+        selectedFacultyId.value !== 'all' ||
+        selectedStudyProgramId.value !== 'all' ||
+        searchQuery.value !== ''
+    )
+})
 
 const activeFiltersCount = computed(() => {
-    let count = 0;
-    if (searchQuery.value) count++;
-    if (selectedFormId.value !== "all") count++;
-    if (selectedRoleId.value !== "all") count++;
-    if (selectedFacultyId.value !== "all") count++;
-    if (selectedStudyProgramId.value !== "all") count++;
-    return count;
-});
+    let count = 0
+    if (searchQuery.value) count++
+    if (selectedFormId.value !== 'all') count++
+    if (selectedRoleId.value !== 'all') count++
+    if (selectedFacultyId.value !== 'all') count++
+    if (selectedStudyProgramId.value !== 'all') count++
+    return count
+})
 
 // Debounced search
 const debouncedSearch = debounce(() => {
-    applyFilters();
-}, 300);
+    applyFilters()
+}, 300)
 
 watch(searchQuery, () => {
-    debouncedSearch();
-});
+    debouncedSearch()
+})
 
 // Watch for filter changes
-watch(
-    [selectedFormId, selectedRoleId, selectedFacultyId, selectedStudyProgramId],
-    () => {
-        applyFilters();
-    }
-);
+watch([selectedFormId, selectedRoleId, selectedFacultyId, selectedStudyProgramId], () => {
+    applyFilters()
+})
 
 const applyFilters = () => {
-    const params: Filters = {};
+    const params: Filters = {}
 
-    if (searchQuery.value) params.search = searchQuery.value;
-    if (selectedFormId.value !== "all") params.form_id = selectedFormId.value;
-    if (selectedRoleId.value !== "all") params.role_id = selectedRoleId.value;
-    if (selectedFacultyId.value !== "all") params.faculty_id = selectedFacultyId.value;
-    if (selectedStudyProgramId.value !== "all")
-        params.study_program_id = selectedStudyProgramId.value;
+    if (searchQuery.value) params.search = searchQuery.value
+    if (selectedFormId.value !== 'all') params.form_id = selectedFormId.value
+    if (selectedRoleId.value !== 'all') params.role_id = selectedRoleId.value
+    if (selectedFacultyId.value !== 'all') params.faculty_id = selectedFacultyId.value
+    if (selectedStudyProgramId.value !== 'all')
+        params.study_program_id = selectedStudyProgramId.value
 
-    router.get(route("admin.form-access-controls.index"), params, {
+    router.get(route('admin.form-access-controls.index'), params, {
         preserveState: true,
         replace: true,
-    });
-};
+    })
+}
 
 const clearFilters = () => {
-    searchQuery.value = "";
-    selectedFormId.value = "all";
-    selectedRoleId.value = "all";
-    selectedFacultyId.value = "all";
-    selectedStudyProgramId.value = "all";
+    searchQuery.value = ''
+    selectedFormId.value = 'all'
+    selectedRoleId.value = 'all'
+    selectedFacultyId.value = 'all'
+    selectedStudyProgramId.value = 'all'
 
     router.get(
-        route("admin.form-access-controls.index"),
+        route('admin.form-access-controls.index'),
         {},
         {
             preserveState: true,
             replace: true,
         }
-    );
-};
+    )
+}
 
 const toggleGroup = (formId: number) => {
-    const index = openGroups.value.indexOf(formId);
+    const index = openGroups.value.indexOf(formId)
     if (index > -1) {
-        openGroups.value.splice(index, 1);
+        openGroups.value.splice(index, 1)
     } else {
-        openGroups.value.push(formId);
+        openGroups.value.push(formId)
     }
-};
+}
 
 const isGroupOpen = (formId: number) => {
-    return openGroups.value.includes(formId);
-};
+    return openGroups.value.includes(formId)
+}
 
 const toggleAllGroups = () => {
     if (openGroups.value.length === props.groupAccessControls.data.length) {
-        openGroups.value = [];
+        openGroups.value = []
     } else {
-        openGroups.value = props.groupAccessControls.data.map((group) => group.form_id);
+        openGroups.value = props.groupAccessControls.data.map((group) => group.form_id)
     }
-};
+}
 
 const toggleGroupSelection = (controls: FormAccessControl[]) => {
-    const controlIds = controls.map((c) => c.id);
-    const allSelected = controlIds.every((id) => selectedItems.value.includes(id));
+    const controlIds = controls.map((c) => c.id)
+    const allSelected = controlIds.every((id) => selectedItems.value.includes(id))
 
     if (allSelected) {
-        selectedItems.value = selectedItems.value.filter(
-            (id) => !controlIds.includes(id)
-        );
+        selectedItems.value = selectedItems.value.filter((id) => !controlIds.includes(id))
     } else {
-        selectedItems.value = [...new Set([...selectedItems.value, ...controlIds])];
+        selectedItems.value = [...new Set([...selectedItems.value, ...controlIds])]
     }
-};
+}
 
 const toggleItemSelection = (id: number, checked?: boolean) => {
     if (checked === true) {
-        if (!selectedItems.value.includes(id)) selectedItems.value.push(id);
+        if (!selectedItems.value.includes(id)) selectedItems.value.push(id)
     } else if (checked === false) {
-        selectedItems.value = selectedItems.value.filter((itemId) => itemId !== id);
+        selectedItems.value = selectedItems.value.filter((itemId) => itemId !== id)
     } else {
         // toggle biasa
         if (selectedItems.value.includes(id)) {
-            selectedItems.value = selectedItems.value.filter((itemId) => itemId !== id);
+            selectedItems.value = selectedItems.value.filter((itemId) => itemId !== id)
         } else {
-            selectedItems.value.push(id);
+            selectedItems.value.push(id)
         }
     }
-};
+}
 
 const isGroupSelected = (controls: FormAccessControl[]) => {
-    const controlIds = controls.map((c) => c.id);
-    return controlIds.every((id) => selectedItems.value.includes(id));
-};
+    const controlIds = controls.map((c) => c.id)
+    return controlIds.every((id) => selectedItems.value.includes(id))
+}
 
 const isGroupPartiallySelected = (controls: FormAccessControl[]) => {
-    const controlIds = controls.map((c) => c.id);
-    const selectedCount = controlIds.filter((id) =>
-        selectedItems.value.includes(id)
-    ).length;
-    return selectedCount > 0 && selectedCount < controlIds.length;
-};
+    const controlIds = controls.map((c) => c.id)
+    const selectedCount = controlIds.filter((id) => selectedItems.value.includes(id)).length
+    return selectedCount > 0 && selectedCount < controlIds.length
+}
 
 const isAllSelected = computed(() => {
-    const allIds = props.groupAccessControls.data.flatMap(
-        (group) => group.controls.map((c) => c.id)
-    );
-    return allIds.length > 0 && allIds.every((id) => selectedItems.value.includes(id));
-});
+    const allIds = props.groupAccessControls.data.flatMap((group) =>
+        group.controls.map((c) => c.id)
+    )
+    return allIds.length > 0 && allIds.every((id) => selectedItems.value.includes(id))
+})
 
 const isPartiallySelected = computed(() => {
-    const allIds = props.groupAccessControls.data.flatMap(
-        (group) => group.controls.map((c) => c.id)
-    );
-    return (
-        selectedItems.value.length > 0 &&
-        selectedItems.value.length < allIds.length
-    );
-});
+    const allIds = props.groupAccessControls.data.flatMap((group) =>
+        group.controls.map((c) => c.id)
+    )
+    return selectedItems.value.length > 0 && selectedItems.value.length < allIds.length
+})
 
 const deleteFormAccessControl = (id: number) => {
-    if (confirm("Apakah anda yakin ingin menghapus kontrol akses formulir ini?")) {
-        router.delete(route("admin.form-access-controls.destroy", id), {
+    if (confirm('Apakah anda yakin ingin menghapus kontrol akses formulir ini?')) {
+        router.delete(route('admin.form-access-controls.destroy', id), {
             onSuccess: () => {
                 toast({
-                    title: "Sukses",
-                    description: "Kontrol akses formulir berhasil dihapus.",
-                });
+                    title: 'Sukses',
+                    description: 'Kontrol akses formulir berhasil dihapus.',
+                })
             },
             onError: () => {
                 toast({
-                    title: "Error",
-                    description: "Gagal menghapus kontrol akses formulir.",
-                    variant: "destructive",
-                });
+                    title: 'Error',
+                    description: 'Gagal menghapus kontrol akses formulir.',
+                    variant: 'destructive',
+                })
             },
-        });
+        })
     }
-};
+}
 
 const bulkDelete = () => {
-    if (selectedItems.value.length === 0) return;
+    if (selectedItems.value.length === 0) return
 
     if (
         confirm(
@@ -375,43 +357,43 @@ const bulkDelete = () => {
         )
     ) {
         router.post(
-            route("admin.form-access-controls.bulk-delete"),
+            route('admin.form-access-controls.bulk-delete'),
             { ids: selectedItems.value },
             {
                 onSuccess: () => {
-                    selectedItems.value = [];
+                    selectedItems.value = []
                     toast({
-                        title: "Sukses",
-                        description: "Kontrol akses formulir yang dipilih berhasil dihapus.",
-                    });
+                        title: 'Sukses',
+                        description: 'Kontrol akses formulir yang dipilih berhasil dihapus.',
+                    })
                 },
                 onError: () => {
                     toast({
-                        title: "Error",
-                        description: "Gagal menghapus kontrol akses formulir yang dipilih.",
-                        variant: "destructive",
-                    });
+                        title: 'Error',
+                        description: 'Gagal menghapus kontrol akses formulir yang dipilih.',
+                        variant: 'destructive',
+                    })
                 },
             }
-        );
+        )
     }
-};
+}
 
 const goToPage = (url: string | null) => {
     if (url) {
         router.visit(url, {
             preserveState: true,
-        });
+        })
     }
-};
+}
 
 const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString("en-US", {
-        year: "numeric",
-        month: "short",
-        day: "numeric",
-    });
-};
+    return new Date(dateString).toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+    })
+}
 </script>
 
 <template>
@@ -450,9 +432,9 @@ const formatDate = (dateString: string) => {
                         </CardTitle>
                         <Button
                             v-if="hasActiveFilters"
-                            @click="clearFilters"
                             variant="ghost"
                             size="sm"
+                            @click="clearFilters"
                         >
                             <X class="h-4 w-4 mr-2" />
                             Bersihkan Semua Filter
@@ -490,9 +472,7 @@ const formatDate = (dateString: string) => {
                                         class="w-full justify-between"
                                     >
                                         <span class="truncate">{{ selectedFormLabel }}</span>
-                                        <ChevronsUpDown
-                                            class="ml-2 h-4 w-4 shrink-0 opacity-50"
-                                        />
+                                        <ChevronsUpDown class="ml-2 h-4 w-4 shrink-0 opacity-50" />
                                     </Button>
                                 </PopoverTrigger>
                                 <PopoverContent class="w-[300px] p-0">
@@ -502,20 +482,28 @@ const formatDate = (dateString: string) => {
                                             class="flex h-11 w-full rounded-md bg-transparent py-3 text-sm outline-hidden placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50 border-0 ring-0 focus:ring-0 focus:outline-hidden"
                                         />
                                         <CommandList>
-                                            <CommandEmpty>Tidak ada formulir ditemukan.</CommandEmpty>
+                                            <CommandEmpty
+                                                >Tidak ada formulir ditemukan.</CommandEmpty
+                                            >
                                             <CommandGroup>
                                                 <CommandItem
                                                     value="all"
-                                                    @select="() => {
-                                                            selectedFormId = 'all';
-                                                            openForm = false;
-                                                        }">
+                                                    @select="
+                                                        () => {
+                                                            selectedFormId = 'all'
+                                                            openForm = false
+                                                        }
+                                                    "
+                                                >
                                                     <Check
-                                                        :class="cn('mr-2 h-4 w-4',
-                                                            selectedFormId === 'all'
-                                                                ? 'opacity-100'
-                                                                : 'opacity-0'
-                                                        )"
+                                                        :class="
+                                                            cn(
+                                                                'mr-2 h-4 w-4',
+                                                                selectedFormId === 'all'
+                                                                    ? 'opacity-100'
+                                                                    : 'opacity-0'
+                                                            )
+                                                        "
                                                     />
                                                     Semua Formulir
                                                 </CommandItem>
@@ -523,16 +511,23 @@ const formatDate = (dateString: string) => {
                                                     v-for="form in props.forms"
                                                     :key="form.id"
                                                     :value="form.id.toString()"
-                                                    @select="() => {
-                                                            selectedFormId = form.id.toString();
-                                                            openForm = false;
-                                                        }">
+                                                    @select="
+                                                        () => {
+                                                            selectedFormId = form.id.toString()
+                                                            openForm = false
+                                                        }
+                                                    "
+                                                >
                                                     <Check
-                                                        :class="cn('mr-2 h-4 w-4',
-                                                            selectedFormId === form.id.toString()
-                                                                ? 'opacity-100'
-                                                                : 'opacity-0'
-                                                        )"
+                                                        :class="
+                                                            cn(
+                                                                'mr-2 h-4 w-4',
+                                                                selectedFormId ===
+                                                                    form.id.toString()
+                                                                    ? 'opacity-100'
+                                                                    : 'opacity-0'
+                                                            )
+                                                        "
                                                     />
                                                     {{ form.title }}
                                                 </CommandItem>
@@ -557,9 +552,7 @@ const formatDate = (dateString: string) => {
                                         class="w-full justify-between"
                                     >
                                         <span class="truncate">{{ selectedRoleLabel }}</span>
-                                        <ChevronsUpDown
-                                            class="ml-2 h-4 w-4 shrink-0 opacity-50"
-                                        />
+                                        <ChevronsUpDown class="ml-2 h-4 w-4 shrink-0 opacity-50" />
                                     </Button>
                                 </PopoverTrigger>
                                 <PopoverContent class="w-[200px] p-0">
@@ -573,16 +566,22 @@ const formatDate = (dateString: string) => {
                                             <CommandGroup>
                                                 <CommandItem
                                                     value="all"
-                                                    @select="() => {
-                                                            selectedRoleId = 'all';
-                                                            openRole = false;
-                                                        }">
+                                                    @select="
+                                                        () => {
+                                                            selectedRoleId = 'all'
+                                                            openRole = false
+                                                        }
+                                                    "
+                                                >
                                                     <Check
-                                                        :class="cn('mr-2 h-4 w-4',
-                                                            selectedRoleId === 'all'
-                                                                ? 'opacity-100'
-                                                                : 'opacity-0'
-                                                        )"
+                                                        :class="
+                                                            cn(
+                                                                'mr-2 h-4 w-4',
+                                                                selectedRoleId === 'all'
+                                                                    ? 'opacity-100'
+                                                                    : 'opacity-0'
+                                                            )
+                                                        "
                                                     />
                                                     Semua Role
                                                 </CommandItem>
@@ -590,16 +589,23 @@ const formatDate = (dateString: string) => {
                                                     v-for="role in props.roles"
                                                     :key="role.id"
                                                     :value="role.id.toString()"
-                                                    @select="() => {
-                                                            selectedRoleId = role.id.toString();
-                                                            openRole = false;
-                                                        }">
+                                                    @select="
+                                                        () => {
+                                                            selectedRoleId = role.id.toString()
+                                                            openRole = false
+                                                        }
+                                                    "
+                                                >
                                                     <Check
-                                                        :class="cn('mr-2 h-4 w-4',
-                                                            selectedRoleId === role.id.toString()
-                                                                ? 'opacity-100'
-                                                                : 'opacity-0'
-                                                        )"
+                                                        :class="
+                                                            cn(
+                                                                'mr-2 h-4 w-4',
+                                                                selectedRoleId ===
+                                                                    role.id.toString()
+                                                                    ? 'opacity-100'
+                                                                    : 'opacity-0'
+                                                            )
+                                                        "
                                                     />
                                                     {{ role.name }}
                                                 </CommandItem>
@@ -624,32 +630,38 @@ const formatDate = (dateString: string) => {
                                         class="w-full justify-between"
                                     >
                                         <span class="truncate">{{ selectedFacultyLabel }}</span>
-                                        <ChevronsUpDown
-                                            class="ml-2 h-4 w-4 shrink-0 opacity-50"
-                                        />
+                                        <ChevronsUpDown class="ml-2 h-4 w-4 shrink-0 opacity-50" />
                                     </Button>
                                 </PopoverTrigger>
                                 <PopoverContent class="w-[250px] p-0">
                                     <Command>
                                         <CommandInput
-                                        placeholder="Cari fakultas..."
-                                        class="flex h-11 w-full rounded-md bg-transparent py-3 text-sm outline-hidden placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50 border-0 ring-0 focus:ring-0 focus:outline-hidden"
+                                            placeholder="Cari fakultas..."
+                                            class="flex h-11 w-full rounded-md bg-transparent py-3 text-sm outline-hidden placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50 border-0 ring-0 focus:ring-0 focus:outline-hidden"
                                         />
                                         <CommandList>
-                                            <CommandEmpty>Tidak ada fakultas ditemukan.</CommandEmpty>
+                                            <CommandEmpty
+                                                >Tidak ada fakultas ditemukan.</CommandEmpty
+                                            >
                                             <CommandGroup>
                                                 <CommandItem
                                                     value="all"
-                                                    @select="() => {
-                                                            selectedFacultyId = 'all';
-                                                            openFaculty = false;
-                                                        }">
+                                                    @select="
+                                                        () => {
+                                                            selectedFacultyId = 'all'
+                                                            openFaculty = false
+                                                        }
+                                                    "
+                                                >
                                                     <Check
-                                                        :class=" cn('mr-2 h-4 w-4',
-                                                            selectedFacultyId === 'all'
-                                                                ? 'opacity-100'
-                                                                : 'opacity-0'
-                                                        )"
+                                                        :class="
+                                                            cn(
+                                                                'mr-2 h-4 w-4',
+                                                                selectedFacultyId === 'all'
+                                                                    ? 'opacity-100'
+                                                                    : 'opacity-0'
+                                                            )
+                                                        "
                                                     />
                                                     Semua Fakultas
                                                 </CommandItem>
@@ -657,18 +669,24 @@ const formatDate = (dateString: string) => {
                                                     v-for="faculty in props.faculties"
                                                     :key="faculty.id"
                                                     :value="faculty.id.toString()"
-                                                    @select="() => {
+                                                    @select="
+                                                        () => {
                                                             selectedFacultyId =
-                                                                faculty.id.toString();
-                                                            openFaculty = false;
-                                                        }">
-                                                    <Check
-                                                        :class="cn('mr-2 h-4 w-4',
-                                                            selectedFacultyId ===
                                                                 faculty.id.toString()
-                                                                ? 'opacity-100'
-                                                                : 'opacity-0'
-                                                        )"
+                                                            openFaculty = false
+                                                        }
+                                                    "
+                                                >
+                                                    <Check
+                                                        :class="
+                                                            cn(
+                                                                'mr-2 h-4 w-4',
+                                                                selectedFacultyId ===
+                                                                    faculty.id.toString()
+                                                                    ? 'opacity-100'
+                                                                    : 'opacity-0'
+                                                            )
+                                                        "
                                                     />
                                                     {{ faculty.name }}
                                                 </CommandItem>
@@ -686,9 +704,7 @@ const formatDate = (dateString: string) => {
                             </label>
                             <Popover
                                 v-model:open="openStudyProgram"
-                                :disabled="
-                                    !selectedFacultyId || selectedFacultyId === 'all'
-                                "
+                                :disabled="!selectedFacultyId || selectedFacultyId === 'all'"
                             >
                                 <PopoverTrigger as-child>
                                     <Button
@@ -703,32 +719,38 @@ const formatDate = (dateString: string) => {
                                         <span class="truncate">{{
                                             selectedStudyProgramLabel
                                         }}</span>
-                                        <ChevronsUpDown
-                                            class="ml-2 h-4 w-4 shrink-0 opacity-50"
-                                        />
+                                        <ChevronsUpDown class="ml-2 h-4 w-4 shrink-0 opacity-50" />
                                     </Button>
                                 </PopoverTrigger>
                                 <PopoverContent class="w-[250px] p-0">
                                     <Command>
                                         <CommandInput
-                                        placeholder="Cari program studi..."
-                                        class="flex h-11 w-full rounded-md bg-transparent py-3 text-sm outline-hidden placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50 border-0 ring-0 focus:ring-0 focus:outline-hidden"
+                                            placeholder="Cari program studi..."
+                                            class="flex h-11 w-full rounded-md bg-transparent py-3 text-sm outline-hidden placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50 border-0 ring-0 focus:ring-0 focus:outline-hidden"
                                         />
                                         <CommandList>
-                                            <CommandEmpty>Tidak ada program studi ditemukan.</CommandEmpty>
+                                            <CommandEmpty
+                                                >Tidak ada program studi ditemukan.</CommandEmpty
+                                            >
                                             <CommandGroup>
                                                 <CommandItem
                                                     value="all"
-                                                    @select="() => {
-                                                            selectedStudyProgramId = 'all';
-                                                            openStudyProgram = false;
-                                                        }">
+                                                    @select="
+                                                        () => {
+                                                            selectedStudyProgramId = 'all'
+                                                            openStudyProgram = false
+                                                        }
+                                                    "
+                                                >
                                                     <Check
-                                                        :class="cn('mr-2 h-4 w-4',
-                                                            selectedStudyProgramId === 'all'
-                                                                ? 'opacity-100'
-                                                                : 'opacity-0'
-                                                        )"
+                                                        :class="
+                                                            cn(
+                                                                'mr-2 h-4 w-4',
+                                                                selectedStudyProgramId === 'all'
+                                                                    ? 'opacity-100'
+                                                                    : 'opacity-0'
+                                                            )
+                                                        "
                                                     />
                                                     Semua Program Studi
                                                 </CommandItem>
@@ -736,18 +758,24 @@ const formatDate = (dateString: string) => {
                                                     v-for="studyProgram in studyPrograms"
                                                     :key="studyProgram.id"
                                                     :value="studyProgram.id.toString()"
-                                                    @select="() => {
-                                                        selectedStudyProgramId =
-                                                            studyProgram.id.toString();
-                                                        openStudyProgram = false;
-                                                    }">
-                                                    <Check
-                                                        :class="cn('mr-2 h-4 w-4',
-                                                            selectedStudyProgramId ===
+                                                    @select="
+                                                        () => {
+                                                            selectedStudyProgramId =
                                                                 studyProgram.id.toString()
-                                                                ? 'opacity-100'
-                                                                : 'opacity-0'
-                                                        )"
+                                                            openStudyProgram = false
+                                                        }
+                                                    "
+                                                >
+                                                    <Check
+                                                        :class="
+                                                            cn(
+                                                                'mr-2 h-4 w-4',
+                                                                selectedStudyProgramId ===
+                                                                    studyProgram.id.toString()
+                                                                    ? 'opacity-100'
+                                                                    : 'opacity-0'
+                                                            )
+                                                        "
                                                     />
                                                     {{ studyProgram.name }}
                                                 </CommandItem>
@@ -772,7 +800,12 @@ const formatDate = (dateString: string) => {
                         </Badge>
                     </CardTitle>
                     <div class="flex flex-row">
-                        <Button v-if="selectedItems.length > 0" variant="destructive" size="sm" @click="bulkDelete">
+                        <Button
+                            v-if="selectedItems.length > 0"
+                            variant="destructive"
+                            size="sm"
+                            @click="bulkDelete"
+                        >
                             <Trash2 class="h-4 w-4 mr-2" />
                             Hapus Terpilih ({{ selectedItems.length }})
                         </Button>
@@ -784,8 +817,8 @@ const formatDate = (dateString: string) => {
                             <Button variant="outline" size="sm" @click="toggleAllGroups">
                                 {{
                                     openGroups.length === props.groupAccessControls.data.length
-                                        ? "Tutup Semua"
-                                        : "Perluas Semua"
+                                        ? 'Tutup Semua'
+                                        : 'Perluas Semua'
                                 }}
                             </Button>
                         </div>
@@ -802,13 +835,13 @@ const formatDate = (dateString: string) => {
                         <p class="text-muted-foreground mb-4">
                             {{
                                 hasActiveFilters
-                                    ? "Coba sesuaikan kriteria pencarian Anda."
-                                    : "Mulai dengan membuat kontrol akses pertama Anda."
+                                    ? 'Coba sesuaikan kriteria pencarian Anda.'
+                                    : 'Mulai dengan membuat kontrol akses pertama Anda.'
                             }}
                         </p>
                         <Link
-                            :href="route('admin.form-access-controls.create')"
                             v-if="!hasActiveFilters"
+                            :href="route('admin.form-access-controls.create')"
                         >
                             <Button>
                                 <Plus class="h-4 w-4 mr-2" />
@@ -837,7 +870,7 @@ const formatDate = (dateString: string) => {
                                     <TableHead>Program Studi</TableHead>
                                     <TableHead>Fakultas</TableHead>
                                     <TableHead>Dibuat Pada</TableHead>
-                                    <TableHead class="text-right">Aksi</TableHead>
+                                    <TableHead class="text-right"> Aksi </TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
@@ -853,9 +886,13 @@ const formatDate = (dateString: string) => {
                                         <TableCell>
                                             <Checkbox
                                                 :model-value="isGroupSelected(group.controls)"
-                                                :indeterminate="isGroupPartiallySelected(group.controls)"
+                                                :indeterminate="
+                                                    isGroupPartiallySelected(group.controls)
+                                                "
                                                 @click.stop
-                                                @update:modelValue="() => toggleGroupSelection(group.controls)"
+                                                @update:model-value="
+                                                    () => toggleGroupSelection(group.controls)
+                                                "
                                             />
                                         </TableCell>
                                         <TableCell colspan="6" class="font-medium">
@@ -869,8 +906,8 @@ const formatDate = (dateString: string) => {
                                                         {{ group.jumlah_access_controls }}
                                                         kontrol akses{{
                                                             group.jumlah_access_controls !== 1
-                                                                ? "s"
-                                                                : ""
+                                                                ? 's'
+                                                                : ''
                                                         }}
                                                     </Badge>
                                                 </div>
@@ -895,14 +932,18 @@ const formatDate = (dateString: string) => {
                                         >
                                             <TableCell>
                                                 <Checkbox
-                                                    :model-value="selectedItems.includes(control.id)"
-                                                    @update:modelValue="() =>
-                                                        toggleItemSelection(control.id)
+                                                    :model-value="
+                                                        selectedItems.includes(control.id)
+                                                    "
+                                                    @update:model-value="
+                                                        () => toggleItemSelection(control.id)
                                                     "
                                                 />
                                             </TableCell>
                                             <TableCell class="pl-12">
-                                                <CornerDownRight class="h-4 w-4 text-muted-foreground" />
+                                                <CornerDownRight
+                                                    class="h-4 w-4 text-muted-foreground"
+                                                />
                                             </TableCell>
                                             <TableCell>
                                                 <Badge variant="outline">
@@ -953,10 +994,10 @@ const formatDate = (dateString: string) => {
                                                             </DropdownMenuItem>
                                                         </Link>
                                                         <DropdownMenuItem
+                                                            class="text-destructive cursor-pointer"
                                                             @click="
                                                                 deleteFormAccessControl(control.id)
                                                             "
-                                                            class="text-destructive cursor-pointer"
                                                         >
                                                             <Trash2 class="h-4 w-4 mr-2" />
                                                             Hapus
@@ -981,11 +1022,11 @@ const formatDate = (dateString: string) => {
                             v-if="link.url"
                             variant="outline"
                             size="sm"
-                            @click="goToPage(link.url)"
                             :class="{
                                 'bg-primary text-primary-foreground': link.active,
                                 'hover:bg-muted': !link.active,
                             }"
+                            @click="goToPage(link.url)"
                             v-html="link.label"
                         />
                         <span

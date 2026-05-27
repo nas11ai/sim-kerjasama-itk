@@ -6,11 +6,9 @@ use App\Models\Announcement;
 use App\Models\AnnouncementFile;
 use App\Models\AnnouncementUser;
 use Carbon\Carbon;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
-use Illuminate\Support\Str;
 use Inertia\Inertia;
 
 class AnnouncementController extends Controller
@@ -47,7 +45,7 @@ class AnnouncementController extends Controller
     {
         return Inertia::render('Announcements/Create', [
             'announcementFiles' => AnnouncementFile::all(),
-            'announcement' => new Announcement(),
+            'announcement' => new Announcement,
         ]);
     }
 
@@ -104,6 +102,7 @@ class AnnouncementController extends Controller
     public function show(Announcement $announcement)
     {
         $announcement->load('announcementFiles', 'announcementCreator');
+
         return Inertia::render('Announcements/Show', [
             'announcement' => $announcement,
         ]);
@@ -115,6 +114,7 @@ class AnnouncementController extends Controller
     public function edit(Announcement $announcement)
     {
         $announcement->load('announcementFiles');
+
         return Inertia::render('Announcements/Edit', [
             'announcement' => $announcement,
         ]);
@@ -168,6 +168,7 @@ class AnnouncementController extends Controller
                 }
             }
         });
+
         return redirect()->route('admin.announcements.index')
             ->with('success', 'Pengumuman berhasil diperbarui.');
     }
@@ -190,6 +191,7 @@ class AnnouncementController extends Controller
     public function detail(Announcement $announcement)
     {
         $announcement->load('announcementFiles', 'announcementCreator');
+
         return Inertia::render('AnnouncementDetail', [
             'announcement' => $announcement,
         ]);

@@ -1,22 +1,13 @@
 <script setup lang="ts" generic="T extends Record<string, any>">
-import type { BulletLegendItemInterface } from "@unovis/ts";
-import type { Component } from "vue";
-import type { BaseChartProps } from ".";
-import { Axis, GroupedBar, StackedBar } from "@unovis/ts";
-import {
-    VisAxis,
-    VisGroupedBar,
-    VisStackedBar,
-    VisXYContainer,
-} from "@unovis/vue";
-import { useMounted } from "@vueuse/core";
-import { computed, ref } from "vue";
-import { cn } from "@/lib/utils";
-import {
-    ChartCrosshair,
-    ChartLegend,
-    defaultColors,
-} from "@/Components/ui/chart";
+import type { BulletLegendItemInterface } from '@unovis/ts'
+import type { Component } from 'vue'
+import type { BaseChartProps } from '.'
+import { Axis, GroupedBar, StackedBar } from '@unovis/ts'
+import { VisAxis, VisGroupedBar, VisStackedBar, VisXYContainer } from '@unovis/vue'
+import { useMounted } from '@vueuse/core'
+import { computed, ref } from 'vue'
+import { cn } from '@/lib/utils'
+import { ChartCrosshair, ChartLegend, defaultColors } from '@/Components/ui/chart'
 
 const props = withDefaults(
     defineProps<
@@ -24,21 +15,21 @@ const props = withDefaults(
             /**
              * Render custom tooltip component.
              */
-            customTooltip?: Component;
+            customTooltip?: Component
             /**
              * Change the type of the chart
              * @default "grouped"
              */
-            type?: "stacked" | "grouped";
+            type?: 'stacked' | 'grouped'
             /**
              * Rounded bar corners
              * @default 0
              */
-            roundedCorners?: number;
+            roundedCorners?: number
         }
     >(),
     {
-        type: "grouped",
+        type: 'grouped',
         margin: () => ({ top: 0, bottom: 0, left: 0, right: 0 }),
         filterOpacity: 0.2,
         roundedCorners: 0,
@@ -47,51 +38,41 @@ const props = withDefaults(
         showTooltip: true,
         showLegend: true,
         showGridLine: true,
-    },
-);
+    }
+)
 const emits = defineEmits<{
-    legendItemClick: [d: BulletLegendItemInterface, i: number];
-}>();
+    legendItemClick: [d: BulletLegendItemInterface, i: number]
+}>()
 
-type KeyOfT = Extract<keyof T, string>;
-type Data = (typeof props.data)[number];
+type KeyOfT = Extract<keyof T, string>
+type Data = (typeof props.data)[number]
 
-const index = computed(() => props.index as KeyOfT);
+const index = computed(() => props.index as KeyOfT)
 const colors = computed(() =>
-    props.colors?.length
-        ? props.colors
-        : defaultColors(props.categories.length),
-);
+    props.colors?.length ? props.colors : defaultColors(props.categories.length)
+)
 const legendItems = ref<BulletLegendItemInterface[]>(
     props.categories.map((category, i) => ({
         name: category,
         color: colors.value[i],
         inactive: false,
-    })),
-);
+    }))
+)
 
-const isMounted = useMounted();
+const isMounted = useMounted()
 
 function handleLegendItemClick(d: BulletLegendItemInterface, i: number) {
-    emits("legendItemClick", d, i);
+    emits('legendItemClick', d, i)
 }
 
-const VisBarComponent = computed(() =>
-    props.type === "grouped" ? VisGroupedBar : VisStackedBar,
-);
+const VisBarComponent = computed(() => (props.type === 'grouped' ? VisGroupedBar : VisStackedBar))
 const selectorsBar = computed(() =>
-    props.type === "grouped"
-        ? GroupedBar.selectors.bar
-        : StackedBar.selectors.bar,
-);
+    props.type === 'grouped' ? GroupedBar.selectors.bar : StackedBar.selectors.bar
+)
 </script>
 
 <template>
-    <div
-        :class="
-            cn('w-full h-[400px] flex flex-col items-end', $attrs.class ?? '')
-        "
-    >
+    <div :class="cn('w-full h-[400px] flex flex-col items-end', $attrs.class ?? '')">
         <ChartLegend
             v-if="showLegend"
             v-model:items="legendItems"
@@ -120,10 +101,8 @@ const selectorsBar = computed(() =>
                 :attributes="{
                     [selectorsBar]: {
                         opacity: (d: Data, i: number) => {
-                            const pos = i % categories.length;
-                            return legendItems[pos]?.inactive
-                                ? filterOpacity
-                                : 1;
+                            const pos = i % categories.length
+                            return legendItems[pos]?.inactive ? filterOpacity : 1
                         },
                     },
                 }"

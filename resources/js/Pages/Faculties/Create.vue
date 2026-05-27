@@ -1,29 +1,32 @@
 <script setup lang="ts">
-import { Head, useForm } from "@inertiajs/vue3";
-import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout.vue";
-import { Button } from "@/Components/ui/button";
-import { Input } from "@/Components/ui/input";
-import { Label } from "@/Components/ui/label";
-import { Card, CardContent, CardHeader, CardTitle } from "@/Components/ui/card";
-import { ArrowLeft, Building2 } from "lucide-vue-next";
+import { Head, useForm } from '@inertiajs/vue3'
+import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
+import { Button } from '@/Components/ui/button'
+import { Input } from '@/Components/ui/input'
+import { Label } from '@/Components/ui/label'
+import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card'
+import { ArrowLeft, Building2 } from 'lucide-vue-next'
 
 const form = useForm({
-    name: "",
-});
+    name: '',
+})
 
 const submit = () => {
-    form.post(route("admin.faculties.store"));
-};
+    form.post(route('admin.faculties.store'))
+}
 </script>
 
 <template>
-
     <Head title="Buat Fakultas" />
 
     <AuthenticatedLayout>
         <template #header>
             <div class="flex items-center gap-4">
-                <Button variant="ghost" size="sm" @click="$inertia.visit(route('admin.faculties.index'))">
+                <Button
+                    variant="ghost"
+                    size="sm"
+                    @click="$inertia.visit(route('admin.faculties.index'))"
+                >
                     <ArrowLeft class="h-4 w-4 mr-2" />
                     Kembali
                 </Button>
@@ -44,23 +47,31 @@ const submit = () => {
                     </CardTitle>
                 </CardHeader>
                 <CardContent>
-                    <form @submit.prevent="submit" class="space-y-6">
+                    <form class="space-y-6" @submit.prevent="submit">
                         <div class="space-y-2">
                             <Label for="name">Nama Fakultas *</Label>
-                            <Input id="name" v-model="form.name" placeholder="Masukkan nama fakultas"
-                                :class="form.errors.name ? 'border-destructive' : ''" autofocus />
+                            <Input
+                                id="name"
+                                v-model="form.name"
+                                placeholder="Masukkan nama fakultas"
+                                :class="form.errors.name ? 'border-destructive' : ''"
+                                autofocus
+                            />
                             <p v-if="form.errors.name" class="text-sm text-destructive">
                                 {{ form.errors.name }}
                             </p>
                         </div>
 
                         <div class="flex items-center justify-end space-x-2 pt-4">
-                            <Button type="button" variant="outline"
-                                @click="$inertia.visit(route('admin.faculties.index'))">
+                            <Button
+                                type="button"
+                                variant="outline"
+                                @click="$inertia.visit(route('admin.faculties.index'))"
+                            >
                                 Batal
                             </Button>
                             <Button type="submit" :disabled="form.processing">
-                                {{ form.processing ? "Membuat..." : "Buat Fakultas" }}
+                                {{ form.processing ? 'Membuat...' : 'Buat Fakultas' }}
                             </Button>
                         </div>
                     </form>

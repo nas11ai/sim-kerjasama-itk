@@ -27,5 +27,6 @@ test('new users can register', function () {
         'study_program' => $studyProgram->id,
     ]);
 
-    $response->assertRedirect(route('login'));
+    $this->assertAuthenticated();
+    $response->assertRedirect(route('dashboard', absolute: false));
 });

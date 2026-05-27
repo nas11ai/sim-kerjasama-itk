@@ -1,33 +1,33 @@
 <script setup lang="ts">
-import AlertContainer from "@/Components/AlertContainer.vue";
-import Checkbox from "@/Components/Checkbox.vue";
-import InputError from "@/Components/InputError.vue";
-import InputLabel from "@/Components/InputLabel.vue";
-import PrimaryButton from "@/Components/PrimaryButton.vue";
-import TextInput from "@/Components/TextInput.vue";
-import Button from "@/Components/ui/button/Button.vue";
-import Input from "@/Components/ui/input/Input.vue";
-import Label from "@/Components/ui/label/Label.vue";
-import { Head, Link, useForm } from "@inertiajs/vue3";
+import AlertContainer from '@/Components/AlertContainer.vue'
+import Checkbox from '@/Components/Checkbox.vue'
+import InputError from '@/Components/InputError.vue'
+import InputLabel from '@/Components/InputLabel.vue'
+import PrimaryButton from '@/Components/PrimaryButton.vue'
+import TextInput from '@/Components/TextInput.vue'
+import Button from '@/Components/ui/button/Button.vue'
+import Input from '@/Components/ui/input/Input.vue'
+import Label from '@/Components/ui/label/Label.vue'
+import { Head, Link, useForm } from '@inertiajs/vue3'
 
 defineProps<{
-    canResetPassword?: boolean;
-    status?: string;
-}>();
+    canResetPassword?: boolean
+    status?: string
+}>()
 
 const form = useForm({
-    email: "",
-    password: "",
+    email: '',
+    password: '',
     remember: false,
-});
+})
 
 const submit = () => {
-    form.post(route("login"), {
+    form.post(route('login'), {
         onFinish: () => {
-            form.reset("password");
+            form.reset('password')
         },
-    });
-};
+    })
+}
 </script>
 
 <template>
@@ -36,7 +36,11 @@ const submit = () => {
     >
         <div class="mb-6">
             <div class="flex items-center gap-4 drop-shadow-md">
-                <img src="/images/Logo-ITK.png" alt="Logo ITK" class="h-20 w-auto object-contain mx-auto mb-2" />
+                <img
+                    src="/images/Logo-ITK.png"
+                    alt="Logo ITK"
+                    class="h-20 w-auto object-contain mx-auto mb-2"
+                />
                 <div>
                     <h1 class="text-2xl font-bold text-blue-600">SIM Kerja Sama ITK</h1>
                     <p class="text-gray-500 text-xs uppercase">Institut Teknologi Kalimantan</p>
@@ -55,31 +59,27 @@ const submit = () => {
                 </Label>
             </div>
 
-            <form @submit.prevent="submit" class="flex flex-col gap-2">
+            <form class="flex flex-col gap-2" @submit.prevent="submit">
                 <div class="flex flex-col gap-6">
                     <div class="flex flex-col gap-1.5">
-                        <Label for="email">
-                            Email
-                        </Label>
+                        <Label for="email"> Email </Label>
                         <Input
                             id="email"
+                            v-model="form.email"
                             type="email"
                             class="flex w-full"
-                            v-model="form.email"
                             required
                             autofocus
                         />
                         <InputError :message="form.errors.email" />
                     </div>
                     <div class="flex flex-col gap-1.5">
-                        <Label for="password">
-                            Kata Sandi
-                        </Label>
+                        <Label for="password"> Kata Sandi </Label>
                         <Input
                             id="password"
+                            v-model="form.password"
                             type="password"
                             class="flex w-full"
-                            v-model="form.password"
                             required
                         />
                         <InputError :message="form.errors.password" />
@@ -88,10 +88,7 @@ const submit = () => {
 
                 <div class="flex items-center justify-between mb-6">
                     <Label class="flex items-center text-sm text-gray-600 font-normal">
-                        <Checkbox
-                            name="remember"
-                            v-model:checked="form.remember"
-                        />
+                        <Checkbox v-model:checked="form.remember" name="remember" />
                         <span class="ml-2">Ingat saya</span>
                     </Label>
 
@@ -115,13 +112,22 @@ const submit = () => {
                     <Link
                         :href="route('register')"
                         class="text-blue-600 hover:text-blue-800 font-medium"
-                        >Daftar Sekarang</Link
                     >
+                        Daftar Sekarang
+                    </Link>
                 </p>
             </form>
         </div>
-        <img class="absolute left-6 top-0 h-36 z-0 rotate-180 opacity-50" src="images/Gear_Blue.webp" alt="Gambar Profil Pengajar dari Program Pascasarjana ITK">
-        <img class="absolute right-0 bottom-0 h-72 z-0 opacity-100" src="images/Gear_Yellow.webp" alt="Gambar Profil Pengajar dari Program Pascasarjana ITK">
+        <img
+            class="absolute left-6 top-0 h-36 z-0 rotate-180 opacity-50"
+            src="images/Gear_Blue.webp"
+            alt="Gambar Profil Pengajar dari Program Pascasarjana ITK"
+        />
+        <img
+            class="absolute right-0 bottom-0 h-72 z-0 opacity-100"
+            src="images/Gear_Yellow.webp"
+            alt="Gambar Profil Pengajar dari Program Pascasarjana ITK"
+        />
     </div>
     <AlertContainer />
 </template>

@@ -1,202 +1,189 @@
 <script setup lang="ts">
-import { computed, ref } from "vue";
-import { Head, useForm } from "@inertiajs/vue3";
-import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout.vue";
-import { Button } from "@/Components/ui/button";
-import { Input } from "@/Components/ui/input";
-import { Label } from "@/Components/ui/label";
-import { Card, CardContent, CardHeader, CardTitle } from "@/Components/ui/card";
-import { Badge } from "@/Components/ui/badge";
-import { Separator } from "@/Components/ui/separator";
+import { computed, ref } from 'vue'
+import { Head, useForm } from '@inertiajs/vue3'
+import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
+import { Button } from '@/Components/ui/button'
+import { Input } from '@/Components/ui/input'
+import { Label } from '@/Components/ui/label'
+import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card'
+import { Badge } from '@/Components/ui/badge'
+import { Separator } from '@/Components/ui/separator'
 import {
     Select,
     SelectContent,
     SelectItem,
     SelectTrigger,
     SelectValue,
-} from "@/Components/ui/select";
-import {
-    Plus,
-    Trash2,
-    ArrowLeft,
-    Calendar,
-    Settings,
-    FileText,
-} from "lucide-vue-next";
-import { watch } from "vue";
-import Checkbox from "@/Components/Checkbox.vue";
+} from '@/Components/ui/select'
+import { Plus, Trash2, ArrowLeft, Calendar, Settings, FileText } from 'lucide-vue-next'
+import { watch } from 'vue'
+import Checkbox from '@/Components/Checkbox.vue'
 
 interface FormPhase {
-    id: number;
-    title: string;
-    description?: string;
+    id: number
+    title: string
+    description?: string
 }
 
 interface SubmissionRule {
-    id: number;
-    label: string;
-    value: number;
+    id: number
+    label: string
+    value: number
 }
 
 interface SubmissionDateLabel {
-    id: number;
-    name: string;
+    id: number
+    name: string
 }
 
 interface SubmissionDate {
-    label: string;
-    date: string;
-    temp_id: string;
+    label: string
+    date: string
+    temp_id: string
 }
 
 // Fix: Add index signature to FormData interface
 interface FormData {
-    name: string;
-    submission_dates: SubmissionDate[];
-    form_phase_ids: number[];
-    submission_rule_ids: number[];
-    [key: string]: any; // Add index signature
+    name: string
+    submission_dates: SubmissionDate[]
+    form_phase_ids: number[]
+    submission_rule_ids: number[]
+    [key: string]: any // Add index signature
 }
 
 interface Props {
-    formPhases: FormPhase[];
-    submissionRules: SubmissionRule[];
-    submissionDateLabels: SubmissionDateLabel[];
+    formPhases: FormPhase[]
+    submissionRules: SubmissionRule[]
+    submissionDateLabels: SubmissionDateLabel[]
 }
 
-const props = defineProps<Props>();
+const props = defineProps<Props>()
 
 const form = useForm<FormData>({
-    name: "",
+    name: '',
     submission_dates: [],
     form_phase_ids: [],
     submission_rule_ids: [],
-});
+})
 
-const errors = computed(() => (form.errors as Record<string, string>) ?? {});
+const errors = computed(() => (form.errors as Record<string, string>) ?? {})
 
 // State untuk dialog tambah label baru
-const showAddLabelDialog = ref(false);
+const showAddLabelDialog = ref(false)
 const newLabelForm = useForm({
-    label: "",
-});
+    label: '',
+})
 
 // State untuk menyimpan labels yang ditambahkan secara dinamis
-const dynamicLabels = ref<SubmissionDateLabel[]>([]);
+const dynamicLabels = ref<SubmissionDateLabel[]>([])
 
 // Computed untuk menggabungkan labels dari props dan yang ditambahkan secara dinamis
-const allLabels = computed(() => [
-    ...props.submissionDateLabels,
-    ...dynamicLabels.value,
-]);
+const allLabels = computed(() => [...props.submissionDateLabels, ...dynamicLabels.value])
 
-const generateTempId = () => `temp_${Date.now()}_${Math.random()}`;
+const generateTempId = () => `temp_${Date.now()}_${Math.random()}`
 
 const addSubmissionDate = () => {
     form.submission_dates.push({
-        label: "",
-        date: "",
+        label: '',
+        date: '',
         temp_id: generateTempId(),
-    });
-};
+    })
+}
 
 const addNewLabel = async () => {
     if (newLabelForm.label.trim()) {
         try {
-            const response = await fetch(
-                route("admin.submission-date-labels.store"),
-                {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                        Accept: "application/json",
-                        "X-CSRF-TOKEN":
-                            document
-                                .querySelector('meta[name="csrf-token"]')
-                                ?.getAttribute("content") || "",
-                    },
-                    body: JSON.stringify({ name: newLabelForm.label.trim() }),
-                }
-            );
+            const response = await fetch(route('admin.submission-date-labels.store'), {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Accept: 'application/json',
+                    'X-CSRF-TOKEN':
+                        document
+                            .querySelector('meta[name="csrf-token"]')
+                            ?.getAttribute('content') || '',
+                },
+                body: JSON.stringify({ name: newLabelForm.label.trim() }),
+            })
 
             if (!response.ok) {
-                const text = await response.text();
-                console.error("Permintaan gagal:", text);
-                return;
+                const text = await response.text()
+                console.error('Permintaan gagal:', text)
+                return
             }
 
-            const newLabel = await response.json();
-            dynamicLabels.value.push(newLabel);
-            showAddLabelDialog.value = false;
+            const newLabel = await response.json()
+            dynamicLabels.value.push(newLabel)
+            showAddLabelDialog.value = false
         } catch (error) {
-            console.error("Gagal menambahkan label baru:", error);
+            console.error('Gagal menambahkan label baru:', error)
         }
     }
-};
+}
 
 const removeSubmissionDate = (index: number) => {
-    form.submission_dates.splice(index, 1);
-};
+    form.submission_dates.splice(index, 1)
+}
 
 const toggleFormPhase = (phaseId: number) => {
-    const index = form.form_phase_ids.indexOf(phaseId);
+    const index = form.form_phase_ids.indexOf(phaseId)
     if (index > -1) {
-        form.form_phase_ids.splice(index, 1);
+        form.form_phase_ids.splice(index, 1)
     } else {
-        form.form_phase_ids.push(phaseId);
+        form.form_phase_ids.push(phaseId)
     }
-};
+}
 
 const toggleSubmissionRule = (ruleId: number) => {
-    const index = form.submission_rule_ids.indexOf(ruleId);
+    const index = form.submission_rule_ids.indexOf(ruleId)
     if (index > -1) {
-        form.submission_rule_ids.splice(index, 1);
+        form.submission_rule_ids.splice(index, 1)
     } else {
-        form.submission_rule_ids.push(ruleId);
+        form.submission_rule_ids.push(ruleId)
     }
-};
+}
 
 const selectAllFormPhases = () => {
     if (form.form_phase_ids.length === props.formPhases.length) {
-        form.form_phase_ids = [];
+        form.form_phase_ids = []
     } else {
-        form.form_phase_ids = props.formPhases.map((phase) => phase.id);
+        form.form_phase_ids = props.formPhases.map((phase) => phase.id)
     }
-};
+}
 
 const selectAllSubmissionRules = () => {
     if (form.submission_rule_ids.length === props.submissionRules.length) {
-        form.submission_rule_ids = [];
+        form.submission_rule_ids = []
     } else {
-        form.submission_rule_ids = props.submissionRules.map((rule) => rule.id);
+        form.submission_rule_ids = props.submissionRules.map((rule) => rule.id)
     }
-};
+}
 
 const onPhaseClick = (phaseId: number) => {
-    const index = form.form_phase_ids.indexOf(phaseId);
+    const index = form.form_phase_ids.indexOf(phaseId)
     if (index > -1) {
-        form.form_phase_ids.splice(index, 1);
+        form.form_phase_ids.splice(index, 1)
     } else {
-        form.form_phase_ids.push(phaseId);
+        form.form_phase_ids.push(phaseId)
     }
-};
+}
 
 const submit = () => {
-    form.post(route("admin.submission-periods.store"));
-};
+    form.post(route('admin.submission-periods.store'))
+}
 
 // Initialize with one date entry
 if (form.submission_dates.length === 0) {
-    addSubmissionDate();
+    addSubmissionDate()
 }
 
 watch(showAddLabelDialog, (val) => {
     if (val) {
-        document.body.classList.add("overflow-hidden");
+        document.body.classList.add('overflow-hidden')
     } else {
-        document.body.classList.remove("overflow-hidden");
+        document.body.classList.remove('overflow-hidden')
     }
-});
+})
 </script>
 
 <template>
@@ -208,9 +195,7 @@ watch(showAddLabelDialog, (val) => {
                 <Button
                     variant="ghost"
                     size="sm"
-                    @click="
-                        $inertia.visit(route('admin.submission-periods.index'))
-                    "
+                    @click="$inertia.visit(route('admin.submission-periods.index'))"
                 >
                     <ArrowLeft class="h-4 w-4 mr-2" />
                     Kembali
@@ -222,7 +207,7 @@ watch(showAddLabelDialog, (val) => {
         </template>
 
         <div class="max-w-4xl mx-auto space-y-6">
-            <form @submit.prevent="submit" class="space-y-6">
+            <form class="space-y-6" @submit.prevent="submit">
                 <!-- Period Basic Info -->
                 <Card>
                     <CardHeader>
@@ -240,10 +225,7 @@ watch(showAddLabelDialog, (val) => {
                                 placeholder="Masukkan nama periode pengiriman"
                                 :class="errors.name ? 'border-destructive' : ''"
                             />
-                            <p
-                                v-if="errors.name"
-                                class="text-sm text-destructive"
-                            >
+                            <p v-if="errors.name" class="text-sm text-destructive">
                                 {{ errors.name }}
                             </p>
                         </div>
@@ -260,9 +242,9 @@ watch(showAddLabelDialog, (val) => {
                             </CardTitle>
                             <Button
                                 type="button"
-                                @click="addSubmissionDate"
                                 size="sm"
                                 variant="outline"
+                                @click="addSubmissionDate"
                             >
                                 <Plus class="h-4 w-4 mr-2" />
                                 Tambah Tanggal
@@ -277,12 +259,8 @@ watch(showAddLabelDialog, (val) => {
                                 class="flex items-end gap-4 p-4 border rounded-lg"
                             >
                                 <div class="flex-1 space-y-2">
-                                    <div
-                                        class="flex items-center justify-between"
-                                    >
-                                        <Label :for="`date_label_${index}`"
-                                            >Label Tanggal *</Label
-                                        >
+                                    <div class="flex items-center justify-between">
+                                        <Label :for="`date_label_${index}`">Label Tanggal *</Label>
                                         <!-- Custom Modal instead of Dialog -->
                                         <div>
                                             <Button
@@ -290,9 +268,7 @@ watch(showAddLabelDialog, (val) => {
                                                 variant="ghost"
                                                 size="sm"
                                                 class="text-xs h-6 px-2"
-                                                @click="
-                                                    showAddLabelDialog = true
-                                                "
+                                                @click="showAddLabelDialog = true"
                                             >
                                                 <Plus class="h-3 w-3 mr-1" />
                                                 Tambah Baru
@@ -306,10 +282,8 @@ watch(showAddLabelDialog, (val) => {
                                                 <!-- Background hitam -->
                                                 <div
                                                     class="absolute inset-0 bg-black/80"
-                                                    @click="
-                                                        showAddLabelDialog = false
-                                                    "
-                                                ></div>
+                                                    @click="showAddLabelDialog = false"
+                                                />
 
                                                 <!-- Modal content -->
                                                 <div
@@ -318,29 +292,20 @@ watch(showAddLabelDialog, (val) => {
                                                     <div
                                                         class="bg-white rounded-lg shadow-lg w-full max-w-md p-6 max-h-[calc(100vh-2rem)] overflow-y-auto"
                                                     >
-                                                        <h3
-                                                            class="text-lg font-semibold mb-4"
-                                                        >
+                                                        <h3 class="text-lg font-semibold mb-4">
                                                             Tambah Label Tanggal Baru
                                                         </h3>
                                                         <div class="space-y-4">
-                                                            <div
-                                                                class="space-y-2"
-                                                            >
-                                                                <Label
-                                                                    for="new-label"
+                                                            <div class="space-y-2">
+                                                                <Label for="new-label"
                                                                     >Nama Label
-                                                                    </Label>
+                                                                </Label>
                                                                 <Input
                                                                     id="new-label"
-                                                                    v-model="
-                                                                        newLabelForm.label
-                                                                    "
+                                                                    v-model="newLabelForm.label"
                                                                     placeholder="Enter label name"
-                                                                    @keyup.enter="
-                                                                        addNewLabel
-                                                                    "
                                                                     autofocus
+                                                                    @keyup.enter="addNewLabel"
                                                                 />
                                                             </div>
                                                             <div
@@ -357,12 +322,10 @@ watch(showAddLabelDialog, (val) => {
                                                                 </Button>
                                                                 <Button
                                                                     type="button"
-                                                                    @click="
-                                                                        addNewLabel
-                                                                    "
                                                                     :disabled="
                                                                         !newLabelForm.label.trim()
                                                                     "
+                                                                    @click="addNewLabel"
                                                                 >
                                                                     Tambah Label
                                                                 </Button>
@@ -373,14 +336,9 @@ watch(showAddLabelDialog, (val) => {
                                             </div>
                                         </div>
                                     </div>
-                                    <Select
-                                        v-model="date.label"
-                                        :id="`date_label_${index}`"
-                                    >
+                                    <Select :id="`date_label_${index}`" v-model="date.label">
                                         <SelectTrigger>
-                                            <SelectValue
-                                                placeholder="Select date label"
-                                            />
+                                            <SelectValue placeholder="Select date label" />
                                         </SelectTrigger>
                                         <SelectContent>
                                             <SelectItem
@@ -394,18 +352,10 @@ watch(showAddLabelDialog, (val) => {
                                     </Select>
 
                                     <p
-                                        v-if="
-                                            errors[
-                                                `submission_dates.${index}.label`
-                                            ]
-                                        "
+                                        v-if="errors[`submission_dates.${index}.label`]"
                                         class="text-sm text-destructive"
                                     >
-                                        {{
-                                            errors[
-                                                `submission_dates.${index}.label`
-                                            ]
-                                        }}
+                                        {{ errors[`submission_dates.${index}.label`] }}
                                     </p>
                                 </div>
                                 <div class="flex-1 space-y-2">
@@ -417,38 +367,25 @@ watch(showAddLabelDialog, (val) => {
                                     />
 
                                     <p
-                                        v-if="
-                                            errors[
-                                                `submission_dates.${index}.date`
-                                            ]
-                                        "
+                                        v-if="errors[`submission_dates.${index}.date`]"
                                         class="text-sm text-destructive"
                                     >
-                                        {{
-                                            errors[
-                                                `submission_dates.${index}.date`
-                                            ]
-                                        }}
+                                        {{ errors[`submission_dates.${index}.date`] }}
                                     </p>
                                 </div>
                                 <Button
                                     type="button"
                                     variant="ghost"
                                     size="sm"
-                                    @click="removeSubmissionDate(index)"
                                     class="text-destructive hover:text-destructive"
-                                    :disabled="
-                                        form.submission_dates.length === 1
-                                    "
+                                    :disabled="form.submission_dates.length === 1"
+                                    @click="removeSubmissionDate(index)"
                                 >
                                     <Trash2 class="h-4 w-4" />
                                 </Button>
                             </div>
                         </div>
-                        <p
-                            v-if="errors.submission_dates"
-                            class="text-sm text-destructive mt-2"
-                        >
+                        <p v-if="errors.submission_dates" class="text-sm text-destructive mt-2">
                             {{ errors.submission_dates }}
                         </p>
                     </CardContent>
@@ -472,10 +409,9 @@ watch(showAddLabelDialog, (val) => {
                                 @click="selectAllFormPhases"
                             >
                                 {{
-                                    form.form_phase_ids.length ===
-                                    props.formPhases.length
-                                        ? "Batal Pilih Semua"
-                                        : "Pilih Semua"
+                                    form.form_phase_ids.length === props.formPhases.length
+                                        ? 'Batal Pilih Semua'
+                                        : 'Pilih Semua'
                                 }}
                             </Button>
                         </div>
@@ -485,9 +421,7 @@ watch(showAddLabelDialog, (val) => {
                             v-if="props.formPhases.length === 0"
                             class="text-center py-8 text-muted-foreground"
                         >
-                            <Settings
-                                class="h-12 w-12 mx-auto mb-4 opacity-50"
-                            />
+                            <Settings class="h-12 w-12 mx-auto mb-4 opacity-50" />
                             <p>Tidak ada tahap formulir aktif tersedia.</p>
                         </div>
                         <div v-else class="grid gap-3 md:grid-cols-2">
@@ -497,11 +431,7 @@ watch(showAddLabelDialog, (val) => {
                                 class="flex w-full items-center space-x-3 p-3 border rounded-lg hover:bg-muted/50 cursor-pointer"
                                 @click="toggleFormPhase(phase.id)"
                             >
-                                <Checkbox
-                                    :checked="
-                                        form.form_phase_ids.includes(phase.id)
-                                    "
-                                />
+                                <Checkbox :checked="form.form_phase_ids.includes(phase.id)" />
                                 <div class="flex-1 min-w-0">
                                     <Label class="cursor-pointer font-medium">
                                         {{ phase.title }}
@@ -515,10 +445,7 @@ watch(showAddLabelDialog, (val) => {
                                 </div>
                             </div>
                         </div>
-                        <p
-                            v-if="errors.form_phase_ids"
-                            class="text-sm text-destructive mt-2"
-                        >
+                        <p v-if="errors.form_phase_ids" class="text-sm text-destructive mt-2">
                             {{ errors.form_phase_ids }}
                         </p>
                     </CardContent>
@@ -537,17 +464,16 @@ watch(showAddLabelDialog, (val) => {
                                 </Badge>
                             </CardTitle>
                             <Button
+                                v-if="props.submissionRules.length > 0"
                                 type="button"
                                 variant="outline"
                                 size="sm"
                                 @click="selectAllSubmissionRules"
-                                v-if="props.submissionRules.length > 0"
                             >
                                 {{
-                                    form.submission_rule_ids.length ===
-                                    props.submissionRules.length
-                                        ? "Batal Pilih Semua"
-                                        : "Pilih Semua"
+                                    form.submission_rule_ids.length === props.submissionRules.length
+                                        ? 'Batal Pilih Semua'
+                                        : 'Pilih Semua'
                                 }}
                             </Button>
                         </div>
@@ -557,9 +483,7 @@ watch(showAddLabelDialog, (val) => {
                             v-if="props.submissionRules.length === 0"
                             class="text-center py-8 text-muted-foreground"
                         >
-                            <FileText
-                                class="h-12 w-12 mx-auto mb-4 opacity-50"
-                            />
+                            <FileText class="h-12 w-12 mx-auto mb-4 opacity-50" />
                             <p>Tidak ada aturan pengiriman tersedia.</p>
                         </div>
                         <div v-else class="grid gap-3 md:grid-cols-2">
@@ -569,13 +493,7 @@ watch(showAddLabelDialog, (val) => {
                                 class="flex w-full items-center space-x-3 p-3 border rounded-lg hover:bg-muted/50 cursor-pointer"
                                 @click="toggleSubmissionRule(rule.id)"
                             >
-                                <Checkbox
-                                    :checked="
-                                        form.submission_rule_ids.includes(
-                                            rule.id
-                                        )
-                                    "
-                                />
+                                <Checkbox :checked="form.submission_rule_ids.includes(rule.id)" />
                                 <div class="flex-1">
                                     <Label class="cursor-pointer font-medium">
                                         {{ rule.label }}
@@ -591,61 +509,40 @@ watch(showAddLabelDialog, (val) => {
 
                 <!-- Preview Summary -->
                 <Card
-                    v-if="
-                        form.name ||
-                        form.submission_dates.some((d) => d.label || d.date)
-                    "
+                    v-if="form.name || form.submission_dates.some((d) => d.label || d.date)"
                     class="border-blue-200 bg-blue-50"
                 >
                     <CardHeader>
-                        <CardTitle class="text-blue-900"
-                            >Pratinjau Ringkasan</CardTitle
-                        >
+                        <CardTitle class="text-blue-900"> Pratinjau Ringkasan </CardTitle>
                     </CardHeader>
                     <CardContent class="space-y-4">
                         <div v-if="form.name">
-                            <h4 class="font-medium text-blue-800 mb-1">
-                                Nama Periode
-                            </h4>
-                            <p class="text-blue-700">{{ form.name }}</p>
+                            <h4 class="font-medium text-blue-800 mb-1">Nama Periode</h4>
+                            <p class="text-blue-700">
+                                {{ form.name }}
+                            </p>
                         </div>
 
-                        <div
-                            v-if="
-                                form.submission_dates.some(
-                                    (d) => d.label || d.date
-                                )
-                            "
-                        >
-                            <h4 class="font-medium text-blue-800 mb-2">
-                                Tanggal
-                            </h4>
+                        <div v-if="form.submission_dates.some((d) => d.label || d.date)">
+                            <h4 class="font-medium text-blue-800 mb-2">Tanggal</h4>
                             <div class="space-y-1">
                                 <template
-                                    v-for="(
-                                        submissionDate, index
-                                    ) in form.submission_dates"
+                                    v-for="(submissionDate, index) in form.submission_dates"
                                     :key="index"
                                 >
                                     <div
-                                        v-if="
-                                            submissionDate.label ||
-                                            submissionDate.date
-                                        "
+                                        v-if="submissionDate.label || submissionDate.date"
                                         class="text-sm text-blue-600"
                                     >
                                         <strong
                                             >{{
-                                                submissionDate.label ||
-                                                "Tanggal Tidak Bernama"
+                                                submissionDate.label || 'Tanggal Tidak Bernama'
                                             }}:</strong
                                         >
                                         {{
                                             submissionDate.date
-                                                ? new Date(
-                                                      submissionDate.date
-                                                  ).toLocaleString()
-                                                : "Tanggal Tidak Ditetapkan"
+                                                ? new Date(submissionDate.date).toLocaleString()
+                                                : 'Tanggal Tidak Ditetapkan'
                                         }}
                                     </div>
                                 </template>
@@ -653,9 +550,7 @@ watch(showAddLabelDialog, (val) => {
                         </div>
 
                         <div v-if="form.form_phase_ids.length > 0">
-                            <h4 class="font-medium text-blue-800 mb-2">
-                                Tahap Formulir Dipilih
-                            </h4>
+                            <h4 class="font-medium text-blue-800 mb-2">Tahap Formulir Dipilih</h4>
                             <div class="flex flex-wrap gap-1">
                                 <Badge
                                     v-for="phaseId in form.form_phase_ids"
@@ -663,11 +558,7 @@ watch(showAddLabelDialog, (val) => {
                                     variant="outline"
                                     class="text-blue-700 border-blue-300"
                                 >
-                                    {{
-                                        props.formPhases.find(
-                                            (p) => p.id === phaseId
-                                        )?.title
-                                    }}
+                                    {{ props.formPhases.find((p) => p.id === phaseId)?.title }}
                                 </Badge>
                             </div>
                         </div>
@@ -683,11 +574,7 @@ watch(showAddLabelDialog, (val) => {
                                     variant="outline"
                                     class="text-blue-700 border-blue-300"
                                 >
-                                    {{
-                                        props.submissionRules.find(
-                                            (r) => r.id === ruleId
-                                        )?.label
-                                    }}
+                                    {{ props.submissionRules.find((r) => r.id === ruleId)?.label }}
                                 </Badge>
                             </div>
                         </div>
@@ -699,20 +586,12 @@ watch(showAddLabelDialog, (val) => {
                     <Button
                         type="button"
                         variant="outline"
-                        @click="
-                            $inertia.visit(
-                                route('admin.submission-periods.index')
-                            )
-                        "
+                        @click="$inertia.visit(route('admin.submission-periods.index'))"
                     >
                         Batal
                     </Button>
                     <Button type="submit" :disabled="form.processing">
-                        {{
-                            form.processing
-                                ? "Membuat..."
-                                : "Buat Periode Pengiriman"
-                        }}
+                        {{ form.processing ? 'Membuat...' : 'Buat Periode Pengiriman' }}
                     </Button>
                 </div>
             </form>

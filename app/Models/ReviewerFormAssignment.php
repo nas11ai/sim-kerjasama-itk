@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasOne;
@@ -148,7 +147,7 @@ class ReviewerFormAssignment extends Model
         if ($this->isOverdue() && $this->reviewFormResponse) {
             $this->reviewFormResponse->update([
                 'status' => 'locked',
-                'locked_at' => now()
+                'locked_at' => now(),
             ]);
         }
     }

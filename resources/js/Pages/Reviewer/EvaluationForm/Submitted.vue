@@ -1,132 +1,129 @@
 <!-- resources/js/Pages/Reviewer/EvaluationForm/Submitted.vue -->
 <script setup lang="ts">
-import { Head } from "@inertiajs/vue3";
-import AuthenticatedLayout from "@/Layouts/AuthenticatedLayout.vue";
-import { Button } from "@/Components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/Components/ui/card";
-import { Badge } from "@/Components/ui/badge";
-import {
-    ArrowLeft,
-    CheckCircle,
-    Calendar,
-    User,
-    FileText,
-    Download,
-    Clock
-} from "lucide-vue-next";
+import { Head } from '@inertiajs/vue3'
+import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
+import { Button } from '@/Components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card'
+import { Badge } from '@/Components/ui/badge'
+import { ArrowLeft, CheckCircle, Calendar, User, FileText, Download, Clock } from 'lucide-vue-next'
 
 interface FieldType {
-    id: number;
-    name: string;
+    id: number
+    name: string
 }
 
 interface FieldOption {
-    id: number;
-    label: string;
-    value?: string;
+    id: number
+    label: string
+    value?: string
 }
 
 interface ReviewFormField {
-    id: number;
-    label: string;
-    description?: string;
-    is_required: boolean;
-    field_type: FieldType;
-    review_form_field_options: FieldOption[];
+    id: number
+    label: string
+    description?: string
+    is_required: boolean
+    field_type: FieldType
+    review_form_field_options: FieldOption[]
 }
 
 interface ReviewEvaluationForm {
-    id: number;
-    title: string;
-    description?: string;
-    review_form_fields: ReviewFormField[];
+    id: number
+    title: string
+    description?: string
+    review_form_fields: ReviewFormField[]
 }
 
 interface FormSubmission {
-    id: number;
+    id: number
     form: {
-        id: number;
-        title: string;
-    };
+        id: number
+        title: string
+    }
     submitted_by: {
-        id: number;
-        name: string;
-    };
+        id: number
+        name: string
+    }
 }
 
 interface ReviewFormResponse {
-    id: number;
-    status: string;
-    submitted_at?: string;
-    final_notes?: string;
+    id: number
+    status: string
+    submitted_at?: string
+    final_notes?: string
 }
 
 interface ReviewerFormAssignment {
-    id: number;
-    is_required: boolean;
-    due_date?: string;
-    review_evaluation_form: ReviewEvaluationForm;
+    id: number
+    is_required: boolean
+    due_date?: string
+    review_evaluation_form: ReviewEvaluationForm
     submission_reviewer: {
-        form_submission: FormSubmission;
-    };
-    review_form_response: ReviewFormResponse;
+        form_submission: FormSubmission
+    }
+    review_form_response: ReviewFormResponse
 }
 
 interface Props {
-    assignment: ReviewerFormAssignment;
-    response: ReviewFormResponse;
-    formattedResponses: Record<string, {
-        value: string;
-        formatted_value: string;
-    }>;
+    assignment: ReviewerFormAssignment
+    response: ReviewFormResponse
+    formattedResponses: Record<
+        string,
+        {
+            value: string
+            formatted_value: string
+        }
+    >
 }
 
-const props = defineProps<Props>();
+const props = defineProps<Props>()
 
 const formatDate = (dateString?: string): string => {
-    if (!dateString) return '';
+    if (!dateString) return ''
     return new Date(dateString).toLocaleDateString('id-ID', {
         day: 'numeric',
         month: 'long',
         year: 'numeric',
         hour: '2-digit',
-        minute: '2-digit'
-    });
-};
+        minute: '2-digit',
+    })
+}
 
 const getFieldDisplayValue = (field: ReviewFormField): string => {
-    const response = props.formattedResponses[field.id];
+    const response = props.formattedResponses[field.id]
     if (!response || !response.formatted_value) {
-        return 'Tidak ada respons yang diberikan';
+        return 'Tidak ada respons yang diberikan'
     }
-    return response.formatted_value;
-};
+    return response.formatted_value
+}
 
 const hasResponse = (field: ReviewFormField): boolean => {
-    return !!props.formattedResponses[field.id]?.value?.trim();
-};
-
+    return !!props.formattedResponses[field.id]?.value?.trim()
+}
 
 const downloadSummary = () => {
-    window.location.href = route('reviewer.evaluation-form.download-summary', props.assignment.id);
-};
+    window.location.href = route('reviewer.evaluation-form.download-summary', props.assignment.id)
+}
 
 const getResponseClass = (field: ReviewFormField): string => {
     if (!hasResponse(field)) {
-        return 'text-muted-foreground italic';
+        return 'text-muted-foreground italic'
     }
-    return 'text-foreground';
-};
+    return 'text-foreground'
+}
 </script>
 
 <template>
-
     <Head :title="`Dikirim: ${assignment.review_evaluation_form.title}`" />
 
     <AuthenticatedLayout>
         <template #header>
             <div class="flex items-center gap-4">
-                <Button variant="ghost" size="sm" @click="$inertia.visit(route('reviewer.assignments.index'))">
+                <Button
+                    variant="ghost"
+                    size="sm"
+                    @click="$inertia.visit(route('reviewer.assignments.index'))"
+                >
                     <ArrowLeft class="h-4 w-4 mr-2" />
                     Kembali
                 </Button>
@@ -135,7 +132,8 @@ const getResponseClass = (field: ReviewFormField): string => {
                         {{ assignment.review_evaluation_form.title }}
                     </h2>
                     <p class="text-sm text-muted-foreground">
-                        Evaluasi untuk: {{ assignment.submission_reviewer.form_submission.form.title }}
+                        Evaluasi untuk:
+                        {{ assignment.submission_reviewer.form_submission.form.title }}
                     </p>
                 </div>
             </div>
@@ -155,12 +153,13 @@ const getResponseClass = (field: ReviewFormField): string => {
                                     Evaluasi Berhasil Dikirim
                                 </h3>
                                 <p class="text-sm text-green-700">
-                                    Evaluasi Anda telah dikirim dan sekarang menjadi bagian dari proses peninjauan.
+                                    Evaluasi Anda telah dikirim dan sekarang menjadi bagian dari
+                                    proses peninjauan.
                                 </p>
                             </div>
                         </div>
 
-                        <Button @click="downloadSummary" variant="outline" size="sm">
+                        <Button variant="outline" size="sm" @click="downloadSummary">
                             <Download class="h-4 w-4 mr-2" />
                             Download Ringkasan
                         </Button>
@@ -185,7 +184,8 @@ const getResponseClass = (field: ReviewFormField): string => {
                             <div class="flex items-center space-x-2">
                                 <FileText class="h-4 w-4 text-muted-foreground" />
                                 <span class="text-sm font-medium">Formulir:</span>
-                                <span class="text-sm">{{ assignment.submission_reviewer.form_submission.form.title
+                                <span class="text-sm">{{
+                                    assignment.submission_reviewer.form_submission.form.title
                                 }}</span>
                             </div>
 
@@ -226,7 +226,9 @@ const getResponseClass = (field: ReviewFormField): string => {
                         <FileText class="h-5 w-5 text-blue-500 mt-0.5" />
                         <div>
                             <h3 class="font-medium mb-2">Instruksi Formulir</h3>
-                            <p class="text-muted-foreground">{{ assignment.review_evaluation_form.description }}</p>
+                            <p class="text-muted-foreground">
+                                {{ assignment.review_evaluation_form.description }}
+                            </p>
                         </div>
                     </div>
                 </CardContent>
@@ -236,8 +238,11 @@ const getResponseClass = (field: ReviewFormField): string => {
             <div class="space-y-4">
                 <h3 class="text-lg font-medium">Respon Anda</h3>
 
-                <div v-for="field in assignment.review_evaluation_form.review_form_fields" :key="field.id"
-                    class="space-y-4">
+                <div
+                    v-for="field in assignment.review_evaluation_form.review_form_fields"
+                    :key="field.id"
+                    class="space-y-4"
+                >
                     <Card>
                         <CardContent class="p-6">
                             <div class="space-y-3">
@@ -246,14 +251,23 @@ const getResponseClass = (field: ReviewFormField): string => {
                                     <div class="flex-1">
                                         <h4 class="text-base font-medium">
                                             {{ field.label }}
-                                            <span v-if="field.is_required" class="text-red-500 ml-1">*</span>
+                                            <span v-if="field.is_required" class="text-red-500 ml-1"
+                                                >*</span
+                                            >
                                         </h4>
-                                        <p v-if="field.description" class="text-sm text-muted-foreground mt-1">
+                                        <p
+                                            v-if="field.description"
+                                            class="text-sm text-muted-foreground mt-1"
+                                        >
                                             {{ field.description }}
                                         </p>
                                     </div>
                                     <div class="flex items-center space-x-2 ml-4">
-                                        <Badge v-if="field.is_required" variant="secondary" size="sm">
+                                        <Badge
+                                            v-if="field.is_required"
+                                            variant="secondary"
+                                            size="sm"
+                                        >
                                             Wajib
                                         </Badge>
                                         <Badge variant="outline" size="sm">
@@ -267,16 +281,19 @@ const getResponseClass = (field: ReviewFormField): string => {
                                     <div :class="getResponseClass(field)">
                                         <div v-if="hasResponse(field)" class="space-y-2">
                                             <!-- Multi-line responses -->
-                                            <div v-if="field.field_type.name === 'textarea'"
-                                                class="whitespace-pre-wrap">{{
-                                                    getFieldDisplayValue(field) }}</div>
+                                            <div
+                                                v-if="field.field_type.name === 'textarea'"
+                                                class="whitespace-pre-wrap"
+                                            >
+                                                {{ getFieldDisplayValue(field) }}
+                                            </div>
 
                                             <!-- Single line responses -->
-                                            <div v-else>{{ getFieldDisplayValue(field) }}</div>
+                                            <div v-else>
+                                                {{ getFieldDisplayValue(field) }}
+                                            </div>
                                         </div>
-                                        <div v-else>
-                                            Tidak ada respon yang diberikan
-                                        </div>
+                                        <div v-else>Tidak ada respon yang diberikan</div>
                                     </div>
                                 </div>
                             </div>
@@ -295,7 +312,9 @@ const getResponseClass = (field: ReviewFormField): string => {
                 </CardHeader>
                 <CardContent>
                     <div class="border-l-4 border-blue-200 pl-4 py-2">
-                        <div class="whitespace-pre-wrap">{{ response.final_notes }}</div>
+                        <div class="whitespace-pre-wrap">
+                            {{ response.final_notes }}
+                        </div>
                     </div>
                 </CardContent>
             </Card>
@@ -303,11 +322,12 @@ const getResponseClass = (field: ReviewFormField): string => {
             <!-- Action Buttons -->
             <div class="flex items-center justify-between bg-white border rounded-lg p-4">
                 <div class="text-sm text-muted-foreground">
-                    Evaluasi ini dikirim pada {{ formatDate(response.submitted_at) }} dan tidak dapat diubah.
+                    Evaluasi ini dikirim pada {{ formatDate(response.submitted_at) }} dan tidak
+                    dapat diubah.
                 </div>
 
                 <div class="flex items-center space-x-2">
-                    <Button @click="downloadSummary" variant="outline">
+                    <Button variant="outline" @click="downloadSummary">
                         <Download class="h-4 w-4 mr-2" />
                         Download Ringkasan PDF
                     </Button>

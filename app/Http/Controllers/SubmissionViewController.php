@@ -2,13 +2,13 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Form;
+use App\Models\FormPhase;
+use App\Models\FormSubmission;
 use App\Models\ReviewComment;
 use App\Models\Reviewer;
+use App\Models\ReviewSummary;
 use App\Models\SubmissionPeriod;
-use App\Models\FormPhase;
-use App\Models\Form;
-use App\Models\FormSubmission;
-use App\Models\FormFieldResponse;
 use App\Models\SubmissionReviewer;
 use App\SubmissionStatus;
 use Carbon\Carbon;
@@ -36,7 +36,7 @@ class SubmissionViewController extends Controller
                         $q->where('study_program_id', $studyProgram->id);
                     }
                 });
-            }
+            },
         ])
             ->whereHas('submissionPeriodPhases.formPhase.formPhaseDetails.formAccessControl', function ($query) use ($user, $studyProgram) {
                 $query->whereHas('role', function ($roleQuery) use ($user) {
@@ -72,8 +72,8 @@ class SubmissionViewController extends Controller
             'studyProgram' => $studyProgram ? [
                 'id' => $studyProgram->id,
                 'name' => $studyProgram->name,
-                'faculty' => ['name' => $studyProgram->faculty->name]
-            ] : null
+                'faculty' => ['name' => $studyProgram->faculty->name],
+            ] : null,
         ]);
     }
 
@@ -81,13 +81,13 @@ class SubmissionViewController extends Controller
     {
         $query = SubmissionPeriod::with([
             'submissionDates.submissionDateLabel',
-            'submissionPeriodPhases.formPhase'
+            'submissionPeriodPhases.formPhase',
         ]);
 
         // Search functionality
         if ($request->has('search') && $request->search) {
             $search = $request->search;
-            $query->where('name', 'like', "%{$search}%");
+            $query->where('name', 'ilike', "%{$search}%");
         }
 
         $submissionPeriods = $query->orderBy('created_at', 'desc')
@@ -121,7 +121,7 @@ class SubmissionViewController extends Controller
 
         return Inertia::render('Submissions/Index', [
             'submissionPeriods' => $submissionPeriods,
-            'filters' => $request->only(['search'])
+            'filters' => $request->only(['search']),
         ]);
     }
 
@@ -154,7 +154,7 @@ class SubmissionViewController extends Controller
                     })
                         ->with(['formAccessControl.form.formType'])
                         ->orderBy('order');
-                }
+                },
             ])
             ->get()
             ->map(function ($phase) use ($user) {
@@ -187,7 +187,7 @@ class SubmissionViewController extends Controller
 
         return Inertia::render('User/Submissions/ShowPeriod', [
             'submissionPeriod' => $period->load('submissionDates.submissionDateLabel'),
-            'formPhases' => $formPhases
+            'formPhases' => $formPhases,
         ]);
     }
 
@@ -226,8 +226,8 @@ class SubmissionViewController extends Controller
         if ($request->has('search') && $request->search) {
             $search = $request->search;
             $query->whereHas('submittedBy', function ($q) use ($search) {
-                $q->where('name', 'like', "%{$search}%")
-                    ->orWhere('email', 'like', "%{$search}%");
+                $q->where('name', 'ilike', "%{$search}%")
+                    ->orWhere('email', 'ilike', "%{$search}%");
             });
         }
 
@@ -240,7 +240,7 @@ class SubmissionViewController extends Controller
             'formPhases' => $formPhases,
             'submissions' => $submissions,
             'submissionStatuses' => $submissionStatuses,
-            'filters' => $request->only(['form_phase_id', 'status', 'search'])
+            'filters' => $request->only(['form_phase_id', 'status', 'search']),
         ]);
     }
 
@@ -269,9 +269,9 @@ class SubmissionViewController extends Controller
                 $query->with([
                     'reviewer.user:id,name',
                     'reviewer.reviewerRole:id,name',
-                    'attachments'
+                    'attachments',
                 ]);
-            }
+            },
         ]);
 
         // Map responses
@@ -284,14 +284,14 @@ class SubmissionViewController extends Controller
             'review_summary_id',
             $submission->reviewSummaries->pluck('id')
         )->with([
-                    'user:id,name',
-                    'reviewer.user:id,name',
-                    'attachments',
-                    'replies' => function ($q) {
-                        $q->with(['user:id,name', 'reviewer.user:id,name', 'attachments'])
-                            ->orderBy('created_at', 'asc');
-                    }
-                ])->whereNull('parent_comment_id')
+            'user:id,name',
+            'reviewer.user:id,name',
+            'attachments',
+            'replies' => function ($q) {
+                $q->with(['user:id,name', 'reviewer.user:id,name', 'attachments'])
+                    ->orderBy('created_at', 'asc');
+            },
+        ])->whereNull('parent_comment_id')
             ->orderBy('created_at', 'desc')
             ->get();
 
@@ -316,7 +316,7 @@ class SubmissionViewController extends Controller
             if ($reviewer) {
                 $submissionReviewer = SubmissionReviewer::where([
                     'form_submission_id' => $submission->id,
-                    'reviewer_id' => $reviewer->id
+                    'reviewer_id' => $reviewer->id,
                 ])->first();
 
                 $isAssignedReviewer = (bool) $submissionReviewer;
@@ -346,11 +346,11 @@ class SubmissionViewController extends Controller
             if ($hasReviewEvaluationForms) {
                 // Count REQUIRED forms only
                 $requiredForms = collect($reviewerFormAssignments)
-                    ->filter(fn($a) => $a['is_required']);
+                    ->filter(fn ($a) => $a['is_required']);
 
                 // Count completed REQUIRED forms
                 $completedRequired = $requiredForms
-                    ->filter(fn($a) => ($a['review_form_response']['status'] ?? null) === 'submitted');
+                    ->filter(fn ($a) => ($a['review_form_response']['status'] ?? null) === 'submitted');
 
                 $pendingEvaluationsCount = $requiredForms->count() - $completedRequired->count();
                 $hasPendingEvaluations = $pendingEvaluationsCount > 0;
@@ -444,11 +444,11 @@ class SubmissionViewController extends Controller
             // Load review summaries
             $reviewSummaries = [];
             if (class_exists('App\Models\ReviewSummary')) {
-                $reviewSummaries = \App\Models\ReviewSummary::where('form_submission_id', $submission->id)
+                $reviewSummaries = ReviewSummary::where('form_submission_id', $submission->id)
                     ->with([
                         'reviewer.user:id,name,email',
                         'reviewer.reviewerRole:id,name',
-                        'attachments'
+                        'attachments',
                     ])
                     ->get()
                     ->toArray();
@@ -468,7 +468,7 @@ class SubmissionViewController extends Controller
                             'replies' => function ($q) {
                                 $q->with(['user:id,name', 'reviewer.user:id,name', 'attachments'])
                                     ->orderBy('created_at', 'asc');
-                            }
+                            },
                         ])
                         ->whereNull('parent_comment_id')
                         ->orderBy('created_at', 'desc')
@@ -503,7 +503,7 @@ class SubmissionViewController extends Controller
                     'reviewer_role' => [
                         'id' => $submissionReviewer->reviewer->reviewerRole->id,
                         'name' => $submissionReviewer->reviewer->reviewerRole->name,
-                    ]
+                    ],
                 ];
             })->toArray();
 
@@ -548,7 +548,7 @@ class SubmissionViewController extends Controller
                 if ($reviewer) {
                     $submissionReviewer = SubmissionReviewer::where([
                         'form_submission_id' => $submission->id,
-                        'reviewer_id' => $reviewer->id
+                        'reviewer_id' => $reviewer->id,
                     ])->first();
 
                     if ($submissionReviewer) {
@@ -606,7 +606,7 @@ class SubmissionViewController extends Controller
                 if ($reviewer) {
                     $submissionReviewer = SubmissionReviewer::where([
                         'form_submission_id' => $submission->id,
-                        'reviewer_id' => $reviewer->id
+                        'reviewer_id' => $reviewer->id,
                     ])->first();
 
                     if ($submissionReviewer) {
@@ -666,9 +666,9 @@ class SubmissionViewController extends Controller
                 'submissionStatus' => $submission->status, // ADDED THIS
             ]);
         } catch (\Exception $e) {
-            Log::error('Error in adminShowSubmission: ' . $e->getMessage(), [
+            \Log::error('Error in adminShowSubmission: '.$e->getMessage(), [
                 'submission_id' => $submission->id,
-                'trace' => $e->getTraceAsString()
+                'trace' => $e->getTraceAsString(),
             ]);
 
             // Fallback
@@ -719,7 +719,7 @@ class SubmissionViewController extends Controller
         if ($reviewer) {
             return SubmissionReviewer::where([
                 'form_submission_id' => $submission->id,
-                'reviewer_id' => $reviewer->id
+                'reviewer_id' => $reviewer->id,
             ])->exists();
         }
 
@@ -770,10 +770,10 @@ class SubmissionViewController extends Controller
 
         // Statistik reviewer
         $stats = [
-            'total_assigned' => \App\Models\ReviewSummary::where('reviewer_id', $reviewer->id)->count(),
-            'pending_reviews' => \App\Models\ReviewSummary::where('reviewer_id', $reviewer->id)->where('status', 'open')->count(),
-            'completed_reviews' => \App\Models\ReviewSummary::where('reviewer_id', $reviewer->id)->where('status', 'resolved')->count(),
-            'rejected_reviews' => \App\Models\ReviewSummary::where('reviewer_id', $reviewer->id)->where('status', 'closed')->count(),
+            'total_assigned' => ReviewSummary::where('reviewer_id', $reviewer->id)->count(),
+            'pending_reviews' => ReviewSummary::where('reviewer_id', $reviewer->id)->where('status', 'open')->count(),
+            'completed_reviews' => ReviewSummary::where('reviewer_id', $reviewer->id)->where('status', 'resolved')->count(),
+            'rejected_reviews' => ReviewSummary::where('reviewer_id', $reviewer->id)->where('status', 'closed')->count(),
         ];
 
         return Inertia::render('Reviewer/Dashboard', [
@@ -824,10 +824,10 @@ class SubmissionViewController extends Controller
             $search = $request->search;
             $query->where(function ($q) use ($search) {
                 $q->whereHas('submittedBy', function ($query) use ($search) {
-                    $query->where('name', 'like', "%{$search}%");
+                    $query->where('name', 'ilike', "%{$search}%");
                 })
                     ->orWhereHas('form', function ($query) use ($search) {
-                        $query->where('title', 'like', "%{$search}%");
+                        $query->where('title', 'ilike', "%{$search}%");
                     });
             });
         }
@@ -841,27 +841,25 @@ class SubmissionViewController extends Controller
                 'id' => $reviewer->id,
                 'reviewer_role' => [
                     'id' => $reviewer->reviewerRole->id,
-                    'name' => $reviewer->reviewerRole->name
-                ]
-            ]
+                    'name' => $reviewer->reviewerRole->name,
+                ],
+            ],
         ]);
     }
 
     public function reviewerShowSubmission(FormSubmission $submission)
     {
         $user = Auth::user();
-        $reviewer = \App\Models\Reviewer::where('user_id', $user->id)->first();
-        // dd($reviewer, $user);
+        $reviewer = Reviewer::where('user_id', $user->id)->first();
 
         if (!$reviewer) {
             abort(403, 'Anda tidak terdaftar sebagai reviewer.');
         }
 
-        $isAssigned = \App\Models\SubmissionReviewer::where([
+        $isAssigned = SubmissionReviewer::where([
             'form_submission_id' => $submission->id,
-            'reviewer_id' => $reviewer->id
+            'reviewer_id' => $reviewer->id,
         ])->exists();
-        // dd($isAssigned);
 
         if (!$isAssigned) {
             abort(403, 'Anda tidak ditugaskan untuk review pengajuan ini.');
@@ -878,17 +876,15 @@ class SubmissionViewController extends Controller
             'submissionReviewers.reviewer.user:id,name,email',
             'submissionReviewers.reviewer.reviewerRole:id,name',
         ]);
-        // dd($submission->toArray());
 
         $responses = $submission->formFieldResponses->mapWithKeys(function ($response) {
             return [$response->form_field_id => $response->value];
         });
-        // dd($responses->toArray());
 
         $reviewSummaries = [];
         try {
             if (class_exists('App\Models\ReviewSummary')) {
-                $reviewSummaries = \App\Models\ReviewSummary::where('form_submission_id', $submission->id)
+                $reviewSummaries = ReviewSummary::where('form_submission_id', $submission->id)
                     ->with([
                         'reviewer.user:id,name,email',
                         'reviewer.reviewerRole:id,name',
@@ -897,7 +893,7 @@ class SubmissionViewController extends Controller
                     ->toArray();
             }
         } catch (\Exception $e) {
-            Log::warning('Tidak dapat memuat ringkasan review: ' . $e->getMessage());
+            \Log::warning('Tidak dapat memuat ringkasan review: '.$e->getMessage());
         }
 
         $myReviewSummary = collect($reviewSummaries)->firstWhere('reviewer_id', $reviewer->id);
@@ -913,7 +909,7 @@ class SubmissionViewController extends Controller
                 'reviewer_role' => [
                     'id' => $submissionReviewer->reviewer->reviewerRole->id,
                     'name' => $submissionReviewer->reviewer->reviewerRole->name,
-                ]
+                ],
             ];
         })->toArray();
 
@@ -947,14 +943,12 @@ class SubmissionViewController extends Controller
                                 'id' => $option->id,
                                 'label' => $option->label,
                             ];
-                        })->toArray()
+                        })->toArray(),
                     ];
-                })->toArray()
+                })->toArray(),
             ],
             'assigned_reviewers' => $assignedReviewers,
         ];
-
-        // dd($submissionData, $responses->toArray(), $myReviewSummary);
 
         return Inertia::render('Reviewer/Submissions/Show', [
             'submission' => $submissionData,
@@ -964,8 +958,8 @@ class SubmissionViewController extends Controller
                 'id' => $reviewer->id,
                 'reviewer_role' => [
                     'id' => $reviewer->reviewerRole->id,
-                    'name' => $reviewer->reviewerRole->name
-                ]
+                    'name' => $reviewer->reviewerRole->name,
+                ],
             ],
             'canReview' => true,
             'userRole' => 'reviewer',
@@ -981,15 +975,15 @@ class SubmissionViewController extends Controller
     public function updateStatus(Request $request, FormSubmission $submission)
     {
         $user = Auth::user();
-        $reviewer = \App\Models\Reviewer::where('user_id', $user->id)->first();
+        $reviewer = Reviewer::where('user_id', $user->id)->first();
 
         if (!$reviewer) {
             abort(403, 'You are not registered as a reviewer');
         }
 
-        $isAssigned = \App\Models\SubmissionReviewer::where([
+        $isAssigned = SubmissionReviewer::where([
             'form_submission_id' => $submission->id,
-            'reviewer_id' => $reviewer->id
+            'reviewer_id' => $reviewer->id,
         ])->exists();
 
         if (!$isAssigned) {
@@ -1000,10 +994,9 @@ class SubmissionViewController extends Controller
             'status' => 'required|in:resolved,needs_revision,rejected',
             'notes' => 'nullable|string',
         ]);
-        // dd($validated);
 
         try {
-            $reviewSummary = \App\Models\ReviewSummary::updateOrCreate(
+            $reviewSummary = ReviewSummary::updateOrCreate(
                 [
                     'form_submission_id' => $submission->id,
                     'reviewer_id' => $reviewer->id,
@@ -1015,8 +1008,8 @@ class SubmissionViewController extends Controller
             );
 
             if ($validated['status'] === 'resolved') {
-                $totalReviewers = \App\Models\SubmissionReviewer::where('form_submission_id', $submission->id)->count();
-                $resolvedReviews = \App\Models\ReviewSummary::where('form_submission_id', $submission->id)
+                $totalReviewers = SubmissionReviewer::where('form_submission_id', $submission->id)->count();
+                $resolvedReviews = ReviewSummary::where('form_submission_id', $submission->id)
                     ->where('status', 'resolved')
                     ->count();
 
@@ -1024,11 +1017,11 @@ class SubmissionViewController extends Controller
                     $submission->update(['status' => 'approved']);
                 }
             }
-            // dd($reviewSummary->toArray());
 
             return back()->with('success', 'Review berhasil dikirim');
         } catch (\Exception $e) {
-            Log::error('Error updating review: ' . $e->getMessage());
+            \Log::error('Error updating review: '.$e->getMessage());
+
             return back()->withErrors(['error' => 'Failed to submit review']);
         }
     }
@@ -1053,7 +1046,7 @@ class SubmissionViewController extends Controller
         $existingAssignments = $submissionReviewer->reviewerFormAssignments()
             ->with([
                 'reviewEvaluationForm:id,title,description,is_required,form_phase_detail_id',
-                'reviewFormResponse:id,reviewer_form_assignment_id,status,submitted_at'
+                'reviewFormResponse:id,reviewer_form_assignment_id,status,submitted_at',
             ])
             ->whereHas('reviewEvaluationForm', function ($q) use ($formPhaseDetail) {
                 $q->where('form_phase_detail_id', $formPhaseDetail->id);

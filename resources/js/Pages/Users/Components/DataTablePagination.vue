@@ -1,25 +1,20 @@
 <script setup lang="ts">
-import { Button } from "@/Components/ui/button";
+import { Button } from '@/Components/ui/button'
 import {
     Select,
     SelectContent,
     SelectItem,
     SelectTrigger,
     SelectValue,
-} from "@/Components/ui/select";
-import { User } from "@/types";
-import { type Table } from "@tanstack/vue-table";
-import {
-    ChevronLeft,
-    ChevronRight,
-    ChevronsLeft,
-    ChevronsRight,
-} from "lucide-vue-next";
+} from '@/Components/ui/select'
+import { User } from '@/types'
+import { type Table } from '@tanstack/vue-table'
+import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-vue-next'
 
 interface DataTablePaginationProps {
-    table: Table<User>;
+    table: Table<User>
 }
-defineProps<DataTablePaginationProps>();
+defineProps<DataTablePaginationProps>()
 </script>
 
 <template>
@@ -29,16 +24,10 @@ defineProps<DataTablePaginationProps>();
                 <p class="text-sm font-medium">Baris per halaman</p>
                 <Select
                     :model-value="`${table.getState().pagination.pageSize}`"
-                    @update:model-value="
-                        (value) => table.setPageSize(Number(value))
-                    "
+                    @update:model-value="(value) => table.setPageSize(Number(value))"
                 >
                     <SelectTrigger class="h-8 w-[70px]">
-                        <SelectValue
-                            :placeholder="`${
-                                table.getState().pagination.pageSize
-                            }`"
-                        />
+                        <SelectValue :placeholder="`${table.getState().pagination.pageSize}`" />
                     </SelectTrigger>
                     <SelectContent side="top">
                         <SelectItem
@@ -51,12 +40,8 @@ defineProps<DataTablePaginationProps>();
                     </SelectContent>
                 </Select>
             </div>
-            <div
-                class="flex flex-row mt-2 sm:mt-0 items-center space-x-2 sm:space-x-4"
-            >
-                <div
-                    class="flex w-[120px] items-center justify-center text-sm font-medium"
-                >
+            <div class="flex flex-row mt-2 sm:mt-0 items-center space-x-2 sm:space-x-4">
+                <div class="flex w-[120px] items-center justify-center text-sm font-medium">
                     Halaman {{ table.getState().pagination.pageIndex + 1 }} dari
                     {{ table.getPageCount() }}
                 </div>

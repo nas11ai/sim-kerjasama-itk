@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/Components/ui/card";
-import { Button } from "@/Components/ui/button";
-import { Badge } from "@/Components/ui/badge";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/Components/ui/card'
+import { Button } from '@/Components/ui/button'
+import { Badge } from '@/Components/ui/badge'
 import {
     ArrowRight,
     BarChart3,
@@ -17,50 +17,59 @@ import {
     CircleAlert,
     Calendar,
     UserIcon,
-} from "lucide-vue-next";
-import { computed } from "vue";
+} from 'lucide-vue-next'
+import { computed } from 'vue'
 import type {
     FormPhaseStats,
     FormSubmissionStats,
     UserStats,
-    SubmissionReviewerStats
-} from "@/types/statistics";
+    SubmissionReviewerStats,
+} from '@/types/statistics'
 
 const props = defineProps<{
-    formPhase: FormPhaseStats;
-    formSubmission: FormSubmissionStats;
-    user: UserStats;
-    submissionReviewer: SubmissionReviewerStats;
-}>();
+    formPhase: FormPhaseStats
+    formSubmission: FormSubmissionStats
+    user: UserStats
+    submissionReviewer: SubmissionReviewerStats
+}>()
 
-const totalFormPhases = computed(() => props.formPhase?.formPhaseTotal?.length || 0);
+const totalFormPhases = computed(() => props.formPhase?.formPhaseTotal?.length || 0)
 const totalForms = computed(() => {
-    return props.formPhase?.formPhaseTotal?.reduce((sum, item) => sum + (item.total_forms || 0), 0) || 0;
-});
+    return (
+        props.formPhase?.formPhaseTotal?.reduce((sum, item) => sum + (item.total_forms || 0), 0) ||
+        0
+    )
+})
 const totalSubmissions = computed(() => {
-    return props.formPhase?.formPhaseTotal?.reduce((sum, item) => sum + (item.total_submissions || 0), 0) || 0;
-});
+    return (
+        props.formPhase?.formPhaseTotal?.reduce(
+            (sum, item) => sum + (item.total_submissions || 0),
+            0
+        ) || 0
+    )
+})
 
 const pendingSubmissions = computed(() => {
-    return props.formSubmission?.totalByStatus?.find(s => s.status === 'pending')?.total || 0;
-});
+    return props.formSubmission?.totalByStatus?.find((s) => s.status === 'pending')?.total || 0
+})
 const approvedSubmissions = computed(() => {
-    return props.formSubmission?.totalByStatus?.find(s => s.status === 'approved')?.total || 0;
-});
+    return props.formSubmission?.totalByStatus?.find((s) => s.status === 'approved')?.total || 0
+})
 const rejectedSubmissions = computed(() => {
-    return props.formSubmission?.totalByStatus?.find(s => s.status === 'rejected')?.total || 0;
-});
+    return props.formSubmission?.totalByStatus?.find((s) => s.status === 'rejected')?.total || 0
+})
 
-const recentUsers24h = computed(() => props.user?.userRecent?.length || 0);
-const recentReviewers24h = computed(() => props.submissionReviewer?.reviewerRecent?.length || 0);
+const recentUsers24h = computed(() => props.user?.userRecent?.length || 0)
+const recentReviewers24h = computed(() => props.submissionReviewer?.reviewerRecent?.length || 0)
 
-const hasFormPhaseData = computed(() => totalFormPhases.value > 0 || totalForms.value > 0);
-const hasSubmissionData = computed(() =>
-    (props.formSubmission?.recentSubmissions?.length || 0) > 0 ||
-    (props.formSubmission?.totalByStatus?.length || 0) > 0
-);
-const hasUserData = computed(() => (props.user?.totalUsers || 0) > 0);
-const hasReviewerData = computed(() => (props.submissionReviewer?.totalReviewers || 0) > 0);
+const hasFormPhaseData = computed(() => totalFormPhases.value > 0 || totalForms.value > 0)
+const hasSubmissionData = computed(
+    () =>
+        (props.formSubmission?.recentSubmissions?.length || 0) > 0 ||
+        (props.formSubmission?.totalByStatus?.length || 0) > 0
+)
+const hasUserData = computed(() => (props.user?.totalUsers || 0) > 0)
+const hasReviewerData = computed(() => (props.submissionReviewer?.totalReviewers || 0) > 0)
 </script>
 
 <template>
@@ -74,9 +83,13 @@ const hasReviewerData = computed(() => (props.submissionReviewer?.totalReviewers
                             <p class="text-3xl font-bold text-gray-900 mt-2">
                                 {{ totalForms }}
                             </p>
-                            <p v-if="totalForms === 0" class="text-xs text-gray-400 mt-1">Belum ada data</p>
+                            <p v-if="totalForms === 0" class="text-xs text-gray-400 mt-1">
+                                Belum ada data
+                            </p>
                         </div>
-                        <div class="h-12 w-12 bg-blue-100 rounded-xl flex items-center justify-center">
+                        <div
+                            class="h-12 w-12 bg-blue-100 rounded-xl flex items-center justify-center"
+                        >
                             <FileText class="h-6 w-6 text-blue-600" />
                         </div>
                     </div>
@@ -91,9 +104,13 @@ const hasReviewerData = computed(() => (props.submissionReviewer?.totalReviewers
                             <p class="text-3xl font-bold text-gray-900 mt-2">
                                 {{ totalSubmissions }}
                             </p>
-                            <p v-if="totalSubmissions === 0" class="text-xs text-gray-400 mt-1">Belum ada pengajuan</p>
+                            <p v-if="totalSubmissions === 0" class="text-xs text-gray-400 mt-1">
+                                Belum ada pengajuan
+                            </p>
                         </div>
-                        <div class="h-12 w-12 bg-green-100 rounded-xl flex items-center justify-center">
+                        <div
+                            class="h-12 w-12 bg-green-100 rounded-xl flex items-center justify-center"
+                        >
                             <Calendar class="h-6 w-6 text-green-600" />
                         </div>
                     </div>
@@ -108,9 +125,13 @@ const hasReviewerData = computed(() => (props.submissionReviewer?.totalReviewers
                             <p class="text-3xl font-bold text-gray-900 mt-2">
                                 {{ user?.totalUsers || 0 }}
                             </p>
-                            <p v-if="!user?.totalUsers" class="text-xs text-gray-400 mt-1">Belum ada user</p>
+                            <p v-if="!user?.totalUsers" class="text-xs text-gray-400 mt-1">
+                                Belum ada user
+                            </p>
                         </div>
-                        <div class="h-12 w-12 bg-purple-100 rounded-xl flex items-center justify-center">
+                        <div
+                            class="h-12 w-12 bg-purple-100 rounded-xl flex items-center justify-center"
+                        >
                             <Users class="h-6 w-6 text-purple-600" />
                         </div>
                     </div>
@@ -125,9 +146,16 @@ const hasReviewerData = computed(() => (props.submissionReviewer?.totalReviewers
                             <p class="text-3xl font-bold text-gray-900 mt-2">
                                 {{ submissionReviewer?.totalReviewers || 0 }}
                             </p>
-                            <p v-if="!submissionReviewer?.totalReviewers" class="text-xs text-gray-400 mt-1">Belum ada reviewer</p>
+                            <p
+                                v-if="!submissionReviewer?.totalReviewers"
+                                class="text-xs text-gray-400 mt-1"
+                            >
+                                Belum ada reviewer
+                            </p>
                         </div>
-                        <div class="h-12 w-12 bg-orange-100 rounded-xl flex items-center justify-center">
+                        <div
+                            class="h-12 w-12 bg-orange-100 rounded-xl flex items-center justify-center"
+                        >
                             <UserCheck class="h-6 w-6 text-orange-600" />
                         </div>
                     </div>
@@ -140,14 +168,19 @@ const hasReviewerData = computed(() => (props.submissionReviewer?.totalReviewers
                 <CardHeader class="border-b pb-4">
                     <div class="flex items-center justify-between flex-wrap gap-3">
                         <div class="flex items-center gap-3">
-                            <div class="h-12 w-12 bg-blue-500 rounded-xl flex items-center justify-center">
+                            <div
+                                class="h-12 w-12 bg-blue-500 rounded-xl flex items-center justify-center"
+                            >
                                 <FileText class="h-6 w-6 text-white" />
                             </div>
-                            <CardTitle class="text-xl">Tahap Formulir</CardTitle>
+                            <CardTitle class="text-xl"> Tahap Formulir </CardTitle>
                         </div>
 
                         <Button as-child variant="outline" size="sm" class="w-full sm:w-auto">
-                            <a :href="route('admin.stats.form-phase')" class="flex items-center justify-center">
+                            <a
+                                :href="route('admin.stats.form-phase')"
+                                class="flex items-center justify-center"
+                            >
                                 <ArrowRight class="h-4 w-4 mr-2" />
                                 Lihat Statistik Tahap Formulir
                             </a>
@@ -157,23 +190,30 @@ const hasReviewerData = computed(() => (props.submissionReviewer?.totalReviewers
                 <CardContent class="p-6 space-y-4">
                     <div v-if="!hasFormPhaseData" class="text-center py-12">
                         <CircleAlert class="h-16 w-16 mx-auto text-gray-300 mb-4" />
-                        <h3 class="text-lg font-semibold text-gray-500 mb-2">Tidak ada data Tahap Formulir</h3>
-
+                        <h3 class="text-lg font-semibold text-gray-500 mb-2">
+                            Tidak ada data Tahap Formulir
+                        </h3>
                     </div>
 
                     <template v-else>
                         <div class="grid grid-cols-3 gap-4">
                             <div class="text-center p-4 bg-blue-50 rounded-lg">
                                 <p class="text-sm text-gray-600">Total Tahap</p>
-                                <p class="text-2xl font-bold text-blue-600">{{ totalFormPhases }}</p>
+                                <p class="text-2xl font-bold text-blue-600">
+                                    {{ totalFormPhases }}
+                                </p>
                             </div>
                             <div class="text-center p-4 bg-green-50 rounded-lg">
                                 <p class="text-sm text-gray-600">Total Formulir</p>
-                                <p class="text-2xl font-bold text-green-600">{{ totalForms }}</p>
+                                <p class="text-2xl font-bold text-green-600">
+                                    {{ totalForms }}
+                                </p>
                             </div>
                             <div class="text-center p-4 bg-purple-50 rounded-lg">
                                 <p class="text-sm text-gray-600">Total Pengajuan</p>
-                                <p class="text-2xl font-bold text-purple-600">{{ totalSubmissions }}</p>
+                                <p class="text-2xl font-bold text-purple-600">
+                                    {{ totalSubmissions }}
+                                </p>
                             </div>
                         </div>
 
@@ -189,17 +229,26 @@ const hasReviewerData = computed(() => (props.submissionReviewer?.totalReviewers
                                     class="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
                                 >
                                     <div class="flex items-center gap-3">
-                                        <div class="h-8 w-8 bg-blue-100 rounded-lg flex items-center justify-center">
+                                        <div
+                                            class="h-8 w-8 bg-blue-100 rounded-lg flex items-center justify-center"
+                                        >
                                             <FileText class="h-4 w-4 text-blue-600" />
                                         </div>
                                         <span class="font-medium text-sm text-gray-900">
                                             {{ period.submission_period_name }}
                                         </span>
                                     </div>
-                                    <Badge variant="secondary">{{ period.total_submissions }} pengajuan</Badge>
+                                    <Badge variant="secondary">
+                                        {{ period.total_submissions }} pengajuan
+                                    </Badge>
                                 </div>
-                                <div v-if="!formPhase.formPhaseByPeriod || formPhase.formPhaseByPeriod.length === 0"
-                                    class="text-center py-8 bg-gray-50 rounded-lg">
+                                <div
+                                    v-if="
+                                        !formPhase.formPhaseByPeriod ||
+                                        formPhase.formPhaseByPeriod.length === 0
+                                    "
+                                    class="text-center py-8 bg-gray-50 rounded-lg"
+                                >
                                     <Inbox class="h-10 w-10 mx-auto text-gray-300 mb-2" />
                                     <p class="text-sm text-gray-500">Tidak ada data periode</p>
                                 </div>
@@ -223,42 +272,60 @@ const hasReviewerData = computed(() => (props.submissionReviewer?.totalReviewers
                 <CardHeader class="border-b pb-4">
                     <div class="flex items-center justify-between flex-wrap gap-3">
                         <div class="flex items-center gap-3">
-                            <div class="h-12 w-12 bg-green-500 rounded-xl flex items-center justify-center">
+                            <div
+                                class="h-12 w-12 bg-green-500 rounded-xl flex items-center justify-center"
+                            >
                                 <Calendar class="h-6 w-6 text-white" />
-                                </div>
-                                <CardTitle class="text-xl">Form Pengajuan</CardTitle>
                             </div>
-                            <Button as-child variant="outline" size="sm" class="w-full sm:w-auto">
-                                <a :href="route('admin.stats.form-submission')" class="flex items-center justify-center">
-                                    <ArrowRight class="h-4 w-4 mr-2" />
-                                    Lihat Statistik Form Pengajuan
-                                </a>
-                            </Button>
+                            <CardTitle class="text-xl"> Form Pengajuan </CardTitle>
                         </div>
+                        <Button as-child variant="outline" size="sm" class="w-full sm:w-auto">
+                            <a
+                                :href="route('admin.stats.form-submission')"
+                                class="flex items-center justify-center"
+                            >
+                                <ArrowRight class="h-4 w-4 mr-2" />
+                                Lihat Statistik Form Pengajuan
+                            </a>
+                        </Button>
+                    </div>
                 </CardHeader>
                 <CardContent class="p-6 space-y-4">
                     <div v-if="!hasSubmissionData" class="text-center py-12">
                         <CircleAlert class="h-16 w-16 mx-auto text-gray-300 mb-4" />
-                        <h3 class="text-lg font-semibold text-gray-500 mb-2">Tidak ada data Pengajuan</h3>
-
+                        <h3 class="text-lg font-semibold text-gray-500 mb-2">
+                            Tidak ada data Pengajuan
+                        </h3>
                     </div>
 
                     <template v-else>
                         <div class="grid grid-cols-3 gap-4">
-                            <div class="text-center p-4 bg-yellow-50 rounded-lg border-2 border-yellow-200">
+                            <div
+                                class="text-center p-4 bg-yellow-50 rounded-lg border-2 border-yellow-200"
+                            >
                                 <AlertCircle class="h-6 w-6 text-yellow-600 mx-auto mb-1" />
                                 <p class="text-sm text-gray-600">Pending</p>
-                                <p class="text-2xl font-bold text-yellow-600">{{ pendingSubmissions }}</p>
+                                <p class="text-2xl font-bold text-yellow-600">
+                                    {{ pendingSubmissions }}
+                                </p>
                             </div>
-                            <div class="text-center p-4 bg-green-50 rounded-lg border-2 border-green-200">
+                            <div
+                                class="text-center p-4 bg-green-50 rounded-lg border-2 border-green-200"
+                            >
                                 <CheckCircle class="h-6 w-6 text-green-600 mx-auto mb-1" />
                                 <p class="text-sm text-gray-600">Disetujui</p>
-                                <p class="text-2xl font-bold text-green-600">{{ approvedSubmissions }}</p>
+                                <p class="text-2xl font-bold text-green-600">
+                                    {{ approvedSubmissions }}
+                                </p>
                             </div>
-                            <div class="text-center p-4 bg-red-50 rounded-lg border-2 border-red-200">
+                            <div
+                                class="text-center p-4 bg-red-50 rounded-lg border-2 border-red-200"
+                            >
                                 <XCircle class="h-6 w-6 text-red-600 mx-auto mb-1" />
                                 <p class="text-sm text-gray-600">Ditolak</p>
-                                <p class="text-2xl font-bold text-red-600">{{ rejectedSubmissions }}</p>
+                                <p class="text-2xl font-bold text-red-600">
+                                    {{ rejectedSubmissions }}
+                                </p>
                             </div>
                         </div>
 
@@ -269,24 +336,38 @@ const hasReviewerData = computed(() => (props.submissionReviewer?.totalReviewers
                             </h4>
                             <div class="space-y-2">
                                 <div
-                                    v-for="submission in formSubmission.recentSubmissions.slice(0, 3)"
+                                    v-for="submission in formSubmission.recentSubmissions.slice(
+                                        0,
+                                        3
+                                    )"
                                     :key="submission.id"
                                     class="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
                                 >
                                     <div class="flex items-center gap-3">
-                                        <div class="h-8 w-8 bg-green-100 rounded-lg flex items-center justify-center">
+                                        <div
+                                            class="h-8 w-8 bg-green-100 rounded-lg flex items-center justify-center"
+                                        >
                                             <Calendar class="h-4 w-4 text-green-600" />
                                         </div>
                                         <span class="font-medium text-sm text-gray-900">
                                             {{ submission.name }}
                                         </span>
                                     </div>
-                                    <Badge variant="secondary">{{ submission.total_submissions }} baru</Badge>
+                                    <Badge variant="secondary">
+                                        {{ submission.total_submissions }} baru
+                                    </Badge>
                                 </div>
-                                <div v-if="!formSubmission.recentSubmissions || formSubmission.recentSubmissions.length === 0"
-                                    class="text-center py-8 bg-gray-50 rounded-lg">
+                                <div
+                                    v-if="
+                                        !formSubmission.recentSubmissions ||
+                                        formSubmission.recentSubmissions.length === 0
+                                    "
+                                    class="text-center py-8 bg-gray-50 rounded-lg"
+                                >
                                     <Inbox class="h-10 w-10 mx-auto text-gray-300 mb-2" />
-                                    <p class="text-sm text-gray-500">Tidak ada pengajuan terbaru dalam 24 jam terakhir</p>
+                                    <p class="text-sm text-gray-500">
+                                        Tidak ada pengajuan terbaru dalam 24 jam terakhir
+                                    </p>
                                 </div>
                             </div>
                         </div>
@@ -308,42 +389,57 @@ const hasReviewerData = computed(() => (props.submissionReviewer?.totalReviewers
                 <CardHeader class="border-b pb-4">
                     <div class="flex items-center justify-between flex-wrap gap-3">
                         <div class="flex items-center gap-3">
-                            <div class="h-12 w-12 bg-purple-500 rounded-xl flex items-center justify-center">
+                            <div
+                                class="h-12 w-12 bg-purple-500 rounded-xl flex items-center justify-center"
+                            >
                                 <UserIcon class="h-6 w-6 text-white" />
                             </div>
-                                <CardTitle class="text-xl">User</CardTitle>
-                            </div>
-                            <Button as-child variant="outline" size="sm" class="w-full sm:w-auto">
-                                <a :href="route('admin.stats.user')" class="flex items-center justify-center">
-                                    <ArrowRight class="h-4 w-4 mr-2" />
-                                    Lihat Statistik User
-                                </a>
-                            </Button>
+                            <CardTitle class="text-xl"> User </CardTitle>
                         </div>
+                        <Button as-child variant="outline" size="sm" class="w-full sm:w-auto">
+                            <a
+                                :href="route('admin.stats.user')"
+                                class="flex items-center justify-center"
+                            >
+                                <ArrowRight class="h-4 w-4 mr-2" />
+                                Lihat Statistik User
+                            </a>
+                        </Button>
+                    </div>
                 </CardHeader>
                 <CardContent class="p-6 space-y-4">
                     <div v-if="!hasUserData" class="text-center py-12">
                         <CircleAlert class="h-16 w-16 mx-auto text-gray-300 mb-4" />
-                        <h3 class="text-lg font-semibold text-gray-500 mb-2">Tidak ada data User</h3>
+                        <h3 class="text-lg font-semibold text-gray-500 mb-2">
+                            Tidak ada data User
+                        </h3>
                     </div>
 
                     <template v-else>
                         <div class="grid grid-cols-2 gap-4">
                             <div class="p-4 bg-purple-50 rounded-lg">
                                 <p class="text-sm text-gray-600">Admin User</p>
-                                <p class="text-2xl font-bold text-purple-600">{{ user.totalAdmin }}</p>
+                                <p class="text-2xl font-bold text-purple-600">
+                                    {{ user.totalAdmin }}
+                                </p>
                             </div>
                             <div class="p-4 bg-blue-50 rounded-lg">
                                 <p class="text-sm text-gray-600">Regular User</p>
-                                <p class="text-2xl font-bold text-blue-600">{{ user.totalNonAdmin }}</p>
+                                <p class="text-2xl font-bold text-blue-600">
+                                    {{ user.totalNonAdmin }}
+                                </p>
                             </div>
                             <div class="p-4 bg-green-50 rounded-lg">
                                 <p class="text-sm text-gray-600">User Fakultas</p>
-                                <p class="text-2xl font-bold text-green-600">{{ user.totalFaculty }}</p>
+                                <p class="text-2xl font-bold text-green-600">
+                                    {{ user.totalFaculty }}
+                                </p>
                             </div>
                             <div class="p-4 bg-orange-50 rounded-lg">
                                 <p class="text-sm text-gray-600">User Program Studi</p>
-                                <p class="text-2xl font-bold text-orange-600">{{ user.totalProdi }}</p>
+                                <p class="text-2xl font-bold text-orange-600">
+                                    {{ user.totalProdi }}
+                                </p>
                             </div>
                         </div>
 
@@ -352,11 +448,19 @@ const hasReviewerData = computed(() => (props.submissionReviewer?.totalReviewers
                                 <Clock class="h-4 w-4 text-gray-500" />
                                 User Baru (24h)
                             </h4>
-                            <div class="flex items-center justify-center p-6 bg-purple-50 rounded-lg border-2 border-purple-200">
+                            <div
+                                class="flex items-center justify-center p-6 bg-purple-50 rounded-lg border-2 border-purple-200"
+                            >
                                 <div class="text-center">
-                                    <p class="text-4xl font-bold ">{{ recentUsers24h }}</p>
+                                    <p class="text-4xl font-bold">
+                                        {{ recentUsers24h }}
+                                    </p>
                                     <p class="text-sm text-gray-600 mt-1">
-                                        {{ recentUsers24h === 0 ? 'Tidak ada pendaftaran baru' : 'Pendaftaran baru' }}
+                                        {{
+                                            recentUsers24h === 0
+                                                ? 'Tidak ada pendaftaran baru'
+                                                : 'Pendaftaran baru'
+                                        }}
                                     </p>
                                 </div>
                             </div>
@@ -379,23 +483,30 @@ const hasReviewerData = computed(() => (props.submissionReviewer?.totalReviewers
                 <CardHeader class="border-b pb-4">
                     <div class="flex items-center justify-between flex-wrap gap-3">
                         <div class="flex items-center gap-3">
-                            <div class="h-12 w-12 bg-orange-500 rounded-xl flex items-center justify-center">
+                            <div
+                                class="h-12 w-12 bg-orange-500 rounded-xl flex items-center justify-center"
+                            >
                                 <Users class="h-6 w-6 text-white" />
                             </div>
-                                <CardTitle class="text-xl">Reviewer</CardTitle>
-                            </div>
-                            <Button as-child variant="outline" size="sm" class="w-full sm:w-auto">
-                                <a :href="route('admin.stats.reviewer')" class="flex items-center justify-center">
-                                    <ArrowRight class="h-4 w-4 mr-2" />
-                                    Lihat Statistik Reviewer
-                                </a>
-                            </Button>
+                            <CardTitle class="text-xl"> Reviewer </CardTitle>
                         </div>
+                        <Button as-child variant="outline" size="sm" class="w-full sm:w-auto">
+                            <a
+                                :href="route('admin.stats.reviewer')"
+                                class="flex items-center justify-center"
+                            >
+                                <ArrowRight class="h-4 w-4 mr-2" />
+                                Lihat Statistik Reviewer
+                            </a>
+                        </Button>
+                    </div>
                 </CardHeader>
                 <CardContent class="p-6 space-y-4">
                     <div v-if="!hasReviewerData" class="text-center py-12">
                         <CircleAlert class="h-16 w-16 mx-auto text-gray-300 mb-4" />
-                        <h3 class="text-lg font-semibold text-gray-500 mb-2">Tidak ada Data Reviewer</h3>
+                        <h3 class="text-lg font-semibold text-gray-500 mb-2">
+                            Tidak ada Data Reviewer
+                        </h3>
                     </div>
 
                     <template v-else>
@@ -406,7 +517,10 @@ const hasReviewerData = computed(() => (props.submissionReviewer?.totalReviewers
                             </h4>
                             <div class="space-y-2">
                                 <div
-                                    v-for="(role, index) in submissionReviewer.totalByRole.slice(0, 4)"
+                                    v-for="(role, index) in submissionReviewer.totalByRole.slice(
+                                        0,
+                                        4
+                                    )"
                                     :key="role.id"
                                     class="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
                                 >
@@ -417,7 +531,7 @@ const hasReviewerData = computed(() => (props.submissionReviewer?.totalReviewers
                                                 index === 0 ? 'bg-orange-500' : '',
                                                 index === 1 ? 'bg-amber-500' : '',
                                                 index === 2 ? 'bg-yellow-500' : '',
-                                                index === 3 ? 'bg-lime-500' : ''
+                                                index === 3 ? 'bg-lime-500' : '',
                                             ]"
                                         >
                                             {{ role.total_reviewers }}
@@ -429,15 +543,26 @@ const hasReviewerData = computed(() => (props.submissionReviewer?.totalReviewers
                                     <Badge variant="outline">
                                         {{
                                             submissionReviewer.totalReviewers
-                                            ? Math.round((role.total_reviewers / submissionReviewer.totalReviewers) * 100)
-                                            : 0
+                                                ? Math.round(
+                                                      (role.total_reviewers /
+                                                          submissionReviewer.totalReviewers) *
+                                                          100
+                                                  )
+                                                : 0
                                         }}%
                                     </Badge>
                                 </div>
-                                <div v-if="!submissionReviewer.totalByRole || submissionReviewer.totalByRole.length === 0"
-                                    class="text-center py-8 bg-gray-50 rounded-lg">
+                                <div
+                                    v-if="
+                                        !submissionReviewer.totalByRole ||
+                                        submissionReviewer.totalByRole.length === 0
+                                    "
+                                    class="text-center py-8 bg-gray-50 rounded-lg"
+                                >
                                     <Inbox class="h-10 w-10 mx-auto text-gray-300 mb-2" />
-                                    <p class="text-sm text-gray-500">Tidak ada data role reviewer</p>
+                                    <p class="text-sm text-gray-500">
+                                        Tidak ada data role reviewer
+                                    </p>
                                 </div>
                             </div>
                         </div>
@@ -447,11 +572,19 @@ const hasReviewerData = computed(() => (props.submissionReviewer?.totalReviewers
                                 <Clock class="h-4 w-4 text-gray-500" />
                                 Reviewer Baru (24h)
                             </h4>
-                            <div class="flex items-center justify-center p-6 bg-orange-50 rounded-lg border-2 border-orange-200">
+                            <div
+                                class="flex items-center justify-center p-6 bg-orange-50 rounded-lg border-2 border-orange-200"
+                            >
                                 <div class="text-center">
-                                    <p class="text-4xl font-bold ">{{ recentReviewers24h }}</p>
+                                    <p class="text-4xl font-bold">
+                                        {{ recentReviewers24h }}
+                                    </p>
                                     <p class="text-sm text-gray-600 mt-1">
-                                        {{ recentReviewers24h === 0 ? 'Tidak ada reviewer baru' : 'Reviewer baru ditambahkan' }}
+                                        {{
+                                            recentReviewers24h === 0
+                                                ? 'Tidak ada reviewer baru'
+                                                : 'Reviewer baru ditambahkan'
+                                        }}
                                     </p>
                                 </div>
                             </div>

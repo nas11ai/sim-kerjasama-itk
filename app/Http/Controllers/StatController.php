@@ -3,8 +3,8 @@
 namespace App\Http\Controllers;
 
 use App\Models\Faculty;
-use App\Models\FormSubmission;
 use App\Models\FormPhase;
+use App\Models\FormSubmission;
 use App\Models\Reviewer;
 use App\Models\ReviewerRole;
 use App\Models\StudyProgram;
@@ -13,8 +13,8 @@ use App\Models\SubmissionReviewer;
 use App\Models\User;
 use App\Models\UserProfile;
 use Carbon\Carbon;
-use Inertia\Inertia;
 use Illuminate\Support\Facades\DB;
+use Inertia\Inertia;
 
 class StatController extends Controller
 {
@@ -72,63 +72,63 @@ class StatController extends Controller
 
     // get form phase Data
     public function getFormPhaseStats()
-{
-    // === 1. Fakultas ===
-    $formPhaseFaculty = FormPhase::select(
-        'form_phases.id',
-        'form_phases.title',
-        'faculties.id as faculty_id',
-        'faculties.name as faculty_name'
-    )
-        ->selectRaw('COUNT(DISTINCT forms.id) as total_forms')
-        ->selectRaw('COUNT(DISTINCT form_submissions.id) as total_submissions')
-        ->leftJoin('form_phase_details', 'form_phase_details.form_phase_id', '=', 'form_phases.id')
-        ->leftJoin('form_access_controls', 'form_access_controls.id', '=', 'form_phase_details.form_access_control_id')
-        ->leftJoin('forms', 'forms.id', '=', 'form_access_controls.form_id')
-        ->leftJoin('study_programs', 'study_programs.id', '=', 'form_access_controls.study_program_id')
-        ->leftJoin('faculties', 'faculties.id', '=', 'study_programs.faculty_id')
-        ->leftJoin('form_submissions', function ($join) {
-            $join->on('form_submissions.form_id', '=', 'forms.id')
-                ->where('form_submissions.is_submitted', true);
-        })
-        ->groupBy('form_phases.id', 'form_phases.title', 'faculties.id', 'faculties.name')
-        ->orderBy('faculties.name')
-        ->get();
-
-    // === 2. Program Studi ===
-    $formPhaseProdi = FormPhase::select(
-        'form_phases.id',
-        'form_phases.title',
-        'faculties.id as faculty_id',
-        'faculties.name as faculty_name',
-        'study_programs.id as study_program_id',
-        'study_programs.name as study_program_name'
-    )
-        ->selectRaw('COUNT(DISTINCT forms.id) as total_forms')
-        ->selectRaw('COUNT(DISTINCT form_submissions.id) as total_submissions')
-        ->leftJoin('form_phase_details', 'form_phase_details.form_phase_id', '=', 'form_phases.id')
-        ->leftJoin('form_access_controls', 'form_access_controls.id', '=', 'form_phase_details.form_access_control_id')
-        ->leftJoin('forms', 'forms.id', '=', 'form_access_controls.form_id')
-        ->leftJoin('study_programs', 'study_programs.id', '=', 'form_access_controls.study_program_id')
-        ->leftJoin('faculties', 'faculties.id', '=', 'study_programs.faculty_id')
-        ->leftJoin('form_submissions', function ($join) {
-            $join->on('form_submissions.form_id', '=', 'forms.id')
-                ->where('form_submissions.is_submitted', true);
-        })
-        ->groupBy(
+    {
+        // === 1. Fakultas ===
+        $formPhaseFaculty = FormPhase::select(
             'form_phases.id',
             'form_phases.title',
-            'faculties.id',
-            'faculties.name',
-            'study_programs.id',
-            'study_programs.name'
+            'faculties.id as faculty_id',
+            'faculties.name as faculty_name'
         )
-        ->orderBy('faculties.name')
-        ->orderBy('study_programs.name')
-        ->get();
+            ->selectRaw('COUNT(DISTINCT forms.id) as total_forms')
+            ->selectRaw('COUNT(DISTINCT form_submissions.id) as total_submissions')
+            ->leftJoin('form_phase_details', 'form_phase_details.form_phase_id', '=', 'form_phases.id')
+            ->leftJoin('form_access_controls', 'form_access_controls.id', '=', 'form_phase_details.form_access_control_id')
+            ->leftJoin('forms', 'forms.id', '=', 'form_access_controls.form_id')
+            ->leftJoin('study_programs', 'study_programs.id', '=', 'form_access_controls.study_program_id')
+            ->leftJoin('faculties', 'faculties.id', '=', 'study_programs.faculty_id')
+            ->leftJoin('form_submissions', function ($join) {
+                $join->on('form_submissions.form_id', '=', 'forms.id')
+                    ->where('form_submissions.is_submitted', true);
+            })
+            ->groupBy('form_phases.id', 'form_phases.title', 'faculties.id', 'faculties.name')
+            ->orderBy('faculties.name')
+            ->get();
 
-    // === 3. Status (dengan subquery DISTINCT agar aman dari duplikasi) ===
-    $formPhaseStatus = DB::table(DB::raw('(
+        // === 2. Program Studi ===
+        $formPhaseProdi = FormPhase::select(
+            'form_phases.id',
+            'form_phases.title',
+            'faculties.id as faculty_id',
+            'faculties.name as faculty_name',
+            'study_programs.id as study_program_id',
+            'study_programs.name as study_program_name'
+        )
+            ->selectRaw('COUNT(DISTINCT forms.id) as total_forms')
+            ->selectRaw('COUNT(DISTINCT form_submissions.id) as total_submissions')
+            ->leftJoin('form_phase_details', 'form_phase_details.form_phase_id', '=', 'form_phases.id')
+            ->leftJoin('form_access_controls', 'form_access_controls.id', '=', 'form_phase_details.form_access_control_id')
+            ->leftJoin('forms', 'forms.id', '=', 'form_access_controls.form_id')
+            ->leftJoin('study_programs', 'study_programs.id', '=', 'form_access_controls.study_program_id')
+            ->leftJoin('faculties', 'faculties.id', '=', 'study_programs.faculty_id')
+            ->leftJoin('form_submissions', function ($join) {
+                $join->on('form_submissions.form_id', '=', 'forms.id')
+                    ->where('form_submissions.is_submitted', true);
+            })
+            ->groupBy(
+                'form_phases.id',
+                'form_phases.title',
+                'faculties.id',
+                'faculties.name',
+                'study_programs.id',
+                'study_programs.name'
+            )
+            ->orderBy('faculties.name')
+            ->orderBy('study_programs.name')
+            ->get();
+
+        // === 3. Status (dengan subquery DISTINCT agar aman dari duplikasi) ===
+        $formPhaseStatus = DB::table(DB::raw('(
         SELECT DISTINCT
             form_phases.id AS phase_id,
             form_phases.title AS phase_title,
@@ -140,64 +140,64 @@ class StatController extends Controller
         LEFT JOIN forms ON forms.id = form_access_controls.form_id
         LEFT JOIN form_submissions ON form_submissions.form_id = forms.id
     ) as distinct_subs'))
-        ->select(
-            'phase_id as id',
-            'phase_title as title',
-            DB::raw('COUNT(submission_id) as total_submissions'),
-            DB::raw('SUM(status = "pending") as pending'),
-            DB::raw('SUM(status = "under_review") as under_review'),
-            DB::raw('SUM(status = "approved") as approved'),
-            DB::raw('SUM(status = "rejected") as rejected'),
-            DB::raw('SUM(status = "revision") as revision')
+            ->select(
+                'phase_id as id',
+                'phase_title as title',
+                DB::raw('COUNT(submission_id) as total_submissions'),
+                DB::raw("SUM(CASE WHEN status = 'pending' THEN 1 ELSE 0 END) as pending"),
+                DB::raw("SUM(CASE WHEN status = 'under_review' THEN 1 ELSE 0 END) as under_review"),
+                DB::raw("SUM(CASE WHEN status = 'approved' THEN 1 ELSE 0 END) as approved"),
+                DB::raw("SUM(CASE WHEN status = 'rejected' THEN 1 ELSE 0 END) as rejected"),
+                DB::raw("SUM(CASE WHEN status = 'revision' THEN 1 ELSE 0 END) as revision")
+            )
+            ->groupBy('phase_id', 'phase_title')
+            ->get();
+
+        // === 4. Total (tanpa duplikasi juga, tapi tanpa pecah status) ===
+        $formPhaseTotal = FormPhase::select(
+            'form_phases.id',
+            'form_phases.title'
         )
-        ->groupBy('phase_id', 'phase_title')
-        ->get();
+            ->selectRaw('COUNT(DISTINCT forms.id) as total_forms')
+            ->selectRaw('COUNT(DISTINCT form_submissions.id) as total_submissions')
+            ->leftJoin('form_phase_details', 'form_phase_details.form_phase_id', '=', 'form_phases.id')
+            ->leftJoin('form_access_controls', 'form_access_controls.id', '=', 'form_phase_details.form_access_control_id')
+            ->leftJoin('forms', 'forms.id', '=', 'form_access_controls.form_id')
+            ->leftJoin('form_submissions', 'form_submissions.form_id', '=', 'forms.id')
+            ->groupBy('form_phases.id', 'form_phases.title')
+            ->get();
 
-    // === 4. Total (tanpa duplikasi juga, tapi tanpa pecah status) ===
-    $formPhaseTotal = FormPhase::select(
-        'form_phases.id',
-        'form_phases.title'
-    )
-        ->selectRaw('COUNT(DISTINCT forms.id) as total_forms')
-        ->selectRaw('COUNT(DISTINCT form_submissions.id) as total_submissions')
-        ->leftJoin('form_phase_details', 'form_phase_details.form_phase_id', '=', 'form_phases.id')
-        ->leftJoin('form_access_controls', 'form_access_controls.id', '=', 'form_phase_details.form_access_control_id')
-        ->leftJoin('forms', 'forms.id', '=', 'form_access_controls.form_id')
-        ->leftJoin('form_submissions', 'form_submissions.form_id', '=', 'forms.id')
-        ->groupBy('form_phases.id', 'form_phases.title')
-        ->get();
+        // === 5. Berdasarkan Periode ===
+        $formPhaseByPeriod = FormPhase::select(
+            'submission_periods.id as submission_period_id',
+            'submission_periods.name as submission_period_name'
+        )
+            ->selectRaw('COUNT(DISTINCT forms.id) as total_forms')
+            ->selectRaw('COUNT(DISTINCT form_submissions.id) as total_submissions')
+            ->leftJoin('submission_period_phases', 'submission_period_phases.form_phase_id', '=', 'form_phases.id')
+            ->leftJoin('submission_periods', 'submission_periods.id', '=', 'submission_period_phases.submission_period_id')
+            ->leftJoin('form_phase_details', 'form_phase_details.form_phase_id', '=', 'form_phases.id')
+            ->leftJoin('form_access_controls', 'form_access_controls.id', '=', 'form_phase_details.form_access_control_id')
+            ->leftJoin('forms', 'forms.id', '=', 'form_access_controls.form_id')
+            ->leftJoin('form_submissions', 'form_submissions.form_id', '=', 'forms.id')
+            ->groupBy('submission_periods.id', 'submission_periods.name')
+            ->get();
 
-    // === 5. Berdasarkan Periode ===
-    $formPhaseByPeriod = FormPhase::select(
-        'submission_periods.id as submission_period_id',
-        'submission_periods.name as submission_period_name'
-    )
-        ->selectRaw('COUNT(DISTINCT forms.id) as total_forms')
-        ->selectRaw('COUNT(DISTINCT form_submissions.id) as total_submissions')
-        ->leftJoin('submission_period_phases', 'submission_period_phases.form_phase_id', '=', 'form_phases.id')
-        ->leftJoin('submission_periods', 'submission_periods.id', '=', 'submission_period_phases.submission_period_id')
-        ->leftJoin('form_phase_details', 'form_phase_details.form_phase_id', '=', 'form_phases.id')
-        ->leftJoin('form_access_controls', 'form_access_controls.id', '=', 'form_phase_details.form_access_control_id')
-        ->leftJoin('forms', 'forms.id', '=', 'form_access_controls.form_id')
-        ->leftJoin('form_submissions', 'form_submissions.form_id', '=', 'forms.id')
-        ->groupBy('submission_periods.id', 'submission_periods.name')
-        ->get();
+        // === 6. Referensi fakultas & prodi ===
+        $faculties = Faculty::select('id', 'name')->orderBy('name')->get();
+        $studyPrograms = StudyProgram::select('id', 'name', 'faculty_id')->orderBy('name')->get();
 
-    // === 6. Referensi fakultas & prodi ===
-    $faculties = Faculty::select('id', 'name')->orderBy('name')->get();
-    $studyPrograms = StudyProgram::select('id', 'name', 'faculty_id')->orderBy('name')->get();
-
-    // === Return ===
-    return [
-        'formPhaseFaculty' => $formPhaseFaculty,
-        'formPhaseProdi' => $formPhaseProdi,
-        'formPhaseStatus' => $formPhaseStatus,
-        'formPhaseTotal' => $formPhaseTotal,
-        'formPhaseByPeriod' => $formPhaseByPeriod,
-        'faculties' => $faculties,
-        'studyPrograms' => $studyPrograms,
-    ];
-}
+        // === Return ===
+        return [
+            'formPhaseFaculty' => $formPhaseFaculty,
+            'formPhaseProdi' => $formPhaseProdi,
+            'formPhaseStatus' => $formPhaseStatus,
+            'formPhaseTotal' => $formPhaseTotal,
+            'formPhaseByPeriod' => $formPhaseByPeriod,
+            'faculties' => $faculties,
+            'studyPrograms' => $studyPrograms,
+        ];
+    }
 
     // get form submission Data
     public function getFormSubmissionStats()
@@ -236,19 +236,19 @@ class StatController extends Controller
             ->groupBy('status')
             ->get();
 
-        $totalByFaculty = FormSubmission::select('faculties.name', DB::raw('COUNT(DISTINCT form_submissions.id) as total'))
+        $totalByFaculty = FormSubmission::select('faculties.id', 'faculties.name', DB::raw('COUNT(DISTINCT form_submissions.id) as total'))
             ->join('forms', 'forms.id', '=', 'form_submissions.form_id')
             ->join('form_access_controls', 'form_access_controls.form_id', '=', 'forms.id')
             ->join('study_programs', 'study_programs.id', '=', 'form_access_controls.study_program_id')
             ->join('faculties', 'faculties.id', '=', 'study_programs.faculty_id')
-            ->groupBy('faculties.name')
+            ->groupBy('faculties.id', 'faculties.name')
             ->get();
 
-        $totalByProdi = FormSubmission::select('study_programs.name', DB::raw('COUNT(DISTINCT form_submissions.id) as total'))
+        $totalByProdi = FormSubmission::select('study_programs.id', 'study_programs.name', DB::raw('COUNT(DISTINCT form_submissions.id) as total'))
             ->join('forms', 'forms.id', '=', 'form_submissions.form_id')
             ->join('form_access_controls', 'form_access_controls.form_id', '=', 'forms.id')
             ->join('study_programs', 'study_programs.id', '=', 'form_access_controls.study_program_id')
-            ->groupBy('study_programs.name')
+            ->groupBy('study_programs.id', 'study_programs.name')
             ->get();
 
         $faculties = Faculty::select('id', 'name')->orderBy('name')->get();
@@ -264,7 +264,6 @@ class StatController extends Controller
             'studyPrograms' => $studyPrograms,
         ];
     }
-
 
     // get submission reviewer Data
     public function getSubmissionReviewerStats()
@@ -293,27 +292,27 @@ class StatController extends Controller
             ->groupBy('evaluation_status')
             ->get();
 
-        $reviewerByYear = Reviewer::select(DB::raw('YEAR(created_at) as year'), DB::raw('count(*) as total'))
-            ->groupBy('year')
+        $reviewerByYear = Reviewer::select(DB::raw('EXTRACT(YEAR FROM created_at) as year'), DB::raw('count(*) as total'))
+            ->groupByRaw('EXTRACT(YEAR FROM created_at)')
             ->get();
 
-        $reviewerByFaculty = Reviewer::select('faculties.name', DB::raw('count(*) as total'))
+        $reviewerByFaculty = Reviewer::select('faculties.id', 'faculties.name', DB::raw('count(*) as total'))
             ->join('user_profiles', 'user_profiles.user_id', '=', 'reviewers.user_id')
             ->join('study_programs', 'study_programs.id', '=', 'user_profiles.study_program_id')
             ->join('faculties', 'faculties.id', '=', 'study_programs.faculty_id')
-            ->groupBy('faculties.name')
+            ->groupBy('faculties.id', 'faculties.name')
             ->get();
 
-        $reviewerByProdi = Reviewer::select('study_programs.name', DB::raw('count(*) as total'))
+        $reviewerByProdi = Reviewer::select('study_programs.id', 'study_programs.name', DB::raw('count(*) as total'))
             ->join('user_profiles', 'user_profiles.user_id', '=', 'reviewers.user_id')
             ->join('study_programs', 'study_programs.id', '=', 'user_profiles.study_program_id')
-            ->groupBy('study_programs.name')
+            ->groupBy('study_programs.id', 'study_programs.name')
             ->get();
 
         $reviewerActiveStatus = Reviewer::select('user_id', 'reviewer_role_id')
             ->leftJoin('reviewer_roles', 'reviewer_roles.id', '=', 'reviewers.reviewer_role_id')
             ->where('reviewer_roles.is_active', '=', 1)
-            ->groupBy('user_id', 'reviewer_role_id', 'is_active')
+            ->groupBy('user_id', 'reviewer_role_id')
             ->get();
 
         $faculties = Faculty::select('id', 'name')->orderBy('name')->get();
