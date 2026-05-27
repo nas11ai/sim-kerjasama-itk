@@ -12,7 +12,6 @@ class SubmitFormSubmission
 
     public function handle(FormSubmission $submission, User $user): FormSubmission
     {
-        // Validasi: hanya submitted_by yang bisa submit
         if ($submission->submitted_by !== $user->id) {
             throw new \Exception('Unauthorized');
         }
