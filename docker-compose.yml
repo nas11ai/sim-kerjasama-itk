@@ -1,102 +1,102 @@
 services:
-  # ─────────────────────────────────────────
-  # PostgreSQL — Primary Database
-  # ─────────────────────────────────────────
-  postgres:
-    image: postgres:18-alpine
-    container_name: simpas_postgres
-    restart: unless-stopped
-    environment:
-      POSTGRES_DB: ${DB_DATABASE:-simpas}
-      POSTGRES_USER: ${DB_USERNAME:-simpas}
-      POSTGRES_PASSWORD: ${DB_PASSWORD:-secret}
-    ports:
-      - "${DB_PORT:-5432}:5432"
-    volumes:
-      - postgres_data:/var/lib/postgresql
-    healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME:-simpas} -d ${DB_DATABASE:-simpas}"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
+    # ─────────────────────────────────────────
+    # PostgreSQL — Primary Database
+    # ─────────────────────────────────────────
+    postgres:
+        image: postgres:18-alpine
+        container_name: simpas_postgres
+        restart: unless-stopped
+        environment:
+            POSTGRES_DB: ${DB_DATABASE:-simpas}
+            POSTGRES_USER: ${DB_USERNAME:-simpas}
+            POSTGRES_PASSWORD: ${DB_PASSWORD:-secret}
+        ports:
+            - '${DB_PORT:-5432}:5432'
+        volumes:
+            - postgres_data:/var/lib/postgresql
+        healthcheck:
+            test: ['CMD-SHELL', 'pg_isready -U ${DB_USERNAME:-simpas} -d ${DB_DATABASE:-simpas}']
+            interval: 10s
+            timeout: 5s
+            retries: 5
 
-  # ─────────────────────────────────────────
-  # Dragonfly — Redis-compatible Cache & Queue
-  # ─────────────────────────────────────────
-  dragonfly:
-    image: docker.dragonflydb.io/dragonflydb/dragonfly:v1.27.1
-    container_name: simpas_dragonfly
-    restart: unless-stopped
-    ulimits:
-      memlock: -1
-    ports:
-      - "${REDIS_PORT:-6379}:6379"
-    volumes:
-      - dragonfly_data:/data
-    healthcheck:
-      test: ["CMD", "redis-cli", "ping"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
+    # ─────────────────────────────────────────
+    # Dragonfly — Redis-compatible Cache & Queue
+    # ─────────────────────────────────────────
+    dragonfly:
+        image: docker.dragonflydb.io/dragonflydb/dragonfly:v1.27.1
+        container_name: simpas_dragonfly
+        restart: unless-stopped
+        ulimits:
+            memlock: -1
+        ports:
+            - '${REDIS_PORT:-6379}:6379'
+        volumes:
+            - dragonfly_data:/data
+        healthcheck:
+            test: ['CMD', 'redis-cli', 'ping']
+            interval: 10s
+            timeout: 5s
+            retries: 5
 
-  # ─────────────────────────────────────────
-  # MinIO — S3-compatible Local File Storage
-  # ─────────────────────────────────────────
-  minio:
-    image: minio/minio:RELEASE.2024-05-10T01-41-38Z
-    container_name: simpas_minio
-    restart: unless-stopped
-    command: server /data --console-address ":9001"
-    environment:
-      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-minioadmin}
-      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-minioadmin}
-    ports:
-      - "${MINIO_PORT:-9000}:9000"       # S3 API
-      - "${MINIO_CONSOLE_PORT:-9001}:9001" # Web Console
-    volumes:
-      - minio_data:/data
-    healthcheck:
-      test: ["CMD", "mc", "ready", "local"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
+    # ─────────────────────────────────────────
+    # MinIO — S3-compatible Local File Storage
+    # ─────────────────────────────────────────
+    minio:
+        image: minio/minio:RELEASE.2024-05-10T01-41-38Z
+        container_name: simpas_minio
+        restart: unless-stopped
+        command: server /data --console-address ":9001"
+        environment:
+            MINIO_ROOT_USER: ${MINIO_ROOT_USER:-minioadmin}
+            MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-minioadmin}
+        ports:
+            - '${MINIO_PORT:-9000}:9000' # S3 API
+            - '${MINIO_CONSOLE_PORT:-9001}:9001' # Web Console
+        volumes:
+            - minio_data:/data
+        healthcheck:
+            test: ['CMD', 'curl', '-f', 'http://localhost:9000/minio/health/live']
+            interval: 10s
+            timeout: 5s
+            retries: 5
 
-  # ─────────────────────────────────────────
-  # PHP App — Laravel Application
-  # ─────────────────────────────────────────
-  app:
-    build:
-      context: .
-      dockerfile: Dockerfile
-    container_name: simpas_app
-    restart: unless-stopped
-    ports:
-      - "${APP_PORT:-8000}:8000"
-      - "${VITE_PORT:-5173}:5173"
-    environment:
-      - DB_CONNECTION=pgsql
-      - DB_HOST=postgres
-      - DB_PORT=5432
-      - DB_DATABASE=${DB_DATABASE:-simpas}
-      - DB_USERNAME=${DB_USERNAME:-simpas}
-      - DB_PASSWORD=${DB_PASSWORD:-secret}
-      - REDIS_HOST=dragonfly
-      - REDIS_PORT=6379
-      - MINIO_ENDPOINT=http://minio:9000
-    volumes:
-      - .:/var/www/html
-    depends_on:
-      postgres:
-        condition: service_healthy
-      dragonfly:
-        condition: service_healthy
-      minio:
-        condition: service_healthy
+    # ─────────────────────────────────────────
+    # PHP App — Laravel Application
+    # ─────────────────────────────────────────
+    app:
+        build:
+            context: .
+            dockerfile: Dockerfile
+        container_name: simpas_app
+        restart: unless-stopped
+        ports:
+            - '${APP_PORT:-8000}:8000'
+            - '${VITE_PORT:-5173}:5173'
+        environment:
+            - DB_CONNECTION=pgsql
+            - DB_HOST=postgres
+            - DB_PORT=5432
+            - DB_DATABASE=${DB_DATABASE:-simpas}
+            - DB_USERNAME=${DB_USERNAME:-simpas}
+            - DB_PASSWORD=${DB_PASSWORD:-secret}
+            - REDIS_HOST=dragonfly
+            - REDIS_PORT=6379
+            - MINIO_ENDPOINT=http://minio:9000
+        volumes:
+            - .:/var/www/html
+        depends_on:
+            postgres:
+                condition: service_healthy
+            dragonfly:
+                condition: service_healthy
+            minio:
+                condition: service_healthy
 
 volumes:
-  postgres_data:
-    driver: local
-  dragonfly_data:
-    driver: local
-  minio_data:
-    driver: local
+    postgres_data:
+        driver: local
+    dragonfly_data:
+        driver: local
+    minio_data:
+        driver: local
