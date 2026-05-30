@@ -5,11 +5,15 @@ namespace App\Models;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * @property \Illuminate\Support\Carbon $date
+ */
 class SubmissionDate extends Model
 {
+
     protected $fillable = [
         'submission_date_label_id',
-        'datetime',
+        'date',
         'submission_period_id',
     ];
 
@@ -44,6 +48,6 @@ class SubmissionDate extends Model
 
     public function getDaysFromNow(): int
     {
-        return Carbon::now()->diffInDays($this->date, false);
+        return (int) Carbon::now()->diffInDays($this->date, false);
     }
 }

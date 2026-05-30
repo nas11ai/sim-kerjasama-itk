@@ -36,6 +36,10 @@ class ReviewEvaluationForm extends Model
     /**
      * Get the review form fields for the evaluation form.
      */
+
+    /**
+     * @return HasMany<ReviewFormField, $this>
+     */
     public function reviewFormFields(): HasMany
     {
         return $this->hasMany(ReviewFormField::class);
