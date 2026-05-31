@@ -23,21 +23,33 @@ class ReviewFormField extends Model
         'validation_rules' => 'array',
     ];
 
+    /**
+     * @return BelongsTo<ReviewEvaluationForm, $this>
+     */
     public function reviewEvaluationForm(): BelongsTo
     {
         return $this->belongsTo(ReviewEvaluationForm::class);
     }
 
+    /**
+     * @return BelongsTo<FieldType, $this>
+     */
     public function fieldType(): BelongsTo
     {
         return $this->belongsTo(FieldType::class);
     }
 
+    /**
+     * @return HasMany<ReviewFormFieldOption, $this>
+     */
     public function reviewFormFieldOptions(): HasMany
     {
         return $this->hasMany(ReviewFormFieldOption::class);
     }
 
+    /**
+     * @return HasMany<ReviewFormFieldResponse, $this>
+     */
     public function reviewFormFieldResponses(): HasMany
     {
         return $this->hasMany(ReviewFormFieldResponse::class);

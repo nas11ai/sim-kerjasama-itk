@@ -21,11 +21,17 @@ class ReviewFormResponse extends Model
         'locked_at' => 'datetime',
     ];
 
+    /**
+     * @return BelongsTo<ReviewerFormAssignment, $this>
+     */
     public function reviewerFormAssignment(): BelongsTo
     {
         return $this->belongsTo(ReviewerFormAssignment::class);
     }
 
+    /**
+     * @return HasMany<ReviewFormFieldResponse, $this>
+     */
     public function reviewFormFieldResponses(): HasMany
     {
         return $this->hasMany(ReviewFormFieldResponse::class);

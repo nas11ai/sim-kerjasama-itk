@@ -30,6 +30,8 @@ class FormPhaseDetail extends Model
 
     /**
      * Get the form phase that owns the detail.
+     *
+     * @return BelongsTo<FormPhase, $this>
      */
     public function formPhase(): BelongsTo
     {
@@ -38,6 +40,8 @@ class FormPhaseDetail extends Model
 
     /**
      * Get the form access control for the detail.
+     *
+     * @return BelongsTo<FormAccessControl, $this>
      */
     public function formAccessControl(): BelongsTo
     {
@@ -46,6 +50,8 @@ class FormPhaseDetail extends Model
 
     /**
      * Get the phase type for the detail.
+     *
+     * @return BelongsTo<PhaseType, $this>
      */
     public function phaseType(): BelongsTo
     {
@@ -54,6 +60,8 @@ class FormPhaseDetail extends Model
 
     /**
      * Get the review evaluation forms for this form phase detail.
+     *
+     * @return HasMany<ReviewEvaluationForm, $this>
      */
     // NEW: Review evaluation forms relationship
     public function reviewEvaluationForms(): HasMany
@@ -62,18 +70,27 @@ class FormPhaseDetail extends Model
     }
 
     // NEW: Active review evaluation forms
+    /**
+     * @return HasMany<ReviewEvaluationForm, $this>
+     */
     public function activeReviewEvaluationForms(): HasMany
     {
         return $this->reviewEvaluationForms()->active()->ordered();
     }
 
     // NEW: Required review evaluation forms
+    /**
+     * @return HasMany<ReviewEvaluationForm, $this>
+     */
     public function requiredReviewEvaluationForms(): HasMany
     {
         return $this->reviewEvaluationForms()->required()->active()->ordered();
     }
 
     // NEW: Optional review evaluation forms
+    /**
+     * @return HasMany<ReviewEvaluationForm, $this>
+     */
     public function optionalReviewEvaluationForms(): HasMany
     {
         return $this->reviewEvaluationForms()
@@ -103,7 +120,10 @@ class FormPhaseDetail extends Model
     // Check if any form phase details need review
     public function needsReview(): bool
     {
-        return $this->formPhaseDetails()->where('needs_review', true)->exists();
+        return static::query()
+            ->where('form_phase_id', $this->form_phase_id)
+            ->where('needs_review', true)
+            ->exists();
     }
 
     // NEW: Check if phase requires evaluation forms to be completed before discussion
