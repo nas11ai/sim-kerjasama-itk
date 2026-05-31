@@ -56,7 +56,8 @@ const handleDismiss = () => {
         </div>
 
         <!-- Dismiss button -->
-        <Button v-if="dismissible" variant="ghost" size="sm" :class="[
+        <Button
+v-if="dismissible" variant="ghost" size="sm" :class="[
             'shrink-0 p-1 h-auto hover:bg-transparent',
             type === 'success'
                 ? 'text-green-600 hover:text-green-700'

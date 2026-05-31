@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { EllipsisVertical } from 'lucide-vue-next'
-import Button from './ui/button/Button.vue'
+import Button from './ui/button/UiButton.vue/index.js'
 import DropdownMenu from './ui/dropdown-menu/DropdownMenu.vue'
 import DropdownMenuTrigger from './ui/dropdown-menu/DropdownMenuTrigger.vue'
 import DropdownMenuContent from './ui/dropdown-menu/DropdownMenuContent.vue'
@@ -20,14 +20,9 @@ const emit = defineEmits<{
 
 <template>
     <Button
-        :as="href ? 'a' : 'button'"
-        :href="href"
-        variant="outline"
-        size="default"
-        class="hidden cursor-pointer items-center gap-2 bg-black text-white sm:flex"
-        :disabled="disabled"
-        @click="!href && emit('click')"
-    >
+:as="href ? 'a' : 'button'" :href="href" variant="outline" size="default"
+        class="hidden cursor-pointer items-center gap-2 bg-black text-white sm:flex" :disabled="disabled"
+        @click="!href && emit('click')">
         <component :is="icon" :size="4" />
         <span>{{ label }}</span>
     </Button>
@@ -40,13 +35,9 @@ const emit = defineEmits<{
             <DropdownMenuContent class="w-40" align="start">
                 <DropdownMenuItem>
                     <Button
-                        :as="href ? 'a' : 'button'"
-                        :href="href"
-                        variant="outline"
-                        size="default"
+:as="href ? 'a' : 'button'" :href="href" variant="outline" size="default"
                         class="hidden cursor-pointer items-center gap-2 bg-black text-white sm:flex"
-                        @click="!href && emit('click')"
-                    >
+                        @click="!href && emit('click')">
                         <component :is="icon" :size="4" />
                         <span>{{ label }}</span>
                     </Button>

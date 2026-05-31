@@ -9,7 +9,7 @@ export interface SidebarProps {
     class?: HTMLAttributes['class']
 }
 
-export { default as Sidebar } from './Sidebar.vue'
+export { default as Sidebar } from './UiSidebar.vue/index.js'
 export { default as SidebarContent } from './SidebarContent.vue'
 export { default as SidebarFooter } from './SidebarFooter.vue'
 export { default as SidebarGroup } from './SidebarGroup.vue'

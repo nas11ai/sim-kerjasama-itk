@@ -480,7 +480,7 @@ const toggleItemSelection = (id: number, checked?: boolean | 'indeterminate') =>
 
                                 <!-- Data Rows -->
                                 <TableRow
-                                    v-for="(formPhase, index) in props.formPhases.data"
+                                    v-for="(formPhase) in props.formPhases.data"
                                     :key="formPhase.id"
                                     class="hover:bg-muted/50"
                                 >

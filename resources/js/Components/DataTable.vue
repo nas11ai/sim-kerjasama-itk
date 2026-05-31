@@ -8,7 +8,7 @@ import {
     useVueTable,
 } from '@tanstack/vue-table'
 import { computed, ref } from 'vue'
-import Table from './ui/table/Table.vue'
+import Table from './ui/table/uiTable.vue/index.js'
 import TableHeader from './ui/table/TableHeader.vue'
 import TableRow from './ui/table/TableRow.vue'
 import TableHead from './ui/table/TableHead.vue'
@@ -71,11 +71,7 @@ defineExpose({
         <Table>
             <TableHeader>
                 <TableRow v-for="headerGroup in table.getHeaderGroups()" :key="headerGroup.id">
-                    <TableHead
-                        v-for="header in headerGroup.headers"
-                        :key="header.id"
-                        class="text-bold bg-muted"
-                    >
+                    <TableHead v-for="header in headerGroup.headers" :key="header.id" class="text-bold bg-muted">
                         {{ header.column.columnDef.header }}
                     </TableHead>
                 </TableRow>
@@ -84,14 +80,8 @@ defineExpose({
                 <template v-if="table.getRowModel().rows.length > 0">
                     <TableRow v-for="row in table.getRowModel().rows" :key="row.id" class="h-12">
                         <template v-for="cell in row.getVisibleCells()" :key="cell.id">
-                            <TableCell
-                                :class="[props.cellAligns?.[cell.column.id]]"
-                                class="align-middle"
-                            >
-                                <FlexRender
-                                    :render="cell.column.columnDef.cell"
-                                    :props="{ ...cell.getContext() }"
-                                />
+                            <TableCell :class="[props.cellAligns?.[cell.column.id]]" class="align-middle">
+                                <FlexRender :render="cell.column.columnDef.cell" :props="{ ...cell.getContext() }" />
                             </TableCell>
                         </template>
                     </TableRow>

@@ -274,7 +274,7 @@ const isDateToday = (dateString: string) => {
                     </div>
                     <div v-else class="space-y-4">
                         <div
-                            v-for="(date, index) in sortedDates"
+                            v-for="(date) in sortedDates"
                             :key="date.id"
                             class="flex items-center justify-between p-4 border rounded-lg"
                             :class="{
