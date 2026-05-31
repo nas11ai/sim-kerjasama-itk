@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 class Form extends Model
 {
     use HasFactory;
+
     protected $fillable = ['title', 'description', 'is_active', 'form_type_id'];
 
     public function formType()

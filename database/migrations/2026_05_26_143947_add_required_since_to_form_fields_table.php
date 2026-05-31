@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('form_fields', function (Blueprint $table) {
-             $table->timestamp('required_since')->nullable()->after('is_required');
+            $table->timestamp('required_since')->nullable()->after('is_required');
         });
     }
 
@@ -22,7 +22,7 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('form_fields', function (Blueprint $table) {
-             $table->dropColumn('required_since');
+            $table->dropColumn('required_since');
         });
     }
 };
