@@ -413,13 +413,15 @@ const submissionStats = computed(() => {
                                             ? 'bg-primary text-primary-foreground border-primary'
                                             : 'bg-background hover:bg-muted border-border',
                                     ]"
-                                    v-html="link.label"
-                                />
+                                >
+                                    {{ link.label }}
+                                </Link>
                                 <span
                                     v-else
                                     class="px-3 py-2 text-sm border rounded-md opacity-50 cursor-not-allowed"
-                                    v-html="link.label"
-                                />
+                                >
+                                    {{ link.label }}
+                                </span>
                             </template>
                         </div>
                     </div>
