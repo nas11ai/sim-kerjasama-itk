@@ -17,6 +17,7 @@ interface Emits {
 
 const props = withDefaults(defineProps<Props>(), {
     dismissible: true,
+    title: ''
 })
 
 const emit = defineEmits<Emits>()
@@ -55,18 +56,12 @@ const handleDismiss = () => {
         </div>
 
         <!-- Dismiss button -->
-        <Button
-            v-if="dismissible"
-            variant="ghost"
-            size="sm"
-            :class="[
-                'shrink-0 p-1 h-auto hover:bg-transparent',
-                type === 'success'
-                    ? 'text-green-600 hover:text-green-700'
-                    : 'text-red-600 hover:text-red-700',
-            ]"
-            @click="handleDismiss"
-        >
+        <Button v-if="dismissible" variant="ghost" size="sm" :class="[
+            'shrink-0 p-1 h-auto hover:bg-transparent',
+            type === 'success'
+                ? 'text-green-600 hover:text-green-700'
+                : 'text-red-600 hover:text-red-700',
+        ]" @click="handleDismiss">
             <X class="h-4 w-4" />
             <span class="sr-only">Dismiss</span>
         </Button>

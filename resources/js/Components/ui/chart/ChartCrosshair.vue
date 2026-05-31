@@ -15,6 +15,7 @@ const props = withDefaults(
     }>(),
     {
         colors: () => [],
+        customTooltip: undefined,
     }
 )
 
