@@ -8,7 +8,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
- * @property \Illuminate\Database\Eloquent\Collection<int, AnnouncementFile> $announcementFiles
+ * @property-read User|null $announcementCreator
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, AnnouncementFile> $announcementFiles
  */
 class Announcement extends Model
 {

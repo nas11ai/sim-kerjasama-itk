@@ -12,8 +12,8 @@ use Illuminate\Support\Facades\Log;
  * @property \Carbon\Carbon|null $start_date
  * @property \Carbon\Carbon|null $end_date
  * @property \Illuminate\Database\Eloquent\Collection $form_phases
- * @property \Illuminate\Support\Collection $submissionDates
- * @property \Illuminate\Support\Collection $submissionPeriodPhases
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, SubmissionDate> $submissionDates
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, SubmissionPeriodPhase> $submissionPeriodPhases
  */
 class SubmissionPeriod extends Model
 {
@@ -26,11 +26,13 @@ class SubmissionPeriod extends Model
     }
 
 
+    /** @return HasMany<SubmissionDate, $this> */
     public function submissionDates(): HasMany
     {
         return $this->hasMany(SubmissionDate::class);
     }
 
+    /** @return HasMany<SubmissionPeriodPhase, $this> */
     public function submissionPeriodPhases(): HasMany
     {
         return $this->hasMany(SubmissionPeriodPhase::class);

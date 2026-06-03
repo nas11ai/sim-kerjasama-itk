@@ -7,6 +7,11 @@ use Spatie\Permission\Models\Role;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
+/**
+ * @property-read Form|null $form
+ * @property-read Role|null $role
+ * @property-read StudyProgram|null $studyProgram
+ */
 class FormAccessControl extends Model
 {
     protected $fillable = ['form_id', 'role_id', 'study_program_id'];
