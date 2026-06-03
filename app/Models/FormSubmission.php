@@ -18,6 +18,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property-read Form $form
  * @property-read User $submittedBy
  * @property-read Collection<int, FormFieldResponse> $formFieldResponses
+ * @property-read Collection<int, SubmissionReviewer> $submissionReviewers
+ * @property-read Collection<int, ReviewSummary> $reviewSummaries
  * @property SubmissionStatus|null $status
  */
 class FormSubmission extends Model
@@ -56,11 +58,13 @@ class FormSubmission extends Model
         return $this->hasMany(FormFieldResponse::class);
     }
 
+    /** @return HasMany<SubmissionReviewer, $this> */
     public function submissionReviewers(): HasMany
     {
         return $this->hasMany(SubmissionReviewer::class);
     }
 
+    /** @return HasMany<ReviewSummary, $this> */
     public function reviewSummaries(): HasMany
     {
         return $this->hasMany(ReviewSummary::class);

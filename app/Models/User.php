@@ -13,6 +13,7 @@ use Spatie\Permission\Traits\HasRoles;
 
 /**
  * @property bool $is_reviewer
+ * @property-read StudyProgram|null $studyProgram
  */
 class User extends Authenticatable implements MustVerifyEmail
 {

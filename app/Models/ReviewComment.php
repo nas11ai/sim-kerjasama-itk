@@ -38,6 +38,7 @@ class ReviewComment extends Model
         return $this->hasMany(ReviewComment::class, 'parent_comment_id');
     }
 
+    /** @return HasMany<ReviewCommentAttachment, $this> */
     public function attachments(): HasMany
     {
         return $this->hasMany(ReviewCommentAttachment::class);
