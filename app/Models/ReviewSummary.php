@@ -15,6 +15,9 @@ class ReviewSummary extends Model
         'summary_notes',
     ];
 
+    /**
+     * @return BelongsTo<FormSubmission, $this>
+     */
     public function formSubmission(): BelongsTo
     {
         return $this->belongsTo(FormSubmission::class);
@@ -101,7 +104,7 @@ class ReviewSummary extends Model
     // NEW: Generate summary notes from evaluation responses
     protected static function generateSummaryFromResponses($completedResponses): string
     {
-        $summary = "Evaluation Summary\n".str_repeat('=', 50)."\n\n";
+        $summary = "Evaluation Summary\n" . str_repeat('=', 50) . "\n\n";
 
         foreach ($completedResponses as $assignment) {
             $response = $assignment->reviewFormResponse;
@@ -109,7 +112,7 @@ class ReviewSummary extends Model
 
             $summary .= "Form: {$form->title}\n";
             $summary .= "Completed: {$response->submitted_at->format('d M Y H:i')}\n";
-            $summary .= str_repeat('-', 30)."\n";
+            $summary .= str_repeat('-', 30) . "\n";
 
             // Add field responses
             $fieldResponses = $response->reviewFormFieldResponses()->with('reviewFormField')->get();

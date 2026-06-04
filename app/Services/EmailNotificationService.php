@@ -9,6 +9,7 @@ use App\Models\Reviewer;
 use App\Models\ReviewSummary;
 use App\Models\User;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
 
 class EmailNotificationService
@@ -33,7 +34,7 @@ class EmailNotificationService
                         <li><strong>Status:</strong> {$submission->status->label()}</li>
                     </ul>
                     <p>Silakan cek detail submission di sistem.</p>
-                    <p><a href='".route('admin.submissions.show', $submission->id)."' style='background-color: #4CAF50; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;'>Lihat Detail Submission</a></p>
+                    <p><a href='" . route('admin.submissions.show', $submission->id) . "' style='background-color: #4CAF50; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;'>Lihat Detail Submission</a></p>
                 ",
             ];
 
@@ -78,7 +79,7 @@ class EmailNotificationService
                         <li><strong>Role Reviewer:</strong> {$reviewer->reviewerRole->name}</li>
                     </ul>
                     <p>Silakan review submission ini sesegera mungkin.</p>
-                    <p><a href='".route('reviewer.submissions.show', $submission->id)."' style='background-color: #2196F3; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;'>Lihat Submission</a></p>
+                    <p><a href='" . route('reviewer.submissions.show', $submission->id) . "' style='background-color: #2196F3; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;'>Lihat Submission</a></p>
                 ",
             ];
 
@@ -151,10 +152,13 @@ class EmailNotificationService
      */
     public function notifyReviewThreadCreated(ReviewSummary $reviewSummary)
     {
+
         try {
             $submission = $reviewSummary->formSubmission;
-            $creator = $reviewSummary->reviewer
-                ? $reviewSummary->reviewer->user
+            $reviewer = $reviewSummary->reviewer;
+
+            $creator = $reviewer && $reviewer->user
+                ? $reviewer->user
                 : Auth::user();
 
             $subject = "Review Thread Baru - {$submission->form->title}";
@@ -165,10 +169,10 @@ class EmailNotificationService
                     <ul>
                         <li><strong>Form:</strong> {$submission->form->title}</li>
                         <li><strong>Dibuat oleh:</strong> {$creator->name}</li>
-                        <li><strong>Status:</strong> ".ucfirst($reviewSummary->status).'</li>
-                        <li><strong>Catatan:</strong> '.nl2br(e($reviewSummary->summary_notes))."</li>
+                        <li><strong>Status:</strong> " . ucfirst($reviewSummary->status) . '</li>
+                        <li><strong>Catatan:</strong> ' . nl2br(e($reviewSummary->summary_notes)) . "</li>
                     </ul>
-                    <p><a href='".route('admin.submissions.show', $submission->id)."' style='background-color: #FF9800; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;'>Lihat Review Thread</a></p>
+                    <p><a href='" . route('admin.submissions.show', $submission->id) . "' style='background-color: #FF9800; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;'>Lihat Review Thread</a></p>
                 ",
             ];
 
@@ -209,10 +213,10 @@ class EmailNotificationService
                     <p><strong>{$commenter->name}</strong> telah menambahkan {$type} pada review thread:</p>
                     <ul>
                         <li><strong>Form:</strong> {$submission->form->title}</li>
-                        <li><strong>{$type}:</strong> ".nl2br(e($comment->comment_text))."</li>
+                        <li><strong>{$type}:</strong> " . nl2br(e($comment->comment_text)) . "</li>
                         <li><strong>Waktu:</strong> {$comment->created_at->format('d F Y H:i')}</li>
                     </ul>
-                    <p><a href='".route('admin.submissions.show', $submission->id)."#comment-{$comment->id}' style='background-color: #9C27B0; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;'>Lihat {$type}</a></p>
+                    <p><a href='" . route('admin.submissions.show', $submission->id) . "#comment-{$comment->id}' style='background-color: #9C27B0; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;'>Lihat {$type}</a></p>
                 ",
             ];
 
@@ -256,9 +260,9 @@ class EmailNotificationService
                         <li><strong>Form:</strong> {$submission->form->title}</li>
                         <li><strong>Status Lama:</strong> {$statusLabels[$oldStatus]}</li>
                         <li><strong>Status Baru:</strong> {$statusLabels[$reviewSummary->status]}</li>
-                        <li><strong>Waktu:</strong> ".now()->format('d F Y H:i')."</li>
+                        <li><strong>Waktu:</strong> " . now()->format('d F Y H:i') . "</li>
                     </ul>
-                    <p><a href='".route('admin.submissions.show', $submission->id)."' style='background-color: #00BCD4; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;'>Lihat Review</a></p>
+                    <p><a href='" . route('admin.submissions.show', $submission->id) . "' style='background-color: #00BCD4; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;'>Lihat Review</a></p>
                 ",
             ];
 
@@ -297,9 +301,9 @@ class EmailNotificationService
                         <li><strong>Diajukan oleh:</strong> {$submission->submittedBy->name}</li>
                         <li><strong>Status Lama:</strong> {$oldStatus->label()}</li>
                         <li><strong>Status Baru:</strong> {$submission->status->label()}</li>
-                        <li><strong>Waktu:</strong> ".now()->format('d F Y H:i')."</li>
+                        <li><strong>Waktu:</strong> " . now()->format('d F Y H:i') . "</li>
                     </ul>
-                    <p><a href='".route('admin.submissions.show', $submission->id)."' style='background-color: #607D8B; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;'>Lihat Submission</a></p>
+                    <p><a href='" . route('admin.submissions.show', $submission->id) . "' style='background-color: #607D8B; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;'>Lihat Submission</a></p>
                 ",
             ];
 
@@ -347,7 +351,7 @@ class EmailNotificationService
                         <li><strong>Berakhir:</strong> {$endDate}</li>
                     </ul>
                     <p>Silakan submit form Anda sebelum periode berakhir.</p>
-                    <p><a href='".route('user.dashboard')."' style='background-color: #4CAF50; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;'>Buka Dashboard</a></p>
+                    <p><a href='" . route('user.dashboard') . "' style='background-color: #4CAF50; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;'>Buka Dashboard</a></p>
                 ",
             ];
 
