@@ -13,6 +13,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 class Form extends Model
 {
     use HasFactory;
+
     protected $fillable = ['title', 'description', 'is_active', 'form_type_id'];
 
     /**
