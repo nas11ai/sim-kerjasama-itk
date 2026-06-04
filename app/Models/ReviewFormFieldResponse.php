@@ -70,6 +70,7 @@ class ReviewFormFieldResponse extends Model
     // Format select/radio values (show label if available)
     protected function formatSelectValue(): string
     {
+        /** @var ReviewFormFieldOption|null $option */
         $option = $this->reviewFormField->reviewFormFieldOptions()
             ->where('value', $this->value)
             ->orWhere('label', $this->value)

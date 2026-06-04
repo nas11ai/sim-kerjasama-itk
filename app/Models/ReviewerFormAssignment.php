@@ -38,11 +38,17 @@ class ReviewerFormAssignment extends Model
         'due_date' => 'datetime',
     ];
 
+    /**
+     * @return BelongsTo<SubmissionReviewer, $this>
+     */
     public function submissionReviewer(): BelongsTo
     {
         return $this->belongsTo(SubmissionReviewer::class);
     }
 
+    /**
+     * @return BelongsTo<ReviewEvaluationForm, $this>
+     */
     public function reviewEvaluationForm(): BelongsTo
     {
         return $this->belongsTo(ReviewEvaluationForm::class);
