@@ -3,7 +3,15 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
+/**
+ * @property-read \App\Models\User|null $user
+ * @property-read \App\Models\Reviewer|null $reviewer
+ * @property-read \App\Models\ReviewSummary $reviewSummary
+ * @property \Illuminate\Database\Eloquent\Collection<int, \App\Models\ReviewCommentAttachment> $attachments
+ */
 class ReviewComment extends Model
 {
     protected $fillable = [
@@ -14,7 +22,7 @@ class ReviewComment extends Model
         'comment_text',
     ];
 
-    public function reviewSummary()
+    public function reviewSummary(): BelongsTo
     {
         return $this->belongsTo(ReviewSummary::class);
     }
@@ -29,17 +37,17 @@ class ReviewComment extends Model
         return $this->hasMany(ReviewComment::class, 'parent_comment_id');
     }
 
-    public function attachments()
+    public function attachments(): HasMany
     {
         return $this->hasMany(ReviewCommentAttachment::class);
     }
 
-    public function user()
+    public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }
 
-    public function reviewer()
+    public function reviewer(): BelongsTo
     {
         return $this->belongsTo(Reviewer::class);
     }
@@ -69,7 +77,7 @@ class ReviewComment extends Model
 
     public function getAuthorDisplayAttribute()
     {
-        if ($this->reviewer && $this->reviewer->user) {
+        if ($this->reviewer?->user) {
             return [
                 'name' => $this->reviewer->user->name,
                 'type' => 'reviewer',

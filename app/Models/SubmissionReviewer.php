@@ -6,6 +6,16 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
+/**
+ * @property int $id
+ * @property int $reviewer_id
+ * @property int $form_submission_id
+ *
+ * @property-read \App\Models\FormSubmission $formSubmission
+ * @property-read \App\Models\Reviewer $reviewer
+ *
+ * @method bool hasAllRequiredFormsCompleted()
+ */
 class SubmissionReviewer extends Model
 {
     protected $fillable = [
@@ -233,8 +243,12 @@ class SubmissionReviewer extends Model
     }
 
     // NEW: Create form assignment
+    /**
+     * @return ReviewerFormAssignment
+     */
     public function assignForm(int $reviewEvaluationFormId, bool $isRequired = true, ?\DateTime $dueDate = null): ReviewerFormAssignment
     {
+        /** @var ReviewerFormAssignment $assignment */
         $assignment = $this->reviewerFormAssignments()->create([
             'review_evaluation_form_id' => $reviewEvaluationFormId,
             'is_required' => $isRequired,

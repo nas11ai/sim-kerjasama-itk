@@ -26,10 +26,10 @@ class FormController extends Controller
 
         if ($search) {
             $query->where(function ($q) use ($search) {
-                $q->where('title', 'ilike', '%'.$search.'%')
-                    ->orWhere('description', 'ilike', '%'.$search.'%')
+                $q->where('title', 'ilike', '%' . $search . '%')
+                    ->orWhere('description', 'ilike', '%' . $search . '%')
                     ->orWhereHas('formType', function ($typeQuery) use ($search) {
-                        $typeQuery->where('name', 'ilike', '%'.$search.'%');
+                        $typeQuery->where('name', 'ilike', '%' . $search . '%');
                     });
             });
         }
@@ -207,9 +207,13 @@ class FormController extends Controller
                             ->delete();
 
                         foreach ($fieldData['options'] as $optionIndex => $optionData) {
-                            $option = isset($optionData['id'])
-                                ? FormFieldOption::find($optionData['id'])
-                                : new FormFieldOption;
+                            if (isset($optionData['id'])) {
+                                $option = FormFieldOption::findOrFail($optionData['id']);
+                            } else {
+                                $option = new FormFieldOption;
+                            }
+
+                            /** @var FormFieldOption $option */
 
                             $option->form_field_id = $field->id;
                             $option->label = $optionData['label'];
@@ -239,7 +243,7 @@ class FormController extends Controller
     {
         DB::transaction(function () use ($form) {
             $newForm = $form->replicate();
-            $newForm->title = $form->title.' (Copy)';
+            $newForm->title = $form->title . ' (Copy)';
             $newForm->save();
 
             foreach ($form->formFields as $field) {

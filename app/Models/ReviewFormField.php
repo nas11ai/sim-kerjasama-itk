@@ -6,6 +6,11 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
+/**
+ * @property bool $is_required
+ * @property string $label
+ * @property array|null $validation_rules
+ */
 class ReviewFormField extends Model
 {
     protected $fillable = [

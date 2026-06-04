@@ -6,6 +6,17 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
+/**
+ * @property int $id
+ * @property int $reviewer_form_assignment_id
+ * @property string $status
+ * @property string|null $final_notes
+ * @property \Illuminate\Support\Carbon|null $submitted_at
+ * @property \Illuminate\Support\Carbon|null $locked_at
+ *
+ * @property-read \App\Models\ReviewerFormAssignment $reviewerFormAssignment
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\ReviewFormFieldResponse> $reviewFormFieldResponses
+ */
 class ReviewFormResponse extends Model
 {
     protected $fillable = [

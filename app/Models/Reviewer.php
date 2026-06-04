@@ -3,7 +3,12 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
+/**
+ * @property \App\Models\User $user
+ * @property \App\Models\ReviewerRole $reviewerRole
+ */
 class Reviewer extends Model
 {
     protected $fillable = [
@@ -13,12 +18,12 @@ class Reviewer extends Model
         'end_date',
     ];
 
-    public function user()
+    public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }
 
-    public function reviewerRole()
+    public function reviewerRole(): BelongsTo
     {
         return $this->belongsTo(ReviewerRole::class);
     }
