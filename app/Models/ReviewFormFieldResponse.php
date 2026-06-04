@@ -14,11 +14,17 @@ class ReviewFormFieldResponse extends Model
         'value',
     ];
 
+    /**
+     * @return BelongsTo<ReviewFormResponse, $this>
+     */
     public function reviewFormResponse(): BelongsTo
     {
         return $this->belongsTo(ReviewFormResponse::class);
     }
 
+    /**
+     * @return BelongsTo<ReviewFormField, $this>
+     */
     public function reviewFormField(): BelongsTo
     {
         return $this->belongsTo(ReviewFormField::class);

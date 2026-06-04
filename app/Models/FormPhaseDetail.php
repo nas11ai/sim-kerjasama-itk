@@ -7,6 +7,10 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
+/**
+ * @property int $reviewEvaluationFormsCount
+ * @property int $requiredReviewEvaluationFormsCount
+ */
 class FormPhaseDetail extends Model
 {
     use HasFactory;
@@ -29,7 +33,7 @@ class FormPhaseDetail extends Model
     ];
 
     /**
-     * Get the form phase that owns the detail.
+     * @return BelongsTo<FormPhase, $this>
      */
     public function formPhase(): BelongsTo
     {
@@ -115,6 +119,15 @@ class FormPhaseDetail extends Model
     /**
      * Scope a query to order by the order column.
      */
+
+    public function isWithinDeadline(): bool
+    {
+        $period = $this->formPhase->submissionPeriod;
+        if ($period->is_force_closed)
+            return false;
+        return now()->lte($this->submissionDate->datetime);
+    }
+
     public function scopeOrdered($query)
     {
         return $query->orderBy('order');
