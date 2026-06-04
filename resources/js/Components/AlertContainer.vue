@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, watch, onMounted } from 'vue'
 import { usePage } from '@inertiajs/vue3'
-import Alert from './Alert.vue'
+import Alert from './BaseAlert.vue'
 
 interface AlertItem {
     id: string
