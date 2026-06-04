@@ -8,7 +8,9 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
- * @property \Illuminate\Database\Eloquent\Collection<int, FormField> $formFields
+ * @property-read FormType|null $formType
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, FormField> $formFields
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, FormAccessControl> $formAccessControls
  */
 class Form extends Model
 {
@@ -27,7 +29,7 @@ class Form extends Model
     /**
      * @return HasMany<FormField, $this>
      */
-    public function formFields()
+    public function formFields(): HasMany
     {
         return $this->hasMany(FormField::class);
     }
@@ -35,7 +37,7 @@ class Form extends Model
     /**
      * @return HasMany<FormAccessControl, $this>
      */
-    public function formAccessControls()
+    public function formAccessControls(): HasMany
     {
         return $this->hasMany(FormAccessControl::class);
     }

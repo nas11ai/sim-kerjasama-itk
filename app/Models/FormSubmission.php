@@ -15,6 +15,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property \Carbon\Carbon|null $submitted_at
  * @property-read \App\Models\Form $form
  * @property-read \App\Models\User $submittedBy
+ * @property-read \Illuminate\Database\Eloquent\Collection<int, FormFieldResponse> $formFieldResponses
  * @property \App\SubmissionStatus|null $status
  */
 
@@ -34,11 +35,13 @@ class FormSubmission extends Model
         'is_submitted' => 'boolean',
     ];
 
+    /** @return BelongsTo<Form, $this> */
     public function form(): BelongsTo
     {
         return $this->belongsTo(Form::class);
     }
 
+    /** @return BelongsTo<User, $this> */
     public function submittedBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'submitted_by');

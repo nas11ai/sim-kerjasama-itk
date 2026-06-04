@@ -6,8 +6,8 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
- * @property \App\Models\User $user
- * @property \App\Models\ReviewerRole $reviewerRole
+ * @property-read \App\Models\User|null $user
+ * @property-read \App\Models\ReviewerRole|null $reviewerRole
  */
 class Reviewer extends Model
 {
@@ -18,11 +18,13 @@ class Reviewer extends Model
         'end_date',
     ];
 
+    /** @return BelongsTo<User, $this> */
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }
 
+    /** @return BelongsTo<ReviewerRole, $this> */
     public function reviewerRole(): BelongsTo
     {
         return $this->belongsTo(ReviewerRole::class);
