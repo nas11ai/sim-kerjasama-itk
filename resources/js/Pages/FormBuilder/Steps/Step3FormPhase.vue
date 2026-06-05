@@ -25,10 +25,12 @@ interface PhaseData {
     needs_review: boolean
 }
 
+import type { FormPhase, PhaseType } from '@/types/form-builder'
+
 interface Props {
     modelValue: PhaseData
-    formPhases: any[]
-    phaseTypes: any[]
+    formPhases: FormPhase[]
+    phaseTypes: PhaseType[]
     errors: Record<string, string>
 }
 

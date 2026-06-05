@@ -19,7 +19,9 @@ interface StudyProgram {
     name: string
 }
 
-interface Faculty {
+import type { Role } from '@/types'
+
+export interface Faculty {
     id: number
     name: string
     study_programs: StudyProgram[]
@@ -33,7 +35,7 @@ interface AccessControl {
 
 interface Props {
     modelValue: AccessControl[]
-    roles: any[]
+    roles: Role[]
     faculties: Faculty[]
     errors: Record<string, string>
 }
@@ -140,7 +142,7 @@ const selectAllRoles = () => {
     if (selectedRoleIds.value.length === props.roles.length) {
         selectedRoleIds.value = []
     } else {
-        selectedRoleIds.value = props.roles.map((r) => r.id)
+        selectedRoleIds.value = props.roles.map((r: Role) => r.id)
     }
 }
 
@@ -153,12 +155,12 @@ const selectAllStudyPrograms = () => {
 }
 
 const getRoleName = (roleId: number) => {
-    return props.roles.find((r) => r.id === roleId)?.name || 'Unknown'
+    return props.roles.find((r: Role) => r.id === roleId)?.name || 'Unknown'
 }
 
 const getStudyProgramInfo = (studyProgramId: number) => {
     for (const faculty of props.faculties) {
-        const studyProgram = faculty.study_programs.find((sp: any) => sp.id === studyProgramId)
+        const studyProgram = faculty.study_programs.find((sp) => sp.id === studyProgramId)
         if (studyProgram) {
             return {
                 name: studyProgram.name,

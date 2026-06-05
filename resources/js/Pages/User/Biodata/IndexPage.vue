@@ -41,6 +41,7 @@ import {
     Shield,
     Info,
     ArrowLeft,
+    type LucideIcon,
 } from 'lucide-vue-next'
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
 
@@ -107,7 +108,7 @@ const alertTitle = ref('')
 
 // Initialize form data
 const initializeFormData = () => {
-    const data: Record<string, any> = {}
+    const data: Record<string, string | boolean | number | File | null> = {}
 
     props.form.form_fields.forEach((field) => {
         const existingValue = props.existingResponses?.[field.id]
@@ -141,7 +142,7 @@ const formData = useForm({
     responses: initializeFormData(),
 })
 
-const fieldErrors = computed(() => formData.errors as Record<string, any>)
+const fieldErrors = computed(() => formData.errors as Record<string, string>)
 
 // Progress calculation
 const progress = computed(() => {
@@ -155,7 +156,7 @@ const progress = computed(() => {
 
 // Get field icon based on type
 const getFieldIcon = (fieldTypeName: string) => {
-    const iconMap: Record<string, any> = {
+    const iconMap: Record<string, LucideIcon> = {
         text: User,
         email: Mail,
         phone: Phone,
@@ -198,7 +199,7 @@ const dismissCustomAlert = () => {
 }
 
 const getFormResponses = () => {
-    const responses: Array<{ form_field_id: number; value: any }> = []
+    const responses: Array<{ form_field_id: number; value: string | number | boolean | File | null }> = []
 
     props.form.form_fields.forEach((field) => {
         const value = formData.responses[`field_${field.id}`]
@@ -267,7 +268,7 @@ const submitForm = () => {
         formDataPayload.append('form_id', String(props.form.id))
         formDataPayload.append('is_submitted', 'true')
 
-        const responses: any[] = []
+        const responses: Array<{ form_field_id: number; value: string | number | boolean | File | null }> = []
         props.form.form_fields.forEach((field) => {
             const value = formData.responses[`field_${field.id}`]
 

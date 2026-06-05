@@ -98,7 +98,7 @@ interface FormPhase {
 }
 
 interface PaginationLink {
-    url: string | null
+    url: string | undefined
     label: string
     active: boolean
 }
@@ -189,7 +189,7 @@ watch(selectAll, (newValue) => {
     }
 })
 
-const updateFilters = (newFilters: Record<string, any>) => {
+const updateFilters = (newFilters: Record<string, string | undefined>) => {
     router.get(
         route('admin.form-phases.index'),
         {

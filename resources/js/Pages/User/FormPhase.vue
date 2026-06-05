@@ -167,14 +167,14 @@ const canGoPrevious = computed(() => {
 })
 
 // Form data untuk current form
-const formData = useForm<Record<string, any>>({})
+const formData = useForm<Record<string, string | number | boolean | File | null>>({})
 
 // Initialize form data
 watch(
     currentForm,
     (form) => {
         if (form) {
-            const initialData: Record<string, any> = {}
+            const initialData: Record<string, string | number | boolean | File | null> = {}
             form.form_fields.forEach((field) => {
                 switch (field.field_type.name.toLowerCase()) {
                     case 'checkbox':

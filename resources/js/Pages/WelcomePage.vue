@@ -48,7 +48,13 @@ interface PaginatedAnnouncements {
     total: number
     from: number | null
     to: number | null
-    links?: any[]
+    links?: PaginationLink[]
+}
+
+interface PaginationLink {
+    url: string | undefined
+    label: string
+    active: boolean
 }
 
 const props = defineProps<{

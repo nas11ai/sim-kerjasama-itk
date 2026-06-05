@@ -15,8 +15,8 @@ const props = defineProps<{
 }>()
 
 // Use weakmap to store reference to each datapoint for Tooltip
-const wm = new WeakMap()
-function template(d: any, i: number, elements: (HTMLElement | SVGElement)[]) {
+const wm = new WeakMap<object, string>()
+function template(d: Record<string, unknown>, i: number, elements: (HTMLElement | SVGElement)[]) {
     const valueFormatter = props.valueFormatter ?? ((tick: number) => `${tick}`)
     if (props.index in d) {
         if (wm.has(d)) {
@@ -25,30 +25,30 @@ function template(d: any, i: number, elements: (HTMLElement | SVGElement)[]) {
             const componentDiv = document.createElement('div')
             const omittedData = Object.entries(omit(d, [props.index])).map(([key, value]) => {
                 const legendReference = props.items?.find((i) => i.name === key)
-                return { ...legendReference, value: valueFormatter(value) }
+                return { ...legendReference, value: valueFormatter(value as number) }
             })
             const TooltipComponent = props.customTooltip ?? ChartTooltip
             // eslint-disable-next-line vue/one-component-per-file -- mount tooltip component instance only
-            createApp(TooltipComponent, { title: d[props.index], data: omittedData }).mount(
+            createApp(TooltipComponent, { title: String(d[props.index]), data: omittedData }).mount(
                 componentDiv
             )
             wm.set(d, componentDiv.innerHTML)
             return componentDiv.innerHTML
         }
     } else {
-        const data = d.data
+        const data = d.data as Record<string, unknown>
 
         if (wm.has(data)) {
             return wm.get(data)
         } else {
             const style = getComputedStyle(elements[i])
             const omittedData = [
-                { name: data.name, value: valueFormatter(data[props.index]), color: style.fill },
+                { name: data.name as string, value: valueFormatter(data[props.index] as number), color: style.fill },
             ]
             const componentDiv = document.createElement('div')
             const TooltipComponent = props.customTooltip ?? ChartTooltip
             // eslint-disable-next-line vue/one-component-per-file -- mount tooltip component instance only
-            createApp(TooltipComponent, { title: d[props.index], data: omittedData }).mount(
+            createApp(TooltipComponent, { title: String(d[props.index]), data: omittedData }).mount(
                 componentDiv
             )
             wm.set(d, componentDiv.innerHTML)

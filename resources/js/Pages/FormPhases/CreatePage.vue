@@ -69,7 +69,6 @@ interface FormPhaseData {
     description: string
     is_active: boolean
     phase_details: PhaseDetail[]
-    [key: string]: any // Add index signature for Inertia compatibility
 }
 
 interface Props {

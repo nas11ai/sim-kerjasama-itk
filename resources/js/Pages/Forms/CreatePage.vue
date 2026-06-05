@@ -50,7 +50,6 @@ interface FormData {
     form_type_id: number | null
     is_active: boolean
     fields: FormField[]
-    [key: string]: any // Index signature for Inertia compatibility
 }
 
 interface Props {
@@ -82,7 +81,7 @@ type ErrorsType = Partial<{
     fields: FieldError[]
 }>
 
-const errors = computed<ErrorsType>(() => form.errors ?? {})
+const errors = computed<ErrorsType>(() => (form.errors ?? {}) as ErrorsType)
 
 const fieldTypesWithOptions = ['select', 'radio', 'checkbox']
 

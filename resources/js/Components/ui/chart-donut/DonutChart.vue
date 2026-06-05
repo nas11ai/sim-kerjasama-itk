@@ -1,4 +1,4 @@
-<script setup lang="ts" generic="T extends Record<string, any>">
+<script setup lang="ts" generic="T extends Record<string, unknown>">
 import type { Component } from 'vue'
 import type { BaseChartProps } from '.'
 import { Donut } from '@unovis/ts'
@@ -26,7 +26,7 @@ const props = withDefaults(
             /**
              * Function to sort the segment
              */
-            sortFunction?: (a: any, b: any) => number | undefined
+            sortFunction?: (a: T, b: T) => number | undefined
             /**
              * Controls the formatting for the label.
              */
@@ -63,9 +63,9 @@ const colors = computed(() =>
         ? props.colors
         : defaultColors(props.data.filter((d) => d[props.category]).filter(Boolean).length)
 )
-const legendItems = computed(() =>
+    const legendItems = computed(() =>
     props.data.map((item, i) => ({
-        name: item[props.index],
+        name: item[props.index] as string,
         color: colors.value[i],
         inactive: false,
     }))
@@ -73,7 +73,7 @@ const legendItems = computed(() =>
 
 const totalValue = computed(() =>
     props.data.reduce((prev, curr) => {
-        return prev + curr[props.category]
+        return prev + (curr[props.category] as number)
     }, 0)
 )
 </script>
@@ -94,7 +94,7 @@ const totalValue = computed(() =>
             />
 
             <VisDonut
-                :value="(d: Data) => d[category]"
+                :value="(d: Data) => d[category] as number"
                 :sort-function="sortFunction"
                 :color="colors"
                 :arc-width="type === 'donut' ? 20 : 0"
@@ -103,11 +103,12 @@ const totalValue = computed(() =>
                 :events="{
                     [Donut.selectors.segment]: {
                         click: (d: Data, ev: PointerEvent, i: number, elements: HTMLElement[]) => {
-                            if (d?.data?.[index] === activeSegmentKey) {
+                            const data = (d?.data ?? {}) as Record<string, unknown>
+                            if (data[index as unknown as string] === activeSegmentKey) {
                                 activeSegmentKey = undefined
                                 elements.forEach((el) => (el.style.opacity = '1'))
                             } else {
-                                activeSegmentKey = d?.data?.[index]
+                                activeSegmentKey = data[index as unknown as string] as string | undefined
                                 elements.forEach((el) => (el.style.opacity = `${filterOpacity}`))
                                 elements[i].style.opacity = '1'
                             }

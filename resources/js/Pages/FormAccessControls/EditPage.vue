@@ -52,7 +52,6 @@ interface FormFields {
     role_id: number | null
     study_program_id: number | null
     _method: string
-    [key: string]: any
 }
 
 interface Props {
@@ -74,7 +73,7 @@ const form = useForm<FormFields>({
 })
 
 const errors = computed(() => {
-    const formErrors = (form.errors as any) ?? {}
+    const formErrors = (form.errors ?? {}) as Record<string, string | undefined>
     return {
         form_id: formErrors.form_id,
         role_id: formErrors.role_id,

@@ -17,12 +17,10 @@ interface Faculty {
 
 interface FormData {
     name: string
-    [key: string]: any
 }
 
 interface FormErrors {
     name?: string
-    [key: string]: string | undefined
 }
 
 interface Props {

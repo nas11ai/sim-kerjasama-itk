@@ -57,7 +57,6 @@ interface AnnouncementForm {
     expired_time?: string
     files: File[] | null
     deleted_files?: number[]
-    [key: string]: any
 }
 
 interface Props {

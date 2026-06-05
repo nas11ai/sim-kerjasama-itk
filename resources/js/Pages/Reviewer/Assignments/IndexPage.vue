@@ -34,6 +34,7 @@ import {
     Search,
     Filter,
     Eye,
+    type LucideIcon,
 } from 'lucide-vue-next'
 
 interface FormSubmission {
@@ -130,7 +131,7 @@ const getStatusInfo = (
 ): {
     variant: 'default' | 'destructive' | 'outline' | 'secondary'
     text: string
-    icon: any
+    icon: LucideIcon
     color: string
 } => {
     if (!assignment.review_form_response) {

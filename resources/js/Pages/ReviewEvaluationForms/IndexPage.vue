@@ -68,11 +68,26 @@ interface ReviewEvaluationForm {
     review_form_fields: ReviewFormField[]
 }
 
+interface PaginationLink {
+    url: string | undefined
+    label: string
+    active: boolean
+}
+
+interface PaginationMeta {
+    current_page: number
+    last_page: number
+    per_page: number
+    total: number
+    from: number
+    to: number
+}
+
 interface Props {
     evaluationForms: {
         data: ReviewEvaluationForm[]
-        links: any[]
-        meta: any
+        links: PaginationLink[]
+        meta: PaginationMeta
     }
     formPhases: FormPhase[]
     filters: {
@@ -87,7 +102,7 @@ const searchTerm = ref(props.filters.search || '')
 const formPhaseFilter = ref(props.filters.form_phase_id || '')
 
 const applyFilters = () => {
-    const params: any = {}
+    const params: Record<string, string> = {}
 
     if (searchTerm.value) {
         params.search = searchTerm.value

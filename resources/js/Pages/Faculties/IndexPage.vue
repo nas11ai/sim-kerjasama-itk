@@ -65,7 +65,7 @@ interface Faculty {
 }
 
 interface PaginationLink {
-    url: string | null
+    url: string | undefined
     label: string
     active: boolean
 }
@@ -195,7 +195,7 @@ const deleteFaculty = (faculty: Faculty) => {
 }
 
 // Pagination function
-const goToPage = (url: string | null) => {
+const goToPage = (url: string | undefined) => {
     if (url) {
         router.visit(url, {
             preserveState: true,
@@ -204,7 +204,7 @@ const goToPage = (url: string | null) => {
 }
 
 // Per page change
-const changePerPage = (newPerPage: any) => {
+const changePerPage = (newPerPage: unknown) => {
     if (newPerPage !== null && newPerPage !== undefined) {
         let perPageNumber: number
         if (typeof newPerPage === 'string') {

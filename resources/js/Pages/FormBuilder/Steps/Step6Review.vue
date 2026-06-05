@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card'
 import { Badge } from '@/Components/ui/badge'
 import { Separator } from '@/Components/ui/separator'
 import { Alert, AlertDescription } from '@/Components/ui/alert'
+import type { FormType, PhaseType, FormPhase, SubmissionPeriod } from '@/types/form-builder'
 import {
     CheckCircle2,
     FileText,
@@ -16,14 +17,75 @@ import {
     Building,
 } from 'lucide-vue-next'
 
+interface Role {
+    id: number
+    name: string
+}
+
+interface Faculty {
+    name: string
+    study_programs: Array<{ id: number; name: string }>
+}
+
+interface FormField {
+    temp_id: string
+    label: string
+    is_required: boolean
+}
+
+interface AccessControl {
+    temp_id: string
+    role_id: number
+    study_program_id: number
+}
+
+interface EvalForm {
+    temp_id: string
+    title: string
+    description: string
+    is_required: boolean
+    fields: unknown[]
+}
+
+interface SubmissionDate {
+    temp_id: string
+    label_id: number | null
+    label: string
+    date: string | null
+}
+
 interface Props {
-    formData: any
-    formTypes: any[]
-    roles: any[]
-    faculties: any[]
-    phaseTypes: any[]
-    formPhases: any[]
-    submissionPeriods: any[]
+    formData: {
+        form: {
+            title: string
+            description: string
+            form_type_id: number | null
+            is_active: boolean
+            fields: FormField[]
+        }
+        access_controls: AccessControl[]
+        phase: {
+            phase_type_id: number | null
+            use_existing: boolean
+            existing_phase_id: number | null
+            new_phase_title: string
+            new_phase_description: string
+            needs_review: boolean
+        }
+        evaluation_forms: EvalForm[]
+        submission_period: {
+            use_existing: boolean
+            existing_period_id: number | null
+            new_period_name: string
+            dates: SubmissionDate[]
+        }
+    }
+    formTypes: FormType[]
+    roles: Role[]
+    faculties: Faculty[]
+    phaseTypes: PhaseType[]
+    formPhases: FormPhase[]
+    submissionPeriods: SubmissionPeriod[]
 }
 
 const props = defineProps<Props>()
@@ -39,7 +101,7 @@ const getRoleName = (id: number) => {
 
 const getStudyProgramInfo = (id: number) => {
     for (const faculty of props.faculties) {
-        const sp = faculty.study_programs.find((s: any) => s.id === id)
+        const sp = faculty.study_programs.find((s) => s.id === id)
         if (sp) return { name: sp.name, faculty: faculty.name }
     }
     return { name: 'Unknown', faculty: 'Unknown' }
@@ -99,7 +161,7 @@ const totalFields = computed(() => props.formData.form.fields.length)
 const totalAccessControls = computed(() => props.formData.access_controls.length)
 const totalEvaluationForms = computed(() => props.formData.evaluation_forms.length)
 const totalEvaluationFields = computed(() =>
-    props.formData.evaluation_forms.reduce((sum: number, form: any) => sum + form.fields.length, 0)
+    props.formData.evaluation_forms.reduce((sum: number, form: EvalForm) => sum + form.fields.length, 0)
 )
 </script>
 

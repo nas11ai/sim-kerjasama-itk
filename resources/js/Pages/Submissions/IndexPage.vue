@@ -28,11 +28,26 @@ interface SubmissionPeriod {
     pending_review: number
 }
 
+interface PaginationLink {
+    url: string | undefined
+    label: string
+    active: boolean
+}
+
+interface PaginationMeta {
+    current_page: number
+    last_page: number
+    per_page: number
+    total: number
+    from: number
+    to: number
+}
+
 interface Props {
     submissionPeriods: {
         data: SubmissionPeriod[]
-        links: any[]
-        meta: any
+        links: PaginationLink[]
+        meta: PaginationMeta
     }
     filters: {
         search?: string
@@ -44,7 +59,7 @@ const props = defineProps<Props>()
 const searchQuery = ref(props.filters.search || '')
 
 const applySearch = () => {
-    const params: Record<string, any> = {}
+    const params: Record<string, string> = {}
 
     if (searchQuery.value) {
         params.search = searchQuery.value

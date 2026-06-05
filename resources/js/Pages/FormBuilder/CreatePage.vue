@@ -17,14 +17,18 @@ import Step4ReviewSettings from './Steps/Step4ReviewSettings.vue'
 import Step5SubmissionPeriod from './Steps/Step5SubmissionPeriod.vue'
 import Step6Review from './Steps/Step6Review.vue'
 
+import type { FormType, FieldType, PhaseType, FormPhase, SubmissionPeriod } from '@/types/form-builder'
+import type { Role } from '@/types'
+import type { Faculty } from '@/Pages/FormBuilder/Steps/Step2AccessControl.vue'
+
 interface Props {
-    formTypes: any[]
-    fieldTypes: any[]
-    roles: any[]
-    faculties: any[]
-    phaseTypes: any[]
-    formPhases: any[]
-    submissionPeriods: any[]
+    formTypes: FormType[]
+    fieldTypes: FieldType[]
+    roles: Role[]
+    faculties: Faculty[]
+    phaseTypes: PhaseType[]
+    formPhases: FormPhase[]
+    submissionPeriods: SubmissionPeriod[]
 }
 
 defineProps<Props>()

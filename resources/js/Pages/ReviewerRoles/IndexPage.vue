@@ -62,7 +62,7 @@ interface ReviewerRole {
 }
 
 interface PaginationLink {
-    url: string | null
+    url: string | undefined
     label: string
     active: boolean
 }
@@ -117,7 +117,7 @@ watch(selectedStatus, () => {
 })
 
 const applyFilters = () => {
-    const params: Record<string, any> = {}
+    const params: Record<string, string> = {}
 
     if (searchQuery.value) params.search = searchQuery.value
     if (selectedStatus.value && selectedStatus.value !== 'all') params.status = selectedStatus.value

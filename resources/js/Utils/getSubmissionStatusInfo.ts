@@ -1,10 +1,10 @@
 import { BadgeVariant } from '@/types/BadgeVariant'
-import { CheckCircle, AlertCircle, Search, Clock, XCircle } from 'lucide-vue-next'
+import { type LucideIcon, CheckCircle, AlertCircle, Search, Clock, XCircle } from 'lucide-vue-next'
 
 interface StatusInfo {
     variant: BadgeVariant
     text: string
-    icon: any
+    icon: LucideIcon
     description: string
 }
 

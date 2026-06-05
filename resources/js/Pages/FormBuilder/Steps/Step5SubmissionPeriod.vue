@@ -29,9 +29,11 @@ interface SubmissionPeriodData {
     dates: SubmissionDate[]
 }
 
+import type { SubmissionPeriod } from '@/types/form-builder'
+
 interface Props {
     modelValue: SubmissionPeriodData
-    submissionPeriods: any[]
+    submissionPeriods: SubmissionPeriod[]
     errors: Record<string, string>
 }
 

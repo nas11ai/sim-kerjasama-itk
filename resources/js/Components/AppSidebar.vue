@@ -423,7 +423,7 @@ const getContextLabel = computed(() => {
                                 <div class="grid flex-1 text-left text-sm leading-tight">
                                     <span class="truncate font-semibold">{{ user?.name }}</span>
                                     <span class="truncate text-xs capitalize">
-                                        {{ userRoles.map((role: any) => role).join(', ') }}
+                                        {{ userRoles.map(role => role).join(', ') }}
                                         <span v-if="isReviewer" class="text-blue-600"
                                             >• Reviewer</span
                                         >

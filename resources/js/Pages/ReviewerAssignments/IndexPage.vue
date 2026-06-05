@@ -77,11 +77,26 @@ interface Stats {
     overdue: number
 }
 
+interface PaginationLink {
+    url: string | undefined
+    label: string
+    active: boolean
+}
+
+interface PaginationMeta {
+    current_page: number
+    last_page: number
+    per_page: number
+    total: number
+    from: number
+    to: number
+}
+
 interface Props {
     assignments: {
         data: ReviewerFormAssignment[]
-        links: any[]
-        meta: any
+        links: PaginationLink[]
+        meta: PaginationMeta
     }
     stats: Stats
     filters: {
@@ -178,7 +193,7 @@ const formatDate = (dateString: string) => {
 }
 
 const applyFilters = () => {
-    const params: any = {}
+    const params: Record<string, string> = {}
 
     if (searchTerm.value) {
         params.search = searchTerm.value

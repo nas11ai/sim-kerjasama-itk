@@ -44,7 +44,6 @@ interface FormData {
     form_id: number | null
     role_id: number | null
     study_program_id: number | null
-    [key: string]: any // Add index signature
 }
 
 interface BulkFormData {
@@ -53,7 +52,6 @@ interface BulkFormData {
         role_id: number
         study_program_id: number
     }>
-    [key: string]: any // Add index signature
 }
 
 // Extended error interface to include custom error fields

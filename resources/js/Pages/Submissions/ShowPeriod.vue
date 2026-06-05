@@ -109,7 +109,7 @@ interface FormSubmission {
 }
 
 interface PaginationLink {
-    url: string | null
+    url: string | undefined
     label: string
     active: boolean
 }

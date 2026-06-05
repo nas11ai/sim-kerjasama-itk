@@ -24,11 +24,26 @@ interface Announcement {
     is_read?: boolean // Add this field to track read status
 }
 
+interface PaginationLink {
+    url: string | undefined
+    label: string
+    active: boolean
+}
+
+interface PaginationMeta {
+    current_page: number
+    last_page: number
+    per_page: number
+    total: number
+    from: number | null
+    to: number | null
+}
+
 interface Props {
     announcements: {
         data: Announcement[]
-        links: any[]
-        meta: any
+        links: PaginationLink[]
+        meta: PaginationMeta
     }
 }
 

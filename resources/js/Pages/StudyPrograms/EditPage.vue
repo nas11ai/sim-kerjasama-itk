@@ -34,13 +34,11 @@ interface StudyProgram {
 interface FormData {
     name: string
     faculty_id: string
-    [key: string]: any // Required by Inertia's FormDataType constraint
 }
 
 interface FormErrors {
     name?: string
     faculty_id?: string
-    [key: string]: string | undefined
 }
 
 interface Props {

@@ -86,6 +86,34 @@ interface EvaluationRequirements {
     message: string
 }
 
+interface ReviewSummary {
+    id: number
+    reviewer_id: number | null
+    status: string
+    summary_notes: string | null
+    created_at: string
+    updated_at: string
+    reviewer?: {
+        user: { id: number; name: string; email: string }
+        reviewer_role: { name: string }
+    }
+    attachments: Array<{ id: number; file_path: string }>
+}
+
+interface ReviewComment {
+    id: number
+    review_summary_id: number
+    parent_comment_id: number | null
+    user_id: number | null
+    reviewer_id: number | null
+    comment_text: string
+    created_at: string
+    user?: { id: number; name: string }
+    reviewer?: { user: { id: number; name: string } }
+    attachments: Array<{ id: number; file_path: string }>
+    replies: ReviewComment[]
+}
+
 interface FormSubmission {
     id: number
     is_submitted: boolean
@@ -95,8 +123,8 @@ interface FormSubmission {
     updated_at: string
     form: Form
     reviewer_form_assignments?: ReviewerFormAssignment[]
-    submission_reviewers?: any[]
-    review_summaries?: any[]
+    submission_reviewers?: unknown[]
+    review_summaries?: ReviewSummary[]
     submitted_by?: {
         id: number
         name: string
@@ -107,7 +135,7 @@ interface FormSubmission {
 interface Props {
     submission: FormSubmission
     responses: Record<number, string>
-    reviewComments?: any[]
+    reviewComments?: ReviewComment[]
     reviewStats?: {
         total_reviewers: number
         open_reviews: number

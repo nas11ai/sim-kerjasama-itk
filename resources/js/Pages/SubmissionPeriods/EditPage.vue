@@ -79,7 +79,6 @@ interface FormData {
     submission_dates: SubmissionDate[]
     form_phase_ids: number[]
     submission_rule_ids: number[]
-    [key: string]: any
 }
 
 interface Props {

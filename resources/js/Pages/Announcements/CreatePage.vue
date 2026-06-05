@@ -32,7 +32,6 @@ interface AnnouncementForm {
     expired_at: string | null
     expired_time?: string
     files: File[] | null
-    [key: string]: any
 }
 
 const fileInputRef = ref<HTMLInputElement | null>(null)

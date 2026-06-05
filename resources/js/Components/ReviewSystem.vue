@@ -26,8 +26,9 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/Components/ui/select'
-import { Collapsible, CollapsibleContent, CollapsibleTrigger } from '@/Components/ui/collapsible'
+import { Collapsible, CollapsibleContent } from '@/Components/ui/collapsible'
 import {
+    type LucideIcon,
     AlertCircle,
     CheckCircle,
     Clock,
@@ -122,7 +123,13 @@ interface Props {
     canCreateThread: boolean
     canReview: boolean
     userRole: 'admin' | 'submitter' | 'reviewer' | 'user'
-    reviewStats: any
+    reviewStats: {
+        total_reviewers: number
+        open_reviews: number
+        resolved_reviews: number
+        closed_reviews: number
+        total_comments: number
+    }
     hasPendingEvaluations: boolean
     pendingEvaluationsCount: number
     hasReviewEvaluationForms: boolean
@@ -162,7 +169,12 @@ const selectedSubmissionStatus = ref('')
 const statusUpdateNotes = ref('')
 
 // Computed
-const currentUser = computed(() => page.props.auth.user as any)
+import type { User as UserType } from '@/types'
+
+const currentUser = computed(() => {
+    const auth = page.props.auth as { user: UserType } | undefined
+    return auth?.user ?? null
+})
 const isAdmin = computed(() => props.userRole === 'admin')
 const isAssignedReviewer = computed(() => props.userRole === 'reviewer' && props.canReview)
 const reviewerAssignments = computed(() => props.reviewerFormAssignments || [])
@@ -319,7 +331,7 @@ const statusMap: Record<
     {
         label: string
         color: string
-        icon: any
+        icon: LucideIcon
     }
 > = {
     open: {

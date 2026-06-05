@@ -24,6 +24,7 @@ import {
     SelectValue,
 } from '@/Components/ui/select'
 import {
+    type LucideIcon,
     ArrowLeft,
     User,
     Mail,
@@ -39,15 +40,68 @@ import {
     History,
 } from 'lucide-vue-next'
 
+interface ReviewStats {
+    total_reviewers: number
+    open_reviews: number
+    resolved_reviews: number
+    total_comments: number
+}
+
+interface MyReviewSummary {
+    id: number
+    status: string
+    summary_notes: string | null
+    created_at: string
+    updated_at: string
+}
+
+interface ReviewerInfo {
+    id: number
+    reviewer_role: { name: string }
+}
+
+interface FormField {
+    id: number
+    label: string
+    is_required: boolean
+    order: number
+    field_type: { name: string }
+    form_field_options?: Array<{ id: number; label: string }>
+}
+
+interface Form {
+    id: number
+    title: string
+    description?: string
+    form_fields?: FormField[]
+}
+
+interface AssignedReviewer {
+    id: number
+    user: { id: number; name: string }
+    reviewer_role: { name: string }
+}
+
+interface Submission {
+    id: number
+    form?: Form
+    status: string
+    submitted_by?: { id: number; name: string; email: string }
+    submitted_at?: string
+    created_at: string
+    updated_at: string
+    assigned_reviewers?: AssignedReviewer[]
+}
+
 interface Props {
-    submission: any
+    submission: Submission
     responses: Record<number, string>
-    reviewStats: any
-    myReviewSummary?: any
-    reviewer: any
+    reviewStats: ReviewStats
+    myReviewSummary?: MyReviewSummary
+    reviewer: ReviewerInfo
     canReview: boolean
     userRole: string
-    availableStatuses?: { value: string; label: string; icon?: any; color?: string }[]
+    availableStatuses?: { value: string; label: string; icon?: LucideIcon; color?: string }[]
 }
 
 const props = defineProps<Props>()
