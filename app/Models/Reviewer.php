@@ -3,6 +3,15 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+
+/**
+ * @property int $id
+ * @property int $user_id
+ * @property int $reviewer_role_id
+ * @property-read \App\Models\User $user
+ * @property-read \App\Models\ReviewerRole $reviewerRole
+ */
 
 class Reviewer extends Model
 {
@@ -13,12 +22,12 @@ class Reviewer extends Model
         'end_date',
     ];
 
-    public function user()
+    public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }
 
-    public function reviewerRole()
+    public function reviewerRole(): BelongsTo
     {
         return $this->belongsTo(ReviewerRole::class);
     }
