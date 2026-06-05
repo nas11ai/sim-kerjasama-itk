@@ -29,6 +29,7 @@ class FormPhase extends Model
     {
         return $this->hasMany(SubmissionPeriodPhase::class);
     }
+
     public function submissionPeriod()
     {
         return $this->belongsTo(SubmissionPeriod::class);

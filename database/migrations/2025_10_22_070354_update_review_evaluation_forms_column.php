@@ -35,12 +35,12 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('review_evaluation_forms', function (Blueprint $table) {
+            // Drop foreign key baru
+            $table->dropForeign(['form_phase_detail_id']);
+
             // Drop index baru
             $table->dropIndex(['form_phase_detail_id', 'is_active']);
             $table->dropIndex(['form_phase_detail_id', 'order']);
-
-            // Drop foreign key baru
-            $table->dropForeign(['form_phase_detail_id']);
 
             // Drop kolom baru
             $table->dropColumn('form_phase_detail_id');

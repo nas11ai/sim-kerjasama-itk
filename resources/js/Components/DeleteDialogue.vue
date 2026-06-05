@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import Button from './ui/button/Button.vue'
-import Dialog from './ui/dialog/Dialog.vue'
+import Button from './ui/button/UiButton.vue'
+import Dialog from './ui/dialog/UiDialog.vue'
 import DialogContent from './ui/dialog/DialogContent.vue'
 import DialogFooter from './ui/dialog/DialogFooter.vue'
 import DialogHeader from './ui/dialog/DialogHeader.vue'

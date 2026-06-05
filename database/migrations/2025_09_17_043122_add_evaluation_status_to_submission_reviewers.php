@@ -26,6 +26,7 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('submission_reviewers', function (Blueprint $table) {
+            $table->dropForeign(['form_submission_id']);
             $table->dropIndex(['form_submission_id', 'evaluation_status']);
             $table->dropColumn('evaluation_status');
         });

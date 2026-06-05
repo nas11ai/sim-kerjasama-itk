@@ -418,16 +418,18 @@ const formatDate = (dateString: string) => {
                                     ? 'bg-primary text-primary-foreground'
                                     : 'bg-background border hover:bg-muted',
                             ]"
-                            v-html="link.label"
-                        />
+                        >
+                            {{ link.label }}
+                        </Link>
                         <span
                             v-else
                             :class="[
                                 'px-3 py-2 text-sm rounded-md text-muted-foreground',
                                 'bg-muted cursor-not-allowed',
                             ]"
-                            v-html="link.label"
-                        />
+                        >
+                            {{ link.label }}
+                        </span>
                     </template>
                 </div>
             </div>

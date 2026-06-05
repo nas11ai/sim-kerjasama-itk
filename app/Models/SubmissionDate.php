@@ -12,7 +12,6 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  */
 class SubmissionDate extends Model
 {
-
     protected $fillable = [
         'submission_date_label_id',
         'date',

@@ -1,26 +1,11 @@
-<!-- filepath: e:\ITK\sim-kerjasama-itk\resources\js\Pages\FormPhases\Index.vue -->
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue'
+import { ref, watch, computed } from 'vue'
 import { Head, Link, router } from '@inertiajs/vue3'
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
 import { Button } from '@/Components/ui/button'
 import { Input } from '@/Components/ui/input'
-import { Badge } from '@/Components/ui/badge'
 import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card'
-import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
-} from '@/Components/ui/table'
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuTrigger,
-} from '@/Components/ui/dropdown-menu'
+import { Badge } from '@/Components/ui/badge'
 import {
     Command,
     CommandEmpty,
@@ -31,17 +16,31 @@ import {
 } from '@/Components/ui/command'
 import { Popover, PopoverContent, PopoverTrigger } from '@/Components/ui/popover'
 import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from '@/Components/ui/dropdown-menu'
+import {
+    Table,
+    TableBody,
+    TableCell,
+    TableHead,
+    TableHeader,
+    TableRow,
+} from '@/Components/ui/table'
+import {
+    Ellipsis,
     Plus,
-    Search,
     Eye,
     Edit,
+    Copy,
     Trash2,
-    MoreHorizontal,
-    Users,
-    FileText,
-    Settings,
-    X,
+    Search,
     Filter,
+    FileText,
+    X,
+    ArrowUpDown,
     CheckCircle,
     XCircle,
     ChevronsUpDown,
@@ -52,55 +51,26 @@ import { debounce } from 'lodash'
 import { cn } from '@/lib/utils'
 import Checkbox from '@/Components/ui/checkbox/Checkbox.vue'
 
-interface PhaseType {
+interface FormType {
     id: number
     name: string
 }
 
-interface Role {
+interface FormField {
     id: number
-    name: string
-}
-
-interface Faculty {
-    id: number
-    name: string
-}
-
-interface StudyProgram {
-    id: number
-    name: string
-    faculty: Faculty
+    label: string
+    is_required: boolean
 }
 
 interface Form {
     id: number
     title: string
-}
-
-interface FormAccessControl {
-    id: number
-    form: Form
-    role: Role
-    study_program: StudyProgram
-}
-
-interface FormPhaseDetail {
-    id: number
-    order: number
-    needs_review: boolean
-    phase_type: PhaseType
-    form_access_control: FormAccessControl
-}
-
-interface FormPhase {
-    id: number
-    title: string
-    description?: string
+    description: string
     is_active: boolean
+    form_type: FormType
+    form_fields: FormField[]
     created_at: string
     updated_at: string
-    form_phase_details: FormPhaseDetail[]
 }
 
 interface PaginationLink {
@@ -110,20 +80,24 @@ interface PaginationLink {
 }
 
 interface Props {
-    formPhases: {
-        data: FormPhase[]
+    forms: {
+        data: Form[]
+        links: PaginationLink[]
         current_page: number
         last_page: number
         per_page: number
         total: number
         from: number
         to: number
-        links: PaginationLink[]
     }
+    formTypes: FormType[]
     filters: {
         search?: string
-        is_active?: string
         per_page?: number
+        sort_by?: string
+        sort_order?: string
+        form_type?: string
+        is_active?: string
     }
 }
 
@@ -131,11 +105,18 @@ const props = defineProps<Props>()
 const { toast } = useToast()
 
 const search = ref(props.filters.search || '')
-const isActiveFilter = ref(props.filters.is_active || 'all')
 const perPage = ref(props.filters.per_page || 10)
+const sortBy = ref(props.filters.sort_by || 'created_at')
+const sortOrder = ref(props.filters.sort_order || 'desc')
+const formTypeFilter = ref(props.filters.form_type || 'all')
+const isActiveFilter = ref(props.filters.is_active || 'all')
 
+const openFormType = ref(false)
+const openStatus = ref(false)
+
+const isDeleting = ref<number | null>(null)
 const selectedItems = ref<number[]>([])
-const allFormIds = computed(() => props.formPhases.data.map((f) => f.id))
+const allFormIds = computed(() => props.forms.data.map((f) => f.id))
 const isPartiallySelected = computed(
     () => selectedItems.value.length > 0 && selectedItems.value.length < allFormIds.value.length
 )
@@ -152,35 +133,33 @@ const selectAll = computed({
     },
 })
 
-const openStatus = ref(false)
-
 const statusOptions = [
     { value: 'all', label: 'Semua Status' },
     { value: 'active', label: 'Aktif' },
     { value: 'inactive', label: 'Nonaktif' },
 ]
 
+const selectedFormTypeLabel = computed(() => {
+    if (formTypeFilter.value === 'all') return 'Semua Tipe Formulir'
+    const type = props.formTypes.find((t) => t.id.toString() === formTypeFilter.value)
+    return type?.name || 'Pilih tipe...'
+})
+
 const selectedStatusLabel = computed(() => {
     const status = statusOptions.find((s) => s.value === isActiveFilter.value)
     return status?.label || 'Pilih status...'
 })
 
-// Active filters count
-const activeFiltersCount = computed(() => {
-    let count = 0
-    if (search.value) count++
-    if (isActiveFilter.value !== 'all') count++
-    return count
-})
-
-// Debounced search
 const debouncedSearch = debounce((value: string) => {
     updateFilters({ search: value })
 }, 300)
 
-// Watch for changes
 watch(search, (newValue) => {
     debouncedSearch(newValue)
+})
+
+watch(formTypeFilter, (newValue) => {
+    updateFilters({ form_type: newValue })
 })
 
 watch(isActiveFilter, (newValue) => {
@@ -189,7 +168,7 @@ watch(isActiveFilter, (newValue) => {
 
 watch(selectAll, (newValue) => {
     if (newValue) {
-        selectedItems.value = props.formPhases.data.map((item) => item.id)
+        selectedItems.value = props.forms.data.map((item) => item.id)
     } else {
         selectedItems.value = []
     }
@@ -197,7 +176,7 @@ watch(selectAll, (newValue) => {
 
 const updateFilters = (newFilters: Record<string, any>) => {
     router.get(
-        route('admin.form-phases.index'),
+        route('admin.forms.index'),
         {
             ...props.filters,
             ...newFilters,
@@ -209,51 +188,89 @@ const updateFilters = (newFilters: Record<string, any>) => {
     )
 }
 
+const sortTable = (column: string) => {
+    const newSortOrder = sortBy.value === column && sortOrder.value === 'asc' ? 'desc' : 'asc'
+    sortBy.value = column
+    sortOrder.value = newSortOrder
+
+    updateFilters({
+        sort_by: column,
+        sort_order: newSortOrder,
+    })
+}
+
 const clearAllFilters = () => {
     search.value = ''
+    formTypeFilter.value = 'all'
     isActiveFilter.value = 'all'
     updateFilters({
         search: '',
+        form_type: 'all',
         is_active: 'all',
     })
 }
 
-const deleteFormPhase = (id: number) => {
-    if (confirm('Apakah anda yakin ingin menghapus tahap formulir ini?')) {
-        router.delete(route('admin.form-phases.destroy', id), {
+const activeFiltersCount = computed(() => {
+    let count = 0
+    if (search.value) count++
+    if (formTypeFilter.value !== 'all') count++
+    if (isActiveFilter.value !== 'all') count++
+    return count
+})
+
+const deleteForm = (form: Form) => {
+    if (confirm(`Apakah Anda yakin ingin menghapus "${form.title}"?`)) {
+        isDeleting.value = form.id
+        router.delete(route('admin.forms.destroy', form.id), {
             onSuccess: () => {
                 toast({
-                    title: 'Success',
-                    description: 'Tahap formulir berhasil dihapus!',
+                    title: 'Sukses',
+                    description: 'Formulir berhasil dihapus!',
                 })
+                isDeleting.value = null
             },
             onError: () => {
-                toast({
-                    title: 'Error',
-                    description: 'Gagal menghapus tahap formulir.',
-                    variant: 'destructive',
-                })
+                isDeleting.value = null
             },
         })
     }
 }
 
+const duplicateForm = (form: Form) => {
+    router.post(
+        route('admin.forms.duplicate', form.id),
+        {},
+        {
+            onSuccess: () => {
+                toast({
+                    title: 'Sukses',
+                    description: 'Formulir berhasil diduplikasi!',
+                })
+            },
+        }
+    )
+}
+
+const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'short',
+        day: 'numeric',
+    })
+}
+
 const bulkDelete = () => {
     if (selectedItems.value.length === 0) return
 
-    if (
-        confirm(
-            `Apakah anda yakin ingin menghapus ${selectedItems.value.length} item yang dipilih?`
-        )
-    ) {
+    if (confirm(`Apakah Anda yakin ingin menghapus ${selectedItems.value.length} item terpilih?`)) {
         router.post(
-            route('admin.forms-phases.bulk-delete'),
+            route('admin.forms.bulk-delete'),
             { ids: selectedItems.value },
             {
                 onSuccess: () => {
                     toast({
-                        title: 'Success',
-                        description: `${selectedItems.value.length} tahap formulir berhasil dihapus!`,
+                        title: 'Sukses',
+                        description: `${selectedItems.value.length} formulir berhasil dihapus!`,
                     })
                     selectedItems.value = []
                     selectAll.value = false
@@ -263,28 +280,9 @@ const bulkDelete = () => {
     }
 }
 
-const toggleStatus = (formPhase: FormPhase) => {
-    router.patch(
-        route('admin.form-phases.update-status', formPhase.id),
-        {
-            is_active: !formPhase.is_active,
-        },
-        {
-            onSuccess: () => {
-                toast({
-                    title: 'Success',
-                    description: 'Status berhasil diperbarui!',
-                })
-            },
-            onError: () => {
-                toast({
-                    title: 'Error',
-                    description: 'Gagal memperbarui status.',
-                    variant: 'destructive',
-                })
-            },
-        }
-    )
+const getSortIcon = (column: string) => {
+    if (sortBy.value !== column) return 'text-gray-400'
+    return sortOrder.value === 'asc' ? 'text-blue-600 rotate-0' : 'text-blue-600 rotate-180'
 }
 
 const toggleItemSelection = (id: number, checked?: boolean | 'indeterminate') => {
@@ -302,27 +300,26 @@ const toggleItemSelection = (id: number, checked?: boolean | 'indeterminate') =>
 </script>
 
 <template>
-    <Head title="Manajemen Tahap Formulir" />
+    <Head title="Formulir" />
 
     <AuthenticatedLayout>
         <template #header>
             <div class="flex items-center justify-between">
                 <div class="flex items-center gap-2">
                     <h2 class="text-xl font-semibold leading-tight text-gray-800">
-                        Manajemen Tahap Formulir
+                        Manajemen Formulir
                     </h2>
                 </div>
-                <Link :href="route('admin.form-phases.create')">
+                <Link :href="route('admin.forms.create')">
                     <Button>
                         <Plus class="h-4 w-4 mr-2" />
-                        Buat Tahap Formulir
+                        Buat Formulir
                     </Button>
                 </Link>
             </div>
         </template>
 
         <div class="max-w-7xl mx-auto space-y-6">
-            <!-- Search and Filters -->
             <Card>
                 <CardHeader>
                     <div class="flex items-center justify-between">
@@ -337,6 +334,7 @@ const toggleItemSelection = (id: number, checked?: boolean | 'indeterminate') =>
                             v-if="activeFiltersCount > 0"
                             variant="ghost"
                             size="sm"
+                            class="flex items-center"
                             @click="clearAllFilters"
                         >
                             <X class="h-4 w-4 mr-2" />
@@ -346,21 +344,101 @@ const toggleItemSelection = (id: number, checked?: boolean | 'indeterminate') =>
                 </CardHeader>
                 <CardContent>
                     <div class="flex flex-col lg:flex-row gap-4">
-                        <!-- Search Input -->
                         <div class="flex-1">
                             <div class="relative">
                                 <Search
-                                    class="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4"
+                                    class="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4"
                                 />
                                 <Input
                                     v-model="search"
-                                    placeholder="Cari tahap formulir berdasarkan judul atau deskripsi..."
+                                    placeholder="Cari formulir berdasarkan judul, deskripsi, atau tipe..."
                                     class="pl-10"
                                 />
                             </div>
                         </div>
 
-                        <!-- Filter (Combobox) -->
+                        <div class="w-full lg:w-64">
+                            <Popover v-model:open="openFormType">
+                                <PopoverTrigger as-child>
+                                    <Button
+                                        variant="outline"
+                                        role="combobox"
+                                        :aria-expanded="openFormType"
+                                        class="w-full justify-between"
+                                    >
+                                        <span class="truncate">{{ selectedFormTypeLabel }}</span>
+                                        <ChevronsUpDown class="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                    </Button>
+                                </PopoverTrigger>
+                                <PopoverContent class="w-[250px] p-0">
+                                    <Command>
+                                        <div
+                                            class="flex items-center border-b px-3"
+                                            cmdk-input-wrapper
+                                        >
+                                            <Search class="mr-2 h-4 w-4 shrink-0 opacity-50" />
+                                            <CommandInput
+                                                placeholder="Cari tipe formulir..."
+                                                class="flex h-11 w-full rounded-md bg-transparent py-3 text-sm outline-hidden placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50 border-0 ring-0 focus:ring-0 focus:outline-hidden"
+                                            />
+                                        </div>
+                                        <CommandList>
+                                            <CommandEmpty>
+                                                Tidak ada tipe formulir ditemukan.
+                                            </CommandEmpty>
+                                            <CommandGroup>
+                                                <CommandItem
+                                                    value="all"
+                                                    @select="
+                                                        () => {
+                                                            formTypeFilter = 'all'
+                                                            openFormType = false
+                                                        }
+                                                    "
+                                                >
+                                                    <Check
+                                                        :class="
+                                                            cn(
+                                                                'mr-2 h-4 w-4',
+                                                                formTypeFilter === 'all'
+                                                                    ? 'opacity-100'
+                                                                    : 'opacity-0'
+                                                            )
+                                                        "
+                                                    />
+                                                    Semua Tipe Formulir
+                                                </CommandItem>
+                                                <CommandItem
+                                                    v-for="type in formTypes"
+                                                    :key="type.id"
+                                                    :value="type.id.toString()"
+                                                    @select="
+                                                        () => {
+                                                            formTypeFilter = type.id.toString()
+                                                            openFormType = false
+                                                        }
+                                                    "
+                                                >
+                                                    <Check
+                                                        :class="
+                                                            cn(
+                                                                'mr-2 h-4 w-4',
+                                                                formTypeFilter ===
+                                                                    type.id.toString()
+                                                                    ? 'opacity-100'
+                                                                    : 'opacity-0'
+                                                            )
+                                                        "
+                                                    />
+                                                    {{ type.name }}
+                                                </CommandItem>
+                                            </CommandGroup>
+                                        </CommandList>
+                                    </Command>
+                                </PopoverContent>
+                            </Popover>
+                        </div>
+
                         <div class="w-full lg:w-48">
                             <Popover v-model:open="openStatus">
                                 <PopoverTrigger as-child>
@@ -370,7 +448,7 @@ const toggleItemSelection = (id: number, checked?: boolean | 'indeterminate') =>
                                         :aria-expanded="openStatus"
                                         class="w-full justify-between"
                                     >
-                                        {{ selectedStatusLabel }}
+                                        <span class="truncate">{{ selectedStatusLabel }}</span>
                                         <ChevronsUpDown class="ml-2 h-4 w-4 shrink-0 opacity-50" />
                                     </Button>
                                 </PopoverTrigger>
@@ -421,14 +499,13 @@ const toggleItemSelection = (id: number, checked?: boolean | 'indeterminate') =>
                 </CardContent>
             </Card>
 
-            <!-- Form Phases Table -->
             <Card>
                 <CardHeader>
                     <div class="flex items-center justify-between">
                         <CardTitle class="flex items-center gap-2">
-                            <Settings class="h-5 w-5" />
-                            Daftar Tahap Formulir
-                            <Badge variant="secondary"> {{ props.formPhases.total }} total </Badge>
+                            <FileText class="h-5 w-5" />
+                            Formulir
+                            <Badge variant="secondary"> {{ props.forms.total }} total </Badge>
                         </CardTitle>
                         <Button
                             v-if="selectedItems.length > 0"
@@ -437,7 +514,7 @@ const toggleItemSelection = (id: number, checked?: boolean | 'indeterminate') =>
                             @click="bulkDelete"
                         >
                             <Trash2 class="h-4 w-4 mr-2" />
-                            Hapus yang Dipilih ({{ selectedItems.length }})
+                            Hapus Terpilih ({{ selectedItems.length }})
                         </Button>
                     </div>
                 </CardHeader>
@@ -452,142 +529,141 @@ const toggleItemSelection = (id: number, checked?: boolean | 'indeterminate') =>
                                             :indeterminate="isPartiallySelected"
                                         />
                                     </TableHead>
-                                    <TableHead>Judul</TableHead>
+                                    <TableHead>
+                                        <button
+                                            class="flex items-center gap-1 hover:text-blue-600"
+                                            @click="sortTable('title')"
+                                        >
+                                            Judul Formulir
+                                            <ArrowUpDown
+                                                class="h-4 w-4 transition-transform"
+                                                :class="getSortIcon('title')"
+                                            />
+                                        </button>
+                                    </TableHead>
                                     <TableHead>Deskripsi</TableHead>
+                                    <TableHead>
+                                        <button
+                                            class="flex items-center gap-1 hover:text-blue-600"
+                                            @click="sortTable('form_type')"
+                                        >
+                                            Tipe
+                                            <ArrowUpDown
+                                                class="h-4 w-4 transition-transform"
+                                                :class="getSortIcon('form_type')"
+                                            />
+                                        </button>
+                                    </TableHead>
                                     <TableHead class="text-center"> Status </TableHead>
-                                    <TableHead class="text-center"> Detail Tahap </TableHead>
-                                    <TableHead>Dibuat Pada</TableHead>
+                                    <TableHead>
+                                        <button
+                                            class="flex items-center gap-1 hover:text-blue-600"
+                                            @click="sortTable('created_at')"
+                                        >
+                                            Dibuat Pada
+                                            <ArrowUpDown
+                                                class="h-4 w-4 transition-transform"
+                                                :class="getSortIcon('created_at')"
+                                            />
+                                        </button>
+                                    </TableHead>
                                     <TableHead class="text-right"> Aksi </TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
-                                <!-- Empty State -->
-                                <TableRow v-if="props.formPhases.data.length === 0">
+                                <TableRow v-if="props.forms.data.length === 0">
                                     <TableCell colspan="7" class="text-center py-8 text-gray-500">
-                                        <Settings class="h-12 w-12 mx-auto mb-4 opacity-50" />
-                                        <p class="font-medium">
-                                            Tidak ada tahap formulir ditemukan
-                                        </p>
+                                        <FileText class="h-12 w-12 mx-auto mb-4 opacity-50" />
+                                        <p class="font-medium">Tidak ada formulir ditemukan</p>
                                         <p class="text-sm mt-1">
                                             {{
                                                 activeFiltersCount > 0
                                                     ? 'Coba sesuaikan filter Anda'
-                                                    : 'Buat tahap formulir pertama Anda untuk memulai'
+                                                    : 'Buat formulir pertama Anda untuk memulai'
                                             }}
                                         </p>
                                     </TableCell>
                                 </TableRow>
 
-                                <!-- Data Rows -->
                                 <TableRow
-                                    v-for="(formPhase, index) in props.formPhases.data"
-                                    :key="formPhase.id"
+                                    v-for="form in props.forms.data"
+                                    :key="form.id"
                                     class="hover:bg-muted/50"
                                 >
                                     <TableCell class="font-medium">
                                         <Checkbox
-                                            :model-value="selectedItems.includes(formPhase.id)"
+                                            :model-value="selectedItems.includes(form.id)"
                                             @update:model-value="
-                                                (val) => toggleItemSelection(formPhase.id, val)
+                                                (val) => toggleItemSelection(form.id, val)
                                             "
                                         />
                                     </TableCell>
                                     <TableCell>
-                                        <div class="flex items-center gap-2 font-medium">
-                                            <FileText class="h-4 w-4 text-muted-foreground" />
-                                            {{ formPhase.title }}
+                                        <div class="font-medium">
+                                            {{ form.title }}
                                         </div>
                                     </TableCell>
                                     <TableCell>
                                         <div class="max-w-md truncate text-sm text-gray-600">
-                                            {{ formPhase.description || '-' }}
-                                        </div>
-                                    </TableCell>
-                                    <TableCell class="text-center">
-                                        <Badge
-                                            :variant="
-                                                formPhase.is_active ? 'default' : 'destructive'
-                                            "
-                                            class="flex items-center gap-1 w-fit mx-auto"
-                                        >
-                                            <CheckCircle
-                                                v-if="formPhase.is_active"
-                                                class="h-3 w-3"
-                                            />
-                                            <XCircle v-else class="h-3 w-3" />
-                                            {{ formPhase.is_active ? 'Aktif' : 'Nonaktif' }}
-                                        </Badge>
-                                    </TableCell>
-                                    <TableCell class="text-center">
-                                        <div class="flex items-center justify-center gap-2">
-                                            <Users class="h-4 w-4 text-muted-foreground" />
-                                            <Badge variant="secondary">
-                                                {{ formPhase.form_phase_details.length }} Tahap
-                                            </Badge>
+                                            {{ form.description || '-' }}
                                         </div>
                                     </TableCell>
                                     <TableCell>
-                                        <div class="text-sm text-muted-foreground">
-                                            {{
-                                                new Date(formPhase.created_at).toLocaleDateString(
-                                                    'en-US',
-                                                    {
-                                                        year: 'numeric',
-                                                        month: 'short',
-                                                        day: 'numeric',
-                                                    }
-                                                )
-                                            }}
-                                        </div>
+                                        <Badge
+                                            variant="outline"
+                                            class="bg-blue-50 text-blue-700 border-blue-200"
+                                        >
+                                            {{ form.form_type.name }}
+                                        </Badge>
+                                    </TableCell>
+                                    <TableCell class="text-center">
+                                        <Badge
+                                            :variant="form.is_active ? 'default' : 'destructive'"
+                                            class="flex items-center gap-1 w-fit mx-auto"
+                                        >
+                                            <CheckCircle v-if="form.is_active" class="h-3 w-3" />
+                                            <XCircle v-else class="h-3 w-3" />
+                                            {{ form.is_active ? 'Active' : 'Inactive' }}
+                                        </Badge>
+                                    </TableCell>
+                                    <TableCell>
+                                        {{ formatDate(form.created_at) }}
                                     </TableCell>
                                     <TableCell class="text-right">
                                         <DropdownMenu>
                                             <DropdownMenuTrigger as-child>
-                                                <Button variant="ghost" size="sm">
-                                                    <MoreHorizontal class="h-4 w-4" />
+                                                <Button
+                                                    variant="ghost"
+                                                    size="sm"
+                                                    :disabled="isDeleting === form.id"
+                                                >
+                                                    <Ellipsis class="h-4 w-4" />
                                                 </Button>
                                             </DropdownMenuTrigger>
                                             <DropdownMenuContent align="end">
                                                 <DropdownMenuItem as-child>
                                                     <Link
-                                                        :href="
-                                                            route(
-                                                                'admin.form-phases.show',
-                                                                formPhase.id
-                                                            )
-                                                        "
+                                                        :href="route('admin.forms.show', form.id)"
                                                     >
                                                         <Eye class="h-4 w-4 mr-2" />
-                                                        Lihat Detail
+                                                        Lihat
                                                     </Link>
                                                 </DropdownMenuItem>
                                                 <DropdownMenuItem as-child>
                                                     <Link
-                                                        :href="
-                                                            route(
-                                                                'admin.form-phases.edit',
-                                                                formPhase.id
-                                                            )
-                                                        "
+                                                        :href="route('admin.forms.edit', form.id)"
                                                     >
                                                         <Edit class="h-4 w-4 mr-2" />
                                                         Edit
                                                     </Link>
                                                 </DropdownMenuItem>
-                                                <DropdownMenuItem
-                                                    class="cursor-pointer"
-                                                    @click="toggleStatus(formPhase)"
-                                                >
-                                                    <Settings class="h-4 w-4 mr-2" />
-                                                    {{
-                                                        formPhase.is_active
-                                                            ? 'Deactivate'
-                                                            : 'Activate'
-                                                    }}
+                                                <DropdownMenuItem @click="duplicateForm(form)">
+                                                    <Copy class="h-4 w-4 mr-2" />
+                                                    Duplikat
                                                 </DropdownMenuItem>
                                                 <DropdownMenuItem
-                                                    class="text-destructive cursor-pointer"
-                                                    @click="deleteFormPhase(formPhase.id)"
+                                                    class="text-red-600"
+                                                    @click="deleteForm(form)"
                                                 >
                                                     <Trash2 class="h-4 w-4 mr-2" />
                                                     Hapus
@@ -602,10 +678,9 @@ const toggleItemSelection = (id: number, checked?: boolean | 'indeterminate') =>
                 </CardContent>
             </Card>
 
-            <!-- Pagination -->
-            <div v-if="props.formPhases.last_page > 1" class="flex justify-center">
+            <div v-if="props.forms.last_page > 1" class="flex justify-center">
                 <div class="flex items-center gap-2">
-                    <template v-for="link in props.formPhases.links" :key="link.label">
+                    <template v-for="link in props.forms.links" :key="link.label">
                         <Link
                             v-if="link.url"
                             :href="link.url"
@@ -615,16 +690,18 @@ const toggleItemSelection = (id: number, checked?: boolean | 'indeterminate') =>
                                     ? 'bg-primary text-primary-foreground'
                                     : 'bg-background border hover:bg-muted',
                             ]"
-                            v-html="link.label"
-                        />
+                        >
+                            {{ link.label }}
+                        </Link>
                         <span
                             v-else
                             :class="[
                                 'px-3 py-2 text-sm rounded-md text-muted-foreground',
                                 'bg-muted cursor-not-allowed',
                             ]"
-                            v-html="link.label"
-                        />
+                        >
+                            {{ link.label }}
+                        </span>
                     </template>
                 </div>
             </div>

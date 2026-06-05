@@ -3,22 +3,23 @@
 namespace App\Models;
 
 use App\SubmissionStatus;
+use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
  * @property int $id
  * @property int $form_id
  * @property int $submitted_by
- * @property \Carbon\Carbon|null $submitted_at
- * @property-read \App\Models\Form $form
- * @property-read \App\Models\User $submittedBy
- * @property-read \Illuminate\Database\Eloquent\Collection<int, FormFieldResponse> $formFieldResponses
- * @property \App\SubmissionStatus|null $status
+ * @property Carbon|null $submitted_at
+ * @property-read Form $form
+ * @property-read User $submittedBy
+ * @property-read Collection<int, FormFieldResponse> $formFieldResponses
+ * @property SubmissionStatus|null $status
  */
-
 class FormSubmission extends Model
 {
     use HasFactory;
@@ -54,7 +55,6 @@ class FormSubmission extends Model
     {
         return $this->hasMany(FormFieldResponse::class);
     }
-
 
     public function submissionReviewers(): HasMany
     {
@@ -109,9 +109,9 @@ class FormSubmission extends Model
             'id',
             'id'
         )->whereIn(
-                'reviewer_form_assignments.submission_reviewer_id',
-                $this->submissionReviewers()->pluck('id')
-            );
+            'reviewer_form_assignments.submission_reviewer_id',
+            $this->submissionReviewers()->pluck('id')
+        );
     }
 
     // NEW: Get submitted review form responses
@@ -198,7 +198,7 @@ class FormSubmission extends Model
 
         foreach ($reviewersNeedingAssignment as $submissionReviewer) {
             // Assign all required forms by default
-            /** @var \Illuminate\Database\Eloquent\Collection<int, ReviewEvaluationForm> $requiredForms */
+            /** @var Collection<int, ReviewEvaluationForm> $requiredForms */
             $requiredForms = $formPhaseDetail->requiredReviewEvaluationForms()->get();
 
             foreach ($requiredForms as $form) {
@@ -368,7 +368,7 @@ class FormSubmission extends Model
             return [];
         }
 
-        /** @var \Illuminate\Database\Eloquent\Collection<int, ReviewEvaluationForm> $evaluationForms */
+        /** @var Collection<int, ReviewEvaluationForm> $evaluationForms */
         $evaluationForms = $formPhaseDetail->activeReviewEvaluationForms()->get();
         $summary = [];
 

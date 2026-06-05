@@ -191,10 +191,13 @@ const getFileIcon = (mimeType: string) => {
 
                     <!-- Content -->
                     <CardContent class="p-8 md:p-12">
+                        <!-- reason: konten rich text berasal dari internal admin -->
+                        <!-- eslint-disable vue/no-v-html -->
                         <div
                             class="prose prose-lg max-w-none text-gray-700 leading-relaxed"
                             v-html="announcement.content"
                         />
+                        <!-- eslint-enable vue/no-v-html -->
                     </CardContent>
                 </Card>
 
