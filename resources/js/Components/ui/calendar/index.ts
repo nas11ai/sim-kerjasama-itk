@@ -1,4 +1,4 @@
-export { default as Calendar } from './UiCalendar.vue/index.js'
+export { default as Calendar } from './UiCalendar.vue'
 export { default as CalendarCell } from './CalendarCell.vue'
 export { default as CalendarCellTrigger } from './CalendarCellTrigger.vue'
 export { default as CalendarGrid } from './CalendarGrid.vue'

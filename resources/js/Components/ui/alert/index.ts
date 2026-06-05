@@ -1,7 +1,7 @@
 import type { VariantProps } from 'class-variance-authority'
 import { cva } from 'class-variance-authority'
 
-export { default as Alert } from './UiAlert.vue/index.js'
+export { default as Alert } from './UiAlert.vue'
 export { default as AlertDescription } from './AlertDescription.vue'
 export { default as AlertTitle } from './AlertTitle.vue'
 

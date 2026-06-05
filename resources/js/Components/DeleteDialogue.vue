@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import Button from './ui/button/UiButton.vue/index.js'
-import Dialog from './ui/dialog/UiDialog.vue/index.js'
+import Button from './ui/button/UiButton.vue'
+import Dialog from './ui/dialog/UiDialog.vue'
 import DialogContent from './ui/dialog/DialogContent.vue'
 import DialogFooter from './ui/dialog/DialogFooter.vue'
 import DialogHeader from './ui/dialog/DialogHeader.vue'
@@ -37,8 +37,10 @@ function confirm() {
             <DialogFooter>
                 <Button variant="outline" class="cursor-pointer" @click="close"> Cancel </Button>
                 <Button
-variant="destructive" class="cursor-pointer text-white bg-red-500 hover:bg-red-500/80"
-                    @click="confirm">
+                    variant="destructive"
+                    class="cursor-pointer text-white bg-red-500 hover:bg-red-500/80"
+                    @click="confirm"
+                >
                     Yes, delete
                 </Button>
             </DialogFooter>

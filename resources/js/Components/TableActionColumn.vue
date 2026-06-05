@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { Row } from '@tanstack/vue-table'
 import { Edit, Trash } from 'lucide-vue-next'
-import Button from './ui/button/UiButton.vue/index.js'
+import Button from './ui/button/UiButton.vue'
 
 const props = defineProps<{
     row: Row<any>

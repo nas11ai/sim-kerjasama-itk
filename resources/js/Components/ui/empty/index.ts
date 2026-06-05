@@ -1,7 +1,7 @@
 import type { VariantProps } from 'class-variance-authority'
 import { cva } from 'class-variance-authority'
 
-export { default as Empty } from './UiEmpty.vue/index.js'
+export { default as Empty } from './UiEmpty.vue'
 export { default as EmptyContent } from './EmptyContent.vue'
 export { default as EmptyDescription } from './EmptyDescription.vue'
 export { default as EmptyHeader } from './EmptyHeader.vue'

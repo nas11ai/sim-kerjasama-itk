@@ -1,6 +1,6 @@
 <script lang="ts" setup>
-import Button from './ui/button/UiButton.vue/index.js'
-import Dialog from './ui/dialog/UiDialog.vue/index.js'
+import Button from './ui/button/UiButton.vue'
+import Dialog from './ui/dialog/UiDialog.vue'
 import DialogContent from './ui/dialog/DialogContent.vue'
 import DialogDescription from './ui/dialog/DialogDescription.vue'
 import DialogFooter from './ui/dialog/DialogFooter.vue'
@@ -27,12 +27,18 @@ const emit = defineEmits<{
                 </DialogDescription>
             </DialogHeader>
             <DialogFooter class="mt-4">
-                <Button variant="outline" class="cursor-pointer" @click="emit('update:modelValue', false)">
+                <Button
+                    variant="outline"
+                    class="cursor-pointer"
+                    @click="emit('update:modelValue', false)"
+                >
                     Cancel
                 </Button>
                 <Button
-variant="destructive" class="cursor-pointer bg-red-500 hover:bg-red-500/80"
-                    @click="confirmDelete">
+                    variant="destructive"
+                    class="cursor-pointer bg-red-500 hover:bg-red-500/80"
+                    @click="confirmDelete"
+                >
                     Yes, delete
                 </Button>
             </DialogFooter>
