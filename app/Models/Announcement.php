@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -9,7 +10,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
  * @property-read User|null $announcementCreator
- * @property-read \Illuminate\Database\Eloquent\Collection<int, AnnouncementFile> $announcementFiles
+ * @property-read Collection<int, AnnouncementFile> $announcementFiles
  */
 class Announcement extends Model
 {

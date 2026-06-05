@@ -6,8 +6,8 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
- * @property-read \App\Models\User|null $user
- * @property-read \App\Models\ReviewerRole|null $reviewerRole
+ * @property-read User|null $user
+ * @property-read ReviewerRole|null $reviewerRole
  */
 class Reviewer extends Model
 {

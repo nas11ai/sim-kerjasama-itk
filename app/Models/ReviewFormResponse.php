@@ -2,20 +2,21 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Carbon;
 
 /**
  * @property int $id
  * @property int $reviewer_form_assignment_id
  * @property string $status
  * @property string|null $final_notes
- * @property \Illuminate\Support\Carbon|null $submitted_at
- * @property \Illuminate\Support\Carbon|null $locked_at
- *
- * @property-read \App\Models\ReviewerFormAssignment $reviewerFormAssignment
- * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\ReviewFormFieldResponse> $reviewFormFieldResponses
+ * @property Carbon|null $submitted_at
+ * @property Carbon|null $locked_at
+ * @property-read ReviewerFormAssignment $reviewerFormAssignment
+ * @property-read Collection<int, ReviewFormFieldResponse> $reviewFormFieldResponses
  */
 class ReviewFormResponse extends Model
 {

@@ -2,26 +2,24 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasOne;
-use Illuminate\Database\Eloquent\Builder;
 
 /**
  * @property int $id
  * @property int $submission_reviewer_id
  * @property int $review_evaluation_form_id
- *
- * @property-read \App\Models\SubmissionReviewer $submissionReviewer
- * @property-read \App\Models\ReviewEvaluationForm $reviewEvaluationForm
- * @property-read \App\Models\ReviewFormResponse|null $reviewFormResponse
+ * @property-read SubmissionReviewer $submissionReviewer
+ * @property-read ReviewEvaluationForm $reviewEvaluationForm
+ * @property-read ReviewFormResponse|null $reviewFormResponse
  */
 class ReviewerFormAssignment extends Model
 {
     /**
      * @property-read ReviewFormResponse|null $reviewFormResponse
      */
-
     protected $fillable = [
         'submission_reviewer_id',
         'review_evaluation_form_id',

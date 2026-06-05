@@ -2,11 +2,12 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Carbon;
-use Illuminate\Database\Eloquent\Relations\HasMany;
-use \Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
  * @property int $id
@@ -15,13 +16,14 @@ use \Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property int $order
  * @property string|null $helper_text
  * @property-read FieldType $fieldType
- * @property-read \Illuminate\Database\Eloquent\Collection<int, FormFieldOption> $formFieldOptions
- * @return \Illuminate\Database\Eloquent\Relations\HasMany<FormFieldOption>
+ * @property-read Collection<int, FormFieldOption> $formFieldOptions
+ *
+ * @return HasMany<FormFieldOption>
  */
-
 class FormField extends Model
 {
     use SoftDeletes;
+
     protected $fillable = [
         'form_id',
         'label',
