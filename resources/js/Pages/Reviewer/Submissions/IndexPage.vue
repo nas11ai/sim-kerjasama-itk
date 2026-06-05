@@ -1,5 +1,6 @@
 <!-- resources/js/Pages/Reviewer/Submissions/Index.vue -->
 <script setup lang="ts">
+import { route } from 'ziggy-js'
 import { ref, computed } from 'vue'
 import { Head, Link, router } from '@inertiajs/vue3'
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
@@ -146,37 +147,37 @@ const formatDate = (dateString: string) => {
     })
 }
 
-const applyFilters = () => {
-    const params: any = {}
+// const applyFilters = () => {
+//     const params: any = {}
 
-    if (searchQuery.value) params.search = searchQuery.value
-    if (statusFilter.value && statusFilter.value !== 'all') params.status = statusFilter.value
+//     if (searchQuery.value) params.search = searchQuery.value
+//     if (statusFilter.value && statusFilter.value !== 'all') params.status = statusFilter.value
 
-    router.get(route('reviewer.submissions.index'), params, {
-        preserveState: true,
-        preserveScroll: true,
-    })
-}
+//     router.get(route('reviewer.submissions.index'), params, {
+//         preserveState: true,
+//         preserveScroll: true,
+//     })
+// }
 
 const viewSubmission = (submissionId: number) => {
     router.visit(route('user.submissions.show', submissionId))
 }
 
 // Stats computation
-const submissionStats = computed(() => {
-    const data = props.submissions.data
-    return {
-        total: data.length,
-        // Gunakan submission.status, bukan review_summaries
-        pending: data.filter((s) => s.status === 'pending' || s.status === 'under_review').length,
-        approved: data.filter((s) => s.status === 'approved').length,
-        rejected: data.filter((s) => s.status === 'rejected').length,
-        // Jika tetap ingin menggunakan review_summaries (opsional)
-        open: data.filter((s) => s.review_summaries?.[0]?.status === 'open').length,
-        resolved: data.filter((s) => s.review_summaries?.[0]?.status === 'resolved').length,
-        closed: data.filter((s) => s.review_summaries?.[0]?.status === 'closed').length,
-    }
-})
+// const submissionStats = computed(() => {
+//     const data = props.submissions.data
+//     return {
+//         total: data.length,
+//         // Gunakan submission.status, bukan review_summaries
+//         pending: data.filter((s) => s.status === 'pending' || s.status === 'under_review').length,
+//         approved: data.filter((s) => s.status === 'approved').length,
+//         rejected: data.filter((s) => s.status === 'rejected').length,
+//         // Jika tetap ingin menggunakan review_summaries (opsional)
+//         open: data.filter((s) => s.review_summaries?.[0]?.status === 'open').length,
+//         resolved: data.filter((s) => s.review_summaries?.[0]?.status === 'resolved').length,
+//         closed: data.filter((s) => s.review_summaries?.[0]?.status === 'closed').length,
+//     }
+// })
 </script>
 
 <template>

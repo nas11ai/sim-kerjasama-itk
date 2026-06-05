@@ -288,7 +288,7 @@ class ReviewFormResponseController extends Controller
                 ];
             });
 
-        return Inertia::render('Reviewer/EvaluationForm/Submitted', [
+        return Inertia::render('Reviewer/EvaluationForm/SubmittedPage', [
             'assignment' => $assignment,
             'response' => $response,
             'formattedResponses' => $formattedResponses,

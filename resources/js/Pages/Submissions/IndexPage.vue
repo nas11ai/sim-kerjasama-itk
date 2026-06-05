@@ -1,5 +1,6 @@
-<!-- resources/js/Pages/Admin/Submissions/Index.vue -->
+<!-- resources/js/Pages/Admin/Submissions/IndexPage.vue -->
 <script setup lang="ts">
+import { route } from 'ziggy-js'
 import { ref } from 'vue'
 import { Head, Link, router } from '@inertiajs/vue3'
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
@@ -7,16 +8,7 @@ import { Button } from '@/Components/ui/button'
 import { Input } from '@/Components/ui/input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/Components/ui/card'
 import { Badge } from '@/Components/ui/badge'
-import {
-    Search,
-    Eye,
-    Calendar,
-    Users,
-    CheckCircle,
-    Clock,
-    FileText,
-    TrendingUp,
-} from 'lucide-vue-next'
+import { Search, Eye, Calendar, CheckCircle, Clock, FileText } from 'lucide-vue-next'
 
 interface SubmissionDate {
     id: number

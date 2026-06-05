@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { route } from 'ziggy-js'
 import InputError from '@/Components/InputError.vue'
 import { Button } from '@/Components/ui/button'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/Components/ui/dialog'

@@ -1,6 +1,6 @@
 <!-- resources/js/Pages/Admin/Submissions/ShowPeriod.vue -->
 <script setup lang="ts">
-import { Head, Link, router } from '@inertiajs/vue3'
+import { Head, router } from '@inertiajs/vue3'
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
 import { Button } from '@/Components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card'
@@ -31,9 +31,7 @@ import {
     Search,
     Filter,
     Calendar,
-    Building2,
     Mail,
-    GraduationCap,
     Eye,
 } from 'lucide-vue-next'
 import { ref, computed } from 'vue'

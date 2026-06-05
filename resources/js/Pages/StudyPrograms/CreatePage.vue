@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { Head, useForm } from '@inertiajs/vue3'
+import { route } from 'ziggy-js'
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
 import { Button } from '@/Components/ui/button'
 import { Input } from '@/Components/ui/input'
@@ -23,7 +24,7 @@ interface Props {
     faculties: Faculty[]
 }
 
-const props = defineProps<Props>()
+defineProps<Props>()
 
 const form = useForm({
     name: '',

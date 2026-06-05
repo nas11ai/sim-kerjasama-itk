@@ -66,7 +66,7 @@ class ReviewerController extends Controller
             ->orderBy('name')
             ->get(['id', 'name']);
 
-        return Inertia::render('Reviewers/Index', [
+        return Inertia::render('Reviewers/IndexPage', [
             'reviewers' => $reviewers,
             'reviewerRoles' => $reviewerRoles,
             'filters' => $request->only(['search', 'role', 'status']),
@@ -94,7 +94,7 @@ class ReviewerController extends Controller
             ->orderBy('name')
             ->get(['id', 'name']);
 
-        return Inertia::render('Reviewers/Create', [
+        return Inertia::render('Reviewers/CreatePage', [
             'users' => $users,
             'reviewerRoles' => $reviewerRoles,
         ]);
@@ -152,7 +152,7 @@ class ReviewerController extends Controller
             // ->whereNotNull('reviewed_at')
             ->count();
 
-        return Inertia::render('Reviewers/Show', [
+        return Inertia::render('Reviewers/ShowPage', [
             'reviewer' => $reviewer,
         ]);
     }
@@ -165,7 +165,7 @@ class ReviewerController extends Controller
             ->orderBy('name')
             ->get(['id', 'name']);
 
-        return Inertia::render('Reviewers/Edit', [
+        return Inertia::render('Reviewers/EditPage', [
             'reviewer' => $reviewer,
             'reviewerRoles' => $reviewerRoles,
         ]);

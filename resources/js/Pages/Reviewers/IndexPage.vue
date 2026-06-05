@@ -1,6 +1,8 @@
 <!-- resources\js\Pages\Reviewers\Index.vue -->
+
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
+import { route } from 'ziggy-js'
 import { Head, Link, router } from '@inertiajs/vue3'
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
 import { Button } from '@/Components/ui/button'
@@ -46,9 +48,6 @@ import {
     XCircle,
     ChevronsUpDown,
     Check,
-    ChevronLeft,
-    ChevronRight,
-    Users,
     Calendar,
 } from 'lucide-vue-next'
 import { useToast } from '@/Components/ui/toast/use-toast'

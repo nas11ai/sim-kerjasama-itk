@@ -109,7 +109,11 @@ watch(
 // Expose addAlert function globally (optional)
 onMounted(() => {
     // You can add this to window object if you want to trigger alerts from anywhere
-    ;(window as any).addAlert = addAlert
+    ;(
+        window as unknown as {
+            addAlert: typeof addAlert
+        }
+    ).addAlert = addAlert
 })
 </script>
 

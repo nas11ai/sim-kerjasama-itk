@@ -1,6 +1,7 @@
 <!-- filepath: e:\ITK\sim-kerjasama-itk\resources\js\Pages\Reviewers\Show.vue -->
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { route } from 'ziggy-js'
+import { computed } from 'vue'
 import { Head, router } from '@inertiajs/vue3'
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
 import { Button } from '@/Components/ui/button'
@@ -18,8 +19,7 @@ import {
 import {
     ArrowLeft,
     Edit,
-    Trash2,
-    User,
+    User as UserIcon,
     Mail,
     Calendar,
     Shield,
@@ -27,10 +27,6 @@ import {
     XCircle,
     Clock,
     FileText,
-    BarChart3,
-    AlertTriangle,
-    Power,
-    PowerOff,
 } from 'lucide-vue-next'
 
 interface ReviewerRole {
@@ -177,7 +173,7 @@ const getStatusInfo = computed(() => {
             <Card>
                 <CardHeader>
                     <CardTitle class="flex items-center gap-2">
-                        <User class="h-5 w-5" />
+                        <UserIcon class="h-5 w-5" />
                         Informasi Reviewer
                     </CardTitle>
                     <CardDescription> Detail informasi reviewer dan periode aktif </CardDescription>

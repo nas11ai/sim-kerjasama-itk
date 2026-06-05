@@ -2,10 +2,10 @@
 <script setup lang="ts">
 import DataTable from '@/Components/DataTable.vue'
 import TableActionColumn from '@/Components/TableActionColumn.vue'
-import Button from '@/Components/ui/button/Button.vue'
+import Button from '@/Components/ui/button/UiButton.vue'
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
 import { Permission } from '@/types'
-import { Head, Link } from '@inertiajs/vue3'
+import { Head } from '@inertiajs/vue3'
 import { ColumnDef } from '@tanstack/vue-table'
 import { Plus } from 'lucide-vue-next'
 import { h, ref } from 'vue'

@@ -1,5 +1,6 @@
 <!-- resources/js/Components/AppSidebar.vue -->
 <script setup lang="ts">
+import { route } from 'ziggy-js'
 import { computed } from 'vue'
 import { router, usePage } from '@inertiajs/vue3'
 import {
@@ -47,11 +48,8 @@ import {
     BookCheck,
     UserPenIcon,
     ChartPie,
-    FileChartPie,
     FileUserIcon,
     FileChartPieIcon,
-    ChartPieIcon,
-    SquareKanbanIcon,
     UserCheck2Icon,
     FileBarChart2,
 } from 'lucide-vue-next'
@@ -61,12 +59,12 @@ const user = computed(() => page.props.auth?.user)
 const userRoles = computed(() => user.value?.roles || [])
 
 const isAdmin = computed(() =>
-    userRoles.value.some((role: any) => ['Super Admin', 'Admin'].includes(role))
+    userRoles.value.some((role) => ['Super Admin', 'Admin'].includes(role.name))
 )
 
-const isUser = computed(() =>
-    userRoles.value.some((role: any) => ['Mahasiswa', 'Tenaga Kependidikan'].includes(role))
-)
+// const isUser = computed(() =>
+//     userRoles.value.some((role) => ['Mahasiswa', 'Tenaga Kependidikan'].includes(role.name))
+// )
 
 const isReviewer = computed(() => {
     // Flag dikirim dari backend (middleware CheckReviewer)
@@ -330,9 +328,9 @@ const isActive = (url: string) => {
     return cleanCurrentUrl === cleanUrl || cleanCurrentUrl.startsWith(cleanUrl)
 }
 
-const hasActiveChild = (items: any[]) => {
-    return items.some((item) => isActive(item.url))
-}
+// const hasActiveChild = (items: any[]) => {
+//     return items.some((item) => isActive(item.url))
+// }
 
 const logout = (e: Event) => {
     e.preventDefault()

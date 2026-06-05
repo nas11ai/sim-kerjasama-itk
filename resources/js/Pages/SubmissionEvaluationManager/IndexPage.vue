@@ -1,6 +1,7 @@
 <!-- resources/js/Components/Admin/SubmissionEvaluationManager.vue -->
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { route } from 'ziggy-js'
+import { ref } from 'vue'
 import { useForm } from '@inertiajs/vue3'
 import { Button } from '@/Components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card'
@@ -22,13 +23,7 @@ import {
     DialogTitle,
     DialogTrigger,
 } from '@/Components/ui/dialog'
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from '@/Components/ui/select'
+
 import { Input } from '@/Components/ui/input'
 import { Label } from '@/Components/ui/label'
 import { Switch } from '@/Components/ui/switch'

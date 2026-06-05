@@ -1,11 +1,12 @@
 <!-- resources\js\Pages\ReviewerRoles\Index.vue -->
 <script setup lang="ts">
+import { route } from 'ziggy-js'
 import { ref, computed, watch } from 'vue'
 import { Head, Link, router } from '@inertiajs/vue3'
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
 import { Button } from '@/Components/ui/button'
 import { Input } from '@/Components/ui/input'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/Components/ui/card'
+import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card'
 import { Badge } from '@/Components/ui/badge'
 import {
     DropdownMenu,
@@ -44,7 +45,6 @@ import {
     Users,
     ChevronsUpDown,
     Check,
-    Filter,
     X,
     CheckCircle,
     XCircle,

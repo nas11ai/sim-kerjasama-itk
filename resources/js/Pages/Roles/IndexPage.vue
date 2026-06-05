@@ -3,7 +3,7 @@
 import DataTable from '@/Components/DataTable.vue'
 import { Button } from '@/Components/ui/button'
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
-import { Role, User } from '@/types'
+import { Role } from '@/types'
 import { Head, Link } from '@inertiajs/vue3'
 import { ColumnDef } from '@tanstack/vue-table'
 import { Plus } from 'lucide-vue-next'

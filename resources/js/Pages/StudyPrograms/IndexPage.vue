@@ -1,6 +1,7 @@
 <!-- filepath: e:\ITK\sim-kerjasama-itk\resources\js\Pages\StudyPrograms\Index.vue -->
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
+import { route } from 'ziggy-js'
 import { Head, router, usePage } from '@inertiajs/vue3'
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
 import { Button } from '@/Components/ui/button'
@@ -47,7 +48,6 @@ import {
     ArrowUpDown,
     ChevronLeft,
     ChevronRight,
-    Filter,
     AlertTriangle,
 } from 'lucide-vue-next'
 import { debounce } from 'lodash'
@@ -264,8 +264,8 @@ const clearFilters = () => {
 }
 
 // Success/Error messages
-const successMessage = computed(() => page.props.flash?.success)
-const errorMessage = computed(() => page.props.flash?.error)
+// const successMessage = computed(() => page.props.flash?.success)
+// const errorMessage = computed(() => page.props.flash?.error)
 
 // Sort icon helper
 const getSortIcon = (column: string) => {

@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue'
-import { Head, router, usePage } from '@inertiajs/vue3'
+import { ref, watch } from 'vue'
+import { route } from 'ziggy-js'
+import { Head, router } from '@inertiajs/vue3'
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
 import { Button } from '@/Components/ui/button'
 import { Input } from '@/Components/ui/input'
@@ -97,15 +98,15 @@ interface Props {
     filters: Filters
 }
 
-// Extend the existing PageProps interface
-interface ExtendedPageProps {
-    flash?: FlashMessages
-    auth: any // This should match your existing auth type
-    [key: string]: any // Allow additional properties
-}
+// // Extend the existing PageProps interface
+// interface ExtendedPageProps {
+//     flash?: FlashMessages
+//     auth: any // This should match your existing auth type
+//     [key: string]: any // Allow additional properties
+// }
 
 const props = defineProps<Props>()
-const page = usePage<ExtendedPageProps>()
+// const page = usePage<ExtendedPageProps>()
 
 // Reactive filters
 const search = ref(props.filters.search || '')
@@ -222,8 +223,8 @@ const changePerPage = (newPerPage: any) => {
 }
 
 // Success/Error messages
-const successMessage = computed(() => page.props.flash?.success)
-const errorMessage = computed(() => page.props.flash?.error)
+// const successMessage = computed(() => page.props.flash?.success)
+// const errorMessage = computed(() => page.props.flash?.error)
 
 // Sort icon helper
 const getSortIcon = (column: string) => {

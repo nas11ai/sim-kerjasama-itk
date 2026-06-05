@@ -1,4 +1,4 @@
-<!-- resources/js/Pages/User/Dashboard.vue -->
+<!-- resources/js/Pages/User/DashboardPage.vue -->
 <script setup lang="ts">
 import { computed } from 'vue'
 import { Head, Link } from '@inertiajs/vue3'

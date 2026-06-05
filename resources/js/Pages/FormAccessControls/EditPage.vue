@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, ref, watch, onMounted } from 'vue'
 import { Head, useForm } from '@inertiajs/vue3'
+import { route } from 'ziggy-js'
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
 import { Button } from '@/Components/ui/button'
 import { Label } from '@/Components/ui/label'
@@ -12,7 +13,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/Components/ui/select'
-import { ArrowLeft, Users, Building, FileText, AlertTriangle } from 'lucide-vue-next'
+import { ArrowLeft, Users, FileText, AlertTriangle } from 'lucide-vue-next'
 
 interface Role {
     id: number

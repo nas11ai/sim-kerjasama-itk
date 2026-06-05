@@ -1,6 +1,6 @@
-<!-- resources/js/Pages/Announcement/Index.vue -->
+<!-- resources/js/Pages/Announcement/IndexPage.vue -->
 <script setup lang="ts">
-import { ref } from 'vue'
+import { route } from 'ziggy-js'
 import { Head, Link, router } from '@inertiajs/vue3'
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
 import { Button } from '@/Components/ui/button'
@@ -12,20 +12,7 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from '@/Components/ui/dropdown-menu'
-import {
-    MoreHorizontal,
-    Plus,
-    Eye,
-    Edit,
-    Copy,
-    Trash2,
-    Paperclip,
-    ArrowUpRightIcon,
-    FolderCode,
-    Files,
-    FilePlus,
-    FileX2,
-} from 'lucide-vue-next'
+import { MoreHorizontal, Plus, Eye, Edit, Trash2, Paperclip, FileX2 } from 'lucide-vue-next'
 import { useToast } from '@/Components/ui/toast/use-toast'
 import {
     Empty,

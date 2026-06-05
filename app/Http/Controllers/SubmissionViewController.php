@@ -65,7 +65,7 @@ class SubmissionViewController extends Controller
                 return $period;
             });
 
-        return Inertia::render('User/Submissions/Index', [
+        return Inertia::render('User/Submissions/IndexPage', [
             'submissionPeriods' => $submissionPeriods,
             'userRole' => $user->getRoleNames()->first(),
             'studyProgram' => $studyProgram ? [
@@ -118,7 +118,7 @@ class SubmissionViewController extends Controller
                 return $period;
             });
 
-        return Inertia::render('Submissions/Index', [
+        return Inertia::render('Submissions/IndexPage', [
             'submissionPeriods' => $submissionPeriods,
             'filters' => $request->only(['search']),
         ]);
@@ -775,7 +775,7 @@ class SubmissionViewController extends Controller
             'rejected_reviews' => ReviewSummary::where('reviewer_id', $reviewer->id)->where('status', 'closed')->count(),
         ];
 
-        return Inertia::render('Reviewer/Dashboard', [
+        return Inertia::render('Reviewer/DashboardPage', [
             'reviewer' => [
                 'id' => $reviewer->id,
                 'reviewer_role' => $reviewer->reviewer_role,
@@ -833,7 +833,7 @@ class SubmissionViewController extends Controller
 
         $submissions = $query->orderBy('created_at', 'desc')->paginate(15)->withQueryString();
 
-        return Inertia::render('Reviewer/Submissions/Index', [
+        return Inertia::render('Reviewer/Submissions/IndexPage', [
             'submissions' => $submissions,
             'filters' => $request->only(['status', 'search']),
             'reviewer' => [
@@ -949,7 +949,7 @@ class SubmissionViewController extends Controller
             'assigned_reviewers' => $assignedReviewers,
         ];
 
-        return Inertia::render('Reviewer/Submissions/Show', [
+        return Inertia::render('Reviewer/Submissions/ShowPage', [
             'submission' => $submissionData,
             'responses' => $responses,
             'myReviewSummary' => $myReviewSummary,

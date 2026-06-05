@@ -168,7 +168,7 @@ class UserFormController extends Controller
             ];
         }
 
-        return Inertia::render('User/Dashboard', [
+        return Inertia::render('User/DashboardPage', [
             'submissionPeriods' => $submissionPeriods,
             'userRole' => $primaryRole,
             'studyProgram' => $studyProgram ? [
@@ -231,7 +231,7 @@ class UserFormController extends Controller
 
         $submissions = $query->orderBy('created_at', 'desc')->paginate(15);
 
-        return Inertia::render('Reviewer/Submissions/Index', [
+        return Inertia::render('Reviewer/Submissions/IndexPage', [
             'submissions' => $submissions,
             'filters' => $request->only(['status', 'search']),
             'reviewer' => $reviewer->load('reviewerRole'),

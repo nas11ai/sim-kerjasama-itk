@@ -1,4 +1,4 @@
-<!-- resources/js/Pages/Announcement/Index.vue -->
+<!-- resources/js/Pages/Announcement/IndexPage.vue -->
 <script setup lang="ts">
 import { Head, Link, router } from '@inertiajs/vue3'
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'

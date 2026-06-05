@@ -96,10 +96,7 @@ const bulkAddAccessControls = () => {
     selectedFacultyId.value = null
 }
 
-const toggleRole: (roleId: number, checked?: boolean | 'indeterminate') => void = (
-    roleId,
-    checked
-) => {
+const toggleRole = (roleId: number, checked?: boolean | 'indeterminate'): void => {
     const isCurrentlySelected = selectedRoleIds.value.includes(roleId)
 
     const shouldBeChecked =
@@ -110,16 +107,15 @@ const toggleRole: (roleId: number, checked?: boolean | 'indeterminate') => void 
               : !isCurrentlySelected
 
     if (shouldBeChecked) {
-        if (!isCurrentlySelected) selectedRoleIds.value.push(roleId)
+        if (!isCurrentlySelected) {
+            selectedRoleIds.value.push(roleId)
+        }
     } else {
         selectedRoleIds.value = selectedRoleIds.value.filter((id) => id !== roleId)
     }
 }
 
-const toggleStudyProgram: (studyProgramId: number, checked?: boolean | 'indeterminate') => void = (
-    studyProgramId,
-    checked
-) => {
+const toggleStudyProgram = (studyProgramId: number, checked?: boolean | 'indeterminate'): void => {
     const isCurrentlySelected = selectedStudyProgramIds.value.includes(studyProgramId)
 
     const shouldBeChecked =
@@ -128,8 +124,11 @@ const toggleStudyProgram: (studyProgramId: number, checked?: boolean | 'indeterm
             : typeof checked === 'boolean'
               ? checked
               : !isCurrentlySelected
+
     if (shouldBeChecked) {
-        if (!isCurrentlySelected) selectedStudyProgramIds.value.push(studyProgramId)
+        if (!isCurrentlySelected) {
+            selectedStudyProgramIds.value.push(studyProgramId)
+        }
     } else {
         selectedStudyProgramIds.value = selectedStudyProgramIds.value.filter(
             (id) => id !== studyProgramId

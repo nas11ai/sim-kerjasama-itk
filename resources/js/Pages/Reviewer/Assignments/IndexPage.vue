@@ -1,6 +1,6 @@
 <!-- resources/js/Pages/Reviewer/Assignments/Index.vue -->
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { route } from 'ziggy-js'
 import { Head, useForm, router } from '@inertiajs/vue3'
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
 import { Button } from '@/Components/ui/button'

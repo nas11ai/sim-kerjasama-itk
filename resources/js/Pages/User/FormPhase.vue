@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
+import { route } from 'ziggy-js'
 import { Head, useForm, router } from '@inertiajs/vue3'
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
 import { Button } from '@/Components/ui/button'
@@ -19,17 +20,7 @@ import {
 import { Badge } from '@/Components/ui/badge'
 import { Separator } from '@/Components/ui/separator'
 import { Progress } from '@/Components/ui/progress'
-import {
-    ArrowLeft,
-    ArrowRight,
-    Check,
-    Clock,
-    FileText,
-    AlertCircle,
-    CheckCircle2,
-    Save,
-    Upload,
-} from 'lucide-vue-next'
+import { ArrowLeft, Check, Clock, AlertCircle, CheckCircle2, Save, Upload } from 'lucide-vue-next'
 
 interface FormField {
     id: number

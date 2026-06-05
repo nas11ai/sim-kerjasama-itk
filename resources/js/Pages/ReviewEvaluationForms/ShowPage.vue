@@ -6,17 +6,7 @@ import { Button } from '@/Components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card'
 import { Badge } from '@/Components/ui/badge'
 import { Separator } from '@/Components/ui/separator'
-import {
-    ArrowLeft,
-    Edit,
-    Eye,
-    Copy,
-    FileText,
-    Users,
-    ClipboardList,
-    CheckCircle,
-    AlertCircle,
-} from 'lucide-vue-next'
+import { ArrowLeft, Edit, Eye, Copy, FileText, Users, ClipboardList } from 'lucide-vue-next'
 
 interface FieldType {
     id: number
@@ -69,7 +59,7 @@ interface Props {
     assignmentStats: AssignmentStats
 }
 
-const props = defineProps<Props>()
+defineProps<Props>()
 
 const getFieldTypeDisplayName = (typeName: string): string => {
     const typeMap: Record<string, string> = {

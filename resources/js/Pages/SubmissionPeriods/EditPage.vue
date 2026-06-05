@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, ref, onMounted, nextTick, watch } from 'vue'
+import { route } from 'ziggy-js'
 import { Head, useForm } from '@inertiajs/vue3'
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
 import { Button } from '@/Components/ui/button'
@@ -7,7 +8,6 @@ import { Input } from '@/Components/ui/input'
 import { Label } from '@/Components/ui/label'
 import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card'
 import { Badge } from '@/Components/ui/badge'
-import { Separator } from '@/Components/ui/separator'
 import {
     Select,
     SelectContent,
@@ -16,7 +16,7 @@ import {
     SelectValue,
 } from '@/Components/ui/select'
 import { Plus, Trash2, ArrowLeft, Calendar, Settings, FileText } from 'lucide-vue-next'
-import Checkbox from '@/Components/Checkbox.vue'
+import Checkbox from '@/Components/AppCheckbox.vue'
 
 interface FormPhase {
     id: number

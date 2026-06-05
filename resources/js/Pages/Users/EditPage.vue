@@ -2,7 +2,7 @@
 import InputError from '@/Components/InputError.vue'
 import { Button } from '@/Components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/Components/ui/card'
-import Checkbox from '@/Components/ui/checkbox/Checkbox.vue'
+import Checkbox from '@/Components/ui/checkbox/UiCheckbox.vue'
 import { Input } from '@/Components/ui/input'
 import { Label } from '@/Components/ui/label'
 import {
@@ -12,6 +12,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/Components/ui/select'
+import { route } from 'ziggy-js'
 import {
     Table,
     TableBody,
@@ -23,7 +24,7 @@ import {
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
 import { Permission, Role, User } from '@/types'
 import { UpdateUserRequest } from '@/types/formRequests'
-import { Head, Link, useForm } from '@inertiajs/vue3'
+import { Head, useForm } from '@inertiajs/vue3'
 import { ColumnDef, FlexRender, getCoreRowModel, useVueTable } from '@tanstack/vue-table'
 import { ArrowLeft, LoaderCircle } from 'lucide-vue-next'
 import { h } from 'vue'

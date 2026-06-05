@@ -24,7 +24,7 @@ class CompleteFormBuilderController extends Controller
      */
     public function create()
     {
-        return Inertia::render('FormBuilder/Create', [
+        return Inertia::render('FormBuilder/CreatePage', [
             'formTypes' => FormType::orderBy('name')->get(),
             'fieldTypes' => FieldType::orderBy('name')->get(),
             'roles' => Role::orderBy('name')->get(),

@@ -1,5 +1,6 @@
-<!-- resources/js/Pages/Reviewer/EvaluationForm/Show.vue -->
+<!-- resources/js/Pages/Reviewer/EvaluationForm/ShowPage.vue -->
 <script setup lang="ts">
+import { route } from 'ziggy-js'
 import { computed, ref, watch, onUnmounted } from 'vue'
 import { Head, useForm } from '@inertiajs/vue3'
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'

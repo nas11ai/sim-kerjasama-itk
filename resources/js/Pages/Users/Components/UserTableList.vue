@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import { Table, TableBody, TableHead, TableHeader, TableRow } from '@/Components/ui/table'
+import { route } from 'ziggy-js'
 import TableCell from '@/Components/ui/table/TableCell.vue'
 import { Auth, Role, User } from '@/types'
 import { router, usePage } from '@inertiajs/vue3'

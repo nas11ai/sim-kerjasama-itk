@@ -1,6 +1,7 @@
 <!-- resources\js\Pages\FormAccessControls\Index.vue -->
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
+import { route } from 'ziggy-js'
 import { Head, Link, router } from '@inertiajs/vue3'
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
 import { Button } from '@/Components/ui/button'

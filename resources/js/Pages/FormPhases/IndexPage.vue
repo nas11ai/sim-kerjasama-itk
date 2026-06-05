@@ -1,5 +1,6 @@
 <!-- filepath: e:\ITK\sim-kerjasama-itk\resources\js\Pages\FormPhases\Index.vue -->
 <script setup lang="ts">
+import { route } from 'ziggy-js'
 import { computed, ref, watch } from 'vue'
 import { Head, Link, router } from '@inertiajs/vue3'
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
@@ -21,14 +22,7 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from '@/Components/ui/dropdown-menu'
-import {
-    Command,
-    CommandEmpty,
-    CommandGroup,
-    CommandInput,
-    CommandItem,
-    CommandList,
-} from '@/Components/ui/command'
+import { Command, CommandGroup, CommandItem, CommandList } from '@/Components/ui/command'
 import { Popover, PopoverContent, PopoverTrigger } from '@/Components/ui/popover'
 import {
     Plus,
@@ -50,7 +44,7 @@ import {
 import { useToast } from '@/Components/ui/toast/use-toast'
 import { debounce } from 'lodash'
 import { cn } from '@/lib/utils'
-import Checkbox from '@/Components/ui/checkbox/Checkbox.vue'
+import Checkbox from '@/Components/ui/checkbox/UiCheckbox.vue'
 
 interface PhaseType {
     id: number
@@ -132,7 +126,7 @@ const { toast } = useToast()
 
 const search = ref(props.filters.search || '')
 const isActiveFilter = ref(props.filters.is_active || 'all')
-const perPage = ref(props.filters.per_page || 10)
+// const perPage = ref(props.filters.per_page || 10)
 
 const selectedItems = ref<number[]>([])
 const allFormIds = computed(() => props.formPhases.data.map((f) => f.id))
@@ -480,7 +474,7 @@ const toggleItemSelection = (id: number, checked?: boolean | 'indeterminate') =>
 
                                 <!-- Data Rows -->
                                 <TableRow
-                                    v-for="(formPhase) in props.formPhases.data"
+                                    v-for="formPhase in props.formPhases.data"
                                     :key="formPhase.id"
                                     class="hover:bg-muted/50"
                                 >

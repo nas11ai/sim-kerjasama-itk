@@ -20,9 +20,6 @@ import {
     TrendingUp,
     FileText,
     AlertCircle,
-    CheckCircle,
-    XCircle,
-    RefreshCw,
     PieChartIcon,
     BarChart3,
     Filter,
@@ -30,11 +27,11 @@ import {
 import { computed, ref } from 'vue'
 import DonutChart from '@/Components/ui/chart-donut/DonutChart.vue'
 import BarChart from '@/Components/ui/chart-bar/BarChart.vue'
-import Popover from '@/Components/ui/popover/Popover.vue'
+import Popover from '@/Components/ui/popover/UiPopover.vue'
 import PopoverTrigger from '@/Components/ui/popover/PopoverTrigger.vue'
 import PopoverContent from '@/Components/ui/popover/PopoverContent.vue'
-import Checkbox from '@/Components/ui/checkbox/Checkbox.vue'
-import Label from '@/Components/ui/label/Label.vue'
+import Checkbox from '@/Components/ui/checkbox/UiCheckbox.vue'
+import Label from '@/Components/ui/label/UiLabel.vue'
 
 interface RecentSubmission {
     id: number

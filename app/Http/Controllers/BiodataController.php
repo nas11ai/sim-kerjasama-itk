@@ -74,7 +74,7 @@ class BiodataController extends Controller
 
         $canEdit = !$submission || in_array($status, ['rejected', 'needs_revision']);
 
-        return Inertia::render('User/Biodata/Index', [
+        return Inertia::render('User/Biodata/IndexPage', [
             'form' => [
                 'id' => $biodataForm->id,
                 'title' => $biodataForm->title,

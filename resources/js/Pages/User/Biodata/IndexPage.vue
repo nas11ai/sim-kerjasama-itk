@@ -1,5 +1,6 @@
-<!-- resources\js\Pages\User\Biodata\Index.vue -->
+<!-- resources\js\Pages\User\Biodata\IndexPage.vue -->
 <script setup lang="ts">
+import { route } from 'ziggy-js'
 import { ref, computed } from 'vue'
 import { Head, useForm, router } from '@inertiajs/vue3'
 import { Button } from '@/Components/ui/button'
@@ -24,9 +25,8 @@ import {
     SelectValue,
 } from '@/Components/ui/select'
 import { Badge } from '@/Components/ui/badge'
-import { Separator } from '@/Components/ui/separator'
 import { Progress } from '@/Components/ui/progress'
-import Alert from '@/Components/Alert.vue'
+import Alert from '@/Components/AppAlert.vue'
 import {
     Send,
     Upload,

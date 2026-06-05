@@ -11,16 +11,14 @@ interface Props {
     dismissible?: boolean
 }
 
-interface Emits {
-    (e: 'dismiss'): void
-}
-
 const props = withDefaults(defineProps<Props>(), {
     dismissible: true,
-    title: ''
+    title: '',
 })
 
-const emit = defineEmits<Emits>()
+const emit = defineEmits<{
+    dismiss: []
+}>()
 
 const alertStyles = computed(() => {
     return props.type === 'success'
@@ -57,12 +55,17 @@ const handleDismiss = () => {
 
         <!-- Dismiss button -->
         <Button
-v-if="dismissible" variant="ghost" size="sm" :class="[
-            'shrink-0 p-1 h-auto hover:bg-transparent',
-            type === 'success'
-                ? 'text-green-600 hover:text-green-700'
-                : 'text-red-600 hover:text-red-700',
-        ]" @click="handleDismiss">
+            v-if="dismissible"
+            variant="ghost"
+            size="sm"
+            :class="[
+                'shrink-0 p-1 h-auto hover:bg-transparent',
+                type === 'success'
+                    ? 'text-green-600 hover:text-green-700'
+                    : 'text-red-600 hover:text-red-700',
+            ]"
+            @click="handleDismiss"
+        >
             <X class="h-4 w-4" />
             <span class="sr-only">Dismiss</span>
         </Button>

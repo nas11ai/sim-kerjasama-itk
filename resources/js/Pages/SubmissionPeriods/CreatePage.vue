@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
+import { route } from 'ziggy-js'
 import { Head, useForm } from '@inertiajs/vue3'
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
 import { Button } from '@/Components/ui/button'
@@ -7,7 +8,6 @@ import { Input } from '@/Components/ui/input'
 import { Label } from '@/Components/ui/label'
 import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card'
 import { Badge } from '@/Components/ui/badge'
-import { Separator } from '@/Components/ui/separator'
 import {
     Select,
     SelectContent,
@@ -17,7 +17,7 @@ import {
 } from '@/Components/ui/select'
 import { Plus, Trash2, ArrowLeft, Calendar, Settings, FileText } from 'lucide-vue-next'
 import { watch } from 'vue'
-import Checkbox from '@/Components/Checkbox.vue'
+import Checkbox from '@/Components/AppCheckbox.vue'
 
 interface FormPhase {
     id: number
@@ -159,14 +159,14 @@ const selectAllSubmissionRules = () => {
     }
 }
 
-const onPhaseClick = (phaseId: number) => {
-    const index = form.form_phase_ids.indexOf(phaseId)
-    if (index > -1) {
-        form.form_phase_ids.splice(index, 1)
-    } else {
-        form.form_phase_ids.push(phaseId)
-    }
-}
+// const onPhaseClick = (phaseId: number) => {
+//     const index = form.form_phase_ids.indexOf(phaseId)
+//     if (index > -1) {
+//         form.form_phase_ids.splice(index, 1)
+//     } else {
+//         form.form_phase_ids.push(phaseId)
+//     }
+// }
 
 const submit = () => {
     form.post(route('admin.submission-periods.store'))

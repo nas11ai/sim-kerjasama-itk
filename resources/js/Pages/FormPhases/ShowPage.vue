@@ -194,7 +194,6 @@ const isGroupOpen = (formId: number) => openGroups.value.has(formId)
 </script>
 
 <template>
-
     <Head title="Detail Tahap Formulir" />
 
     <AuthenticatedLayout>
@@ -242,8 +241,9 @@ const isGroupOpen = (formId: number) => openGroups.value.has(formId)
                         <div>
                             <h3 class="font-medium text-sm text-muted-foreground mb-1">Status</h3>
                             <Badge
-:variant="formPhase.is_active ? 'default' : 'secondary'"
-                                class="flex items-center gap-1 w-fit">
+                                :variant="formPhase.is_active ? 'default' : 'secondary'"
+                                class="flex items-center gap-1 w-fit"
+                            >
                                 <CheckCircle v-if="formPhase.is_active" class="h-3 w-3" />
                                 <XCircle v-else class="h-3 w-3" />
                                 {{ formPhase.is_active ? 'Aktif' : 'Tidak Aktif' }}
@@ -290,7 +290,10 @@ const isGroupOpen = (formId: number) => openGroups.value.has(formId)
                 </CardHeader>
                 <CardContent>
                     <!-- Empty State -->
-                    <div v-if="sortedPhaseDetails.length === 0" class="text-center py-8 text-muted-foreground">
+                    <div
+                        v-if="sortedPhaseDetails.length === 0"
+                        class="text-center py-8 text-muted-foreground"
+                    >
                         <Users class="h-12 w-12 mx-auto mb-4 opacity-50" />
                         <p>Belum ada detail tahap yang dikonfigurasi.</p>
                     </div>
@@ -298,12 +301,16 @@ const isGroupOpen = (formId: number) => openGroups.value.has(formId)
                     <!-- Phase Details List (Grouped by Form) -->
                     <div v-else class="space-y-4">
                         <Collapsible
-v-for="(group) in groupedPhaseDetails" :key="group.formId"
-                            :open="isGroupOpen(group.formId)" class="border rounded-lg bg-card">
+                            v-for="group in groupedPhaseDetails"
+                            :key="group.formId"
+                            :open="isGroupOpen(group.formId)"
+                            class="border rounded-lg bg-card"
+                        >
                             <!-- Collapsible Trigger - Form Header -->
                             <CollapsibleTrigger
                                 class="w-full p-4 flex items-center justify-between hover:bg-muted/50 transition-colors rounded-t-lg"
-                                @click="toggleGroup(group.formId)">
+                                @click="toggleGroup(group.formId)"
+                            >
                                 <div class="flex items-center gap-3">
                                     <Badge variant="default" class="text-sm font-semibold">
                                         Urutan {{ group.order }}
@@ -319,13 +326,20 @@ v-for="(group) in groupedPhaseDetails" :key="group.formId"
                                     </Badge>
                                 </div>
                                 <div class="flex items-center gap-2">
-                                    <Badge v-if="group.details.some((d) => d.needs_review)" class="text-xs">
+                                    <Badge
+                                        v-if="group.details.some((d) => d.needs_review)"
+                                        class="text-xs"
+                                    >
                                         Perlu Review
                                     </Badge>
                                     <ChevronDown
-v-if="isGroupOpen(group.formId)"
-                                        class="h-5 w-5 text-muted-foreground transition-transform" />
-                                    <ChevronRight v-else class="h-5 w-5 text-muted-foreground transition-transform" />
+                                        v-if="isGroupOpen(group.formId)"
+                                        class="h-5 w-5 text-muted-foreground transition-transform"
+                                    />
+                                    <ChevronRight
+                                        v-else
+                                        class="h-5 w-5 text-muted-foreground transition-transform"
+                                    />
                                 </div>
                             </CollapsibleTrigger>
 
@@ -336,35 +350,45 @@ v-if="isGroupOpen(group.formId)"
 
                                     <!-- Access Control List -->
                                     <div class="space-y-2">
-                                        <h4 class="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                                        <h4
+                                            class="text-sm font-medium text-muted-foreground flex items-center gap-2"
+                                        >
                                             <Users class="h-4 w-4" />
                                             Akses Kontrol (Role & Program Studi)
                                         </h4>
                                         <div class="grid gap-2 md:grid-cols-2">
                                             <div
-v-for="detail in group.details" :key="detail.id"
-                                                class="p-3 border rounded bg-muted/30">
+                                                v-for="detail in group.details"
+                                                :key="detail.id"
+                                                class="p-3 border rounded bg-muted/30"
+                                            >
                                                 <div class="flex items-center justify-between mb-2">
                                                     <div class="flex items-center gap-2">
                                                         <Badge variant="outline" class="text-xs">
                                                             {{ detail.phase_type.name }}
                                                         </Badge>
                                                         <Badge
-v-if="detail.needs_review" variant="destructive"
-                                                            class="text-xs">
+                                                            v-if="detail.needs_review"
+                                                            variant="destructive"
+                                                            class="text-xs"
+                                                        >
                                                             Perlu Review
                                                         </Badge>
                                                     </div>
                                                 </div>
                                                 <div class="space-y-1 text-sm">
                                                     <div class="flex items-center gap-2">
-                                                        <Users class="h-3 w-3 text-muted-foreground" />
+                                                        <Users
+                                                            class="h-3 w-3 text-muted-foreground"
+                                                        />
                                                         <span class="font-medium">{{
                                                             detail.form_access_control.role.name
                                                         }}</span>
                                                     </div>
                                                     <div class="flex items-center gap-2">
-                                                        <Building class="h-3 w-3 text-muted-foreground" />
+                                                        <Building
+                                                            class="h-3 w-3 text-muted-foreground"
+                                                        />
                                                         <span class="text-muted-foreground">
                                                             {{
                                                                 detail.form_access_control
@@ -382,13 +406,16 @@ v-if="detail.needs_review" variant="destructive"
 
                                                 <!-- Evaluation Forms for this detail -->
                                                 <div
-v-if="
-                                                    getEvaluationFormsForDetail(detail).length >
-                                                    0
-                                                " class="mt-2 pt-2 border-t">
+                                                    v-if="
+                                                        getEvaluationFormsForDetail(detail).length >
+                                                        0
+                                                    "
+                                                    class="mt-2 pt-2 border-t"
+                                                >
                                                     <div class="flex items-center justify-between">
                                                         <span
-                                                            class="text-xs text-muted-foreground flex items-center gap-1">
+                                                            class="text-xs text-muted-foreground flex items-center gap-1"
+                                                        >
                                                             <ClipboardList class="h-3 w-3" />
                                                             {{
                                                                 getEvaluationFormsForDetail(detail)
@@ -397,15 +424,21 @@ v-if="
                                                             Formulir Evaluasi
                                                         </span>
                                                         <Link
-:href="route(
-                                                            'admin.form-phases.evaluation-forms',
-                                                            {
-                                                                formPhase: formPhase.id,
-                                                                detail_id: detail.id,
-                                                            }
-                                                        )
-                                                            ">
-                                                            <Button size="sm" variant="ghost" class="h-6 text-xs">
+                                                            :href="
+                                                                route(
+                                                                    'admin.form-phases.evaluation-forms',
+                                                                    {
+                                                                        formPhase: formPhase.id,
+                                                                        detail_id: detail.id,
+                                                                    }
+                                                                )
+                                                            "
+                                                        >
+                                                            <Button
+                                                                size="sm"
+                                                                variant="ghost"
+                                                                class="h-6 text-xs"
+                                                            >
                                                                 <Settings class="h-3 w-3 mr-1" />
                                                                 Kelola
                                                             </Button>
@@ -414,15 +447,21 @@ v-if="
                                                 </div>
                                                 <div v-else class="mt-2 pt-2 border-t">
                                                     <Link
-:href="route(
-                                                        'admin.form-phases.evaluation-forms',
-                                                        {
-                                                            formPhase: formPhase.id,
-                                                            detail_id: detail.id,
-                                                        }
-                                                    )
-                                                        ">
-                                                        <Button size="sm" variant="ghost" class="h-6 text-xs w-full">
+                                                        :href="
+                                                            route(
+                                                                'admin.form-phases.evaluation-forms',
+                                                                {
+                                                                    formPhase: formPhase.id,
+                                                                    detail_id: detail.id,
+                                                                }
+                                                            )
+                                                        "
+                                                    >
+                                                        <Button
+                                                            size="sm"
+                                                            variant="ghost"
+                                                            class="h-6 text-xs w-full"
+                                                        >
                                                             <Plus class="h-3 w-3 mr-1" />
                                                             Tambah Formulir Evaluasi
                                                         </Button>

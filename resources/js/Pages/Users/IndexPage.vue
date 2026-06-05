@@ -1,4 +1,4 @@
-<!-- resources/js/Pages/Users/Index.vue -->
+<!-- resources/js/Pages/Users/IndexPage.vue -->
 <script setup lang="ts">
 import { Button } from '@/Components/ui/button'
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
@@ -7,7 +7,7 @@ import { Head, Link } from '@inertiajs/vue3'
 import { Plus } from 'lucide-vue-next'
 import UserTableList from './Components/UserTableList.vue'
 
-const props = defineProps<{
+defineProps<{
     users: User[]
 }>()
 </script>

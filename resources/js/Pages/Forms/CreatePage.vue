@@ -1,7 +1,8 @@
 <!-- resources/js/Pages/Forms/Create.vue -->
 <script setup lang="ts">
+import { route } from 'ziggy-js'
 import { computed } from 'vue'
-import { Head, useForm, InertiaForm, Link } from '@inertiajs/vue3'
+import { Head, useForm, Link } from '@inertiajs/vue3'
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
 import { Button } from '@/Components/ui/button'
 import { Input } from '@/Components/ui/input'
@@ -17,7 +18,6 @@ import {
     SelectValue,
 } from '@/Components/ui/select'
 import { Badge } from '@/Components/ui/badge'
-import { Separator } from '@/Components/ui/separator'
 import { Plus, Trash2, GripVertical, ArrowLeft } from 'lucide-vue-next'
 import draggable from 'vuedraggable'
 

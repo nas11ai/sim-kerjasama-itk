@@ -1,11 +1,11 @@
-<!-- resources/js/Pages/FormBuilder/Create.vue -->
+<!-- resources/js/Pages/FormBuilder/CreatePage.vue -->
 <script setup lang="ts">
 import { computed, ref } from 'vue'
+import { route } from 'ziggy-js'
 import { Head, useForm } from '@inertiajs/vue3'
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
 import { Button } from '@/Components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/Components/ui/card'
-import { Badge } from '@/Components/ui/badge'
 import { Progress } from '@/Components/ui/progress'
 import { CheckCircle2, Circle, ArrowLeft, ArrowRight, Save } from 'lucide-vue-next'
 
@@ -27,7 +27,7 @@ interface Props {
     submissionPeriods: any[]
 }
 
-const props = defineProps<Props>()
+defineProps<Props>()
 
 const currentStep = ref(1)
 const totalSteps = 6

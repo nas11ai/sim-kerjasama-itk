@@ -241,7 +241,7 @@ class ReviewerFormAssignmentController extends Controller
         $reviewer = $user->reviewers()->first();
 
         if (!$reviewer) {
-            return Inertia::render('Reviewer/Assignments/Index', [
+            return Inertia::render('Reviewer/Assignments/IndexPage', [
                 'assignments' => [],
                 'stats' => [
                     'total' => 0,
@@ -322,7 +322,7 @@ class ReviewerFormAssignmentController extends Controller
             'overdue' => $allAssignments->filter(fn ($a) => $a->isOverdue())->count(),
         ];
 
-        return Inertia::render('Reviewer/Assignments/Index', [
+        return Inertia::render('Reviewer/Assignments/IndexPage', [
             'assignments' => $assignments,
             'stats' => $stats,
             'filters' => $request->only(['status', 'search']),

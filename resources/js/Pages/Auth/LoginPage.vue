@@ -1,13 +1,11 @@
 <script setup lang="ts">
+import { route } from 'ziggy-js'
 import AlertContainer from '@/Components/AlertContainer.vue'
-import Checkbox from '@/Components/Checkbox.vue'
+import Checkbox from '@/Components/AppCheckbox.vue'
 import InputError from '@/Components/InputError.vue'
-import InputLabel from '@/Components/InputLabel.vue'
-import PrimaryButton from '@/Components/PrimaryButton.vue'
-import TextInput from '@/Components/TextInput.vue'
-import Button from '@/Components/ui/button/Button.vue'
-import Input from '@/Components/ui/input/Input.vue'
-import Label from '@/Components/ui/label/Label.vue'
+import Button from '@/Components/ui/button/UiButton.vue'
+import Input from '@/Components/ui/input/UiInput.vue'
+import Label from '@/Components/ui/label/UiLabel.vue'
 import { Head, Link, useForm } from '@inertiajs/vue3'
 
 defineProps<{

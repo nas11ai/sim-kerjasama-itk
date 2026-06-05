@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import { router } from '@inertiajs/vue3'
+import { route } from 'ziggy-js'
 import {
     ColumnDef,
     FlexRender,

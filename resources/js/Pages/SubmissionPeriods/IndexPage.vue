@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { route } from 'ziggy-js'
 import { computed, ref } from 'vue'
 import { Head, Link, router } from '@inertiajs/vue3'
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'

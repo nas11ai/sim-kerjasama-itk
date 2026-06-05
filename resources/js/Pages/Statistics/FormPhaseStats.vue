@@ -6,13 +6,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/Components/ui/tabs'
 import { Badge } from '@/Components/ui/badge'
 import { Button } from '@/Components/ui/button'
 import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from '@/Components/ui/select'
-import {
     FileText,
     Calendar,
     Building2,
@@ -25,11 +18,11 @@ import {
 import { computed, ref } from 'vue'
 import BarChart from '@/Components/ui/chart-bar/BarChart.vue'
 import DonutChart from '@/Components/ui/chart-donut/DonutChart.vue'
-import Popover from '@/Components/ui/popover/Popover.vue'
+import Popover from '@/Components/ui/popover/UiPopover.vue'
 import PopoverTrigger from '@/Components/ui/popover/PopoverTrigger.vue'
 import PopoverContent from '@/Components/ui/popover/PopoverContent.vue'
-import Checkbox from '@/Components/ui/checkbox/Checkbox.vue'
-import Label from '@/Components/ui/label/Label.vue'
+import Checkbox from '@/Components/ui/checkbox/UiCheckbox.vue'
+import Label from '@/Components/ui/label/UiLabel.vue'
 
 interface FormPhaseFaculty {
     id: number

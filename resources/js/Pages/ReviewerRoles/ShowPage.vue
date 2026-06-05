@@ -1,12 +1,12 @@
 <!-- resources\js\Pages\ReviewerRoles\Show.vue -->
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { route } from 'ziggy-js'
 import { Head, router } from '@inertiajs/vue3'
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
 import { Button } from '@/Components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/Components/ui/card'
 import { Badge } from '@/Components/ui/badge'
-import { ArrowLeft, Edit, Shield, Calendar, User, CheckCircle, XCircle } from 'lucide-vue-next'
+import { ArrowLeft, Edit, Shield, Calendar, CheckCircle, XCircle } from 'lucide-vue-next'
 
 interface User {
     id: number
@@ -55,9 +55,9 @@ const handleEdit = () => {
     router.visit(route('admin.reviewer-roles.edit', props.reviewerRole.id))
 }
 
-const goBack = () => {
-    router.visit(route('admin.reviewer-roles.index'))
-}
+// const goBack = () => {
+//     router.visit(route('admin.reviewer-roles.index'))
+// }
 </script>
 
 <template>

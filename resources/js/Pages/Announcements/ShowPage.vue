@@ -5,7 +5,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
 import { Button } from '../../Components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card'
 import { Badge } from '@/Components/ui/badge'
-import { ArrowLeft, Edit, Calendar, Clock, FileText, Paperclip, User } from 'lucide-vue-next'
+import { ArrowLeft, Calendar, Clock, FileText, Paperclip, User } from 'lucide-vue-next'
 
 interface AnnouncementFile {
     id: number
