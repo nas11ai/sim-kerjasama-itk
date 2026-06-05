@@ -14,6 +14,13 @@ use Illuminate\Support\Facades\Log;
  * @property Carbon|null $start_date
  * @property Carbon|null $end_date
  * @property Collection $form_phases
+ * @property int $days_remaining
+ * @property int $user_submissions_count
+ * @property int $user_draft_count
+ * @property int $user_submitted_count
+ * @property int $total_submissions
+ * @property int $approved_submissions
+ * @property int $pending_review
  * @property-read Collection<int, SubmissionDate> $submissionDates
  * @property-read Collection<int, SubmissionPeriodPhase> $submissionPeriodPhases
  */
