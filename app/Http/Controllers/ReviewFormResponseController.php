@@ -195,7 +195,7 @@ class ReviewFormResponseController extends Controller
 
         $response = $assignment->reviewFormResponse;
 
-        if (!$response) {
+        if (!$response instanceof ReviewFormResponse) {
             return back()->withErrors(['error' => 'Tidak ditemukan draft respons. Silakan simpan draft terlebih dahulu.']);
         }
 
@@ -295,7 +295,7 @@ class ReviewFormResponseController extends Controller
         $this->authorizeAssignment($assignment);
 
         $response = $assignment->reviewFormResponse;
-        if (!$response || !$response->isSubmitted()) {
+        if (!$response instanceof ReviewFormResponse || !$response->isSubmitted()) {
             return back()->withErrors(['error' => 'Tidak ditemukan respons yang telah dikirim.']);
         }
 
