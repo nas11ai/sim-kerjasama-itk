@@ -6,6 +6,16 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
+/**
+ * @property int $id
+ * @property int $reviewer_id
+ * @property int $form_submission_id
+ *
+ * @property-read \App\Models\FormSubmission $formSubmission
+ * @property-read \App\Models\Reviewer $reviewer
+ *
+ * @method bool hasAllRequiredFormsCompleted()
+ */
 class SubmissionReviewer extends Model
 {
     protected $fillable = [
@@ -18,41 +28,60 @@ class SubmissionReviewer extends Model
         'evaluation_status' => 'string',
     ];
 
+    /**
+     * @return BelongsTo<FormSubmission, $this>
+     */
     public function formSubmission(): BelongsTo
     {
         return $this->belongsTo(FormSubmission::class);
     }
 
+    /**
+     * @return BelongsTo<Reviewer, $this>
+     */
     public function reviewer(): BelongsTo
     {
         return $this->belongsTo(Reviewer::class);
     }
 
-    // NEW: Review form assignments relationship
+    /**
+    * @return HasMany<ReviewerFormAssignment, $this>
+    */
     public function reviewerFormAssignments(): HasMany
     {
         return $this->hasMany(ReviewerFormAssignment::class);
     }
 
-    // NEW: Active form assignments
+    /**
+    * @return HasMany<ReviewerFormAssignment, $this>
+    */
     public function activeReviewerFormAssignments(): HasMany
     {
         return $this->reviewerFormAssignments()->active();
     }
 
     // NEW: Required form assignments
+    /**
+     * @return HasMany<ReviewerFormAssignment, $this>
+     */
     public function requiredReviewerFormAssignments(): HasMany
     {
         return $this->reviewerFormAssignments()->required()->active();
     }
 
     // NEW: Optional form assignments
+    /**
+     * @return HasMany<ReviewerFormAssignment, $this>
+     */
     public function optionalReviewerFormAssignments(): HasMany
     {
         return $this->reviewerFormAssignments()->optional()->active();
     }
 
     // NEW: Completed form assignments
+    /**
+     * @return HasMany<ReviewerFormAssignment, $this>
+     */
     public function completedReviewerFormAssignments(): HasMany
     {
         return $this->reviewerFormAssignments()
@@ -63,6 +92,9 @@ class SubmissionReviewer extends Model
     }
 
     // NEW: Pending form assignments
+    /**
+     * @return HasMany<ReviewerFormAssignment, $this>
+     */
     public function pendingReviewerFormAssignments(): HasMany
     {
         return $this->reviewerFormAssignments()
@@ -73,12 +105,18 @@ class SubmissionReviewer extends Model
     }
 
     // NEW: Overdue form assignments
+    /**
+     * @return HasMany<ReviewerFormAssignment, $this>
+     */
     public function overdueReviewerFormAssignments(): HasMany
     {
         return $this->reviewerFormAssignments()->overdue();
     }
 
     // NEW: Form assignments due soon
+    /**
+     * @return HasMany<ReviewerFormAssignment, $this>
+     */
     public function dueSoonReviewerFormAssignments(int $hours = 24): HasMany
     {
         return $this->reviewerFormAssignments()->dueSoon($hours);
@@ -205,8 +243,12 @@ class SubmissionReviewer extends Model
     }
 
     // NEW: Create form assignment
+    /**
+     * @return ReviewerFormAssignment
+     */
     public function assignForm(int $reviewEvaluationFormId, bool $isRequired = true, ?\DateTime $dueDate = null): ReviewerFormAssignment
     {
+        /** @var ReviewerFormAssignment $assignment */
         $assignment = $this->reviewerFormAssignments()->create([
             'review_evaluation_form_id' => $reviewEvaluationFormId,
             'is_required' => $isRequired,

@@ -189,8 +189,7 @@ const goToPage = (page: number) => {
 
     <div class="bg-white min-h-screen">
         <!-- Navbar with Dynamic Background (Hidden in Hero) -->
-        <header
-class="fixed top-0 left-0 right-0 z-50 transition-all duration-500" :style="{
+        <header class="fixed top-0 left-0 right-0 z-50 transition-all duration-500" :style="{
             backgroundColor: `rgba(255, 255, 255, ${navbarBg})`,
             backdropFilter: navbarBg > 0 ? 'blur(12px)' : 'none',
             borderBottom: navbarBg > 0 ? '1px solid rgba(0, 0, 0, 0.1)' : 'none',
@@ -209,8 +208,7 @@ class="fixed top-0 left-0 right-0 z-50 transition-all duration-500" :style="{
 
                     <nav v-if="canLogin" class="flex items-center gap-2">
                         <Button v-if="$page.props.auth.user" as-child size="sm">
-                            <Link
-:href="user?.roles.some(
+                            <Link :href="user?.roles.some(
                                 (r) => r.name === 'Super Admin' || r.name === 'Admin'
                             )
                                     ? route('admin.dashboard')
@@ -238,8 +236,7 @@ class="fixed top-0 left-0 right-0 z-50 transition-all duration-500" :style="{
         <!-- Hero Section with Parallax -->
         <section class="relative h-screen overflow-hidden bg-black">
             <!-- Background with Parallax -->
-            <div
-class="absolute inset-0 bg-linear-to-br from-blue-600 via-blue-700 to-blue-900" :style="{
+            <div class="absolute inset-0 bg-linear-to-br from-blue-600 via-blue-700 to-blue-900" :style="{
                 transform: `translateY(${scrollY * 0.5}px) scale(${heroScale})`,
                 opacity: heroOpacity,
             }">
@@ -252,8 +249,7 @@ class="absolute inset-0 bg-linear-to-br from-blue-600 via-blue-700 to-blue-900" 
             </div>
 
             <!-- Content -->
-            <div
-class="relative h-full flex items-center justify-center" :style="{
+            <div class="relative h-full flex items-center justify-center" :style="{
                 transform: `translateY(${scrollY * 0.3}px)`,
                 opacity: heroOpacity,
             }">
@@ -272,8 +268,7 @@ class="relative h-full flex items-center justify-center" :style="{
                         </div>
 
                         <div class="flex flex-col sm:flex-row items-center justify-center gap-4 pt-8">
-                            <Button
-v-if="!$page.props.auth.user" as-child size="lg"
+                            <Button v-if="!$page.props.auth.user" as-child size="lg"
                                 class="bg-white text-blue-600 hover:bg-blue-50 gap-2 px-8 py-6 text-lg rounded-full shadow-2xl hover:scale-105 transition-transform">
                                 <Link :href="route('login')">
                                     Masuk ke Sistem
@@ -281,8 +276,7 @@ v-if="!$page.props.auth.user" as-child size="lg"
                                 </Link>
                             </Button>
 
-                            <Button
-as-child size="lg" variant="outline"
+                            <Button as-child size="lg" variant="outline"
                                 class="bg-transparent border-2 border-white text-white hover:bg-white hover:text-blue-600 gap-2 px-8 py-6 text-lg rounded-full backdrop-blur-xs hover:scale-105 transition-all">
                                 <a href="#announcements">
                                     Lihat Pengumuman
@@ -295,14 +289,12 @@ as-child size="lg" variant="outline"
             </div>
 
             <!-- Scroll Indicator -->
-            <div
-class="absolute bottom-8 left-1/2 transform -translate-x-1/2 animate-bounce"
+            <div class="absolute bottom-8 left-1/2 transform -translate-x-1/2 animate-bounce"
                 :style="{ opacity: heroOpacity }">
                 <div class="flex flex-col items-center gap-2 text-white">
                     <span class="text-sm font-medium">Scroll</span>
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path
-stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M19 14l-7 7m0 0l-7-7m7 7V3" />
                     </svg>
                 </div>
@@ -310,8 +302,7 @@ stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
         </section>
 
         <!-- Announcements Section with Carousel -->
-        <section
-id="announcements"
+        <section id="announcements"
             class="relative h-screen bg-linear-to-b from-gray-50 to-white overflow-hidden flex items-center">
             <div class="w-full h-full flex flex-col justify-center py-16">
                 <!-- Header -->
@@ -331,12 +322,10 @@ id="announcements"
                         <!-- Carousel Cards -->
                         <div class="w-full relative" style="min-height: 400px">
                             <TransitionGroup name="slide-fade">
-                                <div
-v-for="(announcement, index) in announcementsData" v-show="index === currentSlide"
+                                <div v-for="(announcement, index) in announcementsData" v-show="index === currentSlide"
                                     :key="announcement.id"
                                     class="absolute inset-0 flex items-center justify-center px-4 md:px-12">
-                                    <Card
-class="w-full max-w-4xl shadow-2xl border-0 overflow-hidden"
+                                    <Card class="w-full max-w-4xl shadow-2xl border-0 overflow-hidden"
                                         @mouseenter="stopAutoPlay" @mouseleave="isAutoPlaying && startAutoPlay()">
                                         <!-- Card Header with Gradient -->
                                         <div class="bg-linear-to-r from-blue-600 to-blue-700 p-6">
@@ -360,8 +349,7 @@ class="w-full max-w-4xl shadow-2xl border-0 overflow-hidden"
                                             </p>
 
                                             <!-- Files Badge -->
-                                            <div
-v-if="announcement.announcement_files.length > 0"
+                                            <div v-if="announcement.announcement_files.length > 0"
                                                 class="inline-flex items-center gap-2 text-sm font-medium text-gray-500 bg-gray-100 px-4 py-2 rounded-full">
                                                 <Paperclip class="h-4 w-4" />
                                                 {{ announcement.announcement_files.length }}
@@ -371,8 +359,7 @@ v-if="announcement.announcement_files.length > 0"
                                             <!-- CTA Button -->
                                             <div class="pt-4">
                                                 <Button as-child size="lg" class="gap-2 group">
-                                                    <Link
-:href="route(
+                                                    <Link :href="route(
                                                         'announcements.detail',
                                                         announcement.id
                                                     )
@@ -390,8 +377,7 @@ v-if="announcement.announcement_files.length > 0"
                         </div>
 
                         <!-- Navigation Buttons -->
-                        <button
-v-if="announcementsData.length > 1"
+                        <button v-if="announcementsData.length > 1"
                             class="absolute left-0 top-1/2 -translate-y-1/2 bg-white hover:bg-gray-50 text-gray-900 rounded-full p-4 shadow-xl hover:shadow-2xl transition-all hover:scale-110 z-20"
                             aria-label="Previous slide" @click="
                                 prevSlide();
@@ -400,8 +386,7 @@ v-if="announcementsData.length > 1"
                             <ChevronLeft class="h-6 w-6" />
                         </button>
 
-                        <button
-v-if="announcementsData.length > 1"
+                        <button v-if="announcementsData.length > 1"
                             class="absolute right-0 top-1/2 -translate-y-1/2 bg-white hover:bg-gray-50 text-gray-900 rounded-full p-4 shadow-xl hover:shadow-2xl transition-all hover:scale-110 z-20"
                             aria-label="Next slide" @click="
                                 nextSlide();
@@ -416,8 +401,7 @@ v-if="announcementsData.length > 1"
                         <div class="max-w-5xl mx-auto flex items-center justify-between">
                             <!-- Carousel Indicators -->
                             <div v-if="announcementsData.length > 1" class="flex justify-center gap-2 flex-1">
-                                <button
-v-for="(announcement, index) in announcementsData"
+                                <button v-for="(announcement, index) in announcementsData"
                                     :key="`indicator-${announcement.id}`" class="transition-all duration-300" :class="[
                                         index === currentSlide
                                             ? 'w-8 bg-blue-600'
@@ -473,8 +457,7 @@ v-for="(announcement, index) in announcementsData"
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
                     <div class="space-y-4">
                         <div class="flex items-center gap-3">
-                            <img
-src="/images/Logo-ITK.png" alt="logo ITK"
+                            <img src="/images/Logo-ITK.png" alt="logo ITK"
                                 class="h-8 w-auto object-contain brightness-0 invert" />
                             <div>
                                 <h3 class="font-bold text-white">SIM Kerjasama</h3>
@@ -497,15 +480,13 @@ src="/images/Logo-ITK.png" alt="logo ITK"
                                 </a>
                             </li>
                             <li>
-                                <Link
-v-if="canLogin" :href="route('login')"
+                                <Link v-if="canLogin" :href="route('login')"
                                     class="hover:text-blue-400 transition-colors">
                                     Masuk
                                 </Link>
                             </li>
                             <li>
-                                <Link
-v-if="canRegister" :href="route('register')"
+                                <Link v-if="canRegister" :href="route('register')"
                                     class="hover:text-blue-400 transition-colors">
                                     Daftar
                                 </Link>
@@ -540,8 +521,7 @@ v-if="canRegister" :href="route('register')"
                         <h4 class="font-semibold text-white mb-4">Informasi</h4>
                         <ul class="space-y-2 text-sm">
                             <li>
-                                <a
-href="https://itk.ac.id" target="_blank"
+                                <a href="https://itk.ac.id" target="_blank"
                                     class="hover:text-blue-400 transition-colors flex items-center gap-1">
                                     Website ITK
                                     <ExternalLink class="h-3 w-3" />
