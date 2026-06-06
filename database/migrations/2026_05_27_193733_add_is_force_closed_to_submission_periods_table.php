@@ -11,8 +11,8 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('form_fields', function (Blueprint $table) {
-            $table->timestamp('required_since')->nullable()->after('is_required');
+        Schema::table('submission_periods', function (Blueprint $table) {
+            $table->boolean('is_force_closed')->default(false)->after('name');
         });
     }
 
@@ -21,8 +21,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('form_fields', function (Blueprint $table) {
-            $table->dropColumn('required_since');
+        Schema::table('submission_periods', function (Blueprint $table) {
+            $table->dropColumn('is_force_closed');
         });
     }
 };

@@ -14,6 +14,7 @@ enum SubmissionStatus: string
     public function label(): string
     {
         return match ($this) {
+            self::DRAFT => 'Draft',
             self::PENDING => 'Menunggu Review',
             self::UNDER_REVIEW => 'Sedang Direview',
             self::NEEDS_REVISION => 'Perlu Revisi',
@@ -25,6 +26,7 @@ enum SubmissionStatus: string
     public function color(): string
     {
         return match ($this) {
+            self::DRAFT => 'gray',
             self::PENDING => 'yellow',
             self::UNDER_REVIEW => 'blue',
             self::NEEDS_REVISION => 'orange',
@@ -36,6 +38,7 @@ enum SubmissionStatus: string
     public function icon(): string
     {
         return match ($this) {
+            self::DRAFT => 'FileText',
             self::PENDING => 'Clock',
             self::UNDER_REVIEW => 'Search',
             self::APPROVED => 'CheckCircle',
@@ -47,6 +50,7 @@ enum SubmissionStatus: string
     public function variant(): string
     {
         return match ($this) {
+            self::DRAFT => 'secondary',
             self::PENDING => 'outline',
             self::UNDER_REVIEW => 'secondary',
             self::APPROVED => 'default',

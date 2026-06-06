@@ -67,7 +67,10 @@ class FormAccessControlController extends Controller
             ->groupBy('form_id');
 
         $groupAccessControls->getCollection()->transform(function ($item) use ($controls) {
-            $item->controls = $controls[$item->form_id] ?? collect();
+            $item->setAttribute(
+                'controls',
+                $controls[$item->form_id] ?? collect()
+            );
 
             return $item;
         });
@@ -131,7 +134,7 @@ class FormAccessControlController extends Controller
                 ->with('success', 'Kontrol Akses Formulir berhasil dibuat.');
 
         } catch (\Exception $e) {
-            return back()->withErrors(['error' => 'Gagal membuat kontrol akses formulir: '.$e->getMessage()]);
+            return back()->withErrors(['error' => 'Gagal membuat kontrol akses formulir: ' . $e->getMessage()]);
         }
     }
 
@@ -192,7 +195,7 @@ class FormAccessControlController extends Controller
                 ->with('success', 'Kontrol Akses Formulir berhasil diperbarui.');
 
         } catch (\Exception $e) {
-            return back()->withErrors(['error' => 'Gagal memperbarui kontrol akses formulir: '.$e->getMessage()]);
+            return back()->withErrors(['error' => 'Gagal memperbarui kontrol akses formulir: ' . $e->getMessage()]);
         }
     }
 
@@ -220,7 +223,7 @@ class FormAccessControlController extends Controller
         } catch (\Exception $e) {
             DB::rollback();
 
-            return back()->withErrors(['error' => 'Gagal menghapus kontrol akses formulir: '.$e->getMessage()]);
+            return back()->withErrors(['error' => 'Gagal menghapus kontrol akses formulir: ' . $e->getMessage()]);
         }
     }
 
@@ -273,7 +276,7 @@ class FormAccessControlController extends Controller
         } catch (\Exception $e) {
             DB::rollback();
 
-            return back()->withErrors(['error' => 'Gagal membuat kontrol akses formulir secara massal: '.$e->getMessage()]);
+            return back()->withErrors(['error' => 'Gagal membuat kontrol akses formulir secara massal: ' . $e->getMessage()]);
         }
     }
 
@@ -308,7 +311,7 @@ class FormAccessControlController extends Controller
 
             $message = "Bulk deletion completed. Deleted: {$deleted}";
             if (!empty($cannotDelete)) {
-                $message .= '. Could not delete: '.implode(', ', $cannotDelete);
+                $message .= '. Could not delete: ' . implode(', ', $cannotDelete);
             }
 
             return redirect()->route('admin.form-access-controls.index')
@@ -317,7 +320,7 @@ class FormAccessControlController extends Controller
         } catch (\Exception $e) {
             DB::rollback();
 
-            return back()->withErrors(['error' => 'Gagal menghapus kontrol akses formulir secara massal: '.$e->getMessage()]);
+            return back()->withErrors(['error' => 'Gagal menghapus kontrol akses formulir secara massal: ' . $e->getMessage()]);
         }
     }
 

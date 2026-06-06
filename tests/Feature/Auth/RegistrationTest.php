@@ -1,7 +1,7 @@
 <?php
 
-use App\Models\StudyProgram;
 use App\Models\Faculty;
+use App\Models\StudyProgram;
 use Spatie\Permission\Models\Role;
 
 test('registration screen can be rendered', function () {
@@ -15,7 +15,7 @@ test('new users can register', function () {
     $faculty = Faculty::create(['name' => 'Fakultas Test']);
     $studyProgram = StudyProgram::create([
         'faculty_id' => $faculty->id,
-        'name' => 'Test Program'
+        'name' => 'Test Program',
     ]);
 
     $response = $this->post('/register', [
