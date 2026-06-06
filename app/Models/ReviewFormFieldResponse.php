@@ -14,11 +14,17 @@ class ReviewFormFieldResponse extends Model
         'value',
     ];
 
+    /**
+     * @return BelongsTo<ReviewFormResponse, $this>
+     */
     public function reviewFormResponse(): BelongsTo
     {
         return $this->belongsTo(ReviewFormResponse::class);
     }
 
+    /**
+     * @return BelongsTo<ReviewFormField, $this>
+     */
     public function reviewFormField(): BelongsTo
     {
         return $this->belongsTo(ReviewFormField::class);
@@ -64,6 +70,7 @@ class ReviewFormFieldResponse extends Model
     // Format select/radio values (show label if available)
     protected function formatSelectValue(): string
     {
+        /** @var ReviewFormFieldOption|null $option */
         $option = $this->reviewFormField->reviewFormFieldOptions()
             ->where('value', $this->value)
             ->orWhere('label', $this->value)
