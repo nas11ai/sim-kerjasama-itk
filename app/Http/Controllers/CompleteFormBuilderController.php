@@ -144,10 +144,9 @@ class CompleteFormBuilderController extends Controller
 
             // Create Form Phase Details for each access control
             // All access controls are for the same form, so they should have the same order number
-            $nextOrder = $formPhase->formPhaseDetails()->max('order') + 1;
-            if ($nextOrder === null) {
-                $nextOrder = 1;
-            }
+            $maxOrder = $formPhase->formPhaseDetails()->max('order');
+
+            $nextOrder = $maxOrder ? $maxOrder + 1 : 1;
 
             foreach ($accessControlIds as $controlId) {
                 $phaseDetail = FormPhaseDetail::create([
@@ -239,7 +238,7 @@ class CompleteFormBuilderController extends Controller
             DB::rollback();
 
             return back()
-                ->withErrors(['error' => 'Gagal membuat formulir: '.$e->getMessage()])
+                ->withErrors(['error' => 'Gagal membuat formulir: ' . $e->getMessage()])
                 ->withInput();
         }
     }

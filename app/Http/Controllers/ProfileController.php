@@ -41,6 +41,7 @@ class ProfileController extends Controller
         return Redirect::route('profile.edit')
             ->with('success', 'Berhasil memperbarui profil.');
     }
+
     /**
      * Delete the user's account.
      */

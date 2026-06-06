@@ -41,7 +41,7 @@ class ReviewerFormAssignmentController extends Controller
 
             foreach ($validated['assignments'] as $assignment) {
                 // Check if form belongs to the same phase as submission
-                $evaluationForm = ReviewEvaluationForm::find($assignment['form_id']);
+                $evaluationForm = ReviewEvaluationForm::findOrFail($assignment['form_id']);
 
                 // Validate form phase matches submission form phase
                 $formPhase = $this->getSubmissionFormPhase($submission);

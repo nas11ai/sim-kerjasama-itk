@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Form;
 use App\Models\FormFieldResponse;
 use App\Models\FormSubmission;
+use App\Models\FormFieldOption;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -22,10 +23,10 @@ class BiodataController extends Controller
         $biodataForm = Form::where('form_type_id', 1)
             ->where('is_active', true)
             ->whereHas('formAccessControls', function ($q) use ($user, $studyProgram) {
-                $q->whereHas('role', fn ($r) => $r->whereIn('name', $user->getRoleNames()))
+                $q->whereHas('role', fn($r) => $r->whereIn('name', $user->getRoleNames()))
                     ->when(
                         $studyProgram,
-                        fn ($r) => $r->where(function ($sub) use ($studyProgram) {
+                        fn($r) => $r->where(function ($sub) use ($studyProgram) {
                             $sub->whereNull('study_program_id')
                                 ->orWhere('study_program_id', $studyProgram->id);
                         })
@@ -46,8 +47,8 @@ class BiodataController extends Controller
         }
 
         $hasAccess = $biodataForm->formAccessControls()
-            ->whereHas('role', fn ($q) => $q->whereIn('name', $user->getRoleNames()))
-            ->when($studyProgram, fn ($q) => $q->where('study_program_id', $studyProgram->id))
+            ->whereHas('role', fn($q) => $q->whereIn('name', $user->getRoleNames()))
+            ->when($studyProgram, fn($q) => $q->where('study_program_id', $studyProgram->id))
             ->exists();
 
         if (!$hasAccess) {
@@ -62,10 +63,14 @@ class BiodataController extends Controller
             ->first();
 
         $existingResponses = $submission
-            ? $submission->formFieldResponses->mapWithKeys(fn ($r) => [$r->form_field_id => $r->value])->toArray()
+            ? $submission->formFieldResponses->mapWithKeys(fn($r) => [$r->form_field_id => $r->value])->toArray()
             : [];
 
-        $status = $submission?->status?->value ?? $submission?->status;
+        $status = $submission?->status;
+
+        if ($submission->status instanceof \BackedEnum) {
+            $status = $submission->status->value;
+        }
 
         $canEdit = !$submission || in_array($status, ['rejected', 'needs_revision']);
 
@@ -74,7 +79,7 @@ class BiodataController extends Controller
                 'id' => $biodataForm->id,
                 'title' => $biodataForm->title,
                 'description' => $biodataForm->description,
-                'form_fields' => $biodataForm->formFields->map(fn ($field) => [
+                'form_fields' => $biodataForm->formFields->map(fn($field) => [
                     'id' => $field->id,
                     'label' => $field->label,
                     'is_required' => $field->is_required,
@@ -84,11 +89,14 @@ class BiodataController extends Controller
                         'id' => $field->fieldType->id,
                         'name' => $field->fieldType->name,
                     ],
-                    'form_field_options' => $field->formFieldOptions->map(fn ($option) => [
-                        'id' => $option->id,
-                        'label' => $option->label,
-                        'value' => $option->value,
-                    ]),
+                    'form_field_options' => $field->formFieldOptions
+                        ->map(function (FormFieldOption $option): array {
+                            return [
+                                'id' => $option->id,
+                                'label' => $option->label,
+                                'value' => $option->value,
+                            ];
+                        }),
                 ]),
 
             ],
@@ -125,7 +133,7 @@ class BiodataController extends Controller
                         // file size max 10MB
                         if ($file->getSize() > 10 * 1024 * 1024) {
                             return back()
-                                ->withErrors(['file_'.$fieldId => 'Ukuran file terlalu besar. Maksimal 10MB.'])
+                                ->withErrors(['file_' . $fieldId => 'Ukuran file terlalu besar. Maksimal 10MB.'])
                                 ->with('error', 'Upload file gagal: File terlalu besar.')
                                 ->withInput();
                         }
@@ -159,14 +167,14 @@ class BiodataController extends Controller
                         if (!$hasFile) {
 
                             return back()
-                                ->withErrors(['field_'.$field->id => "Field '{$field->label}' wajib diisi."])
+                                ->withErrors(['field_' . $field->id => "Field '{$field->label}' wajib diisi."])
                                 ->with('error', 'Silakan lengkapi semua field yang wajib diisi.')
                                 ->withInput();
                         }
                     } else {
-                        if (empty(trim($value ?? '')) && $value !== '0' && $value !== 0) {
+                        if (blank($value)) {
                             return back()
-                                ->withErrors(['field_'.$field->id => "Field '{$field->label}' wajib diisi."])
+                                ->withErrors(['field_' . $field->id => "Field '{$field->label}' wajib diisi."])
                                 ->with('error', 'Silakan lengkapi semua field yang wajib diisi.')
                                 ->withInput();
                         }
