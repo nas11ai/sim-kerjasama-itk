@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Carbon;
@@ -64,7 +65,7 @@ class FormField extends Model
         return $this->belongsTo(Form::class);
     }
 
-    public function fieldType()
+    public function fieldType():
     {
         return $this->belongsTo(FieldType::class);
     }

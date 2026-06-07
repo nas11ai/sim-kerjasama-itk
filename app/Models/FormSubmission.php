@@ -3,12 +3,29 @@
 namespace App\Models;
 
 use App\SubmissionStatus;
-use Illuminate\Database\Eloquent\Model;
+use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
+/**
+ * @property int $id
+ * @property int $form_id
+ * @property int $submitted_by
+ * @property Carbon|null $submitted_at
+ * @property-read Form $form
+ * @property-read User $submittedBy
+ * @property-read Collection<int, FormFieldResponse> $formFieldResponses
+ * @property-read Collection<int, SubmissionReviewer> $submissionReviewers
+ * @property-read Collection<int, ReviewSummary> $reviewSummaries
+ * @property SubmissionStatus|null $status
+ */
 class FormSubmission extends Model
 {
     use HasFactory;
+
     protected $fillable = [
         'form_id',
         'is_submitted',
@@ -21,27 +38,34 @@ class FormSubmission extends Model
         'is_submitted' => 'boolean',
     ];
 
-    public function form()
+    /** @return BelongsTo<Form, $this> */
+    public function form(): BelongsTo
     {
         return $this->belongsTo(Form::class);
     }
 
-    public function submittedBy()
+    /** @return BelongsTo<User, $this> */
+    public function submittedBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'submitted_by');
     }
 
-    public function formFieldResponses()
+    /**
+     * @return HasMany<FormFieldResponse, $this>
+     */
+    public function formFieldResponses(): HasMany
     {
         return $this->hasMany(FormFieldResponse::class);
     }
 
-    public function submissionReviewers()
+    /** @return HasMany<SubmissionReviewer, $this> */
+    public function submissionReviewers(): HasMany
     {
         return $this->hasMany(SubmissionReviewer::class);
     }
 
-    public function reviewSummaries()
+    /** @return HasMany<ReviewSummary, $this> */
+    public function reviewSummaries(): HasMany
     {
         return $this->hasMany(ReviewSummary::class);
     }
@@ -178,6 +202,7 @@ class FormSubmission extends Model
 
         foreach ($reviewersNeedingAssignment as $submissionReviewer) {
             // Assign all required forms by default
+            /** @var Collection<int, ReviewEvaluationForm> $requiredForms */
             $requiredForms = $formPhaseDetail->requiredReviewEvaluationForms()->get();
 
             foreach ($requiredForms as $form) {
@@ -220,11 +245,12 @@ class FormSubmission extends Model
         }
 
         // Get the latest submission date as due date
+        /** @var SubmissionDate|null $latestDate */
         $latestDate = $submissionPeriod->submissionDates()
-            ->orderBy('datetime', 'desc')
+            ->orderBy('date', 'desc')
             ->first();
 
-        return $latestDate ? $latestDate->datetime : null;
+        return $latestDate ? $latestDate->date : null;
     }
 
     // NEW: Check if evaluation phase is complete and can proceed to discussions
@@ -346,6 +372,7 @@ class FormSubmission extends Model
             return [];
         }
 
+        /** @var Collection<int, ReviewEvaluationForm> $evaluationForms */
         $evaluationForms = $formPhaseDetail->activeReviewEvaluationForms()->get();
         $summary = [];
 

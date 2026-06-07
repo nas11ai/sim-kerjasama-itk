@@ -84,7 +84,7 @@ interface FormData {
 }
 
 interface Props {
-    form: ExistingForm
+    existingForm: ExistingForm
     formTypes: FormType[]
     fieldTypes: FieldType[]
 }
@@ -123,20 +123,19 @@ const generateTempId = () => `temp_${Date.now()}_${Math.random()}`
 
 // Initialize form with existing data
 onMounted(() => {
-    form.title = props.form.title
-    form.description = props.form.description || ''
-    form.form_type_id = props.form.form_type_id
-    form.is_active = props.form.is_active
+    form.title = props.existingForm.title
+    form.description = props.existingForm.description || ''
+    form.form_type_id = props.existingForm.form_type_id
+    form.is_active = props.existingForm.is_active
 
-    // Convert existing form fields to form structure
-    form.fields = props.form.form_fields
+    form.fields = [...props.existingForm.form_fields]
         .sort((a, b) => a.order - b.order)
         .map((field) => ({
             id: field.id,
             field_type_id: field.field_type_id,
             label: field.label,
             is_required: field.is_required,
-            options: field.form_field_options
+            options: [...field.form_field_options]
                 .sort((a, b) => a.order - b.order)
                 .map((option) => ({
                     id: option.id,
@@ -186,11 +185,12 @@ const fieldTypeRequiresOptions = (fieldTypeId: number | null): boolean => {
 }
 
 const submit = () => {
-    form.put(route('admin.forms.update', props.form.id))
+    form.put(route('admin.forms.update', props.existingForm.id))
 }
 </script>
 
 <template>
+
     <Head title="Edit Formulir" />
 
     <AuthenticatedLayout>
@@ -204,7 +204,7 @@ const submit = () => {
                         </Button>
                     </Link>
                     <h2 class="text-xl font-semibold leading-tight text-gray-800">
-                        Edit Formulir: {{ props.form.title }}
+                        Edit Formulir: {{ props.existingForm.title }}
                     </h2>
                 </div>
             </div>
@@ -223,22 +223,13 @@ const submit = () => {
                             <div class="space-y-1.5">
                                 <Label for="title">Judul Formulir *</Label>
                                 <Input
-                                    id="title"
-                                    v-model="form.title"
-                                    placeholder="Masukkan judul formulir"
+id="title" v-model="form.title" placeholder="Masukkan judul formulir"
                                     :aria-invalid="!!errors.title"
-                                    :aria-describedby="errors.title ? 'error-title' : undefined"
-                                    :class="
-                                        errors.title
-                                            ? 'border-destructive focus-visible:ring-destructive'
-                                            : ''
-                                    "
-                                />
-                                <p
-                                    v-if="errors.title"
-                                    id="error-title"
-                                    class="text-sm text-destructive"
-                                >
+                                    :aria-describedby="errors.title ? 'error-title' : undefined" :class="errors.title
+                                        ? 'border-destructive focus-visible:ring-destructive'
+                                        : ''
+                                        " />
+                                <p v-if="errors.title" id="error-title" class="text-sm text-destructive">
                                     {{ errors.title }}
                                 </p>
                             </div>
@@ -248,34 +239,23 @@ const submit = () => {
                                 <Label for="form_type">Tipe Formulir *</Label>
                                 <Select v-model="form.form_type_id">
                                     <SelectTrigger
-                                        id="form_type"
-                                        :aria-invalid="!!errors.form_type_id"
-                                        :aria-describedby="
-                                            errors.form_type_id ? 'error-form-type' : undefined
-                                        "
-                                        :class="
-                                            errors.form_type_id
+id="form_type" :aria-invalid="!!errors.form_type_id"
+                                        :aria-describedby="errors.form_type_id ? 'error-form-type' : undefined
+                                            " :class="errors.form_type_id
                                                 ? 'border-destructive focus-visible:ring-destructive'
                                                 : ''
-                                        "
-                                    >
+                                                ">
                                         <SelectValue placeholder="Pilih tipe formulir" />
                                     </SelectTrigger>
                                     <SelectContent>
                                         <SelectItem
-                                            v-for="formType in props.formTypes"
-                                            :key="formType.id"
-                                            :value="formType.id"
-                                        >
+v-for="formType in props.formTypes" :key="formType.id"
+                                            :value="formType.id">
                                             {{ formType.name }}
                                         </SelectItem>
                                     </SelectContent>
                                 </Select>
-                                <p
-                                    v-if="errors.form_type_id"
-                                    id="error-form-type"
-                                    class="text-sm text-destructive"
-                                >
+                                <p v-if="errors.form_type_id" id="error-form-type" class="text-sm text-destructive">
                                     {{ errors.form_type_id }}
                                 </p>
                             </div>
@@ -285,11 +265,8 @@ const submit = () => {
                         <div class="space-y-1.5">
                             <Label for="description">Deskripsi</Label>
                             <Textarea
-                                id="description"
-                                v-model="form.description"
-                                placeholder="Masukkan deskripsi formulir (opsional)"
-                                rows="3"
-                            />
+id="description" v-model="form.description"
+                                placeholder="Masukkan deskripsi formulir (opsional)" rows="3" />
                         </div>
 
                         <!-- Active switch -->
@@ -312,33 +289,21 @@ const submit = () => {
                         </div>
                     </CardHeader>
                     <CardContent>
-                        <div
-                            v-if="form.fields.length === 0"
-                            class="text-center py-8 text-muted-foreground"
-                        >
+                        <div v-if="form.fields.length === 0" class="text-center py-8 text-muted-foreground">
                             <p>
                                 Belum ada isian yang ditambahkan. Klik "Tambah Isian" untuk memulai.
                             </p>
                         </div>
 
                         <draggable
-                            v-else
-                            v-model="form.fields"
-                            item-key="temp_id"
-                            handle=".drag-handle"
-                            class="space-y-4"
-                            :animation="200"
-                        >
+v-else v-model="form.fields" item-key="temp_id" handle=".drag-handle"
+                            class="space-y-4" :animation="200">
                             <template #item="{ element: field, index }">
                                 <Card class="border-2 border-dashed">
                                     <CardContent class="pt-6">
                                         <div class="flex items-start gap-4">
-                                            <div
-                                                class="drag-handle cursor-move p-1 hover:bg-muted rounded"
-                                            >
-                                                <GripVertical
-                                                    class="h-4 w-4 text-muted-foreground"
-                                                />
+                                            <div class="drag-handle cursor-move p-1 hover:bg-muted rounded">
+                                                <GripVertical class="h-4 w-4 text-muted-foreground" />
                                             </div>
 
                                             <div class="flex-1 space-y-4">
@@ -347,16 +312,12 @@ const submit = () => {
                                                         <Label>Tipe Isian *</Label>
                                                         <Select v-model="field.field_type_id">
                                                             <SelectTrigger>
-                                                                <SelectValue
-                                                                    placeholder="Pilih tipe isian"
-                                                                />
+                                                                <SelectValue placeholder="Pilih tipe isian" />
                                                             </SelectTrigger>
                                                             <SelectContent>
                                                                 <SelectItem
-                                                                    v-for="fieldType in props.fieldTypes"
-                                                                    :key="fieldType.id"
-                                                                    :value="fieldType.id"
-                                                                >
+v-for="fieldType in props.fieldTypes"
+                                                                    :key="fieldType.id" :value="fieldType.id">
                                                                     {{ fieldType.name }}
                                                                 </SelectItem>
                                                             </SelectContent>
@@ -366,80 +327,56 @@ const submit = () => {
                                                     <div class="space-y-2">
                                                         <Label>Label Isian *</Label>
                                                         <Input
-                                                            v-model="field.label"
-                                                            placeholder="Masukkan label isian"
-                                                        />
+v-model="field.label"
+                                                            placeholder="Masukkan label isian" />
                                                     </div>
                                                 </div>
 
                                                 <div class="flex items-center space-x-2">
-                                                    <Switch
-                                                        :id="`required_${index}`"
-                                                        v-model="field.is_required"
-                                                    />
-                                                    <Label :for="`required_${index}`"
-                                                        >Isian wajib</Label
-                                                    >
+                                                    <Switch :id="`required_${index}`" v-model="field.is_required" />
+                                                    <Label :for="`required_${index}`">Isian wajib</Label>
                                                 </div>
 
                                                 <!-- Field Options -->
                                                 <div
-                                                    v-if="
-                                                        fieldTypeRequiresOptions(
-                                                            field.field_type_id
-                                                        )
-                                                    "
-                                                    class="space-y-3"
-                                                >
+v-if="
+                                                    fieldTypeRequiresOptions(
+                                                        field.field_type_id
+                                                    )
+                                                " class="space-y-3">
                                                     <div class="flex items-center justify-between">
-                                                        <Label class="text-sm font-medium"
-                                                            >Opsi</Label
-                                                        >
+                                                        <Label class="text-sm font-medium">Opsi</Label>
                                                         <Button
-                                                            type="button"
-                                                            size="sm"
-                                                            variant="outline"
-                                                            @click="addOption(index)"
-                                                        >
+type="button" size="sm" variant="outline"
+                                                            @click="addOption(index)">
                                                             <Plus class="h-3 w-3 mr-1" />
                                                             Tambah Opsi
                                                         </Button>
                                                     </div>
 
                                                     <div
-                                                        v-if="field.options.length === 0"
-                                                        class="text-sm text-muted-foreground"
-                                                    >
+v-if="field.options.length === 0"
+                                                        class="text-sm text-muted-foreground">
                                                         Belum ada opsi yang ditambahkan.
                                                     </div>
 
                                                     <div v-else class="space-y-2">
                                                         <div
-                                                            v-for="(
-                                                                option, optionIndex
-                                                            ) in field.options"
-                                                            :key="option.temp_id || optionIndex"
-                                                            class="flex items-center gap-2"
-                                                        >
+v-for="(
+option, optionIndex
+                                                            ) in field.options" :key="option.temp_id || optionIndex"
+                                                            class="flex items-center gap-2">
                                                             <Input
-                                                                v-model="option.label"
-                                                                placeholder="Label opsi"
-                                                                class="flex-1"
-                                                            />
+v-model="option.label" placeholder="Label opsi"
+                                                                class="flex-1" />
                                                             <Button
-                                                                type="button"
-                                                                variant="ghost"
-                                                                size="sm"
-                                                                @click="
-                                                                    removeOption(
-                                                                        index,
-                                                                        optionIndex as number
-                                                                    )
-                                                                "
-                                                            >
-                                                                <Trash2
-                                                                    class="h-4 w-4 text-destructive"
-                                                                />
+type="button" variant="ghost" size="sm" @click="
+                                                                removeOption(
+                                                                    index,
+                                                                    optionIndex as number
+                                                                )
+                                                                ">
+                                                                <Trash2 class="h-4 w-4 text-destructive" />
                                                             </Button>
                                                         </div>
                                                     </div>
@@ -447,62 +384,47 @@ const submit = () => {
 
                                                 <!-- Field Preview -->
                                                 <div
-                                                    v-if="field.field_type_id && field.label"
-                                                    class="mt-4 p-3 bg-muted rounded-lg"
-                                                >
+v-if="field.field_type_id && field.label"
+                                                    class="mt-4 p-3 bg-muted rounded-lg">
                                                     <Label
-                                                        class="text-sm text-muted-foreground mb-2 block"
-                                                        >Pratinjau:</Label
-                                                    >
+                                                        class="text-sm text-muted-foreground mb-2 block">Pratinjau:</Label>
                                                     <div class="space-y-2">
                                                         <Label>
                                                             {{ field.label }}
                                                             <Badge
-                                                                v-if="field.is_required"
-                                                                variant="destructive"
-                                                                class="ml-2 text-xs"
-                                                            >
+v-if="field.is_required" variant="destructive"
+                                                                class="ml-2 text-xs">
                                                                 Wajib
                                                             </Badge>
                                                         </Label>
 
                                                         <!-- Preview based on field type -->
                                                         <div
-                                                            v-if="
-                                                                getFieldTypeName(
-                                                                    field.field_type_id
-                                                                ) === 'textarea'
-                                                            "
-                                                        >
-                                                            <Textarea
-                                                                placeholder="Ini adalah pratinjau"
-                                                                disabled
-                                                            />
+v-if="
+                                                            getFieldTypeName(
+                                                                field.field_type_id
+                                                            ) === 'textarea'
+                                                        ">
+                                                            <Textarea placeholder="Ini adalah pratinjau" disabled />
                                                         </div>
                                                         <div
-                                                            v-else-if="
-                                                                fieldTypeRequiresOptions(
-                                                                    field.field_type_id
-                                                                ) && field.options.length > 0
-                                                            "
-                                                        >
+v-else-if="
+                                                            fieldTypeRequiresOptions(
+                                                                field.field_type_id
+                                                            ) && field.options.length > 0
+                                                        ">
                                                             <div class="space-y-1">
                                                                 <div
-                                                                    v-for="option in field.options"
+v-for="option in field.options"
                                                                     :key="option.temp_id"
-                                                                    class="flex items-center space-x-2"
-                                                                >
+                                                                    class="flex items-center space-x-2">
                                                                     <input
-                                                                        :type="
-                                                                            getFieldTypeName(
-                                                                                field.field_type_id
-                                                                            ) === 'checkbox'
-                                                                                ? 'checkbox'
-                                                                                : 'radio'
-                                                                        "
-                                                                        disabled
-                                                                        class="h-4 w-4"
-                                                                    />
+:type="getFieldTypeName(
+                                                                        field.field_type_id
+                                                                    ) === 'checkbox'
+                                                                        ? 'checkbox'
+                                                                        : 'radio'
+                                                                        " disabled class="h-4 w-4" />
                                                                     <span class="text-sm">{{
                                                                         option.label
                                                                     }}</span>
@@ -511,26 +433,19 @@ const submit = () => {
                                                         </div>
                                                         <div v-else>
                                                             <Input
-                                                                :type="
-                                                                    getFieldTypeName(
-                                                                        field.field_type_id
-                                                                    )
-                                                                "
-                                                                placeholder="Ini adalah pratinjau"
-                                                                disabled
-                                                            />
+:type="getFieldTypeName(
+                                                                field.field_type_id
+                                                            )
+                                                                " placeholder="Ini adalah pratinjau" disabled />
                                                         </div>
                                                     </div>
                                                 </div>
                                             </div>
 
                                             <Button
-                                                type="button"
-                                                variant="ghost"
-                                                size="sm"
+type="button" variant="ghost" size="sm"
                                                 class="text-destructive hover:text-destructive"
-                                                @click="removeField(index)"
-                                            >
+                                                @click="removeField(index)">
                                                 <Trash2 class="h-4 w-4" />
                                             </Button>
                                         </div>
@@ -543,11 +458,7 @@ const submit = () => {
 
                 <!-- Form Actions -->
                 <div class="flex items-center justify-end space-x-2">
-                    <Button
-                        type="button"
-                        variant="outline"
-                        @click="$inertia.visit(route('admin.forms.index'))"
-                    >
+                    <Button type="button" variant="outline" @click="$inertia.visit(route('admin.forms.index'))">
                         <X class="h-4 w-4 mr-2" />
                         Batal
                     </Button>

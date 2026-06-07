@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Form;
+use App\Models\FormFieldOption;
 use App\Models\FormFieldResponse;
 use App\Models\FormSubmission;
 use Exception;
@@ -65,7 +66,11 @@ class BiodataController extends Controller
             ? $submission->formFieldResponses->mapWithKeys(fn ($r) => [$r->form_field_id => $r->value])->toArray()
             : [];
 
-        $status = $submission?->status?->value ?? $submission?->status;
+        $status = $submission?->status;
+
+        if ($submission->status instanceof \BackedEnum) {
+            $status = $submission->status->value;
+        }
 
         $canEdit = !$submission || in_array($status, ['rejected', 'needs_revision']);
 
@@ -84,11 +89,14 @@ class BiodataController extends Controller
                         'id' => $field->fieldType->id,
                         'name' => $field->fieldType->name,
                     ],
-                    'form_field_options' => $field->formFieldOptions->map(fn ($option) => [
-                        'id' => $option->id,
-                        'label' => $option->label,
-                        'value' => $option->value,
-                    ]),
+                    'form_field_options' => $field->formFieldOptions
+                        ->map(function (FormFieldOption $option): array {
+                            return [
+                                'id' => $option->id,
+                                'label' => $option->label,
+                                'value' => $option->value,
+                            ];
+                        }),
                 ]),
 
             ],
@@ -164,7 +172,7 @@ class BiodataController extends Controller
                                 ->withInput();
                         }
                     } else {
-                        if (empty(trim($value ?? '')) && $value !== '0' && $value !== 0) {
+                        if (blank($value)) {
                             return back()
                                 ->withErrors(['field_'.$field->id => "Field '{$field->label}' wajib diisi."])
                                 ->with('error', 'Silakan lengkapi semua field yang wajib diisi.')

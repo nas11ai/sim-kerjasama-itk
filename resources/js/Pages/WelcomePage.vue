@@ -1,9 +1,9 @@
 <!-- resources\js\Pages\Welcome.vue -->
 <script setup lang="ts">
-import { Head, Link, usePage, router } from '@inertiajs/vue3'
+import { Head, Link, usePage } from '@inertiajs/vue3'
 import { ref, onMounted, onUnmounted } from 'vue'
 import { Button } from '@/Components/ui/button'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/Components/ui/card'
+import { Card, CardContent } from '@/Components/ui/card'
 import { Badge } from '@/Components/ui/badge'
 import { Separator } from '@/Components/ui/separator'
 import {
@@ -61,11 +61,11 @@ const props = defineProps<{
 
 // Ensure announcements data is available with default values
 const announcementsData = props.announcements?.data || []
-const currentPage = props.announcements?.current_page || 1
-const lastPage = props.announcements?.last_page || 1
-const total = props.announcements?.total || 0
-const from = props.announcements?.from || 0
-const to = props.announcements?.to || 0
+// const currentPage = props.announcements?.current_page || 1
+// const lastPage = props.announcements?.last_page || 1
+// const total = props.announcements?.total || 0
+// const from = props.announcements?.from || 0
+// const to = props.announcements?.to || 0
 
 // Parallax state
 const scrollY = ref(0)
@@ -170,17 +170,17 @@ const stripHtml = (html: string) => {
     return html ? html.replace(/<[^>]+>/g, '') : 'Tidak ada deskripsi.'
 }
 
-const goToPage = (page: number) => {
-    router.get(
-        '/',
-        { page },
-        {
-            preserveState: true,
-            preserveScroll: true,
-            only: ['announcements'],
-        }
-    )
-}
+// const goToPage = (page: number) => {
+//     router.get(
+//         '/',
+//         { page },
+//         {
+//             preserveState: true,
+//             preserveScroll: true,
+//             only: ['announcements'],
+//         }
+//     )
+// }
 </script>
 
 <template>
@@ -236,10 +236,21 @@ const goToPage = (page: number) => {
         <!-- Hero Section with Parallax -->
         <section class="relative h-screen overflow-hidden bg-black">
             <!-- Background with Parallax -->
+<<<<<<< HEAD:resources/js/Pages/Welcome.vue
             <div class="absolute inset-0 bg-linear-to-br from-blue-600 via-blue-700 to-blue-900" :style="{
                 transform: `translateY(${scrollY * 0.5}px) scale(${heroScale})`,
                 opacity: heroOpacity,
             }">
+=======
+            <div
+                class="absolute inset-0 bg-linear-to-br from-blue-600 via-blue-700 to-blue-900"
+                :style="{
+                    transform: `translateY(${scrollY * 0.5}px) scale(${heroScale})`,
+
+                    opacity: heroOpacity,
+                }"
+            >
+>>>>>>> origin/dev:resources/js/Pages/WelcomePage.vue
                 <div class="absolute inset-0 opacity-20">
                     <div class="absolute top-0 left-0 w-96 h-96 bg-white rounded-full blur-3xl" />
                     <div class="absolute bottom-0 right-0 w-96 h-96 bg-white rounded-full blur-3xl" />
@@ -312,7 +323,7 @@ const goToPage = (page: number) => {
                         Pengumuman Terbaru
                     </h2>
                     <p class="text-lg text-gray-600 max-w-2xl mx-auto">
-                        Informasi dan berita terkini seputar kerja sama ITK
+                        Informasi dan berita ter ini seputar kerja sama ITK
                     </p>
                 </div>
 
@@ -320,6 +331,7 @@ const goToPage = (page: number) => {
                 <div v-if="announcementsData.length > 0" class="flex-1 relative px-4 sm:px-6 lg:px-8">
                     <div class="max-w-5xl mx-auto h-full relative flex items-center">
                         <!-- Carousel Cards -->
+
                         <div class="w-full relative" style="min-height: 400px">
                             <TransitionGroup name="slide-fade">
                                 <div v-for="(announcement, index) in announcementsData" v-show="index === currentSlide"
@@ -331,6 +343,7 @@ const goToPage = (page: number) => {
                                         <div class="bg-linear-to-r from-blue-600 to-blue-700 p-6">
                                             <div class="flex items-center gap-3 text-white">
                                                 <Calendar class="h-6 w-6" />
+
                                                 <span class="text-base font-semibold">
                                                     {{ formatDate(announcement.created_at) }}
                                                 </span>
@@ -415,7 +428,12 @@ const goToPage = (page: number) => {
                                 <button
                                     class="bg-white/90 backdrop-blur-xs px-3 py-2 rounded-full shadow-lg hover:bg-white transition-colors"
                                     :aria-label="isAutoPlaying ? 'Pause autoplay' : 'Play autoplay'"
+<<<<<<< HEAD:resources/js/Pages/Welcome.vue
                                     @click="toggleAutoPlay();">
+=======
+                                    @click="toggleAutoPlay()"
+                                >
+>>>>>>> origin/dev:resources/js/Pages/WelcomePage.vue
                                     <Pause v-if="isAutoPlaying" class="h-4 w-4 text-gray-700" />
                                     <Play v-else class="h-4 w-4 text-gray-700" />
                                 </button>

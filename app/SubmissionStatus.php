@@ -50,7 +50,7 @@ enum SubmissionStatus: string
     public function variant(): string
     {
         return match ($this) {
-            self::DRAFT => 'ghost',
+            self::DRAFT => 'secondary',
             self::PENDING => 'outline',
             self::UNDER_REVIEW => 'secondary',
             self::APPROVED => 'default',

@@ -50,11 +50,11 @@ class FormPhaseController extends Controller
         // Calculate review evaluation forms counts for each phase
         $formPhases->getCollection()->transform(function ($phase) {
             $phase->review_evaluation_forms_count = $phase->formPhaseDetails->sum(
-                fn ($detail) => $detail->reviewEvaluationFormsCount
+                fn (FormPhaseDetail $detail) => $detail->reviewEvaluationFormsCount
             );
 
             $phase->required_review_evaluation_forms_count = $phase->formPhaseDetails->sum(
-                fn ($detail) => $detail->requiredReviewEvaluationFormsCount
+                fn (FormPhaseDetail $detail) => $detail->requiredReviewEvaluationFormsCount
             );
 
             return $phase;

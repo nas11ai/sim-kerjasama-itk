@@ -207,10 +207,13 @@ class FormController extends Controller
                             ->delete();
 
                         foreach ($fieldData['options'] as $optionIndex => $optionData) {
-                            $option = isset($optionData['id'])
-                                ? FormFieldOption::find($optionData['id'])
-                                : new FormFieldOption;
+                            if (isset($optionData['id'])) {
+                                $option = FormFieldOption::findOrFail($optionData['id']);
+                            } else {
+                                $option = new FormFieldOption;
+                            }
 
+                            /** @var FormFieldOption $option */
                             $option->form_field_id = $field->id;
                             $option->label = $optionData['label'];
                             $option->order = $optionIndex + 1;

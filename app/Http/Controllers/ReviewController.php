@@ -7,8 +7,10 @@ use App\Models\FormPhaseDetail;
 use App\Models\FormSubmission;
 use App\Models\ReviewComment;
 use App\Models\Reviewer;
+use App\Models\ReviewerFormAssignment;
 use App\Models\ReviewSummary;
 use App\Models\ReviewSummaryAttachment;
+use App\Models\SubmissionDate;
 use App\Models\SubmissionPeriod;
 use App\Models\SubmissionReviewer;
 use App\Services\EmailNotificationService;
@@ -98,6 +100,8 @@ class ReviewController extends Controller
                 throw new \Exception('Tidak dapat menghapus reviewer dengan respons evaluasi yang telah dikirim.');
             }
 
+            /** @var ReviewerFormAssignment $assignment */
+
             // Delete evaluation form assignments and draft responses
             foreach ($submissionReviewer->reviewerFormAssignments as $assignment) {
                 /** @var \App\Models\ReviewerFormAssignment $assignment */
@@ -154,6 +158,7 @@ class ReviewController extends Controller
         }
         // Check reviewer permissions
         else {
+            /** @var Reviewer|null $reviewer */
             $reviewer = Reviewer::where('user_id', $user->id)->first();
 
             if ($reviewer) {
@@ -217,6 +222,8 @@ class ReviewController extends Controller
         if ($user->hasRole(['Super Admin', 'Admin'])) {
             return $this->performCreateReviewThread($request, $submission, null);
         }
+
+        /** @var Reviewer|null $reviewer */
 
         // Check if user is a reviewer
         $reviewer = Reviewer::where('user_id', $user->id)->first();
@@ -325,6 +332,7 @@ class ReviewController extends Controller
         }
         // Check reviewer permissions
         else {
+            /** @var Reviewer|null $reviewer */
             $reviewer = Reviewer::where('user_id', $user->id)->first();
 
             if ($reviewer) {
@@ -544,6 +552,7 @@ class ReviewController extends Controller
         }
         // Check if it's the reviewer's own review
         elseif ($reviewSummary->reviewer_id) {
+            /** @var Reviewer|null $reviewer */
             $reviewer = Reviewer::where('user_id', $user->id)->first();
 
             if ($reviewer && $reviewSummary->reviewer_id === $reviewer->id) {
@@ -717,6 +726,7 @@ class ReviewController extends Controller
             return false;
         }
 
+        /** @var SubmissionReviewer|null $submissionReviewer */
         $submissionReviewer = SubmissionReviewer::where([
             'form_submission_id' => $submission->id,
             'reviewer_id' => $reviewer->id,

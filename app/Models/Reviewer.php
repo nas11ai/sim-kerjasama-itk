@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use Carbon\CarbonInterface;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
@@ -13,6 +15,21 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property-read \App\Models\ReviewerRole $reviewerRole
  */
 
+/**
+ * @property int $id
+ * @property int $user_id
+ * @property int $reviewer_role_id
+ * @property CarbonInterface|null $start_date
+ * @property CarbonInterface|null $end_date
+ * @property bool $is_active
+ * @property int $total_reviews
+ * @property int $pending_reviews
+ * @property int $completed_reviews
+ * @property-read User|null $user
+ * @property-read ReviewerRole|null $reviewerRole
+ * @property-read ReviewerRole|null $reviewer_role
+ * @property-read Collection<int, SubmissionReviewer> $submissionReviewers
+ */
 class Reviewer extends Model
 {
     protected $fillable = [

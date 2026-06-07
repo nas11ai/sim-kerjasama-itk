@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Models\SubmissionDate;
 use App\Models\SubmissionPeriod;
 use App\Services\EmailNotificationService;
 use Carbon\Carbon;
@@ -35,8 +36,14 @@ class NotifyActiveSubmissionPeriods extends Command
                     return false;
                 }
 
-                $startDate = Carbon::parse($dates->first()->datetime);
-                $endDate = Carbon::parse($dates->last()->datetime);
+                /** @var SubmissionDate $firstDate */
+                $firstDate = $dates->first();
+
+                /** @var SubmissionDate $lastDate */
+                $lastDate = $dates->last();
+
+                $startDate = Carbon::parse($firstDate->datetime);
+                $endDate = Carbon::parse($lastDate->datetime);
 
                 // Check if period just became active (started today)
                 return $startDate->isToday() && $now->between($startDate, $endDate);

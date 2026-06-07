@@ -148,14 +148,10 @@ const assignReviewers = () => {
                     </Label>
                     <div class="border rounded-lg p-3 space-y-2 bg-muted/30">
                         <div
-                            v-for="reviewer in assignedReviewers"
-                            :key="reviewer.id"
-                            class="flex items-center justify-between py-1"
-                        >
+v-for="reviewer in assignedReviewers" :key="reviewer.id"
+                            class="flex items-center justify-between py-1">
                             <div class="flex items-center gap-2">
-                                <div
-                                    class="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center"
-                                >
+                                <div class="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
                                     <span class="text-xs font-medium text-primary">
                                         {{ reviewer.user.name.charAt(0).toUpperCase() }}
                                     </span>
@@ -187,21 +183,13 @@ const assignReviewers = () => {
                         </Label>
                         <div class="flex gap-2">
                             <Button
-                                type="button"
-                                variant="ghost"
-                                size="sm"
-                                :disabled="unassignedReviewers.length === 0"
-                                @click="selectAll"
-                            >
+type="button" variant="ghost" size="sm" :disabled="unassignedReviewers.length === 0"
+                                @click="selectAll">
                                 Select All
                             </Button>
                             <Button
-                                type="button"
-                                variant="ghost"
-                                size="sm"
-                                :disabled="selectedReviewerIds.length === 0"
-                                @click="clearSelection"
-                            >
+type="button" variant="ghost" size="sm" :disabled="selectedReviewerIds.length === 0"
+                                @click="clearSelection">
                                 Clear
                             </Button>
                         </div>
@@ -216,22 +204,16 @@ const assignReviewers = () => {
 
                     <div v-else class="border rounded-lg divide-y max-h-[300px] overflow-y-auto">
                         <div
-                            v-for="reviewer in unassignedReviewers"
-                            :key="reviewer.id"
+v-for="reviewer in unassignedReviewers" :key="reviewer.id"
                             class="flex items-center gap-3 p-3 hover:bg-muted/50 transition-colors cursor-pointer"
-                            @click="toggleReviewer(reviewer.id)"
-                        >
+                            @click="toggleReviewer(reviewer.id)">
                             <Checkbox
-                                :id="`reviewer-${reviewer.id}`"
+:id="`reviewer-${reviewer.id}`"
                                 :model-value="selectedReviewerIds.includes(reviewer.id)"
-                                @update:model-value="() => toggleReviewer(reviewer.id)"
-                            />
+                                @update:model-value="() => toggleReviewer(reviewer.id)" />
                             <div class="flex-1 min-w-0">
                                 <div class="flex items-center gap-2">
-                                    <Label
-                                        :for="`reviewer-${reviewer.id}`"
-                                        class="text-sm font-medium cursor-pointer"
-                                    >
+                                    <Label :for="`reviewer-${reviewer.id}`" class="text-sm font-medium cursor-pointer">
                                         {{ reviewer.name }}
                                     </Label>
                                     <Badge variant="outline" class="text-xs">
@@ -247,17 +229,11 @@ const assignReviewers = () => {
                 </div>
 
                 <!-- Auto-assign Forms Option -->
-                <div
-                    v-if="hasReviewEvaluationForms"
-                    class="border rounded-lg p-4 bg-blue-50/50 dark:bg-blue-950/20"
-                >
+                <div v-if="hasReviewEvaluationForms" class="border rounded-lg p-4 bg-blue-50/50 dark:bg-blue-950/20">
                     <div class="flex items-start gap-3">
                         <Checkbox id="auto-assign-forms" v-model:checked="autoAssignForms" />
                         <div class="space-y-1">
-                            <Label
-                                for="auto-assign-forms"
-                                class="text-sm font-medium cursor-pointer"
-                            >
+                            <Label for="auto-assign-forms" class="text-sm font-medium cursor-pointer">
                                 Automatically assign evaluation forms
                             </Label>
                             <p class="text-xs text-muted-foreground">
@@ -278,19 +254,10 @@ const assignReviewers = () => {
             </div>
 
             <DialogFooter>
-                <Button
-                    type="button"
-                    variant="outline"
-                    :disabled="isSubmitting"
-                    @click="handleClose"
-                >
+                <Button type="button" variant="outline" :disabled="isSubmitting" @click="handleClose">
                     Cancel
                 </Button>
-                <Button
-                    type="button"
-                    :disabled="!hasSelectedReviewers || isSubmitting"
-                    @click="assignReviewers"
-                >
+                <Button type="button" :disabled="!hasSelectedReviewers || isSubmitting" @click="assignReviewers">
                     <Loader2 v-if="isSubmitting" class="h-4 w-4 mr-2 animate-spin" />
                     <UserPlus v-else class="h-4 w-4 mr-2" />
                     Assign

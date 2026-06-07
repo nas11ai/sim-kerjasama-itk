@@ -67,7 +67,10 @@ class FormAccessControlController extends Controller
             ->groupBy('form_id');
 
         $groupAccessControls->getCollection()->transform(function ($item) use ($controls) {
-            $item->controls = $controls[$item->form_id] ?? collect();
+            $item->setAttribute(
+                'controls',
+                $controls[$item->form_id] ?? collect()
+            );
 
             return $item;
         });

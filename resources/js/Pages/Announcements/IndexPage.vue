@@ -287,8 +287,9 @@ function stripHtml(html: string) {
                                 : 'text-muted-foreground hover:bg-muted',
                             !link.url && 'opacity-50 cursor-not-allowed',
                         ]"
-                        v-html="link.label"
-                    />
+                    >
+                        {{ link.label }}
+                    </Link>
                 </nav>
             </div>
         </div>
