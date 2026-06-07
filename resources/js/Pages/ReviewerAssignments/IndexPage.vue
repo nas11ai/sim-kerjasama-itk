@@ -510,8 +510,9 @@ const sortedAssignments = computed(() => {
                                             ? 'opacity-50 cursor-not-allowed'
                                             : 'cursor-pointer',
                                     ]"
-                                    v-html="link.label"
-                                />
+                                >
+                                    {{ link.label }}
+                                </Link>
                             </div>
                         </div>
                     </div>

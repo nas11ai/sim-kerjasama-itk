@@ -2,13 +2,16 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
- * @property \Illuminate\Database\Eloquent\Collection<int, FormField> $formFields
+ * @property-read FormType|null $formType
+ * @property-read Collection<int, FormField> $formFields
+ * @property-read Collection<int, FormAccessControl> $formAccessControls
  */
 class Form extends Model
 {
@@ -27,7 +30,7 @@ class Form extends Model
     /**
      * @return HasMany<FormField, $this>
      */
-    public function formFields()
+    public function formFields(): HasMany
     {
         return $this->hasMany(FormField::class);
     }
@@ -35,7 +38,7 @@ class Form extends Model
     /**
      * @return HasMany<FormAccessControl, $this>
      */
-    public function formAccessControls()
+    public function formAccessControls(): HasMany
     {
         return $this->hasMany(FormAccessControl::class);
     }

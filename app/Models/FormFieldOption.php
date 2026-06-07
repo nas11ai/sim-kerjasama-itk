@@ -11,7 +11,6 @@ use Illuminate\Database\Eloquent\Model;
  * @property string|null $value
  * @property int|null $order
  */
-
 class FormFieldOption extends Model
 {
     protected $fillable = ['form_field_id', 'label'];

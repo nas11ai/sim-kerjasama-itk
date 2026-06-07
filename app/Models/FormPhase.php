@@ -3,11 +3,13 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
  * @property int $review_evaluation_forms_count
  * @property int $required_review_evaluation_forms_count
+ * @property-read SubmissionPeriod|null $submissionPeriod
  */
 class FormPhase extends Model
 {
@@ -29,7 +31,9 @@ class FormPhase extends Model
     {
         return $this->hasMany(SubmissionPeriodPhase::class);
     }
-    public function submissionPeriod()
+
+    /** @return BelongsTo<SubmissionPeriod, $this> */
+    public function submissionPeriod(): BelongsTo
     {
         return $this->belongsTo(SubmissionPeriod::class);
     }
