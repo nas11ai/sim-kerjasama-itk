@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import AlertContainer from '@/Components/AlertContainer.vue'
-import Checkbox from '@/Components/Checkbox.vue'
+import Checkbox from '@/Components/BaseCheckbox.vue'
 import InputError from '@/Components/InputError.vue'
 import InputLabel from '@/Components/InputLabel.vue'
 import PrimaryButton from '@/Components/PrimaryButton.vue'
