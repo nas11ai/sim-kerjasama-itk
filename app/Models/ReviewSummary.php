@@ -8,13 +8,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
- * @property int $id
- * @property int $form_submission_id
- * @property int|null $reviewer_id
- * @property string $status
- * @property-read FormSubmission|null $formSubmission
- * @property-read Reviewer|null $reviewer
- * @property-read Collection<int, ReviewSummaryAttachment> $attachments
+ * @property-read \App\Models\FormSubmission|null $formSubmission
  */
 class ReviewSummary extends Model
 {

@@ -7,13 +7,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
- * @property int $id
- * @property int $reviewer_id
- * @property int $form_submission_id
- * @property-read FormSubmission $formSubmission
- * @property-read Reviewer $reviewer
- *
- * @method bool hasAllRequiredFormsCompleted()
+ * @property-read \App\Models\FormSubmission|null $formSubmission
  */
 class SubmissionReviewer extends Model
 {

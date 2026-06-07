@@ -6,7 +6,14 @@ use Carbon\CarbonInterface;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasMany;
+
+/**
+ * @property int $id
+ * @property int $user_id
+ * @property int $reviewer_role_id
+ * @property-read \App\Models\User $user
+ * @property-read \App\Models\ReviewerRole $reviewerRole
+ */
 
 /**
  * @property int $id
@@ -32,20 +39,17 @@ class Reviewer extends Model
         'end_date',
     ];
 
-    /** @return BelongsTo<User, $this> */
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }
 
-    /** @return BelongsTo<ReviewerRole, $this> */
     public function reviewerRole(): BelongsTo
     {
         return $this->belongsTo(ReviewerRole::class);
     }
 
-    /** @return HasMany<SubmissionReviewer, $this> */
-    public function submissionReviewers(): HasMany
+    public function submissionReviewers()
     {
         return $this->hasMany(SubmissionReviewer::class);
     }

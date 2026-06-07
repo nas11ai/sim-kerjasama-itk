@@ -145,8 +145,7 @@ class CompleteFormBuilderController extends Controller
             // Create Form Phase Details for each access control
             // All access controls are for the same form, so they should have the same order number
             $maxOrder = $formPhase->formPhaseDetails()->max('order');
-
-            $nextOrder = $maxOrder ? $maxOrder + 1 : 1;
+            $nextOrder = ($maxOrder ?? 0) + 1;
 
             foreach ($accessControlIds as $controlId) {
                 $phaseDetail = FormPhaseDetail::create([
@@ -176,6 +175,7 @@ class CompleteFormBuilderController extends Controller
                         // Create evaluation form fields
                         if (isset($evalForm['fields'])) {
                             foreach ($evalForm['fields'] as $fieldIndex => $evalField) {
+                                /** @var \App\Models\ReviewFormField $reviewField */
                                 $reviewField = $evaluationForm->reviewFormFields()->create([
                                     'field_type_id' => $evalField['field_type_id'],
                                     'label' => $evalField['label'],
@@ -238,7 +238,7 @@ class CompleteFormBuilderController extends Controller
             DB::rollback();
 
             return back()
-                ->withErrors(['error' => 'Gagal membuat formulir: '.$e->getMessage()])
+                ->withErrors(['error' => 'Gagal membuat formulir: ' . $e->getMessage()])
                 ->withInput();
         }
     }
