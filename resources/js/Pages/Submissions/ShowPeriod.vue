@@ -553,8 +553,9 @@ const pendingSubmissions = computed(
                                 :disabled="!link.url"
                                 size="sm"
                                 @click="router.visit(link.url!)"
-                                v-html="link.label"
-                            />
+                            >
+                                {{ link.label }}
+                            </Button>
                         </div>
                     </div>
                 </CardContent>

@@ -7,8 +7,10 @@ use App\Models\FormPhaseDetail;
 use App\Models\FormSubmission;
 use App\Models\ReviewComment;
 use App\Models\Reviewer;
+use App\Models\ReviewerFormAssignment;
 use App\Models\ReviewSummary;
 use App\Models\ReviewSummaryAttachment;
+use App\Models\SubmissionDate;
 use App\Models\SubmissionPeriod;
 use App\Models\SubmissionReviewer;
 use App\Services\EmailNotificationService;
@@ -98,7 +100,7 @@ class ReviewController extends Controller
                 throw new \Exception('Tidak dapat menghapus reviewer dengan respons evaluasi yang telah dikirim.');
             }
 
-            /** @var \App\Models\ReviewerFormAssignment $assignment */
+            /** @var ReviewerFormAssignment $assignment */
 
             // Delete evaluation form assignments and draft responses
             foreach ($submissionReviewer->reviewerFormAssignments as $assignment) {
@@ -153,7 +155,6 @@ class ReviewController extends Controller
         // Check reviewer permissions
         else {
             /** @var Reviewer|null $reviewer */
-
             $reviewer = Reviewer::where('user_id', $user->id)->first();
 
             if ($reviewer) {
@@ -282,7 +283,7 @@ class ReviewController extends Controller
             // Handle attachments
             if ($request->hasFile('attachments')) {
                 foreach ($request->file('attachments') as $file) {
-                    $path = $file->store('review-attachments/' . $submission->id, 'public');
+                    $path = $file->store('review-attachments/'.$submission->id, 'public');
 
                     ReviewSummaryAttachment::create([
                         'review_summary_id' => $reviewSummary->id,
@@ -327,7 +328,6 @@ class ReviewController extends Controller
         // Check reviewer permissions
         else {
             /** @var Reviewer|null $reviewer */
-
             $reviewer = Reviewer::where('user_id', $user->id)->first();
 
             if ($reviewer) {
@@ -435,7 +435,7 @@ class ReviewController extends Controller
         } catch (\Exception $e) {
             DB::rollback();
 
-            return back()->withErrors(['error' => 'Gagal menugaskan formulir evaluasi: ' . $e->getMessage()]);
+            return back()->withErrors(['error' => 'Gagal menugaskan formulir evaluasi: '.$e->getMessage()]);
         }
     }
 
@@ -463,7 +463,7 @@ class ReviewController extends Controller
 
         // Get available evaluation forms
         $evaluationForms = $this->getSubmissionFormPhase($submission)
-                ?->activeReviewEvaluationForms()
+            ?->activeReviewEvaluationForms()
             ->get(['id', 'title', 'is_required', 'order']) ?? collect();
 
         return response()->json([
@@ -522,7 +522,7 @@ class ReviewController extends Controller
             return new \DateTime('+7 days');
         }
 
-        /** @var \App\Models\SubmissionDate|null $latestDate */
+        /** @var SubmissionDate|null $latestDate */
         $latestDate = $submissionPeriod->submissionDates()
             ->orderBy('datetime', 'desc')
             ->first();
@@ -549,7 +549,6 @@ class ReviewController extends Controller
         // Check if it's the reviewer's own review
         elseif ($reviewSummary->reviewer_id) {
             /** @var Reviewer|null $reviewer */
-
             $reviewer = Reviewer::where('user_id', $user->id)->first();
 
             if ($reviewer && $reviewSummary->reviewer_id === $reviewer->id) {
@@ -634,7 +633,7 @@ class ReviewController extends Controller
             $submission->update(['status' => SubmissionStatus::REJECTED]);
         } elseif ($reviewSummaries->where('status', 'open')->isNotEmpty()) {
             $submission->update(['status' => SubmissionStatus::NEEDS_REVISION]);
-        } elseif ($reviewSummaries->every(fn($r) => $r->status === 'resolved')) {
+        } elseif ($reviewSummaries->every(fn ($r) => $r->status === 'resolved')) {
             $submission->update(['status' => SubmissionStatus::APPROVED]);
         } else {
             $submission->update(['status' => SubmissionStatus::UNDER_REVIEW]);

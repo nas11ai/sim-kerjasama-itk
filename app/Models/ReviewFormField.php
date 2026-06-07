@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property bool $is_required
  * @property string $label
  * @property array|null $validation_rules
+ * @property-read FieldType|null $fieldType
  */
 class ReviewFormField extends Model
 {

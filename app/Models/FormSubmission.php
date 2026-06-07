@@ -3,21 +3,25 @@
 namespace App\Models;
 
 use App\SubmissionStatus;
+use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
  * @property int $id
  * @property int $form_id
  * @property int $submitted_by
- * @property \Carbon\Carbon|null $submitted_at
- * @property-read \App\Models\Form $form
- * @property-read \App\Models\User $submittedBy
- * @property \App\SubmissionStatus|null $status
+ * @property Carbon|null $submitted_at
+ * @property-read Form $form
+ * @property-read User $submittedBy
+ * @property-read Collection<int, FormFieldResponse> $formFieldResponses
+ * @property-read Collection<int, SubmissionReviewer> $submissionReviewers
+ * @property-read Collection<int, ReviewSummary> $reviewSummaries
+ * @property SubmissionStatus|null $status
  */
-
 class FormSubmission extends Model
 {
     use HasFactory;
@@ -34,11 +38,13 @@ class FormSubmission extends Model
         'is_submitted' => 'boolean',
     ];
 
+    /** @return BelongsTo<Form, $this> */
     public function form(): BelongsTo
     {
         return $this->belongsTo(Form::class);
     }
 
+    /** @return BelongsTo<User, $this> */
     public function submittedBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'submitted_by');
@@ -52,12 +58,13 @@ class FormSubmission extends Model
         return $this->hasMany(FormFieldResponse::class);
     }
 
-
+    /** @return HasMany<SubmissionReviewer, $this> */
     public function submissionReviewers(): HasMany
     {
         return $this->hasMany(SubmissionReviewer::class);
     }
 
+    /** @return HasMany<ReviewSummary, $this> */
     public function reviewSummaries(): HasMany
     {
         return $this->hasMany(ReviewSummary::class);
@@ -106,9 +113,9 @@ class FormSubmission extends Model
             'id',
             'id'
         )->whereIn(
-                'reviewer_form_assignments.submission_reviewer_id',
-                $this->submissionReviewers()->pluck('id')
-            );
+            'reviewer_form_assignments.submission_reviewer_id',
+            $this->submissionReviewers()->pluck('id')
+        );
     }
 
     // NEW: Get submitted review form responses
@@ -195,7 +202,7 @@ class FormSubmission extends Model
 
         foreach ($reviewersNeedingAssignment as $submissionReviewer) {
             // Assign all required forms by default
-            /** @var \Illuminate\Database\Eloquent\Collection<int, ReviewEvaluationForm> $requiredForms */
+            /** @var Collection<int, ReviewEvaluationForm> $requiredForms */
             $requiredForms = $formPhaseDetail->requiredReviewEvaluationForms()->get();
 
             foreach ($requiredForms as $form) {
@@ -365,7 +372,7 @@ class FormSubmission extends Model
             return [];
         }
 
-        /** @var \Illuminate\Database\Eloquent\Collection<int, ReviewEvaluationForm> $evaluationForms */
+        /** @var Collection<int, ReviewEvaluationForm> $evaluationForms */
         $evaluationForms = $formPhaseDetail->activeReviewEvaluationForms()->get();
         $summary = [];
 

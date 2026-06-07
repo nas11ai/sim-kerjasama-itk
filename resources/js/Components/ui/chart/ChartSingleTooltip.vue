@@ -28,6 +28,7 @@ function template(d: any, i: number, elements: (HTMLElement | SVGElement)[]) {
                 return { ...legendReference, value: valueFormatter(value) }
             })
             const TooltipComponent = props.customTooltip ?? ChartTooltip
+            // eslint-disable-next-line vue/one-component-per-file -- mount tooltip component instance only
             createApp(TooltipComponent, { title: d[props.index], data: omittedData }).mount(
                 componentDiv
             )
@@ -46,6 +47,7 @@ function template(d: any, i: number, elements: (HTMLElement | SVGElement)[]) {
             ]
             const componentDiv = document.createElement('div')
             const TooltipComponent = props.customTooltip ?? ChartTooltip
+            // eslint-disable-next-line vue/one-component-per-file -- mount tooltip component instance only
             createApp(TooltipComponent, { title: d[props.index], data: omittedData }).mount(
                 componentDiv
             )

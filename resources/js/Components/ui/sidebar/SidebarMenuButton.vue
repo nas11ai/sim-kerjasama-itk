@@ -19,6 +19,7 @@ const props = withDefaults(
         as: 'button',
         variant: 'default',
         size: 'default',
+        tooltip: '',
     }
 )
 

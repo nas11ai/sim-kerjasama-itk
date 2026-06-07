@@ -2,6 +2,7 @@
 
 namespace App\Console\Commands;
 
+use App\Models\SubmissionDate;
 use App\Models\SubmissionPeriod;
 use App\Services\EmailNotificationService;
 use Carbon\Carbon;
@@ -35,10 +36,10 @@ class NotifyActiveSubmissionPeriods extends Command
                     return false;
                 }
 
-                /** @var \App\Models\SubmissionDate $firstDate */
+                /** @var SubmissionDate $firstDate */
                 $firstDate = $dates->first();
 
-                /** @var \App\Models\SubmissionDate $lastDate */
+                /** @var SubmissionDate $lastDate */
                 $lastDate = $dates->last();
 
                 $startDate = Carbon::parse($firstDate->datetime);

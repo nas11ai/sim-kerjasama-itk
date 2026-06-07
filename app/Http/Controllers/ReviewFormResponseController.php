@@ -126,7 +126,7 @@ class ReviewFormResponseController extends Controller
 
         // Get or create response
 
-        /** @var \App\Models\ReviewFormResponse $response */
+        /** @var ReviewFormResponse $response */
         $response = $assignment->reviewFormResponse ?? ReviewFormResponse::create([
             'reviewer_form_assignment_id' => $assignment->id,
             'status' => 'draft',
@@ -152,7 +152,7 @@ class ReviewFormResponseController extends Controller
     {
         $this->authorizeAssignment($assignment);
 
-        /** @var \App\Models\ReviewFormResponse $response */
+        /** @var ReviewFormResponse $response */
         $response = $assignment->reviewFormResponse ?? ReviewFormResponse::create([
             'reviewer_form_assignment_id' => $assignment->id,
             'status' => 'draft',
@@ -196,7 +196,7 @@ class ReviewFormResponseController extends Controller
     {
         $this->authorizeAssignment($assignment);
 
-        /** @var \App\Models\ReviewFormResponse $response */
+        /** @var ReviewFormResponse $response */
         $response = $assignment->reviewFormResponse;
 
         if (!$response) {
@@ -274,7 +274,7 @@ class ReviewFormResponseController extends Controller
             'reviewFormResponse.reviewFormFieldResponses',
         ]);
 
-        /** @var \App\Models\ReviewFormResponse $response */
+        /** @var ReviewFormResponse $response */
         $response = $assignment->reviewFormResponse;
 
         // Map responses for display
@@ -299,7 +299,7 @@ class ReviewFormResponseController extends Controller
     {
         $this->authorizeAssignment($assignment);
 
-        /** @var \App\Models\ReviewFormResponse $response */
+        /** @var ReviewFormResponse $response */
         $response = $assignment->reviewFormResponse;
         if (!$response || !$response->isSubmitted()) {
             return back()->withErrors(['error' => 'Tidak ditemukan respons yang telah dikirim.']);
@@ -429,7 +429,7 @@ class ReviewFormResponseController extends Controller
     {
         $this->authorizeAssignment($assignment);
 
-        /** @var \App\Models\ReviewFormResponse $response */
+        /** @var ReviewFormResponse $response */
         $response = $assignment->reviewFormResponse;
 
         if (!$response) {

@@ -34,8 +34,8 @@ class FormPhaseController extends Controller
 
         if ($search) {
             $query->where(function ($q) use ($search) {
-                $q->where('title', 'ilike', '%' . $search . '%')
-                    ->orWhere('description', 'ilike', '%' . $search . '%');
+                $q->where('title', 'ilike', '%'.$search.'%')
+                    ->orWhere('description', 'ilike', '%'.$search.'%');
             });
         }
 
@@ -50,11 +50,11 @@ class FormPhaseController extends Controller
         // Calculate review evaluation forms counts for each phase
         $formPhases->getCollection()->transform(function ($phase) {
             $phase->review_evaluation_forms_count = $phase->formPhaseDetails->sum(
-                fn(FormPhaseDetail $detail) => $detail->reviewEvaluationFormsCount
+                fn (FormPhaseDetail $detail) => $detail->reviewEvaluationFormsCount
             );
 
             $phase->required_review_evaluation_forms_count = $phase->formPhaseDetails->sum(
-                fn(FormPhaseDetail $detail) => $detail->requiredReviewEvaluationFormsCount
+                fn (FormPhaseDetail $detail) => $detail->requiredReviewEvaluationFormsCount
             );
 
             return $phase;
@@ -158,7 +158,7 @@ class FormPhaseController extends Controller
         } catch (\Exception $e) {
             DB::rollback();
 
-            return back()->withErrors(['error' => 'Gagal membuat tahap formulir: ' . $e->getMessage()]);
+            return back()->withErrors(['error' => 'Gagal membuat tahap formulir: '.$e->getMessage()]);
         }
     }
 
@@ -181,11 +181,11 @@ class FormPhaseController extends Controller
 
         // Hitung total dari seluruh detail
         $formPhase->review_evaluation_forms_count = $formPhase->formPhaseDetails->sum(
-            fn($detail) => $detail->reviewEvaluationFormsCount
+            fn ($detail) => $detail->reviewEvaluationFormsCount
         );
 
         $formPhase->required_review_evaluation_forms_count = $formPhase->formPhaseDetails->sum(
-            fn($detail) => $detail->requiredReviewEvaluationFormsCount
+            fn ($detail) => $detail->requiredReviewEvaluationFormsCount
         );
 
         return Inertia::render('FormPhases/Show', [
@@ -291,7 +291,7 @@ class FormPhaseController extends Controller
         } catch (\Exception $e) {
             DB::rollback();
 
-            return back()->withErrors(['error' => 'Gagal memperbarui tahap formulir: ' . $e->getMessage()]);
+            return back()->withErrors(['error' => 'Gagal memperbarui tahap formulir: '.$e->getMessage()]);
         }
     }
 
@@ -310,7 +310,7 @@ class FormPhaseController extends Controller
         } catch (\Exception $e) {
             DB::rollback();
 
-            return back()->withErrors(['error' => 'Gagal menghapus tahap formulir: ' . $e->getMessage()]);
+            return back()->withErrors(['error' => 'Gagal menghapus tahap formulir: '.$e->getMessage()]);
         }
     }
 
@@ -354,7 +354,7 @@ class FormPhaseController extends Controller
         } catch (\Exception $e) {
             return response()->json([
                 'success' => false,
-                'message' => 'Gagal memperbarui status: ' . $e->getMessage(),
+                'message' => 'Gagal memperbarui status: '.$e->getMessage(),
             ], 500);
         }
     }
@@ -421,7 +421,7 @@ class FormPhaseController extends Controller
         } catch (\Exception $e) {
             DB::rollback();
 
-            return back()->withErrors(['error' => 'Gagal menghapus tahap formulir terpilih: ' . $e->getMessage()]);
+            return back()->withErrors(['error' => 'Gagal menghapus tahap formulir terpilih: '.$e->getMessage()]);
         }
     }
 }

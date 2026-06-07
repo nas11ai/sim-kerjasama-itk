@@ -7,6 +7,12 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
+/**
+ * @property int $id
+ * @property int $form_phase_detail_id
+ * @property string $title
+ * @property-read FormPhaseDetail|null $formPhaseDetail
+ */
 class ReviewEvaluationForm extends Model
 {
     use HasFactory;
@@ -30,6 +36,7 @@ class ReviewEvaluationForm extends Model
      *
      * @return BelongsTo<FormPhaseDetail, $this>
      */
+    /** @return BelongsTo<FormPhaseDetail, $this> */
     public function formPhaseDetail(): BelongsTo
     {
         return $this->belongsTo(FormPhaseDetail::class, 'form_phase_detail_id');

@@ -8,7 +8,7 @@ import {
     useVueTable,
 } from '@tanstack/vue-table'
 import { computed, ref } from 'vue'
-import Table from './ui/table/Table.vue'
+import Table from './ui/table/uiTable.vue'
 import TableHeader from './ui/table/TableHeader.vue'
 import TableRow from './ui/table/TableRow.vue'
 import TableHead from './ui/table/TableHead.vue'

@@ -10,9 +10,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property int $id
  * @property int $reviewer_id
  * @property int $form_submission_id
- *
- * @property-read \App\Models\FormSubmission $formSubmission
- * @property-read \App\Models\Reviewer $reviewer
+ * @property-read FormSubmission $formSubmission
+ * @property-read Reviewer $reviewer
  *
  * @method bool hasAllRequiredFormsCompleted()
  */
@@ -45,16 +44,16 @@ class SubmissionReviewer extends Model
     }
 
     /**
-    * @return HasMany<ReviewerFormAssignment, $this>
-    */
+     * @return HasMany<ReviewerFormAssignment, $this>
+     */
     public function reviewerFormAssignments(): HasMany
     {
         return $this->hasMany(ReviewerFormAssignment::class);
     }
 
     /**
-    * @return HasMany<ReviewerFormAssignment, $this>
-    */
+     * @return HasMany<ReviewerFormAssignment, $this>
+     */
     public function activeReviewerFormAssignments(): HasMany
     {
         return $this->reviewerFormAssignments()->active();
@@ -243,9 +242,6 @@ class SubmissionReviewer extends Model
     }
 
     // NEW: Create form assignment
-    /**
-     * @return ReviewerFormAssignment
-     */
     public function assignForm(int $reviewEvaluationFormId, bool $isRequired = true, ?\DateTime $dueDate = null): ReviewerFormAssignment
     {
         /** @var ReviewerFormAssignment $assignment */
