@@ -482,16 +482,18 @@ const goToPage = (url: string | null) => {
                                 'hover:bg-muted': !link.active,
                             }"
                             @click="goToPage(link.url)"
-                            v-html="link.label"
-                        />
+                        >
+                            {{ link.label }}
+                        </Button>
                         <span
                             v-else
                             :class="[
                                 'px-3 py-2 text-sm rounded-md text-muted-foreground',
                                 'bg-muted cursor-not-allowed',
                             ]"
-                            v-html="link.label"
-                        />
+                        >
+                            {{ link.label }}
+                        </span>
                     </template>
                 </div>
             </div>

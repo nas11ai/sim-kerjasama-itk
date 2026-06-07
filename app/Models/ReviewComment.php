@@ -2,15 +2,16 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
- * @property-read \App\Models\User|null $user
- * @property-read \App\Models\Reviewer|null $reviewer
- * @property-read \App\Models\ReviewSummary $reviewSummary
- * @property \Illuminate\Database\Eloquent\Collection<int, \App\Models\ReviewCommentAttachment> $attachments
+ * @property-read User|null $user
+ * @property-read Reviewer|null $reviewer
+ * @property-read ReviewSummary $reviewSummary
+ * @property Collection<int, ReviewCommentAttachment> $attachments
  */
 class ReviewComment extends Model
 {
@@ -37,6 +38,7 @@ class ReviewComment extends Model
         return $this->hasMany(ReviewComment::class, 'parent_comment_id');
     }
 
+    /** @return HasMany<ReviewCommentAttachment, $this> */
     public function attachments(): HasMany
     {
         return $this->hasMany(ReviewCommentAttachment::class);

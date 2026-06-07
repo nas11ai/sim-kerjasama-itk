@@ -4,13 +4,15 @@ namespace App\Models;
 
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
  * @property \Illuminate\Support\Carbon $date
+ * @property \Illuminate\Support\Carbon|null $datetime
+ * @property-read SubmissionDateLabel|null $submissionDateLabel
  */
 class SubmissionDate extends Model
 {
-
     protected $fillable = [
         'submission_date_label_id',
         'date',
@@ -26,7 +28,8 @@ class SubmissionDate extends Model
         return $this->belongsTo(SubmissionPeriod::class);
     }
 
-    public function submissionDateLabel()
+    /** @return BelongsTo<SubmissionDateLabel, $this> */
+    public function submissionDateLabel(): BelongsTo
     {
         return $this->belongsTo(SubmissionDateLabel::class);
     }

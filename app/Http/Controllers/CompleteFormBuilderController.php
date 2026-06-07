@@ -238,7 +238,7 @@ class CompleteFormBuilderController extends Controller
             DB::rollback();
 
             return back()
-                ->withErrors(['error' => 'Gagal membuat formulir: ' . $e->getMessage()])
+                ->withErrors(['error' => 'Gagal membuat formulir: '.$e->getMessage()])
                 ->withInput();
         }
     }

@@ -2,9 +2,10 @@
 
 namespace App\Models;
 
-use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Database\Factories\UserFactory;
+use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -12,6 +13,7 @@ use Spatie\Permission\Traits\HasRoles;
 
 /**
  * @property bool $is_reviewer
+ * @property-read StudyProgram|null $studyProgram
  */
 class User extends Authenticatable implements MustVerifyEmail
 {
@@ -61,8 +63,8 @@ class User extends Authenticatable implements MustVerifyEmail
     }
 
     /**
-     * @return \Illuminate\Database\Eloquent\Relations\HasMany<
-     *     \App\Models\Reviewer,
+     * @return HasMany<
+     *     Reviewer,
      *     $this
      * >
      */
