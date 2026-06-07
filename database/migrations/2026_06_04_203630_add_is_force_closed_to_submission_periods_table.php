@@ -11,8 +11,8 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('submission_review_types', function (Blueprint $table) {
-            Schema::dropIfExists('submission_review_types');
+        Schema::table('submission_periods', function (Blueprint $table) {
+            $table->boolean('is_force_closed')->default(false)->after('name');
         });
     }
 
@@ -21,10 +21,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::table('submission_review_types', function (Blueprint $table) {
-            $table->id();
-            $table->string('name')->unique();
-            $table->timestamps();
+        Schema::table('submission_periods', function (Blueprint $table) {
+            $table->dropColumn('is_force_closed');
         });
     }
 };

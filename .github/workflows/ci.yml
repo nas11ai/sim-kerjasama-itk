@@ -65,6 +65,19 @@ jobs:
                   REDIS_HOST: localhost
                   REDIS_PORT: 6379
                   FILESYSTEM_DISK: local
+                  AWS_ACCESS_KEY_ID: minioadmin
+                  AWS_SECRET_ACCESS_KEY: minioadmin
+                  AWS_DEFAULT_REGION: us-east-1
+                  AWS_BUCKET: simpas-test
+                  AWS_ENDPOINT: http://localhost:9000
+                  AWS_USE_PATH_STYLE_ENDPOINT: true
+
+            - name: Create MinIO bucket
+              run: |
+                  curl -sSL https://dl.min.io/client/mc/release/linux-amd64/mc -o mc
+                  chmod +x mc
+                  ./mc alias set local http://localhost:9000 minioadmin minioadmin
+                  ./mc mb local/simpas-test --ignore-existing
 
             - name: Migrate
               run: php artisan migrate --force
@@ -94,6 +107,12 @@ jobs:
                   REDIS_HOST: localhost
                   REDIS_PORT: 6379
                   FILESYSTEM_DISK: local
+                  AWS_ACCESS_KEY_ID: minioadmin
+                  AWS_SECRET_ACCESS_KEY: minioadmin
+                  AWS_DEFAULT_REGION: us-east-1
+                  AWS_BUCKET: simpas-test
+                  AWS_ENDPOINT: http://localhost:9000
+                  AWS_USE_PATH_STYLE_ENDPOINT: true
 
     frontend:
         runs-on: ubuntu-latest

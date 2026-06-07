@@ -16,7 +16,7 @@ import {
     SelectValue,
 } from '@/Components/ui/select'
 import { Plus, Trash2, ArrowLeft, Calendar, Settings, FileText } from 'lucide-vue-next'
-import Checkbox from '@/Components/Checkbox.vue'
+import Checkbox from '@/Components/BaseCheckbox.vue'
 
 interface FormPhase {
     id: number

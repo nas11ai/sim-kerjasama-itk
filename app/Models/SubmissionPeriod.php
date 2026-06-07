@@ -12,7 +12,11 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  */
 class SubmissionPeriod extends Model
 {
-    protected $fillable = ['name'];
+    protected $fillable = ['name', 'is_force_closed',];
+
+    protected $casts = [
+        'is_force_closed' => 'boolean',
+    ];
 
     public function submissionPeriodDetails()
     {
