@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { Head,  } from '@inertiajs/vue3'
-import { ArrowLeft} from 'lucide-vue-next'
+import { Head } from '@inertiajs/vue3'
+import { ArrowLeft } from 'lucide-vue-next'
 import { Permission } from '@/types'
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
 import { Button } from '@/Components/ui/button'

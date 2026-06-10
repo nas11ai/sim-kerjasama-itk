@@ -11,10 +11,10 @@
 
 Daftar semua halaman dalam feature area ini beserta siapa yang mengaksesnya.
 
-| # | Page | Route | Accessible By |
-|---|------|-------|---------------|
-| 1 | [Nama halaman] | `/route/path` | Researcher |
-| 2 | [Nama halaman] | `/route/path` | Operator, Admin |
+| #   | Page           | Route         | Accessible By   |
+| --- | -------------- | ------------- | --------------- |
+| 1   | [Nama halaman] | `/route/path` | Researcher      |
+| 2   | [Nama halaman] | `/route/path` | Operator, Admin |
 
 ---
 
@@ -23,9 +23,11 @@ Daftar semua halaman dalam feature area ini beserta siapa yang mengaksesnya.
 **Route:** `/route/path`  
 **Accessible by:** [daftar role yang bisa akses]  
 **Entry points:**
+
 - [Dari mana user bisa sampai ke halaman ini — sidebar nav / tombol / redirect setelah aksi]
 
 **Exit points:**
+
 - [Kemana user pergi setelah selesai di halaman ini]
 
 ### Konten Utama
@@ -34,10 +36,10 @@ Daftar semua halaman dalam feature area ini beserta siapa yang mengaksesnya.
 
 ### Actions
 
-| Aksi | Accessible By | Kondisi |
-|------|---------------|---------|
-| [Nama aksi] | Researcher | Selalu tersedia |
-| [Nama aksi] | Operator | Hanya jika status = SUBMITTED |
+| Aksi        | Accessible By | Kondisi                       |
+| ----------- | ------------- | ----------------------------- |
+| [Nama aksi] | Researcher    | Selalu tersedia               |
+| [Nama aksi] | Operator      | Hanya jika status = SUBMITTED |
 
 ### Business Rules yang Mempengaruhi Tampilan
 

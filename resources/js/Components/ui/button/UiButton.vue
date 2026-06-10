@@ -22,15 +22,17 @@ const props = withDefaults(defineProps<Props>(), {
 
 <template>
     <Primitive
-    :as="as"
-    :as-child="asChild"
-    :disabled="disabled"
-    :class="cn(
-        buttonVariants({ variant, size }),
-        disabled ? 'opacity-50 cursor-not-allowed pointer-events-none' : '',
-        props.class
-    )
-        ">
+        :as="as"
+        :as-child="asChild"
+        :disabled="disabled"
+        :class="
+            cn(
+                buttonVariants({ variant, size }),
+                disabled ? 'opacity-50 cursor-not-allowed pointer-events-none' : '',
+                props.class
+            )
+        "
+    >
         <slot />
     </Primitive>
 </template>

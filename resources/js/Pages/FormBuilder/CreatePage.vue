@@ -17,7 +17,13 @@ import Step4ReviewSettings from './Steps/Step4ReviewSettings.vue'
 import Step5SubmissionPeriod from './Steps/Step5SubmissionPeriod.vue'
 import Step6Review from './Steps/Step6Review.vue'
 
-import type { FormType, FieldType, PhaseType, FormPhase, SubmissionPeriod } from '@/types/form-builder'
+import type {
+    FormType,
+    FieldType,
+    PhaseType,
+    FormPhase,
+    SubmissionPeriod,
+} from '@/types/form-builder'
 import type { Role } from '@/types'
 import type { Faculty } from '@/Pages/FormBuilder/Steps/Step2AccessControl.vue'
 

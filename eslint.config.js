@@ -8,8 +8,7 @@ import globals from 'globals'
 
 export default [
     {
-        ignores: ['resources/js/ziggy.js', '**/*.d.ts',
-        ],
+        ignores: ['resources/js/ziggy.js', '**/*.d.ts'],
     },
 
     js.configs.recommended,
@@ -29,9 +28,12 @@ export default [
             '@typescript-eslint/no-explicit-any': 'error',
             'no-console': 'warn',
             'no-unused-vars': 'off',
-            '@typescript-eslint/no-unused-vars': ['error', {
-                argsIgnorePattern: '^_',
-            }],
+            '@typescript-eslint/no-unused-vars': [
+                'error',
+                {
+                    argsIgnorePattern: '^_',
+                },
+            ],
         },
     },
 
@@ -53,9 +55,12 @@ export default [
             '@typescript-eslint/no-explicit-any': 'error',
             'vue/component-api-style': ['error', ['script-setup']],
             'no-unused-vars': 'off',
-            'vue/no-unused-vars': ['error', {
-                ignorePattern: '^_',
-            }],
+            'vue/no-unused-vars': [
+                'error',
+                {
+                    ignorePattern: '^_',
+                },
+            ],
             'no-console': 'warn',
         },
     },

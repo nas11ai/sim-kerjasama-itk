@@ -161,7 +161,10 @@ const totalFields = computed(() => props.formData.form.fields.length)
 const totalAccessControls = computed(() => props.formData.access_controls.length)
 const totalEvaluationForms = computed(() => props.formData.evaluation_forms.length)
 const totalEvaluationFields = computed(() =>
-    props.formData.evaluation_forms.reduce((sum: number, form: EvalForm) => sum + form.fields.length, 0)
+    props.formData.evaluation_forms.reduce(
+        (sum: number, form: EvalForm) => sum + form.fields.length,
+        0
+    )
 )
 </script>
 

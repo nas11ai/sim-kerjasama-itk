@@ -9,16 +9,16 @@
 
 ## Page Inventory
 
-| # | Page | Route | Accessible By |
-|---|------|-------|---------------|
-| 1 | Login | `/login` | Semua (unauthenticated) |
-| 2 | Register — Self | `/register` | Calon researcher ITK (unauthenticated) |
-| 3 | Register — via Invitation | `/register?token={token}` | Calon researcher eksternal (unauthenticated) |
-| 4 | Pending Verification | `/pending-verification` | Researcher (status: pending) |
-| 5 | Lengkapi Profil | `/profile/complete` | Researcher (status: active, profile incomplete) |
-| 6 | Profil Saya | `/profile` | Semua (authenticated) |
-| 7 | Lupa Password | `/forgot-password` | Semua (unauthenticated) |
-| 8 | Reset Password | `/reset-password?token={token}` | Semua (unauthenticated) |
+| #   | Page                      | Route                           | Accessible By                                   |
+| --- | ------------------------- | ------------------------------- | ----------------------------------------------- |
+| 1   | Login                     | `/login`                        | Semua (unauthenticated)                         |
+| 2   | Register — Self           | `/register`                     | Calon researcher ITK (unauthenticated)          |
+| 3   | Register — via Invitation | `/register?token={token}`       | Calon researcher eksternal (unauthenticated)    |
+| 4   | Pending Verification      | `/pending-verification`         | Researcher (status: pending)                    |
+| 5   | Lengkapi Profil           | `/profile/complete`             | Researcher (status: active, profile incomplete) |
+| 6   | Profil Saya               | `/profile`                      | Semua (authenticated)                           |
+| 7   | Lupa Password             | `/forgot-password`              | Semua (unauthenticated)                         |
+| 8   | Reset Password            | `/reset-password?token={token}` | Semua (unauthenticated)                         |
 
 ---
 
@@ -27,10 +27,12 @@
 **Route:** `/login`  
 **Accessible by:** Semua user yang belum login  
 **Entry points:**
+
 - Direct URL / bookmark
 - Redirect dari halaman manapun saat session expired
 
 **Exit points:**
+
 - → Dashboard (jika login berhasil, status `active`)
 - → Pending Verification (jika login berhasil, status `pending`)
 - → Lupa Password
@@ -41,9 +43,9 @@ Form login dengan email dan password. Link ke halaman Lupa Password.
 
 ### Actions
 
-| Aksi | Kondisi |
-|------|---------|
-| Login | Selalu tersedia |
+| Aksi                      | Kondisi         |
+| ------------------------- | --------------- |
+| Login                     | Selalu tersedia |
 | Navigasi ke Lupa Password | Selalu tersedia |
 
 ---
@@ -53,10 +55,12 @@ Form login dengan email dan password. Link ke halaman Lupa Password.
 **Route:** `/register`  
 **Accessible by:** Unauthenticated, hanya untuk email domain `@itk.ac.id`  
 **Entry points:**
+
 - Link dari halaman Login
 - Direct URL
 
 **Exit points:**
+
 - → Pending Verification (setelah register berhasil)
 
 ### Konten Utama
@@ -65,8 +69,8 @@ Form registrasi: nama lengkap, email (`@itk.ac.id`), NIDN, password, konfirmasi 
 
 ### Actions
 
-| Aksi | Kondisi |
-|------|---------|
+| Aksi              | Kondisi                                           |
+| ----------------- | ------------------------------------------------- |
 | Submit registrasi | Email harus `@itk.ac.id`, semua field wajib diisi |
 
 ### Business Rules yang Mempengaruhi Tampilan
@@ -81,9 +85,11 @@ Form registrasi: nama lengkap, email (`@itk.ac.id`), NIDN, password, konfirmasi 
 **Route:** `/register?token={token}`  
 **Accessible by:** Unauthenticated, memiliki invitation token valid  
 **Entry points:**
+
 - Link invitation yang dibagikan oleh Operator
 
 **Exit points:**
+
 - → Dashboard (setelah register berhasil — langsung active, tidak perlu verifikasi)
 - → Halaman error token tidak valid / expired
 
@@ -93,8 +99,8 @@ Form registrasi: nama lengkap, email (bebas), password, konfirmasi password. Fie
 
 ### Actions
 
-| Aksi | Kondisi |
-|------|---------|
+| Aksi              | Kondisi                              |
+| ----------------- | ------------------------------------ |
 | Submit registrasi | Token masih valid, semua field diisi |
 
 ### Business Rules yang Mempengaruhi Tampilan
@@ -108,10 +114,12 @@ Form registrasi: nama lengkap, email (bebas), password, konfirmasi password. Fie
 **Route:** `/pending-verification`  
 **Accessible by:** Researcher dengan status `pending`  
 **Entry points:**
+
 - Redirect otomatis setelah self-register
 - Redirect saat login dengan status `pending`
 
 **Exit points:**
+
 - → Dashboard (setelah operator memverifikasi dan user refresh/login ulang)
 
 ### Konten Utama
@@ -120,8 +128,8 @@ Halaman informasi status — bukan form. Menampilkan: pesan bahwa akun sedang me
 
 ### Actions
 
-| Aksi | Kondisi |
-|------|---------|
+| Aksi   | Kondisi         |
+| ------ | --------------- |
 | Keluar | Selalu tersedia |
 
 ### Business Rules yang Mempengaruhi Tampilan
@@ -135,10 +143,12 @@ Halaman informasi status — bukan form. Menampilkan: pesan bahwa akun sedang me
 **Route:** `/profile/complete`  
 **Accessible by:** Researcher dengan status `active` tapi profile belum lengkap  
 **Entry points:**
+
 - Redirect otomatis saat mencoba membuat submission dengan profile belum lengkap
 - Link dari halaman Dashboard jika ada banner "lengkapi profil"
 
 **Exit points:**
+
 - → Submission create (jika masuk dari redirect submission)
 - → Dashboard
 
@@ -148,8 +158,8 @@ Form melengkapi profil: nomor telepon, bidang keahlian, foto profil. Data dasar 
 
 ### Actions
 
-| Aksi | Kondisi |
-|------|---------|
+| Aksi          | Kondisi                 |
+| ------------- | ----------------------- |
 | Simpan profil | Semua field wajib diisi |
 
 ### Business Rules yang Mempengaruhi Tampilan
@@ -163,9 +173,11 @@ Form melengkapi profil: nomor telepon, bidang keahlian, foto profil. Data dasar 
 **Route:** `/profile`  
 **Accessible by:** Semua user authenticated  
 **Entry points:**
+
 - Topbar dropdown → "Profil Saya"
 
 **Exit points:**
+
 - Tetap di halaman yang sama setelah update berhasil
 
 ### Konten Utama
@@ -174,9 +186,9 @@ Edit profil: nama lengkap, nomor telepon, bidang keahlian, foto profil. NIDN dan
 
 ### Actions
 
-| Aksi | Kondisi |
-|------|---------|
-| Update profil | Semua field wajib diisi |
+| Aksi           | Kondisi                               |
+| -------------- | ------------------------------------- |
+| Update profil  | Semua field wajib diisi               |
 | Ganti password | Field password lama, baru, konfirmasi |
 
 ---

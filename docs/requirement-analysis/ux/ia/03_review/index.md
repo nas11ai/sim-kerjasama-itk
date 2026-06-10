@@ -9,14 +9,14 @@
 
 ## Page Inventory
 
-| # | Page | Route | Accessible By |
-|---|------|-------|---------------|
-| 1 | Penugasan Review (list) | `/review/assigned` | Reviewer |
-| 2 | Riwayat Review | `/review/history` | Reviewer |
-| 3 | Form Evaluasi | `/review/{submission_reviewer_id}/evaluate` | Reviewer |
-| 4 | Review Summary & Diskusi | `/review/{submission_reviewer_id}/summary` | Reviewer, Researcher (read + reply) |
-| 5 | Assign Reviewer | `/submissions/{id}/reviewers` | Operator, Admin |
-| 6 | Reassign Reviewer | `/review/{submission_reviewer_id}/reassign` | Operator, Admin |
+| #   | Page                     | Route                                       | Accessible By                       |
+| --- | ------------------------ | ------------------------------------------- | ----------------------------------- |
+| 1   | Penugasan Review (list)  | `/review/assigned`                          | Reviewer                            |
+| 2   | Riwayat Review           | `/review/history`                           | Reviewer                            |
+| 3   | Form Evaluasi            | `/review/{submission_reviewer_id}/evaluate` | Reviewer                            |
+| 4   | Review Summary & Diskusi | `/review/{submission_reviewer_id}/summary`  | Reviewer, Researcher (read + reply) |
+| 5   | Assign Reviewer          | `/submissions/{id}/reviewers`               | Operator, Admin                     |
+| 6   | Reassign Reviewer        | `/review/{submission_reviewer_id}/reassign` | Operator, Admin                     |
 
 ---
 
@@ -25,9 +25,11 @@
 **Route:** `/review/assigned`  
 **Accessible by:** Reviewer  
 **Entry points:**
+
 - Sidebar nav → Penugasan Review
 
 **Exit points:**
+
 - → Form Evaluasi (klik submission yang pending)
 - → Review Summary & Diskusi (klik submission yang completed, ada diskusi open)
 
@@ -42,10 +44,10 @@ Setiap item menampilkan: judul submission, lead researcher, skema, deadline eval
 
 ### Actions
 
-| Aksi | Kondisi |
-|------|---------|
-| Mulai / Lanjutkan Evaluasi | `evaluation_status: pending` |
-| Lihat Summary & Diskusi | `evaluation_status: completed` |
+| Aksi                       | Kondisi                        |
+| -------------------------- | ------------------------------ |
+| Mulai / Lanjutkan Evaluasi | `evaluation_status: pending`   |
+| Lihat Summary & Diskusi    | `evaluation_status: completed` |
 
 ### Business Rules yang Mempengaruhi Tampilan
 
@@ -58,9 +60,11 @@ Setiap item menampilkan: judul submission, lead researcher, skema, deadline eval
 **Route:** `/review/history`  
 **Accessible by:** Reviewer  
 **Entry points:**
+
 - Sidebar nav → Riwayat Review
 
 **Exit points:**
+
 - → Detail Submission (read-only, klik item)
 
 ### Konten Utama
@@ -78,10 +82,12 @@ Semua submission yang pernah dievaluasi oleh reviewer ini, termasuk yang sudah r
 **Route:** `/review/{submission_reviewer_id}/evaluate`  
 **Accessible by:** Reviewer (yang di-assign)  
 **Entry points:**
+
 - Klik "Mulai Evaluasi" dari Penugasan Review list
 - Notifikasi assignment baru
 
 **Exit points:**
+
 - → Review Summary & Diskusi (setelah submit evaluasi)
 
 ### Konten Utama
@@ -95,10 +101,10 @@ ReviewEvaluationForm bisa terdiri dari beberapa form (ReviewerFormAssignments) j
 
 ### Actions
 
-| Aksi | Kondisi |
-|------|---------|
-| Simpan Draft Evaluasi | `status: draft` |
-| Submit Evaluasi | Semua field required terisi |
+| Aksi                  | Kondisi                     |
+| --------------------- | --------------------------- |
+| Simpan Draft Evaluasi | `status: draft`             |
+| Submit Evaluasi       | Semua field required terisi |
 
 ### Business Rules yang Mempengaruhi Tampilan
 
@@ -112,11 +118,13 @@ ReviewEvaluationForm bisa terdiri dari beberapa form (ReviewerFormAssignments) j
 **Route:** `/review/{submission_reviewer_id}/summary`  
 **Accessible by:** Reviewer (write), Researcher (read + reply), Operator, Admin (read)  
 **Entry points:**
+
 - Redirect setelah submit evaluasi (Reviewer)
 - Notifikasi NEEDS_REVISION (Researcher)
 - Link dari Detail Submission (Operator/Admin)
 
 **Exit points:**
+
 - Tetap di halaman (diskusi berlanjut)
 - → Penugasan Review list (Reviewer setelah semua resolved)
 
@@ -130,11 +138,11 @@ Dua area utama:
 
 ### Actions
 
-| Aksi | Accessible By | Kondisi |
-|------|---------------|---------|
-| Tulis komentar baru | Reviewer | ReviewSummary status: open |
-| Reply komentar | Reviewer, Researcher | ReviewSummary status: open |
-| Tandai resolved | Reviewer | Semua thread terjawab (judgment reviewer) |
+| Aksi                | Accessible By        | Kondisi                                   |
+| ------------------- | -------------------- | ----------------------------------------- |
+| Tulis komentar baru | Reviewer             | ReviewSummary status: open                |
+| Reply komentar      | Reviewer, Researcher | ReviewSummary status: open                |
+| Tandai resolved     | Reviewer             | Semua thread terjawab (judgment reviewer) |
 
 ### Business Rules yang Mempengaruhi Tampilan
 
@@ -149,10 +157,12 @@ Dua area utama:
 **Route:** `/submissions/{id}/reviewers`  
 **Accessible by:** Operator, Admin  
 **Entry points:**
+
 - Tombol "Assign Reviewer" dari Detail Pengajuan (status: SUBMITTED)
 - Sidebar → Penugasan Reviewer (shortcut ke list)
 
 **Exit points:**
+
 - → Detail Pengajuan
 
 ### Konten Utama
@@ -163,11 +173,11 @@ Form pencarian reviewer menampilkan: nama, NIDN, tipe (internal/external), workl
 
 ### Actions
 
-| Aksi | Accessible By | Kondisi |
-|------|---------------|---------|
-| Tambah reviewer | Operator, Admin | Jumlah reviewer < batas maksimum skema |
-| Hapus reviewer | Operator, Admin | `evaluation_status: pending` (belum mulai evaluasi) |
-| Konfirmasi assignment | Operator, Admin | Jumlah reviewer ≥ `min_reviewer_count` |
+| Aksi                  | Accessible By   | Kondisi                                             |
+| --------------------- | --------------- | --------------------------------------------------- |
+| Tambah reviewer       | Operator, Admin | Jumlah reviewer < batas maksimum skema              |
+| Hapus reviewer        | Operator, Admin | `evaluation_status: pending` (belum mulai evaluasi) |
+| Konfirmasi assignment | Operator, Admin | Jumlah reviewer ≥ `min_reviewer_count`              |
 
 ### Business Rules yang Mempengaruhi Tampilan
 
@@ -182,9 +192,11 @@ Form pencarian reviewer menampilkan: nama, NIDN, tipe (internal/external), workl
 **Route:** `/review/{submission_reviewer_id}/reassign`  
 **Accessible by:** Operator, Admin  
 **Entry points:**
+
 - Tombol "Ganti Reviewer" dari halaman Assign Reviewer
 
 **Exit points:**
+
 - → Assign Reviewer / Detail Submission
 
 ### Konten Utama

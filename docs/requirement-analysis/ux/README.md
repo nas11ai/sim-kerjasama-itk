@@ -7,7 +7,7 @@
 
 Dokumen ini mendefinisikan **Information Architecture (IA)** dan **UX Patterns** untuk SIMPAS v2. Dibuat berdampingan dengan DDD documentation di `ddd/` — bukan pengganti, tapi kelanjutan dari sisi user experience.
 
-Tujuannya: developer dan desainer bisa langsung tahu *halaman apa saja yang ada*, *siapa yang mengaksesnya*, dan *pola interaksi apa yang dipakai* — tanpa harus menebak-nebak dari kode.
+Tujuannya: developer dan desainer bisa langsung tahu _halaman apa saja yang ada_, _siapa yang mengaksesnya_, dan _pola interaksi apa yang dipakai_ — tanpa harus menebak-nebak dari kode.
 
 ---
 
