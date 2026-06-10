@@ -20,7 +20,7 @@ const props = defineProps<{
     }
 }>()
 
-const dataTableRef = ref<InstanceType<typeof DataTable>>()
+const dataTableRef = ref<{ openConfirmDialog: (_id: number) => void }>()
 
 const columns: ColumnDef<Role>[] = [
     {

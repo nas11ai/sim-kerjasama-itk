@@ -128,13 +128,12 @@ const submit = () => {
             selectedFiles.value = []
             if (fileInputRef.value) fileInputRef.value.value = ''
         },
-        onError: (errors) => {
+        onError: () => {
             toast({
                 title: 'Error',
                 description: 'Gagal membuat pengumuman. Silakan periksa input Anda dan coba lagi.',
                 variant: 'destructive',
             })
-            console.error('Validation errors:', errors)
         },
     })
 }

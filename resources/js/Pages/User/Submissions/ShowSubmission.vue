@@ -11,8 +11,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/Components/ui/tabs'
 import {
     ArrowLeft,
     FileText,
-    CheckCircle,
-    AlertCircle,
     Download,
     Edit,
     Clock,
@@ -89,7 +87,7 @@ interface EvaluationRequirements {
 interface ReviewSummary {
     id: number
     reviewer_id: number | null
-    status: string
+    status: 'open' | 'resolved' | 'closed'
     summary_notes: string | null
     created_at: string
     updated_at: string
@@ -231,9 +229,10 @@ const renderFieldValue = (field: FormField, value: string) => {
 
     switch (field.field_type.name.toLowerCase()) {
         case 'select':
-        case 'radio':
+        case 'radio': {
             const option = field.form_field_options.find((opt) => opt.id.toString() === value)
             return option ? option.label : value
+        }
         case 'checkbox':
             return value === '1' || value === 'true' ? 'Yes' : 'No'
         case 'date':

@@ -61,6 +61,11 @@ interface ReviewEvaluationForm {
 
 interface FormSubmission {
     id: number
+    is_submitted: boolean
+    status: string
+    created_at: string
+    updated_at: string
+    submitted_at?: string
     form: {
         id: number
         title: string

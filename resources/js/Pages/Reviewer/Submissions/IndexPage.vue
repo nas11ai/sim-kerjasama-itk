@@ -1,7 +1,7 @@
 <!-- resources/js/Pages/Reviewer/Submissions/Index.vue -->
 <script setup lang="ts">
 import { route } from 'ziggy-js'
-import { ref, computed } from 'vue'
+import { ref } from 'vue'
 import { Head, Link, router } from '@inertiajs/vue3'
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/Components/ui/card'

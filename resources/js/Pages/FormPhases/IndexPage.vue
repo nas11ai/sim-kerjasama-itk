@@ -95,6 +95,8 @@ interface FormPhase {
     created_at: string
     updated_at: string
     form_phase_details: FormPhaseDetail[]
+    review_evaluation_forms_count: number
+    required_review_evaluation_forms_count: number
 }
 
 interface PaginationLink {

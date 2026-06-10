@@ -88,10 +88,10 @@ interface Filters {
     sort_order: string
 }
 
-interface FlashMessages {
-    success?: string
-    error?: string
-}
+// interface FlashMessages {
+//     success?: string
+//     error?: string
+// }
 
 interface Props {
     faculties: PaginatedFaculties
@@ -214,7 +214,6 @@ const changePerPage = (newPerPage: unknown) => {
         } else if (typeof newPerPage === 'number') {
             perPageNumber = newPerPage
         } else {
-            // Handle Record<string, any> or other types
             return
         }
         perPage.value = perPageNumber

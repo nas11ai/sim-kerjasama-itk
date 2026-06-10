@@ -43,7 +43,11 @@ function template(d: Record<string, unknown>, i: number, elements: (HTMLElement 
         } else {
             const style = getComputedStyle(elements[i])
             const omittedData = [
-                { name: data.name as string, value: valueFormatter(data[props.index] as number), color: style.fill },
+                {
+                    name: data.name as string,
+                    value: valueFormatter(data[props.index] as number),
+                    color: style.fill,
+                },
             ]
             const componentDiv = document.createElement('div')
             const TooltipComponent = props.customTooltip ?? ChartTooltip

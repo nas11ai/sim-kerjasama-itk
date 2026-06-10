@@ -15,7 +15,6 @@ import { Label } from '@/Components/ui/label'
 import { Badge } from '@/Components/ui/badge'
 import { Separator } from '@/Components/ui/separator'
 import { UserPlus, Users, CheckCircle, AlertCircle, Loader2 } from 'lucide-vue-next'
-import { Toast } from './ui/toast'
 import { useToast } from '@/Components/ui/toast/use-toast'
 
 interface Reviewer {

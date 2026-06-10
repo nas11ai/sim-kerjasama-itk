@@ -84,6 +84,7 @@ interface AssignedReviewer {
 
 interface Submission {
     id: number
+    is_submitted: boolean
     form?: Form
     status: string
     submitted_by?: { id: number; name: string; email: string }
@@ -96,7 +97,7 @@ interface Submission {
 interface Props {
     submission: Submission
     responses: Record<number, string>
-    reviewStats: ReviewStats
+    reviewStats?: ReviewStats
     myReviewSummary?: MyReviewSummary
     reviewer: ReviewerInfo
     canReview: boolean

@@ -12,7 +12,7 @@ const props = defineProps<{
     canDelete: boolean
     canEdit: boolean
     editRouteName?: string
-    onEdit?: (row: TableRowData) => void
+    onEdit?: (_row: TableRowData) => void
 }>()
 
 const emit = defineEmits<{

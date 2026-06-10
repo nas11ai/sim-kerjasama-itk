@@ -144,6 +144,23 @@ const formData = useForm({
 
 const fieldErrors = computed(() => formData.errors as Record<string, string>)
 
+function responseVal(key: string): string | number | undefined {
+    const v = formData.responses[key]
+    if (typeof v === 'string' || typeof v === 'number') return v
+    return undefined
+}
+
+// function responseBool(key: string): boolean | null {
+//     const v = formData.responses[key]
+//     return typeof v === 'boolean' ? v : null
+// }
+
+function setResponse(key: string, val: unknown) {
+    if (typeof val === 'string' || typeof val === 'number' || val === null) {
+        formData.responses[key] = val
+    }
+}
+
 // Progress calculation
 const progress = computed(() => {
     const total = props.form.form_fields.length
@@ -199,7 +216,10 @@ const dismissCustomAlert = () => {
 }
 
 const getFormResponses = () => {
-    const responses: Array<{ form_field_id: number; value: string | number | boolean | File | null }> = []
+    const responses: Array<{
+        form_field_id: number
+        value: string | number | boolean | File | null
+    }> = []
 
     props.form.form_fields.forEach((field) => {
         const value = formData.responses[`field_${field.id}`]
@@ -268,7 +288,10 @@ const submitForm = () => {
         formDataPayload.append('form_id', String(props.form.id))
         formDataPayload.append('is_submitted', 'true')
 
-        const responses: Array<{ form_field_id: number; value: string | number | boolean | File | null }> = []
+        const responses: Array<{
+            form_field_id: number
+            value: string | number | boolean | File | null
+        }> = []
         props.form.form_fields.forEach((field) => {
             const value = formData.responses[`field_${field.id}`]
 
@@ -566,12 +589,15 @@ const goBack = () => {
                                             ].includes(field.field_type.name.toLowerCase())
                                         "
                                         :id="`field_${field.id}`"
-                                        v-model="formData.responses[`field_${field.id}`]"
+                                        :model-value="responseVal(`field_${field.id}`)"
                                         :type="field.field_type.name.toLowerCase()"
                                         :placeholder="`Masukkan ${field.label.toLowerCase()}...`"
                                         :required="field.is_required"
                                         :disabled="!canEdit"
                                         class="max-w-2xl"
+                                        @update:model-value="
+                                            formData.responses[`field_${field.id}`] = $event
+                                        "
                                     />
 
                                     <!-- Textarea -->
@@ -580,19 +606,25 @@ const goBack = () => {
                                             field.field_type.name.toLowerCase() === 'textarea'
                                         "
                                         :id="`field_${field.id}`"
-                                        v-model="formData.responses[`field_${field.id}`]"
+                                        :model-value="responseVal(`field_${field.id}`)"
                                         rows="4"
                                         :placeholder="`Masukkan ${field.label.toLowerCase()}...`"
                                         :required="field.is_required"
                                         :disabled="!canEdit"
                                         class="max-w-2xl"
+                                        @update:model-value="
+                                            formData.responses[`field_${field.id}`] = $event
+                                        "
                                     />
 
                                     <!-- Select/Dropdown -->
                                     <Select
                                         v-else-if="field.field_type.name.toLowerCase() === 'select'"
-                                        v-model="formData.responses[`field_${field.id}`]"
+                                        :model-value="responseVal(`field_${field.id}`)"
                                         :disabled="!canEdit"
+                                        @update:model-value="
+                                            setResponse(`field_${field.id}`, $event)
+                                        "
                                     >
                                         <SelectTrigger class="max-w-md">
                                             <SelectValue
@@ -613,9 +645,12 @@ const goBack = () => {
                                     <!-- Radio Group -->
                                     <RadioGroup
                                         v-else-if="field.field_type.name.toLowerCase() === 'radio'"
-                                        v-model="formData.responses[`field_${field.id}`]"
+                                        :model-value="responseVal(`field_${field.id}`)"
                                         :disabled="!canEdit"
                                         class="space-y-2"
+                                        @update:model-value="
+                                            setResponse(`field_${field.id}`, $event)
+                                        "
                                     >
                                         <div
                                             v-for="option in field.form_field_options"
@@ -686,12 +721,15 @@ const goBack = () => {
                                     <Input
                                         v-else
                                         :id="`field_${field.id}`"
-                                        v-model="formData.responses[`field_${field.id}`]"
+                                        :model-value="responseVal(`field_${field.id}`)"
                                         type="text"
                                         :placeholder="`Masukkan ${field.label.toLowerCase()}...`"
                                         :required="field.is_required"
                                         :disabled="!canEdit"
                                         class="max-w-2xl"
+                                        @update:model-value="
+                                            formData.responses[`field_${field.id}`] = $event
+                                        "
                                     />
 
                                     <!-- Field Error -->

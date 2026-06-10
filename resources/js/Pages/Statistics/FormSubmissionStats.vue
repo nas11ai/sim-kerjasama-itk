@@ -53,11 +53,13 @@ interface TotalByStatus {
 }
 
 interface TotalByFaculty {
+    id: number
     name: string
     total: number
 }
 
 interface TotalByProdi {
+    id: number
     name: string
     total: number
 }

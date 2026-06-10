@@ -233,9 +233,10 @@ const renderFieldValue = (field: FormField, value: string) => {
 
     switch (field.field_type.name.toLowerCase()) {
         case 'select':
-        case 'radio':
+        case 'radio': {
             const option = field.form_field_options.find((opt) => opt.id.toString() === value)
             return option ? option.label : value
+        }
         case 'checkbox':
             return value === '1' || value === 'true' ? 'Yes' : 'No'
         case 'date':

@@ -1,24 +1,22 @@
-export interface FormPhaseTotalItem {
-    total_forms: number
-    total_submissions: number
-}
-
-export interface FormPhaseByPeriodItem {
-    submission_period_id: number
-    submission_period_name: string
-    total_submissions: number
-}
-
-export interface TotalByStatusItem {
-    status: string
-    total: number
-}
-
-export interface RecentSubmissionItem {
-    id: number
-    name: string
-    total_submissions: number
-}
+import type {
+    FormPhaseFaculty,
+    FormPhaseProdi,
+    FormPhaseStatus,
+    FormPhaseTotal,
+    FormPhaseByPeriod,
+    RecentSubmission,
+    TotalSubmission,
+    TotalByStatus,
+    TotalByFaculty,
+    TotalByProdi,
+    UserRecent,
+    ReviewerRecent,
+    EvaluationStatus,
+    ReviewerByYear,
+    ReviewerByFaculty,
+    ReviewerByProdi,
+    ReviewerActiveStatus,
+} from './api'
 
 export interface TotalByRoleItem {
     id: number
@@ -27,23 +25,23 @@ export interface TotalByRoleItem {
 }
 
 export interface FormPhaseStats {
-    formPhaseFaculty: Record<string, unknown>[]
-    formPhaseProdi: Record<string, unknown>[]
-    formPhaseStatus: Record<string, unknown>[]
-    formPhaseTotal: FormPhaseTotalItem[]
-    formPhaseByPeriod: FormPhaseByPeriodItem[]
+    formPhaseFaculty: FormPhaseFaculty[]
+    formPhaseProdi: FormPhaseProdi[]
+    formPhaseStatus: FormPhaseStatus[]
+    formPhaseTotal: FormPhaseTotal[]
+    formPhaseByPeriod: FormPhaseByPeriod[]
 }
 
 export interface FormSubmissionStats {
-    recentSubmissions: RecentSubmissionItem[]
-    totalSubmissions: Record<string, unknown>[]
-    totalByStatus: TotalByStatusItem[]
-    totalByFaculty: Record<string, unknown>[]
-    totalByProdi: Record<string, unknown>[]
+    recentSubmissions: RecentSubmission[]
+    totalSubmissions: TotalSubmission[]
+    totalByStatus: TotalByStatus[]
+    totalByFaculty: TotalByFaculty[]
+    totalByProdi: TotalByProdi[]
 }
 
 export interface UserStats {
-    userRecent: Record<string, unknown>[]
+    userRecent: UserRecent[]
     totalUsers: number
     totalAdmin: number
     totalNonAdmin: number
@@ -52,12 +50,12 @@ export interface UserStats {
 }
 
 export interface SubmissionReviewerStats {
-    reviewerRecent: Record<string, unknown>[]
+    reviewerRecent: ReviewerRecent[]
     totalReviewers: number
     totalByRole: TotalByRoleItem[]
-    evaluationStatus: Record<string, unknown>[]
-    reviewerByYear: Record<string, unknown>[]
-    reviewerByFaculty: Record<string, unknown>[]
-    reviewerByProdi: Record<string, unknown>[]
-    reviewerActiveStatus: Record<string, unknown>[]
+    evaluationStatus: EvaluationStatus[]
+    reviewerByYear: ReviewerByYear[]
+    reviewerByFaculty: ReviewerByFaculty[]
+    reviewerByProdi: ReviewerByProdi[]
+    reviewerActiveStatus: ReviewerActiveStatus[]
 }

@@ -164,8 +164,7 @@ const submit = () => {
                 description: 'Pengumuman berhasil diperbarui!',
             })
         },
-        onError: (errors) => {
-            console.error('Validation errors:', errors)
+        onError: () => {
             toast({
                 title: 'Error',
                 description:

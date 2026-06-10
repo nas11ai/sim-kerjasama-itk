@@ -75,11 +75,11 @@ interface FormPhaseDetail {
     form_phase_id: number
 }
 
-interface FormAccessControl {
-    id: number
-    form: Form
-    form_phase_details: FormPhaseDetail
-}
+// interface FormAccessControl {
+//     id: number
+//     form: Form
+//     form_phase_details: FormPhaseDetail
+// }
 
 interface FormPhase {
     id: number
@@ -87,10 +87,10 @@ interface FormPhase {
     form_phase_details: FormPhaseDetail[]
 }
 
-interface Faculty {
-    id: number
-    name: string
-}
+// interface Faculty {
+//     id: number
+//     name: string
+// }
 
 interface SubmittedBy {
     id: number

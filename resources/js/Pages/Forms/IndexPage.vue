@@ -65,6 +65,7 @@ interface FormField {
 
 interface Form {
     id: number
+    form_type_id: number
     title: string
     description: string
     is_active: boolean

@@ -26,7 +26,6 @@ interface UserRecent {
     name: string
     email: string
     created_at: string
-    is_reviewer: boolean
 }
 
 const props = defineProps<{

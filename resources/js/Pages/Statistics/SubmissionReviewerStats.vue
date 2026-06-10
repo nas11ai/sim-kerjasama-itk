@@ -57,11 +57,13 @@ interface ReviewerByYear {
 }
 
 interface ReviewerByFaculty {
+    id: number
     name: string
     total: number
 }
 
 interface ReviewerByProdi {
+    id: number
     name: string
     total: number
 }

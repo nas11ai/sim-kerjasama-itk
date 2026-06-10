@@ -48,11 +48,11 @@ interface FormPhaseStatus {
     id: number
     title: string
     total_submissions: number
-    pending: string
-    under_review: string
-    approved: string
-    rejected: string
-    revision: string
+    pending: number
+    under_review: number
+    approved: number
+    rejected: number
+    revision: number
 }
 
 interface FormPhaseTotal {

@@ -26,11 +26,12 @@ const props = withDefaults(
             /**
              * Function to sort the segment
              */
-            sortFunction?: (a: T, b: T) => number | undefined
+
+            sortFunction?: (_a: T, _sb: T) => number | undefined
             /**
              * Controls the formatting for the label.
              */
-            valueFormatter?: (tick: number, i?: number, ticks?: number[]) => string
+            valueFormatter?: (_tick: number, _i?: number, _ticks?: number[]) => string
             /**
              * Render custom tooltip component.
              */
@@ -63,7 +64,7 @@ const colors = computed(() =>
         ? props.colors
         : defaultColors(props.data.filter((d) => d[props.category]).filter(Boolean).length)
 )
-    const legendItems = computed(() =>
+const legendItems = computed(() =>
     props.data.map((item, i) => ({
         name: item[props.index] as string,
         color: colors.value[i],
@@ -108,7 +109,9 @@ const totalValue = computed(() =>
                                 activeSegmentKey = undefined
                                 elements.forEach((el) => (el.style.opacity = '1'))
                             } else {
-                                activeSegmentKey = data[index as unknown as string] as string | undefined
+                                activeSegmentKey = data[index as unknown as string] as
+                                    | string
+                                    | undefined
                                 elements.forEach((el) => (el.style.opacity = `${filterOpacity}`))
                                 elements[i].style.opacity = '1'
                             }

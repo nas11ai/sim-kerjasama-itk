@@ -21,7 +21,7 @@ const props = defineProps<{
     }
 }>()
 
-const dataTableRef = ref<InstanceType<typeof DataTable>>()
+const dataTableRef = ref<{ openConfirmDialog: (_id: number) => void }>()
 const showCreateModal = ref(false)
 const showEditModal = ref(false)
 const selectedPermission = ref<Permission | null>(null)
@@ -38,8 +38,8 @@ const columns: ColumnDef<Permission>[] = [
                 row,
                 canDelete: props.can.delete,
                 canEdit: props.can.update,
-                onEdit: (permission: Permission) => {
-                    selectedPermission.value = permission
+                onEdit: (row: { id: number }) => {
+                    selectedPermission.value = row as Permission
                     showEditModal.value = true
                 },
                 onConfirmDelete: (id: number) => dataTableRef.value?.openConfirmDialog(id),
