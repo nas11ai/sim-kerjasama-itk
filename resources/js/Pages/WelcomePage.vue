@@ -356,7 +356,7 @@ const stripHtml = (html: string) => {
                         Pengumuman Terbaru
                     </h2>
                     <p class="text-lg text-gray-600 max-w-2xl mx-auto">
-                        Informasi dan berita ter ini seputar kerja sama ITK
+                        Informasi dan berita terkini seputar kerja sama ITK
                     </p>
                 </div>
 
@@ -447,8 +447,8 @@ const stripHtml = (html: string) => {
                             class="absolute left-0 top-1/2 -translate-y-1/2 bg-white hover:bg-gray-50 text-gray-900 rounded-full p-4 shadow-xl hover:shadow-2xl transition-all hover:scale-110 z-20"
                             aria-label="Previous slide"
                             @click="
-                                prevSlide();
-                                resetAutoPlay();
+                                prevSlide()
+                                resetAutoPlay()
                             "
                         >
                             <ChevronLeft class="h-6 w-6" />
@@ -459,8 +459,8 @@ const stripHtml = (html: string) => {
                             class="absolute right-0 top-1/2 -translate-y-1/2 bg-white hover:bg-gray-50 text-gray-900 rounded-full p-4 shadow-xl hover:shadow-2xl transition-all hover:scale-110 z-20"
                             aria-label="Next slide"
                             @click="
-                                nextSlide();
-                                resetAutoPlay();
+                                nextSlide()
+                                resetAutoPlay()
                             "
                         >
                             <ChevronRight class="h-6 w-6" />
