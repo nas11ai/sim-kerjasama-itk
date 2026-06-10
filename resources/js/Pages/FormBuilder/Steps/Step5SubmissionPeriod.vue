@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue'
+import { computed, watch } from 'vue'
 import { Input } from '@/Components/ui/input'
 import { Label } from '@/Components/ui/label'
 import { Button } from '@/Components/ui/button'
@@ -29,9 +29,11 @@ interface SubmissionPeriodData {
     dates: SubmissionDate[]
 }
 
+import type { SubmissionPeriod } from '@/types/form-builder'
+
 interface Props {
     modelValue: SubmissionPeriodData
-    submissionPeriods: any[]
+    submissionPeriods: SubmissionPeriod[]
     errors: Record<string, string>
 }
 

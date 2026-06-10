@@ -10,6 +10,7 @@
 Seluruh role — Researcher, Reviewer, Operator, Admin — menggunakan **satu komponen Shadcn Sidebar yang sama**. Tidak ada komponen sidebar berbeda per role. Visibility setiap nav item dikontrol oleh **permission Spatie**, bukan role langsung.
 
 Keuntungan pendekatan ini:
+
 - Satu komponen untuk di-maintain
 - Dual-role user (Reviewer yang juga Researcher) tidak perlu switching context — semua nav tersedia sesuai permission yang dimiliki
 - Menambah nav item baru cukup tambah satu permission check, tidak perlu update beberapa komponen
@@ -67,27 +68,27 @@ Keuntungan pendekatan ini:
 
 ## Permission Gate per Nav Item
 
-| Nav Item | Permission yang Diperlukan | Kondisi Tambahan |
-|----------|---------------------------|-----------------|
-| Dashboard | — (semua authenticated) | — |
-| Daftar Pengajuan | `submissions.view-own` atau `submissions.view-all` | — |
-| Buat Pengajuan Baru | `submissions.create` | SubmissionPeriod terbuka |
-| Penugasan Review | `reviewers.evaluate` | — |
-| Riwayat Review | `reviewers.evaluate` | — |
-| Daftar Monev | `submissions.view-own` | Ada submission APPROVED milik user |
-| Kelola Siklus Monev | `periods.manage` | — |
-| Luaran Penelitian | `submissions.view-own` | Ada submission APPROVED milik user |
-| Semua Pengajuan | `submissions.view-all` | — |
-| Periode Pengajuan | `periods.manage` | — |
-| Reviewer | `reviewers.assign` | — |
-| User & Verifikasi | `users.verify` atau `users.manage` | — |
-| Statistik | `reporting.export` atau `reporting.view-audit-log` | — |
-| Export Data | `reporting.export` | — |
-| Audit Log | `reporting.view-audit-log` | — |
-| Form Builder | `forms.manage` | — |
-| Skema Penelitian | `schemes.manage` | — |
-| Organisasi | `schemes.manage` | — |
-| Konfigurasi Umum | `schemes.manage` | — |
+| Nav Item            | Permission yang Diperlukan                         | Kondisi Tambahan                   |
+| ------------------- | -------------------------------------------------- | ---------------------------------- |
+| Dashboard           | — (semua authenticated)                            | —                                  |
+| Daftar Pengajuan    | `submissions.view-own` atau `submissions.view-all` | —                                  |
+| Buat Pengajuan Baru | `submissions.create`                               | SubmissionPeriod terbuka           |
+| Penugasan Review    | `reviewers.evaluate`                               | —                                  |
+| Riwayat Review      | `reviewers.evaluate`                               | —                                  |
+| Daftar Monev        | `submissions.view-own`                             | Ada submission APPROVED milik user |
+| Kelola Siklus Monev | `periods.manage`                                   | —                                  |
+| Luaran Penelitian   | `submissions.view-own`                             | Ada submission APPROVED milik user |
+| Semua Pengajuan     | `submissions.view-all`                             | —                                  |
+| Periode Pengajuan   | `periods.manage`                                   | —                                  |
+| Reviewer            | `reviewers.assign`                                 | —                                  |
+| User & Verifikasi   | `users.verify` atau `users.manage`                 | —                                  |
+| Statistik           | `reporting.export` atau `reporting.view-audit-log` | —                                  |
+| Export Data         | `reporting.export`                                 | —                                  |
+| Audit Log           | `reporting.view-audit-log`                         | —                                  |
+| Form Builder        | `forms.manage`                                     | —                                  |
+| Skema Penelitian    | `schemes.manage`                                   | —                                  |
+| Organisasi          | `schemes.manage`                                   | —                                  |
+| Konfigurasi Umum    | `schemes.manage`                                   | —                                  |
 
 > Referensi permission ke role mapping: `→ ddd/generic/02_identity_access.md` (tabel Spatie Permission Design)
 

@@ -1,4 +1,4 @@
-<script setup lang="ts" generic="T extends Record<string, any>">
+<script setup lang="ts" generic="T extends Record<string, unknown>">
 import type { BulletLegendItemInterface } from '@unovis/ts'
 import type { Component } from 'vue'
 import type { BaseChartProps } from '.'
@@ -33,6 +33,7 @@ const props = withDefaults(
         margin: () => ({ top: 0, bottom: 0, left: 0, right: 0 }),
         filterOpacity: 0.2,
         roundedCorners: 0,
+        customTooltip: undefined,
         showXAxis: true,
         showYAxis: true,
         showTooltip: true,

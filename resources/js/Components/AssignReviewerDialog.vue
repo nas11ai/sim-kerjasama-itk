@@ -15,7 +15,7 @@ import { Label } from '@/Components/ui/label'
 import { Badge } from '@/Components/ui/badge'
 import { Separator } from '@/Components/ui/separator'
 import { UserPlus, Users, CheckCircle, AlertCircle, Loader2 } from 'lucide-vue-next'
-import { toast } from '@/Components/ui/toast'
+import { useToast } from '@/Components/ui/toast/use-toast'
 
 interface Reviewer {
     id: number
@@ -45,6 +45,7 @@ interface Props {
     hasReviewEvaluationForms?: boolean
 }
 
+const { toast } = useToast()
 const props = withDefaults(defineProps<Props>(), {
     hasReviewEvaluationForms: false,
 })
@@ -114,8 +115,12 @@ const assignReviewers = () => {
                 emit('assigned')
                 emit('update:open', false)
             },
-            onError: (errors) => {
-                console.error('Error assigning reviewers:', errors)
+            onError: () => {
+                toast({
+                    title: 'Gagal assign reviewer',
+                    description: 'Terjadi kesalahan saat assign reviewer.',
+                    variant: 'destructive',
+                })
             },
             onFinish: () => {
                 isSubmitting.value = false

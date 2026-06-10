@@ -17,11 +17,11 @@
 
 ### Organisms
 
-| Organism | Deskripsi | Posisi |
-|----------|-----------|--------|
-| `SubmissionListFilter` | Filter status + periode — simple, tidak perlu sidebar filter | Main, atas |
-| `SubmissionListTable` | Tabel submission dengan kolom: judul, skema, status, tanggal submit | Main |
-| `CreateSubmissionCTA` | Tombol "Buat Pengajuan Baru" — prominent di atas tabel | Main, atas |
+| Organism               | Deskripsi                                                           | Posisi     |
+| ---------------------- | ------------------------------------------------------------------- | ---------- |
+| `SubmissionListFilter` | Filter status + periode — simple, tidak perlu sidebar filter        | Main, atas |
+| `SubmissionListTable`  | Tabel submission dengan kolom: judul, skema, status, tanggal submit | Main       |
+| `CreateSubmissionCTA`  | Tombol "Buat Pengajuan Baru" — prominent di atas tabel              | Main, atas |
 
 ### Molecules yang Notable
 
@@ -30,10 +30,10 @@
 
 ### States
 
-| State | Trigger | Tampilan |
-|-------|---------|----------|
-| Loading | Pertama buka | Skeleton table rows |
-| Empty | Belum ada submission | Empty state: "Belum ada pengajuan. Mulai buat pengajuan baru." + tombol CTA |
+| State         | Trigger                  | Tampilan                                                                                 |
+| ------------- | ------------------------ | ---------------------------------------------------------------------------------------- |
+| Loading       | Pertama buka             | Skeleton table rows                                                                      |
+| Empty         | Belum ada submission     | Empty state: "Belum ada pengajuan. Mulai buat pengajuan baru." + tombol CTA              |
 | Period closed | Tidak ada period terbuka | `CreateSubmissionCTA` di-disable dengan tooltip "Tidak ada periode pengajuan yang aktif" |
 
 ---
@@ -45,17 +45,17 @@
 
 ### Organisms
 
-| Organism | Deskripsi | Posisi |
-|----------|-----------|--------|
-| `SubmissionAdvancedFilter` | Filter: status, periode, skema, organisasi, rentang tanggal | Main, atas (collapsible) |
-| `SubmissionFullTable` | Tabel dengan kolom lebih banyak: judul, lead researcher, org, skema, status, tanggal submit, reviewer count | Main |
+| Organism                   | Deskripsi                                                                                                   | Posisi                   |
+| -------------------------- | ----------------------------------------------------------------------------------------------------------- | ------------------------ |
+| `SubmissionAdvancedFilter` | Filter: status, periode, skema, organisasi, rentang tanggal                                                 | Main, atas (collapsible) |
+| `SubmissionFullTable`      | Tabel dengan kolom lebih banyak: judul, lead researcher, org, skema, status, tanggal submit, reviewer count | Main                     |
 
 ### States
 
-| State | Trigger | Tampilan |
-|-------|---------|----------|
-| Loading | Filter berubah | Skeleton overlay di atas tabel |
-| Empty | Filter tidak ada hasil | Empty state: "Tidak ada pengajuan yang sesuai filter" |
+| State   | Trigger                | Tampilan                                              |
+| ------- | ---------------------- | ----------------------------------------------------- |
+| Loading | Filter berubah         | Skeleton overlay di atas tabel                        |
+| Empty   | Filter tidak ada hasil | Empty state: "Tidak ada pengajuan yang sesuai filter" |
 
 ---
 
@@ -66,11 +66,11 @@
 
 ### Organisms
 
-| Organism | Deskripsi | Posisi |
-|----------|-----------|--------|
-| `WizardStepper` | Progress indicator vertikal: daftar step dengan status (selesai / aktif / belum) | Sidebar kiri |
-| `WizardFormArea` | Konten step yang aktif | Main kanan |
-| `WizardNavigation` | Tombol "Sebelumnya" dan "Lanjut / Submit" | Main kanan, bawah |
+| Organism           | Deskripsi                                                                        | Posisi            |
+| ------------------ | -------------------------------------------------------------------------------- | ----------------- |
+| `WizardStepper`    | Progress indicator vertikal: daftar step dengan status (selesai / aktif / belum) | Sidebar kiri      |
+| `WizardFormArea`   | Konten step yang aktif                                                           | Main kanan        |
+| `WizardNavigation` | Tombol "Sebelumnya" dan "Lanjut / Submit"                                        | Main kanan, bawah |
 
 ### Step Breakdown
 
@@ -80,7 +80,7 @@ Form fields: dropdown periode aktif, dropdown form yang accessible (berdasarkan 
 **Step 2 — Informasi Dasar**
 Render FormFields scalar dari form yang dipilih: text, textarea, number, select, dll. Jumlah dan tipe field driven by konfigurasi Form Engine.
 
-**Step 3 — Skema & TRL** *(opsional — hanya muncul jika form punya `scheme_selector` field)*
+**Step 3 — Skema & TRL** _(opsional — hanya muncul jika form punya `scheme_selector` field)_
 Dropdown skema yang tersedia di periode ini. Jika skema dipilih, muncul dropdown TRL yang filtered.
 
 **Step 4 — Anggota Penelitian**
@@ -105,15 +105,15 @@ Ringkasan read-only semua input dari step sebelumnya. Checklist validasi: semua 
 
 ### States
 
-| State | Trigger | Tampilan |
-|-------|---------|----------|
-| Loading — step load | Pindah step | Skeleton di WizardFormArea |
-| Saving | Auto-save | Teks "Menyimpan..." di bawah nav |
-| Saved | Auto-save selesai | Teks "Tersimpan otomatis [waktu]" |
-| Error — validasi | Klik "Lanjut" dengan field kosong | Inline error per field yang gagal validasi |
-| Error — submit | Submit gagal (server) | Error banner di atas WizardFormArea |
-| Success — submit | Submit berhasil | Redirect ke Detail Pengajuan dengan toast "Pengajuan berhasil disubmit" |
-| Period closed mid-wizard | Period tutup saat user sedang isi | Banner peringatan + tombol Submit di-disable |
+| State                    | Trigger                           | Tampilan                                                                |
+| ------------------------ | --------------------------------- | ----------------------------------------------------------------------- |
+| Loading — step load      | Pindah step                       | Skeleton di WizardFormArea                                              |
+| Saving                   | Auto-save                         | Teks "Menyimpan..." di bawah nav                                        |
+| Saved                    | Auto-save selesai                 | Teks "Tersimpan otomatis [waktu]"                                       |
+| Error — validasi         | Klik "Lanjut" dengan field kosong | Inline error per field yang gagal validasi                              |
+| Error — submit           | Submit gagal (server)             | Error banner di atas WizardFormArea                                     |
+| Success — submit         | Submit berhasil                   | Redirect ke Detail Pengajuan dengan toast "Pengajuan berhasil disubmit" |
+| Period closed mid-wizard | Period tutup saat user sedang isi | Banner peringatan + tombol Submit di-disable                            |
 
 ### Business Rules yang Mempengaruhi UI
 
@@ -130,23 +130,23 @@ Ringkasan read-only semua input dari step sebelumnya. Checklist validasi: semua 
 
 ### Organisms
 
-| Organism | Deskripsi | Posisi |
-|----------|-----------|--------|
-| `SubmissionHeader` | Judul, status badge, skema, lead researcher, tombol aksi utama | Main, atas |
-| `SubmissionTabs` | Tab navigasi: Informasi / Anggota / Anggaran / Berkas / Review / Riwayat | Main, tengah |
-| `SubmissionTabContent` | Konten tab yang aktif | Main, bawah |
-| `SubmissionActionPanel` | Panel aksi kontekstual per role (assign reviewer, override, dll) | Sidebar kanan |
+| Organism                | Deskripsi                                                                | Posisi        |
+| ----------------------- | ------------------------------------------------------------------------ | ------------- |
+| `SubmissionHeader`      | Judul, status badge, skema, lead researcher, tombol aksi utama           | Main, atas    |
+| `SubmissionTabs`        | Tab navigasi: Informasi / Anggota / Anggaran / Berkas / Review / Riwayat | Main, tengah  |
+| `SubmissionTabContent`  | Konten tab yang aktif                                                    | Main, bawah   |
+| `SubmissionActionPanel` | Panel aksi kontekstual per role (assign reviewer, override, dll)         | Sidebar kanan |
 
 ### Tab Contents
 
-| Tab | Visible To | Konten |
-|-----|-----------|--------|
-| Informasi | Semua | Semua FormField responses, read-only |
-| Anggota | Semua | Tabel research members + student members |
-| Anggaran | Semua (Reviewer: setelah APPROVED/REJECTED) | Tabel budget read-only + grand total |
-| Berkas | Semua | Daftar file yang diupload dengan link download/preview |
-| Review | Researcher (setelah APPROVED/REJECTED), Operator, Admin | Daftar SubmissionReviewer + hasil evaluasi |
-| Riwayat | Semua | AuditTimeline status history |
+| Tab       | Visible To                                              | Konten                                                 |
+| --------- | ------------------------------------------------------- | ------------------------------------------------------ |
+| Informasi | Semua                                                   | Semua FormField responses, read-only                   |
+| Anggota   | Semua                                                   | Tabel research members + student members               |
+| Anggaran  | Semua (Reviewer: setelah APPROVED/REJECTED)             | Tabel budget read-only + grand total                   |
+| Berkas    | Semua                                                   | Daftar file yang diupload dengan link download/preview |
+| Review    | Researcher (setelah APPROVED/REJECTED), Operator, Admin | Daftar SubmissionReviewer + hasil evaluasi             |
+| Riwayat   | Semua                                                   | AuditTimeline status history                           |
 
 ### Business Rules yang Mempengaruhi UI
 
@@ -162,11 +162,11 @@ Ringkasan read-only semua input dari step sebelumnya. Checklist validasi: semua 
 
 ### Organisms
 
-| Organism | Deskripsi | Posisi |
-|----------|-----------|--------|
-| `RevisionNotePanel` | Daftar ReviewSummary + ReviewComments + form reply | Kiri |
-| `SubmissionEditForm` | Form edit submission (sama dengan wizard tapi flat, bukan stepper) | Kanan |
-| `ResubmitButton` | Tombol resubmit — prominent, di atas form | Kanan, atas |
+| Organism             | Deskripsi                                                          | Posisi      |
+| -------------------- | ------------------------------------------------------------------ | ----------- |
+| `RevisionNotePanel`  | Daftar ReviewSummary + ReviewComments + form reply                 | Kiri        |
+| `SubmissionEditForm` | Form edit submission (sama dengan wizard tapi flat, bukan stepper) | Kanan       |
+| `ResubmitButton`     | Tombol resubmit — prominent, di atas form                          | Kanan, atas |
 
 ### Interaction Notes
 
@@ -183,9 +183,9 @@ Saat researcher reply ke komentar reviewer, reply muncul langsung di thread (opt
 
 ## Shared Molecules dalam Feature Area Ini
 
-| Molecule | Dipakai di | Deskripsi |
-|----------|-----------|-----------|
-| `StatusBadge` | List, Detail, Header | Badge status dengan warna dan label |
-| `UserSearchPicker` | Step Anggota, Assign Reviewer | Search user by nama/NIDN, hasil real-time |
-| `FileUploadZone` | Step Upload, Tab Berkas | Drag & drop + preview + remove |
-| `ConfirmDialog` | Submit, Withdraw, Reject | Modal konfirmasi sebelum aksi irreversible |
+| Molecule           | Dipakai di                    | Deskripsi                                  |
+| ------------------ | ----------------------------- | ------------------------------------------ |
+| `StatusBadge`      | List, Detail, Header          | Badge status dengan warna dan label        |
+| `UserSearchPicker` | Step Anggota, Assign Reviewer | Search user by nama/NIDN, hasil real-time  |
+| `FileUploadZone`   | Step Upload, Tab Berkas       | Drag & drop + preview + remove             |
+| `ConfirmDialog`    | Submit, Withdraw, Reject      | Modal konfirmasi sebelum aksi irreversible |

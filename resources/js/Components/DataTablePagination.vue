@@ -1,12 +1,12 @@
-<script setup lang="ts">
+<script setup lang="ts" generic="T">
 import { type Table } from '@tanstack/vue-table'
 import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight } from 'lucide-vue-next'
-import Select from './ui/select/Select.vue'
+import Select from './ui/select/UiSelect.vue'
 import SelectTrigger from './ui/select/SelectTrigger.vue'
 import SelectValue from './ui/select/SelectValue.vue'
 import SelectContent from './ui/select/SelectContent.vue'
 import SelectItem from './ui/select/SelectItem.vue'
-import Button from './ui/button/Button.vue'
+import Button from './ui/button/UiButton.vue'
 
 interface DataTablePaginationProps<T> {
     table: Table<T>
@@ -14,7 +14,7 @@ interface DataTablePaginationProps<T> {
     label?: string
 }
 
-defineProps<DataTablePaginationProps<any>>()
+defineProps<DataTablePaginationProps<T>>()
 </script>
 
 <template>

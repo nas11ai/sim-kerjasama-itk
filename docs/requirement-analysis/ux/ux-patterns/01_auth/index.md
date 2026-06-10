@@ -18,19 +18,19 @@
 
 ### Organisms
 
-| Organism | Deskripsi | Posisi |
-|----------|-----------|--------|
+| Organism    | Deskripsi                                                 | Posisi |
+| ----------- | --------------------------------------------------------- | ------ |
 | `LoginForm` | Form email + password + tombol login + link lupa password | Center |
 
 ### States
 
-| State | Trigger | Tampilan |
-|-------|---------|----------|
-| Idle | Halaman pertama dibuka | Form kosong |
-| Loading | Tombol login diklik | Tombol berubah jadi spinner, input disabled |
-| Error — credentials | Email/password salah | Inline error di bawah form: "Email atau password salah" |
-| Error — pending | Login berhasil tapi status pending | Redirect ke `/pending-verification` |
-| Success | Login berhasil, status active | Redirect ke `/dashboard` |
+| State               | Trigger                            | Tampilan                                                |
+| ------------------- | ---------------------------------- | ------------------------------------------------------- |
+| Idle                | Halaman pertama dibuka             | Form kosong                                             |
+| Loading             | Tombol login diklik                | Tombol berubah jadi spinner, input disabled             |
+| Error — credentials | Email/password salah               | Inline error di bawah form: "Email atau password salah" |
+| Error — pending     | Login berhasil tapi status pending | Redirect ke `/pending-verification`                     |
+| Success             | Login berhasil, status active      | Redirect ke `/dashboard`                                |
 
 ---
 
@@ -42,8 +42,8 @@
 
 ### Organisms
 
-| Organism | Deskripsi | Posisi |
-|----------|-----------|--------|
+| Organism           | Deskripsi                                      | Posisi |
+| ------------------ | ---------------------------------------------- | ------ |
 | `SelfRegisterForm` | Form registrasi dosen ITK dengan OrgTreePicker | Center |
 
 ### Molecules yang Notable
@@ -56,12 +56,12 @@ Validasi email domain `@itk.ac.id` dilakukan **client-side on-blur** sebelum sub
 
 ### States
 
-| State | Trigger | Tampilan |
-|-------|---------|----------|
-| Loading | Submit diklik | Tombol spinner, form disabled |
-| Error — email domain | Email bukan `@itk.ac.id` (on blur) | Inline error di field email |
-| Error — NIDN duplikat | Server reject | Inline error di field NIDN |
-| Success | Register berhasil | Redirect ke `/pending-verification` |
+| State                 | Trigger                            | Tampilan                            |
+| --------------------- | ---------------------------------- | ----------------------------------- |
+| Loading               | Submit diklik                      | Tombol spinner, form disabled       |
+| Error — email domain  | Email bukan `@itk.ac.id` (on blur) | Inline error di field email         |
+| Error — NIDN duplikat | Server reject                      | Inline error di field NIDN          |
+| Success               | Register berhasil                  | Redirect ke `/pending-verification` |
 
 ### Business Rules yang Mempengaruhi UI
 
@@ -76,17 +76,17 @@ Validasi email domain `@itk.ac.id` dilakukan **client-side on-blur** sebelum sub
 
 ### Organisms
 
-| Organism | Deskripsi | Posisi |
-|----------|-----------|--------|
-| `InvitationInfoBanner` | Banner read-only: "Anda diundang bergabung sebagai [permission] di [organisasi]" | Top |
-| `InvitationRegisterForm` | Form email (bebas) + password + konfirmasi password | Center |
+| Organism                 | Deskripsi                                                                        | Posisi |
+| ------------------------ | -------------------------------------------------------------------------------- | ------ |
+| `InvitationInfoBanner`   | Banner read-only: "Anda diundang bergabung sebagai [permission] di [organisasi]" | Top    |
+| `InvitationRegisterForm` | Form email (bebas) + password + konfirmasi password                              | Center |
 
 ### States
 
-| State | Trigger | Tampilan |
-|-------|---------|----------|
+| State         | Trigger                             | Tampilan                                                              |
+| ------------- | ----------------------------------- | --------------------------------------------------------------------- |
 | Token invalid | Token expired atau used_count habis | Full-page error: "Link undangan tidak valid" — form tidak ditampilkan |
-| Success | Register berhasil | Redirect langsung ke `/dashboard` |
+| Success       | Register berhasil                   | Redirect langsung ke `/dashboard`                                     |
 
 ---
 
@@ -97,8 +97,8 @@ Validasi email domain `@itk.ac.id` dilakukan **client-side on-blur** sebelum sub
 
 ### Organisms
 
-| Organism | Deskripsi | Posisi |
-|----------|-----------|--------|
+| Organism            | Deskripsi                                                        | Posisi |
+| ------------------- | ---------------------------------------------------------------- | ------ |
 | `PendingStatusCard` | Ilustrasi + judul + penjelasan + NIDN yang diinput + kontak LPPM | Center |
 
 ### Interaction Notes
@@ -115,28 +115,28 @@ Halaman ini statis — tidak ada aksi. Jika user refresh setelah operator memver
 
 ### Organisms
 
-| Organism | Deskripsi | Posisi |
-|----------|-----------|--------|
-| `WelcomeBanner` | Sapaan dengan nama user + pesan kontekstual per role | Main, atas |
-| `SummaryCards` | 3–4 kartu angka ringkasan yang berbeda per role | Main, baris pertama |
-| `RecentActivityList` | 5 aktivitas terbaru yang relevan | Main, kiri bawah |
-| `UpcomingDeadlines` | Deadline yang mendekat dalam 7 hari | Main, kanan bawah |
+| Organism               | Deskripsi                                                                | Posisi                |
+| ---------------------- | ------------------------------------------------------------------------ | --------------------- |
+| `WelcomeBanner`        | Sapaan dengan nama user + pesan kontekstual per role                     | Main, atas            |
+| `SummaryCards`         | 3–4 kartu angka ringkasan yang berbeda per role                          | Main, baris pertama   |
+| `RecentActivityList`   | 5 aktivitas terbaru yang relevan                                         | Main, kiri bawah      |
+| `UpcomingDeadlines`    | Deadline yang mendekat dalam 7 hari                                      | Main, kanan bawah     |
 | `PendingActionsBanner` | Khusus Operator: "N pengajuan butuh reviewer", "N user perlu verifikasi" | Main, atas (jika ada) |
 
 ### Konten SummaryCards per Role
 
-| Role | Cards |
-|------|-------|
-| Researcher | Submission Aktif, Dalam Revisi, Disetujui, Notifikasi Belum Dibaca |
-| Reviewer | Perlu Dievaluasi, Evaluasi Selesai, Deadline Terdekat |
-| Operator | Total Submission Aktif, Perlu Assign Reviewer, Perlu Verifikasi User, Export Selesai |
-| Admin | Sama dengan Operator + total user aktif |
+| Role       | Cards                                                                                |
+| ---------- | ------------------------------------------------------------------------------------ |
+| Researcher | Submission Aktif, Dalam Revisi, Disetujui, Notifikasi Belum Dibaca                   |
+| Reviewer   | Perlu Dievaluasi, Evaluasi Selesai, Deadline Terdekat                                |
+| Operator   | Total Submission Aktif, Perlu Assign Reviewer, Perlu Verifikasi User, Export Selesai |
+| Admin      | Sama dengan Operator + total user aktif                                              |
 
 ### States
 
-| State | Trigger | Tampilan |
-|-------|---------|----------|
-| Loading | Pertama buka | Skeleton loader di semua card dan list |
+| State               | Trigger                   | Tampilan                                                 |
+| ------------------- | ------------------------- | -------------------------------------------------------- |
+| Loading             | Pertama buka              | Skeleton loader di semua card dan list                   |
 | Empty — no activity | User baru, belum ada data | Empty state di RecentActivityList: "Belum ada aktivitas" |
 
 ---
@@ -148,16 +148,16 @@ Halaman ini statis — tidak ada aksi. Jika user refresh setelah operator memver
 
 ### Organisms
 
-| Organism | Deskripsi | Posisi |
-|----------|-----------|--------|
-| `ProfilePhotoUploader` | Upload + preview foto profil dengan crop sederhana | Main, kiri |
-| `ProfileForm` | Form edit data profil | Main, kanan |
-| `ChangePasswordForm` | Form ganti password (terpisah dari profil) | Main, bawah |
+| Organism               | Deskripsi                                          | Posisi      |
+| ---------------------- | -------------------------------------------------- | ----------- |
+| `ProfilePhotoUploader` | Upload + preview foto profil dengan crop sederhana | Main, kiri  |
+| `ProfileForm`          | Form edit data profil                              | Main, kanan |
+| `ChangePasswordForm`   | Form ganti password (terpisah dari profil)         | Main, bawah |
 
 ### States
 
-| State | Trigger | Tampilan |
-|-------|---------|----------|
-| Success — profil | Simpan berhasil | Toast: "Profil berhasil diperbarui" |
-| Success — password | Ganti password berhasil | Toast: "Password berhasil diubah" |
-| Error — password lama salah | Server reject | Inline error di field password lama |
+| State                       | Trigger                 | Tampilan                            |
+| --------------------------- | ----------------------- | ----------------------------------- |
+| Success — profil            | Simpan berhasil         | Toast: "Profil berhasil diperbarui" |
+| Success — password          | Ganti password berhasil | Toast: "Password berhasil diubah"   |
+| Error — password lama salah | Server reject           | Inline error di field password lama |

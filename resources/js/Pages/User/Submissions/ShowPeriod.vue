@@ -5,17 +5,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
 import { Button } from '@/Components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/Components/ui/card'
 import { Badge } from '@/Components/ui/badge'
-import {
-    ArrowLeft,
-    Calendar,
-    Clock,
-    FileText,
-    CheckCircle,
-    AlertCircle,
-    Edit,
-    Eye,
-    RefreshCw,
-} from 'lucide-vue-next'
+import { ArrowLeft, Calendar, Clock, FileText, Edit, Eye } from 'lucide-vue-next'
 import { SubmissionStatus } from '@/Constants/SubmissionStatus'
 import { getSubmissionStatusBadge } from '@/Utils/getSubmissionStatusBadge'
 
@@ -65,7 +55,7 @@ interface Props {
     formPhases: FormPhase[]
 }
 
-const props = defineProps<Props>()
+defineProps<Props>()
 
 const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('id-ID', {

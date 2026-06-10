@@ -11,10 +11,10 @@
 
 Budget tidak memiliki halaman standalone — diakses sebagai **tab atau section dalam halaman Submission**.
 
-| # | Section | Lokasi | Accessible By |
-|---|---------|--------|---------------|
-| 1 | Tab Budget — Edit Mode | `/submissions/{id}/edit` (step Anggaran) | Researcher (submitted_by) |
-| 2 | Tab Budget — View Mode | `/submissions/{id}` (section Anggaran) | Semua |
+| #   | Section                | Lokasi                                   | Accessible By             |
+| --- | ---------------------- | ---------------------------------------- | ------------------------- |
+| 1   | Tab Budget — Edit Mode | `/submissions/{id}/edit` (step Anggaran) | Researcher (submitted_by) |
+| 2   | Tab Budget — View Mode | `/submissions/{id}` (section Anggaran)   | Semua                     |
 
 ---
 
@@ -30,10 +30,10 @@ Tabel dinamis budget line items. Setiap baris: komponen anggaran (dropdown), nam
 
 ### Actions
 
-| Aksi | Kondisi |
-|------|---------|
-| Tambah line item | Selalu (selama tidak locked) |
-| Hapus line item | Selalu (selama tidak locked) |
+| Aksi                 | Kondisi                      |
+| -------------------- | ---------------------------- |
+| Tambah line item     | Selalu (selama tidak locked) |
+| Hapus line item      | Selalu (selama tidak locked) |
 | Edit field line item | Selalu (selama tidak locked) |
 
 ### Business Rules yang Mempengaruhi Tampilan

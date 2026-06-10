@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Factories\Factory;
 class FormTypeFactory extends Factory
 {
     protected $model = FormType::class;
+
     public function definition(): array
     {
         return [

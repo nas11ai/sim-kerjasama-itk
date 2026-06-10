@@ -1,5 +1,5 @@
 blank_issues_enabled: false
 contact_links:
-  - name: 📚 DDD Documentation
-    url: https://github.com/nas11ai/sim-kerjasama-itk/tree/main/docs/requirement-analysis/ddd
-    about: Baca domain map, ubiquitous language, dan business rules sebelum membuat issue.
+    - name: 📚 DDD Documentation
+      url: https://github.com/nas11ai/sim-kerjasama-itk/tree/main/docs/requirement-analysis/ddd
+      about: Baca domain map, ubiquitous language, dan business rules sebelum membuat issue.

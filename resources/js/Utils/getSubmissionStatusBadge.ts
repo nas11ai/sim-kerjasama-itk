@@ -1,10 +1,10 @@
 import { BadgeVariant } from '@/types/BadgeVariant'
-import { CheckCircle, AlertCircle, Search, Clock, XCircle } from 'lucide-vue-next'
+import { CheckCircle, AlertCircle, Search, Clock, XCircle, LucideIcon } from 'lucide-vue-next'
 
 interface SubmissionStatusBadge {
     text: string
     variant: BadgeVariant
-    icon: any
+    icon: LucideIcon
 }
 
 export const getSubmissionStatusBadge = (status: string): SubmissionStatusBadge => {

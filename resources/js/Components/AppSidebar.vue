@@ -1,5 +1,6 @@
 <!-- resources/js/Components/AppSidebar.vue -->
 <script setup lang="ts">
+import { route } from 'ziggy-js'
 import { computed } from 'vue'
 import { router, usePage } from '@inertiajs/vue3'
 import {
@@ -47,11 +48,8 @@ import {
     BookCheck,
     UserPenIcon,
     ChartPie,
-    FileChartPie,
     FileUserIcon,
     FileChartPieIcon,
-    ChartPieIcon,
-    SquareKanbanIcon,
     UserCheck2Icon,
     FileBarChart2,
 } from 'lucide-vue-next'
@@ -61,12 +59,12 @@ const user = computed(() => page.props.auth?.user)
 const userRoles = computed(() => user.value?.roles || [])
 
 const isAdmin = computed(() =>
-    userRoles.value.some((role: any) => ['Super Admin', 'Admin'].includes(role))
+    userRoles.value.some((role) => ['Super Admin', 'Admin'].includes(role.name))
 )
 
-const isUser = computed(() =>
-    userRoles.value.some((role: any) => ['Mahasiswa', 'Tenaga Kependidikan'].includes(role))
-)
+// const isUser = computed(() =>
+//     userRoles.value.some((role) => ['Mahasiswa', 'Tenaga Kependidikan'].includes(role.name))
+// )
 
 const isReviewer = computed(() => {
     // Flag dikirim dari backend (middleware CheckReviewer)
@@ -330,9 +328,9 @@ const isActive = (url: string) => {
     return cleanCurrentUrl === cleanUrl || cleanCurrentUrl.startsWith(cleanUrl)
 }
 
-const hasActiveChild = (items: any[]) => {
-    return items.some((item) => isActive(item.url))
-}
+// const hasActiveChild = (items: any[]) => {
+//     return items.some((item) => isActive(item.url))
+// }
 
 const logout = (e: Event) => {
     e.preventDefault()
@@ -425,7 +423,7 @@ const getContextLabel = computed(() => {
                                 <div class="grid flex-1 text-left text-sm leading-tight">
                                     <span class="truncate font-semibold">{{ user?.name }}</span>
                                     <span class="truncate text-xs capitalize">
-                                        {{ userRoles.map((role: any) => role).join(', ') }}
+                                        {{ userRoles.map((role) => role).join(', ') }}
                                         <span v-if="isReviewer" class="text-blue-600"
                                             >• Reviewer</span
                                         >

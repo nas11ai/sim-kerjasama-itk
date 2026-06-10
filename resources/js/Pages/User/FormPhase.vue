@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
+import { route } from 'ziggy-js'
 import { Head, useForm, router } from '@inertiajs/vue3'
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
 import { Button } from '@/Components/ui/button'
@@ -19,17 +20,7 @@ import {
 import { Badge } from '@/Components/ui/badge'
 import { Separator } from '@/Components/ui/separator'
 import { Progress } from '@/Components/ui/progress'
-import {
-    ArrowLeft,
-    ArrowRight,
-    Check,
-    Clock,
-    FileText,
-    AlertCircle,
-    CheckCircle2,
-    Save,
-    Upload,
-} from 'lucide-vue-next'
+import { ArrowLeft, Check, Clock, AlertCircle, CheckCircle2, Save, Upload } from 'lucide-vue-next'
 
 interface FormField {
     id: number
@@ -68,6 +59,7 @@ interface FormAccessControl {
         is_submitted: boolean
         can_proceed: boolean
         created_at: string
+        updated_at: string
     }
 }
 
@@ -176,14 +168,31 @@ const canGoPrevious = computed(() => {
 })
 
 // Form data untuk current form
-const formData = useForm<Record<string, any>>({})
+const formData = useForm<Record<string, string | number | boolean | File | null>>({})
+
+function inputVal(key: string): string | number | undefined {
+    const v = formData[key]
+    if (typeof v === 'string' || typeof v === 'number') return v
+    return undefined
+}
+
+function checkVal(key: string): boolean | null | undefined {
+    const v = formData[key]
+    return typeof v === 'boolean' ? v : null
+}
+
+function setFieldVal(key: string, val: unknown) {
+    if (typeof val === 'string' || typeof val === 'number' || val === null) {
+        formData[key] = val
+    }
+}
 
 // Initialize form data
 watch(
     currentForm,
     (form) => {
         if (form) {
-            const initialData: Record<string, any> = {}
+            const initialData: Record<string, string | number | boolean | File | null> = {}
             form.form_fields.forEach((field) => {
                 switch (field.field_type.name.toLowerCase()) {
                     case 'checkbox':
@@ -595,8 +604,9 @@ const renderFormField = (field: FormField) => {
                                             ].includes(field.field_type.name.toLowerCase())
                                         "
                                         :id="`field_${field.id}`"
-                                        v-model="formData[`field_${field.id}`]"
                                         v-bind="renderFormField(field).props"
+                                        :model-value="inputVal(`field_${field.id}`)"
+                                        @update:model-value="formData[`field_${field.id}`] = $event"
                                     />
 
                                     <!-- Textarea -->
@@ -605,14 +615,18 @@ const renderFormField = (field: FormField) => {
                                             field.field_type.name.toLowerCase() === 'textarea'
                                         "
                                         :id="`field_${field.id}`"
-                                        v-model="formData[`field_${field.id}`]"
+                                        :model-value="inputVal(`field_${field.id}`)"
                                         v-bind="renderFormField(field).props"
+                                        @update:model-value="formData[`field_${field.id}`] = $event"
                                     />
 
                                     <!-- Select Dropdown -->
                                     <Select
                                         v-else-if="field.field_type.name.toLowerCase() === 'select'"
-                                        v-model="formData[`field_${field.id}`]"
+                                        :model-value="inputVal(`field_${field.id}`)"
+                                        @update:model-value="
+                                            setFieldVal(`field_${field.id}`, $event)
+                                        "
                                     >
                                         <SelectTrigger>
                                             <SelectValue
@@ -633,8 +647,11 @@ const renderFormField = (field: FormField) => {
                                     <!-- Radio Group -->
                                     <RadioGroup
                                         v-else-if="field.field_type.name.toLowerCase() === 'radio'"
-                                        v-model="formData[`field_${field.id}`]"
+                                        :model-value="inputVal(`field_${field.id}`)"
                                         class="space-y-2"
+                                        @update:model-value="
+                                            setFieldVal(`field_${field.id}`, $event)
+                                        "
                                     >
                                         <div
                                             v-for="option in field.form_field_options"
@@ -663,7 +680,10 @@ const renderFormField = (field: FormField) => {
                                     >
                                         <Checkbox
                                             :id="`field_${field.id}`"
-                                            v-model="formData[`field_${field.id}`]"
+                                            :model-value="checkVal(`field_${field.id}`)"
+                                            @update:model-value="
+                                                formData[`field_${field.id}`] = $event
+                                            "
                                         />
                                         <Label
                                             :for="`field_${field.id}`"
@@ -696,9 +716,10 @@ const renderFormField = (field: FormField) => {
                                     <Input
                                         v-else
                                         :id="`field_${field.id}`"
-                                        v-model="formData[`field_${field.id}`]"
+                                        :model-value="inputVal(`field_${field.id}`)"
                                         type="text"
                                         :placeholder="`Masukkan ${field.label.toLowerCase()}...`"
+                                        @update:model-value="formData[`field_${field.id}`] = $event"
                                     />
                                 </div>
 

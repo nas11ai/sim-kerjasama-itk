@@ -9,11 +9,11 @@
 
 ## Page Inventory
 
-| # | Page | Route | Accessible By |
-|---|------|-------|---------------|
-| 1 | Daftar Luaran | `/research-outputs` | Researcher |
-| 2 | Tambah Luaran | `/research-outputs/create?submission={id}` | Researcher (submitted_by, co-investigator) |
-| 3 | Detail / Edit Luaran | `/research-outputs/{id}` | Researcher, Operator, Admin |
+| #   | Page                 | Route                                      | Accessible By                              |
+| --- | -------------------- | ------------------------------------------ | ------------------------------------------ |
+| 1   | Daftar Luaran        | `/research-outputs`                        | Researcher                                 |
+| 2   | Tambah Luaran        | `/research-outputs/create?submission={id}` | Researcher (submitted_by, co-investigator) |
+| 3   | Detail / Edit Luaran | `/research-outputs/{id}`                   | Researcher, Operator, Admin                |
 
 ---
 
@@ -22,9 +22,11 @@
 **Route:** `/research-outputs`  
 **Accessible by:** Researcher (memiliki submission APPROVED)  
 **Entry points:**
+
 - Sidebar nav → Luaran Penelitian
 
 **Exit points:**
+
 - → Tambah Luaran
 - → Detail / Edit Luaran
 
@@ -34,8 +36,8 @@ Luaran dikelompokkan per submission. Setiap submission menampilkan: judul, skema
 
 ### Actions
 
-| Aksi | Kondisi |
-|------|---------|
+| Aksi          | Kondisi                                                            |
+| ------------- | ------------------------------------------------------------------ |
 | Tambah Luaran | Submission APPROVED, user adalah submitted_by atau co_investigator |
 
 ### Business Rules yang Mempengaruhi Tampilan
@@ -49,9 +51,11 @@ Luaran dikelompokkan per submission. Setiap submission menampilkan: judul, skema
 **Route:** `/research-outputs/create?submission={id}`  
 **Accessible by:** Researcher (submitted_by, co_investigator)  
 **Entry points:**
+
 - Tombol "Tambah Luaran" dari Daftar Luaran atau Detail Submission
 
 **Exit points:**
+
 - → Daftar Luaran / Detail Submission
 
 ### Konten Utama
@@ -60,10 +64,10 @@ Form dua langkah: pilih tipe luaran dulu (artikel / buku / HKI / prototipe / PKS
 
 ### Actions
 
-| Aksi | Kondisi |
-|------|---------|
-| Pilih tipe luaran | Selalu |
-| Submit | Semua field required terpenuhi |
+| Aksi              | Kondisi                        |
+| ----------------- | ------------------------------ |
+| Pilih tipe luaran | Selalu                         |
+| Submit            | Semua field required terpenuhi |
 
 ### Business Rules yang Mempengaruhi Tampilan
 
@@ -77,6 +81,7 @@ Form dua langkah: pilih tipe luaran dulu (artikel / buku / HKI / prototipe / PKS
 **Route:** `/research-outputs/{id}`  
 **Accessible by:** Researcher (edit: submitted_by dan co_investigator; read: member), Operator, Admin  
 **Entry points:**
+
 - Klik item dari Daftar Luaran
 
 ### Konten Utama

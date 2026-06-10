@@ -9,13 +9,13 @@
 
 ## Page Inventory
 
-| # | Page | Route | Accessible By |
-|---|------|-------|---------------|
-| 1 | Daftar Monev (Researcher) | `/monev` | Researcher |
-| 2 | Isi Laporan Monev | `/monev/{id}/fill` | Researcher |
-| 3 | Detail Laporan Monev | `/monev/{id}` | Semua |
-| 4 | Manajemen Siklus Monev | `/monev/manage` | Operator, Admin |
-| 5 | Aktivasi Siklus & Assign Reviewer | `/monev/manage/{submission_id}` | Operator, Admin |
+| #   | Page                              | Route                           | Accessible By   |
+| --- | --------------------------------- | ------------------------------- | --------------- |
+| 1   | Daftar Monev (Researcher)         | `/monev`                        | Researcher      |
+| 2   | Isi Laporan Monev                 | `/monev/{id}/fill`              | Researcher      |
+| 3   | Detail Laporan Monev              | `/monev/{id}`                   | Semua           |
+| 4   | Manajemen Siklus Monev            | `/monev/manage`                 | Operator, Admin |
+| 5   | Aktivasi Siklus & Assign Reviewer | `/monev/manage/{submission_id}` | Operator, Admin |
 
 ---
 
@@ -24,9 +24,11 @@
 **Route:** `/monev`  
 **Accessible by:** Researcher (memiliki submission APPROVED)  
 **Entry points:**
+
 - Sidebar nav → Monev
 
 **Exit points:**
+
 - → Isi Laporan Monev (klik siklus aktif)
 - → Detail Laporan Monev (klik siklus yang sudah disubmit)
 
@@ -38,10 +40,10 @@ Setiap siklus menampilkan: nama stage, status (belum aktif / aktif / sudah disub
 
 ### Actions
 
-| Aksi | Kondisi |
-|------|---------|
+| Aksi              | Kondisi                                            |
+| ----------------- | -------------------------------------------------- |
 | Isi Laporan Monev | Siklus aktif, belum disubmit, deadline belum lewat |
-| Lihat Detail | Siklus sudah disubmit |
+| Lihat Detail      | Siklus sudah disubmit                              |
 
 ### Business Rules yang Mempengaruhi Tampilan
 
@@ -57,9 +59,11 @@ Setiap siklus menampilkan: nama stage, status (belum aktif / aktif / sudah disub
 **Route:** `/monev/{id}/fill`  
 **Accessible by:** Researcher (submitted_by submission utama)  
 **Entry points:**
+
 - Klik siklus aktif dari Daftar Monev
 
 **Exit points:**
+
 - → Detail Laporan Monev (setelah submit)
 - → Daftar Monev (batalkan)
 
@@ -69,9 +73,9 @@ Form isian laporan kemajuan — ini adalah child FormSubmission dengan field-fie
 
 ### Actions
 
-| Aksi | Kondisi |
-|------|---------|
-| Simpan Draft | Selalu |
+| Aksi           | Kondisi                                              |
+| -------------- | ---------------------------------------------------- |
+| Simpan Draft   | Selalu                                               |
 | Submit Laporan | Semua field required terpenuhi, deadline belum lewat |
 
 ### Business Rules yang Mempengaruhi Tampilan
@@ -86,6 +90,7 @@ Form isian laporan kemajuan — ini adalah child FormSubmission dengan field-fie
 **Route:** `/monev/{id}`  
 **Accessible by:** Researcher (own), Reviewer (assigned), Operator, Admin  
 **Entry points:**
+
 - Klik siklus yang sudah disubmit dari Daftar Monev
 - Link dari Manajemen Siklus Monev (Operator)
 
@@ -100,9 +105,11 @@ Read-only view laporan yang sudah disubmit. Ditampilkan bersama hasil evaluasi r
 **Route:** `/monev/manage`  
 **Accessible by:** Operator, Admin  
 **Entry points:**
+
 - Sidebar nav → Monev → Manajemen Siklus Monev
 
 **Exit points:**
+
 - → Aktivasi Siklus per Submission
 
 ### Konten Utama
@@ -111,9 +118,9 @@ Tabel semua submission APPROVED yang memiliki siklus monev, beserta status progr
 
 ### Actions
 
-| Aksi | Kondisi |
-|------|---------|
-| Buka detail & kelola siklus | Selalu |
+| Aksi                        | Kondisi |
+| --------------------------- | ------- |
+| Buka detail & kelola siklus | Selalu  |
 
 ---
 
@@ -122,9 +129,11 @@ Tabel semua submission APPROVED yang memiliki siklus monev, beserta status progr
 **Route:** `/monev/manage/{submission_id}`  
 **Accessible by:** Operator, Admin  
 **Entry points:**
+
 - Klik submission dari Manajemen Siklus Monev
 
 **Exit points:**
+
 - → Manajemen Siklus Monev
 
 ### Konten Utama
@@ -135,10 +144,10 @@ Saat assign reviewer, sistem menampilkan **suggestion** reviewer dari pengajuan 
 
 ### Actions
 
-| Aksi | Kondisi |
-|------|---------|
-| Aktifkan siklus monev | Siklus sebelumnya sudah selesai |
-| Assign reviewer | Siklus aktif |
+| Aksi                       | Kondisi                             |
+| -------------------------- | ----------------------------------- |
+| Aktifkan siklus monev      | Siklus sebelumnya sudah selesai     |
+| Assign reviewer            | Siklus aktif                        |
 | Perpanjang deadline siklus | Selalu (via FormSubmissionOverride) |
 
 ### Business Rules yang Mempengaruhi Tampilan

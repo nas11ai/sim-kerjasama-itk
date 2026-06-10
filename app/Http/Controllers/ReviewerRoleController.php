@@ -25,7 +25,7 @@ class ReviewerRoleController extends Controller
 
         $reviewerRoles = $query->orderBy('created_at', 'desc')->paginate(10);
 
-        return Inertia::render('ReviewerRoles/Index', [
+        return Inertia::render('ReviewerRoles/IndexPage', [
             'reviewerRoles' => $reviewerRoles,
             'filters' => $request->only(['search', 'status']),
         ]);
@@ -33,7 +33,7 @@ class ReviewerRoleController extends Controller
 
     public function create()
     {
-        return Inertia::render('ReviewerRoles/Create');
+        return Inertia::render('ReviewerRoles/CreatePage');
     }
 
     public function store(Request $request)
@@ -60,14 +60,14 @@ class ReviewerRoleController extends Controller
             },
         ]);
 
-        return Inertia::render('ReviewerRoles/Show', [
+        return Inertia::render('ReviewerRoles/ShowPage', [
             'reviewerRole' => $reviewerRole,
         ]);
     }
 
     public function edit(ReviewerRole $reviewerRole)
     {
-        return Inertia::render('ReviewerRoles/Edit', [
+        return Inertia::render('ReviewerRoles/EditPage', [
             'reviewerRole' => $reviewerRole,
         ]);
     }

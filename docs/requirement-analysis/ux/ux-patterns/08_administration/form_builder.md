@@ -17,11 +17,11 @@
 
 ### Organisms
 
-| Organism | Deskripsi | Posisi |
-|----------|-----------|--------|
-| `FieldList` | Daftar field yang bisa di-drag untuk reorder. Setiap item: drag handle, label, tipe, required badge, tombol edit dan hapus | Main |
-| `AddFieldPanel` | Form inline untuk tambah field baru: label, tipe, required toggle, config tambahan per tipe | Main, bawah list |
-| `FieldEditDrawer` | Drawer/slideover dari kanan untuk edit field existing secara detail | Overlay kanan |
+| Organism          | Deskripsi                                                                                                                  | Posisi           |
+| ----------------- | -------------------------------------------------------------------------------------------------------------------------- | ---------------- |
+| `FieldList`       | Daftar field yang bisa di-drag untuk reorder. Setiap item: drag handle, label, tipe, required badge, tombol edit dan hapus | Main             |
+| `AddFieldPanel`   | Form inline untuk tambah field baru: label, tipe, required toggle, config tambahan per tipe                                | Main, bawah list |
+| `FieldEditDrawer` | Drawer/slideover dari kanan untuk edit field existing secara detail                                                        | Overlay kanan    |
 
 ### Interaction Notes
 
@@ -34,10 +34,10 @@ Saat toggle `is_required` untuk field yang form-nya punya active drafts, muncul 
 
 ### States
 
-| State | Trigger | Tampilan |
-|-------|---------|----------|
-| Empty | Form baru tanpa field | Empty state dengan prompt "Tambah field pertama" |
-| Soft-deleted field | Field di-delete | Field masih tampil dengan style strikethrough dan badge "Dihapus (tersimpan)" — tidak hilang dari list |
+| State              | Trigger               | Tampilan                                                                                               |
+| ------------------ | --------------------- | ------------------------------------------------------------------------------------------------------ |
+| Empty              | Form baru tanpa field | Empty state dengan prompt "Tambah field pertama"                                                       |
+| Soft-deleted field | Field di-delete       | Field masih tampil dengan style strikethrough dan badge "Dihapus (tersimpan)" — tidak hilang dari list |
 
 ### Business Rules yang Mempengaruhi UI
 

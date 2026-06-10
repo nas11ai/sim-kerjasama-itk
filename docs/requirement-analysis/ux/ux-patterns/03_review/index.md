@@ -17,16 +17,16 @@
 
 ### Organisms
 
-| Organism | Deskripsi | Posisi |
-|----------|-----------|--------|
-| `ReviewAssignmentFilter` | Toggle: Perlu Tindakan / Semua | Main, atas |
-| `ReviewAssignmentList` | List card per submission yang di-assign. Setiap card: judul, lead researcher, skema, deadline evaluasi, status badge | Main |
+| Organism                 | Deskripsi                                                                                                            | Posisi     |
+| ------------------------ | -------------------------------------------------------------------------------------------------------------------- | ---------- |
+| `ReviewAssignmentFilter` | Toggle: Perlu Tindakan / Semua                                                                                       | Main, atas |
+| `ReviewAssignmentList`   | List card per submission yang di-assign. Setiap card: judul, lead researcher, skema, deadline evaluasi, status badge | Main       |
 
 ### States
 
-| State | Trigger | Tampilan |
-|-------|---------|----------|
-| Empty | Belum ada penugasan | Empty state: "Belum ada penugasan review" |
+| State   | Trigger                         | Tampilan                                                                                          |
+| ------- | ------------------------------- | ------------------------------------------------------------------------------------------------- |
+| Empty   | Belum ada penugasan             | Empty state: "Belum ada penugasan review"                                                         |
 | Expired | Masa tugas reviewer sudah lewat | Banner atas: "Masa tugas Anda sebagai reviewer telah berakhir. Penugasan ini bersifat read-only." |
 
 ---
@@ -38,11 +38,11 @@
 
 ### Organisms
 
-| Organism | Deskripsi | Posisi |
-|----------|-----------|--------|
-| `SubmissionReadOnlyPanel` | Detail submission: judul, abstrak, anggota, berkas (bisa preview PDF inline) | Kiri |
-| `EvaluationFormPanel` | ReviewEvaluationForm dengan semua ReviewFormField | Kanan |
-| `EvaluationFormTabs` | Jika ada lebih dari satu ReviewEvaluationForm (ReviewerFormAssignment), tampilkan sebagai tabs | Kanan, atas |
+| Organism                  | Deskripsi                                                                                      | Posisi      |
+| ------------------------- | ---------------------------------------------------------------------------------------------- | ----------- |
+| `SubmissionReadOnlyPanel` | Detail submission: judul, abstrak, anggota, berkas (bisa preview PDF inline)                   | Kiri        |
+| `EvaluationFormPanel`     | ReviewEvaluationForm dengan semua ReviewFormField                                              | Kanan       |
+| `EvaluationFormTabs`      | Jika ada lebih dari satu ReviewEvaluationForm (ReviewerFormAssignment), tampilkan sebagai tabs | Kanan, atas |
 
 ### Interaction Notes
 
@@ -52,11 +52,11 @@ Saat semua field terisi, tombol "Submit Evaluasi" menjadi aktif. Ada konfirmasi 
 
 ### States
 
-| State | Trigger | Tampilan |
-|-------|---------|----------|
-| Draft | Belum submit | Form editable, tombol "Simpan Draft" dan "Submit Evaluasi" |
-| Locked | Setelah submit | Form read-only, semua input disabled, banner "Evaluasi telah disubmit" |
-| Score visible | reviewer_internal, semua reviewer selesai | Section tambahan: "Skor Reviewer Lain" muncul di panel kanan |
+| State         | Trigger                                   | Tampilan                                                               |
+| ------------- | ----------------------------------------- | ---------------------------------------------------------------------- |
+| Draft         | Belum submit                              | Form editable, tombol "Simpan Draft" dan "Submit Evaluasi"             |
+| Locked        | Setelah submit                            | Form read-only, semua input disabled, banner "Evaluasi telah disubmit" |
+| Score visible | reviewer_internal, semua reviewer selesai | Section tambahan: "Skor Reviewer Lain" muncul di panel kanan           |
 
 ### Business Rules yang Mempengaruhi UI
 
@@ -72,10 +72,10 @@ Saat semua field terisi, tombol "Submit Evaluasi" menjadi aktif. Ada konfirmasi 
 
 ### Organisms
 
-| Organism | Deskripsi | Posisi |
-|----------|-----------|--------|
-| `ReviewSummaryCard` | Status summary (open/resolved), catatan ringkasan reviewer, tombol "Tandai Resolved" | Main, atas |
-| `CommentThread` | Nested komentar dengan form reply inline | Main, bawah |
+| Organism            | Deskripsi                                                                            | Posisi      |
+| ------------------- | ------------------------------------------------------------------------------------ | ----------- |
+| `ReviewSummaryCard` | Status summary (open/resolved), catatan ringkasan reviewer, tombol "Tandai Resolved" | Main, atas  |
+| `CommentThread`     | Nested komentar dengan form reply inline                                             | Main, bawah |
 
 ### Molecules yang Notable
 
@@ -90,10 +90,10 @@ Komentar nested tidak tak terbatas — maksimum 2 level indent untuk menjaga ket
 
 ### States
 
-| State | Trigger | Tampilan |
-|-------|---------|----------|
-| Open | Ada ReviewSummary open | `ReviewSummaryCard` dengan header merah/orange, form reply aktif |
-| Resolved | ReviewSummary resolved | `ReviewSummaryCard` dengan header hijau, form reply disabled, badge "Selesai" |
+| State                | Trigger                                        | Tampilan                                                                                              |
+| -------------------- | ---------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
+| Open                 | Ada ReviewSummary open                         | `ReviewSummaryCard` dengan header merah/orange, form reply aktif                                      |
+| Resolved             | ReviewSummary resolved                         | `ReviewSummaryCard` dengan header hijau, form reply disabled, badge "Selesai"                         |
 | Auto-approve pending | Semua summary resolved, semua evaluasi selesai | Banner info: "Semua catatan revisi sudah diselesaikan. Sistem sedang memproses persetujuan otomatis." |
 
 ### Business Rules yang Mempengaruhi UI
@@ -109,18 +109,18 @@ Komentar nested tidak tak terbatas — maksimum 2 level indent untuk menjaga ket
 
 ### Organisms
 
-| Organism | Deskripsi | Posisi |
-|----------|-----------|--------|
-| `AssignedReviewerList` | Daftar reviewer yang sudah di-assign, dengan tombol hapus per item | Atas |
-| `ReviewerSearchForm` | Search by nama/NIDN, filter tipe (internal/external) | Tengah |
-| `ReviewerSearchResults` | Hasil search sebagai list: nama, tipe, workload, status eligibility | Tengah, bawah |
-| `AssignmentConfirmBar` | Counter "N dari minimal M reviewer" + tombol "Konfirmasi Assignment" | Bawah |
+| Organism                | Deskripsi                                                            | Posisi        |
+| ----------------------- | -------------------------------------------------------------------- | ------------- |
+| `AssignedReviewerList`  | Daftar reviewer yang sudah di-assign, dengan tombol hapus per item   | Atas          |
+| `ReviewerSearchForm`    | Search by nama/NIDN, filter tipe (internal/external)                 | Tengah        |
+| `ReviewerSearchResults` | Hasil search sebagai list: nama, tipe, workload, status eligibility  | Tengah, bawah |
+| `AssignmentConfirmBar`  | Counter "N dari minimal M reviewer" + tombol "Konfirmasi Assignment" | Bawah         |
 
 ### States
 
-| State | Trigger | Tampilan |
-|-------|---------|----------|
-| Conflict | Reviewer punya conflict of interest | Item di search results: badge merah "Konflik Kepentingan", tidak bisa diklik |
-| High workload | Workload ≥ max | Item di search results: badge kuning "Workload Tinggi", masih bisa dipilih |
-| Insufficient | Jumlah < min_reviewer_count | `AssignmentConfirmBar` tombol disabled, counter merah |
-| Sufficient | Jumlah ≥ min_reviewer_count | `AssignmentConfirmBar` tombol aktif, counter hijau |
+| State         | Trigger                             | Tampilan                                                                     |
+| ------------- | ----------------------------------- | ---------------------------------------------------------------------------- |
+| Conflict      | Reviewer punya conflict of interest | Item di search results: badge merah "Konflik Kepentingan", tidak bisa diklik |
+| High workload | Workload ≥ max                      | Item di search results: badge kuning "Workload Tinggi", masih bisa dipilih   |
+| Insufficient  | Jumlah < min_reviewer_count         | `AssignmentConfirmBar` tombol disabled, counter merah                        |
+| Sufficient    | Jumlah ≥ min_reviewer_count         | `AssignmentConfirmBar` tombol aktif, counter hijau                           |

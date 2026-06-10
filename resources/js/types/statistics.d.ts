@@ -1,21 +1,47 @@
+import type {
+    FormPhaseFaculty,
+    FormPhaseProdi,
+    FormPhaseStatus,
+    FormPhaseTotal,
+    FormPhaseByPeriod,
+    RecentSubmission,
+    TotalSubmission,
+    TotalByStatus,
+    TotalByFaculty,
+    TotalByProdi,
+    UserRecent,
+    ReviewerRecent,
+    EvaluationStatus,
+    ReviewerByYear,
+    ReviewerByFaculty,
+    ReviewerByProdi,
+    ReviewerActiveStatus,
+} from './api'
+
+export interface TotalByRoleItem {
+    id: number
+    total_reviewers: number
+    reviewer_role_name: string
+}
+
 export interface FormPhaseStats {
-    formPhaseFaculty: any[]
-    formPhaseProdi: any[]
-    formPhaseStatus: any[]
-    formPhaseTotal: any[]
-    formPhaseByPeriod: any[]
+    formPhaseFaculty: FormPhaseFaculty[]
+    formPhaseProdi: FormPhaseProdi[]
+    formPhaseStatus: FormPhaseStatus[]
+    formPhaseTotal: FormPhaseTotal[]
+    formPhaseByPeriod: FormPhaseByPeriod[]
 }
 
 export interface FormSubmissionStats {
-    recentSubmissions: any[]
-    totalSubmissions: any[]
-    totalByStatus: any[]
-    totalByFaculty: any[]
-    totalByProdi: any[]
+    recentSubmissions: RecentSubmission[]
+    totalSubmissions: TotalSubmission[]
+    totalByStatus: TotalByStatus[]
+    totalByFaculty: TotalByFaculty[]
+    totalByProdi: TotalByProdi[]
 }
 
 export interface UserStats {
-    userRecent: any[]
+    userRecent: UserRecent[]
     totalUsers: number
     totalAdmin: number
     totalNonAdmin: number
@@ -24,12 +50,12 @@ export interface UserStats {
 }
 
 export interface SubmissionReviewerStats {
-    reviewerRecent: any[]
+    reviewerRecent: ReviewerRecent[]
     totalReviewers: number
-    totalByRole: any[]
-    evaluationStatus: any[]
-    reviewerByYear: any[]
-    reviewerByFaculty: any[]
-    reviewerByProdi: any[]
-    reviewerActiveStatus: any[]
+    totalByRole: TotalByRoleItem[]
+    evaluationStatus: EvaluationStatus[]
+    reviewerByYear: ReviewerByYear[]
+    reviewerByFaculty: ReviewerByFaculty[]
+    reviewerByProdi: ReviewerByProdi[]
+    reviewerActiveStatus: ReviewerActiveStatus[]
 }

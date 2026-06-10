@@ -29,12 +29,12 @@ php artisan telescope:install
 
 Tidak perlu manage infra sendiri.
 
-| Komponen | Batas Free |
-|---|---|
-| Loki (logs) | 50 GB/bulan |
-| Prometheus (metrics) | 10k series |
-| Grafana dashboard | Unlimited |
-| Alerting (email, webhook) | Unlimited |
+| Komponen                  | Batas Free  |
+| ------------------------- | ----------- |
+| Loki (logs)               | 50 GB/bulan |
+| Prometheus (metrics)      | 10k series  |
+| Grafana dashboard         | Unlimited   |
+| Alerting (email, webhook) | Unlimited   |
 
 ---
 
@@ -50,14 +50,14 @@ GlitchTip         ← self-hosted Sentry (compatible dengan sentry/sentry-larave
 
 **Estimasi resource:**
 
-| Komponen | RAM |
-|---|---|
-| VictoriaMetrics | ~150 MB |
-| Loki | ~200 MB |
-| Grafana | ~150 MB |
-| Uptime Kuma | ~50 MB |
-| GlitchTip | ~300 MB |
-| **Total** | **~850 MB** |
+| Komponen        | RAM         |
+| --------------- | ----------- |
+| VictoriaMetrics | ~150 MB     |
+| Loki            | ~200 MB     |
+| Grafana         | ~150 MB     |
+| Uptime Kuma     | ~50 MB      |
+| GlitchTip       | ~300 MB     |
+| **Total**       | **~850 MB** |
 
 ---
 
@@ -69,6 +69,7 @@ composer require spatie/laravel-activitylog
 ```
 
 **Health check endpoint:**
+
 ```php
 Route::get('/health', fn() => response()->json([
     'status' => 'ok',
@@ -78,12 +79,14 @@ Route::get('/health', fn() => response()->json([
 ```
 
 **Log config production:**
+
 ```php
 // LOG_LEVEL=warning di prod, LOG_LEVEL=debug di staging
 // Promtail baca dari storage/logs/laravel-*.log → kirim ke Loki
 ```
 
 **Activity log untuk audit trail:**
+
 ```php
 activity('submission')->performedOn($submission)->causedBy($user)->log('submitted');
 activity('review')->performedOn($summary)->causedBy($reviewer)->log('revision_requested');
@@ -93,10 +96,10 @@ activity('review')->performedOn($summary)->causedBy($reviewer)->log('revision_re
 
 ## Alert Rules
 
-| Alert | Kondisi | Channel |
-|---|---|---|
-| App down | `/health` unreachable > 2 menit | Telegram |
-| Error spike | > 10 error baru / 5 menit di GlitchTip | Telegram |
-| Queue backlog | Failed jobs > 50 | Telegram |
-| Disk full | Disk usage > 85% | Telegram |
-| Slow queries | Query time p95 > 1s | Email |
+| Alert         | Kondisi                                | Channel  |
+| ------------- | -------------------------------------- | -------- |
+| App down      | `/health` unreachable > 2 menit        | Telegram |
+| Error spike   | > 10 error baru / 5 menit di GlitchTip | Telegram |
+| Queue backlog | Failed jobs > 50                       | Telegram |
+| Disk full     | Disk usage > 85%                       | Telegram |
+| Slow queries  | Query time p95 > 1s                    | Email    |

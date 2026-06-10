@@ -1,18 +1,22 @@
 <script lang="ts" setup>
 import { Row } from '@tanstack/vue-table'
 import { Edit, Trash } from 'lucide-vue-next'
-import Button from './ui/button/Button.vue'
+import Button from './ui/button/UiButton.vue'
+import { route } from 'ziggy-js'
 
+interface TableRowData {
+    id: number
+}
 const props = defineProps<{
-    row: Row<any>
+    row: Row<TableRowData>
     canDelete: boolean
     canEdit: boolean
     editRouteName?: string
-    onEdit?: (row: any) => void
+    onEdit?: (_row: TableRowData) => void
 }>()
 
 const emit = defineEmits<{
-    (e: 'confirm-delete', id: number): void
+    'confirm-delete': [id: number]
 }>()
 
 function handleEdit() {

@@ -42,7 +42,6 @@ return new class extends Migration
             $table->dropIndex(['form_phase_detail_id', 'is_active']);
             $table->dropIndex(['form_phase_detail_id', 'order']);
 
-
             // Drop kolom baru
             $table->dropColumn('form_phase_detail_id');
 

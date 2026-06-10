@@ -132,9 +132,9 @@ Dua opsi, pilih berdasarkan kompleksitas yang diinginkan:
 
 ```ts
 // composables/useNotifications.ts
-const { data, refresh } = useFetch("/api/notifications/unread-count", {
+const { data, refresh } = useFetch('/api/notifications/unread-count', {
     refreshInterval: 30_000, // poll tiap 30 detik
-});
+})
 ```
 
 Cukup untuk sistem internal universitas. Tidak butuh infrastructure tambahan apapun.

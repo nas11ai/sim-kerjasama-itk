@@ -1,118 +1,118 @@
-name: "🗂️ Epic"
+name: '🗂️ Epic'
 description: Fitur besar yang terdiri dari beberapa Stories. Satu Epic = satu kemampuan domain yang utuh.
-title: "[Epic] "
-labels: ["type: feature", "status: needs-design"]
+title: '[Epic] '
+labels: ['type: feature', 'status: needs-design']
 body:
-  - type: markdown
-    attributes:
-      value: |
-        Epic adalah unit fitur besar yang bisa lintas sprint. Isi dengan jelas agar Stories di bawahnya bisa diturunkan tanpa ambiguitas.
+    - type: markdown
+      attributes:
+          value: |
+              Epic adalah unit fitur besar yang bisa lintas sprint. Isi dengan jelas agar Stories di bawahnya bisa diturunkan tanpa ambiguitas.
 
-  - type: dropdown
-    id: milestone
-    attributes:
-      label: Milestone
-      description: Epic ini masuk ke milestone mana?
-      options:
-        - "M0 · Dev Foundation"
-        - "M1 · Architecture Migration"
-        - "M2 · Registration & Identity"
-        - "M3 · Scheme & Form Extensions"
-        - "M4 · Budget Planning"
-        - "M5 · Temporal Access Control"
-        - "M6 · Research Output & Notification"
-        - "M7 · Testing & QA"
-        - "M8 · Hardening & Launch Prep"
-    validations:
-      required: true
+    - type: dropdown
+      id: milestone
+      attributes:
+          label: Milestone
+          description: Epic ini masuk ke milestone mana?
+          options:
+              - 'M0 · Dev Foundation'
+              - 'M1 · Architecture Migration'
+              - 'M2 · Registration & Identity'
+              - 'M3 · Scheme & Form Extensions'
+              - 'M4 · Budget Planning'
+              - 'M5 · Temporal Access Control'
+              - 'M6 · Research Output & Notification'
+              - 'M7 · Testing & QA'
+              - 'M8 · Hardening & Launch Prep'
+      validations:
+          required: true
 
-  - type: dropdown
-    id: domain
-    attributes:
-      label: Bounded Context
-      description: Epic ini termasuk domain mana? Boleh pilih lebih dari satu jika cross-context.
-      multiple: true
-      options:
-        - "Form Engine"
-        - "Submission"
-        - "Review"
-        - "Budget"
-        - "Monev"
-        - "Research Output"
-        - "Scheme"
-        - "Identity & Access"
-        - "Notification"
-        - "Observability"
-    validations:
-      required: true
+    - type: dropdown
+      id: domain
+      attributes:
+          label: Bounded Context
+          description: Epic ini termasuk domain mana? Boleh pilih lebih dari satu jika cross-context.
+          multiple: true
+          options:
+              - 'Form Engine'
+              - 'Submission'
+              - 'Review'
+              - 'Budget'
+              - 'Monev'
+              - 'Research Output'
+              - 'Scheme'
+              - 'Identity & Access'
+              - 'Notification'
+              - 'Observability'
+      validations:
+          required: true
 
-  - type: textarea
-    id: goal
-    attributes:
-      label: Tujuan Bisnis
-      description: Apa yang bisa dilakukan user setelah Epic ini selesai? Tulis dari perspektif bisnis, bukan teknis.
-      placeholder: |
-        Setelah Epic ini selesai, researcher bisa merencanakan anggaran penelitian secara rinci per komponen, 
-        melihat total otomatis, dan sistem akan memvalidasi bahwa anggaran tidak melebihi batas skema.
-    validations:
-      required: true
+    - type: textarea
+      id: goal
+      attributes:
+          label: Tujuan Bisnis
+          description: Apa yang bisa dilakukan user setelah Epic ini selesai? Tulis dari perspektif bisnis, bukan teknis.
+          placeholder: |
+              Setelah Epic ini selesai, researcher bisa merencanakan anggaran penelitian secara rinci per komponen, 
+              melihat total otomatis, dan sistem akan memvalidasi bahwa anggaran tidak melebihi batas skema.
+      validations:
+          required: true
 
-  - type: textarea
-    id: business-rules
-    attributes:
-      label: Business Rules yang Terlibat
-      description: Referensikan kode BR dari DDD yang relevan.
-      placeholder: |
-        - BR-BUD-01: Total BudgetLineItems ≤ schemes.max_budget
-        - BR-BUD-02: Budget tidak bisa diedit setelah Submission APPROVED
-        - BR-BUD-03: volume > 0 dan unit_price > 0
-    validations:
-      required: false
+    - type: textarea
+      id: business-rules
+      attributes:
+          label: Business Rules yang Terlibat
+          description: Referensikan kode BR dari DDD yang relevan.
+          placeholder: |
+              - BR-BUD-01: Total BudgetLineItems ≤ schemes.max_budget
+              - BR-BUD-02: Budget tidak bisa diedit setelah Submission APPROVED
+              - BR-BUD-03: volume > 0 dan unit_price > 0
+      validations:
+          required: false
 
-  - type: textarea
-    id: acceptance-criteria
-    attributes:
-      label: Acceptance Criteria (Epic Level)
-      description: Kriteria high-level yang menandakan Epic ini done. Detail per Story ada di masing-masing Story issue.
-      placeholder: |
-        - [ ] Researcher bisa input, edit, dan hapus line item anggaran
-        - [ ] Total anggaran ter-kalkulasi otomatis dan real-time
-        - [ ] Validasi batas anggaran skema berjalan di frontend dan backend
-        - [ ] Anggaran terkunci setelah proposal approved
-        - [ ] Operator bisa lihat rincian anggaran dari submission manapun
-    validations:
-      required: true
+    - type: textarea
+      id: acceptance-criteria
+      attributes:
+          label: Acceptance Criteria (Epic Level)
+          description: Kriteria high-level yang menandakan Epic ini done. Detail per Story ada di masing-masing Story issue.
+          placeholder: |
+              - [ ] Researcher bisa input, edit, dan hapus line item anggaran
+              - [ ] Total anggaran ter-kalkulasi otomatis dan real-time
+              - [ ] Validasi batas anggaran skema berjalan di frontend dan backend
+              - [ ] Anggaran terkunci setelah proposal approved
+              - [ ] Operator bisa lihat rincian anggaran dari submission manapun
+      validations:
+          required: true
 
-  - type: textarea
-    id: out-of-scope
-    attributes:
-      label: Out of Scope
-      description: Apa yang TIDAK termasuk dalam Epic ini? Penting untuk menghindari scope creep.
-      placeholder: |
-        - Export anggaran ke Excel (masuk Epic terpisah di M8)
-        - Approval anggaran oleh kepala unit (tidak ada di MVP)
-    validations:
-      required: false
+    - type: textarea
+      id: out-of-scope
+      attributes:
+          label: Out of Scope
+          description: Apa yang TIDAK termasuk dalam Epic ini? Penting untuk menghindari scope creep.
+          placeholder: |
+              - Export anggaran ke Excel (masuk Epic terpisah di M8)
+              - Approval anggaran oleh kepala unit (tidak ada di MVP)
+      validations:
+          required: false
 
-  - type: textarea
-    id: dependencies
-    attributes:
-      label: Dependensi
-      description: Epic atau infrastructure apa yang harus selesai dulu sebelum Epic ini bisa dimulai?
-      placeholder: |
-        - Butuh M1 selesai (form_submissions.scheme_id sudah ada)
-        - Butuh Epic "Scheme System" selesai (untuk validasi max_budget)
-    validations:
-      required: false
+    - type: textarea
+      id: dependencies
+      attributes:
+          label: Dependensi
+          description: Epic atau infrastructure apa yang harus selesai dulu sebelum Epic ini bisa dimulai?
+          placeholder: |
+              - Butuh M1 selesai (form_submissions.scheme_id sudah ada)
+              - Butuh Epic "Scheme System" selesai (untuk validasi max_budget)
+      validations:
+          required: false
 
-  - type: textarea
-    id: notes
-    attributes:
-      label: Catatan Teknis
-      description: Keputusan arsitektur, trade-off, atau referensi yang relevan.
-      placeholder: |
-        Data budget TIDAK masuk form_field_responses. 
-        Disimpan ke extension table budget_line_items (FK: form_submission_id).
-        Lihat generic/01_form_engine.md — Konsep RepeatableField.
-    validations:
-      required: false
+    - type: textarea
+      id: notes
+      attributes:
+          label: Catatan Teknis
+          description: Keputusan arsitektur, trade-off, atau referensi yang relevan.
+          placeholder: |
+              Data budget TIDAK masuk form_field_responses. 
+              Disimpan ke extension table budget_line_items (FK: form_submission_id).
+              Lihat generic/01_form_engine.md — Konsep RepeatableField.
+      validations:
+          required: false

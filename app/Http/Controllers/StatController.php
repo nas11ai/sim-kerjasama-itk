@@ -30,7 +30,7 @@ class StatController extends Controller
 
     public function dashboard()
     {
-        return Inertia::render('Dashboard', $this->getAllStats());
+        return Inertia::render('DashboardPage', $this->getAllStats());
     }
 
     public function data()

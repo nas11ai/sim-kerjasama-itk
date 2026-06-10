@@ -17,9 +17,9 @@
 
 ### Organisms
 
-| Organism | Deskripsi | Posisi |
-|----------|-----------|--------|
-| `SubmissionOutputGroup` | Card group per submission: header submission + daftar luaran di bawahnya | Main |
+| Organism                | Deskripsi                                                                | Posisi |
+| ----------------------- | ------------------------------------------------------------------------ | ------ |
+| `SubmissionOutputGroup` | Card group per submission: header submission + daftar luaran di bawahnya | Main   |
 
 ### Molecules yang Notable
 
@@ -27,11 +27,11 @@
 
 ### States
 
-| State | Trigger | Tampilan |
-|-------|---------|----------|
-| Empty | Belum ada luaran | Empty state per submission: "Belum ada luaran. Tambah luaran penelitian." + tombol CTA |
-| Read-only (member) | User adalah member, bukan submitted_by / co_investigator | Tombol tambah dan edit disembunyikan |
-| Withdrawn | Submission WITHDRAWN | Badge "Ditarik" di header group, luaran tetap tampil sebagai historis read-only |
+| State              | Trigger                                                  | Tampilan                                                                               |
+| ------------------ | -------------------------------------------------------- | -------------------------------------------------------------------------------------- |
+| Empty              | Belum ada luaran                                         | Empty state per submission: "Belum ada luaran. Tambah luaran penelitian." + tombol CTA |
+| Read-only (member) | User adalah member, bukan submitted_by / co_investigator | Tombol tambah dan edit disembunyikan                                                   |
+| Withdrawn          | Submission WITHDRAWN                                     | Badge "Ditarik" di header group, luaran tetap tampil sebagai historis read-only        |
 
 ---
 
@@ -52,11 +52,11 @@ Form field yang muncul sesuai tipe yang dipilih (driven by `config/research_outp
 
 ### States
 
-| State | Trigger | Tampilan |
-|-------|---------|----------|
-| Loading — step 2 | Setelah pilih tipe | Skeleton form sebentar |
+| State                 | Trigger                                   | Tampilan                                                           |
+| --------------------- | ----------------------------------------- | ------------------------------------------------------------------ |
+| Loading — step 2      | Setelah pilih tipe                        | Skeleton form sebentar                                             |
 | Error — file required | Submit tanpa file untuk tipe ip/prototype | Inline error: "Tipe ini wajib memiliki minimal satu file lampiran" |
-| Success | Submit berhasil | Modal tutup, item baru muncul di daftar (optimistic update) |
+| Success               | Submit berhasil                           | Modal tutup, item baru muncul di daftar (optimistic update)        |
 
 ### Business Rules yang Mempengaruhi UI
 

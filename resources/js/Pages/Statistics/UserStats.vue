@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import Badge from '@/Components/ui/badge/Badge.vue'
-import Button from '@/Components/ui/button/Button.vue'
-import Card from '@/Components/ui/card/Card.vue'
+import Badge from '@/Components/ui/badge/UiBadge.vue'
+import Button from '@/Components/ui/button/UiButton.vue'
+import Card from '@/Components/ui/card/UiCard.vue'
 import CardContent from '@/Components/ui/card/CardContent.vue'
 import CardDescription from '@/Components/ui/card/CardDescription.vue'
 import CardHeader from '@/Components/ui/card/CardHeader.vue'
@@ -19,7 +19,6 @@ import {
     User,
     Users,
 } from 'lucide-vue-next'
-import { Pagination } from 'reka-ui/namespaced'
 import { ref } from 'vue'
 
 interface UserRecent {
@@ -27,7 +26,6 @@ interface UserRecent {
     name: string
     email: string
     created_at: string
-    is_reviewer: boolean
 }
 
 const props = defineProps<{
