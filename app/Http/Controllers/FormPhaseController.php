@@ -50,17 +50,17 @@ class FormPhaseController extends Controller
         // Calculate review evaluation forms counts for each phase
         $formPhases->getCollection()->transform(function ($phase) {
             $phase->review_evaluation_forms_count = $phase->formPhaseDetails->sum(
-                fn ($detail) => $detail->reviewEvaluationFormsCount
+                fn (FormPhaseDetail $detail) => $detail->reviewEvaluationFormsCount
             );
 
             $phase->required_review_evaluation_forms_count = $phase->formPhaseDetails->sum(
-                fn ($detail) => $detail->requiredReviewEvaluationFormsCount
+                fn (FormPhaseDetail $detail) => $detail->requiredReviewEvaluationFormsCount
             );
 
             return $phase;
         });
 
-        return Inertia::render('FormPhases/Index', [
+        return Inertia::render('FormPhases/IndexPage', [
             'formPhases' => $formPhases,
             'filters' => [
                 'search' => $search,
@@ -81,7 +81,7 @@ class FormPhaseController extends Controller
         $formAccessControls = FormAccessControl::with(['form', 'role', 'studyProgram'])
             ->get();
 
-        return Inertia::render('FormPhases/Create', [
+        return Inertia::render('FormPhases/CreatePage', [
             'forms' => $forms,
             'roles' => $roles,
             'faculties' => $faculties,
@@ -188,7 +188,7 @@ class FormPhaseController extends Controller
             fn ($detail) => $detail->requiredReviewEvaluationFormsCount
         );
 
-        return Inertia::render('FormPhases/Show', [
+        return Inertia::render('FormPhases/ShowPage', [
             'formPhase' => $formPhase,
         ]);
     }
@@ -209,7 +209,7 @@ class FormPhaseController extends Controller
         $formAccessControls = FormAccessControl::with(['form', 'role', 'studyProgram'])
             ->get();
 
-        return Inertia::render('FormPhases/Edit', [
+        return Inertia::render('FormPhases/EditPage', [
             'formPhase' => $formPhase,
             'forms' => $forms,
             'roles' => $roles,

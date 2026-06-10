@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { Head, Link, router } from '@inertiajs/vue3'
+import { Head } from '@inertiajs/vue3'
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
 import { Button } from '@/Components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card'
@@ -11,14 +11,10 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/Components/ui/tabs'
 import {
     ArrowLeft,
     FileText,
-    CheckCircle,
-    AlertCircle,
     Download,
     Edit,
     Clock,
     MessageSquare,
-    ClipboardList,
-    AlertTriangle,
     User,
     Mail,
 } from 'lucide-vue-next'
@@ -88,6 +84,34 @@ interface EvaluationRequirements {
     message: string
 }
 
+interface ReviewSummary {
+    id: number
+    reviewer_id: number | null
+    status: 'open' | 'resolved' | 'closed'
+    summary_notes: string | null
+    created_at: string
+    updated_at: string
+    reviewer?: {
+        user: { id: number; name: string; email: string }
+        reviewer_role: { name: string }
+    }
+    attachments: Array<{ id: number; file_path: string }>
+}
+
+interface ReviewComment {
+    id: number
+    review_summary_id: number
+    parent_comment_id: number | null
+    user_id: number | null
+    reviewer_id: number | null
+    comment_text: string
+    created_at: string
+    user?: { id: number; name: string }
+    reviewer?: { user: { id: number; name: string } }
+    attachments: Array<{ id: number; file_path: string }>
+    replies: ReviewComment[]
+}
+
 interface FormSubmission {
     id: number
     is_submitted: boolean
@@ -97,8 +121,8 @@ interface FormSubmission {
     updated_at: string
     form: Form
     reviewer_form_assignments?: ReviewerFormAssignment[]
-    submission_reviewers?: any[]
-    review_summaries?: any[]
+    submission_reviewers?: unknown[]
+    review_summaries?: ReviewSummary[]
     submitted_by?: {
         id: number
         name: string
@@ -109,7 +133,7 @@ interface FormSubmission {
 interface Props {
     submission: FormSubmission
     responses: Record<number, string>
-    reviewComments?: any[]
+    reviewComments?: ReviewComment[]
     reviewStats?: {
         total_reviewers: number
         open_reviews: number
@@ -183,11 +207,11 @@ const pendingEvaluationsCount = computed(() => {
     ).length
 })
 
-const completedEvaluationsCount = computed(() => {
-    return reviewerAssignments.filter(
-        (assignment) => assignment.review_form_response?.status === 'submitted'
-    ).length
-})
+// const completedEvaluationsCount = computed(() => {
+//     return reviewerAssignments.filter(
+//         (assignment) => assignment.review_form_response?.status === 'submitted'
+//     ).length
+// })
 
 const formatDateTime = (dateString: string) => {
     return new Date(dateString).toLocaleString('id-ID', {
@@ -205,9 +229,10 @@ const renderFieldValue = (field: FormField, value: string) => {
 
     switch (field.field_type.name.toLowerCase()) {
         case 'select':
-        case 'radio':
+        case 'radio': {
             const option = field.form_field_options.find((opt) => opt.id.toString() === value)
             return option ? option.label : value
+        }
         case 'checkbox':
             return value === '1' || value === 'true' ? 'Yes' : 'No'
         case 'date':
@@ -231,36 +256,36 @@ const goBack = () => {
     window.history.back()
 }
 
-const getAssignmentStatusInfo = (assignment: ReviewerFormAssignment) => {
-    if (!assignment.review_form_response) {
-        return {
-            variant: 'secondary' as const,
-            text: 'Not Started',
-            icon: Clock,
-        }
-    }
+// const getAssignmentStatusInfo = (assignment: ReviewerFormAssignment) => {
+//     if (!assignment.review_form_response) {
+//         return {
+//             variant: 'secondary' as const,
+//             text: 'Not Started',
+//             icon: Clock,
+//         }
+//     }
 
-    switch (assignment.review_form_response.status) {
-        case 'submitted':
-            return {
-                variant: 'default' as const,
-                text: 'Completed',
-                icon: CheckCircle,
-            }
-        case 'draft':
-            return {
-                variant: 'outline' as const,
-                text: 'In Progress',
-                icon: Clock,
-            }
-        default:
-            return {
-                variant: 'secondary' as const,
-                text: 'Unknown',
-                icon: AlertCircle,
-            }
-    }
-}
+//     switch (assignment.review_form_response.status) {
+//         case 'submitted':
+//             return {
+//                 variant: 'default' as const,
+//                 text: 'Completed',
+//                 icon: CheckCircle,
+//             }
+//         case 'draft':
+//             return {
+//                 variant: 'outline' as const,
+//                 text: 'In Progress',
+//                 icon: Clock,
+//             }
+//         default:
+//             return {
+//                 variant: 'secondary' as const,
+//                 text: 'Unknown',
+//                 icon: AlertCircle,
+//             }
+//     }
+// }
 
 const mappedAssignedReviewers = computed(() =>
     assignedReviewers.map((r) => ({

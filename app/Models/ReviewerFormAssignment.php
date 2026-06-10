@@ -2,12 +2,24 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 
+/**
+ * @property int $id
+ * @property int $submission_reviewer_id
+ * @property int $review_evaluation_form_id
+ * @property-read SubmissionReviewer $submissionReviewer
+ * @property-read ReviewEvaluationForm $reviewEvaluationForm
+ * @property-read ReviewFormResponse|null $reviewFormResponse
+ */
 class ReviewerFormAssignment extends Model
 {
+    /**
+     * @property-read ReviewFormResponse|null $reviewFormResponse
+     */
     protected $fillable = [
         'submission_reviewer_id',
         'review_evaluation_form_id',
@@ -24,38 +36,47 @@ class ReviewerFormAssignment extends Model
         'due_date' => 'datetime',
     ];
 
+    /**
+     * @return BelongsTo<SubmissionReviewer, $this>
+     */
     public function submissionReviewer(): BelongsTo
     {
         return $this->belongsTo(SubmissionReviewer::class);
     }
 
+    /**
+     * @return BelongsTo<ReviewEvaluationForm, $this>
+     */
     public function reviewEvaluationForm(): BelongsTo
     {
         return $this->belongsTo(ReviewEvaluationForm::class);
     }
 
+    /**
+     * @return HasOne<ReviewFormResponse, $this>
+     */
     public function reviewFormResponse(): HasOne
     {
         return $this->hasOne(ReviewFormResponse::class);
     }
 
     // Scopes
-    public function scopeActive($query)
+    public function scopeActive($query): Builder
     {
         return $query->where('is_active', true);
     }
 
-    public function scopeRequired($query)
+    public function scopeRequired($query): Builder
     {
         return $query->where('is_required', true);
     }
 
-    public function scopeOptional($query)
+    public function scopeOptional($query): Builder
     {
         return $query->where('is_required', false);
     }
 
-    public function scopeOverdue($query)
+    public function scopeOverdue($query): Builder
     {
         return $query->where('due_date', '<', now())
             ->whereDoesntHave('reviewFormResponse', function ($q) {
@@ -63,7 +84,7 @@ class ReviewerFormAssignment extends Model
             });
     }
 
-    public function scopeDueSoon($query, int $hours = 24)
+    public function scopeDueSoon($query, int $hours = 24): Builder
     {
         return $query->whereBetween('due_date', [now(), now()->addHours($hours)])
             ->whereDoesntHave('reviewFormResponse', function ($q) {
@@ -121,7 +142,7 @@ class ReviewerFormAssignment extends Model
             return null;
         }
 
-        return now()->diffInDays($this->due_date, false);
+        return (int) now()->diffInDays($this->due_date, false);
     }
 
     public function getHoursUntilDue(): ?int
@@ -130,7 +151,7 @@ class ReviewerFormAssignment extends Model
             return null;
         }
 
-        return now()->diffInHours($this->due_date, false);
+        return (int) now()->diffInHours($this->due_date, false);
     }
 
     // Check if assignment can be completed (not locked and active)

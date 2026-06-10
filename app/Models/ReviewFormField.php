@@ -6,6 +6,11 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
+/**
+ * @property bool $is_required
+ * @property string $label
+ * @property array|null $validation_rules
+ */
 class ReviewFormField extends Model
 {
     protected $fillable = [
@@ -23,21 +28,33 @@ class ReviewFormField extends Model
         'validation_rules' => 'array',
     ];
 
+    /**
+     * @return BelongsTo<ReviewEvaluationForm, $this>
+     */
     public function reviewEvaluationForm(): BelongsTo
     {
         return $this->belongsTo(ReviewEvaluationForm::class);
     }
 
+    /**
+     * @return BelongsTo<FieldType, $this>
+     */
     public function fieldType(): BelongsTo
     {
         return $this->belongsTo(FieldType::class);
     }
 
+    /**
+     * @return HasMany<ReviewFormFieldOption, $this>
+     */
     public function reviewFormFieldOptions(): HasMany
     {
         return $this->hasMany(ReviewFormFieldOption::class);
     }
 
+    /**
+     * @return HasMany<ReviewFormFieldResponse, $this>
+     */
     public function reviewFormFieldResponses(): HasMany
     {
         return $this->hasMany(ReviewFormFieldResponse::class);

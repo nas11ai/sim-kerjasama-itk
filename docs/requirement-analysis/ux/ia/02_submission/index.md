@@ -9,18 +9,18 @@
 
 ## Page Inventory
 
-| # | Page | Route | Accessible By |
-|---|------|-------|---------------|
-| 1 | Daftar Pengajuan (Researcher) | `/submissions` | Researcher |
-| 2 | Daftar Pengajuan (Operator) | `/submissions` | Operator, Admin |
-| 3 | Buat Pengajuan | `/submissions/create` | Researcher |
-| 4 | Detail Pengajuan | `/submissions/{id}` | Researcher, Reviewer, Operator, Admin |
-| 5 | Edit Pengajuan (Draft) | `/submissions/{id}/edit` | Researcher (submitted_by, status DRAFT) |
-| 6 | Halaman Revisi | `/submissions/{id}/revision` | Researcher (submitted_by, status NEEDS_REVISION) |
-| 7 | Override Deadline | `/submissions/{id}/override` | Operator, Admin |
-| 8 | Transfer Ownership | `/submissions/{id}/transfer` | Operator, Admin |
-| 9 | Manual Reject | `/submissions/{id}/reject` | Operator, Admin |
-| 10 | Withdrawal | `/submissions/{id}/withdraw` | Operator, Admin |
+| #   | Page                          | Route                        | Accessible By                                    |
+| --- | ----------------------------- | ---------------------------- | ------------------------------------------------ |
+| 1   | Daftar Pengajuan (Researcher) | `/submissions`               | Researcher                                       |
+| 2   | Daftar Pengajuan (Operator)   | `/submissions`               | Operator, Admin                                  |
+| 3   | Buat Pengajuan                | `/submissions/create`        | Researcher                                       |
+| 4   | Detail Pengajuan              | `/submissions/{id}`          | Researcher, Reviewer, Operator, Admin            |
+| 5   | Edit Pengajuan (Draft)        | `/submissions/{id}/edit`     | Researcher (submitted_by, status DRAFT)          |
+| 6   | Halaman Revisi                | `/submissions/{id}/revision` | Researcher (submitted_by, status NEEDS_REVISION) |
+| 7   | Override Deadline             | `/submissions/{id}/override` | Operator, Admin                                  |
+| 8   | Transfer Ownership            | `/submissions/{id}/transfer` | Operator, Admin                                  |
+| 9   | Manual Reject                 | `/submissions/{id}/reject`   | Operator, Admin                                  |
+| 10  | Withdrawal                    | `/submissions/{id}/withdraw` | Operator, Admin                                  |
 
 ---
 
@@ -29,9 +29,11 @@
 **Route:** `/submissions`  
 **Accessible by:** Researcher  
 **Entry points:**
+
 - Sidebar nav → Pengajuan → Daftar Pengajuan
 
 **Exit points:**
+
 - → Buat Pengajuan (tombol CTA)
 - → Detail Pengajuan (klik item)
 
@@ -41,10 +43,10 @@ Daftar semua submission di mana researcher adalah `submitted_by` atau terdaftar 
 
 ### Actions
 
-| Aksi | Accessible By | Kondisi |
-|------|---------------|---------|
-| Buat Pengajuan Baru | Researcher | SubmissionPeriod terbuka, profile lengkap |
-| Lihat Detail | Researcher | Selalu |
+| Aksi                | Accessible By | Kondisi                                   |
+| ------------------- | ------------- | ----------------------------------------- |
+| Buat Pengajuan Baru | Researcher    | SubmissionPeriod terbuka, profile lengkap |
+| Lihat Detail        | Researcher    | Selalu                                    |
 
 ### Business Rules yang Mempengaruhi Tampilan
 
@@ -58,9 +60,11 @@ Daftar semua submission di mana researcher adalah `submitted_by` atau terdaftar 
 **Route:** `/submissions`  
 **Accessible by:** Operator, Admin  
 **Entry points:**
+
 - Sidebar nav → Manajemen Pengajuan → Semua Pengajuan
 
 **Exit points:**
+
 - → Detail Pengajuan (klik item)
 
 ### Konten Utama
@@ -69,11 +73,11 @@ Tabel semua submission di sistem. Filter tersedia: status, periode, skema, organ
 
 ### Actions
 
-| Aksi | Accessible By | Kondisi |
-|------|---------------|---------|
-| Filter & Search | Operator, Admin | Selalu |
-| Lihat Detail | Operator, Admin | Selalu |
-| Export | Operator, Admin | Redirect ke Reporting → Export Data |
+| Aksi            | Accessible By   | Kondisi                             |
+| --------------- | --------------- | ----------------------------------- |
+| Filter & Search | Operator, Admin | Selalu                              |
+| Lihat Detail    | Operator, Admin | Selalu                              |
+| Export          | Operator, Admin | Redirect ke Reporting → Export Data |
 
 ---
 
@@ -82,10 +86,12 @@ Tabel semua submission di sistem. Filter tersedia: status, periode, skema, organ
 **Route:** `/submissions/create`  
 **Accessible by:** Researcher  
 **Entry points:**
+
 - Tombol "Buat Pengajuan Baru" dari daftar pengajuan
 - Sidebar nav → Pengajuan → Buat Pengajuan Baru
 
 **Exit points:**
+
 - → Detail Pengajuan (setelah submit berhasil)
 - → Daftar Pengajuan (batalkan)
 
@@ -103,12 +109,12 @@ Multi-step wizard dengan progress indicator di sidebar/stepper. Step yang ada di
 
 ### Actions
 
-| Aksi | Accessible By | Kondisi |
-|------|---------------|---------|
-| Simpan Draft (auto) | Researcher | Setiap perubahan field |
-| Navigasi antar step | Researcher | Step sebelumnya bisa diakses kapanpun; step berikutnya jika validasi step ini lulus |
-| Submit | Researcher | Semua field required terpenuhi, proposal PDF ada |
-| Batalkan | Researcher | Selalu (kembali ke daftar, draft tersimpan) |
+| Aksi                | Accessible By | Kondisi                                                                             |
+| ------------------- | ------------- | ----------------------------------------------------------------------------------- |
+| Simpan Draft (auto) | Researcher    | Setiap perubahan field                                                              |
+| Navigasi antar step | Researcher    | Step sebelumnya bisa diakses kapanpun; step berikutnya jika validasi step ini lulus |
+| Submit              | Researcher    | Semua field required terpenuhi, proposal PDF ada                                    |
+| Batalkan            | Researcher    | Selalu (kembali ke daftar, draft tersimpan)                                         |
 
 ### Business Rules yang Mempengaruhi Tampilan
 
@@ -124,11 +130,13 @@ Multi-step wizard dengan progress indicator di sidebar/stepper. Step yang ada di
 **Route:** `/submissions/{id}`  
 **Accessible by:** Researcher (own/member), Reviewer (assigned), Operator, Admin  
 **Entry points:**
+
 - Klik item dari daftar pengajuan
 - Notifikasi (status berubah)
 - Redirect setelah submit
 
 **Exit points:**
+
 - → Edit (jika DRAFT dan submitted_by)
 - → Halaman Revisi (jika NEEDS_REVISION dan submitted_by)
 - → Tambah Luaran (jika APPROVED)
@@ -139,28 +147,28 @@ Tampilan read-only lengkap dari submission: semua field responses, anggota penel
 
 Tab atau section yang tersedia tergantung role dan status:
 
-| Section | Visible To |
-|---------|-----------|
-| Informasi Pengajuan | Semua |
-| Anggota Penelitian | Semua |
-| Rencana Anggaran | Semua (Reviewer: hanya setelah APPROVED/REJECTED) |
-| Berkas Lampiran | Semua |
-| Hasil Review | Researcher (setelah APPROVED/REJECTED), Operator, Admin |
-| Timeline & Audit | Operator, Admin |
+| Section             | Visible To                                              |
+| ------------------- | ------------------------------------------------------- |
+| Informasi Pengajuan | Semua                                                   |
+| Anggota Penelitian  | Semua                                                   |
+| Rencana Anggaran    | Semua (Reviewer: hanya setelah APPROVED/REJECTED)       |
+| Berkas Lampiran     | Semua                                                   |
+| Hasil Review        | Researcher (setelah APPROVED/REJECTED), Operator, Admin |
+| Timeline & Audit    | Operator, Admin                                         |
 
 ### Actions
 
-| Aksi | Accessible By | Kondisi |
-|------|---------------|---------|
-| Edit Pengajuan | Researcher (submitted_by) | Status DRAFT |
-| Mulai Revisi | Researcher (submitted_by) | Status NEEDS_REVISION |
-| Tambah Luaran | Researcher (submitted_by, co-investigator) | Status APPROVED |
-| Assign Reviewer | Operator, Admin | Status SUBMITTED |
-| Override Deadline | Operator, Admin | Selalu (jika ada deadline lewat) |
-| Transfer Ownership | Operator, Admin | Ada Co-Investigator aktif |
-| Reject Manual | Operator, Admin | Status UNDER_REVIEW |
-| Withdrawal | Operator, Admin | Status APPROVED |
-| Cetak PDF | Operator, Admin | Selalu |
+| Aksi               | Accessible By                              | Kondisi                          |
+| ------------------ | ------------------------------------------ | -------------------------------- |
+| Edit Pengajuan     | Researcher (submitted_by)                  | Status DRAFT                     |
+| Mulai Revisi       | Researcher (submitted_by)                  | Status NEEDS_REVISION            |
+| Tambah Luaran      | Researcher (submitted_by, co-investigator) | Status APPROVED                  |
+| Assign Reviewer    | Operator, Admin                            | Status SUBMITTED                 |
+| Override Deadline  | Operator, Admin                            | Selalu (jika ada deadline lewat) |
+| Transfer Ownership | Operator, Admin                            | Ada Co-Investigator aktif        |
+| Reject Manual      | Operator, Admin                            | Status UNDER_REVIEW              |
+| Withdrawal         | Operator, Admin                            | Status APPROVED                  |
+| Cetak PDF          | Operator, Admin                            | Selalu                           |
 
 ### Business Rules yang Mempengaruhi Tampilan
 
@@ -175,9 +183,11 @@ Tab atau section yang tersedia tergantung role dan status:
 **Route:** `/submissions/{id}/edit`  
 **Accessible by:** Researcher (submitted_by, status DRAFT)  
 **Entry points:**
+
 - Tombol Edit dari Detail Pengajuan
 
 **Exit points:**
+
 - → Detail Pengajuan
 
 ### Konten Utama
@@ -195,10 +205,12 @@ Identik dengan wizard Buat Pengajuan, tapi data sudah terisi dari draft yang ada
 **Route:** `/submissions/{id}/revision`  
 **Accessible by:** Researcher (submitted_by, status NEEDS_REVISION)  
 **Entry points:**
+
 - Notifikasi status berubah ke NEEDS_REVISION
 - Tombol dari Detail Pengajuan
 
 **Exit points:**
+
 - → Detail Pengajuan (setelah resubmit)
 
 ### Konten Utama
@@ -207,11 +219,11 @@ Split view: catatan revisi dari reviewer (ReviewSummary + ReviewComments) di sat
 
 ### Actions
 
-| Aksi | Accessible By | Kondisi |
-|------|---------------|---------|
-| Edit field / upload ulang | Researcher | Status NEEDS_REVISION |
-| Reply komentar reviewer | Researcher | Ada ReviewComment yang open |
-| Resubmit | Researcher | Ada perubahan setelah revision request |
+| Aksi                      | Accessible By | Kondisi                                |
+| ------------------------- | ------------- | -------------------------------------- |
+| Edit field / upload ulang | Researcher    | Status NEEDS_REVISION                  |
+| Reply komentar reviewer   | Researcher    | Ada ReviewComment yang open            |
+| Resubmit                  | Researcher    | Ada perubahan setelah revision request |
 
 ### Business Rules yang Mempengaruhi Tampilan
 

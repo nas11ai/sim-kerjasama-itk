@@ -18,7 +18,7 @@ class ProfileController extends Controller
      */
     public function edit(Request $request): Response
     {
-        return Inertia::render('Profile/Edit', [
+        return Inertia::render('Profile/EditPage', [
             'mustVerifyEmail' => $request->user() instanceof MustVerifyEmail,
             'status' => session('status'),
         ]);
@@ -41,6 +41,7 @@ class ProfileController extends Controller
         return Redirect::route('profile.edit')
             ->with('success', 'Berhasil memperbarui profil.');
     }
+
     /**
      * Delete the user's account.
      */

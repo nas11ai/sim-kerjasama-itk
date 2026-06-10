@@ -28,7 +28,7 @@ class FacultyController extends Controller
 
         $faculties = $query->paginate($perPage)->withQueryString();
 
-        return Inertia::render('Faculties/Index', [
+        return Inertia::render('Faculties/IndexPage', [
             'faculties' => $faculties,
             'filters' => [
                 'search' => $search,
@@ -41,7 +41,7 @@ class FacultyController extends Controller
 
     public function create()
     {
-        return Inertia::render('Faculties/Create');
+        return Inertia::render('Faculties/CreatePage');
     }
 
     public function store(Request $request)
@@ -66,14 +66,14 @@ class FacultyController extends Controller
             },
         ]);
 
-        return Inertia::render('Faculties/Show', [
+        return Inertia::render('Faculties/ShowPage', [
             'faculty' => $faculty,
         ]);
     }
 
     public function edit(Faculty $faculty)
     {
-        return Inertia::render('Faculties/Edit', [
+        return Inertia::render('Faculties/EditPage', [
             'faculty' => $faculty,
         ]);
     }
@@ -147,7 +147,7 @@ class FacultyController extends Controller
         $studyPrograms = $query->paginate($perPage)->withQueryString();
         $faculties = Faculty::orderBy('name')->get(['id', 'name']);
 
-        return Inertia::render('StudyPrograms/Index', [
+        return Inertia::render('StudyPrograms/IndexPage', [
             'studyPrograms' => $studyPrograms,
             'faculties' => $faculties,
             'filters' => [
@@ -164,7 +164,7 @@ class FacultyController extends Controller
     {
         $faculties = Faculty::orderBy('name')->get(['id', 'name']);
 
-        return Inertia::render('StudyPrograms/Create', [
+        return Inertia::render('StudyPrograms/CreatePage', [
             'faculties' => $faculties,
         ]);
     }
@@ -198,7 +198,7 @@ class FacultyController extends Controller
     {
         $faculties = Faculty::orderBy('name')->get(['id', 'name']);
 
-        return Inertia::render('StudyPrograms/Edit', [
+        return Inertia::render('StudyPrograms/EditPage', [
             'studyProgram' => $studyProgram->load('faculty'),
             'faculties' => $faculties,
         ]);

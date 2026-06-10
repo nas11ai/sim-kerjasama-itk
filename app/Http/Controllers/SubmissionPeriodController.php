@@ -43,7 +43,7 @@ class SubmissionPeriodController extends Controller
             return $period;
         });
 
-        return Inertia::render('SubmissionPeriods/Index', [
+        return Inertia::render('SubmissionPeriods/IndexPage', [
             'submissionPeriods' => $submissionPeriods,
             'filters' => $request->only(['search']),
         ]);
@@ -59,7 +59,7 @@ class SubmissionPeriodController extends Controller
 
         $submissionDateLabels = SubmissionDateLabel::orderBy('name')->get(['id', 'name']);
 
-        return Inertia::render('SubmissionPeriods/Create', [
+        return Inertia::render('SubmissionPeriods/CreatePage', [
             'formPhases' => $formPhases,
             'submissionRules' => $submissionRules,
             'submissionDateLabels' => $submissionDateLabels,
@@ -151,7 +151,7 @@ class SubmissionPeriodController extends Controller
         $submissionPeriod->status = $this->getPeriodStatus($submissionPeriod);
         $submissionPeriod->days_remaining = $this->getDaysRemaining($submissionPeriod);
 
-        return Inertia::render('SubmissionPeriods/Show', [
+        return Inertia::render('SubmissionPeriods/ShowPage', [
             'submissionPeriod' => $submissionPeriod,
         ]);
     }
@@ -175,7 +175,7 @@ class SubmissionPeriodController extends Controller
 
         $submissionDateLabels = SubmissionDateLabel::orderBy('name')->get(['id', 'name']);
 
-        return Inertia::render('SubmissionPeriods/Edit', [
+        return Inertia::render('SubmissionPeriods/EditPage', [
             'submissionPeriod' => $submissionPeriod,
             'formPhases' => $formPhases,
             'submissionRules' => $submissionRules,

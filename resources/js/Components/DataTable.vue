@@ -1,14 +1,15 @@
-<script lang="ts" setup>
+<script lang="ts" setup generic="T">
 import { router } from '@inertiajs/vue3'
+import { route } from 'ziggy-js'
 import {
-    ColumnDef,
+    type ColumnDef,
     FlexRender,
     getCoreRowModel,
     getPaginationRowModel,
     useVueTable,
 } from '@tanstack/vue-table'
 import { computed, ref } from 'vue'
-import Table from './ui/table/Table.vue'
+import Table from './ui/table/uiTable.vue'
 import TableHeader from './ui/table/TableHeader.vue'
 import TableRow from './ui/table/TableRow.vue'
 import TableHead from './ui/table/TableHead.vue'
@@ -18,8 +19,8 @@ import DataTablePagination from './DataTablePagination.vue'
 import DeleteDialogue from './DeleteDialogue.vue'
 
 const props = defineProps<{
-    data: any[]
-    columns: ColumnDef<any>[]
+    data: T[]
+    columns: ColumnDef<T>[]
     deleteRouteName?: string
     cellAligns?: Record<string, string>
 }>()

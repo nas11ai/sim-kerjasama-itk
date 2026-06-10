@@ -9,14 +9,14 @@
 
 ## Page Inventory
 
-| # | Page | Route | Accessible By |
-|---|------|-------|---------------|
-| 1 | Daftar User | `/users` | Operator, Admin |
-| 2 | Antrian Verifikasi NIDN | `/users/pending` | Operator, Admin |
-| 3 | Detail User | `/users/{id}` | Operator, Admin |
-| 4 | Manajemen Reviewer | `/reviewers` | Operator, Admin |
-| 5 | Invitation Token | `/admin/invitations` | Admin |
-| 6 | Org Tree | `/admin/organizations` | Admin |
+| #   | Page                    | Route                  | Accessible By   |
+| --- | ----------------------- | ---------------------- | --------------- |
+| 1   | Daftar User             | `/users`               | Operator, Admin |
+| 2   | Antrian Verifikasi NIDN | `/users/pending`       | Operator, Admin |
+| 3   | Detail User             | `/users/{id}`          | Operator, Admin |
+| 4   | Manajemen Reviewer      | `/reviewers`           | Operator, Admin |
+| 5   | Invitation Token        | `/admin/invitations`   | Admin           |
+| 6   | Org Tree                | `/admin/organizations` | Admin           |
 
 ---
 
@@ -31,11 +31,11 @@ Tabel semua user: nama, email, NIDN, organisasi, role(s), status (active/pending
 
 ### Actions
 
-| Aksi | Accessible By | Kondisi |
-|------|---------------|---------|
-| Lihat detail | Operator, Admin | Selalu |
-| Nonaktifkan user | Operator, Admin | Status active, tidak ada active submission sebagai lead researcher — atau harus transfer dulu |
-| Tambah direct permission | Admin | Selalu |
+| Aksi                     | Accessible By   | Kondisi                                                                                       |
+| ------------------------ | --------------- | --------------------------------------------------------------------------------------------- |
+| Lihat detail             | Operator, Admin | Selalu                                                                                        |
+| Nonaktifkan user         | Operator, Admin | Status active, tidak ada active submission sebagai lead researcher — atau harus transfer dulu |
+| Tambah direct permission | Admin           | Selalu                                                                                        |
 
 ### Business Rules yang Mempengaruhi Tampilan
 
@@ -54,10 +54,10 @@ Daftar user dengan status `pending`. Setiap item: nama, email, NIDN yang diinput
 
 ### Actions
 
-| Aksi | Kondisi |
-|------|---------|
-| Verifikasi (approve) | Selalu |
-| Tolak (reject) | Selalu, wajib isi alasan |
+| Aksi                 | Kondisi                  |
+| -------------------- | ------------------------ |
+| Verifikasi (approve) | Selalu                   |
+| Tolak (reject)       | Selalu, wajib isi alasan |
 
 ---
 
@@ -72,10 +72,10 @@ Profil lengkap user: data personal, organisasi, NIDN, status, role(s), dan direc
 
 ### Actions
 
-| Aksi | Accessible By | Kondisi |
-|------|---------------|---------|
-| Edit role / permission | Admin | Selalu |
-| Nonaktifkan | Operator, Admin | Status active |
+| Aksi                    | Accessible By   | Kondisi       |
+| ----------------------- | --------------- | ------------- |
+| Edit role / permission  | Admin           | Selalu        |
+| Nonaktifkan             | Operator, Admin | Status active |
 | Tunjuk sebagai Reviewer | Operator, Admin | Status active |
 
 ---
@@ -91,11 +91,11 @@ Tabel semua reviewer: nama, tipe (internal/external), periode aktif (start - end
 
 ### Actions
 
-| Aksi | Kondisi |
-|------|---------|
-| Tambah reviewer baru | Selalu — cari dari daftar user existing |
-| Edit periode aktif | Selalu |
-| Lihat detail & assignment history | Selalu |
+| Aksi                              | Kondisi                                 |
+| --------------------------------- | --------------------------------------- |
+| Tambah reviewer baru              | Selalu — cari dari daftar user existing |
+| Edit periode aktif                | Selalu                                  |
+| Lihat detail & assignment history | Selalu                                  |
 
 ---
 

@@ -27,6 +27,8 @@ class ReviewEvaluationForm extends Model
 
     /**
      * Get the form phase detail that owns the review evaluation form.
+     *
+     * @return BelongsTo<FormPhaseDetail, $this>
      */
     public function formPhaseDetail(): BelongsTo
     {
@@ -35,6 +37,12 @@ class ReviewEvaluationForm extends Model
 
     /**
      * Get the review form fields for the evaluation form.
+     *
+     * @return HasMany<ReviewFormField, $this>
+     */
+
+    /**
+     * @return HasMany<ReviewFormField, $this>
      */
     public function reviewFormFields(): HasMany
     {
@@ -43,6 +51,8 @@ class ReviewEvaluationForm extends Model
 
     /**
      * Get the reviewer form assignments for the evaluation form.
+     *
+     * @return HasMany<ReviewerFormAssignment, $this>
      */
     public function reviewerFormAssignments(): HasMany
     {

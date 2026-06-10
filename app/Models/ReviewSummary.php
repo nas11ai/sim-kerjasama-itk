@@ -15,6 +15,9 @@ class ReviewSummary extends Model
         'summary_notes',
     ];
 
+    /**
+     * @return BelongsTo<FormSubmission, $this>
+     */
     public function formSubmission(): BelongsTo
     {
         return $this->belongsTo(FormSubmission::class);

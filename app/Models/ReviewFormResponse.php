@@ -2,10 +2,22 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Carbon;
 
+/**
+ * @property int $id
+ * @property int $reviewer_form_assignment_id
+ * @property string $status
+ * @property string|null $final_notes
+ * @property Carbon|null $submitted_at
+ * @property Carbon|null $locked_at
+ * @property-read ReviewerFormAssignment $reviewerFormAssignment
+ * @property-read Collection<int, ReviewFormFieldResponse> $reviewFormFieldResponses
+ */
 class ReviewFormResponse extends Model
 {
     protected $fillable = [
@@ -21,11 +33,17 @@ class ReviewFormResponse extends Model
         'locked_at' => 'datetime',
     ];
 
+    /**
+     * @return BelongsTo<ReviewerFormAssignment, $this>
+     */
     public function reviewerFormAssignment(): BelongsTo
     {
         return $this->belongsTo(ReviewerFormAssignment::class);
     }
 
+    /**
+     * @return HasMany<ReviewFormFieldResponse, $this>
+     */
     public function reviewFormFieldResponses(): HasMany
     {
         return $this->hasMany(ReviewFormFieldResponse::class);

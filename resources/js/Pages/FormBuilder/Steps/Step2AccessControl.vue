@@ -19,7 +19,9 @@ interface StudyProgram {
     name: string
 }
 
-interface Faculty {
+import type { Role } from '@/types'
+
+export interface Faculty {
     id: number
     name: string
     study_programs: StudyProgram[]
@@ -33,7 +35,7 @@ interface AccessControl {
 
 interface Props {
     modelValue: AccessControl[]
-    roles: any[]
+    roles: Role[]
     faculties: Faculty[]
     errors: Record<string, string>
 }
@@ -96,10 +98,7 @@ const bulkAddAccessControls = () => {
     selectedFacultyId.value = null
 }
 
-const toggleRole: (roleId: number, checked?: boolean | 'indeterminate') => void = (
-    roleId,
-    checked
-) => {
+const toggleRole = (roleId: number, checked?: boolean | 'indeterminate'): void => {
     const isCurrentlySelected = selectedRoleIds.value.includes(roleId)
 
     const shouldBeChecked =
@@ -110,16 +109,15 @@ const toggleRole: (roleId: number, checked?: boolean | 'indeterminate') => void 
               : !isCurrentlySelected
 
     if (shouldBeChecked) {
-        if (!isCurrentlySelected) selectedRoleIds.value.push(roleId)
+        if (!isCurrentlySelected) {
+            selectedRoleIds.value.push(roleId)
+        }
     } else {
         selectedRoleIds.value = selectedRoleIds.value.filter((id) => id !== roleId)
     }
 }
 
-const toggleStudyProgram: (studyProgramId: number, checked?: boolean | 'indeterminate') => void = (
-    studyProgramId,
-    checked
-) => {
+const toggleStudyProgram = (studyProgramId: number, checked?: boolean | 'indeterminate'): void => {
     const isCurrentlySelected = selectedStudyProgramIds.value.includes(studyProgramId)
 
     const shouldBeChecked =
@@ -128,8 +126,11 @@ const toggleStudyProgram: (studyProgramId: number, checked?: boolean | 'indeterm
             : typeof checked === 'boolean'
               ? checked
               : !isCurrentlySelected
+
     if (shouldBeChecked) {
-        if (!isCurrentlySelected) selectedStudyProgramIds.value.push(studyProgramId)
+        if (!isCurrentlySelected) {
+            selectedStudyProgramIds.value.push(studyProgramId)
+        }
     } else {
         selectedStudyProgramIds.value = selectedStudyProgramIds.value.filter(
             (id) => id !== studyProgramId
@@ -141,7 +142,7 @@ const selectAllRoles = () => {
     if (selectedRoleIds.value.length === props.roles.length) {
         selectedRoleIds.value = []
     } else {
-        selectedRoleIds.value = props.roles.map((r) => r.id)
+        selectedRoleIds.value = props.roles.map((r: Role) => r.id)
     }
 }
 
@@ -154,12 +155,12 @@ const selectAllStudyPrograms = () => {
 }
 
 const getRoleName = (roleId: number) => {
-    return props.roles.find((r) => r.id === roleId)?.name || 'Unknown'
+    return props.roles.find((r: Role) => r.id === roleId)?.name || 'Unknown'
 }
 
 const getStudyProgramInfo = (studyProgramId: number) => {
     for (const faculty of props.faculties) {
-        const studyProgram = faculty.study_programs.find((sp: any) => sp.id === studyProgramId)
+        const studyProgram = faculty.study_programs.find((sp) => sp.id === studyProgramId)
         if (studyProgram) {
             return {
                 name: studyProgram.name,

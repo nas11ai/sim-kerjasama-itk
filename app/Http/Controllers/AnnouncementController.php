@@ -22,7 +22,7 @@ class AnnouncementController extends Controller
             ->orderBy('created_at', 'desc')
             ->paginate(10);
 
-        return Inertia::render('Announcements/Index', [
+        return Inertia::render('Announcements/IndexPage', [
             'announcements' => $announcements,
         ]);
     }
@@ -33,7 +33,7 @@ class AnnouncementController extends Controller
             ->orderBy('created_at', 'desc')
             ->paginate(10);
 
-        return Inertia::render('User/Announcements/Index', [
+        return Inertia::render('User/Announcements/IndexPage', [
             'announcements' => $announcements,
         ]);
     }
@@ -43,7 +43,7 @@ class AnnouncementController extends Controller
      */
     public function create()
     {
-        return Inertia::render('Announcements/Create', [
+        return Inertia::render('Announcements/CreatePage', [
             'announcementFiles' => AnnouncementFile::all(),
             'announcement' => new Announcement,
         ]);
@@ -103,7 +103,7 @@ class AnnouncementController extends Controller
     {
         $announcement->load('announcementFiles', 'announcementCreator');
 
-        return Inertia::render('Announcements/Show', [
+        return Inertia::render('Announcements/ShowPage', [
             'announcement' => $announcement,
         ]);
     }
@@ -115,7 +115,7 @@ class AnnouncementController extends Controller
     {
         $announcement->load('announcementFiles');
 
-        return Inertia::render('Announcements/Edit', [
+        return Inertia::render('Announcements/EditPage', [
             'announcement' => $announcement,
         ]);
     }

@@ -17,11 +17,11 @@
 
 ### Organisms
 
-| Organism | Deskripsi | Posisi |
-|----------|-----------|--------|
-| `ConfigCategoryTabs` | Tab per kategori master data (Tipe Jurnal, TRL, dll) | Main, atas |
-| `ConfigItemList` | List item per kategori: nama, status, tombol edit dan nonaktifkan | Main |
-| `ConfigItemForm` | Form inline atau drawer untuk tambah/edit item | Overlay |
+| Organism             | Deskripsi                                                         | Posisi     |
+| -------------------- | ----------------------------------------------------------------- | ---------- |
+| `ConfigCategoryTabs` | Tab per kategori master data (Tipe Jurnal, TRL, dll)              | Main, atas |
+| `ConfigItemList`     | List item per kategori: nama, status, tombol edit dan nonaktifkan | Main       |
+| `ConfigItemForm`     | Form inline atau drawer untuk tambah/edit item                    | Overlay    |
 
 ### Interaction Notes
 
@@ -31,8 +31,8 @@ Tambah item baru menggunakan inline form di bawah list (bukan modal) untuk menja
 
 ### States
 
-| State | Trigger | Tampilan |
-|-------|---------|----------|
-| Cannot deactivate | Item sedang digunakan | Tombol disabled dengan tooltip penjelasan |
-| Inactive item | is_active: false | Item ditampilkan dengan style muted dan badge "Nonaktif" |
-| Empty | Belum ada item di kategori | Empty state dengan tombol "Tambah [nama kategori] Pertama" |
+| State             | Trigger                    | Tampilan                                                   |
+| ----------------- | -------------------------- | ---------------------------------------------------------- |
+| Cannot deactivate | Item sedang digunakan      | Tombol disabled dengan tooltip penjelasan                  |
+| Inactive item     | is_active: false           | Item ditampilkan dengan style muted dan badge "Nonaktif"   |
+| Empty             | Belum ada item di kategori | Empty state dengan tombol "Tambah [nama kategori] Pertama" |

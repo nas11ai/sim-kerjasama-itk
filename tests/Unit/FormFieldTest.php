@@ -3,12 +3,13 @@
 use App\Models\FormField;
 use App\Models\FormSubmission;
 use Illuminate\Support\Carbon;
+use Tests\TestCase;
 
-uses(Tests\TestCase::class);
+uses(TestCase::class);
 
 it('returns false if field was created after submission', function () {
 
-    $submission = new FormSubmission();
+    $submission = new FormSubmission;
     $submission->created_at = Carbon::parse('2026-01-01 10:00:00');
 
     $field = new FormField([
@@ -23,7 +24,7 @@ it('returns false if field was created after submission', function () {
 
 it('returns false if field became required after submission', function () {
 
-    $submission = new FormSubmission();
+    $submission = new FormSubmission;
     $submission->created_at = Carbon::parse('2026-01-01 10:00:00');
 
     $field = new FormField([
@@ -40,7 +41,7 @@ it('returns false if field became required after submission', function () {
 
 it('returns true if field is required for submission', function () {
 
-    $submission = new FormSubmission();
+    $submission = new FormSubmission;
     $submission->created_at = Carbon::parse('2026-01-10 10:00:00');
 
     $field = new FormField([
@@ -57,7 +58,7 @@ it('returns true if field is required for submission', function () {
 
 it('returns false if field is not required', function () {
 
-    $submission = new FormSubmission();
+    $submission = new FormSubmission;
     $submission->created_at = Carbon::parse('2026-01-10 10:00:00');
 
     $field = new FormField([

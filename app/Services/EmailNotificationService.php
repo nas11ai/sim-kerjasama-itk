@@ -8,6 +8,7 @@ use App\Models\ReviewComment;
 use App\Models\Reviewer;
 use App\Models\ReviewSummary;
 use App\Models\User;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 
@@ -151,10 +152,13 @@ class EmailNotificationService
      */
     public function notifyReviewThreadCreated(ReviewSummary $reviewSummary)
     {
+
         try {
             $submission = $reviewSummary->formSubmission;
-            $creator = $reviewSummary->reviewer
-                ? $reviewSummary->reviewer->user
+            $reviewer = $reviewSummary->reviewer;
+
+            $creator = $reviewer && $reviewer->user
+                ? $reviewer->user
                 : Auth::user();
 
             $subject = "Review Thread Baru - {$submission->form->title}";

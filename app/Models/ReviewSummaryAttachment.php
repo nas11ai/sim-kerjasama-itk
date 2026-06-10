@@ -4,6 +4,10 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 
+/**
+ * @property int $id
+ * @property string $file_path
+ */
 class ReviewSummaryAttachment extends Model
 {
     protected $fillable = [

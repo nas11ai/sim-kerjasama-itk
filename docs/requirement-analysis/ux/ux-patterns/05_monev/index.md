@@ -17,9 +17,9 @@
 
 ### Organisms
 
-| Organism | Deskripsi | Posisi |
-|----------|-----------|--------|
-| `SubmissionMonevCard` | Card per submission APPROVED, berisi phase progression visual + aksi per siklus | Main |
+| Organism              | Deskripsi                                                                       | Posisi |
+| --------------------- | ------------------------------------------------------------------------------- | ------ |
+| `SubmissionMonevCard` | Card per submission APPROVED, berisi phase progression visual + aksi per siklus | Main   |
 
 ### Molecules yang Notable
 
@@ -27,21 +27,21 @@
 
 **Status visual per node:**
 
-| Status | Visual |
-|--------|--------|
-| Selesai | Node hijau dengan checkmark |
-| Aktif | Node biru/primary dengan animasi pulse |
-| Menunggu Giliran | Node gray dengan lock icon |
-| Deadline Lewat | Node merah dengan icon expired |
-| Dibekukan (Withdrawn) | Node gray dengan icon freeze |
+| Status                | Visual                                 |
+| --------------------- | -------------------------------------- |
+| Selesai               | Node hijau dengan checkmark            |
+| Aktif                 | Node biru/primary dengan animasi pulse |
+| Menunggu Giliran      | Node gray dengan lock icon             |
+| Deadline Lewat        | Node merah dengan icon expired         |
+| Dibekukan (Withdrawn) | Node gray dengan icon freeze           |
 
 ### States
 
-| State | Trigger | Tampilan |
-|-------|---------|----------|
-| Empty | Tidak ada submission APPROVED | Empty state: "Belum ada pengajuan yang disetujui" |
-| All locked | Semua siklus belum diaktifkan operator | PhaseProgressionBar dengan semua node abu-abu setelah node Pengajuan |
-| Withdrawn | Submission di-withdraw saat monev aktif | Banner merah di card: "Pengajuan ini telah ditarik. Monev dibekukan." |
+| State      | Trigger                                 | Tampilan                                                              |
+| ---------- | --------------------------------------- | --------------------------------------------------------------------- |
+| Empty      | Tidak ada submission APPROVED           | Empty state: "Belum ada pengajuan yang disetujui"                     |
+| All locked | Semua siklus belum diaktifkan operator  | PhaseProgressionBar dengan semua node abu-abu setelah node Pengajuan  |
+| Withdrawn  | Submission di-withdraw saat monev aktif | Banner merah di card: "Pengajuan ini telah ditarik. Monev dibekukan." |
 
 ### Business Rules yang Mempengaruhi UI
 
@@ -58,21 +58,21 @@
 
 ### Organisms
 
-| Organism | Deskripsi | Posisi |
-|----------|-----------|--------|
-| `MonevContextHeader` | Info konteks: nama submission parent, nama siklus, deadline, sisa waktu | Main, atas |
-| `MonevFormFields` | Render FormFields dari FormPhaseDetail yang aktif | Main |
-| `MonevFileUpload` | Upload file kelengkapan laporan (jika ada field tipe file) | Main |
-| `DeadlineCountdown` | Countdown deadline dengan warna merah jika < 48 jam | Main, atas (sticky) |
+| Organism             | Deskripsi                                                               | Posisi              |
+| -------------------- | ----------------------------------------------------------------------- | ------------------- |
+| `MonevContextHeader` | Info konteks: nama submission parent, nama siklus, deadline, sisa waktu | Main, atas          |
+| `MonevFormFields`    | Render FormFields dari FormPhaseDetail yang aktif                       | Main                |
+| `MonevFileUpload`    | Upload file kelengkapan laporan (jika ada field tipe file)              | Main                |
+| `DeadlineCountdown`  | Countdown deadline dengan warna merah jika < 48 jam                     | Main, atas (sticky) |
 
 ### States
 
-| State | Trigger | Tampilan |
-|-------|---------|----------|
-| Loading | Pertama buka | Skeleton form |
-| Deadline lewat — no override | Deadline terlewat | Full-page block: "Batas waktu pengisian laporan telah berakhir. Hubungi operator untuk perpanjangan." |
+| State                         | Trigger                          | Tampilan                                                                                              |
+| ----------------------------- | -------------------------------- | ----------------------------------------------------------------------------------------------------- |
+| Loading                       | Pertama buka                     | Skeleton form                                                                                         |
+| Deadline lewat — no override  | Deadline terlewat                | Full-page block: "Batas waktu pengisian laporan telah berakhir. Hubungi operator untuk perpanjangan." |
 | Deadline lewat — ada override | Ada FormSubmissionOverride aktif | Banner kuning: "Anda mendapatkan perpanjangan akses hingga [tanggal]. Akses diberikan oleh operator." |
-| Success | Submit berhasil | Redirect ke Daftar Monev dengan toast sukses |
+| Success                       | Submit berhasil                  | Redirect ke Daftar Monev dengan toast sukses                                                          |
 
 ### Business Rules yang Mempengaruhi UI
 
@@ -88,10 +88,10 @@
 
 ### Organisms
 
-| Organism | Deskripsi | Posisi |
-|----------|-----------|--------|
-| `MonevPhaseTimeline` | Phase progression vertikal untuk satu submission — lebih detail dari versi researcher | Main, kiri |
-| `MonevStagePanel` | Panel detail siklus yang dipilih: status laporan researcher, form assign reviewer | Main, kanan |
+| Organism             | Deskripsi                                                                             | Posisi      |
+| -------------------- | ------------------------------------------------------------------------------------- | ----------- |
+| `MonevPhaseTimeline` | Phase progression vertikal untuk satu submission — lebih detail dari versi researcher | Main, kiri  |
+| `MonevStagePanel`    | Panel detail siklus yang dipilih: status laporan researcher, form assign reviewer     | Main, kanan |
 
 ### Interaction Notes
 
@@ -101,8 +101,8 @@ Saat assign reviewer, sistem menampilkan suggestion reviewer dari pengajuan awal
 
 ### States
 
-| State | Trigger | Tampilan |
-|-------|---------|----------|
-| Siklus belum aktif | Operator belum aktifkan | `MonevStagePanel` menampilkan tombol "Aktifkan Siklus" |
-| Siklus aktif, belum ada reviewer | Sudah diaktifkan | `MonevStagePanel` menampilkan form assign reviewer |
-| Siklus aktif, ada reviewer | Reviewer sudah di-assign | `MonevStagePanel` menampilkan daftar reviewer + status laporan researcher |
+| State                            | Trigger                  | Tampilan                                                                  |
+| -------------------------------- | ------------------------ | ------------------------------------------------------------------------- |
+| Siklus belum aktif               | Operator belum aktifkan  | `MonevStagePanel` menampilkan tombol "Aktifkan Siklus"                    |
+| Siklus aktif, belum ada reviewer | Sudah diaktifkan         | `MonevStagePanel` menampilkan form assign reviewer                        |
+| Siklus aktif, ada reviewer       | Reviewer sudah di-assign | `MonevStagePanel` menampilkan daftar reviewer + status laporan researcher |

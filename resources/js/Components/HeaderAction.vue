@@ -1,6 +1,6 @@
 <script lang="ts" setup>
-import { EllipsisVertical } from 'lucide-vue-next'
-import Button from './ui/button/Button.vue'
+import { type LucideIcon, EllipsisVertical } from 'lucide-vue-next'
+import Button from './ui/button/UiButton.vue'
 import DropdownMenu from './ui/dropdown-menu/DropdownMenu.vue'
 import DropdownMenuTrigger from './ui/dropdown-menu/DropdownMenuTrigger.vue'
 import DropdownMenuContent from './ui/dropdown-menu/DropdownMenuContent.vue'
@@ -8,13 +8,13 @@ import DropdownMenuItem from './ui/dropdown-menu/DropdownMenuItem.vue'
 
 defineProps<{
     label: string
-    icon: any
+    icon: LucideIcon
     href?: string
     disabled?: boolean
 }>()
 
 const emit = defineEmits<{
-    (e: 'click'): void
+    click: []
 }>()
 </script>
 

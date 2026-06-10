@@ -1,6 +1,6 @@
 <!-- resources/js/Pages/Admin/Submissions/ShowPeriod.vue -->
 <script setup lang="ts">
-import { Head, Link, router } from '@inertiajs/vue3'
+import { Head, router } from '@inertiajs/vue3'
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
 import { Button } from '@/Components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card'
@@ -31,9 +31,7 @@ import {
     Search,
     Filter,
     Calendar,
-    Building2,
     Mail,
-    GraduationCap,
     Eye,
 } from 'lucide-vue-next'
 import { ref, computed } from 'vue'
@@ -77,11 +75,11 @@ interface FormPhaseDetail {
     form_phase_id: number
 }
 
-interface FormAccessControl {
-    id: number
-    form: Form
-    form_phase_details: FormPhaseDetail
-}
+// interface FormAccessControl {
+//     id: number
+//     form: Form
+//     form_phase_details: FormPhaseDetail
+// }
 
 interface FormPhase {
     id: number
@@ -89,10 +87,10 @@ interface FormPhase {
     form_phase_details: FormPhaseDetail[]
 }
 
-interface Faculty {
-    id: number
-    name: string
-}
+// interface Faculty {
+//     id: number
+//     name: string
+// }
 
 interface SubmittedBy {
     id: number
@@ -111,7 +109,7 @@ interface FormSubmission {
 }
 
 interface PaginationLink {
-    url: string | null
+    url: string | undefined
     label: string
     active: boolean
 }
@@ -553,8 +551,9 @@ const pendingSubmissions = computed(
                                 :disabled="!link.url"
                                 size="sm"
                                 @click="router.visit(link.url!)"
-                                v-html="link.label"
-                            />
+                            >
+                                {{ link.label }}
+                            </Button>
                         </div>
                     </div>
                 </CardContent>

@@ -14,6 +14,7 @@
 ```
 
 Topbar hanya berisi dua elemen:
+
 - **Logo ITK** — klik kembali ke `/dashboard`
 - **Global Search Bar** — akses cepat ke halaman, submission, atau user
 
@@ -29,12 +30,12 @@ Search bar membuka **Command Palette** (Shadcn `<Command>`) — overlay modal di
 
 ### Scope Pencarian
 
-| Grup | Hasil | Permission |
-|------|-------|-----------|
-| Navigasi | Halaman-halaman yang bisa diakses user (dari nav sidebar) | Sesuai permission user |
-| Pengajuan | Submission by judul atau nama researcher | `submissions.view-own` atau `submissions.view-all` |
-| User | User by nama atau NIDN | `users.verify` atau `users.manage` |
-| Reviewer | Reviewer by nama | `reviewers.assign` |
+| Grup      | Hasil                                                     | Permission                                         |
+| --------- | --------------------------------------------------------- | -------------------------------------------------- |
+| Navigasi  | Halaman-halaman yang bisa diakses user (dari nav sidebar) | Sesuai permission user                             |
+| Pengajuan | Submission by judul atau nama researcher                  | `submissions.view-own` atau `submissions.view-all` |
+| User      | User by nama atau NIDN                                    | `users.verify` atau `users.manage`                 |
+| Reviewer  | Reviewer by nama                                          | `reviewers.assign`                                 |
 
 ### Behavior
 

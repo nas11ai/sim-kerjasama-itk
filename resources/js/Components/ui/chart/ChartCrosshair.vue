@@ -8,19 +8,20 @@ import { ChartTooltip } from '.'
 
 const props = withDefaults(
     defineProps<{
-        colors: string[]
+        colors?: string[]
         index: string
         items: BulletLegendItemInterface[]
         customTooltip?: Component
     }>(),
     {
         colors: () => [],
+        customTooltip: undefined,
     }
 )
 
 // Use weakmap to store reference to each datapoint for Tooltip
-const wm = new WeakMap()
-function template(d: any) {
+const wm = new WeakMap<object, string>()
+function template(d: Record<string, unknown>) {
     if (wm.has(d)) {
         return wm.get(d)
     } else {
@@ -30,7 +31,7 @@ function template(d: any) {
             return { ...legendReference, value }
         })
         const TooltipComponent = props.customTooltip ?? ChartTooltip
-        createApp(TooltipComponent, { title: d[props.index].toString(), data: omittedData }).mount(
+        createApp(TooltipComponent, { title: String(d[props.index]), data: omittedData }).mount(
             componentDiv
         )
         wm.set(d, componentDiv.innerHTML)

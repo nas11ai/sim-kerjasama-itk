@@ -9,9 +9,9 @@
 
 ## Page Inventory
 
-| # | Page | Route | Accessible By |
-|---|------|-------|---------------|
-| 1 | Konfigurasi Umum | `/admin/config` | Admin |
+| #   | Page             | Route           | Accessible By |
+| --- | ---------------- | --------------- | ------------- |
+| 1   | Konfigurasi Umum | `/admin/config` | Admin         |
 
 ---
 
@@ -24,24 +24,24 @@
 
 Master data yang digunakan lintas sistem, ditampilkan dalam tab atau accordion per kategori:
 
-| Kategori | Deskripsi |
-|----------|-----------|
-| Tipe Jurnal | Referensi untuk Research Output tipe artikel |
-| Tipe HKI | Referensi untuk Research Output tipe IP |
+| Kategori                         | Deskripsi                                               |
+| -------------------------------- | ------------------------------------------------------- |
+| Tipe Jurnal                      | Referensi untuk Research Output tipe artikel            |
+| Tipe HKI                         | Referensi untuk Research Output tipe IP                 |
 | Technology Readiness Level (TRL) | Digunakan di Scheme allowed TRLs dan trl_selector field |
-| Tipe Output Penelitian | Definisi tipe luaran yang valid |
-| Tipe Submission | Penelitian vs Pengabdian Masyarakat |
-| Tipe Skema | Kategori skema (DIPA, Mandiri, dll) |
-| Tipe Organisasi | Kategori node di org tree |
-| Komponen Anggaran | Kategori untuk Budget line items |
+| Tipe Output Penelitian           | Definisi tipe luaran yang valid                         |
+| Tipe Submission                  | Penelitian vs Pengabdian Masyarakat                     |
+| Tipe Skema                       | Kategori skema (DIPA, Mandiri, dll)                     |
+| Tipe Organisasi                  | Kategori node di org tree                               |
+| Komponen Anggaran                | Kategori untuk Budget line items                        |
 
 ### Actions
 
-| Aksi | Kondisi |
-|------|---------|
-| Tambah item master data | Per kategori, selalu |
-| Edit item | Selalu |
-| Nonaktifkan item | Item tidak sedang digunakan oleh data aktif |
+| Aksi                    | Kondisi                                     |
+| ----------------------- | ------------------------------------------- |
+| Tambah item master data | Per kategori, selalu                        |
+| Edit item               | Selalu                                      |
+| Nonaktifkan item        | Item tidak sedang digunakan oleh data aktif |
 
 ### Catatan
 

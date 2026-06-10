@@ -9,10 +9,10 @@
 
 ## Page Inventory
 
-| # | Page | Route | Accessible By |
-|---|------|-------|---------------|
-| 1 | Daftar Skema | `/admin/schemes` | Admin |
-| 2 | Buat / Edit Skema | `/admin/schemes/{id}/edit` | Admin |
+| #   | Page              | Route                      | Accessible By |
+| --- | ----------------- | -------------------------- | ------------- |
+| 1   | Daftar Skema      | `/admin/schemes`           | Admin         |
+| 2   | Buat / Edit Skema | `/admin/schemes/{id}/edit` | Admin         |
 
 ---
 
@@ -27,11 +27,11 @@ Tabel semua scheme: nama, kode, tipe, max budget, max members, durasi, status (a
 
 ### Actions
 
-| Aksi | Kondisi |
-|------|---------|
-| Buat Skema Baru | Selalu |
-| Edit Skema | Selalu |
-| Nonaktifkan | Tidak ada active submission yang menggunakan skema ini |
+| Aksi            | Kondisi                                                |
+| --------------- | ------------------------------------------------------ |
+| Buat Skema Baru | Selalu                                                 |
+| Edit Skema      | Selalu                                                 |
+| Nonaktifkan     | Tidak ada active submission yang menggunakan skema ini |
 
 ### Business Rules yang Mempengaruhi Tampilan
 

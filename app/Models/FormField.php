@@ -2,13 +2,28 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Carbon;
 
+/**
+ * @property int $id
+ * @property string $label
+ * @property bool $is_required
+ * @property int $order
+ * @property string|null $helper_text
+ * @property-read FieldType $fieldType
+ * @property-read Collection<int, FormFieldOption> $formFieldOptions
+ *
+ * @return HasMany<FormFieldOption>
+ */
 class FormField extends Model
 {
     use SoftDeletes;
+
     protected $fillable = [
         'form_id',
         'label',
@@ -64,11 +79,14 @@ class FormField extends Model
         return $this->belongsTo(Form::class);
     }
 
-    public function fieldType()
+    public function fieldType(): BelongsTo
     {
         return $this->belongsTo(FieldType::class);
     }
 
+    /**
+     * @return HasMany<FormFieldOption, $this>
+     */
     public function formFieldOptions()
     {
         return $this->hasMany(FormFieldOption::class);
