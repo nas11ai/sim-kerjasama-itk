@@ -58,6 +58,19 @@ class FormSubmission extends Model
         return $this->hasMany(FormFieldResponse::class);
     }
 
+    public function scheme(): ?Scheme
+    {
+        $response = $this->formFieldResponses()
+            ->whereHas('formField', function ($query) {
+                $query->whereHas('fieldType', function ($query) {
+                    $query->where('name', 'scheme_selector');
+                });
+            })
+            ->first();
+
+        return $response ? Scheme::find($response->value) : null;
+    }
+
     /** @return HasMany<SubmissionReviewer, $this> */
     public function submissionReviewers(): HasMany
     {

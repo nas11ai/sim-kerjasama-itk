@@ -157,13 +157,4 @@ class FormPhaseDetail extends Model
     {
         return $query->orderBy('order');
     }
-
-    public function isWithinDeadline(): bool
-    {
-        $period = $this->formPhase->submissionPeriod;
-        if ($period->is_force_closed)
-            return false;
-        return now()->lte($this->submissionDate->datetime);
-    }
-
 }
