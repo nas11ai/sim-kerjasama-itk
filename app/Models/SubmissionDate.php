@@ -8,7 +8,6 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
  * @property \Illuminate\Support\Carbon $date
- * @property string $datetime
  * @property-read SubmissionDateLabel|null $submissionDateLabel
  */
 class SubmissionDate extends Model

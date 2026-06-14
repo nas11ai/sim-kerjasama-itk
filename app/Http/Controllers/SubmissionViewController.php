@@ -312,15 +312,13 @@ class SubmissionViewController extends Controller
         if ($userRole === 'reviewer') {
             $reviewer = Reviewer::where('user_id', $user->id)->first();
 
-            if ($reviewer !== null) {
+            if ($reviewer) {
                 $submissionReviewer = SubmissionReviewer::where([
                     'form_submission_id' => $submission->id,
                     'reviewer_id' => $reviewer->id,
                 ])->first();
 
-                if ($submissionReviewer instanceof SubmissionReviewer) {
-                    $isAssignedReviewer = true;
-                }
+                $isAssignedReviewer = (bool) $submissionReviewer;
             }
         }
 
@@ -331,7 +329,7 @@ class SubmissionViewController extends Controller
         // Get reviewer form assignments
         $reviewerFormAssignments = [];
 
-        if ($submissionReviewer instanceof SubmissionReviewer) {
+        if ($isAssignedReviewer && $submissionReviewer) {
             $reviewerFormAssignments = $this->getReviewerAssignments(
                 $submissionReviewer,
                 $formPhaseDetail
@@ -343,7 +341,7 @@ class SubmissionViewController extends Controller
         $pendingEvaluationsCount = 0;
         $canCreateThread = false;
 
-        if ($submissionReviewer instanceof SubmissionReviewer) {
+        if ($isAssignedReviewer && $submissionReviewer) {
             if ($hasReviewEvaluationForms) {
                 // Count REQUIRED forms only
                 $requiredForms = collect($reviewerFormAssignments)

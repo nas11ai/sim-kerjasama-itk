@@ -100,15 +100,6 @@ jobs:
         steps:
             - uses: actions/checkout@v4
 
-            - name: Setup PHP
-              uses: shivammathur/setup-php@v2
-              with:
-                  php-version: '8.3'
-
-            - name: Install Composer Dependencies
-              run: composer install --no-interaction --prefer-dist
-
-
             - name: Setup Node
               uses: actions/setup-node@v4
               with:

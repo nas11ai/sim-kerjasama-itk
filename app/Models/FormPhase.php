@@ -6,10 +6,8 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
- * @property int $id
  * @property int $review_evaluation_forms_count
  * @property int $required_review_evaluation_forms_count
- * @property-read SubmissionPeriod|null $submissionPeriod
  */
 class FormPhase extends Model
 {

@@ -45,7 +45,7 @@ class ReviewerFormAssignmentController extends Controller
 
                 // Validate form phase matches submission form phase
                 $formPhase = $this->getSubmissionFormPhase($submission);
-                if (!$formPhase || $evaluationForm->formPhaseDetail->form_phase_id !== $formPhase->id) {
+                if (!$formPhase || $evaluationForm->form_phase_id !== $formPhase->id) {
                     throw new \Exception("Formulir evaluasi '{$evaluationForm->title}' tidak termasuk dalam tahap formulir yang benar.");
                 }
 

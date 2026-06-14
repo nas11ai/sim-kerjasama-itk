@@ -90,11 +90,13 @@ class BiodataController extends Controller
                         'name' => $field->fieldType->name,
                     ],
                     'form_field_options' => $field->formFieldOptions
-                        ->map(fn (FormFieldOption $option): array => [
-                            'id' => $option->id,
-                            'label' => $option->label,
-                            'value' => $option->value,
-                        ])->toArray(),
+                        ->map(function (FormFieldOption $option): array {
+                            return [
+                                'id' => $option->id,
+                                'label' => $option->label,
+                                'value' => $option->value,
+                            ];
+                        }),
                 ]),
 
             ],
@@ -127,7 +129,7 @@ class BiodataController extends Controller
             $fileUploads = [];
             if ($request->hasFile('file_uploads')) {
                 foreach ($request->file('file_uploads') as $fieldId => $file) {
-                    if ($file->isValid()) {
+                    if ($file && $file->isValid()) {
                         // file size max 10MB
                         if ($file->getSize() > 10 * 1024 * 1024) {
                             return back()

@@ -18,8 +18,6 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property-read Form $form
  * @property-read User $submittedBy
  * @property-read Collection<int, FormFieldResponse> $formFieldResponses
- * @property-read Collection<int, SubmissionReviewer> $submissionReviewers
- * @property-read Collection<int, ReviewSummary> $reviewSummaries
  * @property SubmissionStatus|null $status
  */
 class FormSubmission extends Model
@@ -63,7 +61,6 @@ class FormSubmission extends Model
         return $this->hasMany(SubmissionReviewer::class);
     }
 
-    /** @return HasMany<ReviewSummary, $this> */
     public function reviewSummaries(): HasMany
     {
         return $this->hasMany(ReviewSummary::class);
@@ -200,7 +197,6 @@ class FormSubmission extends Model
             ->get();
 
         foreach ($reviewersNeedingAssignment as $submissionReviewer) {
-            /** @var SubmissionReviewer $submissionReviewer */
             // Assign all required forms by default
             /** @var Collection<int, ReviewEvaluationForm> $requiredForms */
             $requiredForms = $formPhaseDetail->requiredReviewEvaluationForms()->get();
@@ -231,7 +227,7 @@ class FormSubmission extends Model
     {
         $formPhaseDetail = $this->getFormPhaseDetail();
 
-        if ($formPhaseDetail === null || $formPhaseDetail->formPhase === null) {
+        if (!$formPhaseDetail || !$formPhaseDetail->formPhase) {
             return null;
         }
 
@@ -350,13 +346,10 @@ class FormSubmission extends Model
 
     public function assignReviewer(int $reviewerId): ReviewSummary
     {
-        /** @var ReviewSummary $summary */
-        $summary = $this->reviewSummaries()->firstOrCreate(
+        return $this->reviewSummaries()->firstOrCreate(
             ['reviewer_id' => $reviewerId],
             ['status' => 'open']
         );
-
-        return $summary;
     }
 
     public function removeReviewer(int $reviewerId): bool
@@ -433,11 +426,11 @@ class FormSubmission extends Model
             ->where('reviewer_id', $reviewerId)
             ->first();
 
-        if ($submissionReviewer === null) {
+        if (!$submissionReviewer) {
             return false;
         }
 
-        /** @var SubmissionReviewer $submissionReviewer */
+        // Check if reviewer has completed required evaluations
         return $submissionReviewer->canCreateDiscussionThreads();
     }
 

@@ -46,7 +46,6 @@ class SubmissionReviewer extends Model
     /**
      * @return HasMany<ReviewerFormAssignment, $this>
      */
-    /** @return HasMany<ReviewerFormAssignment, $this> */
     public function reviewerFormAssignments(): HasMany
     {
         return $this->hasMany(ReviewerFormAssignment::class);
@@ -157,7 +156,7 @@ class SubmissionReviewer extends Model
 
         $completedAssignments = $this->completedReviewerFormAssignments()->count();
 
-        return (int) round(($completedAssignments / $totalAssignments) * 100);
+        return round(($completedAssignments / $totalAssignments) * 100);
     }
 
     // NEW: Update evaluation status based on current form completion
