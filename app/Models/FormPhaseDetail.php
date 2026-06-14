@@ -8,8 +8,16 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
+ * @property int $id
+ * @property int $form_phase_id
+ * @property int $form_access_control_id
+ * @property int $phase_type_id
+ * @property int $order
+ * @property bool $needs_review
  * @property int $reviewEvaluationFormsCount
  * @property int $requiredReviewEvaluationFormsCount
+ * @property-read FormPhase|null $formPhase
+ * @property-read SubmissionDate|null $submissionDate
  */
 class FormPhaseDetail extends Model
 {

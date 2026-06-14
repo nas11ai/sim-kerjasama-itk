@@ -2,9 +2,21 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+
+/**
+ * @property int $id
+ * @property int $form_submission_id
+ * @property int|null $reviewer_id
+ * @property string $status
+ * @property string|null $summary_notes
+ * @property-read FormSubmission $formSubmission
+ * @property-read Reviewer|null $reviewer
+ * @property-read Collection<int, ReviewSummaryAttachment> $attachments
+ */
 
 class ReviewSummary extends Model
 {

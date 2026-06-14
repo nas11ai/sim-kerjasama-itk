@@ -6,6 +6,7 @@ use App\Models\FormPhase;
 use App\Models\FormPhaseDetail;
 use App\Models\FormSubmission;
 use App\Models\ReviewComment;
+use App\Models\ReviewCommentAttachment;
 use App\Models\Reviewer;
 use App\Models\ReviewerFormAssignment;
 use App\Models\ReviewSummary;
@@ -592,7 +593,7 @@ class ReviewController extends Controller
             'resolved' => 'diselesaikan',
             'closed' => 'ditutup',
             'open' => 'dibuka kembali',
-            'default' => 'diperbarui',
+            default => 'diperbarui',
         };
 
         return back()->with('success', "Thread review berhasil {$statusText}.");
@@ -640,50 +641,52 @@ class ReviewController extends Controller
         }
     }
 
-    private function checkIfEvaluationsArePositive(FormSubmission $submission): bool
-    {
-        // This is a simplified logic - you can customize based on your evaluation criteria
-        // For example, check if there are any "rejection" responses in evaluation forms
+    // private function checkIfEvaluationsArePositive(FormSubmission $submission): bool
+    // {
+    //     // This is a simplified logic - you can customize based on your evaluation criteria
+    //     // For example, check if there are any "rejection" responses in evaluation forms
 
-        $submittedResponses = $submission->submittedReviewFormResponses()->get();
+    //     $submittedResponses = $submission->submittedReviewFormResponses()->get();
 
-        // If no evaluations submitted, default to needs review
-        if ($submittedResponses->isEmpty()) {
-            return false;
-        }
+    //     // If no evaluations submitted, default to needs review
+    //     if ($submittedResponses->isEmpty()) {
+    //         return false;
+    //     }
 
-        // Custom logic: check for specific field values that indicate rejection
-        foreach ($submittedResponses as $response) {
-            $fieldResponses = $response->reviewFormFieldResponses()->get();
+    //     // Custom logic: check for specific field values that indicate rejection
+    //     foreach ($submittedResponses as $response) {
+    //         $fieldResponses = $response->reviewFormFieldResponses()->get();
 
-            foreach ($fieldResponses as $fieldResponse) {
-                $field = $fieldResponse->reviewFormField;
+    //         foreach ($fieldResponses as $fieldResponse) {
+    //             $field = $fieldResponse->reviewFormField;
 
-                // Example: if there's a field with "recommendation" and value is "reject"
-                if (
-                    str_contains(strtolower($field->label), 'recommendation') ||
-                    str_contains(strtolower($field->label), 'decision')
-                ) {
+    //             // Example: if there's a field with "recommendation" and value is "reject"
+    //             if (
+    //                 str_contains(strtolower($field->label), 'recommendation') ||
+    //                 str_contains(strtolower($field->label), 'decision')
+    //             ) {
 
-                    $value = strtolower($fieldResponse->value);
-                    if (
-                        str_contains($value, 'reject') ||
-                        str_contains($value, 'decline') ||
-                        str_contains($value, 'not approved')
-                    ) {
-                        return false;
-                    }
-                }
-            }
-        }
+    //                 $value = strtolower($fieldResponse->value);
+    //                 if (
+    //                     str_contains($value, 'reject') ||
+    //                     str_contains($value, 'decline') ||
+    //                     str_contains($value, 'not approved')
+    //                 ) {
+    //                     return false;
+    //                 }
+    //             }
+    //         }
+    //     }
 
-        return true; // Default to positive if no negative indicators found
-    }
+    //     return true; // Default to positive if no negative indicators found
+    // }
 
     private function deleteReviewSummaryWithComments(ReviewSummary $summary)
     {
         $comments = ReviewComment::where('review_summary_id', $summary->id)->get();
+        /** @var ReviewComment $comment */
         foreach ($comments as $comment) {
+            /** @var ReviewCommentAttachment $attachment */
             foreach ($comment->attachments as $attachment) {
                 if (Storage::disk('public')->exists($attachment->file_path)) {
                     Storage::disk('public')->delete($attachment->file_path);
@@ -703,34 +706,34 @@ class ReviewController extends Controller
         $summary->delete();
     }
 
-    private function canUserReview(FormSubmission $submission, $user): bool
-    {
-        if ($user->hasRole(['Super Admin', 'Admin'])) {
-            return true;
-        }
+    // private function canUserReview(FormSubmission $submission, $user): bool
+    // {
+    //     if ($user->hasRole(['Super Admin', 'Admin'])) {
+    //         return true;
+    //     }
 
-        $reviewer = Reviewer::where('user_id', $user->id)->latest()->first();
-        if (!$reviewer) {
-            return false;
-        }
+    //     $reviewer = Reviewer::where('user_id', $user->id)->latest()->first();
+    //     if (!$reviewer) {
+    //         return false;
+    //     }
 
-        /** @var SubmissionReviewer|null $submissionReviewer */
-        $submissionReviewer = SubmissionReviewer::where([
-            'form_submission_id' => $submission->id,
-            'reviewer_id' => $reviewer->id,
-        ])->first();
+    //     /** @var SubmissionReviewer|null $submissionReviewer */
+    //     $submissionReviewer = SubmissionReviewer::where([
+    //         'form_submission_id' => $submission->id,
+    //         'reviewer_id' => $reviewer->id,
+    //     ])->first();
 
-        if (!$submissionReviewer) {
-            return false;
-        }
+    //     if (!$submissionReviewer) {
+    //         return false;
+    //     }
 
-        // If no evaluation forms required, can review immediately
-        if (!$submission->hasReviewEvaluationForms()) {
-            return true;
-        }
+    //     // If no evaluation forms required, can review immediately
+    //     if (!$submission->hasReviewEvaluationForms()) {
+    //         return true;
+    //     }
 
-        // If has evaluation forms, must complete them first to fully participate
-        // But can view the submission
-        return true;
-    }
+    //     // If has evaluation forms, must complete them first to fully participate
+    //     // But can view the submission
+    //     return true;
+    // }
 }

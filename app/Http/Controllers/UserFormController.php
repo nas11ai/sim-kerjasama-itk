@@ -85,8 +85,8 @@ class UserFormController extends Controller
                         $period->status = 'expired';
                     }
 
-                    $period->start_date = $dates->first()->datetime;
-                    $period->end_date = $dates->last()->datetime;
+                    $period->start_date = Carbon::parse($dates->first()->datetime);
+                    $period->end_date = Carbon::parse($dates->last()->datetime);
                 }
 
                 // Process form phases with user progress

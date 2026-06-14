@@ -331,7 +331,7 @@ class SubmissionPeriodController extends Controller
             return 0;
         }
 
-        return $now->diffInDays($endDate, false);
+        return (int) $now->diffInDays($endDate, false);
     }
 
     public function storeLabel(Request $request)
