@@ -2,28 +2,57 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-
+/**
+ * @property array|null $rules
+ * @property bool $is_active
+ * @property string $name
+ * @property string $code
+ */
 class Scheme extends Model
 {
-    protected $fillable =[
-        'rules'
+    use HasFactory;
+
+    protected $fillable = [
+        'scheme_type_id',
+        'submission_type_id',
+        'name',
+        'code',
+        'max_budget',
+        'max_members',
+        'duration_months',
+        'rules',
+        'is_active',
     ];
-protected $casts = ['rules' => 'array'];
 
-public function getRule(string $key, mixed $default = null): mixed
-{
-    return data_get($this->rules, $key, $default);
-}
+    protected $casts = [
+        'rules' => 'array',
+        'is_active' => 'boolean',
+    ];
 
-public function minReviewerCount(): int
-{
-    return (int) $this->getRule('min_reviewer_count', 2);
-}
+    /**
+     * Get a rule value from the rules JSONB column.
+     */
+    public function getRule(string $key, mixed $default = null): mixed
+    {
+        return data_get($this->rules, $key, $default);
+    }
 
-public function maxReviewerWorkload(): int
-{
-    return (int) $this->getRule('max_reviewer_workload', 10);
-}
+    /**
+     * Get the minimum reviewer count from rules, defaulting to 2.
+     */
+    public function minReviewerCount(): int
+    {
+        return (int) $this->getRule('min_reviewer_count', 2);
+    }
+
+    /**
+     * Get the maximum reviewer workload from rules, defaulting to 10.
+     */
+    public function maxReviewerWorkload(): int
+    {
+        return (int) $this->getRule('max_reviewer_workload', 10);
+    }
 }
