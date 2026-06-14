@@ -196,10 +196,10 @@ class ReviewFormResponseController extends Controller
     {
         $this->authorizeAssignment($assignment);
 
-        /** @var ReviewFormResponse $response */
+        /** @var ReviewFormResponse|null $response */
         $response = $assignment->reviewFormResponse;
 
-        if (!$response) {
+        if ($response === null) {
             return back()->withErrors(['error' => 'Tidak ditemukan draft respons. Silakan simpan draft terlebih dahulu.']);
         }
 
@@ -299,9 +299,9 @@ class ReviewFormResponseController extends Controller
     {
         $this->authorizeAssignment($assignment);
 
-        /** @var ReviewFormResponse $response */
+        /** @var ReviewFormResponse|null $response */
         $response = $assignment->reviewFormResponse;
-        if (!$response || !$response->isSubmitted()) {
+        if ($response === null || !$response->isSubmitted()) {
             return back()->withErrors(['error' => 'Tidak ditemukan respons yang telah dikirim.']);
         }
 
@@ -429,10 +429,10 @@ class ReviewFormResponseController extends Controller
     {
         $this->authorizeAssignment($assignment);
 
-        /** @var ReviewFormResponse $response */
+        /** @var ReviewFormResponse|null $response */
         $response = $assignment->reviewFormResponse;
 
-        if (!$response) {
+        if ($response === null) {
             return response()->json([
                 'status' => 'not_started',
                 'completion_percentage' => 0,

@@ -2,12 +2,25 @@
 
 namespace App\Models;
 
+use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
+ * @property int $id
+ * @property int $user_id
+ * @property int $reviewer_role_id
+ * @property Carbon|null $start_date
+ * @property Carbon|null $end_date
  * @property-read User|null $user
  * @property-read ReviewerRole|null $reviewerRole
+ * @property-read ReviewerRole|null $reviewer_role
+ * @property-read Collection<int, SubmissionReviewer> $submissionReviewers
+ * @property bool $is_active
+ * @property int $total_reviews
+ * @property int $pending_reviews
+ * @property int $completed_reviews
  */
 class Reviewer extends Model
 {

@@ -11,7 +11,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property-read User|null $user
  * @property-read Reviewer|null $reviewer
  * @property-read ReviewSummary $reviewSummary
- * @property Collection<int, ReviewCommentAttachment> $attachments
+ * @property-read Collection<int, ReviewCommentAttachment> $attachments
  */
 class ReviewComment extends Model
 {

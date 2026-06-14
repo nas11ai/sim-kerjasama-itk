@@ -7,6 +7,16 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
+/**
+ * @property int $id
+ * @property int $form_phase_detail_id
+ * @property string $title
+ * @property string|null $description
+ * @property bool $is_required
+ * @property bool $is_active
+ * @property int $order
+ * @property-read FormPhaseDetail $formPhaseDetail
+ */
 class ReviewEvaluationForm extends Model
 {
     use HasFactory;
