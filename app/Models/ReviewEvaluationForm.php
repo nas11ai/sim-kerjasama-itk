@@ -17,7 +17,6 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property int $order
  * @property-read FormPhaseDetail $formPhaseDetail
  */
-
 class ReviewEvaluationForm extends Model
 {
     use HasFactory;

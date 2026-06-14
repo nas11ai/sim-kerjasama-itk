@@ -17,7 +17,6 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property-read Reviewer|null $reviewer
  * @property-read Collection<int, ReviewSummaryAttachment> $attachments
  */
-
 class ReviewSummary extends Model
 {
     protected $fillable = [
