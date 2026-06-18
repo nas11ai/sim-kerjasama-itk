@@ -34,11 +34,13 @@ class ReviewSummary extends Model
         return $this->belongsTo(FormSubmission::class);
     }
 
+    /** @return BelongsTo<Reviewer, $this> */
     public function reviewer(): BelongsTo
     {
         return $this->belongsTo(Reviewer::class);
     }
 
+    /** @return HasMany<ReviewSummaryAttachment, $this> */
     public function attachments(): HasMany
     {
         return $this->hasMany(ReviewSummaryAttachment::class);

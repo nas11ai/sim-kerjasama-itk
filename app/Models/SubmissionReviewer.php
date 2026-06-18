@@ -46,7 +46,6 @@ class SubmissionReviewer extends Model
     /**
      * @return HasMany<ReviewerFormAssignment, $this>
      */
-    /** @return HasMany<ReviewerFormAssignment, $this> */
     public function reviewerFormAssignments(): HasMany
     {
         return $this->hasMany(ReviewerFormAssignment::class);

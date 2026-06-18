@@ -90,11 +90,13 @@ class BiodataController extends Controller
                         'name' => $field->fieldType->name,
                     ],
                     'form_field_options' => $field->formFieldOptions
-                        ->map(fn (FormFieldOption $option): array => [
-                            'id' => $option->id,
-                            'label' => $option->label,
-                            'value' => $option->value,
-                        ])->toArray(),
+                        ->map(function (FormFieldOption $option): array {
+                            return [
+                                'id' => $option->id,
+                                'label' => $option->label,
+                                'value' => $option->value,
+                            ];
+                        }),
                 ]),
 
             ],

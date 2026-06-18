@@ -5,6 +5,11 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
+/**
+ * @property int $id
+ * @property string $label
+ * @property string|null $value
+ */
 class ReviewFormFieldOption extends Model
 {
     protected $fillable = [

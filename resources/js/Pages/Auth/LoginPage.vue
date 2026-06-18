@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { route } from 'ziggy-js'
 import AlertContainer from '@/Components/AlertContainer.vue'
-import Checkbox from '@/Components/AppCheckbox.vue'
+import Checkbox from '@/Components/BaseCheckbox.vue'
 import InputError from '@/Components/InputError.vue'
 import Button from '@/Components/ui/button/UiButton.vue'
 import Input from '@/Components/ui/input/UiInput.vue'

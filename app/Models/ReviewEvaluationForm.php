@@ -11,11 +11,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property int $id
  * @property int $form_phase_detail_id
  * @property string $title
- * @property string|null $description
- * @property bool $is_required
- * @property bool $is_active
- * @property int $order
- * @property-read FormPhaseDetail $formPhaseDetail
+ * @property-read FormPhaseDetail|null $formPhaseDetail
  */
 class ReviewEvaluationForm extends Model
 {
@@ -40,6 +36,7 @@ class ReviewEvaluationForm extends Model
      *
      * @return BelongsTo<FormPhaseDetail, $this>
      */
+    /** @return BelongsTo<FormPhaseDetail, $this> */
     public function formPhaseDetail(): BelongsTo
     {
         return $this->belongsTo(FormPhaseDetail::class, 'form_phase_detail_id');

@@ -1,25 +1,45 @@
 <?php
 
+namespace Tests\Feature;
+
 use App\Models\FormPhase;
 use App\Models\FormPhaseDetail;
-use App\Models\SubmissionDate;
 use App\Models\SubmissionPeriod;
+use Tests\TestCase;
 
-it('returns false when submission period is force closed', function () {
+class FormPhaseDetailTest extends TestCase
+{
+    public function test_is_within_deadline_when_active()
+    {
+        $submissionPeriod = new SubmissionPeriod();
+        $submissionPeriod->is_force_closed = false;
 
-    $period = new SubmissionPeriod;
-    $period->is_force_closed = true;
+        $formPhase = new FormPhase();
+        $formPhase->setRelation('submissionPeriod', $submissionPeriod);
 
-    $formPhase = new FormPhase;
-    $formPhase->setRelation('submissionPeriod', $period);
+        $formPhaseDetail = new FormPhaseDetail();
+        $formPhaseDetail->submissionDate = (object) [
+            'datetime' => now()->addDays(2)
+        ];
+        $formPhaseDetail->setRelation('formPhase', $formPhase);
 
-    $submissionDate = new SubmissionDate;
-    $submissionDate->datetime = now()->addDays(3);
+        $this->assertTrue($formPhaseDetail->isWithinDeadline());
+    }
 
-    $detail = new FormPhaseDetail;
+    public function test_is_within_deadline_when_force_closed()
+    {
+        $submissionPeriod = new SubmissionPeriod();
+        $submissionPeriod->is_force_closed = true;
 
-    $detail->setRelation('formPhase', $formPhase);
-    $detail->setRelation('submissionDate', $submissionDate);
+        $formPhase = new FormPhase();
+        $formPhase->setRelation('submissionPeriod', $submissionPeriod);
 
-    expect($detail->isWithinDeadline())->toBeFalse();
-});
+        $formPhaseDetail = new FormPhaseDetail();
+        $formPhaseDetail->submissionDate = (object) [
+            'datetime' => now()->addDays(2)
+        ];
+        $formPhaseDetail->setRelation('formPhase', $formPhase);
+
+        $this->assertFalse($formPhaseDetail->isWithinDeadline());
+    }
+}

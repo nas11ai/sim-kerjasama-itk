@@ -11,7 +11,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property-read User|null $user
  * @property-read Reviewer|null $reviewer
  * @property-read ReviewSummary $reviewSummary
- * @property-read Collection<int, ReviewCommentAttachment> $attachments
+ * @property Collection<int, ReviewCommentAttachment> $attachments
  */
 class ReviewComment extends Model
 {
@@ -38,6 +38,7 @@ class ReviewComment extends Model
         return $this->hasMany(ReviewComment::class, 'parent_comment_id');
     }
 
+    /** @return HasMany<ReviewCommentAttachment, $this> */
     public function attachments(): HasMany
     {
         return $this->hasMany(ReviewCommentAttachment::class);

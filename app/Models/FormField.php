@@ -11,14 +11,16 @@ use Illuminate\Support\Carbon;
 
 /**
  * @property int $id
+ * @property int $form_id
+ * @property int $field_type_id
  * @property string $label
  * @property bool $is_required
+ * @property Carbon|null $required_since
  * @property int $order
- * @property string|null $helper_text
- * @property-read FieldType $fieldType
+ * @property-read Form|null $form
+ * @property-read FieldType|null $fieldType
  * @property-read Collection<int, FormFieldOption> $formFieldOptions
- *
- * @return HasMany<FormFieldOption>
+ * @property-read Collection<int, FormFieldResponse> $formFieldResponses
  */
 class FormField extends Model
 {
@@ -74,11 +76,17 @@ class FormField extends Model
         return $this->is_required;
     }
 
-    public function form()
+    /**
+     * @return BelongsTo<Form, $this>
+     */
+    public function form(): BelongsTo
     {
         return $this->belongsTo(Form::class);
     }
 
+    /**
+     * @return BelongsTo<FieldType, $this>
+     */
     public function fieldType(): BelongsTo
     {
         return $this->belongsTo(FieldType::class);
@@ -87,12 +95,15 @@ class FormField extends Model
     /**
      * @return HasMany<FormFieldOption, $this>
      */
-    public function formFieldOptions()
+    public function formFieldOptions(): HasMany
     {
         return $this->hasMany(FormFieldOption::class);
     }
 
-    public function formFieldResponses()
+    /**
+     * @return HasMany<FormFieldResponse, $this>
+     */
+    public function formFieldResponses(): HasMany
     {
         return $this->hasMany(FormFieldResponse::class);
     }

@@ -21,19 +21,13 @@ export default [
             globals: {
                 ...globals.node,
                 ...globals.browser,
+                route: 'readonly',
             },
         },
         plugins: { '@typescript-eslint': ts },
         rules: {
             '@typescript-eslint/no-explicit-any': 'error',
             'no-console': 'warn',
-            'no-unused-vars': 'off',
-            '@typescript-eslint/no-unused-vars': [
-                'error',
-                {
-                    argsIgnorePattern: '^_',
-                },
-            ],
         },
     },
 
@@ -48,6 +42,7 @@ export default [
             globals: {
                 ...globals.node,
                 ...globals.browser,
+                route: 'readonly',
             },
         },
         plugins: { '@typescript-eslint': ts },
@@ -64,6 +59,25 @@ export default [
             'no-console': 'warn',
         },
     },
+
+    {
+        files: ['resources/js/Pages/**/*.vue'],
+        rules: {
+            'vue/multi-word-component-names': 'off',
+            '@typescript-eslint/no-explicit-any': 'warn',
+        },
+    },
+
+    {
+        files: ['resources/js/Components/ui/**/*.vue'],
+        rules: {
+            'vue/multi-word-component-names': 'off',
+            '@typescript-eslint/no-explicit-any': 'warn',
+            'vue/no-unused-vars': 'warn',
+            'no-unused-vars': 'warn',
+        },
+    },
+
 
     prettierConfig,
 ]

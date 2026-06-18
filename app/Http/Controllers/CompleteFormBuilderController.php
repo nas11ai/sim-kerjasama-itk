@@ -176,6 +176,7 @@ class CompleteFormBuilderController extends Controller
                         // Create evaluation form fields
                         if (isset($evalForm['fields'])) {
                             foreach ($evalForm['fields'] as $fieldIndex => $evalField) {
+                                /** @var \App\Models\ReviewFormField $reviewField */
                                 $reviewField = $evaluationForm->reviewFormFields()->create([
                                     'field_type_id' => $evalField['field_type_id'],
                                     'label' => $evalField['label'],
@@ -238,7 +239,7 @@ class CompleteFormBuilderController extends Controller
             DB::rollback();
 
             return back()
-                ->withErrors(['error' => 'Gagal membuat formulir: '.$e->getMessage()])
+                ->withErrors(['error' => 'Gagal membuat formulir: ' . $e->getMessage()])
                 ->withInput();
         }
     }

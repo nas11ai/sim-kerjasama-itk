@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
@@ -32,7 +33,8 @@ class FormPhase extends Model
         return $this->hasMany(SubmissionPeriodPhase::class);
     }
 
-    public function submissionPeriod()
+    /** @return BelongsTo<SubmissionPeriod, $this> */
+    public function submissionPeriod(): BelongsTo
     {
         return $this->belongsTo(SubmissionPeriod::class);
     }
