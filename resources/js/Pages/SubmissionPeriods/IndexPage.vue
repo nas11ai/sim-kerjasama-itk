@@ -46,20 +46,9 @@ interface FormPhase {
     title: string
 }
 
-interface SubmissionRule {
-    id: number
-    label: string
-    value: number
-}
-
 interface SubmissionPeriodPhase {
     id: number
     form_phase: FormPhase
-}
-
-interface SubmissionPeriodDetail {
-    id: number
-    submission_rule: SubmissionRule
 }
 
 interface SubmissionPeriod {
@@ -73,7 +62,6 @@ interface SubmissionPeriod {
     status: 'upcoming' | 'active' | 'expired' | 'no_dates'
     submission_dates: SubmissionDate[]
     submission_period_phases: SubmissionPeriodPhase[]
-    submission_period_details: SubmissionPeriodDetail[]
 }
 
 interface PaginatedData {
@@ -262,7 +250,6 @@ const formatDate = (dateString: string) => {
                                     <TableHead>Status</TableHead>
                                     <TableHead>Periode</TableHead>
                                     <TableHead>Tahap Formulir</TableHead>
-                                    <TableHead>Ketentuan</TableHead>
                                     <TableHead>Tanggal</TableHead>
                                     <TableHead class="text-right"> Aksi </TableHead>
                                 </TableRow>
@@ -313,15 +300,6 @@ const formatDate = (dateString: string) => {
                                             <span class="text-sm">
                                                 {{ period.submission_period_phases.length }}
                                                 tahap
-                                            </span>
-                                        </div>
-                                    </TableCell>
-                                    <TableCell>
-                                        <div class="flex items-center gap-2">
-                                            <FileText class="h-4 w-4 text-muted-foreground" />
-                                            <span class="text-sm">
-                                                {{ period.submission_period_details.length }}
-                                                ketentuan
                                             </span>
                                         </div>
                                     </TableCell>

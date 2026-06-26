@@ -15,7 +15,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/Components/ui/select'
-import { Plus, Trash2, ArrowLeft, Calendar, Settings, FileText } from 'lucide-vue-next'
+import { Plus, Trash2, ArrowLeft, Calendar, Settings } from 'lucide-vue-next'
 import { watch } from 'vue'
 import { useToast } from '@/Components/ui/toast'
 import Checkbox from '@/Components/BaseCheckbox.vue'
@@ -24,12 +24,6 @@ interface FormPhase {
     id: number
     title: string
     description?: string
-}
-
-interface SubmissionRule {
-    id: number
-    label: string
-    value: number
 }
 
 interface SubmissionDateLabel {
@@ -48,12 +42,10 @@ interface FormData {
     name: string
     submission_dates: SubmissionDate[]
     form_phase_ids: number[]
-    submission_rule_ids: number[]
 }
 
 interface Props {
     formPhases: FormPhase[]
-    submissionRules: SubmissionRule[]
     submissionDateLabels: SubmissionDateLabel[]
 }
 
@@ -63,7 +55,6 @@ const form = useForm<FormData>({
     name: '',
     submission_dates: [],
     form_phase_ids: [],
-    submission_rule_ids: [],
 })
 const { toast } = useToast()
 
@@ -135,28 +126,11 @@ const toggleFormPhase = (phaseId: number) => {
     }
 }
 
-const toggleSubmissionRule = (ruleId: number) => {
-    const index = form.submission_rule_ids.indexOf(ruleId)
-    if (index > -1) {
-        form.submission_rule_ids.splice(index, 1)
-    } else {
-        form.submission_rule_ids.push(ruleId)
-    }
-}
-
 const selectAllFormPhases = () => {
     if (form.form_phase_ids.length === props.formPhases.length) {
         form.form_phase_ids = []
     } else {
         form.form_phase_ids = props.formPhases.map((phase) => phase.id)
-    }
-}
-
-const selectAllSubmissionRules = () => {
-    if (form.submission_rule_ids.length === props.submissionRules.length) {
-        form.submission_rule_ids = []
-    } else {
-        form.submission_rule_ids = props.submissionRules.map((rule) => rule.id)
     }
 }
 
@@ -452,62 +426,6 @@ watch(showAddLabelDialog, (val) => {
                     </CardContent>
                 </Card>
 
-                <!-- Submission Rules (Optional) -->
-                <Card>
-                    <CardHeader>
-                        <div class="flex items-center justify-between">
-                            <CardTitle class="flex items-center gap-2">
-                                <FileText class="h-5 w-5" />
-                                Aturan Pengiriman (Opsional)
-                                <Badge variant="outline" class="ml-2">
-                                    {{ form.submission_rule_ids.length }}
-                                    dipilih
-                                </Badge>
-                            </CardTitle>
-                            <Button
-                                v-if="props.submissionRules.length > 0"
-                                type="button"
-                                variant="outline"
-                                size="sm"
-                                @click="selectAllSubmissionRules"
-                            >
-                                {{
-                                    form.submission_rule_ids.length === props.submissionRules.length
-                                        ? 'Batal Pilih Semua'
-                                        : 'Pilih Semua'
-                                }}
-                            </Button>
-                        </div>
-                    </CardHeader>
-                    <CardContent>
-                        <div
-                            v-if="props.submissionRules.length === 0"
-                            class="text-center py-8 text-muted-foreground"
-                        >
-                            <FileText class="h-12 w-12 mx-auto mb-4 opacity-50" />
-                            <p>Tidak ada aturan pengiriman tersedia.</p>
-                        </div>
-                        <div v-else class="grid gap-3 md:grid-cols-2">
-                            <div
-                                v-for="rule in props.submissionRules"
-                                :key="rule.id"
-                                class="flex w-full items-center space-x-3 p-3 border rounded-lg hover:bg-muted/50 cursor-pointer"
-                                @click="toggleSubmissionRule(rule.id)"
-                            >
-                                <Checkbox :checked="form.submission_rule_ids.includes(rule.id)" />
-                                <div class="flex-1">
-                                    <Label class="cursor-pointer font-medium">
-                                        {{ rule.label }}
-                                    </Label>
-                                    <p class="text-sm text-muted-foreground">
-                                        Nilai: {{ rule.value }}
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-                    </CardContent>
-                </Card>
-
                 <!-- Preview Summary -->
                 <Card
                     v-if="form.name || form.submission_dates.some((d) => d.label || d.date)"
@@ -560,22 +478,6 @@ watch(showAddLabelDialog, (val) => {
                                     class="text-blue-700 border-blue-300"
                                 >
                                     {{ props.formPhases.find((p) => p.id === phaseId)?.title }}
-                                </Badge>
-                            </div>
-                        </div>
-
-                        <div v-if="form.submission_rule_ids.length > 0">
-                            <h4 class="font-medium text-blue-800 mb-2">
-                                Aturan Pengiriman Dipilih
-                            </h4>
-                            <div class="flex flex-wrap gap-1">
-                                <Badge
-                                    v-for="ruleId in form.submission_rule_ids"
-                                    :key="ruleId"
-                                    variant="outline"
-                                    class="text-blue-700 border-blue-300"
-                                >
-                                    {{ props.submissionRules.find((r) => r.id === ruleId)?.label }}
                                 </Badge>
                             </div>
                         </div>
