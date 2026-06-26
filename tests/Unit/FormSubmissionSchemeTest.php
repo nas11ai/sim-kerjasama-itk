@@ -31,6 +31,9 @@ beforeEach(function () {
 it('resolves the scheme from the scheme selector field response', function () {
     $schemeId = DB::table('schemes')->insertGetId([
         'name' => 'Research Grant',
+        'code' => 'RG-001',
+        'max_budget' => 100_000_000,
+        'max_members' => 5,
         'duration_months' => 12,
         'created_at' => now(),
         'updated_at' => now(),
