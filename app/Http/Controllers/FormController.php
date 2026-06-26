@@ -54,7 +54,7 @@ class FormController extends Controller
 
         $formTypes = FormType::orderBy('name')->get();
 
-        return Inertia::render('Forms/Index', [
+        return Inertia::render('Forms/IndexPage', [
             'forms' => $forms,
             'formTypes' => $formTypes,
             'filters' => [
@@ -70,7 +70,7 @@ class FormController extends Controller
 
     public function create()
     {
-        return Inertia::render('Forms/Create', [
+        return Inertia::render('Forms/CreatePage', [
             'formTypes' => FormType::orderBy('name')->get(),
             'fieldTypes' => FieldType::orderBy('name')->get(),
         ]);
@@ -130,7 +130,7 @@ class FormController extends Controller
     {
         $form->load(['formType', 'formFields.fieldType', 'formFields.formFieldOptions']);
 
-        return Inertia::render('Forms/Show', [
+        return Inertia::render('Forms/ShowPage', [
             'form' => $form,
         ]);
     }
@@ -139,7 +139,7 @@ class FormController extends Controller
     {
         $form->load(['formType', 'formFields.fieldType', 'formFields.formFieldOptions']);
 
-        return Inertia::render('Forms/Edit', [
+        return Inertia::render('Forms/EditPage', [
             'form' => $form,
             'formTypes' => FormType::orderBy('name')->get(),
             'fieldTypes' => FieldType::orderBy('name')->get(),

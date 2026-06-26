@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { route } from 'ziggy-js'
 import { computed, ref, shallowRef } from 'vue'
 import { Head, useForm } from '@inertiajs/vue3'
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
@@ -31,7 +32,6 @@ interface AnnouncementForm {
     expired_at: string | null
     expired_time?: string
     files: File[] | null
-    [key: string]: any
 }
 
 const fileInputRef = ref<HTMLInputElement | null>(null)
@@ -128,13 +128,12 @@ const submit = () => {
             selectedFiles.value = []
             if (fileInputRef.value) fileInputRef.value.value = ''
         },
-        onError: (errors) => {
+        onError: () => {
             toast({
                 title: 'Error',
                 description: 'Gagal membuat pengumuman. Silakan periksa input Anda dan coba lagi.',
                 variant: 'destructive',
             })
-            console.error('Validation errors:', errors)
         },
     })
 }

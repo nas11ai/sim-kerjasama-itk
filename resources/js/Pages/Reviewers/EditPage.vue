@@ -1,5 +1,6 @@
 <!-- resources/js/Pages/Admin/Reviewers/Edit.vue -->
 <script setup lang="ts">
+import { route } from 'ziggy-js'
 import { Head, useForm } from '@inertiajs/vue3'
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
 import { Button } from '@/Components/ui/button'

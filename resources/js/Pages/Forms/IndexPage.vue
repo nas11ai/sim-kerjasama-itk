@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { route } from 'ziggy-js'
 import { ref, watch, computed } from 'vue'
 import { Head, Link, router } from '@inertiajs/vue3'
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
@@ -49,7 +50,7 @@ import {
 import { useToast } from '@/Components/ui/toast/use-toast'
 import { debounce } from 'lodash'
 import { cn } from '@/lib/utils'
-import Checkbox from '@/Components/ui/checkbox/Checkbox.vue'
+import Checkbox from '@/Components/ui/checkbox/UiCheckbox.vue'
 
 interface FormType {
     id: number
@@ -64,6 +65,7 @@ interface FormField {
 
 interface Form {
     id: number
+    form_type_id: number
     title: string
     description: string
     is_active: boolean
@@ -74,7 +76,7 @@ interface Form {
 }
 
 interface PaginationLink {
-    url: string | null
+    url: string | undefined
     label: string
     active: boolean
 }
@@ -105,7 +107,7 @@ const props = defineProps<Props>()
 const { toast } = useToast()
 
 const search = ref(props.filters.search || '')
-const perPage = ref(props.filters.per_page || 10)
+// const perPage = ref(props.filters.per_page || 10)
 const sortBy = ref(props.filters.sort_by || 'created_at')
 const sortOrder = ref(props.filters.sort_order || 'desc')
 const formTypeFilter = ref(props.filters.form_type || 'all')
@@ -174,7 +176,7 @@ watch(selectAll, (newValue) => {
     }
 })
 
-const updateFilters = (newFilters: Record<string, any>) => {
+const updateFilters = (newFilters: Record<string, string | undefined>) => {
     router.get(
         route('admin.forms.index'),
         {

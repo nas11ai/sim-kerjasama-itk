@@ -13,6 +13,7 @@ class Faculty extends Model
 {
     protected $fillable = ['name'];
 
+    /** @return HasMany<StudyProgram, $this> */
     public function studyPrograms(): HasMany
     {
         return $this->hasMany(StudyProgram::class);

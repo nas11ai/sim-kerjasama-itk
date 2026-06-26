@@ -288,7 +288,7 @@ class ReviewFormResponseController extends Controller
                 ];
             });
 
-        return Inertia::render('Reviewer/EvaluationForm/Submitted', [
+        return Inertia::render('Reviewer/EvaluationForm/SubmittedPage', [
             'assignment' => $assignment,
             'response' => $response,
             'formattedResponses' => $formattedResponses,
@@ -432,7 +432,7 @@ class ReviewFormResponseController extends Controller
         /** @var ReviewFormResponse $response */
         $response = $assignment->reviewFormResponse;
 
-        if (!$response) {
+        if ($response === null) {
             return response()->json([
                 'status' => 'not_started',
                 'completion_percentage' => 0,

@@ -298,7 +298,7 @@ const isGroupOpen = (formId: number) => openGroups.value.has(formId)
                     <!-- Phase Details List (Grouped by Form) -->
                     <div v-else class="space-y-4">
                         <Collapsible
-v-for="(group) in groupedPhaseDetails" :key="group.formId"
+                            v-for="(group) in groupedPhaseDetails" :key="group.formId"
                             :open="isGroupOpen(group.formId)" class="border rounded-lg bg-card">
                             <!-- Collapsible Trigger - Form Header -->
                             <CollapsibleTrigger

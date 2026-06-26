@@ -80,7 +80,7 @@ class FormAccessControlController extends Controller
         $roles = Role::orderBy('name')->get(['id', 'name']);
         $faculties = Faculty::with('studyPrograms')->orderBy('name')->get();
 
-        return Inertia::render('FormAccessControls/Index', [
+        return Inertia::render('FormAccessControls/IndexPage', [
             'groupAccessControls' => $groupAccessControls,
             'forms' => $forms,
             'roles' => $roles,
@@ -95,7 +95,7 @@ class FormAccessControlController extends Controller
         $roles = Role::orderBy('name')->get(['id', 'name']);
         $faculties = Faculty::with('studyPrograms')->orderBy('name')->get();
 
-        return Inertia::render('FormAccessControls/Create', [
+        return Inertia::render('FormAccessControls/CreatePage', [
             'forms' => $forms,
             'roles' => $roles,
             'faculties' => $faculties,
@@ -142,7 +142,7 @@ class FormAccessControlController extends Controller
     {
         $formAccessControl->load(['form', 'role', 'studyProgram.faculty', 'formPhaseDetails.formPhase']);
 
-        return Inertia::render('FormAccessControls/Show', [
+        return Inertia::render('FormAccessControls/ShowPage', [
             'formAccessControl' => $formAccessControl,
         ]);
     }
@@ -155,7 +155,7 @@ class FormAccessControlController extends Controller
         $roles = Role::orderBy('name')->get(['id', 'name']);
         $faculties = Faculty::with('studyPrograms')->orderBy('name')->get();
 
-        return Inertia::render('FormAccessControls/Edit', [
+        return Inertia::render('FormAccessControls/EditPage', [
             'formAccessControl' => $formAccessControl,
             'forms' => $forms,
             'roles' => $roles,

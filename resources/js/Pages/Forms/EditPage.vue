@@ -1,5 +1,6 @@
 <!-- resources/js/Pages/Forms/Edit.vue -->
 <script setup lang="ts">
+import { route } from 'ziggy-js'
 import { computed, onMounted } from 'vue'
 import { Head, useForm, Link } from '@inertiajs/vue3'
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
@@ -17,7 +18,6 @@ import {
     SelectValue,
 } from '@/Components/ui/select'
 import { Badge } from '@/Components/ui/badge'
-import { Separator } from '@/Components/ui/separator'
 import { Plus, Trash2, GripVertical, GalleryVerticalEnd, Save, X, ArrowLeft } from 'lucide-vue-next'
 import draggable from 'vuedraggable'
 
@@ -80,7 +80,6 @@ interface FormData {
     is_active: boolean
     fields: FormField[]
     _method: string
-    [key: string]: any
 }
 
 interface Props {
@@ -115,7 +114,7 @@ type ErrorsType = Partial<{
     fields: FieldError[]
 }>
 
-const errors = computed<ErrorsType>(() => form.errors ?? {})
+const errors = computed<ErrorsType>(() => (form.errors ?? {}) as ErrorsType)
 
 const fieldTypesWithOptions = ['select', 'radio', 'checkbox']
 

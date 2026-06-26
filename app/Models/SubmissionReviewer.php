@@ -7,7 +7,13 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
- * @property-read \App\Models\FormSubmission|null $formSubmission
+ * @property int $id
+ * @property int $reviewer_id
+ * @property int $form_submission_id
+ * @property-read FormSubmission $formSubmission
+ * @property-read Reviewer $reviewer
+ *
+ * @method bool hasAllRequiredFormsCompleted()
  */
 class SubmissionReviewer extends Model
 {
@@ -150,7 +156,7 @@ class SubmissionReviewer extends Model
 
         $completedAssignments = $this->completedReviewerFormAssignments()->count();
 
-        return round(($completedAssignments / $totalAssignments) * 100);
+        return (int) round(($completedAssignments / $totalAssignments) * 100);
     }
 
     // NEW: Update evaluation status based on current form completion

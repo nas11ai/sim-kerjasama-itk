@@ -1,6 +1,8 @@
 <!-- resources\js\Pages\Reviewers\Index.vue -->
+
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
+import { route } from 'ziggy-js'
 import { Head, Link, router } from '@inertiajs/vue3'
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
 import { Button } from '@/Components/ui/button'
@@ -46,9 +48,6 @@ import {
     XCircle,
     ChevronsUpDown,
     Check,
-    ChevronLeft,
-    ChevronRight,
-    Users,
     Calendar,
 } from 'lucide-vue-next'
 import { useToast } from '@/Components/ui/toast/use-toast'
@@ -78,7 +77,7 @@ interface Reviewer {
 }
 
 interface PaginationLink {
-    url: string | null
+    url: string | undefined
     label: string
     active: boolean
 }
@@ -153,7 +152,7 @@ watch([selectedRole, selectedStatus], () => {
 })
 
 const applyFilters = () => {
-    const params: Record<string, any> = {}
+    const params: Record<string, string> = {}
 
     if (searchQuery.value) params.search = searchQuery.value
     if (selectedRole.value && selectedRole.value !== 'all') params.role = selectedRole.value

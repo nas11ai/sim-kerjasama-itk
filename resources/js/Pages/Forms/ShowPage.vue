@@ -46,6 +46,7 @@ interface FormField {
 
 interface Form {
     id: number
+    form_type_id: number
     title: string
     description: string
     is_active: boolean
@@ -75,8 +76,7 @@ const emit = defineEmits<{
     'update:sortedFields': [value: FormField[]]
 }>()
 
-const sortedFields = [...props.form.form_fields]
-    .sort((a, b) => a.order - b.order)
+const sortedFields = [...props.form.form_fields].sort((a, b) => a.order - b.order)
 
 emit('update:sortedFields', sortedFields)
 </script>

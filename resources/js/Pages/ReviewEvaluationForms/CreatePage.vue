@@ -1,6 +1,7 @@
 <!-- resources/js/Pages/Admin/ReviewEvaluationForms/Create.vue -->
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { route } from 'ziggy-js'
+import { computed } from 'vue'
 import { Head, useForm } from '@inertiajs/vue3'
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
 import { Button } from '@/Components/ui/button'
@@ -17,7 +18,6 @@ import {
     SelectValue,
 } from '@/Components/ui/select'
 import { Badge } from '@/Components/ui/badge'
-import { Separator } from '@/Components/ui/separator'
 import { Plus, Trash2, GripVertical, ArrowLeft, Eye } from 'lucide-vue-next'
 import draggable from 'vuedraggable'
 
@@ -86,7 +86,6 @@ interface FormData {
     is_required: boolean
     is_active: boolean
     fields: EvaluationFormField[]
-    [key: string]: any
 }
 
 interface Props {
@@ -168,11 +167,11 @@ const addValidationRule = (fieldIndex: number, rule: ValidationRuleKey, value: n
     form.fields[fieldIndex].validation_rules[rule] = value
 }
 
-const removeValidationRule = (fieldIndex: number, rule: ValidationRuleKey) => {
-    if (form.fields[fieldIndex].validation_rules) {
-        delete form.fields[fieldIndex].validation_rules[rule]
-    }
-}
+// const removeValidationRule = (fieldIndex: number, rule: ValidationRuleKey) => {
+//     if (form.fields[fieldIndex].validation_rules) {
+//         delete form.fields[fieldIndex].validation_rules[rule]
+//     }
+// }
 
 const submit = () => {
     form.post(route('admin.review-evaluation-forms.store'))

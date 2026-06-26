@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import { route } from 'ziggy-js'
+
 import { Head, useForm } from '@inertiajs/vue3'
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
 import { Button } from '@/Components/ui/button'
@@ -32,13 +34,11 @@ interface StudyProgram {
 interface FormData {
     name: string
     faculty_id: string
-    [key: string]: any // Required by Inertia's FormDataType constraint
 }
 
 interface FormErrors {
     name?: string
     faculty_id?: string
-    [key: string]: string | undefined
 }
 
 interface Props {

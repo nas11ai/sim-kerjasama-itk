@@ -17,11 +17,11 @@
 
 ### Organisms
 
-| Organism | Deskripsi | Posisi |
-|----------|-----------|--------|
-| `BudgetTable` | Tabel editable dengan baris dinamis | Main |
-| `GrandTotalBar` | Bar yang menampilkan grand total computed + perbandingan dengan max budget skema | Main, bawah tabel |
-| `AddLineItemButton` | Tombol tambah baris baru di bawah tabel | Main, bawah tabel |
+| Organism            | Deskripsi                                                                        | Posisi            |
+| ------------------- | -------------------------------------------------------------------------------- | ----------------- |
+| `BudgetTable`       | Tabel editable dengan baris dinamis                                              | Main              |
+| `GrandTotalBar`     | Bar yang menampilkan grand total computed + perbandingan dengan max budget skema | Main, bawah tabel |
+| `AddLineItemButton` | Tombol tambah baris baru di bawah tabel                                          | Main, bawah tabel |
 
 ### Molecules yang Notable
 
@@ -37,12 +37,12 @@
 
 ### States
 
-| State | Trigger | Tampilan |
-|-------|---------|----------|
-| Empty | Belum ada line item | Satu baris kosong default + teks guide "Tambah komponen anggaran" |
-| Over budget | Grand total > scheme.max_budget | `GrandTotalBar` berubah merah, warning: "Total anggaran melebihi batas skema (Rp [max])" |
-| Within budget | Grand total ≤ scheme.max_budget | `GrandTotalBar` normal/hijau |
-| Locked | Status APPROVED / REJECTED / WITHDRAWN | Semua input disabled, tombol hapus dan tambah disembunyikan, banner "Anggaran Terkunci" |
+| State         | Trigger                                | Tampilan                                                                                 |
+| ------------- | -------------------------------------- | ---------------------------------------------------------------------------------------- |
+| Empty         | Belum ada line item                    | Satu baris kosong default + teks guide "Tambah komponen anggaran"                        |
+| Over budget   | Grand total > scheme.max_budget        | `GrandTotalBar` berubah merah, warning: "Total anggaran melebihi batas skema (Rp [max])" |
+| Within budget | Grand total ≤ scheme.max_budget        | `GrandTotalBar` normal/hijau                                                             |
+| Locked        | Status APPROVED / REJECTED / WITHDRAWN | Semua input disabled, tombol hapus dan tambah disembunyikan, banner "Anggaran Terkunci"  |
 
 ### Business Rules yang Mempengaruhi UI
 

@@ -6,17 +6,7 @@ import { Button } from '@/Components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card'
 import { Badge } from '@/Components/ui/badge'
 import { Separator } from '@/Components/ui/separator'
-import {
-    ArrowLeft,
-    Edit,
-    Eye,
-    Copy,
-    FileText,
-    Users,
-    ClipboardList,
-    CheckCircle,
-    AlertCircle,
-} from 'lucide-vue-next'
+import { ArrowLeft, Edit, Eye, Copy, FileText, Users, ClipboardList } from 'lucide-vue-next'
 
 interface FieldType {
     id: number
@@ -38,7 +28,7 @@ interface ReviewFormField {
     order: number
     field_type: FieldType
     review_form_field_options: FieldOption[]
-    validation_rules?: Record<string, any>
+    validation_rules?: Record<string, unknown>
 }
 
 interface FormPhase {
@@ -69,7 +59,7 @@ interface Props {
     assignmentStats: AssignmentStats
 }
 
-const props = defineProps<Props>()
+defineProps<Props>()
 
 const getFieldTypeDisplayName = (typeName: string): string => {
     const typeMap: Record<string, string> = {
@@ -86,7 +76,7 @@ const getFieldTypeDisplayName = (typeName: string): string => {
     return typeMap[typeName] || typeName
 }
 
-const formatValidationRules = (rules?: Record<string, any>): string => {
+const formatValidationRules = (rules?: Record<string, unknown>): string => {
     if (!rules || Object.keys(rules).length === 0) return 'None'
 
     const ruleStrings = []

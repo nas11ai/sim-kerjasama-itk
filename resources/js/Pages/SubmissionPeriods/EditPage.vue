@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { computed, ref, onMounted, nextTick, watch } from 'vue'
+import { route } from 'ziggy-js'
 import { Head, useForm } from '@inertiajs/vue3'
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
 import { Button } from '@/Components/ui/button'
@@ -7,7 +8,6 @@ import { Input } from '@/Components/ui/input'
 import { Label } from '@/Components/ui/label'
 import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card'
 import { Badge } from '@/Components/ui/badge'
-import { Separator } from '@/Components/ui/separator'
 import {
     Select,
     SelectContent,
@@ -79,7 +79,6 @@ interface FormData {
     submission_dates: SubmissionDate[]
     form_phase_ids: number[]
     submission_rule_ids: number[]
-    [key: string]: any
 }
 
 interface Props {

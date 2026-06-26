@@ -11,8 +11,8 @@ const props = defineProps<{
 }>()
 
 const emit = defineEmits<{
-    (e: 'update:modelValue', value: boolean): void
-    (e: 'confirm'): void
+    'update:modelValue': [value: boolean]
+    confirm: []
 }>()
 
 function close() {

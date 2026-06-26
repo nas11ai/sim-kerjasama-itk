@@ -24,7 +24,7 @@ interface EvaluationFormField {
     label: string
     description: string
     is_required: boolean
-    validation_rules: Record<string, any>
+    validation_rules: Record<string, unknown>
     options: Array<{ label: string; value: string; temp_id: string }>
     temp_id: string
 }
@@ -37,10 +37,12 @@ interface EvaluationForm {
     temp_id: string
 }
 
+import type { FieldType } from '@/types/form-builder'
+
 interface Props {
     modelValue: EvaluationForm[]
     needsReview: boolean
-    fieldTypes: any[]
+    fieldTypes: FieldType[]
     errors: Record<string, string>
 }
 

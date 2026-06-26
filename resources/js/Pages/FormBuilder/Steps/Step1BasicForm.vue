@@ -38,10 +38,12 @@ interface FormData {
     fields: FormField[]
 }
 
+import type { FormType, FieldType } from '@/types/form-builder'
+
 interface Props {
     modelValue: FormData
-    formTypes: any[]
-    fieldTypes: any[]
+    formTypes: FormType[]
+    fieldTypes: FieldType[]
     errors: Record<string, string>
 }
 

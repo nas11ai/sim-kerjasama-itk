@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { route } from 'ziggy-js'
 import InputError from '@/Components/InputError.vue'
 import { Button } from '@/Components/ui/button'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/Components/ui/dialog'
@@ -11,7 +12,7 @@ const props = defineProps<{
 }>()
 
 const emit = defineEmits<{
-    (e: 'close'): void
+    close: []
 }>()
 
 const form = useForm({

@@ -1,5 +1,6 @@
 <!-- resources/js/Pages/Reviewer/EvaluationForm/Submitted.vue -->
 <script setup lang="ts">
+import { route } from 'ziggy-js'
 import { Head } from '@inertiajs/vue3'
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
 import { Button } from '@/Components/ui/button'

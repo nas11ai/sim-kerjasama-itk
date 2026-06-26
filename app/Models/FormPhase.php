@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
+ * @property int $id
  * @property int $review_evaluation_forms_count
  * @property int $required_review_evaluation_forms_count
  * @property-read SubmissionPeriod|null $submissionPeriod

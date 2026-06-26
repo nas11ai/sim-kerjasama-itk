@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
-import { Head, Link, router } from '@inertiajs/vue3'
+import { Head, router } from '@inertiajs/vue3'
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
 import { Button } from '@/Components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card'
@@ -12,7 +12,6 @@ import {
     ArrowLeft,
     FileText,
     User,
-    CheckCircle,
     AlertCircle,
     Download,
     Clock,
@@ -205,7 +204,7 @@ const reviewStats = props.reviewStats || {
 const availableReviewers = props.availableReviewers || []
 const canAssignReviewers = props.canAssignReviewers || false
 const canReview = props.canReview || false
-const canCreateThread = props.canCreateThread || false
+// const canCreateThread = props.canCreateThread || false
 const hasPendingEvaluations = props.hasPendingEvaluations || false
 const pendingEvaluationsCount = props.pendingEvaluationsCount || 0
 const userRole = props.userRole || 'admin'
@@ -234,9 +233,10 @@ const renderFieldValue = (field: FormField, value: string) => {
 
     switch (field.field_type.name.toLowerCase()) {
         case 'select':
-        case 'radio':
+        case 'radio': {
             const option = field.form_field_options.find((opt) => opt.id.toString() === value)
             return option ? option.label : value
+        }
         case 'checkbox':
             return value === '1' || value === 'true' ? 'Yes' : 'No'
         case 'date':

@@ -34,7 +34,7 @@ class RegisteredUserController extends Controller
             ->orderBy('id')
             ->get();
 
-        return Inertia::render('Auth/Register', [
+        return Inertia::render('Auth/RegisterPage', [
             'roles' => $roles,
             'studyPrograms' => $studyPrograms,
         ]);

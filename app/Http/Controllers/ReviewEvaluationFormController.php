@@ -59,7 +59,7 @@ class ReviewEvaluationFormController extends Controller
             })
             ->get();
 
-        return Inertia::render('ReviewEvaluationForms/Index', [
+        return Inertia::render('ReviewEvaluationForms/IndexPage', [
             'evaluationForms' => $evaluationForms,
             'formPhases' => $formPhases,
             'formPhaseDetails' => $formPhaseDetails,
@@ -80,7 +80,7 @@ class ReviewEvaluationFormController extends Controller
 
         $fieldTypes = FieldType::orderBy('name')->get(['id', 'name']);
 
-        return Inertia::render('ReviewEvaluationForms/Create', [
+        return Inertia::render('ReviewEvaluationForms/CreatePage', [
             'formPhases' => $formPhases,
             'fieldTypes' => $fieldTypes,
         ]);
@@ -189,7 +189,7 @@ class ReviewEvaluationFormController extends Controller
                 })->count(),
         ];
 
-        return Inertia::render('ReviewEvaluationForms/Show', [
+        return Inertia::render('ReviewEvaluationForms/ShowPage', [
             'evaluationForm' => $reviewEvaluationForm,
             'assignmentStats' => $assignmentStats,
         ]);
@@ -221,7 +221,7 @@ class ReviewEvaluationFormController extends Controller
 
         $fieldTypes = FieldType::orderBy('name')->get(['id', 'name']);
 
-        return Inertia::render('ReviewEvaluationForms/Edit', [
+        return Inertia::render('ReviewEvaluationForms/EditPage', [
             'evaluationForm' => $reviewEvaluationForm,
             'formPhases' => $formPhases,
             'fieldTypes' => $fieldTypes,
@@ -438,7 +438,7 @@ class ReviewEvaluationFormController extends Controller
             },
         ]);
 
-        return Inertia::render('ReviewEvaluationForms/Preview', [
+        return Inertia::render('ReviewEvaluationForms/PreviewPage', [
             'evaluationForm' => $reviewEvaluationForm,
         ]);
     }

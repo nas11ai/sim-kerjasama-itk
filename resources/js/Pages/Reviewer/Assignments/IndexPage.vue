@@ -1,6 +1,6 @@
 <!-- resources/js/Pages/Reviewer/Assignments/Index.vue -->
 <script setup lang="ts">
-import { computed, ref } from 'vue'
+import { route } from 'ziggy-js'
 import { Head, useForm, router } from '@inertiajs/vue3'
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
 import { Button } from '@/Components/ui/button'
@@ -34,6 +34,7 @@ import {
     Search,
     Filter,
     Eye,
+    type LucideIcon,
 } from 'lucide-vue-next'
 
 interface FormSubmission {
@@ -130,7 +131,7 @@ const getStatusInfo = (
 ): {
     variant: 'default' | 'destructive' | 'outline' | 'secondary'
     text: string
-    icon: any
+    icon: LucideIcon
     color: string
 } => {
     if (!assignment.review_form_response) {

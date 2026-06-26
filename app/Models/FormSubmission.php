@@ -214,6 +214,7 @@ class FormSubmission extends Model
             ->get();
 
         foreach ($reviewersNeedingAssignment as $submissionReviewer) {
+            /** @var SubmissionReviewer $submissionReviewer */
             // Assign all required forms by default
             /** @var Collection<int, ReviewEvaluationForm> $requiredForms */
             $requiredForms = $formPhaseDetail->requiredReviewEvaluationForms()->get();
@@ -244,7 +245,7 @@ class FormSubmission extends Model
     {
         $formPhaseDetail = $this->getFormPhaseDetail();
 
-        if (!$formPhaseDetail || !$formPhaseDetail->formPhase) {
+        if ($formPhaseDetail === null || $formPhaseDetail->formPhase === null) {
             return null;
         }
 
@@ -363,10 +364,13 @@ class FormSubmission extends Model
 
     public function assignReviewer(int $reviewerId): ReviewSummary
     {
-        return $this->reviewSummaries()->firstOrCreate(
+        /** @var ReviewSummary $summary */
+        $summary = $this->reviewSummaries()->firstOrCreate(
             ['reviewer_id' => $reviewerId],
             ['status' => 'open']
         );
+
+        return $summary;
     }
 
     public function removeReviewer(int $reviewerId): bool
@@ -443,11 +447,11 @@ class FormSubmission extends Model
             ->where('reviewer_id', $reviewerId)
             ->first();
 
-        if (!$submissionReviewer) {
+        if ($submissionReviewer === null) {
             return false;
         }
 
-        // Check if reviewer has completed required evaluations
+        /** @var SubmissionReviewer $submissionReviewer */
         return $submissionReviewer->canCreateDiscussionThreads();
     }
 

@@ -20,7 +20,7 @@ class UserController extends Controller
     {
         $users = User::with('roles')->get();
 
-        return Inertia::render('Users/Index', [
+        return Inertia::render('Users/IndexPage', [
             'users' => $users,
         ]);
     }
@@ -68,7 +68,7 @@ class UserController extends Controller
         $permissions = Permission::all();
         $user = User::with(['roles', 'permissions'])->find($user->id);
 
-        return Inertia::render('Users/Edit', [
+        return Inertia::render('Users/EditPage', [
             'user' => $user,
             'roles' => $roles,
             'permissions' => $permissions,

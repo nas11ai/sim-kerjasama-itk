@@ -17,14 +17,14 @@
 
 ### Organisms
 
-| Organism | Deskripsi | Posisi |
-|----------|-----------|--------|
-| `StatsSummaryCards` | 4–6 kartu angka besar: total submission aktif, per status key, dll | Main, baris pertama |
-| `StatsFilterBar` | Filter: rentang tahun, periode, skema | Main, atas |
-| `SubmissionByStatusChart` | Donut chart atau bar chart submission per status | Main, kiri |
-| `SubmissionBySchemeChart` | Bar chart submission per skema per tahun | Main, kanan |
-| `SubmissionByOrgTable` | Tabel submission per fakultas/prodi dengan drill-down | Main, bawah |
-| `OutputByTypeChart` | Bar chart luaran per tipe | Main, bawah |
+| Organism                  | Deskripsi                                                          | Posisi              |
+| ------------------------- | ------------------------------------------------------------------ | ------------------- |
+| `StatsSummaryCards`       | 4–6 kartu angka besar: total submission aktif, per status key, dll | Main, baris pertama |
+| `StatsFilterBar`          | Filter: rentang tahun, periode, skema                              | Main, atas          |
+| `SubmissionByStatusChart` | Donut chart atau bar chart submission per status                   | Main, kiri          |
+| `SubmissionBySchemeChart` | Bar chart submission per skema per tahun                           | Main, kanan         |
+| `SubmissionByOrgTable`    | Tabel submission per fakultas/prodi dengan drill-down              | Main, bawah         |
+| `OutputByTypeChart`       | Bar chart luaran per tipe                                          | Main, bawah         |
 
 ### Interaction Notes
 
@@ -32,9 +32,9 @@ Semua chart dan tabel di-query live saat filter berubah. Loading state per widge
 
 ### States
 
-| State | Trigger | Tampilan |
-|-------|---------|----------|
-| Loading | Filter berubah | Skeleton per widget |
+| State   | Trigger                 | Tampilan                                                     |
+| ------- | ----------------------- | ------------------------------------------------------------ |
+| Loading | Filter berubah          | Skeleton per widget                                          |
 | No data | Filter terlalu spesifik | Widget menampilkan "Tidak ada data" (bukan full empty state) |
 
 ---
@@ -46,9 +46,9 @@ Semua chart dan tabel di-query live saat filter berubah. Loading state per widge
 
 ### Organisms
 
-| Organism | Deskripsi | Posisi |
-|----------|-----------|--------|
-| `ExportRequestForm` | Form: pilih jenis, filter parameter, format | Main, atas |
+| Organism             | Deskripsi                                                 | Posisi      |
+| -------------------- | --------------------------------------------------------- | ----------- |
+| `ExportRequestForm`  | Form: pilih jenis, filter parameter, format               | Main, atas  |
 | `ExportHistoryTable` | Tabel riwayat export: jenis, status, waktu, link download | Main, bawah |
 
 ### Interaction Notes
@@ -61,13 +61,13 @@ Saat selesai: notifikasi in-app muncul (bell icon di topbar) + status di tabel b
 
 ### States per Export Job
 
-| State | Visual di Tabel |
-|-------|----------------|
-| Queued | Badge abu-abu "Antrian" + spinner |
-| Processing | Badge kuning "Memproses" + spinner |
-| Done | Badge hijau "Selesai" + tombol download |
-| Failed | Badge merah "Gagal" + tombol "Coba Lagi" |
-| Expired | Badge abu-abu "Kadaluarsa" + tombol "Request Ulang" |
+| State      | Visual di Tabel                                     |
+| ---------- | --------------------------------------------------- |
+| Queued     | Badge abu-abu "Antrian" + spinner                   |
+| Processing | Badge kuning "Memproses" + spinner                  |
+| Done       | Badge hijau "Selesai" + tombol download             |
+| Failed     | Badge merah "Gagal" + tombol "Coba Lagi"            |
+| Expired    | Badge abu-abu "Kadaluarsa" + tombol "Request Ulang" |
 
 ### Business Rules yang Mempengaruhi UI
 
@@ -83,10 +83,10 @@ Saat selesai: notifikasi in-app muncul (bell icon di topbar) + status di tabel b
 
 ### Organisms
 
-| Organism | Deskripsi | Posisi |
-|----------|-----------|--------|
+| Organism         | Deskripsi                                                       | Posisi     |
+| ---------------- | --------------------------------------------------------------- | ---------- |
 | `AuditLogFilter` | Filter: rentang waktu, tipe aksi (multiselect), pelaku (search) | Main, atas |
-| `AuditLogTable` | Tabel: waktu, subjek, aksi, pelaku, IP (hanya Operator/Admin) | Main |
+| `AuditLogTable`  | Tabel: waktu, subjek, aksi, pelaku, IP (hanya Operator/Admin)   | Main       |
 
 ### Interaction Notes
 
@@ -96,7 +96,7 @@ Row tabel bisa di-expand untuk melihat detail perubahan (old value / new value) 
 
 ### States
 
-| State | Trigger | Tampilan |
-|-------|---------|----------|
-| Loading | Filter berubah | Skeleton rows |
-| Empty | Tidak ada log di rentang waktu | Empty state: "Tidak ada aktivitas di periode ini" |
+| State   | Trigger                        | Tampilan                                          |
+| ------- | ------------------------------ | ------------------------------------------------- |
+| Loading | Filter berubah                 | Skeleton rows                                     |
+| Empty   | Tidak ada log di rentang waktu | Empty state: "Tidak ada aktivitas di periode ini" |

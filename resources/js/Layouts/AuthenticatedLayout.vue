@@ -24,9 +24,9 @@ onMounted(() => {
     })
 })
 
-const toggleSidebar = () => {
-    isSidebarOpen.value = !isSidebarOpen.value
-}
+// const toggleSidebar = () => {
+//     isSidebarOpen.value = !isSidebarOpen.value
+// }
 </script>
 
 <template>

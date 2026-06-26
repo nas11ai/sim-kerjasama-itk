@@ -1,7 +1,9 @@
 <!-- filepath: e:\ITK\sim-kerjasama-itk\resources\js\Pages\StudyPrograms\Index.vue -->
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
+import { route } from 'ziggy-js'
 import { Head, router, usePage } from '@inertiajs/vue3'
+import type { PageProps } from '@inertiajs/core'
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
 import { Button } from '@/Components/ui/button'
 import { Input } from '@/Components/ui/input'
@@ -47,7 +49,6 @@ import {
     ArrowUpDown,
     ChevronLeft,
     ChevronRight,
-    Filter,
     AlertTriangle,
 } from 'lucide-vue-next'
 import { debounce } from 'lodash'
@@ -68,7 +69,7 @@ interface StudyProgram {
 }
 
 interface PaginationLink {
-    url: string | null
+    url: string | undefined
     label: string
     active: boolean
 }
@@ -104,10 +105,8 @@ interface Props {
 }
 
 // Extend the existing PageProps interface
-interface ExtendedPageProps {
+interface ExtendedPageProps extends PageProps {
     flash?: FlashMessages
-    auth: any
-    [key: string]: any
 }
 
 const props = defineProps<Props>()
@@ -230,7 +229,7 @@ const deleteStudyProgram = (studyProgram: StudyProgram) => {
 }
 
 // Pagination function
-const goToPage = (url: string | null) => {
+const goToPage = (url: string | undefined) => {
     if (url) {
         router.visit(url, {
             preserveState: true,
@@ -239,7 +238,7 @@ const goToPage = (url: string | null) => {
 }
 
 // Per page change
-const changePerPage = (newPerPage: any) => {
+const changePerPage = (newPerPage: unknown) => {
     if (newPerPage !== null && newPerPage !== undefined) {
         let perPageNumber: number
         if (typeof newPerPage === 'string') {
@@ -264,8 +263,8 @@ const clearFilters = () => {
 }
 
 // Success/Error messages
-const successMessage = computed(() => page.props.flash?.success)
-const errorMessage = computed(() => page.props.flash?.error)
+// const successMessage = computed(() => page.props.flash?.success)
+// const errorMessage = computed(() => page.props.flash?.error)
 
 // Sort icon helper
 const getSortIcon = (column: string) => {

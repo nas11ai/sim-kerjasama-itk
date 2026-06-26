@@ -9,12 +9,12 @@
 
 ## Page Inventory
 
-| # | Page | Route | Accessible By |
-|---|------|-------|---------------|
-| 1 | Dashboard Statistik | `/reporting/stats` | Operator, Admin |
-| 2 | Export Data | `/reporting/export` | Operator, Admin |
-| 3 | Audit Log | `/reporting/audit` | Operator, Admin |
-| 4 | Audit Log — Submission Saya | `/submissions/{id}/audit` | Researcher (own submission) |
+| #   | Page                        | Route                     | Accessible By               |
+| --- | --------------------------- | ------------------------- | --------------------------- |
+| 1   | Dashboard Statistik         | `/reporting/stats`        | Operator, Admin             |
+| 2   | Export Data                 | `/reporting/export`       | Operator, Admin             |
+| 3   | Audit Log                   | `/reporting/audit`        | Operator, Admin             |
+| 4   | Audit Log — Submission Saya | `/submissions/{id}/audit` | Researcher (own submission) |
 
 ---
 
@@ -23,10 +23,12 @@
 **Route:** `/reporting/stats`  
 **Accessible by:** Operator, Admin  
 **Entry points:**
+
 - Sidebar nav → Laporan & Export → Dashboard Statistik
 - Widget dari Dashboard utama (drill-down)
 
 **Exit points:**
+
 - → Daftar Submission (klik angka/chart untuk filter)
 
 ### Konten Utama
@@ -44,9 +46,9 @@ Filter tersedia: rentang tahun, periode, skema.
 
 ### Actions
 
-| Aksi | Kondisi |
-|------|---------|
-| Ganti filter | Selalu |
+| Aksi                 | Kondisi           |
+| -------------------- | ----------------- |
+| Ganti filter         | Selalu            |
 | Drill-down ke daftar | Klik segmen chart |
 
 ### Business Rules yang Mempengaruhi Tampilan
@@ -61,9 +63,11 @@ Filter tersedia: rentang tahun, periode, skema.
 **Route:** `/reporting/export`  
 **Accessible by:** Operator, Admin  
 **Entry points:**
+
 - Sidebar nav → Laporan & Export → Export Data
 
 **Exit points:**
+
 - Tetap di halaman (job di-dispatch, user tunggu notifikasi)
 
 ### Konten Utama
@@ -71,21 +75,23 @@ Filter tersedia: rentang tahun, periode, skema.
 Dua area: form request export baru dan tabel riwayat export sebelumnya.
 
 **Form request export:**
+
 - Pilih jenis export: Rekap Submission / Detail Anggaran / Daftar Luaran / Rekap Monev / Audit Log
 - Filter parameter: rentang tahun, skema, status
 - Pilih format: Excel atau CSV
 - Tombol "Request Export"
 
 **Riwayat export:**
+
 - Tabel export yang sudah/sedang diproses: jenis, parameter, status job (queued / processing / done / failed), waktu selesai, link download (valid 24 jam)
 
 ### Actions
 
-| Aksi | Kondisi |
-|------|---------|
-| Request export baru | Selalu |
-| Download hasil export | Job selesai, link belum expired (< 24 jam) |
-| Request ulang (jika gagal) | Job status: failed |
+| Aksi                       | Kondisi                                    |
+| -------------------------- | ------------------------------------------ |
+| Request export baru        | Selalu                                     |
+| Download hasil export      | Job selesai, link belum expired (< 24 jam) |
+| Request ulang (jika gagal) | Job status: failed                         |
 
 ### Business Rules yang Mempengaruhi Tampilan
 
@@ -100,6 +106,7 @@ Dua area: form request export baru dan tabel riwayat export sebelumnya.
 **Route:** `/reporting/audit`  
 **Accessible by:** Operator, Admin  
 **Entry points:**
+
 - Sidebar nav → Laporan & Export → Audit Log
 
 ### Konten Utama
@@ -108,9 +115,9 @@ Tabel semua aktivitas di sistem. Kolom: waktu, subjek (submission/user/dll), aks
 
 ### Actions
 
-| Aksi | Kondisi |
-|------|---------|
-| Filter log | Selalu |
+| Aksi             | Kondisi                                           |
+| ---------------- | ------------------------------------------------- |
+| Filter log       | Selalu                                            |
 | Export audit log | Redirect ke Export Data dengan jenis pre-selected |
 
 ### Business Rules yang Mempengaruhi Tampilan
@@ -125,6 +132,7 @@ Tabel semua aktivitas di sistem. Kolom: waktu, subjek (submission/user/dll), aks
 **Route:** `/submissions/{id}/audit`  
 **Accessible by:** Researcher (own submission)  
 **Entry points:**
+
 - Tab "Riwayat" di Detail Submission
 
 ### Konten Utama

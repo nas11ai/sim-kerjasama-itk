@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { Head, useForm } from '@inertiajs/vue3'
+import { route } from 'ziggy-js'
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
 import { Button } from '@/Components/ui/button'
 import { Input } from '@/Components/ui/input'
@@ -16,12 +17,10 @@ interface Faculty {
 
 interface FormData {
     name: string
-    [key: string]: any
 }
 
 interface FormErrors {
     name?: string
-    [key: string]: string | undefined
 }
 
 interface Props {

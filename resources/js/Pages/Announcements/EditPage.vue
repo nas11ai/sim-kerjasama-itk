@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { route } from 'ziggy-js'
 import { computed, onMounted, ref, shallowRef } from 'vue'
 import { Head, useForm } from '@inertiajs/vue3'
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
@@ -56,7 +57,6 @@ interface AnnouncementForm {
     expired_time?: string
     files: File[] | null
     deleted_files?: number[]
-    [key: string]: any
 }
 
 interface Props {
@@ -164,8 +164,7 @@ const submit = () => {
                 description: 'Pengumuman berhasil diperbarui!',
             })
         },
-        onError: (errors) => {
-            console.error('Validation errors:', errors)
+        onError: () => {
             toast({
                 title: 'Error',
                 description:

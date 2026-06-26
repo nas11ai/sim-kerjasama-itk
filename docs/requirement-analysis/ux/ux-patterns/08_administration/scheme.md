@@ -17,11 +17,11 @@
 
 ### Organisms
 
-| Organism | Deskripsi | Posisi |
-|----------|-----------|--------|
-| `SchemeCoreForm` | Form core rules: nama, kode, tipe skema, tipe submission, max budget, max members, durasi, status | Main, atas |
-| `SchemeRulesEditor` | Key-value editor untuk rules JSONB extensible | Main, tengah |
-| `TrlMultiSelect` | Multi-select allowed TRLs dari daftar yang tersedia | Main, bawah |
+| Organism            | Deskripsi                                                                                         | Posisi       |
+| ------------------- | ------------------------------------------------------------------------------------------------- | ------------ |
+| `SchemeCoreForm`    | Form core rules: nama, kode, tipe skema, tipe submission, max budget, max members, durasi, status | Main, atas   |
+| `SchemeRulesEditor` | Key-value editor untuk rules JSONB extensible                                                     | Main, tengah |
+| `TrlMultiSelect`    | Multi-select allowed TRLs dari daftar yang tersedia                                               | Main, bawah  |
 
 ### Molecules yang Notable
 
@@ -33,11 +33,11 @@ Field kode divalidasi uniqueness secara real-time (debounce 500ms setelah user b
 
 ### States
 
-| State | Trigger | Tampilan |
-|-------|---------|----------|
-| Code available | Kode unik (real-time check) | Inline badge hijau di samping field kode |
-| Code taken | Kode duplikat | Inline error merah: "Kode sudah digunakan" |
-| Cannot deactivate | Ada active submission | Tombol "Nonaktifkan" disabled, tooltip: "Masih ada N pengajuan aktif yang menggunakan skema ini" |
+| State             | Trigger                     | Tampilan                                                                                         |
+| ----------------- | --------------------------- | ------------------------------------------------------------------------------------------------ |
+| Code available    | Kode unik (real-time check) | Inline badge hijau di samping field kode                                                         |
+| Code taken        | Kode duplikat               | Inline error merah: "Kode sudah digunakan"                                                       |
+| Cannot deactivate | Ada active submission       | Tombol "Nonaktifkan" disabled, tooltip: "Masih ada N pengajuan aktif yang menggunakan skema ini" |
 
 ### Business Rules yang Mempengaruhi UI
 

@@ -1,4 +1,4 @@
-<script setup lang="ts" generic="T extends Record<string, any>">
+<script setup lang="ts" generic="T extends Record<string, unknown>">
 import type { BulletLegendItemInterface } from '@unovis/ts'
 import type { Component } from 'vue'
 import type { BaseChartProps } from '.'

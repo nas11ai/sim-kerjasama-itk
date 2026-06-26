@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue'
-import { Head, router, usePage } from '@inertiajs/vue3'
+import { ref, watch } from 'vue'
+import { route } from 'ziggy-js'
+import { Head, router } from '@inertiajs/vue3'
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
 import { Button } from '@/Components/ui/button'
 import { Input } from '@/Components/ui/input'
@@ -64,7 +65,7 @@ interface Faculty {
 }
 
 interface PaginationLink {
-    url: string | null
+    url: string | undefined
     label: string
     active: boolean
 }
@@ -87,25 +88,25 @@ interface Filters {
     sort_order: string
 }
 
-interface FlashMessages {
-    success?: string
-    error?: string
-}
+// interface FlashMessages {
+//     success?: string
+//     error?: string
+// }
 
 interface Props {
     faculties: PaginatedFaculties
     filters: Filters
 }
 
-// Extend the existing PageProps interface
-interface ExtendedPageProps {
-    flash?: FlashMessages
-    auth: any // This should match your existing auth type
-    [key: string]: any // Allow additional properties
-}
+// // Extend the existing PageProps interface
+// interface ExtendedPageProps {
+//     flash?: FlashMessages
+//     auth: any // This should match your existing auth type
+//     [key: string]: any // Allow additional properties
+// }
 
 const props = defineProps<Props>()
-const page = usePage<ExtendedPageProps>()
+// const page = usePage<ExtendedPageProps>()
 
 // Reactive filters
 const search = ref(props.filters.search || '')
@@ -194,7 +195,7 @@ const deleteFaculty = (faculty: Faculty) => {
 }
 
 // Pagination function
-const goToPage = (url: string | null) => {
+const goToPage = (url: string | undefined) => {
     if (url) {
         router.visit(url, {
             preserveState: true,
@@ -203,7 +204,7 @@ const goToPage = (url: string | null) => {
 }
 
 // Per page change
-const changePerPage = (newPerPage: any) => {
+const changePerPage = (newPerPage: unknown) => {
     if (newPerPage !== null && newPerPage !== undefined) {
         let perPageNumber: number
         if (typeof newPerPage === 'string') {
@@ -213,7 +214,6 @@ const changePerPage = (newPerPage: any) => {
         } else if (typeof newPerPage === 'number') {
             perPageNumber = newPerPage
         } else {
-            // Handle Record<string, any> or other types
             return
         }
         perPage.value = perPageNumber
@@ -222,8 +222,8 @@ const changePerPage = (newPerPage: any) => {
 }
 
 // Success/Error messages
-const successMessage = computed(() => page.props.flash?.success)
-const errorMessage = computed(() => page.props.flash?.error)
+// const successMessage = computed(() => page.props.flash?.success)
+// const errorMessage = computed(() => page.props.flash?.error)
 
 // Sort icon helper
 const getSortIcon = (column: string) => {

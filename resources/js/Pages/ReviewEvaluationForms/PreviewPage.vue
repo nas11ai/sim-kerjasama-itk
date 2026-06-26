@@ -17,8 +17,7 @@ import {
 } from '@/Components/ui/select'
 import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card'
 import { Badge } from '@/Components/ui/badge'
-import { Separator } from '@/Components/ui/separator'
-import { ArrowLeft, FileText, Eye, Edit, Star, AlertTriangle } from 'lucide-vue-next'
+import { ArrowLeft, FileText, Eye, Edit, AlertTriangle } from 'lucide-vue-next'
 import { computed } from 'vue'
 
 interface FieldType {

@@ -14,11 +14,9 @@ class VerifyEmailController extends Controller
     {
         $user = $request->user();
 
-        if (!$user instanceof MustVerifyEmail) {
-            abort(403, 'User is not authenticated or does not support email verification.');
-        }
+        assert($user instanceof MustVerifyEmail);
 
-        if ($user->hasVerifiedEmail()) {
+        if ($request->user()->hasVerifiedEmail()) {
             return redirect()->intended(route('dashboard', absolute: false).'?verified=1');
         }
 

@@ -24,7 +24,7 @@ class CompleteFormBuilderController extends Controller
      */
     public function create()
     {
-        return Inertia::render('FormBuilder/Create', [
+        return Inertia::render('FormBuilder/CreatePage', [
             'formTypes' => FormType::orderBy('name')->get(),
             'fieldTypes' => FieldType::orderBy('name')->get(),
             'roles' => Role::orderBy('name')->get(),
@@ -145,7 +145,8 @@ class CompleteFormBuilderController extends Controller
             // Create Form Phase Details for each access control
             // All access controls are for the same form, so they should have the same order number
             $maxOrder = $formPhase->formPhaseDetails()->max('order');
-            $nextOrder = ($maxOrder ?? 0) + 1;
+
+            $nextOrder = $maxOrder ? $maxOrder + 1 : 1;
 
             foreach ($accessControlIds as $controlId) {
                 $phaseDetail = FormPhaseDetail::create([

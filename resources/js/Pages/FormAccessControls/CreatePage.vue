@@ -1,12 +1,13 @@
 <script setup lang="ts">
 import { computed, ref, watch } from 'vue'
+import { route } from 'ziggy-js'
 import { Head, useForm } from '@inertiajs/vue3'
 import type { InertiaForm } from '@inertiajs/vue3'
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
 import { Button } from '@/Components/ui/button'
 import { Label } from '@/Components/ui/label'
 import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card'
-import Checkbox from '@/Components/ui/checkbox/Checkbox.vue'
+import Checkbox from '@/Components/ui/checkbox/UiCheckbox.vue'
 import {
     Select,
     SelectContent,
@@ -15,8 +16,7 @@ import {
     SelectValue,
 } from '@/Components/ui/select'
 import { Badge } from '@/Components/ui/badge'
-import { Separator } from '@/Components/ui/separator'
-import { ArrowLeft, Users, Building, FileText, Plus } from 'lucide-vue-next'
+import { ArrowLeft, Users, Building, FileText } from 'lucide-vue-next'
 
 interface Role {
     id: number
@@ -44,7 +44,6 @@ interface FormData {
     form_id: number | null
     role_id: number | null
     study_program_id: number | null
-    [key: string]: any // Add index signature
 }
 
 interface BulkFormData {
@@ -53,7 +52,6 @@ interface BulkFormData {
         role_id: number
         study_program_id: number
     }>
-    [key: string]: any // Add index signature
 }
 
 // Extended error interface to include custom error fields
@@ -152,10 +150,7 @@ const submit = () => {
     }
 }
 
-const toggleRole: (roleId: number, checked?: boolean | 'indeterminate') => void = (
-    roleId,
-    checked
-) => {
+const toggleRole = (roleId: number, checked?: boolean | 'indeterminate'): void => {
     const isCurrentlySelected = selectedRoles.value.includes(roleId)
 
     const shouldBeChecked =
@@ -166,16 +161,15 @@ const toggleRole: (roleId: number, checked?: boolean | 'indeterminate') => void 
               : !isCurrentlySelected
 
     if (shouldBeChecked) {
-        if (!isCurrentlySelected) selectedRoles.value.push(roleId)
+        if (!isCurrentlySelected) {
+            selectedRoles.value.push(roleId)
+        }
     } else {
         selectedRoles.value = selectedRoles.value.filter((id) => id !== roleId)
     }
 }
 
-const toggleStudyProgram: (studyProgramId: number, checked?: boolean | 'indeterminate') => void = (
-    studyProgramId,
-    checked
-) => {
+const toggleStudyProgram = (studyProgramId: number, checked?: boolean | 'indeterminate'): void => {
     const isCurrentlySelected = selectedStudyPrograms.value.includes(studyProgramId)
 
     const shouldBeChecked =
@@ -184,8 +178,11 @@ const toggleStudyProgram: (studyProgramId: number, checked?: boolean | 'indeterm
             : typeof checked === 'boolean'
               ? checked
               : !isCurrentlySelected
+
     if (shouldBeChecked) {
-        if (!isCurrentlySelected) selectedStudyPrograms.value.push(studyProgramId)
+        if (!isCurrentlySelected) {
+            selectedStudyPrograms.value.push(studyProgramId)
+        }
     } else {
         selectedStudyPrograms.value = selectedStudyPrograms.value.filter(
             (id) => id !== studyProgramId

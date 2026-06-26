@@ -16,7 +16,6 @@ import {
 } from '@/Components/ui/select'
 import { Popover, PopoverContent, PopoverTrigger } from '@/Components/ui/popover'
 import {
-    Calendar,
     Clock,
     Building2,
     GraduationCap,
@@ -30,7 +29,7 @@ import {
     BarChart3,
     PieChart as PieChartIcon,
 } from 'lucide-vue-next'
-import { computed, ref, watch } from 'vue'
+import { computed, ref } from 'vue'
 import DonutChart from '@/Components/ui/chart-donut/DonutChart.vue'
 import BarChart from '@/Components/ui/chart-bar/BarChart.vue'
 
@@ -58,11 +57,13 @@ interface ReviewerByYear {
 }
 
 interface ReviewerByFaculty {
+    id: number
     name: string
     total: number
 }
 
 interface ReviewerByProdi {
+    id: number
     name: string
     total: number
 }

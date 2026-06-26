@@ -1,5 +1,6 @@
 <!-- resources/js/Pages/Admin/ReviewEvaluationForms/Edit.vue -->
 <script setup lang="ts">
+import { route } from 'ziggy-js'
 import { computed, onMounted } from 'vue'
 import { Head, useForm } from '@inertiajs/vue3'
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
@@ -48,7 +49,7 @@ interface ReviewFormField {
     description: string
     is_required: boolean
     order: number
-    validation_rules: Record<string, any>
+    validation_rules: Record<string, string>
     options: FieldOption[]
     temp_id: string
     field_type?: FieldType
@@ -99,7 +100,6 @@ interface ReviewEvaluationFormData {
     is_active: boolean
     fields: ReviewFormField[]
     _method: string
-    [key: string]: any
 }
 
 interface Props {

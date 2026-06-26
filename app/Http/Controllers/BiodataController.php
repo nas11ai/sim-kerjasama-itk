@@ -74,7 +74,7 @@ class BiodataController extends Controller
 
         $canEdit = !$submission || in_array($status, ['rejected', 'needs_revision']);
 
-        return Inertia::render('User/Biodata/Index', [
+        return Inertia::render('User/Biodata/IndexPage', [
             'form' => [
                 'id' => $biodataForm->id,
                 'title' => $biodataForm->title,
@@ -129,7 +129,7 @@ class BiodataController extends Controller
             $fileUploads = [];
             if ($request->hasFile('file_uploads')) {
                 foreach ($request->file('file_uploads') as $fieldId => $file) {
-                    if ($file && $file->isValid()) {
+                    if ($file->isValid()) {
                         // file size max 10MB
                         if ($file->getSize() > 10 * 1024 * 1024) {
                             return back()

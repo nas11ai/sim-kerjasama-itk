@@ -1,5 +1,6 @@
 <!-- resources/js/Pages/Admin/ReviewerAssignments/Index.vue -->
 <script setup lang="ts">
+import { route } from 'ziggy-js'
 import { computed, ref } from 'vue'
 import { Head, Link, router } from '@inertiajs/vue3'
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
@@ -30,12 +31,9 @@ import {
     Eye,
     Search,
     Filter,
-    Calendar,
     User,
-    FileText,
     Clock,
 } from 'lucide-vue-next'
-import { Progress } from '@/Components/ui/progress'
 
 interface ReviewEvaluationForm {
     id: number
@@ -79,11 +77,26 @@ interface Stats {
     overdue: number
 }
 
+interface PaginationLink {
+    url: string | undefined
+    label: string
+    active: boolean
+}
+
+interface PaginationMeta {
+    current_page: number
+    last_page: number
+    per_page: number
+    total: number
+    from: number
+    to: number
+}
+
 interface Props {
     assignments: {
         data: ReviewerFormAssignment[]
-        links: any[]
-        meta: any
+        links: PaginationLink[]
+        meta: PaginationMeta
     }
     stats: Stats
     filters: {
@@ -180,7 +193,7 @@ const formatDate = (dateString: string) => {
 }
 
 const applyFilters = () => {
-    const params: any = {}
+    const params: Record<string, string> = {}
 
     if (searchTerm.value) {
         params.search = searchTerm.value

@@ -1,9 +1,9 @@
 <!-- components/PermissionChip.vue -->
 <script setup lang="ts">
-import Badge from '@/Components/ui/badge/Badge.vue'
+import Badge from '@/Components/ui/badge/UiBadge.vue'
 import type { Permission } from '@/types'
 
-const props = defineProps<{
+defineProps<{
     permissions: Permission[]
 }>()
 </script>

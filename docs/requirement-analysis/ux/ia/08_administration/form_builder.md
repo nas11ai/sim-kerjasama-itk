@@ -9,13 +9,13 @@
 
 ## Page Inventory
 
-| # | Page | Route | Accessible By |
-|---|------|-------|---------------|
-| 1 | Daftar Form | `/admin/forms` | Admin |
-| 2 | Edit Form — General & Fields | `/admin/forms/{id}/edit` | Admin |
-| 3 | Edit Form — Access Control | `/admin/forms/{id}/access` | Admin |
-| 4 | Edit Form — Phases & Deadlines | `/admin/forms/{id}/phases` | Admin |
-| 5 | Edit Phase — Details & Review Forms | `/admin/forms/{id}/phases/{phase_id}` | Admin |
+| #   | Page                                | Route                                 | Accessible By |
+| --- | ----------------------------------- | ------------------------------------- | ------------- |
+| 1   | Daftar Form                         | `/admin/forms`                        | Admin         |
+| 2   | Edit Form — General & Fields        | `/admin/forms/{id}/edit`              | Admin         |
+| 3   | Edit Form — Access Control          | `/admin/forms/{id}/access`            | Admin         |
+| 4   | Edit Form — Phases & Deadlines      | `/admin/forms/{id}/phases`            | Admin         |
+| 5   | Edit Phase — Details & Review Forms | `/admin/forms/{id}/phases/{phase_id}` | Admin         |
 
 ---
 
@@ -23,9 +23,11 @@
 
 **Route:** `/admin/forms`  
 **Entry points:**
+
 - Sidebar → Konfigurasi Sistem → Form Builder
 
 **Exit points:**
+
 - → Edit Form
 
 ### Konten Utama
@@ -34,10 +36,10 @@ Tabel semua form: nama, tipe form, jumlah field aktif, jumlah submission aktif y
 
 ### Actions
 
-| Aksi | Kondisi |
-|------|---------|
-| Buat Form Baru | Selalu |
-| Edit Form | Selalu |
+| Aksi             | Kondisi                                          |
+| ---------------- | ------------------------------------------------ |
+| Buat Form Baru   | Selalu                                           |
+| Edit Form        | Selalu                                           |
 | Nonaktifkan Form | Tidak ada submission aktif yang menggunakan form |
 
 ---
@@ -46,6 +48,7 @@ Tabel semua form: nama, tipe form, jumlah field aktif, jumlah submission aktif y
 
 **Route:** `/admin/forms/{id}/edit`  
 **Entry points:**
+
 - Klik "Edit" dari Daftar Form, atau navigasi tab dari halaman edit lainnya
 
 ### Konten Utama
@@ -56,13 +59,13 @@ Tabel semua form: nama, tipe form, jumlah field aktif, jumlah submission aktif y
 
 ### Actions
 
-| Aksi | Kondisi |
-|------|---------|
-| Tambah field | Selalu |
-| Edit field | Selalu |
-| Reorder field (drag & drop) | Selalu |
-| Soft delete field | Selalu (tidak bisa hard delete) |
-| Toggle is_required | Ada prompt notifikasi ke researcher jika ada active drafts |
+| Aksi                        | Kondisi                                                    |
+| --------------------------- | ---------------------------------------------------------- |
+| Tambah field                | Selalu                                                     |
+| Edit field                  | Selalu                                                     |
+| Reorder field (drag & drop) | Selalu                                                     |
+| Soft delete field           | Selalu (tidak bisa hard delete)                            |
+| Toggle is_required          | Ada prompt notifikasi ke researcher jika ada active drafts |
 
 ### Business Rules yang Mempengaruhi Tampilan
 
@@ -76,6 +79,7 @@ Tabel semua form: nama, tipe form, jumlah field aktif, jumlah submission aktif y
 
 **Route:** `/admin/forms/{id}/access`  
 **Entry points:**
+
 - Tab "Access Control" dari halaman edit form
 
 ### Konten Utama
@@ -84,10 +88,10 @@ Tabel FormAccessControl yang ada: permission string dan organisasi yang diizinka
 
 ### Actions
 
-| Aksi | Kondisi |
-|------|---------|
-| Tambah access rule | Selalu |
-| Hapus access rule | Selalu (dengan konfirmasi) |
+| Aksi               | Kondisi                    |
+| ------------------ | -------------------------- |
+| Tambah access rule | Selalu                     |
+| Hapus access rule  | Selalu (dengan konfirmasi) |
 
 ---
 
@@ -95,6 +99,7 @@ Tabel FormAccessControl yang ada: permission string dan organisasi yang diizinka
 
 **Route:** `/admin/forms/{id}/phases`  
 **Entry points:**
+
 - Tab "Phases" dari halaman edit form
 
 ### Konten Utama
@@ -103,11 +108,11 @@ Daftar FormPhase yang terhubung ke form ini. Setiap phase menampilkan: judul, ju
 
 ### Actions
 
-| Aksi | Kondisi |
-|------|---------|
-| Buat Phase Baru | Selalu |
-| Edit Phase | Selalu |
-| Link Phase ke Periode | Selalu |
+| Aksi                  | Kondisi |
+| --------------------- | ------- |
+| Buat Phase Baru       | Selalu  |
+| Edit Phase            | Selalu  |
+| Link Phase ke Periode | Selalu  |
 
 ---
 
@@ -115,6 +120,7 @@ Daftar FormPhase yang terhubung ke form ini. Setiap phase menampilkan: judul, ju
 
 **Route:** `/admin/forms/{id}/phases/{phase_id}`  
 **Entry points:**
+
 - Klik "Edit" dari daftar phase
 
 ### Konten Utama
@@ -125,9 +131,9 @@ Jika detail bertipe reviewer dan `needs_review = true`: tampilkan ReviewEvaluati
 
 ### Actions
 
-| Aksi | Kondisi |
-|------|---------|
-| Tambah / edit PhaseDetail | Selalu |
-| Tambah ReviewEvaluationForm | PhaseDetail bertipe reviewer |
-| Tambah / reorder ReviewFormField | Ada ReviewEvaluationForm |
-| Set / update deadline (SubmissionDate) | Selalu |
+| Aksi                                   | Kondisi                      |
+| -------------------------------------- | ---------------------------- |
+| Tambah / edit PhaseDetail              | Selalu                       |
+| Tambah ReviewEvaluationForm            | PhaseDetail bertipe reviewer |
+| Tambah / reorder ReviewFormField       | Ada ReviewEvaluationForm     |
+| Set / update deadline (SubmissionDate) | Selalu                       |

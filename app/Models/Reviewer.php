@@ -39,11 +39,13 @@ class Reviewer extends Model
         'end_date',
     ];
 
+    /** @return BelongsTo<User, $this> */
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
     }
 
+    /** @return BelongsTo<ReviewerRole, $this> */
     public function reviewerRole(): BelongsTo
     {
         return $this->belongsTo(ReviewerRole::class);

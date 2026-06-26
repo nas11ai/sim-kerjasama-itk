@@ -6,6 +6,7 @@ use App\Models\FormPhase;
 use App\Models\FormPhaseDetail;
 use App\Models\FormSubmission;
 use App\Models\ReviewComment;
+use App\Models\ReviewCommentAttachment;
 use App\Models\Reviewer;
 use App\Models\ReviewerFormAssignment;
 use App\Models\ReviewSummary;
@@ -485,10 +486,12 @@ class ReviewController extends Controller
         // Get all required evaluation forms
         $requiredForms = $formPhaseDetail->requiredReviewEvaluationForms()->get();
 
-        /** @var \App\Models\FormSubmission $submission */
-        $submission = $submissionReviewer->formSubmission;
+        // Get deadline from submission period
 
-        $dueDate = $this->getEvaluationDueDate($submissionReviewer->formSubmission);
+        /** @var FormSubmission $submissionModel */
+        $submissionModel = $submissionReviewer->formSubmission;
+
+        $dueDate = $this->getEvaluationDueDate($submissionModel);
 
         foreach ($requiredForms as $form) {
             /** @var \App\Models\ReviewEvaluationForm $form */
@@ -526,7 +529,7 @@ class ReviewController extends Controller
             return new \DateTime('+7 days');
         }
 
-        /** @var \App\Models\SubmissionDate|null $latestDate */
+        /** @var SubmissionDate|null $latestDate */
         $latestDate = $submissionPeriod->submissionDates()
             ->orderBy('datetime', 'desc')
             ->first();
@@ -691,6 +694,7 @@ class ReviewController extends Controller
     private function deleteReviewSummaryWithComments(ReviewSummary $summary)
     {
         $comments = ReviewComment::where('review_summary_id', $summary->id)->get();
+        /** @var ReviewComment $comment */
         foreach ($comments as $comment) {
             /** @phpstan-ignore-next-line */
             foreach ($comment->attachments as $attachment) {

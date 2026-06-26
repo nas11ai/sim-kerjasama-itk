@@ -1,11 +1,11 @@
-<!-- resources/js/Pages/FormBuilder/Create.vue -->
+<!-- resources/js/Pages/FormBuilder/CreatePage.vue -->
 <script setup lang="ts">
 import { computed, ref } from 'vue'
+import { route } from 'ziggy-js'
 import { Head, useForm } from '@inertiajs/vue3'
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
 import { Button } from '@/Components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/Components/ui/card'
-import { Badge } from '@/Components/ui/badge'
 import { Progress } from '@/Components/ui/progress'
 import { CheckCircle2, Circle, ArrowLeft, ArrowRight, Save } from 'lucide-vue-next'
 
@@ -17,17 +17,27 @@ import Step4ReviewSettings from './Steps/Step4ReviewSettings.vue'
 import Step5SubmissionPeriod from './Steps/Step5SubmissionPeriod.vue'
 import Step6Review from './Steps/Step6Review.vue'
 
+import type {
+    FormType,
+    FieldType,
+    PhaseType,
+    FormPhase,
+    SubmissionPeriod,
+} from '@/types/form-builder'
+import type { Role } from '@/types'
+import type { Faculty } from '@/Pages/FormBuilder/Steps/Step2AccessControl.vue'
+
 interface Props {
-    formTypes: any[]
-    fieldTypes: any[]
-    roles: any[]
-    faculties: any[]
-    phaseTypes: any[]
-    formPhases: any[]
-    submissionPeriods: any[]
+    formTypes: FormType[]
+    fieldTypes: FieldType[]
+    roles: Role[]
+    faculties: Faculty[]
+    phaseTypes: PhaseType[]
+    formPhases: FormPhase[]
+    submissionPeriods: SubmissionPeriod[]
 }
 
-const props = defineProps<Props>()
+defineProps<Props>()
 
 const currentStep = ref(1)
 const totalSteps = 6

@@ -1,18 +1,19 @@
 <script setup lang="ts">
+import { route } from 'ziggy-js'
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
 import UpdatePasswordForm from './Partials/UpdatePasswordForm.vue'
 import UpdateProfileInformationForm from './Partials/UpdateProfileInformationForm.vue'
 import { Head, router, usePage } from '@inertiajs/vue3'
-import Button from '@/Components/ui/button/Button.vue'
+import Button from '@/Components/ui/button/UiButton.vue'
 import { ArrowLeft, UserPenIcon } from 'lucide-vue-next'
 import { computed, unref } from 'vue'
-import Card from '@/Components/ui/card/Card.vue'
+import Card from '@/Components/ui/card/UiCard.vue'
 import CardHeader from '@/Components/ui/card/CardHeader.vue'
 import CardContent from '@/Components/ui/card/CardContent.vue'
 import CardTitle from '@/Components/ui/card/CardTitle.vue'
 import CardDescription from '@/Components/ui/card/CardDescription.vue'
 
-const props = defineProps<{
+defineProps<{
     mustVerifyEmail?: boolean
     status?: string
 }>()
