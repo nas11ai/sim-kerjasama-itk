@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property int $id
  * @property int $reviewer_id
  * @property int $form_submission_id
+ * @property string $status
  * @property-read FormSubmission $formSubmission
  * @property-read Reviewer $reviewer
  *
@@ -21,10 +22,12 @@ class SubmissionReviewer extends Model
         'form_submission_id',
         'reviewer_id',
         'evaluation_status', // NEW
+        'status',
     ];
 
     protected $casts = [
         'evaluation_status' => 'string',
+        'status' => 'string',
     ];
 
     /**
