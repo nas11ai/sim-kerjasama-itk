@@ -6,9 +6,7 @@ use App\Models\FormPhase;
 use App\Models\SubmissionDate;
 use App\Models\SubmissionDateLabel;
 use App\Models\SubmissionPeriod;
-use App\Models\SubmissionPeriodDetail;
 use App\Models\SubmissionPeriodPhase;
-use App\Models\SubmissionRule;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -21,7 +19,6 @@ class SubmissionPeriodController extends Controller
         $query = SubmissionPeriod::with([
             'submissionDates',
             'submissionPeriodPhases.formPhase',
-            'submissionPeriodDetails.submissionRule',
         ]);
 
         // Search functionality
@@ -55,13 +52,10 @@ class SubmissionPeriodController extends Controller
             ->orderBy('title')
             ->get(['id', 'title', 'description']);
 
-        $submissionRules = SubmissionRule::orderBy('label')->get();
-
         $submissionDateLabels = SubmissionDateLabel::orderBy('name')->get(['id', 'name']);
 
         return Inertia::render('SubmissionPeriods/CreatePage', [
             'formPhases' => $formPhases,
-            'submissionRules' => $submissionRules,
             'submissionDateLabels' => $submissionDateLabels,
         ]);
     }
@@ -75,8 +69,6 @@ class SubmissionPeriodController extends Controller
             'submission_dates.*.date' => 'required|date',
             'form_phase_ids' => 'required|array|min:1',
             'form_phase_ids.*' => 'exists:form_phases,id',
-            'submission_rule_ids' => 'nullable|array',
-            'submission_rule_ids.*' => 'exists:submission_rules,id',
         ]);
 
         // Validate date order
@@ -115,16 +107,6 @@ class SubmissionPeriodController extends Controller
                 ]);
             }
 
-            // Create submission rule associations (optional)
-            if ($request->submission_rule_ids) {
-                foreach ($request->submission_rule_ids as $ruleId) {
-                    SubmissionPeriodDetail::create([
-                        'submission_period_id' => $submissionPeriod->id,
-                        'submission_rule_id' => $ruleId,
-                    ]);
-                }
-            }
-
             DB::commit();
 
             return redirect()->route('admin.submission-periods.index')
@@ -143,7 +125,6 @@ class SubmissionPeriodController extends Controller
                 $query->orderBy('datetime');
             },
             'submissionPeriodPhases.formPhase',
-            'submissionPeriodDetails.submissionRule',
         ]);
 
         // Add computed properties
@@ -164,21 +145,17 @@ class SubmissionPeriodController extends Controller
                     ->orderBy('datetime');
             },
             'submissionPeriodPhases.formPhase',
-            'submissionPeriodDetails.submissionRule',
         ]);
 
         $formPhases = FormPhase::where('is_active', true)
             ->orderBy('title')
             ->get(['id', 'title', 'description']);
 
-        $submissionRules = SubmissionRule::orderBy('label')->get();
-
         $submissionDateLabels = SubmissionDateLabel::orderBy('name')->get(['id', 'name']);
 
         return Inertia::render('SubmissionPeriods/EditPage', [
             'submissionPeriod' => $submissionPeriod,
             'formPhases' => $formPhases,
-            'submissionRules' => $submissionRules,
             'submissionDateLabels' => $submissionDateLabels,
         ]);
     }
@@ -192,8 +169,6 @@ class SubmissionPeriodController extends Controller
             'submission_dates.*.date' => 'required|date',
             'form_phase_ids' => 'required|array|min:1',
             'form_phase_ids.*' => 'exists:form_phases,id',
-            'submission_rule_ids' => 'nullable|array',
-            'submission_rule_ids.*' => 'exists:submission_rules,id',
         ]);
 
         // Validate date order
@@ -218,7 +193,6 @@ class SubmissionPeriodController extends Controller
             // Delete existing relations
             $submissionPeriod->submissionDates()->delete();
             $submissionPeriod->submissionPeriodPhases()->delete();
-            $submissionPeriod->submissionPeriodDetails()->delete();
 
             // Recreate submission dates
             foreach ($request->submission_dates as $dateData) {
@@ -235,16 +209,6 @@ class SubmissionPeriodController extends Controller
                     'submission_period_id' => $submissionPeriod->id,
                     'form_phase_id' => $formPhaseId,
                 ]);
-            }
-
-            // Recreate submission rule associations (optional)
-            if ($request->submission_rule_ids) {
-                foreach ($request->submission_rule_ids as $ruleId) {
-                    SubmissionPeriodDetail::create([
-                        'submission_period_id' => $submissionPeriod->id,
-                        'submission_rule_id' => $ruleId,
-                    ]);
-                }
             }
 
             DB::commit();
@@ -266,7 +230,6 @@ class SubmissionPeriodController extends Controller
             // Delete all related records
             $submissionPeriod->submissionDates()->delete();
             $submissionPeriod->submissionPeriodPhases()->delete();
-            $submissionPeriod->submissionPeriodDetails()->delete();
             $submissionPeriod->delete();
 
             DB::commit();

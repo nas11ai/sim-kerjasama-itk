@@ -12,7 +12,6 @@ import {
     Calendar,
     Clock,
     Settings,
-    FileText,
     CheckCircle,
     XCircle,
     AlertTriangle,
@@ -32,20 +31,9 @@ interface FormPhase {
     is_active: boolean
 }
 
-interface SubmissionRule {
-    id: number
-    label: string
-    value: number
-}
-
 interface SubmissionPeriodPhase {
     id: number
     form_phase: FormPhase
-}
-
-interface SubmissionPeriodDetail {
-    id: number
-    submission_rule: SubmissionRule
 }
 
 interface SubmissionPeriod {
@@ -58,7 +46,6 @@ interface SubmissionPeriod {
     days_remaining?: number
     submission_dates: SubmissionDate[]
     submission_period_phases: SubmissionPeriodPhase[]
-    submission_period_details: SubmissionPeriodDetail[]
 }
 
 interface Props {
@@ -274,7 +261,7 @@ const isDateToday = (dateString: string) => {
                     </div>
                     <div v-else class="space-y-4">
                         <div
-                            v-for="(date) in sortedDates"
+                            v-for="date in sortedDates"
                             :key="date.id"
                             class="flex items-center justify-between p-4 border rounded-lg"
                             :class="{
@@ -415,45 +402,8 @@ const isDateToday = (dateString: string) => {
                 </CardContent>
             </Card>
 
-            <!-- Submission Rules -->
-            <Card>
-                <CardHeader>
-                    <CardTitle class="flex items-center gap-2">
-                        <FileText class="h-5 w-5" />
-                        Aturan Pengajuan
-                        <Badge variant="secondary" class="ml-2">
-                            {{ props.submissionPeriod.submission_period_details.length }}
-                            ketentuan
-                        </Badge>
-                    </CardTitle>
-                </CardHeader>
-                <CardContent>
-                    <div
-                        v-if="props.submissionPeriod.submission_period_details.length === 0"
-                        class="text-center py-8 text-muted-foreground"
-                    >
-                        <FileText class="h-12 w-12 mx-auto mb-4 opacity-50" />
-                        <p>Tidak ada ketentuan pengajuan yang diterapkan pada periode ini.</p>
-                    </div>
-                    <div v-else class="grid gap-3 md:grid-cols-2">
-                        <div
-                            v-for="detail in props.submissionPeriod.submission_period_details"
-                            :key="detail.id"
-                            class="p-3 border rounded-lg"
-                        >
-                            <h4 class="font-medium">
-                                {{ detail.submission_rule.label }}
-                            </h4>
-                            <p class="text-sm text-muted-foreground">
-                                Nilai: {{ detail.submission_rule.value }}
-                            </p>
-                        </div>
-                    </div>
-                </CardContent>
-            </Card>
-
             <!-- Summary Statistics -->
-            <div class="grid gap-4 md:grid-cols-4">
+            <div class="grid gap-4 md:grid-cols-3">
                 <Card>
                     <CardContent class="p-6">
                         <div class="flex items-center gap-2">
@@ -477,20 +427,6 @@ const isDateToday = (dateString: string) => {
                                     {{ activePhases.length }}
                                 </p>
                                 <p class="text-sm text-muted-foreground">Tahap Aktif</p>
-                            </div>
-                        </div>
-                    </CardContent>
-                </Card>
-
-                <Card>
-                    <CardContent class="p-6">
-                        <div class="flex items-center gap-2">
-                            <FileText class="h-8 w-8 text-purple-500" />
-                            <div>
-                                <p class="text-2xl font-bold">
-                                    {{ props.submissionPeriod.submission_period_details.length }}
-                                </p>
-                                <p class="text-sm text-muted-foreground">Ketentuan Diterapkan</p>
                             </div>
                         </div>
                     </CardContent>
