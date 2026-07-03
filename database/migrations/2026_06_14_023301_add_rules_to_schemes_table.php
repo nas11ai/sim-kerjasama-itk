@@ -13,13 +13,18 @@ return new class extends Migration
             $table->jsonb('rules')->nullable()->after('duration_months');
         });
 
-        DB::statement('CREATE INDEX IF NOT EXISTS idx_schemes_rules ON schemes USING GIN (rules)');
+        // GIN index is PostgreSQL-specific; skip on other drivers (e.g. SQLite in tests).
+        if (DB::connection()->getDriverName() === 'pgsql') {
+            DB::statement('CREATE INDEX IF NOT EXISTS idx_schemes_rules ON schemes USING GIN (rules)');
+        }
     }
 
     public function down(): void
     {
         Schema::table('schemes', function (Blueprint $table) {
-            $table->dropIndex('idx_schemes_rules');
+            if (DB::connection()->getDriverName() === 'pgsql') {
+                $table->dropIndex('idx_schemes_rules');
+            }
             $table->dropColumn('rules');
         });
     }
