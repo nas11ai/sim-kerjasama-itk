@@ -20,6 +20,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property-read Collection<int, FormFieldResponse> $formFieldResponses
  * @property-read Collection<int, SubmissionReviewer> $submissionReviewers
  * @property-read Collection<int, ReviewSummary> $reviewSummaries
+ * @property-read Collection<int, BudgetLineItem> $budgetLineItems
  * @property SubmissionStatus|null $status
  */
 class FormSubmission extends Model
@@ -81,6 +82,12 @@ class FormSubmission extends Model
     public function reviewSummaries(): HasMany
     {
         return $this->hasMany(ReviewSummary::class);
+    }
+
+    /** @return HasMany<BudgetLineItem, $this> */
+    public function budgetLineItems(): HasMany
+    {
+        return $this->hasMany(BudgetLineItem::class);
     }
 
     public function reviewComments()
