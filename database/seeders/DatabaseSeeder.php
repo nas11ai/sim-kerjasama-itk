@@ -21,6 +21,7 @@ class DatabaseSeeder extends Seeder
             StudyProgramSeeder::class,
             PhaseTypeSeeder::class,
             SubmissionDateLabelSeeder::class,
+            PermissionSeeder::class,
         ]);
     }
 }
