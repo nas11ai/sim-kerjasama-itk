@@ -4,7 +4,12 @@ declare module 'ziggy-js' {
     export type RouteParams = Record<string, unknown> | string | number | string[]
 
     export interface Router {
-        (name?: string, params?: RouteParams, absolute?: boolean, config?: Record<string, unknown>): string
+        (
+            name?: string,
+            params?: RouteParams,
+            absolute?: boolean,
+            config?: Record<string, unknown>
+        ): string
     }
 
     export const route: Router
