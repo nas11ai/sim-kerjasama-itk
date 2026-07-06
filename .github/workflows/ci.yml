@@ -45,6 +45,8 @@ jobs:
                     --health-retries 5
                     --health-start-period 30s
                 ports: ['9000:9000']
+                entrypoint: minio
+                command: server /data
 
         steps:
             - uses: actions/checkout@v4
