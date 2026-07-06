@@ -11,15 +11,15 @@ class FormPhaseDetailTest extends TestCase
 {
     public function test_is_within_deadline_when_active()
     {
-        $submissionPeriod = new SubmissionPeriod();
+        $submissionPeriod = new SubmissionPeriod;
         $submissionPeriod->is_force_closed = false;
 
-        $formPhase = new FormPhase();
+        $formPhase = new FormPhase;
         $formPhase->setRelation('submissionPeriod', $submissionPeriod);
 
-        $formPhaseDetail = new FormPhaseDetail();
+        $formPhaseDetail = new FormPhaseDetail;
         $formPhaseDetail->submissionDate = (object) [
-            'datetime' => now()->addDays(2)
+            'datetime' => now()->addDays(2),
         ];
         $formPhaseDetail->setRelation('formPhase', $formPhase);
 
@@ -28,15 +28,15 @@ class FormPhaseDetailTest extends TestCase
 
     public function test_is_within_deadline_when_force_closed()
     {
-        $submissionPeriod = new SubmissionPeriod();
+        $submissionPeriod = new SubmissionPeriod;
         $submissionPeriod->is_force_closed = true;
 
-        $formPhase = new FormPhase();
+        $formPhase = new FormPhase;
         $formPhase->setRelation('submissionPeriod', $submissionPeriod);
 
-        $formPhaseDetail = new FormPhaseDetail();
+        $formPhaseDetail = new FormPhaseDetail;
         $formPhaseDetail->submissionDate = (object) [
-            'datetime' => now()->addDays(2)
+            'datetime' => now()->addDays(2),
         ];
         $formPhaseDetail->setRelation('formPhase', $formPhase);
 
