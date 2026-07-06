@@ -11,8 +11,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property int $id
  * @property int $user_id
  * @property int $reviewer_role_id
- * @property-read \App\Models\User $user
- * @property-read \App\Models\ReviewerRole $reviewerRole
+ * @property-read User $user
+ * @property-read ReviewerRole $reviewerRole
  */
 
 /**

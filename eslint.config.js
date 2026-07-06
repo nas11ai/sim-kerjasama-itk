@@ -27,6 +27,14 @@ export default [
         plugins: { '@typescript-eslint': ts },
         rules: {
             '@typescript-eslint/no-explicit-any': 'error',
+            'vue/component-api-style': ['error', ['script-setup']],
+            'no-unused-vars': 'off',
+            'vue/no-unused-vars': [
+                'error',
+                {
+                    ignorePattern: '^_',
+                },
+            ],
             'no-console': 'warn',
         },
     },

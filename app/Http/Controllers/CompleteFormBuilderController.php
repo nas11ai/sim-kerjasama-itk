@@ -11,6 +11,7 @@ use App\Models\FormPhaseDetail;
 use App\Models\FormType;
 use App\Models\PhaseType;
 use App\Models\ReviewEvaluationForm;
+use App\Models\ReviewFormField;
 use App\Models\SubmissionPeriod;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -176,7 +177,7 @@ class CompleteFormBuilderController extends Controller
                         // Create evaluation form fields
                         if (isset($evalForm['fields'])) {
                             foreach ($evalForm['fields'] as $fieldIndex => $evalField) {
-                                /** @var \App\Models\ReviewFormField $reviewField */
+                                /** @var ReviewFormField $reviewField */
                                 $reviewField = $evaluationForm->reviewFormFields()->create([
                                     'field_type_id' => $evalField['field_type_id'],
                                     'label' => $evalField['label'],
@@ -239,7 +240,7 @@ class CompleteFormBuilderController extends Controller
             DB::rollback();
 
             return back()
-                ->withErrors(['error' => 'Gagal membuat formulir: ' . $e->getMessage()])
+                ->withErrors(['error' => 'Gagal membuat formulir: '.$e->getMessage()])
                 ->withInput();
         }
     }

@@ -9,6 +9,8 @@ use App\Models\ReviewComment;
 use App\Models\ReviewCommentAttachment;
 use App\Models\Reviewer;
 use App\Models\ReviewerFormAssignment;
+use App\Models\ReviewEvaluationForm;
+use App\Models\ReviewFormResponse;
 use App\Models\ReviewSummary;
 use App\Models\ReviewSummaryAttachment;
 use App\Models\SubmissionDate;
@@ -105,8 +107,8 @@ class ReviewController extends Controller
 
             // Delete evaluation form assignments and draft responses
             foreach ($submissionReviewer->reviewerFormAssignments as $assignment) {
-                /** @var \App\Models\ReviewerFormAssignment $assignment */
-                /** @var \App\Models\ReviewFormResponse|null $response */
+                /** @var ReviewerFormAssignment $assignment */
+                /** @var ReviewFormResponse|null $response */
                 $response = $assignment->reviewFormResponse;
 
                 if ($response && $response->isDraft()) {
@@ -288,7 +290,7 @@ class ReviewController extends Controller
             // Handle attachments
             if ($request->hasFile('attachments')) {
                 foreach ($request->file('attachments') as $file) {
-                    $path = $file->store('review-attachments/' . $submission->id, 'public');
+                    $path = $file->store('review-attachments/'.$submission->id, 'public');
 
                     ReviewSummaryAttachment::create([
                         'review_summary_id' => $reviewSummary->id,
@@ -318,7 +320,7 @@ class ReviewController extends Controller
         ]);
 
         $user = Auth::user();
-        /** @var \App\Models\FormSubmission $submission */
+        /** @var FormSubmission $submission */
         $submission = $reviewSummary->formSubmission;
         $reviewerId = null;
         $canComment = false;
@@ -441,7 +443,7 @@ class ReviewController extends Controller
         } catch (\Exception $e) {
             DB::rollback();
 
-            return back()->withErrors(['error' => 'Gagal menugaskan formulir evaluasi: ' . $e->getMessage()]);
+            return back()->withErrors(['error' => 'Gagal menugaskan formulir evaluasi: '.$e->getMessage()]);
         }
     }
 
@@ -459,7 +461,7 @@ class ReviewController extends Controller
             ->whereNotIn('id', $assignedReviewerIds)
             ->get()
             ->map(function ($reviewer) {
-                /** @var \App\Models\Reviewer $reviewer */
+                /** @var Reviewer $reviewer */
                 return [
                     'id' => $reviewer->id,
                     'name' => $reviewer->user->name,
@@ -470,7 +472,7 @@ class ReviewController extends Controller
 
         // Get available evaluation forms
         $evaluationForms = $this->getSubmissionFormPhase($submission)
-                ?->activeReviewEvaluationForms()
+            ?->activeReviewEvaluationForms()
             ->get(['id', 'title', 'is_required', 'order']) ?? collect();
 
         return response()->json([
@@ -494,7 +496,7 @@ class ReviewController extends Controller
         $dueDate = $this->getEvaluationDueDate($submissionModel);
 
         foreach ($requiredForms as $form) {
-            /** @var \App\Models\ReviewEvaluationForm $form */
+            /** @var ReviewEvaluationForm $form */
             $exists = $submissionReviewer->reviewerFormAssignments()
                 ->where('review_evaluation_form_id', $form->id)
                 ->exists();
@@ -588,7 +590,7 @@ class ReviewController extends Controller
                 'status' => $request->status,
             ]);
 
-            /** @var \App\Models\FormSubmission $submission */
+            /** @var FormSubmission $submission */
             $submission = $reviewSummary->formSubmission;
 
             // Auto-update submission status based on review statuses
@@ -643,7 +645,7 @@ class ReviewController extends Controller
             $submission->update(['status' => SubmissionStatus::REJECTED]);
         } elseif ($reviewSummaries->where('status', 'open')->isNotEmpty()) {
             $submission->update(['status' => SubmissionStatus::NEEDS_REVISION]);
-        } elseif ($reviewSummaries->every(fn($r) => $r->status === 'resolved')) {
+        } elseif ($reviewSummaries->every(fn ($r) => $r->status === 'resolved')) {
             $submission->update(['status' => SubmissionStatus::APPROVED]);
         } else {
             $submission->update(['status' => SubmissionStatus::UNDER_REVIEW]);
@@ -696,9 +698,8 @@ class ReviewController extends Controller
         $comments = ReviewComment::where('review_summary_id', $summary->id)->get();
         /** @var ReviewComment $comment */
         foreach ($comments as $comment) {
-            /** @phpstan-ignore-next-line */
             foreach ($comment->attachments as $attachment) {
-                /** @var \App\Models\ReviewCommentAttachment $attachment */
+                /** @var ReviewCommentAttachment $attachment */
                 if (Storage::disk('public')->exists($attachment->file_path)) {
                     Storage::disk('public')->delete($attachment->file_path);
                 }
@@ -708,7 +709,7 @@ class ReviewController extends Controller
         }
 
         foreach ($summary->attachments as $attachment) {
-            /** @var \App\Models\ReviewSummaryAttachment $attachment */
+            /** @var ReviewSummaryAttachment $attachment */
             if (Storage::disk('public')->exists($attachment->file_path)) {
                 Storage::disk('public')->delete($attachment->file_path);
             }

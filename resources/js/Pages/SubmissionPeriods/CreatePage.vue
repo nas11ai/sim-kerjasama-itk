@@ -18,7 +18,7 @@ import {
 import { Plus, Trash2, ArrowLeft, Calendar, Settings } from 'lucide-vue-next'
 import { watch } from 'vue'
 import { useToast } from '@/Components/ui/toast'
-import Checkbox from '@/Components/BaseCheckbox.vue'
+import Checkbox from '@/Components/AppCheckbox.vue'
 
 interface FormPhase {
     id: number

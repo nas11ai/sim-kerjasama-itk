@@ -26,7 +26,7 @@ import {
 } from '@/Components/ui/select'
 import { Badge } from '@/Components/ui/badge'
 import { Progress } from '@/Components/ui/progress'
-import Alert from '@/Components/BaseAlert.vue'
+import Alert from '@/Components/AppAlert.vue'
 import {
     Send,
     Upload,

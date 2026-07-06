@@ -33,6 +33,21 @@ jobs:
                     --health-retries 5
                 ports: ['6379:6379']
 
+            minio:
+                image: quay.io/minio/minio:latest
+                env:
+                    MINIO_ROOT_USER: minioadmin
+                    MINIO_ROOT_PASSWORD: minioadmin
+                options: >-
+                    --health-cmd "curl -s http://localhost:9000/minio/health/live || exit 1"
+                    --health-interval 10s
+                    --health-timeout 5s
+                    --health-retries 5
+                    --health-start-period 30s
+                ports: ['9000:9000']
+                entrypoint: minio
+                command: server /data
+
         steps:
             - uses: actions/checkout@v4
 
@@ -76,8 +91,18 @@ jobs:
               run: |
                   curl -sSL https://dl.min.io/client/mc/release/linux-amd64/mc -o mc
                   chmod +x mc
-                  ./mc alias set local http://localhost:9000 minioadmin minioadmin
-                  ./mc mb local/simpas-test --ignore-existing
+                  for i in $(seq 1 10); do
+                      echo "Attempt $i: setting up MinIO alias..."
+                      if ./mc alias set local http://localhost:9000 minioadmin minioadmin 2>/dev/null; then
+                          ./mc mb local/simpas-test --ignore-existing
+                          echo "MinIO bucket ready."
+                          exit 0
+                      fi
+                      echo "MinIO not ready yet, waiting 3s..."
+                      sleep 3
+                  done
+                  echo "MinIO failed to respond after 10 attempts."
+                  exit 1
 
             - name: Migrate
               run: php artisan migrate --force
