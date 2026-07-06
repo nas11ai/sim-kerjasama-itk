@@ -698,7 +698,6 @@ class ReviewController extends Controller
         $comments = ReviewComment::where('review_summary_id', $summary->id)->get();
         /** @var ReviewComment $comment */
         foreach ($comments as $comment) {
-            /** @phpstan-ignore-next-line */
             foreach ($comment->attachments as $attachment) {
                 /** @var ReviewCommentAttachment $attachment */
                 if (Storage::disk('public')->exists($attachment->file_path)) {

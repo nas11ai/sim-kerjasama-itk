@@ -196,14 +196,15 @@ class ReviewFormResponseController extends Controller
     {
         $this->authorizeAssignment($assignment);
 
-        /** @var ReviewFormResponse $response */
         $response = $assignment->reviewFormResponse;
 
-        if (!$response instanceof ReviewFormResponse) {
+        if ($response === null) {
             return back()->withErrors(['error' => 'Tidak ditemukan draft respons. Silakan simpan draft terlebih dahulu.']);
         }
 
-        if (!$response->canBeSubmitted()) {
+        if (
+            !$response->canBeSubmitted()
+        ) {
             return back()->withErrors(['error' => 'Formulir tidak dapat dikirim. Harap lengkapi semua bidang yang diperlukan.']);
         }
 
@@ -299,7 +300,6 @@ class ReviewFormResponseController extends Controller
     {
         $this->authorizeAssignment($assignment);
 
-        /** @var ReviewFormResponse $response */
         $response = $assignment->reviewFormResponse;
         if (!$response instanceof ReviewFormResponse || !$response->isSubmitted()) {
             return back()->withErrors(['error' => 'Tidak ditemukan respons yang telah dikirim.']);
@@ -429,7 +429,6 @@ class ReviewFormResponseController extends Controller
     {
         $this->authorizeAssignment($assignment);
 
-        /** @var ReviewFormResponse $response */
         $response = $assignment->reviewFormResponse;
 
         if ($response === null) {

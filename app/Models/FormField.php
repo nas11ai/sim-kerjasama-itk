@@ -14,6 +14,7 @@ use Illuminate\Support\Carbon;
  * @property int $form_id
  * @property int $field_type_id
  * @property string $label
+ * @property string|null $helper_text
  * @property bool $is_required
  * @property Carbon|null $required_since
  * @property int $order
