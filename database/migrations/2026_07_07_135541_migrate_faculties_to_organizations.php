@@ -1,9 +1,7 @@
 <?php
 
 use Illuminate\Database\Migrations\Migration;
-use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
@@ -12,11 +10,11 @@ return new class extends Migration
      */
     public function up(): void
     {
-        DB::transaction(function(){
+        DB::transaction(function () {
             $rootId = DB::table('organizations')->where('type', 'institution')->value('id');
             $faculties = DB::table('faculties')->get();
 
-            foreach($faculties as $faculty){
+            foreach ($faculties as $faculty) {
                 DB::table('organizations')->insert([
                     'name' => $faculty->name,
                     'type' => 'faculty',
