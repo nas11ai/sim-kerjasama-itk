@@ -2,20 +2,6 @@
 
 namespace App\Models;
 
-use App\Models\BudgetLineItem;
-use App\Models\Form;
-use App\Models\FormFieldResponse;
-use App\Models\FormPhase;
-use App\Models\FormPhaseDetail;
-use App\Models\ReviewComment;
-use App\Models\ReviewerFormAssignment;
-use App\Models\ReviewEvaluationForm;
-use App\Models\ReviewFormResponse;
-use App\Models\ReviewSummary;
-use App\Models\Scheme;
-use App\Models\SubmissionDate;
-use App\Models\SubmissionPeriod;
-use App\Models\SubmissionReviewer;
 use App\States\Submission\Approved;
 use App\States\Submission\NeedsRevision;
 use App\States\Submission\Rejected;
@@ -153,9 +139,9 @@ class FormSubmission extends Model
             'id',
             'id'
         )->whereIn(
-                'reviewer_form_assignments.submission_reviewer_id',
-                $this->submissionReviewers()->pluck('id')
-            );
+            'reviewer_form_assignments.submission_reviewer_id',
+            $this->submissionReviewers()->pluck('id')
+        );
     }
 
     // NEW: Get submitted review form responses

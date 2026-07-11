@@ -2,8 +2,6 @@
 
 namespace App\States\Submission;
 
-use App\States\Submission\SubmissionStatus;
-
 class UnderReview extends SubmissionStatus
 {
     public static string $name = 'under_review';

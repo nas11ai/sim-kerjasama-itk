@@ -17,15 +17,15 @@ use App\Models\SubmissionDate;
 use App\Models\SubmissionPeriod;
 use App\Models\SubmissionReviewer;
 use App\Services\EmailNotificationService;
+use App\States\Submission\Approved;
+use App\States\Submission\NeedsRevision;
+use App\States\Submission\Rejected;
+use App\States\Submission\Submitted;
+use App\States\Submission\UnderReview;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
-use App\States\Submission\Submitted;
-use App\States\Submission\UnderReview;
-use App\States\Submission\NeedsRevision;
-use App\States\Submission\Approved;
-use App\States\Submission\Rejected;
 
 class ReviewController extends Controller
 {
@@ -299,7 +299,7 @@ class ReviewController extends Controller
             // Handle attachments
             if ($request->hasFile('attachments')) {
                 foreach ($request->file('attachments') as $file) {
-                    $path = $file->store('review-attachments/' . $submission->id, 'public');
+                    $path = $file->store('review-attachments/'.$submission->id, 'public');
 
                     ReviewSummaryAttachment::create([
                         'review_summary_id' => $reviewSummary->id,
@@ -452,7 +452,7 @@ class ReviewController extends Controller
         } catch (\Exception $e) {
             DB::rollback();
 
-            return back()->withErrors(['error' => 'Gagal menugaskan formulir evaluasi: ' . $e->getMessage()]);
+            return back()->withErrors(['error' => 'Gagal menugaskan formulir evaluasi: '.$e->getMessage()]);
         }
     }
 
@@ -481,7 +481,7 @@ class ReviewController extends Controller
 
         // Get available evaluation forms
         $evaluationForms = $this->getSubmissionFormPhase($submission)
-                ?->activeReviewEvaluationForms()
+            ?->activeReviewEvaluationForms()
             ->get(['id', 'title', 'is_required', 'order']) ?? collect();
 
         return response()->json([
@@ -656,7 +656,7 @@ class ReviewController extends Controller
             $submission->status->transitionTo(Rejected::class);
         } elseif ($reviewSummaries->where('status', 'open')->isNotEmpty()) {
             $submission->status->transitionTo(NeedsRevision::class);
-        } elseif ($reviewSummaries->every(fn($r) => $r->status === 'resolved')) {
+        } elseif ($reviewSummaries->every(fn ($r) => $r->status === 'resolved')) {
             $submission->status->transitionTo(Approved::class);
         } else {
             $submission->status->transitionTo(UnderReview::class);

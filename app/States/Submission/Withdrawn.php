@@ -2,8 +2,6 @@
 
 namespace App\States\Submission;
 
-use App\States\Submission\SubmissionStatus;
-
 class Withdrawn extends SubmissionStatus
 {
     public static string $name = 'withdrawn';

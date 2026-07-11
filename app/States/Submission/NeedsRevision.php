@@ -2,8 +2,6 @@
 
 namespace App\States\Submission;
 
-use App\States\Submission\SubmissionStatus;
-
 class NeedsRevision extends SubmissionStatus
 {
     public static string $name = 'needs_revision';

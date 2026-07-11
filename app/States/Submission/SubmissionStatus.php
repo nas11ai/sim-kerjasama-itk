@@ -7,10 +7,14 @@ use Spatie\ModelStates\StateConfig;
 
 abstract class SubmissionStatus extends State
 {
-     abstract public function key(): string;
+    abstract public function key(): string;
+
     abstract public function label(): string;
+
     abstract public function color(): string;
+
     abstract public function icon(): string;
+
     abstract public function variant(): string;
 
     public static function config(): StateConfig

@@ -5,16 +5,16 @@ namespace App\Http\Middleware;
 use App\Models\Form;
 use App\Models\FormSubmission;
 use App\Models\Reviewer;
+use App\States\Submission\Approved;
+use App\States\Submission\NeedsRevision;
+use App\States\Submission\Rejected;
+use App\States\Submission\SubmissionStatus;
+use App\States\Submission\Submitted;
+use App\States\Submission\UnderReview;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Symfony\Component\HttpFoundation\Response;
-use App\States\Submission\SubmissionStatus;
-use App\States\Submission\Approved;
-use App\States\Submission\NeedsRevision;
-use App\States\Submission\Rejected;
-use App\States\Submission\Submitted;
-use App\States\Submission\UnderReview;
 
 class CheckBiodata
 {
@@ -167,7 +167,7 @@ class CheckBiodata
         if ($this->shouldRedirect($request)) {
             return redirect()
                 ->route('user.dashboard')
-                ->with('info', $statusMessage . ' Akses menu lain akan dibuka setelah biodata disetujui.');
+                ->with('info', $statusMessage.' Akses menu lain akan dibuka setelah biodata disetujui.');
         }
 
         return $next($request);
@@ -196,20 +196,15 @@ class CheckBiodata
     private function getStatusMessage(SubmissionStatus $status): string
     {
         return match (true) {
-            $status instanceof Submitted =>
-            'Biodata Anda telah dikirim dan sedang menunggu proses review.',
+            $status instanceof Submitted => 'Biodata Anda telah dikirim dan sedang menunggu proses review.',
 
-            $status instanceof UnderReview =>
-            'Biodata Anda sedang dalam proses review.',
+            $status instanceof UnderReview => 'Biodata Anda sedang dalam proses review.',
 
-            $status instanceof Rejected =>
-            'Biodata Anda ditolak. Silakan perbaiki dan kirim ulang.',
+            $status instanceof Rejected => 'Biodata Anda ditolak. Silakan perbaiki dan kirim ulang.',
 
-            $status instanceof NeedsRevision =>
-            'Biodata Anda memerlukan revisi. Silakan perbaiki.',
+            $status instanceof NeedsRevision => 'Biodata Anda memerlukan revisi. Silakan perbaiki.',
 
-            default =>
-            'Biodata Anda belum disetujui.',
+            default => 'Biodata Anda belum disetujui.',
         };
     }
 

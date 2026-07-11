@@ -2,8 +2,6 @@
 
 namespace App\States\Submission;
 
-use App\States\Submission\SubmissionStatus;
-
 class Draft extends SubmissionStatus
 {
     public static string $name = 'draft';

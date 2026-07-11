@@ -2,8 +2,6 @@
 
 namespace App\States\Submission;
 
-use App\States\Submission\SubmissionStatus;
-
 class Rejected extends SubmissionStatus
 {
     public static string $name = 'rejected';

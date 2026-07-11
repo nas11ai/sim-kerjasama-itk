@@ -432,14 +432,14 @@ class UserFormController extends Controller
                 }
                 if (!$hasFile) {
                     return redirect()->back()
-                        ->withErrors(['field_' . $field->id => "Field '{$field->label}' wajib diisi."])
+                        ->withErrors(['field_'.$field->id => "Field '{$field->label}' wajib diisi."])
                         ->with('error', 'Silakan lengkapi semua field yang wajib diisi.');
                 }
             } else {
                 // Regular field validation
                 if (!$response || (empty(trim($value)) && $value !== '0' && $value !== 0)) {
                     return redirect()->back()
-                        ->withErrors(['field_' . $field->id => "Field '{$field->label}' wajib diisi."])
+                        ->withErrors(['field_'.$field->id => "Field '{$field->label}' wajib diisi."])
                         ->with('error', 'Silakan lengkapi semua field yang wajib diisi.');
                 }
             }
