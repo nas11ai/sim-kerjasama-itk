@@ -2,13 +2,33 @@
 
 namespace App\Models;
 
-use App\SubmissionStatus;
+use App\Models\BudgetLineItem;
+use App\Models\Form;
+use App\Models\FormFieldResponse;
+use App\Models\FormPhase;
+use App\Models\FormPhaseDetail;
+use App\Models\ReviewComment;
+use App\Models\ReviewerFormAssignment;
+use App\Models\ReviewEvaluationForm;
+use App\Models\ReviewFormResponse;
+use App\Models\ReviewSummary;
+use App\Models\Scheme;
+use App\Models\SubmissionDate;
+use App\Models\SubmissionPeriod;
+use App\Models\SubmissionReviewer;
+use App\States\Approved;
+use App\States\NeedsRevision;
+use App\States\Rejected;
+use App\States\SubmissionStatus;
+use App\States\Submitted;
+use App\States\UnderReview;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Spatie\ModelStates\HasStates;
 
 /**
  * @property int $id
@@ -25,7 +45,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  */
 class FormSubmission extends Model
 {
-    use HasFactory;
+    use HasFactory, HasStates;
 
     protected $fillable = [
         'form_id',
@@ -133,9 +153,9 @@ class FormSubmission extends Model
             'id',
             'id'
         )->whereIn(
-            'reviewer_form_assignments.submission_reviewer_id',
-            $this->submissionReviewers()->pluck('id')
-        );
+                'reviewer_form_assignments.submission_reviewer_id',
+                $this->submissionReviewers()->pluck('id')
+            );
     }
 
     // NEW: Get submitted review form responses
@@ -281,16 +301,16 @@ class FormSubmission extends Model
     }
 
     // Updated: Enhanced canProceed method
-    public function canProceed()
+    public function canProceed(): bool
     {
-        return $this->status === SubmissionStatus::APPROVED &&
-            $this->allReviewersApproved() &&
-            $this->allReviewersCompletedEvaluations();
+        return $this->status instanceof Approved
+            && $this->allReviewersApproved()
+            && $this->allReviewersCompletedEvaluations();
     }
 
-    public function needsRevision()
+    public function needsRevision(): bool
     {
-        return $this->status === SubmissionStatus::NEEDS_REVISION;
+        return $this->status instanceof NeedsRevision;
     }
 
     // Updated: Check if discussions are allowed
@@ -336,19 +356,18 @@ class FormSubmission extends Model
     // Updated: Enhanced status update considering evaluations
     public function updateStatusBasedOnReviews()
     {
-        // Check evaluation completion first
         if ($this->hasPendingEvaluations()) {
-            $this->status = SubmissionStatus::UNDER_REVIEW;
+            $this->status->transitionTo(UnderReview::class);
         } elseif ($this->hasRejectedReviews()) {
-            $this->status = SubmissionStatus::REJECTED;
+            $this->status->transitionTo(Rejected::class);
         } elseif ($this->hasRevisionsRequested()) {
-            $this->status = SubmissionStatus::NEEDS_REVISION;
+            $this->status->transitionTo(NeedsRevision::class);
         } elseif ($this->allReviewersApproved()) {
-            $this->status = SubmissionStatus::APPROVED;
+            $this->status->transitionTo(Approved::class);
         } elseif ($this->hasAnyReviews()) {
-            $this->status = SubmissionStatus::UNDER_REVIEW;
+            $this->status->transitionTo(UnderReview::class);
         } else {
-            $this->status = SubmissionStatus::PENDING;
+            $this->status->transitionTo(Submitted::class); // atau state yang sesuai
         }
 
         $this->save();

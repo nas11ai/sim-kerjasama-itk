@@ -9,6 +9,12 @@ use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Symfony\Component\HttpFoundation\Response;
+use App\States\SubmissionStatus;
+use App\States\Approved;
+use App\States\NeedsRevision;
+use App\States\Rejected;
+use App\States\Submitted;
+use App\States\UnderReview;
 
 class CheckBiodata
 {
@@ -54,12 +60,13 @@ class CheckBiodata
     private function needsBiodataCheck($user): bool
     {
         // Skip biodata check if user is an active reviewer
-        if (Reviewer::where('user_id', $user->id)
-            ->where(function ($query) {
-                $query->whereNull('end_date')
-                    ->orWhere('end_date', '>=', now());
-            })
-            ->exists()
+        if (
+            Reviewer::where('user_id', $user->id)
+                ->where(function ($query) {
+                    $query->whereNull('end_date')
+                        ->orWhere('end_date', '>=', now());
+                })
+                ->exists()
         ) {
             return false;
         }
@@ -108,7 +115,7 @@ class CheckBiodata
             return $this->handleNoBiodata($request, $next, $biodataForm);
         }
 
-        if ($submission->status->value !== 'approved') {
+        if (!$submission->status instanceof Approved) {
             return $this->handlePendingBiodata($request, $next, $submission, $biodataForm);
         }
 
@@ -141,23 +148,26 @@ class CheckBiodata
         FormSubmission $submission,
         Form $biodataForm
     ): Response {
-        $statusMessage = $this->getStatusMessage($submission->status->value);
+        $status = $submission->status;
+
+        $statusMessage = $this->getStatusMessage($status);
 
         $this->setSessionStatus([
             'required' => true,
             'completed' => false,
             'showAllMenus' => false,
-            'status' => $submission->status->value,
+            'status' => $status->label(),
             'message' => $statusMessage,
             'submission_id' => $submission->id,
             'form_id' => $biodataForm->id,
-            'can_edit' => in_array($submission->status->value, ['rejected', 'needs_revision']),
+            'can_edit' => $status instanceof Rejected
+                || $status instanceof NeedsRevision,
         ]);
 
         if ($this->shouldRedirect($request)) {
             return redirect()
                 ->route('user.dashboard')
-                ->with('info', $statusMessage.' Akses menu lain akan dibuka setelah biodata disetujui.');
+                ->with('info', $statusMessage . ' Akses menu lain akan dibuka setelah biodata disetujui.');
         }
 
         return $next($request);
@@ -183,14 +193,23 @@ class CheckBiodata
         return !in_array($currentRoute, self::ALLOWED_ROUTES);
     }
 
-    private function getStatusMessage(string $status): string
+    private function getStatusMessage(SubmissionStatus $status): string
     {
-        return match ($status) {
-            'pending' => 'Biodata Anda sedang menunggu persetujuan.',
-            'under_review' => 'Biodata Anda sedang dalam proses review.',
-            'rejected' => 'Biodata Anda ditolak. Silakan perbaiki dan kirim ulang.',
-            'needs_revision' => 'Biodata Anda memerlukan revisi. Silakan perbaiki.',
-            default => 'Biodata Anda belum disetujui.',
+        return match (true) {
+            $status instanceof Submitted =>
+            'Biodata Anda telah dikirim dan sedang menunggu proses review.',
+
+            $status instanceof UnderReview =>
+            'Biodata Anda sedang dalam proses review.',
+
+            $status instanceof Rejected =>
+            'Biodata Anda ditolak. Silakan perbaiki dan kirim ulang.',
+
+            $status instanceof NeedsRevision =>
+            'Biodata Anda memerlukan revisi. Silakan perbaiki.',
+
+            default =>
+            'Biodata Anda belum disetujui.',
         };
     }
 

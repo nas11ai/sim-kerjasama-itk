@@ -4,12 +4,10 @@ namespace Database\Factories;
 
 use App\Models\Form;
 use App\Models\FormSubmission;
-use App\SubmissionStatus;
+use App\Models\User;
+use App\States\Draft;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
-/**
- * @extends Factory<FormSubmission>
- */
 class FormSubmissionFactory extends Factory
 {
     protected $model = FormSubmission::class;
@@ -18,8 +16,8 @@ class FormSubmissionFactory extends Factory
     {
         return [
             'form_id' => Form::factory(),
-            'submitted_by' => null,
-            'status' => SubmissionStatus::DRAFT,
+            'submitted_by' => User::factory(),
+            'status' => Draft::class,
             'is_submitted' => false,
         ];
     }

@@ -17,11 +17,15 @@ use App\Models\SubmissionDate;
 use App\Models\SubmissionPeriod;
 use App\Models\SubmissionReviewer;
 use App\Services\EmailNotificationService;
-use App\SubmissionStatus;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
+use App\States\Submitted;
+use App\States\UnderReview;
+use App\States\NeedsRevision;
+use App\States\Approved;
+use App\States\Rejected;
 
 class ReviewController extends Controller
 {
@@ -133,7 +137,7 @@ class ReviewController extends Controller
 
             // Update submission status
             if ($submission->submissionReviewers()->count() === 0) {
-                $submission->update(['status' => SubmissionStatus::PENDING]);
+                $submission->status->transitionTo(Submitted::class);
             } else {
                 $this->updateSubmissionStatusBasedOnReviews($submission);
             }
@@ -190,11 +194,11 @@ class ReviewController extends Controller
 
         // Convert string status to enum
         $newStatus = match ($request->status) {
-            'pending' => SubmissionStatus::PENDING,
-            'under_review' => SubmissionStatus::UNDER_REVIEW,
-            'needs_revision' => SubmissionStatus::NEEDS_REVISION,
-            'approved' => SubmissionStatus::APPROVED,
-            'rejected' => SubmissionStatus::REJECTED,
+            'submitted' => Submitted::class,
+            'under_review' => UnderReview::class,
+            'needs_revision' => NeedsRevision::class,
+            'approved' => Approved::class,
+            'rejected' => Rejected::class,
             default => throw new \InvalidArgumentException('Invalid submission status value'),
         };
 
@@ -207,7 +211,12 @@ class ReviewController extends Controller
             $this->emailService->notifySubmissionStatusChanged($submission, $oldStatus);
         });
 
-        return back()->with('success', "Status pengajuan berhasil diubah menjadi {$newStatus->label()}.");
+        $submission->refresh();
+
+        return back()->with(
+            'success',
+            "Status pengajuan berhasil diubah menjadi {$submission->status->label()}."
+        );
     }
 
     // Enhanced thread creation with evaluation check
@@ -290,7 +299,7 @@ class ReviewController extends Controller
             // Handle attachments
             if ($request->hasFile('attachments')) {
                 foreach ($request->file('attachments') as $file) {
-                    $path = $file->store('review-attachments/'.$submission->id, 'public');
+                    $path = $file->store('review-attachments/' . $submission->id, 'public');
 
                     ReviewSummaryAttachment::create([
                         'review_summary_id' => $reviewSummary->id,
@@ -300,8 +309,8 @@ class ReviewController extends Controller
             }
 
             // Update submission status if not already under review
-            if ($submission->status === SubmissionStatus::PENDING) {
-                $submission->update(['status' => SubmissionStatus::UNDER_REVIEW]);
+            if ($submission->status instanceof Submitted) {
+                $submission->status->transitionTo(UnderReview::class);
             }
 
             // TAMBAHKAN: Kirim email notifikasi review thread created
@@ -443,7 +452,7 @@ class ReviewController extends Controller
         } catch (\Exception $e) {
             DB::rollback();
 
-            return back()->withErrors(['error' => 'Gagal menugaskan formulir evaluasi: '.$e->getMessage()]);
+            return back()->withErrors(['error' => 'Gagal menugaskan formulir evaluasi: ' . $e->getMessage()]);
         }
     }
 
@@ -472,7 +481,7 @@ class ReviewController extends Controller
 
         // Get available evaluation forms
         $evaluationForms = $this->getSubmissionFormPhase($submission)
-            ?->activeReviewEvaluationForms()
+                ?->activeReviewEvaluationForms()
             ->get(['id', 'title', 'is_required', 'order']) ?? collect();
 
         return response()->json([
@@ -630,7 +639,9 @@ class ReviewController extends Controller
 
         // Check evaluation completion first
         if ($submission->hasPendingEvaluations()) {
-            $submission->update(['status' => SubmissionStatus::UNDER_REVIEW]);
+            if (!$submission->status instanceof UnderReview) {
+                $submission->status->transitionTo(UnderReview::class);
+            }
 
             return;
         }
@@ -642,13 +653,13 @@ class ReviewController extends Controller
 
         // Priority order: closed > open > resolved
         if ($reviewSummaries->where('status', 'closed')->isNotEmpty()) {
-            $submission->update(['status' => SubmissionStatus::REJECTED]);
+            $submission->status->transitionTo(Rejected::class);
         } elseif ($reviewSummaries->where('status', 'open')->isNotEmpty()) {
-            $submission->update(['status' => SubmissionStatus::NEEDS_REVISION]);
-        } elseif ($reviewSummaries->every(fn ($r) => $r->status === 'resolved')) {
-            $submission->update(['status' => SubmissionStatus::APPROVED]);
+            $submission->status->transitionTo(NeedsRevision::class);
+        } elseif ($reviewSummaries->every(fn($r) => $r->status === 'resolved')) {
+            $submission->status->transitionTo(Approved::class);
         } else {
-            $submission->update(['status' => SubmissionStatus::UNDER_REVIEW]);
+            $submission->status->transitionTo(UnderReview::class);
         }
     }
 

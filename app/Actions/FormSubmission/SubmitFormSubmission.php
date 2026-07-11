@@ -4,7 +4,7 @@ namespace App\Actions\FormSubmission;
 
 use App\Models\FormSubmission;
 use App\Models\User;
-use App\SubmissionStatus;
+use App\States\Submitted;
 use Lorisleiva\Actions\Concerns\AsAction;
 
 class SubmitFormSubmission
@@ -19,7 +19,7 @@ class SubmitFormSubmission
 
         $submission->update([
             'is_submitted' => true,
-            'status' => SubmissionStatus::PENDING,
+            'status' => Submitted::class,
         ]);
 
         return $submission->fresh();

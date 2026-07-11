@@ -11,7 +11,8 @@ use App\Models\Reviewer;
 use App\Models\ReviewSummary;
 use App\Models\SubmissionPeriod;
 use App\Services\EmailNotificationService;
-use App\SubmissionStatus;
+use App\States\Approved;
+use App\States\Submitted;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -431,14 +432,14 @@ class UserFormController extends Controller
                 }
                 if (!$hasFile) {
                     return redirect()->back()
-                        ->withErrors(['field_'.$field->id => "Field '{$field->label}' wajib diisi."])
+                        ->withErrors(['field_' . $field->id => "Field '{$field->label}' wajib diisi."])
                         ->with('error', 'Silakan lengkapi semua field yang wajib diisi.');
                 }
             } else {
                 // Regular field validation
                 if (!$response || (empty(trim($value)) && $value !== '0' && $value !== 0)) {
                     return redirect()->back()
-                        ->withErrors(['field_'.$field->id => "Field '{$field->label}' wajib diisi."])
+                        ->withErrors(['field_' . $field->id => "Field '{$field->label}' wajib diisi."])
                         ->with('error', 'Silakan lengkapi semua field yang wajib diisi.');
                 }
             }
@@ -491,12 +492,9 @@ class UserFormController extends Controller
                 ->first();
 
             if ($formPhaseDetail && !$formPhaseDetail->needs_review) {
-                $submission->update(['status' => SubmissionStatus::APPROVED]);
-
-                // TODO: Create review request or notification
-                // You can implement notification system here
+                $submission->status->transitionTo(Approved::class);
             } else {
-                $submission->update(['status' => SubmissionStatus::PENDING]);
+                $submission->status->transitionTo(Submitted::class);
             }
 
             $this->emailService->notifyAdminFormSubmission($submission);
