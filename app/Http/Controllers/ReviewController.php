@@ -21,11 +21,11 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Storage;
-use App\States\Submitted;
-use App\States\UnderReview;
-use App\States\NeedsRevision;
-use App\States\Approved;
-use App\States\Rejected;
+use App\States\Submission\Submitted;
+use App\States\Submission\UnderReview;
+use App\States\Submission\NeedsRevision;
+use App\States\Submission\Approved;
+use App\States\Submission\Rejected;
 
 class ReviewController extends Controller
 {

@@ -1,6 +1,6 @@
 <?php
 
-namespace App\States;
+namespace App\States\Submission;
 
 use Spatie\ModelStates\State;
 use Spatie\ModelStates\StateConfig;

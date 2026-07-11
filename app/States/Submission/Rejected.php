@@ -1,12 +1,12 @@
 <?php
 
-namespace App\States;
+namespace App\States\Submission;
 
-use App\States\SubmissionStatus;
+use App\States\Submission\SubmissionStatus;
 
-class Submitted extends SubmissionStatus
+class Rejected extends SubmissionStatus
 {
-    public static string $name = 'submitted';
+    public static string $name = 'rejected';
 
     public function key(): string
     {
@@ -15,21 +15,21 @@ class Submitted extends SubmissionStatus
 
     public function label(): string
     {
-        return 'Menunggu Review';
+        return 'Ditolak';
     }
 
     public function color(): string
     {
-        return 'yellow';
+        return 'red';
     }
 
     public function icon(): string
     {
-        return 'Clock';
+        return 'XCircle';
     }
 
     public function variant(): string
     {
-        return 'outline';
+        return 'destructive';
     }
 }

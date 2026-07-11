@@ -9,12 +9,12 @@ use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Symfony\Component\HttpFoundation\Response;
-use App\States\SubmissionStatus;
-use App\States\Approved;
-use App\States\NeedsRevision;
-use App\States\Rejected;
-use App\States\Submitted;
-use App\States\UnderReview;
+use App\States\Submission\SubmissionStatus;
+use App\States\Submission\Approved;
+use App\States\Submission\NeedsRevision;
+use App\States\Submission\Rejected;
+use App\States\Submission\Submitted;
+use App\States\Submission\UnderReview;
 
 class CheckBiodata
 {

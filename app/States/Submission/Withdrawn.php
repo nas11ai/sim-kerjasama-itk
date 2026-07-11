@@ -1,8 +1,8 @@
 <?php
 
-namespace App\States;
+namespace App\States\Submission;
 
-use App\States\SubmissionStatus;
+use App\States\Submission\SubmissionStatus;
 
 class Withdrawn extends SubmissionStatus
 {

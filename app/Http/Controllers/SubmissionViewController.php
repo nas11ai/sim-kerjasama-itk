@@ -14,7 +14,7 @@ use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
-use App\States\SubmissionStatus;
+use App\States\Submission\SubmissionStatus;
 
 class SubmissionViewController extends Controller
 {

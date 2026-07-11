@@ -5,7 +5,7 @@ namespace Database\Factories;
 use App\Models\Form;
 use App\Models\FormSubmission;
 use App\Models\User;
-use App\States\Draft;
+use App\States\Submission\Draft;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 class FormSubmissionFactory extends Factory

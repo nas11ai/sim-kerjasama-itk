@@ -1,10 +1,10 @@
 <?php
 
 use App\Models\FormSubmission;
-use App\States\Approved;
-use App\States\Draft;
-use App\States\Submitted;
-use App\States\Withdrawn;
+use App\States\Submission\Approved;
+use App\States\Submission\Draft;
+use App\States\Submission\Submitted;
+use App\States\Submission\Withdrawn;
 use Spatie\ModelStates\Exceptions\CouldNotPerformTransition;
 
 it('allows draft to submitted transition', function () {

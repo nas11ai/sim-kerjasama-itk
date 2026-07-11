@@ -1,12 +1,12 @@
 <?php
 
-namespace App\States;
+namespace App\States\Submission;
 
-use App\States\SubmissionStatus;
+use App\States\Submission\SubmissionStatus;
 
-class UnderReview extends SubmissionStatus
+class NeedsRevision extends SubmissionStatus
 {
-    public static string $name = 'under_review';
+    public static string $name = 'needs_revision';
 
     public function key(): string
     {
@@ -15,21 +15,21 @@ class UnderReview extends SubmissionStatus
 
     public function label(): string
     {
-        return 'Sedang Direview';
+        return 'Perlu Revisi';
     }
 
     public function color(): string
     {
-        return 'blue';
+        return 'orange';
     }
 
     public function icon(): string
     {
-        return 'Search';
+        return 'AlertCircle';
     }
 
     public function variant(): string
     {
-        return 'secondary';
+        return 'outline';
     }
 }

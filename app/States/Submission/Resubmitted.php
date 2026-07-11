@@ -1,12 +1,12 @@
 <?php
 
-namespace App\States;
+namespace App\States\Submission;
 
-use App\States\SubmissionStatus;
+use App\States\Submission\SubmissionStatus;
 
-class Approved extends SubmissionStatus
+class Resubmitted extends SubmissionStatus
 {
-    public static string $name = 'approved';
+    public static string $name = 'resubmitted';
 
     public function key(): string
     {
@@ -15,21 +15,21 @@ class Approved extends SubmissionStatus
 
     public function label(): string
     {
-        return 'Disetujui';
+        return 'Diajukan Ulang';
     }
 
     public function color(): string
     {
-        return 'green';
+        return 'purple';
     }
 
     public function icon(): string
     {
-        return 'CheckCircle';
+        return 'RotateCcw';
     }
 
     public function variant(): string
     {
-        return 'default';
+        return 'outline';
     }
 }

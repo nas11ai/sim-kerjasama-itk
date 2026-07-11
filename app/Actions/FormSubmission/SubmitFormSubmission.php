@@ -4,7 +4,7 @@ namespace App\Actions\FormSubmission;
 
 use App\Models\FormSubmission;
 use App\Models\User;
-use App\States\Submitted;
+use App\States\Submission\Submitted;
 use Lorisleiva\Actions\Concerns\AsAction;
 
 class SubmitFormSubmission
