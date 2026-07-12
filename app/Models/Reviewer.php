@@ -18,7 +18,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 /**
  * @property int $id
  * @property int $user_id
- * @property int $reviewer_role_id
+ * @property string $reviewer_type
  * @property CarbonInterface|null $start_date
  * @property CarbonInterface|null $end_date
  * @property bool $is_active
@@ -26,15 +26,13 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property int $pending_reviews
  * @property int $completed_reviews
  * @property-read User|null $user
- * @property-read ReviewerRole|null $reviewerRole
- * @property-read ReviewerRole|null $reviewer_role
  * @property-read Collection<int, SubmissionReviewer> $submissionReviewers
  */
 class Reviewer extends Model
 {
     protected $fillable = [
         'user_id',
-        'reviewer_role_id',
+        'reviewer_type',
         'start_date',
         'end_date',
     ];
@@ -43,12 +41,6 @@ class Reviewer extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
-    }
-
-    /** @return BelongsTo<ReviewerRole, $this> */
-    public function reviewerRole(): BelongsTo
-    {
-        return $this->belongsTo(ReviewerRole::class);
     }
 
     public function submissionReviewers()
