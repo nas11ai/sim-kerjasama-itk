@@ -51,12 +51,12 @@ class FormField extends Model
         });
 
         static::updating(function (FormField $field) {
-
-            $wasRequired = $field->getOriginal('is_required');
-            $isNowRequired = $field->is_required;
-
-            if (!$wasRequired && $isNowRequired) {
-                $field->required_since = Carbon::now();
+            if (
+                $field->isDirty('is_required') &&
+                !$field->getOriginal('is_required') &&
+                $field->is_required
+            ) {
+                $field->required_since = now();
             }
         });
     }
@@ -69,7 +69,7 @@ class FormField extends Model
 
         if (
             $this->required_since !== null &&
-            $this->required_since > $submission->created_at
+            $this->required_since->gt($submission->created_at)
         ) {
             return false;
         }
