@@ -244,6 +244,16 @@ class SubmissionReviewer extends Model
         $this->updateEvaluationStatus();
     }
 
+    public function scopeActive($query)
+    {
+        return $query->where('status', 'active');
+    }
+
+    public function markAsReplaced(): void
+    {
+        $this->update(['status' => 'replaced']);
+    }
+
     // NEW: Create form assignment
     public function assignForm(int $reviewEvaluationFormId, bool $isRequired = true, ?\DateTime $dueDate = null): ReviewerFormAssignment
     {
