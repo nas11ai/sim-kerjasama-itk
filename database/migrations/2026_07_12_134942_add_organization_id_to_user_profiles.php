@@ -10,7 +10,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('user_profiles', function (Blueprint $table) {
-            $table->foreignId('organization_id')->nullable()->constrained()->after('user_id');
+            $table->foreignId('organization_id')->nullable()->constrained()->cascadeOnDelete()->after('user_id');
         });
 
         DB::statement(<<<'SQL'
