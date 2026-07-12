@@ -6,7 +6,6 @@ use Database\Factories\UserFactory;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Relations\HasOneThrough;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -118,7 +117,6 @@ class User extends Authenticatable implements MustVerifyEmail
             'organization_id'     // Local key on user_profiles
         );
     }
-
 
     public function getStudyProgramIdAttribute(): ?int
     {
