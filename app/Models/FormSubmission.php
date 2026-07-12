@@ -32,7 +32,20 @@ class FormSubmission extends Model
         'is_submitted',
         'status',
         'submitted_by',
+        'parent_submission_id',
     ];
+
+    /** @return BelongsTo<FormSubmission, $this> */
+    public function parent(): BelongsTo
+    {
+        return $this->belongsTo(FormSubmission::class, 'parent_submission_id');
+    }
+
+    /** @return HasMany<FormSubmission, $this> */
+    public function children(): HasMany
+    {
+        return $this->hasMany(FormSubmission::class, 'parent_submission_id');
+    }
 
     protected $casts = [
         'status' => SubmissionStatus::class,
