@@ -13,11 +13,11 @@ return new class extends Migration
             foreach ($studyPrograms as $studyProgram) {
                 $parentOrgId = DB::table('organizations')
                     ->where('type', 'faculty')
-                    ->where('metadata->legacy->faculty_id', $studyProgram->faculty_id)
+                    ->where('metadata->legacy->faculty_id', (string) $studyProgram->faculty_id)
                     ->value('id');
 
                 if ($parentOrgId === null) {
-                    continue;
+                    throw new \RuntimeException("Faculty organization not found for study program: {$studyProgram->name}");
                 }
 
                 DB::table('organizations')->insert([
@@ -42,7 +42,7 @@ return new class extends Migration
         DB::transaction(function () {
             DB::table('organizations')
                 ->where('type', 'study_program')
-                ->whereRaw("metadata->'legacy' ? 'study_program_id'")
+                ->whereNotNull('metadata->legacy->study_program_id')
                 ->delete();
         });
     }
