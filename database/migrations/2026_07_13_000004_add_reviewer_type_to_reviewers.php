@@ -12,7 +12,11 @@ return new class extends Migration
             $table->string('reviewer_type')->nullable()->after('user_id');
         });
 
-        DB::statement("UPDATE reviewers SET reviewer_type = CASE WHEN reviewer_role_id = (SELECT id FROM reviewer_roles WHERE name = 'Internal') THEN 'internal' ELSE 'external' END");
+        DB::table('reviewers')->each(function ($reviewer) {
+            $role = DB::table('reviewer_roles')->find($reviewer->reviewer_role_id);
+            $type = str_contains(strtolower($role?->name ?? ''), 'external') ? 'external' : 'internal';
+            DB::table('reviewers')->where('id', $reviewer->id)->update(['reviewer_type' => $type]);
+        });
 
         Schema::table('reviewers', function (Blueprint $table) {
             $table->string('reviewer_type')->nullable(false)->change();
