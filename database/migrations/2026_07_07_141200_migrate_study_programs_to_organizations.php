@@ -17,7 +17,7 @@ return new class extends Migration
                     ->value('id');
 
                 if ($parentOrgId === null) {
-                    throw new \RuntimeException("Faculty organization not found for study program: {$studyProgram->name}");
+                    throw new RuntimeException("Faculty organization not found for study program: {$studyProgram->name}");
                 }
 
                 DB::table('organizations')->insert([
