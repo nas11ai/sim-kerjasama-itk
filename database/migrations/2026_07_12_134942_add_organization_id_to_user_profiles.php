@@ -23,7 +23,7 @@ return new class extends Migration
 
         $missing = DB::table('user_profiles')->whereNull('organization_id')->count();
         if ($missing > 0) {
-            throw new \RuntimeException("Migration aborted: {$missing} user_profiles rows have NULL organization_id after backfill.");
+            throw new RuntimeException("Migration aborted: {$missing} user_profiles rows have NULL organization_id after backfill.");
         }
 
         Schema::table('user_profiles', function (Blueprint $table) {
