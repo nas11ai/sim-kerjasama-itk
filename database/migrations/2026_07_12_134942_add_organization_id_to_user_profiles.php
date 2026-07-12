@@ -14,13 +14,17 @@ return new class extends Migration
         });
 
         DB::statement(<<<'SQL'
-            UPDATE user_profiles
-            SET organization_id = (
-                SELECT o.id FROM organizations o
-                WHERE o.metadata->'legacy'->>'study_program_id' = user_profiles.study_program_id::text
-            )
-            WHERE study_program_id IS NOT NULL
+            UPDATE user_profiles up
+            SET organization_id = o.id
+            FROM organizations o
+            WHERE up.study_program_id IS NOT NULL
+              AND o.metadata->'legacy'->>'study_program_id' = up.study_program_id::text
         SQL);
+
+        $missing = DB::table('user_profiles')->whereNull('organization_id')->count();
+        if ($missing > 0) {
+            throw new \RuntimeException("Migration aborted: {$missing} user_profiles rows have NULL organization_id after backfill.");
+        }
 
         Schema::table('user_profiles', function (Blueprint $table) {
             $table->dropForeign(['study_program_id']);
