@@ -7,7 +7,7 @@ use App\Models\FormPhase;
 use App\Models\FormSubmission;
 use App\Models\Reviewer;
 use App\Models\ReviewerRole;
-use App\Models\StudyProgram;
+use App\Models\Organization;
 use App\Models\SubmissionPeriod;
 use App\Models\SubmissionReviewer;
 use App\Models\User;
@@ -184,8 +184,10 @@ class StatController extends Controller
             ->get();
 
         // === 6. Referensi fakultas & prodi ===
-        $faculties = Faculty::select('id', 'name')->orderBy('name')->get();
-        $studyPrograms = StudyProgram::select('id', 'name', 'faculty_id')->orderBy('name')->get();
+        $faculties = Organization::where('type', 'faculty')
+            ->select('id', 'name')->orderBy('name')->get();
+        $studyPrograms = Organization::where('type', 'study_program')
+            ->select('id', 'name', 'parent_id as faculty_id')->orderBy('name')->get();
 
         // === Return ===
         return [
@@ -251,8 +253,10 @@ class StatController extends Controller
             ->groupBy('study_programs.id', 'study_programs.name')
             ->get();
 
-        $faculties = Faculty::select('id', 'name')->orderBy('name')->get();
-        $studyPrograms = StudyProgram::select('id', 'name', 'faculty_id')->orderBy('name')->get();
+        $faculties = Organization::where('type', 'faculty')
+            ->select('id', 'name')->orderBy('name')->get();
+        $studyPrograms = Organization::where('type', 'study_program')
+            ->select('id', 'name', 'parent_id as faculty_id')->orderBy('name')->get();
 
         return [
             'recentSubmissions' => $recentSubmissions,
@@ -296,17 +300,19 @@ class StatController extends Controller
             ->groupByRaw('EXTRACT(YEAR FROM created_at)')
             ->get();
 
-        $reviewerByFaculty = Reviewer::select('faculties.id', 'faculties.name', DB::raw('count(*) as total'))
+        $reviewerByFaculty = Reviewer::select('parent_org.id', 'parent_org.name', DB::raw('count(*) as total'))
             ->join('user_profiles', 'user_profiles.user_id', '=', 'reviewers.user_id')
-            ->join('study_programs', 'study_programs.id', '=', 'user_profiles.study_program_id')
-            ->join('faculties', 'faculties.id', '=', 'study_programs.faculty_id')
-            ->groupBy('faculties.id', 'faculties.name')
+            ->join('organizations', 'organizations.id', '=', 'user_profiles.organization_id')
+            ->join('organizations as parent_org', 'parent_org.id', '=', 'organizations.parent_id')
+            ->where('parent_org.type', 'faculty')
+            ->groupBy('parent_org.id', 'parent_org.name')
             ->get();
 
-        $reviewerByProdi = Reviewer::select('study_programs.id', 'study_programs.name', DB::raw('count(*) as total'))
+        $reviewerByProdi = Reviewer::select('organizations.id', 'organizations.name', DB::raw('count(*) as total'))
             ->join('user_profiles', 'user_profiles.user_id', '=', 'reviewers.user_id')
-            ->join('study_programs', 'study_programs.id', '=', 'user_profiles.study_program_id')
-            ->groupBy('study_programs.id', 'study_programs.name')
+            ->join('organizations', 'organizations.id', '=', 'user_profiles.organization_id')
+            ->where('organizations.type', 'study_program')
+            ->groupBy('organizations.id', 'organizations.name')
             ->get();
 
         $reviewerActiveStatus = Reviewer::select('user_id', 'reviewer_role_id')
@@ -315,8 +321,10 @@ class StatController extends Controller
             ->groupBy('user_id', 'reviewer_role_id')
             ->get();
 
-        $faculties = Faculty::select('id', 'name')->orderBy('name')->get();
-        $studyPrograms = StudyProgram::select('id', 'name', 'faculty_id')->orderBy('name')->get();
+        $faculties = Organization::where('type', 'faculty')
+            ->select('id', 'name')->orderBy('name')->get();
+        $studyPrograms = Organization::where('type', 'study_program')
+            ->select('id', 'name', 'parent_id as faculty_id')->orderBy('name')->get();
 
         return [
             'reviewerRecent' => $reviewerRecent,
@@ -347,12 +355,12 @@ class StatController extends Controller
             $query->where('name', 'Admin');
         })->count();
 
-        $totalProdi = UserProfile::where('study_program_id', '!=', null)->count();
+        $totalProdi = UserProfile::whereNotNull('organization_id')->count();
 
         $totalFaculty = UserProfile::select('users.id')
-            ->join('study_programs', 'user_profiles.study_program_id', '=', 'study_programs.id')
-            ->join('faculties', 'study_programs.faculty_id', '=', 'faculties.id')
-            ->where('faculties.id', '=', 1)
+            ->join('organizations', 'user_profiles.organization_id', '=', 'organizations.id')
+            ->join('organizations as parent_org', 'organizations.parent_id', '=', 'parent_org.id')
+            ->where('parent_org.type', 'faculty')
             ->count();
 
         return [

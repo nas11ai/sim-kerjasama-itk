@@ -6,6 +6,7 @@ use Database\Factories\UserFactory;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOneThrough;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
@@ -13,7 +14,7 @@ use Spatie\Permission\Traits\HasRoles;
 
 /**
  * @property bool $is_reviewer
- * @property-read StudyProgram|null $studyProgram
+ * @property-read Organization|null $organization
  * @property-read Reviewer|null $reviewer
  */
 class User extends Authenticatable implements MustVerifyEmail
@@ -104,17 +105,30 @@ class User extends Authenticatable implements MustVerifyEmail
     }
 
     /**
-     * Get the user's study program through their profile.
+     * Get the user's organization through their profile.
      */
-    public function studyProgram()
+    public function organization()
     {
         return $this->hasOneThrough(
-            StudyProgram::class,
+            Organization::class,
             UserProfile::class,
-            'user_id',           // Foreign key on user_profiles
-            'id',                // Foreign key on study_programs
-            'id',                // Local key on users
-            'study_program_id'   // Local key on user_profiles
+            'user_id',            // Foreign key on user_profiles
+            'id',                 // Foreign key on organizations
+            'id',                 // Local key on users
+            'organization_id'     // Local key on user_profiles
         );
+    }
+
+
+    public function getStudyProgramIdAttribute(): ?int
+    {
+        if ($this->organization === null) {
+            return null;
+        }
+
+        /** @var array|null $meta */
+        $meta = $this->organization->metadata;
+
+        return isset($meta['legacy']['study_program_id']) ? (int) $meta['legacy']['study_program_id'] : null;
     }
 }
