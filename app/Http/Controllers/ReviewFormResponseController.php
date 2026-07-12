@@ -64,7 +64,7 @@ class ReviewFormResponseController extends Controller
         }
 
         // Check if assigned to this submission
-        $submissionReviewer = SubmissionReviewer::where([
+        $submissionReviewer = SubmissionReviewer::active()->where([
             'form_submission_id' => $submission->id,
             'reviewer_id' => $reviewer->id,
         ])->first();

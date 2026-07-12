@@ -161,6 +161,7 @@ class FormSubmission extends Model
     public function allReviewersCompletedEvaluations(): bool
     {
         $reviewersWithPendingEvaluations = $this->submissionReviewers()
+            ->active()
             ->where('evaluation_status', 'pending')
             ->count();
 
@@ -171,6 +172,7 @@ class FormSubmission extends Model
     public function hasPendingEvaluations(): bool
     {
         return $this->submissionReviewers()
+            ->active()
             ->where('evaluation_status', 'pending')
             ->exists();
     }
@@ -179,6 +181,7 @@ class FormSubmission extends Model
     public function reviewersWithCompletedEvaluations()
     {
         return $this->submissionReviewers()
+            ->active()
             ->where('evaluation_status', 'completed')
             ->with(['reviewer.user']);
     }
@@ -187,6 +190,7 @@ class FormSubmission extends Model
     public function reviewersWithPendingEvaluations()
     {
         return $this->submissionReviewers()
+            ->active()
             ->where('evaluation_status', 'pending')
             ->with(['reviewer.user']);
     }
@@ -194,7 +198,7 @@ class FormSubmission extends Model
     // NEW: Get evaluation completion statistics
     public function getEvaluationStats(): array
     {
-        $totalReviewers = $this->submissionReviewers()->count();
+        $totalReviewers = $this->submissionReviewers()->active()->count();
         $completedEvaluations = $this->submissionReviewers()
             ->where('evaluation_status', 'completed')
             ->count();

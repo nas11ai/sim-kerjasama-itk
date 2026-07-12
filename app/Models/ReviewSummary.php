@@ -81,7 +81,7 @@ class ReviewSummary extends Model
         }
 
         // Get submission reviewer
-        $submissionReviewer = SubmissionReviewer::where([
+        $submissionReviewer = SubmissionReviewer::active()->where([
             'form_submission_id' => $formSubmissionId,
             'reviewer_id' => $reviewerId,
         ])->first();

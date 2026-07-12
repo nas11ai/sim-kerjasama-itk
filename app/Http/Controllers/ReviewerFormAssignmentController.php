@@ -27,7 +27,7 @@ class ReviewerFormAssignmentController extends Controller
         ]);
 
         // Find submission reviewer
-        $submissionReviewer = SubmissionReviewer::where([
+        $submissionReviewer = SubmissionReviewer::active()->where([
             'form_submission_id' => $submission->id,
             'reviewer_id' => $reviewerId,
         ])->first();
@@ -191,7 +191,7 @@ class ReviewerFormAssignmentController extends Controller
             $errors = [];
 
             foreach ($validated['reviewer_ids'] as $reviewerId) {
-                $submissionReviewer = SubmissionReviewer::where([
+                $submissionReviewer = SubmissionReviewer::active()->where([
                     'form_submission_id' => $submission->id,
                     'reviewer_id' => $reviewerId,
                 ])->first();

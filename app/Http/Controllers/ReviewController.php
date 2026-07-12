@@ -83,7 +83,7 @@ class ReviewController extends Controller
     public function removeReviewer(FormSubmission $submission, Reviewer $reviewer)
     {
         DB::transaction(function () use ($submission, $reviewer) {
-            $submissionReviewer = SubmissionReviewer::where([
+            $submissionReviewer = SubmissionReviewer::active()->where([
                 'form_submission_id' => $submission->id,
                 'reviewer_id' => $reviewer->id,
             ])->first();
@@ -165,7 +165,7 @@ class ReviewController extends Controller
             $reviewer = Reviewer::where('user_id', $user->id)->first();
 
             if ($reviewer) {
-                $submissionReviewer = SubmissionReviewer::where([
+                $submissionReviewer = SubmissionReviewer::active()->where([
                     'form_submission_id' => $submission->id,
                     'reviewer_id' => $reviewer->id,
                 ])->first();
@@ -235,7 +235,7 @@ class ReviewController extends Controller
         }
 
         // Check if reviewer is assigned to this submission
-        $submissionReviewer = SubmissionReviewer::where([
+        $submissionReviewer = SubmissionReviewer::active()->where([
             'form_submission_id' => $submission->id,
             'reviewer_id' => $reviewer->id,
         ])->first();
@@ -416,7 +416,7 @@ class ReviewController extends Controller
             'form_assignments.*.due_date' => 'nullable|date|after:now',
         ]);
 
-        $submissionReviewer = SubmissionReviewer::where([
+        $submissionReviewer = SubmissionReviewer::active()->where([
             'form_submission_id' => $submission->id,
             'reviewer_id' => $reviewer->id,
         ])->first();
@@ -450,11 +450,11 @@ class ReviewController extends Controller
     // Enhanced available reviewers with evaluation context
     public function getAvailableReviewers(FormSubmission $submission)
     {
-        $assignedReviewerIds = SubmissionReviewer::where('form_submission_id', $submission->id)
+        $assignedReviewerIds = SubmissionReviewer::active()->where('form_submission_id', $submission->id)
             ->pluck('reviewer_id')
             ->toArray();
 
-        $availableReviewers = Reviewer::with(['user', 'reviewerRole'])
+        $availableReviewers = Reviewer::with(['user'])
             ->whereHas('user', function ($query) use ($submission) {
                 $query->where('id', '!=', $submission->submitted_by);
             })
@@ -466,7 +466,7 @@ class ReviewController extends Controller
                     'id' => $reviewer->id,
                     'name' => $reviewer->user->name,
                     'email' => $reviewer->user->email,
-                    'role' => $reviewer->reviewerRole->name,
+                    'role' => ucfirst($reviewer->reviewer_type),
                 ];
             });
 
@@ -562,7 +562,7 @@ class ReviewController extends Controller
 
             if ($reviewer && $reviewSummary->reviewer_id === $reviewer->id) {
                 // Check if reviewer has completed evaluations (if required)
-                $submissionReviewer = SubmissionReviewer::where([
+                $submissionReviewer = SubmissionReviewer::active()->where([
                     'form_submission_id' => $reviewSummary->form_submission_id,
                     'reviewer_id' => $reviewer->id,
                 ])->first();
@@ -732,7 +732,7 @@ class ReviewController extends Controller
         }
 
         /** @var SubmissionReviewer|null $submissionReviewer */
-        $submissionReviewer = SubmissionReviewer::where([
+        $submissionReviewer = SubmissionReviewer::active()->where([
             'form_submission_id' => $submission->id,
             'reviewer_id' => $reviewer->id,
         ])->first();
