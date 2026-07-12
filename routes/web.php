@@ -12,7 +12,7 @@ use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ReviewController;
 use App\Http\Controllers\ReviewerController;
 use App\Http\Controllers\ReviewerFormAssignmentController;
-use App\Http\Controllers\ReviewerRoleController;
+// // ReviewerRoleController was removed (table dropped in #186)
 use App\Http\Controllers\ReviewEvaluationFormController;
 use App\Http\Controllers\ReviewFormResponseController;
 use App\Http\Controllers\RoleController;
@@ -368,10 +368,7 @@ Route::middleware(['auth', 'role:Super Admin|Admin', 'check_reviewer_status'])->
     Route::patch('reviewers/{reviewer}/activate', [ReviewerController::class, 'activate'])
         ->name('reviewers.activate');
 
-    // Reviewer Role Management
-    Route::resource('reviewer-roles', ReviewerRoleController::class);
-    Route::patch('reviewer-roles/{reviewerRole}/toggle-status', [ReviewerRoleController::class, 'toggleStatus'])
-        ->name('reviewer-roles.toggle-status');
+    // Reviewer Role Management — removed: table dropped
 
     Route::resource('form-phases', FormPhaseController::class)->names([
         'index' => 'form-phases.index',

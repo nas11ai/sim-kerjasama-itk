@@ -29,11 +29,6 @@ import {
     FileText,
 } from 'lucide-vue-next'
 
-interface ReviewerRole {
-    id: number
-    name: string
-}
-
 interface User {
     id: number
     name: string
@@ -58,13 +53,12 @@ interface SubmissionReviewer {
 interface Reviewer {
     id: number
     user_id: number
-    reviewer_role_id: number
+    reviewer_type: string
     start_date: string
     end_date: string | null
     created_at: string
     updated_at: string
     user: User
-    reviewer_role: ReviewerRole
     submission_reviewers: SubmissionReviewer[]
     is_active: boolean
 }
@@ -211,7 +205,7 @@ const getStatusInfo = computed(() => {
                             <div>
                                 <Badge variant="outline" class="gap-1">
                                     <Shield class="h-3 w-3" />
-                                    {{ reviewer.reviewer_role.name }}
+                                    {{ reviewer.reviewer_type.charAt(0).toUpperCase() + reviewer.reviewer_type.slice(1) }}
                                 </Badge>
                             </div>
                         </div>

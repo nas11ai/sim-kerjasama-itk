@@ -37,12 +37,11 @@ interface ReviewerRecent {
     id: number
     user_id: number
     users_name: string
-    reviewer_role_id: number
+    reviewer_type: string
 }
 
 interface TotalByRole {
-    id: number
-    reviewer_role_name: string
+    reviewer_type: string
     total_reviewers: number
 }
 
@@ -70,7 +69,7 @@ interface ReviewerByProdi {
 
 interface ReviewerActiveStatus {
     user_id: number
-    reviewer_role_id: number
+    reviewer_type: string
 }
 
 interface Faculty {

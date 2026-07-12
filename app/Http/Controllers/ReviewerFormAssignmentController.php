@@ -149,7 +149,7 @@ class ReviewerFormAssignmentController extends Controller
         })
             ->with([
                 'submissionReviewer.reviewer.user:id,name,email',
-                'submissionReviewer.reviewer.reviewerRole:id,name',
+                'submissionReviewer.reviewer',
                 'reviewEvaluationForm:id,title,description,is_required',
                 'reviewFormResponse:id,reviewer_form_assignment_id,status,submitted_at',
             ])

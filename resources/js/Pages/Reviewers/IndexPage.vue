@@ -54,11 +54,6 @@ import { useToast } from '@/Components/ui/toast/use-toast'
 import { debounce } from 'lodash'
 import { cn } from '@/lib/utils'
 
-interface ReviewerRole {
-    id: number
-    name: string
-}
-
 interface Reviewer {
     id: number
     start_date: string
@@ -70,10 +65,7 @@ interface Reviewer {
         name: string
         email: string
     }
-    reviewer_role: {
-        id: number
-        name: string
-    }
+    reviewer_type: string
 }
 
 interface PaginationLink {
@@ -93,7 +85,7 @@ interface Props {
         from: number
         to: number
     }
-    reviewerRoles: ReviewerRole[]
+    reviewerTypes: string[]
     filters: {
         search?: string
         role?: string
@@ -126,9 +118,9 @@ const selectedStatusLabel = computed(() => {
 })
 
 const selectedRoleLabel = computed(() => {
-    if (selectedRole.value === 'all') return 'Semua Role'
-    const role = props.reviewerRoles.find((r) => r.id.toString() === selectedRole.value)
-    return role?.name || 'Pilih role...'
+    if (selectedRole.value === 'all') return 'Semua Tipe'
+    const type = props.reviewerTypes.find((t) => t === selectedRole.value)
+    return type ? type.charAt(0).toUpperCase() + type.slice(1) : 'Pilih tipe...'
 })
 
 const activeFiltersCount = computed(() => {
@@ -283,12 +275,7 @@ const totalReviewers = computed(() => {
                     </h2>
                 </div>
                 <div class="flex items-center gap-3">
-                    <Link :href="route('admin.reviewer-roles.index')">
-                        <Button variant="outline">
-                            <Filter class="h-4 w-4 mr-2" />
-                            Role Reviewer
-                        </Button>
-                    </Link>
+                    <!-- reviewer-roles page removed (table dropped) -->
                     <Link :href="route('admin.reviewers.create')">
                         <Button>
                             <Plus class="h-4 w-4 mr-2" />
@@ -378,12 +365,12 @@ const totalReviewers = computed(() => {
                                                     Semua Role
                                                 </CommandItem>
                                                 <CommandItem
-                                                    v-for="role in props.reviewerRoles"
-                                                    :key="role.id"
-                                                    :value="role.id.toString()"
+                                                    v-for="type in props.reviewerTypes"
+                                                    :key="type"
+                                                    :value="type"
                                                     @select="
                                                         () => {
-                                                            selectedRole = role.id.toString()
+                                                            selectedRole = type
                                                             openRole = false
                                                         }
                                                     "
@@ -392,13 +379,13 @@ const totalReviewers = computed(() => {
                                                         :class="
                                                             cn(
                                                                 'mr-2 h-4 w-4',
-                                                                selectedRole === role.id.toString()
+                                                                selectedRole === type
                                                                     ? 'opacity-100'
                                                                     : 'opacity-0'
                                                             )
                                                         "
                                                     />
-                                                    {{ role.name }}
+                                                    {{ type.charAt(0).toUpperCase() + type.slice(1) }}
                                                 </CommandItem>
                                             </CommandGroup>
                                         </CommandList>
@@ -532,7 +519,7 @@ const totalReviewers = computed(() => {
                                             variant="outline"
                                             class="bg-purple-50 text-blue-700 border-purple-200"
                                         >
-                                            {{ reviewer.reviewer_role.name }}
+                                            {{ reviewer.reviewer_type.charAt(0).toUpperCase() + reviewer.reviewer_type.slice(1) }}
                                         </Badge>
                                         <Badge
                                             :variant="
@@ -675,7 +662,7 @@ const totalReviewers = computed(() => {
                                 </p>
                                 <div class="flex items-center gap-2 mt-2">
                                     <Badge variant="secondary" class="text-xs">
-                                        {{ reviewerToDelete.reviewer_role.name }}
+                                        {{ reviewerToDelete.reviewer_type.charAt(0).toUpperCase() + reviewerToDelete.reviewer_type.slice(1) }}
                                     </Badge>
                                     <Badge
                                         :variant="

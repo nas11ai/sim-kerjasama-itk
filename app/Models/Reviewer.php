@@ -10,14 +10,6 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 /**
  * @property int $id
  * @property int $user_id
- * @property int $reviewer_role_id
- * @property-read User $user
- * @property-read ReviewerRole $reviewerRole
- */
-
-/**
- * @property int $id
- * @property int $user_id
  * @property string $reviewer_type
  * @property CarbonInterface|null $start_date
  * @property CarbonInterface|null $end_date

@@ -6,7 +6,7 @@ use App\Models\Faculty;
 use App\Models\FormPhase;
 use App\Models\FormSubmission;
 use App\Models\Reviewer;
-use App\Models\ReviewerRole;
+// use App\Models\ReviewerRole;
 use App\Models\StudyProgram;
 use App\Models\SubmissionPeriod;
 use App\Models\SubmissionReviewer;
@@ -270,22 +270,20 @@ class StatController extends Controller
     {
         $reviewerRecent = Reviewer::where('reviewers.created_at', '>=', Carbon::now()->subHours(24))
             ->leftJoin('users', 'users.id', '=', 'reviewers.user_id')
-            ->leftJoin('reviewer_roles', 'reviewer_roles.id', '=', 'reviewers.reviewer_role_id')
             ->select(
                 'reviewers.id as id',
                 'reviewers.user_id as user_id',
                 'users.name as users_name',
-                'reviewers.reviewer_role_id as reviewer_role_id'
+                'reviewers.reviewer_type as reviewer_type'
             )
             ->orderBy('reviewers.id')
             ->get();
 
         $totalReviewers = Reviewer::count();
 
-        $totalByRole = ReviewerRole::select('reviewer_roles.id', 'reviewer_roles.name as reviewer_role_name')
-            ->selectRaw('COUNT(reviewers.id) as total_reviewers')
-            ->leftJoin('reviewers', 'reviewers.reviewer_role_id', '=', 'reviewer_roles.id')
-            ->groupBy('reviewer_roles.id', 'reviewer_roles.name')
+        $totalByRole = Reviewer::select('reviewer_type')
+            ->selectRaw('COUNT(id) as total_reviewers')
+            ->groupBy('reviewer_type')
             ->get();
 
         $evaluationStatus = SubmissionReviewer::select('evaluation_status', DB::raw('count(*) as total'))
@@ -309,10 +307,9 @@ class StatController extends Controller
             ->groupBy('study_programs.id', 'study_programs.name')
             ->get();
 
-        $reviewerActiveStatus = Reviewer::select('user_id', 'reviewer_role_id')
-            ->leftJoin('reviewer_roles', 'reviewer_roles.id', '=', 'reviewers.reviewer_role_id')
-            ->where('reviewer_roles.is_active', '=', 1)
-            ->groupBy('user_id', 'reviewer_role_id')
+        $reviewerActiveStatus = Reviewer::select('user_id', 'reviewer_type')
+            ->whereNotNull('start_date')
+            ->groupBy('user_id', 'reviewer_type')
             ->get();
 
         $faculties = Faculty::select('id', 'name')->orderBy('name')->get();

@@ -22,22 +22,17 @@ interface User {
     email: string
 }
 
-interface ReviewerRole {
-    id: number
-    name: string
-}
-
 interface Props {
     users: User[]
-    reviewerRoles: ReviewerRole[]
+    reviewerTypes: string[]
 }
 
 const props = defineProps<Props>()
 
 const form = useForm({
     user_id: '',
-    reviewer_role_id: '',
-    start_date: new Date().toISOString().split('T')[0], // Today's date
+    reviewer_type: '',
+    start_date: new Date().toISOString().split('T')[0],
     end_date: '',
 })
 
@@ -110,25 +105,25 @@ const submit = () => {
                             </p>
                         </div>
 
-                        <!-- Reviewer Role -->
+                        <!-- Reviewer Type -->
                         <div class="space-y-2">
-                            <Label for="reviewer_role_id">Role Reviewer *</Label>
-                            <Select v-model="form.reviewer_role_id" required>
+                            <Label for="reviewer_type">Tipe Reviewer *</Label>
+                            <Select v-model="form.reviewer_type" required>
                                 <SelectTrigger>
-                                    <SelectValue placeholder="Pilih role reviewer" />
+                                    <SelectValue placeholder="Pilih tipe reviewer" />
                                 </SelectTrigger>
                                 <SelectContent>
                                     <SelectItem
-                                        v-for="role in props.reviewerRoles"
-                                        :key="role.id"
-                                        :value="role.id.toString()"
+                                        v-for="type in props.reviewerTypes"
+                                        :key="type"
+                                        :value="type"
                                     >
-                                        {{ role.name }}
+                                        {{ type.charAt(0).toUpperCase() + type.slice(1) }}
                                     </SelectItem>
                                 </SelectContent>
                             </Select>
-                            <p v-if="form.errors.reviewer_role_id" class="text-sm text-destructive">
-                                {{ form.errors.reviewer_role_id }}
+                            <p v-if="form.errors.reviewer_type" class="text-sm text-destructive">
+                                {{ form.errors.reviewer_type }}
                             </p>
                         </div>
 
