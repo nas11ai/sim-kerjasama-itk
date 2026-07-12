@@ -17,6 +17,7 @@ class DatabaseSeeder extends Seeder
             DummyUserSeeder::class,
             FieldTypeSeeder::class,
             FormTypeSeeder::class,
+            OrganizationSeeder::class,
             FacultySeeder::class,
             StudyProgramSeeder::class,
             PhaseTypeSeeder::class,
