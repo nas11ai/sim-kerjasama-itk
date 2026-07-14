@@ -203,6 +203,7 @@ class ReviewController extends Controller
                 } elseif ($submission->status->canTransitionTo(UnderReview::class)) {
                     $submission->status->transitionTo(UnderReview::class);
 
+                    /** @phpstan-ignore-next-line */
                     if ($submission->status->canTransitionTo($newStatus)) {
                         $submission->status->transitionTo($newStatus);
                     } else {
@@ -671,6 +672,7 @@ class ReviewController extends Controller
         } elseif ($submission->status->canTransitionTo(UnderReview::class)) {
             $submission->status->transitionTo(UnderReview::class);
 
+            /** @phpstan-ignore-next-line */
             if ($submission->status->canTransitionTo($targetState)) {
                 $submission->status->transitionTo($targetState);
             }

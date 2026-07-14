@@ -365,6 +365,7 @@ class FormSubmission extends Model
         } elseif ($this->status->canTransitionTo(UnderReview::class)) {
             $this->status->transitionTo(UnderReview::class);
 
+            /** @phpstan-ignore-next-line */
             if ($this->status->canTransitionTo($targetState)) {
                 $this->status->transitionTo($targetState);
             }
