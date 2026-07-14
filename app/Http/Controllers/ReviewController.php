@@ -206,7 +206,7 @@ class ReviewController extends Controller
                     if ($submission->status->canTransitionTo($newStatus)) {
                         $submission->status->transitionTo($newStatus);
                     } else {
-                        throw new \Exception("Transisi ke status yang dipilih tidak diizinkan dari status saat ini.");
+                        throw new \Exception('Transisi ke status yang dipilih tidak diizinkan dari status saat ini.');
                     }
                 } else {
                     throw new \Exception("Transisi ke status tersebut tidak diizinkan dari status {$oldStatus->label()}.");
@@ -306,7 +306,7 @@ class ReviewController extends Controller
             // Handle attachments
             if ($request->hasFile('attachments')) {
                 foreach ($request->file('attachments') as $file) {
-                    $path = $file->store('review-attachments/' . $submission->id, 'public');
+                    $path = $file->store('review-attachments/'.$submission->id, 'public');
 
                     ReviewSummaryAttachment::create([
                         'review_summary_id' => $reviewSummary->id,
@@ -459,7 +459,7 @@ class ReviewController extends Controller
         } catch (\Exception $e) {
             DB::rollback();
 
-            return back()->withErrors(['error' => 'Gagal menugaskan formulir evaluasi: ' . $e->getMessage()]);
+            return back()->withErrors(['error' => 'Gagal menugaskan formulir evaluasi: '.$e->getMessage()]);
         }
     }
 
@@ -488,7 +488,7 @@ class ReviewController extends Controller
 
         // Get available evaluation forms
         $evaluationForms = $this->getSubmissionFormPhase($submission)
-                ?->activeReviewEvaluationForms()
+            ?->activeReviewEvaluationForms()
             ->get(['id', 'title', 'is_required', 'order']) ?? collect();
 
         return response()->json([
@@ -662,7 +662,7 @@ class ReviewController extends Controller
             $targetState = Rejected::class;
         } elseif ($reviewSummaries->where('status', 'open')->isNotEmpty()) {
             $targetState = NeedsRevision::class;
-        } elseif ($reviewSummaries->every(fn($r) => $r->status === 'resolved')) {
+        } elseif ($reviewSummaries->every(fn ($r) => $r->status === 'resolved')) {
             $targetState = Approved::class;
         }
 
