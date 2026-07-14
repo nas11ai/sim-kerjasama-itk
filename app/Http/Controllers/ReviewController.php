@@ -153,19 +153,15 @@ class ReviewController extends Controller
     public function updateSubmissionStatus(Request $request, FormSubmission $submission)
     {
         $request->validate([
-            'status' => 'required|in:pending,under_review,needs_revision,approved,rejected',
+            'status' => 'required|in:submitted,under_review,needs_revision,approved,rejected',
         ]);
 
         $user = Auth::user();
         $canUpdate = false;
 
-        // Admin can always update
         if ($user->hasRole(['Super Admin', 'Admin'])) {
             $canUpdate = true;
-        }
-        // Check reviewer permissions
-        else {
-            /** @var Reviewer|null $reviewer */
+        } else {
             $reviewer = Reviewer::where('user_id', $user->id)->first();
 
             if ($reviewer) {
@@ -174,9 +170,6 @@ class ReviewController extends Controller
                     'reviewer_id' => $reviewer->id,
                 ])->first();
 
-                // Reviewer can update status only if:
-                // 1. They are assigned to this submission
-                // 2. Evaluations are completed or not required
                 if ($submissionReviewer && $submissionReviewer->canParticipateInDiscussions()) {
                     $canUpdate = true;
                 } elseif ($submissionReviewer) {
@@ -192,7 +185,6 @@ class ReviewController extends Controller
             abort(403, 'Tidak berwenang untuk memperbarui status pengajuan.');
         }
 
-        // Convert string status to enum
         $newStatus = match ($request->status) {
             'submitted' => Submitted::class,
             'under_review' => UnderReview::class,
@@ -202,14 +194,29 @@ class ReviewController extends Controller
             default => throw new \InvalidArgumentException('Invalid submission status value'),
         };
 
-        DB::transaction(function () use ($submission, $newStatus) {
-            $oldStatus = $submission->status;
+        try {
+            DB::transaction(function () use ($submission, $newStatus) {
+                $oldStatus = $submission->status;
 
-            $submission->update(['status' => $newStatus]);
+                if ($submission->status->canTransitionTo($newStatus)) {
+                    $submission->status->transitionTo($newStatus);
+                } elseif ($submission->status->canTransitionTo(UnderReview::class)) {
+                    $submission->status->transitionTo(UnderReview::class);
 
-            // TAMBAHKAN: Kirim email notifikasi submission status changed
-            $this->emailService->notifySubmissionStatusChanged($submission, $oldStatus);
-        });
+                    if ($submission->status->canTransitionTo($newStatus)) {
+                        $submission->status->transitionTo($newStatus);
+                    } else {
+                        throw new \Exception("Transisi ke status yang dipilih tidak diizinkan dari status saat ini.");
+                    }
+                } else {
+                    throw new \Exception("Transisi ke status tersebut tidak diizinkan dari status {$oldStatus->label()}.");
+                }
+
+                $this->emailService->notifySubmissionStatusChanged($submission, $oldStatus);
+            });
+        } catch (\Exception $e) {
+            return back()->with('error', $e->getMessage());
+        }
 
         $submission->refresh();
 
@@ -299,7 +306,7 @@ class ReviewController extends Controller
             // Handle attachments
             if ($request->hasFile('attachments')) {
                 foreach ($request->file('attachments') as $file) {
-                    $path = $file->store('review-attachments/'.$submission->id, 'public');
+                    $path = $file->store('review-attachments/' . $submission->id, 'public');
 
                     ReviewSummaryAttachment::create([
                         'review_summary_id' => $reviewSummary->id,
@@ -452,7 +459,7 @@ class ReviewController extends Controller
         } catch (\Exception $e) {
             DB::rollback();
 
-            return back()->withErrors(['error' => 'Gagal menugaskan formulir evaluasi: '.$e->getMessage()]);
+            return back()->withErrors(['error' => 'Gagal menugaskan formulir evaluasi: ' . $e->getMessage()]);
         }
     }
 
@@ -481,7 +488,7 @@ class ReviewController extends Controller
 
         // Get available evaluation forms
         $evaluationForms = $this->getSubmissionFormPhase($submission)
-            ?->activeReviewEvaluationForms()
+                ?->activeReviewEvaluationForms()
             ->get(['id', 'title', 'is_required', 'order']) ?? collect();
 
         return response()->json([
@@ -637,29 +644,36 @@ class ReviewController extends Controller
     {
         $reviewSummaries = ReviewSummary::where('form_submission_id', $submission->id)->get();
 
-        // Check evaluation completion first
         if ($submission->hasPendingEvaluations()) {
-            if (!$submission->status instanceof UnderReview) {
+            if ($submission->status->canTransitionTo(UnderReview::class)) {
                 $submission->status->transitionTo(UnderReview::class);
             }
 
             return;
         }
 
-        // If no review threads exist
         if ($reviewSummaries->isEmpty()) {
-            return; // Keep current status
+            return;
         }
 
-        // Priority order: closed > open > resolved
+        $targetState = UnderReview::class;
+
         if ($reviewSummaries->where('status', 'closed')->isNotEmpty()) {
-            $submission->status->transitionTo(Rejected::class);
+            $targetState = Rejected::class;
         } elseif ($reviewSummaries->where('status', 'open')->isNotEmpty()) {
-            $submission->status->transitionTo(NeedsRevision::class);
-        } elseif ($reviewSummaries->every(fn ($r) => $r->status === 'resolved')) {
-            $submission->status->transitionTo(Approved::class);
-        } else {
+            $targetState = NeedsRevision::class;
+        } elseif ($reviewSummaries->every(fn($r) => $r->status === 'resolved')) {
+            $targetState = Approved::class;
+        }
+
+        if ($submission->status->canTransitionTo($targetState)) {
+            $submission->status->transitionTo($targetState);
+        } elseif ($submission->status->canTransitionTo(UnderReview::class)) {
             $submission->status->transitionTo(UnderReview::class);
+
+            if ($submission->status->canTransitionTo($targetState)) {
+                $submission->status->transitionTo($targetState);
+            }
         }
     }
 

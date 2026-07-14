@@ -139,9 +139,9 @@ class FormSubmission extends Model
             'id',
             'id'
         )->whereIn(
-            'reviewer_form_assignments.submission_reviewer_id',
-            $this->submissionReviewers()->pluck('id')
-        );
+                'reviewer_form_assignments.submission_reviewer_id',
+                $this->submissionReviewers()->pluck('id')
+            );
     }
 
     // NEW: Get submitted review form responses
@@ -342,21 +342,33 @@ class FormSubmission extends Model
     // Updated: Enhanced status update considering evaluations
     public function updateStatusBasedOnReviews()
     {
+        $targetState = null;
+
         if ($this->hasPendingEvaluations()) {
-            $this->status->transitionTo(UnderReview::class);
+            $targetState = UnderReview::class;
         } elseif ($this->hasRejectedReviews()) {
-            $this->status->transitionTo(Rejected::class);
+            $targetState = Rejected::class;
         } elseif ($this->hasRevisionsRequested()) {
-            $this->status->transitionTo(NeedsRevision::class);
+            $targetState = NeedsRevision::class;
         } elseif ($this->allReviewersApproved()) {
-            $this->status->transitionTo(Approved::class);
+            $targetState = Approved::class;
         } elseif ($this->hasAnyReviews()) {
-            $this->status->transitionTo(UnderReview::class);
-        } else {
-            $this->status->transitionTo(Submitted::class); // atau state yang sesuai
+            $targetState = UnderReview::class;
         }
 
-        $this->save();
+        if (!$targetState) {
+            return;
+        }
+
+        if ($this->status->canTransitionTo($targetState)) {
+            $this->status->transitionTo($targetState);
+        } elseif ($this->status->canTransitionTo(UnderReview::class)) {
+            $this->status->transitionTo(UnderReview::class);
+
+            if ($this->status->canTransitionTo($targetState)) {
+                $this->status->transitionTo($targetState);
+            }
+        }
     }
 
     public function getActiveReviewThreadsCount(): int

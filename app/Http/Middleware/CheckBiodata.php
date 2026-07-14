@@ -156,7 +156,7 @@ class CheckBiodata
             'required' => true,
             'completed' => false,
             'showAllMenus' => false,
-            'status' => $status->label(),
+            'status' => $status->key(),
             'message' => $statusMessage,
             'submission_id' => $submission->id,
             'form_id' => $biodataForm->id,

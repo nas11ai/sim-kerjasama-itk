@@ -19,8 +19,9 @@ class SubmitFormSubmission
 
         $submission->update([
             'is_submitted' => true,
-            'status' => Submitted::class,
         ]);
+
+        $submission->status->transitionTo(Submitted::class);
 
         return $submission->fresh();
     }
