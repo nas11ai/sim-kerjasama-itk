@@ -11,7 +11,8 @@ use App\Models\Reviewer;
 use App\Models\ReviewSummary;
 use App\Models\SubmissionPeriod;
 use App\Services\EmailNotificationService;
-use App\SubmissionStatus;
+use App\States\Submission\Approved;
+use App\States\Submission\Submitted;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -491,12 +492,9 @@ class UserFormController extends Controller
                 ->first();
 
             if ($formPhaseDetail && !$formPhaseDetail->needs_review) {
-                $submission->update(['status' => SubmissionStatus::APPROVED]);
-
-                // TODO: Create review request or notification
-                // You can implement notification system here
+                $submission->status->transitionTo(Approved::class);
             } else {
-                $submission->update(['status' => SubmissionStatus::PENDING]);
+                $submission->status->transitionTo(Submitted::class);
             }
 
             $this->emailService->notifyAdminFormSubmission($submission);

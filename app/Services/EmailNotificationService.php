@@ -312,8 +312,8 @@ class EmailNotificationService
 
             Log::info('Email notifikasi submission status changed dikirim', [
                 'submission_id' => $submission->id,
-                'old_status' => $oldStatus->value,
-                'new_status' => $submission->status->value,
+                'old_status' => $oldStatus->key(),
+                'new_status' => $submission->status->key(),
             ]);
 
         } catch (\Exception $e) {
