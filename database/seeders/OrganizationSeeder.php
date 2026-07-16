@@ -15,37 +15,37 @@ class OrganizationSeeder extends Seeder
         );
 
         $this->createFaculty($itk->id, 'Fakultas Sains dan Teknologi Informasi', 'FSTI', [
-            ['name' => 'Matematika', 'code' => 'MATH', 'legacy_study_program_id' => 1],
-            ['name' => 'Ilmu Aktuaria', 'code' => 'AKTR', 'legacy_study_program_id' => 2],
-            ['name' => 'Statistika', 'code' => 'STAT', 'legacy_study_program_id' => 3],
-            ['name' => 'Fisika', 'code' => 'FIS', 'legacy_study_program_id' => 4],
-            ['name' => 'Informatika', 'code' => 'IF', 'legacy_study_program_id' => 5],
-            ['name' => 'Sistem Informasi', 'code' => 'SI', 'legacy_study_program_id' => 6],
-            ['name' => 'Bisnis Digital', 'code' => 'BD', 'legacy_study_program_id' => 7],
-            ['name' => 'Teknik Elektro', 'code' => 'EL', 'legacy_study_program_id' => 8],
-            ['name' => 'Teknik Biomedis', 'code' => 'TBM'],
+            ['name' => 'Matematika', 'code' => 'MATH', 'legacy_study_program_id' => 2],
+            ['name' => 'Ilmu Aktuaria', 'code' => 'AKTR', 'legacy_study_program_id' => 15],
+            ['name' => 'Statistika', 'code' => 'STAT', 'legacy_study_program_id' => 16],
+            ['name' => 'Fisika', 'code' => 'FIS', 'legacy_study_program_id' => 1],
+            ['name' => 'Informatika', 'code' => 'IF', 'legacy_study_program_id' => 11],
+            ['name' => 'Sistem Informasi', 'code' => 'SI', 'legacy_study_program_id' => 10],
+            ['name' => 'Bisnis Digital', 'code' => 'BD', 'legacy_study_program_id' => 20],
+            ['name' => 'Teknik Elektro', 'code' => 'EL', 'legacy_study_program_id' => 4],
+            ['name' => 'Teknik Biomedis', 'code' => 'TBM', 'legacy_study_program_id' => 25],
         ]);
 
         $this->createFaculty($itk->id, 'Fakultas Pembangunan Berkelanjutan', 'FPB', [
             ['name' => 'Teknik Perkapalan', 'code' => 'TKP', 'legacy_study_program_id' => 9],
-            ['name' => 'Teknik Kelautan', 'code' => 'TKL', 'legacy_study_program_id' => 10],
-            ['name' => 'Teknik Sistem Perkapalan', 'code' => 'TSP'],
-            ['name' => 'Teknik Transportasi Laut', 'code' => 'TTL'],
-            ['name' => 'Teknik Lingkungan', 'code' => 'TL', 'legacy_study_program_id' => 11],
-            ['name' => 'Teknik Sipil', 'code' => 'TS', 'legacy_study_program_id' => 12],
-            ['name' => 'Perencanaan Wilayah dan Kota', 'code' => 'PWK', 'legacy_study_program_id' => 13],
-            ['name' => 'Arsitektur', 'code' => 'ARS', 'legacy_study_program_id' => 14],
-            ['name' => 'Desain Komunikasi Visual', 'code' => 'DKV', 'legacy_study_program_id' => 15],
+            ['name' => 'Teknik Kelautan', 'code' => 'TKL', 'legacy_study_program_id' => 14],
+            ['name' => 'Teknik Sistem Perkapalan', 'code' => 'TSP', 'legacy_study_program_id' => 23],
+            ['name' => 'Teknik Transportasi Laut', 'code' => 'TTL', 'legacy_study_program_id' => 24],
+            ['name' => 'Teknik Lingkungan', 'code' => 'TL', 'legacy_study_program_id' => 13],
+            ['name' => 'Teknik Sipil', 'code' => 'TS', 'legacy_study_program_id' => 7],
+            ['name' => 'Perencanaan Wilayah dan Kota', 'code' => 'PWK', 'legacy_study_program_id' => 8],
+            ['name' => 'Arsitektur', 'code' => 'ARS', 'legacy_study_program_id' => 17],
+            ['name' => 'Desain Komunikasi Visual', 'code' => 'DKV', 'legacy_study_program_id' => 21],
         ]);
 
         $this->createFaculty($itk->id, 'Fakultas Rekayasa dan Teknologi Industri', 'FRTI', [
-            ['name' => 'Teknik Mesin', 'code' => 'TM', 'legacy_study_program_id' => 16],
-            ['name' => 'Teknik Industri', 'code' => 'TI', 'legacy_study_program_id' => 17],
-            ['name' => 'Teknik Logistik', 'code' => 'TLG', 'legacy_study_program_id' => 18],
-            ['name' => 'Teknik Material dan Metalurgi', 'code' => 'TMM', 'legacy_study_program_id' => 19],
-            ['name' => 'Teknologi Pangan', 'code' => 'TP', 'legacy_study_program_id' => 20],
-            ['name' => 'Teknik Kimia', 'code' => 'TK', 'legacy_study_program_id' => 21],
-            ['name' => 'Rekayasa Keselamatan', 'code' => 'RK', 'legacy_study_program_id' => 22],
+            ['name' => 'Teknik Mesin', 'code' => 'TM', 'legacy_study_program_id' => 3],
+            ['name' => 'Teknik Industri', 'code' => 'TI', 'legacy_study_program_id' => 12],
+            ['name' => 'Teknik Logistik', 'code' => 'TLG', 'legacy_study_program_id' => 22],
+            ['name' => 'Teknik Material dan Metalurgi', 'code' => 'TMM', 'legacy_study_program_id' => 6],
+            ['name' => 'Teknologi Pangan', 'code' => 'TP', 'legacy_study_program_id' => 19],
+            ['name' => 'Teknik Kimia', 'code' => 'TK', 'legacy_study_program_id' => 5],
+            ['name' => 'Rekayasa Keselamatan', 'code' => 'RK', 'legacy_study_program_id' => 18],
         ]);
     }
 
