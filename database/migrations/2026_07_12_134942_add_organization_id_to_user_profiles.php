@@ -13,13 +13,35 @@ return new class extends Migration
             $table->foreignId('organization_id')->nullable()->constrained()->cascadeOnDelete()->after('user_id');
         });
 
-        DB::statement(<<<'SQL'
-            UPDATE user_profiles up
-            SET organization_id = o.id
-            FROM organizations o
-            WHERE up.study_program_id IS NOT NULL
-              AND o.metadata->'legacy'->>'study_program_id' = up.study_program_id::text
-        SQL);
+        $orgMap = [];
+        DB::table('organizations')
+            ->where('type', 'study_program')
+            ->whereNotNull('metadata')
+            ->select('id', 'metadata')
+            ->orderBy('id')
+            ->chunk(1000, function ($organizations) use (&$orgMap) {
+                foreach ($organizations as $org) {
+                    $meta = json_decode($org->metadata, true);
+                    $legacySpId = $meta['legacy']['study_program_id'] ?? null;
+                    if ($legacySpId !== null) {
+                        $orgMap[(string) $legacySpId] = $org->id;
+                    }
+                }
+            });
+
+        DB::table('user_profiles')
+            ->whereNotNull('study_program_id')
+            ->orderBy('id')
+            ->chunkById(1000, function ($profiles) use ($orgMap) {
+                foreach ($profiles as $profile) {
+                    $orgId = $orgMap[(string) $profile->study_program_id] ?? null;
+                    if ($orgId !== null) {
+                        DB::table('user_profiles')
+                            ->where('id', $profile->id)
+                            ->update(['organization_id' => $orgId]);
+                    }
+                }
+            });
 
         $missing = DB::table('user_profiles')->whereNull('organization_id')->count();
         if ($missing > 0) {
@@ -31,7 +53,12 @@ return new class extends Migration
             $table->dropColumn('study_program_id');
         });
 
-        DB::statement('ALTER TABLE user_profiles ALTER COLUMN organization_id SET NOT NULL');
+        $driver = DB::getDriverName();
+        if ($driver === 'mysql') {
+            DB::statement('ALTER TABLE user_profiles MODIFY COLUMN organization_id BIGINT UNSIGNED NOT NULL');
+        } else {
+            DB::statement('ALTER TABLE user_profiles ALTER COLUMN organization_id SET NOT NULL');
+        }
     }
 
     public function down(): void
@@ -40,16 +67,35 @@ return new class extends Migration
             $table->foreignId('study_program_id')->nullable()->constrained('study_programs')->cascadeOnDelete();
         });
 
-        DB::statement(<<<'SQL'
-            UPDATE user_profiles
-            SET study_program_id = (
-                SELECT (o.metadata->'legacy'->>'study_program_id')::bigint
-                FROM organizations o
-                WHERE o.id = user_profiles.organization_id
-                AND o.metadata->'legacy' ? 'study_program_id'
-            )
-            WHERE organization_id IS NOT NULL
-        SQL);
+        $orgToSpMap = [];
+        DB::table('organizations')
+            ->where('type', 'study_program')
+            ->whereNotNull('metadata')
+            ->select('id', 'metadata')
+            ->orderBy('id')
+            ->chunk(1000, function ($organizations) use (&$orgToSpMap) {
+                foreach ($organizations as $org) {
+                    $meta = json_decode($org->metadata, true);
+                    $legacySpId = $meta['legacy']['study_program_id'] ?? null;
+                    if ($legacySpId !== null) {
+                        $orgToSpMap[$org->id] = (string) $legacySpId;
+                    }
+                }
+            });
+
+        DB::table('user_profiles')
+            ->whereNotNull('organization_id')
+            ->orderBy('id')
+            ->chunkById(1000, function ($profiles) use ($orgToSpMap) {
+                foreach ($profiles as $profile) {
+                    $spId = $orgToSpMap[$profile->organization_id] ?? null;
+                    if ($spId !== null) {
+                        DB::table('user_profiles')
+                            ->where('id', $profile->id)
+                            ->update(['study_program_id' => $spId]);
+                    }
+                }
+            });
 
         Schema::table('user_profiles', function (Blueprint $table) {
             $table->dropForeign(['organization_id']);
