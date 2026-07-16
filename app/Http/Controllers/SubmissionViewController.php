@@ -32,8 +32,10 @@ class SubmissionViewController extends Controller
                     $q->whereHas('role', function ($roleQuery) use ($user) {
                         $roleQuery->whereIn('name', $user->getRoleNames());
                     });
-                    if ($studyProgramId) {
+                    if ($studyProgramId !== null) {
                         $q->where('study_program_id', $studyProgramId);
+                    } else {
+                        $q->whereRaw('1 = 0');
                     }
                 });
             },
@@ -42,8 +44,10 @@ class SubmissionViewController extends Controller
                 $query->whereHas('role', function ($roleQuery) use ($user) {
                     $roleQuery->whereIn('name', $user->getRoleNames());
                 });
-                if ($studyProgramId) {
+                if ($studyProgramId !== null) {
                     $query->where('study_program_id', $studyProgramId);
+                } else {
+                    $query->whereRaw('1 = 0');
                 }
             })
             ->orderBy('created_at', 'desc')
@@ -138,8 +142,10 @@ class SubmissionViewController extends Controller
                 $query->whereHas('role', function ($roleQuery) use ($user) {
                     $roleQuery->whereIn('name', $user->getRoleNames());
                 });
-                if ($studyProgramId) {
+                if ($studyProgramId !== null) {
                     $query->where('study_program_id', $studyProgramId);
+                } else {
+                    $query->whereRaw('1 = 0');
                 }
             })
             ->with([
@@ -148,8 +154,10 @@ class SubmissionViewController extends Controller
                         $q->whereHas('role', function ($roleQuery) use ($user) {
                             $roleQuery->whereIn('name', $user->getRoleNames());
                         });
-                        if ($studyProgramId) {
+                        if ($studyProgramId !== null) {
                             $q->where('study_program_id', $studyProgramId);
+                        } else {
+                            $q->whereRaw('1 = 0');
                         }
                     })
                         ->with(['formAccessControl.form.formType'])

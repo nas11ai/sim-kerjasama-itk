@@ -3,6 +3,7 @@
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
@@ -45,20 +46,13 @@ return new class extends Migration
 
         $missing = DB::table('user_profiles')->whereNull('organization_id')->count();
         if ($missing > 0) {
-            throw new RuntimeException("Migration aborted: {$missing} user_profiles rows have NULL organization_id after backfill.");
+            Log::warning("Migration: {$missing} user_profiles rows have NULL organization_id (study_program_id was already NULL). organization_id kept nullable.");
         }
 
         Schema::table('user_profiles', function (Blueprint $table) {
             $table->dropForeign(['study_program_id']);
             $table->dropColumn('study_program_id');
         });
-
-        $driver = DB::getDriverName();
-        if ($driver === 'mysql') {
-            DB::statement('ALTER TABLE user_profiles MODIFY COLUMN organization_id BIGINT UNSIGNED NOT NULL');
-        } else {
-            DB::statement('ALTER TABLE user_profiles ALTER COLUMN organization_id SET NOT NULL');
-        }
     }
 
     public function down(): void

@@ -50,8 +50,10 @@ class UserFormController extends Controller
                         $roleQuery->whereIn('name', $user->getRoleNames());
                     });
 
-                    if ($studyProgramId) {
+                    if ($studyProgramId !== null) {
                         $q->where('study_program_id', $studyProgramId);
+                    } else {
+                        $q->whereRaw('1 = 0');
                     }
                 })
                     ->with(['formAccessControl.form.formFields', 'phaseType'])
@@ -108,8 +110,7 @@ class UserFormController extends Controller
                             return false;
                         }
 
-                        // Check study program match (if user has study program)
-                        if ($studyProgramId && $formAccessControl->study_program_id !== $studyProgramId) {
+                        if ($studyProgramId === null || $formAccessControl->study_program_id !== $studyProgramId) {
                             return false;
                         }
 
@@ -251,8 +252,10 @@ class UserFormController extends Controller
                     $roleQuery->whereIn('name', $user->getRoleNames());
                 });
 
-                if ($studyProgramId) {
+                if ($studyProgramId !== null) {
                     $query->where('study_program_id', $studyProgramId);
+                } else {
+                    $query->whereRaw('1 = 0');
                 }
             })
             ->with([
