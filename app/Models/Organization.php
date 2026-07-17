@@ -48,7 +48,7 @@ class Organization extends Model
     /**
      * Faculty → study_program tree shaped like the legacy Faculty::with('studyPrograms') payload.
      *
-     * @return Collection<int, array{id: int, name: string, study_programs: list<array{id: int, name: string, faculty_id: int}>}>
+     * @return Collection<int, array{id: int, name: string, study_programs: array<int, array{id: int, name: string, faculty_id: int}>}>
      */
     public static function facultyOptions(): Collection
     {
@@ -59,12 +59,15 @@ class Organization extends Model
                 $query->where('type', 'study_program')->orderBy('name');
             }])
             ->get()
-            ->map(static function (self $faculty): array {
+            ->map(static function (Organization $faculty): array {
+                /** @var \Illuminate\Database\Eloquent\Collection<int, Organization> $children */
+                $children = $faculty->children;
+
                 return [
                     'id' => $faculty->id,
                     'name' => $faculty->name,
-                    'study_programs' => $faculty->children
-                        ->map(static fn (self $studyProgram): array => [
+                    'study_programs' => $children
+                        ->map(static fn (Organization $studyProgram): array => [
                             'id' => $studyProgram->id,
                             'name' => $studyProgram->name,
                             'faculty_id' => $faculty->id,
