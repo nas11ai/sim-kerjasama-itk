@@ -23,14 +23,13 @@ class BiodataController extends Controller
         $biodataForm = Form::where('form_type_id', 1)
             ->where('is_active', true)
             ->whereHas('formAccessControls', function ($q) use ($user, $studyProgramId) {
-                $q->whereHas('role', fn ($r) => $r->whereIn('name', $user->getRoleNames()))
-                    ->when(
-                        $studyProgramId,
-                        fn ($r) => $r->where(function ($sub) use ($studyProgramId) {
-                            $sub->whereNull('study_program_id')
-                                ->orWhere('study_program_id', $studyProgramId);
-                        })
-                    );
+                $q->whereHas('role', fn ($r) => $r->whereIn('name', $user->getRoleNames()));
+
+                if ($studyProgramId !== null) {
+                    $q->where('study_program_id', $studyProgramId);
+                } else {
+                    $q->whereRaw('1 = 0');
+                }
             })
             ->with([
                 'formFields' => function ($query) {
@@ -47,9 +46,15 @@ class BiodataController extends Controller
         }
 
         $hasAccess = $biodataForm->formAccessControls()
-            ->whereHas('role', fn ($q) => $q->whereIn('name', $user->getRoleNames()))
-            ->when($studyProgramId, fn ($q) => $q->where('study_program_id', $studyProgramId))
-            ->exists();
+            ->whereHas('role', fn ($q) => $q->whereIn('name', $user->getRoleNames()));
+
+        if ($studyProgramId !== null) {
+            $hasAccess->where('study_program_id', $studyProgramId);
+        } else {
+            $hasAccess->whereRaw('1 = 0');
+        }
+
+        $hasAccess = $hasAccess->exists();
 
         if (!$hasAccess) {
             return redirect()->route('user.dashboard')
