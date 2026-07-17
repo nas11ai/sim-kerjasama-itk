@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Form;
+use App\Models\FormAccessControl;
 use App\Models\FormFieldResponse;
 use App\Models\FormPhase;
 use App\Models\FormPhaseDetail;
@@ -33,8 +34,9 @@ class UserFormController extends Controller
         $user = Auth::user();
         $user->load('organization.parent');
 
-        // Get user's organization and role
+        // Get user's organization and effective form-access permissions
         $organizationId = $user->organization?->id;
+        $permissions = FormAccessControl::effectivePermissionsFor($user);
         $userRoles = $user->getRoleNames();
         $primaryRole = $userRoles->first() ?? 'user';
 
@@ -47,9 +49,7 @@ class UserFormController extends Controller
             'submissionDates.submissionDateLabel',
             'submissionPeriodPhases.formPhase.formPhaseDetails' => function ($query) use ($user, $organizationId) {
                 $query->whereHas('formAccessControl', function ($q) use ($user, $organizationId) {
-                    $q->whereHas('role', function ($roleQuery) use ($user) {
-                        $roleQuery->whereIn('name', $user->getRoleNames());
-                    });
+                    $q->accessibleBy($user);
 
                     if ($organizationId !== null) {
                         $q->where('organization_id', $organizationId);
@@ -62,7 +62,7 @@ class UserFormController extends Controller
             },
         ])
             ->get()
-            ->map(function ($period) use ($user, $organizationId) {
+            ->map(function ($period) use ($user, $organizationId, $permissions) {
                 // Fix: Use correct attribute name based on your model
                 $dates = $period->submissionDates->sortBy('datetime'); // Changed from 'datetime' to 'date'
                 $now = Carbon::now();
@@ -94,20 +94,18 @@ class UserFormController extends Controller
                 }
 
                 // Process form phases with user progress
-                $period->form_phases = $period->submissionPeriodPhases->map(function ($periodPhase) use ($user, $organizationId) {
+                $period->form_phases = $period->submissionPeriodPhases->map(function ($periodPhase) use ($user, $organizationId, $permissions) {
                     $formPhase = $periodPhase->formPhase;
 
-                    // Get user's accessible form access controls
-                    // Filter by role AND organization_id to avoid counting forms multiple times
-                    $accessibleForms = $formPhase->formPhaseDetails->filter(function ($detail) use ($user, $organizationId) {
+                    // Filter by permission AND organization_id to avoid counting forms multiple times
+                    $accessibleForms = $formPhase->formPhaseDetails->filter(function ($detail) use ($organizationId, $permissions) {
                         $formAccessControl = $detail->formAccessControl;
 
-                        if (!$formAccessControl || !$formAccessControl->role) {
+                        if (!$formAccessControl || $formAccessControl->permission === null) {
                             return false;
                         }
 
-                        // Check role match
-                        if (!$user->hasRole($formAccessControl->role->name)) {
+                        if (!in_array($formAccessControl->permission, $permissions, true)) {
                             return false;
                         }
 
@@ -249,9 +247,7 @@ class UserFormController extends Controller
         // Get form access controls for this phase that user can access
         $formAccessControls = $phase->formPhaseDetails()
             ->whereHas('formAccessControl', function ($query) use ($user, $organizationId) {
-                $query->whereHas('role', function ($roleQuery) use ($user) {
-                    $roleQuery->whereIn('name', $user->getRoleNames());
-                });
+                $query->accessibleBy($user);
 
                 if ($organizationId !== null) {
                     $query->where('organization_id', $organizationId);
@@ -489,9 +485,7 @@ class UserFormController extends Controller
             $formPhaseDetail = FormPhaseDetail::where('form_phase_id', $validated['form_phase_id'])
                 ->whereHas('formAccessControl', function ($query) use ($validated, $user) {
                     $query->where('form_id', $validated['form_id'])
-                        ->whereHas('role', function ($roleQuery) use ($user) {
-                            $roleQuery->whereIn('name', $user->getRoleNames());
-                        });
+                        ->accessibleBy($user);
                 })
                 ->first();
 

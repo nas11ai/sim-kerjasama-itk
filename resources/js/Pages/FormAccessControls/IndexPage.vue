@@ -53,11 +53,6 @@ import { useToast } from '@/Components/ui/toast/use-toast'
 import { debounce } from 'lodash'
 import { cn } from '@/lib/utils'
 
-interface Role {
-    id: number
-    name: string
-}
-
 interface Faculty {
     id: number
     name: string
@@ -78,7 +73,7 @@ interface Form {
 interface FormAccessControl {
     id: number
     form?: Form
-    role: Role
+    permission: string
     study_program: StudyProgram
     created_at: string
     updated_at: string
@@ -111,7 +106,7 @@ interface PaginatedData {
 interface Filters {
     [key: string]: string | number | boolean | null | undefined
     form_id?: string
-    role_id?: string
+    permission?: string
     faculty_id?: string
     study_program_id?: string
     search?: string
@@ -120,7 +115,7 @@ interface Filters {
 interface Props {
     groupAccessControls: PaginatedData
     forms: Form[]
-    roles: Role[]
+    permissions: string[]
     faculties: Faculty[]
     filters: Filters
 }
@@ -130,12 +125,12 @@ const { toast } = useToast()
 
 const searchQuery = ref(props.filters.search || '')
 const selectedFormId = ref(props.filters.form_id || 'all')
-const selectedRoleId = ref(props.filters.role_id || 'all')
+const selectedPermission = ref(props.filters.permission || 'all')
 const selectedFacultyId = ref(props.filters.faculty_id || 'all')
 const selectedStudyProgramId = ref(props.filters.study_program_id || 'all')
 
 const openForm = ref(false)
-const openRole = ref(false)
+const openPermission = ref(false)
 const openFaculty = ref(false)
 const openStudyProgram = ref(false)
 
@@ -159,10 +154,9 @@ const selectedFormLabel = computed(() => {
     return form?.title || 'Pilih formulir...'
 })
 
-const selectedRoleLabel = computed(() => {
-    if (selectedRoleId.value === 'all') return 'Semua Role'
-    const role = props.roles.find((r) => r.id.toString() === selectedRoleId.value)
-    return role?.name || 'Pilih role...'
+const selectedPermissionLabel = computed(() => {
+    if (selectedPermission.value === 'all') return 'Semua Permission'
+    return selectedPermission.value || 'Pilih permission...'
 })
 
 const selectedFacultyLabel = computed(() => {
@@ -193,7 +187,7 @@ watch(selectedFacultyId, () => {
 const hasActiveFilters = computed(() => {
     return (
         selectedFormId.value !== 'all' ||
-        selectedRoleId.value !== 'all' ||
+        selectedPermission.value !== 'all' ||
         selectedFacultyId.value !== 'all' ||
         selectedStudyProgramId.value !== 'all' ||
         searchQuery.value !== ''
@@ -204,7 +198,7 @@ const activeFiltersCount = computed(() => {
     let count = 0
     if (searchQuery.value) count++
     if (selectedFormId.value !== 'all') count++
-    if (selectedRoleId.value !== 'all') count++
+    if (selectedPermission.value !== 'all') count++
     if (selectedFacultyId.value !== 'all') count++
     if (selectedStudyProgramId.value !== 'all') count++
     return count
@@ -220,7 +214,7 @@ watch(searchQuery, () => {
 })
 
 // Watch for filter changes
-watch([selectedFormId, selectedRoleId, selectedFacultyId, selectedStudyProgramId], () => {
+watch([selectedFormId, selectedPermission, selectedFacultyId, selectedStudyProgramId], () => {
     applyFilters()
 })
 
@@ -229,7 +223,7 @@ const applyFilters = () => {
 
     if (searchQuery.value) params.search = searchQuery.value
     if (selectedFormId.value !== 'all') params.form_id = selectedFormId.value
-    if (selectedRoleId.value !== 'all') params.role_id = selectedRoleId.value
+    if (selectedPermission.value !== 'all') params.permission = selectedPermission.value
     if (selectedFacultyId.value !== 'all') params.faculty_id = selectedFacultyId.value
     if (selectedStudyProgramId.value !== 'all')
         params.study_program_id = selectedStudyProgramId.value
@@ -243,7 +237,7 @@ const applyFilters = () => {
 const clearFilters = () => {
     searchQuery.value = ''
     selectedFormId.value = 'all'
-    selectedRoleId.value = 'all'
+    selectedPermission.value = 'all'
     selectedFacultyId.value = 'all'
     selectedStudyProgramId.value = 'all'
 
@@ -451,7 +445,7 @@ const formatDate = (dateString: string) => {
                             />
                             <Input
                                 v-model="searchQuery"
-                                placeholder="Cari berdasarkan judul formulir, nama role, atau program studi..."
+                                placeholder="Cari berdasarkan judul formulir, permission, atau program studi..."
                                 class="pl-10"
                             />
                         </div>
@@ -539,38 +533,38 @@ const formatDate = (dateString: string) => {
                             </Popover>
                         </div>
 
-                        <!-- role filter -->
+                        <!-- permission filter -->
                         <div>
                             <label class="text-sm font-medium text-gray-700 mb-2 block">
-                                Role
+                                Permission
                             </label>
-                            <Popover v-model:open="openRole">
+                            <Popover v-model:open="openPermission">
                                 <PopoverTrigger as-child>
                                     <Button
                                         variant="outline"
                                         role="combobox"
-                                        :aria-expanded="openRole"
+                                        :aria-expanded="openPermission"
                                         class="w-full justify-between"
                                     >
-                                        <span class="truncate">{{ selectedRoleLabel }}</span>
+                                        <span class="truncate">{{ selectedPermissionLabel }}</span>
                                         <ChevronsUpDown class="ml-2 h-4 w-4 shrink-0 opacity-50" />
                                     </Button>
                                 </PopoverTrigger>
-                                <PopoverContent class="w-[200px] p-0">
+                                <PopoverContent class="w-[280px] p-0">
                                     <Command>
                                         <CommandInput
-                                            placeholder="Cari role..."
+                                            placeholder="Cari permission..."
                                             class="flex h-11 w-full rounded-md bg-transparent py-3 text-sm outline-hidden placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50 border-0 ring-0 focus:ring-0 focus:outline-hidden"
                                         />
                                         <CommandList>
-                                            <CommandEmpty>Tidak ada role ditemukan.</CommandEmpty>
+                                            <CommandEmpty>Tidak ada permission ditemukan.</CommandEmpty>
                                             <CommandGroup>
                                                 <CommandItem
                                                     value="all"
                                                     @select="
                                                         () => {
-                                                            selectedRoleId = 'all'
-                                                            openRole = false
+                                                            selectedPermission = 'all'
+                                                            openPermission = false
                                                         }
                                                     "
                                                 >
@@ -578,22 +572,22 @@ const formatDate = (dateString: string) => {
                                                         :class="
                                                             cn(
                                                                 'mr-2 h-4 w-4',
-                                                                selectedRoleId === 'all'
+                                                                selectedPermission === 'all'
                                                                     ? 'opacity-100'
                                                                     : 'opacity-0'
                                                             )
                                                         "
                                                     />
-                                                    Semua Role
+                                                    Semua Permission
                                                 </CommandItem>
                                                 <CommandItem
-                                                    v-for="role in props.roles"
-                                                    :key="role.id"
-                                                    :value="role.id.toString()"
+                                                    v-for="permission in props.permissions"
+                                                    :key="permission"
+                                                    :value="permission"
                                                     @select="
                                                         () => {
-                                                            selectedRoleId = role.id.toString()
-                                                            openRole = false
+                                                            selectedPermission = permission
+                                                            openPermission = false
                                                         }
                                                     "
                                                 >
@@ -601,14 +595,13 @@ const formatDate = (dateString: string) => {
                                                         :class="
                                                             cn(
                                                                 'mr-2 h-4 w-4',
-                                                                selectedRoleId ===
-                                                                    role.id.toString()
+                                                                selectedPermission === permission
                                                                     ? 'opacity-100'
                                                                     : 'opacity-0'
                                                             )
                                                         "
                                                     />
-                                                    {{ role.name }}
+                                                    {{ permission }}
                                                 </CommandItem>
                                             </CommandGroup>
                                         </CommandList>
@@ -867,7 +860,7 @@ const formatDate = (dateString: string) => {
                                         />
                                     </TableHead>
                                     <TableHead>Formulir</TableHead>
-                                    <TableHead>Role</TableHead>
+                                    <TableHead>Permission</TableHead>
                                     <TableHead>Program Studi</TableHead>
                                     <TableHead>Fakultas</TableHead>
                                     <TableHead>Dibuat Pada</TableHead>
@@ -948,7 +941,7 @@ const formatDate = (dateString: string) => {
                                             </TableCell>
                                             <TableCell>
                                                 <Badge variant="outline">
-                                                    {{ control.role.name }}
+                                                    {{ control.permission }}
                                                 </Badge>
                                             </TableCell>
                                             <TableCell>

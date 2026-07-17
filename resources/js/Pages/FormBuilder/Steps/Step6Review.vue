@@ -17,11 +17,6 @@ import {
     Building,
 } from 'lucide-vue-next'
 
-interface Role {
-    id: number
-    name: string
-}
-
 interface Faculty {
     name: string
     study_programs: Array<{ id: number; name: string }>
@@ -35,7 +30,7 @@ interface FormField {
 
 interface AccessControl {
     temp_id: string
-    role_id: number
+    permission: string
     study_program_id: number
 }
 
@@ -81,7 +76,6 @@ interface Props {
         }
     }
     formTypes: FormType[]
-    roles: Role[]
     faculties: Faculty[]
     phaseTypes: PhaseType[]
     formPhases: FormPhase[]
@@ -93,10 +87,6 @@ const props = defineProps<Props>()
 const getFormTypeName = (id: number | null) => {
     if (!id) return 'Not selected'
     return props.formTypes.find((ft) => ft.id === id)?.name || 'Unknown'
-}
-
-const getRoleName = (id: number) => {
-    return props.roles.find((r) => r.id === id)?.name || 'Unknown'
 }
 
 const getStudyProgramInfo = (id: number) => {
@@ -335,7 +325,7 @@ const totalEvaluationFields = computed(() =>
                             </Badge>
                             <div class="flex items-center gap-2 text-sm">
                                 <Users class="h-4 w-4 text-muted-foreground" />
-                                <span class="font-medium">{{ getRoleName(control.role_id) }}</span>
+                                <span class="font-medium">{{ control.permission }}</span>
                                 <span class="text-muted-foreground">→</span>
                                 <Building class="h-4 w-4 text-muted-foreground" />
                                 <span>{{

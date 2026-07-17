@@ -9,20 +9,19 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
-use Spatie\Permission\Models\Role;
 
 class FormAccessControlController extends Controller
 {
     public function index(Request $request)
     {
-        $query = FormAccessControl::with(['form', 'role', 'studyProgram.faculty']);
+        $query = FormAccessControl::with(['form', 'studyProgram.faculty']);
 
         if ($request->has('form_id') && $request->form_id) {
             $query->where('form_id', $request->form_id);
         }
 
-        if ($request->has('role_id') && $request->role_id) {
-            $query->where('role_id', $request->role_id);
+        if ($request->filled('permission')) {
+            $query->where('permission', $request->permission);
         }
 
         if ($request->has('faculty_id') && $request->faculty_id) {
@@ -41,9 +40,7 @@ class FormAccessControlController extends Controller
                 $q->whereHas('form', function ($subQ) use ($search) {
                     $subQ->where('title', 'ilike', "%{$search}%");
                 })
-                    ->orWhereHas('role', function ($subQ) use ($search) {
-                        $subQ->where('name', 'ilike', "%{$search}%");
-                    })
+                    ->orWhere('permission', 'ilike', "%{$search}%")
                     ->orWhereHas('studyProgram', function ($subQ) use ($search) {
                         $subQ->where('name', 'ilike', "%{$search}%");
                     });
@@ -59,7 +56,7 @@ class FormAccessControlController extends Controller
 
         $form_id = $groupAccessControls->pluck('form_id');
 
-        $controls = FormAccessControl::with(['role', 'studyProgram.faculty'])
+        $controls = FormAccessControl::with(['studyProgram.faculty'])
             ->whereIn('form_id', $form_id)
             ->get()
             ->groupBy('form_id');
@@ -74,27 +71,25 @@ class FormAccessControlController extends Controller
         });
 
         $forms = Form::where('is_active', true)->orderBy('title')->get(['id', 'title']);
-        $roles = Role::orderBy('name')->get(['id', 'name']);
         $faculties = Organization::facultyOptions();
 
         return Inertia::render('FormAccessControls/IndexPage', [
             'groupAccessControls' => $groupAccessControls,
             'forms' => $forms,
-            'roles' => $roles,
+            'permissions' => FormAccessControl::ALLOWED_PERMISSIONS,
             'faculties' => $faculties,
-            'filters' => $request->only(['form_id', 'role_id', 'faculty_id', 'study_program_id', 'search']),
+            'filters' => $request->only(['form_id', 'permission', 'faculty_id', 'study_program_id', 'search']),
         ]);
     }
 
     public function create()
     {
         $forms = Form::where('is_active', true)->orderBy('title')->get(['id', 'title']);
-        $roles = Role::orderBy('name')->get(['id', 'name']);
         $faculties = Organization::facultyOptions();
 
         return Inertia::render('FormAccessControls/CreatePage', [
             'forms' => $forms,
-            'roles' => $roles,
+            'permissions' => FormAccessControl::ALLOWED_PERMISSIONS,
             'faculties' => $faculties,
         ]);
     }
@@ -103,26 +98,26 @@ class FormAccessControlController extends Controller
     {
         $request->validate([
             'form_id' => 'required|exists:forms,id',
-            'role_id' => 'required|exists:roles,id',
+            'permission' => ['required', 'string', Rule::in(FormAccessControl::ALLOWED_PERMISSIONS)],
             'study_program_id' => ['required', Rule::exists('organizations', 'id')->where('type', 'study_program')],
         ]);
 
         $existingControl = FormAccessControl::where([
             'form_id' => $request->form_id,
-            'role_id' => $request->role_id,
+            'permission' => $request->permission,
             'organization_id' => $request->study_program_id,
         ])->first();
 
         if ($existingControl) {
             return back()->withErrors([
-                'duplicate' => 'Gabungan Formulir, Role, dan Program Studi tersebut sudah terdaftar.',
+                'duplicate' => 'Gabungan Formulir, Permission, dan Program Studi tersebut sudah terdaftar.',
             ]);
         }
 
         try {
             FormAccessControl::create([
                 'form_id' => $request->form_id,
-                'role_id' => $request->role_id,
+                'permission' => $request->permission,
                 'organization_id' => $request->study_program_id,
             ]);
 
@@ -136,7 +131,7 @@ class FormAccessControlController extends Controller
 
     public function show(FormAccessControl $formAccessControl)
     {
-        $formAccessControl->load(['form', 'role', 'studyProgram.faculty', 'formPhaseDetails.formPhase']);
+        $formAccessControl->load(['form', 'studyProgram.faculty', 'formPhaseDetails.formPhase']);
 
         return Inertia::render('FormAccessControls/ShowPage', [
             'formAccessControl' => $formAccessControl,
@@ -145,16 +140,15 @@ class FormAccessControlController extends Controller
 
     public function edit(FormAccessControl $formAccessControl)
     {
-        $formAccessControl->load(['form', 'role', 'studyProgram.faculty']);
+        $formAccessControl->load(['form', 'studyProgram.faculty']);
 
         $forms = Form::where('is_active', true)->orderBy('title')->get(['id', 'title']);
-        $roles = Role::orderBy('name')->get(['id', 'name']);
         $faculties = Organization::facultyOptions();
 
         return Inertia::render('FormAccessControls/EditPage', [
             'formAccessControl' => $formAccessControl,
             'forms' => $forms,
-            'roles' => $roles,
+            'permissions' => FormAccessControl::ALLOWED_PERMISSIONS,
             'faculties' => $faculties,
         ]);
     }
@@ -163,26 +157,26 @@ class FormAccessControlController extends Controller
     {
         $request->validate([
             'form_id' => 'required|exists:forms,id',
-            'role_id' => 'required|exists:roles,id',
+            'permission' => ['required', 'string', Rule::in(FormAccessControl::ALLOWED_PERMISSIONS)],
             'study_program_id' => ['required', Rule::exists('organizations', 'id')->where('type', 'study_program')],
         ]);
 
         $existingControl = FormAccessControl::where([
             'form_id' => $request->form_id,
-            'role_id' => $request->role_id,
+            'permission' => $request->permission,
             'organization_id' => $request->study_program_id,
         ])->where('id', '!=', $formAccessControl->id)->first();
 
         if ($existingControl) {
             return back()->withErrors([
-                'duplicate' => 'Kombinasi Formulir, Role, dan Program Studi ini sudah ada.',
+                'duplicate' => 'Kombinasi Formulir, Permission, dan Program Studi ini sudah ada.',
             ]);
         }
 
         try {
             $formAccessControl->update([
                 'form_id' => $request->form_id,
-                'role_id' => $request->role_id,
+                'permission' => $request->permission,
                 'organization_id' => $request->study_program_id,
             ]);
 
@@ -226,7 +220,7 @@ class FormAccessControlController extends Controller
         $request->validate([
             'form_id' => 'required|exists:forms,id',
             'combinations' => 'required|array|min:1',
-            'combinations.*.role_id' => 'required|exists:roles,id',
+            'combinations.*.permission' => ['required', 'string', Rule::in(FormAccessControl::ALLOWED_PERMISSIONS)],
             'combinations.*.study_program_id' => ['required', Rule::exists('organizations', 'id')->where('type', 'study_program')],
         ]);
 
@@ -239,7 +233,7 @@ class FormAccessControlController extends Controller
             foreach ($request->combinations as $combination) {
                 $exists = FormAccessControl::where([
                     'form_id' => $request->form_id,
-                    'role_id' => $combination['role_id'],
+                    'permission' => $combination['permission'],
                     'organization_id' => $combination['study_program_id'],
                 ])->exists();
 
@@ -251,7 +245,7 @@ class FormAccessControlController extends Controller
 
                 FormAccessControl::create([
                     'form_id' => $request->form_id,
-                    'role_id' => $combination['role_id'],
+                    'permission' => $combination['permission'],
                     'organization_id' => $combination['study_program_id'],
                 ]);
 

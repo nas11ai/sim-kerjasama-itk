@@ -262,7 +262,7 @@ const getStatusBadge = (form: ReviewEvaluationForm): { variant: BadgeVariant; te
                                 Role
                             </div>
                             <p class="text-sm text-muted-foreground pl-6">
-                                {{ formPhaseDetail.form_access_control.role.name }}
+                                {{ formPhaseDetail.form_access_control.permission }}
                             </p>
                         </div>
 

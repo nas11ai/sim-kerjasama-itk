@@ -30,6 +30,7 @@ class CompleteFormBuilderController extends Controller
             'formTypes' => FormType::orderBy('name')->get(),
             'fieldTypes' => FieldType::orderBy('name')->get(),
             'roles' => Role::orderBy('name')->get(),
+            'permissions' => FormAccessControl::ALLOWED_PERMISSIONS,
             'faculties' => Organization::facultyOptions(),
             'phaseTypes' => PhaseType::all(),
             'formPhases' => FormPhase::where('is_active', true)
@@ -65,7 +66,7 @@ class CompleteFormBuilderController extends Controller
 
             // Step 2: Access Control
             'access_controls' => 'required|array|min:1',
-            'access_controls.*.role_id' => 'required|exists:roles,id',
+            'access_controls.*.permission' => ['required', 'string', Rule::in(FormAccessControl::ALLOWED_PERMISSIONS)],
             'access_controls.*.study_program_id' => ['required', Rule::exists('organizations', 'id')->where('type', 'study_program')],
 
             // Step 3: Form Phase
@@ -127,7 +128,7 @@ class CompleteFormBuilderController extends Controller
             foreach ($validated['access_controls'] as $accessControl) {
                 $control = FormAccessControl::create([
                     'form_id' => $form->id,
-                    'role_id' => $accessControl['role_id'],
+                    'permission' => $accessControl['permission'],
                     'organization_id' => $accessControl['study_program_id'],
                 ]);
                 $accessControlIds[] = $control->id;

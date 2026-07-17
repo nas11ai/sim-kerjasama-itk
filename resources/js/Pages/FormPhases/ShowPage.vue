@@ -382,7 +382,7 @@ const isGroupOpen = (formId: number) => openGroups.value.has(formId)
                                                             class="h-3 w-3 text-muted-foreground"
                                                         />
                                                         <span class="font-medium">{{
-                                                            detail.form_access_control.role.name
+                                                            detail.form_access_control.permission
                                                         }}</span>
                                                     </div>
                                                     <div class="flex items-center gap-2">

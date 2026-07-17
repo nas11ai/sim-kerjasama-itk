@@ -29,9 +29,7 @@ class SubmissionViewController extends Controller
             'submissionDates.submissionDateLabel',
             'submissionPeriodPhases.formPhase' => function ($query) use ($user, $organizationId) {
                 $query->whereHas('formPhaseDetails.formAccessControl', function ($q) use ($user, $organizationId) {
-                    $q->whereHas('role', function ($roleQuery) use ($user) {
-                        $roleQuery->whereIn('name', $user->getRoleNames());
-                    });
+                    $q->accessibleBy($user);
                     if ($organizationId !== null) {
                         $q->where('organization_id', $organizationId);
                     } else {
@@ -41,9 +39,7 @@ class SubmissionViewController extends Controller
             },
         ])
             ->whereHas('submissionPeriodPhases.formPhase.formPhaseDetails.formAccessControl', function ($query) use ($user, $organizationId) {
-                $query->whereHas('role', function ($roleQuery) use ($user) {
-                    $roleQuery->whereIn('name', $user->getRoleNames());
-                });
+                $query->accessibleBy($user);
                 if ($organizationId !== null) {
                     $query->where('organization_id', $organizationId);
                 } else {
@@ -139,9 +135,7 @@ class SubmissionViewController extends Controller
             $query->where('submission_period_id', $period->id);
         })
             ->whereHas('formPhaseDetails.formAccessControl', function ($query) use ($user, $organizationId) {
-                $query->whereHas('role', function ($roleQuery) use ($user) {
-                    $roleQuery->whereIn('name', $user->getRoleNames());
-                });
+                $query->accessibleBy($user);
                 if ($organizationId !== null) {
                     $query->where('organization_id', $organizationId);
                 } else {
@@ -151,9 +145,7 @@ class SubmissionViewController extends Controller
             ->with([
                 'formPhaseDetails' => function ($query) use ($user, $organizationId) {
                     $query->whereHas('formAccessControl', function ($q) use ($user, $organizationId) {
-                        $q->whereHas('role', function ($roleQuery) use ($user) {
-                            $roleQuery->whereIn('name', $user->getRoleNames());
-                        });
+                        $q->accessibleBy($user);
                         if ($organizationId !== null) {
                             $q->where('organization_id', $organizationId);
                         } else {

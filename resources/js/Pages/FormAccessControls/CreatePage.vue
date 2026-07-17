@@ -18,11 +18,6 @@ import {
 import { Badge } from '@/Components/ui/badge'
 import { ArrowLeft, Users, Building, FileText } from 'lucide-vue-next'
 
-interface Role {
-    id: number
-    name: string
-}
-
 interface StudyProgram {
     id: number
     name: string
@@ -42,14 +37,14 @@ interface Form {
 
 interface FormData {
     form_id: number | null
-    role_id: number | null
+    permission: string | null
     study_program_id: number | null
 }
 
 interface BulkFormData {
     form_id: number | null
     combinations: Array<{
-        role_id: number
+        permission: string
         study_program_id: number
     }>
 }
@@ -57,7 +52,7 @@ interface BulkFormData {
 // Extended error interface to include custom error fields
 interface FormErrors {
     form_id?: string
-    role_id?: string
+    permission?: string
     study_program_id?: string
     duplicate?: string
     [key: string]: string | undefined
@@ -65,7 +60,7 @@ interface FormErrors {
 
 interface Props {
     forms: Form[]
-    roles: Role[]
+    permissions: string[]
     faculties: Faculty[]
 }
 
@@ -73,13 +68,13 @@ const props = defineProps<Props>()
 
 const isBulkMode = ref(false)
 const selectedFacultyId = ref<number | null>(null)
-const selectedRoles = ref<number[]>([])
+const selectedPermissions = ref<string[]>([])
 const selectedStudyPrograms = ref<number[]>([])
 
 // Single form - explicitly type the form
 const form: InertiaForm<FormData> = useForm<FormData>({
     form_id: null,
-    role_id: null,
+    permission: null,
     study_program_id: null,
 })
 
@@ -110,12 +105,12 @@ watch(selectedFacultyId, () => {
 
 // Generate combinations for bulk create
 const generateCombinations = () => {
-    const combinations: Array<{ role_id: number; study_program_id: number }> = []
+    const combinations: Array<{ permission: string; study_program_id: number }> = []
 
-    selectedRoles.value.forEach((roleId) => {
+    selectedPermissions.value.forEach((permission) => {
         selectedStudyPrograms.value.forEach((studyProgramId) => {
             combinations.push({
-                role_id: roleId,
+                permission,
                 study_program_id: studyProgramId,
             })
         })
@@ -129,12 +124,11 @@ const previewCombinations = computed(() => {
 
     const combinations = generateCombinations()
     return combinations.map((combo) => {
-        const role = props.roles.find((r) => r.id === combo.role_id)
         const studyProgram = studyPrograms.value.find((sp) => sp.id === combo.study_program_id)
         const faculty = props.faculties.find((f) => f.id === selectedFacultyId.value)
 
         return {
-            role: role?.name || '',
+            permission: combo.permission,
             study_program: studyProgram?.name || '',
             faculty: faculty?.name || '',
         }
@@ -150,8 +144,8 @@ const submit = () => {
     }
 }
 
-const toggleRole = (roleId: number, checked?: boolean | 'indeterminate'): void => {
-    const isCurrentlySelected = selectedRoles.value.includes(roleId)
+const togglePermission = (permission: string, checked?: boolean | 'indeterminate'): void => {
+    const isCurrentlySelected = selectedPermissions.value.includes(permission)
 
     const shouldBeChecked =
         checked === 'indeterminate'
@@ -162,10 +156,10 @@ const toggleRole = (roleId: number, checked?: boolean | 'indeterminate'): void =
 
     if (shouldBeChecked) {
         if (!isCurrentlySelected) {
-            selectedRoles.value.push(roleId)
+            selectedPermissions.value.push(permission)
         }
     } else {
-        selectedRoles.value = selectedRoles.value.filter((id) => id !== roleId)
+        selectedPermissions.value = selectedPermissions.value.filter((p) => p !== permission)
     }
 }
 
@@ -190,11 +184,11 @@ const toggleStudyProgram = (studyProgramId: number, checked?: boolean | 'indeter
     }
 }
 
-const selectAllRoles = () => {
-    if (selectedRoles.value.length === props.roles.length) {
-        selectedRoles.value = []
+const selectAllPermissions = () => {
+    if (selectedPermissions.value.length === props.permissions.length) {
+        selectedPermissions.value = []
     } else {
-        selectedRoles.value = props.roles.map((r) => r.id)
+        selectedPermissions.value = [...props.permissions]
     }
 }
 
@@ -213,7 +207,7 @@ const switchMode = () => {
     form.reset()
     bulkForm.reset()
     selectedFacultyId.value = null
-    selectedRoles.value = []
+    selectedPermissions.value = []
     selectedStudyPrograms.value = []
 }
 
@@ -312,25 +306,25 @@ const currentFormId = computed({
                         </CardHeader>
                         <CardContent class="space-y-6">
                             <div class="grid gap-6 md:grid-cols-2">
-                                <!-- Role Selection -->
+                                <!-- Permission Selection -->
                                 <div class="space-y-2">
-                                    <Label for="role">Role *</Label>
-                                    <Select v-model="form.role_id">
-                                        <SelectTrigger id="role">
-                                            <SelectValue placeholder="Pilih role" />
+                                    <Label for="permission">Permission *</Label>
+                                    <Select v-model="form.permission">
+                                        <SelectTrigger id="permission">
+                                            <SelectValue placeholder="Pilih permission" />
                                         </SelectTrigger>
                                         <SelectContent>
                                             <SelectItem
-                                                v-for="role in props.roles"
-                                                :key="role.id"
-                                                :value="role.id"
+                                                v-for="permission in props.permissions"
+                                                :key="permission"
+                                                :value="permission"
                                             >
-                                                {{ role.name }}
+                                                {{ permission }}
                                             </SelectItem>
                                         </SelectContent>
                                     </Select>
-                                    <p v-if="errors.role_id" class="text-sm text-destructive">
-                                        {{ errors.role_id }}
+                                    <p v-if="errors.permission" class="text-sm text-destructive">
+                                        {{ errors.permission }}
                                     </p>
                                 </div>
 
@@ -460,20 +454,20 @@ const currentFormId = computed({
                         <CardHeader>
                             <CardTitle class="flex items-center gap-2">
                                 <Users class="h-5 w-5" />
-                                Pemilihan Role
+                                Pemilihan Permission
                             </CardTitle>
                         </CardHeader>
                         <CardContent class="space-y-4">
                             <div class="flex items-center justify-between">
-                                <Label>Role *</Label>
+                                <Label>Permission *</Label>
                                 <Button
                                     type="button"
                                     variant="outline"
                                     size="sm"
-                                    @click="selectAllRoles"
+                                    @click="selectAllPermissions"
                                 >
                                     {{
-                                        selectedRoles.length === props.roles.length
+                                        selectedPermissions.length === props.permissions.length
                                             ? 'Batal Pilih Semua'
                                             : 'Pilih Semua'
                                     }}
@@ -481,16 +475,16 @@ const currentFormId = computed({
                             </div>
                             <div class="grid gap-2 md:grid-cols-2">
                                 <div
-                                    v-for="role in props.roles"
-                                    :key="role.id"
+                                    v-for="permission in props.permissions"
+                                    :key="permission"
                                     class="flex items-center space-x-2"
                                 >
                                     <Checkbox
-                                        :model-value="selectedRoles.includes(role.id)"
-                                        @update:model-value="(val) => toggleRole(role.id, val)"
+                                        :model-value="selectedPermissions.includes(permission)"
+                                        @update:model-value="(val) => togglePermission(permission, val)"
                                     />
-                                    <Label class="cursor-pointer" @click="toggleRole(role.id)">
-                                        {{ role.name }}
+                                    <Label class="cursor-pointer" @click="togglePermission(permission)">
+                                        {{ permission }}
                                     </Label>
                                 </div>
                             </div>
@@ -512,7 +506,7 @@ const currentFormId = computed({
                                     class="flex items-center gap-2 p-2 bg-muted rounded text-sm"
                                 >
                                     <Badge variant="outline">
-                                        {{ combo.role }}
+                                        {{ combo.permission }}
                                     </Badge>
                                     <span>×</span>
                                     <Badge variant="secondary">
