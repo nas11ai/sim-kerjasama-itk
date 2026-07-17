@@ -9,14 +9,17 @@
     ],
     "license": "MIT",
     "require": {
-        "php": "^8.2",
+        "php": "^8.4",
+        "barryvdh/laravel-dompdf": "^3.1",
         "inertiajs/inertia-laravel": "^3.0",
         "laravel/framework": "^13.0",
         "laravel/sanctum": "^4.0",
         "laravel/tinker": "^3.0",
         "lorisleiva/laravel-actions": "^2.10",
+        "maatwebsite/excel": "^3.1",
         "predis/predis": "^3.4",
         "spatie/laravel-activitylog": "^4.12",
+        "spatie/laravel-model-states": "^2.14",
         "spatie/laravel-permission": "7.4.1",
         "tightenco/ziggy": "^2.0"
     },

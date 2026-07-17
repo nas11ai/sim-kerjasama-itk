@@ -341,7 +341,8 @@ SIMPAS v2 menggunakan `spatie/laravel-model-states` untuk state machine `FormSub
 
 ```php
 // ❌ Jangan lakukan ini
-$submission->update(['status' => 'approved']);
+$submission->update(['status' => Approved::class]);
+$submission->status = Approved::class;
 $submission->status = 'approved';
 ```
 
@@ -367,11 +368,37 @@ Approved       → Withdrawn
 
 **Saat menambah state baru:**
 
-1. Buat class baru di `app/States/Submission/` yang extend `SubmissionStatus`
-2. Daftarkan transition yang valid di `SubmissionStatus::config()`
-3. Tulis Pest unit test untuk membuktikan transition valid dan invalid
-4. Update ubiquitous language di DDD jika state baru punya makna domain
-   **Jangan tambahkan percabangan `if ($submission->status === 'approved')` secara raw.** Gunakan `$submission->status->equals(Approved::class)` atau `$submission->status instanceof Approved`.
+1. Buat class baru di `app/States/` yang extend `SubmissionStatus`
+2. Implementasikan seluruh method yang diwajibkan `(label(), color(), icon(), variant(), key(), dan method lain yang diperlukan)`.
+3. Daftarkan state beserta seluruh transition yang valid di `SubmissionStatus::config().`
+4. Tambahkan atau perbarui unit test (Pest) untuk memverifikasi transition yang valid maupun yang tidak valid.
+5. Perbarui dokumentasi domain (ubiquitous language) apabila state baru memiliki makna bisnis baru.
+
+**Membandingkan state**
+
+Jangan membandingkan state menggunakan string atau nama class secara langsung.
+
+```php
+// ❌ Jangan 
+if ($submission->status == 'approved') { ... }
+if ($submission->status === Approved::class) { ... }
+```
+
+Gunakan API state yang tersedia.
+
+```php
+// ✅ Disarankan 
+if ($submission->status->equals(Approved::class)) { 
+    // ...
+```
+
+Jika hanya membutuhkan identifier state (misalnya untuk logging atau serialisasi), gunakan:
+
+```php
+$submission->status->key();
+```
+
+Jangan mengakses properti internal seperti $submission->status->value, karena SubmissionStatus merupakan state class, bukan enum.
 
 ---
 
