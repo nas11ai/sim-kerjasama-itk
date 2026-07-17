@@ -481,9 +481,14 @@ const currentFormId = computed({
                                 >
                                     <Checkbox
                                         :model-value="selectedPermissions.includes(permission)"
-                                        @update:model-value="(val) => togglePermission(permission, val)"
+                                        @update:model-value="
+                                            (val) => togglePermission(permission, val)
+                                        "
                                     />
-                                    <Label class="cursor-pointer" @click="togglePermission(permission)">
+                                    <Label
+                                        class="cursor-pointer"
+                                        @click="togglePermission(permission)"
+                                    >
                                         {{ permission }}
                                     </Label>
                                 </div>

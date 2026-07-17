@@ -3,10 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Models\Form;
+use App\Models\FormAccessControl;
 use App\Models\FormFieldOption;
 use App\Models\FormFieldResponse;
 use App\Models\FormSubmission;
 use Exception;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -22,7 +24,8 @@ class BiodataController extends Controller
 
         $biodataForm = Form::where('form_type_id', 1)
             ->where('is_active', true)
-            ->whereHas('formAccessControls', function ($q) use ($user, $organizationId) {
+            ->whereHas('formAccessControls', function (Builder $q) use ($user, $organizationId) {
+                /** @var Builder<FormAccessControl> $q */
                 $q->accessibleBy($user);
 
                 if ($organizationId !== null) {

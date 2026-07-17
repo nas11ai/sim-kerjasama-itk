@@ -557,7 +557,9 @@ const formatDate = (dateString: string) => {
                                             class="flex h-11 w-full rounded-md bg-transparent py-3 text-sm outline-hidden placeholder:text-muted-foreground disabled:cursor-not-allowed disabled:opacity-50 border-0 ring-0 focus:ring-0 focus:outline-hidden"
                                         />
                                         <CommandList>
-                                            <CommandEmpty>Tidak ada permission ditemukan.</CommandEmpty>
+                                            <CommandEmpty
+                                                >Tidak ada permission ditemukan.</CommandEmpty
+                                            >
                                             <CommandGroup>
                                                 <CommandItem
                                                     value="all"

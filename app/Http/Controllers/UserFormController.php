@@ -15,6 +15,7 @@ use App\Services\EmailNotificationService;
 use App\States\Submission\Approved;
 use App\States\Submission\Submitted;
 use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -48,7 +49,8 @@ class UserFormController extends Controller
         $submissionPeriods = SubmissionPeriod::with([
             'submissionDates.submissionDateLabel',
             'submissionPeriodPhases.formPhase.formPhaseDetails' => function ($query) use ($user, $organizationId) {
-                $query->whereHas('formAccessControl', function ($q) use ($user, $organizationId) {
+                $query->whereHas('formAccessControl', function (Builder $q) use ($user, $organizationId) {
+                    /** @var Builder<FormAccessControl> $q */
                     $q->accessibleBy($user);
 
                     if ($organizationId !== null) {
@@ -101,7 +103,7 @@ class UserFormController extends Controller
                     $accessibleForms = $formPhase->formPhaseDetails->filter(function ($detail) use ($organizationId, $permissions) {
                         $formAccessControl = $detail->formAccessControl;
 
-                        if (!$formAccessControl || $formAccessControl->permission === null) {
+                        if (!$formAccessControl) {
                             return false;
                         }
 
@@ -246,7 +248,8 @@ class UserFormController extends Controller
 
         // Get form access controls for this phase that user can access
         $formAccessControls = $phase->formPhaseDetails()
-            ->whereHas('formAccessControl', function ($query) use ($user, $organizationId) {
+            ->whereHas('formAccessControl', function (Builder $query) use ($user, $organizationId) {
+                /** @var Builder<FormAccessControl> $query */
                 $query->accessibleBy($user);
 
                 if ($organizationId !== null) {
@@ -483,7 +486,8 @@ class UserFormController extends Controller
 
             // Check if this form needs review
             $formPhaseDetail = FormPhaseDetail::where('form_phase_id', $validated['form_phase_id'])
-                ->whereHas('formAccessControl', function ($query) use ($validated, $user) {
+                ->whereHas('formAccessControl', function (Builder $query) use ($validated, $user) {
+                    /** @var Builder<FormAccessControl> $query */
                     $query->where('form_id', $validated['form_id'])
                         ->accessibleBy($user);
                 })

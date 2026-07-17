@@ -304,7 +304,8 @@ onMounted(() => {
                                                         detail.form_access_control.form.title
                                                     }}</span>
                                                     <span class="text-xs text-muted-foreground">
-                                                        {{ detail.form_access_control.permission }} -
+                                                        {{ detail.form_access_control.permission }}
+                                                        -
                                                         {{
                                                             detail.form_access_control.study_program
                                                                 .name

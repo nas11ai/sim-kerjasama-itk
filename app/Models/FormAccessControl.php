@@ -13,6 +13,9 @@ use Illuminate\Support\Collection;
  * @property-read Form|null $form
  * @property-read Organization|null $organization
  * @property-read Organization|null $studyProgram
+ *
+ * @method static Builder<static> accessibleBy(User $user)
+ * @method static Builder<static> query()
  */
 class FormAccessControl extends Model
 {
