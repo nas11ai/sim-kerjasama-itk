@@ -2,7 +2,7 @@
 
 namespace App\Models;
 
-use App\SubmissionStatus;
+use App\States\Submission\NeedsRevision;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -51,7 +51,7 @@ class BudgetLineItem extends Model
         static::updating(function (BudgetLineItem $item): void {
             $submission = FormSubmission::find($item->form_submission_id);
 
-            if ($submission?->status !== SubmissionStatus::NEEDS_REVISION) {
+            if (!$submission?->status instanceof NeedsRevision) {
                 return;
             }
 
