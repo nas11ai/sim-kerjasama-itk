@@ -37,6 +37,45 @@ class Organization extends Model
     }
 
     /**
+     * Alias for parent() so study-program orgs serialize as study_program.faculty for Inertia.
+     */
+    public function faculty(): BelongsTo
+    {
+        return $this->belongsTo(Organization::class, 'parent_id');
+    }
+
+    /**
+     * Faculty → study_program tree shaped like the legacy Faculty::with('studyPrograms') payload.
+     *
+     * @return \Illuminate\Support\Collection<int, array{id: int, name: string, study_programs: list<array{id: int, name: string, faculty_id: int}>}>
+     */
+    public static function facultyOptions()
+    {
+        return static::query()
+            ->where('type', 'faculty')
+            ->orderBy('name')
+            ->with(['children' => static function ($query): void {
+                $query->where('type', 'study_program')->orderBy('name');
+            }])
+            ->get()
+            ->map(static function (self $faculty): array {
+                return [
+                    'id' => $faculty->id,
+                    'name' => $faculty->name,
+                    'study_programs' => $faculty->children
+                        ->map(static fn (self $studyProgram): array => [
+                            'id' => $studyProgram->id,
+                            'name' => $studyProgram->name,
+                            'faculty_id' => $faculty->id,
+                        ])
+                        ->values()
+                        ->all(),
+                ];
+            })
+            ->values();
+    }
+
+    /**
      * @return list<int>
      */
     public static function subtreeIds(int $orgId): array

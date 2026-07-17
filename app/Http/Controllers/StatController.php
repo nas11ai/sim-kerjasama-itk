@@ -84,11 +84,7 @@ class StatController extends Controller
             ->leftJoin('form_phase_details', 'form_phase_details.form_phase_id', '=', 'form_phases.id')
             ->leftJoin('form_access_controls', 'form_access_controls.id', '=', 'form_phase_details.form_access_control_id')
             ->leftJoin('forms', 'forms.id', '=', 'form_access_controls.form_id')
-            ->leftJoin('study_programs', 'study_programs.id', '=', 'form_access_controls.study_program_id')
-            ->leftJoin('organizations as sp_org', function ($join) {
-                $join->on(DB::raw("sp_org.metadata -> 'legacy' ->> 'study_program_id'"), '=', DB::raw('CAST(study_programs.id AS TEXT)'))
-                    ->where('sp_org.type', 'study_program');
-            })
+            ->leftJoin('organizations as sp_org', 'sp_org.id', '=', 'form_access_controls.organization_id')
             ->leftJoin('organizations as fac_org', 'fac_org.id', '=', 'sp_org.parent_id')
             ->leftJoin('form_submissions', function ($join) {
                 $join->on('form_submissions.form_id', '=', 'forms.id')
@@ -112,11 +108,7 @@ class StatController extends Controller
             ->leftJoin('form_phase_details', 'form_phase_details.form_phase_id', '=', 'form_phases.id')
             ->leftJoin('form_access_controls', 'form_access_controls.id', '=', 'form_phase_details.form_access_control_id')
             ->leftJoin('forms', 'forms.id', '=', 'form_access_controls.form_id')
-            ->leftJoin('study_programs', 'study_programs.id', '=', 'form_access_controls.study_program_id')
-            ->leftJoin('organizations as sp_org', function ($join) {
-                $join->on(DB::raw("sp_org.metadata -> 'legacy' ->> 'study_program_id'"), '=', DB::raw('CAST(study_programs.id AS TEXT)'))
-                    ->where('sp_org.type', 'study_program');
-            })
+            ->leftJoin('organizations as sp_org', 'sp_org.id', '=', 'form_access_controls.organization_id')
             ->leftJoin('organizations as fac_org', 'fac_org.id', '=', 'sp_org.parent_id')
             ->leftJoin('form_submissions', function ($join) {
                 $join->on('form_submissions.form_id', '=', 'forms.id')
@@ -248,9 +240,8 @@ class StatController extends Controller
         $totalByFaculty = FormSubmission::select('fac_org.id', 'fac_org.name', DB::raw('COUNT(DISTINCT form_submissions.id) as total'))
             ->join('forms', 'forms.id', '=', 'form_submissions.form_id')
             ->join('form_access_controls', 'form_access_controls.form_id', '=', 'forms.id')
-            ->join('study_programs', 'study_programs.id', '=', 'form_access_controls.study_program_id')
             ->join('organizations as sp_org', function ($join) {
-                $join->on(DB::raw("sp_org.metadata -> 'legacy' ->> 'study_program_id'"), '=', DB::raw('CAST(study_programs.id AS TEXT)'))
+                $join->on('sp_org.id', '=', 'form_access_controls.organization_id')
                     ->where('sp_org.type', 'study_program');
             })
             ->join('organizations as fac_org', 'fac_org.id', '=', 'sp_org.parent_id')
@@ -260,9 +251,8 @@ class StatController extends Controller
         $totalByProdi = FormSubmission::select('sp_org.id', 'sp_org.name', DB::raw('COUNT(DISTINCT form_submissions.id) as total'))
             ->join('forms', 'forms.id', '=', 'form_submissions.form_id')
             ->join('form_access_controls', 'form_access_controls.form_id', '=', 'forms.id')
-            ->join('study_programs', 'study_programs.id', '=', 'form_access_controls.study_program_id')
             ->join('organizations as sp_org', function ($join) {
-                $join->on(DB::raw("sp_org.metadata -> 'legacy' ->> 'study_program_id'"), '=', DB::raw('CAST(study_programs.id AS TEXT)'))
+                $join->on('sp_org.id', '=', 'form_access_controls.organization_id')
                     ->where('sp_org.type', 'study_program');
             })
             ->groupBy('sp_org.id', 'sp_org.name')

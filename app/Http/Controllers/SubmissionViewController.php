@@ -22,30 +22,30 @@ class SubmissionViewController extends Controller
     {
         $user = Auth::user();
         $user->load('organization.parent');
-        $studyProgramId = $user->study_program_id;
+        $organizationId = $user->organization?->id;
 
         // Get submission periods with user's accessible form phases
         $submissionPeriods = SubmissionPeriod::with([
             'submissionDates.submissionDateLabel',
-            'submissionPeriodPhases.formPhase' => function ($query) use ($user, $studyProgramId) {
-                $query->whereHas('formPhaseDetails.formAccessControl', function ($q) use ($user, $studyProgramId) {
+            'submissionPeriodPhases.formPhase' => function ($query) use ($user, $organizationId) {
+                $query->whereHas('formPhaseDetails.formAccessControl', function ($q) use ($user, $organizationId) {
                     $q->whereHas('role', function ($roleQuery) use ($user) {
                         $roleQuery->whereIn('name', $user->getRoleNames());
                     });
-                    if ($studyProgramId !== null) {
-                        $q->where('study_program_id', $studyProgramId);
+                    if ($organizationId !== null) {
+                        $q->where('organization_id', $organizationId);
                     } else {
                         $q->whereRaw('1 = 0');
                     }
                 });
             },
         ])
-            ->whereHas('submissionPeriodPhases.formPhase.formPhaseDetails.formAccessControl', function ($query) use ($user, $studyProgramId) {
+            ->whereHas('submissionPeriodPhases.formPhase.formPhaseDetails.formAccessControl', function ($query) use ($user, $organizationId) {
                 $query->whereHas('role', function ($roleQuery) use ($user) {
                     $roleQuery->whereIn('name', $user->getRoleNames());
                 });
-                if ($studyProgramId !== null) {
-                    $query->where('study_program_id', $studyProgramId);
+                if ($organizationId !== null) {
+                    $query->where('organization_id', $organizationId);
                 } else {
                     $query->whereRaw('1 = 0');
                 }
@@ -132,30 +132,30 @@ class SubmissionViewController extends Controller
     public function userShowPeriod(SubmissionPeriod $period)
     {
         $user = Auth::user();
-        $studyProgramId = $user->study_program_id;
+        $organizationId = $user->organization?->id;
 
         // Get form phases for this period that user can access
         $formPhases = FormPhase::whereHas('submissionPeriodPhases', function ($query) use ($period) {
             $query->where('submission_period_id', $period->id);
         })
-            ->whereHas('formPhaseDetails.formAccessControl', function ($query) use ($user, $studyProgramId) {
+            ->whereHas('formPhaseDetails.formAccessControl', function ($query) use ($user, $organizationId) {
                 $query->whereHas('role', function ($roleQuery) use ($user) {
                     $roleQuery->whereIn('name', $user->getRoleNames());
                 });
-                if ($studyProgramId !== null) {
-                    $query->where('study_program_id', $studyProgramId);
+                if ($organizationId !== null) {
+                    $query->where('organization_id', $organizationId);
                 } else {
                     $query->whereRaw('1 = 0');
                 }
             })
             ->with([
-                'formPhaseDetails' => function ($query) use ($user, $studyProgramId) {
-                    $query->whereHas('formAccessControl', function ($q) use ($user, $studyProgramId) {
+                'formPhaseDetails' => function ($query) use ($user, $organizationId) {
+                    $query->whereHas('formAccessControl', function ($q) use ($user, $organizationId) {
                         $q->whereHas('role', function ($roleQuery) use ($user) {
                             $roleQuery->whereIn('name', $user->getRoleNames());
                         });
-                        if ($studyProgramId !== null) {
-                            $q->where('study_program_id', $studyProgramId);
+                        if ($organizationId !== null) {
+                            $q->where('organization_id', $organizationId);
                         } else {
                             $q->whereRaw('1 = 0');
                         }
