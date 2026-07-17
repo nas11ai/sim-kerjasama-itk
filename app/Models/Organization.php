@@ -66,11 +66,11 @@ class Organization extends Model
     protected static function booted(): void
     {
         static::saved(function (Organization $organization): void {
-            static::forgetSubtreeCachesFor($organization);
+            self::forgetSubtreeCachesFor($organization);
         });
 
         static::deleted(function (Organization $organization): void {
-            static::forgetSubtreeCachesFor($organization);
+            self::forgetSubtreeCachesFor($organization);
         });
     }
 
@@ -81,7 +81,7 @@ class Organization extends Model
         $parentId = $organization->parent_id;
         while ($parentId !== null) {
             $cacheIds[] = (int) $parentId;
-            $parentId = static::query()->whereKey($parentId)->value('parent_id');
+            $parentId = self::query()->whereKey($parentId)->value('parent_id');
         }
 
         $originalParentId = $organization->getOriginal('parent_id');
@@ -89,7 +89,7 @@ class Organization extends Model
             $parentId = $originalParentId;
             while ($parentId !== null) {
                 $cacheIds[] = (int) $parentId;
-                $parentId = static::query()->whereKey($parentId)->value('parent_id');
+                $parentId = self::query()->whereKey($parentId)->value('parent_id');
             }
         }
 
