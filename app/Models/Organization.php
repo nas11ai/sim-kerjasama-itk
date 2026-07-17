@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 
@@ -34,6 +35,48 @@ class Organization extends Model
     public function children(): HasMany
     {
         return $this->hasMany(Organization::class, 'parent_id');
+    }
+
+    /**
+     * Alias for parent() so study-program orgs serialize as study_program.faculty for Inertia.
+     */
+    public function faculty(): BelongsTo
+    {
+        return $this->belongsTo(Organization::class, 'parent_id');
+    }
+
+    /**
+     * Faculty → study_program tree shaped like the legacy Faculty::with('studyPrograms') payload.
+     *
+     * @return Collection<int, array{id: int, name: string, study_programs: array<int, array{id: int, name: string, faculty_id: int}>}>
+     */
+    public static function facultyOptions(): Collection
+    {
+        return static::query()
+            ->where('type', 'faculty')
+            ->orderBy('name')
+            ->with(['children' => static function ($query): void {
+                $query->where('type', 'study_program')->orderBy('name');
+            }])
+            ->get()
+            ->map(static function (Organization $faculty): array {
+                /** @var \Illuminate\Database\Eloquent\Collection<int, Organization> $children */
+                $children = $faculty->children;
+
+                return [
+                    'id' => $faculty->id,
+                    'name' => $faculty->name,
+                    'study_programs' => $children
+                        ->map(static fn (Organization $studyProgram): array => [
+                            'id' => $studyProgram->id,
+                            'name' => $studyProgram->name,
+                            'faculty_id' => $faculty->id,
+                        ])
+                        ->values()
+                        ->all(),
+                ];
+            })
+            ->values();
     }
 
     /**

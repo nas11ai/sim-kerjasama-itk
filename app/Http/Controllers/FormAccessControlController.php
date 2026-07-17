@@ -2,12 +2,12 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Faculty;
 use App\Models\Form;
 use App\Models\FormAccessControl;
-use App\Models\StudyProgram;
+use App\Models\Organization;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Spatie\Permission\Models\Role;
 
@@ -17,7 +17,6 @@ class FormAccessControlController extends Controller
     {
         $query = FormAccessControl::with(['form', 'role', 'studyProgram.faculty']);
 
-        // Apply filters
         if ($request->has('form_id') && $request->form_id) {
             $query->where('form_id', $request->form_id);
         }
@@ -28,15 +27,14 @@ class FormAccessControlController extends Controller
 
         if ($request->has('faculty_id') && $request->faculty_id) {
             $query->whereHas('studyProgram', function ($q) use ($request) {
-                $q->where('faculty_id', $request->faculty_id);
+                $q->where('parent_id', $request->faculty_id);
             });
         }
 
-        if ($request->has('study_program_id') && $request->study_program_id) {
-            $query->where('study_program_id', $request->study_program_id);
+        if ($request->filled('study_program_id')) {
+            $query->where('organization_id', $request->study_program_id);
         }
 
-        // Search functionality
         if ($request->has('search') && $request->search) {
             $search = $request->search;
             $query->where(function ($q) use ($search) {
@@ -75,10 +73,9 @@ class FormAccessControlController extends Controller
             return $item;
         });
 
-        // Get filter options
         $forms = Form::where('is_active', true)->orderBy('title')->get(['id', 'title']);
         $roles = Role::orderBy('name')->get(['id', 'name']);
-        $faculties = Faculty::with('studyPrograms')->orderBy('name')->get();
+        $faculties = Organization::facultyOptions();
 
         return Inertia::render('FormAccessControls/IndexPage', [
             'groupAccessControls' => $groupAccessControls,
@@ -93,7 +90,7 @@ class FormAccessControlController extends Controller
     {
         $forms = Form::where('is_active', true)->orderBy('title')->get(['id', 'title']);
         $roles = Role::orderBy('name')->get(['id', 'name']);
-        $faculties = Faculty::with('studyPrograms')->orderBy('name')->get();
+        $faculties = Organization::facultyOptions();
 
         return Inertia::render('FormAccessControls/CreatePage', [
             'forms' => $forms,
@@ -107,14 +104,13 @@ class FormAccessControlController extends Controller
         $request->validate([
             'form_id' => 'required|exists:forms,id',
             'role_id' => 'required|exists:roles,id',
-            'study_program_id' => 'required|exists:study_programs,id',
+            'study_program_id' => ['required', Rule::exists('organizations', 'id')->where('type', 'study_program')],
         ]);
 
-        // Check for duplicate combination
         $existingControl = FormAccessControl::where([
             'form_id' => $request->form_id,
             'role_id' => $request->role_id,
-            'study_program_id' => $request->study_program_id,
+            'organization_id' => $request->study_program_id,
         ])->first();
 
         if ($existingControl) {
@@ -127,7 +123,7 @@ class FormAccessControlController extends Controller
             FormAccessControl::create([
                 'form_id' => $request->form_id,
                 'role_id' => $request->role_id,
-                'study_program_id' => $request->study_program_id,
+                'organization_id' => $request->study_program_id,
             ]);
 
             return redirect()->route('admin.form-access-controls.index')
@@ -153,7 +149,7 @@ class FormAccessControlController extends Controller
 
         $forms = Form::where('is_active', true)->orderBy('title')->get(['id', 'title']);
         $roles = Role::orderBy('name')->get(['id', 'name']);
-        $faculties = Faculty::with('studyPrograms')->orderBy('name')->get();
+        $faculties = Organization::facultyOptions();
 
         return Inertia::render('FormAccessControls/EditPage', [
             'formAccessControl' => $formAccessControl,
@@ -168,14 +164,13 @@ class FormAccessControlController extends Controller
         $request->validate([
             'form_id' => 'required|exists:forms,id',
             'role_id' => 'required|exists:roles,id',
-            'study_program_id' => 'required|exists:study_programs,id',
+            'study_program_id' => ['required', Rule::exists('organizations', 'id')->where('type', 'study_program')],
         ]);
 
-        // Check for duplicate combination (excluding current record)
         $existingControl = FormAccessControl::where([
             'form_id' => $request->form_id,
             'role_id' => $request->role_id,
-            'study_program_id' => $request->study_program_id,
+            'organization_id' => $request->study_program_id,
         ])->where('id', '!=', $formAccessControl->id)->first();
 
         if ($existingControl) {
@@ -188,7 +183,7 @@ class FormAccessControlController extends Controller
             $formAccessControl->update([
                 'form_id' => $request->form_id,
                 'role_id' => $request->role_id,
-                'study_program_id' => $request->study_program_id,
+                'organization_id' => $request->study_program_id,
             ]);
 
             return redirect()->route('admin.form-access-controls.index')
@@ -204,7 +199,6 @@ class FormAccessControlController extends Controller
         try {
             DB::beginTransaction();
 
-            // Check if this access control is being used in form phase details
             $usageCount = $formAccessControl->formPhaseDetails()->count();
 
             if ($usageCount > 0) {
@@ -233,7 +227,7 @@ class FormAccessControlController extends Controller
             'form_id' => 'required|exists:forms,id',
             'combinations' => 'required|array|min:1',
             'combinations.*.role_id' => 'required|exists:roles,id',
-            'combinations.*.study_program_id' => 'required|exists:study_programs,id',
+            'combinations.*.study_program_id' => ['required', Rule::exists('organizations', 'id')->where('type', 'study_program')],
         ]);
 
         try {
@@ -241,14 +235,12 @@ class FormAccessControlController extends Controller
 
             $created = 0;
             $skipped = 0;
-            $errors = [];
 
-            foreach ($request->combinations as $index => $combination) {
-                // Check for existing combination
+            foreach ($request->combinations as $combination) {
                 $exists = FormAccessControl::where([
                     'form_id' => $request->form_id,
                     'role_id' => $combination['role_id'],
-                    'study_program_id' => $combination['study_program_id'],
+                    'organization_id' => $combination['study_program_id'],
                 ])->exists();
 
                 if ($exists) {
@@ -260,7 +252,7 @@ class FormAccessControlController extends Controller
                 FormAccessControl::create([
                     'form_id' => $request->form_id,
                     'role_id' => $combination['role_id'],
-                    'study_program_id' => $combination['study_program_id'],
+                    'organization_id' => $combination['study_program_id'],
                 ]);
 
                 $created++;
@@ -326,7 +318,9 @@ class FormAccessControlController extends Controller
 
     public function getStudyPrograms(Request $request)
     {
-        $studyPrograms = StudyProgram::where('faculty_id', $request->faculty_id)
+        $studyPrograms = Organization::query()
+            ->where('type', 'study_program')
+            ->where('parent_id', $request->faculty_id)
             ->orderBy('name')
             ->get(['id', 'name']);
 
