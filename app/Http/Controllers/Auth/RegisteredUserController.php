@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
-use App\Models\Organization;
+use App\Models\StudyProgram;
 use App\Models\User;
 use App\Models\UserProfile;
 use Illuminate\Auth\Events\Registered;
@@ -30,14 +30,13 @@ class RegisteredUserController extends Controller
             ->select('id', 'name')
             ->get();
 
-        $organizations = Organization::where('type', 'study_program')
-            ->select('id', 'name')
+        $studyPrograms = StudyProgram::select('id', 'name')
             ->orderBy('id')
             ->get();
 
         return Inertia::render('Auth/RegisterPage', [
             'roles' => $roles,
-            'studyPrograms' => $organizations,
+            'studyPrograms' => $studyPrograms,
         ]);
     }
 
@@ -75,7 +74,7 @@ class RegisteredUserController extends Controller
             'email' => 'required|string|lowercase|email|max:255|unique:'.User::class,
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
             'role' => 'required|exists:roles,id',
-            'study_program' => 'required|exists:organizations,id',
+            'study_program' => 'required|exists:study_programs,id',
         ]);
 
         DB::beginTransaction();
@@ -93,7 +92,7 @@ class RegisteredUserController extends Controller
             UserProfile::create([
                 'user_id' => $user->id,
                 'role_id' => $request->role,
-                'organization_id' => $request->study_program,
+                'study_program_id' => $request->study_program,
             ]);
 
             DB::commit();

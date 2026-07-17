@@ -31,10 +31,9 @@ class UserFormController extends Controller
     public function dashboard()
     {
         $user = Auth::user();
-        $user->load('organization.parent');
 
         // Get user's study program and role
-        $studyProgramId = $user->study_program_id;
+        $studyProgram = $user->studyProgram ?? null;
         $userRoles = $user->getRoleNames();
         $primaryRole = $userRoles->first() ?? 'user';
 
@@ -45,14 +44,14 @@ class UserFormController extends Controller
         // Get submission periods with accessible form phases
         $submissionPeriods = SubmissionPeriod::with([
             'submissionDates.submissionDateLabel',
-            'submissionPeriodPhases.formPhase.formPhaseDetails' => function ($query) use ($user, $studyProgramId) {
-                $query->whereHas('formAccessControl', function ($q) use ($user, $studyProgramId) {
+            'submissionPeriodPhases.formPhase.formPhaseDetails' => function ($query) use ($user, $studyProgram) {
+                $query->whereHas('formAccessControl', function ($q) use ($user, $studyProgram) {
                     $q->whereHas('role', function ($roleQuery) use ($user) {
                         $roleQuery->whereIn('name', $user->getRoleNames());
                     });
 
-                    if ($studyProgramId) {
-                        $q->where('study_program_id', $studyProgramId);
+                    if ($studyProgram) {
+                        $q->where('study_program_id', $studyProgram->id);
                     }
                 })
                     ->with(['formAccessControl.form.formFields', 'phaseType'])
@@ -60,7 +59,7 @@ class UserFormController extends Controller
             },
         ])
             ->get()
-            ->map(function ($period) use ($user, $studyProgramId) {
+            ->map(function ($period) use ($user, $studyProgram) {
                 // Fix: Use correct attribute name based on your model
                 $dates = $period->submissionDates->sortBy('datetime'); // Changed from 'datetime' to 'date'
                 $now = Carbon::now();
@@ -92,12 +91,12 @@ class UserFormController extends Controller
                 }
 
                 // Process form phases with user progress
-                $period->form_phases = $period->submissionPeriodPhases->map(function ($periodPhase) use ($user, $studyProgramId) {
+                $period->form_phases = $period->submissionPeriodPhases->map(function ($periodPhase) use ($user, $studyProgram) {
                     $formPhase = $periodPhase->formPhase;
 
                     // Get user's accessible form access controls
                     // Filter by role AND study_program_id to avoid counting forms multiple times
-                    $accessibleForms = $formPhase->formPhaseDetails->filter(function ($detail) use ($user, $studyProgramId) {
+                    $accessibleForms = $formPhase->formPhaseDetails->filter(function ($detail) use ($user, $studyProgram) {
                         $formAccessControl = $detail->formAccessControl;
 
                         if (!$formAccessControl || !$formAccessControl->role) {
@@ -110,7 +109,7 @@ class UserFormController extends Controller
                         }
 
                         // Check study program match (if user has study program)
-                        if ($studyProgramId && $formAccessControl->study_program_id !== $studyProgramId) {
+                        if ($studyProgram && $formAccessControl->study_program_id !== $studyProgram->id) {
                             return false;
                         }
 
@@ -173,11 +172,11 @@ class UserFormController extends Controller
         return Inertia::render('User/DashboardPage', [
             'submissionPeriods' => $submissionPeriods,
             'userRole' => $primaryRole,
-            'studyProgram' => $user->organization ? [
-                'id' => $user->organization->id,
-                'name' => $user->organization->name,
+            'studyProgram' => $studyProgram ? [
+                'id' => $studyProgram->id,
+                'name' => $studyProgram->name,
                 'faculty' => [
-                    'name' => $user->organization->parent->name ?? '',
+                    'name' => $studyProgram->faculty->name,
                 ],
             ] : null,
             'isReviewer' => $isReviewer,
@@ -243,17 +242,17 @@ class UserFormController extends Controller
     public function showFormPhase(SubmissionPeriod $period, FormPhase $phase, Request $request)
     {
         $user = Auth::user();
-        $studyProgramId = $user->study_program_id;
+        $studyProgram = $user->studyProgram ?? null;
 
         // Get form access controls for this phase that user can access
         $formAccessControls = $phase->formPhaseDetails()
-            ->whereHas('formAccessControl', function ($query) use ($user, $studyProgramId) {
+            ->whereHas('formAccessControl', function ($query) use ($user, $studyProgram) {
                 $query->whereHas('role', function ($roleQuery) use ($user) {
                     $roleQuery->whereIn('name', $user->getRoleNames());
                 });
 
-                if ($studyProgramId) {
-                    $query->where('study_program_id', $studyProgramId);
+                if ($studyProgram) {
+                    $query->where('study_program_id', $studyProgram->id);
                 }
             })
             ->with([
