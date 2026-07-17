@@ -64,10 +64,7 @@ interface FormPhaseDetail {
             id: number
             title: string
         }
-        role: {
-            id: number
-            name: string
-        }
+        permission: string
         study_program: {
             id: number
             name: string

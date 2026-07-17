@@ -51,7 +51,7 @@ interface PhaseType {
 interface FormAccessControl {
     id: number
     form: Form
-    role: Role
+    permission: string
     study_program: StudyProgram
 }
 

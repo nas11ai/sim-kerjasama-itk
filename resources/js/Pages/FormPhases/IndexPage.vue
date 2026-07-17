@@ -51,11 +51,6 @@ interface PhaseType {
     name: string
 }
 
-interface Role {
-    id: number
-    name: string
-}
-
 interface Faculty {
     id: number
     name: string
@@ -75,7 +70,7 @@ interface Form {
 interface FormAccessControl {
     id: number
     form: Form
-    role: Role
+    permission: string
     study_program: StudyProgram
 }
 

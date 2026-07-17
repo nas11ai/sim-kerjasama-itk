@@ -4,12 +4,8 @@ use App\Models\Form;
 use App\Models\FormAccessControl;
 use App\Models\Organization;
 use App\Models\User;
-use Illuminate\Foundation\Testing\RefreshDatabase;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
-use Tests\TestCase;
-
-uses(TestCase::class, RefreshDatabase::class);
 
 test('permissionForRoleName maps ddd and legacy roles', function () {
     expect(FormAccessControl::permissionForRoleName('researcher'))->toBe('submissions.create')

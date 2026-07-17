@@ -24,11 +24,6 @@ import {
     ChevronRight,
 } from 'lucide-vue-next'
 
-interface Role {
-    id: number
-    name: string
-}
-
 interface Faculty {
     id: number
     name: string
@@ -53,7 +48,7 @@ interface PhaseType {
 interface FormAccessControl {
     id: number
     form: Form
-    role: Role
+    permission: string
     study_program: StudyProgram
 }
 
