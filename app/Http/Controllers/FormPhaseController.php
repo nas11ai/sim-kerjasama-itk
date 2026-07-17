@@ -26,7 +26,6 @@ class FormPhaseController extends Controller
 
         $query = FormPhase::with([
             'formPhaseDetails.formAccessControl.form',
-            'formPhaseDetails.formAccessControl.role',
             'formPhaseDetails.formAccessControl.studyProgram.faculty',
             'formPhaseDetails.phaseType',
             'formPhaseDetails.reviewEvaluationForms', // Changed: now loaded through formPhaseDetails
@@ -78,12 +77,13 @@ class FormPhaseController extends Controller
         $roles = Role::all(['id', 'name']);
         $faculties = Organization::facultyOptions();
         $phaseTypes = PhaseType::all(['id', 'name']);
-        $formAccessControls = FormAccessControl::with(['form', 'role', 'studyProgram'])
+        $formAccessControls = FormAccessControl::with(['form', 'studyProgram'])
             ->get();
 
         return Inertia::render('FormPhases/CreatePage', [
             'forms' => $forms,
             'roles' => $roles,
+            'permissions' => FormAccessControl::ALLOWED_PERMISSIONS,
             'faculties' => $faculties,
             'phaseTypes' => $phaseTypes,
             'formAccessControls' => $formAccessControls,
@@ -166,7 +166,6 @@ class FormPhaseController extends Controller
     {
         $formPhase->load([
             'formPhaseDetails.formAccessControl.form',
-            'formPhaseDetails.formAccessControl.role',
             'formPhaseDetails.formAccessControl.studyProgram.faculty',
             'formPhaseDetails.phaseType',
             'formPhaseDetails.reviewEvaluationForms' => function ($query) {
@@ -197,7 +196,6 @@ class FormPhaseController extends Controller
     {
         $formPhase->load([
             'formPhaseDetails.formAccessControl.form',
-            'formPhaseDetails.formAccessControl.role',
             'formPhaseDetails.formAccessControl.studyProgram.faculty',
             'formPhaseDetails.phaseType',
         ]);
@@ -206,13 +204,14 @@ class FormPhaseController extends Controller
         $roles = Role::all(['id', 'name']);
         $faculties = Organization::facultyOptions();
         $phaseTypes = PhaseType::all(['id', 'name']);
-        $formAccessControls = FormAccessControl::with(['form', 'role', 'studyProgram'])
+        $formAccessControls = FormAccessControl::with(['form', 'studyProgram'])
             ->get();
 
         return Inertia::render('FormPhases/EditPage', [
             'formPhase' => $formPhase,
             'forms' => $forms,
             'roles' => $roles,
+            'permissions' => FormAccessControl::ALLOWED_PERMISSIONS,
             'faculties' => $faculties,
             'phaseTypes' => $phaseTypes,
             'formAccessControls' => $formAccessControls,
@@ -316,14 +315,14 @@ class FormPhaseController extends Controller
 
     public function getFormAccessControls(Request $request)
     {
-        $query = FormAccessControl::with(['form', 'role', 'studyProgram.faculty']);
+        $query = FormAccessControl::with(['form', 'studyProgram.faculty']);
 
         if ($request->has('form_id')) {
             $query->where('form_id', $request->form_id);
         }
 
-        if ($request->has('role_id')) {
-            $query->where('role_id', $request->role_id);
+        if ($request->filled('permission')) {
+            $query->where('permission', $request->permission);
         }
 
         if ($request->has('study_program_id')) {
@@ -375,7 +374,6 @@ class FormPhaseController extends Controller
 
         $formPhaseDetail = FormPhaseDetail::with([
             'formAccessControl.form',
-            'formAccessControl.role',
             'formAccessControl.studyProgram.faculty',
             'phaseType',
             'reviewEvaluationForms' => function ($query) {

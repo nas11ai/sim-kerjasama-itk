@@ -19,8 +19,6 @@ interface StudyProgram {
     name: string
 }
 
-import type { Role } from '@/types'
-
 export interface Faculty {
     id: number
     name: string
@@ -28,14 +26,14 @@ export interface Faculty {
 }
 
 interface AccessControl {
-    role_id: number
+    permission: string
     study_program_id: number
     temp_id: string
 }
 
 interface Props {
     modelValue: AccessControl[]
-    roles: Role[]
+    permissions: string[]
     faculties: Faculty[]
     errors: Record<string, string>
 }
@@ -51,7 +49,7 @@ const accessControls = computed({
 })
 
 const selectedFacultyId = ref<number | null>(null)
-const selectedRoleIds = ref<number[]>([])
+const selectedPermissions = ref<string[]>([])
 const selectedStudyProgramIds = ref<number[]>([])
 
 const studyPrograms = computed(() => {
@@ -64,7 +62,7 @@ const generateTempId = () => `temp_${Date.now()}_${Math.random()}`
 
 const addAccessControl = () => {
     accessControls.value.push({
-        role_id: 0,
+        permission: '',
         study_program_id: 0,
         temp_id: generateTempId(),
     })
@@ -75,16 +73,15 @@ const removeAccessControl = (index: number) => {
 }
 
 const bulkAddAccessControls = () => {
-    selectedRoleIds.value.forEach((roleId) => {
+    selectedPermissions.value.forEach((permission) => {
         selectedStudyProgramIds.value.forEach((studyProgramId) => {
-            // Check if combination already exists
             const exists = accessControls.value.some(
-                (ac) => ac.role_id === roleId && ac.study_program_id === studyProgramId
+                (ac) => ac.permission === permission && ac.study_program_id === studyProgramId
             )
 
             if (!exists) {
                 accessControls.value.push({
-                    role_id: roleId,
+                    permission,
                     study_program_id: studyProgramId,
                     temp_id: generateTempId(),
                 })
@@ -92,14 +89,13 @@ const bulkAddAccessControls = () => {
         })
     })
 
-    // Reset selections
-    selectedRoleIds.value = []
+    selectedPermissions.value = []
     selectedStudyProgramIds.value = []
     selectedFacultyId.value = null
 }
 
-const toggleRole = (roleId: number, checked?: boolean | 'indeterminate'): void => {
-    const isCurrentlySelected = selectedRoleIds.value.includes(roleId)
+const togglePermission = (permission: string, checked?: boolean | 'indeterminate'): void => {
+    const isCurrentlySelected = selectedPermissions.value.includes(permission)
 
     const shouldBeChecked =
         checked === 'indeterminate'
@@ -110,10 +106,10 @@ const toggleRole = (roleId: number, checked?: boolean | 'indeterminate'): void =
 
     if (shouldBeChecked) {
         if (!isCurrentlySelected) {
-            selectedRoleIds.value.push(roleId)
+            selectedPermissions.value.push(permission)
         }
     } else {
-        selectedRoleIds.value = selectedRoleIds.value.filter((id) => id !== roleId)
+        selectedPermissions.value = selectedPermissions.value.filter((p) => p !== permission)
     }
 }
 
@@ -138,11 +134,11 @@ const toggleStudyProgram = (studyProgramId: number, checked?: boolean | 'indeter
     }
 }
 
-const selectAllRoles = () => {
-    if (selectedRoleIds.value.length === props.roles.length) {
-        selectedRoleIds.value = []
+const selectAllPermissions = () => {
+    if (selectedPermissions.value.length === props.permissions.length) {
+        selectedPermissions.value = []
     } else {
-        selectedRoleIds.value = props.roles.map((r: Role) => r.id)
+        selectedPermissions.value = [...props.permissions]
     }
 }
 
@@ -152,10 +148,6 @@ const selectAllStudyPrograms = () => {
     } else {
         selectedStudyProgramIds.value = studyPrograms.value.map((sp) => sp.id)
     }
-}
-
-const getRoleName = (roleId: number) => {
-    return props.roles.find((r: Role) => r.id === roleId)?.name || 'Unknown'
 }
 
 const getStudyProgramInfo = (studyProgramId: number) => {
@@ -247,13 +239,18 @@ watch(selectedFacultyId, () => {
                     </div>
                 </div>
 
-                <!-- Roles Multi-select -->
+                <!-- Permissions Multi-select -->
                 <div class="space-y-2">
                     <div class="flex items-center justify-between">
-                        <Label>Role *</Label>
-                        <Button type="button" variant="outline" size="sm" @click="selectAllRoles">
+                        <Label>Permission *</Label>
+                        <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            @click="selectAllPermissions"
+                        >
                             {{
-                                selectedRoleIds.length === roles.length
+                                selectedPermissions.length === permissions.length
                                     ? 'Batal Pilih Semua'
                                     : 'Pilih Semua'
                             }}
@@ -261,16 +258,16 @@ watch(selectedFacultyId, () => {
                     </div>
                     <div class="grid gap-2 md:grid-cols-2 p-2 border rounded bg-white">
                         <div
-                            v-for="role in roles"
-                            :key="role.id"
+                            v-for="permission in permissions"
+                            :key="permission"
                             class="flex items-center space-x-2"
                         >
                             <Checkbox
-                                :model-value="selectedRoleIds.includes(role.id)"
-                                @update:model-value="(val) => toggleRole(role.id, val)"
+                                :model-value="selectedPermissions.includes(permission)"
+                                @update:model-value="(val) => togglePermission(permission, val)"
                             />
-                            <Label class="cursor-pointer" @click="toggleRole(role.id)">
-                                {{ role.name }}
+                            <Label class="cursor-pointer" @click="togglePermission(permission)">
+                                {{ permission }}
                             </Label>
                         </div>
                     </div>
@@ -278,12 +275,14 @@ watch(selectedFacultyId, () => {
 
                 <Button
                     type="button"
-                    :disabled="selectedRoleIds.length === 0 || selectedStudyProgramIds.length === 0"
+                    :disabled="
+                        selectedPermissions.length === 0 || selectedStudyProgramIds.length === 0
+                    "
                     class="w-full"
                     @click="bulkAddAccessControls"
                 >
                     <Plus class="h-4 w-4 mr-2" />
-                    Tambah {{ selectedRoleIds.length }} Role ×
+                    Tambah {{ selectedPermissions.length }} Permission ×
                     {{ selectedStudyProgramIds.length }} Program Studi
                 </Button>
             </CardContent>
@@ -325,18 +324,18 @@ watch(selectedFacultyId, () => {
                             <div class="flex items-center gap-4">
                                 <div class="flex-1 grid gap-4 md:grid-cols-2">
                                     <div class="space-y-2">
-                                        <Label>Role *</Label>
-                                        <Select v-model="control.role_id">
+                                        <Label>Permission *</Label>
+                                        <Select v-model="control.permission">
                                             <SelectTrigger>
-                                                <SelectValue placeholder="Pilih role" />
+                                                <SelectValue placeholder="Pilih permission" />
                                             </SelectTrigger>
                                             <SelectContent>
                                                 <SelectItem
-                                                    v-for="role in roles"
-                                                    :key="role.id"
-                                                    :value="role.id"
+                                                    v-for="permission in permissions"
+                                                    :key="permission"
+                                                    :value="permission"
                                                 >
-                                                    {{ role.name }}
+                                                    {{ permission }}
                                                 </SelectItem>
                                             </SelectContent>
                                         </Select>
@@ -385,14 +384,12 @@ watch(selectedFacultyId, () => {
 
                             <!-- Preview -->
                             <div
-                                v-if="control.role_id && control.study_program_id"
+                                v-if="control.permission && control.study_program_id"
                                 class="mt-3 pt-3 border-t"
                             >
                                 <div class="flex items-center gap-2 text-sm">
                                     <Users class="h-4 w-4 text-muted-foreground" />
-                                    <span class="font-medium">{{
-                                        getRoleName(control.role_id)
-                                    }}</span>
+                                    <span class="font-medium">{{ control.permission }}</span>
                                     <span class="text-muted-foreground">dapat mengakses dari</span>
                                     <Building class="h-4 w-4 text-muted-foreground" />
                                     <span class="font-medium">{{

@@ -16,11 +16,6 @@ import {
     AlertTriangle,
 } from 'lucide-vue-next'
 
-interface Role {
-    id: number
-    name: string
-}
-
 interface Faculty {
     id: number
     name: string
@@ -52,7 +47,7 @@ interface FormPhaseDetail {
 interface FormAccessControl {
     id: number
     form: Form
-    role: Role
+    permission: string
     study_program: StudyProgram
     created_at: string
     updated_at: string
@@ -130,18 +125,18 @@ const inactivePhaseDetails = props.formAccessControl.form_phase_details.filter(
 
                     <Separator />
 
-                    <!-- Role and Study Program -->
+                    <!-- Permission and Study Program -->
                     <div class="grid gap-6 md:grid-cols-2">
                         <div>
                             <h3
                                 class="font-medium text-sm text-muted-foreground mb-2 flex items-center gap-2"
                             >
                                 <Users class="h-4 w-4" />
-                                Role
+                                Permission
                             </h3>
                             <div class="p-4 bg-muted rounded-lg">
                                 <Badge variant="default" class="text-base px-3 py-1">
-                                    {{ props.formAccessControl.role.name }}
+                                    {{ props.formAccessControl.permission }}
                                 </Badge>
                             </div>
                         </div>

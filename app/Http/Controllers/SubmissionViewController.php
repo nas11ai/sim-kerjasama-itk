@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Form;
+use App\Models\FormAccessControl;
 use App\Models\FormPhase;
 use App\Models\FormSubmission;
 use App\Models\ReviewComment;
@@ -12,6 +13,7 @@ use App\Models\SubmissionPeriod;
 use App\Models\SubmissionReviewer;
 use App\States\Submission\SubmissionStatus;
 use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
@@ -28,10 +30,9 @@ class SubmissionViewController extends Controller
         $submissionPeriods = SubmissionPeriod::with([
             'submissionDates.submissionDateLabel',
             'submissionPeriodPhases.formPhase' => function ($query) use ($user, $organizationId) {
-                $query->whereHas('formPhaseDetails.formAccessControl', function ($q) use ($user, $organizationId) {
-                    $q->whereHas('role', function ($roleQuery) use ($user) {
-                        $roleQuery->whereIn('name', $user->getRoleNames());
-                    });
+                $query->whereHas('formPhaseDetails.formAccessControl', function (Builder $q) use ($user, $organizationId) {
+                    /** @var Builder<FormAccessControl> $q */
+                    $q->accessibleBy($user);
                     if ($organizationId !== null) {
                         $q->where('organization_id', $organizationId);
                     } else {
@@ -40,10 +41,9 @@ class SubmissionViewController extends Controller
                 });
             },
         ])
-            ->whereHas('submissionPeriodPhases.formPhase.formPhaseDetails.formAccessControl', function ($query) use ($user, $organizationId) {
-                $query->whereHas('role', function ($roleQuery) use ($user) {
-                    $roleQuery->whereIn('name', $user->getRoleNames());
-                });
+            ->whereHas('submissionPeriodPhases.formPhase.formPhaseDetails.formAccessControl', function (Builder $query) use ($user, $organizationId) {
+                /** @var Builder<FormAccessControl> $query */
+                $query->accessibleBy($user);
                 if ($organizationId !== null) {
                     $query->where('organization_id', $organizationId);
                 } else {
@@ -138,10 +138,9 @@ class SubmissionViewController extends Controller
         $formPhases = FormPhase::whereHas('submissionPeriodPhases', function ($query) use ($period) {
             $query->where('submission_period_id', $period->id);
         })
-            ->whereHas('formPhaseDetails.formAccessControl', function ($query) use ($user, $organizationId) {
-                $query->whereHas('role', function ($roleQuery) use ($user) {
-                    $roleQuery->whereIn('name', $user->getRoleNames());
-                });
+            ->whereHas('formPhaseDetails.formAccessControl', function (Builder $query) use ($user, $organizationId) {
+                /** @var Builder<FormAccessControl> $query */
+                $query->accessibleBy($user);
                 if ($organizationId !== null) {
                     $query->where('organization_id', $organizationId);
                 } else {
@@ -150,10 +149,9 @@ class SubmissionViewController extends Controller
             })
             ->with([
                 'formPhaseDetails' => function ($query) use ($user, $organizationId) {
-                    $query->whereHas('formAccessControl', function ($q) use ($user, $organizationId) {
-                        $q->whereHas('role', function ($roleQuery) use ($user) {
-                            $roleQuery->whereIn('name', $user->getRoleNames());
-                        });
+                    $query->whereHas('formAccessControl', function (Builder $q) use ($user, $organizationId) {
+                        /** @var Builder<FormAccessControl> $q */
+                        $q->accessibleBy($user);
                         if ($organizationId !== null) {
                             $q->where('organization_id', $organizationId);
                         } else {

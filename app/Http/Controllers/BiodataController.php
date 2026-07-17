@@ -3,10 +3,12 @@
 namespace App\Http\Controllers;
 
 use App\Models\Form;
+use App\Models\FormAccessControl;
 use App\Models\FormFieldOption;
 use App\Models\FormFieldResponse;
 use App\Models\FormSubmission;
 use Exception;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -22,8 +24,9 @@ class BiodataController extends Controller
 
         $biodataForm = Form::where('form_type_id', 1)
             ->where('is_active', true)
-            ->whereHas('formAccessControls', function ($q) use ($user, $organizationId) {
-                $q->whereHas('role', fn ($r) => $r->whereIn('name', $user->getRoleNames()));
+            ->whereHas('formAccessControls', function (Builder $q) use ($user, $organizationId) {
+                /** @var Builder<FormAccessControl> $q */
+                $q->accessibleBy($user);
 
                 if ($organizationId !== null) {
                     $q->where('organization_id', $organizationId);
@@ -46,7 +49,7 @@ class BiodataController extends Controller
         }
 
         $hasAccess = $biodataForm->formAccessControls()
-            ->whereHas('role', fn ($q) => $q->whereIn('name', $user->getRoleNames()));
+            ->accessibleBy($user);
 
         if ($organizationId !== null) {
             $hasAccess->where('organization_id', $organizationId);

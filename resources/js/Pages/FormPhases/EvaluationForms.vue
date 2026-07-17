@@ -58,10 +58,7 @@ interface FormAccessControl {
         id: number
         title: string
     }
-    role: {
-        id: number
-        name: string
-    }
+    permission: string
     study_program: {
         id: number
         name: string
@@ -262,7 +259,7 @@ const getStatusBadge = (form: ReviewEvaluationForm): { variant: BadgeVariant; te
                                 Role
                             </div>
                             <p class="text-sm text-muted-foreground pl-6">
-                                {{ formPhaseDetail.form_access_control.role.name }}
+                                {{ formPhaseDetail.form_access_control.permission }}
                             </p>
                         </div>
 
