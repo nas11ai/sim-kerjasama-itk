@@ -2,12 +2,11 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Faculty;
 use App\Models\FormPhase;
 use App\Models\FormSubmission;
+use App\Models\Organization;
 use App\Models\Reviewer;
 use App\Models\ReviewerRole;
-use App\Models\StudyProgram;
 use App\Models\SubmissionPeriod;
 use App\Models\SubmissionReviewer;
 use App\Models\User;
@@ -77,8 +76,8 @@ class StatController extends Controller
         $formPhaseFaculty = FormPhase::select(
             'form_phases.id',
             'form_phases.title',
-            'faculties.id as faculty_id',
-            'faculties.name as faculty_name'
+            'fac_org.id as faculty_id',
+            'fac_org.name as faculty_name'
         )
             ->selectRaw('COUNT(DISTINCT forms.id) as total_forms')
             ->selectRaw('COUNT(DISTINCT form_submissions.id) as total_submissions')
@@ -86,23 +85,27 @@ class StatController extends Controller
             ->leftJoin('form_access_controls', 'form_access_controls.id', '=', 'form_phase_details.form_access_control_id')
             ->leftJoin('forms', 'forms.id', '=', 'form_access_controls.form_id')
             ->leftJoin('study_programs', 'study_programs.id', '=', 'form_access_controls.study_program_id')
-            ->leftJoin('faculties', 'faculties.id', '=', 'study_programs.faculty_id')
+            ->leftJoin('organizations as sp_org', function ($join) {
+                $join->on(DB::raw("sp_org.metadata -> 'legacy' ->> 'study_program_id'"), '=', DB::raw('CAST(study_programs.id AS TEXT)'))
+                    ->where('sp_org.type', 'study_program');
+            })
+            ->leftJoin('organizations as fac_org', 'fac_org.id', '=', 'sp_org.parent_id')
             ->leftJoin('form_submissions', function ($join) {
                 $join->on('form_submissions.form_id', '=', 'forms.id')
                     ->where('form_submissions.is_submitted', true);
             })
-            ->groupBy('form_phases.id', 'form_phases.title', 'faculties.id', 'faculties.name')
-            ->orderBy('faculties.name')
+            ->groupBy('form_phases.id', 'form_phases.title', 'fac_org.id', 'fac_org.name')
+            ->orderBy('fac_org.name')
             ->get();
 
         // === 2. Program Studi ===
         $formPhaseProdi = FormPhase::select(
             'form_phases.id',
             'form_phases.title',
-            'faculties.id as faculty_id',
-            'faculties.name as faculty_name',
-            'study_programs.id as study_program_id',
-            'study_programs.name as study_program_name'
+            'fac_org.id as faculty_id',
+            'fac_org.name as faculty_name',
+            'sp_org.id as study_program_id',
+            'sp_org.name as study_program_name'
         )
             ->selectRaw('COUNT(DISTINCT forms.id) as total_forms')
             ->selectRaw('COUNT(DISTINCT form_submissions.id) as total_submissions')
@@ -110,7 +113,11 @@ class StatController extends Controller
             ->leftJoin('form_access_controls', 'form_access_controls.id', '=', 'form_phase_details.form_access_control_id')
             ->leftJoin('forms', 'forms.id', '=', 'form_access_controls.form_id')
             ->leftJoin('study_programs', 'study_programs.id', '=', 'form_access_controls.study_program_id')
-            ->leftJoin('faculties', 'faculties.id', '=', 'study_programs.faculty_id')
+            ->leftJoin('organizations as sp_org', function ($join) {
+                $join->on(DB::raw("sp_org.metadata -> 'legacy' ->> 'study_program_id'"), '=', DB::raw('CAST(study_programs.id AS TEXT)'))
+                    ->where('sp_org.type', 'study_program');
+            })
+            ->leftJoin('organizations as fac_org', 'fac_org.id', '=', 'sp_org.parent_id')
             ->leftJoin('form_submissions', function ($join) {
                 $join->on('form_submissions.form_id', '=', 'forms.id')
                     ->where('form_submissions.is_submitted', true);
@@ -118,13 +125,13 @@ class StatController extends Controller
             ->groupBy(
                 'form_phases.id',
                 'form_phases.title',
-                'faculties.id',
-                'faculties.name',
-                'study_programs.id',
-                'study_programs.name'
+                'fac_org.id',
+                'fac_org.name',
+                'sp_org.id',
+                'sp_org.name'
             )
-            ->orderBy('faculties.name')
-            ->orderBy('study_programs.name')
+            ->orderBy('fac_org.name')
+            ->orderBy('sp_org.name')
             ->get();
 
         // === 3. Status (dengan subquery DISTINCT agar aman dari duplikasi) ===
@@ -184,8 +191,10 @@ class StatController extends Controller
             ->get();
 
         // === 6. Referensi fakultas & prodi ===
-        $faculties = Faculty::select('id', 'name')->orderBy('name')->get();
-        $studyPrograms = StudyProgram::select('id', 'name', 'faculty_id')->orderBy('name')->get();
+        $faculties = Organization::where('type', 'faculty')
+            ->select('id', 'name')->orderBy('name')->get();
+        $studyPrograms = Organization::where('type', 'study_program')
+            ->select('id', 'name', 'parent_id as faculty_id')->orderBy('name')->get();
 
         // === Return ===
         return [
@@ -236,23 +245,33 @@ class StatController extends Controller
             ->groupBy('status')
             ->get();
 
-        $totalByFaculty = FormSubmission::select('faculties.id', 'faculties.name', DB::raw('COUNT(DISTINCT form_submissions.id) as total'))
+        $totalByFaculty = FormSubmission::select('fac_org.id', 'fac_org.name', DB::raw('COUNT(DISTINCT form_submissions.id) as total'))
             ->join('forms', 'forms.id', '=', 'form_submissions.form_id')
             ->join('form_access_controls', 'form_access_controls.form_id', '=', 'forms.id')
             ->join('study_programs', 'study_programs.id', '=', 'form_access_controls.study_program_id')
-            ->join('faculties', 'faculties.id', '=', 'study_programs.faculty_id')
-            ->groupBy('faculties.id', 'faculties.name')
+            ->join('organizations as sp_org', function ($join) {
+                $join->on(DB::raw("sp_org.metadata -> 'legacy' ->> 'study_program_id'"), '=', DB::raw('CAST(study_programs.id AS TEXT)'))
+                    ->where('sp_org.type', 'study_program');
+            })
+            ->join('organizations as fac_org', 'fac_org.id', '=', 'sp_org.parent_id')
+            ->groupBy('fac_org.id', 'fac_org.name')
             ->get();
 
-        $totalByProdi = FormSubmission::select('study_programs.id', 'study_programs.name', DB::raw('COUNT(DISTINCT form_submissions.id) as total'))
+        $totalByProdi = FormSubmission::select('sp_org.id', 'sp_org.name', DB::raw('COUNT(DISTINCT form_submissions.id) as total'))
             ->join('forms', 'forms.id', '=', 'form_submissions.form_id')
             ->join('form_access_controls', 'form_access_controls.form_id', '=', 'forms.id')
             ->join('study_programs', 'study_programs.id', '=', 'form_access_controls.study_program_id')
-            ->groupBy('study_programs.id', 'study_programs.name')
+            ->join('organizations as sp_org', function ($join) {
+                $join->on(DB::raw("sp_org.metadata -> 'legacy' ->> 'study_program_id'"), '=', DB::raw('CAST(study_programs.id AS TEXT)'))
+                    ->where('sp_org.type', 'study_program');
+            })
+            ->groupBy('sp_org.id', 'sp_org.name')
             ->get();
 
-        $faculties = Faculty::select('id', 'name')->orderBy('name')->get();
-        $studyPrograms = StudyProgram::select('id', 'name', 'faculty_id')->orderBy('name')->get();
+        $faculties = Organization::where('type', 'faculty')
+            ->select('id', 'name')->orderBy('name')->get();
+        $studyPrograms = Organization::where('type', 'study_program')
+            ->select('id', 'name', 'parent_id as faculty_id')->orderBy('name')->get();
 
         return [
             'recentSubmissions' => $recentSubmissions,
@@ -296,17 +315,19 @@ class StatController extends Controller
             ->groupByRaw('EXTRACT(YEAR FROM created_at)')
             ->get();
 
-        $reviewerByFaculty = Reviewer::select('faculties.id', 'faculties.name', DB::raw('count(*) as total'))
+        $reviewerByFaculty = Reviewer::select('parent_org.id', 'parent_org.name', DB::raw('count(*) as total'))
             ->join('user_profiles', 'user_profiles.user_id', '=', 'reviewers.user_id')
-            ->join('study_programs', 'study_programs.id', '=', 'user_profiles.study_program_id')
-            ->join('faculties', 'faculties.id', '=', 'study_programs.faculty_id')
-            ->groupBy('faculties.id', 'faculties.name')
+            ->join('organizations', 'organizations.id', '=', 'user_profiles.organization_id')
+            ->join('organizations as parent_org', 'parent_org.id', '=', 'organizations.parent_id')
+            ->where('parent_org.type', 'faculty')
+            ->groupBy('parent_org.id', 'parent_org.name')
             ->get();
 
-        $reviewerByProdi = Reviewer::select('study_programs.id', 'study_programs.name', DB::raw('count(*) as total'))
+        $reviewerByProdi = Reviewer::select('organizations.id', 'organizations.name', DB::raw('count(*) as total'))
             ->join('user_profiles', 'user_profiles.user_id', '=', 'reviewers.user_id')
-            ->join('study_programs', 'study_programs.id', '=', 'user_profiles.study_program_id')
-            ->groupBy('study_programs.id', 'study_programs.name')
+            ->join('organizations', 'organizations.id', '=', 'user_profiles.organization_id')
+            ->where('organizations.type', 'study_program')
+            ->groupBy('organizations.id', 'organizations.name')
             ->get();
 
         $reviewerActiveStatus = Reviewer::select('user_id', 'reviewer_role_id')
@@ -315,8 +336,10 @@ class StatController extends Controller
             ->groupBy('user_id', 'reviewer_role_id')
             ->get();
 
-        $faculties = Faculty::select('id', 'name')->orderBy('name')->get();
-        $studyPrograms = StudyProgram::select('id', 'name', 'faculty_id')->orderBy('name')->get();
+        $faculties = Organization::where('type', 'faculty')
+            ->select('id', 'name')->orderBy('name')->get();
+        $studyPrograms = Organization::where('type', 'study_program')
+            ->select('id', 'name', 'parent_id as faculty_id')->orderBy('name')->get();
 
         return [
             'reviewerRecent' => $reviewerRecent,
@@ -347,12 +370,13 @@ class StatController extends Controller
             $query->where('name', 'Admin');
         })->count();
 
-        $totalProdi = UserProfile::where('study_program_id', '!=', null)->count();
+        $totalProdi = UserProfile::whereNotNull('organization_id')->count();
 
         $totalFaculty = UserProfile::select('users.id')
-            ->join('study_programs', 'user_profiles.study_program_id', '=', 'study_programs.id')
-            ->join('faculties', 'study_programs.faculty_id', '=', 'faculties.id')
-            ->where('faculties.id', '=', 1)
+            ->join('organizations', 'user_profiles.organization_id', '=', 'organizations.id')
+            ->join('organizations as parent_org', 'organizations.parent_id', '=', 'parent_org.id')
+            ->where('parent_org.type', 'faculty')
+            ->where(DB::raw("parent_org.metadata->'legacy'->>'faculty_id'"), '=', '1')
             ->count();
 
         return [

@@ -18,19 +18,18 @@ class BiodataController extends Controller
     public function showBiodataForm()
     {
         $user = Auth::user();
-        $studyProgram = $user->studyProgram ?? null;
+        $studyProgramId = $user->study_program_id;
 
         $biodataForm = Form::where('form_type_id', 1)
             ->where('is_active', true)
-            ->whereHas('formAccessControls', function ($q) use ($user, $studyProgram) {
-                $q->whereHas('role', fn ($r) => $r->whereIn('name', $user->getRoleNames()))
-                    ->when(
-                        $studyProgram,
-                        fn ($r) => $r->where(function ($sub) use ($studyProgram) {
-                            $sub->whereNull('study_program_id')
-                                ->orWhere('study_program_id', $studyProgram->id);
-                        })
-                    );
+            ->whereHas('formAccessControls', function ($q) use ($user, $studyProgramId) {
+                $q->whereHas('role', fn ($r) => $r->whereIn('name', $user->getRoleNames()));
+
+                if ($studyProgramId !== null) {
+                    $q->where('study_program_id', $studyProgramId);
+                } else {
+                    $q->whereRaw('1 = 0');
+                }
             })
             ->with([
                 'formFields' => function ($query) {
@@ -47,9 +46,15 @@ class BiodataController extends Controller
         }
 
         $hasAccess = $biodataForm->formAccessControls()
-            ->whereHas('role', fn ($q) => $q->whereIn('name', $user->getRoleNames()))
-            ->when($studyProgram, fn ($q) => $q->where('study_program_id', $studyProgram->id))
-            ->exists();
+            ->whereHas('role', fn ($q) => $q->whereIn('name', $user->getRoleNames()));
+
+        if ($studyProgramId !== null) {
+            $hasAccess->where('study_program_id', $studyProgramId);
+        } else {
+            $hasAccess->whereRaw('1 = 0');
+        }
+
+        $hasAccess = $hasAccess->exists();
 
         if (!$hasAccess) {
             return redirect()->route('user.dashboard')
