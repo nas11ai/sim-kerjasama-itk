@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 
@@ -47,9 +48,9 @@ class Organization extends Model
     /**
      * Faculty → study_program tree shaped like the legacy Faculty::with('studyPrograms') payload.
      *
-     * @return \Illuminate\Support\Collection<int, array{id: int, name: string, study_programs: list<array{id: int, name: string, faculty_id: int}>}>
+     * @return Collection<int, array{id: int, name: string, study_programs: list<array{id: int, name: string, faculty_id: int}>}>
      */
-    public static function facultyOptions()
+    public static function facultyOptions(): Collection
     {
         return static::query()
             ->where('type', 'faculty')
