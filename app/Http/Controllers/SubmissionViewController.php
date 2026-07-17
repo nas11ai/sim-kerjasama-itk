@@ -21,29 +21,28 @@ class SubmissionViewController extends Controller
     public function userIndex(Request $request)
     {
         $user = Auth::user();
-        $user->load('organization.parent');
-        $studyProgramId = $user->study_program_id;
+        $studyProgram = $user->studyProgram;
 
         // Get submission periods with user's accessible form phases
         $submissionPeriods = SubmissionPeriod::with([
             'submissionDates.submissionDateLabel',
-            'submissionPeriodPhases.formPhase' => function ($query) use ($user, $studyProgramId) {
-                $query->whereHas('formPhaseDetails.formAccessControl', function ($q) use ($user, $studyProgramId) {
+            'submissionPeriodPhases.formPhase' => function ($query) use ($user, $studyProgram) {
+                $query->whereHas('formPhaseDetails.formAccessControl', function ($q) use ($user, $studyProgram) {
                     $q->whereHas('role', function ($roleQuery) use ($user) {
                         $roleQuery->whereIn('name', $user->getRoleNames());
                     });
-                    if ($studyProgramId) {
-                        $q->where('study_program_id', $studyProgramId);
+                    if ($studyProgram) {
+                        $q->where('study_program_id', $studyProgram->id);
                     }
                 });
             },
         ])
-            ->whereHas('submissionPeriodPhases.formPhase.formPhaseDetails.formAccessControl', function ($query) use ($user, $studyProgramId) {
+            ->whereHas('submissionPeriodPhases.formPhase.formPhaseDetails.formAccessControl', function ($query) use ($user, $studyProgram) {
                 $query->whereHas('role', function ($roleQuery) use ($user) {
                     $roleQuery->whereIn('name', $user->getRoleNames());
                 });
-                if ($studyProgramId) {
-                    $query->where('study_program_id', $studyProgramId);
+                if ($studyProgram) {
+                    $query->where('study_program_id', $studyProgram->id);
                 }
             })
             ->orderBy('created_at', 'desc')
@@ -69,10 +68,10 @@ class SubmissionViewController extends Controller
         return Inertia::render('User/Submissions/IndexPage', [
             'submissionPeriods' => $submissionPeriods,
             'userRole' => $user->getRoleNames()->first(),
-            'studyProgram' => $user->relationLoaded('organization') && $user->organization ? [
-                'id' => $user->organization->id,
-                'name' => $user->organization->name,
-                'faculty' => ['name' => $user->organization->parent->name ?? ''],
+            'studyProgram' => $studyProgram ? [
+                'id' => $studyProgram->id,
+                'name' => $studyProgram->name,
+                'faculty' => ['name' => $studyProgram->faculty->name],
             ] : null,
         ]);
     }
@@ -128,28 +127,28 @@ class SubmissionViewController extends Controller
     public function userShowPeriod(SubmissionPeriod $period)
     {
         $user = Auth::user();
-        $studyProgramId = $user->study_program_id;
+        $studyProgram = $user->studyProgram;
 
         // Get form phases for this period that user can access
         $formPhases = FormPhase::whereHas('submissionPeriodPhases', function ($query) use ($period) {
             $query->where('submission_period_id', $period->id);
         })
-            ->whereHas('formPhaseDetails.formAccessControl', function ($query) use ($user, $studyProgramId) {
+            ->whereHas('formPhaseDetails.formAccessControl', function ($query) use ($user, $studyProgram) {
                 $query->whereHas('role', function ($roleQuery) use ($user) {
                     $roleQuery->whereIn('name', $user->getRoleNames());
                 });
-                if ($studyProgramId) {
-                    $query->where('study_program_id', $studyProgramId);
+                if ($studyProgram) {
+                    $query->where('study_program_id', $studyProgram->id);
                 }
             })
             ->with([
-                'formPhaseDetails' => function ($query) use ($user, $studyProgramId) {
-                    $query->whereHas('formAccessControl', function ($q) use ($user, $studyProgramId) {
+                'formPhaseDetails' => function ($query) use ($user, $studyProgram) {
+                    $query->whereHas('formAccessControl', function ($q) use ($user, $studyProgram) {
                         $q->whereHas('role', function ($roleQuery) use ($user) {
                             $roleQuery->whereIn('name', $user->getRoleNames());
                         });
-                        if ($studyProgramId) {
-                            $q->where('study_program_id', $studyProgramId);
+                        if ($studyProgram) {
+                            $q->where('study_program_id', $studyProgram->id);
                         }
                     })
                         ->with(['formAccessControl.form.formType'])

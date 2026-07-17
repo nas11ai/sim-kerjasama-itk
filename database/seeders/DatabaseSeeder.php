@@ -19,7 +19,6 @@ class DatabaseSeeder extends Seeder
             FormTypeSeeder::class,
             FacultySeeder::class,
             StudyProgramSeeder::class,
-            OrganizationSeeder::class,
             PhaseTypeSeeder::class,
             SubmissionDateLabelSeeder::class,
             PermissionSeeder::class,

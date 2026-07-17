@@ -18,17 +18,17 @@ class BiodataController extends Controller
     public function showBiodataForm()
     {
         $user = Auth::user();
-        $studyProgramId = $user->study_program_id;
+        $studyProgram = $user->studyProgram ?? null;
 
         $biodataForm = Form::where('form_type_id', 1)
             ->where('is_active', true)
-            ->whereHas('formAccessControls', function ($q) use ($user, $studyProgramId) {
+            ->whereHas('formAccessControls', function ($q) use ($user, $studyProgram) {
                 $q->whereHas('role', fn ($r) => $r->whereIn('name', $user->getRoleNames()))
                     ->when(
-                        $studyProgramId,
-                        fn ($r) => $r->where(function ($sub) use ($studyProgramId) {
+                        $studyProgram,
+                        fn ($r) => $r->where(function ($sub) use ($studyProgram) {
                             $sub->whereNull('study_program_id')
-                                ->orWhere('study_program_id', $studyProgramId);
+                                ->orWhere('study_program_id', $studyProgram->id);
                         })
                     );
             })
@@ -48,7 +48,7 @@ class BiodataController extends Controller
 
         $hasAccess = $biodataForm->formAccessControls()
             ->whereHas('role', fn ($q) => $q->whereIn('name', $user->getRoleNames()))
-            ->when($studyProgramId, fn ($q) => $q->where('study_program_id', $studyProgramId))
+            ->when($studyProgram, fn ($q) => $q->where('study_program_id', $studyProgram->id))
             ->exists();
 
         if (!$hasAccess) {
