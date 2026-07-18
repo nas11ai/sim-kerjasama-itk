@@ -3,13 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Models\Form;
-use App\Models\FormAccessControl;
 use App\Models\FormFieldOption;
 use App\Models\FormFieldResponse;
 use App\Models\FormSubmission;
 use App\Services\FormAccessService;
 use Exception;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -26,17 +24,6 @@ class BiodataController extends Controller
 
         $biodataForm = Form::where('form_type_id', 1)
             ->where('is_active', true)
-            ->whereHas('formAccessControls', function (Builder $q) use ($user) {
-                /** @var Builder<FormAccessControl> $q */
-                $q->accessibleBy($user);
-            })
-            ->with([
-                'formFields' => function ($query) {
-                    $query->orderBy('order');
-                },
-                'formFields.fieldType',
-                'formFields.formFieldOptions',
-            ])
             ->first();
 
         if (!$biodataForm) {
@@ -48,6 +35,14 @@ class BiodataController extends Controller
             return redirect()->route('user.dashboard')
                 ->with('error', 'Anda tidak memiliki akses ke form biodata ini.');
         }
+
+        $biodataForm->load([
+            'formFields' => function ($query) {
+                $query->orderBy('order');
+            },
+            'formFields.fieldType',
+            'formFields.formFieldOptions',
+        ]);
 
         $submission = FormSubmission::with('formFieldResponses')
             ->where('form_id', $biodataForm->id)

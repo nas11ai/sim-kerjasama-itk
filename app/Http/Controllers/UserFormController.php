@@ -45,6 +45,9 @@ class UserFormController extends Controller
         $reviewer = Reviewer::where('user_id', $user->id)->first();
         $isReviewer = $reviewer !== null;
 
+        $permissions = $this->formAccessService->permissionNamesFor($user);
+        $organizationSubtree = $this->formAccessService->organizationSubtreeFor($user);
+
         // Get submission periods with accessible form phases
         $submissionPeriods = SubmissionPeriod::with([
             'submissionDates.submissionDateLabel',
@@ -58,7 +61,7 @@ class UserFormController extends Controller
             },
         ])
             ->get()
-            ->map(function ($period) use ($user) {
+            ->map(function ($period) use ($user, $permissions, $organizationSubtree) {
                 // Fix: Use correct attribute name based on your model
                 $dates = $period->submissionDates->sortBy('datetime'); // Changed from 'datetime' to 'date'
                 $now = Carbon::now();
@@ -90,18 +93,19 @@ class UserFormController extends Controller
                 }
 
                 // Process form phases with user progress
-                $period->form_phases = $period->submissionPeriodPhases->map(function ($periodPhase) use ($user) {
+                $period->form_phases = $period->submissionPeriodPhases->map(function ($periodPhase) use ($user, $permissions, $organizationSubtree) {
                     $formPhase = $periodPhase->formPhase;
 
                     // Filter by permission AND organization subtree to avoid counting forms multiple times
-                    $accessibleForms = $formPhase->formPhaseDetails->filter(function ($detail) use ($user) {
+                    $accessibleForms = $formPhase->formPhaseDetails->filter(function ($detail) use ($permissions, $organizationSubtree) {
                         $formAccessControl = $detail->formAccessControl;
 
                         if (!$formAccessControl) {
                             return false;
                         }
 
-                        return $this->formAccessService->canAccessFormAccessControl($user, $formAccessControl);
+                        return in_array($formAccessControl->permission, $permissions, true)
+                            && in_array((int) $formAccessControl->organization_id, $organizationSubtree, true);
                     });
 
                     // Calculate progress

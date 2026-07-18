@@ -31,17 +31,4 @@ class FormAccessService
     {
         return FormAccessControl::organizationSubtreeFor($user);
     }
-
-    public function canAccessFormAccessControl(User $user, FormAccessControl $control): bool
-    {
-        $permissions = $this->permissionNamesFor($user);
-        $subtree = $this->organizationSubtreeFor($user);
-
-        if ($permissions === [] || $subtree === []) {
-            return false;
-        }
-
-        return in_array($control->permission, $permissions, true)
-            && in_array((int) $control->organization_id, $subtree, true);
-    }
 }
