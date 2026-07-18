@@ -7,6 +7,7 @@ use App\Models\FormAccessControl;
 use App\Models\FormFieldOption;
 use App\Models\FormFieldResponse;
 use App\Models\FormSubmission;
+use App\Services\FormAccessService;
 use Exception;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
@@ -17,22 +18,17 @@ use Inertia\Inertia;
 
 class BiodataController extends Controller
 {
+    public function __construct(private FormAccessService $formAccessService) {}
+
     public function showBiodataForm()
     {
         $user = Auth::user();
-        $organizationId = $user->organization?->id;
 
         $biodataForm = Form::where('form_type_id', 1)
             ->where('is_active', true)
-            ->whereHas('formAccessControls', function (Builder $q) use ($user, $organizationId) {
+            ->whereHas('formAccessControls', function (Builder $q) use ($user) {
                 /** @var Builder<FormAccessControl> $q */
                 $q->accessibleBy($user);
-
-                if ($organizationId !== null) {
-                    $q->where('organization_id', $organizationId);
-                } else {
-                    $q->whereRaw('1 = 0');
-                }
             })
             ->with([
                 'formFields' => function ($query) {
@@ -48,18 +44,7 @@ class BiodataController extends Controller
                 ->with('error', 'Form biodata tidak ditemukan atau tidak aktif.');
         }
 
-        $hasAccess = $biodataForm->formAccessControls()
-            ->accessibleBy($user);
-
-        if ($organizationId !== null) {
-            $hasAccess->where('organization_id', $organizationId);
-        } else {
-            $hasAccess->whereRaw('1 = 0');
-        }
-
-        $hasAccess = $hasAccess->exists();
-
-        if (!$hasAccess) {
+        if (!$this->formAccessService->canAccessForm($user, $biodataForm)) {
             return redirect()->route('user.dashboard')
                 ->with('error', 'Anda tidak memiliki akses ke form biodata ini.');
         }
@@ -155,7 +140,11 @@ class BiodataController extends Controller
                 'formFields' => function ($query) {
                     $query->where('is_required', true);
                 },
-            ])->find($validated['form_id']);
+            ])->findOrFail($validated['form_id']);
+
+            if (!$this->formAccessService->canAccessForm($user, $form)) {
+                abort(403, 'Anda tidak memiliki akses ke form biodata ini.');
+            }
 
             // if is_submitted = true
             if ($validated['is_submitted']) {

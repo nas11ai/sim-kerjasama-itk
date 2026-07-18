@@ -34,6 +34,9 @@ class FormAccessControl extends Model
     ];
 
     /**
+     * Legacy role → permission map retained for data migration / admin display only.
+     * Active authorization uses Spatie getAllPermissions().
+     *
      * @var array<string, string>
      */
     public const ROLE_TO_PERMISSION = [
@@ -79,23 +82,28 @@ class FormAccessControl extends Model
     }
 
     /**
-     * Effective FAC permission strings for a user (Spatie permissions + legacy role mapping).
-     *
      * @return list<string>
      */
-    public static function effectivePermissionsFor(User $user): array
+    public static function permissionNamesFor(User $user): array
     {
         /** @var Collection<int, string> $permissions */
-        $permissions = $user->getPermissionNames();
-
-        foreach ($user->getRoleNames() as $roleName) {
-            $mapped = self::permissionForRoleName((string) $roleName);
-            if ($mapped !== null) {
-                $permissions->push($mapped);
-            }
-        }
+        $permissions = $user->getAllPermissions()->pluck('name');
 
         return $permissions->unique()->values()->all();
+    }
+
+    /**
+     * @return list<int>
+     */
+    public static function organizationSubtreeFor(User $user): array
+    {
+        $organizationId = $user->organization?->id;
+
+        if ($organizationId === null) {
+            return [];
+        }
+
+        return Organization::subtreeIds((int) $organizationId);
     }
 
     /**
@@ -104,12 +112,16 @@ class FormAccessControl extends Model
      */
     public function scopeAccessibleBy($query, User $user)
     {
-        $permissions = self::effectivePermissionsFor($user);
+        $permissions = self::permissionNamesFor($user);
+        $subtree = self::organizationSubtreeFor($user);
+        $table = $query->getModel()->getTable();
 
-        if ($permissions === []) {
+        if ($permissions === [] || $subtree === []) {
             return $query->whereRaw('1 = 0');
         }
 
-        return $query->whereIn($query->getModel()->getTable().'.permission', $permissions);
+        return $query
+            ->whereIn($table.'.permission', $permissions)
+            ->whereIn($table.'.organization_id', $subtree);
     }
 }
