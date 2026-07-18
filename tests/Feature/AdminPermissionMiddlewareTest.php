@@ -41,8 +41,13 @@ test('admin routes allow Super Admin via Gate before', function () {
         ->assertRedirect(route('admin.forms.index'));
 });
 
-test('routes web file has no role middleware aliases', function () {
-    $routes = file_get_contents(base_path('routes/web.php'));
+test('route files have no role middleware aliases', function () {
+    $routeFiles = glob(base_path('routes/*.php')) ?: [];
 
-    expect($routes)->not->toMatch("/['\"]role:/");
+    expect($routeFiles)->not->toBeEmpty();
+
+    foreach ($routeFiles as $routeFile) {
+        expect(file_get_contents($routeFile))
+            ->not->toMatch("/['\"]role:/");
+    }
 });
