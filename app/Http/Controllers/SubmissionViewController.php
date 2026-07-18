@@ -24,31 +24,20 @@ class SubmissionViewController extends Controller
     {
         $user = Auth::user();
         $user->load('organization.parent');
-        $organizationId = $user->organization?->id;
 
         // Get submission periods with user's accessible form phases
         $submissionPeriods = SubmissionPeriod::with([
             'submissionDates.submissionDateLabel',
-            'submissionPeriodPhases.formPhase' => function ($query) use ($user, $organizationId) {
-                $query->whereHas('formPhaseDetails.formAccessControl', function (Builder $q) use ($user, $organizationId) {
+            'submissionPeriodPhases.formPhase' => function ($query) use ($user) {
+                $query->whereHas('formPhaseDetails.formAccessControl', function (Builder $q) use ($user) {
                     /** @var Builder<FormAccessControl> $q */
                     $q->accessibleBy($user);
-                    if ($organizationId !== null) {
-                        $q->where('organization_id', $organizationId);
-                    } else {
-                        $q->whereRaw('1 = 0');
-                    }
                 });
             },
         ])
-            ->whereHas('submissionPeriodPhases.formPhase.formPhaseDetails.formAccessControl', function (Builder $query) use ($user, $organizationId) {
+            ->whereHas('submissionPeriodPhases.formPhase.formPhaseDetails.formAccessControl', function (Builder $query) use ($user) {
                 /** @var Builder<FormAccessControl> $query */
                 $query->accessibleBy($user);
-                if ($organizationId !== null) {
-                    $query->where('organization_id', $organizationId);
-                } else {
-                    $query->whereRaw('1 = 0');
-                }
             })
             ->orderBy('created_at', 'desc')
             ->get()
@@ -132,31 +121,20 @@ class SubmissionViewController extends Controller
     public function userShowPeriod(SubmissionPeriod $period)
     {
         $user = Auth::user();
-        $organizationId = $user->organization?->id;
 
         // Get form phases for this period that user can access
         $formPhases = FormPhase::whereHas('submissionPeriodPhases', function ($query) use ($period) {
             $query->where('submission_period_id', $period->id);
         })
-            ->whereHas('formPhaseDetails.formAccessControl', function (Builder $query) use ($user, $organizationId) {
+            ->whereHas('formPhaseDetails.formAccessControl', function (Builder $query) use ($user) {
                 /** @var Builder<FormAccessControl> $query */
                 $query->accessibleBy($user);
-                if ($organizationId !== null) {
-                    $query->where('organization_id', $organizationId);
-                } else {
-                    $query->whereRaw('1 = 0');
-                }
             })
             ->with([
-                'formPhaseDetails' => function ($query) use ($user, $organizationId) {
-                    $query->whereHas('formAccessControl', function (Builder $q) use ($user, $organizationId) {
+                'formPhaseDetails' => function ($query) use ($user) {
+                    $query->whereHas('formAccessControl', function (Builder $q) use ($user) {
                         /** @var Builder<FormAccessControl> $q */
                         $q->accessibleBy($user);
-                        if ($organizationId !== null) {
-                            $q->where('organization_id', $organizationId);
-                        } else {
-                            $q->whereRaw('1 = 0');
-                        }
                     })
                         ->with(['formAccessControl.form.formType'])
                         ->orderBy('order');
