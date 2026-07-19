@@ -159,7 +159,7 @@ class ReviewController extends Controller
         $user = Auth::user();
         $canUpdate = false;
 
-        if ($user->hasRole(['Super Admin', 'Admin'])) {
+        if ($user->can('users.manage')) {
             $canUpdate = true;
         } else {
             $reviewer = Reviewer::where('user_id', $user->id)->first();
@@ -239,7 +239,7 @@ class ReviewController extends Controller
         $user = Auth::user();
 
         // Admin can always create threads
-        if ($user->hasRole(['Super Admin', 'Admin'])) {
+        if ($user->can('users.manage')) {
             return $this->performCreateReviewThread($request, $submission, null);
         }
 
@@ -343,7 +343,7 @@ class ReviewController extends Controller
         $canComment = false;
 
         // Admin can always comment
-        if ($user->hasRole(['Super Admin', 'Admin'])) {
+        if ($user->can('users.manage')) {
             $canComment = true;
         }
         // Submitter can always comment on their own submission
@@ -569,7 +569,7 @@ class ReviewController extends Controller
         $canUpdate = false;
 
         // Admin can always update
-        if ($user->hasRole(['Super Admin', 'Admin'])) {
+        if ($user->can('users.manage')) {
             $canUpdate = true;
         }
         // Check if it's the reviewer's own review
@@ -749,7 +749,7 @@ class ReviewController extends Controller
     /** @phpstan-ignore-next-line */
     private function canUserReview(FormSubmission $submission, $user): bool
     {
-        if ($user->hasRole(['Super Admin', 'Admin'])) {
+        if ($user->can('users.manage')) {
             return true;
         }
 

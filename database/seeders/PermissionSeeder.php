@@ -19,6 +19,7 @@ class PermissionSeeder extends Seeder
 
         Permission::findOrCreate('reporting.export');
         Permission::findOrCreate('reporting.view-audit-log');
+        Permission::findOrCreate('users.manage');
 
         $operator->givePermissionTo([
             'reporting.export',
@@ -28,6 +29,14 @@ class PermissionSeeder extends Seeder
         $admin->givePermissionTo([
             'reporting.export',
             'reporting.view-audit-log',
+            'users.manage',
+        ]);
+
+        $legacyAdmin = Role::findOrCreate('Admin');
+        $legacyAdmin->givePermissionTo([
+            'reporting.export',
+            'reporting.view-audit-log',
+            'users.manage',
         ]);
 
         $this->command->info('✓ PermissionSeeder completed successfully.');

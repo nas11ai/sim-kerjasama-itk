@@ -528,7 +528,7 @@ class SubmissionViewController extends Controller
             $hasPendingEvaluations = false;
             $pendingEvaluationsCount = 0;
 
-            if (!$currentUser->hasRole(['Super Admin', 'Admin'])) {
+            if (!$currentUser->can('users.manage')) {
                 $reviewer = Reviewer::where('user_id', $currentUser->id)->first();
 
                 if ($reviewer) {
@@ -558,7 +558,7 @@ class SubmissionViewController extends Controller
             $canCreateThread = $isAssignedReviewer && !$hasPendingEvaluations;
 
             // For admins, they can always create threads
-            if ($currentUser->hasRole(['Super Admin', 'Admin'])) {
+            if ($currentUser->can('users.manage')) {
                 $canCreateThread = true;
             }
 
@@ -586,7 +586,7 @@ class SubmissionViewController extends Controller
             $hasPendingEvaluations = false;
             $pendingEvaluationsCount = 0;
 
-            if (!$currentUser->hasRole(['Super Admin', 'Admin'])) {
+            if (!$currentUser->can('users.manage')) {
                 $reviewer = Reviewer::where('user_id', $currentUser->id)->first();
 
                 if ($reviewer) {
@@ -620,7 +620,7 @@ class SubmissionViewController extends Controller
             // - Admin can always create
             // - If no evaluation forms exist, reviewer can create immediately
             // - If evaluation forms exist, must complete them first
-            if ($currentUser->hasRole(['Super Admin', 'Admin'])) {
+            if ($currentUser->can('users.manage')) {
                 $canCreateThread = true;
             } elseif ($isAssignedReviewer) {
                 if ($hasReviewEvaluationForms) {
@@ -639,7 +639,7 @@ class SubmissionViewController extends Controller
                 'responses' => $responses,
                 'reviewStats' => $reviewStats,
                 'availableReviewers' => $availableReviewers,
-                'canAssignReviewers' => $currentUser->hasRole(['Super Admin', 'Admin']),
+                'canAssignReviewers' => $currentUser->can('users.manage'),
                 'canReview' => $canReview,
                 'canCreateThread' => $canCreateThread,
                 'hasPendingEvaluations' => $hasPendingEvaluations,
@@ -683,7 +683,7 @@ class SubmissionViewController extends Controller
                     'total_comments' => 0,
                 ],
                 'availableReviewers' => [],
-                'canAssignReviewers' => auth()->user()->hasRole(['Super Admin', 'Admin']),
+                'canAssignReviewers' => auth()->user()->can('users.manage'),
                 'canReview' => false,
                 'canCreateThread' => false,
                 'hasPendingEvaluations' => false,
@@ -697,7 +697,7 @@ class SubmissionViewController extends Controller
     // Helper method to check if user can review
     private function canUserReview(FormSubmission $submission, $user): bool
     {
-        if ($user->hasRole(['Super Admin', 'Admin'])) {
+        if ($user->can('users.manage')) {
             return true;
         }
 
@@ -715,7 +715,7 @@ class SubmissionViewController extends Controller
     // Helper method to determine user's role for this submission
     private function getUserRoleForSubmission(FormSubmission $submission, $user): string
     {
-        if ($user->hasRole(['Super Admin', 'Admin'])) {
+        if ($user->can('users.manage')) {
             return 'admin';
         }
 
