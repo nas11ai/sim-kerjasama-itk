@@ -11,6 +11,7 @@ class PermissionSeeder extends Seeder
 {
     /**
      * Canonical Spatie permission catalog (M1 / DDD Identity & Access).
+     * Includes submissions.view-assigned required by reviewer roles (#178).
      *
      * @var list<string>
      */
@@ -18,6 +19,7 @@ class PermissionSeeder extends Seeder
         'submissions.create',
         'submissions.view-own',
         'submissions.view-all',
+        'submissions.view-assigned',
         'budget.edit',
         'members.manage',
         'reviewers.assign',
@@ -30,6 +32,40 @@ class PermissionSeeder extends Seeder
         'users.manage',
         'reporting.export',
         'reporting.view-audit-log',
+    ];
+
+    /**
+     * DDD role → permission matrix (#178).
+     *
+     * @var array<string, list<string>>
+     */
+    public const ROLE_PERMISSIONS = [
+        'researcher' => [
+            'submissions.create',
+            'submissions.view-own',
+            'budget.edit',
+            'members.manage',
+            'outputs.manage',
+        ],
+        'reviewer_internal' => [
+            'reviewers.evaluate',
+            'submissions.view-assigned',
+            'reviewers.view-scores-others',
+        ],
+        'reviewer_external' => [
+            'reviewers.evaluate',
+            'submissions.view-assigned',
+        ],
+        'operator' => [
+            'submissions.view-all',
+            'reviewers.assign',
+            'periods.manage',
+            'users.verify',
+            'reporting.export',
+            'reporting.view-audit-log',
+        ],
+        // admin is synced to the full catalog in run()
+        'admin' => [],
     ];
 
     /**
@@ -46,29 +82,20 @@ class PermissionSeeder extends Seeder
             ]);
         }
 
-        // Preserve existing role grants for permissions already used by admin routes (#176).
-        // Full role→permission matrix is a separate task.
-        $operator = Role::findOrCreate('operator');
-        $admin = Role::findOrCreate('admin');
-        $legacyAdmin = Role::findOrCreate('Admin');
-        Role::findOrCreate('researcher');
+        foreach (self::ROLE_PERMISSIONS as $roleName => $permissions) {
+            $role = Role::findOrCreate($roleName);
 
-        $operator->givePermissionTo([
-            'reporting.export',
-            'reporting.view-audit-log',
-        ]);
+            if ($roleName === 'admin') {
+                $role->syncPermissions(self::PERMISSIONS);
 
-        $admin->givePermissionTo([
-            'reporting.export',
-            'reporting.view-audit-log',
-            'users.manage',
-        ]);
+                continue;
+            }
 
-        $legacyAdmin->givePermissionTo([
-            'reporting.export',
-            'reporting.view-audit-log',
-            'users.manage',
-        ]);
+            $role->syncPermissions($permissions);
+        }
+
+        // Legacy Admin role (capital A) used by existing accounts / #176 routes.
+        Role::findOrCreate('Admin')->syncPermissions(self::PERMISSIONS);
 
         $this->command->info('✓ PermissionSeeder completed successfully.');
     }
