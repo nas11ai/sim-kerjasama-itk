@@ -9,6 +9,8 @@ use Spatie\Permission\PermissionRegistrar;
 
 class PermissionSeeder extends Seeder
 {
+    public const GUARD = 'web';
+
     /**
      * Canonical Spatie permission catalog (M1 / DDD Identity & Access).
      * Includes submissions.view-assigned required by reviewer roles (#178).
@@ -75,15 +77,17 @@ class PermissionSeeder extends Seeder
     {
         app()[PermissionRegistrar::class]->forgetCachedPermissions();
 
+        $guard = self::GUARD;
+
         foreach (self::PERMISSIONS as $permission) {
             Permission::firstOrCreate([
                 'name' => $permission,
-                'guard_name' => 'web',
+                'guard_name' => $guard,
             ]);
         }
 
         foreach (self::ROLE_PERMISSIONS as $roleName => $permissions) {
-            $role = Role::findOrCreate($roleName);
+            $role = Role::findOrCreate($roleName, $guard);
 
             if ($roleName === 'admin') {
                 $role->syncPermissions(self::PERMISSIONS);
@@ -95,7 +99,7 @@ class PermissionSeeder extends Seeder
         }
 
         // Legacy Admin role (capital A) used by existing accounts / #176 routes.
-        Role::findOrCreate('Admin')->syncPermissions(self::PERMISSIONS);
+        Role::findOrCreate('Admin', $guard)->syncPermissions(self::PERMISSIONS);
 
         $this->command->info('✓ PermissionSeeder completed successfully.');
     }

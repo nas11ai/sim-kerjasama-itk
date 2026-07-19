@@ -13,7 +13,7 @@ test('PermissionSeeder creates all canonical permissions including view-assigned
     $this->seed(PermissionSeeder::class);
 
     $names = Permission::query()
-        ->where('guard_name', 'web')
+        ->where('guard_name', PermissionSeeder::GUARD)
         ->whereIn('name', PermissionSeeder::PERMISSIONS)
         ->pluck('name')
         ->all();
@@ -26,7 +26,7 @@ test('PermissionSeeder assigns DDD role permission sets', function () {
     $this->seed(PermissionSeeder::class);
 
     foreach (PermissionSeeder::ROLE_PERMISSIONS as $roleName => $expected) {
-        $role = Role::findByName($roleName);
+        $role = Role::findByName($roleName, PermissionSeeder::GUARD);
         $actual = $role->permissions->pluck('name')->all();
 
         if ($roleName === 'admin') {
@@ -45,12 +45,12 @@ test('PermissionSeeder is idempotent for permissions and role grants', function 
     $this->seed(PermissionSeeder::class);
 
     $permissionCount = Permission::query()
-        ->where('guard_name', 'web')
+        ->where('guard_name', PermissionSeeder::GUARD)
         ->whereIn('name', PermissionSeeder::PERMISSIONS)
         ->count();
 
     expect($permissionCount)->toBe(count(PermissionSeeder::PERMISSIONS))
-        ->and(Role::findByName('admin')->permissions)->toHaveCount(count(PermissionSeeder::PERMISSIONS))
-        ->and(Role::findByName('operator')->permissions->pluck('name')->all())
+        ->and(Role::findByName('admin', PermissionSeeder::GUARD)->permissions)->toHaveCount(count(PermissionSeeder::PERMISSIONS))
+        ->and(Role::findByName('operator', PermissionSeeder::GUARD)->permissions->pluck('name')->all())
         ->toEqualCanonicalizing(PermissionSeeder::ROLE_PERMISSIONS['operator']);
 });
