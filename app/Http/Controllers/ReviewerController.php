@@ -14,8 +14,7 @@ class ReviewerController extends Controller
     public function index(Request $request)
     {
         $query = Reviewer::with([
-            'user:id,name,email',
-            'reviewerRole:id,name',
+            'user:id,name,email'
         ]);
 
         // Search functionality
@@ -24,9 +23,7 @@ class ReviewerController extends Controller
             $query->whereHas('user', function ($q) use ($search) {
                 $q->where('name', 'ilike', "%{$search}%")
                     ->orWhere('email', 'ilike', "%{$search}%");
-            })->orWhereHas('reviewerRole', function ($q) use ($search) {
-                $q->where('name', 'ilike', "%{$search}%");
-            });
+            })->orWhere('reviewer_type', 'name', 'ilike', "%{$search}%");
         }
 
         // Filter by role
@@ -104,7 +101,7 @@ class ReviewerController extends Controller
     {
         $validated = $request->validate([
             'user_id' => 'required|exists:users,id',
-            'reviewer_role_id' => 'required|exists:reviewer_roles,id',
+            'reviewer_type' => 'required|exists:reviewer,reviewers_type',
             'start_date' => 'required|date|after_or_equal:today',
             'end_date' => 'nullable|date|after:start_date',
         ]);

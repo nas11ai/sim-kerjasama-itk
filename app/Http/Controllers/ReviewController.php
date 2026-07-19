@@ -471,7 +471,7 @@ class ReviewController extends Controller
             ->pluck('reviewer_id')
             ->toArray();
 
-        $availableReviewers = Reviewer::with(['user', 'reviewerRole'])
+        $availableReviewers = Reviewer::with(['user'])
             ->whereHas('user', function ($query) use ($submission) {
                 $query->where('id', '!=', $submission->submitted_by);
             })
@@ -483,7 +483,7 @@ class ReviewController extends Controller
                     'id' => $reviewer->id,
                     'name' => $reviewer->user->name,
                     'email' => $reviewer->user->email,
-                    'role' => $reviewer->reviewerRole->name,
+                    'role' => $reviewer->reviewer_type
                 ];
             });
 

@@ -75,7 +75,7 @@ class ReviewerRoleController extends Controller
     public function update(Request $request, ReviewerRole $reviewerRole)
     {
         $validated = $request->validate([
-            'name' => 'required|string|max:255|unique:reviewer_roles,name,'.$reviewerRole->id,
+            'name' => 'required|string|max:255|unique:reviewer_roles,name,' . $reviewerRole->id,
             'is_active' => 'boolean',
         ]);
 
@@ -108,15 +108,15 @@ class ReviewerRoleController extends Controller
             ->with('success', 'Reviewer role berhasil dihapus.');
     }
 
-    public function toggleStatus(ReviewerRole $reviewerRole)
-    {
-        $reviewerRole->update([
-            'is_active' => !$reviewerRole->is_active,
-        ]);
+    // public function toggleStatus(ReviewerRole $reviewerRole)
+    // {
+    //     $reviewerRole->update([
+    //         'is_active' => !$reviewerRole->is_active,
+    //     ]);
 
-        $status = $reviewerRole->is_active ? 'diaktifkan' : 'dinonaktifkan';
+    //     $status = $reviewerRole->is_active ? 'diaktifkan' : 'dinonaktifkan';
 
-        return redirect()->route('admin.reviewer-roles.index')
-            ->with('success', "Reviewer role berhasil {$status}.");
-    }
+    //     return redirect()->route('admin.reviewer-roles.index')
+    //         ->with('success', "Reviewer role berhasil {$status}.");
+    // }
 }
