@@ -13,7 +13,7 @@ class UserProfile extends Model
     protected $fillable = [
         'user_id',
         'role_id',
-        'study_program_id',
+        'organization_id',
     ];
 
     public function user()
@@ -26,8 +26,8 @@ class UserProfile extends Model
         return $this->belongsTo(Role::class);
     }
 
-    public function studyProgram()
+    public function organization()
     {
-        return $this->belongsTo(StudyProgram::class);
+        return $this->belongsTo(Organization::class);
     }
 }

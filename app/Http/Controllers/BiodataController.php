@@ -6,6 +6,7 @@ use App\Models\Form;
 use App\Models\FormFieldOption;
 use App\Models\FormFieldResponse;
 use App\Models\FormSubmission;
+use App\Services\FormAccessService;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -15,30 +16,14 @@ use Inertia\Inertia;
 
 class BiodataController extends Controller
 {
+    public function __construct(private FormAccessService $formAccessService) {}
+
     public function showBiodataForm()
     {
         $user = Auth::user();
-        $studyProgram = $user->studyProgram ?? null;
 
         $biodataForm = Form::where('form_type_id', 1)
             ->where('is_active', true)
-            ->whereHas('formAccessControls', function ($q) use ($user, $studyProgram) {
-                $q->whereHas('role', fn ($r) => $r->whereIn('name', $user->getRoleNames()))
-                    ->when(
-                        $studyProgram,
-                        fn ($r) => $r->where(function ($sub) use ($studyProgram) {
-                            $sub->whereNull('study_program_id')
-                                ->orWhere('study_program_id', $studyProgram->id);
-                        })
-                    );
-            })
-            ->with([
-                'formFields' => function ($query) {
-                    $query->orderBy('order');
-                },
-                'formFields.fieldType',
-                'formFields.formFieldOptions',
-            ])
             ->first();
 
         if (!$biodataForm) {
@@ -46,15 +31,18 @@ class BiodataController extends Controller
                 ->with('error', 'Form biodata tidak ditemukan atau tidak aktif.');
         }
 
-        $hasAccess = $biodataForm->formAccessControls()
-            ->whereHas('role', fn ($q) => $q->whereIn('name', $user->getRoleNames()))
-            ->when($studyProgram, fn ($q) => $q->where('study_program_id', $studyProgram->id))
-            ->exists();
-
-        if (!$hasAccess) {
+        if (!$this->formAccessService->canAccessForm($user, $biodataForm)) {
             return redirect()->route('user.dashboard')
                 ->with('error', 'Anda tidak memiliki akses ke form biodata ini.');
         }
+
+        $biodataForm->load([
+            'formFields' => function ($query) {
+                $query->orderBy('order');
+            },
+            'formFields.fieldType',
+            'formFields.formFieldOptions',
+        ]);
 
         $submission = FormSubmission::with('formFieldResponses')
             ->where('form_id', $biodataForm->id)
@@ -147,7 +135,11 @@ class BiodataController extends Controller
                 'formFields' => function ($query) {
                     $query->where('is_required', true);
                 },
-            ])->find($validated['form_id']);
+            ])->findOrFail($validated['form_id']);
+
+            if (!$this->formAccessService->canAccessForm($user, $form)) {
+                abort(403, 'Anda tidak memiliki akses ke form biodata ini.');
+            }
 
             // if is_submitted = true
             if ($validated['is_submitted']) {

@@ -51,7 +51,7 @@ interface PhaseType {
 interface FormAccessControl {
     id: number
     form: Form
-    role: Role
+    permission: string
     study_program: StudyProgram
 }
 
@@ -356,7 +356,7 @@ const submit = () => {
                                                                     >
                                                                         {{ fac.form.title }}
                                                                         -
-                                                                        {{ fac.role.name }}
+                                                                        {{ fac.permission }}
                                                                         -
                                                                         {{ fac.study_program.name }}
                                                                     </SelectItem>
@@ -489,7 +489,7 @@ const submit = () => {
                                                                 {{
                                                                     getFormAccessControlInfo(
                                                                         detail.form_access_control_id
-                                                                    )?.role.name
+                                                                    )?.permission
                                                                 }}
                                                             </div>
                                                             <div>

@@ -2,19 +2,20 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Faculty;
 use App\Models\FieldType;
 use App\Models\Form;
 use App\Models\FormAccessControl;
 use App\Models\FormPhase;
 use App\Models\FormPhaseDetail;
 use App\Models\FormType;
+use App\Models\Organization;
 use App\Models\PhaseType;
 use App\Models\ReviewEvaluationForm;
 use App\Models\ReviewFormField;
 use App\Models\SubmissionPeriod;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Spatie\Permission\Models\Role;
 
@@ -29,7 +30,8 @@ class CompleteFormBuilderController extends Controller
             'formTypes' => FormType::orderBy('name')->get(),
             'fieldTypes' => FieldType::orderBy('name')->get(),
             'roles' => Role::orderBy('name')->get(),
-            'faculties' => Faculty::with('studyPrograms')->orderBy('name')->get(),
+            'permissions' => FormAccessControl::ALLOWED_PERMISSIONS,
+            'faculties' => Organization::facultyOptions(),
             'phaseTypes' => PhaseType::all(),
             'formPhases' => FormPhase::where('is_active', true)
                 ->with('formPhaseDetails')
@@ -64,8 +66,8 @@ class CompleteFormBuilderController extends Controller
 
             // Step 2: Access Control
             'access_controls' => 'required|array|min:1',
-            'access_controls.*.role_id' => 'required|exists:roles,id',
-            'access_controls.*.study_program_id' => 'required|exists:study_programs,id',
+            'access_controls.*.permission' => ['required', 'string', Rule::in(FormAccessControl::ALLOWED_PERMISSIONS)],
+            'access_controls.*.study_program_id' => ['required', Rule::exists('organizations', 'id')->where('type', 'study_program')],
 
             // Step 3: Form Phase
             'phase.use_existing' => 'required|boolean',
@@ -126,8 +128,8 @@ class CompleteFormBuilderController extends Controller
             foreach ($validated['access_controls'] as $accessControl) {
                 $control = FormAccessControl::create([
                     'form_id' => $form->id,
-                    'role_id' => $accessControl['role_id'],
-                    'study_program_id' => $accessControl['study_program_id'],
+                    'permission' => $accessControl['permission'],
+                    'organization_id' => $accessControl['study_program_id'],
                 ]);
                 $accessControlIds[] = $control->id;
             }

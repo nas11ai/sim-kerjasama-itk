@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Form;
+use App\Models\FormAccessControl;
 use App\Models\FormFieldResponse;
 use App\Models\FormPhase;
 use App\Models\FormPhaseDetail;
@@ -11,8 +12,11 @@ use App\Models\Reviewer;
 use App\Models\ReviewSummary;
 use App\Models\SubmissionPeriod;
 use App\Services\EmailNotificationService;
-use App\SubmissionStatus;
+use App\Services\FormAccessService;
+use App\States\Submission\Approved;
+use App\States\Submission\Submitted;
 use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -22,17 +26,18 @@ class UserFormController extends Controller
 {
     protected $emailService;
 
-    public function __construct(EmailNotificationService $emailService)
-    {
+    public function __construct(
+        EmailNotificationService $emailService,
+        private FormAccessService $formAccessService,
+    ) {
         $this->emailService = $emailService;
     }
 
     public function dashboard()
     {
         $user = Auth::user();
+        $user->load('organization.parent');
 
-        // Get user's study program and role
-        $studyProgram = $user->studyProgram ?? null;
         $userRoles = $user->getRoleNames();
         $primaryRole = $userRoles->first() ?? 'user';
 
@@ -40,25 +45,23 @@ class UserFormController extends Controller
         $reviewer = Reviewer::where('user_id', $user->id)->first();
         $isReviewer = $reviewer !== null;
 
+        $permissions = $this->formAccessService->permissionNamesFor($user);
+        $organizationSubtree = $this->formAccessService->organizationSubtreeFor($user);
+
         // Get submission periods with accessible form phases
         $submissionPeriods = SubmissionPeriod::with([
             'submissionDates.submissionDateLabel',
-            'submissionPeriodPhases.formPhase.formPhaseDetails' => function ($query) use ($user, $studyProgram) {
-                $query->whereHas('formAccessControl', function ($q) use ($user, $studyProgram) {
-                    $q->whereHas('role', function ($roleQuery) use ($user) {
-                        $roleQuery->whereIn('name', $user->getRoleNames());
-                    });
-
-                    if ($studyProgram) {
-                        $q->where('study_program_id', $studyProgram->id);
-                    }
+            'submissionPeriodPhases.formPhase.formPhaseDetails' => function ($query) use ($user) {
+                $query->whereHas('formAccessControl', function (Builder $q) use ($user) {
+                    /** @var Builder<FormAccessControl> $q */
+                    $q->accessibleBy($user);
                 })
                     ->with(['formAccessControl.form.formFields', 'phaseType'])
                     ->orderBy('order');
             },
         ])
             ->get()
-            ->map(function ($period) use ($user, $studyProgram) {
+            ->map(function ($period) use ($user, $permissions, $organizationSubtree) {
                 // Fix: Use correct attribute name based on your model
                 $dates = $period->submissionDates->sortBy('datetime'); // Changed from 'datetime' to 'date'
                 $now = Carbon::now();
@@ -90,29 +93,19 @@ class UserFormController extends Controller
                 }
 
                 // Process form phases with user progress
-                $period->form_phases = $period->submissionPeriodPhases->map(function ($periodPhase) use ($user, $studyProgram) {
+                $period->form_phases = $period->submissionPeriodPhases->map(function ($periodPhase) use ($user, $permissions, $organizationSubtree) {
                     $formPhase = $periodPhase->formPhase;
 
-                    // Get user's accessible form access controls
-                    // Filter by role AND study_program_id to avoid counting forms multiple times
-                    $accessibleForms = $formPhase->formPhaseDetails->filter(function ($detail) use ($user, $studyProgram) {
+                    // Filter by permission AND organization subtree to avoid counting forms multiple times
+                    $accessibleForms = $formPhase->formPhaseDetails->filter(function ($detail) use ($permissions, $organizationSubtree) {
                         $formAccessControl = $detail->formAccessControl;
 
-                        if (!$formAccessControl || !$formAccessControl->role) {
+                        if (!$formAccessControl) {
                             return false;
                         }
 
-                        // Check role match
-                        if (!$user->hasRole($formAccessControl->role->name)) {
-                            return false;
-                        }
-
-                        // Check study program match (if user has study program)
-                        if ($studyProgram && $formAccessControl->study_program_id !== $studyProgram->id) {
-                            return false;
-                        }
-
-                        return true;
+                        return in_array($formAccessControl->permission, $permissions, true)
+                            && in_array((int) $formAccessControl->organization_id, $organizationSubtree, true);
                     });
 
                     // Calculate progress
@@ -171,11 +164,11 @@ class UserFormController extends Controller
         return Inertia::render('User/DashboardPage', [
             'submissionPeriods' => $submissionPeriods,
             'userRole' => $primaryRole,
-            'studyProgram' => $studyProgram ? [
-                'id' => $studyProgram->id,
-                'name' => $studyProgram->name,
+            'studyProgram' => $user->organization ? [
+                'id' => $user->organization->id,
+                'name' => $user->organization->name,
                 'faculty' => [
-                    'name' => $studyProgram->faculty->name,
+                    'name' => $user->organization->parent->name ?? '',
                 ],
             ] : null,
             'isReviewer' => $isReviewer,
@@ -241,18 +234,12 @@ class UserFormController extends Controller
     public function showFormPhase(SubmissionPeriod $period, FormPhase $phase, Request $request)
     {
         $user = Auth::user();
-        $studyProgram = $user->studyProgram ?? null;
 
         // Get form access controls for this phase that user can access
         $formAccessControls = $phase->formPhaseDetails()
-            ->whereHas('formAccessControl', function ($query) use ($user, $studyProgram) {
-                $query->whereHas('role', function ($roleQuery) use ($user) {
-                    $roleQuery->whereIn('name', $user->getRoleNames());
-                });
-
-                if ($studyProgram) {
-                    $query->where('study_program_id', $studyProgram->id);
-                }
+            ->whereHas('formAccessControl', function (Builder $query) use ($user) {
+                /** @var Builder<FormAccessControl> $query */
+                $query->accessibleBy($user);
             })
             ->with([
                 'formAccessControl.form.formFields',
@@ -323,6 +310,11 @@ class UserFormController extends Controller
             'responses.*.form_field_id' => 'required|exists:form_fields,id',
             'responses.*.value' => 'nullable',
         ]);
+
+        $form = Form::findOrFail($validated['form_id']);
+        if (!$this->formAccessService->canAccessForm($user, $form)) {
+            abort(403, 'Anda tidak memiliki akses ke formulir ini.');
+        }
 
         // Handle file uploads
         $fileUploads = [];
@@ -411,7 +403,11 @@ class UserFormController extends Controller
             'formFields' => function ($query) {
                 $query->where('is_required', true);
             },
-        ])->find($validated['form_id']);
+        ])->findOrFail($validated['form_id']);
+
+        if (!$this->formAccessService->canAccessForm($user, $form)) {
+            abort(403, 'Anda tidak memiliki akses ke formulir ini.');
+        }
 
         $requiredFields = $form->formFields;
         $responseValues = collect($validated['responses'])->keyBy('form_field_id');
@@ -482,21 +478,17 @@ class UserFormController extends Controller
 
             // Check if this form needs review
             $formPhaseDetail = FormPhaseDetail::where('form_phase_id', $validated['form_phase_id'])
-                ->whereHas('formAccessControl', function ($query) use ($validated, $user) {
+                ->whereHas('formAccessControl', function (Builder $query) use ($validated, $user) {
+                    /** @var Builder<FormAccessControl> $query */
                     $query->where('form_id', $validated['form_id'])
-                        ->whereHas('role', function ($roleQuery) use ($user) {
-                            $roleQuery->whereIn('name', $user->getRoleNames());
-                        });
+                        ->accessibleBy($user);
                 })
                 ->first();
 
             if ($formPhaseDetail && !$formPhaseDetail->needs_review) {
-                $submission->update(['status' => SubmissionStatus::APPROVED]);
-
-                // TODO: Create review request or notification
-                // You can implement notification system here
+                $submission->status->transitionTo(Approved::class);
             } else {
-                $submission->update(['status' => SubmissionStatus::PENDING]);
+                $submission->status->transitionTo(Submitted::class);
             }
 
             $this->emailService->notifyAdminFormSubmission($submission);

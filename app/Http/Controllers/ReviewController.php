@@ -17,7 +17,11 @@ use App\Models\SubmissionDate;
 use App\Models\SubmissionPeriod;
 use App\Models\SubmissionReviewer;
 use App\Services\EmailNotificationService;
-use App\SubmissionStatus;
+use App\States\Submission\Approved;
+use App\States\Submission\NeedsRevision;
+use App\States\Submission\Rejected;
+use App\States\Submission\Submitted;
+use App\States\Submission\UnderReview;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -133,7 +137,7 @@ class ReviewController extends Controller
 
             // Update submission status
             if ($submission->submissionReviewers()->count() === 0) {
-                $submission->update(['status' => SubmissionStatus::PENDING]);
+                $submission->status->transitionTo(Submitted::class);
             } else {
                 $this->updateSubmissionStatusBasedOnReviews($submission);
             }
@@ -149,19 +153,15 @@ class ReviewController extends Controller
     public function updateSubmissionStatus(Request $request, FormSubmission $submission)
     {
         $request->validate([
-            'status' => 'required|in:pending,under_review,needs_revision,approved,rejected',
+            'status' => 'required|in:submitted,under_review,needs_revision,approved,rejected',
         ]);
 
         $user = Auth::user();
         $canUpdate = false;
 
-        // Admin can always update
-        if ($user->hasRole(['Super Admin', 'Admin'])) {
+        if ($user->can('users.manage')) {
             $canUpdate = true;
-        }
-        // Check reviewer permissions
-        else {
-            /** @var Reviewer|null $reviewer */
+        } else {
             $reviewer = Reviewer::where('user_id', $user->id)->first();
 
             if ($reviewer) {
@@ -170,9 +170,6 @@ class ReviewController extends Controller
                     'reviewer_id' => $reviewer->id,
                 ])->first();
 
-                // Reviewer can update status only if:
-                // 1. They are assigned to this submission
-                // 2. Evaluations are completed or not required
                 if ($submissionReviewer && $submissionReviewer->canParticipateInDiscussions()) {
                     $canUpdate = true;
                 } elseif ($submissionReviewer) {
@@ -188,26 +185,46 @@ class ReviewController extends Controller
             abort(403, 'Tidak berwenang untuk memperbarui status pengajuan.');
         }
 
-        // Convert string status to enum
         $newStatus = match ($request->status) {
-            'pending' => SubmissionStatus::PENDING,
-            'under_review' => SubmissionStatus::UNDER_REVIEW,
-            'needs_revision' => SubmissionStatus::NEEDS_REVISION,
-            'approved' => SubmissionStatus::APPROVED,
-            'rejected' => SubmissionStatus::REJECTED,
+            'submitted' => Submitted::class,
+            'under_review' => UnderReview::class,
+            'needs_revision' => NeedsRevision::class,
+            'approved' => Approved::class,
+            'rejected' => Rejected::class,
             default => throw new \InvalidArgumentException('Invalid submission status value'),
         };
 
-        DB::transaction(function () use ($submission, $newStatus) {
-            $oldStatus = $submission->status;
+        try {
+            DB::transaction(function () use ($submission, $newStatus) {
+                $oldStatus = $submission->status;
 
-            $submission->update(['status' => $newStatus]);
+                if ($submission->status->canTransitionTo($newStatus)) {
+                    $submission->status->transitionTo($newStatus);
+                } elseif ($submission->status->canTransitionTo(UnderReview::class)) {
+                    $submission->status->transitionTo(UnderReview::class);
 
-            // TAMBAHKAN: Kirim email notifikasi submission status changed
-            $this->emailService->notifySubmissionStatusChanged($submission, $oldStatus);
-        });
+                    /** @phpstan-ignore-next-line */
+                    if ($submission->status->canTransitionTo($newStatus)) {
+                        $submission->status->transitionTo($newStatus);
+                    } else {
+                        throw new \Exception('Transisi ke status yang dipilih tidak diizinkan dari status saat ini.');
+                    }
+                } else {
+                    throw new \Exception("Transisi ke status tersebut tidak diizinkan dari status {$oldStatus->label()}.");
+                }
 
-        return back()->with('success', "Status pengajuan berhasil diubah menjadi {$newStatus->label()}.");
+                $this->emailService->notifySubmissionStatusChanged($submission, $oldStatus);
+            });
+        } catch (\Exception $e) {
+            return back()->with('error', $e->getMessage());
+        }
+
+        $submission->refresh();
+
+        return back()->with(
+            'success',
+            "Status pengajuan berhasil diubah menjadi {$submission->status->label()}."
+        );
     }
 
     // Enhanced thread creation with evaluation check
@@ -222,7 +239,7 @@ class ReviewController extends Controller
         $user = Auth::user();
 
         // Admin can always create threads
-        if ($user->hasRole(['Super Admin', 'Admin'])) {
+        if ($user->can('users.manage')) {
             return $this->performCreateReviewThread($request, $submission, null);
         }
 
@@ -300,8 +317,8 @@ class ReviewController extends Controller
             }
 
             // Update submission status if not already under review
-            if ($submission->status === SubmissionStatus::PENDING) {
-                $submission->update(['status' => SubmissionStatus::UNDER_REVIEW]);
+            if ($submission->status instanceof Submitted) {
+                $submission->status->transitionTo(UnderReview::class);
             }
 
             // TAMBAHKAN: Kirim email notifikasi review thread created
@@ -326,7 +343,7 @@ class ReviewController extends Controller
         $canComment = false;
 
         // Admin can always comment
-        if ($user->hasRole(['Super Admin', 'Admin'])) {
+        if ($user->can('users.manage')) {
             $canComment = true;
         }
         // Submitter can always comment on their own submission
@@ -552,7 +569,7 @@ class ReviewController extends Controller
         $canUpdate = false;
 
         // Admin can always update
-        if ($user->hasRole(['Super Admin', 'Admin'])) {
+        if ($user->can('users.manage')) {
             $canUpdate = true;
         }
         // Check if it's the reviewer's own review
@@ -628,27 +645,37 @@ class ReviewController extends Controller
     {
         $reviewSummaries = ReviewSummary::where('form_submission_id', $submission->id)->get();
 
-        // Check evaluation completion first
         if ($submission->hasPendingEvaluations()) {
-            $submission->update(['status' => SubmissionStatus::UNDER_REVIEW]);
+            if ($submission->status->canTransitionTo(UnderReview::class)) {
+                $submission->status->transitionTo(UnderReview::class);
+            }
 
             return;
         }
 
-        // If no review threads exist
         if ($reviewSummaries->isEmpty()) {
-            return; // Keep current status
+            return;
         }
 
-        // Priority order: closed > open > resolved
+        $targetState = UnderReview::class;
+
         if ($reviewSummaries->where('status', 'closed')->isNotEmpty()) {
-            $submission->update(['status' => SubmissionStatus::REJECTED]);
+            $targetState = Rejected::class;
         } elseif ($reviewSummaries->where('status', 'open')->isNotEmpty()) {
-            $submission->update(['status' => SubmissionStatus::NEEDS_REVISION]);
+            $targetState = NeedsRevision::class;
         } elseif ($reviewSummaries->every(fn ($r) => $r->status === 'resolved')) {
-            $submission->update(['status' => SubmissionStatus::APPROVED]);
-        } else {
-            $submission->update(['status' => SubmissionStatus::UNDER_REVIEW]);
+            $targetState = Approved::class;
+        }
+
+        if ($submission->status->canTransitionTo($targetState)) {
+            $submission->status->transitionTo($targetState);
+        } elseif ($submission->status->canTransitionTo(UnderReview::class)) {
+            $submission->status->transitionTo(UnderReview::class);
+
+            /** @phpstan-ignore-next-line */
+            if ($submission->status->canTransitionTo($targetState)) {
+                $submission->status->transitionTo($targetState);
+            }
         }
     }
 
@@ -722,7 +749,7 @@ class ReviewController extends Controller
     /** @phpstan-ignore-next-line */
     private function canUserReview(FormSubmission $submission, $user): bool
     {
-        if ($user->hasRole(['Super Admin', 'Admin'])) {
+        if ($user->can('users.manage')) {
             return true;
         }
 

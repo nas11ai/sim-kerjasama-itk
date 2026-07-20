@@ -23,7 +23,7 @@ return new class extends Migration
         if ($value !== null) {
             DB::table('schemes')->update([
                 'rules' => DB::raw(
-                    "COALESCE(rules, '{}'::jsonb) || jsonb_build_object('min_reviewer_count', ".(int) $value.')'
+                    "COALESCE(rules::jsonb, '{}'::jsonb) || jsonb_build_object('min_reviewer_count', ".(int) $value.')'
                 ),
             ]);
         }
