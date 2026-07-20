@@ -67,10 +67,7 @@ class FormField extends Model
             return false;
         }
 
-        if (
-            $this->required_since !== null &&
-            $this->required_since->gt($submission->created_at)
-        ) {
+        if ($this->required_since?->gt($submission->created_at)) {
             return false;
         }
 

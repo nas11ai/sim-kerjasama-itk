@@ -41,7 +41,7 @@ class AuthenticatedSessionController extends Controller
         }
 
         // Production app logic
-        if ($user->hasRole('Super Admin') || $user->hasRole('Admin')) {
+        if ($user->can('users.manage')) {
             return redirect()->intended(route('admin.dashboard'));
         }
 

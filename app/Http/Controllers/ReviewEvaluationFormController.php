@@ -19,7 +19,7 @@ class ReviewEvaluationFormController extends Controller
         $query = ReviewEvaluationForm::with([
             'formPhaseDetail.formPhase:id,title',
             'formPhaseDetail.formAccessControl.form:id,title',
-            'formPhaseDetail.formAccessControl.role:id,name',
+            'formPhaseDetail.formAccessControl',
             'reviewFormFields',
         ]);
 
@@ -72,7 +72,7 @@ class ReviewEvaluationFormController extends Controller
         $formPhases = FormPhase::where('is_active', true)
             ->with([
                 'formPhaseDetails.formAccessControl.form',
-                'formPhaseDetails.formAccessControl.role',
+                'formPhaseDetails.formAccessControl',
                 'formPhaseDetails.formAccessControl.studyProgram',
             ])
             ->orderBy('title')
@@ -165,7 +165,7 @@ class ReviewEvaluationFormController extends Controller
         $reviewEvaluationForm->load([
             'formPhaseDetail.formPhase:id,title,description',
             'formPhaseDetail.formAccessControl.form',
-            'formPhaseDetail.formAccessControl.role',
+            'formPhaseDetail.formAccessControl',
             'reviewFormFields' => function ($query) {
                 $query->ordered()->with([
                     'fieldType:id,name',
@@ -213,7 +213,7 @@ class ReviewEvaluationFormController extends Controller
         $formPhases = FormPhase::where('is_active', true)
             ->with([
                 'formPhaseDetails.formAccessControl.form',
-                'formPhaseDetails.formAccessControl.role',
+                'formPhaseDetails.formAccessControl',
                 'formPhaseDetails.formAccessControl.studyProgram',
             ])
             ->orderBy('title')

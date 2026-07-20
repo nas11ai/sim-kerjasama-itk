@@ -14,6 +14,20 @@ return new class extends Migration
                 ->constrained('submission_dates')
                 ->after('phase_type_id');
         });
+
+        DB::statement('
+            UPDATE form_phase_details fpd
+            SET submission_date_id = (
+                SELECT sd.id
+                FROM submission_dates sd
+                JOIN submission_period_phases spp
+                    ON spp.submission_period_id = sd.submission_period_id
+                WHERE spp.form_phase_id = fpd.form_phase_id
+                 ORDER BY sd.datetime ASC
+                LIMIT 1
+            )
+        WHERE fpd.submission_date_id IS NULL;
+        ');
     }
 
     public function down(): void
