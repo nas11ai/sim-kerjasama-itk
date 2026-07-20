@@ -207,8 +207,8 @@ Route::middleware(['auth', 'check_reviewer_status'])->prefix('reviewer')->name('
         ->name('review-comments.store');
 });
 
-// Admin Routes - only accessible by Super Admin or Admin role
-Route::middleware(['auth', 'role:Super Admin|Admin', 'check_reviewer_status'])->prefix('admin')->name('admin.')->group(function () {
+// Admin Routes - permission-based (users.manage; Super Admin via Gate::before)
+Route::middleware(['auth', 'can:users.manage', 'check_reviewer_status'])->prefix('admin')->name('admin.')->group(function () {
     // Admin Dashboard
     Route::get('/dashboard', [StatController::class, 'dashboard'])->middleware(['auth', 'verified'])->name('dashboard');
 
@@ -472,7 +472,7 @@ Route::middleware(['auth', 'role:Super Admin|Admin', 'check_reviewer_status'])->
 });
 
 // For backwards compatibility, you can add redirects for admin routes without prefix
-Route::middleware(['auth', 'role:Super Admin|Admin', 'check_reviewer_status'])->group(function () {
+Route::middleware(['auth', 'can:users.manage', 'check_reviewer_status'])->group(function () {
     Route::get('/forms', function () {
         return redirect()->route('admin.forms.index');
     });

@@ -328,7 +328,7 @@ class ReviewFormResponseController extends Controller
         $user = Auth::user();
 
         // Admin can view any assignment
-        if ($user->hasRole(['Super Admin', 'Admin'])) {
+        if ($user->can('users.manage')) {
             return;
         }
 

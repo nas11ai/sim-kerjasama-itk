@@ -15,11 +15,6 @@ import {
 } from '@/Components/ui/select'
 import { ArrowLeft, Users, FileText, AlertTriangle } from 'lucide-vue-next'
 
-interface Role {
-    id: number
-    name: string
-}
-
 interface StudyProgram {
     id: number
     name: string
@@ -40,7 +35,7 @@ interface Form {
 interface FormAccessControl {
     id: number
     form: Form
-    role: Role
+    permission: string
     study_program: StudyProgram & {
         faculty: Faculty
     }
@@ -49,7 +44,7 @@ interface FormAccessControl {
 // Rename FormData to avoid conflict with browser's FormData
 interface FormFields {
     form_id: number | null
-    role_id: number | null
+    permission: string | null
     study_program_id: number | null
     _method: string
 }
@@ -57,7 +52,7 @@ interface FormFields {
 interface Props {
     formAccessControl: FormAccessControl
     forms: Form[]
-    roles: Role[]
+    permissions: string[]
     faculties: Faculty[]
 }
 
@@ -67,7 +62,7 @@ const selectedFacultyId = ref<number | null>(null)
 
 const form = useForm<FormFields>({
     form_id: null,
-    role_id: null,
+    permission: null,
     study_program_id: null,
     _method: 'PATCH',
 })
@@ -76,7 +71,7 @@ const errors = computed(() => {
     const formErrors = (form.errors ?? {}) as Record<string, string | undefined>
     return {
         form_id: formErrors.form_id,
-        role_id: formErrors.role_id,
+        permission: formErrors.permission,
         study_program_id: formErrors.study_program_id,
         duplicate: formErrors.duplicate,
     }
@@ -100,7 +95,7 @@ watch(selectedFacultyId, () => {
 // Initialize form with existing data
 onMounted(() => {
     form.form_id = props.formAccessControl.form.id
-    form.role_id = props.formAccessControl.role.id
+    form.permission = props.formAccessControl.permission
     form.study_program_id = props.formAccessControl.study_program.id
     selectedFacultyId.value = props.formAccessControl.study_program.faculty.id
 })
@@ -149,9 +144,9 @@ const submit = () => {
                             </p>
                         </div>
                         <div>
-                            <p class="text-blue-700 font-medium">Role</p>
+                            <p class="text-blue-700 font-medium">Permission</p>
                             <p class="text-blue-600">
-                                {{ props.formAccessControl.role.name }}
+                                {{ props.formAccessControl.permission }}
                             </p>
                         </div>
                         <div>
@@ -210,25 +205,25 @@ const submit = () => {
                     </CardHeader>
                     <CardContent class="space-y-6">
                         <div class="grid gap-6 md:grid-cols-2">
-                            <!-- Role Selection -->
+                            <!-- Permission Selection -->
                             <div class="space-y-2">
-                                <Label for="role">Role *</Label>
-                                <Select v-model="form.role_id">
-                                    <SelectTrigger id="role">
-                                        <SelectValue placeholder="Pilih role" />
+                                <Label for="permission">Permission *</Label>
+                                <Select v-model="form.permission">
+                                    <SelectTrigger id="permission">
+                                        <SelectValue placeholder="Pilih permission" />
                                     </SelectTrigger>
                                     <SelectContent>
                                         <SelectItem
-                                            v-for="role in props.roles"
-                                            :key="role.id"
-                                            :value="role.id"
+                                            v-for="permission in props.permissions"
+                                            :key="permission"
+                                            :value="permission"
                                         >
-                                            {{ role.name }}
+                                            {{ permission }}
                                         </SelectItem>
                                     </SelectContent>
                                 </Select>
-                                <p v-if="errors.role_id" class="text-sm text-destructive">
-                                    {{ errors.role_id }}
+                                <p v-if="errors.permission" class="text-sm text-destructive">
+                                    {{ errors.permission }}
                                 </p>
                             </div>
 

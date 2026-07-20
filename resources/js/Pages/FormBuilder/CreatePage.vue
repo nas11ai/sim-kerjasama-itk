@@ -24,13 +24,12 @@ import type {
     FormPhase,
     SubmissionPeriod,
 } from '@/types/form-builder'
-import type { Role } from '@/types'
 import type { Faculty } from '@/Pages/FormBuilder/Steps/Step2AccessControl.vue'
 
 interface Props {
     formTypes: FormType[]
     fieldTypes: FieldType[]
-    roles: Role[]
+    permissions: string[]
     faculties: Faculty[]
     phaseTypes: PhaseType[]
     formPhases: FormPhase[]
@@ -245,7 +244,7 @@ const submit = () => {
                     <Step2AccessControl
                         v-if="currentStep === 2"
                         v-model="form.access_controls"
-                        :roles="roles"
+                        :permissions="permissions"
                         :faculties="faculties"
                         :errors="form.errors"
                     />
@@ -278,7 +277,6 @@ const submit = () => {
                         v-if="currentStep === 6"
                         :form-data="form"
                         :form-types="formTypes"
-                        :roles="roles"
                         :faculties="faculties"
                         :phase-types="phaseTypes"
                         :form-phases="formPhases"

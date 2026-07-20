@@ -2,13 +2,19 @@
 
 namespace App\Models;
 
-use App\SubmissionStatus;
+use App\States\Submission\Approved;
+use App\States\Submission\NeedsRevision;
+use App\States\Submission\Rejected;
+use App\States\Submission\SubmissionStatus;
+use App\States\Submission\Submitted;
+use App\States\Submission\UnderReview;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Spatie\ModelStates\HasStates;
 
 /**
  * @property int $id
@@ -25,7 +31,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  */
 class FormSubmission extends Model
 {
-    use HasFactory;
+    use HasFactory, HasStates;
 
     protected $fillable = [
         'form_id',
@@ -298,16 +304,16 @@ class FormSubmission extends Model
     }
 
     // Updated: Enhanced canProceed method
-    public function canProceed()
+    public function canProceed(): bool
     {
-        return $this->status === SubmissionStatus::APPROVED &&
-            $this->allReviewersApproved() &&
-            $this->allReviewersCompletedEvaluations();
+        return $this->status instanceof Approved
+            && $this->allReviewersApproved()
+            && $this->allReviewersCompletedEvaluations();
     }
 
-    public function needsRevision()
+    public function needsRevision(): bool
     {
-        return $this->status === SubmissionStatus::NEEDS_REVISION;
+        return $this->status instanceof NeedsRevision;
     }
 
     // Updated: Check if discussions are allowed
@@ -353,22 +359,34 @@ class FormSubmission extends Model
     // Updated: Enhanced status update considering evaluations
     public function updateStatusBasedOnReviews()
     {
-        // Check evaluation completion first
+        $targetState = null;
+
         if ($this->hasPendingEvaluations()) {
-            $this->status = SubmissionStatus::UNDER_REVIEW;
+            $targetState = UnderReview::class;
         } elseif ($this->hasRejectedReviews()) {
-            $this->status = SubmissionStatus::REJECTED;
+            $targetState = Rejected::class;
         } elseif ($this->hasRevisionsRequested()) {
-            $this->status = SubmissionStatus::NEEDS_REVISION;
+            $targetState = NeedsRevision::class;
         } elseif ($this->allReviewersApproved()) {
-            $this->status = SubmissionStatus::APPROVED;
+            $targetState = Approved::class;
         } elseif ($this->hasAnyReviews()) {
-            $this->status = SubmissionStatus::UNDER_REVIEW;
-        } else {
-            $this->status = SubmissionStatus::PENDING;
+            $targetState = UnderReview::class;
         }
 
-        $this->save();
+        if (!$targetState) {
+            return;
+        }
+
+        if ($this->status->canTransitionTo($targetState)) {
+            $this->status->transitionTo($targetState);
+        } elseif ($this->status->canTransitionTo(UnderReview::class)) {
+            $this->status->transitionTo(UnderReview::class);
+
+            /** @phpstan-ignore-next-line */
+            if ($this->status->canTransitionTo($targetState)) {
+                $this->status->transitionTo($targetState);
+            }
+        }
     }
 
     public function getActiveReviewThreadsCount(): int

@@ -2,11 +2,16 @@
 
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
+use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
+use Spatie\Permission\PermissionRegistrar;
 
 beforeEach(function () {
-    // Memastikan role Admin ada sebelum test dijalankan
-    Role::firstOrCreate(['name' => 'Admin']);
+    app()[PermissionRegistrar::class]->forgetCachedPermissions();
+
+    $permission = Permission::findOrCreate('users.manage');
+    $admin = Role::findOrCreate('Admin');
+    $admin->givePermissionTo($permission);
 });
 
 test('admin can access reviewer stats endpoint without SQL error', function () {
