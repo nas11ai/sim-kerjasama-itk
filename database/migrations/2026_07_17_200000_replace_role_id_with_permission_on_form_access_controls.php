@@ -53,9 +53,11 @@ return new class extends Migration
 
         Schema::table('form_access_controls', function (Blueprint $table) {
             $table->dropConstrainedForeignId('role_id');
+            $table->string('permission')
+                ->nullable(false)
+                ->change();
         });
 
-        DB::statement('ALTER TABLE form_access_controls ALTER COLUMN permission SET NOT NULL');
     }
 
     public function down(): void
@@ -96,8 +98,10 @@ return new class extends Migration
 
         Schema::table('form_access_controls', function (Blueprint $table) {
             $table->dropColumn('permission');
+            $table->foreignId('role_id')
+                ->nullable(false)
+                ->change();
         });
 
-        DB::statement('ALTER TABLE form_access_controls ALTER COLUMN role_id SET NOT NULL');
     }
 };

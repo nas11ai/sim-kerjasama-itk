@@ -15,21 +15,19 @@ return new class extends Migration
                 ->after('phase_type_id');
         });
 
-        // Backfill: assign first submission_date dari period yang sama
-        DB::statement("
+        DB::statement('
             UPDATE form_phase_details fpd
             SET submission_date_id = (
                 SELECT sd.id
                 FROM submission_dates sd
-                JOIN submission_period_phases spp ON spp.submission_period_id = sd.submission_period_id
+                JOIN submission_period_phases spp
+                    ON spp.submission_period_id = sd.submission_period_id
                 WHERE spp.form_phase_id = fpd.form_phase_id
-                ORDER BY sd.date ASC
+                 ORDER BY sd.datetime ASC
                 LIMIT 1
             )
-            WHERE fpd.submission_date_id IS NULL
-        ");
-
-        DB::statement('ALTER TABLE form_phase_details ALTER COLUMN submission_date_id SET NOT NULL');
+        WHERE fpd.submission_date_id IS NULL;
+        ');
     }
 
     public function down(): void

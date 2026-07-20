@@ -56,7 +56,11 @@ return new class extends Migration
             $table->dropColumn('study_program_id');
         });
 
-        DB::statement('ALTER TABLE form_access_controls ALTER COLUMN organization_id SET NOT NULL');
+        Schema::table('form_access_controls', function (Blueprint $table) {
+            $table->foreignId('organization_id')
+                ->nullable(false)
+                ->change();
+        });
     }
 
     public function down(): void
@@ -108,6 +112,10 @@ return new class extends Migration
             $table->dropColumn('organization_id');
         });
 
-        DB::statement('ALTER TABLE form_access_controls ALTER COLUMN study_program_id SET NOT NULL');
+        Schema::table('form_access_controls', function (Blueprint $table) {
+            $table->foreignId('study_program_id')
+                ->nullable(false)
+                ->change();
+        });
     }
 };
