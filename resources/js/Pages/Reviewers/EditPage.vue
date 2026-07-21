@@ -108,7 +108,10 @@ const formatDate = (dateString: string) => {
                                     >Role Sekarang</Label
                                 >
                                 <p class="font-medium">
-                                    {{ reviewer.reviewer_type.charAt(0).toUpperCase() + reviewer.reviewer_type.slice(1) }}
+                                    {{
+                                        reviewer.reviewer_type.charAt(0).toUpperCase() +
+                                        reviewer.reviewer_type.slice(1)
+                                    }}
                                 </p>
                             </div>
                             <div>

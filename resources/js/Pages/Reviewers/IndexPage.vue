@@ -385,7 +385,9 @@ const totalReviewers = computed(() => {
                                                             )
                                                         "
                                                     />
-                                                    {{ type.charAt(0).toUpperCase() + type.slice(1) }}
+                                                    {{
+                                                        type.charAt(0).toUpperCase() + type.slice(1)
+                                                    }}
                                                 </CommandItem>
                                             </CommandGroup>
                                         </CommandList>
@@ -519,7 +521,10 @@ const totalReviewers = computed(() => {
                                             variant="outline"
                                             class="bg-purple-50 text-blue-700 border-purple-200"
                                         >
-                                            {{ reviewer.reviewer_type.charAt(0).toUpperCase() + reviewer.reviewer_type.slice(1) }}
+                                            {{
+                                                reviewer.reviewer_type.charAt(0).toUpperCase() +
+                                                reviewer.reviewer_type.slice(1)
+                                            }}
                                         </Badge>
                                         <Badge
                                             :variant="
@@ -662,7 +667,10 @@ const totalReviewers = computed(() => {
                                 </p>
                                 <div class="flex items-center gap-2 mt-2">
                                     <Badge variant="secondary" class="text-xs">
-                                        {{ reviewerToDelete.reviewer_type.charAt(0).toUpperCase() + reviewerToDelete.reviewer_type.slice(1) }}
+                                        {{
+                                            reviewerToDelete.reviewer_type.charAt(0).toUpperCase() +
+                                            reviewerToDelete.reviewer_type.slice(1)
+                                        }}
                                     </Badge>
                                     <Badge
                                         :variant="

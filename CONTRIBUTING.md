@@ -379,7 +379,7 @@ Approved       → Withdrawn
 Jangan membandingkan state menggunakan string atau nama class secara langsung.
 
 ```php
-// ❌ Jangan 
+// ❌ Jangan
 if ($submission->status == 'approved') { ... }
 if ($submission->status === Approved::class) { ... }
 ```
@@ -387,8 +387,8 @@ if ($submission->status === Approved::class) { ... }
 Gunakan API state yang tersedia.
 
 ```php
-// ✅ Disarankan 
-if ($submission->status->equals(Approved::class)) { 
+// ✅ Disarankan
+if ($submission->status->equals(Approved::class)) {
     // ...
 ```
 

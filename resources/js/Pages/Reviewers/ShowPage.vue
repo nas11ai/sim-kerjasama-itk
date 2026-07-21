@@ -205,7 +205,10 @@ const getStatusInfo = computed(() => {
                             <div>
                                 <Badge variant="outline" class="gap-1">
                                     <Shield class="h-3 w-3" />
-                                    {{ reviewer.reviewer_type.charAt(0).toUpperCase() + reviewer.reviewer_type.slice(1) }}
+                                    {{
+                                        reviewer.reviewer_type.charAt(0).toUpperCase() +
+                                        reviewer.reviewer_type.slice(1)
+                                    }}
                                 </Badge>
                             </div>
                         </div>
