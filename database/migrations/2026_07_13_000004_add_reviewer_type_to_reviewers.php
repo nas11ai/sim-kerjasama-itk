@@ -5,7 +5,8 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration {
+return new class extends Migration
+{
     public function up(): void
     {
         Schema::table('reviewers', function (Blueprint $table) {
@@ -54,10 +55,10 @@ return new class extends Migration {
             ]);
 
         Schema::table('reviewers', function (Blueprint $table) {
-              $table->foreignId('reviewer_role_id')
+            $table->foreignId('reviewer_role_id')
                 ->nullable(false)
                 ->change();
-                
+
             $table->foreign('reviewer_role_id')
                 ->references('id')
                 ->on('reviewer_roles')
