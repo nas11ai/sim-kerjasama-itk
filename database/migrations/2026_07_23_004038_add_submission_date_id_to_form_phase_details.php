@@ -40,7 +40,7 @@ return new class extends Migration
 
         DB::statement('
             UPDATE form_phase_details fpd
-            SET fpd.submission_date_id = (
+            SET submission_date_id = (
                 SELECT sd.id
                 FROM form_phases fp
                 JOIN submission_period_phases spp ON spp.form_phase_id = fp.id
