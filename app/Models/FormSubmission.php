@@ -45,7 +45,7 @@ class FormSubmission extends Model
         'is_submitted' => 'boolean',
     ];
 
-     /** @return BelongsTo<FormSubmission, $this> */
+    /** @return BelongsTo<FormSubmission, $this> */
     public function parent(): BelongsTo
     {
         return $this->belongsTo(FormSubmission::class, 'parent_submission_id');

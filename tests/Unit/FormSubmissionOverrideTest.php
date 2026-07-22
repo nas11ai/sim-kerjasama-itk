@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\Form;
 use App\Models\FormAccessControl;
 use App\Models\FormPhase;
 use App\Models\FormPhaseDetail;
@@ -8,7 +9,6 @@ use App\Models\FormSubmissionOverride;
 use App\Models\Organization;
 use App\Models\PhaseType;
 use App\Models\User;
-use App\Models\Form;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
