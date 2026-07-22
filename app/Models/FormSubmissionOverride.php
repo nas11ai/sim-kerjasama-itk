@@ -34,16 +34,19 @@ class FormSubmissionOverride extends Model
         'is_active' => 'boolean',
     ];
 
+    /** @return BelongsTo<FormSubmission, $this> */
     public function formSubmission(): BelongsTo
     {
         return $this->belongsTo(FormSubmission::class);
     }
 
+    /** @return BelongsTo<FormPhaseDetail, $this> */
     public function formPhaseDetail(): BelongsTo
     {
         return $this->belongsTo(FormPhaseDetail::class);
     }
 
+    /** @return BelongsTo<User, $this> */
     public function grantedBy(): BelongsTo
     {
         return $this->belongsTo(User::class, 'granted_by');
