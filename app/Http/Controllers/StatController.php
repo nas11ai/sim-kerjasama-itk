@@ -40,7 +40,8 @@ class StatController extends Controller
     // form phase Index
     public function formPhaseStatIndex()
     {
-        return Inertia::render('Statistics/FormPhaseStats',
+        return Inertia::render(
+            'Statistics/FormPhaseStats',
             $this->getFormPhaseStats(),
         );
     }
@@ -48,7 +49,8 @@ class StatController extends Controller
     // form submission Index
     public function formSubmissionStatIndex()
     {
-        return Inertia::render('Statistics/FormSubmissionStats',
+        return Inertia::render(
+            'Statistics/FormSubmissionStats',
             $this->getFormSubmissionStats(),
         );
     }
@@ -56,7 +58,8 @@ class StatController extends Controller
     // submission reviewer Index
     public function submissionReviewerStatIndex()
     {
-        return Inertia::render('Statistics/SubmissionReviewerStats',
+        return Inertia::render(
+            'Statistics/SubmissionReviewerStats',
             $this->getSubmissionReviewerStats()
         );
     }
@@ -64,7 +67,8 @@ class StatController extends Controller
     // user Index
     public function userStatIndex()
     {
-        return Inertia::render('Statistics/UserStats',
+        return Inertia::render(
+            'Statistics/UserStats',
             $this->getUserStats(),
         );
     }
