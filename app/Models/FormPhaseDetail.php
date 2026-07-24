@@ -30,7 +30,7 @@ class FormPhaseDetail extends Model
         'phase_type_id',
         'order',
         'needs_review',
-        'submission_date_id'
+        'submission_date_id',
     ];
 
     protected $appends = [
@@ -173,5 +173,4 @@ class FormPhaseDetail extends Model
     {
         return $query->orderBy('order');
     }
-
 }

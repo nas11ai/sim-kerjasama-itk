@@ -5,7 +5,8 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration {
+return new class extends Migration
+{
     public function up(): void
     {
         Schema::table('form_phase_details', function (Blueprint $table) {
@@ -14,13 +15,6 @@ return new class extends Migration {
                 ->constrained('submission_dates');
         });
 
-        $defaultLabelId = DB::table('submission_date_labels')->min('id');
-
-        if ($defaultLabelId === null) {
-            throw new RuntimeException(
-                'No submission date labels found. Please seed submission_date_labels first.'
-            );
-        }
         $periodsWithoutDates = DB::table('form_phase_details AS fpd')
             ->join('form_phases AS fp', 'fp.id', '=', 'fpd.form_phase_id')
             ->join('submission_period_phases AS spp', 'spp.form_phase_id', '=', 'fp.id')
@@ -30,6 +24,14 @@ return new class extends Migration {
             ->select('spp.submission_period_id')
             ->distinct()
             ->pluck('submission_period_id');
+
+        $defaultLabelId = DB::table('submission_date_labels')->min('id');
+
+        if ($periodsWithoutDates->isNotEmpty() && $defaultLabelId === null) {
+            throw new RuntimeException(
+                'No submission date labels found. Please seed submission_date_labels first.'
+            );
+        }
 
         foreach ($periodsWithoutDates as $periodId) {
             DB::table('submission_dates')->insert([
