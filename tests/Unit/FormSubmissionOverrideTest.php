@@ -8,6 +8,9 @@ use App\Models\FormSubmission;
 use App\Models\FormSubmissionOverride;
 use App\Models\Organization;
 use App\Models\PhaseType;
+use App\Models\SubmissionDate;
+use App\Models\SubmissionDateLabel;
+use App\Models\SubmissionPeriod;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -59,10 +62,19 @@ it('revoke sets is_active to false', function () {
         'permission' => 'submissions.create',
         'organization_id' => $organization->id,
     ]);
+    $period = SubmissionPeriod::create(['name' => 'Period 1']);
+    $label = SubmissionDateLabel::create(['name' => 'Default']);
+    $submissionDate = new SubmissionDate;
+    $submissionDate->forceFill([
+        'submission_date_label_id' => $label->id,
+        'datetime' => now(),
+        'submission_period_id' => $period->id,
+    ])->save();
     $formPhaseDetail = FormPhaseDetail::create([
         'form_phase_id' => $formPhase->id,
         'form_access_control_id' => $formAccessControl->id,
         'phase_type_id' => $phaseType->id,
+        'submission_date_id' => $submissionDate->id,
         'order' => 1,
     ]);
 
