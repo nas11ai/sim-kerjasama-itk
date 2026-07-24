@@ -134,6 +134,7 @@ class SubmissionReviewer extends Model
     {
         $this->update(['status' => 'replaced']);
     }
+
     public function hasAssignedForms(): bool
     {
         return $this->activeReviewerFormAssignments()->exists();
