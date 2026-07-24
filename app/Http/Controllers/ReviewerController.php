@@ -14,7 +14,7 @@ class ReviewerController extends Controller
     public function index(Request $request)
     {
         $query = Reviewer::with([
-            'user:id,name,email'
+            'user:id,name,email',
         ]);
 
         // Search functionality
@@ -171,7 +171,7 @@ class ReviewerController extends Controller
     public function update(Request $request, Reviewer $reviewer)
     {
         $validated = $request->validate([
-            'reviewer_role_id' => 'required|exists:reviewer_roles,id',
+            'reviewer_type' => 'required',
             'start_date' => 'required|date',
             'end_date' => 'nullable|date|after:start_date',
         ]);

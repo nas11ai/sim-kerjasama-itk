@@ -39,7 +39,7 @@ class ReviewerRoleController extends Controller
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'name' => 'required|string|max:255|unique:reviewer_roles,name',
+            'name' => 'required|string|max:255|unique',
             'is_active' => 'boolean',
         ]);
 
@@ -75,7 +75,7 @@ class ReviewerRoleController extends Controller
     public function update(Request $request, ReviewerRole $reviewerRole)
     {
         $validated = $request->validate([
-            'name' => 'required|string|max:255|unique:reviewer_roles,name,' . $reviewerRole->id,
+            'name' => 'required|string|max:255',
             'is_active' => 'boolean',
         ]);
 
