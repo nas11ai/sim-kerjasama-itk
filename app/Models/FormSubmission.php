@@ -20,6 +20,7 @@ use Spatie\ModelStates\HasStates;
  * @property int $id
  * @property int $form_id
  * @property int $submitted_by
+ * @property int $parent_submission_id
  * @property Carbon|null $submitted_at
  * @property-read Form $form
  * @property-read User $submittedBy
@@ -38,6 +39,7 @@ class FormSubmission extends Model
         'is_submitted',
         'status',
         'submitted_by',
+        'parent_submission_id'
     ];
 
     protected $casts = [
@@ -151,9 +153,9 @@ class FormSubmission extends Model
             'id',
             'id'
         )->whereIn(
-            'reviewer_form_assignments.submission_reviewer_id',
-            $this->submissionReviewers()->pluck('id')
-        );
+                'reviewer_form_assignments.submission_reviewer_id',
+                $this->submissionReviewers()->pluck('id')
+            );
     }
 
     // NEW: Get submitted review form responses
