@@ -20,7 +20,7 @@ use Spatie\ModelStates\HasStates;
  * @property int $id
  * @property int $form_id
  * @property int $submitted_by
- * @property int $parent_submission_id
+ * @property int|null $parent_submission_id
  * @property Carbon|null $submitted_at
  * @property-read Form $form
  * @property-read User $submittedBy
