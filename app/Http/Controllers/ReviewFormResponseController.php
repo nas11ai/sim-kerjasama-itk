@@ -64,7 +64,7 @@ class ReviewFormResponseController extends Controller
         }
 
         // Check if assigned to this submission
-        $submissionReviewer = SubmissionReviewer::where([
+        $submissionReviewer = SubmissionReviewer::active()->where([
             'form_submission_id' => $submission->id,
             'reviewer_id' => $reviewer->id,
         ])->first();
@@ -188,7 +188,7 @@ class ReviewFormResponseController extends Controller
         } catch (\Exception $e) {
             DB::rollback();
 
-            return back()->withErrors(['error' => 'Gagal menyimpan draft: '.$e->getMessage()]);
+            return back()->withErrors(['error' => 'Gagal menyimpan draft: ' . $e->getMessage()]);
         }
     }
 
@@ -249,7 +249,7 @@ class ReviewFormResponseController extends Controller
         } catch (\Exception $e) {
             DB::rollback();
 
-            return back()->withErrors(['error' => 'Gagal mengirim formulir: '.$e->getMessage()]);
+            return back()->withErrors(['error' => 'Gagal mengirim formulir: ' . $e->getMessage()]);
         }
     }
 
@@ -385,15 +385,15 @@ class ReviewFormResponseController extends Controller
         $reviewer = $assignment->submissionReviewer->reviewer;
 
         $content = "RANGKUMAN EVALUASI\n";
-        $content .= str_repeat('=', 50)."\n\n";
+        $content .= str_repeat('=', 50) . "\n\n";
 
         $content .= "Pengajuan: {$submission->form->title}\n";
         $content .= "Dikirim oleh: {$submission->submittedBy->name}\n";
-        $content .= "Reviewer: {$reviewer->user->name} ({$reviewer->reviewerRole->name})\n";
+        $content .= "Reviewer: {$reviewer->user->name} ({$reviewer->reviewer_type})\n";
         $content .= "Formulir Evaluasi: {$form->title}\n";
         $content .= "Diselesaikan pada: {$response->submitted_at->format('d M Y H:i')}\n\n";
 
-        $content .= str_repeat('-', 50)."\n\n";
+        $content .= str_repeat('-', 50) . "\n\n";
 
         foreach ($form->reviewFormFields()->ordered()->get() as $field) {
             $fieldResponse = $response->reviewFormFieldResponses()
@@ -414,13 +414,13 @@ class ReviewFormResponseController extends Controller
         }
 
         if ($response->final_notes) {
-            $content .= str_repeat('-', 50)."\n";
+            $content .= str_repeat('-', 50) . "\n";
             $content .= "Catatan Tambahan:\n";
-            $content .= $response->final_notes."\n\n";
+            $content .= $response->final_notes . "\n\n";
         }
 
-        $content .= str_repeat('=', 50)."\n";
-        $content .= 'Generated on: '.now()->format('d M Y H:i:s')."\n";
+        $content .= str_repeat('=', 50) . "\n";
+        $content .= 'Generated on: ' . now()->format('d M Y H:i:s') . "\n";
 
         return $content;
     }

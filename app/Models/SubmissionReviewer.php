@@ -125,6 +125,15 @@ class SubmissionReviewer extends Model
     }
 
     // NEW: Check if reviewer has any assigned forms
+    public function scopeActive($query)
+    {
+        return $query->where('status', 'active');
+    }
+
+    public function markAsReplaced(): void
+    {
+        $this->update(['status' => 'replaced']);
+    }
     public function hasAssignedForms(): bool
     {
         return $this->activeReviewerFormAssignments()->exists();
