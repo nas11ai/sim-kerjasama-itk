@@ -14,10 +14,11 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property int $phase_type_id
  * @property int $order
  * @property bool $needs_review
+ * @property int $submission_date_id
  * @property int $reviewEvaluationFormsCount
  * @property int $requiredReviewEvaluationFormsCount
  * @property-read FormPhase|null $formPhase
- * @property-read SubmissionDate|null $submissionDate
+ * @property-read SubmissionDate $submissionDate
  */
 class FormPhaseDetail extends Model
 {
@@ -29,6 +30,7 @@ class FormPhaseDetail extends Model
         'phase_type_id',
         'order',
         'needs_review',
+        'submission_date_id'
     ];
 
     protected $appends = [
@@ -58,6 +60,16 @@ class FormPhaseDetail extends Model
     public function formAccessControl(): BelongsTo
     {
         return $this->belongsTo(FormAccessControl::class);
+    }
+
+    /**
+     * Get the submission date for the detail.
+     *
+     * @return BelongsTo<SubmissionDate, $this>
+     */
+    public function submissionDate(): BelongsTo
+    {
+        return $this->belongsTo(SubmissionDate::class);
     }
 
     /**
@@ -161,4 +173,5 @@ class FormPhaseDetail extends Model
     {
         return $query->orderBy('order');
     }
+
 }

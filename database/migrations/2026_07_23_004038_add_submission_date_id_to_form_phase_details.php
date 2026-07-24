@@ -5,19 +5,22 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration
-{
+return new class extends Migration {
     public function up(): void
     {
         Schema::table('form_phase_details', function (Blueprint $table) {
             $table->foreignId('submission_date_id')
                 ->nullable()
-                ->constrained('submission_dates')
-                ->after('phase_type_id');
+                ->constrained('submission_dates');
         });
 
         $defaultLabelId = DB::table('submission_date_labels')->min('id');
 
+        if ($defaultLabelId === null) {
+            throw new RuntimeException(
+                'No submission date labels found. Please seed submission_date_labels first.'
+            );
+        }
         $periodsWithoutDates = DB::table('form_phase_details AS fpd')
             ->join('form_phases AS fp', 'fp.id', '=', 'fpd.form_phase_id')
             ->join('submission_period_phases AS spp', 'spp.form_phase_id', '=', 'fp.id')
@@ -48,9 +51,13 @@ return new class extends Migration
                 WHERE fp.id = fpd.form_phase_id
                 ORDER BY sd.datetime ASC
                 LIMIT 1
-            )
-            WHERE fpd.submission_date_id IS NULL
-        ');
+                )
+                WHERE fpd.submission_date_id IS NULL
+                ');
+
+        Schema::table('form_phase_details', function (Blueprint $table) {
+            $table->foreignId('submission_date_id')->nullable(false)->change();
+        });
     }
 
     public function down(): void
