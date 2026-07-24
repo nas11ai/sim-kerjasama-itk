@@ -8,11 +8,11 @@ use App\Models\User;
 
 function makeSubmissionReviewer(): SubmissionReviewer
 {
-    $role = ReviewerRole::create(['name' => 'Internal', 'is_active' => true]);
+    $role = 'Internal';
 
     $reviewer = Reviewer::create([
         'user_id' => User::factory()->create()->id,
-        'reviewer_role_id' => $role->id,
+        'reviewer_type' => $role,
         'start_date' => now(),
         'end_date' => now()->addYear(),
     ]);
