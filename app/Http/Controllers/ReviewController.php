@@ -483,7 +483,7 @@ class ReviewController extends Controller
                     'id' => $reviewer->id,
                     'name' => $reviewer->user->name,
                     'email' => $reviewer->user->email,
-                    'role' => $reviewer->reviewer_type
+                    'role' => $reviewer->reviewer_type,
                 ];
             });
 
