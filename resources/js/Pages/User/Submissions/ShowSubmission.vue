@@ -90,7 +90,7 @@ interface ReviewSummary {
     updated_at: string
     reviewer?: {
         user: { id: number; name: string; email: string }
-        reviewer_role: { name: string }
+        reviewer_type: string
     }
     attachments: Array<{ id: number; file_path: string }>
 }

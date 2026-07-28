@@ -69,9 +69,7 @@ interface ReviewSummary {
             name: string
             email: string
         }
-        reviewer_role: {
-            name: string
-        }
+        reviewer_type: string
     }
     attachments: Array<{
         id: number
