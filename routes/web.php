@@ -367,8 +367,6 @@ Route::middleware(['auth', 'can:users.manage', 'check_reviewer_status'])->prefix
     Route::patch('reviewers/{reviewer}/activate', [ReviewerController::class, 'activate'])
         ->name('reviewers.activate');
 
-
-
     Route::resource('form-phases', FormPhaseController::class)->names([
         'index' => 'form-phases.index',
         'create' => 'form-phases.create',

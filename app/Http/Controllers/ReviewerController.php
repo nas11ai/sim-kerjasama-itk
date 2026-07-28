@@ -65,8 +65,8 @@ class ReviewerController extends Controller
             ],
             [
                 'id' => 'external',
-                'name' => 'external'
-            ]
+                'name' => 'external',
+            ],
         ];
 
         return Inertia::render('Reviewers/IndexPage', [
@@ -100,13 +100,13 @@ class ReviewerController extends Controller
             ],
             [
                 'id' => 'external',
-                'name' => 'external'
-            ]
+                'name' => 'external',
+            ],
         ];
 
         return Inertia::render('Reviewers/CreatePage', [
             'users' => $users,
-            'reviewerTypes' => $reviewerTypes
+            'reviewerTypes' => $reviewerTypes,
         ]);
     }
 
@@ -177,8 +177,8 @@ class ReviewerController extends Controller
             ],
             [
                 'id' => 'external',
-                'name' => 'external'
-            ]
+                'name' => 'external',
+            ],
         ];
 
         return Inertia::render('Reviewers/EditPage', [
