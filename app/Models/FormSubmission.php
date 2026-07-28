@@ -20,6 +20,7 @@ use Spatie\ModelStates\HasStates;
  * @property int $id
  * @property int $form_id
  * @property int $submitted_by
+ * @property int|null $parent_submission_id
  * @property Carbon|null $submitted_at
  * @property-read Form $form
  * @property-read User $submittedBy
@@ -38,12 +39,25 @@ class FormSubmission extends Model
         'is_submitted',
         'status',
         'submitted_by',
+        'parent_submission_id',
     ];
 
     protected $casts = [
         'status' => SubmissionStatus::class,
         'is_submitted' => 'boolean',
     ];
+
+    /** @return BelongsTo<FormSubmission, $this> */
+    public function parent(): BelongsTo
+    {
+        return $this->belongsTo(FormSubmission::class, 'parent_submission_id');
+    }
+
+    /** @return HasMany<FormSubmission, $this> */
+    public function children(): HasMany
+    {
+        return $this->hasMany(FormSubmission::class, 'parent_submission_id');
+    }
 
     /** @return BelongsTo<Form, $this> */
     public function form(): BelongsTo
