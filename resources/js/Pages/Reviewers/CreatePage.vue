@@ -22,14 +22,14 @@ interface User {
     email: string
 }
 
-interface ReviewerRole {
+interface ReviewerType {
     id: number
     name: string
 }
 
 interface Props {
     users: User[]
-    reviewerRoles: ReviewerRole[]
+    reviewerTypes: ReviewerType[]
 }
 
 const props = defineProps<Props>()
@@ -119,7 +119,7 @@ const submit = () => {
                                 </SelectTrigger>
                                 <SelectContent>
                                     <SelectItem
-                                        v-for="role in props.reviewerRoles"
+                                        v-for="role in props.reviewerTypes"
                                         :key="role.id"
                                         :value="role.id.toString()"
                                     >

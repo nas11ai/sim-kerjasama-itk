@@ -7,19 +7,11 @@ use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
-/**
- * @property int $id
- * @property int $user_id
- * @property string $reviewer_type
- * @property int $reviewer_role_id
- * @property-read User $user
- * @property-read ReviewerRole $reviewerRole
- */
 
 /**
  * @property int $id
  * @property int $user_id
- * @property int $reviewer_role_id
+ * @property string $reviewer_type
  * @property CarbonInterface|null $start_date
  * @property CarbonInterface|null $end_date
  * @property bool $is_active

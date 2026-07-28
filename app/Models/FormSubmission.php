@@ -173,7 +173,7 @@ class FormSubmission extends Model
     {
         return $this->submissionReviewers()
             ->where('evaluation_status', 'completed')
-            ->with(['reviewer.user', 'reviewer.reviewerRole']);
+            ->with(['reviewer.user', 'reviewer']);
     }
 
     // NEW: Get reviewers with pending evaluations
@@ -181,7 +181,7 @@ class FormSubmission extends Model
     {
         return $this->submissionReviewers()
             ->where('evaluation_status', 'pending')
-            ->with(['reviewer.user', 'reviewer.reviewerRole']);
+            ->with(['reviewer.user', 'reviewer']);
     }
 
     // NEW: Get evaluation completion statistics

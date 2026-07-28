@@ -31,10 +31,7 @@ interface AssignedReviewer {
         name: string
         email: string
     }
-    reviewer_role: {
-        id: number
-        name: string
-    }
+    reviewer_type: string
 }
 
 interface Props {
@@ -175,7 +172,7 @@ const assignReviewers = () => {
                                 </div>
                             </div>
                             <Badge variant="secondary" class="text-xs">
-                                {{ reviewer.reviewer_role.name }}
+                                {{ reviewer.reviewer_type }}
                             </Badge>
                         </div>
                     </div>

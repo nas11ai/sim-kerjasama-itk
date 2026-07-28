@@ -23,7 +23,7 @@ interface User {
     email: string
 }
 
-interface ReviewerRole {
+interface ReviewerType {
     id: number
     name: string
 }
@@ -33,18 +33,18 @@ interface Reviewer {
     start_date: string
     end_date: string | null
     user: User
-    reviewer_role: ReviewerRole
+    reviewer_type: ReviewerType
 }
 
 interface Props {
     reviewer: Reviewer
-    reviewerRoles: ReviewerRole[]
+    reviewerTypes: ReviewerType[]
 }
 
 const props = defineProps<Props>()
 
 const form = useForm({
-    reviewer_role_id: props.reviewer.reviewer_role.id.toString(),
+    reviewer_role_id: props.reviewer.reviewer_type.id.toString(),
     start_date: props.reviewer.start_date,
     end_date: props.reviewer.end_date || '',
 })
@@ -113,7 +113,7 @@ const formatDate = (dateString: string) => {
                                     >Role Sekarang</Label
                                 >
                                 <p class="font-medium">
-                                    {{ reviewer.reviewer_role.name }}
+                                    {{ reviewer.reviewer_type.name }}
                                 </p>
                             </div>
                             <div>
@@ -145,7 +145,7 @@ const formatDate = (dateString: string) => {
                                 </SelectTrigger>
                                 <SelectContent>
                                     <SelectItem
-                                        v-for="role in props.reviewerRoles"
+                                        v-for="role in props.reviewerTypes"
                                         :key="role.id"
                                         :value="role.id.toString()"
                                     >

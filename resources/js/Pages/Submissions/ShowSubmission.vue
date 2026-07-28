@@ -118,10 +118,7 @@ interface AssignedReviewer {
         name: string
         email: string
     }
-    reviewer_role: {
-        id: number
-        name: string
-    }
+    reviewer_type: string
 }
 
 interface ReviewerFormAssignment {
@@ -274,7 +271,7 @@ const mappedAssignedReviewers = computed(() =>
         id: r.id,
         user_id: r.user.id,
         name: r.user.name,
-        role: r.reviewer_role.name,
+        role: r.reviewer_type,
     }))
 )
 </script>
@@ -605,7 +602,7 @@ const mappedAssignedReviewers = computed(() =>
                                                 {{ reviewer.user.email }}
                                             </p>
                                             <Badge variant="secondary" class="mt-2 text-xs">
-                                                {{ reviewer.reviewer_role.name }}
+                                                {{ reviewer.reviewer_type }}
                                             </Badge>
                                         </div>
                                     </div>

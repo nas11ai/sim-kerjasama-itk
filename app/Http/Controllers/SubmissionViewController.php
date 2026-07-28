@@ -252,7 +252,7 @@ class SubmissionViewController extends Controller
             'reviewSummaries' => function ($query) {
                 $query->with([
                     'reviewer.user:id,name',
-                    'reviewer.reviewerRole:id,name',
+                    'reviewer:reviewer_type',
                     'attachments',
                 ]);
             },
@@ -420,7 +420,7 @@ class SubmissionViewController extends Controller
                 'submittedBy:id,name,email',
                 // Load assigned reviewers melalui SubmissionReviewer
                 'submissionReviewers.reviewer.user:id,name,email',
-                'submissionReviewers.reviewer.reviewerRole:id,name',
+                'submissionReviewers.reviewer:reviewer_type',
                 'submissionReviewers.reviewerFormAssignments.reviewEvaluationForm:id,title',
                 'submissionReviewers.reviewerFormAssignments.reviewFormResponse:id,status',
             ]);
@@ -431,7 +431,7 @@ class SubmissionViewController extends Controller
                 $reviewSummaries = ReviewSummary::where('form_submission_id', $submission->id)
                     ->with([
                         'reviewer.user:id,name,email',
-                        'reviewer.reviewerRole:id,name',
+                        'reviewer:reviewer_type',
                         'attachments',
                     ])
                     ->get()
@@ -853,7 +853,7 @@ class SubmissionViewController extends Controller
             'formFieldResponses',
             'submittedBy:id,name,email',
             'submissionReviewers.reviewer.user:id,name,email',
-            'submissionReviewers.reviewer.reviewerRole:id,name',
+            'submissionReviewers.reviewer:reviewer_type',
         ]);
 
         $responses = $submission->formFieldResponses->mapWithKeys(function ($response) {
@@ -866,7 +866,7 @@ class SubmissionViewController extends Controller
                 $reviewSummaries = ReviewSummary::where('form_submission_id', $submission->id)
                     ->with([
                         'reviewer.user:id,name,email',
-                        'reviewer.reviewerRole:id,name',
+                        'reviewer:reviewer_type',
                     ])
                     ->get()
                     ->toArray();

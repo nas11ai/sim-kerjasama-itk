@@ -81,9 +81,7 @@ interface ReviewSummary {
             name: string
             email: string
         }
-        reviewer_role: {
-            name: string
-        }
+        reviewer_type: string
     }
     attachments: Array<{
         id: number
@@ -801,7 +799,7 @@ const updateSubmissionStatus = () => {
                                     </div>
                                     <div class="text-sm text-muted-foreground mt-1">
                                         {{
-                                            reviewSummary.reviewer?.reviewer_role.name ||
+                                            reviewSummary.reviewer?.reviewer_type ||
                                             'Discussion Thread'
                                         }}
                                         •

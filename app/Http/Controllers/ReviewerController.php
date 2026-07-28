@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\Reviewer;
-use App\Models\ReviewerRole;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -23,12 +22,12 @@ class ReviewerController extends Controller
             $query->whereHas('user', function ($q) use ($search) {
                 $q->where('name', 'ilike', "%{$search}%")
                     ->orWhere('email', 'ilike', "%{$search}%");
-            })->orWhere('reviewer_type', 'name', 'ilike', "%{$search}%");
+            })->orWhere('reviewer_type', 'ilike', "%{$search}%");
         }
 
         // Filter by role
-        if ($request->has('role') && $request->role) {
-            $query->where('reviewer_role_id', $request->role);
+        if ($request->reviewer_type) {
+            $query->where('reviewer_type', $request->reviewer_type);
         }
 
         // Filter by status (active/inactive)
@@ -58,14 +57,21 @@ class ReviewerController extends Controller
             return $reviewer;
         });
 
-        // Get reviewer roles for filter
-        $reviewerRoles = ReviewerRole::where('is_active', true)
-            ->orderBy('name')
-            ->get(['id', 'name']);
+        // Get reviewer types for filter
+        $reviewerTypes = [
+            [
+                'id' => 'internal',
+                'name' => 'internal',
+            ],
+            [
+                'id' => 'external',
+                'name' => 'external'
+            ]
+        ];
 
         return Inertia::render('Reviewers/IndexPage', [
             'reviewers' => $reviewers,
-            'reviewerRoles' => $reviewerRoles,
+            'reviewerTypes' => $reviewerTypes,
             'filters' => $request->only(['search', 'role', 'status']),
         ]);
     }
@@ -87,13 +93,20 @@ class ReviewerController extends Controller
             ->orderBy('name')
             ->get(['id', 'name', 'email']);
 
-        $reviewerRoles = ReviewerRole::where('is_active', true)
-            ->orderBy('name')
-            ->get(['id', 'name']);
+        $reviewerTypes = [
+            [
+                'id' => 'internal',
+                'name' => 'internal',
+            ],
+            [
+                'id' => 'external',
+                'name' => 'external'
+            ]
+        ];
 
         return Inertia::render('Reviewers/CreatePage', [
             'users' => $users,
-            'reviewerRoles' => $reviewerRoles,
+            'reviewerTypes' => $reviewerTypes
         ]);
     }
 
@@ -101,7 +114,7 @@ class ReviewerController extends Controller
     {
         $validated = $request->validate([
             'user_id' => 'required|exists:users,id',
-            'reviewer_type' => 'required|exists:reviewer,reviewers_type',
+            'reviewer_type' => 'required|in:internal,external',
             'start_date' => 'required|date|after_or_equal:today',
             'end_date' => 'nullable|date|after:start_date',
         ]);
@@ -131,7 +144,6 @@ class ReviewerController extends Controller
     {
         $reviewer->load([
             'user:id,name,email',
-            'reviewerRole:id,name',
             'submissionReviewers.formSubmission.form:id,title',
         ]);
 
@@ -156,15 +168,22 @@ class ReviewerController extends Controller
 
     public function edit(Reviewer $reviewer)
     {
-        $reviewer->load(['user:id,name,email', 'reviewerRole:id,name']);
+        $reviewer->load(['user:id,name,email']);
 
-        $reviewerRoles = ReviewerRole::where('is_active', true)
-            ->orderBy('name')
-            ->get(['id', 'name']);
+        $reviewerTypes = [
+            [
+                'id' => 'internal',
+                'name' => 'internal',
+            ],
+            [
+                'id' => 'external',
+                'name' => 'external'
+            ]
+        ];
 
         return Inertia::render('Reviewers/EditPage', [
             'reviewer' => $reviewer,
-            'reviewerRoles' => $reviewerRoles,
+            'reviewerTypes' => $reviewerTypes,
         ]);
     }
 
