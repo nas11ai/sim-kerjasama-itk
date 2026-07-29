@@ -57,7 +57,7 @@ interface MyReviewSummary {
 
 interface ReviewerInfo {
     id: number
-    reviewer_role: { name: string }
+    reviewer_type: string
 }
 
 interface FormField {
@@ -79,7 +79,7 @@ interface Form {
 interface AssignedReviewer {
     id: number
     user: { id: number; name: string }
-    reviewer_role: { name: string }
+    reviewer_type: string
 }
 
 interface Submission {
@@ -224,7 +224,7 @@ const updateStatus = () => {
                 </div>
                 <Badge variant="secondary" class="flex items-center gap-1">
                     <Star class="h-3 w-3" />
-                    {{ reviewer.reviewer_role?.name || 'Reviewer' }}
+                    {{ reviewer.reviewer_type || 'Reviewer' }}
                 </Badge>
             </div>
         </template>
@@ -312,7 +312,7 @@ const updateStatus = () => {
                                 <User class="h-3 w-3" />
                                 {{ rev.user?.name || 'N/A' }}
                                 <span class="text-xs opacity-70"
-                                    >({{ rev.reviewer_role?.name || 'N/A' }})</span
+                                    >({{ rev.reviewer_type || 'N/A' }})</span
                                 >
                             </Badge>
                         </div>

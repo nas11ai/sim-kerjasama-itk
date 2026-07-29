@@ -280,12 +280,6 @@ const totalReviewers = computed(() => {
                     </h2>
                 </div>
                 <div class="flex items-center gap-3">
-                    <Link :href="route('admin.reviewer-roles.index')">
-                        <Button variant="outline">
-                            <Filter class="h-4 w-4 mr-2" />
-                            Role Reviewer
-                        </Button>
-                    </Link>
                     <Link :href="route('admin.reviewers.create')">
                         <Button>
                             <Plus class="h-4 w-4 mr-2" />

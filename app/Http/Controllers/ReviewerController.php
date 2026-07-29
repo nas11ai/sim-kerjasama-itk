@@ -19,15 +19,17 @@ class ReviewerController extends Controller
         // Search functionality
         if ($request->has('search') && $request->search) {
             $search = $request->search;
-            $query->whereHas('user', function ($q) use ($search) {
-                $q->where('name', 'ilike', "%{$search}%")
-                    ->orWhere('email', 'ilike', "%{$search}%");
-            })->orWhere('reviewer_type', 'ilike', "%{$search}%");
+            $query->where(function ($q) use ($search) {
+                $q->whereHas('user', function ($q) use ($search) {
+                    $q->where('name', 'ilike', "%{$search}%")
+                        ->orWhere('email', 'ilike', "%{$search}%");
+                })->orWhere('reviewer_type', 'ilike', "%{$search}%");
+            });
         }
 
-        // Filter by role
-        if ($request->reviewer_type) {
-            $query->where('reviewer_type', $request->reviewer_type);
+        // Filter by type
+        if ($request->type) {
+            $query->where('reviewer_type', $request->type);
         }
 
         // Filter by status (active/inactive)
@@ -72,7 +74,7 @@ class ReviewerController extends Controller
         return Inertia::render('Reviewers/IndexPage', [
             'reviewers' => $reviewers,
             'reviewerTypes' => $reviewerTypes,
-            'filters' => $request->only(['search', 'role', 'status']),
+            'filters' => $request->only(['search', 'type', 'status']),
         ]);
     }
 
@@ -190,7 +192,7 @@ class ReviewerController extends Controller
     public function update(Request $request, Reviewer $reviewer)
     {
         $validated = $request->validate([
-            'reviewer_type' => 'required',
+            'reviewer_type' => 'required|in:internal,external',
             'start_date' => 'required|date',
             'end_date' => 'nullable|date|after:start_date',
         ]);

@@ -227,7 +227,10 @@ class UserFormController extends Controller
         return Inertia::render('Reviewer/Submissions/IndexPage', [
             'submissions' => $submissions,
             'filters' => $request->only(['status', 'search']),
-            'reviewer' => $reviewer->reviewer_type,
+            'reviewer' => [
+                'id' => $reviewer->id,
+                'reviewer_type' => $reviewer->reviewer_type,
+            ],
         ]);
     }
 
