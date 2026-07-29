@@ -2,6 +2,8 @@
 
 namespace App\Models;
 
+use Carbon\CarbonInterface;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
@@ -9,14 +11,14 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property int $id
  * @property int $user_id
  * @property string $reviewer_type
- * @property \Carbon\CarbonInterface|null $start_date
- * @property \Carbon\CarbonInterface|null $end_date
+ * @property CarbonInterface|null $start_date
+ * @property CarbonInterface|null $end_date
  * @property bool $is_active
  * @property int $total_reviews
  * @property int $pending_reviews
  * @property int $completed_reviews
- * @property-read \App\Models\User|null $user
- * @property-read \Illuminate\Database\Eloquent\Collection<int, \App\Models\SubmissionReviewer> $submissionReviewers
+ * @property-read User|null $user
+ * @property-read Collection<int, SubmissionReviewer> $submissionReviewers
  */
 class Reviewer extends Model
 {
