@@ -175,7 +175,7 @@ class UserFormController extends Controller
             'reviewStats' => $reviewStats,
             'reviewer' => $reviewer ? [
                 'id' => $reviewer->id,
-                'reviewer_role' => $reviewer->reviewer_type,
+                'reviewer_type' => $reviewer->reviewer_type,
             ] : null,
         ]);
     }

@@ -521,7 +521,7 @@ const hasReviewerData = computed(() => (props.submissionReviewer?.totalReviewers
                                         0,
                                         4
                                     )"
-                                    :key="role.id"
+                                    :key="role.reviewer_type"
                                     class="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
                                 >
                                     <div class="flex items-center gap-3">
@@ -537,7 +537,7 @@ const hasReviewerData = computed(() => (props.submissionReviewer?.totalReviewers
                                             {{ role.total_reviewers }}
                                         </div>
                                         <span class="font-medium text-sm text-gray-900">
-                                            {{ role.reviewer_role_name }}
+                                            {{ role.reviewer_type }}
                                         </span>
                                     </div>
                                     <Badge variant="outline">
