@@ -44,7 +44,6 @@ Proyek ini menggunakan Docker Compose untuk menyederhanakan proses setup di ling
 File `.env` akan dibuat secara otomatis dari `.env.example` saat container `app` pertama kali dijalankan. Jika ingin menggunakan database lokal yang berbeda atau setup tambahan, Anda dapat mengubah isi `.env` sesuai kebutuhan.
 
 ### Testing
-
 Untuk menjalankan testing, harap menyediakan database postgre SQL
 
 ## Kontribusi
