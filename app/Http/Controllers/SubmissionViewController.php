@@ -252,7 +252,7 @@ class SubmissionViewController extends Controller
             'reviewSummaries' => function ($query) {
                 $query->with([
                     'reviewer.user:id,name',
-                    'reviewer.reviewerRole:id,name',
+                    'reviewer:reviewer_type',
                     'attachments',
                 ]);
             },
@@ -357,7 +357,7 @@ class SubmissionViewController extends Controller
 
         // Format assigned reviewers
         $assignedReviewers = $submission->submissionReviewers
-            ->load(['reviewer.user', 'reviewer.reviewerRole'])
+            ->load(['reviewer.user'])
             ->map(function ($sr) {
                 return [
                     'id' => $sr->id,
@@ -366,10 +366,8 @@ class SubmissionViewController extends Controller
                         'name' => $sr->reviewer->user->name,
                         'email' => $sr->reviewer->user->email,
                     ],
-                    'reviewer_role' => [
-                        'id' => $sr->reviewer->reviewerRole->id,
-                        'name' => $sr->reviewer->reviewerRole->name,
-                    ],
+                    'reviewer_type' => $sr->reviewer->reviewer_type,
+
                 ];
             })->toArray();
 
@@ -422,7 +420,7 @@ class SubmissionViewController extends Controller
                 'submittedBy:id,name,email',
                 // Load assigned reviewers melalui SubmissionReviewer
                 'submissionReviewers.reviewer.user:id,name,email',
-                'submissionReviewers.reviewer.reviewerRole:id,name',
+                'submissionReviewers.reviewer:reviewer_type',
                 'submissionReviewers.reviewerFormAssignments.reviewEvaluationForm:id,title',
                 'submissionReviewers.reviewerFormAssignments.reviewFormResponse:id,status',
             ]);
@@ -433,7 +431,7 @@ class SubmissionViewController extends Controller
                 $reviewSummaries = ReviewSummary::where('form_submission_id', $submission->id)
                     ->with([
                         'reviewer.user:id,name,email',
-                        'reviewer.reviewerRole:id,name',
+                        'reviewer:reviewer_type',
                         'attachments',
                     ])
                     ->get()
@@ -486,10 +484,7 @@ class SubmissionViewController extends Controller
                         'name' => $submissionReviewer->reviewer->user->name,
                         'email' => $submissionReviewer->reviewer->user->email,
                     ],
-                    'reviewer_role' => [
-                        'id' => $submissionReviewer->reviewer->reviewerRole->id,
-                        'name' => $submissionReviewer->reviewer->reviewerRole->name,
-                    ],
+                    'reviewer_type' => $submissionReviewer->reviewer->reviewer_type,
                 ];
             })->toArray();
 
@@ -499,7 +494,7 @@ class SubmissionViewController extends Controller
 
             if (class_exists('App\Models\Reviewer')) {
                 $today = Carbon::today();
-                $availableReviewers = Reviewer::with(['user', 'reviewerRole'])
+                $availableReviewers = Reviewer::with(['user'])
                     ->where(function ($q) use ($today) {
                         $q->whereNull('start_date')->orWhere('start_date', '<=', $today);
                     })
@@ -516,7 +511,7 @@ class SubmissionViewController extends Controller
                             'id' => $reviewer->id,
                             'name' => $reviewer->user->name,
                             'email' => $reviewer->user->email,
-                            'role' => $reviewer->reviewerRole->name,
+                            'role' => $reviewer->reviewer_type,
                         ];
                     })
                     ->toArray();
@@ -736,7 +731,7 @@ class SubmissionViewController extends Controller
         $user = Auth::user();
 
         // user = reviewer
-        $reviewer = Reviewer::with('reviewerRole')->where('user_id', $user->id)->first();
+        $reviewer = Reviewer::where('user_id', $user->id)->first();
 
         if (!$reviewer) {
             abort(403, 'Anda tidak terdaftar sebagai reviewer.');
@@ -765,7 +760,7 @@ class SubmissionViewController extends Controller
         return Inertia::render('Reviewer/DashboardPage', [
             'reviewer' => [
                 'id' => $reviewer->id,
-                'reviewer_role' => $reviewer->reviewer_role,
+                'reviewer_type' => $reviewer->reviewer_type,
                 'user' => [
                     'name' => $reviewer->user->name,
                     'email' => $reviewer->user->email,
@@ -825,10 +820,8 @@ class SubmissionViewController extends Controller
             'filters' => $request->only(['status', 'search']),
             'reviewer' => [
                 'id' => $reviewer->id,
-                'reviewer_role' => [
-                    'id' => $reviewer->reviewerRole->id,
-                    'name' => $reviewer->reviewerRole->name,
-                ],
+                'reviewer_type' => $reviewer->reviewer_type,
+
             ],
         ]);
     }
@@ -860,7 +853,7 @@ class SubmissionViewController extends Controller
             'formFieldResponses',
             'submittedBy:id,name,email',
             'submissionReviewers.reviewer.user:id,name,email',
-            'submissionReviewers.reviewer.reviewerRole:id,name',
+            'submissionReviewers.reviewer:reviewer_type',
         ]);
 
         $responses = $submission->formFieldResponses->mapWithKeys(function ($response) {
@@ -873,7 +866,7 @@ class SubmissionViewController extends Controller
                 $reviewSummaries = ReviewSummary::where('form_submission_id', $submission->id)
                     ->with([
                         'reviewer.user:id,name,email',
-                        'reviewer.reviewerRole:id,name',
+                        'reviewer:reviewer_type',
                     ])
                     ->get()
                     ->toArray();
@@ -892,10 +885,8 @@ class SubmissionViewController extends Controller
                     'name' => $submissionReviewer->reviewer->user->name,
                     'email' => $submissionReviewer->reviewer->user->email,
                 ],
-                'reviewer_role' => [
-                    'id' => $submissionReviewer->reviewer->reviewerRole->id,
-                    'name' => $submissionReviewer->reviewer->reviewerRole->name,
-                ],
+                'reviewer_type' => $submissionReviewer->reviewer->reviewer_type,
+
             ];
         })->toArray();
 
@@ -942,10 +933,7 @@ class SubmissionViewController extends Controller
             'myReviewSummary' => $myReviewSummary,
             'reviewer' => [
                 'id' => $reviewer->id,
-                'reviewer_role' => [
-                    'id' => $reviewer->reviewerRole->id,
-                    'name' => $reviewer->reviewerRole->name,
-                ],
+                'reviewer_type' => $reviewer->reviewer_type,
             ],
             'canReview' => true,
             'userRole' => 'reviewer',

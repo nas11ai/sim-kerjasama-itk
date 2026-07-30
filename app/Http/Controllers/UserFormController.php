@@ -175,7 +175,7 @@ class UserFormController extends Controller
             'reviewStats' => $reviewStats,
             'reviewer' => $reviewer ? [
                 'id' => $reviewer->id,
-                'reviewer_role' => $reviewer->reviewerRole->name,
+                'reviewer_type' => $reviewer->reviewer_type,
             ] : null,
         ]);
     }
@@ -227,7 +227,10 @@ class UserFormController extends Controller
         return Inertia::render('Reviewer/Submissions/IndexPage', [
             'submissions' => $submissions,
             'filters' => $request->only(['status', 'search']),
-            'reviewer' => $reviewer->load('reviewerRole'),
+            'reviewer' => [
+                'id' => $reviewer->id,
+                'reviewer_type' => $reviewer->reviewer_type,
+            ],
         ]);
     }
 

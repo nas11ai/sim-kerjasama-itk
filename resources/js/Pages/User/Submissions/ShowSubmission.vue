@@ -70,10 +70,7 @@ interface AssignedReviewer {
         name: string
         email: string
     }
-    reviewer_role: {
-        id: number
-        name: string
-    }
+    reviewer_type: string
 }
 
 interface EvaluationRequirements {
@@ -93,7 +90,7 @@ interface ReviewSummary {
     updated_at: string
     reviewer?: {
         user: { id: number; name: string; email: string }
-        reviewer_role: { name: string }
+        reviewer_type: string
     }
     attachments: Array<{ id: number; file_path: string }>
 }
@@ -292,7 +289,7 @@ const mappedAssignedReviewers = computed(() =>
         id: r.id,
         user_id: r.user.id,
         name: r.user.name,
-        role: r.reviewer_role.name,
+        role: r.reviewer_type,
     }))
 )
 </script>

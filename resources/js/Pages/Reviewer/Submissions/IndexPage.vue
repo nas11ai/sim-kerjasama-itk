@@ -44,10 +44,7 @@ interface ReviewSummary {
 
 interface Reviewer {
     id: number
-    reviewer_role?: {
-        id: number
-        name: string
-    }
+    reviewer_type: string
 }
 
 interface Submission {
@@ -191,13 +188,13 @@ const viewSubmission = (submissionId: number) => {
                     <p class="mt-1 text-sm text-gray-600">
                         Pengajuan yang ditugaskan kepada Anda untuk ditinjau sebagai:
                         <span class="font-medium">
-                            {{ reviewer.reviewer_role?.name || 'N/A' }}
+                            {{ reviewer.reviewer_type || 'N/A' }}
                         </span>
                     </p>
                 </div>
                 <Badge variant="secondary" class="flex items-center gap-1">
                     <Star class="h-3 w-3" />
-                    {{ reviewer.reviewer_role?.name }}
+                    {{ reviewer.reviewer_type }}
                 </Badge>
             </div>
         </template>

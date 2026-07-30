@@ -1,9 +1,10 @@
 const Ziggy = {
-    url: 'http:\/\/127.0.0.1:8000',
+    url: 'http:\/\/localhost:8000',
     port: 8000,
     defaults: {},
     routes: {
         'sanctum.csrf-cookie': { uri: 'sanctum\/csrf-cookie', methods: ['GET', 'HEAD'] },
+        dashboard: { uri: 'dashboard', methods: ['GET', 'HEAD'] },
         welcome: { uri: '\/', methods: ['GET', 'HEAD'] },
         'announcements.detail': {
             uri: 'announcements\/{announcement}',
@@ -494,38 +495,6 @@ const Ziggy = {
             parameters: ['reviewer'],
             bindings: { reviewer: 'id' },
         },
-        'admin.reviewer-roles.index': { uri: 'admin\/reviewer-roles', methods: ['GET', 'HEAD'] },
-        'admin.reviewer-roles.create': {
-            uri: 'admin\/reviewer-roles\/create',
-            methods: ['GET', 'HEAD'],
-        },
-        'admin.reviewer-roles.store': { uri: 'admin\/reviewer-roles', methods: ['POST'] },
-        'admin.reviewer-roles.show': {
-            uri: 'admin\/reviewer-roles\/{reviewer_role}',
-            methods: ['GET', 'HEAD'],
-            parameters: ['reviewer_role'],
-        },
-        'admin.reviewer-roles.edit': {
-            uri: 'admin\/reviewer-roles\/{reviewer_role}\/edit',
-            methods: ['GET', 'HEAD'],
-            parameters: ['reviewer_role'],
-        },
-        'admin.reviewer-roles.update': {
-            uri: 'admin\/reviewer-roles\/{reviewer_role}',
-            methods: ['PUT', 'PATCH'],
-            parameters: ['reviewer_role'],
-        },
-        'admin.reviewer-roles.destroy': {
-            uri: 'admin\/reviewer-roles\/{reviewer_role}',
-            methods: ['DELETE'],
-            parameters: ['reviewer_role'],
-        },
-        'admin.reviewer-roles.toggle-status': {
-            uri: 'admin\/reviewer-roles\/{reviewerRole}\/toggle-status',
-            methods: ['PATCH'],
-            parameters: ['reviewerRole'],
-            bindings: { reviewerRole: 'id' },
-        },
         'admin.form-phases.index': { uri: 'admin\/form-phases', methods: ['GET', 'HEAD'] },
         'admin.form-phases.create': { uri: 'admin\/form-phases\/create', methods: ['GET', 'HEAD'] },
         'admin.form-phases.store': { uri: 'admin\/form-phases', methods: ['POST'] },
@@ -754,6 +723,12 @@ const Ziggy = {
         'storage.local': {
             uri: 'storage\/{path}',
             methods: ['GET', 'HEAD'],
+            wheres: { path: '.*' },
+            parameters: ['path'],
+        },
+        'storage.local.upload': {
+            uri: 'storage\/{path}',
+            methods: ['PUT'],
             wheres: { path: '.*' },
             parameters: ['path'],
         },

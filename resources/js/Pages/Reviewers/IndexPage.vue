@@ -54,7 +54,7 @@ import { useToast } from '@/Components/ui/toast/use-toast'
 import { debounce } from 'lodash'
 import { cn } from '@/lib/utils'
 
-interface ReviewerRole {
+interface ReviewerType {
     id: number
     name: string
 }
@@ -70,10 +70,7 @@ interface Reviewer {
         name: string
         email: string
     }
-    reviewer_role: {
-        id: number
-        name: string
-    }
+    reviewer_type: string
 }
 
 interface PaginationLink {
@@ -93,10 +90,10 @@ interface Props {
         from: number
         to: number
     }
-    reviewerRoles: ReviewerRole[]
+    reviewerTypes: ReviewerType[]
     filters: {
         search?: string
-        role?: string
+        type?: string
         status?: string
     }
 }
@@ -105,7 +102,7 @@ const props = defineProps<Props>()
 const { toast } = useToast()
 
 const searchQuery = ref(props.filters.search || '')
-const selectedRole = ref(props.filters.role || 'all')
+const selectedType = ref(props.filters.type || 'all')
 const selectedStatus = ref(props.filters.status || 'all')
 
 const openStatus = ref(false)
@@ -125,16 +122,16 @@ const selectedStatusLabel = computed(() => {
     return status?.label || 'Pilih status...'
 })
 
-const selectedRoleLabel = computed(() => {
-    if (selectedRole.value === 'all') return 'Semua Role'
-    const role = props.reviewerRoles.find((r) => r.id.toString() === selectedRole.value)
+const selectedTypeLabel = computed(() => {
+    if (selectedType.value === 'all') return 'Semua Tipe'
+    const role = props.reviewerTypes.find((r) => r.id.toString() === selectedType.value)
     return role?.name || 'Pilih role...'
 })
 
 const activeFiltersCount = computed(() => {
     let count = 0
     if (searchQuery.value) count++
-    if (selectedRole.value !== 'all') count++
+    if (selectedType.value !== 'all') count++
     if (selectedStatus.value !== 'all') count++
     return count
 })
@@ -147,7 +144,7 @@ watch(searchQuery, () => {
     debouncedSearch()
 })
 
-watch([selectedRole, selectedStatus], () => {
+watch([selectedType, selectedStatus], () => {
     applyFilters()
 })
 
@@ -155,7 +152,7 @@ const applyFilters = () => {
     const params: Record<string, string> = {}
 
     if (searchQuery.value) params.search = searchQuery.value
-    if (selectedRole.value && selectedRole.value !== 'all') params.role = selectedRole.value
+    if (selectedType.value && selectedType.value !== 'all') params.type = selectedType.value
     if (selectedStatus.value && selectedStatus.value !== 'all') params.status = selectedStatus.value
 
     router.get(route('admin.reviewers.index'), params, {
@@ -166,7 +163,7 @@ const applyFilters = () => {
 
 const clearFilters = () => {
     searchQuery.value = ''
-    selectedRole.value = 'all'
+    selectedType.value = 'all'
     selectedStatus.value = 'all'
 
     router.get(
@@ -252,7 +249,7 @@ const formatDate = (dateString: string) => {
 const hasFilters = computed(() => {
     return (
         searchQuery.value ||
-        (selectedRole.value && selectedRole.value !== 'all') ||
+        (selectedType.value && selectedType.value !== 'all') ||
         (selectedStatus.value && selectedStatus.value !== 'all')
     )
 })
@@ -283,12 +280,6 @@ const totalReviewers = computed(() => {
                     </h2>
                 </div>
                 <div class="flex items-center gap-3">
-                    <Link :href="route('admin.reviewer-roles.index')">
-                        <Button variant="outline">
-                            <Filter class="h-4 w-4 mr-2" />
-                            Role Reviewer
-                        </Button>
-                    </Link>
                     <Link :href="route('admin.reviewers.create')">
                         <Button>
                             <Plus class="h-4 w-4 mr-2" />
@@ -343,7 +334,7 @@ const totalReviewers = computed(() => {
                                         :aria-expanded="openRole"
                                         class="w-full justify-between"
                                     >
-                                        <span class="truncate">{{ selectedRoleLabel }}</span>
+                                        <span class="truncate">{{ selectedTypeLabel }}</span>
                                         <ChevronsUpDown class="ml-2 h-4 w-4 shrink-0 opacity-50" />
                                     </Button>
                                 </PopoverTrigger>
@@ -360,7 +351,7 @@ const totalReviewers = computed(() => {
                                                     value="all"
                                                     @select="
                                                         () => {
-                                                            selectedRole = 'all'
+                                                            selectedType = 'all'
                                                             openRole = false
                                                         }
                                                     "
@@ -369,7 +360,7 @@ const totalReviewers = computed(() => {
                                                         :class="
                                                             cn(
                                                                 'mr-2 h-4 w-4',
-                                                                selectedRole === 'all'
+                                                                selectedType === 'all'
                                                                     ? 'opacity-100'
                                                                     : 'opacity-0'
                                                             )
@@ -378,12 +369,12 @@ const totalReviewers = computed(() => {
                                                     Semua Role
                                                 </CommandItem>
                                                 <CommandItem
-                                                    v-for="role in props.reviewerRoles"
+                                                    v-for="role in props.reviewerTypes"
                                                     :key="role.id"
                                                     :value="role.id.toString()"
                                                     @select="
                                                         () => {
-                                                            selectedRole = role.id.toString()
+                                                            selectedType = role.id.toString()
                                                             openRole = false
                                                         }
                                                     "
@@ -392,7 +383,7 @@ const totalReviewers = computed(() => {
                                                         :class="
                                                             cn(
                                                                 'mr-2 h-4 w-4',
-                                                                selectedRole === role.id.toString()
+                                                                selectedType === role.id.toString()
                                                                     ? 'opacity-100'
                                                                     : 'opacity-0'
                                                             )
@@ -532,7 +523,7 @@ const totalReviewers = computed(() => {
                                             variant="outline"
                                             class="bg-purple-50 text-blue-700 border-purple-200"
                                         >
-                                            {{ reviewer.reviewer_role.name }}
+                                            {{ reviewer.reviewer_type }}
                                         </Badge>
                                         <Badge
                                             :variant="
@@ -675,7 +666,7 @@ const totalReviewers = computed(() => {
                                 </p>
                                 <div class="flex items-center gap-2 mt-2">
                                     <Badge variant="secondary" class="text-xs">
-                                        {{ reviewerToDelete.reviewer_role.name }}
+                                        {{ reviewerToDelete.reviewer_type }}
                                     </Badge>
                                     <Badge
                                         :variant="

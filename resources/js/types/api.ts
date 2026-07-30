@@ -85,7 +85,7 @@ export interface ReviewerRecent {
     id: number
     user_id: number
     users_name: string
-    reviewer_role_id: number
+    reviewer_type: string
 }
 
 export interface EvaluationStatus {
@@ -112,5 +112,5 @@ export interface ReviewerByProdi {
 
 export interface ReviewerActiveStatus {
     user_id: number
-    reviewer_role_id: number
+    reviewer_type: string
 }

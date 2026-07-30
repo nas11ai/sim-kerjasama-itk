@@ -19,9 +19,8 @@ import type {
 } from './api'
 
 export interface TotalByRoleItem {
-    id: number
+    reviewer_type: string
     total_reviewers: number
-    reviewer_role_name: string
 }
 
 export interface FormPhaseStats {

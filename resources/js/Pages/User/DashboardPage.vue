@@ -61,7 +61,7 @@ interface ReviewStats {
 
 interface Reviewer {
     id: number
-    reviewer_role: string
+    reviewer_type: string
 }
 
 interface Props {
@@ -149,7 +149,7 @@ const isPhaseCompleted = (phase: FormPhase) => {
                     </Badge>
                     <Badge v-if="isReviewer" variant="secondary" class="flex items-center gap-1">
                         <Star class="h-3 w-3" />
-                        {{ reviewer?.reviewer_role || 'Reviewer' }}
+                        {{ reviewer?.reviewer_type || 'Reviewer' }}
                     </Badge>
                 </div>
             </div>

@@ -75,10 +75,7 @@ interface Reviewer {
         name: string
         email: string
     }
-    reviewer_role: {
-        id: number
-        name: string
-    }
+    reviewer_type: string
 }
 
 interface SubmissionReviewer {
@@ -425,7 +422,7 @@ const updateAssignmentDueDate = (formId: number, event: Event) => {
                                         {{ submissionReviewer.reviewer.user.name }}
                                     </h4>
                                     <p class="text-sm text-muted-foreground">
-                                        {{ submissionReviewer.reviewer.reviewer_role.name }} •
+                                        {{ submissionReviewer.reviewer.reviewer_type }} •
                                         {{ submissionReviewer.reviewer.user.email }}
                                     </p>
                                 </div>
@@ -729,7 +726,7 @@ const updateAssignmentDueDate = (formId: number, event: Event) => {
                                         {{ submissionReviewer.reviewer.user.name }}
                                     </div>
                                     <div class="text-sm text-muted-foreground">
-                                        {{ submissionReviewer.reviewer.reviewer_role.name }}
+                                        {{ submissionReviewer.reviewer.reviewer_type }}
                                     </div>
                                 </div>
                             </div>

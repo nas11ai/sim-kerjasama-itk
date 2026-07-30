@@ -64,7 +64,7 @@ class ReviewFormResponseController extends Controller
         }
 
         // Check if assigned to this submission
-        $submissionReviewer = SubmissionReviewer::where([
+        $submissionReviewer = SubmissionReviewer::active()->where([
             'form_submission_id' => $submission->id,
             'reviewer_id' => $reviewer->id,
         ])->first();
@@ -389,7 +389,7 @@ class ReviewFormResponseController extends Controller
 
         $content .= "Pengajuan: {$submission->form->title}\n";
         $content .= "Dikirim oleh: {$submission->submittedBy->name}\n";
-        $content .= "Reviewer: {$reviewer->user->name} ({$reviewer->reviewerRole->name})\n";
+        $content .= "Reviewer: {$reviewer->user->name} ({$reviewer->reviewer_type})\n";
         $content .= "Formulir Evaluasi: {$form->title}\n";
         $content .= "Diselesaikan pada: {$response->submitted_at->format('d M Y H:i')}\n\n";
 
