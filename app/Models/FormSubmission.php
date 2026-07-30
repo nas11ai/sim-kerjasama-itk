@@ -23,7 +23,7 @@ use Spatie\ModelStates\HasStates;
  * @property int|null $parent_submission_id
  * @property Carbon|null $submitted_at
  * @property bool $is_submitted
- * @property bool $isArchived
+ * @property bool $is_archived
  * @property SubmissionStatus|null $status
  * @property-read Form $form
  * @property-read User $submittedBy
