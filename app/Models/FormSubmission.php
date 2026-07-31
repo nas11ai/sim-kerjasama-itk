@@ -23,7 +23,7 @@ use Spatie\ModelStates\HasStates;
  * @property int|null $parent_submission_id
  * @property Carbon|null $submitted_at
  * @property bool $is_submitted
- * @property bool $is_archived
+ * @property-read bool $is_archived
  * @property SubmissionStatus|null $status
  * @property-read Form $form
  * @property-read User $submittedBy
@@ -157,9 +157,9 @@ class FormSubmission extends Model
             'id',
             'id'
         )->whereIn(
-            'reviewer_form_assignments.submission_reviewer_id',
-            $this->submissionReviewers()->pluck('id')
-        );
+                'reviewer_form_assignments.submission_reviewer_id',
+                $this->submissionReviewers()->pluck('id')
+            );
     }
 
     // NEW: Get submitted review form responses
@@ -256,7 +256,7 @@ class FormSubmission extends Model
         }
     }
 
-    public function isArchived(): bool
+    public function resolveIsArchived(): bool
     {
         if ($this->is_submitted) {
             return false;
@@ -281,13 +281,13 @@ class FormSubmission extends Model
         }
 
         return $period->submissionDates->every(
-            fn ($date) => Carbon::parse($date->datetime)->isPast()
+            fn($date) => Carbon::parse($date->datetime)->isPast()
         );
     }
 
     public function getIsArchivedAttribute(): bool
     {
-        return $this->isArchived();
+        return $this->resolveIsArchived();
     }
 
     public function getFormPhase(): ?FormPhase

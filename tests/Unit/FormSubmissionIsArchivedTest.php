@@ -64,7 +64,7 @@ it('returns false for draft submission with active period', function () {
         'is_submitted' => false,
     ]);
 
-    expect($submission->isArchived())->toBeFalse();
+    expect($submission->resolveIsArchived())->toBeFalse();
     expect($submission->is_archived)->toBeFalse();
 });
 
@@ -116,7 +116,7 @@ it('returns true for draft submission with force closed period', function () {
         'is_submitted' => false,
     ]);
 
-    expect($submission->isArchived())->toBeTrue();
+    expect($submission->resolveIsArchived())->toBeTrue();
     expect($submission->is_archived)->toBeTrue();
 });
 
@@ -176,7 +176,7 @@ it('returns true for draft submission when all submission dates are in the past'
         'is_submitted' => false,
     ]);
 
-    expect($submission->isArchived())->toBeTrue();
+    expect($submission->resolveIsArchived())->toBeTrue();
     expect($submission->is_archived)->toBeTrue();
 });
 
@@ -228,6 +228,6 @@ it('returns false for submitted submission regardless of period state', function
         'is_submitted' => true,
     ]);
 
-    expect($submission->isArchived())->toBeFalse();
+    expect($submission->resolveIsArchived())->toBeFalse();
     expect($submission->is_archived)->toBeFalse();
 });
