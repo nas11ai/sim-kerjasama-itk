@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
  * @property array|null $rules
@@ -30,29 +31,36 @@ class Scheme extends Model
     protected $casts = [
         'rules' => 'array',
         'is_active' => 'boolean',
+        'max_budget' => 'integer',
+        'max_members' => 'integer',
+        'duration_months' => 'integer',
     ];
 
     /**
-     * Get a rule value from the rules JSONB column.
+     * Jenis skema.
      */
+    public function schemeType(): BelongsTo
+    {
+        return $this->belongsTo(SchemeType::class);
+    }
+
+    public function submissionType(): BelongsTo
+    {
+        return $this->belongsTo(SubmissionType::class);
+    }
+
     public function getRule(string $key, mixed $default = null): mixed
     {
         return data_get($this->rules, $key, $default);
     }
 
-    /**
-     * Get the minimum reviewer count from rules, defaulting to 2.
-     */
     public function minReviewerCount(): int
     {
         return (int) $this->getRule('min_reviewer_count', 2);
     }
 
-    /**
-     * Get the maximum reviewer workload from rules, defaulting to 10.
-     */
-    public function maxReviewerWorkload(): int
-    {
-        return (int) $this->getRule('max_reviewer_workload', 10);
-    }
+     public function maxReviewerWorkload(): int
+     {
+         return (int) $this->getRule('max_reviewer_workload', 10);
+     }
 }

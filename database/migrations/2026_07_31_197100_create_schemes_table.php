@@ -4,14 +4,13 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-return new class extends Migration
-{
+return new class extends Migration {
     public function up(): void
     {
         Schema::create('schemes', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('scheme_type_id')->nullable();
-            $table->unsignedBigInteger('submission_type_id')->nullable();
+            $table->foreignId('scheme_type_id')->constrained();
+            $table->foreignId('submission_type_id')->constrained();
             $table->string('name');
             $table->string('code')->unique();
             $table->bigInteger('max_budget');
