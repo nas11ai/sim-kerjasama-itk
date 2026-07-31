@@ -59,8 +59,8 @@ class Scheme extends Model
         return (int) $this->getRule('min_reviewer_count', 2);
     }
 
-     public function maxReviewerWorkload(): int
-     {
-         return (int) $this->getRule('max_reviewer_workload', 10);
-     }
+    public function maxReviewerWorkload(): int
+    {
+        return (int) $this->getRule('max_reviewer_workload', 10);
+    }
 }
