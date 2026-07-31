@@ -157,9 +157,9 @@ class FormSubmission extends Model
             'id',
             'id'
         )->whereIn(
-                'reviewer_form_assignments.submission_reviewer_id',
-                $this->submissionReviewers()->pluck('id')
-            );
+            'reviewer_form_assignments.submission_reviewer_id',
+            $this->submissionReviewers()->pluck('id')
+        );
     }
 
     // NEW: Get submitted review form responses
@@ -281,7 +281,7 @@ class FormSubmission extends Model
         }
 
         return $period->submissionDates->every(
-            fn($date) => Carbon::parse($date->datetime)->isPast()
+            fn ($date) => Carbon::parse($date->datetime)->isPast()
         );
     }
 
