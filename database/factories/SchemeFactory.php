@@ -3,6 +3,8 @@
 namespace Database\Factories;
 
 use App\Models\Scheme;
+use App\Models\SchemeType;
+use App\Models\SubmissionType;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
 /**
@@ -15,6 +17,9 @@ class SchemeFactory extends Factory
     public function definition(): array
     {
         return [
+            'scheme_type_id' => SchemeType::factory(),
+            'submission_type_id' => SubmissionType::factory(),
+
             'name' => fake()->unique()->words(3, true),
             'code' => fake()->unique()->lexify('????-???'),
             'max_budget' => fake()->numberBetween(10_000_000, 500_000_000),

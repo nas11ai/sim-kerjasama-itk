@@ -29,7 +29,22 @@ beforeEach(function () {
 });
 
 it('resolves the scheme from the scheme selector field response', function () {
+
+    $schemeTypeId = DB::table('scheme_types')->insertGetId([
+        'name' => 'Research Grant',
+        'created_at' => now(),
+        'updated_at' => now(),
+    ]);
+
+    $submissionTypeId = DB::table('submission_types')->insertGetId([
+        'name' => 'Proposal',
+        'created_at' => now(),
+        'updated_at' => now(),
+    ]);
+
     $schemeId = DB::table('schemes')->insertGetId([
+        'scheme_type_id' => $schemeTypeId,
+        'submission_type_id' => $submissionTypeId,
         'name' => 'Research Grant',
         'code' => 'RG-001',
         'max_budget' => 100_000_000,

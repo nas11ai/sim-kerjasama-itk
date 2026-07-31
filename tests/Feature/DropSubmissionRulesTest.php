@@ -44,8 +44,21 @@ it('carries min_reviewer_count from submission_rules into schemes.rules on migra
         'updated_at' => now(),
     ]);
 
-    // A scheme with no rules yet — it must receive the carried value.
+    $schemeTypeId = DB::table('scheme_types')->insertGetId([
+        'name' => 'Research Grant',
+        'created_at' => now(),
+        'updated_at' => now(),
+    ]);
+
+    $submissionTypeId = DB::table('submission_types')->insertGetId([
+        'name' => 'Proposal',
+        'created_at' => now(),
+        'updated_at' => now(),
+    ]);
+
     $schemeId = DB::table('schemes')->insertGetId([
+        'scheme_type_id' => $schemeTypeId,
+        'submission_type_id' => $submissionTypeId,
         'name' => 'Research Grant',
         'code' => 'RG-CARRY',
         'max_budget' => 100_000_000,
@@ -56,7 +69,7 @@ it('carries min_reviewer_count from submission_rules into schemes.rules on migra
     ]);
 
     // Run the migration under test in isolation.
-    $migration = require database_path('migrations/2026_06_26_100000_drop_submission_rules_migrate_to_scheme_rules.php');
+    $migration = require database_path('migrations/2026_07_31_205000_drop_submission_rules_migrate_to_scheme_rules.php');
     $migration->up();
 
     $scheme = Scheme::findOrFail($schemeId);
