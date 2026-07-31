@@ -22,13 +22,15 @@ use Spatie\ModelStates\HasStates;
  * @property int $submitted_by
  * @property int|null $parent_submission_id
  * @property Carbon|null $submitted_at
+ * @property bool $is_submitted
+ * @property-read bool $is_archived
+ * @property SubmissionStatus|null $status
  * @property-read Form $form
  * @property-read User $submittedBy
  * @property-read Collection<int, FormFieldResponse> $formFieldResponses
  * @property-read Collection<int, SubmissionReviewer> $submissionReviewers
  * @property-read Collection<int, ReviewSummary> $reviewSummaries
  * @property-read Collection<int, BudgetLineItem> $budgetLineItems
- * @property SubmissionStatus|null $status
  */
 class FormSubmission extends Model
 {
@@ -41,6 +43,8 @@ class FormSubmission extends Model
         'submitted_by',
         'parent_submission_id',
     ];
+
+    protected $appends = ['is_archived'];
 
     protected $casts = [
         'status' => SubmissionStatus::class,
@@ -250,6 +254,40 @@ class FormSubmission extends Model
                 $submissionReviewer->assignForm($form->id, true, $this->getEvaluationDueDate());
             }
         }
+    }
+
+    public function resolveIsArchived(): bool
+    {
+        if ($this->is_submitted) {
+            return false;
+        }
+
+        $phaseDetail = $this->getFormPhaseDetail();
+
+        if (!$phaseDetail) {
+            return false;
+        }
+
+        $period = SubmissionPeriod::whereHas('submissionPeriodPhases', function ($query) use ($phaseDetail) {
+            $query->where('form_phase_id', $phaseDetail->form_phase_id);
+        })->first();
+
+        if (!$period) {
+            return false;
+        }
+
+        if ($period->is_force_closed) {
+            return true;
+        }
+
+        return $period->submissionDates->every(
+            fn ($date) => Carbon::parse($date->datetime)->isPast()
+        );
+    }
+
+    public function getIsArchivedAttribute(): bool
+    {
+        return $this->resolveIsArchived();
     }
 
     public function getFormPhase(): ?FormPhase
