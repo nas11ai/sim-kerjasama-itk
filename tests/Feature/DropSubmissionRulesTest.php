@@ -69,7 +69,7 @@ it('carries min_reviewer_count from submission_rules into schemes.rules on migra
     ]);
 
     // Run the migration under test in isolation.
-    $migration = require database_path('migrations/2026_07_31_205000_drop_submission_rules_migrate_to_scheme_rules.php');
+    $migration = require database_path('migrations/2026_06_26_100000_drop_submission_rules_migrate_to_scheme_rules.php');
     $migration->up();
 
     $scheme = Scheme::findOrFail($schemeId);
