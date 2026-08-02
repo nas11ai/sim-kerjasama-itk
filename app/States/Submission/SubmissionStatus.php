@@ -2,6 +2,7 @@
 
 namespace App\States\Submission;
 
+use App\Models\FormSubmission;
 use Spatie\ModelStates\State;
 
 abstract class SubmissionStatus extends State
@@ -24,7 +25,7 @@ abstract class SubmissionStatus extends State
         foreach (static::all() as $stateClass) {
             /** @var class-string<SubmissionStatus> $stateClass */
             /** @var SubmissionStatus $instance */
-            $instance = new $stateClass(new \App\Models\FormSubmission());
+            $instance = new $stateClass(new FormSubmission);
             $options[$instance->key()] = $instance->label();
         }
 
