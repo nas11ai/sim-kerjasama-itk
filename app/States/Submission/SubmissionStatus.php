@@ -31,6 +31,9 @@ abstract class SubmissionStatus extends State
             ->allowTransition(Approved::class, Withdrawn::class);
     }
 
+    /**
+     * @return array<class-string<SubmissionStatus>, string>
+     */
     public static function options(): array
     {
         return [
