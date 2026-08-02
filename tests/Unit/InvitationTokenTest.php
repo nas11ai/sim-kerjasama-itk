@@ -58,7 +58,11 @@ it('invalidates a token that reached max uses', function () {
 });
 
 it('increments used_count when consume is called', function () {
-    $org = Organization::factory()->create();
+    $org = Organization::create([
+        'name' => 'Fakultas Teknologi Industri',
+        'type' => 'faculty',
+        'is_active' => true,
+    ]);
     $user = User::factory()->create();
 
     $token = InvitationToken::factory()->create([

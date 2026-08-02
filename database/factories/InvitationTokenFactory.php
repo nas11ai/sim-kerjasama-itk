@@ -19,7 +19,11 @@ class InvitationTokenFactory extends Factory
     {
         return [
             'token' => Str::random(64),
-            'organization_id' => Organization::factory(),
+            'organization_id' => static fn () => Organization::create([
+                'name' => fake()->company(),
+                'type' => 'faculty',
+                'is_active' => true,
+            ])->id,
             'permissions' => ['users.manage'],
             'max_uses' => 5,
             'used_count' => 0,
