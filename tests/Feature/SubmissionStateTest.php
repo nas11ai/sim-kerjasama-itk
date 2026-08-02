@@ -9,7 +9,7 @@ use App\States\Submission\Resubmitted;
 use App\States\Submission\Submitted;
 use App\States\Submission\UnderReview;
 use App\States\Submission\Withdrawn;
-use Spatie\ModelStates\Exceptions\TransitionNotAllowed;
+use Spatie\ModelStates\Exceptions\CouldNotPerformTransition;
 
 it('allows draft to submitted transition', function () {
     $submission = FormSubmission::factory()->create([
@@ -97,7 +97,7 @@ it('prevents draft to approved transition', function () {
     ]);
 
     $submission->status->transitionTo(Approved::class);
-})->throws(TransitionNotAllowed::class);
+})->throws(CouldNotPerformTransition::class);
 
 it('prevents approved to draft transition', function () {
     $submission = FormSubmission::factory()->create([
@@ -105,7 +105,7 @@ it('prevents approved to draft transition', function () {
     ]);
 
     $submission->status->transitionTo(Draft::class);
-})->throws(TransitionNotAllowed::class);
+})->throws(CouldNotPerformTransition::class);
 
 it('prevents rejected to approved transition', function () {
     $submission = FormSubmission::factory()->create([
@@ -113,7 +113,7 @@ it('prevents rejected to approved transition', function () {
     ]);
 
     $submission->status->transitionTo(Approved::class);
-})->throws(TransitionNotAllowed::class);
+})->throws(CouldNotPerformTransition::class);
 
 it('prevents withdrawn to approved transition', function () {
     $submission = FormSubmission::factory()->create([
@@ -121,7 +121,7 @@ it('prevents withdrawn to approved transition', function () {
     ]);
 
     $submission->status->transitionTo(Approved::class);
-})->throws(TransitionNotAllowed::class);
+})->throws(CouldNotPerformTransition::class);
 
 it('prevents draft to resubmitted transition', function () {
     $submission = FormSubmission::factory()->create([
@@ -129,7 +129,7 @@ it('prevents draft to resubmitted transition', function () {
     ]);
 
     $submission->status->transitionTo(Resubmitted::class);
-})->throws(TransitionNotAllowed::class);
+})->throws(CouldNotPerformTransition::class);
 
 it('prevents rejected to resubmitted transition', function () {
     $submission = FormSubmission::factory()->create([
@@ -137,4 +137,4 @@ it('prevents rejected to resubmitted transition', function () {
     ]);
 
     $submission->status->transitionTo(Resubmitted::class);
-})->throws(TransitionNotAllowed::class);
+})->throws(CouldNotPerformTransition::class);
