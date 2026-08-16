@@ -2,6 +2,7 @@
 
 namespace App\Actions\FormSubmission;
 
+use App\Events\ProposalSubmitted;
 use App\Models\FormSubmission;
 use App\Models\User;
 use App\States\Submission\SubmissionStatus;
@@ -37,6 +38,12 @@ class SubmitFormSubmission
 
         $status->transitionTo(Submitted::class);
 
-        return $submission->refresh();
+        // Refresh dulu supaya listener yang membaca ulang baris melihat status
+        // SUBMITTED yang sudah tersimpan, baru kemudian event di-dispatch.
+        $submission->refresh();
+
+        ProposalSubmitted::dispatch($submission);
+
+        return $submission;
     }
 }
