@@ -9,6 +9,7 @@ use App\Notifications\SubmissionPeriodActiveNotification;
 use Carbon\Carbon;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Notification;
 
 class NotifyActiveSubmissionPeriods extends Command
@@ -51,13 +52,32 @@ class NotifyActiveSubmissionPeriods extends Command
                 continue;
             }
 
-            // Recipients: semua user non-admin — perilaku yang sama seperti
-            // EmailNotificationService::notifySubmissionPeriodActive() sebelumnya.
-            $users = User::whereDoesntHave('roles', function ($query) {
-                $query->whereIn('name', ['Super Admin', 'Admin']);
-            })->get();
+            // BR-NOT-03 — notifikasi bersifat fire-and-forget: kegagalan pada
+            // satu period (query penerima maupun pengiriman) tidak boleh
+            // menghentikan loop, supaya period lain yang juga sudah waktunya
+            // tetap ter-notify pada run yang sama. Period yang gagal tidak
+            // di-cache sebagai sudah dinotifikasi, sehingga akan dicoba lagi
+            // pada run terjadwal berikutnya.
+            $users = collect();
 
-            Notification::send($users, new SubmissionPeriodActiveNotification($period));
+            try {
+                // Recipients: semua user non-admin — perilaku yang sama
+                // seperti EmailNotificationService::notifySubmissionPeriodActive()
+                // sebelumnya.
+                $users = User::whereDoesntHave('roles', function ($query) {
+                    $query->whereIn('name', ['Super Admin', 'Admin']);
+                })->get();
+
+                Notification::send($users, new SubmissionPeriodActiveNotification($period));
+            } catch (\Exception $e) {
+                Log::error('Gagal mengirim notifikasi submission period active', [
+                    'submission_period_id' => $period->id,
+                    'recipients_count' => $users->count(),
+                    'error' => $e->getMessage(),
+                ]);
+
+                continue;
+            }
 
             // Mark as notified (cache for 1 year to prevent re-sending)
             Cache::put($cacheKey, true, now()->addYear());

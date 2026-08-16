@@ -6,6 +6,7 @@ use App\Models\SubmissionPeriod;
 use App\Models\User;
 use App\Notifications\SubmissionPeriodActiveNotification;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Notification;
 use Spatie\Permission\Models\Role;
 
@@ -41,6 +42,48 @@ it('runs without error when there are no active periods', function () {
     $this->artisan('notify:active-submission-periods')->assertSuccessful();
 
     Notification::assertNothingSent();
+});
+
+it('keeps notifying remaining periods when one period fails, per BR-NOT-03', function () {
+    // Isolasi error per-period: kegagalan pada satu period (query penerima
+    // atau pengiriman notifikasi) tidak boleh menggagalkan period lain yang
+    // juga sudah waktunya di-notify pada run yang sama.
+    Log::spy();
+
+    $failingPeriod = createActivePeriod();
+    $survivingPeriod = createActivePeriod();
+
+    User::factory()->create();
+
+    $notifiedPeriodIds = [];
+
+    Notification::shouldReceive('send')
+        ->twice()
+        ->andReturnUsing(function ($notifiables, SubmissionPeriodActiveNotification $notification) use (&$notifiedPeriodIds, $failingPeriod) {
+            $notifiable = collect($notifiables)->first();
+            $periodId = $notification->toDatabase($notifiable)['meta']['submission_period_id'];
+            $notifiedPeriodIds[] = $periodId;
+
+            if ($periodId === $failingPeriod->id) {
+                throw new RuntimeException('Simulasi kegagalan pengiriman notifikasi.');
+            }
+        });
+
+    $this->artisan('notify:active-submission-periods')->assertSuccessful();
+
+    expect($notifiedPeriodIds)
+        ->toContain($failingPeriod->id)
+        ->toContain($survivingPeriod->id);
+
+    Log::shouldHaveReceived('error')
+        ->once()
+        ->withArgs(fn (string $message, array $context) => $context['submission_period_id'] === $failingPeriod->id
+            && array_key_exists('recipients_count', $context));
+
+    // Period yang gagal tidak boleh di-cache sebagai sudah dinotifikasi,
+    // supaya dicoba lagi pada run berikutnya; period yang sukses harus.
+    expect(Cache::has("submission_period_notified_{$failingPeriod->id}"))->toBeFalse();
+    expect(Cache::has("submission_period_notified_{$survivingPeriod->id}"))->toBeTrue();
 });
 
 it('notifies non-admin users when a submission period is newly active', function () {
