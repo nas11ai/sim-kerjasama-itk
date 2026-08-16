@@ -50,9 +50,9 @@ class FormPhaseDetailFactory extends Factory
             'name' => 'Label Tanggal '.fake()->unique()->numerify('####-####'),
         ]);
 
-        // SubmissionDate::$fillable masih memakai nama kolom lama ('date'),
-        // jadi pakai forceFill supaya tidak bergantung pada bug tak terkait
-        // itu (lihat tests/Feature/Migrations/AddRelationsToFormSubmissionsTest.php).
+        // forceFill dipakai supaya factory ini tidak bergantung pada isi
+        // SubmissionDate::$fillable saat ini (lihat pola yang sama di
+        // tests/Feature/Migrations/AddRelationsToFormSubmissionsTest.php).
         $submissionDate = new SubmissionDate;
         $submissionDate->forceFill([
             'submission_date_label_id' => $dateLabel->id,

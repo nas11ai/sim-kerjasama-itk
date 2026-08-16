@@ -331,12 +331,12 @@ class FormSubmission extends Model
             return null;
         }
 
-        // Get submission period for this form phase
-        $submissionPeriod = SubmissionPeriod::whereHas('submissionPeriodPhases', function ($query) use ($formPhaseDetail) {
-            $query->where('form_phase_id', $formPhaseDetail->form_phase_id);
-        })->first();
+        // Period diturunkan lewat FK eksplisit submission_period_id, bukan
+        // ditebak lewat submission_period_phases — pivot itu tanpa unique
+        // constraint, satu FormPhase boleh dimiliki banyak period (ADR 0004).
+        $submissionPeriod = $this->submissionPeriod;
 
-        if (!$submissionPeriod) {
+        if ($submissionPeriod === null) {
             return null;
         }
 
