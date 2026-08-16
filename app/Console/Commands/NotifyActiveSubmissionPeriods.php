@@ -4,24 +4,18 @@ namespace App\Console\Commands;
 
 use App\Models\SubmissionDate;
 use App\Models\SubmissionPeriod;
-use App\Services\EmailNotificationService;
+use App\Models\User;
+use App\Notifications\SubmissionPeriodActiveNotification;
 use Carbon\Carbon;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Notification;
 
 class NotifyActiveSubmissionPeriods extends Command
 {
     protected $signature = 'notify:active-submission-periods';
 
     protected $description = 'Notify users about newly active submission periods';
-
-    protected $emailService;
-
-    public function __construct(EmailNotificationService $emailService)
-    {
-        parent::__construct();
-        $this->emailService = $emailService;
-    }
 
     public function handle()
     {
@@ -57,8 +51,13 @@ class NotifyActiveSubmissionPeriods extends Command
                 continue;
             }
 
-            // Send notification
-            $this->emailService->notifySubmissionPeriodActive($period);
+            // Recipients: semua user non-admin — perilaku yang sama seperti
+            // EmailNotificationService::notifySubmissionPeriodActive() sebelumnya.
+            $users = User::whereDoesntHave('roles', function ($query) {
+                $query->whereIn('name', ['Super Admin', 'Admin']);
+            })->get();
+
+            Notification::send($users, new SubmissionPeriodActiveNotification($period));
 
             // Mark as notified (cache for 1 year to prevent re-sending)
             Cache::put($cacheKey, true, now()->addYear());
