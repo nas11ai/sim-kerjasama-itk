@@ -1,8 +1,14 @@
 # BC: Submission
 
 **Klasifikasi:** 🔴 Core Domain  
-**Versi:** 2.3  
+**Versi:** 2.4  
 **Status:** Draft
+
+> **Perubahan v2.3 → v2.4.** Alur pembuatan mengikuti **wizard tujuh langkah**
+> ([ADR 0012](../../../adr/0012-wizard-driven-submission-lifecycle.md)), dan
+> `form_submissions` mendapat lima kolom baru
+> ([ADR 0004](../../../adr/0004-form-phase-detail-id-on-submissions.md),
+> [ADR 0005](../../../adr/0005-scheme-selector-writes-to-column.md)).
 
 ---
 
@@ -14,12 +20,31 @@ Mengelola lifecycle lengkap pengajuan proposal penelitian/pengabdian. Menggunaka
 
 ## Activity Diagram
 
-### Alur Pembuatan & Submit
+### Alur Pembuatan & Submit — Wizard Tujuh Langkah
+
+Baris `form_submissions` dibuat di **langkah 1**, bukan di akhir. Ini dipaksa
+BR-FE-11: Temporal Field Binding membandingkan `required_since` dengan
+`submission.created_at`, jadi jangkar waktunya harus lahir saat researcher mulai
+mengisi. Validasi per langkah bersifat parsial — Temporal Field Binding penuh
+hanya berjalan di langkah 7.
+
+| Langkah | Isi                   | Menulis ke                                     |
+| ------- | --------------------- | ---------------------------------------------- |
+| 1       | Pilih Form & Periode  | `form_submissions` (INSERT, jangkar temporal)  |
+| 2       | Informasi Dasar       | `form_field_responses`                          |
+| 3       | Skema & TRL           | `scheme_id`, `trl_id`                           |
+| 4       | Anggota Penelitian    | `research_members` (cek COI, BR-SM-08)          |
+| 5       | Rencana Anggaran      | `budget_line_items` (cek `max_budget`)          |
+| 6       | Upload Berkas         | `submission_additional_files`                   |
+| 7       | Review & Submit       | validasi penuh → `transitionTo(Submitted)`      |
+
+Urutan ini mengikat: `scheme_id` wajib terisi sebelum langkah 5, karena batas
+anggaran berasal dari `scheme.max_budget`.
 
 ```mermaid
 flowchart TD
     START([Researcher buka Submission Period]) --> A[Load Form yang accessible<br/>permission + org subtree]
-    A --> B[Pilih Scheme<br/>via scheme_selector field — opsional]
+    A --> B[Pilih Scheme<br/>via scheme_selector — opsional<br/>→ kolom scheme_id]
     B --> C[Isi scalar fields<br/>title, abstract, keywords, dll<br/>→ FormFieldResponse]
     C --> D[Tambah Research Members<br/>→ research_members table]
     D --> E[Input Budget Plan<br/>→ budget_line_items table]
@@ -95,7 +120,7 @@ stateDiagram-v2
 
     UNDER_REVIEW --> APPROVED : OTOMATIS<br/>trigger: semua evaluation_status = completed<br/>DAN tidak ada ReviewSummary open
 
-    UNDER_REVIEW --> REJECTED : SEMI-MANUAL<br/>trigger: operator confirm eksplisit
+    UNDER_REVIEW --> REJECTED : MANUAL<br/>hanya via Action RejectSubmission<br/>tidak pernah otomatis — BR-REV-14
 
     NEEDS_REVISION --> RESUBMITTED : Researcher resubmit<br/>guard: ada perubahan setelah revision request
 
@@ -113,8 +138,13 @@ classDiagram
     class FormSubmission {
         +FormSubmissionId id
         +FormId form_id
+        +FormPhaseDetailId form_phase_detail_id
+        +SubmissionPeriodId submission_period_id
+        +SchemeId scheme_id
+        +TechnologyReadinessLevelId trl_id
         +UserId submitted_by
         +FormSubmissionId parent_submission_id
+        +int last_completed_step
         +bool is_submitted
         +SubmissionStatus status
         +DateTime updated_at
@@ -186,7 +216,7 @@ classDiagram
 
 | Kode     | Rule                                                                                                                                                                                                                                               |
 | -------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| BR-SM-01 | Researcher hanya bisa punya satu active Submission per SubmissionPeriod per Scheme                                                                                                                                                                 |
+| BR-SM-01 | Researcher hanya bisa punya satu active Submission per SubmissionPeriod per Scheme. "Active" berarti **sudah disubmit** — DRAFT tidak dihitung, karena `scheme_id` masih kosong sepanjang langkah 1–2 wizard dan researcher berhak menyiapkan pengajuan ke beberapa skema sekaligus. Ditegakkan unique index parsial di database |
 | BR-SM-02 | Proposal PDF wajib ada sebelum submit                                                                                                                                                                                                              |
 | BR-SM-03 | Status hanya bisa berubah mengikuti state machine — tidak ada lompatan status                                                                                                                                                                      |
 | BR-SM-04 | Hanya `submitted_by` yang bisa submit dan resubmit                                                                                                                                                                                                 |

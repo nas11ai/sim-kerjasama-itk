@@ -1,8 +1,13 @@
 # BC: Scheme
 
 **Klasifikasi:** 🟡 Supporting Domain  
-**Versi:** 2.3  
+**Versi:** 2.4  
 **Status:** Draft
+
+> **Perubahan v2.3 → v2.4.** Pernyataan "Scheme ID tidak disimpan di
+> `form_submissions`" **dibatalkan**. `scheme_selector` dan `trl_selector` kini
+> menulis ke kolom sungguhan, mengikuti preseden RepeatableField.
+> Lihat [ADR 0005](../../../adr/0005-scheme-selector-writes-to-column.md).
 
 ---
 
@@ -112,7 +117,14 @@ class Scheme extends Model
 
 **`trl_selector`** — dropdown TRL yang filtered berdasarkan Scheme terpilih. Hanya valid jika ada `scheme_selector` di Form yang sama.
 
-Scheme ID tidak disimpan di `form_submissions` — hanya di `form_field_responses` sebagai value dari scheme_selector field. Ini single source of truth.
+Keduanya adalah **UI pattern** — sekelas dengan RepeatableField. Datanya tidak masuk `form_field_responses`, melainkan ke kolom sungguhan:
+
+```
+form_submissions.scheme_id  FK → schemes                       NULL (skema opsional, BR-SCH-04)
+form_submissions.trl_id     FK → technology_readiness_levels   NULL
+```
+
+Ini tetap single source of truth — justru lebih ketat, karena hanya ada satu salinan. Alasan lengkap dan alternatif yang ditolak ada di [ADR 0005](../../../adr/0005-scheme-selector-writes-to-column.md); pendeknya: skema adalah fakta domain milik Submission (Core), bukan sekadar jawaban form milik Form Engine (Generic), dan menyimpannya sebagai `varchar` di tabel EAV menggagalkan integritas FK, penegakan BR-SM-01, performa query Reporting, serta migrasi data legacy.
 
 ---
 
@@ -164,6 +176,7 @@ classDiagram
 | BR-SCH-06 | Menambah rule baru ke `scheme.rules` JSONB tidak butuh migration — cukup update via admin panel                                     |
 | BR-SCH-07 | Jika `SubmissionPeriod.is_force_closed = true`, semua FormPhaseDetail di period tersebut di-hard-block terlepas dari SubmissionDate |
 | BR-SCH-08 | Perpanjangan deadline (update SubmissionDate) wajib diikuti notifikasi ke researcher yang punya DRAFT aktif                         |
+| BR-SCH-09 | `scheme_selector` dan `trl_selector` menulis ke `form_submissions.scheme_id` / `.trl_id` — tidak pernah ke `form_field_responses`   |
 
 ---
 
@@ -173,6 +186,6 @@ classDiagram
 | -------------------- | ------------------- | ------------------------------------------------------------------------- |
 | Form Engine          | Lateral             | scheme_selector adalah FormField type — FE render UI, Scheme provide data |
 | System Configuration | Upstream → Scheme   | SchemeTypeId, TRLId, SubmissionTypeId                                     |
-| Submission           | Scheme → Downstream | max_budget, max_members, duration via form_field_responses                |
+| Submission           | Scheme → Downstream | max_budget, max_members, duration via `form_submissions.scheme_id`        |
 | Budget               | Scheme → Downstream | max_budget untuk validasi grand total                                     |
 | Review               | Scheme → Downstream | min_reviewer_count dan max_reviewer_workload dari rules JSONB             |

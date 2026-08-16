@@ -1,7 +1,15 @@
 # 02 — Ubiquitous Language
 
-**Versi:** 2.3  
+**Versi:** 2.4  
 **Status:** Draft
+
+> **Perubahan v2.3 → v2.4.** `scheme_selector` dan `trl_selector` kini menulis ke
+> kolom sungguhan, bukan ke `form_field_responses`
+> ([ADR 0005](../../adr/0005-scheme-selector-writes-to-column.md)). Pembuatan
+> pengajuan mengikuti wizard tujuh langkah
+> ([ADR 0012](../../adr/0012-wizard-driven-submission-lifecycle.md)). Status
+> `ReviewSummary` hanya `open` dan `resolved` — `closed` tidak pernah ada dan
+> tidak boleh dipakai.
 
 ---
 
@@ -50,7 +58,7 @@
 | **Optimistic Locking**     | Mekanisme mencegah concurrent edit — saat save, sistem cek `updated_at` di DB vs nilai di request. Kalau berbeda, ada yang sudah edit duluan dan request ditolak dengan pesan yang jelas.                                                                                                              |
 | **ReviewEvaluationForm**   | Form penilaian yang diisi Reviewer — attached ke FormPhaseDetail yang `needs_review = true`.                                                                                                                                                                                                           |
 | **ReviewFormResponse**     | Respons reviewer. Status: `draft` → `submitted` → `locked`.                                                                                                                                                                                                                                            |
-| **ReviewSummary**          | Ringkasan review per reviewer untuk sebuah submission. Titik awal threaded discussion. Status `open` = ada permintaan revisi yang belum resolved.                                                                                                                                                      |
+| **ReviewSummary**          | Ringkasan review per reviewer untuk sebuah submission. Titik awal threaded discussion. Status hanya `open` atau `resolved` — `open` berarti ada permintaan revisi yang belum selesai. Tidak ada status `closed`.                                                                                        |
 | **ReviewComment**          | Satu komentar dalam thread ReviewSummary. Bisa reply via `parent_comment_id`.                                                                                                                                                                                                                          |
 | **SubmissionReviewer**     | Pivot antara FormSubmission dan Reviewer. Satu record per reviewer per siklus (pengajuan atau monev).                                                                                                                                                                                                  |
 
@@ -61,6 +69,8 @@
 | Term                        | Definisi                                                                                                                                                                                                                         |
 | --------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Submission**              | Sebuah `FormSubmission` (form pengajuan utama) beserta seluruh extension tables-nya.                                                                                                                                             |
+| **Submission Wizard**       | Alur pembuatan pengajuan tujuh langkah: Pilih Form & Periode → Informasi Dasar → Skema & TRL → Anggota Penelitian → Rencana Anggaran → Upload Berkas → Review & Submit. Baris `form_submissions` dibuat di **langkah 1** agar Temporal Field Binding punya jangkar yang benar. |
+| **last_completed_step**     | Kolom di `form_submissions` yang menyimpan kemajuan wizard. Diperlukan karena langkah boleh kosong secara sah (mis. pengajuan tanpa anggota), sehingga "kosong" tidak berarti "belum dikunjungi". |
 | **Lead Researcher**         | Researcher yang membuat submission (`submitted_by`). Satu-satunya yang bisa submit dan resubmit.                                                                                                                                 |
 | **ResearchMember**          | Dosen lain sebagai co-researcher. Role: `co_investigator` atau `member`.                                                                                                                                                         |
 | **Co-Investigator**         | ResearchMember dengan role `co_investigator`. Bisa tambah/edit Research Output. Bisa menerima transfer ownership jika lead researcher dinonaktifkan.                                                                             |
@@ -77,8 +87,8 @@
 | ------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Scheme**          | Metadata aturan yang mengatur sebuah kategori pengajuan: `max_budget`, `max_members`, `duration_months`, dan `rules` JSONB untuk rule opsional.                        |
 | **scheme.rules**    | JSONB column di tabel `schemes` untuk rule yang opsional dan extensible tanpa migration. Contoh: `min_reviewer_count`, `max_reviewer_workload`, `max_student_members`. |
-| **scheme_selector** | FormField type khusus — dropdown scheme yang tersedia di period. Opsional per Form.                                                                                    |
-| **trl_selector**    | FormField type khusus — dropdown TRL filtered by scheme terpilih.                                                                                                      |
+| **scheme_selector** | FormField type khusus — dropdown scheme yang tersedia di period. Opsional per Form. **Menulis ke `form_submissions.scheme_id`, bukan ke `form_field_responses`** — sekelas dengan RepeatableField. |
+| **trl_selector**    | FormField type khusus — dropdown TRL filtered by scheme terpilih. **Menulis ke `form_submissions.trl_id`.** Hanya valid jika ada `scheme_selector` di Form yang sama.   |
 
 ---
 
@@ -147,7 +157,7 @@ DRAFT → SUBMITTED → UNDER_REVIEW → NEEDS_REVISION → RESUBMITTED → APPR
 | `NEEDS_REVISION` | **Otomatis** — semua reviewer done + ada ReviewSummary open       | Diminta revisi              |
 | `RESUBMITTED`    | Researcher resubmit                                               | Kembali ke reviewer         |
 | `APPROVED`       | **Otomatis** — semua reviewer done + tidak ada ReviewSummary open | Disetujui                   |
-| `REJECTED`       | **Semi-manual** — operator confirm eksplisit                      | Ditolak                     |
+| `REJECTED`       | **Manual** — hanya lewat aksi eksplisit Operator, tidak pernah otomatis | Ditolak                |
 | `WITHDRAWN`      | Operator override (bukan self-service)                            | Dibatalkan setelah approved |
 
 > **ARCHIVED** bukan status di DB — ini **computed property** di model. Submission dianggap archived jika `is_submitted = false` (masih DRAFT) DAN period-nya sudah tutup (`SubmissionPeriod.is_force_closed = true` ATAU semua `SubmissionDate` sudah terlewat). Tidak ada kolom atau migration tambahan — logic hidup di `FormSubmission::isArchived(): bool`.
@@ -181,7 +191,7 @@ DRAFT → SUBMITTED → UNDER_REVIEW → NEEDS_REVISION → RESUBMITTED → APPR
 | Jangan pakai                 | Pakai                                                 | Alasan                     |
 | ---------------------------- | ----------------------------------------------------- | -------------------------- |
 | `submissions` (tabel)        | `form_submissions`                                    | Tidak ada tabel terpisah   |
-| `form_submissions.scheme_id` | `form_field_responses` via scheme_selector            | Single source of truth     |
+| `review_summaries.status = 'closed'` | `open` atau `resolved`                        | `closed` tidak pernah ada di domain |
 | `submission_rules` (tabel)   | `scheme.rules` JSONB                                  | Tabel ini di-drop          |
 | `ReviewerRole` (tabel/class) | Spatie role `reviewer_internal` / `reviewer_external` | Tabel sudah di-drop        |
 | `nilai` (field)              | `score`                                               | English untuk field names  |

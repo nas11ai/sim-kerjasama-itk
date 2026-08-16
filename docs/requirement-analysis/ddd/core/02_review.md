@@ -1,8 +1,13 @@
 # BC: Review
 
 **Klasifikasi:** 🔴 Core Domain  
-**Versi:** 2.3  
+**Versi:** 2.4  
 **Status:** Draft
+
+> **Perubahan v2.3 → v2.4.** Ditegaskan bahwa **tidak ada jalur otomatis menuju
+> REJECTED**. Kode warisan fork sempat men-set `Rejected` otomatis dari
+> `ReviewSummary` berstatus `closed` — status yang tidak pernah ada di domain ini.
+> Lihat [ADR 0006](../../../adr/0006-rejection-is-manual-only.md).
 
 ---
 
@@ -201,6 +206,8 @@ Tabel `reviewers` menyimpan `reviewer_type varchar` (`internal` / `external`) un
 | BR-REV-10 | Saat reviewer diganti (reassignment), SubmissionReviewer lama di-mark `replaced` — tidak dihapus                                                              |
 | BR-REV-11 | `reviewer_internal` bisa lihat skor reviewer lain setelah semua selesai — `reviewer_external` tidak bisa                                                      |
 | BR-REV-12 | Researcher hanya bisa lihat skor evaluasi reviewer setelah submission berstatus APPROVED atau REJECTED — tidak selama proses review berlangsung               |
+| BR-REV-13 | `ReviewSummary.status` hanya boleh `open` atau `resolved`. Tidak ada `closed` — status itu tidak pernah ada di domain ini                                     |
+| BR-REV-14 | Tidak boleh ada jalur kode yang men-transisikan submission ke REJECTED secara otomatis. Satu-satunya jalur masuk adalah Action `RejectSubmission` yang dipanggil Operator dengan alasan wajib |
 
 ---
 

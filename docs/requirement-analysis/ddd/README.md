@@ -106,6 +106,10 @@ Setiap file domain mengikuti struktur yang sama:
 - **spatie/laravel-model-states** untuk state machine FormSubmission
 - **Temporal Field Binding** — validasi `is_required` berdasarkan `required_since` vs waktu submission dibuat
 - **RepeatableField** = UI pattern saja — data tetap ke extension tables, bukan form_field_responses
+- **scheme_selector & trl_selector** mengikuti preseden yang sama — menulis ke `form_submissions.scheme_id` / `.trl_id`, bukan ke form_field_responses ([ADR 0005](../../adr/0005-scheme-selector-writes-to-column.md))
+- **form_phase_detail_id** di `form_submissions` — relasi eksplisit, bukan ditebak dari form_id ([ADR 0004](../../adr/0004-form-phase-detail-id-on-submissions.md))
+- **Pembuatan pengajuan berupa wizard 7 langkah** — baris dibuat di langkah 1 agar Temporal Field Binding punya jangkar yang benar ([ADR 0012](../../adr/0012-wizard-driven-submission-lifecycle.md))
+- **REJECTED tidak pernah otomatis** — hanya lewat aksi eksplisit Operator ([ADR 0006](../../adr/0006-rejection-is-manual-only.md))
 - **scheme.rules JSONB** untuk rule opsional yang extensible tanpa migration
 - **PostgreSQL** sebagai database — recursive CTE untuk org tree, JSONB untuk metadata
 
@@ -116,3 +120,7 @@ Setiap file domain mengikuti struktur yang sama:
 - Perubahan business rule → update file BC, bump versi di header
 - Istilah baru → daftarkan di `02_ubiquitous_language.md` sebelum dipakai di kode
 - BC baru → buat file di folder yang sesuai, update README ini
+- **Keputusan yang menyimpang dari dokumen ini → tulis ADR di [`docs/adr/`](../../adr/)**, lalu tautkan dari file BC yang terdampak. Dokumen DDD menyatakan *apa* aturannya; ADR menyimpan *kenapa* aturan itu berubah beserta alternatif yang ditolak.
+
+Rencana implementasi turunan dokumen ini ada di
+[`docs/design/backend-implementation.md`](../../design/backend-implementation.md).

@@ -1,7 +1,11 @@
 # 01 — Domain Map
 
-**Versi:** 2.3  
+**Versi:** 2.4  
 **Status:** Draft
+
+> **Perubahan v2.3 → v2.4.** Bagian *Implementation Priority* diganti dengan
+> urutan milestone M0–M5.
+> Lihat [ADR 0009](../../adr/0009-milestone-sequencing-critical-path-first.md).
 
 ---
 
@@ -180,29 +184,38 @@ graph LR
 
 ## Implementation Priority
 
+Urutan di bawah menggantikan pembagian Phase 1–6 versi 2.3. Alasannya: Phase 1
+dan 2 versi lama (System Configuration, Identity & Access, Form Engine, Scheme)
+justru bagian yang **sudah paling jadi** di codebase, sehingga mengikutinya
+berarti mengerjakan ulang yang sudah ada sambil membiarkan loop inti tetap rusak.
+Notification juga tidak bisa ditaruh paling akhir karena domain event dibutuhkan
+sejak Submission. Lihat
+[ADR 0009](../../adr/0009-milestone-sequencing-critical-path-first.md).
+
 ```
-Phase 1 — Foundation
-├── System Configuration
-├── Identity & Access
-├── File Management
-└── Observability
+M0 — Fondasi
+├── form_phase_detail_id, scheme_id, trl_id, submission_period_id
+├── Policy + isAccessibleBy()
+├── Events / Listeners + Laravel Notification
+├── StorageService (MinIO / R2)
+└── field type scheme_selector & trl_selector, optimistic locking
 
-Phase 2 — Platform
-├── Form Engine
-└── Scheme
+M1 — Submission
+├── research_members, student_members, partners, additional_files
+├── SubmitFormSubmission (Temporal Field Binding, proposal PDF, deadline)
+├── Budget: lock per status, max_budget, audit nilai lama/baru
+└── transfer ownership, withdrawal
 
-Phase 3 — Core Features
-├── Submission
-└── Budget
+M2 — Review
+├── EvaluateSubmissionOutcome (menggantikan auto-reject yang melanggar BR-REV-07)
+├── AssignReviewers: min_reviewer_count, workload, conflict of interest
+└── reassignment, visibilitas skor
 
-Phase 4 — Review Workflow
-└── Review
+    ⬇ setelah M2 sistem fungsional end-to-end
 
-Phase 5 — Post-Approval
-├── Monev
-├── Research Output
-└── Reporting
+M3 — Identity & Access
+└── tiga jalur registrasi, verifikasi NIDN, deaktivasi + guard ownership
 
-Phase 6 — Cross-cutting
-└── Notification
+M4 — Monev & Research Output
+M5 — Reporting
 ```
