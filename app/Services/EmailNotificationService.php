@@ -12,6 +12,18 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 
+/**
+ * @deprecated Service email buatan sendiri ini digantikan pola Laravel
+ * Notification satu class dua channel (`database` + `mail`) yang dipasang di
+ * Task 10 — lihat `App\Notifications\ProposalSubmittedNotification` sebagai
+ * contoh yang harus diikuti. Jangan tambah pemanggil baru ke class ini.
+ *
+ * Class ini masih dipakai oleh `UserFormController` dan `ReviewController`
+ * (lihat entri "Utang yang Diketahui" di `.github/CODING_STANDARDS.md`) dan
+ * baru dipindahkan saat M1/M2 menyentuh kedua controller itu — lihat ADR 0008
+ * (strangler refactor: refactor kode yang disentuh, bukan yang kebetulan
+ * terlihat).
+ */
 class EmailNotificationService
 {
     /**

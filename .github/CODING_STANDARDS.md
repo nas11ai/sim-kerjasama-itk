@@ -415,3 +415,4 @@ mendiskusikannya.
 | `Faculty` & `StudyProgram` sudah digantikan `Organization` tree tapi masih ada | Dihapus di M3 |
 | Enum `SubmissionStatus` frontend (5 nilai) tidak cocok dengan state backend (8 nilai) | Diselaraskan saat kontrak Inertia props disusun |
 | `declare(strict_types=1)` belum dipakai                                        | Menyentuh 546 file dan mengubah perilaku runtime — butuh PR terpisah yang disengaja |
+| `UserFormController` dan `ReviewController` masih memanggil `EmailNotificationService`/`DynamicEmailNotification` (`@deprecated`), bukan pola Laravel Notification Task 10 | Dipindahkan saat M1/M2 menyentuh kedua controller itu (ADR 0008) |
