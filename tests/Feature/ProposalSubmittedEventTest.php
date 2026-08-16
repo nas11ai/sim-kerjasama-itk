@@ -2,10 +2,12 @@
 
 use App\Actions\FormSubmission\SubmitFormSubmission;
 use App\Events\ProposalSubmitted;
+use App\Listeners\SendProposalSubmittedNotification;
 use App\Models\FormSubmission;
 use App\Models\User;
 use App\Notifications\ProposalSubmittedNotification;
 use Illuminate\Support\Facades\Event;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Notification;
 use Spatie\Permission\Models\Permission;
 
@@ -39,4 +41,21 @@ it('notifies operators holding submissions.view-all', function () {
         $operator,
         ProposalSubmittedNotification::class,
     );
+});
+
+it('logs and returns early when submissions.view-all does not exist', function () {
+    // Regresi: Spatie melempar PermissionDoesNotExist, bukan koleksi kosong,
+    // kalau permission-nya belum pernah di-seed sama sekali. BR-NOT-03 —
+    // kegagalan tidak boleh menghentikan proses bisnis, tapi juga tidak
+    // boleh didiamkan tanpa jejak.
+    Log::spy();
+
+    $submission = FormSubmission::factory()->create();
+
+    (new SendProposalSubmittedNotification)->handle(new ProposalSubmitted($submission));
+
+    Log::shouldHaveReceived('warning')
+        ->once()
+        ->withArgs(fn (string $message, array $context) => $context['permission'] === 'submissions.view-all'
+            && $context['submission_id'] === $submission->id);
 });
