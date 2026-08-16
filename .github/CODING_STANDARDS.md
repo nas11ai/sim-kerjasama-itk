@@ -284,6 +284,101 @@ mock dependency yang tepat, atau pindahkan logic ke Action.
 
 ---
 
+## Kualitas Kode di Dalam Satu Unit
+
+Bagian sebelumnya mengatur *di mana* kode diletakkan. Bagian ini mengatur *bentuk*
+kode di dalamnya. Kosakatanya mengikuti katalog
+[refactoring.guru](https://refactoring.guru/refactoring) — dipakai supaya review
+PR bisa menyebut masalah dengan nama yang sama, bukan "kayaknya kepanjangan deh".
+
+### Keputusan arsitektur kita = refactoring bernama
+
+Pola yang dipakai di repo ini bukan selera, melainkan teknik baku:
+
+| Pola di repo ini              | Nama tekniknya                       | Menyembuhkan smell            |
+| ----------------------------- | ------------------------------------ | ----------------------------- |
+| `app/Actions/`                | Replace Method with Method Object    | Long Method, Large Class      |
+| `app/Data/` (DTO)             | Introduce Parameter Object           | Long Parameter List, Data Clumps |
+| `app/Policies/`               | Extract Class                        | Large Class, Shotgun Surgery  |
+| `spatie/laravel-model-states` | Replace Type Code with State/Strategy | Switch Statements            |
+| `AuthorizationException`      | Replace Error Code with Exception    | —                             |
+| `scheme_id` kolom sungguhan   | Replace Data Value with Object       | Primitive Obsession           |
+
+Baris terakhir itu inti [ADR 0005](../docs/adr/0005-scheme-selector-writes-to-column.md):
+menyimpan id skema sebagai `varchar` di kolom `value` adalah **Primitive
+Obsession**, dan obatnya relasi sungguhan.
+
+### Smell yang paling relevan di codebase ini
+
+| Smell                                        | Wujudnya di sini                                                                 | Obat                                       |
+| -------------------------------------------- | -------------------------------------------------------------------------------- | ------------------------------------------ |
+| **Long Method** / **Large Class**            | `SubmissionViewController` 1081 baris, `ReviewController` 780 baris              | Extract Method → Extract Class → Action     |
+| **Feature Envy**                             | Controller menghitung aturan bisnis dari data model                              | Move Method ke model atau Action            |
+| **Primitive Obsession**                      | id dan status disimpan sebagai string mentah                                     | Replace Data Value with Object, enum, FK    |
+| **Switch Statements**                        | rantai `if/elseif` status di `updateStatusBasedOnReviews()`                       | Replace Conditional with Polymorphism       |
+| **Shotgun Surgery**                          | BR-SM-07 menuntut `isAccessibleBy()` diulang di setiap query                      | Policy + query scope, satu tempat           |
+| **Duplicate Code**                           | `routes/web.php` mendaftarkan `/dashboard` bernama `dashboard` dua kali identik (baris 28 dan 69) — yang kedua menimpa yang pertama; `ReviewController::updateReviewStatus` terdaftar di tiga grup | Hapus yang mati, satukan yang tersisa       |
+| **Long Parameter List**                      | Action menerima banyak argumen lepas                                             | Introduce Parameter Object (DTO)            |
+
+### Aturan praktis
+
+**Guard clause, bukan `if` bersarang.** Replace Nested Conditional with Guard
+Clauses. Kondisi gagal ditangani lebih dulu lalu keluar; jalur normal tidak
+menjorok ke kanan.
+
+```php
+// ❌
+if ($submission->submitted_by === $user->id) {
+    if ($submission->status !== null) {
+        // logic sesungguhnya terkubur dua level
+    }
+}
+
+// ✅
+if ($submission->submitted_by !== $user->id) {
+    throw new AuthorizationException(...);
+}
+
+if (! $status instanceof SubmissionStatus) {
+    throw new RuntimeException(...);
+}
+
+// logic sesungguhnya, rata kiri
+```
+
+**Satu Action = satu use case.** Kalau nama Action-nya mengandung "dan"
+(`SubmitAndNotify`), itu dua Action.
+
+**Jangan menulis komentar untuk menjelaskan kode yang berbelit** — itu smell
+*Comments*. Perbaiki kodenya. Komentar yang berguna menjelaskan **kenapa**, bukan
+**apa**; di repo ini bentuk paling berguna adalah menyebut kode business rule:
+
+```php
+// BR-SM-04 — hanya submitted_by yang boleh submit dan resubmit.
+```
+
+**Magic number diberi nama.** Replace Magic Number with Symbolic Constant.
+Nilai default rule skema (`min_reviewer_count` = 2, `max_reviewer_workload` = 10)
+diambil lewat `Scheme::getRule()`, tidak ditulis langsung di logic.
+
+**Speculative Generality dilarang.** Jangan membangun abstraksi untuk kebutuhan
+yang belum ada. Interface dengan satu implementasi dan tanpa rencana
+implementasi kedua adalah beban, bukan fleksibilitas. `StorageService` adalah
+pengecualian yang disengaja karena backend-nya memang berbeda antar environment
+(MinIO dev, R2 produksi).
+
+### Kapan refactor
+
+Refactor kode yang sedang kamu sentuh, bukan kode yang kebetulan kamu lihat —
+lihat [ADR 0008](../docs/adr/0008-strangler-refactor-of-legacy-controllers.md).
+Refactor besar yang tidak diminta membuat PR sulit di-review dan menyembunyikan
+perubahan perilaku di tengah perubahan bentuk.
+
+Refactor dan perubahan perilaku **tidak dicampur dalam satu commit**. Konvensi
+commit sudah membedakan keduanya: `refactor:` versus `feat:`/`fix:`.
+
+---
+
 ## Environment
 
 Satu versi PHP untuk semua environment: **8.4**.

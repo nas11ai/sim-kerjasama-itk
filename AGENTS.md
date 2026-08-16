@@ -89,6 +89,16 @@ desain perlu diperbaiki.
 **7. Tidak ada `any` di TypeScript, tidak ada `console.log`.**
 `console.error` dan `console.warn` boleh.
 
+**8. Pakai guard clause, bukan `if` bersarang.** Tangani kondisi gagal lebih dulu
+lalu keluar, sehingga jalur normal tetap rata kiri. Satu Action = satu use case;
+kalau namanya mengandung "dan", itu dua Action. Jangan membangun abstraksi untuk
+kebutuhan yang belum ada.
+
+Kosakata smell dan teknik refactoring yang dipakai di repo ini ada di
+[`.github/CODING_STANDARDS.md`](.github/CODING_STANDARDS.md) bagian *Kualitas Kode
+di Dalam Satu Unit*, mengikuti katalog refactoring.guru. Sebutkan nama tekniknya
+saat mengusulkan perubahan bentuk kode.
+
 ---
 
 ## Di mana meletakkan kode baru

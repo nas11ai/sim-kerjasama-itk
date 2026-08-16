@@ -55,3 +55,5 @@ keputusan sama berharganya dengan keputusan itu sendiri.
 | [0008](0008-strangler-refactor-of-legacy-controllers.md)         | Refactor legacy dengan pola strangler                        | Diterima |
 | [0009](0009-milestone-sequencing-critical-path-first.md)         | Urutan milestone: critical path dulu                         | Diterima |
 | [0010](0010-defer-legacy-data-migration.md)                      | Migrasi data legacy ditunda ke spec terpisah                 | Diterima |
+| [0011](0011-refactoring-vocabulary.md)                           | Kosakata refactoring sebagai standar review                  | Diterima |
+| [0012](0012-wizard-driven-submission-lifecycle.md)               | Siklus pengajuan mengikuti wizard tujuh langkah              | Diterima |
