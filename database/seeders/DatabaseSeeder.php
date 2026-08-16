@@ -20,6 +20,7 @@ class DatabaseSeeder extends Seeder
             PermissionSeeder::class,
             DummyUserSeeder::class,
             FieldTypeSeeder::class,
+            BudgetComponentSeeder::class,
             FormTypeSeeder::class,
             FacultySeeder::class,
             StudyProgramSeeder::class,
