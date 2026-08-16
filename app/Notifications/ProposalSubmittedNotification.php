@@ -1,0 +1,42 @@
+<?php
+
+namespace App\Notifications;
+
+use App\Models\FormSubmission;
+use Illuminate\Bus\Queueable;
+use Illuminate\Contracts\Queue\ShouldQueue;
+use Illuminate\Notifications\Messages\MailMessage;
+use Illuminate\Notifications\Notification;
+
+class ProposalSubmittedNotification extends Notification implements ShouldQueue
+{
+    use Queueable;
+
+    public function __construct(private readonly FormSubmission $submission) {}
+
+    /** @return list<string> */
+    public function via(object $notifiable): array
+    {
+        return ['database', 'mail'];
+    }
+
+    /** @return array<string, mixed> */
+    public function toDatabase(object $notifiable): array
+    {
+        return [
+            'title' => 'Pengajuan Baru Masuk',
+            'message' => "Pengajuan #{$this->submission->id} telah disubmit dan menunggu penugasan reviewer.",
+            'action_url' => "/submissions/{$this->submission->id}",
+            'type' => 'info',
+            'meta' => ['submission_id' => $this->submission->id],
+        ];
+    }
+
+    public function toMail(object $notifiable): MailMessage
+    {
+        return (new MailMessage)
+            ->subject('Pengajuan Baru — SIMPAS')
+            ->line("Pengajuan #{$this->submission->id} telah disubmit.")
+            ->action('Lihat Detail', url("/submissions/{$this->submission->id}"));
+    }
+}
