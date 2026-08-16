@@ -2,9 +2,13 @@
 
 namespace App\States\Submission;
 
+use App\Models\FormSubmission;
 use Spatie\ModelStates\State;
 use Spatie\ModelStates\StateConfig;
 
+/**
+ * @extends State<FormSubmission>
+ */
 abstract class SubmissionStatus extends State
 {
     abstract public function key(): string;

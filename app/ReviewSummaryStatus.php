@@ -44,19 +44,32 @@ enum ReviewSummaryStatus: string
         };
     }
 
+    /**
+     * @return list<array{value: string, label: string, color: string}>
+     */
     public static function options(): array
     {
-        return collect(self::cases())->map(fn ($status) => [
-            'value' => $status->value,
-            'label' => $status->label(),
-            'color' => $status->color(),
-        ])->toArray();
+        return array_map(
+            fn (self $status): array => [
+                'value' => $status->value,
+                'label' => $status->label(),
+                'color' => $status->color(),
+            ],
+            self::cases()
+        );
     }
 
+    /**
+     * @return array<string, string>
+     */
     public static function forSelect(): array
     {
-        return collect(self::cases())->mapWithKeys(fn ($status) => [
-            $status->value => $status->label(),
-        ])->toArray();
+        $options = [];
+
+        foreach (self::cases() as $status) {
+            $options[$status->value] = $status->label();
+        }
+
+        return $options;
     }
 }
