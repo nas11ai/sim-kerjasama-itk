@@ -31,3 +31,6 @@ test-results/
 # Artefak tooling agent — bukan dokumentasi proyek
 /docs/superpowers/
 .claude/
+
+# Workspace subagent-driven development (scratch, git-ignored)
+/.superpowers/
