@@ -40,6 +40,7 @@ use Spatie\ModelStates\HasStates;
  * @property-read Collection<int, SubmissionReviewer> $submissionReviewers
  * @property-read Collection<int, ReviewSummary> $reviewSummaries
  * @property-read Collection<int, BudgetLineItem> $budgetLineItems
+ * @property-read Collection<int, ResearchMember> $researchMembers
  */
 class FormSubmission extends Model
 {
@@ -138,6 +139,12 @@ class FormSubmission extends Model
     public function budgetLineItems(): HasMany
     {
         return $this->hasMany(BudgetLineItem::class);
+    }
+
+    /** @return HasMany<ResearchMember, $this> */
+    public function researchMembers(): HasMany
+    {
+        return $this->hasMany(ResearchMember::class);
     }
 
     public function reviewComments()
