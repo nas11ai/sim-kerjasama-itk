@@ -2,6 +2,8 @@
 
 namespace App\Providers;
 
+use App\Models\FormSubmission;
+use App\Policies\FormSubmissionPolicy;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Vite;
@@ -27,5 +29,6 @@ class AppServiceProvider extends ServiceProvider
         Gate::before(function ($user, $ability) {
             return $user->hasRole('Super Admin') ? true : null;
         });
+        Gate::policy(FormSubmission::class, FormSubmissionPolicy::class);
     }
 }

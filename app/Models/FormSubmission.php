@@ -147,6 +147,42 @@ class FormSubmission extends Model
         return $this->hasMany(ResearchMember::class);
     }
 
+    /**
+     * BR-SM-07 — akses level submission, lapis terpisah dari FormAccessControl.
+     */
+    public function isAccessibleBy(User $user): bool
+    {
+        if ($user->can('submissions.view-all')) {
+            return true;
+        }
+
+        if ($this->submitted_by === $user->id) {
+            return true;
+        }
+
+        if ($this->hasActiveResearchMember($user)) {
+            return true;
+        }
+
+        return $this->hasAssignedReviewer($user);
+    }
+
+    private function hasActiveResearchMember(User $user): bool
+    {
+        return $this->researchMembers()
+            ->where('status', 'active')
+            ->whereHas('userProfile', fn ($query) => $query->where('user_id', $user->id))
+            ->exists();
+    }
+
+    private function hasAssignedReviewer(User $user): bool
+    {
+        return $this->submissionReviewers()
+            ->where('status', 'active')
+            ->whereHas('reviewer', fn ($query) => $query->where('user_id', $user->id))
+            ->exists();
+    }
+
     public function reviewComments()
     {
         return $this->hasMany(ReviewComment::class, 'review_summary_id', 'id')
