@@ -16,11 +16,9 @@ Panduan ini mengikuti konvensi tim: developer mengerjakan issue bertipe `[Task]`
 - [Konvensi Branch](#konvensi-branch)
 - [Konvensi Commit Message](#konvensi-commit-message)
 - [Cara Menulis State Transition](#cara-menulis-state-transition)
-- [Konvensi Kode Backend](#konvensi-kode-backend)
-- [Konvensi Kode Frontend](#konvensi-kode-frontend)
-- [Panduan Testing](#panduan-testing)
+- [Konvensi Kode dan Panduan Testing](#konvensi-kode-dan-panduan-testing)
 - [Keamanan dan Secrets](#keamanan-dan-secrets)
-- [Menjalankan Tools](#menjalankan-tools)
+- [Menjalankan Quality Gate](#menjalankan-quality-gate)
 - [Definition of Done](#definition-of-done)
 - [Menulis dan Submit Pull Request](#menulis-dan-submit-pull-request)
 - [Checklist Sebelum PR](#checklist-sebelum-pr)
@@ -402,183 +400,17 @@ Jangan mengakses properti internal seperti $submission->status->value, karena Su
 
 ---
 
-## Konvensi Kode Backend
+## Konvensi Kode dan Panduan Testing
 
-### Controller
+Seluruh aturan kode — layering backend, konvensi frontend, PostgreSQL,
+submission-level access, optimistic locking, state machine, dan panduan testing —
+ada di **[`.github/CODING_STANDARDS.md`](.github/CODING_STANDARDS.md)**.
 
-Controller harus tipis. Tugasnya: terima request, validasi via FormRequest, panggil Action, kembalikan response. Hindari business logic di controller.
+Dokumen itu rujukan tunggal. Aturannya sengaja tidak diduplikasi di sini supaya
+tidak ada dua versi yang bisa berbeda.
 
-### FormRequest dan DTO
-
-Gunakan FormRequest untuk validasi input HTTP.
-
-Gunakan DTO (`spatie/laravel-data`) ketika data diteruskan ke Action, dipakai lintas layer, atau punya struktur nested.
-
-Pola untuk endpoint mutasi:
-
-```
-FormRequest → DTO → Action → response
-```
-
-### Action
-
-Gunakan Action untuk business use case yang jelas: submit proposal, assign reviewer, close period, update status.
-
-```php
-$submission = SubmitFormSubmission::run($submission, $user);
-```
-
-Action dipakai ketika logic mengubah state, butuh transaction, dipanggil dari lebih dari satu tempat, atau perlu unit test terpisah.
-
-### Database dan PostgreSQL
-
-SIMPAS v2 memakai PostgreSQL. Hindari asumsi MySQL:
-
-```php
-// ❌ MySQL only
-DB::raw('SUM(status = "pending") as pending')
-DB::raw('YEAR(created_at) as year')
-->where('column', 'LIKE', "%$q%")
-
-// ✅ PostgreSQL compatible
-DB::raw("SUM(CASE WHEN status = 'pending' THEN 1 ELSE 0 END) as pending")
-DB::raw("EXTRACT(YEAR FROM created_at) as year")
-->whereRaw('column ILIKE ?', ["%$q%"])
-// atau: ->whereLike('column', "%$q%")  (Laravel 11+)
-```
-
-Pastikan kolom non-aggregate di `SELECT` ikut masuk `GROUP BY`. Test query kompleks di PostgreSQL, bukan SQLite.
-
-### Submission-Level Access
-
-Semua query yang return data submission **wajib** scope via `isAccessibleBy()`:
-
-```php
-// ❌ Tidak cukup hanya cek FormAccessControl
-$submission = FormSubmission::find($id);
-
-// ✅ Selalu cek submission-level access
-$submission = FormSubmission::find($id);
-abort_unless($submission->isAccessibleBy(auth()->user()), 403);
-```
-
-Pengecualian: user dengan permission `submissions.view-all` (Operator/Admin) bypass scope ini secara otomatis.
-
-### Optimistic Locking
-
-Endpoint yang menerima update data submission harus menyertakan `updated_at` check untuk mencegah concurrent edit:
-
-```php
-$submission = FormSubmission::lockForUpdate()->find($id);
-
-if ($submission->updated_at->ne($request->last_updated_at)) {
-    return response()->json([
-        'message' => 'Data sudah diubah oleh pengguna lain. Muat ulang halaman.'
-    ], 409);
-}
-```
-
----
-
-## Konvensi Kode Frontend
-
-- Gunakan Vue 3 dengan `<script setup>`.
-- Gunakan TypeScript untuk semua tipe data.
-- Simpan state global di Pinia store (`useXxxStore`).
-- Hindari `console.log` tertinggal.
-- Jalankan ESLint dan Prettier sebelum PR.
-- Hindari `any` — jika terpaksa, tulis alasan di komentar.
-
-### Struktur
-
-| Folder                       | Isi                                  |
-| ---------------------------- | ------------------------------------ |
-| `resources/js/Pages`         | Page-level component (Inertia)       |
-| `resources/js/Components`    | Reusable component                   |
-| `resources/js/Components/ui` | Primitive UI component (shadcn/reka) |
-| `resources/js/stores`        | Pinia stores                         |
-| `resources/js/composables`   | Composable (logic lintas component)  |
-| `resources/js/types`         | TypeScript interfaces/types          |
-
-### Props, Emits, dan Tipe Data
-
-```vue
-<script setup lang="ts">
-interface UserOption {
-    id: number
-    name: string
-}
-
-defineProps<{
-    users: UserOption[]
-    selectedUserId?: number
-}>()
-
-const emit = defineEmits<{
-    select: [userId: number]
-}>()
-</script>
-```
-
-Jangan lakukan transformasi data besar di template — siapkan di computed atau composable.
-
-### Authorization di Frontend
-
-Frontend boleh menyembunyikan UI berdasarkan permission, tetapi **backend tetap wajib memvalidasi**. Jangan andalkan frontend sebagai satu-satunya penjaga otorisasi.
-
----
-
-## Panduan Testing
-
-### Wajib Menulis Test Jika Menyentuh
-
-- Fitur baru atau bug fix.
-- Query database, migration, atau compatibility PostgreSQL.
-- Business logic di Action, model method, state machine, atau policy.
-- State transition (valid dan invalid).
-- Temporal Field Binding (`isRequiredFor()`).
-- Frontend store, composable, atau component dengan logic non-trivial.
-
-### Boleh Skip dengan Alasan
-
-- Perubahan dokumentasi saja.
-- Perubahan formatting tanpa logic.
-- Perubahan UI minor tanpa perubahan behavior.
-- Chore tooling/config sederhana.
-  Jika skip, tulis alasan di body PR. Jangan centang checklist test jika test tidak ditulis.
-
-### Larangan Anti-Pattern
-
-**Jangan** tambahkan percabangan khusus testing di production code:
-
-```php
-// ❌ Jangan lakukan ini
-if (app()->environment('testing')) {
-    // bypass behavior
-}
-```
-
-Jika test sulit ditulis, perbaiki desain kode — gunakan factory, mock dependency yang tepat, atau pindahkan logic ke Action/service.
-
-### Command
-
-```bash
-# Backend
-./vendor/bin/pest
-./vendor/bin/pest --filter=SubmissionTest
-
-# Frontend
-npm run test
-npm run test:coverage
-npm run test:e2e
-```
-
-Dengan Docker:
-
-```bash
-docker compose exec app ./vendor/bin/pest
-docker compose exec app npm run test
-```
+Coding agent (Claude Code, `dsc`) membaca aturan yang sama lewat
+[`AGENTS.md`](AGENTS.md).
 
 ---
 
@@ -592,57 +424,23 @@ docker compose exec app npm run test
 
 ---
 
-## Menjalankan Tools
-
-### Backend
+## Menjalankan Quality Gate
 
 ```bash
-# Formatting check
-composer lint
-
-# Auto-fix formatting
-composer lint:fix
-
-# Static analysis
-./vendor/bin/phpstan analyse --memory-limit=512M
-
-# Test
-./vendor/bin/pest
-
-# Dengan Docker
-docker compose exec app composer lint
-docker compose exec app ./vendor/bin/phpstan analyse --memory-limit=512M
-docker compose exec app ./vendor/bin/pest
+composer run quality   # pint + phpstan (base & strict) + pest
+npm run quality        # eslint + prettier + vue-tsc + vitest
 ```
 
-### Frontend
+Dengan Docker:
 
 ```bash
-# ESLint
-npm run lint
-
-# Prettier check
-npm run format:check
-
-# Auto-format
-npm run format
-
-# Unit test
-npm run test
-
-# Coverage
-npm run test:coverage
-
-# E2E test
-npm run test:e2e
-
-# Build
-npm run build
-
-# Dengan Docker
-docker compose exec app npm run lint
-docker compose exec app npm run test
+docker compose exec app composer run quality
+docker compose exec app npm run quality
 ```
+
+Rincian tiap perintah, penjelasan dua tier PHPStan, dan cara menjalankan test saat
+PHP host bukan 8.4 ada di
+[`.github/CODING_STANDARDS.md`](.github/CODING_STANDARDS.md).
 
 ---
 
