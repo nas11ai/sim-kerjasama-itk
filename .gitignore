@@ -24,3 +24,6 @@ yarn-error.log
 /.zed
 playwright-report/
 test-results/
+
+# Dump database legacy untuk migrasi data (113MB, melebihi batas GitHub)
+/database/*.sql
