@@ -19,7 +19,8 @@
         "maatwebsite/excel": "^3.1",
         "predis/predis": "^3.4",
         "spatie/laravel-activitylog": "^4.12",
-        "spatie/laravel-model-states": "*",
+        "spatie/laravel-data": "^4.23",
+        "spatie/laravel-model-states": "^2.14",
         "spatie/laravel-permission": "7.4.1",
         "tightenco/ziggy": "^2.0"
     },
@@ -73,7 +74,15 @@
             "@php artisan test"
         ],
         "lint": "./vendor/bin/pint --test",
-        "lint:fix": "./vendor/bin/pint"
+        "lint:fix": "./vendor/bin/pint",
+        "analyse": "./vendor/bin/phpstan analyse --memory-limit=1G",
+        "analyse:strict": "./vendor/bin/phpstan analyse -c phpstan-strict.neon --memory-limit=1G",
+        "quality": [
+            "@lint",
+            "@analyse",
+            "@analyse:strict",
+            "./vendor/bin/pest"
+        ]
     },
     "extra": {
         "laravel": {
