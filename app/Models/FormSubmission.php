@@ -33,6 +33,8 @@ use Spatie\ModelStates\HasStates;
  * @property-read Form $form
  * @property-read User $submittedBy
  * @property-read Scheme|null $scheme
+ * @property-read FormPhaseDetail|null $formPhaseDetail
+ * @property-read SubmissionPeriod|null $submissionPeriod
  * @property-read TechnologyReadinessLevel|null $trl
  * @property-read Collection<int, FormFieldResponse> $formFieldResponses
  * @property-read Collection<int, SubmissionReviewer> $submissionReviewers
@@ -100,6 +102,18 @@ class FormSubmission extends Model
     public function scheme(): BelongsTo
     {
         return $this->belongsTo(Scheme::class);
+    }
+
+    /** @return BelongsTo<FormPhaseDetail, $this> */
+    public function formPhaseDetail(): BelongsTo
+    {
+        return $this->belongsTo(FormPhaseDetail::class);
+    }
+
+    /** @return BelongsTo<SubmissionPeriod, $this> */
+    public function submissionPeriod(): BelongsTo
+    {
+        return $this->belongsTo(SubmissionPeriod::class);
     }
 
     /** @return BelongsTo<TechnologyReadinessLevel, $this> */
@@ -274,17 +288,9 @@ class FormSubmission extends Model
             return false;
         }
 
-        $phaseDetail = $this->getFormPhaseDetail();
+        $period = $this->submissionPeriod;
 
-        if (!$phaseDetail) {
-            return false;
-        }
-
-        $period = SubmissionPeriod::whereHas('submissionPeriodPhases', function ($query) use ($phaseDetail) {
-            $query->where('form_phase_id', $phaseDetail->form_phase_id);
-        })->first();
-
-        if (!$period) {
+        if ($period === null) {
             return false;
         }
 
@@ -292,6 +298,7 @@ class FormSubmission extends Model
             return true;
         }
 
+        // BR-SM-13 — archived jika semua deadline period sudah lewat.
         return $period->submissionDates->every(
             fn ($date) => Carbon::parse($date->datetime)->isPast()
         );
@@ -312,9 +319,7 @@ class FormSubmission extends Model
     // NEW: Get form phase for this submission
     public function getFormPhaseDetail(): ?FormPhaseDetail
     {
-        return FormPhaseDetail::whereHas('formAccessControl', function ($query) {
-            $query->where('form_id', $this->form_id);
-        })->first();
+        return $this->formPhaseDetail;
     }
 
     // NEW: Get evaluation due date based on submission period

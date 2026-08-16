@@ -50,7 +50,7 @@ it('returns false for draft submission with active period', function () {
         'form_phase_id' => $formPhase->id,
     ]);
 
-    FormPhaseDetail::create([
+    $formPhaseDetail = FormPhaseDetail::create([
         'form_phase_id' => $formPhase->id,
         'form_access_control_id' => $formAccessControl->id,
         'phase_type_id' => $phaseType->id,
@@ -62,6 +62,8 @@ it('returns false for draft submission with active period', function () {
         'form_id' => $form->id,
         'submitted_by' => $user->id,
         'is_submitted' => false,
+        'form_phase_detail_id' => $formPhaseDetail->id,
+        'submission_period_id' => $period->id,
     ]);
 
     expect($submission->resolveIsArchived())->toBeFalse();
@@ -102,7 +104,7 @@ it('returns true for draft submission with force closed period', function () {
         'form_phase_id' => $formPhase->id,
     ]);
 
-    FormPhaseDetail::create([
+    $formPhaseDetail = FormPhaseDetail::create([
         'form_phase_id' => $formPhase->id,
         'form_access_control_id' => $formAccessControl->id,
         'phase_type_id' => $phaseType->id,
@@ -114,6 +116,8 @@ it('returns true for draft submission with force closed period', function () {
         'form_id' => $form->id,
         'submitted_by' => $user->id,
         'is_submitted' => false,
+        'form_phase_detail_id' => $formPhaseDetail->id,
+        'submission_period_id' => $period->id,
     ]);
 
     expect($submission->resolveIsArchived())->toBeTrue();
@@ -162,7 +166,7 @@ it('returns true for draft submission when all submission dates are in the past'
         'form_phase_id' => $formPhase->id,
     ]);
 
-    FormPhaseDetail::create([
+    $formPhaseDetail = FormPhaseDetail::create([
         'form_phase_id' => $formPhase->id,
         'form_access_control_id' => $formAccessControl->id,
         'phase_type_id' => $phaseType->id,
@@ -174,6 +178,8 @@ it('returns true for draft submission when all submission dates are in the past'
         'form_id' => $form->id,
         'submitted_by' => $user->id,
         'is_submitted' => false,
+        'form_phase_detail_id' => $formPhaseDetail->id,
+        'submission_period_id' => $period->id,
     ]);
 
     expect($submission->resolveIsArchived())->toBeTrue();
@@ -214,7 +220,7 @@ it('returns false for submitted submission regardless of period state', function
         'form_phase_id' => $formPhase->id,
     ]);
 
-    FormPhaseDetail::create([
+    $formPhaseDetail = FormPhaseDetail::create([
         'form_phase_id' => $formPhase->id,
         'form_access_control_id' => $formAccessControl->id,
         'phase_type_id' => $phaseType->id,
@@ -226,6 +232,8 @@ it('returns false for submitted submission regardless of period state', function
         'form_id' => $form->id,
         'submitted_by' => $user->id,
         'is_submitted' => true,
+        'form_phase_detail_id' => $formPhaseDetail->id,
+        'submission_period_id' => $period->id,
     ]);
 
     expect($submission->resolveIsArchived())->toBeFalse();
