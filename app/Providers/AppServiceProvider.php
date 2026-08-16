@@ -4,6 +4,8 @@ namespace App\Providers;
 
 use App\Models\FormSubmission;
 use App\Policies\FormSubmissionPolicy;
+use App\Services\Storage\S3StorageService;
+use App\Services\Storage\StorageService;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Vite;
@@ -16,7 +18,9 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        $this->app->bind(StorageService::class, fn () => new S3StorageService(
+            config('filesystems.default') === 'local' ? 'local' : 's3'
+        ));
     }
 
     /**

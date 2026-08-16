@@ -32,4 +32,5 @@ parameters:
             - app/Mail
             - app/Models
             - app/Providers
-            - app/Services
+            - app/Services/EmailNotificationService.php
+            - app/Services/FormAccessService.php
