@@ -1,7 +1,7 @@
 # BC: Reporting
 
 **Klasifikasi:** 🟡 Supporting Domain  
-**Versi:** 1.0  
+**Versi:** 1.1  
 **Status:** Draft
 
 ---
@@ -73,7 +73,7 @@ Ditampilkan di dashboard operator/admin. Di-query langsung dari DB — tidak ada
 | Statistik                          | Query Source                                                  |
 | ---------------------------------- | ------------------------------------------------------------- |
 | Jumlah submission per status       | `form_submissions`                                            |
-| Submission per skema per tahun     | `form_submissions` + `form_field_responses` (scheme_selector) |
+| Submission per skema per tahun     | `form_submissions.scheme_id` → `schemes` (join langsung)      |
 | Submission per fakultas/prodi      | `form_submissions` + `user_profiles` + `organizations`        |
 | Total anggaran per periode         | `budget_line_items`                                           |
 | Jumlah luaran per tipe             | `research_outputs`                                            |
