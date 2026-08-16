@@ -1,0 +1,36 @@
+name: PR Title Validation
+
+on:
+    pull_request:
+        types: [opened, edited, reopened, synchronize]
+
+jobs:
+    validate-title:
+        runs-on: ubuntu-latest
+
+        steps:
+            - name: Validate PR title
+              env:
+                  PR_TITLE: ${{ github.event.pull_request.title }}
+              run: |
+                  echo "Title: $PR_TITLE"
+
+                  # Konvensi ada di CONTRIBUTING.md → "Menulis dan Submit Pull Request".
+                  # Format: [Type] Deskripsi singkat
+                  # Contoh:  [Feature] Add budget line item input
+                  if [[ "$PR_TITLE" =~ ^\[(Feature|Bug|Chore|Test|Docs|Breaking\ Change)\][[:space:]]+.+ ]]; then
+                    echo "PR title valid."
+                    exit 0
+                  fi
+
+                  echo ""
+                  echo "Judul PR tidak sesuai konvensi."
+                  echo ""
+                  echo "Format wajib: [Type] Deskripsi singkat"
+                  echo "Type yang diizinkan: Feature | Bug | Chore | Test | Docs | Breaking Change"
+                  echo ""
+                  echo "Contoh:"
+                  echo "  [Feature] Add budget line item input"
+                  echo "  [Bug] Fix PostgreSQL group by statistics query"
+                  echo "  [Chore] Setup Laravel Telescope"
+                  exit 1

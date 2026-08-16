@@ -114,11 +114,21 @@ jobs:
                   DB_USERNAME: postgres
                   DB_PASSWORD: postgres
 
+            # Tanpa --strict: spatie/laravel-permission sengaja dipin eksak ke
+            # 7.4.1, dan --strict memperlakukan itu sebagai error.
+            - name: Validate composer.json / composer.lock
+              run: composer validate --no-check-publish
+
             - name: Pint
               run: ./vendor/bin/pint --test
 
-            - name: Larastan
-              run: ./vendor/bin/phpstan analyse --memory-limit=512M
+            - name: Larastan — base tier (level 5, seluruh app/)
+              run: ./vendor/bin/phpstan analyse --memory-limit=1G
+
+            # Level 9 untuk semua kode di luar direktori legacy. Daftar
+            # pengecualian ada di phpstan-strict.neon dan hanya boleh menyusut.
+            - name: Larastan — strict tier (level 9, kode baru)
+              run: ./vendor/bin/phpstan analyse -c phpstan-strict.neon --memory-limit=1G
 
             - name: Pest
               run: ./vendor/bin/pest
@@ -138,6 +148,27 @@ jobs:
                   AWS_BUCKET: simpas-test
                   AWS_ENDPOINT: http://localhost:9000
                   AWS_USE_PATH_STYLE_ENDPOINT: true
+
+    # Non-blocking: per 2026-08-16 ada 21 advisory di dompdf, guzzlehttp/guzzle,
+    # league/commonmark, dan phpoffice/phpspreadsheet (8 di antaranya high).
+    # Job ini membuat angkanya terlihat tanpa memblokir PR yang tidak terkait.
+    # Jadikan blocking setelah advisory dibereskan.
+    security-audit:
+        runs-on: ubuntu-latest
+        continue-on-error: true
+        steps:
+            - uses: actions/checkout@v4
+
+            - name: Setup PHP
+              uses: shivammathur/setup-php@v2
+              with:
+                  php-version: '8.4'
+
+            - name: Composer audit
+              run: composer audit --no-interaction
+
+            - name: NPM audit
+              run: npm audit --audit-level=high
 
     frontend:
         runs-on: ubuntu-latest
@@ -164,8 +195,11 @@ jobs:
             - name: Prettier
               run: npm run format:check
 
+            - name: TypeScript
+              run: npm run typecheck
+
             - name: Vitest
-              run: npm run test
+              run: npm run test:run
 
             - name: Build
               run: npm run build

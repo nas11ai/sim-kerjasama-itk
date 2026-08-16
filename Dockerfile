@@ -1,4 +1,7 @@
-FROM php:8.3-cli
+# Wajib sinkron dengan .github/workflows/ci.yml dan constraint "php" di
+# composer.json. PHP 8.5 belum bisa dipakai — phpoffice/phpspreadsheet 1.30.5
+# (transitif dari maatwebsite/excel) membatasi <8.5.0.
+FROM php:8.4-cli
 
 # Install system dependencies
 RUN apt-get update && apt-get install -y \

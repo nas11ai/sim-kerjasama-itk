@@ -1,0 +1,35 @@
+# Strict tier — PHPStan level 9.
+#
+# Rancangan sengaja dibalik: yang didaftarkan di sini adalah direktori LEGACY
+# yang DIKECUALIKAN, bukan direktori yang ikut ketat. Konsekuensinya setiap
+# folder baru (app/Actions, app/Policies, app/Events, app/Listeners,
+# app/Notifications, app/Jobs, app/Data, ...) otomatis ketat sejak lahir tanpa
+# perlu ada yang mengingat untuk mendaftarkannya.
+#
+# excludePaths adalah utang teknis yang terlihat. Daftarnya hanya boleh
+# MENYUSUT, tidak boleh bertambah. Menambah entri baru = menurunkan standar,
+# dan harus dibahas eksplisit di PR.
+#
+# Ukuran per 2026-08-16 pada level 9:
+#   app/Http     487 error      app/Models   173 error
+#   app/Services  32 error      app/Exports    2 error
+#   di luar itu    5 error   ← sudah dibereskan, sekarang 0
+
+includes:
+    - vendor/larastan/larastan/extension.neon
+
+parameters:
+    level: 9
+
+    paths:
+        - app
+
+    excludePaths:
+        analyse:
+            - app/Console
+            - app/Exports
+            - app/Http
+            - app/Mail
+            - app/Models
+            - app/Providers
+            - app/Services
