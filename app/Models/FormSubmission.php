@@ -21,12 +21,19 @@ use Spatie\ModelStates\HasStates;
  * @property int $form_id
  * @property int $submitted_by
  * @property int|null $parent_submission_id
+ * @property int|null $form_phase_detail_id
+ * @property int|null $submission_period_id
+ * @property int|null $scheme_id
+ * @property int|null $trl_id
+ * @property int $last_completed_step
  * @property Carbon|null $submitted_at
  * @property bool $is_submitted
  * @property-read bool $is_archived
  * @property SubmissionStatus|null $status
  * @property-read Form $form
  * @property-read User $submittedBy
+ * @property-read Scheme|null $scheme
+ * @property-read TechnologyReadinessLevel|null $trl
  * @property-read Collection<int, FormFieldResponse> $formFieldResponses
  * @property-read Collection<int, SubmissionReviewer> $submissionReviewers
  * @property-read Collection<int, ReviewSummary> $reviewSummaries
@@ -89,17 +96,16 @@ class FormSubmission extends Model
         return $this->hasMany(FormFieldResponse::class);
     }
 
-    public function scheme(): ?Scheme
+    /** @return BelongsTo<Scheme, $this> */
+    public function scheme(): BelongsTo
     {
-        $response = $this->formFieldResponses()
-            ->whereHas('formField', function ($query) {
-                $query->whereHas('fieldType', function ($query) {
-                    $query->where('name', 'scheme_selector');
-                });
-            })
-            ->first();
+        return $this->belongsTo(Scheme::class);
+    }
 
-        return $response ? Scheme::find($response->value) : null;
+    /** @return BelongsTo<TechnologyReadinessLevel, $this> */
+    public function trl(): BelongsTo
+    {
+        return $this->belongsTo(TechnologyReadinessLevel::class, 'trl_id');
     }
 
     /** @return HasMany<SubmissionReviewer, $this> */
