@@ -32,8 +32,8 @@ class SubmissionPeriodController extends Controller
         // Add computed properties for each period
         $submissionPeriods->getCollection()->transform(function ($period) {
             $dates = $period->submissionDates->sortBy('datetime');
-            $period->start_date = $dates->first()?->date;
-            $period->end_date = $dates->last()?->date;
+            $period->start_date = $dates->first()?->datetime;
+            $period->end_date = $dates->last()?->datetime;
             $period->is_active = $this->isPeriodActive($period);
             $period->status = $this->getPeriodStatus($period);
 
@@ -252,8 +252,8 @@ class SubmissionPeriodController extends Controller
             return false;
         }
 
-        $startDate = Carbon::parse($dates->first()->date);
-        $endDate = Carbon::parse($dates->last()->date);
+        $startDate = Carbon::parse($dates->first()->datetime);
+        $endDate = Carbon::parse($dates->last()->datetime);
 
         return $now->between($startDate, $endDate);
     }
@@ -267,8 +267,8 @@ class SubmissionPeriodController extends Controller
             return 'no_dates';
         }
 
-        $startDate = Carbon::parse($dates->first()->date);
-        $endDate = Carbon::parse($dates->last()->date);
+        $startDate = Carbon::parse($dates->first()->datetime);
+        $endDate = Carbon::parse($dates->last()->datetime);
 
         if ($now->lt($startDate)) {
             return 'upcoming';
@@ -287,7 +287,7 @@ class SubmissionPeriodController extends Controller
             return null;
         }
 
-        $endDate = Carbon::parse($dates->last()->date);
+        $endDate = Carbon::parse($dates->last()->datetime);
         $now = Carbon::now();
 
         if ($now->gt($endDate)) {

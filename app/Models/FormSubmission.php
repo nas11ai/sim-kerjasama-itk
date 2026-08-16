@@ -343,10 +343,10 @@ class FormSubmission extends Model
         // Get the latest submission date as due date
         /** @var SubmissionDate|null $latestDate */
         $latestDate = $submissionPeriod->submissionDates()
-            ->orderBy('date', 'desc')
+            ->orderBy('datetime', 'desc')
             ->first();
 
-        return $latestDate ? $latestDate->date : null;
+        return $latestDate ? $latestDate->datetime : null;
     }
 
     // NEW: Check if evaluation phase is complete and can proceed to discussions

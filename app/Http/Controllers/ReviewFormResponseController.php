@@ -39,7 +39,7 @@ class ReviewFormResponseController extends Controller
             ->orderBy('datetime', 'desc')
             ->first();
 
-        if ($latestDate && $latestDate->datetime) {
+        if ($latestDate) {
             // Pastikan dikonversi ke objek DateTime
             return new \DateTime($latestDate->datetime);
         }
