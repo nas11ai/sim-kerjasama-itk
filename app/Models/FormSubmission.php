@@ -38,6 +38,11 @@ class FormSubmission extends Model
 
     protected $fillable = [
         'form_id',
+        'form_phase_detail_id',
+        'submission_period_id',
+        'scheme_id',
+        'trl_id',
+        'last_completed_step',
         'is_submitted',
         'status',
         'submitted_by',
@@ -49,6 +54,7 @@ class FormSubmission extends Model
     protected $casts = [
         'status' => SubmissionStatus::class,
         'is_submitted' => 'boolean',
+        'last_completed_step' => 'integer',
     ];
 
     /** @return BelongsTo<FormSubmission, $this> */
