@@ -17,7 +17,6 @@ import {
 } from '@/Components/ui/select'
 import { Plus, Trash2, ArrowLeft, Calendar, Settings } from 'lucide-vue-next'
 import { watch } from 'vue'
-import { useToast } from '@/Components/ui/toast'
 import Checkbox from '@/Components/AppCheckbox.vue'
 
 interface FormPhase {
@@ -56,7 +55,6 @@ const form = useForm<FormData>({
     submission_dates: [],
     form_phase_ids: [],
 })
-const { toast } = useToast()
 
 const errors = computed(() => (form.errors as Record<string, string>) ?? {})
 

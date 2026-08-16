@@ -103,7 +103,7 @@ const totalValue = computed(() =>
                 :central-label="type === 'donut' ? valueFormatter(totalValue) : ''"
                 :events="{
                     [Donut.selectors.segment]: {
-                        click: (d: Data, ev: PointerEvent, i: number, elements: HTMLElement[]) => {
+                        click: (d: Data, _ev: PointerEvent, i: number, elements: HTMLElement[]) => {
                             const data = (d?.data ?? {}) as Record<string, unknown>
                             if (data[index as unknown as string] === activeSegmentKey) {
                                 activeSegmentKey = undefined

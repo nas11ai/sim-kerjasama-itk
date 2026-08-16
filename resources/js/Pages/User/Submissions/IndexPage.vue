@@ -68,7 +68,7 @@ const getStatusBadgeVariant = (submitted: number, draft: number) => {
     return 'outline' // No submissions
 }
 
-const getStatusText = (submitted: number, draft: number, total: number) => {
+const getStatusText = (submitted: number, _draft: number, total: number) => {
     if (total === 0) return 'Tidak Ada Pengajuan'
     if (submitted === total) return 'Semua Pengajuan Dikirim'
     if (submitted > 0) return 'Sebagian Pengajuan Dikirim'

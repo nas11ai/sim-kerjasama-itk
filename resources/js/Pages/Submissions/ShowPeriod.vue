@@ -251,10 +251,10 @@ const periodEndDate = computed(() => {
 // Computed properties
 const totalSubmissions = computed(() => props.submissions.total)
 const approvedSubmissions = computed(
-    () => props.submissions.data.filter((s) => s.status == SubmissionStatus.APPROVED).length
+    () => props.submissions.data.filter((s) => s.status === SubmissionStatus.APPROVED).length
 )
 const pendingSubmissions = computed(
-    () => props.submissions.data.filter((s) => s.status != SubmissionStatus.PENDING).length
+    () => props.submissions.data.filter((s) => s.status !== SubmissionStatus.PENDING).length
 )
 </script>
 

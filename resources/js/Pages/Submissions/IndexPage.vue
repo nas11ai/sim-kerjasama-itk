@@ -108,7 +108,7 @@ const getApprovalRate = (approved: number, total: number) => {
     return Math.round((approved / total) * 100)
 }
 
-const getStatusColor = (approved: number, pending: number, total: number) => {
+const getStatusColor = (approved: number, _pending: number, total: number) => {
     if (total === 0) return 'text-muted-foreground'
     const rate = (approved / total) * 100
     if (rate >= 80) return 'text-green-600'
