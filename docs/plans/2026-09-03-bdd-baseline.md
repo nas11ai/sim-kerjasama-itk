@@ -30,13 +30,32 @@ docker run -d --name simpas_dev_pg -e POSTGRES_DB=simpas_test \
   -e POSTGRES_USER=postgres -e POSTGRES_PASSWORD=postgres \
   -p 55432:5432 postgres:18-alpine
 
+# Image PHP 8.4 milik proyek — WAJIB dibangun sekali sebelum task mana pun.
+# `php:8.4-cli` polos TIDAK punya pdo_pgsql (hanya pdo_sqlite), sehingga suite
+# penuh dan `composer run quality` mustahil jalan di sana. Juga tidak punya
+# unzip/git yang dibutuhkan Composer.
+docker build -t simpas-php84:local - <<'DOCKERFILE'
+FROM php:8.4-cli
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends libpq-dev unzip git \
+ && docker-php-ext-install pdo_pgsql \
+ && apt-get purge -y --auto-remove \
+ && rm -rf /var/lib/apt/lists/*
+DOCKERFILE
+
 # Test / artisan / composer (host PHP 8.5.4 — container wajib)
 docker run --rm --network host -v "$PWD":/app -w /app -u "$(id -u):$(id -g)" \
   -e DB_HOST=127.0.0.1 -e DB_PORT=55432 -e DB_PASSWORD=postgres \
-  php:8.4-cli ./vendor/bin/pest
+  simpas-php84:local ./vendor/bin/pest
 ```
 
 `phpunit.xml` meng-hardcode `DB_PORT=5432` dan `DB_PASSWORD=root`; environment variable menimpanya.
+
+**Kenapa bukan `php:8.4-cli` langsung.** `AGENTS.md` menganjurkan image itu, tapi
+anjuran tersebut tidak lengkap: Pest butuh `pdo_pgsql` dan image resminya tidak
+membawanya. Test ber-scope yang tidak menyentuh database tetap jalan di sana —
+itulah kenapa kekurangannya baru ketahuan di Task 3. Untuk `composer run quality`,
+`simpas-php84:local` wajib.
 
 ---
 
@@ -292,7 +311,7 @@ Run:
 ```bash
 docker run --rm --network host -v "$PWD":/app -w /app -u "$(id -u):$(id -g)" \
   -e DB_HOST=127.0.0.1 -e DB_PORT=55432 -e DB_PASSWORD=postgres \
-  php:8.4-cli ./vendor/bin/pest tests/Unit/Bdd/BusinessRuleCatalogTest.php
+  simpas-php84:local ./vendor/bin/pest tests/Unit/Bdd/BusinessRuleCatalogTest.php
 ```
 Expected: FAIL — `Class "App\Support\Bdd\BusinessRuleCatalog" not found`.
 
@@ -391,7 +410,7 @@ Run:
 ```bash
 docker run --rm --network host -v "$PWD":/app -w /app -u "$(id -u):$(id -g)" \
   -e DB_HOST=127.0.0.1 -e DB_PORT=55432 -e DB_PASSWORD=postgres \
-  php:8.4-cli ./vendor/bin/pest tests/Unit/Bdd/BusinessRuleCatalogTest.php
+  simpas-php84:local ./vendor/bin/pest tests/Unit/Bdd/BusinessRuleCatalogTest.php
 ```
 Expected: PASS, 4 test.
 
@@ -400,7 +419,7 @@ Expected: PASS, 4 test.
 Run:
 ```bash
 docker run --rm -v "$PWD":/app -w /app -u "$(id -u):$(id -g)" \
-  php:8.4-cli ./vendor/bin/phpstan analyse -c phpstan-strict.neon --memory-limit=1G
+  simpas-php84:local ./vendor/bin/phpstan analyse -c phpstan-strict.neon --memory-limit=1G
 ```
 Expected: `[OK] No errors`. Kalau ada error di `app/Support/Bdd/`, perbaiki penyebabnya — dilarang menambah `excludePaths` atau `@phpstan-ignore`.
 
@@ -546,7 +565,7 @@ Run:
 ```bash
 docker run --rm --network host -v "$PWD":/app -w /app -u "$(id -u):$(id -g)" \
   -e DB_HOST=127.0.0.1 -e DB_PORT=55432 -e DB_PASSWORD=postgres \
-  php:8.4-cli ./vendor/bin/pest tests/Unit/Bdd/FeatureCatalogTest.php
+  simpas-php84:local ./vendor/bin/pest tests/Unit/Bdd/FeatureCatalogTest.php
 ```
 Expected: FAIL — `Class "App\Support\Bdd\FeatureCatalog" not found`.
 
@@ -761,7 +780,7 @@ Run:
 ```bash
 docker run --rm --network host -v "$PWD":/app -w /app -u "$(id -u):$(id -g)" \
   -e DB_HOST=127.0.0.1 -e DB_PORT=55432 -e DB_PASSWORD=postgres \
-  php:8.4-cli ./vendor/bin/pest tests/Unit/Bdd/FeatureCatalogTest.php
+  simpas-php84:local ./vendor/bin/pest tests/Unit/Bdd/FeatureCatalogTest.php
 ```
 Expected: PASS, 5 test.
 
@@ -769,9 +788,9 @@ Expected: PASS, 5 test.
 
 ```bash
 docker run --rm -v "$PWD":/app -w /app -u "$(id -u):$(id -g)" \
-  php:8.4-cli ./vendor/bin/phpstan analyse -c phpstan-strict.neon --memory-limit=1G
+  simpas-php84:local ./vendor/bin/phpstan analyse -c phpstan-strict.neon --memory-limit=1G
 docker run --rm -v "$PWD":/app -w /app -u "$(id -u):$(id -g)" \
-  php:8.4-cli ./vendor/bin/pint
+  simpas-php84:local ./vendor/bin/pint
 ```
 Expected: `[OK] No errors`, lalu Pint bersih.
 
@@ -1075,7 +1094,7 @@ Run:
 ```bash
 docker run --rm --network host -v "$PWD":/app -w /app -u "$(id -u):$(id -g)" \
   -e DB_HOST=127.0.0.1 -e DB_PORT=55432 -e DB_PASSWORD=postgres \
-  php:8.4-cli ./vendor/bin/pest tests/Unit/Bdd/LedgerFileTest.php
+  simpas-php84:local ./vendor/bin/pest tests/Unit/Bdd/LedgerFileTest.php
 ```
 Expected: FAIL — `Class "App\Support\Bdd\LedgerFile" not found`.
 
@@ -1154,7 +1173,7 @@ Run:
 ```bash
 docker run --rm --network host -v "$PWD":/app -w /app -u "$(id -u):$(id -g)" \
   -e DB_HOST=127.0.0.1 -e DB_PORT=55432 -e DB_PASSWORD=postgres \
-  php:8.4-cli ./vendor/bin/pest tests/Unit/Bdd/LedgerFileTest.php
+  simpas-php84:local ./vendor/bin/pest tests/Unit/Bdd/LedgerFileTest.php
 ```
 Expected: PASS, 3 test.
 
@@ -1239,7 +1258,7 @@ Run:
 ```bash
 docker run --rm --network host -v "$PWD":/app -w /app -u "$(id -u):$(id -g)" \
   -e DB_HOST=127.0.0.1 -e DB_PORT=55432 -e DB_PASSWORD=postgres \
-  php:8.4-cli ./vendor/bin/pest tests/Unit/Bdd/BddCoverageTest.php
+  simpas-php84:local ./vendor/bin/pest tests/Unit/Bdd/BddCoverageTest.php
 ```
 Expected: PASS, 3 test. Belum ada `.feature`, jadi ketiganya lulus secara hampa — itu benar; Task 6 yang membuatnya berguna.
 
@@ -1403,7 +1422,7 @@ Run:
 ```bash
 docker run --rm --network host -v "$PWD":/app -w /app -u "$(id -u):$(id -g)" \
   -e DB_HOST=127.0.0.1 -e DB_PORT=55432 -e DB_PASSWORD=postgres \
-  php:8.4-cli ./vendor/bin/pest tests/Unit/Bdd/BddCoverageTest.php
+  simpas-php84:local ./vendor/bin/pest tests/Unit/Bdd/BddCoverageTest.php
 ```
 Expected: PASS, 8 test. Assertion 7 lulus karena 92 BR ada di `uncovered.txt` dan 9 di `non-behavioral.md` — total 101, sama dengan katalog.
 
@@ -1415,7 +1434,7 @@ Sengaja rusak `uncovered.txt` untuk memastikan assertion 7 bukan lulus semu:
 sed -i '/^BR-FE-11$/d' docs/requirement-analysis/bdd/uncovered.txt
 docker run --rm --network host -v "$PWD":/app -w /app -u "$(id -u):$(id -g)" \
   -e DB_HOST=127.0.0.1 -e DB_PORT=55432 -e DB_PASSWORD=postgres \
-  php:8.4-cli ./vendor/bin/pest tests/Unit/Bdd/BddCoverageTest.php
+  simpas-php84:local ./vendor/bin/pest tests/Unit/Bdd/BddCoverageTest.php
 ```
 Expected: **FAIL** pada assertion 7 dengan pesan menyebut `BR-FE-11`.
 
@@ -1433,7 +1452,7 @@ Run:
 ```bash
 docker run --rm --network host -v "$PWD":/app -w /app -u "$(id -u):$(id -g)" \
   -e DB_HOST=127.0.0.1 -e DB_PORT=55432 -e DB_PASSWORD=postgres \
-  php:8.4-cli composer run quality
+  simpas-php84:local composer run quality
 ```
 Expected: Pint, PHPStan level 5, PHPStan level 9, dan seluruh Pest hijau.
 
@@ -1570,7 +1589,7 @@ Run:
 ```bash
 docker run --rm --network host -v "$PWD":/app -w /app -u "$(id -u):$(id -g)" \
   -e DB_HOST=127.0.0.1 -e DB_PORT=55432 -e DB_PASSWORD=postgres \
-  php:8.4-cli ./vendor/bin/pest tests/Unit/Bdd/BddCoverageTest.php
+  simpas-php84:local ./vendor/bin/pest tests/Unit/Bdd/BddCoverageTest.php
 ```
 Expected: PASS, 8 test.
 
@@ -1676,7 +1695,7 @@ Run:
 ```bash
 docker run --rm --network host -v "$PWD":/app -w /app -u "$(id -u):$(id -g)" \
   -e DB_HOST=127.0.0.1 -e DB_PORT=55432 -e DB_PASSWORD=postgres \
-  php:8.4-cli ./vendor/bin/pest tests/Unit/Bdd/BddCoverageTest.php
+  simpas-php84:local ./vendor/bin/pest tests/Unit/Bdd/BddCoverageTest.php
 ```
 Expected: PASS, 8 test.
 
@@ -1803,7 +1822,7 @@ Run:
 ```bash
 docker run --rm --network host -v "$PWD":/app -w /app -u "$(id -u):$(id -g)" \
   -e DB_HOST=127.0.0.1 -e DB_PORT=55432 -e DB_PASSWORD=postgres \
-  php:8.4-cli ./vendor/bin/pest tests/Unit/Bdd/BddCoverageTest.php
+  simpas-php84:local ./vendor/bin/pest tests/Unit/Bdd/BddCoverageTest.php
 ```
 Expected: PASS, 8 test.
 
@@ -1947,7 +1966,7 @@ Run:
 ```bash
 docker run --rm --network host -v "$PWD":/app -w /app -u "$(id -u):$(id -g)" \
   -e DB_HOST=127.0.0.1 -e DB_PORT=55432 -e DB_PASSWORD=postgres \
-  php:8.4-cli ./vendor/bin/pest tests/Unit/Bdd/BddCoverageTest.php
+  simpas-php84:local ./vendor/bin/pest tests/Unit/Bdd/BddCoverageTest.php
 ```
 Expected: PASS, 8 test.
 
@@ -2083,7 +2102,7 @@ Run:
 ```bash
 docker run --rm --network host -v "$PWD":/app -w /app -u "$(id -u):$(id -g)" \
   -e DB_HOST=127.0.0.1 -e DB_PORT=55432 -e DB_PASSWORD=postgres \
-  php:8.4-cli ./vendor/bin/pest tests/Unit/Bdd/BddCoverageTest.php
+  simpas-php84:local ./vendor/bin/pest tests/Unit/Bdd/BddCoverageTest.php
 ```
 Expected: PASS, 8 test.
 
@@ -2128,7 +2147,7 @@ Run:
 ```bash
 docker run --rm --network host -v "$PWD":/app -w /app -u "$(id -u):$(id -g)" \
   -e DB_HOST=127.0.0.1 -e DB_PORT=55432 -e DB_PASSWORD=postgres \
-  php:8.4-cli composer run quality
+  simpas-php84:local composer run quality
 ```
 Expected: Pint, PHPStan level 5, PHPStan level 9, seluruh Pest hijau.
 
