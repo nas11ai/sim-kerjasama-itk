@@ -206,7 +206,7 @@ class FormController extends Controller
                             ->whereNotIn('id', $existingOptionIds)
                             ->delete();
 
-                        foreach ($fieldData['options'] as $optionIndex => $optionData) {
+                        foreach ($fieldData['options'] as $optionData) {
                             if (isset($optionData['id'])) {
                                 $option = FormFieldOption::findOrFail($optionData['id']);
                             } else {
@@ -216,7 +216,6 @@ class FormController extends Controller
                             /** @var FormFieldOption $option */
                             $option->form_field_id = $field->id;
                             $option->label = $optionData['label'];
-                            $option->order = $optionIndex + 1;
                             $option->save();
                         }
                     } else {
