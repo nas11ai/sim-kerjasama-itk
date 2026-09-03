@@ -72,7 +72,6 @@ class BiodataController extends Controller
                     'label' => $field->label,
                     'is_required' => $field->is_required,
                     'order' => $field->order,
-                    'helper_text' => $field->helper_text,
                     'field_type' => [
                         'id' => $field->fieldType->id,
                         'name' => $field->fieldType->name,
@@ -81,7 +80,6 @@ class BiodataController extends Controller
                         ->map(fn (FormFieldOption $option): array => [
                             'id' => $option->id,
                             'label' => $option->label,
-                            'value' => $option->value,
                         ])->values()->toArray(),
                 ]),
 

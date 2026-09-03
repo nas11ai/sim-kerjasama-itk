@@ -48,7 +48,6 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
 interface FormFieldOption {
     id: number
     label: string
-    value: string
 }
 
 interface FormField {
@@ -56,7 +55,6 @@ interface FormField {
     label: string
     is_required: boolean
     order: number
-    helper_text?: string
     field_type: {
         id: number
         name: string
@@ -567,14 +565,6 @@ const goBack = () => {
                                         </Badge>
                                     </Label>
 
-                                    <!-- Helper Text -->
-                                    <p
-                                        v-if="field.helper_text"
-                                        class="text-xs text-muted-foreground"
-                                    >
-                                        {{ field.helper_text }}
-                                    </p>
-
                                     <!-- Text, Email, Number, URL, Phone, Date, Time -->
                                     <Input
                                         v-if="
@@ -635,7 +625,7 @@ const goBack = () => {
                                             <SelectItem
                                                 v-for="option in field.form_field_options"
                                                 :key="option.id"
-                                                :value="option.value"
+                                                :value="option.label"
                                             >
                                                 {{ option.label }}
                                             </SelectItem>
@@ -659,7 +649,7 @@ const goBack = () => {
                                         >
                                             <RadioGroupItem
                                                 :id="`field_${field.id}_${option.id}`"
-                                                :value="option.value"
+                                                :value="option.label"
                                             />
                                             <Label
                                                 :for="`field_${field.id}_${option.id}`"
