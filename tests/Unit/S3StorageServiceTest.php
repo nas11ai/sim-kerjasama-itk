@@ -45,3 +45,14 @@ it('generates a temporary url when an expiry is given', function () {
     expect($url)->toContain('expiration=')
         ->and($url)->not->toBe($this->service->getUrl($result->path));
 });
+
+// I4 — path yang dikembalikan dulu dihitung terpisah dari path yang
+// dipakai putFileAs() untuk menyimpan; untuk prefix kosong/'/' keduanya
+// menyimpang (leading slash), sehingga FileResult::$path menunjuk ke key
+// yang tidak ada filenya.
+it('returns the path the file actually occupies when the prefix is empty or just a slash', function (string $prefix) {
+    $result = $this->service->upload(UploadedFile::fake()->create('a.pdf', 1), $prefix);
+
+    expect($result->path)->not->toStartWith('/');
+    Storage::disk('s3')->assertExists($result->path);
+})->with(['', '/']);

@@ -20,10 +20,9 @@ class FormSubmissionPolicy
 
     public function update(User $user, FormSubmission $submission): bool
     {
-        if (!$submission->isAccessibleBy($user)) {
-            return false;
-        }
-
+        // I6 — guard isAccessibleBy() dihapus: cabang submitted_by di
+        // dalamnya sudah tercakup oleh cek submitted_by di bawah, jadi guard
+        // ini tidak pernah mengubah hasil tapi menambah dua query exists().
         // Hanya lead researcher yang boleh mengubah isi pengajuan.
         if ($submission->submitted_by !== $user->id) {
             return false;

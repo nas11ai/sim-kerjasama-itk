@@ -1,8 +1,16 @@
 # BC: Monev (Monitoring & Evaluation)
 
 **Klasifikasi:** 🟡 Supporting Domain  
-**Versi:** 2.3  
+**Versi:** 2.4  
 **Status:** Draft
+
+> **Perubahan v2.3 → v2.4.** BR-MON-03 diperbaiki dari "satu **researcher**"
+> menjadi "satu **parent FormSubmission**" per FormPhaseDetail — bacaan lama
+> salah memblokir researcher yang punya dua proposal APPROVED sekaligus
+> (BR-SM-01 mengizinkan dua skema berbeda dalam satu period); index yang
+> sudah dikirim M0 (`one_child_submission_per_phase_detail`, per
+> `parent_submission_id`) sudah benar sejak awal, teks aturannya yang
+> menyusul.
 
 ---
 
@@ -112,7 +120,7 @@ flowchart TD
 | --------- | ------------------------------------------------------------------------------------------------------------------- |
 | BR-MON-01 | Monev hanya bisa diakses setelah FormSubmission pengajuan utama berstatus APPROVED                                  |
 | BR-MON-02 | Researcher tidak bisa mengisi Detail berikutnya sebelum `can_proceed = true` dari Detail sebelumnya                 |
-| BR-MON-03 | Satu researcher hanya bisa punya satu child FormSubmission per FormPhaseDetail                                      |
+| BR-MON-03 | Satu parent FormSubmission hanya bisa punya satu child FormSubmission per FormPhaseDetail (per parent, bukan per researcher — satu researcher boleh punya lebih dari satu parent APPROVED sekaligus, lihat BR-SM-01) |
 | BR-MON-04 | Reviewer untuk setiap siklus monev di-assign manual oleh Operator                                                   |
 | BR-MON-05 | Setiap FormPhaseDetail monev punya hard deadline — lewat deadline, akses ditutup kecuali ada FormSubmissionOverride |
 | BR-MON-06 | Satu SubmissionReviewer baru dibuat per siklus — tidak reuse record dari siklus sebelumnya                          |

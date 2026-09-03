@@ -14,11 +14,19 @@ class S3StorageService implements StorageService
     {
         $extension = $file->getClientOriginalExtension();
         $name = $extension === '' ? Str::uuid()->toString() : Str::uuid()->toString().'.'.$extension;
-        $fullPath = trim($path, '/').'/'.$name;
 
-        Storage::disk($this->disk)->putFileAs(trim($path, '/'), $file, $name);
+        // I4 — putFileAs() men-trim sendiri path yang diberikan dan
+        // mengembalikan path aslinya; jangan hitung ulang path secara
+        // terpisah, karena untuk $path kosong/'/' hasilnya menyimpang dari
+        // lokasi file yang sesungguhnya (leading slash yang tidak dipakai
+        // putFileAs).
+        $storedPath = Storage::disk($this->disk)->putFileAs(trim($path, '/'), $file, $name);
 
-        return new FileResult($fullPath, $this->getUrl($fullPath));
+        if ($storedPath === false) {
+            throw new \RuntimeException("Gagal menyimpan file ke disk '{$this->disk}'.");
+        }
+
+        return new FileResult($storedPath, $this->getUrl($storedPath));
     }
 
     public function delete(string $path): void

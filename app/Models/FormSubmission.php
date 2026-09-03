@@ -26,7 +26,6 @@ use Spatie\ModelStates\HasStates;
  * @property int|null $scheme_id
  * @property int|null $trl_id
  * @property int $last_completed_step
- * @property Carbon|null $submitted_at
  * @property bool $is_submitted
  * @property-read bool $is_archived
  * @property SubmissionStatus|null $status

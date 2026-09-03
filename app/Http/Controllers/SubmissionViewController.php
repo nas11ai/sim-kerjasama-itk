@@ -156,7 +156,10 @@ class SubmissionViewController extends Controller
                             'form' => $detail->formAccessControl->form,
                             'is_submitted' => $submission->is_submitted,
                             'can_proceed' => $submission->canProceed(),
-                            'submitted_at' => $submission->submitted_at,
+                            // I5 — form_submissions tidak punya kolom submitted_at;
+                            // ini sudah selalu null, bukan perubahan perilaku.
+                            // Dilacak sebagai utang di final-fix-report M0.
+                            'submitted_at' => null,
                             'created_at' => $submission->created_at,
                             'updated_at' => $submission->updated_at,
                         ];
@@ -896,7 +899,10 @@ class SubmissionViewController extends Controller
             'status' => $submission->status,
             'created_at' => $submission->created_at ? $submission->created_at->toISOString() : null,
             'updated_at' => $submission->updated_at ? $submission->updated_at->toISOString() : null,
-            'submitted_at' => $submission->submitted_at ? $submission->submitted_at->toISOString() : null,
+            // I5 — form_submissions tidak punya kolom submitted_at; ini
+            // sudah selalu null, bukan perubahan perilaku. Dilacak sebagai
+            // utang di final-fix-report M0.
+            'submitted_at' => null,
             'submitted_by' => [
                 'id' => $submission->submittedBy->id,
                 'name' => $submission->submittedBy->name,
