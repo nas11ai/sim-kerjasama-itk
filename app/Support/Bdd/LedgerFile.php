@@ -53,7 +53,11 @@ final class LedgerFile
 
     private function contents(): string
     {
-        $contents = @file_get_contents($this->path);
+        if (!is_readable($this->path)) {
+            throw new RuntimeException("Daftar tidak terbaca: {$this->path}");
+        }
+
+        $contents = file_get_contents($this->path);
 
         if ($contents === false) {
             throw new RuntimeException("Daftar tidak terbaca: {$this->path}");
