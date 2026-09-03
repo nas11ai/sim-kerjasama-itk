@@ -26,7 +26,7 @@ final class BusinessRuleCatalog
      */
     public function codes(): array
     {
-        if (! is_dir($this->docRoot)) {
+        if (!is_dir($this->docRoot)) {
             throw new RuntimeException("Direktori DDD tidak ditemukan: {$this->docRoot}");
         }
 
@@ -65,8 +65,13 @@ final class BusinessRuleCatalog
 
         $files = [];
 
-        /** @var SplFileInfo $entry */
         foreach ($iterator as $entry) {
+            // Guard eksplisit, bukan anotasi @var: iterator memberi `mixed`, dan
+            // menyempitkannya lewat instanceof memasok tipe tanpa membungkam apa pun.
+            if (!$entry instanceof SplFileInfo) {
+                continue;
+            }
+
             if ($entry->isFile() && $entry->getExtension() === 'md') {
                 $files[] = $entry->getPathname();
             }

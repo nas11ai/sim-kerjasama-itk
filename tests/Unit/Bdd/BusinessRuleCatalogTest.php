@@ -1,4 +1,5 @@
 <?php
+
 // tests/Unit/Bdd/BusinessRuleCatalogTest.php
 
 use App\Support\Bdd\BusinessRuleCatalog;
