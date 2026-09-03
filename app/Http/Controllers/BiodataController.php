@@ -7,6 +7,7 @@ use App\Models\FormFieldOption;
 use App\Models\FormFieldResponse;
 use App\Models\FormSubmission;
 use App\Services\FormAccessService;
+use App\States\Submission\Submitted;
 use Exception;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -182,9 +183,19 @@ class BiodataController extends Controller
                     [
                         'is_submitted' => $validated['is_submitted'],
                         'submitted_at' => $validated['is_submitted'] ? now() : null,
-                        'status' => $validated['is_submitted'] ? 'pending' : null,
                     ]
                 );
+
+                // BR-SM-03 — status hanya boleh berpindah lewat transitionTo(),
+                // bukan assignment mentah. Draft->Submitted adalah satu-satunya
+                // transisi keluar dari Draft (SubmissionStatus::config()), jadi
+                // itulah satu-satunya state yang sah saat is_submitted=true. Guard
+                // di bawah mencegah transisi Submitted->Submitted yang ilegal saat
+                // biodata yang sudah submitted disimpan ulang (updateOrCreate() di
+                // atas berjalan untuk create maupun update).
+                if ($validated['is_submitted'] && !$submission->status instanceof Submitted) {
+                    $submission->status->transitionTo(Submitted::class);
+                }
 
                 $submission->formFieldResponses()->delete();
 
