@@ -110,11 +110,10 @@ class FormController extends Controller
                     ]);
 
                     if (isset($fieldData['options'])) {
-                        foreach ($fieldData['options'] as $optionIndex => $optionData) {
+                        foreach ($fieldData['options'] as $optionData) {
                             FormFieldOption::create([
                                 'form_field_id' => $field->id,
                                 'label' => $optionData['label'],
-                                'order' => $optionIndex + 1,
                             ]);
                         }
                     }
