@@ -300,6 +300,28 @@ class UserFormController extends Controller
         ]);
     }
 
+    /**
+     * C1 — resolusi FormPhaseDetail dari form_phase_id + form_id yang sudah
+     * divalidasi. form_id saja ambigu kalau dipakai lebih dari satu
+     * FormPhaseDetail (ADR 0004); pasangan form_phase_id + form_id sudah
+     * cukup untuk membedakannya di alur pengajuan awal ini. Gagal keras
+     * kalau tidak ketemu, bukan menulis NULL.
+     */
+    private function resolveFormPhaseDetail(int $formPhaseId, int $formId): FormPhaseDetail
+    {
+        $formPhaseDetail = FormPhaseDetail::where('form_phase_id', $formPhaseId)
+            ->whereHas('formAccessControl', function (Builder $query) use ($formId) {
+                $query->where('form_id', $formId);
+            })
+            ->first();
+
+        if ($formPhaseDetail === null) {
+            abort(422, 'Kombinasi form dan fase formulir tidak ditemukan.');
+        }
+
+        return $formPhaseDetail;
+    }
+
     public function saveDraft(Request $request)
     {
         $user = Auth::user();
@@ -319,6 +341,11 @@ class UserFormController extends Controller
             abort(403, 'Anda tidak memiliki akses ke formulir ini.');
         }
 
+        $formPhaseDetail = $this->resolveFormPhaseDetail(
+            (int) $validated['form_phase_id'],
+            (int) $validated['form_id']
+        );
+
         // Handle file uploads
         $fileUploads = [];
         if ($request->hasFile('responses')) {
@@ -331,13 +358,21 @@ class UserFormController extends Controller
             }
         }
 
-        DB::transaction(function () use ($validated, $user, $fileUploads) {
+        DB::transaction(function () use ($validated, $user, $fileUploads, $formPhaseDetail) {
             // Find or create form submission
             $submission = FormSubmission::firstOrCreate([
                 'form_id' => $validated['form_id'],
                 'submitted_by' => $user->id,
             ], [
                 'is_submitted' => false,
+            ]);
+
+            // C1 — tidak ada penulis lain untuk dua kolom ini; tanpanya
+            // getFormPhaseDetail(), resolveIsArchived(), dan assignment
+            // reviewer evaluasi diam-diam tidak jalan (ADR 0004).
+            $submission->update([
+                'form_phase_detail_id' => $formPhaseDetail->id,
+                'submission_period_id' => $validated['submission_period_id'],
             ]);
 
             // Delete existing responses
@@ -412,6 +447,11 @@ class UserFormController extends Controller
             abort(403, 'Anda tidak memiliki akses ke formulir ini.');
         }
 
+        $formPhaseDetail = $this->resolveFormPhaseDetail(
+            (int) $validated['form_phase_id'],
+            (int) $validated['form_id']
+        );
+
         $requiredFields = $form->formFields;
         $responseValues = collect($validated['responses'])->keyBy('form_field_id');
 
@@ -443,7 +483,7 @@ class UserFormController extends Controller
             }
         }
 
-        DB::transaction(function () use ($validated, $user, $fileUploads) {
+        DB::transaction(function () use ($validated, $user, $fileUploads, $formPhaseDetail) {
             // Find or create form submission
             $submission = FormSubmission::firstOrCreate([
                 'form_id' => $validated['form_id'],
@@ -452,9 +492,13 @@ class UserFormController extends Controller
                 'is_submitted' => false,
             ]);
 
-            // Update submission status
+            // C1 — sama seperti saveDraft: tanpa dua kolom ini reviewer
+            // assignment, is_archived, dan evaluation due date diam-diam
+            // salah (ADR 0004).
             $submission->update([
                 'is_submitted' => true,
+                'form_phase_detail_id' => $formPhaseDetail->id,
+                'submission_period_id' => $validated['submission_period_id'],
             ]);
 
             // Delete existing responses
