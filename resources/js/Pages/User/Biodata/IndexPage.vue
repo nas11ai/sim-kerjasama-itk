@@ -625,7 +625,7 @@ const goBack = () => {
                                             <SelectItem
                                                 v-for="option in field.form_field_options"
                                                 :key="option.id"
-                                                :value="option.label"
+                                                :value="option.id.toString()"
                                             >
                                                 {{ option.label }}
                                             </SelectItem>
@@ -649,7 +649,7 @@ const goBack = () => {
                                         >
                                             <RadioGroupItem
                                                 :id="`field_${field.id}_${option.id}`"
-                                                :value="option.label"
+                                                :value="option.id.toString()"
                                             />
                                             <Label
                                                 :for="`field_${field.id}_${option.id}`"

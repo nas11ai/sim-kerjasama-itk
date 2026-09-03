@@ -7,15 +7,19 @@
 // tetap mengirim kedua field itu ke frontend, dan IndexPage.vue mem-bind
 // :value="option.value" untuk setiap <SelectItem>/<RadioGroupItem> —
 // akibatnya setiap select/radio di form Biodata selalu mengirim value
-// kosong. Test ini memastikan payload berhenti membawa kunci hantu
-// tersebut; frontend dibindkan ke option.label sebagai gantinya
-// (BR-FE-03 — FormFieldResponse hanya menyimpan scalar values).
+// kosong. Test pertama memastikan payload berhenti membawa kunci hantu
+// tersebut. Frontend dibindkan ke option.id.toString() sebagai gantinya,
+// mengikuti konvensi yang sudah dipakai FormPhase.vue/ShowSubmission.vue
+// untuk form_field_options + form_field_responses.value yang sama
+// (BR-FE-03 — FormFieldResponse hanya menyimpan scalar values). Test kedua
+// mengunci konvensi id itu di jalur submit.
 
 use App\Models\FieldType;
 use App\Models\Form;
 use App\Models\FormAccessControl;
 use App\Models\FormField;
 use App\Models\FormFieldOption;
+use App\Models\FormFieldResponse;
 use App\Models\FormSubmission;
 use App\Models\FormType;
 use App\Models\Organization;
@@ -52,13 +56,9 @@ it('does not send phantom helper_text or option value keys in the biodata form p
     ]);
     FormFieldOption::create(['form_field_id' => $field->id, 'label' => 'Laki-laki']);
 
-    // Draft submission supaya showBiodataForm() melewati cabang "belum
-    // pernah submit" — tidak relevan untuk bug yang diuji di sini.
-    FormSubmission::factory()->create([
-        'form_id' => $form->id,
-        'submitted_by' => $user->id,
-    ]);
-
+    // User belum pernah submit biodata sama sekali ($submission null) —
+    // showBiodataForm() harus tetap jalan lewat $submission?->status yang
+    // null-safe, bukan dikondisikan pakai fixture submission palsu.
     $this->actingAs($user)
         ->get(route('user.biodata.index'))
         ->assertInertia(fn (Assert $page) => $page
@@ -83,4 +83,92 @@ it('does not send phantom helper_text or option value keys in the biodata form p
                 )
             )
         );
+});
+
+it('stores the selected option id, not its label, as the response value for select and radio fields', function () {
+    // Konvensi ini sudah dipakai FormPhase.vue (general submission flow) dan
+    // dibaca balik oleh ShowSubmission.vue lewat
+    // form_field_options.find((opt) => opt.id.toString() === value) — form
+    // Biodata memakai form_field_responses.value yang sama, jadi harus ikut
+    // konvensi yang sama: value yang disimpan adalah option id, bukan label.
+    $organization = Organization::create(['name' => 'Organisasi Uji '.fake()->unique()->numerify('####-####'), 'type' => 'study_program']);
+    $user = User::factory()->create();
+    UserProfile::factory()->create(['user_id' => $user->id, 'organization_id' => $organization->id]);
+    Permission::findOrCreate('submissions.create', 'web');
+    $user->givePermissionTo('submissions.create');
+
+    // form_type_id = 1 hardcoded di BiodataController; lihat catatan di
+    // test di atas.
+    $formType = FormType::forceCreate(['id' => 1, 'name' => 'Biodata']);
+    $form = Form::factory()->create(['form_type_id' => $formType->id, 'is_active' => true]);
+    FormAccessControl::create([
+        'form_id' => $form->id,
+        'permission' => 'submissions.create',
+        'organization_id' => $organization->id,
+    ]);
+
+    $selectFieldType = FieldType::create(['name' => 'select']);
+    $selectField = FormField::create([
+        'form_id' => $form->id,
+        'label' => 'Jenis Kelamin',
+        'is_required' => false,
+        'field_type_id' => $selectFieldType->id,
+        'order' => 1,
+    ]);
+    $selectOption = FormFieldOption::create(['form_field_id' => $selectField->id, 'label' => 'Laki-laki']);
+    FormFieldOption::create(['form_field_id' => $selectField->id, 'label' => 'Perempuan']);
+
+    $radioFieldType = FieldType::create(['name' => 'radio']);
+    $radioField = FormField::create([
+        'form_id' => $form->id,
+        'label' => 'Status Pernikahan',
+        'is_required' => false,
+        'field_type_id' => $radioFieldType->id,
+        'order' => 2,
+    ]);
+    $radioOption = FormFieldOption::create(['form_field_id' => $radioField->id, 'label' => 'Menikah']);
+    FormFieldOption::create(['form_field_id' => $radioField->id, 'label' => 'Belum Menikah']);
+
+    // Payload ini merepresentasikan apa yang dikirim IndexPage.vue setelah
+    // perbaikan: :value="option.id.toString()" pada SelectItem/RadioGroupItem.
+    //
+    // is_submitted sengaja false (draft save) — bukan untuk menghindari
+    // fitur yang diuji (penyimpanan value tetap berjalan sama untuk draft
+    // maupun submit final), tapi karena is_submitted=true membawa bug lain
+    // yang sudah ada sebelum batch ini dan di luar cakupannya:
+    // submitForm() menulis 'status' => 'pending' sebagai string mentah,
+    // padahal FormSubmission::$status dikelola spatie/laravel-model-states
+    // dan 'pending' bukan state yang terdaftar di SubmissionStatus::config()
+    // — akibatnya request dengan is_submitted=true selalu melempar
+    // Spatie\ModelStates\Exceptions\UnknownState (tertangkap generic
+    // catch (Exception) di controller sehingga user hanya melihat pesan
+    // error umum). Draft save tidak menyentuh baris itu sama sekali.
+    $this->actingAs($user)
+        ->post(route('user.biodata.submit'), [
+            'form_id' => $form->id,
+            'is_submitted' => false,
+            'responses' => [
+                ['form_field_id' => $selectField->id, 'value' => (string) $selectOption->id],
+                ['form_field_id' => $radioField->id, 'value' => (string) $radioOption->id],
+            ],
+        ])
+        ->assertRedirect(route('user.dashboard'));
+
+    $submission = FormSubmission::where('form_id', $form->id)
+        ->where('submitted_by', $user->id)
+        ->firstOrFail();
+
+    $storedSelectValue = FormFieldResponse::where('form_submission_id', $submission->id)
+        ->where('form_field_id', $selectField->id)
+        ->value('value');
+
+    $storedRadioValue = FormFieldResponse::where('form_submission_id', $submission->id)
+        ->where('form_field_id', $radioField->id)
+        ->value('value');
+
+    expect($storedSelectValue)->toBe((string) $selectOption->id)
+        ->and($storedSelectValue)->not->toBe($selectOption->label);
+
+    expect($storedRadioValue)->toBe((string) $radioOption->id)
+        ->and($storedRadioValue)->not->toBe($radioOption->label);
 });

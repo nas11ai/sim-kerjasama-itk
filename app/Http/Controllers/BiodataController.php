@@ -56,7 +56,7 @@ class BiodataController extends Controller
 
         $status = $submission?->status;
 
-        if ($submission->status instanceof \BackedEnum) {
+        if ($submission?->status instanceof \BackedEnum) {
             $status = $submission->status->value;
         }
 
