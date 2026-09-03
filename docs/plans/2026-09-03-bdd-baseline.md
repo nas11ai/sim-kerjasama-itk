@@ -1156,8 +1156,15 @@ final class LedgerFile
 
     private function contents(): string
     {
-        $contents = @file_get_contents($this->path);
+        // Guard dulu, bukan `@` — operator peredam tetap ditembus PHPUnit 11
+        // dan warning-nya muncul di output test setiap kali dijalankan.
+        if (!is_readable($this->path)) {
+            throw new RuntimeException("Daftar tidak terbaca: {$this->path}");
+        }
 
+        $contents = file_get_contents($this->path);
+
+        // Tetap diperiksa: berkas bisa hilang di antara pemeriksaan dan pembacaan.
         if ($contents === false) {
             throw new RuntimeException("Daftar tidak terbaca: {$this->path}");
         }
