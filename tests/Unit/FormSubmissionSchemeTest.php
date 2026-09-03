@@ -1,6 +1,5 @@
 <?php
 
-use App\Models\Form;
 use App\Models\FormSubmission;
 use App\Models\Scheme;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -24,10 +23,7 @@ it('returns null when no scheme is selected', function () {
 
 it('eager loads scheme without extra queries per row', function () {
     $scheme = Scheme::factory()->create();
-    // form_id dibagi bersama supaya factory tidak membuat 3 FormType baru
-    // dengan nama default yang sama (form_types.name punya unique constraint).
-    $form = Form::factory()->create();
-    FormSubmission::factory()->count(3)->create(['form_id' => $form->id, 'scheme_id' => $scheme->id]);
+    FormSubmission::factory()->count(3)->create(['scheme_id' => $scheme->id]);
 
     $queries = 0;
     DB::listen(function () use (&$queries) {

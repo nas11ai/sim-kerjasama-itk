@@ -14,8 +14,10 @@ class FormTypeFactory extends Factory
 
     public function definition(): array
     {
+        // form_types.name unik di level DB; fake()->unique() supaya dua
+        // panggilan factory dalam satu test tidak bentrok.
         return [
-            'name' => 'Tipe Form Standar',
+            'name' => 'Tipe Form '.fake()->unique()->numerify('####-####'),
         ];
     }
 }

@@ -69,7 +69,7 @@ class NotifyActiveSubmissionPeriods extends Command
                 })->get();
 
                 Notification::send($users, new SubmissionPeriodActiveNotification($period));
-            } catch (\Exception $e) {
+            } catch (\Throwable $e) {
                 Log::error('Gagal mengirim notifikasi submission period active', [
                     'submission_period_id' => $period->id,
                     'recipients_count' => $users->count(),

@@ -86,6 +86,37 @@ it('keeps notifying remaining periods when one period fails, per BR-NOT-03', fun
     expect(Cache::has("submission_period_notified_{$survivingPeriod->id}"))->toBeTrue();
 });
 
+it('keeps notifying remaining periods when one period throws a TypeError, per BR-NOT-03', function () {
+    // Minor item hasil review — catch (\Exception) tidak menangkap
+    // TypeError (turunan \Error, bukan \Exception), jadi loop tetap
+    // berhenti di tengah jalan walau komentarnya menjanjikan isolasi
+    // per-period. catch (\Throwable) menutup celah ini.
+    $failingPeriod = createActivePeriod();
+    $survivingPeriod = createActivePeriod();
+
+    User::factory()->create();
+
+    $notifiedPeriodIds = [];
+
+    Notification::shouldReceive('send')
+        ->twice()
+        ->andReturnUsing(function ($notifiables, SubmissionPeriodActiveNotification $notification) use (&$notifiedPeriodIds, $failingPeriod) {
+            $notifiable = collect($notifiables)->first();
+            $periodId = $notification->toDatabase($notifiable)['meta']['submission_period_id'];
+            $notifiedPeriodIds[] = $periodId;
+
+            if ($periodId === $failingPeriod->id) {
+                throw new TypeError('Simulasi TypeError di tengah pengiriman.');
+            }
+        });
+
+    $this->artisan('notify:active-submission-periods')->assertSuccessful();
+
+    expect($notifiedPeriodIds)
+        ->toContain($failingPeriod->id)
+        ->toContain($survivingPeriod->id);
+});
+
 it('notifies non-admin users when a submission period is newly active', function () {
     Notification::fake();
 

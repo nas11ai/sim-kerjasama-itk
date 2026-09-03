@@ -25,7 +25,9 @@ class SendProposalSubmittedNotification implements ShouldQueue
         try {
             $operators = User::permission('submissions.view-all')->get();
         } catch (PermissionDoesNotExist $exception) {
-            Log::warning('Gagal mencari operator untuk notifikasi proposal submitted — permission belum ada', [
+            // Log::error, bukan warning — permission kanonik yang hilang
+            // adalah cacat deploy (seeder belum jalan), bukan kondisi normal.
+            Log::error('Gagal mencari operator untuk notifikasi proposal submitted — permission belum ada', [
                 'permission' => 'submissions.view-all',
                 'submission_id' => $event->submission->id,
                 'error' => $exception->getMessage(),

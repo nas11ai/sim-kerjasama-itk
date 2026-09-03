@@ -9,28 +9,18 @@ use App\Models\FormPhaseDetail;
 use App\Models\FormSubmission;
 use App\Models\Organization;
 use App\Models\PhaseType;
+use App\Models\SubmissionDate;
 use App\Models\SubmissionDateLabel;
 use App\Models\SubmissionPeriod;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
-/**
- * SubmissionDate::$fillable masih memakai nama lama ('date'), padahal
- * kolom aslinya sudah di-rename ke 'datetime' oleh migration terpisah.
- * Insert lewat query builder langsung supaya tes ini tidak bergantung
- * pada bug tak terkait itu (lihat migration
- * 2026_07_23_004038_add_submission_date_id_to_form_phase_details yang
- * memakai pola sama).
- */
 function createSubmissionDate(int $labelId, int $periodId): int
 {
-    return DB::table('submission_dates')->insertGetId([
+    return SubmissionDate::create([
         'submission_date_label_id' => $labelId,
         'datetime' => now(),
         'submission_period_id' => $periodId,
-        'created_at' => now(),
-        'updated_at' => now(),
-    ]);
+    ])->id;
 }
 
 // tests/Pest.php sudah menerapkan TestCase + RefreshDatabase ke seluruh

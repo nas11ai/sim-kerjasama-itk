@@ -50,15 +50,11 @@ class FormPhaseDetailFactory extends Factory
             'name' => 'Label Tanggal '.fake()->unique()->numerify('####-####'),
         ]);
 
-        // forceFill dipakai supaya factory ini tidak bergantung pada isi
-        // SubmissionDate::$fillable saat ini (lihat pola yang sama di
-        // tests/Feature/Migrations/AddRelationsToFormSubmissionsTest.php).
-        $submissionDate = new SubmissionDate;
-        $submissionDate->forceFill([
+        $submissionDate = SubmissionDate::create([
             'submission_date_label_id' => $dateLabel->id,
             'datetime' => now()->addWeek(),
             'submission_period_id' => $period->id,
-        ])->save();
+        ]);
 
         return [
             'form_phase_id' => $formPhase->id,

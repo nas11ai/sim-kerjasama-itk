@@ -12,12 +12,9 @@ uses(TestCase::class, RefreshDatabase::class);
 it('returns the phase detail it was created against', function () {
     $detail = FormPhaseDetail::factory()->create();
     // BR-MON-03 — submission harus terikat ke satu FormPhaseDetail lewat
-    // kolom eksplisit, bukan tebakan lewat form_id (ADR 0004). Form dipakai
-    // bersama supaya tidak memicu dua FormType::factory() dalam satu test
-    // (nama form_types.name unik — lihat FormTypeFactory).
+    // kolom eksplisit, bukan tebakan lewat form_id (ADR 0004).
     $submission = FormSubmission::factory()->create([
         'form_phase_detail_id' => $detail->id,
-        'form_id' => $detail->formAccessControl->form_id,
     ]);
 
     expect($submission->formPhaseDetail->id)->toBe($detail->id);

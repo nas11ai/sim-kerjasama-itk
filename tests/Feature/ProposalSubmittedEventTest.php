@@ -54,7 +54,7 @@ it('logs and returns early when submissions.view-all does not exist', function (
 
     (new SendProposalSubmittedNotification)->handle(new ProposalSubmitted($submission));
 
-    Log::shouldHaveReceived('warning')
+    Log::shouldHaveReceived('error')
         ->once()
         ->withArgs(fn (string $message, array $context) => $context['permission'] === 'submissions.view-all'
             && $context['submission_id'] === $submission->id);
