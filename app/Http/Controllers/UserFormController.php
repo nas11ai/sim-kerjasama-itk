@@ -11,6 +11,7 @@ use App\Models\FormSubmission;
 use App\Models\Reviewer;
 use App\Models\ReviewSummary;
 use App\Models\SubmissionPeriod;
+use App\Models\User;
 use App\Services\EmailNotificationService;
 use App\Services\FormAccessService;
 use App\States\Submission\Approved;
@@ -303,15 +304,22 @@ class UserFormController extends Controller
     /**
      * C1 — resolusi FormPhaseDetail dari form_phase_id + form_id yang sudah
      * divalidasi. form_id saja ambigu kalau dipakai lebih dari satu
-     * FormPhaseDetail (ADR 0004); pasangan form_phase_id + form_id sudah
-     * cukup untuk membedakannya di alur pengajuan awal ini. Gagal keras
-     * kalau tidak ketemu, bukan menulis NULL.
+     * FormPhaseDetail (ADR 0004); pasangan form_phase_id + form_id masih
+     * ambigu kalau satu Form dipakai oleh lebih dari satu FormAccessControl
+     * (satu per organisasi) — jadi ikut men-scope dengan
+     * ->accessibleBy($user), sama seperti resolusi kedua yang menentukan
+     * transisi Approved/Submitted, supaya keduanya tidak pernah berbeda
+     * baris. Gagal keras kalau tidak ketemu, bukan menulis NULL — dengan
+     * scope ini, "tidak ketemu" juga berarti user tidak berwenang atas
+     * phase detail tersebut.
      */
-    private function resolveFormPhaseDetail(int $formPhaseId, int $formId): FormPhaseDetail
+    private function resolveFormPhaseDetail(int $formPhaseId, int $formId, User $user): FormPhaseDetail
     {
         $formPhaseDetail = FormPhaseDetail::where('form_phase_id', $formPhaseId)
-            ->whereHas('formAccessControl', function (Builder $query) use ($formId) {
-                $query->where('form_id', $formId);
+            ->whereHas('formAccessControl', function (Builder $query) use ($formId, $user) {
+                /** @var Builder<FormAccessControl> $query */
+                $query->where('form_id', $formId)
+                    ->accessibleBy($user);
             })
             ->first();
 
@@ -343,7 +351,8 @@ class UserFormController extends Controller
 
         $formPhaseDetail = $this->resolveFormPhaseDetail(
             (int) $validated['form_phase_id'],
-            (int) $validated['form_id']
+            (int) $validated['form_id'],
+            $user
         );
 
         // Handle file uploads
@@ -449,7 +458,8 @@ class UserFormController extends Controller
 
         $formPhaseDetail = $this->resolveFormPhaseDetail(
             (int) $validated['form_phase_id'],
-            (int) $validated['form_id']
+            (int) $validated['form_id'],
+            $user
         );
 
         $requiredFields = $form->formFields;

@@ -140,6 +140,53 @@ it('resolves the correct form_phase_detail when the form is shared by two phase 
     expect($submission->form_phase_detail_id)->toBe($correct['detail']->id);
 });
 
+// M0 review — resolveFormPhaseDetail() dulu men-scope hanya lewat
+// form_phase_id + form_id, padahal satu Form bisa dipakai oleh beberapa
+// FormAccessControl (satu per organisasi), sehingga beberapa FormPhaseDetail
+// bisa berbagi form_phase_id + form_id yang sama dan hanya berbeda
+// organisasi. Kode lain di method yang sama (dekat transitionTo Approved/
+// Submitted) sudah men-scope resolusinya dengan ->accessibleBy($user); kalau
+// resolveFormPhaseDetail() tidak ikut di-scope sama, FK yang tersimpan bisa
+// jadi baris yang berbeda dari baris yang dipakai untuk menentukan status —
+// record yang secara internal tidak konsisten.
+it('resolves the form_phase_detail of the user\'s own organization when the same form_phase is shared across organizations', function () {
+    [$user, $ownOrganization] = actingResearcher();
+
+    $otherOrganization = Organization::create(['name' => 'Organisasi Lain '.fake()->unique()->numerify('####-####'), 'type' => 'study_program']);
+
+    $form = Form::factory()->create();
+    $formPhase = FormPhase::create(['title' => 'Fase Bersama Lintas Organisasi', 'is_active' => true]);
+
+    // FormAccessControl milik organisasi LAIN, dibuat lebih dulu — kandidat
+    // yang salah. Kalau resolusi jatuh balik ke ->first() tanpa scope
+    // organisasi, ini yang akan (keliru) terpilih karena dibuat duluan.
+    $otherAccessControl = FormAccessControl::create([
+        'form_id' => $form->id,
+        'permission' => 'submissions.create',
+        'organization_id' => $otherOrganization->id,
+    ]);
+    buildAccessibleFormPhaseDetail($user, $otherOrganization, $otherAccessControl, $formPhase);
+
+    // FormAccessControl milik organisasi user sendiri — kandidat yang benar.
+    // Organization::subtreeIds() jalan ke bawah dari organisasi user, dan
+    // $otherOrganization bukan induk maupun turunan $ownOrganization,
+    // sehingga tidak pernah masuk subtree user.
+    $ownAccessControl = FormAccessControl::create([
+        'form_id' => $form->id,
+        'permission' => 'submissions.create',
+        'organization_id' => $ownOrganization->id,
+    ]);
+    $own = buildAccessibleFormPhaseDetail($user, $ownOrganization, $ownAccessControl, $formPhase);
+
+    $this->actingAs($user)
+        ->post(route('user.form-submission.save-draft'), draftPayload($form, $own['period'], $formPhase))
+        ->assertRedirect();
+
+    $submission = FormSubmission::where('form_id', $form->id)->where('submitted_by', $user->id)->firstOrFail();
+
+    expect($submission->form_phase_detail_id)->toBe($own['detail']->id);
+});
+
 it('fails loudly instead of writing null when the form/phase combination does not exist', function () {
     [$user, $organization] = actingResearcher();
 
