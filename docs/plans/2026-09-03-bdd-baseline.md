@@ -1023,7 +1023,7 @@ Spesifikasi perilaku sistem dalam format Gherkin. Berdampingan dengan `../ddd/`
 | --- | ------------ |
 | `@BR-XX-NN` | ≥ 1, dan BR-nya harus benar-benar terdefinisi sebagai baris tabel di `../ddd/` |
 | `@M0`–`@M5` | tepat 1 |
-| `@happy` / `@boundary` / `@denial` | tepat 1 |
+| `@happy` / `@boundary` / `@denial` | tepat 1. Kelas menggambarkan **hasil aksi aktor**, bukan sikap aturannya: `@happy` aksi berhasil, `@denial` aksi ditolak, `@boundary` kasus di tepi aturan (dipakai saat justru batasnya yang jadi pokok skenario, terlepas dari hasilnya). Laporan coverage memakai ini untuk menunjukkan BR mana yang belum punya jalur gagal. |
 | `@<FRAME-ID>` | 0..n |
 
 ## Menambah skenario
@@ -1502,14 +1502,14 @@ Feature: Temporal Field Binding
   Background:
     Given Form "Pengajuan Penelitian" aktif di periode berjalan
 
-  @BR-FE-11 @M0 @happy
+  @BR-FE-11 @M0 @denial
   Scenario: [FE-TEMPORAL-01] Field wajib yang lahir sebelum submission tetap diwajibkan
     Given FormField "Abstrak" dibuat pada "2026-01-10" dengan is_required true
     And submission "P-001" dibuat pada "2026-02-01"
     When Lead Researcher submit "P-001" tanpa mengisi "Abstrak"
     Then submit ditolak dengan error validasi pada field "Abstrak"
 
-  @BR-FE-11 @M0 @denial
+  @BR-FE-11 @M0 @happy
   Scenario: [FE-TEMPORAL-02] Field yang lahir setelah submission tidak diwajibkan
     Given submission "P-001" dibuat pada "2026-02-01"
     And FormField "Roadmap" dibuat pada "2026-03-01" dengan is_required true
@@ -1517,7 +1517,7 @@ Feature: Temporal Field Binding
     Then submit berhasil
     And status "P-001" menjadi SUBMITTED
 
-  @BR-FE-11 @M0 @denial
+  @BR-FE-11 @M0 @happy
   Scenario: [FE-TEMPORAL-03] Field yang baru jadi wajib setelah submission tidak diwajibkan
     Given FormField "Mitra" dibuat pada "2026-01-10" dengan is_required false
     And submission "P-001" dibuat pada "2026-02-01"
@@ -1540,7 +1540,7 @@ Feature: Temporal Field Binding
     When Lead Researcher submit "P-001" tanpa mengisi "Judul"
     Then submit ditolak dengan error validasi pada field "Judul"
 
-  @BR-FE-11 @M0 @denial
+  @BR-FE-11 @M0 @happy
   Scenario: [FE-TEMPORAL-06] Field opsional tidak pernah diwajibkan
     Given FormField "Catatan" dibuat pada "2026-01-10" dengan is_required false
     And submission "P-001" dibuat pada "2026-02-01"
@@ -1554,7 +1554,7 @@ Feature: Temporal Field Binding
     When Lead Researcher submit "P-001" tanpa mengisi "Luaran"
     Then submit ditolak dengan error validasi pada field "Luaran"
 
-  @BR-FE-11 @BR-FE-12 @M0 @denial
+  @BR-FE-11 @M0 @happy
   Scenario: [FE-TEMPORAL-08] Field yang sudah di-soft-delete tidak diwajibkan
     Given FormField "Lampiran Lama" dibuat pada "2026-01-10" dengan is_required true
     And submission "P-001" dibuat pada "2026-02-01"
@@ -1587,9 +1587,11 @@ FE-TEMPORAL-08
 FE-TEMPORAL-09
 ```
 
-- [ ] **Step 3: Keluarkan BR-FE-11 dan BR-FE-12 dari `uncovered.txt`**
+- [ ] **Step 3: Keluarkan BR-FE-11 dari `uncovered.txt`**
 
-Hapus baris `BR-FE-11` dan `BR-FE-12`, lalu turunkan plafon dari `# max: 92` menjadi `# max: 90`.
+Hapus baris `BR-FE-11`, lalu turunkan plafon dari `# max: 92` menjadi `# max: 91`.
+
+BR-FE-12 **tetap** di daftar: ia dilunasi Task 9 lewat `[FE-CHANGE-01]`, satu-satunya skenario yang benar-benar menguji soft delete.
 
 - [ ] **Step 4: Jalankan guard**
 
@@ -1693,7 +1695,7 @@ Feature: Akses Form — Permission dan Organisasi
 
 Di `pending.txt`: ubah plafon menjadi `# max: 17` dan tambahkan `FE-ACCESS-01` sampai `FE-ACCESS-08`.
 
-Di `uncovered.txt`: hapus `BR-FE-01` dan `BR-FE-02`, turunkan plafon menjadi `# max: 88`.
+Di `uncovered.txt`: hapus `BR-FE-01` dan `BR-FE-02`, turunkan plafon menjadi `# max: 89`.
 
 `BR-IAM-09` **tetap** di `uncovered.txt` — ia disinggung di `[FE-ACCESS-06]` tapi aturan utuhnya ditulis di Wave 3.
 
@@ -1822,7 +1824,7 @@ Feature: Deadline dan Override
 
 Di `pending.txt`: plafon `# max: 28`, tambahkan `FE-OVERRIDE-01` sampai `FE-OVERRIDE-11`.
 
-Di `uncovered.txt`: hapus `BR-FE-08`, `BR-FE-09`, `BR-FE-10`, `BR-FE-15`, `BR-SCH-07`; turunkan plafon menjadi `# max: 83`.
+Di `uncovered.txt`: hapus `BR-FE-08`, `BR-FE-09`, `BR-FE-10`, `BR-FE-15`, `BR-SCH-07`; turunkan plafon menjadi `# max: 84`.
 
 - [ ] **Step 3: Jalankan guard**
 
@@ -1966,7 +1968,7 @@ Feature: Gating Child Submission
 
 Di `pending.txt`: plafon `# max: 39`, tambahkan `FE-CHANGE-01`…`04`, `FE-LOCK-01`…`04`, `FE-CHILD-01`…`03`.
 
-Di `uncovered.txt`: hapus `BR-FE-04`, `BR-FE-13`, `BR-FE-14`; turunkan plafon menjadi `# max: 80`. (`BR-FE-12` sudah dikeluarkan di Task 6.)
+Di `uncovered.txt`: hapus `BR-FE-04`, `BR-FE-12`, `BR-FE-13`, `BR-FE-14`; turunkan plafon menjadi `# max: 80`. BR-FE-12 dilunasi di sini oleh `[FE-CHANGE-01]`, bukan di Task 6.
 
 - [ ] **Step 5: Jalankan guard**
 
