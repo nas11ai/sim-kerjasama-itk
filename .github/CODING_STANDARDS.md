@@ -79,6 +79,22 @@ Jangan memakai `@phpstan-ignore`, entri baseline, `assert()`, inline `@var`, cas
 atau melebarkan tipe parameter/return hanya agar error hilang. Error level 9
 hampir selalu menunjuk bug asli — perbaiki penyebabnya.
 
+### Satu pengecualian: tipe yang PHPStan tidak bisa simpulkan
+
+Larangan di atas menyasar **penyembunyian error**. Ia tidak menyasar pemberian
+tipe yang memang tidak bisa disimpulkan PHPStan.
+
+Contohnya scope Eloquent kustom di dalam closure `whereHas()`: PHPStan melihat
+`Builder<Model>` generik dan tidak tahu `accessibleBy()` ada, sehingga melaporkan
+`method.notFound` — error yang benar-benar palsu, karena method-nya nyata. Di sini
+`/** @var Builder<FormAccessControl> $query */` **memasok** informasi, bukan
+membungkam temuan. Lihat `UserFormController` (empat kejadian, semuanya pola ini).
+
+Bedanya sederhana dan bisa diuji: hapus anotasinya. Kalau yang muncul error
+tentang bug nyata, anotasi itu menyembunyikan sesuatu dan dilarang. Kalau yang
+muncul `method.notFound` atas method yang benar-benar ada, anotasi itu memasok
+tipe dan boleh dipakai. Sebutkan hasil uji itu di PR.
+
 Contoh nyata dari repo ini: `SubmitFormSubmission` memanggil
 `$submission->status->transitionTo(...)` padahal `status` bisa `null`. Jawabannya
 bukan menambah `assert()`, tapi menambahkan guard eksplisit.

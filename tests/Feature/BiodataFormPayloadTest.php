@@ -132,17 +132,9 @@ it('stores the selected option id, not its label, as the response value for sele
     // Payload ini merepresentasikan apa yang dikirim IndexPage.vue setelah
     // perbaikan: :value="option.id.toString()" pada SelectItem/RadioGroupItem.
     //
-    // is_submitted sengaja false (draft save) — bukan untuk menghindari
-    // fitur yang diuji (penyimpanan value tetap berjalan sama untuk draft
-    // maupun submit final), tapi karena is_submitted=true membawa bug lain
-    // yang sudah ada sebelum batch ini dan di luar cakupannya:
-    // submitForm() menulis 'status' => 'pending' sebagai string mentah,
-    // padahal FormSubmission::$status dikelola spatie/laravel-model-states
-    // dan 'pending' bukan state yang terdaftar di SubmissionStatus::config()
-    // — akibatnya request dengan is_submitted=true selalu melempar
-    // Spatie\ModelStates\Exceptions\UnknownState (tertangkap generic
-    // catch (Exception) di controller sehingga user hanya melihat pesan
-    // error umum). Draft save tidak menyentuh baris itu sama sekali.
+    // is_submitted sengaja false (draft save): penyimpanan value berjalan
+    // identik untuk draft maupun submit final, dan jalur submit final
+    // sudah punya test sendiri di BiodataSubmissionStatusTest.
     $this->actingAs($user)
         ->post(route('user.biodata.submit'), [
             'form_id' => $form->id,
