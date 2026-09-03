@@ -327,7 +327,7 @@ final class BusinessRuleCatalog
      */
     public function codes(): array
     {
-        if (! is_dir($this->docRoot)) {
+        if (!is_dir($this->docRoot)) {
             throw new RuntimeException("Direktori DDD tidak ditemukan: {$this->docRoot}");
         }
 
@@ -366,8 +366,13 @@ final class BusinessRuleCatalog
 
         $files = [];
 
-        /** @var SplFileInfo $entry */
         foreach ($iterator as $entry) {
+            // Guard eksplisit, bukan anotasi @var: iterator memberi `mixed`, dan
+            // menyempitkannya lewat instanceof memasok tipe tanpa membungkam apa pun.
+            if (!$entry instanceof SplFileInfo) {
+                continue;
+            }
+
             if ($entry->isFile() && $entry->getExtension() === 'md') {
                 $files[] = $entry->getPathname();
             }
@@ -626,7 +631,7 @@ final class FeatureCatalog
         foreach ($this->featureFiles() as $file) {
             $feature = $parser->parseFile($file);
 
-            if (! $feature instanceof FeatureNode) {
+            if (!$feature instanceof FeatureNode) {
                 continue;
             }
 
@@ -713,7 +718,7 @@ final class FeatureCatalog
      */
     private function featureFiles(): array
     {
-        if (! is_dir($this->featureRoot)) {
+        if (!is_dir($this->featureRoot)) {
             throw new RuntimeException("Direktori feature tidak ditemukan: {$this->featureRoot}");
         }
 
@@ -723,9 +728,14 @@ final class FeatureCatalog
 
         $files = [];
 
-        /** @var SplFileInfo $entry */
         foreach ($iterator as $entry) {
-            if (! $entry->isFile() || $entry->getExtension() !== 'feature') {
+            // Guard eksplisit, bukan anotasi @var — lihat catatan yang sama di
+            // BusinessRuleCatalog::markdownFiles().
+            if (!$entry instanceof SplFileInfo) {
+                continue;
+            }
+
+            if (!$entry->isFile() || $entry->getExtension() !== 'feature') {
                 continue;
             }
 
@@ -1212,7 +1222,7 @@ it('assertion 3 — setiap tag @BR- merujuk rule yang benar-benar terdefinisi', 
 
     foreach (bddScenarios() as $scenario) {
         foreach ($scenario->businessRules as $code) {
-            if (! in_array($code, $known, true)) {
+            if (!in_array($code, $known, true)) {
                 $problems[] = "{$scenario->id} ({$scenario->location()}) menyebut {$code} "
                     .'yang tidak ada sebagai baris tabel di docs/requirement-analysis/ddd/';
             }
@@ -1294,7 +1304,7 @@ function bddIdsClaimedByTests(): array
     $claimed = [];
 
     foreach ($iterator as $entry) {
-        if (! $entry->isFile() || $entry->getExtension() !== 'php') {
+        if (!$entry->isFile() || $entry->getExtension() !== 'php') {
             continue;
         }
 
