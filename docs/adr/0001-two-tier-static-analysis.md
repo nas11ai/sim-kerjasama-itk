@@ -39,8 +39,9 @@ Dua konfigurasi:
 
 - `phpstan.neon` — level 5, seluruh `app/`.
 - `phpstan-strict.neon` — level 9, seluruh `app/` **kecuali** `app/Console`,
-  `app/Exports`, `app/Http`, `app/Mail`, `app/Models`, `app/Providers`,
-  `app/Services`.
+  `app/Exports`, `app/Http`, `app/Mail`, `app/Models`, `app/Providers`, dan
+  dua file legacy `app/Services/EmailNotificationService.php` +
+  `app/Services/FormAccessService.php`.
 
 Keduanya dijalankan CI sebagai step terpisah. `phpstan-baseline.neon` dihapus.
 
@@ -50,6 +51,25 @@ kena level 9 tanpa perlu ada yang ingat mendaftarkannya.
 
 `excludePaths` hanya boleh menyusut. Menambah entri = menurunkan standar, wajib
 dibahas eksplisit di PR.
+
+## Bahaya yang diketahui: entri direktori menelan file baru secara diam-diam
+
+Task 9 (penambahan `StorageService`) menemukan bahwa entri direktori polos di
+`excludePaths` (waktu itu `app/Services`) mengecualikan secara **rekursif** —
+termasuk subdirektori yang belum ada saat entri itu ditulis. Kalau tidak
+dipersempit, `app/Services/Storage/` yang baru akan otomatis lolos dari level
+9, bertentangan langsung dengan tujuan ADR ini bahwa folder baru ketat sejak
+lahir. Karena itu entri `app/Services` diganti dua file legacy eksplisit
+(lihat "Keputusan").
+
+Enam entri direktori yang tersisa membawa bahaya yang sama karena bentuknya
+masih direktori polos: `app/Console`, `app/Exports`, `app/Http`, `app/Mail`,
+`app/Models`, `app/Providers`. File baru apa pun yang ditaruh di dalamnya
+akan otomatis ikut terkecualikan dari level 9 tanpa ada yang sadar —
+misalnya controller baru yang akan ditambahkan M1 di `app/Http`. Ini dicatat
+di sini sebagai bahaya yang diketahui, **bukan** diselesaikan sekarang;
+mempersempitnya seperti `app/Services` adalah keputusan yang harus diambil
+eksplisit saat direktori itu disentuh lagi, bukan diam-diam di ADR ini.
 
 ## Konsekuensi
 

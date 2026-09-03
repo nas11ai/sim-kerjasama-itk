@@ -157,7 +157,7 @@ unique constraint — satu FormPhase boleh dimiliki banyak period.
 | Tabel                          | Milestone | Catatan                                    |
 | ------------------------------ | --------- | ------------------------------------------ |
 | `notifications`                | M0        | bawaan Laravel, belum pernah dibuat        |
-| `research_members`             | M1        | `role`: co_investigator \| member          |
+| `research_members`             | M0        | `role`: co_investigator \| member — dipindah dari M1 karena `FormSubmissionPolicy` (Task 5) butuh tabel ini untuk cabang anggota BR-SM-07, jadi Policy tidak bisa ditulis lengkap tanpanya |
 | `student_members`              | M1        |                                            |
 | `submission_partners`          | M1        |                                            |
 | `submission_additional_files`  | M1        |                                            |
@@ -180,11 +180,11 @@ Tidak menghasilkan fitur yang terlihat. Membereskan yang memblokir M1 dan M2.
 | Migration                       | seluruh perubahan skema di §3 + backfill terverifikasi                  |
 | `app/Policies/`                 | `FormSubmissionPolicy` + `isAccessibleBy()` (BR-SM-07), `BudgetPolicy`  |
 | `app/Events/`, `app/Listeners/` | kerangka + `ProposalSubmitted` sebagai contoh berjalan                  |
-| `app/Notifications/`            | Laravel Notification dua channel; `EmailNotificationService` dipensiunkan |
+| `app/Notifications/`            | Laravel Notification dua channel; `EmailNotificationService` ditandai `@deprecated`, bukan dipensiunkan penuh — `UserFormController` (543 baris) dan `ReviewController` (780 baris) masih memanggilnya karena M0 tidak menyentuh alur keduanya (ADR 0008); migrasi sisanya jadi tugas M1/M2 |
 | `app/Services/Storage/`         | interface `StorageService` + implementasi S3 (MinIO dev, R2 produksi)   |
 | `app/Data/`                     | struktur DTO dasar + `SubmissionAbilitiesData`                          |
 | Seeder                          | field type `scheme_selector` & `trl_selector`; `BudgetComponent` 7 kategori |
-| Concern                         | `ChecksOptimisticLock` untuk semua endpoint mutasi                      |
+| Guard                           | `App\Support\OptimisticLock::assertNotStale()` untuk semua endpoint mutasi — dirancang sebagai trait tapi diubah jadi `final class` statis karena metodenya tidak memakai `$this`, dan PHPStan tidak menganalisis isi trait yang tidak dipakai |
 
 **Definisi selesai M0:** `composer run quality` dan `npm run quality` hijau;
 `getFormPhaseDetail()` tidak lagi memakai `->first()` di seluruh codebase; dan
