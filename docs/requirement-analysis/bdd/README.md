@@ -17,7 +17,7 @@ Spesifikasi perilaku sistem dalam format Gherkin. Berdampingan dengan `../ddd/`
 | --- | ------------ |
 | `@BR-XX-NN` | ≥ 1, dan BR-nya harus benar-benar terdefinisi sebagai baris tabel di `../ddd/` |
 | `@M0`–`@M5` | tepat 1 |
-| `@happy` / `@boundary` / `@denial` | tepat 1 |
+| `@happy` / `@boundary` / `@denial` | tepat 1. Kelas menggambarkan **hasil aksi aktor**, bukan sikap aturannya: `@happy` aksi berhasil, `@denial` aksi ditolak, `@boundary` kasus di tepi aturan (dipakai saat justru batasnya yang jadi pokok skenario, terlepas dari hasilnya). Laporan coverage memakai ini untuk menunjukkan BR mana yang belum punya jalur gagal. |
 | `@<FRAME-ID>` | 0..n |
 
 ## Menambah skenario

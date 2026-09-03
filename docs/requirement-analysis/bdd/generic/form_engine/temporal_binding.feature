@@ -9,14 +9,14 @@ Feature: Temporal Field Binding
   Background:
     Given Form "Pengajuan Penelitian" aktif di periode berjalan
 
-  @BR-FE-11 @M0 @happy
+  @BR-FE-11 @M0 @denial
   Scenario: [FE-TEMPORAL-01] Field wajib yang lahir sebelum submission tetap diwajibkan
     Given FormField "Abstrak" dibuat pada "2026-01-10" dengan is_required true
     And submission "P-001" dibuat pada "2026-02-01"
     When Lead Researcher submit "P-001" tanpa mengisi "Abstrak"
     Then submit ditolak dengan error validasi pada field "Abstrak"
 
-  @BR-FE-11 @M0 @denial
+  @BR-FE-11 @M0 @happy
   Scenario: [FE-TEMPORAL-02] Field yang lahir setelah submission tidak diwajibkan
     Given submission "P-001" dibuat pada "2026-02-01"
     And FormField "Roadmap" dibuat pada "2026-03-01" dengan is_required true
@@ -24,7 +24,7 @@ Feature: Temporal Field Binding
     Then submit berhasil
     And status "P-001" menjadi SUBMITTED
 
-  @BR-FE-11 @M0 @denial
+  @BR-FE-11 @M0 @happy
   Scenario: [FE-TEMPORAL-03] Field yang baru jadi wajib setelah submission tidak diwajibkan
     Given FormField "Mitra" dibuat pada "2026-01-10" dengan is_required false
     And submission "P-001" dibuat pada "2026-02-01"
@@ -47,7 +47,7 @@ Feature: Temporal Field Binding
     When Lead Researcher submit "P-001" tanpa mengisi "Judul"
     Then submit ditolak dengan error validasi pada field "Judul"
 
-  @BR-FE-11 @M0 @denial
+  @BR-FE-11 @M0 @happy
   Scenario: [FE-TEMPORAL-06] Field opsional tidak pernah diwajibkan
     Given FormField "Catatan" dibuat pada "2026-01-10" dengan is_required false
     And submission "P-001" dibuat pada "2026-02-01"
@@ -61,7 +61,7 @@ Feature: Temporal Field Binding
     When Lead Researcher submit "P-001" tanpa mengisi "Luaran"
     Then submit ditolak dengan error validasi pada field "Luaran"
 
-  @BR-FE-11 @BR-FE-12 @M0 @denial
+  @BR-FE-11 @M0 @happy
   Scenario: [FE-TEMPORAL-08] Field yang sudah di-soft-delete tidak diwajibkan
     Given FormField "Lampiran Lama" dibuat pada "2026-01-10" dengan is_required true
     And submission "P-001" dibuat pada "2026-02-01"
