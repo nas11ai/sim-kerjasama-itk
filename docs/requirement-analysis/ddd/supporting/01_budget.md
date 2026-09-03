@@ -61,21 +61,7 @@ classDiagram
         +bool is_active
     }
 
-    class SubmissionOuter {
-        +SubmissionOuterId id
-        +FormSubmissionId form_submission_id
-        +OuterTypeId outer_type_id
-        +Money amount
-        +string description
-    }
-
-    class OuterType {
-        +OuterTypeId id
-        +string name
-    }
-
     BudgetLineItem "*" --> "1" BudgetComponent : categorized_by
-    SubmissionOuter "*" --> "1" OuterType : typed_as
 ```
 
 ---
@@ -117,9 +103,14 @@ Tidak ada sync issue. Tidak ada stale data. Untuk skala SIMPAS, satu aggregate q
 | BR-BUD-03 | Budget tetap bisa diedit saat NEEDS_REVISION                                                                                                                                                    |
 | BR-BUD-04 | Volume > 0 dan unit_price > 0 untuk setiap BudgetLineItem                                                                                                                                       |
 | BR-BUD-05 | BudgetComponent yang `is_active = false` tidak bisa dipilih untuk item baru                                                                                                                     |
-| BR-BUD-06 | SubmissionOuter hanya bisa diubah jika period config mengizinkan                                                                                                                                |
 | BR-BUD-07 | Grand total selalu computed (`SUM(total)`) — tidak ada kolom grand total yang disimpan                                                                                                          |
 | BR-BUD-08 | Setiap perubahan BudgetLineItem saat submission berstatus NEEDS_REVISION wajib dicatat di audit trail dengan nilai sebelum dan sesudah — untuk keperluan dispute antara reviewer dan researcher |
+
+> **BR-BUD-06 dicabut 2026-09-03.** Entitas `SubmissionOuter` ternyata luaran yang
+> dijanjikan peneliti — bukan data anggaran — dan tidak punya kolom uang di tabel
+> legacy manapun. Ia pindah ke BC Submission sebagai `SubmissionTargetOutput`,
+> diatur BR-SM-14 dan BR-SM-15. Nomor BR-BUD-06 pensiun dan tidak dipakai ulang.
+> Alasan lengkap: `docs/design/bdd-gherkin-baseline.md` §8.1.
 
 ---
 

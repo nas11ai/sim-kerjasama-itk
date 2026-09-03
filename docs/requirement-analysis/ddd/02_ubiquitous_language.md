@@ -78,6 +78,7 @@
 | **Submission-Level Access** | Lapis akses kedua di luar FormAccessControl — hanya `submitted_by` dan `research_members` yang bisa lihat data submission spesifik. Operator bypass via `submissions.view-all`. Reviewer bypass via `SubmissionReviewer` record. |
 | **Ownership Transfer**      | Aksi Operator memindahkan `submitted_by` dari lead researcher yang dinonaktifkan ke Co-Investigator yang aktif.                                                                                                                  |
 | **Withdrawal**              | Pembatalan submission yang sudah APPROVED. Hanya bisa dilakukan Operator via override — bukan self-service oleh Researcher. Semua data historis tetap ada.                                                                       |
+| **Target Luaran**           | Luaran yang **dijanjikan** peneliti saat mengajukan — tabel `submission_target_outputs`. Taksonominya sama dengan Research Output, bedanya ini janji dan itu realisasi. Jangan disebut "SubmissionOuter" (nama warisan fork yang menyesatkan). |
 
 ---
 
@@ -196,3 +197,4 @@ DRAFT → SUBMITTED → UNDER_REVIEW → NEEDS_REVISION → RESUBMITTED → APPR
 | `ReviewerRole` (tabel/class) | Spatie role `reviewer_internal` / `reviewer_external` | Tabel sudah di-drop        |
 | `nilai` (field)              | `score`                                               | English untuk field names  |
 | `status` tanpa konteks       | `SubmissionStatus`                                    | Harus ada konteks spesifik |
+| `SubmissionOuter` / `submission_outers` | `SubmissionTargetOutput` / `submission_target_outputs` | Nama lama menyesatkan — "outer" dibaca sebagai data anggaran |

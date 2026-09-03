@@ -181,6 +181,13 @@ classDiagram
         +string description
     }
 
+    class SubmissionTargetOutput {
+        +SubmissionTargetOutputId id
+        +FormSubmissionId form_submission_id
+        +string output_type
+        note "output_type mengikuti output_type_definitions — taksonomi yang sama dengan ResearchOutput"
+    }
+
     class AdditionalFile {
         +AdditionalFileId id
         +FormSubmissionId form_submission_id
@@ -193,6 +200,7 @@ classDiagram
     FormSubmission "1" --> "0..*" StudentMember : has
     FormSubmission "1" --> "0..*" Partner : has
     FormSubmission "1" --> "0..*" AdditionalFile : has
+    FormSubmission "1" --> "0..*" SubmissionTargetOutput : promises
 ```
 
 ---
@@ -229,6 +237,8 @@ classDiagram
 | BR-SM-11 | Withdrawal setelah APPROVED hanya bisa dilakukan Operator via override — tidak bisa self-service oleh Researcher                                                                                                                                   |
 | BR-SM-12 | Concurrent edit dicegah via optimistic locking — `updated_at` di request harus sama dengan yang ada di DB                                                                                                                                          |
 | BR-SM-13 | `isArchived()` adalah computed property — bukan status di DB. DRAFT dianggap archived jika `is_submitted = false` DAN period sudah tutup (`is_force_closed = true` ATAU semua SubmissionDate sudah terlewat). Archived submission tampil read-only |
+| BR-SM-14 | Target luaran hanya boleh dari `output_type` yang terdaftar di `output_type_definitions`. Jika submission punya scheme, pilihan dibatasi lagi oleh `scheme.rules.allowed_output_types`; scheme tanpa key itu tidak membatasi apa pun |
+| BR-SM-15 | Target luaran bisa diubah sampai submission REJECTED atau WITHDRAWN — termasuk setelah APPROVED, karena target menyesuaikan jalannya kegiatan. Hanya `submitted_by` yang boleh mengubahnya, dan setiap perubahan setelah APPROVED wajib tercatat di audit trail dengan nilai lama dan baru |
 
 ---
 
