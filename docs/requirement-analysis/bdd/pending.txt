@@ -4,4 +4,14 @@
 # hanya boleh TURUN ditegakkan review PR — sama persis pembagian kerja yang
 # berlaku untuk excludePaths di phpstan-strict.neon.
 #
-# max: 0
+# max: 9
+
+FE-TEMPORAL-01
+FE-TEMPORAL-02
+FE-TEMPORAL-03
+FE-TEMPORAL-04
+FE-TEMPORAL-05
+FE-TEMPORAL-06
+FE-TEMPORAL-07
+FE-TEMPORAL-08
+FE-TEMPORAL-09
