@@ -46,7 +46,7 @@ class Announcement extends Model
 
     public function announcementReader()
     {
-        return $this->belongsToMany(User::class, 'announcement_user')
+        return $this->belongsToMany(User::class, 'announcement_users')
             ->withTimestamps();
     }
 }

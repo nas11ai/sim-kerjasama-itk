@@ -92,7 +92,7 @@ class User extends Authenticatable implements MustVerifyEmail
 
     public function announcementReads()
     {
-        return $this->belongsToMany(Announcement::class, 'announcement_user')
+        return $this->belongsToMany(Announcement::class, 'announcement_users')
             ->withTimestamps();
     }
 
