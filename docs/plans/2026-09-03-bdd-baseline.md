@@ -36,6 +36,7 @@ docker run -d --name simpas_dev_pg -e POSTGRES_DB=simpas_test \
 # unzip/git yang dibutuhkan Composer.
 docker build -t simpas-php84:local - <<'DOCKERFILE'
 FROM php:8.4-cli
+COPY --from=composer:2 /usr/bin/composer /usr/local/bin/composer
 RUN apt-get update \
  && apt-get install -y --no-install-recommends libpq-dev unzip git \
  && docker-php-ext-install pdo_pgsql \
@@ -1459,7 +1460,7 @@ Run:
 ```bash
 docker run --rm --network host -v "$PWD":/app -w /app -u "$(id -u):$(id -g)" \
   -e DB_HOST=127.0.0.1 -e DB_PORT=55432 -e DB_PASSWORD=postgres \
-  simpas-php84:local composer run quality
+  -e COMPOSER_HOME=/tmp/composer simpas-php84:local composer run quality
 ```
 Expected: Pint, PHPStan level 5, PHPStan level 9, dan seluruh Pest hijau.
 
@@ -2154,7 +2155,7 @@ Run:
 ```bash
 docker run --rm --network host -v "$PWD":/app -w /app -u "$(id -u):$(id -g)" \
   -e DB_HOST=127.0.0.1 -e DB_PORT=55432 -e DB_PASSWORD=postgres \
-  simpas-php84:local composer run quality
+  -e COMPOSER_HOME=/tmp/composer simpas-php84:local composer run quality
 ```
 Expected: Pint, PHPStan level 5, PHPStan level 9, seluruh Pest hijau.
 
