@@ -1,0 +1,7 @@
+# Skenario yang sudah ditulis sebagai spec tapi belum punya test Pest.
+#
+# Plafon di bawah ditegakkan mesin (BddCoverageTest assertion 8). Bahwa angkanya
+# hanya boleh TURUN ditegakkan review PR — sama persis pembagian kerja yang
+# berlaku untuk excludePaths di phpstan-strict.neon.
+#
+# max: 0
