@@ -9,7 +9,7 @@ use Tests\TestCase;
 
 uses(TestCase::class, RefreshDatabase::class);
 
-it('updates submission status to submitted', function () {
+it('[SM-STATE-01] updates submission status to submitted', function () {
     $user = User::factory()->create();
 
     $submission = FormSubmission::factory()->create([

@@ -91,7 +91,7 @@ it('allows approved to withdrawn transition', function () {
     expect($submission->status)->toBeInstanceOf(Withdrawn::class);
 });
 
-it('prevents draft to approved transition', function () {
+it('[SM-STATE-02] prevents draft to approved transition', function () {
     $submission = FormSubmission::factory()->create([
         'status' => Draft::class,
     ]);
@@ -99,7 +99,7 @@ it('prevents draft to approved transition', function () {
     $submission->status->transitionTo(Approved::class);
 })->throws(CouldNotPerformTransition::class);
 
-it('prevents approved to draft transition', function () {
+it('[SM-STATE-02] prevents approved to draft transition', function () {
     $submission = FormSubmission::factory()->create([
         'status' => Approved::class,
     ]);
@@ -107,7 +107,7 @@ it('prevents approved to draft transition', function () {
     $submission->status->transitionTo(Draft::class);
 })->throws(CouldNotPerformTransition::class);
 
-it('prevents rejected to approved transition', function () {
+it('[SM-STATE-02] prevents rejected to approved transition', function () {
     $submission = FormSubmission::factory()->create([
         'status' => Rejected::class,
     ]);
@@ -115,7 +115,7 @@ it('prevents rejected to approved transition', function () {
     $submission->status->transitionTo(Approved::class);
 })->throws(CouldNotPerformTransition::class);
 
-it('prevents withdrawn to approved transition', function () {
+it('[SM-STATE-02] prevents withdrawn to approved transition', function () {
     $submission = FormSubmission::factory()->create([
         'status' => Withdrawn::class,
     ]);
@@ -123,7 +123,7 @@ it('prevents withdrawn to approved transition', function () {
     $submission->status->transitionTo(Approved::class);
 })->throws(CouldNotPerformTransition::class);
 
-it('prevents draft to resubmitted transition', function () {
+it('[SM-STATE-02] prevents draft to resubmitted transition', function () {
     $submission = FormSubmission::factory()->create([
         'status' => Draft::class,
     ]);
@@ -131,7 +131,7 @@ it('prevents draft to resubmitted transition', function () {
     $submission->status->transitionTo(Resubmitted::class);
 })->throws(CouldNotPerformTransition::class);
 
-it('prevents rejected to resubmitted transition', function () {
+it('[SM-STATE-02] prevents rejected to resubmitted transition', function () {
     $submission = FormSubmission::factory()->create([
         'status' => Rejected::class,
     ]);
