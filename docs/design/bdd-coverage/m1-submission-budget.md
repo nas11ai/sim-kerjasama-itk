@@ -298,4 +298,4 @@ dan M2 — keduanya bukan aturan Submission.
 | ~~register #1~~ | **Terselesaikan 2026-09-04** — ADR 0015; dikunci `[SM-SUBMIT-13/14]` |
 | ~~register #3~~ | **Terselesaikan 2026-09-04** — enum frontend wajib memuat 8 nilai dan diturunkan dari kontrak Inertia (ADR 0007) |
 | ~~register #4~~ | **Terselesaikan 2026-09-04** — BR-SM-16; dikunci `[SM-SUBMIT-15..17]` |
-| baru | Apakah wizard boleh dilompati mundur-maju bebas | `SM-WIZARD-08` mengasumsikan maju berurutan |
+| [#16](../../requirement-analysis/bdd/open-questions.md) | Wizard boleh dilompati mundur-maju bebas? | `SM-WIZARD-08` mengasumsikan maju berurutan |

@@ -53,15 +53,19 @@ dibuktikan di M0 berlaku di sini tanpa ditulis ulang —
 | -- | ----- | --------------- | -- | ----- |
 | `MON-CYCLE-01` | denial | Fase monev tertutup selama pengajuan induk belum APPROVED | BR-MON-01 | RESEARCHER-05-01 |
 | `MON-CYCLE-02` | happy | Induk APPROVED membuka fase Laporan Monev I | BR-MON-01 | RESEARCHER-05-01 |
-| `MON-CYCLE-03` | denial | Laporan Monev II ditolak selama `can_proceed` Monev I belum `true` | BR-MON-02 | RESEARCHER-05-02 |
-| `MON-CYCLE-04` | happy | `can_proceed = true` pada Monev I membuka Monev II | BR-MON-02 | RESEARCHER-05-01 |
-| `MON-CYCLE-05` | boundary | Detail yang `needs_review = false` tetap harus terisi sebelum detail berikutnya terbuka | BR-MON-02 | RESEARCHER-05-01 |
+| `MON-CYCLE-03` | denial | Laporan Monev II ditolak selama Monev I belum disubmit | BR-MON-02 | RESEARCHER-05-02 |
+| `MON-CYCLE-04` | happy | Monev I yang disubmit **dan** evaluasinya selesai tanpa summary `open` membuka Monev II — `needs_review = true` | BR-MON-02 | RESEARCHER-05-01 |
+| `MON-CYCLE-05` | boundary | Detail `needs_review = false` cukup disubmit — tidak menunggu evaluasi siapa pun | BR-MON-02 | RESEARCHER-05-01 |
 | `MON-CYCLE-06` | denial | Dua laporan untuk `FormPhaseDetail` yang sama pada satu induk ditolak | BR-MON-03 | RESEARCHER-05-02 |
 | `MON-CYCLE-07` | boundary | Induk berbeda boleh punya laporan pada `FormPhaseDetail` yang sama — batasnya per induk, bukan per researcher | BR-MON-03 | RESEARCHER-05-01 |
 | `MON-CYCLE-08` | denial | Lewat deadline monev tanpa override, pengisian ditolak | BR-MON-05 | RESEARCHER-05-02 |
 | `MON-CYCLE-09` | happy | Override yang masih berlaku membuka kembali fase monev | BR-MON-05 | OPERATOR-02-03 |
 | `MON-CYCLE-10` | denial | Submission WITHDRAWN saat monev berjalan — laporan baru tidak bisa disubmit | BR-MON-08 | RESEARCHER-05-01 |
 | `MON-CYCLE-11` | boundary | Laporan monev yang sudah terkirim sebelum penarikan tetap terbaca sebagai riwayat | BR-MON-08 | RESEARCHER-05-03 |
+
+Ketiganya menguji `canProceed()` sebagai **turunan keadaan**, bukan sebagai saklar yang
+disetel seseorang. `MON-CYCLE-04` dan `MON-CYCLE-05` sengaja berpasangan: keduanya
+membuktikan `needs_review` yang membedakan kapan evaluasi ikut jadi syarat.
 
 `MON-CYCLE-07` menutup salah baca yang paling mungkin pada BR-MON-03: batasnya
 **per parent**, bukan per researcher. Satu researcher yang memimpin dua penelitian
@@ -165,7 +169,7 @@ OPERATOR-05-01 (Manajemen Siklus Monev) tercakup lewat `MON-CYCLE-04` dan
 
 | # | Perkara | Dampak |
 | - | ------- | ------ |
-| baru | Apa arti `can_proceed` secara operasional — ditetapkan reviewer, otomatis saat laporan disubmit, atau manual Operator | `MON-CYCLE-03/04` menguji akibatnya, bukan pemicunya. DDD tidak menyebutkan siapa yang menyetelnya |
-| baru | Apakah target luaran (BR-SM-15) dan luaran realisasi wajib cocok tipenya saat kegiatan selesai | Tidak diatur BR mana pun; kalau LPPM butuh, ini aturan baru — bukan tafsir |
-| baru | Siklus monev yang di-freeze karena WITHDRAWN: bisakah dibuka lagi kalau penarikan dibatalkan | BR-MON-08 dan BR-SM-11 tidak membahas pembatalan penarikan |
+| ~~baru~~ | **Terselesaikan 2026-09-04.** Pertanyaannya salah bentuk — `canProceed()` method, bukan kolom; tidak ada yang menyetelnya. BR-MON-02 diperjelas; register #13 |
+| [#19](../../requirement-analysis/bdd/open-questions.md) | Target luaran dan luaran realisasi wajib cocok tipenya saat kegiatan selesai? | Tidak diatur BR mana pun — kalau LPPM butuh, ini aturan baru, bukan tafsir |
+| [#20](../../requirement-analysis/bdd/open-questions.md) | Siklus monev yang di-freeze bisa dibuka lagi kalau penarikan dibatalkan? | BR-MON-08 dan BR-SM-11 tidak membahas pembatalan penarikan |
 | ~~register #10~~ | **Terselesaikan 2026-09-04.** Monev dikecualikan lewat BR-MON-09; dikunci `[MON-REVIEW-07..09]` |

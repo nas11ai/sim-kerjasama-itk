@@ -127,6 +127,6 @@ lewat skenario akses di M1–M3. Tidak ada aturan bisnis yang khusus milik dashb
 
 | # | Perkara | Dampak |
 | - | ------- | ------ |
-| baru | Daftar lengkap event mana yang "butuh perhatian segera" (in-app + email) versus cukup in-app | `NOT-CHANNEL-01/02` hanya menguji empat event yang disebut eksplisit di DDD. Sisanya belum digolongkan |
-| baru | Aksi apa saja yang wajib masuk audit log | BR-RPT-04 mengatur sifat log-nya, bukan cakupannya. Tanpa daftar, "append-only" menjaga sesuatu yang batasnya belum jelas |
-| baru | Apakah Researcher boleh mengekspor data miliknya sendiri | BR-RPT-02/03 menyebut Operator; wireframe hanya punya OPERATOR-07-02 |
+| [#21](../../requirement-analysis/bdd/open-questions.md) | Daftar lengkap event "butuh perhatian segera" versus cukup in-app | `NOT-CHANNEL-01/02` baru menguji empat event yang disebut eksplisit |
+| [#22](../../requirement-analysis/bdd/open-questions.md) | Aksi apa saja yang wajib masuk audit log | BR-RPT-04 mengatur sifat log, bukan cakupannya — "append-only" menjaga sesuatu yang batasnya belum jelas |
+| [#23](../../requirement-analysis/bdd/open-questions.md) | Researcher boleh mengekspor data miliknya sendiri? | BR-RPT-02/03 menyebut Operator; wireframe hanya punya OPERATOR-07-02 |

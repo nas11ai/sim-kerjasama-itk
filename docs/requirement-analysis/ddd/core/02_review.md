@@ -198,8 +198,8 @@ Tabel `reviewers` menyimpan `reviewer_type varchar` (`internal` / `external`) un
 | BR-REV-02 | Reviewer tidak bisa di-assign ke submission yang ia menjadi `submitted_by` atau `ResearchMember`-nya (mutual block — juga berlaku sebaliknya saat add member) Sisi anggota dinyatakan [BR-SM-08](../core/01_submission.md); pembatasan per-role dinyatakan [BR-IAM-07](../generic/02_identity_access.md). |
 | BR-REV-03 | Reviewer yang sama tidak bisa di-assign dua kali ke submission yang sama dalam satu siklus                                                                    |
 | BR-REV-04 | Jika workload reviewer melebihi `scheme.rules.max_reviewer_workload`, operator mendapat warning — bukan hard block                                            |
-| BR-REV-05 | Submission di-approve **otomatis** jika: semua `evaluation_status = completed` DAN tidak ada ReviewSummary `open`                                             |
-| BR-REV-06 | Submission masuk NEEDS_REVISION **otomatis** jika: semua `evaluation_status = completed` DAN ada ReviewSummary `open`                                         |
+| BR-REV-05 | Submission di-approve **otomatis** jika setiap `SubmissionReviewer` aktif sudah selesai (`evaluation_status` = `completed` **atau** `not_required`) DAN tidak ada ReviewSummary `open`. `not_required` ikut dihitung selesai — kalau tidak, reviewer berstatus itu tidak akan pernah menjadi `completed` dan submission terkunci selamanya |
+| BR-REV-06 | Submission masuk NEEDS_REVISION **otomatis** jika setiap `SubmissionReviewer` aktif sudah selesai (`completed` atau `not_required`) DAN ada ReviewSummary `open`. Definisi "selesai" sama persis dengan BR-REV-05 dan BR-FE-06 — satu definisi, tiga pemakai |
 | BR-REV-07 | Rejection harus dikonfirmasi manual oleh Operator — tidak bisa otomatis                                                                                       |
 | BR-REV-08 | **Cermin [BR-FE-05](../generic/01_form_engine.md).** ReviewFormResponse tidak bisa diedit setelah `status = submitted`                                                                                             |
 | BR-REV-09 | Reviewer hanya aktif selama rentang `start_date` hingga `end_date`                                                                                            |
@@ -208,6 +208,7 @@ Tabel `reviewers` menyimpan `reviewer_type varchar` (`internal` / `external`) un
 | BR-REV-12 | Researcher hanya bisa lihat skor evaluasi reviewer setelah submission berstatus APPROVED atau REJECTED — tidak selama proses review berlangsung Dikecualikan untuk siklus monev oleh [BR-MON-09](../supporting/02_monev.md). |
 | BR-REV-13 | `ReviewSummary.status` hanya boleh `open` atau `resolved`. Tidak ada `closed` — status itu tidak pernah ada di domain ini                                     |
 | BR-REV-14 | Tidak boleh ada jalur kode yang men-transisikan submission ke REJECTED secara otomatis. Satu-satunya jalur masuk adalah Action `RejectSubmission` yang dipanggil Operator dengan alasan wajib |
+| BR-REV-15 | ReviewSummary `open` milik reviewer yang di-`replaced` **diwarisi reviewer penggantinya**, yang berhak me-resolve-nya. Penulis aslinya tetap terbaca dari record lama (BR-REV-10). Tanpa aturan ini summary itu tidak akan pernah bisa ditutup dan submission terkunci di NEEDS_REVISION selamanya — reviewer lama sudah tidak berwenang, reviewer baru tidak merasa berhak |
 
 ---
 

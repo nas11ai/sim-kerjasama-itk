@@ -126,7 +126,7 @@ flowchart TD
 | Kode      | Rule                                                                                                                |
 | --------- | ------------------------------------------------------------------------------------------------------------------- |
 | BR-MON-01 | Monev hanya bisa diakses setelah FormSubmission pengajuan utama berstatus APPROVED                                  |
-| BR-MON-02 | Researcher tidak bisa mengisi Detail berikutnya sebelum `can_proceed = true` dari Detail sebelumnya                 |
+| BR-MON-02 | Researcher tidak bisa mengisi Detail berikutnya sebelum Detail sebelumnya `canProceed()`. **`canProceed()` computed, bukan kolom** — sejajar `isArchived()` (BR-SM-13): ia bernilai true kalau detail itu sudah disubmit DAN, bila `needs_review = true`, evaluasinya selesai tanpa ReviewSummary `open`. Tidak ada yang "menyetel" gerbang ini; ia turunan dari keadaan |
 | BR-MON-03 | Satu parent FormSubmission hanya bisa punya satu child FormSubmission per FormPhaseDetail (per parent, bukan per researcher — satu researcher boleh punya lebih dari satu parent APPROVED sekaligus, lihat BR-SM-01) |
 | BR-MON-04 | Reviewer untuk setiap siklus monev di-assign manual oleh Operator                                                   |
 | BR-MON-05 | **Penerapan [BR-FE-07](../generic/01_form_engine.md) + [BR-FE-08](../generic/01_form_engine.md) pada fase monev.** Setiap FormPhaseDetail monev punya hard deadline — lewat deadline, akses ditutup kecuali ada FormSubmissionOverride. Tidak ada mekanisme deadline kedua |

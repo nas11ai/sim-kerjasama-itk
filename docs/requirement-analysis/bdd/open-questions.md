@@ -6,9 +6,23 @@ produk, baru skenarionya mengunci keputusan itu.
 
 ## Terbuka
 
-_Kosong._ Kelima entri terakhir ditutup 2026-09-04 — lihat tabel **Terselesaikan** di
-bawah. Register ini sengaja dibiarkan hidup: kontradiksi berikutnya akan muncul saat
-skenario Wave 1b mulai ditulis, dan tempatnya di sini.
+Delapan entri di bawah **sebelumnya parkir di berkas milestone** dan tidak pernah
+dinaikkan ke sini — kelalaian pembukuan yang dikoreksi 2026-09-04. Tidak satu pun
+memblokir penulisan skenario M1; semuanya menyangkut milestone berikutnya.
+
+| # | Pertanyaan | Asal | Memblokir |
+| - | ---------- | ---- | --------- |
+| 16 | Apakah wizard boleh dilompati mundur-maju bebas, atau hanya maju berurutan | M1 §2 | `[SM-WIZARD-08]` mengasumsikan maju berurutan |
+| 17 | Apakah user `pending` boleh menyimpan DRAFT, atau hanya dilarang **submit** | M3 §3 | `[IAM-VERIFY-02]` mengasumsikan hanya submit yang diblokir |
+| 18 | Apa yang terjadi pada undangan yang sudah dipakai sebagian saat organisasinya dihapus | M3 §6 | Bersinggungan BR-IAM-06 dan BR-IAM-08 |
+| 19 | Apakah target luaran dan luaran realisasi wajib cocok tipenya saat kegiatan selesai | M4 §5 | Tidak diatur BR mana pun — kalau LPPM butuh, ini aturan baru |
+| 20 | Siklus monev yang di-freeze karena WITHDRAWN: bisa dibuka lagi kalau penarikan dibatalkan? | M4 §3 | BR-MON-08 dan BR-SM-11 tidak membahas pembatalan penarikan |
+| 21 | Daftar lengkap event yang "butuh perhatian segera" (in-app + email) versus cukup in-app | M5 §4 | `[NOT-CHANNEL-01/02]` baru menguji empat event yang disebut eksplisit |
+| 22 | Aksi apa saja yang wajib masuk audit log | M5 §3 | BR-RPT-04 mengatur sifat log, bukan cakupannya |
+| 23 | Apakah Researcher boleh mengekspor data miliknya sendiri | M5 §2 | BR-RPT-02/03 menyebut Operator; wireframe hanya punya OPERATOR-07-02 |
+
+Ketiganya yang **load-bearing** — `canProceed`, `not_required`, dan summary milik
+reviewer yang diganti — sudah diputuskan; lihat #13, #14, #15 di bawah.
 
 ### 9.1 Anggaran melebihi batas skema — UI vs aturan
 
@@ -139,6 +153,9 @@ bukan aturan — jadi tidak perlu BR sendiri.
 | 3 | Enum `SubmissionStatus` frontend 5 nilai vs backend 8 | **Frontend menyusul, bukan backend melunak.** Sisi wireframe sudah ditutup (kedelapan status punya representasi). Enum TypeScript wajib memuat 8 nilai dan **diturunkan dari kontrak Inertia**, bukan didaftar tangan — [ADR 0007](../../adr/0007-inertia-props-as-frontend-contract.md). `[SM-STATE-02]` memakai kedelapannya | 2026-09-04 |
 | 4 | Perilaku user-facing saat index unik BR-SM-01 kena belum ditetapkan | **Dicegat sebelum menyentuh database** — pesan validasi menyebut pengajuan aktif yang sudah ada beserta tautannya, dan **draft tetap DRAFT serta tetap bisa disunting**. Index tetap ada sebagai jaring pengaman lomba-balap, dengan pesan yang sama. Aturannya **BR-SM-16** baru; dikunci `[SM-SUBMIT-15..17]` | 2026-09-04 |
 | 12 | Tidak ada tanggal untuk tahap setelah submit — evaluasi dan revisi memakai ulang `"Batas Submit"` | **Tanggal tetap per periode.** `Batas Evaluasi` dan `Batas Revisi` ditambahkan sebagai label `SubmissionDate` baku; contoh lifecycle dikoreksi. Memakai mesin yang sudah ada, otomatis mewarisi BR-SCH-08, dan keterlambatan individual tetap ditangani override ([ADR 0014](../../adr/0014-time-boxed-access-single-override-mechanism.md)). Aturannya **BR-FE-17**; dikunci `[FE-WINDOW-01..04]` | 2026-09-04 |
+| 13 | Apa arti `can_proceed` secara operasional — siapa yang menyetelnya? | **Pertanyaannya salah bentuk.** `canProceed()` adalah *method* di aggregate, bukan kolom — BR-MON-02 menulisnya `can_proceed = true` seolah kolom. Tidak ada yang menyetelnya: ia turunan keadaan, sejajar `isArchived()`. Bernilai true kalau detail sudah disubmit DAN, bila `needs_review = true`, evaluasinya selesai tanpa summary `open`. BR-MON-02 diperjelas, istilah masuk ubiquitous language; dikunci `[MON-CYCLE-03..05]` | 2026-09-04 |
+| 14 | Apakah `not_required` dihitung "selesai" untuk pemicu BR-REV-05/06 | **Ya — kalau tidak, ia kebuntuan permanen.** BR-REV-05/06 semula menulis "semua `evaluation_status = completed`"; dibaca harfiah, reviewer `not_required` tidak akan pernah menjadi `completed` dan submission terkunci selamanya tanpa ada yang salah. Bunyi keduanya dikoreksi jadi "`completed` atau `not_required`", seragam dengan BR-FE-06 yang sudah begitu sejak awal; dikunci `[REV-OUTCOME-06]` | 2026-09-04 |
+| 15 | Siapa me-resolve `ReviewSummary` kalau reviewer-nya sudah `replaced` | **Reviewer pengganti mewarisinya.** Tanpa aturan ini summary itu tak akan pernah bisa ditutup — reviewer lama tidak berwenang, reviewer baru tidak merasa berhak — dan submission terkunci di NEEDS_REVISION. Penulis asli tetap terbaca dari record lama (BR-REV-10). Aturannya **BR-REV-15** baru; dikunci `[REV-DISCUSS-06]` | 2026-09-04 |
 
 ### 6.1 Arah penelusuran org tree — jejak keputusan
 

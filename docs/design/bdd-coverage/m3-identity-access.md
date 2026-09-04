@@ -171,5 +171,5 @@ skenarionya.
 
 | # | Perkara | Dampak |
 | - | ------- | ------ |
-| baru | Apakah user `pending` boleh menyimpan DRAFT, atau hanya dilarang **submit** | `IAM-VERIFY-02` mengasumsikan hanya submit yang diblokir — konsisten dengan bunyi BR-IAM-04 ("bisa login tapi tidak bisa submit"), tapi belum ditegaskan |
-| baru | Apa yang terjadi pada undangan yang sudah dipakai sebagian saat organisasinya dihapus | Bersinggungan dengan BR-IAM-08 dan BR-IAM-06; tidak diatur di DDD |
+| [#17](../../requirement-analysis/bdd/open-questions.md) | User `pending` boleh menyimpan DRAFT, atau hanya dilarang submit? | `IAM-VERIFY-02` mengasumsikan hanya submit yang diblokir — konsisten dengan bunyi BR-IAM-04, tapi belum ditegaskan |
+| [#18](../../requirement-analysis/bdd/open-questions.md) | Nasib undangan yang sudah dipakai sebagian saat organisasinya dihapus | Bersinggungan BR-IAM-06 dan BR-IAM-08 |

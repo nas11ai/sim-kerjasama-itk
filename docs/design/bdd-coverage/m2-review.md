@@ -1,6 +1,6 @@
 # M2 — Review
 
-**16 BR perilaku · 41 skenario · 7 berkas `.feature`**
+**17 BR perilaku · 42 skenario · 7 berkas `.feature`**
 
 Milestone paling berisiko. Di sinilah kode warisan fork **sudah terbukti bertentangan
 dengan DDD**: auto-reject yang melanggar BR-REV-07 dan BR-REV-14. Skenario di sini
@@ -18,7 +18,7 @@ Sumber: [`core/02_review.md`](../../requirement-analysis/ddd/core/02_review.md),
 | `core/review/assignment.feature` | `REV-ASSIGN-01..09` | BR-REV-01, BR-REV-02, BR-REV-03, BR-REV-04, BR-REV-09 |
 | `core/review/evaluation.feature` | `REV-EVAL-01..06` | BR-REV-08 (≡BR-FE-05), BR-FE-06 |
 | `core/review/outcome.feature` | `REV-OUTCOME-01..08` | BR-REV-05, BR-REV-06, BR-REV-07, BR-REV-14 |
-| `core/review/discussion.feature` | `REV-DISCUSS-01..05` | BR-FE-06, BR-REV-06 |
+| `core/review/discussion.feature` | `REV-DISCUSS-01..06` | BR-FE-06, BR-REV-06, BR-REV-15 |
 | `core/review/reassignment.feature` | `REV-REASSIGN-01..03` | BR-REV-10 |
 | `core/review/visibility.feature` | `REV-VIS-01..06` | BR-REV-11, BR-REV-12 |
 | `generic/form_engine/phase_window.feature` | `FE-WINDOW-01..04` | BR-FE-17 |
@@ -84,9 +84,14 @@ kombinasi yang sama: semua `evaluation_status = completed`, lalu ada/tidaknya
 | `REV-OUTCOME-03` | boundary | Semua `completed` tapi ada summary `open` → **bukan** APPROVED | BR-REV-05 |
 | `REV-OUTCOME-04` | happy | Semua `completed` **dan** ada summary `open` → NEEDS_REVISION otomatis | BR-REV-06 |
 | `REV-OUTCOME-05` | boundary | Summary terakhir berubah `resolved` → APPROVED, bukan NEEDS_REVISION | BR-REV-06 |
-| `REV-OUTCOME-06` | boundary | `evaluation_status = not_required` ikut dihitung sebagai selesai | BR-REV-05 |
+| `REV-OUTCOME-06` | boundary | Reviewer `not_required` ikut dihitung selesai — tanpa ini submission terkunci selamanya | BR-REV-05 |
 | `REV-OUTCOME-07` | happy | Operator menolak lewat aksi eksplisit → REJECTED | BR-REV-07 |
 | `REV-OUTCOME-08` | denial | **Tidak ada** kombinasi evaluasi yang menghasilkan REJECTED tanpa aksi Operator | BR-REV-07 + BR-REV-14 |
+
+`REV-OUTCOME-06` menutup kebuntuan yang tadinya tersembunyi di bunyi aturan: BR-REV-05
+semula menulis "semua `evaluation_status = completed`", dan dibaca harfiah seorang
+reviewer `not_required` tidak akan pernah menjadi `completed` — submission-nya terkunci
+tanpa ada yang salah. Bunyi BR-nya sudah dikoreksi.
 
 `REV-OUTCOME-08` adalah skenario terpenting di milestone ini. Ia menyatakan sebuah
 **ketiadaan** — bahwa tidak ada jalur kode yang men-transisikan submission ke REJECTED
@@ -114,6 +119,7 @@ tidak pernah ada di domain ini (BR-REV-13, non-behavioral).
 | `REV-DISCUSS-03` | happy | Reviewer menandai summary `resolved` setelah revisi memadai | REVIEWER-03-04 |
 | `REV-DISCUSS-04` | denial | Researcher tidak bisa menandai summary-nya sendiri `resolved` | RESEARCHER-02-05 |
 | `REV-DISCUSS-05` | boundary | Semua summary `resolved` memicu evaluasi ulang status submission | REVIEWER-03-04 |
+| `REV-DISCUSS-06` | happy | Summary `open` milik reviewer yang di-`replaced` diwarisi penggantinya, dan pengganti itu yang me-resolve — penulis aslinya tetap terbaca | REVIEWER-03-04 |
 
 `REV-DISCUSS-04` menjaga hal yang mudah terlewat: kalau researcher bisa me-resolve
 sendiri, ia bisa memaksa submission-nya jadi APPROVED tanpa persetujuan reviewer.
@@ -198,5 +204,5 @@ REVIEWER-03-02 (Riwayat Review) tercakup `REV-REASSIGN-02`.
 | # | Perkara | Dampak |
 | - | ------- | ------ |
 | ~~register #2~~ | **Terselesaikan 2026-09-04.** Arahnya tidak pernah jadi pertanyaan — ADR 0006 sudah memutuskannya. Yang tersisa pekerjaan, bukan keputusan: `[REV-OUTCOME-08]` mengunci perilakunya, dan penjagaan struktural (`transitionTo(Rejected::class)` di luar `RejectSubmission` harus nol) dicatat di `non-behavioral.md` |
-| baru | Apakah `not_required` dihitung "selesai" untuk pemicu BR-REV-05/06 | `REV-OUTCOME-06` mengasumsikan ya, mengikuti BR-FE-06 yang menyejajarkan `completed` dan `not_required`. Perlu konfirmasi |
-| baru | Siapa yang boleh me-resolve `ReviewSummary` kalau reviewer-nya sudah `replaced` | `REV-DISCUSS-03` tidak menutup kasus ini |
+| ~~baru~~ | **Terselesaikan 2026-09-04.** Ya — dibaca harfiah, `not_required` mengunci submission selamanya. BR-REV-05/06 dikoreksi; register #14 |
+| ~~baru~~ | **Terselesaikan 2026-09-04.** Diwarisi reviewer pengganti — **BR-REV-15** baru; dikunci `[REV-DISCUSS-06]`; register #15 |

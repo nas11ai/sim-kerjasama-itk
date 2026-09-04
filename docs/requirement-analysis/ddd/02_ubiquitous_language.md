@@ -163,6 +163,11 @@ DRAFT → SUBMITTED → UNDER_REVIEW → NEEDS_REVISION → RESUBMITTED → APPR
 
 > **ARCHIVED** bukan status di DB — ini **computed property** di model. Submission dianggap archived jika `is_submitted = false` (masih DRAFT) DAN period-nya sudah tutup (`SubmissionPeriod.is_force_closed = true` ATAU semua `SubmissionDate` sudah terlewat). Tidak ada kolom atau migration tambahan — logic hidup di `FormSubmission::isArchived(): bool`.
 
+> **Can Proceed** bukan kolom di DB — ini **computed property** di model, sejajar
+> `isArchived()`. Sebuah `FormPhaseDetail` boleh dilanjutkan kalau detail itu sudah
+> disubmit DAN, bila `needs_review = true`, evaluasinya selesai tanpa `ReviewSummary`
+> berstatus `open`. Tidak ada aktor yang menyetelnya — ia turunan keadaan (BR-MON-02).
+
 > **Active Submission** adalah submission yang `status`-nya **bukan** `REJECTED` dan
 > **bukan** `WITHDRAWN` — enam status sisanya, `APPROVED` termasuk. Sebuah pengajuan
 > yang disetujui masih menjadi kegiatan berjalan: laporan monev lahir darinya dan
