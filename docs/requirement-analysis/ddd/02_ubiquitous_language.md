@@ -163,6 +163,18 @@ DRAFT → SUBMITTED → UNDER_REVIEW → NEEDS_REVISION → RESUBMITTED → APPR
 
 > **ARCHIVED** bukan status di DB — ini **computed property** di model. Submission dianggap archived jika `is_submitted = false` (masih DRAFT) DAN period-nya sudah tutup (`SubmissionPeriod.is_force_closed = true` ATAU semua `SubmissionDate` sudah terlewat). Tidak ada kolom atau migration tambahan — logic hidup di `FormSubmission::isArchived(): bool`.
 
+> **Active Submission** adalah submission yang `status`-nya **bukan** `REJECTED` dan
+> **bukan** `WITHDRAWN` — enam status sisanya, `APPROVED` termasuk. Sebuah pengajuan
+> yang disetujui masih menjadi kegiatan berjalan: laporan monev lahir darinya dan
+> skemanya masih memasok `max_budget` serta `duration_months`. "Terminal" pada BR-SM-05
+> berbicara soal *mutabilitas record*, bukan soal kegiatannya sudah selesai — dua
+> pertanyaan berbeda yang kebetulan bersinggungan di APPROVED.
+>
+> Predikat ini **sudah dipakai database**: index unik BR-SM-01 memfilter dengan
+> `status NOT IN ('rejected', 'withdrawn')` ([ADR 0005](../../adr/0005-scheme-selector-writes-to-column.md),
+> `2026_08_17_000003_add_submission_uniqueness_indexes.php`). BR-SCH-01 memakai definisi
+> yang sama persis — satu predikat, bukan dua yang bisa menyimpang.
+
 ---
 
 ## Period Lifecycle

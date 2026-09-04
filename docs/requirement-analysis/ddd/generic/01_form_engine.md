@@ -315,7 +315,7 @@ if ($submission->updated_at->ne($request->last_updated_at)) {
 | Kode     | Rule                                                                                                                      |
 | -------- | ------------------------------------------------------------------------------------------------------------------------- |
 | BR-FE-01 | FormSubmission hanya bisa dibuat selama SubmissionPeriod aktif dan tidak `is_force_closed`                                |
-| BR-FE-02 | User hanya bisa akses Form jika ada FormAccessControl yang match permission user DAN org subtree user                     |
+| BR-FE-02 | User hanya bisa akses Form jika ada FormAccessControl yang match permission user DAN organisasinya merupakan ancestor-or-self dari organisasi user (ADR 0013) |
 | BR-FE-03 | FormFieldResponse hanya menyimpan scalar values                                                                           |
 | BR-FE-04 | Child FormSubmission hanya bisa dibuat jika parent sudah APPROVED                                                         |
 | BR-FE-05 | ReviewFormResponse tidak bisa diedit setelah `status = submitted`                                                         |
@@ -329,6 +329,7 @@ if ($submission->updated_at->ne($request->last_updated_at)) {
 | BR-FE-13 | Saat operator ubah Form yang punya active drafts, sistem prompt untuk kirim notifikasi ke researcher terdampak            |
 | BR-FE-14 | Concurrent edit dicegah via optimistic locking — `updated_at` di request harus match dengan yang di DB                    |
 | BR-FE-15 | Expired FormPhaseDetail tetap tampil di UI sebagai read-only — user bisa lihat apa yang sudah disubmit                    |
+| BR-FE-16 | Researcher bisa melihat *status* FormSubmissionOverride (aktif/expired), tapi tidak boleh melihat `reason` — reason hanya untuk Operator dan Admin |
 
 ---
 

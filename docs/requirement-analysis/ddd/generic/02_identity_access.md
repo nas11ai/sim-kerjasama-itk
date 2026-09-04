@@ -183,27 +183,35 @@ reporting.view-audit-log
 function canAccessForm(User $user, Form $form): bool
 {
     $userPermissions = $user->getAllPermissions()->pluck('name');
-    $userOrgSubtree  = Organization::subtreeIds($user->profile->organization_id);
+    // Form terlihat oleh organisasi tempat ia dipasang DAN semua unit di bawahnya,
+    // jadi yang dicari adalah leluhur organisasi user — bukan keturunannya.
+    // Lihat ADR 0013.
+    $userOrgAncestors = Organization::ancestorIds($user->profile->organization_id);
 
     return FormAccessControl::where('form_id', $form->id)
         ->whereIn('permission', $userPermissions)
-        ->whereIn('organization_id', $userOrgSubtree)
+        ->whereIn('organization_id', $userOrgAncestors)
         ->exists();
 }
 ```
 
-PostgreSQL recursive CTE untuk subtree (bisa di-cache Redis TTL 30 menit):
+PostgreSQL recursive CTE untuk leluhur (bisa di-cache Redis TTL 30 menit):
 
 ```sql
-WITH RECURSIVE org_subtree AS (
-    SELECT id FROM organizations WHERE id = $1
+WITH RECURSIVE org_ancestors AS (
+    SELECT id, parent_id FROM organizations WHERE id = $1
     UNION ALL
-    SELECT o.id FROM organizations o
-    INNER JOIN org_subtree ot ON o.parent_id = ot.id
+    SELECT o.id, o.parent_id FROM organizations o
+    INNER JOIN org_ancestors oa ON o.id = oa.parent_id
     WHERE o.is_active = true
 )
-SELECT id FROM org_subtree;
+SELECT id FROM org_ancestors;
 ```
+
+Penelusuran **naik**, bukan turun. `Organization::subtreeIds()` yang menelusuri turun
+tetap ada dan tetap benar untuk pelaporan agregat ("unit apa saja di bawah saya"),
+tapi ia bukan jawaban untuk access control. Jejak lengkapnya di
+[ADR 0013](../../../adr/0013-form-access-control-matches-ancestor-organizations.md).
 
 ---
 

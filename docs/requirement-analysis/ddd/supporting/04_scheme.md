@@ -168,7 +168,7 @@ classDiagram
 
 | Kode      | Rule                                                                                                                                |
 | --------- | ----------------------------------------------------------------------------------------------------------------------------------- |
-| BR-SCH-01 | Scheme tidak bisa di-deactivate jika ada active Submission yang menggunakannya                                                      |
+| BR-SCH-01 | Scheme tidak bisa di-deactivate jika ada active Submission yang menggunakannya. **Active** = `status NOT IN ('rejected', 'withdrawn')` — APPROVED ikut menghalangi, karena kegiatannya masih berjalan. Predikat yang sama dipakai index unik BR-SM-01 (ADR 0005) |
 | BR-SCH-02 | `max_budget > 0` dan `max_members > 0`                                                                                              |
 | BR-SCH-03 | `code` unik di seluruh sistem                                                                                                       |
 | BR-SCH-04 | Form tidak diwajibkan punya `scheme_selector` field — Scheme sepenuhnya opsional per Form                                           |
@@ -177,6 +177,7 @@ classDiagram
 | BR-SCH-07 | Jika `SubmissionPeriod.is_force_closed = true`, semua FormPhaseDetail di period tersebut di-hard-block terlepas dari SubmissionDate |
 | BR-SCH-08 | Perpanjangan deadline (update SubmissionDate) wajib diikuti notifikasi ke researcher yang punya DRAFT aktif                         |
 | BR-SCH-09 | `scheme_selector` dan `trl_selector` menulis ke `form_submissions.scheme_id` / `.trl_id` — tidak pernah ke `form_field_responses`   |
+| BR-SCH-10 | Scheme dengan `is_active = false` tidak ditawarkan sebagai pilihan pada pengajuan baru; submission yang sudah terlanjur memakainya tidak terpengaruh |
 
 ---
 

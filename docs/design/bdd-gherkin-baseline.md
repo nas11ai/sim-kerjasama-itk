@@ -293,7 +293,7 @@ noise yang menyamarkan skenario asli.
 | BR-RPT-06 | Statistik live query, tanpa cache layer | Keputusan arsitektur |
 | BR-NOT-05 | Unread count di-cache, invalidate saat notif baru | Implementation detail |
 
-**Sisa 92 BR bersifat perilaku** dan mendapat skenario.
+**Sisa 94 BR bersifat perilaku** dan mendapat skenario.
 
 ### Satu BR dipensiunkan, dua menggantikannya
 
@@ -307,6 +307,20 @@ BR-BUD-06 ("SubmissionOuter hanya bisa diubah jika period config mengizinkan") *
 
 Inventaris berubah dari 100 menjadi **101 BR** (100 − 1 + 2), dengan **92** di antaranya
 bersifat perilaku. Wave 1b ikut naik dari 20 ke 21 BR.
+
+### Dua rule ditambahkan saat menutup register
+
+Menutup entri #8 di [`open-questions.md`](../requirement-analysis/bdd/open-questions.md)
+menambah dua BR lagi (2026-09-04). Keduanya aturan yang sejak awal ditegakkan sistem
+tapi tidak pernah dinomori, sehingga skenarionya terpaksa menumpang BR tetangga:
+
+| BR | Rule |
+| -- | ---- |
+| BR-FE-16 | Researcher bisa melihat *status* FormSubmissionOverride, tapi tidak `reason`-nya |
+| BR-SCH-10 | Scheme `is_active = false` tidak ditawarkan sebagai pilihan pengajuan baru |
+
+Inventaris akhir **103 BR**, dengan **94** bersifat perilaku. Keduanya masuk Wave 1a,
+yang karenanya kembali ke 20 BR.
 
 Triase ini adalah **pass awal, bukan final**. Selama penulisan, sebuah BR boleh berpindah
 bucket — tapi perpindahannya wajib disertai alasan tertulis di `non-behavioral.md`.
@@ -329,20 +343,20 @@ untuk direview dengan jujur.
 
 | Wave | Cakupan | BR perilaku | Est. skenario |
 | ---- | ------- | ----------- | ------------- |
-| 1a | M0 · Form Engine + Scheme (platform) | 18 | ~80 |
+| 1a | M0 · Form Engine + Scheme (platform) | 20 | ~80 |
 | 1b | M1 · Submission + Budget | 21 | ~83 |
 | 2 | M2 · Review | 15 | ~55 |
 | 3 | M3 · Identity & Access | 10 | ~40 |
 | 4 | M4 · Monev + Research Output | 15 | ~55 |
 | 5 | M5 · Reporting + Notification + System Config | 13 | ~50 |
-| | **Total** | **92** | **~363** |
+| | **Total** | **94** | **~363** |
 
 BR-FE-05 dan BR-FE-06 pindah dari Wave 1a ke Wave 2: keduanya mengatur
 `ReviewFormResponse` dan `ReviewSummary`, dan saling mengunci dengan BR-REV-06 dan
 BR-REV-08 — menulisnya terpisah berarti menulis separuh aturan tanpa pasangannya.
-Total tetap 92.
+Sebagai gantinya BR-FE-16 dan BR-SCH-10 masuk ke Wave 1a, jadi angkanya kembali ke 20.
 
-**Wave 1a sudah mendarat** (2026-09-04): 18 BR, 53 skenario di 6 berkas `.feature`,
+**Wave 1a sudah mendarat** (2026-09-04): 20 BR, 54 skenario di 6 berkas `.feature`,
 seluruhnya terdaftar di `pending.txt`. Estimasi ~80 skenario terbukti terlalu tinggi —
 `Scenario Outline` menyerap banyak boundary yang semula dihitung sebagai skenario
 terpisah.

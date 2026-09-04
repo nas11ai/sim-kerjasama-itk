@@ -87,8 +87,15 @@ Feature: Skema Penelitian
     When Operator memperpanjang SubmissionDate "Batas Submit" ke "2026-04-01"
     Then tidak ada notifikasi perpanjangan yang terkirim
 
-  @BR-SCH-01 @M0 @boundary
+  @BR-SCH-10 @M0 @boundary
   Scenario: [SCH-RULE-14] Skema tidak aktif tidak bisa dipilih pengajuan baru
     Given skema "DIPA Lama" berstatus tidak aktif
     When Lead Researcher membuka pilihan skema di langkah 3
     Then "DIPA Lama" tidak muncul sebagai pilihan
+
+  @BR-SCH-01 @M0 @denial
+  Scenario: [SCH-RULE-15] Pengajuan yang disetujui masih menghalangi penonaktifan
+    Given skema "DIPA Internal" hanya dipakai submission "P-001" berstatus APPROVED
+    When Admin menonaktifkan skema "DIPA Internal"
+    Then penonaktifan ditolak karena masih ada pengajuan aktif
+    And skema "DIPA Internal" tetap aktif

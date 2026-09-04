@@ -57,3 +57,4 @@ keputusan sama berharganya dengan keputusan itu sendiri.
 | [0010](0010-defer-legacy-data-migration.md)                      | Migrasi data legacy ditunda ke spec terpisah                 | Diterima |
 | [0011](0011-refactoring-vocabulary.md)                           | Kosakata refactoring sebagai standar review                  | Diterima |
 | [0012](0012-wizard-driven-submission-lifecycle.md)               | Siklus pengajuan mengikuti wizard tujuh langkah              | Diterima |
+| [0013](0013-form-access-control-matches-ancestor-organizations.md) | Akses Form ditentukan leluhur organisasi, bukan keturunannya  | Diterima |

@@ -63,7 +63,7 @@ Feature: Deadline dan Override
     When "Sari" membuka fase "Pengajuan"
     Then akses ditolak dengan 403
 
-  @BR-FE-09 @M0 @denial
+  @BR-FE-16 @M0 @denial
   Scenario: [FE-OVERRIDE-09] Researcher tidak bisa melihat alasan override
     Given Operator membuat override untuk "P-001" pada fase "Pengajuan" dengan alasan "Kendala jaringan kampus"
     When "Budi" membuka detail "P-001"
