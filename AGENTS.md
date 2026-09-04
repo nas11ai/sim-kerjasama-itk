@@ -18,6 +18,14 @@ business logic** — di sana ada bounded context, business rule bernomor (BR-XX-
 dan ubiquitous language. Kode harus memakai istilah dari
 [`02_ubiquitous_language.md`](docs/requirement-analysis/ddd/02_ubiquitous_language.md).
 
+Skenario perilaku yang mengikat ada di
+[`docs/requirement-analysis/bdd/`](docs/requirement-analysis/bdd/). Kalau kamu
+mengerjakan sebuah business rule, **cari dulu skenarionya di sana** — itu yang
+menetapkan perilaku yang teramati, sementara DDD menetapkan aturannya. Saat kamu
+mengimplementasikan sebuah skenario, sebut ID-nya di deskripsi test
+(`it('[FE-TEMPORAL-01] ...')`) lalu hapus ID itu dari `pending.txt` dan turunkan
+plafonnya. `pending.txt` dan `uncovered.txt` **hanya boleh menyusut**.
+
 Kalau kamu mengimplementasikan sebuah business rule, **sebut kodenya di komentar**
 (mis. `// BR-SM-04 — hanya submitted_by yang boleh submit`).
 

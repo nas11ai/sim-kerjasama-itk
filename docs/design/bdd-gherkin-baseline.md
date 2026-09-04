@@ -101,7 +101,8 @@ docs/requirement-analysis/bdd/
     │   ├── deadline_override.feature  ← BR-FE-08/09/10/15
     │   ├── access_control.feature     ← BR-FE-02, permission + org subtree
     │   ├── form_changes.feature       ← BR-FE-12/13, soft delete + notifikasi draft
-    │   └── concurrency.feature        ← BR-FE-14, optimistic locking
+    │   ├── concurrency.feature        ← BR-FE-14, optimistic locking
+    │   └── submission_gating.feature  ← BR-FE-04, child hanya dari induk APPROVED
     ├── identity/
     │   ├── registration.feature       ← tiga jalur registrasi
     │   ├── verification.feature       ← NIDN, status pending
@@ -194,8 +195,11 @@ sendiri; ID melekat di Outline-nya.
 
 ## 5. Guard Test
 
-`tests/Feature/BddCoverageTest.php`. Berjalan otomatis di `composer run quality` —
+`tests/Unit/Bdd/BddCoverageTest.php`. Berjalan otomatis di `composer run quality` —
 tanpa runner Gherkin, tanpa step CI baru, tanpa perubahan gate yang sudah ada.
+Ia tinggal di `tests/Unit` dan bukan `tests/Feature` karena `tests/Pest.php`
+memasang `RefreshDatabase` ke seluruh `Feature`; guard ini membaca berkas, bukan
+tabel, sehingga tidak ada alasan menyeret migrasi Postgres setiap kali ia jalan.
 
 ### Delapan assertion
 
@@ -207,8 +211,13 @@ tanpa runner Gherkin, tanpa step CI baru, tanpa perubahan gate yang sudah ada.
 | 4 | Setiap ID skenario muncul di ≥1 test Pest, kecuali terdaftar di `pending.txt` | Spec yang ditulis lalu dilupakan |
 | 5 | Tidak ada entri `pending.txt` yang ternyata sudah diimplementasi | `pending.txt` yang membusuk jadi hiasan |
 | 6 | Tidak ada entri `pending.txt` yang ID-nya tidak ada di `.feature` mana pun | Entri basi setelah skenario di-rename |
-| 7 | **Setiap BR di DDD tercakup ≥1 skenario, atau terdaftar di `non-behavioral.md`** | BR baru ditambah ke DDD tanpa skenario |
+| 7 | **Setiap BR di DDD tercakup ≥1 skenario, atau terdaftar di `non-behavioral.md`, atau di `uncovered.txt`** | BR baru ditambah ke DDD tanpa skenario |
 | 8 | Jumlah entri `pending.txt` tidak melebihi plafon yang dideklarasikan di header file itu | Utang yang diam-diam tumbuh |
+
+`uncovered.txt` adalah kelonggaran sementara untuk BR yang wave-nya belum tiba —
+berplafon dan menyusut dari 92 ke 0. Tanpanya assertion 7 baru bisa dinyalakan
+setelah wave terakhir, dan assertion yang menganggur berbulan-bulan sama saja
+dengan tidak ada.
 
 Assertion 7 adalah yang menutup loop. Tanpanya, DDD bisa tumbuh meninggalkan BDD dan
 tidak ada yang tahu. Dengannya, menambah baris di tabel business rule memaksa penulisnya
@@ -320,13 +329,23 @@ untuk direview dengan jujur.
 
 | Wave | Cakupan | BR perilaku | Est. skenario |
 | ---- | ------- | ----------- | ------------- |
-| 1a | M0 · Form Engine + Scheme (platform) | 20 | ~80 |
+| 1a | M0 · Form Engine + Scheme (platform) | 18 | ~80 |
 | 1b | M1 · Submission + Budget | 21 | ~83 |
-| 2 | M2 · Review | 13 | ~55 |
+| 2 | M2 · Review | 15 | ~55 |
 | 3 | M3 · Identity & Access | 10 | ~40 |
 | 4 | M4 · Monev + Research Output | 15 | ~55 |
 | 5 | M5 · Reporting + Notification + System Config | 13 | ~50 |
 | | **Total** | **92** | **~363** |
+
+BR-FE-05 dan BR-FE-06 pindah dari Wave 1a ke Wave 2: keduanya mengatur
+`ReviewFormResponse` dan `ReviewSummary`, dan saling mengunci dengan BR-REV-06 dan
+BR-REV-08 — menulisnya terpisah berarti menulis separuh aturan tanpa pasangannya.
+Total tetap 92.
+
+**Wave 1a sudah mendarat** (2026-09-04): 18 BR, 53 skenario di 6 berkas `.feature`,
+seluruhnya terdaftar di `pending.txt`. Estimasi ~80 skenario terbukti terlalu tinggi —
+`Scenario Outline` menyerap banyak boundary yang semula dihitung sebagai skenario
+terpisah.
 
 Urutan mengikuti [ADR 0009](../adr/0009-milestone-sequencing-critical-path-first.md),
 bukan urutan nomor BC. Alasannya sama dengan alasan ADR itu sendiri: Form Engine dan
