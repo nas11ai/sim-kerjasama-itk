@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\BudgetComponent;
 use App\Models\BudgetLineItem;
 use App\Models\FormSubmission;
 use App\Models\User;
@@ -17,7 +18,7 @@ function submissionWithStatus(string $stateClass): FormSubmission
         ->create();
 }
 
-test('edit budget line item saat NEEDS_REVISION tercatat di audit trail dengan old dan new', function () {
+test('[BUD-AUDIT-01] edit budget line item saat NEEDS_REVISION tercatat di audit trail dengan old dan new', function () {
     $submission = submissionWithStatus(NeedsRevision::class);
 
     $item = BudgetLineItem::factory()->for($submission)->create([
@@ -72,4 +73,31 @@ test('membuat budget line item baru tidak memicu audit trail', function () {
     BudgetLineItem::factory()->for($submission)->create();
 
     expect(Activity::inLog('budget')->count())->toBe(0);
+});
+
+test('[BUD-AUDIT-02] jejak audit menyimpan pelaku dan waktu perubahan', function () {
+    $owner = User::factory()->create();
+    $submission = FormSubmission::factory()->create([
+        'submitted_by' => $owner->id,
+        'status' => NeedsRevision::class,
+    ]);
+    $component = BudgetComponent::factory()->create(['is_active' => true]);
+    $item = BudgetLineItem::factory()->create([
+        'form_submission_id' => $submission->id,
+        'budget_component_id' => $component->id,
+        'volume' => 1,
+        'unit_price' => 1_000_000,
+        'total' => 1_000_000,
+    ]);
+
+    // causedBy(auth()->user()) di BudgetLineItem::booted() berarti tanpa actingAs
+    // causer_id bernilai null dan assertion di bawah gagal dengan benar.
+    $this->actingAs($owner);
+    $item->update(['unit_price' => 2_000_000, 'total' => 2_000_000]);
+
+    $activity = Activity::inLog('budget')->latest()->first();
+
+    expect($activity)->not->toBeNull()
+        ->and($activity->causer_id)->toBe($owner->id)
+        ->and($activity->created_at)->not->toBeNull();
 });

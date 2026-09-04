@@ -75,6 +75,25 @@ yang skenarionya butuh, jangan menambah varian di antaranya.
 | `Then perubahan tercatat di jejak audit dengan nilai lama dan nilai baru` | Efek audit trail |
 | `Then "<id>" ditandai diarsipkan` | Hasil computed `isArchived()` |
 
+Tabel ketiga adalah hasil **tinjauan Fase B**: frasa yang terbukti dipakai tiga kali
+atau lebih di seluruh korpus `.feature` tapi belum pernah dibakukan. Dimasukkan karena
+sudah terbukti, bukan karena diperkirakan.
+
+| Frasa baku | Dipakai untuk |
+| ---------- | ------------- |
+| `Given submission "<id>" dibuat pada "<datetime>"` | Menetapkan jangkar Temporal Field Binding |
+| `Given FormField "<nama>" dibuat pada "<datetime>" dengan is_required true` | Field wajib beserta saat berlakunya |
+| `Given FormField "<nama>" dibuat pada "<datetime>" dengan is_required false` | Padanannya untuk field opsional |
+| `Given Form "<form>" tidak punya field bertipe scheme_selector` | Form yang memang tanpa skema |
+| `Given periode berjalan aktif dan belum force closed` | Periode masih terbuka |
+| `Given periode berjalan berstatus is_force_closed` | Periode ditutup paksa Operator |
+| `When admin menonaktifkan skema "<skema>"` | Deaktivasi skema |
+| `When lead researcher menyimpan "<id>" dengan last_updated_at "<datetime>"` | Penyimpanan yang menguji optimistic lock |
+| `Then submit berhasil` | Submit diterima — pasangan positif `Then submit ditolak karena <alasan>` |
+| `Then submit ditolak dengan error validasi pada field "<nama>"` | Penolakan submit yang menyebut field-nya |
+| `Then "<id>" muncul di daftar` | Kehadiran baris di daftar |
+| `Then "<id>" tidak muncul di daftar` | Ketidakhadirannya — pasangan negatif |
+
 **Aturannya:** kalau langkah yang kamu butuhkan tidak ada di sini, boleh menambah — tapi
 tambahkan barisnya ke tabel ini dalam PR yang sama. Frasa yang dipakai sekali dan tidak
 pernah lagi adalah tanda skenarionya terlalu spesifik, atau kosakatanya belum ketemu.

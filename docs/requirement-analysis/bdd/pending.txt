@@ -4,10 +4,8 @@
 # hanya boleh TURUN ditegakkan review PR — sama persis pembagian kerja yang
 # berlaku untuk excludePaths di phpstan-strict.neon.
 #
-# max: 116
+# max: 114
 
-BUD-AUDIT-01
-BUD-AUDIT-02
 FE-ACCESS-07
 FE-ACCESS-08
 FE-CHANGE-01
