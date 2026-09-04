@@ -2,17 +2,14 @@
 
 // tests/Feature/SuperAdminSubmitDivergenceTest.php
 //
-// Explicitly-out-of-scope item from the M0 final review: AppServiceProvider's
-// Gate::before() grants Super Admin every ability unconditionally, which
-// contradicts SubmitFormSubmission's own BR-SM-04 enforcement. Fixing that
-// bypass is cross-cutting, predates M0, and has no admin-flow test coverage
-// today — restructuring it in this fix wave is risk without a net (see
-// .github/CODING_STANDARDS.md "Utang yang Diketahui").
+// Register #1 — TERSELESAIKAN 2026-09-04 (ADR 0015).
 //
-// This test does NOT approve the divergence. It only pins today's actual
-// behaviour so a future change (M1, when UI starts consuming the `can`
-// object) is a deliberate decision, not an accidental regression discovered
-// in production.
+// Dulu Gate::before() memberi Super Admin setiap ability tanpa syarat, sementara
+// SubmitFormSubmission menegakkan BR-SM-04 sendiri. Akibatnya UI menampilkan tombol
+// Submit yang dijamin gagal saat ditekan. Sekarang `submit` dan `resubmit` dikecualikan
+// dari bypass, jadi Policy dan Action berkata sama.
+//
+// Test ini kini MENEGAKKAN aturannya, bukan sekadar memotret perilaku.
 
 use App\Actions\FormSubmission\SubmitFormSubmission;
 use App\Models\FormSubmission;
@@ -21,20 +18,46 @@ use App\States\Submission\Draft;
 use Illuminate\Auth\Access\AuthorizationException;
 use Spatie\Permission\Models\Role;
 
-it('documents a known divergence: Policy says Super Admin can submit, the Action refuses a non-owner Super Admin', function () {
+function superAdmin(): User
+{
     Role::findOrCreate('Super Admin');
-
     $admin = User::factory()->create();
     $admin->assignRole('Super Admin');
 
+    return $admin;
+}
+
+it('denies a non-owner Super Admin the submit ability — BR-SM-04 is a domain invariant', function () {
+    $admin = superAdmin();
     $submission = FormSubmission::factory()->create(['status' => Draft::class]);
 
-    // Gate::before() bypass — Policy tidak pernah benar-benar dievaluasi.
-    expect($admin->can('submit', $submission))->toBeTrue();
+    expect($admin->can('submit', $submission))->toBeFalse();
+});
 
-    // SubmitFormSubmission tidak lewat Gate sama sekali — BR-SM-04
-    // ditegakkan langsung di Action, dan Super Admin bukan submitted_by di
-    // sini, jadi Action menolak.
-    expect(fn () => SubmitFormSubmission::run($submission, $admin))
+it('keeps Policy and Action in agreement for a non-owner Super Admin', function () {
+    $admin = superAdmin();
+    $submission = FormSubmission::factory()->create(['status' => Draft::class]);
+
+    expect($admin->can('submit', $submission))->toBeFalse()
+        ->and(fn () => SubmitFormSubmission::run($submission, $admin))
         ->toThrow(AuthorizationException::class);
+});
+
+it('still lets Super Admin bypass abilities that carry no domain invariant', function () {
+    $admin = superAdmin();
+    $submission = FormSubmission::factory()->create(['status' => Draft::class]);
+
+    expect($admin->can('view', $submission))->toBeTrue()
+        ->and($admin->can('update', $submission))->toBeTrue()
+        ->and($admin->can('withdraw', $submission))->toBeTrue();
+});
+
+it('lets the owner submit their own draft', function () {
+    $owner = User::factory()->create();
+    $submission = FormSubmission::factory()->create([
+        'status' => Draft::class,
+        'submitted_by' => $owner->id,
+    ]);
+
+    expect($owner->can('submit', $submission))->toBeTrue();
 });

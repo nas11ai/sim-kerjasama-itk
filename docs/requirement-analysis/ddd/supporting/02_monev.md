@@ -26,7 +26,8 @@ Mengelola siklus monitoring dan evaluasi untuk Submission yang sudah APPROVED. M
 FormPhase: "Penelitian DIPA 2025"
 │
 ├── Detail 1  order=1  Pengajuan          researcher    needs_review=true   deadline="Batas Submit"
-├── Detail 2  order=2  Evaluasi Pengajuan reviewer      ReviewEvaluationForm deadline="Batas Submit"
+│             ← saat status NEEDS_REVISION, detail ini dibuka lagi sampai "Batas Revisi"
+├── Detail 2  order=2  Evaluasi Pengajuan reviewer      ReviewEvaluationForm deadline="Batas Evaluasi"
 │             ← gate: tidak bisa lanjut sebelum semua ReviewSummary resolved
 │
 ├── Detail 3  order=3  Laporan Monev I    researcher    needs_review=true   deadline="Batas Monev I"
@@ -40,6 +41,12 @@ FormPhase: "Penelitian DIPA 2025"
 ```
 
 Semua FormSubmission dalam lifecycle ini terhubung via `parent_submission_id` ke submission pengajuan utama. Tidak ada ambiguitas "monev ini dari pengajuan yang mana."
+
+Perhatikan Detail 1 dan Detail 2 memakai **tanggal yang berbeda**. Keduanya punya aktor
+berbeda — researcher dan reviewer — dan tahapannya berurutan, jadi memakai ulang
+`"Batas Submit"` akan membuat jendela kerja reviewer nol (BR-FE-17). Dengan alasan yang
+sama, revisi membuka kembali Detail 1 sampai `"Batas Revisi"`, bukan sampai batas submit
+yang sudah lewat.
 
 ---
 

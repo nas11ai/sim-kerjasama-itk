@@ -197,6 +197,6 @@ REVIEWER-03-02 (Riwayat Review) tercakup `REV-REASSIGN-02`.
 
 | # | Perkara | Dampak |
 | - | ------- | ------ |
-| register #2 | Auto-reject legacy vs BR-REV-07/14 | ADR 0006 sudah memutuskan arah; `REV-OUTCOME-08` yang menguncinya. Implementasinya berarti **menghapus** jalur legacy, bukan menambah cabang |
+| ~~register #2~~ | **Terselesaikan 2026-09-04.** Arahnya tidak pernah jadi pertanyaan — ADR 0006 sudah memutuskannya. Yang tersisa pekerjaan, bukan keputusan: `[REV-OUTCOME-08]` mengunci perilakunya, dan penjagaan struktural (`transitionTo(Rejected::class)` di luar `RejectSubmission` harus nol) dicatat di `non-behavioral.md` |
 | baru | Apakah `not_required` dihitung "selesai" untuk pemicu BR-REV-05/06 | `REV-OUTCOME-06` mengasumsikan ya, mengikuti BR-FE-06 yang menyejajarkan `completed` dan `not_required`. Perlu konfirmasi |
 | baru | Siapa yang boleh me-resolve `ReviewSummary` kalau reviewer-nya sudah `replaced` | `REV-DISCUSS-03` tidak menutup kasus ini |

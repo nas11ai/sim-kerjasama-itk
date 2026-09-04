@@ -1,6 +1,6 @@
 # M1 — Submission & Budget
 
-**21 BR perilaku · 72 skenario · 10 berkas `.feature`**
+**22 BR perilaku · 77 skenario · 10 berkas `.feature`**
 
 Inti aplikasi. Semua milestone lain menggantung di sini: Review menilai submission,
 Monev lahir dari submission yang APPROVED, Luaran melaporkan hasilnya.
@@ -15,7 +15,7 @@ Sumber: [`core/01_submission.md`](../../requirement-analysis/ddd/core/01_submiss
 | Berkas | Rentang ID | BR |
 | ------ | ---------- | -- |
 | `core/submission/wizard.feature` | `SM-WIZARD-01..09` | BR-SM-03 (parsial), jangkar temporal |
-| `core/submission/submit.feature` | `SM-SUBMIT-01..12` | BR-SM-01, BR-SM-02, BR-SM-04 |
+| `core/submission/submit.feature` | `SM-SUBMIT-01..17` | BR-SM-01, BR-SM-02, BR-SM-04, BR-SM-16 |
 | `core/submission/state.feature` | `SM-STATE-01..05` | BR-SM-03, BR-SM-05 |
 | `core/submission/access.feature` | `SM-ACCESS-01..06` | BR-SM-07 |
 | `core/submission/members.feature` | `SM-MEMBER-01..03` | BR-SM-08 |
@@ -83,9 +83,17 @@ skema sekaligus.
 | `SM-SUBMIT-05` | boundary | Setelah REJECTED, submit ulang ke skema yang sama boleh |
 | `SM-SUBMIT-06` | boundary | Submission tanpa skema tidak saling menghalangi |
 
-> **Terblokir register #4.** Perilaku yang dilihat researcher saat constraint database
-> kena — pesan apa, draft-nya jadi apa — belum ditetapkan di sumber mana pun. Skenario
-> untuk itu **belum dialokasikan ID** dan menunggu keputusan. Menuliskannya sekarang
+### Saat keunikan dilanggar — BR-SM-16
+
+| ID | Kelas | Yang dibuktikan |
+| -- | ----- | --------------- |
+| `SM-SUBMIT-15` | denial | Submit kedua ditolak dengan pesan validasi yang **menyebut pengajuan aktif yang sudah ada** beserta tautannya — bukan galat database mentah |
+| `SM-SUBMIT-16` | boundary | Draft yang gagal disubmit **tetap DRAFT dan tetap bisa disunting** — tidak dihapus, tidak berubah status |
+| `SM-SUBMIT-17` | boundary | Kalau index database yang menangkap lebih dulu (lomba-balap dua tab), pesannya sama seperti `SM-SUBMIT-15` |
+
+`SM-SUBMIT-16` menutup pertanyaan yang paling menyakitkan bagi penggunanya: pekerjaan
+mereka tidak hilang. `SM-SUBMIT-17` menjaga jaring pengaman database tetap ada tanpa
+memuntahkan galat teknis ke layar. Menuliskannya sekarang
 > berarti mengarang perilaku produk.
 
 ### BR-SM-02 — proposal PDF wajib
@@ -104,10 +112,15 @@ skema sekaligus.
 | `SM-SUBMIT-11` | denial | Member submit ditolak | RESEARCHER-02-03 |
 | `SM-SUBMIT-12` | happy | `submitted_by` resubmit dari NEEDS_REVISION | RESEARCHER-02-05 |
 
-> **Terblokir register #1.** `Gate::before` memberi Super Admin keempat ability
-> `FormSubmissionPolicy` tanpa syarat, sementara `SubmitFormSubmission::run()`
-> menegakkan BR-SM-04 sendiri. Skenario Super Admin **belum dialokasikan ID** sampai
-> divergensi itu diputuskan.
+| `SM-SUBMIT-13` | denial | Super Admin yang bukan `submitted_by` **tidak bisa** submit — Policy dan Action berkata sama |
+| `SM-SUBMIT-14` | happy | Super Admin tetap bisa melihat, menyunting, dan menarik submission orang lain |
+
+`SM-SUBMIT-13` mengunci [ADR 0015](../../adr/0015-gate-before-never-bypasses-domain-invariants.md):
+submit adalah tindakan `submitted_by` mengikat dirinya sendiri, jadi ia invarian domain —
+bukan kewenangan yang bisa dilewati. Kalau admin memang harus mengajukan untuk orang
+lain, jalurnya transfer kepemilikan (`[SM-OWNER-01]`), yang membuat `submitted_by` tetap
+jujur. `SM-SUBMIT-14` menjaga pengecualian ini tetap sempit — ability lain tetap
+di-bypass.
 
 ---
 
@@ -282,7 +295,7 @@ dan M2 — keduanya bukan aturan Submission.
 
 | # | Perkara | Dampak |
 | - | ------- | ------ |
-| register #1 | Divergensi Super Admin vs BR-SM-04 | Skenario Super Admin belum dialokasikan ID |
-| register #3 | Enum status frontend 5 vs backend 8 | `SM-STATE-02` memakai 8; frontend harus menyusul |
-| register #4 | Perilaku user-facing saat constraint BR-SM-01 kena | Satu skenario belum dialokasikan ID |
+| ~~register #1~~ | **Terselesaikan 2026-09-04** — ADR 0015; dikunci `[SM-SUBMIT-13/14]` |
+| ~~register #3~~ | **Terselesaikan 2026-09-04** — enum frontend wajib memuat 8 nilai dan diturunkan dari kontrak Inertia (ADR 0007) |
+| ~~register #4~~ | **Terselesaikan 2026-09-04** — BR-SM-16; dikunci `[SM-SUBMIT-15..17]` |
 | baru | Apakah wizard boleh dilompati mundur-maju bebas | `SM-WIZARD-08` mengasumsikan maju berurutan |

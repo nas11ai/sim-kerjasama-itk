@@ -6,13 +6,9 @@ produk, baru skenarionya mengunci keputusan itu.
 
 ## Terbuka
 
-| # | Kontradiksi | Sumber | Memblokir |
-| - | ----------- | ------ | --------- |
-| 1 | `Gate::before` memberi Super Admin keempat ability `FormSubmissionPolicy` tanpa syarat, sementara `SubmitFormSubmission::run()` menegakkan BR-SM-04 sendiri | `SuperAdminSubmitDivergenceTest` mendokumentasikan tanpa menyetujui | Wave 1b |
-| 2 | Auto-reject di kode warisan fork vs BR-REV-07/BR-REV-14 | ADR 0006 sudah memutuskan arah; skenario harus menguncinya | Wave 2 |
-| 3 | Enum `SubmissionStatus` frontend 5 nilai vs state backend 8 nilai. **Sisi wireframe sudah ditutup** (2026-09-04): kedelapan status kini punya representasi, `REJECTED` bahkan punya halaman detail sendiri. Yang tersisa murni utang kode frontend | CODING_STANDARDS | Wave 1b |
-| 4 | BR-SM-01 ditegakkan unique index parsial — perilaku user-facing saat constraint violation belum ditetapkan | Tidak terdefinisi di sumber mana pun | Wave 1b |
-| 12 | **Tidak ada tanggal untuk tahap setelah submit.** Evaluasi reviewer dan revisi memakai ulang `"Batas Submit"`, sehingga jendela kerjanya nol. Lihat §12.1 | Lifecycle `supporting/02_monev.md` vs BR-FE-08, BR-BUD-03 | Konfigurasi periode + implementasi BR-FE-08 (M1/M2) |
+_Kosong._ Kelima entri terakhir ditutup 2026-09-04 — lihat tabel **Terselesaikan** di
+bawah. Register ini sengaja dibiarkan hidup: kontradiksi berikutnya akan muncul saat
+skenario Wave 1b mulai ditulis, dan tempatnya di sini.
 
 ### 9.1 Anggaran melebihi batas skema — UI vs aturan
 
@@ -105,8 +101,7 @@ aktor detail itu sendiri, dan setiap tahap setelah submit wajib punya `Submissio
 sendiri. Modelnya sudah mendukung — BR-FE-07 mewajibkan tiap detail punya
 `submission_date_id`; yang keliru hanya contohnya.
 
-**Yang belum diputuskan: berapa lama jendelanya.** Ini kebijakan LPPM, bukan turunan
-aturan. Tiga pilihan:
+**Keputusan (2026-09-04): tanggal tetap per periode.** Tiga pilihan yang ditimbang:
 
 | Opsi | Bentuk | Konsekuensi |
 | ---- | ------ | ----------- |
@@ -114,11 +109,18 @@ aturan. Tiga pilihan:
 | Relatif per pengajuan | "14 hari sejak status NEEDS_REVISION" | Adil bagi yang direview belakangan, tapi butuh tanggal per-submission — mekanisme baru |
 | Tanpa batas, ditutup Operator | Revisi terbuka sampai Operator menutup periode | Paling luwes, tapi menghilangkan tekanan tenggat dan menggantungkan penutupan pada ingatan Operator |
 
-Rekomendasi: **opsi pertama**. Ia memakai `SubmissionDate` yang sudah ada, otomatis
-mewarisi BR-SCH-08 (perpanjangan wajib memberi tahu), dan keterlambatan individual tetap
-bisa ditangani `FormSubmissionOverride` — persis pembagian kerja yang ditetapkan
+**Opsi pertama dipilih.** Ia memakai `SubmissionDate` yang sudah ada, otomatis mewarisi
+BR-SCH-08 (perpanjangan wajib memberi tahu pemilik draft), dan keterlambatan individual
+tetap ditangani `FormSubmissionOverride` — persis pembagian kerja yang ditetapkan
 [ADR 0014](../../adr/0014-time-boxed-access-single-override-mechanism.md). Opsi kedua
-menambah mekanisme waktu keempat, yang justru dilarang ADR itu.
+ditolak karena menambah mekanisme waktu keempat, yang justru dilarang ADR itu; opsi
+ketiga ditolak karena menggantungkan penutupan periode pada ingatan Operator.
+
+`Batas Evaluasi` dan `Batas Revisi` kini terdaftar sebagai label `SubmissionDate` baku di
+[`02_ubiquitous_language.md`](../ddd/02_ubiquitous_language.md), dan contoh lifecycle di
+[`supporting/02_monev.md`](../ddd/supporting/02_monev.md) sudah dikoreksi supaya tidak
+menularkan kekeliruan yang sama. Berapa panjang tiap jendela adalah konfigurasi periode —
+bukan aturan — jadi tidak perlu BR sendiri.
 
 
 ## Terselesaikan
@@ -132,6 +134,11 @@ menambah mekanisme waktu keempat, yang justru dilarang ADR itu.
 | 9 | Wireframe membolehkan submit dengan anggaran melebihi batas skema | **Aturan menang, UI menyesuaikan.** BR-BUD-01 tetap batas keras; kalimat "tetap dapat melanjutkan submit" di `RESEARCHER-02-04` diganti pernyataan penolakan. Dikunci `[BUD-LIMIT-01]`. Jejak: [gap-closure §5](../../design/gap-closure.md) | 2026-09-04 |
 | 10 | Apakah BR-REV-12 berlaku untuk siklus monev | **Monev dikecualikan eksplisit** lewat BR-MON-09 baru — hasil evaluasi terlihat begitu reviewer submit, karena monev bersifat formatif. Pengecualian dijaga tetap sempit oleh `[MON-REVIEW-09]`. Jejak: [gap-closure §6](../../design/gap-closure.md) | 2026-09-04 |
 | 11 | Lima kebutuhan bisnis belum punya layar sama sekali | **Delapan frame baru dibuat** (57 → 65): wizard langkah 2/3/4/6/7, Target Luaran, Notifikasi, dan detail pengajuan ditolak. Target luaran ditempatkan di langkah 3 karena pilihannya dibatasi skema. Jejak: [gap-closure](../../design/gap-closure.md) | 2026-09-04 |
+| 1 | `Gate::before` memberi Super Admin setiap ability tanpa syarat, sementara Action menegakkan BR-SM-04 — UI menampilkan tombol Submit yang dijamin gagal | **Invarian domain tidak pernah dilewati.** `submit`/`resubmit` dikecualikan dari bypass lewat konstanta `INVARIANT_ABILITIES`; ability lain tetap di-bypass. Admin yang harus mengajukan untuk orang lain memakai transfer kepemilikan. [ADR 0015](../../adr/0015-gate-before-never-bypasses-domain-invariants.md); dikunci `[SM-SUBMIT-13/14]` | 2026-09-04 |
+| 2 | Auto-reject di kode warisan fork vs BR-REV-07/BR-REV-14 | **Bukan pertanyaan — arahnya sudah diputuskan [ADR 0006](../../adr/0006-rejection-is-manual-only.md).** Yang tersisa pekerjaan: `[REV-OUTCOME-08]` mengunci perilakunya, ditambah penjagaan struktural (`transitionTo(Rejected::class)` di luar `RejectSubmission` harus nol) yang dicatat di `non-behavioral.md` | 2026-09-04 |
+| 3 | Enum `SubmissionStatus` frontend 5 nilai vs backend 8 | **Frontend menyusul, bukan backend melunak.** Sisi wireframe sudah ditutup (kedelapan status punya representasi). Enum TypeScript wajib memuat 8 nilai dan **diturunkan dari kontrak Inertia**, bukan didaftar tangan — [ADR 0007](../../adr/0007-inertia-props-as-frontend-contract.md). `[SM-STATE-02]` memakai kedelapannya | 2026-09-04 |
+| 4 | Perilaku user-facing saat index unik BR-SM-01 kena belum ditetapkan | **Dicegat sebelum menyentuh database** — pesan validasi menyebut pengajuan aktif yang sudah ada beserta tautannya, dan **draft tetap DRAFT serta tetap bisa disunting**. Index tetap ada sebagai jaring pengaman lomba-balap, dengan pesan yang sama. Aturannya **BR-SM-16** baru; dikunci `[SM-SUBMIT-15..17]` | 2026-09-04 |
+| 12 | Tidak ada tanggal untuk tahap setelah submit — evaluasi dan revisi memakai ulang `"Batas Submit"` | **Tanggal tetap per periode.** `Batas Evaluasi` dan `Batas Revisi` ditambahkan sebagai label `SubmissionDate` baku; contoh lifecycle dikoreksi. Memakai mesin yang sudah ada, otomatis mewarisi BR-SCH-08, dan keterlambatan individual tetap ditangani override ([ADR 0014](../../adr/0014-time-boxed-access-single-override-mechanism.md)). Aturannya **BR-FE-17**; dikunci `[FE-WINDOW-01..04]` | 2026-09-04 |
 
 ### 6.1 Arah penelusuran org tree — jejak keputusan
 

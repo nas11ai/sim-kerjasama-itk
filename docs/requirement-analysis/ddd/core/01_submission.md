@@ -253,6 +253,7 @@ classDiagram
 | BR-SM-13 | `isArchived()` adalah computed property — bukan status di DB. DRAFT dianggap archived jika `is_submitted = false` DAN period sudah tutup (`is_force_closed = true` ATAU semua SubmissionDate sudah terlewat). Archived submission tampil read-only |
 | BR-SM-14 | Target luaran hanya boleh dari `output_type` yang terdaftar di `output_type_definitions`. Jika submission punya scheme, pilihan dibatasi lagi oleh `scheme.rules.allowed_output_types`; scheme tanpa key itu tidak membatasi apa pun |
 | BR-SM-15 | Target luaran bisa diubah sampai submission REJECTED atau WITHDRAWN — termasuk setelah APPROVED, karena target menyesuaikan jalannya kegiatan. Hanya `submitted_by` yang boleh mengubahnya, dan setiap perubahan setelah APPROVED wajib tercatat di audit trail dengan nilai lama dan baru |
+| BR-SM-16 | Pelanggaran BR-SM-01 dicegat **sebelum** menyentuh database: submit ditolak dengan pesan validasi yang menyebut pengajuan aktif yang sudah ada beserta tautannya. Draft yang gagal disubmit **tetap DRAFT dan tetap bisa disunting** — tidak dihapus, tidak diubah statusnya. Index unik parsial tetap ada sebagai jaring pengaman untuk lomba-balap; kalau ia yang menangkap, pesannya sama, bukan galat database mentah |
 
 ---
 

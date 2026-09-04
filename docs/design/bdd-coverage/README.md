@@ -5,7 +5,7 @@
 **Status:** Menunggu review
 
 Spec ini menetapkan **skenario apa saja yang harus ada** supaya seluruh kebutuhan
-bisnis SIMPAS v2 terbukti benar — 77 business rule perilaku yang tersisa setelah
+bisnis SIMPAS v2 terbukti benar — 78 business rule perilaku yang tersisa setelah
 Wave 1a mendarat, dipetakan ke 65 frame wireframe.
 
 Ini **bukan** implementation plan. Ia menjawab "apa yang harus terbukti", bukan
@@ -26,12 +26,12 @@ wireframe `simpas-wireframe` (65 frame).
 
 | Milestone | Spec | BR | Berkas | Skenario |
 | --------- | ---- | -- | ------ | -------- |
-| M1 · Submission + Budget | [`m1-submission-budget.md`](m1-submission-budget.md) | 21 | 10 | 72 |
+| M1 · Submission + Budget | [`m1-submission-budget.md`](m1-submission-budget.md) | 22 | 10 | 77 |
 | M2 · Review | [`m2-review.md`](m2-review.md) | 16 | 7 | 41 |
 | M3 · Identity & Access | [`m3-identity-access.md`](m3-identity-access.md) | 10 | 6 | 25 |
 | M4 · Monev + Research Output | [`m4-monev-research-output.md`](m4-monev-research-output.md) | 17 | 2 | 36 |
 | M5 · Reporting + Notification + Config | [`m5-reporting-notification-config.md`](m5-reporting-notification-config.md) | 13 | 4 | 22 |
-| | **Total** | **77** | **29** | **196** |
+| | **Total** | **78** | **29** | **201** |
 
 Angka skenario di atas **bukan estimasi** — setiap ID sudah dialokasikan satu per satu
 di berkas milestone masing-masing, lengkap dengan kelas tag dan BR yang dibuktikannya.
@@ -39,7 +39,7 @@ Totalnya lebih rendah dari perkiraan baseline (~310) karena `Scenario Outline` m
 banyak boundary yang semula dihitung satu-satu — pola yang sudah terbukti di Wave 1a
 (53 skenario nyata vs ~80 perkiraan).
 
-Dengan 54 skenario Wave 1a, inventaris akhir **250 skenario untuk 99 BR perilaku**.
+Dengan 54 skenario Wave 1a, inventaris akhir **255 skenario untuk 100 BR perilaku**.
 
 ---
 
@@ -253,9 +253,9 @@ Sama dengan baseline §9, ditambah dua yang lahir dari pengalaman Wave 1a:
 
 | # | Risiko | Terlihat di |
 | - | ------ | ----------- |
-| 1 | Empat entri register masih terbuka dan **memblokir** sebagian M1/M2 | `open-questions.md` #1–#4 |
-| 2 | `SubmissionStatus` frontend 5 nilai vs backend 8 nilai — skenario M1 memakai 8 | register #3 |
-| 3 | Perilaku user-facing saat BR-SM-01 kena constraint violation belum ditetapkan | register #4 |
+| ~~1~~ | ~~Entri register terbuka memblokir sebagian M1/M2~~ — **register kosong** sejak 2026-09-04; kedua belas entri terselesaikan | `open-questions.md` |
+| ~~2~~ | ~~`SubmissionStatus` frontend 5 vs backend 8~~ — **diputuskan**: frontend menyusul, diturunkan dari kontrak Inertia | register #3 |
+| ~~3~~ | ~~Perilaku saat BR-SM-01 kena constraint~~ — **BR-SM-16** menetapkannya | register #4 |
 | 4 | Auto-reject legacy masih hidup di `ReviewController` dan melanggar BR-REV-07 — skenario M2 sengaja menguncinya sebagai perilaku yang **dilarang** | ADR 0006, baseline §8 |
 | 5 | `SubmissionViewController` (~1000 baris) dan `ReviewController` (~780 baris) menampung logic M1/M2 | AGENTS.md — pakai strangler, ADR 0008 |
 | ~~6~~ | ~~Lima kebutuhan bisnis belum punya layar~~ — **ditutup** 2026-09-04, 8 frame baru | §6, register #11 |
