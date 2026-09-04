@@ -235,13 +235,10 @@ class SubmissionViewController extends Controller
     {
         $user = Auth::user();
 
-        // Check permission
-        $canView = $submission->submitted_by === $user->id ||
-            $this->canUserReview($submission, $user);
-
-        if (!$canView) {
-            abort(403, 'Akses tidak sah terhadap pengajuan.');
-        }
+        // BR-SM-07 — akses level submission adalah lapis terpisah dari
+        // FormAccessControl. Cek buatan sendiri di sini dulu melewatkan anggota
+        // penelitian dan pemegang submissions.view-all.
+        abort_unless($submission->isAccessibleBy($user), 403, 'Akses tidak sah terhadap pengajuan.');
 
         // Load submission with relationships
         $submission->load([
