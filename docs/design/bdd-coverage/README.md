@@ -26,12 +26,12 @@ wireframe `simpas-wireframe` (65 frame).
 
 | Milestone | Spec | BR | Berkas | Skenario |
 | --------- | ---- | -- | ------ | -------- |
-| M1 · Submission + Budget | [`m1-submission-budget.md`](m1-submission-budget.md) | 23 | 10 | 80 |
+| M1 · Submission + Budget | [`m1-submission-budget.md`](m1-submission-budget.md) | 23 | 10 | 82 |
 | M2 · Review | [`m2-review.md`](m2-review.md) | 17 | 7 | 42 |
 | M3 · Identity & Access | [`m3-identity-access.md`](m3-identity-access.md) | 10 | 6 | 27 |
 | M4 · Monev + Research Output | [`m4-monev-research-output.md`](m4-monev-research-output.md) | 17 | 2 | 37 |
 | M5 · Reporting + Notification + Config | [`m5-reporting-notification-config.md`](m5-reporting-notification-config.md) | 16 | 4 | 28 |
-| | **Total** | **83** | **29** | **215** |
+| | **Total** | **83** | **29** | **217** |
 
 Angka skenario di atas **bukan estimasi** — setiap ID sudah dialokasikan satu per satu
 di berkas milestone masing-masing, lengkap dengan kelas tag dan BR yang dibuktikannya.
@@ -39,7 +39,21 @@ Totalnya lebih rendah dari perkiraan baseline (~310) karena `Scenario Outline` m
 banyak boundary yang semula dihitung satu-satu — pola yang sudah terbukti di Wave 1a
 (53 skenario nyata vs ~80 perkiraan).
 
-Dengan 54 skenario Wave 1a, inventaris akhir **269 skenario untuk 105 BR perilaku**.
+Dengan 54 skenario Wave 1a, inventaris akhir **271 skenario untuk 105 BR perilaku**.
+
+M1 naik dari 80 ke 82 saat register #24 ditutup: `[BUD-LOCK-03]` dan `[BUD-WHO-04]`
+mengunci perilaku Super Admin di sumbu keadaan dan sumbu siapa.
+
+### Spec irisan implementasi
+
+Berkas milestone di atas menetapkan **skenario apa** yang ada. Saat sebuah irisan
+dikerjakan, spec terpisah menetapkan **di lapis mana** tiap skenario dibuktikan dan di
+mana batas strangler ditarik:
+
+| Irisan | Spec | Skenario | Ledger |
+| ------ | ---- | -------- | ------ |
+| M1 · Budget (selesai) | bagian §Budget di [`m1-submission-budget.md`](m1-submission-budget.md) | 14 | 128 → 114 |
+| M1 · HTTP: Submit, State, Access | [`m1-http-slice.md`](m1-http-slice.md) | 27 | 114 → 87 |
 
 ---
 
