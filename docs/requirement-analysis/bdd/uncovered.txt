@@ -3,7 +3,7 @@
 #
 # BR yang bukan perilaku TIDAK ditulis di sini — tempatnya non-behavioral.md.
 #
-# max: 74
+# max: 72
 BR-BUD-01
 BR-BUD-02
 BR-BUD-03
@@ -20,7 +20,6 @@ BR-IAM-05
 BR-IAM-06
 BR-IAM-07
 BR-IAM-08
-BR-IAM-09
 BR-IAM-10
 BR-MON-01
 BR-MON-02
@@ -74,7 +73,6 @@ BR-SM-08
 BR-SM-09
 BR-SM-10
 BR-SM-11
-BR-SM-12
 BR-SM-13
 BR-SM-14
 BR-SM-15

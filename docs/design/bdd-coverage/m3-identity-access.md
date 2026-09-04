@@ -1,6 +1,6 @@
 # M3 — Identity & Access
 
-**10 BR perilaku · 22 skenario · 5 berkas `.feature`**
+**9 BR perilaku · 22 skenario · 5 berkas `.feature`**
 
 Gerbang masuk sistem: tiga jalur registrasi, verifikasi NIDN, permission additive, dan
 deaktivasi yang tidak boleh meninggalkan submission yatim.
@@ -21,12 +21,17 @@ Sumber: [`generic/02_identity_access.md`](../../requirement-analysis/ddd/generic
 
 Semua skenario bertag `@M3`.
 
-Dua BR **tidak** melahirkan berkas sendiri:
+Tiga BR **tidak** melahirkan berkas sendiri:
 
-- **BR-IAM-10 ≡ BR-SM-09** — dibuktikan `[SM-OWNER-01..04]` di M1, bertag keduanya.
-- **BR-IAM-07 ⊂ BR-REV-02** — dibuktikan `[REV-ASSIGN-07]` di M2, bertag keduanya.
+- **BR-IAM-10** — kanonik untuk transfer ownership; dibuktikan `[SM-OWNER-01..04]` di M1,
+  bertag bersama cerminnya BR-SM-09.
+- **BR-IAM-07** — bagian dari BR-REV-02; dibuktikan `[REV-ASSIGN-07]` di M2.
+- **BR-IAM-09** — sudah lunas sejak Wave 1a lewat `[FE-ACCESS-06]`. Ia tetap muncul di
+  tabel berkas di bawah karena `IAM-PERM-01..03` memperdalam kasusnya, bukan
+  membuktikannya pertama kali.
 
-Menulis ulang keduanya di sini berarti dua implementasi untuk satu aturan.
+Menulis ulang ketiganya sebagai aturan tersendiri berarti dua implementasi untuk satu
+aturan.
 
 ---
 

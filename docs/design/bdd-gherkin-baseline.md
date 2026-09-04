@@ -201,7 +201,7 @@ Ia tinggal di `tests/Unit` dan bukan `tests/Feature` karena `tests/Pest.php`
 memasang `RefreshDatabase` ke seluruh `Feature`; guard ini membaca berkas, bukan
 tabel, sehingga tidak ada alasan menyeret migrasi Postgres setiap kali ia jalan.
 
-### Delapan assertion
+### Sembilan assertion
 
 | # | Assertion | Menangkap |
 | - | --------- | --------- |
@@ -213,9 +213,14 @@ tabel, sehingga tidak ada alasan menyeret migrasi Postgres setiap kali ia jalan.
 | 6 | Tidak ada entri `pending.txt` yang ID-nya tidak ada di `.feature` mana pun | Entri basi setelah skenario di-rename |
 | 7 | **Setiap BR di DDD tercakup ≥1 skenario, atau terdaftar di `non-behavioral.md`, atau di `uncovered.txt`** | BR baru ditambah ke DDD tanpa skenario |
 | 8 | Jumlah entri `pending.txt` tidak melebihi plafon yang dideklarasikan di header file itu | Utang yang diam-diam tumbuh |
+| 9 | Tidak ada BR di `uncovered.txt` yang ternyata sudah punya skenario | Daftar utang yang membusuk jadi hiasan |
 
 `uncovered.txt` adalah kelonggaran sementara untuk BR yang wave-nya belum tiba —
-berplafon dan menyusut dari 92 ke 0. Tanpanya assertion 7 baru bisa dinyalakan
+berplafon dan menyusut ke 0. Assertion 9 menjaganya tetap jujur: begitu sebuah BR
+punya skenario, ia **wajib** keluar dari daftar utang. Tanpa itu assertion 7 tidak
+pernah protes, karena ia menerima gabungan tercakup ∪ non-behavioral ∪ uncovered —
+celah yang sempat membuat BR-IAM-09 tercatat sebagai utang padahal `[FE-ACCESS-06]`
+sudah membuktikannya. Tanpanya assertion 7 baru bisa dinyalakan
 setelah wave terakhir, dan assertion yang menganggur berbulan-bulan sama saja
 dengan tidak ada.
 

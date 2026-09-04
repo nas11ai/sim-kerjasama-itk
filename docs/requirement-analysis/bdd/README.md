@@ -24,7 +24,7 @@ Spesifikasi perilaku sistem dalam format Gherkin. Berdampingan dengan `../ddd/`
 
 1. Tulis skenario di file `.feature` yang temanya cocok. Kalau file melewati ~25 skenario, temanya dua — pecah.
 2. Tambahkan ID-nya ke `pending.txt` dan naikkan `# max:` di sana.
-3. Kalau ini skenario pertama untuk sebuah BR, hapus BR itu dari `uncovered.txt` dan turunkan `# max:`-nya.
+3. Kalau ini skenario pertama untuk sebuah BR, hapus BR itu dari `uncovered.txt` dan turunkan `# max:`-nya. Assertion 9 menolak BR yang sudah punya skenario tapi masih tercatat di sana.
 4. Jalankan `composer run quality`.
 
 Saat test Pest-nya ditulis, sebutkan ID di deskripsi test:

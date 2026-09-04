@@ -187,3 +187,25 @@ it('assertion 8 — kedua daftar utang tidak melewati plafonnya', function () {
         'uncovered.txt melewati plafon'
     );
 });
+
+// Padanan assertion 5 untuk uncovered.txt. Tanpa ini, sebuah BR bisa sudah punya
+// skenario TAPI tetap tercatat sebagai utang selamanya — assertion 7 memakai gabungan
+// (covered ∪ non-behavioral ∪ uncovered), jadi ia tidak pernah protes. Persis begitu
+// BR-IAM-09 sempat membusuk di daftar padahal [FE-ACCESS-06] sudah membuktikannya.
+it('assertion 9 — uncovered.txt tidak memuat BR yang sudah punya skenario', function () {
+    $covered = [];
+
+    foreach (bddScenarios() as $scenario) {
+        foreach ($scenario->businessRules as $code) {
+            $covered[$code] = true;
+        }
+    }
+
+    $stale = array_values(array_intersect(bddUncovered()->entries(), array_keys($covered)));
+
+    expect($stale)->toBe(
+        [],
+        'BR ini sudah dibuktikan skenario tapi masih tercatat di uncovered.txt: '
+            .implode(', ', $stale)."\nHapus dari uncovered.txt dan turunkan \"# max:\"-nya."
+    );
+});

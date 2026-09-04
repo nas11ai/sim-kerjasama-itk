@@ -1,6 +1,6 @@
 # M1 — Submission & Budget
 
-**21 BR perilaku · 68 skenario · 10 berkas `.feature`**
+**20 BR perilaku · 68 skenario · 10 berkas `.feature`**
 
 Inti aplikasi. Semua milestone lain menggantung di sini: Review menilai submission,
 Monev lahir dari submission yang APPROVED, Luaran melaporkan hasilnya.
@@ -26,6 +26,11 @@ Sumber: [`core/01_submission.md`](../../requirement-analysis/ddd/core/01_submiss
 | `supporting/budget.feature` | `BUD-LIMIT/LOCK/ITEM/AUDIT` | BR-BUD-01, BR-BUD-02, BR-BUD-03, BR-BUD-04, BR-BUD-05, BR-BUD-08 (+BR-SM-06) |
 
 Semua skenario bertag `@M1`.
+
+**BR-SM-12 tidak muncul di tabel** karena ia cermin BR-FE-14 dan sudah dibuktikan
+`[FE-LOCK-01..04]` di Wave 1a — keempat skenario itu kini membawa tag `@BR-SM-12` juga.
+Nol skenario baru, nol implementasi baru: optimistic locking berlaku untuk semua
+`FormSubmission`, termasuk submission pengajuan.
 
 ---
 

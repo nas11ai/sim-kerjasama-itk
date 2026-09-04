@@ -122,7 +122,7 @@ flowchart TD
 | BR-MON-02 | Researcher tidak bisa mengisi Detail berikutnya sebelum `can_proceed = true` dari Detail sebelumnya                 |
 | BR-MON-03 | Satu parent FormSubmission hanya bisa punya satu child FormSubmission per FormPhaseDetail (per parent, bukan per researcher — satu researcher boleh punya lebih dari satu parent APPROVED sekaligus, lihat BR-SM-01) |
 | BR-MON-04 | Reviewer untuk setiap siklus monev di-assign manual oleh Operator                                                   |
-| BR-MON-05 | Setiap FormPhaseDetail monev punya hard deadline — lewat deadline, akses ditutup kecuali ada FormSubmissionOverride |
+| BR-MON-05 | **Penerapan [BR-FE-07](../generic/01_form_engine.md) + [BR-FE-08](../generic/01_form_engine.md) pada fase monev.** Setiap FormPhaseDetail monev punya hard deadline — lewat deadline, akses ditutup kecuali ada FormSubmissionOverride. Tidak ada mekanisme deadline kedua |
 | BR-MON-06 | Satu SubmissionReviewer baru dibuat per siklus — tidak reuse record dari siklus sebelumnya                          |
 | BR-MON-07 | Reviewer pengajuan awal yang sudah tidak aktif (expired `end_date`) tidak muncul di suggestion monev                |
 | BR-MON-08 | Submission yang WITHDRAWN saat monev sedang berjalan — siklus monev aktif di-freeze, tidak bisa submit laporan baru |

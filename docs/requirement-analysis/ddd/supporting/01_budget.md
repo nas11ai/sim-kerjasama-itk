@@ -98,7 +98,7 @@ Tidak ada sync issue. Tidak ada stale data. Untuk skala SIMPAS, satu aggregate q
 
 | Kode      | Rule                                                                                                                                                                                            |
 | --------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| BR-BUD-01 | Grand total (computed dari SUM line items) tidak boleh melebihi `scheme.max_budget`                                                                                                             |
+| BR-BUD-01 | Grand total (computed dari SUM line items) tidak boleh melebihi `scheme.max_budget` Dicerminkan [BR-SM-06](../core/01_submission.md). |
 | BR-BUD-02 | Budget locked saat submission berstatus APPROVED, REJECTED, atau WITHDRAWN                                                                                                                      |
 | BR-BUD-03 | Budget tetap bisa diedit saat NEEDS_REVISION                                                                                                                                                    |
 | BR-BUD-04 | Volume > 0 dan unit_price > 0 untuk setiap BudgetLineItem                                                                                                                                       |

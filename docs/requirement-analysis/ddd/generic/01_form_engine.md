@@ -318,16 +318,16 @@ if ($submission->updated_at->ne($request->last_updated_at)) {
 | BR-FE-02 | User hanya bisa akses Form jika ada FormAccessControl yang match permission user DAN organisasinya merupakan ancestor-or-self dari organisasi user (ADR 0013) |
 | BR-FE-03 | FormFieldResponse hanya menyimpan scalar values                                                                           |
 | BR-FE-04 | Child FormSubmission hanya bisa dibuat jika parent sudah APPROVED                                                         |
-| BR-FE-05 | ReviewFormResponse tidak bisa diedit setelah `status = submitted`                                                         |
+| BR-FE-05 | ReviewFormResponse tidak bisa diedit setelah `status = submitted` Dicerminkan [BR-REV-08](../core/02_review.md). |
 | BR-FE-06 | Reviewer hanya bisa membuat ReviewSummary setelah `evaluation_status = completed` atau `not_required`                     |
 | BR-FE-07 | FormPhaseDetail.submission_date_id NOT NULL — setiap detail wajib punya deadline                                          |
-| BR-FE-08 | Akses ke FormPhaseDetail di-hard-block jika deadline lewat dan tidak ada active FormSubmissionOverride                    |
+| BR-FE-08 | Akses ke FormPhaseDetail di-hard-block jika deadline lewat dan tidak ada active FormSubmissionOverride Diterapkan ke fase monev oleh [BR-MON-05](../supporting/02_monev.md). |
 | BR-FE-09 | FormSubmissionOverride.reason wajib diisi — tidak boleh kosong                                                            |
 | BR-FE-10 | Override hanya berlaku untuk satu form_submission_id + satu form_phase_detail_id                                          |
 | BR-FE-11 | Field hanya di-enforce is_required jika `created_at ≤ submission.created_at` DAN `required_since ≤ submission.created_at` |
 | BR-FE-12 | FormField menggunakan soft delete (`deleted_at`) — tidak boleh hard delete                                                |
 | BR-FE-13 | Saat operator ubah Form yang punya active drafts, sistem prompt untuk kirim notifikasi ke researcher terdampak            |
-| BR-FE-14 | Concurrent edit dicegah via optimistic locking — `updated_at` di request harus match dengan yang di DB                    |
+| BR-FE-14 | Concurrent edit dicegah via optimistic locking — `updated_at` di request harus match dengan yang di DB Dicerminkan [BR-SM-12](../core/01_submission.md). |
 | BR-FE-15 | Expired FormPhaseDetail tetap tampil di UI sebagai read-only — user bisa lihat apa yang sudah disubmit                    |
 | BR-FE-16 | Researcher bisa melihat *status* FormSubmissionOverride (aktif/expired), tapi tidak boleh melihat `reason` — reason hanya untuk Operator dan Admin |
 

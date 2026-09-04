@@ -5,7 +5,7 @@
 **Status:** Menunggu review
 
 Spec ini menetapkan **skenario apa saja yang harus ada** supaya seluruh kebutuhan
-bisnis SIMPAS v2 terbukti benar — 74 business rule perilaku yang tersisa setelah
+bisnis SIMPAS v2 terbukti benar — 72 business rule perilaku yang tersisa setelah
 Wave 1a mendarat, dipetakan ke 57 frame wireframe.
 
 Ini **bukan** implementation plan. Ia menjawab "apa yang harus terbukti", bukan
@@ -26,12 +26,12 @@ wireframe `simpas-wireframe` (57 frame).
 
 | Milestone | Spec | BR | Berkas | Skenario |
 | --------- | ---- | -- | ------ | -------- |
-| M1 · Submission + Budget | [`m1-submission-budget.md`](m1-submission-budget.md) | 21 | 10 | 68 |
+| M1 · Submission + Budget | [`m1-submission-budget.md`](m1-submission-budget.md) | 20 | 10 | 68 |
 | M2 · Review | [`m2-review.md`](m2-review.md) | 15 | 6 | 37 |
-| M3 · Identity & Access | [`m3-identity-access.md`](m3-identity-access.md) | 10 | 5 | 22 |
+| M3 · Identity & Access | [`m3-identity-access.md`](m3-identity-access.md) | 9 | 5 | 22 |
 | M4 · Monev + Research Output | [`m4-monev-research-output.md`](m4-monev-research-output.md) | 15 | 2 | 30 |
 | M5 · Reporting + Notification + Config | [`m5-reporting-notification-config.md`](m5-reporting-notification-config.md) | 13 | 4 | 22 |
-| | **Total** | **74** | **27** | **179** |
+| | **Total** | **72** | **27** | **179** |
 
 Angka skenario di atas **bukan estimasi** — setiap ID sudah dialokasikan satu per satu
 di berkas milestone masing-masing, lengkap dengan kelas tag dan BR yang dibuktikannya.
@@ -48,32 +48,37 @@ Dengan 54 skenario Wave 1a, inventaris akhir **233 skenario untuk 94 BR perilaku
 Menyusun spec ini memaksa membaca 101 baris business rule berdampingan. Dua pola
 muncul yang tidak terlihat saat membaca per bounded context.
 
-### 2.1 Sembilan BR ternyata kembar
+### 2.1 Tujuh aturan ditulis dua kali
 
-Beberapa aturan ditulis **dua kali di dua bounded context** karena keduanya
-berkepentingan. Kalau ini tidak dikenali, akibatnya bukan sekadar skenario dobel —
-melainkan **dua implementasi untuk satu aturan**, yang pasti menyimpang cepat atau
-lambat. Itu risiko integritas data, bukan sekadar kerapian.
+Beberapa aturan ditulis di **dua bounded context** karena keduanya berkepentingan.
+Kalau ini tidak dikenali, akibatnya bukan sekadar skenario dobel — melainkan **dua
+implementasi untuk satu aturan**, yang pasti menyimpang cepat atau lambat. Itu risiko
+integritas data, bukan sekadar kerapian.
 
-| A | B | Hubungan | Perlakuan |
-| - | - | -------- | --------- |
-| BR-SM-12 | BR-FE-14 | **Identik** — optimistic locking `updated_at` | Satu skenario, dua tag. `[FE-LOCK-01..04]` sudah ada → BR-SM-12 lunas tanpa skenario baru |
-| BR-REV-08 | BR-FE-05 | **Identik** — `ReviewFormResponse` terkunci setelah `submitted` | Satu skenario, dua tag |
-| BR-SM-09 | BR-IAM-10 | **Identik** — transfer ownership sebelum deaktivasi lead | Satu skenario, dua tag |
-| BR-SM-06 | BR-BUD-01 | **Identik** — total anggaran ≤ `scheme.max_budget` | Satu skenario, dua tag |
-| BR-IAM-07 | BR-REV-02 | IAM-07 **subset** REV-02 | Satu skenario, dua tag |
-| BR-SM-08 | BR-REV-02 | **Dua arah** dari satu mutual block | Dua skenario — arahnya memang beda |
-| BR-MON-01 | BR-FE-04 | MON-01 = FE-04 diterapkan ke monev | `[FE-CHILD-01/02]` sudah membuktikan mekanismenya; MON-01 tetap butuh skenario akses monev |
-| BR-MON-05 | BR-FE-08 | MON-05 = FE-08 diterapkan ke fase monev | Skenario monev sendiri, mekanismenya dirujuk |
-| BR-RO-05 | BR-SM-14 | Taksonomi sama, **dua titik lifecycle** (janji vs realisasi) | Dua skenario — memang beda momen |
+Sumber kebenarannya sekarang ada di DDD sendiri: setiap pasangan sudah ditandai
+kanonik/cermin dan ditautkan dua arah, dengan tabel ringkasnya di
+[`ddd/README.md` — Aturan Cermin Lintas Konteks](../../requirement-analysis/ddd/README.md#aturan-cermin-lintas-konteks).
+Spec ini hanya mengikuti.
 
-**Aturan yang dipakai spec ini:** satu skenario boleh membawa dua tag `@BR-` **hanya
-kalau ia benar-benar membuktikan keduanya**. Kalau ia cuma menyenggol yang satu, itu
-tag dekoratif — persis yang dicabut Ruling A di Wave 1a dan yang melahirkan entri #8
-di register.
+| Kanonik | Cermin | Perlakuan di skenario |
+| ------- | ------ | --------------------- |
+| BR-FE-05 | BR-REV-08 | `[REV-EVAL-01/02]` bertag keduanya |
+| BR-FE-08 | BR-MON-05 | Mekanismenya sudah dibuktikan `[FE-OVERRIDE-01..05]`; `[MON-CYCLE-08/09]` membuktikan penerapannya di fase monev |
+| BR-FE-14 | BR-SM-12 | Sudah lunas oleh `[FE-LOCK-01..04]` — **nol skenario baru** |
+| BR-BUD-01 | BR-SM-06 | `[BUD-LIMIT-01..03]` bertag keduanya |
+| BR-REV-02 | BR-SM-08, BR-IAM-07 | `[REV-ASSIGN-07]` bertag ketiganya; `[SM-MEMBER-01]` membuktikan sisi anggota |
+| BR-IAM-10 | BR-SM-09 | `[SM-OWNER-01..04]` bertag keduanya |
 
-Konsekuensi ke implementasi: **satu aturan kembar = satu Action/Policy**, dipanggil
-dari dua tempat. Bukan dua implementasi yang kebetulan mirip.
+**Aturannya:** satu skenario boleh membawa dua tag `@BR-` **hanya kalau ia benar-benar
+membuktikan keduanya**. Kalau ia cuma menyenggol yang satu, itu tag dekoratif — persis
+yang dicabut Ruling A di Wave 1a dan yang melahirkan entri #8 di register.
+
+### 2.1a Dua yang tampak kembar tapi sengaja dipisah
+
+| A | B | Kenapa tidak digabung |
+| - | - | --------------------- |
+| BR-SM-14 | BR-RO-05 | Taksonomi `output_type` sama, **entitas berbeda**: target yang dijanjikan vs luaran terealisasi. `[SM-TARGET-08]` melarang Co-Investigator mengubah target, sementara `[RO-OUTPUT-12]` justru membolehkannya mengisi realisasi — perbedaan yang hilang kalau disamakan |
+| BR-FE-04 | BR-MON-01 | FE-04 mengatur **pembuatan** child submission (`[FE-CHILD-01..03]`), MON-01 mengatur **akses** ke fase monev (`[MON-CYCLE-01/02]`). Syaratnya sama-sama induk APPROVED, guard-nya beda |
 
 ### 2.2 Kode legacy bukan bukti kebenaran
 

@@ -225,10 +225,10 @@ tapi ia bukan jawaban untuk access control. Jejak lengkapnya di
 | BR-IAM-04 | User status `pending` bisa login tapi tidak bisa submit proposal                                                                                        |
 | BR-IAM-05 | Deaktivasi User tidak delete data — `is_active = false`                                                                                                 |
 | BR-IAM-06 | InvitationToken invalid jika `used_count >= max_uses` atau `expires_at` lewat                                                                           |
-| BR-IAM-07 | User dengan role `reviewer_internal` atau `reviewer_external` tidak bisa me-review submission yang ia menjadi ResearchMember-nya                        |
+| BR-IAM-07 | **Bagian dari [BR-REV-02](../core/02_review.md).** User dengan role `reviewer_internal` atau `reviewer_external` tidak bisa me-review submission yang ia menjadi ResearchMember-nya                        |
 | BR-IAM-08 | Organization tidak bisa di-delete jika masih ada UserProfile di subtree-nya                                                                             |
 | BR-IAM-09 | Direct permission ke user tidak menghapus permission dari role — keduanya additive                                                                      |
-| BR-IAM-10 | Jika lead researcher dinonaktifkan dengan active submission, Operator wajib transfer ownership ke Co-Investigator aktif sebelum deaktivasi dikonfirmasi |
+| BR-IAM-10 | Jika lead researcher dinonaktifkan dengan active submission, Operator wajib transfer ownership ke Co-Investigator aktif sebelum deaktivasi dikonfirmasi Dicerminkan [BR-SM-09](../core/01_submission.md). |
 
 ---
 
