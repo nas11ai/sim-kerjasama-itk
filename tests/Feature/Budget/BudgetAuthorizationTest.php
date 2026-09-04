@@ -1,5 +1,7 @@
 <?php
 
+use App\Actions\Budget\SaveBudgetLineItem;
+use App\Models\BudgetComponent;
 use App\Models\FormSubmission;
 use App\Models\ResearchMember;
 use App\Models\User;
@@ -9,6 +11,7 @@ use App\States\Submission\Draft;
 use App\States\Submission\NeedsRevision;
 use App\States\Submission\Rejected;
 use App\States\Submission\Withdrawn;
+use Illuminate\Auth\Access\AuthorizationException;
 
 function submissionOwnedBy(User $owner, string $state = Draft::class): FormSubmission
 {
@@ -70,4 +73,39 @@ it('[BUD-LOCK-02] anggaran tetap terbuka saat perlu revisi', function () {
     $submission = submissionOwnedBy($owner, NeedsRevision::class);
 
     expect($owner->can('update-budget', $submission))->toBeTrue();
+});
+
+/*
+ * Task 7 membuktikan Policy menolak. Dua test di bawah membuktikan Action ikut
+ * menolak — supaya penguncian tidak bocor lewat jalur yang tidak memanggil Gate.
+ */
+
+it('[BUD-LOCK-01] action menolak penyuntingan pada status terminal', function (string $state) {
+    $owner = User::factory()->create();
+    $submission = submissionOwnedBy($owner, $state);
+    $component = BudgetComponent::factory()->create(['is_active' => true]);
+
+    expect(fn () => SaveBudgetLineItem::run($submission, $owner, [
+        'budget_component_id' => $component->id,
+        'item_name' => 'Sensor kualitas air',
+        'volume' => 1,
+        'unit' => 'unit',
+        'unit_price' => 1_000_000,
+    ]))->toThrow(AuthorizationException::class);
+})->with([Approved::class, Rejected::class, Withdrawn::class]);
+
+it('[BUD-LOCK-02] action menerima penyuntingan saat perlu revisi', function () {
+    $owner = User::factory()->create();
+    $submission = submissionOwnedBy($owner, NeedsRevision::class);
+    $component = BudgetComponent::factory()->create(['is_active' => true]);
+
+    $item = SaveBudgetLineItem::run($submission, $owner, [
+        'budget_component_id' => $component->id,
+        'item_name' => 'Sensor kualitas air',
+        'volume' => 1,
+        'unit' => 'unit',
+        'unit_price' => 1_000_000,
+    ]);
+
+    expect($item->total)->toBe(1_000_000);
 });
