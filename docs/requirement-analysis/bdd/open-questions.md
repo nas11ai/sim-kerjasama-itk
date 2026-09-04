@@ -6,7 +6,45 @@ produk, baru skenarionya mengunci keputusan itu.
 
 ## Terbuka
 
-_Kosong._ Kedelapan entri terakhir (#16–#23) ditutup 2026-09-04.
+### 24. Super Admin menembus kunci anggaran status terminal
+
+Muncul saat irisan vertikal Budget diimplementasikan (Task 7–10).
+
+`BudgetLineItemPolicy::update()` menolak penyuntingan anggaran pada APPROVED, REJECTED,
+dan WITHDRAWN — BR-BUD-02, dan `[BUD-LOCK-01]` menguncinya. Tapi ability `update-budget`
+tidak lolos ke Policy untuk Super Admin: `Gate::before` di `AppServiceProvider`
+mengembalikan `true` lebih dulu untuk setiap ability di luar `INVARIANT_ABILITIES`
+(`submit`, `resubmit`) sesuai ADR 0015.
+
+Terbukti langsung, bukan dugaan: pada submission APPROVED, `$superAdmin->can('update-budget', $s)`
+bernilai `true` sementara `$owner->can(...)` bernilai `false`. Jadi pemilik pengajuan
+terkunci, administrator tidak.
+
+`[BUD-LOCK-01]` tetap hijau karena skenarionya memang bercerita tentang peneliti, bukan
+Super Admin — kunci ini bocor di jalur yang belum ada skenarionya.
+
+**Opsi:**
+
+1. **Masukkan `update-budget` ke `INVARIANT_ABILITIES`.** Angka anggaran pada pengajuan
+   yang sudah diputuskan menjadi tidak bisa diubah siapa pun; koreksi harus lewat
+   transisi status yang meninggalkan jejak. Konsisten dengan alasan BR-BUD-02 ada.
+2. **Biarkan.** Super Admin dianggap memang berwenang mengoreksi anggaran pasca-putusan,
+   dan `spatie/laravel-activitylog` sudah mencatat pelakunya (BR-BUD-08).
+3. **Jalur ketiga:** ability terpisah (mis. `override-budget-lock`) yang di-assign
+   eksplisit, bukan menempel pada peran Super Admin — sejalan dengan pola sumbu
+   *siapa*/*kapan*/*keadaan* di ADR 0014.
+
+**Rekomendasi: opsi 1.** BR-BUD-02 ada karena angka anggaran pada pengajuan yang sudah
+diputuskan adalah dasar pencairan dana; itu invarian domain, bukan sekadar kewenangan —
+kriteria yang persis dipakai ADR 0015 untuk memasukkan `submit` dan `resubmit`. Opsi 3
+lebih fleksibel tapi menambah mekanisme untuk kebutuhan yang belum terbukti ada.
+
+Apa pun keputusannya, ia butuh skenario sendiri (`[BUD-LOCK-03]`) supaya perilaku Super
+Admin di sumbu keadaan tidak lagi bergantung pada pembacaan `Gate::before`.
+
+---
+
+Kedelapan entri sebelumnya (#16–#23) ditutup 2026-09-04.
 
 Register ini tetap hidup: kontradiksi berikutnya akan muncul saat skenario M1 mulai
 diimplementasikan, dan tempatnya di sini — bukan parkir di berkas milestone, kekeliruan
