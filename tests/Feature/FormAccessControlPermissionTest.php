@@ -12,7 +12,7 @@ use Spatie\Permission\Models\Role;
 
 beforeEach(function () {
     if (DB::connection()->getDriverName() !== 'pgsql') {
-        $this->markTestSkipped('FormAccessControl organization subtree checks require PostgreSQL.');
+        $this->markTestSkipped('FormAccessControl organization traversal requires PostgreSQL.');
     }
 
     Cache::flush();
@@ -47,7 +47,7 @@ test('form access control stores permission instead of role_id', function () {
         ->and($control->fresh()->getAttributes())->not->toHaveKey('role_id');
 });
 
-test('accessibleBy scopes by spatie permissions and organization subtree', function () {
+test('accessibleBy scopes by spatie permissions and organization ancestors', function () {
     $faculty = Organization::create([
         'name' => 'FSTI',
         'type' => 'faculty',
@@ -79,10 +79,12 @@ test('accessibleBy scopes by spatie permissions and organization subtree', funct
     $role = Role::findOrCreate('researcher');
     $role->givePermissionTo($permission);
 
+    // BR-FE-02 / ADR 0013 — ACL dipasang di prodi, jadi yang melihatnya adalah user di
+    // prodi itu dan unit di bawahnya. User di fakultas (di ATAS ACL) justru tidak.
     $user = User::factory()->create();
     UserProfile::create([
         'user_id' => $user->id,
-        'organization_id' => $faculty->id,
+        'organization_id' => $prodi->id,
     ]);
     $user->assignRole($role);
     $user = $user->fresh(['userProfile', 'organization']);

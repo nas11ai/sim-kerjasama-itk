@@ -106,14 +106,49 @@ class Organization extends Model
         return $ids;
     }
 
+    /**
+     * Leluhur organisasi berikut dirinya sendiri (ancestor-or-self), ditelusuri naik.
+     *
+     * BR-FE-02 — Form terlihat oleh organisasi tempat FormAccessControl dipasang DAN
+     * semua unit di bawahnya, jadi yang dicocokkan adalah leluhur organisasi user.
+     * Arahnya sengaja berlawanan dengan subtreeIds(); lihat ADR 0013.
+     *
+     * @return list<int>
+     */
+    public static function ancestorIds(int $orgId): array
+    {
+        /** @var list<int> $ids */
+        $ids = Cache::remember("org_ancestors_{$orgId}", now()->addMinutes(30), function () use ($orgId) {
+            $result = DB::select('
+                WITH RECURSIVE org_ancestors AS (
+                    SELECT id, parent_id FROM organizations WHERE id = ?
+                    UNION ALL
+                    SELECT o.id, o.parent_id FROM organizations o
+                    INNER JOIN org_ancestors oa ON o.id = oa.parent_id
+                    WHERE o.is_active = true
+                )
+                SELECT id FROM org_ancestors
+            ', [$orgId]);
+
+            return array_map(
+                static fn ($id): int => (int) $id,
+                array_column($result, 'id'),
+            );
+        });
+
+        return $ids;
+    }
+
     protected static function booted(): void
     {
         static::saved(function (Organization $organization): void {
             self::forgetSubtreeCachesFor($organization);
+            self::forgetAncestorCachesFor($organization);
         });
 
         static::deleted(function (Organization $organization): void {
             self::forgetSubtreeCachesFor($organization);
+            self::forgetAncestorCachesFor($organization);
         });
     }
 
@@ -139,5 +174,41 @@ class Organization extends Model
         foreach (array_unique($cacheIds) as $id) {
             Cache::forget("org_subtree_{$id}");
         }
+    }
+
+    /**
+     * Rantai leluhur sebuah node berubah kalau node itu sendiri berpindah induk atau
+     * dinonaktifkan — dan perubahan itu ikut menggeser rantai SELURUH keturunannya.
+     * Karena itu invalidasinya menelusuri turun, kebalikan dari forgetSubtreeCachesFor().
+     */
+    private static function forgetAncestorCachesFor(Organization $organization): void
+    {
+        foreach (self::descendantIdsIncludingInactive($organization->id) as $id) {
+            Cache::forget("org_ancestors_{$id}");
+        }
+    }
+
+    /**
+     * Sengaja TIDAK memfilter is_active: node yang baru saja dinonaktifkan justru
+     * yang cache-nya paling perlu dibuang.
+     *
+     * @return list<int>
+     */
+    private static function descendantIdsIncludingInactive(int $orgId): array
+    {
+        $result = DB::select('
+            WITH RECURSIVE org_descendants AS (
+                SELECT id FROM organizations WHERE id = ?
+                UNION ALL
+                SELECT o.id FROM organizations o
+                INNER JOIN org_descendants od ON o.parent_id = od.id
+            )
+            SELECT id FROM org_descendants
+        ', [$orgId]);
+
+        return array_map(
+            static fn ($id): int => (int) $id,
+            array_column($result, 'id'),
+        );
     }
 }

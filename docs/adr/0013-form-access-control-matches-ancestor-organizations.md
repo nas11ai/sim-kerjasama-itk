@@ -65,10 +65,15 @@ daripada penelusuran turun yang harus memindai seluruh keturunan.
 
 ## Konsekuensi
 
-- `FormAccessControl::organizationSubtreeFor()` dan `scopeAccessibleBy()`
-  (`app/Models/FormAccessControl.php:95–125`) memakai arah yang salah dan **wajib
-  dikoreksi** saat BR-FE-02 diimplementasikan. Sampai itu terjadi, Form ber-scope luas
-  tidak terlihat oleh peneliti di prodi.
+- `FormAccessControl::organizationSubtreeFor()` **sudah diganti**
+  `organizationAncestorsFor()`, dan `scopeAccessibleBy()` ikut memakainya. Nama lama
+  sengaja tidak dipertahankan sebagai alias: yang berubah maknanya, bukan cuma isinya.
+  `UserFormController` melakukan pengecekan yang sama secara terpisah
+  (`in_array(... , $organizationSubtree)`) dan ikut dikoreksi.
+- Dua test yang sudah ada — `FormAccessServiceTest > parent organization can access
+  descendant form access control` dan `FormAccessControlPermissionTest > accessibleBy
+  scopes by ... organization subtree` — ternyata **mengunci arah yang salah**, jadi
+  keduanya dibalik. Test yang menjaga bug bukan jaring pengaman.
 - Invalidasi cache berbalik arah: cache `subtreeIds` sebuah node dibersihkan saat
   keturunannya berubah, sedangkan cache `ancestorIds` harus dibersihkan saat
   **leluhurnya** berubah — yaitu saat `parent_id` sebuah organisasi dipindahkan.

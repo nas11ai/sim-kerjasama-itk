@@ -27,8 +27,8 @@ class FormAccessService
     /**
      * @return list<int>
      */
-    public function organizationSubtreeFor(User $user): array
+    public function organizationAncestorsFor(User $user): array
     {
-        return FormAccessControl::organizationSubtreeFor($user);
+        return FormAccessControl::organizationAncestorsFor($user);
     }
 }

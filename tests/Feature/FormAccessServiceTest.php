@@ -13,7 +13,7 @@ use Spatie\Permission\Models\Role;
 
 beforeEach(function () {
     if (DB::connection()->getDriverName() !== 'pgsql') {
-        $this->markTestSkipped('FormAccessService organization subtree checks require PostgreSQL.');
+        $this->markTestSkipped('FormAccessService organization traversal requires PostgreSQL.');
     }
 
     Cache::flush();
@@ -98,7 +98,34 @@ test('user without permission cannot access form', function () {
     expect($service->canAccessForm($user, $form))->toBeFalse();
 });
 
-test('parent organization can access descendant form access control', function () {
+// BR-FE-02 / ADR 0013 — arahnya anak-menjangkau-leluhur. Test ini semula berbunyi
+// "parent organization can access descendant form access control" dan mengunci arah
+// sebaliknya, yang membuat Form ber-scope luas justru tak terlihat oleh peneliti di prodi.
+test('descendant organization can access ancestor form access control', function () {
+    $faculty = Organization::create([
+        'name' => 'FSTI',
+        'type' => 'faculty',
+        'parent_id' => null,
+        'is_active' => true,
+    ]);
+    $prodi = Organization::create([
+        'name' => 'Informatika',
+        'type' => 'study_program',
+        'parent_id' => $faculty->id,
+        'is_active' => true,
+    ]);
+    $form = createFormWithAccess($faculty);
+
+    Permission::findOrCreate('submissions.create');
+    $user = createUserWithOrganization($prodi);
+    $user->givePermissionTo('submissions.create');
+
+    $service = app(FormAccessService::class);
+
+    expect($service->canAccessForm($user, $form))->toBeTrue();
+});
+
+test('ancestor organization cannot access descendant form access control', function () {
     $faculty = Organization::create([
         'name' => 'FSTI',
         'type' => 'faculty',
@@ -119,7 +146,7 @@ test('parent organization can access descendant form access control', function (
 
     $service = app(FormAccessService::class);
 
-    expect($service->canAccessForm($user, $form))->toBeTrue();
+    expect($service->canAccessForm($user, $form))->toBeFalse();
 });
 
 test('unrelated organization and missing organization deny form access', function () {

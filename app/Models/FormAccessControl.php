@@ -93,9 +93,14 @@ class FormAccessControl extends Model
     }
 
     /**
+     * Organisasi yang boleh memasang FormAccessControl agar terlihat oleh $user:
+     * organisasi user sendiri berikut seluruh leluhurnya.
+     *
+     * BR-FE-02 — arahnya anak-menjangkau-leluhur, bukan sebaliknya. Lihat ADR 0013.
+     *
      * @return list<int>
      */
-    public static function organizationSubtreeFor(User $user): array
+    public static function organizationAncestorsFor(User $user): array
     {
         $organizationId = $user->organization?->id;
 
@@ -103,7 +108,7 @@ class FormAccessControl extends Model
             return [];
         }
 
-        return Organization::subtreeIds((int) $organizationId);
+        return Organization::ancestorIds((int) $organizationId);
     }
 
     /**
@@ -113,15 +118,15 @@ class FormAccessControl extends Model
     public function scopeAccessibleBy($query, User $user)
     {
         $permissions = self::permissionNamesFor($user);
-        $subtree = self::organizationSubtreeFor($user);
+        $ancestors = self::organizationAncestorsFor($user);
         $table = $query->getModel()->getTable();
 
-        if ($permissions === [] || $subtree === []) {
+        if ($permissions === [] || $ancestors === []) {
             return $query->whereRaw('1 = 0');
         }
 
         return $query
             ->whereIn($table.'.permission', $permissions)
-            ->whereIn($table.'.organization_id', $subtree);
+            ->whereIn($table.'.organization_id', $ancestors);
     }
 }

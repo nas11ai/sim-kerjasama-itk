@@ -47,7 +47,7 @@ class UserFormController extends Controller
         $isReviewer = $reviewer !== null;
 
         $permissions = $this->formAccessService->permissionNamesFor($user);
-        $organizationSubtree = $this->formAccessService->organizationSubtreeFor($user);
+        $organizationAncestors = $this->formAccessService->organizationAncestorsFor($user);
 
         // Get submission periods with accessible form phases
         $submissionPeriods = SubmissionPeriod::with([
@@ -62,7 +62,7 @@ class UserFormController extends Controller
             },
         ])
             ->get()
-            ->map(function ($period) use ($user, $permissions, $organizationSubtree) {
+            ->map(function ($period) use ($user, $permissions, $organizationAncestors) {
                 // Fix: Use correct attribute name based on your model
                 $dates = $period->submissionDates->sortBy('datetime'); // Changed from 'datetime' to 'date'
                 $now = Carbon::now();
@@ -94,11 +94,11 @@ class UserFormController extends Controller
                 }
 
                 // Process form phases with user progress
-                $period->form_phases = $period->submissionPeriodPhases->map(function ($periodPhase) use ($user, $permissions, $organizationSubtree) {
+                $period->form_phases = $period->submissionPeriodPhases->map(function ($periodPhase) use ($user, $permissions, $organizationAncestors) {
                     $formPhase = $periodPhase->formPhase;
 
                     // Filter by permission AND organization subtree to avoid counting forms multiple times
-                    $accessibleForms = $formPhase->formPhaseDetails->filter(function ($detail) use ($permissions, $organizationSubtree) {
+                    $accessibleForms = $formPhase->formPhaseDetails->filter(function ($detail) use ($permissions, $organizationAncestors) {
                         $formAccessControl = $detail->formAccessControl;
 
                         if (!$formAccessControl) {
@@ -106,7 +106,7 @@ class UserFormController extends Controller
                         }
 
                         return in_array($formAccessControl->permission, $permissions, true)
-                            && in_array((int) $formAccessControl->organization_id, $organizationSubtree, true);
+                            && in_array((int) $formAccessControl->organization_id, $organizationAncestors, true);
                     });
 
                     // Calculate progress

@@ -51,10 +51,13 @@ ancestor-or-self dari organisasi user, ditelusuri naik lewat
 mengunci arah ini sejak Wave 1a. `subtreeIds()` tidak dihapus — ia tetap benar untuk
 pelaporan agregat, hanya keliru dipakai di jalur access control.
 
-**Sisa pekerjaan:** `FormAccessControl::organizationSubtreeFor()` dan
-`scopeAccessibleBy()` (`app/Models/FormAccessControl.php:95–125`) masih memakai arah
-lama dan wajib dikoreksi saat BR-FE-02 diimplementasikan. Rincian, termasuk arah
-invalidasi cache yang ikut berbalik, ada di ADR 0013.
+**Sudah diimplementasikan (2026-09-04).** `Organization::ancestorIds()` ditambahkan,
+`FormAccessControl::organizationAncestorsFor()` menggantikan `organizationSubtreeFor()`,
+dan pengecekan kembar di `UserFormController` ikut dikoreksi. Invalidasi cache berbalik
+arah sesuai ADR 0013: cache `org_ancestors_{id}` sebuah node dibuang saat leluhurnya
+berpindah atau dinonaktifkan. Skenario `[FE-ACCESS-01]`…`[FE-ACCESS-06]` sudah punya
+test dan keluar dari `pending.txt`; `[FE-ACCESS-07]`/`[FE-ACCESS-08]` masih pending
+karena mengatur BR-FE-01 (periode force closed), bukan arah org tree.
 
 ### 7.1 Apa itu "active Submission" untuk BR-SCH-01
 
