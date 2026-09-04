@@ -22,10 +22,12 @@ Spesifikasi perilaku sistem dalam format Gherkin. Berdampingan dengan `../ddd/`
 
 ## Kosakata langkah
 
-Frasa di bawah sudah terbentuk sendiri selama Wave 1a dan **dibakukan** — pakai ini
-apa adanya, jangan bikin varian. Tanpa daftar ini, "Given waktu sekarang", "Given saat
+Frasa di bawah sudah terbentuk sendiri selama Wave 1a dan M1, lalu **dibakukan** — pakai
+ini apa adanya, jangan bikin varian. Tanpa daftar ini, "Given waktu sekarang", "Given saat
 ini", dan "Given tanggal hari ini" akan hidup berdampingan dan masing-masing menuntut
 fixture-nya sendiri.
+
+Tabel pertama adalah kosakata Wave 1a; tabel kedua yang tumbuh dari sepuluh berkas M1.
 
 | Frasa baku | Dipakai untuk |
 | ---------- | ------------- |
@@ -41,6 +43,37 @@ fixture-nya sendiri.
 | `Then penyimpanan ditolak dengan <kode>` | Penolakan saat menyimpan |
 | `Then status "<id>" menjadi <STATUS>` | Perubahan status yang teramati |
 | `Then <aktor> menerima notifikasi <jenis>` | Efek notifikasi |
+
+Kosakata yang tumbuh selama M1 (Submission & Budget). Bentuk `Given submission` di bawah
+adalah versi lengkap dari tiga baris terpisah di tabel pertama — pakai yang selengkap
+yang skenarionya butuh, jangan menambah varian di antaranya.
+
+| Frasa baku | Dipakai untuk |
+| ---------- | ------------- |
+| `Given submission "<id>" milik "<orang>" berskema "<skema>" berstatus <STATUS>` | Menyiapkan submission lengkap dengan pemilik, skema, dan status |
+| `Given submission "<id>" milik "<orang>" tanpa skema berstatus <STATUS>` | Padanannya untuk Form tanpa scheme_selector |
+| `Given "<orang>" terdaftar sebagai <peran> di "<id>"` | Menyiapkan anggota penelitian beserta perannya |
+| `Given "<orang>" ditugaskan sebagai reviewer "<id>"` | Menyiapkan penugasan reviewer |
+| `When "<orang>" memulai pengajuan baru pada "<form>"` | Aksi membuat draft di langkah 1 |
+| `When "<orang>" submit "<id>"` | Aksi submit oleh researcher — bedakan dari `When Operator <aksi>` |
+| `When "<orang>" resubmit "<id>"` | Aksi resubmit dari NEEDS_REVISION |
+| `When "<orang>" membuka detail "<id>"` | Aksi membuka satu submission |
+| `When "<orang>" menyunting isi "<id>"` | Aksi mengubah isi pengajuan |
+| `When "<orang>" menyunting line item "<id>"` | Aksi mengubah anggaran yang sudah ada |
+| `When "<orang>" menambahkan line item bertotal <N> ke "<id>"` | Aksi menambah anggaran |
+| `When "<orang>" menambahkan target luaran bertipe "<tipe>" ke "<id>"` | Aksi menambah target luaran |
+| `When "<orang>" mengubah target luaran "<id>"` | Aksi mengubah target luaran |
+| `Then detail terbuka` | Akses diberikan |
+| `Then penyimpanan berhasil` | Penyimpanan diterima |
+| `Then penyuntingan berhasil` | Penyuntingan diterima |
+| `Then penyuntingan ditolak dengan <kode>` | Penolakan saat menyunting |
+| `Then status "<id>" tetap <STATUS>` | Status yang sengaja **tidak** berubah — pasangan negatif dari `Then status "<id>" menjadi <STATUS>` |
+| `Then perubahan tersimpan` | Perubahan diterima |
+| `Then submit ditolak karena <alasan>` | Penolakan submit beserta alasan domainnya |
+| `Then penambahan ditolak karena <alasan>` | Penolakan penambahan beserta alasan domainnya |
+| `Then penyimpanan ditolak karena <alasan>` | Penolakan penyimpanan beserta alasan domainnya |
+| `Then perubahan tercatat di jejak audit dengan nilai lama dan nilai baru` | Efek audit trail |
+| `Then "<id>" ditandai diarsipkan` | Hasil computed `isArchived()` |
 
 **Aturannya:** kalau langkah yang kamu butuhkan tidak ada di sini, boleh menambah — tapi
 tambahkan barisnya ke tabel ini dalam PR yang sama. Frasa yang dipakai sekali dan tidak
