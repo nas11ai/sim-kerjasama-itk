@@ -65,9 +65,9 @@ melarang `DELETE` tetap membiarkan `UPDATE` menulis ulang sejarah.
 
 | ID | Kelas | Yang dibuktikan | BR | Frame |
 | -- | ----- | --------------- | -- | ----- |
-| `NOT-INAPP-01` | happy | Notifikasi in-app tersimpan permanen; tidak hilang sendiri setelah dibaca | BR-NOT-01 | SHARED-02-01 |
-| `NOT-INAPP-02` | happy | User menghapus notifikasinya sendiri secara manual | BR-NOT-01 | SHARED-02-01 |
-| `NOT-INAPP-03` | boundary | `read_at` terisi saat notifikasi **diklik**, bukan saat halaman daftar dibuka | BR-NOT-04 | SHARED-02-01 |
+| `NOT-INAPP-01` | happy | Notifikasi in-app tersimpan permanen; tidak hilang sendiri setelah dibaca | BR-NOT-01 | SHARED-02-05 |
+| `NOT-INAPP-02` | happy | User menghapus notifikasinya sendiri secara manual | BR-NOT-01 | SHARED-02-05 |
+| `NOT-INAPP-03` | boundary | `read_at` terisi saat notifikasi **diklik**, bukan saat halaman daftar dibuka | BR-NOT-04 | SHARED-02-05 |
 | `NOT-CHANNEL-01` | happy | `ProposalApproved` terkirim in-app **dan** email | BR-NOT-02 | SHARED-02-01 |
 | `NOT-CHANNEL-02` | boundary | `RevisionResolved` dan `ProposalWithdrawn` cukup in-app, tanpa email | BR-NOT-02 | SHARED-02-01 |
 | `NOT-DELIVERY-01` | boundary | Kegagalan mengirim notifikasi tidak menggagalkan aksi bisnis yang memicunya | BR-NOT-03 | RESEARCHER-02-02 |
@@ -116,7 +116,7 @@ DDD lebih dulu.
 ## 7. Frame yang tercakup
 
 OPERATOR-07-02 · OPERATOR-07-03 · RESEARCHER-07-01 · ADMIN-08-10 · SHARED-02-01 ·
-SHARED-02-02 · SHARED-02-03 · SHARED-02-04
+SHARED-02-02 · SHARED-02-03 · SHARED-02-04 · SHARED-02-05
 
 Empat frame dashboard (SHARED-02-01..04) tercakup lewat skenario notifikasi dan
 lewat skenario akses di M1–M3. Tidak ada aturan bisnis yang khusus milik dashboard.

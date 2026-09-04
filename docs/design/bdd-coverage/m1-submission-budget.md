@@ -43,14 +43,14 @@ parsial; Temporal Field Binding penuh baru jalan di langkah 7.
 | ID | Kelas | Yang dibuktikan | Frame |
 | -- | ----- | --------------- | ----- |
 | `SM-WIZARD-01` | happy | Langkah 1 membuat baris DRAFT beserta `created_at` sebagai jangkar temporal | RESEARCHER-02-02 |
-| `SM-WIZARD-02` | happy | Keluar di langkah 3 lalu kembali — isian langkah 2 tetap ada | RESEARCHER-02-02 |
-| `SM-WIZARD-03` | boundary | Validasi langkah 2 hanya menyentuh field langkah 2, bukan seluruh form | RESEARCHER-02-02 |
-| `SM-WIZARD-04` | denial | Pada Form **yang punya** `scheme_selector`, langkah 5 ditolak selama `scheme_id` kosong — batas anggaran berasal dari skema | RESEARCHER-02-02 |
+| `SM-WIZARD-02` | happy | Keluar di langkah 3 lalu kembali — isian langkah 2 tetap ada | RESEARCHER-02-06, RESEARCHER-02-07 |
+| `SM-WIZARD-03` | boundary | Validasi langkah 2 hanya menyentuh field langkah 2, bukan seluruh form | RESEARCHER-02-06 |
+| `SM-WIZARD-04` | denial | Pada Form **yang punya** `scheme_selector`, langkah 5 ditolak selama `scheme_id` kosong — batas anggaran berasal dari skema | RESEARCHER-02-07 |
 | `SM-WIZARD-09` | boundary | Pada Form **tanpa** `scheme_selector`, langkah 5 terbuka langsung — skema opsional per Form (BR-SCH-04) | RESEARCHER-02-02 |
-| `SM-WIZARD-05` | happy | Langkah 3 mengisi `scheme_id` dan `trl_id` ke kolom, bukan ke `form_field_responses` | RESEARCHER-02-02 |
-| `SM-WIZARD-06` | boundary | Langkah 7 menjalankan Temporal Field Binding penuh dan menampilkan error per field | RESEARCHER-02-02 |
+| `SM-WIZARD-05` | happy | Langkah 3 mengisi `scheme_id` dan `trl_id` ke kolom, bukan ke `form_field_responses` | RESEARCHER-02-07 |
+| `SM-WIZARD-06` | boundary | Langkah 7 menjalankan Temporal Field Binding penuh dan menampilkan error per field | RESEARCHER-02-10 |
 | `SM-WIZARD-07` | happy | Draft bisa dilanjutkan di sesi berikutnya dari langkah terakhir | RESEARCHER-02-01, RESEARCHER-02-04 |
-| `SM-WIZARD-08` | denial | Melompat ke langkah 7 tanpa melewati langkah wajib ditolak | RESEARCHER-02-02 |
+| `SM-WIZARD-08` | denial | Melompat ke langkah 7 tanpa melewati langkah wajib ditolak | RESEARCHER-02-09, RESEARCHER-02-10 |
 
 `SM-WIZARD-09` ada karena DDD berbunyi dua hal yang mudah dibaca bertabrakan:
 "`scheme_id` wajib terisi sebelum langkah 5" (`core/01_submission.md`) dan "Scheme
@@ -92,14 +92,14 @@ skema sekaligus.
 
 | ID | Kelas | Yang dibuktikan | Frame |
 | -- | ----- | --------------- | ----- |
-| `SM-SUBMIT-07` | denial | Submit tanpa proposal PDF ditolak dengan pesan per field | RESEARCHER-02-02 |
-| `SM-SUBMIT-08` | happy | Submit dengan proposal PDF lolos ke SUBMITTED | RESEARCHER-02-02 |
+| `SM-SUBMIT-07` | denial | Submit tanpa proposal PDF ditolak dengan pesan per field | RESEARCHER-02-09 |
+| `SM-SUBMIT-08` | happy | Submit dengan proposal PDF lolos ke SUBMITTED | RESEARCHER-02-10 |
 
 ### BR-SM-04 — hanya `submitted_by` yang submit dan resubmit
 
 | ID | Kelas | Yang dibuktikan | Frame |
 | -- | ----- | --------------- | ----- |
-| `SM-SUBMIT-09` | happy | `submitted_by` submit berhasil | RESEARCHER-02-02 |
+| `SM-SUBMIT-09` | happy | `submitted_by` submit berhasil | RESEARCHER-02-10 |
 | `SM-SUBMIT-10` | denial | Co-Investigator submit ditolak walau bisa menyunting isi | RESEARCHER-02-03 |
 | `SM-SUBMIT-11` | denial | Member submit ditolak | RESEARCHER-02-03 |
 | `SM-SUBMIT-12` | happy | `submitted_by` resubmit dari NEEDS_REVISION | RESEARCHER-02-05 |
@@ -148,9 +148,9 @@ pemilik dan anggotanya.
 
 | ID | Kelas | Yang dibuktikan | Frame |
 | -- | ----- | --------------- | ----- |
-| `SM-MEMBER-01` | denial | Menambah user yang sudah jadi `SubmissionReviewer` submission itu ditolak — konflik kepentingan | RESEARCHER-02-02 |
-| `SM-MEMBER-02` | happy | Menambah Co-Investigator dan member biasa | RESEARCHER-02-02 |
-| `SM-MEMBER-03` | boundary | Jumlah anggota dibatasi `scheme.max_members` | RESEARCHER-02-02 |
+| `SM-MEMBER-01` | denial | Menambah user yang sudah jadi `SubmissionReviewer` submission itu ditolak — konflik kepentingan | RESEARCHER-02-08 |
+| `SM-MEMBER-02` | happy | Menambah Co-Investigator dan member biasa | RESEARCHER-02-08 |
+| `SM-MEMBER-03` | boundary | Jumlah anggota dibatasi `scheme.max_members` | RESEARCHER-02-08 |
 
 Arah sebaliknya — reviewer yang sudah jadi anggota — dibuktikan `[REV-ASSIGN-07]` di
 M2. Keduanya sisi dari satu mutual block; keduanya harus ada.
@@ -211,12 +211,12 @@ merupakan luaran **terealisasi**. Satu taksonomi, dua titik lifecycle.
 
 | ID | Kelas | Yang dibuktikan |
 | -- | ----- | --------------- |
-| `SM-TARGET-01` | happy | Memilih tipe luaran yang terdaftar di `output_type_definitions` |
+| `SM-TARGET-01` | happy | Memilih tipe luaran yang terdaftar di `output_type_definitions` (frame RESEARCHER-02-07) |
 | `SM-TARGET-02` | denial | Tipe di luar `output_type_definitions` ditolak — bukan string bebas |
 | `SM-TARGET-03` | denial | Tipe di luar `scheme.rules.allowed_output_types` ditolak saat submission punya skema |
 | `SM-TARGET-04` | boundary | Submission tanpa skema hanya dibatasi `output_type_definitions` |
 | `SM-TARGET-05` | happy | Mengubah target saat DRAFT |
-| `SM-TARGET-06` | happy | Mengubah target **setelah APPROVED** — target menyesuaikan jalannya kegiatan |
+| `SM-TARGET-06` | happy | Mengubah target **setelah APPROVED** lewat tab detail RESEARCHER-02-11 — target menyesuaikan jalannya kegiatan |
 | `SM-TARGET-07` | denial | **Outline** — mengubah target saat REJECTED atau WITHDRAWN ditolak |
 | `SM-TARGET-08` | denial | Co-Investigator mengubah target ditolak — hanya `submitted_by` |
 | `SM-TARGET-09` | happy | Perubahan pasca-APPROVED tercatat di audit trail dengan nilai lama dan baru |
@@ -258,7 +258,9 @@ BR-SM-06 hanya menyebut "total budget".
 ## 11. Frame yang tercakup
 
 RESEARCHER-02-01 · RESEARCHER-02-02 · RESEARCHER-02-03 · RESEARCHER-02-04 ·
-RESEARCHER-02-05 · OPERATOR-02-01 · OPERATOR-02-02 · OPERATOR-02-04 ·
+RESEARCHER-02-05 · RESEARCHER-02-06 · RESEARCHER-02-07 · RESEARCHER-02-08 ·
+RESEARCHER-02-09 · RESEARCHER-02-10 · RESEARCHER-02-11 · RESEARCHER-02-12 ·
+OPERATOR-02-01 · OPERATOR-02-02 · OPERATOR-02-04 ·
 OPERATOR-02-06 · OPERATOR-08-03 · REVIEWER-03-01
 
 OPERATOR-02-03 (Perpanjang Tenggat) dan OPERATOR-02-05 (Tolak Manual) tercakup di M0

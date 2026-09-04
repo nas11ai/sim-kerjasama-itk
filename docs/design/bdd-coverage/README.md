@@ -5,8 +5,8 @@
 **Status:** Menunggu review
 
 Spec ini menetapkan **skenario apa saja yang harus ada** supaya seluruh kebutuhan
-bisnis SIMPAS v2 terbukti benar — 73 business rule perilaku yang tersisa setelah
-Wave 1a mendarat, dipetakan ke 57 frame wireframe.
+bisnis SIMPAS v2 terbukti benar — 74 business rule perilaku yang tersisa setelah
+Wave 1a mendarat, dipetakan ke 65 frame wireframe.
 
 Ini **bukan** implementation plan. Ia menjawab "apa yang harus terbukti", bukan
 "siapa mengerjakan apa dan dalam urutan apa".
@@ -18,7 +18,7 @@ Ini **bukan** implementation plan. Ia menjawab "apa yang harus terbukti", bukan
 | `docs/plans/` | Nanti — urutan eksekusi |
 
 Turunan dari [`docs/requirement-analysis/ddd/`](../../requirement-analysis/ddd/) dan
-wireframe `simpas-wireframe` (57 frame).
+wireframe `simpas-wireframe` (65 frame).
 
 ---
 
@@ -29,9 +29,9 @@ wireframe `simpas-wireframe` (57 frame).
 | M1 · Submission + Budget | [`m1-submission-budget.md`](m1-submission-budget.md) | 20 | 10 | 69 |
 | M2 · Review | [`m2-review.md`](m2-review.md) | 15 | 6 | 37 |
 | M3 · Identity & Access | [`m3-identity-access.md`](m3-identity-access.md) | 10 | 6 | 25 |
-| M4 · Monev + Research Output | [`m4-monev-research-output.md`](m4-monev-research-output.md) | 15 | 2 | 30 |
+| M4 · Monev + Research Output | [`m4-monev-research-output.md`](m4-monev-research-output.md) | 16 | 2 | 33 |
 | M5 · Reporting + Notification + Config | [`m5-reporting-notification-config.md`](m5-reporting-notification-config.md) | 13 | 4 | 22 |
-| | **Total** | **73** | **28** | **183** |
+| | **Total** | **74** | **28** | **186** |
 
 Angka skenario di atas **bukan estimasi** — setiap ID sudah dialokasikan satu per satu
 di berkas milestone masing-masing, lengkap dengan kelas tag dan BR yang dibuktikannya.
@@ -39,7 +39,7 @@ Totalnya lebih rendah dari perkiraan baseline (~310) karena `Scenario Outline` m
 banyak boundary yang semula dihitung satu-satu — pola yang sudah terbukti di Wave 1a
 (53 skenario nyata vs ~80 perkiraan).
 
-Dengan 54 skenario Wave 1a, inventaris akhir **237 skenario untuk 95 BR perilaku**.
+Dengan 54 skenario Wave 1a, inventaris akhir **240 skenario untuk 96 BR perilaku**.
 
 ---
 
@@ -170,45 +170,35 @@ dan **tidak diulang** di milestone mana pun:
 | SHARED-02-03 Dashboard Operator | `[FE-ACCESS-*]` + skenario akses M1 |
 | SHARED-02-04 Dashboard Admin | `[FE-ACCESS-*]` + skenario akses M3 |
 
-Dengan sepuluh frame ini, **57 dari 57 frame** terhitung: 47 di M1–M5, 10 di M0.
+Dengan sepuluh frame ini, **65 dari 65 frame** terhitung: 55 di M1–M5, 10 di M0.
+Delapan frame terbaru lahir dari [gap-closure](../gap-closure.md).
 
 ---
 
-## 6. Konfrontasi dengan wireframe
+## 6. Konfrontasi dengan wireframe — dan penutupannya
 
-Spec ini diuji balik terhadap 57 frame wireframe, bukan hanya terhadap DDD. Hasilnya
-mengubah urutan kerja: **sebagian skenario tidak bisa diimplementasikan sebelum layarnya
-ada.**
+Spec ini diuji balik terhadap wireframe, bukan hanya terhadap DDD. Hasilnya menemukan
+satu kontradiksi dan lima kebutuhan tanpa layar. **Ketujuhnya sudah ditutup**
+(2026-09-04) — jejak lengkapnya di [gap-closure](../gap-closure.md).
 
-### Satu kontradiksi langsung
+| Temuan | Penutupan |
+| ------ | --------- |
+| `RESEARCHER-02-04` membolehkan submit dengan anggaran melebihi batas skema | Aturan menang; kalimat UI diganti pernyataan penolakan (register #9) |
+| Target Luaran tidak punya layar | `RESEARCHER-02-07` (wizard langkah 3) + `RESEARCHER-02-11` (tab detail) |
+| Anggota penelitian + COI tidak punya layar | `RESEARCHER-02-08`, lengkap dengan pesan penolakan COI |
+| Notifikasi in-app tidak punya layar | `SHARED-02-05`, dijangkau dari Aksi Cepat dashboard |
+| Wizard langkah 2, 3, 4, 6, 7 tanpa isi | `RESEARCHER-02-06..10` |
+| `REJECTED`, `WITHDRAWN`, `RESUBMITTED` tidak pernah dirender | Ketiganya masuk daftar; `REJECTED` dapat halaman detail `RESEARCHER-02-12` |
+| Keterlihatan skor monev berbeda dari pengajuan | BR-MON-09 — monev dikecualikan eksplisit (register #10) |
 
-`RESEARCHER-02-04` menyatakan anggaran yang melebihi batas skema **tetap bisa disubmit**,
-sementara BR-BUD-01 melarangnya. Batas keras finansial diturunkan jadi peringatan lunak.
-Terdaftar sebagai [register #9](../../requirement-analysis/bdd/open-questions.md); `[BUD-LIMIT-01]`
-mengunci penolakan sebagai perilaku yang benar.
+Wireframe naik dari 57 ke **65 frame**. Yang menuntut keputusan desain paling banyak
+adalah Target Luaran: ia ditempatkan di **langkah 3**, bukan langkah tersendiri, karena
+BR-SM-14 membatasi pilihan tipenya dengan `scheme.rules.allowed_output_types` — target
+tidak bisa dipilih sebelum skema ditentukan. Jumlah langkah tetap tujuh.
 
-### Lima kebutuhan tanpa layar
-
-| Kebutuhan | Skenario terdampak | Konsekuensi |
-| --------- | ------------------ | ----------- |
-| Target Luaran | `[SM-TARGET-01..09]` | 9 skenario menunggu desain — entitas ini baru, belum pernah masuk wireframe |
-| Anggota penelitian + COI | `[SM-MEMBER-01..03]` | Tab "Anggota" ada di detail tapi isinya belum dirender |
-| Notifikasi in-app | `[NOT-INAPP-01..03]` | Tidak ada notification center di seluruh wireframe |
-| Wizard langkah 2, 3, 4, 6, 7 | `[SM-WIZARD-02..09]` | Hanya langkah 1 dan 5 yang punya konten |
-| Status override ke researcher | `[FE-OVERRIDE-09]` (M0) | Sudah punya skenario, belum punya layar |
-
-Ini bukan cacat spec — aturannya memang sudah ada di DDD. Yang belum ada antarmukanya.
-Karena itu **desain UI untuk kelima hal ini mendahului implementasi M1 dan M5**, dan
-paling mendesak Target Luaran: ia entitas baru hasil keputusan register #5, jadi memang
-belum pernah masuk desain sama sekali.
-
-### Tiga status tanpa wajah
-
-`REJECTED`, `WITHDRAWN`, dan `RESUBMITTED` tidak pernah dirender sebagai status di satu
-pun frame. Ini memperjelas [register #3](../../requirement-analysis/bdd/open-questions.md)
-yang selama ini hanya berbunyi "frontend 5 nilai vs backend 8" — sekarang diketahui
-persis tiga mana yang belum punya UX, dan ketiganya justru status terminal yang paling
-perlu jelas bagi peneliti.
+Satu temuan **tidak** berujung perubahan UI: wireframe monev ternyata sudah benar, dan
+yang kurang justru aturannya. BR-MON-09 ditambahkan supaya perilaku itu punya dasar,
+bukan sekadar kebetulan.
 
 ---
 
@@ -268,5 +258,5 @@ Sama dengan baseline §9, ditambah dua yang lahir dari pengalaman Wave 1a:
 | 3 | Perilaku user-facing saat BR-SM-01 kena constraint violation belum ditetapkan | register #4 |
 | 4 | Auto-reject legacy masih hidup di `ReviewController` dan melanggar BR-REV-07 — skenario M2 sengaja menguncinya sebagai perilaku yang **dilarang** | ADR 0006, baseline §8 |
 | 5 | `SubmissionViewController` (~1000 baris) dan `ReviewController` (~780 baris) menampung logic M1/M2 | AGENTS.md — pakai strangler, ADR 0008 |
-| 6 | Lima kebutuhan bisnis belum punya layar — desain UI mendahului implementasi M1 dan M5 | §6, register #11 |
-| 7 | Wireframe anggaran membolehkan submit melebihi batas skema | §6, register #9 |
+| ~~6~~ | ~~Lima kebutuhan bisnis belum punya layar~~ — **ditutup** 2026-09-04, 8 frame baru | §6, register #11 |
+| ~~7~~ | ~~Wireframe anggaran membolehkan submit melebihi batas~~ — **ditutup** 2026-09-04 | §6, register #9 |

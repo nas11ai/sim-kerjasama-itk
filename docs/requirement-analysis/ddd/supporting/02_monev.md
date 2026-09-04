@@ -126,6 +126,7 @@ flowchart TD
 | BR-MON-06 | Satu SubmissionReviewer baru dibuat per siklus — tidak reuse record dari siklus sebelumnya                          |
 | BR-MON-07 | Reviewer pengajuan awal yang sudah tidak aktif (expired `end_date`) tidak muncul di suggestion monev                |
 | BR-MON-08 | Submission yang WITHDRAWN saat monev sedang berjalan — siklus monev aktif di-freeze, tidak bisa submit laporan baru |
+| BR-MON-09 | Hasil evaluasi monev terlihat Researcher **begitu reviewer submit**, tidak menunggu siklus berakhir. Ini pengecualian eksplisit atas [BR-REV-12](../core/02_review.md), yang menahan skor sampai APPROVED/REJECTED. Alasannya monev bersifat formatif — koreksi arah kegiatan mustahil kalau catatannya baru terbaca setelah kegiatannya usai |
 
 ---
 

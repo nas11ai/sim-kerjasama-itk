@@ -10,11 +10,8 @@ produk, baru skenarionya mengunci keputusan itu.
 | - | ----------- | ------ | --------- |
 | 1 | `Gate::before` memberi Super Admin keempat ability `FormSubmissionPolicy` tanpa syarat, sementara `SubmitFormSubmission::run()` menegakkan BR-SM-04 sendiri | `SuperAdminSubmitDivergenceTest` mendokumentasikan tanpa menyetujui | Wave 1b |
 | 2 | Auto-reject di kode warisan fork vs BR-REV-07/BR-REV-14 | ADR 0006 sudah memutuskan arah; skenario harus menguncinya | Wave 2 |
-| 3 | Enum `SubmissionStatus` frontend 5 nilai vs state backend 8 nilai. **Dikonfirmasi wireframe:** `REJECTED`, `WITHDRAWN`, dan `RESUBMITTED` tidak pernah dirender sebagai status di satu pun dari 57 frame — UX ketiganya belum pernah didesain | CODING_STANDARDS + penelusuran `h.statusBadge()` di seluruh `screens/` | Wave 1b |
+| 3 | Enum `SubmissionStatus` frontend 5 nilai vs state backend 8 nilai. **Sisi wireframe sudah ditutup** (2026-09-04): kedelapan status kini punya representasi, `REJECTED` bahkan punya halaman detail sendiri. Yang tersisa murni utang kode frontend | CODING_STANDARDS | Wave 1b |
 | 4 | BR-SM-01 ditegakkan unique index parsial — perilaku user-facing saat constraint violation belum ditetapkan | Tidak terdefinisi di sumber mana pun | Wave 1b |
-| 9 | **Wireframe membolehkan submit dengan anggaran melebihi batas skema.** Lihat §9.1 | `RESEARCHER-02-04/screen.js:20-21` vs BR-BUD-01/BR-SM-06 | Implementasi BR-BUD-01 (M1) |
-| 10 | **Apakah BR-REV-12 berlaku untuk siklus monev?** UI monev menampilkan skor begitu reviewer submit; UI pengajuan justru menggerbangnya. Lihat §10.1 | `RESEARCHER-05-03` vs `RESEARCHER-02-03` | Implementasi BR-REV-12 (M2/M4) |
-| 11 | **Lima kebutuhan bisnis belum punya layar sama sekali.** Lihat §11.1 | Penelusuran 57 frame wireframe | Desain UI mendahului M1/M4/M5 |
 
 ### 9.1 Anggaran melebihi batas skema — UI vs aturan
 
@@ -27,9 +24,11 @@ BR-BUD-01 (kanonik) dan BR-SM-06 (cermin) berbunyi sebaliknya: total **tidak bol
 melebihi `scheme.max_budget`. Ini bukan perbedaan penekanan — UI menurunkan batas keras
 finansial menjadi peringatan lunak.
 
-Rekomendasi: **aturan menang, UI menyesuaikan.** Anggaran menyangkut kepatuhan dana dan
-salahnya baru ketahuan saat audit; itu kelas kesalahan yang paling mahal ditemukan
-belakangan. Skenario `[BUD-LIMIT-01]` sudah menguncinya sebagai penolakan.
+**Keputusan (2026-09-04): aturan menang, UI menyesuaikan.** Anggaran menyangkut
+kepatuhan dana dan salahnya baru ketahuan saat audit; itu kelas kesalahan yang paling
+mahal ditemukan belakangan. Kalimat di `RESEARCHER-02-04` diganti menjadi pernyataan
+bahwa pengajuan tidak dapat disubmit selama total masih melebihi batas. Skenario
+`[BUD-LIMIT-01]` mengunci penolakan itu.
 
 Kalau LPPM justru menghendaki submit tetap boleh dengan anggaran berlebih dan Operator
 yang mengadili, itu keputusan sah — tapi berarti **BR-BUD-01 yang diubah**, bukan
@@ -50,12 +49,15 @@ Dibaca apa adanya, gerbang yang sama berlaku. Tapi BC Monev tidak pernah menyata
 ulang, dan konteksnya berbeda: monev bersifat formatif — umpan balik yang datang
 terlambat kehilangan gunanya untuk kegiatan yang masih berjalan.
 
-Rekomendasi: **monev dikecualikan secara eksplisit**, dengan menambahkan aturan di BC
-Monev — bukan dengan membiarkan BR-REV-12 ditafsir bebas. Alasannya kebutuhan bisnis:
-tujuan monev adalah mengoreksi arah kegiatan sebelum selesai, dan itu mustahil kalau
-catatan reviewer baru terlihat setelah siklusnya berakhir.
+**Keputusan (2026-09-04): monev dikecualikan secara eksplisit** lewat **BR-MON-09**
+yang baru di BC Monev — bukan dengan membiarkan BR-REV-12 ditafsir bebas. Alasannya
+kebutuhan bisnis: tujuan monev adalah mengoreksi arah kegiatan sebelum selesai, dan itu
+mustahil kalau catatan reviewer baru terlihat setelah siklusnya berakhir.
 
-Sampai diputuskan, M4 **tidak** mengalokasikan skenario keterlihatan skor monev.
+Wireframe monev ternyata **sudah benar**; yang kurang adalah aturannya. BR-REV-12 kini
+menautkan pengecualian ini supaya tidak terbaca sebagai kelalaian. Dikunci
+`[MON-REVIEW-07..09]` — yang terakhir menjaga pengecualian tetap sempit dengan
+membuktikan gerbang pengajuan awal tidak ikut longgar.
 
 ### 11.1 Kebutuhan bisnis tanpa layar
 
@@ -70,12 +72,18 @@ antarmukanya belum pernah didesain:
 | Wizard langkah 2, 3, 4, 6, 7 | BR-SM-02, BR-SM-14, BR-FE-11 | Label ketujuh langkah ada, tapi hanya langkah 1 dan 5 punya konten |
 | Status override terlihat researcher | BR-FE-16 | Tidak ada layar yang menampilkan badge status override |
 
-Ini **bukan** kontradiksi — tidak ada yang saling bertentangan. Ini pekerjaan desain yang
-belum dilakukan, dan ia mendahului implementasi: skenario `[SM-TARGET-01..09]`,
-`[SM-MEMBER-01..03]`, dan `[NOT-INAPP-01..03]` tidak bisa dikerjakan sampai layarnya ada.
+Ini **bukan** kontradiksi — tidak ada yang saling bertentangan. Ini pekerjaan desain
+yang belum dilakukan, dan ia mendahului implementasi.
 
-Target Luaran yang paling mendesak — ia entitas baru hasil keputusan #5, jadi memang
-belum pernah masuk desain sama sekali.
+**Keputusan (2026-09-04): kelimanya dibuatkan layar.** Delapan frame baru, wireframe
+naik dari 57 ke 65. Rinciannya di [gap-closure](../../design/gap-closure.md); yang
+paling menuntut keputusan desain adalah Target Luaran, yang ditempatkan di **langkah 3
+wizard** karena pilihan tipenya dibatasi skema (BR-SM-14) sehingga tidak bisa mendahului
+pemilihan skema — plus tab tersendiri di halaman detail, karena BR-SM-15 membolehkannya
+diubah setelah wizard selesai.
+
+Dengan layarnya ada, `[SM-TARGET-01..09]`, `[SM-MEMBER-01..03]`, `[SM-WIZARD-01..09]`,
+dan `[NOT-INAPP-01..03]` tidak lagi terhalang.
 
 ## Terselesaikan
 
@@ -85,6 +93,9 @@ belum pernah masuk desain sama sekali.
 | 6 | Arah penelusuran org tree di BR-FE-02 terbalik di DDD — Form ber-scope luas justru tak terlihat oleh peneliti di prodi | **Arah anak-menjangkau-leluhur disetujui.** `FormAccessControl.organization_id` harus ancestor-or-self dari organisasi user. Ditulis sebagai [ADR 0013](../../adr/0013-form-access-control-matches-ancestor-organizations.md); pseudocode, CTE, dan bunyi BR-FE-02 di DDD sudah dikoreksi. Lihat §6.1 | 2026-09-04 |
 | 7 | "Active Submission" di BR-SCH-01 tidak terdefinisi — apakah APPROVED menghalangi penonaktifan skema? | **APPROVED dihitung aktif.** Active = `status NOT IN ('rejected', 'withdrawn')` — predikat yang sudah dipakai index unik BR-SM-01. Definisi masuk `02_ubiquitous_language.md`, bunyi BR-SCH-01 diperjelas, dan `[SCH-RULE-15]` mengunci perilakunya. Lihat §7.1 | 2026-09-04 |
 | 8 | Dua skenario menguji aturan yang tidak punya nomor BR | **Keduanya diberi nomor.** BR-FE-16 (visibility `reason` override) dan BR-SCH-10 (skema tidak aktif tidak ditawarkan); tag `[FE-OVERRIDE-09]` dan `[SCH-RULE-14]` dipindahkan ke nomor barunya. Lihat §8.1 | 2026-09-04 |
+| 9 | Wireframe membolehkan submit dengan anggaran melebihi batas skema | **Aturan menang, UI menyesuaikan.** BR-BUD-01 tetap batas keras; kalimat "tetap dapat melanjutkan submit" di `RESEARCHER-02-04` diganti pernyataan penolakan. Dikunci `[BUD-LIMIT-01]`. Jejak: [gap-closure §5](../../design/gap-closure.md) | 2026-09-04 |
+| 10 | Apakah BR-REV-12 berlaku untuk siklus monev | **Monev dikecualikan eksplisit** lewat BR-MON-09 baru — hasil evaluasi terlihat begitu reviewer submit, karena monev bersifat formatif. Pengecualian dijaga tetap sempit oleh `[MON-REVIEW-09]`. Jejak: [gap-closure §6](../../design/gap-closure.md) | 2026-09-04 |
+| 11 | Lima kebutuhan bisnis belum punya layar sama sekali | **Delapan frame baru dibuat** (57 → 65): wizard langkah 2/3/4/6/7, Target Luaran, Notifikasi, dan detail pengajuan ditolak. Target luaran ditempatkan di langkah 3 karena pilihannya dibatasi skema. Jejak: [gap-closure](../../design/gap-closure.md) | 2026-09-04 |
 
 ### 6.1 Arah penelusuran org tree — jejak keputusan
 

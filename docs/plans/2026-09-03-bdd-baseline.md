@@ -2167,7 +2167,7 @@ Di `AGENTS.md`, pada bagian **Stack**, setelah kalimat yang menyuruh membaca `do
 
 ```markdown
 Skenario perilaku yang mengikat ada di
-[`docs/requirement-analysis/bdd/`](docs/requirement-analysis/bdd/). Kalau kamu
+[`docs/requirement-analysis/bdd/`](../requirement-analysis/bdd/). Kalau kamu
 mengerjakan sebuah business rule, **cari dulu skenarionya di sana** — itu yang
 menetapkan perilaku yang teramati, sementara DDD menetapkan aturannya. Saat kamu
 mengimplementasikan sebuah skenario, sebut ID-nya di deskripsi test

@@ -1,6 +1,6 @@
 # M4 — Monev & Research Output
 
-**15 BR perilaku · 30 skenario · 2 berkas `.feature`**
+**16 BR perilaku · 33 skenario · 2 berkas `.feature`**
 
 Yang terjadi **setelah** pengajuan disetujui: siklus monitoring-evaluasi, dan pelaporan
 luaran yang benar-benar terwujud.
@@ -14,7 +14,7 @@ Sumber: [`supporting/02_monev.md`](../../requirement-analysis/ddd/supporting/02_
 
 | Berkas | Rentang ID | BR |
 | ------ | ---------- | -- |
-| `supporting/monev.feature` | `MON-CYCLE-01..11`, `MON-REVIEW-01..06` | BR-MON-01, BR-MON-02, BR-MON-03, BR-MON-04, BR-MON-05, BR-MON-06, BR-MON-07, BR-MON-08 |
+| `supporting/monev.feature` | `MON-CYCLE-01..11`, `MON-REVIEW-01..09` | BR-MON-01, BR-MON-02, BR-MON-03, BR-MON-04, BR-MON-05, BR-MON-06, BR-MON-07, BR-MON-08, BR-MON-09 |
 | `supporting/research_output.feature` | `RO-OUTPUT-01..13` | BR-RO-01, BR-RO-02, BR-RO-03, BR-RO-04, BR-RO-05, BR-RO-06, BR-RO-07 |
 
 Semua skenario bertag `@M4`.
@@ -89,6 +89,19 @@ dengan daftar reviewer pengajuan awal sekadar sebagai saran.
 `MON-REVIEW-04` penting: memakai ulang record lama akan menimpa evaluasi siklus
 sebelumnya, dan jejak penilaian monev pertama hilang tanpa jejak.
 
+### Keterlihatan hasil evaluasi monev — BR-MON-09
+
+| ID | Kelas | Yang dibuktikan | Frame |
+| -- | ----- | --------------- | ----- |
+| `MON-REVIEW-07` | happy | Researcher melihat skor dan catatan monev **begitu reviewer submit**, tanpa menunggu siklus berakhir | RESEARCHER-05-03 |
+| `MON-REVIEW-08` | denial | Sebelum reviewer submit, hasil evaluasi belum terlihat | RESEARCHER-05-03 |
+| `MON-REVIEW-09` | boundary | Gerbang ini **tidak** berlaku untuk pengajuan awal — di sana skor tetap ditahan sampai APPROVED/REJECTED (`[REV-VIS-04]`) | RESEARCHER-02-03 |
+
+BR-MON-09 adalah **pengecualian eksplisit** atas BR-REV-12, bukan tafsir bebas.
+`MON-REVIEW-09` ada justru untuk menjaga pengecualian itu tetap sempit: satu
+implementasi yang menyamaratakan keduanya akan membocorkan skor pengajuan awal lebih
+cepat dari yang dibolehkan.
+
 ---
 
 ## 5. Research Output — luaran terealisasi
@@ -140,4 +153,4 @@ OPERATOR-05-01 (Manajemen Siklus Monev) tercakup lewat `MON-CYCLE-04` dan
 | baru | Apa arti `can_proceed` secara operasional — ditetapkan reviewer, otomatis saat laporan disubmit, atau manual Operator | `MON-CYCLE-03/04` menguji akibatnya, bukan pemicunya. DDD tidak menyebutkan siapa yang menyetelnya |
 | baru | Apakah target luaran (BR-SM-15) dan luaran realisasi wajib cocok tipenya saat kegiatan selesai | Tidak diatur BR mana pun; kalau LPPM butuh, ini aturan baru — bukan tafsir |
 | baru | Siklus monev yang di-freeze karena WITHDRAWN: bisakah dibuka lagi kalau penarikan dibatalkan | BR-MON-08 dan BR-SM-11 tidak membahas pembatalan penarikan |
-| register #10 | Apakah BR-REV-12 (skor hanya terlihat setelah APPROVED/REJECTED) berlaku untuk siklus monev | Wireframe monev menampilkan skor lebih awal daripada wireframe pengajuan. M4 **sengaja belum** mengalokasikan skenario keterlihatan skor monev sampai ini diputuskan |
+| ~~register #10~~ | **Terselesaikan 2026-09-04.** Monev dikecualikan lewat BR-MON-09; dikunci `[MON-REVIEW-07..09]` |

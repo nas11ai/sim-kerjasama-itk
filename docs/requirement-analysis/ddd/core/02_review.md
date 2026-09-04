@@ -205,7 +205,7 @@ Tabel `reviewers` menyimpan `reviewer_type varchar` (`internal` / `external`) un
 | BR-REV-09 | Reviewer hanya aktif selama rentang `start_date` hingga `end_date`                                                                                            |
 | BR-REV-10 | Saat reviewer diganti (reassignment), SubmissionReviewer lama di-mark `replaced` — tidak dihapus                                                              |
 | BR-REV-11 | `reviewer_internal` bisa lihat skor reviewer lain setelah semua selesai — `reviewer_external` tidak bisa                                                      |
-| BR-REV-12 | Researcher hanya bisa lihat skor evaluasi reviewer setelah submission berstatus APPROVED atau REJECTED — tidak selama proses review berlangsung               |
+| BR-REV-12 | Researcher hanya bisa lihat skor evaluasi reviewer setelah submission berstatus APPROVED atau REJECTED — tidak selama proses review berlangsung Dikecualikan untuk siklus monev oleh [BR-MON-09](../supporting/02_monev.md). |
 | BR-REV-13 | `ReviewSummary.status` hanya boleh `open` atau `resolved`. Tidak ada `closed` — status itu tidak pernah ada di domain ini                                     |
 | BR-REV-14 | Tidak boleh ada jalur kode yang men-transisikan submission ke REJECTED secara otomatis. Satu-satunya jalur masuk adalah Action `RejectSubmission` yang dipanggil Operator dengan alasan wajib |
 

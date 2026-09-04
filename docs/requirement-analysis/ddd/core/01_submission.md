@@ -32,14 +32,28 @@ hanya berjalan di langkah 7.
 | ------- | --------------------- | ---------------------------------------------- |
 | 1       | Pilih Form & Periode  | `form_submissions` (INSERT, jangkar temporal)  |
 | 2       | Informasi Dasar       | `form_field_responses`                          |
-| 3       | Skema & TRL           | `scheme_id`, `trl_id`                           |
+| 3       | Skema, TRL & Target Luaran | `scheme_id`, `trl_id`, `submission_target_outputs` |
 | 4       | Anggota Penelitian    | `research_members` (cek COI, BR-SM-08)          |
 | 5       | Rencana Anggaran      | `budget_line_items` (cek `max_budget`)          |
 | 6       | Upload Berkas         | `submission_additional_files`                   |
 | 7       | Review & Submit       | validasi penuh → `transitionTo(Submitted)`      |
 
-Urutan ini mengikat: `scheme_id` wajib terisi sebelum langkah 5, karena batas
-anggaran berasal dari `scheme.max_budget`.
+Urutan ini mengikat karena data langkah berikutnya bergantung pada skema:
+
+- **`scheme_id` wajib sebelum langkah 5** — batas anggaran berasal dari
+  `scheme.max_budget` (BR-BUD-01).
+- **Target luaran berada di langkah 3, bukan langkah tersendiri** — pilihan tipenya
+  dibatasi `scheme.rules.allowed_output_types` (BR-SM-14), jadi ia harus lahir setelah
+  skema dipilih dan tidak bisa mendahuluinya. Jumlah langkah tetap tujuh sesuai
+  [ADR 0012](../../../adr/0012-wizard-driven-submission-lifecycle.md).
+
+Kedua syarat itu hanya berlaku pada Form yang punya `scheme_selector`. Skema bersifat
+opsional per Form (BR-SCH-04); Form tanpa `scheme_selector` melewati pembatasan ini —
+anggarannya tak berbatas dan target luarannya hanya dibatasi `output_type_definitions`.
+
+Target luaran **tetap bisa diubah setelah wizard selesai** sampai submission REJECTED
+atau WITHDRAWN (BR-SM-15), lewat tab tersendiri di halaman detail — bukan dengan membuka
+ulang wizard.
 
 ```mermaid
 flowchart TD
