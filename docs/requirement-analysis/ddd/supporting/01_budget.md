@@ -105,6 +105,7 @@ Tidak ada sync issue. Tidak ada stale data. Untuk skala SIMPAS, satu aggregate q
 | BR-BUD-05 | BudgetComponent yang `is_active = false` tidak bisa dipilih untuk item baru                                                                                                                     |
 | BR-BUD-07 | Grand total selalu computed (`SUM(total)`) — tidak ada kolom grand total yang disimpan                                                                                                          |
 | BR-BUD-08 | Setiap perubahan BudgetLineItem saat submission berstatus NEEDS_REVISION wajib dicatat di audit trail dengan nilai sebelum dan sesudah — untuk keperluan dispute antara reviewer dan researcher |
+| BR-BUD-09 | `submitted_by` dan `co_investigator` boleh menyunting BudgetLineItem; `member` read-only. Menyusun anggaran adalah pekerjaan bersama, tetapi **mengikat dirinya** lewat submit tetap hanya hak `submitted_by` (BR-SM-04). Sejajar BR-RO-07, sengaja berbeda dari BR-SM-15 yang hanya membolehkan `submitted_by` mengubah target luaran |
 
 > **BR-BUD-06 dicabut 2026-09-03.** Entitas `SubmissionOuter` ternyata luaran yang
 > dijanjikan peneliti — bukan data anggaran — dan tidak punya kolom uang di tabel

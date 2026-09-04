@@ -1,6 +1,6 @@
 # M2 — Review
 
-**15 BR perilaku · 37 skenario · 6 berkas `.feature`**
+**16 BR perilaku · 41 skenario · 7 berkas `.feature`**
 
 Milestone paling berisiko. Di sinilah kode warisan fork **sudah terbukti bertentangan
 dengan DDD**: auto-reject yang melanggar BR-REV-07 dan BR-REV-14. Skenario di sini
@@ -21,6 +21,7 @@ Sumber: [`core/02_review.md`](../../requirement-analysis/ddd/core/02_review.md),
 | `core/review/discussion.feature` | `REV-DISCUSS-01..05` | BR-FE-06, BR-REV-06 |
 | `core/review/reassignment.feature` | `REV-REASSIGN-01..03` | BR-REV-10 |
 | `core/review/visibility.feature` | `REV-VIS-01..06` | BR-REV-11, BR-REV-12 |
+| `generic/form_engine/phase_window.feature` | `FE-WINDOW-01..04` | BR-FE-17 |
 
 Semua skenario bertag `@M2`.
 
@@ -152,9 +153,38 @@ ditahan — di sana kelasnya bukan `@denial`.
 
 ---
 
-## 8. Frame yang tercakup
+## 8. Jendela kerja tiap tahap — BR-FE-17
 
-REVIEWER-03-01 · REVIEWER-03-02 · REVIEWER-03-03 · REVIEWER-03-04 ·
+Ditemukan saat audit tiga sumbu ([ADR 0014](../../adr/0014-time-boxed-access-single-override-mechanism.md)):
+contoh lifecycle memberi Detail 1 (Pengajuan) dan Detail 2 (Evaluasi) deadline yang
+sama, `"Batas Submit"`. Akibatnya reviewer tidak punya waktu kerja sama sekali, dan
+revisi mustahil karena detail researcher-nya sudah terkunci saat status NEEDS_REVISION
+tercapai.
+
+| ID | Kelas | Yang dibuktikan | Frame |
+| -- | ----- | --------------- | ----- |
+| `FE-WINDOW-01` | happy | Reviewer tetap bisa mengevaluasi setelah "Batas Submit" lewat, karena detail evaluasi punya `SubmissionDate` sendiri | REVIEWER-03-03 |
+| `FE-WINDOW-02` | denial | Reviewer ditolak setelah **batas evaluasinya sendiri** lewat | REVIEWER-03-03 |
+| `FE-WINDOW-03` | happy | Researcher bisa menyunting saat NEEDS_REVISION meski "Batas Submit" sudah lewat — jendela revisi terpisah | RESEARCHER-02-05 |
+| `FE-WINDOW-04` | boundary | Dua detail yang sengaja berbagi satu `SubmissionDate` tetap sah; yang dilarang adalah berbagi tanggal antar detail dengan **aktor berbeda** | ADMIN-08-09 |
+
+`FE-WINDOW-03` menutup pertentangan dengan BR-BUD-03, yang menjanjikan anggaran tetap
+bisa disunting saat NEEDS_REVISION. Tanpa jendela revisi tersendiri, janji itu tidak
+bisa ditepati.
+
+`FE-WINDOW-04` menjaga aturan ini tidak jadi terlalu kaku: berbagi tanggal antar detail
+dengan aktor yang sama — misalnya dua detail researcher berurutan — tetap wajar.
+
+> **Berapa lama jendelanya belum diputuskan** — itu kebijakan LPPM. Terdaftar sebagai
+> [register #12](../../requirement-analysis/bdd/open-questions.md) dengan tiga opsi dan
+> rekomendasi. Skenario di atas menguji **bahwa jendelanya terpisah**, bukan berapa
+> panjangnya, jadi keputusan itu tidak mengubahnya.
+
+---
+
+## 9. Frame yang tercakup
+
+REVIEWER-03-01 · REVIEWER-03-02 · REVIEWER-03-03 · REVIEWER-03-04 · ADMIN-08-09 ·
 OPERATOR-03-01 · OPERATOR-03-02 · OPERATOR-08-04 · OPERATOR-02-05 (Tolak Manual,
 lewat `REV-OUTCOME-07`) · RESEARCHER-02-03 · RESEARCHER-02-05 · SHARED-02-02
 (Dashboard Reviewer, lewat `REV-ASSIGN-09`)
@@ -163,7 +193,7 @@ REVIEWER-03-02 (Riwayat Review) tercakup `REV-REASSIGN-02`.
 
 ---
 
-## 9. Yang menunggu keputusan
+## 10. Yang menunggu keputusan
 
 | # | Perkara | Dampak |
 | - | ------- | ------ |

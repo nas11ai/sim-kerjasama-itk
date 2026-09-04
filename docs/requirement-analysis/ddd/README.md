@@ -112,6 +112,10 @@ Setiap file domain mengikuti struktur yang sama:
 - **REJECTED tidak pernah otomatis** — hanya lewat aksi eksplisit Operator ([ADR 0006](../../adr/0006-rejection-is-manual-only.md))
 - **scheme.rules JSONB** untuk rule opsional yang extensible tanpa migration
 - **PostgreSQL** sebagai database — recursive CTE untuk org tree, JSONB untuk metadata
+- **Akses dikendalikan tiga sumbu tegak lurus** — *siapa* (permission), *kapan* (deadline
+  FormPhaseDetail), *keadaan* (status record). Pengecualian terhadap batas waktu memakai
+  `FormSubmissionOverride` yang ber-scope dan kedaluwarsa sendiri — **bukan** permission
+  permanen ([ADR 0014](../../adr/0014-time-boxed-access-single-override-mechanism.md))
 
 ---
 

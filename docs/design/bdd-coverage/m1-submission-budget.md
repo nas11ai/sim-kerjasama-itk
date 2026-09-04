@@ -1,6 +1,6 @@
 # M1 — Submission & Budget
 
-**20 BR perilaku · 69 skenario · 10 berkas `.feature`**
+**21 BR perilaku · 72 skenario · 10 berkas `.feature`**
 
 Inti aplikasi. Semua milestone lain menggantung di sini: Review menilai submission,
 Monev lahir dari submission yang APPROVED, Luaran melaporkan hasilnya.
@@ -23,7 +23,7 @@ Sumber: [`core/01_submission.md`](../../requirement-analysis/ddd/core/01_submiss
 | `core/submission/withdrawal.feature` | `SM-WITHDRAW-01..04` | BR-SM-11 |
 | `core/submission/archival.feature` | `SM-ARCHIVE-01..06` | BR-SM-10, BR-SM-13 |
 | `core/submission/target_output.feature` | `SM-TARGET-01..09` | BR-SM-14, BR-SM-15 |
-| `supporting/budget.feature` | `BUD-LIMIT/LOCK/ITEM/AUDIT` | BR-BUD-01, BR-BUD-02, BR-BUD-03, BR-BUD-04, BR-BUD-05, BR-BUD-08 (+BR-SM-06) |
+| `supporting/budget.feature` | `BUD-LIMIT/LOCK/ITEM/AUDIT/WHO` | BR-BUD-01, BR-BUD-02, BR-BUD-03, BR-BUD-04, BR-BUD-05, BR-BUD-08, BR-BUD-09 (+BR-SM-06) |
 
 Semua skenario bertag `@M1`.
 
@@ -244,6 +244,16 @@ dengan mengubah janji.
 | `BUD-ITEM-04` | boundary | Item lama yang terlanjur memakai komponen itu tetap utuh | BR-BUD-05 |
 | `BUD-AUDIT-01` | happy | Perubahan line item saat NEEDS_REVISION tercatat nilai sebelum dan sesudah | BR-BUD-08 |
 | `BUD-AUDIT-02` | boundary | Audit trail menyimpan siapa yang mengubah dan kapan, bukan hanya nilainya | BR-BUD-08 |
+
+| `BUD-WHO-01` | happy | `submitted_by` menyunting line item | BR-BUD-09 |
+| `BUD-WHO-02` | happy | Co-Investigator juga boleh menyunting — menyusun anggaran pekerjaan bersama | BR-BUD-09 |
+| `BUD-WHO-03` | denial | `member` biasa hanya bisa membaca | BR-BUD-09 |
+
+BR-BUD-09 menutup lubang yang ditemukan audit tiga sumbu ADR 0014: sebelum ini **tidak
+ada satu pun aturan** yang menyatakan siapa boleh menyunting anggaran, padahal Target
+Luaran (BR-SM-15) dan Research Output (BR-RO-07) keduanya punya. `BUD-WHO-02` sengaja
+berbeda dari `[SM-TARGET-08]`: menyusun angka bersama-sama wajar, sedangkan **mengikat
+diri** lewat submit tetap hanya hak ketua (BR-SM-04).
 
 `BUD-LIMIT-02` (tepat di batas) wajib ada: `>` versus `>=` adalah kesalahan yang paling
 sering lolos review dan paling sulit terlihat dari data produksi.

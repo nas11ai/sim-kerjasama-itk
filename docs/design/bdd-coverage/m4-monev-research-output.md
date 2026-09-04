@@ -1,6 +1,6 @@
 # M4 — Monev & Research Output
 
-**16 BR perilaku · 33 skenario · 2 berkas `.feature`**
+**17 BR perilaku · 36 skenario · 2 berkas `.feature`**
 
 Yang terjadi **setelah** pengajuan disetujui: siklus monitoring-evaluasi, dan pelaporan
 luaran yang benar-benar terwujud.
@@ -15,7 +15,7 @@ Sumber: [`supporting/02_monev.md`](../../requirement-analysis/ddd/supporting/02_
 | Berkas | Rentang ID | BR |
 | ------ | ---------- | -- |
 | `supporting/monev.feature` | `MON-CYCLE-01..11`, `MON-REVIEW-01..09` | BR-MON-01, BR-MON-02, BR-MON-03, BR-MON-04, BR-MON-05, BR-MON-06, BR-MON-07, BR-MON-08, BR-MON-09 |
-| `supporting/research_output.feature` | `RO-OUTPUT-01..13` | BR-RO-01, BR-RO-02, BR-RO-03, BR-RO-04, BR-RO-05, BR-RO-06, BR-RO-07 |
+| `supporting/research_output.feature` | `RO-OUTPUT-01..16` | BR-RO-01, BR-RO-02, BR-RO-03, BR-RO-04, BR-RO-05, BR-RO-06, BR-RO-07, BR-RO-08 |
 
 Semua skenario bertag `@M4`.
 
@@ -132,6 +132,21 @@ diseragamkan demi kerapian.
 
 `RO-OUTPUT-09` membuktikan sifat yang membuat sistem ini fleksibel: menambah tipe
 luaran adalah perubahan data, bukan perubahan skema.
+
+### Batas waktu luaran — BR-RO-08
+
+Luaran tunduk pada deadline `FormPhaseDetail` "Upload Luaran", bukan pada mekanisme
+waktu tersendiri ([ADR 0014](../../adr/0014-time-boxed-access-single-override-mechanism.md)).
+
+| ID | Kelas | Yang dibuktikan | Frame |
+| -- | ----- | --------------- | ----- |
+| `RO-OUTPUT-14` | denial | Lewat deadline "Batas Akhir", menambah atau menyunting luaran ditolak | RESEARCHER-06-02 |
+| `RO-OUTPUT-15` | boundary | Lewat deadline, luaran lama **tetap terbaca** read-only — membaca tidak butuh override (BR-FE-15) | RESEARCHER-06-01 |
+| `RO-OUTPUT-16` | happy | `FormSubmissionOverride` yang masih berlaku membuka kembali penyuntingan luaran | OPERATOR-02-03 |
+
+`RO-OUTPUT-15` memisahkan dua hal yang sering disamakan: **membaca** setelah tenggat
+sudah dijamin BR-FE-15 dan tidak perlu izin khusus; yang butuh override hanya
+**menulis**. Membedakannya memangkas jumlah override yang harus diterbitkan Operator.
 
 ---
 

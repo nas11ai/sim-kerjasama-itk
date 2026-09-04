@@ -5,7 +5,7 @@
 **Status:** Menunggu review
 
 Spec ini menetapkan **skenario apa saja yang harus ada** supaya seluruh kebutuhan
-bisnis SIMPAS v2 terbukti benar — 74 business rule perilaku yang tersisa setelah
+bisnis SIMPAS v2 terbukti benar — 77 business rule perilaku yang tersisa setelah
 Wave 1a mendarat, dipetakan ke 65 frame wireframe.
 
 Ini **bukan** implementation plan. Ia menjawab "apa yang harus terbukti", bukan
@@ -26,12 +26,12 @@ wireframe `simpas-wireframe` (65 frame).
 
 | Milestone | Spec | BR | Berkas | Skenario |
 | --------- | ---- | -- | ------ | -------- |
-| M1 · Submission + Budget | [`m1-submission-budget.md`](m1-submission-budget.md) | 20 | 10 | 69 |
-| M2 · Review | [`m2-review.md`](m2-review.md) | 15 | 6 | 37 |
+| M1 · Submission + Budget | [`m1-submission-budget.md`](m1-submission-budget.md) | 21 | 10 | 72 |
+| M2 · Review | [`m2-review.md`](m2-review.md) | 16 | 7 | 41 |
 | M3 · Identity & Access | [`m3-identity-access.md`](m3-identity-access.md) | 10 | 6 | 25 |
-| M4 · Monev + Research Output | [`m4-monev-research-output.md`](m4-monev-research-output.md) | 16 | 2 | 33 |
+| M4 · Monev + Research Output | [`m4-monev-research-output.md`](m4-monev-research-output.md) | 17 | 2 | 36 |
 | M5 · Reporting + Notification + Config | [`m5-reporting-notification-config.md`](m5-reporting-notification-config.md) | 13 | 4 | 22 |
-| | **Total** | **74** | **28** | **186** |
+| | **Total** | **77** | **29** | **196** |
 
 Angka skenario di atas **bukan estimasi** — setiap ID sudah dialokasikan satu per satu
 di berkas milestone masing-masing, lengkap dengan kelas tag dan BR yang dibuktikannya.
@@ -39,7 +39,7 @@ Totalnya lebih rendah dari perkiraan baseline (~310) karena `Scenario Outline` m
 banyak boundary yang semula dihitung satu-satu — pola yang sudah terbukti di Wave 1a
 (53 skenario nyata vs ~80 perkiraan).
 
-Dengan 54 skenario Wave 1a, inventaris akhir **240 skenario untuk 96 BR perilaku**.
+Dengan 54 skenario Wave 1a, inventaris akhir **250 skenario untuk 99 BR perilaku**.
 
 ---
 

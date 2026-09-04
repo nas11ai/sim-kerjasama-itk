@@ -58,3 +58,4 @@ keputusan sama berharganya dengan keputusan itu sendiri.
 | [0011](0011-refactoring-vocabulary.md)                           | Kosakata refactoring sebagai standar review                  | Diterima |
 | [0012](0012-wizard-driven-submission-lifecycle.md)               | Siklus pengajuan mengikuti wizard tujuh langkah              | Diterima |
 | [0013](0013-form-access-control-matches-ancestor-organizations.md) | Akses Form ditentukan leluhur organisasi, bukan keturunannya  | Diterima |
+| [0014](0014-time-boxed-access-single-override-mechanism.md)      | Akses berbatas waktu: tiga sumbu, satu mekanisme pengecualian | Diterima |

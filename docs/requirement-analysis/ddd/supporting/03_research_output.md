@@ -132,6 +132,11 @@ CREATE INDEX idx_research_outputs_metadata ON research_outputs USING GIN (metada
 | Reviewer (via SubmissionReviewer)       | Read only                                   |
 | Operator / Admin                        | Full access via `outputs.manage` permission |
 
+Tabel di atas hanya menjawab sumbu **siapa**. Sumbu **kapan** ditentukan deadline
+`FormPhaseDetail` tempat luaran bergantung (BR-RO-08), dan sumbu **keadaan** oleh
+BR-RO-01 (induk wajib APPROVED). Ketiganya harus lolos — lihat
+[ADR 0014](../../../adr/0014-time-boxed-access-single-override-mechanism.md).
+
 ---
 
 ## Business Rules
@@ -145,6 +150,7 @@ CREATE INDEX idx_research_outputs_metadata ON research_outputs USING GIN (metada
 | BR-RO-05 | `output_type` harus terdaftar di `output_type_definitions` — tidak bisa arbitrary string                      |
 | BR-RO-06 | Research Output tetap ada sebagai data historis setelah submission WITHDRAWN — tidak dihapus                  |
 | BR-RO-07 | Hanya `submitted_by` dan `co_investigator` yang bisa tambah atau edit output — `member` read only             |
+| BR-RO-08 | Menambah dan menyunting Research Output tunduk pada deadline `FormPhaseDetail` tempatnya bergantung (Detail "Upload Luaran"). Lewat deadline luaran **tetap terbaca** (BR-FE-15) tapi tidak bisa diubah, kecuali ada `FormSubmissionOverride` yang masih berlaku (BR-FE-08). Tidak ada mekanisme batas waktu tersendiri untuk luaran — lihat [ADR 0014](../../../adr/0014-time-boxed-access-single-override-mechanism.md) |
 
 ---
 

@@ -12,6 +12,7 @@ produk, baru skenarionya mengunci keputusan itu.
 | 2 | Auto-reject di kode warisan fork vs BR-REV-07/BR-REV-14 | ADR 0006 sudah memutuskan arah; skenario harus menguncinya | Wave 2 |
 | 3 | Enum `SubmissionStatus` frontend 5 nilai vs state backend 8 nilai. **Sisi wireframe sudah ditutup** (2026-09-04): kedelapan status kini punya representasi, `REJECTED` bahkan punya halaman detail sendiri. Yang tersisa murni utang kode frontend | CODING_STANDARDS | Wave 1b |
 | 4 | BR-SM-01 ditegakkan unique index parsial — perilaku user-facing saat constraint violation belum ditetapkan | Tidak terdefinisi di sumber mana pun | Wave 1b |
+| 12 | **Tidak ada tanggal untuk tahap setelah submit.** Evaluasi reviewer dan revisi memakai ulang `"Batas Submit"`, sehingga jendela kerjanya nol. Lihat §12.1 | Lifecycle `supporting/02_monev.md` vs BR-FE-08, BR-BUD-03 | Konfigurasi periode + implementasi BR-FE-08 (M1/M2) |
 
 ### 9.1 Anggaran melebihi batas skema — UI vs aturan
 
@@ -84,6 +85,41 @@ diubah setelah wizard selesai.
 
 Dengan layarnya ada, `[SM-TARGET-01..09]`, `[SM-MEMBER-01..03]`, `[SM-WIZARD-01..09]`,
 dan `[NOT-INAPP-01..03]` tidak lagi terhalang.
+
+### 12.1 Jendela kerja setelah submit
+
+Contoh lifecycle memberi Detail 1 (Pengajuan) dan Detail 2 (Evaluasi Pengajuan) deadline
+yang sama: `"Batas Submit"`. Dibaca bersama BR-FE-08 ("akses di-hard-block jika deadline
+lewat"), dua alur menjadi mustahil:
+
+| Alur | Kapan terjadi | Deadline detailnya | Akibat |
+| ---- | ------------- | ------------------ | ------ |
+| Evaluasi reviewer | Setelah pengajuan ditutup | `Batas Submit` | Jendela kerja nol |
+| Revisi researcher | Setelah review selesai | `Batas Submit` (Detail 1) | BR-BUD-03 menjanjikan anggaran bisa disunting saat NEEDS_REVISION, tapi detailnya sudah terkunci |
+
+Keempat label `SubmissionDate` yang dikenal — `Batas Submit`, `Batas Monev I`,
+`Batas Monev II`, `Batas Akhir` — tidak memuat tanggal untuk evaluasi maupun revisi.
+
+**Sebagian sudah ditutup.** BR-FE-17 menetapkan bahwa deadline sebuah detail mengikat
+aktor detail itu sendiri, dan setiap tahap setelah submit wajib punya `SubmissionDate`
+sendiri. Modelnya sudah mendukung — BR-FE-07 mewajibkan tiap detail punya
+`submission_date_id`; yang keliru hanya contohnya.
+
+**Yang belum diputuskan: berapa lama jendelanya.** Ini kebijakan LPPM, bukan turunan
+aturan. Tiga pilihan:
+
+| Opsi | Bentuk | Konsekuensi |
+| ---- | ------ | ----------- |
+| Tanggal tetap per periode | `Batas Evaluasi` dan `Batas Revisi` sebagai `SubmissionDate` baru | Paling sederhana, seragam untuk semua pengajuan, memakai mesin yang sudah ada |
+| Relatif per pengajuan | "14 hari sejak status NEEDS_REVISION" | Adil bagi yang direview belakangan, tapi butuh tanggal per-submission — mekanisme baru |
+| Tanpa batas, ditutup Operator | Revisi terbuka sampai Operator menutup periode | Paling luwes, tapi menghilangkan tekanan tenggat dan menggantungkan penutupan pada ingatan Operator |
+
+Rekomendasi: **opsi pertama**. Ia memakai `SubmissionDate` yang sudah ada, otomatis
+mewarisi BR-SCH-08 (perpanjangan wajib memberi tahu), dan keterlambatan individual tetap
+bisa ditangani `FormSubmissionOverride` — persis pembagian kerja yang ditetapkan
+[ADR 0014](../../adr/0014-time-boxed-access-single-override-mechanism.md). Opsi kedua
+menambah mekanisme waktu keempat, yang justru dilarang ADR itu.
+
 
 ## Terselesaikan
 

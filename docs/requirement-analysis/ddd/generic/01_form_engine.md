@@ -330,6 +330,7 @@ if ($submission->updated_at->ne($request->last_updated_at)) {
 | BR-FE-14 | Concurrent edit dicegah via optimistic locking — `updated_at` di request harus match dengan yang di DB Dicerminkan [BR-SM-12](../core/01_submission.md). |
 | BR-FE-15 | Expired FormPhaseDetail tetap tampil di UI sebagai read-only — user bisa lihat apa yang sudah disubmit                    |
 | BR-FE-16 | Researcher bisa melihat *status* FormSubmissionOverride (aktif/expired), tapi tidak boleh melihat `reason` — reason hanya untuk Operator dan Admin |
+| BR-FE-17 | Deadline sebuah `FormPhaseDetail` mengikat **aktor detail itu sendiri**, bukan seluruh alur. Setiap tahap yang berjalan setelah submit — evaluasi reviewer, revisi, resubmit — wajib punya `SubmissionDate` sendiri. Memakai ulang "Batas Submit" untuk tahap-tahap itu membuat jendela kerjanya nol atau negatif |
 
 ---
 
