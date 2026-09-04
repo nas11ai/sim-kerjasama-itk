@@ -47,6 +47,11 @@ Urutan ini mengikat karena data langkah berikutnya bergantung pada skema:
   skema dipilih dan tidak bisa mendahuluinya. Jumlah langkah tetap tujuh sesuai
   [ADR 0012](../../../adr/0012-wizard-driven-submission-lifecycle.md).
 
+**Urutan mengikat datanya, bukan navigasinya.** Researcher bebas maju-mundur antar
+langkah; yang menggerbang adalah prasyarat data, bukan nomor langkah (BR-SM-17).
+Memperbaiki judul di langkah 2 saat sedang di langkah 6 tidak boleh menuntut mundur
+empat layar. Langkah 7 pun boleh dibuka kapan saja — yang bergerbang tombol Submit-nya.
+
 Kedua syarat itu hanya berlaku pada Form yang punya `scheme_selector`. Skema bersifat
 opsional per Form (BR-SCH-04); Form tanpa `scheme_selector` melewati pembatasan ini —
 anggarannya tak berbatas dan target luarannya hanya dibatasi `output_type_definitions`.
@@ -248,12 +253,13 @@ classDiagram
 | BR-SM-08 | **Sisi anggota dari [BR-REV-02](../core/02_review.md).** ResearchMember tidak bisa ditambahkan jika user tersebut sudah jadi `SubmissionReviewer` untuk submission yang sama (mutual conflict of interest). Satu Policy, dua pemanggil                                                                                                  |
 | BR-SM-09 | **Cermin [BR-IAM-10](../generic/02_identity_access.md).** Jika lead researcher dinonaktifkan dengan submission aktif, Operator wajib transfer ownership ke Co-Investigator yang aktif                                                                                                                        |
 | BR-SM-10 | DRAFT tidak dihapus saat period tutup — scheduled job mengirim notifikasi ke researcher, submission menjadi archived read-only                                                                                                                     |
-| BR-SM-11 | Withdrawal setelah APPROVED hanya bisa dilakukan Operator via override — tidak bisa self-service oleh Researcher                                                                                                                                   |
+| BR-SM-11 | Withdrawal setelah APPROVED hanya bisa dilakukan Operator via override — tidak bisa self-service oleh Researcher. **WITHDRAWN bersifat terminal dan tidak dapat dibatalkan**: membalikkannya menuntut seluruh pembekuan hilir (kunci anggaran, freeze monev BR-MON-08, penugasan reviewer) ikut dipulihkan dengan benar, untuk peristiwa yang jarang. State machine sengaja dijaga asiklik. Kalau penarikan keliru, jalurnya pengajuan baru yang merujuk yang lama |
 | BR-SM-12 | **Cermin [BR-FE-14](../generic/01_form_engine.md).** Concurrent edit dicegah via optimistic locking — `updated_at` di request harus sama dengan yang ada di DB                                                                                                                                          |
 | BR-SM-13 | `isArchived()` adalah computed property — bukan status di DB. DRAFT dianggap archived jika `is_submitted = false` DAN period sudah tutup (`is_force_closed = true` ATAU semua SubmissionDate sudah terlewat). Archived submission tampil read-only |
 | BR-SM-14 | Target luaran hanya boleh dari `output_type` yang terdaftar di `output_type_definitions`. Jika submission punya scheme, pilihan dibatasi lagi oleh `scheme.rules.allowed_output_types`; scheme tanpa key itu tidak membatasi apa pun |
 | BR-SM-15 | Target luaran bisa diubah sampai submission REJECTED atau WITHDRAWN — termasuk setelah APPROVED, karena target menyesuaikan jalannya kegiatan. Hanya `submitted_by` yang boleh mengubahnya, dan setiap perubahan setelah APPROVED wajib tercatat di audit trail dengan nilai lama dan baru |
 | BR-SM-16 | Pelanggaran BR-SM-01 dicegat **sebelum** menyentuh database: submit ditolak dengan pesan validasi yang menyebut pengajuan aktif yang sudah ada beserta tautannya. Draft yang gagal disubmit **tetap DRAFT dan tetap bisa disunting** — tidak dihapus, tidak diubah statusnya. Index unik parsial tetap ada sebagai jaring pengaman untuk lomba-balap; kalau ia yang menangkap, pesannya sama, bukan galat database mentah |
+| BR-SM-17 | Navigasi wizard **bebas maju-mundur**; yang menggerbang adalah **prasyarat data per langkah**, bukan urutan. Satu-satunya prasyarat nyata: langkah anggaran butuh `scheme_id` pada Form yang punya `scheme_selector` (BR-BUD-01). Langkah Review boleh dibuka kapan saja — yang bergerbang tombol Submit-nya, bukan halamannya. Prasyarat dideklarasikan per langkah supaya tetap benar kalau urutan langkah berubah |
 
 ---
 

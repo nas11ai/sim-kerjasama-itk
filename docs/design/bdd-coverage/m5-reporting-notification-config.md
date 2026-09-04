@@ -1,6 +1,6 @@
 # M5 — Reporting, Notification & System Configuration
 
-**13 BR perilaku · 22 skenario · 4 berkas `.feature`**
+**16 BR perilaku · 28 skenario · 4 berkas `.feature`**
 
 Lapisan yang menyentuh seluruh sistem tapi tidak memiliki alur bisnisnya sendiri:
 laporan dan ekspor, pemberitahuan, jejak audit, dan konfigurasi acuan.
@@ -15,9 +15,9 @@ Sumber: [`supporting/05_reporting.md`](../../requirement-analysis/ddd/supporting
 
 | Berkas | Rentang ID | BR |
 | ------ | ---------- | -- |
-| `supporting/reporting.feature` | `RPT-EXPORT-01..07` | BR-RPT-02, BR-RPT-03, BR-RPT-07, BR-RPT-08 |
-| `supporting/audit.feature` | `RPT-AUDIT-01..05` | BR-RPT-04, BR-RPT-05 |
-| `generic/notification.feature` | `NOT-INAPP-01..03`, `NOT-CHANNEL-01..02`, `NOT-DELIVERY-01` | BR-NOT-01, BR-NOT-02, BR-NOT-03, BR-NOT-04 |
+| `supporting/reporting.feature` | `RPT-EXPORT-01..09` | BR-RPT-02, BR-RPT-03, BR-RPT-07, BR-RPT-08, BR-RPT-10 |
+| `supporting/audit.feature` | `RPT-AUDIT-01..07` | BR-RPT-04, BR-RPT-05, BR-RPT-09 |
+| `generic/notification.feature` | `NOT-INAPP-01..03`, `NOT-CHANNEL-01..04`, `NOT-DELIVERY-01` | BR-NOT-01, BR-NOT-02, BR-NOT-03, BR-NOT-04, BR-NOT-06 |
 | `generic/system_config.feature` | `SC-CONFIG-01..04` | BR-SC-01, BR-SC-02, BR-SC-03 |
 
 Semua skenario bertag `@M5`.
@@ -35,6 +35,8 @@ Semua skenario bertag `@M5`.
 | `RPT-EXPORT-05` | happy | `ExportCompleted` memicu notifikasi in-app ke Operator yang meminta ekspor itu — bukan ke semua Operator | BR-RPT-07 | OPERATOR-07-02 |
 | `RPT-EXPORT-06` | boundary | Job yang gagal diulang maksimal tiga kali dengan jeda menaik | BR-RPT-08 | OPERATOR-07-02 |
 | `RPT-EXPORT-07` | happy | Setelah percobaan ketiga habis, Operator peminta menerima notifikasi kegagalan | BR-RPT-08 | OPERATOR-07-02 |
+| `RPT-EXPORT-08` | happy | Researcher mengekspor data submission miliknya sendiri | BR-RPT-10 | RESEARCHER-02-01 |
+| `RPT-EXPORT-09` | denial | Ekspor Researcher tidak memuat submission milik orang lain — scope sama persis dengan BR-RPT-05 | BR-RPT-10 | RESEARCHER-02-01 |
 
 `RPT-EXPORT-02` memakai ambang 100 baris apa adanya dari BR-RPT-02. Angka itu **ambang
 keputusan**, bukan detail implementasi — kalau berubah, BR-nya yang diubah, bukan
@@ -54,6 +56,8 @@ semua Operator adalah kebocoran kecil yang mengganggu setiap hari.
 | `RPT-AUDIT-03` | denial | Menyunting entri audit log yang sudah ada ditolak | BR-RPT-04 | OPERATOR-07-03 |
 | `RPT-AUDIT-04` | happy | Operator melihat audit log seluruh sistem | BR-RPT-05 | OPERATOR-07-03 |
 | `RPT-AUDIT-05` | denial | Researcher hanya melihat audit log submission miliknya, bukan milik orang lain | BR-RPT-05 | RESEARCHER-07-01 |
+| `RPT-AUDIT-06` | happy | Menjalankan sebuah Action menghasilkan entri audit berisi aktor, waktu, dan nilai sebelum–sesudah | BR-RPT-09 | OPERATOR-07-03 |
+| `RPT-AUDIT-07` | boundary | Cakupan audit diturunkan dari arsitektur, bukan daftar manual — Action mana pun yang mengubah state ikut tercatat | BR-RPT-09 | OPERATOR-07-03 |
 
 BR-RPT-04 berbunyi "append-only", dan itu punya **dua** cara dilanggar: dihapus dan
 disunting. `RPT-AUDIT-02` dan `RPT-AUDIT-03` menutup keduanya — implementasi yang hanya
@@ -70,7 +74,15 @@ melarang `DELETE` tetap membiarkan `UPDATE` menulis ulang sejarah.
 | `NOT-INAPP-03` | boundary | `read_at` terisi saat notifikasi **diklik**, bukan saat halaman daftar dibuka | BR-NOT-04 | SHARED-02-05 |
 | `NOT-CHANNEL-01` | happy | `ProposalApproved` terkirim in-app **dan** email | BR-NOT-02 | SHARED-02-01 |
 | `NOT-CHANNEL-02` | boundary | `RevisionResolved` dan `ProposalWithdrawn` cukup in-app, tanpa email | BR-NOT-02 | SHARED-02-01 |
+| `NOT-CHANNEL-03` | happy | Channel sebuah event diubah Admin lewat konfigurasi dan langsung berlaku — tanpa deploy | BR-NOT-06 | ADMIN-08-10 |
+| `NOT-CHANNEL-04` | denial | Mempublish event yang **belum punya deklarasi channel** ditolak — tidak ada default diam-diam | BR-NOT-06 | ADMIN-08-10 |
 | `NOT-DELIVERY-01` | boundary | Kegagalan mengirim notifikasi tidak menggagalkan aksi bisnis yang memicunya | BR-NOT-03 | RESEARCHER-02-02 |
+
+`NOT-CHANNEL-03/04` mengunci BR-NOT-06: daftar event mana yang perlu email adalah
+**konfigurasi, bukan konstanta kode**. `NOT-CHANNEL-01/02` menguji dua contoh yang
+disebut eksplisit di DDD; `NOT-CHANNEL-03` menguji bahwa isinya bisa berubah tanpa
+deploy, dan `NOT-CHANNEL-04` menjaga tidak ada event yang lolos tanpa deklarasi. Dengan
+begitu "daftar lengkapnya apa" berhenti jadi pertanyaan yang harus dijawab di muka.
 
 `NOT-INAPP-03` terlihat sepele tapi menentukan angka yang dilihat semua orang setiap
 hari: kalau `read_at` diisi saat halaman dibuka, penghitung belum-dibaca akan selalu
@@ -127,6 +139,6 @@ lewat skenario akses di M1–M3. Tidak ada aturan bisnis yang khusus milik dashb
 
 | # | Perkara | Dampak |
 | - | ------- | ------ |
-| [#21](../../requirement-analysis/bdd/open-questions.md) | Daftar lengkap event "butuh perhatian segera" versus cukup in-app | `NOT-CHANNEL-01/02` baru menguji empat event yang disebut eksplisit |
-| [#22](../../requirement-analysis/bdd/open-questions.md) | Aksi apa saja yang wajib masuk audit log | BR-RPT-04 mengatur sifat log, bukan cakupannya — "append-only" menjaga sesuatu yang batasnya belum jelas |
-| [#23](../../requirement-analysis/bdd/open-questions.md) | Researcher boleh mengekspor data miliknya sendiri? | BR-RPT-02/03 menyebut Operator; wireframe hanya punya OPERATOR-07-02 |
+| ~~#21~~ | **Terselesaikan 2026-09-04** — channel jadi konfigurasi (**BR-NOT-06**); daftarnya bukan aturan. Dikunci `[NOT-CHANNEL-03/04]` |
+| ~~#22~~ | **Terselesaikan 2026-09-04** — setiap Action mencatat audit (**BR-RPT-09**); cakupan diturunkan dari arsitektur. Dikunci `[RPT-AUDIT-06/07]` + penjagaan struktural |
+| ~~#23~~ | **Terselesaikan 2026-09-04** — boleh, ter-scope sama persis dengan BR-RPT-05 (**BR-RPT-10**). Dikunci `[RPT-EXPORT-08/09]` |

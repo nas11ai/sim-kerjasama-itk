@@ -1,6 +1,6 @@
 # M3 — Identity & Access
 
-**10 BR perilaku · 25 skenario · 6 berkas `.feature`**
+**10 BR perilaku · 27 skenario · 6 berkas `.feature`**
 
 Gerbang masuk sistem: tiga jalur registrasi, verifikasi NIDN, permission additive, dan
 deaktivasi yang tidak boleh meninggalkan submission yatim.
@@ -13,8 +13,8 @@ Sumber: [`generic/02_identity_access.md`](../../requirement-analysis/ddd/generic
 
 | Berkas | Rentang ID | BR |
 | ------ | ---------- | -- |
-| `generic/identity/registration.feature` | `IAM-REG-01..09` | BR-IAM-01, BR-IAM-02, BR-IAM-06 |
-| `generic/identity/verification.feature` | `IAM-VERIFY-01..05` | BR-IAM-03, BR-IAM-04 |
+| `generic/identity/registration.feature` | `IAM-REG-01..11` | BR-IAM-01, BR-IAM-02, BR-IAM-06 |
+| `generic/identity/verification.feature` | `IAM-VERIFY-01..06` | BR-IAM-03, BR-IAM-04 |
 | `generic/identity/permission.feature` | `IAM-PERM-01..03` | BR-IAM-09 |
 | `generic/identity/deactivation.feature` | `IAM-DEACT-01..02` | BR-IAM-05 |
 | `generic/identity/organization.feature` | `IAM-ORG-01..03` | BR-IAM-08 |
@@ -55,6 +55,8 @@ akun yang sudah terdaftar menjadi reviewer, dan itu diatur terpisah di §7.
 | `IAM-REG-07` | denial | Token yang `expires_at`-nya lewat ditolak | BR-IAM-06 | SHARED-01-04 |
 | `IAM-REG-08` | happy | Token sah menaikkan `used_count` dan membuat user di organisasi token itu | BR-IAM-06 | SHARED-01-03 |
 | `IAM-REG-09` | boundary | Satu token dipakai beberapa user sampai `max_uses` tercapai | BR-IAM-06 | ADMIN-08-01 |
+| `IAM-REG-10` | boundary | Token yang belum terpakai **tidak menghalangi** penghapusan organisasi — ia dicabut, dan Operator diberi tahu berapa yang tercabut | BR-IAM-06 + BR-IAM-08 | ADMIN-08-02 |
+| `IAM-REG-11` | denial | Token milik organisasi yang sudah dihapus ditolak saat dipakai | BR-IAM-06 | SHARED-01-04 |
 
 `IAM-REG-03` menutup celah yang mudah terlewat: kalau pengecekan domain dipasang di
 lapisan yang salah, jalur undangan ikut terblokir dan mitra eksternal tidak pernah
@@ -72,7 +74,8 @@ dan **kelengkapan profil**.
 | ID | Kelas | Yang dibuktikan | BR | Frame |
 | -- | ----- | --------------- | -- | ----- |
 | `IAM-VERIFY-01` | boundary | User `pending` **bisa login** dan melihat dashboard | BR-IAM-04 | SHARED-01-05 |
-| `IAM-VERIFY-02` | denial | User `pending` tidak bisa submit proposal | BR-IAM-04 | RESEARCHER-02-02 |
+| `IAM-VERIFY-02` | denial | User `pending` tidak bisa submit proposal | BR-IAM-04 | RESEARCHER-02-10 |
+| `IAM-VERIFY-06` | happy | User `pending` **boleh membuat dan menyunting DRAFT** — verifikasi menggerbang komitmen, bukan persiapan | BR-IAM-04 | RESEARCHER-02-02 |
 | `IAM-VERIFY-03` | happy | Operator memverifikasi NIDN; user bisa submit | BR-IAM-04 | OPERATOR-08-02 |
 | `IAM-VERIFY-04` | denial | Profil belum lengkap — pembuatan submission ditolak walau akun terverifikasi | BR-IAM-03 | SHARED-01-06 |
 | `IAM-VERIFY-05` | happy | Profil lengkap membuka pembuatan submission | BR-IAM-03 | SHARED-01-06 |
@@ -171,5 +174,5 @@ skenarionya.
 
 | # | Perkara | Dampak |
 | - | ------- | ------ |
-| [#17](../../requirement-analysis/bdd/open-questions.md) | User `pending` boleh menyimpan DRAFT, atau hanya dilarang submit? | `IAM-VERIFY-02` mengasumsikan hanya submit yang diblokir — konsisten dengan bunyi BR-IAM-04, tapi belum ditegaskan |
-| [#18](../../requirement-analysis/bdd/open-questions.md) | Nasib undangan yang sudah dipakai sebagian saat organisasinya dihapus | Bersinggungan BR-IAM-06 dan BR-IAM-08 |
+| ~~#17~~ | **Terselesaikan 2026-09-04** — boleh; BR-IAM-04 diperjelas, dikunci `[IAM-VERIFY-06]` |
+| ~~#18~~ | **Terselesaikan 2026-09-04** — token dicabut, bukan memblokir; BR-IAM-06 diperluas, dikunci `[IAM-REG-10/11]` |

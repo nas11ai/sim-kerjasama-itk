@@ -132,6 +132,16 @@ CREATE INDEX idx_research_outputs_metadata ON research_outputs USING GIN (metada
 | Reviewer (via SubmissionReviewer)       | Read only                                   |
 | Operator / Admin                        | Full access via `outputs.manage` permission |
 
+> **Kecocokan dengan target luaran sengaja TIDAK ditegakkan.** `SubmissionTargetOutput`
+> (BR-SM-14/15) adalah luaran yang *dijanjikan*; `ResearchOutput` yang *terwujud*.
+> Penelitian memang menyimpang — janji artikel jurnal bisa berakhir sebagai paten.
+> Memaksa keduanya cocok akan mendorong peneliti berbohong di target atau tidak
+> melaporkan luaran nyata; dua-duanya lebih buruk daripada ketidakcocokan itu sendiri.
+>
+> Prinsipnya: **batasi yang harus benar, ukur yang sebaiknya benar.** Taksonomi dibatasi
+> (BR-SM-14, BR-RO-05); pemenuhan janji adalah **metrik pelaporan**, bukan aturan yang
+> memblokir. Tidak ada validasi lintas-aggregate di sini.
+
 Tabel di atas hanya menjawab sumbu **siapa**. Sumbu **kapan** ditentukan deadline
 `FormPhaseDetail` tempat luaran bergantung (BR-RO-08), dan sumbu **keadaan** oleh
 BR-RO-01 (induk wajib APPROVED). Ketiganya harus lolos — lihat

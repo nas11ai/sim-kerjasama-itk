@@ -6,23 +6,11 @@ produk, baru skenarionya mengunci keputusan itu.
 
 ## Terbuka
 
-Delapan entri di bawah **sebelumnya parkir di berkas milestone** dan tidak pernah
-dinaikkan ke sini — kelalaian pembukuan yang dikoreksi 2026-09-04. Tidak satu pun
-memblokir penulisan skenario M1; semuanya menyangkut milestone berikutnya.
+_Kosong._ Kedelapan entri terakhir (#16–#23) ditutup 2026-09-04.
 
-| # | Pertanyaan | Asal | Memblokir |
-| - | ---------- | ---- | --------- |
-| 16 | Apakah wizard boleh dilompati mundur-maju bebas, atau hanya maju berurutan | M1 §2 | `[SM-WIZARD-08]` mengasumsikan maju berurutan |
-| 17 | Apakah user `pending` boleh menyimpan DRAFT, atau hanya dilarang **submit** | M3 §3 | `[IAM-VERIFY-02]` mengasumsikan hanya submit yang diblokir |
-| 18 | Apa yang terjadi pada undangan yang sudah dipakai sebagian saat organisasinya dihapus | M3 §6 | Bersinggungan BR-IAM-06 dan BR-IAM-08 |
-| 19 | Apakah target luaran dan luaran realisasi wajib cocok tipenya saat kegiatan selesai | M4 §5 | Tidak diatur BR mana pun — kalau LPPM butuh, ini aturan baru |
-| 20 | Siklus monev yang di-freeze karena WITHDRAWN: bisa dibuka lagi kalau penarikan dibatalkan? | M4 §3 | BR-MON-08 dan BR-SM-11 tidak membahas pembatalan penarikan |
-| 21 | Daftar lengkap event yang "butuh perhatian segera" (in-app + email) versus cukup in-app | M5 §4 | `[NOT-CHANNEL-01/02]` baru menguji empat event yang disebut eksplisit |
-| 22 | Aksi apa saja yang wajib masuk audit log | M5 §3 | BR-RPT-04 mengatur sifat log, bukan cakupannya |
-| 23 | Apakah Researcher boleh mengekspor data miliknya sendiri | M5 §2 | BR-RPT-02/03 menyebut Operator; wireframe hanya punya OPERATOR-07-02 |
-
-Ketiganya yang **load-bearing** — `canProceed`, `not_required`, dan summary milik
-reviewer yang diganti — sudah diputuskan; lihat #13, #14, #15 di bawah.
+Register ini tetap hidup: kontradiksi berikutnya akan muncul saat skenario M1 mulai
+diimplementasikan, dan tempatnya di sini — bukan parkir di berkas milestone, kekeliruan
+pembukuan yang sudah dikoreksi.
 
 ### 9.1 Anggaran melebihi batas skema — UI vs aturan
 
@@ -156,6 +144,14 @@ bukan aturan — jadi tidak perlu BR sendiri.
 | 13 | Apa arti `can_proceed` secara operasional — siapa yang menyetelnya? | **Pertanyaannya salah bentuk.** `canProceed()` adalah *method* di aggregate, bukan kolom — BR-MON-02 menulisnya `can_proceed = true` seolah kolom. Tidak ada yang menyetelnya: ia turunan keadaan, sejajar `isArchived()`. Bernilai true kalau detail sudah disubmit DAN, bila `needs_review = true`, evaluasinya selesai tanpa summary `open`. BR-MON-02 diperjelas, istilah masuk ubiquitous language; dikunci `[MON-CYCLE-03..05]` | 2026-09-04 |
 | 14 | Apakah `not_required` dihitung "selesai" untuk pemicu BR-REV-05/06 | **Ya — kalau tidak, ia kebuntuan permanen.** BR-REV-05/06 semula menulis "semua `evaluation_status = completed`"; dibaca harfiah, reviewer `not_required` tidak akan pernah menjadi `completed` dan submission terkunci selamanya tanpa ada yang salah. Bunyi keduanya dikoreksi jadi "`completed` atau `not_required`", seragam dengan BR-FE-06 yang sudah begitu sejak awal; dikunci `[REV-OUTCOME-06]` | 2026-09-04 |
 | 15 | Siapa me-resolve `ReviewSummary` kalau reviewer-nya sudah `replaced` | **Reviewer pengganti mewarisinya.** Tanpa aturan ini summary itu tak akan pernah bisa ditutup — reviewer lama tidak berwenang, reviewer baru tidak merasa berhak — dan submission terkunci di NEEDS_REVISION. Penulis asli tetap terbaca dari record lama (BR-REV-10). Aturannya **BR-REV-15** baru; dikunci `[REV-DISCUSS-06]` | 2026-09-04 |
+| 16 | Wizard boleh dilompati mundur-maju bebas, atau hanya maju berurutan? | **Navigasi bebas; gerbangnya prasyarat data, bukan urutan langkah.** Kendala sesungguhnya bukan nomor langkah melainkan ketergantungan data — anggaran butuh `scheme_id`. Mengunci berurutan menyiksa: memperbaiki judul di langkah 2 saat di langkah 6 tak boleh menuntut mundur empat layar. Langkah 7 boleh dibuka kapan saja; tombol Submit-nya yang bergerbang. **BR-SM-17** baru; dikunci `[SM-WIZARD-08/10/11]` | 2026-09-04 |
+| 17 | User `pending` boleh menyimpan DRAFT, atau hanya dilarang submit? | **Boleh menyimpan DRAFT.** Verifikasi menggerbang *komitmen*, bukan *persiapan* — tidak ada yang mengikat sampai submit, sementara verifikasi NIDN makan waktu berhari-hari. BR-IAM-04 sendiri bilang "bisa login"; kalau login tapi tak bisa apa-apa, layar Pending Verification jadi jalan buntu. Bunyi BR-IAM-04 diperjelas; dikunci `[IAM-VERIFY-06]` | 2026-09-04 |
+| 18 | Nasib undangan yang belum terpakai saat organisasinya dihapus | **Token dicabut, bukan memblokir penghapusan.** Token basi tidak boleh menyandera reorganisasi selamanya; sebaliknya token menggantung ke organisasi mati juga tidak boleh. Operator melihat berapa token akan tercabut sebelum mengonfirmasi, dan undangan yang terlanjur dibuka mendarat di layar token tidak berlaku yang sudah ada — nol layar baru. BR-IAM-06 diperluas; dikunci `[IAM-REG-10/11]` | 2026-09-04 |
+| 19 | Target luaran dan realisasi wajib cocok tipenya? | **Sengaja TIDAK ditegakkan.** Penelitian memang menyimpang — janji artikel jurnal bisa berakhir sebagai paten. Memaksa cocok mendorong peneliti berbohong di target atau menyembunyikan luaran nyata; keduanya lebih buruk daripada ketidakcocokannya. Prinsip: **batasi yang harus benar (taksonomi), ukur yang sebaiknya benar (pemenuhan)**. Pemenuhan jadi metrik pelaporan, bukan validasi lintas-aggregate. Didokumentasikan di `03_research_output.md` | 2026-09-04 |
+| 20 | Siklus monev yang di-freeze bisa dibuka lagi kalau penarikan dibatalkan? | **Tidak — WITHDRAWN terminal.** Membalikkan penarikan menuntut seluruh pembekuan hilir ikut dipulihkan dengan benar, untuk peristiwa yang jarang. State machine sengaja dijaga **asiklik** karena itu jauh lebih murah dinalar dan diaudit. Kalau penarikan keliru, jalurnya pengajuan baru yang merujuk yang lama. BR-SM-11 diperluas; dikunci `[SM-WITHDRAW-05]` dan `[MON-CYCLE-12]` | 2026-09-04 |
+| 21 | Daftar lengkap event yang butuh email versus cukup in-app | **Pertanyaannya tidak perlu dijawab di muka — jadikan konfigurasi.** Channel per tipe event mengikuti preseden `scheme.rules` JSONB: di-seed dengan default, disunting Admin tanpa deploy. Aturannya satu — setiap event wajib punya deklarasi channel, dan yang tanpa deklarasi ditolak saat dipublish. Daftar isinya bukan aturan, jadi tidak dibekukan di DDD. **BR-NOT-06** baru; dikunci `[NOT-CHANNEL-03/04]` | 2026-09-04 |
+| 22 | Aksi apa saja yang wajib masuk audit log | **Diturunkan dari arsitektur, bukan daftar manual.** Kebalikan #21: ini justru **tidak boleh** jadi konfigurasi — orang bisa mematikan audit. Karena AGENTS.md mewajibkan satu Action = satu use case yang mengubah state, "setiap Action mencatat audit" otomatis berarti "setiap perubahan yang seseorang bertanggung jawab atasnya". Daftar yang mustahil ketinggalan karena bukan daftar. **BR-RPT-09** baru; dikunci `[RPT-AUDIT-06/07]` + penjagaan struktural di `non-behavioral.md` | 2026-09-04 |
+| 23 | Researcher boleh mengekspor data miliknya sendiri? | **Boleh, ter-scope dengan aturan yang sama persis seperti BR-RPT-05.** Ekspor tidak melahirkan konsep scoping kedua — query dan batasnya sama, hanya pemanggilnya berbeda. **BR-RPT-10** baru; dikunci `[RPT-EXPORT-08/09]` | 2026-09-04 |
 
 ### 6.1 Arah penelusuran org tree — jejak keputusan
 

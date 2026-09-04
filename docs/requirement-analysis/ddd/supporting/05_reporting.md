@@ -151,6 +151,8 @@ Implementasi via `spatie/laravel-activitylog`. Aksi yang dicatat:
 | BR-RPT-06 | Statistik dashboard di-query live — tidak ada cache layer yang diperlukan untuk skala SIMPAS                                                                                                                                                                                                                |
 | BR-RPT-07 | `ExportCompleted` event memicu notifikasi in-app ke operator yang request export tersebut                                                                                                                                                                                                                   |
 | BR-RPT-08 | Export job yang gagal di-retry otomatis maksimal 3 kali dengan exponential backoff. Jika semua retry habis, operator yang request mendapat notifikasi in-app "Export gagal — coba lagi" dan error di-log ke Observability. Job tidak di-retry lagi setelah itu — operator harus request ulang secara manual |
+| BR-RPT-09 | **Setiap Action mencatat entri audit.** Cakupan audit diturunkan dari arsitektur, bukan dari daftar manual yang pasti membusuk: AGENTS.md mewajibkan satu Action = satu use case yang mengubah state, jadi "semua Action" otomatis berarti "semua perubahan yang seseorang bertanggung jawab atasnya". Bisa dijaga struktural — kelas di `app/Actions/` yang tidak menulis audit adalah kegagalan |
+| BR-RPT-10 | Researcher boleh mengekspor datanya sendiri, **ter-scope dengan aturan yang sama persis seperti BR-RPT-05**: Operator seluruh sistem, Researcher hanya submission miliknya. Ekspor tidak melahirkan konsep scoping kedua — query dan batasnya sama, hanya pemanggilnya berbeda |
 
 ---
 

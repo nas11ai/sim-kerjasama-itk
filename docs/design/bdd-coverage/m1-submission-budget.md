@@ -1,6 +1,6 @@
 # M1 — Submission & Budget
 
-**22 BR perilaku · 77 skenario · 10 berkas `.feature`**
+**23 BR perilaku · 80 skenario · 10 berkas `.feature`**
 
 Inti aplikasi. Semua milestone lain menggantung di sini: Review menilai submission,
 Monev lahir dari submission yang APPROVED, Luaran melaporkan hasilnya.
@@ -14,13 +14,13 @@ Sumber: [`core/01_submission.md`](../../requirement-analysis/ddd/core/01_submiss
 
 | Berkas | Rentang ID | BR |
 | ------ | ---------- | -- |
-| `core/submission/wizard.feature` | `SM-WIZARD-01..09` | BR-SM-03 (parsial), jangkar temporal |
+| `core/submission/wizard.feature` | `SM-WIZARD-01..11` | BR-SM-03 (parsial), BR-SM-17, jangkar temporal |
 | `core/submission/submit.feature` | `SM-SUBMIT-01..17` | BR-SM-01, BR-SM-02, BR-SM-04, BR-SM-16 |
 | `core/submission/state.feature` | `SM-STATE-01..05` | BR-SM-03, BR-SM-05 |
 | `core/submission/access.feature` | `SM-ACCESS-01..06` | BR-SM-07 |
 | `core/submission/members.feature` | `SM-MEMBER-01..03` | BR-SM-08 |
 | `core/submission/ownership.feature` | `SM-OWNER-01..04` | BR-SM-09 (+BR-IAM-10) |
-| `core/submission/withdrawal.feature` | `SM-WITHDRAW-01..04` | BR-SM-11 |
+| `core/submission/withdrawal.feature` | `SM-WITHDRAW-01..05` | BR-SM-11 |
 | `core/submission/archival.feature` | `SM-ARCHIVE-01..06` | BR-SM-10, BR-SM-13 |
 | `core/submission/target_output.feature` | `SM-TARGET-01..09` | BR-SM-14, BR-SM-15 |
 | `supporting/budget.feature` | `BUD-LIMIT/LOCK/ITEM/AUDIT/WHO` | BR-BUD-01, BR-BUD-02, BR-BUD-03, BR-BUD-04, BR-BUD-05, BR-BUD-08, BR-BUD-09 (+BR-SM-06) |
@@ -50,7 +50,14 @@ parsial; Temporal Field Binding penuh baru jalan di langkah 7.
 | `SM-WIZARD-05` | happy | Langkah 3 mengisi `scheme_id` dan `trl_id` ke kolom, bukan ke `form_field_responses` | RESEARCHER-02-07 |
 | `SM-WIZARD-06` | boundary | Langkah 7 menjalankan Temporal Field Binding penuh dan menampilkan error per field | RESEARCHER-02-10 |
 | `SM-WIZARD-07` | happy | Draft bisa dilanjutkan di sesi berikutnya dari langkah terakhir | RESEARCHER-02-01, RESEARCHER-02-04 |
-| `SM-WIZARD-08` | denial | Melompat ke langkah 7 tanpa melewati langkah wajib ditolak | RESEARCHER-02-09, RESEARCHER-02-10 |
+| `SM-WIZARD-08` | denial | Tombol Submit di langkah 7 ditolak selama prasyarat belum terpenuhi — **halamannya sendiri boleh dibuka** | RESEARCHER-02-10 |
+| `SM-WIZARD-10` | happy | Researcher melompat dari langkah 6 ke langkah 2 dan kembali; isian keduanya utuh | RESEARCHER-02-06 |
+| `SM-WIZARD-11` | boundary | Prasyarat melekat pada langkah, bukan pada urutan — langkah tanpa prasyarat bisa dibuka kapan saja | RESEARCHER-02-09 |
+
+`SM-WIZARD-08`, `-10`, dan `-11` mengunci BR-SM-17: **navigasi bebas, gerbangnya
+prasyarat data.** Yang ditolak bukan "melompat", melainkan menyubmit dengan prasyarat
+belum terpenuhi. Membedakan keduanya penting untuk pemakainya — memperbaiki judul di
+langkah 2 saat sedang di langkah 6 tidak boleh menuntut mundur empat layar.
 
 `SM-WIZARD-09` ada karena DDD berbunyi dua hal yang mudah dibaca bertabrakan:
 "`scheme_id` wajib terisi sebelum langkah 5" (`core/01_submission.md`) dan "Scheme
@@ -196,6 +203,7 @@ dari layar transfer kepemilikan.
 | `SM-WITHDRAW-02` | denial | Researcher menarik sendiri ditolak — bukan self-service | RESEARCHER-02-03 |
 | `SM-WITHDRAW-03` | boundary | Menarik submission yang belum APPROVED ditolak | OPERATOR-02-06 |
 | `SM-WITHDRAW-04` | boundary | Setelah WITHDRAWN, seluruh data historis tetap ada dan terbaca | OPERATOR-02-02 |
+| `SM-WITHDRAW-05` | denial | Penarikan **tidak dapat dibatalkan** — WITHDRAWN terminal, state machine dijaga asiklik | OPERATOR-02-06 |
 
 ### BR-SM-10 dan BR-SM-13 — arsip
 
@@ -298,4 +306,4 @@ dan M2 — keduanya bukan aturan Submission.
 | ~~register #1~~ | **Terselesaikan 2026-09-04** — ADR 0015; dikunci `[SM-SUBMIT-13/14]` |
 | ~~register #3~~ | **Terselesaikan 2026-09-04** — enum frontend wajib memuat 8 nilai dan diturunkan dari kontrak Inertia (ADR 0007) |
 | ~~register #4~~ | **Terselesaikan 2026-09-04** — BR-SM-16; dikunci `[SM-SUBMIT-15..17]` |
-| [#16](../../requirement-analysis/bdd/open-questions.md) | Wizard boleh dilompati mundur-maju bebas? | `SM-WIZARD-08` mengasumsikan maju berurutan |
+| ~~#16~~ | **Terselesaikan 2026-09-04** — navigasi bebas, gerbangnya prasyarat data (**BR-SM-17**); dikunci `[SM-WIZARD-08/10/11]` |

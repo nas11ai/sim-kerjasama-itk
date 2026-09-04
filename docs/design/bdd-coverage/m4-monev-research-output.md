@@ -1,6 +1,6 @@
 # M4 — Monev & Research Output
 
-**17 BR perilaku · 36 skenario · 2 berkas `.feature`**
+**17 BR perilaku · 37 skenario · 2 berkas `.feature`**
 
 Yang terjadi **setelah** pengajuan disetujui: siklus monitoring-evaluasi, dan pelaporan
 luaran yang benar-benar terwujud.
@@ -14,7 +14,7 @@ Sumber: [`supporting/02_monev.md`](../../requirement-analysis/ddd/supporting/02_
 
 | Berkas | Rentang ID | BR |
 | ------ | ---------- | -- |
-| `supporting/monev.feature` | `MON-CYCLE-01..11`, `MON-REVIEW-01..09` | BR-MON-01, BR-MON-02, BR-MON-03, BR-MON-04, BR-MON-05, BR-MON-06, BR-MON-07, BR-MON-08, BR-MON-09 |
+| `supporting/monev.feature` | `MON-CYCLE-01..12`, `MON-REVIEW-01..09` | BR-MON-01, BR-MON-02, BR-MON-03, BR-MON-04, BR-MON-05, BR-MON-06, BR-MON-07, BR-MON-08, BR-MON-09 |
 | `supporting/research_output.feature` | `RO-OUTPUT-01..16` | BR-RO-01, BR-RO-02, BR-RO-03, BR-RO-04, BR-RO-05, BR-RO-06, BR-RO-07, BR-RO-08 |
 
 Semua skenario bertag `@M4`.
@@ -62,6 +62,7 @@ dibuktikan di M0 berlaku di sini tanpa ditulis ulang —
 | `MON-CYCLE-09` | happy | Override yang masih berlaku membuka kembali fase monev | BR-MON-05 | OPERATOR-02-03 |
 | `MON-CYCLE-10` | denial | Submission WITHDRAWN saat monev berjalan — laporan baru tidak bisa disubmit | BR-MON-08 | RESEARCHER-05-01 |
 | `MON-CYCLE-11` | boundary | Laporan monev yang sudah terkirim sebelum penarikan tetap terbaca sebagai riwayat | BR-MON-08 | RESEARCHER-05-03 |
+| `MON-CYCLE-12` | denial | Siklus yang di-freeze **tidak bisa dibuka lagi** — penarikan tidak dapat dibatalkan (BR-SM-11) | BR-MON-08 | RESEARCHER-05-01 |
 
 Ketiganya menguji `canProceed()` sebagai **turunan keadaan**, bukan sebagai saklar yang
 disetel seseorang. `MON-CYCLE-04` dan `MON-CYCLE-05` sengaja berpasangan: keduanya
@@ -129,6 +130,11 @@ Bedakan dari **Target Luaran** (M1, BR-SM-14/15) yang merupakan luaran yang
 | `RO-OUTPUT-12` | happy | Co-Investigator juga boleh menambah dan menyunting luaran | BR-RO-07 | RESEARCHER-06-03 |
 | `RO-OUTPUT-13` | denial | Member biasa hanya bisa membaca | BR-RO-07 | RESEARCHER-06-01 |
 
+Kecocokan tipe antara target dan realisasi **sengaja tidak diuji sebagai penolakan** —
+tidak ada skenario yang menolak luaran karena tipenya beda dari yang dijanjikan.
+Penelitian memang menyimpang, dan memaksanya cocok mendorong peneliti berbohong di
+target atau menyembunyikan luaran nyata. Pemenuhan janji diukur di pelaporan.
+
 `RO-OUTPUT-12` sengaja **berbeda** dari `[SM-TARGET-08]` di M1, yang melarang
 Co-Investigator mengubah *target*. Mengisi hasil bukan tindakan yang sama dengan
 mengubah janji — perbedaan ini disengaja dan harus tetap terlihat di kode, bukan
@@ -170,6 +176,6 @@ OPERATOR-05-01 (Manajemen Siklus Monev) tercakup lewat `MON-CYCLE-04` dan
 | # | Perkara | Dampak |
 | - | ------- | ------ |
 | ~~baru~~ | **Terselesaikan 2026-09-04.** Pertanyaannya salah bentuk — `canProceed()` method, bukan kolom; tidak ada yang menyetelnya. BR-MON-02 diperjelas; register #13 |
-| [#19](../../requirement-analysis/bdd/open-questions.md) | Target luaran dan luaran realisasi wajib cocok tipenya saat kegiatan selesai? | Tidak diatur BR mana pun — kalau LPPM butuh, ini aturan baru, bukan tafsir |
-| [#20](../../requirement-analysis/bdd/open-questions.md) | Siklus monev yang di-freeze bisa dibuka lagi kalau penarikan dibatalkan? | BR-MON-08 dan BR-SM-11 tidak membahas pembatalan penarikan |
+| ~~#19~~ | **Terselesaikan 2026-09-04** — sengaja **tidak** ditegakkan. Batasi yang harus benar (taksonomi), ukur yang sebaiknya benar (pemenuhan). Pemenuhan jadi metrik pelaporan, bukan validasi lintas-aggregate |
+| ~~#20~~ | **Terselesaikan 2026-09-04** — tidak; WITHDRAWN terminal, state machine dijaga asiklik. BR-SM-11 diperluas, dikunci `[SM-WITHDRAW-05]`/`[MON-CYCLE-12]` |
 | ~~register #10~~ | **Terselesaikan 2026-09-04.** Monev dikecualikan lewat BR-MON-09; dikunci `[MON-REVIEW-07..09]` |

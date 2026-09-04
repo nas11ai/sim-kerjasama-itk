@@ -222,9 +222,9 @@ tapi ia bukan jawaban untuk access control. Jejak lengkapnya di
 | BR-IAM-01 | Email domain `@itk.ac.id` wajib untuk self-register internal                                                                                            |
 | BR-IAM-02 | NIDN harus unik di seluruh sistem                                                                                                                       |
 | BR-IAM-03 | UserProfile wajib lengkap sebelum Researcher bisa membuat Submission                                                                                    |
-| BR-IAM-04 | User status `pending` bisa login tapi tidak bisa submit proposal                                                                                        |
+| BR-IAM-04 | User status `pending` bisa login, **membuat dan menyunting DRAFT**, tapi tidak bisa submit. Verifikasi menggerbang *komitmen*, bukan *persiapan* — tidak ada yang mengikat sampai submit, sementara verifikasi NIDN makan waktu berhari-hari. Kelengkapan profil adalah gerbang terpisah untuk membuat submission (BR-IAM-03) |
 | BR-IAM-05 | Deaktivasi User tidak delete data — `is_active = false`                                                                                                 |
-| BR-IAM-06 | InvitationToken invalid jika `used_count >= max_uses` atau `expires_at` lewat                                                                           |
+| BR-IAM-06 | InvitationToken invalid jika `used_count >= max_uses`, `expires_at` lewat, **atau organisasinya sudah dihapus/nonaktif**. Token yang belum terpakai **tidak** menghalangi penghapusan organisasi — ia dicabut, dan Operator diberi tahu berapa yang akan tercabut sebelum mengonfirmasi. Undangan yang terlanjur dibuka mendarat di layar token tidak berlaku |
 | BR-IAM-07 | **Bagian dari [BR-REV-02](../core/02_review.md).** User dengan role `reviewer_internal` atau `reviewer_external` tidak bisa me-review submission yang ia menjadi ResearchMember-nya                        |
 | BR-IAM-08 | Organization tidak bisa di-delete jika masih ada UserProfile di subtree-nya                                                                             |
 | BR-IAM-09 | Direct permission ke user tidak menghapus permission dari role — keduanya additive                                                                      |

@@ -18,6 +18,12 @@ Kriteria dan alasan lengkap: `docs/design/bdd-gherkin-baseline.md` §6.
 | BR-RPT-06 | Statistik live query, tanpa cache | Keputusan arsitektur |
 | BR-NOT-05 | Unread count di-cache | Implementation detail |
 
+> **Penegakan tambahan untuk BR-RPT-09.** Aturannya perilaku dan dibuktikan
+> `[RPT-AUDIT-06]`, tapi cakupannya ("setiap Action") hanya bisa dijaga struktural:
+> setiap kelas di `app/Actions/` wajib menulis entri audit. Satu skenario membuktikan
+> satu Action mencatat; penjagaan inilah yang membuktikan **tidak ada** Action yang
+> terlewat. Pelengkap, bukan pengganti — pola yang sama dengan BR-REV-14.
+
 > **Penegakan tambahan untuk BR-REV-14.** Aturannya sendiri **bersifat perilaku** dan
 > dibuktikan `[REV-OUTCOME-08]` — ia tidak dipindahkan ke sini. Tapi satu skenario hanya
 > membuktikan satu jalur, sedangkan BR-REV-14 menyatakan sebuah *ketiadaan*: "tidak boleh

@@ -195,3 +195,4 @@ Untuk SIMPAS, **Opsi A sudah lebih dari cukup**. Opsi B bisa dipertimbangkan kal
 | BR-NOT-03 | Notification bersifat fire-and-forget — gagal kirim tidak menghentikan proses bisnis                                         |
 | BR-NOT-04 | `read_at` di-set saat user klik notifikasi — bukan saat halaman dibuka                                                       |
 | BR-NOT-05 | Unread count di navbar di-cache per user, invalidate saat ada notifikasi baru masuk                                          |
+| BR-NOT-06 | Channel per tipe event (`in-app`, `email`, atau keduanya) adalah **konfigurasi, bukan konstanta kode** — mengikuti preseden `scheme.rules` JSONB (BR-SCH-06): di-seed dengan default masuk akal, disunting Admin tanpa deploy. Aturannya satu: **setiap tipe event wajib punya deklarasi channel; event tanpa deklarasi ditolak saat dipublish**. Daftar isinya bukan aturan, jadi tidak dibekukan di DDD |
