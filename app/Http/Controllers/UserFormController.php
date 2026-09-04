@@ -376,6 +376,11 @@ class UserFormController extends Controller
                 'is_submitted' => false,
             ]);
 
+            // BR-SM-05 — isi pengajuan terkunci pada status terminal. abort() di
+            // dalam DB::transaction membatalkan transaksinya, jadi tidak ada
+            // response yang terlanjur tertulis.
+            abort_unless($user->can('update', $submission), 403, 'Pengajuan ini sudah terkunci.');
+
             // C1 — tidak ada penulis lain untuk dua kolom ini; tanpanya
             // getFormPhaseDetail(), resolveIsArchived(), dan assignment
             // reviewer evaluasi diam-diam tidak jalan (ADR 0004).
