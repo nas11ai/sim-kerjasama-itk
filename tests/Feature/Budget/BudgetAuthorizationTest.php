@@ -12,6 +12,7 @@ use App\States\Submission\NeedsRevision;
 use App\States\Submission\Rejected;
 use App\States\Submission\Withdrawn;
 use Illuminate\Auth\Access\AuthorizationException;
+use Spatie\Permission\Models\Role;
 
 function submissionOwnedBy(User $owner, string $state = Draft::class): FormSubmission
 {
@@ -108,4 +109,35 @@ it('[BUD-LOCK-02] action menerima penyuntingan saat perlu revisi', function () {
     ]);
 
     expect($item->total)->toBe(1_000_000);
+});
+
+/*
+ * BR-BUD-09 menyebut daftar tertutup — submitted_by dan co_investigator. Super Admin
+ * tidak ada di dalamnya, jadi bypass Gate::before melanggar BR-BUD-09 sekaligus
+ * BR-BUD-02. Register #24.
+ */
+
+function budgetSuperAdmin(): User
+{
+    Role::findOrCreate('Super Admin');
+    $admin = User::factory()->create();
+    $admin->assignRole('Super Admin');
+
+    return $admin;
+}
+
+it('[BUD-LOCK-03] super admin pun tidak menembus kunci status terminal', function () {
+    $owner = User::factory()->create();
+    $admin = budgetSuperAdmin();
+    $submission = submissionOwnedBy($owner, Approved::class);
+
+    expect($admin->can('update-budget', $submission))->toBeFalse();
+});
+
+it('[BUD-WHO-04] super admin di luar tim tidak menyunting anggaran orang', function () {
+    $owner = User::factory()->create();
+    $admin = budgetSuperAdmin();
+    $submission = submissionOwnedBy($owner);
+
+    expect($admin->can('update-budget', $submission))->toBeFalse();
 });

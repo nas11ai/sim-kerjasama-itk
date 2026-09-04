@@ -26,9 +26,15 @@ class AppServiceProvider extends ServiceProvider
      * kepemilikan (BR-SM-09) — yang meninggalkan jejak dan membuat `submitted_by`
      * tetap jujur. Lihat ADR 0015.
      *
+     * BR-BUD-02 dan BR-BUD-09 — `update-budget` menyusul dengan alasan yang sama.
+     * BR-BUD-09 menyebut daftar tertutup (`submitted_by` dan `co_investigator`), dan
+     * angka anggaran pada pengajuan yang sudah diputuskan adalah dasar pencairan dana.
+     * Koreksi setelah putusan menempuh transisi status yang meninggalkan jejak, bukan
+     * suntingan senyap. Register #24.
+     *
      * @var list<string>
      */
-    private const INVARIANT_ABILITIES = ['submit', 'resubmit'];
+    private const INVARIANT_ABILITIES = ['submit', 'resubmit', 'update-budget'];
 
     /**
      * Register any application services.

@@ -2,7 +2,7 @@
 
 **Status:** Diterima
 **Tanggal:** 2026-09-04
-**Menutup:** register #1
+**Menutup:** register #1, #24
 
 ## Konteks
 
@@ -29,7 +29,7 @@ authorization yang lebih longgar dari invarian domainnya.
 Daftarnya eksplisit dan bernama:
 
 ```php
-private const INVARIANT_ABILITIES = ['submit', 'resubmit'];
+private const INVARIANT_ABILITIES = ['submit', 'resubmit', 'update-budget'];
 ```
 
 Alasannya bukan soal seberapa tinggi kewenangan seseorang, melainkan soal apa yang
@@ -41,6 +41,28 @@ seorang peneliti mengajukan proposal padahal bukan dia yang melakukannya.
 **Kalau admin memang harus mengajukan untuk orang lain**, jalurnya sudah ada: transfer
 kepemilikan (BR-SM-09/BR-IAM-10). Jalur itu meninggalkan jejak audit dan membuat
 `submitted_by` tetap jujur. Menambah bypass diam-diam menghapus keduanya.
+
+### Perluasan 2026-09-04 — `update-budget`
+
+Daftar ini bertambah satu saat irisan vertikal Budget diimplementasikan. `Gate::before`
+ternyata membuat Super Admin menembus `BudgetLineItemPolicy` sepenuhnya: pada submission
+APPROVED, `$superAdmin->can('update-budget', $s)` bernilai `true` sementara pemiliknya
+sendiri `false`. Pemilik pengajuan terkunci, administrator tidak.
+
+Yang dilanggar ada **dua**, dan itu yang membuat kasusnya jelas:
+
+- **BR-BUD-02** — anggaran terkunci pada APPROVED, REJECTED, WITHDRAWN. Angka anggaran
+  pada pengajuan yang sudah diputuskan adalah dasar pencairan dana; koreksi setelah
+  putusan harus menempuh transisi status yang meninggalkan jejak, bukan suntingan senyap.
+- **BR-BUD-09** — aturannya menyebut **daftar tertutup**: `submitted_by` dan
+  `co_investigator`, `member` read-only. Super Admin tidak ada di dalamnya. Bypass itu
+  menambahkan aktor yang aturannya sengaja tidak sebutkan.
+
+Kriterianya sama persis dengan `submit`: yang menentukan bukan seberapa tinggi kewenangan
+seseorang, melainkan apakah ability itu menyandang invarian domain. Anggaran menyandangnya.
+
+`[BUD-LOCK-03]` mengunci sumbu keadaan, `[BUD-WHO-04]` mengunci sumbu siapa — supaya
+perilaku Super Admin tidak lagi bergantung pada pembacaan `Gate::before`.
 
 ### Kenapa daftar-tolak, bukan daftar-izin
 
@@ -55,8 +77,11 @@ yang di-bypass maupun yang tidak — tetap berperilaku seperti yang dinyatakan d
 
 ## Konsekuensi
 
-- `submit` dan `resubmit` kini dievaluasi Policy sungguhan untuk semua orang, termasuk
-  Super Admin. `view`, `update`, dan `withdraw` tetap di-bypass.
+- `submit`, `resubmit`, dan `update-budget` kini dievaluasi Policy sungguhan untuk semua
+  orang, termasuk Super Admin. `view`, `update`, dan `withdraw` tetap di-bypass.
+- Super Admin tidak lagi bisa menyunting anggaran pengajuan orang lain pada status
+  **mana pun** — bukan hanya status terminal. Itu bukan efek samping yang ditoleransi
+  melainkan bunyi BR-BUD-09 yang selama ini tidak ditegakkan.
 - `SuperAdminSubmitDivergenceTest` berubah sifat: dari memotret divergensi menjadi
   **menegakkan** aturannya, plus menjaga ability yang sengaja tetap di-bypass.
 - Objek `can` yang dikirim ke frontend kini jujur — tombol Submit tidak lagi muncul untuk

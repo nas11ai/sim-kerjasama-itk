@@ -6,45 +6,7 @@ produk, baru skenarionya mengunci keputusan itu.
 
 ## Terbuka
 
-### 24. Super Admin menembus kunci anggaran status terminal
-
-Muncul saat irisan vertikal Budget diimplementasikan (Task 7–10).
-
-`BudgetLineItemPolicy::update()` menolak penyuntingan anggaran pada APPROVED, REJECTED,
-dan WITHDRAWN — BR-BUD-02, dan `[BUD-LOCK-01]` menguncinya. Tapi ability `update-budget`
-tidak lolos ke Policy untuk Super Admin: `Gate::before` di `AppServiceProvider`
-mengembalikan `true` lebih dulu untuk setiap ability di luar `INVARIANT_ABILITIES`
-(`submit`, `resubmit`) sesuai ADR 0015.
-
-Terbukti langsung, bukan dugaan: pada submission APPROVED, `$superAdmin->can('update-budget', $s)`
-bernilai `true` sementara `$owner->can(...)` bernilai `false`. Jadi pemilik pengajuan
-terkunci, administrator tidak.
-
-`[BUD-LOCK-01]` tetap hijau karena skenarionya memang bercerita tentang peneliti, bukan
-Super Admin — kunci ini bocor di jalur yang belum ada skenarionya.
-
-**Opsi:**
-
-1. **Masukkan `update-budget` ke `INVARIANT_ABILITIES`.** Angka anggaran pada pengajuan
-   yang sudah diputuskan menjadi tidak bisa diubah siapa pun; koreksi harus lewat
-   transisi status yang meninggalkan jejak. Konsisten dengan alasan BR-BUD-02 ada.
-2. **Biarkan.** Super Admin dianggap memang berwenang mengoreksi anggaran pasca-putusan,
-   dan `spatie/laravel-activitylog` sudah mencatat pelakunya (BR-BUD-08).
-3. **Jalur ketiga:** ability terpisah (mis. `override-budget-lock`) yang di-assign
-   eksplisit, bukan menempel pada peran Super Admin — sejalan dengan pola sumbu
-   *siapa*/*kapan*/*keadaan* di ADR 0014.
-
-**Rekomendasi: opsi 1.** BR-BUD-02 ada karena angka anggaran pada pengajuan yang sudah
-diputuskan adalah dasar pencairan dana; itu invarian domain, bukan sekadar kewenangan —
-kriteria yang persis dipakai ADR 0015 untuk memasukkan `submit` dan `resubmit`. Opsi 3
-lebih fleksibel tapi menambah mekanisme untuk kebutuhan yang belum terbukti ada.
-
-Apa pun keputusannya, ia butuh skenario sendiri (`[BUD-LOCK-03]`) supaya perilaku Super
-Admin di sumbu keadaan tidak lagi bergantung pada pembacaan `Gate::before`.
-
----
-
-Kedelapan entri sebelumnya (#16–#23) ditutup 2026-09-04.
+_Kosong._ Entri #24 ditutup 2026-09-04, seperti #16–#23 sebelumnya.
 
 Register ini tetap hidup: kontradiksi berikutnya akan muncul saat skenario M1 mulai
 diimplementasikan, dan tempatnya di sini — bukan parkir di berkas milestone, kekeliruan
@@ -163,6 +125,42 @@ menularkan kekeliruan yang sama. Berapa panjang tiap jendela adalah konfigurasi 
 bukan aturan — jadi tidak perlu BR sendiri.
 
 
+### 24.1 Super Admin menembus kunci anggaran — jejak keputusan
+
+Muncul saat irisan vertikal Budget diimplementasikan (Task 7–10).
+
+`BudgetLineItemPolicy::update()` menolak penyuntingan anggaran pada APPROVED, REJECTED,
+dan WITHDRAWN — BR-BUD-02, dan `[BUD-LOCK-01]` menguncinya. Tapi ability `update-budget`
+tidak lolos ke Policy untuk Super Admin: `Gate::before` di `AppServiceProvider`
+mengembalikan `true` lebih dulu untuk setiap ability di luar `INVARIANT_ABILITIES`
+(`submit`, `resubmit`) sesuai ADR 0015.
+
+Terbukti langsung, bukan dugaan: pada submission APPROVED, `$superAdmin->can('update-budget', $s)`
+bernilai `true` sementara `$owner->can(...)` bernilai `false`. Jadi pemilik pengajuan
+terkunci, administrator tidak.
+
+`[BUD-LOCK-01]` tetap hijau karena skenarionya memang bercerita tentang peneliti, bukan
+Super Admin — kunci ini bocor di jalur yang belum ada skenarionya.
+
+**Keputusan (2026-09-04): `update-budget` masuk `INVARIANT_ABILITIES`.**
+
+Yang dilanggar ternyata **dua** aturan, bukan satu. Selain BR-BUD-02, bypass itu juga
+melanggar BR-BUD-09 — aturan itu menyebut daftar tertutup (`submitted_by` dan
+`co_investigator`, `member` read-only) dan Super Admin tidak ada di dalamnya.
+
+Kriterianya sama persis dengan `submit` di ADR 0015: bukan soal seberapa tinggi
+kewenangan seseorang, melainkan apakah ability itu menyandang invarian domain. Angka
+anggaran pada pengajuan yang sudah diputuskan adalah dasar pencairan dana — koreksi
+setelahnya menempuh transisi status yang meninggalkan jejak, bukan suntingan senyap.
+
+Konsekuensinya melampaui status terminal: Super Admin tidak lagi menyunting anggaran
+pengajuan orang lain pada status mana pun. Itu bunyi BR-BUD-09 yang selama ini tidak
+ditegakkan, bukan efek samping yang ditoleransi.
+
+Opsi ability terpisah (`override-budget-lock`) ditolak — menambah mekanisme untuk
+kebutuhan yang belum terbukti ada.
+
+
 ## Terselesaikan
 
 | # | Perkara | Keputusan | Tanggal |
@@ -190,6 +188,7 @@ bukan aturan — jadi tidak perlu BR sendiri.
 | 21 | Daftar lengkap event yang butuh email versus cukup in-app | **Pertanyaannya tidak perlu dijawab di muka — jadikan konfigurasi.** Channel per tipe event mengikuti preseden `scheme.rules` JSONB: di-seed dengan default, disunting Admin tanpa deploy. Aturannya satu — setiap event wajib punya deklarasi channel, dan yang tanpa deklarasi ditolak saat dipublish. Daftar isinya bukan aturan, jadi tidak dibekukan di DDD. **BR-NOT-06** baru; dikunci `[NOT-CHANNEL-03/04]` | 2026-09-04 |
 | 22 | Aksi apa saja yang wajib masuk audit log | **Diturunkan dari arsitektur, bukan daftar manual.** Kebalikan #21: ini justru **tidak boleh** jadi konfigurasi — orang bisa mematikan audit. Karena AGENTS.md mewajibkan satu Action = satu use case yang mengubah state, "setiap Action mencatat audit" otomatis berarti "setiap perubahan yang seseorang bertanggung jawab atasnya". Daftar yang mustahil ketinggalan karena bukan daftar. **BR-RPT-09** baru; dikunci `[RPT-AUDIT-06/07]` + penjagaan struktural di `non-behavioral.md` | 2026-09-04 |
 | 23 | Researcher boleh mengekspor data miliknya sendiri? | **Boleh, ter-scope dengan aturan yang sama persis seperti BR-RPT-05.** Ekspor tidak melahirkan konsep scoping kedua — query dan batasnya sama, hanya pemanggilnya berbeda. **BR-RPT-10** baru; dikunci `[RPT-EXPORT-08/09]` | 2026-09-04 |
+| 24 | `Gate::before` membuat Super Admin menembus `BudgetLineItemPolicy` — pada APPROVED, admin bisa menyunting anggaran sementara pemiliknya tidak | **`update-budget` jadi invarian domain.** Bypass itu melanggar BR-BUD-02 *dan* BR-BUD-09, yang menyebut daftar tertutup `submitted_by`/`co_investigator`. Ability masuk `INVARIANT_ABILITIES`; konsekuensinya berlaku di semua status, bukan hanya terminal. [ADR 0015](../../adr/0015-gate-before-never-bypasses-domain-invariants.md) diperluas; dikunci `[BUD-LOCK-03]` dan `[BUD-WHO-04]`. Lihat §24.1 | 2026-09-04 |
 
 ### 6.1 Arah penelusuran org tree — jejak keputusan
 

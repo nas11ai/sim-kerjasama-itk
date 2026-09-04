@@ -44,6 +44,13 @@ Feature: Anggaran Pengajuan
     When "Budi" menyunting line item "P-001"
     Then penyuntingan berhasil
 
+  @BR-BUD-02 @M1 @OPERATOR-02-02 @denial
+  Scenario: [BUD-LOCK-03] Super Admin pun tidak menembus kunci status terminal
+    Given submission "P-001" berstatus APPROVED
+    And "Siti" berperan Super Admin dan bukan submitted_by "P-001"
+    When "Siti" menyunting line item "P-001"
+    Then penyuntingan ditolak dengan 403
+
   @BR-BUD-04 @M1 @RESEARCHER-02-04 @denial
   Scenario Outline: [BUD-ITEM-01] Volume dan harga satuan harus lebih dari nol
     When "Budi" menambahkan line item dengan volume <volume> dan harga <harga> ke "P-001"
@@ -102,4 +109,10 @@ Feature: Anggaran Pengajuan
   Scenario: [BUD-WHO-03] Anggota biasa hanya bisa membaca anggaran
     Given "Andi" terdaftar sebagai member di "P-001"
     When "Andi" menyunting line item "P-001"
+    Then penyuntingan ditolak dengan 403
+
+  @BR-BUD-09 @M1 @OPERATOR-02-02 @denial
+  Scenario: [BUD-WHO-04] Super Admin di luar tim tidak menyunting anggaran orang
+    Given "Siti" berperan Super Admin dan bukan submitted_by "P-001"
+    When "Siti" menyunting line item "P-001"
     Then penyuntingan ditolak dengan 403
