@@ -229,6 +229,7 @@ tapi ia bukan jawaban untuk access control. Jejak lengkapnya di
 | BR-IAM-08 | Organization tidak bisa di-delete jika masih ada UserProfile di subtree-nya                                                                             |
 | BR-IAM-09 | Direct permission ke user tidak menghapus permission dari role — keduanya additive                                                                      |
 | BR-IAM-10 | Jika lead researcher dinonaktifkan dengan active submission, Operator wajib transfer ownership ke Co-Investigator aktif sebelum deaktivasi dikonfirmasi Dicerminkan [BR-SM-09](../core/01_submission.md). |
+| BR-IAM-11 | Reviewer dibuat Operator dari user yang **sudah terdaftar** — tidak ada jalur registrasi mandiri untuk reviewer. `reviewer_type` (`internal`/`external`) menentukan role Spatie yang diberikan, dan role itulah yang dipakai [BR-REV-11](../core/02_review.md) untuk membatasi keterlihatan skor |
 
 ---
 

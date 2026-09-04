@@ -63,8 +63,10 @@ sisi. Satu Policy, dipanggil dari penugasan reviewer **dan** dari penambahan ang
 | `REV-EVAL-05` | happy | `ReviewSummary` bisa dibuat setelah `completed` | BR-FE-06 | REVIEWER-03-04 |
 | `REV-EVAL-06` | boundary | `evaluation_status = not_required` juga membuka pembuatan `ReviewSummary` | BR-FE-06 | REVIEWER-03-04 |
 
-**BR-REV-08 ≡ BR-FE-05** — teksnya identik di dua dokumen. `REV-EVAL-01/02` bertag
-keduanya; satu aturan, satu implementasi.
+**Kanonik BR-FE-05, dicerminkan BR-REV-08** — satu-satunya pasangan yang teksnya
+benar-benar identik kata per kata di dua dokumen. `REV-EVAL-01/02` bertag keduanya.
+`ReviewFormResponse` entitas Form Engine, jadi penguncian itu tinggal di sana; BC Review
+menyebutnya ulang supaya bisa dibaca utuh.
 
 ---
 

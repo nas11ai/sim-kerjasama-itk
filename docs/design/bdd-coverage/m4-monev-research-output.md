@@ -140,3 +140,4 @@ OPERATOR-05-01 (Manajemen Siklus Monev) tercakup lewat `MON-CYCLE-04` dan
 | baru | Apa arti `can_proceed` secara operasional — ditetapkan reviewer, otomatis saat laporan disubmit, atau manual Operator | `MON-CYCLE-03/04` menguji akibatnya, bukan pemicunya. DDD tidak menyebutkan siapa yang menyetelnya |
 | baru | Apakah target luaran (BR-SM-15) dan luaran realisasi wajib cocok tipenya saat kegiatan selesai | Tidak diatur BR mana pun; kalau LPPM butuh, ini aturan baru — bukan tafsir |
 | baru | Siklus monev yang di-freeze karena WITHDRAWN: bisakah dibuka lagi kalau penarikan dibatalkan | BR-MON-08 dan BR-SM-11 tidak membahas pembatalan penarikan |
+| register #10 | Apakah BR-REV-12 (skor hanya terlihat setelah APPROVED/REJECTED) berlaku untuk siklus monev | Wireframe monev menampilkan skor lebih awal daripada wireframe pengajuan. M4 **sengaja belum** mengalokasikan skenario keterlihatan skor monev sampai ini diputuskan |

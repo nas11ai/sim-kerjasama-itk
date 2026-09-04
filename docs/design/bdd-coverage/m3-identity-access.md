@@ -1,6 +1,6 @@
 # M3 — Identity & Access
 
-**9 BR perilaku · 22 skenario · 5 berkas `.feature`**
+**10 BR perilaku · 25 skenario · 6 berkas `.feature`**
 
 Gerbang masuk sistem: tiga jalur registrasi, verifikasi NIDN, permission additive, dan
 deaktivasi yang tidak boleh meninggalkan submission yatim.
@@ -18,6 +18,7 @@ Sumber: [`generic/02_identity_access.md`](../../requirement-analysis/ddd/generic
 | `generic/identity/permission.feature` | `IAM-PERM-01..03` | BR-IAM-09 |
 | `generic/identity/deactivation.feature` | `IAM-DEACT-01..02` | BR-IAM-05 |
 | `generic/identity/organization.feature` | `IAM-ORG-01..03` | BR-IAM-08 |
+| `generic/identity/reviewer_provisioning.feature` | `IAM-REVIEWER-01..03` | BR-IAM-11 |
 
 Semua skenario bertag `@M3`.
 
@@ -35,9 +36,13 @@ aturan.
 
 ---
 
-## 2. Registrasi — tiga jalur
+## 2. Registrasi — dua jalur akun
 
-Jalur mandiri (dosen ITK), jalur undangan (token), dan jalur yang ditolak.
+Hanya ada **dua** cara sebuah akun lahir: self-register untuk dosen ITK, dan undangan
+untuk pihak eksternal. DDD memuat "Jalur 3 — Reviewer (Ditunjuk Operator)", tapi
+membacanya sampai habis menunjukkan itu **bukan** pembuatan akun: alurnya berbunyi
+"Cari user by NIDN atau nama → Pilih user yang **sudah ada**". Jalur 3 mempromosikan
+akun yang sudah terdaftar menjadi reviewer, dan itu diatur terpisah di §7.
 
 | ID | Kelas | Yang dibuktikan | BR | Frame |
 | -- | ----- | --------------- | -- | ----- |
@@ -128,10 +133,30 @@ seluruh prodi yang masih berisi orang.
 
 ---
 
-## 7. Frame yang tercakup
+## 7. Penunjukan reviewer — BR-IAM-11
+
+Konsekuensi yang mudah terlewat: reviewer eksternal **harus punya akun lebih dulu**
+lewat jalur undangan, baru bisa ditunjuk. Tidak ada jalur registrasi mandiri untuk
+reviewer.
+
+| ID | Kelas | Yang dibuktikan | Frame |
+| -- | ----- | --------------- | ----- |
+| `IAM-REVIEWER-01` | happy | Operator menunjuk user terdaftar sebagai reviewer internal; user mendapat role `reviewer_internal` dan record `reviewers` | OPERATOR-08-04 |
+| `IAM-REVIEWER-02` | happy | Penunjukan sebagai reviewer eksternal memberi role `reviewer_external` — role inilah yang membatasi keterlihatan skor di `[REV-VIS-02]` | OPERATOR-08-04 |
+| `IAM-REVIEWER-03` | denial | Menunjuk seseorang yang belum punya akun ditolak — undang dulu lewat `[IAM-REG-08]` | OPERATOR-08-04 |
+
+`IAM-REVIEWER-02` menautkan dua milestone: `reviewer_type` yang disetel di sini adalah
+yang dipakai BR-REV-11 di M2 untuk memutuskan siapa boleh melihat skor reviewer lain.
+Kalau penunjukan tidak menyetel role Spatie yang benar, aturan keterlihatan di M2 ikut
+salah tanpa ada yang gagal di M3.
+
+---
+
+## 8. Frame yang tercakup
 
 SHARED-01-01 · SHARED-01-02 · SHARED-01-03 · SHARED-01-04 · SHARED-01-05 ·
-SHARED-01-06 · OPERATOR-08-02 · OPERATOR-08-03 · ADMIN-08-01 · ADMIN-08-02
+SHARED-01-06 · OPERATOR-08-02 · OPERATOR-08-03 · OPERATOR-08-04 · ADMIN-08-01 ·
+ADMIN-08-02
 
 Frame yang **tidak** punya aturan bisnis di baliknya dan karenanya tidak melahirkan
 skenario: SHARED-01-07 (Profil Saya), SHARED-01-08 (Lupa Password), SHARED-01-09
@@ -142,7 +167,7 @@ skenarionya.
 
 ---
 
-## 8. Yang menunggu keputusan
+## 9. Yang menunggu keputusan
 
 | # | Perkara | Dampak |
 | - | ------- | ------ |

@@ -5,7 +5,7 @@
 **Status:** Menunggu review
 
 Spec ini menetapkan **skenario apa saja yang harus ada** supaya seluruh kebutuhan
-bisnis SIMPAS v2 terbukti benar — 72 business rule perilaku yang tersisa setelah
+bisnis SIMPAS v2 terbukti benar — 73 business rule perilaku yang tersisa setelah
 Wave 1a mendarat, dipetakan ke 57 frame wireframe.
 
 Ini **bukan** implementation plan. Ia menjawab "apa yang harus terbukti", bukan
@@ -26,12 +26,12 @@ wireframe `simpas-wireframe` (57 frame).
 
 | Milestone | Spec | BR | Berkas | Skenario |
 | --------- | ---- | -- | ------ | -------- |
-| M1 · Submission + Budget | [`m1-submission-budget.md`](m1-submission-budget.md) | 20 | 10 | 68 |
+| M1 · Submission + Budget | [`m1-submission-budget.md`](m1-submission-budget.md) | 20 | 10 | 69 |
 | M2 · Review | [`m2-review.md`](m2-review.md) | 15 | 6 | 37 |
-| M3 · Identity & Access | [`m3-identity-access.md`](m3-identity-access.md) | 9 | 5 | 22 |
+| M3 · Identity & Access | [`m3-identity-access.md`](m3-identity-access.md) | 10 | 6 | 25 |
 | M4 · Monev + Research Output | [`m4-monev-research-output.md`](m4-monev-research-output.md) | 15 | 2 | 30 |
 | M5 · Reporting + Notification + Config | [`m5-reporting-notification-config.md`](m5-reporting-notification-config.md) | 13 | 4 | 22 |
-| | **Total** | **72** | **27** | **179** |
+| | **Total** | **73** | **28** | **183** |
 
 Angka skenario di atas **bukan estimasi** — setiap ID sudah dialokasikan satu per satu
 di berkas milestone masing-masing, lengkap dengan kelas tag dan BR yang dibuktikannya.
@@ -39,7 +39,7 @@ Totalnya lebih rendah dari perkiraan baseline (~310) karena `Scenario Outline` m
 banyak boundary yang semula dihitung satu-satu — pola yang sudah terbukti di Wave 1a
 (53 skenario nyata vs ~80 perkiraan).
 
-Dengan 54 skenario Wave 1a, inventaris akhir **233 skenario untuk 94 BR perilaku**.
+Dengan 54 skenario Wave 1a, inventaris akhir **237 skenario untuk 95 BR perilaku**.
 
 ---
 
@@ -174,7 +174,45 @@ Dengan sepuluh frame ini, **57 dari 57 frame** terhitung: 47 di M1–M5, 10 di M
 
 ---
 
-## 6. Supaya spec ini tetap hidup
+## 6. Konfrontasi dengan wireframe
+
+Spec ini diuji balik terhadap 57 frame wireframe, bukan hanya terhadap DDD. Hasilnya
+mengubah urutan kerja: **sebagian skenario tidak bisa diimplementasikan sebelum layarnya
+ada.**
+
+### Satu kontradiksi langsung
+
+`RESEARCHER-02-04` menyatakan anggaran yang melebihi batas skema **tetap bisa disubmit**,
+sementara BR-BUD-01 melarangnya. Batas keras finansial diturunkan jadi peringatan lunak.
+Terdaftar sebagai [register #9](../../requirement-analysis/bdd/open-questions.md); `[BUD-LIMIT-01]`
+mengunci penolakan sebagai perilaku yang benar.
+
+### Lima kebutuhan tanpa layar
+
+| Kebutuhan | Skenario terdampak | Konsekuensi |
+| --------- | ------------------ | ----------- |
+| Target Luaran | `[SM-TARGET-01..09]` | 9 skenario menunggu desain — entitas ini baru, belum pernah masuk wireframe |
+| Anggota penelitian + COI | `[SM-MEMBER-01..03]` | Tab "Anggota" ada di detail tapi isinya belum dirender |
+| Notifikasi in-app | `[NOT-INAPP-01..03]` | Tidak ada notification center di seluruh wireframe |
+| Wizard langkah 2, 3, 4, 6, 7 | `[SM-WIZARD-02..09]` | Hanya langkah 1 dan 5 yang punya konten |
+| Status override ke researcher | `[FE-OVERRIDE-09]` (M0) | Sudah punya skenario, belum punya layar |
+
+Ini bukan cacat spec — aturannya memang sudah ada di DDD. Yang belum ada antarmukanya.
+Karena itu **desain UI untuk kelima hal ini mendahului implementasi M1 dan M5**, dan
+paling mendesak Target Luaran: ia entitas baru hasil keputusan register #5, jadi memang
+belum pernah masuk desain sama sekali.
+
+### Tiga status tanpa wajah
+
+`REJECTED`, `WITHDRAWN`, dan `RESUBMITTED` tidak pernah dirender sebagai status di satu
+pun frame. Ini memperjelas [register #3](../../requirement-analysis/bdd/open-questions.md)
+yang selama ini hanya berbunyi "frontend 5 nilai vs backend 8" — sekarang diketahui
+persis tiga mana yang belum punya UX, dan ketiganya justru status terminal yang paling
+perlu jelas bagi peneliti.
+
+---
+
+## 7. Supaya spec ini tetap hidup
 
 Kebutuhan bisnis akan berubah di tengah jalan. Empat hal berikut yang membuat spec ini
 bisa ikut berubah tanpa harus dibongkar.
@@ -205,7 +243,7 @@ adalah tanda keputusannya belum benar-benar diambil.
 
 ---
 
-## 7. Definition of Done per milestone
+## 8. Definition of Done per milestone
 
 Sama dengan baseline §9, ditambah dua yang lahir dari pengalaman Wave 1a:
 
@@ -221,7 +259,7 @@ Sama dengan baseline §9, ditambah dua yang lahir dari pengalaman Wave 1a:
 
 ---
 
-## 8. Risiko yang sudah terlihat
+## 9. Risiko yang sudah terlihat
 
 | # | Risiko | Terlihat di |
 | - | ------ | ----------- |
@@ -230,3 +268,5 @@ Sama dengan baseline §9, ditambah dua yang lahir dari pengalaman Wave 1a:
 | 3 | Perilaku user-facing saat BR-SM-01 kena constraint violation belum ditetapkan | register #4 |
 | 4 | Auto-reject legacy masih hidup di `ReviewController` dan melanggar BR-REV-07 — skenario M2 sengaja menguncinya sebagai perilaku yang **dilarang** | ADR 0006, baseline §8 |
 | 5 | `SubmissionViewController` (~1000 baris) dan `ReviewController` (~780 baris) menampung logic M1/M2 | AGENTS.md — pakai strangler, ADR 0008 |
+| 6 | Lima kebutuhan bisnis belum punya layar — desain UI mendahului implementasi M1 dan M5 | §6, register #11 |
+| 7 | Wireframe anggaran membolehkan submit melebihi batas skema | §6, register #9 |

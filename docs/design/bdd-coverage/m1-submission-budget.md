@@ -1,6 +1,6 @@
 # M1 — Submission & Budget
 
-**20 BR perilaku · 68 skenario · 10 berkas `.feature`**
+**20 BR perilaku · 69 skenario · 10 berkas `.feature`**
 
 Inti aplikasi. Semua milestone lain menggantung di sini: Review menilai submission,
 Monev lahir dari submission yang APPROVED, Luaran melaporkan hasilnya.
@@ -14,7 +14,7 @@ Sumber: [`core/01_submission.md`](../../requirement-analysis/ddd/core/01_submiss
 
 | Berkas | Rentang ID | BR |
 | ------ | ---------- | -- |
-| `core/submission/wizard.feature` | `SM-WIZARD-01..08` | BR-SM-03 (parsial), jangkar temporal |
+| `core/submission/wizard.feature` | `SM-WIZARD-01..09` | BR-SM-03 (parsial), jangkar temporal |
 | `core/submission/submit.feature` | `SM-SUBMIT-01..12` | BR-SM-01, BR-SM-02, BR-SM-04 |
 | `core/submission/state.feature` | `SM-STATE-01..05` | BR-SM-03, BR-SM-05 |
 | `core/submission/access.feature` | `SM-ACCESS-01..06` | BR-SM-07 |
@@ -45,11 +45,19 @@ parsial; Temporal Field Binding penuh baru jalan di langkah 7.
 | `SM-WIZARD-01` | happy | Langkah 1 membuat baris DRAFT beserta `created_at` sebagai jangkar temporal | RESEARCHER-02-02 |
 | `SM-WIZARD-02` | happy | Keluar di langkah 3 lalu kembali — isian langkah 2 tetap ada | RESEARCHER-02-02 |
 | `SM-WIZARD-03` | boundary | Validasi langkah 2 hanya menyentuh field langkah 2, bukan seluruh form | RESEARCHER-02-02 |
-| `SM-WIZARD-04` | denial | Langkah 5 (anggaran) ditolak selama `scheme_id` kosong — batas anggaran berasal dari skema | RESEARCHER-02-02 |
+| `SM-WIZARD-04` | denial | Pada Form **yang punya** `scheme_selector`, langkah 5 ditolak selama `scheme_id` kosong — batas anggaran berasal dari skema | RESEARCHER-02-02 |
+| `SM-WIZARD-09` | boundary | Pada Form **tanpa** `scheme_selector`, langkah 5 terbuka langsung — skema opsional per Form (BR-SCH-04) | RESEARCHER-02-02 |
 | `SM-WIZARD-05` | happy | Langkah 3 mengisi `scheme_id` dan `trl_id` ke kolom, bukan ke `form_field_responses` | RESEARCHER-02-02 |
 | `SM-WIZARD-06` | boundary | Langkah 7 menjalankan Temporal Field Binding penuh dan menampilkan error per field | RESEARCHER-02-02 |
 | `SM-WIZARD-07` | happy | Draft bisa dilanjutkan di sesi berikutnya dari langkah terakhir | RESEARCHER-02-01, RESEARCHER-02-04 |
 | `SM-WIZARD-08` | denial | Melompat ke langkah 7 tanpa melewati langkah wajib ditolak | RESEARCHER-02-02 |
+
+`SM-WIZARD-09` ada karena DDD berbunyi dua hal yang mudah dibaca bertabrakan:
+"`scheme_id` wajib terisi sebelum langkah 5" (`core/01_submission.md`) dan "Scheme
+sepenuhnya opsional per Form" (BR-SCH-04). Keduanya benar — syarat itu hanya berlaku
+kalau Form-nya memang punya `scheme_selector`. Tanpa `SM-WIZARD-09`, implementasi yang
+membaca kalimat pertama saja akan memblokir anggaran untuk seluruh Form tanpa skema,
+dan itu bertentangan dengan `[BUD-LIMIT-03]` di §10.
 
 > **Perlu keputusan.** DDD menyebut `last_completed_step` di struktur artefak baseline
 > tapi tidak mendefinisikan apakah researcher boleh melompat mundur-maju bebas.
@@ -149,10 +157,12 @@ M2. Keduanya sisi dari satu mutual block; keduanya harus ada.
 
 ---
 
-## 7. Transfer kepemilikan — BR-SM-09 ≡ BR-IAM-10
+## 7. Transfer kepemilikan — BR-IAM-10, dicerminkan BR-SM-09
 
-Skenario di bawah bertag **`@BR-SM-09 @BR-IAM-10`** sekaligus — satu aturan, dua
-bounded context yang berkepentingan. Implementasinya wajib satu Action.
+Skenario di bawah bertag **`@BR-SM-09 @BR-IAM-10`** sekaligus. Kanoniknya BR-IAM-10 —
+ia yang menyatakan urutannya ("sebelum deaktivasi dikonfirmasi"), dan urutan itulah yang
+sebenarnya diimplementasikan. Satu Action, dipanggil dari layar deaktivasi user maupun
+dari layar transfer kepemilikan.
 
 | ID | Kelas | Yang dibuktikan | Frame |
 | -- | ----- | --------------- | ----- |
@@ -238,8 +248,10 @@ dengan mengubah janji.
 `BUD-LIMIT-02` (tepat di batas) wajib ada: `>` versus `>=` adalah kesalahan yang paling
 sering lolos review dan paling sulit terlihat dari data produksi.
 
-**BR-BUD-01 ≡ BR-SM-06.** Ketiga skenario `BUD-LIMIT-*` bertag keduanya. Satu
-validator, dipanggil dari langkah 5 wizard dan dari submit — bukan dua.
+**Kanonik BR-BUD-01, dicerminkan BR-SM-06.** Ketiga skenario `BUD-LIMIT-*` bertag
+keduanya. Satu validator, dipanggil dari langkah 5 wizard dan dari submit — bukan dua.
+BR-BUD-01 yang kanonik karena ia menyebut asal angkanya (`SUM` line items), sementara
+BR-SM-06 hanya menyebut "total budget".
 
 ---
 
