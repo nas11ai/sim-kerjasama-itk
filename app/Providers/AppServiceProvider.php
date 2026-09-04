@@ -3,6 +3,7 @@
 namespace App\Providers;
 
 use App\Models\FormSubmission;
+use App\Policies\BudgetLineItemPolicy;
 use App\Policies\FormSubmissionPolicy;
 use App\Services\Storage\S3StorageService;
 use App\Services\Storage\StorageService;
@@ -54,5 +55,6 @@ class AppServiceProvider extends ServiceProvider
             return $user->hasRole('Super Admin') ? true : null;
         });
         Gate::policy(FormSubmission::class, FormSubmissionPolicy::class);
+        Gate::define('update-budget', [BudgetLineItemPolicy::class, 'update']);
     }
 }
