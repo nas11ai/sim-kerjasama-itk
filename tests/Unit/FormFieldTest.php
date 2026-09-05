@@ -7,7 +7,7 @@ use Tests\TestCase;
 
 uses(TestCase::class);
 
-it('returns false if field was created after submission', function () {
+it('[FE-TEMPORAL-02] isRequiredFor menolak field yang lahir setelah submission', function () {
 
     $submission = new FormSubmission;
     $submission->created_at = Carbon::parse('2026-01-01 10:00:00');
@@ -22,7 +22,7 @@ it('returns false if field was created after submission', function () {
         ->toBeFalse();
 });
 
-it('returns false if field became required after submission', function () {
+it('[FE-TEMPORAL-03] isRequiredFor menolak field yang baru jadi wajib', function () {
 
     $submission = new FormSubmission;
     $submission->created_at = Carbon::parse('2026-01-01 10:00:00');
@@ -56,7 +56,7 @@ it('returns true if field is required for submission', function () {
         ->toBeTrue();
 });
 
-it('returns false if field is not required', function () {
+it('[FE-TEMPORAL-06] isRequiredFor menolak field opsional', function () {
 
     $submission = new FormSubmission;
     $submission->created_at = Carbon::parse('2026-01-10 10:00:00');
