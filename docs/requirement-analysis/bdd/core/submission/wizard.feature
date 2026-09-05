@@ -78,3 +78,10 @@ Feature: Wizard Pengajuan Tujuh Langkah
     Given "Budi" baru menyelesaikan langkah 1
     When "Budi" membuka langkah Upload Berkas
     Then langkah bisa diisi
+
+  @BR-SM-01 @M1 @RESEARCHER-02-02 @happy
+  Scenario: [SM-WIZARD-12] Pengajuan yang berakhir terminal tidak memblokir draft baru
+    Given submission "P-001" milik "Budi" berskema "DIPA Internal" berstatus REJECTED
+    When "Budi" memulai pengajuan baru pada "Pengajuan Penelitian"
+    Then submission DRAFT terbentuk pada langkah 1
+    And "P-001" tetap REJECTED
