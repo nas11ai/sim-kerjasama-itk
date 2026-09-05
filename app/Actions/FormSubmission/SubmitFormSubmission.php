@@ -3,15 +3,14 @@
 namespace App\Actions\FormSubmission;
 
 use App\Events\ProposalSubmitted;
-use App\Models\FormField;
 use App\Models\FormSubmission;
 use App\Models\User;
 use App\States\Submission\Rejected;
 use App\States\Submission\SubmissionStatus;
 use App\States\Submission\Submitted;
 use App\States\Submission\Withdrawn;
+use App\Support\RequiredFieldGuard;
 use Illuminate\Auth\Access\AuthorizationException;
-use Illuminate\Contracts\Database\Eloquent\Builder;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
@@ -46,7 +45,8 @@ class SubmitFormSubmission
             );
         }
 
-        $this->guardRequiredDocuments($submission);
+        // BR-SM-02 + BR-FE-11 — seluruh field wajib, disaring Temporal Field Binding.
+        RequiredFieldGuard::assertComplete($submission);
         $this->guardActiveSubmissionUniqueness($submission);
 
         // BR-SM-16 — index one_active_submission_per_period_scheme adalah jaring
@@ -87,49 +87,6 @@ class SubmitFormSubmission
         ProposalSubmitted::dispatch($submission);
 
         return $submission;
-    }
-
-    /**
-     * BR-SM-02 — proposal PDF wajib ada sebelum submit. "Proposal PDF" tidak punya
-     * entitas sendiri: ia FormField wajib bertipe `file` yang belum punya response
-     * berisi.
-     *
-     * @throws ValidationException
-     */
-    private function guardRequiredDocuments(FormSubmission $submission): void
-    {
-        $requiredFileFields = $submission->form->formFields()
-            ->where('is_required', true)
-            ->whereHas('fieldType', function (Builder $query): void {
-                $query->where('name', 'file');
-            })
-            ->get();
-
-        if ($requiredFileFields->isEmpty()) {
-            return;
-        }
-
-        $filled = $submission->formFieldResponses()
-            ->whereIn('form_field_id', $requiredFileFields->pluck('id'))
-            ->whereNotNull('value')
-            ->where('value', '!=', '')
-            ->pluck('form_field_id')
-            ->all();
-
-        $missing = $requiredFileFields->reject(
-            fn (FormField $field): bool => in_array($field->id, $filled, true)
-        );
-
-        if ($missing->isEmpty()) {
-            return;
-        }
-
-        // Error per field supaya wizard bisa menyorot baris yang salah.
-        throw ValidationException::withMessages(
-            $missing->mapWithKeys(fn (FormField $field): array => [
-                'field_'.$field->id => "Field '{$field->label}' wajib diunggah sebelum submit.",
-            ])->all()
-        );
     }
 
     /**
