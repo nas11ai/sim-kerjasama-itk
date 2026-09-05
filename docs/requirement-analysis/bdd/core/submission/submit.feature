@@ -135,3 +135,10 @@ Feature: Submit Pengajuan
     Then satu submit berhasil
     And submit lainnya ditolak karena sudah ada pengajuan aktif pada skema itu
     And penolakan bukan galat database mentah
+
+  @BR-SM-02 @M1 @RESEARCHER-02-05 @denial
+  Scenario: [SM-SUBMIT-19] Resubmit tanpa field wajib ditolak
+    Given submission "P-001" milik "Budi" berstatus NEEDS_REVISION
+    And "Budi" belum mengunggah proposal PDF
+    When "Budi" resubmit "P-001"
+    Then submit ditolak karena proposal PDF belum diunggah

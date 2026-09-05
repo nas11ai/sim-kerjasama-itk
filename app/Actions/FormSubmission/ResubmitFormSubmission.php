@@ -6,6 +6,7 @@ use App\Models\FormSubmission;
 use App\Models\User;
 use App\States\Submission\Resubmitted;
 use App\States\Submission\SubmissionStatus;
+use App\Support\RequiredFieldGuard;
 use Illuminate\Auth\Access\AuthorizationException;
 use Lorisleiva\Actions\Concerns\AsAction;
 use RuntimeException;
@@ -34,6 +35,11 @@ class ResubmitFormSubmission
                 "FormSubmission {$submission->id} tidak punya status — tidak bisa di-resubmit."
             );
         }
+
+        // BR-SM-02 — gerbang dokumen berlaku juga di jalur resubmit. Jangkarnya
+        // tetap created_at asli, jadi revisi tidak menarik field wajib baru ke
+        // dalam pengajuan yang sudah berjalan (register #27).
+        RequiredFieldGuard::assertComplete($submission);
 
         $status->transitionTo(Resubmitted::class);
 
