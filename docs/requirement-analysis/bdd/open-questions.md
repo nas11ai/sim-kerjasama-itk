@@ -6,32 +6,50 @@ produk, baru skenarionya mengunci keputusan itu.
 
 ## Terbuka
 
-Tiga entri baru, #25–#27, muncul persis seperti yang diperkirakan paragraf di bawah:
+Empat entri baru, #25–#28, muncul persis seperti yang diperkirakan paragraf di bawah:
 begitu skenario M1 (irisan HTTP submit, state, access —
-`.superpowers/sdd/2026-09-05-m1-http-slice/`) mulai diimplementasikan, tiga
-ketidaksesuaian ikut terlihat. Ketiganya dicatat di sini, bukan diputuskan sepihak saat
-menulis kodenya.
+`.superpowers/sdd/2026-09-05-m1-http-slice/`) mulai diimplementasikan — lalu direview
+sebagai satu kesatuan — empat ketidaksesuaian ikut terlihat. Keempatnya dicatat di
+sini, bukan diputuskan sepihak saat menulis kodenya.
 
 Register ini tetap hidup: kontradiksi berikutnya akan terus muncul selama implementasi
 berjalan, dan tempatnya tetap di sini — bukan parkir di berkas milestone, kekeliruan
 pembukuan yang sudah dikoreksi.
 
-### 25.1 Jalur HTTP submit tidak memanggil `SubmitFormSubmission`
+### 25.1 Delegasi submit ke `SubmitFormSubmission` yang diwajibkan spec tidak pernah masuk plan
 
 Spec irisan (`docs/design/bdd-coverage/m1-http-slice.md` §3.3) menyebut ini sebagai
-satu dari tiga defect, tapi tidak ada satu pun task di plan yang memperbaikinya.
-`UserFormController::submitForm()` (sekitar baris 414) masih memvalidasi dan menyetel
+satu dari tiga defect, dan §4 **mewajibkan perbaikannya dalam batas tertentu**. Dua
+kalimat §4 harus dibaca bersama-sama: "Irisan ini **tidak** menulis ulang
+`submitForm()`" *dan* — di paragraf berikutnya — "`submitForm()` diubah seperlunya saja
+untuk **mendelegasikan keputusan submit ke Action itu**". Jadi yang dilarang menulis
+ulang method-nya; yang diperintahkan mendelegasikan keputusan submit-nya. Mandat
+berbatas, bukan larangan.
+
+Mandat itu hilang di tahap perencanaan: tabel File Structure di plan tidak pernah
+mencantumkan `UserFormController::submitForm()`, sehingga tidak ada satu pun dari 8 task
+yang menyentuhnya. Catatan versi pertama entri ini keliru menyebut §4 "melarang" dan
+menyebut tidak ada skenario yang membatasi jalur HTTP submit — keduanya salah:
+`[SM-SUBMIT-07]` menuntut `melihat error per field pada "Proposal PDF"`, yang menurut
+tabel lapis §2 dibuktikan di HTTP. Koreksi itu dicatat di sini supaya register tidak
+mengabadikan alasan yang tidak benar.
+
+Keadaan sekarang: `submitForm()` (sekitar baris 419) masih memvalidasi dan menyetel
 status secara inline, dan tidak pernah memanggil Action-nya — sudah diverifikasi nol
-referensi ke `SubmitFormSubmission` di controller itu. Akibatnya, gerbang BR-SM-02,
-BR-SM-01, dan BR-SM-16 yang ditambahkan irisan ini ke Action **tidak ditegakkan di
+referensi ke `SubmitFormSubmission` di controller itu. Akibatnya gerbang BR-SM-01,
+BR-SM-02, dan BR-SM-16 yang ditambahkan irisan ini ke Action **tidak ditegakkan di
 jalur yang sungguh-sungguh dipakai peneliti**.
 
-Tidak diperbaiki di sini karena spec §4 secara eksplisit membatasi ruang strangler dan
-melarang menulis ulang `submitForm()`, dan tidak satu pun dari 27 skenario irisan ini
-membatasi jalur HTTP submit — penyambungan apa pun akan mendarat tanpa test.
+Penyambungannya tidak sepele, dan itu alasan teknis kenapa ia tidak dikerjakan sebagai
+tambalan di akhir: `submitForm()` berpindah ke `Approved` ketika
+`FormPhaseDetail.needs_review` bernilai false, sementara `SubmitFormSubmission` selalu
+berpindah ke `Submitted`. Mendelegasikan tanpa memindahkan percabangan itu akan
+mengubah perilaku form yang tidak butuh review; memindahkannya berarti Action ikut
+menumbuhkan cabang `needs_review` beserta skenario yang menetapkan perilakunya.
 
-**Belum ditutup.** Menutupnya berarti irisan lanjutan yang menyambungkan delegasi ke
-`SubmitFormSubmission` *disertai* skenario yang membuktikan perilakunya.
+**Belum ditutup.** Menutupnya berarti irisan lanjutan yang menyambungkan delegasi
+keputusan submit ke `SubmitFormSubmission` *disertai* skenario yang menetapkan nasib
+cabang `needs_review`.
 
 ### 26.1 `guardRequiredDocuments()` mengabaikan `FormField::isRequiredFor()`
 
@@ -67,6 +85,34 @@ proposalnya sebelum resubmit bisa melewati BR-SM-02 lewat jalur ini.
 
 **Belum ditutup.** Menutupnya berarti skenario yang memutuskan apakah resubmit perlu
 mengecek ulang dokumen.
+
+### 28.1 Draft baru tidak bisa dimulai setelah pengajuan Form itu berakhir terminal
+
+`UserFormController` mencari submission wizard dengan
+`FormSubmission::firstOrCreate(['form_id', 'submitted_by'])` (baris 372 pada
+`saveDraft()`, dan bentuk yang sama pada `submitForm()`) — **satu baris per (Form,
+peneliti), tanpa memperhitungkan periode**. Gerbang BR-SM-05 yang ditambahkan Task 3
+tepat di bawahnya (`abort_unless($user->can('update', $submission), 403)`) karena itu
+menolak dengan 403 setiap kali baris tunggal itu berada di status terminal.
+
+Akibatnya peneliti yang pengajuannya untuk sebuah Form pernah REJECTED tidak akan pernah
+bisa memulai draft baru untuk Form yang sama lewat wizard. Itu bertentangan dengan
+`[SM-SUBMIT-05]` — yang dibuktikan di lapis Action pada irisan yang sama — yang justru
+menetapkan bahwa mengajukan ulang ke skema yang sama setelah ditolak **boleh**. Dua
+paruh irisan ini saling bertentangan di lapis HTTP.
+
+Gerbangnya sengaja **tidak** dicabut. Perilaku sebelumnya lebih buruk: `saveDraft()`
+menghapus seluruh `formFieldResponses` milik submission terminal itu lalu menulis ulang
+isinya — menyunting diam-diam record yang seharusnya beku. Gagal menutup lebih aman
+daripada gagal membuka.
+
+Arah perbaikannya bukan di gerbang melainkan di pencariannya: `firstOrCreate` harus
+ter-scope ke submission yang belum terminal (dan, mengikuti ADR 0005 serta predikat
+index BR-SM-01, kemungkinan besar juga ke `submission_period_id`), sehingga status
+terminal melahirkan baris baru alih-alih membentur baris lama.
+
+**Belum ditutup.** Menutupnya berarti skenario yang menetapkan apa yang dilihat peneliti
+saat membuka wizard sebuah Form yang pengajuan sebelumnya sudah berakhir.
 
 ### 9.1 Anggaran melebihi batas skema — UI vs aturan
 
