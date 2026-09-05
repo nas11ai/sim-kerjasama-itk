@@ -54,6 +54,7 @@ mana batas strangler ditarik:
 | ------ | ---- | -------- | ------ |
 | M1 · Budget (selesai) | bagian §Budget di [`m1-submission-budget.md`](m1-submission-budget.md) | 14 | 128 → 114 |
 | M1 · HTTP: Submit, State, Access | [`m1-http-slice.md`](m1-http-slice.md) | 27 | 114 → 87 |
+| M1 · Menutup register open questions | [`m1-register-closure.md`](m1-register-closure.md) | 13 | 87 → 77 |
 
 ---
 
