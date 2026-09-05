@@ -136,7 +136,7 @@ class SubmitFormSubmission
      * duplikat — semantik bawaan unique index PostgreSQL, dan BR-SM-01 memang
      * mengizinkan dua pengajuan tanpa skema hidup bersamaan.
      */
-    public function activeSubmissionClash(FormSubmission $submission): ?FormSubmission
+    private function activeSubmissionClash(FormSubmission $submission): ?FormSubmission
     {
         if ($submission->scheme_id === null || $submission->submission_period_id === null) {
             return null;

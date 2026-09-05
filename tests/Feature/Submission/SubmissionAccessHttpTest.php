@@ -6,12 +6,15 @@
 // tests/Unit/FormSubmissionIsAccessibleByTest.php sudah membuktikan aturannya;
 // berkas ini membuktikan controller benar-benar memakainya.
 
+use App\Models\Form;
+use App\Models\FormAccessControl;
 use App\Models\FormSubmission;
 use App\Models\ResearchMember;
 use App\Models\Reviewer;
 use App\Models\SubmissionReviewer;
 use App\Models\User;
 use App\Models\UserProfile;
+use App\Services\FormAccessService;
 use App\States\Submission\UnderReview;
 use Spatie\Permission\Models\Permission;
 
@@ -72,10 +75,37 @@ it('[SM-ACCESS-02] anggota penelitian melihat pengajuan yang ia ikuti', function
 });
 
 it('[SM-ACCESS-03] researcher lain di organisasi yang sama ditolak', function () {
-    [, $submission] = accessSliceSubmission();
-    $outsider = User::factory()->create();
+    // Prekondisi yang membedakan skenario ini dari "orang asing ditolak":
+    // Andi seorganisasi dengan Budi DAN Form-nya terbuka untuk organisasi itu.
+    // Kalau FormAccessControl dipakai sebagai penjaga detail submission, Andi
+    // akan lolos — persis regresi yang BR-SM-07 ada untuk mencegah.
+    [$budi, $organization] = actingResearcher();
 
-    $this->actingAs($outsider)
+    $andi = User::factory()->create();
+    UserProfile::factory()->create([
+        'user_id' => $andi->id,
+        'organization_id' => $organization->id,
+    ]);
+    $andi->givePermissionTo('submissions.create');
+
+    $form = Form::factory()->create();
+    FormAccessControl::create([
+        'form_id' => $form->id,
+        'permission' => 'submissions.create',
+        'organization_id' => $organization->id,
+    ]);
+
+    $submission = FormSubmission::factory()->create([
+        'form_id' => $form->id,
+        'submitted_by' => $budi->id,
+        'status' => UnderReview::class,
+    ]);
+
+    // Form-nya memang terbuka untuk Andi...
+    expect(app(FormAccessService::class)->canAccessForm($andi, $form))->toBeTrue();
+
+    // ...tapi isi submission-nya tidak. Andi bukan anggota "P-001".
+    $this->actingAs($andi)
         ->get(route('user.submissions.show', $submission))
         ->assertStatus(403);
 });

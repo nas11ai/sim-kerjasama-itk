@@ -7,14 +7,19 @@
 // one_active_submission_per_period_scheme.
 
 use App\Actions\FormSubmission\SubmitFormSubmission;
+use App\Models\Form;
+use App\Models\FormAccessControl;
+use App\Models\FormPhase;
 use App\Models\FormSubmission;
 use App\Models\Scheme;
 use App\Models\SubmissionPeriod;
+use App\Models\SubmissionPeriodPhase;
 use App\Models\User;
 use App\States\Submission\Draft;
 use App\States\Submission\Rejected;
 use App\States\Submission\Submitted;
 use Illuminate\Validation\ValidationException;
+use Inertia\Testing\AssertableInertia as Assert;
 
 /** @return array{0: User, 1: SubmissionPeriod, 2: Scheme, 3: Scheme} */
 function uniquenessSliceContext(): array
@@ -63,17 +68,77 @@ it('[SM-SUBMIT-02] submit kedua ke skema yang sama ditolak', function () {
 });
 
 it('[SM-SUBMIT-03] dua draft ke skema berbeda boleh hidup bersamaan', function () {
-    [$owner, $period, $internal, $eksternal] = uniquenessSliceContext();
-    $a = uniquenessSliceSubmission($owner, $period, $internal, Draft::class, false);
-    $b = uniquenessSliceSubmission($owner, $period, $eksternal, Draft::class, false);
+    // `When` skenario ini adalah "membuka daftar pengajuannya", jadi yang
+    // dibuktikan harus rute daftar itu sendiri — bukan pemanggilan langsung
+    // helper di dalam Action.
+    [$owner, $organization] = actingResearcher();
 
-    expect($a->isAccessibleBy($owner))->toBeTrue();
-    expect($b->isAccessibleBy($owner))->toBeTrue();
+    $formPhase = FormPhase::create(['title' => 'Fase Pengajuan', 'is_active' => true]);
 
-    $guard = SubmitFormSubmission::make();
+    // Dua Form, keduanya terbuka untuk organisasi Budi lewat FormAccessControl.
+    $formInternal = Form::factory()->create();
+    $formEksternal = Form::factory()->create();
 
-    expect($guard->activeSubmissionClash($a))->toBeNull();
-    expect($guard->activeSubmissionClash($b))->toBeNull();
+    $aclInternal = FormAccessControl::create([
+        'form_id' => $formInternal->id,
+        'permission' => 'submissions.create',
+        'organization_id' => $organization->id,
+    ]);
+    $aclEksternal = FormAccessControl::create([
+        'form_id' => $formEksternal->id,
+        'permission' => 'submissions.create',
+        'organization_id' => $organization->id,
+    ]);
+
+    $dibangun = buildAccessibleFormPhaseDetail($owner, $organization, $aclInternal, $formPhase);
+    buildAccessibleFormPhaseDetail($owner, $organization, $aclEksternal, $formPhase);
+
+    $period = $dibangun['period'];
+    SubmissionPeriodPhase::create([
+        'submission_period_id' => $period->id,
+        'form_phase_id' => $formPhase->id,
+    ]);
+
+    $internal = Scheme::factory()->create();
+    $eksternal = Scheme::factory()->create();
+
+    $p001 = FormSubmission::factory()->create([
+        'form_id' => $formInternal->id,
+        'submitted_by' => $owner->id,
+        'submission_period_id' => $period->id,
+        'scheme_id' => $internal->id,
+        'status' => Draft::class,
+        'is_submitted' => false,
+    ]);
+    $p002 = FormSubmission::factory()->create([
+        'form_id' => $formEksternal->id,
+        'submitted_by' => $owner->id,
+        'submission_period_id' => $period->id,
+        'scheme_id' => $eksternal->id,
+        'status' => Draft::class,
+        'is_submitted' => false,
+    ]);
+
+    $response = $this->actingAs($owner)->get(route('user.submissions.index'));
+
+    // Then: "P-001" dan "P-002" sama-sama terbaca.
+    $response->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            // shouldExist=false: config inertia.pages.paths bawaan paket
+            // ('js/pages') tidak cocok dengan struktur direktori repo ini.
+            ->component('User/Submissions/IndexPage', false)
+            ->has('submissionPeriods', 1)
+            ->where('submissionPeriods.0.id', $period->id)
+            ->where('submissionPeriods.0.user_submissions_count', 2)
+            ->where('submissionPeriods.0.user_draft_count', 2));
+
+    // And: tidak ada penolakan karena pengajuan aktif. Predikat index BR-SM-01
+    // menyaring `is_submitted = true`, jadi dua DRAFT tidak pernah saling
+    // menghalangi — membuka daftarnya tidak memunculkan penolakan apa pun.
+    $response->assertSessionHasNoErrors();
+
+    expect($p001->fresh()->status)->toBeInstanceOf(Draft::class)
+        ->and($p002->fresh()->status)->toBeInstanceOf(Draft::class);
 });
 
 it('[SM-SUBMIT-04] submit ke skema lain tetap boleh', function () {

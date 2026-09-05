@@ -7,6 +7,8 @@
 
 use App\Actions\FormSubmission\ResubmitFormSubmission;
 use App\Models\FormSubmission;
+use App\Models\Reviewer;
+use App\Models\SubmissionReviewer;
 use App\Models\User;
 use App\States\Submission\Draft;
 use App\States\Submission\NeedsRevision;
@@ -49,11 +51,27 @@ it('[SM-SUBMIT-12] bukan pemilik tidak bisa resubmit', function () {
 it('[SM-STATE-03] revisi kembali masuk antrean review', function () {
     [$owner, $submission] = resubmitSliceSubmission();
 
+    // Antrean review yang menunggu revisi ini: reviewer sudah ditugaskan dan
+    // evaluasinya belum selesai.
+    $reviewer = Reviewer::factory()->create();
+    SubmissionReviewer::create([
+        'form_submission_id' => $submission->id,
+        'reviewer_id' => $reviewer->id,
+        'evaluation_status' => 'pending',
+        'status' => 'active',
+    ]);
+
     ResubmitFormSubmission::run($submission, $owner);
 
-    // RESUBMITTED → UNDER_REVIEW adalah transisi yang sah (SubmissionStateTest
-    // membuktikannya); skenario menuntut keduanya terjadi berurutan.
-    $submission->fresh()->status->transitionTo(UnderReview::class);
+    expect($submission->fresh()->status)->toBeInstanceOf(Resubmitted::class);
+
+    // Yang memindahkan RESUBMITTED → UNDER_REVIEW adalah kode produksi —
+    // FormSubmission::updateStatusBasedOnReviews(), yang dipanggil
+    // ReviewController::assignReviewers() setelah reviewer ditugaskan. Test
+    // ini tidak boleh melakukan transisinya sendiri: yang harus dibuktikan
+    // adalah sistem yang mengantrekan ulang, bukan bahwa transisinya sah
+    // (itu sudah dibuktikan SubmissionStateTest).
+    $submission->fresh()->updateStatusBasedOnReviews();
 
     expect($submission->fresh()->status)
         ->toBeInstanceOf(UnderReview::class);

@@ -7,7 +7,9 @@
 use App\Actions\FormSubmission\SubmitFormSubmission;
 use App\Models\FieldType;
 use App\Models\Form;
+use App\Models\FormAccessControl;
 use App\Models\FormField;
+use App\Models\FormPhase;
 use App\Models\FormSubmission;
 use App\Models\User;
 use App\States\Submission\Draft;
@@ -63,4 +65,53 @@ it('[SM-SUBMIT-08] submit dengan proposal PDF lolos', function () {
     SubmitFormSubmission::run($submission->fresh(), $owner);
 
     expect($submission->fresh()->status)->toBeInstanceOf(Submitted::class);
+});
+
+// Spec §2 memetakan `melihat error per field pada "<field>"` ke lapis HTTP:
+// bentuk error validasi Laravel hanya ada di respons. Satu skenario memang bisa
+// menuntut dua test — yang di atas membuktikan aturannya, yang ini membuktikan
+// aturan itu benar-benar terlihat di jalur yang dipakai peneliti.
+it('[SM-SUBMIT-07] error per field pada Proposal PDF muncul di jalur submit wizard', function () {
+    [$budi, $organization] = actingResearcher();
+
+    $form = Form::factory()->create();
+    $accessControl = FormAccessControl::create([
+        'form_id' => $form->id,
+        'permission' => 'submissions.create',
+        'organization_id' => $organization->id,
+    ]);
+    $formPhase = FormPhase::create(['title' => 'Fase Pengajuan', 'is_active' => true]);
+    $dibangun = buildAccessibleFormPhaseDetail($budi, $organization, $accessControl, $formPhase);
+
+    // field_types.name unik — firstOrCreate supaya aman dipakai bersama fixture
+    // di berkas yang sama.
+    $fileType = FieldType::firstOrCreate(['name' => 'file']);
+    $field = FormField::create([
+        'form_id' => $form->id,
+        'label' => 'Proposal PDF',
+        'is_required' => true,
+        'field_type_id' => $fileType->id,
+        'order' => 1,
+    ]);
+
+    // Field `file` wajib dikirim tanpa berkas sama sekali.
+    $respons = $this->actingAs($budi)->post(route('user.form-submission.submit'), [
+        'form_id' => $form->id,
+        'submission_period_id' => $dibangun['period']->id,
+        'form_phase_id' => $formPhase->id,
+        'responses' => [
+            ['form_field_id' => $field->id, 'value' => null],
+        ],
+    ]);
+
+    $respons->assertRedirect()
+        ->assertSessionHasErrors('field_'.$field->id);
+
+    $pesan = session('errors')->get('field_'.$field->id);
+
+    expect($pesan[0])->toContain('Proposal PDF');
+
+    // Dan submit-nya memang tidak jadi.
+    expect(FormSubmission::where('form_id', $form->id)->where('is_submitted', true)->exists())
+        ->toBeFalse();
 });
