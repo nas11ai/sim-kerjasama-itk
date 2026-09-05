@@ -6,11 +6,67 @@ produk, baru skenarionya mengunci keputusan itu.
 
 ## Terbuka
 
-_Kosong._ Entri #24 ditutup 2026-09-04, seperti #16–#23 sebelumnya.
+Tiga entri baru, #25–#27, muncul persis seperti yang diperkirakan paragraf di bawah:
+begitu skenario M1 (irisan HTTP submit, state, access —
+`.superpowers/sdd/2026-09-05-m1-http-slice/`) mulai diimplementasikan, tiga
+ketidaksesuaian ikut terlihat. Ketiganya dicatat di sini, bukan diputuskan sepihak saat
+menulis kodenya.
 
-Register ini tetap hidup: kontradiksi berikutnya akan muncul saat skenario M1 mulai
-diimplementasikan, dan tempatnya di sini — bukan parkir di berkas milestone, kekeliruan
+Register ini tetap hidup: kontradiksi berikutnya akan terus muncul selama implementasi
+berjalan, dan tempatnya tetap di sini — bukan parkir di berkas milestone, kekeliruan
 pembukuan yang sudah dikoreksi.
+
+### 25.1 Jalur HTTP submit tidak memanggil `SubmitFormSubmission`
+
+Spec irisan (`docs/design/bdd-coverage/m1-http-slice.md` §3.3) menyebut ini sebagai
+satu dari tiga defect, tapi tidak ada satu pun task di plan yang memperbaikinya.
+`UserFormController::submitForm()` (sekitar baris 414) masih memvalidasi dan menyetel
+status secara inline, dan tidak pernah memanggil Action-nya — sudah diverifikasi nol
+referensi ke `SubmitFormSubmission` di controller itu. Akibatnya, gerbang BR-SM-02,
+BR-SM-01, dan BR-SM-16 yang ditambahkan irisan ini ke Action **tidak ditegakkan di
+jalur yang sungguh-sungguh dipakai peneliti**.
+
+Tidak diperbaiki di sini karena spec §4 secara eksplisit membatasi ruang strangler dan
+melarang menulis ulang `submitForm()`, dan tidak satu pun dari 27 skenario irisan ini
+membatasi jalur HTTP submit — penyambungan apa pun akan mendarat tanpa test.
+
+**Belum ditutup.** Menutupnya berarti irisan lanjutan yang menyambungkan delegasi ke
+`SubmitFormSubmission` *disertai* skenario yang membuktikan perilakunya.
+
+### 26.1 `guardRequiredDocuments()` mengabaikan `FormField::isRequiredFor()`
+
+Gerbang BR-SM-02 yang ditambahkan irisan ini menyaring field wajib dengan
+`where('is_required', true)` mentah, mengabaikan
+`FormField::isRequiredFor(FormSubmission $submission)`
+(`app/Models/FormField.php:63`), yang sudah mengenkode aturan pengikatan temporal
+BR-FE-11. Akibatnya, field `file` wajib yang ditambahkan ke Form yang sedang hidup
+setelah sebuah draft ada akan selamanya memblokir draft itu untuk disubmit —
+bertentangan dengan `[FE-TEMPORAL-02]`.
+
+Tidak diperbaiki di sini karena sudah diverifikasi `UserFormController::submitForm()`
+versi legacy menyaring dengan cara identik (`is_required` mentah di baris 456,
+`fieldType->name === 'file'` di baris 478) — jadi Action ini untuk sekarang justru
+**mencerminkan** jalur HTTP; memperbaiki hanya salah satunya akan membuat keduanya
+menyimpang. `isRequiredFor()` sudah punya unit test tapi nol pemanggil produksi.
+`FE-TEMPORAL-01..09` semuanya masih tercatat di `pending.txt`.
+
+**Belum ditutup.** Menutupnya berarti irisan BR-FE-11 yang memperbaiki kedua jalur
+sekaligus.
+
+### 27.1 BR-SM-02 tidak ditegakkan pada jalur resubmit
+
+`ResubmitFormSubmission` (ditambahkan irisan ini) tidak memanggil
+`guardRequiredDocuments()`, sehingga aturan proposal wajib tidak ditegakkan pada
+transisi NEEDS_REVISION → RESUBMITTED.
+
+Dinilai bukan celah untuk irisan ini: tabel cakupan §5 spec membatasi baris revisi
+hanya pada BR-SM-04 dan BR-SM-03, tidak satu pun dari 27 skenario membatasi dokumen
+pada resubmit, dan submission NEEDS_REVISION sudah pasti pernah lolos gerbang dokumen
+itu saat masuk pertama kali. Dicatat karena peneliti yang mengosongkan response field
+proposalnya sebelum resubmit bisa melewati BR-SM-02 lewat jalur ini.
+
+**Belum ditutup.** Menutupnya berarti skenario yang memutuskan apakah resubmit perlu
+mengecek ulang dokumen.
 
 ### 9.1 Anggaran melebihi batas skema — UI vs aturan
 
