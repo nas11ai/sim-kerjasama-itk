@@ -1,3 +1,32 @@
+<script lang="ts">
+type StartPayload = { formId: number; periodId: number; phaseId: number }
+type PostFn = (url: string, data: Record<string, number>, options?: object) => void
+
+// ADR 0012 langkah 1 — baris pengajuan harus ada sebelum langkah mana pun bisa
+// disimpan. Dipanggil per Form, bukan per halaman: satu fase memuat beberapa
+// Form dan tiap Form punya barisnya sendiri.
+//
+// URL-nya dioper, bukan diresolusi di sini: `route` hanya boleh diimpor di
+// <script setup> karena template ikut memakainya, dan kedua blok script
+// bergabung jadi satu modul sehingga impor ganda adalah redeklarasi.
+export function ensureSubmissionStarted(
+    started: Set<number>,
+    post: PostFn,
+    url: string,
+    p: StartPayload
+): void {
+    if (started.has(p.formId)) return
+
+    started.add(p.formId)
+
+    post(
+        url,
+        { form_id: p.formId, submission_period_id: p.periodId, form_phase_id: p.phaseId },
+        { preserveState: true, preserveScroll: true }
+    )
+}
+</script>
+
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
 import { route } from 'ziggy-js'
@@ -152,6 +181,25 @@ const currentForm = computed(() => {
 const currentFormAccessControl = computed(() => {
     return currentGroupedForm.value?.primaryAccessControl
 })
+
+// Satu-satunya jalur yang melahirkan baris pengajuan (ADR 0012 langkah 1).
+// watch(currentForm), bukan onMounted: berpindah langkah berarti berpindah
+// Form, dan Form berikutnya belum punya barisnya.
+const startedForms = new Set<number>()
+
+watch(
+    currentForm,
+    (form) => {
+        if (!form) return
+
+        ensureSubmissionStarted(startedForms, router.post, route('user.submissions.store'), {
+            formId: form.id,
+            periodId: props.submissionPeriod.id,
+            phaseId: props.formPhase.id,
+        })
+    },
+    { immediate: true }
+)
 
 const totalSteps = computed(() => groupedForms.value.length)
 
