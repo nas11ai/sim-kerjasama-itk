@@ -13,6 +13,7 @@ use App\States\Submission\Withdrawn;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Contracts\Database\Eloquent\Builder;
 use Illuminate\Database\QueryException;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use Lorisleiva\Actions\Concerns\AsAction;
 use RuntimeException;
@@ -49,11 +50,20 @@ class SubmitFormSubmission
         // lalu salah satunya dibentur di sini. Peneliti tidak boleh melihat galat
         // database mentah, jadi pelanggarannya diterjemahkan jadi pesan yang sama.
         try {
-            $submission->update([
-                'is_submitted' => true,
-            ]);
+            // Transaksi bersarang = SAVEPOINT. Tanpa itu, 23505 membuat
+            // PostgreSQL membatalkan seluruh transaksi, dan query pemulihan di
+            // bawah gagal dengan 25P02 — peneliti tetap dapat 500, persis yang
+            // BR-SM-16 larang. ROLLBACK TO SAVEPOINT membuang tulisan yang
+            // gagal saja dan meninggalkan koneksinya tetap terpakai.
+            DB::transaction(function () use ($submission): void {
+                $submission->update([
+                    'is_submitted' => true,
+                ]);
+            });
         } catch (QueryException $e) {
-            if ($e->getCode() !== self::UNIQUE_VIOLATION) {
+            // errorInfo[0] adalah SQLSTATE apa adanya dari driver; getCode()
+            // melewati pengubahan tipe PDOException dan tidak bisa dipercaya.
+            if (($e->errorInfo[0] ?? null) !== self::UNIQUE_VIOLATION) {
                 throw $e;
             }
 
