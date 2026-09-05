@@ -68,6 +68,11 @@ it('[SM-SUBMIT-03] dua draft ke skema berbeda boleh hidup bersamaan', function (
     $b = uniquenessSliceSubmission($owner, $period, $eksternal, Draft::class, false);
 
     expect(FormSubmission::whereKey([$a->id, $b->id])->count())->toBe(2);
+
+    $guard = SubmitFormSubmission::make();
+
+    expect($guard->activeSubmissionClash($a))->toBeNull();
+    expect($guard->activeSubmissionClash($b))->toBeNull();
 });
 
 it('[SM-SUBMIT-04] submit ke skema lain tetap boleh', function () {
