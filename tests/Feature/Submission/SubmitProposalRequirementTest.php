@@ -4,6 +4,7 @@
 //
 // BR-SM-02 — proposal PDF wajib ada sebelum submit.
 
+use App\Actions\FormSubmission\StartSubmission;
 use App\Actions\FormSubmission\SubmitFormSubmission;
 use App\Models\FieldType;
 use App\Models\Form;
@@ -93,6 +94,10 @@ it('[SM-SUBMIT-07] error per field pada Proposal PDF muncul di jalur submit wiza
         'field_type_id' => $fileType->id,
         'order' => 1,
     ]);
+
+    // #28 — submitForm() tidak lagi membuat baris; langkah 1 wizard sudah
+    // melahirkannya.
+    StartSubmission::run($form->id, $dibangun['period']->id, $dibangun['detail'], $budi);
 
     // Field `file` wajib dikirim tanpa berkas sama sekali.
     $respons = $this->actingAs($budi)->post(route('user.form-submission.submit'), [

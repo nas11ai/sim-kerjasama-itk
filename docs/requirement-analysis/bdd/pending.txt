@@ -4,7 +4,7 @@
 # hanya boleh TURUN ditegakkan review PR — sama persis pembagian kerja yang
 # berlaku untuk excludePaths di phpstan-strict.neon.
 #
-# max: 78
+# max: 77
 
 FE-ACCESS-07
 FE-ACCESS-08
@@ -30,7 +30,6 @@ FE-OVERRIDE-08
 FE-OVERRIDE-09
 FE-OVERRIDE-10
 FE-OVERRIDE-11
-FE-TEMPORAL-09
 SCH-RULE-01
 SCH-RULE-02
 SCH-RULE-03

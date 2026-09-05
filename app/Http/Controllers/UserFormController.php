@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Actions\FormSubmission\ResolveWizardSubmission;
 use App\Actions\FormSubmission\StartSubmission;
+use App\Actions\FormSubmission\SubmitFormSubmission;
 use App\Models\Form;
 use App\Models\FormAccessControl;
 use App\Models\FormFieldResponse;
@@ -15,8 +17,6 @@ use App\Models\SubmissionPeriod;
 use App\Models\User;
 use App\Services\EmailNotificationService;
 use App\Services\FormAccessService;
-use App\States\Submission\Approved;
-use App\States\Submission\Submitted;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
@@ -308,12 +308,12 @@ class UserFormController extends Controller
      * divalidasi. form_id saja ambigu kalau dipakai lebih dari satu
      * FormPhaseDetail (ADR 0004); pasangan form_phase_id + form_id masih
      * ambigu kalau satu Form dipakai oleh lebih dari satu FormAccessControl
-     * (satu per organisasi) — jadi ikut men-scope dengan
-     * ->accessibleBy($user), sama seperti resolusi kedua yang menentukan
-     * transisi Approved/Submitted, supaya keduanya tidak pernah berbeda
-     * baris. Gagal keras kalau tidak ketemu, bukan menulis NULL — dengan
-     * scope ini, "tidak ketemu" juga berarti user tidak berwenang atas
-     * phase detail tersebut.
+     * (satu per organisasi) — jadi ikut men-scope dengan ->accessibleBy($user).
+     * Gagal keras kalau tidak ketemu, bukan menulis NULL — dengan scope ini,
+     * "tidak ketemu" juga berarti user tidak berwenang atas phase detail
+     * tersebut. Dipakai satu-satunya oleh startSubmission() — saveDraft() dan
+     * submitForm() sudah mendelegasikan resolusi barisnya ke
+     * ResolveWizardSubmission (#25, #28).
      */
     private function resolveFormPhaseDetail(int $formPhaseId, int $formId, User $user): FormPhaseDetail
     {
@@ -383,12 +383,6 @@ class UserFormController extends Controller
             abort(403, 'Anda tidak memiliki akses ke formulir ini.');
         }
 
-        $formPhaseDetail = $this->resolveFormPhaseDetail(
-            (int) $validated['form_phase_id'],
-            (int) $validated['form_id'],
-            $user
-        );
-
         // Handle file uploads
         $fileUploads = [];
         if ($request->hasFile('responses')) {
@@ -401,49 +395,24 @@ class UserFormController extends Controller
             }
         }
 
-        DB::transaction(function () use ($validated, $user, $fileUploads, $formPhaseDetail) {
-            // Find or create form submission
-            $submission = FormSubmission::firstOrCreate([
-                'form_id' => $validated['form_id'],
-                'submitted_by' => $user->id,
-            ], [
-                'is_submitted' => false,
-            ]);
+        DB::transaction(function () use ($validated, $user, $fileUploads) {
+            // #28 — resolver menggantikan firstOrCreate(): baris satu-satunya sumber
+            // kebenaran adalah langkah 1 wizard (StartSubmission), bukan save-draft.
+            $submission = ResolveWizardSubmission::run(
+                (int) $validated['form_id'],
+                (int) $validated['submission_period_id'],
+                $user
+            );
 
-            // BR-SM-05 — isi pengajuan terkunci pada status terminal. abort() di
-            // dalam DB::transaction membatalkan transaksinya, jadi tidak ada
-            // response yang terlanjur tertulis.
+            // Belum ada baris sama sekali — peneliti melewati langkah 1.
+            abort_if($submission === null, 409, 'Draft tidak ditemukan; mulai pengajuan dari langkah 1.');
+
+            // BR-SM-05 — isi pengajuan terkunci pada status terminal. Resolver
+            // sengaja tidak menyaring status supaya pembedaan 409/403 ini bisa
+            // dibuat; [SM-STATE-04] menuntut 403, bukan 409.
             abort_unless($user->can('update', $submission), 403, 'Pengajuan ini sudah terkunci.');
 
-            // C1 — tidak ada penulis lain untuk dua kolom ini; tanpanya
-            // getFormPhaseDetail(), resolveIsArchived(), dan assignment
-            // reviewer evaluasi diam-diam tidak jalan (ADR 0004).
-            $submission->update([
-                'form_phase_detail_id' => $formPhaseDetail->id,
-                'submission_period_id' => $validated['submission_period_id'],
-            ]);
-
-            // Delete existing responses
-            $submission->formFieldResponses()->delete();
-
-            // Save new responses
-            foreach ($validated['responses'] as $index => $responseData) {
-                $value = $responseData['value'];
-
-                // Use file path if file was uploaded
-                if (isset($fileUploads[$index])) {
-                    $value = $fileUploads[$index];
-                }
-
-                // Save response if not empty
-                if (!empty($value) || $value === '0' || $value === 0) {
-                    FormFieldResponse::create([
-                        'form_submission_id' => $submission->id,
-                        'form_field_id' => $responseData['form_field_id'],
-                        'value' => is_array($value) ? json_encode($value) : (string) $value,
-                    ]);
-                }
-            }
+            $this->persistResponses($submission, $validated['responses'], $fileUploads);
         });
 
         return redirect()->back()
@@ -484,111 +453,37 @@ class UserFormController extends Controller
             }
         }
 
-        // Validate that all required fields are filled
-        $form = Form::with([
-            'formFields' => function ($query) {
-                $query->where('is_required', true);
-            },
-        ])->findOrFail($validated['form_id']);
+        $form = Form::findOrFail($validated['form_id']);
 
         if (!$this->formAccessService->canAccessForm($user, $form)) {
             abort(403, 'Anda tidak memiliki akses ke formulir ini.');
         }
 
-        $formPhaseDetail = $this->resolveFormPhaseDetail(
-            (int) $validated['form_phase_id'],
+        // #28 — resolver menggantikan firstOrCreate(): baris satu-satunya sumber
+        // kebenaran adalah langkah 1 wizard (StartSubmission), bukan submit.
+        $submission = ResolveWizardSubmission::run(
             (int) $validated['form_id'],
+            (int) $validated['submission_period_id'],
             $user
         );
 
-        $requiredFields = $form->formFields;
-        $responseValues = collect($validated['responses'])->keyBy('form_field_id');
+        // Belum ada baris sama sekali — peneliti melewati langkah 1.
+        abort_if($submission === null, 409, 'Draft tidak ditemukan; mulai pengajuan dari langkah 1.');
 
-        foreach ($requiredFields as $field) {
-            $response = $responseValues->get($field->id);
-            $value = $response ? $response['value'] : null;
+        // BR-SM-05 — isi pengajuan terkunci pada status terminal. Resolver
+        // sengaja tidak menyaring status supaya pembedaan 409/403 ini bisa
+        // dibuat; [SM-STATE-04] menuntut 403, bukan 409.
+        abort_unless($user->can('update', $submission), 403, 'Pengajuan ini sudah terkunci.');
 
-            // Check if file upload is required and uploaded
-            if ($field->fieldType->name === 'file') {
-                $hasFile = false;
-                foreach ($fileUploads as $key => $filePath) {
-                    if ($validated['responses'][$key]['form_field_id'] == $field->id) {
-                        $hasFile = true;
-                        break;
-                    }
-                }
-                if (!$hasFile) {
-                    return redirect()->back()
-                        ->withErrors(['field_'.$field->id => "Field '{$field->label}' wajib diisi."])
-                        ->with('error', 'Silakan lengkapi semua field yang wajib diisi.');
-                }
-            } else {
-                // Regular field validation
-                if (!$response || (empty(trim($value)) && $value !== '0' && $value !== 0)) {
-                    return redirect()->back()
-                        ->withErrors(['field_'.$field->id => "Field '{$field->label}' wajib diisi."])
-                        ->with('error', 'Silakan lengkapi semua field yang wajib diisi.');
-                }
-            }
-        }
-
-        DB::transaction(function () use ($validated, $user, $fileUploads, $formPhaseDetail) {
-            // Find or create form submission
-            $submission = FormSubmission::firstOrCreate([
-                'form_id' => $validated['form_id'],
-                'submitted_by' => $user->id,
-            ], [
-                'is_submitted' => false,
-            ]);
-
-            // C1 — sama seperti saveDraft: tanpa dua kolom ini reviewer
-            // assignment, is_archived, dan evaluation due date diam-diam
-            // salah (ADR 0004).
-            $submission->update([
-                'is_submitted' => true,
-                'form_phase_detail_id' => $formPhaseDetail->id,
-                'submission_period_id' => $validated['submission_period_id'],
-            ]);
-
-            // Delete existing responses
-            $submission->formFieldResponses()->delete();
-
-            // Save new responses
-            foreach ($validated['responses'] as $index => $responseData) {
-                $value = $responseData['value'];
-
-                // Use file path if file was uploaded
-                if (isset($fileUploads[$index])) {
-                    $value = $fileUploads[$index];
-                }
-
-                // Save response if not empty
-                if (!empty($value) || $value === '0' || $value === 0) {
-                    FormFieldResponse::create([
-                        'form_submission_id' => $submission->id,
-                        'form_field_id' => $responseData['form_field_id'],
-                        'value' => is_array($value) ? json_encode($value) : (string) $value,
-                    ]);
-                }
-            }
-
-            // Check if this form needs review
-            $formPhaseDetail = FormPhaseDetail::where('form_phase_id', $validated['form_phase_id'])
-                ->whereHas('formAccessControl', function (Builder $query) use ($validated, $user) {
-                    /** @var Builder<FormAccessControl> $query */
-                    $query->where('form_id', $validated['form_id'])
-                        ->accessibleBy($user);
-                })
-                ->first();
-
-            if ($formPhaseDetail && !$formPhaseDetail->needs_review) {
-                $submission->status->transitionTo(Approved::class);
-            } else {
-                $submission->status->transitionTo(Submitted::class);
-            }
-
-            $this->emailService->notifyAdminFormSubmission($submission);
+        DB::transaction(function () use ($validated, $fileUploads, $submission): void {
+            $this->persistResponses($submission, $validated['responses'], $fileUploads);
         });
+
+        // BR-SM-01, BR-SM-02, BR-SM-04, BR-SM-16 — seluruh keputusan submit ada di
+        // Action. Cabang needs_review yang dulu di sini dicabut: ia memanggil
+        // transitionTo(Approved) dari DRAFT, transisi yang tidak diizinkan state
+        // machine, sehingga selalu melempar TransitionNotFound (ADR 0016).
+        SubmitFormSubmission::run($submission, $user);
 
         return redirect()->back()
             ->with('success', 'Formulir berhasil diserahkan.');
@@ -632,5 +527,28 @@ class UserFormController extends Controller
         });
 
         return response()->json(['responses' => $responses]);
+    }
+
+    /**
+     * @param  array<int, array{form_field_id: int|string, value: mixed}>  $responses
+     * @param  array<int|string, string>  $fileUploads
+     */
+    private function persistResponses(FormSubmission $submission, array $responses, array $fileUploads): void
+    {
+        $submission->formFieldResponses()->delete();
+
+        foreach ($responses as $index => $responseData) {
+            $value = $fileUploads[$index] ?? $responseData['value'];
+
+            if (empty($value) && $value !== '0' && $value !== 0) {
+                continue;
+            }
+
+            FormFieldResponse::create([
+                'form_submission_id' => $submission->id,
+                'form_field_id' => $responseData['form_field_id'],
+                'value' => is_array($value) ? json_encode($value) : (string) $value,
+            ]);
+        }
     }
 }

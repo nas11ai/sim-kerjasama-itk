@@ -142,3 +142,10 @@ Feature: Submit Pengajuan
     And "Budi" belum mengunggah proposal PDF
     When "Budi" resubmit "P-001"
     Then submit ditolak karena proposal PDF belum diunggah
+
+  @BR-SM-03 @M1 @RESEARCHER-02-10 @happy
+  Scenario: [SM-SUBMIT-18] Fase yang tidak butuh review tetap mendarat di SUBMITTED
+    Given submission "P-001" milik "Budi" berstatus DRAFT
+    And fase pengajuan "P-001" tidak membutuhkan review
+    When "Budi" submit "P-001"
+    Then status "P-001" menjadi SUBMITTED

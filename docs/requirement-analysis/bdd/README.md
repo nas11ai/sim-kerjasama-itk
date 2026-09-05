@@ -96,6 +96,7 @@ sudah terbukti, bukan karena diperkirakan.
 | `Then submit ditolak dengan error validasi pada field "<nama>"` | Penolakan submit yang menyebut field-nya |
 | `Then "<id>" muncul di daftar` | Kehadiran baris di daftar |
 | `Then "<id>" tidak muncul di daftar` | Ketidakhadirannya — pasangan negatif |
+| `Given fase pengajuan "<id>" tidak membutuhkan review` | Menetapkan `needs_review` false pada FormPhaseDetail submission |
 
 **Aturannya:** kalau langkah yang kamu butuhkan tidak ada di sini, boleh menambah — tapi
 tambahkan barisnya ke tabel ini dalam PR yang sama. Frasa yang dipakai sekali dan tidak

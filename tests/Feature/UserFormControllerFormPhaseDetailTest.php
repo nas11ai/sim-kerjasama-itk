@@ -2,13 +2,17 @@
 
 // tests/Feature/UserFormControllerFormPhaseDetailTest.php
 //
-// C1 — UserFormController::saveDraft() dan submitForm() dulu memvalidasi
-// form_phase_id & submission_period_id lalu membuangnya begitu saja; tidak
-// ada penulis untuk form_submissions.form_phase_detail_id maupun
-// submission_period_id sama sekali. Test ini memastikan kedua kolom
-// tersimpan, dan bahwa resolusinya tidak ambigu ketika satu Form dipakai
-// oleh lebih dari satu FormPhaseDetail (ADR 0004).
+// C1 — form_submissions.form_phase_detail_id dan submission_period_id dulu
+// tidak pernah ditulis dari saveDraft()/submitForm(). Sejak #25/#28,
+// StartSubmission-lah yang menulis kedua kolom itu saat baris lahir di
+// langkah 1 — resolveFormPhaseDetail() (dengan disambiguasi ADR 0004: form
+// yang dipakai lebih dari satu FormPhaseDetail, dan lintas organisasi) tetap
+// hidup di sana. Test di sini memastikan saveDraft() tidak menuliskan ulang
+// atau merusak apa yang sudah ditulis StartSubmission, sehingga fixture-nya
+// memanggil StartSubmission::run() langsung alih-alih lewat endpoint
+// save-draft.
 
+use App\Actions\FormSubmission\StartSubmission;
 use App\Models\FieldType;
 use App\Models\Form;
 use App\Models\FormAccessControl;
@@ -100,6 +104,10 @@ it('persists form_phase_detail_id and submission_period_id when saving a draft',
 
     $built = buildAccessibleFormPhaseDetail($user, $organization, $accessControl, $formPhase);
 
+    // #28 — saveDraft() tidak lagi membuat baris; langkah 1 wizard sudah
+    // menulis form_phase_detail_id dan submission_period_id saat lahir.
+    StartSubmission::run($form->id, $built['period']->id, $built['detail'], $user);
+
     $this->actingAs($user)
         ->post(route('user.form-submission.save-draft'), draftPayload($form, $built['period'], $formPhase))
         ->assertRedirect();
@@ -130,6 +138,10 @@ it('resolves the correct form_phase_detail when the form is shared by two phase 
     // form_id saja, ini yang akan (keliru) terpilih.
     buildAccessibleFormPhaseDetail($user, $organization, $accessControl, $formPhaseA);
     $correct = buildAccessibleFormPhaseDetail($user, $organization, $accessControl, $formPhaseB);
+
+    // #28 — StartSubmission (bukan saveDraft()) yang menjalankan
+    // resolveFormPhaseDetail() dan menulis hasilnya.
+    StartSubmission::run($form->id, $correct['period']->id, $correct['detail'], $user);
 
     $this->actingAs($user)
         ->post(route('user.form-submission.save-draft'), draftPayload($form, $correct['period'], $formPhaseB))
@@ -178,6 +190,10 @@ it('resolves the form_phase_detail of the user\'s own organization when the same
     ]);
     $own = buildAccessibleFormPhaseDetail($user, $ownOrganization, $ownAccessControl, $formPhase);
 
+    // #28 — StartSubmission (bukan saveDraft()) yang menjalankan
+    // resolveFormPhaseDetail() dan menulis hasilnya.
+    StartSubmission::run($form->id, $own['period']->id, $own['detail'], $user);
+
     $this->actingAs($user)
         ->post(route('user.form-submission.save-draft'), draftPayload($form, $own['period'], $formPhase))
         ->assertRedirect();
@@ -187,7 +203,15 @@ it('resolves the form_phase_detail of the user\'s own organization when the same
     expect($submission->form_phase_detail_id)->toBe($own['detail']->id);
 });
 
-it('fails loudly instead of writing null when the form/phase combination does not exist', function () {
+// #25/#28 — resolveFormPhaseDetail() dulu berjalan di dalam saveDraft() dan
+// men-422-kan kombinasi form/fase yang tidak ada. Sekarang saveDraft() tidak
+// lagi meresolusi form_phase_detail_id sama sekali: ia hanya menanyakan
+// ResolveWizardSubmission apakah baris untuk (form, periode, peneliti) sudah
+// ada. Fase yang tidak mempunyai FormPhaseDetail berarti langkah 1 tidak
+// pernah bisa dilalui untuknya, jadi tidak akan pernah ada baris — dan itu
+// tetap gagal *loudly*, hanya dengan kode yang berbeda (409, bukan 422),
+// karena penyebabnya sekarang seragam dengan "belum ada baris sama sekali".
+it('fails loudly with 409 instead of writing null when the form/phase combination does not exist', function () {
     [$user, $organization] = actingResearcher();
 
     $form = Form::factory()->create();
@@ -201,7 +225,7 @@ it('fails loudly instead of writing null when the form/phase combination does no
 
     $this->actingAs($user)
         ->post(route('user.form-submission.save-draft'), draftPayload($form, $period, $unrelatedPhase))
-        ->assertStatus(422);
+        ->assertStatus(409);
 
     expect(FormSubmission::where('form_id', $form->id)->exists())->toBeFalse();
 });
