@@ -27,8 +27,12 @@ class SubmitFormSubmission
 
     public function handle(FormSubmission $submission, User $user): FormSubmission
     {
-        // BR-SM-04 — hanya submitted_by yang boleh submit dan resubmit.
-        if ($submission->submitted_by !== $user->id) {
+        // BR-SM-04 — dijaga FormSubmissionPolicy::submit(); dipanggil di sini
+        // supaya aturannya juga berlaku di jalur yang tidak lewat HTTP, dan
+        // supaya aturannya hanya tertulis di satu tempat. `submit` ada di
+        // INVARIANT_ABILITIES, jadi Gate::before sengaja tidak melewatkan
+        // Super Admin dan Policy-lah yang memutuskan (ADR 0015).
+        if (!$user->can('submit', $submission)) {
             throw new AuthorizationException(
                 'Hanya lead researcher yang bisa submit pengajuan ini.'
             );
