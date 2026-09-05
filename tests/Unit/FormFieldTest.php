@@ -39,7 +39,7 @@ it('[FE-TEMPORAL-03] isRequiredFor menolak field yang baru jadi wajib', function
         ->toBeFalse();
 });
 
-it('returns true if field is required for submission', function () {
+it('[FE-TEMPORAL-01] isRequiredFor mewajibkan field yang lahir sebelum submission', function () {
 
     $submission = new FormSubmission;
     $submission->created_at = Carbon::parse('2026-01-10 10:00:00');
