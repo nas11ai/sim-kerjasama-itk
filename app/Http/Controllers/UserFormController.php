@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Actions\FormSubmission\StartSubmission;
 use App\Models\Form;
 use App\Models\FormAccessControl;
 use App\Models\FormFieldResponse;
@@ -18,6 +19,7 @@ use App\States\Submission\Approved;
 use App\States\Submission\Submitted;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -328,6 +330,38 @@ class UserFormController extends Controller
         }
 
         return $formPhaseDetail;
+    }
+
+    public function startSubmission(Request $request): RedirectResponse
+    {
+        $user = Auth::user();
+
+        $validated = $request->validate([
+            'form_id' => 'required|exists:forms,id',
+            'submission_period_id' => 'required|exists:submission_periods,id',
+            'form_phase_id' => 'required|exists:form_phases,id',
+        ]);
+
+        $form = Form::findOrFail($validated['form_id']);
+
+        if (!$this->formAccessService->canAccessForm($user, $form)) {
+            abort(403, 'Anda tidak memiliki akses ke formulir ini.');
+        }
+
+        $formPhaseDetail = $this->resolveFormPhaseDetail(
+            (int) $validated['form_phase_id'],
+            (int) $validated['form_id'],
+            $user
+        );
+
+        StartSubmission::run(
+            (int) $validated['form_id'],
+            (int) $validated['submission_period_id'],
+            $formPhaseDetail,
+            $user
+        );
+
+        return redirect()->back();
     }
 
     public function saveDraft(Request $request)

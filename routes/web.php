@@ -168,6 +168,10 @@ Route::middleware(['auth', 'check_biodata', 'check_reviewer_status'])->prefix('u
     Route::get('/form-submission/data', [UserFormController::class, 'getFormSubmissionData'])
         ->name('form-submission.data');
 
+    // ADR 0012 langkah 1 — satu-satunya jalur yang boleh melahirkan baris pengajuan.
+    Route::post('/submissions', [UserFormController::class, 'startSubmission'])
+        ->name('submissions.store');
+
     // Submission viewing routes
     Route::get('/submissions', [SubmissionViewController::class, 'userIndex'])
         ->name('submissions.index');
