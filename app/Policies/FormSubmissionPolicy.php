@@ -38,6 +38,19 @@ class FormSubmissionPolicy
         return $submission->submitted_by === $user->id;
     }
 
+    public function resubmit(User $user, FormSubmission $submission): bool
+    {
+        // BR-SM-04 — resubmit sama seperti submit: tindakan submitted_by mengikat
+        // dirinya sendiri. ADR 0015 memasukkannya ke INVARIANT_ABILITIES, jadi
+        // Gate::before tidak melewatinya dan method ini yang menentukan.
+        if ($submission->submitted_by !== $user->id) {
+            return false;
+        }
+
+        // BR-SM-03 — hanya NEEDS_REVISION yang bisa di-resubmit.
+        return $submission->status instanceof NeedsRevision;
+    }
+
     public function withdraw(User $user, FormSubmission $submission): bool
     {
         // BR-SM-11 — withdrawal hanya oleh Operator, bukan self-service.
