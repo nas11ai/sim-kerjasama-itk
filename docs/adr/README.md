@@ -60,3 +60,4 @@ keputusan sama berharganya dengan keputusan itu sendiri.
 | [0013](0013-form-access-control-matches-ancestor-organizations.md) | Akses Form ditentukan leluhur organisasi, bukan keturunannya  | Diterima |
 | [0014](0014-time-boxed-access-single-override-mechanism.md)      | Akses berbatas waktu: tiga sumbu, satu mekanisme pengecualian | Diterima |
 | [0015](0015-gate-before-never-bypasses-domain-invariants.md)     | Gate::before tidak melewati invarian domain                   | Diterima |
+| [0016](0016-submit-never-approves.md)                            | Submit tidak pernah menyetujui                                | Diterima |

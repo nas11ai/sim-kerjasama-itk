@@ -105,6 +105,27 @@ submission tetap tidak REJECTED.
 > `non-behavioral.md` sebagai catatan penegakan tambahan — bukan pengganti
 > `REV-OUTCOME-08`.
 
+### Kasus hampa BR-REV-05 — diwarisi dari M1
+
+Ada kebuntuan **kedua** yang bentuknya sama tapi sumbernya berbeda, dan M2 wajib
+memutuskannya: fase dengan `needs_review = false` menghasilkan pengajuan yang tidak
+punya reviewer sama sekali.
+
+[ADR 0016](../../adr/0016-submit-never-approves.md) mencabut cabang di
+`submitForm()` yang dulu mencoba menyetujuinya langsung dari `DRAFT` — cabang itu
+melempar `TransitionNotFound` dan tidak pernah bekerja. Konsekuensinya disadari dan
+dipilih: **pengajuan seperti itu kini berhenti di `SUBMITTED`.**
+
+Yang harus diputuskan M2, dan belum: apakah nol reviewer aktif berarti BR-REV-05
+terpenuhi secara hampa (semua reviewer selesai, karena tidak ada satu pun) sehingga
+pengajuannya APPROVED otomatis, atau justru berarti fase itu salah konfigurasi dan harus
+ditolak lebih awal. Keduanya bisa dipertahankan, dan `REV-OUTCOME-06` menunjukkan bahwa
+membaca aturan ini secara harfiah tanpa memutuskan lebih dulu menghasilkan submission
+yang terkunci selamanya.
+
+Sampai skenarionya ditulis, kasus ini adalah **utang yang tercatat**, bukan celah yang
+terlewat.
+
 ---
 
 ## 5. Diskusi terulir

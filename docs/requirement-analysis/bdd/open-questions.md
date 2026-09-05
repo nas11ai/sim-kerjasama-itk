@@ -6,113 +6,127 @@ produk, baru skenarionya mengunci keputusan itu.
 
 ## Terbuka
 
-Empat entri baru, #25–#28, muncul persis seperti yang diperkirakan paragraf di bawah:
-begitu skenario M1 (irisan HTTP submit, state, access —
-`.superpowers/sdd/2026-09-05-m1-http-slice/`) mulai diimplementasikan — lalu direview
-sebagai satu kesatuan — empat ketidaksesuaian ikut terlihat. Keempatnya dicatat di
-sini, bukan diputuskan sepihak saat menulis kodenya.
+*Kosong.*
 
-Register ini tetap hidup: kontradiksi berikutnya akan terus muncul selama implementasi
-berjalan, dan tempatnya tetap di sini — bukan parkir di berkas milestone, kekeliruan
-pembukuan yang sudah dikoreksi.
+Bagian ini tidak akan lama kosong, dan memang tidak dirancang untuk kosong: register ini
+hidup selama implementasi berjalan, dan kontradiksi berikutnya akan muncul persis seperti
+#25–#28 muncul — saat kode ditulis, bukan saat spec dibaca. Tempatnya tetap di sini,
+bukan parkir di berkas milestone.
 
-### 25.1 Delegasi submit ke `SubmitFormSubmission` yang diwajibkan spec tidak pernah masuk plan
+Yang berubah bukan bahwa utangnya habis, melainkan bahwa utangnya kembali jujur: tidak
+ada lagi entri yang duduk di *Terbuka* padahal keputusannya sudah mendarat.
 
-Spec irisan (`docs/design/bdd-coverage/m1-http-slice.md` §3.3) menyebut ini sebagai
-satu dari tiga defect, dan §4 **mewajibkan perbaikannya dalam batas tertentu**. Dua
-kalimat §4 harus dibaca bersama-sama: "Irisan ini **tidak** menulis ulang
-`submitForm()`" *dan* — di paragraf berikutnya — "`submitForm()` diubah seperlunya saja
-untuk **mendelegasikan keputusan submit ke Action itu**". Jadi yang dilarang menulis
-ulang method-nya; yang diperintahkan mendelegasikan keputusan submit-nya. Mandat
-berbatas, bukan larangan.
+## Terselesaikan
 
-Mandat itu hilang di tahap perencanaan: tabel File Structure di plan tidak pernah
-mencantumkan `UserFormController::submitForm()`, sehingga tidak ada satu pun dari 8 task
-yang menyentuhnya. Catatan versi pertama entri ini keliru menyebut §4 "melarang" dan
-menyebut tidak ada skenario yang membatasi jalur HTTP submit — keduanya salah:
-`[SM-SUBMIT-07]` menuntut `melihat error per field pada "Proposal PDF"`, yang menurut
-tabel lapis §2 dibuktikan di HTTP. Koreksi itu dicatat di sini supaya register tidak
-mengabadikan alasan yang tidak benar.
+| # | Perkara | Keputusan | Tanggal |
+| - | ------- | --------- | ------- |
+| 5 | BR-BUD-06 menyebut "period config" yang tidak terdefinisi; entitas `SubmissionOuter` ternyata luaran yang dijanjikan, bukan data anggaran | Pindah ke BC Submission sebagai `SubmissionTargetOutput`; BR-BUD-06 dicabut, diganti BR-SM-14 dan BR-SM-15; pembatas tipe memakai `scheme.rules.allowed_output_types` yang sudah ada — tidak ada config baru. Target tetap bisa diubah pasca-APPROVED dengan audit trail wajib; hanya `submitted_by` yang boleh mengubah. Jejak lengkap: spec §8.1 | 2026-09-03 |
+| 6 | Arah penelusuran org tree di BR-FE-02 terbalik di DDD — Form ber-scope luas justru tak terlihat oleh peneliti di prodi | **Arah anak-menjangkau-leluhur disetujui.** `FormAccessControl.organization_id` harus ancestor-or-self dari organisasi user. Ditulis sebagai [ADR 0013](../../adr/0013-form-access-control-matches-ancestor-organizations.md); pseudocode, CTE, dan bunyi BR-FE-02 di DDD sudah dikoreksi. Lihat §6.1 | 2026-09-04 |
+| 7 | "Active Submission" di BR-SCH-01 tidak terdefinisi — apakah APPROVED menghalangi penonaktifan skema? | **APPROVED dihitung aktif.** Active = `status NOT IN ('rejected', 'withdrawn')` — predikat yang sudah dipakai index unik BR-SM-01. Definisi masuk `02_ubiquitous_language.md`, bunyi BR-SCH-01 diperjelas, dan `[SCH-RULE-15]` mengunci perilakunya. Lihat §7.1 | 2026-09-04 |
+| 8 | Dua skenario menguji aturan yang tidak punya nomor BR | **Keduanya diberi nomor.** BR-FE-16 (visibility `reason` override) dan BR-SCH-10 (skema tidak aktif tidak ditawarkan); tag `[FE-OVERRIDE-09]` dan `[SCH-RULE-14]` dipindahkan ke nomor barunya. Lihat §8.1 | 2026-09-04 |
+| 9 | Wireframe membolehkan submit dengan anggaran melebihi batas skema | **Aturan menang, UI menyesuaikan.** BR-BUD-01 tetap batas keras; kalimat "tetap dapat melanjutkan submit" di `RESEARCHER-02-04` diganti pernyataan penolakan. Dikunci `[BUD-LIMIT-01]`. Jejak: [gap-closure §5](../../design/gap-closure.md) | 2026-09-04 |
+| 10 | Apakah BR-REV-12 berlaku untuk siklus monev | **Monev dikecualikan eksplisit** lewat BR-MON-09 baru — hasil evaluasi terlihat begitu reviewer submit, karena monev bersifat formatif. Pengecualian dijaga tetap sempit oleh `[MON-REVIEW-09]`. Jejak: [gap-closure §6](../../design/gap-closure.md) | 2026-09-04 |
+| 11 | Lima kebutuhan bisnis belum punya layar sama sekali | **Delapan frame baru dibuat** (57 → 65): wizard langkah 2/3/4/6/7, Target Luaran, Notifikasi, dan detail pengajuan ditolak. Target luaran ditempatkan di langkah 3 karena pilihannya dibatasi skema. Jejak: [gap-closure](../../design/gap-closure.md) | 2026-09-04 |
+| 1 | `Gate::before` memberi Super Admin setiap ability tanpa syarat, sementara Action menegakkan BR-SM-04 — UI menampilkan tombol Submit yang dijamin gagal | **Invarian domain tidak pernah dilewati.** `submit`/`resubmit` dikecualikan dari bypass lewat konstanta `INVARIANT_ABILITIES`; ability lain tetap di-bypass. Admin yang harus mengajukan untuk orang lain memakai transfer kepemilikan. [ADR 0015](../../adr/0015-gate-before-never-bypasses-domain-invariants.md); dikunci `[SM-SUBMIT-13/14]` | 2026-09-04 |
+| 2 | Auto-reject di kode warisan fork vs BR-REV-07/BR-REV-14 | **Bukan pertanyaan — arahnya sudah diputuskan [ADR 0006](../../adr/0006-rejection-is-manual-only.md).** Yang tersisa pekerjaan: `[REV-OUTCOME-08]` mengunci perilakunya, ditambah penjagaan struktural (`transitionTo(Rejected::class)` di luar `RejectSubmission` harus nol) yang dicatat di `non-behavioral.md` | 2026-09-04 |
+| 3 | Enum `SubmissionStatus` frontend 5 nilai vs backend 8 | **Frontend menyusul, bukan backend melunak.** Sisi wireframe sudah ditutup (kedelapan status punya representasi). Enum TypeScript wajib memuat 8 nilai dan **diturunkan dari kontrak Inertia**, bukan didaftar tangan — [ADR 0007](../../adr/0007-inertia-props-as-frontend-contract.md). `[SM-STATE-02]` memakai kedelapannya | 2026-09-04 |
+| 4 | Perilaku user-facing saat index unik BR-SM-01 kena belum ditetapkan | **Dicegat sebelum menyentuh database** — pesan validasi menyebut pengajuan aktif yang sudah ada beserta tautannya, dan **draft tetap DRAFT serta tetap bisa disunting**. Index tetap ada sebagai jaring pengaman lomba-balap, dengan pesan yang sama. Aturannya **BR-SM-16** baru; dikunci `[SM-SUBMIT-15..17]` | 2026-09-04 |
+| 12 | Tidak ada tanggal untuk tahap setelah submit — evaluasi dan revisi memakai ulang `"Batas Submit"` | **Tanggal tetap per periode.** `Batas Evaluasi` dan `Batas Revisi` ditambahkan sebagai label `SubmissionDate` baku; contoh lifecycle dikoreksi. Memakai mesin yang sudah ada, otomatis mewarisi BR-SCH-08, dan keterlambatan individual tetap ditangani override ([ADR 0014](../../adr/0014-time-boxed-access-single-override-mechanism.md)). Aturannya **BR-FE-17**; dikunci `[FE-WINDOW-01..04]` | 2026-09-04 |
+| 13 | Apa arti `can_proceed` secara operasional — siapa yang menyetelnya? | **Pertanyaannya salah bentuk.** `canProceed()` adalah *method* di aggregate, bukan kolom — BR-MON-02 menulisnya `can_proceed = true` seolah kolom. Tidak ada yang menyetelnya: ia turunan keadaan, sejajar `isArchived()`. Bernilai true kalau detail sudah disubmit DAN, bila `needs_review = true`, evaluasinya selesai tanpa summary `open`. BR-MON-02 diperjelas, istilah masuk ubiquitous language; dikunci `[MON-CYCLE-03..05]` | 2026-09-04 |
+| 14 | Apakah `not_required` dihitung "selesai" untuk pemicu BR-REV-05/06 | **Ya — kalau tidak, ia kebuntuan permanen.** BR-REV-05/06 semula menulis "semua `evaluation_status = completed`"; dibaca harfiah, reviewer `not_required` tidak akan pernah menjadi `completed` dan submission terkunci selamanya tanpa ada yang salah. Bunyi keduanya dikoreksi jadi "`completed` atau `not_required`", seragam dengan BR-FE-06 yang sudah begitu sejak awal; dikunci `[REV-OUTCOME-06]` | 2026-09-04 |
+| 15 | Siapa me-resolve `ReviewSummary` kalau reviewer-nya sudah `replaced` | **Reviewer pengganti mewarisinya.** Tanpa aturan ini summary itu tak akan pernah bisa ditutup — reviewer lama tidak berwenang, reviewer baru tidak merasa berhak — dan submission terkunci di NEEDS_REVISION. Penulis asli tetap terbaca dari record lama (BR-REV-10). Aturannya **BR-REV-15** baru; dikunci `[REV-DISCUSS-06]` | 2026-09-04 |
+| 16 | Wizard boleh dilompati mundur-maju bebas, atau hanya maju berurutan? | **Navigasi bebas; gerbangnya prasyarat data, bukan urutan langkah.** Kendala sesungguhnya bukan nomor langkah melainkan ketergantungan data — anggaran butuh `scheme_id`. Mengunci berurutan menyiksa: memperbaiki judul di langkah 2 saat di langkah 6 tak boleh menuntut mundur empat layar. Langkah 7 boleh dibuka kapan saja; tombol Submit-nya yang bergerbang. **BR-SM-17** baru; dikunci `[SM-WIZARD-08/10/11]` | 2026-09-04 |
+| 17 | User `pending` boleh menyimpan DRAFT, atau hanya dilarang submit? | **Boleh menyimpan DRAFT.** Verifikasi menggerbang *komitmen*, bukan *persiapan* — tidak ada yang mengikat sampai submit, sementara verifikasi NIDN makan waktu berhari-hari. BR-IAM-04 sendiri bilang "bisa login"; kalau login tapi tak bisa apa-apa, layar Pending Verification jadi jalan buntu. Bunyi BR-IAM-04 diperjelas; dikunci `[IAM-VERIFY-06]` | 2026-09-04 |
+| 18 | Nasib undangan yang belum terpakai saat organisasinya dihapus | **Token dicabut, bukan memblokir penghapusan.** Token basi tidak boleh menyandera reorganisasi selamanya; sebaliknya token menggantung ke organisasi mati juga tidak boleh. Operator melihat berapa token akan tercabut sebelum mengonfirmasi, dan undangan yang terlanjur dibuka mendarat di layar token tidak berlaku yang sudah ada — nol layar baru. BR-IAM-06 diperluas; dikunci `[IAM-REG-10/11]` | 2026-09-04 |
+| 19 | Target luaran dan realisasi wajib cocok tipenya? | **Sengaja TIDAK ditegakkan.** Penelitian memang menyimpang — janji artikel jurnal bisa berakhir sebagai paten. Memaksa cocok mendorong peneliti berbohong di target atau menyembunyikan luaran nyata; keduanya lebih buruk daripada ketidakcocokannya. Prinsip: **batasi yang harus benar (taksonomi), ukur yang sebaiknya benar (pemenuhan)**. Pemenuhan jadi metrik pelaporan, bukan validasi lintas-aggregate. Didokumentasikan di `03_research_output.md` | 2026-09-04 |
+| 20 | Siklus monev yang di-freeze bisa dibuka lagi kalau penarikan dibatalkan? | **Tidak — WITHDRAWN terminal.** Membalikkan penarikan menuntut seluruh pembekuan hilir ikut dipulihkan dengan benar, untuk peristiwa yang jarang. State machine sengaja dijaga **asiklik** karena itu jauh lebih murah dinalar dan diaudit. Kalau penarikan keliru, jalurnya pengajuan baru yang merujuk yang lama. BR-SM-11 diperluas; dikunci `[SM-WITHDRAW-05]` dan `[MON-CYCLE-12]` | 2026-09-04 |
+| 21 | Daftar lengkap event yang butuh email versus cukup in-app | **Pertanyaannya tidak perlu dijawab di muka — jadikan konfigurasi.** Channel per tipe event mengikuti preseden `scheme.rules` JSONB: di-seed dengan default, disunting Admin tanpa deploy. Aturannya satu — setiap event wajib punya deklarasi channel, dan yang tanpa deklarasi ditolak saat dipublish. Daftar isinya bukan aturan, jadi tidak dibekukan di DDD. **BR-NOT-06** baru; dikunci `[NOT-CHANNEL-03/04]` | 2026-09-04 |
+| 22 | Aksi apa saja yang wajib masuk audit log | **Diturunkan dari arsitektur, bukan daftar manual.** Kebalikan #21: ini justru **tidak boleh** jadi konfigurasi — orang bisa mematikan audit. Karena AGENTS.md mewajibkan satu Action = satu use case yang mengubah state, "setiap Action mencatat audit" otomatis berarti "setiap perubahan yang seseorang bertanggung jawab atasnya". Daftar yang mustahil ketinggalan karena bukan daftar. **BR-RPT-09** baru; dikunci `[RPT-AUDIT-06/07]` + penjagaan struktural di `non-behavioral.md` | 2026-09-04 |
+| 23 | Researcher boleh mengekspor data miliknya sendiri? | **Boleh, ter-scope dengan aturan yang sama persis seperti BR-RPT-05.** Ekspor tidak melahirkan konsep scoping kedua — query dan batasnya sama, hanya pemanggilnya berbeda. **BR-RPT-10** baru; dikunci `[RPT-EXPORT-08/09]` | 2026-09-04 |
+| 24 | `Gate::before` membuat Super Admin menembus `BudgetLineItemPolicy` — pada APPROVED, admin bisa menyunting anggaran sementara pemiliknya tidak | **`update-budget` jadi invarian domain.** Bypass itu melanggar BR-BUD-02 *dan* BR-BUD-09, yang menyebut daftar tertutup `submitted_by`/`co_investigator`. Ability masuk `INVARIANT_ABILITIES`; konsekuensinya berlaku di semua status, bukan hanya terminal. [ADR 0015](../../adr/0015-gate-before-never-bypasses-domain-invariants.md) diperluas; dikunci `[BUD-LOCK-03]` dan `[BUD-WHO-04]`. Lihat §24.1 | 2026-09-04 |
+| 25 | Delegasi submit ke `SubmitFormSubmission` yang diwajibkan spec irisan HTTP tidak pernah masuk plan | **Didelegasikan.** `submitForm()` menyusut jadi orkestrasi tipis dan meneruskan keputusannya ke Action. Alasan penahan yang tercatat di register **keliru** — cabang `needs_review` yang disebut harus ikut dipindahkan tidak pernah bekerja (`Draft → Approved` tidak diizinkan state machine, selalu `TransitionNotFound`). Cabangnya dicabut lewat [ADR 0016](../../adr/0016-submit-never-approves.md); dikunci `[SM-SUBMIT-18]`. Lihat §25.1 | 2026-09-06 |
+| 26 | `guardRequiredDocuments()` menyaring `is_required` mentah dan mengabaikan `FormField::isRequiredFor()` | **`isRequiredFor()` akhirnya punya pemanggil produksi.** Kedua jalur memakai `RequiredFieldGuard::assertComplete()`, yang juga berhenti membatasi diri pada field bertipe `file` — setiap field wajib diperiksa. Temporal Field Binding BR-FE-11 menyala di produksi; `FE-TEMPORAL-01..09` keluar dari `pending.txt`. Lihat §26.1 | 2026-09-06 |
+| 27 | BR-SM-02 tidak ditegakkan pada jalur resubmit | **Resubmit mengecek ulang, dengan jangkar yang sama.** `ResubmitFormSubmission` memanggil guard yang sama memakai `created_at` asli — revisi tidak menarik field wajib baru ke pengajuan yang sudah berjalan, jadi mengecek ulang bukan memindahkan gawang. Dikunci `[SM-SUBMIT-19]`. Lihat §27.1 | 2026-09-06 |
+| 28 | Draft baru tidak bisa dimulai setelah pengajuan Form itu berakhir terminal | **Diperbaiki di pencariannya, bukan di gerbangnya** — nol gerbang dicabut. `ResolveWizardSubmission` mencocokkan `(form_id, submitted_by, submission_period_id)` berstatus `DRAFT` atau `NEEDS_REVISION` — persis yang diizinkan `FormSubmissionPolicy::update()`. Baris terminal melahirkan draft baru; resolver kosong menjawab `409`. Dikunci `[SM-WIZARD-12]`. Lihat §28.1 | 2026-09-06 |
 
-Keadaan sekarang: `submitForm()` (sekitar baris 419) masih memvalidasi dan menyetel
-status secara inline, dan tidak pernah memanggil Action-nya — sudah diverifikasi nol
-referensi ke `SubmitFormSubmission` di controller itu. Akibatnya gerbang BR-SM-01,
-BR-SM-02, dan BR-SM-16 yang ditambahkan irisan ini ke Action **tidak ditegakkan di
-jalur yang sungguh-sungguh dipakai peneliti**.
+### 6.1 Arah penelusuran org tree — jejak keputusan
 
-Penyambungannya tidak sepele, dan itu alasan teknis kenapa ia tidak dikerjakan sebagai
-tambalan di akhir: `submitForm()` berpindah ke `Approved` ketika
-`FormPhaseDetail.needs_review` bernilai false, sementara `SubmitFormSubmission` selalu
-berpindah ke `Submitted`. Mendelegasikan tanpa memindahkan percabangan itu akan
-mengubah perilaku form yang tidak butuh review; memindahkannya berarti Action ikut
-menumbuhkan cabang `needs_review` beserta skenario yang menetapkan perilakunya.
+Pseudocode `canAccessForm` di
+[`generic/02_identity_access.md`](../ddd/generic/02_identity_access.md) semula menghitung
+`subtreeIds($user->profile->organization_id)` — yaitu **descendant dari organisasi
+user** — lalu memeriksa apakah `FormAccessControl.organization_id` ada di dalamnya.
+Dibaca apa adanya, itu berarti **induk menjangkau anak**: hanya user yang organisasinya
+merupakan leluhur dari organisasi ACL yang mendapat akses. Frasa BR-FE-02 ("org subtree
+user") mewarisi bacaan yang sama, dan `app/Models/FormAccessControl.php`
+mengimplementasikan persis itu.
 
-**Belum ditutup.** Menutupnya berarti irisan lanjutan yang menyambungkan delegasi
-keputusan submit ke `SubmitFormSubmission` *disertai* skenario yang menetapkan nasib
-cabang `needs_review`.
+Konsekuensinya membuat fitur tidak berfungsi. Untuk Form se-institut yang di-scope ke
+node akar `ITK`:
 
-### 26.1 `guardRequiredDocuments()` mengabaikan `FormField::isRequiredFor()`
+| Organisasi user | `subtreeIds(user)` | `ITK` ada di dalamnya? |
+| --------------- | ------------------ | ---------------------- |
+| ITK             | {ITK, FTI, Informatika, …} | ya → akses |
+| FTI             | {FTI, Informatika} | **tidak → ditolak** |
+| Informatika     | {Informatika}      | **tidak → ditolak** |
 
-Gerbang BR-SM-02 yang ditambahkan irisan ini menyaring field wajib dengan
-`where('is_required', true)` mentah, mengabaikan
-`FormField::isRequiredFor(FormSubmission $submission)`
-(`app/Models/FormField.php:63`), yang sudah mengenkode aturan pengikatan temporal
-BR-FE-11. Akibatnya, field `file` wajib yang ditambahkan ke Form yang sedang hidup
-setelah sebuah draft ada akan selamanya memblokir draft itu untuk disubmit —
-bertentangan dengan `[FE-TEMPORAL-02]`.
+Form yang di-scope luas justru hanya terlihat oleh user yang organisasinya persis node
+akar, sementara seluruh peneliti — yang duduk di prodi/departemen — terkunci di luar.
 
-Tidak diperbaiki di sini karena sudah diverifikasi `UserFormController::submitForm()`
-versi legacy menyaring dengan cara identik (`is_required` mentah di baris 456,
-`fieldType->name === 'file'` di baris 478) — jadi Action ini untuk sekarang justru
-**mencerminkan** jalur HTTP; memperbaiki hanya salah satunya akan membuat keduanya
-menyimpang. `isRequiredFor()` sudah punya unit test tapi nol pemanggil produksi.
-`FE-TEMPORAL-01..09` semuanya masih tercatat di `pending.txt`.
+**Keputusan (2026-09-04): arah anak-menjangkau-leluhur.** ACL org harus
+ancestor-or-self dari organisasi user, ditelusuri naik lewat
+`Organization::ancestorIds()`. Skenario `[FE-ACCESS-02]` dan `[FE-ACCESS-03]` sudah
+mengunci arah ini sejak Wave 1a. `subtreeIds()` tidak dihapus — ia tetap benar untuk
+pelaporan agregat, hanya keliru dipakai di jalur access control.
 
-**Belum ditutup.** Menutupnya berarti irisan BR-FE-11 yang memperbaiki kedua jalur
-sekaligus.
+**Sudah diimplementasikan (2026-09-04).** `Organization::ancestorIds()` ditambahkan,
+`FormAccessControl::organizationAncestorsFor()` menggantikan `organizationSubtreeFor()`,
+dan pengecekan kembar di `UserFormController` ikut dikoreksi. Invalidasi cache berbalik
+arah sesuai ADR 0013: cache `org_ancestors_{id}` sebuah node dibuang saat leluhurnya
+berpindah atau dinonaktifkan. Skenario `[FE-ACCESS-01]`…`[FE-ACCESS-06]` sudah punya
+test dan keluar dari `pending.txt`; `[FE-ACCESS-07]`/`[FE-ACCESS-08]` masih pending
+karena mengatur BR-FE-01 (periode force closed), bukan arah org tree.
 
-### 27.1 BR-SM-02 tidak ditegakkan pada jalur resubmit
+### 7.1 Apa itu "active Submission" untuk BR-SCH-01
 
-`ResubmitFormSubmission` (ditambahkan irisan ini) tidak memanggil
-`guardRequiredDocuments()`, sehingga aturan proposal wajib tidak ditegakkan pada
-transisi NEEDS_REVISION → RESUBMITTED.
+BR-SCH-01 berbunyi "Scheme tidak bisa di-deactivate jika ada **active** Submission yang
+menggunakannya", dan flowchart di [`supporting/04_scheme.md`](../ddd/supporting/04_scheme.md)
+mengulang istilah yang sama tanpa mendefinisikannya. Dua status jelas mati: `REJECTED`
+dan `WITHDRAWN`. Yang diperdebatkan `APPROVED`:
 
-Dinilai bukan celah untuk irisan ini: tabel cakupan §5 spec membatasi baris revisi
-hanya pada BR-SM-04 dan BR-SM-03, tidak satu pun dari 27 skenario membatasi dokumen
-pada resubmit, dan submission NEEDS_REVISION sudah pasti pernah lolos gerbang dokumen
-itu saat masuk pertama kali. Dicatat karena peneliti yang mengosongkan response field
-proposalnya sebelum resubmit bisa melewati BR-SM-02 lewat jalur ini.
+| Bacaan | Alasan | Akibat kalau dipakai |
+| ------ | ------ | -------------------- |
+| APPROVED **aktif** | Pengajuan yang disetujui adalah kegiatan yang sedang berjalan — laporan monev (child submission) masih lahir darinya, dan skema masih memasok `max_budget` serta `duration_months` untuk kegiatan itu | Skema baru bisa dinonaktifkan setelah seluruh kegiatan selesai; penonaktifan jadi jarang tapi aman |
+| APPROVED **tidak aktif** | BR-SM-05 menggolongkan APPROVED bersama REJECTED dan WITHDRAWN sebagai status yang "tidak bisa diubah kembali" — yaitu terminal | Skema bisa dinonaktifkan sementara kegiatan masih berjalan, dan aturan yang mengikat kegiatan itu hilang dari daftar aktif |
 
-**Belum ditutup.** Menutupnya berarti skenario yang memutuskan apakah resubmit perlu
-mengecek ulang dokumen.
+**Keputusan (2026-09-04): APPROVED dihitung aktif.** "Terminal" di BR-SM-05 berbicara
+soal *mutabilitas record*, bukan soal apakah kegiatannya masih berjalan.
 
-### 28.1 Draft baru tidak bisa dimulai setelah pengajuan Form itu berakhir terminal
+Yang menutup perkara ini bukan sekadar argumen, melainkan preseden yang sudah berjalan:
+index unik BR-SM-01 memfilter dengan `status NOT IN ('rejected', 'withdrawn')`
+([ADR 0005](../../adr/0005-scheme-selector-writes-to-column.md), migrasi
+`2026_08_17_000003_add_submission_uniqueness_indexes.php`). Sistem ini **sudah** punya
+satu definisi "aktif" di lapisan paling keras yang ia miliki; BR-SCH-01 memakai predikat
+yang sama persis alih-alih melahirkan definisi kedua yang bisa menyimpang.
 
-`UserFormController` mencari submission wizard dengan
-`FormSubmission::firstOrCreate(['form_id', 'submitted_by'])` (baris 372 pada
-`saveDraft()`, dan bentuk yang sama pada `submitForm()`) — **satu baris per (Form,
-peneliti), tanpa memperhitungkan periode**. Gerbang BR-SM-05 yang ditambahkan Task 3
-tepat di bawahnya (`abort_unless($user->can('update', $submission), 403)`) karena itu
-menolak dengan 403 setiap kali baris tunggal itu berada di status terminal.
+`[SCH-RULE-06]` menguji sisi yang tidak menghalangi (REJECTED, WITHDRAWN);
+`[SCH-RULE-15]` menguji sisi yang menghalangi (APPROVED).
 
-Akibatnya peneliti yang pengajuannya untuk sebuah Form pernah REJECTED tidak akan pernah
-bisa memulai draft baru untuk Form yang sama lewat wizard. Itu bertentangan dengan
-`[SM-SUBMIT-05]` — yang dibuktikan di lapis Action pada irisan yang sama — yang justru
-menetapkan bahwa mengajukan ulang ke skema yang sama setelah ditolak **boleh**. Dua
-paruh irisan ini saling bertentangan di lapis HTTP.
+### 8.1 Skenario yang menempel pada BR yang tidak menyatakannya
 
-Gerbangnya sengaja **tidak** dicabut. Perilaku sebelumnya lebih buruk: `saveDraft()`
-menghapus seluruh `formFieldResponses` milik submission terminal itu lalu menulis ulang
-isinya — menyunting diam-diam record yang seharusnya beku. Gagal menutup lebih aman
-daripada gagal membuka.
+Dua skenario Wave 1a menguji aturan nyata yang tidak punya nomor BR sendiri, sehingga
+terpaksa menumpang BR tetangga — tag yang menyesatkan saat dibaca sebagai
+ketertelusuran. Guard assertion 2 mewajibkan setiap skenario punya minimal satu tag
+`@BR-`, jadi tag itu tidak bisa sekadar dilepas; obatnya memberi nomor.
 
-Arah perbaikannya bukan di gerbang melainkan di pencariannya: `firstOrCreate` harus
-ter-scope ke submission yang belum terminal (dan, mengikuti ADR 0005 serta predikat
-index BR-SM-01, kemungkinan besar juga ke `submission_period_id`), sehingga status
-terminal melahirkan baris baru alih-alih membentur baris lama.
+| Skenario | Semula | Sekarang | Aturan yang dinomori |
+| -------- | ------ | -------- | -------------------- |
+| `[FE-OVERRIDE-09]` | `@BR-FE-09` (reason wajib diisi) | `@BR-FE-16` | Researcher melihat *status* override tapi tidak `reason`-nya — semula hanya catatan prosa di `generic/01_form_engine.md` |
+| `[SCH-RULE-14]` | `@BR-SCH-01` (penjagaan saat deactivate) | `@BR-SCH-10` | Scheme `is_active = false` tidak ditawarkan ke pengajuan baru — semula hanya tersirat dari semantik kolom |
 
-**Belum ditutup.** Menutupnya berarti skenario yang menetapkan apa yang dilihat peneliti
-saat membuka wizard sebuah Form yang pengajuan sebelumnya sudah berakhir.
+**Keputusan (2026-09-04): kedua aturan diberi nomor BR** dan barisnya ditambahkan ke
+tabel Business Rules di DDD. Inventaris naik dari 101 ke 103 BR, 94 di antaranya
+bersifat perilaku. BR-FE-09 dan BR-SCH-01 tetap tercakup jujur oleh skenario yang
+memang membuktikannya (`[FE-OVERRIDE-06]`, `[SCH-RULE-04]`/`[SCH-RULE-05]`/`[SCH-RULE-06]`).
 
 ### 9.1 Anggaran melebihi batas skema — UI vs aturan
 
@@ -226,7 +240,6 @@ ketiga ditolak karena menggantungkan penutupan periode pada ingatan Operator.
 menularkan kekeliruan yang sama. Berapa panjang tiap jendela adalah konfigurasi periode —
 bukan aturan — jadi tidak perlu BR sendiri.
 
-
 ### 24.1 Super Admin menembus kunci anggaran — jejak keputusan
 
 Muncul saat irisan vertikal Budget diimplementasikan (Task 7–10).
@@ -262,111 +275,157 @@ ditegakkan, bukan efek samping yang ditoleransi.
 Opsi ability terpisah (`override-budget-lock`) ditolak — menambah mekanisme untuk
 kebutuhan yang belum terbukti ada.
 
+### 25.1 Delegasi submit ke `SubmitFormSubmission` yang diwajibkan spec tidak pernah masuk plan
 
-## Terselesaikan
+Spec irisan (`docs/design/bdd-coverage/m1-http-slice.md` §3.3) menyebut ini sebagai
+satu dari tiga defect, dan §4 **mewajibkan perbaikannya dalam batas tertentu**. Dua
+kalimat §4 harus dibaca bersama-sama: "Irisan ini **tidak** menulis ulang
+`submitForm()`" *dan* — di paragraf berikutnya — "`submitForm()` diubah seperlunya saja
+untuk **mendelegasikan keputusan submit ke Action itu**". Jadi yang dilarang menulis
+ulang method-nya; yang diperintahkan mendelegasikan keputusan submit-nya. Mandat
+berbatas, bukan larangan.
 
-| # | Perkara | Keputusan | Tanggal |
-| - | ------- | --------- | ------- |
-| 5 | BR-BUD-06 menyebut "period config" yang tidak terdefinisi; entitas `SubmissionOuter` ternyata luaran yang dijanjikan, bukan data anggaran | Pindah ke BC Submission sebagai `SubmissionTargetOutput`; BR-BUD-06 dicabut, diganti BR-SM-14 dan BR-SM-15; pembatas tipe memakai `scheme.rules.allowed_output_types` yang sudah ada — tidak ada config baru. Target tetap bisa diubah pasca-APPROVED dengan audit trail wajib; hanya `submitted_by` yang boleh mengubah. Jejak lengkap: spec §8.1 | 2026-09-03 |
-| 6 | Arah penelusuran org tree di BR-FE-02 terbalik di DDD — Form ber-scope luas justru tak terlihat oleh peneliti di prodi | **Arah anak-menjangkau-leluhur disetujui.** `FormAccessControl.organization_id` harus ancestor-or-self dari organisasi user. Ditulis sebagai [ADR 0013](../../adr/0013-form-access-control-matches-ancestor-organizations.md); pseudocode, CTE, dan bunyi BR-FE-02 di DDD sudah dikoreksi. Lihat §6.1 | 2026-09-04 |
-| 7 | "Active Submission" di BR-SCH-01 tidak terdefinisi — apakah APPROVED menghalangi penonaktifan skema? | **APPROVED dihitung aktif.** Active = `status NOT IN ('rejected', 'withdrawn')` — predikat yang sudah dipakai index unik BR-SM-01. Definisi masuk `02_ubiquitous_language.md`, bunyi BR-SCH-01 diperjelas, dan `[SCH-RULE-15]` mengunci perilakunya. Lihat §7.1 | 2026-09-04 |
-| 8 | Dua skenario menguji aturan yang tidak punya nomor BR | **Keduanya diberi nomor.** BR-FE-16 (visibility `reason` override) dan BR-SCH-10 (skema tidak aktif tidak ditawarkan); tag `[FE-OVERRIDE-09]` dan `[SCH-RULE-14]` dipindahkan ke nomor barunya. Lihat §8.1 | 2026-09-04 |
-| 9 | Wireframe membolehkan submit dengan anggaran melebihi batas skema | **Aturan menang, UI menyesuaikan.** BR-BUD-01 tetap batas keras; kalimat "tetap dapat melanjutkan submit" di `RESEARCHER-02-04` diganti pernyataan penolakan. Dikunci `[BUD-LIMIT-01]`. Jejak: [gap-closure §5](../../design/gap-closure.md) | 2026-09-04 |
-| 10 | Apakah BR-REV-12 berlaku untuk siklus monev | **Monev dikecualikan eksplisit** lewat BR-MON-09 baru — hasil evaluasi terlihat begitu reviewer submit, karena monev bersifat formatif. Pengecualian dijaga tetap sempit oleh `[MON-REVIEW-09]`. Jejak: [gap-closure §6](../../design/gap-closure.md) | 2026-09-04 |
-| 11 | Lima kebutuhan bisnis belum punya layar sama sekali | **Delapan frame baru dibuat** (57 → 65): wizard langkah 2/3/4/6/7, Target Luaran, Notifikasi, dan detail pengajuan ditolak. Target luaran ditempatkan di langkah 3 karena pilihannya dibatasi skema. Jejak: [gap-closure](../../design/gap-closure.md) | 2026-09-04 |
-| 1 | `Gate::before` memberi Super Admin setiap ability tanpa syarat, sementara Action menegakkan BR-SM-04 — UI menampilkan tombol Submit yang dijamin gagal | **Invarian domain tidak pernah dilewati.** `submit`/`resubmit` dikecualikan dari bypass lewat konstanta `INVARIANT_ABILITIES`; ability lain tetap di-bypass. Admin yang harus mengajukan untuk orang lain memakai transfer kepemilikan. [ADR 0015](../../adr/0015-gate-before-never-bypasses-domain-invariants.md); dikunci `[SM-SUBMIT-13/14]` | 2026-09-04 |
-| 2 | Auto-reject di kode warisan fork vs BR-REV-07/BR-REV-14 | **Bukan pertanyaan — arahnya sudah diputuskan [ADR 0006](../../adr/0006-rejection-is-manual-only.md).** Yang tersisa pekerjaan: `[REV-OUTCOME-08]` mengunci perilakunya, ditambah penjagaan struktural (`transitionTo(Rejected::class)` di luar `RejectSubmission` harus nol) yang dicatat di `non-behavioral.md` | 2026-09-04 |
-| 3 | Enum `SubmissionStatus` frontend 5 nilai vs backend 8 | **Frontend menyusul, bukan backend melunak.** Sisi wireframe sudah ditutup (kedelapan status punya representasi). Enum TypeScript wajib memuat 8 nilai dan **diturunkan dari kontrak Inertia**, bukan didaftar tangan — [ADR 0007](../../adr/0007-inertia-props-as-frontend-contract.md). `[SM-STATE-02]` memakai kedelapannya | 2026-09-04 |
-| 4 | Perilaku user-facing saat index unik BR-SM-01 kena belum ditetapkan | **Dicegat sebelum menyentuh database** — pesan validasi menyebut pengajuan aktif yang sudah ada beserta tautannya, dan **draft tetap DRAFT serta tetap bisa disunting**. Index tetap ada sebagai jaring pengaman lomba-balap, dengan pesan yang sama. Aturannya **BR-SM-16** baru; dikunci `[SM-SUBMIT-15..17]` | 2026-09-04 |
-| 12 | Tidak ada tanggal untuk tahap setelah submit — evaluasi dan revisi memakai ulang `"Batas Submit"` | **Tanggal tetap per periode.** `Batas Evaluasi` dan `Batas Revisi` ditambahkan sebagai label `SubmissionDate` baku; contoh lifecycle dikoreksi. Memakai mesin yang sudah ada, otomatis mewarisi BR-SCH-08, dan keterlambatan individual tetap ditangani override ([ADR 0014](../../adr/0014-time-boxed-access-single-override-mechanism.md)). Aturannya **BR-FE-17**; dikunci `[FE-WINDOW-01..04]` | 2026-09-04 |
-| 13 | Apa arti `can_proceed` secara operasional — siapa yang menyetelnya? | **Pertanyaannya salah bentuk.** `canProceed()` adalah *method* di aggregate, bukan kolom — BR-MON-02 menulisnya `can_proceed = true` seolah kolom. Tidak ada yang menyetelnya: ia turunan keadaan, sejajar `isArchived()`. Bernilai true kalau detail sudah disubmit DAN, bila `needs_review = true`, evaluasinya selesai tanpa summary `open`. BR-MON-02 diperjelas, istilah masuk ubiquitous language; dikunci `[MON-CYCLE-03..05]` | 2026-09-04 |
-| 14 | Apakah `not_required` dihitung "selesai" untuk pemicu BR-REV-05/06 | **Ya — kalau tidak, ia kebuntuan permanen.** BR-REV-05/06 semula menulis "semua `evaluation_status = completed`"; dibaca harfiah, reviewer `not_required` tidak akan pernah menjadi `completed` dan submission terkunci selamanya tanpa ada yang salah. Bunyi keduanya dikoreksi jadi "`completed` atau `not_required`", seragam dengan BR-FE-06 yang sudah begitu sejak awal; dikunci `[REV-OUTCOME-06]` | 2026-09-04 |
-| 15 | Siapa me-resolve `ReviewSummary` kalau reviewer-nya sudah `replaced` | **Reviewer pengganti mewarisinya.** Tanpa aturan ini summary itu tak akan pernah bisa ditutup — reviewer lama tidak berwenang, reviewer baru tidak merasa berhak — dan submission terkunci di NEEDS_REVISION. Penulis asli tetap terbaca dari record lama (BR-REV-10). Aturannya **BR-REV-15** baru; dikunci `[REV-DISCUSS-06]` | 2026-09-04 |
-| 16 | Wizard boleh dilompati mundur-maju bebas, atau hanya maju berurutan? | **Navigasi bebas; gerbangnya prasyarat data, bukan urutan langkah.** Kendala sesungguhnya bukan nomor langkah melainkan ketergantungan data — anggaran butuh `scheme_id`. Mengunci berurutan menyiksa: memperbaiki judul di langkah 2 saat di langkah 6 tak boleh menuntut mundur empat layar. Langkah 7 boleh dibuka kapan saja; tombol Submit-nya yang bergerbang. **BR-SM-17** baru; dikunci `[SM-WIZARD-08/10/11]` | 2026-09-04 |
-| 17 | User `pending` boleh menyimpan DRAFT, atau hanya dilarang submit? | **Boleh menyimpan DRAFT.** Verifikasi menggerbang *komitmen*, bukan *persiapan* — tidak ada yang mengikat sampai submit, sementara verifikasi NIDN makan waktu berhari-hari. BR-IAM-04 sendiri bilang "bisa login"; kalau login tapi tak bisa apa-apa, layar Pending Verification jadi jalan buntu. Bunyi BR-IAM-04 diperjelas; dikunci `[IAM-VERIFY-06]` | 2026-09-04 |
-| 18 | Nasib undangan yang belum terpakai saat organisasinya dihapus | **Token dicabut, bukan memblokir penghapusan.** Token basi tidak boleh menyandera reorganisasi selamanya; sebaliknya token menggantung ke organisasi mati juga tidak boleh. Operator melihat berapa token akan tercabut sebelum mengonfirmasi, dan undangan yang terlanjur dibuka mendarat di layar token tidak berlaku yang sudah ada — nol layar baru. BR-IAM-06 diperluas; dikunci `[IAM-REG-10/11]` | 2026-09-04 |
-| 19 | Target luaran dan realisasi wajib cocok tipenya? | **Sengaja TIDAK ditegakkan.** Penelitian memang menyimpang — janji artikel jurnal bisa berakhir sebagai paten. Memaksa cocok mendorong peneliti berbohong di target atau menyembunyikan luaran nyata; keduanya lebih buruk daripada ketidakcocokannya. Prinsip: **batasi yang harus benar (taksonomi), ukur yang sebaiknya benar (pemenuhan)**. Pemenuhan jadi metrik pelaporan, bukan validasi lintas-aggregate. Didokumentasikan di `03_research_output.md` | 2026-09-04 |
-| 20 | Siklus monev yang di-freeze bisa dibuka lagi kalau penarikan dibatalkan? | **Tidak — WITHDRAWN terminal.** Membalikkan penarikan menuntut seluruh pembekuan hilir ikut dipulihkan dengan benar, untuk peristiwa yang jarang. State machine sengaja dijaga **asiklik** karena itu jauh lebih murah dinalar dan diaudit. Kalau penarikan keliru, jalurnya pengajuan baru yang merujuk yang lama. BR-SM-11 diperluas; dikunci `[SM-WITHDRAW-05]` dan `[MON-CYCLE-12]` | 2026-09-04 |
-| 21 | Daftar lengkap event yang butuh email versus cukup in-app | **Pertanyaannya tidak perlu dijawab di muka — jadikan konfigurasi.** Channel per tipe event mengikuti preseden `scheme.rules` JSONB: di-seed dengan default, disunting Admin tanpa deploy. Aturannya satu — setiap event wajib punya deklarasi channel, dan yang tanpa deklarasi ditolak saat dipublish. Daftar isinya bukan aturan, jadi tidak dibekukan di DDD. **BR-NOT-06** baru; dikunci `[NOT-CHANNEL-03/04]` | 2026-09-04 |
-| 22 | Aksi apa saja yang wajib masuk audit log | **Diturunkan dari arsitektur, bukan daftar manual.** Kebalikan #21: ini justru **tidak boleh** jadi konfigurasi — orang bisa mematikan audit. Karena AGENTS.md mewajibkan satu Action = satu use case yang mengubah state, "setiap Action mencatat audit" otomatis berarti "setiap perubahan yang seseorang bertanggung jawab atasnya". Daftar yang mustahil ketinggalan karena bukan daftar. **BR-RPT-09** baru; dikunci `[RPT-AUDIT-06/07]` + penjagaan struktural di `non-behavioral.md` | 2026-09-04 |
-| 23 | Researcher boleh mengekspor data miliknya sendiri? | **Boleh, ter-scope dengan aturan yang sama persis seperti BR-RPT-05.** Ekspor tidak melahirkan konsep scoping kedua — query dan batasnya sama, hanya pemanggilnya berbeda. **BR-RPT-10** baru; dikunci `[RPT-EXPORT-08/09]` | 2026-09-04 |
-| 24 | `Gate::before` membuat Super Admin menembus `BudgetLineItemPolicy` — pada APPROVED, admin bisa menyunting anggaran sementara pemiliknya tidak | **`update-budget` jadi invarian domain.** Bypass itu melanggar BR-BUD-02 *dan* BR-BUD-09, yang menyebut daftar tertutup `submitted_by`/`co_investigator`. Ability masuk `INVARIANT_ABILITIES`; konsekuensinya berlaku di semua status, bukan hanya terminal. [ADR 0015](../../adr/0015-gate-before-never-bypasses-domain-invariants.md) diperluas; dikunci `[BUD-LOCK-03]` dan `[BUD-WHO-04]`. Lihat §24.1 | 2026-09-04 |
+Mandat itu hilang di tahap perencanaan: tabel File Structure di plan tidak pernah
+mencantumkan `UserFormController::submitForm()`, sehingga tidak ada satu pun dari 8 task
+yang menyentuhnya. Catatan versi pertama entri ini keliru menyebut §4 "melarang" dan
+menyebut tidak ada skenario yang membatasi jalur HTTP submit — keduanya salah:
+`[SM-SUBMIT-07]` menuntut `melihat error per field pada "Proposal PDF"`, yang menurut
+tabel lapis §2 dibuktikan di HTTP. Koreksi itu dicatat di sini supaya register tidak
+mengabadikan alasan yang tidak benar.
 
-### 6.1 Arah penelusuran org tree — jejak keputusan
+Keadaan sekarang: `submitForm()` (sekitar baris 419) masih memvalidasi dan menyetel
+status secara inline, dan tidak pernah memanggil Action-nya — sudah diverifikasi nol
+referensi ke `SubmitFormSubmission` di controller itu. Akibatnya gerbang BR-SM-01,
+BR-SM-02, dan BR-SM-16 yang ditambahkan irisan ini ke Action **tidak ditegakkan di
+jalur yang sungguh-sungguh dipakai peneliti**.
 
-Pseudocode `canAccessForm` di
-[`generic/02_identity_access.md`](../ddd/generic/02_identity_access.md) semula menghitung
-`subtreeIds($user->profile->organization_id)` — yaitu **descendant dari organisasi
-user** — lalu memeriksa apakah `FormAccessControl.organization_id` ada di dalamnya.
-Dibaca apa adanya, itu berarti **induk menjangkau anak**: hanya user yang organisasinya
-merupakan leluhur dari organisasi ACL yang mendapat akses. Frasa BR-FE-02 ("org subtree
-user") mewarisi bacaan yang sama, dan `app/Models/FormAccessControl.php`
-mengimplementasikan persis itu.
+Penyambungannya tidak sepele, dan itu alasan teknis kenapa ia tidak dikerjakan sebagai
+tambalan di akhir: `submitForm()` berpindah ke `Approved` ketika
+`FormPhaseDetail.needs_review` bernilai false, sementara `SubmitFormSubmission` selalu
+berpindah ke `Submitted`. Mendelegasikan tanpa memindahkan percabangan itu akan
+mengubah perilaku form yang tidak butuh review; memindahkannya berarti Action ikut
+menumbuhkan cabang `needs_review` beserta skenario yang menetapkan perilakunya.
 
-Konsekuensinya membuat fitur tidak berfungsi. Untuk Form se-institut yang di-scope ke
-node akar `ITK`:
+**Saat dicatat, belum ditutup.** Menutupnya berarti irisan lanjutan yang
+menyambungkan delegasi keputusan submit ke `SubmitFormSubmission` *disertai* skenario
+yang menetapkan nasib cabang `needs_review`.
 
-| Organisasi user | `subtreeIds(user)` | `ITK` ada di dalamnya? |
-| --------------- | ------------------ | ---------------------- |
-| ITK             | {ITK, FTI, Informatika, …} | ya → akses |
-| FTI             | {FTI, Informatika} | **tidak → ditolak** |
-| Informatika     | {Informatika}      | **tidak → ditolak** |
+**Ditutup 2026-09-06** — irisan penutupan register
+(`docs/design/bdd-coverage/m1-register-closure.md`).
+Delegasi mendarat: `submitForm()` kini meneruskan keputusannya ke `SubmitFormSubmission`.
 
-Form yang di-scope luas justru hanya terlihat oleh user yang organisasinya persis node
-akar, sementara seluruh peneliti — yang duduk di prodi/departemen — terkunci di luar.
+Catatan koreksi, karena register tidak boleh mengabadikan alasan yang tidak benar:
+**alasan teknis yang tercatat di entri ini keliru.** Yang disebut di atas sebagai
+percabangan yang harus ikut dipindahkan — `needs_review` yang menyetujui langsung —
+tidak pernah bekerja. `SubmissionStatus::config()` tidak mengizinkan `Draft → Approved`,
+jadi cabang itu selalu melempar `TransitionNotFound` dan membatalkan seluruh submit-nya.
+Nol test dan nol seeder menyentuhnya. Yang selama ini menahan delegasi bukan perilaku
+yang harus dilestarikan, melainkan cacat yang tak seorang pun pernah lewati.
 
-**Keputusan (2026-09-04): arah anak-menjangkau-leluhur.** ACL org harus
-ancestor-or-self dari organisasi user, ditelusuri naik lewat
-`Organization::ancestorIds()`. Skenario `[FE-ACCESS-02]` dan `[FE-ACCESS-03]` sudah
-mengunci arah ini sejak Wave 1a. `subtreeIds()` tidak dihapus — ia tetap benar untuk
-pelaporan agregat, hanya keliru dipakai di jalur access control.
+Cabangnya dicabut lewat [ADR 0016](../../adr/0016-submit-never-approves.md); dikunci
+`[SM-SUBMIT-18]`.
 
-**Sudah diimplementasikan (2026-09-04).** `Organization::ancestorIds()` ditambahkan,
-`FormAccessControl::organizationAncestorsFor()` menggantikan `organizationSubtreeFor()`,
-dan pengecekan kembar di `UserFormController` ikut dikoreksi. Invalidasi cache berbalik
-arah sesuai ADR 0013: cache `org_ancestors_{id}` sebuah node dibuang saat leluhurnya
-berpindah atau dinonaktifkan. Skenario `[FE-ACCESS-01]`…`[FE-ACCESS-06]` sudah punya
-test dan keluar dari `pending.txt`; `[FE-ACCESS-07]`/`[FE-ACCESS-08]` masih pending
-karena mengatur BR-FE-01 (periode force closed), bukan arah org tree.
+### 26.1 `guardRequiredDocuments()` mengabaikan `FormField::isRequiredFor()`
 
-### 7.1 Apa itu "active Submission" untuk BR-SCH-01
+Gerbang BR-SM-02 yang ditambahkan irisan ini menyaring field wajib dengan
+`where('is_required', true)` mentah, mengabaikan
+`FormField::isRequiredFor(FormSubmission $submission)`
+(`app/Models/FormField.php:63`), yang sudah mengenkode aturan pengikatan temporal
+BR-FE-11. Akibatnya, field `file` wajib yang ditambahkan ke Form yang sedang hidup
+setelah sebuah draft ada akan selamanya memblokir draft itu untuk disubmit —
+bertentangan dengan `[FE-TEMPORAL-02]`.
 
-BR-SCH-01 berbunyi "Scheme tidak bisa di-deactivate jika ada **active** Submission yang
-menggunakannya", dan flowchart di [`supporting/04_scheme.md`](../ddd/supporting/04_scheme.md)
-mengulang istilah yang sama tanpa mendefinisikannya. Dua status jelas mati: `REJECTED`
-dan `WITHDRAWN`. Yang diperdebatkan `APPROVED`:
+Tidak diperbaiki di sini karena sudah diverifikasi `UserFormController::submitForm()`
+versi legacy menyaring dengan cara identik (`is_required` mentah di baris 456,
+`fieldType->name === 'file'` di baris 478) — jadi Action ini untuk sekarang justru
+**mencerminkan** jalur HTTP; memperbaiki hanya salah satunya akan membuat keduanya
+menyimpang. `isRequiredFor()` sudah punya unit test tapi nol pemanggil produksi.
+`FE-TEMPORAL-01..09` semuanya masih tercatat di `pending.txt`.
 
-| Bacaan | Alasan | Akibat kalau dipakai |
-| ------ | ------ | -------------------- |
-| APPROVED **aktif** | Pengajuan yang disetujui adalah kegiatan yang sedang berjalan — laporan monev (child submission) masih lahir darinya, dan skema masih memasok `max_budget` serta `duration_months` untuk kegiatan itu | Skema baru bisa dinonaktifkan setelah seluruh kegiatan selesai; penonaktifan jadi jarang tapi aman |
-| APPROVED **tidak aktif** | BR-SM-05 menggolongkan APPROVED bersama REJECTED dan WITHDRAWN sebagai status yang "tidak bisa diubah kembali" — yaitu terminal | Skema bisa dinonaktifkan sementara kegiatan masih berjalan, dan aturan yang mengikat kegiatan itu hilang dari daftar aktif |
+**Saat dicatat, belum ditutup.** Menutupnya berarti irisan BR-FE-11 yang memperbaiki
+kedua jalur sekaligus.
 
-**Keputusan (2026-09-04): APPROVED dihitung aktif.** "Terminal" di BR-SM-05 berbicara
-soal *mutabilitas record*, bukan soal apakah kegiatannya masih berjalan.
+**Ditutup 2026-09-06** — irisan penutupan register
+(`docs/design/bdd-coverage/m1-register-closure.md`).
 
-Yang menutup perkara ini bukan sekadar argumen, melainkan preseden yang sudah berjalan:
-index unik BR-SM-01 memfilter dengan `status NOT IN ('rejected', 'withdrawn')`
-([ADR 0005](../../adr/0005-scheme-selector-writes-to-column.md), migrasi
-`2026_08_17_000003_add_submission_uniqueness_indexes.php`). Sistem ini **sudah** punya
-satu definisi "aktif" di lapisan paling keras yang ia miliki; BR-SCH-01 memakai predikat
-yang sama persis alih-alih melahirkan definisi kedua yang bisa menyimpang.
+`isRequiredFor()` akhirnya punya pemanggil produksi. Kedua jalur — submit dan resubmit —
+memakai `RequiredFieldGuard::assertComplete()` yang menyaring dengan `isRequiredFor()`,
+bukan `is_required` mentah. Kekhawatiran "memperbaiki hanya salah satunya akan membuat
+keduanya menyimpang" terjawab dengan memperbaiki keduanya sekaligus lewat satu guard.
 
-`[SCH-RULE-06]` menguji sisi yang tidak menghalangi (REJECTED, WITHDRAWN);
-`[SCH-RULE-15]` menguji sisi yang menghalangi (APPROVED).
+Guard-nya juga tidak lagi terbatas pada field bertipe `file`: **setiap** field wajib
+diperiksa. `FE-TEMPORAL-01..09` keluar dari `pending.txt`.
 
-### 8.1 Skenario yang menempel pada BR yang tidak menyatakannya
+### 27.1 BR-SM-02 tidak ditegakkan pada jalur resubmit
 
-Dua skenario Wave 1a menguji aturan nyata yang tidak punya nomor BR sendiri, sehingga
-terpaksa menumpang BR tetangga — tag yang menyesatkan saat dibaca sebagai
-ketertelusuran. Guard assertion 2 mewajibkan setiap skenario punya minimal satu tag
-`@BR-`, jadi tag itu tidak bisa sekadar dilepas; obatnya memberi nomor.
+`ResubmitFormSubmission` (ditambahkan irisan ini) tidak memanggil
+`guardRequiredDocuments()`, sehingga aturan proposal wajib tidak ditegakkan pada
+transisi NEEDS_REVISION → RESUBMITTED.
 
-| Skenario | Semula | Sekarang | Aturan yang dinomori |
-| -------- | ------ | -------- | -------------------- |
-| `[FE-OVERRIDE-09]` | `@BR-FE-09` (reason wajib diisi) | `@BR-FE-16` | Researcher melihat *status* override tapi tidak `reason`-nya — semula hanya catatan prosa di `generic/01_form_engine.md` |
-| `[SCH-RULE-14]` | `@BR-SCH-01` (penjagaan saat deactivate) | `@BR-SCH-10` | Scheme `is_active = false` tidak ditawarkan ke pengajuan baru — semula hanya tersirat dari semantik kolom |
+Dinilai bukan celah untuk irisan ini: tabel cakupan §5 spec membatasi baris revisi
+hanya pada BR-SM-04 dan BR-SM-03, tidak satu pun dari 27 skenario membatasi dokumen
+pada resubmit, dan submission NEEDS_REVISION sudah pasti pernah lolos gerbang dokumen
+itu saat masuk pertama kali. Dicatat karena peneliti yang mengosongkan response field
+proposalnya sebelum resubmit bisa melewati BR-SM-02 lewat jalur ini.
 
-**Keputusan (2026-09-04): kedua aturan diberi nomor BR** dan barisnya ditambahkan ke
-tabel Business Rules di DDD. Inventaris naik dari 101 ke 103 BR, 94 di antaranya
-bersifat perilaku. BR-FE-09 dan BR-SCH-01 tetap tercakup jujur oleh skenario yang
-memang membuktikannya (`[FE-OVERRIDE-06]`, `[SCH-RULE-04]`/`[SCH-RULE-05]`/`[SCH-RULE-06]`).
+**Saat dicatat, belum ditutup.** Menutupnya berarti skenario yang memutuskan apakah
+resubmit perlu mengecek ulang dokumen.
+
+**Ditutup 2026-09-06** — irisan penutupan register
+(`docs/design/bdd-coverage/m1-register-closure.md`).
+
+**Diputuskan: resubmit mengecek ulang.** `ResubmitFormSubmission` memanggil
+`RequiredFieldGuard::assertComplete()` yang sama dengan jalur submit, memakai **jangkar
+temporal yang sama** — `$submission->created_at` yang asli, bukan waktu revisi.
+
+Jangkarnya yang membuat keputusan ini aman: revisi tidak menarik field wajib baru ke
+dalam pengajuan yang sudah berjalan, jadi mengecek ulang tidak berarti memindahkan
+gawang. Celah yang dicatat di atas tertutup — peneliti yang mengosongkan response
+proposalnya sebelum resubmit tidak lagi lolos. Dikunci `[SM-SUBMIT-19]`.
+
+### 28.1 Draft baru tidak bisa dimulai setelah pengajuan Form itu berakhir terminal
+
+`UserFormController` mencari submission wizard dengan
+`FormSubmission::firstOrCreate(['form_id', 'submitted_by'])` (baris 372 pada
+`saveDraft()`, dan bentuk yang sama pada `submitForm()`) — **satu baris per (Form,
+peneliti), tanpa memperhitungkan periode**. Gerbang BR-SM-05 yang ditambahkan Task 3
+tepat di bawahnya (`abort_unless($user->can('update', $submission), 403)`) karena itu
+menolak dengan 403 setiap kali baris tunggal itu berada di status terminal.
+
+Akibatnya peneliti yang pengajuannya untuk sebuah Form pernah REJECTED tidak akan pernah
+bisa memulai draft baru untuk Form yang sama lewat wizard. Itu bertentangan dengan
+`[SM-SUBMIT-05]` — yang dibuktikan di lapis Action pada irisan yang sama — yang justru
+menetapkan bahwa mengajukan ulang ke skema yang sama setelah ditolak **boleh**. Dua
+paruh irisan ini saling bertentangan di lapis HTTP.
+
+Gerbangnya sengaja **tidak** dicabut. Perilaku sebelumnya lebih buruk: `saveDraft()`
+menghapus seluruh `formFieldResponses` milik submission terminal itu lalu menulis ulang
+isinya — menyunting diam-diam record yang seharusnya beku. Gagal menutup lebih aman
+daripada gagal membuka.
+
+Arah perbaikannya bukan di gerbang melainkan di pencariannya: `firstOrCreate` harus
+ter-scope ke submission yang belum terminal (dan, mengikuti ADR 0005 serta predikat
+index BR-SM-01, kemungkinan besar juga ke `submission_period_id`), sehingga status
+terminal melahirkan baris baru alih-alih membentur baris lama.
+
+**Saat dicatat, belum ditutup.** Menutupnya berarti skenario yang menetapkan apa yang
+dilihat peneliti saat membuka wizard sebuah Form yang pengajuan sebelumnya sudah
+berakhir.
+
+**Ditutup 2026-09-06** — irisan penutupan register
+(`docs/design/bdd-coverage/m1-register-closure.md`).
+
+Diperbaiki persis di arah yang diusulkan entri ini: **di pencariannya, bukan di
+gerbangnya.** Tidak satu pun gerbang dicabut.
+
+`firstOrCreate` diganti `ResolveWizardSubmission` — pencarian murni yang mencocokkan
+`(form_id, submitted_by, submission_period_id)` dengan status `DRAFT` **atau**
+`NEEDS_REVISION`. Ikutnya `NEEDS_REVISION` bukan kelonggaran melainkan keharusan: kalau
+resolver hanya mencocokkan `DRAFT`, pengajuan yang sedang direvisi jadi tak terjangkau
+`save-draft` dan alur revisi ikut mati. Dua status itu persis yang diizinkan
+`FormSubmissionPolicy::update()`, jadi resolver dan Policy bicara hal yang sama.
+
+Baris terminal tidak pernah cocok, sehingga `StartSubmission` melahirkan baris baru
+alih-alih membentur baris lama — pertentangan dengan `[SM-SUBMIT-05]` hilang. Resolver
+yang kosong pada `save-draft`/`submit` menjawab `409`, dan klien memulihkannya dengan
+`POST /submissions`. Dikunci `[SM-WIZARD-12]`.
