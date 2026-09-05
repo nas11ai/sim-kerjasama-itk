@@ -6,8 +6,10 @@ use App\Events\ProposalSubmitted;
 use App\Models\FormField;
 use App\Models\FormSubmission;
 use App\Models\User;
+use App\States\Submission\Rejected;
 use App\States\Submission\SubmissionStatus;
 use App\States\Submission\Submitted;
+use App\States\Submission\Withdrawn;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Contracts\Database\Eloquent\Builder;
 use Illuminate\Validation\ValidationException;
@@ -36,6 +38,7 @@ class SubmitFormSubmission
         }
 
         $this->guardRequiredDocuments($submission);
+        $this->guardActiveSubmissionUniqueness($submission);
 
         $submission->update([
             'is_submitted' => true,
@@ -93,5 +96,46 @@ class SubmitFormSubmission
                 'field_'.$field->id => "Field '{$field->label}' wajib diunggah sebelum submit.",
             ])->all()
         );
+    }
+
+    /**
+     * BR-SM-01 — pengajuan aktif yang menghalangi, kalau ada. Cermin persis predikat
+     * index `one_active_submission_per_period_scheme`.
+     *
+     * `scheme_id` atau `submission_period_id` yang NULL tidak pernah dianggap
+     * duplikat — semantik bawaan unique index PostgreSQL, dan BR-SM-01 memang
+     * mengizinkan dua pengajuan tanpa skema hidup bersamaan.
+     */
+    public function activeSubmissionClash(FormSubmission $submission): ?FormSubmission
+    {
+        if ($submission->scheme_id === null || $submission->submission_period_id === null) {
+            return null;
+        }
+
+        return FormSubmission::query()
+            ->whereNull('parent_submission_id')
+            ->where('is_submitted', true)
+            ->whereNotIn('status', [Rejected::$name, Withdrawn::$name])
+            ->where('submitted_by', $submission->submitted_by)
+            ->where('submission_period_id', $submission->submission_period_id)
+            ->where('scheme_id', $submission->scheme_id)
+            ->whereKeyNot($submission->getKey())
+            ->first();
+    }
+
+    /**
+     * @throws ValidationException
+     */
+    private function guardActiveSubmissionUniqueness(FormSubmission $submission): void
+    {
+        $clash = $this->activeSubmissionClash($submission);
+
+        if ($clash === null) {
+            return;
+        }
+
+        throw ValidationException::withMessages([
+            'scheme_id' => 'Anda sudah punya pengajuan aktif pada skema ini.',
+        ]);
     }
 }
