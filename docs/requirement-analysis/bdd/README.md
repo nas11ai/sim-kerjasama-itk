@@ -87,8 +87,11 @@ sudah terbukti, bukan karena diperkirakan.
 | `Given Form "<form>" tidak punya field bertipe scheme_selector` | Form yang memang tanpa skema |
 | `Given periode berjalan aktif dan belum force closed` | Periode masih terbuka |
 | `Given periode berjalan berstatus is_force_closed` | Periode ditutup paksa Operator |
+| `Given "<orang>" berperan Super Admin dan bukan submitted_by "<id>"` | Menyiapkan aktor berwenang luas yang bukan pemilik pengajuan — uji bypass `Gate::before` terhadap invarian domain |
 | `When admin menonaktifkan skema "<skema>"` | Deaktivasi skema |
 | `When lead researcher menyimpan "<id>" dengan last_updated_at "<datetime>"` | Penyimpanan yang menguji optimistic lock |
+| `When Lead Researcher submit "<id>" tanpa mengisi "<field>"` | Submit yang sengaja belum mengisi satu field — uji negatif Temporal Field Binding |
+| `When Operator membuat override untuk "<id>" pada fase "<fase>" yang berlaku sampai "<datetime>"` | Operator memberi perpanjangan akses satu fase |
 | `Then submit berhasil` | Submit diterima — pasangan positif `Then submit ditolak karena <alasan>` |
 | `Then submit ditolak dengan error validasi pada field "<nama>"` | Penolakan submit yang menyebut field-nya |
 | `Then "<id>" muncul di daftar` | Kehadiran baris di daftar |

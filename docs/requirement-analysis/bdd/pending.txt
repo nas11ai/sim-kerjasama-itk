@@ -4,7 +4,7 @@
 # hanya boleh TURUN ditegakkan review PR — sama persis pembagian kerja yang
 # berlaku untuk excludePaths di phpstan-strict.neon.
 #
-# max: 90
+# max: 87
 
 FE-ACCESS-07
 FE-ACCESS-08
@@ -68,9 +68,6 @@ SM-OWNER-02
 SM-OWNER-03
 SM-OWNER-04
 SM-STATE-05
-SM-SUBMIT-15
-SM-SUBMIT-16
-SM-SUBMIT-17
 SM-TARGET-01
 SM-TARGET-02
 SM-TARGET-03

@@ -12,6 +12,7 @@ use App\States\Submission\Submitted;
 use App\States\Submission\Withdrawn;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Contracts\Database\Eloquent\Builder;
+use Illuminate\Database\QueryException;
 use Illuminate\Validation\ValidationException;
 use Lorisleiva\Actions\Concerns\AsAction;
 use RuntimeException;
@@ -19,6 +20,9 @@ use RuntimeException;
 class SubmitFormSubmission
 {
     use AsAction;
+
+    /** SQLSTATE PostgreSQL untuk pelanggaran unique constraint. */
+    private const UNIQUE_VIOLATION = '23505';
 
     public function handle(FormSubmission $submission, User $user): FormSubmission
     {
@@ -40,9 +44,25 @@ class SubmitFormSubmission
         $this->guardRequiredDocuments($submission);
         $this->guardActiveSubmissionUniqueness($submission);
 
-        $submission->update([
-            'is_submitted' => true,
-        ]);
+        // BR-SM-16 — index one_active_submission_per_period_scheme adalah jaring
+        // pengaman lomba-balap: dua submit bersamaan lolos pemeriksaan di atas,
+        // lalu salah satunya dibentur di sini. Peneliti tidak boleh melihat galat
+        // database mentah, jadi pelanggarannya diterjemahkan jadi pesan yang sama.
+        try {
+            $submission->update([
+                'is_submitted' => true,
+            ]);
+        } catch (QueryException $e) {
+            if ($e->getCode() !== self::UNIQUE_VIOLATION) {
+                throw $e;
+            }
+
+            $clash = $this->activeSubmissionClash($submission);
+
+            throw $clash === null
+                ? $e
+                : $this->activeSubmissionRejection($clash);
+        }
 
         $status->transitionTo(Submitted::class);
 
@@ -124,6 +144,9 @@ class SubmitFormSubmission
     }
 
     /**
+     * BR-SM-16 — penolakan harus bisa ditindaklanjuti: sebut pengajuan yang
+     * menghalangi beserta tautannya, jangan sekadar "gagal".
+     *
      * @throws ValidationException
      */
     private function guardActiveSubmissionUniqueness(FormSubmission $submission): void
@@ -134,8 +157,18 @@ class SubmitFormSubmission
             return;
         }
 
-        throw ValidationException::withMessages([
-            'scheme_id' => 'Anda sudah punya pengajuan aktif pada skema ini.',
+        throw $this->activeSubmissionRejection($clash);
+    }
+
+    private function activeSubmissionRejection(FormSubmission $clash): ValidationException
+    {
+        return ValidationException::withMessages([
+            'scheme_id' => sprintf(
+                'Anda sudah punya pengajuan aktif pada skema ini: #%d (%s). '
+                .'Tarik atau selesaikan pengajuan itu dulu sebelum mengajukan yang baru.',
+                $clash->id,
+                route('user.submissions.show', $clash)
+            ),
         ]);
     }
 }
