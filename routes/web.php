@@ -18,6 +18,7 @@ use App\Http\Controllers\RoleController;
 use App\Http\Controllers\StatController;
 use App\Http\Controllers\SubmissionPeriodController;
 use App\Http\Controllers\SubmissionViewController;
+use App\Http\Controllers\SubmissionWithdrawalController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\UserFormController;
 use App\Models\Announcement;
@@ -499,3 +500,11 @@ Route::middleware(['auth', 'can:users.manage', 'check_reviewer_status'])->group(
 });
 
 require __DIR__.'/auth.php';
+
+// BR-SM-11 — penarikan pengajuan. Sengaja di luar grup `can:users.manage`:
+// Policy menuntut `submissions.view-all`, dan dua sumber otorisasi untuk satu
+// aksi berarti tombolnya bisa tampil untuk orang yang pasti ditolak.
+Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () {
+    Route::post('/submissions/{submission}/withdraw', SubmissionWithdrawalController::class)
+        ->name('submissions.withdraw');
+});
