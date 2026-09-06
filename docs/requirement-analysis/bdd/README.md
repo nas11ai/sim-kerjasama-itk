@@ -167,6 +167,33 @@ verifikasi NIDN, permission, dan organisasi.
 | `Then "<orang>" tidak punya permission "<perm>"` | Pasangan negatifnya |
 | `Then used_count token itu menjadi <n>` | Efek pemakaian token |
 
+Tabel keenam tumbuh dari M4 (Monev & Research Output). Perhatikan `siklus` sebagai
+pembeda: penugasan reviewer monev selalu per siklus, tidak pernah diwarisi.
+
+| Frasa baku | Dipakai untuk |
+| ---------- | ------------- |
+| `Given detail "<detail>" berstatus needs_review <true\|false>` | Menentukan apakah evaluasi ikut jadi syarat `canProceed()` |
+| `Given detail "<detail>" berbatas "<label>" pada "<tanggal>"` | Deadline satu FormPhaseDetail |
+| `Given laporan "<detail>" pada "<id>" <sudah\|belum> disubmit` | Keadaan child FormSubmission monev |
+| `Given tidak ada FormSubmissionOverride berlaku untuk "<id>"` | Menegaskan ketiadaan override |
+| `Given "<orang>" ditugaskan sebagai reviewer siklus "<detail>" pada "<id>"` | Penugasan per siklus monev |
+| `Given "<orang>" ditugaskan sebagai reviewer "<id>" dengan masa tugas berakhir "<tanggal>"` | Reviewer awal, untuk menguji daftar saran BR-MON-07 |
+| `Given submission "<id>" bertipe <Research\|CommunityService>` | SubmissionType — penentu tipe luaran yang sah |
+| `Given "<id>" punya luaran bertipe "<tipe>"` | Luaran yang sudah ada |
+| `When "<orang>" membuat laporan "<detail>" pada "<id>"` | Membuat child submission monev |
+| `When "<orang>" mengisi laporan "<detail>" pada "<id>"` | Menyimpan isi laporan monev |
+| `When Operator menugaskan "<orang>" sebagai reviewer siklus "<detail>" pada "<id>"` | Penugasan reviewer monev |
+| `When Operator membuka daftar saran reviewer siklus "<detail>" pada "<id>"` | Melihat saran, bukan pewarisan |
+| `When "<orang>" menambahkan luaran bertipe "<tipe>" ke "<id>"` | Menambah Research Output |
+| `When "<orang>" menyunting luaran "<id>"` | Menyunting Research Output |
+| `When "<orang>" membuka daftar luaran "<id>"` | Membaca luaran — tidak butuh override |
+| `When "<orang>" membuka hasil evaluasi siklus "<detail>" pada "<id>"` | Keterlihatan hasil monev BR-MON-09 |
+| `Then "<orang>" <melihat\|tidak melihat> skor dan catatan monev` | Pasangan positif-negatif keterlihatan monev |
+| `Then "<orang>" <muncul\|tidak muncul> di daftar saran reviewer` | Isi daftar saran |
+| `Then luaran bertipe "<tipe>" masih terbaca` | Luaran yang bertahan sebagai data historis |
+| `Then SubmissionReviewer baru terbentuk untuk siklus itu` | Bukti BR-MON-06 — bukan reuse record |
+| `Then pembatalan ditolak karena <alasan>` | Penolakan pembatalan penarikan |
+
 **Aturannya:** kalau langkah yang kamu butuhkan tidak ada di sini, boleh menambah — tapi
 tambahkan barisnya ke tabel ini dalam PR yang sama. Frasa yang dipakai sekali dan tidak
 pernah lagi adalah tanda skenarionya terlalu spesifik, atau kosakatanya belum ketemu.
