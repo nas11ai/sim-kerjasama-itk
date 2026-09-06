@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Actions\Review\AssignReviewer;
 use App\Models\FormPhase;
 use App\Models\FormPhaseDetail;
 use App\Models\FormSubmission;
@@ -39,43 +40,42 @@ class ReviewController extends Controller
     // Enhanced assign reviewers with evaluation forms
     public function assignReviewers(Request $request, FormSubmission $submission)
     {
-        $request->validate([
+        $validated = $request->validate([
             'reviewer_ids' => 'required|array|min:1',
             'reviewer_ids.*' => 'exists:reviewers,id',
-            'auto_assign_forms' => 'boolean', // NEW: control auto-assignment
+            'auto_assign_forms' => 'boolean',
         ]);
 
-        $newlyAssignedReviewers = [];
+        $formPhaseDetail = $submission->getFormPhaseDetail();
+        $hasEvaluationForms = $formPhaseDetail && $formPhaseDetail->hasReviewEvaluationForms();
+        $autoAssign = $validated['auto_assign_forms'] ?? true;
 
-        DB::transaction(function () use ($request, $submission, &$newlyAssignedReviewers) {
-            $formPhaseDetail = $submission->getFormPhaseDetail();
-            $hasEvaluationForms = $formPhaseDetail && $formPhaseDetail->hasReviewEvaluationForms();
+        // Seluruh permintaan satu transaksi: satu penugasan yang ditolak
+        // membatalkan sisanya. Menyimpan sebagian akan menyisakan penugasan
+        // yang Operator kira gagal.
+        DB::transaction(function () use ($validated, $submission, $formPhaseDetail, $hasEvaluationForms, $autoAssign) {
+            foreach ($validated['reviewer_ids'] as $reviewerId) {
+                $reviewer = Reviewer::findOrFail($reviewerId);
 
-            foreach ($request->reviewer_ids as $reviewerId) {
-                // Create or get submission reviewer
-                $submissionReviewer = SubmissionReviewer::firstOrCreate([
-                    'form_submission_id' => $submission->id,
-                    'reviewer_id' => $reviewerId,
-                ], [
-                    'evaluation_status' => $hasEvaluationForms ? 'pending' : 'not_required',
-                ]);
+                // BR-REV-01/02/03/09 ditegakkan di sini. Sebelumnya jalur ini
+                // memakai firstOrCreate() polos — nol pemeriksaan konflik
+                // kepentingan, nol masa tugas, duplikat lolos diam-diam, dan
+                // status ditentukan updateStatusBasedOnReviews() yang bukan
+                // BR-REV-01.
+                $submissionReviewer = AssignReviewer::run($submission, $reviewer);
 
-                if ($submissionReviewer->wasRecentlyCreated) {
-                    $newlyAssignedReviewers[] = $reviewerId;
+                if (!$hasEvaluationForms) {
+                    // Tanpa form evaluasi, tidak ada yang ditunggu dari
+                    // reviewer ini — BR-FE-06 memperlakukannya sebagai selesai.
+                    $submissionReviewer->update(['evaluation_status' => 'not_required']);
+
+                    continue;
                 }
 
-                // Auto-assign evaluation forms if enabled and forms exist
-                if ($hasEvaluationForms && ($request->auto_assign_forms ?? true)) {
+                if ($autoAssign) {
                     $this->autoAssignEvaluationForms($submissionReviewer, $formPhaseDetail);
                 }
-            }
 
-            // Update submission status
-            $submission->updateStatusBasedOnReviews();
-
-            // TAMBAHKAN: Kirim email ke reviewer yang baru di-assign
-            foreach ($newlyAssignedReviewers as $reviewerId) {
-                $reviewer = Reviewer::find($reviewerId);
                 $this->emailService->notifyReviewerAssignment($submission, $reviewer);
             }
         });

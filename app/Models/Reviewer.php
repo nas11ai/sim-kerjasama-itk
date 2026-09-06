@@ -32,6 +32,20 @@ class Reviewer extends Model
         'end_date',
     ];
 
+    /**
+     * Tanpa cast ini `start_date`/`end_date` kembali dari database sebagai
+     * string, sementara PHPDoc di atas menjanjikan CarbonInterface — dan
+     * setiap pembanding tanggal (BR-REV-09) pecah begitu model dimuat ulang,
+     * bukan saat masih di memori. Justru itu yang membuatnya lolos di unit
+     * test tapi gagal di jalur HTTP.
+     *
+     * @var array<string, string>
+     */
+    protected $casts = [
+        'start_date' => 'date',
+        'end_date' => 'date',
+    ];
+
     /** @return BelongsTo<User, $this> */
     public function user(): BelongsTo
     {
