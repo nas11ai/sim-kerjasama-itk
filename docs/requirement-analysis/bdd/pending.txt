@@ -4,7 +4,7 @@
 # hanya boleh TURUN ditegakkan review PR — sama persis pembagian kerja yang
 # berlaku untuk excludePaths di phpstan-strict.neon.
 #
-# max: 209
+# max: 200
 
 FE-ACCESS-07
 FE-ACCESS-08
@@ -107,16 +107,7 @@ REV-EVAL-03
 REV-EVAL-04
 REV-EVAL-05
 REV-EVAL-06
-REV-OUTCOME-01
-REV-OUTCOME-02
-REV-OUTCOME-03
-REV-OUTCOME-04
-REV-OUTCOME-05
-REV-OUTCOME-06
 REV-OUTCOME-07
-REV-OUTCOME-08
-REV-OUTCOME-09
-REV-OUTCOME-10
 REV-REASSIGN-01
 REV-REASSIGN-02
 REV-REASSIGN-03
