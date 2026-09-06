@@ -345,8 +345,18 @@ class FormSubmission extends Model
             return true;
         }
 
+        $dates = $period->submissionDates;
+
+        // Periode yang belum punya tanggal sama sekali bukan periode yang
+        // sudah lewat — `every()` atas koleksi kosong bernilai true secara
+        // hampa, dan tanpa penjagaan ini setiap draft pada periode yang baru
+        // dibuat langsung ikut terarsip.
+        if ($dates->isEmpty()) {
+            return false;
+        }
+
         // BR-SM-13 — archived jika semua deadline period sudah lewat.
-        return $period->submissionDates->every(
+        return $dates->every(
             fn ($date) => Carbon::parse($date->datetime)->isPast()
         );
     }

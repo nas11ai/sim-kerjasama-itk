@@ -13,45 +13,14 @@
 // save-draft.
 
 use App\Actions\FormSubmission\StartSubmission;
-use App\Models\FieldType;
 use App\Models\Form;
 use App\Models\FormAccessControl;
-use App\Models\FormField;
 use App\Models\FormPhase;
 use App\Models\FormPhaseDetail;
 use App\Models\FormSubmission;
 use App\Models\Organization;
 use App\Models\SubmissionPeriod;
 use App\Models\User;
-use Spatie\Permission\Models\Permission;
-
-/**
- * Bangun satu FormAccessControl yang bisa diakses $user (permission +
- * organization subtree cocok), berikut satu FormPhaseDetail di bawah
- * $formPhase yang diberikan.
- *
- * @return array{form: Form, detail: FormPhaseDetail, period: SubmissionPeriod}
- */
-function draftPayload(Form $form, SubmissionPeriod $period, FormPhase $formPhase): array
-{
-    $fieldType = FieldType::create(['name' => 'text '.fake()->unique()->numerify('####-####')]);
-    $field = FormField::create([
-        'form_id' => $form->id,
-        'label' => 'Judul',
-        'is_required' => false,
-        'field_type_id' => $fieldType->id,
-        'order' => 1,
-    ]);
-
-    return [
-        'form_id' => $form->id,
-        'submission_period_id' => $period->id,
-        'form_phase_id' => $formPhase->id,
-        'responses' => [
-            ['form_field_id' => $field->id, 'value' => 'Contoh nilai'],
-        ],
-    ];
-}
 
 it('persists form_phase_detail_id and submission_period_id when saving a draft', function () {
     [$user, $organization] = actingResearcher();

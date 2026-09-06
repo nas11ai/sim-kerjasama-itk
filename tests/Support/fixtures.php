@@ -7,8 +7,10 @@
 // dimuat — test yang dijalankan sendirian langsung pecah. Di sini ia selalu
 // tersedia, dan tempatnya jelas saat ada yang perlu menambah.
 
+use App\Models\FieldType;
 use App\Models\Form;
 use App\Models\FormAccessControl;
+use App\Models\FormField;
 use App\Models\FormPhase;
 use App\Models\FormPhaseDetail;
 use App\Models\Organization;
@@ -94,5 +96,33 @@ function wizardFixture(): array
         'form' => $form,
         'period' => $built['period'],
         'detail' => $built['detail'],
+    ];
+}
+
+/**
+ * Bangun satu FormAccessControl yang bisa diakses $user (permission +
+ * organization subtree cocok), berikut satu FormPhaseDetail di bawah
+ * $formPhase yang diberikan.
+ *
+ * @return array{form: Form, detail: FormPhaseDetail, period: SubmissionPeriod}
+ */
+function draftPayload(Form $form, SubmissionPeriod $period, FormPhase $formPhase): array
+{
+    $fieldType = FieldType::create(['name' => 'text '.fake()->unique()->numerify('####-####')]);
+    $field = FormField::create([
+        'form_id' => $form->id,
+        'label' => 'Judul',
+        'is_required' => false,
+        'field_type_id' => $fieldType->id,
+        'order' => 1,
+    ]);
+
+    return [
+        'form_id' => $form->id,
+        'submission_period_id' => $period->id,
+        'form_phase_id' => $formPhase->id,
+        'responses' => [
+            ['form_field_id' => $field->id, 'value' => 'Contoh nilai'],
+        ],
     ];
 }

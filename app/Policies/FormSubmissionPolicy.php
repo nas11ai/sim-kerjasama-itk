@@ -30,6 +30,13 @@ class FormSubmissionPolicy
             return false;
         }
 
+        // BR-SM-10 — draft yang diarsipkan berubah read-only. Status saja
+        // tidak cukup: pengajuan yang periodenya sudah tutup tetap DRAFT,
+        // jadi arsip adalah sumbu kedua yang harus ikut menutup penyuntingan.
+        if ($submission->resolveIsArchived()) {
+            return false;
+        }
+
         return $submission->status instanceof Draft
             || $submission->status instanceof NeedsRevision;
     }
