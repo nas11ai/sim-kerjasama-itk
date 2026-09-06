@@ -18,7 +18,9 @@ use App\Http\Controllers\ReviewEvaluationFormController;
 use App\Http\Controllers\ReviewFormResponseController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\StatController;
+use App\Http\Controllers\Submission\BudgetLineItemController;
 use App\Http\Controllers\Submission\ResearchMemberController;
+use App\Http\Controllers\Submission\ResubmitController;
 use App\Http\Controllers\Submission\SubmissionDecisionController;
 use App\Http\Controllers\Submission\TargetOutputController;
 use App\Http\Controllers\SubmissionPeriodController;
@@ -531,6 +533,11 @@ Route::middleware(['auth'])->group(function () {
             ->name('submissions.target-outputs.update');
         Route::post('/submissions/{submission}/members', [ResearchMemberController::class, 'store'])
             ->name('submissions.members.store');
+        Route::post('/submissions/{submission}/budget-items', [BudgetLineItemController::class, 'store'])
+            ->name('submissions.budget-items.store');
+        // BR-SM-03 — tanpa ini alur revisi tidak punya jalan kembali.
+        Route::post('/submissions/{submission}/resubmit', ResubmitController::class)
+            ->name('submissions.resubmit');
     });
 
     Route::prefix('admin')->name('admin.')->group(function () {
