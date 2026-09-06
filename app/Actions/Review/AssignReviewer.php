@@ -14,6 +14,12 @@ use Illuminate\Validation\ValidationException;
 use Lorisleiva\Actions\Concerns\AsAction;
 use RuntimeException;
 
+/**
+ * `AsAction::run()` tidak membawa tipe kembalian, jadi dideklarasikan di sini
+ * — pemanggilnya berhak tahu apa yang ia dapat tanpa harus menebak.
+ *
+ * @method static SubmissionReviewer run(FormSubmission $submission, Reviewer $reviewer)
+ */
 class AssignReviewer
 {
     use AsAction;
