@@ -7,6 +7,8 @@ use App\Models\User;
 use App\States\Submission\Approved;
 use App\States\Submission\Draft;
 use App\States\Submission\NeedsRevision;
+use App\States\Submission\Rejected;
+use App\States\Submission\Withdrawn;
 
 class FormSubmissionPolicy
 {
@@ -49,6 +51,25 @@ class FormSubmissionPolicy
 
         // BR-SM-03 — hanya NEEDS_REVISION yang bisa di-resubmit.
         return $submission->status instanceof NeedsRevision;
+    }
+
+    /**
+     * BR-SM-15 — target luaran boleh diubah sampai REJECTED atau WITHDRAWN,
+     * termasuk setelah APPROVED karena target menyesuaikan jalannya kegiatan.
+     *
+     * Hanya `submitted_by`. Sengaja berbeda dari BR-RO-07 yang membolehkan
+     * co-investigator mengisi luaran realisasi: mengubah janji bukan tindakan
+     * yang sama dengan mengisi hasil, dan perbedaan itu harus tetap terlihat
+     * di kode alih-alih diseragamkan demi kerapian.
+     */
+    public function manageTargetOutput(User $user, FormSubmission $submission): bool
+    {
+        if ($submission->submitted_by !== $user->id) {
+            return false;
+        }
+
+        return !$submission->status instanceof Rejected
+            && !$submission->status instanceof Withdrawn;
     }
 
     public function withdraw(User $user, FormSubmission $submission): bool
