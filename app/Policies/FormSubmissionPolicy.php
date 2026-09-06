@@ -8,6 +8,7 @@ use App\States\Submission\Approved;
 use App\States\Submission\Draft;
 use App\States\Submission\NeedsRevision;
 use App\States\Submission\Rejected;
+use App\States\Submission\UnderReview;
 use App\States\Submission\Withdrawn;
 
 class FormSubmissionPolicy
@@ -77,6 +78,17 @@ class FormSubmissionPolicy
 
         return !$submission->status instanceof Rejected
             && !$submission->status instanceof Withdrawn;
+    }
+
+    /**
+     * BR-REV-07 — penolakan hanya oleh Operator, dan hanya atas pengajuan
+     * yang masih berjalan. Keputusan yang sudah diambil dibatalkan lewat
+     * penarikan, bukan penolakan susulan.
+     */
+    public function reject(User $user, FormSubmission $submission): bool
+    {
+        return $user->can('submissions.view-all')
+            && $submission->status instanceof UnderReview;
     }
 
     public function withdraw(User $user, FormSubmission $submission): bool

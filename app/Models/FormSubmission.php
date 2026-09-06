@@ -21,6 +21,7 @@ use Spatie\ModelStates\HasStates;
  * @property int|null $parent_submission_id
  * @property int|null $form_phase_detail_id
  * @property int|null $submission_period_id
+ * @property string|null $rejection_reason
  * @property int|null $scheme_id
  * @property int|null $trl_id
  * @property int $last_completed_step
@@ -48,6 +49,7 @@ class FormSubmission extends Model
         'form_id',
         'form_phase_detail_id',
         'submission_period_id',
+        'rejection_reason',
         'scheme_id',
         'trl_id',
         'last_completed_step',

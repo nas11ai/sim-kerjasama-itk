@@ -1,0 +1,60 @@
+<?php
+
+namespace App\Actions\Review;
+
+use App\Models\FormSubmission;
+use App\Models\User;
+use App\States\Submission\Rejected;
+use App\States\Submission\SubmissionStatus;
+use Illuminate\Auth\Access\AuthorizationException;
+use Illuminate\Validation\ValidationException;
+use Lorisleiva\Actions\Concerns\AsAction;
+use RuntimeException;
+
+/**
+ * BR-REV-07 dan BR-REV-14 — **satu-satunya** jalur menuju REJECTED.
+ *
+ * Penolakan tidak pernah otomatis (ADR 0006). `EvaluateSubmissionOutcome`
+ * sengaja tidak punya cabang ke sini, dan `[REV-OUTCOME-08]` menjaga
+ * ketiadaan itu. Kombinasi skor serendah apa pun tidak menolak; yang menolak
+ * adalah orang, dengan nama dan alasan.
+ *
+ * @method static FormSubmission run(FormSubmission $submission, User $operator, string $reason)
+ */
+class RejectSubmission
+{
+    use AsAction;
+
+    /**
+     * @throws AuthorizationException|ValidationException
+     */
+    public function handle(FormSubmission $submission, User $operator, string $reason): FormSubmission
+    {
+        if (!$operator->can('reject', $submission)) {
+            throw new AuthorizationException(
+                'Penolakan hanya dapat dilakukan Operator atas pengajuan yang sedang direview.'
+            );
+        }
+
+        $reason = trim($reason);
+
+        if ($reason === '') {
+            throw ValidationException::withMessages([
+                'reason' => 'Alasan penolakan wajib diisi — peneliti berhak tahu dasar keputusannya.',
+            ]);
+        }
+
+        $status = $submission->status;
+
+        if (!$status instanceof SubmissionStatus) {
+            throw new RuntimeException(
+                "FormSubmission {$submission->id} tidak punya status — tidak bisa ditolak."
+            );
+        }
+
+        $submission->update(['rejection_reason' => $reason]);
+        $status->transitionTo(Rejected::class);
+
+        return $submission->refresh();
+    }
+}
