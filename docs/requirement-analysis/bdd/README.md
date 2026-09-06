@@ -136,6 +136,37 @@ evaluasi, ulir diskusi, dan keterlihatan skor — plus jendela kerja per tahap B
 | `Then status "<id>" tidak menjadi <STATUS>` | Menyatakan ketiadaan transisi — dipakai `REV-OUTCOME-08` |
 | `Then penambahan berhasil` | Penambahan diterima |
 
+Tabel kelima tumbuh dari M3 (Identity & Access) — registrasi, token undangan,
+verifikasi NIDN, permission, dan organisasi.
+
+| Frasa baku | Dipakai untuk |
+| ---------- | ------------- |
+| `Given "<orang>" berstatus <pending\|aktif\|tidak aktif>` | Keadaan akun |
+| `Given "<orang>" sudah terverifikasi` | Akun yang NIDN-nya sudah diverifikasi |
+| `Given profil "<orang>" <sudah\|belum> lengkap` | Kelengkapan profil — gerbang yang berbeda dari status akun |
+| `Given "<orang>" terdaftar dengan NIDN "<nidn>"` | Menyiapkan NIDN yang sudah terpakai |
+| `Given token undangan sah milik organisasi "<org>"` | Token yang masih berlaku |
+| `Given token undangan dengan max_uses <n> dan used_count <n>` | Kuota token |
+| `Given token undangan yang expires_at "<datetime>"` | Token yang bisa kedaluwarsa |
+| `Given organisasi "<org>" punya UserProfile di dalamnya` | Organisasi yang tidak boleh dihapus |
+| `Given organisasi "<org>" tanpa UserProfile di seluruh subtree-nya` | Padanannya yang boleh dihapus — perhatikan kata subtree |
+| `When "<orang>" mendaftar mandiri dengan email "<email>"` | Jalur registrasi mandiri |
+| `When "<orang>" mendaftar lewat token itu` | Jalur registrasi undangan |
+| `When "<orang>" login` | Aksi masuk |
+| `When Operator memverifikasi NIDN "<orang>"` | Aksi verifikasi |
+| `When Operator menonaktifkan "<orang>"` | Deaktivasi user |
+| `When Operator menunjuk "<orang>" sebagai reviewer <internal\|eksternal>` | Penunjukan reviewer — bukan pembuatan akun |
+| `When admin menghapus organisasi "<org>"` | Penghapusan organisasi |
+| `Then akun "<orang>" terbentuk berstatus pending` | Akun baru |
+| `Then pendaftaran ditolak karena <alasan>` | Penolakan registrasi beserta alasan domainnya |
+| `Then login ditolak karena <alasan>` | Penolakan login |
+| `Then penghapusan berhasil` | Penghapusan diterima |
+| `Then penghapusan ditolak karena <alasan>` | Penolakan penghapusan |
+| `Then penunjukan ditolak karena <alasan>` | Penolakan penunjukan reviewer |
+| `Then "<orang>" punya permission "<perm>"` | Permission efektif |
+| `Then "<orang>" tidak punya permission "<perm>"` | Pasangan negatifnya |
+| `Then used_count token itu menjadi <n>` | Efek pemakaian token |
+
 **Aturannya:** kalau langkah yang kamu butuhkan tidak ada di sini, boleh menambah — tapi
 tambahkan barisnya ke tabel ini dalam PR yang sama. Frasa yang dipakai sekali dan tidak
 pernah lagi adalah tanda skenarionya terlalu spesifik, atau kosakatanya belum ketemu.

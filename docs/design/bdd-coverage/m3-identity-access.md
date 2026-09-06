@@ -1,6 +1,6 @@
 # M3 — Identity & Access
 
-**10 BR perilaku · 27 skenario · 6 berkas `.feature`**
+**10 BR perilaku · 28 skenario · 6 berkas `.feature`**
 
 Gerbang masuk sistem: tiga jalur registrasi, verifikasi NIDN, permission additive, dan
 deaktivasi yang tidak boleh meninggalkan submission yatim.
