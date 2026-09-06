@@ -22,7 +22,7 @@ Feature: Akses Tingkat Submission
     When "Andi" membuka detail "P-001"
     Then akses ditolak dengan 403
 
-  @BR-SM-07 @M1 @OPERATOR-02-02 @happy
+  @BR-SM-07 @M1 @OPERATOR-02-01 @OPERATOR-02-02 @happy
   Scenario: [SM-ACCESS-04] Operator melihat semua lewat submissions.view-all
     Given "Siti" punya permission "submissions.view-all"
     When "Siti" membuka detail "P-001"

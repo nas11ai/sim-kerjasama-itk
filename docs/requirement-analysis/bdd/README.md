@@ -244,6 +244,30 @@ it('[FE-TEMPORAL-01] field yang lahir setelah submission tidak diwajibkan', func
 
 lalu hapus ID itu dari `pending.txt` dan turunkan plafonnya.
 
+## Frame yang sengaja tidak punya skenario
+
+Setelah M5 mendarat, **55 dari 65 frame** terikat ke minimal satu skenario. Sepuluh
+sisanya sengaja dibiarkan, dan alasannya dicatat di sini supaya "belum ditulis" tidak
+pernah tertukar dengan "memang tidak perlu".
+
+| Frame | Alasan |
+| ----- | ------ |
+| `SHARED-01-07` Profil Saya | Tidak ada BR; penyuntingan profil biasa |
+| `SHARED-01-08` Lupa Password | Mekanisme bawaan Laravel, tidak diatur BR mana pun |
+| `SHARED-01-09` Reset Password | Sama seperti di atas |
+| `SHARED-02-03` Dashboard Operator | Angkanya turunan submission yang sudah dijaga M1–M2; tidak ada aturan khusus dashboard |
+| `SHARED-02-04` Dashboard Admin | Sama seperti di atas |
+| `OPERATOR-07-01` Dashboard Statistik | BR-RPT-01 dan BR-RPT-06 keduanya non-behavioral |
+| `OPERATOR-08-01` Daftar User | Layar daftar; aturannya ada di detail (`OPERATOR-08-03`) |
+| `ADMIN-08-05` Daftar Form | Layar daftar, sejajar `OPERATOR-08-01` |
+| `ADMIN-08-07` Edit Form — Access Control | Batasannya schema-level (`permission` + `organization_id` NOT NULL); perilakunya diuji dari sisi konsumsi lewat `FE-ACCESS-01..06` |
+| `ADMIN-08-08` Edit Form — Phases | BR-FE-07 non-behavioral; jendela kerjanya diuji `FE-WINDOW-04` di `ADMIN-08-09` |
+
+**Aturannya:** kalau nanti muncul aturan bisnis untuk salah satu layar ini, aturan itu
+ditambahkan ke `../ddd/` lebih dulu sebagai baris tabel bernomor, baru skenarionya —
+bukan sebaliknya. Preseden: BR-FE-18 lahir begitu, dari prosa yang sudah ada di
+`01_form_engine.md` tapi belum pernah dinomori.
+
 ## Daftar berplafon
 
 `pending.txt` dan `uncovered.txt` adalah utang yang terlihat. Mesin menjaga plafonnya;

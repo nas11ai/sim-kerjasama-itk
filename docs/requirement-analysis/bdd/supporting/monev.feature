@@ -87,7 +87,7 @@ Feature: Siklus Monitoring dan Evaluasi
     When Operator mencoba membatalkan penarikan "P-001"
     Then pembatalan ditolak karena WITHDRAWN bersifat terminal
 
-  @BR-MON-04 @M4 @OPERATOR-05-02 @happy
+  @BR-MON-04 @M4 @OPERATOR-05-01 @OPERATOR-05-02 @happy
   Scenario: [MON-REVIEW-01] Reviewer monev ditugaskan manual per siklus
     When Operator menugaskan "Sari" sebagai reviewer siklus "Laporan Monev I" pada "P-001"
     Then penugasan berhasil

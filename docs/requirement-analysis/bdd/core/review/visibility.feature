@@ -41,7 +41,7 @@ Feature: Keterlihatan Skor Review
     When "Budi" membuka hasil review "P-001"
     Then "Budi" melihat skor reviewer
 
-  @BR-REV-12 @M2 @RESEARCHER-02-03 @happy
+  @BR-REV-12 @M2 @RESEARCHER-02-03 @RESEARCHER-02-12 @happy
   Scenario: [REV-VIS-06] Researcher melihat skor setelah REJECTED
     Given submission "P-001" berstatus REJECTED
     When "Budi" membuka hasil review "P-001"

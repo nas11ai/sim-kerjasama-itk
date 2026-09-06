@@ -331,6 +331,7 @@ if ($submission->updated_at->ne($request->last_updated_at)) {
 | BR-FE-15 | Expired FormPhaseDetail tetap tampil di UI sebagai read-only — user bisa lihat apa yang sudah disubmit                    |
 | BR-FE-16 | Researcher bisa melihat *status* FormSubmissionOverride (aktif/expired), tapi tidak boleh melihat `reason` — reason hanya untuk Operator dan Admin |
 | BR-FE-17 | Deadline sebuah `FormPhaseDetail` mengikat **aktor detail itu sendiri**, bukan seluruh alur. Setiap tahap yang berjalan setelah submit — evaluasi reviewer, revisi, resubmit — wajib punya `SubmissionDate` sendiri. Memakai ulang "Batas Submit" untuk tahap-tahap itu membuat jendela kerjanya nol atau negatif |
+| BR-FE-18 | `required_since` disetel **saat aturannya berubah**, bukan mundur: field yang dibuat `is_required = true` mendapat `required_since = created_at`, dan field yang diubah dari false ke true mendapat `required_since = now()`. Menyetelnya mundur membuat [BR-FE-11](#) menganggap field baru sudah berlaku bagi draft yang lebih tua — pengajuan yang sedang berjalan tiba-tiba punya field wajib yang belum pernah dilihat pengisinya |
 
 ---
 
