@@ -18,12 +18,16 @@ import {
     Mail,
     MessageSquare,
     UserPlus,
+    UserCog,
+    Ban,
     Users,
 } from 'lucide-vue-next'
 import { getSubmissionStatusInfo } from '@/Utils/getSubmissionStatusInfo'
 import { SubmissionStatus } from '@/Constants/SubmissionStatus'
 import ReviewSystem from '@/Components/ReviewSystem.vue'
 import AssignReviewerDialog from '@/Components/AssignReviewerDialog.vue'
+import RejectSubmissionDialog from '@/Components/RejectSubmissionDialog.vue'
+import TransferOwnershipDialog from '@/Components/TransferOwnershipDialog.vue'
 
 interface FieldType {
     name: string
@@ -156,6 +160,12 @@ interface EvaluationRequirements {
     message: string
 }
 
+interface OwnershipCandidate {
+    id: number
+    name: string
+    email: string
+}
+
 interface Props {
     submission: FormSubmission
     responses: Record<number, string>
@@ -167,6 +177,11 @@ interface Props {
     }
     availableReviewers?: Reviewer[]
     canAssignReviewers?: boolean
+    /** Keputusan Policy, bukan permission mentah — lihat ADR 0015. */
+    canReject?: boolean
+    canWithdraw?: boolean
+    canTransferOwnership?: boolean
+    ownershipCandidates?: OwnershipCandidate[]
     canReview?: boolean
     canCreateThread?: boolean
     hasPendingEvaluations?: boolean
@@ -196,6 +211,12 @@ const reviewStats = props.reviewStats || {
 
 const availableReviewers = props.availableReviewers || []
 const canAssignReviewers = props.canAssignReviewers || false
+
+// Dialog aksi Operator. Tombolnya hanya tampil kalau Policy mengizinkan,
+// jadi tidak ada tombol yang dijamin gagal saat ditekan.
+const rejectDialogOpen = ref(false)
+const transferDialogOpen = ref(false)
+const ownershipCandidates = props.ownershipCandidates ?? []
 const canReview = props.canReview || false
 // const canCreateThread = props.canCreateThread || false
 const hasPendingEvaluations = props.hasPendingEvaluations || false
@@ -551,10 +572,30 @@ const mappedAssignedReviewers = computed(() =>
                                         Kelola reviewer yang dapat mengevaluasi pengajuan ini
                                     </p>
                                 </div>
-                                <Button size="sm" @click="openAssignReviewerDialog">
-                                    <UserPlus class="h-4 w-4 mr-2" />
-                                    Tugaskan Reviewer
-                                </Button>
+                                <div class="flex flex-wrap gap-2">
+                                    <Button size="sm" @click="openAssignReviewerDialog">
+                                        <UserPlus class="h-4 w-4 mr-2" />
+                                        Tugaskan Reviewer
+                                    </Button>
+                                    <Button
+                                        v-if="canTransferOwnership"
+                                        size="sm"
+                                        variant="outline"
+                                        @click="transferDialogOpen = true"
+                                    >
+                                        <UserCog class="h-4 w-4 mr-2" />
+                                        Alihkan Kepemilikan
+                                    </Button>
+                                    <Button
+                                        v-if="canReject"
+                                        size="sm"
+                                        variant="destructive"
+                                        @click="rejectDialogOpen = true"
+                                    >
+                                        <Ban class="h-4 w-4 mr-2" />
+                                        Tolak
+                                    </Button>
+                                </div>
                             </div>
                         </CardHeader>
                         <CardContent>
@@ -636,6 +677,21 @@ const mappedAssignedReviewers = computed(() =>
             :assigned-reviewers="assignedReviewers"
             :has-review-evaluation-forms="hasReviewEvaluationForms"
             @assigned="handleReviewersAssigned"
+        />
+
+        <RejectSubmissionDialog
+            v-if="canReject"
+            v-model:open="rejectDialogOpen"
+            :submission-id="submission.id"
+            :submission-title="submission.form.title"
+        />
+
+        <TransferOwnershipDialog
+            v-if="canTransferOwnership"
+            v-model:open="transferDialogOpen"
+            :submission-id="submission.id"
+            :current-owner-name="submission.submitted_by.name"
+            :candidates="ownershipCandidates"
         />
     </AuthenticatedLayout>
 </template>

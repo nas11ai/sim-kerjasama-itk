@@ -6,6 +6,7 @@ use App\Models\Form;
 use App\Models\FormAccessControl;
 use App\Models\FormPhase;
 use App\Models\FormSubmission;
+use App\Models\ResearchMember;
 use App\Models\ReviewComment;
 use App\Models\Reviewer;
 use App\Models\ReviewSummary;
@@ -633,6 +634,26 @@ class SubmissionViewController extends Controller
                 'reviewStats' => $reviewStats,
                 'availableReviewers' => $availableReviewers,
                 'canAssignReviewers' => $currentUser->can('users.manage'),
+                // Policy yang memutuskan, bukan permission mentah — supaya
+                // tombol tidak muncul untuk aksi yang pasti ditolak (ADR 0015).
+                'canReject' => $currentUser->can('reject', $submission),
+                'canWithdraw' => $currentUser->can('withdraw', $submission),
+                'canTransferOwnership' => $currentUser->can('submissions.view-all'),
+                // BR-SM-09 — hanya co_investigator aktif yang boleh menerima
+                // kepemilikan; menyaringnya di sini supaya UI tidak menawarkan
+                // orang yang pasti ditolak Action.
+                'ownershipCandidates' => $submission->researchMembers()
+                    ->where('role', ResearchMember::ROLE_CO_INVESTIGATOR)
+                    ->where('status', 'active')
+                    ->with('userProfile.user')
+                    ->get()
+                    ->map(fn (ResearchMember $m) => [
+                        'id' => $m->userProfile->user?->id,
+                        'name' => $m->userProfile->user?->name,
+                        'email' => $m->userProfile->user?->email,
+                    ])
+                    ->filter(fn (array $c) => $c['id'] !== null)
+                    ->values(),
                 'canReview' => $canReview,
                 'canCreateThread' => $canCreateThread,
                 'hasPendingEvaluations' => $hasPendingEvaluations,
