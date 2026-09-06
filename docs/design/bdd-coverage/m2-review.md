@@ -1,6 +1,6 @@
 # M2 — Review
 
-**17 BR perilaku · 42 skenario · 7 berkas `.feature`**
+**17 BR perilaku · 44 skenario · 7 berkas `.feature`**
 
 Milestone paling berisiko. Di sinilah kode warisan fork **sudah terbukti bertentangan
 dengan DDD**: auto-reject yang melanggar BR-REV-07 dan BR-REV-14. Skenario di sini
@@ -17,7 +17,7 @@ Sumber: [`core/02_review.md`](../../requirement-analysis/ddd/core/02_review.md),
 | ------ | ---------- | -- |
 | `core/review/assignment.feature` | `REV-ASSIGN-01..09` | BR-REV-01, BR-REV-02, BR-REV-03, BR-REV-04, BR-REV-09 |
 | `core/review/evaluation.feature` | `REV-EVAL-01..06` | BR-REV-08 (≡BR-FE-05), BR-FE-06 |
-| `core/review/outcome.feature` | `REV-OUTCOME-01..08` | BR-REV-05, BR-REV-06, BR-REV-07, BR-REV-14 |
+| `core/review/outcome.feature` | `REV-OUTCOME-01..10` | BR-REV-05, BR-REV-06, BR-REV-07, BR-REV-14 |
 | `core/review/discussion.feature` | `REV-DISCUSS-01..06` | BR-FE-06, BR-REV-06, BR-REV-15 |
 | `core/review/reassignment.feature` | `REV-REASSIGN-01..03` | BR-REV-10 |
 | `core/review/visibility.feature` | `REV-VIS-01..06` | BR-REV-11, BR-REV-12 |
@@ -105,27 +105,30 @@ submission tetap tidak REJECTED.
 > `non-behavioral.md` sebagai catatan penegakan tambahan — bukan pengganti
 > `REV-OUTCOME-08`.
 
-### Kasus hampa BR-REV-05 — diwarisi dari M1
+### Kasus hampa BR-REV-05 — diputuskan di M2
 
-Ada kebuntuan **kedua** yang bentuknya sama tapi sumbernya berbeda, dan M2 wajib
-memutuskannya: fase dengan `needs_review = false` menghasilkan pengajuan yang tidak
-punya reviewer sama sekali.
+Ada kebuntuan **kedua** yang bentuknya sama tapi sumbernya berbeda: fase dengan
+`needs_review = false` menghasilkan pengajuan yang tidak punya reviewer sama sekali.
+[ADR 0016](../../adr/0016-submit-never-approves.md) mencabut cabang yang dulu mencoba
+menyetujuinya langsung dari `DRAFT`, dan menyisakan pertanyaan ini ke M2.
 
-[ADR 0016](../../adr/0016-submit-never-approves.md) mencabut cabang di
-`submitForm()` yang dulu mencoba menyetujuinya langsung dari `DRAFT` — cabang itu
-melempar `TransitionNotFound` dan tidak pernah bekerja. Konsekuensinya disadari dan
-dipilih: **pengajuan seperti itu kini berhenti di `SUBMITTED`.**
+**Diputuskan lewat [ADR 0017](../../adr/0017-vacuous-approval-only-when-configured.md):
+persetujuan hampa sah, tapi hanya kalau `needs_review = false` dinyatakan eksplisit.**
 
-Yang harus diputuskan M2, dan belum: apakah nol reviewer aktif berarti BR-REV-05
-terpenuhi secara hampa (semua reviewer selesai, karena tidak ada satu pun) sehingga
-pengajuannya APPROVED otomatis, atau justru berarti fase itu salah konfigurasi dan harus
-ditolak lebih awal. Keduanya bisa dipertahankan, dan `REV-OUTCOME-06` menunjukkan bahwa
-membaca aturan ini secara harfiah tanpa memutuskan lebih dulu menghasilkan submission
-yang terkunci selamanya.
+| Keadaan | Hasil | Skenario |
+| ------- | ----- | -------- |
+| `needs_review = false`, nol reviewer | BR-REV-05 terpenuhi hampa → APPROVED | `REV-OUTCOME-09` |
+| `needs_review = true`, nol reviewer ditugaskan | tetap SUBMITTED — salah konfigurasi | `REV-OUTCOME-10` |
 
-Sampai skenarionya ditulis, kasus ini adalah **utang yang tercatat**, bukan celah yang
-terlewat.
+Justru perbedaan keduanya yang jadi aturannya. Tanpa `REV-OUTCOME-10`, Operator yang
+lupa menugaskan reviewer menghasilkan pengajuan yang menyetujui dirinya sendiri —
+kelalaian konfigurasi berubah jadi persetujuan senyap.
 
+Jalurnya tetap `SUBMITTED → UNDER_REVIEW → APPROVED` lewat `EvaluateSubmissionOutcome`
+yang sama, tanpa perubahan state machine, sehingga `APPROVED` tetap hanya punya satu
+pintu masuk.
+
+Rentang `REV-OUTCOME` karenanya tumbuh 08 → 10, dan M2 menjadi **44 skenario**.
 ---
 
 ## 5. Diskusi terulir

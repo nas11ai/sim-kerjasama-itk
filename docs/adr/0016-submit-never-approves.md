@@ -51,11 +51,10 @@ memiliki pengecualian untuk fase mana pun.
 
 - Submit pada fase dengan `needs_review = false` berhenti melempar `TransitionNotFound`.
   Yang tadinya gagal total kini mendarat di `SUBMITTED` — dikunci `[SM-SUBMIT-18]`.
-- Pengajuan pada fase seperti itu **berhenti di `SUBMITTED`** sampai M2 menetapkan
-  bagaimana kasus hampa BR-REV-05 (nol reviewer aktif, nol `ReviewSummary` terbuka)
-  menyelesaikannya. Itu utang yang disadari, dicatat sebagai baris di
-  [`m2-review.md`](../design/bdd-coverage/m2-review.md) supaya tidak hilang bersama
-  cabang yang dicabut di sini.
+- Pengajuan pada fase seperti itu **berhenti di `SUBMITTED`** sampai dievaluasi. Kasus
+  hampa BR-REV-05 (nol reviewer aktif, nol `ReviewSummary` terbuka) sudah diputuskan
+  di [ADR 0017](0017-vacuous-approval-only-when-configured.md): sah disetujui secara
+  hampa, tapi hanya kalau `needs_review = false` dinyatakan eksplisit.
 - Satu aturan approval otomatis, satu tempat. BR-REV-05 tetap pemilik tunggalnya.
 
 ## Alternatif yang ditolak

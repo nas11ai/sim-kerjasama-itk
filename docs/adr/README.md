@@ -61,3 +61,4 @@ keputusan sama berharganya dengan keputusan itu sendiri.
 | [0014](0014-time-boxed-access-single-override-mechanism.md)      | Akses berbatas waktu: tiga sumbu, satu mekanisme pengecualian | Diterima |
 | [0015](0015-gate-before-never-bypasses-domain-invariants.md)     | Gate::before tidak melewati invarian domain                   | Diterima |
 | [0016](0016-submit-never-approves.md)                            | Submit tidak pernah menyetujui                                | Diterima |
+| [0017](0017-vacuous-approval-only-when-configured.md)             | Persetujuan hampa hanya kalau dikonfigurasi begitu            | Diterima |

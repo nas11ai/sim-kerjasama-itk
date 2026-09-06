@@ -64,3 +64,19 @@ Feature: Hasil Review
     Given evaluasi "Sari" dan "Andi" atas "P-001" berstatus completed dengan skor terendah
     When sistem mengevaluasi hasil review "P-001"
     Then status "P-001" tidak menjadi REJECTED
+
+  @BR-REV-05 @M2 @RESEARCHER-02-10 @boundary
+  Scenario: [REV-OUTCOME-09] Fase tanpa review disetujui secara hampa
+    Given fase pengajuan "P-002" tidak membutuhkan review
+    And submission "P-002" milik "Budi" berstatus SUBMITTED
+    And tidak ada reviewer ditugaskan pada "P-002"
+    When sistem mengevaluasi hasil review "P-002"
+    Then status "P-002" menjadi APPROVED
+
+  @BR-REV-05 @M2 @OPERATOR-03-01 @denial
+  Scenario: [REV-OUTCOME-10] Fase yang butuh review tidak disetujui tanpa reviewer
+    Given fase pengajuan "P-003" membutuhkan review
+    And submission "P-003" milik "Budi" berstatus SUBMITTED
+    And tidak ada reviewer ditugaskan pada "P-003"
+    When sistem mengevaluasi hasil review "P-003"
+    Then status "P-003" tetap SUBMITTED
