@@ -20,6 +20,7 @@ import {
     UserPlus,
     UserCog,
     Ban,
+    Repeat,
     Users,
 } from 'lucide-vue-next'
 import { getSubmissionStatusInfo } from '@/Utils/getSubmissionStatusInfo'
@@ -28,6 +29,7 @@ import ReviewSystem from '@/Components/ReviewSystem.vue'
 import AssignReviewerDialog from '@/Components/AssignReviewerDialog.vue'
 import RejectSubmissionDialog from '@/Components/RejectSubmissionDialog.vue'
 import TransferOwnershipDialog from '@/Components/TransferOwnershipDialog.vue'
+import ReplaceReviewerDialog from '@/Components/ReplaceReviewerDialog.vue'
 
 interface FieldType {
     name: string
@@ -217,6 +219,16 @@ const canAssignReviewers = props.canAssignReviewers || false
 const rejectDialogOpen = ref(false)
 const transferDialogOpen = ref(false)
 const ownershipCandidates = props.ownershipCandidates ?? []
+
+// Penggantian reviewer selalu menyangkut satu reviewer tertentu, jadi
+// dialognya perlu tahu siapa yang sedang digantikan.
+const replaceDialogOpen = ref(false)
+const reviewerBeingReplaced = ref<AssignedReviewer | null>(null)
+
+const openReplaceDialog = (reviewer: AssignedReviewer) => {
+    reviewerBeingReplaced.value = reviewer
+    replaceDialogOpen.value = true
+}
 const canReview = props.canReview || false
 // const canCreateThread = props.canCreateThread || false
 const hasPendingEvaluations = props.hasPendingEvaluations || false
@@ -641,6 +653,16 @@ const mappedAssignedReviewers = computed(() =>
                                             <Badge variant="secondary" class="mt-2 text-xs">
                                                 {{ reviewer.reviewer_type }}
                                             </Badge>
+                                            <Button
+                                                v-if="canAssignReviewers"
+                                                variant="ghost"
+                                                size="sm"
+                                                class="mt-2 h-auto px-0 text-xs"
+                                                @click="openReplaceDialog(reviewer)"
+                                            >
+                                                <Repeat class="h-3 w-3 mr-1" />
+                                                Ganti reviewer
+                                            </Button>
                                         </div>
                                     </div>
                                 </div>
@@ -692,6 +714,15 @@ const mappedAssignedReviewers = computed(() =>
             :submission-id="submission.id"
             :current-owner-name="submission.submitted_by.name"
             :candidates="ownershipCandidates"
+        />
+
+        <ReplaceReviewerDialog
+            v-if="canAssignReviewers && reviewerBeingReplaced"
+            v-model:open="replaceDialogOpen"
+            :submission-id="submission.id"
+            :outgoing-reviewer-id="reviewerBeingReplaced.id"
+            :outgoing-reviewer-name="reviewerBeingReplaced.user.name"
+            :available-reviewers="availableReviewers"
         />
     </AuthenticatedLayout>
 </template>
