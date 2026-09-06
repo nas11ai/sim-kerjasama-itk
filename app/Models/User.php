@@ -6,6 +6,7 @@ use Database\Factories\UserFactory;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\HasOneThrough;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -14,6 +15,7 @@ use Spatie\Permission\Traits\HasRoles;
 
 /**
  * @property bool $is_reviewer
+ * @property-read UserProfile|null $userProfile
  * @property-read Organization|null $organization
  * @property-read Reviewer|null $reviewer
  */
@@ -31,6 +33,7 @@ class User extends Authenticatable implements MustVerifyEmail
         'name',
         'email',
         'password',
+        'is_active',
     ];
 
     /**
@@ -53,6 +56,7 @@ class User extends Authenticatable implements MustVerifyEmail
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'is_active' => 'boolean',
         ];
     }
 
@@ -98,8 +102,10 @@ class User extends Authenticatable implements MustVerifyEmail
 
     /**
      * Get the user's profile.
+     *
+     * @return HasOne<UserProfile, $this>
      */
-    public function userProfile()
+    public function userProfile(): HasOne
     {
         return $this->hasOne(UserProfile::class);
     }

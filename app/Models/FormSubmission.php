@@ -146,6 +146,7 @@ class FormSubmission extends Model
         return $this->hasMany(SubmissionTargetOutput::class);
     }
 
+    /** @return HasMany<ResearchMember, $this> */
     public function researchMembers(): HasMany
     {
         return $this->hasMany(ResearchMember::class);
