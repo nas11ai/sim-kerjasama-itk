@@ -3,17 +3,14 @@
 #
 # BR yang bukan perilaku TIDAK ditulis di sini — tempatnya non-behavioral.md.
 #
-# max: 59
-BR-FE-05
-BR-FE-06
-BR-FE-17
+# max: 41
+
 BR-IAM-01
 BR-IAM-02
 BR-IAM-03
 BR-IAM-04
 BR-IAM-05
 BR-IAM-06
-BR-IAM-07
 BR-IAM-08
 BR-IAM-11
 BR-MON-01
@@ -30,20 +27,6 @@ BR-NOT-02
 BR-NOT-03
 BR-NOT-04
 BR-NOT-06
-BR-REV-01
-BR-REV-02
-BR-REV-03
-BR-REV-04
-BR-REV-05
-BR-REV-06
-BR-REV-07
-BR-REV-08
-BR-REV-09
-BR-REV-10
-BR-REV-11
-BR-REV-12
-BR-REV-14
-BR-REV-15
 BR-RO-01
 BR-RO-02
 BR-RO-03

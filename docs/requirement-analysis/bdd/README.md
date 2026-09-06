@@ -98,6 +98,44 @@ sudah terbukti, bukan karena diperkirakan.
 | `Then "<id>" tidak muncul di daftar` | Ketidakhadirannya — pasangan negatif |
 | `Given fase pengajuan "<id>" tidak membutuhkan review` | Menetapkan `needs_review` false pada FormPhaseDetail submission |
 
+Tabel keempat tumbuh dari M2 (Review). Seluruhnya kosakata BC Review — penugasan,
+evaluasi, ulir diskusi, dan keterlihatan skor — plus jendela kerja per tahap BR-FE-17.
+
+| Frasa baku | Dipakai untuk |
+| ---------- | ------------- |
+| `Given skema "<skema>" dengan min_reviewer_count <n>` | Ambang penugasan yang berasal dari `scheme.rules`, bukan konstanta |
+| `Given skema "<skema>" dengan max_reviewer_workload <n>` | Batas beban reviewer |
+| `Given "<orang>" dan "<orang>" ditugaskan sebagai reviewer "<id>"` | Dua reviewer sekaligus — bentuk jamak dari baris di tabel kedua |
+| `Given "<orang>" berstatus reviewer_internal` | Tipe reviewer yang boleh melihat skor rekannya |
+| `Given "<orang>" berstatus reviewer_external` | Padanannya yang tidak pernah boleh |
+| `Given "<orang>" berstatus reviewer dengan masa tugas "<tanggal>" sampai "<tanggal>"` | Rentang `start_date`–`end_date` reviewer |
+| `Given "<orang>" sedang memegang <n> penugasan review aktif` | Beban berjalan, untuk menguji BR-REV-04 |
+| `Given evaluasi "<orang>" atas "<id>" berstatus <draft\|submitted\|completed>` | Keadaan `ReviewFormResponse` |
+| `Given evaluation_status "<orang>" pada "<id>" adalah <pending\|completed\|not_required>` | Keadaan penugasan, berbeda dari status jawabannya |
+| `Given ada ReviewSummary berstatus open pada "<id>"` | Ulir diskusi yang masih terbuka |
+| `Given tidak ada ReviewSummary berstatus open pada "<id>"` | Pasangan negatifnya — pemicu APPROVED |
+| `Given detail <fase> berbatas "<label>" pada "<tanggal>"` | Jendela kerja satu `FormPhaseDetail` |
+| `When Operator menugaskan "<orang>" sebagai reviewer "<id>"` | Aksi penugasan |
+| `When Operator mengganti reviewer "<orang>" dengan "<orang>" pada "<id>"` | Aksi penggantian |
+| `When Operator menolak "<id>" dengan alasan tertulis` | Penolakan manual — satu-satunya jalan ke REJECTED |
+| `When "<orang>" submit evaluasinya atas "<id>"` | Reviewer menyelesaikan evaluasi |
+| `When "<orang>" menyunting evaluasinya atas "<id>"` | Uji penguncian BR-FE-05 |
+| `When "<orang>" membuat ReviewSummary pada "<id>"` | Membuka ulir diskusi |
+| `When "<orang>" menandai ReviewSummary itu resolved` | Menutup ulir |
+| `When "<orang>" membuka hasil review "<id>"` | Aksi melihat skor |
+| `When sistem mengevaluasi hasil review "<id>"` | Pemicu transisi otomatis BR-REV-05/06 — bukan aksi manusia |
+| `Then penugasan berhasil` | Penugasan diterima |
+| `Then penugasan ditolak karena <alasan>` | Penolakan penugasan beserta alasan domainnya |
+| `Then penugasan "<orang>" pada "<id>" berstatus replaced` | Jejak penggantian yang tidak dihapus |
+| `Then evaluation_status "<orang>" pada "<id>" menjadi completed` | Perubahan status penugasan |
+| `Then ReviewSummary itu berstatus <open\|resolved>` | Keadaan ulir setelah aksi |
+| `Then "<orang>" melihat skor "<orang>"` | Keterlihatan antar reviewer |
+| `Then "<orang>" tidak melihat skor "<orang>"` | Pasangan negatifnya |
+| `Then "<orang>" melihat skor reviewer` | Keterlihatan untuk researcher |
+| `Then "<orang>" tidak melihat skor reviewer` | Pasangan negatifnya |
+| `Then status "<id>" tidak menjadi <STATUS>` | Menyatakan ketiadaan transisi — dipakai `REV-OUTCOME-08` |
+| `Then penambahan berhasil` | Penambahan diterima |
+
 **Aturannya:** kalau langkah yang kamu butuhkan tidak ada di sini, boleh menambah — tapi
 tambahkan barisnya ke tabel ini dalam PR yang sama. Frasa yang dipakai sekali dan tidak
 pernah lagi adalah tanda skenarionya terlalu spesifik, atau kosakatanya belum ketemu.
