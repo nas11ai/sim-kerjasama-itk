@@ -284,7 +284,6 @@ class SubmissionViewController extends Controller
             'total_reviewers' => $submission->submissionReviewers->count(),
             'open_reviews' => $submission->reviewSummaries->where('status', 'open')->count(),
             'resolved_reviews' => $submission->reviewSummaries->where('status', 'resolved')->count(),
-            'closed_reviews' => $submission->reviewSummaries->where('status', 'closed')->count(),
             'total_comments' => $reviewComments->count(),
         ];
 
@@ -471,7 +470,6 @@ class SubmissionViewController extends Controller
                 'total_reviewers' => $submission->submissionReviewers->count(),
                 'open_reviews' => collect($reviewSummaries)->where('status', 'open')->count(),
                 'resolved_reviews' => collect($reviewSummaries)->where('status', 'resolved')->count(),
-                'closed_reviews' => collect($reviewSummaries)->where('status', 'closed')->count(),
                 'total_comments' => count($reviewComments),
             ];
 
@@ -674,7 +672,6 @@ class SubmissionViewController extends Controller
                     'total_reviewers' => 0,
                     'open_reviews' => 0,
                     'resolved_reviews' => 0,
-                    'closed_reviews' => 0,
                     'total_comments' => 0,
                 ],
                 'availableReviewers' => [],

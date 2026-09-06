@@ -41,7 +41,6 @@ import {
     Send,
     X,
     Download,
-    XCircle,
     Shield,
     User,
     ChevronDown,
@@ -71,7 +70,7 @@ interface ReviewerFormAssignment {
 interface ReviewSummary {
     id: number
     reviewer_id: number | null
-    status: 'open' | 'resolved' | 'closed'
+    status: 'open' | 'resolved'
     summary_notes: string | null
     created_at: string
     updated_at: string
@@ -125,7 +124,6 @@ interface Props {
         total_reviewers: number
         open_reviews: number
         resolved_reviews: number
-        closed_reviews: number
         total_comments: number
     }
     hasPendingEvaluations: boolean
@@ -214,11 +212,12 @@ const canUpdateSubmissionStatus = computed(() => {
     return true
 })
 
-// Review status options
+// BR-REV-13 — ReviewSummary hanya `open` atau `resolved`. Status `closed`
+// tidak pernah ada di domain ini; backend menolaknya, dan menawarkannya di
+// sini dulu menyalakan jalur auto-reject yang dilarang ADR 0006.
 const reviewStatusOptions = [
     { value: 'open', label: 'Terbuka', color: 'green' },
     { value: 'resolved', label: 'Terselesaikan', color: 'blue' },
-    { value: 'closed', label: 'Ditutup', color: 'red' },
 ]
 
 // Submission status options
@@ -341,11 +340,6 @@ const statusMap: Record<
         label: 'Terselesaikan',
         color: 'bg-blue-100 text-blue-800',
         icon: CheckCircle,
-    },
-    closed: {
-        label: 'Ditutup',
-        color: 'bg-red-100 text-red-800',
-        icon: XCircle,
     },
 }
 
@@ -567,12 +561,6 @@ const updateSubmissionStatus = () => {
                         <div class="text-sm text-muted-foreground">Terselesaikan</div>
                     </div>
                     <div>
-                        <div class="text-2xl font-bold text-red-600">
-                            {{ reviewStats.closed_reviews }}
-                        </div>
-                        <div class="text-sm text-muted-foreground">Ditutup</div>
-                    </div>
-                    <div>
                         <div class="text-2xl font-bold">
                             {{ reviewStats.total_comments }}
                         </div>
@@ -759,7 +747,6 @@ const updateSubmissionStatus = () => {
                 :class="{
                     'border-l-green-500': reviewSummary.status === 'open',
                     'border-l-blue-500': reviewSummary.status === 'resolved',
-                    'border-l-red-500': reviewSummary.status === 'closed',
                 }"
             >
                 <Collapsible

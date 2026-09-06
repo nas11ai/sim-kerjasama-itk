@@ -59,7 +59,7 @@ interface SubmittedBy {
 interface ReviewSummary {
     id: number
     reviewer_id: number | null
-    status: 'open' | 'resolved' | 'closed'
+    status: 'open' | 'resolved'
     summary_notes: string | null
     created_at: string
     updated_at: string
@@ -163,7 +163,6 @@ interface Props {
         total_reviewers: number
         open_reviews: number
         resolved_reviews: number
-        closed_reviews: number
         total_comments: number
     }
     availableReviewers?: Reviewer[]
@@ -192,7 +191,6 @@ const reviewStats = props.reviewStats || {
     total_reviewers: 0,
     open_reviews: 0,
     resolved_reviews: 0,
-    closed_reviews: 0,
     total_comments: 0,
 }
 
