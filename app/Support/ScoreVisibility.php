@@ -42,7 +42,7 @@ final class ScoreVisibility
 
         // Bukan soal waktu: reviewer eksternal tertutup kapan pun, bahkan
         // setelah seluruh evaluasi masuk.
-        if ($assignment->reviewer?->reviewer_type !== 'internal') {
+        if ($assignment->reviewer->reviewer_type !== 'internal') {
             return false;
         }
 
