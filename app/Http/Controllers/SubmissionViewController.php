@@ -6,16 +6,19 @@ use App\Models\Form;
 use App\Models\FormAccessControl;
 use App\Models\FormPhase;
 use App\Models\FormSubmission;
+use App\Models\OutputTypeDefinition;
 use App\Models\ResearchMember;
 use App\Models\ReviewComment;
 use App\Models\Reviewer;
 use App\Models\ReviewSummary;
 use App\Models\SubmissionPeriod;
 use App\Models\SubmissionReviewer;
+use App\Models\User;
 use App\States\Submission\SubmissionStatus;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 
@@ -232,6 +235,31 @@ class SubmissionViewController extends Controller
         ]);
     }
 
+    /**
+     * BR-SM-14 — taksonomi ∩ izin skema.
+     *
+     * Skema yang tidak menyatakan `allowed_output_types` tidak membatasi apa
+     * pun; itu berbeda dari daftar kosong, yang berarti tidak ada tipe yang
+     * diizinkan sama sekali.
+     *
+     * @return Collection<int, array{code: string, name: string}>
+     */
+    private function allowedOutputTypesFor(FormSubmission $submission)
+    {
+        $taxonomy = OutputTypeDefinition::query()->where('is_active', true)->get();
+
+        $rules = $submission->scheme?->rules;
+        $allowed = is_array($rules) ? ($rules['allowed_output_types'] ?? null) : null;
+
+        if (is_array($allowed)) {
+            $taxonomy = $taxonomy->whereIn('code', $allowed);
+        }
+
+        return $taxonomy
+            ->map(fn (OutputTypeDefinition $t) => ['code' => $t->code, 'name' => $t->name])
+            ->values();
+    }
+
     public function userShowSubmission(FormSubmission $submission)
     {
         $user = Auth::user();
@@ -392,6 +420,34 @@ class SubmissionViewController extends Controller
             'canReview' => $isAssignedReviewer,
             'userRole' => $userRole,
             'isOwnSubmission' => $submission->submitted_by === $user->id,
+            // BR-SM-15 — Policy yang memutuskan siapa boleh mengubah target,
+            // bukan sekadar "pemiliknya": status terminal ikut menutupnya.
+            'canManageContent' => $user->can('manageTargetOutput', $submission),
+            'targetOutputs' => $submission->targetOutputs()->get(['id', 'output_type']),
+            // BR-SM-14 — dua penyaring bertingkat disatukan di sini supaya UI
+            // tidak menawarkan tipe yang pasti ditolak Action.
+            'allowedOutputTypes' => $this->allowedOutputTypesFor($submission),
+            'researchMembers' => $submission->researchMembers()
+                ->where('status', 'active')
+                ->with('userProfile.user')
+                ->get()
+                ->map(fn (ResearchMember $m) => [
+                    'id' => $m->id,
+                    'name' => $m->userProfile->user->name,
+                    'role' => $m->role,
+                ]),
+            'maxMembers' => $submission->scheme?->max_members,
+            // Calon anggota: orang yang sudah punya profil dan belum terlibat
+            // di pengajuan ini. Penyaring konflik kepentingan yang sebenarnya
+            // tetap di ConflictOfInterestGuard — ini hanya supaya daftar yang
+            // ditawarkan tidak penuh nama yang pasti ditolak.
+            'memberCandidates' => User::query()
+                ->whereHas('userProfile')
+                ->where('id', '!=', $submission->submitted_by)
+                ->whereDoesntHave('userProfile.researchMembers', fn ($q) => $q->where('form_submission_id', $submission->id))
+                ->orderBy('name')
+                ->limit(100)
+                ->get(['id', 'name', 'email']),
             'assignedReviewers' => $assignedReviewers,
             'reviewerFormAssignments' => $reviewerFormAssignments,
             'hasReviewEvaluationForms' => $hasReviewEvaluationForms,

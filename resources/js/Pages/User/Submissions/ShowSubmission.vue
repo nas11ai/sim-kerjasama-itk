@@ -21,6 +21,8 @@ import {
 import { SubmissionStatus } from '@/Constants/SubmissionStatus'
 import { getSubmissionStatusInfo } from '@/Utils/getSubmissionStatusInfo'
 import ReviewSystem from '@/Components/ReviewSystem.vue'
+import TargetOutputManager from '@/Components/TargetOutputManager.vue'
+import ResearchMemberManager from '@/Components/ResearchMemberManager.vue'
 
 interface FieldType {
     name: string
@@ -127,8 +129,33 @@ interface FormSubmission {
     }
 }
 
+interface OutputType {
+    code: string
+    name: string
+}
+
+interface TargetOutput {
+    id: number
+    output_type: string
+}
+
+interface ResearchMemberRow {
+    id: number
+    name: string
+    role: string
+}
+
 interface Props {
     submission: FormSubmission
+    /** Keputusan Policy — status terminal ikut menutupnya (BR-SM-15). */
+    canManageContent?: boolean
+    targetOutputs?: TargetOutput[]
+    /** Sudah disaring taksonomi ∩ izin skema (BR-SM-14). */
+    allowedOutputTypes?: OutputType[]
+    researchMembers?: ResearchMemberRow[]
+    memberCandidates?: { id: number; name: string; email: string }[]
+    /** null berarti skema tidak membatasi jumlah anggota. */
+    maxMembers?: number | null
     responses: Record<number, string>
     reviewComments?: ReviewComment[]
     reviewStats?: {
@@ -562,6 +589,23 @@ const mappedAssignedReviewers = computed(() =>
                             </div>
                         </CardContent>
                     </Card>
+
+                    <!-- Target luaran & anggota: keduanya isi pengajuan, jadi
+                         tempatnya di tab yang sama dengan isian formulir. -->
+                    <TargetOutputManager
+                        :submission-id="submission.id"
+                        :target-outputs="targetOutputs ?? []"
+                        :allowed-types="allowedOutputTypes ?? []"
+                        :can-manage="canManageContent ?? false"
+                    />
+
+                    <ResearchMemberManager
+                        :submission-id="submission.id"
+                        :members="researchMembers ?? []"
+                        :candidates="memberCandidates ?? []"
+                        :can-manage="canManageContent ?? false"
+                        :max-members="maxMembers ?? null"
+                    />
                 </TabsContent>
 
                 <!-- Review & Discussion Tab -->
