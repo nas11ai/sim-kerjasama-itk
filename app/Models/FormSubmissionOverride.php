@@ -5,6 +5,8 @@ namespace App\Models;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Spatie\Activitylog\LogOptions;
+use Spatie\Activitylog\Traits\LogsActivity;
 
 /**
  * @property int $id
@@ -20,6 +22,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  */
 class FormSubmissionOverride extends Model
 {
+    use LogsActivity;
+
     protected $fillable = [
         'form_submission_id',
         'form_phase_detail_id',
@@ -60,5 +64,19 @@ class FormSubmissionOverride extends Model
     public function revoke(): void
     {
         $this->update(['is_active' => false]);
+    }
+
+    /**
+     * BR-SM-05 dan BR-FE-09 — override adalah pengecualian terhadap aturan,
+     * jadi ia yang paling perlu meninggalkan jejak: siapa yang memberikannya,
+     * dengan alasan apa, dan berlaku sampai kapan. Tanpa ini, pengecualian
+     * tidak bisa diaudit dan berhenti bisa dipertanggungjawabkan.
+     */
+    public function getActivitylogOptions(): LogOptions
+    {
+        return LogOptions::defaults()
+            ->logOnly(['form_submission_id', 'form_phase_detail_id', 'granted_by', 'reason', 'expires_at', 'is_active'])
+            ->logOnlyDirty()
+            ->dontSubmitEmptyLogs();
     }
 }
