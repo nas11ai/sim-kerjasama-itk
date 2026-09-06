@@ -9,6 +9,8 @@ use App\Http\Controllers\FormController;
 use App\Http\Controllers\FormPhaseController;
 use App\Http\Controllers\PermissionController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\Review\ReplaceReviewerController;
+use App\Http\Controllers\Review\ReviewSummaryResolutionController;
 use App\Http\Controllers\ReviewController;
 use App\Http\Controllers\ReviewerController;
 use App\Http\Controllers\ReviewerFormAssignmentController;
@@ -16,10 +18,14 @@ use App\Http\Controllers\ReviewEvaluationFormController;
 use App\Http\Controllers\ReviewFormResponseController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\StatController;
+use App\Http\Controllers\Submission\ResearchMemberController;
+use App\Http\Controllers\Submission\SubmissionDecisionController;
+use App\Http\Controllers\Submission\TargetOutputController;
 use App\Http\Controllers\SubmissionPeriodController;
 use App\Http\Controllers\SubmissionViewController;
 use App\Http\Controllers\SubmissionWithdrawalController;
 use App\Http\Controllers\UserController;
+use App\Http\Controllers\UserDeactivationController;
 use App\Http\Controllers\UserFormController;
 use App\Models\Announcement;
 use Illuminate\Foundation\Application;
@@ -507,4 +513,37 @@ require __DIR__.'/auth.php';
 Route::middleware(['auth'])->prefix('admin')->name('admin.')->group(function () {
     Route::post('/submissions/{submission}/withdraw', SubmissionWithdrawalController::class)
         ->name('submissions.withdraw');
+});
+
+/*
+ * Endpoint Action M1/M2 yang sebelumnya hanya ada sebagai unit.
+ *
+ * Otorisasinya dipegang Policy di masing-masing controller, bukan middleware
+ * grup: dua sumber otorisasi untuk satu aksi membuat objek `can` yang dikirim
+ * ke frontend berbohong, dan tombolnya tampil untuk orang yang pasti ditolak
+ * (ADR 0015).
+ */
+Route::middleware(['auth'])->group(function () {
+    Route::prefix('user')->name('user.')->group(function () {
+        Route::post('/submissions/{submission}/target-outputs', [TargetOutputController::class, 'store'])
+            ->name('submissions.target-outputs.store');
+        Route::put('/submissions/{submission}/target-outputs/{targetOutput}', [TargetOutputController::class, 'update'])
+            ->name('submissions.target-outputs.update');
+        Route::post('/submissions/{submission}/members', [ResearchMemberController::class, 'store'])
+            ->name('submissions.members.store');
+    });
+
+    Route::prefix('admin')->name('admin.')->group(function () {
+        Route::post('/submissions/{submission}/reject', [SubmissionDecisionController::class, 'reject'])
+            ->name('submissions.reject');
+        Route::post('/submissions/{submission}/transfer-ownership', [SubmissionDecisionController::class, 'transferOwnership'])
+            ->name('submissions.transfer-ownership');
+        Route::post('/submissions/{submission}/reviewers/{reviewer}/replace', ReplaceReviewerController::class)
+            ->name('submissions.replace-reviewer');
+        Route::post('/users/{user}/deactivate', UserDeactivationController::class)
+            ->name('users.deactivate');
+    });
+
+    Route::post('/review-summaries/{reviewSummary}/resolve', ReviewSummaryResolutionController::class)
+        ->name('review-summaries.resolve');
 });
