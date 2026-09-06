@@ -130,6 +130,23 @@ class SubmissionReviewer extends Model
         return $query->where('status', 'active');
     }
 
+    /**
+     * Status evaluasi yang dihitung selesai untuk BR-REV-05, BR-REV-06,
+     * dan BR-FE-06.
+     *
+     * `not_required` ikut, dan itu keharusan bukan kelonggaran: dibaca
+     * harfiah sebagai `completed` saja, reviewer yang memang tidak
+     * diwajibkan menilai tidak akan pernah selesai dan submission-nya
+     * terkunci selamanya tanpa ada yang salah (register #14).
+     */
+    public const SETTLED_EVALUATION = ['completed', 'not_required'];
+
+    /** Apakah evaluasi penugasan ini sudah tidak ditunggu lagi. */
+    public function hasSettledEvaluation(): bool
+    {
+        return in_array($this->evaluation_status, self::SETTLED_EVALUATION, true);
+    }
+
     public function markAsReplaced(): void
     {
         $this->update(['status' => 'replaced']);

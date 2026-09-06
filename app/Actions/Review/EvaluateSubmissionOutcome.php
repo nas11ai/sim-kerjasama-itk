@@ -3,6 +3,7 @@
 namespace App\Actions\Review;
 
 use App\Models\FormSubmission;
+use App\Models\SubmissionReviewer;
 use App\States\Submission\Approved;
 use App\States\Submission\NeedsRevision;
 use App\States\Submission\SubmissionStatus;
@@ -19,6 +20,9 @@ use RuntimeException;
  *   selesai + tidak ada summary open  → APPROVED   (BR-REV-05)
  *   selesai + ada summary open        → NEEDS_REVISION (BR-REV-06)
  *
+ * Arti "selesai" dipegang `SubmissionReviewer::SETTLED_EVALUATION` — satu
+ * kosakata, dipakai juga oleh `ReviewSummaryGuard` (BR-FE-06).
+ *
  * Yang **tidak** ada di sini, dan tidak boleh ditambahkan: jalur ke REJECTED.
  * Penolakan hanya lewat aksi eksplisit Operator — [ADR 0006](docs/adr/0006-rejection-is-manual-only.md),
  * BR-REV-07, BR-REV-14. Dikunci `[REV-OUTCOME-08]`.
@@ -26,16 +30,6 @@ use RuntimeException;
 class EvaluateSubmissionOutcome
 {
     use AsAction;
-
-    /**
-     * Status evaluasi yang dihitung selesai.
-     *
-     * `not_required` ikut, dan itu bukan kelonggaran melainkan keharusan:
-     * dibaca harfiah sebagai `completed` saja, reviewer yang memang tidak
-     * diwajibkan menilai tidak akan pernah menjadi `completed` dan
-     * submission-nya terkunci selamanya tanpa ada yang salah (register #14).
-     */
-    private const SETTLED = ['completed', 'not_required'];
 
     public function handle(FormSubmission $submission): FormSubmission
     {
@@ -72,7 +66,7 @@ class EvaluateSubmissionOutcome
     {
         return !$submission->submissionReviewers()
             ->where('status', 'active')
-            ->whereNotIn('evaluation_status', self::SETTLED)
+            ->whereNotIn('evaluation_status', SubmissionReviewer::SETTLED_EVALUATION)
             ->exists();
     }
 
