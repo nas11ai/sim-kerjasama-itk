@@ -3,21 +3,6 @@
 #
 # BR yang bukan perilaku TIDAK ditulis di sini — tempatnya non-behavioral.md.
 #
-# max: 16
+# max: 0
 
-BR-NOT-01
-BR-NOT-02
-BR-NOT-03
-BR-NOT-04
-BR-NOT-06
-BR-RPT-02
-BR-RPT-03
-BR-RPT-04
-BR-RPT-05
-BR-RPT-07
-BR-RPT-08
-BR-RPT-09
-BR-RPT-10
-BR-SC-01
-BR-SC-02
-BR-SC-03
+

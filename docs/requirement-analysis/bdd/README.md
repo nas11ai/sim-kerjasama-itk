@@ -194,6 +194,33 @@ pembeda: penugasan reviewer monev selalu per siklus, tidak pernah diwarisi.
 | `Then SubmissionReviewer baru terbentuk untuk siklus itu` | Bukti BR-MON-06 — bukan reuse record |
 | `Then pembatalan ditolak karena <alasan>` | Penolakan pembatalan penarikan |
 
+Tabel ketujuh tumbuh dari M5 (Reporting, Notification & Config) — lapisan yang
+menyentuh seluruh sistem tapi tidak punya alur bisnisnya sendiri.
+
+| Frasa baku | Dipakai untuk |
+| ---------- | ------------- |
+| `Given hasil ekspor berjumlah <n> baris` | Ambang 100 baris BR-RPT-02 |
+| `Given ada entri audit untuk "<id>"` | Menyiapkan jejak audit |
+| `Given "<orang>" punya notifikasi in-app` | Notifikasi yang sudah ada |
+| `Given event <Event> dideklarasikan hanya in-app` | Deklarasi channel yang bisa diubah |
+| `Given event <Event> belum punya deklarasi channel` | Event tanpa deklarasi — harus ditolak |
+| `Given kanal email sedang tidak bisa dihubungi` | Menguji fire-and-forget BR-NOT-03 |
+| `Given <Entity> "<nama>" masih dipakai <relasi> aktif` | Entity acuan yang tidak boleh dihapus |
+| `When Operator meminta ekspor data submission` | Aksi ekspor |
+| `When "<orang>" meminta ekspor data submission miliknya` | Ekspor ter-scope Researcher |
+| `When Operator membuka audit log` | Melihat jejak audit |
+| `When event <Event> dipublish untuk "<orang>"` | Memicu notifikasi |
+| `When admin mengubah channel <Event> menjadi <daftar>` | Mengubah konfigurasi channel |
+| `When admin menghapus <Entity> "<nama>"` | Penghapusan entity acuan |
+| `When admin mengganti nama <Entity> itu menjadi "<nama>"` | Penggantian nama entity acuan |
+| `Then ekspor selesai langsung` | Ekspor sinkron |
+| `Then ekspor dijadwalkan sebagai background job` | Ekspor asinkron |
+| `Then hasil ekspor <memuat\|tidak memuat> "<id>"` | Isi hasil ekspor — pasangan positif-negatif |
+| `Then entri audit baru tercatat untuk "<id>"` | Efek audit |
+| `Then penghapusan ditolak karena audit log bersifat append-only` | Penjagaan BR-RPT-04 |
+| `Then "<orang>" <menerima\|tidak menerima> notifikasi <in-app\|email>` | Channel yang benar-benar dipakai |
+| `Then publikasi ditolak karena <alasan>` | Penolakan publish event |
+
 **Aturannya:** kalau langkah yang kamu butuhkan tidak ada di sini, boleh menambah — tapi
 tambahkan barisnya ke tabel ini dalam PR yang sama. Frasa yang dipakai sekali dan tidak
 pernah lagi adalah tanda skenarionya terlalu spesifik, atau kosakatanya belum ketemu.
