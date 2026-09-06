@@ -4,10 +4,8 @@ namespace App\Models;
 
 use App\States\Submission\Approved;
 use App\States\Submission\NeedsRevision;
-use App\States\Submission\Rejected;
 use App\States\Submission\SubmissionStatus;
 use App\States\Submission\Submitted;
-use App\States\Submission\UnderReview;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -431,13 +429,6 @@ class FormSubmission extends Model
         return $totalReviewers > 0 && $totalReviewers === $approvedReviewers;
     }
 
-    public function hasRejectedReviews()
-    {
-        return $this->reviewSummaries()
-            ->where('status', 'closed')
-            ->exists();
-    }
-
     public function hasRevisionsRequested()
     {
         return $this->reviewSummaries()
@@ -451,37 +442,6 @@ class FormSubmission extends Model
     }
 
     // Updated: Enhanced status update considering evaluations
-    public function updateStatusBasedOnReviews()
-    {
-        $targetState = null;
-
-        if ($this->hasPendingEvaluations()) {
-            $targetState = UnderReview::class;
-        } elseif ($this->hasRejectedReviews()) {
-            $targetState = Rejected::class;
-        } elseif ($this->hasRevisionsRequested()) {
-            $targetState = NeedsRevision::class;
-        } elseif ($this->allReviewersApproved()) {
-            $targetState = Approved::class;
-        } elseif ($this->hasAnyReviews()) {
-            $targetState = UnderReview::class;
-        }
-
-        if (!$targetState) {
-            return;
-        }
-
-        if ($this->status->canTransitionTo($targetState)) {
-            $this->status->transitionTo($targetState);
-        } elseif ($this->status->canTransitionTo(UnderReview::class)) {
-            $this->status->transitionTo(UnderReview::class);
-
-            /** @phpstan-ignore-next-line */
-            if ($this->status->canTransitionTo($targetState)) {
-                $this->status->transitionTo($targetState);
-            }
-        }
-    }
 
     public function getActiveReviewThreadsCount(): int
     {

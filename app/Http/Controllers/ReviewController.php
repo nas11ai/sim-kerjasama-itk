@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Actions\Review\AssignReviewer;
+use App\Actions\Review\EvaluateSubmissionOutcome;
 use App\Models\FormPhase;
 use App\Models\FormPhaseDetail;
 use App\Models\FormSubmission;
@@ -139,7 +140,7 @@ class ReviewController extends Controller
             if ($submission->submissionReviewers()->count() === 0) {
                 $submission->status->transitionTo(Submitted::class);
             } else {
-                $this->updateSubmissionStatusBasedOnReviews($submission);
+                EvaluateSubmissionOutcome::run($submission);
             }
 
             // TAMBAHKAN: Kirim email notifikasi removal
@@ -562,7 +563,10 @@ class ReviewController extends Controller
     public function updateReviewStatus(Request $request, ReviewSummary $reviewSummary)
     {
         $request->validate([
-            'status' => 'required|in:open,resolved,closed',
+            // BR-REV-13 — ReviewSummary hanya `open` atau `resolved`.
+            // `closed` tidak pernah ada di domain ini, dan menerimanya
+            // menyalakan jalur auto-reject yang dilarang ADR 0006.
+            'status' => 'required|in:open,resolved',
         ]);
 
         $user = Auth::user();
@@ -610,8 +614,10 @@ class ReviewController extends Controller
             /** @var FormSubmission $submission */
             $submission = $reviewSummary->formSubmission;
 
-            // Auto-update submission status based on review statuses
-            $this->updateSubmissionStatusBasedOnReviews($reviewSummary->formSubmission);
+            // BR-REV-05/06 ditegakkan satu tempat. Sebelumnya ada tiga
+            // salinan aturan ini, dan dua di antaranya berpindah ke REJECTED
+            // secara otomatis — dilarang ADR 0006, BR-REV-07, BR-REV-14.
+            EvaluateSubmissionOutcome::run($submission);
 
             // TAMBAHKAN: Kirim email notifikasi status changed
             $this->emailService->notifyReviewStatusChanged($reviewSummary, $oldStatus);
@@ -619,7 +625,6 @@ class ReviewController extends Controller
 
         $statusText = match ($request->status) {
             'resolved' => 'diselesaikan',
-            'closed' => 'ditutup',
             'open' => 'dibuka kembali',
             default => throw new \InvalidArgumentException('Invalid review status value'),
         };
@@ -641,43 +646,6 @@ class ReviewController extends Controller
     }
 
     // Enhanced status update method considering evaluations
-    private function updateSubmissionStatusBasedOnReviews(FormSubmission $submission)
-    {
-        $reviewSummaries = ReviewSummary::where('form_submission_id', $submission->id)->get();
-
-        if ($submission->hasPendingEvaluations()) {
-            if ($submission->status->canTransitionTo(UnderReview::class)) {
-                $submission->status->transitionTo(UnderReview::class);
-            }
-
-            return;
-        }
-
-        if ($reviewSummaries->isEmpty()) {
-            return;
-        }
-
-        $targetState = UnderReview::class;
-
-        if ($reviewSummaries->where('status', 'closed')->isNotEmpty()) {
-            $targetState = Rejected::class;
-        } elseif ($reviewSummaries->where('status', 'open')->isNotEmpty()) {
-            $targetState = NeedsRevision::class;
-        } elseif ($reviewSummaries->every(fn ($r) => $r->status === 'resolved')) {
-            $targetState = Approved::class;
-        }
-
-        if ($submission->status->canTransitionTo($targetState)) {
-            $submission->status->transitionTo($targetState);
-        } elseif ($submission->status->canTransitionTo(UnderReview::class)) {
-            $submission->status->transitionTo(UnderReview::class);
-
-            /** @phpstan-ignore-next-line */
-            if ($submission->status->canTransitionTo($targetState)) {
-                $submission->status->transitionTo($targetState);
-            }
-        }
-    }
 
     /** @phpstan-ignore-next-line */
     private function checkIfEvaluationsArePositive(FormSubmission $submission): bool

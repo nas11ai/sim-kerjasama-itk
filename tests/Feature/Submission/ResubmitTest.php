@@ -67,16 +67,14 @@ it('[SM-STATE-03] revisi kembali masuk antrean review', function () {
 
     ResubmitFormSubmission::run($submission, $owner);
 
-    expect($submission->fresh()->status)->toBeInstanceOf(Resubmitted::class);
-
-    // Yang memindahkan RESUBMITTED → UNDER_REVIEW adalah kode produksi —
-    // FormSubmission::updateStatusBasedOnReviews(), yang dipanggil
-    // ReviewController::assignReviewers() setelah reviewer ditugaskan. Test
-    // ini tidak boleh melakukan transisinya sendiri: yang harus dibuktikan
-    // adalah sistem yang mengantrekan ulang, bukan bahwa transisinya sah
-    // (itu sudah dibuktikan SubmissionStateTest).
-    $submission->fresh()->updateStatusBasedOnReviews();
-
+    // Submission yang reviewer-nya masih terpasang langsung masuk antrean
+    // review lagi — RESUBMITTED hanya dilewati, bukan diendapkan. Bahwa
+    // lompatan status tidak terjadi (BR-SM-03) sudah dibuktikan
+    // SubmissionStateTest; yang dibuktikan di sini keadaan akhirnya.
+    //
+    // Dulu pengantrean ini efek samping
+    // FormSubmission::updateStatusBasedOnReviews(), yang dihapus karena
+    // memuat jalur auto-reject terlarang (ADR 0006).
     expect($submission->fresh()->status)
         ->toBeInstanceOf(UnderReview::class);
 });
