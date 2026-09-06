@@ -21,12 +21,8 @@ use App\Models\FormPhase;
 use App\Models\FormPhaseDetail;
 use App\Models\FormSubmission;
 use App\Models\Organization;
-use App\Models\PhaseType;
-use App\Models\SubmissionDate;
-use App\Models\SubmissionDateLabel;
 use App\Models\SubmissionPeriod;
 use App\Models\User;
-use App\Models\UserProfile;
 use Spatie\Permission\Models\Permission;
 
 /**
@@ -36,40 +32,6 @@ use Spatie\Permission\Models\Permission;
  *
  * @return array{form: Form, detail: FormPhaseDetail, period: SubmissionPeriod}
  */
-function buildAccessibleFormPhaseDetail(User $user, Organization $organization, FormAccessControl $accessControl, FormPhase $formPhase): array
-{
-    $phaseType = PhaseType::create(['name' => 'Tipe Fase '.fake()->unique()->numerify('####-####')]);
-    $period = SubmissionPeriod::factory()->create();
-    $dateLabel = SubmissionDateLabel::create(['name' => 'Label '.fake()->unique()->numerify('####-####')]);
-    $submissionDate = SubmissionDate::create([
-        'submission_date_label_id' => $dateLabel->id,
-        'datetime' => now()->addWeek(),
-        'submission_period_id' => $period->id,
-    ]);
-
-    $detail = FormPhaseDetail::create([
-        'form_phase_id' => $formPhase->id,
-        'form_access_control_id' => $accessControl->id,
-        'phase_type_id' => $phaseType->id,
-        'order' => 1,
-        'submission_date_id' => $submissionDate->id,
-    ]);
-
-    return ['form' => $accessControl->form, 'detail' => $detail, 'period' => $period];
-}
-
-function actingResearcher(): array
-{
-    $organization = Organization::create(['name' => 'Organisasi Uji '.fake()->unique()->numerify('####-####'), 'type' => 'study_program']);
-    $user = User::factory()->create();
-    UserProfile::factory()->create(['user_id' => $user->id, 'organization_id' => $organization->id]);
-
-    Permission::findOrCreate('submissions.create', 'web');
-    $user->givePermissionTo('submissions.create');
-
-    return [$user, $organization];
-}
-
 function draftPayload(Form $form, SubmissionPeriod $period, FormPhase $formPhase): array
 {
     $fieldType = FieldType::create(['name' => 'text '.fake()->unique()->numerify('####-####')]);

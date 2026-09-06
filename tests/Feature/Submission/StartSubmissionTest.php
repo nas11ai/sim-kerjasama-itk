@@ -6,37 +6,10 @@
 // menjadi jangkar Temporal Field Binding (BR-FE-11).
 
 use App\Actions\FormSubmission\StartSubmission;
-use App\Models\Form;
-use App\Models\FormAccessControl;
-use App\Models\FormPhase;
-use App\Models\FormPhaseDetail;
 use App\Models\FormSubmission;
-use App\Models\SubmissionPeriod;
-use App\Models\User;
 use App\States\Submission\Draft;
 use App\States\Submission\NeedsRevision;
 use App\States\Submission\Rejected;
-
-/** @return array{user: User, form: Form, period: SubmissionPeriod, detail: FormPhaseDetail} */
-function wizardFixture(): array
-{
-    [$user, $organization] = actingResearcher();
-    $form = Form::factory()->create();
-    $accessControl = FormAccessControl::create([
-        'form_id' => $form->id,
-        'permission' => 'submissions.create',
-        'organization_id' => $organization->id,
-    ]);
-    $formPhase = FormPhase::create(['title' => 'Fase Uji', 'is_active' => true]);
-    $built = buildAccessibleFormPhaseDetail($user, $organization, $accessControl, $formPhase);
-
-    return [
-        'user' => $user,
-        'form' => $form,
-        'period' => $built['period'],
-        'detail' => $built['detail'],
-    ];
-}
 
 it('[SM-WIZARD-01] langkah 1 membuat draft beserta jangkar temporalnya', function () {
     $fx = wizardFixture();
