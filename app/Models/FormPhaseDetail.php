@@ -159,14 +159,29 @@ class FormPhaseDetail extends Model
     /**
      * Scope a query to order by the order column.
      */
+    /**
+     * BR-FE-17 — jendela kerja detail ini sendiri.
+     *
+     * Periodenya dibaca dari `SubmissionDate` milik detail ini, bukan dari
+     * `formPhase->submissionPeriod`: tabel `form_phases` tidak punya kolom
+     * `submission_period_id`, jadi relasi itu selalu null dan method ini
+     * dulu selalu fatal. Tidak pernah ketahuan karena belum ada pemanggilnya.
+     *
+     * Sumber yang benar juga yang paling masuk akal: tiap detail menggantung
+     * pada tanggalnya sendiri, dan tanggal itulah yang tahu periodenya
+     * (ADR 0014).
+     */
     public function isWithinDeadline(): bool
     {
-        $period = $this->formPhase->submissionPeriod;
-        if ($period->is_force_closed) {
+        $date = $this->submissionDate;
+        $period = $date->submissionPeriod;
+
+        // Force close mengalahkan tanggal per detail — sumbu yang berbeda.
+        if ($period !== null && $period->is_force_closed) {
             return false;
         }
 
-        return now()->lte($this->submissionDate->datetime);
+        return now()->lte($date->datetime);
     }
 
     public function scopeOrdered($query)

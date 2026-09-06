@@ -22,7 +22,8 @@ class SubmissionDate extends Model
         'datetime' => 'datetime',
     ];
 
-    public function submissionPeriod()
+    /** @return BelongsTo<SubmissionPeriod, $this> */
+    public function submissionPeriod(): BelongsTo
     {
         return $this->belongsTo(SubmissionPeriod::class);
     }

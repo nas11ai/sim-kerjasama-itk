@@ -6,6 +6,7 @@ use App\Models\FormSubmission;
 use App\Models\Reviewer;
 use App\Models\SubmissionReviewer;
 use App\Models\User;
+use App\Notifications\ReviewerAssignedNotification;
 use App\States\Submission\SubmissionStatus;
 use App\States\Submission\UnderReview;
 use App\Support\ConflictOfInterestGuard;
@@ -52,7 +53,7 @@ class AssignReviewer
         $this->guardTenure($reviewer);
         $this->guardNotAlreadyAssigned($submission, $reviewer);
 
-        return DB::transaction(function () use ($submission, $reviewer): SubmissionReviewer {
+        return DB::transaction(function () use ($submission, $reviewer, $candidate): SubmissionReviewer {
             $assignment = SubmissionReviewer::create([
                 'form_submission_id' => $submission->id,
                 'reviewer_id' => $reviewer->id,
@@ -61,6 +62,11 @@ class AssignReviewer
             ]);
 
             $this->moveToReviewWhenMinimumReached($submission);
+
+            // BR-REV-01 — reviewer diberi tahu. Beban tinggi (BR-REV-04)
+            // sengaja tidak menghalangi: itu peringatan untuk Operator,
+            // bukan penolakan.
+            $candidate->notify(new ReviewerAssignedNotification($submission));
 
             return $assignment;
         });
