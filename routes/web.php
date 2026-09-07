@@ -7,6 +7,7 @@ use App\Http\Controllers\FacultyController;
 use App\Http\Controllers\FormAccessControlController;
 use App\Http\Controllers\FormController;
 use App\Http\Controllers\FormPhaseController;
+use App\Http\Controllers\OrganizationController;
 use App\Http\Controllers\PermissionController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Review\ReplaceReviewerController;
@@ -566,6 +567,10 @@ Route::middleware(['auth'])->group(function () {
             ->name('schemes.deactivate');
         Route::post('/schemes/{scheme}/activate', [SchemeController::class, 'activate'])
             ->name('schemes.activate');
+        // BR-IAM-08 — penghapusan unit; undangan yang belum terpakai ikut
+        // tercabut alih-alih menghalangi (register #18).
+        Route::delete('/organizations/{organization}', [OrganizationController::class, 'destroy'])
+            ->name('organizations.destroy');
         // BR-FE-08/09/10 — perpanjangan akses satu fase untuk satu pengajuan.
         Route::post('/submissions/{submission}/overrides', [PhaseOverrideController::class, 'store'])
             ->name('submissions.overrides.store');

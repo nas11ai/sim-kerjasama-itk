@@ -17,6 +17,11 @@ Route::middleware('guest')->group(function () {
 
     Route::post('register', [RegisteredUserController::class, 'store']);
 
+    // BR-IAM-06/12 — jalur undangan. Tokennya di URL supaya tautan yang
+    // dibagikan PIC institusi mitra langsung membawa konteks organisasinya.
+    Route::post('register/invitation/{token}', [RegisteredUserController::class, 'storeInvited'])
+        ->name('register.invitation');
+
     Route::get('login', [AuthenticatedSessionController::class, 'create'])
         ->name('login');
 

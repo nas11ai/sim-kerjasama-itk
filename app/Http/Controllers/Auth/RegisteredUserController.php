@@ -2,17 +2,16 @@
 
 namespace App\Http\Controllers\Auth;
 
+use App\Actions\Identity\RegisterByInvitation;
+use App\Actions\Identity\RegisterResearcher;
 use App\Http\Controllers\Controller;
+use App\Models\InvitationToken;
 use App\Models\Organization;
 use App\Models\User;
-use App\Models\UserProfile;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules;
 use Illuminate\Validation\ValidationException;
@@ -43,77 +42,72 @@ class RegisteredUserController extends Controller
     }
 
     /**
-     * Handle an incoming registration request.
+     * BR-IAM-01, BR-IAM-02, BR-IAM-12 — registrasi mandiri dosen ITK.
+     *
+     * Cabang `app()->environment('testing')` yang dulu ada di sini dicabut:
+     * ia membuat jalur yang diuji berbeda dari jalur yang berjalan, sehingga
+     * test "new users can register" lulus dengan email `@example.com` yang
+     * seharusnya ditolak BR-IAM-01. Test yang menguji jalur lain tidak
+     * membuktikan apa pun tentang jalur yang sesungguhnya.
      *
      * @throws ValidationException
      */
     public function store(Request $request): RedirectResponse
     {
-        // Default Laravel testing
-        if (app()->environment('testing')) {
-            $request->validate([
-                'name' => 'required|string|max:255',
-                'email' => 'required|string|lowercase|email|max:255|unique:'.User::class,
-                'password' => ['required', 'confirmed', Rules\Password::defaults()],
-            ]);
-
-            $user = User::create([
-                'name' => $request->name,
-                'email' => $request->email,
-                'password' => Hash::make($request->password),
-            ]);
-
-            event(new Registered($user));
-
-            Auth::login($user);
-
-            return redirect(route('dashboard', absolute: false));
-        }
-
-        // Production logic
-        $request->validate([
+        $validated = $request->validate([
             'name' => 'required|string|max:255',
             'email' => 'required|string|lowercase|email|max:255|unique:'.User::class,
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
-            'role' => 'required|exists:roles,id',
-            'study_program' => ['required', Rule::exists('organizations', 'id')->where('type', 'study_program')],
+            'nidn' => 'required|string|max:32',
+            'organization_id' => ['required', Rule::exists('organizations', 'id')],
         ]);
 
-        DB::beginTransaction();
+        $user = RegisterResearcher::run([
+            'name' => $validated['name'],
+            'email' => $validated['email'],
+            'password' => $validated['password'],
+            'nidn' => $validated['nidn'],
+            'organization_id' => (int) $validated['organization_id'],
+        ]);
 
-        try {
-            $user = User::create([
-                'name' => $request->name,
-                'email' => $request->email,
-                'password' => Hash::make($request->password),
-            ]);
+        event(new Registered($user));
 
-            $role = Role::findById($request->role);
-            $user->assignRole($role->name);
+        // BR-IAM-04 — akun `pending` boleh masuk. Kalau tidak, layar
+        // "Menunggu Verifikasi" tidak akan pernah terbaca dan pendaftar
+        // menghadapi jalan buntu selama verifikasi berjalan berhari-hari.
+        Auth::login($user);
 
-            UserProfile::create([
-                'user_id' => $user->id,
-                'role_id' => $request->role,
-                'organization_id' => $request->study_program,
-            ]);
+        return redirect()->route('dashboard');
+    }
 
-            DB::commit();
+    /**
+     * BR-IAM-06, BR-IAM-12 — registrasi lewat tautan undangan.
+     *
+     * Tidak dibatasi domain, dan akunnya aktif seketika: tidak ada NIDN untuk
+     * diverifikasi, dan Operator sudah menyaring saat menerbitkan token.
+     *
+     * @throws ValidationException
+     */
+    public function storeInvited(Request $request, string $token): RedirectResponse
+    {
+        $invitation = InvitationToken::where('token', $token)->firstOrFail();
 
-            event(new Registered($user));
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|string|lowercase|email|max:255|unique:'.User::class,
+            'password' => ['required', 'confirmed', Rules\Password::defaults()],
+        ]);
 
-            return redirect()
-                ->route('login')
-                ->with('success', 'Akun Anda berhasil dibuat. Silakan masuk untuk melanjutkan.');
-        } catch (\Exception $e) {
-            DB::rollBack();
+        $user = RegisterByInvitation::run($invitation, [
+            'name' => $validated['name'],
+            'email' => $validated['email'],
+            'password' => $validated['password'],
+        ]);
 
-            Log::error('Registration failed: '.$e->getMessage());
+        event(new Registered($user));
 
-            return redirect()->back()
-                ->withInput()
-                ->withErrors([
-                    'error' => 'Pendaftaran gagal. Periksa kembali data Anda lalu coba lagi.',
-                ]);
-        }
+        Auth::login($user);
+
+        return redirect()->route('dashboard');
     }
 }

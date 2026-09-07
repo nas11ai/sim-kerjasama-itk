@@ -9,6 +9,13 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 
+/**
+ * @property int $id
+ * @property string $name
+ * @property string $type
+ * @property int|null $parent_id
+ * @property bool $is_active
+ */
 class Organization extends Model
 {
     protected $fillable = [
