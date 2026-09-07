@@ -1,0 +1,77 @@
+<?php
+
+namespace App\Http\Controllers\Identity;
+
+use App\Actions\Identity\AppointReviewer;
+use App\Http\Controllers\Controller;
+use App\Models\User;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\Rule;
+
+/**
+ * BR-IAM-09, BR-IAM-11 — hak akses dan penunjukan reviewer atas satu user.
+ *
+ * Hak akses langsung **menambah**, tidak menggantikan yang datang dari role
+ * (BR-IAM-09) — dan itu berlaku di kedua arah: mencabut salah satu sumber
+ * tidak menyentuh yang lain. Spatie sudah begitu; yang perlu dijaga adalah
+ * jangan ada pembungkus di sini yang meratakannya jadi satu daftar.
+ */
+class UserAccessController extends Controller
+{
+    public function appointReviewer(Request $request, User $user): RedirectResponse
+    {
+        $this->authorizeManage();
+
+        $validated = $request->validate([
+            'reviewer_type' => ['required', Rule::in([AppointReviewer::TYPE_INTERNAL, AppointReviewer::TYPE_EXTERNAL])],
+            'start_date' => 'nullable|date',
+            'end_date' => 'nullable|date|after:start_date',
+        ]);
+
+        AppointReviewer::run(
+            $user,
+            $validated['reviewer_type'],
+            $validated['start_date'] ?? null,
+            $validated['end_date'] ?? null,
+        );
+
+        return back()->with('success', 'Reviewer ditunjuk.');
+    }
+
+    public function grantPermission(Request $request, User $user): RedirectResponse
+    {
+        $this->authorizeManage();
+
+        $validated = $request->validate([
+            'permission' => 'required|string|exists:permissions,name',
+        ]);
+
+        $user->givePermissionTo($validated['permission']);
+
+        return back()->with('success', 'Hak akses ditambahkan.');
+    }
+
+    public function revokePermission(Request $request, User $user): RedirectResponse
+    {
+        $this->authorizeManage();
+
+        $validated = $request->validate([
+            'permission' => 'required|string|exists:permissions,name',
+        ]);
+
+        // BR-IAM-09 — hanya hak akses **langsung** yang dicabut. Yang datang
+        // dari role tetap, dan itulah yang membuat "additive" berarti sesuatu.
+        $user->revokePermissionTo($validated['permission']);
+
+        return back()->with('success', 'Hak akses langsung dicabut.');
+    }
+
+    private function authorizeManage(): void
+    {
+        $actor = Auth::user();
+
+        abort_unless($actor !== null && $actor->can('users.manage'), 403);
+    }
+}

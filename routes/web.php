@@ -8,6 +8,7 @@ use App\Http\Controllers\FormAccessControlController;
 use App\Http\Controllers\FormController;
 use App\Http\Controllers\FormPhaseController;
 use App\Http\Controllers\Identity\NidnVerificationController;
+use App\Http\Controllers\Identity\UserAccessController;
 use App\Http\Controllers\OrganizationController;
 use App\Http\Controllers\PermissionController;
 use App\Http\Controllers\ProfileController;
@@ -572,6 +573,9 @@ Route::middleware(['auth'])->group(function () {
         // tercabut alih-alih menghalangi (register #18).
         Route::delete('/organizations/{organization}', [OrganizationController::class, 'destroy'])
             ->name('organizations.destroy');
+        // BR-IAM-14 — ambangnya user aktif, berbeda dari penghapusan.
+        Route::post('/organizations/{organization}/deactivate', [OrganizationController::class, 'deactivate'])
+            ->name('organizations.deactivate');
         // BR-IAM-04/12/13 — antrian verifikasi NIDN beserta dua keputusannya.
         Route::get('/verifications', [NidnVerificationController::class, 'index'])
             ->name('verifications.index');
@@ -579,6 +583,13 @@ Route::middleware(['auth'])->group(function () {
             ->name('verifications.verify');
         Route::post('/verifications/{profile}/reject', [NidnVerificationController::class, 'reject'])
             ->name('verifications.reject');
+        // BR-IAM-09/11 — hak akses langsung dan penunjukan reviewer.
+        Route::post('/users/{user}/appoint-reviewer', [UserAccessController::class, 'appointReviewer'])
+            ->name('users.appoint-reviewer');
+        Route::post('/users/{user}/permissions', [UserAccessController::class, 'grantPermission'])
+            ->name('users.permissions.grant');
+        Route::delete('/users/{user}/permissions', [UserAccessController::class, 'revokePermission'])
+            ->name('users.permissions.revoke');
         // BR-FE-08/09/10 — perpanjangan akses satu fase untuk satu pengajuan.
         Route::post('/submissions/{submission}/overrides', [PhaseOverrideController::class, 'store'])
             ->name('submissions.overrides.store');

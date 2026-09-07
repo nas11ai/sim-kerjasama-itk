@@ -50,6 +50,25 @@ class LoginRequest extends FormRequest
             ]);
         }
 
+        // BR-IAM-05 — keaktifan akun menggerbang **login**, sumbu yang berbeda
+        // dari verifikasi NIDN (yang menggerbang submit). Akun `pending` tetap
+        // boleh masuk — kalau tidak, layar "Menunggu Verifikasi" tidak akan
+        // pernah terbaca. Akun nonaktif tidak.
+        //
+        // Diperiksa setelah Auth::attempt, bukan sebelumnya: menolak lebih awal
+        // membocorkan mana email yang terdaftar kepada siapa pun yang menebak.
+        $user = Auth::user();
+
+        if ($user !== null && !$user->is_active) {
+            Auth::logout();
+
+            RateLimiter::hit($this->throttleKey());
+
+            throw ValidationException::withMessages([
+                'email' => 'Akun Anda tidak aktif. Hubungi Operator LPPM di lppm@itk.ac.id.',
+            ]);
+        }
+
         RateLimiter::clear($this->throttleKey());
     }
 

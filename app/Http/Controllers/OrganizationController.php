@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Actions\Identity\DeactivateOrganization;
 use App\Actions\Identity\DeleteOrganization;
 use App\Models\Organization;
 use Illuminate\Http\RedirectResponse;
@@ -16,6 +17,27 @@ use Illuminate\Support\Facades\Auth;
  */
 class OrganizationController extends Controller
 {
+    /**
+     * BR-IAM-14 — operasi sehari-harinya. Ambangnya user **aktif**, bukan
+     * profil apa pun; endpoint terpisah dari destroy justru supaya perbedaan
+     * itu tidak kabur.
+     */
+    public function deactivate(Organization $organization): RedirectResponse
+    {
+        $user = Auth::user();
+
+        abort_unless($user !== null && $user->can('users.manage'), 403);
+
+        $terdampak = DeactivateOrganization::run($organization);
+
+        return back()->with(
+            'success',
+            $terdampak === 0
+                ? 'Unit organisasi dinonaktifkan.'
+                : "Unit organisasi dinonaktifkan. {$terdampak} undangan registrasi ikut tidak berlaku."
+        );
+    }
+
     public function destroy(Organization $organization): RedirectResponse
     {
         $user = Auth::user();

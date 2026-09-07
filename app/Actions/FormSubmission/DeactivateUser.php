@@ -5,6 +5,7 @@ namespace App\Actions\FormSubmission;
 use App\Models\FormSubmission;
 use App\Models\ResearchMember;
 use App\Models\User;
+use App\Notifications\AccountDeactivatedNotification;
 use App\States\Submission\Rejected;
 use App\States\Submission\Withdrawn;
 use Illuminate\Support\Collection;
@@ -51,6 +52,10 @@ class DeactivateUser
         }
 
         $user->update(['is_active' => false]);
+
+        // BR-IAM-15 — keputusan orang lain atas akunnya; ia tidak akan
+        // menemukan sendiri selain lewat layar login yang menolaknya.
+        $user->notify(new AccountDeactivatedNotification);
 
         return $user->refresh();
     }
