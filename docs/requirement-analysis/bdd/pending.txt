@@ -7,7 +7,7 @@
 # Plafon hanya boleh NAIK saat skenario baru ditulis, dan wajib TURUN saat skenario
 # lama diimplementasikan. Ia tidak pernah naik untuk menampung utang yang menumpuk.
 #
-# max: 149
+# max: 145
 
 FE-CHANGE-01
 FE-CHANGE-02
@@ -16,10 +16,6 @@ FE-CHANGE-04
 FE-CHILD-01
 FE-CHILD-02
 FE-CHILD-03
-FE-LOCK-01
-FE-LOCK-02
-FE-LOCK-03
-FE-LOCK-04
 IAM-DEACT-01
 IAM-DEACT-02
 IAM-DEACT-03

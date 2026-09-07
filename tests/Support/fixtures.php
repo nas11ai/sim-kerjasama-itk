@@ -108,7 +108,7 @@ function wizardFixture(): array
  *
  * @return array{form: Form, detail: FormPhaseDetail, period: SubmissionPeriod}
  */
-function draftPayload(Form $form, SubmissionPeriod $period, FormPhase $formPhase): array
+function draftPayload(Form $form, SubmissionPeriod $period, FormPhase $formPhase, ?string $lastUpdatedAt = null): array
 {
     $fieldType = FieldType::create(['name' => 'text '.fake()->unique()->numerify('####-####')]);
     $field = FormField::create([
@@ -123,6 +123,9 @@ function draftPayload(Form $form, SubmissionPeriod $period, FormPhase $formPhase
         'form_id' => $form->id,
         'submission_period_id' => $period->id,
         'form_phase_id' => $formPhase->id,
+        // BR-FE-14 — cap waktu optimistic lock. Dibiarkan null kalau pemanggil
+        // memang sedang menguji jalur tanpa baris pengajuan.
+        'last_updated_at' => $lastUpdatedAt,
         'responses' => [
             ['form_field_id' => $field->id, 'value' => 'Contoh nilai'],
         ],

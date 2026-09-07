@@ -89,6 +89,8 @@ it('menyusuri alur pengajuan sampai disetujui lewat HTTP', function () {
             'submission_period_id' => $fx['period']->id,
             'form_phase_id' => $fx['detail']->form_phase_id,
             'is_submitted' => true,
+            // BR-FE-14 — jalur simpan membawa cap waktu yang dilihat penyunting.
+            'last_updated_at' => $submission->fresh()->updated_at->toIso8601String(),
             // Bentuk yang dituntut submitForm(): daftar objek berisi
             // form_field_id + value, bukan peta field_{id} => nilai.
             'responses' => [

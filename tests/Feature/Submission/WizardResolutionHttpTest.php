@@ -88,8 +88,15 @@ it('[SM-SUBMIT-18] fase yang tidak butuh review tetap mendarat di SUBMITTED', fu
         $fx['form']->id, $fx['period']->id, $fx['detail'], $fx['user']
     );
 
+    $submissionAwal = FormSubmission::where('form_id', $fx['form']->id)->sole();
+
     $this->actingAs($fx['user'])
-        ->post(route('user.form-submission.submit'), draftPayload($fx['form'], $fx['period'], $fx['detail']->formPhase))
+        ->post(route('user.form-submission.submit'), draftPayload(
+            $fx['form'],
+            $fx['period'],
+            $fx['detail']->formPhase,
+            $submissionAwal->updated_at->toIso8601String(),
+        ))
         ->assertRedirect();
 
     $submission = FormSubmission::where('form_id', $fx['form']->id)->sole();

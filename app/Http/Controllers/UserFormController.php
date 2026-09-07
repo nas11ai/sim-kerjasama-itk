@@ -17,6 +17,7 @@ use App\Models\SubmissionPeriod;
 use App\Models\User;
 use App\Services\EmailNotificationService;
 use App\Services\FormAccessService;
+use App\Support\OptimisticLock;
 use App\Support\PhaseAccessGate;
 use App\Support\SubmissionPeriodGate;
 use Illuminate\Database\Eloquent\Builder;
@@ -359,6 +360,12 @@ class UserFormController extends Controller
             'responses' => 'required|array',
             'responses.*.form_field_id' => 'required|exists:form_fields,id',
             'responses.*.value' => 'nullable',
+            // BR-FE-14 — penyimpanan membawa cap waktu yang dilihat penyunting.
+            // `nullable` di sini, bukan `required`: wajibnya ditegakkan
+            // OptimisticLock **setelah** baris diresolusi, supaya "belum ada
+            // baris" tetap terbaca 409 dan tidak tertukar jadi 422
+            // ([SM-STATE-04]).
+            'last_updated_at' => 'nullable|date',
         ]);
 
         $form = Form::findOrFail($validated['form_id']);
@@ -400,6 +407,12 @@ class UserFormController extends Controller
             // pengajuan+fase ini. Force close periode mengalahkan keduanya.
             PhaseAccessGate::assertOpenFor($submission, $submission->formPhaseDetail);
 
+            // BR-FE-14/BR-SM-12 — dua orang yang menyunting pengajuan yang sama
+            // tidak boleh saling menimpa diam-diam. Diperiksa di dalam
+            // transaksi, setelah baris diresolusi, supaya yang dibandingkan
+            // adalah nilai yang benar-benar akan ditimpa.
+            OptimisticLock::assertNotStale($submission, $validated['last_updated_at'] ?? null);
+
             $this->persistResponses($submission, $validated['responses'], $fileUploads);
         });
 
@@ -419,6 +432,9 @@ class UserFormController extends Controller
             'responses' => 'required|array',
             'responses.*.form_field_id' => 'required|exists:form_fields,id',
             'responses.*.value' => 'nullable',
+            // BR-FE-14 — submit juga menulis isi, jadi ia ikut membawa cap
+            // waktu. `nullable` dengan alasan yang sama seperti di saveDraft.
+            'last_updated_at' => 'nullable|date',
         ]);
 
         // Handle file uploads
@@ -468,6 +484,8 @@ class UserFormController extends Controller
         PhaseAccessGate::assertOpenFor($submission, $submission->formPhaseDetail);
 
         DB::transaction(function () use ($validated, $fileUploads, $submission): void {
+            OptimisticLock::assertNotStale($submission, $validated['last_updated_at'] ?? null);
+
             $this->persistResponses($submission, $validated['responses'], $fileUploads);
         });
 

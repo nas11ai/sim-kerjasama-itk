@@ -268,6 +268,13 @@ watch(
     { immediate: true }
 )
 
+// BR-FE-14/BR-SM-12 — cap waktu yang dilihat penyunting ikut dikirim setiap
+// kali menyimpan. Kalau nilainya sudah bergeser di basis data, server menolak
+// dengan 409 alih-alih menimpa pekerjaan orang lain diam-diam.
+const lastUpdatedAt = computed(
+    () => currentFormAccessControl.value?.user_submission?.updated_at ?? null
+)
+
 const saveDraft = () => {
     if (!currentForm.value) return
 
@@ -276,6 +283,7 @@ const saveDraft = () => {
         submission_period_id: props.submissionPeriod.id,
         form_phase_id: props.formPhase.id,
         is_submitted: false,
+        last_updated_at: lastUpdatedAt.value,
         responses: getFormResponses(),
     }
 
@@ -299,6 +307,7 @@ const submitForm = () => {
         submission_period_id: props.submissionPeriod.id,
         form_phase_id: props.formPhase.id,
         is_submitted: true,
+        last_updated_at: lastUpdatedAt.value,
         responses: getFormResponses(),
     }
 
