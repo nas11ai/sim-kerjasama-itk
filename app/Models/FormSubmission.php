@@ -4,9 +4,12 @@ namespace App\Models;
 
 use App\States\Submission\Approved;
 use App\States\Submission\NeedsRevision;
+use App\States\Submission\Rejected;
 use App\States\Submission\SubmissionStatus;
 use App\States\Submission\Submitted;
+use App\States\Submission\Withdrawn;
 use App\Support\SubmissionPeriodGate;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -330,6 +333,26 @@ class FormSubmission extends Model
                 $submissionReviewer->assignForm($form->id, true, $this->getEvaluationDueDate());
             }
         }
+    }
+
+    /**
+     * **Active Submission** — status-nya bukan REJECTED dan bukan WITHDRAWN.
+     *
+     * Predikat yang sama dipakai index unik BR-SM-01 (ADR 0005), penjagaan
+     * deaktivasi user (BR-IAM-05), dan penonaktifan skema (BR-SCH-01). Ia
+     * tinggal di satu tempat justru karena dipakai bertiga: definisi yang
+     * disalin akan menyimpang, dan menyimpangnya baru ketahuan saat salah satu
+     * gerbang melepaskan sesuatu yang seharusnya ditahan.
+     *
+     * `whereNotState`, bukan `whereNotIn`: kolomnya menyimpan morph name
+     * ("rejected"), bukan nama kelas.
+     *
+     * @param  Builder<FormSubmission>  $query
+     * @return Builder<FormSubmission>
+     */
+    public function scopeActive($query)
+    {
+        return $query->whereNotState('status', [Rejected::class, Withdrawn::class]);
     }
 
     /**

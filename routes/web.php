@@ -17,6 +17,7 @@ use App\Http\Controllers\ReviewerFormAssignmentController;
 use App\Http\Controllers\ReviewEvaluationFormController;
 use App\Http\Controllers\ReviewFormResponseController;
 use App\Http\Controllers\RoleController;
+use App\Http\Controllers\SchemeController;
 use App\Http\Controllers\StatController;
 use App\Http\Controllers\Submission\BudgetLineItemController;
 use App\Http\Controllers\Submission\ChildSubmissionController;
@@ -554,6 +555,17 @@ Route::middleware(['auth'])->group(function () {
             ->name('submissions.replace-reviewer');
         Route::post('/users/{user}/deactivate', UserDeactivationController::class)
             ->name('users.deactivate');
+        // BR-SCH-01/02/03 — sebelum ini skema hanya bisa dibuat lewat seeder.
+        Route::get('/schemes', [SchemeController::class, 'index'])
+            ->name('schemes.index');
+        Route::post('/schemes', [SchemeController::class, 'store'])
+            ->name('schemes.store');
+        Route::put('/schemes/{scheme}', [SchemeController::class, 'update'])
+            ->name('schemes.update');
+        Route::post('/schemes/{scheme}/deactivate', [SchemeController::class, 'deactivate'])
+            ->name('schemes.deactivate');
+        Route::post('/schemes/{scheme}/activate', [SchemeController::class, 'activate'])
+            ->name('schemes.activate');
         // BR-FE-08/09/10 — perpanjangan akses satu fase untuk satu pengajuan.
         Route::post('/submissions/{submission}/overrides', [PhaseOverrideController::class, 'store'])
             ->name('submissions.overrides.store');

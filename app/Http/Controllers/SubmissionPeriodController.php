@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Actions\Period\ExtendSubmissionDates;
 use App\Models\FormPhase;
 use App\Models\SubmissionDate;
 use App\Models\SubmissionDateLabel;
@@ -191,18 +192,12 @@ class SubmissionPeriodController extends Controller
                 'name' => $request->name,
             ]);
 
-            // Delete existing relations
-            $submissionPeriod->submissionDates()->delete();
             $submissionPeriod->submissionPeriodPhases()->delete();
 
-            // Recreate submission dates
-            foreach ($request->submission_dates as $dateData) {
-                SubmissionDate::create([
-                    'submission_period_id' => $submissionPeriod->id,
-                    'submission_date_label_id' => SubmissionDateLabel::where('name', $dateData['label'])->first()->id,
-                    'datetime' => $dateData['date'],
-                ]);
-            }
+            // BR-SCH-08 — pembaruan tanggal beserta pemberitahuannya ada di
+            // Action: yang memicu notifikasi adalah batas yang **mundur**, dan
+            // membedakan itu menuntut membandingkan nilai lama dengan baru.
+            ExtendSubmissionDates::run($submissionPeriod, $request->submission_dates);
 
             // Recreate form phase associations
             foreach ($request->form_phase_ids as $formPhaseId) {

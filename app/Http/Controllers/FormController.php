@@ -7,6 +7,7 @@ use App\Models\Form;
 use App\Models\FormField;
 use App\Models\FormFieldOption;
 use App\Models\FormType;
+use App\Support\SchemeFieldGuard;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
@@ -91,6 +92,12 @@ class FormController extends Controller
             'fields.*.options.*.label' => 'required|string|max:255',
         ]);
 
+        // BR-SCH-05 — trl_selector tidak berdiri sendiri; pilihannya disaring
+        // oleh skema, jadi scheme_selector harus ada di Form yang sama.
+        SchemeFieldGuard::assertTrlHasSchemeSelector(
+            array_column($validated['fields'] ?? [], 'field_type_id')
+        );
+
         DB::transaction(function () use ($validated) {
             $form = Form::create([
                 'title' => $validated['title'],
@@ -161,6 +168,11 @@ class FormController extends Controller
             'fields.*.options.*.id' => 'nullable|exists:form_field_options,id',
             'fields.*.options.*.label' => 'required|string|max:255',
         ]);
+
+        // BR-SCH-05 — berlaku sama saat Form disunting, bukan hanya saat dibuat.
+        SchemeFieldGuard::assertTrlHasSchemeSelector(
+            array_column($validated['fields'] ?? [], 'field_type_id')
+        );
 
         DB::transaction(function () use ($validated, $form) {
             $form->update([

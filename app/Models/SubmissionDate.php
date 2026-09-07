@@ -5,6 +5,7 @@ namespace App\Models;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
  * @property \Illuminate\Support\Carbon $datetime
@@ -33,6 +34,21 @@ class SubmissionDate extends Model
     public function submissionDateLabel(): BelongsTo
     {
         return $this->belongsTo(SubmissionDateLabel::class);
+    }
+
+    /**
+     * FormPhaseDetail yang menggerbangi fasenya dengan tanggal ini.
+     *
+     * Dipakai untuk menolak penghapusan tanggal yang masih menjadi batas
+     * sebuah fase — foreign key sudah menjaganya di database, tapi menabraknya
+     * berarti seluruh penyuntingan periode gagal alih-alih menyisakan yang
+     * memang masih dipakai.
+     *
+     * @return HasMany<FormPhaseDetail, $this>
+     */
+    public function formPhaseDetails(): HasMany
+    {
+        return $this->hasMany(FormPhaseDetail::class);
     }
 
     public function isPassed(): bool

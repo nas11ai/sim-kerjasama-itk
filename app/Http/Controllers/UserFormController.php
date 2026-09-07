@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Actions\FormSubmission\ResolveWizardSubmission;
 use App\Actions\FormSubmission\StartSubmission;
 use App\Actions\FormSubmission\SubmitFormSubmission;
+use App\Actions\Scheme\SyncSchemeSelection;
 use App\Models\Form;
 use App\Models\FormAccessControl;
 use App\Models\FormFieldResponse;
@@ -560,5 +561,12 @@ class UserFormController extends Controller
                 'value' => is_array($value) ? json_encode($value) : (string) $value,
             ]);
         }
+
+        // BR-SCH-04/BR-SCH-10 (ADR 0005) — pilihan scheme_selector dipindahkan
+        // ke kolom scheme_id begitu jawabannya tersimpan. Batas anggaran,
+        // anggota, dan tipe luaran semuanya menanyakan kolom itu; membiarkan
+        // pilihannya hanya sebagai jawaban form memaksa setiap penanya tahu
+        // field mana yang menyimpannya.
+        SyncSchemeSelection::run($submission);
     }
 }

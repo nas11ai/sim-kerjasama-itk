@@ -7,7 +7,7 @@
 # Plafon hanya boleh NAIK saat skenario baru ditulis, dan wajib TURUN saat skenario
 # lama diimplementasikan. Ia tidak pernah naik untuk menampung utang yang menumpuk.
 #
-# max: 142
+# max: 127
 
 FE-CHANGE-01
 FE-CHANGE-02
@@ -136,18 +136,3 @@ SC-CONFIG-01
 SC-CONFIG-02
 SC-CONFIG-03
 SC-CONFIG-04
-SCH-RULE-01
-SCH-RULE-02
-SCH-RULE-03
-SCH-RULE-04
-SCH-RULE-05
-SCH-RULE-06
-SCH-RULE-07
-SCH-RULE-08
-SCH-RULE-09
-SCH-RULE-10
-SCH-RULE-11
-SCH-RULE-12
-SCH-RULE-13
-SCH-RULE-14
-SCH-RULE-15
