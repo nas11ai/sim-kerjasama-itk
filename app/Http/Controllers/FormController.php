@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Actions\Form\NotifyFormChange;
 use App\Models\FieldType;
 use App\Models\Form;
 use App\Models\FormField;
@@ -236,8 +237,14 @@ class FormController extends Controller
             }
         });
 
+        // BR-FE-13 — Admin diberi tahu berapa draft berjalan yang terdampak,
+        // dan pemberitahuan ke penelitinya ditawarkan, bukan dikirim diam-diam.
+        // Tanpa draft berjalan, tidak ada peringatan sama sekali.
+        $terdampak = NotifyFormChange::run($form, $request->boolean('notify_affected'));
+
         return redirect()->route('admin.forms.index')
-            ->with('success', 'Formulir berhasil diperbarui!');
+            ->with('success', 'Formulir berhasil diperbarui!')
+            ->with('affectedDrafts', $terdampak);
     }
 
     public function destroy(Form $form)

@@ -13,6 +13,11 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property-read Collection<int, FormField> $formFields
  * @property-read Collection<int, FormAccessControl> $formAccessControls
  */
+/**
+ * @property int $id
+ * @property string $title
+ * @property bool $is_active
+ */
 class Form extends Model
 {
     use HasFactory;
