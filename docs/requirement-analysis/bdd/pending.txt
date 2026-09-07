@@ -7,7 +7,7 @@
 # Plafon hanya boleh NAIK saat skenario baru ditulis, dan wajib TURUN saat skenario
 # lama diimplementasikan. Ia tidak pernah naik untuk menampung utang yang menumpuk.
 #
-# max: 103
+# max: 91
 
 IAM-DEACT-01
 IAM-DEACT-02
@@ -35,18 +35,6 @@ IAM-REVIEWER-03
 IAM-REVIEWER-04
 IAM-REVIEWER-05
 IAM-REVIEWER-06
-IAM-VERIFY-01
-IAM-VERIFY-02
-IAM-VERIFY-03
-IAM-VERIFY-04
-IAM-VERIFY-05
-IAM-VERIFY-06
-IAM-VERIFY-07
-IAM-VERIFY-08
-IAM-VERIFY-09
-IAM-VERIFY-10
-IAM-VERIFY-11
-IAM-VERIFY-12
 MON-CYCLE-01
 MON-CYCLE-02
 MON-CYCLE-03

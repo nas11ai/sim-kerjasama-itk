@@ -51,6 +51,24 @@ function buildAccessibleFormPhaseDetail(User $user, Organization $organization, 
 }
 
 /**
+ * User yang benar-benar bisa mengirim pengajuan: punya UserProfile, sudah
+ * terverifikasi, dan profilnya lengkap.
+ *
+ * `User::factory()->create()` telanjang bukan keadaan yang bisa dihasilkan
+ * sistem — setiap akun lahir bersama profilnya, entah lewat jalur mandiri atau
+ * undangan (BR-IAM-12). Fixture yang mengabaikan itu menguji orang yang tidak
+ * pernah ada, dan lolos dari gerbang BR-IAM-04 tanpa membuktikan apa pun.
+ */
+function verifiedResearcher(): User
+{
+    $user = User::factory()->create();
+
+    UserProfile::factory()->create(['user_id' => $user->id]);
+
+    return $user->refresh();
+}
+
+/**
  * Peneliti beserta organisasinya, sudah memegang permission submissions.create.
  *
  * @return array{0: User, 1: Organization}

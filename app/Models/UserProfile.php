@@ -18,6 +18,7 @@ use Spatie\Permission\Models\Role;
  * @property string|null $expertise
  * @property string|null $photo_path
  * @property-read User|null $user
+ * @property-read Organization|null $organization
  */
 class UserProfile extends Model
 {
@@ -94,7 +95,8 @@ class UserProfile extends Model
         return $this->belongsTo(Role::class);
     }
 
-    public function organization()
+    /** @return BelongsTo<Organization, $this> */
+    public function organization(): BelongsTo
     {
         return $this->belongsTo(Organization::class);
     }

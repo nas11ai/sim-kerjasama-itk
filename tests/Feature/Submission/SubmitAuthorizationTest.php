@@ -19,7 +19,7 @@ use Spatie\Permission\Models\Role;
 /** @return array{0: User, 1: FormSubmission} */
 function submitSliceDraft(string $state = Draft::class): array
 {
-    $owner = User::factory()->create();
+    $owner = verifiedResearcher();
     $submission = FormSubmission::factory()->create([
         'submitted_by' => $owner->id,
         'status' => $state,
@@ -42,7 +42,7 @@ function submitSliceEnrol(FormSubmission $submission, User $user, string $role):
 function submitSliceSuperAdmin(): User
 {
     Role::findOrCreate('Super Admin');
-    $admin = User::factory()->create();
+    $admin = verifiedResearcher();
     $admin->assignRole('Super Admin');
 
     return $admin;
@@ -58,7 +58,7 @@ it('[SM-SUBMIT-09] ketua pengaju submit pengajuannya sendiri', function () {
 
 it('[SM-SUBMIT-10] co-investigator tidak bisa submit', function () {
     [, $submission] = submitSliceDraft();
-    $co = User::factory()->create();
+    $co = verifiedResearcher();
     submitSliceEnrol($submission, $co, ResearchMember::ROLE_CO_INVESTIGATOR);
 
     expect(fn () => SubmitFormSubmission::run($submission, $co))
@@ -68,7 +68,7 @@ it('[SM-SUBMIT-10] co-investigator tidak bisa submit', function () {
 
 it('[SM-SUBMIT-11] anggota biasa tidak bisa submit', function () {
     [, $submission] = submitSliceDraft();
-    $member = User::factory()->create();
+    $member = verifiedResearcher();
     submitSliceEnrol($submission, $member, ResearchMember::ROLE_MEMBER);
 
     expect(fn () => SubmitFormSubmission::run($submission, $member))

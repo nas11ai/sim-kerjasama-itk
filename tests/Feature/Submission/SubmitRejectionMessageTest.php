@@ -20,7 +20,7 @@ use Illuminate\Validation\ValidationException;
 /** @return array{0: User, 1: FormSubmission, 2: FormSubmission} */
 function rejectionSliceFixture(): array
 {
-    $owner = User::factory()->create();
+    $owner = verifiedResearcher();
     $period = SubmissionPeriod::factory()->create();
     $scheme = Scheme::factory()->create();
 
@@ -70,7 +70,7 @@ it('[SM-SUBMIT-16] draft yang gagal disubmit tetap bisa disunting', function () 
 });
 
 it('[SM-SUBMIT-17] index database yang menangkap memberi pesan yang sama', function () {
-    $owner = User::factory()->create();
+    $owner = verifiedResearcher();
     $period = SubmissionPeriod::factory()->create();
     $scheme = Scheme::factory()->create();
 

@@ -25,7 +25,7 @@ use Inertia\Testing\AssertableInertia as Assert;
 function uniquenessSliceContext(): array
 {
     return [
-        User::factory()->create(),
+        verifiedResearcher(),
         SubmissionPeriod::factory()->create(),
         Scheme::factory()->create(),
         Scheme::factory()->create(),

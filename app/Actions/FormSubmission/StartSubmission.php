@@ -6,6 +6,7 @@ use App\Models\FormPhaseDetail;
 use App\Models\FormSubmission;
 use App\Models\SubmissionPeriod;
 use App\Models\User;
+use App\Support\AccountStateGuard;
 use App\Support\SubmissionPeriodGate;
 use Lorisleiva\Actions\Concerns\AsAction;
 
@@ -28,6 +29,11 @@ class StartSubmission
         // tidak melahirkan pengajuan baru. Diperiksa lebih dulu supaya draft
         // yang sudah ada pun tidak dibangkitkan kembali di periode yang mati.
         SubmissionPeriodGate::assertOpen(SubmissionPeriod::find($submissionPeriodId));
+
+        // BR-IAM-03 — kelengkapan profil menggerbang **pembuatan** pengajuan,
+        // sumbu yang berbeda dari verifikasi NIDN. Akun terverifikasi dengan
+        // profil kosong tetap tertahan di sini.
+        AccountStateGuard::assertProfileComplete($user);
 
         // ::make()->handle() dan bukan ::run(): run() milik AsObject dideklarasikan
         // `mixed` (paket tidak menyediakan stub PHPStan), jadi PHPStan level 9 tidak

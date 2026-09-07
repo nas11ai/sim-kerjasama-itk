@@ -20,7 +20,7 @@ use Illuminate\Validation\ValidationException;
 /** @return array{0: User, 1: FormSubmission, 2: FormField} */
 function proposalSliceFixture(): array
 {
-    $owner = User::factory()->create();
+    $owner = verifiedResearcher();
     $form = Form::factory()->create();
     // field_types.name unik — firstOrCreate supaya fixture aman dipakai ulang.
     $fileType = FieldType::firstOrCreate(['name' => 'file']);

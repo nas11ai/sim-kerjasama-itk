@@ -9,6 +9,7 @@ use App\States\Submission\Rejected;
 use App\States\Submission\SubmissionStatus;
 use App\States\Submission\Submitted;
 use App\States\Submission\Withdrawn;
+use App\Support\AccountStateGuard;
 use App\Support\RequiredFieldGuard;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Database\QueryException;
@@ -44,6 +45,13 @@ class SubmitFormSubmission
                 "FormSubmission {$submission->id} tidak punya status — tidak bisa disubmit."
             );
         }
+
+        // BR-IAM-04/BR-IAM-13 — akun yang belum terverifikasi (atau yang
+        // verifikasinya ditolak) boleh menyiapkan draft, tapi tidak boleh
+        // mengirimnya. Diperiksa sebelum kelengkapan field: yang menghalangi
+        // di sini bukan isian pengajuannya melainkan keadaan akunnya, dan
+        // pesan itulah yang perlu dibaca peneliti.
+        AccountStateGuard::assertVerified($user);
 
         // BR-SM-02 + BR-FE-11 — seluruh field wajib, disaring Temporal Field Binding.
         RequiredFieldGuard::assertComplete($submission);

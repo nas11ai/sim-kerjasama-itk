@@ -7,6 +7,7 @@ use App\Http\Controllers\FacultyController;
 use App\Http\Controllers\FormAccessControlController;
 use App\Http\Controllers\FormController;
 use App\Http\Controllers\FormPhaseController;
+use App\Http\Controllers\Identity\NidnVerificationController;
 use App\Http\Controllers\OrganizationController;
 use App\Http\Controllers\PermissionController;
 use App\Http\Controllers\ProfileController;
@@ -571,6 +572,13 @@ Route::middleware(['auth'])->group(function () {
         // tercabut alih-alih menghalangi (register #18).
         Route::delete('/organizations/{organization}', [OrganizationController::class, 'destroy'])
             ->name('organizations.destroy');
+        // BR-IAM-04/12/13 — antrian verifikasi NIDN beserta dua keputusannya.
+        Route::get('/verifications', [NidnVerificationController::class, 'index'])
+            ->name('verifications.index');
+        Route::post('/verifications/{profile}/verify', [NidnVerificationController::class, 'verify'])
+            ->name('verifications.verify');
+        Route::post('/verifications/{profile}/reject', [NidnVerificationController::class, 'reject'])
+            ->name('verifications.reject');
         // BR-FE-08/09/10 — perpanjangan akses satu fase untuk satu pengajuan.
         Route::post('/submissions/{submission}/overrides', [PhaseOverrideController::class, 'store'])
             ->name('submissions.overrides.store');
