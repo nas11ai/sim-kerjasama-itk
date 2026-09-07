@@ -7,6 +7,7 @@ use App\Models\SubmissionDate;
 use App\Models\SubmissionDateLabel;
 use App\Models\SubmissionPeriod;
 use App\Models\SubmissionPeriodPhase;
+use App\Support\SubmissionPeriodGate;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -243,58 +244,23 @@ class SubmissionPeriodController extends Controller
         }
     }
 
+    // BR-FE-01 — satu predikat dengan yang menggerbangi pembuatan pengajuan.
+    // Salinan lama di sini membaca tanggal paling awal sebagai tanggal mulai
+    // dan melupakan is_force_closed, sehingga layar menampilkan "Aktif" untuk
+    // periode yang menolak setiap pengajuan.
     private function isPeriodActive(SubmissionPeriod $period): bool
     {
-        $now = Carbon::now();
-        $dates = $period->submissionDates->sortBy('datetime');
-
-        if ($dates->isEmpty()) {
-            return false;
-        }
-
-        $startDate = Carbon::parse($dates->first()->datetime);
-        $endDate = Carbon::parse($dates->last()->datetime);
-
-        return $now->between($startDate, $endDate);
+        return SubmissionPeriodGate::isOpen($period);
     }
 
     private function getPeriodStatus(SubmissionPeriod $period): string
     {
-        $now = Carbon::now();
-        $dates = $period->submissionDates->sortBy('datetime');
-
-        if ($dates->isEmpty()) {
-            return 'no_dates';
-        }
-
-        $startDate = Carbon::parse($dates->first()->datetime);
-        $endDate = Carbon::parse($dates->last()->datetime);
-
-        if ($now->lt($startDate)) {
-            return 'upcoming';
-        } elseif ($now->between($startDate, $endDate)) {
-            return 'active';
-        } else {
-            return 'expired';
-        }
+        return SubmissionPeriodGate::displayStatus($period);
     }
 
     private function getDaysRemaining(SubmissionPeriod $period): ?int
     {
-        $dates = $period->submissionDates->sortBy('datetime');
-
-        if ($dates->isEmpty()) {
-            return null;
-        }
-
-        $endDate = Carbon::parse($dates->last()->datetime);
-        $now = Carbon::now();
-
-        if ($now->gt($endDate)) {
-            return 0;
-        }
-
-        return (int) $now->diffInDays($endDate, false);
+        return SubmissionPeriodGate::daysRemaining($period);
     }
 
     public function storeLabel(Request $request)

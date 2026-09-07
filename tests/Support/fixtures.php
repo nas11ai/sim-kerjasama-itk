@@ -74,7 +74,7 @@ function actingResearcher(): array
 /**
  * Form yang bisa diakses peneliti, siap dipakai wizard langkah 1.
  *
- * @return array{user: User, form: Form, period: SubmissionPeriod, detail: FormPhaseDetail}
+ * @return array{user: User, form: Form, period: SubmissionPeriod, detail: FormPhaseDetail, phase: FormPhase}
  */
 function wizardFixture(): array
 {
@@ -96,6 +96,8 @@ function wizardFixture(): array
         'form' => $form,
         'period' => $built['period'],
         'detail' => $built['detail'],
+        // Jalur HTTP langkah 1 mengirim form_phase_id, bukan detail-nya.
+        'phase' => $formPhase,
     ];
 }
 

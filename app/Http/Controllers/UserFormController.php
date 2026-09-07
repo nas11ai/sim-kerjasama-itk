@@ -17,7 +17,7 @@ use App\Models\SubmissionPeriod;
 use App\Models\User;
 use App\Services\EmailNotificationService;
 use App\Services\FormAccessService;
-use Carbon\Carbon;
+use App\Support\SubmissionPeriodGate;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -65,35 +65,17 @@ class UserFormController extends Controller
         ])
             ->get()
             ->map(function ($period) use ($user, $permissions, $organizationAncestors) {
-                // Fix: Use correct attribute name based on your model
-                $dates = $period->submissionDates->sortBy('datetime'); // Changed from 'datetime' to 'date'
-                $now = Carbon::now();
+                // BR-FE-01 — keaktifan periode dihitung satu tempat saja
+                // (SubmissionPeriodGate), sama dengan yang menggerbangi
+                // pembuatan pengajuan. Salinan yang dulu ada di sini melupakan
+                // is_force_closed, jadi peneliti melihat periode yang ditutup
+                // Operator sebagai masih terbuka lalu ditolak saat mencoba.
+                $dates = $period->submissionDates->sortBy('datetime');
 
-                // Determine period status and activity
-                if ($dates->isEmpty()) {
-                    $period->is_active = false;
-                    $period->status = 'no_dates';
-                    $period->start_date = null;
-                    $period->end_date = null;
-                } else {
-                    // Use 'date' attribute consistently
-                    $startDate = Carbon::parse($dates->first()->datetime);
-                    $endDate = Carbon::parse($dates->last()->datetime);
-
-                    if ($now->lt($startDate)) {
-                        $period->is_active = false;
-                        $period->status = 'upcoming';
-                    } elseif ($now->between($startDate, $endDate)) {
-                        $period->is_active = true;
-                        $period->status = 'active';
-                    } else {
-                        $period->is_active = false;
-                        $period->status = 'expired';
-                    }
-
-                    $period->start_date = Carbon::parse($dates->first()->datetime);
-                    $period->end_date = Carbon::parse($dates->last()->datetime);
-                }
+                $period->is_active = SubmissionPeriodGate::isOpen($period);
+                $period->status = SubmissionPeriodGate::displayStatus($period);
+                $period->start_date = $dates->first()?->datetime;
+                $period->end_date = $dates->last()?->datetime;
 
                 // Process form phases with user progress
                 $period->form_phases = $period->submissionPeriodPhases->map(function ($periodPhase) use ($user, $permissions, $organizationAncestors) {

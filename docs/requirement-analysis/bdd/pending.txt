@@ -7,10 +7,8 @@
 # Plafon hanya boleh NAIK saat skenario baru ditulis, dan wajib TURUN saat skenario
 # lama diimplementasikan. Ia tidak pernah naik untuk menampung utang yang menumpuk.
 #
-# max: 162
+# max: 160
 
-FE-ACCESS-07
-FE-ACCESS-08
 FE-CHANGE-01
 FE-CHANGE-02
 FE-CHANGE-03

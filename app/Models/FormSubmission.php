@@ -6,7 +6,7 @@ use App\States\Submission\Approved;
 use App\States\Submission\NeedsRevision;
 use App\States\Submission\SubmissionStatus;
 use App\States\Submission\Submitted;
-use Carbon\Carbon;
+use App\Support\SubmissionPeriodGate;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -332,36 +332,21 @@ class FormSubmission extends Model
         }
     }
 
+    /**
+     * BR-SM-13 — draft terarsip kalau periodenya sudah tertutup.
+     *
+     * Predikat "periode tertutup"-nya sama persis dengan yang menggerbangi
+     * pembuatan pengajuan (BR-FE-01), jadi ia tinggal satu tempat saja di
+     * SubmissionPeriodGate. Dua salinan pasti menyimpang: yang satu akan ingat
+     * `is_force_closed`, yang lain tidak.
+     */
     public function resolveIsArchived(): bool
     {
         if ($this->is_submitted) {
             return false;
         }
 
-        $period = $this->submissionPeriod;
-
-        if ($period === null) {
-            return false;
-        }
-
-        if ($period->is_force_closed) {
-            return true;
-        }
-
-        $dates = $period->submissionDates;
-
-        // Periode yang belum punya tanggal sama sekali bukan periode yang
-        // sudah lewat — `every()` atas koleksi kosong bernilai true secara
-        // hampa, dan tanpa penjagaan ini setiap draft pada periode yang baru
-        // dibuat langsung ikut terarsip.
-        if ($dates->isEmpty()) {
-            return false;
-        }
-
-        // BR-SM-13 — archived jika semua deadline period sudah lewat.
-        return $dates->every(
-            fn ($date) => Carbon::parse($date->datetime)->isPast()
-        );
+        return SubmissionPeriodGate::isClosed($this->submissionPeriod);
     }
 
     public function getIsArchivedAttribute(): bool

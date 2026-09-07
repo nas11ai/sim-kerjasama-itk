@@ -111,10 +111,32 @@ const getStatusBadgeVariant = (status: string) => {
             return 'default'
         case 'upcoming':
             return 'secondary'
+        // BR-SCH-07 — periode yang ditutup paksa Operator tidak boleh terbaca
+        // sama dengan periode yang masih berjalan.
         case 'expired':
+        case 'force_closed':
             return 'destructive'
         default:
             return 'outline'
+    }
+}
+
+// Status periode berasal dari SubmissionPeriodGate; menampilkannya mentah
+// membuat peneliti membaca "force_closed" alih-alih tahu apa yang terjadi.
+const getStatusLabel = (status: string) => {
+    switch (status) {
+        case 'active':
+            return 'Berjalan'
+        case 'upcoming':
+            return 'Akan Datang'
+        case 'expired':
+            return 'Sudah Berakhir'
+        case 'force_closed':
+            return 'Ditutup Operator'
+        case 'no_dates':
+            return 'Belum Berjadwal'
+        default:
+            return status
     }
 }
 
@@ -279,11 +301,8 @@ const isPhaseCompleted = (phase: FormPhase) => {
                                         {{ period.name }}
                                     </CardTitle>
                                     <div class="flex items-center gap-2 mt-2">
-                                        <Badge
-                                            :variant="getStatusBadgeVariant(period.status)"
-                                            class="capitalize"
-                                        >
-                                            {{ period.status }}
+                                        <Badge :variant="getStatusBadgeVariant(period.status)">
+                                            {{ getStatusLabel(period.status) }}
                                         </Badge>
                                         <span class="text-sm text-muted-foreground">
                                             {{ formatDate(period.start_date) }} -

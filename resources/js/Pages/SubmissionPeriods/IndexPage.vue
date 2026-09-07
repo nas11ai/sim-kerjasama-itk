@@ -59,7 +59,7 @@ interface SubmissionPeriod {
     start_date?: string
     end_date?: string
     is_active: boolean
-    status: 'upcoming' | 'active' | 'expired' | 'no_dates'
+    status: 'upcoming' | 'active' | 'expired' | 'no_dates' | 'force_closed'
     submission_dates: SubmissionDate[]
     submission_period_phases: SubmissionPeriodPhase[]
 }
@@ -102,6 +102,11 @@ const getStatusColor = (status: string) => {
     switch (status) {
         case 'active':
             return 'default'
+        // BR-SCH-07 — penutupan paksa mengalahkan tanggal apa pun. Tanpa kasus
+        // ini periode yang ditutup Operator tetap berlabel "Aktif" sementara
+        // backend menolak setiap pengajuan ke sana.
+        case 'force_closed':
+            return 'destructive'
         case 'upcoming':
             return 'secondary'
         case 'expired':
@@ -117,6 +122,8 @@ const getStatusText = (status: string) => {
     switch (status) {
         case 'active':
             return 'Aktif'
+        case 'force_closed':
+            return 'Ditutup Operator'
         case 'upcoming':
             return 'Akan Datang'
         case 'expired':
@@ -132,6 +139,8 @@ const getStatusIcon = (status: string) => {
     switch (status) {
         case 'active':
             return Clock
+        case 'force_closed':
+            return AlertCircle
         case 'upcoming':
             return Calendar
         case 'expired':
