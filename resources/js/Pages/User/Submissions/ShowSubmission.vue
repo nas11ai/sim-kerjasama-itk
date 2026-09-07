@@ -23,6 +23,7 @@ import { getSubmissionStatusInfo } from '@/Utils/getSubmissionStatusInfo'
 import ReviewSystem from '@/Components/ReviewSystem.vue'
 import TargetOutputManager from '@/Components/TargetOutputManager.vue'
 import PhaseAccessPanel from '@/Components/PhaseAccessPanel.vue'
+import ChildReportLauncher from '@/Components/ChildReportLauncher.vue'
 import ResearchMemberManager from '@/Components/ResearchMemberManager.vue'
 
 interface FieldType {
@@ -191,6 +192,8 @@ interface Props {
         } | null
     }
     canGrantOverride?: boolean
+    /** BR-FE-04 — kosong selama induknya belum disetujui. */
+    childPhases?: { id: number; title: string }[]
 }
 
 const props = defineProps<Props>()
@@ -617,6 +620,11 @@ const mappedAssignedReviewers = computed(() =>
                         :form-phase-detail-id="phaseAccess.form_phase_detail_id"
                         :override="phaseAccess.override"
                         :can-grant-override="canGrantOverride ?? false"
+                    />
+
+                    <ChildReportLauncher
+                        :submission-id="submission.id"
+                        :phases="childPhases ?? []"
                     />
 
                     <!-- Target luaran & anggota: keduanya isi pengajuan, jadi

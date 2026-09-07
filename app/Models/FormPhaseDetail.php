@@ -19,6 +19,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property int $requiredReviewEvaluationFormsCount
  * @property-read FormPhase|null $formPhase
  * @property-read SubmissionDate $submissionDate
+ * @property-read FormAccessControl|null $formAccessControl
  */
 class FormPhaseDetail extends Model
 {

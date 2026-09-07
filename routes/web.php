@@ -19,6 +19,7 @@ use App\Http\Controllers\ReviewFormResponseController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\StatController;
 use App\Http\Controllers\Submission\BudgetLineItemController;
+use App\Http\Controllers\Submission\ChildSubmissionController;
 use App\Http\Controllers\Submission\PhaseOverrideController;
 use App\Http\Controllers\Submission\ResearchMemberController;
 use App\Http\Controllers\Submission\ResubmitController;
@@ -539,6 +540,9 @@ Route::middleware(['auth'])->group(function () {
         // BR-SM-03 — tanpa ini alur revisi tidak punya jalan kembali.
         Route::post('/submissions/{submission}/resubmit', ResubmitController::class)
             ->name('submissions.resubmit');
+        // BR-FE-04 — laporan turunan hanya lahir dari induk yang disetujui.
+        Route::post('/submissions/{submission}/children', [ChildSubmissionController::class, 'store'])
+            ->name('submissions.children.store');
     });
 
     Route::prefix('admin')->name('admin.')->group(function () {

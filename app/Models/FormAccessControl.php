@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Collection;
 
 /**
+ * @property int $form_id
  * @property string $permission
  * @property-read Form|null $form
  * @property-read Organization|null $organization

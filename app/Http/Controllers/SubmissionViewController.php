@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Form;
 use App\Models\FormAccessControl;
 use App\Models\FormPhase;
+use App\Models\FormPhaseDetail;
 use App\Models\FormSubmission;
 use App\Models\OutputTypeDefinition;
 use App\Models\ResearchMember;
@@ -14,6 +15,7 @@ use App\Models\ReviewSummary;
 use App\Models\SubmissionPeriod;
 use App\Models\SubmissionReviewer;
 use App\Models\User;
+use App\States\Submission\Approved;
 use App\States\Submission\SubmissionStatus;
 use App\Support\PhaseAccessGate;
 use Carbon\Carbon;
@@ -466,7 +468,48 @@ class SubmissionViewController extends Controller
                 $user->can('viewOverrideReason', $submission),
             ),
             'canGrantOverride' => $user->can('grantOverride', $submission),
+            // BR-FE-04 — laporan turunan hanya ditawarkan kalau induknya sudah
+            // disetujui. Daftar fase yang belum punya laporan dihitung di sini
+            // supaya layar tidak menawarkan yang pasti ditolak Action.
+            'childPhases' => $this->availableChildPhasesFor($submission),
         ]);
+    }
+
+    /**
+     * Fase yang masih boleh melahirkan laporan turunan untuk pengajuan ini.
+     *
+     * Kosong selama induknya belum APPROVED (BR-FE-04) dan menyusut setiap
+     * kali satu laporan dibuat — satu laporan per (induk, fase) (BR-MON-03).
+     *
+     * @return list<array{id: int, title: string}>
+     */
+    private function availableChildPhasesFor(FormSubmission $submission): array
+    {
+        if (!$submission->status instanceof Approved || $submission->parent_submission_id !== null) {
+            return [];
+        }
+
+        $sudahAda = FormSubmission::query()
+            ->where('parent_submission_id', $submission->id)
+            ->pluck('form_phase_detail_id');
+
+        return FormPhaseDetail::query()
+            ->whereHas('formAccessControl', fn ($q) => $q->where('form_id', $submission->form_id))
+            ->whereNotIn('id', $sudahAda)
+            ->where('id', '!=', $submission->form_phase_detail_id)
+            ->with('formPhase')
+            ->ordered()
+            ->get()
+            ->map(function (FormPhaseDetail $detail): array {
+                $phase = $detail->formPhase;
+
+                return [
+                    'id' => $detail->id,
+                    'title' => $phase instanceof FormPhase ? $phase->title : 'Fase #'.$detail->id,
+                ];
+            })
+            ->values()
+            ->all();
     }
 
     public function adminShowSubmission(FormSubmission $submission)

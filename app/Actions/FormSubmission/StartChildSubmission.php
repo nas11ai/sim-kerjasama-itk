@@ -1,0 +1,69 @@
+<?php
+
+namespace App\Actions\FormSubmission;
+
+use App\Models\FormPhaseDetail;
+use App\Models\FormSubmission;
+use App\Models\User;
+use App\States\Submission\Approved;
+use Illuminate\Validation\ValidationException;
+use Lorisleiva\Actions\Concerns\AsAction;
+
+/**
+ * BR-FE-04 — child FormSubmission (laporan monev, kelengkapan berkas) hanya
+ * lahir dari induk yang **sudah APPROVED**.
+ *
+ * Gerbangnya status induk, bukan keberadaan fasenya: fase monev boleh saja
+ * sudah terpasang di Form sejak awal, tapi laporannya tidak punya dasar
+ * sebelum kegiatannya disetujui.
+ *
+ * Sekali lahir, child tidak ikut mati bersama induknya. Penarikan induk
+ * (WITHDRAWN) membekukan kegiatannya, tapi laporan yang sudah dikirim tetap
+ * data historis — menghapusnya berarti menghapus bukti bahwa pekerjaan itu
+ * pernah dilaporkan.
+ *
+ * @method static FormSubmission run(FormSubmission $parent, FormPhaseDetail $detail, User $user)
+ */
+class StartChildSubmission
+{
+    use AsAction;
+
+    public function handle(FormSubmission $parent, FormPhaseDetail $detail, User $user): FormSubmission
+    {
+        if (!$parent->status instanceof Approved) {
+            throw ValidationException::withMessages([
+                'parent_submission_id' => 'Laporan hanya dapat dibuat dari pengajuan yang sudah disetujui.',
+            ]);
+        }
+
+        // BR-MON-03 — satu child per (induk, fase). Index unik parsial menjaga
+        // lomba-balap; pencarian ini yang membuat pemanggilan kedua idempoten
+        // alih-alih menabrak constraint.
+        $existing = FormSubmission::query()
+            ->where('parent_submission_id', $parent->id)
+            ->where('form_phase_detail_id', $detail->id)
+            ->first();
+
+        if ($existing !== null) {
+            return $existing;
+        }
+
+        $accessControl = $detail->formAccessControl;
+
+        if ($accessControl === null) {
+            throw ValidationException::withMessages([
+                'form_phase_detail_id' => 'Fase ini belum tertaut ke formulir mana pun.',
+            ]);
+        }
+
+        return FormSubmission::create([
+            'form_id' => $accessControl->form_id,
+            'submitted_by' => $user->id,
+            'submission_period_id' => $parent->submission_period_id,
+            'form_phase_detail_id' => $detail->id,
+            'parent_submission_id' => $parent->id,
+            'is_submitted' => false,
+            'last_completed_step' => 1,
+        ]);
+    }
+}
