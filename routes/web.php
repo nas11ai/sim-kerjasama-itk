@@ -19,6 +19,7 @@ use App\Http\Controllers\ReviewFormResponseController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\StatController;
 use App\Http\Controllers\Submission\BudgetLineItemController;
+use App\Http\Controllers\Submission\PhaseOverrideController;
 use App\Http\Controllers\Submission\ResearchMemberController;
 use App\Http\Controllers\Submission\ResubmitController;
 use App\Http\Controllers\Submission\SubmissionDecisionController;
@@ -549,6 +550,11 @@ Route::middleware(['auth'])->group(function () {
             ->name('submissions.replace-reviewer');
         Route::post('/users/{user}/deactivate', UserDeactivationController::class)
             ->name('users.deactivate');
+        // BR-FE-08/09/10 — perpanjangan akses satu fase untuk satu pengajuan.
+        Route::post('/submissions/{submission}/overrides', [PhaseOverrideController::class, 'store'])
+            ->name('submissions.overrides.store');
+        Route::delete('/submissions/{submission}/overrides/{override}', [PhaseOverrideController::class, 'destroy'])
+            ->name('submissions.overrides.destroy');
     });
 
     Route::post('/review-summaries/{reviewSummary}/resolve', ReviewSummaryResolutionController::class)

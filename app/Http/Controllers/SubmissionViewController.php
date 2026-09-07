@@ -15,6 +15,7 @@ use App\Models\SubmissionPeriod;
 use App\Models\SubmissionReviewer;
 use App\Models\User;
 use App\States\Submission\SubmissionStatus;
+use App\Support\PhaseAccessGate;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
@@ -455,6 +456,16 @@ class SubmissionViewController extends Controller
             'hasPendingEvaluations' => $hasPendingEvaluations,
             'pendingEvaluationsCount' => $pendingEvaluationsCount,
             'submissionStatus' => $submission->status,
+            // BR-FE-08/15/16 — fase yang lewat batas tetap terbaca, hanya
+            // terkunci; dan peneliti melihat *status* perpanjangan tanpa
+            // alasannya. Keputusan siapa boleh membaca alasan ada di Policy,
+            // bukan di sini.
+            'phaseAccess' => PhaseAccessGate::presentFor(
+                $submission,
+                $formPhaseDetail,
+                $user->can('viewOverrideReason', $submission),
+            ),
+            'canGrantOverride' => $user->can('grantOverride', $submission),
         ]);
     }
 

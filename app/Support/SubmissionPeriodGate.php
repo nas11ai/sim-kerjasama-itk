@@ -2,6 +2,7 @@
 
 namespace App\Support;
 
+use App\Models\FormPhaseDetail;
 use App\Models\SubmissionDate;
 use App\Models\SubmissionPeriod;
 use Illuminate\Support\Carbon;
@@ -97,6 +98,18 @@ final class SubmissionPeriodGate
         $now = Carbon::now();
 
         return $now->gt($last->datetime) ? 0 : (int) $now->diffInDays($last->datetime, false);
+    }
+
+    /**
+     * BR-SCH-07 — apakah periode di balik satu FormPhaseDetail ditutup paksa.
+     *
+     * Periodenya dibaca lewat SubmissionDate milik detail itu, bukan lewat
+     * formPhase: `form_phases` tidak punya kolom `submission_period_id`
+     * (ADR 0014).
+     */
+    public static function isForceClosed(FormPhaseDetail $detail): bool
+    {
+        return $detail->submissionDate->submissionPeriod?->is_force_closed === true;
     }
 
     public static function assertOpen(?SubmissionPeriod $period): void

@@ -1,0 +1,134 @@
+<?php
+
+namespace App\Support;
+
+use App\Models\FormPhaseDetail;
+use App\Models\FormSubmission;
+use App\Models\FormSubmissionOverride;
+use Illuminate\Support\Carbon;
+
+/**
+ * BR-FE-08, BR-FE-10, BR-SCH-07 — apakah satu pengajuan masih boleh mengisi
+ * satu FormPhaseDetail.
+ *
+ * Dua sumbu yang digabung di sini:
+ *
+ * 1. **Jendela fase** (`FormPhaseDetail::isWithinDeadline()`) — berlaku untuk
+ *    semua pengajuan di fase itu.
+ * 2. **Override** — pengecualian yang diberikan Operator untuk **satu**
+ *    pengajuan pada **satu** fase (BR-FE-10). Ia tidak pernah melebar: bukan ke
+ *    fase lain milik pengajuan yang sama, bukan ke pengajuan lain di fase yang
+ *    sama.
+ *
+ * Penutupan paksa periode mengalahkan keduanya. Override adalah izin Operator
+ * untuk satu orang; force close adalah keputusan Operator untuk menghentikan
+ * semuanya. Keputusan yang lebih baru dan lebih luas menang — kalau tidak,
+ * menutup periode akan menyisakan pintu yang diam-diam masih terbuka.
+ */
+final class PhaseAccessGate
+{
+    public static function isOpenFor(FormSubmission $submission, ?FormPhaseDetail $detail): bool
+    {
+        // Pengajuan yang belum tertaut fase tidak punya batas untuk ditegakkan.
+        // Jalur wizard sudah gagal keras dengan 409 kalau detailnya tak bisa
+        // diresolusi (ADR 0014), jadi null di sini berarti data lama, bukan
+        // celah yang baru dibuka.
+        if ($detail === null) {
+            return true;
+        }
+
+        // BR-SCH-07 — hard block, tidak bisa ditembus override.
+        if (SubmissionPeriodGate::isForceClosed($detail)) {
+            return false;
+        }
+
+        if ($detail->isWithinDeadline()) {
+            return true;
+        }
+
+        return self::activeOverride($submission, $detail) !== null;
+    }
+
+    /**
+     * BR-FE-08 — penolakannya menyebut jalan keluarnya. Peneliti yang cuma
+     * dibilang "403" tidak tahu bahwa perpanjangan memang bisa diminta.
+     */
+    public static function assertOpenFor(FormSubmission $submission, ?FormPhaseDetail $detail): void
+    {
+        abort_unless(
+            self::isOpenFor($submission, $detail),
+            403,
+            'Batas waktu fase ini sudah lewat. Hubungi Operator LPPM untuk meminta perpanjangan.'
+        );
+    }
+
+    /**
+     * Bentuk yang dikirim ke layar.
+     *
+     * BR-FE-15 — fase yang lewat batas tetap tampil, hanya tidak bisa diubah;
+     * `is_open` yang membedakannya, bukan menghilangkan fasenya dari payload.
+     *
+     * BR-FE-16 — `reason` hanya ikut kalau pemanggilnya memang berhak
+     * membacanya. Peneliti melihat bahwa perpanjangan itu ada dan sampai
+     * kapan berlaku, tapi tidak melihat alasan Operator memberikannya.
+     *
+     * @return array{is_open: bool, deadline: string|null, form_phase_detail_id: int|null, override: array{id: int, status: string, expires_at: string|null, reason: string|null}|null}
+     */
+    public static function presentFor(
+        FormSubmission $submission,
+        ?FormPhaseDetail $detail,
+        bool $canSeeReason
+    ): array {
+        $override = $detail === null ? null : self::activeOverride($submission, $detail);
+        $latest = $detail === null ? null : self::latestOverride($submission, $detail);
+
+        return [
+            'is_open' => self::isOpenFor($submission, $detail),
+            'deadline' => $detail?->submissionDate->datetime->toDateTimeString(),
+            'form_phase_detail_id' => $detail?->id,
+            'override' => $latest === null ? null : [
+                'id' => $latest->id,
+                'status' => $override === null ? 'expired' : 'active',
+                'expires_at' => $latest->expires_at?->toDateTimeString(),
+                'reason' => $canSeeReason ? $latest->reason : null,
+            ],
+        ];
+    }
+
+    /**
+     * Override terakhir apa pun keadaannya — dipakai layar untuk menunjukkan
+     * bahwa perpanjangan pernah ada dan sekarang sudah habis.
+     */
+    public static function latestOverride(
+        FormSubmission $submission,
+        FormPhaseDetail $detail
+    ): ?FormSubmissionOverride {
+        return FormSubmissionOverride::query()
+            ->where('form_submission_id', $submission->id)
+            ->where('form_phase_detail_id', $detail->id)
+            ->latest('id')
+            ->first();
+    }
+
+    /**
+     * Override yang masih berlaku untuk pasangan pengajuan+fase ini, kalau ada.
+     *
+     * Dicabut (`is_active = false`) dan kedaluwarsa (`expires_at` lewat)
+     * sama-sama berarti tidak berlaku — keduanya disaring di query, bukan
+     * dengan memuat semua lalu memfilter di PHP.
+     */
+    public static function activeOverride(
+        FormSubmission $submission,
+        FormPhaseDetail $detail
+    ): ?FormSubmissionOverride {
+        return FormSubmissionOverride::query()
+            ->where('form_submission_id', $submission->id)
+            ->where('form_phase_detail_id', $detail->id)
+            ->where('is_active', true)
+            ->where(function ($query) {
+                $query->whereNull('expires_at')->orWhere('expires_at', '>', Carbon::now());
+            })
+            ->latest('id')
+            ->first();
+    }
+}

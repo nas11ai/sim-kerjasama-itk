@@ -97,4 +97,24 @@ class FormSubmissionPolicy
         return $user->can('submissions.view-all')
             && $submission->status instanceof Approved;
     }
+
+    /**
+     * BR-FE-09, BR-FE-10 — perpanjangan akses adalah wewenang Operator.
+     *
+     * Sengaja tidak diberikan kepada pemilik pengajuan: kalau peneliti bisa
+     * memperpanjang batasnya sendiri, batas itu berhenti menjadi batas.
+     */
+    public function grantOverride(User $user, FormSubmission $submission): bool
+    {
+        return $user->can('submissions.view-all');
+    }
+
+    /**
+     * BR-FE-16 — hanya Operator dan Admin yang boleh membaca `reason`.
+     * Peneliti melihat status override-nya, bukan alasannya.
+     */
+    public function viewOverrideReason(User $user, FormSubmission $submission): bool
+    {
+        return $user->can('submissions.view-all');
+    }
 }

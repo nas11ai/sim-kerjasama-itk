@@ -22,6 +22,7 @@ import { SubmissionStatus } from '@/Constants/SubmissionStatus'
 import { getSubmissionStatusInfo } from '@/Utils/getSubmissionStatusInfo'
 import ReviewSystem from '@/Components/ReviewSystem.vue'
 import TargetOutputManager from '@/Components/TargetOutputManager.vue'
+import PhaseAccessPanel from '@/Components/PhaseAccessPanel.vue'
 import ResearchMemberManager from '@/Components/ResearchMemberManager.vue'
 
 interface FieldType {
@@ -174,6 +175,22 @@ interface Props {
     evaluationRequirements?: EvaluationRequirements
     hasPendingEvaluations?: boolean
     pendingEvaluationsCount?: number
+    /**
+     * BR-FE-08/15/16 — keadaan batas waktu fase ini. `override.reason` sudah
+     * ditahan backend untuk yang tidak berhak membacanya.
+     */
+    phaseAccess?: {
+        is_open: boolean
+        deadline: string | null
+        form_phase_detail_id: number | null
+        override: {
+            id: number
+            status: 'active' | 'expired'
+            expires_at: string | null
+            reason: string | null
+        } | null
+    }
+    canGrantOverride?: boolean
 }
 
 const props = defineProps<Props>()
@@ -589,6 +606,18 @@ const mappedAssignedReviewers = computed(() =>
                             </div>
                         </CardContent>
                     </Card>
+
+                    <!-- BR-FE-15 — batas fase ditampilkan di atas isian: yang
+                         terkunci adalah kemampuan mengubah, bukan membaca. -->
+                    <PhaseAccessPanel
+                        v-if="phaseAccess"
+                        :submission-id="submission.id"
+                        :is-open="phaseAccess.is_open"
+                        :deadline="phaseAccess.deadline"
+                        :form-phase-detail-id="phaseAccess.form_phase_detail_id"
+                        :override="phaseAccess.override"
+                        :can-grant-override="canGrantOverride ?? false"
+                    />
 
                     <!-- Target luaran & anggota: keduanya isi pengajuan, jadi
                          tempatnya di tab yang sama dengan isian formulir. -->

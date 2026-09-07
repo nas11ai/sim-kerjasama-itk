@@ -17,6 +17,7 @@ use App\Models\SubmissionPeriod;
 use App\Models\User;
 use App\Services\EmailNotificationService;
 use App\Services\FormAccessService;
+use App\Support\PhaseAccessGate;
 use App\Support\SubmissionPeriodGate;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\RedirectResponse;
@@ -394,6 +395,11 @@ class UserFormController extends Controller
             // dibuat; [SM-STATE-04] menuntut 403, bukan 409.
             abort_unless($user->can('update', $submission), 403, 'Pengajuan ini sudah terkunci.');
 
+            // BR-FE-08 — lewat batas fase, akses ditutup keras kecuali ada
+            // FormSubmissionOverride yang masih berlaku untuk pasangan
+            // pengajuan+fase ini. Force close periode mengalahkan keduanya.
+            PhaseAccessGate::assertOpenFor($submission, $submission->formPhaseDetail);
+
             $this->persistResponses($submission, $validated['responses'], $fileUploads);
         });
 
@@ -456,6 +462,10 @@ class UserFormController extends Controller
         // sengaja tidak menyaring status supaya pembedaan 409/403 ini bisa
         // dibuat; [SM-STATE-04] menuntut 403, bukan 409.
         abort_unless($user->can('update', $submission), 403, 'Pengajuan ini sudah terkunci.');
+
+        // BR-FE-08 — sama seperti jalur simpan draft: batas fase menutup keras
+        // kecuali ada override yang masih berlaku.
+        PhaseAccessGate::assertOpenFor($submission, $submission->formPhaseDetail);
 
         DB::transaction(function () use ($validated, $fileUploads, $submission): void {
             $this->persistResponses($submission, $validated['responses'], $fileUploads);
