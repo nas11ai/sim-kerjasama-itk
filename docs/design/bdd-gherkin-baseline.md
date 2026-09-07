@@ -366,6 +366,15 @@ seluruhnya terdaftar di `pending.txt`. Estimasi ~80 skenario terbukti terlalu ti
 `Scenario Outline` menyerap banyak boundary yang semula dihitung sebagai skenario
 terpisah.
 
+**Wave 3 (M3) justru melewati estimasinya**: 58 skenario versus perkiraan ~40, dan
+15 BR versus perkiraan 10. Sebabnya bukan skenario yang lebih halus melainkan **aturan
+yang bertambah**: empat BR baru (BR-IAM-12..15) dan lima amandemen lahir dari membaca
+DDD berdampingan dengan wireframe, dan menemukan layar yang sudah menuntut perilaku
+yang tidak pernah dinomori — tombol *Tolak* di antrian verifikasi, tombol *Cabut*
+undangan, tombol *Nonaktifkan* organisasi. Estimasi awal menghitung skenario untuk
+aturan yang sudah ada, bukan untuk aturan yang belum ketahuan hilang. Jejaknya di
+register #29–#34.
+
 Urutan mengikuti [ADR 0009](../adr/0009-milestone-sequencing-critical-path-first.md),
 bukan urutan nomor BC. Alasannya sama dengan alasan ADR itu sendiri: Form Engine dan
 Scheme adalah bagian yang paling sudah jadi di codebase, sehingga skenarionya paling

@@ -5,7 +5,7 @@
 **Status:** Menunggu review
 
 Spec ini menetapkan **skenario apa saja yang harus ada** supaya seluruh kebutuhan
-bisnis SIMPAS v2 terbukti benar — 83 business rule perilaku yang tersisa setelah
+bisnis SIMPAS v2 terbukti benar — 93 business rule perilaku yang tersisa setelah
 Wave 1a mendarat, dipetakan ke 65 frame wireframe.
 
 Ini **bukan** implementation plan. Ia menjawab "apa yang harus terbukti", bukan
@@ -24,25 +24,33 @@ wireframe `simpas-wireframe` (65 frame).
 
 ## 1. Berkas per milestone
 
-| Milestone | Spec | BR | Berkas | Skenario |
-| --------- | ---- | -- | ------ | -------- |
-| M1 · Submission + Budget | [`m1-submission-budget.md`](m1-submission-budget.md) | 23 | 10 | 82 |
-| M2 · Review | [`m2-review.md`](m2-review.md) | 17 | 7 | 42 |
-| M3 · Identity & Access | [`m3-identity-access.md`](m3-identity-access.md) | 10 | 6 | 27 |
-| M4 · Monev + Research Output | [`m4-monev-research-output.md`](m4-monev-research-output.md) | 17 | 2 | 37 |
+| Milestone | Spec | BR bertag | Berkas | Skenario |
+| --------- | ---- | --------- | ------ | -------- |
+| M1 · Submission + Budget | [`m1-submission-budget.md`](m1-submission-budget.md) | 27 | 10 | 85 |
+| M2 · Review | [`m2-review.md`](m2-review.md) | 21 | 8 | 46 |
+| M3 · Identity & Access | [`m3-identity-access.md`](m3-identity-access.md) | 13 | 7 | 58 |
+| M4 · Monev + Research Output | [`m4-monev-research-output.md`](m4-monev-research-output.md) | 18 | 2 | 37 |
 | M5 · Reporting + Notification + Config | [`m5-reporting-notification-config.md`](m5-reporting-notification-config.md) | 16 | 4 | 28 |
-| | **Total** | **83** | **29** | **217** |
+| | **Total** | **93** | **31** | **254** |
 
 Angka skenario di atas **bukan estimasi** — setiap ID sudah dialokasikan satu per satu
 di berkas milestone masing-masing, lengkap dengan kelas tag dan BR yang dibuktikannya.
-Totalnya lebih rendah dari perkiraan baseline (~310) karena `Scenario Outline` menyerap
-banyak boundary yang semula dihitung satu-satu — pola yang sudah terbukti di Wave 1a
-(53 skenario nyata vs ~80 perkiraan).
 
-Dengan 54 skenario Wave 1a, inventaris akhir **271 skenario untuk 105 BR perilaku**.
+Kolom BR menghitung **rule yang bertag di milestone itu**, bukan rule yang dimilikinya
+sendiri: beberapa aturan cermin (§2.1) sengaja bertag di dua milestone, jadi
+menjumlahkan kolomnya akan menghitung ganda. Baris Total memuat gabungannya, bukan
+jumlahnya.
 
-M1 naik dari 80 ke 82 saat register #24 ditutup: `[BUD-LOCK-03]` dan `[BUD-WHO-04]`
-mengunci perilaku Super Admin di sumbu keadaan dan sumbu siapa.
+Dengan 54 skenario Wave 1a, inventaris **308 skenario untuk 111 BR perilaku**.
+
+Angkanya bergerak selama implementasi, dan itu memang yang diharapkan — spec ini
+dirancang untuk ikut berubah (§7), bukan untuk dibekukan:
+
+| Milestone | Semula | Sekarang | Sebabnya |
+| --------- | ------ | -------- | -------- |
+| M1 | 80 → 82 | **85** | register #24 (`[BUD-LOCK-03]`, `[BUD-WHO-04]`), lalu #25–#28 saat irisan HTTP dan penutupan register mendarat |
+| M2 | 42 | **46** | kedalaman tambahan pada transisi otomatis, tempat kode legacy sudah terbukti salah |
+| M3 | 27 | **58** | empat BR baru dan lima amandemen dari konfrontasi dengan wireframe — register #29–#34 |
 
 ### Spec irisan implementasi
 

@@ -21,7 +21,21 @@
 | **Operator**      | Operator LPPM      | Staf administrasi — mengelola periode, assign reviewer, verifikasi user, transfer ownership.              |
 | **Reviewer**      | Reviewer           | Dosen/pakar yang ditunjuk menilai proposal. Bukan jalur registrasi sendiri.                               |
 | **Admin**         | Admin              | Superuser — mengelola konfigurasi sistem, permission, dan aksi yang membutuhkan override level tertinggi. |
-| **External User** | Pengguna Eksternal | User dari institusi non-ITK, masuk via invitation link.                                                   |
+| **External User** | Pengguna Eksternal | User dari institusi non-ITK, masuk via invitation link. Akunnya `active` sejak menit pertama — tidak ada NIDN untuk diverifikasi (BR-IAM-12). |
+
+---
+
+## Account Status
+
+Tiga gerbang berbeda yang sering dianggap satu. Satu user bisa lolos yang satu sambil
+tertahan yang lain, dan menyatukannya jadi satu kolom "user siap?" membuat salah satu
+kasus berperilaku salah tanpa ada yang gagal mencolok.
+
+| Term                   | Definisi                                                                                                                                                                              |
+| ---------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **VerificationStatus** | Status verifikasi NIDN pada `UserProfile`: `pending` → `active`, atau `pending` → `rejected` → `active` bila NIDN dikoreksi. Menggerbang **submit**, bukan login (BR-IAM-04, BR-IAM-13). |
+| **Akun aktif**         | `User.is_active = true` — orangnya masih berdinas. Menggerbang **login** (BR-IAM-05). Akun bisa aktif tapi belum terverifikasi.                                                        |
+| **Profil lengkap**     | `UserProfile::isComplete()` — telepon, bidang keahlian, dan foto sudah terisi. Menggerbang **pembuatan Submission** (BR-IAM-03).                                                       |
 
 ---
 
@@ -32,7 +46,9 @@
 | **Organization**         | Node dalam hierarki organisasi. Tipe: `institution`, `faculty`, `department`, `study_program`, `external`, `unit`. Disimpan dalam adjacency list. |
 | **Organization Tree**    | Seluruh struktur hierarki sebagai recursive tree.                                                                                                 |
 | **Organization Subtree** | Semua descendant dari sebuah Organization node, termasuk node itu sendiri. Digunakan untuk scoping access.                                        |
-| **InvitationToken**      | Token yang dibuat Operator untuk mengundang sekelompok user dari organisasi tertentu. Satu token bisa dipakai banyak user.                        |
+| **InvitationToken**      | Token yang dibuat Operator untuk mengundang sekelompok user dari organisasi tertentu. Satu token bisa dipakai banyak user, dan membawa `organization_id` **beserta daftar permission** yang diwariskan ke pendaftar (BR-IAM-12). |
+| **Token dicabut**        | Undangan yang dinonaktifkan Operator sebelum kuotanya habis. Salah satu dari empat sebab token tidak berlaku, bersama kuota habis, kedaluwarsa, dan organisasinya nonaktif/terhapus (BR-IAM-06). |
+| **Organisasi nonaktif**  | `Organization.is_active = false` — unit yang tidak dipakai lagi tapi tidak dihapus. Ia memutus rantai leluhur access control dan membatalkan token undangannya (BR-IAM-14). |
 
 ---
 

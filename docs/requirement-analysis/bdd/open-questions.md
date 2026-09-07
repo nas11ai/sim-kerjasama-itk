@@ -18,6 +18,13 @@ ada lagi entri yang duduk di *Terbuka* padahal keputusannya sudah mendarat.
 
 ## Terselesaikan
 
+Entri **#29–#34 diputuskan atas wewenang yang didelegasikan** pemilik produk untuk
+irisan M3 ("kamu boleh memutuskan sendiri, asalkan mengikuti best practice yang sudah
+ada, sesuai kebutuhan bisnis, dan mudah di-develop serta di-maintain"). Keenamnya
+mengikuti sumber yang sudah ada — DDD sebagai sumber kebenaran, wireframe sebagai
+konfirmasi kedua — dan tidak satu pun memutuskan arah yang bertentangan dengan
+keduanya. Alasan tiap keputusan ditulis lengkap supaya bisa dibantah kalau keliru.
+
 | # | Perkara | Keputusan | Tanggal |
 | - | ------- | --------- | ------- |
 | 5 | BR-BUD-06 menyebut "period config" yang tidak terdefinisi; entitas `SubmissionOuter` ternyata luaran yang dijanjikan, bukan data anggaran | Pindah ke BC Submission sebagai `SubmissionTargetOutput`; BR-BUD-06 dicabut, diganti BR-SM-14 dan BR-SM-15; pembatas tipe memakai `scheme.rules.allowed_output_types` yang sudah ada — tidak ada config baru. Target tetap bisa diubah pasca-APPROVED dengan audit trail wajib; hanya `submitted_by` yang boleh mengubah. Jejak lengkap: spec §8.1 | 2026-09-03 |
@@ -48,6 +55,82 @@ ada lagi entri yang duduk di *Terbuka* padahal keputusannya sudah mendarat.
 | 26 | `guardRequiredDocuments()` menyaring `is_required` mentah dan mengabaikan `FormField::isRequiredFor()` | **`isRequiredFor()` akhirnya punya pemanggil produksi.** Kedua jalur memakai `RequiredFieldGuard::assertComplete()`, yang juga berhenti membatasi diri pada field bertipe `file` — setiap field wajib diperiksa. Temporal Field Binding BR-FE-11 menyala di produksi; `FE-TEMPORAL-01..09` keluar dari `pending.txt`. Lihat §26.1 | 2026-09-06 |
 | 27 | BR-SM-02 tidak ditegakkan pada jalur resubmit | **Resubmit mengecek ulang, dengan jangkar yang sama.** `ResubmitFormSubmission` memanggil guard yang sama memakai `created_at` asli — revisi tidak menarik field wajib baru ke pengajuan yang sudah berjalan, jadi mengecek ulang bukan memindahkan gawang. Dikunci `[SM-SUBMIT-19]`. Lihat §27.1 | 2026-09-06 |
 | 28 | Draft baru tidak bisa dimulai setelah pengajuan Form itu berakhir terminal | **Diperbaiki di pencariannya, bukan di gerbangnya** — nol gerbang dicabut. `ResolveWizardSubmission` mencocokkan `(form_id, submitted_by, submission_period_id)` berstatus `DRAFT` atau `NEEDS_REVISION` — persis yang diizinkan `FormSubmissionPolicy::update()`. Baris terminal melahirkan draft baru; resolver kosong menjawab `409`. Dikunci `[SM-WIZARD-12]`. Lihat §28.1 | 2026-09-06 |
+| 29 | Jalur undangan melahirkan akun `pending` atau `active`? BDD bilang `pending`, DDD dan wireframe bilang `active` | **`active` langsung — BDD-nya yang salah.** Verifikasi memverifikasi **NIDN**; mitra eksternal tidak punya NIDN, jadi `pending` berarti antrian yang tidak akan pernah bisa dibersihkan siapa pun. Operator sudah menyaring saat menerbitkan token. `[IAM-REG-03/08]` dikoreksi; **BR-IAM-12** baru menyatakan bekal awal tiap jalur secara utuh (role, organisasi, permission, status); dikunci `[IAM-REG-12..14]`. Lihat §29.1 | 2026-09-07 |
+| 30 | Penolakan verifikasi NIDN tidak punya aturan maupun skenario, padahal tombolnya ada di layar | **Dinomori sebagai BR-IAM-13.** Wireframe `OPERATOR-08-02` sudah menuntut alasan wajib yang dikirim ke pendaftar, dan DDD sudah menggambar cabangnya — yang tidak ada cuma nomornya. Penolakan dibuat **tidak terminal**: email dan NIDN yang terlanjur terpakai membuat pendaftaran ulang mustahil (BR-IAM-02), jadi penolakan permanen berarti mematikan akun gara-gara satu digit salah ketik. Dikunci `[IAM-VERIFY-07..10]` | 2026-09-07 |
+| 31 | Wireframe organisasi menawarkan **Nonaktifkan**, DDD dan BDD cuma mengenal **hapus** | **Keduanya ada, dengan ambang berbeda.** Hapus (BR-IAM-08) ditolak selama ada UserProfile apa pun; nonaktif (**BR-IAM-14** baru) ditolak selama ada user **aktif**. Menyamakannya berarti memilih antara mustahil menonaktifkan fakultas yang pernah berisi orang, atau menghapus unit yang jejaknya masih dibaca. Organisasi nonaktif memutus rantai leluhur access control dan membatalkan tokennya. Dikunci `[IAM-ORG-04..08]`. Lihat §31.1 | 2026-09-07 |
+| 32 | BR-IAM-02 menuntut NIDN unik "di seluruh sistem", sementara jalur undangan tidak pernah meminta NIDN | **Keunikan berlaku atas nilai yang terisi.** Dibaca harfiah, akun undangan kedua akan bentrok dengan yang pertama pada nilai kosong yang sama — dan seluruh jalur mitra eksternal mati di pendaftar kedua. Bunyi BR-IAM-02 diperjelas; dikunci `[IAM-REG-15]` | 2026-09-07 |
+| 33 | Tombol **Cabut** undangan ada di `ADMIN-08-01`, tapi pencabutan bukan salah satu sebab token tidak berlaku di BR-IAM-06 | **Ditambahkan sebagai sebab keempat.** BR-IAM-06 sudah menyebut kata "dicabut", tapi hanya sebagai akibat penghapusan organisasi — bukan sebagai aksi Operator yang berdiri sendiri. Tanpa itu, token yang bocor tidak punya cara dimatikan selain menunggu kedaluwarsa. Dikunci `[IAM-REG-16]` | 2026-09-07 |
+| 34 | BR-IAM-11 tidak menyatakan apa yang terjadi kalau orang yang sudah reviewer ditunjuk lagi | **Penunjukan idempoten per orang.** `OPERATOR-08-04` menampilkan satu baris per reviewer dengan aksi *Edit Periode* — record kedua akan membuat penghitungan beban (BR-REV-04) dan keterlihatan skor (BR-REV-11) membaca dari himpunan yang ambigu, dan itu tidak gagal mencolok, ia cuma salah. Bunyi BR-IAM-11 diperluas; dikunci `[IAM-REVIEWER-04..06]` | 2026-09-07 |
+
+### 29.1 Status akun jalur undangan — jejak keputusan
+
+Tiga sumber, dua jawaban:
+
+| Sumber | Bunyinya |
+| ------ | -------- |
+| DDD, *Jalur 2 — Invitation Link* | `F --> G[Status: active langsung]` |
+| Wireframe `SHARED-01-03` | "Akun Anda langsung aktif setelah mendaftar — tanpa perlu verifikasi NIDN"; tombolnya *Daftar & Masuk*, menuju dashboard |
+| Wireframe `ADMIN-08-01` | "Undang peneliti eksternal lewat link registrasi — **akun langsung aktif tanpa verifikasi NIDN**" |
+| BDD `[IAM-REG-03]`, `[IAM-REG-08]` | "akun terbentuk berstatus **pending**" |
+
+Yang menyendiri adalah BDD-nya, dan ia menyendiri karena keliru — bukan karena
+mengunci keputusan yang belum diambil.
+
+Alasan substantifnya lebih kuat daripada sekadar hitungan suara. Verifikasi di sistem
+ini memverifikasi **NIDN**. Mitra eksternal tidak punya NIDN — tidak ada field-nya di
+`SHARED-01-03`, dan BR-IAM-02 baru saja diperjelas bahwa keunikan NIDN hanya berlaku
+atas nilai terisi (register #32). Akun undangan berstatus `pending` karena itu adalah
+akun yang menunggu pemeriksaan atas data yang tidak ia miliki: antrian
+`OPERATOR-08-02` akan berisi baris yang tidak bisa diverifikasi maupun ditolak dengan
+jujur oleh Operator mana pun.
+
+Penyaringannya memang sudah terjadi, hanya di tempat lain: Operator menerbitkan token
+untuk organisasi tertentu dengan kuota dan masa berlaku tertentu. Itulah momen
+kurasinya. Meminta kurasi kedua setelahnya bukan menambah keamanan, cuma menambah
+langkah.
+
+Yang lahir dari sini bukan cuma koreksi dua skenario. Menuliskan alasannya memaksa
+menyadari bahwa **status awal cuma satu dari empat hal** yang ditentukan jalur
+registrasi — role, organisasi, permission, dan status — dan tidak satu pun dari empat
+itu pernah dinyatakan sebagai aturan bernomor. Keempatnya sekarang **BR-IAM-12**,
+dengan `[IAM-REG-12]` menjaga sisi mandiri dan `[IAM-REG-13/14]` sisi undangan.
+
+`[IAM-REG-14]` khususnya menjaga akibat yang paling mudah lolos: pendaftar undangan
+tidak boleh muncul di antrian verifikasi. Implementasi yang cuma mengganti nilai
+status awal akan tetap memasukkannya ke antrian kalau antriannya dibangun dari
+"semua user yang belum diverifikasi" alih-alih "semua user berstatus `pending`".
+
+### 31.1 Hapus versus nonaktifkan organisasi — jejak keputusan
+
+`ADMIN-08-02` tidak punya tombol Hapus. Yang ada tombol **Nonaktifkan**, dalam keadaan
+`disabled`, dengan keterangan: *"Unit dengan user aktif tidak dapat dinonaktifkan —
+pindahkan user-nya terlebih dahulu."*
+
+DDD dan BDD sebaliknya hanya mengenal penghapusan (BR-IAM-08, `[IAM-ORG-01..03]`).
+Padahal agregat `Organization` di DDD yang sama sudah punya `is_active`, dan CTE
+leluhur di dokumen itu sudah menyaring dengan `WHERE o.is_active = true` — mesinnya
+ada, aturannya tidak.
+
+Menyatukan keduanya jadi satu operasi memaksa memilih salah satu kerugian:
+
+- **Kalau hanya ada hapus** — fakultas yang pernah berisi orang tidak akan pernah bisa
+  dipensiunkan, karena BR-IAM-08 memblokir selama ada UserProfile apa pun. Reorganisasi
+  kampus akan menumpuk unit mati yang tetap muncul di OrgTreePicker selamanya.
+- **Kalau hanya ada nonaktif** — unit yang salah ketik saat dibuat dan belum pernah
+  dipakai tidak bisa dibersihkan, cuma disembunyikan.
+
+Keduanya tetap ada, dengan ambang yang sengaja berbeda: hapus melihat **UserProfile apa
+pun**, nonaktif melihat **user aktif**. Perbedaan itu bukan kelalaian — ia justru
+inti perkaranya, dan `[IAM-ORG-06]` mengunci celah di antaranya: unit yang seluruh
+user-nya sudah nonaktif **boleh dinonaktifkan tapi belum boleh dihapus**.
+
+Dua akibat lain ikut dinyatakan, karena keduanya tidak akan gagal mencolok kalau
+terlewat. `[IAM-ORG-07]` menjaga bahwa deaktivasi tidak menghapus apa pun — jebakan
+klasik "nonaktifkan" yang diimplementasikan sebagai cascade delete. Dan `[IAM-ORG-08]`
+menjaga akibatnya pada access control: unit nonaktif di tengah rantai memutus
+penelusuran leluhur, sehingga Form yang dipasang di atasnya berhenti terlihat oleh
+prodi di bawahnya. Itu perilaku yang benar — Form seharusnya tidak mengalir lewat unit
+yang sudah dipensiunkan — tapi ia hanya benar kalau memang ditulis.
 
 ### 6.1 Arah penelusuran org tree — jejak keputusan
 

@@ -1,8 +1,15 @@
-Feature: Penghapusan Organisasi
+Feature: Penghapusan dan Deaktivasi Organisasi
+  Dua operasi dengan ambang berbeda, dan menyamakannya adalah kesalahan yang mahal.
+  **Penghapusan** (BR-IAM-08) ditolak selama masih ada UserProfile apa pun di
+  subtree — aktif maupun tidak. **Deaktivasi** (BR-IAM-14) adalah operasi
+  sehari-harinya: ditolak selama masih ada user **aktif**, dan tidak menghapus
+  apa pun.
+
   Kata "subtree" di BR-IAM-08 bukan hiasan: implementasi yang hanya memeriksa node
   itu sendiri akan menghapus fakultas beserta seluruh prodi yang masih berisi orang.
   Arah penelusuran di sini adalah keturunan — berbeda dari BR-FE-02 yang leluhur
-  (ADR 0013).
+  (ADR 0013). Keduanya bertemu di [IAM-ORG-08]: unit nonaktif memutus rantai leluhur
+  yang dipakai access control.
 
   @BR-IAM-08 @M3 @ADMIN-08-02 @denial
   Scenario: [IAM-ORG-01] Organisasi berisi user tidak bisa dihapus
@@ -22,3 +29,38 @@ Feature: Penghapusan Organisasi
     Given organisasi "Mitra Industri" tanpa UserProfile di seluruh subtree-nya
     When admin menghapus organisasi "Mitra Industri"
     Then penghapusan berhasil
+
+  @BR-IAM-14 @M3 @ADMIN-08-02 @denial
+  Scenario: [IAM-ORG-04] Unit dengan user aktif tidak bisa dinonaktifkan
+    Given organisasi "Teknik Informatika" punya user aktif di dalamnya
+    When admin menonaktifkan organisasi "Teknik Informatika"
+    Then deaktivasi ditolak karena masih ada user aktif di organisasi itu
+
+  @BR-IAM-14 @M3 @ADMIN-08-02 @denial
+  Scenario: [IAM-ORG-05] User aktif di unit turunan ikut menghalangi deaktivasi
+    Given organisasi "Fakultas Teknik" tidak punya user aktif langsung
+    And organisasi turunannya "Teknik Informatika" punya user aktif
+    When admin menonaktifkan organisasi "Fakultas Teknik"
+    Then deaktivasi ditolak karena masih ada user aktif di organisasi itu
+
+  @BR-IAM-14 @M3 @ADMIN-08-02 @happy
+  Scenario: [IAM-ORG-06] Unit yang seluruh user-nya sudah nonaktif bisa dinonaktifkan
+    Given organisasi "Teknik Informatika" punya UserProfile yang seluruh user-nya tidak aktif
+    When admin menonaktifkan organisasi "Teknik Informatika"
+    Then deaktivasi berhasil
+
+  @BR-IAM-14 @M3 @ADMIN-08-02 @boundary
+  Scenario: [IAM-ORG-07] Deaktivasi organisasi tidak menghapus apa pun
+    Given organisasi "Teknik Informatika" punya UserProfile yang seluruh user-nya tidak aktif
+    When admin menonaktifkan organisasi "Teknik Informatika"
+    Then deaktivasi berhasil
+    And UserProfile di organisasi itu tetap utuh
+
+  @BR-IAM-14 @M3 @ADMIN-08-02 @denial
+  Scenario: [IAM-ORG-08] Organisasi nonaktif memutus rantai leluhur access control
+    Given Organization "ITK" membawahi "FTI", dan "FTI" membawahi "Informatika"
+    And Form "Pengajuan Penelitian" punya FormAccessControl permission "submissions.create" pada organisasi "ITK"
+    And "Sari" berorganisasi "Informatika" dan punya permission "submissions.create"
+    And organisasi "FTI" berstatus nonaktif
+    When "Sari" membuka daftar Form
+    Then "Pengajuan Penelitian" tidak muncul di daftar

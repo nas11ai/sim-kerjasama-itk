@@ -137,35 +137,63 @@ evaluasi, ulir diskusi, dan keterlihatan skor — plus jendela kerja per tahap B
 | `Then penambahan berhasil` | Penambahan diterima |
 
 Tabel kelima tumbuh dari M3 (Identity & Access) — registrasi, token undangan,
-verifikasi NIDN, permission, dan organisasi.
+verifikasi NIDN, permission, organisasi, dan pemberitahuan perubahan keadaan akun.
+Perhatikan tiga sumbu keadaan yang sengaja dibedakan: status verifikasi
+(`pending`/`aktif`/`rejected`), keaktifan akun (`aktif`/`tidak aktif`), dan
+kelengkapan profil. Ketiganya menggerbang aksi yang berbeda.
 
 | Frasa baku | Dipakai untuk |
 | ---------- | ------------- |
-| `Given "<orang>" berstatus <pending\|aktif\|tidak aktif>` | Keadaan akun |
+| `Given "<orang>" berstatus <pending\|aktif\|tidak aktif\|rejected>` | Keadaan akun — `pending`/`aktif`/`rejected` sumbu verifikasi, `tidak aktif` sumbu keaktifan |
 | `Given "<orang>" sudah terverifikasi` | Akun yang NIDN-nya sudah diverifikasi |
 | `Given profil "<orang>" <sudah\|belum> lengkap` | Kelengkapan profil — gerbang yang berbeda dari status akun |
+| `Given profil "<orang>" terisi nomor telepon tapi tanpa bidang keahlian` | Profil separuh terisi — menguji `isComplete()` yang cuma memeriksa satu field |
 | `Given "<orang>" terdaftar dengan NIDN "<nidn>"` | Menyiapkan NIDN yang sudah terpakai |
+| `Given "<orang>" memilih organisasi "<org>" di OrgTreePicker` | Organisasi yang dipilih pendaftar pada jalur mandiri |
 | `Given token undangan sah milik organisasi "<org>"` | Token yang masih berlaku |
+| `Given token undangan itu memberi permission "<perm>"` | Bekal permission yang dibawa token (BR-IAM-12) |
+| `Given token undangan itu sudah dicabut Operator` | Token yang dicabut sebelum kuotanya habis |
 | `Given token undangan dengan max_uses <n> dan used_count <n>` | Kuota token |
 | `Given token undangan yang expires_at "<datetime>"` | Token yang bisa kedaluwarsa |
-| `Given organisasi "<org>" punya UserProfile di dalamnya` | Organisasi yang tidak boleh dihapus |
+| `Given organisasi "<org>" punya UserProfile di dalamnya` | Organisasi yang tidak boleh **dihapus** |
 | `Given organisasi "<org>" tanpa UserProfile di seluruh subtree-nya` | Padanannya yang boleh dihapus — perhatikan kata subtree |
+| `Given organisasi "<org>" punya user aktif di dalamnya` | Organisasi yang tidak boleh **dinonaktifkan** — ambang yang berbeda dari dua baris di atas |
+| `Given organisasi "<org>" tidak punya user aktif langsung` | Pasangannya untuk menguji penelusuran keturunan |
+| `Given organisasi "<org>" punya UserProfile yang seluruh user-nya tidak aktif` | Unit yang boleh dinonaktifkan tapi belum boleh dihapus |
+| `Given organisasi "<org>" berstatus nonaktif` | `is_active = false` — memutus rantai leluhur dan membatalkan token |
 | `When "<orang>" mendaftar mandiri dengan email "<email>"` | Jalur registrasi mandiri |
 | `When "<orang>" mendaftar lewat token itu` | Jalur registrasi undangan |
+| `When "<orang>" melengkapi profilnya` | Aksi yang user lakukan sendiri — uji negatif BR-IAM-15 |
 | `When "<orang>" login` | Aksi masuk |
 | `When Operator memverifikasi NIDN "<orang>"` | Aksi verifikasi |
+| `When Operator menolak verifikasi NIDN "<orang>" <dengan alasan tertulis\|tanpa alasan>` | Aksi penolakan verifikasi, beserta uji negatif alasannya |
 | `When Operator menonaktifkan "<orang>"` | Deaktivasi user |
+| `When Operator mencabut direct permission "<perm>" dari "<orang>"` | Pencabutan permission langsung — bukan pencabutan role |
 | `When Operator menunjuk "<orang>" sebagai reviewer <internal\|eksternal>` | Penunjukan reviewer — bukan pembuatan akun |
+| `When Operator menunjuk "<orang>" sebagai reviewer <internal\|eksternal> dengan masa tugas "<tanggal>" sampai "<tanggal>"` | Bentuk lengkapnya, saat masa tugas yang jadi pokok |
 | `When admin menghapus organisasi "<org>"` | Penghapusan organisasi |
-| `Then akun "<orang>" terbentuk berstatus pending` | Akun baru |
+| `When admin menonaktifkan organisasi "<org>"` | Deaktivasi organisasi — pasangannya yang berambang berbeda |
+| `Then akun "<orang>" terbentuk berstatus <pending\|aktif>` | Akun baru; `pending` jalur mandiri, `aktif` jalur undangan (BR-IAM-12) |
+| `Then akun "<orang>" berstatus <pending\|aktif\|rejected>` | Status verifikasi setelah keputusan Operator |
+| `Then keduanya terdaftar tanpa NIDN` | Keunikan NIDN yang hanya berlaku atas nilai terisi |
+| `Then "<orang>" berperan "<role>"` | Role Spatie yang melekat |
+| `Then "<orang>" <muncul\|tidak muncul> di antrian verifikasi NIDN` | Isi antrian verifikasi |
 | `Then pendaftaran ditolak karena <alasan>` | Penolakan registrasi beserta alasan domainnya |
+| `Then penolakan ditolak karena <alasan>` | Penolakan atas aksi menolak — mis. alasan yang wajib tapi kosong |
 | `Then login ditolak karena <alasan>` | Penolakan login |
 | `Then penghapusan berhasil` | Penghapusan diterima |
 | `Then penghapusan ditolak karena <alasan>` | Penolakan penghapusan |
+| `Then deaktivasi berhasil` | Deaktivasi diterima |
+| `Then deaktivasi ditolak karena <alasan>` | Penolakan deaktivasi, user maupun organisasi |
+| `Then UserProfile di organisasi itu tetap utuh` | Bukti deaktivasi organisasi tidak menghapus apa pun |
 | `Then penunjukan ditolak karena <alasan>` | Penolakan penunjukan reviewer |
+| `Then record reviewer "<orang>" tetap satu` | Idempotensi penunjukan (BR-IAM-11) |
+| `Then "<orang>" berstatus reviewer dengan masa tugas "<tanggal>" sampai "<tanggal>"` | Masa tugas hasil penunjukan, yang kemudian ditegakkan BR-REV-09 |
 | `Then "<orang>" punya permission "<perm>"` | Permission efektif |
 | `Then "<orang>" tidak punya permission "<perm>"` | Pasangan negatifnya |
 | `Then used_count token itu menjadi <n>` | Efek pemakaian token |
+| `Then "<orang>" menerima notifikasi berisi alasan penolakan` | Alasan yang ikut terkirim, bukan sekadar fakta penolakan (BR-IAM-13) |
+| `Then Operator menerima notifikasi in-app` | Sisi Operator dari BR-IAM-15 — pendaftar baru butuh diverifikasi |
 
 Tabel keenam tumbuh dari M4 (Monev & Research Output). Perhatikan `siklus` sebagai
 pembeda: penugasan reviewer monev selalu per siklus, tidak pernah diwarisi.
