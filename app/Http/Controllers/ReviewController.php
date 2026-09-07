@@ -24,6 +24,7 @@ use App\States\Submission\NeedsRevision;
 use App\States\Submission\Rejected;
 use App\States\Submission\Submitted;
 use App\States\Submission\UnderReview;
+use App\Support\ReviewerWorkload;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -54,9 +55,21 @@ class ReviewController extends Controller
         // Seluruh permintaan satu transaksi: satu penugasan yang ditolak
         // membatalkan sisanya. Menyimpan sebagian akan menyisakan penugasan
         // yang Operator kira gagal.
-        DB::transaction(function () use ($validated, $submission, $formPhaseDetail, $hasEvaluationForms, $autoAssign) {
+        // BR-REV-04 — beban berlebih memberi PERINGATAN, bukan penolakan.
+        // Dikumpulkan di luar transaksi supaya ia tetap terbaca walau
+        // penugasannya sendiri berhasil: yang perlu Operator ketahui adalah
+        // konsekuensinya, bukan kegagalan.
+        $peringatanBeban = [];
+
+        DB::transaction(function () use ($validated, $submission, $formPhaseDetail, $hasEvaluationForms, $autoAssign, &$peringatanBeban) {
             foreach ($validated['reviewer_ids'] as $reviewerId) {
                 $reviewer = Reviewer::findOrFail($reviewerId);
+
+                $peringatan = ReviewerWorkload::warningFor($submission, $reviewer);
+
+                if ($peringatan !== null) {
+                    $peringatanBeban[] = $peringatan;
+                }
 
                 // BR-REV-01/02/03/09 ditegakkan di sini. Sebelumnya jalur ini
                 // memakai firstOrCreate() polos — nol pemeriksaan konflik
@@ -81,7 +94,14 @@ class ReviewController extends Controller
             }
         });
 
-        return back()->with('success', 'Berhasil menugaskan reviewer.');
+        $response = back()->with('success', 'Berhasil menugaskan reviewer.');
+
+        // BR-REV-04 — peringatan beban ikut terbawa ke layar. Ia bukan error:
+        // penugasannya sudah berhasil, dan Operator yang memutuskan apakah
+        // beban itu masih wajar.
+        return $peringatanBeban === []
+            ? $response
+            : $response->with('workloadWarnings', $peringatanBeban);
     }
 
     // Enhanced remove reviewer to handle evaluation forms

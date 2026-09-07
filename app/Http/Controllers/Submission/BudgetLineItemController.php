@@ -5,9 +5,11 @@ namespace App\Http\Controllers\Submission;
 use App\Actions\Budget\SaveBudgetLineItem;
 use App\Http\Controllers\Controller;
 use App\Models\FormSubmission;
+use App\Support\WizardStepGate;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Validation\ValidationException;
 
 /**
  * BR-BUD-01/04/09 — line item anggaran.
@@ -22,6 +24,17 @@ class BudgetLineItemController extends Controller
         $user = Auth::user();
 
         abort_unless($user !== null && $user->can('update-budget', $submission), 403);
+
+        // BR-SM-17 — satu-satunya prasyarat nyata antar langkah wizard:
+        // anggaran butuh skema, karena batasnya berasal dari sana (BR-BUD-01).
+        // Ditegakkan di sini, bukan di navigasi: yang tidak boleh terjadi
+        // adalah anggaran tersimpan tanpa batas yang mengikatnya, bukan
+        // peneliti membuka layarnya.
+        $blocked = WizardStepGate::blockedReason($submission, WizardStepGate::STEP_BUDGET);
+
+        if ($blocked !== null) {
+            throw ValidationException::withMessages(['scheme_id' => $blocked]);
+        }
 
         $validated = $request->validate([
             'budget_component_id' => 'required|exists:budget_components,id',

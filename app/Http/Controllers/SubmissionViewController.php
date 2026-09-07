@@ -18,6 +18,7 @@ use App\Models\User;
 use App\States\Submission\Approved;
 use App\States\Submission\SubmissionStatus;
 use App\Support\PhaseAccessGate;
+use App\Support\ScoreVisibility;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
@@ -468,6 +469,13 @@ class SubmissionViewController extends Controller
                 $user->can('viewOverrideReason', $submission),
             ),
             'canGrantOverride' => $user->can('grantOverride', $submission),
+            // BR-REV-11 — reviewer_internal boleh melihat skor rekannya, dan
+            // hanya setelah seluruh evaluasi selesai. reviewer_external tidak
+            // pernah, kapan pun.
+            'canSeePeerScores' => ScoreVisibility::peerScoresVisibleTo($user, $submission),
+            // BR-REV-12 — peneliti melihat skor setelah keputusan final, bukan
+            // sekadar setelah review selesai.
+            'canSeeReviewerScores' => ScoreVisibility::visibleToResearcher($user, $submission),
             // BR-FE-04 — laporan turunan hanya ditawarkan kalau induknya sudah
             // disetujui. Daftar fase yang belum punya laporan dihitung di sini
             // supaya layar tidak menawarkan yang pasti ditolak Action.
