@@ -25,6 +25,7 @@ import TargetOutputManager from '@/Components/TargetOutputManager.vue'
 import PhaseAccessPanel from '@/Components/PhaseAccessPanel.vue'
 import ChildReportLauncher from '@/Components/ChildReportLauncher.vue'
 import ReviewScorePanel from '@/Components/ReviewScorePanel.vue'
+import ResearchOutputManager from '@/Components/ResearchOutputManager.vue'
 import ResearchMemberManager from '@/Components/ResearchMemberManager.vue'
 
 interface FieldType {
@@ -195,6 +196,20 @@ interface Props {
     canGrantOverride?: boolean
     /** BR-FE-04 — kosong selama induknya belum disetujui. */
     childPhases?: { id: number; title: string }[]
+    /** BR-RO-01..09 — luaran terealisasi beserta tipe yang sah untuk pengajuan ini. */
+    researchOutputs?: {
+        id: number
+        output_type: string
+        metadata: Record<string, unknown>
+        file_count: number
+    }[]
+    outputTypes?: {
+        code: string
+        name: string
+        requires_files: boolean
+        required_fields: string[]
+    }[]
+    canManageOutputs?: boolean
     /**
      * BR-REV-11/12 — skor yang tidak boleh dilihat tidak dikirim sama sekali;
      * `reason` menjelaskan kenapa kosong.
@@ -635,6 +650,13 @@ const mappedAssignedReviewers = computed(() =>
                         :form-phase-detail-id="phaseAccess.form_phase_detail_id"
                         :override="phaseAccess.override"
                         :can-grant-override="canGrantOverride ?? false"
+                    />
+
+                    <ResearchOutputManager
+                        :submission-id="submission.id"
+                        :outputs="researchOutputs ?? []"
+                        :output-types="outputTypes ?? []"
+                        :can-manage="canManageOutputs ?? false"
                     />
 
                     <ChildReportLauncher

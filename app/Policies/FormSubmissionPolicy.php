@@ -3,6 +3,7 @@
 namespace App\Policies;
 
 use App\Models\FormSubmission;
+use App\Models\ResearchMember;
 use App\Models\User;
 use App\States\Submission\Approved;
 use App\States\Submission\Draft;
@@ -107,6 +108,37 @@ class FormSubmissionPolicy
     public function grantOverride(User $user, FormSubmission $submission): bool
     {
         return $user->can('submissions.view-all');
+    }
+
+    /**
+     * BR-RO-07 — siapa boleh menambah dan menyunting luaran terealisasi.
+     *
+     * Dua sumbu yang sengaja dipisah (register #35). **Di dalam tim
+     * penelitian**, hanya `submitted_by` dan `co_investigator`; anggota biasa
+     * dan Reviewer membaca saja. **Staf** pemegang `outputs.manage` tetap bisa
+     * menyunting, karena luaran memasok pelaporan LPPM dan merapikan datanya
+     * memang tugas mereka.
+     *
+     * Sengaja **tidak** mengikuti preseden ADR 0015 yang menjadikan
+     * `update-budget` invarian domain: anggaran adalah komitmen peneliti,
+     * luaran adalah laporan fakta. Menyamakan keduanya mengunci Operator dari
+     * data yang justru ia pertanggungjawabkan ke luar.
+     */
+    public function manageResearchOutput(User $user, FormSubmission $submission): bool
+    {
+        if ($user->can('outputs.manage')) {
+            return true;
+        }
+
+        if ($submission->submitted_by === $user->id) {
+            return true;
+        }
+
+        return $submission->researchMembers()
+            ->where('role', ResearchMember::ROLE_CO_INVESTIGATOR)
+            ->where('status', 'active')
+            ->whereHas('userProfile', fn ($q) => $q->where('user_id', $user->id))
+            ->exists();
     }
 
     /**

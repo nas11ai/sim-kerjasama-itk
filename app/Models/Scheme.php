@@ -13,6 +13,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property bool $is_active
  * @property string $name
  * @property string $code
+ * @property-read SubmissionType|null $submissionType
  * @property int $max_budget
  * @property int $max_members
  * @property int $duration_months

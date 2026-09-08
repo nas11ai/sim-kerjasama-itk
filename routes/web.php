@@ -27,6 +27,7 @@ use App\Http\Controllers\Submission\BudgetLineItemController;
 use App\Http\Controllers\Submission\ChildSubmissionController;
 use App\Http\Controllers\Submission\PhaseOverrideController;
 use App\Http\Controllers\Submission\ResearchMemberController;
+use App\Http\Controllers\Submission\ResearchOutputController;
 use App\Http\Controllers\Submission\ResubmitController;
 use App\Http\Controllers\Submission\SubmissionDecisionController;
 use App\Http\Controllers\Submission\TargetOutputController;
@@ -548,6 +549,11 @@ Route::middleware(['auth'])->group(function () {
         // BR-FE-04 — laporan turunan hanya lahir dari induk yang disetujui.
         Route::post('/submissions/{submission}/children', [ChildSubmissionController::class, 'store'])
             ->name('submissions.children.store');
+        // BR-RO-01..09 — luaran terealisasi.
+        Route::post('/submissions/{submission}/outputs', [ResearchOutputController::class, 'store'])
+            ->name('submissions.outputs.store');
+        Route::put('/submissions/{submission}/outputs/{output}', [ResearchOutputController::class, 'update'])
+            ->name('submissions.outputs.update');
     });
 
     Route::prefix('admin')->name('admin.')->group(function () {

@@ -13,15 +13,50 @@ use Illuminate\Database\Eloquent\Model;
  * @property string $code
  * @property string $name
  * @property bool $is_active
+ * @property array<int, array<string, mixed>>|null $fields
+ * @property bool $requires_files
+ * @property string|null $submission_type
  */
 class OutputTypeDefinition extends Model
 {
     use HasFactory;
 
-    protected $fillable = ['code', 'name', 'is_active'];
+    protected $fillable = ['code', 'name', 'is_active', 'fields', 'requires_files', 'submission_type'];
 
     /** @var array<string, string> */
-    protected $casts = ['is_active' => 'boolean'];
+    protected $casts = [
+        'is_active' => 'boolean',
+        'requires_files' => 'boolean',
+        'fields' => 'array',
+    ];
+
+    /**
+     * BR-RO-09 — kunci metadata yang wajib diisi untuk tipe ini.
+     *
+     * Spesifikasinya tinggal di tabel, bukan config kode: kalau menambah tipe
+     * masih menuntut menyunting kode untuk mendefinisikan field-nya, janji
+     * BR-RO-05 ("tipe baru langsung bisa dipakai") baru terpenuhi separuh.
+     *
+     * @return list<string>
+     */
+    public function requiredMetadataKeys(): array
+    {
+        $keys = [];
+
+        foreach ($this->fields ?? [] as $field) {
+            // Bentuk tiap entri sudah dinyatakan docblock `fields`; yang perlu
+            // dijaga adalah entri yang tidak menandai dirinya wajib atau tidak
+            // menyebut kuncinya — keduanya data yang belum lengkap, bukan tipe
+            // yang salah.
+            if (($field['required'] ?? false) !== true || !isset($field['key'])) {
+                continue;
+            }
+
+            $keys[] = (string) $field['key'];
+        }
+
+        return $keys;
+    }
 
     /** Kode yang boleh dipakai saat ini. @return list<string> */
     public static function activeCodes(): array

@@ -9,6 +9,7 @@ use App\Models\FormPhaseDetail;
 use App\Models\FormSubmission;
 use App\Models\OutputTypeDefinition;
 use App\Models\ResearchMember;
+use App\Models\ResearchOutput;
 use App\Models\ReviewComment;
 use App\Models\Reviewer;
 use App\Models\ReviewFormFieldResponse;
@@ -480,7 +481,51 @@ class SubmissionViewController extends Controller
             // disetujui. Daftar fase yang belum punya laporan dihitung di sini
             // supaya layar tidak menawarkan yang pasti ditolak Action.
             'childPhases' => $this->availableChildPhasesFor($submission),
+            // BR-RO-01..09 — luaran terealisasi. Daftar tipenya sudah disaring
+            // taksonomi aktif dan jenis pengajuan, supaya layar tidak
+            // menawarkan yang pasti ditolak guard.
+            'researchOutputs' => $submission->researchOutputs()
+                ->with('files:id,research_output_id,file_path')
+                ->latest('id')
+                ->get()
+                ->map(fn (ResearchOutput $o): array => [
+                    'id' => $o->id,
+                    'output_type' => $o->output_type,
+                    'metadata' => $o->metadata ?? [],
+                    'file_count' => $o->files->count(),
+                ])
+                ->values(),
+            'outputTypes' => $this->outputTypesFor($submission),
+            'canManageOutputs' => $user->can('manageResearchOutput', $submission),
         ]);
+    }
+
+    /**
+     * BR-RO-02, BR-RO-05, BR-RO-09 — tipe luaran yang sah untuk pengajuan ini.
+     *
+     * Disaring dua tingkat, sama seperti target luaran (BR-SM-14): taksonomi
+     * aktif, lalu kesesuaian jenis pengajuan. Menawarkan tipe yang pasti
+     * ditolak membuat peneliti mencoba lalu gagal tanpa tahu sebabnya.
+     *
+     * @return list<array{code: string, name: string, requires_files: bool, required_fields: list<string>}>
+     */
+    private function outputTypesFor(FormSubmission $submission): array
+    {
+        $submissionType = $submission->submissionType()?->name;
+
+        return OutputTypeDefinition::query()
+            ->where('is_active', true)
+            ->where(fn ($q) => $q->whereNull('submission_type')->orWhere('submission_type', $submissionType))
+            ->orderBy('name')
+            ->get()
+            ->map(fn (OutputTypeDefinition $d): array => [
+                'code' => $d->code,
+                'name' => $d->name,
+                'requires_files' => $d->requires_files,
+                'required_fields' => $d->requiredMetadataKeys(),
+            ])
+            ->values()
+            ->all();
     }
 
     /**

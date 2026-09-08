@@ -336,6 +336,30 @@ class FormSubmission extends Model
     }
 
     /**
+     * BR-RO-01 — luaran yang terwujud dari pengajuan ini.
+     *
+     * @return HasMany<ResearchOutput, $this>
+     */
+    public function researchOutputs(): HasMany
+    {
+        return $this->hasMany(ResearchOutput::class);
+    }
+
+    /**
+     * BR-RO-02 — jenis pengajuan (Research / CommunityService).
+     *
+     * Diturunkan lewat skema, bukan kolom tersendiri: skema yang menentukan
+     * jenis kegiatan, dan menyalinnya ke sini akan menciptakan sumber kedua
+     * yang bisa menyimpang. Pengajuan tanpa skema tidak punya jenis — dan
+     * memang tidak perlu, karena pembatasan tipe luaran cuma berlaku untuk
+     * tipe yang menyatakan jenisnya.
+     */
+    public function submissionType(): ?SubmissionType
+    {
+        return $this->scheme?->submissionType;
+    }
+
+    /**
      * **Active Submission** — status-nya bukan REJECTED dan bukan WITHDRAWN.
      *
      * Predikat yang sama dipakai index unik BR-SM-01 (ADR 0005), penjagaan
