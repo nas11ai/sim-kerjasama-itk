@@ -7,7 +7,9 @@ use App\Models\User;
 use App\Notifications\ExportCompletedNotification;
 use App\Notifications\ExportFailedNotification;
 use App\Support\Notification\Deliver;
+use App\Support\Reporting\DocumentWriter;
 use App\Support\Reporting\ExportWriter;
+use App\Support\Reporting\PrintableDocument;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use RuntimeException;
@@ -66,7 +68,12 @@ class GenerateExport implements ShouldQueue
             'attempts' => $job->attempts + 1,
         ]);
 
-        $path = ExportWriter::write($job, $user);
+        // Cetak PDF memakai jalur yang sama dengan ekspor tabular: satu
+        // penyimpanan, satu retensi (BR-RPT-12), satu unduhan bertanda tangan
+        // (BR-RPT-03). Yang berbeda hanya penulisnya.
+        $path = in_array($job->type, PrintableDocument::all(), true)
+            ? DocumentWriter::write($job, $user)
+            : ExportWriter::write($job, $user);
 
         $job->update([
             'status' => ExportJob::STATUS_COMPLETED,

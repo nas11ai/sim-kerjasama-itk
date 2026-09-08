@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import { Head } from '@inertiajs/vue3'
+import { Head, router } from '@inertiajs/vue3'
+import { route } from 'ziggy-js'
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
 import { Button } from '@/Components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card'
@@ -17,6 +18,7 @@ import {
     MessageSquare,
     User,
     Mail,
+    Printer,
 } from 'lucide-vue-next'
 import { SubmissionStatus } from '@/Constants/SubmissionStatus'
 import { getSubmissionStatusInfo } from '@/Utils/getSubmissionStatusInfo'
@@ -182,6 +184,9 @@ interface Props {
         resubmit: boolean
         withdraw: boolean
     }
+    // BR-RPT-11 — hanya dokumen yang memang boleh dicetak orang ini. Daftar
+    // ini sudah disaring Policy di server; layar tidak menyaring ulang.
+    printableDocuments: { value: string; label: string }[]
     assignedReviewers?: AssignedReviewer[]
     reviewerFormAssignments?: ReviewerFormAssignment[]
     hasReviewEvaluationForms?: boolean
@@ -260,6 +265,14 @@ const evaluationRequirements = props.evaluationRequirements || {
 const canReview = computed(() => props.canReview || false)
 const isReviewer = computed(() => props.userRole === 'reviewer')
 const isSubmitter = computed(() => props.isOwnSubmission)
+
+function cetak(document: string) {
+    router.post(
+        route('submissions.print', [String(props.submission.id), document]),
+        {},
+        { preserveScroll: true }
+    )
+}
 
 const hasPendingEvaluations = computed(() => {
     if (props.hasPendingEvaluations !== undefined) {
@@ -626,6 +639,34 @@ const mappedAssignedReviewers = computed(() =>
                                         "
                                         class="mt-4"
                                     />
+                                </div>
+                            </div>
+                        </CardContent>
+                    </Card>
+
+                    <!-- BR-RPT-11 — cetak dokumen. Yang tidak boleh dicetak
+                         tidak muncul, bukan muncul lalu ditolak: menawarkannya
+                         sudah membocorkan bahwa dokumennya ada. -->
+                    <Card v-if="printableDocuments.length > 0">
+                        <CardContent class="pt-6">
+                            <div class="flex flex-wrap items-center justify-between gap-3">
+                                <div>
+                                    <h4 class="font-medium">Cetak Dokumen</h4>
+                                    <p class="text-sm text-muted-foreground">
+                                        Berkas PDF dihapus otomatis 24 jam setelah dibuat.
+                                    </p>
+                                </div>
+                                <div class="flex flex-wrap gap-2">
+                                    <Button
+                                        v-for="doc in printableDocuments"
+                                        :key="doc.value"
+                                        variant="outline"
+                                        size="sm"
+                                        @click="cetak(doc.value)"
+                                    >
+                                        <Printer class="mr-2 h-4 w-4" />
+                                        {{ doc.label }}
+                                    </Button>
                                 </div>
                             </div>
                         </CardContent>

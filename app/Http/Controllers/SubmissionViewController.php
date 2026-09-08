@@ -22,8 +22,10 @@ use App\Models\User;
 use App\States\Submission\Approved;
 use App\States\Submission\SubmissionStatus;
 use App\Support\PhaseAccessGate;
+use App\Support\Reporting\PrintableDocument;
 use App\Support\ScoreVisibility;
 use Carbon\Carbon;
+use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
@@ -434,6 +436,25 @@ class SubmissionViewController extends Controller
             // ("pemiliknya dan belum disubmit") melewatkan arsip periode
             // (BR-SM-10) dan status terminal (BR-SM-05).
             'abilities' => SubmissionAbilitiesData::forUser($user, $submission),
+            // BR-RPT-11 — hanya dokumen yang memang boleh dicetak orang ini
+            // yang ditawarkan. Menawarkan semuanya lalu menolak saat ditekan
+            // membocorkan bahwa dokumennya ada, dan itu sudah setengah
+            // jawaban yang ditahan BR-REV-12.
+            'printableDocuments' => collect(PrintableDocument::all())
+                ->filter(function (string $document) use ($user, $submission): bool {
+                    try {
+                        PrintableDocument::assertPrintable($document, $user, $submission);
+
+                        return true;
+                    } catch (AuthorizationException) {
+                        return false;
+                    }
+                })
+                ->map(fn (string $document) => [
+                    'value' => $document,
+                    'label' => PrintableDocument::label($document),
+                ])
+                ->values(),
             // BR-SM-15 — Policy yang memutuskan siapa boleh mengubah target,
             // bukan sekadar "pemiliknya": status terminal ikut menutupnya.
             'canManageContent' => $user->can('manageTargetOutput', $submission),

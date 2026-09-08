@@ -5,6 +5,7 @@ use App\Http\Controllers\Audit\AuditLogController;
 use App\Http\Controllers\BiodataController;
 use App\Http\Controllers\CompleteFormBuilderController;
 use App\Http\Controllers\Config\ReferenceEntityController;
+use App\Http\Controllers\Export\DocumentPrintController;
 use App\Http\Controllers\Export\ExportController;
 use App\Http\Controllers\FacultyController;
 use App\Http\Controllers\FormAccessControlController;
@@ -636,6 +637,11 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/exports/{export}/download', [ExportController::class, 'download'])
         ->middleware('signed')
         ->name('exports.download');
+
+    // BR-RPT-11 — cetak memakai penyimpanan, retensi, dan unduhan yang sama
+    // dengan ekspor; yang berbeda hanya penulisnya.
+    Route::post('/submissions/{submission}/print/{document}', DocumentPrintController::class)
+        ->name('submissions.print');
 });
 
 // BR-SC-01/02/03 — Konfigurasi Umum. Satu himpunan rute untuk semua data

@@ -7,11 +7,5 @@
 # Plafon hanya boleh NAIK saat skenario baru ditulis, dan wajib TURUN saat skenario
 # lama diimplementasikan. Ia tidak pernah naik untuk menampung utang yang menumpuk.
 #
-# max: 6
+# max: 0
 
-RPT-PRINT-01
-RPT-PRINT-02
-RPT-PRINT-03
-RPT-PRINT-04
-RPT-PRINT-05
-RPT-PRINT-06
