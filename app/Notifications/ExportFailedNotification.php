@@ -1,0 +1,48 @@
+<?php
+
+namespace App\Notifications;
+
+use App\Models\ExportJob;
+use App\Notifications\Concerns\UsesConfiguredChannels;
+use App\Support\Reporting\ExportType;
+use Illuminate\Bus\Queueable;
+use Illuminate\Notifications\Messages\MailMessage;
+use Illuminate\Notifications\Notification;
+
+/**
+ * BR-RPT-08 — kegagalan final memberi tahu Operator yang meminta.
+ *
+ * Pesannya menyebut bahwa sistem **berhenti mencoba**. Tanpa itu Operator
+ * menunggu percobaan berikutnya yang tidak akan pernah datang, dan ekspornya
+ * tidak pernah diulang oleh siapa pun.
+ */
+class ExportFailedNotification extends Notification
+{
+    use Queueable;
+    use UsesConfiguredChannels;
+
+    /** BR-NOT-06 — kunci deklarasi channel di notification_channel_settings. */
+    public const EVENT_TYPE = 'ExportFailed';
+
+    public function __construct(private readonly ExportJob $job) {}
+
+    public function toMail(object $notifiable): MailMessage
+    {
+        return (new MailMessage)
+            ->subject('Ekspor gagal')
+            ->line(ExportType::label($this->job->type).' yang Anda minta gagal diproses.')
+            ->line('Sistem tidak akan mengulangnya sendiri — jalankan ekspor ulang dari layar Export Data.');
+    }
+
+    /** @return array<string, mixed> */
+    public function toArray(object $notifiable): array
+    {
+        return [
+            'type' => 'export_failed',
+            'export_job_id' => $this->job->id,
+            'title' => 'Export gagal — coba lagi',
+            'message' => ExportType::label($this->job->type).' gagal setelah '.$this->job->attempts.' percobaan. '
+                .'Sistem tidak akan mengulang sendiri.',
+        ];
+    }
+}

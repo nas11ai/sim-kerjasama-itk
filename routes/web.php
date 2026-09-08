@@ -5,6 +5,7 @@ use App\Http\Controllers\Audit\AuditLogController;
 use App\Http\Controllers\BiodataController;
 use App\Http\Controllers\CompleteFormBuilderController;
 use App\Http\Controllers\Config\ReferenceEntityController;
+use App\Http\Controllers\Export\ExportController;
 use App\Http\Controllers\FacultyController;
 use App\Http\Controllers\FormAccessControlController;
 use App\Http\Controllers\FormController;
@@ -627,6 +628,14 @@ Route::middleware(['auth'])->group(function () {
         ->name('notifications.read');
     Route::delete('/notifications/{notification}', [NotificationController::class, 'destroy'])
         ->name('notifications.destroy');
+
+    // BR-RPT-02/03/10/12 — satu layar untuk Operator dan peneliti; yang
+    // membedakan mereka SubmissionVisibility, bukan rutenya.
+    Route::get('/exports', [ExportController::class, 'index'])->name('exports.index');
+    Route::post('/exports', [ExportController::class, 'store'])->name('exports.store');
+    Route::get('/exports/{export}/download', [ExportController::class, 'download'])
+        ->middleware('signed')
+        ->name('exports.download');
 });
 
 // BR-SC-01/02/03 — Konfigurasi Umum. Satu himpunan rute untuk semua data

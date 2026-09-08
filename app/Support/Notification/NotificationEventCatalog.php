@@ -25,6 +25,8 @@ final class NotificationEventCatalog
      * @var array<string, array<int, string>>
      */
     private const DEFAULTS = [
+        'ExportCompleted' => [NotificationChannels::IN_APP],
+        'ExportFailed' => [NotificationChannels::IN_APP, NotificationChannels::EMAIL],
         'FormChanged' => [NotificationChannels::IN_APP],
         'MonevEvaluationSubmitted' => [NotificationChannels::IN_APP],
         'MonevStageOpened' => [NotificationChannels::IN_APP, NotificationChannels::EMAIL],

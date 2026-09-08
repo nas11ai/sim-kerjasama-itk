@@ -5,6 +5,7 @@ namespace App\Support\Audit;
 use App\Models\AuditEntry;
 use App\Models\FormSubmission;
 use App\Models\User;
+use App\Support\Reporting\SubmissionVisibility;
 use Illuminate\Database\Eloquent\Builder;
 
 /**
@@ -22,7 +23,7 @@ use Illuminate\Database\Eloquent\Builder;
  */
 final class AuditScope
 {
-    public const READ_ALL_PERMISSION = 'submissions.view-all';
+    public const READ_ALL_PERMISSION = SubmissionVisibility::READ_ALL_PERMISSION;
 
     /**
      * @return Builder<AuditEntry>
@@ -40,7 +41,7 @@ final class AuditScope
                 ->where(function (Builder $onSubmission) use ($user): void {
                     $onSubmission
                         ->where('subject_type', FormSubmission::class)
-                        ->whereIn('subject_id', self::readableSubmissions($user));
+                        ->whereIn('subject_id', SubmissionVisibility::idsFor($user));
                 })
                 // Entri yang subjeknya bukan pengajuan — mis. perubahan
                 // profilnya sendiri — tetap miliknya untuk dibaca.
@@ -51,28 +52,5 @@ final class AuditScope
                         ->where('subject_type', '!=', FormSubmission::class);
                 });
         });
-    }
-
-    /**
-     * Subquery, bukan daftar id yang dimaterialisasi: peneliti dengan banyak
-     * pengajuan akan menghasilkan `IN (...)` sepanjang jumlah pengajuannya,
-     * dan itu tumbuh tanpa batas atas.
-     *
-     * @return Builder<FormSubmission>
-     */
-    private static function readableSubmissions(User $user): Builder
-    {
-        return FormSubmission::query()
-            ->select('id')
-            ->where(function (Builder $milik) use ($user): void {
-                $milik
-                    ->where('submitted_by', $user->id)
-                    ->orWhereHas(
-                        'researchMembers',
-                        fn (Builder $q) => $q
-                            ->where('status', 'active')
-                            ->whereHas('userProfile', fn (Builder $p) => $p->where('user_id', $user->id))
-                    );
-            });
     }
 }
