@@ -7,18 +7,8 @@
 # Plafon hanya boleh NAIK saat skenario baru ditulis, dan wajib TURUN saat skenario
 # lama diimplementasikan. Ia tidak pernah naik untuk menampung utang yang menumpuk.
 #
-# max: 27
+# max: 17
 
-NOT-CHANNEL-01
-NOT-CHANNEL-02
-NOT-CHANNEL-03
-NOT-CHANNEL-04
-NOT-CHANNEL-05
-NOT-CHANNEL-06
-NOT-DELIVERY-01
-NOT-INAPP-01
-NOT-INAPP-02
-NOT-INAPP-03
 RPT-EXPORT-01
 RPT-EXPORT-02
 RPT-EXPORT-03

@@ -6,6 +6,7 @@ use App\Models\SubmissionDate;
 use App\Models\SubmissionPeriod;
 use App\Models\User;
 use App\Notifications\SubmissionPeriodActiveNotification;
+use App\Support\Notification\Deliver;
 use Carbon\Carbon;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Cache;
@@ -68,9 +69,25 @@ class NotifyActiveSubmissionPeriods extends Command
                     $query->whereIn('name', ['Super Admin', 'Admin']);
                 })->get();
 
-                Notification::send($users, new SubmissionPeriodActiveNotification($period));
+                $terkirim = Deliver::to($users, new SubmissionPeriodActiveNotification($period), [
+                    'submission_period_id' => $period->id,
+                    'recipients_count' => $users->count(),
+                ]);
+
+                // Period yang pengirimannya gagal tidak ditandai sudah
+                // diberitahukan, supaya run terjadwal berikutnya mencobanya
+                // lagi. Fire-and-forget berarti kegagalannya tidak melempar,
+                // bukan bahwa kegagalannya dianggap keberhasilan.
+                if (!$terkirim) {
+                    continue;
+                }
             } catch (\Throwable $e) {
-                Log::error('Gagal mengirim notifikasi submission period active', [
+                // Yang tersisa untuk ditangkap di sini adalah kegagalan
+                // **mencari penerima**. Kegagalan pengirimannya sendiri sudah
+                // ditelan Deliver (BR-NOT-03) beserta konteks period-nya, jadi
+                // menangkapnya dua kali hanya akan mencatat satu kejadian
+                // sebagai dua baris.
+                Log::error('Gagal menyiapkan notifikasi submission period active', [
                     'submission_period_id' => $period->id,
                     'recipients_count' => $users->count(),
                     'error' => $e->getMessage(),

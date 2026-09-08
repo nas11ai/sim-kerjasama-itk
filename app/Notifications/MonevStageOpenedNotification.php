@@ -4,6 +4,7 @@ namespace App\Notifications;
 
 use App\Models\FormPhaseDetail;
 use App\Models\FormSubmission;
+use App\Notifications\Concerns\UsesConfiguredChannels;
 use Illuminate\Bus\Queueable;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
@@ -18,17 +19,15 @@ use Illuminate\Notifications\Notification;
 class MonevStageOpenedNotification extends Notification
 {
     use Queueable;
+    use UsesConfiguredChannels;
+
+    /** BR-NOT-06 — kunci deklarasi channel di notification_channel_settings. */
+    public const EVENT_TYPE = 'MonevStageOpened';
 
     public function __construct(
         private readonly FormSubmission $parent,
         private readonly FormPhaseDetail $detail,
     ) {}
-
-    /** @return list<string> */
-    public function via(object $notifiable): array
-    {
-        return ['database', 'mail'];
-    }
 
     public function toMail(object $notifiable): MailMessage
     {

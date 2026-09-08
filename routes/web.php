@@ -12,6 +12,8 @@ use App\Http\Controllers\FormPhaseController;
 use App\Http\Controllers\Identity\NidnVerificationController;
 use App\Http\Controllers\Identity\UserAccessController;
 use App\Http\Controllers\Monev\MonevCycleController;
+use App\Http\Controllers\Notification\NotificationChannelController;
+use App\Http\Controllers\Notification\NotificationController;
 use App\Http\Controllers\OrganizationController;
 use App\Http\Controllers\PermissionController;
 use App\Http\Controllers\ProfileController;
@@ -616,6 +618,15 @@ Route::middleware(['auth'])->group(function () {
     // Tidak ada rute hapus atau sunting — append-only (BR-RPT-04) berarti
     // jalurnya memang tidak dibuat.
     Route::get('/audit-log', [AuditLogController::class, 'index'])->name('audit-log.index');
+
+    // BR-NOT-01, BR-NOT-04. Tidak ada rute "tandai semua dibaca" di sini:
+    // membaca adalah tindakan per notifikasi, dan menandai borongan
+    // mengosongkan penghitung tanpa ada yang benar-benar dilihat.
+    Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
+    Route::post('/notifications/{notification}/read', [NotificationController::class, 'read'])
+        ->name('notifications.read');
+    Route::delete('/notifications/{notification}', [NotificationController::class, 'destroy'])
+        ->name('notifications.destroy');
 });
 
 // BR-SC-01/02/03 — Konfigurasi Umum. Satu himpunan rute untuk semua data
@@ -623,6 +634,14 @@ Route::middleware(['auth'])->group(function () {
 // masing-masing, sehingga aturan hapus dan nonaktif tertulis sekali.
 Route::middleware(['auth', 'can:users.manage'])->prefix('admin/reference')->name('admin.reference.')->group(function () {
     Route::get('/', [ReferenceEntityController::class, 'index'])->name('index');
+
+    // BR-NOT-06 — hanya isi deklarasi yang bisa disunting, bukan ada-tidaknya.
+    // Didaftarkan sebelum rute generik `{entity}/{id}` di bawah: kalau tidak,
+    // `notification-channels/FormChanged` akan tertangkap sebagai entity
+    // "notification-channels" dengan id "FormChanged".
+    Route::put('/notification-channels/{eventType}', [NotificationChannelController::class, 'update'])
+        ->name('notification-channels.update');
+
     Route::post('/{entity}', [ReferenceEntityController::class, 'store'])->name('store');
     Route::put('/{entity}/{id}', [ReferenceEntityController::class, 'update'])->name('update');
     Route::delete('/{entity}/{id}', [ReferenceEntityController::class, 'destroy'])->name('destroy');

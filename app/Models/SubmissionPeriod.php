@@ -3,13 +3,13 @@
 namespace App\Models;
 
 use App\Notifications\SubmissionPeriodClosedNotification;
+use App\Support\Notification\Deliver;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Notification;
 
 /**
  * @property bool $is_active
@@ -85,6 +85,6 @@ class SubmissionPeriod extends Model
             )
             ->get();
 
-        Notification::send($owners, new SubmissionPeriodClosedNotification($this));
+        Deliver::to($owners, new SubmissionPeriodClosedNotification($this));
     }
 }

@@ -4,6 +4,7 @@ namespace App\Notifications;
 
 use App\Models\FormPhaseDetail;
 use App\Models\FormSubmission;
+use App\Notifications\Concerns\UsesConfiguredChannels;
 use Illuminate\Bus\Queueable;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
@@ -22,18 +23,16 @@ use Illuminate\Support\Carbon;
 class PhaseOverrideGrantedNotification extends Notification
 {
     use Queueable;
+    use UsesConfiguredChannels;
+
+    /** BR-NOT-06 — kunci deklarasi channel di notification_channel_settings. */
+    public const EVENT_TYPE = 'PhaseOverrideGranted';
 
     public function __construct(
         private readonly FormSubmission $submission,
         private readonly FormPhaseDetail $detail,
         private readonly ?Carbon $expiresAt,
     ) {}
-
-    /** @return list<string> */
-    public function via(object $notifiable): array
-    {
-        return ['database', 'mail'];
-    }
 
     public function toMail(object $notifiable): MailMessage
     {

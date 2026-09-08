@@ -8,6 +8,7 @@ use App\Models\FormSubmissionOverride;
 use App\Models\User;
 use App\Notifications\PhaseOverrideGrantedNotification;
 use App\Support\Audit\AuditTrail;
+use App\Support\Notification\Deliver;
 use Illuminate\Support\Carbon;
 use Illuminate\Validation\ValidationException;
 use Lorisleiva\Actions\Concerns\AsAction;
@@ -70,7 +71,7 @@ class GrantPhaseOverride
 
         // BR-FE-16 — pemberitahuannya menyebut sampai kapan, tapi tidak
         // menyebut alasannya: alasan hanya untuk Operator dan Admin.
-        $submission->submittedBy->notify(new PhaseOverrideGrantedNotification($submission, $detail, $expiry));
+        Deliver::to($submission->submittedBy, new PhaseOverrideGrantedNotification($submission, $detail, $expiry));
 
         $tercatat = $override;
 

@@ -35,7 +35,8 @@ import {
     TableHeader,
     TableRow,
 } from '@/Components/ui/table'
-import { Info, Loader2, Lock, Pencil, Plus, Power, PowerOff, Trash2 } from 'lucide-vue-next'
+import { Checkbox } from '@/Components/ui/checkbox'
+import { Bell, Info, Loader2, Lock, Pencil, Plus, Power, PowerOff, Trash2 } from 'lucide-vue-next'
 
 interface RecordRow {
     id: number
@@ -53,7 +54,32 @@ interface EntityGroup {
     records: RecordRow[]
 }
 
-defineProps<{ entities: EntityGroup[] }>()
+interface ChannelSetting {
+    event_type: string
+    channels: string[]
+}
+
+const props = defineProps<{
+    entities: EntityGroup[]
+    notificationChannels: ChannelSetting[]
+    channelOptions: { value: string; label: string }[]
+}>()
+
+// BR-NOT-06 — channel adalah konfigurasi. Yang tidak bisa disunting adalah
+// ada-tidaknya deklarasi: barisnya lahir dari kelas notifikasi, bukan dari
+// layar ini.
+function toggleChannel(setting: ChannelSetting, channel: string, checked: unknown) {
+    const next =
+        checked === true
+            ? [...new Set([...setting.channels, channel])]
+            : setting.channels.filter((c) => c !== channel)
+
+    router.put(
+        route('admin.reference.notification-channels.update', setting.event_type),
+        { channels: next },
+        { preserveScroll: true }
+    )
+}
 
 const dialogOpen = ref(false)
 const activeEntity = ref<EntityGroup | null>(null)
@@ -133,6 +159,58 @@ function destroy(entity: EntityGroup, record: RecordRow) {
                         baru lalu nonaktifkan yang lama.
                     </AlertDescription>
                 </Alert>
+
+                <Card>
+                    <CardHeader class="flex flex-row items-start gap-3">
+                        <Bell class="mt-1 h-5 w-5 text-muted-foreground" />
+                        <div>
+                            <CardTitle class="text-base">Channel Notifikasi</CardTitle>
+                            <p class="mt-1 text-sm text-muted-foreground">
+                                Peristiwa yang menuntut tindakan segera sebaiknya dikirim lewat
+                                keduanya. Email untuk segalanya akan membuat email berhenti dibaca
+                                untuk apa pun — dan yang pertama hilang justru yang mendesak.
+                            </p>
+                        </div>
+                    </CardHeader>
+                    <CardContent>
+                        <Table>
+                            <TableHeader>
+                                <TableRow>
+                                    <TableHead>Tipe Event</TableHead>
+                                    <TableHead
+                                        v-for="option in props.channelOptions"
+                                        :key="option.value"
+                                        class="w-28"
+                                    >
+                                        {{ option.label }}
+                                    </TableHead>
+                                </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                                <TableRow
+                                    v-for="setting in props.notificationChannels"
+                                    :key="setting.event_type"
+                                >
+                                    <TableCell class="font-medium">
+                                        {{ setting.event_type }}
+                                    </TableCell>
+                                    <TableCell
+                                        v-for="option in props.channelOptions"
+                                        :key="option.value"
+                                    >
+                                        <Checkbox
+                                            :model-value="setting.channels.includes(option.value)"
+                                            @update:model-value="
+                                                (value) =>
+                                                    toggleChannel(setting, option.value, value)
+                                            "
+                                        />
+                                    </TableCell>
+                                </TableRow>
+                            </TableBody>
+                        </Table>
+                    </CardContent>
+                </Card>
 
                 <Card v-for="entity in entities" :key="entity.key">
                     <CardHeader class="flex flex-row items-start justify-between gap-4">

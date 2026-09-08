@@ -7,8 +7,10 @@ use App\Actions\Config\DeleteReferenceEntity;
 use App\Actions\Config\SaveReferenceEntity;
 use App\Actions\Config\ToggleReferenceEntity;
 use App\Http\Controllers\Controller;
+use App\Models\NotificationChannelSetting;
 use App\Support\Config\ReferenceEntity;
 use App\Support\Config\ReferenceEntityRegistry;
+use App\Support\Notification\NotificationChannels;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -41,6 +43,22 @@ class ReferenceEntityController extends Controller
                     'records' => $this->records($entity),
                 ])
                 ->values(),
+            // BR-NOT-06 — channel per tipe event tinggal di layar yang sama
+            // dengan data acuan lain: keduanya konfigurasi yang disunting
+            // tanpa deploy, dan memisahkannya hanya menambah layar yang harus
+            // ditemukan Admin.
+            'notificationChannels' => NotificationChannelSetting::query()
+                ->orderBy('event_type')
+                ->get()
+                ->map(fn (NotificationChannelSetting $setting) => [
+                    'event_type' => $setting->event_type,
+                    'channels' => $setting->channels,
+                ])
+                ->all(),
+            'channelOptions' => [
+                ['value' => NotificationChannels::IN_APP, 'label' => 'In-app'],
+                ['value' => NotificationChannels::EMAIL, 'label' => 'Email'],
+            ],
         ]);
     }
 

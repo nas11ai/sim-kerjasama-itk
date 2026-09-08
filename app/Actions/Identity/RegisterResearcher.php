@@ -9,9 +9,9 @@ use App\Models\UserProfile;
 use App\Notifications\NewRegistrationAwaitingVerification;
 use App\Support\Audit\AuditTrail;
 use App\Support\EmailDomainGuard;
+use App\Support\Notification\Deliver;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Notification;
 use Illuminate\Validation\ValidationException;
 use Lorisleiva\Actions\Concerns\AsAction;
 use Spatie\Permission\Models\Permission;
@@ -115,6 +115,6 @@ class RegisterResearcher
             return;
         }
 
-        Notification::send($operators, new NewRegistrationAwaitingVerification($registrant));
+        Deliver::to($operators, new NewRegistrationAwaitingVerification($registrant));
     }
 }

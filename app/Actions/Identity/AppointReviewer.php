@@ -6,6 +6,7 @@ use App\Models\Reviewer;
 use App\Models\User;
 use App\Notifications\ReviewerAppointedNotification;
 use App\Support\Audit\AuditTrail;
+use App\Support\Notification\Deliver;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
@@ -101,7 +102,7 @@ class AppointReviewer
 
         // BR-IAM-15 — yang ditunjuk diberi tahu; kemampuannya berubah tanpa ia
         // melakukan apa pun.
-        $user->notify(new ReviewerAppointedNotification($type));
+        Deliver::to($user, new ReviewerAppointedNotification($type));
 
         $tercatat = $reviewer;
 

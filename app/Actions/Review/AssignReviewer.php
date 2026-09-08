@@ -11,6 +11,7 @@ use App\States\Submission\SubmissionStatus;
 use App\States\Submission\UnderReview;
 use App\Support\Audit\AuditTrail;
 use App\Support\ConflictOfInterestGuard;
+use App\Support\Notification\Deliver;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use Lorisleiva\Actions\Concerns\AsAction;
@@ -67,7 +68,7 @@ class AssignReviewer
             // BR-REV-01 — reviewer diberi tahu. Beban tinggi (BR-REV-04)
             // sengaja tidak menghalangi: itu peringatan untuk Operator,
             // bukan penolakan.
-            $candidate->notify(new ReviewerAssignedNotification($submission));
+            Deliver::to($candidate, new ReviewerAssignedNotification($submission));
 
             return $assignment;
         });

@@ -1,5 +1,6 @@
 <?php
 
+use Database\Seeders\NotificationChannelSeeder;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
@@ -16,6 +17,13 @@ use Tests\TestCase;
 
 pest()->extend(TestCase::class)
     ->use(RefreshDatabase::class)
+    // BR-NOT-06 — deklarasi channel adalah data sistem, sederajat dengan
+    // permission: tanpanya setiap notifikasi ditolak sebagai "belum
+    // dideklarasikan". Di produksi ia datang dari seeder; di test ia harus
+    // ikut lahir bersama skema, bukan diulang di tiap berkas.
+    ->beforeEach(function () {
+        (new NotificationChannelSeeder)->run();
+    })
     ->in('Feature');
 
 /*

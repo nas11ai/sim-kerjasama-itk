@@ -6,6 +6,7 @@ use App\Enums\VerificationStatus;
 use App\Models\UserProfile;
 use App\Notifications\NidnVerificationRejectedNotification;
 use App\Support\Audit\AuditTrail;
+use App\Support\Notification\Deliver;
 use Illuminate\Validation\ValidationException;
 use Lorisleiva\Actions\Concerns\AsAction;
 
@@ -43,7 +44,7 @@ class RejectNidnVerification
 
         // BR-IAM-13/BR-IAM-15 — alasannya ikut terkirim, bukan sekadar fakta
         // penolakannya.
-        $profile->user?->notify(new NidnVerificationRejectedNotification(trim($reason)));
+        Deliver::to($profile->user, new NidnVerificationRejectedNotification(trim($reason)));
 
         $tercatat = $profile->refresh();
 

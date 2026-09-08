@@ -9,6 +9,7 @@ use App\Notifications\AccountDeactivatedNotification;
 use App\States\Submission\Rejected;
 use App\States\Submission\Withdrawn;
 use App\Support\Audit\AuditTrail;
+use App\Support\Notification\Deliver;
 use Illuminate\Support\Collection;
 use Illuminate\Validation\ValidationException;
 use Lorisleiva\Actions\Concerns\AsAction;
@@ -56,7 +57,7 @@ class DeactivateUser
 
         // BR-IAM-15 — keputusan orang lain atas akunnya; ia tidak akan
         // menemukan sendiri selain lewat layar login yang menolaknya.
-        $user->notify(new AccountDeactivatedNotification);
+        Deliver::to($user, new AccountDeactivatedNotification);
 
         $tercatat = $user->refresh();
 

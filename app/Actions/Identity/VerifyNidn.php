@@ -6,6 +6,7 @@ use App\Enums\VerificationStatus;
 use App\Models\UserProfile;
 use App\Notifications\NidnVerifiedNotification;
 use App\Support\Audit\AuditTrail;
+use App\Support\Notification\Deliver;
 use Lorisleiva\Actions\Concerns\AsAction;
 
 /**
@@ -35,7 +36,7 @@ class VerifyNidn
 
         // BR-IAM-15 — keputusan orang lain atas akun seseorang memberi tahu
         // orang itu; kemampuannya berubah tanpa ia melakukan apa pun.
-        $profile->user?->notify(new NidnVerifiedNotification);
+        Deliver::to($profile->user, new NidnVerifiedNotification);
 
         $tercatat = $profile->refresh();
 

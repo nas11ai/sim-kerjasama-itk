@@ -2,6 +2,7 @@
 
 namespace App\Notifications;
 
+use App\Notifications\Concerns\UsesConfiguredChannels;
 use Illuminate\Bus\Queueable;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
@@ -15,12 +16,10 @@ use Illuminate\Notifications\Notification;
 class NidnVerifiedNotification extends Notification
 {
     use Queueable;
+    use UsesConfiguredChannels;
 
-    /** @return list<string> */
-    public function via(object $notifiable): array
-    {
-        return ['database', 'mail'];
-    }
+    /** BR-NOT-06 — kunci deklarasi channel di notification_channel_settings. */
+    public const EVENT_TYPE = 'UserVerified';
 
     public function toMail(object $notifiable): MailMessage
     {

@@ -4,6 +4,7 @@ namespace App\Notifications;
 
 use App\Models\SubmissionDate;
 use App\Models\SubmissionPeriod;
+use App\Notifications\Concerns\UsesConfiguredChannels;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Database\Eloquent\Collection;
@@ -13,14 +14,12 @@ use Illuminate\Notifications\Notification;
 class SubmissionPeriodActiveNotification extends Notification implements ShouldQueue
 {
     use Queueable;
+    use UsesConfiguredChannels;
+
+    /** BR-NOT-06 — kunci deklarasi channel di notification_channel_settings. */
+    public const EVENT_TYPE = 'SubmissionPeriodActive';
 
     public function __construct(private readonly SubmissionPeriod $submissionPeriod) {}
-
-    /** @return list<string> */
-    public function via(object $notifiable): array
-    {
-        return ['database', 'mail'];
-    }
 
     /** @return array<string, mixed> */
     public function toDatabase(object $notifiable): array

@@ -8,7 +8,7 @@ use App\Models\User;
 use App\Notifications\MonevStageOpenedNotification;
 use App\Support\Audit\AuditTrail;
 use App\Support\MonevAccessGate;
-use Illuminate\Support\Facades\Notification;
+use App\Support\Notification\Deliver;
 use Lorisleiva\Actions\Concerns\AsAction;
 
 /**
@@ -65,7 +65,7 @@ class OpenMonevCycle
             return 0;
         }
 
-        Notification::send($recipients, new MonevStageOpenedNotification($parent, $detail));
+        Deliver::to($recipients, new MonevStageOpenedNotification($parent, $detail));
 
         $tercatat = $recipients->count();
 

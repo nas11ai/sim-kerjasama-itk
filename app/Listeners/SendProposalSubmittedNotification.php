@@ -5,9 +5,9 @@ namespace App\Listeners;
 use App\Events\ProposalSubmitted;
 use App\Models\User;
 use App\Notifications\ProposalSubmittedNotification;
+use App\Support\Notification\Deliver;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Notification;
 use Spatie\Permission\Exceptions\PermissionDoesNotExist;
 
 class SendProposalSubmittedNotification implements ShouldQueue
@@ -40,6 +40,6 @@ class SendProposalSubmittedNotification implements ShouldQueue
             return;
         }
 
-        Notification::send($operators, new ProposalSubmittedNotification($event->submission));
+        Deliver::to($operators, new ProposalSubmittedNotification($event->submission));
     }
 }

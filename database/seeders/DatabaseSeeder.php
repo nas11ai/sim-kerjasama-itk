@@ -27,6 +27,7 @@ class DatabaseSeeder extends Seeder
             OrganizationSeeder::class,
             PhaseTypeSeeder::class,
             SubmissionDateLabelSeeder::class,
+            NotificationChannelSeeder::class,
         ]);
     }
 }

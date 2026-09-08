@@ -9,9 +9,9 @@ use App\Models\SubmissionPeriod;
 use App\Models\User;
 use App\Notifications\SubmissionDeadlineExtendedNotification;
 use App\Support\Audit\AuditTrail;
+use App\Support\Notification\Deliver;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Notification;
 use Lorisleiva\Actions\Concerns\AsAction;
 
 /**
@@ -104,7 +104,7 @@ class ExtendSubmissionDates
             return 0;
         }
 
-        Notification::send($pemilikDraft, new SubmissionDeadlineExtendedNotification($period));
+        Deliver::to($pemilikDraft, new SubmissionDeadlineExtendedNotification($period));
 
         $tercatat = $pemilikDraft->count();
 

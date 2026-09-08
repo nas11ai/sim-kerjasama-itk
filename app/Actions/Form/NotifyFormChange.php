@@ -6,7 +6,7 @@ use App\Actions\Concerns\ChangesNoState;
 use App\Models\Form;
 use App\Notifications\FormChangedNotification;
 use App\Support\AffectedDraftOwners;
-use Illuminate\Support\Facades\Notification;
+use App\Support\Notification\Deliver;
 use Lorisleiva\Actions\Concerns\AsAction;
 
 /**
@@ -44,7 +44,7 @@ class NotifyFormChange implements ChangesNoState
         }
 
         if ($notify) {
-            Notification::send($owners, new FormChangedNotification($form));
+            Deliver::to($owners, new FormChangedNotification($form));
         }
 
         return $owners->count();

@@ -5,6 +5,7 @@ namespace App\Actions\Monev;
 use App\Actions\Concerns\ChangesNoState;
 use App\Models\ReviewFormResponse;
 use App\Notifications\MonevEvaluationSubmittedNotification;
+use App\Support\Notification\Deliver;
 use Lorisleiva\Actions\Concerns\AsAction;
 
 /**
@@ -35,7 +36,7 @@ class NotifyMonevEvaluationSubmitted implements ChangesNoState
             return false;
         }
 
-        $submission->submittedBy->notify(new MonevEvaluationSubmittedNotification($submission));
+        Deliver::to($submission->submittedBy, new MonevEvaluationSubmittedNotification($submission));
 
         return true;
     }

@@ -3,6 +3,7 @@
 namespace App\Notifications;
 
 use App\Models\SubmissionPeriod;
+use App\Notifications\Concerns\UsesConfiguredChannels;
 use Illuminate\Bus\Queueable;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
@@ -16,14 +17,12 @@ use Illuminate\Notifications\Notification;
 class SubmissionPeriodClosedNotification extends Notification
 {
     use Queueable;
+    use UsesConfiguredChannels;
+
+    /** BR-NOT-06 — kunci deklarasi channel di notification_channel_settings. */
+    public const EVENT_TYPE = 'SubmissionPeriodClosed';
 
     public function __construct(private readonly SubmissionPeriod $period) {}
-
-    /** @return list<string> */
-    public function via(object $notifiable): array
-    {
-        return ['database', 'mail'];
-    }
 
     public function toMail(object $notifiable): MailMessage
     {
