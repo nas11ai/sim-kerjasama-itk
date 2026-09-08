@@ -8,6 +8,7 @@ use App\Models\Form;
 use App\Models\FormField;
 use App\Models\FormFieldOption;
 use App\Models\FormType;
+use App\Support\AffectedDraftOwners;
 use App\Support\SchemeFieldGuard;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -102,7 +103,7 @@ class FormController extends Controller
         DB::transaction(function () use ($validated) {
             $form = Form::create([
                 'title' => $validated['title'],
-                'description' => $validated['description'],
+                'description' => $validated['description'] ?? null,
                 'form_type_id' => $validated['form_type_id'],
                 'is_active' => $validated['is_active'] ?? true,
             ]);
@@ -150,6 +151,11 @@ class FormController extends Controller
             'form' => $form,
             'formTypes' => FormType::orderBy('name')->get(),
             'fieldTypes' => FieldType::orderBy('name')->get(),
+            // BR-FE-13 — Admin diberi tahu berapa draft berjalan yang terdampak
+            // **sebelum** ia menyimpan. Memberitahukannya sesudah tidak menolong
+            // siapa pun: keputusan mengirim notifikasi harus diambil sambil
+            // melihat angkanya.
+            'affectedDrafts' => AffectedDraftOwners::countForForm($form),
         ]);
     }
 
@@ -178,7 +184,7 @@ class FormController extends Controller
         DB::transaction(function () use ($validated, $form) {
             $form->update([
                 'title' => $validated['title'],
-                'description' => $validated['description'],
+                'description' => $validated['description'] ?? null,
                 'form_type_id' => $validated['form_type_id'],
                 'is_active' => $validated['is_active'] ?? true,
             ]);

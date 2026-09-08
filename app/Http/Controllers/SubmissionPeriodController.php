@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Actions\Period\ExtendSubmissionDates;
 use App\Models\FormPhase;
+use App\Models\FormSubmission;
 use App\Models\SubmissionDate;
 use App\Models\SubmissionDateLabel;
 use App\Models\SubmissionPeriod;
@@ -159,6 +160,15 @@ class SubmissionPeriodController extends Controller
             'submissionPeriod' => $submissionPeriod,
             'formPhases' => $formPhases,
             'submissionDateLabels' => $submissionDateLabels,
+            // BR-SCH-08 — Operator melihat berapa draft berjalan di periode ini
+            // sebelum menggeser tanggalnya. Memundurkan tenggat akan mengabari
+            // mereka; memajukannya tidak, karena tidak ada kesempatan baru yang
+            // diberikan.
+            'runningDrafts' => FormSubmission::query()
+                ->where('submission_period_id', $submissionPeriod->id)
+                ->where('is_submitted', false)
+                ->distinct()
+                ->count('submitted_by'),
         ]);
     }
 
@@ -197,7 +207,12 @@ class SubmissionPeriodController extends Controller
             // BR-SCH-08 — pembaruan tanggal beserta pemberitahuannya ada di
             // Action: yang memicu notifikasi adalah batas yang **mundur**, dan
             // membedakan itu menuntut membandingkan nilai lama dengan baru.
-            ExtendSubmissionDates::run($submissionPeriod, $request->submission_dates);
+            // BR-SCH-08 — jumlah peneliti yang diberi tahu dikembalikan Action
+            // dan ikut dibawa ke layar. Sebelumnya nilainya dibuang, jadi
+            // Operator memperpanjang tenggat tanpa pernah tahu apakah ada yang
+            // dikabari — dan perpanjangan yang diam praktis sama dengan tidak
+            // diberikan.
+            $diberitahu = ExtendSubmissionDates::run($submissionPeriod, $request->submission_dates);
 
             // Recreate form phase associations
             foreach ($request->form_phase_ids as $formPhaseId) {
@@ -210,7 +225,8 @@ class SubmissionPeriodController extends Controller
             DB::commit();
 
             return redirect()->route('admin.submission-periods.index')
-                ->with('success', 'Periode pengiriman berhasil diperbarui.');
+                ->with('success', 'Periode pengiriman berhasil diperbarui.')
+                ->with('notifiedDraftOwners', $diberitahu);
         } catch (\Exception $e) {
             DB::rollback();
 

@@ -18,7 +18,17 @@ import {
     SelectValue,
 } from '@/Components/ui/select'
 import { Badge } from '@/Components/ui/badge'
-import { Plus, Trash2, GripVertical, GalleryVerticalEnd, Save, X, ArrowLeft } from 'lucide-vue-next'
+import { Alert, AlertDescription, AlertTitle } from '@/Components/ui/alert'
+import {
+    Plus,
+    Trash2,
+    GripVertical,
+    GalleryVerticalEnd,
+    Save,
+    X,
+    ArrowLeft,
+    AlertTriangle,
+} from 'lucide-vue-next'
 import draggable from 'vuedraggable'
 
 interface FormType {
@@ -79,6 +89,7 @@ interface FormData {
     form_type_id: number | null
     is_active: boolean
     fields: FormField[]
+    notify_affected: boolean
     _method: string
 }
 
@@ -86,6 +97,12 @@ interface Props {
     existingForm: ExistingForm
     formTypes: FormType[]
     fieldTypes: FieldType[]
+    /**
+     * BR-FE-13 — jumlah draft berjalan yang terdampak perubahan Form ini.
+     * Dikirim sebelum Admin menyimpan, karena keputusan mengirim notifikasi
+     * harus diambil sambil melihat angkanya.
+     */
+    affectedDrafts?: number
 }
 
 const props = defineProps<Props>()
@@ -97,6 +114,10 @@ const form = useForm<FormData>({
     form_type_id: null,
     is_active: true,
     fields: [],
+    // BR-FE-13 — pengiriman notifikasi **ditawarkan**, bukan otomatis. Tidak
+    // setiap perubahan layak mengganggu belasan orang, dan yang tahu layak
+    // atau tidak adalah Admin yang melakukannya.
+    notify_affected: false,
     _method: 'PUT',
 })
 
@@ -182,6 +203,8 @@ const fieldTypeRequiresOptions = (fieldTypeId: number | null): boolean => {
     const fieldTypeName = getFieldTypeName(fieldTypeId)
     return fieldTypesWithOptions.includes(fieldTypeName)
 }
+
+const hasAffectedDrafts = computed(() => (props.affectedDrafts ?? 0) > 0)
 
 const submit = () => {
     form.put(route('admin.forms.update', props.existingForm.id))
@@ -538,6 +561,31 @@ const submit = () => {
                         </draggable>
                     </CardContent>
                 </Card>
+
+                <!-- BR-FE-13 — peringatan muncul SEBELUM tombol simpan, bukan
+                     sesudahnya. Admin yang baru diberi tahu setelah menyimpan
+                     tidak lagi punya keputusan untuk diambil. -->
+                <Alert v-if="hasAffectedDrafts">
+                    <AlertTriangle class="h-4 w-4" />
+                    <AlertTitle>{{ affectedDrafts }} draft berjalan akan terdampak</AlertTitle>
+                    <AlertDescription class="space-y-3">
+                        <p>
+                            Peneliti yang sedang mengisi formulir ini akan melihat perubahan Anda.
+                            Field yang baru diwajibkan tidak menarik draft lama ikut tertolak — yang
+                            sudah berjalan tetap dinilai dengan aturan saat ia dimulai.
+                        </p>
+                        <div class="flex items-center gap-2">
+                            <Switch id="notify-affected" v-model="form.notify_affected" />
+                            <Label for="notify-affected" class="cursor-pointer font-normal">
+                                Kirim notifikasi ke {{ affectedDrafts }} peneliti terdampak
+                            </Label>
+                        </div>
+                        <p class="text-xs text-muted-foreground">
+                            Tidak setiap perubahan layak mengganggu mereka — merapikan label
+                            biasanya tidak, menambah field wajib biasanya iya.
+                        </p>
+                    </AlertDescription>
+                </Alert>
 
                 <!-- Form Actions -->
                 <div class="flex items-center justify-end space-x-2">

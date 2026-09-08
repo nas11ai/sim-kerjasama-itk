@@ -3,9 +3,8 @@
 namespace App\Actions\Form;
 
 use App\Models\Form;
-use App\Models\FormSubmission;
-use App\Models\User;
 use App\Notifications\FormChangedNotification;
+use App\Support\AffectedDraftOwners;
 use Illuminate\Support\Facades\Notification;
 use Lorisleiva\Actions\Concerns\AsAction;
 
@@ -34,13 +33,7 @@ class NotifyFormChange
      */
     public function handle(Form $form, bool $notify): int
     {
-        $owners = User::query()
-            ->whereIn('id', FormSubmission::query()
-                ->where('form_id', $form->id)
-                ->where('is_submitted', false)
-                ->whereNull('parent_submission_id')
-                ->select('submitted_by'))
-            ->get();
+        $owners = AffectedDraftOwners::forForm($form);
 
         if ($owners->isEmpty()) {
             return 0;

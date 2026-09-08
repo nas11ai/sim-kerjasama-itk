@@ -9,8 +9,11 @@
 use App\Actions\FormSubmission\StartSubmission;
 use App\Actions\Period\ExtendSubmissionDates;
 use App\Models\User;
+use App\Models\UserProfile;
 use App\Notifications\SubmissionDeadlineExtendedNotification;
 use Illuminate\Support\Facades\Notification;
+use Inertia\Testing\AssertableInertia as Assert;
+use Spatie\Permission\Models\Permission;
 
 it('[SCH-RULE-11] perpanjangan memberi tahu pemilik draft', function () {
     Notification::fake();
@@ -93,4 +96,27 @@ it('[SCH-RULE-11] hanya pemilik draft di periode itu yang diberi tahu', function
     ]);
 
     Notification::assertNotSentTo($orangLain, SubmissionDeadlineExtendedNotification::class);
+});
+
+// BR-SCH-08 sampai ke layar. Nilai kembalian ExtendSubmissionDates sebelumnya
+// dibuang controller, jadi Operator memperpanjang tenggat tanpa pernah tahu
+// apakah ada yang dikabari — dan perpanjangan yang diam praktis sama dengan
+// tidak diberikan.
+
+it('[SCH-RULE-11] halaman edit periode membawa jumlah draft berjalan', function () {
+    $fx = wizardFixture();
+    StartSubmission::run($fx['form']->id, $fx['period']->id, $fx['detail'], $fx['user']);
+
+    Permission::findOrCreate('users.manage', 'web');
+    $operator = User::factory()->create();
+    UserProfile::factory()->create(['user_id' => $operator->id]);
+    $operator->givePermissionTo('users.manage');
+
+    $this->actingAs($operator->refresh())
+        ->get(route('admin.submission-periods.edit', $fx['period']))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('SubmissionPeriods/EditPage', false)
+            ->where('runningDrafts', 1)
+            ->etc());
 });

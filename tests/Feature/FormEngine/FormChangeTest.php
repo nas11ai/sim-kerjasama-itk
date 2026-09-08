@@ -16,8 +16,26 @@ use App\Models\FormField;
 use App\Models\FormFieldResponse;
 use App\Models\FormSubmission;
 use App\Models\User;
+use App\Models\UserProfile;
 use App\Notifications\FormChangedNotification;
 use Illuminate\Support\Facades\Notification;
+use Inertia\Testing\AssertableInertia as Assert;
+use Spatie\Permission\Models\Permission;
+
+/**
+ * Admin yang benar-benar bisa membuka layar Form: grup rute admin dijaga
+ * `can:users.manage`, jadi role saja tidak cukup.
+ */
+function formAdmin(): User
+{
+    Permission::findOrCreate('users.manage', 'web');
+
+    $admin = User::factory()->create();
+    UserProfile::factory()->create(['user_id' => $admin->id]);
+    $admin->givePermissionTo('users.manage');
+
+    return $admin->refresh();
+}
 
 it('[FE-CHANGE-01] menghapus field menyisakan jawaban lama', function () {
     $fx = wizardFixture();
@@ -112,4 +130,68 @@ it('[FE-CHANGE-04] pengajuan yang sudah dikirim bukan draft terdampak', function
     // mengubah apa pun baginya.
     expect(NotifyFormChange::run($fx['form'], true))->toBe(0);
     Notification::assertNothingSent();
+});
+
+// BR-FE-13 sampai ke layar. Sebelum irisan ini, `affectedDrafts` dan
+// `notify_affected` tidak muncul sama sekali di frontend: aturannya lulus di
+// lapis Action, tapi Admin tidak pernah benar-benar diperingatkan dan tidak
+// pernah benar-benar ditawari mengirim notifikasi.
+
+it('[FE-CHANGE-02] halaman edit Form membawa jumlah draft terdampak', function () {
+    Notification::fake();
+
+    $fx = wizardFixture();
+    StartSubmission::run($fx['form']->id, $fx['period']->id, $fx['detail'], $fx['user']);
+
+    $admin = formAdmin();
+
+    $this->actingAs($admin)
+        ->get(route('admin.forms.edit', $fx['form']))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('Forms/EditPage', false)
+            ->where('affectedDrafts', 1)
+            ->etc());
+});
+
+it('[FE-CHANGE-03] menyimpan dengan notify_affected mengirim notifikasi', function () {
+    Notification::fake();
+
+    $fx = wizardFixture();
+    StartSubmission::run($fx['form']->id, $fx['period']->id, $fx['detail'], $fx['user']);
+
+    $admin = formAdmin();
+
+    $this->actingAs($admin)
+        ->put(route('admin.forms.update', $fx['form']), [
+            'title' => $fx['form']->title,
+            'form_type_id' => $fx['form']->form_type_id,
+            'fields' => [],
+            'notify_affected' => true,
+        ])
+        ->assertRedirect();
+
+    Notification::assertSentTo($fx['user'], FormChangedNotification::class);
+});
+
+it('[FE-CHANGE-03] tanpa centang, perubahan tersimpan tanpa notifikasi', function () {
+    Notification::fake();
+
+    $fx = wizardFixture();
+    StartSubmission::run($fx['form']->id, $fx['period']->id, $fx['detail'], $fx['user']);
+
+    $admin = formAdmin();
+
+    $this->actingAs($admin)
+        ->put(route('admin.forms.update', $fx['form']), [
+            'title' => 'Judul Baru',
+            'form_type_id' => $fx['form']->form_type_id,
+            'fields' => [],
+            'notify_affected' => false,
+        ])
+        ->assertRedirect();
+
+    // Pengiriman ditawarkan, bukan otomatis — Admin yang memutuskan.
+    Notification::assertNothingSent();
+    expect($fx['form']->fresh()->title)->toBe('Judul Baru');
 });

@@ -7,6 +7,7 @@ import { Button } from '@/Components/ui/button'
 import { Input } from '@/Components/ui/input'
 import { Label } from '@/Components/ui/label'
 import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card'
+import { Alert, AlertDescription } from '@/Components/ui/alert'
 import { Badge } from '@/Components/ui/badge'
 import {
     Select,
@@ -15,7 +16,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from '@/Components/ui/select'
-import { Plus, Trash2, ArrowLeft, Calendar, Settings } from 'lucide-vue-next'
+import { Plus, Trash2, ArrowLeft, Calendar, Settings, BellRing } from 'lucide-vue-next'
 import Checkbox from '@/Components/AppCheckbox.vue'
 
 interface FormPhase {
@@ -69,6 +70,12 @@ interface Props {
     submissionPeriod: SubmissionPeriod
     formPhases: FormPhase[]
     submissionDateLabels: SubmissionDateLabel[]
+    /**
+     * BR-SCH-08 — jumlah peneliti yang masih punya draft di periode ini.
+     * Memundurkan tenggat akan mengabari mereka; memajukannya tidak, karena
+     * tidak ada kesempatan baru yang diberikan.
+     */
+    runningDrafts?: number
 }
 
 const props = defineProps<Props>()
@@ -292,6 +299,20 @@ watch(showAddLabelDialog, (val) => {
                         </div>
                     </CardHeader>
                     <CardContent>
+                        <!-- BR-SCH-08 — angkanya ditampilkan sebelum tanggal
+                             digeser, bukan sesudah. Operator yang baru tahu
+                             sesudahnya tidak lagi punya keputusan untuk
+                             diambil. -->
+                        <Alert v-if="(runningDrafts ?? 0) > 0" class="mb-4">
+                            <BellRing class="h-4 w-4" />
+                            <AlertDescription>
+                                {{ runningDrafts }} peneliti masih punya draft di periode ini.
+                                Memundurkan salah satu tanggal akan otomatis memberi tahu mereka
+                                bahwa batasnya diperpanjang — memajukannya tidak, karena tidak ada
+                                kesempatan baru yang diberikan.
+                            </AlertDescription>
+                        </Alert>
+
                         <div class="space-y-4">
                             <div
                                 v-for="(date, index) in form.submission_dates"
