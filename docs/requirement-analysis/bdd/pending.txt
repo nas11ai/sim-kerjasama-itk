@@ -7,7 +7,7 @@
 # Plafon hanya boleh NAIK saat skenario baru ditulis, dan wajib TURUN saat skenario
 # lama diimplementasikan. Ia tidak pernah naik untuk menampung utang yang menumpuk.
 #
-# max: 65
+# max: 75
 
 MON-CYCLE-01
 MON-CYCLE-02
@@ -30,6 +30,10 @@ MON-REVIEW-06
 MON-REVIEW-07
 MON-REVIEW-08
 MON-REVIEW-09
+MON-REVIEW-10
+MON-REVIEW-11
+MON-REVIEW-12
+MON-REVIEW-13
 NOT-CHANNEL-01
 NOT-CHANNEL-02
 NOT-CHANNEL-03
@@ -54,6 +58,12 @@ RO-OUTPUT-13
 RO-OUTPUT-14
 RO-OUTPUT-15
 RO-OUTPUT-16
+RO-OUTPUT-17
+RO-OUTPUT-18
+RO-OUTPUT-19
+RO-OUTPUT-20
+RO-OUTPUT-21
+RO-OUTPUT-22
 RPT-AUDIT-01
 RPT-AUDIT-02
 RPT-AUDIT-03

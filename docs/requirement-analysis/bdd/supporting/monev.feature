@@ -145,3 +145,26 @@ Feature: Siklus Monitoring dan Evaluasi
     And "Sari" sudah submit evaluasinya atas "P-003"
     When "Budi" membuka hasil review "P-003"
     Then "Budi" tidak melihat skor reviewer
+
+  @BR-MON-10 @M4 @RESEARCHER-05-01 @happy
+  Scenario: [MON-REVIEW-10] Pembukaan siklus memberi tahu peneliti
+    When Operator membuka siklus "Laporan Monev I" pada "P-001"
+    Then "Budi" menerima notifikasi in-app
+
+  @BR-MON-10 @M4 @REVIEWER-03-01 @happy
+  Scenario: [MON-REVIEW-11] Pembukaan siklus memberi tahu reviewer yang ditugaskan
+    Given "Sari" ditugaskan sebagai reviewer siklus "Laporan Monev I" pada "P-001"
+    When Operator membuka siklus "Laporan Monev I" pada "P-001"
+    Then "Sari" menerima notifikasi in-app
+
+  @BR-MON-10 @M4 @RESEARCHER-05-03 @happy
+  Scenario: [MON-REVIEW-12] Submit evaluasi monev memberi tahu peneliti
+    Given "Sari" ditugaskan sebagai reviewer siklus "Laporan Monev I" pada "P-001"
+    When "Sari" submit evaluasi siklus "Laporan Monev I" pada "P-001"
+    Then "Budi" menerima notifikasi in-app
+
+  @BR-MON-10 @M4 @RESEARCHER-05-01 @boundary
+  Scenario: [MON-REVIEW-13] Siklus yang belum dibuka tidak memberi tahu siapa pun
+    Given siklus "Laporan Monev II" pada "P-001" belum dibuka
+    When Operator membuka daftar siklus "P-001"
+    Then "Budi" tidak menerima notifikasi in-app

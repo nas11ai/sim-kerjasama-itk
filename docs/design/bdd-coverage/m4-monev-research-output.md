@@ -1,6 +1,6 @@
 # M4 — Monev & Research Output
 
-**17 BR perilaku · 37 skenario · 2 berkas `.feature`**
+**20 BR bertag · 47 skenario · 2 berkas `.feature`**
 
 Yang terjadi **setelah** pengajuan disetujui: siklus monitoring-evaluasi, dan pelaporan
 luaran yang benar-benar terwujud.
@@ -14,10 +14,36 @@ Sumber: [`supporting/02_monev.md`](../../requirement-analysis/ddd/supporting/02_
 
 | Berkas | Rentang ID | BR |
 | ------ | ---------- | -- |
-| `supporting/monev.feature` | `MON-CYCLE-01..12`, `MON-REVIEW-01..09` | BR-MON-01, BR-MON-02, BR-MON-03, BR-MON-04, BR-MON-05, BR-MON-06, BR-MON-07, BR-MON-08, BR-MON-09 |
-| `supporting/research_output.feature` | `RO-OUTPUT-01..16` | BR-RO-01, BR-RO-02, BR-RO-03, BR-RO-04, BR-RO-05, BR-RO-06, BR-RO-07, BR-RO-08 |
+| `supporting/monev.feature` | `MON-CYCLE-01..12`, `MON-REVIEW-01..13` | BR-MON-01 … BR-MON-10 |
+| `supporting/research_output.feature` | `RO-OUTPUT-01..22` | BR-RO-01 … BR-RO-09 |
 
 Semua skenario bertag `@M4`.
+
+`monev.feature` berisi 25 skenario — tepat di ambang ~25 yang memaksa pemecahan.
+Garis pisahnya sudah kelihatan kalau nanti dilewati: `MON-CYCLE-*` menjaga
+**akses dan gerbang siklus**, `MON-REVIEW-*` menjaga **penugasan reviewer dan
+keterlihatan hasilnya**. Rentang ID tidak perlu berurutan dengan nama berkas,
+jadi memecahnya tidak menomori ulang apa pun.
+
+---
+
+## 1a. Dua BR baru dan satu amandemen, semuanya dari audit DDD
+
+Sepuluh skenario tambahan di irisan ini tidak lahir dari memperdalam aturan yang
+sudah ada. Semuanya lahir dari membaca dokumen DDD sampai habis dan menemukan
+bagian yang **tidak pernah dinomori** — atau yang menegasikan dirinya sendiri.
+
+| BR | Lahir dari | Register |
+| -- | ---------- | -------- |
+| **BR-MON-09** *(sudah ada)* | — | #10 |
+| **BR-MON-10** *(baru)* | Tabel Domain Events mendaftar `MonevStageOpened` dan `MonevEvaluationSubmitted` ke Notification; activity diagram menggambar keduanya sampai ke peneliti dan reviewer. Tidak satu pun pernah diuji | — |
+| **BR-RO-09** *(baru)* | `config/research_output_types.php` menandai field `required` per tipe, tapi tidak ada aturan yang menegakkannya. "Taksonomi dibatasi" karena itu baru benar separuh: tipenya terkendali, isinya tidak | — |
+| BR-RO-07 *(amandemen)* | Tabel *Access Control* memberi Operator/Admin akses penuh, sementara BR-nya berbunyi "**hanya** `submitted_by` dan `co_investigator`" | #35 |
+
+BR-RO-04 tidak diamandemen — bunyinya sudah menyebut `ip` **dan** `prototype`.
+Yang kurang skenarionya: `prototype` tidak pernah diuji, sehingga implementasi
+yang menuliskan `ip` saja lolos tanpa ada yang gagal. `[RO-OUTPUT-17/18]`
+menutupnya.
 
 ---
 
@@ -100,6 +126,10 @@ sebelumnya, dan jejak penilaian monev pertama hilang tanpa jejak.
 | -- | ----- | --------------- | ----- |
 | `MON-REVIEW-07` | happy | Researcher melihat skor dan catatan monev **begitu reviewer submit**, tanpa menunggu siklus berakhir | RESEARCHER-05-03 |
 | `MON-REVIEW-08` | denial | Sebelum reviewer submit, hasil evaluasi belum terlihat | RESEARCHER-05-03 |
+| `MON-REVIEW-10` | happy | Pembukaan siklus memberi tahu **peneliti** — laporannya yang ditunggu | RESEARCHER-05-01 |
+| `MON-REVIEW-11` | happy | Pembukaan siklus memberi tahu **reviewer yang ditugaskan** — penilaiannya yang ditunggu | REVIEWER-03-01 |
+| `MON-REVIEW-12` | happy | Submit evaluasi monev memberi tahu peneliti | RESEARCHER-05-03 |
+| `MON-REVIEW-13` | boundary | Siklus yang **belum dibuka** tidak memberi tahu siapa pun | RESEARCHER-05-01 |
 | `MON-REVIEW-09` | boundary | Gerbang ini **tidak** berlaku untuk pengajuan awal — di sana skor tetap ditahan sampai APPROVED/REJECTED (`[REV-VIS-04]`) | RESEARCHER-02-03 |
 
 BR-MON-09 adalah **pengecualian eksplisit** atas BR-REV-12, bukan tafsir bebas.
@@ -129,6 +159,12 @@ Bedakan dari **Target Luaran** (M1, BR-SM-14/15) yang merupakan luaran yang
 | `RO-OUTPUT-11` | happy | `submitted_by` menambah dan menyunting luaran | BR-RO-07 | RESEARCHER-06-03 |
 | `RO-OUTPUT-12` | happy | Co-Investigator juga boleh menambah dan menyunting luaran | BR-RO-07 | RESEARCHER-06-03 |
 | `RO-OUTPUT-13` | denial | Member biasa hanya bisa membaca | BR-RO-07 | RESEARCHER-06-01 |
+| `RO-OUTPUT-17` | denial | Tipe `prototype` tanpa berkas ditolak — BR-RO-04 menyebut dua tipe, bukan satu | BR-RO-04 | RESEARCHER-06-02 |
+| `RO-OUTPUT-18` | happy | `prototype` dengan satu berkas tersimpan | BR-RO-04 | RESEARCHER-06-02 |
+| `RO-OUTPUT-19` | denial | Reviewer hanya bisa membaca luaran — satu-satunya peran di tabel Access Control yang belum pernah punya skenario | BR-RO-07 | RESEARCHER-06-01 |
+| `RO-OUTPUT-20` | boundary | Operator pemegang `outputs.manage` boleh menyunting — register #35 | BR-RO-07 | OPERATOR-02-03 |
+| `RO-OUTPUT-21` | denial | Metadata yang ditandai `required` tidak boleh kosong | BR-RO-09 | RESEARCHER-06-02 |
+| `RO-OUTPUT-22` | boundary | Field yang tidak `required` boleh kosong — termasuk `end_date` PKS berjalan | BR-RO-09 + BR-RO-03 | RESEARCHER-06-03 |
 
 Kecocokan tipe antara target dan realisasi **sengaja tidak diuji sebagai penolakan** —
 tidak ada skenario yang menolak luaran karena tipenya beda dari yang dijanjikan.
@@ -179,3 +215,4 @@ OPERATOR-05-01 (Manajemen Siklus Monev) tercakup lewat `MON-CYCLE-04` dan
 | ~~#19~~ | **Terselesaikan 2026-09-04** — sengaja **tidak** ditegakkan. Batasi yang harus benar (taksonomi), ukur yang sebaiknya benar (pemenuhan). Pemenuhan jadi metrik pelaporan, bukan validasi lintas-aggregate |
 | ~~#20~~ | **Terselesaikan 2026-09-04** — tidak; WITHDRAWN terminal, state machine dijaga asiklik. BR-SM-11 diperluas, dikunci `[SM-WITHDRAW-05]`/`[MON-CYCLE-12]` |
 | ~~register #10~~ | **Terselesaikan 2026-09-04.** Monev dikecualikan lewat BR-MON-09; dikunci `[MON-REVIEW-07..09]` |
+| ~~#35~~ | **Terselesaikan 2026-09-08** — BR-RO-07 dan tabel Access Control bicara pada sumbu berbeda; bunyi BR-nya yang kabur. Sengaja **tidak** mengikuti preseden ADR 0015: anggaran komitmen, luaran laporan fakta. Dikunci `[RO-OUTPUT-19/20]` |

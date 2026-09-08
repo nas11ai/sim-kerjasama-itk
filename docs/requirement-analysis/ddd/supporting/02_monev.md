@@ -1,7 +1,7 @@
 # BC: Monev (Monitoring & Evaluation)
 
 **Klasifikasi:** 🟡 Supporting Domain  
-**Versi:** 2.4  
+**Versi:** 2.5  
 **Status:** Draft
 
 > **Perubahan v2.3 → v2.4.** BR-MON-03 diperbaiki dari "satu **researcher**"
@@ -134,6 +134,7 @@ flowchart TD
 | BR-MON-07 | Reviewer pengajuan awal yang sudah tidak aktif (expired `end_date`) tidak muncul di suggestion monev                |
 | BR-MON-08 | Submission yang WITHDRAWN saat monev sedang berjalan — siklus monev aktif di-freeze, tidak bisa submit laporan baru |
 | BR-MON-09 | Hasil evaluasi monev terlihat Researcher **begitu reviewer submit**, tidak menunggu siklus berakhir. Ini pengecualian eksplisit atas [BR-REV-12](../core/02_review.md), yang menahan skor sampai APPROVED/REJECTED. Alasannya monev bersifat formatif — koreksi arah kegiatan mustahil kalau catatannya baru terbaca setelah kegiatannya usai |
+| BR-MON-10 | Dua peristiwa siklus monev memberi tahu pihak yang harus bertindak. `MonevStageOpened` memberi tahu **peneliti** (laporannya ditunggu) dan **reviewer yang ditugaskan pada siklus itu** (penilaiannya ditunggu). `MonevEvaluationSubmitted` memberi tahu peneliti. Siklus yang belum dibuka tidak memberi tahu siapa pun — jadwal monev berjarak bulanan, dan tanpa pemberitahuan tenggatnya terlanjur berjalan sebelum ada yang membukanya |
 
 ---
 

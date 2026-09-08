@@ -61,6 +61,7 @@ keduanya. Alasan tiap keputusan ditulis lengkap supaya bisa dibantah kalau kelir
 | 32 | BR-IAM-02 menuntut NIDN unik "di seluruh sistem", sementara jalur undangan tidak pernah meminta NIDN | **Keunikan berlaku atas nilai yang terisi.** Dibaca harfiah, akun undangan kedua akan bentrok dengan yang pertama pada nilai kosong yang sama — dan seluruh jalur mitra eksternal mati di pendaftar kedua. Bunyi BR-IAM-02 diperjelas; dikunci `[IAM-REG-15]` | 2026-09-07 |
 | 33 | Tombol **Cabut** undangan ada di `ADMIN-08-01`, tapi pencabutan bukan salah satu sebab token tidak berlaku di BR-IAM-06 | **Ditambahkan sebagai sebab keempat.** BR-IAM-06 sudah menyebut kata "dicabut", tapi hanya sebagai akibat penghapusan organisasi — bukan sebagai aksi Operator yang berdiri sendiri. Tanpa itu, token yang bocor tidak punya cara dimatikan selain menunggu kedaluwarsa. Dikunci `[IAM-REG-16]` | 2026-09-07 |
 | 34 | BR-IAM-11 tidak menyatakan apa yang terjadi kalau orang yang sudah reviewer ditunjuk lagi | **Penunjukan idempoten per orang.** `OPERATOR-08-04` menampilkan satu baris per reviewer dengan aksi *Edit Periode* — record kedua akan membuat penghitungan beban (BR-REV-04) dan keterlihatan skor (BR-REV-11) membaca dari himpunan yang ambigu, dan itu tidak gagal mencolok, ia cuma salah. Bunyi BR-IAM-11 diperluas; dikunci `[IAM-REVIEWER-04..06]` | 2026-09-07 |
+| 35 | BR-RO-07 berbunyi "**hanya** `submitted_by` dan `co_investigator`", sementara tabel Access Control di dokumen yang sama memberi Operator/Admin akses penuh lewat `outputs.manage` | **Keduanya benar pada sumbu yang berbeda; bunyi BR-nya yang kabur.** BR-RO-07 bicara soal siapa **di dalam tim penelitian** — di situ `member` dan Reviewer memang read-only. Staf LPPM ada di sumbu lain: luaran memasok pelaporan, dan koreksi datanya tugas mereka. Sengaja **tidak** mengikuti preseden ADR 0015 yang menjadikan `update-budget` invarian domain — anggaran adalah komitmen peneliti, luaran adalah laporan fakta, dan menyamakan keduanya akan mengunci Operator dari data yang justru ia pertanggungjawabkan. Bunyi BR-RO-07 diperjelas; dikunci `[RO-OUTPUT-19]` (reviewer read-only) dan `[RO-OUTPUT-20]` (Operator boleh) | 2026-09-08 |
 
 ### 29.1 Status akun jalur undangan — jejak keputusan
 
@@ -131,6 +132,42 @@ menjaga akibatnya pada access control: unit nonaktif di tengah rantai memutus
 penelusuran leluhur, sehingga Form yang dipasang di atasnya berhenti terlihat oleh
 prodi di bawahnya. Itu perilaku yang benar — Form seharusnya tidak mengalir lewat unit
 yang sudah dipensiunkan — tapi ia hanya benar kalau memang ditulis.
+
+### 35.1 Siapa boleh menyunting luaran — jejak keputusan
+
+Dua pernyataan di `03_research_output.md` yang saling menegasikan, dan keduanya
+ditulis dengan yakin:
+
+| Letak | Bunyinya |
+| ----- | -------- |
+| Tabel *Access Control* | `Operator / Admin` → **Full access** via `outputs.manage` |
+| BR-RO-07 | "**Hanya** `submitted_by` dan `co_investigator` yang bisa tambah atau edit output" |
+
+Yang menyesatkan bukan salah satunya melainkan kata **"hanya"**, yang membaca
+seolah menutup seluruh dunia padahal maksudnya menutup satu himpunan: anggota
+tim yang bukan penanggung jawab. Tabelnya justru lebih lengkap — ia menyebut
+empat peran, termasuk Reviewer yang tidak disinggung BR-nya sama sekali.
+
+Godaannya adalah mengikuti preseden yang sudah ada. Register #24 menjadikan
+`update-budget` invarian domain persis karena BR-BUD-02/09 menyebut daftar
+tertutup, dan `Gate::before` yang melewatinya dinilai melanggar aturan. Pola
+kalimatnya identik di sini.
+
+Preseden itu sengaja **tidak** diikuti, karena yang dijaga berbeda:
+
+- **Anggaran adalah komitmen peneliti.** Angkanya mengikat apa yang ia janjikan
+  akan dibelanjakan. Operator yang menyuntingnya diam-diam mengubah janji orang
+  lain, dan itulah yang ADR 0015 tutup.
+- **Luaran adalah laporan fakta.** Ia memasok pelaporan LPPM ke luar, dan
+  merapikan datanya — tipe yang salah pilih, DOI yang keliru ketik — memang
+  pekerjaan staf. Mengunci Operator dari sana berarti kesalahan data hanya bisa
+  diperbaiki dengan meminta peneliti yang kegiatannya sudah selesai.
+
+Dua skenario baru mengunci masing-masing sisi. `[RO-OUTPUT-19]` menjaga bahwa
+Reviewer tetap read-only — satu-satunya peran di tabel yang tidak pernah punya
+skenario sebelumnya. `[RO-OUTPUT-20]` menjaga bahwa Operator memang boleh, jadi
+keputusan ini tidak bisa dibatalkan diam-diam oleh Policy yang ditulis belakangan
+dengan membaca kata "hanya" secara harfiah.
 
 ### 6.1 Arah penelusuran org tree — jejak keputusan
 

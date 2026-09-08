@@ -1,7 +1,7 @@
 # BC: Research Output
 
 **Klasifikasi:** 🟡 Supporting Domain  
-**Versi:** 2.3  
+**Versi:** 2.4  
 **Status:** Draft
 
 ---
@@ -159,8 +159,9 @@ BR-RO-01 (induk wajib APPROVED). Ketiganya harus lolos — lihat
 | BR-RO-04 | `output_type = 'ip'` dan `output_type = 'prototype'` wajib punya minimal satu file di `research_output_files` |
 | BR-RO-05 | `output_type` harus terdaftar di `output_type_definitions` — tidak bisa arbitrary string                      |
 | BR-RO-06 | Research Output tetap ada sebagai data historis setelah submission WITHDRAWN — tidak dihapus                  |
-| BR-RO-07 | Hanya `submitted_by` dan `co_investigator` yang bisa tambah atau edit output — `member` read only             |
+| BR-RO-07 | Di dalam **tim penelitian**, hanya `submitted_by` dan `co_investigator` yang bisa tambah atau edit output; `member` dan Reviewer read only. Operator dan Admin pemegang `outputs.manage` tetap bisa menyunting — luaran memasok pelaporan LPPM, dan koreksi datanya memang tugas staf. Ini **berbeda** dari anggaran (BR-BUD-02/09), yang daftar tertutupnya menjadi invarian domain di [ADR 0015](../../../adr/0015-gate-before-never-bypasses-domain-invariants.md): anggaran adalah komitmen peneliti, luaran adalah laporan fakta |
 | BR-RO-08 | Menambah dan menyunting Research Output tunduk pada deadline `FormPhaseDetail` tempatnya bergantung (Detail "Upload Luaran"). Lewat deadline luaran **tetap terbaca** (BR-FE-15) tapi tidak bisa diubah, kecuali ada `FormSubmissionOverride` yang masih berlaku (BR-FE-08). Tidak ada mekanisme batas waktu tersendiri untuk luaran — lihat [ADR 0014](../../../adr/0014-time-boxed-access-single-override-mechanism.md) |
+| BR-RO-09 | `metadata` wajib memenuhi field yang ditandai `required` pada definisi tipenya di `output_type_definitions`. Tanpa ini "taksonomi dibatasi" hanya benar separuh: tipenya terkendali, isinya tidak — dan luaran berisi objek kosong lolos ke pelaporan sebagai kegiatan yang seolah terlaporkan. Field yang tidak `required` boleh kosong, termasuk `metadata.end_date` untuk PKS berjalan (BR-RO-03) |
 
 ---
 

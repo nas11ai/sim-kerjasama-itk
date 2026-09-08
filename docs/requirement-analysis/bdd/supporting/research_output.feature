@@ -104,3 +104,36 @@ Feature: Luaran Penelitian Terealisasi
     And Operator membuat override untuk "P-001" pada fase "Upload Luaran" yang berlaku sampai "2026-12-20 23:59:59"
     When "Budi" menyunting luaran "P-001"
     Then penyuntingan berhasil
+
+  @BR-RO-04 @M4 @RESEARCHER-06-02 @denial
+  Scenario: [RO-OUTPUT-17] Tipe prototype tanpa berkas ditolak
+    When "Budi" menambahkan luaran bertipe "prototype" ke "P-001" tanpa berkas
+    Then penambahan ditolak karena luaran wajib punya minimal satu berkas
+
+  @BR-RO-04 @M4 @RESEARCHER-06-02 @happy
+  Scenario: [RO-OUTPUT-18] Tipe prototype dengan satu berkas tersimpan
+    When "Budi" menambahkan luaran bertipe "prototype" ke "P-001" dengan satu berkas
+    Then penambahan berhasil
+
+  @BR-RO-07 @M4 @RESEARCHER-06-01 @denial
+  Scenario: [RO-OUTPUT-19] Reviewer hanya bisa membaca luaran
+    Given "Sari" ditugaskan sebagai reviewer "P-001"
+    When "Sari" menyunting luaran "P-001"
+    Then penyuntingan ditolak dengan 403
+
+  @BR-RO-07 @M4 @OPERATOR-02-03 @boundary
+  Scenario: [RO-OUTPUT-20] Operator pemegang outputs.manage boleh menyunting luaran
+    Given "Rina" punya permission "outputs.manage"
+    When "Rina" menyunting luaran "P-001"
+    Then penyuntingan berhasil
+
+  @BR-RO-09 @M4 @RESEARCHER-06-02 @denial
+  Scenario: [RO-OUTPUT-21] Metadata wajib yang kosong ditolak
+    When "Budi" menambahkan luaran bertipe "article" ke "P-001" tanpa mengisi "title"
+    Then penambahan ditolak karena metadata "title" wajib diisi
+
+  @BR-RO-09 @BR-RO-03 @M4 @RESEARCHER-06-03 @boundary
+  Scenario: [RO-OUTPUT-22] Metadata yang tidak wajib boleh kosong
+    Given submission "P-001" bertipe CommunityService
+    When "Budi" menambahkan luaran bertipe "pks" ke "P-001" tanpa mengisi "end_date"
+    Then penambahan berhasil

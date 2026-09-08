@@ -196,7 +196,9 @@ kelengkapan profil. Ketiganya menggerbang aksi yang berbeda.
 | `Then Operator menerima notifikasi in-app` | Sisi Operator dari BR-IAM-15 — pendaftar baru butuh diverifikasi |
 
 Tabel keenam tumbuh dari M4 (Monev & Research Output). Perhatikan `siklus` sebagai
-pembeda: penugasan reviewer monev selalu per siklus, tidak pernah diwarisi.
+pembeda: penugasan reviewer monev selalu per siklus, tidak pernah diwarisi. Perhatikan
+juga `luaran` versus `target luaran` — taksonominya sama, entitasnya berbeda, dan
+menyamakan frasanya akan menyamarkan perbedaan yang justru dijaga BR-SM-14 dan BR-RO-05.
 
 | Frasa baku | Dipakai untuk |
 | ---------- | ------------- |
@@ -221,6 +223,14 @@ pembeda: penugasan reviewer monev selalu per siklus, tidak pernah diwarisi.
 | `Then luaran bertipe "<tipe>" masih terbaca` | Luaran yang bertahan sebagai data historis |
 | `Then SubmissionReviewer baru terbentuk untuk siklus itu` | Bukti BR-MON-06 — bukan reuse record |
 | `Then pembatalan ditolak karena <alasan>` | Penolakan pembatalan penarikan |
+| `Given "<orang>" punya permission "<perm>"` | Aktor yang cukup dijelaskan oleh haknya, tanpa organisasi |
+| `Given siklus "<detail>" pada "<id>" belum dibuka` | Siklus monev yang belum diaktifkan Operator |
+| `When Operator membuka siklus "<detail>" pada "<id>"` | Aksi mengaktifkan satu siklus monev (BR-MON-10) |
+| `When Operator membuka daftar siklus "<id>"` | Melihat siklus tanpa mengaktifkan apa pun — uji negatif BR-MON-10 |
+| `When "<orang>" submit evaluasi siklus "<detail>" pada "<id>"` | Reviewer menyelesaikan penilaian monev |
+| `When "<orang>" menambahkan luaran bertipe "<tipe>" ke "<id>" <tanpa berkas\|dengan satu berkas>` | Kelengkapan berkas luaran (BR-RO-04) |
+| `When "<orang>" menambahkan luaran bertipe "<tipe>" ke "<id>" tanpa mengisi "<field>"` | Metadata yang sengaja dikosongkan (BR-RO-09) |
+| `Then penambahan ditolak karena metadata "<field>" wajib diisi` | Penolakan yang menyebut field metadata-nya |
 
 Tabel ketujuh tumbuh dari M5 (Reporting, Notification & Config) — lapisan yang
 menyentuh seluruh sistem tapi tidak punya alur bisnisnya sendiri.
