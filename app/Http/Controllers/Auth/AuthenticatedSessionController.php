@@ -35,13 +35,12 @@ class AuthenticatedSessionController extends Controller
 
         $user = Auth::user();
 
-        // Saat testing, pakai route default Laravel
-        if (app()->environment('testing')) {
-            return redirect()->intended(route('dashboard', absolute: false));
-        }
-
-        // Production app logic
-        if ($user->can('users.manage')) {
+        // Cabang `app()->environment('testing')` yang dulu ada di sini
+        // dicabut: ia mengalihkan test ke route('dashboard') sehingga
+        // percabangan yang sebenarnya berjalan di produksi — Operator ke
+        // dasbor admin, peneliti ke dasbornya sendiri — tidak pernah sekali
+        // pun diuji. Aturan repo melarangnya justru karena itu.
+        if ($user !== null && $user->can('users.manage')) {
             return redirect()->intended(route('admin.dashboard'));
         }
 

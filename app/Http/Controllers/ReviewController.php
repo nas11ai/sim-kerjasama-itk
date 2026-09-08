@@ -221,18 +221,31 @@ class ReviewController extends Controller
 
                 if ($submission->status->canTransitionTo($newStatus)) {
                     $submission->status->transitionTo($newStatus);
-                } elseif ($submission->status->canTransitionTo(UnderReview::class)) {
-                    $submission->status->transitionTo(UnderReview::class);
+                    $this->emailService->notifySubmissionStatusChanged($submission, $oldStatus);
 
-                    /** @phpstan-ignore-next-line */
-                    if ($submission->status->canTransitionTo($newStatus)) {
-                        $submission->status->transitionTo($newStatus);
-                    } else {
-                        throw new \Exception('Transisi ke status yang dipilih tidak diizinkan dari status saat ini.');
-                    }
-                } else {
+                    return;
+                }
+
+                // Loncatan dua langkah: status yang tidak bisa langsung menuju
+                // target sering bisa menempuhnya lewat UNDER_REVIEW.
+                if (!$submission->status->canTransitionTo(UnderReview::class)) {
                     throw new \Exception("Transisi ke status tersebut tidak diizinkan dari status {$oldStatus->label()}.");
                 }
+
+                $submission->status->transitionTo(UnderReview::class);
+
+                // Dibaca ulang, bukan diperiksa lewat ekspresi yang sama.
+                // Versi sebelumnya memanggil `$submission->status->canTransitionTo()`
+                // dua kali pada ekspresi identik lalu membungkam peringatannya.
+                // Peringatan itu benar: tanpa pembacaan ulang, hasil pertama
+                // yang sudah false-lah yang berlaku.
+                $antara = $submission->refresh()->status;
+
+                if (!$antara->canTransitionTo($newStatus)) {
+                    throw new \Exception('Transisi ke status yang dipilih tidak diizinkan dari status saat ini.');
+                }
+
+                $antara->transitionTo($newStatus);
 
                 $this->emailService->notifySubmissionStatusChanged($submission, $oldStatus);
             });
@@ -665,49 +678,6 @@ class ReviewController extends Controller
         return response()->download($fullPath);
     }
 
-    // Enhanced status update method considering evaluations
-
-    /** @phpstan-ignore-next-line */
-    private function checkIfEvaluationsArePositive(FormSubmission $submission): bool
-    {
-        // This is a simplified logic - you can customize based on your evaluation criteria
-        // For example, check if there are any "rejection" responses in evaluation forms
-
-        $submittedResponses = $submission->submittedReviewFormResponses()->get();
-
-        // If no evaluations submitted, default to needs review
-        if ($submittedResponses->isEmpty()) {
-            return false;
-        }
-
-        // Custom logic: check for specific field values that indicate rejection
-        foreach ($submittedResponses as $response) {
-            $fieldResponses = $response->reviewFormFieldResponses()->get();
-
-            foreach ($fieldResponses as $fieldResponse) {
-                $field = $fieldResponse->reviewFormField;
-
-                // Example: if there's a field with "recommendation" and value is "reject"
-                if (
-                    str_contains(strtolower($field->label), 'recommendation') ||
-                    str_contains(strtolower($field->label), 'decision')
-                ) {
-
-                    $value = strtolower($fieldResponse->value);
-                    if (
-                        str_contains($value, 'reject') ||
-                        str_contains($value, 'decline') ||
-                        str_contains($value, 'not approved')
-                    ) {
-                        return false;
-                    }
-                }
-            }
-        }
-
-        return true; // Default to positive if no negative indicators found
-    }
-
     private function deleteReviewSummaryWithComments(ReviewSummary $summary)
     {
         $comments = ReviewComment::where('review_summary_id', $summary->id)->get();
@@ -732,37 +702,5 @@ class ReviewController extends Controller
         }
 
         $summary->delete();
-    }
-
-    /** @phpstan-ignore-next-line */
-    private function canUserReview(FormSubmission $submission, $user): bool
-    {
-        if ($user->can('users.manage')) {
-            return true;
-        }
-
-        $reviewer = Reviewer::where('user_id', $user->id)->latest()->first();
-        if (!$reviewer) {
-            return false;
-        }
-
-        /** @var SubmissionReviewer|null $submissionReviewer */
-        $submissionReviewer = SubmissionReviewer::where([
-            'form_submission_id' => $submission->id,
-            'reviewer_id' => $reviewer->id,
-        ])->first();
-
-        if (!$submissionReviewer) {
-            return false;
-        }
-
-        // If no evaluation forms required, can review immediately
-        if (!$submission->hasReviewEvaluationForms()) {
-            return true;
-        }
-
-        // If has evaluation forms, must complete them first to fully participate
-        // But can view the submission
-        return true;
     }
 }

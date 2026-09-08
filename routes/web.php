@@ -42,10 +42,6 @@ use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 
-Route::get('/dashboard', function () {
-    return redirect()->route('user.dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
-
 Route::get('/', function () {
     return Inertia::render('WelcomePage', [
         'canLogin' => Route::has('login'),
