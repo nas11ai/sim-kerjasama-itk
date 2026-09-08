@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Actions\Review\BuildReviewerDashboard;
+use App\Data\Submission\SubmissionAbilitiesData;
 use App\Models\Form;
 use App\Models\FormAccessControl;
 use App\Models\FormPhase;
@@ -428,6 +429,11 @@ class SubmissionViewController extends Controller
             'canReview' => $isAssignedReviewer,
             'userRole' => $userRole,
             'isOwnSubmission' => $submission->submitted_by === $user->id,
+            // Jawaban Policy atas empat tindakan utama, dikirim utuh supaya
+            // layar tidak menyusun ulang aturannya sendiri. Tebakan lama
+            // ("pemiliknya dan belum disubmit") melewatkan arsip periode
+            // (BR-SM-10) dan status terminal (BR-SM-05).
+            'abilities' => SubmissionAbilitiesData::forUser($user, $submission),
             // BR-SM-15 — Policy yang memutuskan siapa boleh mengubah target,
             // bukan sekadar "pemiliknya": status terminal ikut menutupnya.
             'canManageContent' => $user->can('manageTargetOutput', $submission),

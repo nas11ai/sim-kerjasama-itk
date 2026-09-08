@@ -7,6 +7,7 @@ use App\Models\FormSubmission;
 use App\Models\User;
 use App\States\Submission\Approved;
 use App\States\Submission\Draft;
+use App\States\Submission\NeedsRevision;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Spatie\Permission\Models\Permission;
 use Tests\TestCase;
@@ -49,7 +50,7 @@ it('serialises to the shape the frontend expects', function () {
     ]);
 
     expect(SubmissionAbilitiesData::forUser($user, $submission)->toArray())
-        ->toHaveKeys(['view', 'update', 'submit', 'withdraw']);
+        ->toHaveKeys(['view', 'update', 'submit', 'resubmit', 'withdraw']);
 });
 
 it('mirrors the policy withdraw ability for an authorised operator', function () {
@@ -61,4 +62,21 @@ it('mirrors the policy withdraw ability for an authorised operator', function ()
 
     expect(SubmissionAbilitiesData::forUser($operator, $approved)->withdraw)->toBeTrue()
         ->and(SubmissionAbilitiesData::forUser($operator, $draft)->withdraw)->toBeFalse();
+});
+
+it('membedakan resubmit dari submit — hanya NEEDS_REVISION', function () {
+    $user = User::factory()->create();
+
+    $draft = FormSubmission::factory()->create([
+        'submitted_by' => $user->id,
+        'status' => Draft::class,
+    ]);
+
+    $revision = FormSubmission::factory()->create([
+        'submitted_by' => $user->id,
+        'status' => NeedsRevision::class,
+    ]);
+
+    expect(SubmissionAbilitiesData::forUser($user, $draft)->resubmit)->toBeFalse()
+        ->and(SubmissionAbilitiesData::forUser($user, $revision)->resubmit)->toBeTrue();
 });

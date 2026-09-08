@@ -172,6 +172,16 @@ interface Props {
     canReview?: boolean
     userRole: 'submitter' | 'reviewer' | 'user'
     isOwnSubmission: boolean
+    // Jawaban Policy, bukan tebakan layar: arsip periode (BR-SM-10) dan
+    // status terminal (BR-SM-05) ikut menutup penyuntingan, dan keduanya
+    // tidak terbaca dari `is_submitted` saja.
+    abilities: {
+        view: boolean
+        update: boolean
+        submit: boolean
+        resubmit: boolean
+        withdraw: boolean
+    }
     assignedReviewers?: AssignedReviewer[]
     reviewerFormAssignments?: ReviewerFormAssignment[]
     hasReviewEvaluationForms?: boolean
@@ -621,8 +631,8 @@ const mappedAssignedReviewers = computed(() =>
                         </CardContent>
                     </Card>
 
-                    <!-- Edit Action (for submitter on draft) -->
-                    <Card v-if="isSubmitter && !submission.is_submitted">
+                    <!-- Edit Action — Policy yang memutuskan, bukan layar -->
+                    <Card v-if="abilities.update">
                         <CardContent class="pt-6">
                             <div class="flex items-center justify-between">
                                 <div>
