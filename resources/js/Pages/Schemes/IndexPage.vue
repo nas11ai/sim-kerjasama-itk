@@ -11,6 +11,12 @@
  * Nonaktifkan: itulah angka yang menentukan apakah tombolnya akan bekerja
  * (BR-SCH-01), dan menyembunyikannya membuat Admin menekan lalu ditolak tanpa
  * tahu sebabnya.
+ *
+ * Jenis pengajuan wajib dipilih karena ia yang menentukan luaran apa yang sah
+ * bagi pengajuan berskema ini: BR-RO-02 hanya menerima `pks` pada
+ * CommunityService, dan jenisnya diturunkan lewat skema. Skema tanpa jenis
+ * pengajuan membuat setiap luaran PKS ditolak tanpa ada layar yang bisa
+ * memperbaikinya.
  */
 import { computed, ref } from 'vue'
 import { Head, router, useForm } from '@inertiajs/vue3'
@@ -29,7 +35,20 @@ import {
 } from '@/Components/ui/dialog'
 import { Input } from '@/Components/ui/input'
 import { Label } from '@/Components/ui/label'
+import {
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from '@/Components/ui/select'
+import { Checkbox } from '@/Components/ui/checkbox'
 import { Info, Loader2, Pencil, Plus, Power, PowerOff } from 'lucide-vue-next'
+
+interface Option {
+    id: number
+    name: string
+}
 
 interface Scheme {
     id: number
@@ -40,10 +59,18 @@ interface Scheme {
     duration_months: number
     is_active: boolean
     active_submissions_count: number
+    scheme_type_id: number | null
+    submission_type_id: number | null
+    scheme_type: Option | null
+    submission_type: Option | null
+    allowed_trls: Option[]
 }
 
 interface Props {
     schemes: Scheme[]
+    schemeTypes: Option[]
+    submissionTypes: Option[]
+    trls: Option[]
 }
 
 const props = defineProps<Props>()
@@ -51,13 +78,45 @@ const props = defineProps<Props>()
 const dialogOpen = ref(false)
 const editing = ref<Scheme | null>(null)
 
-const form = useForm({
+const form = useForm<{
+    name: string
+    code: string
+    max_budget: number
+    max_members: number
+    duration_months: number
+    scheme_type_id: number | null
+    submission_type_id: number | null
+    allowed_trl_ids: number[]
+}>({
     name: '',
     code: '',
     max_budget: 0,
     max_members: 0,
     duration_months: 12,
+    scheme_type_id: null,
+    submission_type_id: null,
+    allowed_trl_ids: [],
 })
+
+// shadcn Select bekerja dengan string; id-nya angka. Konversi ditaruh di satu
+// tempat supaya tidak ada '3' yang lolos ke backend sebagai string.
+const asSelectValue = (id: number | null) => (id === null ? undefined : String(id))
+
+const setSchemeType = (value: unknown) => {
+    form.scheme_type_id = value ? Number(value) : null
+}
+
+const setSubmissionType = (value: unknown) => {
+    form.submission_type_id = value ? Number(value) : null
+}
+
+// reka-ui mengirim boolean | 'indeterminate'; hanya true yang berarti dipilih.
+const toggleTrl = (trlId: number, checked: unknown) => {
+    form.allowed_trl_ids =
+        checked === true
+            ? [...new Set([...form.allowed_trl_ids, trlId])]
+            : form.allowed_trl_ids.filter((id) => id !== trlId)
+}
 
 const rupiah = (value: number) =>
     new Intl.NumberFormat('id-ID', {
@@ -83,6 +142,9 @@ function openEdit(scheme: Scheme) {
     form.max_budget = scheme.max_budget
     form.max_members = scheme.max_members
     form.duration_months = scheme.duration_months
+    form.scheme_type_id = scheme.scheme_type_id
+    form.submission_type_id = scheme.submission_type_id
+    form.allowed_trl_ids = scheme.allowed_trls.map((trl) => trl.id)
     dialogOpen.value = true
 }
 
@@ -150,6 +212,32 @@ function toggle(scheme: Scheme) {
 
                 <CardContent class="space-y-3">
                     <div class="grid gap-2 text-sm sm:grid-cols-4">
+                        <div>
+                            <span class="text-muted-foreground">Jenis pengajuan</span>
+                            <div>
+                                <span v-if="scheme.submission_type">
+                                    {{ scheme.submission_type.name }}
+                                </span>
+                                <span v-else class="text-destructive">Belum ditetapkan</span>
+                            </div>
+                        </div>
+                        <div>
+                            <span class="text-muted-foreground">Jenis skema</span>
+                            <div>{{ scheme.scheme_type?.name ?? '—' }}</div>
+                        </div>
+                        <div>
+                            <span class="text-muted-foreground">TRL diizinkan</span>
+                            <div v-if="scheme.allowed_trls.length" class="flex flex-wrap gap-1">
+                                <Badge
+                                    v-for="trl in scheme.allowed_trls"
+                                    :key="trl.id"
+                                    variant="outline"
+                                >
+                                    {{ trl.name }}
+                                </Badge>
+                            </div>
+                            <div v-else class="text-muted-foreground">Semua</div>
+                        </div>
                         <div>
                             <span class="text-muted-foreground">Batas anggaran</span>
                             <div>{{ rupiah(scheme.max_budget) }}</div>
@@ -257,6 +345,89 @@ function toggle(scheme: Scheme) {
                                 {{ form.errors.duration_months }}
                             </p>
                         </div>
+                    </div>
+
+                    <div class="grid gap-3 sm:grid-cols-2">
+                        <div class="space-y-2">
+                            <Label for="scheme-submission-type">Jenis pengajuan</Label>
+                            <Select
+                                :model-value="asSelectValue(form.submission_type_id)"
+                                @update:model-value="setSubmissionType"
+                            >
+                                <SelectTrigger id="scheme-submission-type">
+                                    <SelectValue placeholder="Pilih jenis pengajuan" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem
+                                        v-for="submissionType in props.submissionTypes"
+                                        :key="submissionType.id"
+                                        :value="String(submissionType.id)"
+                                    >
+                                        {{ submissionType.name }}
+                                    </SelectItem>
+                                </SelectContent>
+                            </Select>
+                            <p
+                                v-if="form.errors.submission_type_id"
+                                class="text-sm text-destructive"
+                            >
+                                {{ form.errors.submission_type_id }}
+                            </p>
+                            <p class="text-xs text-muted-foreground">
+                                Menentukan luaran apa yang sah — luaran PKS hanya diterima pada
+                                Pengabdian kepada Masyarakat.
+                            </p>
+                        </div>
+
+                        <div class="space-y-2">
+                            <Label for="scheme-type">Jenis skema</Label>
+                            <Select
+                                :model-value="asSelectValue(form.scheme_type_id)"
+                                @update:model-value="setSchemeType"
+                            >
+                                <SelectTrigger id="scheme-type">
+                                    <SelectValue placeholder="Pilih jenis skema" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem
+                                        v-for="schemeType in props.schemeTypes"
+                                        :key="schemeType.id"
+                                        :value="String(schemeType.id)"
+                                    >
+                                        {{ schemeType.name }}
+                                    </SelectItem>
+                                </SelectContent>
+                            </Select>
+                            <p v-if="form.errors.scheme_type_id" class="text-sm text-destructive">
+                                {{ form.errors.scheme_type_id }}
+                            </p>
+                        </div>
+                    </div>
+
+                    <div class="space-y-2">
+                        <Label>TRL yang diizinkan</Label>
+                        <div
+                            class="grid max-h-40 gap-2 overflow-y-auto rounded-md border p-3 sm:grid-cols-2"
+                        >
+                            <div
+                                v-for="trl in props.trls"
+                                :key="trl.id"
+                                class="flex items-center gap-2"
+                            >
+                                <Checkbox
+                                    :id="`trl-${trl.id}`"
+                                    :model-value="form.allowed_trl_ids.includes(trl.id)"
+                                    @update:model-value="(value) => toggleTrl(trl.id, value)"
+                                />
+                                <Label :for="`trl-${trl.id}`" class="cursor-pointer text-sm">
+                                    {{ trl.name }}
+                                </Label>
+                            </div>
+                        </div>
+                        <p class="text-xs text-muted-foreground">
+                            Kosong berarti tidak membatasi. Daftar ini yang menyaring pilihan pada
+                            field bertipe trl_selector (BR-SCH-05).
+                        </p>
                     </div>
 
                     <p class="text-xs text-muted-foreground">

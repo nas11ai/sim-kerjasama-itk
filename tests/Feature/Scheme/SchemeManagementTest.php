@@ -8,9 +8,14 @@
 // controller, nol layar. M1 sudah memakai `max_budget` untuk menolak anggaran,
 // tapi satu-satunya cara membuat skemanya adalah seeder.
 
+use App\Actions\ResearchOutput\SaveResearchOutput;
 use App\Actions\Scheme\DeactivateScheme;
 use App\Models\FormSubmission;
+use App\Models\OutputTypeDefinition;
 use App\Models\Scheme;
+use App\Models\SchemeType;
+use App\Models\SubmissionType;
+use App\Models\TechnologyReadinessLevel;
 use App\Models\User;
 use App\States\Submission\Approved;
 use App\States\Submission\Rejected;
@@ -163,4 +168,90 @@ it('menolak pengelolaan skema tanpa permission schemes.manage', function () {
     $this->actingAs(User::factory()->create())
         ->post(route('admin.schemes.store'), schemePayload())
         ->assertForbidden();
+});
+
+// ---------------------------------------------------------------------------
+// Tiga sumbu yang controller-nya sudah terima sejak awal tapi layarnya tidak
+// pernah kirim: jenis skema, jenis pengajuan, dan TRL yang diizinkan. Skema
+// tanpa `submission_type_id` membuat BR-RO-02 mustahil terpenuhi — setiap
+// luaran PKS ditolak, dan tidak ada layar yang bisa memperbaikinya.
+
+it('menyimpan jenis skema dan jenis pengajuan dari layar', function () {
+    $admin = schemeAdmin();
+    $submissionType = SubmissionType::firstOrCreate(['name' => 'CommunityService']);
+    $schemeType = SchemeType::factory()->create();
+
+    $this->actingAs($admin)
+        ->post(route('admin.schemes.store'), schemePayload([
+            'code' => 'PKM-2026',
+            'submission_type_id' => $submissionType->id,
+            'scheme_type_id' => $schemeType->id,
+        ]))
+        ->assertSessionHasNoErrors();
+
+    $scheme = Scheme::where('code', 'PKM-2026')->sole();
+
+    expect($scheme->submission_type_id)->toBe($submissionType->id)
+        ->and($scheme->scheme_type_id)->toBe($schemeType->id);
+});
+
+it('menyimpan dan mengganti daftar TRL yang diizinkan', function () {
+    $admin = schemeAdmin();
+    $trls = collect(range(1, 3))->map(fn (int $level) => TechnologyReadinessLevel::create([
+        'name' => "TRL {$level}",
+        'level' => $level,
+    ]));
+
+    $this->actingAs($admin)
+        ->post(route('admin.schemes.store'), schemePayload([
+            'code' => 'TRL-2026',
+            'allowed_trl_ids' => [$trls[0]->id, $trls[1]->id],
+        ]))
+        ->assertSessionHasNoErrors();
+
+    $scheme = Scheme::where('code', 'TRL-2026')->sole();
+
+    expect($scheme->allowedTrls->pluck('id')->sort()->values()->all())
+        ->toBe([$trls[0]->id, $trls[1]->id]);
+
+    $this->actingAs($admin)
+        ->put(route('admin.schemes.update', $scheme->id), schemePayload([
+            'code' => 'TRL-2026',
+            'allowed_trl_ids' => [$trls[2]->id],
+        ]))
+        ->assertSessionHasNoErrors();
+
+    expect($scheme->refresh()->allowedTrls->pluck('id')->all())->toBe([$trls[2]->id]);
+});
+
+it('skema yang dibuat lewat layar memenuhi BR-RO-02 untuk luaran PKS', function () {
+    $admin = schemeAdmin();
+    $communityService = SubmissionType::firstOrCreate(['name' => 'CommunityService']);
+
+    OutputTypeDefinition::updateOrCreate(['code' => 'pks'], [
+        'name' => 'PKS',
+        'is_active' => true,
+        'requires_files' => false,
+        'submission_type' => 'CommunityService',
+        'fields' => [],
+    ]);
+
+    $this->actingAs($admin)
+        ->post(route('admin.schemes.store'), schemePayload([
+            'code' => 'PKM-RO-02',
+            'submission_type_id' => $communityService->id,
+        ]))
+        ->assertSessionHasNoErrors();
+
+    $owner = verifiedResearcher();
+    $submission = FormSubmission::factory()->create([
+        'submitted_by' => $owner->id,
+        'scheme_id' => Scheme::where('code', 'PKM-RO-02')->sole()->id,
+        'status' => Approved::class,
+        'is_submitted' => true,
+    ]);
+
+    $output = SaveResearchOutput::run($submission, $owner, ['output_type' => 'pks']);
+
+    expect($output->output_type)->toBe('pks');
 });

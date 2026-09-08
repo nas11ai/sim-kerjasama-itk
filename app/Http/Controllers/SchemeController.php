@@ -30,7 +30,15 @@ class SchemeController extends Controller
 
         return Inertia::render('Schemes/IndexPage', [
             'schemes' => Scheme::query()
-                ->with(['schemeType:id,name', 'submissionType:id,name'])
+                ->with([
+                    'schemeType:id,name',
+                    'submissionType:id,name',
+                    // BR-SCH-05 — daftar TRL yang boleh dipilih pengajuan
+                    // berskema ini. Ikut dikirim supaya dialog Edit bisa
+                    // memulai dari pilihan yang sekarang berlaku alih-alih
+                    // mengosongkannya diam-diam setiap kali disimpan.
+                    'allowedTrls:id,name',
+                ])
                 ->withCount([
                     // Jumlah pengajuan aktif — angka yang menentukan apakah
                     // skema ini boleh dinonaktifkan (BR-SCH-01). Dihitung di
