@@ -2,6 +2,7 @@
 
 namespace App\Actions\Monev;
 
+use App\Actions\Concerns\ChangesNoState;
 use App\Models\ReviewFormResponse;
 use App\Notifications\MonevEvaluationSubmittedNotification;
 use Lorisleiva\Actions\Concerns\AsAction;
@@ -15,9 +16,12 @@ use Lorisleiva\Actions\Concerns\AsAction;
  *
  * Batas itu yang membuat pengecualian BR-MON-09 tidak pelan-pelan melebar.
  *
+ *
+ * **Tidak menulis audit (BR-RPT-09).** Sama dengan NotifyFormChange: pemberitahuan atas evaluasi yang sudah dicatat saat disubmit.
+ *
  * @method static bool run(ReviewFormResponse $response)
  */
-class NotifyMonevEvaluationSubmitted
+class NotifyMonevEvaluationSubmitted implements ChangesNoState
 {
     use AsAction;
 

@@ -6,6 +6,7 @@ use App\Models\FormSubmission;
 use App\Models\User;
 use App\States\Submission\Rejected;
 use App\States\Submission\SubmissionStatus;
+use App\Support\Audit\AuditTrail;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Validation\ValidationException;
 use Lorisleiva\Actions\Concerns\AsAction;
@@ -55,6 +56,11 @@ class RejectSubmission
         $submission->update(['rejection_reason' => $reason]);
         $status->transitionTo(Rejected::class);
 
-        return $submission->refresh();
+        $tercatat = $submission->refresh();
+
+        // BR-RPT-09 — satu Action, satu entri audit.
+        AuditTrail::record('Pengajuan ditolak', $tercatat, $operator);
+
+        return $tercatat;
     }
 }

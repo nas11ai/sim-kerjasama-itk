@@ -7,6 +7,7 @@ use App\Models\FormSubmission;
 use App\Models\SubmissionPeriod;
 use App\Models\User;
 use App\Support\AccountStateGuard;
+use App\Support\Audit\AuditTrail;
 use App\Support\SubmissionPeriodGate;
 use Lorisleiva\Actions\Concerns\AsAction;
 
@@ -51,7 +52,7 @@ class StartSubmission
 
         // ADR 0012 — created_at baris ini menjadi jangkar Temporal Field Binding
         // (BR-FE-11), jadi ia harus lahir saat peneliti mulai mengisi.
-        return FormSubmission::create([
+        $tercatat = FormSubmission::create([
             'form_id' => $formId,
             'submitted_by' => $user->id,
             'submission_period_id' => $submissionPeriodId,
@@ -59,5 +60,10 @@ class StartSubmission
             'is_submitted' => false,
             'last_completed_step' => 1,
         ]);
+
+        // BR-RPT-09 — satu Action, satu entri audit.
+        AuditTrail::record('Draft pengajuan dibuat', $tercatat, $user);
+
+        return $tercatat;
     }
 }

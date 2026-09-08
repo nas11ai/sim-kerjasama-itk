@@ -5,6 +5,7 @@ namespace App\Actions\FormSubmission;
 use App\Models\FormSubmission;
 use App\Models\ResearchMember;
 use App\Models\User;
+use App\Support\Audit\AuditTrail;
 use App\Support\ConflictOfInterestGuard;
 use Illuminate\Validation\ValidationException;
 use Lorisleiva\Actions\Concerns\AsAction;
@@ -40,11 +41,16 @@ class AddResearchMember
             ]);
         }
 
-        return $submission->researchMembers()->create([
+        $tercatat = $submission->researchMembers()->create([
             'user_profile_id' => $profile->id,
             'role' => $role,
             'status' => 'active',
         ]);
+
+        // BR-RPT-09 — satu Action, satu entri audit.
+        AuditTrail::record('Anggota tim ditambahkan', $tercatat);
+
+        return $tercatat;
     }
 
     /**

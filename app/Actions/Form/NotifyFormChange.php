@@ -2,6 +2,7 @@
 
 namespace App\Actions\Form;
 
+use App\Actions\Concerns\ChangesNoState;
 use App\Models\Form;
 use App\Notifications\FormChangedNotification;
 use App\Support\AffectedDraftOwners;
@@ -22,9 +23,12 @@ use Lorisleiva\Actions\Concerns\AsAction;
  * melakukannya. Yang tidak boleh adalah Admin tidak diberi tahu bahwa ada 12
  * orang yang terdampak.
  *
+ *
+ * **Tidak menulis audit (BR-RPT-09).** Seluruh kerjanya mengirim pemberitahuan atas perubahan Form yang sudah dicatat di jalur penyuntingannya. Mencatatnya lagi di sini akan memunculkan dua baris untuk satu tindakan.
+ *
  * @method static int run(Form $form, bool $notify)
  */
-class NotifyFormChange
+class NotifyFormChange implements ChangesNoState
 {
     use AsAction;
 

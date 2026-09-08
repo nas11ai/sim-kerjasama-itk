@@ -2,11 +2,15 @@
 
 namespace App\Actions\FormSubmission;
 
+use App\Actions\Concerns\ChangesNoState;
 use App\Models\FormSubmission;
 use App\Models\User;
 use Lorisleiva\Actions\Concerns\AsAction;
 
-class ResolveWizardSubmission
+/**
+ * **Tidak menulis audit (BR-RPT-09).** Pencarian murni — tidak menulis apa pun. Draft yang tidak ditemukan dijawab null, bukan dibuatkan.
+ */
+class ResolveWizardSubmission implements ChangesNoState
 {
     use AsAction;
 

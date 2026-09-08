@@ -6,6 +6,7 @@ use App\Models\BudgetComponent;
 use App\Models\BudgetLineItem;
 use App\Models\FormSubmission;
 use App\Models\User;
+use App\Support\Audit\AuditTrail;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Validation\ValidationException;
 use Lorisleiva\Actions\Concerns\AsAction;
@@ -49,7 +50,7 @@ class SaveBudgetLineItem
 
         $this->guardSchemeLimit($submission, $total);
 
-        return BudgetLineItem::create([
+        $tercatat = BudgetLineItem::create([
             'form_submission_id' => $submission->id,
             'budget_component_id' => $component->id,
             'item_name' => $attributes['item_name'],
@@ -58,6 +59,25 @@ class SaveBudgetLineItem
             'unit_price' => $attributes['unit_price'],
             'total' => $total,
         ]);
+
+        // BR-RPT-09 — satu Action, satu entri audit, lengkap dengan nilai
+        // lama dan barunya. Anggaran menyangkut uang: jejak yang hanya
+        // menyebut "diubah" tanpa angka tidak bisa dipertanggungjawabkan
+        // kepada siapa pun.
+        AuditTrail::record(
+            'Line item anggaran disimpan',
+            $tercatat,
+            $user,
+            null,
+            [
+                'item_name' => $tercatat->item_name,
+                'volume' => $tercatat->volume,
+                'unit_price' => $tercatat->unit_price,
+                'total' => $tercatat->total,
+            ],
+        );
+
+        return $tercatat;
     }
 
     /**

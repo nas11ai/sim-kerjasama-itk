@@ -2,6 +2,7 @@
 
 namespace App\Actions\Monev;
 
+use App\Actions\Concerns\ChangesNoState;
 use App\Models\FormSubmission;
 use App\Models\Reviewer;
 use Illuminate\Database\Eloquent\Collection;
@@ -18,9 +19,12 @@ use Lorisleiva\Actions\Concerns\AsAction;
  * itulah sebabnya daftar ini tidak pernah dipakai sebagai penyaring di Action
  * penugasan. Mencampur keduanya akan mengubah kemudahan menjadi larangan.
  *
+ *
+ * **Tidak menulis audit (BR-RPT-09).** Kueri saran reviewer. Yang mengubah state adalah AssignReviewer, dan di situlah auditnya ditulis.
+ *
  * @method static Collection<int, Reviewer> run(FormSubmission $parent)
  */
-class SuggestCycleReviewers
+class SuggestCycleReviewers implements ChangesNoState
 {
     use AsAction;
 

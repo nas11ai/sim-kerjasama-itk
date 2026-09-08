@@ -7,6 +7,7 @@ use App\Models\User;
 use App\States\Submission\Resubmitted;
 use App\States\Submission\SubmissionStatus;
 use App\States\Submission\UnderReview;
+use App\Support\Audit\AuditTrail;
 use App\Support\RequiredFieldGuard;
 use Illuminate\Auth\Access\AuthorizationException;
 use Lorisleiva\Actions\Concerns\AsAction;
@@ -61,6 +62,11 @@ class ResubmitFormSubmission
             }
         }
 
-        return $submission;
+        $tercatat = $submission;
+
+        // BR-RPT-09 — satu Action, satu entri audit.
+        AuditTrail::record('Pengajuan dikirim ulang setelah revisi', $tercatat, $user);
+
+        return $tercatat;
     }
 }

@@ -4,6 +4,7 @@ namespace App\Actions\Scheme;
 
 use App\Models\FormSubmission;
 use App\Models\Scheme;
+use App\Support\Audit\AuditTrail;
 use Illuminate\Validation\ValidationException;
 use Lorisleiva\Actions\Concerns\AsAction;
 
@@ -46,6 +47,11 @@ class DeactivateScheme
 
         $scheme->update(['is_active' => false]);
 
-        return $scheme->refresh();
+        $tercatat = $scheme->refresh();
+
+        // BR-RPT-09 — satu Action, satu entri audit.
+        AuditTrail::record('Skema dinonaktifkan', $tercatat);
+
+        return $tercatat;
     }
 }

@@ -6,6 +6,7 @@ use App\Models\FormSubmission;
 use App\Models\User;
 use App\States\Submission\SubmissionStatus;
 use App\States\Submission\Withdrawn;
+use App\Support\Audit\AuditTrail;
 use Illuminate\Auth\Access\AuthorizationException;
 use Lorisleiva\Actions\Concerns\AsAction;
 use RuntimeException;
@@ -57,6 +58,11 @@ class WithdrawSubmission
 
         $status->transitionTo(Withdrawn::class);
 
-        return $submission->refresh();
+        $tercatat = $submission->refresh();
+
+        // BR-RPT-09 — satu Action, satu entri audit.
+        AuditTrail::record('Pengajuan ditarik', $tercatat, $operator);
+
+        return $tercatat;
     }
 }

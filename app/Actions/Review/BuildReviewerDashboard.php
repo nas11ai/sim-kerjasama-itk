@@ -2,6 +2,7 @@
 
 namespace App\Actions\Review;
 
+use App\Actions\Concerns\ChangesNoState;
 use App\Models\Reviewer;
 use App\Models\SubmissionReviewer;
 use Illuminate\Database\Eloquent\Collection;
@@ -21,9 +22,12 @@ use Lorisleiva\Actions\Concerns\AsAction;
  * menjawab "evaluasi ini sudah kelar?" dengan definisi berbeda adalah cara
  * paling mudah membuat gerbang dan dasbor saling membantah.
  *
+ *
+ * **Tidak menulis audit (BR-RPT-09).** Ringkasan beban kerja untuk satu layar — tidak menyentuh satu baris pun.
+ *
  * @method static array{stats: array<string, int>, assignments: Collection<int, SubmissionReviewer>} run(Reviewer $reviewer)
  */
-class BuildReviewerDashboard
+class BuildReviewerDashboard implements ChangesNoState
 {
     use AsAction;
 

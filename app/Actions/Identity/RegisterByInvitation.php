@@ -6,6 +6,7 @@ use App\Enums\VerificationStatus;
 use App\Models\InvitationToken;
 use App\Models\User;
 use App\Models\UserProfile;
+use App\Support\Audit\AuditTrail;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
@@ -46,7 +47,7 @@ class RegisterByInvitation
             ]);
         }
 
-        return DB::transaction(function () use ($token, $data): User {
+        $tercatat = DB::transaction(function () use ($token, $data): User {
             $user = User::create([
                 'name' => $data['name'],
                 'email' => $data['email'],
@@ -74,5 +75,10 @@ class RegisterByInvitation
 
             return $user->refresh();
         });
+
+        // BR-RPT-09 — satu Action, satu entri audit.
+        AuditTrail::record('Akun dibuat lewat undangan', $tercatat, $tercatat);
+
+        return $tercatat;
     }
 }

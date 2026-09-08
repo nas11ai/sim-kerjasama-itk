@@ -6,6 +6,7 @@ use App\Models\FormSubmission;
 use App\Models\ResearchOutput;
 use App\Models\ResearchOutputFile;
 use App\Models\User;
+use App\Support\Audit\AuditTrail;
 use App\Support\ResearchOutputGuard;
 use Illuminate\Support\Facades\DB;
 use Lorisleiva\Actions\Concerns\AsAction;
@@ -46,7 +47,7 @@ class SaveResearchOutput
 
         ResearchOutputGuard::assertValid($submission, $data['output_type'], $metadata, $fileCount);
 
-        return DB::transaction(function () use ($submission, $actor, $data, $metadata, $incomingFiles, $output): ResearchOutput {
+        $tercatat = DB::transaction(function () use ($submission, $actor, $data, $metadata, $incomingFiles, $output): ResearchOutput {
             $attributes = [
                 'form_submission_id' => $submission->id,
                 'output_type' => $data['output_type'],
@@ -69,5 +70,10 @@ class SaveResearchOutput
 
             return $output->refresh();
         });
+
+        // BR-RPT-09 — satu Action, satu entri audit.
+        AuditTrail::record('Luaran penelitian disimpan', $tercatat, $actor);
+
+        return $tercatat;
     }
 }

@@ -8,6 +8,7 @@ use App\Models\SubmissionDateLabel;
 use App\Models\SubmissionPeriod;
 use App\Models\User;
 use App\Notifications\SubmissionDeadlineExtendedNotification;
+use App\Support\Audit\AuditTrail;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Notification;
@@ -105,6 +106,11 @@ class ExtendSubmissionDates
 
         Notification::send($pemilikDraft, new SubmissionDeadlineExtendedNotification($period));
 
-        return $pemilikDraft->count();
+        $tercatat = $pemilikDraft->count();
+
+        // BR-RPT-09 — satu Action, satu entri audit.
+        AuditTrail::record('Tenggat periode diperpanjang', $period);
+
+        return $tercatat;
     }
 }

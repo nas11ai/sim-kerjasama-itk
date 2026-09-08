@@ -5,6 +5,7 @@ namespace App\Actions\Identity;
 use App\Enums\VerificationStatus;
 use App\Models\UserProfile;
 use App\Notifications\NidnVerifiedNotification;
+use App\Support\Audit\AuditTrail;
 use Lorisleiva\Actions\Concerns\AsAction;
 
 /**
@@ -36,6 +37,11 @@ class VerifyNidn
         // orang itu; kemampuannya berubah tanpa ia melakukan apa pun.
         $profile->user?->notify(new NidnVerifiedNotification);
 
-        return $profile->refresh();
+        $tercatat = $profile->refresh();
+
+        // BR-RPT-09 — satu Action, satu entri audit.
+        AuditTrail::record('Verifikasi NIDN disetujui', $tercatat);
+
+        return $tercatat;
     }
 }

@@ -6,6 +6,7 @@ use App\Models\FormSubmission;
 use App\Models\OutputTypeDefinition;
 use App\Models\SubmissionTargetOutput;
 use App\Models\User;
+use App\Support\Audit\AuditTrail;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Validation\ValidationException;
 use Lorisleiva\Actions\Concerns\AsAction;
@@ -49,10 +50,15 @@ class SaveTargetOutput
             return $target;
         }
 
-        return SubmissionTargetOutput::create([
+        $tercatat = SubmissionTargetOutput::create([
             'form_submission_id' => $submission->id,
             'output_type' => $outputType,
         ]);
+
+        // BR-RPT-09 — satu Action, satu entri audit.
+        AuditTrail::record('Target luaran disimpan', $tercatat, $user);
+
+        return $tercatat;
     }
 
     /**

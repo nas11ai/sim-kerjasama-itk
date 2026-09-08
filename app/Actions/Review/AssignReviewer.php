@@ -9,6 +9,7 @@ use App\Models\User;
 use App\Notifications\ReviewerAssignedNotification;
 use App\States\Submission\SubmissionStatus;
 use App\States\Submission\UnderReview;
+use App\Support\Audit\AuditTrail;
 use App\Support\ConflictOfInterestGuard;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
@@ -53,7 +54,7 @@ class AssignReviewer
         $this->guardTenure($reviewer);
         $this->guardNotAlreadyAssigned($submission, $reviewer);
 
-        return DB::transaction(function () use ($submission, $reviewer, $candidate): SubmissionReviewer {
+        $tercatat = DB::transaction(function () use ($submission, $reviewer, $candidate): SubmissionReviewer {
             $assignment = SubmissionReviewer::create([
                 'form_submission_id' => $submission->id,
                 'reviewer_id' => $reviewer->id,
@@ -70,6 +71,11 @@ class AssignReviewer
 
             return $assignment;
         });
+
+        // BR-RPT-09 — satu Action, satu entri audit.
+        AuditTrail::record('Reviewer ditugaskan', $tercatat);
+
+        return $tercatat;
     }
 
     /** BR-REV-09 — reviewer hanya bisa ditugaskan dalam rentang masa tugasnya. */

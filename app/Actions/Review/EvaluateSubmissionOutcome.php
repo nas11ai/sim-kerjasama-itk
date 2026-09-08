@@ -8,6 +8,7 @@ use App\States\Submission\Approved;
 use App\States\Submission\NeedsRevision;
 use App\States\Submission\SubmissionStatus;
 use App\States\Submission\UnderReview;
+use App\Support\Audit\AuditTrail;
 use Lorisleiva\Actions\Concerns\AsAction;
 use RuntimeException;
 
@@ -59,7 +60,12 @@ class EvaluateSubmissionOutcome
             $this->hasOpenSummary($submission) ? NeedsRevision::class : Approved::class
         );
 
-        return $submission;
+        $tercatat = $submission;
+
+        // BR-RPT-09 — satu Action, satu entri audit.
+        AuditTrail::record('Keputusan hasil review ditetapkan', $tercatat);
+
+        return $tercatat;
     }
 
     private function everyEvaluationSettled(FormSubmission $submission): bool

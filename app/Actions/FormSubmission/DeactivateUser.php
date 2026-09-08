@@ -8,6 +8,7 @@ use App\Models\User;
 use App\Notifications\AccountDeactivatedNotification;
 use App\States\Submission\Rejected;
 use App\States\Submission\Withdrawn;
+use App\Support\Audit\AuditTrail;
 use Illuminate\Support\Collection;
 use Illuminate\Validation\ValidationException;
 use Lorisleiva\Actions\Concerns\AsAction;
@@ -57,7 +58,12 @@ class DeactivateUser
         // menemukan sendiri selain lewat layar login yang menolaknya.
         $user->notify(new AccountDeactivatedNotification);
 
-        return $user->refresh();
+        $tercatat = $user->refresh();
+
+        // BR-RPT-09 — satu Action, satu entri audit.
+        AuditTrail::record('Akun dinonaktifkan', $tercatat);
+
+        return $tercatat;
     }
 
     /** @param Collection<int, FormSubmission> $blocking */

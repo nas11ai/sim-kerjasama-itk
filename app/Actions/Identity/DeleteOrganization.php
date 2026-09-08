@@ -5,6 +5,7 @@ namespace App\Actions\Identity;
 use App\Models\InvitationToken;
 use App\Models\Organization;
 use App\Models\UserProfile;
+use App\Support\Audit\AuditTrail;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use Lorisleiva\Actions\Concerns\AsAction;
@@ -47,7 +48,7 @@ class DeleteOrganization
             ]);
         }
 
-        return DB::transaction(function () use ($subtree): int {
+        $tercatat = DB::transaction(function () use ($subtree): int {
             $tokens = InvitationToken::query()
                 ->whereIn('organization_id', $subtree)
                 ->whereNull('revoked_at')
@@ -61,5 +62,10 @@ class DeleteOrganization
 
             return $tokens->count();
         });
+
+        // BR-RPT-09 — satu Action, satu entri audit.
+        AuditTrail::record('Organisasi dihapus', $organization);
+
+        return $tercatat;
     }
 }

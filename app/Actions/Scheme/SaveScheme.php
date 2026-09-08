@@ -4,6 +4,7 @@ namespace App\Actions\Scheme;
 
 use App\Models\Scheme;
 use App\Models\SchemeAllowedTrl;
+use App\Support\Audit\AuditTrail;
 use Illuminate\Support\Facades\DB;
 use Lorisleiva\Actions\Concerns\AsAction;
 
@@ -30,7 +31,7 @@ class SaveScheme
      */
     public function handle(array $attributes, ?Scheme $scheme = null, ?array $allowedTrlIds = null): Scheme
     {
-        return DB::transaction(function () use ($attributes, $scheme, $allowedTrlIds): Scheme {
+        $tercatat = DB::transaction(function () use ($attributes, $scheme, $allowedTrlIds): Scheme {
             if ($scheme === null) {
                 $scheme = Scheme::create($attributes);
             } else {
@@ -48,5 +49,10 @@ class SaveScheme
 
             return $scheme;
         });
+
+        // BR-RPT-09 — satu Action, satu entri audit.
+        AuditTrail::record('Skema disimpan', $tercatat);
+
+        return $tercatat;
     }
 }

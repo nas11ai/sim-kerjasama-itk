@@ -7,6 +7,7 @@ use App\Models\FormSubmission;
 use App\Models\FormSubmissionOverride;
 use App\Models\User;
 use App\Notifications\PhaseOverrideGrantedNotification;
+use App\Support\Audit\AuditTrail;
 use Illuminate\Support\Carbon;
 use Illuminate\Validation\ValidationException;
 use Lorisleiva\Actions\Concerns\AsAction;
@@ -71,6 +72,11 @@ class GrantPhaseOverride
         // menyebut alasannya: alasan hanya untuk Operator dan Admin.
         $submission->submittedBy->notify(new PhaseOverrideGrantedNotification($submission, $detail, $expiry));
 
-        return $override;
+        $tercatat = $override;
+
+        // BR-RPT-09 — satu Action, satu entri audit.
+        AuditTrail::record('Perpanjangan akses fase diberikan', $tercatat, $grantedBy);
+
+        return $tercatat;
     }
 }

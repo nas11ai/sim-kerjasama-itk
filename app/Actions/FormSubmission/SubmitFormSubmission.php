@@ -10,6 +10,7 @@ use App\States\Submission\SubmissionStatus;
 use App\States\Submission\Submitted;
 use App\States\Submission\Withdrawn;
 use App\Support\AccountStateGuard;
+use App\Support\Audit\AuditTrail;
 use App\Support\RequiredFieldGuard;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Database\QueryException;
@@ -94,7 +95,12 @@ class SubmitFormSubmission
 
         ProposalSubmitted::dispatch($submission);
 
-        return $submission;
+        $tercatat = $submission;
+
+        // BR-RPT-09 — satu Action, satu entri audit.
+        AuditTrail::record('Pengajuan disubmit', $tercatat, $user);
+
+        return $tercatat;
     }
 
     /**

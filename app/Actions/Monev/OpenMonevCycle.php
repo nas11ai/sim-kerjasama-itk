@@ -6,6 +6,7 @@ use App\Models\FormPhaseDetail;
 use App\Models\FormSubmission;
 use App\Models\User;
 use App\Notifications\MonevStageOpenedNotification;
+use App\Support\Audit\AuditTrail;
 use App\Support\MonevAccessGate;
 use Illuminate\Support\Facades\Notification;
 use Lorisleiva\Actions\Concerns\AsAction;
@@ -66,6 +67,11 @@ class OpenMonevCycle
 
         Notification::send($recipients, new MonevStageOpenedNotification($parent, $detail));
 
-        return $recipients->count();
+        $tercatat = $recipients->count();
+
+        // BR-RPT-09 — satu Action, satu entri audit.
+        AuditTrail::record('Siklus monev dibuka', $parent);
+
+        return $tercatat;
     }
 }

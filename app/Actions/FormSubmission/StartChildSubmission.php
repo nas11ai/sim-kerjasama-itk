@@ -5,6 +5,7 @@ namespace App\Actions\FormSubmission;
 use App\Models\FormPhaseDetail;
 use App\Models\FormSubmission;
 use App\Models\User;
+use App\Support\Audit\AuditTrail;
 use App\Support\MonevAccessGate;
 use Illuminate\Validation\ValidationException;
 use Lorisleiva\Actions\Concerns\AsAction;
@@ -56,7 +57,7 @@ class StartChildSubmission
             ]);
         }
 
-        return FormSubmission::create([
+        $tercatat = FormSubmission::create([
             'form_id' => $accessControl->form_id,
             'submitted_by' => $user->id,
             'submission_period_id' => $parent->submission_period_id,
@@ -65,5 +66,10 @@ class StartChildSubmission
             'is_submitted' => false,
             'last_completed_step' => 1,
         ]);
+
+        // BR-RPT-09 — satu Action, satu entri audit.
+        AuditTrail::record('Laporan tahap dimulai', $tercatat, $user);
+
+        return $tercatat;
     }
 }

@@ -7,6 +7,7 @@ use App\Models\Organization;
 use App\Models\User;
 use App\Models\UserProfile;
 use App\Notifications\NewRegistrationAwaitingVerification;
+use App\Support\Audit\AuditTrail;
 use App\Support\EmailDomainGuard;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
@@ -94,7 +95,12 @@ class RegisterResearcher
         // belum punya penghuni.
         $this->notifyVerifiers($user);
 
-        return $user->refresh();
+        $tercatat = $user->refresh();
+
+        // BR-RPT-09 — satu Action, satu entri audit.
+        AuditTrail::record('Akun peneliti didaftarkan mandiri', $tercatat, $tercatat);
+
+        return $tercatat;
     }
 
     private function notifyVerifiers(User $registrant): void

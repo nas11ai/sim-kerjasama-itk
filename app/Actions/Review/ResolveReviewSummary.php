@@ -5,6 +5,7 @@ namespace App\Actions\Review;
 use App\Models\Reviewer;
 use App\Models\ReviewSummary;
 use App\Models\User;
+use App\Support\Audit\AuditTrail;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\DB;
 use Lorisleiva\Actions\Concerns\AsAction;
@@ -37,7 +38,7 @@ class ResolveReviewSummary
     {
         $this->guardReviewer($summary, $user);
 
-        return DB::transaction(function () use ($summary): ReviewSummary {
+        $tercatat = DB::transaction(function () use ($summary): ReviewSummary {
             $summary->update(['status' => 'resolved']);
 
             // form_submission_id NOT NULL, jadi relasi ini selalu ada —
@@ -47,6 +48,11 @@ class ResolveReviewSummary
 
             return $summary->refresh();
         });
+
+        // BR-RPT-09 — satu Action, satu entri audit.
+        AuditTrail::record('Diskusi review ditutup', $tercatat, $user);
+
+        return $tercatat;
     }
 
     /**

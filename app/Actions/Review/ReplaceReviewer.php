@@ -5,6 +5,7 @@ namespace App\Actions\Review;
 use App\Models\FormSubmission;
 use App\Models\Reviewer;
 use App\Models\SubmissionReviewer;
+use App\Support\Audit\AuditTrail;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use Lorisleiva\Actions\Concerns\AsAction;
@@ -43,7 +44,7 @@ class ReplaceReviewer
             ]);
         }
 
-        return DB::transaction(function () use ($submission, $outgoing, $incoming, $current): SubmissionReviewer {
+        $tercatat = DB::transaction(function () use ($submission, $outgoing, $incoming, $current): SubmissionReviewer {
             $current->markAsReplaced();
 
             // AssignReviewer memegang seluruh syarat penugasan — konflik
@@ -58,5 +59,10 @@ class ReplaceReviewer
 
             return $fresh;
         });
+
+        // BR-RPT-09 — satu Action, satu entri audit.
+        AuditTrail::record('Reviewer diganti', $tercatat);
+
+        return $tercatat;
     }
 }

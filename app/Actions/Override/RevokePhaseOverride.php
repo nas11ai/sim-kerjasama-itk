@@ -3,6 +3,7 @@
 namespace App\Actions\Override;
 
 use App\Models\FormSubmissionOverride;
+use App\Support\Audit\AuditTrail;
 use Lorisleiva\Actions\Concerns\AsAction;
 
 /**
@@ -22,6 +23,11 @@ class RevokePhaseOverride
     {
         $override->revoke();
 
-        return $override->refresh();
+        $tercatat = $override->refresh();
+
+        // BR-RPT-09 — satu Action, satu entri audit.
+        AuditTrail::record('Perpanjangan akses fase dicabut', $tercatat);
+
+        return $tercatat;
     }
 }

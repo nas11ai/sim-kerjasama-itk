@@ -5,6 +5,7 @@ namespace App\Actions\FormSubmission;
 use App\Models\FormSubmission;
 use App\Models\ResearchMember;
 use App\Models\User;
+use App\Support\Audit\AuditTrail;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use Lorisleiva\Actions\Concerns\AsAction;
@@ -31,7 +32,7 @@ class TransferSubmissionOwnership
     {
         $this->guardSuccessor($submission, $successor);
 
-        return DB::transaction(function () use ($submission, $successor): FormSubmission {
+        $tercatat = DB::transaction(function () use ($submission, $successor): FormSubmission {
             $previousOwner = $submission->submitted_by;
 
             $submission->update(['submitted_by' => $successor->id]);
@@ -45,6 +46,11 @@ class TransferSubmissionOwnership
 
             return $submission->refresh();
         });
+
+        // BR-RPT-09 — satu Action, satu entri audit.
+        AuditTrail::record('Kepemilikan pengajuan dialihkan', $tercatat);
+
+        return $tercatat;
     }
 
     /**

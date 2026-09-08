@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AnnouncementController;
+use App\Http\Controllers\Audit\AuditLogController;
 use App\Http\Controllers\BiodataController;
 use App\Http\Controllers\CompleteFormBuilderController;
 use App\Http\Controllers\FacultyController;
@@ -607,4 +608,11 @@ Route::middleware(['auth'])->group(function () {
 
     Route::post('/review-summaries/{reviewSummary}/resolve', ReviewSummaryResolutionController::class)
         ->name('review-summaries.resolve');
+
+    // BR-RPT-05 — satu rute untuk dua pembaca. Yang membedakan Operator dan
+    // peneliti adalah cakupan datanya (AuditScope), bukan rutenya: dua rute
+    // yang menyaring sendiri-sendiri adalah dua aturan yang akan menyimpang.
+    // Tidak ada rute hapus atau sunting — append-only (BR-RPT-04) berarti
+    // jalurnya memang tidak dibuat.
+    Route::get('/audit-log', [AuditLogController::class, 'index'])->name('audit-log.index');
 });

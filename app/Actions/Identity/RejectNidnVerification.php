@@ -5,6 +5,7 @@ namespace App\Actions\Identity;
 use App\Enums\VerificationStatus;
 use App\Models\UserProfile;
 use App\Notifications\NidnVerificationRejectedNotification;
+use App\Support\Audit\AuditTrail;
 use Illuminate\Validation\ValidationException;
 use Lorisleiva\Actions\Concerns\AsAction;
 
@@ -44,6 +45,11 @@ class RejectNidnVerification
         // penolakannya.
         $profile->user?->notify(new NidnVerificationRejectedNotification(trim($reason)));
 
-        return $profile->refresh();
+        $tercatat = $profile->refresh();
+
+        // BR-RPT-09 — satu Action, satu entri audit.
+        AuditTrail::record('Verifikasi NIDN ditolak', $tercatat);
+
+        return $tercatat;
     }
 }

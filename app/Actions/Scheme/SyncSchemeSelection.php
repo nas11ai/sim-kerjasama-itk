@@ -6,6 +6,7 @@ use App\Models\FormField;
 use App\Models\FormFieldResponse;
 use App\Models\FormSubmission;
 use App\Models\Scheme;
+use App\Support\Audit\AuditTrail;
 use Illuminate\Validation\ValidationException;
 use Lorisleiva\Actions\Concerns\AsAction;
 
@@ -67,7 +68,20 @@ class SyncSchemeSelection
         }
 
         if ($submission->scheme_id !== $scheme->id) {
+            $sebelumnya = $submission->scheme_id;
             $submission->update(['scheme_id' => $scheme->id]);
+
+            // BR-RPT-09 — dicatat hanya saat memang berpindah. Menulis entri
+            // untuk pemanggilan yang tidak mengubah apa pun akan memenuhi
+            // jejak audit dengan baris yang tidak menceritakan kejadian apa
+            // pun, dan itu menenggelamkan yang benar-benar terjadi.
+            AuditTrail::record(
+                'Skema pengajuan dipilih',
+                $submission,
+                null,
+                ['scheme_id' => $sebelumnya],
+                ['scheme_id' => $scheme->id],
+            );
         }
 
         return $scheme;

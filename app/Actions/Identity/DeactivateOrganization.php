@@ -6,6 +6,7 @@ use App\Models\InvitationToken;
 use App\Models\Organization;
 use App\Models\User;
 use App\Models\UserProfile;
+use App\Support\Audit\AuditTrail;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use Lorisleiva\Actions\Concerns\AsAction;
@@ -56,7 +57,7 @@ class DeactivateOrganization
             ]);
         }
 
-        return DB::transaction(function () use ($subtree): int {
+        $tercatat = DB::transaction(function () use ($subtree): int {
             // Tokennya tidak dicabut: organisasi nonaktif sudah membuat
             // `isValid()` menolaknya (BR-IAM-06). Kalau unit ini diaktifkan
             // kembali, undangan yang masa berlakunya belum lewat ikut hidup
@@ -71,5 +72,10 @@ class DeactivateOrganization
 
             return $terdampak;
         });
+
+        // BR-RPT-09 — satu Action, satu entri audit.
+        AuditTrail::record('Organisasi dinonaktifkan', $organization);
+
+        return $tercatat;
     }
 }

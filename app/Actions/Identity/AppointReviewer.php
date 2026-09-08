@@ -5,6 +5,7 @@ namespace App\Actions\Identity;
 use App\Models\Reviewer;
 use App\Models\User;
 use App\Notifications\ReviewerAppointedNotification;
+use App\Support\Audit\AuditTrail;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
@@ -102,6 +103,11 @@ class AppointReviewer
         // melakukan apa pun.
         $user->notify(new ReviewerAppointedNotification($type));
 
-        return $reviewer;
+        $tercatat = $reviewer;
+
+        // BR-RPT-09 — satu Action, satu entri audit.
+        AuditTrail::record('Reviewer ditunjuk', $tercatat);
+
+        return $tercatat;
     }
 }
