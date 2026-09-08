@@ -30,8 +30,8 @@ wireframe `simpas-wireframe` (65 frame).
 | M2 · Review | [`m2-review.md`](m2-review.md) | 21 | 8 | 46 |
 | M3 · Identity & Access | [`m3-identity-access.md`](m3-identity-access.md) | 13 | 7 | 58 |
 | M4 · Monev + Research Output | [`m4-monev-research-output.md`](m4-monev-research-output.md) | 20 | 2 | 47 |
-| M5 · Reporting + Notification + Config | [`m5-reporting-notification-config.md`](m5-reporting-notification-config.md) | 19 | 5 | 38 |
-| | **Total** | **97** | **32** | **274** |
+| M5 · Reporting + Notification + Config | [`m5-reporting-notification-config.md`](m5-reporting-notification-config.md) | 19 | 5 | 39 |
+| | **Total** | **97** | **32** | **275** |
 
 Angka skenario di atas **bukan estimasi** — setiap ID sudah dialokasikan satu per satu
 di berkas milestone masing-masing, lengkap dengan kelas tag dan BR yang dibuktikannya.
@@ -41,7 +41,7 @@ sendiri: beberapa aturan cermin (§2.1) sengaja bertag di dua milestone, jadi
 menjumlahkan kolomnya akan menghitung ganda. Baris Total memuat gabungannya, bukan
 jumlahnya.
 
-Dengan 54 skenario Wave 1a, inventaris **328 skenario untuk 115 BR perilaku**.
+Dengan 54 skenario Wave 1a, inventaris **329 skenario untuk 115 BR perilaku**.
 
 Angkanya bergerak selama implementasi, dan itu memang yang diharapkan — spec ini
 dirancang untuk ikut berubah (§7), bukan untuk dibekukan:

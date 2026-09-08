@@ -8,6 +8,10 @@ Feature: Cetak Dokumen PDF
   tetap ditahan di PDF-nya; kalau tidak, satu tombol unduh membatalkan seluruh
   aturan keterlihatan.
 
+  Ambangnya sama persis dengan BR-RPT-02 — lebih dari 100 baris — karena
+  BR-RPT-11 memang menyatakan demikian. Angka kedua yang berbeda akan membuat
+  "ambang yang sama" berhenti benar pada pemakaian pertamanya.
+
   Background:
     Given submission "P-001" milik "Budi" berstatus APPROVED
 
@@ -18,8 +22,8 @@ Feature: Cetak Dokumen PDF
 
   @BR-RPT-11 @M5 @OPERATOR-07-02 @boundary
   Scenario: [RPT-PRINT-02] Dokumen kompleks masuk background job
-    Given "Budi" punya 40 submission pada rekap yang diminta
-    When Operator mencetak "Rekap Submission per Peneliti" untuk "Budi"
+    Given "Budi" punya 101 baris pada rekap yang diminta
+    When Operator "Dewi" mencetak "Rekap Submission per Peneliti" untuk "Budi"
     Then cetak dijadwalkan sebagai background job
     And "Dewi" menerima notifikasi in-app saat cetak selesai
 

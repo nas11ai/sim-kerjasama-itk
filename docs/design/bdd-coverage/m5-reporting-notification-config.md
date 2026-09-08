@@ -1,6 +1,6 @@
 # M5 — Reporting, Notification & System Configuration
 
-**19 BR bertag · 38 skenario · 5 berkas `.feature`**
+**19 BR bertag · 39 skenario · 5 berkas `.feature`**
 
 Dua BR baru dan satu katalog yang diselaraskan, semuanya dari audit DDD:
 
@@ -115,12 +115,19 @@ bisnis.
 | `SC-CONFIG-01` | denial | Entity acuan tidak bisa dihapus selama masih dipakai relasi aktif | BR-SC-01 | ADMIN-08-10 |
 | `SC-CONFIG-02` | happy | Entity acuan tanpa relasi aktif bisa dihapus | BR-SC-01 | ADMIN-08-10 |
 | `SC-CONFIG-03` | denial | `SubmissionType` tidak bisa ditambah atau diubah lewat antarmuka — hanya lewat seeder | BR-SC-02 | ADMIN-08-10 |
-| `SC-CONFIG-04` | boundary | Mengganti nama entity acuan tidak mengubah data historis yang sudah menunjuk ke sana | BR-SC-03 | ADMIN-08-10 |
+| `SC-CONFIG-04` | boundary | Mengganti nama entity acuan tidak memutus tautan historis — laporan lama ikut memakai nama baru | BR-SC-03 | ADMIN-08-10 |
+| `SC-CONFIG-05` | boundary | Kategori yang berubah makna dibuat sebagai entity baru lalu yang lama dinonaktifkan | BR-SC-03, BR-SC-01 | ADMIN-08-10 |
 
-`SC-CONFIG-04` menjaga hal yang baru terasa setelah bertahun-tahun: laporan tahun lalu
-harus tetap menampilkan nama yang berlaku saat itu, bukan nama hasil penggantian
-kemarin. Kalau ternyata LPPM justru menghendaki nama selalu ikut berubah, itu keputusan
-yang harus diambil sadar — bukan efek samping cara data disimpan.
+Pertanyaan yang dititipkan versi sebelumnya — apakah laporan tahun lalu harus tetap
+menampilkan nama lama — **sudah diputuskan** saat sinkronisasi BDD–DDD–wireframe
+(register #38). Jawabannya: nama ikut berubah, dan itu memang arti dari mengganti nama.
+Membekukannya menuntut snapshot nama di setiap tabel yang menunjuk entity acuan —
+denormalisasi di tujuh tempat demi kasus yang sudah punya jalan keluar lebih baik.
+
+Jalan keluar itu `SC-CONFIG-05`: kalau kategorinya berubah **makna**, entity baru
+dibuat dan yang lama dinonaktifkan. Laporan lama tetap menyebut nama lamanya karena ia
+memang masih menunjuk entity lama, sementara skema baru tidak lagi ditawari. BR-SC-01
+yang menjaga entity lama tidak bisa dihapus begitu saja.
 
 ---
 
