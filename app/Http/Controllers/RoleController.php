@@ -35,7 +35,7 @@ class RoleController extends Controller
     {
         $permissions = Permission::all();
 
-        return inertia('Roles/Create', [
+        return inertia('Roles/CreatePage', [
             'permissions' => $permissions,
         ]);
     }
@@ -64,7 +64,7 @@ class RoleController extends Controller
             return redirect()->route('admin.roles.index')->with('error', 'Anda tidak dapat mengedit role super admin.');
         }
 
-        return inertia('Roles/Edit', [
+        return inertia('Roles/EditPage', [
             'role' => [
                 'id' => $role->id,
                 'name' => $role->name,

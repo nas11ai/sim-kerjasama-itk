@@ -32,7 +32,7 @@ class UserController extends Controller
     {
         $roles = Role::all();
 
-        return inertia('Users/Create', [
+        return inertia('Users/CreatePage', [
             'roles' => $roles,
         ]);
     }

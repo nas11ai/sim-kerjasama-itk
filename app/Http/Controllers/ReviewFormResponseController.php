@@ -139,7 +139,7 @@ class ReviewFormResponseController extends Controller
                 return [$fieldResponse->review_form_field_id => $fieldResponse->value];
             });
 
-        return Inertia::render('Reviewer/EvaluationForm/Show', [
+        return Inertia::render('Reviewer/EvaluationForm/ShowPage', [
             'assignment' => $assignment,
             'response' => $response,
             'existingResponses' => $existingResponses,

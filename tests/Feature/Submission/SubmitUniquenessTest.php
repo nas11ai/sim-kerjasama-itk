@@ -126,7 +126,7 @@ it('[SM-SUBMIT-03] dua draft ke skema berbeda boleh hidup bersamaan', function (
         ->assertInertia(fn (Assert $page) => $page
             // shouldExist=false: config inertia.pages.paths bawaan paket
             // ('js/pages') tidak cocok dengan struktur direktori repo ini.
-            ->component('User/Submissions/IndexPage', false)
+            ->component('User/Submissions/IndexPage')
             ->has('submissionPeriods', 1)
             ->where('submissionPeriods.0.id', $period->id)
             ->where('submissionPeriods.0.user_submissions_count', 2)

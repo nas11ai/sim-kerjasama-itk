@@ -16,7 +16,7 @@ class PermissionController extends Controller
 
         $user = $request->user();
 
-        return inertia('Permissions/Index', [
+        return inertia('Permissions/IndexPage', [
             'permissions' => $permissions,
             'can' => [
                 'create' => $user->can('create permission'),

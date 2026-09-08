@@ -149,7 +149,7 @@ it('[FE-CHANGE-02] halaman edit Form membawa jumlah draft terdampak', function (
         ->get(route('admin.forms.edit', $fx['form']))
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
-            ->component('Forms/EditPage', false)
+            ->component('Forms/EditPage')
             ->where('affectedDrafts', 1)
             ->etc());
 });

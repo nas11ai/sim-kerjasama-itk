@@ -207,7 +207,7 @@ it('[IAM-VERIFY-01] Operator membuka antrian verifikasi', function () {
         ->get(route('admin.verifications.index'))
         ->assertOk()
         ->assertInertia(fn (AssertableInertia $page) => $page
-            ->component('Identity/VerificationQueuePage', false)
+            ->component('Identity/VerificationQueuePage')
             ->has('pending', 1)
             ->where('pending.0.id', $profile->id)
             ->etc());

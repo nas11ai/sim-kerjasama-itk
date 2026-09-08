@@ -116,7 +116,7 @@ it('[SCH-RULE-11] halaman edit periode membawa jumlah draft berjalan', function 
         ->get(route('admin.submission-periods.edit', $fx['period']))
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
-            ->component('SubmissionPeriods/EditPage', false)
+            ->component('SubmissionPeriods/EditPage')
             ->where('runningDrafts', 1)
             ->etc());
 });

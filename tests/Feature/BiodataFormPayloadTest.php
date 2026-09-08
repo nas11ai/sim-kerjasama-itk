@@ -66,7 +66,7 @@ it('does not send phantom helper_text or option value keys in the biodata form p
             // ('js/pages') tidak cocok dengan struktur direktori repo ini
             // ('js/Pages'), jadi cek eksistensi file selalu gagal terlepas
             // dari bug yang diuji.
-            ->component('User/Biodata/IndexPage', false)
+            ->component('User/Biodata/IndexPage')
             ->has('form.form_fields', 1)
             ->has('form.form_fields.0', fn (Assert $field) => $field
                 ->missing('helper_text')

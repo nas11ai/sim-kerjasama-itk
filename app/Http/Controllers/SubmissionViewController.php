@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Actions\Review\BuildReviewerDashboard;
 use App\Models\Form;
 use App\Models\FormAccessControl;
 use App\Models\FormPhase;
@@ -27,6 +28,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
+use Inertia\Response;
 
 class SubmissionViewController extends Controller
 {
@@ -985,50 +987,30 @@ class SubmissionViewController extends Controller
         return 'user';
     }
 
-    // Method untuk reviewer dashboard (optional - jika ingin ada dashboard khusus reviewer)
-    public function reviewerDashboard()
+    /** Dasbor reviewer: penugasan aktif dan sisa pekerjaannya. */
+    public function reviewerDashboard(): Response
     {
         $user = Auth::user();
 
-        // user = reviewer
+        abort_if($user === null, 403);
+
         $reviewer = Reviewer::where('user_id', $user->id)->first();
 
-        if (!$reviewer) {
-            abort(403, 'Anda tidak terdaftar sebagai reviewer.');
-        }
+        abort_if($reviewer === null, 403, 'Anda tidak terdaftar sebagai reviewer.');
 
-        $forms = Form::whereHas('formAccessControls')->with(['formAccessControls.formPhaseDetails'])->get(['id', 'title']);
-
-        $assignedSubmissions = FormSubmission::whereHas('reviewSummaries', function ($q) use ($reviewer) {
-            $q->where('reviewer_id', $reviewer->id);
-        })
-            ->with([
-                'form:id,title',
-                'submittedBy:id,name,email',
-            ])
-            ->orderBy('created_at', 'desc')
-            ->get();
-
-        // Statistik reviewer
-        $stats = [
-            'total_assigned' => ReviewSummary::where('reviewer_id', $reviewer->id)->count(),
-            'pending_reviews' => ReviewSummary::where('reviewer_id', $reviewer->id)->where('status', 'open')->count(),
-            'completed_reviews' => ReviewSummary::where('reviewer_id', $reviewer->id)->where('status', 'resolved')->count(),
-            'rejected_reviews' => ReviewSummary::where('reviewer_id', $reviewer->id)->where('status', 'closed')->count(),
-        ];
+        $dashboard = BuildReviewerDashboard::run($reviewer);
 
         return Inertia::render('Reviewer/DashboardPage', [
             'reviewer' => [
                 'id' => $reviewer->id,
                 'reviewer_type' => $reviewer->reviewer_type,
                 'user' => [
-                    'name' => $reviewer->user->name,
-                    'email' => $reviewer->user->email,
+                    'name' => $reviewer->user?->name,
+                    'email' => $reviewer->user?->email,
                 ],
             ],
-            'stats' => $stats,
-            'assignedSubmissions' => $assignedSubmissions,
-            'forms' => $forms,
+            'stats' => $dashboard['stats'],
+            'assignments' => $dashboard['assignments'],
         ]);
     }
 
