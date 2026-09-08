@@ -4,6 +4,7 @@ use App\Http\Controllers\AnnouncementController;
 use App\Http\Controllers\Audit\AuditLogController;
 use App\Http\Controllers\BiodataController;
 use App\Http\Controllers\CompleteFormBuilderController;
+use App\Http\Controllers\Config\ReferenceEntityController;
 use App\Http\Controllers\FacultyController;
 use App\Http\Controllers\FormAccessControlController;
 use App\Http\Controllers\FormController;
@@ -615,4 +616,15 @@ Route::middleware(['auth'])->group(function () {
     // Tidak ada rute hapus atau sunting — append-only (BR-RPT-04) berarti
     // jalurnya memang tidak dibuat.
     Route::get('/audit-log', [AuditLogController::class, 'index'])->name('audit-log.index');
+});
+
+// BR-SC-01/02/03 — Konfigurasi Umum. Satu himpunan rute untuk semua data
+// acuan: yang membedakan mereka adalah entri registry, bukan controller
+// masing-masing, sehingga aturan hapus dan nonaktif tertulis sekali.
+Route::middleware(['auth', 'can:users.manage'])->prefix('admin/reference')->name('admin.reference.')->group(function () {
+    Route::get('/', [ReferenceEntityController::class, 'index'])->name('index');
+    Route::post('/{entity}', [ReferenceEntityController::class, 'store'])->name('store');
+    Route::put('/{entity}/{id}', [ReferenceEntityController::class, 'update'])->name('update');
+    Route::delete('/{entity}/{id}', [ReferenceEntityController::class, 'destroy'])->name('destroy');
+    Route::post('/{entity}/{id}/toggle', [ReferenceEntityController::class, 'toggle'])->name('toggle');
 });
