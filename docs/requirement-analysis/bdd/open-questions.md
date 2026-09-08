@@ -62,6 +62,44 @@ keduanya. Alasan tiap keputusan ditulis lengkap supaya bisa dibantah kalau kelir
 | 33 | Tombol **Cabut** undangan ada di `ADMIN-08-01`, tapi pencabutan bukan salah satu sebab token tidak berlaku di BR-IAM-06 | **Ditambahkan sebagai sebab keempat.** BR-IAM-06 sudah menyebut kata "dicabut", tapi hanya sebagai akibat penghapusan organisasi — bukan sebagai aksi Operator yang berdiri sendiri. Tanpa itu, token yang bocor tidak punya cara dimatikan selain menunggu kedaluwarsa. Dikunci `[IAM-REG-16]` | 2026-09-07 |
 | 34 | BR-IAM-11 tidak menyatakan apa yang terjadi kalau orang yang sudah reviewer ditunjuk lagi | **Penunjukan idempoten per orang.** `OPERATOR-08-04` menampilkan satu baris per reviewer dengan aksi *Edit Periode* — record kedua akan membuat penghitungan beban (BR-REV-04) dan keterlihatan skor (BR-REV-11) membaca dari himpunan yang ambigu, dan itu tidak gagal mencolok, ia cuma salah. Bunyi BR-IAM-11 diperluas; dikunci `[IAM-REVIEWER-04..06]` | 2026-09-07 |
 | 35 | BR-RO-07 berbunyi "**hanya** `submitted_by` dan `co_investigator`", sementara tabel Access Control di dokumen yang sama memberi Operator/Admin akses penuh lewat `outputs.manage` | **Keduanya benar pada sumbu yang berbeda; bunyi BR-nya yang kabur.** BR-RO-07 bicara soal siapa **di dalam tim penelitian** — di situ `member` dan Reviewer memang read-only. Staf LPPM ada di sumbu lain: luaran memasok pelaporan, dan koreksi datanya tugas mereka. Sengaja **tidak** mengikuti preseden ADR 0015 yang menjadikan `update-budget` invarian domain — anggaran adalah komitmen peneliti, luaran adalah laporan fakta, dan menyamakan keduanya akan mengunci Operator dari data yang justru ia pertanggungjawabkan. Bunyi BR-RO-07 diperjelas; dikunci `[RO-OUTPUT-19]` (reviewer read-only) dan `[RO-OUTPUT-20]` (Operator boleh) | 2026-09-08 |
+| 36 | Tabel *Events yang Dikonsumsi* di `03_notification.md` menyebut penerima yang berbeda dari BR-IAM-15 dan BR-MON-10 untuk tiga event | **Katalognya yang tidak lengkap, bukan BR-nya yang salah.** `MonevStageOpened` paling telanjang: activity diagram di `02_monev.md` sudah menggambar panah ke **peneliti dan reviewer** sejak awal, sementara tabel notifikasi hanya menyebut peneliti — dua bagian DDD yang sama saling menegasikan. Tiga barisnya diperbaiki jadi dua penerima, dan katalognya sekalian dilengkapi tujuh event yang lahir di M3/M4 tapi tidak pernah didaftarkan (`UserVerificationRejected`, `UserDeactivated`, `FormChanged`, `PhaseOverrideGranted`, `SubmissionDeadlineExtended`, `ExportCompleted`, `NewRegistrationAwaitingVerification`). Prinsip yang dipakai: **penerima adalah pihak yang harus bertindak**, bukan pihak yang kebetulan disebut. Dikunci `[NOT-CHANNEL-05/06]`. Lihat §36.1 | 2026-09-08 |
+
+
+### 36.1 Katalog event versus aturan penerimanya — jejak keputusan
+
+Tiga baris di tabel *Events yang Dikonsumsi* menyebut satu penerima, sementara
+aturan yang mengatur event itu menuntut dua:
+
+| Event | Katalog | BR |
+| ----- | ------- | -- |
+| `UserRegistered` | User baru (welcome) | Operator pemegang `users.verify` (BR-IAM-15) |
+| `MonevStageOpened` | Lead Researcher | Lead Researcher **dan** reviewer siklus itu (BR-MON-10) |
+| `MonevEvaluationSubmitted` | LPPM Operator | Lead Researcher (BR-MON-10) |
+
+Yang menentukan bukan mana yang lebih baru, melainkan mana yang punya alasan.
+Ketiganya ternyata **bukan pertentangan melainkan kekuranglengkapan**: kedua
+penerima sama-sama punya alasan, dan katalognya hanya menyebut satu.
+
+- `UserRegistered` — pendaftar butuh sambutan, Operator butuh tahu ada antrian
+  yang harus ia kerjakan. Menghapus salah satunya meninggalkan seseorang
+  menunggu tanpa tahu apa yang ditunggu.
+- `MonevStageOpened` — peneliti menunggu mengisi, reviewer menunggu menilai.
+  Dan di sini DDD sudah menjawab sendiri: activity diagram `02_monev.md`
+  menggambar `E --> F` ke peneliti **dan** `E --> J` ke reviewer. Tabel
+  notifikasinya yang tertinggal dari diagramnya sendiri.
+- `MonevEvaluationSubmitted` — peneliti karena hasilnya langsung terbuka
+  untuknya (BR-MON-09), Operator karena dialah yang membuka siklus berikutnya.
+
+Prinsip yang dipakai untuk memutuskan, dan yang sekarang tertulis di katalognya:
+**penerima adalah pihak yang harus bertindak atas peristiwa itu**, bukan pihak
+yang kebetulan berkepentingan. Itu yang membedakan pemberitahuan dari siaran.
+
+Katalognya sekalian dilengkapi tujuh event yang lahir saat M3 dan M4
+diimplementasikan tapi tidak pernah didaftarkan. Ketertinggalan itu sendiri yang
+paling perlu dicatat: katalog event adalah satu-satunya tempat di DDD yang
+menyatakan **siapa mendengar apa**, dan katalog yang tidak lengkap membuat
+pertanyaan "siapa yang tahu kalau X terjadi" tidak bisa dijawab tanpa membaca
+kode.
 
 ### 29.1 Status akun jalur undangan — jejak keputusan
 

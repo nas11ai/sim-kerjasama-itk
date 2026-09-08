@@ -233,7 +233,10 @@ menyamakan frasanya akan menyamarkan perbedaan yang justru dijaga BR-SM-14 dan B
 | `Then penambahan ditolak karena metadata "<field>" wajib diisi` | Penolakan yang menyebut field metadata-nya |
 
 Tabel ketujuh tumbuh dari M5 (Reporting, Notification & Config) — lapisan yang
-menyentuh seluruh sistem tapi tidak punya alur bisnisnya sendiri.
+menyentuh seluruh sistem tapi tidak punya alur bisnisnya sendiri. Perhatikan
+`ekspor` versus `cetak`: keduanya menghasilkan berkas dan berbagi ambang
+sinkron/asinkron, tapi isinya berbeda — ekspor tabular lintas pengajuan, cetak
+satu pengajuan — dan hak membacanya karena itu ikut berbeda.
 
 | Frasa baku | Dipakai untuk |
 | ---------- | ------------- |
@@ -258,6 +261,16 @@ menyentuh seluruh sistem tapi tidak punya alur bisnisnya sendiri.
 | `Then penghapusan ditolak karena audit log bersifat append-only` | Penjagaan BR-RPT-04 |
 | `Then "<orang>" <menerima\|tidak menerima> notifikasi <in-app\|email>` | Channel yang benar-benar dipakai |
 | `Then publikasi ditolak karena <alasan>` | Penolakan publish event |
+| `Given ekspor "<id>" selesai <n> jam lalu` | Umur berkas hasil ekspor — dipakai menguji retensi 24 jam |
+| `Given "<orang>" punya <n> submission pada rekap yang diminta` | Ukuran dokumen yang menentukan sinkron atau background |
+| `When Operator mencetak "<dokumen>" untuk "<id>"` | Aksi cetak PDF |
+| `When "<orang>" mencetak "<dokumen>" untuk "<id>"` | Padanannya dari sisi peneliti |
+| `Then berkas PDF dihasilkan langsung` | Cetak sinkron |
+| `Then cetak dijadwalkan sebagai background job` | Cetak asinkron |
+| `Then cetak ditolak karena <alasan>` | Penolakan cetak beserta alasan domainnya |
+| `Then cetak ditolak dengan <kode>` | Penolakan cetak berkode HTTP |
+| `Then akses ditolak karena berkas ekspor sudah dihapus` | Retensi 24 jam — beda dari signed URL kedaluwarsa |
+| `Then reviewer siklus itu menerima notifikasi <in-app\|email>` | Penerima kedua sebuah event (BR-MON-10) |
 
 **Aturannya:** kalau langkah yang kamu butuhkan tidak ada di sini, boleh menambah — tapi
 tambahkan barisnya ke tabel ini dalam PR yang sama. Frasa yang dipakai sekali dan tidak

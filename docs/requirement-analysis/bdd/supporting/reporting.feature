@@ -63,3 +63,15 @@ Feature: Ekspor Data
     When "Budi" meminta ekspor data submission miliknya
     Then hasil ekspor memuat "P-001"
     And hasil ekspor tidak memuat "P-007"
+
+  @BR-RPT-12 @M5 @OPERATOR-07-02 @denial
+  Scenario: [RPT-EXPORT-10] Berkas ekspor terhapus setelah 24 jam
+    Given ekspor "E-001" selesai 25 jam lalu
+    When Operator membuka berkas hasil ekspor "E-001"
+    Then akses ditolak karena berkas ekspor sudah dihapus
+
+  @BR-RPT-12 @M5 @OPERATOR-07-02 @boundary
+  Scenario: [RPT-EXPORT-11] Berkas yang belum 24 jam masih bisa diunduh
+    Given ekspor "E-001" selesai 23 jam lalu
+    When Operator membuka berkas hasil ekspor "E-001"
+    Then berkas hasil ekspor bisa diunduh

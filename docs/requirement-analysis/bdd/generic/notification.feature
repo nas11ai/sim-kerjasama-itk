@@ -55,3 +55,17 @@ Feature: Notifikasi
     When "Budi" submit "P-001"
     Then submit berhasil
     And status "P-001" menjadi SUBMITTED
+
+  @BR-NOT-02 @M5 @SHARED-02-05 @boundary
+  Scenario: [NOT-CHANNEL-05] Satu event bisa punya lebih dari satu penerima
+    Given event MonevStageOpened dideklarasikan in-app dan email
+    When event MonevStageOpened dipublish untuk "P-001"
+    Then "Budi" menerima notifikasi in-app
+    And reviewer siklus itu menerima notifikasi in-app
+
+  @BR-NOT-02 @M5 @SHARED-02-05 @denial
+  Scenario: [NOT-CHANNEL-06] Penerima yang tidak berkepentingan tidak dikirimi
+    Given Operator "Dewi" meminta ekspor data submission
+    When ekspor itu selesai
+    Then "Dewi" menerima notifikasi in-app
+    And "Budi" tidak menerima notifikasi in-app

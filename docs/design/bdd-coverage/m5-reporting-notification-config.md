@@ -1,6 +1,19 @@
 # M5 — Reporting, Notification & System Configuration
 
-**16 BR perilaku · 28 skenario · 4 berkas `.feature`**
+**19 BR bertag · 38 skenario · 5 berkas `.feature`**
+
+Dua BR baru dan satu katalog yang diselaraskan, semuanya dari audit DDD:
+
+| Perubahan | Lahir dari | Register |
+| --------- | ---------- | -------- |
+| **BR-RPT-11** *(baru)* | Alur *Cetak Dokumen PDF* digambar lengkap di DDD — empat jenis dokumen, ambang sinkron/asinkron — tapi tidak pernah dinomori maupun punya skenario | — |
+| **BR-RPT-12** *(baru)* | *Data Retention Policy* menyebut berkas ekspor dihapus otomatis setelah 24 jam; yang sudah diuji baru masa berlaku signed URL-nya (BR-RPT-03), dan keduanya menghasilkan penolakan yang berbeda | — |
+| Katalog event *(diselaraskan)* | Tiga baris menyebut satu penerima padahal aturannya menuntut dua; tujuh event dari M3/M4 tidak pernah didaftarkan | #36 |
+
+`document_print.feature` adalah berkas kelima. Ia dipisah dari
+`reporting.feature` karena temanya memang berbeda: ekspor tabular menjawab
+"berapa banyak", cetak menjawab "siapa boleh membaca isi yang mana" — dan
+sumbu kedua itu yang membuat `RPT-PRINT-03` ada.
 
 Lapisan yang menyentuh seluruh sistem tapi tidak memiliki alur bisnisnya sendiri:
 laporan dan ekspor, pemberitahuan, jejak audit, dan konfigurasi acuan.
