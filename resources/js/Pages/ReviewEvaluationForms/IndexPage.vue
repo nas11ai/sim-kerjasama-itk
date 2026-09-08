@@ -1,7 +1,7 @@
 <!-- resources/js/Pages/Admin/ReviewEvaluationForms/Index.vue -->
 <script setup lang="ts">
 import { route } from 'ziggy-js'
-import { ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { Head, Link, router } from '@inertiajs/vue3'
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
 import { Button } from '@/Components/ui/button'
@@ -48,6 +48,13 @@ interface FormPhase {
     title: string
 }
 
+interface FormPhaseDetail {
+    id: number
+    form_phase_id: number
+    form_phase?: { id: number; title: string } | null
+    form_access_control?: { form?: { id: number; title: string } | null } | null
+}
+
 interface ReviewFormField {
     id: number
     label: string
@@ -90,8 +97,12 @@ interface Props {
         meta: PaginationMeta
     }
     formPhases: FormPhase[]
+    // Controller sudah menyaring dengan `form_phase_detail_id` sejak awal;
+    // yang belum ada hanya cara memilihnya dari layar.
+    formPhaseDetails: FormPhaseDetail[]
     filters: {
         form_phase_id?: string
+        form_phase_detail_id?: string
         search?: string
     }
 }
@@ -100,6 +111,33 @@ const props = defineProps<Props>()
 
 const searchTerm = ref(props.filters.search || '')
 const formPhaseFilter = ref(props.filters.form_phase_id || '')
+const formPhaseDetailFilter = ref(props.filters.form_phase_detail_id || '')
+
+// Detail yang ditawarkan mengikuti tahap yang sedang dipilih — menawarkan
+// detail dari tahap lain hanya menghasilkan filter yang pasti kosong.
+const availableDetails = computed(() =>
+    formPhaseFilter.value
+        ? props.formPhaseDetails.filter(
+              (detail) => detail.form_phase_id.toString() === formPhaseFilter.value
+          )
+        : props.formPhaseDetails
+)
+
+const detailLabel = (detail: FormPhaseDetail) =>
+    [detail.form_phase?.title, detail.form_access_control?.form?.title]
+        .filter(Boolean)
+        .join(' — ') || `Detail #${detail.id}`
+
+watch(formPhaseFilter, () => {
+    if (
+        formPhaseDetailFilter.value &&
+        !availableDetails.value.some(
+            (detail) => detail.id.toString() === formPhaseDetailFilter.value
+        )
+    ) {
+        formPhaseDetailFilter.value = ''
+    }
+})
 
 const applyFilters = () => {
     const params: Record<string, string> = {}
@@ -112,6 +150,10 @@ const applyFilters = () => {
         params.form_phase_id = formPhaseFilter.value
     }
 
+    if (formPhaseDetailFilter.value) {
+        params.form_phase_detail_id = formPhaseDetailFilter.value
+    }
+
     router.get(route('admin.review-evaluation-forms.index'), params, {
         preserveState: true,
         preserveScroll: true,
@@ -121,6 +163,7 @@ const applyFilters = () => {
 const clearFilters = () => {
     searchTerm.value = ''
     formPhaseFilter.value = ''
+    formPhaseDetailFilter.value = ''
     router.get(route('admin.review-evaluation-forms.index'))
 }
 
@@ -203,6 +246,25 @@ const getFieldTypesPreview = (fields: ReviewFormField[]): string => {
                                         :value="phase.id.toString()"
                                     >
                                         {{ phase.title }}
+                                    </SelectItem>
+                                </SelectContent>
+                            </Select>
+                        </div>
+
+                        <div class="w-56">
+                            <label class="text-sm font-medium mb-2 block">Detail Tahap</label>
+                            <Select v-model="formPhaseDetailFilter">
+                                <SelectTrigger>
+                                    <SelectValue placeholder="Semua detail" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value=""> Semua detail </SelectItem>
+                                    <SelectItem
+                                        v-for="detail in availableDetails"
+                                        :key="detail.id"
+                                        :value="detail.id.toString()"
+                                    >
+                                        {{ detailLabel(detail) }}
                                     </SelectItem>
                                 </SelectContent>
                             </Select>

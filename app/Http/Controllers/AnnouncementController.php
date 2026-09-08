@@ -43,10 +43,12 @@ class AnnouncementController extends Controller
      */
     public function create()
     {
-        return Inertia::render('Announcements/CreatePage', [
-            'announcementFiles' => AnnouncementFile::all(),
-            'announcement' => new Announcement,
-        ]);
+        // Halaman buat pengumuman tidak butuh data awal apa pun. Sebelumnya
+        // ia menerima `AnnouncementFile::all()` — seluruh berkas milik semua
+        // pengumuman — dan sebuah `new Announcement` kosong; keduanya tidak
+        // pernah dibaca layar, dan yang pertama mengirim satu tabel penuh ke
+        // browser setiap kali halaman dibuka.
+        return Inertia::render('Announcements/CreatePage');
     }
 
     /**

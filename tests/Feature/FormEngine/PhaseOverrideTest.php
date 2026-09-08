@@ -19,8 +19,10 @@ use App\Models\SubmissionDate;
 use App\Models\SubmissionDateLabel;
 use App\Models\SubmissionPeriod;
 use App\Models\User;
+use App\Notifications\PhaseOverrideGrantedNotification;
 use App\States\Submission\Draft;
 use App\Support\PhaseAccessGate;
+use Illuminate\Support\Facades\Notification;
 use Illuminate\Validation\ValidationException;
 use Inertia\Testing\AssertableInertia as Assert;
 use Spatie\Permission\Models\Permission;
@@ -228,7 +230,7 @@ it('[FE-OVERRIDE-09] peneliti melihat status override tapi tidak alasannya', fun
         ->get(route('user.submissions.show', $fx['submission']))
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
-            ->component('User/Submissions/ShowSubmission', false)
+            ->component('User/Submissions/ShowSubmission')
             ->where('phaseAccess.is_open', true)
             ->where('phaseAccess.override.status', 'active')
             ->where('phaseAccess.override.reason', null)
@@ -257,7 +259,7 @@ it('[FE-OVERRIDE-10] fase yang lewat batas tetap terbaca tapi terkunci', functio
         ->get(route('user.submissions.show', $fx['submission']))
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
-            ->component('User/Submissions/ShowSubmission', false)
+            ->component('User/Submissions/ShowSubmission')
             // Terbaca: pengajuannya tetap dikirim ke layar, tidak 404 dan
             // tidak dikosongkan.
             ->where('submission.id', $fx['submission']->id)
@@ -265,4 +267,49 @@ it('[FE-OVERRIDE-10] fase yang lewat batas tetap terbaca tapi terkunci', functio
             ->where('phaseAccess.is_open', false)
             ->where('phaseAccess.override', null)
             ->etc());
+});
+
+// ---------------------------------------------------------------------------
+// BR-FE-08/16 — pemberitahuan perpanjangan. Notifikasinya sudah ada sejak
+// override dibuat tapi tidak punya test sama sekali: perpanjangan yang tidak
+// diberitahukan sama saja dengan tidak diberikan, dan diamnya tidak akan
+// ketahuan dari layar mana pun.
+
+it('memberi tahu peneliti saat aksesnya dibuka kembali', function () {
+    Notification::fake();
+
+    $this->travelTo('2026-03-02 00:01:00');
+    $fx = overrideFixture();
+
+    GrantPhaseOverride::run(
+        $fx['submission'],
+        $fx['detail'],
+        $fx['operator'],
+        'Kendala jaringan kampus',
+        '2026-03-10 23:59:00'
+    );
+
+    Notification::assertSentTo(
+        $fx['owner'],
+        PhaseOverrideGrantedNotification::class,
+        function (PhaseOverrideGrantedNotification $notification) use ($fx) {
+            $payload = $notification->toArray($fx['owner']);
+
+            // BR-FE-16 — peneliti membaca *sampai kapan*, bukan *kenapa*.
+            return $payload['form_submission_id'] === $fx['submission']->id
+                && $payload['expires_at'] === '2026-03-10 23:59:00'
+                && !str_contains(json_encode($payload), 'Kendala jaringan kampus');
+        }
+    );
+});
+
+it('tidak memberi tahu siapa pun selain pemilik pengajuan', function () {
+    Notification::fake();
+
+    $this->travelTo('2026-03-02 00:01:00');
+    $fx = overrideFixture();
+
+    GrantPhaseOverride::run($fx['submission'], $fx['detail'], $fx['operator'], 'Alasan', '2026-03-10 23:59:00');
+
+    Notification::assertNotSentTo($fx['operator'], PhaseOverrideGrantedNotification::class);
 });
