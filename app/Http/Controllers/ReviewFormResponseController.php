@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Actions\Monev\NotifyMonevEvaluationSubmitted;
 use App\Models\FormSubmission;
 use App\Models\ReviewerFormAssignment;
 use App\Models\ReviewEvaluationForm;
@@ -239,6 +240,12 @@ class ReviewFormResponseController extends Controller
             }
 
             DB::commit();
+
+            // BR-MON-10 — untuk laporan monev, hasilnya langsung terbuka bagi
+            // peneliti (BR-MON-09), jadi ia diberi tahu. Pengajuan awal sengaja
+            // tidak: skornya masih ditahan sampai keputusan akhir, dan
+            // mengabarkannya hanya mengundang orang membuka halaman kosong.
+            NotifyMonevEvaluationSubmitted::run($response->refresh());
 
             return redirect()->route('reviewer.assignments.index')
                 ->with('success', 'Formulir evaluasi berhasil dikirim.');

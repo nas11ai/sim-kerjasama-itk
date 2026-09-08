@@ -13,6 +13,7 @@ use App\Models\FormAccessControl;
 use App\Models\FormField;
 use App\Models\FormPhase;
 use App\Models\FormPhaseDetail;
+use App\Models\FormSubmission;
 use App\Models\Organization;
 use App\Models\PhaseType;
 use App\Models\SubmissionDate;
@@ -20,6 +21,7 @@ use App\Models\SubmissionDateLabel;
 use App\Models\SubmissionPeriod;
 use App\Models\User;
 use App\Models\UserProfile;
+use App\States\Submission\Approved;
 use Spatie\Permission\Models\Permission;
 
 /**
@@ -148,4 +150,45 @@ function draftPayload(Form $form, SubmissionPeriod $period, FormPhase $formPhase
             ['form_field_id' => $field->id, 'value' => 'Contoh nilai'],
         ],
     ];
+}
+
+function monevDetail(FormPhase $phase, int $order, string $label, bool $needsReview = false, string $when = '+1 month'): FormPhaseDetail
+{
+    $date = SubmissionDate::create([
+        'submission_date_label_id' => SubmissionDateLabel::firstOrCreate(['name' => $label])->id,
+        'submission_period_id' => SubmissionPeriod::factory()->create()->id,
+        'datetime' => now()->modify($when),
+    ]);
+
+    return FormPhaseDetail::factory()->create([
+        'form_phase_id' => $phase->id,
+        'submission_date_id' => $date->id,
+        'order' => $order,
+        'needs_review' => $needsReview,
+    ]);
+}
+
+/**
+ * Induk APPROVED beserta tiga detail berurutan: Pengajuan, Monev I, Monev II.
+ *
+ * @return array{parent: FormSubmission, owner: User, pengajuan: FormPhaseDetail, monev1: FormPhaseDetail, monev2: FormPhaseDetail}
+ */
+function monevFixture(bool $monev1NeedsReview = false, string $parentStatus = Approved::class): array
+{
+    $phase = FormPhase::create(['title' => 'Siklus '.fake()->unique()->numerify('####'), 'is_active' => true]);
+
+    $pengajuan = monevDetail($phase, 1, 'Batas Submit');
+    $monev1 = monevDetail($phase, 3, 'Batas Monev I', $monev1NeedsReview);
+    $monev2 = monevDetail($phase, 5, 'Batas Monev II');
+
+    $owner = verifiedResearcher();
+
+    $parent = FormSubmission::factory()->create([
+        'submitted_by' => $owner->id,
+        'form_phase_detail_id' => $pengajuan->id,
+        'status' => $parentStatus,
+        'is_submitted' => true,
+    ]);
+
+    return compact('parent', 'owner', 'pengajuan', 'monev1', 'monev2');
 }

@@ -112,6 +112,15 @@ class AssignReviewer
      */
     private function moveToReviewWhenMinimumReached(FormSubmission $submission): void
     {
+        // BR-REV-01 berbicara tentang **pengajuan**, bukan laporan turunannya.
+        // Laporan monev punya lifecycle-nya sendiri (BR-MON-02) dan tidak
+        // pernah melewati UNDER_REVIEW; memaksakan transisi itu di sini akan
+        // melempar TransitionNotFound dari DRAFT dan menggagalkan penugasan
+        // reviewer siklus yang sebenarnya sah.
+        if ($submission->parent_submission_id !== null) {
+            return;
+        }
+
         $status = $submission->status;
 
         if (!$status instanceof SubmissionStatus) {

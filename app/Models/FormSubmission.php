@@ -423,12 +423,46 @@ class FormSubmission extends Model
         return $this->allReviewersCompletedEvaluations();
     }
 
-    // Updated: Enhanced canProceed method
+    /**
+     * BR-MON-02 — apakah tahap ini boleh dilanjutkan ke detail berikutnya.
+     *
+     * Turunan keadaan, bukan kolom: tidak ada aktor yang menyetelnya, sejajar
+     * `isArchived()` (register #13). Bernilai true kalau baris ini **sudah
+     * disubmit** dan, bila detailnya `needs_review`, evaluasinya selesai tanpa
+     * ReviewSummary yang masih `open`.
+     *
+     * Versi sebelumnya memeriksa `status instanceof Approved` beserta
+     * persetujuan seluruh reviewer — itu menjawab pertanyaan yang berbeda
+     * ("apakah pengajuan ini disetujui"), dan membuat setiap laporan monev
+     * terkunci selamanya karena laporan memang tidak pernah berstatus APPROVED.
+     */
     public function canProceed(): bool
     {
-        return $this->status instanceof Approved
-            && $this->allReviewersApproved()
-            && $this->allReviewersCompletedEvaluations();
+        if (!$this->is_submitted) {
+            return false;
+        }
+
+        $detail = $this->formPhaseDetail;
+
+        // Detail yang tidak menuntut evaluasi selesai begitu laporannya masuk.
+        // Menunggu evaluasi yang memang tidak ada akan mengunci siklus
+        // berikutnya selamanya.
+        if ($detail === null || !$detail->needs_review) {
+            return true;
+        }
+
+        $adaEvaluasiTertunda = $this->submissionReviewers()
+            ->where('status', 'active')
+            ->whereNotIn('evaluation_status', SubmissionReviewer::SETTLED_EVALUATION)
+            ->exists();
+
+        if ($adaEvaluasiTertunda) {
+            return false;
+        }
+
+        // BR-FE-06 — ulir yang masih terbuka berarti masih ada yang diminta
+        // diperbaiki.
+        return !$this->reviewSummaries()->where('status', 'open')->exists();
     }
 
     public function needsRevision(): bool

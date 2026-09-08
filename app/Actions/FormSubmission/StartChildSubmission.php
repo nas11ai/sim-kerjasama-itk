@@ -5,7 +5,7 @@ namespace App\Actions\FormSubmission;
 use App\Models\FormPhaseDetail;
 use App\Models\FormSubmission;
 use App\Models\User;
-use App\States\Submission\Approved;
+use App\Support\MonevAccessGate;
 use Illuminate\Validation\ValidationException;
 use Lorisleiva\Actions\Concerns\AsAction;
 
@@ -30,11 +30,11 @@ class StartChildSubmission
 
     public function handle(FormSubmission $parent, FormPhaseDetail $detail, User $user): FormSubmission
     {
-        if (!$parent->status instanceof Approved) {
-            throw ValidationException::withMessages([
-                'parent_submission_id' => 'Laporan hanya dapat dibuat dari pengajuan yang sudah disetujui.',
-            ]);
-        }
+        // BR-FE-04, BR-MON-01/02/08 — tiga syarat sekaligus: induk disetujui,
+        // belum ditarik, dan tahap sebelumnya sudah tuntas. Gerbangnya tinggal
+        // satu tempat supaya jalur HTTP dan jalur lain tidak pernah menegakkan
+        // separuhnya saja.
+        MonevAccessGate::assertCycleOpen($parent, $detail);
 
         // BR-MON-03 — satu child per (induk, fase). Index unik parsial menjaga
         // lomba-balap; pencarian ini yang membuat pemanggilan kedua idempoten

@@ -49,17 +49,40 @@ final class ScoreVisibility
         return self::everyEvaluationSettled($submission);
     }
 
-    /** BR-REV-12 — skor untuk pihak researcher. */
+    /** BR-REV-12, dengan pengecualian BR-MON-09 — skor untuk pihak researcher. */
     public static function visibleToResearcher(User $user, FormSubmission $submission): bool
     {
         if ($submission->submitted_by !== $user->id) {
             return false;
         }
 
+        // BR-MON-09 — pengecualian eksplisit, dan sengaja **sempit**: hanya
+        // untuk laporan turunan. Monev bersifat formatif; koreksi arah kegiatan
+        // mustahil kalau catatannya baru terbaca setelah kegiatannya usai.
+        // Pengajuan awal tetap tunduk BR-REV-12 — [MON-REVIEW-09] menjaga batas
+        // itu supaya pengecualiannya tidak pelan-pelan melebar.
+        if ($submission->parent_submission_id !== null) {
+            return self::anyEvaluationSubmitted($submission);
+        }
+
         $status = $submission->status;
 
         // Keputusan final saja yang membuka — bukan sekadar "review selesai".
         return $status instanceof Approved || $status instanceof Rejected;
+    }
+
+    /**
+     * BR-MON-09 — cukup satu reviewer menyelesaikan penilaiannya. Menunggu
+     * seluruhnya akan menunda umpan balik yang justru gunanya cepat.
+     */
+    private static function anyEvaluationSubmitted(FormSubmission $submission): bool
+    {
+        return $submission->submissionReviewers()
+            ->where('status', 'active')
+            ->whereHas('reviewerFormAssignments.reviewFormResponse', function ($query): void {
+                $query->where('status', 'submitted');
+            })
+            ->exists();
     }
 
     private static function everyEvaluationSettled(FormSubmission $submission): bool

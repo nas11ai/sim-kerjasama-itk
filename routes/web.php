@@ -9,6 +9,7 @@ use App\Http\Controllers\FormController;
 use App\Http\Controllers\FormPhaseController;
 use App\Http\Controllers\Identity\NidnVerificationController;
 use App\Http\Controllers\Identity\UserAccessController;
+use App\Http\Controllers\Monev\MonevCycleController;
 use App\Http\Controllers\OrganizationController;
 use App\Http\Controllers\PermissionController;
 use App\Http\Controllers\ProfileController;
@@ -591,6 +592,11 @@ Route::middleware(['auth'])->group(function () {
         Route::delete('/users/{user}/permissions', [UserAccessController::class, 'revokePermission'])
             ->name('users.permissions.revoke');
         // BR-FE-08/09/10 — perpanjangan akses satu fase untuk satu pengajuan.
+        // BR-MON-04/07/10 — pengelolaan siklus monev.
+        Route::get('/submissions/{submission}/monev', [MonevCycleController::class, 'show'])
+            ->name('submissions.monev.show');
+        Route::post('/submissions/{submission}/monev/open', [MonevCycleController::class, 'open'])
+            ->name('submissions.monev.open');
         Route::post('/submissions/{submission}/overrides', [PhaseOverrideController::class, 'store'])
             ->name('submissions.overrides.store');
         Route::delete('/submissions/{submission}/overrides/{override}', [PhaseOverrideController::class, 'destroy'])
