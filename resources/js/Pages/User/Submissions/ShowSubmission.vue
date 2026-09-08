@@ -24,6 +24,7 @@ import ReviewSystem from '@/Components/ReviewSystem.vue'
 import TargetOutputManager from '@/Components/TargetOutputManager.vue'
 import PhaseAccessPanel from '@/Components/PhaseAccessPanel.vue'
 import ChildReportLauncher from '@/Components/ChildReportLauncher.vue'
+import ReviewScorePanel from '@/Components/ReviewScorePanel.vue'
 import ResearchMemberManager from '@/Components/ResearchMemberManager.vue'
 
 interface FieldType {
@@ -194,6 +195,20 @@ interface Props {
     canGrantOverride?: boolean
     /** BR-FE-04 — kosong selama induknya belum disetujui. */
     childPhases?: { id: number; title: string }[]
+    /**
+     * BR-REV-11/12 — skor yang tidak boleh dilihat tidak dikirim sama sekali;
+     * `reason` menjelaskan kenapa kosong.
+     */
+    reviewerScores?: {
+        visible: boolean
+        reason: string | null
+        scores: {
+            reviewer: string
+            reviewer_type: string
+            submitted_at: string | null
+            answers: { label: string; value: string | null }[]
+        }[]
+    }
 }
 
 const props = defineProps<Props>()
@@ -646,7 +661,14 @@ const mappedAssignedReviewers = computed(() =>
                 </TabsContent>
 
                 <!-- Review & Discussion Tab -->
-                <TabsContent value="review">
+                <TabsContent value="review" class="space-y-4">
+                    <ReviewScorePanel
+                        v-if="reviewerScores"
+                        :visible="reviewerScores.visible"
+                        :reason="reviewerScores.reason"
+                        :scores="reviewerScores.scores"
+                    />
+
                     <ReviewSystem
                         :submission-id="submission.id"
                         :review-summaries="reviewSummaries"

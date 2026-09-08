@@ -11,6 +11,7 @@ use App\Models\OutputTypeDefinition;
 use App\Models\ResearchMember;
 use App\Models\ReviewComment;
 use App\Models\Reviewer;
+use App\Models\ReviewFormFieldResponse;
 use App\Models\ReviewSummary;
 use App\Models\SubmissionPeriod;
 use App\Models\SubmissionReviewer;
@@ -469,18 +470,96 @@ class SubmissionViewController extends Controller
                 $user->can('viewOverrideReason', $submission),
             ),
             'canGrantOverride' => $user->can('grantOverride', $submission),
-            // BR-REV-11 — reviewer_internal boleh melihat skor rekannya, dan
-            // hanya setelah seluruh evaluasi selesai. reviewer_external tidak
-            // pernah, kapan pun.
-            'canSeePeerScores' => ScoreVisibility::peerScoresVisibleTo($user, $submission),
-            // BR-REV-12 — peneliti melihat skor setelah keputusan final, bukan
-            // sekadar setelah review selesai.
-            'canSeeReviewerScores' => ScoreVisibility::visibleToResearcher($user, $submission),
+            // BR-REV-11/12 — penjagaannya di **payload**, bukan di CSS. Skor
+            // yang tidak boleh dilihat tidak dikirim; kalau ia sampai ke
+            // browser, tidak ada tampilan yang bisa menyembunyikannya dengan
+            // aman. Alasannya ikut supaya layar bisa menjelaskan, bukan sekadar
+            // menampilkan ruang kosong.
+            'reviewerScores' => $this->reviewerScoresFor($user, $submission),
             // BR-FE-04 — laporan turunan hanya ditawarkan kalau induknya sudah
             // disetujui. Daftar fase yang belum punya laporan dihitung di sini
             // supaya layar tidak menawarkan yang pasti ditolak Action.
             'childPhases' => $this->availableChildPhasesFor($submission),
         ]);
+    }
+
+    /**
+     * BR-REV-11 dan BR-REV-12 — hasil evaluasi yang boleh dibaca pemanggil.
+     *
+     * Dua sumbu yang berbeda dan sengaja tidak dicampur: reviewer internal
+     * melihat skor rekannya setelah semua evaluasi selesai (BR-REV-11), dan
+     * peneliti melihatnya setelah keputusan final (BR-REV-12). Yang tidak lolos
+     * salah satunya menerima daftar kosong beserta alasannya — bukan daftar
+     * penuh yang disembunyikan tampilan.
+     *
+     * @return array{visible: bool, reason: string|null, scores: list<array{reviewer: string, reviewer_type: string, submitted_at: string|null, answers: list<array{label: string, value: string|null}>}>}
+     */
+    private function reviewerScoresFor(User $user, FormSubmission $submission): array
+    {
+        $asPeer = ScoreVisibility::peerScoresVisibleTo($user, $submission);
+        $asOwner = ScoreVisibility::visibleToResearcher($user, $submission);
+        $asStaff = $user->can('submissions.view-all');
+
+        if (!$asPeer && !$asOwner && !$asStaff) {
+            return [
+                'visible' => false,
+                'reason' => $this->scoreHiddenReason($user, $submission),
+                'scores' => [],
+            ];
+        }
+
+        $scores = SubmissionReviewer::query()
+            ->where('form_submission_id', $submission->id)
+            ->where('status', 'active')
+            ->with([
+                'reviewer.user:id,name',
+                'reviewerFormAssignments.reviewFormResponse.reviewFormFieldResponses.reviewFormField:id,label',
+            ])
+            ->get()
+            ->flatMap(function (SubmissionReviewer $sr): array {
+                $rows = [];
+
+                foreach ($sr->reviewerFormAssignments as $assignment) {
+                    $response = $assignment->reviewFormResponse;
+
+                    // Evaluasi yang belum disubmit bukan penilaian setengah jadi
+                    // yang boleh dibaca — ia belum jadi penilaian sama sekali.
+                    if ($response === null || $response->status !== 'submitted') {
+                        continue;
+                    }
+
+                    $reviewerUser = $sr->reviewer->user;
+
+                    $rows[] = [
+                        'reviewer' => $reviewerUser instanceof User ? $reviewerUser->name : 'Reviewer',
+                        'reviewer_type' => $sr->reviewer->reviewer_type,
+                        'submitted_at' => $response->submitted_at?->toDateTimeString(),
+                        'answers' => $response->reviewFormFieldResponses
+                            ->map(fn (ReviewFormFieldResponse $fr): array => [
+                                'label' => $fr->reviewFormField->label,
+                                'value' => $fr->value,
+                            ])
+                            ->values()
+                            ->all(),
+                    ];
+                }
+
+                return $rows;
+            })
+            ->values()
+            ->all();
+
+        return ['visible' => true, 'reason' => null, 'scores' => $scores];
+    }
+
+    private function scoreHiddenReason(User $user, FormSubmission $submission): string
+    {
+        if ($submission->submitted_by === $user->id) {
+            // BR-REV-12 — bukan "review selesai", melainkan keputusan final.
+            return 'Hasil review terbuka setelah keputusan akhir atas pengajuan ini diambil.';
+        }
+
+        return 'Skor reviewer lain terbuka bagi reviewer internal setelah seluruh evaluasi selesai.';
     }
 
     /**

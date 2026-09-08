@@ -16,7 +16,9 @@ use App\Models\FormField;
 use App\Models\FormSubmission;
 use App\Models\Scheme;
 use App\Models\User;
+use App\States\Submission\Approved;
 use App\States\Submission\Draft;
+use App\States\Submission\UnderReview;
 use Inertia\Testing\AssertableInertia as Assert;
 
 it('[SM-WIZARD-08] menyimpan anggaran ditolak selama skema belum dipilih', function () {
@@ -111,7 +113,62 @@ it('[REV-VIS-04] keterlihatan skor ikut terkirim ke layar detail', function () {
         ->get(route('user.submissions.show', $submission))
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
-            ->where('canSeeReviewerScores', false)
-            ->where('canSeePeerScores', false)
+            // Keputusannya ada di payload, bukan di dua boolean terpisah yang
+            // tidak dibaca siapa pun: skor yang tidak boleh dilihat tidak
+            // dikirim sama sekali.
+            ->where('reviewerScores.visible', false)
+            ->where('reviewerScores.scores', [])
+            ->etc());
+});
+
+// BR-REV-11/12 sampai ke layar. Sebelum irisan ini `canSeePeerScores` dan
+// `canSeeReviewerScores` dikirim backend tapi **nol komponen Vue membacanya** —
+// jadi di aplikasi yang berjalan, keterlihatan skor tidak mengikuti aturan sama
+// sekali. Penjagaannya sekarang di payload: yang tidak boleh dilihat tidak
+// dikirim, karena tidak ada tampilan yang bisa menyembunyikannya dengan aman.
+
+it('[REV-VIS-05] peneliti tidak menerima skor sebelum keputusan final', function () {
+    $owner = verifiedResearcher();
+    $fx = wizardFixture();
+
+    $submission = FormSubmission::factory()->create([
+        'form_id' => $fx['form']->id,
+        'submitted_by' => $owner->id,
+        'submission_period_id' => $fx['period']->id,
+        'form_phase_detail_id' => $fx['detail']->id,
+        'status' => UnderReview::class,
+        'is_submitted' => true,
+    ]);
+
+    $this->actingAs($owner)
+        ->get(route('user.submissions.show', $submission))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('reviewerScores.visible', false)
+            ->where('reviewerScores.scores', [])
+            // Ruang kosong tanpa penjelasan membuat orang mengira sistemnya rusak.
+            ->where('reviewerScores.reason', 'Hasil review terbuka setelah keputusan akhir atas pengajuan ini diambil.')
+            ->etc());
+});
+
+it('[REV-VIS-06] peneliti menerima skor setelah keputusan final', function () {
+    $owner = verifiedResearcher();
+    $fx = wizardFixture();
+
+    $submission = FormSubmission::factory()->create([
+        'form_id' => $fx['form']->id,
+        'submitted_by' => $owner->id,
+        'submission_period_id' => $fx['period']->id,
+        'form_phase_detail_id' => $fx['detail']->id,
+        'status' => Approved::class,
+        'is_submitted' => true,
+    ]);
+
+    $this->actingAs($owner)
+        ->get(route('user.submissions.show', $submission))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('reviewerScores.visible', true)
+            ->where('reviewerScores.reason', null)
             ->etc());
 });

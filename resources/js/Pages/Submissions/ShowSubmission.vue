@@ -1,10 +1,12 @@
 <script setup lang="ts">
 import { computed, ref } from 'vue'
+import { usePage } from '@inertiajs/vue3'
 import { Head, router } from '@inertiajs/vue3'
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
 import { Button } from '@/Components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card'
 import { Badge } from '@/Components/ui/badge'
+import { Alert, AlertDescription, AlertTitle } from '@/Components/ui/alert'
 import { Label } from '@/Components/ui/label'
 import { Separator } from '@/Components/ui/separator'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/Components/ui/tabs'
@@ -13,6 +15,7 @@ import {
     FileText,
     User,
     AlertCircle,
+    AlertTriangle,
     Download,
     Clock,
     Mail,
@@ -241,6 +244,14 @@ const assignedReviewers = props.submission.assigned_reviewers || []
 const reviewerFormAssignments = props.reviewerFormAssignments || []
 
 // Dialog state
+const page = usePage()
+
+// BR-REV-04 — dibagikan sebagai flash tersendiri supaya tidak tertukar dengan
+// kegagalan; penugasannya sendiri berhasil.
+const workloadWarnings = computed<string[]>(
+    () => (page.props.flash as { workloadWarnings?: string[] } | undefined)?.workloadWarnings ?? []
+)
+
 const showAssignReviewerDialog = ref(false)
 
 const formatDateTime = (dateString: string) => {
@@ -327,6 +338,20 @@ const mappedAssignedReviewers = computed(() =>
         </template>
 
         <div class="max-w-6xl mx-auto space-y-6">
+            <!-- BR-REV-04 — beban berlebih memberi PERINGATAN, bukan penolakan.
+                 Penugasannya sudah berhasil; yang perlu Operator ketahui adalah
+                 konsekuensinya, dan itu keputusan produk (ADR: skenarionya
+                 @boundary, bukan @denial). -->
+            <Alert v-if="workloadWarnings.length" variant="default">
+                <AlertTriangle class="h-4 w-4" />
+                <AlertTitle>Beban reviewer melebihi batas skema</AlertTitle>
+                <AlertDescription>
+                    <ul class="list-disc space-y-1 pl-4">
+                        <li v-for="(warning, i) in workloadWarnings" :key="i">{{ warning }}</li>
+                    </ul>
+                </AlertDescription>
+            </Alert>
+
             <!-- Error Alert -->
             <Card v-if="error" class="border-orange-200 bg-orange-50">
                 <CardContent class="pt-6">
