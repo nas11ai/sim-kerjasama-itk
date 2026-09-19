@@ -318,32 +318,6 @@ class FormSubmission extends Model
         ];
     }
 
-    // NEW: Auto-assign evaluation forms to new reviewers
-    public function autoAssignEvaluationForms(): void
-    {
-        $formPhaseDetail = $this->getFormPhaseDetail();
-
-        if (!$formPhaseDetail || !$formPhaseDetail->hasReviewEvaluationForms()) {
-            return;
-        }
-
-        // Get reviewers without any form assignments
-        $reviewersNeedingAssignment = $this->submissionReviewers()
-            ->whereDoesntHave('reviewerFormAssignments')
-            ->get();
-
-        foreach ($reviewersNeedingAssignment as $submissionReviewer) {
-            /** @var SubmissionReviewer $submissionReviewer */
-            // Assign all required forms by default
-            /** @var Collection<int, ReviewEvaluationForm> $requiredForms */
-            $requiredForms = $formPhaseDetail->requiredReviewEvaluationForms()->get();
-
-            foreach ($requiredForms as $form) {
-                $submissionReviewer->assignForm($form->id, true, $this->getEvaluationDueDate());
-            }
-        }
-    }
-
     /**
      * BR-RO-01 — luaran yang terwujud dari pengajuan ini.
      *
@@ -423,33 +397,6 @@ class FormSubmission extends Model
         return $this->formPhaseDetail;
     }
 
-    // NEW: Get evaluation due date based on submission period
-    protected function getEvaluationDueDate(): ?\DateTime
-    {
-        $formPhaseDetail = $this->getFormPhaseDetail();
-
-        if ($formPhaseDetail === null || $formPhaseDetail->formPhase === null) {
-            return null;
-        }
-
-        // Period diturunkan lewat FK eksplisit submission_period_id, bukan
-        // ditebak lewat submission_period_phases — pivot itu tanpa unique
-        // constraint, satu FormPhase boleh dimiliki banyak period (ADR 0004).
-        $submissionPeriod = $this->submissionPeriod;
-
-        if ($submissionPeriod === null) {
-            return null;
-        }
-
-        // Get the latest submission date as due date
-        /** @var SubmissionDate|null $latestDate */
-        $latestDate = $submissionPeriod->submissionDates()
-            ->orderBy('datetime', 'desc')
-            ->first();
-
-        return $latestDate ? $latestDate->datetime : null;
-    }
-
     /**
      * BR-MON-02 — apakah tahap ini boleh dilanjutkan ke detail berikutnya.
      *
@@ -505,24 +452,6 @@ class FormSubmission extends Model
     public function hasOpenReviewThreads(): bool
     {
         return $this->reviewSummaries()->where('status', 'open')->exists();
-    }
-
-    public function assignReviewer(int $reviewerId): ReviewSummary
-    {
-        /** @var ReviewSummary $summary */
-        $summary = $this->reviewSummaries()->firstOrCreate(
-            ['reviewer_id' => $reviewerId],
-            ['status' => 'open']
-        );
-
-        return $summary;
-    }
-
-    public function removeReviewer(int $reviewerId): bool
-    {
-        return $this->reviewSummaries()
-            ->where('reviewer_id', $reviewerId)
-            ->delete() > 0;
     }
 
     // NEW: Get evaluation forms summary for this submission

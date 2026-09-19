@@ -1,11 +1,10 @@
 <?php
 
-// tests/Unit/FormSubmissionEvaluationDueDateTest.php
+// tests/Unit/EvaluationDueDateTest.php
 //
-// getEvaluationDueDate() memakai kolom 'date' dan 'submission_dates.date' yang
-// sudah dihapus oleh migration 2025_08_11_002015 (diganti 'datetime'). Test ini
-// membuktikan method itu mengembalikan SubmissionDate paling akhir, bukan
-// melempar QueryException seperti sebelum perbaikan.
+// Versi lama (FormSubmission::getEvaluationDueDate) memakai kolom 'date' yang
+// sudah dihapus migration 2025_08_11_002015. Test ini mengunci bahwa tenggatnya
+// SubmissionDate paling akhir, bukan QueryException.
 
 use App\Models\Form;
 use App\Models\FormAccessControl;
@@ -17,20 +16,12 @@ use App\Models\PhaseType;
 use App\Models\SubmissionDate;
 use App\Models\SubmissionDateLabel;
 use App\Models\SubmissionPeriod;
+use App\Queries\Submission\EvaluationDueDate;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
 
 uses(TestCase::class, RefreshDatabase::class);
-
-/**
- * getEvaluationDueDate() bersifat protected — panggil lewat reflection
- * supaya test bisa menegaskan nilai kembaliannya secara langsung.
- */
-function invokeGetEvaluationDueDate(FormSubmission $submission): ?DateTime
-{
-    return (new ReflectionMethod($submission, 'getEvaluationDueDate'))->invoke($submission);
-}
 
 it('returns the latest submission date as the evaluation due date instead of throwing', function () {
     $form = Form::factory()->create();
@@ -81,7 +72,7 @@ it('returns the latest submission date as the evaluation due date instead of thr
         'submission_period_id' => $period->id,
     ]);
 
-    $dueDate = invokeGetEvaluationDueDate($submission);
+    $dueDate = EvaluationDueDate::run($submission);
 
     expect($dueDate)->not->toBeNull()
         ->and($dueDate->format('Y-m-d H:i:s'))->toBe($latestDate->datetime->format('Y-m-d H:i:s'));
@@ -89,7 +80,7 @@ it('returns the latest submission date as the evaluation due date instead of thr
 
 it('resolves the due date from submission_period_id, not a form_phase_id shared with another period', function () {
     // ADR 0004: submission_period_phases tidak punya unique constraint, jadi
-    // satu FormPhase boleh dimiliki banyak period. Kalau getEvaluationDueDate()
+    // satu FormPhase boleh dimiliki banyak period. Kalau EvaluationDueDate
     // menebak period lewat pivot itu, ia bisa mengambil period yang salah persis
     // seperti bug ->first() yang ADR ini dibuat untuk membunuhnya.
     $form = Form::factory()->create();
@@ -146,7 +137,7 @@ it('resolves the due date from submission_period_id, not a form_phase_id shared 
         'submission_period_id' => $periodA->id,
     ]);
 
-    $dueDate = invokeGetEvaluationDueDate($submission);
+    $dueDate = EvaluationDueDate::run($submission);
 
     expect($dueDate)->not->toBeNull()
         ->and($dueDate->format('Y-m-d H:i:s'))->toBe($dateA->datetime->format('Y-m-d H:i:s'));
