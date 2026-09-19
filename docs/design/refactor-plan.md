@@ -1,12 +1,15 @@
 # Rencana Refactor — Bentuk, Batas, dan Penegakannya
 
-**Versi:** 1.4
+**Versi:** 1.5
 **Tanggal:** 2026-09-19
 **Status:** Disetujui, belum dikerjakan
 
 Dokumen ini menetapkan **bentuk** kode di repo ini, **batas** yang mengikatnya, dan
 **mesin** yang menegakkan batas itu. Ia tidak menambah satu pun fitur dan tidak
 menyentuh `docs/requirement-analysis/`.
+
+Versi 1.5 mengganti angka perkiraan dengan angka terukur setelah gelombang 0–1
+mendarat: `max.mixed` 20 (bukan 12) dan `max.legacy.files` 276 (bukan 112).
 
 Versi 1.4 menyelaraskan tabel assertion dengan rencana implementasinya: assertion 5
 mengikuti plafon (bukan sisa nol), dan assertion penempatan direktori dicabut karena
@@ -246,12 +249,13 @@ dua arah sekaligus.
 | Metrik | p50 | p90 | **Ambang keras** | **Plafon awal** |
 | ------ | --: | --: | ---------------: | --------------: |
 | LOC berkas PHP | 63 | 171 | **200** | 1353 |
+| Berkas legacy | — | — | — | **276** (terukur, bukan 112) |
 | LOC berkas Vue | 35 | 533 | **250** | 1240 |
 | LOC per method | 8 | 30 | **40** | 303 |
 | Cyclomatic complexity | 1 | 4 | **8** | 32 |
 | Parameter (termasuk constructor) | 1 | 2 | **4** | 9 |
 | `return` per method | 1 | 2 | **4** | 6 |
-| `mixed` tertulis | — | — | — | **48 → 12** |
+| `mixed` tertulis | — | — | — | 48 → **20** (tercapai) |
 | Prosa komentar | 1 | 5 | **3** | 234 |
 | Identifier non-Inggris | — | — | **0** | 171 |
 | `response()->json` tanpa DTO `Contract` | — | — | **0** | 22 |
@@ -270,10 +274,13 @@ seluruhnya di `app/Http` (959) dan `app/Models` (244) — persis dua tempat yang
 gelombang 2 dan 3. Angkanya turun sebagai **akibat** refactor. Ia jadi alat ukur paling
 jujur: kalau 1284 tidak bergerak, refactor-nya belum menyentuh apa pun yang penting.
 
-**`mixed` diberi plafon 48 → 12, bukan ambang 0.** Angka 12 itu sisa yang tidak bisa
-dihilangkan tanpa berbohong: enam tanda tangan `rules()` milik Laravel, satu aksesor
-JSON generik (`Scheme::getRule`), dua parameter `AuditTrail::record` yang memang
-menerima bentuk sembarang, dan tiga kolom JSON yang bentuknya berubah per baris.
+**`mixed` diberi plafon, bukan ambang 0. Hasilnya 20, bukan 12 seperti perkiraan.**
+Perkiraan awal menghitung kolom JSON-nya saja; yang terlewat adalah **nilai yang
+mengalirinya** — `ResearchOutput.metadata` menyeret enam kemunculan lewat
+`ResearchOutputGuard`, `SaveResearchOutput`, dan controller-nya. Rincian keduapuluhnya
+tertulis di `quality-budget.txt` tepat di atas angkanya, beserta satu yang sengaja
+ditunda ke gelombang 3 (`UserFormController` — validatornya hanya `nullable`, jadi
+menyempitkannya menuntut validasi per tipe field).
 Tiga puluh enam sisanya **wajib** jadi DTO atau penyempitan tipe — 16 di antaranya
 `toArray()` notifikasi yang bentuknya sudah tetap, dan empat `$attributes` Action yang
 memang tempatnya `Data\Request`.
@@ -341,11 +348,13 @@ max.phpstan.default:  1284
 
 ### 4.2 `quality-legacy.txt`
 
-Seratus dua belas baris, satu berkas per baris — 44 PHP dan 68 Vue. Inilah **antrean
-kerja lintas sesi**, bukan sekadar daftar pengecualian.
+**276 baris** saat diterbitkan, satu berkas per baris. Inilah **antrean kerja lintas
+sesi**, bukan sekadar daftar pengecualian.
 
-Sebarannya: `app/Http` 18, `app/Actions` 12, `app/Models` 7, `app/Support` 4, lainnya 3,
-Vue 68.
+Angkanya lebih besar dari perkiraan 112 di §1 karena dua kriteria yang belum ada saat
+perkiraan itu dibuat: prosa komentar lebih dari tiga baris, dan berbagi blok duplikat
+dengan berkas lain. Keduanya keputusan yang datang belakangan (§2.6 dan §3), dan
+keduanya benar — daftar yang lebih panjang berarti pagarnya melihat lebih banyak.
 
 ### 4.3 `QualityBudgetTest`
 
