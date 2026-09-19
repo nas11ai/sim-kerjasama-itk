@@ -177,7 +177,34 @@ it('menghitung promoted property sebagai parameter constructor', function () {
     }
     PHP);
 
-    expect(CodeMetrics::forFile($path)['methods'][0]->parameters)->toBe(2);
+    $constructor = CodeMetrics::forFile($path)['methods'][0];
+
+    expect($constructor->parameters)->toBe(2)
+        ->and($constructor->onlyPromotesProperties())->toBeTrue();
+
+    unlink($path);
+});
+
+it('membedakan constructor pembawa data dari constructor yang menyuntik dependensi', function () {
+    $path = writeSource(<<<'PHP'
+    <?php
+    class Sample
+    {
+        public function __construct(
+            private readonly Mailer $mailer,
+            Logger $logger,
+        ) {}
+
+        public function plain(int $a, #[SensitiveParameter] string $b = 'x, y'): void {}
+    }
+    PHP);
+
+    [$constructor, $plain] = CodeMetrics::forFile($path)['methods'];
+
+    expect($constructor->parameters)->toBe(2)
+        ->and($constructor->onlyPromotesProperties())->toBeFalse()
+        ->and($plain->parameters)->toBe(2)
+        ->and($plain->onlyPromotesProperties())->toBeFalse();
 
     unlink($path);
 });

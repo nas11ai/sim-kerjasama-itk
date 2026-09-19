@@ -10,6 +10,13 @@ final class MethodMetric
         public readonly int $loc,
         public readonly int $complexity,
         public readonly int $parameters,
+        public readonly int $promotedParameters,
         public readonly int $returns,
     ) {}
+
+    /** Constructor pembawa data: ia sendiri obat Long Parameter List, bukan gejalanya. */
+    public function onlyPromotesProperties(): bool
+    {
+        return $this->parameters > 0 && $this->promotedParameters === $this->parameters;
+    }
 }

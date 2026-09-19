@@ -1,0 +1,27 @@
+# Plafon kualitas kode. Ditegakkan tests/Unit/Architecture/QualityBudgetTest.php.
+#
+# Angka hanya boleh TURUN. Menaikkannya berarti menambah utang dan harus dibahas
+# eksplisit di PR — aturan yang sama dengan pending.txt.
+#
+# Rancangannya di docs/design/refactor-plan.md.
+
+# --- Ambang keras: berlaku di luar quality-legacy.txt ---
+hard.php.file.loc:     200
+hard.vue.file.loc:     250
+hard.method.loc:        40
+hard.method.cc:          8
+hard.method.params:      4
+hard.method.returns:     4
+hard.comment.prose:      3
+hard.contract.leak:      0
+
+# --- Plafon yang menyusut ---
+max.legacy.files:      297
+max.mixed:              47
+max.comment.overflow:  166
+max.id.nonenglish:     171
+max.untyped.json:       22
+max.duplicate.blocks: 1675
+# Belum ditegakkan test: analisis level 10 terlalu lambat untuk Pest. Ukur manual:
+#   ./vendor/bin/phpstan analyse --level=10 --memory-limit=2G --error-format=raw | grep -c ':[0-9]*:'
+max.phpstan.default:  1284

@@ -20,6 +20,11 @@ final class CodeMetrics
     /** Pembuka yang ditutup `}`, termasuk interpolasi `{$x}` dan `${x}` di dalam string. */
     private const OPENING_BRACES = ['{', T_CURLY_OPEN, T_DOLLAR_OPEN_CURLY_BRACES];
 
+    /** Modifier yang menjadikan parameter constructor sebuah promoted property. */
+    private const PROMOTION_MODIFIERS = [
+        T_PUBLIC, T_PROTECTED, T_PRIVATE, T_READONLY, T_PUBLIC_SET, T_PROTECTED_SET, T_PRIVATE_SET,
+    ];
+
     /** @return array{loc: int, methods: list<MethodMetric>} */
     public static function forFile(string $path): array
     {
@@ -61,21 +66,24 @@ final class CodeMetrics
     private static function measure(array $tokens, int $function): ?array
     {
         $openParen = self::seekBeforeSemicolon($tokens, $function, '(');
-        $openBrace = $openParen === null ? null : self::seekBeforeSemicolon($tokens, $openParen, '{');
+        $closeParen = $openParen === null ? null : self::closingIndex($tokens, $openParen, ['('], ')');
+        $openBrace = $closeParen === null ? null : self::seekBeforeSemicolon($tokens, $closeParen, '{');
 
         // Deklarasi abstrak, interface, dan `use function` berakhir di `;`.
         if ($openParen === null || $openBrace === null) {
             return null;
         }
 
-        $closeBrace = self::matchingBrace($tokens, $openBrace);
+        $closeBrace = self::closingIndex($tokens, $openBrace, self::OPENING_BRACES, '}');
+        $parameters = self::parameters(array_slice($tokens, $openParen + 1, $closeParen - $openParen - 1));
 
         return [
             'metric' => new MethodMetric(
                 name: self::nameAfter($tokens, $function),
                 loc: max(1, $tokens[$closeBrace]->line - $tokens[$openBrace]->line),
                 complexity: 1 + self::countKinds($tokens, $openBrace, $closeBrace, self::BRANCH_TOKENS),
-                parameters: self::countParameters($tokens, $openParen),
+                parameters: $parameters['count'],
+                promotedParameters: $parameters['promoted'],
                 returns: self::countKinds($tokens, $openBrace, $closeBrace, [T_RETURN]),
             ),
             'end' => $closeBrace,
@@ -96,16 +104,20 @@ final class CodeMetrics
         return null;
     }
 
-    /** @param list<PhpToken> $tokens */
-    private static function matchingBrace(array $tokens, int $openBrace): int
+    /**
+     * @param  list<PhpToken>  $tokens
+     * @param  list<int|string>  $openers
+     * @return int indeks penutup yang berpasangan dengan pembuka di $open
+     */
+    private static function closingIndex(array $tokens, int $open, array $openers, string $closer): int
     {
         $depth = 0;
         $total = count($tokens);
 
-        for ($i = $openBrace; $i < $total; $i++) {
+        for ($i = $open; $i < $total; $i++) {
             $depth += match (true) {
-                $tokens[$i]->is(self::OPENING_BRACES) => 1,
-                $tokens[$i]->is('}') => -1,
+                $tokens[$i]->is($openers) => 1,
+                $tokens[$i]->is($closer) => -1,
                 default => 0,
             };
 
@@ -118,33 +130,28 @@ final class CodeMetrics
     }
 
     /**
-     * Menghitung `T_VARIABLE` di kedalaman satu; promoted property ikut, karena ia memang parameter.
+     * Satu `T_VARIABLE` = satu parameter; ia promoted kalau didahului modifier visibilitas.
+     * Nilai default tidak bisa memuat variabel, jadi kedalaman kurung tidak perlu dilacak.
      *
-     * @param  list<PhpToken>  $tokens
+     * @param  list<PhpToken>  $signature
+     * @return array{count: int, promoted: int}
      */
-    private static function countParameters(array $tokens, int $openParen): int
+    private static function parameters(array $signature): array
     {
-        $depth = 0;
-        $parameters = 0;
-        $total = count($tokens);
+        $count = 0;
+        $promoted = 0;
+        $hasModifier = false;
 
-        for ($i = $openParen; $i < $total; $i++) {
-            $depth += match (true) {
-                $tokens[$i]->is('(') => 1,
-                $tokens[$i]->is(')') => -1,
-                default => 0,
-            };
+        foreach ($signature as $token) {
+            $hasModifier = !$token->is(',') && ($hasModifier || $token->is(self::PROMOTION_MODIFIERS));
 
-            if ($depth === 0) {
-                break;
-            }
-
-            if ($depth === 1 && $tokens[$i]->is(T_VARIABLE)) {
-                $parameters++;
+            if ($token->is(T_VARIABLE)) {
+                $count++;
+                $promoted += $hasModifier ? 1 : 0;
             }
         }
 
-        return $parameters;
+        return ['count' => $count, 'promoted' => $promoted];
     }
 
     /**
