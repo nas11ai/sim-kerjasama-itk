@@ -10,11 +10,14 @@
 // menyatakannya tidak membatasi.
 
 use App\Actions\FormSubmission\AddResearchMember;
+use App\Actions\FormSubmission\AddStudentMember;
 use App\Actions\FormSubmission\RemoveResearchMember;
+use App\Actions\FormSubmission\RemoveStudentMember;
 use App\Models\FormSubmission;
 use App\Models\ResearchMember;
 use App\Models\Reviewer;
 use App\Models\Scheme;
+use App\Models\StudentMember;
 use App\Models\SubmissionReviewer;
 use App\Models\User;
 use App\Models\UserProfile;
@@ -176,3 +179,102 @@ it('[SM-MEMBER-08] anggota tidak bisa dikeluarkan pada status terminal', functio
         ->toThrow(AuthorizationException::class)
         ->and(ResearchMember::query()->whereKey($member->id)->exists())->toBeTrue();
 })->with([Approved::class, Rejected::class, Withdrawn::class]);
+
+// ---------- BR-SM-20: anggota mahasiswa ----------
+
+/** @return array{0: User, 1: FormSubmission} */
+function studentFixture(?int $maxStudents = null): array
+{
+    $owner = User::factory()->create();
+    UserProfile::factory()->create(['user_id' => $owner->id]);
+
+    $scheme = Scheme::factory()->create([
+        'rules' => $maxStudents === null ? [] : ['max_student_members' => $maxStudents],
+    ]);
+
+    $submission = FormSubmission::factory()->create([
+        'submitted_by' => $owner->id,
+        'scheme_id' => $scheme->id,
+        'status' => Draft::class,
+    ]);
+
+    return [$owner, $submission];
+}
+
+it('[SM-STUDENT-01] ketua pengaju mencatat anggota mahasiswa', function () {
+    [$owner, $submission] = studentFixture();
+
+    $mahasiswa = AddStudentMember::run($submission, $owner, [
+        'name' => 'Andi',
+        'student_id' => '10211001',
+        'study_program' => 'Teknik Informatika',
+    ]);
+
+    expect($mahasiswa->name)->toBe('Andi')
+        ->and($submission->fresh()->studentMembers()->count())->toBe(1);
+});
+
+it('[SM-STUDENT-02] jumlah mahasiswa dibatasi skema', function () {
+    [$owner, $submission] = studentFixture(2);
+
+    foreach (['10211001', '10211002'] as $nim) {
+        AddStudentMember::run($submission->fresh(), $owner, ['name' => 'Mhs '.$nim, 'student_id' => $nim]);
+    }
+
+    expect(fn () => AddStudentMember::run($submission->fresh(), $owner, [
+        'name' => 'Mhs ketiga', 'student_id' => '10211003',
+    ]))->toThrow(ValidationException::class)
+        ->and($submission->fresh()->studentMembers()->count())->toBe(2);
+});
+
+it('[SM-STUDENT-03] skema tanpa max_student_members tidak membatasi', function () {
+    [$owner, $submission] = studentFixture();
+
+    foreach (range(1, 6) as $i) {
+        AddStudentMember::run($submission->fresh(), $owner, [
+            'name' => "Mhs {$i}", 'student_id' => '1021100'.$i,
+        ]);
+    }
+
+    // Sejajar allowed_output_types di BR-SM-14: skema yang diam tidak melarang.
+    expect($submission->fresh()->studentMembers()->count())->toBe(6);
+});
+
+it('[SM-STUDENT-04] NIM yang sama tidak dicatat dua kali di satu pengajuan', function () {
+    [$owner, $submission] = studentFixture();
+
+    AddStudentMember::run($submission, $owner, ['name' => 'Andi', 'student_id' => '10211001']);
+
+    expect(fn () => AddStudentMember::run($submission->fresh(), $owner, [
+        'name' => 'Andi (lagi)', 'student_id' => '10211001',
+    ]))->toThrow(ValidationException::class);
+});
+
+it('[SM-STUDENT-05] mahasiswa yang sama boleh terlibat di pengajuan lain', function () {
+    [$owner1, $p1] = studentFixture();
+    [$owner2, $p2] = studentFixture();
+
+    AddStudentMember::run($p1, $owner1, ['name' => 'Andi', 'student_id' => '10211001']);
+
+    // Keunikan NIM per pengajuan, bukan global: satu mahasiswa memang boleh
+    // terlibat di beberapa penelitian sekaligus.
+    AddStudentMember::run($p2, $owner2, ['name' => 'Andi', 'student_id' => '10211001']);
+
+    expect(StudentMember::query()->where('student_id', '10211001')->count())->toBe(2);
+});
+
+it('[SM-STUDENT-06] mengeluarkan mahasiswa membuka kembali kuota skema', function () {
+    [$owner, $submission] = studentFixture(1);
+
+    $andi = AddStudentMember::run($submission, $owner, ['name' => 'Andi', 'student_id' => '10211001']);
+
+    expect(fn () => AddStudentMember::run($submission->fresh(), $owner, [
+        'name' => 'Budi', 'student_id' => '10211002',
+    ]))->toThrow(ValidationException::class);
+
+    RemoveStudentMember::run($submission->fresh(), $andi, $owner);
+
+    AddStudentMember::run($submission->fresh(), $owner, ['name' => 'Budi', 'student_id' => '10211002']);
+
+    expect($submission->fresh()->studentMembers()->count())->toBe(1);
+});

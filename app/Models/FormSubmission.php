@@ -144,11 +144,20 @@ class FormSubmission extends Model
         return $this->hasMany(BudgetLineItem::class);
     }
 
-    /** @return HasMany<ResearchMember, $this> */
     /** @return HasMany<SubmissionTargetOutput, $this> */
     public function targetOutputs(): HasMany
     {
         return $this->hasMany(SubmissionTargetOutput::class);
+    }
+
+    /**
+     * BR-SM-20 — anggota mahasiswa; data, bukan akun.
+     *
+     * @return HasMany<StudentMember, $this>
+     */
+    public function studentMembers(): HasMany
+    {
+        return $this->hasMany(StudentMember::class);
     }
 
     /** @return HasMany<ResearchMember, $this> */

@@ -549,6 +549,12 @@ Route::middleware(['auth'])->group(function () {
         // skema jadi jalan buntu.
         Route::delete('/submissions/{submission}/members/{member}', [ResearchMemberController::class, 'destroy'])
             ->name('submissions.members.destroy');
+        // BR-SM-20 — mahasiswa tidak punya akun, jadi ia data dan bukan
+        // ResearchMember.
+        Route::post('/submissions/{submission}/student-members', [ResearchMemberController::class, 'storeStudent'])
+            ->name('submissions.student-members.store');
+        Route::delete('/submissions/{submission}/student-members/{student}', [ResearchMemberController::class, 'destroyStudent'])
+            ->name('submissions.student-members.destroy');
         Route::post('/submissions/{submission}/budget-items', [BudgetLineItemController::class, 'store'])
             ->name('submissions.budget-items.store');
         // BR-BUD-10 — anggaran yang bisa ditambah tapi tidak bisa dibetulkan

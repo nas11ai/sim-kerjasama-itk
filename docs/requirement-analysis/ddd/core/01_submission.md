@@ -190,14 +190,7 @@ classDiagram
         +string name
         +string student_id
         +string study_program
-    }
-
-    class Partner {
-        +PartnerId id
-        +FormSubmissionId form_submission_id
-        +string institution_name
-        +string contact_person
-        +string description
+        note "mahasiswa tidak punya akun; dibatasi scheme.rules.max_student_members (BR-SM-20)"
     }
 
     class SubmissionTargetOutput {
@@ -217,7 +210,6 @@ classDiagram
 
     FormSubmission "1" --> "0..*" ResearchMember : has
     FormSubmission "1" --> "0..*" StudentMember : has
-    FormSubmission "1" --> "0..*" Partner : has
     FormSubmission "1" --> "0..*" AdditionalFile : has
     FormSubmission "1" --> "0..*" SubmissionTargetOutput : promises
 ```
@@ -230,7 +222,6 @@ classDiagram
 | ----------------------- | --------------------------------------------------------------------------------------------- |
 | Research Member input   | Tabel `research_members`, UI member picker, permission visibility, conflict of interest check |
 | Budget Plan input       | Tabel `budget_line_items`, dynamic table UI, auto-calculate                                   |
-| Partner input           | Tabel `submission_partners`, UI                                                               |
 | Scheme integration      | Tabel `schemes`, field type `scheme_selector` + `trl_selector`                                |
 | `parent_submission_id`  | Kolom di `form_submissions` (untuk laporan monev + kelengkapan saja)                          |
 | State machine           | Install `spatie/laravel-model-states`, implementasi per state                                 |
@@ -262,6 +253,7 @@ classDiagram
 | BR-SM-17 | Navigasi wizard **bebas maju-mundur**; yang menggerbang adalah **prasyarat data per langkah**, bukan urutan. Satu-satunya prasyarat nyata: langkah anggaran butuh `scheme_id` pada Form yang punya `scheme_selector` (BR-BUD-01). Langkah Review boleh dibuka kapan saja — yang bergerbang tombol Submit-nya, bukan halamannya. Prasyarat dideklarasikan per langkah supaya tetap benar kalau urutan langkah berubah |
 | BR-SM-18 | `ResearchMember` dikeluarkan oleh `submitted_by`, hanya selama pengajuan belum berstatus terminal. Ketua pengaju **tidak bisa mengeluarkan dirinya sendiri**: `submitted_by` adalah sumbu access control [BR-SM-07](#business-rules), dan pengajuan tanpa ketua tidak punya siapa pun yang berhak menyentuhnya — yang hendak melepas kepemilikan memakai jalur transfer [BR-SM-09](#business-rules). Tanpa jalur keluar, batas anggota [BR-SCH-03](../supporting/04_scheme.md) menjadi jalan buntu: kuota penuh, dan tidak ada cara menurunkannya |
 | BR-SM-19 | `SubmissionTargetOutput` dihapus oleh `submitted_by` sampai pengajuan REJECTED atau WITHDRAWN — gerbang yang sama dengan penyuntingannya ([BR-SM-15](#business-rules)). Co-Investigator hanya membaca, berbeda dari [BR-RO-07](../supporting/03_research_output.md) pada luaran realisasi, dan perbedaannya disengaja: target adalah janji ketua pengaju |
+| BR-SM-20 | Anggota mahasiswa dicatat sebagai **data, bukan akun**: mahasiswa tidak mendaftar ke SIMPAS, jadi `StudentMember` menyimpan nama, NIM, dan program studinya apa adanya. Jumlahnya dibatasi `scheme.rules.max_student_members`; skema yang tidak menyatakannya tidak membatasi — sejajar `allowed_output_types` di [BR-SM-14](#business-rules). Sumbu siapa dan kapannya sama dengan anggota bergelar ([BR-SM-18](#business-rules)): hanya `submitted_by`, dan hanya selama pengajuan belum terminal |
 
 ---
 

@@ -2,7 +2,7 @@
 
 **Versi:** 2.0
 **Tanggal:** 2026-09-19 (gelombang 1: 2026-09-04)
-**Status:** Gelombang 1 menunggu review · Gelombang 2 menunggu keputusan
+**Status:** Gelombang 1 menunggu review · Gelombang 2 mendarat 2026-09-19
 
 Dokumen ini memuat dua gelombang penutupan gap yang berbeda sebabnya.
 
@@ -391,24 +391,31 @@ ada BR, **tidak ada satu pun skenario**, tidak ada test. Turunannya ikut hilang 
 `uncovered.txt` tetap `max: 0` karena keduanya tidak pernah dirumuskan sebagai
 perilaku. Ini satu-satunya baris Feature Gap DDD yang belum dikerjakan.
 
-**Keputusan — belum diambil.** Ini satu-satunya butir gelombang ini yang **tidak**
-ditutup sepihak, karena dua kemungkinannya sama masuk akal dan konsekuensinya jauh
-berbeda:
+**Keputusan (2026-09-19): dipisah, karena keduanya tidak sekuat itu.** Dua
+kemungkinannya sama masuk akal untuk satu entitas dan tidak seimbang untuk yang lain:
 
 | Opsi | Konsekuensi |
 | ---- | ----------- |
 | **A — keduanya dibuat** | Dua tabel, dua langkah wizard tambahan (atau perluasan langkah 4), BR + skenario baru, `max_student_members` jadi rule yang ditegakkan |
 | **B — keduanya dibatalkan** | Diagram agregat `core/01_submission.md` dan baris Feature Gap-nya disunting; `max_student_members` dihapus dari contoh `scheme.rules`; kebutuhannya diserap FormField dinamis |
 
-Rekomendasi: **opsi B untuk `Partner`, opsi A untuk `StudentMember`.** Mitra eksternal
-hanya butuh nama institusi dan kontak — persis yang bisa dilayani FormField dinamis
-tanpa tabel sendiri, dan wireframe tidak pernah memberinya layar. `StudentMember`
-berbeda: ia punya rule skema (`max_student_members`) yang hanya bisa ditegakkan kalau
-anggotanya terhitung sebagai baris, dan keterlibatan mahasiswa adalah angka yang
-dilaporkan LPPM ke luar.
+**Opsi B untuk `Partner`, opsi A untuk `StudentMember`.** Mitra eksternal hanya butuh
+nama institusi dan kontak — persis yang bisa dilayani FormField dinamis tanpa tabel
+sendiri, dan wireframe tidak pernah memberinya layar. `StudentMember` berbeda: ia punya
+rule skema (`max_student_members`) yang hanya bisa ditegakkan kalau anggotanya terhitung
+sebagai baris, dan keterlibatan mahasiswa adalah angka yang dilaporkan LPPM ke luar.
 
-Ini masuk [register pertanyaan terbuka](../requirement-analysis/bdd/open-questions.md)
-sebagai entri baru, bukan diputuskan di sini.
+`StudentMember` dicatat sebagai **data, bukan akun**. Mahasiswa tidak mendaftar ke
+SIMPAS, jadi barisnya tidak menunjuk `UserProfile` seperti `ResearchMember`; memaksanya
+punya akun berarti menuntut ratusan pendaftaran yang tidak pernah dipakai untuk apa pun.
+Cek konflik kepentingan BR-SM-08 sengaja **tidak** disalin ke sini: mahasiswa tidak
+pernah bisa jadi reviewer, dan menyalinnya hanya menyiratkan larangan yang tidak ada.
+
+| Lapis | Wujud |
+| ----- | ----- |
+| DDD | **BR-SM-20** baru; kelas `Partner` dan baris *Feature Gap*-nya dihapus dari `core/01_submission.md` |
+| Skenario | `[SM-STUDENT-01..06]` |
+| Register | [#39](../requirement-analysis/bdd/open-questions.md) |
 
 ---
 
@@ -427,8 +434,9 @@ yang tidak pernah diuji siapa pun. Kalau LPPM memang menghendaki skema tertentu 
 punya reviewer eksternal, itu BR baru dengan skenarionya sendiri — bukan kunci yang
 diam-diam sudah ada.
 
-Contoh `rules` di `04_scheme.md` sengaja memuat kunci yang **semuanya** ditegakkan,
-supaya pembacanya tidak salah menyimpulkan mana yang hidup.
+Contoh `rules` di `04_scheme.md` kini memuat kunci yang **semuanya** ditegakkan, dan
+menyatakan itu di komentarnya sendiri — supaya pembacanya tidak salah menyimpulkan mana
+yang hidup.
 
 ---
 
@@ -806,11 +814,11 @@ pengajuan ke dua tempat.
 
 | Lapis | Perubahan |
 | ----- | --------- |
-| DDD | **14 BR baru** — BR-SM-18/19, BR-BUD-10, BR-IAM-16/17/18/19, BR-FE-19/20/21/22/23/24, BR-SC-04. Satu contoh disunting: `require_external_reviewer` dihapus dari `04_scheme.md` |
-| Skenario | **62 ID baru** dalam 10 keluarga; satu keluarga baru `[FE-DELETE-*]` dan satu `[IAM-INVITE-*]` |
-| UI | **Nol frame baru.** Seluruhnya sudah digambar — yang hilang route dan Action-nya. Satu penambahan kecil: kolom aksi per baris di `RESEARCHER-02-04` |
-| Kode | `onDelete('cascade')` pada `form_submissions.form_id` dicabut; route `DELETE /users/{user}` dihapus; `FormFieldOption` memakai soft delete; cabang `else` penghapus seluruh opsi di `FormController::update` diperbaiki |
-| Register | Satu entri terbuka baru: `Partner` / `StudentMember` ([§14](#14-partner-dan-studentmember--entitas-yang-tidak-pernah-lahir)) |
+| DDD | **15 BR baru** — BR-SM-18/19/20, BR-BUD-10, BR-IAM-16/17/18/19, BR-FE-19/20/21/22/23/24, BR-SC-04. Dua suntingan: `require_external_reviewer` dihapus dari contoh `04_scheme.md`, dan kelas `Partner` dihapus dari diagram agregat beserta baris *Feature Gap*-nya |
+| Skenario | **68 ID baru** dalam 11 keluarga; dua keluarga baru, `[FE-DELETE-*]` dan `[IAM-INVITE-*]`. Seluruhnya **sudah punya test** — plafon `pending.txt` naik 0 → 62 lalu kembali ke 0 di hari yang sama |
+| UI | **Nol frame wireframe baru.** Seluruhnya sudah digambar — yang hilang route dan Action-nya. Tiga halaman Inertia dibuat untuk frame yang sudah ada: `ADMIN-08-01`, `SHARED-01-03`, `SHARED-01-04` |
+| Kode | Cascade `form_submissions.form_id` dan `submitted_by` diubah jadi `restrict`; route `DELETE /users/{user}` dan `DELETE /profile` dihapus; `FormFieldOption` memakai soft delete; cabang `else` penghapus seluruh opsi di `FormController::update` diperbaiki; tabel `student_members` dibuat |
+| Register | Satu entri terselesaikan: [#39](../requirement-analysis/bdd/open-questions.md) `Partner` / `StudentMember` |
 
 Rincian alokasi:
 
@@ -826,6 +834,7 @@ Rincian alokasi:
 | `[SC-CONFIG-*]` | 06..09 | [§16](#16-perilaku-hapus-dan-nonaktif--audit-menyeluruh) D5 |
 | `[RO-OUTPUT-*]` | 23..24 | [§16.5](#165-keputusan) |
 | `[FE-CHANGE-*]` | 07..14 | [§17](#17-form-berubah-saat-pengajuan-sedang-berjalan) |
+| `[SM-STUDENT-*]` | 01..06 | [§14](#14-partner-dan-studentmember--entitas-yang-tidak-pernah-lahir) |
 
 ### Urutan yang disarankan
 
@@ -863,15 +872,23 @@ selama berbulan-bulan sambil menguji perilaku yang tidak bisa dijangkau siapa pu
 Bukan test-nya yang salah — tapi tidak ada yang bertugas menanyakan apakah pintunya
 sudah ada.
 
-### Yang tidak dikerjakan dokumen ini
+### Apa yang sudah mendarat
 
-Sama dengan gelombang 1: **menulis `.feature`-nya dan mengimplementasikan
-skenarionya.** Dokumen ini mengalokasikan ID dan merumuskan aturannya. Menulis
-skenarionya akan menaikkan plafon `pending.txt` dari 0 ke 62 — kenaikan yang sah
-menurut aturan plafon, karena ia utang yang **baru lahir bersama spec-nya**, bukan
-utang lama yang menumpuk.
+Berbeda dari gelombang 1, gelombang ini **dikerjakan sampai kodenya**. Kelima belas BR
+sudah jadi baris tabel di DDD, keenam puluh delapan skenario sudah ditulis dan
+seluruhnya punya test Pest, dan setiap kapabilitas yang selama ini hanya digambar
+wireframe kini punya Action, Policy, dan route-nya.
 
-Penyuntingan `docs/requirement-analysis/ddd/` juga belum dilakukan. Empat belas BR di
-atas masih usulan sampai dokumen ini lewat review — dan DDD adalah dokumen
-kesepakatan, bukan catatan implementasi.
+Satu temuan lahir dari suite, bukan dari audit: `ProfileController::destroy` warisan
+Breeze memanggil `forceDelete()` atas permintaan pemiliknya sendiri, dan
+`form_submissions.submitted_by` ber-cascade. Satu klik di halaman profil memusnahkan
+seluruh riwayat penelitian orang itu. Audit §16 tidak menemukannya karena ia menelusuri
+jalur Operator, bukan jalur pemilik akun — dan itu pelajaran yang lebih berharga
+daripada temuannya sendiri: **daftar periksa selalu punya sumbu yang tidak ia lihat.**
+
+Yang **belum** dikerjakan: antarmuka Vue untuk operasi yang Action-nya sudah ada tapi
+layarnya bukan frame baru — pengeluaran anggota (`RESEARCHER-02-08`), penghapusan target
+(`RESEARCHER-02-11`), penyuntingan anggaran (`RESEARCHER-02-04`), dan pengelolaan pohon
+organisasi (`ADMIN-08-02`). Backend-nya lengkap dan teruji; yang tersisa pekerjaan
+frontend di frame yang wireframe-nya sudah final.
 

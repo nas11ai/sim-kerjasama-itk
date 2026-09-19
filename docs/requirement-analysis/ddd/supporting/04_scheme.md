@@ -69,12 +69,13 @@ schemes
   rules                jsonb nullable  ← extensible rules
   is_active            boolean
 
--- Contoh isi rules JSONB:
+-- Contoh isi rules JSONB. Seluruh kunci di bawah ditegakkan kode; daftar ini
+-- sengaja tidak memuat kunci yang belum punya penegak, supaya pembacanya tidak
+-- salah menyimpulkan mana yang hidup.
 -- {
 --   "min_reviewer_count": 2,
 --   "max_reviewer_workload": 10,
 --   "max_student_members": 5,
---   "require_external_reviewer": false,
 --   "allowed_output_types": ["article", "book", "ip"]
 -- }
 
