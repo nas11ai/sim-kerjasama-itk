@@ -18,6 +18,7 @@ use App\Models\ReviewSummaryAttachment;
 use App\Models\SubmissionDate;
 use App\Models\SubmissionPeriod;
 use App\Models\SubmissionReviewer;
+use App\Queries\Review\EvaluationFormsOverview;
 use App\Queries\Review\EvaluationProgress;
 use App\Queries\Review\PendingEvaluationCheck;
 use App\Services\EmailNotificationService;
@@ -449,7 +450,7 @@ class ReviewController extends Controller
     public function getEvaluationStatus(FormSubmission $submission)
     {
         $evaluationStats = EvaluationProgress::run($submission)->toArray();
-        $formsSummary = $submission->getEvaluationFormsSummary();
+        $formsSummary = EvaluationFormsOverview::run($submission);
         $discussionsAllowed = !PendingEvaluationCheck::run($submission);
 
         return response()->json([

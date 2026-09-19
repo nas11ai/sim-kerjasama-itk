@@ -19,6 +19,7 @@ use App\Models\ReviewSummary;
 use App\Models\SubmissionPeriod;
 use App\Models\SubmissionReviewer;
 use App\Models\User;
+use App\Queries\Review\EvaluationRequirements;
 use App\States\Submission\Approved;
 use App\States\Submission\SubmissionStatus;
 use App\Support\PhaseAccessGate;
@@ -842,8 +843,8 @@ class SubmissionViewController extends Controller
             ];
 
             // Get evaluation requirements
-            $evaluationRequirements = $submission->getEvaluationRequirements();
-            $hasReviewEvaluationForms = $submission->hasReviewEvaluationForms();
+            $evaluationRequirements = EvaluationRequirements::run($submission);
+            $hasReviewEvaluationForms = $submission->formPhaseDetail?->hasReviewEvaluationForms() ?? false;
 
             // Check if current user is an assigned reviewer and get evaluation status
             $currentUser = auth()->user();

@@ -15,6 +15,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use Spatie\ModelStates\HasStates;
 
 /**
@@ -231,8 +232,8 @@ class FormSubmission extends Model
         );
     }
 
-    // NEW: Get all reviewer form assignments through submission reviewers
-    public function reviewerFormAssignments()
+    /** @return HasManyThrough<ReviewerFormAssignment, SubmissionReviewer, $this> */
+    public function reviewerFormAssignments(): HasManyThrough
     {
         return $this->hasManyThrough(
             ReviewerFormAssignment::class,
@@ -390,117 +391,5 @@ class FormSubmission extends Model
     public function needsRevision(): bool
     {
         return $this->status instanceof NeedsRevision;
-    }
-
-    public function hasOpenReviewThreads(): bool
-    {
-        return $this->reviewSummaries()->where('status', 'open')->exists();
-    }
-
-    // NEW: Get evaluation forms summary for this submission
-    public function getEvaluationFormsSummary(): array
-    {
-        $formPhaseDetail = $this->getFormPhaseDetail();
-
-        if (!$formPhaseDetail) {
-            return [];
-        }
-
-        /** @var Collection<int, ReviewEvaluationForm> $evaluationForms */
-        $evaluationForms = $formPhaseDetail->activeReviewEvaluationForms()->get();
-        $summary = [];
-
-        foreach ($evaluationForms as $form) {
-            $assignedCount = $this->reviewerFormAssignments()
-                ->where('review_evaluation_form_id', $form->id)
-                ->count();
-
-            $completedCount = $this->reviewerFormAssignments()
-                ->where('review_evaluation_form_id', $form->id)
-                ->whereHas('reviewFormResponse', function ($query) {
-                    $query->where('status', 'submitted');
-                })
-                ->count();
-
-            $summary[] = [
-                'form' => $form,
-                'assigned_count' => $assignedCount,
-                'completed_count' => $completedCount,
-                'completion_percentage' => $assignedCount > 0
-                    ? round(($completedCount / $assignedCount) * 100)
-                    : 0,
-            ];
-        }
-
-        return $summary;
-    }
-
-    // Check if form phase has any review evaluation forms
-    public function hasReviewEvaluationForms(): bool
-    {
-        $formPhaseDetail = $this->getFormPhaseDetail();
-
-        return $formPhaseDetail ? $formPhaseDetail->hasReviewEvaluationForms() : false;
-    }
-
-    // Check if review evaluation forms are required for this submission
-    public function requiresReviewEvaluation(): bool
-    {
-        $formPhaseDetail = $this->getFormPhaseDetail();
-
-        return $formPhaseDetail ? $formPhaseDetail->requiresEvaluationCompletion() : false;
-    }
-
-    // Check if a specific reviewer has completed their evaluation (or if evaluation not required)
-    public function reviewerCanCreateThreads(int $reviewerId): bool
-    {
-        // If no evaluation forms required, reviewer can create threads immediately
-        if (!$this->hasReviewEvaluationForms()) {
-            return true;
-        }
-
-        // Check if reviewer is assigned
-        $submissionReviewer = $this->submissionReviewers()
-            ->where('reviewer_id', $reviewerId)
-            ->first();
-
-        if ($submissionReviewer === null) {
-            return false;
-        }
-
-        /** @var SubmissionReviewer $submissionReviewer */
-        return $submissionReviewer->canCreateDiscussionThreads();
-    }
-
-    // Get evaluation requirements summary
-    public function getEvaluationRequirements(): array
-    {
-        if (!$this->hasReviewEvaluationForms()) {
-            return [
-                'required' => false,
-                'has_forms' => false,
-                'message' => 'No evaluation forms required for this submission.',
-            ];
-        }
-
-        $formPhaseDetail = $this->getFormPhaseDetail();
-        if (!$formPhaseDetail) {
-            return [
-                'required' => false,
-                'has_forms' => false,
-                'message' => 'No form phase detail found.',
-            ];
-        }
-
-        $formsCount = $formPhaseDetail->review_evaluation_forms_count;
-        $requiredCount = $formPhaseDetail->required_review_evaluation_forms_count;
-
-        return [
-            'required' => true,
-            'has_forms' => true,
-            'total_forms' => $formsCount,
-            'required_forms' => $requiredCount,
-            'message' => 'This submission requires evaluation forms to be completed before creating review threads.',
-        ];
     }
 }
