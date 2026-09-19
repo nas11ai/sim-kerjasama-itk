@@ -13,8 +13,11 @@
 
 use App\Actions\Identity\DeactivateOrganization;
 use App\Actions\Identity\DeleteOrganization;
+use App\Actions\Identity\MoveUserToOrganization;
+use App\Actions\Identity\SaveOrganization;
 use App\Models\Form;
 use App\Models\FormAccessControl;
+use App\Models\FormSubmission;
 use App\Models\Organization;
 use App\Models\User;
 use App\Models\UserProfile;
@@ -138,4 +141,132 @@ it('[IAM-ORG-04] jalur HTTP menolak deaktivasi unit berisi user aktif', function
         ->assertSessionHasErrors('organization_id');
 
     expect($t['prodi']->fresh()->is_active)->toBeTrue();
+});
+
+// ---------- BR-IAM-17, BR-IAM-18: menyusun pohon dan memindahkan orangnya ----------
+
+function operatorOrganisasi(): User
+{
+    Permission::findOrCreate('users.manage', 'web');
+    $user = User::factory()->create(['is_active' => true]);
+    UserProfile::factory()->create(['user_id' => $user->id]);
+    $user->givePermissionTo('users.manage');
+
+    return $user->fresh();
+}
+
+it('[IAM-ORG-09] operator membuat unit induk baru', function () {
+    $unit = SaveOrganization::run(operatorOrganisasi(), [
+        'name' => 'Pusat Studi Energi',
+        'type' => 'research_center',
+        'parent_id' => null,
+    ]);
+
+    expect($unit->parent_id)->toBeNull()
+        ->and($unit->is_active)->toBeTrue();
+});
+
+it('[IAM-ORG-10] operator membuat sub-unit di bawah unit yang ada', function () {
+    $operator = operatorOrganisasi();
+    $fakultas = SaveOrganization::run($operator, ['name' => 'FTI', 'type' => 'faculty']);
+
+    $prodi = SaveOrganization::run($operator, [
+        'name' => 'Teknik Mesin',
+        'type' => 'study_program',
+        'parent_id' => $fakultas->id,
+    ]);
+
+    expect($prodi->parent_id)->toBe($fakultas->id)
+        ->and(Organization::subtreeIds($fakultas->id))->toContain($prodi->id);
+});
+
+it('[IAM-ORG-11] mengganti nama unit tidak memutus keanggotaan', function () {
+    $operator = operatorOrganisasi();
+    $unit = SaveOrganization::run($operator, ['name' => 'Teknik Informatika', 'type' => 'study_program']);
+
+    $anggota = collect(range(1, 3))->map(function () use ($unit) {
+        $u = User::factory()->create();
+        UserProfile::factory()->create(['user_id' => $u->id, 'organization_id' => $unit->id]);
+
+        return $u;
+    });
+
+    SaveOrganization::run($operator, ['name' => 'Informatika'], $unit);
+
+    expect($unit->fresh()->name)->toBe('Informatika')
+        ->and(UserProfile::whereIn('user_id', $anggota->pluck('id'))->where('organization_id', $unit->id)->count())
+        ->toBe(3);
+});
+
+it('[IAM-ORG-12] operator memindahkan unit ke induk lain', function () {
+    $operator = operatorOrganisasi();
+    $sains = SaveOrganization::run($operator, ['name' => 'Fakultas Sains', 'type' => 'faculty']);
+    $fti = SaveOrganization::run($operator, ['name' => 'FTI', 'type' => 'faculty']);
+    $kimia = SaveOrganization::run($operator, [
+        'name' => 'Teknik Kimia', 'type' => 'study_program', 'parent_id' => $sains->id,
+    ]);
+
+    SaveOrganization::run($operator, ['parent_id' => $fti->id], $kimia);
+
+    expect($kimia->fresh()->parent_id)->toBe($fti->id)
+        ->and(Organization::subtreeIds($fti->id))->toContain($kimia->id)
+        ->and(Organization::subtreeIds($sains->id))->not->toContain($kimia->id);
+});
+
+it('[IAM-ORG-13] unit tidak bisa dipindah ke bawah keturunannya sendiri', function () {
+    $operator = operatorOrganisasi();
+    $fti = SaveOrganization::run($operator, ['name' => 'FTI', 'type' => 'faculty']);
+    $mesin = SaveOrganization::run($operator, [
+        'name' => 'Teknik Mesin', 'type' => 'study_program', 'parent_id' => $fti->id,
+    ]);
+
+    // Pohon bersiklus membuat CTE rekursif BR-FE-02 tidak pernah berhenti, dan
+    // kegagalannya mendarat sebagai timeout di layar peneliti yang tidak tahu
+    // apa-apa.
+    expect(fn () => SaveOrganization::run($operator, ['parent_id' => $mesin->id], $fti))
+        ->toThrow(ValidationException::class)
+        ->and($fti->fresh()->parent_id)->toBeNull();
+});
+
+it('[IAM-ORG-13] unit tidak bisa menjadi induk dirinya sendiri', function () {
+    $operator = operatorOrganisasi();
+    $unit = SaveOrganization::run($operator, ['name' => 'FTI', 'type' => 'faculty']);
+
+    expect(fn () => SaveOrganization::run($operator, ['parent_id' => $unit->id], $unit))
+        ->toThrow(ValidationException::class);
+});
+
+it('[IAM-ORG-14] operator memindahkan user antar unit', function () {
+    $operator = operatorOrganisasi();
+    $kimia = SaveOrganization::run($operator, ['name' => 'Teknik Kimia', 'type' => 'study_program']);
+    $mesin = SaveOrganization::run($operator, ['name' => 'Teknik Mesin', 'type' => 'study_program']);
+
+    $budi = User::factory()->create();
+    UserProfile::factory()->create(['user_id' => $budi->id, 'organization_id' => $kimia->id]);
+
+    $pengajuan = FormSubmission::factory()->create(['submitted_by' => $budi->id]);
+
+    MoveUserToOrganization::run($operator, $budi->fresh(), $mesin);
+
+    expect($budi->fresh()->userProfile->organization_id)->toBe($mesin->id)
+        // Perpindahan unit bukan penghapusan riwayat.
+        ->and(FormSubmission::query()->whereKey($pengajuan->id)->exists())->toBeTrue();
+});
+
+it('[IAM-ORG-15] memindahkan user membuka jalan deaktivasi unit', function () {
+    $operator = operatorOrganisasi();
+    $kimia = SaveOrganization::run($operator, ['name' => 'Teknik Kimia', 'type' => 'study_program']);
+    $mesin = SaveOrganization::run($operator, ['name' => 'Teknik Mesin', 'type' => 'study_program']);
+
+    $budi = User::factory()->create(['is_active' => true]);
+    UserProfile::factory()->create(['user_id' => $budi->id, 'organization_id' => $kimia->id]);
+
+    // Inilah resep yang BR-IAM-14 tuliskan sendiri — dan yang sebelumnya tidak
+    // punya obatnya.
+    expect(fn () => DeactivateOrganization::run($kimia))->toThrow(ValidationException::class);
+
+    MoveUserToOrganization::run($operator, $budi->fresh(), $mesin);
+    DeactivateOrganization::run($kimia->fresh());
+
+    expect($kimia->fresh()->is_active)->toBeFalse();
 });

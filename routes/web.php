@@ -603,6 +603,14 @@ Route::middleware(['auth'])->group(function () {
         Route::delete('/organizations/{organization}', [OrganizationController::class, 'destroy'])
             ->name('organizations.destroy');
         // BR-IAM-14 — ambangnya user aktif, berbeda dari penghapusan.
+        // BR-IAM-17, BR-IAM-18 — menyusun pohon organisasi dan memindahkan
+        // orangnya. Yang kedua adalah prasyarat yang diminta BR-IAM-14.
+        Route::post('/organizations', [OrganizationController::class, 'store'])
+            ->name('organizations.store');
+        Route::put('/organizations/{organization}', [OrganizationController::class, 'update'])
+            ->name('organizations.update');
+        Route::post('/organizations/{organization}/move-user', [OrganizationController::class, 'moveUser'])
+            ->name('organizations.move-user');
         Route::post('/organizations/{organization}/deactivate', [OrganizationController::class, 'deactivate'])
             ->name('organizations.deactivate');
         // BR-IAM-04/12/13 — antrian verifikasi NIDN beserta dua keputusannya.

@@ -12,16 +12,7 @@
 # sekaligus untuk kapabilitas yang layarnya sudah ada tapi belum punya pintu masuk,
 # dan untuk perilaku hapus/nonaktif yang selama ini tidak punya aturan.
 #
-# max: 15
-
-# §13 — pengelolaan pohon organisasi & pemindahan user (BR-IAM-17, BR-IAM-18)
-IAM-ORG-09
-IAM-ORG-10
-IAM-ORG-11
-IAM-ORG-12
-IAM-ORG-13
-IAM-ORG-14
-IAM-ORG-15
+# max: 8
 
 # §17 — bentuk field terkunci begitu ada jawaban (BR-FE-23, BR-FE-24)
 FE-CHANGE-07
