@@ -1,12 +1,23 @@
 # Rencana Refactor — Bentuk, Batas, dan Penegakannya
 
-**Versi:** 1.1
+**Versi:** 1.4
 **Tanggal:** 2026-09-19
 **Status:** Disetujui, belum dikerjakan
 
 Dokumen ini menetapkan **bentuk** kode di repo ini, **batas** yang mengikatnya, dan
 **mesin** yang menegakkan batas itu. Ia tidak menambah satu pun fitur dan tidak
 menyentuh `docs/requirement-analysis/`.
+
+Versi 1.4 menyelaraskan tabel assertion dengan rencana implementasinya: assertion 5
+mengikuti plafon (bukan sisa nol), dan assertion penempatan direktori dicabut karena
+redundan dengan assertion 1.
+
+Versi 1.3 menambahkan dua aturan gaya yang bisa diukur: identifier berbahasa Inggris
+dan prosa komentar maksimal tiga baris ([§2.6](#26-gaya-penamaan-dan-komentar)).
+
+Versi 1.2 mengoreksi target `mixed` dari ambang 0 menjadi plafon 48 → 12: dua belas di
+antaranya melintasi batas yang bukan milik kita, dan memaksakan angka nol di sana hanya
+akan ditempuh lewat cast yang justru dilarang AGENTS.md aturan 5.
 
 Versi 1.1 menambahkan lapis kontrak API ([§2.4](#24-kontrak-api-dan-kenapa-ia-dipisah-sejak-sekarang)).
 API untuk aplikasi lain direncanakan setelah migrasi data lama, dan bentuk keluarannya
@@ -203,6 +214,28 @@ pemindahannya sekaligus menggerus utang itu tanpa perlu ukuran terpisah.
 
 ---
 
+### 2.6 Gaya penamaan dan komentar
+
+**Identifier berbahasa Inggris.** Variabel, method, kelas, dan properti memakai bahasa
+Inggris; prosa komentar dan dokumen tetap bahasa Indonesia. Keadaan sekarang: **171
+kemunculan** identifier berbahasa Indonesia di 43 berkas, **126 di antaranya satu kata**
+(`$tercatat`). Perubahannya ikut menumpang saat berkasnya dibedah — bukan gelombang
+tersendiri.
+
+**Prosa komentar maksimal tiga baris.** Yang dibatasi **prosa**, bukan anotasi: docblock
+`@param`, `@return`, `@throws`, dan `@var` dikecualikan, karena level 10 justru menuntut
+docblock yang kaya dan membatasinya akan membuat dua aturan repo ini berkelahi.
+
+Keadaan sekarang setelah anotasi dikecualikan: p50 satu baris, p75 tiga, p90 lima,
+terpanjang empat belas. **234 blok** melewati tiga baris.
+
+Batasnya bukan soal selera ringkas. Komentar panjang di repo ini hampir selalu berisi
+dua hal yang bercampur — apa yang dilakukan kode, dan kenapa keputusannya diambil. Yang
+kedua tempatnya di dokumen keputusan (`docs/design/`, register pertanyaan terbuka), di
+mana ia bisa ditemukan orang yang mencarinya. Yang tertinggal di kode cukup tiga baris.
+
+---
+
 ## 3. Batas
 
 Ambang keras diletakkan **di antara p90 dan p95 kode yang sekarang sudah sehat**. Kode
@@ -218,7 +251,9 @@ dua arah sekaligus.
 | Cyclomatic complexity | 1 | 4 | **8** | 32 |
 | Parameter (termasuk constructor) | 1 | 2 | **4** | 9 |
 | `return` per method | 1 | 2 | **4** | 6 |
-| `mixed` tertulis | — | — | **0** | 48 |
+| `mixed` tertulis | — | — | — | **48 → 12** |
+| Prosa komentar | 1 | 5 | **3** | 234 |
+| Identifier non-Inggris | — | — | **0** | 171 |
 | `response()->json` tanpa DTO `Contract` | — | — | **0** | 22 |
 | Model bocor ke `Data\Contract` | — | — | **0** | 0 |
 | Blok duplikat lintas berkas | — | — | **0 baru** | 1670 |
@@ -235,10 +270,17 @@ seluruhnya di `app/Http` (959) dan `app/Models` (244) — persis dua tempat yang
 gelombang 2 dan 3. Angkanya turun sebagai **akibat** refactor. Ia jadi alat ukur paling
 jujur: kalau 1284 tidak bergerak, refactor-nya belum menyentuh apa pun yang penting.
 
-**`mixed` diberi ambang 0, bukan plafon.** Empat puluh delapan kemunculan itu sedikit
-dan terpusat. Penyelesaiannya **wajib** lewat DTO atau penyempitan tipe; AGENTS.md
-aturan 5 sudah melarang cast, `@phpstan-ignore`, dan pelebaran tipe untuk menghilangkan
-error, dan larangan itu berlaku penuh di sini.
+**`mixed` diberi plafon 48 → 12, bukan ambang 0.** Angka 12 itu sisa yang tidak bisa
+dihilangkan tanpa berbohong: enam tanda tangan `rules()` milik Laravel, satu aksesor
+JSON generik (`Scheme::getRule`), dua parameter `AuditTrail::record` yang memang
+menerima bentuk sembarang, dan tiga kolom JSON yang bentuknya berubah per baris.
+Tiga puluh enam sisanya **wajib** jadi DTO atau penyempitan tipe — 16 di antaranya
+`toArray()` notifikasi yang bentuknya sudah tetap, dan empat `$attributes` Action yang
+memang tempatnya `Data\Request`.
+
+AGENTS.md aturan 5 berlaku penuh: cast, `@phpstan-ignore`, dan pelebaran tipe untuk
+menghilangkan error tetap dilarang. Menurunkan angka ini hanya sah lewat memberi data
+sebuah bentuk.
 
 **`response()->json` tanpa kontrak diberi plafon 22, bukan ambang 0.** Berbeda dari
 `mixed` yang terpusat dan bisa dihabisi sekali jalan, 22 endpoint ini tersebar di
@@ -284,11 +326,14 @@ hard.method.loc:        40
 hard.method.cc:          8
 hard.method.params:      4
 hard.method.returns:     4
-hard.mixed:              0
+hard.comment.prose:      3
 hard.contract.leak:      0
 
 # Plafon yang menyusut
 max.legacy.files:      112
+max.mixed:              48
+max.comment.overflow:  234
+max.id.nonenglish:     171
 max.untyped.json:       22
 max.duplicate.blocks: 1670
 max.phpstan.default:  1284
@@ -312,12 +357,14 @@ Tujuh assertion, bentuknya meniru `BddCoverageTest`:
 | 2 | **Daftar tidak memuat berkas yang sudah memenuhi ambang** | Berkas beres tapi dibiarkan di daftar |
 | 3 | Daftar tidak memuat berkas yang tidak ada | Daftar jadi arsip hantu |
 | 4 | Tidak ada plafon yang terlampaui | Utang bertambah diam-diam |
-| 5 | `mixed` = 0 di luar daftar | DTO diakali cast |
-| 6 | Tidak ada blok duplikat baru | Komponen kembar berikutnya |
-| 7 | Berkas baru masuk `Actions/`, `Queries/`, `Data/`, atau `Policies/` — bukan `Http/` | Controller gemuk lagi |
+| 5 | `mixed` tidak melewati plafonnya | DTO diakali cast |
+| 6 | Blok duplikat tidak melewati plafonnya | Duplikasi bertambah diam-diam |
+| 7 | Berkas non-legacy tidak berduplikasi satu sama lain | Komponen kembar berikutnya |
 | 8 | `Data\Contract` tidak punya properti bertipe Model dan tidak menyebar atributnya | Bentuk tabel jadi kontrak tanpa ada yang memutuskan |
 | 9 | `Data\Contract` tidak menyusun `Data\View` | Layar jadi pemilik kontrak |
 | 10 | Setiap `response()->json()` melewati DTO `Contract` | Kontrak ditetapkan diam-diam di tengah controller |
+| 11 | Prosa komentar ≤ 3 baris di luar daftar legacy | Keputusan menumpuk di kode alih-alih di dokumen |
+| 12 | Identifier non-Inggris tidak melewati plafonnya | Penamaan bercampur dua bahasa |
 
 **Assertion 2 adalah engselnya.** Ia menyalin `BddCoverageTest` assertion 5
 (*"pending.txt tidak memuat skenario yang sudah diimplementasi"*), dan dialah yang
@@ -328,6 +375,17 @@ tidak ada jalan memperbarui daftar tanpa benar-benar membereskan kode.
 **Assertion 10 menutup celah yang paling luput.** `app/Http` dikecualikan dari tier
 ketat, jadi tanpa assertion ini `response()->json()` boleh mengirim apa pun tanpa satu
 pun pemeriksaan — termasuk seluruh kolom sebuah tabel.
+
+**Assertion penempatan direktori dicabut sebelum ditulis.** Rancangan awal memuat
+assertion "berkas baru masuk `Actions/` bukan `Http/`". Ia ternyata **redundan**:
+controller yang menggemuk sudah melanggar ambang di assertion 1 lewat ukuran dan
+kompleksitas method-nya. Dua assertion untuk satu kegagalan hanya menambah tempat yang
+harus diperbaiki saat aturannya berubah.
+
+**Assertion 12 sengaja lemah, dan itu disebutkan.** Ia memakai daftar kata, jadi ia
+menangkap kemunculan yang sudah dikenal — bukan mendeteksi bahasa. Gunanya mencegah
+kemunduran pada kata yang sudah terdaftar, bukan menjamin seluruh penamaan Inggris.
+Yang terakhir itu urusan review.
 
 **Batasan yang jujur:** assertion 7 mengandalkan konvensi direktori, jadi ia tidak bisa
 menghentikan orang menaruh logic di `Support/` yang memang sah. Ia menangkap kasus yang
@@ -351,7 +409,7 @@ Tiga prinsip:
 | # | Gelombang | Isi | Ukuran keberhasilan |
 | - | --------- | --- | ------------------- |
 | 0 | **Pasang pagar** | Dua berkas plafon, `QualityBudgetTest`, tier ketat 9 → **10** (3 penyebab) | Gerbang hijau; mulai detik ini tidak ada yang bisa memburuk |
-| 1 | **Habisi `mixed`** | 48 → 0; DTO pertama masuk `app/Data` | `hard.mixed: 0` ditegakkan penuh |
+| 1 | **Habisi `mixed` yang bisa dihabisi** | 48 → 12; 16 `toArray()` notifikasi dan 4 `$attributes` Action jadi DTO | `max.mixed: 12`, dan sisanya seluruhnya punya alasan |
 | 2 | **Model** | 123 method logic dipilah lewat §2.5; pindah ke `Actions/` dan `Queries/` | 244 error level 10 turun; 7 berkas keluar daftar |
 | 3 | **Controller** | 18 berkas `Http`; `SubmissionViewController` 1353 → cangkang; 22 `response()->json` jadi DTO `Contract` | 959 error turun; 18 berkas keluar daftar; `max.untyped.json` → 0 |
 | 4 | **Actions yang melanggar** | 12 berkas | 12 berkas keluar daftar |
