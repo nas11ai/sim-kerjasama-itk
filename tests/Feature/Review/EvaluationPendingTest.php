@@ -5,6 +5,7 @@
 use App\Models\FormSubmission;
 use App\Models\Reviewer;
 use App\Models\SubmissionReviewer;
+use App\Queries\Review\PendingEvaluationCheck;
 
 function submissionWithReviewer(string $evaluationStatus): FormSubmission
 {
@@ -21,13 +22,13 @@ function submissionWithReviewer(string $evaluationStatus): FormSubmission
 }
 
 it('menyatakan ada evaluasi tertunda saat satu reviewer belum selesai', function () {
-    expect(submissionWithReviewer('pending')->hasPendingEvaluations())->toBeTrue();
+    expect(PendingEvaluationCheck::run(submissionWithReviewer('pending')))->toBeTrue();
 });
 
 it('menyatakan tidak ada evaluasi tertunda saat seluruhnya selesai', function () {
-    expect(submissionWithReviewer('completed')->hasPendingEvaluations())->toBeFalse();
+    expect(PendingEvaluationCheck::run(submissionWithReviewer('completed')))->toBeFalse();
 });
 
 it('menganggap pengajuan tanpa reviewer tidak punya evaluasi tertunda', function () {
-    expect(FormSubmission::factory()->create()->hasPendingEvaluations())->toBeFalse();
+    expect(PendingEvaluationCheck::run(FormSubmission::factory()->create()))->toBeFalse();
 });

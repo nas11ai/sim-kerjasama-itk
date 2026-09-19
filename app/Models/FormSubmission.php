@@ -266,58 +266,6 @@ class FormSubmission extends Model
         return $this->reviewFormResponses()->where('review_form_responses.status', 'submitted');
     }
 
-    // NEW: Check if any reviewer has pending evaluations
-    public function hasPendingEvaluations(): bool
-    {
-        return $this->submissionReviewers()
-            ->where('evaluation_status', 'pending')
-            ->exists();
-    }
-
-    // NEW: Get reviewers with completed evaluations
-    public function reviewersWithCompletedEvaluations()
-    {
-        return $this->submissionReviewers()
-            ->where('evaluation_status', 'completed')
-            ->with(['reviewer.user', 'reviewer']);
-    }
-
-    // NEW: Get reviewers with pending evaluations
-    public function reviewersWithPendingEvaluations()
-    {
-        return $this->submissionReviewers()
-            ->where('evaluation_status', 'pending')
-            ->with(['reviewer.user', 'reviewer']);
-    }
-
-    // NEW: Get evaluation completion statistics
-    public function getEvaluationStats(): array
-    {
-        $totalReviewers = $this->submissionReviewers()->count();
-        $completedEvaluations = $this->submissionReviewers()
-            ->where('evaluation_status', 'completed')
-            ->count();
-        $pendingEvaluations = $this->submissionReviewers()
-            ->where('evaluation_status', 'pending')
-            ->count();
-        $noEvaluationRequired = $this->submissionReviewers()
-            ->where('evaluation_status', 'not_required')
-            ->count();
-
-        $completionPercentage = $totalReviewers > 0
-            ? round((($completedEvaluations + $noEvaluationRequired) / $totalReviewers) * 100)
-            : 100;
-
-        return [
-            'total_reviewers' => $totalReviewers,
-            'completed_evaluations' => $completedEvaluations,
-            'pending_evaluations' => $pendingEvaluations,
-            'no_evaluation_required' => $noEvaluationRequired,
-            'completion_percentage' => $completionPercentage,
-            'all_completed' => $pendingEvaluations === 0,
-        ];
-    }
-
     /**
      * BR-RO-01 — luaran yang terwujud dari pengajuan ini.
      *
@@ -442,11 +390,6 @@ class FormSubmission extends Model
     public function needsRevision(): bool
     {
         return $this->status instanceof NeedsRevision;
-    }
-
-    public function hasAnyReviews()
-    {
-        return $this->reviewSummaries()->exists();
     }
 
     public function hasOpenReviewThreads(): bool
