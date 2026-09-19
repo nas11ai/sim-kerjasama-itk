@@ -11,6 +11,7 @@ use App\Http\Controllers\FacultyController;
 use App\Http\Controllers\FormAccessControlController;
 use App\Http\Controllers\FormController;
 use App\Http\Controllers\FormPhaseController;
+use App\Http\Controllers\Identity\InvitationController;
 use App\Http\Controllers\Identity\NidnVerificationController;
 use App\Http\Controllers\Identity\UserAccessController;
 use App\Http\Controllers\Monev\MonevCycleController;
@@ -578,6 +579,14 @@ Route::middleware(['auth'])->group(function () {
             ->name('submissions.replace-reviewer');
         Route::post('/users/{user}/deactivate', UserDeactivationController::class)
             ->name('users.deactivate');
+        // BR-IAM-16 — penerbitan dan pencabutan undangan (ADMIN-08-01).
+        // Tanpa pencabutan, tautan yang bocor hanya bisa ditunggu kedaluwarsa.
+        Route::get('/invitations', [InvitationController::class, 'index'])
+            ->name('invitations.index');
+        Route::post('/invitations', [InvitationController::class, 'store'])
+            ->name('invitations.store');
+        Route::delete('/invitations/{invitation}', [InvitationController::class, 'destroy'])
+            ->name('invitations.revoke');
         // BR-SCH-01/02/03 — sebelum ini skema hanya bisa dibuat lewat seeder.
         Route::get('/schemes', [SchemeController::class, 'index'])
             ->name('schemes.index');

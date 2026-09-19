@@ -12,17 +12,7 @@
 # sekaligus untuk kapabilitas yang layarnya sudah ada tapi belum punya pintu masuk,
 # dan untuk perilaku hapus/nonaktif yang selama ini tidak punya aturan.
 #
-# max: 41
-
-# §9 — penerbitan & pencabutan undangan (BR-IAM-16)
-IAM-INVITE-01
-IAM-INVITE-02
-IAM-INVITE-03
-IAM-INVITE-04
-IAM-INVITE-05
-IAM-INVITE-06
-IAM-INVITE-07
-IAM-INVITE-08
+# max: 33
 
 # §13 — pengelolaan pohon organisasi & pemindahan user (BR-IAM-17, BR-IAM-18)
 IAM-ORG-09

@@ -1,0 +1,97 @@
+<?php
+
+namespace App\Actions\Identity;
+
+use App\Models\InvitationToken;
+use App\Models\Organization;
+use App\Models\User;
+use App\Support\Audit\AuditTrail;
+use Illuminate\Auth\Access\AuthorizationException;
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Str;
+use Illuminate\Validation\ValidationException;
+use Lorisleiva\Actions\Concerns\AsAction;
+
+/**
+ * BR-IAM-16 — Operator menerbitkan tautan undangan.
+ *
+ * Satu-satunya jalan masuk mitra eksternal (BR-IAM-12). Akun yang lahir
+ * darinya aktif seketika dan membawa permission yang tertera di token, jadi
+ * penerbitannya adalah pemberian akses — bukan sekadar membuat tautan, dan
+ * karena itu wewenangnya dibatasi.
+ *
+ * @method static InvitationToken run(User $actor, Organization $organization, array{permissions?: list<string>, max_uses?: int|null, expires_at?: string|null} $attributes)
+ */
+class IssueInvitation
+{
+    use AsAction;
+
+    /**
+     * @param  array{permissions?: list<string>, max_uses?: int|null, expires_at?: string|null}  $attributes
+     *
+     * @throws AuthorizationException|ValidationException
+     */
+    public function handle(User $actor, Organization $organization, array $attributes = []): InvitationToken
+    {
+        if (!$actor->can('users.manage')) {
+            throw new AuthorizationException('Hanya Operator yang dapat menerbitkan undangan registrasi.');
+        }
+
+        // BR-IAM-06 dan BR-IAM-14 — menerbitkan undangan ke unit yang sudah
+        // dipensiunkan melahirkan token yang tidak pernah bisa dipakai. Ditolak
+        // di sini supaya kegagalannya terlihat penerbitnya, bukan pendaftarnya.
+        if (!$organization->is_active) {
+            throw ValidationException::withMessages([
+                'organization_id' => 'Organisasi ini sudah nonaktif, jadi undangannya tidak akan pernah berlaku.',
+            ]);
+        }
+
+        $maxUses = $attributes['max_uses'] ?? null;
+
+        if ($maxUses !== null && $maxUses < 1) {
+            throw ValidationException::withMessages([
+                'max_uses' => 'Kuota pemakaian minimal satu.',
+            ]);
+        }
+
+        // isset() sudah menyingkirkan null sekaligus key yang tidak ada;
+        // memeriksa null lagi setelahnya adalah perbandingan yang tidak pernah
+        // salah, dan itu menyembunyikan maksudnya alih-alih menjaganya.
+        $expiresAt = isset($attributes['expires_at'])
+            ? Carbon::parse($attributes['expires_at'])
+            : null;
+
+        if ($expiresAt !== null && $expiresAt->isPast()) {
+            throw ValidationException::withMessages([
+                'expires_at' => 'Masa berlaku undangan tidak bisa ditetapkan di masa lalu.',
+            ]);
+        }
+
+        $tercatat = InvitationToken::create([
+            'token' => Str::random(64),
+            'organization_id' => $organization->id,
+            'permissions' => $attributes['permissions'] ?? [],
+            'max_uses' => $maxUses,
+            'used_count' => 0,
+            'expires_at' => $expiresAt,
+            'created_by' => $actor->id,
+        ]);
+
+        // BR-RPT-09 — token-nya sendiri tidak ikut dicatat. Jejak audit dibaca
+        // lebih banyak orang daripada yang berhak memakai undangannya.
+        AuditTrail::record(
+            'Undangan registrasi diterbitkan',
+            $tercatat,
+            $actor,
+            null,
+            [
+                'organization_id' => $tercatat->organization_id,
+                'permissions' => $tercatat->permissions,
+                'max_uses' => $tercatat->max_uses,
+                'expires_at' => $tercatat->expires_at?->toDateTimeString(),
+            ],
+        );
+
+        return $tercatat;
+    }
+}

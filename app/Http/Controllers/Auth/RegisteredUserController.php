@@ -81,6 +81,32 @@ class RegisteredUserController extends Controller
     }
 
     /**
+     * BR-IAM-06 — layar pendaratan sebuah tautan undangan.
+     *
+     * Dua layar, satu route. Aturannya sudah menyatakan bahwa "undangan yang
+     * terlanjur dibuka mendarat di layar token tidak berlaku", dan tanpa GET
+     * ini kalimat itu menggambarkan perilaku yang tidak pernah bisa terjadi:
+     * yang ada hanya POST, jadi pendaftar tidak punya tempat mendarat sama
+     * sekali.
+     *
+     * Token yang tidak dikenal diperlakukan sama dengan yang tidak berlaku —
+     * membedakan keduanya memberi tahu penebak bahwa tebakannya mendekati.
+     */
+    public function createInvited(string $token): Response
+    {
+        $invitation = InvitationToken::where('token', $token)->first();
+
+        if ($invitation === null || !$invitation->isValid()) {
+            return Inertia::render('Auth/InvitationInvalidPage');
+        }
+
+        return Inertia::render('Auth/RegisterInvitationPage', [
+            'token' => $token,
+            'organization' => $invitation->organization?->name,
+        ]);
+    }
+
+    /**
      * BR-IAM-06, BR-IAM-12 — registrasi lewat tautan undangan.
      *
      * Tidak dibatasi domain, dan akunnya aktif seketika: tidak ada NIDN untuk

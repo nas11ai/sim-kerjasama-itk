@@ -19,6 +19,11 @@ Route::middleware('guest')->group(function () {
 
     // BR-IAM-06/12 — jalur undangan. Tokennya di URL supaya tautan yang
     // dibagikan PIC institusi mitra langsung membawa konteks organisasinya.
+    // BR-IAM-06 — SHARED-01-03 dan SHARED-01-04 tidak punya tempat mendarat
+    // selama hanya ada POST.
+    Route::get('register/invitation/{token}', [RegisteredUserController::class, 'createInvited'])
+        ->name('register.invitation.show');
+
     Route::post('register/invitation/{token}', [RegisteredUserController::class, 'storeInvited'])
         ->name('register.invitation');
 
