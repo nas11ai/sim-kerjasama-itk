@@ -62,3 +62,33 @@ Feature: Target Luaran Pengajuan
     Given "P-001" berstatus APPROVED
     When "Budi" mengubah target luaran "P-001"
     Then perubahan tercatat di jejak audit dengan nilai lama dan nilai baru
+
+  @BR-SM-19 @M1 @RESEARCHER-02-11 @happy
+  Scenario: [SM-TARGET-10] Ketua pengaju menghapus target luaran
+    Given pengajuan "P-001" berstatus DRAFT menjanjikan target "artikel"
+    When submitted_by menghapus target "artikel"
+    Then "artikel" tidak lagi terdaftar sebagai target "P-001"
+
+  @BR-SM-19 @BR-SM-15 @M1 @RESEARCHER-02-11 @boundary
+  Scenario: [SM-TARGET-11] Target tetap bisa dihapus setelah pengajuan disetujui
+    Given pengajuan "P-001" berstatus APPROVED menjanjikan target "artikel"
+    When submitted_by menghapus target "artikel"
+    Then penghapusan berhasil
+
+  @BR-SM-19 @M1 @RESEARCHER-02-11 @denial
+  Scenario Outline: [SM-TARGET-12] Target tidak bisa dihapus setelah pengajuan mati
+    Given pengajuan "P-001" berstatus <status> menjanjikan target "artikel"
+    When submitted_by menghapus target "artikel"
+    Then penghapusan ditolak karena pengajuan sudah tidak berjalan
+
+    Examples:
+      | status    |
+      | REJECTED  |
+      | WITHDRAWN |
+
+  @BR-SM-19 @M1 @RESEARCHER-02-11 @denial
+  Scenario: [SM-TARGET-13] Co-Investigator tidak bisa menghapus target
+    Given pengajuan "P-001" berstatus DRAFT menjanjikan target "artikel"
+    And "Sari" adalah co_investigator "P-001"
+    When "Sari" menghapus target "artikel"
+    Then penghapusan ditolak karena hanya submitted_by yang berhak

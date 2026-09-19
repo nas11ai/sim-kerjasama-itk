@@ -7,5 +7,91 @@
 # Plafon hanya boleh NAIK saat skenario baru ditulis, dan wajib TURUN saat skenario
 # lama diimplementasikan. Ia tidak pernah naik untuk menampung utang yang menumpuk.
 #
-# max: 0
+# Kenaikan 0 → 62 pada 2026-09-19 adalah utang yang lahir bersama spec-nya, bukan
+# utang lama yang menumpuk: gelombang 2 docs/design/gap-closure.md menulis 62 skenario
+# sekaligus untuk kapabilitas yang layarnya sudah ada tapi belum punya pintu masuk,
+# dan untuk perilaku hapus/nonaktif yang selama ini tidak punya aturan.
+#
+# max: 62
 
+# §9 — penerbitan & pencabutan undangan (BR-IAM-16)
+IAM-INVITE-01
+IAM-INVITE-02
+IAM-INVITE-03
+IAM-INVITE-04
+IAM-INVITE-05
+IAM-INVITE-06
+IAM-INVITE-07
+IAM-INVITE-08
+
+# §10 — pengeluaran anggota penelitian (BR-SM-18)
+SM-MEMBER-04
+SM-MEMBER-05
+SM-MEMBER-06
+SM-MEMBER-07
+SM-MEMBER-08
+
+# §11 — penyuntingan & penghapusan line item anggaran (BR-BUD-10)
+BUD-ITEM-05
+BUD-ITEM-06
+BUD-ITEM-07
+BUD-ITEM-08
+BUD-ITEM-09
+BUD-ITEM-10
+
+# §12 — penghapusan target luaran (BR-SM-19)
+SM-TARGET-10
+SM-TARGET-11
+SM-TARGET-12
+SM-TARGET-13
+
+# §13 — pengelolaan pohon organisasi & pemindahan user (BR-IAM-17, BR-IAM-18)
+IAM-ORG-09
+IAM-ORG-10
+IAM-ORG-11
+IAM-ORG-12
+IAM-ORG-13
+IAM-ORG-14
+IAM-ORG-15
+
+# §16 D1-D3, D6 — penghapusan struktur Form (BR-FE-19, BR-FE-20, BR-FE-21, BR-FE-22)
+FE-DELETE-01
+FE-DELETE-02
+FE-DELETE-03
+FE-DELETE-04
+FE-DELETE-05
+FE-DELETE-06
+FE-DELETE-07
+FE-DELETE-08
+FE-DELETE-09
+FE-DELETE-10
+FE-DELETE-11
+FE-DELETE-12
+FE-DELETE-13
+FE-DELETE-14
+
+# §16 D4 — user tidak pernah dihapus (BR-IAM-19)
+IAM-DEACT-05
+IAM-DEACT-06
+IAM-DEACT-07
+IAM-DEACT-08
+
+# §16 D5 — OutputTypeDefinition masuk data acuan (BR-SC-04)
+SC-CONFIG-06
+SC-CONFIG-07
+SC-CONFIG-08
+SC-CONFIG-09
+
+# §16.5 — luaran tidak pernah dihapus (BR-RO-06)
+RO-OUTPUT-23
+RO-OUTPUT-24
+
+# §17 — bentuk field terkunci begitu ada jawaban (BR-FE-23, BR-FE-24)
+FE-CHANGE-07
+FE-CHANGE-08
+FE-CHANGE-09
+FE-CHANGE-10
+FE-CHANGE-11
+FE-CHANGE-12
+FE-CHANGE-13
+FE-CHANGE-14

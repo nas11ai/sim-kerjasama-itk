@@ -116,3 +116,54 @@ Feature: Anggaran Pengajuan
     Given "Siti" berperan Super Admin dan bukan submitted_by "P-001"
     When "Siti" menyunting line item "P-001"
     Then penyuntingan ditolak dengan 403
+
+  @BR-BUD-10 @M1 @RESEARCHER-02-04 @happy
+  Scenario: [BUD-ITEM-05] Ketua pengaju menyunting line item
+    Given pengajuan "P-001" berstatus DRAFT punya item "Kertas A4" volume 2 harga 50000
+    When submitted_by mengubah volume "Kertas A4" menjadi 5
+    Then total item itu menjadi 250000
+    And grand total pengajuan ikut menyesuaikan
+
+  @BR-BUD-10 @BR-BUD-08 @M1 @OPERATOR-07-03 @boundary
+  Scenario: [BUD-ITEM-06] Penyuntingan lewat Action tercatat nilai sebelum dan sesudah
+    Given pengajuan "P-001" berstatus NEEDS_REVISION punya item "Kertas A4" volume 2
+    When submitted_by mengubah volume "Kertas A4" menjadi 5
+    Then jejak audit memuat volume lama 2 dan volume baru 5
+    And jejak itu menyebut pelakunya
+
+  @BR-BUD-10 @M1 @RESEARCHER-02-04 @happy
+  Scenario: [BUD-ITEM-07] Ketua pengaju menghapus line item
+    Given pengajuan "P-001" berstatus DRAFT punya item "Kertas A4"
+    When submitted_by menghapus item "Kertas A4"
+    Then item itu tidak lagi dihitung dalam grand total
+    And barisnya tetap tersimpan sebagai jejak
+
+  @BR-BUD-10 @BR-BUD-01 @M1 @RESEARCHER-02-04 @boundary
+  Scenario: [BUD-ITEM-08] Menghapus item menurunkan total kembali ke bawah batas skema
+    Given skema "Penelitian Dasar" membatasi anggaran 10000000
+    And grand total pengajuan "P-001" sudah 12000000
+    When submitted_by menghapus item senilai 3000000
+    Then grand total menjadi 9000000
+    And pengajuan itu bisa disubmit
+
+  @BR-BUD-10 @BR-BUD-02 @M1 @RESEARCHER-02-03 @denial
+  Scenario Outline: [BUD-ITEM-09] Line item terkunci pada status terminal
+    Given pengajuan "P-001" berstatus <status> punya item "Kertas A4"
+    When submitted_by <aksi> item "Kertas A4"
+    Then aksi ditolak karena anggaran terkunci
+
+    Examples:
+      | status    | aksi      |
+      | APPROVED  | menyunting |
+      | APPROVED  | menghapus  |
+      | REJECTED  | menyunting |
+      | REJECTED  | menghapus  |
+      | WITHDRAWN | menyunting |
+      | WITHDRAWN | menghapus  |
+
+  @BR-BUD-10 @BR-BUD-09 @M1 @RESEARCHER-02-03 @denial
+  Scenario: [BUD-ITEM-10] Anggota biasa tidak bisa menyunting atau menghapus line item
+    Given pengajuan "P-001" berstatus DRAFT punya item "Kertas A4"
+    And "Sari" adalah member biasa "P-001"
+    When "Sari" menghapus item "Kertas A4"
+    Then penghapusan ditolak karena member hanya bisa membaca anggaran

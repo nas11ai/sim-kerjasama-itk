@@ -137,3 +137,17 @@ Feature: Luaran Penelitian Terealisasi
     Given submission "P-001" bertipe CommunityService
     When "Budi" menambahkan luaran bertipe "pks" ke "P-001" tanpa mengisi "end_date"
     Then penambahan berhasil
+
+  @BR-RO-06 @M4 @RESEARCHER-06-03 @denial
+  Scenario: [RO-OUTPUT-23] Luaran tidak bisa dihapus peneliti
+    Given pengajuan "P-001" berstatus APPROVED punya luaran "artikel"
+    When submitted_by menghapus luaran itu
+    Then penghapusan ditolak karena luaran adalah dasar pelaporan
+    And luaran itu tetap terbaca
+
+  @BR-RO-06 @M4 @RESEARCHER-06-03 @happy
+  Scenario: [RO-OUTPUT-24] Luaran yang salah dikoreksi lewat penyuntingan
+    Given pengajuan "P-001" punya luaran "artikel" dengan judul keliru
+    When submitted_by memperbaiki judul luaran itu
+    Then judul barunya tersimpan
+    And tidak ada baris luaran yang hilang

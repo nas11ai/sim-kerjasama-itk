@@ -35,3 +35,28 @@ Feature: Konfigurasi Sistem
     When admin membuat SchemeType "Riset Terapan" lalu menonaktifkan "Penelitian Dasar"
     Then laporan "P-001" tetap menampilkan "Penelitian Dasar"
     And "Penelitian Dasar" tidak lagi ditawarkan pada skema baru
+
+  @BR-SC-04 @M5 @ADMIN-08-10 @happy
+  Scenario: [SC-CONFIG-06] Admin menambah tipe luaran baru dari layar data acuan
+    Given Admin membuka pengelolaan data acuan
+    When Admin menambah OutputTypeDefinition "sertifikat-halal"
+    Then tipe itu langsung bisa dipilih sebagai target dan luaran
+
+  @BR-SC-04 @BR-SC-01 @M5 @ADMIN-08-10 @denial
+  Scenario: [SC-CONFIG-07] Tipe luaran yang masih dipakai tidak bisa dihapus
+    Given OutputTypeDefinition "artikel" dipakai luaran yang sudah tercatat
+    When Admin menghapus "artikel"
+    Then penghapusan ditolak karena entity acuan masih dipakai
+
+  @BR-SC-04 @M5 @ADMIN-08-10 @happy
+  Scenario: [SC-CONFIG-08] Tipe luaran yang berhenti berlaku dinonaktifkan
+    Given OutputTypeDefinition "paten-sederhana" dipakai luaran lama
+    When Admin menonaktifkan "paten-sederhana"
+    Then tipe itu berhenti ditawarkan untuk luaran baru
+    And luaran lama yang memakainya tetap utuh
+
+  @BR-SC-04 @BR-SC-03 @M5 @ADMIN-08-10 @boundary
+  Scenario: [SC-CONFIG-09] Mengganti nama tipe luaran tidak menyentuh baris historis
+    Given OutputTypeDefinition "ip" dipakai 4 luaran
+    When Admin mengganti namanya menjadi "Kekayaan Intelektual"
+    Then keempat luaran itu tetap menunjuk tipe yang sama

@@ -43,3 +43,54 @@ Feature: Perubahan Form dengan Draft Berjalan
     When admin mengubah "Mitra" menjadi is_required true
     And "Budi" submit "P-001"
     Then submit berhasil
+
+  @BR-FE-23 @M0 @ADMIN-08-06 @denial
+  Scenario: [FE-CHANGE-07] Tipe field tidak bisa diubah setelah ada jawaban
+    Given FormField "Ringkasan" bertipe text punya jawaban di 7 pengajuan
+    When Admin mengubah tipenya menjadi select
+    Then perubahan ditolak karena field sudah punya jawaban
+    And ketujuh jawaban itu tetap terbaca
+
+  @BR-FE-23 @M0 @ADMIN-08-06 @happy
+  Scenario: [FE-CHANGE-08] Tipe field bebas diubah selama belum ada jawaban
+    Given FormField "Ringkasan" bertipe text belum punya jawaban
+    When Admin mengubah tipenya menjadi textarea
+    Then perubahan tersimpan
+
+  @BR-FE-23 @M0 @ADMIN-08-06 @boundary
+  Scenario: [FE-CHANGE-09] Satu jawaban pun sudah mengunci tipe field
+    Given FormField "Ringkasan" bertipe text punya tepat 1 jawaban
+    When Admin mengubah tipenya menjadi number
+    Then perubahan ditolak karena field sudah punya jawaban
+
+  @BR-FE-23 @M0 @ADMIN-08-06 @happy
+  Scenario: [FE-CHANGE-10] Kebutuhan tipe baru dilayani field baru
+    Given FormField "Ringkasan" bertipe text sudah punya jawaban
+    When Admin menambah FormField "Ringkasan Terstruktur" bertipe select
+    Then field baru itu tersimpan
+    And "Ringkasan" yang lama tetap bertipe text
+
+  @BR-FE-24 @M0 @ADMIN-08-06 @denial
+  Scenario: [FE-CHANGE-11] Opsi yang pernah dipilih tidak dihapus permanen
+    Given FormField "Skema" punya opsi "Hibah Internal" yang dipilih 5 pengajuan
+    When Admin menghapus opsi "Hibah Internal"
+    Then opsi itu ditandai tidak aktif tanpa dihilangkan dari basis data
+    And kelima jawaban itu tetap terbaca
+
+  @BR-FE-24 @BR-BUD-05 @M0 @ADMIN-08-06 @boundary
+  Scenario: [FE-CHANGE-12] Opsi nonaktif berhenti ditawarkan untuk jawaban baru
+    Given opsi "Hibah Internal" sudah ditandai tidak aktif
+    When peneliti membuka field "Skema" pada pengajuan baru
+    Then "Hibah Internal" tidak muncul sebagai pilihan
+
+  @BR-FE-24 @M0 @ADMIN-08-06 @happy
+  Scenario: [FE-CHANGE-13] Opsi yang belum pernah dipilih boleh dihapus
+    Given FormField "Skema" punya opsi "Uji Coba" yang belum pernah dipilih
+    When Admin menghapus opsi "Uji Coba"
+    Then penghapusan berhasil
+
+  @BR-FE-24 @M0 @ADMIN-08-06 @boundary
+  Scenario: [FE-CHANGE-14] Menyimpan field tanpa menyebut opsi tidak menghapus opsinya
+    Given FormField "Skema" punya 4 opsi
+    When Admin menyimpan field itu tanpa menyertakan daftar opsi
+    Then keempat opsi itu tetap ada

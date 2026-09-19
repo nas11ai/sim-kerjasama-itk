@@ -34,3 +34,30 @@ Feature: Deaktivasi User
     And "Sari" berstatus tidak aktif
     When Operator menugaskan "Sari" sebagai reviewer "P-001"
     Then penugasan ditolak karena reviewer tidak aktif
+
+  @BR-IAM-19 @M3 @OPERATOR-08-03 @denial
+  Scenario: [IAM-DEACT-05] User tidak bisa dihapus, hanya dinonaktifkan
+    Given "Budi" adalah user aktif
+    When Operator menghapus akun "Budi"
+    Then penghapusan ditolak karena user hanya bisa dinonaktifkan
+    And akun "Budi" tetap ada
+
+  @BR-IAM-19 @BR-IAM-10 @M3 @OPERATOR-08-03 @denial
+  Scenario: [IAM-DEACT-06] Jalur hapus tidak boleh menembus penjagaan lead researcher
+    Given "Budi" adalah lead researcher pengajuan aktif "P-001"
+    When Operator menghapus akun "Budi"
+    Then penghapusan ditolak
+    And "P-001" tetap punya pemilik
+
+  @BR-IAM-19 @M3 @OPERATOR-08-01 @boundary
+  Scenario: [IAM-DEACT-07] Tidak ada jalur hapus user di antarmuka mana pun
+    Given Operator membuka detail user "Budi"
+    Then tidak ada aksi menghapus akun yang ditawarkan
+    And aksi yang tersedia adalah menonaktifkan
+
+  @BR-IAM-19 @BR-IAM-05 @M3 @OPERATOR-08-03 @happy
+  Scenario: [IAM-DEACT-08] Deaktivasi adalah satu-satunya cara mencabut akses akun
+    Given "Budi" adalah user aktif tanpa pengajuan berjalan
+    When Operator menonaktifkan "Budi"
+    Then "Budi" tidak bisa login
+    And seluruh data "Budi" tetap utuh

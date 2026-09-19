@@ -64,3 +64,48 @@ Feature: Penghapusan dan Deaktivasi Organisasi
     And organisasi "FTI" berstatus nonaktif
     When "Sari" membuka daftar Form
     Then "Pengajuan Penelitian" tidak muncul di daftar
+
+  @BR-IAM-17 @M3 @ADMIN-08-02 @happy
+  Scenario: [IAM-ORG-09] Operator membuat unit induk baru
+    Given Operator memegang permission "users.manage"
+    When Operator membuat unit "Pusat Studi Energi" tanpa induk
+    Then unit itu tersimpan sebagai akar pohon organisasi
+
+  @BR-IAM-17 @M3 @ADMIN-08-02 @happy
+  Scenario: [IAM-ORG-10] Operator membuat sub-unit di bawah unit yang ada
+    Given unit "Fakultas Teknologi Industri" sudah ada
+    When Operator membuat unit "Teknik Mesin" di bawahnya
+    Then "Teknik Mesin" terbaca sebagai keturunan "Fakultas Teknologi Industri"
+
+  @BR-IAM-17 @M3 @ADMIN-08-02 @happy
+  Scenario: [IAM-ORG-11] Mengganti nama unit tidak memutus keanggotaan
+    Given unit "Teknik Informatika" berisi 14 user
+    When Operator mengganti namanya menjadi "Informatika"
+    Then keempat belas user itu tetap berada di unit yang sama
+
+  @BR-IAM-17 @M3 @ADMIN-08-02 @happy
+  Scenario: [IAM-ORG-12] Operator memindahkan unit ke induk lain
+    Given unit "Teknik Kimia" berada di bawah "Fakultas Sains"
+    When Operator memindahkannya ke bawah "Fakultas Teknologi Industri"
+    Then rantai leluhur "Teknik Kimia" berubah mengikuti induk barunya
+
+  @BR-IAM-17 @BR-FE-02 @M3 @ADMIN-08-02 @denial
+  Scenario: [IAM-ORG-13] Unit tidak bisa dipindah ke bawah keturunannya sendiri
+    Given unit "Teknik Mesin" berada di bawah "Fakultas Teknologi Industri"
+    When Operator memindahkan "Fakultas Teknologi Industri" ke bawah "Teknik Mesin"
+    Then pemindahan ditolak karena akan membuat pohon organisasi bersiklus
+
+  @BR-IAM-18 @M3 @ADMIN-08-02 @happy
+  Scenario: [IAM-ORG-14] Operator memindahkan user antar unit
+    Given "Budi" terdaftar di unit "Teknik Kimia"
+    When Operator memindahkan "Budi" ke unit "Teknik Mesin"
+    Then "Budi" terbaca sebagai anggota "Teknik Mesin"
+    And pengajuan lama "Budi" tetap terbaca
+
+  @BR-IAM-18 @BR-IAM-14 @M3 @ADMIN-08-02 @boundary
+  Scenario: [IAM-ORG-15] Memindahkan user membuka jalan deaktivasi unit
+    Given unit "Teknik Kimia" masih berisi 1 user aktif
+    And deaktivasi unit itu sebelumnya ditolak
+    When Operator memindahkan user itu ke unit lain
+    And Operator menonaktifkan "Teknik Kimia"
+    Then deaktivasi berhasil
