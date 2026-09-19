@@ -82,6 +82,25 @@ class FormSubmissionPolicy
     }
 
     /**
+     * BR-SM-18 — mengeluarkan anggota penelitian.
+     *
+     * Sumbunya sama dengan BR-SM-15: hanya `submitted_by`, dan hanya selama
+     * pengajuan belum terminal. Bedanya APPROVED ikut mengunci — susunan tim
+     * yang sudah disetujui adalah bagian dari yang disetujui, sedangkan target
+     * luaran justru dibiarkan menyesuaikan jalannya kegiatan.
+     */
+    public function manageResearchMembers(User $user, FormSubmission $submission): bool
+    {
+        if ($submission->submitted_by !== $user->id) {
+            return false;
+        }
+
+        return !$submission->status instanceof Approved
+            && !$submission->status instanceof Rejected
+            && !$submission->status instanceof Withdrawn;
+    }
+
+    /**
      * BR-REV-07 — penolakan hanya oleh Operator, dan hanya atas pengajuan
      * yang masih berjalan. Keputusan yang sudah diambil dibatalkan lewat
      * penarikan, bukan penolakan susulan.

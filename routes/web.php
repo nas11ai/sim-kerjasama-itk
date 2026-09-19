@@ -539,8 +539,15 @@ Route::middleware(['auth'])->group(function () {
             ->name('submissions.target-outputs.store');
         Route::put('/submissions/{submission}/target-outputs/{targetOutput}', [TargetOutputController::class, 'update'])
             ->name('submissions.target-outputs.update');
+        // BR-SM-19 — janji yang bisa diubah harus bisa dicabut.
+        Route::delete('/submissions/{submission}/target-outputs/{targetOutput}', [TargetOutputController::class, 'destroy'])
+            ->name('submissions.target-outputs.destroy');
         Route::post('/submissions/{submission}/members', [ResearchMemberController::class, 'store'])
             ->name('submissions.members.store');
+        // BR-SM-18 — pasangan yang selama ini tidak ada; tanpanya batas anggota
+        // skema jadi jalan buntu.
+        Route::delete('/submissions/{submission}/members/{member}', [ResearchMemberController::class, 'destroy'])
+            ->name('submissions.members.destroy');
         Route::post('/submissions/{submission}/budget-items', [BudgetLineItemController::class, 'store'])
             ->name('submissions.budget-items.store');
         // BR-BUD-10 — anggaran yang bisa ditambah tapi tidak bisa dibetulkan

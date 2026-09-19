@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Submission;
 
 use App\Actions\FormSubmission\AddResearchMember;
+use App\Actions\FormSubmission\RemoveResearchMember;
 use App\Http\Controllers\Controller;
 use App\Models\FormSubmission;
 use App\Models\ResearchMember;
@@ -31,5 +32,20 @@ class ResearchMemberController extends Controller
         AddResearchMember::run($submission, User::findOrFail($validated['user_id']), $validated['role']);
 
         return back()->with('success', 'Anggota penelitian ditambahkan.');
+    }
+
+    /**
+     * BR-SM-18 — mengeluarkan anggota. Tanpa ini batas anggota skema jadi
+     * jalan buntu: kuota penuh, dan tidak ada cara menurunkannya.
+     */
+    public function destroy(FormSubmission $submission, ResearchMember $member): RedirectResponse
+    {
+        $user = Auth::user();
+
+        abort_unless($user !== null && $user->can('manageResearchMembers', $submission), 403);
+
+        RemoveResearchMember::run($submission, $member, $user);
+
+        return back()->with('success', 'Anggota penelitian dikeluarkan.');
     }
 }

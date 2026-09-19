@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Submission;
 
+use App\Actions\FormSubmission\DeleteTargetOutput;
 use App\Actions\FormSubmission\SaveTargetOutput;
 use App\Http\Controllers\Controller;
 use App\Models\FormSubmission;
@@ -39,5 +40,22 @@ class TargetOutputController extends Controller
         SaveTargetOutput::run($submission, $user, $validated['output_type'], $targetOutput);
 
         return back()->with('success', 'Target luaran diperbarui.');
+    }
+
+    /**
+     * BR-SM-19 — menghapus target. Gerbangnya sama dengan penyuntingan:
+     * janji yang bisa diubah harus bisa dicabut.
+     */
+    public function destroy(
+        FormSubmission $submission,
+        SubmissionTargetOutput $targetOutput,
+    ): RedirectResponse {
+        $user = Auth::user();
+
+        abort_unless($user !== null && $user->can('manageTargetOutput', $submission), 403);
+
+        DeleteTargetOutput::run($submission, $targetOutput, $user);
+
+        return back()->with('success', 'Target luaran dihapus.');
     }
 }

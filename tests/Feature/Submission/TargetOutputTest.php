@@ -11,6 +11,7 @@
 // setelah APPROVED karena target menyesuaikan jalannya kegiatan. Hanya
 // `submitted_by` yang boleh; perubahan pasca-APPROVED wajib tercatat.
 
+use App\Actions\FormSubmission\DeleteTargetOutput;
 use App\Actions\FormSubmission\SaveTargetOutput;
 use App\Models\FormSubmission;
 use App\Models\OutputTypeDefinition;
@@ -171,4 +172,58 @@ it('[SM-TARGET-09] perubahan pasca-approved tercatat dengan nilai lama dan baru'
     expect($entry)->not->toBeNull()
         ->and($entry->properties['old']['output_type'])->toBe('publikasi')
         ->and($entry->properties['attributes']['output_type'])->toBe('haki');
+});
+
+// ---------- BR-SM-19: menghapus target luaran ----------
+
+it('[SM-TARGET-10] ketua pengaju menghapus target luaran', function () {
+    [$owner, $submission] = targetFixture();
+
+    $target = SaveTargetOutput::run($submission, $owner, 'publikasi');
+
+    DeleteTargetOutput::run($submission, $target, $owner);
+
+    expect(SubmissionTargetOutput::query()->whereKey($target->id)->exists())->toBeFalse();
+});
+
+it('[SM-TARGET-11] target tetap bisa dihapus setelah pengajuan disetujui', function () {
+    [$owner, $submission] = targetFixture(Approved::class);
+
+    $target = SaveTargetOutput::run($submission, $owner, 'publikasi');
+
+    // BR-SM-15 membiarkan target menyesuaikan jalannya kegiatan; pencabutan
+    // adalah bentuk penyesuaian yang paling jujur saat luarannya batal.
+    DeleteTargetOutput::run($submission, $target, $owner);
+
+    expect(SubmissionTargetOutput::query()->whereKey($target->id)->exists())->toBeFalse();
+});
+
+it('[SM-TARGET-12] target tidak bisa dihapus setelah pengajuan mati', function (string $state) {
+    [$owner, $submission] = targetFixture();
+    $target = SaveTargetOutput::run($submission, $owner, 'publikasi');
+
+    $submission->update(['status' => $state]);
+
+    expect(fn () => DeleteTargetOutput::run($submission->fresh(), $target, $owner))
+        ->toThrow(AuthorizationException::class)
+        ->and(SubmissionTargetOutput::query()->whereKey($target->id)->exists())->toBeTrue();
+})->with([Rejected::class, Withdrawn::class]);
+
+it('[SM-TARGET-13] co-investigator tidak bisa menghapus target', function () {
+    [$owner, $submission] = targetFixture();
+    $target = SaveTargetOutput::run($submission, $owner, 'publikasi');
+
+    $sari = User::factory()->create();
+    ResearchMember::factory()->create([
+        'form_submission_id' => $submission->id,
+        'user_profile_id' => UserProfile::factory()->create(['user_id' => $sari->id])->id,
+        'role' => ResearchMember::ROLE_CO_INVESTIGATOR,
+        'status' => 'active',
+    ]);
+
+    // Sengaja berbeda dari BR-RO-07 pada luaran realisasi: mengubah janji
+    // bukan tindakan yang sama dengan mengisi hasil.
+    expect(fn () => DeleteTargetOutput::run($submission, $target, $sari))
+        ->toThrow(AuthorizationException::class)
+        ->and(SubmissionTargetOutput::query()->whereKey($target->id)->exists())->toBeTrue();
 });
