@@ -2,6 +2,7 @@
 
 namespace App\Notifications;
 
+use App\Data\Contract\NotificationPayload;
 use App\Models\FormPhaseDetail;
 use App\Models\FormSubmission;
 use App\Notifications\Concerns\UsesConfiguredChannels;
@@ -47,17 +48,19 @@ class PhaseOverrideGrantedNotification extends Notification
             ->line($this->deadlineLine());
     }
 
-    /** @return array<string, mixed> */
+    /** @return array<string, int|string|null> */
     public function toArray(object $notifiable): array
     {
-        return [
-            'type' => 'phase_override_granted',
-            'form_submission_id' => $this->submission->id,
-            'form_phase_detail_id' => $this->detail->id,
-            'expires_at' => $this->expiresAt?->toDateTimeString(),
-            'title' => 'Perpanjangan akses diberikan',
-            'message' => $this->deadlineLine(),
-        ];
+        return (new NotificationPayload(
+            type: 'phase_override_granted',
+            title: 'Perpanjangan akses diberikan',
+            message: $this->deadlineLine(),
+            context: [
+                'form_submission_id' => $this->submission->id,
+                'form_phase_detail_id' => $this->detail->id,
+                'expires_at' => $this->expiresAt?->toDateTimeString(),
+            ],
+        ))->toArray();
     }
 
     private function deadlineLine(): string

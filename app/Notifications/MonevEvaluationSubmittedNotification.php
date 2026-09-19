@@ -2,6 +2,7 @@
 
 namespace App\Notifications;
 
+use App\Data\Contract\NotificationPayload;
 use App\Models\FormSubmission;
 use App\Notifications\Concerns\UsesConfiguredChannels;
 use Illuminate\Bus\Queueable;
@@ -34,14 +35,14 @@ class MonevEvaluationSubmittedNotification extends Notification
             ->line('Skor dan catatannya dapat dibaca sekarang.');
     }
 
-    /** @return array<string, mixed> */
+    /** @return array<string, int|string|null> */
     public function toArray(object $notifiable): array
     {
-        return [
-            'type' => 'monev_evaluation_submitted',
-            'form_submission_id' => $this->report->id,
-            'title' => 'Hasil evaluasi monev tersedia',
-            'message' => 'Reviewer sudah menyelesaikan penilaian atas laporan monev Anda.',
-        ];
+        return (new NotificationPayload(
+            type: 'monev_evaluation_submitted',
+            title: 'Hasil evaluasi monev tersedia',
+            message: 'Reviewer sudah menyelesaikan penilaian atas laporan monev Anda.',
+            context: ['form_submission_id' => $this->report->id],
+        ))->toArray();
     }
 }

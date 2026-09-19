@@ -2,6 +2,7 @@
 
 namespace App\Notifications;
 
+use App\Data\Contract\NotificationPayload;
 use App\Notifications\Concerns\UsesConfiguredChannels;
 use Illuminate\Bus\Queueable;
 use Illuminate\Notifications\Messages\MailMessage;
@@ -29,13 +30,13 @@ class NidnVerifiedNotification extends Notification
             ->line('Pengajuan yang sudah Anda siapkan kini dapat dikirim.');
     }
 
-    /** @return array<string, mixed> */
+    /** @return array<string, int|string|null> */
     public function toArray(object $notifiable): array
     {
-        return [
-            'type' => 'nidn_verified',
-            'title' => 'Akun terverifikasi',
-            'message' => 'NIDN Anda sudah diverifikasi. Pengajuan kini dapat dikirim.',
-        ];
+        return (new NotificationPayload(
+            type: 'nidn_verified',
+            title: 'Akun terverifikasi',
+            message: 'NIDN Anda sudah diverifikasi. Pengajuan kini dapat dikirim.',
+        ))->toArray();
     }
 }

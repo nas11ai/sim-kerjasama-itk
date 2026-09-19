@@ -2,6 +2,7 @@
 
 namespace App\Notifications;
 
+use App\Data\Contract\NotificationPayload;
 use App\Models\Form;
 use App\Notifications\Concerns\UsesConfiguredChannels;
 use Illuminate\Bus\Queueable;
@@ -33,14 +34,14 @@ class FormChangedNotification extends Notification
             ->line('Buka kembali draft Anda untuk memeriksa isian yang terdampak.');
     }
 
-    /** @return array<string, mixed> */
+    /** @return array<string, int|string|null> */
     public function toArray(object $notifiable): array
     {
-        return [
-            'type' => 'form_changed',
-            'form_id' => $this->form->id,
-            'title' => 'Formulir pengajuan berubah',
-            'message' => 'Formulir "'.$this->form->title.'" diperbarui. Periksa kembali draft Anda.',
-        ];
+        return (new NotificationPayload(
+            type: 'form_changed',
+            title: 'Formulir pengajuan berubah',
+            message: 'Formulir "'.$this->form->title.'" diperbarui. Periksa kembali draft Anda.',
+            context: ['form_id' => $this->form->id],
+        ))->toArray();
     }
 }

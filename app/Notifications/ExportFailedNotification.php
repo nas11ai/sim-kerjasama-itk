@@ -2,6 +2,7 @@
 
 namespace App\Notifications;
 
+use App\Data\Contract\NotificationPayload;
 use App\Models\ExportJob;
 use App\Notifications\Concerns\UsesConfiguredChannels;
 use App\Support\Reporting\ExportType;
@@ -34,15 +35,15 @@ class ExportFailedNotification extends Notification
             ->line('Sistem tidak akan mengulangnya sendiri — jalankan ekspor ulang dari layar Export Data.');
     }
 
-    /** @return array<string, mixed> */
+    /** @return array<string, int|string|null> */
     public function toArray(object $notifiable): array
     {
-        return [
-            'type' => 'export_failed',
-            'export_job_id' => $this->job->id,
-            'title' => 'Export gagal — coba lagi',
-            'message' => ExportType::label($this->job->type).' gagal setelah '.$this->job->attempts.' percobaan. '
+        return (new NotificationPayload(
+            type: 'export_failed',
+            title: 'Export gagal — coba lagi',
+            message: ExportType::label($this->job->type).' gagal setelah '.$this->job->attempts.' percobaan. '
                 .'Sistem tidak akan mengulang sendiri.',
-        ];
+            context: ['export_job_id' => $this->job->id],
+        ))->toArray();
     }
 }

@@ -2,6 +2,7 @@
 
 namespace App\Notifications;
 
+use App\Data\Contract\NotificationPayload;
 use App\Models\FormPhaseDetail;
 use App\Models\FormSubmission;
 use App\Notifications\Concerns\UsesConfiguredChannels;
@@ -37,16 +38,18 @@ class MonevStageOpenedNotification extends Notification
             ->line($this->deadlineLine());
     }
 
-    /** @return array<string, mixed> */
+    /** @return array<string, int|string|null> */
     public function toArray(object $notifiable): array
     {
-        return [
-            'type' => 'monev_stage_opened',
-            'form_submission_id' => $this->parent->id,
-            'form_phase_detail_id' => $this->detail->id,
-            'title' => 'Siklus monev dibuka',
-            'message' => $this->deadlineLine(),
-        ];
+        return (new NotificationPayload(
+            type: 'monev_stage_opened',
+            title: 'Siklus monev dibuka',
+            message: $this->deadlineLine(),
+            context: [
+                'form_submission_id' => $this->parent->id,
+                'form_phase_detail_id' => $this->detail->id,
+            ],
+        ))->toArray();
     }
 
     private function deadlineLine(): string

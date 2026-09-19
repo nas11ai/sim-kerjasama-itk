@@ -2,6 +2,7 @@
 
 namespace App\Notifications;
 
+use App\Data\Contract\NotificationPayload;
 use App\Models\User;
 use App\Notifications\Concerns\UsesConfiguredChannels;
 use Illuminate\Bus\Queueable;
@@ -32,14 +33,14 @@ class NewRegistrationAwaitingVerification extends Notification
             ->line($this->registrant->name.' mendaftar dan menunggu verifikasi NIDN.');
     }
 
-    /** @return array<string, mixed> */
+    /** @return array<string, int|string|null> */
     public function toArray(object $notifiable): array
     {
-        return [
-            'type' => 'new_registration_awaiting_verification',
-            'user_id' => $this->registrant->id,
-            'title' => 'Pendaftar baru menunggu verifikasi',
-            'message' => $this->registrant->name.' mendaftar dan menunggu verifikasi NIDN.',
-        ];
+        return (new NotificationPayload(
+            type: 'new_registration_awaiting_verification',
+            title: 'Pendaftar baru menunggu verifikasi',
+            message: $this->registrant->name.' mendaftar dan menunggu verifikasi NIDN.',
+            context: ['user_id' => $this->registrant->id],
+        ))->toArray();
     }
 }

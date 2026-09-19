@@ -13,6 +13,12 @@ final class DuplicationScanner
 
     private const MIN_LINE_LENGTH = 12;
 
+    /** Komentar dibuang tanpa memutus blok, sama seperti baris pendek. */
+    private const COMMENT_PREFIXES = ['//', '*'];
+
+    /** Deklarasi impor memutus blok: urutannya milik formatter, bukan logika yang disalin. */
+    private const IMPORT_PREFIXES = ['namespace ', 'use ', 'import '];
+
     /** @param list<string> $paths */
     public static function countSharedBlocks(array $paths): int
     {
@@ -67,35 +73,77 @@ final class DuplicationScanner
     /** @return list<string> */
     private static function blocks(string $path): array
     {
-        $lines = self::significantLines(SourceFile::read($path));
         $blocks = [];
 
-        for ($i = 0; $i + self::WINDOW <= count($lines); $i++) {
-            $blocks[] = md5(implode(' ', array_slice($lines, $i, self::WINDOW)));
+        foreach (self::segments(SourceFile::read($path)) as $lines) {
+            for ($i = 0; $i + self::WINDOW <= count($lines); $i++) {
+                $blocks[] = md5(implode(' ', array_slice($lines, $i, self::WINDOW)));
+            }
         }
 
         return $blocks;
     }
 
-    /** @return list<string> */
-    private static function significantLines(string $source): array
+    /**
+     * Baris bermakna, dipotong di setiap deklarasi impor. Blok tidak pernah melintasi
+     * impor, jadi mengabaikan impor hanya mengurangi temuan, tidak menambahnya.
+     *
+     * @return list<list<string>>
+     */
+    private static function segments(string $source): array
     {
-        $lines = [];
+        $lines = array_map(
+            static fn (string $line): string => trim(preg_replace('/\s+/', ' ', $line) ?? ''),
+            SourceFile::lines($source),
+        );
+        $imports = self::importMask($lines);
+        $segments = [];
+        $current = [];
 
-        foreach (SourceFile::lines($source) as $line) {
-            $normalised = trim(preg_replace('/\s+/', ' ', $line) ?? '');
+        foreach ($lines as $i => $line) {
+            if ($imports[$i]) {
+                $segments[] = $current;
+                $current = [];
 
-            if (strlen($normalised) <= self::MIN_LINE_LENGTH) {
                 continue;
             }
 
-            if (str_starts_with($normalised, '//') || str_starts_with($normalised, '*')) {
-                continue;
+            if (strlen($line) > self::MIN_LINE_LENGTH && !self::startsWithAny($line, self::COMMENT_PREFIXES)) {
+                $current[] = $line;
             }
-
-            $lines[] = $normalised;
         }
 
-        return $lines;
+        return [...$segments, $current];
+    }
+
+    /**
+     * @param  list<string>  $lines
+     * @return list<bool> baris mana yang bagian dari deklarasi impor
+     */
+    private static function importMask(array $lines): array
+    {
+        $mask = [];
+        $open = false;
+
+        foreach ($lines as $line) {
+            $starts = self::startsWithAny($line, self::IMPORT_PREFIXES);
+            $mask[] = $open || $starts;
+            // Impor lintas baris dibuka `import {` dan ditutup `} from '...'`.
+            $open = $open ? !str_starts_with($line, '}') : $starts && str_ends_with($line, '{');
+        }
+
+        return $mask;
+    }
+
+    /** @param list<string> $prefixes */
+    private static function startsWithAny(string $line, array $prefixes): bool
+    {
+        foreach ($prefixes as $prefix) {
+            if (str_starts_with($line, $prefix)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

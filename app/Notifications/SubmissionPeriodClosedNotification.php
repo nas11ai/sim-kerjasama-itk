@@ -2,6 +2,7 @@
 
 namespace App\Notifications;
 
+use App\Data\Contract\NotificationPayload;
 use App\Models\SubmissionPeriod;
 use App\Notifications\Concerns\UsesConfiguredChannels;
 use Illuminate\Bus\Queueable;
@@ -32,14 +33,14 @@ class SubmissionPeriodClosedNotification extends Notification
             ->line('Draft Anda tetap tersimpan, tetapi tidak dapat disunting lagi.');
     }
 
-    /** @return array<string, mixed> */
+    /** @return array<string, int|string|null> */
     public function toArray(object $notifiable): array
     {
-        return [
-            'type' => 'submission_period_closed',
-            'submission_period_id' => $this->period->id,
-            'title' => 'Periode pengajuan ditutup',
-            'message' => "Periode {$this->period->name} sudah ditutup. Draft Anda tetap tersimpan sebagai arsip.",
-        ];
+        return (new NotificationPayload(
+            type: 'submission_period_closed',
+            title: 'Periode pengajuan ditutup',
+            message: "Periode {$this->period->name} sudah ditutup. Draft Anda tetap tersimpan sebagai arsip.",
+            context: ['submission_period_id' => $this->period->id],
+        ))->toArray();
     }
 }

@@ -2,6 +2,7 @@
 
 namespace App\Notifications;
 
+use App\Data\Contract\NotificationPayload;
 use App\Notifications\Concerns\UsesConfiguredChannels;
 use Illuminate\Bus\Queueable;
 use Illuminate\Notifications\Messages\MailMessage;
@@ -30,15 +31,15 @@ class ReviewerAppointedNotification extends Notification
             ->line('Operator LPPM menunjuk Anda sebagai reviewer '.$this->label().'.');
     }
 
-    /** @return array<string, mixed> */
+    /** @return array<string, int|string|null> */
     public function toArray(object $notifiable): array
     {
-        return [
-            'type' => 'reviewer_appointed',
-            'reviewer_type' => $this->reviewerType,
-            'title' => 'Ditunjuk sebagai reviewer',
-            'message' => 'Anda ditunjuk sebagai reviewer '.$this->label().'.',
-        ];
+        return (new NotificationPayload(
+            type: 'reviewer_appointed',
+            title: 'Ditunjuk sebagai reviewer',
+            message: 'Anda ditunjuk sebagai reviewer '.$this->label().'.',
+            context: ['reviewer_type' => $this->reviewerType],
+        ))->toArray();
     }
 
     private function label(): string

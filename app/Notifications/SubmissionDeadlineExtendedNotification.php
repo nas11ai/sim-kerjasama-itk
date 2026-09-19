@@ -2,6 +2,7 @@
 
 namespace App\Notifications;
 
+use App\Data\Contract\NotificationPayload;
 use App\Models\SubmissionPeriod;
 use App\Notifications\Concerns\UsesConfiguredChannels;
 use Illuminate\Bus\Queueable;
@@ -33,14 +34,14 @@ class SubmissionDeadlineExtendedNotification extends Notification
             ->line('Draft Anda masih dapat dilanjutkan.');
     }
 
-    /** @return array<string, mixed> */
+    /** @return array<string, int|string|null> */
     public function toArray(object $notifiable): array
     {
-        return [
-            'type' => 'submission_deadline_extended',
-            'submission_period_id' => $this->period->id,
-            'title' => 'Batas waktu diperpanjang',
-            'message' => 'Batas waktu pada periode "'.$this->period->name.'" diperpanjang. Draft Anda masih dapat dilanjutkan.',
-        ];
+        return (new NotificationPayload(
+            type: 'submission_deadline_extended',
+            title: 'Batas waktu diperpanjang',
+            message: 'Batas waktu pada periode "'.$this->period->name.'" diperpanjang. Draft Anda masih dapat dilanjutkan.',
+            context: ['submission_period_id' => $this->period->id],
+        ))->toArray();
     }
 }

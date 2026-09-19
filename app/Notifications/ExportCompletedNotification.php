@@ -2,6 +2,7 @@
 
 namespace App\Notifications;
 
+use App\Data\Contract\NotificationPayload;
 use App\Models\ExportJob;
 use App\Notifications\Concerns\UsesConfiguredChannels;
 use App\Support\Reporting\ExportRetention;
@@ -36,14 +37,14 @@ class ExportCompletedNotification extends Notification
                 .'dihapus otomatis setelah '.ExportRetention::HOURS.' jam.');
     }
 
-    /** @return array<string, mixed> */
+    /** @return array<string, int|string|null> */
     public function toArray(object $notifiable): array
     {
-        return [
-            'type' => 'export_completed',
-            'export_job_id' => $this->job->id,
-            'title' => 'Ekspor selesai',
-            'message' => ExportType::label($this->job->type).' siap diunduh ('.$this->job->row_count.' baris).',
-        ];
+        return (new NotificationPayload(
+            type: 'export_completed',
+            title: 'Ekspor selesai',
+            message: ExportType::label($this->job->type).' siap diunduh ('.$this->job->row_count.' baris).',
+            context: ['export_job_id' => $this->job->id],
+        ))->toArray();
     }
 }

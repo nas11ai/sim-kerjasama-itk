@@ -19,7 +19,7 @@ class ProposalSubmittedNotification extends Notification implements ShouldQueue
 
     public function __construct(private readonly FormSubmission $submission) {}
 
-    /** @return array<string, mixed> */
+    /** @return array{title: string, message: string, action_url: string, type: string, meta: array{submission_id: int}} */
     public function toDatabase(object $notifiable): array
     {
         return [

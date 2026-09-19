@@ -16,12 +16,12 @@ hard.comment.prose:      3
 hard.contract.leak:      0
 
 # --- Plafon yang menyusut ---
-max.legacy.files:      296
-max.mixed:              47
+max.legacy.files:      276
+max.mixed:              31
 max.comment.overflow:  165
 max.id.nonenglish:     171
 max.untyped.json:       22
-max.duplicate.blocks: 1675
+max.duplicate.blocks: 1467
 # Belum ditegakkan test: analisis level 10 terlalu lambat untuk Pest. Ukur manual:
 #   ./vendor/bin/phpstan analyse --level=10 --memory-limit=2G --error-format=raw | grep -c ':[0-9]*:'
 max.phpstan.default:  1284

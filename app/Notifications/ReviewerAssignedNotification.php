@@ -2,6 +2,7 @@
 
 namespace App\Notifications;
 
+use App\Data\Contract\NotificationPayload;
 use App\Models\FormSubmission;
 use App\Notifications\Concerns\UsesConfiguredChannels;
 use Illuminate\Bus\Queueable;
@@ -32,14 +33,14 @@ class ReviewerAssignedNotification extends Notification
             ->line('Pengajuan #'.$this->submission->id);
     }
 
-    /** @return array<string, mixed> */
+    /** @return array<string, int|string|null> */
     public function toArray(object $notifiable): array
     {
-        return [
-            'type' => 'reviewer_assigned',
-            'form_submission_id' => $this->submission->id,
-            'title' => 'Penugasan review baru',
-            'message' => 'Anda ditugaskan untuk mengevaluasi sebuah pengajuan.',
-        ];
+        return (new NotificationPayload(
+            type: 'reviewer_assigned',
+            title: 'Penugasan review baru',
+            message: 'Anda ditugaskan untuk mengevaluasi sebuah pengajuan.',
+            context: ['form_submission_id' => $this->submission->id],
+        ))->toArray();
     }
 }

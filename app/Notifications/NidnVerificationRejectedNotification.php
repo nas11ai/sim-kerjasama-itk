@@ -2,6 +2,7 @@
 
 namespace App\Notifications;
 
+use App\Data\Contract\NotificationPayload;
 use App\Notifications\Concerns\UsesConfiguredChannels;
 use Illuminate\Bus\Queueable;
 use Illuminate\Notifications\Messages\MailMessage;
@@ -33,14 +34,14 @@ class NidnVerificationRejectedNotification extends Notification
             ->line('Akun Anda tidak dihapus. Hubungi lppm@itk.ac.id untuk koreksi.');
     }
 
-    /** @return array<string, mixed> */
+    /** @return array<string, int|string|null> */
     public function toArray(object $notifiable): array
     {
-        return [
-            'type' => 'nidn_verification_rejected',
-            'title' => 'Verifikasi NIDN ditolak',
-            'reason' => $this->reason,
-            'message' => 'Alasan: '.$this->reason,
-        ];
+        return (new NotificationPayload(
+            type: 'nidn_verification_rejected',
+            title: 'Verifikasi NIDN ditolak',
+            message: 'Alasan: '.$this->reason,
+            context: ['reason' => $this->reason],
+        ))->toArray();
     }
 }

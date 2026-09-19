@@ -21,7 +21,7 @@ class SubmissionPeriodActiveNotification extends Notification implements ShouldQ
 
     public function __construct(private readonly SubmissionPeriod $submissionPeriod) {}
 
-    /** @return array<string, mixed> */
+    /** @return array{title: string, message: string, action_url: string, type: string, meta: array{submission_period_id: int}} */
     public function toDatabase(object $notifiable): array
     {
         return [

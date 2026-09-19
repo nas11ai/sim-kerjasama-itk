@@ -2,6 +2,7 @@
 
 namespace App\Notifications;
 
+use App\Data\Contract\NotificationPayload;
 use App\Notifications\Concerns\UsesConfiguredChannels;
 use Illuminate\Bus\Queueable;
 use Illuminate\Notifications\Messages\MailMessage;
@@ -30,13 +31,13 @@ class AccountDeactivatedNotification extends Notification
             ->line('Hubungi lppm@itk.ac.id kalau ini keliru.');
     }
 
-    /** @return array<string, mixed> */
+    /** @return array<string, int|string|null> */
     public function toArray(object $notifiable): array
     {
-        return [
-            'type' => 'account_deactivated',
-            'title' => 'Akun dinonaktifkan',
-            'message' => 'Akun Anda dinonaktifkan. Data dan riwayat pengajuan tetap tersimpan.',
-        ];
+        return (new NotificationPayload(
+            type: 'account_deactivated',
+            title: 'Akun dinonaktifkan',
+            message: 'Akun Anda dinonaktifkan. Data dan riwayat pengajuan tetap tersimpan.',
+        ))->toArray();
     }
 }
