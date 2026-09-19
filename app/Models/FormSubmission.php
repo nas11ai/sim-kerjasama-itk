@@ -522,40 +522,9 @@ class FormSubmission extends Model
         return !$this->hasPendingEvaluations();
     }
 
-    // Existing helper methods
-    public function allReviewersApproved()
-    {
-        $totalReviewers = $this->submissionReviewers()->count();
-        $approvedReviewers = $this->reviewSummaries()
-            ->where('status', 'resolved')
-            ->distinct('reviewer_id')
-            ->count('reviewer_id');
-
-        return $totalReviewers > 0 && $totalReviewers === $approvedReviewers;
-    }
-
-    public function hasRevisionsRequested()
-    {
-        return $this->reviewSummaries()
-            ->where('status', 'open')
-            ->exists();
-    }
-
     public function hasAnyReviews()
     {
         return $this->reviewSummaries()->exists();
-    }
-
-    // Updated: Enhanced status update considering evaluations
-
-    public function getActiveReviewThreadsCount(): int
-    {
-        return $this->reviewSummaries()->where('status', 'open')->count();
-    }
-
-    public function getResolvedReviewThreadsCount(): int
-    {
-        return $this->reviewSummaries()->where('status', 'resolved')->count();
     }
 
     public function hasOpenReviewThreads(): bool
@@ -654,13 +623,6 @@ class FormSubmission extends Model
 
         /** @var SubmissionReviewer $submissionReviewer */
         return $submissionReviewer->canCreateDiscussionThreads();
-    }
-
-    // Check if a specific reviewer can participate in discussions
-    public function reviewerCanParticipate(int $reviewerId): bool
-    {
-        // Same logic as canCreateThreads
-        return $this->reviewerCanCreateThreads($reviewerId);
     }
 
     // Get evaluation requirements summary
