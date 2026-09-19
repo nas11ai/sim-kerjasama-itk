@@ -12,7 +12,7 @@
 # sekaligus untuk kapabilitas yang layarnya sudah ada tapi belum punya pintu masuk,
 # dan untuk perilaku hapus/nonaktif yang selama ini tidak punya aturan.
 #
-# max: 56
+# max: 50
 
 # §9 — penerbitan & pencabutan undangan (BR-IAM-16)
 IAM-INVITE-01
@@ -30,14 +30,6 @@ SM-MEMBER-05
 SM-MEMBER-06
 SM-MEMBER-07
 SM-MEMBER-08
-
-# §11 — penyuntingan & penghapusan line item anggaran (BR-BUD-10)
-BUD-ITEM-05
-BUD-ITEM-06
-BUD-ITEM-07
-BUD-ITEM-08
-BUD-ITEM-09
-BUD-ITEM-10
 
 # §12 — penghapusan target luaran (BR-SM-19)
 SM-TARGET-10

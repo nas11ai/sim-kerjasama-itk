@@ -543,6 +543,12 @@ Route::middleware(['auth'])->group(function () {
             ->name('submissions.members.store');
         Route::post('/submissions/{submission}/budget-items', [BudgetLineItemController::class, 'store'])
             ->name('submissions.budget-items.store');
+        // BR-BUD-10 — anggaran yang bisa ditambah tapi tidak bisa dibetulkan
+        // membuat BR-BUD-01 jadi jalan buntu.
+        Route::put('/submissions/{submission}/budget-items/{budgetItem}', [BudgetLineItemController::class, 'update'])
+            ->name('submissions.budget-items.update');
+        Route::delete('/submissions/{submission}/budget-items/{budgetItem}', [BudgetLineItemController::class, 'destroy'])
+            ->name('submissions.budget-items.destroy');
         // BR-SM-03 — tanpa ini alur revisi tidak punya jalan kembali.
         Route::post('/submissions/{submission}/resubmit', ResubmitController::class)
             ->name('submissions.resubmit');

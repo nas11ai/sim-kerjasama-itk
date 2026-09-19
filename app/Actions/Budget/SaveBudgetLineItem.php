@@ -7,6 +7,7 @@ use App\Models\BudgetLineItem;
 use App\Models\FormSubmission;
 use App\Models\User;
 use App\Support\Audit\AuditTrail;
+use App\Support\BudgetLimitGuard;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Validation\ValidationException;
 use Lorisleiva\Actions\Concerns\AsAction;
@@ -48,7 +49,7 @@ class SaveBudgetLineItem
 
         $total = $attributes['volume'] * $attributes['unit_price'];
 
-        $this->guardSchemeLimit($submission, $total);
+        BudgetLimitGuard::assertWithinScheme($submission, $total);
 
         $tercatat = BudgetLineItem::create([
             'form_submission_id' => $submission->id,
@@ -78,28 +79,5 @@ class SaveBudgetLineItem
         );
 
         return $tercatat;
-    }
-
-    /**
-     * BR-BUD-01 (cermin BR-SM-06) — grand total tidak boleh melebihi scheme.max_budget.
-     * Submission tanpa skema tidak punya batas (BR-SCH-04).
-     *
-     * @throws ValidationException
-     */
-    private function guardSchemeLimit(FormSubmission $submission, int $incomingTotal): void
-    {
-        $scheme = $submission->scheme;
-
-        if ($scheme === null) {
-            return;
-        }
-
-        $grandTotal = (int) $submission->budgetLineItems()->sum('total') + $incomingTotal;
-
-        if ($grandTotal > $scheme->max_budget) {
-            throw ValidationException::withMessages([
-                'total' => 'Total anggaran melebihi batas maksimum skema.',
-            ]);
-        }
     }
 }
