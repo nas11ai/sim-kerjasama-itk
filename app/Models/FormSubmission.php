@@ -266,16 +266,6 @@ class FormSubmission extends Model
         return $this->reviewFormResponses()->where('review_form_responses.status', 'submitted');
     }
 
-    // NEW: Check if all reviewers have completed their evaluations
-    public function allReviewersCompletedEvaluations(): bool
-    {
-        $reviewersWithPendingEvaluations = $this->submissionReviewers()
-            ->where('evaluation_status', 'pending')
-            ->count();
-
-        return $reviewersWithPendingEvaluations === 0;
-    }
-
     // NEW: Check if any reviewer has pending evaluations
     public function hasPendingEvaluations(): bool
     {
@@ -460,12 +450,6 @@ class FormSubmission extends Model
         return $latestDate ? $latestDate->datetime : null;
     }
 
-    // NEW: Check if evaluation phase is complete and can proceed to discussions
-    public function canProceedToDiscussions(): bool
-    {
-        return $this->allReviewersCompletedEvaluations();
-    }
-
     /**
      * BR-MON-02 — apakah tahap ini boleh dilanjutkan ke detail berikutnya.
      *
@@ -511,15 +495,6 @@ class FormSubmission extends Model
     public function needsRevision(): bool
     {
         return $this->status instanceof NeedsRevision;
-    }
-
-    // Updated: Check if discussions are allowed
-    public function discussionsAllowed(): bool
-    {
-        // Discussions are allowed if:
-        // 1. No evaluation forms required, OR
-        // 2. All required evaluations are completed
-        return !$this->hasPendingEvaluations();
     }
 
     public function hasAnyReviews()

@@ -448,12 +448,13 @@ class ReviewController extends Controller
     {
         $evaluationStats = $submission->getEvaluationStats();
         $formsSummary = $submission->getEvaluationFormsSummary();
+        $discussionsAllowed = !$submission->hasPendingEvaluations();
 
         return response()->json([
             'evaluation_stats' => $evaluationStats,
             'forms_summary' => $formsSummary,
-            'discussions_allowed' => $submission->discussionsAllowed(),
-            'can_proceed_to_discussions' => $submission->canProceedToDiscussions(),
+            'discussions_allowed' => $discussionsAllowed,
+            'can_proceed_to_discussions' => $discussionsAllowed,
         ]);
     }
 
