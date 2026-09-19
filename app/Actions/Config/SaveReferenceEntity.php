@@ -5,6 +5,7 @@ namespace App\Actions\Config;
 use App\Support\Audit\AuditTrail;
 use App\Support\Config\ReferenceEntity;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Lorisleiva\Actions\Concerns\AsAction;
 
@@ -46,12 +47,35 @@ class SaveReferenceEntity
 
         if ($record === null) {
             $model = $entity->model;
+
+            // BR-SC-03 — kode diturunkan sekali dari namanya, lalu dibekukan.
+            // Baris historis menautkan dirinya lewat kode, jadi kode yang ikut
+            // berubah saat nama diganti akan memutus tautan itu diam-diam.
+            if ($entity->codeColumn !== null) {
+                $nama = $attributes['name'] ?? null;
+
+                // Diperiksa, bukan di-cast: kode yang lahir dari nilai yang
+                // bukan teks akan jadi kunci yang tidak menautkan apa pun, dan
+                // kesalahannya baru terlihat jauh belakangan saat laporan
+                // kehilangan barisnya.
+                if (!is_string($nama) || trim($nama) === '') {
+                    throw ValidationException::withMessages([
+                        'name' => 'Nama harus diisi.',
+                    ]);
+                }
+
+                $attributes[$entity->codeColumn] = Str::slug($nama);
+            }
+
             $tercatat = $model::create($attributes);
 
             AuditTrail::record("{$entity->label} ditambahkan", $tercatat, null, null, $attributes);
 
             return $tercatat;
         }
+
+        // Kode sengaja tidak ikut disunting; lihat alasannya di atas.
+        unset($attributes[$entity->codeColumn ?? '']);
 
         $sebelumnya = $record->only(array_keys($attributes));
         $record->update($attributes);

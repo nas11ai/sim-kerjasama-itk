@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
  * Taksonomi tipe luaran — dipakai bersama target yang dijanjikan (BR-SM-14)
@@ -29,6 +30,28 @@ class OutputTypeDefinition extends Model
         'requires_files' => 'boolean',
         'fields' => 'array',
     ];
+
+    /**
+     * BR-SC-01 — dua tabel yang menautkan diri ke taksonomi ini.
+     *
+     * Tautannya lewat `code`, bukan foreign key: itulah sebabnya kode tidak
+     * pernah boleh berubah setelah dibuat, sementara namanya bebas diganti
+     * (BR-SC-03).
+     *
+     * @return HasMany<ResearchOutput, $this>
+     */
+    public function researchOutputs(): HasMany
+    {
+        return $this->hasMany(ResearchOutput::class, 'output_type', 'code');
+    }
+
+    /**
+     * @return HasMany<SubmissionTargetOutput, $this>
+     */
+    public function submissionTargetOutputs(): HasMany
+    {
+        return $this->hasMany(SubmissionTargetOutput::class, 'output_type', 'code');
+    }
 
     /**
      * BR-RO-09 — kunci metadata yang wajib diisi untuk tipe ini.

@@ -13,8 +13,11 @@ use App\Actions\Config\DeleteReferenceEntity;
 use App\Actions\Config\SaveReferenceEntity;
 use App\Actions\Config\ToggleReferenceEntity;
 use App\Models\FormSubmission;
+use App\Models\OutputTypeDefinition;
+use App\Models\ResearchOutput;
 use App\Models\Scheme;
 use App\Models\SchemeType;
+use App\Models\SubmissionTargetOutput;
 use App\Models\SubmissionType;
 use App\Models\User;
 use App\Support\Config\ReferenceEntity;
@@ -138,4 +141,88 @@ it('menolak pengelolaan konfigurasi tanpa permission users.manage', function () 
     $this->actingAs(User::factory()->create())
         ->get(route('admin.reference.index'))
         ->assertForbidden();
+});
+
+// ---------- BR-SC-04: taksonomi tipe luaran ----------
+
+function luaranBertipe(string $code): ResearchOutput
+{
+    return ResearchOutput::create([
+        'form_submission_id' => FormSubmission::factory()->create()->id,
+        'output_type' => $code,
+        'metadata' => [],
+        'created_by' => User::factory()->create()->id,
+    ]);
+}
+
+function acuanTipeLuaran(): ReferenceEntity
+{
+    return ReferenceEntityRegistry::all()['output-types'];
+}
+
+it('[SC-CONFIG-06] admin menambah tipe luaran baru dari layar data acuan', function () {
+    $tipe = SaveReferenceEntity::run(acuanTipeLuaran(), ['name' => 'Sertifikat Halal']);
+
+    expect($tipe->name)->toBe('Sertifikat Halal')
+        // Kode diturunkan sekali dari namanya; ia yang menautkan baris
+        // historis, jadi ia tidak boleh dipilih bebas maupun ikut berubah.
+        ->and($tipe->code)->toBe('sertifikat-halal')
+        ->and(OutputTypeDefinition::activeCodes())->toContain('sertifikat-halal');
+});
+
+it('[SC-CONFIG-07] tipe luaran yang masih dipakai tidak bisa dihapus', function () {
+    $tipe = OutputTypeDefinition::create([
+        'code' => 'artikel', 'name' => 'Artikel', 'is_active' => true, 'requires_files' => false,
+    ]);
+
+    luaranBertipe('artikel');
+
+    expect(fn () => DeleteReferenceEntity::run(acuanTipeLuaran(), $tipe))
+        ->toThrow(ValidationException::class)
+        ->and(OutputTypeDefinition::query()->whereKey($tipe->id)->exists())->toBeTrue();
+});
+
+it('[SC-CONFIG-07] target luaran ikut dihitung sebagai pemakai', function () {
+    $tipe = OutputTypeDefinition::create([
+        'code' => 'buku', 'name' => 'Buku', 'is_active' => true, 'requires_files' => false,
+    ]);
+
+    // Dua tabel menautkan diri ke taksonomi ini. Menghitung salah satunya saja
+    // melaporkan "tidak dipakai" atas data yang sebenarnya masih menunjuk.
+    SubmissionTargetOutput::create([
+        'form_submission_id' => FormSubmission::factory()->create()->id,
+        'output_type' => 'buku',
+    ]);
+
+    expect(fn () => DeleteReferenceEntity::run(acuanTipeLuaran(), $tipe))
+        ->toThrow(ValidationException::class);
+});
+
+it('[SC-CONFIG-08] tipe luaran yang berhenti berlaku dinonaktifkan', function () {
+    $tipe = OutputTypeDefinition::create([
+        'code' => 'paten-sederhana', 'name' => 'Paten Sederhana', 'is_active' => true, 'requires_files' => false,
+    ]);
+    $luaran = luaranBertipe('paten-sederhana');
+
+    ToggleReferenceEntity::run(acuanTipeLuaran(), $tipe, false);
+
+    expect($tipe->fresh()->is_active)->toBeFalse()
+        ->and(OutputTypeDefinition::activeCodes())->not->toContain('paten-sederhana')
+        // Nonaktif bukan hapus: luaran lama yang memakainya tetap utuh.
+        ->and($luaran->fresh()->output_type)->toBe('paten-sederhana');
+});
+
+it('[SC-CONFIG-09] mengganti nama tipe luaran tidak menyentuh baris historis', function () {
+    $tipe = SaveReferenceEntity::run(acuanTipeLuaran(), ['name' => 'Ip']);
+    foreach (range(1, 4) as $i) {
+        luaranBertipe($tipe->code);
+    }
+
+    SaveReferenceEntity::run(acuanTipeLuaran(), ['name' => 'Kekayaan Intelektual'], $tipe);
+
+    expect($tipe->fresh()->name)->toBe('Kekayaan Intelektual')
+        // Kodenya tidak ikut berubah — kalau ikut, keempat luaran itu akan
+        // menunjuk tipe yang tidak ada lagi tanpa satu pun kegagalan terlihat.
+        ->and($tipe->fresh()->code)->toBe('ip')
+        ->and(ResearchOutput::query()->where('output_type', 'ip')->count())->toBe(4);
 });

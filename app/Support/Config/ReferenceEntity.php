@@ -16,6 +16,14 @@ final class ReferenceEntity
      * @param  string  $usageRelation  relasi yang menjawab "masih dipakai siapa" (BR-SC-01)
      * @param  bool  $editable  false untuk acuan yang hanya boleh diubah lewat seeder (BR-SC-02)
      * @param  bool  $deactivatable  false untuk acuan yang tabelnya memang tidak punya `is_active`
+     * @param  list<string>  $additionalUsageRelations  pemakai lain yang ikut dihitung BR-SC-01.
+     *                                                  Sebuah acuan bisa dirujuk lebih dari satu
+     *                                                  tabel, dan menghitung sebagiannya saja
+     *                                                  melaporkan "tidak dipakai" atas data yang
+     *                                                  sebenarnya masih menunjuk ke sana.
+     * @param  string|null  $codeColumn  kolom kunci yang **tidak pernah berubah** setelah dibuat.
+     *                                   Nama boleh diganti (BR-SC-03); kode tidak, karena baris
+     *                                   historis menautkan dirinya lewat kode itu.
      */
     public function __construct(
         public readonly string $key,
@@ -25,5 +33,7 @@ final class ReferenceEntity
         public readonly string $usedBy,
         public readonly bool $editable = true,
         public readonly bool $deactivatable = true,
+        public readonly array $additionalUsageRelations = [],
+        public readonly ?string $codeColumn = null,
     ) {}
 }

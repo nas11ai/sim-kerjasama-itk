@@ -3,6 +3,7 @@
 namespace App\Support\Config;
 
 use App\Models\BudgetComponent;
+use App\Models\OutputTypeDefinition;
 use App\Models\SchemeType;
 use App\Models\SubmissionType;
 use App\Models\TechnologyReadinessLevel;
@@ -54,6 +55,19 @@ final class ReferenceEntityRegistry
                 model: BudgetComponent::class,
                 usageRelation: 'budgetLineItems',
                 usedBy: 'Rencana anggaran pengajuan',
+            ),
+            // BR-SC-04 — taksonomi luaran adalah keputusan LPPM, bukan kosakata
+            // mesin Form Engine. Sebelum ini `is_active`-nya dibaca di mana-mana
+            // tapi tidak ada satu pun jalur yang menulisnya, jadi seluruh
+            // pembacaan itu menyiapkan diri untuk keadaan yang tidak mungkin.
+            new ReferenceEntity(
+                key: 'output-types',
+                label: 'Tipe Luaran',
+                model: OutputTypeDefinition::class,
+                usageRelation: 'researchOutputs',
+                usedBy: 'luaran dan target luaran pengajuan',
+                additionalUsageRelations: ['submissionTargetOutputs'],
+                codeColumn: 'code',
             ),
             new ReferenceEntity(
                 key: 'trls',

@@ -30,15 +30,21 @@ class CountReferenceEntityUsage implements ChangesNoState
      */
     public function handle(ReferenceEntity $entity, Model $record): int
     {
-        $relation = $record->{$entity->usageRelation}();
+        $jumlah = 0;
 
-        if (!$relation instanceof Relation) {
-            throw new RuntimeException(
-                "Relasi \"{$entity->usageRelation}\" pada {$entity->model} bukan relasi Eloquent — "
-                .'cakupan BR-SC-01 tidak bisa dihitung.'
-            );
+        foreach ([$entity->usageRelation, ...$entity->additionalUsageRelations] as $nama) {
+            $relation = $record->{$nama}();
+
+            if (!$relation instanceof Relation) {
+                throw new RuntimeException(
+                    "Relasi \"{$nama}\" pada {$entity->model} bukan relasi Eloquent — "
+                    .'cakupan BR-SC-01 tidak bisa dihitung.'
+                );
+            }
+
+            $jumlah += $relation->count();
         }
 
-        return $relation->count();
+        return $jumlah;
     }
 }
