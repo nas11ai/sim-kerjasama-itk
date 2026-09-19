@@ -13,12 +13,14 @@ use App\Actions\Form\NotifyFormChange;
 use App\Actions\FormSubmission\StartSubmission;
 use App\Models\FieldType;
 use App\Models\FormField;
+use App\Models\FormFieldOption;
 use App\Models\FormFieldResponse;
 use App\Models\FormSubmission;
 use App\Models\User;
 use App\Models\UserProfile;
 use App\Notifications\FormChangedNotification;
 use Illuminate\Support\Facades\Notification;
+use Illuminate\Validation\ValidationException;
 use Inertia\Testing\AssertableInertia as Assert;
 use Spatie\Permission\Models\Permission;
 
@@ -194,4 +196,159 @@ it('[FE-CHANGE-03] tanpa centang, perubahan tersimpan tanpa notifikasi', functio
     // Pengiriman ditawarkan, bukan otomatis — Admin yang memutuskan.
     Notification::assertNothingSent();
     expect($fx['form']->fresh()->title)->toBe('Judul Baru');
+});
+
+// ---------- BR-FE-23: tipe field terkunci begitu ada jawaban ----------
+
+/** @return array{field: FormField, submission: FormSubmission} */
+function fieldTerjawab(string $tipe = 'text'): array
+{
+    $fx = wizardFixture();
+
+    $field = FormField::create([
+        'form_id' => $fx['form']->id,
+        'field_type_id' => FieldType::firstOrCreate(['name' => $tipe])->id,
+        'label' => 'Ringkasan',
+        'is_required' => false,
+        'order' => 1,
+    ]);
+
+    $submission = StartSubmission::run($fx['form']->id, $fx['period']->id, $fx['detail'], $fx['user']);
+
+    return ['field' => $field, 'submission' => $submission];
+}
+
+it('[FE-CHANGE-07] tipe field tidak bisa diubah setelah ada jawaban', function () {
+    ['field' => $field, 'submission' => $submission] = fieldTerjawab();
+
+    foreach (range(1, 7) as $i) {
+        FormFieldResponse::create([
+            'form_submission_id' => FormSubmission::factory()->create()->id,
+            'form_field_id' => $field->id,
+            'value' => "Isi {$i}",
+        ]);
+    }
+
+    $select = FieldType::firstOrCreate(['name' => 'select'])->id;
+
+    expect(fn () => $field->update(['field_type_id' => $select]))
+        ->toThrow(ValidationException::class)
+        ->and($field->fresh()->field_type_id)->not->toBe($select)
+        ->and(FormFieldResponse::where('form_field_id', $field->id)->count())->toBe(7);
+});
+
+it('[FE-CHANGE-08] tipe field bebas diubah selama belum ada jawaban', function () {
+    ['field' => $field] = fieldTerjawab();
+
+    $textarea = FieldType::firstOrCreate(['name' => 'textarea'])->id;
+    $field->update(['field_type_id' => $textarea]);
+
+    expect($field->fresh()->field_type_id)->toBe($textarea);
+});
+
+it('[FE-CHANGE-09] satu jawaban pun sudah mengunci tipe field', function () {
+    ['field' => $field, 'submission' => $submission] = fieldTerjawab();
+
+    FormFieldResponse::create([
+        'form_submission_id' => $submission->id,
+        'form_field_id' => $field->id,
+        'value' => 'Satu-satunya isi',
+    ]);
+
+    expect(fn () => $field->update(['field_type_id' => FieldType::firstOrCreate(['name' => 'number'])->id]))
+        ->toThrow(ValidationException::class);
+});
+
+it('[FE-CHANGE-10] kebutuhan tipe baru dilayani field baru', function () {
+    ['field' => $lama, 'submission' => $submission] = fieldTerjawab();
+
+    FormFieldResponse::create([
+        'form_submission_id' => $submission->id,
+        'form_field_id' => $lama->id,
+        'value' => 'Isi lama',
+    ]);
+
+    $baru = FormField::create([
+        'form_id' => $lama->form_id,
+        'field_type_id' => FieldType::firstOrCreate(['name' => 'select'])->id,
+        'label' => 'Ringkasan Terstruktur',
+        'is_required' => false,
+        'order' => 2,
+    ]);
+
+    // Field lama tetap apa adanya; BR-FE-11 memastikan field baru ini tidak
+    // menghalangi draft yang sudah berjalan.
+    expect($baru->exists)->toBeTrue()
+        ->and($lama->fresh()->fieldType->name)->toBe('text');
+});
+
+// ---------- BR-FE-24: opsi pilihan tidak dihapus permanen ----------
+
+it('[FE-CHANGE-11] opsi yang pernah dipilih tidak dihapus permanen', function () {
+    ['field' => $field, 'submission' => $submission] = fieldTerjawab('select');
+
+    $opsi = FormFieldOption::create(['form_field_id' => $field->id, 'label' => 'Hibah Internal']);
+
+    foreach (range(1, 5) as $i) {
+        FormFieldResponse::create([
+            'form_submission_id' => FormSubmission::factory()->create()->id,
+            'form_field_id' => $field->id,
+            'value' => 'Hibah Internal',
+        ]);
+    }
+
+    $opsi->delete();
+
+    expect(FormFieldOption::find($opsi->id))->toBeNull()
+        ->and(FormFieldOption::withTrashed()->find($opsi->id))->not->toBeNull()
+        // Jawaban lama tetap terbaca — inilah alasan penghapusannya lunak.
+        ->and(FormFieldResponse::where('value', 'Hibah Internal')->count())->toBe(5);
+});
+
+it('[FE-CHANGE-12] opsi nonaktif berhenti ditawarkan untuk jawaban baru', function () {
+    ['field' => $field] = fieldTerjawab('select');
+
+    $aktif = FormFieldOption::create(['form_field_id' => $field->id, 'label' => 'Hibah Eksternal']);
+    $mati = FormFieldOption::create(['form_field_id' => $field->id, 'label' => 'Hibah Internal']);
+    $mati->delete();
+
+    $ditawarkan = $field->fresh()->formFieldOptions()->pluck('label')->all();
+
+    // Persis BR-BUD-05 pada komponen anggaran: berhenti ditawarkan, tanpa
+    // menghapus jejak yang sudah memakainya.
+    expect($ditawarkan)->toContain('Hibah Eksternal')
+        ->and($ditawarkan)->not->toContain('Hibah Internal');
+});
+
+it('[FE-CHANGE-13] opsi yang belum pernah dipilih boleh dihapus', function () {
+    ['field' => $field] = fieldTerjawab('select');
+
+    $opsi = FormFieldOption::create(['form_field_id' => $field->id, 'label' => 'Uji Coba']);
+    $opsi->delete();
+
+    expect($field->fresh()->formFieldOptions()->count())->toBe(0);
+});
+
+it('[FE-CHANGE-14] menyimpan field tanpa menyebut opsi tidak menghapus opsinya', function () {
+    $admin = formAdmin();
+    ['field' => $field] = fieldTerjawab('select');
+
+    foreach (['A', 'B', 'C', 'D'] as $label) {
+        FormFieldOption::create(['form_field_id' => $field->id, 'label' => $label]);
+    }
+
+    // Payload tanpa kunci `options` berarti "tidak ada perubahan opsi". Versi
+    // lama membaca ketiadaan kunci sebagai perintah menghapus semuanya.
+    $this->actingAs($admin)->put(route('admin.forms.update', $field->form_id), [
+        'title' => 'Form Uji',
+        'form_type_id' => $field->form->form_type_id,
+        'fields' => [[
+            'id' => $field->id,
+            'field_type_id' => $field->field_type_id,
+            'label' => 'Ringkasan',
+            'is_required' => false,
+        ]],
+    ]);
+
+    expect($field->fresh()->formFieldOptions()->count())->toBe(4);
 });

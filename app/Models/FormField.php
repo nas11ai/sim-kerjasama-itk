@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Carbon;
+use Illuminate\Validation\ValidationException;
 
 /**
  * @property int $id
@@ -46,6 +47,29 @@ class FormField extends Model
 
             if ($field->is_required) {
                 $field->required_since = Carbon::now();
+            }
+        });
+
+        // BR-FE-23 — bentuk field terkunci begitu ada jawaban.
+        //
+        // Temporal binding (BR-FE-11) menjaga **kewajiban** field sepanjang
+        // waktu dan BR-FE-12 menjaga **keberadaan**-nya; tidak ada yang menjaga
+        // bentuknya. `FormFieldResponse.value` satu kolom tanpa tipe, jadi
+        // mengubah tipe field membuat jawaban lama tetap tersimpan tapi
+        // berhenti bisa dibaca renderer dan validator tipe barunya — rusak
+        // tanpa satu pun kegagalan yang terlihat.
+        static::updating(function (FormField $field): void {
+            if (!$field->isDirty('field_type_id')) {
+                return;
+            }
+
+            $terjawab = FormFieldResponse::query()->where('form_field_id', $field->id)->count();
+
+            if ($terjawab > 0) {
+                throw ValidationException::withMessages([
+                    'field_type_id' => "Tipe field ini tidak dapat diubah karena sudah ada {$terjawab} jawaban yang tersimpan. "
+                        .'Tambahkan field baru dengan tipe yang diinginkan; field lama tetap terbaca apa adanya.',
+                ]);
             }
         });
 

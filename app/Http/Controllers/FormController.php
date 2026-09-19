@@ -213,7 +213,14 @@ class FormController extends Controller
                     $field->order = $index + 1;
                     $field->save();
 
-                    // Handle options
+                    // BR-FE-24 — opsi yang hilang dari payload di-soft-delete
+                    // satu per satu, bukan dihapus massal lewat query builder:
+                    // yang massal tidak memicu SoftDeletes maupun event model.
+                    //
+                    // Payload tanpa kunci `options` berarti "tidak ada
+                    // perubahan opsi", bukan "hapus semuanya". Versi lama
+                    // menghapus seluruh pilihan sebuah field hanya karena satu
+                    // permintaan kekurangan satu kunci.
                     if (isset($fieldData['options'])) {
                         $existingOptionIds = collect($fieldData['options'])
                             ->pluck('id')
@@ -222,7 +229,8 @@ class FormController extends Controller
 
                         $field->formFieldOptions()
                             ->whereNotIn('id', $existingOptionIds)
-                            ->delete();
+                            ->get()
+                            ->each(fn (FormFieldOption $option) => $option->delete());
 
                         foreach ($fieldData['options'] as $optionData) {
                             if (isset($optionData['id'])) {
@@ -236,8 +244,6 @@ class FormController extends Controller
                             $option->label = $optionData['label'];
                             $option->save();
                         }
-                    } else {
-                        $field->formFieldOptions()->delete();
                     }
                 }
             }

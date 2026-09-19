@@ -7,19 +7,10 @@
 # Plafon hanya boleh NAIK saat skenario baru ditulis, dan wajib TURUN saat skenario
 # lama diimplementasikan. Ia tidak pernah naik untuk menampung utang yang menumpuk.
 #
-# Kenaikan 0 → 62 pada 2026-09-19 adalah utang yang lahir bersama spec-nya, bukan
-# utang lama yang menumpuk: gelombang 2 docs/design/gap-closure.md menulis 62 skenario
-# sekaligus untuk kapabilitas yang layarnya sudah ada tapi belum punya pintu masuk,
-# dan untuk perilaku hapus/nonaktif yang selama ini tidak punya aturan.
+# Gelombang 2 docs/design/gap-closure.md menaikkannya 0 → 62 pada 2026-09-19 dan
+# menurunkannya kembali ke 0 di hari yang sama: 62 skenario ditulis untuk kapabilitas
+# yang layarnya sudah ada tapi belum punya pintu masuk, lalu seluruhnya
+# diimplementasikan. Kenaikan itu utang yang lahir bersama spec-nya, bukan utang lama
+# yang menumpuk — dan ia tidak sempat menginap.
 #
-# max: 8
-
-# §17 — bentuk field terkunci begitu ada jawaban (BR-FE-23, BR-FE-24)
-FE-CHANGE-07
-FE-CHANGE-08
-FE-CHANGE-09
-FE-CHANGE-10
-FE-CHANGE-11
-FE-CHANGE-12
-FE-CHANGE-13
-FE-CHANGE-14
+# max: 0
