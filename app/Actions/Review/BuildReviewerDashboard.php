@@ -5,6 +5,7 @@ namespace App\Actions\Review;
 use App\Actions\Concerns\ChangesNoState;
 use App\Models\Reviewer;
 use App\Models\SubmissionReviewer;
+use Illuminate\Contracts\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Lorisleiva\Actions\Concerns\AsAction;
 
@@ -40,7 +41,7 @@ class BuildReviewerDashboard implements ChangesNoState
             ->where('reviewer_id', $reviewer->id)
             ->where('status', 'active')
             ->with([
-                'formSubmission' => fn ($q) => $q->with([
+                'formSubmission' => fn (Builder $query) => $query->with([
                     'form:id,title',
                     'submittedBy:id,name,email',
                     'formPhaseDetail.phaseType:id,name',

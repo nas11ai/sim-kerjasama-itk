@@ -135,7 +135,6 @@ app/Models/SubmissionTargetOutput.php
 app/Models/SubmissionType.php
 app/Models/User.php
 app/Models/UserProfile.php
-app/Notifications/Concerns/UsesConfiguredChannels.php
 app/Notifications/ExportCompletedNotification.php
 app/Notifications/ExportFailedNotification.php
 app/Notifications/FormChangedNotification.php

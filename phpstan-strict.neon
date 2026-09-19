@@ -1,4 +1,4 @@
-# Strict tier — PHPStan level 9.
+# Strict tier — PHPStan level 10 (naik dari 9 pada 2026-09-19, docs/design/refactor-plan.md §3.1).
 #
 # Rancangan sengaja dibalik: yang didaftarkan di sini adalah direktori LEGACY
 # yang DIKECUALIKAN, bukan direktori yang ikut ketat. Konsekuensinya setiap
@@ -19,7 +19,7 @@ includes:
     - vendor/larastan/larastan/extension.neon
 
 parameters:
-    level: 9
+    level: 10
 
     paths:
         - app

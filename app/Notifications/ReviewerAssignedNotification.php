@@ -29,7 +29,7 @@ class ReviewerAssignedNotification extends Notification
         return (new MailMessage)
             ->subject('Penugasan review baru')
             ->line('Anda ditugaskan untuk mengevaluasi sebuah pengajuan.')
-            ->line('Judul: '.($this->submission->title ?? 'Pengajuan #'.$this->submission->id));
+            ->line('Pengajuan #'.$this->submission->id);
     }
 
     /** @return array<string, mixed> */

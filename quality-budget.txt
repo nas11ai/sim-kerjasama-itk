@@ -16,9 +16,9 @@ hard.comment.prose:      3
 hard.contract.leak:      0
 
 # --- Plafon yang menyusut ---
-max.legacy.files:      297
+max.legacy.files:      296
 max.mixed:              47
-max.comment.overflow:  166
+max.comment.overflow:  165
 max.id.nonenglish:     171
 max.untyped.json:       22
 max.duplicate.blocks: 1675
