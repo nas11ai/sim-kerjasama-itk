@@ -2,6 +2,7 @@
 
 namespace App\Actions\Scheme;
 
+use App\Data\Request\SchemeInput;
 use App\Models\Scheme;
 use App\Models\SchemeAllowedTrl;
 use App\Support\Audit\AuditTrail;
@@ -19,19 +20,26 @@ use Lorisleiva\Actions\Concerns\AsAction;
  * dipakai sebagai penyaring pilihan (BR-SCH-05) dan penyaring itu jauh lebih
  * murah sebagai join.
  *
- * @method static Scheme run(array<string, mixed> $attributes, ?Scheme $scheme = null, ?array<int, int> $allowedTrlIds = null)
+ * @method static Scheme run(SchemeInput $input, ?Scheme $scheme = null)
  */
 class SaveScheme
 {
     use AsAction;
 
-    /**
-     * @param  array<string, mixed>  $attributes
-     * @param  array<int, int>|null  $allowedTrlIds  null berarti "jangan sentuh"
-     */
-    public function handle(array $attributes, ?Scheme $scheme = null, ?array $allowedTrlIds = null): Scheme
+    public function handle(SchemeInput $input, ?Scheme $scheme = null): Scheme
     {
-        $tercatat = DB::transaction(function () use ($attributes, $scheme, $allowedTrlIds): Scheme {
+        $attributes = [
+            'name' => $input->name,
+            'code' => $input->code,
+            'max_budget' => $input->maxBudget,
+            'max_members' => $input->maxMembers,
+            'duration_months' => $input->durationMonths,
+            'scheme_type_id' => $input->schemeTypeId,
+            'submission_type_id' => $input->submissionTypeId,
+            'rules' => $input->rules,
+        ];
+
+        $saved = DB::transaction(function () use ($attributes, $input, $scheme): Scheme {
             if ($scheme === null) {
                 $scheme = Scheme::create($attributes);
             } else {
@@ -39,10 +47,11 @@ class SaveScheme
                 $scheme->refresh();
             }
 
-            if ($allowedTrlIds !== null) {
+            // BR-SCH-05 — null berarti "jangan sentuh", daftar kosong berarti "hapus semua".
+            if ($input->allowedTrlIds !== null) {
                 SchemeAllowedTrl::query()->where('scheme_id', $scheme->id)->delete();
 
-                foreach (array_unique($allowedTrlIds) as $trlId) {
+                foreach (array_unique($input->allowedTrlIds) as $trlId) {
                     SchemeAllowedTrl::create(['scheme_id' => $scheme->id, 'trl_id' => $trlId]);
                 }
             }
@@ -51,8 +60,8 @@ class SaveScheme
         });
 
         // BR-RPT-09 — satu Action, satu entri audit.
-        AuditTrail::record('Skema disimpan', $tercatat);
+        AuditTrail::record('Skema disimpan', $saved);
 
-        return $tercatat;
+        return $saved;
     }
 }

@@ -22,16 +22,13 @@ use Lorisleiva\Actions\Concerns\AsAction;
  * untuk berkas yang siap dalam sekejap; yang besar dijadwalkan supaya ia
  * tidak menunggu di layar sama sekali.
  *
- * @method static ExportJob run(User $user, string $type, array<string, mixed> $filters = [])
+ * @method static ExportJob run(User $user, string $type)
  */
 class RequestExport
 {
     use AsAction;
 
-    /**
-     * @param  array<string, mixed>  $filters
-     */
-    public function handle(User $user, string $type, array $filters = []): ExportJob
+    public function handle(User $user, string $type): ExportJob
     {
         ExportType::assertSupported($type);
 
@@ -40,7 +37,6 @@ class RequestExport
         $job = ExportJob::create([
             'requested_by' => $user->id,
             'type' => $type,
-            'filters' => $filters === [] ? null : $filters,
             'status' => ExportJob::STATUS_QUEUED,
             'row_count' => $rowCount,
         ]);

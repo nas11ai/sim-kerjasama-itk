@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Actions\Scheme\DeactivateScheme;
 use App\Actions\Scheme\SaveScheme;
+use App\Data\Request\SchemeInput;
 use App\Models\Scheme;
 use App\Models\SchemeType;
 use App\Models\SubmissionType;
@@ -11,6 +12,7 @@ use App\Models\TechnologyReadinessLevel;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\ValidatedInput;
 use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -57,13 +59,7 @@ class SchemeController extends Controller
     {
         $this->authorizeManage();
 
-        $validated = $this->validated($request, null);
-
-        SaveScheme::run(
-            $validated['attributes'],
-            null,
-            $validated['allowed_trl_ids'],
-        );
+        SaveScheme::run($this->validated($request, null));
 
         return back()->with('success', 'Skema dibuat.');
     }
@@ -72,9 +68,7 @@ class SchemeController extends Controller
     {
         $this->authorizeManage();
 
-        $validated = $this->validated($request, $scheme);
-
-        SaveScheme::run($validated['attributes'], $scheme, $validated['allowed_trl_ids']);
+        SaveScheme::run($this->validated($request, $scheme), $scheme);
 
         return back()->with('success', 'Skema diperbarui.');
     }
@@ -100,10 +94,7 @@ class SchemeController extends Controller
         return back()->with('success', 'Skema diaktifkan kembali.');
     }
 
-    /**
-     * @return array{attributes: array<string, mixed>, allowed_trl_ids: array<int, int>|null}
-     */
-    private function validated(Request $request, ?Scheme $scheme): array
+    private function validated(Request $request, ?Scheme $scheme): SchemeInput
     {
         $data = $request->validate([
             'name' => 'required|string|max:255',
@@ -127,19 +118,7 @@ class SchemeController extends Controller
             'allowed_trl_ids.*' => 'integer|exists:technology_readiness_levels,id',
         ]);
 
-        return [
-            'attributes' => [
-                'name' => $data['name'],
-                'code' => $data['code'],
-                'max_budget' => $data['max_budget'],
-                'max_members' => $data['max_members'],
-                'duration_months' => $data['duration_months'],
-                'scheme_type_id' => $data['scheme_type_id'] ?? null,
-                'submission_type_id' => $data['submission_type_id'] ?? null,
-                'rules' => $data['rules'] ?? null,
-            ],
-            'allowed_trl_ids' => $data['allowed_trl_ids'] ?? null,
-        ];
+        return SchemeInput::fromValidated(new ValidatedInput($data));
     }
 
     private function authorizeManage(): void

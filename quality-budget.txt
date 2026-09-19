@@ -17,9 +17,9 @@ hard.contract.leak:      0
 
 # --- Plafon yang menyusut ---
 max.legacy.files:      276
-max.mixed:              31
+max.mixed:              24
 max.comment.overflow:  165
-max.id.nonenglish:     171
+max.id.nonenglish:     162
 max.untyped.json:       22
 max.duplicate.blocks: 1467
 # Belum ditegakkan test: analisis level 10 terlalu lambat untuk Pest. Ukur manual:

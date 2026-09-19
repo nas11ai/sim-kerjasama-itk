@@ -2,6 +2,7 @@
 
 namespace App\Actions\Config;
 
+use App\Data\Request\ReferenceEntityInput;
 use App\Support\Audit\AuditTrail;
 use App\Support\Config\ReferenceEntity;
 use Illuminate\Database\Eloquent\Model;
@@ -21,7 +22,7 @@ use Lorisleiva\Actions\Concerns\AsAction;
  * mengubah tampilan seluruh laporan yang pernah memakainya. Tanpa jejak itu,
  * laporan yang "berubah sendiri" tidak punya penjelasan.
  *
- * @method static Model run(ReferenceEntity<covariant Model> $entity, array<string, mixed> $attributes, ?Model $record = null)
+ * @method static Model run(ReferenceEntity<covariant Model> $entity, ReferenceEntityInput $input, ?Model $record = null)
  */
 class SaveReferenceEntity
 {
@@ -29,11 +30,10 @@ class SaveReferenceEntity
 
     /**
      * @param  ReferenceEntity<covariant Model>  $entity
-     * @param  array<string, mixed>  $attributes
      *
      * @throws ValidationException
      */
-    public function handle(ReferenceEntity $entity, array $attributes, ?Model $record = null): Model
+    public function handle(ReferenceEntity $entity, ReferenceEntityInput $input, ?Model $record = null): Model
     {
         // BR-SC-02 — acuan read-only ditolak di Action, bukan hanya
         // disembunyikan di layar: layar bukan gerbang, dan jalur non-HTTP
@@ -45,6 +45,8 @@ class SaveReferenceEntity
             ]);
         }
 
+        $attributes = ['name' => $input->name];
+
         if ($record === null) {
             $model = $entity->model;
 
@@ -52,37 +54,31 @@ class SaveReferenceEntity
             // Baris historis menautkan dirinya lewat kode, jadi kode yang ikut
             // berubah saat nama diganti akan memutus tautan itu diam-diam.
             if ($entity->codeColumn !== null) {
-                $nama = $attributes['name'] ?? null;
-
-                // Diperiksa, bukan di-cast: kode yang lahir dari nilai yang
-                // bukan teks akan jadi kunci yang tidak menautkan apa pun, dan
-                // kesalahannya baru terlihat jauh belakangan saat laporan
-                // kehilangan barisnya.
-                if (!is_string($nama) || trim($nama) === '') {
+                // Nama kosong melahirkan kode kosong: kunci yang tidak menautkan apa pun,
+                // dan kesalahannya baru terlihat saat laporan kehilangan barisnya.
+                if (trim($input->name) === '') {
                     throw ValidationException::withMessages([
                         'name' => 'Nama harus diisi.',
                     ]);
                 }
 
-                $attributes[$entity->codeColumn] = Str::slug($nama);
+                $attributes[$entity->codeColumn] = Str::slug($input->name);
             }
 
-            $tercatat = $model::create($attributes);
+            $saved = $model::create($attributes);
 
-            AuditTrail::record("{$entity->label} ditambahkan", $tercatat, null, null, $attributes);
+            AuditTrail::record("{$entity->label} ditambahkan", $saved, null, null, $attributes);
 
-            return $tercatat;
+            return $saved;
         }
 
-        // Kode sengaja tidak ikut disunting; lihat alasannya di atas.
-        unset($attributes[$entity->codeColumn ?? '']);
-
-        $sebelumnya = $record->only(array_keys($attributes));
+        // Kode tidak ikut disunting (BR-SC-03): ReferenceEntityInput memang tidak membawanya.
+        $before = $record->only(array_keys($attributes));
         $record->update($attributes);
-        $tercatat = $record->refresh();
+        $saved = $record->refresh();
 
-        AuditTrail::record("{$entity->label} diperbarui", $tercatat, null, $sebelumnya, $attributes);
+        AuditTrail::record("{$entity->label} diperbarui", $saved, null, $before, $attributes);
 
-        return $tercatat;
+        return $saved;
     }
 }

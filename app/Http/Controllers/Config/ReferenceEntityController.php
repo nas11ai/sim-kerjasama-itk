@@ -6,6 +6,7 @@ use App\Actions\Config\CountReferenceEntityUsage;
 use App\Actions\Config\DeleteReferenceEntity;
 use App\Actions\Config\SaveReferenceEntity;
 use App\Actions\Config\ToggleReferenceEntity;
+use App\Data\Request\ReferenceEntityInput;
 use App\Http\Controllers\Controller;
 use App\Models\NotificationChannelSetting;
 use App\Support\Config\ReferenceEntity;
@@ -15,6 +16,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\ValidatedInput;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -140,18 +142,19 @@ class ReferenceEntityController extends Controller
 
     /**
      * @param  ReferenceEntity<covariant Model>  $entity
-     * @return array<string, mixed>
      */
-    private function validated(Request $request, ReferenceEntity $entity): array
+    private function validated(Request $request, ReferenceEntity $entity): ReferenceEntityInput
     {
         $table = (new $entity->model)->getTable();
 
-        return $request->validate([
+        $data = $request->validate([
             'name' => ['required', 'string', 'max:191', 'unique:'.$table.',name'],
         ], [
             'name.required' => 'Nama harus diisi.',
             'name.unique' => 'Nama itu sudah dipakai.',
         ]);
+
+        return ReferenceEntityInput::fromValidated(new ValidatedInput($data));
     }
 
     private function authorizeManage(): void

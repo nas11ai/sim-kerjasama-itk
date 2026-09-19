@@ -12,6 +12,7 @@
 use App\Actions\Config\DeleteReferenceEntity;
 use App\Actions\Config\SaveReferenceEntity;
 use App\Actions\Config\ToggleReferenceEntity;
+use App\Data\Request\ReferenceEntityInput;
 use App\Models\FormSubmission;
 use App\Models\OutputTypeDefinition;
 use App\Models\ResearchOutput;
@@ -75,7 +76,7 @@ it('[SC-CONFIG-02] entity acuan tanpa relasi aktif bisa dihapus', function () {
 it('[SC-CONFIG-03] SubmissionType tidak bisa diubah lewat antarmuka', function () {
     $entity = ReferenceEntityRegistry::get('submission-types');
 
-    expect(fn () => SaveReferenceEntity::run($entity, ['name' => 'Pengabdian Internal']))
+    expect(fn () => SaveReferenceEntity::run($entity, new ReferenceEntityInput('Pengabdian Internal')))
         ->toThrow(ValidationException::class);
 
     expect(SubmissionType::query()->where('name', 'Pengabdian Internal')->exists())->toBeFalse();
@@ -95,7 +96,7 @@ it('[SC-CONFIG-04] mengganti nama tidak memutus tautan historis', function () {
         'scheme_id' => $scheme->id,
     ]);
 
-    SaveReferenceEntity::run(schemeTypeEntity(), ['name' => 'Riset Dasar'], $type);
+    SaveReferenceEntity::run(schemeTypeEntity(), new ReferenceEntityInput('Riset Dasar'), $type);
 
     $submission->refresh()->load('scheme.schemeType');
 
@@ -111,7 +112,7 @@ it('[SC-CONFIG-05] kategori yang berubah makna dibuat baru, bukan diganti nama',
         'scheme_id' => $scheme->id,
     ]);
 
-    SaveReferenceEntity::run(schemeTypeEntity(), ['name' => 'Riset Terapan']);
+    SaveReferenceEntity::run(schemeTypeEntity(), new ReferenceEntityInput('Riset Terapan'));
     ToggleReferenceEntity::run(schemeTypeEntity(), $lama, false);
 
     $submission->refresh()->load('scheme.schemeType');
@@ -161,7 +162,7 @@ function acuanTipeLuaran(): ReferenceEntity
 }
 
 it('[SC-CONFIG-06] admin menambah tipe luaran baru dari layar data acuan', function () {
-    $tipe = SaveReferenceEntity::run(acuanTipeLuaran(), ['name' => 'Sertifikat Halal']);
+    $tipe = SaveReferenceEntity::run(acuanTipeLuaran(), new ReferenceEntityInput('Sertifikat Halal'));
 
     expect($tipe->name)->toBe('Sertifikat Halal')
         // Kode diturunkan sekali dari namanya; ia yang menautkan baris
@@ -213,12 +214,12 @@ it('[SC-CONFIG-08] tipe luaran yang berhenti berlaku dinonaktifkan', function ()
 });
 
 it('[SC-CONFIG-09] mengganti nama tipe luaran tidak menyentuh baris historis', function () {
-    $tipe = SaveReferenceEntity::run(acuanTipeLuaran(), ['name' => 'Ip']);
+    $tipe = SaveReferenceEntity::run(acuanTipeLuaran(), new ReferenceEntityInput('Ip'));
     foreach (range(1, 4) as $i) {
         luaranBertipe($tipe->code);
     }
 
-    SaveReferenceEntity::run(acuanTipeLuaran(), ['name' => 'Kekayaan Intelektual'], $tipe);
+    SaveReferenceEntity::run(acuanTipeLuaran(), new ReferenceEntityInput('Kekayaan Intelektual'), $tipe);
 
     expect($tipe->fresh()->name)->toBe('Kekayaan Intelektual')
         // Kodenya tidak ikut berubah — kalau ikut, keempat luaran itu akan
