@@ -278,13 +278,9 @@ class FormSubmission extends Model
     }
 
     /**
-     * BR-RO-02 — jenis pengajuan (Research / CommunityService).
-     *
-     * Diturunkan lewat skema, bukan kolom tersendiri: skema yang menentukan
-     * jenis kegiatan, dan menyalinnya ke sini akan menciptakan sumber kedua
-     * yang bisa menyimpang. Pengajuan tanpa skema tidak punya jenis — dan
-     * memang tidak perlu, karena pembatasan tipe luaran cuma berlaku untuk
-     * tipe yang menyatakan jenisnya.
+     * BR-RO-02 — jenis pengajuan (Research / CommunityService), diturunkan lewat
+     * skema, bukan kolom: salinannya akan jadi sumber kedua yang bisa menyimpang.
+     * Pengajuan tanpa skema memang tidak punya jenis.
      */
     public function submissionType(): ?SubmissionType
     {
@@ -292,16 +288,9 @@ class FormSubmission extends Model
     }
 
     /**
-     * **Active Submission** — status-nya bukan REJECTED dan bukan WITHDRAWN.
-     *
-     * Predikat yang sama dipakai index unik BR-SM-01 (ADR 0005), penjagaan
-     * deaktivasi user (BR-IAM-05), dan penonaktifan skema (BR-SCH-01). Ia
-     * tinggal di satu tempat justru karena dipakai bertiga: definisi yang
-     * disalin akan menyimpang, dan menyimpangnya baru ketahuan saat salah satu
-     * gerbang melepaskan sesuatu yang seharusnya ditahan.
-     *
-     * `whereNotState`, bukan `whereNotIn`: kolomnya menyimpan morph name
-     * ("rejected"), bukan nama kelas.
+     * **Active Submission** — status bukan REJECTED/WITHDRAWN. Satu definisi untuk
+     * BR-SM-01 (ADR 0005), BR-IAM-05, dan BR-SCH-01. `whereNotState`, bukan
+     * `whereNotIn`: kolomnya menyimpan morph name ("rejected"), bukan nama kelas.
      *
      * @param  Builder<FormSubmission>  $query
      * @return Builder<FormSubmission>
@@ -312,12 +301,9 @@ class FormSubmission extends Model
     }
 
     /**
-     * BR-SM-13 — draft terarsip kalau periodenya sudah tertutup.
-     *
-     * Predikat "periode tertutup"-nya sama persis dengan yang menggerbangi
-     * pembuatan pengajuan (BR-FE-01), jadi ia tinggal satu tempat saja di
-     * SubmissionPeriodGate. Dua salinan pasti menyimpang: yang satu akan ingat
-     * `is_force_closed`, yang lain tidak.
+     * BR-SM-13 — draft terarsip kalau periodenya sudah tertutup. Predikat
+     * "periode tertutup" dipinjam dari SubmissionPeriodGate (BR-FE-01) supaya
+     * hanya ada satu salinan yang ingat `is_force_closed`.
      */
     public function resolveIsArchived(): bool
     {
@@ -347,17 +333,9 @@ class FormSubmission extends Model
     }
 
     /**
-     * BR-MON-02 — apakah tahap ini boleh dilanjutkan ke detail berikutnya.
-     *
-     * Turunan keadaan, bukan kolom: tidak ada aktor yang menyetelnya, sejajar
-     * `isArchived()` (register #13). Bernilai true kalau baris ini **sudah
-     * disubmit** dan, bila detailnya `needs_review`, evaluasinya selesai tanpa
-     * ReviewSummary yang masih `open`.
-     *
-     * Versi sebelumnya memeriksa `status instanceof Approved` beserta
-     * persetujuan seluruh reviewer — itu menjawab pertanyaan yang berbeda
-     * ("apakah pengajuan ini disetujui"), dan membuat setiap laporan monev
-     * terkunci selamanya karena laporan memang tidak pernah berstatus APPROVED.
+     * BR-MON-02 — tahap ini boleh dilanjutkan: sudah disubmit dan, bila detailnya
+     * `needs_review`, evaluasinya selesai tanpa ReviewSummary `open` (register #13).
+     * Bukan `status instanceof Approved`: laporan monev tidak pernah APPROVED.
      */
     public function canProceed(): bool
     {
@@ -374,12 +352,12 @@ class FormSubmission extends Model
             return true;
         }
 
-        $adaEvaluasiTertunda = $this->submissionReviewers()
+        $hasUnsettledEvaluation = $this->submissionReviewers()
             ->where('status', 'active')
             ->whereNotIn('evaluation_status', SubmissionReviewer::SETTLED_EVALUATION)
             ->exists();
 
-        if ($adaEvaluasiTertunda) {
+        if ($hasUnsettledEvaluation) {
             return false;
         }
 
