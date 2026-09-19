@@ -44,7 +44,7 @@ final class Deliver
      * situlah aksi bisnis mulai ikut gagal.
      *
      * @param  iterable<object>|object|null  $notifiables
-     * @param  array<string, mixed>  $context
+     * @param  array<string, int|string|null>  $context
      */
     public static function to(iterable|object|null $notifiables, Notification $notification, array $context = []): bool
     {

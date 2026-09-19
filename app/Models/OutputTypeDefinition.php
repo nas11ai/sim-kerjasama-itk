@@ -14,7 +14,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property string $code
  * @property string $name
  * @property bool $is_active
- * @property array<int, array<string, mixed>>|null $fields
+ * @property array<int, array{key?: string, required?: bool}>|null $fields
  * @property bool $requires_files
  * @property string|null $submission_type
  */
@@ -75,7 +75,7 @@ class OutputTypeDefinition extends Model
                 continue;
             }
 
-            $keys[] = (string) $field['key'];
+            $keys[] = $field['key'];
         }
 
         return $keys;

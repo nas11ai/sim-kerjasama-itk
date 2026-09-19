@@ -112,7 +112,7 @@ class ReferenceEntityController extends Controller
 
     /**
      * @param  ReferenceEntity<covariant Model>  $entity
-     * @return array<int, array<string, mixed>>
+     * @return array<int, array{id: int, name: string, is_active: bool|null, usage_count: int}>
      */
     private function records(ReferenceEntity $entity): array
     {

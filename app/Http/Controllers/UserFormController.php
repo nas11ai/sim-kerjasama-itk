@@ -15,6 +15,7 @@ use App\Models\FormSubmission;
 use App\Models\Reviewer;
 use App\Models\ReviewSummary;
 use App\Models\SubmissionPeriod;
+use App\Models\SubmissionPeriodPhase;
 use App\Models\User;
 use App\Services\EmailNotificationService;
 use App\Services\FormAccessService;
@@ -81,7 +82,7 @@ class UserFormController extends Controller
                 $period->end_date = $dates->last()?->datetime;
 
                 // Process form phases with user progress
-                $period->form_phases = $period->submissionPeriodPhases->map(function ($periodPhase) use ($user, $permissions, $organizationAncestors) {
+                $period->form_phases = $period->submissionPeriodPhases->map(function (SubmissionPeriodPhase $periodPhase) use ($user, $permissions, $organizationAncestors) {
                     $formPhase = $periodPhase->formPhase;
 
                     // Filter by permission AND organization subtree to avoid counting forms multiple times
@@ -130,7 +131,7 @@ class UserFormController extends Controller
                     ];
                 })->filter(function ($phase) {
                     return $phase['user_can_access'];
-                })->values();
+                })->values()->all();
 
                 return $period;
             });

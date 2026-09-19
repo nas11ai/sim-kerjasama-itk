@@ -17,11 +17,20 @@ hard.contract.leak:      0
 
 # --- Plafon yang menyusut ---
 max.legacy.files:      276
-max.mixed:              24
+# Sisa mixed yang dibiarkan dengan sadar (spec §3.1), dihitung MixedMetrics:
+#    6  tanda tangan Laravel: rules() di lima FormRequest, share() HandleInertiaRequests
+#    2  aksesor JSON generik Scheme::getRule (parameter dan kembaliannya)
+#    2  parameter AuditTrail::record ($old, $new)
+#    9  kolom JSON yang bentuknya berubah per baris, beserta nilai yang mengalirinya:
+#         ResearchOutput.metadata — model 1, ResearchOutputGuard 2, SaveResearchOutput 2,
+#         ResearchOutputController 2; AuditEntry.properties 1; SchemeInput.rules 1
+#    1  UserFormController::persistResponses `value` — validatornya hanya `nullable`,
+#       jadi menyempitkannya butuh validasi per tipe field (gelombang 3)
+max.mixed:              20
 max.comment.overflow:  165
 max.id.nonenglish:     162
 max.untyped.json:       22
 max.duplicate.blocks: 1467
 # Belum ditegakkan test: analisis level 10 terlalu lambat untuk Pest. Ukur manual:
 #   ./vendor/bin/phpstan analyse --level=10 --memory-limit=2G --error-format=raw | grep -c ':[0-9]*:'
-max.phpstan.default:  1284
+max.phpstan.default:  1258
