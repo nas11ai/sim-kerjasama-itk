@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Actions\Period\DeleteSubmissionPeriod;
 use App\Actions\Period\ExtendSubmissionDates;
 use App\Models\FormPhase;
 use App\Models\FormSubmission;
@@ -12,6 +13,7 @@ use App\Models\SubmissionPeriodPhase;
 use App\Support\SubmissionPeriodGate;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 
@@ -236,23 +238,16 @@ class SubmissionPeriodController extends Controller
 
     public function destroy(SubmissionPeriod $submissionPeriod)
     {
-        try {
-            DB::beginTransaction();
+        $actor = Auth::user();
 
-            // Delete all related records
-            $submissionPeriod->submissionDates()->delete();
-            $submissionPeriod->submissionPeriodPhases()->delete();
-            $submissionPeriod->delete();
+        abort_unless($actor !== null, 403);
 
-            DB::commit();
+        // BR-FE-21 — penjagaannya berjalan sebelum tanggal dan tahapnya
+        // disentuh, bukan mengandalkan rollback transaksi.
+        DeleteSubmissionPeriod::run($submissionPeriod, $actor);
 
-            return redirect()->route('admin.submission-periods.index')
-                ->with('success', 'Submission period deleted successfully.');
-        } catch (\Exception $e) {
-            DB::rollback();
-
-            return back()->withErrors(['error' => 'Gagal menghapus periode pengiriman: '.$e->getMessage()]);
-        }
+        return redirect()->route('admin.submission-periods.index')
+            ->with('success', 'Periode pengajuan berhasil dihapus.');
     }
 
     // BR-FE-01 — satu predikat dengan yang menggerbangi pembuatan pengajuan.

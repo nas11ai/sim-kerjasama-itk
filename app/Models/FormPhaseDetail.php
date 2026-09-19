@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Support\Lifecycle\ReferenceGuard;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -24,6 +25,20 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class FormPhaseDetail extends Model
 {
     use HasFactory;
+
+    /**
+     * BR-FE-20 — detail yang dirujuk pengajuan tidak bisa dihapus.
+     */
+    protected static function booted(): void
+    {
+        static::deleting(function (FormPhaseDetail $detail): void {
+            ReferenceGuard::assertUnreferenced('Detail tahap', [
+                'pengajuan' => FormSubmission::query()
+                    ->where('form_phase_detail_id', $detail->id)
+                    ->count(),
+            ]);
+        });
+    }
 
     protected $fillable = [
         'form_phase_id',

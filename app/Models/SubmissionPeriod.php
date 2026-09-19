@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Notifications\SubmissionPeriodClosedNotification;
+use App\Support\Lifecycle\ReferenceGuard;
 use App\Support\Notification\Deliver;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Collection;
@@ -31,6 +32,29 @@ use Illuminate\Support\Facades\Log;
 class SubmissionPeriod extends Model
 {
     use HasFactory;
+
+    /**
+     * BR-FE-21 — perluasan BR-FE-19 ke periode.
+     *
+     * SubmissionDate miliknya ikut terlindungi: BR-FE-07 mewajibkan setiap
+     * FormPhaseDetail punya deadline, jadi menghapus tanggalnya membuat aturan
+     * yang seluruh Form Engine andalkan berhenti terpenuhi.
+     */
+    protected static function booted(): void
+    {
+        static::deleting(function (SubmissionPeriod $period): void {
+            ReferenceGuard::assertUnreferenced('Periode pengajuan', [
+                'pengajuan' => FormSubmission::query()
+                    ->where('submission_period_id', $period->id)
+                    ->count(),
+                'detail tahap yang memakai tanggalnya' => FormPhaseDetail::query()
+                    ->whereIn('submission_date_id', SubmissionDate::query()
+                        ->where('submission_period_id', $period->id)
+                        ->select('id'))
+                    ->count(),
+            ]);
+        });
+    }
 
     protected $fillable = ['name', 'is_force_closed'];
 

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Actions\Form\DeleteFormPhase;
 use App\Models\FieldType;
 use App\Models\Form;
 use App\Models\FormAccessControl;
@@ -10,6 +11,7 @@ use App\Models\FormPhaseDetail;
 use App\Models\Organization;
 use App\Models\PhaseType;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 use Spatie\Permission\Models\Role;
@@ -397,29 +399,23 @@ class FormPhaseController extends Controller
 
     public function bulkDelete(Request $request)
     {
-        $request->validate([
+        $validated = $request->validate([
             'ids' => 'required|array|min:1',
             'ids.*' => 'exists:form_phases,id',
         ]);
 
-        try {
-            DB::beginTransaction();
+        $actor = Auth::user();
 
-            $formPhases = FormPhase::whereIn('id', $request->ids)->get();
+        abort_unless($actor !== null, 403);
 
-            foreach ($formPhases as $formPhase) {
-                $formPhase->formPhaseDetails()->delete();
-                $formPhase->delete();
-            }
+        // BR-FE-20 — penjagaannya di dalam Action, dijalankan sebelum apa pun
+        // disentuh. Versi lama membiarkan foreign key yang menolak, sehingga
+        // yang sampai ke Admin adalah SQLSTATE mentah.
+        FormPhase::whereIn('id', $validated['ids'])
+            ->get()
+            ->each(fn (FormPhase $phase) => DeleteFormPhase::run($phase, $actor));
 
-            DB::commit();
-
-            return redirect()->route('admin.form-phases.index')
-                ->with('success', 'Tahap Formulir terpilih berhasil dihapus.');
-        } catch (\Exception $e) {
-            DB::rollback();
-
-            return back()->withErrors(['error' => 'Gagal menghapus tahap formulir terpilih: '.$e->getMessage()]);
-        }
+        return redirect()->route('admin.form-phases.index')
+            ->with('success', 'Tahap Formulir terpilih berhasil dihapus.');
     }
 }

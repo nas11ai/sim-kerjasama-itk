@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Support\Lifecycle\ReferenceGuard;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -16,6 +17,21 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class ReviewEvaluationForm extends Model
 {
     use HasFactory;
+
+    /**
+     * BR-FE-22 — form evaluasi yang pernah ditugaskan tidak bisa dihapus.
+     *
+     * Form evaluasi adalah dasar sebuah keputusan review; menghapusnya berarti
+     * menghapus alasan kenapa sebuah pengajuan dinilai sebagaimana ia dinilai.
+     */
+    protected static function booted(): void
+    {
+        static::deleting(function (ReviewEvaluationForm $form): void {
+            ReferenceGuard::assertUnreferenced('Form evaluasi', [
+                'penugasan reviewer' => $form->reviewerFormAssignments()->count(),
+            ]);
+        });
+    }
 
     protected $fillable = [
         'title',

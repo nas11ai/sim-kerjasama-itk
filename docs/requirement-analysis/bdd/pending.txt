@@ -12,7 +12,7 @@
 # sekaligus untuk kapabilitas yang layarnya sudah ada tapi belum punya pintu masuk,
 # dan untuk perilaku hapus/nonaktif yang selama ini tidak punya aturan.
 #
-# max: 33
+# max: 19
 
 # §13 — pengelolaan pohon organisasi & pemindahan user (BR-IAM-17, BR-IAM-18)
 IAM-ORG-09
@@ -22,22 +22,6 @@ IAM-ORG-12
 IAM-ORG-13
 IAM-ORG-14
 IAM-ORG-15
-
-# §16 D1-D3, D6 — penghapusan struktur Form (BR-FE-19, BR-FE-20, BR-FE-21, BR-FE-22)
-FE-DELETE-01
-FE-DELETE-02
-FE-DELETE-03
-FE-DELETE-04
-FE-DELETE-05
-FE-DELETE-06
-FE-DELETE-07
-FE-DELETE-08
-FE-DELETE-09
-FE-DELETE-10
-FE-DELETE-11
-FE-DELETE-12
-FE-DELETE-13
-FE-DELETE-14
 
 # §16 D5 — OutputTypeDefinition masuk data acuan (BR-SC-04)
 SC-CONFIG-06

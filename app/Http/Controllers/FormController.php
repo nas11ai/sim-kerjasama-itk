@@ -287,9 +287,16 @@ class FormController extends Controller
 
     public function bulkDelete(Request $request)
     {
-        $ids = $request->input('ids', []);
+        $validated = $request->validate([
+            'ids' => 'required|array|min:1',
+            'ids.*' => 'exists:forms,id',
+        ]);
 
-        Form::whereIn('id', $ids)->delete();
+        // BR-FE-19 — satu per satu, bukan ->delete() massal. Penghapusan lewat
+        // query builder tidak memicu event model, jadi penjagaan yang menolak
+        // Form yang masih punya pengajuan tidak akan pernah dijalankan — dan
+        // form_submissions.form_id dulunya ber-cascade.
+        Form::whereIn('id', $validated['ids'])->get()->each(fn (Form $form) => $form->delete());
 
         return redirect()->route('admin.forms.index')
             ->with('success', 'Formulir terpilih berhasil dihapus!');
