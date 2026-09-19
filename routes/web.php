@@ -555,6 +555,12 @@ Route::middleware(['auth'])->group(function () {
             ->name('submissions.student-members.store');
         Route::delete('/submissions/{submission}/student-members/{student}', [ResearchMemberController::class, 'destroyStudent'])
             ->name('submissions.student-members.destroy');
+        // BR-SM-21 — mitra yang dijanjikan saat mengajukan; PKS yang terwujud
+        // dicatat terpisah sebagai ResearchOutput.
+        Route::post('/submissions/{submission}/partners', [ResearchMemberController::class, 'storePartner'])
+            ->name('submissions.partners.store');
+        Route::delete('/submissions/{submission}/partners/{partner}', [ResearchMemberController::class, 'destroyPartner'])
+            ->name('submissions.partners.destroy');
         Route::post('/submissions/{submission}/budget-items', [BudgetLineItemController::class, 'store'])
             ->name('submissions.budget-items.store');
         // BR-BUD-10 — anggaran yang bisa ditambah tapi tidak bisa dibetulkan

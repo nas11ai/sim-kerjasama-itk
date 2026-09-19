@@ -391,19 +391,10 @@ ada BR, **tidak ada satu pun skenario**, tidak ada test. Turunannya ikut hilang 
 `uncovered.txt` tetap `max: 0` karena keduanya tidak pernah dirumuskan sebagai
 perilaku. Ini satu-satunya baris Feature Gap DDD yang belum dikerjakan.
 
-**Keputusan (2026-09-19): dipisah, karena keduanya tidak sekuat itu.** Dua
-kemungkinannya sama masuk akal untuk satu entitas dan tidak seimbang untuk yang lain:
-
-| Opsi | Konsekuensi |
-| ---- | ----------- |
-| **A — keduanya dibuat** | Dua tabel, dua langkah wizard tambahan (atau perluasan langkah 4), BR + skenario baru, `max_student_members` jadi rule yang ditegakkan |
-| **B — keduanya dibatalkan** | Diagram agregat `core/01_submission.md` dan baris Feature Gap-nya disunting; `max_student_members` dihapus dari contoh `scheme.rules`; kebutuhannya diserap FormField dinamis |
-
-**Opsi B untuk `Partner`, opsi A untuk `StudentMember`.** Mitra eksternal hanya butuh
-nama institusi dan kontak — persis yang bisa dilayani FormField dinamis tanpa tabel
-sendiri, dan wireframe tidak pernah memberinya layar. `StudentMember` berbeda: ia punya
-rule skema (`max_student_members`) yang hanya bisa ditegakkan kalau anggotanya terhitung
-sebagai baris, dan keterlibatan mahasiswa adalah angka yang dilaporkan LPPM ke luar.
+**Keputusan (2026-09-19): keduanya dibuat.** Usulan pertama memisahkannya — `Partner`
+dibatalkan, `StudentMember` dibuat — dan pemilik produk membalikkan paruh pertamanya.
+Pembalikan itu benar, dan alasannya ditulis di bawah karena ia mengoreksi cara menilai,
+bukan sekadar hasilnya.
 
 `StudentMember` dicatat sebagai **data, bukan akun**. Mahasiswa tidak mendaftar ke
 SIMPAS, jadi barisnya tidak menunjuk `UserProfile` seperti `ResearchMember`; memaksanya
@@ -411,11 +402,29 @@ punya akun berarti menuntut ratusan pendaftaran yang tidak pernah dipakai untuk 
 Cek konflik kepentingan BR-SM-08 sengaja **tidak** disalin ke sini: mahasiswa tidak
 pernah bisa jadi reviewer, dan menyalinnya hanya menyiratkan larangan yang tidak ada.
 
+**Kenapa usulan membatalkan `Partner` keliru.** Alasannya waktu itu: mitra hanya butuh
+nama institusi dan kontak, dan FormField dinamis sudah melayaninya. Yang terlewat ada di
+dokumen sebelah — `output_type = 'pks'` (Perjanjian Kerja Sama) sudah jadi tipe luaran
+kelas satu, dan metadatanya memuat `involved_parties` sebagai **teks bebas di dalam blob
+JSON**.
+
+Jadi sistem ini sudah melacak kemitraan. Hanya saja ia melacaknya di ujung realisasi,
+sebagai kalimat, sehingga "berapa pengajuan yang melibatkan institusi ini" tidak punya
+jawaban — padahal itu persis angka yang dilaporkan LPPM ke luar.
+
+Itu **argumen yang sama** yang di paragraf sebelumnya dipakai untuk memenangkan
+`StudentMember`: angka yang tidak bisa di-query bukan angka yang bisa dilaporkan. Dua
+entitas, satu argumen, dan salah satunya sempat dinilai dengan ukuran yang berbeda.
+
+`Partner` karena itu berdiri sejajar `SubmissionTargetOutput`: mitra yang **dijanjikan**
+saat mengajukan, sementara PKS yang **terwujud** tetap dicatat `ResearchOutput`. Dua
+momen, dua entitas — pola yang domain ini sudah pakai untuk luaran.
+
 | Lapis | Wujud |
 | ----- | ----- |
-| DDD | **BR-SM-20** baru; kelas `Partner` dan baris *Feature Gap*-nya dihapus dari `core/01_submission.md` |
-| Skenario | `[SM-STUDENT-01..06]` |
-| Register | [#39](../requirement-analysis/bdd/open-questions.md) |
+| DDD | **BR-SM-20** dan **BR-SM-21** baru; kelas `Partner` dan baris *Feature Gap*-nya tetap di `core/01_submission.md`, kini dengan alasan keberadaannya tertulis |
+| Skenario | `[SM-STUDENT-01..06]`, `[SM-PARTNER-01..06]` |
+| Register | [#39 dan §39.1](../requirement-analysis/bdd/open-questions.md) |
 
 ---
 
@@ -814,10 +823,10 @@ pengajuan ke dua tempat.
 
 | Lapis | Perubahan |
 | ----- | --------- |
-| DDD | **15 BR baru** — BR-SM-18/19/20, BR-BUD-10, BR-IAM-16/17/18/19, BR-FE-19/20/21/22/23/24, BR-SC-04. Dua suntingan: `require_external_reviewer` dihapus dari contoh `04_scheme.md`, dan kelas `Partner` dihapus dari diagram agregat beserta baris *Feature Gap*-nya |
-| Skenario | **68 ID baru** dalam 11 keluarga; dua keluarga baru, `[FE-DELETE-*]` dan `[IAM-INVITE-*]`. Seluruhnya **sudah punya test** — plafon `pending.txt` naik 0 → 62 lalu kembali ke 0 di hari yang sama |
+| DDD | **16 BR baru** — BR-SM-18/19/20/21, BR-BUD-10, BR-IAM-16/17/18/19, BR-FE-19/20/21/22/23/24, BR-SC-04. Satu suntingan: `require_external_reviewer` dihapus dari contoh `04_scheme.md` |
+| Skenario | **74 ID baru** dalam 12 keluarga; empat keluarga baru — `[FE-DELETE-*]`, `[IAM-INVITE-*]`, `[SM-STUDENT-*]`, `[SM-PARTNER-*]`. Seluruhnya **sudah punya test** — plafon `pending.txt` naik 0 → 62 lalu kembali ke 0 di hari yang sama |
 | UI | **Nol frame wireframe baru.** Seluruhnya sudah digambar — yang hilang route dan Action-nya. Tiga halaman Inertia dibuat untuk frame yang sudah ada: `ADMIN-08-01`, `SHARED-01-03`, `SHARED-01-04` |
-| Kode | Cascade `form_submissions.form_id` dan `submitted_by` diubah jadi `restrict`; route `DELETE /users/{user}` dan `DELETE /profile` dihapus; `FormFieldOption` memakai soft delete; cabang `else` penghapus seluruh opsi di `FormController::update` diperbaiki; tabel `student_members` dibuat |
+| Kode | Cascade `form_submissions.form_id` dan `submitted_by` diubah jadi `restrict`; route `DELETE /users/{user}` dan `DELETE /profile` dihapus; `FormFieldOption` memakai soft delete; cabang `else` penghapus seluruh opsi di `FormController::update` diperbaiki; tabel `student_members` dan `submission_partners` dibuat |
 | Register | Satu entri terselesaikan: [#39](../requirement-analysis/bdd/open-questions.md) `Partner` / `StudentMember` |
 
 Rincian alokasi:
@@ -835,6 +844,7 @@ Rincian alokasi:
 | `[RO-OUTPUT-*]` | 23..24 | [§16.5](#165-keputusan) |
 | `[FE-CHANGE-*]` | 07..14 | [§17](#17-form-berubah-saat-pengajuan-sedang-berjalan) |
 | `[SM-STUDENT-*]` | 01..06 | [§14](#14-partner-dan-studentmember--entitas-yang-tidak-pernah-lahir) |
+| `[SM-PARTNER-*]` | 01..06 | [§14](#14-partner-dan-studentmember--entitas-yang-tidak-pernah-lahir) |
 
 ### Urutan yang disarankan
 

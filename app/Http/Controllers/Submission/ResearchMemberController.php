@@ -2,12 +2,15 @@
 
 namespace App\Http\Controllers\Submission;
 
+use App\Actions\FormSubmission\AddPartner;
 use App\Actions\FormSubmission\AddResearchMember;
 use App\Actions\FormSubmission\AddStudentMember;
+use App\Actions\FormSubmission\RemovePartner;
 use App\Actions\FormSubmission\RemoveResearchMember;
 use App\Actions\FormSubmission\RemoveStudentMember;
 use App\Http\Controllers\Controller;
 use App\Models\FormSubmission;
+use App\Models\Partner;
 use App\Models\ResearchMember;
 use App\Models\StudentMember;
 use App\Models\User;
@@ -81,5 +84,37 @@ class ResearchMemberController extends Controller
         RemoveStudentMember::run($submission, $student, $user);
 
         return back()->with('success', 'Anggota mahasiswa dikeluarkan.');
+    }
+
+    /**
+     * BR-SM-21 — mitra pada saat diajukan, dicatat sebagai baris agar cakupan
+     * kemitraan bisa ditanyai.
+     */
+    public function storePartner(Request $request, FormSubmission $submission): RedirectResponse
+    {
+        $user = Auth::user();
+
+        abort_unless($user !== null && $user->can('manageResearchMembers', $submission), 403);
+
+        $validated = $request->validate([
+            'institution_name' => 'required|string|max:255',
+            'contact_person' => 'nullable|string|max:255',
+            'description' => 'nullable|string',
+        ]);
+
+        AddPartner::run($submission, $user, $validated);
+
+        return back()->with('success', 'Mitra ditambahkan.');
+    }
+
+    public function destroyPartner(FormSubmission $submission, Partner $partner): RedirectResponse
+    {
+        $user = Auth::user();
+
+        abort_unless($user !== null && $user->can('manageResearchMembers', $submission), 403);
+
+        RemovePartner::run($submission, $partner, $user);
+
+        return back()->with('success', 'Mitra dicabut.');
     }
 }

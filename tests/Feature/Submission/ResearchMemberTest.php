@@ -9,11 +9,14 @@
 // Jumlah anggota dibatasi `scheme.max_members`; skema yang tidak
 // menyatakannya tidak membatasi.
 
+use App\Actions\FormSubmission\AddPartner;
 use App\Actions\FormSubmission\AddResearchMember;
 use App\Actions\FormSubmission\AddStudentMember;
+use App\Actions\FormSubmission\RemovePartner;
 use App\Actions\FormSubmission\RemoveResearchMember;
 use App\Actions\FormSubmission\RemoveStudentMember;
 use App\Models\FormSubmission;
+use App\Models\Partner;
 use App\Models\ResearchMember;
 use App\Models\Reviewer;
 use App\Models\Scheme;
@@ -278,3 +281,76 @@ it('[SM-STUDENT-06] mengeluarkan mahasiswa membuka kembali kuota skema', functio
 
     expect($submission->fresh()->studentMembers()->count())->toBe(1);
 });
+
+// ---------- BR-SM-21: mitra eksternal ----------
+
+it('[SM-PARTNER-01] ketua pengaju mencatat mitra eksternal', function () {
+    [$owner, $submission] = studentFixture();
+
+    $mitra = AddPartner::run($submission, $owner, [
+        'institution_name' => 'PT XYZ',
+        'contact_person' => 'Ibu Rina',
+    ]);
+
+    expect($mitra->institution_name)->toBe('PT XYZ')
+        ->and($submission->fresh()->partners()->count())->toBe(1);
+});
+
+it('[SM-PARTNER-02] institusi yang sama tidak dicatat dua kali', function () {
+    [$owner, $submission] = studentFixture();
+
+    AddPartner::run($submission, $owner, ['institution_name' => 'PT XYZ']);
+
+    // Beda kapitalisasi tetap institusi yang sama; dua baris membuat hitungan
+    // cakupan kemitraan melaporkan satu kerja sama sebagai dua.
+    expect(fn () => AddPartner::run($submission->fresh(), $owner, ['institution_name' => 'pt xyz']))
+        ->toThrow(ValidationException::class)
+        ->and($submission->fresh()->partners()->count())->toBe(1);
+});
+
+it('[SM-PARTNER-03] institusi yang sama boleh jadi mitra pengajuan lain', function () {
+    [$owner1, $p1] = studentFixture();
+    [$owner2, $p2] = studentFixture();
+
+    AddPartner::run($p1, $owner1, ['institution_name' => 'PT XYZ']);
+    AddPartner::run($p2, $owner2, ['institution_name' => 'PT XYZ']);
+
+    expect(Partner::query()->where('institution_name', 'PT XYZ')->count())->toBe(2);
+});
+
+it('[SM-PARTNER-04] cakupan kemitraan bisa ditanyai per institusi', function () {
+    foreach (range(1, 3) as $i) {
+        [$owner, $submission] = studentFixture();
+        AddPartner::run($submission, $owner, ['institution_name' => 'PT XYZ']);
+    }
+
+    // Inilah yang tidak bisa dijawab selama mitra hanya hidup sebagai
+    // involved_parties di metadata JSON luaran pks.
+    $cakupan = Partner::query()
+        ->where('institution_name', 'PT XYZ')
+        ->distinct('form_submission_id')
+        ->count('form_submission_id');
+
+    expect($cakupan)->toBe(3);
+});
+
+it('[SM-PARTNER-05] ketua pengaju mencabut mitra', function () {
+    [$owner, $submission] = studentFixture();
+
+    $mitra = AddPartner::run($submission, $owner, ['institution_name' => 'PT XYZ']);
+
+    RemovePartner::run($submission->fresh(), $mitra, $owner);
+
+    expect($submission->fresh()->partners()->count())->toBe(0);
+});
+
+it('[SM-PARTNER-06] mitra terkunci pada status terminal', function (string $state) {
+    [$owner, $submission] = studentFixture();
+    $mitra = AddPartner::run($submission, $owner, ['institution_name' => 'PT XYZ']);
+
+    $submission->update(['status' => $state]);
+
+    expect(fn () => RemovePartner::run($submission->fresh(), $mitra, $owner))
+        ->toThrow(AuthorizationException::class)
+        ->and(Partner::query()->whereKey($mitra->id)->exists())->toBeTrue();
+})->with([Approved::class, Rejected::class, Withdrawn::class]);

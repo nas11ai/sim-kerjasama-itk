@@ -104,3 +104,50 @@ Feature: Anggota Penelitian
     When submitted_by mengeluarkan mahasiswa itu
     And submitted_by mencatat mahasiswa lain
     Then pencatatan berhasil
+
+  # BR-SM-21 — mitra eksternal. Dicatat sebagai baris, bukan teks bebas:
+  # `output_type = 'pks'` sudah menyimpan involved_parties di metadata JSON-nya,
+  # tapi itu kemitraan yang sudah terwujud dan dalam bentuk yang tidak bisa
+  # ditanyai. Dua momen, dua entitas.
+
+  @BR-SM-21 @M1 @RESEARCHER-02-08 @happy
+  Scenario: [SM-PARTNER-01] Ketua pengaju mencatat mitra eksternal
+    Given pengajuan "P-001" berstatus DRAFT
+    When submitted_by mencatat mitra "PT XYZ" dengan kontak "Ibu Rina"
+    Then "PT XYZ" terdaftar sebagai mitra "P-001"
+
+  @BR-SM-21 @M1 @RESEARCHER-02-08 @denial
+  Scenario: [SM-PARTNER-02] Institusi yang sama tidak dicatat dua kali
+    Given pengajuan "P-001" sudah mencatat mitra "PT XYZ"
+    When submitted_by mencatat "pt xyz" sekali lagi
+    Then pencatatan ditolak karena institusi itu sudah tercatat
+
+  @BR-SM-21 @M1 @RESEARCHER-02-08 @boundary
+  Scenario: [SM-PARTNER-03] Institusi yang sama boleh jadi mitra pengajuan lain
+    Given "PT XYZ" tercatat sebagai mitra pengajuan "P-001"
+    When submitted_by pengajuan "P-002" mencatat "PT XYZ"
+    Then pencatatan berhasil
+
+  @BR-SM-21 @M1 @RESEARCHER-02-08 @happy
+  Scenario: [SM-PARTNER-04] Cakupan kemitraan bisa ditanyai per institusi
+    Given "PT XYZ" tercatat sebagai mitra tiga pengajuan berbeda
+    When LPPM menghitung pengajuan yang melibatkan "PT XYZ"
+    Then jawabannya tiga
+
+  @BR-SM-21 @M1 @RESEARCHER-02-08 @happy
+  Scenario: [SM-PARTNER-05] Ketua pengaju mencabut mitra
+    Given pengajuan "P-001" berstatus DRAFT punya mitra "PT XYZ"
+    When submitted_by mencabut mitra itu
+    Then "PT XYZ" tidak lagi terdaftar sebagai mitra "P-001"
+
+  @BR-SM-21 @M1 @RESEARCHER-02-08 @denial
+  Scenario Outline: [SM-PARTNER-06] Mitra terkunci pada status terminal
+    Given pengajuan "P-001" berstatus <status> punya mitra "PT XYZ"
+    When submitted_by mencabut mitra itu
+    Then pencabutan ditolak karena pengajuan sudah terminal
+
+    Examples:
+      | status    |
+      | APPROVED  |
+      | REJECTED  |
+      | WITHDRAWN |

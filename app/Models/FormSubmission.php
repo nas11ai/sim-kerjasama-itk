@@ -151,6 +151,16 @@ class FormSubmission extends Model
     }
 
     /**
+     * BR-SM-21 — mitra eksternal yang dijanjikan saat mengajukan.
+     *
+     * @return HasMany<Partner, $this>
+     */
+    public function partners(): HasMany
+    {
+        return $this->hasMany(Partner::class);
+    }
+
+    /**
      * BR-SM-20 — anggota mahasiswa; data, bukan akun.
      *
      * @return HasMany<StudentMember, $this>
