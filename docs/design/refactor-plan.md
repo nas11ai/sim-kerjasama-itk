@@ -1,12 +1,16 @@
 # Rencana Refactor — Bentuk, Batas, dan Penegakannya
 
-**Versi:** 1.0
+**Versi:** 1.1
 **Tanggal:** 2026-09-19
 **Status:** Disetujui, belum dikerjakan
 
 Dokumen ini menetapkan **bentuk** kode di repo ini, **batas** yang mengikatnya, dan
 **mesin** yang menegakkan batas itu. Ia tidak menambah satu pun fitur dan tidak
 menyentuh `docs/requirement-analysis/`.
+
+Versi 1.1 menambahkan lapis kontrak API ([§2.4](#24-kontrak-api-dan-kenapa-ia-dipisah-sejak-sekarang)).
+API untuk aplikasi lain direncanakan setelah migrasi data lama, dan bentuk keluarannya
+diputuskan sekarang dengan satu alasan: supaya refactor ini tidak dikerjakan dua kali.
 
 Ia ditulis untuk dipakai lintas sesi. Yang membuatnya bertahan bukan dokumen ini
 melainkan dua berkas plafon yang ditegakkan test — dokumen bisa tidak dibaca, test
@@ -79,7 +83,10 @@ alasan `app/Data` hanya berisi satu berkas sementara controller merakit array me
 app/
   Actions/          sisi TULIS — satu use case, satu Action        [ada]
   Queries/          sisi BACA  — satu pertanyaan, satu Query       [BARU]
-  Data/             bentuk payload, spatie/laravel-data            [ada, 1 berkas]
+  Data/
+    Request/        masuk — hasil validasi, masukan Action
+    View/           keluar ke Inertia — berbentuk layar
+    Contract/       keluar ke API — kontrak dengan konsumen luar
   Policies/         wewenang                                       [ada, 2 berkas]
   Models/           relasi, cast, scope, booted() guard, predikat domain
   Support/
@@ -92,8 +99,9 @@ app/
 
 | Arah | Alur |
 | ---- | ---- |
-| Tulis | `FormRequest → Data → Action → redirect` |
-| Baca | `Query → Data → Inertia::render` |
+| Tulis | `FormRequest → Data\Request → Action → redirect` |
+| Baca (layar) | `Query → Data\View → Inertia::render` |
+| Baca (API) | `Query → Data\Contract → response()->json` |
 
 Controller tidak memuat apa pun selain merangkai keempatnya.
 
@@ -111,7 +119,64 @@ pemeriksaan.
 - Satu `Action` = satu use case. Nama yang mengandung "dan" berarti dua Action.
 - Satu `Data` = satu bentuk payload yang benar-benar dikirim ke satu layar.
 
-### 2.4 Garis untuk Model
+### 2.4 Kontrak API, dan kenapa ia dipisah sejak sekarang
+
+API untuk aplikasi lain **direncanakan**, bukan diandaikan: ia dibangun setelah aplikasi
+ini selesai dan data lama dimigrasikan ke tabel baru. Karena itu bentuk keluarannya
+diputuskan sekarang — memutuskannya nanti berarti membongkar setiap endpoint dua kali.
+
+Yang membedakan payload layar dari kontrak API bukan arahnya, melainkan **siapa yang
+berhak mengubah bentuknya**:
+
+| | Pemiliknya | Kalau bentuknya berubah |
+| --- | --- | --- |
+| `Data\View` | layar itu sendiri | wajar — memang harus ikut berubah |
+| `Data\Contract` | **konsumennya** | aplikasi pihak lain rusak |
+
+Kalau keduanya tinggal di satu direktori, suatu hari ada yang merapikan DTO demi satu
+layar dan diam-diam mematahkan konsumen luar. Pemisahan inilah yang membuat kekeliruan
+itu terlihat di review dan bisa ditegakkan test.
+
+**Kaitannya dengan migrasi data lama.** Kalau API memaparkan atribut model, memindahkan
+data lama ke tabel baru mematahkan setiap konsumen — bentuk tabel bocor jadi bentuk
+kontrak. Kalau ia memaparkan field yang disebut satu per satu di `Data\Contract`,
+migrasi itu tidak terlihat dari luar sama sekali. Lapis ini bukan kerapian; ia prasyarat
+migrasi yang aman.
+
+**Tiga aturan yang mengikat:**
+
+1. `View` boleh menyusun `Contract`; **`Contract` tidak pernah menyusun `View`**. Kalau
+   dibalik, layar jadi pemilik kontrak dan seluruh gunanya hilang.
+2. `Contract` **menyebut setiap field secara eksplisit**. Dilarang menyebar atribut model
+   — `toArray()`, `only([...])`, atau hasil `get([...])` yang langsung dikirim. Itu
+   persis cara kolom database jadi kontrak tanpa ada yang memutuskannya.
+3. `Contract` tidak boleh punya properti bertipe Model.
+
+**Keadaan hari ini yang dijawabnya:** ada **22** pemanggilan `response()->json()`, nol
+`App\Http\Resources`, dan satu berkas di `app/Data`. Yang paling rapi dari 22 itu pun
+menetapkan kontraknya lewat argumen `get()` di tengah controller:
+
+```php
+$availableForms = $formPhaseDetail->activeReviewEvaluationForms()
+    ->get(['id', 'title', 'description', 'is_required', 'order']);
+
+return response()->json($availableForms);
+```
+
+Tidak ada satu tempat pun yang bisa dibaca orang untuk tahu bentuk apa yang dijanjikan
+endpoint itu. Dan karena `app/Http` dikecualikan dari tier ketat, tidak ada pemeriksaan
+apa pun yang menjaganya.
+
+**Versioning: datar dulu, dengan pemicu yang jelas.** Tidak ada `V1/` hari ini — sampai
+versi kedua benar-benar ada, bertingkat cuma spekulasi, dan memindah namespace internal
+saat itu murah karena yang dilihat konsumen bentuk kawatnya, bukan namespace-nya. Yang
+**tidak** murah diretrofit adalah URL: begitu API dibangun, route-nya membawa segmen
+versi sejak hari pertama (`/api/v1/...`). Konsumen yang terlanjur mengikat diri ke URL
+tanpa versi tidak bisa dilepaskan belakangan.
+
+---
+
+### 2.5 Garis untuk Model
 
 Satu pertanyaan penentu per method:
 
@@ -154,6 +219,8 @@ dua arah sekaligus.
 | Parameter (termasuk constructor) | 1 | 2 | **4** | 9 |
 | `return` per method | 1 | 2 | **4** | 6 |
 | `mixed` tertulis | — | — | **0** | 48 |
+| `response()->json` tanpa DTO `Contract` | — | — | **0** | 22 |
+| Model bocor ke `Data\Contract` | — | — | **0** | 0 |
 | Blok duplikat lintas berkas | — | — | **0 baru** | 1670 |
 | PHPStan tier ketat | 9 | — | **10** | — |
 | PHPStan tier default | 5 | — | **10** | 1284 |
@@ -172,6 +239,13 @@ jujur: kalau 1284 tidak bergerak, refactor-nya belum menyentuh apa pun yang pent
 dan terpusat. Penyelesaiannya **wajib** lewat DTO atau penyempitan tipe; AGENTS.md
 aturan 5 sudah melarang cast, `@phpstan-ignore`, dan pelebaran tipe untuk menghilangkan
 error, dan larangan itu berlaku penuh di sini.
+
+**`response()->json` tanpa kontrak diberi plafon 22, bukan ambang 0.** Berbeda dari
+`mixed` yang terpusat dan bisa dihabisi sekali jalan, 22 endpoint ini tersebar di
+controller yang sedang dibongkar gelombang 3 — jadi angkanya turun bersama pembongkaran
+itu, bukan sebagai pekerjaan tersendiri. Yang **tidak** diberi kelonggaran adalah
+kebocoran model ke `Data\Contract`: ambangnya 0 sejak hari pertama, karena satu
+kebocoran saja sudah menjadikan bentuk tabel sebagai kontrak.
 
 **Vue diberi ambang 250 meski p75-nya 204.** UI dibangun ulang mengikuti wireframe
 SIMPAS v2, jadi angka ini mengikat kode baru. Plafon 1240 tetap dicatat supaya komponen
@@ -211,9 +285,11 @@ hard.method.cc:          8
 hard.method.params:      4
 hard.method.returns:     4
 hard.mixed:              0
+hard.contract.leak:      0
 
 # Plafon yang menyusut
 max.legacy.files:      112
+max.untyped.json:       22
 max.duplicate.blocks: 1670
 max.phpstan.default:  1284
 ```
@@ -239,12 +315,19 @@ Tujuh assertion, bentuknya meniru `BddCoverageTest`:
 | 5 | `mixed` = 0 di luar daftar | DTO diakali cast |
 | 6 | Tidak ada blok duplikat baru | Komponen kembar berikutnya |
 | 7 | Berkas baru masuk `Actions/`, `Queries/`, `Data/`, atau `Policies/` — bukan `Http/` | Controller gemuk lagi |
+| 8 | `Data\Contract` tidak punya properti bertipe Model dan tidak menyebar atributnya | Bentuk tabel jadi kontrak tanpa ada yang memutuskan |
+| 9 | `Data\Contract` tidak menyusun `Data\View` | Layar jadi pemilik kontrak |
+| 10 | Setiap `response()->json()` melewati DTO `Contract` | Kontrak ditetapkan diam-diam di tengah controller |
 
 **Assertion 2 adalah engselnya.** Ia menyalin `BddCoverageTest` assertion 5
 (*"pending.txt tidak memuat skenario yang sudah diimplementasi"*), dan dialah yang
 membuat daftarnya menyusut sendiri: begitu sebuah berkas dibereskan, test **gagal**
 sampai barisnya dihapus. Tidak ada jalan membereskan kode tanpa memperbarui daftar, dan
 tidak ada jalan memperbarui daftar tanpa benar-benar membereskan kode.
+
+**Assertion 10 menutup celah yang paling luput.** `app/Http` dikecualikan dari tier
+ketat, jadi tanpa assertion ini `response()->json()` boleh mengirim apa pun tanpa satu
+pun pemeriksaan — termasuk seluruh kolom sebuah tabel.
 
 **Batasan yang jujur:** assertion 7 mengandalkan konvensi direktori, jadi ia tidak bisa
 menghentikan orang menaruh logic di `Support/` yang memang sah. Ia menangkap kasus yang
@@ -254,16 +337,23 @@ paling sering — controller menggemuk — bukan seluruh bentuk penyelewengan.
 
 ## 5. Urutan pengerjaan
 
-Dua prinsip: **pasang pagar sebelum membedah apa pun**, supaya pekerjaannya terukur dan
-bukan cuma terasa; dan **kerjakan dari daun ke akar**, karena model dipanggil controller
-— membereskan controller lebih dulu berarti memindahkan panggilan yang sama dua kali.
+Tiga prinsip:
+
+1. **Pasang pagar sebelum membedah apa pun**, supaya pekerjaannya terukur dan bukan cuma
+   terasa.
+2. **Kerjakan dari daun ke akar**, karena model dipanggil controller — membereskan
+   controller lebih dulu berarti memindahkan panggilan yang sama dua kali.
+3. **Hasilkan bentuk yang API-nya tinggal ditambahkan.** Setiap `Query` yang datanya
+   kelak dipaparkan ke luar mengembalikan `Data\Contract` sejak sekarang. Tujuannya
+   tunggal: saat API dibangun nanti, yang ditambahkan hanya route dan autentikasi —
+   bukan membongkar ulang apa yang baru saja dirapikan.
 
 | # | Gelombang | Isi | Ukuran keberhasilan |
 | - | --------- | --- | ------------------- |
 | 0 | **Pasang pagar** | Dua berkas plafon, `QualityBudgetTest`, tier ketat 9 → **10** (3 penyebab) | Gerbang hijau; mulai detik ini tidak ada yang bisa memburuk |
 | 1 | **Habisi `mixed`** | 48 → 0; DTO pertama masuk `app/Data` | `hard.mixed: 0` ditegakkan penuh |
-| 2 | **Model** | 123 method logic dipilah lewat §2.4; pindah ke `Actions/` dan `Queries/` | 244 error level 10 turun; 7 berkas keluar daftar |
-| 3 | **Controller** | 18 berkas `Http`; `SubmissionViewController` 1353 → cangkang | 959 error turun; 18 berkas keluar daftar |
+| 2 | **Model** | 123 method logic dipilah lewat §2.5; pindah ke `Actions/` dan `Queries/` | 244 error level 10 turun; 7 berkas keluar daftar |
+| 3 | **Controller** | 18 berkas `Http`; `SubmissionViewController` 1353 → cangkang; 22 `response()->json` jadi DTO `Contract` | 959 error turun; 18 berkas keluar daftar; `max.untyped.json` → 0 |
 | 4 | **Actions yang melanggar** | 12 berkas | 12 berkas keluar daftar |
 | 5 | **Tier default 5 → 10** | Sisa yang tidak rontok sebagai efek samping gelombang 2–4 | `max.phpstan.default` → 0 |
 | 6 | **Vue legacy** | 68 berkas; sebagian besar kemungkinan hilang karena **dihapus** saat layarnya diganti | `max.legacy.files` → 0 |
@@ -275,6 +365,12 @@ enam bulan lagi dengan angka yang lebih besar.
 **Kenapa `mixed` didahulukan meski terdengar sepele.** Ia memaksa DTO pertama lahir.
 Setelah bentuk data punya nama, gelombang 2 dan 3 jadi pemindahan alih-alih perancangan
 — dan itu jauh lebih aman.
+
+**Kenapa kontrak API dikerjakan di gelombang 3, bukan ditunda sampai API-nya ada.**
+Ke-22 endpoint JSON itu hidup di controller yang memang sedang dibongkar. Menyentuhnya
+sekarang berbiaya hampir nol; menyentuhnya nanti berarti membuka kembali berkas yang
+sudah dinyatakan selesai — persis kerja dua kali yang seluruh urutan ini dirancang untuk
+menghindarinya.
 
 **Risiko terbesar di gelombang 2.** Memindahkan 123 method dari model menyentuh hampir
 seluruh codebase. Yang menahannya 820 test yang sudah ada. Kalau ada gelombang yang
@@ -311,3 +407,8 @@ utang, dan tempatnya dibahas di PR, bukan diselesaikan diam-diam.
   kode dirapikan.
 - **Tidak merancang UI baru.** Layar SIMPAS v2 punya jalurnya sendiri; rencana ini hanya
   memastikan ia lahir di dalam pagar.
+- **Tidak membangun API.** Tidak ada route `/api`, skema autentikasi, rate limit,
+  versioning berjenjang, maupun dokumentasi OpenAPI. Yang dikerjakan hanya bentuk
+  keluarannya — `Data\Contract` beserta tiga aturannya — supaya API nanti tinggal
+  ditambahkan. Pembangunan API-nya sendiri punya spec tersendiri, dan prasyaratnya dua:
+  rencana ini selesai, dan migrasi data lama tuntas.
