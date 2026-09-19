@@ -12,7 +12,7 @@
 # sekaligus untuk kapabilitas yang layarnya sudah ada tapi belum punya pintu masuk,
 # dan untuk perilaku hapus/nonaktif yang selama ini tidak punya aturan.
 #
-# max: 62
+# max: 56
 
 # §9 — penerbitan & pencabutan undangan (BR-IAM-16)
 IAM-INVITE-01
@@ -70,21 +70,11 @@ FE-DELETE-12
 FE-DELETE-13
 FE-DELETE-14
 
-# §16 D4 — user tidak pernah dihapus (BR-IAM-19)
-IAM-DEACT-05
-IAM-DEACT-06
-IAM-DEACT-07
-IAM-DEACT-08
-
 # §16 D5 — OutputTypeDefinition masuk data acuan (BR-SC-04)
 SC-CONFIG-06
 SC-CONFIG-07
 SC-CONFIG-08
 SC-CONFIG-09
-
-# §16.5 — luaran tidak pernah dihapus (BR-RO-06)
-RO-OUTPUT-23
-RO-OUTPUT-24
 
 # §17 — bentuk field terkunci begitu ada jawaban (BR-FE-23, BR-FE-24)
 FE-CHANGE-07

@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Support\Lifecycle\DeletionNotPermitted;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -31,6 +32,26 @@ class ResearchOutput extends Model
 {
     use HasFactory;
     use LogsActivity;
+
+    /**
+     * BR-RO-06 — luaran tidak pernah dihapus.
+     *
+     * Aturannya menyebut penarikan pengajuan, tapi sebabnya lebih luas dari
+     * itu: luaran adalah dasar pelaporan LPPM ke luar, dan angka yang sudah
+     * dilaporkan tidak boleh bisa surut diam-diam. Luaran yang salah
+     * dikoreksi lewat penyuntingan (BR-RO-07), yang meninggalkan jejak
+     * sebelum-sesudah — sedangkan penghapusan tidak meninggalkan apa pun.
+     */
+    protected static function booted(): void
+    {
+        static::deleting(function (): never {
+            throw new DeletionNotPermitted(
+                'Luaran tidak dapat dihapus — ia dasar pelaporan dan tetap tersimpan '
+                .'sebagai data historis (BR-RO-06). Luaran yang keliru diperbaiki '
+                .'lewat penyuntingan, bukan dihilangkan.'
+            );
+        });
+    }
 
     protected $fillable = [
         'form_submission_id',

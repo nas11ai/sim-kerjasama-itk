@@ -14,7 +14,6 @@ const Ziggy = {
         },
         'profile.edit': { uri: 'profile', methods: ['GET', 'HEAD'] },
         'profile.update': { uri: 'profile', methods: ['PATCH'] },
-        'profile.destroy': { uri: 'profile', methods: ['DELETE'] },
         'review-summaries.complete': {
             uri: 'review-summaries\/{reviewSummary}\/complete',
             methods: ['PATCH'],
@@ -193,12 +192,6 @@ const Ziggy = {
         'admin.users.update': {
             uri: 'admin\/users\/{user}',
             methods: ['PUT'],
-            parameters: ['user'],
-            bindings: { user: 'id' },
-        },
-        'admin.users.delete': {
-            uri: 'admin\/users\/{user}',
-            methods: ['DELETE'],
             parameters: ['user'],
             bindings: { user: 'id' },
         },

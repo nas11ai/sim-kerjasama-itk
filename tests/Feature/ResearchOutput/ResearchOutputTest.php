@@ -21,6 +21,7 @@ use App\Models\User;
 use App\States\Submission\Approved;
 use App\States\Submission\UnderReview;
 use App\States\Submission\Withdrawn;
+use App\Support\Lifecycle\DeletionNotPermitted;
 use Illuminate\Validation\ValidationException;
 use Spatie\Permission\Models\Permission;
 
@@ -370,4 +371,38 @@ it('[RO-OUTPUT-16] override yang berlaku membuka kembali penyuntingan luaran', f
         ->assertRedirect();
 
     expect(ResearchOutput::count())->toBe(1);
+});
+
+// ---------- BR-RO-06: luaran tidak pernah dihapus ----------
+
+it('[RO-OUTPUT-23] luaran tidak bisa dihapus peneliti', function () {
+    ['submission' => $s, 'owner' => $owner] = outputFixture();
+    outputType('artikel');
+
+    $output = SaveResearchOutput::run($s, $owner, ['output_type' => 'artikel']);
+
+    // Dijaga di model, bukan di Policy: penghapusan lewat relasi, tinker, atau
+    // seeder tidak melewati Policy mana pun.
+    expect(fn () => $output->delete())->toThrow(DeletionNotPermitted::class)
+        ->and(ResearchOutput::query()->whereKey($output->id)->exists())->toBeTrue();
+});
+
+it('[RO-OUTPUT-24] luaran yang salah dikoreksi lewat penyuntingan', function () {
+    ['submission' => $s, 'owner' => $owner] = outputFixture();
+    outputType('artikel', ['fields' => [['key' => 'title', 'required' => true]]]);
+
+    $output = SaveResearchOutput::run($s, $owner, [
+        'output_type' => 'artikel',
+        'metadata' => ['title' => 'Judul Keliru'],
+    ]);
+
+    SaveResearchOutput::run($s, $owner, [
+        'output_type' => 'artikel',
+        'metadata' => ['title' => 'Judul Benar'],
+    ], $output);
+
+    expect($output->fresh()->metadata['title'])->toBe('Judul Benar')
+        // Koreksi tidak boleh berwujud "hapus lalu buat ulang" — baris yang sama
+        // harus bertahan, karena itulah yang menautkan luaran ke laporan lama.
+        ->and(ResearchOutput::query()->where('form_submission_id', $s->id)->count())->toBe(1);
 });

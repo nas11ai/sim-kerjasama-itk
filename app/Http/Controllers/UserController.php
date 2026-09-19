@@ -105,16 +105,4 @@ class UserController extends Controller
     /**
      * Remove the specified resource from storage.
      */
-    public function delete(Request $request, User $user)
-    {
-        $auth = $request->user();
-
-        if ($user->hasAnyRole(['Super Admin', 'Admin']) && !$auth->hasRole('Super Admin')) {
-            return to_route('admin.users.index')->with('error', 'Anda tidak berwenang untuk menghapus pengguna ini');
-        }
-
-        $user->delete();
-
-        return to_route('admin.users.index')->with('success', 'User berhasil dihapus');
-    }
 }

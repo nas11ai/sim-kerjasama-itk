@@ -16,7 +16,10 @@ use App\Models\User;
 use App\Models\UserProfile;
 use App\Notifications\ReviewerAppointedNotification;
 use App\States\Submission\Approved;
+use App\States\Submission\UnderReview;
+use App\Support\Lifecycle\DeletionNotPermitted;
 use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Facades\Route;
 use Illuminate\Validation\ValidationException;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
@@ -211,4 +214,58 @@ it('[IAM-REVIEWER-06] penunjukan menetapkan masa tugas yang ditegakkan BR-REV-09
 
     expect($reviewer->start_date->toDateString())->toBe('2026-01-01')
         ->and($reviewer->end_date->toDateString())->toBe('2026-12-31');
+});
+
+// ---------- BR-IAM-19: akun tidak pernah dihapus ----------
+
+it('[IAM-DEACT-05] user tidak bisa dihapus, hanya dinonaktifkan', function () {
+    $sari = registeredPerson();
+
+    expect(fn () => $sari->delete())->toThrow(DeletionNotPermitted::class)
+        ->and(User::query()->whereKey($sari->id)->exists())->toBeTrue();
+});
+
+it('[IAM-DEACT-06] jalur hapus tidak menembus penjagaan lead researcher', function () {
+    $sari = registeredPerson();
+
+    $submission = FormSubmission::factory()->create([
+        'submitted_by' => $sari->id,
+        'status' => UnderReview::class,
+        'is_submitted' => true,
+    ]);
+
+    // BR-IAM-10 menolak deaktivasi selama kepemilikan belum dipindah. Kalau
+    // penghapusan lolos, penjagaan itu tinggal formalitas — pengajuannya
+    // kehilangan pemilik lewat pintu sebelah.
+    expect(fn () => DeactivateUser::run($sari))->toThrow(ValidationException::class)
+        ->and(fn () => $sari->delete())->toThrow(DeletionNotPermitted::class)
+        ->and($submission->fresh()->submitted_by)->toBe($sari->id);
+});
+
+it('[IAM-DEACT-07] tidak ada jalur hapus user di antarmuka mana pun', function () {
+    $routes = collect(Route::getRoutes())->map(fn ($route) => $route->getName())->filter();
+
+    expect($routes)->not->toContain('admin.users.delete')
+        // Jalur kedua, dan yang lebih longgar dari keduanya: scaffolding Breeze
+        // membiarkan pemiliknya sendiri memanggil forceDelete() tanpa penjagaan
+        // apa pun, sementara form_submissions.submitted_by ber-cascade. Satu
+        // klik di halaman profil memusnahkan seluruh riwayat penelitiannya.
+        ->and($routes)->not->toContain('profile.destroy')
+        // Yang tersedia sebagai gantinya harus benar-benar ada, bukan sekadar
+        // diasumsikan: menghapus satu jalur tanpa memastikan penggantinya hidup
+        // meninggalkan Operator tanpa cara mencabut akses sama sekali.
+        ->and($routes)->toContain('admin.users.deactivate');
+});
+
+it('[IAM-DEACT-08] deaktivasi adalah satu-satunya cara mencabut akses akun', function () {
+    $sari = registeredPerson();
+
+    DeactivateUser::run($sari);
+
+    $this->post(route('login'), ['email' => $sari->email, 'password' => 'password'])
+        ->assertSessionHasErrors();
+
+    expect($sari->fresh()->is_active)->toBeFalse()
+        ->and($sari->fresh()->deleted_at)->toBeNull()
+        ->and(UserProfile::where('user_id', $sari->id)->exists())->toBeTrue();
 });

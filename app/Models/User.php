@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Support\Lifecycle\DeletionNotPermitted;
 use Database\Factories\UserFactory;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -23,6 +24,25 @@ class User extends Authenticatable implements MustVerifyEmail
 {
     /** @use HasFactory<UserFactory> */
     use HasFactory, HasRoles, Notifiable, SoftDeletes;
+
+    /**
+     * BR-IAM-19 — akun tidak pernah dihapus, hanya dinonaktifkan (BR-IAM-05).
+     *
+     * Dijaga di model karena jalur hapus menembus penjagaan jalur nonaktif:
+     * BR-IAM-10 menolak menonaktifkan lead researcher yang masih memegang
+     * pengajuan aktif sampai kepemilikannya dipindah, dan aturan itu kehilangan
+     * artinya selama masih ada jalur lain yang lebih merusak tanpa penjagaan.
+     */
+    protected static function booted(): void
+    {
+        static::deleting(function (): never {
+            throw new DeletionNotPermitted(
+                'Akun tidak dapat dihapus — user hanya dinonaktifkan (BR-IAM-19). '
+                .'Deaktivasi mencabut kemampuan bertindak tanpa menghilangkan pengajuan, '
+                .'profil, dan jejak yang menunjuk orang ini.'
+            );
+        });
+    }
 
     /**
      * The attributes that are mass assignable.

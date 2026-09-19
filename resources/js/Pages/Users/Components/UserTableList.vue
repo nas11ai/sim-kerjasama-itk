@@ -60,9 +60,9 @@ const columns: ColumnDef<User>[] = [
 
             return h(TableActionColumn, {
                 row,
-                onConfirmDelete: (userId: number) => openConfirmDialog(userId),
+                onConfirmDeactivate: (userId: number) => openConfirmDialog(userId),
                 canEdit: !isSuperAdmin,
-                canDelete: !isSuperAdmin && user.id !== authId,
+                canDeactivate: !isSuperAdmin && user.id !== authId && user.is_active,
             })
         },
     },
@@ -100,11 +100,15 @@ function openConfirmDialog(userId: number) {
     showDialog.value = true
 }
 
-function confirmDelete() {
+// BR-IAM-19 — tidak ada jalur hapus akun. Deaktivasi mencabut kemampuan
+// bertindak tanpa menghilangkan pengajuan, profil, dan jejak orang ini.
+function confirmDeactivate() {
     if (selectedUserId.value !== null) {
-        router.delete(route('admin.users.delete', { id: selectedUserId.value }), {
-            preserveState: false,
-        })
+        router.post(
+            route('admin.users.deactivate', { user: selectedUserId.value }),
+            {},
+            { preserveState: false }
+        )
         showDialog.value = false
     }
 }
@@ -133,7 +137,7 @@ function confirmDelete() {
                                     :render="cell.column.columnDef.cell"
                                     :props="{
                                         ...cell.getContext(),
-                                        onConfirmDelete: openConfirmDialog,
+                                        onConfirmDeactivate: openConfirmDialog,
                                     }"
                                 />
                             </TableCell>
@@ -152,5 +156,11 @@ function confirmDelete() {
     </div>
 
     <DataTablePagination :table="table" />
-    <DeleteDialog v-model="showDialog" :confirm-delete="confirmDelete" />
+    <DeleteDialog
+        v-model="showDialog"
+        :confirm-delete="confirmDeactivate"
+        title="Nonaktifkan akun ini?"
+        description="Akun berhenti bisa login dan tidak menerima penugasan baru. Pengajuan, profil, dan jejaknya tetap utuh, dan akun bisa diaktifkan kembali."
+        confirm-label="Ya, nonaktifkan"
+    />
 </template>

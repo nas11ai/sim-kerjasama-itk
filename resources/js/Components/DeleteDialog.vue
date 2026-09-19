@@ -7,10 +7,23 @@ import DialogFooter from './ui/dialog/DialogFooter.vue'
 import DialogHeader from './ui/dialog/DialogHeader.vue'
 import DialogTitle from './ui/dialog/DialogTitle.vue'
 
-const props = defineProps<{
-    modelValue: boolean
-    confirmDelete: () => void
-}>()
+// Judul dan keterangan bisa ditimpa karena konfirmasi wajib menyebut dampak
+// sebenarnya. Dialog yang selalu berbunyi "permanently delete" pada aksi yang
+// justru tidak menghapus apa pun mengajari penggunanya untuk berhenti membaca.
+const props = withDefaults(
+    defineProps<{
+        modelValue: boolean
+        confirmDelete: () => void
+        title?: string
+        description?: string
+        confirmLabel?: string
+    }>(),
+    {
+        title: 'Are you sure?',
+        description: 'This action cannot be undone. This will permanently delete the data.',
+        confirmLabel: 'Yes, delete',
+    }
+)
 
 const emit = defineEmits<{
     'update:modelValue': [value: boolean]
@@ -21,10 +34,8 @@ const emit = defineEmits<{
     <Dialog :open="props.modelValue" @close="emit('update:modelValue', false)">
         <DialogContent>
             <DialogHeader>
-                <DialogTitle>Are you sure?</DialogTitle>
-                <DialogDescription>
-                    This action cannot be undone. This will permanently delete the data.
-                </DialogDescription>
+                <DialogTitle>{{ props.title }}</DialogTitle>
+                <DialogDescription>{{ props.description }}</DialogDescription>
             </DialogHeader>
             <DialogFooter class="mt-4">
                 <Button
@@ -39,7 +50,7 @@ const emit = defineEmits<{
                     class="cursor-pointer bg-red-500 hover:bg-red-500/80"
                     @click="confirmDelete"
                 >
-                    Yes, delete
+                    {{ props.confirmLabel }}
                 </Button>
             </DialogFooter>
         </DialogContent>

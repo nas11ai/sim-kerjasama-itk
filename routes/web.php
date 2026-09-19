@@ -94,7 +94,6 @@ Route::get('announcements/{announcement}', [AnnouncementController::class, 'deta
 Route::middleware(['auth', 'check_reviewer_status'])->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
-    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
     // Enhanced review routes with evaluation integration
     Route::patch('/review-summaries/{reviewSummary}/complete', [ReviewController::class, 'completeReview'])
@@ -255,7 +254,6 @@ Route::middleware(['auth', 'can:users.manage', 'check_reviewer_status'])->prefix
     Route::post('/users/store', [UserController::class, 'store'])->name('users.store');
     Route::get('/users/{user}', [UserController::class, 'edit'])->name('users.edit');
     Route::put('/users/{user}', [UserController::class, 'update'])->name('users.update');
-    Route::delete('/users/{user}', [UserController::class, 'delete'])->name('users.delete');
 
     // Role Management
     Route::resource('roles', RoleController::class)->names([
