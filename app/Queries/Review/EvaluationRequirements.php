@@ -18,9 +18,11 @@ class EvaluationRequirements implements ChangesNoState
     /** @return array{required: bool, has_forms: bool, message: string, total_forms?: int, required_forms?: int} */
     public function handle(FormSubmission $submission): array
     {
-        $detail = $submission->formPhaseDetail;
+        // Satu pemindaian untuk tiga jawaban: yang wajib adalah himpunan bagian
+        // dari yang aktif, jadi menyaringnya di PHP sama dengan kueri keduanya.
+        $forms = $submission->formPhaseDetail?->activeReviewEvaluationForms()->get();
 
-        if ($detail === null || !$detail->hasReviewEvaluationForms()) {
+        if ($forms === null || $forms->isEmpty()) {
             return [
                 'required' => false,
                 'has_forms' => false,
@@ -31,8 +33,8 @@ class EvaluationRequirements implements ChangesNoState
         return [
             'required' => true,
             'has_forms' => true,
-            'total_forms' => $detail->review_evaluation_forms_count,
-            'required_forms' => $detail->required_review_evaluation_forms_count,
+            'total_forms' => $forms->count(),
+            'required_forms' => $forms->where('is_required', true)->count(),
             'message' => 'This submission requires evaluation forms to be completed before creating review threads.',
         ];
     }
