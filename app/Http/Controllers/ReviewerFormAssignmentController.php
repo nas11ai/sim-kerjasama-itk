@@ -2,11 +2,11 @@
 
 namespace App\Http\Controllers;
 
+use App\Actions\Review\AssignEvaluationForm;
 use App\Actions\Review\LockEvaluationForm;
 use App\Models\FormPhase;
 use App\Models\FormSubmission;
 use App\Models\ReviewerFormAssignment;
-use App\Models\ReviewEvaluationForm;
 use App\Models\SubmissionReviewer;
 use App\Support\Review\EvaluationStatusRecalculator;
 use Carbon\Carbon;
@@ -17,71 +17,6 @@ use Inertia\Inertia;
 
 class ReviewerFormAssignmentController extends Controller
 {
-    public function assignFormsToReviewer(Request $request, FormSubmission $submission, int $reviewerId)
-    {
-        $validated = $request->validate([
-            'evaluation_form_ids' => 'required|array|min:1',
-            'evaluation_form_ids.*' => 'exists:review_evaluation_forms,id',
-            'assignments' => 'required|array',
-            'assignments.*.form_id' => 'required|exists:review_evaluation_forms,id',
-            'assignments.*.is_required' => 'boolean',
-            'assignments.*.due_date' => 'nullable|date|after:now',
-        ]);
-
-        // Find submission reviewer
-        $submissionReviewer = SubmissionReviewer::where([
-            'form_submission_id' => $submission->id,
-            'reviewer_id' => $reviewerId,
-        ])->first();
-
-        if (!$submissionReviewer) {
-            return back()->withErrors(['error' => 'Reviewer tidak ditugaskan untuk pengajuan ini.']);
-        }
-
-        try {
-            DB::beginTransaction();
-
-            foreach ($validated['assignments'] as $assignment) {
-                // Check if form belongs to the same phase as submission
-                /** @var ReviewEvaluationForm $evaluationForm */
-                $evaluationForm = ReviewEvaluationForm::with('formPhaseDetail')
-                    ->findOrFail($assignment['form_id']);
-
-                // Validate form phase matches submission form phase
-                $formPhase = $this->getSubmissionFormPhase($submission);
-                if (!$formPhase || $evaluationForm->formPhaseDetail?->form_phase_id !== $formPhase->id) {
-                    throw new \Exception("Formulir evaluasi '{$evaluationForm->title}' tidak termasuk dalam tahap formulir yang benar.");
-                }
-
-                // Create or update assignment
-                ReviewerFormAssignment::updateOrCreate(
-                    [
-                        'submission_reviewer_id' => $submissionReviewer->id,
-                        'review_evaluation_form_id' => $assignment['form_id'],
-                    ],
-                    [
-                        'is_required' => $assignment['is_required'] ?? true,
-                        'due_date' => $assignment['due_date'] ? Carbon::parse($assignment['due_date']) : null,
-                        'assigned_at' => now(),
-                        'is_active' => true,
-                    ]
-                );
-            }
-
-            // Update submission reviewer evaluation status
-            EvaluationStatusRecalculator::for($submissionReviewer);
-
-            DB::commit();
-
-            return back()->with('success', 'Formulir evaluasi berhasil ditugaskan.');
-
-        } catch (\Exception $e) {
-            DB::rollback();
-
-            return back()->withErrors(['error' => 'Gagal menugaskan formulir evaluasi: '.$e->getMessage()]);
-        }
-    }
-
     public function removeFormAssignment(ReviewerFormAssignment $assignment)
     {
         // Check if there are any submitted responses
@@ -205,21 +140,15 @@ class ReviewerFormAssignmentController extends Controller
                 }
 
                 foreach ($validated['form_assignments'] as $assignment) {
-                    ReviewerFormAssignment::updateOrCreate(
-                        [
-                            'submission_reviewer_id' => $submissionReviewer->id,
-                            'review_evaluation_form_id' => $assignment['form_id'],
-                        ],
-                        [
-                            'is_required' => $assignment['is_required'] ?? true,
-                            'due_date' => $assignment['due_date'] ? Carbon::parse($assignment['due_date']) : null,
-                            'assigned_at' => now(),
-                            'is_active' => true,
-                        ]
+                    // BR-RPT-09 — satu Action, satu entri audit. Penugasan dari
+                    // jalur mana pun meninggalkan jejak yang sama.
+                    AssignEvaluationForm::run(
+                        $submissionReviewer,
+                        (int) $assignment['form_id'],
+                        $assignment['is_required'] ?? true,
+                        $assignment['due_date'] ? Carbon::parse($assignment['due_date']) : null,
                     );
                 }
-
-                EvaluationStatusRecalculator::for($submissionReviewer);
                 $successCount++;
             }
 
