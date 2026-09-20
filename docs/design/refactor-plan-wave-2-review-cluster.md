@@ -22,8 +22,77 @@ saling memanggil, jadi mengerjakannya satu per satu berarti membuka
 
 **Pendahulu:** [`refactor-plan-wave-2-formsubmission.md`](refactor-plan-wave-2-formsubmission.md)
 
-**Status:** belum dikerjakan. Ditulis 20 September 2026, sesudah gelombang 2 bagian 2
-mendarat di `60ee951`. Suite acuan: **891 test**, `max.legacy.files: 276`.
+**Status:** **selesai 20 September 2026**, mendarat di `06a2d30`. Ditulis hari yang
+sama sesudah gelombang 2 bagian 2 mendarat di `60ee951`. Suite acuan awal: **891 test**,
+`max.legacy.files: 276`. Hasil akhir: **924 test**, `max.legacy.files: 273`.
+
+---
+
+## Status pelaksanaan
+
+Seluruh 15 Task dikerjakan berurutan. `composer run quality` dan `npm run quality`
+hijau di akhir. `pending.txt` dan `uncovered.txt` tidak berubah.
+
+| Ukuran | Sebelum | Sesudah |
+| ------ | ------: | ------: |
+| Test | 891 | **924** |
+| `max.legacy.files` | 276 | **273** |
+| `SubmissionReviewer` | 318 baris | **136** |
+| `ReviewFormResponse` | 241 baris | **105** |
+| `ReviewFormFieldResponse` | 205 baris | **47** |
+| `ReviewerFormAssignment` | 175 baris | **97** |
+
+Ketiga model keluar dari `quality-legacy.txt`, dan `HardLimits::violations()` dengan
+korpus penuh mengembalikan `[]` untuk keempatnya.
+
+### Yang berbeda dari rencana
+
+**Sensus butuh tiga putaran penghapusan, bukan dua.** Putaran 1 (Task 2–3), putaran 2
+(`overdueReviewerFormAssignments`, `scopeOptional`, `scopeDueSoon`, `getStatus`,
+`autoLockIfOverdue`, `getFieldResponse`), putaran 3 (`scopeOverdue`). Putaran 4
+tidak menemukan apa pun.
+
+**Lima simpangan sensus S1–S5** tercatat di bagian *Sensus bervonis* di atas dan
+semuanya mengubah pelaksanaan:
+
+- **S1** — `hasAllRequiredFormsCompleted()` punya pemanggil produksi, jadi Task 9
+  mengalihkan `ReviewFormResponseController:377` ke `RequiredFormsCompletion::run()`
+  alih-alih menghapus method-nya begitu saja.
+- **S3** — `Actions/Review/RemoveEvaluationFormAssignment` **tidak jadi dibuat**.
+  `SubmissionReviewer::removeFormAssignment()` nol pemanggil; jalur pencabutan yang
+  sebenarnya ada di `ReviewerFormAssignmentController` dan lebih lengkap.
+- **S5** — Task 11 tidak menulis ulang `autoLockIfOverdue()`; method itu sudah mati
+  di putaran kedua. Penguncian tenggat tetap ditegakkan
+  `ReviewerFormAssignmentController::autoLockOverdueAssignments()`.
+
+**Test T2 diganti karena yang di rencana tidak membedakan apa pun.** Test "form wajib
+ditambah sesudah submit" gagal karena instance PHP yang basi (`isDirty()` tidak
+menyala), bukan karena duplikasi yang hendak dibuktikan — ia tetap merah sesudah
+perbaikan. Penggantinya dua test yang memang membedakan kedua implementasi:
+status melenceng yang diselaraskan saat submit, dan penugasan nonaktif yang harus
+jatuh ke `not_required`.
+
+**Tiga berkas keluar dari antrean lebih awal dari Task 15.** `QualityBudgetTest`
+assertion 2 menolak berkas bersih yang masih terdaftar, jadi `ReviewFormResponse`
+keluar di Task 3 (276→275) dan `ReviewFormFieldResponse` di Task 13 (275→274).
+Task 15 menurunkan sisanya (274→273).
+
+**`ReviewFormField::getValidationRulesStringAttribute()` ikut dicabut.**
+Menyempitkan tipe `validation_rules` (Task 13 Step 3) membuka bahwa cabang
+`is_bool()`-nya mati. Method-nya sendiri nol pemanggil — frontend punya
+`formatValidationRules()` sendiri di `ShowPage.vue` — jadi ia lolos ketiga centang K2.
+
+**`ReviewFormFieldResponse` diberi docblock properti.** `@property string|null $value`
+dan `@property-read ReviewFormField|null $reviewFormField` ditambahkan supaya
+`FieldResponseFormatter` dan `FieldResponseValidator` bisa bekerja di tier strict
+tanpa cast — sesuai aturan 5, menyempitkan tipe lebih dulu, bukan membungkam PHPStan.
+
+### Utang yang ditinggalkan
+
+- `ReviewSummary` dan `Organization` masih di antrean legacy, masing-masing menunggu
+  rencananya sendiri.
+- Controller cluster review (`ReviewController`, `ReviewFormResponseController`,
+  `ReviewerFormAssignmentController`) belum dibedah — itu gelombang 3.
 
 ---
 
