@@ -140,7 +140,7 @@ class AssignReviewer
             return;
         }
 
-        $assigned = $submission->submissionReviewers()->where('status', 'active')->count();
+        $assigned = $submission->activeSubmissionReviewers()->count();
 
         if ($assigned < $this->minimumReviewers($submission)) {
             return;

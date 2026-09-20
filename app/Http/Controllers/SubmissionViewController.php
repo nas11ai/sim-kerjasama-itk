@@ -321,7 +321,7 @@ class SubmissionViewController extends Controller
 
         // Review statistics
         $reviewStats = [
-            'total_reviewers' => $submission->submissionReviewers->count(),
+            'total_reviewers' => $submission->activeSubmissionReviewers()->count(),
             'open_reviews' => $submission->reviewSummaries->where('status', 'open')->count(),
             'resolved_reviews' => $submission->reviewSummaries->where('status', 'resolved')->count(),
             'total_comments' => $reviewComments->count(),
@@ -395,7 +395,7 @@ class SubmissionViewController extends Controller
         }
 
         // Format assigned reviewers
-        $assignedReviewers = $submission->submissionReviewers
+        $assignedReviewers = $submission->activeSubmissionReviewers
             ->load(['reviewer.user'])
             ->map(function ($sr) {
                 return [
@@ -726,14 +726,14 @@ class SubmissionViewController extends Controller
 
             // Get review statistics
             $reviewStats = [
-                'total_reviewers' => $submission->submissionReviewers->count(),
+                'total_reviewers' => $submission->activeSubmissionReviewers()->count(),
                 'open_reviews' => collect($reviewSummaries)->where('status', 'open')->count(),
                 'resolved_reviews' => collect($reviewSummaries)->where('status', 'resolved')->count(),
                 'total_comments' => count($reviewComments),
             ];
 
             // Get assigned reviewers
-            $assignedReviewers = $submission->submissionReviewers->map(function ($submissionReviewer) {
+            $assignedReviewers = $submission->activeSubmissionReviewers->map(function ($submissionReviewer) {
                 return [
                     'id' => $submissionReviewer->id, // submission_reviewer id
                     'user' => [
@@ -1130,7 +1130,7 @@ class SubmissionViewController extends Controller
 
         $myReviewSummary = collect($reviewSummaries)->firstWhere('reviewer_id', $reviewer->id);
 
-        $assignedReviewers = $submission->submissionReviewers->map(function ($submissionReviewer) {
+        $assignedReviewers = $submission->activeSubmissionReviewers->map(function ($submissionReviewer) {
             return [
                 'id' => $submissionReviewer->reviewer->id,
                 'user' => [

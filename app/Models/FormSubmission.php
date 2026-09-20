@@ -133,6 +133,18 @@ class FormSubmission extends Model
         return $this->hasMany(SubmissionReviewer::class);
     }
 
+    /**
+     * BR-REV-05/BR-REV-15 — yang ditampilkan dan dihitung hanyalah penugasan
+     * yang masih berlaku. Yang `replaced` tetap tersimpan sebagai sejarah,
+     * tapi ia bukan pekerjaan dan bukan anggota tim review hari ini.
+     *
+     * @return HasMany<SubmissionReviewer, $this>
+     */
+    public function activeSubmissionReviewers(): HasMany
+    {
+        return $this->submissionReviewers()->active();
+    }
+
     /** @return HasMany<ReviewSummary, $this> */
     public function reviewSummaries(): HasMany
     {
