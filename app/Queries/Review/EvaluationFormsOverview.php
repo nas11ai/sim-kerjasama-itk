@@ -11,8 +11,8 @@ use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use Lorisleiva\Actions\Concerns\AsAction;
 
 /**
- * Form evaluasi yang berlaku bagi sebuah pengajuan, beserta progres penugasannya.
- * Penugasan dihitung dua kueri untuk seluruh form; versi lama menjalankan dua
+ * Form evaluasi yang berlaku bagi sebuah pengajuan, beserta progres penugasan
+ * yang masih berlaku. Dua kueri untuk seluruh form; versi lama menjalankan dua
  * COUNT per form di dalam perulangan.
  *
  * @method static array<int, array{form: ReviewEvaluationForm, assigned_count: int, completed_count: int, completion_percentage: int}> run(FormSubmission $submission)
@@ -30,9 +30,9 @@ class EvaluationFormsOverview implements ChangesNoState
             return [];
         }
 
-        $assigned = self::countPerForm($submission->reviewerFormAssignments());
+        $assigned = self::countPerForm(self::applicableAssignments($submission));
         $completed = self::countPerForm(
-            $submission->reviewerFormAssignments()->whereRelation('reviewFormResponse', 'status', 'submitted'),
+            self::applicableAssignments($submission)->whereRelation('reviewFormResponse', 'status', 'submitted'),
         );
 
         $overview = [];
@@ -50,6 +50,20 @@ class EvaluationFormsOverview implements ChangesNoState
         }
 
         return $overview;
+    }
+
+    /**
+     * Penugasan yang masih berlaku saja: milik reviewer aktif (BR-REV-05) dan
+     * belum dicabut. Nama tabel disebut eksplisit karena HasManyThrough
+     * menggabung dua tabel yang sama-sama punya `status` dan `is_active`.
+     *
+     * @return HasManyThrough<ReviewerFormAssignment, SubmissionReviewer, FormSubmission>
+     */
+    private static function applicableAssignments(FormSubmission $submission): HasManyThrough
+    {
+        return $submission->reviewerFormAssignments()
+            ->where('reviewer_form_assignments.is_active', true)
+            ->where('submission_reviewers.status', 'active');
     }
 
     /**

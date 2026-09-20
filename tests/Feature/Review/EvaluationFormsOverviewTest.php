@@ -56,3 +56,31 @@ it('merangkum penugasan dan penyelesaian per form evaluasi', function () {
 
     expect($rows->all())->toBe([[$substance->id, 2, 1, 50], [$budget->id, 0, 0, 0]]);
 });
+
+it('tidak menghitung penugasan yang sudah tidak berlaku', function () {
+    $detail = FormPhaseDetail::factory()->create(['needs_review' => true]);
+    $submission = FormSubmission::factory()->create(['form_phase_detail_id' => $detail->id]);
+    $form = overviewEvaluationForm($detail, 1);
+
+    overviewAssignment($submission, $form, 'submitted');
+
+    // Reviewer yang diganti: penugasannya sejarah, bukan pekerjaan tertunda.
+    $replaced = SubmissionReviewer::create([
+        'form_submission_id' => $submission->id,
+        'reviewer_id' => Reviewer::factory()->create()->id,
+        'evaluation_status' => 'pending',
+        'status' => 'replaced',
+    ]);
+    ReviewerFormAssignment::create([
+        'submission_reviewer_id' => $replaced->id,
+        'review_evaluation_form_id' => $form->id,
+        'is_required' => true,
+        'assigned_at' => now(),
+        'is_active' => true,
+    ]);
+
+    $rows = EvaluationFormsOverview::run($submission->fresh());
+
+    expect($rows[0]['assigned_count'])->toBe(1)
+        ->and($rows[0]['completion_percentage'])->toBe(100);
+});
