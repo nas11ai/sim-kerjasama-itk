@@ -128,24 +128,6 @@ class ReviewFormResponse extends Model
         return true;
     }
 
-    // Get completion percentage
-    public function getCompletionPercentage(): int
-    {
-        $reviewForm = $this->reviewerFormAssignment->reviewEvaluationForm;
-        $totalFields = $reviewForm->reviewFormFields()->count();
-
-        if ($totalFields === 0) {
-            return 100;
-        }
-
-        $completedFields = $this->reviewFormFieldResponses()
-            ->whereNotNull('value')
-            ->where('value', '!=', '')
-            ->count();
-
-        return min(100, round(($completedFields / $totalFields) * 100));
-    }
-
     // Save field response
     public function saveFieldResponse(int $fieldId, ?string $value): ReviewFormFieldResponse
     {

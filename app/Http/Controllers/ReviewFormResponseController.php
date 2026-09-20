@@ -10,6 +10,7 @@ use App\Models\ReviewFormResponse;
 use App\Models\ReviewSummary;
 use App\Models\SubmissionPeriod;
 use App\Models\SubmissionReviewer;
+use App\Queries\Review\EvaluationFormCompletion;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -145,7 +146,7 @@ class ReviewFormResponseController extends Controller
             'existingResponses' => $existingResponses,
             'canEdit' => $response->canBeEdited(),
             'canSubmit' => $response->canBeSubmitted(),
-            'completionPercentage' => $response->getCompletionPercentage(),
+            'completionPercentage' => EvaluationFormCompletion::run($response),
         ]);
     }
 
@@ -450,7 +451,7 @@ class ReviewFormResponseController extends Controller
 
         return response()->json([
             'status' => $response->status,
-            'completion_percentage' => $response->getCompletionPercentage(),
+            'completion_percentage' => EvaluationFormCompletion::run($response),
             'can_submit' => $response->canBeSubmitted(),
             'can_edit' => $response->canBeEdited(),
             'is_overdue' => $assignment->isOverdue(),
