@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Support\Review\EvaluationStatusRecalculator;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -89,7 +90,7 @@ class ReviewFormResponse extends Model
 
         // BR-REV-05 — satu definisi hitung ulang. Versi lama di sini hanya bisa
         // menulis `completed` dan tak pernah kembali ke `pending`.
-        $this->reviewerFormAssignment->submissionReviewer->updateEvaluationStatus();
+        EvaluationStatusRecalculator::for($this->reviewerFormAssignment->submissionReviewer);
 
         return true;
     }

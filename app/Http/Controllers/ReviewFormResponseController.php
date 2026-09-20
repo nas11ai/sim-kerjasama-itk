@@ -11,6 +11,8 @@ use App\Models\ReviewSummary;
 use App\Models\SubmissionPeriod;
 use App\Models\SubmissionReviewer;
 use App\Queries\Review\EvaluationFormCompletion;
+use App\Queries\Review\RequiredFormsCompletion;
+use App\Support\Review\EvaluationStatusRecalculator;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -98,7 +100,7 @@ class ReviewFormResponseController extends Controller
         );
 
         // Update evaluation status
-        $submissionReviewer->updateEvaluationStatus();
+        EvaluationStatusRecalculator::for($submissionReviewer);
 
         // Redirect to show page
         return redirect()->route('reviewer.evaluation-form.show', $assignment->id);
@@ -374,7 +376,7 @@ class ReviewFormResponseController extends Controller
         $submissionReviewer = $assignment->submissionReviewer;
 
         // Check if all required evaluations are completed
-        if (!$submissionReviewer->hasAllRequiredFormsCompleted()) {
+        if (!RequiredFormsCompletion::run($submissionReviewer)) {
             return;
         }
 

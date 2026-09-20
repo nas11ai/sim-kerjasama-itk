@@ -12,6 +12,7 @@ use App\Models\Reviewer;
 use App\Models\ReviewEvaluationForm;
 use App\Models\ReviewFormResponse;
 use App\Models\SubmissionReviewer;
+use App\Support\Review\EvaluationStatusRecalculator;
 
 /** @return array{0: SubmissionReviewer, 1: ReviewEvaluationForm} */
 function recalcFixture(): array
@@ -56,7 +57,7 @@ it('mengembalikan status ke pending saat form wajib baru ditugaskan', function (
         'reviewer_form_assignment_id' => $assignment->id,
         'status' => 'submitted',
     ]);
-    $reviewer->updateEvaluationStatus();
+    EvaluationStatusRecalculator::for($reviewer);
 
     expect($reviewer->fresh()->evaluation_status)->toBe('completed');
 

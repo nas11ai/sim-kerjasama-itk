@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Support\Review\EvaluationStatusRecalculator;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -14,8 +15,6 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property string $status
  * @property-read FormSubmission $formSubmission
  * @property-read Reviewer $reviewer
- *
- * @method bool hasAllRequiredFormsCompleted()
  */
 class SubmissionReviewer extends Model
 {
@@ -61,15 +60,6 @@ class SubmissionReviewer extends Model
     public function activeReviewerFormAssignments(): HasMany
     {
         return $this->reviewerFormAssignments()->active();
-    }
-
-    // NEW: Required form assignments
-    /**
-     * @return HasMany<ReviewerFormAssignment, $this>
-     */
-    public function requiredReviewerFormAssignments(): HasMany
-    {
-        return $this->reviewerFormAssignments()->required()->active();
     }
 
     // NEW: Completed form assignments
@@ -139,45 +129,6 @@ class SubmissionReviewer extends Model
         $this->update(['status' => 'replaced']);
     }
 
-    public function hasAssignedForms(): bool
-    {
-        return $this->activeReviewerFormAssignments()->exists();
-    }
-
-    // NEW: Check if all required forms are completed
-    public function hasAllRequiredFormsCompleted(): bool
-    {
-        $requiredCount = $this->requiredReviewerFormAssignments()->count();
-
-        if ($requiredCount === 0) {
-            return true; // No required forms means completed
-        }
-
-        $completedCount = $this->requiredReviewerFormAssignments()
-            ->whereHas('reviewFormResponse', function ($query) {
-                $query->where('status', 'submitted');
-            })
-            ->count();
-
-        return $completedCount === $requiredCount;
-    }
-
-    // NEW: Update evaluation status based on current form completion
-    public function updateEvaluationStatus(): void
-    {
-        if (!$this->hasAssignedForms()) {
-            $this->update(['evaluation_status' => 'not_required']);
-
-            return;
-        }
-
-        if ($this->hasAllRequiredFormsCompleted()) {
-            $this->update(['evaluation_status' => 'completed']);
-        } else {
-            $this->update(['evaluation_status' => 'pending']);
-        }
-    }
-
     // NEW: Get pending forms count
     public function getPendingFormsCountAttribute(): int
     {
@@ -195,8 +146,8 @@ class SubmissionReviewer extends Model
             'assigned_at' => now(),
         ]);
 
-        // Update evaluation status
-        $this->updateEvaluationStatus();
+        // BR-REV-05 — pekerjaannya bertambah, jadi statusnya ikut dihitung ulang.
+        EvaluationStatusRecalculator::for($this);
 
         return $assignment;
     }
