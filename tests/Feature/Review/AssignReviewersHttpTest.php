@@ -269,3 +269,32 @@ it('[REV-ASSIGN-09] mengirim satu notifikasi penugasan, bukan dua', function () 
     Notification::assertSentToTimes($reviewer->user, ReviewerAssignedNotification::class, 1);
     Mail::assertNothingQueued();
 });
+
+it('menstempel tenggat kosong saat periodenya tidak punya tanggal, bukan tanggal karangan', function () {
+    // Jalur lama mengarang `+7 days` di sini. Membiarkan null itu keputusan
+    // sadar: kolomnya nullable dan layar menampilkan "No deadline" — tapi ia
+    // juga membuat autoLockIfOverdue() tidak pernah berjalan.
+    [$operator, $submission] = assignHttpFixture();
+
+    ReviewEvaluationForm::create([
+        'title' => 'Substansi',
+        'form_phase_detail_id' => $submission->form_phase_detail_id,
+        'is_active' => true,
+        'is_required' => true,
+        'order' => 1,
+    ]);
+
+    $period = SubmissionPeriod::create(['name' => 'Periode Tanpa Tanggal']);
+    $submission->update(['submission_period_id' => $period->id]);
+
+    $this->actingAs($operator)
+        ->post(route('admin.submissions.assign-reviewers', $submission), [
+            'reviewer_ids' => [httpReviewer()->id],
+        ])
+        ->assertRedirect();
+
+    $assignment = ReviewerFormAssignment::query()->sole();
+
+    expect($assignment->due_date)->toBeNull()
+        ->and($assignment->isOverdue())->toBeFalse();
+});

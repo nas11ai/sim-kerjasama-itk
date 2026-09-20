@@ -84,3 +84,32 @@ it('tidak menghitung penugasan yang sudah tidak berlaku', function () {
     expect($rows[0]['assigned_count'])->toBe(1)
         ->and($rows[0]['completion_percentage'])->toBe(100);
 });
+
+it('tidak menghitung penugasan yang sudah dicabut', function () {
+    // Sisi `is_active` dari saringan: belum ada jalur produksi yang menulis
+    // false, jadi tanpa test ini separuh saringan bisa dibalik tanpa ketahuan.
+    $detail = FormPhaseDetail::factory()->create(['needs_review' => true]);
+    $submission = FormSubmission::factory()->create(['form_phase_detail_id' => $detail->id]);
+    $form = overviewEvaluationForm($detail, 1);
+
+    overviewAssignment($submission, $form, 'submitted');
+
+    $active = SubmissionReviewer::create([
+        'form_submission_id' => $submission->id,
+        'reviewer_id' => Reviewer::factory()->create()->id,
+        'evaluation_status' => 'pending',
+        'status' => 'active',
+    ]);
+    ReviewerFormAssignment::create([
+        'submission_reviewer_id' => $active->id,
+        'review_evaluation_form_id' => $form->id,
+        'is_required' => true,
+        'assigned_at' => now(),
+        'is_active' => false,
+    ]);
+
+    $rows = EvaluationFormsOverview::run($submission->fresh());
+
+    expect($rows[0]['assigned_count'])->toBe(1)
+        ->and($rows[0]['completion_percentage'])->toBe(100);
+});
