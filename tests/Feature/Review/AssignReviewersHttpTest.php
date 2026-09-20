@@ -13,14 +13,25 @@
 // Delegasi diuji sebagai perilaku, bukan lewat mock: kalau controller
 // diam-diam berhenti memanggil Action-nya, test di sini memerah.
 
+use App\Models\Form;
+use App\Models\FormAccessControl;
+use App\Models\FormPhase;
 use App\Models\FormPhaseDetail;
 use App\Models\FormSubmission;
+use App\Models\Organization;
+use App\Models\PhaseType;
 use App\Models\Reviewer;
+use App\Models\ReviewerFormAssignment;
+use App\Models\ReviewEvaluationForm;
 use App\Models\Scheme;
+use App\Models\SubmissionDate;
+use App\Models\SubmissionDateLabel;
+use App\Models\SubmissionPeriod;
 use App\Models\SubmissionReviewer;
 use App\Models\User;
 use App\States\Submission\Submitted;
 use App\States\Submission\UnderReview;
+use Illuminate\Support\Facades\DB;
 use Spatie\Permission\Models\Permission;
 
 /** @return array{0: User, 1: FormSubmission} */
@@ -138,4 +149,89 @@ it('satu penugasan yang ditolak membatalkan seluruh permintaan', function () {
     // Menyimpan sebagian akan menyisakan penugasan yang Operator kira gagal.
     expect($submission->submissionReviewers()->count())->toBe(0)
         ->and($submission->fresh()->status)->toBeInstanceOf(Submitted::class);
+});
+
+it('[REV-ASSIGN-10] menstempel tenggat dari period pengajuan sendiri, bukan period yang berbagi fase', function () {
+    // ADR 0004 di level HTTP: submission_period_phases tanpa unique constraint
+    // membuat satu FormPhase boleh dimiliki banyak period, jadi menebak period
+    // lewat pivot itu menstempel reviewer dengan tenggat milik period lain.
+    Permission::findOrCreate('users.manage', 'web');
+
+    $operator = User::factory()->create();
+    $operator->givePermissionTo('users.manage');
+
+    $scheme = Scheme::factory()->create([
+        'rules' => ['min_reviewer_count' => 2, 'max_reviewer_workload' => 10],
+    ]);
+
+    $form = Form::factory()->create();
+    $organization = Organization::create(['name' => 'Organisasi Uji Tenggat HTTP', 'type' => 'faculty']);
+    $formAccessControl = FormAccessControl::create([
+        'form_id' => $form->id,
+        'permission' => 'submissions.create',
+        'organization_id' => $organization->id,
+    ]);
+    $phaseType = PhaseType::create(['name' => 'Tipe Fase Uji Tenggat HTTP']);
+    $formPhase = FormPhase::create(['title' => 'Fase Uji Tenggat HTTP', 'is_active' => true]);
+
+    // Period A — milik pengajuan lewat FK submission_period_id.
+    $periodA = SubmissionPeriod::create(['name' => 'Periode A Tenggat HTTP']);
+    $labelA = SubmissionDateLabel::create(['name' => 'Label A Tenggat HTTP']);
+    $dueA = now()->addDays(5)->startOfSecond();
+    $dateA = SubmissionDate::create([
+        'submission_date_label_id' => $labelA->id,
+        'datetime' => $dueA,
+        'submission_period_id' => $periodA->id,
+    ]);
+
+    // Period B — tak berhubungan lewat FK, tapi berbagi form_phase_id lewat pivot.
+    $periodB = SubmissionPeriod::create(['name' => 'Periode B Tenggat HTTP']);
+    $labelB = SubmissionDateLabel::create(['name' => 'Label B Tenggat HTTP']);
+    SubmissionDate::create([
+        'submission_date_label_id' => $labelB->id,
+        'datetime' => now()->addDays(20)->startOfSecond(),
+        'submission_period_id' => $periodB->id,
+    ]);
+
+    DB::table('submission_period_phases')->insert([
+        'submission_period_id' => $periodB->id,
+        'form_phase_id' => $formPhase->id,
+    ]);
+
+    $detail = FormPhaseDetail::create([
+        'form_phase_id' => $formPhase->id,
+        'form_access_control_id' => $formAccessControl->id,
+        'phase_type_id' => $phaseType->id,
+        'order' => 1,
+        'submission_date_id' => $dateA->id,
+        'needs_review' => true,
+    ]);
+
+    ReviewEvaluationForm::create([
+        'title' => 'Substansi',
+        'form_phase_detail_id' => $detail->id,
+        'is_active' => true,
+        'is_required' => true,
+        'order' => 1,
+    ]);
+
+    $submission = FormSubmission::factory()->create([
+        'form_id' => $form->id,
+        'submitted_by' => User::factory()->create()->id,
+        'scheme_id' => $scheme->id,
+        'form_phase_detail_id' => $detail->id,
+        'submission_period_id' => $periodA->id,
+        'status' => Submitted::class,
+    ]);
+
+    $this->actingAs($operator)
+        ->post(route('admin.submissions.assign-reviewers', $submission), [
+            'reviewer_ids' => [httpReviewer()->id],
+        ])
+        ->assertRedirect();
+
+    $assignment = ReviewerFormAssignment::query()->sole();
+
+    expect($assignment->due_date)->not->toBeNull()
+        ->and($assignment->due_date->format('Y-m-d H:i:s'))->toBe($dueA->format('Y-m-d H:i:s'));
 });

@@ -15,12 +15,11 @@ use App\Models\ReviewEvaluationForm;
 use App\Models\ReviewFormResponse;
 use App\Models\ReviewSummary;
 use App\Models\ReviewSummaryAttachment;
-use App\Models\SubmissionDate;
-use App\Models\SubmissionPeriod;
 use App\Models\SubmissionReviewer;
 use App\Queries\Review\EvaluationFormsOverview;
 use App\Queries\Review\EvaluationProgress;
 use App\Queries\Review\PendingEvaluationCheck;
+use App\Queries\Submission\EvaluationDueDate;
 use App\Services\EmailNotificationService;
 use App\States\Submission\Approved;
 use App\States\Submission\NeedsRevision;
@@ -543,12 +542,13 @@ class ReviewController extends Controller
         // Get all required evaluation forms
         $requiredForms = $formPhaseDetail->requiredReviewEvaluationForms()->get();
 
-        // Get deadline from submission period
-
         /** @var FormSubmission $submissionModel */
         $submissionModel = $submissionReviewer->formSubmission;
 
-        $dueDate = $this->getEvaluationDueDate($submissionModel);
+        // ADR 0004 — tenggat diambil dari period pengajuan sendiri lewat FK.
+        // `null` adalah jawaban yang sah: kolomnya nullable dan layarnya sudah
+        // menampilkan "No deadline" tanpa tenggat.
+        $dueDate = EvaluationDueDate::run($submissionModel);
 
         foreach ($requiredForms as $form) {
             /** @var ReviewEvaluationForm $form */
@@ -571,29 +571,6 @@ class ReviewController extends Controller
         return FormPhase::whereHas('formPhaseDetails.formAccessControl', function ($query) use ($submission) {
             $query->where('form_id', $submission->form_id);
         })->first();
-    }
-
-    protected function getEvaluationDueDate(FormSubmission $submission): ?\DateTime
-    {
-        $submissionPeriod = SubmissionPeriod::whereHas(
-            'submissionPeriodPhases.formPhase.formPhaseDetails.formAccessControl',
-            function ($query) use ($submission) {
-                $query->where('form_id', $submission->form_id);
-            }
-        )->first();
-
-        if (!$submissionPeriod) {
-            return new \DateTime('+7 days');
-        }
-
-        /** @var SubmissionDate|null $latestDate */
-        $latestDate = $submissionPeriod->submissionDates()
-            ->orderBy('datetime', 'desc')
-            ->first();
-
-        return $latestDate
-            ? new \DateTime($latestDate->datetime)
-            : new \DateTime('+7 days');
     }
 
     // Existing methods with minor updates...
