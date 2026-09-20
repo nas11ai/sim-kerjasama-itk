@@ -50,7 +50,6 @@ class ReviewFormFieldResponse extends Model
             'radio', 'select' => $this->formatSelectValue(),
             'number' => $this->formatNumberValue(),
             'date' => $this->formatDateValue(),
-            'email' => $this->formatEmailValue(),
             'url' => $this->formatUrlValue(),
             default => $this->value
         };
@@ -97,12 +96,6 @@ class ReviewFormFieldResponse extends Model
         } catch (\Exception $e) {
             return $this->value;
         }
-    }
-
-    // Format email values
-    protected function formatEmailValue(): string
-    {
-        return filter_var($this->value, FILTER_VALIDATE_EMAIL) ? $this->value : $this->value;
     }
 
     // Format URL values
