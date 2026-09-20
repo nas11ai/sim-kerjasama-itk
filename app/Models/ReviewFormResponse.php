@@ -145,14 +145,6 @@ class ReviewFormResponse extends Model
         return min(100, round(($completedFields / $totalFields) * 100));
     }
 
-    // Get response for specific field
-    public function getFieldResponse(int $fieldId): ?string
-    {
-        return $this->reviewFormFieldResponses()
-            ->where('review_form_field_id', $fieldId)
-            ->value('value');
-    }
-
     // Save field response
     public function saveFieldResponse(int $fieldId, ?string $value): ReviewFormFieldResponse
     {

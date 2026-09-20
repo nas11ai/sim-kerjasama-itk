@@ -71,27 +71,6 @@ class ReviewerFormAssignment extends Model
         return $query->where('is_required', true);
     }
 
-    public function scopeOptional($query): Builder
-    {
-        return $query->where('is_required', false);
-    }
-
-    public function scopeOverdue($query): Builder
-    {
-        return $query->where('due_date', '<', now())
-            ->whereDoesntHave('reviewFormResponse', function ($q) {
-                $q->where('status', 'submitted');
-            });
-    }
-
-    public function scopeDueSoon($query, int $hours = 24): Builder
-    {
-        return $query->whereBetween('due_date', [now(), now()->addHours($hours)])
-            ->whereDoesntHave('reviewFormResponse', function ($q) {
-                $q->where('status', 'submitted');
-            });
-    }
-
     // Helper methods
     public function isOverdue(): bool
     {
@@ -107,15 +86,6 @@ class ReviewerFormAssignment extends Model
         return $this->reviewFormResponse?->status === 'submitted';
     }
 
-    public function getStatus(): string
-    {
-        if (!$this->reviewFormResponse) {
-            return 'not_started';
-        }
-
-        return $this->reviewFormResponse->status;
-    }
-
     public function getDaysUntilDue(): ?int
     {
         if (!$this->due_date) {
@@ -123,16 +93,5 @@ class ReviewerFormAssignment extends Model
         }
 
         return (int) now()->diffInDays($this->due_date, false);
-    }
-
-    // Auto-lock if past due date
-    public function autoLockIfOverdue(): void
-    {
-        if ($this->isOverdue() && $this->reviewFormResponse) {
-            $this->reviewFormResponse->update([
-                'status' => 'locked',
-                'locked_at' => now(),
-            ]);
-        }
     }
 }

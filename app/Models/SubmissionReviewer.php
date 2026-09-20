@@ -98,15 +98,6 @@ class SubmissionReviewer extends Model
             });
     }
 
-    // NEW: Overdue form assignments
-    /**
-     * @return HasMany<ReviewerFormAssignment, $this>
-     */
-    public function overdueReviewerFormAssignments(): HasMany
-    {
-        return $this->reviewerFormAssignments()->overdue();
-    }
-
     /** Penugasan yang masih berlaku; yang `replaced` adalah sejarah. */
     public function scopeActive($query)
     {
