@@ -12,6 +12,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property int $reviewer_id
  * @property int $form_submission_id
  * @property string $status
+ * @property string $evaluation_status
  * @property-read FormSubmission $formSubmission
  * @property-read Reviewer $reviewer
  */

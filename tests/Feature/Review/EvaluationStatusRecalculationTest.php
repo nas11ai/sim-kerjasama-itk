@@ -7,6 +7,7 @@
 // dulu hanya bisa menulis `completed` dan tak pernah kembali ke `pending`.
 
 use App\Actions\Review\AssignEvaluationForm;
+use App\Actions\Review\RecalculateEvaluationStatus;
 use App\Actions\Review\SubmitEvaluationForm;
 use App\Models\FormPhaseDetail;
 use App\Models\FormSubmission;
@@ -14,7 +15,8 @@ use App\Models\Reviewer;
 use App\Models\ReviewEvaluationForm;
 use App\Models\ReviewFormResponse;
 use App\Models\SubmissionReviewer;
-use App\Support\Review\EvaluationStatusRecalculator;
+use App\Support\Audit\AuditTrail;
+use Spatie\Activitylog\Models\Activity;
 
 /** @return array{0: SubmissionReviewer, 1: ReviewEvaluationForm} */
 function recalcFixture(): array
@@ -59,7 +61,7 @@ it('mengembalikan status ke pending saat form wajib baru ditugaskan', function (
         'reviewer_form_assignment_id' => $assignment->id,
         'status' => 'submitted',
     ]);
-    EvaluationStatusRecalculator::for($reviewer);
+    RecalculateEvaluationStatus::run($reviewer);
 
     expect($reviewer->fresh()->evaluation_status)->toBe('completed');
 
@@ -110,4 +112,36 @@ it('menjatuhkan status ke not_required saat submit tidak menyisakan penugasan ak
     SubmitEvaluationForm::run($response);
 
     expect($reviewer->fresh()->evaluation_status)->toBe('not_required');
+});
+
+it('mencatat jejak audit saat status evaluasi benar-benar berpindah', function () {
+    [$reviewer, $form] = recalcFixture();
+
+    // Berangkat dari `not_required`; form wajib yang masuk memindahkannya ke
+    // `pending`, dan perpindahan itulah yang dicatat.
+    $reviewer->update(['evaluation_status' => 'not_required']);
+
+    AssignEvaluationForm::run($reviewer, $form->id, true);
+
+    $entri = Activity::inLog(AuditTrail::LOG_NAME)
+        ->where('subject_type', $reviewer->getMorphClass())
+        ->where('subject_id', $reviewer->id)
+        ->get();
+
+    expect($entri)->toHaveCount(1)
+        ->and($entri->first()?->description)->toBe('Status evaluasi diperbarui');
+});
+
+it('tidak mencatat apa pun saat status evaluasi tidak berubah', function () {
+    [$reviewer] = recalcFixture();
+
+    // Tanpa penugasan aktif jawabannya `not_required`. Disetel ke nilai itu
+    // lebih dulu, hitung ulangnya tidak memindahkan apa pun.
+    $reviewer->update(['evaluation_status' => 'not_required']);
+    RecalculateEvaluationStatus::run($reviewer);
+
+    expect(Activity::inLog(AuditTrail::LOG_NAME)
+        ->where('subject_type', $reviewer->getMorphClass())
+        ->where('subject_id', $reviewer->id)
+        ->count())->toBe(0);
 });

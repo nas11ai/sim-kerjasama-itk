@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Actions\Monev\NotifyMonevEvaluationSubmitted;
+use App\Actions\Review\RecalculateEvaluationStatus;
 use App\Actions\Review\SubmitEvaluationForm;
 use App\Models\FormSubmission;
 use App\Models\ReviewerFormAssignment;
@@ -11,7 +12,6 @@ use App\Models\ReviewFormResponse;
 use App\Models\SubmissionPeriod;
 use App\Models\SubmissionReviewer;
 use App\Queries\Review\EvaluationFormCompletion;
-use App\Support\Review\EvaluationStatusRecalculator;
 use App\Support\Review\FieldResponseValidator;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -100,7 +100,7 @@ class ReviewFormResponseController extends Controller
         );
 
         // Update evaluation status
-        EvaluationStatusRecalculator::for($submissionReviewer);
+        RecalculateEvaluationStatus::run($submissionReviewer);
 
         // Redirect to show page
         return redirect()->route('reviewer.evaluation-form.show', $assignment->id);

@@ -4,7 +4,6 @@ namespace App\Actions\Review;
 
 use App\Models\ReviewFormResponse;
 use App\Support\Audit\AuditTrail;
-use App\Support\Review\EvaluationStatusRecalculator;
 use Lorisleiva\Actions\Concerns\AsAction;
 
 /**
@@ -29,7 +28,7 @@ class SubmitEvaluationForm
         ]);
 
         // BR-REV-05 — satu definisi hitung ulang, dipakai seluruh pemicu.
-        EvaluationStatusRecalculator::for($response->reviewerFormAssignment->submissionReviewer);
+        RecalculateEvaluationStatus::run($response->reviewerFormAssignment->submissionReviewer);
 
         AuditTrail::record('Evaluasi disubmit', $response);
 

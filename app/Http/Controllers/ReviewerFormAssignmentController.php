@@ -4,11 +4,11 @@ namespace App\Http\Controllers;
 
 use App\Actions\Review\AssignEvaluationForm;
 use App\Actions\Review\LockEvaluationForm;
+use App\Actions\Review\RecalculateEvaluationStatus;
 use App\Models\FormPhase;
 use App\Models\FormSubmission;
 use App\Models\ReviewerFormAssignment;
 use App\Models\SubmissionReviewer;
-use App\Support\Review\EvaluationStatusRecalculator;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -38,7 +38,7 @@ class ReviewerFormAssignmentController extends Controller
             $assignment->delete();
 
             // Update evaluation status
-            EvaluationStatusRecalculator::for($submissionReviewer);
+            RecalculateEvaluationStatus::run($submissionReviewer);
 
             DB::commit();
 
@@ -70,7 +70,7 @@ class ReviewerFormAssignmentController extends Controller
             ]);
 
             // Update evaluation status
-            EvaluationStatusRecalculator::for($assignment->submissionReviewer);
+            RecalculateEvaluationStatus::run($assignment->submissionReviewer);
 
             return back()->with('success', 'Penugasan berhasil diperbarui.');
 

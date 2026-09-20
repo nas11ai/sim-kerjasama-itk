@@ -5,7 +5,6 @@ namespace App\Actions\Review;
 use App\Models\ReviewerFormAssignment;
 use App\Models\SubmissionReviewer;
 use App\Support\Audit\AuditTrail;
-use App\Support\Review\EvaluationStatusRecalculator;
 use DateTimeInterface;
 use Lorisleiva\Actions\Concerns\AsAction;
 
@@ -37,7 +36,7 @@ class AssignEvaluationForm
         );
 
         // BR-REV-05 — pekerjaannya bertambah, jadi statusnya ikut dihitung ulang.
-        EvaluationStatusRecalculator::for($reviewer);
+        RecalculateEvaluationStatus::run($reviewer);
 
         // BR-RPT-09 — satu Action, satu entri audit.
         AuditTrail::record('Form evaluasi ditugaskan', $assignment);
