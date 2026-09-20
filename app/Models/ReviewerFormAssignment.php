@@ -102,15 +102,6 @@ class ReviewerFormAssignment extends Model
         return $this->due_date->isPast() && !$this->isCompleted();
     }
 
-    public function isDueSoon(int $hours = 24): bool
-    {
-        if (!$this->due_date || $this->isCompleted()) {
-            return false;
-        }
-
-        return $this->due_date->isBetween(now(), now()->addHours($hours));
-    }
-
     public function isCompleted(): bool
     {
         return $this->reviewFormResponse?->status === 'submitted';
@@ -125,17 +116,6 @@ class ReviewerFormAssignment extends Model
         return $this->reviewFormResponse->status;
     }
 
-    public function getStatusLabel(): string
-    {
-        return match ($this->getStatus()) {
-            'not_started' => 'Not Started',
-            'draft' => 'In Progress',
-            'submitted' => 'Completed',
-            'locked' => 'Locked',
-            default => 'Unknown'
-        };
-    }
-
     public function getDaysUntilDue(): ?int
     {
         if (!$this->due_date) {
@@ -143,23 +123,6 @@ class ReviewerFormAssignment extends Model
         }
 
         return (int) now()->diffInDays($this->due_date, false);
-    }
-
-    public function getHoursUntilDue(): ?int
-    {
-        if (!$this->due_date) {
-            return null;
-        }
-
-        return (int) now()->diffInHours($this->due_date, false);
-    }
-
-    // Check if assignment can be completed (not locked and active)
-    public function canBeCompleted(): bool
-    {
-        return $this->is_active &&
-            (!$this->due_date || !$this->due_date->isPast()) &&
-            $this->getStatus() !== 'locked';
     }
 
     // Auto-lock if past due date

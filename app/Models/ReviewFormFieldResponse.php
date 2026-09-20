@@ -115,12 +115,6 @@ class ReviewFormFieldResponse extends Model
         return $this->value;
     }
 
-    // Get value for editing (raw value)
-    public function getEditValueAttribute(): string
-    {
-        return $this->value ?? '';
-    }
-
     // Validate field response based on field requirements
     public function validate(): array
     {

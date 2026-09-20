@@ -49,22 +49,6 @@ class ReviewFormResponse extends Model
         return $this->hasMany(ReviewFormFieldResponse::class);
     }
 
-    // Scopes
-    public function scopeDraft($query)
-    {
-        return $query->where('status', 'draft');
-    }
-
-    public function scopeSubmitted($query)
-    {
-        return $query->where('status', 'submitted');
-    }
-
-    public function scopeLocked($query)
-    {
-        return $query->where('status', 'locked');
-    }
-
     // Status checks
     public function isDraft(): bool
     {
@@ -195,47 +179,5 @@ class ReviewFormResponse extends Model
         if ($allRequiredCompleted) {
             $submissionReviewer->update(['evaluation_status' => 'completed']);
         }
-    }
-
-    // Generate summary for ReviewSummary integration
-    public function generateSummaryNotes(): string
-    {
-        $reviewForm = $this->reviewerFormAssignment->reviewEvaluationForm;
-        $summary = "Evaluation: {$reviewForm->title}\n\n";
-
-        foreach ($reviewForm->reviewFormFields as $field) {
-            $response = $this->getFieldResponse($field->id);
-            if ($response) {
-                $summary .= "{$field->label}: {$response}\n";
-            }
-        }
-
-        if ($this->final_notes) {
-            $summary .= "\nAdditional Notes:\n{$this->final_notes}";
-        }
-
-        return trim($summary);
-    }
-
-    // Get status label for display
-    public function getStatusLabelAttribute(): string
-    {
-        return match ($this->status) {
-            'draft' => 'Draft',
-            'submitted' => 'Submitted',
-            'locked' => 'Locked',
-            default => 'Unknown'
-        };
-    }
-
-    // Get status color for UI
-    public function getStatusColorAttribute(): string
-    {
-        return match ($this->status) {
-            'draft' => 'yellow',
-            'submitted' => 'green',
-            'locked' => 'red',
-            default => 'gray'
-        };
     }
 }

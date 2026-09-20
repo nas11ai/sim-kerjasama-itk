@@ -126,7 +126,6 @@ app/Models/OutputTypeDefinition.php
 app/Models/Partner.php
 app/Models/ResearchOutput.php
 app/Models/ReviewFormFieldResponse.php
-app/Models/ReviewFormResponse.php
 app/Models/ReviewSummary.php
 app/Models/Reviewer.php
 app/Models/Scheme.php
