@@ -774,46 +774,6 @@ class SubmissionViewController extends Controller
                     ->toArray();
             }
 
-            // Check if current user is an assigned reviewer and get evaluation status
-            $currentUser = auth()->user();
-            $isAssignedReviewer = false;
-            $hasPendingEvaluations = false;
-            $pendingEvaluationsCount = 0;
-
-            if (!$currentUser->can('users.manage')) {
-                $reviewer = Reviewer::where('user_id', $currentUser->id)->first();
-
-                if ($reviewer) {
-                    $submissionReviewer = SubmissionReviewer::where([
-                        'form_submission_id' => $submission->id,
-                        'reviewer_id' => $reviewer->id,
-                    ])->first();
-
-                    if ($submissionReviewer) {
-                        $isAssignedReviewer = true;
-
-                        // Check evaluation status
-                        $pendingEvaluationsCount = $submissionReviewer->reviewerFormAssignments()
-                            ->where('is_active', true)
-                            ->whereDoesntHave('reviewFormResponse', function ($q) {
-                                $q->where('status', 'submitted');
-                            })
-                            ->count();
-
-                        $hasPendingEvaluations = $pendingEvaluationsCount > 0;
-                    }
-                }
-            }
-
-            // Determine canReview and canCreateThread
-            $canReview = $this->canUserReview($submission, $currentUser);
-            $canCreateThread = $isAssignedReviewer && !$hasPendingEvaluations;
-
-            // For admins, they can always create threads
-            if ($currentUser->can('users.manage')) {
-                $canCreateThread = true;
-            }
-
             // Convert submission to array
             $submissionData = [
                 'id' => $submission->id,
