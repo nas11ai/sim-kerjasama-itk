@@ -32,3 +32,25 @@ it('menyatakan tidak ada evaluasi tertunda saat seluruhnya selesai', function ()
 it('menganggap pengajuan tanpa reviewer tidak punya evaluasi tertunda', function () {
     expect(PendingEvaluationCheck::run(FormSubmission::factory()->create()))->toBeFalse();
 });
+
+it('mengabaikan reviewer yang sudah diganti — BR-REV-05 menghitung yang aktif saja', function () {
+    $submission = FormSubmission::factory()->create();
+
+    SubmissionReviewer::create([
+        'form_submission_id' => $submission->id,
+        'reviewer_id' => Reviewer::factory()->create()->id,
+        'evaluation_status' => 'completed',
+        'status' => 'active',
+    ]);
+
+    // Sejarah, bukan pekerjaan: evaluasinya tertinggal 'pending' karena
+    // markAsReplaced() hanya menyentuh status.
+    SubmissionReviewer::create([
+        'form_submission_id' => $submission->id,
+        'reviewer_id' => Reviewer::factory()->create()->id,
+        'evaluation_status' => 'pending',
+        'status' => 'replaced',
+    ]);
+
+    expect(PendingEvaluationCheck::run($submission->fresh()))->toBeFalse();
+});

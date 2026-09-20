@@ -58,3 +58,21 @@ it('memakai satu kueri, bukan lima COUNT terpisah', function () {
     expect(DB::getQueryLog())->toHaveCount(1);
     DB::disableQueryLog();
 });
+
+it('tidak menghitung reviewer yang diganti sebagai pekerjaan tertunda', function () {
+    $submission = submissionWithStatuses('completed', 'completed');
+
+    SubmissionReviewer::create([
+        'form_submission_id' => $submission->id,
+        'reviewer_id' => Reviewer::factory()->create()->id,
+        'evaluation_status' => 'pending',
+        'status' => 'replaced',
+    ]);
+
+    $progress = EvaluationProgress::run($submission->fresh());
+
+    expect($progress->totalReviewers)->toBe(2)
+        ->and($progress->pending)->toBe(0)
+        ->and($progress->completionPercentage)->toBe(100)
+        ->and($progress->allCompleted)->toBeTrue();
+});
