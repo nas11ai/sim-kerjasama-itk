@@ -25,8 +25,8 @@ class Form extends Model
 
     /**
      * BR-FE-19 — Form dinonaktifkan, bukan dihapus, begitu ia pernah dipakai.
-     * Sebelumnya form_submissions.form_id ber-cascade, jadi menghapus satu
-     * Form memusnahkan riwayat pengajuannya di delapan tabel sekaligus.
+     * Sebelumnya form_submissions.form_id ber-cascade, memusnahkan riwayat
+     * pengajuan lewat delapan tabel — kebijakan sebesar itu tak pernah tertulis.
      */
     protected static function booted(): void
     {

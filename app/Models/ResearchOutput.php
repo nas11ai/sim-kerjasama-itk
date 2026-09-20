@@ -31,9 +31,9 @@ class ResearchOutput extends Model
     use LogsActivity;
 
     /**
-     * BR-RO-06 — luaran tidak pernah dihapus: ia dasar pelaporan LPPM, dan
-     * angka yang sudah dilaporkan tidak boleh surut diam-diam. Koreksi lewat
-     * penyuntingan (BR-RO-07) meninggalkan jejak; penghapusan tidak.
+     * BR-RO-06 — luaran tidak pernah dihapus, bukan hanya yang WITHDRAWN:
+     * ia dasar pelaporan LPPM yang tidak boleh surut diam-diam. Koreksi
+     * lewat penyuntingan (BR-RO-07) meninggalkan jejak; penghapusan tidak.
      */
     protected static function booted(): void
     {
