@@ -14,6 +14,7 @@ use App\Models\SubmissionReviewer;
 use App\Queries\Review\EvaluationFormCompletion;
 use App\Queries\Review\RequiredFormsCompletion;
 use App\Support\Review\EvaluationStatusRecalculator;
+use App\Support\Review\FieldResponseValidator;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -364,7 +365,7 @@ class ReviewFormResponseController extends Controller
                 $errors[] = "Field '{$field->label}' wajib diisi.";
             } else {
                 // Field-specific validation
-                $fieldErrors = $fieldResponse->validate();
+                $fieldErrors = FieldResponseValidator::errorsFor($fieldResponse);
                 $errors = array_merge($errors, $fieldErrors);
             }
         }

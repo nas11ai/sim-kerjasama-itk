@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 /**
  * @property bool $is_required
  * @property string $label
- * @property array|null $validation_rules
+ * @property array<string, int|float|string>|null $validation_rules
  * @property-read FieldType|null $fieldType
  */
 class ReviewFormField extends Model
@@ -91,24 +91,5 @@ class ReviewFormField extends Model
     public function hasValidationRules(): bool
     {
         return !empty($this->validation_rules);
-    }
-
-    // Get validation rules as string for frontend
-    public function getValidationRulesStringAttribute(): string
-    {
-        if (empty($this->validation_rules)) {
-            return '';
-        }
-
-        $rules = [];
-        foreach ($this->validation_rules as $rule => $value) {
-            if (is_bool($value) && $value) {
-                $rules[] = $rule;
-            } elseif (!is_bool($value)) {
-                $rules[] = "$rule:$value";
-            }
-        }
-
-        return implode('|', $rules);
     }
 }
