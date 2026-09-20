@@ -131,7 +131,6 @@ app/Models/Scheme.php
 app/Models/StudentMember.php
 app/Models/SubmissionDate.php
 app/Models/SubmissionPeriod.php
-app/Models/SubmissionReviewer.php
 app/Models/SubmissionTargetOutput.php
 app/Models/User.php
 app/Models/UserProfile.php
