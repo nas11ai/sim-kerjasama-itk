@@ -94,6 +94,41 @@ tanpa cast — sesuai aturan 5, menyempitkan tipe lebih dulu, bukan membungkam P
 - Controller cluster review (`ReviewController`, `ReviewFormResponseController`,
   `ReviewerFormAssignmentController`) belum dibedah — itu gelombang 3.
 
+### Temuan putaran review sesudah `06a2d30`
+
+Empat perbaikan mendarat langsung (opsi lintas field, aturan validasi non-skalar,
+checkbox yang tidak pernah jadi label, deprecation `trim(null)`). Empat sisanya
+butuh keputusan dan **tidak** dikerjakan di sini:
+
+- **`ReviewFormResponseController::createOrUpdateReviewSummary()` nol pemanggil.**
+  Ia satu-satunya pemanggil `ReviewSummary::createFromEvaluationResponses()`, jadi
+  "ringkasan dibuat begitu seluruh evaluasi wajib tersubmit" **tidak pernah jalan**.
+  Task 9 mengalihkan `hasAllRequiredFormsCompleted()` ke `RequiredFormsCompletion`
+  di dalam method ini, sehingga Query baru itu terbaca seolah jalurnya hidup.
+  Per K2 centang ketiga ini **bukan kode mati melainkan aturan yang kehilangan
+  pemanggilnya** — dilaporkan, bukan dihapus.
+
+- **Dua jalur penugasan, satu yang diaudit.** `ReviewController` lewat
+  `AssignEvaluationForm` (menulis entri BR-RPT-09);
+  `ReviewerFormAssignmentController::assignFormsToReviewer` dan `bulkAssignForms`
+  lewat `ReviewerFormAssignment::updateOrCreate()` langsung (tidak menulis apa pun).
+  Perpecahannya sudah ada sebelum gelombang ini, tapi sekarang jejaknya timpang
+  untuk peristiwa yang sama.
+
+- **`AssignEvaluationForm::run()` memakai `create()` di atas indeks unik**
+  `unique_reviewer_form_assignment`. Endpoint-nya tidak menyaring duplikat, jadi
+  menugaskan ulang form yang sudah ada melempar `QueryException`, membatalkan
+  seluruh batch, dan menampilkan galat SQL mentah ke pengguna. Jalur sebelahnya
+  idempoten lewat `updateOrCreate`. Menyamakannya mengubah kontrak Action.
+
+- **`EvaluationStatusRecalculator` satu-satunya penulis state di `app/Support/`.**
+  Dari 54 berkas di sana, hanya ia yang memanggil `->update()` atas model domain.
+  Docblock-nya menyebut preseden `RequiredFieldGuard`, padahal guard itu tidak
+  pernah menulis. `AuditCoverageTest` hanya menyapu `app/Actions/` dan
+  `app/Queries/`, jadi mutasi `evaluation_status` duduk di luar jangkauan
+  BR-RPT-09 secara struktural — dan enam pemanggilnya adalah controller telanjang
+  tanpa audit sama sekali.
+
 ---
 
 ## Lingkup
