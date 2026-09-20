@@ -155,74 +155,137 @@ penuh tidak menemukan apa pun.**
 
 ---
 
-## Sensus mentah
+## Sensus bervonis
 
-Angka di bawah hasil sapuan otomatis yang **sudah** memetakan scope dan accessor,
-tapi **belum** memverifikasi nama berkata umum dan belum memeriksa pemanggil internal.
-Ia menunjukkan ukuran pekerjaan, bukan vonis. **Task 1 mengulanginya dengan benar.**
+Angka di bawah sudah memetakan scope dan accessor ke bentuk panggilannya, sudah
+memverifikasi nama berkata umum lewat `->nama(`, dan sudah memeriksa pemanggil
+internal. Kolom **luar** hanya menghitung pemanggil PHP yang nyata; kolom **dalam**
+menghitung pemanggil di dalam berkas modelnya sendiri.
+
+Vonisnya: **MATI** = boleh dihapus · **INTERNAL** = hidup selama pemanggil dalamnya
+hidup · **HIDUP** = punya pemanggil luar.
 
 ### `SubmissionReviewer`
 
-| Method | Pemanggil | Dugaan |
-| ------ | --------: | ------ |
-| `requiredReviewerFormAssignments` | 0 | dipakai internal oleh `hasAllRequiredFormsCompleted` |
-| `optionalReviewerFormAssignments` | 0 | mati |
-| `overdueReviewerFormAssignments` | 0 | dipakai internal oleh dua method yang juga nol |
-| `dueSoonReviewerFormAssignments` | 0 | mati |
-| `hasAssignedForms` | 0 | dipakai internal oleh `updateEvaluationStatus` |
-| `getEvaluationCompletionPercentage` | 0 | mati |
-| `canCreateDiscussionThreads` | 0 | predikat kembar — lihat T1 |
-| `autoLockOverdueForms` | 0 | mati |
-| `evaluation_status_label` | 0 | mati (presentasi di model) |
-| `evaluation_status_color` | 0 | mati (presentasi di model) |
-| `completed_forms_count` | 0 | mati |
-| `overdue_forms_count` | 0 | mati |
-| `pending_forms_count` | 3 | hidup |
-| `hasSettledEvaluation` | 5 | **tetap di model** — invarian BR-FE-06 |
-| `canParticipateInDiscussions` | 4 | predikat kembar — lihat T1 |
-| `updateEvaluationStatus` | 5 | → `Actions/` |
-| `markAsReplaced` | 2 | → `Actions/` |
-| `assignForm` | 2 | → `Actions/` |
-| `removeFormAssignment` | 2 | → `Actions/` |
-| `hasAllRequiredFormsCompleted` | 1 | → `Queries/` |
-| `scopeActive`, `scopeUnsettledEvaluation` | hidup | **tetap di model** |
+| Method | panggil | luar | dalam | BDD | vonis |
+| ------ | ------- | ---: | ----: | --: | ----- |
+| `formSubmission`, `reviewer`, `reviewerFormAssignments` | idem | banyak | — | 0 | HIDUP (relasi) |
+| `activeReviewerFormAssignments` | idem | 1 (`ReviewSummary:210`) | 2 | 0 | HIDUP |
+| `completedReviewerFormAssignments` | idem | 1 (`ReviewSummary:211`) | 2 | 0 | HIDUP |
+| `pendingReviewerFormAssignments` | idem | 1 (`ReviewSummary:212`) | 1 | 0 | HIDUP |
+| `requiredReviewerFormAssignments` | idem | 0 | 2 | 0 | INTERNAL (`hasAllRequiredFormsCompleted`, hidup) |
+| `optionalReviewerFormAssignments` | idem | 0 | 0 | 0 | **MATI** |
+| `overdueReviewerFormAssignments` | idem | 0 | 2 | 0 | INTERNAL → MATI putaran 2 |
+| `dueSoonReviewerFormAssignments` | idem | 0 | 0 | 0 | **MATI** |
+| `scopeActive` | `active` | 1 (`ReviewFormResponseController:68`) | 6 | 0 | HIDUP |
+| `scopeUnsettledEvaluation` | `unsettledEvaluation` | 2 | 0 | 0 | HIDUP |
+| `hasSettledEvaluation` | idem | 5 | 0 | 0 | HIDUP — invarian BR-FE-06 |
+| `markAsReplaced` | idem | 1 (`ReplaceReviewer:48`) | 0 | 0 | HIDUP |
+| `hasAssignedForms` | idem | 0 | 1 | 0 | INTERNAL (`updateEvaluationStatus`) |
+| `hasAllRequiredFormsCompleted` | idem | **1** (`ReviewFormResponseController:376`) | 1 | 0 | **HIDUP** — lihat S1 |
+| `getEvaluationCompletionPercentage` | idem | 0 | 0 | 0 | **MATI** |
+| `updateEvaluationStatus` | idem | 5 (controller) | 3 | 0 | HIDUP → `Support/` |
+| `canCreateDiscussionThreads` | idem | 0 | 1 | 0 | INTERNAL → dihapus T1 |
+| `canParticipateInDiscussions` | idem | 4 | 0 | 0 | HIDUP → diruntuhkan T1 |
+| `getEvaluationStatusLabelAttribute` | `evaluation_status_label` | 0 | 0 | 0 | **MATI** |
+| `getEvaluationStatusColorAttribute` | `evaluation_status_color` | 0 | 0 | 0 | **MATI** |
+| `getPendingFormsCountAttribute` | `pending_forms_count` | 3 (`ReviewController`) | 0 | 0 | HIDUP |
+| `getCompletedFormsCountAttribute` | `completed_forms_count` | 0 | 0 | 0 | **MATI** |
+| `getOverdueFormsCountAttribute` | `overdue_forms_count` | 0 | 0 | 0 | **MATI** |
+| `autoLockOverdueForms` | idem | 0 | 0 | 0 | **MATI** |
+| `assignForm` | idem | 2 (`ReviewController:488,560`) | 0 | 0 | HIDUP → Action |
+| `removeFormAssignment` | idem | **0** | 0 | 0 | **MATI** — lihat S3 |
 
 ### `ReviewerFormAssignment`
 
-| Method | Pemanggil | Dugaan |
-| ------ | --------: | ------ |
-| `isDueSoon` | 0 | mati |
-| `getStatus` | 0 | dipakai internal oleh `getStatusLabel` |
-| `getHoursUntilDue` | 0 | mati |
-| `canBeCompleted` | 0 | mati |
-| `scopeOptional`, `scopeOverdue`, `scopeDueSoon` | kata umum | verifikasi ulang |
-| `isOverdue` (3), `isCompleted` (2), `getStatusLabel` (5), `getDaysUntilDue` (8), `autoLockIfOverdue` (1) | hidup | golongkan di T3 |
+| Method | panggil | luar | dalam | BDD | vonis |
+| ------ | ------- | ---: | ----: | --: | ----- |
+| `submissionReviewer`, `reviewEvaluationForm`, `reviewFormResponse` | idem | banyak | — | 0 | HIDUP (relasi) |
+| `scopeActive` | `active` | 6 | 0 | 0 | HIDUP |
+| `scopeRequired` | `required` | 2 | 0 | 0 | HIDUP |
+| `scopeOptional` | `optional` | 1 (`optionalReviewerFormAssignments`, MATI) | 0 | 0 | MATI putaran 2 |
+| `scopeOverdue` | `overdue` | 1 (`overdueReviewerFormAssignments`, MATI p2) | 0 | 0 | MATI putaran 2 |
+| `scopeDueSoon` | `dueSoon` | 1 (`dueSoonReviewerFormAssignments`, MATI) | 0 | 0 | MATI putaran 2 |
+| `isOverdue` | idem | 2 (`ReviewFormResponseController:446,456`) | 1 | 0 | HIDUP |
+| `isCompleted` | idem | 2 (`ReviewerFormAssignmentController:322,323`) | 2 | 0 | HIDUP |
+| `getDaysUntilDue` | idem | 2 (`ReviewFormResponseController:447,457`) | 0 | 0 | HIDUP |
+| `isDueSoon` | idem | 0 | 0 | 0 | **MATI** |
+| `getHoursUntilDue` | idem | 0 | 0 | 0 | **MATI** |
+| `canBeCompleted` | idem | 0 | 0 | 0 | **MATI** |
+| `getStatusLabel` | idem | **0** | 0 | 0 | **MATI** — lihat S2 |
+| `getStatus` | idem | 0 | 2 (keduanya MATI) | 0 | MATI putaran 2 |
+| `autoLockIfOverdue` | idem | 1 (`autoLockOverdueForms`, MATI) | 0 | 0 | MATI putaran 2 — lihat S5 |
 
 ### `ReviewFormResponse`
 
-| Method | Pemanggil | Dugaan |
-| ------ | --------: | ------ |
-| `hasRequiredFieldsCompleted` | 0 | dipakai internal oleh `canBeSubmitted` |
-| `getFieldResponse` | 0 | dipakai internal oleh `generateSummaryNotes` |
-| `updateReviewerEvaluationStatus` | 0 | dipakai internal oleh `submit` — **dan ia bug, lihat T2** |
-| `generateSummaryNotes` | 0 | mati kalau pemanggilnya nihil |
-| `status_label`, `status_color` | 0 | mati (presentasi di model) |
-| `submit`, `lock`, `saveFieldResponse` | kata umum | → `Actions/`, verifikasi ulang |
-| `getCompletionPercentage` | 2 | → `Queries/` |
-| `isDraft` (2), `canBeEdited` (6), `isSubmitted` (7), `isLocked` (1), `canBeSubmitted` (3) | hidup | **tetap di model** — predikat satu baris atas kolomnya sendiri |
+| Method | panggil | luar | dalam | BDD | vonis |
+| ------ | ------- | ---: | ----: | --: | ----- |
+| `reviewerFormAssignment`, `reviewFormFieldResponses` | idem | banyak | — | 0 | HIDUP (relasi) |
+| `scopeDraft` | `draft` | **0** | 0 | 0 | **MATI** — lihat S4 |
+| `scopeSubmitted` | `submitted` | **0** | 0 | 0 | **MATI** — lihat S4 |
+| `scopeLocked` | `locked` | **0** | 0 | 0 | **MATI** — lihat S4 |
+| `isDraft` | idem | 2 | 0 | 0 | HIDUP — K3 melarang meruntuhkannya |
+| `isSubmitted` | idem | 4 | 0 | 0 | HIDUP |
+| `isLocked` | idem | 0 prod, 1 test | 1 | 0 | HIDUP |
+| `canBeEdited` | idem | 3 | 0 | 0 | HIDUP — K3 |
+| `canBeSubmitted` | idem | 3 | 1 | 0 | HIDUP |
+| `submit` | idem | 1 prod (`ReviewFormResponseController:238`) | 0 | 0 | HIDUP → Action |
+| `lock` | idem | 1 (`ReviewerFormAssignmentController:353`) | 0 | 0 | HIDUP → Action |
+| `hasRequiredFieldsCompleted` | idem | 0 | 1 | 0 | INTERNAL (`canBeSubmitted`, hidup) |
+| `getCompletionPercentage` | idem | 2 (`ReviewFormResponseController:148,453`) | 0 | 0 | HIDUP → Query |
+| `saveFieldResponse` | idem | 2 (`ReviewFormResponseController:177,223`) | 0 | 0 | HIDUP — tetap di model |
+| `getFieldResponse` | idem | 0 | 1 (`generateSummaryNotes`, MATI) | 0 | MATI putaran 2 |
+| `updateReviewerEvaluationStatus` | idem | 0 | 1 (`submit`) | 0 | INTERNAL → dihapus T2 |
+| `generateSummaryNotes` | idem | 0 | 0 | 0 | **MATI** |
+| `getStatusLabelAttribute` | `status_label` | 0 | 0 | 0 | **MATI** |
+| `getStatusColorAttribute` | `status_color` | 0 | 0 | 0 | **MATI** |
 
 ### `ReviewFormFieldResponse`
 
-| Method | Pemanggil | Dugaan |
-| ------ | --------: | ------ |
-| `formatCheckboxValue` … `formatUrlValue` (6) | 0 | dipakai internal oleh `formatted_value` |
-| `edit_value` | 0 | mati |
-| `validateCustomRules` | 0 | dipakai internal oleh `validate` |
-| `formatted_value` | 6 | → `Support/`, lihat T4 |
-| `validate` | kata umum | → `Support/`, lihat T5 |
-| `hasValue` | 3 | **tetap di model** |
+| Method | panggil | luar | dalam | BDD | vonis |
+| ------ | ------- | ---: | ----: | --: | ----- |
+| `reviewFormResponse`, `reviewFormField` | idem | banyak | — | 0 | HIDUP (relasi) |
+| `hasValue` | idem | 3 | 3 | 0 | HIDUP — tetap di model |
+| `getFormattedValueAttribute` | `formatted_value` | 6 | 0 | 0 | HIDUP → `Support/` (T4) |
+| `formatCheckboxValue` … `formatUrlValue` | idem | 0 | 1 masing-masing | 0 | INTERNAL → pindah/hapus T3–T4 |
+| `getEditValueAttribute` | `edit_value` | 0 | 0 | 0 | **MATI** |
+| `validate` | idem | 1 (`ReviewFormResponseController:363`) | 0 | 0 | HIDUP → `Support/` (T5) |
+| `validateCustomRules` | idem | 0 | 1 (`validate`) | 0 | INTERNAL → pindah T5 |
 
----
+### Lima simpangan dari dugaan awal
+
+Sensus mentah yang digantikan tabel di atas salah di lima tempat. Semuanya jebakan
+yang sudah diperingatkan bagian *Cara menghitung pemanggil*, dan semuanya mengubah
+rencana implementasi.
+
+**S1 — `hasAllRequiredFormsCompleted()` HIDUP, bukan internal.** Ia dipanggil
+`ReviewFormResponseController:376`. Task 9 Step 3 mengira pemanggilnya hanya
+`updateEvaluationStatus()`. Ia **tidak dihapus begitu saja**: pemanggil controller-nya
+dialihkan ke `RequiredFormsCompletion::run()`.
+
+**S2 — `ReviewerFormAssignment::getStatusLabel()` MATI, bukan hidup (5).** Kelima
+kecocokan itu fungsi Vue bernama sama di `IndexPage.vue` dan `DashboardPage.vue`,
+bukan pemanggil PHP. Jebakan 2 persis. `getStatus()` ikut mati di putaran kedua.
+
+**S3 — `SubmissionReviewer::removeFormAssignment()` MATI, bukan hidup (2).** Kedua
+kecocokan itu `ReviewerFormAssignmentController::removeFormAssignment()` dan
+route-nya — method senama di kelas lain. Controller punya jalur pencabutannya
+sendiri yang lebih lengkap (menolak respons tersubmit, menghapus field response
+turunan) dan memanggil `updateEvaluationStatus()` sendiri, jadi centang K2 ketiga
+terpenuhi. Akibatnya **`Actions/Review/RemoveEvaluationFormAssignment` tidak jadi
+dibuat** — Action tanpa pemanggil produksi persis kesalahan lima kelas gelombang 2.
+
+**S4 — `scopeDraft`, `scopeSubmitted`, dan `scopeLocked` di `ReviewFormResponse`
+MATI.** Ketiganya tidak ada di sensus mentah sama sekali. Tidak ada satu pun
+`->draft(`, `->submitted(`, atau `->locked(` di seluruh repo, dan tidak ada
+pemanggilan statiknya.
+
+**S5 — `autoLockIfOverdue()` MATI di putaran kedua.** Satu-satunya pemanggilnya
+`autoLockOverdueForms()`, yang MATI. Penguncian karena tenggat tetap punya penegak:
+`ReviewerFormAssignmentController::autoLockOverdueAssignments()` di
+`routes/web.php:489`, yang memanggil `->lock()` langsung. Karena itu Task 11 Step 5
+**tidak** menulis ulang `autoLockIfOverdue()` — method-nya sudah tidak ada saat
+Task 11 tiba.
 
 ## Temuan yang sudah dipastikan
 
