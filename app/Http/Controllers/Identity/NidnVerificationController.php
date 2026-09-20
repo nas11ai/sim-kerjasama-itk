@@ -13,10 +13,9 @@ use Inertia\Inertia;
 use Inertia\Response;
 
 /**
- * BR-IAM-04, BR-IAM-12, BR-IAM-13 — antrian verifikasi NIDN.
- *
- * Dibangun dari status `pending`, bukan "belum diverifikasi": akun undangan lahir
- * `active` tanpa NIDN, dan antrian dari negasi akan memuat baris yang tak jujur.
+ * BR-IAM-04, BR-IAM-12, BR-IAM-13 — antrian verifikasi NIDN. Dibangun dari status
+ * `pending`, bukan "belum diverifikasi": akun undangan lahir `active` tanpa NIDN —
+ * antrian dari negasi memuat baris yang tak pernah bisa diverifikasi atau ditolak jujur.
  */
 class NidnVerificationController extends Controller
 {

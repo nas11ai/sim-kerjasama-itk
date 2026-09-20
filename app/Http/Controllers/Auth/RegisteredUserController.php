@@ -44,7 +44,7 @@ class RegisteredUserController extends Controller
     /**
      * BR-IAM-01, BR-IAM-02, BR-IAM-12 — registrasi mandiri dosen ITK. Cabang
      * `app()->environment('testing')` dicabut: jalur test beda dari produksi
-     * meloloskan `@example.com` yang mestinya ditolak — jalur lain tak membuktikan.
+     * meloloskan `@example.com` yang mestinya ditolak — jalur lain tak membuktikan jalur asli.
      *
      * @throws ValidationException
      */

@@ -21,10 +21,9 @@ use Inertia\Inertia;
 use Inertia\Response;
 
 /**
- * BR-SC-01, BR-SC-02, BR-SC-03 — layar Konfigurasi Umum.
- *
- * Jumlah pemakai dikirim tiap baris agar layar menjelaskan sebelum Hapus ditekan
- * (BR-SC-01) — penolakan yang baru muncul setelah ditekan bikin Admin mengira rusak.
+ * BR-SC-01, BR-SC-02, BR-SC-03 — layar Konfigurasi Umum. Jumlah pemakai dikirim tiap
+ * baris agar layar menjelaskan sebelum Hapus ditekan (BR-SC-01) — lebih mahal
+ * daripada menampilkan lalu menolak, tapi penolakan telat bikin Admin mengira rusak.
  */
 class ReferenceEntityController extends Controller
 {
