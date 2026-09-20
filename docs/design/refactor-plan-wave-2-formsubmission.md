@@ -3,8 +3,8 @@
 > **Untuk pekerja agentik:** SUB-SKILL WAJIB: pakai `superpowers:subagent-driven-development`
 > (disarankan) atau `superpowers:executing-plans`. Langkahnya memakai checkbox (`- [ ]`).
 
-**Goal:** Mengosongkan `FormSubmission` dari logic yang bukan miliknya, sampai ia keluar
-dari `quality-legacy.txt`.
+**Goal:** Mengosongkan `FormSubmission` dari logic yang bukan miliknya. Bagian kedua goal
+ini — "sampai ia keluar dari `quality-legacy.txt`" — **terbukti mustahil**; lihat Task 6.
 
 **Architecture:** Buang dulu, runtuhkan kedua, pindahkan terakhir. Seperenam logic-nya
 kode mati dan empat method menjawab satu pertanyaan yang sama — memindahkannya lebih
@@ -13,6 +13,62 @@ dulu berarti memindahkan sampah ke rumah baru.
 **Tech Stack:** Laravel 13 · PHP 8.4 · Pest · PHPStan level 10
 
 **Spec:** [`docs/design/refactor-plan.md`](refactor-plan.md) v1.5 §2.5
+
+**Status:** dieksekusi 20 September 2026 di branch `feat/init-be-development`,
+commit `5e44f54`..`9c3fb95`, lalu dibersihkan dari lima kelas yang tidak terpakai.
+Task 1–5 selesai; Task 6 tidak bisa dijalankan.
+
+---
+
+## Status pelaksanaan
+
+`FormSubmission` turun **697 → 373 baris**. `composer run quality` dan `npm run quality`
+hijau: 876 test, 1912 assertion.
+
+### Yang berubah dari rencana
+
+| Rencana | Kenyataan | Sebab |
+| ------- | --------- | ----- |
+| `AssignReviewerSummary::run($submission, $reviewerId)` | butuh argumen ketiga `$notes` | `summary_notes` `text()` tanpa `nullable` di migration `2025_09_09_023253` — kontrak dua argumen akan kena NOT NULL |
+| `EvaluationFormsOverview` memuat ringkasan **dan** syaratnya | syaratnya berdiri sendiri sebagai `EvaluationRequirements` | cabang `'No form phase detail found.'` di method lama tak terjangkau, jadi dibuang |
+| sepuluh berkas baru di Peta Berkas | **lima dibuat lalu dihapus** | nol pemanggil produksi — lihat di bawah |
+
+### Sensus kode mati Task 1 meleset — ada lima method lagi
+
+Task 1 menemukan 5 method nol rujukan. **Lima lagi lolos** dan terlanjur dipindahkan
+oleh Task 3–5:
+
+| Method model | Sempat jadi | Pemanggil produksi |
+| ------------ | ----------- | -----------------: |
+| `assignReviewer` | `Actions/Review/AssignReviewerSummary` | 0 |
+| `removeReviewer` | `Actions/Review/RemoveReviewerSummary` | 0 |
+| `autoAssignEvaluationForms` | `Actions/Review/AutoAssignEvaluationForms` | 0 |
+| `reviewersWithCompletedEvaluations`, `reviewersWithPendingEvaluations` | `Queries/Review/ReviewersByEvaluationStatus` | 0 |
+| `hasOpenReviewThreads` | `Queries/Review/ReviewThreadCount` | 0 |
+
+Kelimanya sudah nol rujukan **sebelum** gelombang ini dimulai — persis yang diperingatkan
+di bagian Architecture: memindahkan sampah ke rumah baru. Jalur yang benar-benar hidup
+ada di tempat lain: `ReviewController` memakai `autoAssignEvaluationForms()` dan
+`getEvaluationDueDate()` miliknya sendiri, dan penugasan reviewer yang sebenarnya sudah
+pindah ke `Actions/Review/AssignReviewer` di `24f2e42`. Kelima kelas itu **dihapus**,
+bersama `tests/Feature/Review/ReviewerSummaryActionTest.php` dan test `ReviewThreadCount`.
+
+**Sebabnya, supaya tidak berulang:** Task 1 menghitung pemanggil hanya untuk method yang
+sudah *dicurigai* mati, sementara Task 3–5 menganggap method yang dipindahkan pasti punya
+pemanggil. Task 5 kebetulan punya pagarnya ("kalau pemanggilnya nol, hapus saja"); Task 3
+dan Task 4 tidak. **Rencana model berikutnya wajib menghitung pemanggil setiap method
+sebelum memindahkannya, bukan hanya yang terlihat mencurigakan.**
+
+### Utang yang ditinggalkan gelombang ini
+
+`Queries/Submission/EvaluationDueDate` kini hanya dipakai test. Ia **tidak** ikut dihapus
+karena ia versi benar dari `ReviewController::getEvaluationDueDate()` yang masih hidup dan
+masih menebak period lewat pivot `submission_period_phases` — bug yang ADR 0004 dibuat
+untuk membunuhnya, plus fallback diam-diam `new DateTime('+7 days')`. Menyambungkan
+controller ke Query ini mengubah perilaku (tenggat bisa jadi `null`), jadi ia tugas
+tersendiri dengan keputusannya sendiri, bukan sisipan di gelombang model.
+
+---
 
 ## Global Constraints
 
@@ -83,14 +139,12 @@ lompatan tanpa memindahkan tanggung jawab.
 | ------ | -------------- |
 | `app/Queries/Review/PendingEvaluationCheck.php` | Apakah masih ada evaluasi tertunda |
 | `app/Queries/Review/EvaluationProgress.php` | Statistik penyelesaian evaluasi |
-| `app/Queries/Review/ReviewersByEvaluationStatus.php` | Reviewer per status evaluasi |
 | `app/Queries/Review/EvaluationFormsOverview.php` | Ringkasan form evaluasi + syaratnya |
-| `app/Queries/Review/ReviewThreadCount.php` | Jumlah ulir review terbuka |
 | `app/Queries/Submission/EvaluationDueDate.php` | Tenggat evaluasi dari periodenya |
-| `app/Actions/Review/AssignReviewerSummary.php` | Membuat ReviewSummary untuk reviewer |
-| `app/Actions/Review/RemoveReviewerSummary.php` | Mencabutnya |
-| `app/Actions/Review/AutoAssignEvaluationForms.php` | Menugaskan form wajib ke reviewer baru |
 | `app/Data/View/EvaluationProgressData.php` | Bentuk statistik untuk layar |
+| `app/Queries/Review/EvaluationRequirements.php` | Syarat evaluasi untuk layar diskusi |
+
+Lima berkas lain sempat ada di tabel ini dan sudah dihapus — lihat *Status pelaksanaan*.
 
 ---
 
@@ -106,7 +160,7 @@ murah dan paling aman, dan ia mengecilkan permukaan sebelum apa pun dipindahkan.
 - Consumes: —
 - Produces: `FormSubmission` berkurang 5 method publik
 
-- [ ] **Step 1: Buktikan ulang nol rujukan sebelum menghapus**
+- [x] **Step 1: Buktikan ulang nol rujukan sebelum menghapus**
 
 Run:
 ```bash
@@ -124,13 +178,13 @@ Expected: kelima angkanya **0**, dan perintah kedua tidak mengeluarkan apa pun.
 Kalau ada yang bukan nol, **jangan hapus method itu** — ia masuk Task 3 atau 4 sesuai
 golongannya. Catat selisihnya di pesan commit.
 
-- [ ] **Step 2: Hapus kelimanya**
+- [x] **Step 2: Hapus kelimanya**
 
 Hapus seluruh badan method beserta komentar di atasnya:
 `reviewerCanParticipate`, `allReviewersApproved`, `hasRevisionsRequested`,
 `getActiveReviewThreadsCount`, `getResolvedReviewThreadsCount`.
 
-- [ ] **Step 3: Jalankan suite penuh**
+- [x] **Step 3: Jalankan suite penuh**
 
 Run:
 ```bash
@@ -140,7 +194,7 @@ docker run --rm --network host -v "$PWD":/app -w /app -u "$(id -u):$(id -g)" \
 Expected: **867 test lulus**, jumlahnya tidak berubah. Kalau ada yang gagal, method itu
 ternyata dipakai — kembalikan, dan cari tahu kenapa grep melewatkannya.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 docker run --rm -v "$PWD":/app -w /app -u "$(id -u):$(id -g)" simpas-ci:8.4 ./vendor/bin/pint -q
@@ -161,7 +215,7 @@ git commit -m "refactor(submission): cabut lima method FormSubmission tanpa pema
 - Consumes: —
 - Produces: `FormSubmission::hasPendingEvaluations(): bool` satu-satunya yang bertahan
 
-- [ ] **Step 1: Temukan pemanggilnya**
+- [x] **Step 1: Temukan pemanggilnya**
 
 Run:
 ```bash
@@ -171,7 +225,7 @@ grep -rn "canProceedToDiscussions\|discussionsAllowed\|allReviewersCompletedEval
 Catat hasilnya — keempat nama itu akan menyusut jadi satu, dan setiap pemanggil harus
 ikut berubah.
 
-- [ ] **Step 2: Tulis test yang mengunci perilakunya**
+- [x] **Step 2: Tulis test yang mengunci perilakunya**
 
 ```php
 <?php
@@ -210,7 +264,7 @@ it('menganggap pengajuan tanpa reviewer tidak punya evaluasi tertunda', function
 });
 ```
 
-- [ ] **Step 3: Jalankan test, pastikan lulus dengan kode yang sekarang**
+- [x] **Step 3: Jalankan test, pastikan lulus dengan kode yang sekarang**
 
 Run:
 ```bash
@@ -221,7 +275,7 @@ docker run --rm --network host -v "$PWD":/app -w /app -u "$(id -u):$(id -g)" \
 Expected: PASS, 3 test. Ini **characterization test** — ia mengunci perilaku sebelum
 diubah, bukan mendorong perilaku baru.
 
-- [ ] **Step 4: Hapus tiga, sisakan satu**
+- [x] **Step 4: Hapus tiga, sisakan satu**
 
 Hapus `allReviewersCompletedEvaluations()`, `canProceedToDiscussions()`, dan
 `discussionsAllowed()`. Ganti setiap pemanggilnya:
@@ -237,7 +291,7 @@ Hapus `allReviewersCompletedEvaluations()`, `canProceedToDiscussions()`, dan
 !$submission->hasPendingEvaluations()
 ```
 
-- [ ] **Step 5: Jalankan suite penuh**
+- [x] **Step 5: Jalankan suite penuh**
 
 Run:
 ```bash
@@ -246,7 +300,7 @@ docker run --rm --network host -v "$PWD":/app -w /app -u "$(id -u):$(id -g)" \
 ```
 Expected: **870 test lulus** (867 + 3 baru).
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 docker run --rm -v "$PWD":/app -w /app -u "$(id -u):$(id -g)" simpas-ci:8.4 ./vendor/bin/pint -q
@@ -277,7 +331,7 @@ berpasangan, tapi ia **dua use case** — AGENTS.md aturan 8, satu Action satu u
 `AutoAssignEvaluationForms` memanggil `EvaluationDueDate` dari Task 5. Kerjakan Task 5
 lebih dulu kalau tugas ini dieksekusi sendirian.
 
-- [ ] **Step 1: Tulis test yang gagal**
+- [x] **Step 1: Tulis test yang gagal**
 
 ```php
 <?php
@@ -327,7 +381,7 @@ it('mengembalikan false saat tidak ada yang dicabut', function () {
 });
 ```
 
-- [ ] **Step 2: Jalankan test, pastikan gagal**
+- [x] **Step 2: Jalankan test, pastikan gagal**
 
 Run:
 ```bash
@@ -337,7 +391,7 @@ docker run --rm --network host -v "$PWD":/app -w /app -u "$(id -u):$(id -g)" \
 ```
 Expected: FAIL — `AssignReviewerSummary` not found
 
-- [ ] **Step 3: Tulis `AssignReviewerSummary`**
+- [x] **Step 3: Tulis `AssignReviewerSummary`**
 
 ```php
 <?php
@@ -370,7 +424,7 @@ class AssignReviewerSummary
 }
 ```
 
-- [ ] **Step 4: Tulis `RemoveReviewerSummary`**
+- [x] **Step 4: Tulis `RemoveReviewerSummary`**
 
 ```php
 <?php
@@ -394,7 +448,7 @@ class RemoveReviewerSummary
 }
 ```
 
-- [ ] **Step 5: Tulis `AutoAssignEvaluationForms`**
+- [x] **Step 5: Tulis `AutoAssignEvaluationForms`**
 
 ```php
 <?php
@@ -449,7 +503,7 @@ class AutoAssignEvaluationForms
 }
 ```
 
-- [ ] **Step 6: Hapus ketiganya dari model dan alihkan pemanggilnya**
+- [x] **Step 6: Hapus ketiganya dari model dan alihkan pemanggilnya**
 
 ```bash
 grep -rn "assignReviewer\|removeReviewer\|autoAssignEvaluationForms" app/ resources/ tests/ \
@@ -466,7 +520,7 @@ $submission->autoAssignEvaluationForms()      → AutoAssignEvaluationForms::run
 Lalu hapus ketiga method dari `FormSubmission`, beserta `getEvaluationDueDate()` yang
 kini hanya dipakai `AutoAssignEvaluationForms` (ia pindah di Task 5).
 
-- [ ] **Step 7: Jalankan suite penuh**
+- [x] **Step 7: Jalankan suite penuh**
 
 Run:
 ```bash
@@ -475,7 +529,7 @@ docker run --rm --network host -v "$PWD":/app -w /app -u "$(id -u):$(id -g)" \
 ```
 Expected: **874 test lulus** (870 + 4 baru).
 
-- [ ] **Step 8: Commit**
+- [x] **Step 8: Commit**
 
 ```bash
 docker run --rm -v "$PWD":/app -w /app -u "$(id -u):$(id -g)" simpas-ci:8.4 ./vendor/bin/pint -q
@@ -506,7 +560,7 @@ diperbaiki sekalian, karena ia dipanggil di layar daftar.
 - Produces: `ReviewersByEvaluationStatus::run(FormSubmission $submission, string $status): Collection<int, SubmissionReviewer>`
 - Produces: `EvaluationProgressData` readonly: `totalReviewers`, `completed`, `pending`, `notRequired`, `completionPercentage`, `allCompleted`
 
-- [ ] **Step 1: Tulis test yang gagal**
+- [x] **Step 1: Tulis test yang gagal**
 
 ```php
 <?php
@@ -571,7 +625,7 @@ it('memakai satu kueri berkelompok, bukan lima COUNT terpisah', function () {
 });
 ```
 
-- [ ] **Step 2: Jalankan test, pastikan gagal**
+- [x] **Step 2: Jalankan test, pastikan gagal**
 
 Run:
 ```bash
@@ -581,7 +635,7 @@ docker run --rm --network host -v "$PWD":/app -w /app -u "$(id -u):$(id -g)" \
 ```
 Expected: FAIL — `EvaluationProgress` not found
 
-- [ ] **Step 3: Tulis `EvaluationProgressData`**
+- [x] **Step 3: Tulis `EvaluationProgressData`**
 
 ```php
 <?php
@@ -618,7 +672,7 @@ final class EvaluationProgressData
 Kunci array-nya sengaja sama persis dengan keluaran `getEvaluationStats()` yang lama —
 layar yang membacanya tidak ikut berubah di tugas ini.
 
-- [ ] **Step 4: Tulis `EvaluationProgress`**
+- [x] **Step 4: Tulis `EvaluationProgress`**
 
 ```php
 <?php
@@ -667,7 +721,7 @@ class EvaluationProgress implements ChangesNoState
 }
 ```
 
-- [ ] **Step 5: Tulis dua Query sisanya**
+- [x] **Step 5: Tulis dua Query sisanya**
 
 ```php
 <?php
@@ -722,7 +776,7 @@ class ReviewersByEvaluationStatus implements ChangesNoState
 }
 ```
 
-- [ ] **Step 6: Hapus lima method dari model dan alihkan pemanggilnya**
+- [x] **Step 6: Hapus lima method dari model dan alihkan pemanggilnya**
 
 ```bash
 grep -rn "hasPendingEvaluations\|getEvaluationStats\|reviewersWithCompletedEvaluations\|reviewersWithPendingEvaluations" \
@@ -741,7 +795,7 @@ $submission->reviewersWithPendingEvaluations()    → ReviewersByEvaluationStatu
 **Collection**. Pemanggil yang merantainya dengan `->get()` atau `->count()` harus
 disesuaikan — periksa satu per satu, jangan diganti membabi buta.
 
-- [ ] **Step 7: Jalankan suite penuh**
+- [x] **Step 7: Jalankan suite penuh**
 
 Run:
 ```bash
@@ -750,7 +804,7 @@ docker run --rm --network host -v "$PWD":/app -w /app -u "$(id -u):$(id -g)" \
 ```
 Expected: **878 test lulus** (874 + 4 baru).
 
-- [ ] **Step 8: Commit**
+- [x] **Step 8: Commit**
 
 ```bash
 docker run --rm -v "$PWD":/app -w /app -u "$(id -u):$(id -g)" simpas-ci:8.4 ./vendor/bin/pint -q
@@ -778,7 +832,7 @@ Tujuh method: tenggat evaluasi, ulir review, dan ringkasan form evaluasi.
 - Produces: `EvaluationFormsOverview::run(FormSubmission $submission): array<int, array{id: int, title: string, assigned: int}>`
 - Produces: `EvaluationFormsOverview::isRequired(FormSubmission $submission): bool`
 
-- [ ] **Step 1: Baca dulu `getEvaluationFormsSummary()` selengkapnya**
+- [x] **Step 1: Baca dulu `getEvaluationFormsSummary()` selengkapnya**
 
 Rencana ini memuat badannya hanya sebagian — ia terpotong saat dibaca.
 
@@ -791,7 +845,7 @@ Tulis `EvaluationFormsOverview::run()` **mengikuti bentuk keluaran yang terbaca 
 sana**, bukan mengikuti contoh di Step 4 kalau keduanya berbeda. Layar yang membacanya
 tidak ikut berubah di tugas ini.
 
-- [ ] **Step 2: Tulis test yang gagal**
+- [x] **Step 2: Tulis test yang gagal**
 
 ```php
 <?php
@@ -828,7 +882,7 @@ it('mengembalikan null saat pengajuan tidak punya periode', function () {
 Kalau `ReviewSummary` menuntut `reviewer_id` bukan null, sesuaikan fixture-nya —
 periksa kolomnya dengan `grep -n fillable -A 8 app/Models/ReviewSummary.php`.
 
-- [ ] **Step 3: Jalankan test, pastikan gagal**
+- [x] **Step 3: Jalankan test, pastikan gagal**
 
 Run:
 ```bash
@@ -838,7 +892,7 @@ docker run --rm --network host -v "$PWD":/app -w /app -u "$(id -u):$(id -g)" \
 ```
 Expected: FAIL — kelasnya not found
 
-- [ ] **Step 4: Tulis ketiga Query**
+- [x] **Step 4: Tulis ketiga Query**
 
 ```php
 <?php
@@ -949,7 +1003,7 @@ class EvaluationFormsOverview implements ChangesNoState
 }
 ```
 
-- [ ] **Step 5: Hapus tujuh method dari model dan alihkan pemanggilnya**
+- [x] **Step 5: Hapus tujuh method dari model dan alihkan pemanggilnya**
 
 Yang dihapus: `getEvaluationDueDate`, `hasOpenReviewThreads`, `getEvaluationFormsSummary`,
 `hasReviewEvaluationForms`, `requiresReviewEvaluation`, `reviewerCanCreateThreads`,
@@ -975,7 +1029,7 @@ $submission->hasReviewEvaluationForms()    → $submission->formPhaseDetail?->ha
 baca badannya, lalu pindahkan ke `Queries/Review/` mengikuti pola yang sama. Kalau
 pemanggilnya nol, hapus saja.
 
-- [ ] **Step 6: Jalankan suite penuh**
+- [x] **Step 6: Jalankan suite penuh**
 
 Run:
 ```bash
@@ -984,7 +1038,7 @@ docker run --rm --network host -v "$PWD":/app -w /app -u "$(id -u):$(id -g)" \
 ```
 Expected: **880 test lulus** (878 + 2 baru).
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 docker run --rm -v "$PWD":/app -w /app -u "$(id -u):$(id -g)" simpas-ci:8.4 ./vendor/bin/pint -q
@@ -994,72 +1048,84 @@ git commit -m "refactor(review): pindahkan kueri ulir dan form evaluasi ke Queri
 
 ---
 
-### Task 6: Keluarkan `FormSubmission` dari antrean
+### Task 6: `FormSubmission` tidak bisa keluar dari antrean
 
-**Files:**
-- Modify: `quality-legacy.txt`
-- Modify: `quality-budget.txt`
+**Tidak dijalankan.** Cek ambang Step 1 dijalankan setelah Task 1–5 dan hasilnya:
 
-**Interfaces:**
-- Consumes: hasil Task 1–5
-- Produces: `max.legacy.files` berkurang satu
-
-- [ ] **Step 1: Periksa apakah ia sudah memenuhi ambang**
-
-Run:
-```bash
-docker run --rm -v "$PWD":/app -w /app -u "$(id -u):$(id -g)" simpas-ci:8.4 php -r '
-require "vendor/autoload.php";
-$b = new App\Support\Quality\BudgetFile("/app/quality-budget.txt");
-$corpus = [];
-foreach (new RecursiveIteratorIterator(new RecursiveDirectoryIterator("/app/app")) as $f) {
-  if ($f->isFile() && $f->getExtension() === "php") $corpus[] = $f->getPathname();
-}
-$limits = new App\Support\Quality\HardLimits($b, $corpus);
-$reasons = $limits->violations("/app/app/Models/FormSubmission.php");
-echo $reasons === [] ? "MEMENUHI AMBANG\n" : "masih: ".implode(", ", $reasons)."\n";'
+```
+/app/app/Models/FormSubmission.php: masih: ukuran berkas
 ```
 
-Kalau masih ada alasan tersisa, **jangan hapus barisnya** — kerjakan dulu apa yang
-disebutkan. Assertion 2 akan menolak daftar yang tidak cocok dengan kenyataan, tapi
-assertion 1 akan menolak lebih keras kalau barisnya dihapus terlalu cepat.
+Commit `9c3fb95` membereskan alasan yang satunya (`prosa komentar terlalu panjang`, plafon
+`max.comment.overflow` turun 165 → 164). Alasan `ukuran berkas` tidak bisa dibereskan.
 
-- [ ] **Step 2: Hapus barisnya dan turunkan plafon**
+#### Kenapa 200 baris mustahil di berkas ini
 
-```bash
-sed -i '\#^app/Models/FormSubmission.php$#d' quality-legacy.txt
+`hard.php.file.loc` = 200; berkasnya 373 baris. Komposisinya:
 
-CURRENT=$(grep -oE 'max.legacy.files:\s+[0-9]+' quality-budget.txt | grep -oE '[0-9]+')
-sed -i "s/^max.legacy.files:.*/max.legacy.files:      $((CURRENT - 1))/" quality-budget.txt
+| | baris |
+| --- | ---: |
+| **kode** | **215** |
+| komentar (termasuk 25 baris `@property`) | 93 |
+| baris kosong | 49 |
+| import | 16 |
 
-grep -vcE '^\s*(#|$)' quality-legacy.txt
-grep 'max.legacy.files' quality-budget.txt
-```
-Expected: kedua angkanya sama.
+**215 itu lantainya.** Buang seluruh komentar, baris kosong, dan import — masih 215 > 200.
+Yang tersisa di berkas itu: 21 relasi, `isAccessibleBy()` dengan dua helper privatnya
+(BR-SM-07), `resolveIsArchived` + `getIsArchivedAttribute` (BR-SM-13), `canProceed`
+(BR-MON-02), `needsRevision`, `getFormPhase`, `getFormPhaseDetail` (5 pemanggil produksi),
+`scopeActive`, `submissionType`, `$fillable`, `$casts`. Semuanya yang spec §2.5 sebut
+**tetap di Model**.
 
-- [ ] **Step 3: Jalankan gerbang penuh**
+Target "keluar dari `quality-legacy.txt`" karena itu bertabrakan dengan spec yang
+melahirkannya. Yang salah goal-nya, bukan eksekusinya.
 
-Run:
-```bash
-docker run --rm --network host -v "$PWD":/app -w /app -u "$(id -u):$(id -g)" \
-  -e DB_PORT=55432 -e DB_PASSWORD=postgres simpas-ci:8.4 composer run quality
-npm run quality
-```
-Expected: keduanya hijau, termasuk assertion 1 dan 2.
+#### Ambangnya sendiri tidak salah
 
-- [ ] **Step 4: Commit**
+| | jumlah |
+| --- | ---: |
+| model seluruhnya | 54 |
+| model ≤200 baris | **47** |
+| model >200 baris | 7 |
 
-```bash
-git add quality-legacy.txt quality-budget.txt
-git commit -m "refactor(submission): keluarkan FormSubmission dari antrean legacy"
-```
+`FormSubmission` (373) yang terjauh, disusul `SubmissionReviewer` (304), `ReviewSummary`
+(281), `ReviewFormResponse` (241), `Organization` (221), `FormPhaseDetail` (207),
+`ReviewFormFieldResponse` (205). Ambang 200 realistis untuk model pada umumnya — ia
+hanya tidak muat untuk satu aggregate root dengan 21 relasi.
+
+#### Tiga jalan yang dipertimbangkan
+
+| | Jalan | Konsekuensi |
+| - | ----- | ----------- |
+| **A** | Terima `FormSubmission` tetap di `quality-legacy.txt`, tulis alasannya sebagai komentar di atas barisnya | `max.legacy.files` tetap 276. Ekspektasi "7 berkas keluar daftar" di [`refactor-plan.md`](refactor-plan.md) §5 perlu dikoreksi. Antreannya jadi campuran "utang" dan "memang tak muat" — itu yang perlu dibereskan, dan tempatnya §4, bukan di sini. |
+| **B** | Tambah ambang per-kategori `hard.model.file.loc`, mengikuti preseden `hard.vue.file.loc: 250` | Satu baris budget. Tapi 47 dari 54 model lulus di 200, jadi melonggarkan ambang demi satu berkas berarti melonggarkannya untuk 53 berkas yang tidak membutuhkannya. |
+| **C** | Pecah relasi ke trait per konteks | Angkanya turun, kerumitannya tidak. Menyiasati metrik — senapas dengan larangan AGENTS.md aturan 5. |
+
+#### Keputusan: A
+
+Diambil 20 September 2026. Yang perlu belajar membedakan "utang" dari "lantai" itu
+metriknya, bukan kodenya yang perlu dipelintir supaya muat. Yang dikerjakan:
+
+- [x] **Alasannya dicatat di `quality-legacy.txt`**, sebagai komentar lima baris tepat di
+      atas `app/Models/FormSubmission.php`. `LedgerFile` melewati baris `#`, jadi
+      hitungan entri tidak berubah dan assertion 3 dan 4 tetap hijau.
+- [x] **`refactor-plan.md` dinaikkan ke v1.6** — ukuran keberhasilan gelombang 2 jadi
+      6 berkas keluar daftar (bukan 7), sasaran akhir `max.legacy.files` jadi 1 (bukan 0),
+      dengan catatan kaki di bawah tabel §5 yang menerangkan sebabnya.
+- [ ] **Memisahkan "utang" dari "tidak muat" di antrean legacy** — belum dikerjakan,
+      tempatnya §4, bukan gelombang model. Selama belum, `quality-legacy.txt` memuat dua
+      jenis baris yang artinya berbeda dan hanya komentarnya yang membedakan.
+
+`max.legacy.files` tetap 276 dan `quality-legacy.txt` tetap 276 entri.
 
 ---
 
 ## Setelah rencana ini
 
-`FormSubmission` selesai. Model berikutnya mengikuti bentuk yang sama — **baca dulu,
-golongkan, baru pindahkan** — dan masing-masing mendapat rencananya sendiri:
+`FormSubmission` selesai sejauh yang bisa dikerjakan: logic yang bukan miliknya sudah
+keluar, tapi berkasnya tetap di `quality-legacy.txt` (Task 6). Model berikutnya mengikuti
+bentuk yang sama — **baca dulu, golongkan, baru pindahkan** — dan masing-masing mendapat
+rencananya sendiri:
 
 | Model | Method non-relasi | Baris |
 | ----- | ----------------: | ----: |
@@ -1075,6 +1141,24 @@ Angka "~" itu perkiraan dari penggolongan otomatis yang **terbukti meleset** —
 menunjukkan ukuran pekerjaan, bukan isinya. Tiap rencana berikutnya dimulai dengan
 membaca modelnya, seperti rencana ini dimulai.
 
-Dua temuan dari `FormSubmission` yang mungkin berulang di model lain, dan layak
-dicari sejak awal: **method tanpa pemanggil** (5 dari 30 di sini) dan **beberapa nama
-untuk satu pertanyaan** (4 dari 30). Keduanya lebih murah dibuang daripada dipindahkan.
+Tiga temuan dari `FormSubmission` yang mungkin berulang di model lain, dan layak dicari
+sejak awal:
+
+1. **Method tanpa pemanggil** — **10 dari 30** di sini, bukan 5. Lima ditemukan Task 1,
+   lima lagi baru ketahuan setelah dipindahkan dan harus dihapus lagi. Karena itu:
+   **hitung pemanggil setiap method sebelum memindahkannya**, bukan hanya method yang
+   terlihat mencurigakan. Satu `grep -c` per method jauh lebih murah daripada satu kelas
+   plus test-nya yang harus dibatalkan.
+2. **Beberapa nama untuk satu pertanyaan** — 4 dari 30. Lebih murah diruntuhkan daripada
+   dipindahkan berempat.
+3. **Duplikat yang hidup di controller.** Method model yang mati sering punya kembaran
+   yang masih dipakai di `Http/Controllers/`, kadang versi yang lebih buruk. Periksa
+   controller-nya sebelum menyimpulkan sebuah method "tidak dipakai lagi" — yang mati
+   modelnya, bukan perilakunya.
+
+**Target ukuran berkas.** `SubmissionReviewer` (304), `ReviewSummary` (281),
+`ReviewFormResponse` (241), `Organization` (221), `FormPhaseDetail` (207) dan
+`ReviewFormFieldResponse` (205) semuanya >200 baris. Sebelum menjanjikan "keluar dari
+antrean" di rencananya, **ukur dulu lantainya** — baris kode tanpa komentar, baris kosong,
+dan import. Kalau lantainya sudah >200, target itu mustahil dan rencananya harus
+mengatakan begitu sejak awal, seperti Task 6 di sini.

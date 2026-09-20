@@ -113,6 +113,11 @@ app/Models/Form.php
 app/Models/FormField.php
 app/Models/FormPhase.php
 app/Models/FormPhaseDetail.php
+# FormSubmission.php tidak bisa keluar dari daftar ini, dan itu bukan utang:
+# 215 baris kode tanpa komentar, baris kosong, dan import, sementara
+# hard.php.file.loc = 200. Sisanya 21 relasi plus invarian yang spec §2.5
+# perintahkan tetap di model. Ukur ulang sebelum mencoba lagi —
+# docs/design/refactor-plan-wave-2-formsubmission.md Task 6.
 app/Models/FormSubmission.php
 app/Models/FormSubmissionOverride.php
 app/Models/InvitationToken.php

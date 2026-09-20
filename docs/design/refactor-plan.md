@@ -1,12 +1,16 @@
 # Rencana Refactor — Bentuk, Batas, dan Penegakannya
 
-**Versi:** 1.5
-**Tanggal:** 2026-09-19
-**Status:** Disetujui, belum dikerjakan
+**Versi:** 1.6
+**Tanggal:** 2026-09-20
+**Status:** Disetujui; gelombang 0–1 dan gelombang 2 bagian 1 sudah mendarat
 
 Dokumen ini menetapkan **bentuk** kode di repo ini, **batas** yang mengikatnya, dan
 **mesin** yang menegakkan batas itu. Ia tidak menambah satu pun fitur dan tidak
 menyentuh `docs/requirement-analysis/`.
+
+Versi 1.6 mengoreksi ukuran keberhasilan gelombang 2 setelah `FormSubmission` selesai
+dibedah: 6 berkas keluar daftar, bukan 7. `FormSubmission` sendiri tidak bisa keluar —
+lantainya 215 baris kode, ambangnya 200 — jadi sasaran akhir `max.legacy.files` 1, bukan 0.
 
 Versi 1.5 mengganti angka perkiraan dengan angka terukur setelah gelombang 0–1
 mendarat: `max.mixed` 20 (bukan 12) dan `max.legacy.files` 276 (bukan 112).
@@ -419,11 +423,23 @@ Tiga prinsip:
 | - | --------- | --- | ------------------- |
 | 0 | **Pasang pagar** | Dua berkas plafon, `QualityBudgetTest`, tier ketat 9 → **10** (3 penyebab) | Gerbang hijau; mulai detik ini tidak ada yang bisa memburuk |
 | 1 | **Habisi `mixed` yang bisa dihabisi** | 48 → 12; 16 `toArray()` notifikasi dan 4 `$attributes` Action jadi DTO | `max.mixed: 12`, dan sisanya seluruhnya punya alasan |
-| 2 | **Model** | 123 method logic dipilah lewat §2.5; pindah ke `Actions/` dan `Queries/` | 244 error level 10 turun; 7 berkas keluar daftar |
+| 2 | **Model** | 123 method logic dipilah lewat §2.5; pindah ke `Actions/` dan `Queries/` | 244 error level 10 turun; 6 berkas keluar daftar (*) |
 | 3 | **Controller** | 18 berkas `Http`; `SubmissionViewController` 1353 → cangkang; 22 `response()->json` jadi DTO `Contract` | 959 error turun; 18 berkas keluar daftar; `max.untyped.json` → 0 |
 | 4 | **Actions yang melanggar** | 12 berkas | 12 berkas keluar daftar |
 | 5 | **Tier default 5 → 10** | Sisa yang tidak rontok sebagai efek samping gelombang 2–4 | `max.phpstan.default` → 0 |
-| 6 | **Vue legacy** | 68 berkas; sebagian besar kemungkinan hilang karena **dihapus** saat layarnya diganti | `max.legacy.files` → 0 |
+| 6 | **Vue legacy** | 68 berkas; sebagian besar kemungkinan hilang karena **dihapus** saat layarnya diganti | `max.legacy.files` → 1 (*) |
+
+(*) `app/Models/FormSubmission.php` tidak bisa keluar dari `quality-legacy.txt`. Setelah
+seluruh logic yang bukan miliknya pindah, berkasnya masih 215 baris kode — tanpa satu pun
+komentar, baris kosong, atau import — sementara `hard.php.file.loc` 200. Yang tersisa 21
+relasi plus invarian yang §2.5 sendiri perintahkan tetap di model, jadi menurunkannya
+berarti melanggar §2.5. Alasannya tercatat sebagai komentar di atas barisnya di
+`quality-legacy.txt`; uraian terukurnya di
+[`refactor-plan-wave-2-formsubmission.md`](refactor-plan-wave-2-formsubmission.md) Task 6.
+
+Antreannya karena itu memuat dua hal berbeda — utang yang bisa dibayar, dan berkas yang
+memang tidak muat. Memisahkan keduanya pekerjaan tersendiri di §4, bukan bagian dari
+gelombang model.
 
 **Kenapa gelombang 0 tidak boleh ditawar.** Ambang kerasnya harus hidup sebelum UI baru
 ditulis. Kalau tidak, 65 layar SIMPAS v2 lahir tanpa pagar dan percakapan ini terulang
