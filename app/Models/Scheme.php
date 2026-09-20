@@ -56,9 +56,9 @@ class Scheme extends Model
     }
 
     /**
-     * Pengajuan yang memakai skema ini. Dipakai BR-SCH-01 untuk memutuskan
-     * apakah skema masih boleh dinonaktifkan, lewat scope `active()` milik
-     * FormSubmission, bukan predikat yang ditulis ulang di sini.
+     * BR-SCH-01 — dipakai untuk memutuskan apakah skema masih boleh
+     * dinonaktifkan, lewat scope `active()` milik FormSubmission, bukan
+     * predikat yang ditulis ulang di sini.
      *
      * @return HasMany<FormSubmission, $this>
      */

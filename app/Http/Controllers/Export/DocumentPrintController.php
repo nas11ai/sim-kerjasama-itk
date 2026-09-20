@@ -12,9 +12,9 @@ use Illuminate\Http\Request;
 use InvalidArgumentException;
 
 /**
- * BR-RPT-11 — permintaan cetak dokumen. Satu Action, satu use case: penolakan
- * haknya dilempar Action sebagai `AuthorizationException` dan berubah jadi 403
- * oleh handler, bukan diperiksa ulang di sini dengan aturan yang bisa beda.
+ * BR-RPT-11 — satu Action, satu use case: penolakan haknya dilempar Action
+ * sebagai `AuthorizationException` dan berubah jadi 403 oleh handler, bukan
+ * diperiksa ulang di sini dengan aturan yang bisa beda.
  */
 class DocumentPrintController extends Controller
 {
