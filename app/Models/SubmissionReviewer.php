@@ -72,15 +72,6 @@ class SubmissionReviewer extends Model
         return $this->reviewerFormAssignments()->required()->active();
     }
 
-    // NEW: Optional form assignments
-    /**
-     * @return HasMany<ReviewerFormAssignment, $this>
-     */
-    public function optionalReviewerFormAssignments(): HasMany
-    {
-        return $this->reviewerFormAssignments()->optional()->active();
-    }
-
     // NEW: Completed form assignments
     /**
      * @return HasMany<ReviewerFormAssignment, $this>
@@ -114,15 +105,6 @@ class SubmissionReviewer extends Model
     public function overdueReviewerFormAssignments(): HasMany
     {
         return $this->reviewerFormAssignments()->overdue();
-    }
-
-    // NEW: Form assignments due soon
-    /**
-     * @return HasMany<ReviewerFormAssignment, $this>
-     */
-    public function dueSoonReviewerFormAssignments(int $hours = 24): HasMany
-    {
-        return $this->reviewerFormAssignments()->dueSoon($hours);
     }
 
     /** Penugasan yang masih berlaku; yang `replaced` adalah sejarah. */
@@ -189,20 +171,6 @@ class SubmissionReviewer extends Model
         return $completedCount === $requiredCount;
     }
 
-    // NEW: Get evaluation completion percentage
-    public function getEvaluationCompletionPercentage(): int
-    {
-        $totalAssignments = $this->activeReviewerFormAssignments()->count();
-
-        if ($totalAssignments === 0) {
-            return 100;
-        }
-
-        $completedAssignments = $this->completedReviewerFormAssignments()->count();
-
-        return (int) round(($completedAssignments / $totalAssignments) * 100);
-    }
-
     // NEW: Update evaluation status based on current form completion
     public function updateEvaluationStatus(): void
     {
@@ -232,57 +200,10 @@ class SubmissionReviewer extends Model
         return $this->canCreateDiscussionThreads();
     }
 
-    // NEW: Get status label for display
-    public function getEvaluationStatusLabelAttribute(): string
-    {
-        return match ($this->evaluation_status) {
-            'pending' => 'Evaluation Pending',
-            'completed' => 'Evaluation Completed',
-            'not_required' => 'No Evaluation Required',
-            default => 'Unknown Status'
-        };
-    }
-
-    // NEW: Get status color for UI
-    public function getEvaluationStatusColorAttribute(): string
-    {
-        return match ($this->evaluation_status) {
-            'pending' => 'orange',
-            'completed' => 'green',
-            'not_required' => 'blue',
-            default => 'gray'
-        };
-    }
-
     // NEW: Get pending forms count
     public function getPendingFormsCountAttribute(): int
     {
         return $this->pendingReviewerFormAssignments()->count();
-    }
-
-    // NEW: Get completed forms count
-    public function getCompletedFormsCountAttribute(): int
-    {
-        return $this->completedReviewerFormAssignments()->count();
-    }
-
-    // NEW: Get overdue forms count
-    public function getOverdueFormsCountAttribute(): int
-    {
-        return $this->overdueReviewerFormAssignments()->count();
-    }
-
-    // NEW: Auto-lock overdue forms
-    public function autoLockOverdueForms(): void
-    {
-        $overdueAssignments = $this->overdueReviewerFormAssignments()->get();
-
-        foreach ($overdueAssignments as $assignment) {
-            $assignment->autoLockIfOverdue();
-        }
-
-        // Update evaluation status after locking
-        $this->updateEvaluationStatus();
     }
 
     // NEW: Create form assignment
@@ -300,19 +221,5 @@ class SubmissionReviewer extends Model
         $this->updateEvaluationStatus();
 
         return $assignment;
-    }
-
-    // NEW: Remove form assignment
-    public function removeFormAssignment(int $reviewEvaluationFormId): bool
-    {
-        $deleted = $this->reviewerFormAssignments()
-            ->where('review_evaluation_form_id', $reviewEvaluationFormId)
-            ->delete();
-
-        if ($deleted > 0) {
-            $this->updateEvaluationStatus();
-        }
-
-        return $deleted > 0;
     }
 }
