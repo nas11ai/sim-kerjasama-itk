@@ -8,11 +8,8 @@ use Illuminate\Validation\ValidationException;
 
 /**
  * BR-SM-02 dan BR-FE-11 — field wajib harus terisi sebelum submit, tapi hanya
- * field yang sudah wajib **sebelum** submission dibuat.
- *
- * `final class` statis mengikuti preseden `OptimisticLock`: tidak ada state
- * instance yang dipegang, dan sebuah guard bukan use case sehingga ia tidak
- * berhak jadi Action.
+ * field yang sudah wajib **sebelum** submission dibuat. Statis seperti
+ * `OptimisticLock`: tak punya state, dan guard bukan use case — bukan Action.
  */
 final class RequiredFieldGuard
 {

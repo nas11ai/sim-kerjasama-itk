@@ -6,13 +6,9 @@ use App\Models\FieldType;
 use Illuminate\Validation\ValidationException;
 
 /**
- * BR-SCH-05 — `trl_selector` tidak berdiri sendiri.
- *
- * Pilihan TRL disaring oleh skema yang dipilih peneliti; tanpa
- * `scheme_selector` di Form yang sama, tidak ada yang menentukan daftar TRL
- * mana yang sah, dan field itu akan menawarkan seluruh TRL yang ada atau tidak
- * sama sekali. Keduanya salah, dan keduanya baru ketahuan saat pengajuan
- * pertama dikirim.
+ * BR-SCH-05 — `trl_selector` tidak berdiri sendiri: pilihan TRL disaring skema
+ * yang dipilih peneliti. Tanpa `scheme_selector` di Form yang sama, field itu
+ * menawarkan seluruh TRL atau tidak satu pun — dua-duanya salah.
  */
 final class SchemeFieldGuard
 {
@@ -39,6 +35,8 @@ final class SchemeFieldGuard
         $hasTrl = in_array(self::TRL_SELECTOR, $names, true);
         $hasScheme = in_array(self::SCHEME_SELECTOR, $names, true);
 
+        // Dijaga saat Form disusun, bukan saat diisi: dua-duanya baru ketahuan
+        // saat pengajuan pertama dikirim.
         if ($hasTrl && !$hasScheme) {
             throw ValidationException::withMessages([
                 'fields' => 'Field bertipe trl_selector membutuhkan scheme_selector di Form yang sama — '

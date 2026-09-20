@@ -9,15 +9,9 @@ use Illuminate\Auth\Access\AuthorizationException;
 use InvalidArgumentException;
 
 /**
- * BR-RPT-11 — empat dokumen PDF yang didukung, beserta hak membacanya.
- *
- * Hak mencetak **mengikuti hak membaca pengajuannya**, bukan hak tersendiri.
- * Kalau cetak punya pintunya sendiri, satu tombol unduh cukup untuk melewati
- * seluruh aturan keterlihatan yang dibangun di M2 — dan itu tidak akan
- * ketahuan dari layar mana pun, karena PDF-nya tampak wajar.
- *
- * Lembar Penilaian punya syarat kedua: skor yang masih ditahan BR-REV-12
- * tetap ditahan di PDF-nya.
+ * BR-RPT-11 — empat dokumen PDF yang didukung, beserta hak membacanya. Hak
+ * mencetak **mengikuti hak membaca pengajuannya**: pintu sendiri berarti satu
+ * tombol unduh melewati seluruh aturan keterlihatan M2, dan PDF-nya wajar.
  */
 final class PrintableDocument
 {
@@ -77,8 +71,8 @@ final class PrintableDocument
         }
 
         // Sumbu kedua, khusus Lembar Penilaian: cetak tidak membuka skor yang
-        // masih ditahan. Operator yang memang berhak membaca skor tetap bisa;
-        // yang ditahan adalah pihak researcher sampai keputusan akhir.
+        // masih ditahan BR-REV-12. Operator yang memang berhak membacanya tetap
+        // bisa; yang ditahan pihak researcher sampai keputusan akhir.
         if (SubmissionVisibility::seesEverything($user)) {
             return;
         }

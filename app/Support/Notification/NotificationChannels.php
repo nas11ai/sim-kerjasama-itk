@@ -5,13 +5,9 @@ namespace App\Support\Notification;
 use App\Models\NotificationChannelSetting;
 
 /**
- * BR-NOT-06 — channel mana yang dipakai satu tipe event.
- *
- * Nilainya dibaca dari tabel, bukan dari konstanta kelas, supaya LPPM bisa
- * memindahkan sebuah peristiwa dari "cukup in-app" ke "sekalian email" tanpa
- * menunggu rilis. Yang tidak boleh berubah adalah kewajiban mendeklarasikan:
- * event tanpa deklarasi ditolak saat dipublish, bukan diam-diam diberi
- * default.
+ * BR-NOT-06 — channel mana yang dipakai satu tipe event. Dibaca dari tabel,
+ * bukan konstanta kelas, supaya LPPM bisa memindahkan sebuah peristiwa dari
+ * "cukup in-app" ke "sekalian email" tanpa menunggu rilis.
  */
 final class NotificationChannels
 {
@@ -31,6 +27,8 @@ final class NotificationChannels
     {
         $channels = self::all()[$eventType] ?? null;
 
+        // Yang tidak boleh berubah: kewajiban mendeklarasikan. Event tanpa
+        // deklarasi ditolak saat dipublish, bukan diam-diam diberi default.
         if ($channels === null) {
             throw ChannelNotDeclared::for($eventType);
         }

@@ -5,21 +5,9 @@ namespace App\Support;
 use App\Models\FormSubmission;
 
 /**
- * BR-SM-17 — gerbang langkah wizard.
- *
- * Navigasi **bebas maju-mundur**. Yang menggerbang adalah prasyarat data per
- * langkah, bukan urutannya. Mengunci berurutan menyiksa tanpa alasan:
- * memperbaiki judul di langkah 2 saat berada di langkah 6 tidak boleh
- * menuntut mundur empat layar.
- *
- * Satu-satunya prasyarat nyata sejauh ini: langkah Anggaran butuh
- * `scheme_id`, karena batasnya berasal dari skema (BR-BUD-01). Form yang
- * tidak punya `scheme_selector` tidak pernah menuntutnya.
- *
- * Langkah Review (7) sengaja **tidak** bergerbang — yang bergerbang tombol
- * Submit-nya, dijaga `RequiredFieldGuard`.
- *
- * `final class` statis mengikuti preseden `RequiredFieldGuard`.
+ * BR-SM-17 — gerbang langkah wizard. Navigasi **bebas maju-mundur**; yang
+ * menggerbang prasyarat data per langkah, bukan urutannya — memperbaiki judul
+ * di langkah 2 dari langkah 6 tidak boleh menuntut mundur empat layar.
  */
 final class WizardStepGate
 {
@@ -36,6 +24,8 @@ final class WizardStepGate
 
     public const STEP_FILES = 6;
 
+    // Langkah Review sengaja **tidak** bergerbang — yang bergerbang tombol
+    // Submit-nya, dijaga `RequiredFieldGuard`.
     public const STEP_REVIEW = 7;
 
     public static function isOpen(FormSubmission $submission, int $step): bool
@@ -51,6 +41,8 @@ final class WizardStepGate
      */
     public static function blockedReason(FormSubmission $submission, int $step): ?string
     {
+        // Satu-satunya prasyarat nyata sejauh ini: batas anggaran berasal dari
+        // skema (BR-BUD-01), jadi langkah Anggaran butuh `scheme_id`.
         if ($step !== self::STEP_BUDGET) {
             return null;
         }

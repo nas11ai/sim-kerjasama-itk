@@ -8,11 +8,9 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Storage;
 
 /**
- * Menulis berkas hasil ekspor ke disk dan mengembalikan path-nya.
- *
- * Dipisahkan dari Action-nya supaya jalur sinkron dan jalur background job
- * menghasilkan berkas yang sama persis. Dua penulis untuk dua jalur akan
- * berbeda isinya pada kolom pertama yang ditambahkan ke salah satunya.
+ * Menulis berkas hasil ekspor ke disk dan mengembalikan path-nya. Dipisahkan
+ * dari Action-nya supaya jalur sinkron dan background job menghasilkan berkas
+ * sama persis — dua penulis akan beda pada kolom pertama yang ditambahkan.
  */
 final class ExportWriter
 {

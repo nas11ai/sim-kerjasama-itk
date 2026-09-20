@@ -7,29 +7,16 @@ use App\Models\User;
 use Illuminate\Validation\ValidationException;
 
 /**
- * BR-IAM-03, BR-IAM-04, BR-IAM-05, BR-IAM-13 — tiga gerbang keadaan akun.
- *
- * Ketiganya sering dianggap satu, padahal menjawab pertanyaan berbeda dan
- * menggerbangi aksi berbeda:
- *
- *   | Sumbu                          | Menggerbang            |
- *   | ------------------------------ | ---------------------- |
- *   | `verification_status`          | **submit**             |
- *   | `User.is_active`               | **login**              |
- *   | `UserProfile::isComplete()`    | **membuat pengajuan**  |
- *
- * Satu user bisa lolos yang satu sambil tertahan yang lain: akun `pending`
- * dengan profil lengkap boleh menyiapkan DRAFT tapi tidak boleh mengirimnya;
- * akun terverifikasi dengan profil kosong tidak boleh memulai sama sekali.
- * Menyatukan ketiganya jadi satu kolom "user siap?" membuat salah satu dari
- * dua kasus itu berperilaku salah tanpa ada yang gagal mencolok.
+ * BR-IAM-03, BR-IAM-04, BR-IAM-05, BR-IAM-13 — dua dari tiga gerbang keadaan
+ * akun; yang ketiga, `User.is_active`, menggerbangi login. Menyatukan ketiganya
+ * jadi satu kolom "user siap?" membuat satu kasus salah tanpa gagal mencolok.
  */
 final class AccountStateGuard
 {
     /**
-     * BR-IAM-04, BR-IAM-13 — verifikasi menggerbang **komitmen**, bukan
-     * persiapan. Tidak ada yang mengikat sampai submit, sementara verifikasi
-     * NIDN makan waktu berhari-hari.
+     * BR-IAM-04, BR-IAM-13 — verifikasi menggerbangi **submit**, bukan
+     * persiapan: akun `pending` berprofil lengkap boleh menyiapkan DRAFT tapi
+     * belum boleh mengirimnya, sementara verifikasi NIDN makan berhari-hari.
      *
      * @throws ValidationException
      */
@@ -47,8 +34,9 @@ final class AccountStateGuard
     }
 
     /**
-     * BR-IAM-03 — gerbang yang **berbeda** dari verifikasi. Implementasi yang
-     * hanya memeriksa salah satunya lolos setengah kasus.
+     * BR-IAM-03 — profil lengkap menggerbangi **pembuatan** pengajuan: akun
+     * terverifikasi berprofil kosong tidak boleh memulai sama sekali.
+     * Memeriksa salah satu gerbang saja meloloskan setengah kasus.
      *
      * @throws ValidationException
      */

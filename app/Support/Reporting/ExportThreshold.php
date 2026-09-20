@@ -3,13 +3,9 @@
 namespace App\Support\Reporting;
 
 /**
- * BR-RPT-02 — ambang antara ekspor yang dijalankan langsung dan yang masuk
- * background job.
- *
- * Satu konstanta, dipakai ekspor tabular maupun cetak PDF (BR-RPT-11 memang
- * menyatakan ambangnya sama). Angka kedua yang berbeda akan membuat "ambang
- * yang sama" berhenti benar pada pemakaian pertamanya, dan Operator
- * menebak-nebak kapan layarnya akan menggantung.
+ * BR-RPT-02 — ambang antara ekspor yang langsung dan yang masuk background
+ * job. Satu konstanta untuk tabular maupun cetak PDF (BR-RPT-11 menyatakan
+ * ambangnya sama); angka kedua membuat Operator menebak kapan layar menggantung.
  */
 final class ExportThreshold
 {

@@ -7,17 +7,9 @@ use App\Models\User;
 use Illuminate\Database\Eloquent\Builder;
 
 /**
- * BR-RPT-05, BR-RPT-10 — pengajuan mana yang boleh dibaca seseorang.
- *
- * Satu aturan, dua pemakai: jejak audit dan ekspor. Ekspor sengaja **tidak**
- * melahirkan konsep scoping kedua — query dan batasnya sama, hanya
- * pemanggilnya berbeda. Dua batas yang ditulis terpisah adalah dua batas yang
- * cepat atau lambat menyimpang, dan yang menyimpang di sini berarti data
- * orang lain ikut terekspor.
- *
- * Anggota tim ikut terhitung: BR-SM-07 memberi mereka hak baca, dan
- * menyempitkannya ke `submitted_by` akan menyembunyikan pengajuan dari orang
- * yang justru ikut membuatnya.
+ * BR-RPT-05, BR-RPT-10 — pengajuan mana yang boleh dibaca seseorang. Satu
+ * aturan, dua pemakai (jejak audit dan ekspor): dua batas yang ditulis
+ * terpisah menyimpang, dan di sini berarti data orang lain ikut terekspor.
  */
 final class SubmissionVisibility
 {
@@ -44,6 +36,9 @@ final class SubmissionVisibility
         return $query->where(function (Builder $milik) use ($user): void {
             $milik
                 ->where('submitted_by', $user->id)
+                // BR-SM-07 — anggota tim ikut terhitung: menyempitkan ke
+                // `submitted_by` menyembunyikan pengajuan dari orang yang
+                // justru ikut membuatnya.
                 ->orWhereHas(
                     'researchMembers',
                     fn (Builder $q) => $q

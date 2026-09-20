@@ -9,21 +9,8 @@ use Illuminate\Support\Carbon;
 
 /**
  * BR-FE-08, BR-FE-10, BR-SCH-07 — apakah satu pengajuan masih boleh mengisi
- * satu FormPhaseDetail.
- *
- * Dua sumbu yang digabung di sini:
- *
- * 1. **Jendela fase** (`FormPhaseDetail::isWithinDeadline()`) — berlaku untuk
- *    semua pengajuan di fase itu.
- * 2. **Override** — pengecualian yang diberikan Operator untuk **satu**
- *    pengajuan pada **satu** fase (BR-FE-10). Ia tidak pernah melebar: bukan ke
- *    fase lain milik pengajuan yang sama, bukan ke pengajuan lain di fase yang
- *    sama.
- *
- * Penutupan paksa periode mengalahkan keduanya. Override adalah izin Operator
- * untuk satu orang; force close adalah keputusan Operator untuk menghentikan
- * semuanya. Keputusan yang lebih baru dan lebih luas menang — kalau tidak,
- * menutup periode akan menyisakan pintu yang diam-diam masih terbuka.
+ * satu FormPhaseDetail. Dua sumbu: jendela fase yang berlaku untuk semua
+ * pengajuan di fase itu, dan override Operator untuk satu pengajuan saja.
  */
 final class PhaseAccessGate
 {
@@ -31,13 +18,14 @@ final class PhaseAccessGate
     {
         // Pengajuan yang belum tertaut fase tidak punya batas untuk ditegakkan.
         // Jalur wizard sudah gagal keras dengan 409 kalau detailnya tak bisa
-        // diresolusi (ADR 0014), jadi null di sini berarti data lama, bukan
-        // celah yang baru dibuka.
+        // diresolusi (ADR 0014), jadi null di sini data lama, bukan celah baru.
         if ($detail === null) {
             return true;
         }
 
-        // BR-SCH-07 — hard block, tidak bisa ditembus override.
+        // BR-SCH-07 — hard block, tidak bisa ditembus override: override izin
+        // Operator untuk satu orang, force close keputusannya menghentikan
+        // semua. Kalau yang lebih luas kalah, ada pintu yang tetap terbuka.
         if (SubmissionPeriodGate::isForceClosed($detail)) {
             return false;
         }
@@ -63,14 +51,9 @@ final class PhaseAccessGate
     }
 
     /**
-     * Bentuk yang dikirim ke layar.
-     *
-     * BR-FE-15 — fase yang lewat batas tetap tampil, hanya tidak bisa diubah;
-     * `is_open` yang membedakannya, bukan menghilangkan fasenya dari payload.
-     *
-     * BR-FE-16 — `reason` hanya ikut kalau pemanggilnya memang berhak
-     * membacanya. Peneliti melihat bahwa perpanjangan itu ada dan sampai
-     * kapan berlaku, tapi tidak melihat alasan Operator memberikannya.
+     * Bentuk yang dikirim ke layar. BR-FE-15 — fase yang lewat batas tetap
+     * tampil dengan `is_open` false, bukan hilang dari payload. BR-FE-16 —
+     * peneliti melihat perpanjangan ada dan sampai kapan, bukan alasannya.
      *
      * @return array{is_open: bool, deadline: string|null, form_phase_detail_id: int|null, override: array{id: int, status: string, expires_at: string|null, reason: string|null}|null}
      */
@@ -111,11 +94,9 @@ final class PhaseAccessGate
     }
 
     /**
-     * Override yang masih berlaku untuk pasangan pengajuan+fase ini, kalau ada.
-     *
-     * Dicabut (`is_active = false`) dan kedaluwarsa (`expires_at` lewat)
-     * sama-sama berarti tidak berlaku — keduanya disaring di query, bukan
-     * dengan memuat semua lalu memfilter di PHP.
+     * Override yang masih berlaku untuk pasangan pengajuan+fase ini. BR-FE-10 —
+     * izin ini tidak pernah melebar ke fase atau pengajuan lain. Dicabut dan
+     * kedaluwarsa sama-sama tak berlaku, disaring di query bukan di PHP.
      */
     public static function activeOverride(
         FormSubmission $submission,

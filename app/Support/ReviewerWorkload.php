@@ -7,19 +7,17 @@ use App\Models\Reviewer;
 use App\Models\SubmissionReviewer;
 
 /**
- * BR-REV-04 — beban reviewer.
- *
- * Melebihi `scheme.rules.max_reviewer_workload` memberi **peringatan, bukan
- * penolakan**. Menjadikannya penolakan keras melumpuhkan Operator di masa
- * sibuk — dan itu keputusan produk, bukan bug. Karena itu kelas skenarionya
- * `@boundary`, bukan `@denial`.
- *
- * Dipisahkan dari `AssignReviewer` justru supaya perbedaan itu terlihat di
- * struktur: guard melempar, ini tidak.
+ * BR-REV-04 — beban reviewer. Melebihi `scheme.rules.max_reviewer_workload`
+ * memberi **peringatan, bukan penolakan**: penolakan keras melumpuhkan Operator
+ * di masa sibuk. Kelas skenarionya karena itu `@boundary`, bukan `@denial`.
  */
 final class ReviewerWorkload
 {
-    /** Peringatan yang perlu dilihat Operator, atau null kalau beban wajar. */
+    /**
+     * Peringatan yang perlu dilihat Operator, atau null kalau beban wajar —
+     * dipisahkan dari `AssignReviewer` supaya bedanya terlihat di struktur:
+     * guard melempar, ini tidak.
+     */
     public static function warningFor(FormSubmission $submission, Reviewer $reviewer): ?string
     {
         $max = self::limitFor($submission);

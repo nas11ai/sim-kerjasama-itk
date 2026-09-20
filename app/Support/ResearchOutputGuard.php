@@ -10,19 +10,8 @@ use Illuminate\Validation\ValidationException;
 
 /**
  * BR-RO-01, BR-RO-02, BR-RO-04, BR-RO-05, BR-RO-09 — syarat sebuah luaran sah.
- *
- * Empat pemeriksaan yang menjawab pertanyaan berbeda, dan urutannya dipilih
- * supaya pesan yang muncul adalah yang paling menjelaskan:
- *
- *   1. **Keadaan induk** — luaran adalah laporan atas kegiatan yang sudah
- *      berjalan; sebelum disetujui, belum ada yang bisa dilaporkan.
- *   2. **Taksonomi** — tipe datang dari `output_type_definitions`, bukan teks
- *      bebas. Menambah tipe adalah perubahan data, bukan perubahan kode.
- *   3. **Kesesuaian jenis pengajuan** — PKS bentuk luaran pengabdian, bukan
- *      penelitian.
- *   4. **Isi** — taksonomi yang dibatasi baru menjaga separuh: tipenya
- *      terkendali, isinya tidak. Luaran berisi objek kosong lolos ke pelaporan
- *      sebagai kegiatan yang seolah terlaporkan.
+ * Empat pemeriksaan yang menjawab pertanyaan berbeda; urutannya dipilih supaya
+ * pesan yang muncul adalah yang paling menjelaskan.
  */
 final class ResearchOutputGuard
 {
@@ -44,7 +33,8 @@ final class ResearchOutputGuard
             ->where('is_active', true)
             ->first();
 
-        // BR-RO-05
+        // BR-RO-05 — tipe datang dari `output_type_definitions`, bukan teks
+        // bebas: menambah tipe adalah perubahan data, bukan perubahan kode.
         if ($definition === null) {
             throw ValidationException::withMessages([
                 'output_type' => 'Tipe luaran "'.$outputType.'" belum terdaftar. '
@@ -53,6 +43,10 @@ final class ResearchOutputGuard
         }
 
         self::assertMatchesSubmissionType($submission, $definition);
+
+        // Taksonomi yang terkendali baru menjaga separuh: tipenya benar,
+        // isinya belum. Luaran berisi objek kosong lolos ke pelaporan sebagai
+        // kegiatan yang seolah terlaporkan.
         self::assertMetadataComplete($definition, $metadata);
         self::assertFilesPresent($definition, $fileCount);
 
@@ -60,9 +54,9 @@ final class ResearchOutputGuard
     }
 
     /**
-     * BR-RO-01 — hanya pengajuan APPROVED. Yang sudah ditarik dipisahkan
-     * pesannya: luarannya tetap terbaca (BR-RO-06), yang berhenti hanya
-     * penambahan baru.
+     * BR-RO-01 — hanya pengajuan APPROVED: luaran melaporkan kegiatan yang
+     * sudah berjalan. Yang ditarik dipisahkan pesannya — luarannya tetap
+     * terbaca (BR-RO-06), yang berhenti hanya penambahan baru.
      */
     public static function assertSubmissionEligible(FormSubmission $submission): void
     {
@@ -80,7 +74,7 @@ final class ResearchOutputGuard
         }
     }
 
-    /** BR-RO-02 — mis. `pks` hanya untuk CommunityService. */
+    /** BR-RO-02 — `pks` bentuk luaran pengabdian, bukan penelitian. */
     private static function assertMatchesSubmissionType(
         FormSubmission $submission,
         OutputTypeDefinition $definition
@@ -104,11 +98,9 @@ final class ResearchOutputGuard
     }
 
     /**
-     * BR-RO-09 — field yang ditandai `required` di definisi tipenya.
-     *
-     * Yang tidak ditandai boleh kosong, termasuk `end_date` untuk PKS yang
-     * masih berjalan (BR-RO-03) — memaksanya terisi membuat peneliti mengarang
-     * tanggal.
+     * BR-RO-09 — field yang ditandai `required` di definisi tipenya. Yang
+     * tidak ditandai boleh kosong, termasuk `end_date` untuk PKS yang masih
+     * berjalan (BR-RO-03) — memaksanya terisi membuat peneliti mengarang.
      *
      * @param  array<string, mixed>  $metadata
      */

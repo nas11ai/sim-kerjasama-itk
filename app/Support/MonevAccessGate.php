@@ -10,20 +10,9 @@ use App\States\Submission\Withdrawn;
 use Illuminate\Validation\ValidationException;
 
 /**
- * BR-MON-01, BR-MON-02, BR-MON-08 — kapan sebuah siklus monev boleh dikerjakan.
- *
- * Tiga syarat yang harus lolos bersamaan, dan ketiganya menjawab pertanyaan
- * berbeda:
- *
- *   1. **Keadaan induk** (BR-MON-01) — monev memantau kegiatan yang sudah
- *      berjalan; selama pengajuannya belum disetujui, tidak ada yang dipantau.
- *   2. **Urutan siklus** (BR-MON-02) — detail sebelumnya harus `canProceed()`.
- *      Turunan keadaan, bukan kolom; tidak ada tombol "buka paksa".
- *   3. **Pembekuan** (BR-MON-08) — penarikan menghentikan laporan baru.
- *
- * Batas waktu per detail (BR-MON-05) tidak diulang di sini: ia penerapan
- * BR-FE-08 yang sudah dijaga `PhaseAccessGate`, dan menuliskannya dua kali
- * berarti dua tempat yang bisa menyimpang.
+ * BR-MON-01, BR-MON-02, BR-MON-08 — kapan siklus monev boleh dikerjakan: tiga
+ * syarat yang harus lolos bersamaan. BR-MON-05 tidak diulang di sini — ia
+ * penerapan BR-FE-08 milik `PhaseAccessGate`, dan dua tempat bisa menyimpang.
  */
 final class MonevAccessGate
 {
@@ -41,12 +30,16 @@ final class MonevAccessGate
             ]);
         }
 
+        // BR-MON-01 — monev memantau kegiatan yang sudah berjalan; selama
+        // pengajuannya belum disetujui, tidak ada yang dipantau.
         if (!$parent->status instanceof Approved) {
             throw ValidationException::withMessages([
                 'parent_submission_id' => 'Siklus monev terbuka setelah pengajuan disetujui.',
             ]);
         }
 
+        // BR-MON-02 — urutan siklus: turunan keadaan lewat `canProceed()`,
+        // bukan kolom, jadi tidak ada tombol "buka paksa".
         $blocking = self::unfinishedPredecessor($parent, $detail);
 
         if ($blocking !== null) {
@@ -67,12 +60,9 @@ final class MonevAccessGate
     }
 
     /**
-     * BR-MON-02 — detail sebelumnya yang belum tuntas, kalau ada.
-     *
-     * Yang diperiksa adalah laporan **milik induk ini** pada detail-detail
-     * sebelumnya. Detail yang belum pernah punya laporan sama-sama menghalangi
-     * dengan yang laporannya belum disubmit — keduanya berarti tahap itu belum
-     * selesai.
+     * BR-MON-02 — detail sebelumnya yang belum tuntas, kalau ada. Yang
+     * diperiksa laporan **milik induk ini**; detail yang belum pernah punya
+     * laporan sama menghalangi dengan yang laporannya belum disubmit.
      */
     private static function unfinishedPredecessor(
         FormSubmission $parent,

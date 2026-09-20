@@ -9,18 +9,8 @@ use Illuminate\Support\Carbon;
 
 /**
  * BR-FE-01 dan BR-SCH-07 — kapan sebuah SubmissionPeriod masih menerima kerja.
- *
- * Seluruh `SubmissionDate` adalah **batas akhir** ("Batas Submit", "Batas
- * Evaluasi", "Batas Revisi"), bukan jendela mulai–selesai. Periode karena itu
- * tertutup ketika **seluruh** batasnya sudah lewat — bukan ketika batas
- * pertamanya belum tiba. Predikat warisan `isPeriodActive()` membacanya sebagai
- * jendela dan menyimpulkan periode belum aktif sampai deadline pertama tiba,
- * yang berarti tidak ada yang boleh mengajukan sebelum batas pengajuan.
- *
- * Penutupan paksa Operator mengalahkan tanggal apa pun (BR-SCH-07).
- *
- * Predikat yang sama sudah dipakai `FormSubmission::resolveIsArchived()`
- * (BR-SM-13); ia sekarang memanggil ke sini alih-alih menyalinnya.
+ * Predikat yang sama dipakai `FormSubmission::resolveIsArchived()` (BR-SM-13);
+ * ia memanggil ke sini alih-alih menyalinnya.
  */
 final class SubmissionPeriodGate
 {
@@ -38,6 +28,7 @@ final class SubmissionPeriodGate
             return false;
         }
 
+        // BR-SCH-07 — penutupan paksa Operator mengalahkan tanggal apa pun.
         if ($period->is_force_closed) {
             return true;
         }
@@ -51,6 +42,9 @@ final class SubmissionPeriodGate
             return false;
         }
 
+        // Seluruh `SubmissionDate` adalah **batas akhir**, bukan jendela
+        // mulai–selesai. Predikat warisan `isPeriodActive()` membacanya
+        // sebagai jendela, jadi melarang mengajukan sebelum batasnya tiba.
         return $dates->every(
             static fn (SubmissionDate $date): bool => $date->datetime->isPast()
         );
@@ -58,13 +52,8 @@ final class SubmissionPeriodGate
 
     /**
      * Status untuk ditampilkan, diturunkan dari predikat yang sama dengan
-     * gerbangnya. Sebelumnya keduanya dihitung terpisah, dan akibatnya periode
-     * yang ditutup paksa tetap berlabel "Aktif" di layar sementara backend
-     * menolak setiap pengajuan ke sana.
-     *
-     * `upcoming` sengaja tidak ada di sini. Ia lahir dari pembacaan bahwa
-     * tanggal paling awal adalah tanggal mulai; padahal seluruh SubmissionDate
-     * adalah batas akhir, jadi periode sudah menerima pengajuan sejak dibuat.
+     * gerbangnya — dihitung terpisah, periode yang ditutup paksa pernah
+     * berlabel "Aktif" sementara backend menolak setiap pengajuan ke sana.
      *
      * @return 'force_closed'|'no_dates'|'expired'|'active'
      */
@@ -78,6 +67,9 @@ final class SubmissionPeriodGate
             return 'no_dates';
         }
 
+        // `upcoming` sengaja tidak ada: ia lahir dari pembacaan bahwa tanggal
+        // paling awal adalah tanggal mulai, padahal semuanya batas akhir —
+        // periode sudah menerima pengajuan sejak dibuat.
         return self::isClosed($period) ? 'expired' : 'active';
     }
 
@@ -102,10 +94,8 @@ final class SubmissionPeriodGate
 
     /**
      * BR-SCH-07 — apakah periode di balik satu FormPhaseDetail ditutup paksa.
-     *
-     * Periodenya dibaca lewat SubmissionDate milik detail itu, bukan lewat
-     * formPhase: `form_phases` tidak punya kolom `submission_period_id`
-     * (ADR 0014).
+     * Periodenya dibaca lewat SubmissionDate milik detail itu, bukan formPhase:
+     * `form_phases` tidak punya kolom `submission_period_id` (ADR 0014).
      */
     public static function isForceClosed(FormPhaseDetail $detail): bool
     {

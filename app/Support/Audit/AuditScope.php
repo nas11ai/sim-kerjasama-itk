@@ -9,17 +9,9 @@ use App\Support\Reporting\SubmissionVisibility;
 use Illuminate\Database\Eloquent\Builder;
 
 /**
- * BR-RPT-05 — siapa membaca jejak audit yang mana.
- *
- * Operator membaca seluruh sistem, peneliti hanya pengajuannya sendiri. Batas
- * yang sama dipakai ekspor (BR-RPT-10) lewat kelas ini juga — ekspor sengaja
- * tidak melahirkan konsep scoping kedua, karena dua batas yang ditulis
- * terpisah adalah dua batas yang cepat atau lambat menyimpang.
- *
- * "Pengajuan miliknya" memakai `isAccessibleBy` lewat daftar id, bukan sekadar
- * `submitted_by`: anggota tim juga berhak membaca jejak pengajuan yang ia
- * ikuti (BR-SM-07), dan menyempitkannya ke ketua pengaju akan menyembunyikan
- * riwayat dari orang yang justru ikut membuatnya.
+ * BR-RPT-05 — siapa membaca jejak audit yang mana: Operator seluruh sistem,
+ * peneliti hanya pengajuannya sendiri. Ekspor (BR-RPT-10) memakai kelas ini
+ * juga — dua batas yang ditulis terpisah cepat atau lambat menyimpang.
  */
 final class AuditScope
 {
@@ -41,6 +33,9 @@ final class AuditScope
                 ->where(function (Builder $onSubmission) use ($user): void {
                     $onSubmission
                         ->where('subject_type', FormSubmission::class)
+                        // BR-SM-07 — "miliknya" lewat `idsFor`, bukan
+                        // `submitted_by`: anggota tim ikut berhak membaca
+                        // jejak pengajuan yang ia ikuti.
                         ->whereIn('subject_id', SubmissionVisibility::idsFor($user));
                 })
                 // Entri yang subjeknya bukan pengajuan — mis. perubahan

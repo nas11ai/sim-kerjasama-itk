@@ -9,11 +9,9 @@ use Illuminate\Database\Eloquent\Model;
 use InvalidArgumentException;
 
 /**
- * Jenis ekspor yang didukung, beserta query-nya.
- *
- * Query-nya selalu berangkat dari `SubmissionVisibility` — jenis ekspor tidak
- * boleh menyusun batasnya sendiri (BR-RPT-10). Menambah jenis baru berarti
- * menambah satu entri di sini; batasnya ikut sendirinya.
+ * Jenis ekspor yang didukung, beserta query-nya. Query-nya selalu berangkat
+ * dari `SubmissionVisibility` — jenis ekspor tidak boleh menyusun batasnya
+ * sendiri (BR-RPT-10); menambah jenis cukup satu entri, batasnya ikut.
  */
 final class ExportType
 {

@@ -5,13 +5,9 @@ namespace App\Support\Notification;
 use RuntimeException;
 
 /**
- * BR-NOT-06 — tipe event dipublish tanpa deklarasi channel.
- *
- * Ditolak keras, bukan didiamkan dengan default. Daftar channel adalah
- * konfigurasi yang bisa tertinggal saat event baru lahir; kalau ketiadaannya
- * dijawab dengan "kirim in-app saja", kelalaian itu menjadi notifikasi yang
- * diam-diam tidak sampai ke orang yang menunggunya — dan tidak ada yang tahu
- * sampai seseorang mengeluh.
+ * BR-NOT-06 — tipe event dipublish tanpa deklarasi channel. Ditolak keras,
+ * bukan dijawab "kirim in-app saja": daftar channel bisa tertinggal saat event
+ * baru lahir, dan kelalaian itu jadi notifikasi yang diam-diam tidak sampai.
  */
 class ChannelNotDeclared extends RuntimeException
 {

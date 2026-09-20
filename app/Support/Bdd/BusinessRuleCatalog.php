@@ -9,11 +9,9 @@ use RuntimeException;
 use SplFileInfo;
 
 /**
- * Membaca definisi business rule dari dokumen DDD.
- *
- * Hanya baris tabel yang dihitung sebagai definisi. Penyebutan di prosa
- * diabaikan, supaya guard bisa membedakan "rule ini ada" dari "rule ini
- * kebetulan disebut" — tanpa itu, typo di tag tidak akan pernah ketahuan.
+ * Membaca definisi business rule dari dokumen DDD. Hanya baris tabel yang
+ * dihitung, penyebutan di prosa diabaikan: guard jadi bisa membedakan "rule
+ * ini ada" dari "kebetulan disebut" — tanpa itu typo di tag lolos terus.
  */
 final class BusinessRuleCatalog
 {

@@ -10,11 +10,9 @@ use Illuminate\Support\Facades\Storage;
 use RuntimeException;
 
 /**
- * Menulis dokumen PDF ke disk yang sama dengan ekspor tabular.
- *
- * Satu penyimpanan, satu retensi (BR-RPT-12), satu jalur unduhan bertanda
- * tangan (BR-RPT-03). Memberi cetak penyimpanannya sendiri berarti menulis
- * ulang ketiganya, dan yang ditulis ulang akan menyimpang.
+ * Menulis dokumen PDF ke disk yang sama dengan ekspor tabular — satu
+ * penyimpanan, satu retensi (BR-RPT-12), satu unduhan bertanda tangan
+ * (BR-RPT-03). Penyimpanan sendiri menulis ulang ketiganya, dan itu menyimpang.
  */
 final class DocumentWriter
 {

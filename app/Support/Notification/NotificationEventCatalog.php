@@ -8,19 +8,16 @@ use RuntimeException;
 use Symfony\Component\Finder\Finder;
 
 /**
- * Katalog tipe event notifikasi beserta channel default-nya.
- *
- * Daftar tipe event-nya **ditemukan dari kelas notifikasi**, bukan ditulis
- * ulang di sini: dua daftar yang dirawat terpisah akan berbeda pada kelas
- * berikutnya yang ditambahkan. Yang ditulis tangan hanya default-nya, dan
- * kelas yang default-nya belum ditetapkan ditolak `NotificationChannelTest`
- * — bukan diam-diam diberi in-app saja.
+ * Katalog tipe event notifikasi beserta channel default-nya. Tipe event-nya
+ * **ditemukan dari kelas notifikasi**, bukan ditulis ulang di sini: dua daftar
+ * yang dirawat terpisah akan berbeda pada kelas berikutnya yang ditambahkan.
  */
 final class NotificationEventCatalog
 {
     /**
-     * Default per tipe event. Email hanya untuk yang menuntut tindakan segera
-     * (BR-NOT-02).
+     * Default per tipe event, satu-satunya bagian yang ditulis tangan. Email
+     * hanya untuk yang menuntut tindakan segera (BR-NOT-02); kelas tanpa
+     * default di sini ditolak `NotificationChannelTest`, bukan diberi in-app.
      *
      * @var array<string, array<int, string>>
      */

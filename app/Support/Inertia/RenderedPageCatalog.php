@@ -8,11 +8,8 @@ use Symfony\Component\Finder\SplFileInfo;
 
 /**
  * Mendaftar setiap halaman Inertia yang di-render controller, lalu memeriksa
- * apakah berkas Vue-nya benar-benar ada.
- *
- * Test feature meng-assert nama komponen yang *dikirim* controller, jadi nama
- * yang tidak menunjuk berkas mana pun tetap lolos — kegagalannya baru muncul
- * di browser sebagai halaman kosong. Guard ini menutup celah itu.
+ * berkas Vue-nya ada. Test feature meng-assert nama yang *dikirim* controller,
+ * jadi nama tanpa berkas tetap lolos — gagalnya baru tampak di browser.
  */
 final class RenderedPageCatalog
 {

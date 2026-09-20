@@ -16,16 +16,8 @@ final class OptimisticLock
 {
     public static function assertNotStale(Model $model, ?string $lastUpdatedAt): void
     {
-        // Dua kegagalan yang berbeda, dan membedakannya penting bagi klien.
-        //
-        // `last_updated_at` yang **tidak dikirim** adalah permintaan yang cacat
-        // bentuknya — 422, dan mengulanginya apa adanya tidak akan berhasil.
-        // `last_updated_at` yang **sudah basi** adalah tabrakan penyuntingan —
-        // 409, dan jalan keluarnya memang memuat ulang lalu mencoba lagi.
-        //
-        // Menyatukan keduanya jadi 409 membuat klien yang otomatis memuat
-        // ulang pada 409 berputar selamanya untuk field yang memang tidak
-        // pernah ia kirim.
+        // `last_updated_at` yang **tidak dikirim** adalah permintaan yang
+        // cacat bentuknya — 422, dan mengulanginya apa adanya tidak berhasil.
         if ($lastUpdatedAt === null) {
             throw ValidationException::withMessages([
                 'last_updated_at' => 'Waktu perubahan terakhir wajib disertakan saat menyimpan.',
@@ -41,6 +33,9 @@ final class OptimisticLock
         $isStale = !$current instanceof CarbonInterface || !$current->equalTo($lastUpdatedAt);
 
         if ($isStale) {
+            // Yang **sudah basi** adalah tabrakan penyuntingan — 409, jalan
+            // keluarnya memuat ulang lalu mencoba lagi. Disatukan dengan 422 di
+            // atas, klien yang memuat ulang pada 409 berputar selamanya.
             abort(409, 'Data sudah diubah pengguna lain. Muat ulang halaman.');
         }
     }

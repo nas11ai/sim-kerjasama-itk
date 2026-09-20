@@ -7,13 +7,8 @@ use Illuminate\Validation\ValidationException;
 
 /**
  * BR-BUD-01, cermin BR-SM-06 — grand total tidak melebihi `scheme.max_budget`.
- *
- * Satu validator untuk setiap jalur yang mengubah angka: menambah item,
- * menyuntingnya, dan submit. Dua salinan aturan batas berarti satu di
- * antaranya akan tertinggal saat batasnya berubah, dan yang tertinggal itulah
- * yang dipakai peneliti.
- *
- * Submission tanpa skema tidak punya batas (BR-SCH-04).
+ * Satu validator untuk tiap jalur yang mengubah angka: dua salinan berarti satu
+ * tertinggal saat batasnya berubah, dan yang tertinggal itu yang dipakai.
  */
 final class BudgetLimitGuard
 {
@@ -31,6 +26,7 @@ final class BudgetLimitGuard
     ): void {
         $scheme = $submission->scheme;
 
+        // Submission tanpa skema tidak punya batas (BR-SCH-04).
         if ($scheme === null) {
             return;
         }
