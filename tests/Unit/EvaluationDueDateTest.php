@@ -2,103 +2,67 @@
 
 // tests/Unit/EvaluationDueDateTest.php
 //
-// Versi lama (FormSubmission::getEvaluationDueDate) memakai kolom 'date' yang
-// sudah dihapus migration 2025_08_11_002015. Test ini mengunci bahwa tenggatnya
-// SubmissionDate paling akhir, bukan QueryException.
+// BR-FE-17 — tenggat sebuah FormPhaseDetail mengikat aktor detail itu sendiri.
+// Evaluasi reviewer adalah tahap setelah submit, jadi ia wajib punya
+// SubmissionDate sendiri; memakai ulang "Batas Submit" membuat jendela kerja
+// reviewer nol atau negatif, dan memakai tanggal terakhir period memberi
+// tenggat milik tahap yang sama sekali lain.
 
-use App\Models\Form;
-use App\Models\FormAccessControl;
-use App\Models\FormPhase;
-use App\Models\FormPhaseDetail;
 use App\Models\FormSubmission;
-use App\Models\Organization;
-use App\Models\PhaseType;
-use App\Models\SubmissionDate;
-use App\Models\SubmissionDateLabel;
-use App\Models\SubmissionPeriod;
+use App\Models\ReviewEvaluationForm;
 use App\Queries\Submission\EvaluationDueDate;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Facades\DB;
 use Tests\TestCase;
 
 uses(TestCase::class, RefreshDatabase::class);
 
-it('returns the latest submission date as the evaluation due date instead of throwing', function () {
-    $form = Form::factory()->create();
-    $organization = Organization::create([
-        'name' => 'Organisasi Uji Due Date',
-        'type' => 'faculty',
-    ]);
-    $formAccessControl = FormAccessControl::create([
-        'form_id' => $form->id,
-        'permission' => 'submissions.create',
-        'organization_id' => $organization->id,
-    ]);
-    $phaseType = PhaseType::create(['name' => 'Tipe Fase Uji Due Date']);
-    $formPhase = FormPhase::create(['title' => 'Fase Uji Due Date', 'is_active' => true]);
-    $period = SubmissionPeriod::create(['name' => 'Periode Uji Due Date']);
-    $label = SubmissionDateLabel::create(['name' => 'Label Uji Due Date']);
+it('mengambil tenggat dari detail yang memiliki form evaluasi — BR-FE-17', function () {
+    $fx = phaseWithOwnEvaluationDeadline('Uji Tenggat Evaluasi');
 
-    $earlierDate = new SubmissionDate;
-    $earlierDate->forceFill([
-        'submission_date_label_id' => $label->id,
-        'datetime' => now()->addDays(3),
-        'submission_period_id' => $period->id,
-    ])->save();
-
-    $latestDate = new SubmissionDate;
-    $latestDate->forceFill([
-        'submission_date_label_id' => $label->id,
-        'datetime' => now()->addDays(10),
-        'submission_period_id' => $period->id,
-    ])->save();
-
-    DB::table('submission_period_phases')->insert([
-        'submission_period_id' => $period->id,
-        'form_phase_id' => $formPhase->id,
-    ]);
-
-    $phaseDetail = FormPhaseDetail::create([
-        'form_phase_id' => $formPhase->id,
-        'form_access_control_id' => $formAccessControl->id,
-        'phase_type_id' => $phaseType->id,
-        'order' => 1,
-        'submission_date_id' => $earlierDate->id,
-    ]);
-
-    $submission = FormSubmission::factory()->create([
-        'form_id' => $form->id,
-        'form_phase_detail_id' => $phaseDetail->id,
-        'submission_period_id' => $period->id,
-    ]);
-
-    $dueDate = EvaluationDueDate::run($submission);
+    $dueDate = EvaluationDueDate::run($fx['evaluationForm']);
 
     expect($dueDate)->not->toBeNull()
-        ->and($dueDate->format('Y-m-d H:i:s'))->toBe($latestDate->datetime->format('Y-m-d H:i:s'));
+        ->and($dueDate->format('Y-m-d H:i:s'))->toBe($fx['dueEvaluation']->format('Y-m-d H:i:s'));
 });
 
-it('resolves the due date from submission_period_id, not a form_phase_id shared with another period', function () {
-    // ADR 0004: submission_period_phases tidak punya unique constraint, jadi
-    // satu FormPhase boleh dimiliki banyak period. Kalau EvaluationDueDate
-    // menebak period lewat pivot itu, ia bisa mengambil period yang salah persis
-    // seperti bug ->first() yang ADR ini dibuat untuk membunuhnya.
+it('tidak memakai ulang Batas Submit milik peneliti', function () {
+    $fx = phaseWithOwnEvaluationDeadline('Uji Bukan Batas Submit');
+
+    expect(EvaluationDueDate::run($fx['evaluationForm'])->format('Y-m-d H:i:s'))
+        ->not->toBe($fx['dueSubmit']->format('Y-m-d H:i:s'));
+});
+
+it('tidak memakai tanggal terakhir period, yang milik tahap lain', function () {
+    $fx = phaseWithOwnEvaluationDeadline('Uji Bukan Tanggal Terakhir');
+
+    $latest = $fx['period']->submissionDates()->orderByDesc('datetime')->first();
+
+    expect($latest)->not->toBeNull()
+        ->and(EvaluationDueDate::run($fx['evaluationForm'])->format('Y-m-d H:i:s'))
+        ->not->toBe($latest->datetime->format('Y-m-d H:i:s'));
+});
+
+it('tidak bergantung pada pivot submission_period_phases — ADR 0004', function () {
+    // Jawabannya kini ditempuh lewat FK langsung, jadi period lain yang
+    // kebetulan berbagi fase tidak bisa lagi menyeretnya.
     $fx = phaseSharedByTwoPeriods('Uji Due Date Ambigu');
 
-    $submission = FormSubmission::factory()->create([
+    $form = ReviewEvaluationForm::create([
+        'title' => 'Substansi',
+        'form_phase_detail_id' => $fx['detail']->id,
+        'is_active' => true,
+        'is_required' => true,
+        'order' => 1,
+    ]);
+
+    FormSubmission::factory()->create([
         'form_id' => $fx['form']->id,
         'form_phase_detail_id' => $fx['detail']->id,
         'submission_period_id' => $fx['periodA']->id,
     ]);
 
-    $dueDate = EvaluationDueDate::run($submission);
-
-    expect($dueDate)->not->toBeNull()
-        ->and($dueDate->format('Y-m-d H:i:s'))->toBe($fx['dueA']->format('Y-m-d H:i:s'));
-});
-
-it('mengembalikan null saat pengajuan tidak punya periode', function () {
-    $submission = FormSubmission::factory()->create(['submission_period_id' => null]);
-
-    expect(EvaluationDueDate::run($submission))->toBeNull();
+    expect(EvaluationDueDate::run($form)->format('Y-m-d H:i:s'))
+        ->toBe($fx['dueA']->format('Y-m-d H:i:s'))
+        ->and(EvaluationDueDate::run($form)->format('Y-m-d H:i:s'))
+        ->not->toBe($fx['dueB']->format('Y-m-d H:i:s'));
 });

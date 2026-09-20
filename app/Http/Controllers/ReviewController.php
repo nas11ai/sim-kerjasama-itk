@@ -544,27 +544,24 @@ class ReviewController extends Controller
         // Get all required evaluation forms
         $requiredForms = $formPhaseDetail->requiredReviewEvaluationForms()->get();
 
-        /** @var FormSubmission $submissionModel */
-        $submissionModel = $submissionReviewer->formSubmission;
-
-        // ADR 0004 — tenggat diambil dari period pengajuan sendiri lewat FK.
-        // `null` adalah jawaban yang sah: kolomnya nullable dan layarnya sudah
-        // menampilkan "No deadline" tanpa tenggat.
-        $dueDate = EvaluationDueDate::run($submissionModel);
-
         foreach ($requiredForms as $form) {
             /** @var ReviewEvaluationForm $form */
             $exists = $submissionReviewer->reviewerFormAssignments()
                 ->where('review_evaluation_form_id', $form->id)
                 ->exists();
 
-            if (!$exists) {
-                $submissionReviewer->assignForm(
-                    $form->id,
-                    true, // is_required
-                    $dueDate
-                );
+            if ($exists) {
+                continue;
             }
+
+            // BR-FE-17 — tenggatnya milik detail yang memiliki form ini, jadi
+            // ia dihitung per form. `null` jawaban yang sah: kolomnya nullable
+            // dan layar menampilkan "No deadline".
+            $submissionReviewer->assignForm(
+                $form->id,
+                true, // is_required
+                EvaluationDueDate::run($form)
+            );
         }
     }
 

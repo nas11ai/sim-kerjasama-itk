@@ -16,6 +16,7 @@ use App\Models\FormPhaseDetail;
 use App\Models\FormSubmission;
 use App\Models\Organization;
 use App\Models\PhaseType;
+use App\Models\ReviewEvaluationForm;
 use App\Models\SubmissionDate;
 use App\Models\SubmissionDateLabel;
 use App\Models\SubmissionPeriod;
@@ -246,4 +247,73 @@ function phaseSharedByTwoPeriods(string $tag, bool $needsReview = false): array
     ]);
 
     return compact('form', 'detail', 'periodA', 'dueA', 'periodB', 'dueB');
+}
+
+/**
+ * Satu FormPhase dengan dua detail seperti docs/…/supporting/02_monev.md:
+ * detail pengajuan bertenggat "Batas Submit", dan detail evaluasi bertenggat
+ * "Batas Evaluasi" sendiri yang memiliki ReviewEvaluationForm-nya (BR-FE-17).
+ *
+ * @return array{form: Form, submitDetail: FormPhaseDetail, evaluationDetail: FormPhaseDetail, evaluationForm: ReviewEvaluationForm, period: SubmissionPeriod, dueSubmit: Carbon, dueEvaluation: Carbon}
+ */
+function phaseWithOwnEvaluationDeadline(string $tag): array
+{
+    $form = Form::factory()->create();
+
+    $accessControl = FormAccessControl::create([
+        'form_id' => $form->id,
+        'permission' => 'submissions.create',
+        'organization_id' => Organization::create(['name' => "Organisasi {$tag}", 'type' => 'faculty'])->id,
+    ]);
+
+    $formPhase = FormPhase::create(['title' => "Fase {$tag}", 'is_active' => true]);
+    $period = SubmissionPeriod::create(['name' => "Periode {$tag}"]);
+
+    $dueSubmit = now()->addDays(3)->startOfSecond();
+    $submitDate = SubmissionDate::create([
+        'submission_date_label_id' => SubmissionDateLabel::create(['name' => "Batas Submit {$tag}"])->id,
+        'datetime' => $dueSubmit,
+        'submission_period_id' => $period->id,
+    ]);
+
+    $dueEvaluation = now()->addDays(17)->startOfSecond();
+    $evaluationDate = SubmissionDate::create([
+        'submission_date_label_id' => SubmissionDateLabel::create(['name' => "Batas Evaluasi {$tag}"])->id,
+        'datetime' => $dueEvaluation,
+        'submission_period_id' => $period->id,
+    ]);
+
+    // Tanggal terakhir period, milik tahap lain — bukan tenggat evaluasi.
+    SubmissionDate::create([
+        'submission_date_label_id' => SubmissionDateLabel::create(['name' => "Batas Akhir {$tag}"])->id,
+        'datetime' => now()->addDays(40)->startOfSecond(),
+        'submission_period_id' => $period->id,
+    ]);
+
+    $submitDetail = FormPhaseDetail::create([
+        'form_phase_id' => $formPhase->id,
+        'form_access_control_id' => $accessControl->id,
+        'phase_type_id' => PhaseType::create(['name' => "Tipe Pengajuan {$tag}"])->id,
+        'order' => 1,
+        'submission_date_id' => $submitDate->id,
+        'needs_review' => true,
+    ]);
+
+    $evaluationDetail = FormPhaseDetail::create([
+        'form_phase_id' => $formPhase->id,
+        'form_access_control_id' => $accessControl->id,
+        'phase_type_id' => PhaseType::create(['name' => "Tipe Evaluasi {$tag}"])->id,
+        'order' => 2,
+        'submission_date_id' => $evaluationDate->id,
+    ]);
+
+    $evaluationForm = ReviewEvaluationForm::create([
+        'title' => "Substansi {$tag}",
+        'form_phase_detail_id' => $evaluationDetail->id,
+        'is_active' => true,
+        'is_required' => true,
+        'order' => 1,
+    ]);
+
+    return compact('form', 'submitDetail', 'evaluationDetail', 'evaluationForm', 'period', 'dueSubmit', 'dueEvaluation');
 }

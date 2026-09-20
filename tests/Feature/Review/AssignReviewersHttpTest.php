@@ -14,7 +14,6 @@
 // diam-diam berhenti memanggil Action-nya, test di sini memerah.
 
 use App\Models\Form;
-use App\Models\FormPhase;
 use App\Models\FormPhaseDetail;
 use App\Models\FormSubmission;
 use App\Models\Reviewer;
@@ -148,10 +147,10 @@ it('satu penugasan yang ditolak membatalkan seluruh permintaan', function () {
         ->and($submission->fresh()->status)->toBeInstanceOf(Submitted::class);
 });
 
-it('menstempel tenggat dari period pengajuan sendiri, bukan period yang berbagi fase', function () {
-    // ADR 0004 di level HTTP: submission_period_phases tanpa unique constraint
-    // membuat satu FormPhase boleh dimiliki banyak period, jadi menebak period
-    // lewat pivot itu menstempel reviewer dengan tenggat milik period lain.
+it('menstempel tenggat dari detail pemilik form, bukan tanggal terakhir period', function () {
+    // BR-FE-17 di level HTTP. Jalur lama menebak period lewat pivot
+    // submission_period_phases lalu mengambil tanggal TERAKHIR-nya — tenggat
+    // milik tahap lain, dan milik period lain (ADR 0004).
     Permission::findOrCreate('users.manage', 'web');
 
     $operator = User::factory()->create();
@@ -189,7 +188,8 @@ it('menstempel tenggat dari period pengajuan sendiri, bukan period yang berbagi 
     $assignment = ReviewerFormAssignment::query()->sole();
 
     expect($assignment->due_date)->not->toBeNull()
-        ->and($assignment->due_date->format('Y-m-d H:i:s'))->toBe($fx['dueA']->format('Y-m-d H:i:s'));
+        ->and($assignment->due_date->format('Y-m-d H:i:s'))->toBe($fx['dueA']->format('Y-m-d H:i:s'))
+        ->and($assignment->due_date->format('Y-m-d H:i:s'))->not->toBe($fx['dueB']->format('Y-m-d H:i:s'));
 });
 
 it('[REV-ASSIGN-09] mengirim satu notifikasi penugasan, bukan dua', function () {
@@ -223,10 +223,10 @@ it('[REV-ASSIGN-09] mengirim satu notifikasi penugasan, bukan dua', function () 
     Mail::assertNothingQueued();
 });
 
-it('menstempel tenggat kosong saat periodenya tidak punya tanggal, bukan tanggal karangan', function () {
-    // Jalur lama mengarang `+7 days` di sini. Membiarkan null itu keputusan
-    // sadar: kolomnya nullable dan layar menampilkan "No deadline" — tapi ia
-    // juga membuat autoLockIfOverdue() tidak pernah berjalan.
+it('tidak pernah mengarang tenggat dari jam dinding', function () {
+    // Jalur lama jatuh ke `new DateTime('+7 days')` saat periodenya tak
+    // ketemu. Sekarang tenggatnya selalu tanggal milik detail pemilik form,
+    // jadi tak ada lagi tanggal yang lahir dari waktu penugasan.
     [$operator, $submission] = assignHttpFixture();
 
     ReviewEvaluationForm::create([
@@ -237,8 +237,11 @@ it('menstempel tenggat kosong saat periodenya tidak punya tanggal, bukan tanggal
         'order' => 1,
     ]);
 
-    $period = SubmissionPeriod::create(['name' => 'Periode Tanpa Tanggal']);
-    $submission->update(['submission_period_id' => $period->id]);
+    $submission->update(['submission_period_id' => SubmissionPeriod::create(['name' => 'Periode Tanpa Tanggal'])->id]);
+
+    // Digeser menjauh dari +7 hari: factory-nya kebetulan memakai addWeek(),
+    // dan tanpa ini assertion di bawah lulus karena kebetulan, bukan karena benar.
+    $submission->formPhaseDetail->submissionDate->update(['datetime' => now()->addDays(11)->startOfSecond()]);
 
     $this->actingAs($operator)
         ->post(route('admin.submissions.assign-reviewers', $submission), [
@@ -247,7 +250,8 @@ it('menstempel tenggat kosong saat periodenya tidak punya tanggal, bukan tanggal
         ->assertRedirect();
 
     $assignment = ReviewerFormAssignment::query()->sole();
+    $detailDate = $submission->formPhaseDetail->submissionDate->fresh()->datetime;
 
-    expect($assignment->due_date)->toBeNull()
-        ->and($assignment->isOverdue())->toBeFalse();
+    expect($assignment->due_date->format('Y-m-d H:i:s'))->toBe($detailDate->format('Y-m-d H:i:s'))
+        ->and($assignment->due_date->format('Y-m-d H:i:s'))->not->toBe(now()->addDays(7)->format('Y-m-d H:i:s'));
 });

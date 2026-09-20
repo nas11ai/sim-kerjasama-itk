@@ -3,29 +3,23 @@
 namespace App\Queries\Submission;
 
 use App\Actions\Concerns\ChangesNoState;
-use App\Models\FormSubmission;
+use App\Models\ReviewEvaluationForm;
 use DateTime;
 use Lorisleiva\Actions\Concerns\AsAction;
 
 /**
- * Tenggat evaluasi sebuah pengajuan: tanggal terakhir di periodenya.
- * Period diturunkan lewat FK submission_period_id, bukan ditebak lewat
- * submission_period_phases — pivot itu tanpa unique constraint (ADR 0004).
+ * BR-FE-17 — tenggat evaluasi milik FormPhaseDetail yang memiliki form ini,
+ * bukan batas submit peneliti dan bukan tanggal terakhir period. Ditempuh
+ * lewat FK, jadi pivot submission_period_phases tak bisa menyeretnya (ADR 0004).
  *
- * @method static DateTime|null run(FormSubmission $submission)
+ * @method static DateTime|null run(ReviewEvaluationForm $form)
  */
 class EvaluationDueDate implements ChangesNoState
 {
     use AsAction;
 
-    public function handle(FormSubmission $submission): ?DateTime
+    public function handle(ReviewEvaluationForm $form): ?DateTime
     {
-        $period = $submission->submissionPeriod;
-
-        if ($period === null) {
-            return null;
-        }
-
-        return $period->submissionDates()->orderByDesc('datetime')->first()?->datetime;
+        return $form->formPhaseDetail?->submissionDate?->datetime;
     }
 }
