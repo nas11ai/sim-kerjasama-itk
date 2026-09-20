@@ -92,7 +92,9 @@ class ReviewController extends Controller
                     $this->autoAssignEvaluationForms($submissionReviewer, $formPhaseDetail);
                 }
 
-                $this->emailService->notifyReviewerAssignment($submission, $reviewer);
+                // REV-ASSIGN-09 menyebut satu notifikasi, dan AssignReviewer
+                // sudah mengirimnya. Email Mail custom kedua di sini melanggar
+                // AGENTS.md dan jumlahnya bergantung pada ada-tidaknya form.
             }
         });
 

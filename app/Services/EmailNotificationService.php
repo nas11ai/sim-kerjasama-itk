@@ -75,47 +75,6 @@ class EmailNotificationService
     /**
      * 2. Notifikasi ketika admin assign reviewer
      */
-    public function notifyReviewerAssignment(FormSubmission $submission, Reviewer $reviewer)
-    {
-        try {
-            $subject = "Anda Ditugaskan sebagai Reviewer - {$submission->form->title}";
-            $params = [
-                'judul' => 'Penugasan Reviewer Baru',
-                'isi' => "
-                    <p>Halo {$reviewer->user->name},</p>
-                    <p>Anda telah ditugaskan sebagai reviewer untuk submission berikut:</p>
-                    <ul>
-                        <li><strong>Form:</strong> {$submission->form->title}</li>
-                        <li><strong>Diajukan oleh:</strong> {$submission->submittedBy->name}</li>
-                        <li><strong>Tanggal Submit:</strong> {$submission->created_at->format('d F Y H:i')}</li>
-                        <li><strong>Role Reviewer:</strong> {$reviewer->reviewer_type}</li>
-                    </ul>
-                    <p>Silakan review submission ini sesegera mungkin.</p>
-                    <p><a href='".route('reviewer.submissions.show', $submission->id)."' style='background-color: #2196F3; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;'>Lihat Submission</a></p>
-                ",
-            ];
-
-            Mail::to($reviewer->user->email)->queue(
-                new DynamicEmailNotification([
-                    'subject' => $subject,
-                    'view' => 'emails.template',
-                    'params' => $params,
-                ])
-            );
-
-            Log::info('Email notifikasi assignment reviewer dikirim', [
-                'submission_id' => $submission->id,
-                'reviewer_id' => $reviewer->id,
-            ]);
-
-        } catch (\Exception $e) {
-            Log::error('Gagal mengirim email notifikasi assignment reviewer', [
-                'submission_id' => $submission->id,
-                'reviewer_id' => $reviewer->id,
-                'error' => $e->getMessage(),
-            ]);
-        }
-    }
 
     /**
      * 3. Notifikasi ketika admin menghapus reviewer

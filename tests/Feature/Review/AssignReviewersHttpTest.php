@@ -29,9 +29,12 @@ use App\Models\SubmissionDateLabel;
 use App\Models\SubmissionPeriod;
 use App\Models\SubmissionReviewer;
 use App\Models\User;
+use App\Notifications\ReviewerAssignedNotification;
 use App\States\Submission\Submitted;
 use App\States\Submission\UnderReview;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Notification;
 use Spatie\Permission\Models\Permission;
 
 /** @return array{0: User, 1: FormSubmission} */
@@ -234,4 +237,35 @@ it('menstempel tenggat dari period pengajuan sendiri, bukan period yang berbagi 
 
     expect($assignment->due_date)->not->toBeNull()
         ->and($assignment->due_date->format('Y-m-d H:i:s'))->toBe($dueA->format('Y-m-d H:i:s'));
+});
+
+it('[REV-ASSIGN-09] mengirim satu notifikasi penugasan, bukan dua', function () {
+    // Skenarionya menyebut satu notifikasi ReviewerAssigned. Jalur HTTP dulu
+    // menambah satu email Mail custom di atasnya — dan hanya kalau fase-nya
+    // punya form evaluasi, jadi jumlahnya bergantung pada hal yang tak terkait.
+    Notification::fake();
+    Mail::fake();
+
+    [$operator, $submission] = assignHttpFixture();
+
+    // Wajib ada: tanpa form evaluasi, `continue` di assignReviewers() keburu
+    // menyelamatkan jalurnya dan email keduanya tidak pernah tersentuh.
+    ReviewEvaluationForm::create([
+        'title' => 'Substansi',
+        'form_phase_detail_id' => $submission->form_phase_detail_id,
+        'is_active' => true,
+        'is_required' => true,
+        'order' => 1,
+    ]);
+
+    $reviewer = httpReviewer();
+
+    $this->actingAs($operator)
+        ->post(route('admin.submissions.assign-reviewers', $submission), [
+            'reviewer_ids' => [$reviewer->id],
+        ])
+        ->assertRedirect();
+
+    Notification::assertSentToTimes($reviewer->user, ReviewerAssignedNotification::class, 1);
+    Mail::assertNothingQueued();
 });
