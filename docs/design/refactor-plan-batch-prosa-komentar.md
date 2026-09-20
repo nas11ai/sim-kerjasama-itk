@@ -25,7 +25,7 @@ bukan per berkas.
 **Pendahulu:** [`refactor-plan-wave-2-review-cluster.md`](refactor-plan-wave-2-review-cluster.md)
 
 **Status:** selesai 2026-09-21, dieksekusi di branch `feat/init-be-development`,
-commit `91b3147`..`528ee3e` (kedua plafon turun di `ce802e3`).
+commit `91b3147`..`affff38` (kedua plafon turun di `ce802e3`).
 
 | Ukuran                 | Sebelum | Sesudah |
 | ---------------------- | ------: | ------: |
