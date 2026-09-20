@@ -2,10 +2,14 @@
 
 namespace App\Models;
 
-use Carbon\Carbon;
+use App\Support\Review\FieldResponseFormatter;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
+/**
+ * @property string|null $value
+ * @property-read ReviewFormField|null $reviewFormField
+ */
 class ReviewFormFieldResponse extends Model
 {
     protected $fillable = [
@@ -36,76 +40,9 @@ class ReviewFormFieldResponse extends Model
         return !empty(trim($this->value));
     }
 
-    // Get formatted value based on field type
     public function getFormattedValueAttribute(): string
     {
-        if (!$this->hasValue()) {
-            return '';
-        }
-
-        $fieldType = $this->reviewFormField->fieldType->name ?? '';
-
-        return match ($fieldType) {
-            'checkbox' => $this->formatCheckboxValue(),
-            'radio', 'select' => $this->formatSelectValue(),
-            'number' => $this->formatNumberValue(),
-            'date' => $this->formatDateValue(),
-            'url' => $this->formatUrlValue(),
-            default => $this->value
-        };
-    }
-
-    // Format checkbox values (comma-separated if multiple)
-    protected function formatCheckboxValue(): string
-    {
-        $values = json_decode($this->value, true);
-        if (is_array($values)) {
-            return implode(', ', $values);
-        }
-
-        return $this->value;
-    }
-
-    // Format select/radio values (show label if available)
-    protected function formatSelectValue(): string
-    {
-        /** @var ReviewFormFieldOption|null $option */
-        $option = $this->reviewFormField->reviewFormFieldOptions()
-            ->where('value', $this->value)
-            ->orWhere('label', $this->value)
-            ->first();
-
-        return $option ? $option->label : $this->value;
-    }
-
-    // Format number values
-    protected function formatNumberValue(): string
-    {
-        if (is_numeric($this->value)) {
-            return number_format((float) $this->value, 2);
-        }
-
-        return $this->value;
-    }
-
-    // Format date values
-    protected function formatDateValue(): string
-    {
-        try {
-            return Carbon::parse($this->value)->format('d M Y');
-        } catch (\Exception $e) {
-            return $this->value;
-        }
-    }
-
-    // Format URL values
-    protected function formatUrlValue(): string
-    {
-        if (filter_var($this->value, FILTER_VALIDATE_URL)) {
-            return "<a href='{$this->value}' target='_blank' class='text-blue-600 hover:underline'>{$this->value}</a>";
-        }
-
-        return $this->value;
+        return FieldResponseFormatter::readable($this);
     }
 
     // Validate field response based on field requirements

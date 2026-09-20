@@ -16,10 +16,16 @@ use App\Models\FormPhaseDetail;
 use App\Models\FormSubmission;
 use App\Models\Organization;
 use App\Models\PhaseType;
+use App\Models\Reviewer;
+use App\Models\ReviewerFormAssignment;
 use App\Models\ReviewEvaluationForm;
+use App\Models\ReviewFormField;
+use App\Models\ReviewFormFieldResponse;
+use App\Models\ReviewFormResponse;
 use App\Models\SubmissionDate;
 use App\Models\SubmissionDateLabel;
 use App\Models\SubmissionPeriod;
+use App\Models\SubmissionReviewer;
 use App\Models\User;
 use App\Models\UserProfile;
 use App\States\Submission\Approved;
@@ -316,4 +322,56 @@ function phaseWithOwnEvaluationDeadline(string $tag): array
     ]);
 
     return compact('form', 'submitDetail', 'evaluationDetail', 'evaluationForm', 'period', 'dueSubmit', 'dueEvaluation');
+}
+
+/**
+ * Satu jawaban field evaluasi lengkap dengan rantai induknya, supaya test
+ * formatter dan validator tidak masing-masing merakit tujuh model.
+ */
+function evaluationFieldResponse(string $fieldType, ?string $value, bool $isRequired = false): ReviewFormFieldResponse
+{
+    $detail = FormPhaseDetail::factory()->create(['needs_review' => true]);
+    $submission = FormSubmission::factory()->create(['form_phase_detail_id' => $detail->id]);
+
+    $reviewer = SubmissionReviewer::create([
+        'form_submission_id' => $submission->id,
+        'reviewer_id' => Reviewer::factory()->create()->id,
+        'evaluation_status' => 'pending',
+        'status' => 'active',
+    ]);
+
+    $form = ReviewEvaluationForm::create([
+        'title' => 'Substansi',
+        'form_phase_detail_id' => $detail->id,
+        'is_active' => true,
+        'is_required' => true,
+        'order' => 1,
+    ]);
+
+    $assignment = ReviewerFormAssignment::create([
+        'submission_reviewer_id' => $reviewer->id,
+        'review_evaluation_form_id' => $form->id,
+        'is_required' => true,
+        'assigned_at' => now(),
+        'is_active' => true,
+    ]);
+
+    $response = ReviewFormResponse::create([
+        'reviewer_form_assignment_id' => $assignment->id,
+        'status' => 'draft',
+    ]);
+
+    $field = ReviewFormField::create([
+        'review_evaluation_form_id' => $form->id,
+        'field_type_id' => FieldType::firstOrCreate(['name' => $fieldType])->id,
+        'label' => 'Uji',
+        'is_required' => $isRequired,
+        'order' => 1,
+    ]);
+
+    return ReviewFormFieldResponse::create([
+        'review_form_response_id' => $response->id,
+        'review_form_field_id' => $field->id,
+        'value' => $value,
+    ]);
 }
