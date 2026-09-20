@@ -105,7 +105,8 @@ karakter → bukan prosa, tapi tetap baris komentar.
 
 **3. Dua blok komentar yang menempel tanpa kode di antaranya dihitung satu run.**
 
-Contoh yang **melanggar** (run = 5, meski tiap bloknya pendek):
+Contoh yang **melanggar** (run = 5, meski tiap bloknya pendek) — **angka ini
+keliru: yang benar run = 3, lihat *Koreksi* di bawah**:
 
 ```php
     // Alasan pertama, cukup panjang untuk dihitung.

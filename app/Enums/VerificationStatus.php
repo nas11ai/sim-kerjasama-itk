@@ -3,9 +3,9 @@
 namespace App\Enums;
 
 /**
- * BR-IAM-04, BR-IAM-13 — status verifikasi NIDN pada UserProfile: satu dari
- * **tiga** sumbu keadaan akun, dan yang paling sering tertukar dengan dua
- * lainnya.
+ * BR-IAM-04, BR-IAM-13 — status verifikasi NIDN pada UserProfile, satu dari
+ * tiga sumbu keadaan akun yang kerap tertukar: **submit** di sini, **login**
+ * di `User.is_active`, pembuatan pengajuan di `UserProfile::isComplete()`.
  */
 enum VerificationStatus: string
 {
@@ -20,11 +20,7 @@ enum VerificationStatus: string
      */
     case Rejected = 'rejected';
 
-    /**
-     * BR-IAM-04/13 — hanya akun terverifikasi yang boleh submit. Sumbu ini
-     * kerap tertukar: `User.is_active` menggerbang **login**, dan
-     * `UserProfile::isComplete()` menggerbang **pembuatan pengajuan**.
-     */
+    /** BR-IAM-04/13 — hanya akun terverifikasi yang boleh submit. */
     public function canSubmit(): bool
     {
         return $this === self::Active;

@@ -28,7 +28,7 @@ class SendProposalSubmittedNotification implements ShouldQueue
                 'error' => $exception->getMessage(),
             ]);
 
-            // BR-NOT-03 — notifikasi yang gagal tidak menghentikan proses
+            // BR-NOT-03 — notifikasi yang gagal tidak boleh menghentikan proses
             // bisnis: submission sudah tersimpan sebelum event ini di-dispatch.
             return;
         }
