@@ -37,7 +37,7 @@ class ReviewFormFieldResponse extends Model
     // Check if response has value
     public function hasValue(): bool
     {
-        return !empty(trim($this->value));
+        return !empty(trim($this->value ?? ''));
     }
 
     public function getFormattedValueAttribute(): string

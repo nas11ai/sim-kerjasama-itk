@@ -6,6 +6,7 @@ use App\Models\ReviewFormField;
 use App\Models\ReviewFormFieldResponse;
 use Carbon\Carbon;
 use Carbon\Exceptions\InvalidFormatException;
+use Illuminate\Contracts\Database\Eloquent\Builder;
 
 /**
  * Nilai jawaban evaluasi dalam bentuk yang terbaca manusia. Keluarannya teks
@@ -29,7 +30,7 @@ final class FieldResponseFormatter
         }
 
         return match ($field->fieldType->name ?? '') {
-            'checkbox' => self::checkbox($value),
+            'checkbox' => self::checkbox($field, $value),
             'radio', 'select' => self::optionLabel($field, $value),
             'number' => is_numeric($value) ? number_format((float) $value, 2) : $value,
             'date' => self::date($value),
@@ -37,26 +38,48 @@ final class FieldResponseFormatter
         };
     }
 
-    private static function checkbox(string $value): string
+    private static function checkbox(ReviewFormField $field, string $value): string
+    {
+        $labels = array_map(
+            static fn (string $one): string => self::optionLabel($field, $one),
+            self::chosenValues($value),
+        );
+
+        return $labels === [] ? $value : implode(', ', $labels);
+    }
+
+    /**
+     * Layar isi evaluasi menggabungkan pilihan checkbox dengan koma, jadi
+     * pemisahnya dibuat sama persis dengan penulisnya di `ShowPage.vue`.
+     *
+     * @return list<string>
+     */
+    private static function chosenValues(string $value): array
     {
         $decoded = json_decode($value, true);
+        $raw = is_array($decoded) ? $decoded : explode(',', $value);
 
-        if (!is_array($decoded)) {
-            return $value;
+        $chosen = [];
+
+        foreach ($raw as $one) {
+            $text = is_scalar($one) ? trim((string) $one) : '';
+
+            if ($text !== '') {
+                $chosen[] = $text;
+            }
         }
 
-        // Pilihan checkbox disimpan sebagai array string. Isi lain bukan
-        // pilihan yang bisa dibaca, jadi nilai mentahnya yang ditampilkan.
-        $labels = array_filter($decoded, 'is_string');
-
-        return count($labels) === count($decoded) ? implode(', ', $labels) : $value;
+        return $chosen;
     }
 
     private static function optionLabel(ReviewFormField $field, string $value): string
     {
+        // Pembungkus closure-nya wajib: tanpa itu `OR` menyatu dengan penyaringan
+        // per field, dan opsi milik field lain ikut terjaring.
         $option = $field->reviewFormFieldOptions()
-            ->where('value', $value)
-            ->orWhere('label', $value)
+            ->where(function (Builder $query) use ($value): void {
+                $query->where('value', $value)->orWhere('label', $value);
+            })
             ->first();
 
         if ($option === null) {
