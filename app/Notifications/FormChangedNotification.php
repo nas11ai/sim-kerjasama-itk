@@ -10,11 +10,9 @@ use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
 /**
- * BR-FE-13 — pemilik draft diberi tahu bahwa formulirnya berubah.
- *
- * Isinya sengaja tidak merinci field mana yang berubah: yang perlu peneliti
- * lakukan adalah membuka kembali draftnya dan melihat sendiri, dan daftar
- * perubahan yang panjang justru membuat pesan ini tidak dibaca.
+ * BR-FE-13 — pemilik draft diberi tahu formulirnya berubah, tanpa merinci
+ * field mana: peneliti cukup membuka kembali draft dan melihat sendiri —
+ * daftar perubahan yang panjang justru membuat pesan ini tidak dibaca.
  */
 class FormChangedNotification extends Notification
 {

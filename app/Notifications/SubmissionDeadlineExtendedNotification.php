@@ -10,11 +10,9 @@ use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
 /**
- * BR-SCH-08 — perpanjangan batas waktu diberitahukan ke pemilik draft.
- *
- * Peneliti yang sudah menyerah karena batasnya lewat tidak punya alasan untuk
- * membuka aplikasi lagi. Perpanjangan yang tidak diberitahukan praktis sama
- * dengan tidak diberikan.
+ * BR-SCH-08 — perpanjangan batas waktu diberitahukan ke pemilik draft: yang
+ * sudah menyerah karena lewat batas tak punya alasan membuka aplikasi lagi, jadi
+ * perpanjangan tanpa kabar sama saja tidak diberikan.
  */
 class SubmissionDeadlineExtendedNotification extends Notification
 {

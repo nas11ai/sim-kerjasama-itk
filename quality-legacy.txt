@@ -56,15 +56,6 @@ app/Models/FormPhaseDetail.php
 app/Models/FormSubmission.php
 app/Models/Organization.php
 app/Models/SubmissionPeriod.php
-app/Notifications/ExportCompletedNotification.php
-app/Notifications/ExportFailedNotification.php
-app/Notifications/FormChangedNotification.php
-app/Notifications/MonevEvaluationSubmittedNotification.php
-app/Notifications/MonevStageOpenedNotification.php
-app/Notifications/NewRegistrationAwaitingVerification.php
-app/Notifications/NidnVerificationRejectedNotification.php
-app/Notifications/PhaseOverrideGrantedNotification.php
-app/Notifications/SubmissionDeadlineExtendedNotification.php
 app/Policies/BudgetLineItemPolicy.php
 app/Policies/FormSubmissionPolicy.php
 app/Providers/AppServiceProvider.php

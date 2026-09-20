@@ -11,11 +11,9 @@ use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
 /**
- * BR-MON-10 — siklus monev dibuka.
- *
- * Satu pesan untuk dua penerima yang menunggu hal berbeda: peneliti menunggu
- * mengisi laporan, reviewer menunggu menilainya. Tenggatnya disebut karena
- * itulah yang membuat pesan ini berguna — jadwal monev berjarak bulanan.
+ * BR-MON-10 — siklus monev dibuka: satu pesan, dua penerima yang menunggu hal
+ * beda — peneliti mengisi laporan, reviewer menilainya. Tenggatnya disebut sebab
+ * itulah yang membuat pesan ini berguna; jadwal monev bulanan.
  */
 class MonevStageOpenedNotification extends Notification
 {

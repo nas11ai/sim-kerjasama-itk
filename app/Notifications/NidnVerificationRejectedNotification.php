@@ -9,11 +9,9 @@ use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
 /**
- * BR-IAM-13, BR-IAM-15 — penolakan verifikasi beserta **alasannya**.
- *
- * Alasan ikut terkirim, bukan sekadar fakta penolakannya: itulah satu-satunya
- * yang dipunyai pendaftar untuk memperbaiki datanya, dan mendaftar ulang
- * mustahil karena email serta NIDN-nya sudah terpakai.
+ * BR-IAM-13, BR-IAM-15 — penolakan verifikasi disertai **alasannya**, bukan
+ * sekadar faktanya: itu satu-satunya alat pendaftar memperbaiki data, sebab
+ * mendaftar ulang mustahil — email dan NIDN-nya sudah terpakai.
  */
 class NidnVerificationRejectedNotification extends Notification
 {

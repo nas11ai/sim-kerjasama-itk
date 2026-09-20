@@ -10,12 +10,9 @@ use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
 /**
- * BR-MON-10 — reviewer menyelesaikan penilaian monev.
- *
- * Peneliti diberi tahu karena hasilnya **langsung terbuka** untuknya
- * (BR-MON-09) — berbeda dari pengajuan awal, yang menahan skor sampai
- * keputusan akhir. Monev formatif: umpan balik yang datang terlambat tidak
- * bisa lagi mengoreksi arah kegiatan.
+ * BR-MON-10 — reviewer menyelesaikan penilaian monev; hasilnya terbuka langsung
+ * untuk peneliti (BR-MON-09), tak seperti pengajuan awal yang menahan skor.
+ * Monev formatif: umpan balik telat tak lagi mengoreksi arah kegiatan.
  */
 class MonevEvaluationSubmittedNotification extends Notification
 {

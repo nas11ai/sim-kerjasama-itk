@@ -10,11 +10,9 @@ use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
 /**
- * BR-IAM-15 — pendaftaran baru memberi tahu Operator.
- *
- * Arah pemberitahuannya sengaja berbeda dari tiga event IAM lainnya: yang
- * perlu bertindak di sini bukan pendaftarnya melainkan Operator yang harus
- * memverifikasi NIDN-nya.
+ * BR-IAM-15 — pendaftaran baru memberi tahu Operator; arahnya sengaja beda dari
+ * tiga event IAM lainnya — di sini Operator yang bertindak, bukan pendaftarnya,
+ * karena dialah yang harus memverifikasi NIDN.
  */
 class NewRegistrationAwaitingVerification extends Notification
 {

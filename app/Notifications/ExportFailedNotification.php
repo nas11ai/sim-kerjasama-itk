@@ -11,11 +11,9 @@ use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
 /**
- * BR-RPT-08 — kegagalan final memberi tahu Operator yang meminta.
- *
- * Pesannya menyebut bahwa sistem **berhenti mencoba**. Tanpa itu Operator
- * menunggu percobaan berikutnya yang tidak akan pernah datang, dan ekspornya
- * tidak pernah diulang oleh siapa pun.
+ * BR-RPT-08 — kegagalan final memberi tahu Operator yang meminta, dan
+ * menyebut bahwa sistem **berhenti mencoba** — tanpa itu Operator menunggu
+ * percobaan berikutnya yang tak pernah datang, dan ekspornya tak diulang.
  */
 class ExportFailedNotification extends Notification
 {

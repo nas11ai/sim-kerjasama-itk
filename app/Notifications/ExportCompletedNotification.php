@@ -12,11 +12,9 @@ use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
 
 /**
- * BR-RPT-07 — ekspor yang selesai memberi tahu **yang memintanya**.
- *
- * Bukan semua Operator: yang lain tidak sedang menunggu berkas ini, dan
- * notifikasi yang dikirim ke semua orang yang tersangkut peran akan berhenti
- * dibaca oleh orang yang benar-benar dituju.
+ * BR-RPT-07 — ekspor selesai memberi tahu **yang memintanya**, bukan semua
+ * Operator: yang lain tidak menunggu berkas ini, dan notifikasi ke semua
+ * pemegang peran berhenti dibaca oleh yang benar-benar dituju.
  */
 class ExportCompletedNotification extends Notification
 {

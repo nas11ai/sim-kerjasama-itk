@@ -12,14 +12,9 @@ use Illuminate\Notifications\Notification;
 use Illuminate\Support\Carbon;
 
 /**
- * BR-FE-08, BR-FE-16 — peneliti diberi tahu bahwa aksesnya dibuka kembali.
- *
- * Perpanjangan yang tidak diberitahukan sama saja dengan tidak diberikan:
- * peneliti sudah menutup layar setelah ditolak, dan tidak punya alasan
- * mencoba lagi.
- *
- * Pesannya menyebut **sampai kapan**, tapi tidak menyebut **alasannya**.
- * Alasan hanya untuk Operator dan Admin (BR-FE-16).
+ * BR-FE-08, BR-FE-16 — akses dibuka kembali diberitahukan; sebab tanpa itu
+ * peneliti yang sudah menutup layar tak lagi coba masuk. Pesan sebut sampai kapan,
+ * bukan alasannya — itu hanya untuk Operator/Admin (BR-FE-16).
  */
 class PhaseOverrideGrantedNotification extends Notification
 {
@@ -40,10 +35,9 @@ class PhaseOverrideGrantedNotification extends Notification
         return (new MailMessage)
             ->subject('Perpanjangan akses diberikan')
             ->line('Operator LPPM membuka kembali akses Anda ke sebuah fase pengajuan.')
-            // FormSubmission tidak punya kolom judul — judulnya milik Form
-            // yang diisi. `$submission->title` yang dipakai sebelumnya selalu
-            // null, jadi barisnya selalu berbunyi "Pengajuan #id" dan tidak
-            // pernah menolong peneliti yang punya beberapa pengajuan berjalan.
+            // FormSubmission tidak punya kolom judul — itu milik Form. Kode lama
+            // pakai `$submission->title`, yang selalu null, jadi baris ini selalu
+            // "Pengajuan #id", tak menolong peneliti berpengajuan majemuk.
             ->line('Pengajuan: '.$this->submission->form->title.' (#'.$this->submission->id.')')
             ->line($this->deadlineLine());
     }
