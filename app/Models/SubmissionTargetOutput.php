@@ -11,10 +11,8 @@ use Spatie\Activitylog\Traits\LogsActivity;
 /**
  * Luaran yang **dijanjikan** sebuah pengajuan (BR-SM-14, BR-SM-15).
  *
- * Bedakan dari `ResearchOutput` yang merekam yang **terealisasi**: taksonomi
- * `output_type`-nya sama, momennya berbeda. Kecocokan antara janji dan hasil
- * sengaja tidak ditegakkan — penelitian memang menyimpang, dan memaksanya
- * cocok mendorong peneliti berbohong di target (register #19).
+ * Bedakan dari `ResearchOutput` (**terealisasi**): kecocokan sengaja tidak
+ * ditegakkan — memaksanya cocok mendorong peneliti berbohong (register #19).
  *
  * @property int $id
  * @property int $form_submission_id

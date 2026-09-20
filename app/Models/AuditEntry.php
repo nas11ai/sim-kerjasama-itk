@@ -8,15 +8,9 @@ use Illuminate\Database\Eloquent\Builder;
 use Spatie\Activitylog\Models\Activity;
 
 /**
- * BR-RPT-04 — jejak audit bersifat append-only.
- *
- * Dua cara melanggarnya ditutup terpisah. Melarang DELETE saja tetap
- * membiarkan UPDATE menulis ulang sejarah — dan itu justru pelanggaran yang
- * lebih berbahaya, karena hasilnya tetap tampak sah.
- *
- * Dijaga di model, bukan di Policy: Policy hanya dilewati kalau ada yang
- * memanggilnya, sedangkan penjagaan di sini ikut menutup jalur mana pun yang
- * memakai Eloquent — termasuk tinker dan seeder yang tidak melewati HTTP.
+ * BR-RPT-04 — jejak audit bersifat append-only. Dijaga di model, bukan
+ * Policy, supaya jalur mana pun yang memakai Eloquent ikut tertutup,
+ * termasuk tinker dan seeder yang tidak melewati HTTP.
  *
  * @property string $description
  * @property array<string, mixed>|null $properties
@@ -25,6 +19,8 @@ class AuditEntry extends Activity
 {
     protected static function booted(): void
     {
+        // UPDATE ditutup terpisah dari DELETE karena menulis ulang sejarah
+        // lebih berbahaya: hasilnya tetap tampak sah.
         static::updating(function (): never {
             throw new AppendOnlyViolation(
                 'Entri audit tidak dapat disunting — jejak audit bersifat append-only (BR-RPT-04). '

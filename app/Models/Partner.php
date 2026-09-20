@@ -9,10 +9,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 /**
  * BR-SM-21 — mitra eksternal sebuah pengajuan.
  *
- * Bedakan dari `ResearchOutput` bertipe `pks`: yang di sini adalah mitra yang
- * **dijanjikan** saat mengajukan, yang di sana perjanjian yang **terwujud**.
- * Dua momen, dua entitas — pola yang sama dengan `SubmissionTargetOutput`
- * versus `ResearchOutput` pada luaran.
+ * Bedakan dari `ResearchOutput` tipe `pks`: di sini yang **dijanjikan**,
+ * di sana yang **terwujud** — pola sama dengan `SubmissionTargetOutput`.
  *
  * @property int $id
  * @property int $form_submission_id

@@ -67,10 +67,9 @@ class FormSubmissionOverride extends Model
     }
 
     /**
-     * BR-SM-05 dan BR-FE-09 — override adalah pengecualian terhadap aturan,
-     * jadi ia yang paling perlu meninggalkan jejak: siapa yang memberikannya,
-     * dengan alasan apa, dan berlaku sampai kapan. Tanpa ini, pengecualian
-     * tidak bisa diaudit dan berhenti bisa dipertanggungjawabkan.
+     * BR-SM-05 dan BR-FE-09 — override adalah pengecualian, jadi paling perlu
+     * meninggalkan jejak: siapa yang memberikan, alasan apa, sampai kapan.
+     * Tanpa ini, pengecualian tidak bisa diaudit atau dipertanggungjawabkan.
      */
     public function getActivitylogOptions(): LogOptions
     {

@@ -41,12 +41,9 @@ class UserProfile extends Model
     ];
 
     /**
-     * BR-IAM-03 — kelengkapan profil, gerbang yang **berbeda** dari status
-     * verifikasi dan dari keaktifan akun.
-     *
-     * Ketiganya harus terisi. Pemeriksaan yang berhenti di field pertama akan
-     * meloloskan profil yang baru terisi sepertiga, dan kekurangannya baru
-     * ketahuan jauh di hilir.
+     * BR-IAM-03 — kelengkapan profil, gerbang berbeda dari status verifikasi
+     * dan keaktifan akun. Ketiganya wajib terisi; berhenti di field pertama
+     * meloloskan profil yang baru sepertiga jadi, ketahuan jauh di hilir.
      */
     public function isComplete(): bool
     {
@@ -56,12 +53,9 @@ class UserProfile extends Model
     }
 
     /**
-     * BR-IAM-12 — antrian verifikasi NIDN.
-     *
-     * Dibangun dari status `pending`, **bukan** dari "belum diverifikasi".
-     * Perbedaannya menentukan: akun jalur undangan lahir `active` tanpa NIDN,
-     * dan antrian yang dibangun dari negasi akan memuat baris yang tidak akan
-     * pernah bisa diverifikasi maupun ditolak dengan jujur oleh Operator.
+     * BR-IAM-12 — antrian verifikasi NIDN, dibangun dari status `pending`,
+     * **bukan** negasi "belum diverifikasi": akun undangan lahir `active`
+     * tanpa NIDN, dan negasi memuat baris yang tak bisa diverifikasi jujur.
      *
      * @param  Builder<UserProfile>  $query
      * @return Builder<UserProfile>

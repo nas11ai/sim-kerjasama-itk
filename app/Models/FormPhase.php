@@ -16,11 +16,9 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class FormPhase extends Model
 {
     /**
-     * BR-FE-20 — perluasan BR-FE-19 ke tahap.
-     *
-     * Detail yang dirujuk pengajuan sebelumnya gagal di tingkat basis data dan
-     * mendarat di layar Admin sebagai SQLSTATE mentah. Integritasnya selamat
-     * secara kebetulan, bukan karena aturan.
+     * BR-FE-20 — perluasan BR-FE-19 ke tahap. Sebelumnya, detail yang dirujuk
+     * pengajuan gagal di tingkat basis data dan mendarat di layar Admin
+     * sebagai SQLSTATE mentah — integritasnya selamat kebetulan, bukan aturan.
      */
     protected static function booted(): void
     {

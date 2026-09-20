@@ -44,13 +44,9 @@ class InvitationToken extends Model
     ];
 
     /**
-     * BR-IAM-06 — empat sebab sebuah undangan tidak berlaku.
-     *
-     * Dua di antaranya tidak ada di versi sebelumnya, dan keduanya bukan kasus
-     * pinggiran: token yang bocor perlu bisa **dicabut** tanpa menunggu
-     * kedaluwarsa, dan token yang menggantung ke organisasi yang sudah
-     * dipensiunkan tidak boleh melahirkan akun di unit yang tidak menerima
-     * siapa pun lagi (BR-IAM-14).
+     * BR-IAM-06 — empat sebab sebuah undangan tidak berlaku. Dua yang baru:
+     * token bocor bisa **dicabut** tanpa menunggu kedaluwarsa, dan token ke
+     * organisasi yang dipensiunkan tidak boleh melahirkan akun (BR-IAM-14).
      */
     public function isValid(): bool
     {

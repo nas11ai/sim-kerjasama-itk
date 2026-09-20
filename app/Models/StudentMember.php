@@ -9,10 +9,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 /**
  * BR-SM-20 — anggota mahasiswa sebuah pengajuan.
  *
- * Berbeda dari {@see ResearchMember} yang menunjuk `UserProfile`: mahasiswa
- * tidak punya akun di SIMPAS, jadi datanya tersimpan apa adanya. Keduanya
- * sengaja tidak disatukan — menyatukannya memaksa salah satu pihak memakai
- * bentuk yang bukan miliknya.
+ * Berbeda dari {@see ResearchMember} (menunjuk `UserProfile`): mahasiswa
+ * tak punya akun SIMPAS, jadi sengaja tak disatukan dengan bentuk itu.
  *
  * @property int $id
  * @property int $form_submission_id

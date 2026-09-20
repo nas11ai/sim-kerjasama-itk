@@ -50,14 +50,9 @@ class FormField extends Model
             }
         });
 
-        // BR-FE-23 — bentuk field terkunci begitu ada jawaban.
-        //
-        // Temporal binding (BR-FE-11) menjaga **kewajiban** field sepanjang
-        // waktu dan BR-FE-12 menjaga **keberadaan**-nya; tidak ada yang menjaga
-        // bentuknya. `FormFieldResponse.value` satu kolom tanpa tipe, jadi
-        // mengubah tipe field membuat jawaban lama tetap tersimpan tapi
-        // berhenti bisa dibaca renderer dan validator tipe barunya — rusak
-        // tanpa satu pun kegagalan yang terlihat.
+        // BR-FE-23 — bentuk field terkunci begitu ada jawaban, beda dari
+        // BR-FE-11 (kewajiban) dan BR-FE-12 (keberadaan). `FormFieldResponse.value`
+        // tanpa tipe: ubah tipe field merusak baca/validasi jawaban lama diam-diam.
         static::updating(function (FormField $field): void {
             if (!$field->isDirty('field_type_id')) {
                 return;

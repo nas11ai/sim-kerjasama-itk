@@ -67,11 +67,6 @@ app/Http/Requests/Auth/LoginRequest.php
 app/Jobs/GenerateExport.php
 app/Listeners/SendProposalSubmittedNotification.php
 app/Mail/DynamicEmailNotification.php
-app/Models/AuditEntry.php
-app/Models/ExportJob.php
-app/Models/Form.php
-app/Models/FormField.php
-app/Models/FormPhase.php
 app/Models/FormPhaseDetail.php
 # FormSubmission.php tidak bisa keluar dari daftar ini, dan itu bukan utang:
 # 215 baris kode tanpa komentar, baris kosong, dan import, sementara
@@ -79,20 +74,8 @@ app/Models/FormPhaseDetail.php
 # perintahkan tetap di model. Ukur ulang sebelum mencoba lagi —
 # docs/design/refactor-plan-wave-2-formsubmission.md Task 6.
 app/Models/FormSubmission.php
-app/Models/FormSubmissionOverride.php
-app/Models/InvitationToken.php
 app/Models/Organization.php
-app/Models/OutputTypeDefinition.php
-app/Models/Partner.php
-app/Models/ResearchOutput.php
-app/Models/Reviewer.php
-app/Models/Scheme.php
-app/Models/StudentMember.php
-app/Models/SubmissionDate.php
 app/Models/SubmissionPeriod.php
-app/Models/SubmissionTargetOutput.php
-app/Models/User.php
-app/Models/UserProfile.php
 app/Notifications/ExportCompletedNotification.php
 app/Notifications/ExportFailedNotification.php
 app/Notifications/FormChangedNotification.php

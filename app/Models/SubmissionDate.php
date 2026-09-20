@@ -37,12 +37,9 @@ class SubmissionDate extends Model
     }
 
     /**
-     * FormPhaseDetail yang menggerbangi fasenya dengan tanggal ini.
-     *
-     * Dipakai untuk menolak penghapusan tanggal yang masih menjadi batas
-     * sebuah fase — foreign key sudah menjaganya di database, tapi menabraknya
-     * berarti seluruh penyuntingan periode gagal alih-alih menyisakan yang
-     * memang masih dipakai.
+     * FormPhaseDetail yang menggerbangi fasenya dengan tanggal ini. Dipakai
+     * menolak penghapusan tanggal yang masih jadi batas fase — foreign key
+     * sudah menjaga di database, tapi menabraknya menggagalkan seluruh periode.
      *
      * @return HasMany<FormPhaseDetail, $this>
      */

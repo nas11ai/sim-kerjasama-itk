@@ -25,12 +25,8 @@ class Form extends Model
 
     /**
      * BR-FE-19 — Form dinonaktifkan, bukan dihapus, begitu ia pernah dipakai.
-     *
-     * Sebelum aturan ini, form_submissions.form_id ber-cascade: menghapus satu
-     * Form menghapus setiap pengajuannya, lalu delapan tabel ikut cascade dari
-     * form_submission_id. Satu klik Admin memusnahkan seluruh riwayat sebuah
-     * form beserta anggota, anggaran, evaluasi, dan luarannya — kebijakan
-     * sebesar itu tidak pernah ditulis sebagai aturan mana pun.
+     * Sebelumnya form_submissions.form_id ber-cascade, jadi menghapus satu
+     * Form memusnahkan riwayat pengajuannya di delapan tabel sekaligus.
      */
     protected static function booted(): void
     {

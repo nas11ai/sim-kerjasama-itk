@@ -68,9 +68,8 @@ class ExportJob extends Model
     /**
      * Sudah lewat masa simpan tapi belum sempat dihapus penjadwal.
      *
-     * Dibedakan dari `fileIsGone()` supaya penolakannya tetap benar di
-     * jendela antara jatuh tempo dan jalannya scheduler — pengguna yang
-     * mengunduh pada menit itu tetap harus ditolak.
+     * Beda dari `fileIsGone()`: menutup jendela antara jatuh tempo dan
+     * jalannya scheduler, saat pengguna masih bisa mencoba mengunduh.
      */
     public function fileIsExpired(): bool
     {

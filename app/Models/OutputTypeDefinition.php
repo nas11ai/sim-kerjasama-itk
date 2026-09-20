@@ -34,9 +34,8 @@ class OutputTypeDefinition extends Model
     /**
      * BR-SC-01 — dua tabel yang menautkan diri ke taksonomi ini.
      *
-     * Tautannya lewat `code`, bukan foreign key: itulah sebabnya kode tidak
-     * pernah boleh berubah setelah dibuat, sementara namanya bebas diganti
-     * (BR-SC-03).
+     * Tautannya lewat `code`, bukan foreign key — makanya kode tidak boleh
+     * berubah setelah dibuat, sementara nama bebas diganti (BR-SC-03).
      *
      * @return HasMany<ResearchOutput, $this>
      */
@@ -56,9 +55,8 @@ class OutputTypeDefinition extends Model
     /**
      * BR-RO-09 — kunci metadata yang wajib diisi untuk tipe ini.
      *
-     * Spesifikasinya tinggal di tabel, bukan config kode: kalau menambah tipe
-     * masih menuntut menyunting kode untuk mendefinisikan field-nya, janji
-     * BR-RO-05 ("tipe baru langsung bisa dipakai") baru terpenuhi separuh.
+     * Spesifikasinya tinggal di tabel, bukan config kode — kalau menambah
+     * tipe masih menuntut menyunting kode, janji BR-RO-05 baru terpenuhi separuh.
      *
      * @return list<string>
      */
@@ -68,9 +66,8 @@ class OutputTypeDefinition extends Model
 
         foreach ($this->fields ?? [] as $field) {
             // Bentuk tiap entri sudah dinyatakan docblock `fields`; yang perlu
-            // dijaga adalah entri yang tidak menandai dirinya wajib atau tidak
-            // menyebut kuncinya — keduanya data yang belum lengkap, bukan tipe
-            // yang salah.
+            // dijaga cuma entri yang tidak menandai wajib atau tidak menyebut
+            // kunci — keduanya data belum lengkap, bukan tipe yang salah.
             if (($field['required'] ?? false) !== true || !isset($field['key'])) {
                 continue;
             }

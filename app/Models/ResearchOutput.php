@@ -14,11 +14,8 @@ use Spatie\Activitylog\Traits\LogsActivity;
 /**
  * BR-RO-01 s/d BR-RO-09 — luaran yang benar-benar terwujud.
  *
- * Bedakan dari `SubmissionTargetOutput` (BR-SM-14/15) yang merupakan luaran
- * yang **dijanjikan**. Taksonominya sama, momennya berbeda, dan kecocokan
- * keduanya sengaja tidak ditegakkan: penelitian memang menyimpang, dan
- * memaksanya cocok mendorong peneliti berbohong di target atau menyembunyikan
- * luaran nyata.
+ * Bedakan dari `SubmissionTargetOutput` (BR-SM-14/15) yang **dijanjikan** —
+ * kecocokan sengaja tidak ditegakkan, supaya peneliti tak didorong berbohong.
  *
  * @property int $id
  * @property int $form_submission_id
@@ -34,13 +31,9 @@ class ResearchOutput extends Model
     use LogsActivity;
 
     /**
-     * BR-RO-06 — luaran tidak pernah dihapus.
-     *
-     * Aturannya menyebut penarikan pengajuan, tapi sebabnya lebih luas dari
-     * itu: luaran adalah dasar pelaporan LPPM ke luar, dan angka yang sudah
-     * dilaporkan tidak boleh bisa surut diam-diam. Luaran yang salah
-     * dikoreksi lewat penyuntingan (BR-RO-07), yang meninggalkan jejak
-     * sebelum-sesudah — sedangkan penghapusan tidak meninggalkan apa pun.
+     * BR-RO-06 — luaran tidak pernah dihapus: ia dasar pelaporan LPPM, dan
+     * angka yang sudah dilaporkan tidak boleh surut diam-diam. Koreksi lewat
+     * penyuntingan (BR-RO-07) meninggalkan jejak; penghapusan tidak.
      */
     protected static function booted(): void
     {
@@ -82,10 +75,9 @@ class ResearchOutput extends Model
     }
 
     /**
-     * Luaran memasok pelaporan LPPM ke luar, dan Operator boleh mengoreksinya
-     * (BR-RO-07, register #35). Justru karena itu jejaknya perlu menyebut siapa
-     * yang mengubah apa — koreksi staf tidak boleh terbaca sebagai laporan
-     * peneliti.
+     * Luaran memasok pelaporan LPPM, dan Operator boleh mengoreksinya
+     * (BR-RO-07, register #35) — jejaknya harus menyebut siapa mengubah apa,
+     * supaya koreksi staf tidak terbaca sebagai laporan peneliti.
      */
     public function getActivitylogOptions(): LogOptions
     {

@@ -27,11 +27,8 @@ class User extends Authenticatable implements MustVerifyEmail
 
     /**
      * BR-IAM-19 — akun tidak pernah dihapus, hanya dinonaktifkan (BR-IAM-05).
-     *
-     * Dijaga di model karena jalur hapus menembus penjagaan jalur nonaktif:
-     * BR-IAM-10 menolak menonaktifkan lead researcher yang masih memegang
-     * pengajuan aktif sampai kepemilikannya dipindah, dan aturan itu kehilangan
-     * artinya selama masih ada jalur lain yang lebih merusak tanpa penjagaan.
+     * Dijaga di model: BR-IAM-10 menolak menonaktifkan lead researcher yang
+     * masih memegang pengajuan aktif — percuma kalau hapus tetap terbuka.
      */
     protected static function booted(): void
     {
