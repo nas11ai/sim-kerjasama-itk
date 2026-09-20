@@ -15,17 +15,9 @@ use Illuminate\Validation\ValidationException;
 use Lorisleiva\Actions\Concerns\AsAction;
 
 /**
- * BR-IAM-05 dan BR-SM-09 — menonaktifkan user.
- *
- * Deaktivasi tidak menghapus apa pun; data tetap utuh supaya jejak pengajuan
- * lama tetap terbaca. Yang menghalangi hanyalah tanggung jawab yang belum
- * dialihkan: lead researcher tidak boleh pergi meninggalkan pengajuan aktif
- * tanpa penanggung jawab.
- *
- * Penolakannya menyebut jalan keluarnya — dan kalau jalan keluar itu belum
- * ada (tidak ada co_investigator aktif), itu pun dikatakan. Operator yang
- * hanya diberi tahu "ditolak" akan mencoba berulang tanpa tahu apa yang
- * kurang.
+ * BR-IAM-05 dan BR-SM-09 — menonaktifkan user. Deaktivasi tidak menghapus apa pun; data tetap utuh
+ * supaya jejak pengajuan lama tetap terbaca. Yang menghalangi hanyalah tanggung jawab yang belum
+ * dialihkan: lead researcher tidak boleh pergi meninggalkan pengajuan aktif tanpa penanggung jawab.
  */
 class DeactivateUser
 {
@@ -67,7 +59,13 @@ class DeactivateUser
         return $tercatat;
     }
 
-    /** @param Collection<int, FormSubmission> $blocking */
+    /**
+     * Penolakannya menyebut jalan keluarnya — dan kalau jalan keluar itu belum ada
+     * (tidak ada co_investigator aktif), itu pun dikatakan. Operator yang hanya
+     * diberi tahu "ditolak" akan mencoba berulang tanpa tahu apa yang kurang.
+     *
+     * @param  Collection<int, FormSubmission>  $blocking
+     */
     private function reason($blocking): string
     {
         $withoutSuccessor = $blocking->filter(

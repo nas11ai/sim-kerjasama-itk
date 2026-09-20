@@ -11,9 +11,8 @@ use Lorisleiva\Actions\Concerns\AsAction;
 /**
  * BR-SC-01 — data acuan yang masih dipakai relasi aktif tidak bisa dihapus.
  *
- * Penolakannya menyebut **berapa** yang memakainya, bukan sekadar "tidak
- * bisa": angka itulah yang memberi tahu Admin apakah ia salah memilih baris
- * atau memang harus menonaktifkan alih-alih menghapus.
+ * Penolakannya menyebut **berapa** yang memakainya, bukan sekadar "tidak bisa": angka itu
+ * yang memberi tahu Admin apakah ia salah memilih baris atau harus menonaktifkan saja.
  *
  * @method static void run(ReferenceEntity<covariant Model> $entity, Model $record)
  */

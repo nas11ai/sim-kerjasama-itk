@@ -12,14 +12,6 @@ use Lorisleiva\Actions\Concerns\AsAction;
 
 /**
  * BR-SM-09, kanonik BR-IAM-10 — memindahkan kepemilikan pengajuan.
- *
- * Penerimanya wajib `co_investigator` yang **aktif**. Member biasa tidak
- * pernah memegang tanggung jawab pengajuan (BR-BUD-09, BR-SM-15 sama-sama
- * menyebut daftar tertutup `submitted_by` + `co_investigator`), jadi
- * memindahkan ke sana hanya memindahkan masalahnya.
- *
- * Pemilik lama tetap terdaftar sebagai anggota: menghapusnya menghilangkan
- * jejak siapa yang sesungguhnya mengerjakan penelitian ini.
  */
 class TransferSubmissionOwnership
 {
@@ -54,6 +46,10 @@ class TransferSubmissionOwnership
     }
 
     /**
+     * Penerimanya wajib `co_investigator` yang **aktif**. Member biasa tidak pernah memegang
+     * tanggung jawab pengajuan (BR-BUD-09, BR-SM-15 sama-sama menyebut daftar tertutup
+     * `submitted_by` + `co_investigator`), jadi memindahkan ke sana hanya memindahkan masalahnya.
+     *
      * @throws ValidationException
      */
     private function guardSuccessor(FormSubmission $submission, User $successor): void
@@ -73,6 +69,10 @@ class TransferSubmissionOwnership
         ]);
     }
 
+    /**
+     * Pemilik lama tetap terdaftar sebagai anggota: menghapusnya menghilangkan jejak siapa
+     * yang sesungguhnya mengerjakan penelitian ini.
+     */
     private function keepPreviousOwnerAsMember(FormSubmission $submission, int $previousOwner): void
     {
         $profile = User::find($previousOwner)?->userProfile;

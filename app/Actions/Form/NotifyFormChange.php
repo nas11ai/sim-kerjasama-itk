@@ -12,19 +12,8 @@ use Lorisleiva\Actions\Concerns\AsAction;
 /**
  * BR-FE-13 — perubahan Form yang menyentuh draft berjalan tidak boleh senyap.
  *
- * Draft yang sedang diisi peneliti bisa saja kehilangan field, atau mendapat
- * field wajib baru. Temporal Field Binding (BR-FE-11) menjaga agar draft lama
- * tidak tiba-tiba tertolak karena field yang lahir belakangan — tapi peneliti
- * tetap perlu tahu bahwa formulirnya berubah, karena yang ia lihat di layar
- * bisa berbeda dari yang ia tinggalkan.
- *
- * Pemberitahuannya **ditawarkan**, bukan otomatis: tidak setiap perubahan
- * layak mengganggu 12 orang, dan yang tahu layak atau tidak adalah Admin yang
- * melakukannya. Yang tidak boleh adalah Admin tidak diberi tahu bahwa ada 12
- * orang yang terdampak.
- *
- *
- * **Tidak menulis audit (BR-RPT-09).** Seluruh kerjanya mengirim pemberitahuan atas perubahan Form yang sudah dicatat di jalur penyuntingannya. Mencatatnya lagi di sini akan memunculkan dua baris untuk satu tindakan.
+ * **Tidak menulis audit (BR-RPT-09).** Seluruh kerjanya mengirim pemberitahuan atas perubahan Form
+ * yang sudah dicatat di jalur penyuntingannya; mencatat ulang memunculkan dua baris untuk satu tindakan.
  *
  * @method static int run(Form $form, bool $notify)
  */
@@ -37,12 +26,18 @@ class NotifyFormChange implements ChangesNoState
      */
     public function handle(Form $form, bool $notify): int
     {
+        // Draft yang sedang diisi bisa kehilangan field atau mendapat field wajib baru.
+        // Temporal Field Binding (BR-FE-11) menjaga draft lama tidak tertolak karena field
+        // yang lahir belakangan, tapi peneliti tetap perlu tahu bahwa formulirnya berubah.
         $owners = AffectedDraftOwners::forForm($form);
 
         if ($owners->isEmpty()) {
             return 0;
         }
 
+        // Pemberitahuannya **ditawarkan**, bukan otomatis: tidak setiap perubahan layak
+        // mengganggu 12 orang, dan yang tahu layak atau tidak adalah Admin yang melakukannya.
+        // Yang tidak boleh adalah Admin tidak diberi tahu bahwa ada 12 orang terdampak.
         if ($notify) {
             Deliver::to($owners, new FormChangedNotification($form));
         }

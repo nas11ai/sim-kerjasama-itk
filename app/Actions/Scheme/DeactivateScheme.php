@@ -12,16 +12,6 @@ use Lorisleiva\Actions\Concerns\AsAction;
  * BR-SCH-01 — skema tidak bisa dinonaktifkan selama masih ada pengajuan aktif
  * yang memakainya.
  *
- * **Aktif** di sini berarti `status NOT IN ('rejected', 'withdrawn')` — dan
- * APPROVED ikut menghalangi. Pengajuan yang disetujui masih kegiatan berjalan:
- * laporan monevnya lahir dari sana, dan skemanya masih memasok `max_budget`
- * serta `duration_months` yang dipakai memvalidasi laporan itu. Menonaktifkan
- * skemanya di tengah jalan mencabut acuan yang masih dipakai.
- *
- * Predikatnya tidak ditulis ulang di sini melainkan dipinjam dari
- * `FormSubmission::active()`, yang juga dipakai index unik BR-SM-01 dan
- * penjagaan deaktivasi user.
- *
  * @method static Scheme run(Scheme $scheme)
  */
 class DeactivateScheme
@@ -33,8 +23,13 @@ class DeactivateScheme
      */
     public function handle(Scheme $scheme): Scheme
     {
+        // **Aktif** berarti `status NOT IN ('rejected', 'withdrawn')` — APPROVED ikut menghalangi:
+        // pengajuan yang disetujui masih kegiatan berjalan, laporan monevnya lahir dari sana dan
+        // skemanya masih memasok `max_budget` serta `duration_months` untuk memvalidasi laporan itu.
         $blocking = FormSubmission::query()
             ->where('scheme_id', $scheme->id)
+            // Predikatnya dipinjam dari `FormSubmission::active()`, bukan ditulis ulang di sini:
+            // scope yang sama dipakai index unik BR-SM-01 dan penjagaan deaktivasi user.
             ->active()
             ->count();
 

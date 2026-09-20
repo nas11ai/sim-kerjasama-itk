@@ -15,11 +15,6 @@ use Lorisleiva\Actions\Concerns\AsAction;
 /**
  * BR-FE-20 — menghapus tahap formulir beserta detailnya.
  *
- * Penjagaannya dijalankan **sebelum** apa pun disentuh. Versi lama menghapus
- * detail lebih dulu lalu membiarkan foreign key yang menolak, sehingga yang
- * sampai ke Admin adalah SQLSTATE mentah — dan seluruh penghapusan bergantung
- * pada rollback transaksi alih-alih pada aturan.
- *
  * @method static void run(FormPhase $phase, User $actor)
  */
 class DeleteFormPhase
@@ -31,6 +26,9 @@ class DeleteFormPhase
      */
     public function handle(FormPhase $phase, User $actor): void
     {
+        // Penjagaannya dijalankan **sebelum** apa pun disentuh. Versi lama menghapus
+        // detail dulu lalu membiarkan foreign key yang menolak, sehingga Admin menerima
+        // SQLSTATE mentah dan penghapusan bergantung pada rollback, bukan pada aturan.
         ReferenceGuard::assertUnreferenced('Tahap formulir', [
             'pengajuan' => FormSubmission::query()
                 ->whereIn('form_phase_detail_id', $phase->formPhaseDetails()->select('id'))

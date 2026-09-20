@@ -14,14 +14,7 @@ use Lorisleiva\Actions\Concerns\AsAction;
 /**
  * BR-SM-14 dan BR-SM-15 — menambah atau mengubah target luaran.
  *
- * Tipe disaring **dua tingkat**, dan urutannya penting:
- *
- *   1. `output_type_definitions` — taksonomi; berlaku selalu.
- *   2. `scheme.rules.allowed_output_types` — mempersempit lagi, hanya kalau
- *      submission punya skema **dan** skema itu menyatakan daftarnya. Skema
- *      tanpa key itu tidak membatasi apa pun (BR-SM-14).
- *
- * Pengajuan tanpa skema karena itu hanya kena penyaring pertama.
+ * Tipe disaring **dua tingkat** dan urutannya penting; keduanya dijaga `guardType()`.
  */
 class SaveTargetOutput
 {
@@ -66,12 +59,16 @@ class SaveTargetOutput
      */
     private function guardType(FormSubmission $submission, string $outputType): void
     {
+        // Tingkat 1: taksonomi `output_type_definitions`, berlaku selalu.
         if (!in_array($outputType, OutputTypeDefinition::activeCodes(), true)) {
             throw ValidationException::withMessages([
                 'output_type' => "Tipe luaran \"{$outputType}\" tidak terdaftar.",
             ]);
         }
 
+        // Tingkat 2: `scheme.rules.allowed_output_types` mempersempit lagi, hanya kalau
+        // submission punya skema **dan** skema itu menyatakan daftarnya. Skema tanpa key itu
+        // tidak membatasi apa pun (BR-SM-14), jadi pengajuan tanpa skema hanya kena tingkat 1.
         $allowed = $this->schemeAllowList($submission);
 
         // null berarti skema tidak membatasi — berbeda dari daftar kosong,

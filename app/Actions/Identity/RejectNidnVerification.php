@@ -13,11 +13,6 @@ use Lorisleiva\Actions\Concerns\AsAction;
 /**
  * BR-IAM-13 — Operator menolak verifikasi NIDN.
  *
- * Alasannya **wajib**, dan itu bukan formalitas: alasan itu satu-satunya yang
- * dipunyai pendaftar untuk memperbaiki datanya. Tanpa alasan, satu-satunya
- * jalan keluarnya adalah menebak — sementara mendaftar ulang mustahil karena
- * email dan NIDN-nya sudah terpakai.
- *
  * Penolakan tidak terminal: `VerifyNidn` tetap bisa dipanggil setelahnya.
  *
  * @method static UserProfile run(UserProfile $profile, string $reason)
@@ -31,6 +26,9 @@ class RejectNidnVerification
      */
     public function handle(UserProfile $profile, string $reason): UserProfile
     {
+        // Alasannya **wajib**, dan itu bukan formalitas: hanya itu yang dipunyai pendaftar untuk
+        // memperbaiki datanya. Tanpa alasan ia cuma bisa menebak — mendaftar ulang mustahil
+        // karena email dan NIDN-nya sudah terpakai.
         if (trim($reason) === '') {
             throw ValidationException::withMessages([
                 'reason' => 'Alasan penolakan wajib diisi — pendaftar perlu tahu apa yang harus diperbaiki.',

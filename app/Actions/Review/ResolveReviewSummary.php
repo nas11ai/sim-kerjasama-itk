@@ -13,18 +13,6 @@ use Lorisleiva\Actions\Concerns\AsAction;
 /**
  * BR-REV-06 — menutup satu ulir diskusi.
  *
- * Yang boleh menutup adalah **reviewer**, bukan researcher. Kalau researcher
- * bisa menandai catatannya sendiri selesai, ia bisa memaksa pengajuannya
- * berpindah ke APPROVED tanpa persetujuan siapa pun — dan itu justru yang
- * dijaga `[REV-DISCUSS-04]`.
- *
- * Reviewer pengganti ikut berwenang, karena BR-REV-15 mewariskan ulir yang
- * masih terbuka kepadanya. Tanpa itu ulir tersebut tidak akan pernah bisa
- * ditutup dan pengajuannya terkunci di NEEDS_REVISION.
- *
- * Menutup ulir terakhir memicu evaluasi ulang: syarat BR-REV-05 bisa jadi
- * terpenuhi saat itu juga, dan transisinya tidak boleh menunggu aksi lain.
- *
  * @method static ReviewSummary run(ReviewSummary $summary, User $user)
  */
 class ResolveReviewSummary
@@ -41,9 +29,9 @@ class ResolveReviewSummary
         $tercatat = DB::transaction(function () use ($summary): ReviewSummary {
             $summary->update(['status' => 'resolved']);
 
-            // form_submission_id NOT NULL, jadi relasi ini selalu ada —
-            // PHPStan menolak pengecekan null di sini karena tidak pernah
-            // tercapai.
+            // Menutup ulir terakhir memicu evaluasi ulang: syarat BR-REV-05 bisa jadi terpenuhi
+            // saat itu juga, dan transisinya tidak boleh menunggu aksi lain. `form_submission_id`
+            // NOT NULL, jadi relasi ini selalu ada — PHPStan menolak pengecekan null yang tak tercapai.
             EvaluateSubmissionOutcome::run($summary->formSubmission);
 
             return $summary->refresh();
@@ -56,12 +44,18 @@ class ResolveReviewSummary
     }
 
     /**
+     * Yang boleh menutup adalah **reviewer**, bukan researcher: kalau researcher bisa menandai
+     * catatannya sendiri selesai, ia memaksa pengajuannya ke APPROVED tanpa persetujuan siapa
+     * pun — dan itu justru yang dijaga `[REV-DISCUSS-04]`.
+     *
      * @throws AuthorizationException
      */
     private function guardReviewer(ReviewSummary $summary, User $user): void
     {
         $reviewer = Reviewer::where('user_id', $user->id)->first();
 
+        // Reviewer pengganti ikut lolos: BR-REV-15 memindahkan `reviewer_id` ulir yang masih
+        // terbuka kepadanya, dan tanpa itu ulirnya tidak akan pernah bisa ditutup.
         if ($reviewer !== null && $summary->reviewer_id === $reviewer->id) {
             return;
         }

@@ -12,20 +12,17 @@ use Lorisleiva\Actions\Concerns\AsAction;
 /**
  * BR-SCH-02, BR-SCH-03 — menyimpan skema beserta batas yang diikatnya.
  *
- * `max_budget` dan `max_members` ditegakkan di FormRequest maupun di sini:
- * keduanya batas yang dipakai M1 untuk menolak anggaran dan anggota, dan
- * skema bernilai nol akan menolak segalanya tanpa ada yang tahu sebabnya.
- *
- * TRL yang diizinkan disimpan sebagai relasi, bukan kolom JSON, karena ia
- * dipakai sebagai penyaring pilihan (BR-SCH-05) dan penyaring itu jauh lebih
- * murah sebagai join.
- *
  * @method static Scheme run(SchemeInput $input, ?Scheme $scheme = null)
  */
 class SaveScheme
 {
     use AsAction;
 
+    /**
+     * `max_budget` dan `max_members` ditegakkan di FormRequest maupun di sini: keduanya batas
+     * yang dipakai M1 untuk menolak anggaran dan anggota, dan skema bernilai nol akan menolak
+     * segalanya tanpa ada yang tahu sebabnya.
+     */
     public function handle(SchemeInput $input, ?Scheme $scheme = null): Scheme
     {
         $attributes = [
@@ -49,6 +46,8 @@ class SaveScheme
 
             // BR-SCH-05 — null berarti "jangan sentuh", daftar kosong berarti "hapus semua".
             if ($input->allowedTrlIds !== null) {
+                // Disimpan sebagai relasi, bukan kolom JSON, karena ia dipakai sebagai penyaring
+                // pilihan (BR-SCH-05) dan penyaring itu jauh lebih murah sebagai join.
                 SchemeAllowedTrl::query()->where('scheme_id', $scheme->id)->delete();
 
                 foreach (array_unique($input->allowedTrlIds) as $trlId) {

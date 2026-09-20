@@ -12,18 +12,6 @@ use Lorisleiva\Actions\Concerns\AsAction;
 /**
  * Ringkasan beban kerja satu reviewer untuk layar dasbornya.
  *
- * Sumbernya `SubmissionReviewer` — tabel penugasan. Versi sebelumnya membaca
- * `ReviewSummary`, yaitu catatan diskusi yang baru lahir setelah reviewer
- * mulai bekerja, sehingga penugasan yang belum disentuh tidak pernah muncul
- * di dasbor: justru pekerjaan yang paling perlu ditagih yang hilang dari
- * layar. Yang menentukan "ditugaskan" adalah BR-REV-01, bukan jejak diskusi.
- *
- * Selesai/belum memakai `SubmissionReviewer::SETTLED_EVALUATION`, ambang yang
- * sama dengan `FormSubmission::canProceed()` (BR-MON-02). Dua layar yang
- * menjawab "evaluasi ini sudah kelar?" dengan definisi berbeda adalah cara
- * paling mudah membuat gerbang dan dasbor saling membantah.
- *
- *
  * **Tidak menulis audit (BR-RPT-09).** Ringkasan beban kerja untuk satu layar — tidak menyentuh satu baris pun.
  *
  * @method static array{stats: array<string, int>, assignments: Collection<int, SubmissionReviewer>} run(Reviewer $reviewer)
@@ -37,6 +25,9 @@ class BuildReviewerDashboard implements ChangesNoState
      */
     public function handle(Reviewer $reviewer): array
     {
+        // Sumbernya `SubmissionReviewer` — tabel penugasan, bukan `ReviewSummary` yang baru lahir
+        // setelah reviewer mulai bekerja: membacanya membuat penugasan yang belum disentuh tak pernah
+        // muncul, justru pekerjaan yang paling perlu ditagih. "Ditugaskan" ditentukan BR-REV-01.
         $assignments = SubmissionReviewer::query()
             ->where('reviewer_id', $reviewer->id)
             ->where('status', 'active')
@@ -52,6 +43,9 @@ class BuildReviewerDashboard implements ChangesNoState
             ->latest()
             ->get();
 
+        // Selesai/belum memakai `SubmissionReviewer::SETTLED_EVALUATION`, ambang yang sama dengan
+        // `FormSubmission::canProceed()` (BR-MON-02). Dua layar yang menjawab "evaluasi ini sudah
+        // kelar?" dengan definisi berbeda membuat gerbang dan dasbor saling membantah.
         $selesai = $assignments
             ->filter(fn (SubmissionReviewer $assignment) => in_array(
                 $assignment->evaluation_status,

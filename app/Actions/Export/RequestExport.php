@@ -13,15 +13,6 @@ use Lorisleiva\Actions\Concerns\AsAction;
 /**
  * BR-RPT-02, BR-RPT-10 — permintaan ekspor.
  *
- * Ambangnya dihitung dari **jumlah baris yang akan benar-benar diekspor**,
- * bukan dari jumlah seluruh baris di tabel: batasnya sudah ter-scope
- * (BR-RPT-10), jadi peneliti dengan tiga pengajuan tidak pernah masuk
- * background job hanya karena sistemnya punya sepuluh ribu.
- *
- * Yang kecil dijalankan langsung supaya Operator tidak menunggu notifikasi
- * untuk berkas yang siap dalam sekejap; yang besar dijadwalkan supaya ia
- * tidak menunggu di layar sama sekali.
- *
  * @method static ExportJob run(User $user, string $type)
  */
 class RequestExport
@@ -32,6 +23,9 @@ class RequestExport
     {
         ExportType::assertSupported($type);
 
+        // Ambangnya dihitung dari **jumlah baris yang akan benar-benar diekspor**, bukan
+        // dari seluruh isi tabel: batasnya sudah ter-scope (BR-RPT-10), jadi peneliti
+        // dengan tiga pengajuan tidak masuk background job karena sistem punya sepuluh ribu.
         $rowCount = ExportType::query($type, $user)->count();
 
         $job = ExportJob::create([
@@ -46,6 +40,8 @@ class RequestExport
             'row_count' => $rowCount,
         ]);
 
+        // Yang besar dijadwalkan supaya Operator tidak menunggu di layar sama sekali; yang
+        // kecil dijalankan langsung supaya ia tidak menunggu notifikasi untuk berkas sekejap.
         if (ExportThreshold::needsBackgroundJob($rowCount)) {
             GenerateExport::dispatch($job->id);
 

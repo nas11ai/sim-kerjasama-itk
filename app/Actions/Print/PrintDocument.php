@@ -15,15 +15,6 @@ use Lorisleiva\Actions\Concerns\AsAction;
 /**
  * BR-RPT-11 — mencetak dokumen PDF.
  *
- * Haknya diperiksa **sebelum** baris ExportJob dibuat: permintaan yang pasti
- * ditolak tidak perlu meninggalkan jejak permintaan yang seolah sedang
- * diproses, dan Operator yang melihatnya di riwayat akan menunggu berkas yang
- * tidak akan pernah jadi.
- *
- * Ambangnya sama persis dengan ekspor tabular — BR-RPT-11 memang menyatakan
- * demikian, dan angka kedua yang berbeda akan membuat "ambang yang sama"
- * berhenti benar pada pemakaian pertamanya.
- *
  * @method static ExportJob run(User $user, string $document, FormSubmission $submission)
  */
 class PrintDocument
@@ -32,6 +23,9 @@ class PrintDocument
 
     public function handle(User $user, string $document, FormSubmission $submission): ExportJob
     {
+        // Haknya diperiksa **sebelum** baris ExportJob dibuat: permintaan yang pasti ditolak
+        // tidak perlu meninggalkan jejak yang seolah sedang diproses, dan Operator yang
+        // melihatnya di riwayat akan menunggu berkas yang tidak akan pernah jadi.
         PrintableDocument::assertPrintable($document, $user, $submission);
 
         $rowCount = $this->rowCount($document, $user, $submission);
@@ -49,6 +43,9 @@ class PrintDocument
             'export_job_id' => $job->id,
         ]);
 
+        // Ambangnya sama persis dengan ekspor tabular — BR-RPT-11 memang menyatakan demikian,
+        // dan angka kedua yang berbeda akan membuat "ambang yang sama" berhenti benar pada
+        // pemakaian pertamanya.
         if (ExportThreshold::needsBackgroundJob($rowCount)) {
             GenerateExport::dispatch($job->id);
 

@@ -11,16 +11,8 @@ use Lorisleiva\Actions\Concerns\AsAction;
 /**
  * BR-IAM-16 — Operator mencabut tautan undangan.
  *
- * Sebab keempat sebuah token tidak berlaku (BR-IAM-06), dan satu-satunya yang
- * bisa dipakai segera: tanpa pencabutan, tautan yang bocor hanya bisa ditunggu
- * kedaluwarsa atau kuotanya habis dipakai orang yang salah.
- *
- * Pencabutan **tidak menghapus** token. Ia menyetel `revoked_at`, sejalan
- * dengan prinsip yang berlaku di seluruh repo: jejak kenapa sebuah tautan
- * dimatikan sama pentingnya dengan matinya.
- *
- * Akun yang terlanjur lahir tidak terpengaruh — mereka sudah diperiksa saat
- * mendaftar, dan mencabut akses mereka adalah keputusan lain (BR-IAM-05).
+ * Sebab keempat sebuah token tidak berlaku (BR-IAM-06), dan satu-satunya yang bisa dipakai
+ * segera: tanpa pencabutan, tautan yang bocor hanya bisa ditunggu kedaluwarsa atau habis kuota.
  *
  * @method static void run(User $actor, InvitationToken $invitation)
  */
@@ -47,6 +39,9 @@ class RevokeInvitation
             ? null
             : max(0, $invitation->max_uses - $invitation->used_count);
 
+        // **Tidak menghapus** token, hanya menyetel `revoked_at`: jejak kenapa sebuah tautan
+        // dimatikan sama pentingnya dengan matinya. Akun yang terlanjur lahir tidak terpengaruh —
+        // mereka sudah diperiksa saat mendaftar, dan mencabut aksesnya keputusan lain (BR-IAM-05).
         $invitation->revoke();
 
         AuditTrail::record(

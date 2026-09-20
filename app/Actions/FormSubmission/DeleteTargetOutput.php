@@ -13,12 +13,8 @@ use Lorisleiva\Actions\Concerns\AsAction;
 /**
  * BR-SM-19 — menghapus target luaran.
  *
- * Gerbangnya sama persis dengan penyuntingannya (BR-SM-15): target adalah
- * janji ketua pengaju, dan janji yang bisa diubah harus bisa dicabut. Kalau
- * tidak, satu salah pilih tipe akan terbawa sampai pelaporan.
- *
- * Berbeda dari luaran realisasi yang tidak pernah dihapus (BR-RO-06): yang
- * dijanjikan boleh berubah, yang sudah terjadi tidak.
+ * Gerbangnya sama persis dengan penyuntingannya (BR-SM-15): target adalah janji ketua pengaju, dan
+ * janji yang bisa diubah harus bisa dicabut — satu salah pilih tipe terbawa sampai pelaporan.
  *
  * @method static void run(FormSubmission $submission, SubmissionTargetOutput $target, User $user)
  */
@@ -51,6 +47,8 @@ class DeleteTargetOutput
             null,
         );
 
+        // Berbeda dari luaran realisasi yang tidak pernah dihapus (BR-RO-06): yang
+        // dijanjikan boleh berubah, yang sudah terjadi tidak.
         $target->delete();
     }
 }

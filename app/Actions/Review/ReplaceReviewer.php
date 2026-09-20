@@ -12,17 +12,6 @@ use Lorisleiva\Actions\Concerns\AsAction;
 
 /**
  * BR-REV-10 — mengganti reviewer pada satu siklus.
- *
- * Record lama ditandai `replaced`, **tidak dihapus**: evaluasinya adalah
- * alasan di balik keputusan yang mungkin sudah diambil, dan menghapusnya
- * menghilangkan jejak itu.
- *
- * BR-REV-15 — ulir diskusi yang masih `open` diwarisi penggantinya. Tanpa
- * pewarisan ini summary tersebut tidak akan pernah bisa ditutup: penulis
- * lama sudah tidak berwenang, pengganti tidak merasa berhak, dan submission
- * terkunci di NEEDS_REVISION selamanya. Yang sudah `resolved` sengaja tidak
- * ikut — ia tidak menuntut siapa pun, dan mengalihkannya justru mengaburkan
- * siapa yang dulu menutupnya.
  */
 class ReplaceReviewer
 {
@@ -45,6 +34,9 @@ class ReplaceReviewer
         }
 
         $tercatat = DB::transaction(function () use ($submission, $outgoing, $incoming, $current): SubmissionReviewer {
+            // Record lama ditandai `replaced`, **tidak dihapus**: evaluasinya adalah alasan
+            // di balik keputusan yang mungkin sudah diambil, dan menghapusnya menghilangkan
+            // jejak itu.
             $current->markAsReplaced();
 
             // AssignReviewer memegang seluruh syarat penugasan — konflik
@@ -52,8 +44,13 @@ class ReplaceReviewer
             // penggantian tunduk pada aturan yang sama dengan penugasan baru.
             $fresh = AssignReviewer::run($submission, $incoming);
 
+            // BR-REV-15 — ulir diskusi yang masih terbuka diwarisi penggantinya. Tanpa itu ulir
+            // tersebut tidak akan pernah bisa ditutup: penulis lama sudah tidak berwenang,
+            // pengganti tidak merasa berhak, dan submission terkunci di NEEDS_REVISION selamanya.
             $submission->reviewSummaries()
                 ->where('reviewer_id', $outgoing->id)
+                // Yang sudah `resolved` sengaja tidak ikut — ia tidak menuntut siapa pun, dan
+                // mengalihkannya justru mengaburkan siapa yang dulu menutupnya.
                 ->where('status', 'open')
                 ->update(['reviewer_id' => $incoming->id]);
 

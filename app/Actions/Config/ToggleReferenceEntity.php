@@ -9,13 +9,9 @@ use Illuminate\Validation\ValidationException;
 use Lorisleiva\Actions\Concerns\AsAction;
 
 /**
- * BR-SC-01, BR-SC-03 — menonaktifkan data acuan.
- *
- * Ini jalan keluar yang membuat larangan menghapus (BR-SC-01) tidak menjadi
- * jalan buntu, sekaligus jalan yang benar saat sebuah kategori berubah makna:
- * buat yang baru, nonaktifkan yang lama. Laporan lama tetap menyebut nama
- * lamanya karena ia memang masih menunjuk baris lama, sementara pilihan baru
- * tidak lagi menawarkannya.
+ * BR-SC-01, BR-SC-03 — menonaktifkan data acuan: jalan keluar agar larangan menghapus tidak jadi
+ * jalan buntu, sekaligus cara yang benar saat kategori berubah makna. Buat yang baru, nonaktifkan
+ * yang lama — laporan lama tetap menyebut nama lamanya, pilihan baru tidak lagi menawarkannya.
  *
  * @method static Model run(ReferenceEntity<covariant Model> $entity, Model $record, bool $active)
  */

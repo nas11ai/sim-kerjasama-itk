@@ -11,12 +11,9 @@ use Illuminate\Validation\ValidationException;
 use Lorisleiva\Actions\Concerns\AsAction;
 
 /**
- * BR-SM-20 — menambahkan anggota mahasiswa.
- *
- * Tidak ada pengecekan konflik kepentingan di sini, dan itu disengaja:
- * BR-SM-08 menjaga agar penilai tidak menilai penelitiannya sendiri, sementara
- * mahasiswa tidak pernah bisa jadi reviewer. Menyalin guard-nya ke sini hanya
- * akan menyiratkan larangan yang tidak pernah ada.
+ * BR-SM-20 — menambahkan anggota mahasiswa. Tidak ada pengecekan konflik kepentingan di sini, dan itu
+ * disengaja: BR-SM-08 menjaga penilai tidak menilai penelitiannya sendiri, sementara mahasiswa tidak
+ * pernah bisa jadi reviewer — menyalin guard-nya ke sini menyiratkan larangan yang tidak pernah ada.
  *
  * @method static StudentMember run(FormSubmission $submission, User $actor, array{name: string, student_id: string, study_program?: string|null} $attributes)
  */

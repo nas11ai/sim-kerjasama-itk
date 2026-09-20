@@ -12,15 +12,6 @@ use Lorisleiva\Actions\Concerns\AsAction;
 /**
  * BR-IAM-04, BR-IAM-13, BR-IAM-15 — Operator memverifikasi NIDN pendaftar.
  *
- * Bisa dipanggil atas akun `pending` maupun `rejected`: penolakan sengaja
- * tidak terminal. Email dan NIDN yang terlanjur terpakai membuat pendaftaran
- * ulang mustahil (BR-IAM-02), jadi penolakan permanen berarti mematikan akun
- * gara-gara satu digit salah ketik.
- *
- * Alasan penolakan sebelumnya dibersihkan — ia sudah tidak berlaku, dan
- * menyisakannya membuat layar pendaftar menampilkan keluhan atas keadaan yang
- * sudah lewat.
- *
  * @method static UserProfile run(UserProfile $profile)
  */
 class VerifyNidn
@@ -29,8 +20,13 @@ class VerifyNidn
 
     public function handle(UserProfile $profile): UserProfile
     {
+        // Bisa dipanggil atas akun `pending` maupun `rejected`: penolakan sengaja tidak terminal.
+        // Email dan NIDN yang terlanjur terpakai membuat pendaftaran ulang mustahil (BR-IAM-02),
+        // jadi penolakan permanen berarti mematikan akun gara-gara satu digit salah ketik.
         $profile->update([
             'verification_status' => VerificationStatus::Active->value,
+            // Alasan penolakan sebelumnya dibersihkan: ia sudah tidak berlaku, dan menyisakannya
+            // membuat layar pendaftar mengeluhkan keadaan yang sudah lewat.
             'rejection_reason' => null,
         ]);
 

@@ -11,12 +11,9 @@ use Illuminate\Validation\ValidationException;
 use Lorisleiva\Actions\Concerns\AsAction;
 
 /**
- * BR-SM-08 — menambahkan anggota penelitian.
- *
- * Konflik kepentingannya dijaga `ConflictOfInterestGuard`, guard yang sama
- * dengan penugasan reviewer. Itu yang dimaksud DDD dengan "satu Policy, dua
- * pemanggil": larangannya dua arah, dan menuliskannya dua kali berarti
- * keduanya akan menyimpang diam-diam.
+ * BR-SM-08 — menambahkan anggota penelitian. Konflik kepentingannya dijaga `ConflictOfInterestGuard`,
+ * guard yang sama dengan penugasan reviewer: "satu Policy, dua pemanggil" di DDD, karena larangannya
+ * dua arah dan menuliskannya dua kali membuat keduanya menyimpang diam-diam.
  */
 class AddResearchMember
 {

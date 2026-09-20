@@ -10,14 +10,9 @@ use Lorisleiva\Actions\Concerns\AsAction;
 use RuntimeException;
 
 /**
- * BR-SC-01 — berapa banyak yang masih memakai satu data acuan.
- *
- * Dipisah dari penghapusannya karena angka yang sama dipakai layar untuk
- * menjelaskan **sebelum** tombol ditekan. Penolakan yang baru muncul setelah
- * menekan membuat Admin mengira sistemnya rusak, bukan mengira datanya masih
- * terpakai.
- *
- * **Tidak menulis audit (BR-RPT-09).** Kueri hitung murni.
+ * BR-SC-01 — berapa banyak yang masih memakai satu data acuan. Dipisah dari penghapusannya
+ * karena layar memakai angka ini **sebelum** tombol ditekan: penolakan yang baru muncul
+ * sesudahnya terbaca sebagai sistem rusak. **Tidak menulis audit (BR-RPT-09).** Kueri murni.
  *
  * @method static int run(ReferenceEntity<covariant Model> $entity, Model $record)
  */

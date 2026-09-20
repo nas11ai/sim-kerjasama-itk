@@ -36,16 +36,14 @@ class StartSubmission
         // profil kosong tetap tertahan di sini.
         AccountStateGuard::assertProfileComplete($user);
 
-        // ::make()->handle() dan bukan ::run(): run() milik AsObject dideklarasikan
-        // `mixed` (paket tidak menyediakan stub PHPStan), jadi PHPStan level 9 tidak
-        // bisa menyempitkannya ke ?FormSubmission. make() memberi instance bertipe
-        // static, dan handle()-nya sendiri sudah membawa tipe kembalian yang benar.
+        // `::make()->handle()`, bukan `::run()`: run() milik AsObject dideklarasikan `mixed` (paket
+        // tidak menyediakan stub PHPStan), jadi PHPStan level 9 tak bisa menyempitkannya ke
+        // ?FormSubmission. make() memberi instance bertipe static dengan tipe kembalian yang benar.
         $existing = ResolveWizardSubmission::make()->handle($formId, $submissionPeriodId, $user);
 
-        // BR-SM-05 lewat Policy — baris yang tidak lagi boleh disunting (terminal,
-        // atau sedang direview) tidak dipakai ulang. Itulah yang membuat status
-        // terminal melahirkan baris baru alih-alih membentur baris lama; kelayakan
-        // suntingnya tetap tertulis satu kali saja, di FormSubmissionPolicy.
+        // BR-SM-05 lewat Policy — baris yang tidak lagi boleh disunting (terminal atau sedang direview)
+        // tidak dipakai ulang, jadi status terminal melahirkan baris baru alih-alih membentur baris
+        // lama. Kelayakan suntingnya tetap tertulis satu kali, di FormSubmissionPolicy.
         if ($existing !== null && $user->can('update', $existing)) {
             return $existing;
         }

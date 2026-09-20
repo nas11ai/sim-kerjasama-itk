@@ -13,11 +13,6 @@ use Lorisleiva\Actions\Concerns\AsAction;
 /**
  * BR-BUD-10 — menghapus satu line item anggaran.
  *
- * Soft delete, bukan hard delete. Nilai yang pernah masuk rencana anggaran
- * adalah bahan dispute antara reviewer dan researcher (BR-BUD-08): baris yang
- * hilang tanpa jejak membuat pertanyaan "kenapa angkanya turun" tidak
- * terjawab, dan pertanyaan itu selalu datang belakangan saat audit.
- *
  * Tanpa jalur ini BR-BUD-01 jadi jalan buntu — peneliti yang terlanjur
  * melewati batas skema tidak punya cara menurunkan totalnya.
  *
@@ -58,6 +53,9 @@ class DeleteBudgetLineItem
             null,
         );
 
+        // Soft delete, bukan hard delete: nilai yang pernah masuk rencana anggaran
+        // adalah bahan dispute antara reviewer dan researcher (BR-BUD-08), dan baris
+        // yang hilang tanpa jejak membuat "kenapa angkanya turun" tak terjawab saat audit.
         $item->delete();
     }
 }

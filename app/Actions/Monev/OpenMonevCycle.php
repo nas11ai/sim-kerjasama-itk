@@ -14,14 +14,8 @@ use Lorisleiva\Actions\Concerns\AsAction;
 /**
  * BR-MON-10 — Operator membuka satu siklus monev.
  *
- * Pembukaan siklus adalah aksi tersendiri, bukan efek samping dari tanggal
- * yang tiba: jadwal monev berjarak bulanan, dan tanpa pemberitahuan tenggatnya
- * terlanjur berjalan sebelum ada yang membukanya.
- *
- * Yang diberi tahu adalah **pihak yang harus bertindak**: peneliti karena
- * laporannya ditunggu, dan reviewer yang ditugaskan pada siklus itu karena
- * penilaiannya ditunggu. Reviewer siklus lain tidak — penugasan monev tidak
- * pernah diwarisi (BR-MON-06).
+ * Pembukaan siklus adalah aksi tersendiri, bukan efek samping dari tanggal yang tiba: jadwal
+ * monev berjarak bulanan, dan tanpa pemberitahuan tenggatnya terlanjur berjalan sebelum dibuka.
  *
  * @method static int run(FormSubmission $parent, FormPhaseDetail $detail)
  */
@@ -30,6 +24,10 @@ class OpenMonevCycle
     use AsAction;
 
     /**
+     * Yang diberi tahu adalah **pihak yang harus bertindak**: peneliti karena laporannya
+     * ditunggu, dan reviewer yang ditugaskan pada siklus itu karena penilaiannya ditunggu.
+     * Reviewer siklus lain tidak — penugasan monev tidak pernah diwarisi (BR-MON-06).
+     *
      * @return int jumlah orang yang diberi tahu
      */
     public function handle(FormSubmission $parent, FormPhaseDetail $detail): int

@@ -11,14 +11,7 @@ use Lorisleiva\Actions\Concerns\AsAction;
 /**
  * BR-MON-07 — saran reviewer untuk satu siklus monev.
  *
- * Isinya reviewer **pengajuan awal** yang masa tugasnya masih berjalan. Yang
- * sudah habis tidak muncul: menyarankannya berarti mengarahkan Operator ke
- * penugasan yang pasti ditolak BR-REV-09.
- *
- * Ini **saran, bukan batas**. Operator tetap bebas memilih nama lain — dan
- * itulah sebabnya daftar ini tidak pernah dipakai sebagai penyaring di Action
- * penugasan. Mencampur keduanya akan mengubah kemudahan menjadi larangan.
- *
+ * Isinya reviewer **pengajuan awal** yang masa tugasnya masih berjalan.
  *
  * **Tidak menulis audit (BR-RPT-09).** Kueri saran reviewer. Yang mengubah state adalah AssignReviewer, dan di situlah auditnya ditulis.
  *
@@ -33,6 +26,9 @@ class SuggestCycleReviewers implements ChangesNoState
     {
         $now = now();
 
+        // **Saran, bukan batas**: Operator tetap bebas memilih nama lain, dan karena itu daftar ini
+        // tidak pernah dipakai sebagai penyaring di Action penugasan — mencampur keduanya akan
+        // mengubah kemudahan menjadi larangan.
         return Reviewer::query()
             ->whereIn(
                 'id',
@@ -40,6 +36,8 @@ class SuggestCycleReviewers implements ChangesNoState
                     ->where('status', 'active')
                     ->select('reviewer_id')
             )
+            // Yang masa tugasnya sudah habis tidak muncul: menyarankannya berarti mengarahkan
+            // Operator ke penugasan yang pasti ditolak BR-REV-09.
             ->where(fn ($q) => $q->whereNull('start_date')->orWhere('start_date', '<=', $now))
             ->where(fn ($q) => $q->whereNull('end_date')->orWhere('end_date', '>=', $now))
             ->with('user:id,name,email')
