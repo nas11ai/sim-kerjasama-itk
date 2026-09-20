@@ -12,12 +12,9 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 /**
- * Keputusan Operator atas sebuah pengajuan: menolak dan memindahkan
- * kepemilikan.
- *
- * Penolakan sengaja **tidak** ditumpangkan pada endpoint status generik yang
- * menerima status apa pun — ia punya syaratnya sendiri (hanya UNDER_REVIEW,
- * wajib beralasan) dan menumpangkannya akan mengaburkan keduanya.
+ * Keputusan Operator atas pengajuan: menolak dan memindahkan kepemilikan.
+ * Penolakan sengaja bukan cabang endpoint status generik — bersyarat sendiri
+ * (hanya UNDER_REVIEW, wajib beralasan), dan menumpang akan mengaburkan keduanya.
  */
 class SubmissionDecisionController extends Controller
 {

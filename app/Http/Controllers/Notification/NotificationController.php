@@ -11,16 +11,6 @@ use Inertia\Response;
 
 /**
  * BR-NOT-01, BR-NOT-04 — daftar notifikasi in-app.
- *
- * Membuka daftar **tidak** menandai apa pun sebagai dibaca. Kalau ia
- * menandai, penghitung "belum dibaca" langsung nol pada kunjungan pertama
- * dan notifikasi yang belum sempat dilihat ikut terkubur — persis kebalikan
- * dari gunanya penghitung itu.
- *
- * Notifikasi tersimpan permanen dan hanya hilang kalau pemiliknya
- * menghapusnya sendiri (BR-NOT-01). Tidak ada pembersihan otomatis: yang
- * dianggap sudah tidak perlu oleh sistem sering justru yang sedang dicari
- * orangnya.
  */
 class NotificationController extends Controller
 {
@@ -30,6 +20,9 @@ class NotificationController extends Controller
 
         abort_if($user === null, 403);
 
+        // Membuka daftar tidak menandai apa pun dibaca: kalau menandai,
+        // penghitung "belum dibaca" langsung nol di kunjungan pertama, dan
+        // notifikasi yang belum sempat dilihat ikut terkubur — kebalikan gunanya.
         return Inertia::render('Notifications/IndexPage', [
             'notifications' => $user->notifications()
                 ->latest()
@@ -61,7 +54,9 @@ class NotificationController extends Controller
     }
 
     /**
-     * BR-NOT-01 — satu-satunya cara sebuah notifikasi hilang.
+     * BR-NOT-01 — satu-satunya cara sebuah notifikasi hilang. Tersimpan permanen,
+     * tak ada pembersihan otomatis: yang dianggap tak perlu oleh sistem sering
+     * justru yang sedang dicari orangnya.
      */
     public function destroy(Request $request, string $notification): RedirectResponse
     {

@@ -42,13 +42,9 @@ class RegisteredUserController extends Controller
     }
 
     /**
-     * BR-IAM-01, BR-IAM-02, BR-IAM-12 — registrasi mandiri dosen ITK.
-     *
-     * Cabang `app()->environment('testing')` yang dulu ada di sini dicabut:
-     * ia membuat jalur yang diuji berbeda dari jalur yang berjalan, sehingga
-     * test "new users can register" lulus dengan email `@example.com` yang
-     * seharusnya ditolak BR-IAM-01. Test yang menguji jalur lain tidak
-     * membuktikan apa pun tentang jalur yang sesungguhnya.
+     * BR-IAM-01, BR-IAM-02, BR-IAM-12 — registrasi mandiri dosen ITK. Cabang
+     * `app()->environment('testing')` dicabut: jalur test beda dari produksi
+     * meloloskan `@example.com` yang mestinya ditolak — jalur lain tak membuktikan.
      *
      * @throws ValidationException
      */
@@ -81,21 +77,16 @@ class RegisteredUserController extends Controller
     }
 
     /**
-     * BR-IAM-06 — layar pendaratan sebuah tautan undangan.
-     *
-     * Dua layar, satu route. Aturannya sudah menyatakan bahwa "undangan yang
-     * terlanjur dibuka mendarat di layar token tidak berlaku", dan tanpa GET
-     * ini kalimat itu menggambarkan perilaku yang tidak pernah bisa terjadi:
-     * yang ada hanya POST, jadi pendaftar tidak punya tempat mendarat sama
-     * sekali.
-     *
-     * Token yang tidak dikenal diperlakukan sama dengan yang tidak berlaku —
-     * membedakan keduanya memberi tahu penebak bahwa tebakannya mendekati.
+     * BR-IAM-06 — layar pendaratan sebuah tautan undangan. Dua layar, satu route:
+     * tanpa GET, kalimat "undangan yang terlanjur dibuka mendarat di token tidak
+     * berlaku" jadi mustahil terjadi — yang ada cuma POST, tempat mendarat tak ada.
      */
     public function createInvited(string $token): Response
     {
         $invitation = InvitationToken::where('token', $token)->first();
 
+        // Token tak dikenal diperlakukan sama dengan yang tak berlaku — membedakan
+        // keduanya memberi tahu penebak bahwa tebakannya mendekati.
         if ($invitation === null || !$invitation->isValid()) {
             return Inertia::render('Auth/InvitationInvalidPage');
         }

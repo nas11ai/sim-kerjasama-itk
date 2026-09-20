@@ -44,10 +44,9 @@ class HandleInertiaRequests extends Middleware
                 'message' => fn () => $request->session()->get('message'),
                 'error' => fn () => $request->session()->get('error'),
                 'success' => fn () => $request->session()->get('success'),
-                // BR-REV-04 — peringatan beban reviewer bukan error: penugasannya
-                // berhasil, dan Operator yang memutuskan apakah bebannya masih
-                // wajar. Ia dibagikan sebagai flash tersendiri supaya tidak
-                // tertukar dengan kegagalan.
+                // BR-REV-04 — peringatan beban reviewer bukan error: penugasan
+                // berhasil, Operator yang menilai kewajaran beban. Dibagikan sebagai
+                // flash tersendiri supaya tidak tertukar dengan kegagalan.
                 'workloadWarnings' => fn () => $request->session()->get('workloadWarnings'),
             ],
             'biodataStatus' => fn () => $request->session()->get('biodataStatus'),

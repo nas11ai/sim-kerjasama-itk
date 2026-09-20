@@ -13,10 +13,8 @@ use Illuminate\Validation\Rule;
 /**
  * BR-IAM-09, BR-IAM-11 — hak akses dan penunjukan reviewer atas satu user.
  *
- * Hak akses langsung **menambah**, tidak menggantikan yang datang dari role
- * (BR-IAM-09) — dan itu berlaku di kedua arah: mencabut salah satu sumber
- * tidak menyentuh yang lain. Spatie sudah begitu; yang perlu dijaga adalah
- * jangan ada pembungkus di sini yang meratakannya jadi satu daftar.
+ * Hak akses langsung menambah, bukan menggantikan yang dari role (BR-IAM-09)
+ * — mencabut satu sumber tak menyentuh yang lain; jangan diratakan jadi satu daftar.
  */
 class UserAccessController extends Controller
 {

@@ -8,12 +8,9 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
 
 /**
- * Penarikan pengajuan (BR-SM-11) — wireframe OPERATOR-02-06.
- *
- * Controller tersendiri, bukan cabang baru di endpoint status generik:
- * penarikan punya syaratnya sendiri (hanya Operator, hanya dari APPROVED,
- * tidak dapat dibatalkan) dan menumpangkannya pada endpoint yang menerima
- * status apa pun akan mengaburkan ketiganya.
+ * Penarikan pengajuan (BR-SM-11) — wireframe OPERATOR-02-06. Controller
+ * tersendiri: hanya Operator, hanya dari APPROVED, tidak dapat dibatalkan —
+ * menumpang di endpoint status generik akan mengaburkan ketiganya.
  */
 class SubmissionWithdrawalController extends Controller
 {

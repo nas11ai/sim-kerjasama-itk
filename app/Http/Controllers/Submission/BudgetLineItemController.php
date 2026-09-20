@@ -28,11 +28,9 @@ class BudgetLineItemController extends Controller
 
         abort_unless($user !== null && $user->can('update-budget', $submission), 403);
 
-        // BR-SM-17 — satu-satunya prasyarat nyata antar langkah wizard:
-        // anggaran butuh skema, karena batasnya berasal dari sana (BR-BUD-01).
-        // Ditegakkan di sini, bukan di navigasi: yang tidak boleh terjadi
-        // adalah anggaran tersimpan tanpa batas yang mengikatnya, bukan
-        // peneliti membuka layarnya.
+        // BR-SM-17 — satu-satunya prasyarat nyata antar langkah wizard: anggaran butuh
+        // skema (batasnya dari sana, BR-BUD-01). Ditegakkan di sini, bukan navigasi:
+        // yang tak boleh terjadi anggaran tanpa batas, bukan peneliti buka layarnya.
         $blocked = WizardStepGate::blockedReason($submission, WizardStepGate::STEP_BUDGET);
 
         if ($blocked !== null) {
@@ -55,10 +53,8 @@ class BudgetLineItemController extends Controller
     /**
      * BR-BUD-10 — menyunting item yang sudah ada.
      *
-     * Tanpa WizardStepGate: prasyarat skema (BR-SM-17) menjaga agar anggaran
-     * tidak lahir tanpa batas yang mengikatnya, dan item yang sedang disunting
-     * sudah lahir. Memasang gerbang yang sama di sini justru mengunci koreksi
-     * pada pengajuan yang skemanya sempat dilepas.
+     * Tanpa WizardStepGate: prasyarat skema (BR-SM-17) sudah menjaganya saat
+     * lahir — gerbang yang sama di sini justru mengunci koreksi saat skema dilepas.
      */
     public function update(
         Request $request,

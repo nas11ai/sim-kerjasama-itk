@@ -18,9 +18,8 @@ use Inertia\Response;
 /**
  * BR-MON-04, BR-MON-07, BR-MON-10 — Operator mengelola siklus monev.
  *
- * Membuka siklus adalah aksi tersendiri, bukan efek samping dari tanggal yang
- * tiba: jadwal monev berjarak bulanan, dan pemberitahuannya menempel pada
- * pembukaan itu.
+ * Membuka siklus aksi tersendiri, bukan efek samping tanggal yang tiba: jadwal
+ * monev berjarak bulanan, dan pemberitahuannya menempel pada pembukaan itu.
  */
 class MonevCycleController extends Controller
 {

@@ -23,10 +23,8 @@ use Inertia\Response;
 /**
  * BR-SC-01, BR-SC-02, BR-SC-03 — layar Konfigurasi Umum.
  *
- * Jumlah pemakai ikut dikirim untuk setiap baris supaya layar bisa
- * menjelaskan sebelum tombol Hapus ditekan (BR-SC-01). Menghitungnya di sini
- * memang lebih mahal daripada menampilkan tombol lalu menolak, tapi penolakan
- * yang baru muncul setelah menekan membuat Admin mengira sistemnya rusak.
+ * Jumlah pemakai dikirim tiap baris agar layar menjelaskan sebelum Hapus ditekan
+ * (BR-SC-01) — penolakan yang baru muncul setelah ditekan bikin Admin mengira rusak.
  */
 class ReferenceEntityController extends Controller
 {
@@ -46,9 +44,8 @@ class ReferenceEntityController extends Controller
                 ])
                 ->values(),
             // BR-NOT-06 — channel per tipe event tinggal di layar yang sama
-            // dengan data acuan lain: keduanya konfigurasi yang disunting
-            // tanpa deploy, dan memisahkannya hanya menambah layar yang harus
-            // ditemukan Admin.
+            // dengan data acuan lain: keduanya konfigurasi disunting tanpa deploy,
+            // memisahkannya hanya menambah layar yang harus ditemukan Admin.
             'notificationChannels' => NotificationChannelSetting::query()
                 ->orderBy('event_type')
                 ->get()

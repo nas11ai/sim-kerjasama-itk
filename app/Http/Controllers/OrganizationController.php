@@ -13,11 +13,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 /**
- * BR-IAM-08 — penghapusan unit organisasi.
- *
- * Deaktivasi (BR-IAM-14) menyusul di irisan organisasi; keduanya sengaja
- * endpoint terpisah karena ambangnya berbeda: hapus melihat UserProfile apa
- * pun, nonaktif melihat user aktif.
+ * BR-IAM-08 — penghapusan unit organisasi. Deaktivasi (BR-IAM-14) endpoint
+ * terpisah: hapus melihat UserProfile apa pun, nonaktif melihat user aktif.
  */
 class OrganizationController extends Controller
 {

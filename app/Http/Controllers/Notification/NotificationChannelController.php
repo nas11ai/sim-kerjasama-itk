@@ -13,10 +13,8 @@ use Illuminate\Support\Facades\Auth;
 /**
  * BR-NOT-06 — Admin menyunting channel per tipe event tanpa deploy.
  *
- * Yang tidak bisa disunting adalah **ada atau tidaknya** deklarasi: baris
- * hanya lahir dari seeder yang mengikuti kelas notifikasi, jadi tidak ada
- * jalan membuat deklarasi untuk event yang tidak ada, maupun menghapus
- * deklarasi milik event yang masih dipakai.
+ * Yang tak bisa disunting adalah ada-tidaknya deklarasi: baris cuma lahir dari
+ * seeder yang mengikuti kelas notifikasi — tak bisa dibuat atau dihapus manual.
  */
 class NotificationChannelController extends Controller
 {

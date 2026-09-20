@@ -11,19 +11,14 @@ use Inertia\Inertia;
 use Inertia\Response;
 
 /**
- * BR-RPT-04, BR-RPT-05 — layar jejak audit.
- *
- * Satu controller untuk dua pembaca. Operator dan peneliti melihat layar yang
- * sama dengan isi berbeda, karena yang membedakan mereka adalah **cakupan**,
- * bukan tampilan — dan dua controller yang menyaring dengan aturannya
- * masing-masing adalah dua aturan yang cepat atau lambat menyimpang.
- *
- * Tidak ada aksi tulis di sini: append-only (BR-RPT-04) berarti tidak ada
- * rute hapus maupun sunting untuk dibuat, bukan rute yang menolak saat
- * dipanggil.
+ * BR-RPT-04, BR-RPT-05 — layar jejak audit. Satu controller untuk dua
+ * pembaca, karena yang membedakan Operator dan peneliti adalah cakupan,
+ * bukan tampilan — dua controller dengan aturan sendiri cepat menyimpang.
  */
 class AuditLogController extends Controller
 {
+    // Tidak ada aksi tulis: append-only (BR-RPT-04) berarti tak ada rute
+    // hapus/sunting untuk dibuat, bukan rute yang menolak saat dipanggil.
     public function index(Request $request): Response
     {
         $user = $request->user();

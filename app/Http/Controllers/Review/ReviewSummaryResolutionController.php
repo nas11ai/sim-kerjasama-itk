@@ -9,11 +9,9 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
 
 /**
- * BR-REV-06 — menutup satu ulir diskusi.
- *
- * Otorisasinya dipegang Action: hanya reviewer pemilik catatan (atau
- * penggantinya lewat BR-REV-15). Kalau researcher bisa menutup sendiri, ia
- * bisa memaksa pengajuannya disetujui.
+ * BR-REV-06 — menutup ulir diskusi. Otorisasi di Action: hanya reviewer
+ * pemilik catatan (atau penggantinya, BR-REV-15) — kalau researcher bisa
+ * menutup sendiri, ia bisa memaksa pengajuannya disetujui.
  */
 class ReviewSummaryResolutionController extends Controller
 {

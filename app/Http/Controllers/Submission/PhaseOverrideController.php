@@ -14,11 +14,8 @@ use Illuminate\Support\Facades\Auth;
 
 /**
  * BR-FE-08, BR-FE-09, BR-FE-10 — perpanjangan akses satu fase untuk satu
- * pengajuan.
- *
- * Controller hanya menerjemahkan: FormRequest → Action → redirect. Aturan
- * alasan-wajib dan pencabutan izin lama ada di Action, karena override juga
- * bisa diberikan dari jalur lain dan aturannya tidak boleh tinggal di sini.
+ * pengajuan. Controller hanya menerjemahkan: FormRequest → Action → redirect.
+ * Aturannya di Action karena override juga bisa datang dari jalur lain.
  */
 class PhaseOverrideController extends Controller
 {

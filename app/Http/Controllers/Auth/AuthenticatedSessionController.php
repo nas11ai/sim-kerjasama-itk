@@ -35,11 +35,9 @@ class AuthenticatedSessionController extends Controller
 
         $user = Auth::user();
 
-        // Cabang `app()->environment('testing')` yang dulu ada di sini
-        // dicabut: ia mengalihkan test ke route('dashboard') sehingga
-        // percabangan yang sebenarnya berjalan di produksi — Operator ke
-        // dasbor admin, peneliti ke dasbornya sendiri — tidak pernah sekali
-        // pun diuji. Aturan repo melarangnya justru karena itu.
+        // Cabang `app()->environment('testing')` yang dulu ada di sini dicabut: ia
+        // mengalihkan test ke route('dashboard'), sehingga percabangan produksi asli
+        // (admin vs dasbor peneliti) tidak pernah teruji — itu sebab aturannya.
         if ($user !== null && $user->can('users.manage')) {
             return redirect()->intended(route('admin.dashboard'));
         }

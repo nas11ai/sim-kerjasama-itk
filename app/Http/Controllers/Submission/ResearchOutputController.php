@@ -15,10 +15,8 @@ use Illuminate\Support\Facades\Auth;
 /**
  * BR-RO-01 s/d BR-RO-09 — luaran terealisasi.
  *
- * Tiga sumbu harus lolos bersamaan (ADR 0014): **siapa** lewat Policy,
- * **kapan** lewat batas FormPhaseDetail, dan **keadaan** lewat status induk.
- * Ketiganya diperiksa di sini karena masing-masing dijaga lapis yang berbeda,
- * dan melewatkan salah satunya tidak akan gagal mencolok.
+ * Tiga sumbu harus lolos bersamaan (ADR 0014): siapa lewat Policy, kapan lewat
+ * FormPhaseDetail, keadaan lewat status induk — lapis beda, celah tak mencolok.
  */
 class ResearchOutputController extends Controller
 {

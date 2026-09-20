@@ -20,9 +20,8 @@ use Inertia\Response;
 /**
  * BR-SCH-01, BR-SCH-02, BR-SCH-03, BR-SCH-10 — pengelolaan skema.
  *
- * Sebelum ini skema hanya punya tabel dan model: tidak ada rute, controller,
- * maupun layar. M1 sudah memakai `max_budget` untuk menolak anggaran, tapi
- * tidak ada cara membuat skemanya selain lewat seeder.
+ * Sebelumnya skema cuma tabel dan model: M1 sudah memakai `max_budget` untuk
+ * menolak anggaran, tapi tidak ada rute atau layar untuk membuat skemanya.
  */
 class SchemeController extends Controller
 {
@@ -36,9 +35,8 @@ class SchemeController extends Controller
                     'schemeType:id,name',
                     'submissionType:id,name',
                     // BR-SCH-05 — daftar TRL yang boleh dipilih pengajuan
-                    // berskema ini. Ikut dikirim supaya dialog Edit bisa
-                    // memulai dari pilihan yang sekarang berlaku alih-alih
-                    // mengosongkannya diam-diam setiap kali disimpan.
+                    // berskema ini. Dikirim agar dialog Edit mulai dari pilihan yang
+                    // berlaku, bukan mengosongkannya diam-diam tiap disimpan.
                     'allowedTrls:id,name',
                 ])
                 ->withCount([
