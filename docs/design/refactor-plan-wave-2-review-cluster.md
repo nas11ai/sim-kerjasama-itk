@@ -89,45 +89,65 @@ tanpa cast — sesuai aturan 5, menyempitkan tipe lebih dulu, bukan membungkam P
 
 ### Utang yang ditinggalkan
 
-- `ReviewSummary` dan `Organization` masih di antrean legacy, masing-masing menunggu
-  rencananya sendiri.
+- `Organization` masih di antrean legacy, menunggu rencananya sendiri.
+  (`ReviewSummary` sudah keluar — lihat putaran review di bawah.)
 - Controller cluster review (`ReviewController`, `ReviewFormResponseController`,
   `ReviewerFormAssignmentController`) belum dibedah — itu gelombang 3.
 
-### Temuan putaran review sesudah `06a2d30`
+### Temuan putaran review sesudah `06a2d30` — seluruhnya diselesaikan
 
-Empat perbaikan mendarat langsung (opsi lintas field, aturan validasi non-skalar,
-checkbox yang tidak pernah jadi label, deprecation `trim(null)`). Empat sisanya
-butuh keputusan dan **tidak** dikerjakan di sini:
+Empat perbaikan kecil mendarat lebih dulu (opsi lintas field, aturan validasi
+non-skalar, checkbox yang tidak pernah jadi label, deprecation `trim(null)`).
+Putaran berikutnya membongkar empat utang yang tersisa, dan menemukan bahwa
+akarnya lebih dalam dari yang dicatat semula.
 
-- **`ReviewFormResponseController::createOrUpdateReviewSummary()` nol pemanggil.**
-  Ia satu-satunya pemanggil `ReviewSummary::createFromEvaluationResponses()`, jadi
-  "ringkasan dibuat begitu seluruh evaluasi wajib tersubmit" **tidak pernah jalan**.
-  Task 9 mengalihkan `hasAllRequiredFormsCompleted()` ke `RequiredFormsCompletion`
-  di dalam method ini, sehingga Query baru itu terbaca seolah jalurnya hidup.
-  Per K2 centang ketiga ini **bukan kode mati melainkan aturan yang kehilangan
-  pemanggilnya** — dilaporkan, bukan dihapus.
+**BR-FE-06 ternyata tidak pernah tegak di produksi.** `ReviewSummaryGuard` punya
+**nol pemanggil produksi** — hanya disebut di satu komentar. REV-EVAL-04/05/06
+karena itu "tercover" cuma di level unit terhadap guard yang tidak dipakai siapa
+pun, sementara `ReviewController::createReviewThread` memakai definisi "evaluasi
+selesai" karangannya sendiri: **definisi keempat** di codebase ini, sesudah
+`hasSettledEvaluation()`, `RequiredFormsCompletion`, dan hitungan form wajib.
+Akibatnya nyata dan terbukti lewat test HTTP: reviewer `pending` **boleh**
+membuka ulir kalau fase kebetulan tak punya form wajib, dan reviewer
+`not_required` justru **diblokir**. Keduanya kini lewat
+`Actions/Review/OpenReviewThread`, yang memanggil guard itu.
 
-- **Dua jalur penugasan, satu yang diaudit.** `ReviewController` lewat
-  `AssignEvaluationForm` (menulis entri BR-RPT-09);
-  `ReviewerFormAssignmentController::assignFormsToReviewer` dan `bulkAssignForms`
-  lewat `ReviewerFormAssignment::updateOrCreate()` langsung (tidak menulis apa pun).
-  Perpecahannya sudah ada sebelum gelombang ini, tapi sekarang jejaknya timpang
-  untuk peristiwa yang sama.
+**Jalur ringkasan otomatis ternyata kluster mati sembilan method**, bukan satu.
+Sensus dengan bentuk panggilan yang benar menemukan enam di `ReviewSummary`
+(termasuk `scopeClosed`, yang mengkodekan status yang BR-REV-13 nyatakan tidak
+ada) plus `createOrUpdateReviewSummary` di controller. Tidak ada BR yang menuntut
+pembuatan ringkasan otomatis — BR-FE-06 berbunyi "boleh dibuat", dan REV-EVAL-05
+menggambarkan reviewer yang membuatnya sendiri. Seluruhnya lolos tiga centang K2.
+`ReviewSummary` menyusut **281 → 68 baris** dan keluar dari antrean legacy.
 
-- **`AssignEvaluationForm::run()` memakai `create()` di atas indeks unik**
-  `unique_reviewer_form_assignment`. Endpoint-nya tidak menyaring duplikat, jadi
-  menugaskan ulang form yang sudah ada melempar `QueryException`, membatalkan
-  seluruh batch, dan menampilkan galat SQL mentah ke pengguna. Jalur sebelahnya
-  idempoten lewat `updateOrCreate`. Menyamakannya mengubah kontrak Action.
+**Penugasan form kini idempoten.** `AssignEvaluationForm` memakai `create()` di
+atas indeks unik `unique_reviewer_form_assignment`; penugasan ulang melempar
+`UniqueConstraintViolationException`, membatalkan seluruh batch, dan membocorkan
+galat SQL mentah ke layar. Sekarang `updateOrCreate`, sama dengan jalur sebelahnya.
 
-- **`EvaluationStatusRecalculator` satu-satunya penulis state di `app/Support/`.**
-  Dari 54 berkas di sana, hanya ia yang memanggil `->update()` atas model domain.
-  Docblock-nya menyebut preseden `RequiredFieldGuard`, padahal guard itu tidak
-  pernah menulis. `AuditCoverageTest` hanya menyapu `app/Actions/` dan
-  `app/Queries/`, jadi mutasi `evaluation_status` duduk di luar jangkauan
-  BR-RPT-09 secara struktural — dan enam pemanggilnya adalah controller telanjang
-  tanpa audit sama sekali.
+**Paritas audit tercapai lewat penyatuan jalur.** `bulkAssignForms` dulu membuat
+penugasan langsung dari controller tanpa jejak apa pun; ia sekarang memakai
+Action yang sama. `assignFormsToReviewer` ternyata yatim — tanpa route maupun
+pemanggil Vue — jadi ia dicabut.
+
+**Celah `app/Support/` ditutup di akarnya.** `EvaluationStatusRecalculator`
+adalah satu-satunya penulis state di antara 54 berkas `app/Support/`, sehingga
+`evaluation_status` berubah di luar jangkauan `AuditCoverageTest`. Ia pindah jadi
+`Actions/Review/RecalculateEvaluationStatus` dan menulis jejak **hanya saat status
+benar-benar berpindah** — itu yang membuat keberatan "audit ganda" tidak lagi
+berlaku. `SupportPurityTest` menjaga agar penulis kedua tidak lahir di sana.
+
+### Utang yang masih terbuka
+
+- **Tombol ubah status di layar detail reviewer rusak.** `ShowPage.vue:185`
+  memanggil `route('reviewer.submissions.updateStatus')` yang tidak terdaftar,
+  jadi Ziggy melempar saat diklik. `SubmissionViewController::updateStatus` masih
+  ada tapi tanpa route — kode yang kehilangan route-nya, bukan kode mati.
+  Memulihkan route-nya **akan melanggar BR-REV-13**: endpoint itu menerima
+  `needs_revision` dan `rejected`, padahal `ReviewSummary` hanya boleh `open`
+  atau `resolved`. Perlu keputusan pemilik repo, bukan tebakan.
+- `Organization` masih di antrean legacy, menunggu rencananya sendiri.
+- Controller cluster review belum dibedah tuntas — itu gelombang 3.
 
 ---
 
