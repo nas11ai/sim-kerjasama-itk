@@ -195,7 +195,7 @@ class ReviewController extends Controller
                     'reviewer_id' => $reviewer->id,
                 ])->first();
 
-                if ($submissionReviewer && $submissionReviewer->canParticipateInDiscussions()) {
+                if ($submissionReviewer && $submissionReviewer->hasSettledEvaluation()) {
                     $canUpdate = true;
                 } elseif ($submissionReviewer) {
                     $pendingCount = $submissionReviewer->pending_forms_count;
@@ -401,7 +401,7 @@ class ReviewController extends Controller
 
                 if ($submissionReviewer) {
                     // Check if can participate in discussions
-                    if ($submissionReviewer->canParticipateInDiscussions()) {
+                    if ($submissionReviewer->hasSettledEvaluation()) {
                         $canComment = true;
                         $reviewerId = $reviewer->id;
                     } else {
@@ -603,7 +603,7 @@ class ReviewController extends Controller
 
                 if ($submissionReviewer) {
                     // Check if evaluations are complete
-                    if ($submissionReviewer->canParticipateInDiscussions()) {
+                    if ($submissionReviewer->hasSettledEvaluation()) {
                         $canUpdate = true;
                     } else {
                         $pendingCount = $submissionReviewer->pending_forms_count;

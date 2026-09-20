@@ -260,7 +260,7 @@ class ReviewSummary extends Model
             'reviewer_id' => $this->reviewer_id,
         ])->first();
 
-        return $submissionReviewer ? $submissionReviewer->canParticipateInDiscussions() : true;
+        return $submissionReviewer ? $submissionReviewer->hasSettledEvaluation() : true;
     }
 
     // Existing scopes and methods...

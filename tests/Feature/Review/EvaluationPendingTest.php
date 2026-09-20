@@ -56,6 +56,28 @@ it('mengabaikan reviewer yang sudah diganti — BR-REV-05 menghitung yang aktif 
     expect(PendingEvaluationCheck::run($submission->fresh()))->toBeFalse();
 });
 
+it('menjawab "evaluasi beres?" dari SETTLED_EVALUATION, bukan daftar literal', function () {
+    $submission = FormSubmission::factory()->create();
+
+    $selesai = SubmissionReviewer::create([
+        'form_submission_id' => $submission->id,
+        'reviewer_id' => Reviewer::factory()->create()->id,
+        'evaluation_status' => 'not_required',
+        'status' => 'active',
+    ]);
+
+    $tertunda = SubmissionReviewer::create([
+        'form_submission_id' => $submission->id,
+        'reviewer_id' => Reviewer::factory()->create()->id,
+        'evaluation_status' => 'pending',
+        'status' => 'active',
+    ]);
+
+    expect($selesai->hasSettledEvaluation())->toBeTrue()
+        ->and($tertunda->hasSettledEvaluation())->toBeFalse()
+        ->and(SubmissionReviewer::SETTLED_EVALUATION)->toContain('not_required');
+});
+
 it('sepakat dengan canProceed — BR-REV-05 satu definisi, dua pemakai', function () {
     $detail = FormPhaseDetail::factory()->create(['needs_review' => true]);
     $submission = FormSubmission::factory()->create([

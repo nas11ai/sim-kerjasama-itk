@@ -178,19 +178,6 @@ class SubmissionReviewer extends Model
         }
     }
 
-    // NEW: Check if reviewer can create discussion threads
-    public function canCreateDiscussionThreads(): bool
-    {
-        return $this->evaluation_status === 'completed' ||
-            $this->evaluation_status === 'not_required';
-    }
-
-    // NEW: Check if reviewer can participate in discussions
-    public function canParticipateInDiscussions(): bool
-    {
-        return $this->canCreateDiscussionThreads();
-    }
-
     // NEW: Get pending forms count
     public function getPendingFormsCountAttribute(): int
     {
