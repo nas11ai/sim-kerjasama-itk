@@ -3,9 +3,9 @@
 > **Untuk pekerja agentik:** SUB-SKILL WAJIB: pakai `superpowers:subagent-driven-development`
 > (disarankan) atau `superpowers:executing-plans`. Langkahnya memakai checkbox (`- [ ]`).
 >
-> **Mulai dari [Bagian 2](#bagian-2--temuan-review), Task 7.** Task 1–6 sudah selesai dan
-> tinggal sebagai catatan — kotaknya sudah tercentang. Kerjakan Task 7 lebih dulu; ia
-> menutup lubang gerbang yang menjaga Task 9–14.
+> **Seluruh rencana ini sudah dijalankan.** Task 1–14 tinggal sebagai catatan; kotaknya
+> sudah tercentang. Yang tersisa sebagai keputusan terbuka ada di *Status pelaksanaan
+> bagian 2*.
 
 **Goal:** Mengosongkan `FormSubmission` dari logic yang bukan miliknya. Bagian kedua goal
 ini — "sampai ia keluar dari `quality-legacy.txt`" — **terbukti mustahil**; lihat Task 6.
@@ -20,7 +20,8 @@ dulu berarti memindahkan sampah ke rumah baru.
 
 **Status:** bagian 1 dieksekusi 20 September 2026 di branch `feat/init-be-development`,
 commit `5e44f54`..`98af85b`. Task 1–5 selesai; Task 6 tidak bisa dijalankan.
-**Bagian 2 (Task 7–14) belum dikerjakan.**
+**Bagian 2 (Task 7–14) selesai** di `29debb0`..`83a4610` — lihat *Status pelaksanaan
+bagian 2*.
 
 ---
 
@@ -1128,8 +1129,9 @@ metriknya, bukan kodenya yang perlu dipelintir supaya muat. Yang dikerjakan:
 
 # Bagian 2 — temuan review
 
-**Status:** belum dikerjakan. Ditulis 20 September 2026 setelah review kode atas
-`dd43442`..`98af85b`.
+**Status:** **selesai** — dieksekusi 20 September 2026 di branch `feat/init-be-development`,
+commit `29debb0`..`83a4610`. Task 7–14 seluruhnya dikerjakan. Ditulis 20 September 2026
+setelah review kode atas `dd43442`..`98af85b`; hasil pelaksanaannya di bawah.
 
 **Goal:** Membereskan sisa yang ditinggalkan bagian 1 — satu bug yang melanggar BR-REV-05,
 satu gerbang yang bolong, satu method mati, dan tiga berkas yang belum selesai dirapikan.
@@ -1141,6 +1143,62 @@ terjaga, bukan menyusul dijaga.
 **Seluruh Global Constraints di bagian 1 tetap berlaku** — termasuk larangan menyiasati
 PHPStan, pesan commit satu baris, dan `composer run quality` hijau sebelum tugas dinyatakan
 selesai. Suite acuan saat bagian ini ditulis: **876 test**.
+
+## Status pelaksanaan bagian 2
+
+Suite **876 → 884 test** (1912 → 1930 assertion). `composer run quality` dan
+`npm run quality` hijau. Tiap task satu commit.
+
+### Yang berubah dari rencana
+
+| Task | Rencana | Kenyataan | Sebab |
+| ---- | ------- | --------- | ----- |
+| 7 | probe `ProbeSementara`, variabel `$berkas` | `TemporaryProbe`, `$candidate`, `$violations`, `$ambiguous`, `$direct` | Global Constraint "identifier bahasa Inggris"; sekalian tiga variabel lama yang melanggarnya di berkas yang sama |
+| 10 | `$berlaku` dipakai dua kali, "clone keduanya" | helper privat `applicableAssignments()` yang membangun ulang builder | membangun ulang lebih jelas daripada `clone`, dan menaruh alasan nama tabel eksplisit di satu tempat |
+| 11 | kunci jumlah kueri dapat **3** | apa adanya dapat **5** | `$submission->fresh()` dan lazy-load `formPhaseDetail` ikut masuk jendela log. Keduanya dihangatkan lebih dulu supaya yang terukur memang pemindaian `review_evaluation_forms` — barulah angkanya 3, lalu 1 sesudah diperbaiki |
+| 12 | kebocoran log meracuni test sesudahnya | **tidak tereproduksi** | tiap test Pest membangun ulang aplikasi, jadi koneksi beserta flag log-nya ikut baru. `try`/`finally` tetap dipasang sebagai kebersihan, bukan sebagai perbaikan bug |
+| 13 | "perubahan yang terlihat pengguna" | **tidak terlihat sama sekali** | lihat di bawah |
+| 14 | pilih A/B/C untuk fallback `+7 days` | **A — biarkan `null` mengalir** | kolomnya `nullable`, tiap helper `ReviewerFormAssignment` menjaga null, tiap layar menjaganya, dan `SubmissionEvaluationManager` bahkan sudah punya label "No deadline" |
+
+### Task 13 berdiri di atas premis yang salah
+
+Rencana menyebut dua layar memancarkan `evaluationRequirements` dengan dua bentuk, lalu
+menyimpulkan pengguna melihat pesan berbeda tergantung layar. Yang sebenarnya: **prop itu
+tidak pernah dibaca.** `ReviewSystem.vue` mendeklarasikannya di `Props` (baris 132) lalu
+mengabaikannya — tidak di script, tidak di template. Pesan yang benar-benar tampil adalah
+`threadCreationMessage`, dihitung di dalam komponen dari `reviewerAssignments` milik
+pemakai. Jadi `message` versi Inggris (`EvaluationRequirements`) **dan** versi Indonesia
+(`getEvaluationMessage`) sama-sama mati, begitu pula `total_forms`/`required_forms`.
+
+Keputusannya: cabut pipa matinya — dua controller, dua halaman, dan `Props`
+`ReviewSystem.vue`. **Nol perubahan yang dilihat pengguna**, 76 baris hilang.
+
+Sebelum mencabut, diperiksa bahwa tak ada skenario bisnis yang ikut berkurang:
+
+| Yang diperiksa | Hasil |
+| -------------- | ----- |
+| BR-FE-06 (gerbang ReviewSummary) | ditegakkan `ReviewSummaryGuard`, diuji `[REV-EVAL-04/05/06]` — server-side, tidak lewat prop |
+| `discussion.feature`, `evaluation.feature` | menegaskan *hasil*, tidak pernah teks pesan atau jumlah form |
+| `pending.txt`, `uncovered.txt` | keduanya `max: 0` — tak ada skenario tertunda yang prop itu layani |
+| ID skenario di test terdampak | nol — `BddCoverageTest` tidak kehilangan apa pun |
+
+### Utang yang ditinggalkan bagian ini
+
+**`Queries/Review/EvaluationRequirements` kini nol pemanggil produksi.** Task 13 mencabut
+satu-satunya pemanggilnya. Ia **tidak** ikut dihapus: kelasnya benar, punya empat test, dan
+gelombang 3 yang mendatangi endpoint `getEvaluationStatus` beserta kontrak DTO-nya adalah
+tempat yang tepat untuk memutuskan nasibnya. Aturan "nol pemanggil → hapus" dari bagian 1
+berlaku untuk kelas yang lahir dari memindahkan kode mati; yang ini lahir dari kode hidup
+yang baru saja kehilangan layarnya. **Keputusannya diserahkan ke gelombang 3.**
+
+**Test `[SM-WIZARD-06]` rapuh — dan sebabnya bukan dari gelombang ini.** Ia gagal sekali
+dari enam kali suite penuh dijalankan, lalu tidak pernah lagi. Sebabnya batas detik:
+`FormField::isRequiredFor()` membandingkan `$this->created_at > $submission->created_at`,
+sedangkan `$submission` di test itu model in-memory (presisi sub-detik) dan `$mitra` dibaca
+ulang dari database (`timestamp(0)`, dibulatkan ke detik). Saat keduanya jatuh di detik
+yang berbeda, field-nya dianggap lahir setelah submission, tidak jadi wajib, dan
+`assertComplete()` tidak melempar. Tidak ada kaitannya dengan reviewer atau evaluasi —
+**tugas tersendiri, bukan sisipan di sini.**
 
 ## Dari mana temuan ini
 
@@ -1188,7 +1246,7 @@ Kerjakan ini **lebih dulu**: Task 9–14 menambah kode ke direktori yang belum t
 - Consumes: `App\Actions\Concerns\ChangesNoState`
 - Produces: cakupan BR-RPT-09 meluas dari satu direktori jadi dua
 
-- [ ] **Step 1: Buktikan lubangnya ada**
+- [x] **Step 1: Buktikan lubangnya ada**
 
 Tulis Query sementara yang mengubah state tanpa audit dan tanpa penanda:
 
@@ -1219,7 +1277,7 @@ docker run --rm --network host -v "$PWD":/app -w /app -u "$(id -u):$(id -g)" \
 Expected: **LULUS** — dan justru itu kegagalannya. Berkas yang jelas-jelas mengubah state
 tanpa audit lolos tanpa sepatah kata. Jangan hapus probe-nya dulu.
 
-- [ ] **Step 2: Generalisasi pemindaiannya**
+- [x] **Step 2: Generalisasi pemindaiannya**
 
 `actionClasses()` meng-hardcode `app_path('Actions')` dan prefiks namespace
 `App\Actions\`. Ganti keduanya jadi peta direktori → namespace, lalu ganti nama
@@ -1260,7 +1318,7 @@ function auditedClasses(): array
 Ganti ketiga pemanggil `actionClasses()` (baris 45, 67, 84) jadi `auditedClasses()`.
 Sesuaikan juga kalimat pesan gagalnya — "Action berikut" kini bisa berarti Query.
 
-- [ ] **Step 3: Pastikan probe-nya sekarang tertangkap**
+- [x] **Step 3: Pastikan probe-nya sekarang tertangkap**
 
 Run:
 ```bash
@@ -1270,7 +1328,7 @@ docker run --rm --network host -v "$PWD":/app -w /app -u "$(id -u):$(id -g)" \
 ```
 Expected: **GAGAL**, menyebut `app/Queries/Review/ProbeSementara.php`.
 
-- [ ] **Step 4: Buang probe-nya, pastikan hijau lagi**
+- [x] **Step 4: Buang probe-nya, pastikan hijau lagi**
 
 ```bash
 rm app/Queries/Review/ProbeSementara.php
@@ -1282,7 +1340,7 @@ docker run --rm --network host -v "$PWD":/app -w /app -u "$(id -u):$(id -g)" \
 Expected: LULUS. Keempat Query yang ada sudah `implements ChangesNoState`, jadi tidak ada
 yang perlu diubah di `app/Queries/`.
 
-- [ ] **Step 5: Tambahkan `app/Queries/` ke tabel AGENTS.md**
+- [x] **Step 5: Tambahkan `app/Queries/` ke tabel AGENTS.md**
 
 Tabel *Di mana meletakkan kode baru* tidak punya baris untuk `app/Queries/`, padahal
 direktorinya sudah berisi empat berkas. Tanpa baris itu, agen berikutnya menaruh kueri
@@ -1292,7 +1350,7 @@ di `app/Actions/`. Sisipkan tepat di bawah baris *Business use case*:
 | Kueri baca (tanpa ubah state) | `app/Queries/`          | `implements ChangesNoState`; otomatis level 9 |
 ```
 
-- [ ] **Step 6: Jalankan gerbang penuh**
+- [x] **Step 6: Jalankan gerbang penuh**
 
 Run:
 ```bash
@@ -1302,7 +1360,7 @@ docker run --rm --network host -v "$PWD":/app -w /app -u "$(id -u):$(id -g)" \
 Expected: hijau, 876 test (jumlahnya tidak berubah — cakupannya yang melebar, bukan
 jumlah test-nya).
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add tests AGENTS.md
@@ -1327,7 +1385,7 @@ Ini method mati **keenam** dari gelombang ini; lima yang pertama sudah dihapus d
 - Consumes: —
 - Produces: `EvaluationFormsOverview` tinggal `handle()` dan `countPerForm()`
 
-- [ ] **Step 1: Buktikan ulang nol rujukan**
+- [x] **Step 1: Buktikan ulang nol rujukan**
 
 Run:
 ```bash
@@ -1336,12 +1394,12 @@ grep -rn 'isRequired(' --include='*.php' app/ tests/ routes/ | grep -v 'public s
 Expected: kosong. Kalau ada hasil, **berhenti** — berarti ada pemanggil yang lahir setelah
 rencana ini ditulis, dan tugas ini batal.
 
-- [ ] **Step 2: Hapus method-nya**
+- [x] **Step 2: Hapus method-nya**
 
 Hapus `isRequired()` beserta docblock-nya. Import `FormSubmission` tetap dipakai
 `handle()`, jadi jangan ikut dibuang.
 
-- [ ] **Step 3: Jalankan gerbang penuh**
+- [x] **Step 3: Jalankan gerbang penuh**
 
 Run:
 ```bash
@@ -1350,7 +1408,7 @@ docker run --rm --network host -v "$PWD":/app -w /app -u "$(id -u):$(id -g)" \
 ```
 Expected: hijau, 876 test.
 
-- [ ] **Step 4: Commit**
+- [x] **Step 4: Commit**
 
 ```bash
 git add app
@@ -1398,7 +1456,7 @@ buatan gelombang 1. Tapi ekstraksi adalah saat yang tepat memperbaikinya, dan
 - Consumes: `SubmissionReviewer::SETTLED_EVALUATION`
 - Produces: perilaku kedua kueri sama dengan `canProceed()`
 
-- [ ] **Step 1: Baca dulu ketiganya berdampingan**
+- [x] **Step 1: Baca dulu ketiganya berdampingan**
 
 Run:
 ```bash
@@ -1409,7 +1467,7 @@ Pastikan `SETTLED_EVALUATION` memang `['completed', 'not_required']` dan `canPro
 memang memfilter `status = 'active'`. Kalau salah satunya sudah berubah, sesuaikan langkah
 di bawah — jangan ikuti rencana yang sudah basi.
 
-- [ ] **Step 2: Tulis test yang gagal**
+- [x] **Step 2: Tulis test yang gagal**
 
 Tambahkan ke `tests/Feature/Review/EvaluationPendingTest.php`:
 
@@ -1460,7 +1518,7 @@ it('tidak menghitung reviewer yang diganti sebagai pekerjaan tertunda', function
 });
 ```
 
-- [ ] **Step 3: Jalankan, pastikan gagal**
+- [x] **Step 3: Jalankan, pastikan gagal**
 
 Run:
 ```bash
@@ -1472,7 +1530,7 @@ Expected: dua test baru GAGAL — `toBeFalse()` dapat `true`, dan `totalReviewer
 Kalau salah satunya lulus sejak awal, **berhenti dan baca ulang**: berarti asumsi rencana
 ini tentang perilaku sekarang salah.
 
-- [ ] **Step 4: Perbaiki `PendingEvaluationCheck`**
+- [x] **Step 4: Perbaiki `PendingEvaluationCheck`**
 
 ```php
 public function handle(FormSubmission $submission): bool
@@ -1491,7 +1549,7 @@ Import `App\Models\SubmissionReviewer`. Perhatikan ini bukan sekadar menambah fi
 `evaluation_status` baru yang kelak ditambahkan ke enum otomatis terhitung belum selesai
 alih-alih diam-diam dianggap beres.
 
-- [ ] **Step 5: Perbaiki `EvaluationProgress`**
+- [x] **Step 5: Perbaiki `EvaluationProgress`**
 
 Tambahkan `->where('status', 'active')` pada kueri di `handle()`, dan turunkan
 `allCompleted` dari `SETTLED_EVALUATION`, bukan dari `$pending === 0`:
@@ -1514,7 +1572,7 @@ lalu `completionPercentage: $total > 0 ? (int) round($settled / $total * 100) : 
 `allCompleted: $settled === $total`. Perbarui juga prosa komentar kelasnya — ia masih
 menjelaskan versi lama, dan batasnya tetap 3 baris.
 
-- [ ] **Step 6: Jalankan suite penuh**
+- [x] **Step 6: Jalankan suite penuh**
 
 Run:
 ```bash
@@ -1526,7 +1584,7 @@ Expected: hijau, 876 + 2 = **878 test**.
 Kalau ada test lain yang ikut merah, **jangan longgarkan test-nya** — ia mungkin mengunci
 perilaku lama yang salah. Baca dulu apa yang ia tegaskan, lalu putuskan.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 docker run --rm -v "$PWD":/app -w /app -u "$(id -u):$(id -g)" simpas-ci:8.4 ./vendor/bin/pint -q
@@ -1556,7 +1614,7 @@ lama, yang tidak memfilter — sama seperti Task 9, bugnya warisan.
 - Consumes: hasil Task 9 (definisi "aktif" yang sama)
 - Produces: `assigned_count` hanya menghitung penugasan yang masih berlaku
 
-- [ ] **Step 1: Tulis test yang gagal**
+- [x] **Step 1: Tulis test yang gagal**
 
 `overviewAssignment()` di berkas test itu selalu membuat reviewer `status = 'active'` dan
 penugasan `is_active = true`. Tambahkan test yang membuat keduanya sebaliknya:
@@ -1591,7 +1649,7 @@ it('tidak menghitung penugasan yang sudah tidak berlaku', function () {
 });
 ```
 
-- [ ] **Step 2: Jalankan, pastikan gagal**
+- [x] **Step 2: Jalankan, pastikan gagal**
 
 Run:
 ```bash
@@ -1601,7 +1659,7 @@ docker run --rm --network host -v "$PWD":/app -w /app -u "$(id -u):$(id -g)" \
 ```
 Expected: GAGAL — `assigned_count` dapat 2, `completion_percentage` dapat 50.
 
-- [ ] **Step 3: Saring di `countPerForm`**
+- [x] **Step 3: Saring di `countPerForm`**
 
 Tambahkan filter pada kedua kueri, di `handle()`:
 
@@ -1620,7 +1678,7 @@ PostgreSQL akan menolaknya. Nama tabelnya sudah dipastikan mengikuti konvensi La
 Karena `$berlaku` dipakai dua kali dan builder Eloquent **bersifat mutable**, bangun ulang
 untuk kueri kedua alih-alih memakai ulang objek yang sama — atau `clone` keduanya.
 
-- [ ] **Step 4: Jalankan suite penuh**
+- [x] **Step 4: Jalankan suite penuh**
 
 Run:
 ```bash
@@ -1629,7 +1687,7 @@ docker run --rm --network host -v "$PWD":/app -w /app -u "$(id -u):$(id -g)" \
 ```
 Expected: hijau, 878 + 1 = **879 test**.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 docker run --rm -v "$PWD":/app -w /app -u "$(id -u):$(id -g)" simpas-ci:8.4 ./vendor/bin/pint -q
@@ -1670,7 +1728,7 @@ layar hidup tanpa jaring.
 - Produces: bentuk keluaran **tidak berubah** — kuncinya tetap `required`, `has_forms`,
   `total_forms`, `required_forms`, `message`
 
-- [ ] **Step 1: Tulis test karakterisasi**
+- [x] **Step 1: Tulis test karakterisasi**
 
 Kunci ketiga cabangnya apa adanya, termasuk kalimat pesannya yang berbahasa Inggris —
 jangan diperbaiki di sini, layar membacanya:
@@ -1726,7 +1784,7 @@ Kolomnya sudah dipastikan: `review_evaluation_forms.is_required` adalah `boolean
 default `true` (migration `2025_09_17_041545`), dan kolom fase-nya `form_phase_detail_id`
 sejak migration `2025_10_22_070354` mengganti `form_phase_id`.
 
-- [ ] **Step 2: Jalankan, pastikan LULUS**
+- [x] **Step 2: Jalankan, pastikan LULUS**
 
 Run:
 ```bash
@@ -1738,7 +1796,7 @@ Expected: LULUS. Ini test karakterisasi — ia merekam yang sudah ada, bukan men
 baru. Kalau ada yang merah, perbaiki **test-nya**, karena perilaku sekarang yang jadi
 acuan.
 
-- [ ] **Step 3: Kunci jumlah kueri**
+- [x] **Step 3: Kunci jumlah kueri**
 
 ```php
 it('menjawab dengan satu kueri, bukan tiga', function () {
@@ -1765,7 +1823,7 @@ it('menjawab dengan satu kueri, bukan tiga', function () {
 
 Expected saat dijalankan sekarang: **GAGAL**, dapat 3.
 
-- [ ] **Step 4: Ambil formnya sekali**
+- [x] **Step 4: Ambil formnya sekali**
 
 Ganti ketiga pembacaan itu dengan satu koleksi, lalu hitung di PHP:
 
@@ -1798,7 +1856,7 @@ dan `requiredReviewEvaluationForms()` sebagai `reviewEvaluationForms()->required
 Yang wajib memang himpunan bagian dari yang aktif, jadi `$forms->where('is_required', true)`
 menghasilkan angka yang sama dengan kueri keduanya.
 
-- [ ] **Step 5: Jalankan gerbang penuh**
+- [x] **Step 5: Jalankan gerbang penuh**
 
 Run:
 ```bash
@@ -1807,7 +1865,7 @@ docker run --rm --network host -v "$PWD":/app -w /app -u "$(id -u):$(id -g)" \
 ```
 Expected: hijau, 879 + 4 = **883 test**.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 docker run --rm -v "$PWD":/app -w /app -u "$(id -u):$(id -g)" simpas-ci:8.4 ./vendor/bin/pint -q
@@ -1836,13 +1894,13 @@ yang bocor lebih dulu.
 **Files:**
 - Modify: `tests/Feature/Review/EvaluationProgressTest.php`
 
-- [ ] **Step 1: Buktikan bocornya**
+- [x] **Step 1: Buktikan bocornya**
 
 Ubah sementara assertion-nya jadi `->toHaveCount(99)` supaya ia gagal, jalankan berkasnya,
 dan perhatikan test apa saja yang ikut merah sesudahnya. Kembalikan ke `1` setelah selesai
 melihat.
 
-- [ ] **Step 2: Bungkus dengan `try`/`finally` dan kosongkan lebih dulu**
+- [x] **Step 2: Bungkus dengan `try`/`finally` dan kosongkan lebih dulu**
 
 ```php
 it('memakai satu kueri, bukan lima COUNT terpisah', function () {
@@ -1860,9 +1918,9 @@ it('memakai satu kueri, bukan lima COUNT terpisah', function () {
 });
 ```
 
-- [ ] **Step 3: Ulangi Step 1, pastikan tidak ada lagi kegagalan susulan**
+- [x] **Step 3: Ulangi Step 1, pastikan tidak ada lagi kegagalan susulan**
 
-- [ ] **Step 4: Jalankan gerbang penuh dan commit**
+- [x] **Step 4: Jalankan gerbang penuh dan commit**
 
 ```bash
 docker run --rm --network host -v "$PWD":/app -w /app -u "$(id -u):$(id -g)" \
@@ -1894,7 +1952,7 @@ dan `$assignmentsCount` — konteks per-pemakai yang **tidak** dimiliki
 milik pengajuan (sama untuk semua orang) atau milik pemakai (berbeda per reviewer).
 Rencana ini **tidak** memutuskannya.
 
-- [ ] **Step 1: Putuskan dulu pemilik pesannya**
+- [x] **Step 1: Putuskan dulu pemilik pesannya**
 
 Baca `getEvaluationMessage()` (`SubmissionViewController:1333`) dan `ReviewSystem.vue`
 baris 132 dan sekitarnya. Jawab satu pertanyaan: apakah layar memakai `message` itu sebagai
@@ -1909,12 +1967,12 @@ keterangan pengajuan, atau sebagai instruksi untuk pembacanya?
 **Bawa jawabannya ke pemilik produk sebelum menulis kode** — ini perubahan yang terlihat
 pengguna, bukan refactor.
 
-- [ ] **Step 2: Setelah diputuskan, tulis test karakterisasi untuk kedua layar lebih dulu**
+- [x] **Step 2: Setelah diputuskan, tulis test karakterisasi untuk kedua layar lebih dulu**
 
 Test HTTP yang menegaskan bentuk prop yang dikirim tiap layar, **sebelum** disatukan.
 Tanpa itu penyatuannya tidak punya acuan.
 
-- [ ] **Step 3: Satukan, jalankan gerbang penuh, commit**
+- [x] **Step 3: Satukan, jalankan gerbang penuh, commit**
 
 Pesan commit menyusul isinya — kalau pesannya jadi milik pemakai, ia `refactor`; kalau
 salah satu layar berubah tampilannya, ia `fix` atau `feat`.
@@ -1942,7 +2000,7 @@ penugasan yang selama ini selalu punya tenggat bisa mulai punya tenggat kosong.
 - Modify: `app/Http/Controllers/ReviewController.php`
 - Test: `tests/Feature/Review/AssignReviewersHttpTest.php`
 
-- [ ] **Step 1: Cari tahu apa yang terjadi kalau tenggatnya `null`**
+- [x] **Step 1: Cari tahu apa yang terjadi kalau tenggatnya `null`**
 
 Run:
 ```bash
@@ -1953,7 +2011,7 @@ grep -rn 'due_date' resources/js/Components/ReviewSystem.vue resources/js/Compon
 Jawab: apakah kolomnya `nullable`? Apakah ada layar yang memformatnya tanpa penjaga null?
 Apakah ada notifikasi yang menyebut tenggat?
 
-- [ ] **Step 2: Putuskan nasib fallback `+7 days`**
+- [x] **Step 2: Putuskan nasib fallback `+7 days`**
 
 Tiga kemungkinan, pilih berdasar temuan Step 1:
 
@@ -1967,7 +2025,7 @@ Jangan menaruh fallback-nya di dalam `EvaluationDueDate` — Query itu menjawab 
 tenggatnya", dan "tidak tahu" adalah jawaban yang sah. Mengarang tanggal di sana
 menyembunyikan ketidaktahuan dari setiap pemanggil berikutnya.
 
-- [ ] **Step 3: Tulis test yang gagal — kasus ADR 0004 lewat HTTP**
+- [x] **Step 3: Tulis test yang gagal — kasus ADR 0004 lewat HTTP**
 
 `tests/Unit/EvaluationDueDateTest.php:80` sudah mengunci kasus dua period berbagi satu
 `FormPhase` di level Query. Tulis pasangannya di level HTTP: `POST` penugasan reviewer pada
@@ -1976,13 +2034,13 @@ pengajuan yang period-nya berbagi `FormPhase` dengan period lain, lalu tegaskan
 
 Expected: GAGAL — ia mengambil tenggat period yang salah.
 
-- [ ] **Step 4: Sambungkan, dan cabut method lamanya**
+- [x] **Step 4: Sambungkan, dan cabut method lamanya**
 
 Ganti `$this->getEvaluationDueDate($submissionModel)` (baris 551) jadi
 `EvaluationDueDate::run($submissionModel)`, lalu hapus `getEvaluationDueDate()` (baris 576)
 beserta import yang jadi tak terpakai. Terapkan keputusan Step 2 di pemanggilnya.
 
-- [ ] **Step 5: Jalankan gerbang penuh**
+- [x] **Step 5: Jalankan gerbang penuh**
 
 Run:
 ```bash
@@ -1992,7 +2050,7 @@ docker run --rm --network host -v "$PWD":/app -w /app -u "$(id -u):$(id -g)" \
 Expected: hijau. `ReviewController` mengecil, dan `EvaluationDueDate` akhirnya punya
 pemanggil produksi.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 docker run --rm -v "$PWD":/app -w /app -u "$(id -u):$(id -g)" simpas-ci:8.4 ./vendor/bin/pint -q
