@@ -142,3 +142,9 @@ it('resolves the due date from submission_period_id, not a form_phase_id shared 
     expect($dueDate)->not->toBeNull()
         ->and($dueDate->format('Y-m-d H:i:s'))->toBe($dateA->datetime->format('Y-m-d H:i:s'));
 });
+
+it('mengembalikan null saat pengajuan tidak punya periode', function () {
+    $submission = FormSubmission::factory()->create(['submission_period_id' => null]);
+
+    expect(EvaluationDueDate::run($submission))->toBeNull();
+});
