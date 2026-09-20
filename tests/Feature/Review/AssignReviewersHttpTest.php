@@ -151,7 +151,7 @@ it('satu penugasan yang ditolak membatalkan seluruh permintaan', function () {
         ->and($submission->fresh()->status)->toBeInstanceOf(Submitted::class);
 });
 
-it('[REV-ASSIGN-10] menstempel tenggat dari period pengajuan sendiri, bukan period yang berbagi fase', function () {
+it('menstempel tenggat dari period pengajuan sendiri, bukan period yang berbagi fase', function () {
     // ADR 0004 di level HTTP: submission_period_phases tanpa unique constraint
     // membuat satu FormPhase boleh dimiliki banyak period, jadi menebak period
     // lewat pivot itu menstempel reviewer dengan tenggat milik period lain.

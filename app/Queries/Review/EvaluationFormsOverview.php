@@ -12,8 +12,8 @@ use Lorisleiva\Actions\Concerns\AsAction;
 
 /**
  * Form evaluasi yang berlaku bagi sebuah pengajuan, beserta progres penugasan
- * yang masih berlaku. Dua kueri untuk seluruh form; versi lama menjalankan dua
- * COUNT per form di dalam perulangan.
+ * yang masih berlaku. Penugasannya dihitung dua kueri untuk seluruh form;
+ * versi lama menjalankan dua COUNT per form di dalam perulangan.
  *
  * @method static array<int, array{form: ReviewEvaluationForm, assigned_count: int, completed_count: int, completion_percentage: int}> run(FormSubmission $submission)
  */
@@ -54,8 +54,8 @@ class EvaluationFormsOverview implements ChangesNoState
 
     /**
      * Penugasan yang masih berlaku saja: milik reviewer aktif (BR-REV-05) dan
-     * belum dicabut. Nama tabel disebut eksplisit karena HasManyThrough
-     * menggabung dua tabel yang sama-sama punya `status` dan `is_active`.
+     * belum dicabut. Nama tabel disebut eksplisit bukan karena ada tabrakan
+     * hari ini, tapi supaya kolom senama yang lahir kelak tidak diam-diam ambigu.
      *
      * @return HasManyThrough<ReviewerFormAssignment, SubmissionReviewer, FormSubmission>
      */
