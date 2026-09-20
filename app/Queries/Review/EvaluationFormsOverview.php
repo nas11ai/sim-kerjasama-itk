@@ -52,11 +52,6 @@ class EvaluationFormsOverview implements ChangesNoState
         return $overview;
     }
 
-    public static function isRequired(FormSubmission $submission): bool
-    {
-        return $submission->formPhaseDetail?->requiresEvaluationCompletion() ?? false;
-    }
-
     /**
      * @param  HasManyThrough<ReviewerFormAssignment, SubmissionReviewer, FormSubmission>  $assignments
      * @return array<int> form id => jumlah penugasan
