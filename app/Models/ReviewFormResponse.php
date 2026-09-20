@@ -87,8 +87,9 @@ class ReviewFormResponse extends Model
             'submitted_at' => now(),
         ]);
 
-        // Update parent reviewer evaluation status
-        $this->updateReviewerEvaluationStatus();
+        // BR-REV-05 — satu definisi hitung ulang. Versi lama di sini hanya bisa
+        // menulis `completed` dan tak pernah kembali ke `pending`.
+        $this->reviewerFormAssignment->submissionReviewer->updateEvaluationStatus();
 
         return true;
     }
@@ -152,24 +153,5 @@ class ReviewFormResponse extends Model
             ['review_form_field_id' => $fieldId],
             ['value' => $value]
         );
-    }
-
-    // Update reviewer evaluation status based on all assigned forms
-    protected function updateReviewerEvaluationStatus(): void
-    {
-        $submissionReviewer = $this->reviewerFormAssignment->submissionReviewer;
-
-        // Check if all required forms are completed
-        $allRequiredCompleted = $submissionReviewer->reviewerFormAssignments()
-            ->required()
-            ->active()
-            ->whereDoesntHave('reviewFormResponse', function ($q) {
-                $q->where('status', 'submitted');
-            })
-            ->doesntExist();
-
-        if ($allRequiredCompleted) {
-            $submissionReviewer->update(['evaluation_status' => 'completed']);
-        }
     }
 }
