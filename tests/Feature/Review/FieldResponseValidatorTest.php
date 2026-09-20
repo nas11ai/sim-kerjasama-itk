@@ -59,3 +59,15 @@ it('mengumpulkan galat tipe dan galat kustom sekaligus', function () {
 
     expect(FieldResponseValidator::errorsFor($response->fresh()))->toHaveCount(2);
 });
+
+it('melewati aturan kustom yang nilainya bukan skalar', function () {
+    $response = evaluationFieldResponse('text', 'ab');
+
+    // Kolomnya JSON dan jalur tulisnya cuma `nullable|array`, jadi isi seperti
+    // ini bisa tersimpan. Aturan yang tak terbaca dilewati, bukan meledak.
+    $response->reviewFormField->update([
+        'validation_rules' => ['min_length' => null, 'max_length' => 4],
+    ]);
+
+    expect(FieldResponseValidator::errorsFor($response->fresh()))->toBe([]);
+});

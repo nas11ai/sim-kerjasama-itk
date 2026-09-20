@@ -61,6 +61,12 @@ final class FieldResponseValidator
         $errors = [];
 
         foreach ($field->validation_rules ?? [] as $rule => $limit) {
+            // Kolomnya JSON dan jalur tulisnya cuma `nullable|array`, jadi nilai
+            // yang tidak bisa dibandingkan dilewati, bukan meledak.
+            if (!is_int($limit) && !is_float($limit) && !is_string($limit)) {
+                continue;
+            }
+
             $error = self::ruleError($rule, $limit, $value, $field->label);
 
             if ($error !== null) {

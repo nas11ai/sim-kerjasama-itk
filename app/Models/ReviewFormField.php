@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 /**
  * @property bool $is_required
  * @property string $label
- * @property array<string, int|float|string>|null $validation_rules
+ * @property array<string, scalar|null>|null $validation_rules
  * @property-read FieldType|null $fieldType
  */
 class ReviewFormField extends Model
