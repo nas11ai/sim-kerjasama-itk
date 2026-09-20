@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Actions\Review\AssignEvaluationForm;
 use App\Actions\Review\AssignReviewer;
 use App\Actions\Review\EvaluateSubmissionOutcome;
 use App\Models\FormPhase;
@@ -485,7 +486,8 @@ class ReviewController extends Controller
             DB::beginTransaction();
 
             foreach ($request->form_assignments as $assignment) {
-                $submissionReviewer->assignForm(
+                AssignEvaluationForm::run(
+                    $submissionReviewer,
                     $assignment['form_id'],
                     $assignment['is_required'] ?? true,
                     $assignment['due_date'] ? new \DateTime($assignment['due_date']) : null
@@ -557,7 +559,8 @@ class ReviewController extends Controller
             // BR-FE-17 — tenggatnya milik detail yang memiliki form ini, jadi
             // ia dihitung per form. `null` jawaban yang sah: kolomnya nullable
             // dan layar menampilkan "No deadline".
-            $submissionReviewer->assignForm(
+            AssignEvaluationForm::run(
+                $submissionReviewer,
                 $form->id,
                 true, // is_required
                 EvaluationDueDate::run($form)

@@ -6,6 +6,7 @@
 // stempel sekali jalan. ReviewFormResponse::updateReviewerEvaluationStatus()
 // dulu hanya bisa menulis `completed` dan tak pernah kembali ke `pending`.
 
+use App\Actions\Review\AssignEvaluationForm;
 use App\Models\FormPhaseDetail;
 use App\Models\FormSubmission;
 use App\Models\Reviewer;
@@ -52,7 +53,7 @@ function recalcSecondForm(ReviewEvaluationForm $first): ReviewEvaluationForm
 it('mengembalikan status ke pending saat form wajib baru ditugaskan', function () {
     [$reviewer, $form] = recalcFixture();
 
-    $assignment = $reviewer->assignForm($form->id, true);
+    $assignment = AssignEvaluationForm::run($reviewer, $form->id, true);
     ReviewFormResponse::create([
         'reviewer_form_assignment_id' => $assignment->id,
         'status' => 'submitted',
@@ -62,7 +63,7 @@ it('mengembalikan status ke pending saat form wajib baru ditugaskan', function (
     expect($reviewer->fresh()->evaluation_status)->toBe('completed');
 
     // Form wajib kedua: pekerjaannya bertambah, jadi statusnya harus turun.
-    $reviewer->assignForm(recalcSecondForm($form)->id, true);
+    AssignEvaluationForm::run($reviewer, recalcSecondForm($form)->id, true);
 
     expect($reviewer->fresh()->evaluation_status)->toBe('pending');
 });
@@ -72,10 +73,10 @@ it('menyelaraskan status yang sudah melenceng saat submit, bukan membiarkannya',
 
     // Form wajib yang belum dikerjakan: apa pun yang disubmit, reviewer ini
     // belum selesai.
-    $reviewer->assignForm($form->id, true);
+    AssignEvaluationForm::run($reviewer, $form->id, true);
 
     // Yang disubmit justru form tidak wajib.
-    $optional = $reviewer->assignForm(recalcSecondForm($form)->id, false);
+    $optional = AssignEvaluationForm::run($reviewer, recalcSecondForm($form)->id, false);
     $response = ReviewFormResponse::create([
         'reviewer_form_assignment_id' => $optional->id,
         'status' => 'draft',
@@ -94,7 +95,7 @@ it('menyelaraskan status yang sudah melenceng saat submit, bukan membiarkannya',
 it('menjatuhkan status ke not_required saat submit tidak menyisakan penugasan aktif', function () {
     [$reviewer, $form] = recalcFixture();
 
-    $assignment = $reviewer->assignForm($form->id, true);
+    $assignment = AssignEvaluationForm::run($reviewer, $form->id, true);
     $response = ReviewFormResponse::create([
         'reviewer_form_assignment_id' => $assignment->id,
         'status' => 'draft',

@@ -2,6 +2,7 @@
 
 // tests/Feature/Review/RequiredFormsCompletionTest.php
 
+use App\Actions\Review\AssignEvaluationForm;
 use App\Models\FormPhaseDetail;
 use App\Models\FormSubmission;
 use App\Models\Reviewer;
@@ -47,7 +48,7 @@ it('menganggap reviewer tanpa form wajib sudah selesai', function () {
 it('menyatakan belum selesai selama satu form wajib belum tersubmit', function () {
     [$reviewer, $detail] = completionFixture();
 
-    $reviewer->assignForm(completionForm($detail, 1)->id, true);
+    AssignEvaluationForm::run($reviewer, completionForm($detail, 1)->id, true);
 
     expect(RequiredFormsCompletion::run($reviewer->fresh()))->toBeFalse();
 });
@@ -55,7 +56,7 @@ it('menyatakan belum selesai selama satu form wajib belum tersubmit', function (
 it('menyatakan selesai setelah seluruh form wajib tersubmit', function () {
     [$reviewer, $detail] = completionFixture();
 
-    $assignment = $reviewer->assignForm(completionForm($detail, 1)->id, true);
+    $assignment = AssignEvaluationForm::run($reviewer, completionForm($detail, 1)->id, true);
     ReviewFormResponse::create([
         'reviewer_form_assignment_id' => $assignment->id,
         'status' => 'submitted',
@@ -67,7 +68,7 @@ it('menyatakan selesai setelah seluruh form wajib tersubmit', function () {
 it('mengabaikan penugasan yang sudah dicabut', function () {
     [$reviewer, $detail] = completionFixture();
 
-    $assignment = $reviewer->assignForm(completionForm($detail, 1)->id, true);
+    $assignment = AssignEvaluationForm::run($reviewer, completionForm($detail, 1)->id, true);
     $assignment->update(['is_active' => false]);
 
     expect(RequiredFormsCompletion::run($reviewer->fresh()))->toBeTrue();
@@ -76,7 +77,7 @@ it('mengabaikan penugasan yang sudah dicabut', function () {
 it('menghitung form tanpa field sebagai 100 persen', function () {
     [$reviewer, $detail] = completionFixture();
 
-    $assignment = $reviewer->assignForm(completionForm($detail, 1)->id, true);
+    $assignment = AssignEvaluationForm::run($reviewer, completionForm($detail, 1)->id, true);
     $response = ReviewFormResponse::create([
         'reviewer_form_assignment_id' => $assignment->id,
         'status' => 'draft',

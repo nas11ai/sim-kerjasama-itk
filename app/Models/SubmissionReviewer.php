@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-use App\Support\Review\EvaluationStatusRecalculator;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -133,22 +132,5 @@ class SubmissionReviewer extends Model
     public function getPendingFormsCountAttribute(): int
     {
         return $this->pendingReviewerFormAssignments()->count();
-    }
-
-    // NEW: Create form assignment
-    public function assignForm(int $reviewEvaluationFormId, bool $isRequired = true, ?\DateTime $dueDate = null): ReviewerFormAssignment
-    {
-        /** @var ReviewerFormAssignment $assignment */
-        $assignment = $this->reviewerFormAssignments()->create([
-            'review_evaluation_form_id' => $reviewEvaluationFormId,
-            'is_required' => $isRequired,
-            'due_date' => $dueDate,
-            'assigned_at' => now(),
-        ]);
-
-        // BR-REV-05 — pekerjaannya bertambah, jadi statusnya ikut dihitung ulang.
-        EvaluationStatusRecalculator::for($this);
-
-        return $assignment;
     }
 }
