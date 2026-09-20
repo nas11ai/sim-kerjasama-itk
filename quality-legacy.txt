@@ -125,7 +125,6 @@ app/Models/Organization.php
 app/Models/OutputTypeDefinition.php
 app/Models/Partner.php
 app/Models/ResearchOutput.php
-app/Models/ReviewSummary.php
 app/Models/Reviewer.php
 app/Models/Scheme.php
 app/Models/StudentMember.php
