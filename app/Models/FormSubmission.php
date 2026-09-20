@@ -352,12 +352,7 @@ class FormSubmission extends Model
             return true;
         }
 
-        $hasUnsettledEvaluation = $this->submissionReviewers()
-            ->where('status', 'active')
-            ->whereNotIn('evaluation_status', SubmissionReviewer::SETTLED_EVALUATION)
-            ->exists();
-
-        if ($hasUnsettledEvaluation) {
+        if ($this->submissionReviewers()->unsettledEvaluation()->exists()) {
             return false;
         }
 

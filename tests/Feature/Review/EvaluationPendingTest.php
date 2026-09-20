@@ -2,6 +2,7 @@
 
 // tests/Feature/Review/EvaluationPendingTest.php
 
+use App\Models\FormPhaseDetail;
 use App\Models\FormSubmission;
 use App\Models\Reviewer;
 use App\Models\SubmissionReviewer;
@@ -53,4 +54,35 @@ it('mengabaikan reviewer yang sudah diganti — BR-REV-05 menghitung yang aktif 
     ]);
 
     expect(PendingEvaluationCheck::run($submission->fresh()))->toBeFalse();
+});
+
+it('sepakat dengan canProceed — BR-REV-05 satu definisi, dua pemakai', function () {
+    $detail = FormPhaseDetail::factory()->create(['needs_review' => true]);
+    $submission = FormSubmission::factory()->create([
+        'form_phase_detail_id' => $detail->id,
+        'is_submitted' => true,
+    ]);
+
+    $active = SubmissionReviewer::create([
+        'form_submission_id' => $submission->id,
+        'reviewer_id' => Reviewer::factory()->create()->id,
+        'evaluation_status' => 'pending',
+        'status' => 'active',
+    ]);
+
+    // Sejarah: tidak boleh menahan keduanya.
+    SubmissionReviewer::create([
+        'form_submission_id' => $submission->id,
+        'reviewer_id' => Reviewer::factory()->create()->id,
+        'evaluation_status' => 'pending',
+        'status' => 'replaced',
+    ]);
+
+    expect(PendingEvaluationCheck::run($submission->fresh()))->toBeTrue()
+        ->and($submission->fresh()->canProceed())->toBeFalse();
+
+    $active->update(['evaluation_status' => 'not_required']);
+
+    expect(PendingEvaluationCheck::run($submission->fresh()))->toBeFalse()
+        ->and($submission->fresh()->canProceed())->toBeTrue();
 });

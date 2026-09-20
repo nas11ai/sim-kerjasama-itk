@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -124,10 +125,23 @@ class SubmissionReviewer extends Model
         return $this->reviewerFormAssignments()->dueSoon($hours);
     }
 
-    // NEW: Check if reviewer has any assigned forms
+    /** Penugasan yang masih berlaku; yang `replaced` adalah sejarah. */
     public function scopeActive($query)
     {
         return $query->where('status', 'active');
+    }
+
+    /**
+     * BR-REV-05 — satu definisi "belum selesai", dipakai `canProceed()` dan
+     * `PendingEvaluationCheck`. Bukan `= 'pending'`: status evaluasi yang
+     * kelak ditambahkan otomatis terhitung belum selesai, bukan diam-diam beres.
+     *
+     * @param  Builder<SubmissionReviewer>  $query
+     * @return Builder<SubmissionReviewer>
+     */
+    public function scopeUnsettledEvaluation(Builder $query): Builder
+    {
+        return $query->active()->whereNotIn('evaluation_status', self::SETTLED_EVALUATION);
     }
 
     /**
