@@ -52,11 +52,15 @@ it('menganggap pengajuan tanpa reviewer sudah seratus persen', function () {
 it('memakai satu kueri, bukan lima COUNT terpisah', function () {
     $submission = submissionWithStatuses('completed', 'pending');
 
+    DB::flushQueryLog();
     DB::enableQueryLog();
-    EvaluationProgress::run($submission);
 
-    expect(DB::getQueryLog())->toHaveCount(1);
-    DB::disableQueryLog();
+    try {
+        EvaluationProgress::run($submission);
+        expect(DB::getQueryLog())->toHaveCount(1);
+    } finally {
+        DB::disableQueryLog();
+    }
 });
 
 it('tidak menghitung reviewer yang diganti sebagai pekerjaan tertunda', function () {
