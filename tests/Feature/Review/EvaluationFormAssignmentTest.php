@@ -10,6 +10,7 @@ use App\Actions\Review\AssignEvaluationForm;
 use App\Models\FormPhaseDetail;
 use App\Models\FormSubmission;
 use App\Models\Reviewer;
+use App\Models\ReviewerFormAssignment;
 use App\Models\ReviewEvaluationForm;
 use App\Models\SubmissionReviewer;
 use App\Support\Audit\AuditTrail;
@@ -71,4 +72,17 @@ it('mencatat satu entri audit untuk satu penugasan — BR-RPT-09', function () {
 
     expect($entries)->toHaveCount(1)
         ->and($entries->first()?->description)->toBe('Form evaluasi ditugaskan');
+});
+
+it('menugaskan ulang form yang sama tanpa menabrak indeks unik', function () {
+    // Tabelnya punya unique (submission_reviewer_id, review_evaluation_form_id).
+    // `create()` melemparkan QueryException dan membatalkan seluruh batch.
+    [$reviewer, $form] = assignmentFixture();
+
+    $pertama = AssignEvaluationForm::run($reviewer, $form->id, true);
+    $kedua = AssignEvaluationForm::run($reviewer, $form->id, false);
+
+    expect($kedua->id)->toBe($pertama->id)
+        ->and($kedua->is_required)->toBeFalse()
+        ->and(ReviewerFormAssignment::count())->toBe(1);
 });

@@ -24,12 +24,17 @@ class AssignEvaluationForm
         bool $isRequired = true,
         ?DateTimeInterface $dueDate = null,
     ): ReviewerFormAssignment {
-        $assignment = $reviewer->reviewerFormAssignments()->create([
-            'review_evaluation_form_id' => $formId,
-            'is_required' => $isRequired,
-            'due_date' => $dueDate,
-            'assigned_at' => now(),
-        ]);
+        // Tabelnya punya indeks unik (submission_reviewer_id, review_evaluation_form_id).
+        // Menugaskan ulang adalah mengubah syaratnya, bukan galat.
+        $assignment = $reviewer->reviewerFormAssignments()->updateOrCreate(
+            ['review_evaluation_form_id' => $formId],
+            [
+                'is_required' => $isRequired,
+                'due_date' => $dueDate,
+                'assigned_at' => now(),
+                'is_active' => true,
+            ],
+        );
 
         // BR-REV-05 — pekerjaannya bertambah, jadi statusnya ikut dihitung ulang.
         EvaluationStatusRecalculator::for($reviewer);
