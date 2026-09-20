@@ -14,25 +14,19 @@
 // diam-diam berhenti memanggil Action-nya, test di sini memerah.
 
 use App\Models\Form;
-use App\Models\FormAccessControl;
 use App\Models\FormPhase;
 use App\Models\FormPhaseDetail;
 use App\Models\FormSubmission;
-use App\Models\Organization;
-use App\Models\PhaseType;
 use App\Models\Reviewer;
 use App\Models\ReviewerFormAssignment;
 use App\Models\ReviewEvaluationForm;
 use App\Models\Scheme;
-use App\Models\SubmissionDate;
-use App\Models\SubmissionDateLabel;
 use App\Models\SubmissionPeriod;
 use App\Models\SubmissionReviewer;
 use App\Models\User;
 use App\Notifications\ReviewerAssignedNotification;
 use App\States\Submission\Submitted;
 use App\States\Submission\UnderReview;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Notification;
 use Spatie\Permission\Models\Permission;
@@ -167,63 +161,22 @@ it('menstempel tenggat dari period pengajuan sendiri, bukan period yang berbagi 
         'rules' => ['min_reviewer_count' => 2, 'max_reviewer_workload' => 10],
     ]);
 
-    $form = Form::factory()->create();
-    $organization = Organization::create(['name' => 'Organisasi Uji Tenggat HTTP', 'type' => 'faculty']);
-    $formAccessControl = FormAccessControl::create([
-        'form_id' => $form->id,
-        'permission' => 'submissions.create',
-        'organization_id' => $organization->id,
-    ]);
-    $phaseType = PhaseType::create(['name' => 'Tipe Fase Uji Tenggat HTTP']);
-    $formPhase = FormPhase::create(['title' => 'Fase Uji Tenggat HTTP', 'is_active' => true]);
-
-    // Period A — milik pengajuan lewat FK submission_period_id.
-    $periodA = SubmissionPeriod::create(['name' => 'Periode A Tenggat HTTP']);
-    $labelA = SubmissionDateLabel::create(['name' => 'Label A Tenggat HTTP']);
-    $dueA = now()->addDays(5)->startOfSecond();
-    $dateA = SubmissionDate::create([
-        'submission_date_label_id' => $labelA->id,
-        'datetime' => $dueA,
-        'submission_period_id' => $periodA->id,
-    ]);
-
-    // Period B — tak berhubungan lewat FK, tapi berbagi form_phase_id lewat pivot.
-    $periodB = SubmissionPeriod::create(['name' => 'Periode B Tenggat HTTP']);
-    $labelB = SubmissionDateLabel::create(['name' => 'Label B Tenggat HTTP']);
-    SubmissionDate::create([
-        'submission_date_label_id' => $labelB->id,
-        'datetime' => now()->addDays(20)->startOfSecond(),
-        'submission_period_id' => $periodB->id,
-    ]);
-
-    DB::table('submission_period_phases')->insert([
-        'submission_period_id' => $periodB->id,
-        'form_phase_id' => $formPhase->id,
-    ]);
-
-    $detail = FormPhaseDetail::create([
-        'form_phase_id' => $formPhase->id,
-        'form_access_control_id' => $formAccessControl->id,
-        'phase_type_id' => $phaseType->id,
-        'order' => 1,
-        'submission_date_id' => $dateA->id,
-        'needs_review' => true,
-    ]);
+    $fx = phaseSharedByTwoPeriods('Uji Tenggat HTTP', needsReview: true);
 
     ReviewEvaluationForm::create([
         'title' => 'Substansi',
-        'form_phase_detail_id' => $detail->id,
+        'form_phase_detail_id' => $fx['detail']->id,
         'is_active' => true,
         'is_required' => true,
         'order' => 1,
     ]);
 
     $submission = FormSubmission::factory()->create([
-        'form_id' => $form->id,
+        'form_id' => $fx['form']->id,
         'submitted_by' => User::factory()->create()->id,
         'scheme_id' => $scheme->id,
-        'form_phase_detail_id' => $detail->id,
-        'submission_period_id' => $periodA->id,
+        'form_phase_detail_id' => $fx['detail']->id,
+        'submission_period_id' => $fx['periodA']->id,
         'status' => Submitted::class,
     ]);
 
@@ -236,7 +189,7 @@ it('menstempel tenggat dari period pengajuan sendiri, bukan period yang berbagi 
     $assignment = ReviewerFormAssignment::query()->sole();
 
     expect($assignment->due_date)->not->toBeNull()
-        ->and($assignment->due_date->format('Y-m-d H:i:s'))->toBe($dueA->format('Y-m-d H:i:s'));
+        ->and($assignment->due_date->format('Y-m-d H:i:s'))->toBe($fx['dueA']->format('Y-m-d H:i:s'));
 });
 
 it('[REV-ASSIGN-09] mengirim satu notifikasi penugasan, bukan dua', function () {

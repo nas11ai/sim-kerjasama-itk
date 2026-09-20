@@ -22,6 +22,8 @@ use App\Models\SubmissionPeriod;
 use App\Models\User;
 use App\Models\UserProfile;
 use App\States\Submission\Approved;
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
 use Spatie\Permission\Models\Permission;
 
 /**
@@ -191,4 +193,57 @@ function monevFixture(bool $monev1NeedsReview = false, string $parentStatus = Ap
     ]);
 
     return compact('parent', 'owner', 'pengajuan', 'monev1', 'monev2');
+}
+
+/**
+ * Dua SubmissionPeriod berbagi satu FormPhase lewat pivot
+ * `submission_period_phases` — bentuk yang ADR 0004 dibuat untuk dijinakkan.
+ * Period A dimiliki pengajuan lewat FK; period B hanya kebetulan sefase.
+ *
+ * @return array{form: Form, detail: FormPhaseDetail, periodA: SubmissionPeriod, dueA: Carbon, periodB: SubmissionPeriod, dueB: Carbon}
+ */
+function phaseSharedByTwoPeriods(string $tag, bool $needsReview = false): array
+{
+    $form = Form::factory()->create();
+
+    $accessControl = FormAccessControl::create([
+        'form_id' => $form->id,
+        'permission' => 'submissions.create',
+        'organization_id' => Organization::create(['name' => "Organisasi {$tag}", 'type' => 'faculty'])->id,
+    ]);
+
+    $phaseType = PhaseType::create(['name' => "Tipe Fase {$tag}"]);
+    $formPhase = FormPhase::create(['title' => "Fase {$tag}", 'is_active' => true]);
+
+    $periodA = SubmissionPeriod::create(['name' => "Periode A {$tag}"]);
+    $dueA = now()->addDays(5)->startOfSecond();
+    $dateA = SubmissionDate::create([
+        'submission_date_label_id' => SubmissionDateLabel::create(['name' => "Label A {$tag}"])->id,
+        'datetime' => $dueA,
+        'submission_period_id' => $periodA->id,
+    ]);
+
+    $periodB = SubmissionPeriod::create(['name' => "Periode B {$tag}"]);
+    $dueB = now()->addDays(20)->startOfSecond();
+    SubmissionDate::create([
+        'submission_date_label_id' => SubmissionDateLabel::create(['name' => "Label B {$tag}"])->id,
+        'datetime' => $dueB,
+        'submission_period_id' => $periodB->id,
+    ]);
+
+    DB::table('submission_period_phases')->insert([
+        'submission_period_id' => $periodB->id,
+        'form_phase_id' => $formPhase->id,
+    ]);
+
+    $detail = FormPhaseDetail::create([
+        'form_phase_id' => $formPhase->id,
+        'form_access_control_id' => $accessControl->id,
+        'phase_type_id' => $phaseType->id,
+        'order' => 1,
+        'submission_date_id' => $dateA->id,
+        'needs_review' => $needsReview,
+    ]);
+
+    return compact('form', 'detail', 'periodA', 'dueA', 'periodB', 'dueB');
 }

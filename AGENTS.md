@@ -88,7 +88,7 @@ controller, pindahkan ke `app/Actions/`.
 
 **5. Jangan menyiasati PHPStan.** Dilarang `@phpstan-ignore`, entri baseline,
 `assert()`, inline `@var`, cast, atau melebarkan tipe supaya error hilang. Error
-level 9 hampir selalu bug asli — perbaiki penyebabnya.
+di tier strict hampir selalu bug asli — perbaiki penyebabnya.
 
 **6. Jangan ada percabangan khusus testing di production code.**
 `if (app()->environment('testing'))` dilarang. Test yang sulit ditulis = sinyal
@@ -113,18 +113,20 @@ saat mengusulkan perubahan bentuk kode.
 
 | Jenis                    | Lokasi                  | Catatan                          |
 | ------------------------ | ----------------------- | -------------------------------- |
-| Business use case        | `app/Actions/`          | otomatis PHPStan level 9         |
+| Business use case        | `app/Actions/`          | otomatis tier strict             |
 | Kueri baca (tanpa ubah state) | `app/Queries/`          | `implements ChangesNoState`; otomatis tier strict |
-| Authorization            | `app/Policies/`         | otomatis level 9                 |
-| Domain event & listener  | `app/Events/`, `app/Listeners/` | otomatis level 9         |
+| Authorization            | `app/Policies/`         | otomatis tier strict             |
+| Domain event & listener  | `app/Events/`, `app/Listeners/` | otomatis tier strict     |
 | Notifikasi               | `app/Notifications/`    | Laravel Notification, bukan Mail custom |
 | DTO                      | `app/Data/`             | `spatie/laravel-data`            |
 | Enum                     | `app/Enums/`            |                                  |
 | Tipe untuk Inertia props | `resources/js/types/`   |                                  |
 
 Direktori di `app/` **selain** `Http`, `Models`, `Services`, `Providers`,
-`Console`, `Mail`, `Exports` otomatis kena PHPStan level 9. Jangan menambah
-pengecualian baru di `phpstan-strict.neon` — daftarnya hanya boleh menyusut.
+`Console`, `Mail`, `Exports` otomatis kena tier strict. Level-nya ditetapkan
+`phpstan-strict.neon`, bukan berkas ini — supaya tidak ada dua angka yang
+berbeda saat level dinaikkan. Jangan menambah pengecualian baru di sana:
+daftarnya hanya boleh menyusut.
 
 ---
 
