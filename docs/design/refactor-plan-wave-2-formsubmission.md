@@ -1158,7 +1158,7 @@ Suite **876 → 884 test** (1912 → 1930 assertion). `composer run quality` dan
 | 11 | kunci jumlah kueri dapat **3** | apa adanya dapat **5** | `$submission->fresh()` dan lazy-load `formPhaseDetail` ikut masuk jendela log. Keduanya dihangatkan lebih dulu supaya yang terukur memang pemindaian `review_evaluation_forms` — barulah angkanya 3, lalu 1 sesudah diperbaiki |
 | 12 | kebocoran log meracuni test sesudahnya | **tidak tereproduksi** | tiap test Pest membangun ulang aplikasi, jadi koneksi beserta flag log-nya ikut baru. `try`/`finally` tetap dipasang sebagai kebersihan, bukan sebagai perbaikan bug |
 | 13 | "perubahan yang terlihat pengguna" | **tidak terlihat sama sekali** | lihat di bawah |
-| 14 | pilih A/B/C untuk fallback `+7 days` | **A — biarkan `null` mengalir** | kolomnya `nullable`, tiap helper `ReviewerFormAssignment` menjaga null, tiap layar menjaganya, dan `SubmissionEvaluationManager` bahkan sudah punya label "No deadline" |
+| 14 | pilih A/B/C untuk fallback `+7 days` | **A — biarkan `null` mengalir**, lalu ditinggalkan | kolomnya `nullable` dan tiap layar menjaganya, jadi A aman. Putaran review sesudahnya memindahkan sumber tenggat ke detail pemilik form (BR-FE-17), dan karena kedua FK-nya non-nullable, `null` tak lagi mungkin — lihat *Tenggat evaluasi* di bawah |
 
 ### Task 13 berdiri di atas premis yang salah
 
@@ -1182,6 +1182,39 @@ Sebelum mencabut, diperiksa bahwa tak ada skenario bisnis yang ikut berkurang:
 | `pending.txt`, `uncovered.txt` | keduanya `max: 0` — tak ada skenario tertunda yang prop itu layani |
 | ID skenario di test terdampak | nol — `BddCoverageTest` tidak kehilangan apa pun |
 
+### Putaran review dan penyelesaiannya
+
+Review kode atas `8e6705b..f297d23` menghasilkan 13 temuan; seluruhnya
+diverifikasi ulang di kode, dan seluruhnya diselesaikan di `8e4446d`..`4243ea8`.
+Suite **884 → 891 test**.
+
+| Temuan | Penyelesaian |
+| ------ | ------------ |
+| ID skenario `[REV-ASSIGN-10]` karangan | dicabut — `assignment.feature` berhenti di `REV-ASSIGN-09`, dan `BddCoverageTest` tidak memeriksa arah test→spec sehingga ID palsu lolos senyap |
+| Komentar mengklaim tabrakan kolom yang tidak ada | dibetulkan — `submission_reviewers` tak punya `is_active`, `reviewer_form_assignments` tak punya `status` |
+| Docblock "dua kueri" padahal tiga | dibetulkan |
+| AGENTS.md menyebut "level 9" | seluruh tabel dilepaskan dari angka; levelnya ditetapkan `phpstan-strict.neon` saja |
+| `total_reviewers` tak ikut disaring | relasi `activeSubmissionReviewers()`; layar dan `EvaluationProgress` kini sepakat |
+| Definisi BR-REV-05 tersalin dua kali | `SubmissionReviewer::scopeUnsettledEvaluation()`, dipakai `canProceed()` dan `PendingEvaluationCheck` |
+| Email penugasan ganda | Mail custom dicabut; REV-ASSIGN-09 menuntut satu `ReviewerAssignedNotification` |
+| Blok reviewer kembar di `adminShowSubmission` | 40 baris yang hasilnya selalu ditimpa, dihapus |
+| Saringan `is_active` tanpa test | ditutup, dan dibuktikan menggigit lewat mutasi |
+| Fixture ADR 0004 kembar | disatukan di `tests/Support/fixtures.php` |
+| Tenggat evaluasi | lihat di bawah |
+
+### Tenggat evaluasi: usulan review ditolak, BR-FE-17 yang dipakai
+
+Review mengusulkan `$submission->formPhaseDetail->submissionDate`. Itu justru
+yang **dilarang** BR-FE-17: detail milik pengajuan adalah "Batas Submit" peneliti,
+dan memakainya ulang untuk evaluasi *"membuat jendela kerjanya nol atau negatif"*.
+Perilaku sebelumnya — tanggal terakhir period — juga bukan tenggat evaluasi.
+
+Yang dipakai: **`EvaluationDueDate` menerima `ReviewEvaluationForm`, bukan
+`FormSubmission`**, dan mengembalikan tanggal milik `FormPhaseDetail` yang
+memiliki form itu. Tenggat jadi dihitung per form di dalam perulangan
+`autoAssignEvaluationForms()`. Keduanya FK non-nullable, jadi tenggat tak lagi
+bisa kosong — dan utang "`autoLockIfOverdue()` tidak pernah jalan" ikut lunas.
+
 ### Utang yang ditinggalkan bagian ini
 
 **`Queries/Review/EvaluationRequirements` kini nol pemanggil produksi.** Task 13 mencabut
@@ -1190,6 +1223,15 @@ gelombang 3 yang mendatangi endpoint `getEvaluationStatus` beserta kontrak DTO-n
 tempat yang tepat untuk memutuskan nasibnya. Aturan "nol pemanggil → hapus" dari bagian 1
 berlaku untuk kelas yang lahir dari memindahkan kode mati; yang ini lahir dari kode hidup
 yang baru saja kehilangan layarnya. **Keputusannya diserahkan ke gelombang 3.**
+
+**Form evaluasi masih digantung di detail pengajuan, bukan detail evaluasi.**
+`docs/…/supporting/02_monev.md` menggambarkan Detail 1 (Pengajuan, peneliti,
+"Batas Submit") terpisah dari Detail 2 (Evaluasi, reviewer, "Batas Evaluasi")
+yang memiliki `ReviewEvaluationForm`-nya. Kode menggantungkan form pada detail
+milik pengajuan, dan `autoAssignEvaluationForms()` mencarinya di sana. Kueri
+tenggatnya kini sudah benar secara struktur — ia menanyai detail **pemilik form**
+— jadi begitu datanya dipindahkan ke bentuk monev, tenggatnya ikut benar tanpa
+mengubah kode lagi. Memindahkan datanya sendiri pekerjaan monev, bukan ini.
 
 **Test `[SM-WIZARD-06]` rapuh — dan sebabnya bukan dari gelombang ini.** Ia gagal sekali
 dari enam kali suite penuh dijalankan, lalu tidak pernah lagi. Sebabnya batas detik:
