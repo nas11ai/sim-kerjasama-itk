@@ -24,7 +24,13 @@ bukan per berkas.
 
 **Pendahulu:** [`refactor-plan-wave-2-review-cluster.md`](refactor-plan-wave-2-review-cluster.md)
 
-**Status:** belum dikerjakan.
+**Status:** selesai 2026-09-21, mendarat di `ce802e3`.
+
+| Ukuran                 | Sebelum | Sesudah |
+| ---------------------- | ------: | ------: |
+| Berkas di antrean      |     272 |     141 |
+| `max.comment.overflow` |     164 |      32 |
+| Test                   |     939 |     939 |
 
 ---
 
@@ -123,6 +129,27 @@ Contoh yang **lolos** (run = 3, lalu direset `$a = 1;`, lalu run = 2):
     // Baris kedua.
     $b = 2;
 ```
+
+### Koreksi (dicatat saat Task 7, setelah diukur langsung)
+
+**Contoh "melanggar (run = 5)" di atas keliru — nilai sebenarnya run = 3.**
+Baris kosong di antara kedua blok itu, setelah `trim()`, tidak diawali `//`,
+`*`, maupun `/*`. Jadi ia **bukan baris komentar**, dan cabang pertama
+penghitung **mereset** run. Diukur langsung dengan `CommentMetrics`:
+
+| Susunan                                          | Klaim di atas | Terukur |
+| ------------------------------------------------ | ------------: | ------: |
+| Dua blok `//` dipisah **baris kosong sungguhan**  |             5 |   **3** |
+| Dua blok `//` **menempel**, tanpa baris kosong    |             — |   **5** |
+| Docblock dengan baris ` *` sendirian di tengahnya |             — |   **4** |
+
+Butir 2 tetap benar: ` *` sendirian **tetap** baris komentar, jadi ia tidak
+mereset. Butir 3 hanya benar kalau di antara kedua blok **tidak ada baris
+kosong** — itulah yang membedakan baris dua dan tiga tabel di atas.
+
+**Celahnya tidak boleh dipakai.** Menyisipkan baris kosong memang mereset
+hitungan, tetapi tidak memadatkan apa pun — kegagalan yang sama dengan melipat
+ulang baris. Pemadatan tetap lewat K2a atau K2b.
 
 ---
 
