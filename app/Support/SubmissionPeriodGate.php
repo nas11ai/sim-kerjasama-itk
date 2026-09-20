@@ -52,7 +52,7 @@ final class SubmissionPeriodGate
 
     /**
      * Status untuk ditampilkan, diturunkan dari predikat yang sama dengan
-     * gerbangnya — dihitung terpisah, periode yang ditutup paksa pernah
+     * gerbangnya — dulu dihitung terpisah, periode yang ditutup paksa pernah
      * berlabel "Aktif" sementara backend menolak setiap pengajuan ke sana.
      *
      * @return 'force_closed'|'no_dates'|'expired'|'active'

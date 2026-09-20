@@ -7,9 +7,9 @@ use App\Models\User;
 use Illuminate\Validation\ValidationException;
 
 /**
- * BR-REV-02 — konflik kepentingan reviewer ↔ anggota, saling memblokir, kanonik
- * di BC Review; BR-SM-08 dan BR-IAM-07 membacanya dari sisi lain, jadi DDD
- * menuntut **satu implementasi, dua pemanggil**. Statis: guard bukan use case.
+ * BR-REV-02 — konflik kepentingan reviewer ↔ anggota, saling memblokir,
+ * kanonik di BC Review; sisi anggota BR-SM-08, pembatasan per-role BR-IAM-07.
+ * DDD menuntut **satu implementasi, dua pemanggil**. Statis, bukan use case.
  */
 final class ConflictOfInterestGuard
 {

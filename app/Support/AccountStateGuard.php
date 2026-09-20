@@ -15,8 +15,8 @@ final class AccountStateGuard
 {
     /**
      * BR-IAM-04, BR-IAM-13 — verifikasi menggerbangi **submit**, bukan
-     * persiapan: akun `pending` berprofil lengkap boleh menyiapkan DRAFT tapi
-     * belum boleh mengirimnya, sementara verifikasi NIDN makan berhari-hari.
+     * persiapan: tidak ada yang mengikat sampai submit, sementara verifikasi
+     * NIDN berhari-hari. Akun `pending` boleh menyiapkan DRAFT, belum mengirim.
      *
      * @throws ValidationException
      */

@@ -11,7 +11,7 @@ use App\Models\FormSubmission;
  */
 final class WizardStepGate
 {
-    /** Tujuh langkah ADR 0012. */
+    /** Tujuh langkah ADR 0012; kelasnya statis seperti `RequiredFieldGuard`. */
     public const STEP_FORM_PERIOD = 1;
 
     public const STEP_BASIC_INFO = 2;
