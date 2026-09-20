@@ -28,9 +28,9 @@ class DeleteOrganization
     {
         $subtree = Organization::subtreeIds($organization->id);
 
-        // Ambangnya **UserProfile apa pun** di seluruh subtree, aktif maupun tidak — lebih ketat
-        // daripada deaktivasi (BR-IAM-14), dan sengaja: jejak siapa yang pernah bekerja di unit ini
-        // tidak boleh hilang. Sehari-harinya deaktivasi; penghapusan untuk unit yang belum terpakai.
+        // Ambangnya **UserProfile apa pun** di seluruh subtree — lebih ketat daripada deaktivasi
+        // (BR-IAM-14), dan sengaja: jejak siapa yang pernah bekerja di unit ini tidak boleh
+        // hilang. Sehari-harinya deaktivasi; penghapusan untuk unit yang belum terpakai.
         $profiles = UserProfile::query()->whereIn('organization_id', $subtree)->count();
 
         if ($profiles > 0) {
@@ -41,9 +41,9 @@ class DeleteOrganization
         }
 
         $tercatat = DB::transaction(function () use ($subtree): int {
-            // Undangan yang belum terpakai **tidak menghalangi** — ia dicabut (register #18). Token basi
-            // tidak boleh menyandera reorganisasi, tapi token yang menggantung ke organisasi mati juga
-            // tidak boleh hidup. Jumlahnya dikembalikan agar Operator tahu sebelum mengonfirmasi.
+            // Undangan yang belum terpakai **tidak menghalangi**, ia dicabut (register #18): token
+            // basi tidak boleh menyandera reorganisasi, tapi token yang menggantung ke organisasi
+            // mati juga tidak boleh hidup. Jumlahnya dikembalikan untuk konfirmasi Operator.
             $tokens = InvitationToken::query()
                 ->whereIn('organization_id', $subtree)
                 ->whereNull('revoked_at')

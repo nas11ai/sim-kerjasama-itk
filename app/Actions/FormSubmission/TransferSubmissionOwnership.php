@@ -46,9 +46,9 @@ class TransferSubmissionOwnership
     }
 
     /**
-     * Penerimanya wajib `co_investigator` yang **aktif**. Member biasa tidak pernah memegang
-     * tanggung jawab pengajuan (BR-BUD-09, BR-SM-15 sama-sama menyebut daftar tertutup
-     * `submitted_by` + `co_investigator`), jadi memindahkan ke sana hanya memindahkan masalahnya.
+     * Penerimanya wajib `co_investigator` yang **aktif**: member biasa tidak pernah
+     * memegang tanggung jawab pengajuan (BR-BUD-09, BR-SM-15), jadi memindahkan ke
+     * sana hanya memindahkan masalahnya.
      *
      * @throws ValidationException
      */
@@ -70,7 +70,7 @@ class TransferSubmissionOwnership
     }
 
     /**
-     * Pemilik lama tetap terdaftar sebagai anggota: menghapusnya menghilangkan jejak siapa
+     * Menghapusnya akan menghilangkan jejak siapa
      * yang sesungguhnya mengerjakan penelitian ini.
      */
     private function keepPreviousOwnerAsMember(FormSubmission $submission, int $previousOwner): void

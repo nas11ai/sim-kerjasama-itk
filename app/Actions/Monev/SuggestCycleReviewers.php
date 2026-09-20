@@ -26,9 +26,8 @@ class SuggestCycleReviewers implements ChangesNoState
     {
         $now = now();
 
-        // **Saran, bukan batas**: Operator tetap bebas memilih nama lain, dan karena itu daftar ini
-        // tidak pernah dipakai sebagai penyaring di Action penugasan — mencampur keduanya akan
-        // mengubah kemudahan menjadi larangan.
+        // **Saran, bukan batas**: daftar ini tidak pernah dipakai sebagai penyaring
+        // di Action penugasan — mencampurnya mengubah kemudahan menjadi larangan.
         return Reviewer::query()
             ->whereIn(
                 'id',
@@ -36,7 +35,7 @@ class SuggestCycleReviewers implements ChangesNoState
                     ->where('status', 'active')
                     ->select('reviewer_id')
             )
-            // Yang masa tugasnya sudah habis tidak muncul: menyarankannya berarti mengarahkan
+            // Menyarankan yang masa tugasnya habis berarti mengarahkan
             // Operator ke penugasan yang pasti ditolak BR-REV-09.
             ->where(fn ($q) => $q->whereNull('start_date')->orWhere('start_date', '<=', $now))
             ->where(fn ($q) => $q->whereNull('end_date')->orWhere('end_date', '>=', $now))

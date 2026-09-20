@@ -12,10 +12,9 @@ use Illuminate\Support\Facades\DB;
 use Lorisleiva\Actions\Concerns\AsAction;
 
 /**
- * BR-RO-01..05, BR-RO-09 — menambah atau menyunting luaran terealisasi.
- *
- * Kecocokan dengan target yang dijanjikan sengaja **tidak** diperiksa (register #19): penelitian memang
- * menyimpang, dan memaksanya cocok mendorong peneliti berbohong di target atau menyembunyikan luaran.
+ * BR-RO-01..05, BR-RO-09 — menambah atau menyunting luaran terealisasi. Kecocokan dengan target
+ * yang dijanjikan sengaja **tidak** diperiksa (register #19): penelitian memang menyimpang, dan
+ * memaksanya cocok mendorong peneliti berbohong di target atau menyembunyikan luaran.
  *
  * @method static ResearchOutput run(FormSubmission $submission, User $actor, array{output_type: string, metadata?: array<string, mixed>, files?: list<array{file_path: string, file_url?: string|null}>} $data, ?ResearchOutput $output = null)
  */
@@ -24,9 +23,9 @@ class SaveResearchOutput
     use AsAction;
 
     /**
-     * Seluruh syaratnya ada di `ResearchOutputGuard`, dipanggil sekali di sini: keadaan induk,
-     * taksonomi, kesesuaian jenis pengajuan, kelengkapan metadata, dan keberadaan berkas. Menyebarnya
-     * ke controller membuat jalur lain — impor, seeder, koreksi Operator — menegakkan separuhnya saja.
+     * Seluruh syaratnya ada di `ResearchOutputGuard`: keadaan induk, taksonomi, kesesuaian
+     * jenis pengajuan, kelengkapan metadata, dan keberadaan berkas. Menyebarnya ke controller
+     * membuat jalur lain — impor, seeder, koreksi Operator — menegakkan separuhnya saja.
      *
      * @param  array{output_type: string, metadata?: array<string, mixed>, files?: list<array{file_path: string, file_url?: string|null}>}  $data
      */

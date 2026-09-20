@@ -14,7 +14,7 @@ use Lorisleiva\Actions\Concerns\AsAction;
 /**
  * BR-SM-14 dan BR-SM-15 — menambah atau mengubah target luaran.
  *
- * Tipe disaring **dua tingkat** dan urutannya penting; keduanya dijaga `guardType()`.
+ * Tipe disaring **dua tingkat** di `guardType()`, dan urutannya penting.
  */
 class SaveTargetOutput
 {
@@ -66,9 +66,8 @@ class SaveTargetOutput
             ]);
         }
 
-        // Tingkat 2: `scheme.rules.allowed_output_types` mempersempit lagi, hanya kalau
-        // submission punya skema **dan** skema itu menyatakan daftarnya. Skema tanpa key itu
-        // tidak membatasi apa pun (BR-SM-14), jadi pengajuan tanpa skema hanya kena tingkat 1.
+        // Tingkat 2: `scheme.rules.allowed_output_types` mempersempit lagi. Skema
+        // tanpa key itu tidak membatasi (BR-SM-14) — tanpa skema hanya kena tingkat 1.
         $allowed = $this->schemeAllowList($submission);
 
         // null berarti skema tidak membatasi — berbeda dari daftar kosong,

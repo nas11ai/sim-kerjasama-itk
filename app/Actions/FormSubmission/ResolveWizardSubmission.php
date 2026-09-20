@@ -20,9 +20,9 @@ class ResolveWizardSubmission implements ChangesNoState
      */
     public function handle(int $formId, int $submissionPeriodId, User $user): ?FormSubmission
     {
-        // Sengaja tidak menyaring status; pemanggilnya yang memutuskan: `StartSubmission` menanyakan
-        // Policy apakah baris ini masih boleh dipakai ulang, dan `UserFormController` membedakan "belum
-        // ada baris" (409) dari "ada tapi terkunci" (403) — pembedaan yang dituntut [SM-STATE-04].
+        // Sengaja tidak menyaring status — pemanggilnya yang memutuskan: `StartSubmission`
+        // menanyakan Policy apakah baris ini boleh dipakai ulang, `UserFormController`
+        // membedakan "belum ada baris" (409) dari "ada tapi terkunci" (403) [SM-STATE-04].
         return FormSubmission::query()
             // `parent_submission_id` NULL: laporan monev adalah child submission, bukan
             // urusan wizard pengajuan (BR-MON-03).

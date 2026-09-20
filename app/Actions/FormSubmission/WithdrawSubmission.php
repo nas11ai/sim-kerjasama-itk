@@ -13,7 +13,8 @@ use RuntimeException;
 
 /**
  * BR-SM-11 — penarikan pengajuan. Menarik adalah membekukan, bukan menghapus:
- * anggaran, anggota, dan berkas tetap terbaca setelah penarikan.
+ * anggaran, anggota, dan berkas tetap terbaca setelah penarikan. Penarikan keliru
+ * dijawab pengajuan baru yang merujuk yang lama (register #20), bukan dibalik.
  */
 class WithdrawSubmission
 {
@@ -25,8 +26,8 @@ class WithdrawSubmission
     public function handle(FormSubmission $submission, User $operator): FormSubmission
     {
         // Bukan self-service (hanya pemegang `submissions.view-all`, bukan pemiliknya) dan hanya
-        // dari APPROVED — yang belum diputuskan dibatalkan lewat jalur lain. Kedua syarat dipegang
-        // Policy supaya objek `can` di frontend jujur dan tombolnya tidak muncul sia-sia (ADR 0015).
+        // dari APPROVED — yang belum diputuskan dibatalkan lewat jalur lain. Keduanya di Policy
+        // supaya objek `can` di frontend jujur dan tombolnya tidak muncul sia-sia (ADR 0015).
         if (!$operator->can('withdraw', $submission)) {
             throw new AuthorizationException(
                 'Penarikan hanya dapat dilakukan Operator, dan hanya atas pengajuan yang sudah disetujui.'
@@ -41,9 +42,9 @@ class WithdrawSubmission
             );
         }
 
-        // **Tidak dapat dibatalkan**: state machine dijaga asiklik — `SubmissionStatus::config()` tidak
-        // punya transisi keluar dari `Withdrawn`. Membalikkannya menuntut pembekuan hilir (monev, luaran)
-        // ikut dipulihkan; penarikan keliru dijawab pengajuan baru yang merujuk yang lama (register #20).
+        // **Tidak dapat dibatalkan**: `SubmissionStatus::config()` tidak punya transisi
+        // keluar dari `Withdrawn`. Membalikkannya menuntut seluruh pembekuan hilir
+        // (monev, luaran) ikut dipulihkan dengan benar, untuk peristiwa yang jarang.
         $status->transitionTo(Withdrawn::class);
 
         $tercatat = $submission->refresh();

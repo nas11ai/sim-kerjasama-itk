@@ -12,7 +12,7 @@ use Lorisleiva\Actions\Concerns\AsAction;
 
 /**
  * BR-SM-21 — mencatat mitra eksternal sebuah pengajuan. Tidak ada batas jumlah dari skema, dan itu
- * disengaja: `max_members` dan `max_student_members` membatasi orang yang dibiayai, sedangkan mitra
+ * sengaja: `max_members` dan `max_student_members` membatasi orang yang dibiayai, sedangkan mitra
  * tidak menambah beban anggaran. Membatasinya akan menolak kerja sama yang justru didorong LPPM.
  *
  * @method static Partner run(FormSubmission $submission, User $actor, array{institution_name: string, contact_person?: string|null, description?: string|null} $attributes)

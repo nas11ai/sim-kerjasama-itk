@@ -12,8 +12,8 @@ use Lorisleiva\Actions\Concerns\AsAction;
 /**
  * BR-FE-13 — perubahan Form yang menyentuh draft berjalan tidak boleh senyap.
  *
- * **Tidak menulis audit (BR-RPT-09).** Seluruh kerjanya mengirim pemberitahuan atas perubahan Form
- * yang sudah dicatat di jalur penyuntingannya; mencatat ulang memunculkan dua baris untuk satu tindakan.
+ * **Tidak menulis audit (BR-RPT-09).** Pemberitahuan atas perubahan Form yang sudah dicatat
+ * di jalur penyuntingannya; mencatat ulang memunculkan dua baris untuk satu tindakan.
  *
  * @method static int run(Form $form, bool $notify)
  */

@@ -15,8 +15,8 @@ use RuntimeException;
 /**
  * BR-REV-07 dan BR-REV-14 — **satu-satunya** jalur menuju REJECTED.
  *
- * Penolakan tidak pernah otomatis (ADR 0006). `EvaluateSubmissionOutcome` sengaja tidak punya
- * cabang ke sini, dan `[REV-OUTCOME-08]` menjaga ketiadaan itu.
+ * Penolakan tidak pernah otomatis (ADR 0006): skor serendah apa pun tidak menolak.
+ * `EvaluateSubmissionOutcome` tidak punya cabang ke sini, dijaga `[REV-OUTCOME-08]`.
  *
  * @method static FormSubmission run(FormSubmission $submission, User $operator, string $reason)
  */
@@ -37,8 +37,7 @@ class RejectSubmission
 
         $reason = trim($reason);
 
-        // Yang menolak adalah orang, dengan nama dan alasan — kombinasi skor serendah apa pun
-        // tidak menolak.
+        // Yang menolak adalah orang, dengan nama dan alasan.
         if ($reason === '') {
             throw ValidationException::withMessages([
                 'reason' => 'Alasan penolakan wajib diisi — peneliti berhak tahu dasar keputusannya.',

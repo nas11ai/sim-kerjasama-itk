@@ -13,8 +13,8 @@ use Lorisleiva\Actions\Concerns\AsAction;
 /**
  * BR-SM-21 — mencabut mitra dari sebuah pengajuan.
  *
- * Dibuat bersama pasangannya karena alasan yang sama dengan BR-SM-18 dan BR-SM-20: daftar yang
- * hanya bisa bertambah bukan daftar, melainkan jalan buntu yang menunggu satu salah ketik.
+ * Alasannya sama dengan BR-SM-18 dan BR-SM-20: daftar yang hanya bisa bertambah
+ * bukan daftar, melainkan jalan buntu yang menunggu satu salah ketik.
  *
  * @method static void run(FormSubmission $submission, Partner $partner, User $actor)
  */

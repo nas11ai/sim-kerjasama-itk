@@ -10,9 +10,9 @@ use Illuminate\Validation\ValidationException;
 use Lorisleiva\Actions\Concerns\AsAction;
 
 /**
- * BR-IAM-18 — memindahkan user antar unit organisasi. **Prasyarat yang disebut BR-IAM-14**: deaktivasi
- * unit menuntut "pindahkan orangnya lebih dulu", padahal tak ada jalur yang bisa memindahkan siapa pun —
- * jalan keluar Operator cuma menonaktifkan orangnya, mengubah keadaan manusia demi merapikan struktur.
+ * BR-IAM-18 — memindahkan user antar unit organisasi. **Prasyarat BR-IAM-14**: deaktivasi unit
+ * menuntut "pindahkan orangnya lebih dulu", padahal sebelum ini tak ada jalur pemindahan —
+ * Operator hanya bisa menonaktifkan orangnya, mengubah keadaan manusia demi merapikan struktur.
  *
  * @method static void run(User $actor, User $user, Organization $tujuan)
  */

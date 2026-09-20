@@ -40,9 +40,9 @@ class RemoveResearchMember
             ]);
         }
 
-        // BR-SM-18 — ketua pengaju tidak bisa mengeluarkan dirinya sendiri: `submitted_by` adalah sumbu
-        // access control BR-SM-07, dan pengajuan tanpa ketua tak berpemilik. Lepas kepemilikan lewat
-        // transfer (BR-SM-09). `user_profile_id` NOT NULL, jadi nullsafe hanya menyembunyikan data rusak.
+        // BR-SM-18 — ketua pengaju tidak bisa mengeluarkan dirinya sendiri: `submitted_by` adalah
+        // sumbu access control BR-SM-07, jadi pengajuan tanpa ketua tak berpemilik. Lepas lewat
+        // transfer (BR-SM-09); `user_profile_id` NOT NULL, jadi nullsafe menyembunyikan data rusak.
         if ($member->userProfile->user_id === $submission->submitted_by) {
             throw ValidationException::withMessages([
                 'id' => 'Ketua pengaju tidak dapat dikeluarkan dari pengajuannya sendiri. '

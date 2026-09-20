@@ -25,7 +25,7 @@ class DeactivateScheme
     {
         // **Aktif** berarti `status NOT IN ('rejected', 'withdrawn')` — APPROVED ikut menghalangi:
         // pengajuan yang disetujui masih kegiatan berjalan, laporan monevnya lahir dari sana dan
-        // skemanya masih memasok `max_budget` serta `duration_months` untuk memvalidasi laporan itu.
+        // skemanya masih memasok `max_budget` serta `duration_months` yang memvalidasinya.
         $blocking = FormSubmission::query()
             ->where('scheme_id', $scheme->id)
             // Predikatnya dipinjam dari `FormSubmission::active()`, bukan ditulis ulang di sini:

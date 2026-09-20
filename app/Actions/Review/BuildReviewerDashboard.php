@@ -25,9 +25,9 @@ class BuildReviewerDashboard implements ChangesNoState
      */
     public function handle(Reviewer $reviewer): array
     {
-        // Sumbernya `SubmissionReviewer` — tabel penugasan, bukan `ReviewSummary` yang baru lahir
-        // setelah reviewer mulai bekerja: membacanya membuat penugasan yang belum disentuh tak pernah
-        // muncul, justru pekerjaan yang paling perlu ditagih. "Ditugaskan" ditentukan BR-REV-01.
+        // Sumbernya `SubmissionReviewer`, tabel penugasan. Versi sebelumnya membaca
+        // `ReviewSummary` — catatan diskusi yang baru lahir setelah reviewer bekerja — jadi
+        // penugasan yang belum disentuh tak pernah muncul. "Ditugaskan" ditentukan BR-REV-01.
         $assignments = SubmissionReviewer::query()
             ->where('reviewer_id', $reviewer->id)
             ->where('status', 'active')

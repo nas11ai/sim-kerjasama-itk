@@ -29,9 +29,9 @@ class ResolveReviewSummary
         $tercatat = DB::transaction(function () use ($summary): ReviewSummary {
             $summary->update(['status' => 'resolved']);
 
-            // Menutup ulir terakhir memicu evaluasi ulang: syarat BR-REV-05 bisa jadi terpenuhi
-            // saat itu juga, dan transisinya tidak boleh menunggu aksi lain. `form_submission_id`
-            // NOT NULL, jadi relasi ini selalu ada — PHPStan menolak pengecekan null yang tak tercapai.
+            // Menutup ulir terakhir memicu evaluasi ulang: syarat BR-REV-05 bisa terpenuhi saat
+            // itu juga, dan transisinya tidak boleh menunggu aksi lain. `form_submission_id`
+            // NOT NULL, jadi PHPStan menolak pengecekan null yang tak tercapai.
             EvaluateSubmissionOutcome::run($summary->formSubmission);
 
             return $summary->refresh();

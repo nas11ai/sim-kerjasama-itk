@@ -24,9 +24,9 @@ class NotifyMonevEvaluationSubmitted implements ChangesNoState
     {
         $submission = $response->reviewerFormAssignment->submissionReviewer->formSubmission;
 
-        // Hanya **laporan turunan**; pengajuan awal sengaja tidak: skornya masih ditahan sampai
-        // keputusan akhir (BR-REV-12), jadi mengabarkan "penilaian masuk" cuma mengundang peneliti
-        // membuka halaman yang tetap kosong. Batas itu menjaga pengecualian BR-MON-09 tidak melebar.
+        // Hanya **laporan turunan**: skor pengajuan awal masih ditahan sampai keputusan
+        // akhir (BR-REV-12), jadi mengabarkan "penilaian masuk" cuma mengundang peneliti
+        // membuka halaman kosong. Batas itu menjaga pengecualian BR-MON-09 tidak melebar.
         if ($submission->parent_submission_id === null) {
             return false;
         }

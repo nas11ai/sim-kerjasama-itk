@@ -13,8 +13,8 @@ use Lorisleiva\Actions\Concerns\AsAction;
 /**
  * BR-SM-20 — mengeluarkan anggota mahasiswa.
  *
- * Pasangan AddStudentMember, dibuat bersamaan dengannya karena alasan yang sama dengan
- * BR-SM-18: batas yang tidak punya jalan keluar adalah jalan buntu, bukan batas.
+ * Alasannya sama dengan BR-SM-18: batas yang tidak punya
+ * jalan keluar adalah jalan buntu, bukan batas.
  *
  * @method static void run(FormSubmission $submission, StudentMember $member, User $actor)
  */

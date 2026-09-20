@@ -13,9 +13,9 @@ use Lorisleiva\Actions\Concerns\AsAction;
 use RuntimeException;
 
 /**
- * BR-REV-05 dan BR-REV-06 — satu-satunya tempat hasil review diputuskan. Yang **tidak** ada di sini,
- * dan tidak boleh ditambahkan: jalur ke REJECTED. Penolakan hanya lewat aksi eksplisit Operator —
- * [ADR 0006](docs/adr/0006-rejection-is-manual-only.md), BR-REV-07, BR-REV-14. Dikunci `[REV-OUTCOME-08]`.
+ * BR-REV-05 dan BR-REV-06 — satu-satunya tempat hasil review diputuskan. Jalur ke REJECTED
+ * **tidak** ada di sini dan tidak boleh ditambahkan (BR-REV-07, BR-REV-14, `[REV-OUTCOME-08]`):
+ * penolakan hanya lewat aksi eksplisit Operator — [ADR 0006](docs/adr/0006-rejection-is-manual-only.md).
  */
 class EvaluateSubmissionOutcome
 {
@@ -38,15 +38,15 @@ class EvaluateSubmissionOutcome
         }
 
         // ADR 0017 — persetujuan hampa hanya sah kalau fase memang dinyatakan tidak membutuhkan
-        // review. Fase yang butuh review tapi belum punya reviewer bukan "semua selesai", melainkan
-        // salah konfigurasi: ia menggantung di SUBMITTED sampai Operator menugaskan.
+        // review. Fase yang butuh review tapi belum punya reviewer bukan "semua selesai",
+        // melainkan salah konfigurasi: ia menggantung di SUBMITTED sampai Operator menugaskan.
         if ($this->hasNoReviewers($submission) && $this->phaseNeedsReview($submission)) {
             return $submission;
         }
 
-        // Dua transisi otomatis bergantung pada kombinasi yang sama: seluruh evaluasi selesai, lalu
-        // ada atau tidaknya `ReviewSummary` berstatus `open` — tidak ada → APPROVED (BR-REV-05),
-        // ada → NEEDS_REVISION (BR-REV-06).
+        // Dua transisi otomatis bergantung pada kombinasi yang sama: seluruh
+        // evaluasi selesai, lalu ada atau tidaknya `ReviewSummary` berstatus `open`
+        // — tidak ada → APPROVED (BR-REV-05), ada → NEEDS_REVISION (BR-REV-06).
         $this->settleInto(
             $submission,
             $status,
