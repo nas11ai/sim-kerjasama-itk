@@ -7,6 +7,7 @@
 // dulu hanya bisa menulis `completed` dan tak pernah kembali ke `pending`.
 
 use App\Actions\Review\AssignEvaluationForm;
+use App\Actions\Review\SubmitEvaluationForm;
 use App\Models\FormPhaseDetail;
 use App\Models\FormSubmission;
 use App\Models\Reviewer;
@@ -85,7 +86,7 @@ it('menyelaraskan status yang sudah melenceng saat submit, bukan membiarkannya',
     // Status melenceng jadi `completed` padahal form wajibnya masih menganggur.
     $reviewer->update(['evaluation_status' => 'completed']);
 
-    $response->submit();
+    SubmitEvaluationForm::run($response);
 
     // Versi lama hanya bisa menulis `completed`, jadi ia mendiamkan stempel
     // yang salah. Hitung ulang yang benar menurunkannya kembali.
@@ -106,7 +107,7 @@ it('menjatuhkan status ke not_required saat submit tidak menyisakan penugasan ak
     // jadi ia menstempel `completed` untuk pekerjaan yang tidak ada.
     $assignment->update(['is_active' => false]);
 
-    $response->submit();
+    SubmitEvaluationForm::run($response);
 
     expect($reviewer->fresh()->evaluation_status)->toBe('not_required');
 });

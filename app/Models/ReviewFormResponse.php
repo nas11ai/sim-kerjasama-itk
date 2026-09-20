@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-use App\Support\Review\EvaluationStatusRecalculator;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -74,40 +73,6 @@ class ReviewFormResponse extends Model
     public function canBeSubmitted(): bool
     {
         return $this->status === 'draft' && $this->hasRequiredFieldsCompleted();
-    }
-
-    // Submit the form
-    public function submit(): bool
-    {
-        if (!$this->canBeSubmitted()) {
-            return false;
-        }
-
-        $this->update([
-            'status' => 'submitted',
-            'submitted_at' => now(),
-        ]);
-
-        // BR-REV-05 — satu definisi hitung ulang. Versi lama di sini hanya bisa
-        // menulis `completed` dan tak pernah kembali ke `pending`.
-        EvaluationStatusRecalculator::for($this->reviewerFormAssignment->submissionReviewer);
-
-        return true;
-    }
-
-    // Lock the form (usually due to deadline)
-    public function lock(): bool
-    {
-        if ($this->isLocked()) {
-            return false;
-        }
-
-        $this->update([
-            'status' => 'locked',
-            'locked_at' => now(),
-        ]);
-
-        return true;
     }
 
     // Check if all required fields are completed

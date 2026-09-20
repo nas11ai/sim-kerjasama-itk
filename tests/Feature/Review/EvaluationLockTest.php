@@ -10,6 +10,7 @@
 // BC Review menyebutnya ulang supaya bisa dibaca utuh, bukan supaya
 // diimplementasikan dua kali.
 
+use App\Actions\Review\SubmitEvaluationForm;
 use App\Models\FormPhaseDetail;
 use App\Models\FormSubmission;
 use App\Models\Reviewer;
@@ -88,7 +89,7 @@ it('[REV-EVAL-02] evaluasi yang terkunci deadline juga tidak bisa disunting', fu
 it('[REV-EVAL-03] submit evaluasi menyelesaikan penugasan', function () {
     [$response, $assignment] = lockFixture('draft');
 
-    $response->submit();
+    SubmitEvaluationForm::run($response);
 
     // Seluruh form wajib sudah tersubmit, jadi penugasannya selesai —
     // itulah yang kemudian dibaca EvaluateSubmissionOutcome (BR-REV-05).
@@ -100,5 +101,5 @@ it('[REV-EVAL-03] submit evaluasi menyelesaikan penugasan', function () {
 it('[REV-EVAL-03] evaluasi yang sudah disubmit tidak bisa disubmit ulang', function () {
     [$response] = lockFixture('submitted');
 
-    expect($response->submit())->toBeFalse();
+    expect(SubmitEvaluationForm::run($response))->toBeFalse();
 });

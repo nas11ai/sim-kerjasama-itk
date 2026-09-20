@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Actions\Review\LockEvaluationForm;
 use App\Models\FormPhase;
 use App\Models\FormSubmission;
 use App\Models\ReviewerFormAssignment;
@@ -351,7 +352,7 @@ class ReviewerFormAssignmentController extends Controller
 
             $lockedCount = 0;
             foreach ($overdueAssignments as $assignment) {
-                if ($assignment->reviewFormResponse->lock()) {
+                if (LockEvaluationForm::run($assignment->reviewFormResponse)) {
                     $lockedCount++;
                 }
             }

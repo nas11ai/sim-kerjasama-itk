@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Actions\Monev\NotifyMonevEvaluationSubmitted;
+use App\Actions\Review\SubmitEvaluationForm;
 use App\Models\FormSubmission;
 use App\Models\ReviewerFormAssignment;
 use App\Models\ReviewEvaluationForm;
@@ -238,7 +239,7 @@ class ReviewFormResponseController extends Controller
             }
 
             // Submit the response
-            if (!$response->submit()) {
+            if (!SubmitEvaluationForm::run($response)) {
                 throw new \Exception('Gagal mengirim respons formulir.');
             }
 
