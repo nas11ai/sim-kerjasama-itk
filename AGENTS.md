@@ -114,6 +114,7 @@ saat mengusulkan perubahan bentuk kode.
 | Jenis                    | Lokasi                  | Catatan                          |
 | ------------------------ | ----------------------- | -------------------------------- |
 | Business use case        | `app/Actions/`          | otomatis PHPStan level 9         |
+| Kueri baca (tanpa ubah state) | `app/Queries/`          | `implements ChangesNoState`; otomatis level 9 |
 | Authorization            | `app/Policies/`         | otomatis level 9                 |
 | Domain event & listener  | `app/Events/`, `app/Listeners/` | otomatis level 9         |
 | Notifikasi               | `app/Notifications/`    | Laravel Notification, bukan Mail custom |
