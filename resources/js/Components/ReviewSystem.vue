@@ -129,11 +129,6 @@ interface Props {
     hasPendingEvaluations: boolean
     pendingEvaluationsCount: number
     hasReviewEvaluationForms: boolean
-    evaluationRequirements: {
-        required: boolean
-        has_forms: boolean
-        message: string
-    }
     reviewerFormAssignments?: ReviewerFormAssignment[]
     assignedReviewers: Array<{
         id: number

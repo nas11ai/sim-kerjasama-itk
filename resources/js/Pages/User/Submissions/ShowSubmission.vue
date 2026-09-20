@@ -81,14 +81,6 @@ interface AssignedReviewer {
     reviewer_type: string
 }
 
-interface EvaluationRequirements {
-    required: boolean
-    has_forms: boolean
-    total_forms?: number
-    required_forms?: number
-    message: string
-}
-
 interface ReviewSummary {
     id: number
     reviewer_id: number | null
@@ -190,7 +182,6 @@ interface Props {
     assignedReviewers?: AssignedReviewer[]
     reviewerFormAssignments?: ReviewerFormAssignment[]
     hasReviewEvaluationForms?: boolean
-    evaluationRequirements?: EvaluationRequirements
     hasPendingEvaluations?: boolean
     pendingEvaluationsCount?: number
     /**
@@ -256,12 +247,6 @@ const reviewerAssignments = props.submission.reviewer_form_assignments || []
 const assignedReviewers = props.assignedReviewers || []
 const reviewerFormAssignments = props.reviewerFormAssignments || []
 const hasReviewEvaluationForms = props.hasReviewEvaluationForms || false
-const evaluationRequirements = props.evaluationRequirements || {
-    required: false,
-    has_forms: false,
-    message: '',
-}
-
 const canReview = computed(() => props.canReview || false)
 const isReviewer = computed(() => props.userRole === 'reviewer')
 const isSubmitter = computed(() => props.isOwnSubmission)
@@ -754,7 +739,6 @@ const mappedAssignedReviewers = computed(() =>
                         :pending-evaluations-count="pendingEvaluationsCount"
                         :assigned-reviewers="mappedAssignedReviewers"
                         :has-review-evaluation-forms="hasReviewEvaluationForms"
-                        :evaluation-requirements="evaluationRequirements"
                         :reviewer-form-assignments="reviewerFormAssignments"
                         :submission-status="submission.status"
                     />

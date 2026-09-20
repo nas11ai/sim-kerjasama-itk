@@ -19,7 +19,6 @@ use App\Models\ReviewSummary;
 use App\Models\SubmissionPeriod;
 use App\Models\SubmissionReviewer;
 use App\Models\User;
-use App\Queries\Review\EvaluationRequirements;
 use App\States\Submission\Approved;
 use App\States\Submission\SubmissionStatus;
 use App\Support\PhaseAccessGate;
@@ -411,18 +410,6 @@ class SubmissionViewController extends Controller
                 ];
             })->toArray();
 
-        // Evaluation requirements
-        $evaluationRequirements = [
-            'required' => $hasReviewEvaluationForms,
-            'has_forms' => $hasReviewEvaluationForms,
-            'message' => $this->getEvaluationMessage(
-                $hasReviewEvaluationForms,
-                $isAssignedReviewer,
-                count($reviewerFormAssignments),
-                $hasPendingEvaluations
-            ),
-        ];
-
         return Inertia::render('User/Submissions/ShowSubmission', [
             'submission' => $submission->toArray(),
             'responses' => $responses,
@@ -487,7 +474,6 @@ class SubmissionViewController extends Controller
             'assignedReviewers' => $assignedReviewers,
             'reviewerFormAssignments' => $reviewerFormAssignments,
             'hasReviewEvaluationForms' => $hasReviewEvaluationForms,
-            'evaluationRequirements' => $evaluationRequirements,
             'hasPendingEvaluations' => $hasPendingEvaluations,
             'pendingEvaluationsCount' => $pendingEvaluationsCount,
             'submissionStatus' => $submission->status,
@@ -842,8 +828,6 @@ class SubmissionViewController extends Controller
                 'assigned_reviewers' => $assignedReviewers,
             ];
 
-            // Get evaluation requirements
-            $evaluationRequirements = EvaluationRequirements::run($submission);
             $hasReviewEvaluationForms = $submission->formPhaseDetail?->hasReviewEvaluationForms() ?? false;
 
             // Check if current user is an assigned reviewer and get evaluation status
@@ -931,7 +915,6 @@ class SubmissionViewController extends Controller
                 'hasPendingEvaluations' => $hasPendingEvaluations,
                 'pendingEvaluationsCount' => $pendingEvaluationsCount,
                 'hasReviewEvaluationForms' => $hasReviewEvaluationForms,
-                'evaluationRequirements' => $evaluationRequirements,
                 'userRole' => $this->getUserRoleForSubmission($submission, $currentUser),
                 'assignedReviewers' => $assignedReviewers, // Already in correct format
                 'reviewerFormAssignments' => [], // Add if needed for admin
@@ -1328,27 +1311,5 @@ class SubmissionViewController extends Controller
         }
 
         return $assignments;
-    }
-
-    protected function getEvaluationMessage(
-        bool $hasEvaluationForms,
-        bool $isAssignedReviewer,
-        int $assignmentsCount,
-        bool $hasPendingEvaluations
-    ): string {
-        if (!$hasEvaluationForms) {
-            return 'Tidak ada formulir evaluasi yang diperlukan untuk pengajuan ini.';
-        }
-
-        if (!$isAssignedReviewer) {
-            return 'Anda tidak ditugaskan sebagai reviewer untuk pengajuan ini.';
-        }
-
-        // Has evaluation forms - reviewer is assigned
-        if ($hasPendingEvaluations) {
-            return 'Selesaikan semua formulir evaluasi yang diperlukan sebelum membuat thread review.';
-        }
-
-        return 'Semua evaluasi yang diperlukan telah selesai. Anda sekarang dapat membuat thread review.';
     }
 }
