@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Actions\Review\AssignEvaluationForm;
 use App\Actions\Review\AssignReviewer;
 use App\Actions\Review\EvaluateSubmissionOutcome;
+use App\Actions\Review\OpenReviewThread;
 use App\Models\FormPhase;
 use App\Models\FormPhaseDetail;
 use App\Models\FormSubmission;
@@ -277,94 +278,57 @@ class ReviewController extends Controller
 
         $user = Auth::user();
 
-        // Admin can always create threads
+        // Operator membuka ulir tanpa penugasan, jadi BR-FE-06 tidak berlaku
+        // baginya — ia bukan pihak yang menilai.
         if ($user->can('users.manage')) {
-            return $this->performCreateReviewThread($request, $submission, null);
+            return $this->openThread($request, $submission, null);
         }
 
         /** @var Reviewer|null $reviewer */
-
-        // Check if user is a reviewer
         $reviewer = Reviewer::where('user_id', $user->id)->first();
+
         if (!$reviewer) {
             abort(403, 'Anda tidak terdaftar sebagai reviewer');
         }
 
-        // Check if reviewer is assigned to this submission
-        $submissionReviewer = SubmissionReviewer::where([
+        $assignment = SubmissionReviewer::where([
             'form_submission_id' => $submission->id,
             'reviewer_id' => $reviewer->id,
         ])->first();
 
-        if (!$submissionReviewer) {
+        if (!$assignment) {
             abort(403, 'Anda tidak ditugaskan sebagai reviewer untuk pengajuan ini.');
         }
 
-        // Get form phase to check if evaluation forms exist
-        $formPhaseDetail = $submission->getFormPhaseDetail();
-
-        if (!$formPhaseDetail || !$formPhaseDetail->hasReviewEvaluationForms()) {
-            // No evaluation forms, allow thread creation immediately
-            return $this->performCreateReviewThread($request, $submission, $reviewer);
-        }
-
-        // Has evaluation forms - check if all REQUIRED forms are completed
-        $requiredForms = $formPhaseDetail->requiredReviewEvaluationForms()->pluck('id');
-
-        if ($requiredForms->isEmpty()) {
-            // No required forms, can create thread
-            return $this->performCreateReviewThread($request, $submission, $reviewer);
-        }
-
-        // Check completion of required forms
-        $completedRequired = $submissionReviewer->reviewerFormAssignments()
-            ->whereIn('review_evaluation_form_id', $requiredForms)
-            ->whereHas('reviewFormResponse', function ($q) {
-                $q->where('status', 'submitted');
-            })
-            ->count();
-
-        if ($completedRequired < $requiredForms->count()) {
-            $pendingCount = $requiredForms->count() - $completedRequired;
-            abort(403, "Selesaikan {$pendingCount} formulir evaluasi yang wajib sebelum membuat thread review.");
-        }
-
-        // All required forms completed, can create thread
-        return $this->performCreateReviewThread($request, $submission, $reviewer);
+        return $this->openThread($request, $submission, $assignment);
     }
 
-    protected function performCreateReviewThread(Request $request, FormSubmission $submission, ?Reviewer $reviewer)
+    protected function openThread(Request $request, FormSubmission $submission, ?SubmissionReviewer $assignment)
     {
-        DB::transaction(function () use ($request, $submission, $reviewer) {
-            $reviewSummary = ReviewSummary::create([
-                'form_submission_id' => $submission->id,
-                'reviewer_id' => $reviewer?->id,
-                'status' => 'open',
-                'summary_notes' => $request->summary_notes,
-            ]);
-
-            // Handle attachments
-            if ($request->hasFile('attachments')) {
-                foreach ($request->file('attachments') as $file) {
-                    $path = $file->store('review-attachments/'.$submission->id, 'public');
-
-                    ReviewSummaryAttachment::create([
-                        'review_summary_id' => $reviewSummary->id,
-                        'file_path' => $path,
-                    ]);
-                }
-            }
-
-            // Update submission status if not already under review
-            if ($submission->status instanceof Submitted) {
-                $submission->status->transitionTo(UnderReview::class);
-            }
-
-            // TAMBAHKAN: Kirim email notifikasi review thread created
-            $this->emailService->notifyReviewThreadCreated($reviewSummary);
-        });
+        OpenReviewThread::run(
+            $submission,
+            $assignment,
+            (string) $request->input('summary_notes'),
+            $this->storeAttachments($request, $submission),
+        );
 
         return back()->with('success', 'Thread review berhasil dibuat.');
+    }
+
+    /** @return list<string> */
+    protected function storeAttachments(Request $request, FormSubmission $submission): array
+    {
+        if (!$request->hasFile('attachments')) {
+            return [];
+        }
+
+        $paths = [];
+
+        foreach ($request->file('attachments') as $file) {
+            $paths[] = (string) $file->store('review-attachments/'.$submission->id, 'public');
+        }
+
+        return $paths;
     }
 
     // Enhanced comment adding with evaluation check
