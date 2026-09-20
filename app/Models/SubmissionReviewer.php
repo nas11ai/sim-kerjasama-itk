@@ -20,7 +20,7 @@ class SubmissionReviewer extends Model
     protected $fillable = [
         'form_submission_id',
         'reviewer_id',
-        'evaluation_status', // NEW
+        'evaluation_status',
         'status',
     ];
 
@@ -61,7 +61,6 @@ class SubmissionReviewer extends Model
         return $this->reviewerFormAssignments()->active();
     }
 
-    // NEW: Completed form assignments
     /**
      * @return HasMany<ReviewerFormAssignment, $this>
      */
@@ -74,7 +73,6 @@ class SubmissionReviewer extends Model
             });
     }
 
-    // NEW: Pending form assignments
     /**
      * @return HasMany<ReviewerFormAssignment, $this>
      */
@@ -107,13 +105,9 @@ class SubmissionReviewer extends Model
     }
 
     /**
-     * Status evaluasi yang dihitung selesai untuk BR-REV-05, BR-REV-06,
-     * dan BR-FE-06.
-     *
-     * `not_required` ikut, dan itu keharusan bukan kelonggaran: dibaca
-     * harfiah sebagai `completed` saja, reviewer yang memang tidak
-     * diwajibkan menilai tidak akan pernah selesai dan submission-nya
-     * terkunci selamanya tanpa ada yang salah (register #14).
+     * Status evaluasi yang dihitung selesai untuk BR-REV-05, BR-REV-06, dan
+     * BR-FE-06. `not_required` ikut karena reviewer yang memang tidak wajib
+     * menilai tak akan pernah selesai, dan submission-nya terkunci selamanya.
      */
     public const SETTLED_EVALUATION = ['completed', 'not_required'];
 
@@ -128,7 +122,6 @@ class SubmissionReviewer extends Model
         $this->update(['status' => 'replaced']);
     }
 
-    // NEW: Get pending forms count
     public function getPendingFormsCountAttribute(): int
     {
         return $this->pendingReviewerFormAssignments()->count();
