@@ -8,11 +8,9 @@ use App\Models\FormSubmission;
 use App\Models\ReviewerFormAssignment;
 use App\Models\ReviewEvaluationForm;
 use App\Models\ReviewFormResponse;
-use App\Models\ReviewSummary;
 use App\Models\SubmissionPeriod;
 use App\Models\SubmissionReviewer;
 use App\Queries\Review\EvaluationFormCompletion;
-use App\Queries\Review\RequiredFormsCompletion;
 use App\Support\Review\EvaluationStatusRecalculator;
 use App\Support\Review\FieldResponseValidator;
 use Illuminate\Http\Request;
@@ -371,23 +369,6 @@ class ReviewFormResponseController extends Controller
         }
 
         return $errors;
-    }
-
-    protected function createOrUpdateReviewSummary(ReviewerFormAssignment $assignment)
-    {
-        $submissionReviewer = $assignment->submissionReviewer;
-
-        // Check if all required evaluations are completed
-        if (!RequiredFormsCompletion::run($submissionReviewer)) {
-            return;
-        }
-
-        // Create or update review summary
-        ReviewSummary::createFromEvaluationResponses(
-            $submissionReviewer->form_submission_id,
-            $submissionReviewer->reviewer_id,
-            'open' // Start with open status for discussion
-        );
     }
 
     protected function generateSummaryContent(ReviewerFormAssignment $assignment, ReviewFormResponse $response): string
