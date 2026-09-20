@@ -14,10 +14,8 @@ class BudgetLineItemPolicy
 {
     public function update(User $user, FormSubmission $submission): bool
     {
-        // BR-BUD-02 — sumbu keadaan diperiksa lebih dulu; status terminal mengunci
-        // anggaran bagi siapa pun, termasuk ketua pengaju. NEEDS_REVISION sengaja
-        // TIDAK termasuk: BR-BUD-03 justru menuntut anggaran tetap bisa disunting
-        // saat revisi.
+        // BR-BUD-02 — sumbu keadaan lebih dulu: status terminal mengunci
+        // anggaran bagi siapa pun, termasuk ketua pengaju.
         if ($this->isLockedByState($submission)) {
             return false;
         }
@@ -39,6 +37,10 @@ class BudgetLineItemPolicy
             ->exists();
     }
 
+    /**
+     * NEEDS_REVISION sengaja **tidak** di sini: BR-BUD-03 menuntut anggaran
+     * tetap bisa disunting saat revisi.
+     */
     private function isLockedByState(FormSubmission $submission): bool
     {
         return $submission->status instanceof Approved

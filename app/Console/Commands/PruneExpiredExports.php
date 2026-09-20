@@ -12,9 +12,8 @@ use Illuminate\Support\Facades\Storage;
 /**
  * BR-RPT-12 — berkas hasil ekspor dihapus otomatis setelah 24 jam.
  *
- * Barisnya **tidak** ikut dihapus: riwayat permintaan tetap terbaca, dan
- * itulah yang membuat Operator tahu ekspornya pernah jadi lalu kedaluwarsa —
- * bukan mengira permintaannya tidak pernah diproses.
+ * Barisnya **tidak** ikut dihapus: dari riwayat, Operator tahu ekspornya
+ * pernah jadi lalu kedaluwarsa — bukan permintaan yang tidak pernah diproses.
  */
 class PruneExpiredExports extends Command
 {

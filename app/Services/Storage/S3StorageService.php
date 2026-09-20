@@ -15,11 +15,9 @@ class S3StorageService implements StorageService
         $extension = $file->getClientOriginalExtension();
         $name = $extension === '' ? Str::uuid()->toString() : Str::uuid()->toString().'.'.$extension;
 
-        // I4 — putFileAs() men-trim sendiri path yang diberikan dan
-        // mengembalikan path aslinya; jangan hitung ulang path secara
-        // terpisah, karena untuk $path kosong/'/' hasilnya menyimpang dari
-        // lokasi file yang sesungguhnya (leading slash yang tidak dipakai
-        // putFileAs).
+        // I4 — putFileAs() men-trim sendiri path dan mengembalikan path
+        // aslinya. Jangan hitung ulang: untuk $path kosong atau '/', hitungan
+        // sendiri menyisakan leading slash yang tidak dipakai putFileAs.
         $storedPath = Storage::disk($this->disk)->putFileAs(trim($path, '/'), $file, $name);
 
         if ($storedPath === false) {

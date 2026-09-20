@@ -23,9 +23,6 @@ app/Actions/Period/ExtendSubmissionDates.php
 app/Actions/Review/AssignReviewer.php
 app/Actions/Scheme/SyncSchemeSelection.php
 app/Console/Commands/NotifyActiveSubmissionPeriods.php
-app/Console/Commands/PruneExpiredExports.php
-app/Data/Submission/SubmissionAbilitiesData.php
-app/Enums/VerificationStatus.php
 app/Http/Controllers/AnnouncementController.php
 app/Http/Controllers/BiodataController.php
 app/Http/Controllers/CompleteFormBuilderController.php
@@ -44,9 +41,6 @@ app/Http/Controllers/SubmissionPeriodController.php
 app/Http/Controllers/SubmissionViewController.php
 app/Http/Controllers/UserFormController.php
 app/Http/Middleware/CheckBiodata.php
-app/Jobs/GenerateExport.php
-app/Listeners/SendProposalSubmittedNotification.php
-app/Mail/DynamicEmailNotification.php
 app/Models/FormPhaseDetail.php
 # FormSubmission.php tidak bisa keluar dari daftar ini, dan itu bukan utang:
 # 215 baris kode tanpa komentar, baris kosong, dan import, sementara
@@ -56,11 +50,7 @@ app/Models/FormPhaseDetail.php
 app/Models/FormSubmission.php
 app/Models/Organization.php
 app/Models/SubmissionPeriod.php
-app/Policies/BudgetLineItemPolicy.php
-app/Policies/FormSubmissionPolicy.php
-app/Providers/AppServiceProvider.php
 app/Services/EmailNotificationService.php
-app/Services/Storage/S3StorageService.php
 app/Support/Audit/AuditTrail.php
 app/Support/Config/ReferenceEntityRegistry.php
 resources/js/Components/AppSidebar.vue

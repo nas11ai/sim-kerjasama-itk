@@ -22,11 +22,13 @@ class FormSubmissionPolicy
         return $submission->isAccessibleBy($user);
     }
 
+    /**
+     * I6 — guard isAccessibleBy() dihapus: cabang submitted_by di dalamnya
+     * sudah tercakup cek di bawah, jadi ia tidak pernah mengubah hasil tapi
+     * menambah dua query exists().
+     */
     public function update(User $user, FormSubmission $submission): bool
     {
-        // I6 — guard isAccessibleBy() dihapus: cabang submitted_by di
-        // dalamnya sudah tercakup oleh cek submitted_by di bawah, jadi guard
-        // ini tidak pernah mengubah hasil tapi menambah dua query exists().
         // Hanya lead researcher yang boleh mengubah isi pengajuan.
         if ($submission->submitted_by !== $user->id) {
             return false;
@@ -64,15 +66,13 @@ class FormSubmissionPolicy
 
     /**
      * BR-SM-15 — target luaran boleh diubah sampai REJECTED atau WITHDRAWN,
-     * termasuk setelah APPROVED karena target menyesuaikan jalannya kegiatan.
-     *
-     * Hanya `submitted_by`. Sengaja berbeda dari BR-RO-07 yang membolehkan
-     * co-investigator mengisi luaran realisasi: mengubah janji bukan tindakan
-     * yang sama dengan mengisi hasil, dan perbedaan itu harus tetap terlihat
-     * di kode alih-alih diseragamkan demi kerapian.
+     * termasuk setelah APPROVED: target menyesuaikan jalannya kegiatan.
      */
     public function manageTargetOutput(User $user, FormSubmission $submission): bool
     {
+        // Hanya `submitted_by`, sengaja berbeda dari BR-RO-07 yang membolehkan
+        // co-investigator mengisi luaran realisasi: mengubah janji bukan
+        // tindakan yang sama dengan mengisi hasil. Jangan diseragamkan.
         if ($submission->submitted_by !== $user->id) {
             return false;
         }
@@ -82,12 +82,8 @@ class FormSubmissionPolicy
     }
 
     /**
-     * BR-SM-18 — mengeluarkan anggota penelitian.
-     *
-     * Sumbunya sama dengan BR-SM-15: hanya `submitted_by`, dan hanya selama
-     * pengajuan belum terminal. Bedanya APPROVED ikut mengunci — susunan tim
-     * yang sudah disetujui adalah bagian dari yang disetujui, sedangkan target
-     * luaran justru dibiarkan menyesuaikan jalannya kegiatan.
+     * BR-SM-18 — mengeluarkan anggota penelitian. Sumbunya sama dengan
+     * BR-SM-15: hanya `submitted_by`, hanya selama belum terminal.
      */
     public function manageResearchMembers(User $user, FormSubmission $submission): bool
     {
@@ -95,6 +91,9 @@ class FormSubmissionPolicy
             return false;
         }
 
+        // Bedanya: APPROVED ikut mengunci — susunan tim yang sudah disetujui
+        // adalah bagian dari yang disetujui, sedangkan target luaran justru
+        // dibiarkan menyesuaikan jalannya kegiatan.
         return !$submission->status instanceof Approved
             && !$submission->status instanceof Rejected
             && !$submission->status instanceof Withdrawn;
@@ -130,25 +129,21 @@ class FormSubmissionPolicy
     }
 
     /**
-     * BR-RO-07 — siapa boleh menambah dan menyunting luaran terealisasi.
-     *
-     * Dua sumbu yang sengaja dipisah (register #35). **Di dalam tim
-     * penelitian**, hanya `submitted_by` dan `co_investigator`; anggota biasa
-     * dan Reviewer membaca saja. **Staf** pemegang `outputs.manage` tetap bisa
-     * menyunting, karena luaran memasok pelaporan LPPM dan merapikan datanya
-     * memang tugas mereka.
-     *
-     * Sengaja **tidak** mengikuti preseden ADR 0015 yang menjadikan
-     * `update-budget` invarian domain: anggaran adalah komitmen peneliti,
-     * luaran adalah laporan fakta. Menyamakan keduanya mengunci Operator dari
-     * data yang justru ia pertanggungjawabkan ke luar.
+     * BR-RO-07 — dua sumbu yang sengaja dipisah (register #35): tim penelitian
+     * dan staf. ADR 0015 yang menjadikan `update-budget` invarian domain
+     * sengaja tidak diikuti: anggaran komitmen peneliti, luaran laporan fakta.
      */
     public function manageResearchOutput(User $user, FormSubmission $submission): bool
     {
+        // Staf pemegang `outputs.manage` tetap bisa menyunting: luaran memasok
+        // pelaporan LPPM dan merapikan datanya memang tugas mereka. Menutupnya
+        // mengunci Operator dari data yang ia pertanggungjawabkan ke luar.
         if ($user->can('outputs.manage')) {
             return true;
         }
 
+        // Di dalam tim penelitian hanya `submitted_by` dan `co_investigator`;
+        // anggota biasa dan Reviewer membaca saja.
         if ($submission->submitted_by === $user->id) {
             return true;
         }

@@ -19,28 +19,25 @@ use Throwable;
  * BR-RPT-02, BR-RPT-07, BR-RPT-08 — pembuatan berkas ekspor.
  *
  * Dipakai dua jalur: `dispatch()` untuk ekspor besar dan `dispatchSync()`
- * untuk yang kecil. Satu kelas, supaya berkas yang dihasilkan keduanya
- * identik.
- *
- * Tiga percobaan dengan jeda menaik, lalu **berhenti**. Percobaan yang tidak
- * berujung hanya menyembunyikan kegagalan yang perlu dilihat orang, dan
- * Operator yang tidak pernah diberi tahu tidak akan pernah mengulang
- * ekspornya.
+ * untuk yang kecil — satu kelas, supaya berkasnya identik.
  */
 class GenerateExport implements ShouldQueue
 {
     use Queueable;
 
-    /** BR-RPT-08 — maksimal tiga percobaan. */
+    /**
+     * BR-RPT-08 — maksimal tiga percobaan, lalu **berhenti**. Percobaan yang
+     * tidak berujung menyembunyikan kegagalan yang perlu dilihat orang, dan
+     * Operator yang tidak diberi tahu tidak akan pernah mengulang ekspornya.
+     */
     public int $tries = 3;
 
     public function __construct(private readonly int $exportJobId) {}
 
     /**
-     * Exponential backoff: 10 detik, lalu 40, lalu menyerah. Kegagalan yang
-     * disebabkan beban sesaat sempat pulih; yang disebabkan cacat data tidak
-     * akan pulih berapa kali pun diulang, jadi tidak ada gunanya menunggu
-     * lebih lama.
+     * Exponential backoff: 10 detik, lalu 40, lalu menyerah. Kegagalan karena
+     * beban sesaat sempat pulih; yang karena cacat data tidak akan pulih
+     * berapa kali pun diulang, jadi menunggu lebih lama tidak ada gunanya.
      *
      * @return array<int, int>
      */

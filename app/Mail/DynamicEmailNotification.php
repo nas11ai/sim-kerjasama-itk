@@ -11,12 +11,10 @@ use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Log;
 
 /**
- * @deprecated Mailable buatan tangan ini dipakai satu-satunya oleh
- * `App\Services\EmailNotificationService`, yang sendiri sudah `@deprecated`.
- * Pola penggantinya adalah Laravel Notification satu class dua channel
- * (`database` + `mail`) lewat method `toMail()` — lihat
- * `App\Notifications\ProposalSubmittedNotification` sebagai contoh. Jangan
- * tambah pemanggil baru ke class ini.
+ * @deprecated Jangan tambah pemanggil baru. Satu-satunya pemanggilnya,
+ * `App\Services\EmailNotificationService`, sendiri sudah usang. Penggantinya
+ * Laravel Notification satu class dua channel (`database` + `mail`) lewat
+ * `toMail()` — contohnya `App\Notifications\ProposalSubmittedNotification`.
  */
 class DynamicEmailNotification extends Mailable
 {

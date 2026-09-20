@@ -7,12 +7,9 @@ use App\Models\User;
 use Spatie\LaravelData\Data;
 
 /**
- * Jawaban Policy atas satu pengajuan, dalam bentuk yang bisa dibaca layar.
- *
- * Ada supaya frontend berhenti menebak. Menyusun ulang aturan di Vue —
- * "pemiliknya dan belum disubmit" — melewatkan sumbu yang diketahui Policy
- * tapi tidak diketahui layar: arsip periode (BR-SM-10) dan status terminal
- * (BR-SM-05). Tebakan itu selalu lebih longgar daripada aturannya.
+ * Jawaban Policy atas satu pengajuan, supaya frontend berhenti menebak.
+ * Menyusun ulang aturan di Vue melewatkan arsip periode (BR-SM-10) dan
+ * status terminal (BR-SM-05); tebakan itu selalu lebih longgar dari aturannya.
  */
 class SubmissionAbilitiesData extends Data
 {
