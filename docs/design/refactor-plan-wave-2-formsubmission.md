@@ -2,6 +2,10 @@
 
 > **Untuk pekerja agentik:** SUB-SKILL WAJIB: pakai `superpowers:subagent-driven-development`
 > (disarankan) atau `superpowers:executing-plans`. Langkahnya memakai checkbox (`- [ ]`).
+>
+> **Mulai dari [Bagian 2](#bagian-2--temuan-review), Task 7.** Task 1–6 sudah selesai dan
+> tinggal sebagai catatan — kotaknya sudah tercentang. Kerjakan Task 7 lebih dulu; ia
+> menutup lubang gerbang yang menjaga Task 9–14.
 
 **Goal:** Mengosongkan `FormSubmission` dari logic yang bukan miliknya. Bagian kedua goal
 ini — "sampai ia keluar dari `quality-legacy.txt`" — **terbukti mustahil**; lihat Task 6.
@@ -14,9 +18,9 @@ dulu berarti memindahkan sampah ke rumah baru.
 
 **Spec:** [`docs/design/refactor-plan.md`](refactor-plan.md) v1.5 §2.5
 
-**Status:** dieksekusi 20 September 2026 di branch `feat/init-be-development`,
-commit `5e44f54`..`9c3fb95`, lalu dibersihkan dari lima kelas yang tidak terpakai.
-Task 1–5 selesai; Task 6 tidak bisa dijalankan.
+**Status:** bagian 1 dieksekusi 20 September 2026 di branch `feat/init-be-development`,
+commit `5e44f54`..`98af85b`. Task 1–5 selesai; Task 6 tidak bisa dijalankan.
+**Bagian 2 (Task 7–14) belum dikerjakan.**
 
 ---
 
@@ -1120,10 +1124,923 @@ metriknya, bukan kodenya yang perlu dipelintir supaya muat. Yang dikerjakan:
 
 ---
 
+---
+
+# Bagian 2 — temuan review
+
+**Status:** belum dikerjakan. Ditulis 20 September 2026 setelah review kode atas
+`dd43442`..`98af85b`.
+
+**Goal:** Membereskan sisa yang ditinggalkan bagian 1 — satu bug yang melanggar BR-REV-05,
+satu gerbang yang bolong, satu method mati, dan tiga berkas yang belum selesai dirapikan.
+
+**Architecture:** Pagar dulu, baru isinya. Task 7 menutup lubang di `AuditCoverageTest`
+sebelum Task 9–14 menambah kode ke `app/Queries/`, supaya kode baru itu lahir sudah
+terjaga, bukan menyusul dijaga.
+
+**Seluruh Global Constraints di bagian 1 tetap berlaku** — termasuk larangan menyiasati
+PHPStan, pesan commit satu baris, dan `composer run quality` hijau sebelum tugas dinyatakan
+selesai. Suite acuan saat bagian ini ditulis: **876 test**.
+
+## Dari mana temuan ini
+
+Review dijalankan atas rentang `dd43442`..`98af85b`. Yang masuk ke sini **hanya temuan
+yang sudah diperiksa ulang langsung di kode**, beserta buktinya. Tiga temuan review
+sengaja tidak jadi task dan alasannya ada di bagian *Catatan, bukan task* di bawah.
+
+Satu temuan review **ditolak**: ia menyebut tiga layar memancarkan prop
+`evaluationRequirements` dengan tiga bentuk berbeda. Yang benar **dua** —
+`userShowSubmission` (baris 415) dan `adminShowSubmission` (baris 846).
+`reviewerShowSubmission` (baris 1099) tidak memancarkan prop itu sama sekali. Task 13
+memakai angka yang benar.
+
+## Peta Berkas (bagian 2)
+
+| Berkas | Disentuh oleh |
+| ------ | ------------- |
+| `tests/Unit/Audit/AuditCoverageTest.php` | Task 7 |
+| `AGENTS.md` | Task 7 |
+| `app/Queries/Review/EvaluationFormsOverview.php` | Task 8, Task 10 |
+| `app/Queries/Review/PendingEvaluationCheck.php` | Task 9 |
+| `app/Queries/Review/EvaluationProgress.php` | Task 9 |
+| `app/Queries/Review/EvaluationRequirements.php` | Task 11 |
+| `tests/Feature/Review/EvaluationProgressTest.php` | Task 9, Task 12 |
+| `app/Http/Controllers/SubmissionViewController.php` | Task 13 |
+| `app/Http/Controllers/ReviewController.php` | Task 14 |
+
+---
+
+### Task 7: Perluas `AuditCoverageTest` ke `app/Queries/`
+
+`AuditCoverageTest` hanya memindai `app_path('Actions')` (baris 24). Seluruh
+`app/Queries/` tidak pernah dikunjungi, jadi penanda `ChangesNoState` pada empat Query
+yang ada sekarang **tidak ditegakkan apa pun** — ia komentar yang menyamar jadi tipe.
+Siapa pun yang kelak menulis perubahan state di `app/Queries/` lolos gerbang BR-RPT-09
+dengan suite hijau.
+
+Kerjakan ini **lebih dulu**: Task 9–14 menambah kode ke direktori yang belum terjaga itu.
+
+**Files:**
+- Modify: `tests/Unit/Audit/AuditCoverageTest.php`
+- Modify: `AGENTS.md`
+
+**Interfaces:**
+- Consumes: `App\Actions\Concerns\ChangesNoState`
+- Produces: cakupan BR-RPT-09 meluas dari satu direktori jadi dua
+
+- [ ] **Step 1: Buktikan lubangnya ada**
+
+Tulis Query sementara yang mengubah state tanpa audit dan tanpa penanda:
+
+```bash
+cat > app/Queries/Review/ProbeSementara.php <<'EOF'
+<?php
+
+namespace App\Queries\Review;
+
+use App\Models\FormSubmission;
+use Lorisleiva\Actions\Concerns\AsAction;
+
+class ProbeSementara
+{
+    use AsAction;
+
+    public function handle(FormSubmission $submission): void
+    {
+        $submission->update(['last_completed_step' => 99]);
+    }
+}
+EOF
+
+docker run --rm --network host -v "$PWD":/app -w /app -u "$(id -u):$(id -g)" \
+  -e DB_PORT=55432 -e DB_PASSWORD=postgres simpas-ci:8.4 \
+  ./vendor/bin/pest tests/Unit/Audit/AuditCoverageTest.php
+```
+Expected: **LULUS** — dan justru itu kegagalannya. Berkas yang jelas-jelas mengubah state
+tanpa audit lolos tanpa sepatah kata. Jangan hapus probe-nya dulu.
+
+- [ ] **Step 2: Generalisasi pemindaiannya**
+
+`actionClasses()` meng-hardcode `app_path('Actions')` dan prefiks namespace
+`App\Actions\`. Ganti keduanya jadi peta direktori → namespace, lalu ganti nama
+fungsinya karena ia tidak lagi khusus Action:
+
+```php
+/**
+ * @return array<int, array{class: class-string, path: string, source: string}>
+ */
+function auditedClasses(): array
+{
+    $classes = [];
+
+    // BR-RPT-09 — cakupannya direktori tempat use case hidup, bukan satu nama
+    // direktori. Query masuk karena ia bisa saja menulis, bukan karena ia
+    // diharapkan menulis.
+    foreach (['Actions' => 'App\\Actions\\', 'Queries' => 'App\\Queries\\'] as $dir => $namespace) {
+        foreach (Finder::create()->files()->in(app_path($dir))->name('*.php')->sortByName() as $file) {
+            $relative = str_replace(['/', '.php'], ['\\', ''], $file->getRelativePathname());
+            $class = $namespace.$relative;
+
+            if (!class_exists($class)) {
+                continue;
+            }
+
+            $classes[] = [
+                'class' => $class,
+                'path' => 'app/'.$dir.'/'.$file->getRelativePathname(),
+                'source' => (string) file_get_contents($file->getPathname()),
+            ];
+        }
+    }
+
+    return $classes;
+}
+```
+
+Ganti ketiga pemanggil `actionClasses()` (baris 45, 67, 84) jadi `auditedClasses()`.
+Sesuaikan juga kalimat pesan gagalnya — "Action berikut" kini bisa berarti Query.
+
+- [ ] **Step 3: Pastikan probe-nya sekarang tertangkap**
+
+Run:
+```bash
+docker run --rm --network host -v "$PWD":/app -w /app -u "$(id -u):$(id -g)" \
+  -e DB_PORT=55432 -e DB_PASSWORD=postgres simpas-ci:8.4 \
+  ./vendor/bin/pest tests/Unit/Audit/AuditCoverageTest.php
+```
+Expected: **GAGAL**, menyebut `app/Queries/Review/ProbeSementara.php`.
+
+- [ ] **Step 4: Buang probe-nya, pastikan hijau lagi**
+
+```bash
+rm app/Queries/Review/ProbeSementara.php
+
+docker run --rm --network host -v "$PWD":/app -w /app -u "$(id -u):$(id -g)" \
+  -e DB_PORT=55432 -e DB_PASSWORD=postgres simpas-ci:8.4 \
+  ./vendor/bin/pest tests/Unit/Audit/AuditCoverageTest.php
+```
+Expected: LULUS. Keempat Query yang ada sudah `implements ChangesNoState`, jadi tidak ada
+yang perlu diubah di `app/Queries/`.
+
+- [ ] **Step 5: Tambahkan `app/Queries/` ke tabel AGENTS.md**
+
+Tabel *Di mana meletakkan kode baru* tidak punya baris untuk `app/Queries/`, padahal
+direktorinya sudah berisi empat berkas. Tanpa baris itu, agen berikutnya menaruh kueri
+di `app/Actions/`. Sisipkan tepat di bawah baris *Business use case*:
+
+```
+| Kueri baca (tanpa ubah state) | `app/Queries/`          | `implements ChangesNoState`; otomatis level 9 |
+```
+
+- [ ] **Step 6: Jalankan gerbang penuh**
+
+Run:
+```bash
+docker run --rm --network host -v "$PWD":/app -w /app -u "$(id -u):$(id -g)" \
+  -e DB_PORT=55432 -e DB_PASSWORD=postgres simpas-ci:8.4 composer run quality
+```
+Expected: hijau, 876 test (jumlahnya tidak berubah — cakupannya yang melebar, bukan
+jumlah test-nya).
+
+- [ ] **Step 7: Commit**
+
+```bash
+git add tests AGENTS.md
+git commit -m "test(audit): perluas cakupan BR-RPT-09 ke app/Queries"
+```
+
+---
+
+### Task 8: Cabut `EvaluationFormsOverview::isRequired()`
+
+Nol pemanggil. Ia ditulis sebagai pengganti `FormSubmission::requiresReviewEvaluation()`,
+yang ternyata juga sudah mati — jadi penggantinya tidak pernah dibutuhkan. Badannya satu
+baris yang membungkus `FormPhaseDetail::requiresEvaluationCompletion()` yang sudah ada.
+
+Ini method mati **keenam** dari gelombang ini; lima yang pertama sudah dihapus di
+`2ba1a9a`.
+
+**Files:**
+- Modify: `app/Queries/Review/EvaluationFormsOverview.php`
+
+**Interfaces:**
+- Consumes: —
+- Produces: `EvaluationFormsOverview` tinggal `handle()` dan `countPerForm()`
+
+- [ ] **Step 1: Buktikan ulang nol rujukan**
+
+Run:
+```bash
+grep -rn 'isRequired(' --include='*.php' app/ tests/ routes/ | grep -v 'public static function'
+```
+Expected: kosong. Kalau ada hasil, **berhenti** — berarti ada pemanggil yang lahir setelah
+rencana ini ditulis, dan tugas ini batal.
+
+- [ ] **Step 2: Hapus method-nya**
+
+Hapus `isRequired()` beserta docblock-nya. Import `FormSubmission` tetap dipakai
+`handle()`, jadi jangan ikut dibuang.
+
+- [ ] **Step 3: Jalankan gerbang penuh**
+
+Run:
+```bash
+docker run --rm --network host -v "$PWD":/app -w /app -u "$(id -u):$(id -g)" \
+  -e DB_PORT=55432 -e DB_PASSWORD=postgres simpas-ci:8.4 composer run quality
+```
+Expected: hijau, 876 test.
+
+- [ ] **Step 4: Commit**
+
+```bash
+git add app
+git commit -m "refactor(review): cabut isRequired yang tidak dipanggil siapa pun"
+```
+
+---
+
+### Task 9: Satu definisi "evaluasi selesai" — BR-REV-05
+
+Ini bug, bukan kerapian.
+
+BR-REV-05 menetapkan definisinya sekali: *"setiap `SubmissionReviewer` **aktif** sudah
+selesai (`evaluation_status` = `completed` **atau** `not_required`)"*. BR-REV-06 menegaskan
+lagi: *"Definisi 'selesai' sama persis dengan BR-REV-05 dan BR-FE-06 — **satu definisi,
+tiga pemakai**"*.
+
+Di repo sekarang ada **tiga** definisi yang berbeda:
+
+| Tempat | Definisinya | Sesuai BR-REV-05? |
+| ------ | ----------- | ----------------- |
+| `FormSubmission::canProceed()` | `status = 'active'` DAN `evaluation_status` ∈ `SETTLED_EVALUATION` | ✅ |
+| `PendingEvaluationCheck` | `evaluation_status = 'pending'`, tanpa filter status | ❌ |
+| `EvaluationProgress` | `pending === 0`, tanpa filter status | ❌ |
+
+**Akibatnya.** `ReviewerReassignment` di Ubiquitous Language
+([`02_ubiquitous_language.md:117`](../requirement-analysis/ddd/02_ubiquitous_language.md))
+menyatakan record reviewer lama di-mark `replaced` dan tetap tinggal sebagai sejarah.
+`ReplaceReviewer` (baris 48) memanggil `markAsReplaced()`, yang hanya menulis
+`status = 'replaced'` — `evaluation_status` dibiarkan apa adanya. Jadi reviewer yang
+diganti saat evaluasinya masih `pending` **mengunci diskusi selamanya**: sejarahnya ikut
+dihitung sebagai pekerjaan yang belum selesai.
+
+Kedua kueri ini port setia dari method model lama yang juga salah — bugnya warisan, bukan
+buatan gelombang 1. Tapi ekstraksi adalah saat yang tepat memperbaikinya, dan
+`SETTLED_EVALUATION` sudah ada sebagai satu-satunya definisi yang sah.
+
+**Files:**
+- Modify: `app/Queries/Review/PendingEvaluationCheck.php`
+- Modify: `app/Queries/Review/EvaluationProgress.php`
+- Test: `tests/Feature/Review/EvaluationPendingTest.php`
+- Test: `tests/Feature/Review/EvaluationProgressTest.php`
+
+**Interfaces:**
+- Consumes: `SubmissionReviewer::SETTLED_EVALUATION`
+- Produces: perilaku kedua kueri sama dengan `canProceed()`
+
+- [ ] **Step 1: Baca dulu ketiganya berdampingan**
+
+Run:
+```bash
+sed -n '/public function canProceed/,/^    }/p' app/Models/FormSubmission.php
+sed -n '140,150p' app/Models/SubmissionReviewer.php
+```
+Pastikan `SETTLED_EVALUATION` memang `['completed', 'not_required']` dan `canProceed()`
+memang memfilter `status = 'active'`. Kalau salah satunya sudah berubah, sesuaikan langkah
+di bawah — jangan ikuti rencana yang sudah basi.
+
+- [ ] **Step 2: Tulis test yang gagal**
+
+Tambahkan ke `tests/Feature/Review/EvaluationPendingTest.php`:
+
+```php
+it('mengabaikan reviewer yang sudah diganti — BR-REV-05 menghitung yang aktif saja', function () {
+    $submission = FormSubmission::factory()->create();
+
+    SubmissionReviewer::create([
+        'form_submission_id' => $submission->id,
+        'reviewer_id' => Reviewer::factory()->create()->id,
+        'evaluation_status' => 'completed',
+        'status' => 'active',
+    ]);
+
+    // Sejarah, bukan pekerjaan: evaluasinya tertinggal 'pending' karena
+    // markAsReplaced() hanya menyentuh status.
+    SubmissionReviewer::create([
+        'form_submission_id' => $submission->id,
+        'reviewer_id' => Reviewer::factory()->create()->id,
+        'evaluation_status' => 'pending',
+        'status' => 'replaced',
+    ]);
+
+    expect(PendingEvaluationCheck::run($submission->fresh()))->toBeFalse();
+});
+```
+
+Dan ke `tests/Feature/Review/EvaluationProgressTest.php` — `submissionWithStatuses()`
+selalu menulis `status = 'active'`, jadi tulis reviewer yang diganti secara eksplisit:
+
+```php
+it('tidak menghitung reviewer yang diganti sebagai pekerjaan tertunda', function () {
+    $submission = submissionWithStatuses('completed', 'completed');
+
+    SubmissionReviewer::create([
+        'form_submission_id' => $submission->id,
+        'reviewer_id' => Reviewer::factory()->create()->id,
+        'evaluation_status' => 'pending',
+        'status' => 'replaced',
+    ]);
+
+    $progress = EvaluationProgress::run($submission->fresh());
+
+    expect($progress->totalReviewers)->toBe(2)
+        ->and($progress->pending)->toBe(0)
+        ->and($progress->completionPercentage)->toBe(100)
+        ->and($progress->allCompleted)->toBeTrue();
+});
+```
+
+- [ ] **Step 3: Jalankan, pastikan gagal**
+
+Run:
+```bash
+docker run --rm --network host -v "$PWD":/app -w /app -u "$(id -u):$(id -g)" \
+  -e DB_PORT=55432 -e DB_PASSWORD=postgres simpas-ci:8.4 \
+  ./vendor/bin/pest tests/Feature/Review/EvaluationPendingTest.php tests/Feature/Review/EvaluationProgressTest.php
+```
+Expected: dua test baru GAGAL — `toBeFalse()` dapat `true`, dan `totalReviewers` dapat 3.
+Kalau salah satunya lulus sejak awal, **berhenti dan baca ulang**: berarti asumsi rencana
+ini tentang perilaku sekarang salah.
+
+- [ ] **Step 4: Perbaiki `PendingEvaluationCheck`**
+
+```php
+public function handle(FormSubmission $submission): bool
+{
+    // BR-REV-05 — yang dihitung hanya reviewer aktif, dan "selesai" berarti
+    // completed atau not_required. Reviewer yang diganti adalah sejarah.
+    return $submission->submissionReviewers()
+        ->where('status', 'active')
+        ->whereNotIn('evaluation_status', SubmissionReviewer::SETTLED_EVALUATION)
+        ->exists();
+}
+```
+
+Import `App\Models\SubmissionReviewer`. Perhatikan ini bukan sekadar menambah filter:
+`= 'pending'` berubah jadi `NOT IN (completed, not_required)`, supaya nilai
+`evaluation_status` baru yang kelak ditambahkan ke enum otomatis terhitung belum selesai
+alih-alih diam-diam dianggap beres.
+
+- [ ] **Step 5: Perbaiki `EvaluationProgress`**
+
+Tambahkan `->where('status', 'active')` pada kueri di `handle()`, dan turunkan
+`allCompleted` dari `SETTLED_EVALUATION`, bukan dari `$pending === 0`:
+
+```php
+$counts = $submission->submissionReviewers()
+    ->where('status', 'active')
+    ->get(['evaluation_status'])
+    ->countBy('evaluation_status')
+    ->all();
+
+$completed = $counts['completed'] ?? 0;
+$pending = $counts['pending'] ?? 0;
+$notRequired = $counts['not_required'] ?? 0;
+$total = array_sum($counts);
+$settled = $completed + $notRequired;
+```
+
+lalu `completionPercentage: $total > 0 ? (int) round($settled / $total * 100) : 100` dan
+`allCompleted: $settled === $total`. Perbarui juga prosa komentar kelasnya — ia masih
+menjelaskan versi lama, dan batasnya tetap 3 baris.
+
+- [ ] **Step 6: Jalankan suite penuh**
+
+Run:
+```bash
+docker run --rm --network host -v "$PWD":/app -w /app -u "$(id -u):$(id -g)" \
+  -e DB_PORT=55432 -e DB_PASSWORD=postgres simpas-ci:8.4 composer run quality
+```
+Expected: hijau, 876 + 2 = **878 test**.
+
+Kalau ada test lain yang ikut merah, **jangan longgarkan test-nya** — ia mungkin mengunci
+perilaku lama yang salah. Baca dulu apa yang ia tegaskan, lalu putuskan.
+
+- [ ] **Step 7: Commit**
+
+```bash
+docker run --rm -v "$PWD":/app -w /app -u "$(id -u):$(id -g)" simpas-ci:8.4 ./vendor/bin/pint -q
+git add app tests
+git commit -m "fix(review): hitung hanya reviewer aktif sesuai BR-REV-05"
+```
+
+---
+
+### Task 10: Penyebut `EvaluationFormsOverview` ikut menghitung yang sudah tidak berlaku
+
+`reviewerFormAssignments()` adalah `HasManyThrough` tanpa filter apa pun, jadi
+`assigned_count` ikut menghitung penugasan milik reviewer yang sudah `replaced` dan
+penugasan yang `is_active = false`. Keduanya tidak akan pernah muncul di pembilang, jadi
+`completion_percentage` sebuah form bisa mentok di bawah 100% selamanya sesudah satu
+pergantian reviewer.
+
+Dua layar di `SubmissionViewController` (baris 810 dan 871) sudah memfilter
+`->where('is_active', true)`. Kueri ini port setia dari `getEvaluationFormsSummary()` yang
+lama, yang tidak memfilter — sama seperti Task 9, bugnya warisan.
+
+**Files:**
+- Modify: `app/Queries/Review/EvaluationFormsOverview.php`
+- Test: `tests/Feature/Review/EvaluationFormsOverviewTest.php`
+
+**Interfaces:**
+- Consumes: hasil Task 9 (definisi "aktif" yang sama)
+- Produces: `assigned_count` hanya menghitung penugasan yang masih berlaku
+
+- [ ] **Step 1: Tulis test yang gagal**
+
+`overviewAssignment()` di berkas test itu selalu membuat reviewer `status = 'active'` dan
+penugasan `is_active = true`. Tambahkan test yang membuat keduanya sebaliknya:
+
+```php
+it('tidak menghitung penugasan yang sudah tidak berlaku', function () {
+    $detail = FormPhaseDetail::factory()->create(['needs_review' => true]);
+    $submission = FormSubmission::factory()->create(['form_phase_detail_id' => $detail->id]);
+    $form = overviewEvaluationForm($detail, 1);
+
+    overviewAssignment($submission, $form, 'submitted');
+
+    // Reviewer yang diganti: penugasannya sejarah, bukan pekerjaan tertunda.
+    $diganti = SubmissionReviewer::create([
+        'form_submission_id' => $submission->id,
+        'reviewer_id' => Reviewer::factory()->create()->id,
+        'evaluation_status' => 'pending',
+        'status' => 'replaced',
+    ]);
+    ReviewerFormAssignment::create([
+        'submission_reviewer_id' => $diganti->id,
+        'review_evaluation_form_id' => $form->id,
+        'is_required' => true,
+        'assigned_at' => now(),
+        'is_active' => true,
+    ]);
+
+    $rows = EvaluationFormsOverview::run($submission->fresh());
+
+    expect($rows[0]['assigned_count'])->toBe(1)
+        ->and($rows[0]['completion_percentage'])->toBe(100);
+});
+```
+
+- [ ] **Step 2: Jalankan, pastikan gagal**
+
+Run:
+```bash
+docker run --rm --network host -v "$PWD":/app -w /app -u "$(id -u):$(id -g)" \
+  -e DB_PORT=55432 -e DB_PASSWORD=postgres simpas-ci:8.4 \
+  ./vendor/bin/pest tests/Feature/Review/EvaluationFormsOverviewTest.php
+```
+Expected: GAGAL — `assigned_count` dapat 2, `completion_percentage` dapat 50.
+
+- [ ] **Step 3: Saring di `countPerForm`**
+
+Tambahkan filter pada kedua kueri, di `handle()`:
+
+```php
+$berlaku = $submission->reviewerFormAssignments()
+    ->where('reviewer_form_assignments.is_active', true)
+    ->where('submission_reviewers.status', 'active');
+```
+
+Nama tabel wajib disebut eksplisit — `HasManyThrough` menggabung dua tabel yang
+sama-sama punya kolom `status` dan `is_active`, jadi kolom tanpa prefiks ambigu dan
+PostgreSQL akan menolaknya. Nama tabelnya sudah dipastikan mengikuti konvensi Laravel
+(tidak ada `protected $table` di kedua model): `submission_reviewers` dan
+`reviewer_form_assignments`.
+
+Karena `$berlaku` dipakai dua kali dan builder Eloquent **bersifat mutable**, bangun ulang
+untuk kueri kedua alih-alih memakai ulang objek yang sama — atau `clone` keduanya.
+
+- [ ] **Step 4: Jalankan suite penuh**
+
+Run:
+```bash
+docker run --rm --network host -v "$PWD":/app -w /app -u "$(id -u):$(id -g)" \
+  -e DB_PORT=55432 -e DB_PASSWORD=postgres simpas-ci:8.4 composer run quality
+```
+Expected: hijau, 878 + 1 = **879 test**.
+
+- [ ] **Step 5: Commit**
+
+```bash
+docker run --rm -v "$PWD":/app -w /app -u "$(id -u):$(id -g)" simpas-ci:8.4 ./vendor/bin/pint -q
+git add app tests
+git commit -m "fix(review): saring penugasan yang sudah tidak berlaku dari penyebut"
+```
+
+---
+
+### Task 11: `EvaluationRequirements` — test dulu, baru satukan kueri
+
+`EvaluationRequirements` adalah **satu-satunya kelas dari gelombang 1 yang benar-benar
+dilalui pengguna** (`SubmissionViewController::adminShowSubmission` baris 846 → prop
+`evaluationRequirements` → `Pages/Submissions/ShowSubmission.vue` → `ReviewSystem.vue`).
+Ia juga satu-satunya yang tidak punya test. Setiap kelas lain dari gelombang itu dapat
+test karakterisasi; yang dipakai admin setiap hari justru tidak.
+
+Ia juga menjalankan **tiga round trip** untuk satu jawaban, karena dua "kolom" yang
+dibacanya sebenarnya accessor berisi kueri:
+
+| Baris | Yang dibaca | Yang terjadi |
+| ----- | ----------- | ------------ |
+| 23 | `$detail->hasReviewEvaluationForms()` | `activeReviewEvaluationForms()->exists()` |
+| 34 | `$detail->review_evaluation_forms_count` | `FormPhaseDetail::getReviewEvaluationFormsCountAttribute()` → `->count()` |
+| 35 | `$detail->required_review_evaluation_forms_count` | `getRequiredReviewEvaluationFormsCountAttribute()` → `->count()` |
+
+Ketiganya memindai `review_evaluation_forms` yang sama.
+
+**Kerjakan test lebih dulu, lalu optimasi** — tanpa test, optimasi ini mengubah satu-satunya
+layar hidup tanpa jaring.
+
+**Files:**
+- Test: `tests/Feature/Review/EvaluationRequirementsTest.php` (baru)
+- Modify: `app/Queries/Review/EvaluationRequirements.php`
+
+**Interfaces:**
+- Consumes: `FormPhaseDetail`
+- Produces: bentuk keluaran **tidak berubah** — kuncinya tetap `required`, `has_forms`,
+  `total_forms`, `required_forms`, `message`
+
+- [ ] **Step 1: Tulis test karakterisasi**
+
+Kunci ketiga cabangnya apa adanya, termasuk kalimat pesannya yang berbahasa Inggris —
+jangan diperbaiki di sini, layar membacanya:
+
+```php
+<?php
+
+// tests/Feature/Review/EvaluationRequirementsTest.php
+
+use App\Models\FormPhaseDetail;
+use App\Models\FormSubmission;
+use App\Models\ReviewEvaluationForm;
+use App\Queries\Review\EvaluationRequirements;
+
+it('menyatakan tidak ada syarat saat pengajuan tanpa form phase detail', function () {
+    $hasil = EvaluationRequirements::run(FormSubmission::factory()->create());
+
+    expect($hasil['required'])->toBeFalse()
+        ->and($hasil['has_forms'])->toBeFalse()
+        ->and($hasil)->not->toHaveKey('total_forms');
+});
+
+it('menyatakan tidak ada syarat saat fase-nya tanpa form evaluasi', function () {
+    $detail = FormPhaseDetail::factory()->create(['needs_review' => true]);
+    $submission = FormSubmission::factory()->create(['form_phase_detail_id' => $detail->id]);
+
+    expect(EvaluationRequirements::run($submission)['has_forms'])->toBeFalse();
+});
+
+it('menghitung form seluruhnya dan yang wajib saja', function () {
+    $detail = FormPhaseDetail::factory()->create(['needs_review' => true]);
+    $submission = FormSubmission::factory()->create(['form_phase_detail_id' => $detail->id]);
+
+    // dua aktif, satu di antaranya wajib
+    ReviewEvaluationForm::create([
+        'title' => 'Substansi', 'form_phase_detail_id' => $detail->id,
+        'is_active' => true, 'is_required' => true, 'order' => 1,
+    ]);
+    ReviewEvaluationForm::create([
+        'title' => 'Anggaran', 'form_phase_detail_id' => $detail->id,
+        'is_active' => true, 'is_required' => false, 'order' => 2,
+    ]);
+
+    $hasil = EvaluationRequirements::run($submission->fresh());
+
+    expect($hasil['required'])->toBeTrue()
+        ->and($hasil['total_forms'])->toBe(2)
+        ->and($hasil['required_forms'])->toBe(1);
+});
+```
+
+Kolomnya sudah dipastikan: `review_evaluation_forms.is_required` adalah `boolean` dengan
+default `true` (migration `2025_09_17_041545`), dan kolom fase-nya `form_phase_detail_id`
+sejak migration `2025_10_22_070354` mengganti `form_phase_id`.
+
+- [ ] **Step 2: Jalankan, pastikan LULUS**
+
+Run:
+```bash
+docker run --rm --network host -v "$PWD":/app -w /app -u "$(id -u):$(id -g)" \
+  -e DB_PORT=55432 -e DB_PASSWORD=postgres simpas-ci:8.4 \
+  ./vendor/bin/pest tests/Feature/Review/EvaluationRequirementsTest.php
+```
+Expected: LULUS. Ini test karakterisasi — ia merekam yang sudah ada, bukan menuntut yang
+baru. Kalau ada yang merah, perbaiki **test-nya**, karena perilaku sekarang yang jadi
+acuan.
+
+- [ ] **Step 3: Kunci jumlah kueri**
+
+```php
+it('menjawab dengan satu kueri, bukan tiga', function () {
+    $detail = FormPhaseDetail::factory()->create(['needs_review' => true]);
+    $submission = FormSubmission::factory()->create(['form_phase_detail_id' => $detail->id]);
+    ReviewEvaluationForm::create([
+        'title' => 'Substansi', 'form_phase_detail_id' => $detail->id,
+        'is_active' => true, 'is_required' => true, 'order' => 1,
+    ]);
+
+    DB::flushQueryLog();
+    DB::enableQueryLog();
+
+    try {
+        EvaluationRequirements::run($submission->fresh());
+        expect(DB::getQueryLog())->toHaveCount(1);
+    } finally {
+        DB::disableQueryLog();
+    }
+});
+```
+
+`try`/`finally` bukan hiasan — lihat Task 12.
+
+Expected saat dijalankan sekarang: **GAGAL**, dapat 3.
+
+- [ ] **Step 4: Ambil formnya sekali**
+
+Ganti ketiga pembacaan itu dengan satu koleksi, lalu hitung di PHP:
+
+```php
+public function handle(FormSubmission $submission): array
+{
+    $forms = $submission->formPhaseDetail?->activeReviewEvaluationForms()->get();
+
+    if ($forms === null || $forms->isEmpty()) {
+        return [
+            'required' => false,
+            'has_forms' => false,
+            'message' => 'No evaluation forms required for this submission.',
+        ];
+    }
+
+    return [
+        'required' => true,
+        'has_forms' => true,
+        'total_forms' => $forms->count(),
+        'required_forms' => $forms->where('is_required', true)->count(),
+        'message' => 'This submission requires evaluation forms to be completed before creating review threads.',
+    ];
+}
+```
+
+Penyaringan di PHP itu sah, dan sudah dipastikan: `FormPhaseDetail` (baris 116 dan 125)
+mendefinisikan `activeReviewEvaluationForms()` sebagai `reviewEvaluationForms()->active()->ordered()`
+dan `requiredReviewEvaluationForms()` sebagai `reviewEvaluationForms()->required()->active()->ordered()`.
+Yang wajib memang himpunan bagian dari yang aktif, jadi `$forms->where('is_required', true)`
+menghasilkan angka yang sama dengan kueri keduanya.
+
+- [ ] **Step 5: Jalankan gerbang penuh**
+
+Run:
+```bash
+docker run --rm --network host -v "$PWD":/app -w /app -u "$(id -u):$(id -g)" \
+  -e DB_PORT=55432 -e DB_PASSWORD=postgres simpas-ci:8.4 composer run quality
+```
+Expected: hijau, 879 + 4 = **883 test**.
+
+- [ ] **Step 6: Commit**
+
+```bash
+docker run --rm -v "$PWD":/app -w /app -u "$(id -u):$(id -g)" simpas-ci:8.4 ./vendor/bin/pint -q
+git add app tests
+git commit -m "perf(review): jawab syarat evaluasi dengan satu kueri, beserta testnya"
+```
+
+---
+
+### Task 12: Query log di `EvaluationProgressTest` bocor kalau assertion gagal
+
+```php
+DB::enableQueryLog();
+EvaluationProgress::run($submission);
+
+expect(DB::getQueryLog())->toHaveCount(1);   // ← melempar saat gagal
+DB::disableQueryLog();                        // ← tidak pernah jalan
+```
+
+Saat assertion-nya gagal, `disableQueryLog()` terlewat dan log tetap menyala untuk seluruh
+test sesudahnya di proses yang sama. Akibatnya kegagalan aslinya terkubur di bawah
+kegagalan susulan yang menghitung kueri milik test lain. `enableQueryLog()` juga tidak
+mengosongkan log yang sudah terisi, jadi test ini bisa salah hitung kalau ada test lain
+yang bocor lebih dulu.
+
+**Files:**
+- Modify: `tests/Feature/Review/EvaluationProgressTest.php`
+
+- [ ] **Step 1: Buktikan bocornya**
+
+Ubah sementara assertion-nya jadi `->toHaveCount(99)` supaya ia gagal, jalankan berkasnya,
+dan perhatikan test apa saja yang ikut merah sesudahnya. Kembalikan ke `1` setelah selesai
+melihat.
+
+- [ ] **Step 2: Bungkus dengan `try`/`finally` dan kosongkan lebih dulu**
+
+```php
+it('memakai satu kueri, bukan lima COUNT terpisah', function () {
+    $submission = submissionWithStatuses('completed', 'pending');
+
+    DB::flushQueryLog();
+    DB::enableQueryLog();
+
+    try {
+        EvaluationProgress::run($submission);
+        expect(DB::getQueryLog())->toHaveCount(1);
+    } finally {
+        DB::disableQueryLog();
+    }
+});
+```
+
+- [ ] **Step 3: Ulangi Step 1, pastikan tidak ada lagi kegagalan susulan**
+
+- [ ] **Step 4: Jalankan gerbang penuh dan commit**
+
+```bash
+docker run --rm --network host -v "$PWD":/app -w /app -u "$(id -u):$(id -g)" \
+  -e DB_PORT=55432 -e DB_PASSWORD=postgres simpas-ci:8.4 composer run quality
+
+git add tests
+git commit -m "test(review): jangan biarkan query log menyala saat assertion gagal"
+```
+Expected: hijau, 883 test (jumlahnya tetap).
+
+---
+
+### Task 13: Dua layar, dua bentuk untuk satu prop
+
+Prop `evaluationRequirements` dipancarkan dua tempat dengan bentuk yang berbeda, dan
+keduanya bermuara ke komponen yang sama (`Components/ReviewSystem.vue`):
+
+| Sumber | Kunci | Bahasa pesan |
+| ------ | ----- | ------------ |
+| `adminShowSubmission:846` → `EvaluationRequirements::run()` | `required`, `has_forms`, `total_forms`, `required_forms`, `message` | Inggris |
+| `userShowSubmission:415` → array manual + `getEvaluationMessage()` | `required`, `has_forms`, `message` | Indonesia |
+
+Jadi pengajuan yang sama menampilkan pesan berbeda dan kehilangan jumlah form tergantung
+layar mana yang membukanya, dan perubahan berikutnya harus ditulis dua kali.
+
+**Ini bukan sekadar merapikan.** `getEvaluationMessage()` menerima `$isAssignedReviewer`
+dan `$assignmentsCount` — konteks per-pemakai yang **tidak** dimiliki
+`EvaluationRequirements`. Menyatukan keduanya berarti memutuskan dulu: apakah pesannya
+milik pengajuan (sama untuk semua orang) atau milik pemakai (berbeda per reviewer).
+Rencana ini **tidak** memutuskannya.
+
+- [ ] **Step 1: Putuskan dulu pemilik pesannya**
+
+Baca `getEvaluationMessage()` (`SubmissionViewController:1333`) dan `ReviewSystem.vue`
+baris 132 dan sekitarnya. Jawab satu pertanyaan: apakah layar memakai `message` itu sebagai
+keterangan pengajuan, atau sebagai instruksi untuk pembacanya?
+
+- Kalau **instruksi per-pemakai** → `EvaluationRequirements` tidak boleh menghasilkan
+  `message` sama sekali; pindahkan pesannya ke Query terpisah yang menerima `User`, dan
+  `adminShowSubmission` ikut memakainya.
+- Kalau **keterangan pengajuan** → `userShowSubmission` ikut memakai
+  `EvaluationRequirements::run()`, dan `getEvaluationMessage()` dicabut.
+
+**Bawa jawabannya ke pemilik produk sebelum menulis kode** — ini perubahan yang terlihat
+pengguna, bukan refactor.
+
+- [ ] **Step 2: Setelah diputuskan, tulis test karakterisasi untuk kedua layar lebih dulu**
+
+Test HTTP yang menegaskan bentuk prop yang dikirim tiap layar, **sebelum** disatukan.
+Tanpa itu penyatuannya tidak punya acuan.
+
+- [ ] **Step 3: Satukan, jalankan gerbang penuh, commit**
+
+Pesan commit menyusul isinya — kalau pesannya jadi milik pemakai, ia `refactor`; kalau
+salah satu layar berubah tampilannya, ia `fix` atau `feat`.
+
+---
+
+### Task 14: Tenggat evaluasi di `ReviewController` masih menebak period (ADR 0004)
+
+`Queries/Submission/EvaluationDueDate` sudah menyimpan versi yang benar, lengkap dengan dua
+test regresi di `tests/Unit/EvaluationDueDateTest.php` — tapi **nol pemanggil produksi**.
+Jalur yang hidup masih memakai `ReviewController::getEvaluationDueDate()` (baris 576), yang
+menebak period lewat `submissionPeriodPhases...->first()`.
+
+Itu persis bug yang ADR 0004 dibuat untuk membunuhnya: `submission_period_phases` tanpa
+unique constraint, jadi satu `FormPhase` boleh dimiliki banyak period dan `->first()` bisa
+mengambil period yang salah — lalu menstempel reviewer dengan tenggat milik period lain.
+
+Ia juga mengarang tenggat: `new \DateTime('+7 days')` saat tidak ada period yang cocok,
+sedangkan `EvaluationDueDate` mengembalikan `null`.
+
+**Itu yang membuat ini bukan sekadar menyambungkan kabel.** Menukarnya mengubah perilaku:
+penugasan yang selama ini selalu punya tenggat bisa mulai punya tenggat kosong.
+
+**Files:**
+- Modify: `app/Http/Controllers/ReviewController.php`
+- Test: `tests/Feature/Review/AssignReviewersHttpTest.php`
+
+- [ ] **Step 1: Cari tahu apa yang terjadi kalau tenggatnya `null`**
+
+Run:
+```bash
+grep -n 'function assignForm' -A 20 app/Models/SubmissionReviewer.php
+grep -rn 'due_date\|evaluation_deadline' app/Models/ReviewerFormAssignment.php database/migrations/ | head
+grep -rn 'due_date' resources/js/Components/ReviewSystem.vue resources/js/Components/AssignReviewerDialog.vue
+```
+Jawab: apakah kolomnya `nullable`? Apakah ada layar yang memformatnya tanpa penjaga null?
+Apakah ada notifikasi yang menyebut tenggat?
+
+- [ ] **Step 2: Putuskan nasib fallback `+7 days`**
+
+Tiga kemungkinan, pilih berdasar temuan Step 1:
+
+| | Pilihan | Kapan ini yang benar |
+| - | ------- | -------------------- |
+| A | Biarkan `null` mengalir | Kolomnya nullable dan layarnya sudah tahan null |
+| B | Pertahankan `+7 days`, tapi di pemanggil, bukan di dalam Query | Layar butuh tenggat dan `null` akan merusaknya |
+| C | Tolak penugasan saat period tidak diketahui | Tenggat karangan lebih berbahaya daripada gagal terang-terangan |
+
+Jangan menaruh fallback-nya di dalam `EvaluationDueDate` — Query itu menjawab "kapan
+tenggatnya", dan "tidak tahu" adalah jawaban yang sah. Mengarang tanggal di sana
+menyembunyikan ketidaktahuan dari setiap pemanggil berikutnya.
+
+- [ ] **Step 3: Tulis test yang gagal — kasus ADR 0004 lewat HTTP**
+
+`tests/Unit/EvaluationDueDateTest.php:80` sudah mengunci kasus dua period berbagi satu
+`FormPhase` di level Query. Tulis pasangannya di level HTTP: `POST` penugasan reviewer pada
+pengajuan yang period-nya berbagi `FormPhase` dengan period lain, lalu tegaskan
+`ReviewerFormAssignment` yang lahir memakai tenggat period **miliknya sendiri**.
+
+Expected: GAGAL — ia mengambil tenggat period yang salah.
+
+- [ ] **Step 4: Sambungkan, dan cabut method lamanya**
+
+Ganti `$this->getEvaluationDueDate($submissionModel)` (baris 551) jadi
+`EvaluationDueDate::run($submissionModel)`, lalu hapus `getEvaluationDueDate()` (baris 576)
+beserta import yang jadi tak terpakai. Terapkan keputusan Step 2 di pemanggilnya.
+
+- [ ] **Step 5: Jalankan gerbang penuh**
+
+Run:
+```bash
+docker run --rm --network host -v "$PWD":/app -w /app -u "$(id -u):$(id -g)" \
+  -e DB_PORT=55432 -e DB_PASSWORD=postgres simpas-ci:8.4 composer run quality
+```
+Expected: hijau. `ReviewController` mengecil, dan `EvaluationDueDate` akhirnya punya
+pemanggil produksi.
+
+- [ ] **Step 6: Commit**
+
+```bash
+docker run --rm -v "$PWD":/app -w /app -u "$(id -u):$(id -g)" simpas-ci:8.4 ./vendor/bin/pint -q
+git add app tests
+git commit -m "fix(review): ambil tenggat evaluasi dari period pengajuan sendiri"
+```
+
+---
+
+## Catatan, bukan task
+
+**`ReviewController::getEvaluationStatus` tidak punya klien — dan jangan dihapus di sini.**
+Rutenya terdaftar (`routes/web.php:350`), tapi `admin.submissions.evaluation-status` hanya
+muncul di `resources/js/ziggy.js`, peta rute hasil generate. Tak ada komponen Vue, axios,
+atau halaman Inertia yang memanggilnya. Artinya `EvaluationProgress`,
+`EvaluationFormsOverview`, `PendingEvaluationCheck`, dan `EvaluationProgressData` menempel
+ke endpoint yang belum dipakai siapa pun — klaim payoff di bagian 1 ("dipanggil di layar
+daftar") memang berlebihan.
+
+Tapi ini **endpoint JSON, dan assertion 10 mewajibkan setiap `response()->json()` melewati
+DTO `Data\Contract`** ([`refactor-plan.md`](refactor-plan.md) §2.4). Itu pekerjaan
+gelombang 3, yang justru mendatangi endpoint semacam ini. Menghapusnya sekarang membuang
+calon kontrak API; membiarkannya tidak merugikan apa pun. **Serahkan ke gelombang 3.**
+
+**`countPerForm` memakai `countBy()` di PHP, bukan `GROUP BY`.** Rencana bagian 1 (baris
+983–985) menulis `selectRaw('COUNT(*) AS total')->groupBy(...)->pluck(...)`; yang
+diimplementasikan menghidrasi model lalu menghitung di PHP. Deviasinya **disengaja dan
+beralasan** — komentar di `EvaluationProgress` menyebutnya: `pluck()` atas agregat mentah
+mengembalikan skalar tanpa tipe, dan menaikkannya jadi `int` butuh cast, sementara
+AGENTS.md aturan 5 melarang cast untuk memuaskan PHPStan. Biayanya nyata tapi kecil:
+8 reviewer × 5 form = 40 model untuk menghasilkan 5 bilangan. Layak ditinjau ulang kalau
+ada pengajuan dengan puluhan reviewer; tidak layak diutak-atik sekarang.
+
+**`EvaluationProgressData` menyimpan dua field yang bisa diturunkan.**
+`completionPercentage` dan `allCompleted` bisa dihitung di `toArray()` dari empat field
+lainnya. Menyimpannya membuka peluang dua sumber kebenaran kalau kelak ada pemanggil kedua.
+Tapi selama pemanggilnya cuma satu dan langsung di-`toArray()`, ini belum masalah — dan
+Task 9 tetap mengubah cara `allCompleted` diturunkan. Tinjau ulang kalau DTO ini mulai
+dipakai lebih dari satu tempat.
+
+---
+
 ## Setelah rencana ini
 
 `FormSubmission` selesai sejauh yang bisa dikerjakan: logic yang bukan miliknya sudah
-keluar, tapi berkasnya tetap di `quality-legacy.txt` (Task 6). Model berikutnya mengikuti
+keluar, tapi berkasnya tetap di `quality-legacy.txt` (Task 6). **Bagian 2 (Task 7–14)
+harus tuntas lebih dulu** sebelum model berikutnya dimulai — Task 7 di dalamnya menutup
+lubang gerbang yang akan menjaga seluruh Query yang lahir sesudahnya. Model berikutnya mengikuti
 bentuk yang sama — **baca dulu, golongkan, baru pindahkan** — dan masing-masing mendapat
 rencananya sendiri:
 
