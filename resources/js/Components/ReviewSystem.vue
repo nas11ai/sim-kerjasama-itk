@@ -231,8 +231,8 @@ const canCommentOnThread = (status: string) => {
 }
 
 // Determine if reviewer can create threads
+// BR-REV-15 — hanya reviewer yang bertugas; Operator tidak membuka ulir.
 const canActuallyCreateThread = computed(() => {
-    if (isAdmin.value) return true
     if (!isAssignedReviewer.value) return false
     if (!props.hasReviewEvaluationForms) return props.canReview
 

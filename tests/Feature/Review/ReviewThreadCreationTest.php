@@ -14,6 +14,8 @@ use App\Models\ReviewSummary;
 use App\Models\SubmissionReviewer;
 use App\Models\User;
 use App\States\Submission\UnderReview;
+use Inertia\Testing\AssertableInertia as Assert;
+use Spatie\Permission\Models\Permission;
 
 /** @return array{0: User, 1: FormSubmission} */
 function threadFixture(string $evaluationStatus, bool $formWajib): array
@@ -90,4 +92,34 @@ it('[REV-EVAL-05] mengizinkan ulir setelah evaluasi selesai', function () {
         ->assertSessionHasNoErrors();
 
     expect(ReviewSummary::count())->toBe(1);
+});
+
+// BR-REV-06 dan BR-REV-15 — ulir open menahan persetujuan dan hanya bisa ditutup
+// reviewer. Ulir tanpa reviewer tak punya pihak yang berhak menutupnya.
+it('menolak Operator tanpa penugasan membuka ulir', function () {
+    [, $submission] = threadFixture('completed', false);
+
+    Permission::findOrCreate('users.manage', 'web');
+    $operator = User::factory()->create();
+    $operator->givePermissionTo('users.manage');
+
+    $this->actingAs($operator)
+        ->post(route('admin.review-threads.store', $submission), ['summary_notes' => 'Catatan operator.'])
+        ->assertForbidden();
+
+    expect(ReviewSummary::count())->toBe(0);
+});
+
+it('tidak menawarkan tombol membuka ulir kepada Operator', function () {
+    [, $submission] = threadFixture('completed', false);
+    $submission->update(['is_submitted' => true]);
+
+    Permission::findOrCreate('users.manage', 'web');
+    Permission::findOrCreate('submissions.view-all', 'web');
+    $operator = User::factory()->create();
+    $operator->givePermissionTo(['users.manage', 'submissions.view-all']);
+
+    $this->actingAs($operator)
+        ->get(route('admin.submissions.show', $submission))
+        ->assertInertia(fn (Assert $page) => $page->where('canCreateThread', false));
 });

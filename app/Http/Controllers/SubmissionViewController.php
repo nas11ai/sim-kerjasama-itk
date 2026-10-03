@@ -821,13 +821,10 @@ class SubmissionViewController extends Controller
             // Determine canReview and canCreateThread
             $canReview = $this->canUserReview($submission, $currentUser);
 
-            // Logic for canCreateThread:
-            // - Admin can always create
+            // Logic for canCreateThread (BR-REV-15 — hanya reviewer yang bertugas):
             // - If no evaluation forms exist, reviewer can create immediately
             // - If evaluation forms exist, must complete them first
-            if ($currentUser->can('users.manage')) {
-                $canCreateThread = true;
-            } elseif ($isAssignedReviewer) {
+            if ($isAssignedReviewer) {
                 if ($hasReviewEvaluationForms) {
                     // Has evaluation forms - must complete first
                     $canCreateThread = !$hasPendingEvaluations;

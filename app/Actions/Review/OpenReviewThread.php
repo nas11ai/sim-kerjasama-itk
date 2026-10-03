@@ -17,7 +17,7 @@ use Lorisleiva\Actions\Concerns\AsAction;
 /**
  * Membuka satu ulir review beserta lampirannya.
  *
- * @method static ReviewSummary run(FormSubmission $submission, ?SubmissionReviewer $assignment, string $summaryNotes, list<string> $attachmentPaths = [])
+ * @method static ReviewSummary run(FormSubmission $submission, SubmissionReviewer $assignment, string $summaryNotes, list<string> $attachmentPaths = [])
  */
 class OpenReviewThread
 {
@@ -28,21 +28,18 @@ class OpenReviewThread
     /** @param  list<string>  $attachmentPaths */
     public function handle(
         FormSubmission $submission,
-        ?SubmissionReviewer $assignment,
+        SubmissionReviewer $assignment,
         string $summaryNotes,
         array $attachmentPaths = [],
     ): ReviewSummary {
         // BR-FE-06 — satu definisi "evaluasi beres", yang sama dengan BR-REV-05
-        // dan BR-REV-06. Operator tanpa penugasan tidak digerbang: ia bukan
-        // pihak yang menilai.
-        if ($assignment !== null) {
-            ReviewSummaryGuard::assertMayCreate($assignment);
-        }
+        // dan BR-REV-06.
+        ReviewSummaryGuard::assertMayCreate($assignment);
 
         $summary = DB::transaction(function () use ($submission, $assignment, $summaryNotes, $attachmentPaths): ReviewSummary {
             $summary = ReviewSummary::create([
                 'form_submission_id' => $submission->id,
-                'reviewer_id' => $assignment?->reviewer_id,
+                'reviewer_id' => $assignment->reviewer_id,
                 'status' => 'open',
                 'summary_notes' => $summaryNotes,
             ]);
