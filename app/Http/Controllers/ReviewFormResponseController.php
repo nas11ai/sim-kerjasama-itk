@@ -339,9 +339,17 @@ class ReviewFormResponseController extends Controller
             return;
         }
 
-        // Check if user is the assigned reviewer
         $reviewer = $user->reviewers()->first();
-        if (!$reviewer || $assignment->submissionReviewer->reviewer_id !== $reviewer->id) {
+        if (!$reviewer) {
+            abort(403, 'Akses tidak sah ke formulir evaluasi ini.');
+        }
+
+        // BR-SM-07, BR-REV-10 — form milik penugasan yang sudah diganti tertutup,
+        // termasuk untuk dibaca, sama seperti halaman pengajuannya.
+        $submissionReviewer = $assignment->submissionReviewer;
+        $active = ActiveReviewerAssignment::run($submissionReviewer->formSubmission, $reviewer->id);
+
+        if ($active?->id !== $submissionReviewer->id) {
             abort(403, 'Akses tidak sah ke formulir evaluasi ini.');
         }
     }

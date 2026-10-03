@@ -6,11 +6,14 @@
 // sejarah, bukan sebagai wewenang. Fixture-nya sengaja realistis: evaluasinya
 // selesai sebelum diganti, jadi gerbang "evaluasi beres" saja tidak menolaknya.
 
+use App\Models\FieldType;
 use App\Models\FormPhaseDetail;
 use App\Models\FormSubmission;
 use App\Models\Reviewer;
 use App\Models\ReviewerFormAssignment;
 use App\Models\ReviewEvaluationForm;
+use App\Models\ReviewFormField;
+use App\Models\ReviewFormResponse;
 use App\Models\ReviewSummary;
 use App\Models\SubmissionReviewer;
 use App\Models\User;
@@ -53,6 +56,36 @@ function replacedReviewerOperator(): User
     $operator->givePermissionTo('users.manage');
 
     return $operator;
+}
+
+/** Form evaluasi milik penugasan itu, dengan satu field opsional. */
+function replacedReviewerFormAssignment(SubmissionReviewer $assignment): ReviewerFormAssignment
+{
+    $submission = $assignment->formSubmission;
+
+    $form = ReviewEvaluationForm::create([
+        'title' => 'Substansi',
+        'form_phase_detail_id' => $submission->form_phase_detail_id,
+        'is_active' => true,
+        'is_required' => true,
+        'order' => 1,
+    ]);
+
+    ReviewFormField::create([
+        'review_evaluation_form_id' => $form->id,
+        'field_type_id' => FieldType::firstOrCreate(['name' => 'text'])->id,
+        'label' => 'Catatan',
+        'is_required' => false,
+        'order' => 1,
+    ]);
+
+    return ReviewerFormAssignment::create([
+        'submission_reviewer_id' => $assignment->id,
+        'review_evaluation_form_id' => $form->id,
+        'is_required' => true,
+        'assigned_at' => now(),
+        'is_active' => true,
+    ]);
 }
 
 /** Ulir milik reviewer lain yang masih aktif. */
@@ -163,4 +196,35 @@ it('tidak menghapus record reviewer yang sudah diganti — BR-REV-10', function 
         ->assertNotFound();
 
     expect(SubmissionReviewer::query()->whereKey($assignment->id)->exists())->toBeTrue();
+});
+
+it('menolak reviewer yang sudah diganti membuka form evaluasi', function () {
+    [$user, , , $assignment] = replacedReviewerFixture();
+    $formAssignment = replacedReviewerFormAssignment($assignment);
+
+    $this->actingAs($user)
+        ->get(route('reviewer.evaluation-form.show', $formAssignment))
+        ->assertForbidden();
+
+    // Membuka form lama diam-diam membuat draft respons baru.
+    expect(ReviewFormResponse::count())->toBe(0);
+});
+
+it('menolak reviewer yang sudah diganti mengirim form evaluasi', function () {
+    [$user, , , $assignment] = replacedReviewerFixture();
+    $formAssignment = replacedReviewerFormAssignment($assignment);
+    $response = ReviewFormResponse::create([
+        'reviewer_form_assignment_id' => $formAssignment->id,
+        'status' => 'draft',
+    ]);
+    $field = $formAssignment->reviewEvaluationForm->reviewFormFields()->firstOrFail();
+
+    $this->actingAs($user)
+        ->post(route('reviewer.evaluation-form.submit', $formAssignment), [
+            'responses' => [$field->id => 'Penilaian setelah diganti.'],
+        ])
+        ->assertForbidden();
+
+    expect($response->fresh()?->status)->toBe('draft')
+        ->and($response->reviewFormFieldResponses()->count())->toBe(0);
 });
