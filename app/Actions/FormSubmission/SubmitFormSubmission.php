@@ -26,15 +26,18 @@ class SubmitFormSubmission
     /** SQLSTATE PostgreSQL untuk pelanggaran unique constraint. */
     private const UNIQUE_VIOLATION = '23505';
 
+    /**
+     * Akun diperiksa sebelum kelengkapan field: yang menghalangi bukan isian
+     * pengajuannya melainkan keadaan akunnya, dan pesan itulah yang perlu
+     * dibaca peneliti.
+     */
     public function handle(FormSubmission $submission, User $user): FormSubmission
     {
         $status = $this->guardSubmittable($submission, $user);
 
         // BR-IAM-04/BR-IAM-13 — akun yang belum terverifikasi (atau yang
         // verifikasinya ditolak) boleh menyiapkan draft, tapi tidak boleh
-        // mengirimnya. Diperiksa sebelum kelengkapan field: yang menghalangi
-        // di sini bukan isian pengajuannya melainkan keadaan akunnya, dan
-        // pesan itulah yang perlu dibaca peneliti.
+        // mengirimnya.
         AccountStateGuard::assertVerified($user);
 
         // BR-SM-02 + BR-FE-11 — seluruh field wajib, disaring Temporal Field Binding.
@@ -60,15 +63,16 @@ class SubmitFormSubmission
     }
 
     /**
+     * `submit` ada di INVARIANT_ABILITIES, jadi Gate::before sengaja tidak
+     * melewatkan Super Admin dan Policy-lah yang memutuskan (ADR 0015).
+     *
      * @throws AuthorizationException
      */
     private function guardSubmittable(FormSubmission $submission, User $user): SubmissionStatus
     {
         // BR-SM-04 — dijaga FormSubmissionPolicy::submit(); dipanggil di sini
         // supaya aturannya juga berlaku di jalur yang tidak lewat HTTP, dan
-        // supaya aturannya hanya tertulis di satu tempat. `submit` ada di
-        // INVARIANT_ABILITIES, jadi Gate::before sengaja tidak melewatkan
-        // Super Admin dan Policy-lah yang memutuskan (ADR 0015).
+        // hanya tertulis di satu tempat.
         if (!$user->can('submit', $submission)) {
             throw new AuthorizationException(
                 'Hanya lead researcher yang bisa submit pengajuan ini.'
@@ -87,21 +91,21 @@ class SubmitFormSubmission
     }
 
     /**
+     * BR-SM-16 — index one_active_submission_per_period_scheme jaring pengaman
+     * lomba-balap: dua submit bersamaan lolos guard, salah satunya dibentur di
+     * sini. Peneliti tak boleh melihat galat database mentah, jadi diterjemahkan.
+     *
      * @throws ValidationException
      * @throws QueryException
      */
     private function markSubmitted(FormSubmission $submission): void
     {
-        // BR-SM-16 — index one_active_submission_per_period_scheme adalah jaring
-        // pengaman lomba-balap: dua submit bersamaan lolos pemeriksaan di atas,
-        // lalu salah satunya dibentur di sini. Peneliti tidak boleh melihat galat
-        // database mentah, jadi pelanggarannya diterjemahkan jadi pesan yang sama.
+        // Transaksi bersarang = SAVEPOINT. Tanpa itu, 23505 membuat PostgreSQL
+        // membatalkan seluruh transaksi, dan query pemulihan di bawah gagal
+        // dengan 25P02 — peneliti tetap dapat 500, persis yang BR-SM-16 larang.
         try {
-            // Transaksi bersarang = SAVEPOINT. Tanpa itu, 23505 membuat
-            // PostgreSQL membatalkan seluruh transaksi, dan query pemulihan di
-            // bawah gagal dengan 25P02 — peneliti tetap dapat 500, persis yang
-            // BR-SM-16 larang. ROLLBACK TO SAVEPOINT membuang tulisan yang
-            // gagal saja dan meninggalkan koneksinya tetap terpakai.
+            // ROLLBACK TO SAVEPOINT membuang tulisan yang gagal saja dan
+            // meninggalkan koneksinya tetap terpakai.
             DB::transaction(function () use ($submission): void {
                 $submission->update([
                     'is_submitted' => true,
@@ -123,15 +127,14 @@ class SubmitFormSubmission
     }
 
     /**
-     * BR-SM-01 — pengajuan aktif yang menghalangi, kalau ada. Cermin persis predikat
-     * index `one_active_submission_per_period_scheme`.
-     *
-     * `scheme_id` atau `submission_period_id` yang NULL tidak pernah dianggap
-     * duplikat — semantik bawaan unique index PostgreSQL, dan BR-SM-01 memang
-     * mengizinkan dua pengajuan tanpa skema hidup bersamaan.
+     * BR-SM-01 — pengajuan aktif yang menghalangi, kalau ada. Cermin persis
+     * predikat index `one_active_submission_per_period_scheme`.
      */
     private function activeSubmissionClash(FormSubmission $submission): ?FormSubmission
     {
+        // `scheme_id` atau `submission_period_id` NULL tidak pernah dianggap
+        // duplikat — semantik bawaan unique index PostgreSQL, dan BR-SM-01
+        // memang mengizinkan dua pengajuan tanpa skema hidup bersamaan.
         if ($submission->scheme_id === null || $submission->submission_period_id === null) {
             return null;
         }

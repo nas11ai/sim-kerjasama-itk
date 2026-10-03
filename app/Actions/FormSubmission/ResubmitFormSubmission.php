@@ -67,14 +67,15 @@ class ResubmitFormSubmission
         return $status;
     }
 
+    /**
+     * Dulu efek ini milik FormSubmission::updateStatusBasedOnReviews(),
+     * yang dihapus karena memuat jalur auto-reject terlarang (ADR 0006).
+     */
     private function returnToReviewQueue(FormSubmission $submission): void
     {
         // BR-SM-03 — pengajuan yang reviewer-nya masih terpasang langsung
         // masuk antrean review lagi; tidak perlu ditugaskan ulang. Tanpa ini
         // revisi berhenti di RESUBMITTED dan tidak pernah dinilai siapa pun.
-        //
-        // Dulu ini efek samping FormSubmission::updateStatusBasedOnReviews(),
-        // yang dihapus karena memuat jalur auto-reject terlarang (ADR 0006).
         if ($submission->submissionReviewers()->where('status', 'active')->exists()) {
             $resubmitted = $submission->status;
 

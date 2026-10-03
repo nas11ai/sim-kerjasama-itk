@@ -9,9 +9,6 @@
 app/Actions/Budget/SaveBudgetLineItem.php
 app/Actions/Budget/UpdateBudgetLineItem.php
 app/Actions/Config/SaveReferenceEntity.php
-app/Actions/FormSubmission/ResubmitFormSubmission.php
-app/Actions/FormSubmission/StartChildSubmission.php
-app/Actions/FormSubmission/SubmitFormSubmission.php
 app/Actions/Override/GrantPhaseOverride.php
 app/Actions/Period/DeleteSubmissionPeriod.php
 app/Actions/Period/ExtendSubmissionDates.php

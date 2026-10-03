@@ -13,16 +13,8 @@ use Lorisleiva\Actions\Concerns\AsAction;
 
 /**
  * BR-FE-04 — child FormSubmission (laporan monev, kelengkapan berkas) hanya
- * lahir dari induk yang **sudah APPROVED**.
- *
- * Gerbangnya status induk, bukan keberadaan fasenya: fase monev boleh saja
- * sudah terpasang di Form sejak awal, tapi laporannya tidak punya dasar
- * sebelum kegiatannya disetujui.
- *
- * Sekali lahir, child tidak ikut mati bersama induknya. Penarikan induk
- * (WITHDRAWN) membekukan kegiatannya, tapi laporan yang sudah dikirim tetap
- * data historis — menghapusnya berarti menghapus bukti bahwa pekerjaan itu
- * pernah dilaporkan.
+ * lahir dari induk yang **sudah APPROVED**. Gerbangnya status induk, bukan
+ * keberadaan fasenya: fase monev boleh sudah terpasang di Form sejak awal.
  *
  * @method static FormSubmission run(FormSubmission $parent, FormPhaseDetail $detail, User $user)
  */
@@ -30,12 +22,16 @@ class StartChildSubmission
 {
     use AsAction;
 
+    /**
+     * Laporan tak berdasar sebelum kegiatan disetujui. Child tak ikut mati
+     * bersama induk: penarikan membekukan kegiatan, tapi laporan terkirim
+     * tetap data historis; menghapusnya menghapus bukti pelaporan.
+     */
     public function handle(FormSubmission $parent, FormPhaseDetail $detail, User $user): FormSubmission
     {
         // BR-FE-04, BR-MON-01/02/08 — tiga syarat sekaligus: induk disetujui,
-        // belum ditarik, dan tahap sebelumnya sudah tuntas. Gerbangnya tinggal
-        // satu tempat supaya jalur HTTP dan jalur lain tidak pernah menegakkan
-        // separuhnya saja.
+        // belum ditarik, tahap sebelumnya tuntas. Satu tempat supaya jalur HTTP
+        // dan lainnya tak pernah menegakkan separuhnya saja.
         MonevAccessGate::assertCycleOpen($parent, $detail);
 
         // BR-MON-03 — satu child per (induk, fase). Index unik parsial menjaga
