@@ -79,7 +79,7 @@ class ExtendSubmissionDates
                     $adaPerpanjangan = true;
                 }
 
-                // Hapus-lalu-buat-ulang baris ini selalu gagal: foreign key
+                // Hapus-lalu-buat-ulang gagal di periode terpakai: foreign key
                 // `form_phase_details.submission_date_id` menunjuknya, dan bila
                 // lolos, tiap FormPhaseDetail kehilangan tanggalnya.
                 $lama->update(['datetime' => $baru]);
