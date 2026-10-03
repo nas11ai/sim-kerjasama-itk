@@ -101,8 +101,8 @@ class SubmitFormSubmission
     private function markSubmitted(FormSubmission $submission): void
     {
         // Transaksi bersarang = SAVEPOINT. Tanpa itu, 23505 membuat PostgreSQL
-        // membatalkan seluruh transaksi, dan query pemulihan di bawah gagal
-        // dengan 25P02 — peneliti tetap dapat 500, persis yang BR-SM-16 larang.
+        // membatalkan seluruh transaksi, query pemulihan di bawah gagal dengan
+        // 25P02 — peneliti tetap dapat 500, persis yang BR-SM-16 larang.
         try {
             // ROLLBACK TO SAVEPOINT membuang tulisan yang gagal saja dan
             // meninggalkan koneksinya tetap terpakai.

@@ -24,14 +24,14 @@ class StartChildSubmission
 
     /**
      * Laporan tak berdasar sebelum kegiatan disetujui. Child tak ikut mati
-     * bersama induk: penarikan membekukan kegiatan, tapi laporan terkirim
-     * tetap data historis; menghapusnya menghapus bukti pelaporan.
+     * bersama induk: penarikan induk (WITHDRAWN) membekukan kegiatan, tapi
+     * laporan terkirim tetap data historis; hapus = hilang bukti pelaporan.
      */
     public function handle(FormSubmission $parent, FormPhaseDetail $detail, User $user): FormSubmission
     {
         // BR-FE-04, BR-MON-01/02/08 — tiga syarat sekaligus: induk disetujui,
-        // belum ditarik, tahap sebelumnya tuntas. Satu tempat supaya jalur HTTP
-        // dan lainnya tak pernah menegakkan separuhnya saja.
+        // belum ditarik, tahap sebelumnya tuntas. Satu tempat supaya jalur
+        // HTTP dan lainnya tak pernah menegakkan separuhnya saja.
         MonevAccessGate::assertCycleOpen($parent, $detail);
 
         // BR-MON-03 — satu child per (induk, fase). Index unik parsial menjaga
