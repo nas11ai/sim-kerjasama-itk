@@ -1048,7 +1048,9 @@ class SubmissionViewController extends Controller
             abort(403, 'Anda tidak terdaftar sebagai reviewer.');
         }
 
-        $isAssigned = SubmissionReviewer::where([
+        // BR-SM-07 — hanya penugasan yang masih berlaku yang memberi akses; record
+        // reviewer yang sudah diganti disimpan sebagai sejarah (BR-REV-10).
+        $isAssigned = SubmissionReviewer::active()->where([
             'form_submission_id' => $submission->id,
             'reviewer_id' => $reviewer->id,
         ])->exists();

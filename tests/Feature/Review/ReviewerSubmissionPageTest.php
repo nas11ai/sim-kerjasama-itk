@@ -74,3 +74,16 @@ it('tidak menawarkan status yang tidak ada di domain ini — BR-REV-13', functio
             ->component('Reviewer/Submissions/ShowPage')
             ->missing('availableStatuses'));
 });
+
+it('menolak reviewer yang sudah diganti membuka halaman pengajuan — BR-SM-07', function () {
+    [$user, $reviewer, $submission] = reviewerPageFixture();
+
+    // BR-REV-10 — record lama disimpan sebagai sejarah, bukan sebagai akses.
+    SubmissionReviewer::where('form_submission_id', $submission->id)
+        ->where('reviewer_id', $reviewer->id)
+        ->update(['status' => 'replaced']);
+
+    $this->actingAs($user)
+        ->get(route('reviewer.submissions.show', $submission))
+        ->assertForbidden();
+});
