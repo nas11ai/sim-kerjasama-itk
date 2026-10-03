@@ -170,11 +170,6 @@ const Ziggy = {
         'admin.roles.index': { uri: 'admin\/roles', methods: ['GET', 'HEAD'] },
         'admin.roles.create': { uri: 'admin\/roles\/create', methods: ['GET', 'HEAD'] },
         'admin.roles.store': { uri: 'admin\/roles', methods: ['POST'] },
-        'admin.roles.show': {
-            uri: 'admin\/roles\/{role}',
-            methods: ['GET', 'HEAD'],
-            parameters: ['role'],
-        },
         'admin.roles.edit': {
             uri: 'admin\/roles\/{role}\/edit',
             methods: ['GET', 'HEAD'],
@@ -194,18 +189,7 @@ const Ziggy = {
             bindings: { role: 'id' },
         },
         'admin.permissions.index': { uri: 'admin\/permissions', methods: ['GET', 'HEAD'] },
-        'admin.permissions.create': { uri: 'admin\/permissions\/create', methods: ['GET', 'HEAD'] },
         'admin.permissions.store': { uri: 'admin\/permissions', methods: ['POST'] },
-        'admin.permissions.show': {
-            uri: 'admin\/permissions\/{permission}',
-            methods: ['GET', 'HEAD'],
-            parameters: ['permission'],
-        },
-        'admin.permissions.edit': {
-            uri: 'admin\/permissions\/{permission}\/edit',
-            methods: ['GET', 'HEAD'],
-            parameters: ['permission'],
-        },
         'admin.permissions.update': {
             uri: 'admin\/permissions\/{permission}',
             methods: ['PUT', 'PATCH'],
@@ -217,26 +201,6 @@ const Ziggy = {
             methods: ['DELETE'],
             parameters: ['permission'],
             bindings: { permission: 'id' },
-        },
-        'admin.users.assign-role': {
-            uri: 'admin\/users\/{user}\/assign-role',
-            methods: ['POST'],
-            parameters: ['user'],
-        },
-        'admin.users.revoke-role': {
-            uri: 'admin\/users\/{user}\/revoke-role',
-            methods: ['DELETE'],
-            parameters: ['user'],
-        },
-        'admin.users.assign-permissions': {
-            uri: 'admin\/users\/{user}\/give-permission',
-            methods: ['POST'],
-            parameters: ['user'],
-        },
-        'admin.users.revoke-permissions': {
-            uri: 'admin\/users\/{user}\/revoke-permission',
-            methods: ['DELETE'],
-            parameters: ['user'],
         },
         'admin.forms.index': { uri: 'admin\/forms', methods: ['GET', 'HEAD'] },
         'admin.forms.create': { uri: 'admin\/forms\/create', methods: ['GET', 'HEAD'] },

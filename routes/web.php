@@ -240,7 +240,7 @@ Route::middleware(['auth', 'can:users.manage', 'check_reviewer_status'])->prefix
     Route::put('/users/{user}', [UserController::class, 'update'])->name('users.update');
 
     // Role Management
-    Route::resource('roles', RoleController::class)->names([
+    Route::resource('roles', RoleController::class)->except(['show'])->names([
         'index' => 'roles.index',
         'create' => 'roles.create',
         'store' => 'roles.store',
@@ -250,27 +250,12 @@ Route::middleware(['auth', 'can:users.manage', 'check_reviewer_status'])->prefix
     ]);
 
     // Permission Management
-    Route::resource('permissions', PermissionController::class)->names([
+    Route::resource('permissions', PermissionController::class)->except(['create', 'show', 'edit'])->names([
         'index' => 'permissions.index',
-        'create' => 'permissions.create',
         'store' => 'permissions.store',
-        'show' => 'permissions.show',
-        'edit' => 'permissions.edit',
         'update' => 'permissions.update',
         'destroy' => 'permissions.destroy',
     ]);
-
-    // Assigning & Revoke Role for Users
-    Route::post('users/{user}/assign-role', [UserController::class, 'assignRole'])
-        ->name('users.assign-role');
-    Route::delete('users/{user}/revoke-role', [UserController::class, 'revokeRole'])
-        ->name('users.revoke-role');
-
-    // Assigning & Revoke Permissions for Roles
-    Route::post('users/{user}/give-permission', [RoleController::class, 'givePermissions'])
-        ->name('users.assign-permissions');
-    Route::delete('users/{user}/revoke-permission', [RoleController::class, 'revokePermissions'])
-        ->name('users.revoke-permissions');
 
     Route::resource('forms', FormController::class);
     Route::post('forms/{form}/duplicate', [FormController::class, 'duplicate'])
