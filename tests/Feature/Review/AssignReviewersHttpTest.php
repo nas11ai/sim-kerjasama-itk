@@ -90,7 +90,7 @@ it('mencatat satu entri audit untuk satu permintaan penugasan', function () {
     expect(Activity::inLog(AuditTrail::LOG_NAME)
         ->where('subject_type', $submission->getMorphClass())
         ->where('subject_id', $submission->id)
-        ->where('description', 'Reviewer ditugaskan')
+        ->where('description', 'Penugasan reviewer diproses')
         ->count())->toBe(1);
 });
 

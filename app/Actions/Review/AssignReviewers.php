@@ -55,7 +55,7 @@ class AssignReviewers
         );
 
         // BR-RPT-09 — satu permintaan, satu entri audit (di samping entri tiap reviewer).
-        AuditTrail::record('Reviewer ditugaskan', $submission);
+        AuditTrail::record('Penugasan reviewer diproses', $submission);
 
         return $workloadWarnings;
     }
