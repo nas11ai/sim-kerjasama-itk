@@ -18,6 +18,7 @@ use App\Models\ReviewFormResponse;
 use App\Models\ReviewSummary;
 use App\Models\ReviewSummaryAttachment;
 use App\Models\SubmissionReviewer;
+use App\Queries\Review\ActiveReviewerAssignment;
 use App\Queries\Review\EvaluationFormsOverview;
 use App\Queries\Review\EvaluationProgress;
 use App\Queries\Review\PendingEvaluationCheck;
@@ -197,10 +198,7 @@ class ReviewController extends Controller
             abort(403, 'Anda tidak terdaftar sebagai reviewer');
         }
 
-        $assignment = SubmissionReviewer::where([
-            'form_submission_id' => $submission->id,
-            'reviewer_id' => $reviewer->id,
-        ])->first();
+        $assignment = ActiveReviewerAssignment::run($submission, $reviewer->id);
 
         if (!$assignment) {
             abort(403, 'Anda tidak ditugaskan sebagai reviewer untuk pengajuan ini.');
@@ -265,10 +263,7 @@ class ReviewController extends Controller
             $reviewer = Reviewer::where('user_id', $user->id)->first();
 
             if ($reviewer) {
-                $submissionReviewer = SubmissionReviewer::where([
-                    'form_submission_id' => $submission->id,
-                    'reviewer_id' => $reviewer->id,
-                ])->first();
+                $submissionReviewer = ActiveReviewerAssignment::run($submission, $reviewer->id);
 
                 if ($submissionReviewer) {
                     // Check if can participate in discussions
@@ -469,10 +464,7 @@ class ReviewController extends Controller
 
             if ($reviewer && $reviewSummary->reviewer_id === $reviewer->id) {
                 // Check if reviewer has completed evaluations (if required)
-                $submissionReviewer = SubmissionReviewer::where([
-                    'form_submission_id' => $reviewSummary->form_submission_id,
-                    'reviewer_id' => $reviewer->id,
-                ])->first();
+                $submissionReviewer = ActiveReviewerAssignment::run($reviewSummary->formSubmission, $reviewer->id);
 
                 if ($submissionReviewer) {
                     // Check if evaluations are complete
