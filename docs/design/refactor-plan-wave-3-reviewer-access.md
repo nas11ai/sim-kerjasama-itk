@@ -181,6 +181,18 @@ Kalau penugasan aktifnya tidak ada, cabang itu kini melempar `\Exception` mentah
 - Task 3 dan 4 dikerjakan dalam satu putaran, tetap dua commit (823c153, efdb54d).
 - Task 5 juga mengalihkan `ReviewFormResponseController` dan gerbang
   `reviewerShowSubmission` yang sudah benar, supaya definisinya satu.
+- Review akhir menemukan jalur lewat relasi dan subkueri yang tak terlihat oleh sensus
+  maupun penjaga regex: `ReviewFormResponseController::authorizeAssignment`,
+  `EmailNotificationService::getReviewParticipants`,
+  `SubmissionViewController::reviewerSubmissions`,
+  `ReviewerFormAssignmentController::getMyAssignments` (subkuerinya juga diganti
+  `whereIn` — `=` meledak untuk reviewer dengan lebih dari satu penugasan), dan
+  `UserFormController::reviewerSubmissions`. Semuanya diperbaiki di gelombang ini beserta
+  test-nya. Penjaga tetap heuristik untuk pencarian statis `SubmissionReviewer::where` saja.
+- Hitungan di `ReviewController::removeReviewer` **tidak** diubah: transisi balik ke
+  SUBMITTED tidak terdaftar dari UNDER_REVIEW maupun dari SUBMITTED sendiri, jadi menghitung
+  hanya reviewer aktif mengubah penghapusan yang kini berhasil menjadi 500. Cabang itu
+  menunggu keputusan tersendiri. Pengecualian respons terkirimnya kini menjawab 409.
 
 ---
 ---
