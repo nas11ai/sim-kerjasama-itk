@@ -291,9 +291,12 @@ class SubmissionViewController extends Controller
             'formFieldResponses',
             'submittedBy:id,name,email',
             'reviewSummaries' => function ($query) {
+                // Kolom yang dipilih wajib memuat kunci relasi (id, user_id);
+                // tanpanya Eloquent tak bisa mencocokkan baris dan `reviewer`
+                // menjadi null — penulis ulir hilang dari layar.
                 $query->with([
                     'reviewer.user:id,name',
-                    'reviewer:reviewer_type',
+                    'reviewer:id,user_id,reviewer_type',
                     'attachments',
                 ]);
             },
@@ -676,9 +679,9 @@ class SubmissionViewController extends Controller
                 'submittedBy:id,name,email',
                 // Load assigned reviewers melalui SubmissionReviewer
                 'submissionReviewers.reviewer.user:id,name,email',
-                'submissionReviewers.reviewer:reviewer_type',
+                'submissionReviewers.reviewer:id,user_id,reviewer_type',
                 'submissionReviewers.reviewerFormAssignments.reviewEvaluationForm:id,title',
-                'submissionReviewers.reviewerFormAssignments.reviewFormResponse:id,status',
+                'submissionReviewers.reviewerFormAssignments.reviewFormResponse:id,reviewer_form_assignment_id,status',
             ]);
 
             // Load review summaries
@@ -687,7 +690,7 @@ class SubmissionViewController extends Controller
                 $reviewSummaries = ReviewSummary::where('form_submission_id', $submission->id)
                     ->with([
                         'reviewer.user:id,name,email',
-                        'reviewer:reviewer_type',
+                        'reviewer:id,user_id,reviewer_type',
                         'attachments',
                     ])
                     ->get()
@@ -1056,7 +1059,7 @@ class SubmissionViewController extends Controller
             'formFieldResponses',
             'submittedBy:id,name,email',
             'submissionReviewers.reviewer.user:id,name,email',
-            'submissionReviewers.reviewer:reviewer_type',
+            'submissionReviewers.reviewer:id,user_id,reviewer_type',
         ]);
 
         $responses = $submission->formFieldResponses->mapWithKeys(function ($response) {
@@ -1069,7 +1072,7 @@ class SubmissionViewController extends Controller
                 $reviewSummaries = ReviewSummary::where('form_submission_id', $submission->id)
                     ->with([
                         'reviewer.user:id,name,email',
-                        'reviewer:reviewer_type',
+                        'reviewer:id,user_id,reviewer_type',
                     ])
                     ->get()
                     ->toArray();
