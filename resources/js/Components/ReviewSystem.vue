@@ -1,8 +1,23 @@
+<script lang="ts">
+export interface ResolvableThread {
+    status: string
+    reviewer?: { user: { id: number } }
+}
+
+/** BR-REV-13 — hanya pemilik ulir yang menutupnya; ulir reviewer lain tidak ditawarkan. */
+export function isOwnOpenThread(thread: ResolvableThread, currentUserId?: number | null): boolean {
+    if (thread.status !== 'open' || currentUserId == null) return false
+
+    return thread.reviewer?.user.id === currentUserId
+}
+</script>
+
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { route } from 'ziggy-js'
 
 import { router, usePage } from '@inertiajs/vue3'
+import type { User as UserType } from '@/types'
 import { Button } from '@/Components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card'
 import { Badge } from '@/Components/ui/badge'
@@ -146,9 +161,9 @@ const expandedThreads = ref<Set<number>>(new Set())
 // Status update states
 const showUpdateReviewStatusDialog = ref(false)
 const selectedReviewSummary = ref<ReviewSummary | null>(null)
+const resolvingThread = ref(false)
 
 // Computed
-import type { User as UserType } from '@/types'
 
 const currentUser = computed(() => {
     const auth = page.props.auth as { user: UserType } | undefined
@@ -168,19 +183,10 @@ const totalEvaluationsCount = computed(() => reviewerAssignments.value.length)
 
 // Check if user can update review summary status
 const canUpdateReviewStatus = (reviewSummary: ReviewSummary) => {
-    // BR-REV-13 — hanya reviewer yang bertugas yang menutup ulir.
-    if (reviewSummary.status !== 'open') return false
+    // BR-REV-13 — hanya reviewer yang bertugas yang menutup ulir miliknya sendiri.
+    if (!isOwnOpenThread(reviewSummary, currentUser.value?.id)) return false
 
-    if (!isAssignedReviewer.value || !reviewSummary.reviewer_id) return false
-
-    const isOwnReview = props.assignedReviewers.some((r) => {
-        const match = r.user_id === currentUser.value?.id
-        return match
-    })
-
-    const result = isOwnReview && !props.hasPendingEvaluations
-
-    return result
+    return isAssignedReviewer.value && !props.hasPendingEvaluations
 }
 
 // Submission status options
@@ -422,6 +428,12 @@ const updateReviewSummaryStatus = () => {
         {},
         {
             preserveScroll: true,
+            onStart: () => {
+                resolvingThread.value = true
+            },
+            onFinish: () => {
+                resolvingThread.value = false
+            },
             onSuccess: () => {
                 showUpdateReviewStatusDialog.value = false
                 selectedReviewSummary.value = null
@@ -1052,7 +1064,9 @@ const updateReviewSummaryStatus = () => {
                     <Button variant="outline" @click="showUpdateReviewStatusDialog = false">
                         Batal
                     </Button>
-                    <Button @click="updateReviewSummaryStatus">Tandai Selesai</Button>
+                    <Button :disabled="resolvingThread" @click="updateReviewSummaryStatus">
+                        Tandai Selesai
+                    </Button>
                 </div>
             </DialogContent>
         </Dialog>
