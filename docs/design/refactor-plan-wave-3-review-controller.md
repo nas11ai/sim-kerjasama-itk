@@ -171,6 +171,12 @@ permintaan, di samping entri per reviewer dari `AssignReviewer` — presedennya
   evaluasi tanpa "0 formulir", audit batch "Penugasan reviewer diproses".
 - Backend tidak lagi menghalangi resolve selama evaluasi masih tertunda: BR-FE-06 hanya
   menjaga pembuatan ulir. Pertanyaan untuk pemilik: apakah resolve juga harus ditahan?
+- Task 8 (di luar rencana): `'reviewer:reviewer_type'` tanpa kunci relasi membuat penulis ulir
+  selalu null di tiga layar pengajuan, sehingga "Tandai Selesai" tak pernah muncul; kini
+  `reviewer:id,user_id,reviewer_type`. Pola yang sama memperbaiki pengelompokan endpoint JSON
+  `admin.submissions.form-assignments`. Deklarasi kanal `RevisionResolved` kini ikut migration
+  (`insertOrIgnore` dari `NotificationEventCatalog::defaults()`, `down()` kosong), bukan hanya
+  seeder, supaya database yang sudah berjalan tidak menjawab 500 saat resolve.
 
 ---
 ---
