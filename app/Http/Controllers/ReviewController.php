@@ -14,7 +14,6 @@ use App\Models\ReviewSummary;
 use App\Models\SubmissionReviewer;
 use App\Queries\Review\ActiveReviewerAssignment;
 use App\Queries\Submission\EvaluationDueDate;
-use App\Services\EmailNotificationService;
 use App\Support\ReviewerWorkload;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\Request;
@@ -23,13 +22,6 @@ use Illuminate\Support\Facades\DB;
 
 class ReviewController extends Controller
 {
-    protected $emailService;
-
-    public function __construct(EmailNotificationService $emailService)
-    {
-        $this->emailService = $emailService;
-    }
-
     // Enhanced assign reviewers with evaluation forms
     public function assignReviewers(Request $request, FormSubmission $submission)
     {
