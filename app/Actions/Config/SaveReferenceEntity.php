@@ -52,9 +52,9 @@ class SaveReferenceEntity
         $record->update($attributes);
         $saved = $record->refresh();
 
-        // Nilai lama dan baru masuk jejak audit: ganti nama mengubah tampilan
-        // semua laporan yang pernah memakainya, dan tanpa jejak itu laporan yang
-        // "berubah sendiri" tidak punya penjelasan.
+        // Nilai lama dan baru masuk jejak audit: ganti nama mengubah
+        // tampilan semua laporan yang pernah memakainya, dan tanpa jejak itu
+        // laporan yang "berubah sendiri" tidak punya penjelasan.
         AuditTrail::record(
             "{$entity->label} diperbarui",
             $saved,

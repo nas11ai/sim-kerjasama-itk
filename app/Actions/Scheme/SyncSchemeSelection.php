@@ -32,16 +32,17 @@ class SyncSchemeSelection
         $scheme = $this->resolveScheme($schemeId, $submission);
 
         if ($submission->scheme_id !== $scheme->id) {
+            // Disimpan di kolom, bukan FormFieldResponse: batas anggaran
+            // (BR-BUD-01), batas anggota (BR-SM-06), dan Tipe Luaran yang
+            // diizinkan (BR-SM-14) menanyakan skema lewat kolom.
             $sebelumnya = $submission->scheme_id;
 
-            // Disimpan di kolom, bukan FormFieldResponse: anggaran (BR-BUD-01),
-            // anggota (BR-SM-06), luaran (BR-SM-14) menanyakan skema lewat
-            // kolom; dari jawaban form, penanya harus tahu fieldnya.
+            // Dari jawaban form, tiap penanya harus tahu field penyimpannya.
             $submission->update(['scheme_id' => $scheme->id]);
 
-            // BR-RPT-09 — dicatat hanya saat berpindah: entri untuk pemanggilan
-            // yang tak mengubah apa pun memenuhi jejak audit dengan baris tanpa
-            // cerita dan menenggelamkan yang benar-benar terjadi.
+            // BR-RPT-09 — dicatat hanya saat berpindah: entri untuk
+            // pemanggilan tanpa perubahan memenuhi jejak audit dengan baris
+            // tanpa cerita, menenggelamkan yang benar-benar terjadi.
             AuditTrail::record(
                 'Skema pengajuan dipilih',
                 $submission,

@@ -28,9 +28,9 @@ class AssignReviewer
     use AsAction;
 
     /**
-     * Ambang bawaan kalau skema tidak menyatakannya atau submission tak punya
-     * skema. Bukan pengganti `min_reviewer_count`: BR-REV-01 menegaskan
-     * ambangnya milik skema, jadi hanya berlaku bila skema tak bisa ditanya.
+     * Ambang bawaan kalau skema tidak menyatakannya atau submission tak
+     * punya skema. Bukan pengganti `min_reviewer_count` (BR-REV-01:
+     * ambangnya milik skema); hanya berlaku bila skema tak bisa ditanya.
      */
     private const DEFAULT_MIN_REVIEWERS = 2;
 
@@ -122,9 +122,10 @@ class AssignReviewer
     private function moveToReviewWhenMinimumReached(FormSubmission $submission): void
     {
         // BR-REV-01 soal **pengajuan**, bukan turunannya. Laporan monev punya
-        // lifecycle sendiri (BR-MON-02), tak lewat UNDER_REVIEW; transisi paksa
-        // melempar TransitionNotFound dari DRAFT, menggagalkan penugasan sah.
+        // lifecycle sendiri (BR-MON-02), tak lewat UNDER_REVIEW.
         if ($submission->parent_submission_id !== null) {
+            // Transisi paksa melempar TransitionNotFound dari DRAFT,
+            // menggagalkan penugasan sah.
             return;
         }
 

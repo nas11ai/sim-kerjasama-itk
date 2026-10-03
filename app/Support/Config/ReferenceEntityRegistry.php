@@ -19,9 +19,9 @@ use InvalidArgumentException;
 final class ReferenceEntityRegistry
 {
     /**
-     * Menambah kosakata mesin dari layar membuat nilai yang tidak dikenali kode
-     * mana pun, dan itu gagal jauh dari tempat penambahannya. Yang masuk hanya
-     * acuan yang isinya memang keputusan LPPM.
+     * Menambah kosakata mesin dari layar membuat nilai yang tidak dikenali
+     * kode mana pun, dan itu gagal jauh dari tempat penambahannya. Yang masuk
+     * hanya acuan yang isinya memang keputusan LPPM.
      *
      * @return array<string, ReferenceEntity<covariant Model>>
      */
@@ -47,13 +47,14 @@ final class ReferenceEntityRegistry
             ),
             // BR-SC-02 — tak dapat disunting: mengikat Scheme, Submission,
             // Review, Monev sekaligus, nilai ketiga tak ditangani keempatnya.
-            // Tampil read-only: Admin yang tak menemukannya kira ada layar lain.
             new ReferenceEntity(
                 key: 'submission-types',
                 label: 'Tipe Submission',
                 model: SubmissionType::class,
                 usageRelation: 'schemes',
                 usedBy: 'Skema, Submission, Review, Monev',
+                // Tampil read-only: Admin yang tak menemukannya kira ada
+                // layar lain.
                 editable: false,
             ),
             new ReferenceEntity(
