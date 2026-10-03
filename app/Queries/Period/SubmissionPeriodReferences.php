@@ -20,9 +20,9 @@ class SubmissionPeriodReferences implements ChangesNoState
     use AsAction;
 
     /**
-     * Penghalang kedua halus: BR-FE-07 mewajibkan setiap FormPhaseDetail punya
-     * `submission_date_id`, jadi menghapus tanggal periode ini membuat aturan
-     * Form Engine berhenti terpenuhi, di tempat yang jauh dari sini.
+     * Penghalang kedua halus: BR-FE-07 mewajibkan tiap FormPhaseDetail
+     * punya `submission_date_id`; menghapus tanggal periode ini mematahkan
+     * aturan yang diandalkan seluruh Form Engine, jauh dari tempat hapusnya.
      *
      * @return array<string, int>
      */
