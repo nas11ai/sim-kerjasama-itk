@@ -7,8 +7,6 @@
 #
 # Inilah antrean kerja refactor. Ambil dari atas.
 app/Actions/Config/SaveReferenceEntity.php
-app/Actions/Period/DeleteSubmissionPeriod.php
-app/Actions/Period/ExtendSubmissionDates.php
 app/Actions/Review/AssignReviewer.php
 app/Actions/Scheme/SyncSchemeSelection.php
 app/Console/Commands/NotifyActiveSubmissionPeriods.php
@@ -38,7 +36,6 @@ app/Models/FormPhaseDetail.php
 # docs/design/refactor-plan-wave-2-formsubmission.md Task 6.
 app/Models/FormSubmission.php
 app/Models/Organization.php
-app/Models/SubmissionPeriod.php
 app/Services/EmailNotificationService.php
 app/Support/Config/ReferenceEntityRegistry.php
 resources/js/Components/AppSidebar.vue

@@ -35,11 +35,9 @@ class SubmissionPeriod extends Model
     use HasFactory;
 
     /**
-     * BR-FE-21 — perluasan BR-FE-19 ke periode.
-     *
-     * SubmissionDate miliknya ikut terlindungi: BR-FE-07 mewajibkan setiap
-     * FormPhaseDetail punya deadline, jadi menghapus tanggalnya membuat aturan
-     * yang seluruh Form Engine andalkan berhenti terpenuhi.
+     * BR-FE-21 — perluasan BR-FE-19 ke periode; SubmissionDate miliknya ikut
+     * terlindungi: BR-FE-07 mewajibkan setiap FormPhaseDetail punya deadline,
+     * jadi menghapus tanggalnya membuat aturan Form Engine tak terpenuhi.
      */
     protected static function booted(): void
     {
@@ -80,12 +78,10 @@ class SubmissionPeriod extends Model
     }
 
     /**
-     * BR-SM-10 — menutup periode dan memberi tahu pemilik draft yang
-     * terdampak.
+     * BR-SM-10 — menutup periode dan memberi tahu pemilik draft terdampak.
      *
-     * Menutup periode membekukan draft, tidak menghapusnya. Pemberitahuannya
-     * bagian dari aksi itu: tanpa ini peneliti baru sadar saat mencoba
-     * menyunting dan ditolak.
+     * Menutup periode membekukan draft, tidak menghapusnya. Pemberitahuan
+     * bagian aksi ini: tanpa itu peneliti baru sadar saat gagal menyunting.
      */
     public function closeAndNotifyDraftOwners(): void
     {

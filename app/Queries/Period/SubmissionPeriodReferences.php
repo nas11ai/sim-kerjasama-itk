@@ -19,7 +19,13 @@ class SubmissionPeriodReferences implements ChangesNoState
 {
     use AsAction;
 
-    /** @return array<string, int> */
+    /**
+     * Penghalang kedua halus: BR-FE-07 mewajibkan setiap FormPhaseDetail punya
+     * `submission_date_id`, jadi menghapus tanggal periode ini membuat aturan
+     * Form Engine berhenti terpenuhi, di tempat yang jauh dari sini.
+     *
+     * @return array<string, int>
+     */
     public function handle(SubmissionPeriod $period): array
     {
         return [

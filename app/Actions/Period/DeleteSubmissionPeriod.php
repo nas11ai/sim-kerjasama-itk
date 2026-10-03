@@ -15,11 +15,8 @@ use Lorisleiva\Actions\Concerns\AsAction;
 /**
  * BR-FE-21 — menghapus periode pengajuan beserta tanggal dan tahapnya.
  *
- * Dua penghalang, bukan satu. Pengajuan yang merujuk periode sudah jelas;
- * yang kedua lebih halus — BR-FE-07 mewajibkan setiap FormPhaseDetail punya
- * `submission_date_id`, jadi menghapus tanggal milik periode ini membuat
- * aturan yang seluruh Form Engine andalkan berhenti terpenuhi, di tempat yang
- * jauh dari sini.
+ * Dua penghalang: pengajuan yang merujuk periode, dan detail tahap yang
+ * memakai tanggalnya, yang halus — BR-FE-07, di SubmissionPeriodReferences.
  *
  * @method static void run(SubmissionPeriod $period, User $actor)
  */

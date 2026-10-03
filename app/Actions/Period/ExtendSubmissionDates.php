@@ -17,16 +17,8 @@ use Lorisleiva\Actions\Concerns\AsAction;
 
 /**
  * BR-SCH-08 — memperbarui tanggal periode, dan memberi tahu pemilik draft
- * kalau salah satu batasnya **mundur**.
- *
- * Yang memicu pemberitahuan adalah perpanjangan, bukan setiap penyuntingan.
- * Memajukan tanggal atau mengganti namanya tidak memberi peneliti kesempatan
- * baru; memperpanjangnya memberi. Mengirim untuk keduanya membuat notifikasi
- * ini cepat diabaikan, dan yang hilang justru yang penting.
- *
- * Draft yang dihitung adalah draft **aktif** di periode itu — sudah dimulai
- * tapi belum dikirim. Pengajuan yang sudah masuk tidak terdampak batas
- * pengisian.
+ * kalau salah satu batasnya **mundur**; memajukan atau mengganti nama tidak
+ * memberi peneliti kesempatan baru, memperpanjang memberi.
  *
  * @method static int run(SubmissionPeriod $period, array<int, array{label: string, date: string}> $dates)
  */
@@ -42,6 +34,8 @@ class ExtendSubmissionDates
     {
         $adaPerpanjangan = DB::transaction(fn (): bool => $this->syncDates($period, $dates));
 
+        // Mengirim untuk setiap penyuntingan membuat notifikasi ini cepat
+        // diabaikan, dan yang hilang justru yang penting.
         if (!$adaPerpanjangan) {
             return 0;
         }
@@ -64,6 +58,10 @@ class ExtendSubmissionDates
     }
 
     /**
+     * Diperbarui **di tempat**, bukan dihapus lalu dibuat ulang. Foreign key
+     * `form_phase_details.submission_date_id` membuatnya selalu gagal pada
+     * periode terpakai; bila lolos, tiap FormPhaseDetail kehilangan tanggal.
+     *
      * @param  array<int, array{label: string, date: string}>  $dates
      * @return bool apakah ada batas yang mundur
      */
@@ -83,11 +81,6 @@ class ExtendSubmissionDates
                     $adaPerpanjangan = true;
                 }
 
-                // Diperbarui **di tempat**, bukan dihapus lalu dibuat ulang.
-                // `form_phase_details.submission_date_id` menunjuk ke baris
-                // ini lewat foreign key: menghapusnya membuat penyuntingan
-                // periode yang sudah dipakai selalu gagal, dan kalaupun
-                // lolos, tiap FormPhaseDetail kehilangan tanggalnya.
                 $lama->update(['datetime' => $baru]);
                 $terpakai[] = $lama->id;
 
@@ -130,7 +123,12 @@ class ExtendSubmissionDates
             ->delete();
     }
 
-    /** @return Collection<int, User> */
+    /**
+     * Draft **aktif** di periode itu: sudah dimulai tapi belum dikirim.
+     * Pengajuan yang sudah masuk tidak terdampak batas pengisian.
+     *
+     * @return Collection<int, User>
+     */
     private function draftOwners(SubmissionPeriod $period): Collection
     {
         return User::query()
