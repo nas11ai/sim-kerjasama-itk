@@ -6,6 +6,7 @@ use App\Models\BudgetComponent;
 use App\Models\BudgetLineItem;
 use App\Models\FormSubmission;
 use App\Models\User;
+use App\Support\Audit\AuditChange;
 use App\Support\Audit\AuditTrail;
 use App\Support\BudgetLimitGuard;
 use Illuminate\Auth\Access\AuthorizationException;
@@ -69,13 +70,14 @@ class SaveBudgetLineItem
             'Line item anggaran disimpan',
             $tercatat,
             $user,
-            null,
-            [
-                'item_name' => $tercatat->item_name,
-                'volume' => $tercatat->volume,
-                'unit_price' => $tercatat->unit_price,
-                'total' => $tercatat->total,
-            ],
+            new AuditChange(
+                new: [
+                    'item_name' => $tercatat->item_name,
+                    'volume' => $tercatat->volume,
+                    'unit_price' => $tercatat->unit_price,
+                    'total' => $tercatat->total,
+                ],
+            ),
         );
 
         return $tercatat;

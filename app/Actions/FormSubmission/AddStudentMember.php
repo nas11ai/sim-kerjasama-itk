@@ -5,6 +5,7 @@ namespace App\Actions\FormSubmission;
 use App\Models\FormSubmission;
 use App\Models\StudentMember;
 use App\Models\User;
+use App\Support\Audit\AuditChange;
 use App\Support\Audit\AuditTrail;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Validation\ValidationException;
@@ -49,10 +50,17 @@ class AddStudentMember
             'study_program' => $attributes['study_program'] ?? null,
         ]);
 
-        AuditTrail::record('Anggota mahasiswa ditambahkan', $tercatat, $actor, null, [
-            'name' => $tercatat->name,
-            'student_id' => $tercatat->student_id,
-        ]);
+        AuditTrail::record(
+            'Anggota mahasiswa ditambahkan',
+            $tercatat,
+            $actor,
+            new AuditChange(
+                new: [
+                    'name' => $tercatat->name,
+                    'student_id' => $tercatat->student_id,
+                ],
+            ),
+        );
 
         return $tercatat;
     }

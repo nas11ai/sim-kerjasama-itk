@@ -5,6 +5,7 @@ namespace App\Actions\FormSubmission;
 use App\Models\FormSubmission;
 use App\Models\ResearchMember;
 use App\Models\User;
+use App\Support\Audit\AuditChange;
 use App\Support\Audit\AuditTrail;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Validation\ValidationException;
@@ -56,8 +57,9 @@ class RemoveResearchMember
             'Anggota tim dikeluarkan',
             $member,
             $actor,
-            ['user_profile_id' => $member->user_profile_id, 'role' => $member->role],
-            null,
+            new AuditChange(
+                old: ['user_profile_id' => $member->user_profile_id, 'role' => $member->role],
+            ),
         );
 
         $member->delete();

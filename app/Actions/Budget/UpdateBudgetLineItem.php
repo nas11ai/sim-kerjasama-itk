@@ -6,6 +6,7 @@ use App\Models\BudgetComponent;
 use App\Models\BudgetLineItem;
 use App\Models\FormSubmission;
 use App\Models\User;
+use App\Support\Audit\AuditChange;
 use App\Support\Audit\AuditTrail;
 use App\Support\BudgetLimitGuard;
 use Illuminate\Auth\Access\AuthorizationException;
@@ -101,13 +102,15 @@ class UpdateBudgetLineItem
             'Line item anggaran disunting',
             $item,
             $user,
-            $sebelum,
-            [
-                'item_name' => $item->item_name,
-                'volume' => $item->volume,
-                'unit_price' => $item->unit_price,
-                'total' => $item->total,
-            ],
+            new AuditChange(
+                old: $sebelum,
+                new: [
+                    'item_name' => $item->item_name,
+                    'volume' => $item->volume,
+                    'unit_price' => $item->unit_price,
+                    'total' => $item->total,
+                ],
+            ),
         );
 
         return $item->refresh();

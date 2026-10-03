@@ -3,6 +3,7 @@
 namespace App\Console\Commands;
 
 use App\Models\ExportJob;
+use App\Support\Audit\AuditChange;
 use App\Support\Audit\AuditTrail;
 use App\Support\Reporting\ExportRetention;
 use App\Support\Reporting\ExportWriter;
@@ -34,9 +35,16 @@ class PruneExpiredExports extends Command
 
             $job->update(['file_deleted_at' => now()]);
 
-            AuditTrail::record('Berkas ekspor dihapus setelah masa simpan', $job, null, null, [
-                'retention_hours' => ExportRetention::HOURS,
-            ]);
+            AuditTrail::record(
+                'Berkas ekspor dihapus setelah masa simpan',
+                $job,
+                null,
+                new AuditChange(
+                    new: [
+                        'retention_hours' => ExportRetention::HOURS,
+                    ],
+                ),
+            );
 
             $dihapus++;
         }

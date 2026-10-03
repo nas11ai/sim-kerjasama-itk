@@ -7,6 +7,7 @@ use App\Models\FormSubmission;
 use App\Models\SubmissionDate;
 use App\Models\SubmissionPeriod;
 use App\Models\User;
+use App\Support\Audit\AuditChange;
 use App\Support\Audit\AuditTrail;
 use App\Support\Lifecycle\ReferenceGuard;
 use Illuminate\Support\Facades\DB;
@@ -48,8 +49,9 @@ class DeleteSubmissionPeriod
             'Periode pengajuan dihapus',
             $period,
             $actor,
-            ['name' => $period->name],
-            null,
+            new AuditChange(
+                old: ['name' => $period->name],
+            ),
         );
 
         DB::transaction(function () use ($period): void {

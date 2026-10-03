@@ -6,6 +6,7 @@ use App\Models\FormPhase;
 use App\Models\FormPhaseDetail;
 use App\Models\FormSubmission;
 use App\Models\User;
+use App\Support\Audit\AuditChange;
 use App\Support\Audit\AuditTrail;
 use App\Support\Lifecycle\ReferenceGuard;
 use Illuminate\Support\Facades\DB;
@@ -39,8 +40,9 @@ class DeleteFormPhase
             'Tahap formulir dihapus',
             $phase,
             $actor,
-            ['title' => $phase->title],
-            null,
+            new AuditChange(
+                old: ['title' => $phase->title],
+            ),
         );
 
         DB::transaction(function () use ($phase): void {

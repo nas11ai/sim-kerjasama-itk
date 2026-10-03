@@ -6,6 +6,7 @@ use App\Jobs\GenerateExport;
 use App\Models\ExportJob;
 use App\Models\FormSubmission;
 use App\Models\User;
+use App\Support\Audit\AuditChange;
 use App\Support\Audit\AuditTrail;
 use App\Support\Reporting\ExportThreshold;
 use App\Support\Reporting\PrintableDocument;
@@ -38,10 +39,17 @@ class PrintDocument
             'row_count' => $rowCount,
         ]);
 
-        AuditTrail::record('Dokumen dicetak', $submission, $user, null, [
-            'document' => $document,
-            'export_job_id' => $job->id,
-        ]);
+        AuditTrail::record(
+            'Dokumen dicetak',
+            $submission,
+            $user,
+            new AuditChange(
+                new: [
+                    'document' => $document,
+                    'export_job_id' => $job->id,
+                ],
+            ),
+        );
 
         // Ambangnya sama persis dengan ekspor tabular — BR-RPT-11 memang menyatakan demikian,
         // dan angka kedua yang berbeda akan membuat "ambang yang sama" berhenti benar pada

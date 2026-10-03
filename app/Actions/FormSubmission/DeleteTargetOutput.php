@@ -5,6 +5,7 @@ namespace App\Actions\FormSubmission;
 use App\Models\FormSubmission;
 use App\Models\SubmissionTargetOutput;
 use App\Models\User;
+use App\Support\Audit\AuditChange;
 use App\Support\Audit\AuditTrail;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Validation\ValidationException;
@@ -43,8 +44,9 @@ class DeleteTargetOutput
             'Target luaran dihapus',
             $target,
             $user,
-            ['output_type' => $target->output_type],
-            null,
+            new AuditChange(
+                old: ['output_type' => $target->output_type],
+            ),
         );
 
         // Berbeda dari luaran realisasi yang tidak pernah dihapus (BR-RO-06): yang

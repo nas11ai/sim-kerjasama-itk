@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Notification;
 
 use App\Http\Controllers\Controller;
 use App\Models\NotificationChannelSetting;
+use App\Support\Audit\AuditChange;
 use App\Support\Audit\AuditTrail;
 use App\Support\Notification\NotificationChannels;
 use Illuminate\Http\RedirectResponse;
@@ -45,8 +46,10 @@ class NotificationChannelController extends Controller
             'Channel notifikasi diubah',
             $setting->refresh(),
             $user,
-            ['channels' => $sebelumnya],
-            ['channels' => $setting->channels],
+            new AuditChange(
+                old: ['channels' => $sebelumnya],
+                new: ['channels' => $setting->channels],
+            ),
         );
 
         return back()->with('success', "Channel {$eventType} diperbarui.");

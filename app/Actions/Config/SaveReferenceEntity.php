@@ -3,6 +3,7 @@
 namespace App\Actions\Config;
 
 use App\Data\Request\ReferenceEntityInput;
+use App\Support\Audit\AuditChange;
 use App\Support\Audit\AuditTrail;
 use App\Support\Config\ReferenceEntity;
 use Illuminate\Database\Eloquent\Model;
@@ -67,7 +68,7 @@ class SaveReferenceEntity
 
             $saved = $model::create($attributes);
 
-            AuditTrail::record("{$entity->label} ditambahkan", $saved, null, null, $attributes);
+            AuditTrail::record("{$entity->label} ditambahkan", $saved, null, new AuditChange(new: $attributes));
 
             return $saved;
         }
@@ -77,7 +78,15 @@ class SaveReferenceEntity
         $record->update($attributes);
         $saved = $record->refresh();
 
-        AuditTrail::record("{$entity->label} diperbarui", $saved, null, $before, $attributes);
+        AuditTrail::record(
+            "{$entity->label} diperbarui",
+            $saved,
+            null,
+            new AuditChange(
+                old: $before,
+                new: $attributes,
+            ),
+        );
 
         return $saved;
     }

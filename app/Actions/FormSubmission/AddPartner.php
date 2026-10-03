@@ -5,6 +5,7 @@ namespace App\Actions\FormSubmission;
 use App\Models\FormSubmission;
 use App\Models\Partner;
 use App\Models\User;
+use App\Support\Audit\AuditChange;
 use App\Support\Audit\AuditTrail;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Validation\ValidationException;
@@ -61,9 +62,9 @@ class AddPartner
             'description' => $attributes['description'] ?? null,
         ]);
 
-        AuditTrail::record('Mitra ditambahkan', $tercatat, $actor, null, [
+        AuditTrail::record('Mitra ditambahkan', $tercatat, $actor, new AuditChange(new: [
             'institution_name' => $tercatat->institution_name,
-        ]);
+        ]));
 
         return $tercatat;
     }

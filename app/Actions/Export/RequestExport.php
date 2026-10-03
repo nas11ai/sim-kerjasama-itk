@@ -5,6 +5,7 @@ namespace App\Actions\Export;
 use App\Jobs\GenerateExport;
 use App\Models\ExportJob;
 use App\Models\User;
+use App\Support\Audit\AuditChange;
 use App\Support\Audit\AuditTrail;
 use App\Support\Reporting\ExportThreshold;
 use App\Support\Reporting\ExportType;
@@ -35,10 +36,10 @@ class RequestExport
             'row_count' => $rowCount,
         ]);
 
-        AuditTrail::record('Ekspor diminta', $job, $user, null, [
+        AuditTrail::record('Ekspor diminta', $job, $user, new AuditChange(new: [
             'type' => $type,
             'row_count' => $rowCount,
-        ]);
+        ]));
 
         // Yang besar dijadwalkan supaya Operator tidak menunggu di layar sama sekali; yang
         // kecil dijalankan langsung supaya ia tidak menunggu notifikasi untuk berkas sekejap.

@@ -5,6 +5,7 @@ namespace App\Actions\Identity;
 use App\Models\InvitationToken;
 use App\Models\Organization;
 use App\Models\User;
+use App\Support\Audit\AuditChange;
 use App\Support\Audit\AuditTrail;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Carbon;
@@ -83,13 +84,14 @@ class IssueInvitation
             'Undangan registrasi diterbitkan',
             $tercatat,
             $actor,
-            null,
-            [
-                'organization_id' => $tercatat->organization_id,
-                'permissions' => $tercatat->permissions,
-                'max_uses' => $tercatat->max_uses,
-                'expires_at' => $tercatat->expires_at?->toDateTimeString(),
-            ],
+            new AuditChange(
+                new: [
+                    'organization_id' => $tercatat->organization_id,
+                    'permissions' => $tercatat->permissions,
+                    'max_uses' => $tercatat->max_uses,
+                    'expires_at' => $tercatat->expires_at?->toDateTimeString(),
+                ],
+            ),
         );
 
         return $tercatat;

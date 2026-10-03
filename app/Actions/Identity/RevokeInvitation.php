@@ -4,6 +4,7 @@ namespace App\Actions\Identity;
 
 use App\Models\InvitationToken;
 use App\Models\User;
+use App\Support\Audit\AuditChange;
 use App\Support\Audit\AuditTrail;
 use Illuminate\Auth\Access\AuthorizationException;
 use Lorisleiva\Actions\Concerns\AsAction;
@@ -48,8 +49,10 @@ class RevokeInvitation
             'Undangan registrasi dicabut',
             $invitation,
             $actor,
-            ['revoked_at' => null, 'sisa_kuota' => $sisaKuota],
-            ['revoked_at' => $invitation->fresh()?->revoked_at?->toDateTimeString()],
+            new AuditChange(
+                old: ['revoked_at' => null, 'sisa_kuota' => $sisaKuota],
+                new: ['revoked_at' => $invitation->fresh()?->revoked_at?->toDateTimeString()],
+            ),
         );
     }
 }

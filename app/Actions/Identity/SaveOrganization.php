@@ -4,6 +4,7 @@ namespace App\Actions\Identity;
 
 use App\Models\Organization;
 use App\Models\User;
+use App\Support\Audit\AuditChange;
 use App\Support\Audit\AuditTrail;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Validation\ValidationException;
@@ -54,10 +55,17 @@ class SaveOrganization
                 'is_active' => true,
             ]);
 
-            AuditTrail::record('Unit organisasi dibuat', $tercatat, $actor, null, [
-                'name' => $tercatat->name,
-                'parent_id' => $tercatat->parent_id,
-            ]);
+            AuditTrail::record(
+                'Unit organisasi dibuat',
+                $tercatat,
+                $actor,
+                new AuditChange(
+                    new: [
+                        'name' => $tercatat->name,
+                        'parent_id' => $tercatat->parent_id,
+                    ],
+                ),
+            );
 
             return $tercatat;
         }
@@ -71,10 +79,18 @@ class SaveOrganization
 
         $tercatat = $organization->refresh();
 
-        AuditTrail::record('Unit organisasi diperbarui', $tercatat, $actor, $sebelum, [
-            'name' => $tercatat->name,
-            'parent_id' => $tercatat->parent_id,
-        ]);
+        AuditTrail::record(
+            'Unit organisasi diperbarui',
+            $tercatat,
+            $actor,
+            new AuditChange(
+                old: $sebelum,
+                new: [
+                    'name' => $tercatat->name,
+                    'parent_id' => $tercatat->parent_id,
+                ],
+            ),
+        );
 
         return $tercatat;
     }

@@ -20,6 +20,7 @@ use App\Models\UserProfile;
 use App\States\Submission\Approved;
 use App\States\Submission\Draft;
 use App\Support\Audit\AppendOnlyViolation;
+use App\Support\Audit\AuditChange;
 use App\Support\Audit\AuditScope;
 use App\Support\Audit\AuditTrail;
 use Inertia\Testing\AssertableInertia as Assert;
@@ -201,4 +202,16 @@ it('membuka layar audit bagi peneliti dengan cakupan miliknya', function () {
             ->where('seesEverything', false)
             ->has('entries.data', 1)
         );
+});
+
+it('mencatat nilai lama dan baru lewat AuditChange', function () {
+    $budi = User::factory()->create();
+
+    $entry = AuditTrail::record('Skema dipilih', auditedSubmission($budi), $budi, new AuditChange(
+        old: ['scheme_id' => 1],
+        new: ['scheme_id' => 2],
+    ));
+
+    expect($entry->properties['old'])->toBe(['scheme_id' => 1])
+        ->and($entry->properties['new'])->toBe(['scheme_id' => 2]);
 });

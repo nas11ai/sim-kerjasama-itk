@@ -5,6 +5,7 @@ namespace App\Actions\FormSubmission;
 use App\Models\FormSubmission;
 use App\Models\Partner;
 use App\Models\User;
+use App\Support\Audit\AuditChange;
 use App\Support\Audit\AuditTrail;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Validation\ValidationException;
@@ -43,8 +44,9 @@ class RemovePartner
             'Mitra dicabut',
             $partner,
             $actor,
-            ['institution_name' => $partner->institution_name],
-            null,
+            new AuditChange(
+                old: ['institution_name' => $partner->institution_name],
+            ),
         );
 
         $partner->delete();

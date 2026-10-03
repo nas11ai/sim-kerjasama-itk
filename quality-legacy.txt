@@ -51,7 +51,6 @@ app/Models/FormSubmission.php
 app/Models/Organization.php
 app/Models/SubmissionPeriod.php
 app/Services/EmailNotificationService.php
-app/Support/Audit/AuditTrail.php
 app/Support/Config/ReferenceEntityRegistry.php
 resources/js/Components/AppSidebar.vue
 resources/js/Components/AssignReviewerDialog.vue

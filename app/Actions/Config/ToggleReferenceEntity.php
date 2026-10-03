@@ -2,6 +2,7 @@
 
 namespace App\Actions\Config;
 
+use App\Support\Audit\AuditChange;
 use App\Support\Audit\AuditTrail;
 use App\Support\Config\ReferenceEntity;
 use Illuminate\Database\Eloquent\Model;
@@ -40,8 +41,10 @@ class ToggleReferenceEntity
             $active ? "{$entity->label} diaktifkan" : "{$entity->label} dinonaktifkan",
             $tercatat,
             null,
-            ['is_active' => $sebelumnya],
-            ['is_active' => $active],
+            new AuditChange(
+                old: ['is_active' => $sebelumnya],
+                new: ['is_active' => $active],
+            ),
         );
 
         return $tercatat;

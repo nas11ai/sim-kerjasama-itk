@@ -2,6 +2,7 @@
 
 namespace App\Actions\Config;
 
+use App\Support\Audit\AuditChange;
 use App\Support\Audit\AuditTrail;
 use App\Support\Config\ReferenceEntity;
 use Illuminate\Database\Eloquent\Model;
@@ -45,8 +46,9 @@ class DeleteReferenceEntity
             "{$entity->label} dihapus",
             $tercatat,
             null,
-            ['name' => $record->getAttribute('name')],
-            null,
+            new AuditChange(
+                old: ['name' => $record->getAttribute('name')],
+            ),
         );
 
         $record->delete();

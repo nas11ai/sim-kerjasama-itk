@@ -6,6 +6,7 @@ use App\Models\FormField;
 use App\Models\FormFieldResponse;
 use App\Models\FormSubmission;
 use App\Models\Scheme;
+use App\Support\Audit\AuditChange;
 use App\Support\Audit\AuditTrail;
 use Illuminate\Validation\ValidationException;
 use Lorisleiva\Actions\Concerns\AsAction;
@@ -79,8 +80,10 @@ class SyncSchemeSelection
                 'Skema pengajuan dipilih',
                 $submission,
                 null,
-                ['scheme_id' => $sebelumnya],
-                ['scheme_id' => $scheme->id],
+                new AuditChange(
+                    old: ['scheme_id' => $sebelumnya],
+                    new: ['scheme_id' => $scheme->id],
+                ),
             );
         }
 

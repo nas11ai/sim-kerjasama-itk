@@ -7,40 +7,28 @@ use Illuminate\Support\Facades\Auth;
 use Spatie\Activitylog\Contracts\Activity;
 
 /**
- * BR-RPT-09 — satu pintu untuk menulis jejak audit.
- *
- * Bentuk propertinya diseragamkan (`old`/`new`) karena layar audit membaca
- * keduanya untuk menampilkan "nilai lama → nilai baru". Kalau setiap Action
- * memilih bentuknya sendiri, layar itu harus mengenali sebanyak mungkin
- * bentuk — dan yang tidak dikenalinya akan tampil kosong tanpa ada yang tahu.
- *
- * Aktornya diambil dari sesi kalau tidak disebut. Aksi yang dijalankan
- * scheduler memang tidak punya aktor, dan itu bukan kekurangan yang perlu
- * ditutup dengan aktor palsu.
+ * BR-RPT-09 — satu pintu jejak audit. Bentuk `old`/`new` seragam karena layar audit membacanya;
+ * bentuk lain tampil kosong tanpa ada yang tahu. Aktor diambil dari sesi bila tak disebut, dan aksi
+ * scheduler memang tanpa aktor — jangan ditambal aktor palsu.
  */
 final class AuditTrail
 {
     public const LOG_NAME = 'audit';
 
-    /**
-     * @param  array<string, mixed>|null  $old
-     * @param  array<string, mixed>|null  $new
-     */
     public static function record(
         string $description,
         Model $subject,
         ?Model $causer = null,
-        ?array $old = null,
-        ?array $new = null,
+        ?AuditChange $change = null,
     ): Activity {
         $properties = [];
 
-        if ($old !== null) {
-            $properties['old'] = $old;
+        if ($change?->old !== null) {
+            $properties['old'] = $change->old;
         }
 
-        if ($new !== null) {
-            $properties['new'] = $new;
+        if ($change?->new !== null) {
+            $properties['new'] = $change->new;
         }
 
         $activity = activity(self::LOG_NAME)

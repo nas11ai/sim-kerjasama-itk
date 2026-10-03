@@ -5,6 +5,7 @@ namespace App\Actions\Budget;
 use App\Models\BudgetLineItem;
 use App\Models\FormSubmission;
 use App\Models\User;
+use App\Support\Audit\AuditChange;
 use App\Support\Audit\AuditTrail;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Validation\ValidationException;
@@ -44,13 +45,14 @@ class DeleteBudgetLineItem
             'Line item anggaran dihapus',
             $item,
             $user,
-            [
-                'item_name' => $item->item_name,
-                'volume' => $item->volume,
-                'unit_price' => $item->unit_price,
-                'total' => $item->total,
-            ],
-            null,
+            new AuditChange(
+                old: [
+                    'item_name' => $item->item_name,
+                    'volume' => $item->volume,
+                    'unit_price' => $item->unit_price,
+                    'total' => $item->total,
+                ],
+            ),
         );
 
         // Soft delete, bukan hard delete: nilai yang pernah masuk rencana anggaran

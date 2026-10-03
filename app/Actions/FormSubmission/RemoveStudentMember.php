@@ -5,6 +5,7 @@ namespace App\Actions\FormSubmission;
 use App\Models\FormSubmission;
 use App\Models\StudentMember;
 use App\Models\User;
+use App\Support\Audit\AuditChange;
 use App\Support\Audit\AuditTrail;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Validation\ValidationException;
@@ -43,8 +44,9 @@ class RemoveStudentMember
             'Anggota mahasiswa dikeluarkan',
             $member,
             $actor,
-            ['name' => $member->name, 'student_id' => $member->student_id],
-            null,
+            new AuditChange(
+                old: ['name' => $member->name, 'student_id' => $member->student_id],
+            ),
         );
 
         $member->delete();

@@ -4,6 +4,7 @@ namespace App\Actions\Identity;
 
 use App\Models\Organization;
 use App\Models\User;
+use App\Support\Audit\AuditChange;
 use App\Support\Audit\AuditTrail;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Validation\ValidationException;
@@ -57,8 +58,10 @@ class MoveUserToOrganization
             'User dipindahkan antar unit',
             $profile->refresh(),
             $actor,
-            ['organization_id' => $sebelum],
-            ['organization_id' => $tujuan->id],
+            new AuditChange(
+                old: ['organization_id' => $sebelum],
+                new: ['organization_id' => $tujuan->id],
+            ),
         );
     }
 }
