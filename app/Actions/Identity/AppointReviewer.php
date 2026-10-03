@@ -15,19 +15,8 @@ use Spatie\Permission\Models\Role;
 
 /**
  * BR-IAM-11 — Operator menunjuk reviewer dari user yang **sudah terdaftar**.
- *
- * Penunjukan bukan pembuatan akun: tidak ada jalur registrasi mandiri untuk
- * reviewer. Konsekuensinya, pakar dari luar ITK harus diundang lebih dulu
- * lewat jalur undangan (BR-IAM-12).
- *
- * **Idempoten per orang.** Menunjuk ulang memperbarui record yang ada, bukan
- * membuat yang kedua: dua record untuk satu orang membuat penghitungan beban
- * (BR-REV-04) dan keterlihatan skor (BR-REV-11) membaca dari himpunan yang
- * ambigu — dan itu tidak gagal mencolok, ia cuma menghitung dua kali.
- *
- * Mengubah tipe **mencabut role tipe lama**. Menambah role baru tanpa
- * mencabut yang lama membuat reviewer eksternal tetap bisa melihat skor
- * rekannya: salah di M2, tanpa ada yang gagal di sini.
+ * Tak ada registrasi mandiri reviewer: pakar luar ITK diundang lewat jalur
+ * undangan (BR-IAM-12). Idempoten; mengubah tipe mencabut role lama.
  *
  * @method static Reviewer run(User $user, string $type, ?string $startDate = null, ?string $endDate = null)
  */
@@ -92,10 +81,15 @@ class AppointReviewer
             Role::findOrCreate($role, 'web');
         }
 
-        // Cabut role tipe lain lebih dulu, lalu berikan yang benar.
+        // Cabut role tipe lain lebih dulu, lalu berikan yang benar. Menambah
+        // tanpa mencabut membuat reviewer eksternal tetap bisa melihat skor
+        // rekannya: salah di M2, tanpa ada yang gagal di sini.
         $user->removeRole(self::ROLES[$type === self::TYPE_INTERNAL ? self::TYPE_EXTERNAL : self::TYPE_INTERNAL]);
         $user->assignRole(self::ROLES[$type]);
 
+        // Idempoten: menunjuk ulang memperbarui, bukan membuat record kedua.
+        // Dua record membuat beban (BR-REV-04) dan keterlihatan skor
+        // (BR-REV-11) dihitung dari himpunan ambigu, tanpa gagal mencolok.
         $existing = Reviewer::query()->where('user_id', $user->id)->first();
 
         if ($existing !== null) {
@@ -111,10 +105,9 @@ class AppointReviewer
             return $existing->refresh();
         }
 
-        // Masa tugas wajib ada — BR-REV-09 menegakkannya saat penugasan,
-        // dan reviewer tanpa masa tugas tidak akan pernah bisa ditugaskan.
-        // Default satu tahun sejak hari ini adalah masa jabatan yang lazim
-        // di LPPM, dan Operator tetap bisa menyuntingnya.
+        // Masa tugas wajib ada (BR-REV-09 menegakkannya saat penugasan).
+        // Default satu tahun sejak hari ini adalah masa jabatan lazim di
+        // LPPM; Operator tetap bisa menyuntingnya.
         return Reviewer::create([
             'user_id' => $user->id,
             'reviewer_type' => $type,

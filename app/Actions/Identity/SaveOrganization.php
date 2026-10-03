@@ -11,18 +11,9 @@ use Illuminate\Validation\ValidationException;
 use Lorisleiva\Actions\Concerns\AsAction;
 
 /**
- * BR-IAM-17 — membuat unit organisasi, mengganti namanya, dan memindah
- * induknya.
- *
- * Tiga aksi di satu Action karena ketiganya satu use case: menyusun pohon
- * organisasi. Yang memisahkannya bukan operasinya melainkan penjagaannya, dan
- * penjagaan yang paling menentukan hanya berlaku pada pemindahan.
- *
- * Pemindahan **ditolak** kalau menjadikan sebuah unit keturunan dirinya
- * sendiri. Access control BR-FE-02 menelusuri rantai leluhur lewat CTE
- * rekursif, dan pohon bersiklus membuat penelusuran itu tidak berhenti —
- * kegagalannya muncul sebagai timeout di layar peneliti yang tidak bersalah,
- * jauh dari tempat kesalahannya dibuat.
+ * BR-IAM-17 — membuat unit organisasi, mengganti nama, memindah induk: tiga
+ * aksi, satu use case (menyusun pohon). Penjagaan paling menentukan hanya
+ * berlaku pada pemindahan.
  *
  * @method static Organization run(User $actor, array{name?: string, type?: string, parent_id?: int|null} $attributes, ?Organization $organization = null)
  */
@@ -130,8 +121,9 @@ class SaveOrganization
             ]);
         }
 
-        // Induk baru yang berada di dalam subtree unit ini akan menutup pohon
-        // jadi lingkaran.
+        // Induk baru di subtree unit ini menutup pohon jadi lingkaran, dan
+        // penelusuran leluhur BR-FE-02 (CTE rekursif) tak berhenti lagi:
+        // timeout di layar peneliti yang tak bersalah, jauh dari sebabnya.
         if (in_array($parentId, Organization::subtreeIds($organization->id), true)) {
             throw ValidationException::withMessages([
                 'parent_id' => 'Unit ini tidak bisa dipindah ke bawah turunannya sendiri — '

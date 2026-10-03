@@ -17,16 +17,9 @@ use Lorisleiva\Actions\Concerns\AsAction;
 use Spatie\Permission\Models\Permission;
 
 /**
- * BR-IAM-01, BR-IAM-02, BR-IAM-12 — jalur registrasi mandiri untuk dosen ITK.
- *
- * Bekal yang dibawa akun barunya ada empat, dan keempatnya ditentukan jalurnya
- * — bukan pilihan pendaftar: role `researcher`, organisasi yang ia pilih di
- * OrgTreePicker, permission dari role itu, dan status `pending` menunggu
- * verifikasi NIDN.
- *
- * Pendaftar mendarat di antrian verifikasi, dan Operator diberi tahu
- * (BR-IAM-15). Antrian yang tidak ada yang tahu isinya sama saja dengan
- * pendaftar yang menunggu selamanya.
+ * BR-IAM-01, BR-IAM-02, BR-IAM-12 — registrasi mandiri dosen ITK. Empat bekal
+ * akunnya ditentukan jalurnya, bukan pendaftar: role `researcher`, organisasi
+ * dari OrgTreePicker, permission role itu, status `pending` menunggu NIDN.
  *
  * @method static User run(array{name: string, email: string, password: string, nidn: string, organization_id: int} $data)
  */
@@ -47,13 +40,9 @@ class RegisterResearcher
 
         $user = DB::transaction(fn (): User => $this->createAccount($data, $organization));
 
-        // BR-IAM-15 — pendaftaran baru memberi tahu pihak yang harus bertindak
-        // atasnya, dan untuk jalur ini pihak itu Operator.
-        //
-        // BR-NOT-03 — pemberitahuannya fire-and-forget. `permission()` milik
-        // Spatie melempar kalau permission-nya belum pernah dibuat, dan
-        // registrasi seseorang tidak boleh gagal gara-gara antrian Operator
-        // belum punya penghuni.
+        // BR-IAM-15 — pendaftar masuk antrian verifikasi dan Operator
+        // diberi tahu; antrian yang tak diketahui isinya sama dengan
+        // menunggu selamanya.
         $this->notifyVerifiers($user);
 
         $tercatat = $user->refresh();
@@ -121,6 +110,9 @@ class RegisterResearcher
 
     private function notifyVerifiers(User $registrant): void
     {
+        // BR-NOT-03 — fire-and-forget: `permission()` Spatie melempar kalau
+        // permission-nya belum dibuat, dan registrasi tidak boleh gagal
+        // gara-gara antrian Operator belum punya penghuni.
         if (Permission::where('name', 'users.verify')->where('guard_name', 'web')->doesntExist()) {
             return;
         }

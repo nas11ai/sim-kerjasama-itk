@@ -14,12 +14,9 @@ use Illuminate\Validation\ValidationException;
 use Lorisleiva\Actions\Concerns\AsAction;
 
 /**
- * BR-IAM-16 — Operator menerbitkan tautan undangan.
- *
- * Satu-satunya jalan masuk mitra eksternal (BR-IAM-12). Akun yang lahir
- * darinya aktif seketika dan membawa permission yang tertera di token, jadi
- * penerbitannya adalah pemberian akses — bukan sekadar membuat tautan, dan
- * karena itu wewenangnya dibatasi.
+ * BR-IAM-16 — Operator menerbitkan undangan, jalan masuk mitra eksternal
+ * (BR-IAM-12). Akunnya aktif seketika dengan permission dari token, jadi
+ * penerbitan adalah pemberian akses dan wewenangnya dibatasi.
  *
  * @method static InvitationToken run(User $actor, Organization $organization, array{permissions?: list<string>, max_uses?: int|null, expires_at?: string|null} $attributes)
  */

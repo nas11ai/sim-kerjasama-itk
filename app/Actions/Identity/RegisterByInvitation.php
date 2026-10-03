@@ -14,17 +14,9 @@ use Lorisleiva\Actions\Concerns\AsAction;
 use Spatie\Permission\Models\Permission;
 
 /**
- * BR-IAM-06, BR-IAM-12 — jalur undangan untuk mitra eksternal.
- *
- * Tiga hal yang membedakannya dari jalur mandiri, dan ketiganya konsekuensi
- * dari satu fakta: **mitra eksternal tidak punya NIDN**.
- *
- *   1. Domain email bebas — batas @itk.ac.id milik jalur mandiri saja.
- *   2. Akunnya `active` **langsung**. Verifikasi memverifikasi NIDN; menahan
- *      akun tanpa NIDN di status `pending` berarti antrian yang tidak bisa
- *      dibersihkan siapa pun secara jujur. Penyaringannya sudah terjadi saat
- *      Operator menerbitkan token.
- *   3. Permission datang dari token, bukan dari role.
+ * BR-IAM-06, BR-IAM-12 — jalur undangan mitra eksternal, tanpa NIDN: domain
+ * email bebas, akun `active` langsung (alasan di createAccount()), dan
+ * permission dari token, bukan role.
  *
  * @method static User run(InvitationToken $token, array{name: string, email: string, password: string} $data)
  */
@@ -65,9 +57,8 @@ class RegisterByInvitation
         ]);
 
         // BR-IAM-12 — permission diwariskan token, bukan lewat role.
-        // Diberikan sebagai direct permission justru karena itu additive
-        // (BR-IAM-09): role apa pun yang kelak ditambahkan Operator
-        // menambah, bukan menggantikan, bekal awal ini.
+        // Direct permission karena additive (BR-IAM-09, default Spatie):
+        // role yang kelak ditambah Operator menambah, bukan mengganti.
         foreach ($token->permissions ?? [] as $permission) {
             Permission::findOrCreate($permission, 'web');
             $user->givePermissionTo($permission);
@@ -76,7 +67,9 @@ class RegisterByInvitation
         UserProfile::create([
             'user_id' => $user->id,
             'organization_id' => $token->organization_id,
-            // Tidak ada NIDN — dan itu sebabnya statusnya langsung aktif.
+            // Tanpa NIDN, makanya langsung aktif: verifikasi memeriksa
+            // NIDN, dan menahan akun tanpa NIDN di `pending` jadi antrian
+            // yang tak bisa dibersihkan; saringannya saat token terbit.
             'nidn' => null,
             'verification_status' => VerificationStatus::Active->value,
         ]);

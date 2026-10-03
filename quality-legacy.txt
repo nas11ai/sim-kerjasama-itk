@@ -12,11 +12,6 @@ app/Actions/Config/SaveReferenceEntity.php
 app/Actions/FormSubmission/ResubmitFormSubmission.php
 app/Actions/FormSubmission/StartChildSubmission.php
 app/Actions/FormSubmission/SubmitFormSubmission.php
-app/Actions/Identity/AppointReviewer.php
-app/Actions/Identity/IssueInvitation.php
-app/Actions/Identity/RegisterByInvitation.php
-app/Actions/Identity/RegisterResearcher.php
-app/Actions/Identity/SaveOrganization.php
 app/Actions/Override/GrantPhaseOverride.php
 app/Actions/Period/DeleteSubmissionPeriod.php
 app/Actions/Period/ExtendSubmissionDates.php
