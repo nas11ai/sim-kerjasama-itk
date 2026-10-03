@@ -24,7 +24,41 @@ sudah dipetakan di tiap Task.
 **Pendahulu:** [`refactor-plan-batch-prosa-komentar.md`](refactor-plan-batch-prosa-komentar.md) —
 aturan K1–K4 di sana berlaku untuk setiap pemadatan prosa di batch ini.
 
-**Status:** belum dikerjakan.
+**Status:** selesai 2026-10-03, mendarat di `7f791a7`, dieksekusi di branch
+`feat/init-be-development`, commit `8660e26`..`7f791a7`.
+
+| Ukuran                 | Sebelum | Sesudah |
+| ---------------------- | ------: | ------: |
+| Berkas di antrean      |     141 |     121 |
+| Test                   |     939 |     946 |
+| `max.mixed`            |      20 |      20 |
+
+K1 terbukti dari riwayat git: enam commit `ekstrak` tidak menghapus prosa apa pun,
+dan di tiap commit itu satu-satunya pelanggaran yang tersisa adalah prosa komentar.
+
+### Yang berbeda dari rencana
+
+**Dua pemeriksaan di rencana cacat, dan diganti.** Grep `^-\s*(//|\*|/\*)` melaporkan
+setiap komentar yang *pindah* bersama blok yang diekstrak sebagai terhapus; diganti
+`k1-check.sh FROM TO <berkas>`, yang membandingkan multiset baris komentar.
+
+Grep `terlalu (panjang|kompleks|banyak)` juga cocok dengan "prosa komentar terlalu
+panjang", jadi tak pernah kosong di commit ekstraksi; diganti `\(\) terlalu`.
+
+**Pemanggil `GrantPhaseOverride::run` ada 16, bukan 4.** Grep saat menulis rencana
+terpotong `head -5`. Semuanya (controller, `PhaseOverrideTest`, `MonevCycleTest`,
+`ResearchOutputTest`) pindah ke `PhaseOverrideInput`.
+
+**Empat method privat di luar tabel seam:** `guardPositiveAmounts`, `datesByLabel`,
+`deleteUnlisted`, `recipients`. Pembungkusan `AuditChange` di Task 2 memanjangkan
+beberapa method, jadi seam yang dipetakan tidak cukup.
+
+**Aturan lebar diperjelas.** Baris komentar tak boleh lebih lebar dari baris yang
+digantikannya; bila suntingan memulihkan teks yang terpangkas, pembandingnya baris
+asli sebelum batch, bukan hasil pemadatan antara.
+
+**Putaran perbaikan:** Task 3, 4, 6, 7, dan 8 masing-masing satu putaran, seluruhnya
+soal ketepatan komentar atau lebar baris. Task 2 dan 5 lolos tanpa perbaikan.
 
 ---
 
