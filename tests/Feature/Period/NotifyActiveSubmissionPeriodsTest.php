@@ -13,6 +13,7 @@ use App\Models\User;
 use App\Notifications\SubmissionPeriodActiveNotification;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Notification;
 use Spatie\Permission\Models\Role;
 
@@ -98,4 +99,52 @@ it('mengabaikan periode tanpa tanggal sama sekali', function () {
     $this->artisan('notify:active-submission-periods')->assertExitCode(0);
 
     Notification::assertNothingSent();
+});
+
+it('tidak menandai periode yang gagal dikirim, jadi run berikutnya mencoba lagi — BR-NOT-03', function () {
+    $peneliti = User::factory()->create();
+    $period = periodeDenganTanggal('2026-10-03 08:00:00', '2026-10-31 23:59:00');
+
+    // Kanal mati: Deliver menelan galatnya dan melapor gagal, bukan melempar.
+    Notification::shouldReceive('send')->once()->andThrow(new RuntimeException('kanal mati'));
+
+    $this->artisan('notify:active-submission-periods')->assertExitCode(0);
+
+    expect(Cache::has("submission_period_notified_{$period->id}"))->toBeFalse();
+
+    Notification::fake();
+    $this->artisan('notify:active-submission-periods');
+
+    Notification::assertSentTo($peneliti, SubmissionPeriodActiveNotification::class);
+});
+
+it('gagal mencari penerima dicatat, tak memutus periode lain, dan dicoba lagi — BR-NOT-03', function () {
+    $peneliti = User::factory()->create();
+    $pertama = periodeDenganTanggal('2026-10-03 08:00:00', '2026-10-31 23:59:00');
+    $kedua = periodeDenganTanggal('2026-10-03 07:00:00', '2026-10-30 23:59:00');
+
+    // Dilempar saat hidrasi, sesudah kuerinya berhasil: kueri yang gagal di
+    // PostgreSQL meracuni transaksi test dan menggagalkan assertion sesudahnya.
+    $failing = true;
+    User::retrieved(function () use (&$failing): void {
+        if ($failing) {
+            throw new RuntimeException('pencarian penerima gagal');
+        }
+    });
+    Log::spy();
+
+    $this->artisan('notify:active-submission-periods')->assertExitCode(0);
+
+    Log::shouldHaveReceived('error')
+        ->twice()
+        ->withArgs(fn (string $message): bool => $message === 'Gagal menyiapkan notifikasi submission period active');
+
+    expect(Cache::has("submission_period_notified_{$pertama->id}"))->toBeFalse()
+        ->and(Cache::has("submission_period_notified_{$kedua->id}"))->toBeFalse();
+    Notification::assertNothingSent();
+
+    $failing = false;
+    $this->artisan('notify:active-submission-periods');
+
+    Notification::assertSentToTimes($peneliti, SubmissionPeriodActiveNotification::class, 2);
 });
