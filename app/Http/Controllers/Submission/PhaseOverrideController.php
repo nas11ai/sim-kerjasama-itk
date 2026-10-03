@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Submission;
 
 use App\Actions\Override\GrantPhaseOverride;
 use App\Actions\Override\RevokePhaseOverride;
+use App\Data\Request\PhaseOverrideInput;
 use App\Http\Controllers\Controller;
 use App\Models\FormPhaseDetail;
 use App\Models\FormSubmission;
@@ -36,8 +37,7 @@ class PhaseOverrideController extends Controller
             $submission,
             FormPhaseDetail::findOrFail($validated['form_phase_detail_id']),
             $operator,
-            $validated['reason'],
-            $validated['expires_at'] ?? null,
+            new PhaseOverrideInput($validated['reason'], $validated['expires_at'] ?? null),
         );
 
         return back()->with('success', 'Perpanjangan akses diberikan.');

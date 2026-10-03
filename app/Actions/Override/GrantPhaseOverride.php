@@ -2,6 +2,7 @@
 
 namespace App\Actions\Override;
 
+use App\Data\Request\PhaseOverrideInput;
 use App\Models\FormPhaseDetail;
 use App\Models\FormSubmission;
 use App\Models\FormSubmissionOverride;
@@ -21,7 +22,7 @@ use Lorisleiva\Actions\Concerns\AsAction;
  * dipertanggungjawabkan: alasannya wajib, dan seluruh pemberiannya masuk jejak
  * audit lewat LogsActivity di modelnya.
  *
- * @method static FormSubmissionOverride run(FormSubmission $submission, FormPhaseDetail $detail, User $grantedBy, string $reason, ?string $expiresAt = null)
+ * @method static FormSubmissionOverride run(FormSubmission $submission, FormPhaseDetail $detail, User $grantedBy, PhaseOverrideInput $input)
  */
 class GrantPhaseOverride
 {
@@ -31,25 +32,9 @@ class GrantPhaseOverride
         FormSubmission $submission,
         FormPhaseDetail $detail,
         User $grantedBy,
-        string $reason,
-        ?string $expiresAt = null
+        PhaseOverrideInput $input,
     ): FormSubmissionOverride {
-        // BR-FE-09 — alasan wajib. Ditegakkan di Action, bukan hanya di
-        // FormRequest: override juga bisa diberikan dari jalur lain, dan
-        // pengecualian tanpa alasan tidak bisa diaudit.
-        if (trim($reason) === '') {
-            throw ValidationException::withMessages([
-                'reason' => 'Alasan perpanjangan wajib diisi.',
-            ]);
-        }
-
-        $expiry = $expiresAt === null ? null : Carbon::parse($expiresAt);
-
-        if ($expiry !== null && $expiry->isPast()) {
-            throw ValidationException::withMessages([
-                'expires_at' => 'Masa berlaku perpanjangan harus di masa depan.',
-            ]);
-        }
+        $expiry = $this->expiry($input);
 
         // Satu pengajuan + satu fase hanya perlu satu izin berjalan. Memberi
         // yang baru mencabut yang lama supaya tidak ada dua masa berlaku yang
@@ -64,7 +49,7 @@ class GrantPhaseOverride
             'form_submission_id' => $submission->id,
             'form_phase_detail_id' => $detail->id,
             'granted_by' => $grantedBy->id,
-            'reason' => trim($reason),
+            'reason' => trim($input->reason),
             'expires_at' => $expiry,
             'is_active' => true,
         ]);
@@ -79,5 +64,30 @@ class GrantPhaseOverride
         AuditTrail::record('Perpanjangan akses fase diberikan', $tercatat, $grantedBy);
 
         return $tercatat;
+    }
+
+    /**
+     * @throws ValidationException
+     */
+    private function expiry(PhaseOverrideInput $input): ?Carbon
+    {
+        // BR-FE-09 — alasan wajib. Ditegakkan di Action, bukan hanya di
+        // FormRequest: override juga bisa diberikan dari jalur lain, dan
+        // pengecualian tanpa alasan tidak bisa diaudit.
+        if (trim($input->reason) === '') {
+            throw ValidationException::withMessages([
+                'reason' => 'Alasan perpanjangan wajib diisi.',
+            ]);
+        }
+
+        $expiry = $input->expiresAt === null ? null : Carbon::parse($input->expiresAt);
+
+        if ($expiry !== null && $expiry->isPast()) {
+            throw ValidationException::withMessages([
+                'expires_at' => 'Masa berlaku perpanjangan harus di masa depan.',
+            ]);
+        }
+
+        return $expiry;
     }
 }

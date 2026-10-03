@@ -39,53 +39,22 @@ class UpdateBudgetLineItem
         User $user,
         array $attributes,
     ): BudgetLineItem {
-        if (!$user->can('update-budget', $submission)) {
-            throw new AuthorizationException('Tidak berwenang menyunting anggaran pengajuan ini.');
-        }
-
-        // BR-SM-07 — item milik pengajuan lain tidak ikut tersentuh hanya karena
-        // id-nya ditebak benar.
-        if ($item->form_submission_id !== $submission->id) {
-            throw ValidationException::withMessages([
-                'id' => 'Item anggaran ini bukan milik pengajuan tersebut.',
-            ]);
-        }
+        $this->guardOwnership($submission, $item, $user);
 
         $volume = $attributes['volume'] ?? $item->volume;
         $unitPrice = $attributes['unit_price'] ?? $item->unit_price;
 
-        // BR-BUD-04 — sama seperti pada penambahan.
-        if ($volume <= 0 || $unitPrice <= 0) {
-            throw ValidationException::withMessages([
-                'volume' => 'Volume dan harga satuan harus lebih dari nol.',
-            ]);
-        }
+        $this->guardPositiveAmounts($volume, $unitPrice);
 
         $componentId = $attributes['budget_component_id'] ?? $item->budget_component_id;
 
-        // BR-BUD-05 — komponen nonaktif tertutup untuk pilihan BARU. Item yang
-        // sudah memakainya boleh disunting tanpa dipaksa berpindah komponen:
-        // memaksa berpindah justru mengubah arti baris yang sudah disetujui.
-        if ($componentId !== $item->budget_component_id) {
-            $component = BudgetComponent::query()->findOrFail($componentId);
-
-            if (!$component->is_active) {
-                throw ValidationException::withMessages([
-                    'budget_component_id' => 'Komponen anggaran ini sudah tidak aktif.',
-                ]);
-            }
-        }
+        $this->guardComponentSelectable($componentId, $item);
 
         $total = $volume * $unitPrice;
 
         BudgetLimitGuard::assertWithinScheme($submission, $total, $item->id);
 
-        $sebelum = [
-            'item_name' => $item->item_name,
-            'volume' => $item->volume,
-            'unit_price' => $item->unit_price,
-            'total' => $item->total,
-        ];
+        $sebelum = $this->snapshot($item);
 
         $item->update([
             'budget_component_id' => $componentId,
@@ -104,15 +73,74 @@ class UpdateBudgetLineItem
             $user,
             new AuditChange(
                 old: $sebelum,
-                new: [
-                    'item_name' => $item->item_name,
-                    'volume' => $item->volume,
-                    'unit_price' => $item->unit_price,
-                    'total' => $item->total,
-                ],
+                new: $this->snapshot($item),
             ),
         );
 
         return $item->refresh();
+    }
+
+    /**
+     * @throws AuthorizationException
+     * @throws ValidationException
+     */
+    private function guardOwnership(FormSubmission $submission, BudgetLineItem $item, User $user): void
+    {
+        if (!$user->can('update-budget', $submission)) {
+            throw new AuthorizationException('Tidak berwenang menyunting anggaran pengajuan ini.');
+        }
+
+        // BR-SM-07 — item milik pengajuan lain tidak ikut tersentuh hanya karena
+        // id-nya ditebak benar.
+        if ($item->form_submission_id !== $submission->id) {
+            throw ValidationException::withMessages([
+                'id' => 'Item anggaran ini bukan milik pengajuan tersebut.',
+            ]);
+        }
+    }
+
+    /**
+     * @throws ValidationException
+     */
+    private function guardPositiveAmounts(int $volume, int $unitPrice): void
+    {
+        // BR-BUD-04 — sama seperti pada penambahan.
+        if ($volume <= 0 || $unitPrice <= 0) {
+            throw ValidationException::withMessages([
+                'volume' => 'Volume dan harga satuan harus lebih dari nol.',
+            ]);
+        }
+    }
+
+    /**
+     * @throws ValidationException
+     */
+    private function guardComponentSelectable(int $componentId, BudgetLineItem $item): void
+    {
+        // BR-BUD-05 — komponen nonaktif tertutup untuk pilihan BARU. Item yang
+        // sudah memakainya boleh disunting tanpa dipaksa berpindah komponen:
+        // memaksa berpindah justru mengubah arti baris yang sudah disetujui.
+        if ($componentId !== $item->budget_component_id) {
+            $component = BudgetComponent::query()->findOrFail($componentId);
+
+            if (!$component->is_active) {
+                throw ValidationException::withMessages([
+                    'budget_component_id' => 'Komponen anggaran ini sudah tidak aktif.',
+                ]);
+            }
+        }
+    }
+
+    /**
+     * @return array{item_name: string, volume: int, unit_price: int, total: int}
+     */
+    private function snapshot(BudgetLineItem $item): array
+    {
+        return [
+            'item_name' => $item->item_name,
+            'volume' => $item->volume,
+            'unit_price' => $item->unit_price,
+            'total' => $item->total,
+        ];
     }
 }

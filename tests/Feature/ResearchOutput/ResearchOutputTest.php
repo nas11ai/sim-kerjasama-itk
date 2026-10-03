@@ -11,6 +11,7 @@
 
 use App\Actions\Override\GrantPhaseOverride;
 use App\Actions\ResearchOutput\SaveResearchOutput;
+use App\Data\Request\PhaseOverrideInput;
 use App\Models\FormSubmission;
 use App\Models\OutputTypeDefinition;
 use App\Models\ResearchMember;
@@ -360,8 +361,7 @@ it('[RO-OUTPUT-16] override yang berlaku membuka kembali penyuntingan luaran', f
         $submission,
         $fx['detail']->fresh(),
         $operator,
-        'Kendala unggah berkas pada hari terakhir',
-        '2026-12-20 23:59:00'
+        new PhaseOverrideInput('Kendala unggah berkas pada hari terakhir', '2026-12-20 23:59:00'),
     );
 
     $this->actingAs($fx['user'])

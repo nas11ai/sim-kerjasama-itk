@@ -11,6 +11,7 @@
 
 use App\Actions\Override\GrantPhaseOverride;
 use App\Actions\Override\RevokePhaseOverride;
+use App\Data\Request\PhaseOverrideInput;
 use App\Models\FormPhase;
 use App\Models\FormPhaseDetail;
 use App\Models\FormSubmission;
@@ -96,7 +97,8 @@ it('[FE-OVERRIDE-03] override aktif membuka kembali akses', function () {
     $this->travelTo('2026-03-02 00:01:00');
     $fx = overrideFixture();
 
-    GrantPhaseOverride::run($fx['submission'], $fx['detail'], $fx['operator'], 'Kendala jaringan kampus', '2026-03-10 23:59:00');
+    GrantPhaseOverride::run($fx['submission'], $fx['detail'], $fx['operator'],
+        new PhaseOverrideInput('Kendala jaringan kampus', '2026-03-10 23:59:00'));
 
     expect(PhaseAccessGate::isOpenFor($fx['submission'], $fx['detail']))->toBeTrue();
 });
@@ -105,7 +107,8 @@ it('[FE-OVERRIDE-04] override yang kedaluwarsa tidak membuka akses', function ()
     $this->travelTo('2026-03-02 00:01:00');
     $fx = overrideFixture();
 
-    GrantPhaseOverride::run($fx['submission'], $fx['detail'], $fx['operator'], 'Kendala jaringan', '2026-03-05 23:59:00');
+    GrantPhaseOverride::run($fx['submission'], $fx['detail'], $fx['operator'],
+        new PhaseOverrideInput('Kendala jaringan', '2026-03-05 23:59:00'));
 
     $this->travelTo('2026-03-06 08:00:00');
 
@@ -116,7 +119,8 @@ it('[FE-OVERRIDE-05] override yang dicabut tidak membuka akses', function () {
     $this->travelTo('2026-03-02 00:01:00');
     $fx = overrideFixture();
 
-    $override = GrantPhaseOverride::run($fx['submission'], $fx['detail'], $fx['operator'], 'Kendala jaringan', '2026-03-10 23:59:00');
+    $override = GrantPhaseOverride::run($fx['submission'], $fx['detail'], $fx['operator'],
+        new PhaseOverrideInput('Kendala jaringan', '2026-03-10 23:59:00'));
     RevokePhaseOverride::run($override);
 
     expect(PhaseAccessGate::isOpenFor($fx['submission'], $fx['detail']))->toBeFalse();
@@ -128,7 +132,8 @@ it('[FE-OVERRIDE-05] override yang dicabut tidak membuka akses', function () {
 it('[FE-OVERRIDE-06] override tanpa alasan ditolak', function () {
     $fx = overrideFixture();
 
-    expect(fn () => GrantPhaseOverride::run($fx['submission'], $fx['detail'], $fx['operator'], '   '))
+    expect(fn () => GrantPhaseOverride::run($fx['submission'], $fx['detail'], $fx['operator'],
+        new PhaseOverrideInput('   ')))
         ->toThrow(ValidationException::class)
         ->and(FormSubmissionOverride::count())->toBe(0);
 });
@@ -152,7 +157,8 @@ it('[FE-OVERRIDE-07] override tidak melebar ke fase lain', function () {
 
     $monev = overrideDetail($fx['period'], $fx['phase'], 'Batas Monev I', '2026-06-01 23:59:00', 2);
 
-    GrantPhaseOverride::run($fx['submission'], $fx['detail'], $fx['operator'], 'Kendala jaringan', '2026-07-01 23:59:00');
+    GrantPhaseOverride::run($fx['submission'], $fx['detail'], $fx['operator'],
+        new PhaseOverrideInput('Kendala jaringan', '2026-07-01 23:59:00'));
 
     expect(PhaseAccessGate::isOpenFor($fx['submission'], $fx['detail']))->toBeTrue()
         ->and(PhaseAccessGate::isOpenFor($fx['submission'], $monev))->toBeFalse();
@@ -170,7 +176,8 @@ it('[FE-OVERRIDE-08] override tidak melebar ke pengajuan lain', function () {
         'is_submitted' => false,
     ]);
 
-    GrantPhaseOverride::run($fx['submission'], $fx['detail'], $fx['operator'], 'Kendala jaringan', '2026-03-10 23:59:00');
+    GrantPhaseOverride::run($fx['submission'], $fx['detail'], $fx['operator'],
+        new PhaseOverrideInput('Kendala jaringan', '2026-03-10 23:59:00'));
 
     expect(PhaseAccessGate::isOpenFor($fx['submission'], $fx['detail']))->toBeTrue()
         ->and(PhaseAccessGate::isOpenFor($lain, $fx['detail']))->toBeFalse();
@@ -189,7 +196,8 @@ it('[FE-OVERRIDE-11] penutupan paksa mengalahkan override yang masih berlaku', f
     $this->travelTo('2026-03-02 00:01:00');
     $fx = overrideFixture();
 
-    GrantPhaseOverride::run($fx['submission'], $fx['detail'], $fx['operator'], 'Kendala jaringan', '2026-03-10 23:59:00');
+    GrantPhaseOverride::run($fx['submission'], $fx['detail'], $fx['operator'],
+        new PhaseOverrideInput('Kendala jaringan', '2026-03-10 23:59:00'));
     $fx['period']->update(['is_force_closed' => true]);
 
     // Override adalah izin Operator untuk satu orang; force close adalah
@@ -202,8 +210,10 @@ it('memberi override baru mencabut yang lama supaya masa berlakunya tidak berten
     $this->travelTo('2026-03-02 00:01:00');
     $fx = overrideFixture();
 
-    $lama = GrantPhaseOverride::run($fx['submission'], $fx['detail'], $fx['operator'], 'Alasan pertama', '2026-03-05 23:59:00');
-    $baru = GrantPhaseOverride::run($fx['submission'], $fx['detail'], $fx['operator'], 'Alasan kedua', '2026-03-20 23:59:00');
+    $lama = GrantPhaseOverride::run($fx['submission'], $fx['detail'], $fx['operator'],
+        new PhaseOverrideInput('Alasan pertama', '2026-03-05 23:59:00'));
+    $baru = GrantPhaseOverride::run($fx['submission'], $fx['detail'], $fx['operator'],
+        new PhaseOverrideInput('Alasan kedua', '2026-03-20 23:59:00'));
 
     expect($lama->fresh()->is_active)->toBeFalse()
         ->and($baru->is_active)->toBeTrue()
@@ -222,8 +232,7 @@ it('[FE-OVERRIDE-09] peneliti melihat status override tapi tidak alasannya', fun
         $fx['submission'],
         $fx['detail'],
         $fx['operator'],
-        'Kendala jaringan kampus',
-        '2026-03-10 23:59:00'
+        new PhaseOverrideInput('Kendala jaringan kampus', '2026-03-10 23:59:00'),
     );
 
     $this->actingAs($fx['owner'])
@@ -241,7 +250,8 @@ it('[FE-OVERRIDE-09] Operator tetap membaca alasan override', function () {
     $this->travelTo('2026-03-02 00:01:00');
     $fx = overrideFixture();
 
-    GrantPhaseOverride::run($fx['submission'], $fx['detail'], $fx['operator'], 'Kendala jaringan kampus', '2026-03-10 23:59:00');
+    GrantPhaseOverride::run($fx['submission'], $fx['detail'], $fx['operator'],
+        new PhaseOverrideInput('Kendala jaringan kampus', '2026-03-10 23:59:00'));
 
     $this->actingAs($fx['operator'])
         ->get(route('user.submissions.show', $fx['submission']))
@@ -285,8 +295,7 @@ it('memberi tahu peneliti saat aksesnya dibuka kembali', function () {
         $fx['submission'],
         $fx['detail'],
         $fx['operator'],
-        'Kendala jaringan kampus',
-        '2026-03-10 23:59:00'
+        new PhaseOverrideInput('Kendala jaringan kampus', '2026-03-10 23:59:00'),
     );
 
     Notification::assertSentTo(
@@ -309,7 +318,8 @@ it('tidak memberi tahu siapa pun selain pemilik pengajuan', function () {
     $this->travelTo('2026-03-02 00:01:00');
     $fx = overrideFixture();
 
-    GrantPhaseOverride::run($fx['submission'], $fx['detail'], $fx['operator'], 'Alasan', '2026-03-10 23:59:00');
+    GrantPhaseOverride::run($fx['submission'], $fx['detail'], $fx['operator'],
+        new PhaseOverrideInput('Alasan', '2026-03-10 23:59:00'));
 
     Notification::assertNotSentTo($fx['operator'], PhaseOverrideGrantedNotification::class);
 });

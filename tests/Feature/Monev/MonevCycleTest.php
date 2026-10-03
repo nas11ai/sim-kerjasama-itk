@@ -12,6 +12,7 @@
 
 use App\Actions\FormSubmission\StartChildSubmission;
 use App\Actions\Override\GrantPhaseOverride;
+use App\Data\Request\PhaseOverrideInput;
 use App\Models\FormPhase;
 use App\Models\FormPhaseDetail;
 use App\Models\FormSubmission;
@@ -218,8 +219,7 @@ it('[MON-CYCLE-09] override yang masih berlaku membuka kembali fase monev', func
         $laporan,
         $fx['monev1']->fresh(),
         $operator,
-        'Kendala jaringan saat batas monev berjalan',
-        '2026-06-20 23:59:00'
+        new PhaseOverrideInput('Kendala jaringan saat batas monev berjalan', '2026-06-20 23:59:00'),
     );
 
     expect(PhaseAccessGate::isOpenFor($laporan, $fx['monev1']->fresh()))->toBeTrue();
