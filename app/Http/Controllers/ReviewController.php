@@ -126,7 +126,7 @@ class ReviewController extends Controller
                 ->exists();
 
             if ($hasSubmittedEvaluations) {
-                throw new \Exception('Tidak dapat menghapus reviewer dengan respons evaluasi yang telah dikirim.');
+                abort(409, 'Tidak dapat menghapus reviewer dengan respons evaluasi yang telah dikirim.');
             }
 
             /** @var ReviewerFormAssignment $assignment */

@@ -330,3 +330,24 @@ it('menampilkan form evaluasi reviewer yang aktif di dua pengajuan', function ()
             ->has('assignments.data', 2)
             ->where('stats.total', 2));
 });
+
+it('menjawab 409 saat menghapus reviewer yang sudah mengirim evaluasi', function () {
+    [, , $submission] = replacedReviewerFixture();
+    $active = replacedReviewerOpenThread($submission);
+    $assignment = SubmissionReviewer::query()
+        ->where('form_submission_id', $submission->id)
+        ->where('status', 'active')
+        ->firstOrFail();
+    $formAssignment = replacedReviewerFormAssignment($assignment);
+    ReviewFormResponse::create([
+        'reviewer_form_assignment_id' => $formAssignment->id,
+        'status' => 'submitted',
+    ]);
+
+    $this->actingAs(replacedReviewerOperator())
+        ->delete(route('admin.submissions.remove-reviewer', [$submission, $active->reviewer_id]))
+        ->assertStatus(409);
+
+    expect(SubmissionReviewer::query()->whereKey($assignment->id)->exists())->toBeTrue()
+        ->and(ReviewerFormAssignment::query()->whereKey($formAssignment->id)->exists())->toBeTrue();
+});
