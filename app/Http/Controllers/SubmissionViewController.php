@@ -19,6 +19,7 @@ use App\Models\ReviewSummary;
 use App\Models\SubmissionPeriod;
 use App\Models\SubmissionReviewer;
 use App\Models\User;
+use App\Queries\Review\ActiveReviewerAssignment;
 use App\States\Submission\Approved;
 use App\States\Submission\SubmissionStatus;
 use App\Support\PhaseAccessGate;
@@ -337,10 +338,7 @@ class SubmissionViewController extends Controller
             $reviewer = Reviewer::where('user_id', $user->id)->first();
 
             if ($reviewer !== null) {
-                $submissionReviewer = SubmissionReviewer::where([
-                    'form_submission_id' => $submission->id,
-                    'reviewer_id' => $reviewer->id,
-                ])->first();
+                $submissionReviewer = ActiveReviewerAssignment::run($submission, $reviewer->id);
 
                 if ($submissionReviewer instanceof SubmissionReviewer) {
                     $isAssignedReviewer = true;
@@ -800,10 +798,7 @@ class SubmissionViewController extends Controller
                 $reviewer = Reviewer::where('user_id', $currentUser->id)->first();
 
                 if ($reviewer) {
-                    $submissionReviewer = SubmissionReviewer::where([
-                        'form_submission_id' => $submission->id,
-                        'reviewer_id' => $reviewer->id,
-                    ])->first();
+                    $submissionReviewer = ActiveReviewerAssignment::run($submission, $reviewer->id);
 
                     if ($submissionReviewer) {
                         $isAssignedReviewer = true;
@@ -931,10 +926,7 @@ class SubmissionViewController extends Controller
 
         $reviewer = Reviewer::where('user_id', $user->id)->latest()->first();
         if ($reviewer) {
-            return SubmissionReviewer::where([
-                'form_submission_id' => $submission->id,
-                'reviewer_id' => $reviewer->id,
-            ])->exists();
+            return ActiveReviewerAssignment::run($submission, $reviewer->id) !== null;
         }
 
         return false;
@@ -1050,10 +1042,7 @@ class SubmissionViewController extends Controller
 
         // BR-SM-07 — hanya penugasan yang masih berlaku yang memberi akses; record
         // reviewer yang sudah diganti disimpan sebagai sejarah (BR-REV-10).
-        $isAssigned = SubmissionReviewer::active()->where([
-            'form_submission_id' => $submission->id,
-            'reviewer_id' => $reviewer->id,
-        ])->exists();
+        $isAssigned = ActiveReviewerAssignment::run($submission, $reviewer->id) !== null;
 
         if (!$isAssigned) {
             abort(403, 'Anda tidak ditugaskan untuk review pengajuan ini.');

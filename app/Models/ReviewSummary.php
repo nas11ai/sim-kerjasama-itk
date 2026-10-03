@@ -50,19 +50,4 @@ class ReviewSummary extends Model
     {
         return $this->hasMany(ReviewComment::class);
     }
-
-    // NEW: Check if discussions should be allowed for this review
-    public function discussionsAllowed(): bool
-    {
-        if (!$this->reviewer_id) {
-            return true; // General discussions always allowed
-        }
-
-        $submissionReviewer = SubmissionReviewer::where([
-            'form_submission_id' => $this->form_submission_id,
-            'reviewer_id' => $this->reviewer_id,
-        ])->first();
-
-        return $submissionReviewer ? $submissionReviewer->hasSettledEvaluation() : true;
-    }
 }

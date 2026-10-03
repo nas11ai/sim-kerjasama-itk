@@ -10,7 +10,7 @@ use App\Models\ReviewerFormAssignment;
 use App\Models\ReviewEvaluationForm;
 use App\Models\ReviewFormResponse;
 use App\Models\SubmissionPeriod;
-use App\Models\SubmissionReviewer;
+use App\Queries\Review\ActiveReviewerAssignment;
 use App\Queries\Review\EvaluationFormCompletion;
 use App\Support\Review\FieldResponseValidator;
 use Illuminate\Http\Request;
@@ -68,10 +68,7 @@ class ReviewFormResponseController extends Controller
         }
 
         // Check if assigned to this submission
-        $submissionReviewer = SubmissionReviewer::active()->where([
-            'form_submission_id' => $submission->id,
-            'reviewer_id' => $reviewer->id,
-        ])->first();
+        $submissionReviewer = ActiveReviewerAssignment::run($submission, $reviewer->id);
 
         if (!$submissionReviewer) {
             abort(403, 'Anda tidak ditugaskan sebagai reviewer untuk pengajuan ini.');
