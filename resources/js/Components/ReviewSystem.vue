@@ -19,13 +19,6 @@ import {
 } from '@/Components/ui/dialog'
 import { Alert, AlertDescription } from '@/Components/ui/alert'
 import { Input } from '@/Components/ui/input'
-import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from '@/Components/ui/select'
 import { Collapsible, CollapsibleContent } from '@/Components/ui/collapsible'
 import {
     type LucideIcon,
@@ -47,7 +40,6 @@ import {
     ChevronUp,
     MessageCircle,
     Lock,
-    Edit,
     Settings,
 } from 'lucide-vue-next'
 
@@ -154,8 +146,6 @@ const expandedThreads = ref<Set<number>>(new Set())
 // Status update states
 const showUpdateReviewStatusDialog = ref(false)
 const selectedReviewSummary = ref<ReviewSummary | null>(null)
-const selectedReviewStatus = ref('')
-const statusUpdateNotes = ref('')
 
 // Computed
 import type { User as UserType } from '@/types'
@@ -178,7 +168,8 @@ const totalEvaluationsCount = computed(() => reviewerAssignments.value.length)
 
 // Check if user can update review summary status
 const canUpdateReviewStatus = (reviewSummary: ReviewSummary) => {
-    if (isAdmin.value) return true
+    // BR-REV-13 — hanya reviewer yang bertugas yang menutup ulir.
+    if (reviewSummary.status !== 'open') return false
 
     if (!isAssignedReviewer.value || !reviewSummary.reviewer_id) return false
 
@@ -191,14 +182,6 @@ const canUpdateReviewStatus = (reviewSummary: ReviewSummary) => {
 
     return result
 }
-
-// BR-REV-13 — ReviewSummary hanya `open` atau `resolved`. Status `closed`
-// tidak pernah ada di domain ini; backend menolaknya, dan menawarkannya di
-// sini dulu menyalakan jalur auto-reject yang dilarang ADR 0006.
-const reviewStatusOptions = [
-    { value: 'open', label: 'Terbuka', color: 'green' },
-    { value: 'resolved', label: 'Terselesaikan', color: 'blue' },
-]
 
 // Submission status options
 const submissionStatusOptions = [
@@ -427,29 +410,21 @@ const downloadAttachment = (filePath: string) => {
 // Open update review status dialog
 const openUpdateReviewStatusDialog = (reviewSummary: ReviewSummary) => {
     selectedReviewSummary.value = reviewSummary
-    selectedReviewStatus.value = reviewSummary.status
-    statusUpdateNotes.value = reviewSummary.summary_notes || ''
     showUpdateReviewStatusDialog.value = true
 }
 
-// Update review summary status
+// Update review summary status — satu-satunya jalur: ResolveReviewSummary
 const updateReviewSummaryStatus = () => {
-    if (!selectedReviewSummary.value || !selectedReviewStatus.value) return
+    if (!selectedReviewSummary.value) return
 
-    router.patch(
-        `/review-summaries/${selectedReviewSummary.value.id}/status`,
+    router.post(
+        route('review-summaries.resolve', selectedReviewSummary.value.id),
+        {},
         {
-            status: selectedReviewStatus.value,
-            summary_notes: statusUpdateNotes.value || null,
-        },
-        {
-            preserveState: false,
             preserveScroll: true,
             onSuccess: () => {
                 showUpdateReviewStatusDialog.value = false
                 selectedReviewSummary.value = null
-                selectedReviewStatus.value = ''
-                statusUpdateNotes.value = ''
             },
         }
     )
@@ -764,7 +739,7 @@ const updateReviewSummaryStatus = () => {
                                 class="ml-2"
                                 @click.stop="openUpdateReviewStatusDialog(reviewSummary)"
                             >
-                                <Edit class="h-4 w-4" />
+                                Tandai Selesai
                             </Button>
                         </div>
                     </CardHeader>
@@ -1068,43 +1043,16 @@ const updateReviewSummaryStatus = () => {
         <Dialog v-model:open="showUpdateReviewStatusDialog">
             <DialogContent class="max-w-md">
                 <DialogHeader>
-                    <DialogTitle>Perbarui Status Thread Review</DialogTitle>
-                    <DialogDescription> Ubah status thread review ini. </DialogDescription>
+                    <DialogTitle>Tandai ulir ini selesai?</DialogTitle>
+                    <DialogDescription>
+                        Ulir yang sudah selesai tidak dapat dibuka kembali.
+                    </DialogDescription>
                 </DialogHeader>
-                <div class="space-y-4">
-                    <div>
-                        <Label>Pilih Status</Label>
-                        <Select v-model="selectedReviewStatus">
-                            <SelectTrigger>
-                                <SelectValue placeholder="Choose status..." />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem
-                                    v-for="status in reviewStatusOptions"
-                                    :key="status.value"
-                                    :value="status.value"
-                                >
-                                    <div class="flex items-center gap-2">
-                                        <div
-                                            :class="`w-2 h-2 rounded-full bg-${status.color}-500`"
-                                        />
-                                        {{ status.label }}
-                                    </div>
-                                </SelectItem>
-                            </SelectContent>
-                        </Select>
-                    </div>
-                    <div class="flex justify-end gap-2">
-                        <Button variant="outline" @click="showUpdateReviewStatusDialog = false">
-                            Batal
-                        </Button>
-                        <Button
-                            :disabled="!selectedReviewStatus"
-                            @click="updateReviewSummaryStatus"
-                        >
-                            Perbarui Status
-                        </Button>
-                    </div>
+                <div class="flex justify-end gap-2">
+                    <Button variant="outline" @click="showUpdateReviewStatusDialog = false">
+                        Batal
+                    </Button>
+                    <Button @click="updateReviewSummaryStatus">Tandai Selesai</Button>
                 </div>
             </DialogContent>
         </Dialog>

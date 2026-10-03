@@ -144,7 +144,7 @@ it('menolak reviewer yang sudah diganti mengubah status ulir', function () {
     ]);
 
     $this->actingAs($user)
-        ->patch(route('reviewer.review-summaries.update-status', $thread), ['status' => 'resolved'])
+        ->post(route('review-summaries.resolve', $thread))
         ->assertForbidden();
 
     expect($thread->fresh()?->status)->toBe('open');

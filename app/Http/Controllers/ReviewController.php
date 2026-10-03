@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Actions\Review\AssignEvaluationForm;
 use App\Actions\Review\AssignReviewer;
-use App\Actions\Review\EvaluateSubmissionOutcome;
 use App\Actions\Review\OpenReviewThread;
 use App\Models\FormPhaseDetail;
 use App\Models\FormSubmission;
@@ -16,7 +15,6 @@ use App\Models\SubmissionReviewer;
 use App\Queries\Review\ActiveReviewerAssignment;
 use App\Queries\Submission\EvaluationDueDate;
 use App\Services\EmailNotificationService;
-use App\States\Submission\Rejected;
 use App\Support\ReviewerWorkload;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -284,76 +282,6 @@ class ReviewController extends Controller
                 EvaluationDueDate::run($form)
             );
         }
-    }
-
-    // Existing methods with minor updates...
-    public function updateReviewStatus(Request $request, ReviewSummary $reviewSummary)
-    {
-        $request->validate([
-            // BR-REV-13 — ReviewSummary hanya `open` atau `resolved`.
-            // `closed` tidak pernah ada di domain ini, dan menerimanya
-            // menyalakan jalur auto-reject yang dilarang ADR 0006.
-            'status' => 'required|in:open,resolved',
-        ]);
-
-        $user = Auth::user();
-        $canUpdate = false;
-
-        // Admin can always update
-        if ($user->can('users.manage')) {
-            $canUpdate = true;
-        }
-        // Check if it's the reviewer's own review
-        elseif ($reviewSummary->reviewer_id) {
-            /** @var Reviewer|null $reviewer */
-            $reviewer = Reviewer::where('user_id', $user->id)->first();
-
-            if ($reviewer && $reviewSummary->reviewer_id === $reviewer->id) {
-                // Check if reviewer has completed evaluations (if required)
-                $submissionReviewer = ActiveReviewerAssignment::run($reviewSummary->formSubmission, $reviewer->id);
-
-                if ($submissionReviewer) {
-                    // Check if evaluations are complete
-                    if ($submissionReviewer->hasSettledEvaluation()) {
-                        $canUpdate = true;
-                    } else {
-                        $pendingCount = $submissionReviewer->pending_forms_count;
-                        abort(403, "Selesaikan {$pendingCount} formulir evaluasi yang tertunda sebelum memperbarui status review.");
-                    }
-                }
-            }
-        }
-
-        if (!$canUpdate) {
-            abort(403, 'Anda tidak memiliki izin untuk memperbarui status thread review');
-        }
-
-        DB::transaction(function () use ($request, $reviewSummary) {
-            $oldStatus = $reviewSummary->status;
-
-            $reviewSummary->update([
-                'status' => $request->status,
-            ]);
-
-            /** @var FormSubmission $submission */
-            $submission = $reviewSummary->formSubmission;
-
-            // BR-REV-05/06 ditegakkan satu tempat. Sebelumnya ada tiga
-            // salinan aturan ini, dan dua di antaranya berpindah ke REJECTED
-            // secara otomatis — dilarang ADR 0006, BR-REV-07, BR-REV-14.
-            EvaluateSubmissionOutcome::run($submission);
-
-            // TAMBAHKAN: Kirim email notifikasi status changed
-            $this->emailService->notifyReviewStatusChanged($reviewSummary, $oldStatus);
-        });
-
-        $statusText = match ($request->status) {
-            'resolved' => 'diselesaikan',
-            'open' => 'dibuka kembali',
-            default => throw new \InvalidArgumentException('Invalid review status value'),
-        };
-
-        return back()->with('success', "Thread review berhasil {$statusText}.");
     }
 
     public function downloadAttachment(Request $request)

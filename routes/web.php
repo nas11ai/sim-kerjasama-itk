@@ -100,9 +100,6 @@ Route::middleware(['auth', 'check_reviewer_status'])->group(function () {
     Route::patch('/review-summaries/{reviewSummary}/complete', [ReviewController::class, 'completeReview'])
         ->name('review-summaries.complete');
 
-    Route::patch('/review-summaries/{reviewSummary}/status', [ReviewController::class, 'updateReviewStatus'])
-        ->name('review-summaries.update-status');
-
     Route::post('/submissions/{submission}/review-threads', [ReviewController::class, 'createReviewThread'])
         ->name('review-threads.store');
 
@@ -214,9 +211,6 @@ Route::middleware(['auth', 'check_reviewer_status'])->prefix('reviewer')->name('
     // Enhanced review actions with evaluation context
     Route::patch('/review-summaries/{reviewSummary}/complete', [ReviewController::class, 'completeReview'])
         ->name('review-summaries.complete');
-
-    Route::patch('/review-summaries/{reviewSummary}/status', [ReviewController::class, 'updateReviewStatus'])
-        ->name('review-summaries.update-status');
 
     Route::post('/submissions/{submission}/review-threads', [ReviewController::class, 'createReviewThread'])
         ->name('review-threads.store');
@@ -351,10 +345,6 @@ Route::middleware(['auth', 'can:users.manage', 'check_reviewer_status'])->prefix
     // Admin create review thread
     Route::post('/submissions/{submission}/review-threads', [ReviewController::class, 'createReviewThread'])
         ->name('review-threads.store');
-
-    // Admin update review status
-    Route::patch('/review-summaries/{reviewSummary}/status', [ReviewController::class, 'updateReviewStatus'])
-        ->name('review-summaries.update-status');
 
     // Admin delete review thread
     Route::delete('/review-summaries/{reviewSummary}', [ReviewController::class, 'deleteReviewThread'])

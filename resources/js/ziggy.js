@@ -19,12 +19,6 @@ const Ziggy = {
             methods: ['PATCH'],
             parameters: ['reviewSummary'],
         },
-        'review-summaries.update-status': {
-            uri: 'review-summaries\/{reviewSummary}\/status',
-            methods: ['PATCH'],
-            parameters: ['reviewSummary'],
-            bindings: { reviewSummary: 'id' },
-        },
         'review-threads.store': {
             uri: 'submissions\/{submission}\/review-threads',
             methods: ['POST'],
@@ -133,12 +127,6 @@ const Ziggy = {
             uri: 'reviewer\/review-summaries\/{reviewSummary}\/complete',
             methods: ['PATCH'],
             parameters: ['reviewSummary'],
-        },
-        'reviewer.review-summaries.update-status': {
-            uri: 'reviewer\/review-summaries\/{reviewSummary}\/status',
-            methods: ['PATCH'],
-            parameters: ['reviewSummary'],
-            bindings: { reviewSummary: 'id' },
         },
         'reviewer.review-threads.store': {
             uri: 'reviewer\/submissions\/{submission}\/review-threads',
@@ -401,12 +389,6 @@ const Ziggy = {
             methods: ['POST'],
             parameters: ['submission'],
             bindings: { submission: 'id' },
-        },
-        'admin.review-summaries.update-status': {
-            uri: 'admin\/review-summaries\/{reviewSummary}\/status',
-            methods: ['PATCH'],
-            parameters: ['reviewSummary'],
-            bindings: { reviewSummary: 'id' },
         },
         'admin.review-summaries.destroy': {
             uri: 'admin\/review-summaries\/{reviewSummary}',

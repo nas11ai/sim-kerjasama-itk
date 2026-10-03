@@ -5,6 +5,7 @@ namespace App\Actions\Review;
 use App\Models\Reviewer;
 use App\Models\ReviewSummary;
 use App\Models\User;
+use App\Queries\Review\ActiveReviewerAssignment;
 use App\Support\Audit\AuditTrail;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\DB;
@@ -56,7 +57,12 @@ class ResolveReviewSummary
 
         // Reviewer pengganti ikut lolos: BR-REV-15 memindahkan `reviewer_id` ulir yang masih
         // terbuka kepadanya, dan tanpa itu ulirnya tidak akan pernah bisa ditutup.
-        if ($reviewer !== null && $summary->reviewer_id === $reviewer->id) {
+        // BR-SM-07, BR-REV-10 — reviewer yang sudah diganti kehilangan wewenang walau ulirnya miliknya.
+        if (
+            $reviewer !== null
+            && $summary->reviewer_id === $reviewer->id
+            && ActiveReviewerAssignment::run($summary->formSubmission, $reviewer->id) !== null
+        ) {
             return;
         }
 

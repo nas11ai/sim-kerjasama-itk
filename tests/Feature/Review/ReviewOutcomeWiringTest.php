@@ -19,16 +19,10 @@ use App\Models\SubmissionReviewer;
 use App\Models\User;
 use App\States\Submission\Approved;
 use App\States\Submission\UnderReview;
-use Spatie\Permission\Models\Permission;
 
 /** @return array{0: User, 1: FormSubmission, 2: ReviewSummary} */
 function outcomeWiringFixture(): array
 {
-    Permission::findOrCreate('users.manage', 'web');
-
-    $operator = User::factory()->create();
-    $operator->givePermissionTo('users.manage');
-
     $detail = FormPhaseDetail::factory()->create(['needs_review' => true]);
 
     $submission = FormSubmission::factory()->create([
@@ -38,7 +32,8 @@ function outcomeWiringFixture(): array
         'status' => UnderReview::class,
     ]);
 
-    $reviewer = Reviewer::factory()->create(['user_id' => User::factory()->create()->id]);
+    $reviewerUser = User::factory()->create();
+    $reviewer = Reviewer::factory()->create(['user_id' => $reviewerUser->id]);
 
     SubmissionReviewer::create([
         'form_submission_id' => $submission->id,
@@ -54,14 +49,14 @@ function outcomeWiringFixture(): array
         'summary_notes' => 'Perkuat metodologi.',
     ]);
 
-    return [$operator, $submission, $summary];
+    return [$reviewerUser, $submission, $summary];
 }
 
 it('[REV-OUTCOME-05] menutup ringkasan terakhir menyetujui pengajuan lewat jalur HTTP', function () {
-    [$operator, $submission, $summary] = outcomeWiringFixture();
+    [$reviewerUser, $submission, $summary] = outcomeWiringFixture();
 
-    $this->actingAs($operator)
-        ->patch(route('admin.review-summaries.update-status', $summary), ['status' => 'resolved'])
+    $this->actingAs($reviewerUser)
+        ->post(route('review-summaries.resolve', $summary))
         ->assertRedirect();
 
     // Seluruh evaluasi sudah selesai dan tidak ada ringkasan terbuka lagi —
@@ -70,7 +65,7 @@ it('[REV-OUTCOME-05] menutup ringkasan terakhir menyetujui pengajuan lewat jalur
 });
 
 it('[REV-OUTCOME-03] ringkasan yang masih terbuka menahan persetujuan', function () {
-    [$operator, $submission, $summary] = outcomeWiringFixture();
+    [$reviewerUser, $submission, $summary] = outcomeWiringFixture();
 
     ReviewSummary::create([
         'form_submission_id' => $submission->id,
@@ -79,19 +74,9 @@ it('[REV-OUTCOME-03] ringkasan yang masih terbuka menahan persetujuan', function
         'summary_notes' => 'Catatan kedua.',
     ]);
 
-    $this->actingAs($operator)
-        ->patch(route('admin.review-summaries.update-status', $summary), ['status' => 'resolved'])
+    $this->actingAs($reviewerUser)
+        ->post(route('review-summaries.resolve', $summary))
         ->assertRedirect();
 
     expect($submission->fresh()->status)->not->toBeInstanceOf(Approved::class);
-});
-
-it('menolak status closed — tidak ada status itu di domain ini', function () {
-    [$operator, , $summary] = outcomeWiringFixture();
-
-    // BR-REV-13: ReviewSummary hanya open atau resolved. Menerima `closed`
-    // membuat ringkasan bisa disembunyikan tanpa pernah diselesaikan.
-    $this->actingAs($operator)
-        ->patch(route('admin.review-summaries.update-status', $summary), ['status' => 'closed'])
-        ->assertSessionHasErrors('status');
 });

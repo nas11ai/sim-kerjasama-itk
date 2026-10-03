@@ -127,8 +127,9 @@ it('menyusuri alur pengajuan sampai disetujui lewat HTTP', function () {
     ]);
 
     // ---------- 5. Ringkasan ditutup → disetujui (BR-REV-05) ----------
-    $this->actingAs($operator)
-        ->patch(route('admin.review-summaries.update-status', $summary), ['status' => 'resolved'])
+    // Hanya reviewer yang menutup ulir — Operator tidak (REV-DISCUSS-04).
+    $this->actingAs(User::findOrFail($reviewerA->user_id))
+        ->post(route('review-summaries.resolve', $summary))
         ->assertRedirect();
 
     expect($submission->fresh()->status)->toBeInstanceOf(Approved::class);
@@ -168,8 +169,8 @@ it('menahan persetujuan selama satu evaluasi belum masuk', function () {
         'summary_notes' => 'Catatan.',
     ]);
 
-    $this->actingAs(operatorUser())
-        ->patch(route('admin.review-summaries.update-status', $summary), ['status' => 'resolved'])
+    $this->actingAs(User::findOrFail($reviewerA->user_id))
+        ->post(route('review-summaries.resolve', $summary))
         ->assertRedirect();
 
     // Ringkasan sudah ditutup, tapi satu evaluasi masih ditunggu — BR-REV-05
