@@ -1,13 +1,45 @@
-<script setup lang="ts">
+<script lang="ts">
 import { route } from 'ziggy-js'
+
+export interface ResolvableSummary {
+    id: number
+    status: string
+}
+
+export interface ResolveCallbacks {
+    onSuccess?: () => void
+    onFinish?: () => void
+}
+
+type PostFn = (
+    url: string,
+    data: Record<string, never>,
+    options: ResolveCallbacks & { preserveScroll: boolean }
+) => void
+
+/** BR-REV-06 — hanya ulir yang masih terbuka yang bisa ditutup dari layar ini. */
+export function resolvableSummaryId(summary?: ResolvableSummary | null): number | null {
+    return summary?.status === 'open' ? summary.id : null
+}
+
+/** Menutup ulir lewat alur resolve: status lain bukan status ReviewSummary (BR-REV-13). */
+export function resolveReviewSummary(
+    post: PostFn,
+    summaryId: number,
+    callbacks: ResolveCallbacks = {}
+): void {
+    post(route('review-summaries.resolve', summaryId), {}, { preserveScroll: true, ...callbacks })
+}
+</script>
+
+<script setup lang="ts">
 import { Head, router } from '@inertiajs/vue3'
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
 import { Button } from '@/Components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/Components/ui/card'
 import { Badge } from '@/Components/ui/badge'
 import { Label } from '@/Components/ui/label'
-import { Textarea } from '@/Components/ui/textarea'
 import {
     Dialog,
     DialogContent,
@@ -17,14 +49,6 @@ import {
     DialogTitle,
 } from '@/Components/ui/dialog'
 import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
-} from '@/Components/ui/select'
-import {
-    type LucideIcon,
     ArrowLeft,
     User,
     Mail,
@@ -35,8 +59,6 @@ import {
     XCircle,
     AlertCircle,
     MessageSquare,
-    Send,
-    FileCheck,
     History,
 } from 'lucide-vue-next'
 
@@ -102,7 +124,6 @@ interface Props {
     reviewer: ReviewerInfo
     canReview: boolean
     userRole: string
-    availableStatuses?: { value: string; label: string; icon?: LucideIcon; color?: string }[]
 }
 
 const props = defineProps<Props>()
@@ -143,61 +164,24 @@ const getMyReviewStatus = () => {
     }
 }
 
-// Status modal
-const showStatusModal = ref(false)
-const selectedStatus = ref('')
-const reviewNotes = ref('')
+// BR-REV-06 — satu-satunya aksi reviewer atas ulirnya sendiri di layar ini.
+const resolveId = computed(() => resolvableSummaryId(props.myReviewSummary))
+const showResolveModal = ref(false)
 const isSubmitting = ref(false)
 
-const availableStatuses = props.availableStatuses || [
-    { value: 'resolved', label: 'Resolved', icon: CheckCircle, color: 'text-green-600' },
-    {
-        value: 'needs_revision',
-        label: 'Needs Revision',
-        icon: AlertCircle,
-        color: 'text-yellow-600',
-    },
-    { value: 'rejected', label: 'Rejected', icon: XCircle, color: 'text-red-600' },
-]
-
-const getStatusIcon = (statusValue: string) => {
-    const status = availableStatuses.find((s) => s.value === statusValue)
-    return status?.icon || AlertCircle
-}
-
-const getStatusColor = (statusValue: string) => {
-    const status = availableStatuses.find((s) => s.value === statusValue)
-    return status?.color || 'text-gray-600'
-}
-
-const openStatusModal = () => {
-    selectedStatus.value = ''
-    reviewNotes.value = props.myReviewSummary?.summary_notes || ''
-    showStatusModal.value = true
-}
-
-const updateStatus = () => {
-    if (!selectedStatus.value) return
+const confirmResolve = () => {
+    if (resolveId.value === null) return
 
     isSubmitting.value = true
 
-    router.post(
-        route('reviewer.submissions.updateStatus', props.submission.id),
-        {
-            status: selectedStatus.value,
-            notes: reviewNotes.value,
+    resolveReviewSummary((url, data, options) => router.post(url, data, options), resolveId.value, {
+        onSuccess: () => {
+            showResolveModal.value = false
         },
-        {
-            onSuccess: () => {
-                showStatusModal.value = false
-                selectedStatus.value = ''
-                reviewNotes.value = ''
-            },
-            onFinish: () => {
-                isSubmitting.value = false
-            },
-        }
-    )
+        onFinish: () => {
+            isSubmitting.value = false
+        },
+    })
 }
 </script>
 
@@ -250,12 +234,13 @@ const updateStatus = () => {
                             </div>
                         </div>
                         <Button
-                            :variant="myReviewSummary ? 'outline' : 'default'"
+                            v-if="resolveId !== null"
+                            variant="outline"
                             class="ml-4"
-                            @click="openStatusModal"
+                            @click="showResolveModal = true"
                         >
-                            <FileCheck class="h-4 w-4 mr-2" />
-                            {{ myReviewSummary ? 'Perbarui Review' : 'Mulai Review' }}
+                            <CheckCircle class="h-4 w-4 mr-2" />
+                            Tandai Selesai
                         </Button>
                     </div>
                 </CardContent>
@@ -488,10 +473,10 @@ const updateStatus = () => {
                         </div>
 
                         <!-- Action Buttons -->
-                        <div class="flex gap-3">
-                            <Button class="flex-1" size="lg" @click="openStatusModal">
-                                <Send class="h-4 w-4 mr-2" />
-                                {{ myReviewSummary ? 'Perbarui Review Saya' : 'Kirim Review' }}
+                        <div v-if="resolveId !== null" class="flex gap-3">
+                            <Button class="flex-1" size="lg" @click="showResolveModal = true">
+                                <CheckCircle class="h-4 w-4 mr-2" />
+                                Tandai Diskusi Selesai
                             </Button>
                         </div>
                     </div>
@@ -499,95 +484,32 @@ const updateStatus = () => {
             </Card>
         </div>
 
-        <!-- Update Status Modal -->
-        <Dialog v-model:open="showStatusModal">
+        <!-- Konfirmasi penutupan ulir (BR-REV-06) -->
+        <Dialog v-model:open="showResolveModal">
             <DialogContent class="sm:max-w-lg">
                 <DialogHeader>
                     <DialogTitle class="flex items-center gap-2">
-                        <FileCheck class="h-5 w-5" />
-                        {{ myReviewSummary ? 'Perbarui Status Review' : 'Kirim Review Anda' }}
+                        <CheckCircle class="h-5 w-5" />
+                        Tandai Diskusi Selesai
                     </DialogTitle>
                     <DialogDescription>
-                        Berikan keputusan review dan umpan balik Anda untuk pengajuan ini.
+                        Ulir diskusi Anda atas pengajuan ini akan ditutup. Bila seluruh evaluasi
+                        sudah selesai dan tidak ada ulir lain yang terbuka, pengajuan disetujui.
                     </DialogDescription>
                 </DialogHeader>
-
-                <div class="space-y-4 py-4">
-                    <!-- Status Selection -->
-                    <div class="space-y-2">
-                        <Label>Keputusan Review <span class="text-red-500">*</span></Label>
-                        <Select v-model="selectedStatus">
-                            <SelectTrigger>
-                                <SelectValue placeholder="Pilih keputusan review..." />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem
-                                    v-for="option in availableStatuses"
-                                    :key="option.value"
-                                    :value="option.value"
-                                >
-                                    <div class="flex items-center gap-2">
-                                        <component
-                                            :is="option.icon"
-                                            :class="['h-4 w-4', option.color]"
-                                        />
-                                        <span>{{ option.label }}</span>
-                                    </div>
-                                </SelectItem>
-                            </SelectContent>
-                        </Select>
-                        <p class="text-xs text-muted-foreground">
-                            Pilih status yang sesuai berdasarkan review Anda
-                        </p>
-                    </div>
-
-                    <!-- Review Notes -->
-                    <div class="space-y-2">
-                        <Label>Review Notes</Label>
-                        <Textarea
-                            v-model="reviewNotes"
-                            placeholder="Tambahkan komentar, saran, atau kekhawatiran review Anda di sini..."
-                            class="min-h-[120px] resize-none"
-                        />
-                        <p class="text-xs text-muted-foreground">
-                            Berikan umpan balik yang rinci untuk membantu meningkatkan pengajuan
-                        </p>
-                    </div>
-
-                    <!-- Selected Status Preview -->
-                    <div v-if="selectedStatus" class="bg-muted/50 p-3 rounded-lg">
-                        <div class="flex items-center gap-2 text-sm">
-                            <component
-                                :is="getStatusIcon(selectedStatus)"
-                                :class="['h-4 w-4', getStatusColor(selectedStatus)]"
-                            />
-                            <span class="font-medium">
-                                Anda akan menandai ini sebagai:
-                                <span :class="getStatusColor(selectedStatus)">
-                                    {{
-                                        availableStatuses.find((s) => s.value === selectedStatus)
-                                            ?.label
-                                    }}
-                                </span>
-                            </span>
-                        </div>
-                    </div>
-                </div>
 
                 <DialogFooter>
                     <Button
                         variant="outline"
                         :disabled="isSubmitting"
-                        @click="showStatusModal = false"
+                        @click="showResolveModal = false"
                     >
                         Batal
                     </Button>
-                    <Button :disabled="!selectedStatus || isSubmitting" @click="updateStatus">
-                        <Send v-if="!isSubmitting" class="h-4 w-4 mr-2" />
-                        <span v-if="isSubmitting">Mengirim...</span>
-                        <span v-else>{{
-                            myReviewSummary ? 'Perbarui Review' : 'Kirim Review'
-                        }}</span>
+                    <Button :disabled="isSubmitting" @click="confirmResolve">
+                        <CheckCircle v-if="!isSubmitting" class="h-4 w-4 mr-2" />
+                        <span v-if="isSubmitting">Menutup...</span>
+                        <span v-else>Tandai Selesai</span>
                     </Button>
                 </DialogFooter>
             </DialogContent>

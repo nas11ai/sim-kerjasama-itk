@@ -1088,7 +1088,11 @@ class SubmissionViewController extends Controller
             \Log::warning('Tidak dapat memuat ringkasan review: '.$e->getMessage());
         }
 
-        $myReviewSummary = collect($reviewSummaries)->firstWhere('reviewer_id', $reviewer->id);
+        // BR-REV-06 — layar ini menawarkan penutupan ulir, jadi yang ditunjuk
+        // ulir reviewer yang masih terbuka; yang pertama dibuat bisa saja sudah
+        // ditutup sementara ulir berikutnya masih menunggu.
+        $mine = collect($reviewSummaries)->where('reviewer_id', $reviewer->id);
+        $myReviewSummary = $mine->firstWhere('status', 'open') ?? $mine->first();
 
         $assignedReviewers = $submission->activeSubmissionReviewers->map(function ($submissionReviewer) {
             return [
@@ -1153,67 +1157,7 @@ class SubmissionViewController extends Controller
             ],
             'canReview' => true,
             'userRole' => 'reviewer',
-
-            'availableStatuses' => [
-                ['value' => 'resolved', 'label' => 'Resolved'],
-                ['value' => 'needs_revision', 'label' => 'Needs Revision'],
-                ['value' => 'rejected', 'label' => 'Rejected'],
-            ],
         ]);
-    }
-
-    public function updateStatus(Request $request, FormSubmission $submission)
-    {
-        $user = Auth::user();
-        $reviewer = Reviewer::where('user_id', $user->id)->first();
-
-        if (!$reviewer) {
-            abort(403, 'You are not registered as a reviewer');
-        }
-
-        $isAssigned = SubmissionReviewer::where([
-            'form_submission_id' => $submission->id,
-            'reviewer_id' => $reviewer->id,
-        ])->exists();
-
-        if (!$isAssigned) {
-            abort(403, 'Anda tidak ditugaskan untuk review pengajuan ini.');
-        }
-
-        $validated = $request->validate([
-            'status' => 'required|in:resolved,needs_revision,rejected',
-            'notes' => 'nullable|string',
-        ]);
-
-        try {
-            $reviewSummary = ReviewSummary::updateOrCreate(
-                [
-                    'form_submission_id' => $submission->id,
-                    'reviewer_id' => $reviewer->id,
-                ],
-                [
-                    'status' => $validated['status'],
-                    'summary_notes' => $validated['notes'],
-                ]
-            );
-
-            if ($validated['status'] === 'resolved') {
-                $totalReviewers = SubmissionReviewer::where('form_submission_id', $submission->id)->count();
-                $resolvedReviews = ReviewSummary::where('form_submission_id', $submission->id)
-                    ->where('status', 'resolved')
-                    ->count();
-
-                if ($totalReviewers === $resolvedReviews) {
-                    $submission->update(['status' => 'approved']);
-                }
-            }
-
-            return back()->with('success', 'Review berhasil dikirim');
-        } catch (\Exception $e) {
-            \Log::error('Error updating review: '.$e->getMessage());
-
-            return back()->withErrors(['error' => 'Failed to submit review']);
-        }
     }
 
     protected function getReviewerAssignments($submissionReviewer, $formPhaseDetail)
