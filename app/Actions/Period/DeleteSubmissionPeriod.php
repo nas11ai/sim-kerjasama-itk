@@ -2,11 +2,9 @@
 
 namespace App\Actions\Period;
 
-use App\Models\FormPhaseDetail;
-use App\Models\FormSubmission;
-use App\Models\SubmissionDate;
 use App\Models\SubmissionPeriod;
 use App\Models\User;
+use App\Queries\Period\SubmissionPeriodReferences;
 use App\Support\Audit\AuditChange;
 use App\Support\Audit\AuditTrail;
 use App\Support\Lifecycle\ReferenceGuard;
@@ -34,16 +32,7 @@ class DeleteSubmissionPeriod
      */
     public function handle(SubmissionPeriod $period, User $actor): void
     {
-        ReferenceGuard::assertUnreferenced('Periode pengajuan', [
-            'pengajuan' => FormSubmission::query()
-                ->where('submission_period_id', $period->id)
-                ->count(),
-            'detail tahap yang memakai tanggalnya' => FormPhaseDetail::query()
-                ->whereIn('submission_date_id', SubmissionDate::query()
-                    ->where('submission_period_id', $period->id)
-                    ->select('id'))
-                ->count(),
-        ]);
+        ReferenceGuard::assertUnreferenced('Periode pengajuan', SubmissionPeriodReferences::run($period));
 
         AuditTrail::record(
             'Periode pengajuan dihapus',

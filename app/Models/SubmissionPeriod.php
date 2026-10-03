@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Notifications\SubmissionPeriodClosedNotification;
+use App\Queries\Period\SubmissionPeriodReferences;
 use App\Support\Lifecycle\ReferenceGuard;
 use App\Support\Notification\Deliver;
 use Carbon\Carbon;
@@ -43,16 +44,7 @@ class SubmissionPeriod extends Model
     protected static function booted(): void
     {
         static::deleting(function (SubmissionPeriod $period): void {
-            ReferenceGuard::assertUnreferenced('Periode pengajuan', [
-                'pengajuan' => FormSubmission::query()
-                    ->where('submission_period_id', $period->id)
-                    ->count(),
-                'detail tahap yang memakai tanggalnya' => FormPhaseDetail::query()
-                    ->whereIn('submission_date_id', SubmissionDate::query()
-                        ->where('submission_period_id', $period->id)
-                        ->select('id'))
-                    ->count(),
-            ]);
+            ReferenceGuard::assertUnreferenced('Periode pengajuan', SubmissionPeriodReferences::run($period));
         });
     }
 

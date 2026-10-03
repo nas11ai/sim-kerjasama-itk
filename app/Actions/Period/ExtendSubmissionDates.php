@@ -10,6 +10,7 @@ use App\Models\User;
 use App\Notifications\SubmissionDeadlineExtendedNotification;
 use App\Support\Audit\AuditTrail;
 use App\Support\Notification\Deliver;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Lorisleiva\Actions\Concerns\AsAction;
@@ -39,65 +40,13 @@ class ExtendSubmissionDates
      */
     public function handle(SubmissionPeriod $period, array $dates): int
     {
-        $adaPerpanjangan = false;
-
-        DB::transaction(function () use ($period, $dates, &$adaPerpanjangan): void {
-            $existing = $period->submissionDates()
-                ->with('submissionDateLabel')
-                ->get()
-                ->keyBy(function (SubmissionDate $d): string {
-                    $label = $d->submissionDateLabel;
-
-                    return $label instanceof SubmissionDateLabel ? $label->name : (string) $d->id;
-                });
-
-            $terpakai = [];
-
-            foreach ($dates as $row) {
-                $baru = Carbon::parse($row['date']);
-                $lama = $existing->get($row['label']);
-
-                if ($lama instanceof SubmissionDate) {
-                    if ($baru->gt($lama->datetime)) {
-                        $adaPerpanjangan = true;
-                    }
-
-                    // Diperbarui **di tempat**, bukan dihapus lalu dibuat ulang.
-                    // `form_phase_details.submission_date_id` menunjuk ke baris
-                    // ini lewat foreign key: menghapusnya membuat penyuntingan
-                    // periode yang sudah dipakai selalu gagal, dan kalaupun
-                    // lolos, tiap FormPhaseDetail kehilangan tanggalnya.
-                    $lama->update(['datetime' => $baru]);
-                    $terpakai[] = $lama->id;
-
-                    continue;
-                }
-
-                $terpakai[] = SubmissionDate::create([
-                    'submission_period_id' => $period->id,
-                    'submission_date_label_id' => SubmissionDateLabel::where('name', $row['label'])->firstOrFail()->id,
-                    'datetime' => $baru,
-                ])->id;
-            }
-
-            // Tanggal yang tidak lagi disebut dihapus — kecuali masih ditunjuk
-            // sebuah FormPhaseDetail, yang berarti ia masih menggerbangi fase.
-            $period->submissionDates()
-                ->whereNotIn('id', $terpakai)
-                ->whereDoesntHave('formPhaseDetails')
-                ->delete();
-        });
+        $adaPerpanjangan = DB::transaction(fn (): bool => $this->syncDates($period, $dates));
 
         if (!$adaPerpanjangan) {
             return 0;
         }
 
-        $pemilikDraft = User::query()
-            ->whereIn('id', FormSubmission::query()
-                ->where('submission_period_id', $period->id)
-                ->where('is_submitted', false)
-                ->select('submitted_by'))
-            ->get();
+        $pemilikDraft = $this->draftOwners($period);
 
         // SCH-RULE-13 — tanpa draft berjalan, tidak ada yang perlu diberi tahu.
         if ($pemilikDraft->isEmpty()) {
@@ -112,5 +61,83 @@ class ExtendSubmissionDates
         AuditTrail::record('Tenggat periode diperpanjang', $period);
 
         return $tercatat;
+    }
+
+    /**
+     * @param  array<int, array{label: string, date: string}>  $dates
+     * @return bool apakah ada batas yang mundur
+     */
+    private function syncDates(SubmissionPeriod $period, array $dates): bool
+    {
+        $existing = $this->datesByLabel($period);
+
+        $adaPerpanjangan = false;
+        $terpakai = [];
+
+        foreach ($dates as $row) {
+            $baru = Carbon::parse($row['date']);
+            $lama = $existing->get($row['label']);
+
+            if ($lama instanceof SubmissionDate) {
+                if ($baru->gt($lama->datetime)) {
+                    $adaPerpanjangan = true;
+                }
+
+                // Diperbarui **di tempat**, bukan dihapus lalu dibuat ulang.
+                // `form_phase_details.submission_date_id` menunjuk ke baris
+                // ini lewat foreign key: menghapusnya membuat penyuntingan
+                // periode yang sudah dipakai selalu gagal, dan kalaupun
+                // lolos, tiap FormPhaseDetail kehilangan tanggalnya.
+                $lama->update(['datetime' => $baru]);
+                $terpakai[] = $lama->id;
+
+                continue;
+            }
+
+            $terpakai[] = SubmissionDate::create([
+                'submission_period_id' => $period->id,
+                'submission_date_label_id' => SubmissionDateLabel::where('name', $row['label'])->firstOrFail()->id,
+                'datetime' => $baru,
+            ])->id;
+        }
+
+        $this->deleteUnlisted($period, $terpakai);
+
+        return $adaPerpanjangan;
+    }
+
+    /** @return Collection<string, SubmissionDate> */
+    private function datesByLabel(SubmissionPeriod $period): Collection
+    {
+        return $period->submissionDates()
+            ->with('submissionDateLabel')
+            ->get()
+            ->keyBy(function (SubmissionDate $d): string {
+                $label = $d->submissionDateLabel;
+
+                return $label instanceof SubmissionDateLabel ? $label->name : (string) $d->id;
+            });
+    }
+
+    /** @param  list<int>  $keptIds */
+    private function deleteUnlisted(SubmissionPeriod $period, array $keptIds): void
+    {
+        // Tanggal yang tidak lagi disebut dihapus — kecuali masih ditunjuk
+        // sebuah FormPhaseDetail, yang berarti ia masih menggerbangi fase.
+        $period->submissionDates()
+            ->whereNotIn('id', $keptIds)
+            ->whereDoesntHave('formPhaseDetails')
+            ->delete();
+    }
+
+    /** @return Collection<int, User> */
+    private function draftOwners(SubmissionPeriod $period): Collection
+    {
+        return User::query()
+            ->whereIn('id', FormSubmission::query()
+                ->where('submission_period_id', $period->id)
+                ->where('is_submitted', false)
+                ->select('submitted_by'))
+            ->get();
     }
 }
