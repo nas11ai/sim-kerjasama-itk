@@ -5,6 +5,7 @@ namespace App\Actions\Review;
 use App\Models\ReviewComment;
 use App\Models\Reviewer;
 use App\Models\ReviewSummary;
+use App\Models\SubmissionReviewer;
 use App\Models\User;
 use App\Queries\Review\ActiveReviewerAssignment;
 use App\Services\EmailNotificationService;
@@ -55,8 +56,8 @@ class AddReviewComment
     }
 
     /**
-     * Operator dan pengaju selalu boleh; reviewer hanya bila penugasannya aktif dan evaluasinya
-     * beres (BR-SM-07, BR-REV-10, BR-REV-06).
+     * Operator dan pengaju selalu boleh; reviewer hanya bila penugasannya aktif dan
+     * evaluasinya beres (BR-SM-07, BR-REV-10, BR-REV-06).
      *
      * @return int|null id reviewer bila penulis berkomentar sebagai reviewer
      *
@@ -78,12 +79,25 @@ class AddReviewComment
         }
 
         if (!$assignment->hasSettledEvaluation()) {
-            throw new AuthorizationException(
-                "Selesaikan {$assignment->pending_forms_count} formulir evaluasi yang tertunda sebelum berpartisipasi dalam diskusi."
-            );
+            throw new AuthorizationException($this->unsettledEvaluationMessage($assignment));
         }
 
         return $reviewer->id;
+    }
+
+    /**
+     * "Selesaikan 0 formulir" membingungkan: evaluasi bisa belum beres meski tak ada
+     * formulir tertunda, jadi jumlahnya hanya disebut bila memang ada.
+     */
+    private function unsettledEvaluationMessage(SubmissionReviewer $assignment): string
+    {
+        $pending = $assignment->pending_forms_count;
+
+        if ($pending === 0) {
+            return 'Selesaikan evaluasi Anda sebelum berpartisipasi dalam diskusi.';
+        }
+
+        return "Selesaikan {$pending} formulir evaluasi yang tertunda sebelum berpartisipasi dalam diskusi.";
     }
 
     /**

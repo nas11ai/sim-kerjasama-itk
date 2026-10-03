@@ -11,7 +11,6 @@ use App\Models\Reviewer;
 use App\Models\ReviewSummary;
 use App\Models\SubmissionReviewer;
 use App\Queries\Review\ActiveReviewerAssignment;
-use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -105,16 +104,12 @@ class ReviewController extends Controller
             'parent_comment_id' => 'nullable|integer|exists:review_comments,id',
         ]);
 
-        try {
-            AddReviewComment::run(
-                $reviewSummary,
-                $request->user(),
-                $validated['comment_text'],
-                isset($validated['parent_comment_id']) ? (int) $validated['parent_comment_id'] : null,
-            );
-        } catch (AuthorizationException $e) {
-            abort(403, $e->getMessage());
-        }
+        AddReviewComment::run(
+            $reviewSummary,
+            $request->user(),
+            $validated['comment_text'],
+            $request->filled('parent_comment_id') ? $request->integer('parent_comment_id') : null,
+        );
 
         return back()->with('success', 'Komentar berhasil ditambahkan.');
     }

@@ -8,6 +8,8 @@ use App\Models\FormPhaseDetail;
 use App\Models\FormSubmission;
 use App\Models\ReviewComment;
 use App\Models\Reviewer;
+use App\Models\ReviewerFormAssignment;
+use App\Models\ReviewEvaluationForm;
 use App\Models\ReviewSummary;
 use App\Models\SubmissionReviewer;
 use App\Models\User;
@@ -75,15 +77,46 @@ it('reviewer aktif yang evaluasinya beres berkomentar atas nama reviewer', funct
         ->and($comment->user_id)->toBeNull();
 });
 
-it('menolak reviewer aktif yang evaluasinya belum beres', function () {
+it('menolak reviewer aktif yang evaluasinya belum beres tanpa formulir tertunda', function () {
     [, $reviewerUser, , , $thread] = commentFixture('pending');
 
     $this->actingAs($reviewerUser)
         ->post(route('reviewer.review-comments.store', $thread), ['comment_text' => 'Terlalu dini.'])
         ->assertForbidden()
-        ->assertSee('Selesaikan 0 formulir evaluasi yang tertunda', false);
+        ->assertSee('Selesaikan evaluasi Anda sebelum berpartisipasi dalam diskusi.', false)
+        ->assertDontSee('Selesaikan 0 formulir', false);
 
     expect(ReviewComment::count())->toBe(0);
+});
+
+it('menyebut jumlah formulir evaluasi yang masih tertunda', function () {
+    [, $reviewerUser, $submission, $reviewer, $thread] = commentFixture('pending');
+    $assignment = SubmissionReviewer::query()
+        ->where('form_submission_id', $submission->id)
+        ->where('reviewer_id', $reviewer->id)
+        ->sole();
+
+    foreach (['Substansi', 'Metodologi'] as $order => $title) {
+        $form = ReviewEvaluationForm::create([
+            'title' => $title,
+            'form_phase_detail_id' => $submission->form_phase_detail_id,
+            'is_active' => true,
+            'is_required' => true,
+            'order' => $order + 1,
+        ]);
+        ReviewerFormAssignment::create([
+            'submission_reviewer_id' => $assignment->id,
+            'review_evaluation_form_id' => $form->id,
+            'is_required' => true,
+            'assigned_at' => now(),
+            'is_active' => true,
+        ]);
+    }
+
+    $this->actingAs($reviewerUser)
+        ->post(route('reviewer.review-comments.store', $thread), ['comment_text' => 'Terlalu dini.'])
+        ->assertForbidden()
+        ->assertSee('Selesaikan 2 formulir evaluasi yang tertunda', false);
 });
 
 it('menolak balasan yang induknya milik ulir lain', function () {
