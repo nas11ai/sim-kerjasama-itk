@@ -46,15 +46,16 @@ final class ReferenceEntityRegistry
                 usedBy: 'Skema',
             ),
             // BR-SC-02 — tak dapat disunting: mengikat Scheme, Submission,
-            // Review, Monev sekaligus, nilai ketiga tak ditangani keempatnya.
+            // Review, Monev sekaligus, nilai ketiga tak ditangani satu pun
+            // dari keempatnya.
             new ReferenceEntity(
                 key: 'submission-types',
                 label: 'Tipe Submission',
                 model: SubmissionType::class,
                 usageRelation: 'schemes',
                 usedBy: 'Skema, Submission, Review, Monev',
-                // Tampil read-only: Admin yang tak menemukannya kira ada
-                // layar lain.
+                // Tampil read-only: Admin yang tak menemukannya akan mengira
+                // ada layar lain.
                 editable: false,
             ),
             new ReferenceEntity(

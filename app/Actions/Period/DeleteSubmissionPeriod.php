@@ -29,6 +29,8 @@ class DeleteSubmissionPeriod
      */
     public function handle(SubmissionPeriod $period, User $actor): void
     {
+        // Audit dicatat sebelum delete() memicu hook; tanpa guard sendiri,
+        // penghapusan yang ditolak meninggalkan entri audit palsu.
         ReferenceGuard::assertUnreferenced('Periode pengajuan', SubmissionPeriodReferences::run($period));
 
         AuditTrail::record(

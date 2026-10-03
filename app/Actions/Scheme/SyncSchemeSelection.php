@@ -34,10 +34,8 @@ class SyncSchemeSelection
         if ($submission->scheme_id !== $scheme->id) {
             // Disimpan di kolom, bukan FormFieldResponse: batas anggaran
             // (BR-BUD-01), batas anggota (BR-SM-06), dan Tipe Luaran yang
-            // diizinkan (BR-SM-14) menanyakan skema lewat kolom.
+            // diizinkan (BR-SM-14) menanyakan skema tanpa tahu field form.
             $sebelumnya = $submission->scheme_id;
-
-            // Dari jawaban form, tiap penanya harus tahu field penyimpannya.
             $submission->update(['scheme_id' => $scheme->id]);
 
             // BR-RPT-09 — dicatat hanya saat berpindah: entri untuk

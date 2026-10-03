@@ -7,9 +7,9 @@ use Illuminate\Support\Facades\Auth;
 use Spatie\Activitylog\Contracts\Activity;
 
 /**
- * BR-RPT-09 — satu pintu jejak audit. Bentuk `old`/`new` seragam karena layar audit membacanya;
- * bentuk lain tampil kosong tanpa ada yang tahu. Aktor diambil dari sesi bila tak disebut, dan aksi
- * scheduler memang tanpa aktor — jangan ditambal aktor palsu.
+ * BR-RPT-09 — satu pintu jejak audit. Bentuk `old`/`new` seragam karena
+ * layar audit membaca keduanya untuk "nilai lama → nilai baru"; bentuk
+ * lain tampil kosong tanpa ada yang tahu.
  */
 final class AuditTrail
 {
@@ -33,6 +33,8 @@ final class AuditTrail
 
         $activity = activity(self::LOG_NAME)
             ->performedOn($subject)
+            // Aktor dari sesi bila tak disebut. Aksi scheduler memang tanpa
+            // aktor; jangan ditambal aktor palsu.
             ->causedBy($causer ?? Auth::user())
             ->withProperties($properties)
             ->log($description);

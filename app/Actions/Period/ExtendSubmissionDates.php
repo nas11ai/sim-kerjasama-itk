@@ -58,9 +58,7 @@ class ExtendSubmissionDates
     }
 
     /**
-     * Diperbarui **di tempat**, bukan dihapus lalu dibuat ulang. Foreign key
-     * `form_phase_details.submission_date_id` membuatnya selalu gagal pada
-     * periode terpakai; bila lolos, tiap FormPhaseDetail kehilangan tanggal.
+     * Menyelaraskan tanggal periode dengan daftar masukan.
      *
      * @param  array<int, array{label: string, date: string}>  $dates
      * @return bool apakah ada batas yang mundur
@@ -81,6 +79,9 @@ class ExtendSubmissionDates
                     $adaPerpanjangan = true;
                 }
 
+                // Hapus-lalu-buat-ulang baris ini selalu gagal: foreign key
+                // `form_phase_details.submission_date_id` menunjuknya, dan bila
+                // lolos, tiap FormPhaseDetail kehilangan tanggalnya.
                 $lama->update(['datetime' => $baru]);
                 $terpakai[] = $lama->id;
 
