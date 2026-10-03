@@ -27,7 +27,9 @@ use App\States\Submission\Approved;
 use App\States\Submission\Draft;
 use App\States\Submission\Rejected;
 use App\States\Submission\Withdrawn;
+use App\Support\Audit\AuditTrail;
 use Illuminate\Validation\ValidationException;
+use Spatie\Activitylog\Models\Activity;
 
 function adminPenghapus(): User
 {
@@ -167,6 +169,23 @@ it('[FE-DELETE-10] SubmissionPeriod yang punya pengajuan tidak bisa dihapus', fu
     expect(fn () => DeleteSubmissionPeriod::run($period, adminPenghapus()))
         ->toThrow(ValidationException::class)
         ->and(SubmissionPeriod::query()->whereKey($period->id)->exists())->toBeTrue();
+});
+
+it('penghapusan periode yang ditolak tidak meninggalkan jejak audit — BR-RPT-09', function () {
+    // Audit dicatat sebelum delete() memicu hook `deleting`. Tanpa guard milik
+    // Action, hook-lah yang menolak — dan entri "dihapus" sudah telanjur tertulis
+    // untuk penghapusan yang tidak pernah terjadi.
+    $period = SubmissionPeriod::factory()->create();
+    FormSubmission::factory()->create(['submission_period_id' => $period->id]);
+
+    expect(fn () => DeleteSubmissionPeriod::run($period, adminPenghapus()))
+        ->toThrow(ValidationException::class);
+
+    expect(Activity::inLog(AuditTrail::LOG_NAME)
+        ->where('subject_type', $period->getMorphClass())
+        ->where('subject_id', $period->id)
+        ->where('description', 'Periode pengajuan dihapus')
+        ->exists())->toBeFalse();
 });
 
 it('[FE-DELETE-11] SubmissionDate yang jadi deadline sebuah detail tidak ikut terhapus', function () {
