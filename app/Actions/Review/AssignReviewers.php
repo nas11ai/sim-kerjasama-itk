@@ -34,8 +34,9 @@ class AssignReviewers
         // null berarti fase ini tanpa form evaluasi; dicek sekali per permintaan.
         $formOwner = $detail && $detail->hasReviewEvaluationForms() ? $detail : null;
 
-        // BR-REV-04 — beban berlebih hanya PERINGATAN: dikembalikan ke pemanggil, tak pernah
-        // dilempar sebagai exception, jadi penugasan tetap berhasil dan Operator yang menilai.
+        // BR-REV-04 — beban berlebih hanya PERINGATAN: dikembalikan ke pemanggil, tak
+        // pernah dilempar sebagai exception, jadi penugasan tetap berhasil dan
+        // Operator yang menilai.
         $workloadWarnings = DB::transaction(
             function () use ($submission, $reviewerIds, $formOwner, $autoAssignForms): array {
                 $warnings = [];
