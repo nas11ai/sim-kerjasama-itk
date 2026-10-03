@@ -14,7 +14,6 @@ app/Http/Controllers/FacultyController.php
 app/Http/Controllers/FormAccessControlController.php
 app/Http/Controllers/FormController.php
 app/Http/Controllers/FormPhaseController.php
-app/Http/Controllers/ReviewController.php
 app/Http/Controllers/ReviewEvaluationFormController.php
 app/Http/Controllers/ReviewFormResponseController.php
 app/Http/Controllers/ReviewerController.php

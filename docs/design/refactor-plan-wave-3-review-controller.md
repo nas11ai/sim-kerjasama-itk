@@ -16,7 +16,7 @@ Yang tersisa menjadi cangkang: FormRequest/validasi → Action/Query → respons
 
 **Spec induk:** [`refactor-plan.md`](refactor-plan.md) §2.1, §5 gelombang 3
 
-**Status:** belum dikerjakan.
+**Status:** selesai 2026-10-04, kode terakhir mendarat di 102ec0b.
 
 ---
 
@@ -137,8 +137,8 @@ permintaan, di samping entri per reviewer dari `AssignReviewer` — presedennya
 ## Definisi selesai
 
 - [ ] `CI composer run quality` dan `npm run quality` hijau
-- [ ] `php tools/limits.php app/Http/Controllers/ReviewController.php` tanpa pelanggaran
-- [ ] `app/Http/Controllers/ReviewController.php` keluar dari `quality-legacy.txt`;
+- [x] `php tools/limits.php app/Http/Controllers/ReviewController.php` tanpa pelanggaran
+- [x] `app/Http/Controllers/ReviewController.php` keluar dari `quality-legacy.txt`;
       `max.legacy.files` 121 → 120
 - [ ] Setiap test F2–F4 merah sebelum perbaikan
 
@@ -149,6 +149,18 @@ permintaan, di samping entri per reviewer dari `AssignReviewer` — presedennya
   pembedahan `ReviewerFormAssignmentController`, yang memegang jalur kembarannya.
 - Komentar di ulir yang sudah `resolved`: backend menerimanya, layar menyembunyikan
   kotaknya. Domain tidak menyatakan aturannya — pertanyaan untuk pemilik, bukan refactor.
+
+## Yang berbeda dari rencana
+
+- Task 2: putaran perbaikannya membuang `notifyReviewStatusChanged` (BR-NOT-02: RevisionResolved
+  hanya in-app, tanpa email), dan tiga route yang metodenya tidak pernah ada
+  (`review-summaries.complete` ×2, `admin.review-summaries.destroy`).
+- Task 3: urutan pemeriksaan diubah, otorisasi berjalan sebelum pemeriksaan berkas di disk.
+- Task 4: `emailService` yang mati dibuang dari controller, dan test matriks K3 ditambahkan.
+- Task 5: `AssignReviewers` memecah satu penugasan ke `assignOne()` (Extract Method) agar
+  `handle()` di bawah ambang.
+- Backend tidak lagi menghalangi resolve selama evaluasi masih tertunda: BR-FE-06 hanya
+  menjaga pembuatan ulir. Pertanyaan untuk pemilik: apakah resolve juga harus ditahan?
 
 ---
 ---
