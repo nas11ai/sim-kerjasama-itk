@@ -10,13 +10,9 @@ use App\Models\FormPhase;
 use App\Models\FormPhaseDetail;
 use App\Models\FormSubmission;
 use App\Models\ReviewComment;
-use App\Models\ReviewCommentAttachment;
 use App\Models\Reviewer;
-use App\Models\ReviewerFormAssignment;
 use App\Models\ReviewEvaluationForm;
-use App\Models\ReviewFormResponse;
 use App\Models\ReviewSummary;
-use App\Models\ReviewSummaryAttachment;
 use App\Models\SubmissionReviewer;
 use App\Queries\Review\ActiveReviewerAssignment;
 use App\Queries\Review\EvaluationFormsOverview;
@@ -25,7 +21,6 @@ use App\Queries\Review\PendingEvaluationCheck;
 use App\Queries\Submission\EvaluationDueDate;
 use App\Services\EmailNotificationService;
 use App\States\Submission\Rejected;
-use App\States\Submission\Submitted;
 use App\Support\ReviewerWorkload;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -108,69 +103,6 @@ class ReviewController extends Controller
             : $response->with('workloadWarnings', $peringatanBeban);
     }
 
-    // Enhanced remove reviewer to handle evaluation forms
-    public function removeReviewer(FormSubmission $submission, Reviewer $reviewer)
-    {
-        DB::transaction(function () use ($submission, $reviewer) {
-            $submissionReviewer = ActiveReviewerAssignment::run($submission, $reviewer->id);
-
-            if (!$submissionReviewer) {
-                abort(404, 'Reviewer tidak ditemukan untuk submission ini.');
-            }
-
-            // Check if there are submitted evaluation responses
-            $hasSubmittedEvaluations = $submissionReviewer->reviewerFormAssignments()
-                ->whereHas('reviewFormResponse', function ($query) {
-                    $query->where('status', 'submitted');
-                })
-                ->exists();
-
-            if ($hasSubmittedEvaluations) {
-                abort(409, 'Tidak dapat menghapus reviewer dengan respons evaluasi yang telah dikirim.');
-            }
-
-            /** @var ReviewerFormAssignment $assignment */
-
-            // Delete evaluation form assignments and draft responses
-            foreach ($submissionReviewer->reviewerFormAssignments as $assignment) {
-                /** @var ReviewerFormAssignment $assignment */
-                /** @var ReviewFormResponse|null $response */
-                $response = $assignment->reviewFormResponse;
-
-                if ($response && $response->isDraft()) {
-                    $response->reviewFormFieldResponses()->delete();
-                    $response->delete();
-                }
-                $assignment->delete();
-            }
-
-            // Delete submission reviewer record
-            $submissionReviewer->delete();
-
-            // Delete all ReviewSummary created by this reviewer
-            $reviewSummaries = ReviewSummary::where([
-                'form_submission_id' => $submission->id,
-                'reviewer_id' => $reviewer->id,
-            ])->get();
-
-            foreach ($reviewSummaries as $summary) {
-                $this->deleteReviewSummaryWithComments($summary);
-            }
-
-            // Update submission status
-            if ($submission->submissionReviewers()->count() === 0) {
-                $submission->status->transitionTo(Submitted::class);
-            } else {
-                EvaluateSubmissionOutcome::run($submission);
-            }
-
-            // TAMBAHKAN: Kirim email notifikasi removal
-            $this->emailService->notifyReviewerRemoval($submission, $reviewer);
-        });
-
-        return back()->with('success', 'Reviewer berhasil dihapus dari submission ini.');
-    }
-
     // Enhanced thread creation with evaluation check
     public function createReviewThread(Request $request, FormSubmission $submission)
     {
@@ -182,12 +114,8 @@ class ReviewController extends Controller
 
         $user = Auth::user();
 
-        // Operator membuka ulir tanpa penugasan, jadi BR-FE-06 tidak berlaku
-        // baginya — ia bukan pihak yang menilai.
-        if ($user->can('users.manage')) {
-            return $this->openThread($request, $submission, null);
-        }
-
+        // BR-REV-06, BR-REV-15 — ulir hanya dibuka reviewer yang bertugas: ulir open
+        // menahan persetujuan, dan hanya reviewer yang berhak menutupnya.
         /** @var Reviewer|null $reviewer */
         $reviewer = Reviewer::where('user_id', $user->id)->first();
 
@@ -204,7 +132,7 @@ class ReviewController extends Controller
         return $this->openThread($request, $submission, $assignment);
     }
 
-    protected function openThread(Request $request, FormSubmission $submission, ?SubmissionReviewer $assignment)
+    protected function openThread(Request $request, FormSubmission $submission, SubmissionReviewer $assignment)
     {
         OpenReviewThread::run(
             $submission,
@@ -515,31 +443,5 @@ class ReviewController extends Controller
         $fullPath = Storage::disk('public')->path($filePath);
 
         return response()->download($fullPath);
-    }
-
-    private function deleteReviewSummaryWithComments(ReviewSummary $summary)
-    {
-        $comments = ReviewComment::where('review_summary_id', $summary->id)->get();
-        /** @var ReviewComment $comment */
-        foreach ($comments as $comment) {
-            foreach ($comment->attachments as $attachment) {
-                /** @var ReviewCommentAttachment $attachment */
-                if (Storage::disk('public')->exists($attachment->file_path)) {
-                    Storage::disk('public')->delete($attachment->file_path);
-                }
-                $attachment->delete();
-            }
-            $comment->delete();
-        }
-
-        foreach ($summary->attachments as $attachment) {
-            /** @var ReviewSummaryAttachment $attachment */
-            if (Storage::disk('public')->exists($attachment->file_path)) {
-                Storage::disk('public')->delete($attachment->file_path);
-            }
-            $attachment->delete();
-        }
-
-        $summary->delete();
     }
 }

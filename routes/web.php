@@ -332,9 +332,6 @@ Route::middleware(['auth', 'can:users.manage', 'check_reviewer_status'])->prefix
     Route::post('/submissions/{submission}/assign-reviewers', [ReviewController::class, 'assignReviewers'])
         ->name('submissions.assign-reviewers');
 
-    Route::delete('/submissions/{submission}/reviewers/{reviewer}', [ReviewController::class, 'removeReviewer'])
-        ->name('submissions.remove-reviewer');
-
     // Enhanced available reviewers with evaluation context
     Route::get('/submissions/{submission}/available-reviewers', [ReviewController::class, 'getAvailableReviewers'])
         ->name('submissions.available-reviewers');

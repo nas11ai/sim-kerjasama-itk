@@ -77,48 +77,6 @@ class EmailNotificationService
      */
 
     /**
-     * 3. Notifikasi ketika admin menghapus reviewer
-     */
-    public function notifyReviewerRemoval(FormSubmission $submission, Reviewer $reviewer)
-    {
-        try {
-            $subject = "Anda Dihapus dari Reviewer - {$submission->form->title}";
-            $params = [
-                'judul' => 'Penghapusan Reviewer',
-                'isi' => "
-                    <p>Halo {$reviewer->user->name},</p>
-                    <p>Anda telah dihapus dari daftar reviewer untuk submission berikut:</p>
-                    <ul>
-                        <li><strong>Form:</strong> {$submission->form->title}</li>
-                        <li><strong>Diajukan oleh:</strong> {$submission->submittedBy->name}</li>
-                    </ul>
-                    <p>Jika ada pertanyaan, silakan hubungi admin.</p>
-                ",
-            ];
-
-            Mail::to($reviewer->user->email)->queue(
-                new DynamicEmailNotification([
-                    'subject' => $subject,
-                    'view' => 'emails.template',
-                    'params' => $params,
-                ])
-            );
-
-            Log::info('Email notifikasi removal reviewer dikirim', [
-                'submission_id' => $submission->id,
-                'reviewer_id' => $reviewer->id,
-            ]);
-
-        } catch (\Exception $e) {
-            Log::error('Gagal mengirim email notifikasi removal reviewer', [
-                'submission_id' => $submission->id,
-                'reviewer_id' => $reviewer->id,
-                'error' => $e->getMessage(),
-            ]);
-        }
-    }
-
-    /**
      * 4. Notifikasi ketika membuat review thread
      */
     public function notifyReviewThreadCreated(ReviewSummary $reviewSummary)

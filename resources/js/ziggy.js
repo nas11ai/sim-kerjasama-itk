@@ -366,12 +366,6 @@ const Ziggy = {
             parameters: ['submission'],
             bindings: { submission: 'id' },
         },
-        'admin.submissions.remove-reviewer': {
-            uri: 'admin\/submissions\/{submission}\/reviewers\/{reviewer}',
-            methods: ['DELETE'],
-            parameters: ['submission', 'reviewer'],
-            bindings: { submission: 'id', reviewer: 'id' },
-        },
         'admin.submissions.available-reviewers': {
             uri: 'admin\/submissions\/{submission}\/available-reviewers',
             methods: ['GET', 'HEAD'],
