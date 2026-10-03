@@ -48,28 +48,40 @@ class SaveOrganization
         }
 
         if ($organization === null) {
-            $tercatat = Organization::create([
-                'name' => $attributes['name'] ?? '',
-                'type' => $attributes['type'] ?? 'unit',
-                'parent_id' => $parentId,
-                'is_active' => true,
-            ]);
-
-            AuditTrail::record(
-                'Unit organisasi dibuat',
-                $tercatat,
-                $actor,
-                new AuditChange(
-                    new: [
-                        'name' => $tercatat->name,
-                        'parent_id' => $tercatat->parent_id,
-                    ],
-                ),
-            );
-
-            return $tercatat;
+            return $this->create($actor, $attributes, $parentId);
         }
 
+        return $this->update($actor, $organization, $attributes, $parentId);
+    }
+
+    /** @param  array{name?: string, type?: string, parent_id?: int|null}  $attributes */
+    private function create(User $actor, array $attributes, ?int $parentId): Organization
+    {
+        $tercatat = Organization::create([
+            'name' => $attributes['name'] ?? '',
+            'type' => $attributes['type'] ?? 'unit',
+            'parent_id' => $parentId,
+            'is_active' => true,
+        ]);
+
+        AuditTrail::record(
+            'Unit organisasi dibuat',
+            $tercatat,
+            $actor,
+            new AuditChange(
+                new: [
+                    'name' => $tercatat->name,
+                    'parent_id' => $tercatat->parent_id,
+                ],
+            ),
+        );
+
+        return $tercatat;
+    }
+
+    /** @param  array{name?: string, type?: string, parent_id?: int|null}  $attributes */
+    private function update(User $actor, Organization $organization, array $attributes, ?int $parentId): Organization
+    {
         $sebelum = ['name' => $organization->name, 'parent_id' => $organization->parent_id];
 
         $organization->update(array_filter([

@@ -47,38 +47,42 @@ class RegisterByInvitation
             ]);
         }
 
-        $tercatat = DB::transaction(function () use ($token, $data): User {
-            $user = User::create([
-                'name' => $data['name'],
-                'email' => $data['email'],
-                'password' => Hash::make($data['password']),
-            ]);
-
-            // BR-IAM-12 — permission diwariskan token, bukan lewat role.
-            // Diberikan sebagai direct permission justru karena itu additive
-            // (BR-IAM-09): role apa pun yang kelak ditambahkan Operator
-            // menambah, bukan menggantikan, bekal awal ini.
-            foreach ($token->permissions ?? [] as $permission) {
-                Permission::findOrCreate($permission, 'web');
-                $user->givePermissionTo($permission);
-            }
-
-            UserProfile::create([
-                'user_id' => $user->id,
-                'organization_id' => $token->organization_id,
-                // Tidak ada NIDN — dan itu sebabnya statusnya langsung aktif.
-                'nidn' => null,
-                'verification_status' => VerificationStatus::Active->value,
-            ]);
-
-            $token->consume();
-
-            return $user->refresh();
-        });
+        $tercatat = DB::transaction(fn (): User => $this->createAccount($token, $data));
 
         // BR-RPT-09 — satu Action, satu entri audit.
         AuditTrail::record('Akun dibuat lewat undangan', $tercatat, $tercatat);
 
         return $tercatat;
+    }
+
+    /** @param  array{name: string, email: string, password: string}  $data */
+    private function createAccount(InvitationToken $token, array $data): User
+    {
+        $user = User::create([
+            'name' => $data['name'],
+            'email' => $data['email'],
+            'password' => Hash::make($data['password']),
+        ]);
+
+        // BR-IAM-12 — permission diwariskan token, bukan lewat role.
+        // Diberikan sebagai direct permission justru karena itu additive
+        // (BR-IAM-09): role apa pun yang kelak ditambahkan Operator
+        // menambah, bukan menggantikan, bekal awal ini.
+        foreach ($token->permissions ?? [] as $permission) {
+            Permission::findOrCreate($permission, 'web');
+            $user->givePermissionTo($permission);
+        }
+
+        UserProfile::create([
+            'user_id' => $user->id,
+            'organization_id' => $token->organization_id,
+            // Tidak ada NIDN — dan itu sebabnya statusnya langsung aktif.
+            'nidn' => null,
+            'verification_status' => VerificationStatus::Active->value,
+        ]);
+
+        $token->consume();
+
+        return $user->refresh();
     }
 }

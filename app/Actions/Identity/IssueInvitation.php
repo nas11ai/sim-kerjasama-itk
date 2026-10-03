@@ -34,39 +34,10 @@ class IssueInvitation
      */
     public function handle(User $actor, Organization $organization, array $attributes = []): InvitationToken
     {
-        if (!$actor->can('users.manage')) {
-            throw new AuthorizationException('Hanya Operator yang dapat menerbitkan undangan registrasi.');
-        }
+        $this->guardIssuable($actor, $organization);
 
-        // BR-IAM-06 dan BR-IAM-14 — menerbitkan undangan ke unit yang sudah
-        // dipensiunkan melahirkan token yang tidak pernah bisa dipakai. Ditolak
-        // di sini supaya kegagalannya terlihat penerbitnya, bukan pendaftarnya.
-        if (!$organization->is_active) {
-            throw ValidationException::withMessages([
-                'organization_id' => 'Organisasi ini sudah nonaktif, jadi undangannya tidak akan pernah berlaku.',
-            ]);
-        }
-
-        $maxUses = $attributes['max_uses'] ?? null;
-
-        if ($maxUses !== null && $maxUses < 1) {
-            throw ValidationException::withMessages([
-                'max_uses' => 'Kuota pemakaian minimal satu.',
-            ]);
-        }
-
-        // isset() sudah menyingkirkan null sekaligus key yang tidak ada;
-        // memeriksa null lagi setelahnya adalah perbandingan yang tidak pernah
-        // salah, dan itu menyembunyikan maksudnya alih-alih menjaganya.
-        $expiresAt = isset($attributes['expires_at'])
-            ? Carbon::parse($attributes['expires_at'])
-            : null;
-
-        if ($expiresAt !== null && $expiresAt->isPast()) {
-            throw ValidationException::withMessages([
-                'expires_at' => 'Masa berlaku undangan tidak bisa ditetapkan di masa lalu.',
-            ]);
-        }
+        $maxUses = $this->maxUses($attributes);
+        $expiresAt = $this->expiresAt($attributes);
 
         $tercatat = InvitationToken::create([
             'token' => Str::random(64),
@@ -95,5 +66,57 @@ class IssueInvitation
         );
 
         return $tercatat;
+    }
+
+    /**
+     * @throws AuthorizationException|ValidationException
+     */
+    private function guardIssuable(User $actor, Organization $organization): void
+    {
+        if (!$actor->can('users.manage')) {
+            throw new AuthorizationException('Hanya Operator yang dapat menerbitkan undangan registrasi.');
+        }
+
+        // BR-IAM-06 dan BR-IAM-14 — menerbitkan undangan ke unit yang sudah
+        // dipensiunkan melahirkan token yang tidak pernah bisa dipakai. Ditolak
+        // di sini supaya kegagalannya terlihat penerbitnya, bukan pendaftarnya.
+        if (!$organization->is_active) {
+            throw ValidationException::withMessages([
+                'organization_id' => 'Organisasi ini sudah nonaktif, jadi undangannya tidak akan pernah berlaku.',
+            ]);
+        }
+    }
+
+    /** @param  array{permissions?: list<string>, max_uses?: int|null, expires_at?: string|null}  $attributes */
+    private function maxUses(array $attributes): ?int
+    {
+        $maxUses = $attributes['max_uses'] ?? null;
+
+        if ($maxUses !== null && $maxUses < 1) {
+            throw ValidationException::withMessages([
+                'max_uses' => 'Kuota pemakaian minimal satu.',
+            ]);
+        }
+
+        return $maxUses;
+    }
+
+    /** @param  array{permissions?: list<string>, max_uses?: int|null, expires_at?: string|null}  $attributes */
+    private function expiresAt(array $attributes): ?Carbon
+    {
+        // isset() sudah menyingkirkan null sekaligus key yang tidak ada;
+        // memeriksa null lagi setelahnya adalah perbandingan yang tidak pernah
+        // salah, dan itu menyembunyikan maksudnya alih-alih menjaganya.
+        $expiresAt = isset($attributes['expires_at'])
+            ? Carbon::parse($attributes['expires_at'])
+            : null;
+
+        if ($expiresAt !== null && $expiresAt->isPast()) {
+            throw ValidationException::withMessages([
+                'expires_at' => 'Masa berlaku undangan tidak bisa ditetapkan di masa lalu.',
+            ]);
+        }
+
+        return $expiresAt;
     }
 }

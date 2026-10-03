@@ -50,6 +50,27 @@ class AppointReviewer
      */
     public function handle(User $user, string $type, ?string $startDate = null, ?string $endDate = null): Reviewer
     {
+        $this->guardAppointable($user, $type);
+
+        $reviewer = DB::transaction(fn (): Reviewer => $this->persist($user, $type, $startDate, $endDate));
+
+        // BR-IAM-15 — yang ditunjuk diberi tahu; kemampuannya berubah tanpa ia
+        // melakukan apa pun.
+        Deliver::to($user, new ReviewerAppointedNotification($type));
+
+        $tercatat = $reviewer;
+
+        // BR-RPT-09 — satu Action, satu entri audit.
+        AuditTrail::record('Reviewer ditunjuk', $tercatat);
+
+        return $tercatat;
+    }
+
+    /**
+     * @throws ValidationException
+     */
+    private function guardAppointable(User $user, string $type): void
+    {
         if (!array_key_exists($type, self::ROLES)) {
             throw ValidationException::withMessages([
                 'reviewer_type' => 'Tipe reviewer harus internal atau eksternal.',
@@ -63,52 +84,42 @@ class AppointReviewer
                 'user_id' => 'Akun ini nonaktif dan tidak dapat ditunjuk sebagai reviewer.',
             ]);
         }
+    }
 
-        $reviewer = DB::transaction(function () use ($user, $type, $startDate, $endDate): Reviewer {
-            foreach (self::ROLES as $role) {
-                Role::findOrCreate($role, 'web');
-            }
+    private function persist(User $user, string $type, ?string $startDate, ?string $endDate): Reviewer
+    {
+        foreach (self::ROLES as $role) {
+            Role::findOrCreate($role, 'web');
+        }
 
-            // Cabut role tipe lain lebih dulu, lalu berikan yang benar.
-            $user->removeRole(self::ROLES[$type === self::TYPE_INTERNAL ? self::TYPE_EXTERNAL : self::TYPE_INTERNAL]);
-            $user->assignRole(self::ROLES[$type]);
+        // Cabut role tipe lain lebih dulu, lalu berikan yang benar.
+        $user->removeRole(self::ROLES[$type === self::TYPE_INTERNAL ? self::TYPE_EXTERNAL : self::TYPE_INTERNAL]);
+        $user->assignRole(self::ROLES[$type]);
 
-            $existing = Reviewer::query()->where('user_id', $user->id)->first();
+        $existing = Reviewer::query()->where('user_id', $user->id)->first();
 
-            if ($existing !== null) {
-                // Menunjuk ulang tanpa menyebut tanggal tidak menghapus masa
-                // tugas yang sedang berjalan — yang diperbarui hanya yang
-                // benar-benar dikirim.
-                $existing->update(array_filter([
-                    'reviewer_type' => $type,
-                    'start_date' => $startDate,
-                    'end_date' => $endDate,
-                ], static fn ($value): bool => $value !== null));
-
-                return $existing->refresh();
-            }
-
-            // Masa tugas wajib ada — BR-REV-09 menegakkannya saat penugasan,
-            // dan reviewer tanpa masa tugas tidak akan pernah bisa ditugaskan.
-            // Default satu tahun sejak hari ini adalah masa jabatan yang lazim
-            // di LPPM, dan Operator tetap bisa menyuntingnya.
-            return Reviewer::create([
-                'user_id' => $user->id,
+        if ($existing !== null) {
+            // Menunjuk ulang tanpa menyebut tanggal tidak menghapus masa
+            // tugas yang sedang berjalan — yang diperbarui hanya yang
+            // benar-benar dikirim.
+            $existing->update(array_filter([
                 'reviewer_type' => $type,
-                'start_date' => $startDate ?? Carbon::today()->toDateString(),
-                'end_date' => $endDate ?? Carbon::today()->addYear()->toDateString(),
-            ]);
-        });
+                'start_date' => $startDate,
+                'end_date' => $endDate,
+            ], static fn ($value): bool => $value !== null));
 
-        // BR-IAM-15 — yang ditunjuk diberi tahu; kemampuannya berubah tanpa ia
-        // melakukan apa pun.
-        Deliver::to($user, new ReviewerAppointedNotification($type));
+            return $existing->refresh();
+        }
 
-        $tercatat = $reviewer;
-
-        // BR-RPT-09 — satu Action, satu entri audit.
-        AuditTrail::record('Reviewer ditunjuk', $tercatat);
-
-        return $tercatat;
+        // Masa tugas wajib ada — BR-REV-09 menegakkannya saat penugasan,
+        // dan reviewer tanpa masa tugas tidak akan pernah bisa ditugaskan.
+        // Default satu tahun sejak hari ini adalah masa jabatan yang lazim
+        // di LPPM, dan Operator tetap bisa menyuntingnya.
+        return Reviewer::create([
+            'user_id' => $user->id,
+            'reviewer_type' => $type,
+            'start_date' => $startDate ?? Carbon::today()->toDateString(),
+            'end_date' => $endDate ?? Carbon::today()->addYear()->toDateString(),
+        ]);
     }
 }

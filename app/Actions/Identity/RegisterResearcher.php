@@ -43,6 +43,34 @@ class RegisterResearcher
      */
     public function handle(array $data): User
     {
+        $organization = $this->guardRegistrable($data);
+
+        $user = DB::transaction(fn (): User => $this->createAccount($data, $organization));
+
+        // BR-IAM-15 — pendaftaran baru memberi tahu pihak yang harus bertindak
+        // atasnya, dan untuk jalur ini pihak itu Operator.
+        //
+        // BR-NOT-03 — pemberitahuannya fire-and-forget. `permission()` milik
+        // Spatie melempar kalau permission-nya belum pernah dibuat, dan
+        // registrasi seseorang tidak boleh gagal gara-gara antrian Operator
+        // belum punya penghuni.
+        $this->notifyVerifiers($user);
+
+        $tercatat = $user->refresh();
+
+        // BR-RPT-09 — satu Action, satu entri audit.
+        AuditTrail::record('Akun peneliti didaftarkan mandiri', $tercatat, $tercatat);
+
+        return $tercatat;
+    }
+
+    /**
+     * @param  array{name: string, email: string, password: string, nidn: string, organization_id: int}  $data
+     *
+     * @throws ValidationException
+     */
+    private function guardRegistrable(array $data): Organization
+    {
         // BR-IAM-01 — domain persis, dan hanya di jalur mandiri.
         if (!EmailDomainGuard::isInternal($data['email'])) {
             throw ValidationException::withMessages([
@@ -67,40 +95,28 @@ class RegisterResearcher
             ]);
         }
 
-        $user = DB::transaction(function () use ($data, $organization): User {
-            $user = User::create([
-                'name' => $data['name'],
-                'email' => $data['email'],
-                'password' => Hash::make($data['password']),
-            ]);
+        return $organization;
+    }
 
-            $user->assignRole(self::ROLE);
+    /** @param  array{name: string, email: string, password: string, nidn: string, organization_id: int}  $data */
+    private function createAccount(array $data, Organization $organization): User
+    {
+        $user = User::create([
+            'name' => $data['name'],
+            'email' => $data['email'],
+            'password' => Hash::make($data['password']),
+        ]);
 
-            UserProfile::create([
-                'user_id' => $user->id,
-                'organization_id' => $organization->id,
-                'nidn' => $data['nidn'],
-                'verification_status' => VerificationStatus::Pending->value,
-            ]);
+        $user->assignRole(self::ROLE);
 
-            return $user;
-        });
+        UserProfile::create([
+            'user_id' => $user->id,
+            'organization_id' => $organization->id,
+            'nidn' => $data['nidn'],
+            'verification_status' => VerificationStatus::Pending->value,
+        ]);
 
-        // BR-IAM-15 — pendaftaran baru memberi tahu pihak yang harus bertindak
-        // atasnya, dan untuk jalur ini pihak itu Operator.
-        //
-        // BR-NOT-03 — pemberitahuannya fire-and-forget. `permission()` milik
-        // Spatie melempar kalau permission-nya belum pernah dibuat, dan
-        // registrasi seseorang tidak boleh gagal gara-gara antrian Operator
-        // belum punya penghuni.
-        $this->notifyVerifiers($user);
-
-        $tercatat = $user->refresh();
-
-        // BR-RPT-09 — satu Action, satu entri audit.
-        AuditTrail::record('Akun peneliti didaftarkan mandiri', $tercatat, $tercatat);
-
-        return $tercatat;
+        return $user;
     }
 
     private function notifyVerifiers(User $registrant): void
