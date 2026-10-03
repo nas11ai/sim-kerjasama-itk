@@ -26,8 +26,10 @@ use App\Models\User;
 use App\Notifications\ReviewerAssignedNotification;
 use App\States\Submission\Submitted;
 use App\States\Submission\UnderReview;
+use App\Support\Audit\AuditTrail;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Notification;
+use Spatie\Activitylog\Models\Activity;
 use Spatie\Permission\Models\Permission;
 
 /** @return array{0: User, 1: FormSubmission} */
@@ -74,6 +76,22 @@ it('menugaskan reviewer lewat endpoint dan memindahkan status saat minimum terca
 
     expect($submission->fresh()->status)->toBeInstanceOf(UnderReview::class)
         ->and($submission->submissionReviewers()->count())->toBe(2);
+});
+
+it('mencatat satu entri audit untuk satu permintaan penugasan', function () {
+    [$operator, $submission] = assignHttpFixture();
+
+    $this->actingAs($operator)
+        ->post(route('admin.submissions.assign-reviewers', $submission), [
+            'reviewer_ids' => [httpReviewer()->id, httpReviewer()->id],
+        ])
+        ->assertRedirect();
+
+    expect(Activity::inLog(AuditTrail::LOG_NAME)
+        ->where('subject_type', $submission->getMorphClass())
+        ->where('subject_id', $submission->id)
+        ->where('description', 'Reviewer ditugaskan')
+        ->count())->toBe(1);
 });
 
 it('[REV-ASSIGN-04] menolak ketua pengaju lewat jalur HTTP', function () {
