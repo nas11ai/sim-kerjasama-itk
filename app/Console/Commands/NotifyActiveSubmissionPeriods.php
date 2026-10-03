@@ -25,6 +25,8 @@ class NotifyActiveSubmissionPeriods extends Command
             $cacheKey = "submission_period_notified_{$period->id}";
 
             // Check if we already sent notification for this period
+            // Period gagal (cari penerima atau kirim) tidak ditandai sudah
+            // diberitahukan, jadi run terjadwal berikutnya mencoba lagi.
             if (Cache::has($cacheKey) || !$this->notify($period)) {
                 continue;
             }
@@ -55,9 +57,9 @@ class NotifyActiveSubmissionPeriods extends Command
                 'recipients_count' => $users->count(),
             ]);
 
-            // Period gagal kirim tidak ditandai sudah diberitahukan, agar run
-            // terjadwal berikutnya mencobanya lagi. Fire-and-forget: gagal
-            // tidak melempar, bukan dianggap berhasil.
+            // Period gagal kirim tidak ditandai sudah diberitahukan, agar
+            // run terjadwal berikutnya mencobanya lagi. Fire-and-forget:
+            // gagal tidak melempar, bukan dianggap berhasil.
             if (!$terkirim) {
                 return false;
             }
