@@ -14,4 +14,8 @@ it('tidak menyediakan jalur kedua untuk mengubah status ulir', function (string 
     'review-summaries.update-status',
     'admin.review-summaries.update-status',
     'reviewer.review-summaries.update-status',
+    // Route yatim: method controllernya tidak ada, jadi dipanggil pun 500.
+    'review-summaries.complete',
+    'reviewer.review-summaries.complete',
+    'admin.review-summaries.destroy',
 ]);

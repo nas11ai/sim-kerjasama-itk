@@ -96,10 +96,6 @@ Route::middleware(['auth', 'check_reviewer_status'])->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
 
-    // Enhanced review routes with evaluation integration
-    Route::patch('/review-summaries/{reviewSummary}/complete', [ReviewController::class, 'completeReview'])
-        ->name('review-summaries.complete');
-
     Route::post('/submissions/{submission}/review-threads', [ReviewController::class, 'createReviewThread'])
         ->name('review-threads.store');
 
@@ -207,10 +203,6 @@ Route::middleware(['auth', 'check_reviewer_status'])->prefix('reviewer')->name('
 
     Route::get('/submissions/{submission}', [SubmissionViewController::class, 'reviewerShowSubmission'])
         ->name('submissions.show');
-
-    // Enhanced review actions with evaluation context
-    Route::patch('/review-summaries/{reviewSummary}/complete', [ReviewController::class, 'completeReview'])
-        ->name('review-summaries.complete');
 
     Route::post('/submissions/{submission}/review-threads', [ReviewController::class, 'createReviewThread'])
         ->name('review-threads.store');
@@ -345,10 +337,6 @@ Route::middleware(['auth', 'can:users.manage', 'check_reviewer_status'])->prefix
     // Admin create review thread
     Route::post('/submissions/{submission}/review-threads', [ReviewController::class, 'createReviewThread'])
         ->name('review-threads.store');
-
-    // Admin delete review thread
-    Route::delete('/review-summaries/{reviewSummary}', [ReviewController::class, 'deleteReviewThread'])
-        ->name('review-summaries.destroy');
 
     // Admin add comments
     Route::post('/review-summaries/{reviewSummary}/comments', [ReviewController::class, 'addComment'])

@@ -132,3 +132,24 @@ it('[REV-REASSIGN-01] mengganti dengan reviewer yang sudah bertugas ditolak', fu
 
     ReplaceReviewer::run($submission, $outgoing, $existing);
 })->throws(ValidationException::class);
+
+it('[REV-DISCUSS-06] pengganti menutup ulir warisan lewat resolve', function () {
+    [$submission, $outgoing] = replaceFixture();
+    $incoming = incomingReviewer();
+
+    $summary = ReviewSummary::create([
+        'form_submission_id' => $submission->id,
+        'reviewer_id' => $outgoing->id,
+        'status' => 'open',
+        'summary_notes' => 'Metodologi perlu diperjelas.',
+    ]);
+
+    ReplaceReviewer::run($submission, $outgoing, $incoming);
+
+    // BR-REV-15, BR-REV-10 — guard penugasan aktif tidak boleh menolak pengganti.
+    $this->actingAs(User::findOrFail($incoming->user_id))
+        ->post(route('review-summaries.resolve', $summary))
+        ->assertRedirect();
+
+    expect($summary->fresh()?->status)->toBe('resolved');
+});

@@ -166,53 +166,6 @@ class EmailNotificationService
     }
 
     /**
-     * 6. Notifikasi ketika status review thread berubah
-     */
-    public function notifyReviewStatusChanged(ReviewSummary $reviewSummary, string $oldStatus)
-    {
-        try {
-            $submission = $reviewSummary->formSubmission;
-            $updater = Auth::user();
-
-            $statusLabels = [
-                'open' => 'Dibuka',
-                'resolved' => 'Diselesaikan',
-                'closed' => 'Ditutup',
-            ];
-
-            $subject = "Status Review Thread Diubah - {$submission->form->title}";
-            $params = [
-                'judul' => 'Status Review Thread Diubah',
-                'isi' => "
-                    <p><strong>{$updater->name}</strong> telah mengubah status review thread:</p>
-                    <ul>
-                        <li><strong>Form:</strong> {$submission->form->title}</li>
-                        <li><strong>Status Lama:</strong> {$statusLabels[$oldStatus]}</li>
-                        <li><strong>Status Baru:</strong> {$statusLabels[$reviewSummary->status]}</li>
-                        <li><strong>Waktu:</strong> ".now()->format('d F Y H:i')."</li>
-                    </ul>
-                    <p><a href='".route('admin.submissions.show', $submission->id)."' style='background-color: #00BCD4; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;'>Lihat Review</a></p>
-                ",
-            ];
-
-            $recipients = $this->getReviewParticipants($submission, [$updater->id]);
-            $this->sendToMultipleRecipients($recipients, $subject, $params);
-
-            Log::info('Email notifikasi review status changed dikirim', [
-                'review_summary_id' => $reviewSummary->id,
-                'old_status' => $oldStatus,
-                'new_status' => $reviewSummary->status,
-            ]);
-
-        } catch (\Exception $e) {
-            Log::error('Gagal mengirim email notifikasi review status changed', [
-                'review_summary_id' => $reviewSummary->id,
-                'error' => $e->getMessage(),
-            ]);
-        }
-    }
-
-    /**
      * 8. Notifikasi ketika submission period aktif
      */
     public function notifySubmissionPeriodActive($submissionPeriod)

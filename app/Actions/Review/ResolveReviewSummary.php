@@ -55,9 +55,8 @@ class ResolveReviewSummary
     {
         $reviewer = Reviewer::where('user_id', $user->id)->first();
 
-        // Reviewer pengganti ikut lolos: BR-REV-15 memindahkan `reviewer_id` ulir yang masih
-        // terbuka kepadanya, dan tanpa itu ulirnya tidak akan pernah bisa ditutup.
-        // BR-SM-07, BR-REV-10 — reviewer yang sudah diganti kehilangan wewenang walau ulirnya miliknya.
+        // BR-REV-15 — pengganti mewarisi ulir terbuka, jadi ikut lolos.
+        // BR-SM-07, BR-REV-10 — reviewer yang sudah diganti tidak lagi berwenang.
         if (
             $reviewer !== null
             && $summary->reviewer_id === $reviewer->id

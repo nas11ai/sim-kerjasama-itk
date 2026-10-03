@@ -8,8 +8,8 @@
 // evaluasi terakhir masuk. Tanpa penyambungan ini seluruh BR-REV-05/06
 // benar di test tapi tidak pernah berjalan di aplikasi.
 //
-// Sekalian menutup BR-REV-13: tidak ada status `closed` di domain ini —
-// ReviewSummary hanya `open` atau `resolved`.
+// Jalur status ulir selain resolve sudah dicabut: lihat
+// ReviewSummaryStatusEndpointRemovedTest.
 
 use App\Models\FormPhaseDetail;
 use App\Models\FormSubmission;
