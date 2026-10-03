@@ -112,13 +112,10 @@ class ReviewController extends Controller
     public function removeReviewer(FormSubmission $submission, Reviewer $reviewer)
     {
         DB::transaction(function () use ($submission, $reviewer) {
-            $submissionReviewer = SubmissionReviewer::where([
-                'form_submission_id' => $submission->id,
-                'reviewer_id' => $reviewer->id,
-            ])->first();
+            $submissionReviewer = ActiveReviewerAssignment::run($submission, $reviewer->id);
 
             if (!$submissionReviewer) {
-                throw new \Exception('Reviewer tidak ditemukan untuk submission ini.');
+                abort(404, 'Reviewer tidak ditemukan untuk submission ini.');
             }
 
             // Check if there are submitted evaluation responses
@@ -338,10 +335,7 @@ class ReviewController extends Controller
             'form_assignments.*.due_date' => 'nullable|date|after:now',
         ]);
 
-        $submissionReviewer = SubmissionReviewer::where([
-            'form_submission_id' => $submission->id,
-            'reviewer_id' => $reviewer->id,
-        ])->first();
+        $submissionReviewer = ActiveReviewerAssignment::run($submission, $reviewer->id);
 
         if (!$submissionReviewer) {
             return back()->withErrors(['error' => 'Reviewer tidak ditugaskan untuk pengajuan ini.']);

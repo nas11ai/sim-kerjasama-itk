@@ -8,7 +8,7 @@ use App\Actions\Review\RecalculateEvaluationStatus;
 use App\Models\FormPhase;
 use App\Models\FormSubmission;
 use App\Models\ReviewerFormAssignment;
-use App\Models\SubmissionReviewer;
+use App\Queries\Review\ActiveReviewerAssignment;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -114,7 +114,7 @@ class ReviewerFormAssignmentController extends Controller
     {
         $validated = $request->validate([
             'reviewer_ids' => 'required|array|min:1',
-            'reviewer_ids.*' => 'exists:reviewers,id',
+            'reviewer_ids.*' => 'integer|exists:reviewers,id',
             'form_assignments' => 'required|array',
             'form_assignments.*.form_id' => 'required|exists:review_evaluation_forms,id',
             'form_assignments.*.is_required' => 'boolean',
@@ -128,10 +128,7 @@ class ReviewerFormAssignmentController extends Controller
             $errors = [];
 
             foreach ($validated['reviewer_ids'] as $reviewerId) {
-                $submissionReviewer = SubmissionReviewer::where([
-                    'form_submission_id' => $submission->id,
-                    'reviewer_id' => $reviewerId,
-                ])->first();
+                $submissionReviewer = ActiveReviewerAssignment::run($submission, $reviewerId);
 
                 if (!$submissionReviewer) {
                     $errors[] = "Reviewer ID {$reviewerId} tidak ditugaskan untuk pengajuan ini";
