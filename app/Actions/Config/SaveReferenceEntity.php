@@ -15,13 +15,7 @@ use Lorisleiva\Actions\Concerns\AsAction;
  * BR-SC-02, BR-SC-03 — membuat dan mengganti nama data acuan.
  *
  * Mengganti nama **tidak** menyentuh baris historis: tautannya tetap menunjuk
- * baris yang sama, jadi laporan lama ikut memakai nama baru. Itu memang arti
- * dari mengganti nama. Kalau kategorinya berubah makna, jalannya membuat
- * entity baru lalu menonaktifkan yang lama — bukan menulis ulang yang ini.
- *
- * Nilai lama dan barunya masuk jejak audit justru karena penggantian nama
- * mengubah tampilan seluruh laporan yang pernah memakainya. Tanpa jejak itu,
- * laporan yang "berubah sendiri" tidak punya penjelasan.
+ * baris yang sama, jadi laporan lama ikut nama baru. Itu arti mengganti nama.
  *
  * @method static Model run(ReferenceEntity<covariant Model> $entity, ReferenceEntityInput $input, ?Model $record = null)
  */
@@ -53,10 +47,14 @@ class SaveReferenceEntity
         }
 
         // Kode tidak ikut disunting (BR-SC-03): ReferenceEntityInput memang tidak membawanya.
+        // Kategori berubah makna: buat entity baru, nonaktifkan yang lama.
         $before = $record->only(array_keys($attributes));
         $record->update($attributes);
         $saved = $record->refresh();
 
+        // Nilai lama dan baru masuk jejak audit: ganti nama mengubah tampilan
+        // semua laporan yang pernah memakainya, dan tanpa jejak itu laporan yang
+        // "berubah sendiri" tidak punya penjelasan.
         AuditTrail::record(
             "{$entity->label} diperbarui",
             $saved,
@@ -80,6 +78,9 @@ class SaveReferenceEntity
     {
         $model = $entity->model;
 
+        // BR-SC-03 — kode diturunkan sekali dari namanya, lalu dibekukan.
+        // Baris historis menautkan dirinya lewat kode, jadi kode yang ikut
+        // berubah saat nama diganti akan memutus tautan itu diam-diam.
         if ($entity->codeColumn !== null) {
             $attributes = $this->withCode($entity, $input, $attributes);
         }
@@ -100,9 +101,6 @@ class SaveReferenceEntity
      */
     private function withCode(ReferenceEntity $entity, ReferenceEntityInput $input, array $attributes): array
     {
-        // BR-SC-03 — kode diturunkan sekali dari namanya, lalu dibekukan.
-        // Baris historis menautkan dirinya lewat kode, jadi kode yang ikut
-        // berubah saat nama diganti akan memutus tautan itu diam-diam.
         // Nama kosong melahirkan kode kosong: kunci yang tidak menautkan apa pun,
         // dan kesalahannya baru terlihat saat laporan kehilangan barisnya.
         if (trim($input->name) === '') {

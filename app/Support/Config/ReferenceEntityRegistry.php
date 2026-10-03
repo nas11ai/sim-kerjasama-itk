@@ -14,21 +14,15 @@ use InvalidArgumentException;
  * Daftar data acuan yang dikelola LPPM dari satu layar.
  *
  * Sengaja **bukan** semua tabel lookup. `PhaseType`, `FormType`, dan
- * `FieldType` adalah kosakata mesin Form Engine — menambahnya dari layar
- * berarti membuat nilai yang tidak dikenali kode mana pun, dan itu gagal jauh
- * dari tempat penambahannya. Yang masuk sini hanya acuan yang isinya memang
- * keputusan LPPM.
- *
- * `SubmissionType` masuk daftar tapi tidak dapat disunting (BR-SC-02): ia
- * mengikat Scheme, Submission, Review, dan Monev sekaligus, jadi nilai ketiga
- * akan menjadi cabang yang tidak ditangani satu pun dari keempatnya.
- * Menampilkannya sebagai baris read-only lebih jujur daripada
- * menyembunyikannya — Admin yang tidak menemukannya akan mengira ada layar
- * lain.
+ * `FieldType` adalah kosakata mesin Form Engine, bukan keputusan LPPM.
  */
 final class ReferenceEntityRegistry
 {
     /**
+     * Menambah kosakata mesin dari layar membuat nilai yang tidak dikenali kode
+     * mana pun, dan itu gagal jauh dari tempat penambahannya. Yang masuk hanya
+     * acuan yang isinya memang keputusan LPPM.
+     *
      * @return array<string, ReferenceEntity<covariant Model>>
      */
     public static function all(): array
@@ -51,6 +45,9 @@ final class ReferenceEntityRegistry
                 usageRelation: 'schemes',
                 usedBy: 'Skema',
             ),
+            // BR-SC-02 — tak dapat disunting: mengikat Scheme, Submission,
+            // Review, Monev sekaligus, nilai ketiga tak ditangani keempatnya.
+            // Tampil read-only: Admin yang tak menemukannya kira ada layar lain.
             new ReferenceEntity(
                 key: 'submission-types',
                 label: 'Tipe Submission',
@@ -75,10 +72,9 @@ final class ReferenceEntityRegistry
     private static function taxonomies(): array
     {
         return [
-            // BR-SC-04 — taksonomi luaran adalah keputusan LPPM, bukan kosakata
-            // mesin Form Engine. Sebelum ini `is_active`-nya dibaca di mana-mana
-            // tapi tidak ada satu pun jalur yang menulisnya, jadi seluruh
-            // pembacaan itu menyiapkan diri untuk keadaan yang tidak mungkin.
+            // BR-SC-04 — taksonomi luaran keputusan LPPM, bukan kosakata mesin
+            // Form Engine. Dulu `is_active`-nya dibaca di mana-mana tapi tak ada
+            // jalur yang menulisnya: pembacaan untuk keadaan mustahil.
             new ReferenceEntity(
                 key: 'output-types',
                 label: 'Tipe Luaran',
