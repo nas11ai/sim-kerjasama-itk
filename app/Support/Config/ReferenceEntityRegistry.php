@@ -33,7 +33,17 @@ final class ReferenceEntityRegistry
      */
     public static function all(): array
     {
-        $entities = [
+        return collect([...self::masterData(), ...self::taxonomies()])
+            ->keyBy(fn (ReferenceEntity $e) => $e->key)
+            ->all();
+    }
+
+    /**
+     * @return list<ReferenceEntity<covariant Model>>
+     */
+    private static function masterData(): array
+    {
+        return [
             new ReferenceEntity(
                 key: 'scheme-types',
                 label: 'Tipe Skema',
@@ -56,6 +66,15 @@ final class ReferenceEntityRegistry
                 usageRelation: 'budgetLineItems',
                 usedBy: 'Rencana anggaran pengajuan',
             ),
+        ];
+    }
+
+    /**
+     * @return list<ReferenceEntity<covariant Model>>
+     */
+    private static function taxonomies(): array
+    {
+        return [
             // BR-SC-04 — taksonomi luaran adalah keputusan LPPM, bukan kosakata
             // mesin Form Engine. Sebelum ini `is_active`-nya dibaca di mana-mana
             // tapi tidak ada satu pun jalur yang menulisnya, jadi seluruh
@@ -81,8 +100,6 @@ final class ReferenceEntityRegistry
                 deactivatable: false,
             ),
         ];
-
-        return collect($entities)->keyBy(fn (ReferenceEntity $e) => $e->key)->all();
     }
 
     /**

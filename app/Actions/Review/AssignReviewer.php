@@ -55,28 +55,31 @@ class AssignReviewer
         $this->guardTenure($reviewer);
         $this->guardNotAlreadyAssigned($submission, $reviewer);
 
-        $tercatat = DB::transaction(function () use ($submission, $reviewer, $candidate): SubmissionReviewer {
-            $assignment = SubmissionReviewer::create([
-                'form_submission_id' => $submission->id,
-                'reviewer_id' => $reviewer->id,
-                'evaluation_status' => 'pending',
-                'status' => 'active',
-            ]);
-
-            $this->moveToReviewWhenMinimumReached($submission);
-
-            // BR-REV-01 — reviewer diberi tahu. Beban tinggi (BR-REV-04)
-            // sengaja tidak menghalangi: itu peringatan untuk Operator,
-            // bukan penolakan.
-            Deliver::to($candidate, new ReviewerAssignedNotification($submission));
-
-            return $assignment;
-        });
+        $tercatat = DB::transaction(fn (): SubmissionReviewer => $this->persist($submission, $reviewer, $candidate));
 
         // BR-RPT-09 — satu Action, satu entri audit.
         AuditTrail::record('Reviewer ditugaskan', $tercatat);
 
         return $tercatat;
+    }
+
+    private function persist(FormSubmission $submission, Reviewer $reviewer, User $candidate): SubmissionReviewer
+    {
+        $assignment = SubmissionReviewer::create([
+            'form_submission_id' => $submission->id,
+            'reviewer_id' => $reviewer->id,
+            'evaluation_status' => 'pending',
+            'status' => 'active',
+        ]);
+
+        $this->moveToReviewWhenMinimumReached($submission);
+
+        // BR-REV-01 — reviewer diberi tahu. Beban tinggi (BR-REV-04)
+        // sengaja tidak menghalangi: itu peringatan untuk Operator,
+        // bukan penolakan.
+        Deliver::to($candidate, new ReviewerAssignedNotification($submission));
+
+        return $assignment;
     }
 
     /** BR-REV-09 — reviewer hanya bisa ditugaskan dalam rentang masa tugasnya. */

@@ -32,6 +32,38 @@ class SyncSchemeSelection
 
     public function handle(FormSubmission $submission): ?Scheme
     {
+        $schemeId = $this->selectedSchemeId($submission);
+
+        if ($schemeId === null) {
+            return null;
+        }
+
+        $scheme = $this->resolveScheme($schemeId, $submission);
+
+        if ($submission->scheme_id !== $scheme->id) {
+            $sebelumnya = $submission->scheme_id;
+            $submission->update(['scheme_id' => $scheme->id]);
+
+            // BR-RPT-09 — dicatat hanya saat memang berpindah. Menulis entri
+            // untuk pemanggilan yang tidak mengubah apa pun akan memenuhi
+            // jejak audit dengan baris yang tidak menceritakan kejadian apa
+            // pun, dan itu menenggelamkan yang benar-benar terjadi.
+            AuditTrail::record(
+                'Skema pengajuan dipilih',
+                $submission,
+                null,
+                new AuditChange(
+                    old: ['scheme_id' => $sebelumnya],
+                    new: ['scheme_id' => $scheme->id],
+                ),
+            );
+        }
+
+        return $scheme;
+    }
+
+    private function selectedSchemeId(FormSubmission $submission): ?int
+    {
         $field = FormField::query()
             ->where('form_id', $submission->form_id)
             ->whereHas('fieldType', fn ($q) => $q->where('name', 'scheme_selector'))
@@ -51,7 +83,15 @@ class SyncSchemeSelection
             return null;
         }
 
-        $scheme = Scheme::find((int) $response->value);
+        return (int) $response->value;
+    }
+
+    /**
+     * @throws ValidationException
+     */
+    private function resolveScheme(int $schemeId, FormSubmission $submission): Scheme
+    {
+        $scheme = Scheme::find($schemeId);
 
         if ($scheme === null) {
             throw ValidationException::withMessages([
@@ -66,25 +106,6 @@ class SyncSchemeSelection
             throw ValidationException::withMessages([
                 'scheme_id' => 'Skema "'.$scheme->name.'" sudah tidak aktif dan tidak dapat dipilih.',
             ]);
-        }
-
-        if ($submission->scheme_id !== $scheme->id) {
-            $sebelumnya = $submission->scheme_id;
-            $submission->update(['scheme_id' => $scheme->id]);
-
-            // BR-RPT-09 — dicatat hanya saat memang berpindah. Menulis entri
-            // untuk pemanggilan yang tidak mengubah apa pun akan memenuhi
-            // jejak audit dengan baris yang tidak menceritakan kejadian apa
-            // pun, dan itu menenggelamkan yang benar-benar terjadi.
-            AuditTrail::record(
-                'Skema pengajuan dipilih',
-                $submission,
-                null,
-                new AuditChange(
-                    old: ['scheme_id' => $sebelumnya],
-                    new: ['scheme_id' => $scheme->id],
-                ),
-            );
         }
 
         return $scheme;

@@ -49,28 +49,7 @@ class SaveReferenceEntity
         $attributes = ['name' => $input->name];
 
         if ($record === null) {
-            $model = $entity->model;
-
-            // BR-SC-03 — kode diturunkan sekali dari namanya, lalu dibekukan.
-            // Baris historis menautkan dirinya lewat kode, jadi kode yang ikut
-            // berubah saat nama diganti akan memutus tautan itu diam-diam.
-            if ($entity->codeColumn !== null) {
-                // Nama kosong melahirkan kode kosong: kunci yang tidak menautkan apa pun,
-                // dan kesalahannya baru terlihat saat laporan kehilangan barisnya.
-                if (trim($input->name) === '') {
-                    throw ValidationException::withMessages([
-                        'name' => 'Nama harus diisi.',
-                    ]);
-                }
-
-                $attributes[$entity->codeColumn] = Str::slug($input->name);
-            }
-
-            $saved = $model::create($attributes);
-
-            AuditTrail::record("{$entity->label} ditambahkan", $saved, null, new AuditChange(new: $attributes));
-
-            return $saved;
+            return $this->create($entity, $input, $attributes);
         }
 
         // Kode tidak ikut disunting (BR-SC-03): ReferenceEntityInput memang tidak membawanya.
@@ -89,5 +68,51 @@ class SaveReferenceEntity
         );
 
         return $saved;
+    }
+
+    /**
+     * @param  ReferenceEntity<covariant Model>  $entity
+     * @param  array<string, string>  $attributes
+     *
+     * @throws ValidationException
+     */
+    private function create(ReferenceEntity $entity, ReferenceEntityInput $input, array $attributes): Model
+    {
+        $model = $entity->model;
+
+        if ($entity->codeColumn !== null) {
+            $attributes = $this->withCode($entity, $input, $attributes);
+        }
+
+        $saved = $model::create($attributes);
+
+        AuditTrail::record("{$entity->label} ditambahkan", $saved, null, new AuditChange(new: $attributes));
+
+        return $saved;
+    }
+
+    /**
+     * @param  ReferenceEntity<covariant Model>  $entity
+     * @param  array<string, string>  $attributes
+     * @return array<string, string>
+     *
+     * @throws ValidationException
+     */
+    private function withCode(ReferenceEntity $entity, ReferenceEntityInput $input, array $attributes): array
+    {
+        // BR-SC-03 — kode diturunkan sekali dari namanya, lalu dibekukan.
+        // Baris historis menautkan dirinya lewat kode, jadi kode yang ikut
+        // berubah saat nama diganti akan memutus tautan itu diam-diam.
+        // Nama kosong melahirkan kode kosong: kunci yang tidak menautkan apa pun,
+        // dan kesalahannya baru terlihat saat laporan kehilangan barisnya.
+        if (trim($input->name) === '') {
+            throw ValidationException::withMessages([
+                'name' => 'Nama harus diisi.',
+            ]);
+        }
+
+        $attributes[$entity->codeColumn] = Str::slug($input->name);
+
+        return $attributes;
     }
 }
