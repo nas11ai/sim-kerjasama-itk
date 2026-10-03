@@ -17,11 +17,16 @@ use App\Models\Reviewer;
 use App\Models\ReviewSummary;
 use App\Models\SubmissionReviewer;
 use App\Models\User;
+use App\Notifications\RevisionResolvedNotification;
 use App\States\Submission\Approved;
 use App\States\Submission\NeedsRevision;
 use App\States\Submission\UnderReview;
+use App\Support\Audit\AuditTrail;
+use App\Support\Notification\NotificationChannels;
 use App\Support\ReviewSummaryGuard;
 use Illuminate\Auth\Access\AuthorizationException;
+use Illuminate\Support\Facades\Notification;
+use Spatie\Activitylog\Models\Activity;
 
 /** @return array{0: User, 1: User, 2: FormSubmission, 3: Reviewer, 4: SubmissionReviewer} */
 function discussionFixture(string $evaluation = 'completed'): array
@@ -128,4 +133,35 @@ it('[REV-DISCUSS-05] ulir lain yang masih terbuka mengarahkan ke revisi', functi
     // Bukan tetap UNDER_REVIEW: seluruh evaluasi sudah masuk, jadi BR-REV-06
     // berlaku — ada ulir terbuka berarti NEEDS_REVISION, bukan menggantung.
     expect($submission->fresh()->status)->toBeInstanceOf(NeedsRevision::class);
+});
+
+it('[BR-NOT-02] ulir yang ditutup memberi tahu peneliti utama lewat in-app saja', function () {
+    Notification::fake();
+    [$owner, $reviewerUser, $submission, $reviewer] = discussionFixture();
+    $summary = openThread($submission, $reviewer);
+
+    ResolveReviewSummary::run($summary, $reviewerUser);
+
+    Notification::assertSentTo(
+        $owner,
+        RevisionResolvedNotification::class,
+        fn (RevisionResolvedNotification $n, array $channels) => $channels === [NotificationChannels::IN_APP],
+    );
+    Notification::assertNotSentTo($reviewerUser, RevisionResolvedNotification::class);
+});
+
+it('menutup ulir yang sudah resolved tidak mengulang efek sampingnya', function () {
+    [, $reviewerUser, $submission, $reviewer] = discussionFixture();
+    $summary = openThread($submission, $reviewer);
+    ResolveReviewSummary::run($summary, $reviewerUser);
+
+    Notification::fake();
+    ResolveReviewSummary::run($summary->fresh(), $reviewerUser);
+
+    expect(Activity::inLog(AuditTrail::LOG_NAME)
+        ->where('subject_type', $summary->getMorphClass())
+        ->where('subject_id', $summary->id)
+        ->where('description', 'Diskusi review ditutup')
+        ->count())->toBe(1);
+    Notification::assertNothingSent();
 });

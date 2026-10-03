@@ -31,6 +31,7 @@ final class NotificationEventCatalog
         'ProposalSubmitted' => [NotificationChannels::IN_APP, NotificationChannels::EMAIL],
         'ReviewerAppointed' => [NotificationChannels::IN_APP, NotificationChannels::EMAIL],
         'ReviewerAssigned' => [NotificationChannels::IN_APP, NotificationChannels::EMAIL],
+        'RevisionResolved' => [NotificationChannels::IN_APP],
         'SubmissionDeadlineExtended' => [NotificationChannels::IN_APP, NotificationChannels::EMAIL],
         'SubmissionPeriodActive' => [NotificationChannels::IN_APP, NotificationChannels::EMAIL],
         'SubmissionPeriodClosed' => [NotificationChannels::IN_APP],

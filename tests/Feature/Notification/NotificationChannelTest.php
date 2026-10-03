@@ -17,6 +17,7 @@ use App\Models\NotificationChannelSetting;
 use App\Models\User;
 use App\Notifications\FormChangedNotification;
 use App\Notifications\ProposalSubmittedNotification;
+use App\Notifications\RevisionResolvedNotification;
 use App\States\Submission\Draft;
 use App\States\Submission\Submitted;
 use App\Support\Notification\ChannelNotDeclared;
@@ -52,6 +53,20 @@ it('[NOT-CHANNEL-02] FormChanged cukup in-app tanpa email', function () {
         ->via(User::factory()->create());
 
     expect($channels)->toBe([NotificationChannels::IN_APP]);
+});
+
+it('[NOT-CHANNEL-02] RevisionResolved cukup in-app tanpa email', function () {
+    Notification::fake();
+    $budi = User::factory()->create();
+    $submission = FormSubmission::factory()->create(['submitted_by' => $budi->id]);
+
+    Deliver::to($budi, new RevisionResolvedNotification($submission));
+
+    Notification::assertSentTo(
+        $budi,
+        RevisionResolvedNotification::class,
+        fn (RevisionResolvedNotification $n, array $channels) => $channels === [NotificationChannels::IN_APP],
+    );
 });
 
 it('[NOT-CHANNEL-03] channel event diubah lewat konfigurasi tanpa deploy', function () {

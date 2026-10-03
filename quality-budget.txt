@@ -28,7 +28,7 @@ max.legacy.files:      120
 #       jadi menyempitkannya butuh validasi per tipe field (gelombang 3)
 max.mixed:              20
 max.comment.overflow:   32
-max.id.nonenglish:     162
+max.id.nonenglish:     159
 max.untyped.json:       22
 max.duplicate.blocks: 1467
 # Belum ditegakkan test: analisis level 10 terlalu lambat untuk Pest. Ukur manual:

@@ -5,8 +5,10 @@ namespace App\Actions\Review;
 use App\Models\Reviewer;
 use App\Models\ReviewSummary;
 use App\Models\User;
+use App\Notifications\RevisionResolvedNotification;
 use App\Queries\Review\ActiveReviewerAssignment;
 use App\Support\Audit\AuditTrail;
+use App\Support\Notification\Deliver;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\DB;
 use Lorisleiva\Actions\Concerns\AsAction;
@@ -27,7 +29,13 @@ class ResolveReviewSummary
     {
         $this->guardReviewer($summary, $user);
 
-        $tercatat = DB::transaction(function () use ($summary): ReviewSummary {
+        // Ulir yang sudah ditutup tidak diproses ulang: evaluasi, audit, dan notifikasinya
+        // sudah terjadi sekali, dan mengulangnya hanya menggandakan jejak.
+        if ($summary->status !== 'open') {
+            return $summary;
+        }
+
+        $resolved = DB::transaction(function () use ($summary): ReviewSummary {
             $summary->update(['status' => 'resolved']);
 
             // Menutup ulir terakhir memicu evaluasi ulang: syarat BR-REV-05 bisa terpenuhi saat
@@ -39,9 +47,13 @@ class ResolveReviewSummary
         });
 
         // BR-RPT-09 — satu Action, satu entri audit.
-        AuditTrail::record('Diskusi review ditutup', $tercatat, $user);
+        AuditTrail::record('Diskusi review ditutup', $resolved, $user);
 
-        return $tercatat;
+        // BR-NOT-02, BR-NOT-03 — peneliti utama diberi kabar in-app, setelah tersimpan.
+        $submission = $resolved->formSubmission;
+        Deliver::to($submission->submittedBy, new RevisionResolvedNotification($submission));
+
+        return $resolved;
     }
 
     /**
