@@ -366,24 +366,6 @@ const Ziggy = {
             parameters: ['submission'],
             bindings: { submission: 'id' },
         },
-        'admin.submissions.available-reviewers': {
-            uri: 'admin\/submissions\/{submission}\/available-reviewers',
-            methods: ['GET', 'HEAD'],
-            parameters: ['submission'],
-            bindings: { submission: 'id' },
-        },
-        'admin.submissions.available-evaluation-forms': {
-            uri: 'admin\/submissions\/{submission}\/available-evaluation-forms',
-            methods: ['GET', 'HEAD'],
-            parameters: ['submission'],
-            bindings: { submission: 'id' },
-        },
-        'admin.submissions.evaluation-status': {
-            uri: 'admin\/submissions\/{submission}\/evaluation-status',
-            methods: ['GET', 'HEAD'],
-            parameters: ['submission'],
-            bindings: { submission: 'id' },
-        },
         'admin.submissions.assign-evaluation-forms': {
             uri: 'admin\/submissions\/{submission}\/reviewers\/{reviewer}\/assign-forms',
             methods: ['POST'],

@@ -6,7 +6,6 @@ use App\Actions\Review\AssignEvaluationForm;
 use App\Actions\Review\AssignReviewer;
 use App\Actions\Review\EvaluateSubmissionOutcome;
 use App\Actions\Review\OpenReviewThread;
-use App\Models\FormPhase;
 use App\Models\FormPhaseDetail;
 use App\Models\FormSubmission;
 use App\Models\ReviewComment;
@@ -15,9 +14,6 @@ use App\Models\ReviewEvaluationForm;
 use App\Models\ReviewSummary;
 use App\Models\SubmissionReviewer;
 use App\Queries\Review\ActiveReviewerAssignment;
-use App\Queries\Review\EvaluationFormsOverview;
-use App\Queries\Review\EvaluationProgress;
-use App\Queries\Review\PendingEvaluationCheck;
 use App\Queries\Submission\EvaluationDueDate;
 use App\Services\EmailNotificationService;
 use App\States\Submission\Rejected;
@@ -223,36 +219,6 @@ class ReviewController extends Controller
         return back()->with('success', 'Komentar berhasil ditambahkan.');
     }
 
-    // Get available evaluation forms for assignment
-    public function getAvailableEvaluationForms(FormSubmission $submission)
-    {
-        $formPhaseDetail = $submission->getFormPhaseDetail();
-
-        if (!$formPhaseDetail) {
-            return response()->json([]);
-        }
-
-        $availableForms = $formPhaseDetail->activeReviewEvaluationForms()
-            ->get(['id', 'title', 'description', 'is_required', 'order']);
-
-        return response()->json($availableForms);
-    }
-
-    // Get evaluation status for submission
-    public function getEvaluationStatus(FormSubmission $submission)
-    {
-        $evaluationStats = EvaluationProgress::run($submission)->toArray();
-        $formsSummary = EvaluationFormsOverview::run($submission);
-        $discussionsAllowed = !PendingEvaluationCheck::run($submission);
-
-        return response()->json([
-            'evaluation_stats' => $evaluationStats,
-            'forms_summary' => $formsSummary,
-            'discussions_allowed' => $discussionsAllowed,
-            'can_proceed_to_discussions' => $discussionsAllowed,
-        ]);
-    }
-
     // Assign specific evaluation forms to reviewer
     public function assignEvaluationFormsToReviewer(Request $request, FormSubmission $submission, Reviewer $reviewer)
     {
@@ -292,41 +258,6 @@ class ReviewController extends Controller
         }
     }
 
-    // Enhanced available reviewers with evaluation context
-    public function getAvailableReviewers(FormSubmission $submission)
-    {
-        $assignedReviewerIds = SubmissionReviewer::where('form_submission_id', $submission->id)
-            ->pluck('reviewer_id')
-            ->toArray();
-
-        $availableReviewers = Reviewer::with(['user'])
-            ->whereHas('user', function ($query) use ($submission) {
-                $query->where('id', '!=', $submission->submitted_by);
-            })
-            ->whereNotIn('id', $assignedReviewerIds)
-            ->get()
-            ->map(function ($reviewer) {
-                /** @var Reviewer $reviewer */
-                return [
-                    'id' => $reviewer->id,
-                    'name' => $reviewer->user->name,
-                    'email' => $reviewer->user->email,
-                    'role' => $reviewer->reviewer_type,
-                ];
-            });
-
-        // Get available evaluation forms
-        $evaluationForms = $this->getSubmissionFormPhase($submission)
-            ?->activeReviewEvaluationForms()
-            ->get(['id', 'title', 'is_required', 'order']) ?? collect();
-
-        return response()->json([
-            'reviewers' => $availableReviewers,
-            'evaluation_forms' => $evaluationForms,
-            'has_evaluation_forms' => $evaluationForms->isNotEmpty(),
-        ]);
-    }
-
     // Auto-assign evaluation forms to new reviewers
     protected function autoAssignEvaluationForms(SubmissionReviewer $submissionReviewer, FormPhaseDetail $formPhaseDetail): void
     {
@@ -353,13 +284,6 @@ class ReviewController extends Controller
                 EvaluationDueDate::run($form)
             );
         }
-    }
-
-    protected function getSubmissionFormPhase(FormSubmission $submission)
-    {
-        return FormPhase::whereHas('formPhaseDetails.formAccessControl', function ($query) use ($submission) {
-            $query->where('form_id', $submission->form_id);
-        })->first();
     }
 
     // Existing methods with minor updates...

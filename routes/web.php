@@ -332,17 +332,6 @@ Route::middleware(['auth', 'can:users.manage', 'check_reviewer_status'])->prefix
     Route::post('/submissions/{submission}/assign-reviewers', [ReviewController::class, 'assignReviewers'])
         ->name('submissions.assign-reviewers');
 
-    // Enhanced available reviewers with evaluation context
-    Route::get('/submissions/{submission}/available-reviewers', [ReviewController::class, 'getAvailableReviewers'])
-        ->name('submissions.available-reviewers');
-
-    // NEW: Evaluation-specific routes
-    Route::get('/submissions/{submission}/available-evaluation-forms', [ReviewController::class, 'getAvailableEvaluationForms'])
-        ->name('submissions.available-evaluation-forms');
-
-    Route::get('/submissions/{submission}/evaluation-status', [ReviewController::class, 'getEvaluationStatus'])
-        ->name('submissions.evaluation-status');
-
     // NEW: Reviewer form assignment management
     Route::post('/submissions/{submission}/reviewers/{reviewer}/assign-forms', [ReviewController::class, 'assignEvaluationFormsToReviewer'])
         ->name('submissions.assign-evaluation-forms');
