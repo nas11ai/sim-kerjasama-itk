@@ -6,6 +6,7 @@
 // sejarah, bukan sebagai wewenang. Fixture-nya sengaja realistis: evaluasinya
 // selesai sebelum diganti, jadi gerbang "evaluasi beres" saja tidak menolaknya.
 
+use App\Mail\DynamicEmailNotification;
 use App\Models\FieldType;
 use App\Models\FormPhaseDetail;
 use App\Models\FormSubmission;
@@ -18,7 +19,9 @@ use App\Models\ReviewSummary;
 use App\Models\SubmissionReviewer;
 use App\Models\User;
 use App\States\Submission\UnderReview;
+use Illuminate\Support\Facades\Mail;
 use Spatie\Permission\Models\Permission;
+use Spatie\Permission\Models\Role;
 
 /** @return array{0: User, 1: Reviewer, 2: FormSubmission, 3: SubmissionReviewer} */
 function replacedReviewerFixture(): array
@@ -227,4 +230,22 @@ it('menolak reviewer yang sudah diganti mengirim form evaluasi', function () {
 
     expect($response->fresh()?->status)->toBe('draft')
         ->and($response->reviewFormFieldResponses()->count())->toBe(0);
+});
+
+it('tidak mengirim isi ulir baru ke reviewer yang sudah diganti', function () {
+    Mail::fake();
+    Role::findOrCreate('Super Admin', 'web');
+    Role::findOrCreate('Admin', 'web');
+
+    [$user, , $submission] = replacedReviewerFixture();
+    $author = replacedReviewerOpenThread($submission)->reviewer?->user;
+    $operator = replacedReviewerOperator()->assignRole('Admin');
+
+    $this->actingAs($author)
+        ->post(route('reviewer.review-threads.store', $submission), ['summary_notes' => 'Catatan baru.'])
+        ->assertRedirect();
+
+    // Admin tetap menerima — tanpa itu test lolos hanya karena emailnya gagal.
+    Mail::assertQueued(DynamicEmailNotification::class, fn ($mail) => $mail->hasTo($operator->email));
+    Mail::assertNotQueued(DynamicEmailNotification::class, fn ($mail) => $mail->hasTo($user->email));
 });

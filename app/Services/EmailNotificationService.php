@@ -321,8 +321,9 @@ class EmailNotificationService
             ->get();
         $recipients = $recipients->merge($admins);
 
-        // Reviewers
+        // BR-SM-07, BR-REV-10 — reviewer yang sudah diganti tidak lagi membaca diskusinya.
         $reviewers = $submission->submissionReviewers()
+            ->where('status', 'active')
             ->with('reviewer.user')
             ->get()
             ->pluck('reviewer.user')
