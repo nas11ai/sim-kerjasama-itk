@@ -86,3 +86,19 @@ it('[BR-SM-07] lampiran komentar mengikuti aturan yang sama', function () {
     download($owner, $path)->assertOk();
     download(User::factory()->create(), $path)->assertForbidden();
 });
+
+it('[BR-SM-07] orang luar mendapat 403 untuk lampiran terdaftar meski berkas hilang dari disk', function () {
+    [, $submission, $summary] = attachmentFixture();
+    $path = 'review-attachments/'.$submission->id.'/hilang.pdf';
+    ReviewSummaryAttachment::create(['review_summary_id' => $summary->id, 'file_path' => $path]);
+
+    download(User::factory()->create(), $path)->assertForbidden();
+});
+
+it('[BR-SM-07] pengaju mendapat 404 untuk lampiran terdaftar yang berkasnya hilang', function () {
+    [$owner, $submission, $summary] = attachmentFixture();
+    $path = 'review-attachments/'.$submission->id.'/hilang.pdf';
+    ReviewSummaryAttachment::create(['review_summary_id' => $summary->id, 'file_path' => $path]);
+
+    download($owner, $path)->assertNotFound();
+});

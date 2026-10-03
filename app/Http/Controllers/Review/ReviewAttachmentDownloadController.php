@@ -23,8 +23,10 @@ class ReviewAttachmentDownloadController extends Controller
         $path = (string) $request->query('path');
         $submission = ReviewAttachmentSubmission::run($path);
 
-        abort_if($submission === null || !Storage::disk('public')->exists($path), 404, 'File tidak ditemukan');
+        abort_if($submission === null, 404, 'File tidak ditemukan');
         abort_unless($submission->isAccessibleBy($user), 403);
+        // Setelah otorisasi, supaya 404 tidak bisa dipakai menebak berkas yang ada.
+        abort_unless(Storage::disk('public')->exists($path), 404, 'File tidak ditemukan');
 
         return response()->download(Storage::disk('public')->path($path));
     }
