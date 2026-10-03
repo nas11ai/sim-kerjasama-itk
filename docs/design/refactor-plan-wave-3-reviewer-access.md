@@ -19,7 +19,7 @@ controller menemukan penugasan, bukan bentuk controllernya.
 
 **Spec induk:** [`docs/design/refactor-plan.md`](refactor-plan.md) §2.1, §5 gelombang 3
 
-**Status:** belum dikerjakan.
+**Status:** selesai 4 Oktober 2026, mendarat di c16560d.
 
 ---
 
@@ -171,6 +171,16 @@ Kalau penugasan aktifnya tidak ada, cabang itu kini melempar `\Exception` mentah
   bagian 2, sesudah wewenang reviewer punya satu definisi.
 - **Celah UX:** halaman reviewer tidak memasang `ReviewSystem`, jadi reviewer belum bisa
   membuka ulir dari layarnya sendiri. Ditutup di layar v2.
+
+## Yang berbeda dari rencana
+
+- Task 2 juga membuang entri `submissions.update-status` dari `resources/js/ziggy.js`
+  statis dan satu komentar yatim di `routes/web.php`.
+- Task 4: `bulkAssignForms` tidak memakai cast — aturan validasi `reviewer_ids.*`
+  ditambah `integer`, PHPStan tetap bersih di kedua tier.
+- Task 3 dan 4 dikerjakan dalam satu putaran, tetap dua commit (823c153, efdb54d).
+- Task 5 juga mengalihkan `ReviewFormResponseController` dan gerbang
+  `reviewerShowSubmission` yang sudah benar, supaya definisinya satu.
 
 ---
 ---
