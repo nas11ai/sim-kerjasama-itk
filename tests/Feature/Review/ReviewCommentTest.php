@@ -14,6 +14,7 @@ use App\Models\User;
 use App\States\Submission\UnderReview;
 use App\Support\Audit\AuditTrail;
 use Spatie\Activitylog\Models\Activity;
+use Spatie\Permission\Models\Permission;
 
 /** @return array{0: User, 1: User, 2: FormSubmission, 3: Reviewer, 4: ReviewSummary} */
 function commentFixture(string $evaluation = 'completed'): array
@@ -79,7 +80,8 @@ it('menolak reviewer aktif yang evaluasinya belum beres', function () {
 
     $this->actingAs($reviewerUser)
         ->post(route('reviewer.review-comments.store', $thread), ['comment_text' => 'Terlalu dini.'])
-        ->assertForbidden();
+        ->assertForbidden()
+        ->assertSee('Selesaikan 0 formulir evaluasi yang tertunda', false);
 
     expect(ReviewComment::count())->toBe(0);
 });
@@ -122,4 +124,57 @@ it('mencatat komentar di audit', function () {
         ->where('subject_id', $comment->id)
         ->where('description', 'Komentar review ditambahkan')
         ->exists())->toBeTrue();
+});
+
+it('menolak reviewer yang hanya ditugaskan di pengajuan lain', function () {
+    [, , , , $thread] = commentFixture();
+
+    $stranger = User::factory()->create();
+    $reviewer = Reviewer::factory()->create(['user_id' => $stranger->id]);
+    $detail = FormPhaseDetail::factory()->create(['needs_review' => true]);
+    $other = FormSubmission::factory()->create([
+        'form_phase_detail_id' => $detail->id,
+        'status' => UnderReview::class,
+    ]);
+    SubmissionReviewer::create([
+        'form_submission_id' => $other->id,
+        'reviewer_id' => $reviewer->id,
+        'evaluation_status' => 'completed',
+        'status' => 'active',
+    ]);
+
+    $this->actingAs($stranger)
+        ->post(route('reviewer.review-comments.store', $thread), ['comment_text' => 'Bukan urusan saya.'])
+        ->assertForbidden()
+        ->assertSee('Anda tidak memiliki izin untuk mengomentari review ini', false);
+
+    expect(ReviewComment::count())->toBe(0);
+});
+
+it('Operator berkomentar atas namanya sendiri', function () {
+    [, , , , $thread] = commentFixture();
+
+    Permission::findOrCreate('users.manage', 'web');
+    $operator = User::factory()->create();
+    $operator->givePermissionTo('users.manage');
+
+    $this->actingAs($operator)
+        ->post(route('admin.review-comments.store', $thread), ['comment_text' => 'Mohon dipercepat.'])
+        ->assertRedirect();
+
+    $comment = ReviewComment::firstOrFail();
+    expect($comment->user_id)->toBe($operator->id)
+        ->and($comment->reviewer_id)->toBeNull();
+});
+
+it('menolak reviewer yang penugasannya sudah diganti', function () {
+    [, $reviewerUser, , , $thread] = commentFixture();
+
+    SubmissionReviewer::query()->update(['status' => 'replaced']);
+
+    $this->actingAs($reviewerUser)
+        ->post(route('reviewer.review-comments.store', $thread), ['comment_text' => 'Masih ikut.'])
+        ->assertForbidden();
+
+    expect(ReviewComment::count())->toBe(0);
 });
