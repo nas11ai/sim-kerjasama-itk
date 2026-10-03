@@ -1,0 +1,125 @@
+<?php
+
+// tests/Feature/Review/ReviewCommentTest.php
+//
+// BR-REV-06 — komentar pada ulir diskusi: siapa boleh (K3), induk harus satu ulir, dan tercatat di audit.
+
+use App\Models\FormPhaseDetail;
+use App\Models\FormSubmission;
+use App\Models\ReviewComment;
+use App\Models\Reviewer;
+use App\Models\ReviewSummary;
+use App\Models\SubmissionReviewer;
+use App\Models\User;
+use App\States\Submission\UnderReview;
+use App\Support\Audit\AuditTrail;
+use Spatie\Activitylog\Models\Activity;
+
+/** @return array{0: User, 1: User, 2: FormSubmission, 3: Reviewer, 4: ReviewSummary} */
+function commentFixture(string $evaluation = 'completed'): array
+{
+    $owner = User::factory()->create();
+    $detail = FormPhaseDetail::factory()->create(['needs_review' => true]);
+
+    $submission = FormSubmission::factory()->create([
+        'submitted_by' => $owner->id,
+        'scheme_id' => null,
+        'form_phase_detail_id' => $detail->id,
+        'status' => UnderReview::class,
+    ]);
+
+    $reviewerUser = User::factory()->create();
+    $reviewer = Reviewer::factory()->create(['user_id' => $reviewerUser->id]);
+
+    SubmissionReviewer::create([
+        'form_submission_id' => $submission->id,
+        'reviewer_id' => $reviewer->id,
+        'evaluation_status' => $evaluation,
+        'status' => 'active',
+    ]);
+
+    $thread = ReviewSummary::create([
+        'form_submission_id' => $submission->id,
+        'reviewer_id' => $reviewer->id,
+        'status' => 'open',
+        'summary_notes' => 'Perkuat metodologi.',
+    ]);
+
+    return [$owner, $reviewerUser, $submission, $reviewer, $thread];
+}
+
+it('[REV-DISCUSS-02] pengaju membalas ulir open', function () {
+    [$owner, , , , $thread] = commentFixture();
+
+    $this->actingAs($owner)
+        ->post(route('review-comments.store', $thread), ['comment_text' => 'Sudah saya perbaiki.'])
+        ->assertRedirect()
+        ->assertSessionHas('success');
+
+    $comment = ReviewComment::firstOrFail();
+    expect($comment->user_id)->toBe($owner->id)
+        ->and($comment->reviewer_id)->toBeNull()
+        ->and($comment->review_summary_id)->toBe($thread->id);
+});
+
+it('reviewer aktif yang evaluasinya beres berkomentar atas nama reviewer', function () {
+    [, $reviewerUser, , $reviewer, $thread] = commentFixture();
+
+    $this->actingAs($reviewerUser)
+        ->post(route('reviewer.review-comments.store', $thread), ['comment_text' => 'Terima kasih.'])
+        ->assertRedirect();
+
+    $comment = ReviewComment::firstOrFail();
+    expect($comment->reviewer_id)->toBe($reviewer->id)
+        ->and($comment->user_id)->toBeNull();
+});
+
+it('menolak reviewer aktif yang evaluasinya belum beres', function () {
+    [, $reviewerUser, , , $thread] = commentFixture('pending');
+
+    $this->actingAs($reviewerUser)
+        ->post(route('reviewer.review-comments.store', $thread), ['comment_text' => 'Terlalu dini.'])
+        ->assertForbidden();
+
+    expect(ReviewComment::count())->toBe(0);
+});
+
+it('menolak balasan yang induknya milik ulir lain', function () {
+    [$owner, , $submission, $reviewer, $thread] = commentFixture();
+
+    $other = ReviewSummary::create([
+        'form_submission_id' => $submission->id,
+        'reviewer_id' => $reviewer->id,
+        'status' => 'open',
+        'summary_notes' => 'Ulir lain.',
+    ]);
+    $foreign = ReviewComment::create([
+        'review_summary_id' => $other->id,
+        'reviewer_id' => $reviewer->id,
+        'comment_text' => 'Di ulir lain.',
+    ]);
+
+    $this->actingAs($owner)
+        ->post(route('review-comments.store', $thread), [
+            'comment_text' => 'Salah ulir.',
+            'parent_comment_id' => $foreign->id,
+        ])
+        ->assertSessionHasErrors('parent_comment_id');
+
+    expect(ReviewComment::count())->toBe(1);
+});
+
+it('mencatat komentar di audit', function () {
+    [$owner, , , , $thread] = commentFixture();
+
+    $this->actingAs($owner)
+        ->post(route('review-comments.store', $thread), ['comment_text' => 'Tercatat.']);
+
+    $comment = ReviewComment::firstOrFail();
+
+    expect(Activity::inLog(AuditTrail::LOG_NAME)
+        ->where('subject_type', $comment->getMorphClass())
+        ->where('subject_id', $comment->id)
+        ->where('description', 'Komentar review ditambahkan')
+        ->exists())->toBeTrue();
+});

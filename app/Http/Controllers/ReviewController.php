@@ -2,12 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Actions\Review\AddReviewComment;
 use App\Actions\Review\AssignEvaluationForm;
 use App\Actions\Review\AssignReviewer;
 use App\Actions\Review\OpenReviewThread;
 use App\Models\FormPhaseDetail;
 use App\Models\FormSubmission;
-use App\Models\ReviewComment;
 use App\Models\Reviewer;
 use App\Models\ReviewEvaluationForm;
 use App\Models\ReviewSummary;
@@ -16,6 +16,7 @@ use App\Queries\Review\ActiveReviewerAssignment;
 use App\Queries\Submission\EvaluationDueDate;
 use App\Services\EmailNotificationService;
 use App\Support\ReviewerWorkload;
+use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -153,65 +154,24 @@ class ReviewController extends Controller
         return $paths;
     }
 
-    // Enhanced comment adding with evaluation check
+    // BR-REV-06 — otorisasi, induk satu ulir, dan audit ada di AddReviewComment.
     public function addComment(Request $request, ReviewSummary $reviewSummary)
     {
-        $request->validate([
+        $validated = $request->validate([
             'comment_text' => 'required|string|max:2000',
-            'parent_comment_id' => 'nullable|exists:review_comments,id',
+            'parent_comment_id' => 'nullable|integer|exists:review_comments,id',
         ]);
 
-        $user = Auth::user();
-        /** @var FormSubmission $submission */
-        $submission = $reviewSummary->formSubmission;
-        $reviewerId = null;
-        $canComment = false;
-
-        // Admin can always comment
-        if ($user->can('users.manage')) {
-            $canComment = true;
+        try {
+            AddReviewComment::run(
+                $reviewSummary,
+                $request->user(),
+                $validated['comment_text'],
+                isset($validated['parent_comment_id']) ? (int) $validated['parent_comment_id'] : null,
+            );
+        } catch (AuthorizationException $e) {
+            abort(403, $e->getMessage());
         }
-        // Submitter can always comment on their own submission
-        elseif ($submission->submitted_by === $user->id) {
-            $canComment = true;
-        }
-        // Check reviewer permissions
-        else {
-            /** @var Reviewer|null $reviewer */
-            $reviewer = Reviewer::where('user_id', $user->id)->first();
-
-            if ($reviewer) {
-                $submissionReviewer = ActiveReviewerAssignment::run($submission, $reviewer->id);
-
-                if ($submissionReviewer) {
-                    // Check if can participate in discussions
-                    if ($submissionReviewer->hasSettledEvaluation()) {
-                        $canComment = true;
-                        $reviewerId = $reviewer->id;
-                    } else {
-                        $pendingCount = $submissionReviewer->pending_forms_count;
-                        abort(403, "Selesaikan {$pendingCount} formulir evaluasi yang tertunda sebelum berpartisipasi dalam diskusi.");
-                    }
-                }
-            }
-        }
-
-        if (!$canComment) {
-            abort(403, 'Anda tidak memiliki izin untuk mengomentari review ini');
-        }
-
-        DB::transaction(function () use ($request, $reviewSummary, $user, $reviewerId) {
-            $comment = ReviewComment::create([
-                'review_summary_id' => $reviewSummary->id,
-                'parent_comment_id' => $request->parent_comment_id,
-                'user_id' => $reviewerId ? null : $user->id,
-                'reviewer_id' => $reviewerId,
-                'comment_text' => $request->comment_text,
-            ]);
-
-            // TAMBAHKAN: Kirim email notifikasi comment
-            $this->emailService->notifyReviewComment($comment);
-        });
 
         return back()->with('success', 'Komentar berhasil ditambahkan.');
     }
