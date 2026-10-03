@@ -102,3 +102,11 @@ it('[BR-SM-07] pengaju mendapat 404 untuk lampiran terdaftar yang berkasnya hila
 
     download($owner, $path)->assertNotFound();
 });
+
+it('path berbentuk array ditolak sebagai berkas tak dikenal, bukan galat server', function () {
+    [$owner] = attachmentFixture();
+
+    $this->actingAs($owner)
+        ->get(route('review-attachments.download').'?path[]=x')
+        ->assertNotFound();
+});

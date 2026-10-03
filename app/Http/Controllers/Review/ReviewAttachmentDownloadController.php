@@ -20,7 +20,11 @@ class ReviewAttachmentDownloadController extends Controller
 
         abort_unless($user !== null, 403);
 
-        $path = (string) $request->query('path');
+        $path = $request->query('path');
+
+        // `?path[]=x` menghasilkan array; itu bukan berkas yang dikenal, bukan galat server.
+        abort_unless(is_string($path), 404, 'File tidak ditemukan');
+
         $submission = ReviewAttachmentSubmission::run($path);
 
         abort_if($submission === null, 404, 'File tidak ditemukan');
