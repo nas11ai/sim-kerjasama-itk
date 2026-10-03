@@ -41,10 +41,9 @@ class SaveBudgetLineItem
             'total' => $total,
         ]);
 
-        // BR-RPT-09 — satu Action, satu entri audit, lengkap dengan nilai
-        // lama dan barunya. Anggaran menyangkut uang: jejak yang hanya
-        // menyebut "diubah" tanpa angka tidak bisa dipertanggungjawabkan
-        // kepada siapa pun.
+        // BR-RPT-09 — satu Action, satu entri audit, nilai lama dan baru.
+        // Anggaran menyangkut uang: jejak yang hanya menyebut "diubah"
+        // tanpa angka tidak bisa dipertanggungjawabkan kepada siapa pun.
         AuditTrail::record(
             'Line item anggaran disimpan',
             $tercatat,

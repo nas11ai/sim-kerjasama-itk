@@ -6,10 +6,7 @@
 # memenuhi ambang tapi masih terdaftar, jadi keduanya tidak bisa berselisih.
 #
 # Inilah antrean kerja refactor. Ambil dari atas.
-app/Actions/Budget/SaveBudgetLineItem.php
-app/Actions/Budget/UpdateBudgetLineItem.php
 app/Actions/Config/SaveReferenceEntity.php
-app/Actions/Override/GrantPhaseOverride.php
 app/Actions/Period/DeleteSubmissionPeriod.php
 app/Actions/Period/ExtendSubmissionDates.php
 app/Actions/Review/AssignReviewer.php

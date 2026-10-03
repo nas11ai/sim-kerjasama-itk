@@ -15,12 +15,9 @@ use Illuminate\Validation\ValidationException;
 use Lorisleiva\Actions\Concerns\AsAction;
 
 /**
- * BR-FE-09, BR-FE-10 — Operator memberi perpanjangan akses untuk satu
- * pengajuan pada satu fase.
- *
- * Override adalah pengecualian terhadap aturan, jadi ia yang paling perlu
- * dipertanggungjawabkan: alasannya wajib, dan seluruh pemberiannya masuk jejak
- * audit lewat LogsActivity di modelnya.
+ * BR-FE-09, BR-FE-10 — Operator memperpanjang akses satu pengajuan pada satu
+ * fase. Override ialah pengecualian, jadi paling perlu dipertanggungjawabkan:
+ * alasan wajib, semua pemberiannya masuk jejak audit lewat LogsActivity model.
  *
  * @method static FormSubmissionOverride run(FormSubmission $submission, FormPhaseDetail $detail, User $grantedBy, PhaseOverrideInput $input)
  */

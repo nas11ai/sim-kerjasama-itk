@@ -14,12 +14,9 @@ use Illuminate\Validation\ValidationException;
 use Lorisleiva\Actions\Concerns\AsAction;
 
 /**
- * BR-BUD-10 — menyunting satu line item anggaran.
- *
- * Wewenang dan gerbang statusnya sama persis dengan penambahan (BR-BUD-09,
- * BR-BUD-02): yang boleh menambah angka adalah yang boleh memperbaikinya.
- * Memberi keduanya ambang berbeda hanya melahirkan pengajuan yang bisa diisi
- * tapi tidak bisa dibetulkan.
+ * BR-BUD-10 — menyunting line item anggaran; wewenang dan gerbang statusnya
+ * sama persis dengan penambahan (BR-BUD-09, BR-BUD-02). Ambang berbeda hanya
+ * melahirkan pengajuan yang bisa diisi tapi tidak bisa dibetulkan.
  *
  * @method static BudgetLineItem run(FormSubmission $submission, BudgetLineItem $item, User $user, array{budget_component_id?: int, item_name?: string, volume?: int, unit?: string, unit_price?: int} $attributes)
  */
