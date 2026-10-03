@@ -23,11 +23,8 @@ use App\Queries\Review\EvaluationProgress;
 use App\Queries\Review\PendingEvaluationCheck;
 use App\Queries\Submission\EvaluationDueDate;
 use App\Services\EmailNotificationService;
-use App\States\Submission\Approved;
-use App\States\Submission\NeedsRevision;
 use App\States\Submission\Rejected;
 use App\States\Submission\Submitted;
-use App\States\Submission\UnderReview;
 use App\Support\ReviewerWorkload;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -174,97 +171,6 @@ class ReviewController extends Controller
         });
 
         return back()->with('success', 'Reviewer berhasil dihapus dari submission ini.');
-    }
-
-    // Enhanced status update considering evaluation completion
-    public function updateSubmissionStatus(Request $request, FormSubmission $submission)
-    {
-        $request->validate([
-            'status' => 'required|in:submitted,under_review,needs_revision,approved,rejected',
-        ]);
-
-        $user = Auth::user();
-        $canUpdate = false;
-
-        if ($user->can('users.manage')) {
-            $canUpdate = true;
-        } else {
-            $reviewer = Reviewer::where('user_id', $user->id)->first();
-
-            if ($reviewer) {
-                $submissionReviewer = SubmissionReviewer::where([
-                    'form_submission_id' => $submission->id,
-                    'reviewer_id' => $reviewer->id,
-                ])->first();
-
-                if ($submissionReviewer && $submissionReviewer->hasSettledEvaluation()) {
-                    $canUpdate = true;
-                } elseif ($submissionReviewer) {
-                    $pendingCount = $submissionReviewer->pending_forms_count;
-                    abort(403, "Selesaikan {$pendingCount} formulir evaluasi yang tertunda sebelum memperbarui status pengajuan.");
-                } else {
-                    abort(403, 'Anda tidak ditugaskan sebagai reviewer untuk pengajuan ini.');
-                }
-            }
-        }
-
-        if (!$canUpdate) {
-            abort(403, 'Tidak berwenang untuk memperbarui status pengajuan.');
-        }
-
-        $newStatus = match ($request->status) {
-            'submitted' => Submitted::class,
-            'under_review' => UnderReview::class,
-            'needs_revision' => NeedsRevision::class,
-            'approved' => Approved::class,
-            'rejected' => Rejected::class,
-            default => throw new \InvalidArgumentException('Invalid submission status value'),
-        };
-
-        try {
-            DB::transaction(function () use ($submission, $newStatus) {
-                $oldStatus = $submission->status;
-
-                if ($submission->status->canTransitionTo($newStatus)) {
-                    $submission->status->transitionTo($newStatus);
-                    $this->emailService->notifySubmissionStatusChanged($submission, $oldStatus);
-
-                    return;
-                }
-
-                // Loncatan dua langkah: status yang tidak bisa langsung menuju
-                // target sering bisa menempuhnya lewat UNDER_REVIEW.
-                if (!$submission->status->canTransitionTo(UnderReview::class)) {
-                    throw new \Exception("Transisi ke status tersebut tidak diizinkan dari status {$oldStatus->label()}.");
-                }
-
-                $submission->status->transitionTo(UnderReview::class);
-
-                // Dibaca ulang, bukan diperiksa lewat ekspresi yang sama.
-                // Versi sebelumnya memanggil `$submission->status->canTransitionTo()`
-                // dua kali pada ekspresi identik lalu membungkam peringatannya.
-                // Peringatan itu benar: tanpa pembacaan ulang, hasil pertama
-                // yang sudah false-lah yang berlaku.
-                $antara = $submission->refresh()->status;
-
-                if (!$antara->canTransitionTo($newStatus)) {
-                    throw new \Exception('Transisi ke status yang dipilih tidak diizinkan dari status saat ini.');
-                }
-
-                $antara->transitionTo($newStatus);
-
-                $this->emailService->notifySubmissionStatusChanged($submission, $oldStatus);
-            });
-        } catch (\Exception $e) {
-            return back()->with('error', $e->getMessage());
-        }
-
-        $submission->refresh();
-
-        return back()->with(
-            'success',
-            "Status pengajuan berhasil diubah menjadi {$submission->status->label()}."
-        );
     }
 
     // Enhanced thread creation with evaluation check

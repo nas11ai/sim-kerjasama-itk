@@ -153,10 +153,8 @@ const expandedThreads = ref<Set<number>>(new Set())
 
 // Status update states
 const showUpdateReviewStatusDialog = ref(false)
-const showUpdateSubmissionStatusDialog = ref(false)
 const selectedReviewSummary = ref<ReviewSummary | null>(null)
 const selectedReviewStatus = ref('')
-const selectedSubmissionStatus = ref('')
 const statusUpdateNotes = ref('')
 
 // Computed
@@ -193,19 +191,6 @@ const canUpdateReviewStatus = (reviewSummary: ReviewSummary) => {
 
     return result
 }
-
-// Check if user can update submission status
-const canUpdateSubmissionStatus = computed(() => {
-    if (isAdmin.value) return true
-    if (!isAssignedReviewer.value) return false
-
-    // Reviewer can update if they have completed evaluations
-    if (props.hasReviewEvaluationForms && props.hasPendingEvaluations) {
-        return false
-    }
-
-    return true
-})
 
 // BR-REV-13 — ReviewSummary hanya `open` atau `resolved`. Status `closed`
 // tidak pernah ada di domain ini; backend menolaknya, dan menawarkannya di
@@ -469,32 +454,6 @@ const updateReviewSummaryStatus = () => {
         }
     )
 }
-
-// Open update submission status dialog
-const openUpdateSubmissionStatusDialog = () => {
-    selectedSubmissionStatus.value = props.submissionStatus
-    showUpdateSubmissionStatusDialog.value = true
-}
-
-// Update submission status
-const updateSubmissionStatus = () => {
-    if (!selectedSubmissionStatus.value) return
-
-    router.patch(
-        `/submissions/${props.submissionId}/status`,
-        {
-            status: selectedSubmissionStatus.value,
-        },
-        {
-            preserveState: false,
-            preserveScroll: true,
-            onSuccess: () => {
-                showUpdateSubmissionStatusDialog.value = false
-                selectedSubmissionStatus.value = ''
-            },
-        }
-    )
-}
 </script>
 
 <template>
@@ -513,15 +472,6 @@ const updateSubmissionStatus = () => {
                         >
                             {{ getSubmissionStatusInfo(submissionStatus).label }}
                         </Badge>
-                        <Button
-                            v-if="canUpdateSubmissionStatus"
-                            size="sm"
-                            variant="outline"
-                            @click="openUpdateSubmissionStatusDialog"
-                        >
-                            <Edit class="h-4 w-4 mr-2" />
-                            Perbarui Status
-                        </Button>
                     </div>
                 </div>
             </CardHeader>
@@ -1151,57 +1101,6 @@ const updateSubmissionStatus = () => {
                         <Button
                             :disabled="!selectedReviewStatus"
                             @click="updateReviewSummaryStatus"
-                        >
-                            Perbarui Status
-                        </Button>
-                    </div>
-                </div>
-            </DialogContent>
-        </Dialog>
-
-        <!-- Update Submission Status Dialog -->
-        <Dialog v-model:open="showUpdateSubmissionStatusDialog">
-            <DialogContent class="max-w-md">
-                <DialogHeader>
-                    <DialogTitle>Perbarui Status Pengajuan</DialogTitle>
-                    <DialogDescription> Ubah status keseluruhan pengajuan ini. </DialogDescription>
-                </DialogHeader>
-                <div class="space-y-4">
-                    <div>
-                        <Label>Pilih Status</Label>
-                        <Select v-model="selectedSubmissionStatus">
-                            <SelectTrigger>
-                                <SelectValue placeholder="Pilih status..." />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem
-                                    v-for="status in submissionStatusOptions"
-                                    :key="status.value"
-                                    :value="status.value"
-                                >
-                                    <div class="flex items-center gap-2">
-                                        <div
-                                            :class="`w-2 h-2 rounded-full bg-${status.color}-500`"
-                                        />
-                                        {{ status.label }}
-                                    </div>
-                                </SelectItem>
-                            </SelectContent>
-                        </Select>
-                    </div>
-                    <Alert>
-                        <AlertCircle class="h-4 w-4" />
-                        <AlertDescription>
-                            Ini akan memperbarui status pengajuan untuk semua reviewer dan pengaju.
-                        </AlertDescription>
-                    </Alert>
-                    <div class="flex justify-end gap-2">
-                        <Button variant="outline" @click="showUpdateSubmissionStatusDialog = false">
-                            Batal
-                        </Button>
-                        <Button
-                            :disabled="!selectedSubmissionStatus"
-                            @click="updateSubmissionStatus"
                         >
                             Perbarui Status
                         </Button>

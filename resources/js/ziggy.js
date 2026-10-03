@@ -42,12 +42,6 @@ const Ziggy = {
             methods: ['GET', 'HEAD'],
         },
         'submissions.index': { uri: 'submissions', methods: ['GET', 'HEAD'] },
-        'submissions.update-status': {
-            uri: 'submissions\/{submission}\/status',
-            methods: ['PATCH'],
-            parameters: ['submission'],
-            bindings: { submission: 'id' },
-        },
         'reviewer.evaluation-form.start': {
             uri: 'reviewer\/evaluation-forms\/start',
             methods: ['POST'],

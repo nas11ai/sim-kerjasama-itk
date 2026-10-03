@@ -116,10 +116,6 @@ Route::middleware(['auth', 'check_reviewer_status'])->group(function () {
     Route::get('/submissions', [UserFormController::class, 'reviewerSubmissions'])
         ->name('submissions.index');
 
-    // Enhanced submission status update
-    Route::patch('/submissions/{submission}/status', [ReviewController::class, 'updateSubmissionStatus'])
-        ->name('submissions.update-status');
-
     // NEW: Evaluation form routes for reviewers
     Route::prefix('reviewer/evaluation-forms')->name('reviewer.evaluation-form.')->group(function () {
         // NEW: Start or continue evaluation form (auto-create assignment)

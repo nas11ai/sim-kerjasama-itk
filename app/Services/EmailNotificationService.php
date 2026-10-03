@@ -255,47 +255,6 @@ class EmailNotificationService
     }
 
     /**
-     * 7. Notifikasi ketika status submission berubah
-     */
-    public function notifySubmissionStatusChanged(FormSubmission $submission, $oldStatus)
-    {
-        try {
-            $updater = Auth::user();
-
-            $subject = "Status Submission Diubah - {$submission->form->title}";
-            $params = [
-                'judul' => 'Status Submission Diubah',
-                'isi' => "
-                    <p><strong>{$updater->name}</strong> telah mengubah status submission:</p>
-                    <ul>
-                        <li><strong>Form:</strong> {$submission->form->title}</li>
-                        <li><strong>Diajukan oleh:</strong> {$submission->submittedBy->name}</li>
-                        <li><strong>Status Lama:</strong> {$oldStatus->label()}</li>
-                        <li><strong>Status Baru:</strong> {$submission->status->label()}</li>
-                        <li><strong>Waktu:</strong> ".now()->format('d F Y H:i')."</li>
-                    </ul>
-                    <p><a href='".route('admin.submissions.show', $submission->id)."' style='background-color: #607D8B; color: white; padding: 10px 20px; text-decoration: none; border-radius: 5px;'>Lihat Submission</a></p>
-                ",
-            ];
-
-            $recipients = $this->getReviewParticipants($submission, [$updater->id]);
-            $this->sendToMultipleRecipients($recipients, $subject, $params);
-
-            Log::info('Email notifikasi submission status changed dikirim', [
-                'submission_id' => $submission->id,
-                'old_status' => $oldStatus->key(),
-                'new_status' => $submission->status->key(),
-            ]);
-
-        } catch (\Exception $e) {
-            Log::error('Gagal mengirim email notifikasi submission status changed', [
-                'submission_id' => $submission->id,
-                'error' => $e->getMessage(),
-            ]);
-        }
-    }
-
-    /**
      * 8. Notifikasi ketika submission period aktif
      */
     public function notifySubmissionPeriodActive($submissionPeriod)
