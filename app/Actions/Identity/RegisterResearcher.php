@@ -19,7 +19,7 @@ use Spatie\Permission\Models\Permission;
 /**
  * BR-IAM-01, BR-IAM-02, BR-IAM-12 — registrasi mandiri dosen ITK. Empat bekal
  * akunnya ditentukan jalurnya, bukan pendaftar: role `researcher`, organisasi
- * dari OrgTreePicker, permission role itu, status `pending` menunggu NIDN.
+ * OrgTreePicker, permission role itu, `pending` sampai NIDN terverifikasi.
  *
  * @method static User run(array{name: string, email: string, password: string, nidn: string, organization_id: int} $data)
  */

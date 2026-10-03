@@ -68,8 +68,8 @@ class RegisterByInvitation
             'user_id' => $user->id,
             'organization_id' => $token->organization_id,
             // Tanpa NIDN, makanya langsung aktif: verifikasi memeriksa
-            // NIDN, dan menahan akun tanpa NIDN di `pending` jadi antrian
-            // yang tak bisa dibersihkan; saringannya saat token terbit.
+            // NIDN, jadi menahan di `pending` membuat antrian yang tak
+            // bisa dibersihkan dengan jujur; disaring saat token terbit.
             'nidn' => null,
             'verification_status' => VerificationStatus::Active->value,
         ]);
