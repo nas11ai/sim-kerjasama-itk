@@ -3,10 +3,12 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
  * @property int $id
  * @property string $file_path
+ * @property-read ReviewSummary $reviewSummary
  */
 class ReviewSummaryAttachment extends Model
 {
@@ -15,7 +17,8 @@ class ReviewSummaryAttachment extends Model
         'file_path',
     ];
 
-    public function reviewSummary()
+    /** @return BelongsTo<ReviewSummary, $this> */
+    public function reviewSummary(): BelongsTo
     {
         return $this->belongsTo(ReviewSummary::class);
     }

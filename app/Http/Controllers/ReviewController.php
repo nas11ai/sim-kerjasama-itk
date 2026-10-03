@@ -19,7 +19,6 @@ use App\Support\ReviewerWorkload;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Storage;
 
 class ReviewController extends Controller
 {
@@ -282,18 +281,5 @@ class ReviewController extends Controller
                 EvaluationDueDate::run($form)
             );
         }
-    }
-
-    public function downloadAttachment(Request $request)
-    {
-        $filePath = $request->query('path');
-
-        if (!$filePath || !Storage::disk('public')->exists($filePath)) {
-            abort(404, 'File tidak ditemukan');
-        }
-
-        $fullPath = Storage::disk('public')->path($filePath);
-
-        return response()->download($fullPath);
     }
 }

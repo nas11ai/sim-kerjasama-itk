@@ -21,6 +21,7 @@ use App\Http\Controllers\OrganizationController;
 use App\Http\Controllers\PermissionController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Review\ReplaceReviewerController;
+use App\Http\Controllers\Review\ReviewAttachmentDownloadController;
 use App\Http\Controllers\Review\ReviewSummaryResolutionController;
 use App\Http\Controllers\ReviewController;
 use App\Http\Controllers\ReviewerController;
@@ -103,7 +104,7 @@ Route::middleware(['auth', 'check_reviewer_status'])->group(function () {
         ->name('review-comments.store');
 
     // File download
-    Route::get('/review-attachments/download', [ReviewController::class, 'downloadAttachment'])
+    Route::get('/review-attachments/download', ReviewAttachmentDownloadController::class)
         ->name('review-attachments.download');
 
     Route::get('/submissions', [UserFormController::class, 'reviewerSubmissions'])
