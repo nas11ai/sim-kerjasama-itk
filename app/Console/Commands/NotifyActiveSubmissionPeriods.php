@@ -42,12 +42,9 @@ class NotifyActiveSubmissionPeriods extends Command
 
     private function notify(SubmissionPeriod $period): bool
     {
-        // BR-NOT-03 — notifikasi bersifat fire-and-forget: kegagalan pada
-        // satu period (query penerima maupun pengiriman) tidak boleh
-        // menghentikan loop, supaya period lain yang juga sudah waktunya
-        // tetap ter-notify pada run yang sama. Period yang gagal tidak
-        // di-cache sebagai sudah dinotifikasi, sehingga akan dicoba lagi
-        // pada run terjadwal berikutnya.
+        // BR-NOT-03 — fire-and-forget: satu period gagal (query penerima
+        // atau pengiriman) tidak menghentikan loop, agar period lain yang
+        // sudah waktunya tetap ter-notify di run yang sama.
         $users = collect();
 
         try {
@@ -58,19 +55,16 @@ class NotifyActiveSubmissionPeriods extends Command
                 'recipients_count' => $users->count(),
             ]);
 
-            // Period yang pengirimannya gagal tidak ditandai sudah
-            // diberitahukan, supaya run terjadwal berikutnya mencobanya
-            // lagi. Fire-and-forget berarti kegagalannya tidak melempar,
-            // bukan bahwa kegagalannya dianggap keberhasilan.
+            // Period gagal kirim tidak ditandai sudah diberitahukan, agar run
+            // terjadwal berikutnya mencobanya lagi. Fire-and-forget: gagal
+            // tidak melempar, bukan dianggap berhasil.
             if (!$terkirim) {
                 return false;
             }
         } catch (\Throwable $e) {
-            // Yang tersisa untuk ditangkap di sini adalah kegagalan
-            // **mencari penerima**. Kegagalan pengirimannya sendiri sudah
-            // ditelan Deliver (BR-NOT-03) beserta konteks period-nya, jadi
-            // menangkapnya dua kali hanya akan mencatat satu kejadian
-            // sebagai dua baris.
+            // Di sini hanya kegagalan **mencari penerima**; kegagalan
+            // kirim sudah ditelan Deliver (BR-NOT-03) beserta konteksnya,
+            // jadi menangkapnya lagi mencatat kejadian dua kali.
             Log::error('Gagal menyiapkan notifikasi submission period active', [
                 'submission_period_id' => $period->id,
                 'recipients_count' => $users->count(),
