@@ -182,10 +182,13 @@ class ReviewerFormAssignmentController extends Controller
             ]);
         }
 
-        $query = ReviewerFormAssignment::where('submission_reviewer_id', function ($subQuery) use ($reviewer) {
+        // BR-SM-07, BR-REV-10 — form milik penugasan yang sudah diganti tidak terdaftar.
+        // `whereIn`, bukan `=`: reviewer biasanya bertugas di lebih dari satu pengajuan.
+        $query = ReviewerFormAssignment::whereIn('submission_reviewer_id', function ($subQuery) use ($reviewer) {
             $subQuery->select('id')
                 ->from('submission_reviewers')
-                ->where('reviewer_id', $reviewer->id);
+                ->where('reviewer_id', $reviewer->id)
+                ->where('status', 'active');
         })->with([
             'reviewEvaluationForm:id,title,description',
             'submissionReviewer.formSubmission.form:id,title',
@@ -239,10 +242,11 @@ class ReviewerFormAssignmentController extends Controller
             ->paginate(15);
 
         // Calculate stats
-        $allAssignments = ReviewerFormAssignment::where('submission_reviewer_id', function ($subQuery) use ($reviewer) {
+        $allAssignments = ReviewerFormAssignment::whereIn('submission_reviewer_id', function ($subQuery) use ($reviewer) {
             $subQuery->select('id')
                 ->from('submission_reviewers')
-                ->where('reviewer_id', $reviewer->id);
+                ->where('reviewer_id', $reviewer->id)
+                ->where('status', 'active');
         })->get();
 
         $stats = [

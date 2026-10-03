@@ -179,9 +179,15 @@ class UserFormController extends Controller
             abort(403, 'Anda tidak terdaftar sebagai reviewer');
         }
 
+        // BR-SM-07, BR-REV-10 — ulir lama tidak membuka pengajuan bagi reviewer
+        // yang penugasannya sudah diganti.
         $query = FormSubmission::whereHas('reviewSummaries', function ($q) use ($reviewer) {
             $q->where('reviewer_id', $reviewer->id);
         })
+            ->whereHas('submissionReviewers', function ($q) use ($reviewer) {
+                $q->where('reviewer_id', $reviewer->id)
+                    ->where('status', 'active');
+            })
             ->with([
                 'form:id,title',
                 'submittedBy:id,name,email',

@@ -987,8 +987,10 @@ class SubmissionViewController extends Controller
             abort(403, 'Anda tidak terdaftar sebagai reviewer.');
         }
 
+        // BR-SM-07, BR-REV-10 — pengajuan yang penugasannya sudah diganti tidak terdaftar.
         $query = FormSubmission::whereHas('submissionReviewers', function ($q) use ($reviewer) {
-            $q->where('reviewer_id', $reviewer->id);
+            $q->where('reviewer_id', $reviewer->id)
+                ->where('status', 'active');
         })
             ->with([
                 'form:id,title',

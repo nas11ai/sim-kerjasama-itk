@@ -20,6 +20,7 @@ use App\Models\SubmissionReviewer;
 use App\Models\User;
 use App\States\Submission\UnderReview;
 use Illuminate\Support\Facades\Mail;
+use Inertia\Testing\AssertableInertia as Assert;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 
@@ -248,4 +249,84 @@ it('tidak mengirim isi ulir baru ke reviewer yang sudah diganti', function () {
     // Admin tetap menerima — tanpa itu test lolos hanya karena emailnya gagal.
     Mail::assertQueued(DynamicEmailNotification::class, fn ($mail) => $mail->hasTo($operator->email));
     Mail::assertNotQueued(DynamicEmailNotification::class, fn ($mail) => $mail->hasTo($user->email));
+});
+
+it('menyembunyikan pengajuan dari daftar reviewer yang sudah diganti', function () {
+    [$user, $reviewer] = replacedReviewerFixture();
+
+    // Penugasan aktif di pengajuan lain: daftarnya tidak kosong karena hal lain.
+    [, , $other] = replacedReviewerFixture();
+    SubmissionReviewer::create([
+        'form_submission_id' => $other->id,
+        'reviewer_id' => $reviewer->id,
+        'evaluation_status' => 'pending',
+        'status' => 'active',
+    ]);
+
+    $this->actingAs($user)
+        ->get(route('reviewer.submissions.index'))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->has('submissions.data', 1)
+            ->where('submissions.data.0.id', $other->id));
+});
+
+it('menyembunyikan pengajuan dari daftar ulir reviewer yang sudah diganti', function () {
+    [$user, $reviewer, $submission] = replacedReviewerFixture();
+
+    // Ulirnya sendiri dari sebelum diganti — daftar ini menyaring lewat ulir.
+    ReviewSummary::create([
+        'form_submission_id' => $submission->id,
+        'reviewer_id' => $reviewer->id,
+        'status' => 'open',
+        'summary_notes' => 'Catatan lama.',
+    ]);
+
+    $this->actingAs($user)
+        ->get(route('submissions.index'))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page->has('submissions.data', 0));
+});
+
+it('menyembunyikan form evaluasi dari daftar tugas reviewer yang sudah diganti', function () {
+    [$user, $reviewer, , $assignment] = replacedReviewerFixture();
+    replacedReviewerFormAssignment($assignment);
+
+    [, , $other] = replacedReviewerFixture();
+    $current = replacedReviewerFormAssignment(SubmissionReviewer::create([
+        'form_submission_id' => $other->id,
+        'reviewer_id' => $reviewer->id,
+        'evaluation_status' => 'pending',
+        'status' => 'active',
+    ]));
+
+    $this->actingAs($user)
+        ->get(route('reviewer.assignments.index'))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->has('assignments.data', 1)
+            ->where('assignments.data.0.id', $current->id)
+            ->where('stats.total', 1));
+});
+
+it('menampilkan form evaluasi reviewer yang aktif di dua pengajuan', function () {
+    // Subkueri `=` dulu meledak begitu reviewer punya lebih dari satu penugasan.
+    [$user, $reviewer] = replacedReviewerFixture();
+
+    for ($i = 0; $i < 2; $i++) {
+        [, , $submission] = replacedReviewerFixture();
+        replacedReviewerFormAssignment(SubmissionReviewer::create([
+            'form_submission_id' => $submission->id,
+            'reviewer_id' => $reviewer->id,
+            'evaluation_status' => 'pending',
+            'status' => 'active',
+        ]));
+    }
+
+    $this->actingAs($user)
+        ->get(route('reviewer.assignments.index'))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->has('assignments.data', 2)
+            ->where('stats.total', 2));
 });
