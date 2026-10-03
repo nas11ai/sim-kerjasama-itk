@@ -2,6 +2,7 @@
 
 namespace App\Actions\FormSubmission;
 
+use App\Models\FormAccessControl;
 use App\Models\FormPhaseDetail;
 use App\Models\FormSubmission;
 use App\Models\User;
@@ -49,13 +50,7 @@ class StartChildSubmission
             return $existing;
         }
 
-        $accessControl = $detail->formAccessControl;
-
-        if ($accessControl === null) {
-            throw ValidationException::withMessages([
-                'form_phase_detail_id' => 'Fase ini belum tertaut ke formulir mana pun.',
-            ]);
-        }
+        $accessControl = $this->accessControlOf($detail);
 
         $tercatat = FormSubmission::create([
             'form_id' => $accessControl->form_id,
@@ -71,5 +66,21 @@ class StartChildSubmission
         AuditTrail::record('Laporan tahap dimulai', $tercatat, $user);
 
         return $tercatat;
+    }
+
+    /**
+     * @throws ValidationException
+     */
+    private function accessControlOf(FormPhaseDetail $detail): FormAccessControl
+    {
+        $accessControl = $detail->formAccessControl;
+
+        if ($accessControl === null) {
+            throw ValidationException::withMessages([
+                'form_phase_detail_id' => 'Fase ini belum tertaut ke formulir mana pun.',
+            ]);
+        }
+
+        return $accessControl;
     }
 }

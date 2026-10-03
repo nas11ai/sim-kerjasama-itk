@@ -22,6 +22,32 @@ class ResubmitFormSubmission
      */
     public function handle(FormSubmission $submission, User $user): FormSubmission
     {
+        $status = $this->guardResubmittable($submission, $user);
+
+        // BR-SM-02 — gerbang dokumen berlaku juga di jalur resubmit. Jangkarnya
+        // tetap created_at asli, jadi revisi tidak menarik field wajib baru ke
+        // dalam pengajuan yang sudah berjalan (register #27).
+        RequiredFieldGuard::assertComplete($submission);
+
+        $status->transitionTo(Resubmitted::class);
+
+        $submission->refresh();
+
+        $this->returnToReviewQueue($submission);
+
+        $tercatat = $submission;
+
+        // BR-RPT-09 — satu Action, satu entri audit.
+        AuditTrail::record('Pengajuan dikirim ulang setelah revisi', $tercatat, $user);
+
+        return $tercatat;
+    }
+
+    /**
+     * @throws AuthorizationException
+     */
+    private function guardResubmittable(FormSubmission $submission, User $user): SubmissionStatus
+    {
         // BR-SM-04 — dijaga Policy; dipanggil di sini supaya aturannya juga
         // berlaku di jalur yang tidak lewat HTTP.
         if (!$user->can('resubmit', $submission)) {
@@ -38,15 +64,11 @@ class ResubmitFormSubmission
             );
         }
 
-        // BR-SM-02 — gerbang dokumen berlaku juga di jalur resubmit. Jangkarnya
-        // tetap created_at asli, jadi revisi tidak menarik field wajib baru ke
-        // dalam pengajuan yang sudah berjalan (register #27).
-        RequiredFieldGuard::assertComplete($submission);
+        return $status;
+    }
 
-        $status->transitionTo(Resubmitted::class);
-
-        $submission->refresh();
-
+    private function returnToReviewQueue(FormSubmission $submission): void
+    {
         // BR-SM-03 — pengajuan yang reviewer-nya masih terpasang langsung
         // masuk antrean review lagi; tidak perlu ditugaskan ulang. Tanpa ini
         // revisi berhenti di RESUBMITTED dan tidak pernah dinilai siapa pun.
@@ -61,12 +83,5 @@ class ResubmitFormSubmission
                 $submission->refresh();
             }
         }
-
-        $tercatat = $submission;
-
-        // BR-RPT-09 — satu Action, satu entri audit.
-        AuditTrail::record('Pengajuan dikirim ulang setelah revisi', $tercatat, $user);
-
-        return $tercatat;
     }
 }

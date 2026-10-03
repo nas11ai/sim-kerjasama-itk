@@ -28,6 +28,42 @@ class SubmitFormSubmission
 
     public function handle(FormSubmission $submission, User $user): FormSubmission
     {
+        $status = $this->guardSubmittable($submission, $user);
+
+        // BR-IAM-04/BR-IAM-13 — akun yang belum terverifikasi (atau yang
+        // verifikasinya ditolak) boleh menyiapkan draft, tapi tidak boleh
+        // mengirimnya. Diperiksa sebelum kelengkapan field: yang menghalangi
+        // di sini bukan isian pengajuannya melainkan keadaan akunnya, dan
+        // pesan itulah yang perlu dibaca peneliti.
+        AccountStateGuard::assertVerified($user);
+
+        // BR-SM-02 + BR-FE-11 — seluruh field wajib, disaring Temporal Field Binding.
+        RequiredFieldGuard::assertComplete($submission);
+        $this->guardActiveSubmissionUniqueness($submission);
+
+        $this->markSubmitted($submission);
+
+        $status->transitionTo(Submitted::class);
+
+        // Refresh dulu supaya listener yang membaca ulang baris melihat status
+        // SUBMITTED yang sudah tersimpan, baru kemudian event di-dispatch.
+        $submission->refresh();
+
+        ProposalSubmitted::dispatch($submission);
+
+        $tercatat = $submission;
+
+        // BR-RPT-09 — satu Action, satu entri audit.
+        AuditTrail::record('Pengajuan disubmit', $tercatat, $user);
+
+        return $tercatat;
+    }
+
+    /**
+     * @throws AuthorizationException
+     */
+    private function guardSubmittable(FormSubmission $submission, User $user): SubmissionStatus
+    {
         // BR-SM-04 — dijaga FormSubmissionPolicy::submit(); dipanggil di sini
         // supaya aturannya juga berlaku di jalur yang tidak lewat HTTP, dan
         // supaya aturannya hanya tertulis di satu tempat. `submit` ada di
@@ -47,17 +83,15 @@ class SubmitFormSubmission
             );
         }
 
-        // BR-IAM-04/BR-IAM-13 — akun yang belum terverifikasi (atau yang
-        // verifikasinya ditolak) boleh menyiapkan draft, tapi tidak boleh
-        // mengirimnya. Diperiksa sebelum kelengkapan field: yang menghalangi
-        // di sini bukan isian pengajuannya melainkan keadaan akunnya, dan
-        // pesan itulah yang perlu dibaca peneliti.
-        AccountStateGuard::assertVerified($user);
+        return $status;
+    }
 
-        // BR-SM-02 + BR-FE-11 — seluruh field wajib, disaring Temporal Field Binding.
-        RequiredFieldGuard::assertComplete($submission);
-        $this->guardActiveSubmissionUniqueness($submission);
-
+    /**
+     * @throws ValidationException
+     * @throws QueryException
+     */
+    private function markSubmitted(FormSubmission $submission): void
+    {
         // BR-SM-16 — index one_active_submission_per_period_scheme adalah jaring
         // pengaman lomba-balap: dua submit bersamaan lolos pemeriksaan di atas,
         // lalu salah satunya dibentur di sini. Peneliti tidak boleh melihat galat
@@ -86,21 +120,6 @@ class SubmitFormSubmission
                 ? $e
                 : $this->activeSubmissionRejection($clash);
         }
-
-        $status->transitionTo(Submitted::class);
-
-        // Refresh dulu supaya listener yang membaca ulang baris melihat status
-        // SUBMITTED yang sudah tersimpan, baru kemudian event di-dispatch.
-        $submission->refresh();
-
-        ProposalSubmitted::dispatch($submission);
-
-        $tercatat = $submission;
-
-        // BR-RPT-09 — satu Action, satu entri audit.
-        AuditTrail::record('Pengajuan disubmit', $tercatat, $user);
-
-        return $tercatat;
     }
 
     /**
