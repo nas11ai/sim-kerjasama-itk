@@ -16,7 +16,7 @@ Yang tersisa menjadi cangkang: FormRequest/validasi → Action/Query → respons
 
 **Spec induk:** [`refactor-plan.md`](refactor-plan.md) §2.1, §5 gelombang 3
 
-**Status:** selesai 2026-10-04, kode terakhir mendarat di 102ec0b.
+**Status:** selesai 4 Oktober 2026, mendarat di 9b7f8c6.
 
 ---
 
@@ -136,11 +136,13 @@ permintaan, di samping entri per reviewer dari `AssignReviewer` — presedennya
 
 ## Definisi selesai
 
-- [ ] `CI composer run quality` dan `npm run quality` hijau
+- [x] `CI composer run quality` dan `npm run quality` hijau — Pest 1000 passed, PHPStan dua
+      tier tanpa galat, Vitest 11 passed (gelombang perbaikan akhir)
 - [x] `php tools/limits.php app/Http/Controllers/ReviewController.php` tanpa pelanggaran
 - [x] `app/Http/Controllers/ReviewController.php` keluar dari `quality-legacy.txt`;
       `max.legacy.files` 121 → 120
-- [ ] Setiap test F2–F4 merah sebelum perbaikan
+- [x] Setiap test F2–F4 merah sebelum perbaikan — F2 4 failed, F3 3 failed lalu 1 failed
+      (urutan otorisasi), F4 2 failed; tercatat di laporan Task 2–4
 
 ## Yang tidak dikerjakan dokumen ini
 
@@ -152,13 +154,21 @@ permintaan, di samping entri per reviewer dari `AssignReviewer` — presedennya
 
 ## Yang berbeda dari rencana
 
-- Task 2: putaran perbaikannya membuang `notifyReviewStatusChanged` (BR-NOT-02: RevisionResolved
-  hanya in-app, tanpa email), dan tiga route yang metodenya tidak pernah ada
-  (`review-summaries.complete` ×2, `admin.review-summaries.destroy`).
+- Task 2: putaran perbaikannya membuang email `notifyReviewStatusChanged` (BR-NOT-02:
+  RevisionResolved tanpa email) dan tiga route yang metodenya tidak pernah ada
+  (`review-summaries.complete` ×2, `admin.review-summaries.destroy`). Notifikasi in-app
+  `RevisionResolvedNotification` untuk peneliti utama baru ditambahkan di gelombang perbaikan akhir.
 - Task 3: urutan pemeriksaan diubah, otorisasi berjalan sebelum pemeriksaan berkas di disk.
 - Task 4: `emailService` yang mati dibuang dari controller, dan test matriks K3 ditambahkan.
 - Task 5: `AssignReviewers` memecah satu penugasan ke `assignOne()` (Extract Method) agar
   `handle()` di bawah ambang.
+- Task 7 (di luar rencana): delapan route non-review yang menunjuk method tak ada dicabut —
+  `roles.show`, `permissions.create`/`show`/`edit`, `users.assign-role`/`revoke-role`/
+  `assign-permissions`/`revoke-permissions` — dan `RouteActionsExistTest` menjaganya.
+- Gelombang perbaikan akhir: resolve memberi tahu peneliti utama (in-app), resolve ulang tidak
+  mengulang evaluasi/audit/notifikasi, "Tandai Selesai" hanya di ulir sendiri dan tanpa kirim
+  ganda, `?path[]=` unduh lampiran jadi 404, `addComment` tanpa cast dan try/catch, pesan
+  evaluasi tanpa "0 formulir", audit batch "Penugasan reviewer diproses".
 - Backend tidak lagi menghalangi resolve selama evaluasi masih tertunda: BR-FE-06 hanya
   menjaga pembuatan ulir. Pertanyaan untuk pemilik: apakah resolve juga harus ditahan?
 
