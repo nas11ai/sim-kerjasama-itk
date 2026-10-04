@@ -99,9 +99,9 @@ periode dan mengubah nama/tahapnya tanpa audit (BR-RPT-09).
 
 ## Definisi selesai
 
-- [ ] `CI composer run quality` dan `npm run quality` hijau
-- [ ] Kedua controller keluar dari `quality-legacy.txt`; `max.legacy.files` 109 → 107
-- [ ] Test A1–A5, P1–P3 merah sebelum perbaikan (yang memang perilaku baru)
+- [x] `CI composer run quality` dan `npm run quality` hijau
+- [x] Kedua controller keluar dari `quality-legacy.txt`; `max.legacy.files` 109 → 107
+- [x] Test A1–A5, P1–P3 merah sebelum perbaikan (yang memang perilaku baru)
 
 ## Yang tidak dikerjakan
 
@@ -130,41 +130,41 @@ periode dan mengubah nama/tahapnya tanpa audit (BR-RPT-09).
 
 ### Task 1: Visibilitas pengumuman (A1, A5, K1)
 
-- [ ] Test merah: tamu membuka detail pengumuman **privat** → 404; tamu membuka detail yang
+- [x] Test merah: tamu membuka detail pengumuman **privat** → 404; tamu membuka detail yang
   kedaluwarsa → 404; pengguna login membuka privat → 200; daftar pengguna tidak memuat yang
   kedaluwarsa. Karakterisasi: halaman depan tetap memuat publik yang belum kedaluwarsa (maks. 10).
-- [ ] Implementasi K1; rute `welcome` memakai Query (closure-nya menyusut).
-- [ ] Gerbang; commit `fix(announcement): pengumuman privat dan kedaluwarsa tak terbuka untuk tamu`
+- [x] Implementasi K1; rute `welcome` memakai Query (closure-nya menyusut).
+- [x] Gerbang; commit `fix(announcement): pengumuman privat dan kedaluwarsa tak terbuka untuk tamu`
 
 ### Task 2: Status baca (A2, K2)
 
-- [ ] Test merah: `POST user.announcements.markRead` menyimpan baris; `GET` tidak lagi mengubah
+- [x] Test merah: `POST user.announcements.markRead` menyimpan baris; `GET` tidak lagi mengubah
   state (405); `userIndex` mengirim `is_read` true untuk yang sudah dibaca pengguna itu dan false
   untuk lainnya. Sesuaikan `AnnouncementMarkReadTest` yang memakai GET.
-- [ ] Implementasi K2; test frontend kecil bila ada pola di `tests/frontend` untuk pemanggilan
+- [x] Implementasi K2; test frontend kecil bila ada pola di `tests/frontend` untuk pemanggilan
   route (opsional).
-- [ ] Gerbang (`npm run quality` juga); commit `fix(announcement): tandai dibaca lewat POST dan status baca bertahan`
+- [x] Gerbang (`npm run quality` juga); commit `fix(announcement): tandai dibaca lewat POST dan status baca bertahan`
 
 ### Task 3: Pengumuman lewat Action (A3, A4, K3)
 
-- [ ] Test merah: `update` dengan `deleted_files` berisi id lampiran pengumuman **lain** → lampiran
+- [x] Test merah: `update` dengan `deleted_files` berisi id lampiran pengumuman **lain** → lampiran
   itu utuh; `destroy` menghapus berkas dari disk `public` (`Storage::fake('public')`); ketiga aksi
   diaudit.
-- [ ] Implementasi K3; controller jadi cangkang.
-- [ ] Gerbang; commit `fix(announcement): lampiran ter-scope dan pengumuman lewat Action beraudit`
+- [x] Implementasi K3; controller jadi cangkang.
+- [x] Gerbang; commit `fix(announcement): lampiran ter-scope dan pengumuman lewat Action beraudit`
 
 ### Task 4: Periode lewat Action (P1–P3, K4–K6)
 
-- [ ] Test: dua baris berlabel sama → `assertSessionHasErrors('submission_dates')` (**merah**);
+- [x] Test: dua baris berlabel sama → `assertSessionHasErrors('submission_dates')` (**merah**);
   dua batas akhir berbeda label dengan tanggal sama → diterima (**merah** bila hari ini ditolak);
   membuat periode diaudit (**merah**); revisi yang gagal setelah tanggal diperpanjang tidak
   mengirim notifikasi (**merah** — paksa gagal lewat `form_phase_ids` yang memicu galat setelah
   sinkron tanggal, atau cara lain yang sah); `DeadlineExtensionTest` dan test periode lain tetap hijau.
-- [ ] Implementasi K4–K6.
-- [ ] Gerbang; commit `fix(period): tanggal periode sebagai batas akhir dan revisi atomik beraudit`
+- [x] Implementasi K4–K6.
+- [x] Gerbang; commit `fix(period): tanggal periode sebagai batas akhir dan revisi atomik beraudit`
 
 ### Task 5: Ukur dan keluarkan
 
-- [ ] `tools/limits.php` dan `tools/prosa.php` bersih untuk kedua controller dan berkas baru.
-- [ ] Hapus kedua baris dari `quality-legacy.txt`; `max.legacy.files` 109 → 107.
-- [ ] Status dokumen; *Yang berbeda dari rencana*. Commit `refactor: pengumuman dan periode keluar dari daftar legacy`
+- [x] `tools/limits.php` dan `tools/prosa.php` bersih untuk kedua controller dan berkas baru.
+- [x] Hapus kedua baris dari `quality-legacy.txt`; `max.legacy.files` 109 → 107.
+- [x] Status dokumen; *Yang berbeda dari rencana*. Commit `refactor: pengumuman dan periode keluar dari daftar legacy`
