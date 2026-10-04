@@ -126,7 +126,7 @@ it('[REV-ASSIGN-08] menolak reviewer di luar masa tugas lewat jalur HTTP', funct
     expect($submission->submissionReviewers()->count())->toBe(0);
 });
 
-it('[REV-TENURE-06] menugaskan reviewer yang end_date-nya hari ini berhasil', function () {
+it('BR-REV-09 — menugaskan reviewer yang end_date-nya hari ini berhasil', function () {
     [$operator, $submission] = assignHttpFixture();
 
     $lastDay = Reviewer::factory()->create([

@@ -15,7 +15,7 @@ function tenureReviewer(?string $start, ?string $end): Reviewer
     ])->refresh();
 }
 
-it('[REV-TENURE-01] end_date hari ini pukul 15:00 masih bertugas', function () {
+it('BR-REV-09 — end_date hari ini pukul 15:00 masih bertugas', function () {
     $this->travelTo(now()->setTime(15, 0));
     $reviewer = tenureReviewer(now()->subYear()->toDateString(), now()->toDateString());
 
@@ -23,14 +23,14 @@ it('[REV-TENURE-01] end_date hari ini pukul 15:00 masih bertugas', function () {
         ->and(ReviewersWithinTenure::run()->whereKey($reviewer->id)->exists())->toBeTrue();
 });
 
-it('[REV-TENURE-02] start_date besok belum bertugas', function () {
+it('BR-REV-09 — start_date besok belum bertugas', function () {
     $reviewer = tenureReviewer(now()->addDay()->toDateString(), null);
 
     expect($reviewer->isWithinTenure())->toBeFalse()
         ->and(ReviewersWithinTenure::run()->whereKey($reviewer->id)->exists())->toBeFalse();
 });
 
-it('[REV-TENURE-03] end_date kemarin sudah habis', function () {
+it('BR-REV-09 — end_date kemarin sudah habis', function () {
     $reviewer = tenureReviewer(now()->subYear()->toDateString(), now()->subDay()->toDateString());
 
     expect($reviewer->isWithinTenure())->toBeFalse()
@@ -38,7 +38,7 @@ it('[REV-TENURE-03] end_date kemarin sudah habis', function () {
 });
 
 // reviewers.start_date NOT NULL di skema: tanpa start hanya ada di model yang belum disimpan.
-it('[REV-TENURE-04] tanpa start_date dan end_date bertugas', function () {
+it('BR-REV-09 — tanpa start_date dan end_date bertugas', function () {
     expect(new Reviewer(['start_date' => null, 'end_date' => null])->isWithinTenure())->toBeTrue();
 
     $open = tenureReviewer(now()->subYear()->toDateString(), null);
@@ -47,7 +47,7 @@ it('[REV-TENURE-04] tanpa start_date dan end_date bertugas', function () {
         ->and(ReviewersWithinTenure::run()->whereKey($open->id)->exists())->toBeTrue();
 });
 
-it('[REV-TENURE-05] query dan isWithinTenure menghasilkan himpunan yang sama', function () {
+it('BR-REV-09 — query dan isWithinTenure menghasilkan himpunan yang sama', function () {
     $this->travelTo(now()->setTime(15, 0));
     $all = collect([
         tenureReviewer(now()->subYear()->toDateString(), now()->toDateString()),
@@ -60,4 +60,20 @@ it('[REV-TENURE-05] query dan isWithinTenure menghasilkan himpunan yang sama', f
     $viaQuery = ReviewersWithinTenure::run()->whereKey($all->pluck('id'))->pluck('id')->sort()->values()->all();
 
     expect($viaQuery)->toBe($viaModel)->and($viaModel)->toHaveCount(2);
+});
+
+it('BR-REV-09 — start_date hari ini dengan jam bukan tengah malam bertugas', function () {
+    $this->travelTo(now()->setTime(8, 0));
+    $reviewer = tenureReviewer(now()->setTime(13, 45)->toDateTimeString(), null);
+
+    expect($reviewer->isWithinTenure())->toBeTrue()
+        ->and(ReviewersWithinTenure::run()->whereKey($reviewer->id)->exists())->toBeTrue();
+});
+
+it('BR-REV-09 — pukul 23:30 end_date hari ini masih bertugas', function () {
+    $this->travelTo(now()->setTime(23, 30));
+    $reviewer = tenureReviewer(now()->subYear()->toDateString(), now()->toDateString());
+
+    expect($reviewer->isWithinTenure())->toBeTrue()
+        ->and(ReviewersWithinTenure::run()->whereKey($reviewer->id)->exists())->toBeTrue();
 });
