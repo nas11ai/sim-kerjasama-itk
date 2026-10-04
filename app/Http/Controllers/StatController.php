@@ -10,12 +10,21 @@ use App\Models\SubmissionPeriod;
 use App\Models\SubmissionReviewer;
 use App\Models\User;
 use App\Models\UserProfile;
+use App\Queries\Reporting\SubmissionStatusBuckets;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 
 class StatController extends Controller
 {
+    /** @param list<string> $states */
+    private function bucketCount(string $bucket, array $states): string
+    {
+        $states = implode("','", $states);
+
+        return "COUNT(submission_id) FILTER (WHERE status IN ('{$states}')) as {$bucket}";
+    }
+
     private function getAllStats()
     {
         return [
@@ -140,12 +149,13 @@ class StatController extends Controller
             ->select(
                 'phase_id as id',
                 'phase_title as title',
-                DB::raw('COUNT(submission_id) as total_submissions'),
-                DB::raw("SUM(CASE WHEN status = 'pending' THEN 1 ELSE 0 END) as pending"),
-                DB::raw("SUM(CASE WHEN status = 'under_review' THEN 1 ELSE 0 END) as under_review"),
-                DB::raw("SUM(CASE WHEN status = 'approved' THEN 1 ELSE 0 END) as approved"),
-                DB::raw("SUM(CASE WHEN status = 'rejected' THEN 1 ELSE 0 END) as rejected"),
-                DB::raw("SUM(CASE WHEN status = 'revision' THEN 1 ELSE 0 END) as revision")
+                DB::raw($this->bucketCount('total_submissions', (new SubmissionStatusBuckets)->countedStates())),
+                DB::raw($this->bucketCount('pending', SubmissionStatusBuckets::run()['pending'])),
+                DB::raw($this->bucketCount('under_review', SubmissionStatusBuckets::run()['under_review'])),
+                DB::raw($this->bucketCount('approved', SubmissionStatusBuckets::run()['approved'])),
+                DB::raw($this->bucketCount('rejected', SubmissionStatusBuckets::run()['rejected'])),
+                DB::raw($this->bucketCount('revision', SubmissionStatusBuckets::run()['revision'])),
+                DB::raw($this->bucketCount('withdrawn', SubmissionStatusBuckets::run()['withdrawn']))
             )
             ->groupBy('phase_id', 'phase_title')
             ->get();
@@ -231,9 +241,13 @@ class StatController extends Controller
             ->groupBy('submission_periods.id', 'submission_periods.name')
             ->get();
 
-        $totalByStatus = FormSubmission::select('status', DB::raw('count(*) as total'))
-            ->groupBy('status')
-            ->get();
+        $totalByStatus = collect(SubmissionStatusBuckets::run())
+            ->map(fn (array $states, string $bucket) => [
+                'status' => $bucket,
+                'total' => FormSubmission::whereIn('status', $states)->count(),
+            ])
+            ->filter(fn (array $row) => $row['total'] > 0)
+            ->values();
 
         $totalByFaculty = FormSubmission::select('fac_org.id', 'fac_org.name', DB::raw('COUNT(DISTINCT form_submissions.id) as total'))
             ->join('forms', 'forms.id', '=', 'form_submissions.form_id')
@@ -354,14 +368,18 @@ class StatController extends Controller
             $query->where('name', 'Admin');
         })->count();
 
-        $totalProdi = UserProfile::whereNotNull('organization_id')->count();
+        $totalProdi = UserProfile::join('organizations', 'organizations.id', '=', 'user_profiles.organization_id')
+            ->where('organizations.type', 'study_program')
+            ->distinct()
+            ->count('user_profiles.user_id');
 
-        $totalFaculty = UserProfile::select('users.id')
-            ->join('organizations', 'user_profiles.organization_id', '=', 'organizations.id')
-            ->join('organizations as parent_org', 'organizations.parent_id', '=', 'parent_org.id')
-            ->where('parent_org.type', 'faculty')
-            ->where(DB::raw("parent_org.metadata->'legacy'->>'faculty_id'"), '=', '1')
-            ->count();
+        $facultyUnitIds = [];
+        foreach (Organization::where('type', 'faculty')->get() as $faculty) {
+            $facultyUnitIds = array_merge($facultyUnitIds, Organization::subtreeIds($faculty->id));
+        }
+        $totalFaculty = UserProfile::whereIn('organization_id', array_unique($facultyUnitIds))
+            ->distinct()
+            ->count('user_id');
 
         return [
             'userRecent' => $userRecent,
