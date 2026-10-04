@@ -19,7 +19,6 @@ app/Http/Controllers/StatController.php
 app/Http/Controllers/SubmissionPeriodController.php
 app/Http/Controllers/SubmissionViewController.php
 app/Http/Controllers/UserFormController.php
-app/Http/Middleware/CheckBiodata.php
 app/Models/FormPhaseDetail.php
 # FormSubmission.php tidak bisa keluar dari daftar ini, dan itu bukan utang:
 # 215 baris kode tanpa komentar, baris kosong, dan import, sementara

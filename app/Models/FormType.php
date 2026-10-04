@@ -9,6 +9,9 @@ class FormType extends Model
 {
     use HasFactory;
 
+    /** Baris pertama FormTypeSeeder: jenis form untuk biodata. */
+    public const BIODATA_ID = 1;
+
     protected $fillable = ['name'];
 
     public function forms()

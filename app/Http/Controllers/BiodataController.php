@@ -6,6 +6,7 @@ use App\Models\Form;
 use App\Models\FormFieldOption;
 use App\Models\FormFieldResponse;
 use App\Models\FormSubmission;
+use App\Models\FormType;
 use App\Services\FormAccessService;
 use App\States\Submission\Submitted;
 use Exception;
@@ -23,7 +24,7 @@ class BiodataController extends Controller
     {
         $user = Auth::user();
 
-        $biodataForm = Form::where('form_type_id', 1)
+        $biodataForm = Form::where('form_type_id', FormType::BIODATA_ID)
             ->where('is_active', true)
             ->first();
 
