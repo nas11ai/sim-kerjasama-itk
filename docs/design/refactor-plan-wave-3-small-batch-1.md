@@ -14,7 +14,7 @@ sisanya dibentuk ulang tanpa mengubah perilaku kecuali yang disebut di temuan.
 
 **Spec induk:** [`refactor-plan.md`](refactor-plan.md) §5 gelombang 3
 
-**Status:** belum dikerjakan.
+**Status:** selesai 4 Oktober 2026, mendarat di f1d2f1f.
 
 ---
 
@@ -79,6 +79,16 @@ ekspor (termasuk tautan bertanda tangan BR-RPT-03) dirakit di controller; dua bl
 
 - Layar daftar `Organization` (bagian layar v2).
 - Penghapusan tabel `faculties`/`study_programs` — butuh migration terhadap data nyata.
+
+## Yang berbeda dari rencana
+
+- Task 1 juga mencabut redirect `/faculties` dan grup sidebar-nya. Model dan seeder Fakultas/Prodi
+  tetap ada karena masih dipakai `FacultySeeder`, `StudyProgramSeeder`, dan `OrganizationSeeder`.
+- Task 2 menambah `FormType::BIODATA_ID` (sebelumnya tidak ada konstanta). Baris biodata yang
+  sudah dikirim tetapi berstatus null kini dihitung `not_submitted`, bukan error fatal.
+- Task 3 menambah satu test karakterisasi bentuk `jobs` (job selesai dan job yang berkasnya hilang).
+  Query memakai `@phpstan-type HistoryRow` agar tidak menambah hitungan `mixed`.
+- `max.legacy.files` akhir: 109.
 
 ---
 ---
