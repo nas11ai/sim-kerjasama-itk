@@ -16,7 +16,7 @@ Action itu; sisanya jadi cangkang validasi → Action/Query → respons.
 
 **Spec induk:** [`refactor-plan.md`](refactor-plan.md) §2.1, §5 gelombang 3
 
-**Status:** belum dikerjakan.
+**Status:** selesai 4 Oktober 2026, mendarat di deca734 (Task 4), ba5c729 (Task 5), dan commit penutup Task 6.
 
 ---
 
@@ -155,6 +155,26 @@ Inertia (`assignments`, `stats`, `filters`) tidak berubah.
 - Siapa yang boleh menjadi kandidat reviewer di layar "Tambah Reviewer" (hari ini: role
   "Tenaga Kependidikan"). BR-IAM-11 hanya menyebut "user yang sudah terdaftar"; daftar
   kandidatnya tetap, hanya filter masa tugasnya yang mengikuti K2.
+
+## Yang berbeda dari rencana
+
+- Task 1: nama test memakai kode BR-REV-09, bukan ID skenario karangan.
+- Task 2: pembaruan reviewer berjalan atomik dan menolak user yang punya record reviewer
+  ganda dari data lama.
+- Task 2: `ChangeReviewerTenure` tidak melakukan apa-apa (tanpa audit) bila tanggalnya tidak
+  berubah.
+- Task 2: `EditPage` menampilkan galat `user_id`.
+- Task 3: `DismissReviewer` mencabut role hanya bila tidak ada record reviewer lain yang
+  tersisa untuk user itu.
+- Task 3: `ReviewerController` keluar dari daftar legacy sudah di Task 3, lebih awal dari
+  Task 6.
+- Task 5: galat tak terduga tidak ditangkap (K7); penolakan yang diharapkan (jawaban sudah
+  dikirim, reviewer tak bertugas) menjadi galat sesi atau pesan hasil. Statistik daftar tugas
+  dihitung dengan tiga `COUNT` yang memakai definisi filter yang sama, bukan satu agregat.
+- Task 6: hanya satu baris yang dihapus dari `quality-legacy.txt` (`max.legacy.files`
+  119 → 118), karena `ReviewerController` sudah keluar di Task 3.
+- Diparkir: menonaktifkan reviewer yang `start_date`-nya di masa depan menghasilkan
+  `end_date` < `start_date`.
 
 ---
 ---
