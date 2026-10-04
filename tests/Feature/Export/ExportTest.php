@@ -227,3 +227,28 @@ it('menolak unduhan berkas milik orang lain meski tautannya sah', function () {
 
     $this->actingAs($orangLain)->get($url)->assertForbidden();
 });
+
+it('BR-RPT-03 riwayat ekspor memuat tautan unduh hanya selama berkasnya ada', function () {
+    Storage::fake(ExportWriter::DISK);
+    $operator = exportOperator();
+    submissionsFor(User::factory()->create(), 2);
+
+    $ada = RequestExport::run($operator, ExportType::SUBMISSIONS);
+    $hilang = RequestExport::run($operator, ExportType::SUBMISSIONS);
+    $hilang->update(['file_deleted_at' => now()]);
+
+    $this->actingAs($operator)
+        ->get(route('exports.index'))
+        ->assertInertia(fn ($page) => $page
+            ->component('Exports/IndexPage')
+            ->has('jobs', 2)
+            ->where('jobs.1.id', $ada->id)
+            ->where('jobs.1.type', ExportType::label($ada->type))
+            ->where('jobs.1.type_value', $ada->type)
+            ->where('jobs.1.status', ExportJob::STATUS_COMPLETED)
+            ->where('jobs.1.file_is_gone', false)
+            ->where('jobs.1.download_url', fn ($url) => str_contains((string) $url, '/exports/'.$ada->id.'/') && str_contains((string) $url, 'signature='))
+            ->where('jobs.0.id', $hilang->id)
+            ->where('jobs.0.file_is_gone', true)
+            ->where('jobs.0.download_url', null));
+});

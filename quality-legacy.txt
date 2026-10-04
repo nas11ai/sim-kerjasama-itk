@@ -9,7 +9,6 @@
 app/Http/Controllers/AnnouncementController.php
 app/Http/Controllers/BiodataController.php
 app/Http/Controllers/CompleteFormBuilderController.php
-app/Http/Controllers/Export/ExportController.php
 app/Http/Controllers/FormAccessControlController.php
 app/Http/Controllers/FormController.php
 app/Http/Controllers/FormPhaseController.php
