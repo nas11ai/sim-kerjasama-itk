@@ -311,14 +311,8 @@ Route::middleware(['auth', 'can:users.manage', 'check_reviewer_status'])->prefix
     Route::post('/submissions/{submission}/assign-forms-bulk', [ReviewerFormAssignmentController::class, 'bulkAssignForms'])
         ->name('submissions.assign-forms-bulk');
 
-    Route::get('/submissions/{submission}/form-assignments', [ReviewerFormAssignmentController::class, 'getAssignmentsForSubmission'])
-        ->name('submissions.form-assignments');
-
     Route::delete('/form-assignments/{assignment}', [ReviewerFormAssignmentController::class, 'removeFormAssignment'])
         ->name('form-assignments.remove');
-
-    Route::patch('/form-assignments/{assignment}', [ReviewerFormAssignmentController::class, 'updateAssignment'])
-        ->name('form-assignments.update');
 
     // Admin create review thread
     Route::post('/submissions/{submission}/review-threads', [ReviewController::class, 'createReviewThread'])
@@ -430,10 +424,6 @@ Route::middleware(['auth', 'can:users.manage', 'check_reviewer_status'])->prefix
 
     Route::patch('api/form-phases/{formPhase}/status', [FormPhaseController::class, 'updateStatus'])
         ->name('form-phases.update-status');
-
-    // NEW: Maintenance routes
-    Route::post('maintenance/auto-lock-overdue-assignments', [ReviewerFormAssignmentController::class, 'autoLockOverdueAssignments'])
-        ->name('maintenance.auto-lock-overdue');
 });
 
 // For backwards compatibility, you can add redirects for admin routes without prefix

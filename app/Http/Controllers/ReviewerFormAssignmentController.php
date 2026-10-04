@@ -3,9 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Actions\Review\AssignEvaluationForm;
-use App\Actions\Review\LockEvaluationForm;
 use App\Actions\Review\RecalculateEvaluationStatus;
-use App\Models\FormPhase;
 use App\Models\FormSubmission;
 use App\Models\ReviewerFormAssignment;
 use App\Queries\Review\ActiveReviewerAssignment;
@@ -49,65 +47,6 @@ class ReviewerFormAssignmentController extends Controller
 
             return back()->withErrors(['error' => 'Gagal menghapus penugasan formulir: '.$e->getMessage()]);
         }
-    }
-
-    public function updateAssignment(Request $request, ReviewerFormAssignment $assignment)
-    {
-        $validated = $request->validate([
-            'is_required' => 'boolean',
-            'due_date' => 'nullable|date|after:now',
-        ]);
-
-        // Check if response is already submitted
-        if ($assignment->reviewFormResponse && $assignment->reviewFormResponse->isSubmitted()) {
-            return back()->withErrors(['error' => 'Tidak dapat memodifikasi penugasan dengan respons yang telah dikirim.']);
-        }
-
-        try {
-            $assignment->update([
-                'is_required' => $validated['is_required'] ?? $assignment->is_required,
-                'due_date' => $validated['due_date'] ? Carbon::parse($validated['due_date']) : null,
-            ]);
-
-            // Update evaluation status
-            RecalculateEvaluationStatus::run($assignment->submissionReviewer);
-
-            return back()->with('success', 'Penugasan berhasil diperbarui.');
-
-        } catch (\Exception $e) {
-            return back()->withErrors(['error' => 'Gagal memperbarui penugasan: '.$e->getMessage()]);
-        }
-    }
-
-    public function getAssignmentsForSubmission(FormSubmission $submission)
-    {
-        $assignments = ReviewerFormAssignment::whereHas('submissionReviewer', function ($query) use ($submission) {
-            $query->where('form_submission_id', $submission->id);
-        })
-            ->with([
-                'submissionReviewer.reviewer.user:id,name,email',
-                'submissionReviewer.reviewer:id,user_id,reviewer_type',
-                'reviewEvaluationForm:id,title,description,is_required',
-                'reviewFormResponse:id,reviewer_form_assignment_id,status,submitted_at',
-            ])
-            ->get()
-            ->groupBy('submissionReviewer.reviewer.id');
-
-        return response()->json($assignments);
-    }
-
-    public function getAvailableFormsForSubmission(FormSubmission $submission)
-    {
-        $formPhase = $this->getSubmissionFormPhase($submission);
-
-        if (!$formPhase) {
-            return response()->json([]);
-        }
-
-        $availableForms = $formPhase->activeReviewEvaluationForms()
-            ->get(['id', 'title', 'description', 'is_required', 'order']);
-
-        return response()->json($availableForms);
     }
 
     public function bulkAssignForms(Request $request, FormSubmission $submission)
@@ -261,39 +200,5 @@ class ReviewerFormAssignmentController extends Controller
             'stats' => $stats,
             'filters' => $request->only(['status', 'search']),
         ]);
-    }
-
-    protected function getSubmissionFormPhase(FormSubmission $submission)
-    {
-        return FormPhase::whereHas('formPhaseDetails.formAccessControl', function ($query) use ($submission) {
-            $query->where('form_id', $submission->form_id);
-        })->first();
-    }
-
-    public function autoLockOverdueAssignments()
-    {
-        try {
-            $overdueAssignments = ReviewerFormAssignment::where('due_date', '<', now())
-                ->whereHas('reviewFormResponse', function ($query) {
-                    $query->where('status', 'draft');
-                })
-                ->with('reviewFormResponse')
-                ->get();
-
-            $lockedCount = 0;
-            foreach ($overdueAssignments as $assignment) {
-                if (LockEvaluationForm::run($assignment->reviewFormResponse)) {
-                    $lockedCount++;
-                }
-            }
-
-            return response()->json([
-                'message' => "Berhasil mengunci {$lockedCount} penugasan yang terlambat.",
-                'locked_count' => $lockedCount,
-            ]);
-
-        } catch (\Exception $e) {
-            return response()->json(['error' => 'Gagal mengunci penugasan yang terlambat: '.$e->getMessage()], 500);
-        }
     }
 }

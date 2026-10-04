@@ -320,21 +320,9 @@ const Ziggy = {
             parameters: ['submission'],
             bindings: { submission: 'id' },
         },
-        'admin.submissions.form-assignments': {
-            uri: 'admin\/submissions\/{submission}\/form-assignments',
-            methods: ['GET', 'HEAD'],
-            parameters: ['submission'],
-            bindings: { submission: 'id' },
-        },
         'admin.form-assignments.remove': {
             uri: 'admin\/form-assignments\/{assignment}',
             methods: ['DELETE'],
-            parameters: ['assignment'],
-            bindings: { assignment: 'id' },
-        },
-        'admin.form-assignments.update': {
-            uri: 'admin\/form-assignments\/{assignment}',
-            methods: ['PATCH'],
             parameters: ['assignment'],
             bindings: { assignment: 'id' },
         },
@@ -589,10 +577,6 @@ const Ziggy = {
             methods: ['PATCH'],
             parameters: ['formPhase'],
             bindings: { formPhase: 'id' },
-        },
-        'admin.maintenance.auto-lock-overdue': {
-            uri: 'admin\/maintenance\/auto-lock-overdue-assignments',
-            methods: ['POST'],
         },
         register: { uri: 'register', methods: ['GET', 'HEAD'] },
         login: { uri: 'login', methods: ['GET', 'HEAD'] },
