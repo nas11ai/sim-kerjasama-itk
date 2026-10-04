@@ -32,10 +32,9 @@ function setUpBiodataForm(): array
     Permission::findOrCreate('submissions.create', 'web');
     $user->givePermissionTo('submissions.create');
 
-    // form_type_id = 1 hardcoded di BiodataController; FormTypeSeeder
-    // menaruh "Biodata" sebagai baris pertama sehingga id-nya 1 di
-    // production. Paksa id yang sama di sini, mengikuti konvensi di
-    // BiodataFormPayloadTest.php.
+    // Kode mencari form biodata lewat FormType::BIODATA_ID (=1; FormTypeSeeder
+    // menaruh "Biodata" sebagai baris pertama). Paksa id yang sama di sini,
+    // mengikuti konvensi di BiodataFormPayloadTest.php.
     $formType = FormType::forceCreate(['id' => 1, 'name' => 'Biodata']);
     $form = Form::factory()->create(['form_type_id' => $formType->id, 'is_active' => true]);
     FormAccessControl::create([

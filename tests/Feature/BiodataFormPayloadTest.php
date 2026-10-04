@@ -35,10 +35,9 @@ it('does not send phantom helper_text or option value keys in the biodata form p
     Permission::findOrCreate('submissions.create', 'web');
     $user->givePermissionTo('submissions.create');
 
-    // form_type_id = 1 hardcoded di BiodataController; FormTypeSeeder
-    // menaruh "Biodata" sebagai baris pertama sehingga id-nya 1 di
-    // production. Paksa id yang sama di sini supaya query controller
-    // menemukan form ini tanpa bergantung pada urutan test lain.
+    // Kode mencari form biodata lewat FormType::BIODATA_ID (=1; FormTypeSeeder
+    // menaruh "Biodata" sebagai baris pertama). Paksa id yang sama di sini supaya
+    // query menemukan form ini tanpa bergantung pada urutan test lain.
     $formType = FormType::forceCreate(['id' => 1, 'name' => 'Biodata']);
     $form = Form::factory()->create(['form_type_id' => $formType->id, 'is_active' => true]);
     FormAccessControl::create([
@@ -97,8 +96,7 @@ it('stores the selected option id, not its label, as the response value for sele
     Permission::findOrCreate('submissions.create', 'web');
     $user->givePermissionTo('submissions.create');
 
-    // form_type_id = 1 hardcoded di BiodataController; lihat catatan di
-    // test di atas.
+    // Id form type biodata = FormType::BIODATA_ID; lihat catatan di test di atas.
     $formType = FormType::forceCreate(['id' => 1, 'name' => 'Biodata']);
     $form = Form::factory()->create(['form_type_id' => $formType->id, 'is_active' => true]);
     FormAccessControl::create([

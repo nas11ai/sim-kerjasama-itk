@@ -7,7 +7,6 @@ use App\Models\Form;
 use App\Models\FormSubmission;
 use App\Models\FormType;
 use App\Models\User;
-use App\Queries\Review\ReviewersWithinTenure;
 use App\States\Submission\Approved;
 use App\States\Submission\NeedsRevision;
 use App\States\Submission\Rejected;
@@ -98,7 +97,7 @@ class BiodataStatus implements ChangesNoState
 
     private function needsBiodata(User $user): bool
     {
-        if (ReviewersWithinTenure::run()->where('user_id', $user->id)->exists()) {
+        if ($user->is_reviewer) {
             return false;
         }
 
