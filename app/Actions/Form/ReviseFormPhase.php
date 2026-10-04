@@ -96,8 +96,8 @@ class ReviseFormPhase
     }
 
     /**
-     * Detail lama diperbarui di tempat, sehingga form evaluasi, pengajuan, dan
-     * `submission_date_id`-nya tetap menempel. Detail tanpa id dibuat baru.
+     * Detail lama diperbarui di tempat, sehingga form evaluasi dan pengajuannya tetap
+     * menempel. Detail tanpa id dibuat baru.
      *
      * @param  Collection<int, FormPhaseDetail>  $existing
      * @param  list<FormPhaseDetailInput>  $details
@@ -122,7 +122,12 @@ class ReviseFormPhase
             $current = $detail->id === null ? null : $existing->get($detail->id);
 
             if ($current !== null) {
-                $current->update($attributes);
+                // BR-FE-07 — tenggat boleh dipindah, tak boleh dikosongkan: null/absen
+                // mempertahankan nilai yang ada.
+                $current->update($attributes + array_filter(
+                    ['submission_date_id' => $detail->submissionDateId],
+                    fn (?int $id): bool => $id !== null,
+                ));
                 $ids[] = $current->id;
 
                 continue;

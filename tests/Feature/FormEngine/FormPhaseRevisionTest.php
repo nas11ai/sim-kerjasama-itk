@@ -195,3 +195,23 @@ it('rejects a new detail without a deadline as validation, not SQLSTATE (BR-FE-0
     expect($this->phase->formPhaseDetails()->count())->toBe(2)
         ->and($this->phase->fresh()->title)->toBe('Tahap Lama');
 });
+
+it('saves an existing detail moved to another deadline (BR-FE-07)', function () {
+    $other = FormPhaseDetail::factory()->create()->submission_date_id;
+
+    reviseFormPhase(revisionPayload([
+        array_merge(revisionRow($this->kept), ['submission_date_id' => $other]),
+    ]))->assertSessionHasNoErrors();
+
+    expect(FormPhaseDetail::query()->find($this->kept->id)?->submission_date_id)->toBe($other);
+});
+
+it('keeps the deadline of an existing detail sent with null (BR-FE-07)', function () {
+    $dateId = $this->kept->submission_date_id;
+
+    reviseFormPhase(revisionPayload([
+        array_merge(revisionRow($this->kept), ['submission_date_id' => null]),
+    ]))->assertSessionHasNoErrors();
+
+    expect(FormPhaseDetail::query()->find($this->kept->id)?->submission_date_id)->toBe($dateId);
+});

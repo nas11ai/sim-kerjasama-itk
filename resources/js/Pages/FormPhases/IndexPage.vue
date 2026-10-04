@@ -218,10 +218,10 @@ const deleteFormPhase = (id: number) => {
                     description: 'Tahap formulir berhasil dihapus!',
                 })
             },
-            onError: () => {
+            onError: (errors) => {
                 toast({
                     title: 'Error',
-                    description: 'Gagal menghapus tahap formulir.',
+                    description: errors.id ?? 'Gagal menghapus tahap formulir.',
                     variant: 'destructive',
                 })
             },
