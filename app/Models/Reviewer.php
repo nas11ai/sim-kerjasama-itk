@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
  * @property int $id
@@ -64,7 +65,8 @@ class Reviewer extends Model
         return $started && $notEnded;
     }
 
-    public function submissionReviewers()
+    /** @return HasMany<SubmissionReviewer, $this> */
+    public function submissionReviewers(): HasMany
     {
         return $this->hasMany(SubmissionReviewer::class);
     }

@@ -29,7 +29,7 @@ class AppointReviewer
     public const TYPE_EXTERNAL = 'external';
 
     /** Peta tipe → role Spatie yang dipakai BR-REV-11 membatasi skor. */
-    private const ROLES = [
+    public const ROLES = [
         self::TYPE_INTERNAL => 'reviewer_internal',
         self::TYPE_EXTERNAL => 'reviewer_external',
     ];

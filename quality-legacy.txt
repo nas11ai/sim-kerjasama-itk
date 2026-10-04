@@ -16,7 +16,6 @@ app/Http/Controllers/FormController.php
 app/Http/Controllers/FormPhaseController.php
 app/Http/Controllers/ReviewEvaluationFormController.php
 app/Http/Controllers/ReviewFormResponseController.php
-app/Http/Controllers/ReviewerController.php
 app/Http/Controllers/ReviewerFormAssignmentController.php
 app/Http/Controllers/StatController.php
 app/Http/Controllers/SubmissionPeriodController.php

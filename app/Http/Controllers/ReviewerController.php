@@ -4,8 +4,12 @@ namespace App\Http\Controllers;
 
 use App\Actions\Identity\AppointReviewer;
 use App\Actions\Identity\ChangeReviewerTenure;
+use App\Actions\Identity\DismissReviewer;
 use App\Models\Reviewer;
+use App\Models\SubmissionReviewer;
 use App\Models\User;
+use App\Queries\Review\ReviewerDirectory;
+use App\Queries\Review\ReviewersWithinTenure;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -15,68 +19,15 @@ class ReviewerController extends Controller
 {
     public function index(Request $request)
     {
-        $query = Reviewer::with([
-            'user:id,name,email',
-        ]);
-
-        // Search functionality
-        if ($request->has('search') && $request->search) {
-            $search = $request->search;
-            $query->where(function ($q) use ($search) {
-                $q->whereHas('user', function ($q) use ($search) {
-                    $q->where('name', 'ilike', "%{$search}%")
-                        ->orWhere('email', 'ilike', "%{$search}%");
-                })->orWhere('reviewer_type', 'ilike', "%{$search}%");
-            });
-        }
-
-        // Filter by type
-        if ($request->type) {
-            $query->where('reviewer_type', $request->type);
-        }
-
-        // Filter by status (active/inactive)
-        if ($request->has('status') && $request->status !== '') {
-            $now = Carbon::now();
-            if ($request->status === 'active') {
-                $query->where(function ($q) use ($now) {
-                    $q->where('start_date', '<=', $now)
-                        ->where(function ($subQ) use ($now) {
-                            $subQ->where('end_date', '>=', $now)
-                                ->orWhereNull('end_date');
-                        });
-                });
-            } else {
-                $query->where('end_date', '<', $now);
-            }
-        }
-
-        $reviewers = $query->orderBy('created_at', 'desc')->paginate(10);
-
-        // Add computed properties
-        $reviewers->getCollection()->transform(function ($reviewer) {
-            $now = Carbon::now();
-            $reviewer->is_active = $reviewer->start_date <= $now &&
-                ($reviewer->end_date === null || $reviewer->end_date >= $now);
-
-            return $reviewer;
-        });
-
-        // Get reviewer types for filter
-        $reviewerTypes = [
-            [
-                'id' => 'internal',
-                'name' => 'internal',
-            ],
-            [
-                'id' => 'external',
-                'name' => 'external',
-            ],
-        ];
+        $reviewers = ReviewerDirectory::run(
+            $request->string('search')->toString(),
+            $request->string('type')->toString(),
+            $request->string('status')->toString(),
+        );
 
         return Inertia::render('Reviewers/IndexPage', [
             'reviewers' => $reviewers,
-            'reviewerTypes' => $reviewerTypes,
+            'reviewerTypes' => $this->reviewerTypes(),
             'filters' => $request->only(['search', 'type', 'status']),
         ]);
     }
@@ -87,31 +38,15 @@ class ReviewerController extends Controller
         $users = User::whereHas('roles', function ($query) {
             $query->where('name', 'Tenaga Kependidikan');
         })
-            ->whereDoesntHave('reviewers', function ($query) {
-                $now = Carbon::now();
-                $query->where('start_date', '<=', $now)
-                    ->where(function ($q) use ($now) {
-                        $q->where('end_date', '>=', $now)
-                            ->orWhereNull('end_date');
-                    });
-            })
+            // K2 — kandidat: belum punya masa tugas yang sedang berjalan.
+            ->whereDoesntHave('reviewers', fn ($query) => $query
+                ->whereIn('id', ReviewersWithinTenure::run()->select('id')))
             ->orderBy('name')
             ->get(['id', 'name', 'email']);
 
-        $reviewerTypes = [
-            [
-                'id' => 'internal',
-                'name' => 'internal',
-            ],
-            [
-                'id' => 'external',
-                'name' => 'external',
-            ],
-        ];
-
         return Inertia::render('Reviewers/CreatePage', [
             'users' => $users,
-            'reviewerTypes' => $reviewerTypes,
+            'reviewerTypes' => $this->reviewerTypes(),
         ]);
     }
 
@@ -144,19 +79,14 @@ class ReviewerController extends Controller
             'submissionReviewers.formSubmission.form:id,title',
         ]);
 
-        // Add computed properties
-        $now = Carbon::now();
-        $reviewer->is_active = $reviewer->start_date <= $now &&
-            ($reviewer->end_date === null || $reviewer->end_date >= $now);
+        $reviewer->is_active = $reviewer->isWithinTenure();
 
-        // Get review statistics
+        // K5 — dari evaluation_status: selesai = beres; menunggu = penugasan aktif belum beres.
+        $assignments = $reviewer->submissionReviewers();
         $reviewer->total_reviews = $reviewer->submissionReviewers->count();
-        $reviewer->pending_reviews = $reviewer->submissionReviewers()
-            // ->whereNull('reviewed_at')
-            ->count();
-        $reviewer->completed_reviews = $reviewer->submissionReviewers()
-            // ->whereNotNull('reviewed_at')
-            ->count();
+        $reviewer->completed_reviews = (clone $assignments)
+            ->whereIn('evaluation_status', SubmissionReviewer::SETTLED_EVALUATION)->count();
+        $reviewer->pending_reviews = (clone $assignments)->unsettledEvaluation()->count();
 
         return Inertia::render('Reviewers/ShowPage', [
             'reviewer' => $reviewer,
@@ -167,20 +97,9 @@ class ReviewerController extends Controller
     {
         $reviewer->load(['user:id,name,email']);
 
-        $reviewerTypes = [
-            [
-                'id' => 'internal',
-                'name' => 'internal',
-            ],
-            [
-                'id' => 'external',
-                'name' => 'external',
-            ],
-        ];
-
         return Inertia::render('Reviewers/EditPage', [
             'reviewer' => $reviewer,
-            'reviewerTypes' => $reviewerTypes,
+            'reviewerTypes' => $this->reviewerTypes(),
         ]);
     }
 
@@ -215,17 +134,8 @@ class ReviewerController extends Controller
 
     public function destroy(Reviewer $reviewer)
     {
-        // Check if reviewer has pending reviews
-        $pendingReviews = $reviewer->submissionReviewers()
-            ->count();
-
-        if ($pendingReviews > 0) {
-            return back()->withErrors([
-                'error' => 'Tidak dapat menghapus reviewer yang masih memiliki review yang belum selesai.',
-            ]);
-        }
-
-        $reviewer->delete();
+        // K4 — penolakan berupa ValidationException (galat sesi 'error').
+        DismissReviewer::run($reviewer);
 
         return redirect()->route('admin.reviewers.index')
             ->with('success', 'Reviewer berhasil dihapus.');
@@ -254,5 +164,14 @@ class ReviewerController extends Controller
 
         return redirect()->route('admin.reviewers.index')
             ->with('success', 'Reviewer berhasil diaktifkan kembali.');
+    }
+
+    /** @return list<array{id: string, name: string}> */
+    private function reviewerTypes(): array
+    {
+        return array_map(
+            static fn (string $type): array => ['id' => $type, 'name' => $type],
+            [AppointReviewer::TYPE_INTERNAL, AppointReviewer::TYPE_EXTERNAL],
+        );
     }
 }
