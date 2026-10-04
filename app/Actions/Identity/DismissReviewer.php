@@ -33,10 +33,10 @@ class DismissReviewer
         DB::transaction(function () use ($reviewer): void {
             // BR-IAM-11 — bisa ada duplikat lama; role dicabut hanya bila tak ada record
             // lain milik user ini, supaya yang tersisa tetap reviewer (BR-REV-11).
-            $punyaRecordLain = Reviewer::where('user_id', $reviewer->user_id)
+            $hasOtherRecord = Reviewer::where('user_id', $reviewer->user_id)
                 ->whereKeyNot($reviewer->id)->exists();
 
-            if (!$punyaRecordLain) {
+            if (!$hasOtherRecord) {
                 $reviewer->user?->removeRole(...array_values(AppointReviewer::ROLES));
             }
 
