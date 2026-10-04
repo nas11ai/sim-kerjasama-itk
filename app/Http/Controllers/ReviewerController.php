@@ -8,6 +8,7 @@ use App\Models\Reviewer;
 use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 
 class ReviewerController extends Controller
@@ -191,12 +192,22 @@ class ReviewerController extends Controller
             'end_date' => 'nullable|date|after:start_date',
         ]);
 
-        // BR-IAM-11 — hanya perubahan tipe yang menyentuh role; tanggal lewat Action masa tugas.
-        if ($reviewer->reviewer_type !== $validated['reviewer_type']) {
-            AppointReviewer::run(User::findOrFail($reviewer->user_id), $validated['reviewer_type']);
+        // BR-IAM-11 — satu record per orang. AppointReviewer memilih record pertama, jadi
+        // mengubah duplikat akan mengubah baris yang salah: tolak sampai dirapikan.
+        if (Reviewer::where('user_id', $reviewer->user_id)->count() > 1) {
+            return back()->withErrors([
+                'user_id' => 'User ini punya lebih dari satu record reviewer; rapikan duplikatnya dulu.',
+            ]);
         }
 
-        ChangeReviewerTenure::run($reviewer, $validated['start_date'], $validated['end_date'] ?? null);
+        // Satu transaksi: masa tugas dulu, penunjukan (yang memberi notifikasi) terakhir.
+        DB::transaction(function () use ($reviewer, $validated): void {
+            ChangeReviewerTenure::run($reviewer, $validated['start_date'], $validated['end_date'] ?? null);
+
+            if ($reviewer->reviewer_type !== $validated['reviewer_type']) {
+                AppointReviewer::run(User::findOrFail($reviewer->user_id), $validated['reviewer_type']);
+            }
+        });
 
         return redirect()->route('admin.reviewers.index')
             ->with('success', 'Reviewer berhasil diperbarui.');

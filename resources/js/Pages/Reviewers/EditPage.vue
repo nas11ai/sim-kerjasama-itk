@@ -1,7 +1,7 @@
 <!-- resources/js/Pages/Admin/Reviewers/Edit.vue -->
 <script setup lang="ts">
 import { route } from 'ziggy-js'
-import { Head, useForm } from '@inertiajs/vue3'
+import { Head, useForm, usePage } from '@inertiajs/vue3'
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
 import { Button } from '@/Components/ui/button'
 import { Input } from '@/Components/ui/input'
@@ -42,6 +42,9 @@ interface Props {
 }
 
 const props = defineProps<Props>()
+
+// BR-IAM-05 — user_id bukan field form ini, tapi AppointReviewer menolaknya lewat kunci itu.
+const page = usePage()
 
 const form = useForm({
     reviewer_type: props.reviewer.reviewer_type,
@@ -155,6 +158,9 @@ const formatDate = (dateString: string) => {
                             </Select>
                             <p v-if="form.errors.reviewer_type" class="text-sm text-destructive">
                                 {{ form.errors.reviewer_type }}
+                            </p>
+                            <p v-if="page.props.errors.user_id" class="text-sm text-destructive">
+                                {{ page.props.errors.user_id }}
                             </p>
                         </div>
 

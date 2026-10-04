@@ -22,6 +22,11 @@ class ChangeReviewerTenure
     {
         $before = $this->tenureOf($reviewer);
 
+        // Tanpa perubahan tanggal tak ada yang ditulis dan tak ada yang diaudit.
+        if ($before === ['start_date' => $start, 'end_date' => $end]) {
+            return $reviewer;
+        }
+
         $reviewer->update(['start_date' => $start, 'end_date' => $end]);
         $reviewer->refresh();
 

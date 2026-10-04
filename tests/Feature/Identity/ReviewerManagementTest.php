@@ -149,3 +149,77 @@ it('BR-REV-09 dan BR-RPT-09 — activate mengosongkan end_date dan mengaudit', f
         ->and($reviewer->isWithinTenure())->toBeTrue()
         ->and(auditDeskripsi('Masa tugas reviewer diubah'))->toBe(1);
 });
+
+it('BR-IAM-11 — update tipe juga mengaudit penunjukan dan memberi tahu user', function () {
+    Notification::fake();
+    $user = calonReviewer();
+    $reviewer = Reviewer::factory()->create([
+        'user_id' => $user->id,
+        'reviewer_type' => 'internal',
+        'start_date' => today()->toDateString(),
+        'end_date' => today()->addMonth()->toDateString(),
+    ]);
+
+    $this->actingAs($this->operator)->put(route('admin.reviewers.update', $reviewer), [
+        'reviewer_type' => 'external',
+        'start_date' => today()->toDateString(),
+        'end_date' => today()->addMonth()->toDateString(),
+    ]);
+
+    Notification::assertSentTo($user, ReviewerAppointedNotification::class);
+    expect(auditDeskripsi('Reviewer ditunjuk'))->toBe(1);
+});
+
+it('BR-REV-09 — update hanya tipe tidak menulis audit masa tugas', function () {
+    Notification::fake();
+    $reviewer = Reviewer::factory()->create([
+        'reviewer_type' => 'internal',
+        'start_date' => today()->toDateString(),
+        'end_date' => today()->addMonth()->toDateString(),
+    ]);
+
+    $this->actingAs($this->operator)->put(route('admin.reviewers.update', $reviewer), [
+        'reviewer_type' => 'external',
+        'start_date' => today()->toDateString(),
+        'end_date' => today()->addMonth()->toDateString(),
+    ]);
+
+    expect(auditDeskripsi('Masa tugas reviewer diubah'))->toBe(0);
+});
+
+it('BR-IAM-11 — update ditolak bila user punya lebih dari satu record reviewer', function () {
+    $user = calonReviewer();
+    $dates = ['start_date' => today()->toDateString(), 'end_date' => today()->addMonth()->toDateString()];
+    $first = Reviewer::factory()->create(['user_id' => $user->id, 'reviewer_type' => 'internal'] + $dates);
+    $second = Reviewer::factory()->create(['user_id' => $user->id, 'reviewer_type' => 'internal'] + $dates);
+
+    $this->actingAs($this->operator)->put(route('admin.reviewers.update', $second), [
+        'reviewer_type' => 'external',
+        'start_date' => today()->toDateString(),
+        'end_date' => today()->addMonths(3)->toDateString(),
+    ])->assertSessionHasErrors('user_id');
+
+    expect($first->fresh()->reviewer_type)->toBe('internal')
+        ->and($second->fresh()->reviewer_type)->toBe('internal')
+        ->and($second->fresh()->end_date->toDateString())->toBe(today()->addMonth()->toDateString());
+});
+
+it('BR-IAM-05 — update tipe untuk akun nonaktif ditolak dan tidak mengubah apa pun', function () {
+    $user = calonReviewer(false);
+    $reviewer = Reviewer::factory()->create([
+        'user_id' => $user->id,
+        'reviewer_type' => 'internal',
+        'start_date' => today()->toDateString(),
+        'end_date' => today()->addMonth()->toDateString(),
+    ]);
+
+    $this->actingAs($this->operator)->put(route('admin.reviewers.update', $reviewer), [
+        'reviewer_type' => 'external',
+        'start_date' => today()->toDateString(),
+        'end_date' => today()->addMonths(3)->toDateString(),
+    ])->assertSessionHasErrors('user_id');
+
+    $reviewer = $reviewer->fresh();
+    expect($reviewer->reviewer_type)->toBe('internal')
+        ->and($reviewer->end_date->toDateString())->toBe(today()->addMonth()->toDateString());
+});
