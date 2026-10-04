@@ -11,7 +11,7 @@ masing-masing dengan test yang merah sebelum perbaikan.
 
 **Spec induk:** [`refactor-plan.md`](refactor-plan.md) §5 gelombang 3
 
-**Status:** belum dikerjakan.
+**Status:** selesai (Task 1–5); kedua controller keluar dari `quality-legacy.txt`, `max.legacy.files` 107.
 
 ---
 
@@ -107,6 +107,21 @@ periode dan mengubah nama/tahapnya tanpa audit (BR-RPT-09).
 
 - Aturan domain pengumuman (tidak ada di DDD) — dokumen ini memakai perilaku halaman depan.
 - Validasi tipe berkas lampiran selain yang sudah ada (`jpg,png,pdf`, 2 MB).
+
+## Yang berbeda dari rencana
+
+- `AnnouncementController` keluar dari `quality-legacy.txt` lebih awal, di Task 3 (plafon 109 → 108
+  dibuat di sana); Task 5 hanya menurunkannya 108 → 107 untuk `SubmissionPeriodController`.
+- Pembantu berkas lampiran ada di `app/Services/Announcement/AnnouncementFileStore`, bukan
+  `app/Support`, karena `SupportPurityTest` melarang penulisan (disk/DB) di `app/Support`.
+- `markAsRead` tetap di controller: ia satu pemanggilan yang pendek dan sudah lolos ambang; Action
+  untuk satu baris tulis belum dibutuhkan.
+- Task 4 melampaui brief pada beberapa titik: (1) pemeriksaan "satu tanggal per label" ada di
+  `SubmissionPeriodRequest::after()` (kunci galat `submission_dates`) dan masukan dibawa DTO
+  `SubmissionPeriodInput`; (2) audit `Tenggat periode diperpanjang` dalam `ExtendSubmissionDates`
+  kini ditulis di dalam transaksi, sebelum notifikasi tertunda ke `DB::afterCommit`; (3) `storeLabel`
+  dipindah ke `StoreSubmissionDateLabelController` (invokable) dan rute `submission-date-labels.store`
+  menunjuknya; (4) dua komentar di controller diringkas agar lolos batas prosa tiga baris.
 
 ---
 ---
