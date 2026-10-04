@@ -11,7 +11,8 @@
 **Spec induk:** [`refactor-plan.md`](refactor-plan.md) §5 gelombang 3 · BR-FE-07 (detail wajib
 punya tenggat) · BR-FE-17 / ADR 0014 (tenggat milik periode tahap) · ADR 0004.
 
-**Status:** belum dikerjakan.
+**Status:** selesai — Task 1–3 dikerjakan; `CompleteFormBuilderController` keluar dari daftar legacy
+(plafon 105 → 104).
 
 ---
 
@@ -71,8 +72,27 @@ tanpa cek), menghasilkan baris ganda.
 
 ## Definisi selesai
 
-- [ ] Wizard menyimpan form lengkap (periode baru dan periode yang ada) — test HTTP
-- [ ] Gerbang hijau; controller keluar dari daftar; plafon 105 → 104
+- [x] Wizard menyimpan form lengkap (periode baru dan periode yang ada) — test HTTP
+- [x] Gerbang hijau; controller keluar dari daftar; plafon 105 → 104
+
+## Yang berbeda dari rencana
+
+- Baris controller di `quality-legacy.txt` dan plafon 105 → 104 ikut commit Task 1, bukan Task 3:
+  begitu `store()` menjadi cangkang, assertion 2 menolak berkas bersih yang masih terdaftar.
+- Hasil ukur: controller 58 baris (`create()` loc 21, `store()` loc 9), `BuildCompleteForm`
+  196 baris (method terpanjang loc 29, cc ≤ 4), `FormBuilderRequest` 195 baris.
+- Periode tanpa tanggal ditolak `BuildCompleteForm` (galat `submission_period`), bukan aturan
+  `required` di request, supaya periode baru dan periode yang ada ditolak dengan galat yang sama.
+- `AssertPhaseDeadlines` tidak dipanggil: tenggatnya diambil dari periode yang baru saja
+  ditautkan ke tahap, jadi BR-FE-17 terpenuhi karena konstruksi; test HTTP memastikannya.
+- `CreateSubmissionPeriod` dan `CreateFormPhase` tidak dipakai: yang pertama mencari label lewat
+  nama dan menulis audit sendiri, yang kedua mewajibkan tenggat per baris dari layar.
+- Wizard kini memakai penjaga BR-SCH-05 (`SchemeFieldGuard`) seperti pembuatan form biasa.
+- `validation_rules` field evaluasi tidak lagi disalin: Step 4 selalu mengirim `{}` dan tak punya
+  isian untuknya; menyimpannya hanya menambah `mixed`.
+- Baris tanggal awal periode baru kini satu baris kosong (label dipilih Operator), bukan dua
+  baris "Tanggal Mulai"/"Tanggal Selesai". Ringkasan Step 6 masih membaca `date.label`, yang tak
+  diisi Step 5 — sudah begitu untuk baris tambahan sebelumnya; tidak disentuh (Vue legacy).
 
 ---
 ---
