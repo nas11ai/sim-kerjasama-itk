@@ -50,6 +50,20 @@ class Reviewer extends Model
         return $this->belongsTo(User::class);
     }
 
+    /**
+     * BR-REV-09 — masa tugas inklusif per hari: end_date adalah hari terakhir
+     * bertugas, jam tidak ikut dihitung. Versi query: ReviewersWithinTenure.
+     */
+    public function isWithinTenure(?CarbonInterface $on = null): bool
+    {
+        $day = ($on ?? now())->toDateString();
+
+        $started = $this->start_date === null || $this->start_date->toDateString() <= $day;
+        $notEnded = $this->end_date === null || $this->end_date->toDateString() >= $day;
+
+        return $started && $notEnded;
+    }
+
     public function submissionReviewers()
     {
         return $this->hasMany(SubmissionReviewer::class);

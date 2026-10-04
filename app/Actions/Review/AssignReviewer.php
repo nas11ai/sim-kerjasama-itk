@@ -81,15 +81,10 @@ class AssignReviewer
         return $assignment;
     }
 
-    /** BR-REV-09 — reviewer hanya bisa ditugaskan dalam rentang masa tugasnya. */
+    /** BR-REV-09 — hanya dalam masa tugas; inklusif per hari, end_date hari terakhir. */
     private function guardTenure(Reviewer $reviewer): void
     {
-        $now = now();
-
-        $started = $reviewer->start_date === null || $reviewer->start_date->lessThanOrEqualTo($now);
-        $notEnded = $reviewer->end_date === null || $reviewer->end_date->greaterThanOrEqualTo($now);
-
-        if ($started && $notEnded) {
+        if ($reviewer->isWithinTenure()) {
             return;
         }
 

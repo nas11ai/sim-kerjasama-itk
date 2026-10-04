@@ -126,6 +126,24 @@ it('[REV-ASSIGN-08] menolak reviewer di luar masa tugas lewat jalur HTTP', funct
     expect($submission->submissionReviewers()->count())->toBe(0);
 });
 
+it('[REV-TENURE-06] menugaskan reviewer yang end_date-nya hari ini berhasil', function () {
+    [$operator, $submission] = assignHttpFixture();
+
+    $lastDay = Reviewer::factory()->create([
+        'user_id' => User::factory()->create()->id,
+        'start_date' => now()->subYear(),
+        'end_date' => now()->toDateString(),
+    ]);
+
+    $this->actingAs($operator)
+        ->post(route('admin.submissions.assign-reviewers', $submission), [
+            'reviewer_ids' => [$lastDay->id],
+        ])
+        ->assertSessionHasNoErrors();
+
+    expect($submission->submissionReviewers()->count())->toBe(1);
+});
+
 it('[REV-ASSIGN-05] menolak reviewer yang sudah ditugaskan, bukan diam-diam melewatinya', function () {
     [$operator, $submission] = assignHttpFixture(minReviewers: 3);
 

@@ -2,8 +2,7 @@
 
 namespace App\Http\Middleware;
 
-use App\Models\Reviewer;
-use Carbon\Carbon;
+use App\Queries\Review\ReviewersWithinTenure;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -20,17 +19,9 @@ class CheckReviewer
         $user = $request->user();
 
         if ($user) {
-            $today = Carbon::today();
-
-            $isReviewer = Reviewer::where('user_id', $user->id)
-                ->where(function ($q) use ($today) {
-                    $q->whereNull('start_date')
-                        ->orWhere('start_date', '<=', $today);
-                })
-                ->where(function ($q) use ($today) {
-                    $q->whereNull('end_date')
-                        ->orWhere('end_date', '>=', $today);
-                })
+            // BR-REV-09 — definisi masa tugas satu-satunya (inklusif per hari).
+            $isReviewer = ReviewersWithinTenure::run()
+                ->where('user_id', $user->id)
                 ->exists();
 
             $user->setAttribute('is_reviewer', $isReviewer);
