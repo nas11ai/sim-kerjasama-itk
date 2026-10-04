@@ -175,6 +175,12 @@ Inertia (`assignments`, `stats`, `filters`) tidak berubah.
   119 → 118), karena `ReviewerController` sudah keluar di Task 3.
 - Diparkir: menonaktifkan reviewer yang `start_date`-nya di masa depan menghasilkan
   `end_date` < `start_date`.
+- Perbaikan review akhir: menunjuk ulang reviewer di luar masa tugas memberi masa tugas
+  default; `User::is_reviewer` memakai `ReviewersWithinTenure` sehingga middleware
+  `CheckReviewer` dihapus; `SuggestCycleReviewers` memakai definisi yang sama; penolakan
+  record ganda pindah ke `AppointReviewer` (semua jalur); `DismissReviewer` hanya mencabut
+  role yang dipegang; `ChangeReviewerTenure` membandingkan per tanggal. Duplikat definisi
+  masa tugas di `SubmissionViewController` dan `CheckBiodata` dibiarkan untuk slice-nya.
 
 ---
 ---
