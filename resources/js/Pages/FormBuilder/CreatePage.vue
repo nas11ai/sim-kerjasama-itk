@@ -65,7 +65,12 @@ const form = useForm({
         use_existing: true,
         existing_period_id: null,
         new_period_name: '',
-        dates: [],
+        dates: [] as Array<{
+            label_id: number | null
+            label: string
+            date: string
+            temp_id: string
+        }>,
     },
 })
 
@@ -98,7 +103,11 @@ const canGoNext = computed(() => {
             if (form.submission_period.use_existing) {
                 return form.submission_period.existing_period_id
             }
-            return form.submission_period.new_period_name && form.submission_period.dates.length > 0
+            return (
+                form.submission_period.new_period_name &&
+                form.submission_period.dates.length > 0 &&
+                form.submission_period.dates.every((d) => d.label_id && d.date)
+            )
         default:
             return true
     }
@@ -284,6 +293,7 @@ const submit = () => {
                         :phase-types="phaseTypes"
                         :form-phases="formPhases"
                         :submission-periods="submissionPeriods"
+                        :errors="form.errors"
                     />
                 </CardContent>
             </Card>

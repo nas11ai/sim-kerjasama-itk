@@ -80,9 +80,12 @@ interface Props {
     phaseTypes: PhaseType[]
     formPhases: FormPhase[]
     submissionPeriods: SubmissionPeriod[]
+    errors: Record<string, string>
 }
 
 const props = defineProps<Props>()
+
+const errorMessages = computed(() => Object.values(props.errors))
 
 const getFormTypeName = (id: number | null) => {
     if (!id) return 'Not selected'
@@ -499,6 +502,16 @@ const totalEvaluationFields = computed(() =>
                 </div>
             </CardContent>
         </Card>
+
+        <Alert v-if="errorMessages.length > 0" variant="destructive">
+            <AlertCircle class="h-4 w-4" />
+            <AlertDescription>
+                <div class="font-medium mb-1">Formulir belum bisa dibuat</div>
+                <ul class="text-sm list-disc pl-4">
+                    <li v-for="message in errorMessages" :key="message">{{ message }}</li>
+                </ul>
+            </AlertDescription>
+        </Alert>
 
         <!-- Final Note -->
         <Alert>

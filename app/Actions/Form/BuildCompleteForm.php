@@ -2,21 +2,21 @@
 
 namespace App\Actions\Form;
 
-use App\Data\Request\EvaluationFormInput;
 use App\Data\Request\FormBuilderFieldInput;
 use App\Data\Request\FormBuilderInput;
 use App\Data\Request\FormBuilderPeriodInput;
 use App\Data\Request\FormBuilderPhaseInput;
+use App\Data\Result\BuiltForm;
 use App\Models\Form;
 use App\Models\FormAccessControl;
 use App\Models\FormPhase;
 use App\Models\FormPhaseDetail;
-use App\Models\ReviewEvaluationForm;
 use App\Models\SubmissionDate;
 use App\Models\SubmissionPeriod;
 use App\Models\User;
 use App\Support\Audit\AuditChange;
 use App\Support\Audit\AuditTrail;
+use App\Support\Form\EvaluationFormWriter;
 use App\Support\SchemeFieldGuard;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
@@ -26,7 +26,7 @@ use Lorisleiva\Actions\Concerns\AsAction;
  * Wizard enam langkah dalam satu transaksi. Periode diselesaikan lebih dulu: BR-FE-07
  * mewajibkan setiap detail lahir dengan tenggat, yaitu tanggal terakhir periode itu.
  *
- * @method static Form run(FormBuilderInput $input, User $actor)
+ * @method static BuiltForm run(FormBuilderInput $input, User $actor)
  */
 class BuildCompleteForm
 {
@@ -35,7 +35,7 @@ class BuildCompleteForm
     /**
      * @throws ValidationException
      */
-    public function handle(FormBuilderInput $input, User $actor): Form
+    public function handle(FormBuilderInput $input, User $actor): BuiltForm
     {
         // BR-SCH-05 — penjaga yang sama dengan pembuatan form di layar Form.
         SchemeFieldGuard::assertTrlHasSchemeSelector(array_map(
@@ -43,7 +43,7 @@ class BuildCompleteForm
             $input->fields,
         ));
 
-        return DB::transaction(function () use ($input, $actor): Form {
+        return DB::transaction(function () use ($input, $actor): BuiltForm {
             $period = $this->resolvePeriod($input->period);
             $deadline = $this->latestDate($period);
             $form = $this->createForm($input);
@@ -54,23 +54,27 @@ class BuildCompleteForm
 
             // BR-FE-17 — tenggatnya milik periode yang baru saja memakai tahap ini.
             $detailIds = $this->createDetails($form, $phase, $input, $deadline);
+            $periodCreated = $input->period->existingPeriodId === null;
 
             // BR-RPT-09 — di dalam transaksi: pembuatan yang gagal tidak meninggalkan jejak.
             AuditTrail::record('Form dibangun lewat wizard', $form, $actor, new AuditChange(new: [
                 'title' => $form->title,
                 'form_phase_id' => $phase->id,
+                'phase_created' => $input->phase->existingPhaseId === null,
                 'submission_period_id' => $period->id,
+                'period_created' => $periodCreated,
+                'created_date_ids' => $periodCreated ? $period->submissionDates()->pluck('id')->all() : [],
                 'detail_ids' => $detailIds,
             ]));
 
-            return $form;
+            return new BuiltForm($form, $deadline->loadMissing('submissionDateLabel'));
         });
     }
 
     private function resolvePeriod(FormBuilderPeriodInput $input): SubmissionPeriod
     {
         if ($input->existingPeriodId !== null) {
-            return SubmissionPeriod::findOrFail($input->existingPeriodId);
+            return $this->usablePeriod($input->existingPeriodId);
         }
 
         $period = SubmissionPeriod::create(['name' => $input->newName]);
@@ -79,6 +83,25 @@ class BuildCompleteForm
             $period->submissionDates()->create([
                 'submission_date_label_id' => $date['labelId'],
                 'datetime' => $date['date'],
+            ]);
+        }
+
+        return $period;
+    }
+
+    /**
+     * BR-SCH-07 — periode tutup paksa atau yang tanggalnya sudah lewat semua tidak lagi
+     * menerima tahap baru (ADR 0014); layar Form membatasinya sama.
+     *
+     * @throws ValidationException
+     */
+    private function usablePeriod(int $id): SubmissionPeriod
+    {
+        $period = SubmissionPeriod::query()->usable()->find($id);
+
+        if ($period === null) {
+            throw ValidationException::withMessages([
+                'submission_period.existing_period_id' => 'Periode sudah ditutup atau tanggalnya sudah lewat.',
             ]);
         }
 
@@ -158,39 +181,10 @@ class BuildCompleteForm
                 'submission_date_id' => $deadline->id,
             ]);
 
-            $this->createEvaluationForms($detail, $input->phase->needsReview ? $input->evaluationForms : []);
+            EvaluationFormWriter::write($detail, $input->phase->needsReview ? $input->evaluationForms : []);
             $detailIds[] = $detail->id;
         }
 
         return $detailIds;
-    }
-
-    /** @param  list<EvaluationFormInput>  $evaluationForms */
-    private function createEvaluationForms(FormPhaseDetail $detail, array $evaluationForms): void
-    {
-        foreach ($evaluationForms as $index => $evaluation) {
-            $created = ReviewEvaluationForm::create([
-                'title' => $evaluation->title,
-                'description' => $evaluation->description,
-                'form_phase_detail_id' => $detail->id,
-                'is_required' => $evaluation->isRequired,
-                'is_active' => true,
-                'order' => $index + 1,
-            ]);
-
-            foreach ($evaluation->fields as $fieldIndex => $field) {
-                $reviewField = $created->reviewFormFields()->create([
-                    'field_type_id' => $field->fieldTypeId,
-                    'label' => $field->label,
-                    'description' => $field->description,
-                    'is_required' => $field->isRequired,
-                    'order' => $fieldIndex + 1,
-                ]);
-
-                foreach ($field->options as $optionIndex => $option) {
-                    $reviewField->reviewFormFieldOptions()->create([...$option, 'order' => $optionIndex + 1]);
-                }
-            }
-        }
     }
 }

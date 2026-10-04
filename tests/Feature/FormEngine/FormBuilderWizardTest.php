@@ -133,8 +133,153 @@ it('audits the wizard build (BR-RPT-09)', function () {
         ->where('subject_id', $form->id)
         ->sole();
 
+    $period = SubmissionPeriod::query()->where('name', 'Periode Wizard')->firstOrFail();
+
     expect($entry->description)->toBe('Form dibangun lewat wizard')
-        ->and($entry->causer_id)->toBe($this->admin->id);
+        ->and($entry->causer_id)->toBe($this->admin->id)
+        ->and($entry->properties['new']['period_created'])->toBeTrue()
+        ->and($entry->properties['new']['phase_created'])->toBeTrue()
+        ->and($entry->properties['new']['created_date_ids'])
+        ->toBe($period->submissionDates()->pluck('id')->all());
+});
+
+it('audits that an existing period and phase were reused, not created (BR-RPT-09)', function () {
+    $period = SubmissionPeriod::factory()->create();
+    SubmissionDate::create([
+        'submission_period_id' => $period->id,
+        'submission_date_label_id' => $this->labelA->id,
+        'datetime' => now()->addMonth(),
+    ]);
+    $phase = FormPhase::create(['title' => 'Tahap Lama', 'is_active' => true]);
+
+    $payload = wizardPayload([
+        'use_existing' => true, 'existing_period_id' => $period->id, 'new_period_name' => '', 'dates' => [],
+    ]);
+    $payload['phase'] = [...$payload['phase'], 'use_existing' => true, 'existing_phase_id' => $phase->id];
+
+    $this->actingAs($this->admin)->post(route('admin.form-builder.store'), $payload);
+
+    $entry = Activity::query()->where('log_name', AuditTrail::LOG_NAME)->sole();
+
+    expect($entry->properties['new']['period_created'])->toBeFalse()
+        ->and($entry->properties['new']['phase_created'])->toBeFalse()
+        ->and($entry->properties['new']['created_date_ids'])->toBe([]);
+});
+
+it('tells the operator which deadline the details received (BR-FE-17)', function () {
+    $payload = wizardPayload(newWizardPeriod([
+        ['label_id' => $this->labelB->id, 'date' => '2030-03-01 10:00'],
+        ['label_id' => $this->labelA->id, 'date' => '2030-01-01 10:00'],
+    ]));
+
+    $this->actingAs($this->admin)
+        ->post(route('admin.form-builder.store'), $payload)
+        ->assertSessionHas('info', fn (string $info): bool => str_contains($info, 'Batas Laporan')
+            && str_contains($info, '2030-03-01 10:00')
+            && str_contains($info, 'Edit Tahap'));
+});
+
+it('rejects a force-closed existing period and saves nothing (BR-SCH-07)', function () {
+    $period = SubmissionPeriod::factory()->create(['is_force_closed' => true]);
+    SubmissionDate::create([
+        'submission_period_id' => $period->id,
+        'submission_date_label_id' => $this->labelA->id,
+        'datetime' => now()->addMonth(),
+    ]);
+    $payload = wizardPayload([
+        'use_existing' => true, 'existing_period_id' => $period->id, 'new_period_name' => '', 'dates' => [],
+    ]);
+
+    $this->actingAs($this->admin)
+        ->post(route('admin.form-builder.store'), $payload)
+        ->assertSessionHasErrors('submission_period.existing_period_id');
+
+    expect(Form::query()->count())->toBe(0)
+        ->and(FormPhase::query()->count())->toBe(0);
+});
+
+it('rejects an existing period whose dates are all in the past (BR-SCH-07)', function () {
+    $period = SubmissionPeriod::factory()->create();
+    SubmissionDate::create([
+        'submission_period_id' => $period->id,
+        'submission_date_label_id' => $this->labelA->id,
+        'datetime' => now()->subDay(),
+    ]);
+    $payload = wizardPayload([
+        'use_existing' => true, 'existing_period_id' => $period->id, 'new_period_name' => '', 'dates' => [],
+    ]);
+
+    $this->actingAs($this->admin)
+        ->post(route('admin.form-builder.store'), $payload)
+        ->assertSessionHasErrors('submission_period.existing_period_id');
+
+    expect(Form::query()->count())->toBe(0)
+        ->and(FormPhase::query()->count())->toBe(0);
+});
+
+it('offers only usable periods to the wizard (BR-SCH-07)', function () {
+    $usable = SubmissionPeriod::factory()->create();
+    $closed = SubmissionPeriod::factory()->create(['is_force_closed' => true]);
+    foreach ([$usable, $closed] as $period) {
+        SubmissionDate::create([
+            'submission_period_id' => $period->id,
+            'submission_date_label_id' => $this->labelA->id,
+            'datetime' => now()->addMonth(),
+        ]);
+    }
+
+    $this->actingAs($this->admin)
+        ->get(route('admin.form-builder.create'))
+        ->assertInertia(fn ($page) => $page
+            ->has('submissionPeriods', 1)
+            ->where('submissionPeriods.0.id', $usable->id));
+});
+
+it('rejects a trl_selector without a scheme_selector through the wizard (BR-SCH-05)', function () {
+    $trl = FieldType::create(['name' => 'trl_selector']);
+    $payload = wizardPayload(newWizardPeriod([['label_id' => $this->labelA->id, 'date' => '2030-01-01']]));
+    $payload['form']['fields'][] = [
+        'field_type_id' => $trl->id, 'label' => 'TRL', 'is_required' => true, 'options' => [],
+    ];
+
+    $this->actingAs($this->admin)
+        ->post(route('admin.form-builder.store'), $payload)
+        ->assertSessionHasErrors('fields');
+
+    expect(Form::query()->count())->toBe(0)
+        ->and(SubmissionPeriod::query()->count())->toBe(0);
+});
+
+it('links an existing period to a new phase exactly once', function () {
+    $period = SubmissionPeriod::factory()->create();
+    SubmissionDate::create([
+        'submission_period_id' => $period->id,
+        'submission_date_label_id' => $this->labelA->id,
+        'datetime' => now()->addMonth(),
+    ]);
+    $payload = wizardPayload([
+        'use_existing' => true, 'existing_period_id' => $period->id, 'new_period_name' => '', 'dates' => [],
+    ]);
+
+    $this->actingAs($this->admin)
+        ->post(route('admin.form-builder.store'), $payload)
+        ->assertSessionHasNoErrors();
+
+    $phase = FormPhase::query()->where('title', 'Tahap Wizard')->firstOrFail();
+    expect(SubmissionPeriodPhase::query()->where('form_phase_id', $phase->id)->count())->toBe(1)
+        ->and(SubmissionPeriodPhase::query()->count())->toBe(1);
+});
+
+it('creates no evaluation forms when the phase needs no review', function () {
+    $payload = wizardPayload(newWizardPeriod([['label_id' => $this->labelA->id, 'date' => '2030-01-01']]));
+    $payload['phase']['needs_review'] = false;
+
+    $this->actingAs($this->admin)
+        ->post(route('admin.form-builder.store'), $payload)
+        ->assertSessionHasNoErrors();
+
+    expect(FormPhaseDetail::query()->count())->toBe(1)
+        ->and(ReviewEvaluationForm::query()->count())->toBe(0);
 });
 
 it('does not link an existing period twice to an existing phase already using it', function () {

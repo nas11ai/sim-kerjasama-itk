@@ -76,6 +76,11 @@ const getLabelName = (labelId: number | null) => {
     return props.submissionDateLabels.find((l) => l.id === labelId)?.name || 'Unknown'
 }
 
+// Step6Review menampilkan `label`; namanya diambil dari daftar basis data.
+const syncLabel = (date: SubmissionDate) => {
+    date.label = getLabelName(date.label_id)
+}
+
 const formatDateForDisplay = (dateString: string) => {
     if (!dateString) return 'Not set'
     try {
@@ -314,7 +319,10 @@ watch(
                                     <div class="flex-1 grid gap-4 md:grid-cols-2">
                                         <div class="space-y-2">
                                             <Label>Label Tanggal *</Label>
-                                            <Select v-model="date.label_id">
+                                            <Select
+                                                v-model="date.label_id"
+                                                @update:model-value="syncLabel(date)"
+                                            >
                                                 <SelectTrigger>
                                                     <SelectValue
                                                         placeholder="Pilih label tanggal"

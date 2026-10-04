@@ -93,6 +93,12 @@ tanpa cek), menghasilkan baris ganda.
 - Baris tanggal awal periode baru kini satu baris kosong (label dipilih Operator), bukan dua
   baris "Tanggal Mulai"/"Tanggal Selesai". Ringkasan Step 6 masih membaca `date.label`, yang tak
   diisi Step 5 — sudah begitu untuk baris tambahan sebelumnya; tidak disentuh (Vue legacy).
+- Tinjauan akhir: periode yang ada ditolak bila tutup paksa atau semua tanggalnya lewat (BR-SCH-07,
+  `SubmissionPeriod::usable()`, juga memfilter daftar `create()`); Step 5 mengisi `date.label` dan
+  menahan Berikutnya sampai tiap baris punya label dan tanggal; Step 6 menampilkan galat server;
+  audit memuat `period_created`, `phase_created`, `created_date_ids`; flash `info` menyebut tenggat
+  yang dipakai. `BuildCompleteForm` mengembalikan `BuiltForm` dan form evaluasi pindah ke
+  `Support\Form\EvaluationFormWriter` agar berkas Action tetap di bawah ambang.
 
 ---
 ---

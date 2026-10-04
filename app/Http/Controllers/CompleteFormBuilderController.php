@@ -34,9 +34,7 @@ class CompleteFormBuilderController extends Controller
                 ->orderBy('title')
                 ->get(),
             'submissionPeriods' => SubmissionPeriod::with('submissionDates')
-                ->whereHas('submissionDates', function ($query) {
-                    $query->where('datetime', '>=', now());
-                })
+                ->usable()
                 ->orderBy('name')
                 ->get(),
             // Label dari basis data; id-nya tidak boleh ditulis tangan di layar.
@@ -50,9 +48,15 @@ class CompleteFormBuilderController extends Controller
 
         abort_unless($actor !== null, 403);
 
-        $form = BuildCompleteForm::run($request->toInput(), $actor);
+        $built = BuildCompleteForm::run($request->toInput(), $actor);
 
-        return redirect()->route('admin.forms.show', $form->id)
-            ->with('success', 'Form dan seluruh konfigurasinya berhasil dibuat!');
+        // BR-FE-17 — wizard tidak menanyakan tenggat, jadi Operator diberi tahu apa yang dipakai.
+        $deadline = $built->deadline;
+        $label = $deadline->submissionDateLabel->name ?? 'tanpa label';
+
+        return redirect()->route('admin.forms.show', $built->form->id)
+            ->with('success', 'Form dan seluruh konfigurasinya berhasil dibuat!')
+            ->with('info', "Tenggat detail tahap: {$label}, {$deadline->datetime->format('Y-m-d H:i')}. "
+                .'Dapat diubah di Edit Tahap.');
     }
 }
