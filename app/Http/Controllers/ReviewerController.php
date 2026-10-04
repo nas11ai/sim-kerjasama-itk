@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Actions\Identity\AppointReviewer;
+use App\Actions\Identity\ChangeReviewerTenure;
 use App\Models\Reviewer;
 use App\Models\User;
 use Carbon\Carbon;
@@ -121,22 +123,14 @@ class ReviewerController extends Controller
             'end_date' => 'nullable|date|after:start_date',
         ]);
 
-        // Check if user already has active reviewer role
-        $existingReviewer = Reviewer::where('user_id', $validated['user_id'])
-            ->where('start_date', '<=', Carbon::now())
-            ->where(function ($query) {
-                $query->where('end_date', '>=', Carbon::now())
-                    ->orWhereNull('end_date');
-            })
-            ->exists();
-
-        if ($existingReviewer) {
-            return back()->withErrors([
-                'user_id' => 'User sudah memiliki role reviewer yang aktif.',
-            ]);
-        }
-
-        Reviewer::create($validated);
+        // BR-IAM-11 — penunjukan lewat Action: role, idempoten per orang, BR-IAM-05,
+        // notifikasi, audit. ValidationException-nya mengalir sebagai error sesi.
+        AppointReviewer::run(
+            User::findOrFail($validated['user_id']),
+            $validated['reviewer_type'],
+            $validated['start_date'],
+            $validated['end_date'] ?? null,
+        );
 
         return redirect()->route('admin.reviewers.index')
             ->with('success', 'Reviewer berhasil ditambahkan.');
@@ -197,7 +191,12 @@ class ReviewerController extends Controller
             'end_date' => 'nullable|date|after:start_date',
         ]);
 
-        $reviewer->update($validated);
+        // BR-IAM-11 — hanya perubahan tipe yang menyentuh role; tanggal lewat Action masa tugas.
+        if ($reviewer->reviewer_type !== $validated['reviewer_type']) {
+            AppointReviewer::run(User::findOrFail($reviewer->user_id), $validated['reviewer_type']);
+        }
+
+        ChangeReviewerTenure::run($reviewer, $validated['start_date'], $validated['end_date'] ?? null);
 
         return redirect()->route('admin.reviewers.index')
             ->with('success', 'Reviewer berhasil diperbarui.');
@@ -223,10 +222,12 @@ class ReviewerController extends Controller
 
     public function deactivate(Reviewer $reviewer)
     {
-        // Set end_date to today to deactivate
-        $reviewer->update([
-            'end_date' => Carbon::now()->format('Y-m-d'),
-        ]);
+        // K2 — end_date kemarin: keluar masa tugas hari ini di bawah definisi inklusif.
+        ChangeReviewerTenure::run(
+            $reviewer,
+            $reviewer->start_date?->toDateString() ?? Carbon::today()->toDateString(),
+            Carbon::yesterday()->toDateString(),
+        );
 
         return redirect()->route('admin.reviewers.index')
             ->with('success', 'Reviewer berhasil dinonaktifkan.');
@@ -234,10 +235,11 @@ class ReviewerController extends Controller
 
     public function activate(Reviewer $reviewer)
     {
-        // Remove end_date to activate
-        $reviewer->update([
-            'end_date' => null,
-        ]);
+        ChangeReviewerTenure::run(
+            $reviewer,
+            $reviewer->start_date?->toDateString() ?? Carbon::today()->toDateString(),
+            null,
+        );
 
         return redirect()->route('admin.reviewers.index')
             ->with('success', 'Reviewer berhasil diaktifkan kembali.');
