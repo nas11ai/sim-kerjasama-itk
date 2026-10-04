@@ -30,6 +30,7 @@ use App\Http\Controllers\ReviewFormResponseController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\SchemeController;
 use App\Http\Controllers\StatController;
+use App\Http\Controllers\StoreSubmissionDateLabelController;
 use App\Http\Controllers\Submission\BudgetLineItemController;
 use App\Http\Controllers\Submission\ChildSubmissionController;
 use App\Http\Controllers\Submission\PhaseOverrideController;
@@ -347,7 +348,7 @@ Route::middleware(['auth', 'can:users.manage'])->prefix('admin')->name('admin.')
         'destroy' => 'announcements.destroy',
     ]);
 
-    Route::post('/submission-date-labels', [SubmissionPeriodController::class, 'storeLabel'])
+    Route::post('/submission-date-labels', StoreSubmissionDateLabelController::class)
         ->name('submission-date-labels.store');
 
     // Additional routes for Form Access Controls

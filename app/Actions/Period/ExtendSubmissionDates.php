@@ -32,29 +32,32 @@ class ExtendSubmissionDates
      */
     public function handle(SubmissionPeriod $period, array $dates): int
     {
-        $adaPerpanjangan = DB::transaction(fn (): bool => $this->syncDates($period, $dates));
+        return DB::transaction(function () use ($period, $dates): int {
+            // Mengirim untuk setiap penyuntingan membuat notifikasi ini cepat
+            // diabaikan, dan yang hilang justru yang penting.
+            if (!$this->syncDates($period, $dates)) {
+                return 0;
+            }
 
-        // Mengirim untuk setiap penyuntingan membuat notifikasi ini cepat
-        // diabaikan, dan yang hilang justru yang penting.
-        if (!$adaPerpanjangan) {
-            return 0;
-        }
+            $pemilikDraft = $this->draftOwners($period);
 
-        $pemilikDraft = $this->draftOwners($period);
+            // SCH-RULE-13 — tanpa draft berjalan, tidak ada yang perlu diberi tahu.
+            if ($pemilikDraft->isEmpty()) {
+                return 0;
+            }
 
-        // SCH-RULE-13 — tanpa draft berjalan, tidak ada yang perlu diberi tahu.
-        if ($pemilikDraft->isEmpty()) {
-            return 0;
-        }
+            // BR-RPT-09 — satu Action, satu entri audit.
+            AuditTrail::record('Tenggat periode diperpanjang', $period);
 
-        Deliver::to($pemilikDraft, new SubmissionDeadlineExtendedNotification($period));
+            // Pemanggil yang membuka transaksi luar (ReviseSubmissionPeriod) bisa
+            // menggulung semuanya; mengabari peneliti sebelum commit berarti
+            // mengabari perpanjangan yang tak pernah terjadi.
+            DB::afterCommit(static function () use ($pemilikDraft, $period): void {
+                Deliver::to($pemilikDraft, new SubmissionDeadlineExtendedNotification($period));
+            });
 
-        $tercatat = $pemilikDraft->count();
-
-        // BR-RPT-09 — satu Action, satu entri audit.
-        AuditTrail::record('Tenggat periode diperpanjang', $period);
-
-        return $tercatat;
+            return $pemilikDraft->count();
+        });
     }
 
     /**
