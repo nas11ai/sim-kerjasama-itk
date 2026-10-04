@@ -195,12 +195,23 @@ const selectAllPermissions = () => {
     }
 }
 
+// "Pilih Semua" hanya memilih prodi fakultas itu; opsi "Seluruh <fakultas>" tetap pilihan
+// terpisah yang disengaja, karena memasang akses pada fakultasnya (ADR 0013).
+const facultyProgramIds = computed((): number[] => {
+    const faculty = props.faculties.find((f) => f.id === selectedFacultyId.value)
+    return faculty ? faculty.study_programs.map((sp) => sp.id) : []
+})
+
+const allProgramsSelected = computed(
+    (): boolean =>
+        facultyProgramIds.value.length > 0 &&
+        facultyProgramIds.value.every((id) => selectedStudyPrograms.value.includes(id))
+)
+
 const selectAllStudyPrograms = () => {
-    if (selectedStudyPrograms.value.length === studyPrograms.value.length) {
-        selectedStudyPrograms.value = []
-    } else {
-        selectedStudyPrograms.value = studyPrograms.value.map((sp) => sp.id)
-    }
+    const programIds = facultyProgramIds.value
+    const others = selectedStudyPrograms.value.filter((id) => !programIds.includes(id))
+    selectedStudyPrograms.value = allProgramsSelected.value ? others : [...others, ...programIds]
 }
 
 const switchMode = () => {
@@ -419,7 +430,7 @@ const currentFormId = computed({
                                         @click="selectAllStudyPrograms"
                                     >
                                         {{
-                                            selectedStudyPrograms.length === studyPrograms.length
+                                            allProgramsSelected
                                                 ? 'Batal Pilih Semua'
                                                 : 'Pilih Semua'
                                         }}

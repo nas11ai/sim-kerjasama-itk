@@ -25,11 +25,19 @@ class FormAccessListRequest extends FormRequest
     public function toInput(): FormAccessListInput
     {
         return new FormAccessListInput(
-            formId: $this->string('form_id')->value(),
-            permission: $this->string('permission')->value(),
-            facultyId: $this->string('faculty_id')->value(),
-            organizationId: $this->string('study_program_id')->value(),
-            search: $this->string('search')->value(),
+            formId: $this->filter('form_id'),
+            permission: $this->filter('permission'),
+            facultyId: $this->filter('faculty_id'),
+            organizationId: $this->filter('study_program_id'),
+            search: $this->filter('search'),
         );
+    }
+
+    /** Nilai bukan teks (mis. `?form_id[]=1`) berarti filter tak dipakai, bukan 500. */
+    private function filter(string $key): string
+    {
+        $value = $this->input($key);
+
+        return is_string($value) ? $value : '';
     }
 }

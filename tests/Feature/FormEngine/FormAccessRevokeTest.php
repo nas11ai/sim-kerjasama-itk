@@ -147,3 +147,24 @@ it('searches access controls by organization name, case-insensitively', function
         ->assertInertia(fn ($page) => $page
             ->where('groupAccessControls.data', fn ($groups) => collect($groups)->pluck('form_id')->all() === [$found->form_id]));
 });
+
+it('ignores an array-valued list filter instead of failing', function () {
+    ($this->grant)($this->faculty);
+
+    $this->actingAs($this->admin)
+        ->get(route('admin.form-access-controls.index').'?form_id[]=1&faculty_id[]=2&search[]=x')
+        ->assertOk()
+        ->assertInertia(fn ($page) => $page
+            ->has('groupAccessControls.data', 1)
+            ->where('filters.form_id', null));
+});
+
+it('rejects a bulk delete without a valid selection as a validation error', function () {
+    $this->actingAs($this->admin)
+        ->post(route('admin.form-access-controls.bulk-delete'), ['ids' => [999999]])
+        ->assertSessionHasErrors('ids.0');
+
+    $this->actingAs($this->admin)
+        ->post(route('admin.form-access-controls.bulk-delete'), [])
+        ->assertSessionHasErrors('ids');
+});

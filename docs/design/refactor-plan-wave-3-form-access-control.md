@@ -97,6 +97,14 @@ diaudit (BR-RPT-09); semua menempel `$e->getMessage()`.
 - Filter daftar dengan id bukan angka kini tidak menemukan apa pun, bukan galat SQL.
 - Kelompok di layar daftar tetap memuat semua kontrol akses form itu, bukan hanya yang lolos
   filter — perilaku lama dipertahankan.
+- Tinjauan akhir: statistik pengajuan per fakultas/prodi kini menurut unit pengaju
+  (`user_profiles.organization_id`, DDD 05_reporting), bukan unit kontrol akses — form tingkat
+  fakultas ikut terhitung dan tiap pengajuan dihitung sekali; statistik fase menggolongkan form
+  menurut tipe unit kontrol aksesnya dan pengajuan menurut pengajunya (`UnitFaculty`, tanpa
+  filter aktif). Ikut dirapikan: hapus/ubah mengunci baris kontrol akses sebelum penjaga,
+  organisasi lama yang kini nonaktif tetap boleh saat mengubah, `bulkDelete` lewat FormRequest,
+  filter daftar berbentuk array diabaikan, wizard menerima organisasi aktif apa pun, dan "Pilih
+  Semua" di layar Buat tidak ikut memilih "Seluruh <fakultas>".
 
 ---
 ---

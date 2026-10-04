@@ -27,11 +27,13 @@ class RevokeFormAccessInBulk
      */
     public function handle(array $ids, User $actor): int
     {
-        $controls = FormAccessControl::query()->whereKey($ids)->get();
+        return DB::transaction(function () use ($ids, $actor): int {
+            // Dikunci: detail tahap baru yang merujuknya lewat FK menunggu sampai selesai.
+            // Tanpa kunci, detail yang lolos sebelum delete ikut terhapus oleh cascade.
+            $controls = FormAccessControl::query()->whereKey($ids)->lockForUpdate()->get();
 
-        AssertFormAccessUnused::run($controls);
+            AssertFormAccessUnused::run($controls);
 
-        return DB::transaction(function () use ($controls, $actor): int {
             foreach ($controls as $control) {
                 $change = new AuditChange(old: $control->auditSnapshot());
                 AuditTrail::record('Kontrol akses formulir dihapus', $control, $actor, $change);

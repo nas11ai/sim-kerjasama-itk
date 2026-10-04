@@ -129,3 +129,39 @@ it('saves a new permission and organization for a used access control, audited (
         ->and($fresh?->organization_id)->toBe($this->faculty->id)
         ->and(accessAudit('Kontrol akses formulir diubah', $control)?->causer_id)->toBe($this->admin->id);
 });
+
+it('keeps an access control on its now inactive organization when only the permission changes (ADR 0013)', function () {
+    $control = FormAccessControl::create([
+        'form_id' => $this->form->id, 'permission' => 'submissions.create',
+        'organization_id' => $this->faculty->id,
+    ]);
+    $this->faculty->update(['is_active' => false]);
+
+    $this->actingAs($this->admin)
+        ->patch(route('admin.form-access-controls.update', $control), [
+            'form_id' => $control->form_id,
+            'permission' => 'submissions.view-own',
+            'study_program_id' => $this->faculty->id,
+        ])
+        ->assertSessionHasNoErrors();
+
+    expect($control->fresh()?->permission)->toBe('submissions.view-own');
+});
+
+it('rejects moving an access control to a different inactive organization (ADR 0013)', function () {
+    $control = FormAccessControl::create([
+        'form_id' => $this->form->id, 'permission' => 'submissions.create',
+        'organization_id' => $this->faculty->id,
+    ]);
+    $this->studyProgram->update(['is_active' => false]);
+
+    $this->actingAs($this->admin)
+        ->patch(route('admin.form-access-controls.update', $control), [
+            'form_id' => $control->form_id,
+            'permission' => $control->permission,
+            'study_program_id' => $this->studyProgram->id,
+        ])
+        ->assertSessionHasErrors('study_program_id');
+
+    expect($control->fresh()?->organization_id)->toBe($this->faculty->id);
+});

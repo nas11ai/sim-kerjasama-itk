@@ -41,7 +41,8 @@ class FormBuilderRequest extends FormRequest
             'form.fields.*.options.*.label' => 'required|string|max:255',
             'access_controls' => 'required|array|min:1',
             'access_controls.*.permission' => 'required|string|in:'.implode(',', FormAccessControl::ALLOWED_PERMISSIONS),
-            'access_controls.*.study_program_id' => 'required|integer|exists:organizations,id,type,study_program',
+            // ADR 0013 — sama dengan layar kontrol akses: organisasi aktif bertipe apa pun.
+            'access_controls.*.study_program_id' => 'required|integer|exists:organizations,id,is_active,1',
         ];
     }
 

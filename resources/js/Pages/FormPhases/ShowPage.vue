@@ -392,7 +392,8 @@ const isGroupOpen = (formId: number) => openGroups.value.has(formId)
                                                             <span class="text-xs opacity-75">
                                                                 ({{
                                                                     detail.form_access_control
-                                                                        .study_program.faculty.name
+                                                                        .study_program.faculty
+                                                                        ?.name
                                                                 }})
                                                             </span>
                                                         </span>

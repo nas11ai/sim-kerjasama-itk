@@ -7,6 +7,7 @@ use App\Actions\Form\GrantFormAccessInBulk;
 use App\Actions\Form\ReviseFormAccess;
 use App\Actions\Form\RevokeFormAccess;
 use App\Actions\Form\RevokeFormAccessInBulk;
+use App\Http\Requests\Form\FormAccessBulkDeleteRequest;
 use App\Http\Requests\Form\FormAccessBulkRequest;
 use App\Http\Requests\Form\FormAccessControlRequest;
 use App\Http\Requests\Form\FormAccessListRequest;
@@ -91,18 +92,10 @@ class FormAccessControlController extends Controller
         );
     }
 
-    public function bulkDelete(Request $request)
+    public function bulkDelete(FormAccessBulkDeleteRequest $request)
     {
-        $request->validate([
-            'ids' => 'required|array|min:1',
-            'ids.*' => 'integer|exists:form_access_controls,id',
-        ]);
-
         // BR-FE-20 — semua atau tidak; alasannya menyebut kontrol akses yang dipakai.
-        $deleted = RevokeFormAccessInBulk::run(
-            array_values(array_map(intval(...), $request->array('ids'))),
-            $this->actor($request),
-        );
+        $deleted = RevokeFormAccessInBulk::run($request->ids(), $this->actor($request));
 
         return redirect()->route('admin.form-access-controls.index')
             ->with('success', "{$deleted} kontrol akses formulir berhasil dihapus.");

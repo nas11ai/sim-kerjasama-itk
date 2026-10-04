@@ -88,8 +88,9 @@ class FormSubmissionStatistics implements ChangesNoState
     {
         $query = FormSubmission::select('fac_org.id', 'fac_org.name', DB::raw('COUNT(DISTINCT form_submissions.id) as total'));
 
-        return $this->inStudyPrograms($query)
-            ->join('organizations as fac_org', 'fac_org.id', '=', 'sp_org.parent_id')
+        return $this->bySubmitter($query)
+            ->joinSub(UnitFaculty::run(), 'unit_faculty', 'unit_faculty.unit_id', '=', 'user_profiles.organization_id')
+            ->join('organizations as fac_org', 'fac_org.id', '=', 'unit_faculty.faculty_id')
             ->groupBy('fac_org.id', 'fac_org.name')
             ->get();
     }
@@ -99,24 +100,27 @@ class FormSubmissionStatistics implements ChangesNoState
     {
         $query = FormSubmission::select('sp_org.id', 'sp_org.name', DB::raw('COUNT(DISTINCT form_submissions.id) as total'));
 
-        return $this->inStudyPrograms($query)
+        return $this->bySubmitter($query)
+            ->join('organizations as sp_org', function (JoinClause $join) {
+                $join->on('sp_org.id', '=', 'user_profiles.organization_id')
+                    ->where('sp_org.type', 'study_program');
+            })
             ->groupBy('sp_org.id', 'sp_org.name')
             ->get();
     }
 
     /**
+     * DDD 05_reporting — pengajuan per fakultas/prodi menurut unit pengajunya, bukan unit
+     * kontrol akses form: form tingkat fakultas tetap terhitung, dan form dengan beberapa
+     * kontrol akses tidak menghitung satu pengajuan berkali-kali.
+     *
      * @param  Builder<FormSubmission>  $query
      * @return Builder<FormSubmission>
      */
-    private function inStudyPrograms(Builder $query): Builder
+    private function bySubmitter(Builder $query): Builder
     {
         return $query
             ->whereIn('form_submissions.status', (new SubmissionStatusBuckets)->countedStates())
-            ->join('forms', 'forms.id', '=', 'form_submissions.form_id')
-            ->join('form_access_controls', 'form_access_controls.form_id', '=', 'forms.id')
-            ->join('organizations as sp_org', function (JoinClause $join) {
-                $join->on('sp_org.id', '=', 'form_access_controls.organization_id')
-                    ->where('sp_org.type', 'study_program');
-            });
+            ->join('user_profiles', 'user_profiles.user_id', '=', 'form_submissions.submitted_by');
     }
 }

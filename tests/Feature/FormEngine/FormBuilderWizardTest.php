@@ -349,3 +349,27 @@ it('offers the date labels stored in the database to the wizard', function () {
             ->where('submissionDateLabels.0', ['id' => $this->labelB->id, 'name' => 'Batas Laporan'])
             ->where('submissionDateLabels.1', ['id' => $this->labelA->id, 'name' => 'Batas Proposal']));
 });
+
+it('grants wizard access on a whole faculty, like the access control screen (ADR 0013)', function () {
+    $faculty = Organization::query()->where('name', 'Fakultas Wizard')->firstOrFail();
+    $payload = wizardPayload(newWizardPeriod([['label_id' => $this->labelA->id, 'date' => '2030-01-01']]));
+    $payload['access_controls'] = [['permission' => 'submissions.create', 'study_program_id' => $faculty->id]];
+
+    $this->actingAs($this->admin)
+        ->post(route('admin.form-builder.store'), $payload)
+        ->assertSessionHasNoErrors();
+
+    $form = Form::query()->where('title', 'Form Wizard')->firstOrFail();
+    expect($form->formAccessControls()->sole()->organization_id)->toBe($faculty->id);
+});
+
+it('rejects wizard access on an inactive organization (ADR 0013)', function () {
+    $this->studyProgram->update(['is_active' => false]);
+    $payload = wizardPayload(newWizardPeriod([['label_id' => $this->labelA->id, 'date' => '2030-01-01']]));
+
+    $this->actingAs($this->admin)
+        ->post(route('admin.form-builder.store'), $payload)
+        ->assertSessionHasErrors('access_controls.0.study_program_id');
+
+    expect(Form::query()->where('title', 'Form Wizard')->exists())->toBeFalse();
+});

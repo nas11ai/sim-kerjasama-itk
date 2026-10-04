@@ -6,7 +6,6 @@ use App\Models\FormAccessControl;
 use App\Models\User;
 use App\Support\Audit\AuditChange;
 use App\Support\Audit\AuditTrail;
-use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use Lorisleiva\Actions\Concerns\AsAction;
@@ -25,14 +24,20 @@ class RevokeFormAccess
      */
     public function handle(FormAccessControl $control, User $actor): void
     {
-        AssertFormAccessUnused::run(new Collection([$control]));
-
         DB::transaction(function () use ($control, $actor): void {
-            AuditTrail::record('Kontrol akses formulir dihapus', $control, $actor, new AuditChange(
-                old: $control->auditSnapshot(),
-            ));
+            // Dikunci: detail tahap baru yang merujuknya lewat FK menunggu sampai selesai.
+            // Tanpa kunci, detail yang lolos sebelum delete ikut terhapus oleh cascade.
+            $locked = FormAccessControl::query()->whereKey($control->id)->lockForUpdate()->get();
 
-            $control->delete();
+            AssertFormAccessUnused::run($locked);
+
+            foreach ($locked as $lockedControl) {
+                AuditTrail::record('Kontrol akses formulir dihapus', $lockedControl, $actor, new AuditChange(
+                    old: $lockedControl->auditSnapshot(),
+                ));
+
+                $lockedControl->delete();
+            }
         });
     }
 }

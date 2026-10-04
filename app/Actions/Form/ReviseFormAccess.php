@@ -26,32 +26,37 @@ class ReviseFormAccess
      */
     public function handle(FormAccessControl $control, FormAccessInput $input, User $actor): FormAccessControl
     {
-        // Permission dan organisasi adalah kebijakan akses; form adalah identitas data yang
-        // dirujuk detail tahap dan pengajuannya — menggantinya memindahkan mereka diam-diam.
-        if ($input->formId !== $control->form_id && $control->formPhaseDetails()->exists()) {
-            throw ValidationException::withMessages([
-                'form_id' => 'Kontrol akses ini sudah dipakai detail tahap formulir, jadi formulirnya '
-                    .'tidak dapat diganti. Buat kontrol akses baru untuk formulir lain.',
-            ]);
-        }
-
-        if (FormAccessControl::grantExists($input->formId, $input->permission, $input->organizationId, $control->id)) {
-            throw ValidationException::withMessages(['duplicate' => GrantFormAccess::DUPLICATE_MESSAGE]);
-        }
-
         return DB::transaction(function () use ($control, $input, $actor): FormAccessControl {
-            $old = $control->auditSnapshot();
+            // Dikunci: detail tahap baru yang merujuknya lewat FK menunggu sampai selesai,
+            // jadi penjaga form di bawah tidak kalah balapan.
+            $locked = FormAccessControl::query()->lockForUpdate()->findOrFail($control->id);
 
-            $control->update($input->attributes());
+            // Permission dan organisasi adalah kebijakan akses; form adalah identitas data
+            // yang dirujuk detail tahap dan pengajuannya — menggantinya memindahkan mereka
+            // diam-diam.
+            if ($input->formId !== $locked->form_id && $locked->formPhaseDetails()->exists()) {
+                throw ValidationException::withMessages([
+                    'form_id' => 'Kontrol akses ini sudah dipakai detail tahap formulir, jadi formulirnya '
+                        .'tidak dapat diganti. Buat kontrol akses baru untuk formulir lain.',
+                ]);
+            }
+
+            if (FormAccessControl::grantExists($input->formId, $input->permission, $input->organizationId, $locked->id)) {
+                throw ValidationException::withMessages(['duplicate' => GrantFormAccess::DUPLICATE_MESSAGE]);
+            }
+
+            $old = $locked->auditSnapshot();
+
+            $locked->update($input->attributes());
 
             AuditTrail::record(
                 'Kontrol akses formulir diubah',
-                $control,
+                $locked,
                 $actor,
-                new AuditChange(old: $old, new: $control->auditSnapshot()),
+                new AuditChange(old: $old, new: $locked->auditSnapshot()),
             );
 
-            return $control;
+            return $locked;
         });
     }
 }

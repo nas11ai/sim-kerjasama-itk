@@ -273,7 +273,7 @@ const getStatusBadge = (form: ReviewEvaluationForm): { variant: BadgeVariant; te
                                 <p class="text-xs opacity-75">
                                     {{
                                         formPhaseDetail.form_access_control.study_program.faculty
-                                            .name
+                                            ?.name
                                     }}
                                 </p>
                             </div>
