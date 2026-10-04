@@ -3,6 +3,7 @@
 namespace App\Actions\Identity;
 
 use App\Models\Reviewer;
+use App\Models\User;
 use App\Support\Audit\AuditTrail;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
@@ -37,7 +38,7 @@ class DismissReviewer
                 ->whereKeyNot($reviewer->id)->exists();
 
             if (!$hasOtherRecord) {
-                $reviewer->user?->removeRole(...array_values(AppointReviewer::ROLES));
+                $this->revokeReviewerRoles($reviewer->user);
             }
 
             // BR-RPT-09 — dicatat sebelum record hilang agar subjek audit masih utuh.
@@ -45,5 +46,16 @@ class DismissReviewer
 
             $reviewer->delete();
         });
+    }
+
+    // removeRole() melempar RoleDoesNotExist bila role belum pernah dibuat; cabut
+    // hanya yang benar-benar dipegang user.
+    private function revokeReviewerRoles(?User $user): void
+    {
+        foreach (AppointReviewer::ROLES as $role) {
+            if ($user?->hasRole($role)) {
+                $user->removeRole($role);
+            }
+        }
     }
 }

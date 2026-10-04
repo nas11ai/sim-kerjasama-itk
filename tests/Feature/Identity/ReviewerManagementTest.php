@@ -5,6 +5,8 @@
 // BR-IAM-05, BR-IAM-11, BR-IAM-15, BR-REV-09, BR-RPT-09 — layar Operator mengelola
 // reviewer lewat AppointReviewer dan ChangeReviewerTenure, bukan menulis model langsung.
 
+use App\Actions\Identity\AppointReviewer;
+use App\Actions\Identity\ChangeReviewerTenure;
 use App\Models\FormSubmission;
 use App\Models\Reviewer;
 use App\Models\SubmissionReviewer;
@@ -354,4 +356,140 @@ it('BR-REV-09 — index menyebut reviewer yang belum mulai sebagai nonaktif', fu
 
     $this->actingAs($this->operator)->get(route('admin.reviewers.index', ['status' => 'inactive']))
         ->assertInertia(fn ($page) => $page->has('reviewers.data', 1)->where('reviewers.data.0.is_active', false));
+});
+
+function reviewerHabis(User $user): Reviewer
+{
+    return Reviewer::factory()->create([
+        'user_id' => $user->id,
+        'reviewer_type' => 'internal',
+        'start_date' => today()->subYear()->toDateString(),
+        'end_date' => today()->subDay()->toDateString(),
+    ]);
+}
+
+it('BR-IAM-11 dan BR-REV-09 — store tanpa end_date untuk reviewer habis masa tugas membuatnya bertugas lagi', function () {
+    Notification::fake();
+    $user = calonReviewer();
+    reviewerHabis($user);
+
+    $this->actingAs($this->operator)->post(route('admin.reviewers.store'), [
+        'user_id' => $user->id,
+        'reviewer_type' => 'internal',
+        'start_date' => today()->toDateString(),
+    ])->assertRedirect(route('admin.reviewers.index'));
+
+    $records = Reviewer::where('user_id', $user->id)->get();
+    expect($records)->toHaveCount(1)
+        ->and($records->first()->isWithinTenure())->toBeTrue()
+        ->and($records->first()->end_date->toDateString())->toBe(today()->addYear()->toDateString());
+});
+
+it('BR-IAM-11 dan BR-REV-09 — AppointReviewer tanpa tanggal memberi masa tugas default ke reviewer habis', function () {
+    Notification::fake();
+    $user = calonReviewer();
+    $lama = reviewerHabis($user);
+
+    $reviewer = AppointReviewer::run($user, AppointReviewer::TYPE_INTERNAL);
+
+    expect($reviewer->id)->toBe($lama->id)
+        ->and($reviewer->start_date->toDateString())->toBe(today()->toDateString())
+        ->and($reviewer->end_date->toDateString())->toBe(today()->addYear()->toDateString());
+});
+
+it('BR-IAM-11 — AppointReviewer tanpa tanggal tidak mengubah masa tugas yang sedang berjalan', function () {
+    Notification::fake();
+    $user = calonReviewer();
+    Reviewer::factory()->create([
+        'user_id' => $user->id,
+        'reviewer_type' => 'internal',
+        'start_date' => today()->subMonth()->toDateString(),
+        'end_date' => today()->addMonth()->toDateString(),
+    ]);
+
+    $reviewer = AppointReviewer::run($user, AppointReviewer::TYPE_EXTERNAL);
+
+    expect($reviewer->start_date->toDateString())->toBe(today()->subMonth()->toDateString())
+        ->and($reviewer->end_date->toDateString())->toBe(today()->addMonth()->toDateString());
+});
+
+function duplikatReviewer(User $user): void
+{
+    $dates = ['start_date' => today()->toDateString(), 'end_date' => today()->addMonth()->toDateString()];
+    Reviewer::factory()->count(2)->create(['user_id' => $user->id, 'reviewer_type' => 'internal'] + $dates);
+}
+
+it('BR-IAM-11 — store ditolak bila user punya lebih dari satu record reviewer', function () {
+    Notification::fake();
+    $user = calonReviewer();
+    duplikatReviewer($user);
+
+    $this->actingAs($this->operator)->post(route('admin.reviewers.store'), [
+        'user_id' => $user->id,
+        'reviewer_type' => 'external',
+        'start_date' => today()->toDateString(),
+    ])->assertSessionHasErrors('user_id');
+
+    expect(Reviewer::where('user_id', $user->id)->where('reviewer_type', 'external')->exists())->toBeFalse()
+        ->and(auditDeskripsi('Reviewer ditunjuk'))->toBe(0);
+});
+
+it('BR-IAM-11 — penunjukan dari layar akses user ditolak bila ada duplikat record reviewer', function () {
+    Notification::fake();
+    $user = calonReviewer();
+    duplikatReviewer($user);
+
+    $this->actingAs($this->operator)->post(route('admin.users.appoint-reviewer', $user), [
+        'reviewer_type' => 'external',
+    ])->assertSessionHasErrors('user_id');
+
+    expect(Reviewer::where('user_id', $user->id)->where('reviewer_type', 'external')->exists())->toBeFalse()
+        ->and(auditDeskripsi('Reviewer ditunjuk'))->toBe(0);
+});
+
+it('BR-REV-11 — destroy tetap mencabut role meski role reviewer_external belum pernah dibuat', function () {
+    $user = calonReviewer();
+    $user->assignRole(Role::findOrCreate('reviewer_internal', 'web'));
+    Role::where('name', 'reviewer_external')->delete();
+    app()[PermissionRegistrar::class]->forgetCachedPermissions();
+    $reviewer = Reviewer::factory()->create(['user_id' => $user->id, 'reviewer_type' => 'internal']);
+
+    $this->actingAs($this->operator)->delete(route('admin.reviewers.destroy', $reviewer))
+        ->assertRedirect(route('admin.reviewers.index'));
+
+    expect(Reviewer::whereKey($reviewer->id)->exists())->toBeFalse()
+        ->and($user->fresh()->hasRole('reviewer_internal'))->toBeFalse();
+});
+
+it('BR-REV-09 dan BR-RPT-09 — tanggal sama berformat waktu tidak ditulis dan tidak diaudit', function () {
+    $reviewer = Reviewer::factory()->create([
+        'start_date' => today()->subMonth()->toDateString(),
+        'end_date' => today()->addMonth()->toDateString(),
+    ]);
+
+    ChangeReviewerTenure::run(
+        $reviewer,
+        today()->subMonth()->toDateString().' 08:00',
+        today()->addMonth()->toDateString().' 08:00',
+    );
+
+    expect(auditDeskripsi('Masa tugas reviewer diubah'))->toBe(0);
+});
+
+it('BR-REV-09 — auth.user.is_reviewer false untuk reviewer yang masa tugasnya habis', function () {
+    reviewerHabis($this->operator);
+
+    $this->actingAs($this->operator)->get(route('admin.reviewers.index'))
+        ->assertInertia(fn ($page) => $page->where('auth.user.is_reviewer', false));
+});
+
+it('BR-REV-09 — auth.user.is_reviewer true untuk reviewer yang end_date-nya hari ini', function () {
+    Reviewer::factory()->create([
+        'user_id' => $this->operator->id,
+        'start_date' => today()->subMonth()->toDateString(),
+        'end_date' => today()->toDateString(),
+    ]);
+
+    $this->actingAs($this->operator)->get(route('admin.reviewers.index'))
+        ->assertInertia(fn ($page) => $page->where('auth.user.is_reviewer', true));
 });

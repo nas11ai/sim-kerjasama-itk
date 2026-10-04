@@ -136,3 +136,17 @@ it('[MON-REVIEW-06] Operator tetap bisa memilih reviewer di luar daftar saran', 
 
     expect($penugasan->reviewer_id)->toBe($orangBaru->id);
 });
+
+it('BR-MON-07 dan BR-REV-09 — reviewer yang end_date-nya hari ini masih disarankan', function () {
+    Notification::fake();
+    $this->travelTo(today()->setTime(12, 0));
+    $fx = monevFixture();
+
+    $hariTerakhir = monevReviewer();
+    AssignReviewer::run($fx['parent'], $hariTerakhir);
+    $hariTerakhir->update(['end_date' => today()->toDateString()]);
+
+    $saran = SuggestCycleReviewers::run($fx['parent']->fresh());
+
+    expect($saran->pluck('id')->all())->toContain($hariTerakhir->id);
+});

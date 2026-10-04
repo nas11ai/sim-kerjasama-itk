@@ -5,6 +5,7 @@ namespace App\Actions\Monev;
 use App\Actions\Concerns\ChangesNoState;
 use App\Models\FormSubmission;
 use App\Models\Reviewer;
+use App\Queries\Review\ReviewersWithinTenure;
 use Illuminate\Database\Eloquent\Collection;
 use Lorisleiva\Actions\Concerns\AsAction;
 
@@ -24,21 +25,16 @@ class SuggestCycleReviewers implements ChangesNoState
     /** @return Collection<int, Reviewer> */
     public function handle(FormSubmission $parent): Collection
     {
-        $now = now();
-
-        // **Saran, bukan batas**: daftar ini tidak pernah dipakai sebagai penyaring
-        // di Action penugasan — mencampurnya mengubah kemudahan menjadi larangan.
-        return Reviewer::query()
+        // **Saran, bukan batas**: tak pernah dipakai sebagai penyaring di Action penugasan —
+        // mencampurnya mengubah kemudahan menjadi larangan. Yang masa tugasnya habis tak
+        // disarankan: itu mengarahkan Operator ke penugasan yang pasti ditolak BR-REV-09.
+        return ReviewersWithinTenure::run()
             ->whereIn(
                 'id',
                 $parent->submissionReviewers()
                     ->where('status', 'active')
                     ->select('reviewer_id')
             )
-            // Menyarankan yang masa tugasnya habis berarti mengarahkan
-            // Operator ke penugasan yang pasti ditolak BR-REV-09.
-            ->where(fn ($q) => $q->whereNull('start_date')->orWhere('start_date', '<=', $now))
-            ->where(fn ($q) => $q->whereNull('end_date')->orWhere('end_date', '>=', $now))
             ->with('user:id,name,email')
             ->get();
     }

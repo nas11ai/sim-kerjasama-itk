@@ -111,15 +111,8 @@ class ReviewerController extends Controller
             'end_date' => 'nullable|date|after:start_date',
         ]);
 
-        // BR-IAM-11 — satu record per orang. AppointReviewer memilih record pertama, jadi
-        // mengubah duplikat akan mengubah baris yang salah: tolak sampai dirapikan.
-        if (Reviewer::where('user_id', $reviewer->user_id)->count() > 1) {
-            return back()->withErrors([
-                'user_id' => 'User ini punya lebih dari satu record reviewer; rapikan duplikatnya dulu.',
-            ]);
-        }
-
         // Satu transaksi: masa tugas dulu, penunjukan (yang memberi notifikasi) terakhir.
+        // Penolakan duplikat record (BR-IAM-11) di AppointReviewer membatalkan keduanya.
         DB::transaction(function () use ($reviewer, $validated): void {
             ChangeReviewerTenure::run($reviewer, $validated['start_date'], $validated['end_date'] ?? null);
 

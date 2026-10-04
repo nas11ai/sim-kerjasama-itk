@@ -1,7 +1,6 @@
 <?php
 
 use App\Http\Middleware\CheckBiodata;
-use App\Http\Middleware\CheckReviewer;
 use App\Http\Middleware\CheckRole;
 use App\Http\Middleware\HandleInertiaRequests;
 use Illuminate\Foundation\Application;
@@ -26,7 +25,6 @@ return Application::configure(basePath: dirname(__DIR__))
         // Register middleware aliases
         $middleware->alias([
             'role' => CheckRole::class,
-            'check_reviewer_status' => CheckReviewer::class,
             'permission' => PermissionMiddleware::class,
             'role_or_permission' => RoleOrPermissionMiddleware::class,
             'check_biodata' => CheckBiodata::class,

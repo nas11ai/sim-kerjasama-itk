@@ -73,6 +73,14 @@ class AppointReviewer
                 'user_id' => 'Akun ini nonaktif dan tidak dapat ditunjuk sebagai reviewer.',
             ]);
         }
+
+        // BR-IAM-11 — satu record per orang. persist() memilih record pertama, jadi
+        // menunjuk ulang pemilik duplikat mengubah baris yang salah: tolak sampai dirapikan.
+        if (Reviewer::where('user_id', $user->id)->count() > 1) {
+            throw ValidationException::withMessages([
+                'user_id' => 'User ini punya lebih dari satu record reviewer; rapikan duplikatnya dulu.',
+            ]);
+        }
     }
 
     private function persist(User $user, string $type, ?string $startDate, ?string $endDate): Reviewer
@@ -93,26 +101,47 @@ class AppointReviewer
         $existing = Reviewer::query()->where('user_id', $user->id)->first();
 
         if ($existing !== null) {
-            // Menunjuk ulang tanpa menyebut tanggal tidak menghapus masa
-            // tugas yang sedang berjalan — yang diperbarui hanya yang
-            // benar-benar dikirim.
-            $existing->update(array_filter([
-                'reviewer_type' => $type,
-                'start_date' => $startDate,
-                'end_date' => $endDate,
-            ], static fn ($value): bool => $value !== null));
+            $existing->update(['reviewer_type' => $type] + $this->tenureFor($existing, $startDate, $endDate));
 
             return $existing->refresh();
         }
 
-        // Masa tugas wajib ada (BR-REV-09 menegakkannya saat penugasan).
-        // Default satu tahun sejak hari ini adalah masa jabatan lazim di
-        // LPPM; Operator tetap bisa menyuntingnya.
         return Reviewer::create([
             'user_id' => $user->id,
             'reviewer_type' => $type,
+        ] + $this->defaultTenure($startDate, $endDate));
+    }
+
+    /**
+     * Menunjuk ulang tanpa menyebut tanggal tidak menghapus masa tugas yang sedang
+     * berjalan — yang diperbarui hanya yang benar-benar dikirim. Record yang di luar masa
+     * tugas mendapat default seperti record baru; tanpa itu ia tetap tak bisa ditugaskan.
+     *
+     * @return array<string, string>
+     */
+    private function tenureFor(Reviewer $existing, ?string $startDate, ?string $endDate): array
+    {
+        if (!$existing->isWithinTenure()) {
+            return $this->defaultTenure($startDate, $endDate);
+        }
+
+        return array_filter(
+            ['start_date' => $startDate, 'end_date' => $endDate],
+            static fn (?string $value): bool => $value !== null,
+        );
+    }
+
+    /**
+     * Masa tugas wajib ada (BR-REV-09 menegakkannya saat penugasan). Default satu tahun
+     * sejak hari ini adalah masa jabatan lazim di LPPM; Operator tetap bisa menyuntingnya.
+     *
+     * @return array{start_date: string, end_date: string}
+     */
+    private function defaultTenure(?string $startDate, ?string $endDate): array
+    {
+        return [
             'start_date' => $startDate ?? Carbon::today()->toDateString(),
             'end_date' => $endDate ?? Carbon::today()->addYear()->toDateString(),
-        ]);
+        ];
     }
 }

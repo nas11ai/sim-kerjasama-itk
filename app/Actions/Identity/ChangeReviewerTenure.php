@@ -5,6 +5,7 @@ namespace App\Actions\Identity;
 use App\Models\Reviewer;
 use App\Support\Audit\AuditChange;
 use App\Support\Audit\AuditTrail;
+use Illuminate\Support\Carbon;
 use Lorisleiva\Actions\Concerns\AsAction;
 
 /**
@@ -20,6 +21,9 @@ class ChangeReviewerTenure
 
     public function handle(Reviewer $reviewer, string $start, ?string $end): Reviewer
     {
+        // Tanggal dibandingkan per hari; '2026-10-04 08:00' sama dengan '2026-10-04'.
+        $start = Carbon::parse($start)->toDateString();
+        $end = $end === null ? null : Carbon::parse($end)->toDateString();
         $before = $this->tenureOf($reviewer);
 
         // Tanpa perubahan tanggal tak ada yang ditulis dan tak ada yang diaudit.

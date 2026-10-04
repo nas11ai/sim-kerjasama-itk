@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Queries\Review\ReviewersWithinTenure;
 use App\Support\Lifecycle\DeletionNotPermitted;
 use Database\Factories\UserFactory;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
@@ -96,9 +97,11 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->hasMany(Reviewer::class);
     }
 
+    // BR-REV-09 — reviewer = sedang dalam masa tugas, satu definisi (inklusif per hari).
+    // Dulu cukup punya record, sehingga reviewer yang masa tugasnya habis tetap tampil.
     public function getIsReviewerAttribute(): bool
     {
-        return $this->reviewer()->exists();
+        return ReviewersWithinTenure::run()->where('user_id', $this->id)->exists();
     }
 
     public function reviewer()

@@ -93,7 +93,7 @@ Route::middleware(['auth', 'verified'])->get('/dashboard', function () {
 
 Route::get('announcements/{announcement}', [AnnouncementController::class, 'detail'])->name('announcements.detail');
 
-Route::middleware(['auth', 'check_reviewer_status'])->group(function () {
+Route::middleware(['auth'])->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
 
@@ -153,7 +153,7 @@ Route::middleware(['auth'])->prefix('user')->name('user.')->group(function () {
     Route::post('/biodata', [BiodataController::class, 'submitForm'])->name('biodata.submit');
 });
 
-Route::middleware(['auth', 'check_biodata', 'check_reviewer_status'])->prefix('user')->name('user.')->group(function () {
+Route::middleware(['auth', 'check_biodata'])->prefix('user')->name('user.')->group(function () {
     Route::get('/dashboard', [UserFormController::class, 'dashboard'])
         ->name('dashboard');
 
@@ -193,7 +193,7 @@ Route::middleware(['auth', 'check_biodata', 'check_reviewer_status'])->prefix('u
 });
 
 // Reviewer Routes - untuk user yang bertindak sebagai reviewer
-Route::middleware(['auth', 'check_reviewer_status'])->prefix('reviewer')->name('reviewer.')->group(function () {
+Route::middleware(['auth'])->prefix('reviewer')->name('reviewer.')->group(function () {
     // Dashboard khusus reviewer
     Route::get('/dashboard', [SubmissionViewController::class, 'reviewerDashboard'])
         ->name('dashboard');
@@ -213,7 +213,7 @@ Route::middleware(['auth', 'check_reviewer_status'])->prefix('reviewer')->name('
 });
 
 // Admin Routes - permission-based (users.manage; Super Admin via Gate::before)
-Route::middleware(['auth', 'can:users.manage', 'check_reviewer_status'])->prefix('admin')->name('admin.')->group(function () {
+Route::middleware(['auth', 'can:users.manage'])->prefix('admin')->name('admin.')->group(function () {
     // Admin Dashboard
     Route::get('/dashboard', [StatController::class, 'dashboard'])->middleware(['auth', 'verified'])->name('dashboard');
 
@@ -427,7 +427,7 @@ Route::middleware(['auth', 'can:users.manage', 'check_reviewer_status'])->prefix
 });
 
 // For backwards compatibility, you can add redirects for admin routes without prefix
-Route::middleware(['auth', 'can:users.manage', 'check_reviewer_status'])->group(function () {
+Route::middleware(['auth', 'can:users.manage'])->group(function () {
     Route::get('/forms', function () {
         return redirect()->route('admin.forms.index');
     });
