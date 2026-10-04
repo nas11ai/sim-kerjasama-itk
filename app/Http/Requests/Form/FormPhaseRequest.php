@@ -55,8 +55,8 @@ class FormPhaseRequest extends FormRequest
 
             $details[] = new FormPhaseDetailInput(
                 id: filter_var($row['id'] ?? null, FILTER_VALIDATE_INT, FILTER_NULL_ON_FAILURE),
-                formAccessControlId: intval($row['form_access_control_id'] ?? 0),
-                phaseTypeId: intval($row['phase_type_id'] ?? 0),
+                formAccessControlId: $this->integer("phase_details.{$index}.form_access_control_id"),
+                phaseTypeId: $this->integer("phase_details.{$index}.phase_type_id"),
                 needsReview: $this->boolean("phase_details.{$index}.needs_review"),
                 submissionDateId: filter_var(
                     $row['submission_date_id'] ?? null, FILTER_VALIDATE_INT, FILTER_NULL_ON_FAILURE,

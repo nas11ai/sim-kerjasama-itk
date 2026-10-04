@@ -15,6 +15,7 @@ use App\Queries\Form\FormPhaseDirectory;
 use App\Queries\Form\FormPhaseFormOptions;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 
 class FormPhaseController extends Controller
@@ -86,7 +87,7 @@ class FormPhaseController extends Controller
 
         return Inertia::render('FormPhases/EditPage', [
             'formPhase' => $formPhase,
-            ...FormPhaseFormOptions::run(),
+            ...FormPhaseFormOptions::run($formPhase),
         ]);
     }
 
@@ -118,7 +119,7 @@ class FormPhaseController extends Controller
 
     public function updateStatus(Request $request, FormPhase $formPhase)
     {
-        $validated = $request->validate([
+        $request->validate([
             'is_active' => 'required|boolean',
         ]);
 
@@ -126,7 +127,7 @@ class FormPhaseController extends Controller
 
         abort_unless($actor !== null, 403);
 
-        SetFormPhaseActive::run($formPhase, (bool) $validated['is_active'], $actor);
+        SetFormPhaseActive::run($formPhase, $request->boolean('is_active'), $actor);
 
         return response()->json([
             'success' => true,
@@ -183,12 +184,12 @@ class FormPhaseController extends Controller
 
         abort_unless($actor !== null, 403);
 
-        // BR-FE-20 — penjagaannya di dalam Action, dijalankan sebelum apa pun
-        // disentuh. Versi lama membiarkan foreign key yang menolak, sehingga
-        // yang sampai ke Admin adalah SQLSTATE mentah.
-        FormPhase::whereIn('id', $validated['ids'])
+        // BR-FE-20 — penjaga di Action, sebelum apa pun disentuh; dulu foreign key yang
+        // menolak, jadi Admin menerima SQLSTATE mentah. Semua atau tidak sama sekali: satu
+        // tahap terpakai menggulung kembali tahap yang sudah terhapus beserta auditnya.
+        DB::transaction(fn () => FormPhase::whereIn('id', $validated['ids'])
             ->get()
-            ->each(fn (FormPhase $phase) => DeleteFormPhase::run($phase, $actor));
+            ->each(fn (FormPhase $phase) => DeleteFormPhase::run($phase, $actor)));
 
         return redirect()->route('admin.form-phases.index')
             ->with('success', 'Tahap Formulir terpilih berhasil dihapus.');

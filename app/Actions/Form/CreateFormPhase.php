@@ -9,6 +9,7 @@ use App\Models\User;
 use App\Support\Audit\AuditChange;
 use App\Support\Audit\AuditTrail;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 use Lorisleiva\Actions\Concerns\AsAction;
 
 /**
@@ -21,8 +22,14 @@ class CreateFormPhase
 {
     use AsAction;
 
+    /**
+     * @throws ValidationException
+     */
     public function handle(FormPhaseInput $input, User $actor): FormPhase
     {
+        // BR-FE-17 — tahap baru belum dipakai periode mana pun.
+        AssertPhaseDeadlines::run(null, $input->details);
+
         return DB::transaction(function () use ($input, $actor): FormPhase {
             $phase = FormPhase::create([
                 'title' => $input->title,
@@ -30,22 +37,7 @@ class CreateFormPhase
                 'is_active' => $input->isActive,
             ]);
 
-            $orders = NormalisePhaseDetailOrder::run(array_map(
-                fn (FormPhaseDetailInput $d): int => $d->formAccessControlId,
-                $input->details,
-            ));
-
-            $detailIds = [];
-
-            foreach ($input->details as $index => $detail) {
-                $detailIds[] = $phase->formPhaseDetails()->create([
-                    'form_access_control_id' => $detail->formAccessControlId,
-                    'phase_type_id' => $detail->phaseTypeId,
-                    'order' => $orders[$index],
-                    'needs_review' => $detail->needsReview,
-                    'submission_date_id' => $detail->submissionDateId,
-                ])->id;
-            }
+            $detailIds = $this->createDetails($phase, $input->details);
 
             // BR-RPT-09 — di dalam transaksi: pembuatan yang gagal tidak meninggalkan jejak.
             AuditTrail::record(
@@ -62,5 +54,31 @@ class CreateFormPhase
 
             return $phase;
         });
+    }
+
+    /**
+     * @param  list<FormPhaseDetailInput>  $details
+     * @return list<int>
+     */
+    private function createDetails(FormPhase $phase, array $details): array
+    {
+        $orders = NormalisePhaseDetailOrder::run(array_map(
+            fn (FormPhaseDetailInput $d): int => $d->formAccessControlId,
+            $details,
+        ));
+
+        $detailIds = [];
+
+        foreach ($details as $index => $detail) {
+            $detailIds[] = $phase->formPhaseDetails()->create([
+                'form_access_control_id' => $detail->formAccessControlId,
+                'phase_type_id' => $detail->phaseTypeId,
+                'order' => $orders[$index],
+                'needs_review' => $detail->needsReview,
+                'submission_date_id' => $detail->submissionDateId,
+            ])->id;
+        }
+
+        return $detailIds;
     }
 }

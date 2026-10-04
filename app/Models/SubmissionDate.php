@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -46,6 +47,29 @@ class SubmissionDate extends Model
     public function formPhaseDetails(): HasMany
     {
         return $this->hasMany(FormPhaseDetail::class);
+    }
+
+    /**
+     * BR-FE-17 (ADR 0014) — tenggat yang boleh dipasang ke detail tahap: milik periode yang
+     * memakai tahap itu. Tahap yang belum dipakai periode mana pun (mis. saat dibuat) boleh
+     * memakai tenggat periode yang belum ditutup paksa.
+     *
+     * @param  Builder<SubmissionDate>  $query
+     * @return Builder<SubmissionDate>
+     */
+    public function scopeSelectableFor(Builder $query, ?FormPhase $phase): Builder
+    {
+        if ($phase === null || !$phase->submissionPeriodPhases()->exists()) {
+            return $query->whereHas(
+                'submissionPeriod',
+                fn (Builder $period) => $period->where('is_force_closed', false),
+            );
+        }
+
+        return $query->whereIn(
+            'submission_period_id',
+            $phase->submissionPeriodPhases()->select('submission_period_id'),
+        );
     }
 
     public function isPassed(): bool

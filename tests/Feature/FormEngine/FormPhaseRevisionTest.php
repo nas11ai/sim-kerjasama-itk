@@ -215,3 +215,50 @@ it('keeps the deadline of an existing detail sent with null (BR-FE-07)', functio
 
     expect(FormPhaseDetail::query()->find($this->kept->id)?->submission_date_id)->toBe($dateId);
 });
+
+it('rejects changing the form of a detail used by a submission (BR-FE-20)', function () {
+    FormSubmission::factory()->create(['form_phase_detail_id' => $this->kept->id]);
+    $formId = $this->kept->form_access_control_id;
+
+    reviseFormPhase(revisionPayload([
+        array_merge(revisionRow($this->kept), ['form_access_control_id' => $this->dropped->form_access_control_id]),
+        revisionRow($this->dropped),
+    ]))->assertSessionHasErrors('phase_details.0.form_access_control_id');
+
+    expect($this->kept->fresh()->form_access_control_id)->toBe($formId)
+        ->and($this->phase->fresh()->title)->toBe('Tahap Lama');
+});
+
+it('rejects changing the phase type of a detail used by a submission (BR-FE-20)', function () {
+    FormSubmission::factory()->create(['form_phase_detail_id' => $this->kept->id]);
+    $typeId = $this->kept->phase_type_id;
+
+    reviseFormPhase(revisionPayload([
+        array_merge(revisionRow($this->kept), ['phase_type_id' => $this->dropped->phase_type_id]),
+    ]))->assertSessionHasErrors('phase_details.0.phase_type_id');
+
+    expect($this->kept->fresh()->phase_type_id)->toBe($typeId)
+        ->and(FormPhaseDetail::query()->whereKey($this->dropped->id)->exists())->toBeTrue();
+});
+
+it('saves a new order and needs_review on a detail used by a submission (BR-FE-20)', function () {
+    FormSubmission::factory()->create(['form_phase_detail_id' => $this->kept->id]);
+
+    reviseFormPhase(revisionPayload([
+        revisionRow($this->dropped),
+        array_merge(revisionRow($this->kept), ['needs_review' => true]),
+    ]))->assertSessionHasNoErrors();
+
+    $kept = $this->kept->fresh();
+
+    expect($kept->order)->toBe(2)
+        ->and($kept->needs_review)->toBeTrue();
+});
+
+it('saves a changed form on a detail no submission uses', function () {
+    reviseFormPhase(revisionPayload([
+        array_merge(revisionRow($this->kept), ['form_access_control_id' => $this->dropped->form_access_control_id]),
+    ]))->assertSessionHasNoErrors();
+
+    expect($this->kept->fresh()->form_access_control_id)->toBe($this->dropped->form_access_control_id);
+});

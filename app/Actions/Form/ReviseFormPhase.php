@@ -33,6 +33,10 @@ class ReviseFormPhase
         $existing = $phase->formPhaseDetails()->get()->keyBy('id');
 
         $this->assertOwnedBy($existing, $input->details);
+        AssertUsedPhaseDetailsKeepTheirForm::run($existing, $input->details);
+        AssertPhaseDeadlines::run($phase, $input->details, $existing->mapWithKeys(
+            fn (FormPhaseDetail $detail): array => [$detail->id => $detail->submission_date_id],
+        )->all());
 
         DB::transaction(function () use ($phase, $input, $actor, $existing): void {
             $old = $this->snapshot($phase, $existing->modelKeys());

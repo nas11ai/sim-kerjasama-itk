@@ -92,10 +92,12 @@ perbandingan `boolean = integer`. Diverifikasi dengan test; perbaiki bila gagal.
 
 ## Definisi selesai
 
-- [ ] Tahap baru dan detail baru bisa dibuat dari layar (dengan tenggat)
+- [x] Tahap baru dan detail baru bisa dibuat dari layar (dengan tenggat) — diverifikasi lewat
+  test HTTP `store`, belum dicoba di peramban
 
-- [ ] Gerbang hijau; `FormPhaseController` keluar dari daftar; plafon 106 → 105
-- [ ] Test F1, F2, F3 (bila gagal), F5 merah sebelum perbaikan
+- [x] Gerbang hijau; `FormPhaseController` keluar dari daftar; plafon 106 → 105
+- [x] Test F1, F2, F3 (bila gagal), F5 merah sebelum perbaikan — F3 lolos di kode lama, jadi
+  bukan galat (lihat di bawah)
 
 ## Yang berbeda dari rencana
 
@@ -104,9 +106,16 @@ perbandingan `boolean = integer`. Diverifikasi dengan test; perbaiki bila gagal.
 - Task 4 ditambahkan atas keputusan pemilik, supaya tenggat bisa dipilih dari layar.
 - Tenggat detail yang sudah ada kini ikut tersimpan bila dikirim (null berarti dipertahankan),
   berbeda dari K1 yang membiarkan `submission_date_id` detail lama.
-- Pilihan tenggat memuat semua `SubmissionDate`, bukan hanya milik periode tertentu.
+- Pilihan tenggat semula memuat semua `SubmissionDate`; sejak gelombang perbaikan akhir dibatasi
+  BR-FE-17 (lihat butir terakhir).
 - F3 ternyata bukan galat: filter aktif/nonaktif sudah lolos di PostgreSQL. Tetap dipindah ke
   `FormPhaseDirectory` dengan pembanding boolean, dan test-nya dipertahankan sebagai penjaga.
+- Perbaikan akhir: hapus massal kini semua-atau-tidak (audit hapus di dalam transaksi, galat
+  `id` tampil sebagai toast); detail yang dipakai pengajuan menolak ganti form/tipe tahap
+  (BR-FE-20, semangat BR-FE-23); tenggat baru/dipindah harus milik periode yang memakai tahap,
+  atau periode yang tak ditutup paksa bila belum ada (BR-FE-17). Belum ditangani:
+  `CompleteFormBuilderController` masih membuat detail tanpa `submission_date_id` — slice
+  berikutnya.
 
 ---
 ---

@@ -160,3 +160,17 @@ it('passes deadline options labelled period, label and date to create and edit',
         );
     }
 });
+
+it('deletes nothing in a bulk delete when one phase is used, and audits nothing (BR-FE-20)', function () {
+    $unused = FormPhaseDetail::factory()->create()->formPhase;
+    $usedDetail = FormPhaseDetail::factory()->create();
+    FormSubmission::factory()->create(['form_phase_detail_id' => $usedDetail->id]);
+
+    $this->actingAs($this->admin)
+        ->post(route('admin.form-phases.bulk-delete'), ['ids' => [$unused->id, $usedDetail->form_phase_id]])
+        ->assertSessionHasErrors('id');
+
+    expect(FormPhase::query()->whereKey($unused->id)->exists())->toBeTrue()
+        ->and(FormPhase::query()->whereKey($usedDetail->form_phase_id)->exists())->toBeTrue()
+        ->and(auditEntry('Tahap formulir dihapus', $unused))->toBeNull();
+});

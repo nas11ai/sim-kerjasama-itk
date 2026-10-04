@@ -45,6 +45,7 @@ class FormPhase extends Model
         return $this->hasMany(FormPhaseDetail::class);
     }
 
+    /** @return HasMany<SubmissionPeriodPhase, $this> */
     public function submissionPeriodPhases(): HasMany
     {
         return $this->hasMany(SubmissionPeriodPhase::class);

@@ -36,16 +36,18 @@ class DeleteFormPhase
                 ->count(),
         ]);
 
-        AuditTrail::record(
-            'Tahap formulir dihapus',
-            $phase,
-            $actor,
-            new AuditChange(
-                old: ['title' => $phase->title],
-            ),
-        );
+        DB::transaction(function () use ($phase, $actor): void {
+            // BR-RPT-09 — di dalam transaksi: hapus massal yang digulung kembali karena
+            // tahap lain masih dipakai tidak meninggalkan entri "dihapus".
+            AuditTrail::record(
+                'Tahap formulir dihapus',
+                $phase,
+                $actor,
+                new AuditChange(
+                    old: ['title' => $phase->title],
+                ),
+            );
 
-        DB::transaction(function () use ($phase): void {
             // Satu per satu, bukan ->delete() massal: penghapusan lewat query
             // builder tidak memicu event model, jadi penjagaan per detail
             // (BR-FE-20) tidak akan pernah dijalankan.

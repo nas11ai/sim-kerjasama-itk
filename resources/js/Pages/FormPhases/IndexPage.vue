@@ -249,6 +249,13 @@ const bulkDelete = () => {
                     selectedItems.value = []
                     selectAll.value = false
                 },
+                onError: (errors) => {
+                    toast({
+                        title: 'Error',
+                        description: errors.id ?? 'Gagal menghapus tahap formulir terpilih.',
+                        variant: 'destructive',
+                    })
+                },
             }
         )
     }
