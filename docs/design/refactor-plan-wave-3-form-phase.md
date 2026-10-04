@@ -72,6 +72,13 @@ perbandingan `boolean = integer`. Diverifikasi dengan test; perbaiki bila gagal.
   bertipe boolean. Bentuk prop tetap.
 - **K5 — F4 diperbaiki** (nama route di Vue), entri `KNOWN_BROKEN_FRONTEND_ROUTES` dihapus.
 - **K6 — F7 dicabut** beserta entri `ziggy.js`.
+- **K7 — Pemilih tenggat per detail** (keputusan pemilik, 4 Oktober 2026). BR-FE-07 mewajibkan
+  `submission_date_id`, tetapi layar Tambah/Edit Tahap tidak pernah menyediakannya — membuat tahap
+  atau menambah detail dari layar selalu gagal. Halaman `FormPhases/CreatePage.vue` dan
+  `EditPage.vue` mendapat satu pilihan "Tenggat" per detail (opsi: tanggal periode pengajuan —
+  nama periode, label, tanggal) beserta tampilan galat validasinya. Backend menyediakan opsi itu
+  sebagai prop. Ini pengecualian sadar atas aturan "Vue legacy tidak direfactor": fiturnya mati
+  tanpa itu.
 
 ## Global Constraints
 
@@ -84,6 +91,8 @@ perbandingan `boolean = integer`. Diverifikasi dengan test; perbaiki bila gagal.
 - Commit satu baris tanpa trailer. Container `CI`, DB test `simpas_dev_pg` :55432; satu proses test.
 
 ## Definisi selesai
+
+- [ ] Tahap baru dan detail baru bisa dibuat dari layar (dengan tenggat)
 
 - [ ] Gerbang hijau; `FormPhaseController` keluar dari daftar; plafon 106 → 105
 - [ ] Test F1, F2, F3 (bila gagal), F5 merah sebelum perbaikan
@@ -120,3 +129,18 @@ perbandingan `boolean = integer`. Diverifikasi dengan test; perbaiki bila gagal.
 - [ ] `tools/limits.php` dan `tools/prosa.php` bersih; hapus baris controller dari daftar; plafon
   106 → 105. Status dokumen + *Yang berbeda dari rencana*.
 - [ ] Commit `refactor(form): daftar tahap lewat Query dan FormPhaseController keluar dari daftar legacy`
+
+### Task 4: Pemilih tenggat per detail (K7)
+
+- [ ] Backend: `create`/`edit` mengirim prop `submissionDates` (id, label tampilan
+  "Periode — Label — tanggal") dari `SubmissionDate` beserta periode dan labelnya; `store` mewajibkan
+  `submission_date_id` untuk setiap detail (seperti detail baru di revisi). Test: prop ada; `store`
+  tanpa tenggat → `assertSessionHasErrors`; `store` dengan tenggat → tahap dan detailnya tersimpan
+  dengan `submission_date_id` (**merah** dulu bila hari ini gagal SQL).
+- [ ] Vue: satu `Select` "Tenggat" per detail di Create dan Edit (pakai komponen Select yang sudah
+  dipakai berkas itu), terikat ke `submission_date_id`; tampilkan `form.errors` untuk
+  `phase_details.N.submission_date_id`, `phase_details`, dan `id`. Detail lama di Edit memuat nilai
+  awalnya dari `form_phase_details[].submission_date_id`. Test frontend kecil bila ada pola di
+  `tests/frontend` (opsional).
+- [ ] `npm run quality` dan `CI composer run quality` hijau. Commit
+  `feat(form): pilih tenggat per detail tahap formulir (BR-FE-07)`
