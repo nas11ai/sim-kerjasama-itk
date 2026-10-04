@@ -28,8 +28,11 @@ test('halaman statistik reviewer dirender tanpa error SQL', function () {
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
             ->component('Statistics/SubmissionReviewerStats')
-            ->has('totalReviewers')
-            ->has('reviewerByYear'));
+            ->hasAll([
+                'reviewerRecent', 'totalReviewers', 'totalByRole', 'evaluationStatus',
+                'reviewerByYear', 'reviewerByFaculty', 'reviewerByProdi',
+                'reviewerActiveStatus', 'faculties', 'studyPrograms',
+            ]));
 });
 
 test('halaman statistik pengajuan dirender tanpa error SQL', function () {
@@ -38,7 +41,10 @@ test('halaman statistik pengajuan dirender tanpa error SQL', function () {
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
             ->component('Statistics/FormSubmissionStats')
-            ->has('totalByStatus'));
+            ->hasAll([
+                'recentSubmissions', 'totalSubmissions', 'totalByStatus', 'totalByFaculty',
+                'totalByProdi', 'faculties', 'studyPrograms',
+            ]));
 });
 
 test('halaman statistik fase form dan user dirender tanpa error SQL', function () {
@@ -49,14 +55,20 @@ test('halaman statistik fase form dan user dirender tanpa error SQL', function (
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
             ->component('Statistics/FormPhaseStats')
-            ->has('formPhaseStatus'));
+            ->hasAll([
+                'formPhaseFaculty', 'formPhaseProdi', 'formPhaseStatus', 'formPhaseTotal',
+                'formPhaseByPeriod', 'faculties', 'studyPrograms',
+            ]));
 
     $this->actingAs($admin)
         ->get(route('admin.stats.user'))
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
             ->component('Statistics/UserStats')
-            ->has('totalFaculty'));
+            ->hasAll([
+                'userRecent', 'totalUsers', 'totalAdmin', 'totalNonAdmin',
+                'totalProdi', 'totalFaculty',
+            ]));
 });
 
 test('dasbor admin membawa keempat kelompok statistik', function () {

@@ -60,7 +60,7 @@ const data = [
                     </h2>
                 </div>
                 <div class="flex items-center gap-2">
-                    <Button variant="outline" @click="router.visit(route('admin.stats.index'))">
+                    <Button variant="outline" @click="router.visit(route('admin.dashboard'))">
                         <ChartColumn class="h-4 w-4" />
                         Statistik
                     </Button>

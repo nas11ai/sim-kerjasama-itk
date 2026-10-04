@@ -13,7 +13,7 @@ dengan test yang merah sebelum perbaikan.
 DDD [`supporting/05_reporting.md`](../requirement-analysis/ddd/supporting/05_reporting.md)
 (BR-RPT-01 hanya baca, BR-RPT-06 query live).
 
-**Status:** belum dikerjakan.
+**Status:** selesai (Task 1-3).
 
 ---
 
@@ -75,8 +75,8 @@ terdaftar (tercatat di `KNOWN_BROKEN_FRONTEND_ROUTES`).
 
 ## Definisi selesai
 
-- [ ] Gerbang hijau; `StatController` keluar dari daftar; `max.legacy.files` 107 → 106
-- [ ] Test S2, S3 merah sebelum perbaikan
+- [x] Gerbang hijau; `StatController` keluar dari daftar; `max.legacy.files` 107 → 106
+- [x] Test S2, S3 merah sebelum perbaikan
 
 ---
 ---
@@ -85,21 +85,37 @@ terdaftar (tercatat di `KNOWN_BROKEN_FRONTEND_ROUTES`).
 
 ### Task 1: Cabut endpoint JSON testing (S1, K1)
 
-- [ ] Pindahkan `StatControllerTest` ke halaman Inertia (hijau terhadap kode lama — karakterisasi).
-- [ ] Test `Route::has` dataset kelima nama → false (**merah** dulu); cabut route, method, entri `ziggy.js`.
-- [ ] Gerbang; commit `refactor(reporting): cabut endpoint JSON statistik untuk testing`
+- [x] Pindahkan `StatControllerTest` ke halaman Inertia (hijau terhadap kode lama — karakterisasi).
+- [x] Test `Route::has` dataset kelima nama → false (**merah** dulu); cabut route, method, entri `ziggy.js`.
+- [x] Gerbang; commit `refactor(reporting): cabut endpoint JSON statistik untuk testing`
 
 ### Task 2: Status dan user yang dihitung benar (S2, S3, K2, K3)
 
-- [ ] Test merah: pengajuan `submitted` + `resubmitted` muncul sebagai `pending`, `needs_revision`
+- [x] Test merah: pengajuan `submitted` + `resubmitted` muncul sebagai `pending`, `needs_revision`
   sebagai `revision`, draft tidak dihitung — baik di `formPhaseStatus` maupun `totalByStatus`;
   `totalFaculty` menghitung user dari dua fakultas berbeda (keduanya bukan legacy id 1).
-- [ ] Implementasi K2, K3 sebagai Query.
-- [ ] Gerbang; commit `fix(reporting): statistik status dan user dihitung dari state yang sebenarnya`
+- [x] Implementasi K2, K3 sebagai Query.
+- [x] Gerbang; commit `fix(reporting): statistik status dan user dihitung dari state yang sebenarnya`
 
 ### Task 3: Sisa Query, tautan, dan keluar dari daftar (S4, K4, K5)
 
-- [ ] Pindahkan statistik fase form dan reviewer ke Query (karakterisasi bentuk prop dulu).
-- [ ] K4; `npm run quality` hijau; `FrontendRouteNamesTest` hijau dengan daftar menyusut.
-- [ ] `tools/limits.php` dan `tools/prosa.php` bersih; hapus baris `StatController`; plafon 107 → 106.
-- [ ] Status dokumen + *Yang berbeda dari rencana*. Commit `refactor(reporting): statistik lewat Query dan keluar dari daftar legacy`
+- [x] Pindahkan statistik fase form dan reviewer ke Query (karakterisasi bentuk prop dulu).
+- [x] K4; `npm run quality` hijau; `FrontendRouteNamesTest` hijau dengan daftar menyusut.
+- [x] `tools/limits.php` dan `tools/prosa.php` bersih; hapus baris `StatController`; plafon 107 → 106.
+- [x] Status dokumen + *Yang berbeda dari rencana*. Commit `refactor(reporting): statistik lewat Query dan keluar dari daftar legacy`
+
+## Yang berbeda dari rencana
+
+- `SubmissionStatusBuckets` juga `implements ChangesNoState`: `AuditCoverageTest` menyapu semua kelas
+  di `app/Queries/`, jadi pembantu tanpa penanda itu ditolak.
+- Ada satu Query tambahan, `OrganizationReferences` (daftar fakultas dan program studi), karena
+  ketiga layar membutuhkannya; tanpa itu kueri yang sama tertulis tiga kali.
+- `total_submissions` di `formPhaseStatus` kini menghitung pengajuan non-draft (jumlah semua
+  kelompok), konsisten dengan K2; sebelumnya ikut menghitung draft.
+- `totalByStatus` hanya memuat kelompok yang terisi (seperti sebelumnya, yang hanya memuat status
+  yang ada). Kelompok `withdrawn` baru muncul di sini dan di `formPhaseStatus`; Vue tidak berubah.
+- "User Program Studi" dan "User Fakultas" menghitung user unik (`DISTINCT user_id`).
+- Query mengembalikan model/kolektor Eloquent apa adanya (bentuk prop tetap); perluasan ke DTO
+  bertipe tidak dilakukan agar bentuk JSON tidak bergeser.
+- Commit 2 (perbaikan angka) ditulis lebih dulu pada controller lama dengan tambalan minimal,
+  lalu commit 3 memindahkannya ke Query.

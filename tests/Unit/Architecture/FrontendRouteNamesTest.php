@@ -19,7 +19,6 @@ uses(TestCase::class);
  */
 const KNOWN_BROKEN_FRONTEND_ROUTES = [
     'admin.forms-phases.bulk-delete', // FormPhases/IndexPage.vue
-    'admin.stats.index',              // Statistics/UserStats.vue
     'form-phases.show',               // FormAccessControls/ShowPage.vue
 ];
 
