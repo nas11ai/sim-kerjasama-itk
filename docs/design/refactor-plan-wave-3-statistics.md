@@ -115,6 +115,17 @@ terdaftar (tercatat di `KNOWN_BROKEN_FRONTEND_ROUTES`).
 - `totalByStatus` hanya memuat kelompok yang terisi (seperti sebelumnya, yang hanya memuat status
   yang ada). Kelompok `withdrawn` baru muncul di sini dan di `formPhaseStatus`; Vue tidak berubah.
 - "User Program Studi" dan "User Fakultas" menghitung user unik (`DISTINCT user_id`).
+- Arti `totalProdi` berubah: dulu setiap profil yang punya unit apa pun; kini user unik (`DISTINCT
+  user_id`) yang unitnya bertipe `study_program`.
+- Subtree fakultas menghitung semua unit, aktif atau tidak: `totalFaculty` memakai satu CTE rekursif
+  yang diawali setiap fakultas, tanpa filter `is_active` dan tanpa cache (`Organization::subtreeIds`
+  hanya menelusuri turunan aktif). User dihitung menurut posisinya di pohon, jadi kartu fakultas dan
+  prodi sepakat.
+- Satu definisi "pengajuan" di setiap hitungan: draft dikecualikan. `total_submissions` (fase, per
+  periode, per fakultas, per prodi) dan `totalByFaculty`/`totalByProdi` memakai
+  `SubmissionStatusBuckets::countedStates()`, daftar state yang sama dengan kelompok status, sehingga
+  "Total Pengajuan" di dasbor sama dengan jumlah kelompok status. Filter `is_submitted` diganti
+  filter state; `total_forms` tidak berubah.
 - Query mengembalikan model/kolektor Eloquent apa adanya (bentuk prop tetap); perluasan ke DTO
   bertipe tidak dilakukan agar bentuk JSON tidak bergeser.
 - Commit 2 (perbaikan angka) ditulis lebih dulu pada controller lama dengan tambalan minimal,

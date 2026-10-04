@@ -51,7 +51,7 @@ class FormSubmissionStatistics implements ChangesNoState
             ->leftJoin('forms', 'forms.id', '=', 'form_access_controls.form_id')
             ->leftJoin('form_submissions', function (JoinClause $join) {
                 $join->on('form_submissions.form_id', '=', 'forms.id')
-                    ->where('form_submissions.is_submitted', '=', true);
+                    ->whereIn('form_submissions.status', (new SubmissionStatusBuckets)->countedStates());
             })
             ->where('submission_periods.created_at', '>=', $since)
             ->groupBy('submission_periods.id', 'submission_periods.name')
@@ -61,10 +61,19 @@ class FormSubmissionStatistics implements ChangesNoState
     /** @return list<array{status: string, total: int}> */
     private function byStatus(): array
     {
+        $totals = DB::table('form_submissions')
+            ->selectRaw('status, COUNT(*) as total')
+            ->groupBy('status')
+            ->pluck('total', 'status');
         $rows = [];
 
         foreach (SubmissionStatusBuckets::run() as $bucket => $states) {
-            $total = FormSubmission::whereIn('status', $states)->count();
+            $total = 0;
+
+            foreach ($states as $state) {
+                $count = $totals->get($state);
+                $total += is_numeric($count) ? (int) $count : 0;
+            }
 
             if ($total > 0) {
                 $rows[] = ['status' => $bucket, 'total' => $total];
@@ -102,6 +111,7 @@ class FormSubmissionStatistics implements ChangesNoState
     private function inStudyPrograms(Builder $query): Builder
     {
         return $query
+            ->whereIn('form_submissions.status', (new SubmissionStatusBuckets)->countedStates())
             ->join('forms', 'forms.id', '=', 'form_submissions.form_id')
             ->join('form_access_controls', 'form_access_controls.form_id', '=', 'forms.id')
             ->join('organizations as sp_org', function (JoinClause $join) {

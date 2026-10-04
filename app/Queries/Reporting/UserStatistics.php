@@ -3,10 +3,10 @@
 namespace App\Queries\Reporting;
 
 use App\Actions\Concerns\ChangesNoState;
-use App\Models\Organization;
 use App\Models\User;
 use App\Models\UserProfile;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Facades\DB;
 use Lorisleiva\Actions\Concerns\AsAction;
 
 /**
@@ -45,16 +45,24 @@ class UserStatistics implements ChangesNoState
             ->count('user_profiles.user_id');
     }
 
+    /**
+     * Satu CTE rekursif dari setiap fakultas ke semua turunannya, aktif atau tidak:
+     * user dihitung menurut posisinya di pohon, jadi kartu fakultas dan prodi sepakat.
+     */
     private function usersUnderFaculties(): int
     {
-        $unitIds = [];
+        $total = DB::scalar("
+            WITH RECURSIVE faculty_tree AS (
+                SELECT id FROM organizations WHERE type = 'faculty'
+                UNION
+                SELECT o.id FROM organizations o
+                INNER JOIN faculty_tree ft ON o.parent_id = ft.id
+            )
+            SELECT COUNT(DISTINCT user_profiles.user_id)
+            FROM user_profiles
+            INNER JOIN faculty_tree ON faculty_tree.id = user_profiles.organization_id
+        ");
 
-        foreach (Organization::where('type', 'faculty')->get() as $faculty) {
-            $unitIds = array_merge($unitIds, Organization::subtreeIds($faculty->id));
-        }
-
-        return UserProfile::whereIn('organization_id', array_unique($unitIds))
-            ->distinct()
-            ->count('user_id');
+        return is_numeric($total) ? (int) $total : 0;
     }
 }

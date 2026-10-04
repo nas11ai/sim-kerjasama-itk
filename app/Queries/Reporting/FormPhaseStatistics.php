@@ -5,11 +5,11 @@ namespace App\Queries\Reporting;
 use App\Actions\Concerns\ChangesNoState;
 use App\Models\FormPhase;
 use App\Models\Organization;
+use Closure;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Query\JoinClause;
 use Illuminate\Support\Collection as BaseCollection;
-use Illuminate\Support\Facades\DB;
 use Lorisleiva\Actions\Concerns\AsAction;
 use stdClass;
 
@@ -31,7 +31,7 @@ class FormPhaseStatistics implements ChangesNoState
         return [
             'formPhaseFaculty' => $this->byFaculty(),
             'formPhaseProdi' => $this->byStudyProgram(),
-            'formPhaseStatus' => $this->byStatus(),
+            'formPhaseStatus' => FormPhaseStatusCounts::run(),
             'formPhaseTotal' => $this->total(),
             'formPhaseByPeriod' => $this->byPeriod(),
             ...OrganizationReferences::run(),
@@ -80,36 +80,6 @@ class FormPhaseStatistics implements ChangesNoState
             ->get();
     }
 
-    /** @return BaseCollection<int, stdClass> */
-    private function byStatus(): BaseCollection
-    {
-        // Subquery DISTINCT supaya satu pengajuan tidak terhitung dua kali bila form-nya
-        // terpasang di beberapa akses; draft dikeluarkan lewat daftar state yang dihitung.
-        $buckets = SubmissionStatusBuckets::run();
-        $query = DB::query()->fromRaw('(
-            SELECT DISTINCT
-                form_phases.id AS phase_id,
-                form_phases.title AS phase_title,
-                form_submissions.id AS submission_id,
-                form_submissions.status
-            FROM form_phases
-            LEFT JOIN form_phase_details ON form_phase_details.form_phase_id = form_phases.id
-            LEFT JOIN form_access_controls ON form_access_controls.id = form_phase_details.form_access_control_id
-            LEFT JOIN forms ON forms.id = form_access_controls.form_id
-            LEFT JOIN form_submissions ON form_submissions.form_id = forms.id
-        ) as distinct_subs')
-            ->select('phase_id as id', 'phase_title as title')
-            ->selectRaw("COUNT(submission_id) FILTER (WHERE status = ANY (string_to_array(?, ','))) as total_submissions", [$this->stateList((new SubmissionStatusBuckets)->countedStates())])
-            ->selectRaw("COUNT(submission_id) FILTER (WHERE status = ANY (string_to_array(?, ','))) as pending", [$this->stateList($buckets['pending'])])
-            ->selectRaw("COUNT(submission_id) FILTER (WHERE status = ANY (string_to_array(?, ','))) as under_review", [$this->stateList($buckets['under_review'])])
-            ->selectRaw("COUNT(submission_id) FILTER (WHERE status = ANY (string_to_array(?, ','))) as approved", [$this->stateList($buckets['approved'])])
-            ->selectRaw("COUNT(submission_id) FILTER (WHERE status = ANY (string_to_array(?, ','))) as rejected", [$this->stateList($buckets['rejected'])])
-            ->selectRaw("COUNT(submission_id) FILTER (WHERE status = ANY (string_to_array(?, ','))) as revision", [$this->stateList($buckets['revision'])])
-            ->selectRaw("COUNT(submission_id) FILTER (WHERE status = ANY (string_to_array(?, ','))) as withdrawn", [$this->stateList($buckets['withdrawn'])]);
-
-        return $query->groupBy('phase_id', 'phase_title')->get();
-    }
-
     /** @return Collection<int, FormPhase> */
     private function total(): Collection
     {
@@ -118,7 +88,7 @@ class FormPhaseStatistics implements ChangesNoState
             ->selectRaw('COUNT(DISTINCT form_submissions.id) as total_submissions');
 
         return $this->withForms($query)
-            ->leftJoin('form_submissions', 'form_submissions.form_id', '=', 'forms.id')
+            ->leftJoin('form_submissions', $this->counted())
             ->groupBy('form_phases.id', 'form_phases.title')
             ->get();
     }
@@ -136,7 +106,7 @@ class FormPhaseStatistics implements ChangesNoState
             ->leftJoin('submission_periods', 'submission_periods.id', '=', 'submission_period_phases.submission_period_id');
 
         return $this->withForms($query)
-            ->leftJoin('form_submissions', 'form_submissions.form_id', '=', 'forms.id')
+            ->leftJoin('form_submissions', $this->counted())
             ->groupBy('submission_periods.id', 'submission_periods.name')
             ->get();
     }
@@ -164,15 +134,17 @@ class FormPhaseStatistics implements ChangesNoState
             ->selectRaw('COUNT(DISTINCT form_submissions.id) as total_submissions')
             ->leftJoin('organizations as sp_org', 'sp_org.id', '=', 'form_access_controls.organization_id')
             ->leftJoin('organizations as fac_org', 'fac_org.id', '=', 'sp_org.parent_id')
-            ->leftJoin('form_submissions', function (JoinClause $join) {
-                $join->on('form_submissions.form_id', '=', 'forms.id')
-                    ->where('form_submissions.is_submitted', true);
-            });
+            ->leftJoin('form_submissions', $this->counted());
     }
 
-    /** @param list<string> $states */
-    private function stateList(array $states): string
+    /** @return Closure(JoinClause): void */
+    private function counted(): Closure
     {
-        return implode(',', $states);
+        $states = (new SubmissionStatusBuckets)->countedStates();
+
+        return static function (JoinClause $join) use ($states): void {
+            $join->on('form_submissions.form_id', '=', 'forms.id')
+                ->whereIn('form_submissions.status', $states);
+        };
     }
 }

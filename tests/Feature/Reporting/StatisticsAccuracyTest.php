@@ -111,3 +111,43 @@ test('total user fakultas menghitung user dari setiap fakultas, bukan satu fakul
             ->where('totalFaculty', 3)
             ->where('totalProdi', 2));
 });
+
+test('total user fakultas dan prodi menghitung unit nonaktif menurut posisinya di pohon', function () {
+    $faculty = Organization::create(['name' => 'Fakultas A', 'type' => 'faculty']);
+    $prodi = Organization::create([
+        'name' => 'Prodi Lama', 'type' => 'study_program', 'parent_id' => $faculty->id,
+        'is_active' => false,
+    ]);
+    UserProfile::factory()->create(['organization_id' => $prodi->id]);
+
+    $this->actingAs(reportingAdmin())
+        ->get(route('admin.stats.user'))
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('totalFaculty', 1)
+            ->where('totalProdi', 1));
+});
+
+test('BR-RPT-06 setiap total pengajuan mengecualikan draft dan sama dengan jumlah kelompok status', function () {
+    $detail = phaseWithSubmissions([Draft::class, Submitted::class]);
+    $form = $detail->formAccessControl;
+    $faculty = Organization::create(['name' => 'Fakultas A', 'type' => 'faculty']);
+    $prodi = Organization::create([
+        'name' => 'Prodi A', 'type' => 'study_program', 'parent_id' => $faculty->id,
+    ]);
+    $form->update(['organization_id' => $prodi->id]);
+    $admin = reportingAdmin();
+
+    $this->actingAs($admin)
+        ->get(route('admin.stats.form-phase'))
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('formPhaseTotal.0.total_submissions', 1)
+            ->where('formPhaseByPeriod.0.total_submissions', 1)
+            ->where('formPhaseStatus.0.total_submissions', 1));
+
+    $this->actingAs($admin)
+        ->get(route('admin.stats.form-submission'))
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('totalByFaculty.0.total', 1)
+            ->where('totalByProdi.0.total', 1)
+            ->where('totalByStatus', fn ($rows) => collect($rows)->sum('total') === 1));
+});
