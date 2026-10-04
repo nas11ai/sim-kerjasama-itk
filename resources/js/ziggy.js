@@ -131,19 +131,6 @@ const Ziggy = {
             bindings: { reviewSummary: 'id' },
         },
         'admin.dashboard': { uri: 'admin\/dashboard', methods: ['GET', 'HEAD'] },
-        'admin.stats.get-form-phase': {
-            uri: 'admin\/stats\/get-form-phases',
-            methods: ['GET', 'HEAD'],
-        },
-        'admin.stats.get-form-submission': {
-            uri: 'admin\/stats\/get-form-submissions',
-            methods: ['GET', 'HEAD'],
-        },
-        'admin.stats.get-reviewer': {
-            uri: 'admin\/stats\/get-reviewers',
-            methods: ['GET', 'HEAD'],
-        },
-        'admin.stats.get-user': { uri: 'admin\/stats\/get-users', methods: ['GET', 'HEAD'] },
         'admin.stats.form-phase': { uri: 'admin\/stats\/form-phases', methods: ['GET', 'HEAD'] },
         'admin.stats.form-submission': {
             uri: 'admin\/stats\/form-submissions',
@@ -151,7 +138,6 @@ const Ziggy = {
         },
         'admin.stats.reviewer': { uri: 'admin\/stats\/reviewers', methods: ['GET', 'HEAD'] },
         'admin.stats.user': { uri: 'admin\/stats\/users', methods: ['GET', 'HEAD'] },
-        'admin.stats.data': { uri: 'admin\/stats\/data', methods: ['GET', 'HEAD'] },
         'admin.users.index': { uri: 'admin\/users', methods: ['GET', 'HEAD'] },
         'admin.users.create': { uri: 'admin\/users\/create', methods: ['GET', 'HEAD'] },
         'admin.users.store': { uri: 'admin\/users\/store', methods: ['POST'] },

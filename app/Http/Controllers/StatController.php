@@ -31,11 +31,6 @@ class StatController extends Controller
         return Inertia::render('DashboardPage', $this->getAllStats());
     }
 
-    public function data()
-    {
-        return response()->json($this->getAllStats());
-    }
-
     // form phase Index
     public function formPhaseStatIndex()
     {

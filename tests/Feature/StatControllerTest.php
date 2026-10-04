@@ -1,7 +1,7 @@
 <?php
 
 use App\Models\User;
-use Illuminate\Support\Facades\DB;
+use Inertia\Testing\AssertableInertia as Assert;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 use Spatie\Permission\PermissionRegistrar;
@@ -14,28 +14,69 @@ beforeEach(function () {
     $admin->givePermissionTo($permission);
 });
 
-test('admin can access reviewer stats endpoint without SQL error', function () {
-    if (DB::connection()->getDriverName() === 'sqlite') {
-        test()->markTestSkipped('Fungsi EXTRACT(YEAR) standar SQL tidak didukung di SQLite in-memory testing.');
-    }
-
+function statsAdmin(): User
+{
     $user = User::factory()->create();
     $user->assignRole('Admin');
 
-    $response = $this
-        ->actingAs($user)
-        ->get('/admin/stats/get-reviewers');
+    return $user;
+}
 
-    $response->assertOk();
+test('halaman statistik reviewer dirender tanpa error SQL', function () {
+    $this->actingAs(statsAdmin())
+        ->get(route('admin.stats.reviewer'))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('Statistics/SubmissionReviewerStats')
+            ->has('totalReviewers')
+            ->has('reviewerByYear'));
 });
 
-test('admin can access form submissions stats endpoint without SQL error', function () {
-    $user = User::factory()->create();
-    $user->assignRole('Admin');
-
-    $response = $this
-        ->actingAs($user)
-        ->get('/admin/stats/get-form-submissions');
-
-    $response->assertOk();
+test('halaman statistik pengajuan dirender tanpa error SQL', function () {
+    $this->actingAs(statsAdmin())
+        ->get(route('admin.stats.form-submission'))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('Statistics/FormSubmissionStats')
+            ->has('totalByStatus'));
 });
+
+test('halaman statistik fase form dan user dirender tanpa error SQL', function () {
+    $admin = statsAdmin();
+
+    $this->actingAs($admin)
+        ->get(route('admin.stats.form-phase'))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('Statistics/FormPhaseStats')
+            ->has('formPhaseStatus'));
+
+    $this->actingAs($admin)
+        ->get(route('admin.stats.user'))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('Statistics/UserStats')
+            ->has('totalFaculty'));
+});
+
+test('dasbor admin membawa keempat kelompok statistik', function () {
+    $this->actingAs(statsAdmin())
+        ->get(route('admin.dashboard'))
+        ->assertOk()
+        ->assertInertia(fn (Assert $page) => $page
+            ->component('DashboardPage')
+            ->has('formPhase')
+            ->has('formSubmission')
+            ->has('user')
+            ->has('submissionReviewer'));
+});
+
+test('endpoint JSON statistik untuk testing sudah tidak terdaftar', function (string $name) {
+    expect(Route::has($name))->toBeFalse();
+})->with([
+    'admin.stats.get-form-phase',
+    'admin.stats.get-form-submission',
+    'admin.stats.get-reviewer',
+    'admin.stats.get-user',
+    'admin.stats.data',
+]);
