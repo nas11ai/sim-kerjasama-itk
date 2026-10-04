@@ -29,11 +29,12 @@ interface SubmissionPeriodData {
     dates: SubmissionDate[]
 }
 
-import type { SubmissionPeriod } from '@/types/form-builder'
+import type { SubmissionDateLabel, SubmissionPeriod } from '@/types/form-builder'
 
 interface Props {
     modelValue: SubmissionPeriodData
     submissionPeriods: SubmissionPeriod[]
+    submissionDateLabels: SubmissionDateLabel[]
     errors: Record<string, string>
 }
 
@@ -46,14 +47,6 @@ const submissionPeriodData = computed({
     get: () => props.modelValue,
     set: (value) => emit('update:modelValue', value),
 })
-
-// Hardcoded submission date labels (atau bisa ambil dari backend)
-const submissionDateLabels = [
-    { id: 1, name: 'Tanggal Mulai' },
-    { id: 2, name: 'Tanggal Selesai' },
-    { id: 3, name: 'Batas Waktu Review' },
-    { id: 4, name: 'Pengajuan Final' },
-]
 
 const selectedPeriodInfo = computed(() => {
     if (!submissionPeriodData.value.use_existing || !submissionPeriodData.value.existing_period_id)
@@ -80,7 +73,7 @@ const removeDate = (index: number) => {
 
 const getLabelName = (labelId: number | null) => {
     if (!labelId) return 'Not selected'
-    return submissionDateLabels.find((l) => l.id === labelId)?.name || 'Unknown'
+    return props.submissionDateLabels.find((l) => l.id === labelId)?.name || 'Unknown'
 }
 
 const formatDateForDisplay = (dateString: string) => {
@@ -113,12 +106,9 @@ watch(
             submissionPeriodData.value.dates = []
         } else {
             submissionPeriodData.value.existing_period_id = null
-            // Initialize with default dates
+            // Satu baris kosong; label dipilih Operator dari daftar di basis data.
             if (submissionPeriodData.value.dates.length === 0) {
-                submissionPeriodData.value.dates = [
-                    { label_id: 1, label: 'Tanggal Mulai', date: '', temp_id: generateTempId() },
-                    { label_id: 2, label: 'Tanggal Selesai', date: '', temp_id: generateTempId() },
-                ]
+                addDate()
             }
         }
     }

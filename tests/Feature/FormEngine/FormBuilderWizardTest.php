@@ -194,3 +194,13 @@ it('rejects two dates of a new period with the same label', function () {
 
     expect(SubmissionPeriod::query()->count())->toBe(0);
 });
+
+it('offers the date labels stored in the database to the wizard', function () {
+    $this->actingAs($this->admin)
+        ->get(route('admin.form-builder.create'))
+        ->assertInertia(fn ($page) => $page
+            ->component('FormBuilder/CreatePage')
+            ->has('submissionDateLabels', 2)
+            ->where('submissionDateLabels.0', ['id' => $this->labelB->id, 'name' => 'Batas Laporan'])
+            ->where('submissionDateLabels.1', ['id' => $this->labelA->id, 'name' => 'Batas Proposal']));
+});

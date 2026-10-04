@@ -10,6 +10,7 @@ use App\Models\FormPhase;
 use App\Models\FormType;
 use App\Models\Organization;
 use App\Models\PhaseType;
+use App\Models\SubmissionDateLabel;
 use App\Models\SubmissionPeriod;
 use Inertia\Inertia;
 use Spatie\Permission\Models\Role;
@@ -38,6 +39,8 @@ class CompleteFormBuilderController extends Controller
                 })
                 ->orderBy('name')
                 ->get(),
+            // Label dari basis data; id-nya tidak boleh ditulis tangan di layar.
+            'submissionDateLabels' => SubmissionDateLabel::query()->orderBy('name')->get(['id', 'name']),
         ]);
     }
 

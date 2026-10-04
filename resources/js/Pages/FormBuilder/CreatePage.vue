@@ -22,6 +22,7 @@ import type {
     FieldType,
     PhaseType,
     FormPhase,
+    SubmissionDateLabel,
     SubmissionPeriod,
 } from '@/types/form-builder'
 import type { Faculty } from '@/Pages/FormBuilder/Steps/Step2AccessControl.vue'
@@ -34,6 +35,7 @@ interface Props {
     phaseTypes: PhaseType[]
     formPhases: FormPhase[]
     submissionPeriods: SubmissionPeriod[]
+    submissionDateLabels: SubmissionDateLabel[]
 }
 
 defineProps<Props>()
@@ -270,6 +272,7 @@ const submit = () => {
                         v-if="currentStep === 5"
                         v-model="form.submission_period"
                         :submission-periods="submissionPeriods"
+                        :submission-date-labels="submissionDateLabels"
                         :errors="form.errors"
                     />
 
