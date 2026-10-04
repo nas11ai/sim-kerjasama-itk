@@ -13,6 +13,7 @@ use App\Models\UserProfile;
 use App\Notifications\SubmissionDeadlineExtendedNotification;
 use Illuminate\Support\Facades\Notification;
 use Inertia\Testing\AssertableInertia as Assert;
+use Spatie\Activitylog\Models\Activity;
 use Spatie\Permission\Models\Permission;
 
 it('[SCH-RULE-11] perpanjangan memberi tahu pemilik draft', function () {
@@ -96,6 +97,24 @@ it('[SCH-RULE-11] hanya pemilik draft di periode itu yang diberi tahu', function
     ]);
 
     Notification::assertNotSentTo($orangLain, SubmissionDeadlineExtendedNotification::class);
+});
+
+it('BR-RPT-09 entri audit perpanjangan mencatat Operator sebagai pelaku', function () {
+    Notification::fake();
+
+    $fx = wizardFixture();
+    StartSubmission::run($fx['form']->id, $fx['period']->id, $fx['detail'], $fx['user']);
+
+    $operator = User::factory()->create();
+    $label = $fx['period']->submissionDates->first()->submissionDateLabel->name;
+
+    ExtendSubmissionDates::run($fx['period'], [
+        ['label' => $label, 'date' => now()->addMonth()->toDateTimeString()],
+    ], $operator);
+
+    $entry = Activity::query()->where('description', 'Tenggat periode diperpanjang')->firstOrFail();
+
+    expect($entry->causer_id)->toBe($operator->id);
 });
 
 // BR-SCH-08 sampai ke layar. Nilai kembalian ExtendSubmissionDates sebelumnya

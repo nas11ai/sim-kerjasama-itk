@@ -16,11 +16,11 @@ use Illuminate\Support\Facades\DB;
 use Lorisleiva\Actions\Concerns\AsAction;
 
 /**
- * BR-SCH-08 — memperbarui tanggal periode, dan memberi tahu pemilik draft
- * kalau salah satu batasnya **mundur**; memajukan atau mengganti nama tidak
- * memberi peneliti kesempatan baru, memperpanjang memberi.
+ * BR-SCH-08 — memberi tahu pemilik draft kalau batas bergeser LEBIH LAMA (nilai
+ * lama dibandingkan dengan baru); memajukan atau mengganti nama tidak memberi
+ * peneliti kesempatan baru, memperpanjang memberi.
  *
- * @method static int run(SubmissionPeriod $period, array<int, array{label: string, date: string}> $dates)
+ * @method static int run(SubmissionPeriod $period, array<int, array{label: string, date: string}> $dates, ?User $actor = null)
  */
 class ExtendSubmissionDates
 {
@@ -30,9 +30,9 @@ class ExtendSubmissionDates
      * @param  array<int, array{label: string, date: string}>  $dates
      * @return int jumlah peneliti yang diberi tahu
      */
-    public function handle(SubmissionPeriod $period, array $dates): int
+    public function handle(SubmissionPeriod $period, array $dates, ?User $actor = null): int
     {
-        return DB::transaction(function () use ($period, $dates): int {
+        return DB::transaction(function () use ($period, $dates, $actor): int {
             // Mengirim untuk setiap penyuntingan membuat notifikasi ini cepat
             // diabaikan, dan yang hilang justru yang penting.
             if (!$this->syncDates($period, $dates)) {
@@ -46,12 +46,13 @@ class ExtendSubmissionDates
                 return 0;
             }
 
-            // BR-RPT-09 — satu Action, satu entri audit.
-            AuditTrail::record('Tenggat periode diperpanjang', $period);
+            // BR-RPT-09 — revisi periode bisa menulis dua entri berbeda: periode
+            // direvisi dan tenggat diperpanjang.
+            AuditTrail::record('Tenggat periode diperpanjang', $period, $actor);
 
-            // Pemanggil yang membuka transaksi luar (ReviseSubmissionPeriod) bisa
-            // menggulung semuanya; mengabari peneliti sebelum commit berarti
-            // mengabari perpanjangan yang tak pernah terjadi.
+            // Transaksi luar (ReviseSubmissionPeriod) bisa menggulung semuanya, jadi kirim
+            // sesudah commit. ChannelNotDeclared (BR-NOT-06) muncul di sini, sesudah commit:
+            // deklarasi kanal wajib sudah ada.
             DB::afterCommit(static function () use ($pemilikDraft, $period): void {
                 Deliver::to($pemilikDraft, new SubmissionDeadlineExtendedNotification($period));
             });

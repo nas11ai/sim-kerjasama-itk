@@ -35,7 +35,7 @@ class ReviseSubmissionPeriod
 
             // Tanggal disinkronkan di antara dua penulisan tahap: galat sesudahnya
             // menggulung kembali semuanya, termasuk notifikasi yang tertunda.
-            $notified = ExtendSubmissionDates::run($period, $input->dates);
+            $notified = ExtendSubmissionDates::run($period, $input->dates, $actor);
 
             foreach ($input->formPhaseIds as $formPhaseId) {
                 $period->submissionPeriodPhases()->create(['form_phase_id' => $formPhaseId]);

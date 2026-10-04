@@ -78,7 +78,7 @@ const Ziggy = {
         'user.announcements.index': { uri: 'user\/announcements', methods: ['GET', 'HEAD'] },
         'user.announcements.markRead': {
             uri: 'user\/announcements\/{announcement}\/markRead',
-            methods: ['GET', 'HEAD'],
+            methods: ['POST'],
             parameters: ['announcement'],
             bindings: { announcement: 'id' },
         },
