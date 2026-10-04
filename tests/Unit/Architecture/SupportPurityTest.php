@@ -19,7 +19,10 @@ it('app/Support tidak menulis state — di sana tidak ada audit yang menjaganya'
         '->update(', '->delete(', '->save(', '->insert(',
         '->upsert(', '->increment(', '->decrement(',
         '->forceDelete(', '->restore(',
+        '->create(', 'firstOrCreate(', 'updateOrCreate(',
     ];
+    // Finder::create() hanya membaca sistem berkas, jadi bukan penulisan record.
+    $penulisStatis = '/(?<!Finder)::create\(/';
 
     $pelanggar = [];
 
@@ -30,6 +33,10 @@ it('app/Support tidak menulis state — di sana tidak ada audit yang menjaganya'
             if (str_contains($isi, $tanda)) {
                 $pelanggar[] = 'app/Support/'.$file->getRelativePathname().' — '.$tanda;
             }
+        }
+
+        if (preg_match($penulisStatis, $isi) === 1) {
+            $pelanggar[] = 'app/Support/'.$file->getRelativePathname().' — ::create(';
         }
     }
 
