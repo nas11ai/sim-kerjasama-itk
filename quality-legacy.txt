@@ -10,7 +10,6 @@ app/Http/Controllers/AnnouncementController.php
 app/Http/Controllers/BiodataController.php
 app/Http/Controllers/CompleteFormBuilderController.php
 app/Http/Controllers/Export/ExportController.php
-app/Http/Controllers/FacultyController.php
 app/Http/Controllers/FormAccessControlController.php
 app/Http/Controllers/FormController.php
 app/Http/Controllers/FormPhaseController.php
@@ -55,9 +54,6 @@ resources/js/Pages/Auth/RegisterPage.vue
 resources/js/Pages/Auth/ResetPassword.vue
 resources/js/Pages/Config/ReferenceEntitiesPage.vue
 resources/js/Pages/EvaluationForms/ShowPage.vue
-resources/js/Pages/Faculties/CreatePage.vue
-resources/js/Pages/Faculties/EditPage.vue
-resources/js/Pages/Faculties/IndexPage.vue
 resources/js/Pages/FormAccessControls/CreatePage.vue
 resources/js/Pages/FormAccessControls/EditPage.vue
 resources/js/Pages/FormAccessControls/IndexPage.vue
@@ -106,9 +102,6 @@ resources/js/Pages/Statistics/FormPhaseStats.vue
 resources/js/Pages/Statistics/FormSubmissionStats.vue
 resources/js/Pages/Statistics/SubmissionReviewerStats.vue
 resources/js/Pages/Statistics/UserStats.vue
-resources/js/Pages/StudyPrograms/CreatePage.vue
-resources/js/Pages/StudyPrograms/EditPage.vue
-resources/js/Pages/StudyPrograms/IndexPage.vue
 resources/js/Pages/SubmissionEvaluationManager/IndexPage.vue
 resources/js/Pages/SubmissionPeriods/CreatePage.vue
 resources/js/Pages/SubmissionPeriods/EditPage.vue

@@ -29,7 +29,6 @@ import {
     Calendar,
     Users,
     Building2,
-    GraduationCap,
     ChevronUp,
     User2,
     LogOut,
@@ -169,22 +168,6 @@ const adminNavItems = [
                 title: 'Reviewer',
                 url: route('admin.reviewers.index'),
                 icon: Users,
-            },
-        ],
-    },
-    {
-        title: 'Manajemen Fakultas & Prodi',
-        icon: Building2,
-        items: [
-            {
-                title: 'Fakultas',
-                url: route('admin.faculties.index'),
-                icon: Building2,
-            },
-            {
-                title: 'Program Studi',
-                url: route('admin.faculties.study-programs'),
-                icon: GraduationCap,
             },
         ],
     },

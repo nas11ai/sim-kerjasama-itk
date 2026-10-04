@@ -7,7 +7,6 @@ use App\Http\Controllers\CompleteFormBuilderController;
 use App\Http\Controllers\Config\ReferenceEntityController;
 use App\Http\Controllers\Export\DocumentPrintController;
 use App\Http\Controllers\Export\ExportController;
-use App\Http\Controllers\FacultyController;
 use App\Http\Controllers\FormAccessControlController;
 use App\Http\Controllers\FormController;
 use App\Http\Controllers\FormPhaseController;
@@ -365,16 +364,6 @@ Route::middleware(['auth', 'can:users.manage'])->prefix('admin')->name('admin.')
         'destroy' => 'submission-periods.destroy',
     ]);
 
-    Route::resource('faculties', FacultyController::class)->names([
-        'index' => 'faculties.index',
-        'create' => 'faculties.create',
-        'store' => 'faculties.store',
-        'show' => 'faculties.show',
-        'edit' => 'faculties.edit',
-        'update' => 'faculties.update',
-        'destroy' => 'faculties.destroy',
-    ]);
-
     Route::resource('announcements', AnnouncementController::class)->names([
         'index' => 'announcements.index',
         'create' => 'announcements.create',
@@ -384,25 +373,6 @@ Route::middleware(['auth', 'can:users.manage'])->prefix('admin')->name('admin.')
         'update' => 'announcements.update',
         'destroy' => 'announcements.destroy',
     ]);
-
-    // Study Program Routes
-    Route::get('study-programs', [FacultyController::class, 'studyPrograms'])
-        ->name('faculties.study-programs');
-
-    Route::get('study-programs/create', [FacultyController::class, 'createStudyProgram'])
-        ->name('faculties.study-programs.create');
-
-    Route::post('study-programs', [FacultyController::class, 'storeStudyProgram'])
-        ->name('faculties.study-programs.store');
-
-    Route::get('study-programs/{studyProgram}/edit', [FacultyController::class, 'editStudyProgram'])
-        ->name('faculties.study-programs.edit');
-
-    Route::put('study-programs/{studyProgram}', [FacultyController::class, 'updateStudyProgram'])
-        ->name('faculties.study-programs.update');
-
-    Route::delete('study-programs/{studyProgram}', [FacultyController::class, 'destroyStudyProgram'])
-        ->name('faculties.study-programs.destroy');
 
     Route::post('/submission-date-labels', [SubmissionPeriodController::class, 'storeLabel'])
         ->name('submission-date-labels.store');
@@ -439,9 +409,6 @@ Route::middleware(['auth', 'can:users.manage'])->group(function () {
     });
     Route::get('/submission-periods', function () {
         return redirect()->route('admin.submission-periods.index');
-    });
-    Route::get('/faculties', function () {
-        return redirect()->route('admin.faculties.index');
     });
     Route::get('/announcements', function () {
         return redirect()->route('admin.announcements.index');

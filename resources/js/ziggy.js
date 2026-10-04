@@ -471,33 +471,6 @@ const Ziggy = {
             methods: ['DELETE'],
             parameters: ['submission_period'],
         },
-        'admin.faculties.index': { uri: 'admin\/faculties', methods: ['GET', 'HEAD'] },
-        'admin.faculties.create': { uri: 'admin\/faculties\/create', methods: ['GET', 'HEAD'] },
-        'admin.faculties.store': { uri: 'admin\/faculties', methods: ['POST'] },
-        'admin.faculties.show': {
-            uri: 'admin\/faculties\/{faculty}',
-            methods: ['GET', 'HEAD'],
-            parameters: ['faculty'],
-            bindings: { faculty: 'id' },
-        },
-        'admin.faculties.edit': {
-            uri: 'admin\/faculties\/{faculty}\/edit',
-            methods: ['GET', 'HEAD'],
-            parameters: ['faculty'],
-            bindings: { faculty: 'id' },
-        },
-        'admin.faculties.update': {
-            uri: 'admin\/faculties\/{faculty}',
-            methods: ['PUT', 'PATCH'],
-            parameters: ['faculty'],
-            bindings: { faculty: 'id' },
-        },
-        'admin.faculties.destroy': {
-            uri: 'admin\/faculties\/{faculty}',
-            methods: ['DELETE'],
-            parameters: ['faculty'],
-            bindings: { faculty: 'id' },
-        },
         'admin.announcements.index': { uri: 'admin\/announcements', methods: ['GET', 'HEAD'] },
         'admin.announcements.create': {
             uri: 'admin\/announcements\/create',
@@ -527,33 +500,6 @@ const Ziggy = {
             methods: ['DELETE'],
             parameters: ['announcement'],
             bindings: { announcement: 'id' },
-        },
-        'admin.faculties.study-programs': {
-            uri: 'admin\/study-programs',
-            methods: ['GET', 'HEAD'],
-        },
-        'admin.faculties.study-programs.create': {
-            uri: 'admin\/study-programs\/create',
-            methods: ['GET', 'HEAD'],
-        },
-        'admin.faculties.study-programs.store': { uri: 'admin\/study-programs', methods: ['POST'] },
-        'admin.faculties.study-programs.edit': {
-            uri: 'admin\/study-programs\/{studyProgram}\/edit',
-            methods: ['GET', 'HEAD'],
-            parameters: ['studyProgram'],
-            bindings: { studyProgram: 'id' },
-        },
-        'admin.faculties.study-programs.update': {
-            uri: 'admin\/study-programs\/{studyProgram}',
-            methods: ['PUT'],
-            parameters: ['studyProgram'],
-            bindings: { studyProgram: 'id' },
-        },
-        'admin.faculties.study-programs.destroy': {
-            uri: 'admin\/study-programs\/{studyProgram}',
-            methods: ['DELETE'],
-            parameters: ['studyProgram'],
-            bindings: { studyProgram: 'id' },
         },
         'admin.submission-date-labels.store': {
             uri: 'admin\/submission-date-labels',
