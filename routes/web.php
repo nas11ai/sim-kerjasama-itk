@@ -44,7 +44,7 @@ use App\Http\Controllers\SubmissionWithdrawalController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\UserDeactivationController;
 use App\Http\Controllers\UserFormController;
-use App\Models\Announcement;
+use App\Queries\Announcement\PublicAnnouncementFeed;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -55,34 +55,7 @@ Route::get('/', function () {
         'canRegister' => Route::has('register'),
         'laravelVersion' => Application::VERSION,
         'phpVersion' => PHP_VERSION,
-        'announcements' => [
-            'data' => Announcement::latest()
-                ->with('announcementFiles')
-                ->where('type', 'public')
-                ->where(function ($query) {
-                    $query->whereNull('expired_at')
-                        ->orWhere('expired_at', '>', now());
-                })
-                ->take(10) // Batasi 10 pengumuman untuk performa carousel
-                ->get(),
-            'current_page' => 1,
-            'last_page' => 1,
-            'per_page' => 10,
-            'total' => Announcement::where('type', 'public')
-                ->where(function ($query) {
-                    $query->whereNull('expired_at')
-                        ->orWhere('expired_at', '>', now());
-                })
-                ->count(),
-            'from' => 1,
-            'to' => Announcement::where('type', 'public')
-                ->where(function ($query) {
-                    $query->whereNull('expired_at')
-                        ->orWhere('expired_at', '>', now());
-                })
-                ->take(10)
-                ->count(),
-        ],
+        'announcements' => PublicAnnouncementFeed::run(),
     ]);
 })->name('welcome');
 

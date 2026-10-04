@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Announcement;
 use App\Models\AnnouncementFile;
 use App\Models\AnnouncementUser;
+use App\Queries\Announcement\VisibleAnnouncements;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -27,9 +28,10 @@ class AnnouncementController extends Controller
         ]);
     }
 
-    public function userIndex()
+    public function userIndex(Request $request)
     {
-        $announcements = Announcement::with(['announcementFiles'])
+        $announcements = VisibleAnnouncements::run($request->user())
+            ->with('announcementFiles')
             ->orderBy('created_at', 'desc')
             ->paginate(10);
 
@@ -190,8 +192,15 @@ class AnnouncementController extends Controller
             ->with('success', 'Pengumuman berhasil dihapus.');
     }
 
-    public function detail(Announcement $announcement)
+    public function detail(Request $request, Announcement $announcement)
     {
+        // Pengumuman yang tak terlihat oleh penanya dijawab 404, bukan 403:
+        // keberadaannya tidak dibocorkan ke tamu yang menebak id.
+        abort_unless(
+            VisibleAnnouncements::run($request->user())->whereKey($announcement->id)->exists(),
+            404,
+        );
+
         $announcement->load('announcementFiles', 'announcementCreator');
 
         return Inertia::render('AnnouncementDetail', [
