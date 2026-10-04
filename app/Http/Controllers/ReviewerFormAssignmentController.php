@@ -2,51 +2,24 @@
 
 namespace App\Http\Controllers;
 
-use App\Actions\Review\AssignEvaluationForm;
-use App\Actions\Review\RecalculateEvaluationStatus;
+use App\Actions\Review\AssignEvaluationFormsInBulk;
+use App\Actions\Review\RemoveEvaluationFormAssignment;
+use App\Data\Request\FormAssignmentInput;
+use App\Data\Review\BulkFormAssignmentResult;
 use App\Models\FormSubmission;
 use App\Models\ReviewerFormAssignment;
-use App\Queries\Review\ActiveReviewerAssignment;
-use Carbon\Carbon;
+use App\Queries\Review\ReviewerAssignmentList;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Carbon;
 use Inertia\Inertia;
 
 class ReviewerFormAssignmentController extends Controller
 {
     public function removeFormAssignment(ReviewerFormAssignment $assignment)
     {
-        // Check if there are any submitted responses
-        if ($assignment->reviewFormResponse && $assignment->reviewFormResponse->isSubmitted()) {
-            return back()->withErrors(['error' => 'Tidak dapat menghapus penugasan dengan respons yang telah dikirim.']);
-        }
+        RemoveEvaluationFormAssignment::run($assignment);
 
-        try {
-            DB::beginTransaction();
-
-            $submissionReviewer = $assignment->submissionReviewer;
-
-            // Delete related draft responses
-            if ($assignment->reviewFormResponse && $assignment->reviewFormResponse->isDraft()) {
-                $assignment->reviewFormResponse->reviewFormFieldResponses()->delete();
-                $assignment->reviewFormResponse->delete();
-            }
-
-            $assignment->delete();
-
-            // Update evaluation status
-            RecalculateEvaluationStatus::run($submissionReviewer);
-
-            DB::commit();
-
-            return back()->with('success', 'Penugasan formulir berhasil dihapus.');
-
-        } catch (\Exception $e) {
-            DB::rollback();
-
-            return back()->withErrors(['error' => 'Gagal menghapus penugasan formulir: '.$e->getMessage()]);
-        }
+        return back()->with('success', 'Penugasan formulir berhasil dihapus.');
     }
 
     public function bulkAssignForms(Request $request, FormSubmission $submission)
@@ -60,145 +33,54 @@ class ReviewerFormAssignmentController extends Controller
             'form_assignments.*.due_date' => 'nullable|date|after:now',
         ]);
 
-        try {
-            DB::beginTransaction();
+        $forms = array_map(
+            fn (array $row) => new FormAssignmentInput(
+                (int) $row['form_id'],
+                $row['is_required'] ?? true,
+                $row['due_date'] ? Carbon::parse($row['due_date']) : null,
+            ),
+            array_values($validated['form_assignments']),
+        );
 
-            $successCount = 0;
-            $errors = [];
+        $result = AssignEvaluationFormsInBulk::run($submission, array_map('intval', $validated['reviewer_ids']), $forms);
 
-            foreach ($validated['reviewer_ids'] as $reviewerId) {
-                $submissionReviewer = ActiveReviewerAssignment::run($submission, $reviewerId);
-
-                if (!$submissionReviewer) {
-                    $errors[] = "Reviewer ID {$reviewerId} tidak ditugaskan untuk pengajuan ini";
-
-                    continue;
-                }
-
-                foreach ($validated['form_assignments'] as $assignment) {
-                    // BR-RPT-09 — satu Action, satu entri audit. Penugasan dari
-                    // jalur mana pun meninggalkan jejak yang sama.
-                    AssignEvaluationForm::run(
-                        $submissionReviewer,
-                        (int) $assignment['form_id'],
-                        $assignment['is_required'] ?? true,
-                        $assignment['due_date'] ? Carbon::parse($assignment['due_date']) : null,
-                    );
-                }
-                $successCount++;
-            }
-
-            DB::commit();
-
-            $message = "Successfully assigned forms to {$successCount} reviewer(s).";
-            if (!empty($errors)) {
-                $message .= ' Errors: '.implode(', ', $errors);
-            }
-
-            return back()->with('success', $message);
-
-        } catch (\Exception $e) {
-            DB::rollback();
-
-            return back()->withErrors(['error' => 'Gagal menugaskan formulir secara massal: '.$e->getMessage()]);
-        }
+        return back()->with('success', $this->bulkMessage($result));
     }
 
     public function getMyAssignments(Request $request)
     {
-        $user = Auth::user();
-        $reviewer = $user->reviewers()->first();
+        $reviewer = $request->user()->reviewers()->first();
 
         if (!$reviewer) {
             return Inertia::render('Reviewer/Assignments/IndexPage', [
                 'assignments' => [],
-                'stats' => [
-                    'total' => 0,
-                    'pending' => 0,
-                    'completed' => 0,
-                    'overdue' => 0,
-                ],
+                'stats' => ['total' => 0, 'pending' => 0, 'completed' => 0, 'overdue' => 0],
             ]);
         }
 
-        // BR-SM-07, BR-REV-10 — form milik penugasan yang sudah diganti tidak terdaftar.
-        // `whereIn`, bukan `=`: reviewer biasanya bertugas di lebih dari satu pengajuan.
-        $query = ReviewerFormAssignment::whereIn('submission_reviewer_id', function ($subQuery) use ($reviewer) {
-            $subQuery->select('id')
-                ->from('submission_reviewers')
-                ->where('reviewer_id', $reviewer->id)
-                ->where('status', 'active');
-        })->with([
-            'reviewEvaluationForm:id,title,description',
-            'submissionReviewer.formSubmission.form:id,title',
-            'submissionReviewer.formSubmission.submittedBy:id,name',
-            'reviewFormResponse:id,reviewer_form_assignment_id,status,submitted_at',
-        ]);
-
-        // Filter by status
-        if ($request->has('status') && $request->status !== '') {
-            switch ($request->status) {
-                case 'pending':
-                    $query->whereDoesntHave('reviewFormResponse', function ($q) {
-                        $q->where('status', 'submitted');
-                    });
-                    break;
-                case 'completed':
-                    $query->whereHas('reviewFormResponse', function ($q) {
-                        $q->where('status', 'submitted');
-                    });
-                    break;
-                case 'overdue':
-                    $query->where('due_date', '<', now())
-                        ->whereDoesntHave('reviewFormResponse', function ($q) {
-                            $q->where('status', 'submitted');
-                        });
-                    break;
-            }
-        }
-
-        // Search
-        if ($request->has('search') && $request->search) {
-            $search = $request->search;
-            $query->where(function ($q) use ($search) {
-                $q->whereHas('reviewEvaluationForm', function ($subQ) use ($search) {
-                    $subQ->where('title', 'ilike', "%{$search}%");
-                })
-                    ->orWhereHas('submissionReviewer.formSubmission.form', function ($subQ) use ($search) {
-                        $subQ->where('title', 'ilike', "%{$search}%");
-                    });
-            });
-        }
-
-        $assignments = $query->orderByRaw('
-            CASE
-                WHEN due_date IS NOT NULL AND due_date < NOW() THEN 1
-                WHEN due_date IS NOT NULL THEN 2
-                ELSE 3
-            END
-        ')
-            ->orderBy('due_date', 'asc')
-            ->paginate(15);
-
-        // Calculate stats
-        $allAssignments = ReviewerFormAssignment::whereIn('submission_reviewer_id', function ($subQuery) use ($reviewer) {
-            $subQuery->select('id')
-                ->from('submission_reviewers')
-                ->where('reviewer_id', $reviewer->id)
-                ->where('status', 'active');
-        })->get();
-
-        $stats = [
-            'total' => $allAssignments->count(),
-            'pending' => $allAssignments->filter(fn ($a) => !$a->isCompleted())->count(),
-            'completed' => $allAssignments->filter(fn ($a) => $a->isCompleted())->count(),
-            'overdue' => $allAssignments->filter(fn ($a) => $a->isOverdue())->count(),
-        ];
+        $listing = ReviewerAssignmentList::run(
+            $reviewer,
+            $request->query('status'),
+            $request->query('search'),
+        );
 
         return Inertia::render('Reviewer/Assignments/IndexPage', [
-            'assignments' => $assignments,
-            'stats' => $stats,
+            'assignments' => $listing->assignments,
+            'stats' => $listing->stats,
             'filters' => $request->only(['status', 'search']),
         ]);
+    }
+
+    private function bulkMessage(BulkFormAssignmentResult $result): string
+    {
+        $message = "Berhasil menugaskan form kepada {$result->assignedCount} reviewer.";
+
+        if ($result->skippedReviewerIds === []) {
+            return $message;
+        }
+
+        $ids = implode(', ', $result->skippedReviewerIds);
+
+        return "{$message} Dilewati karena tidak ditugaskan pada pengajuan ini: reviewer ID {$ids}.";
     }
 }

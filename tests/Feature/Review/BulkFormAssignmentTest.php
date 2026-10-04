@@ -100,3 +100,22 @@ it('menugaskan ulang lewat jalur massal tanpa menggandakan baris', function () {
 
     expect(ReviewerFormAssignment::count())->toBe(1);
 });
+
+it('menugaskan reviewer yang bertugas dan menyebut yang dilewati dalam bahasa Indonesia — BR-SM-07', function () {
+    [$operator, $submission, $reviewer, $form] = bulkAssignFixture();
+    $outsider = Reviewer::factory()->create(['user_id' => User::factory()->create()->id]);
+
+    test()->actingAs($operator)
+        ->post(route('admin.submissions.assign-forms-bulk', $submission), [
+            'reviewer_ids' => [$reviewer->id, $outsider->id],
+            'form_assignments' => [
+                ['form_id' => $form->id, 'is_required' => true, 'due_date' => null],
+            ],
+        ])
+        ->assertSessionHasNoErrors()
+        ->assertSessionHas('success', fn (string $message) => str_contains($message, 'Berhasil menugaskan form kepada 1 reviewer')
+            && str_contains($message, "ID {$outsider->id}")
+            && str_contains($message, 'tidak ditugaskan pada pengajuan ini'));
+
+    expect(ReviewerFormAssignment::count())->toBe(1);
+});
