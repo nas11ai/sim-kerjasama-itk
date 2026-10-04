@@ -3,6 +3,9 @@
 namespace App\Http\Controllers;
 
 use App\Actions\Form\DeleteFormPhase;
+use App\Actions\Form\NormalisePhaseDetailOrder;
+use App\Actions\Form\ReviseFormPhase;
+use App\Http\Requests\Form\FormPhaseRequest;
 use App\Models\FieldType;
 use App\Models\Form;
 use App\Models\FormAccessControl;
@@ -114,41 +117,18 @@ class FormPhaseController extends Controller
                 'is_active' => $request->is_active ?? false,
             ]);
 
-            // Normalize order: group by form_id and assign same order to same forms
-            $phaseDetails = collect($request->phase_details);
+            $phaseDetails = $request->array('phase_details');
+            $orders = NormalisePhaseDetailOrder::run(array_map(
+                fn ($detail): int => intval($detail['form_access_control_id']),
+                array_values($phaseDetails),
+            ));
 
-            // Get form_id for each detail
-            $detailsWithFormId = $phaseDetails->map(function ($detail) {
-                $formAccessControl = FormAccessControl::with('form')->find($detail['form_access_control_id']);
-
-                return array_merge($detail, [
-                    'form_id' => $formAccessControl->form_id,
-                ]);
-            });
-
-            // Calculate normalized order based on unique form_ids in sequence
-            $seenFormIds = [];
-            $formIdToOrder = [];
-            $currentOrder = 1;
-
-            foreach ($detailsWithFormId as $detail) {
-                $formId = $detail['form_id'];
-                if (!in_array($formId, $seenFormIds)) {
-                    $seenFormIds[] = $formId;
-                    $formIdToOrder[$formId] = $currentOrder;
-                    $currentOrder++;
-                }
-            }
-
-            // Create phase details with normalized order
-            foreach ($detailsWithFormId as $detail) {
-                $normalizedOrder = $formIdToOrder[$detail['form_id']];
-
+            foreach (array_values($phaseDetails) as $index => $detail) {
                 FormPhaseDetail::create([
                     'form_phase_id' => $formPhase->id,
                     'form_access_control_id' => $detail['form_access_control_id'],
                     'phase_type_id' => $detail['phase_type_id'],
-                    'order' => $normalizedOrder, // Use normalized order based on form_id
+                    'order' => $orders[$index],
                     'needs_review' => $detail['needs_review'] ?? false,
                 ]);
             }
@@ -220,80 +200,17 @@ class FormPhaseController extends Controller
         ]);
     }
 
-    public function update(Request $request, FormPhase $formPhase)
+    public function update(FormPhaseRequest $request, FormPhase $formPhase)
     {
-        $request->validate([
-            'title' => 'required|string|max:255',
-            'description' => 'nullable|string',
-            'is_active' => 'boolean',
-            'phase_details' => 'required|array|min:1',
-            'phase_details.*.form_access_control_id' => 'required|exists:form_access_controls,id',
-            'phase_details.*.phase_type_id' => 'required|exists:phase_types,id',
-            'phase_details.*.order' => 'required|integer|min:1',
-            'phase_details.*.needs_review' => 'boolean',
-        ]);
+        $actor = $request->user();
 
-        try {
-            DB::beginTransaction();
+        abort_unless($actor !== null, 403);
 
-            $formPhase->update([
-                'title' => $request->title,
-                'description' => $request->description,
-                'is_active' => $request->is_active ?? false,
-            ]);
+        // BR-FE-20 — disinkronkan per id, bukan dihapus lalu dibuat ulang.
+        ReviseFormPhase::run($formPhase, $request->toInput(), $actor);
 
-            // Delete existing phase details
-            $formPhase->formPhaseDetails()->delete();
-
-            // Create new phase details with normalized order
-            // Normalize order: group by form_id and assign same order to same forms
-            $phaseDetails = collect($request->phase_details);
-
-            // Get form_id for each detail
-            $detailsWithFormId = $phaseDetails->map(function ($detail) {
-                $formAccessControl = FormAccessControl::with('form')->find($detail['form_access_control_id']);
-
-                return array_merge($detail, [
-                    'form_id' => $formAccessControl->form_id,
-                ]);
-            });
-
-            // Calculate normalized order based on unique form_ids in sequence
-            $seenFormIds = [];
-            $formIdToOrder = [];
-            $currentOrder = 1;
-
-            foreach ($detailsWithFormId as $detail) {
-                $formId = $detail['form_id'];
-                if (!in_array($formId, $seenFormIds)) {
-                    $seenFormIds[] = $formId;
-                    $formIdToOrder[$formId] = $currentOrder;
-                    $currentOrder++;
-                }
-            }
-
-            // Create phase details with normalized order
-            foreach ($detailsWithFormId as $detail) {
-                $normalizedOrder = $formIdToOrder[$detail['form_id']];
-
-                FormPhaseDetail::create([
-                    'form_phase_id' => $formPhase->id,
-                    'form_access_control_id' => $detail['form_access_control_id'],
-                    'phase_type_id' => $detail['phase_type_id'],
-                    'needs_review' => $detail['needs_review'] ?? false,
-                    'order' => $normalizedOrder, // Use normalized order based on form_id
-                ]);
-            }
-
-            DB::commit();
-
-            return redirect()->route('admin.form-phases.index')
-                ->with('success', 'Tahap Formulir berhasil diperbarui.');
-        } catch (\Exception $e) {
-            DB::rollback();
-
-            return back()->withErrors(['error' => 'Gagal memperbarui tahap formulir: '.$e->getMessage()]);
-        }
+        return redirect()->route('admin.form-phases.index')
+            ->with('success', 'Tahap Formulir berhasil diperbarui.');
     }
 
     public function destroy(FormPhase $formPhase)
