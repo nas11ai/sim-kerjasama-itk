@@ -55,11 +55,17 @@ interface FormAccessControl {
     study_program: StudyProgram
 }
 
+interface SubmissionDateOption {
+    id: number
+    label: string
+}
+
 interface PhaseDetail {
     form_access_control_id: number | null
     phase_type_id: number | null
     order: number
     needs_review: boolean
+    submission_date_id: number | null
     temp_id: string
 }
 
@@ -77,6 +83,7 @@ interface Props {
     faculties: Faculty[]
     phaseTypes: PhaseType[]
     formAccessControls: FormAccessControl[]
+    submissionDates: SubmissionDateOption[]
 }
 
 const props = defineProps<Props>()
@@ -99,6 +106,7 @@ const addPhaseDetail = () => {
         phase_type_id: null,
         order: form.phase_details.length + 1,
         needs_review: false,
+        submission_date_id: null,
         temp_id: generateTempId(),
     })
 }
@@ -335,6 +343,41 @@ const submit = () => {
                                                         </div>
                                                     </div>
 
+                                                    <!-- Submission Date (deadline, BR-FE-07) -->
+                                                    <div class="space-y-2">
+                                                        <Label>Tenggat *</Label>
+                                                        <Select v-model="detail.submission_date_id">
+                                                            <SelectTrigger>
+                                                                <SelectValue
+                                                                    placeholder="Pilih tenggat"
+                                                                />
+                                                            </SelectTrigger>
+                                                            <SelectContent>
+                                                                <SelectItem
+                                                                    v-for="date in props.submissionDates"
+                                                                    :key="date.id"
+                                                                    :value="date.id"
+                                                                >
+                                                                    {{ date.label }}
+                                                                </SelectItem>
+                                                            </SelectContent>
+                                                        </Select>
+                                                        <p
+                                                            v-if="
+                                                                errors[
+                                                                    `phase_details.${index}.submission_date_id`
+                                                                ]
+                                                            "
+                                                            class="text-sm text-destructive"
+                                                        >
+                                                            {{
+                                                                errors[
+                                                                    `phase_details.${index}.submission_date_id`
+                                                                ]
+                                                            }}
+                                                        </p>
+                                                    </div>
+
                                                     <!-- Needs Review switch -->
                                                     <div class="flex items-center space-x-2">
                                                         <Switch v-model="detail.needs_review" />
@@ -455,6 +498,9 @@ const submit = () => {
 
                 <p v-if="errors.phase_details" class="text-sm text-destructive">
                     {{ errors.phase_details }}
+                </p>
+                <p v-if="errors.id" class="text-sm text-destructive">
+                    {{ errors.id }}
                 </p>
 
                 <!-- Form Actions -->

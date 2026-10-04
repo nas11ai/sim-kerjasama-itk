@@ -14,6 +14,7 @@ use App\Models\FormPhase;
 use App\Models\FormPhaseDetail;
 use App\Models\Organization;
 use App\Models\PhaseType;
+use App\Queries\Form\SubmissionDateOptions;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
@@ -92,6 +93,7 @@ class FormPhaseController extends Controller
             'faculties' => $faculties,
             'phaseTypes' => $phaseTypes,
             'formAccessControls' => $formAccessControls,
+            'submissionDates' => SubmissionDateOptions::run(),
         ]);
     }
 
@@ -160,6 +162,7 @@ class FormPhaseController extends Controller
             'faculties' => $faculties,
             'phaseTypes' => $phaseTypes,
             'formAccessControls' => $formAccessControls,
+            'submissionDates' => SubmissionDateOptions::run(),
         ]);
     }
 

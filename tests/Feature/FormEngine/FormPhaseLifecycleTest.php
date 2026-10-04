@@ -146,3 +146,17 @@ it('audits a status change and answers with the same JSON keys (BR-RPT-09)', fun
         ->and($entry)->not->toBeNull()
         ->and($entry?->causer_id)->toBe($this->admin->id);
 });
+
+it('passes deadline options labelled period, label and date to create and edit', function () {
+    $detail = FormPhaseDetail::factory()->create();
+    $date = $detail->submissionDate;
+    $label = $date->submissionPeriod?->name.' — '.$date->submissionDateLabel?->name.' — '
+        .$date->datetime->format('d/m/Y H:i');
+
+    foreach ([route('admin.form-phases.create'), route('admin.form-phases.edit', $detail->formPhase)] as $url) {
+        $this->actingAs($this->admin)->get($url)->assertInertia(
+            fn ($page) => $page->where('submissionDates', fn ($options) => collect($options)
+                ->contains(fn ($option) => $option['id'] === $date->id && $option['label'] === $label))
+        );
+    }
+});
