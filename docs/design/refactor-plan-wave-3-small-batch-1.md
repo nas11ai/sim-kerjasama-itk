@@ -71,9 +71,9 @@ ekspor (termasuk tautan bertanda tangan BR-RPT-03) dirakit di controller; dua bl
 
 ## Definisi selesai
 
-- [ ] `CI composer run quality` dan `npm run quality` hijau
-- [ ] Ketiga berkas PHP dan enam halaman Vue keluar dari `quality-legacy.txt`; `max.legacy.files` turun sejumlah baris yang dihapus
-- [ ] Test F2 merah sebelum perbaikan
+- [x] `CI composer run quality` (1074 test lulus, 2556 assertion) dan `npm run quality` hijau
+- [x] Ketiga berkas PHP dan enam halaman Vue keluar dari `quality-legacy.txt`; `max.legacy.files` turun sejumlah baris yang dihapus (118 → 109)
+- [x] Test F2 merah sebelum perbaikan (lihat laporan Task 2)
 
 ## Yang tidak dikerjakan
 
@@ -88,6 +88,10 @@ ekspor (termasuk tautan bertanda tangan BR-RPT-03) dirakit di controller; dua bl
   sudah dikirim tetapi berstatus null kini dihitung `not_submitted`, bukan error fatal.
 - Task 3 menambah satu test karakterisasi bentuk `jobs` (job selesai dan job yang berkasnya hilang).
   Query memakai `@phpstan-type HistoryRow` agar tidak menambah hitungan `mixed`.
+- Reviewer yang `end_date`-nya hari ini kini bebas dari gerbang biodata sepanjang hari terakhir. Kode
+  lama membandingkan `end_date >= now()` pada kolom `dateTime`, sehingga reviewer yang berakhir hari
+  ini pukul 00:00 tetap kena gerbang. Yang benar menurut BR-REV-09 (inklusif per hari). Test gerbang
+  "end_date hari ini" menegaskan perilaku baru, bukan karakterisasi.
 - `max.legacy.files` akhir: 109.
 
 ---
