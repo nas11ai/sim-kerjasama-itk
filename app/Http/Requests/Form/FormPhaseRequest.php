@@ -26,8 +26,11 @@ class FormPhaseRequest extends FormRequest
             'phase_details.*.phase_type_id' => 'required|exists:phase_types,id',
             'phase_details.*.order' => 'required|integer|min:1',
             'phase_details.*.needs_review' => 'boolean',
-            // BR-FE-07 — kolomnya NOT NULL; detail lama menyimpan tenggatnya sendiri.
-            'phase_details.*.submission_date_id' => 'nullable|required_without:phase_details.*.id'
+            // BR-FE-07 — kolomnya NOT NULL; detail lama menyimpan tenggatnya sendiri,
+            // sedangkan saat membuat semua baris baru.
+            'phase_details.*.submission_date_id' => ($this->isMethod('POST')
+                ? 'required'
+                : 'nullable|required_without:phase_details.*.id')
                 .'|integer|exists:submission_dates,id',
         ];
     }
@@ -37,6 +40,7 @@ class FormPhaseRequest extends FormRequest
     {
         return [
             'phase_details.*.submission_date_id.required_without' => 'Detail baru wajib punya tenggat.',
+            'phase_details.*.submission_date_id.required' => 'Detail wajib punya tenggat.',
         ];
     }
 

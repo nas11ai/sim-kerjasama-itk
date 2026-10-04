@@ -2,9 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Actions\Form\CreateFormPhase;
 use App\Actions\Form\DeleteFormPhase;
-use App\Actions\Form\NormalisePhaseDetailOrder;
 use App\Actions\Form\ReviseFormPhase;
+use App\Actions\Form\SetFormPhaseActive;
 use App\Http\Requests\Form\FormPhaseRequest;
 use App\Models\FieldType;
 use App\Models\Form;
@@ -15,7 +16,6 @@ use App\Models\Organization;
 use App\Models\PhaseType;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 use Spatie\Permission\Models\Role;
 
@@ -95,53 +95,16 @@ class FormPhaseController extends Controller
         ]);
     }
 
-    public function store(Request $request)
+    public function store(FormPhaseRequest $request)
     {
-        $request->validate([
-            'title' => 'required|string|max:255',
-            'description' => 'nullable|string',
-            'is_active' => 'boolean',
-            'phase_details' => 'required|array|min:1',
-            'phase_details.*.form_access_control_id' => 'required|exists:form_access_controls,id',
-            'phase_details.*.phase_type_id' => 'required|exists:phase_types,id',
-            'phase_details.*.order' => 'required|integer|min:1',
-            'phase_details.*.needs_review' => 'boolean',
-        ]);
+        $actor = $request->user();
 
-        try {
-            DB::beginTransaction();
+        abort_unless($actor !== null, 403);
 
-            $formPhase = FormPhase::create([
-                'title' => $request->title,
-                'description' => $request->description,
-                'is_active' => $request->is_active ?? false,
-            ]);
+        CreateFormPhase::run($request->toInput(), $actor);
 
-            $phaseDetails = $request->array('phase_details');
-            $orders = NormalisePhaseDetailOrder::run(array_map(
-                fn ($detail): int => intval($detail['form_access_control_id']),
-                array_values($phaseDetails),
-            ));
-
-            foreach (array_values($phaseDetails) as $index => $detail) {
-                FormPhaseDetail::create([
-                    'form_phase_id' => $formPhase->id,
-                    'form_access_control_id' => $detail['form_access_control_id'],
-                    'phase_type_id' => $detail['phase_type_id'],
-                    'order' => $orders[$index],
-                    'needs_review' => $detail['needs_review'] ?? false,
-                ]);
-            }
-
-            DB::commit();
-
-            return redirect()->route('admin.form-phases.index')
-                ->with('success', 'Tahap Formulir berhasil dibuat.');
-        } catch (\Exception $e) {
-            DB::rollback();
-
-            return back()->withErrors(['error' => 'Gagal membuat tahap formulir: '.$e->getMessage()]);
-        }
+        return redirect()->route('admin.form-phases.index')
+            ->with('success', 'Tahap Formulir berhasil dibuat.');
     }
 
     public function show(FormPhase $formPhase)
@@ -213,23 +176,17 @@ class FormPhaseController extends Controller
             ->with('success', 'Tahap Formulir berhasil diperbarui.');
     }
 
-    public function destroy(FormPhase $formPhase)
+    public function destroy(Request $request, FormPhase $formPhase)
     {
-        try {
-            DB::beginTransaction();
+        $actor = $request->user();
 
-            $formPhase->formPhaseDetails()->delete();
-            $formPhase->delete();
+        abort_unless($actor !== null, 403);
 
-            DB::commit();
+        // BR-FE-20 — penjaga yang sama dengan hapus massal; penolakannya validasi.
+        DeleteFormPhase::run($formPhase, $actor);
 
-            return redirect()->route('admin.form-phases.index')
-                ->with('success', 'Tahap Formulir berhasil dihapus.');
-        } catch (\Exception $e) {
-            DB::rollback();
-
-            return back()->withErrors(['error' => 'Gagal menghapus tahap formulir: '.$e->getMessage()]);
-        }
+        return redirect()->route('admin.form-phases.index')
+            ->with('success', 'Tahap Formulir berhasil dihapus.');
     }
 
     public function getFormAccessControls(Request $request)
@@ -255,26 +212,21 @@ class FormPhaseController extends Controller
 
     public function updateStatus(Request $request, FormPhase $formPhase)
     {
-        $request->validate([
+        $validated = $request->validate([
             'is_active' => 'required|boolean',
         ]);
 
-        try {
-            $formPhase->update([
-                'is_active' => $request->is_active,
-            ]);
+        $actor = $request->user();
 
-            return response()->json([
-                'success' => true,
-                'message' => 'Status berhasil diperbarui',
-                'is_active' => $formPhase->is_active,
-            ]);
-        } catch (\Exception $e) {
-            return response()->json([
-                'success' => false,
-                'message' => 'Gagal memperbarui status: '.$e->getMessage(),
-            ], 500);
-        }
+        abort_unless($actor !== null, 403);
+
+        SetFormPhaseActive::run($formPhase, (bool) $validated['is_active'], $actor);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Status berhasil diperbarui',
+            'is_active' => $formPhase->is_active,
+        ]);
     }
 
     /**
