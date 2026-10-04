@@ -2,14 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Actions\Announcement\PublishAnnouncement;
+use App\Actions\Announcement\RetractAnnouncement;
+use App\Actions\Announcement\ReviseAnnouncement;
+use App\Http\Requests\Announcement\AnnouncementRequest;
 use App\Models\Announcement;
-use App\Models\AnnouncementFile;
 use App\Models\AnnouncementUser;
 use App\Queries\Announcement\VisibleAnnouncements;
-use Carbon\Carbon;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 
 class AnnouncementController extends Controller
@@ -48,56 +48,14 @@ class AnnouncementController extends Controller
      */
     public function create()
     {
-        // Halaman buat pengumuman tidak butuh data awal apa pun. Sebelumnya
-        // ia menerima `AnnouncementFile::all()` — seluruh berkas milik semua
-        // pengumuman — dan sebuah `new Announcement` kosong; keduanya tidak
-        // pernah dibaca layar, dan yang pertama mengirim satu tabel penuh ke
-        // browser setiap kali halaman dibuka.
+        // Tanpa data awal: dulu mengirim seluruh tabel AnnouncementFile dan sebuah
+        // Announcement kosong yang tak dibaca layar — satu tabel penuh tiap halaman dibuka.
         return Inertia::render('Announcements/CreatePage');
     }
 
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
+    public function store(AnnouncementRequest $request)
     {
-        $validated = $request->validate([
-            'title' => 'required|string|max:255',
-            'content' => 'required|string',
-            'type' => 'required|in:public,private',
-            'expired_at' => 'nullable|date',
-            'files' => 'nullable|array',
-            'files.*' => 'file|mimes:jpg,png,pdf|max:2048',
-        ]);
-
-        DB::transaction(function () use ($validated, $request) {
-            $user = auth()->user();
-
-            $announcement = Announcement::create([
-                'title' => $validated['title'],
-                'content' => $validated['content'],
-                'expired_at' => $validated['expired_at'] ?? null,
-                'type' => $validated['type'],
-                'created_at' => Carbon::now('Asia/Makassar'),
-                'updated_at' => Carbon::now('Asia/Makassar'),
-                'created_by' => $user->id,
-            ]);
-
-            if ($request->hasFile('files')) {
-                foreach ($request->file('files') as $file) {
-                    $path = $file->store('announcements', 'public');
-
-                    AnnouncementFile::create([
-                        'announcement_id' => $announcement->id,
-                        'file_name' => $file->getClientOriginalName(),
-                        // 'file_path' => asset('storage/' . $path),
-                        'file_path' => $path, // buat prod
-                        'mime_type' => $file->getMimeType(),
-                        'file_size' => $file->getSize(),
-                    ]);
-                }
-            }
-        });
+        PublishAnnouncement::run($request->toInput(), $request->user());
 
         return redirect()->route('admin.announcements.index')
             ->with('success', 'Pengumuman berhasil dibuat.');
@@ -127,69 +85,17 @@ class AnnouncementController extends Controller
         ]);
     }
 
-    /**
-     * Update the specified resource in storage.
-     */
-    public function update(Request $request, Announcement $announcement)
+    public function update(AnnouncementRequest $request, Announcement $announcement)
     {
-        $validated = $request->validate([
-            'title' => 'required|string|max:255',
-            'content' => 'required|string',
-            'type' => 'required|in:public,private',
-            'expired_at' => 'nullable|date',
-            'files' => 'nullable|array',
-            'files.*' => 'file|mimes:jpg,png,pdf|max:2048',
-        ]);
-
-        DB::transaction(function () use ($validated, $request, $announcement) {
-            if ($request->has('deleted_files') && is_array($request->deleted_files)) {
-                foreach ($request->deleted_files as $fileId) {
-                    $file = AnnouncementFile::find($fileId);
-                    if ($file) {
-                        Storage::disk('public')->delete($file->file_path);
-                        $file->delete();
-                    }
-                }
-            }
-
-            $announcement->update([
-                'title' => $validated['title'],
-                'content' => $validated['content'],
-                'type' => $validated['type'],
-                'expired_at' => $validated['expired_at'] ?? null,
-                'updated_at' => now(),
-            ]);
-
-            if ($request->hasFile('files')) {
-                foreach ($request->file('files') as $file) {
-                    $path = $file->store('announcements', 'public');
-
-                    AnnouncementFile::create([
-                        'announcement_id' => $announcement->id,
-                        'file_name' => $file->getClientOriginalName(),
-                        // 'file_path' => asset('storage/' . $path),
-                        'file_path' => $path, // buat prod
-                        'mime_type' => $file->getMimeType(),
-                        'file_size' => $file->getSize(),
-                    ]);
-                }
-            }
-        });
+        ReviseAnnouncement::run($announcement, $request->toInput(), $request->user());
 
         return redirect()->route('admin.announcements.index')
             ->with('success', 'Pengumuman berhasil diperbarui.');
     }
 
-    /**
-     * Remove the specified resource from storage.
-     */
-    public function destroy(Announcement $announcement)
+    public function destroy(Request $request, Announcement $announcement)
     {
-        foreach ($announcement->announcementFiles as $file) {
-            Storage::delete($file->file_path);
-            $file->delete();
-        }
-        $announcement->delete();
+        RetractAnnouncement::run($announcement, $request->user());
 
         return redirect()->route('admin.announcements.index')
             ->with('success', 'Pengumuman berhasil dihapus.');
