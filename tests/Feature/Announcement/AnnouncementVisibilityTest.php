@@ -64,6 +64,21 @@ it('leaves expired announcements out of the user list', function () {
             ->where('announcements.data.0.title', 'Masih berlaku'));
 });
 
+it('marks only the announcements the user has read in the user list', function () {
+    $user = User::factory()->create();
+    $read = makeAnnouncement('private', null, 'Sudah');
+    $unread = makeAnnouncement('private', null, 'Belum');
+    $read->announcementReader()->attach($user->id);
+    $read->announcementReader()->attach(User::factory()->create()->id);
+
+    $this->actingAs($user)
+        ->get(route('user.announcements.index'))
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('announcements.data', fn ($rows) => collect($rows)
+                ->mapWithKeys(fn ($row) => [$row['id'] => $row['is_read']])
+                ->all() == [$unread->id => false, $read->id => true]));
+});
+
 it('shows only unexpired public announcements on the welcome page, at most ten', function () {
     makeAnnouncement('private', null, 'Privat');
     makeAnnouncement('public', now()->subDay(), 'Lewat');

@@ -30,8 +30,11 @@ class AnnouncementController extends Controller
 
     public function userIndex(Request $request)
     {
-        $announcements = VisibleAnnouncements::run($request->user())
+        $user = $request->user();
+
+        $announcements = VisibleAnnouncements::run($user)
             ->with('announcementFiles')
+            ->withExists(['announcementReader as is_read' => static fn ($query) => $query->where('users.id', $user?->id)])
             ->orderBy('created_at', 'desc')
             ->paginate(10);
 

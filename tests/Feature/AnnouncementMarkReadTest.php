@@ -28,7 +28,7 @@ it('marks an announcement as read and stores the row in announcement_users', fun
     ]);
 
     $this->actingAs($user)
-        ->get(route('user.announcements.markRead', $announcement))
+        ->post(route('user.announcements.markRead', $announcement))
         ->assertOk()
         ->assertJson([
             'message' => 'Pengumuman berhasil ditandai sebagai dibaca.',
@@ -59,4 +59,20 @@ it('exposes the read relation from both User and Announcement via announcement_u
 
     expect($user->announcementReads()->first()?->id)->toBe($announcement->id)
         ->and($announcement->announcementReader()->first()?->id)->toBe($user->id);
+});
+
+it('no longer changes state through GET on the markRead URL', function () {
+    $user = User::factory()->create();
+    $announcement = Announcement::create([
+        'title' => 'Pengumuman GET',
+        'content' => 'Konten.',
+        'type' => 'private',
+        'created_by' => User::factory()->create()->id,
+    ]);
+
+    $this->actingAs($user)
+        ->get(route('user.announcements.markRead', $announcement))
+        ->assertStatus(405);
+
+    $this->assertDatabaseMissing('announcement_users', ['announcement_id' => $announcement->id]);
 });

@@ -132,7 +132,7 @@ Route::middleware(['auth', 'check_biodata'])->prefix('user')->name('user.')->gro
     Route::get('/announcements', [AnnouncementController::class, 'userIndex'])
         ->name('announcements.index');
 
-    Route::get('/announcements/{announcement}/markRead', [AnnouncementController::class, 'markAsRead'])
+    Route::post('/announcements/{announcement}/markRead', [AnnouncementController::class, 'markAsRead'])
         ->name('announcements.markRead');
 
     // Form Phase Routes

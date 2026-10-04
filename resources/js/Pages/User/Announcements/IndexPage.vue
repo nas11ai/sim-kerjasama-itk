@@ -1,6 +1,6 @@
 <!-- resources/js/Pages/Announcement/IndexPage.vue -->
 <script setup lang="ts">
-import { Head, Link, router } from '@inertiajs/vue3'
+import { Head, Link } from '@inertiajs/vue3'
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/Components/ui/card'
 import { Paperclip, Check, Eye } from 'lucide-vue-next'
@@ -63,38 +63,19 @@ function stripHtml(html: string) {
 }
 
 const markAsRead = async (announcementId: number) => {
-    try {
-        // Set loading state
-        markingAsRead.value[announcementId] = true
+    markingAsRead.value[announcementId] = true
 
-        // Make API call using Inertia router with GET method
-        await router.get(
-            `/announcements/${announcementId}/markRead`,
-            {},
-            {
-                preserveScroll: true,
-                preserveState: true,
-                onSuccess: () => {
-                    // Update the announcement's read status locally
-                    const announcement = props.announcements.data.find(
-                        (a) => a.id === announcementId
-                    )
-                    if (announcement) {
-                        announcement.is_read = true
-                    }
-                },
-                onError: (error) => {
-                    console.error('Gagal menandai sebagai dibaca:', error)
-                    // You can add toast notification here if you have one
-                },
-                onFinish: () => {
-                    // Remove loading state
-                    markingAsRead.value[announcementId] = false
-                },
-            }
-        )
+    try {
+        // Endpoint menjawab JSON, bukan halaman Inertia, jadi lewat axios.
+        await window.axios.post(route('user.announcements.markRead', announcementId))
+
+        const announcement = props.announcements.data.find((a) => a.id === announcementId)
+        if (announcement) {
+            announcement.is_read = true
+        }
     } catch (error) {
         console.error('Kesalahan saat menandai pengumuman sebagai dibaca:', error)
+    } finally {
         markingAsRead.value[announcementId] = false
     }
 }
