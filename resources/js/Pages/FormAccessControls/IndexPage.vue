@@ -62,7 +62,7 @@ interface Faculty {
 interface StudyProgram {
     id: number
     name: string
-    faculty: Faculty
+    faculty: Faculty | null
 }
 
 interface Form {
@@ -950,7 +950,7 @@ const formatDate = (dateString: string) => {
                                                 {{ control.study_program.name }}
                                             </TableCell>
                                             <TableCell>
-                                                {{ control.study_program.faculty.name }}
+                                                {{ control.study_program.faculty?.name }}
                                             </TableCell>
                                             <TableCell>
                                                 {{ formatDate(control.created_at) }}

@@ -1,0 +1,57 @@
+<?php
+
+namespace App\Actions\Form;
+
+use App\Data\Request\FormAccessInput;
+use App\Models\FormAccessControl;
+use App\Models\User;
+use App\Support\Audit\AuditChange;
+use App\Support\Audit\AuditTrail;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
+use Lorisleiva\Actions\Concerns\AsAction;
+
+/**
+ * Mengubah permission atau organisasi sebuah kontrol akses formulir. Formnya hanya boleh
+ * diganti selama belum dipakai detail tahap (BR-FE-20, semangat BR-FE-23).
+ *
+ * @method static FormAccessControl run(FormAccessControl $control, FormAccessInput $input, User $actor)
+ */
+class ReviseFormAccess
+{
+    use AsAction;
+
+    /**
+     * @throws ValidationException
+     */
+    public function handle(FormAccessControl $control, FormAccessInput $input, User $actor): FormAccessControl
+    {
+        // Permission dan organisasi adalah kebijakan akses; form adalah identitas data yang
+        // dirujuk detail tahap dan pengajuannya — menggantinya memindahkan mereka diam-diam.
+        if ($input->formId !== $control->form_id && $control->formPhaseDetails()->exists()) {
+            throw ValidationException::withMessages([
+                'form_id' => 'Kontrol akses ini sudah dipakai detail tahap formulir, jadi formulirnya '
+                    .'tidak dapat diganti. Buat kontrol akses baru untuk formulir lain.',
+            ]);
+        }
+
+        if (FormAccessControl::grantExists($input->formId, $input->permission, $input->organizationId, $control->id)) {
+            throw ValidationException::withMessages(['duplicate' => GrantFormAccess::DUPLICATE_MESSAGE]);
+        }
+
+        return DB::transaction(function () use ($control, $input, $actor): FormAccessControl {
+            $old = $control->auditSnapshot();
+
+            $control->update($input->attributes());
+
+            AuditTrail::record(
+                'Kontrol akses formulir diubah',
+                $control,
+                $actor,
+                new AuditChange(old: $old, new: $control->auditSnapshot()),
+            );
+
+            return $control;
+        });
+    }
+}

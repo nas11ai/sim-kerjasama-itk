@@ -2,6 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Actions\Form\GrantFormAccess;
+use App\Actions\Form\ReviseFormAccess;
+use App\Http\Requests\Form\FormAccessControlRequest;
 use App\Models\Form;
 use App\Models\FormAccessControl;
 use App\Models\Organization;
@@ -94,39 +97,16 @@ class FormAccessControlController extends Controller
         ]);
     }
 
-    public function store(Request $request)
+    public function store(FormAccessControlRequest $request)
     {
-        $request->validate([
-            'form_id' => 'required|exists:forms,id',
-            'permission' => ['required', 'string', Rule::in(FormAccessControl::ALLOWED_PERMISSIONS)],
-            'study_program_id' => ['required', Rule::exists('organizations', 'id')->where('type', 'study_program')],
-        ]);
+        $actor = $request->user();
 
-        $existingControl = FormAccessControl::where([
-            'form_id' => $request->form_id,
-            'permission' => $request->permission,
-            'organization_id' => $request->study_program_id,
-        ])->first();
+        abort_unless($actor !== null, 403);
 
-        if ($existingControl) {
-            return back()->withErrors([
-                'duplicate' => 'Gabungan Formulir, Permission, dan Program Studi tersebut sudah terdaftar.',
-            ]);
-        }
+        GrantFormAccess::run($request->toInput(), $actor);
 
-        try {
-            FormAccessControl::create([
-                'form_id' => $request->form_id,
-                'permission' => $request->permission,
-                'organization_id' => $request->study_program_id,
-            ]);
-
-            return redirect()->route('admin.form-access-controls.index')
-                ->with('success', 'Kontrol Akses Formulir berhasil dibuat.');
-
-        } catch (\Exception $e) {
-            return back()->withErrors(['error' => 'Gagal membuat kontrol akses formulir: '.$e->getMessage()]);
-        }
+        return redirect()->route('admin.form-access-controls.index')
+            ->with('success', 'Kontrol Akses Formulir berhasil dibuat.');
     }
 
     public function show(FormAccessControl $formAccessControl)
@@ -153,39 +133,17 @@ class FormAccessControlController extends Controller
         ]);
     }
 
-    public function update(Request $request, FormAccessControl $formAccessControl)
+    public function update(FormAccessControlRequest $request, FormAccessControl $formAccessControl)
     {
-        $request->validate([
-            'form_id' => 'required|exists:forms,id',
-            'permission' => ['required', 'string', Rule::in(FormAccessControl::ALLOWED_PERMISSIONS)],
-            'study_program_id' => ['required', Rule::exists('organizations', 'id')->where('type', 'study_program')],
-        ]);
+        $actor = $request->user();
 
-        $existingControl = FormAccessControl::where([
-            'form_id' => $request->form_id,
-            'permission' => $request->permission,
-            'organization_id' => $request->study_program_id,
-        ])->where('id', '!=', $formAccessControl->id)->first();
+        abort_unless($actor !== null, 403);
 
-        if ($existingControl) {
-            return back()->withErrors([
-                'duplicate' => 'Kombinasi Formulir, Permission, dan Program Studi ini sudah ada.',
-            ]);
-        }
+        // BR-FE-20 — form kontrol akses yang dipakai detail tahap terkunci.
+        ReviseFormAccess::run($formAccessControl, $request->toInput(), $actor);
 
-        try {
-            $formAccessControl->update([
-                'form_id' => $request->form_id,
-                'permission' => $request->permission,
-                'organization_id' => $request->study_program_id,
-            ]);
-
-            return redirect()->route('admin.form-access-controls.index')
-                ->with('success', 'Kontrol Akses Formulir berhasil diperbarui.');
-
-        } catch (\Exception $e) {
-            return back()->withErrors(['error' => 'Gagal memperbarui kontrol akses formulir: '.$e->getMessage()]);
-        }
+        return redirect()->route('admin.form-access-controls.index')
+            ->with('success', 'Kontrol Akses Formulir berhasil diperbarui.');
     }
 
     public function destroy(FormAccessControl $formAccessControl)
@@ -221,7 +179,7 @@ class FormAccessControlController extends Controller
             'form_id' => 'required|exists:forms,id',
             'combinations' => 'required|array|min:1',
             'combinations.*.permission' => ['required', 'string', Rule::in(FormAccessControl::ALLOWED_PERMISSIONS)],
-            'combinations.*.study_program_id' => ['required', Rule::exists('organizations', 'id')->where('type', 'study_program')],
+            'combinations.*.study_program_id' => ['required', Rule::exists('organizations', 'id')->where('is_active', true)],
         ]);
 
         try {

@@ -24,7 +24,7 @@ interface Faculty {
 interface StudyProgram {
     id: number
     name: string
-    faculty: Faculty
+    faculty: Faculty | null
 }
 
 interface Form {
@@ -153,7 +153,7 @@ const inactivePhaseDetails = props.formAccessControl.form_phase_details.filter(
                                     {{ props.formAccessControl.study_program.name }}
                                 </h4>
                                 <p class="text-sm text-muted-foreground mt-1">
-                                    {{ props.formAccessControl.study_program.faculty.name }}
+                                    {{ props.formAccessControl.study_program.faculty?.name }}
                                 </p>
                             </div>
                         </div>

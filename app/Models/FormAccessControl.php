@@ -9,8 +9,10 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Support\Collection;
 
 /**
+ * @property int $id
  * @property int $form_id
  * @property string $permission
+ * @property int $organization_id
  * @property-read Form|null $form
  * @property-read Organization|null $organization
  * @property-read Organization|null $studyProgram
@@ -75,6 +77,31 @@ class FormAccessControl extends Model
     public function formPhaseDetails(): HasMany
     {
         return $this->hasMany(FormPhaseDetail::class);
+    }
+
+    /**
+     * BR-FE-02 — satu gabungan form, permission, dan organisasi cukup tercatat sekali.
+     */
+    public static function grantExists(int $formId, string $permission, int $organizationId, ?int $exceptId = null): bool
+    {
+        return static::query()
+            ->where(['form_id' => $formId, 'permission' => $permission, 'organization_id' => $organizationId])
+            ->when($exceptId !== null, fn (Builder $query) => $query->whereKeyNot($exceptId))
+            ->exists();
+    }
+
+    /**
+     * BR-RPT-09 — bentuk yang sama untuk nilai lama dan baru di layar audit.
+     *
+     * @return array{form_id: int, permission: string, organization_id: int}
+     */
+    public function auditSnapshot(): array
+    {
+        return [
+            'form_id' => $this->form_id,
+            'permission' => $this->permission,
+            'organization_id' => $this->organization_id,
+        ];
     }
 
     public static function permissionForRoleName(string $roleName): ?string

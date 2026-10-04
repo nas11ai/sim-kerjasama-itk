@@ -37,7 +37,7 @@ interface FormAccessControl {
     form: Form
     permission: string
     study_program: StudyProgram & {
-        faculty: Faculty
+        faculty: Faculty | null
     }
 }
 
@@ -77,10 +77,13 @@ const errors = computed(() => {
     }
 })
 
-const studyPrograms = computed(() => {
-    if (!selectedFacultyId.value) return []
+// ADR 0013 — opsi "Seluruh <fakultas>" memasang kontrol akses pada fakultasnya, sehingga
+// form terlihat oleh semua unit di bawahnya; kuncinya tetap study_program_id.
+const studyPrograms = computed((): StudyProgram[] => {
     const faculty = props.faculties.find((f) => f.id === selectedFacultyId.value)
-    return faculty?.study_programs || []
+    if (!faculty) return []
+    const wholeFaculty = { id: faculty.id, name: `Seluruh ${faculty.name}`, faculty_id: faculty.id }
+    return [wholeFaculty, ...faculty.study_programs]
 })
 
 // Watch for faculty change to reset study program selection
@@ -97,7 +100,10 @@ onMounted(() => {
     form.form_id = props.formAccessControl.form.id
     form.permission = props.formAccessControl.permission
     form.study_program_id = props.formAccessControl.study_program.id
-    selectedFacultyId.value = props.formAccessControl.study_program.faculty.id
+    // Kontrol akses tingkat fakultas: fakultasnya adalah organisasi itu sendiri.
+    const organization = props.formAccessControl.study_program
+    const isFaculty = props.faculties.some((f) => f.id === organization.id)
+    selectedFacultyId.value = isFaculty ? organization.id : (organization.faculty?.id ?? null)
 })
 
 const submit = () => {
@@ -155,7 +161,7 @@ const submit = () => {
                                 {{ props.formAccessControl.study_program.name }}
                             </p>
                             <p class="text-blue-500 text-xs">
-                                {{ props.formAccessControl.study_program.faculty.name }}
+                                {{ props.formAccessControl.study_program.faculty?.name }}
                             </p>
                         </div>
                     </div>

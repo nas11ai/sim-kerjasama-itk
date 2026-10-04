@@ -89,10 +89,13 @@ const errors = computed((): FormErrors => {
     return isBulkMode.value ? (bulkForm.errors as FormErrors) : (form.errors as FormErrors)
 })
 
-const studyPrograms = computed(() => {
-    if (!selectedFacultyId.value) return []
+// ADR 0013 — opsi "Seluruh <fakultas>" memasang kontrol akses pada fakultasnya, sehingga
+// form terlihat oleh semua unit di bawahnya; kuncinya tetap study_program_id.
+const studyPrograms = computed((): StudyProgram[] => {
     const faculty = props.faculties.find((f) => f.id === selectedFacultyId.value)
-    return faculty?.study_programs || []
+    if (!faculty) return []
+    const wholeFaculty = { id: faculty.id, name: `Seluruh ${faculty.name}`, faculty_id: faculty.id }
+    return [wholeFaculty, ...faculty.study_programs]
 })
 
 // Watch for faculty change to reset study programs
