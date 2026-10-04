@@ -1,0 +1,105 @@
+# Gelombang 3 bagian 6 — Statistik yang jujur
+
+> **Untuk pekerja agentik:** SUB-SKILL WAJIB: pakai `superpowers:subagent-driven-development`
+> (disarankan) atau `superpowers:executing-plans`. Langkahnya memakai checkbox (`- [ ]`).
+>
+> **Dokumen ini spec sekaligus rencana.** Temuan diukur pada `80ca442`.
+
+**Goal:** `StatController` memenuhi ambang keras dan keluar dari `quality-legacy.txt`
+(`max.legacy.files` 107 → 106). Angka yang hari ini salah dibetulkan lebih dulu, masing-masing
+dengan test yang merah sebelum perbaikan.
+
+**Spec induk:** [`refactor-plan.md`](refactor-plan.md) §5 gelombang 3 ·
+DDD [`supporting/05_reporting.md`](../requirement-analysis/ddd/supporting/05_reporting.md)
+(BR-RPT-01 hanya baca, BR-RPT-06 query live).
+
+**Status:** belum dikerjakan.
+
+---
+
+## Pengukuran awal
+
+`StatController`: ukuran berkas; `getFormPhaseStats()` loc 127; `getFormSubmissionStats()` loc 70;
+`getSubmissionReviewerStats()` loc 63.
+
+## Temuan — diverifikasi di kode
+
+**S1 — Lima endpoint JSON "testing" di produksi.** `admin.stats.get-form-phase`,
+`admin.stats.get-form-submission`, `admin.stats.get-reviewer`, `admin.stats.get-user`, dan
+`admin.stats.data` (dikomentari "testing data"). Tanpa pemanggil di `resources/js`; dua dipakai
+`tests/Feature/StatControllerTest.php`. Data yang sama sudah sampai ke layar lewat halaman Inertia.
+
+**S2 — Rincian status memakai status yang tidak ada.** Status pengajuan disimpan dengan nama state
+(`draft`, `submitted`, `under_review`, `needs_revision`, `resubmitted`, `approved`, `rejected`,
+`withdrawn` — `app/States/Submission`). `getFormPhaseStats` menghitung `'pending'` dan `'revision'`
+— keduanya **selalu 0** — dan tidak pernah menghitung `submitted`, `needs_revision`, `resubmitted`.
+Kartu "Menunggu" di dasbor admin (`StatisticSection.vue` mencari `status === 'pending'`) karena itu
+selalu 0. `totalByStatus` mengelompokkan nama state mentah dan ikut menghitung **draft**, yang
+belum diajukan siapa pun.
+
+**S3 — "User Fakultas" menghitung satu fakultas saja.** `getUserStats.totalFaculty` menyaring
+`parent_org.metadata->'legacy'->>'faculty_id' = '1'` — hanya user di bawah fakultas lama ber-id 1.
+
+**S4 — Tautan rusak.** `Statistics/UserStats.vue` memanggil `route('admin.stats.index')` yang tidak
+terdaftar (tercatat di `KNOWN_BROKEN_FRONTEND_ROUTES`).
+
+## Keputusan
+
+- **K1 — S1 dicabut.** `StatControllerTest` dipindah ke halaman Inertia
+  (`admin.stats.form-submission`, `admin.stats.reviewer`, dan seterusnya) dengan `assertInertia`.
+- **K2 — Satu peta status ke kelompok dasbor.** `Queries/Reporting/SubmissionStatusBuckets`
+  memetakan state ke kelompok yang sudah dipakai layar: `pending` = `submitted` + `resubmitted`
+  (menunggu ditinjau), `under_review`, `revision` = `needs_revision`, `approved`, `rejected`, dan
+  `withdrawn` sebagai kelompok tambahan. **Draft tidak dihitung** di statistik status mana pun.
+  Peta ditulis dari kelas state (`Submitted::$name`, dst.), bukan string tangan. Kunci prop yang
+  dibaca Vue (`pending`, `under_review`, `approved`, `rejected`, `revision`, `totalByStatus[].status`)
+  tidak berubah, sehingga Vue tidak disentuh — kecuali label `withdrawn` bila layar butuh.
+- **K3 — "User Fakultas" = user yang unitnya berada di subtree fakultas mana pun** (unit fakultas
+  itu sendiri atau di bawahnya); "User Program Studi" = user yang unitnya bertipe `study_program`.
+  Tanpa id fakultas lama.
+- **K4 — Tautan `admin.stats.index`** diarahkan ke route yang ada (`admin.dashboard`), dan entri
+  `KNOWN_BROKEN_FRONTEND_ROUTES`-nya dihapus (daftar hanya menyusut).
+- **K5 — Setiap kelompok statistik jadi Query** di `Queries/Reporting/` (`ChangesNoState`, bertipe):
+  fase form, pengajuan, reviewer, user. Controller cangkang; bentuk prop tetap.
+
+## Global Constraints
+
+- Identifier bahasa Inggris; prosa komentar bahasa Indonesia, ≤ 3 baris berturut-turut, ≤ 93
+  karakter termasuk indentasi; sebut kode BR; jangan membuang fakta latar.
+- Dilarang menyiasati PHPStan. Query `implements ChangesNoState`. PostgreSQL: kolom non-agregat ikut
+  `GROUP BY`; jangan `SUM(cond = 'x')` — pakai `CASE`/`FILTER`.
+- `quality-budget.txt` hanya turun (termasuk `max.mixed`); `quality-legacy.txt` hanya menyusut.
+  Nama test menyebut kode BR atau perilaku — jangan mengarang ID skenario.
+- Jangan sentuh `docs/requirement-analysis/`. Commit satu baris tanpa trailer.
+- Container `CI` dan DB test `simpas_dev_pg` :55432; satu proses test pada satu waktu.
+
+## Definisi selesai
+
+- [ ] Gerbang hijau; `StatController` keluar dari daftar; `max.legacy.files` 107 → 106
+- [ ] Test S2, S3 merah sebelum perbaikan
+
+---
+---
+
+# Rencana Implementasi
+
+### Task 1: Cabut endpoint JSON testing (S1, K1)
+
+- [ ] Pindahkan `StatControllerTest` ke halaman Inertia (hijau terhadap kode lama — karakterisasi).
+- [ ] Test `Route::has` dataset kelima nama → false (**merah** dulu); cabut route, method, entri `ziggy.js`.
+- [ ] Gerbang; commit `refactor(reporting): cabut endpoint JSON statistik untuk testing`
+
+### Task 2: Status dan user yang dihitung benar (S2, S3, K2, K3)
+
+- [ ] Test merah: pengajuan `submitted` + `resubmitted` muncul sebagai `pending`, `needs_revision`
+  sebagai `revision`, draft tidak dihitung — baik di `formPhaseStatus` maupun `totalByStatus`;
+  `totalFaculty` menghitung user dari dua fakultas berbeda (keduanya bukan legacy id 1).
+- [ ] Implementasi K2, K3 sebagai Query.
+- [ ] Gerbang; commit `fix(reporting): statistik status dan user dihitung dari state yang sebenarnya`
+
+### Task 3: Sisa Query, tautan, dan keluar dari daftar (S4, K4, K5)
+
+- [ ] Pindahkan statistik fase form dan reviewer ke Query (karakterisasi bentuk prop dulu).
+- [ ] K4; `npm run quality` hijau; `FrontendRouteNamesTest` hijau dengan daftar menyusut.
+- [ ] `tools/limits.php` dan `tools/prosa.php` bersih; hapus baris `StatController`; plafon 107 → 106.
+- [ ] Status dokumen + *Yang berbeda dari rencana*. Commit `refactor(reporting): statistik lewat Query dan keluar dari daftar legacy`
