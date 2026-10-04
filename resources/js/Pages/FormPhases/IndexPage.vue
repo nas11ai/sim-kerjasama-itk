@@ -238,7 +238,7 @@ const bulkDelete = () => {
         )
     ) {
         router.post(
-            route('admin.forms-phases.bulk-delete'),
+            route('admin.form-phases.bulk-delete'),
             { ids: selectedItems.value },
             {
                 onSuccess: () => {

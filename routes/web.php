@@ -353,10 +353,6 @@ Route::middleware(['auth', 'can:users.manage'])->prefix('admin')->name('admin.')
     Route::get('api/study-programs', [FormAccessControlController::class, 'getStudyPrograms'])
         ->name('api.study-programs');
 
-    // API endpoint untuk mendapatkan form access controls
-    Route::get('api/form-access-controls', [FormPhaseController::class, 'getFormAccessControls'])
-        ->name('api.form-access-controls');
-
     Route::patch('api/form-phases/{formPhase}/status', [FormPhaseController::class, 'updateStatus'])
         ->name('form-phases.update-status');
 });

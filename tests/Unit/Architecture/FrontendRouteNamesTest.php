@@ -18,7 +18,6 @@ uses(TestCase::class);
  * diganti layar SIMPAS v2. Jangan menambah nama baru ke sini.
  */
 const KNOWN_BROKEN_FRONTEND_ROUTES = [
-    'admin.forms-phases.bulk-delete', // FormPhases/IndexPage.vue
     'form-phases.show',               // FormAccessControls/ShowPage.vue
 ];
 

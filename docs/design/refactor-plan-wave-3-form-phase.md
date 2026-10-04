@@ -12,7 +12,7 @@ menghancurkan data.
 **Spec induk:** [`refactor-plan.md`](refactor-plan.md) §5 gelombang 3 · BR-FE-20 (penghapusan tahap
 dijaga) · ADR 0004 (`form_submissions.form_phase_detail_id`).
 
-**Status:** belum dikerjakan.
+**Status:** selesai — Task 1–4 dikerjakan; `FormPhaseController` keluar dari daftar legacy (plafon 106 → 105).
 
 ---
 
@@ -96,6 +96,17 @@ perbandingan `boolean = integer`. Diverifikasi dengan test; perbaiki bila gagal.
 
 - [ ] Gerbang hijau; `FormPhaseController` keluar dari daftar; plafon 106 → 105
 - [ ] Test F1, F2, F3 (bila gagal), F5 merah sebelum perbaikan
+
+## Yang berbeda dari rencana
+
+- Task 1 menemukan `submission_date_id` tidak pernah diisi di mana pun, sehingga membuat dan
+  menyunting tahap selalu gagal di SQL dan kehilangan data F1 sebenarnya tidak pernah ter-commit.
+- Task 4 ditambahkan atas keputusan pemilik, supaya tenggat bisa dipilih dari layar.
+- Tenggat detail yang sudah ada kini ikut tersimpan bila dikirim (null berarti dipertahankan),
+  berbeda dari K1 yang membiarkan `submission_date_id` detail lama.
+- Pilihan tenggat memuat semua `SubmissionDate`, bukan hanya milik periode tertentu.
+- F3 ternyata bukan galat: filter aktif/nonaktif sudah lolos di PostgreSQL. Tetap dipindah ke
+  `FormPhaseDirectory` dengan pembanding boolean, dan test-nya dipertahankan sebagai penjaga.
 
 ---
 ---

@@ -500,10 +500,6 @@ const Ziggy = {
             methods: ['POST'],
         },
         'admin.api.study-programs': { uri: 'admin\/api\/study-programs', methods: ['GET', 'HEAD'] },
-        'admin.api.form-access-controls': {
-            uri: 'admin\/api\/form-access-controls',
-            methods: ['GET', 'HEAD'],
-        },
         'admin.form-phases.update-status': {
             uri: 'admin\/api\/form-phases\/{formPhase}\/status',
             methods: ['PATCH'],
