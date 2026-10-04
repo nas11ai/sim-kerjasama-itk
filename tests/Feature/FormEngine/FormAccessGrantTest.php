@@ -2,9 +2,8 @@
 
 // tests/Feature/FormEngine/FormAccessGrantTest.php
 //
-// Membuat dan mengubah kontrol akses formulir lewat Action beraudit (BR-RPT-09). Kontrol
-// akses boleh dipasang pada organisasi aktif apa pun — ADR 0013: form terlihat oleh unit
-// itu dan semua unit di bawahnya. Form kontrol akses yang dipakai terkunci (BR-FE-20).
+// Buat dan ubah kontrol akses lewat Action beraudit (BR-RPT-09), pada organisasi aktif apa
+// pun (ADR 0013); form kontrol akses yang dipakai terkunci (BR-FE-20).
 
 use App\Models\Form;
 use App\Models\FormAccessControl;

@@ -12,7 +12,8 @@ ADR 0013 maksudkan, dan menyuntingnya tidak merusak pengajuan yang sudah ada.
 **Spec induk:** [`refactor-plan.md`](refactor-plan.md) §5 · BR-FE-02 · ADR 0013 (akses mengikuti
 leluhur organisasi) · BR-FE-20 (penjaga referensi).
 
-**Status:** belum dikerjakan.
+**Status:** selesai — Task 1–2 dikerjakan; `FormAccessControlController` keluar dari daftar
+legacy (plafon 104 → 103).
 
 ---
 
@@ -74,8 +75,28 @@ diaudit (BR-RPT-09); semua menempel `$e->getMessage()`.
 
 ## Definisi selesai
 
-- [ ] Kontrol akses tingkat fakultas bisa dibuat dari layar dan membuka form bagi user prodi di bawahnya
-- [ ] Gerbang hijau; controller keluar dari daftar; plafon 104 → 103
+- [x] Kontrol akses tingkat fakultas bisa dibuat dari layar dan membuka form bagi user prodi di bawahnya
+- [x] Gerbang hijau; controller keluar dari daftar; plafon 104 → 103
+
+## Yang berbeda dari rencana
+
+- Hasil ukur: controller 130 baris (method terpanjang `bulkDelete()` loc 14, cc 1);
+  `FormAccessControlDirectory` 111 baris (`filtered()` loc 26, cc 6).
+- Penjaga hapus menjadi Action `AssertFormAccessUnused` (`ChangesNoState`), bukan
+  `ReferenceGuard`: pesan bawaannya menganjurkan "Nonaktifkan saja", padahal kontrol akses tidak
+  punya status aktif. Penolakannya menyebut form, permission, organisasi, dan jumlah detail tahap.
+- Pilihan form, permission, dan fakultas pindah ke Query `FormAccessControlFormOptions`, dipakai
+  layar daftar, Buat, dan Ubah.
+- Hapus massal dan buat massal menulis audit per kontrol akses ("Kontrol akses formulir
+  dihapus"/"dibuat"), dengan deskripsi yang sama seperti aksi tunggal.
+- Filter fakultas memakai `Organization::subtreeIds()`, yang hanya menelusuri keturunan aktif:
+  kontrol akses pada unit nonaktif di bawah fakultas tidak ikut terfilter.
+- Layar Ubah memilih fakultasnya sendiri bila organisasinya fakultas; layar daftar, detail, dan
+  Ubah membaca `study_program.faculty` dengan `?.` agar kontrol akses tingkat fakultas tak pecah.
+- Toast hapus di layar daftar kini menampilkan alasan penolakan (`errors.id`).
+- Filter daftar dengan id bukan angka kini tidak menemukan apa pun, bukan galat SQL.
+- Kelompok di layar daftar tetap memuat semua kontrol akses form itu, bukan hanya yang lolos
+  filter — perilaku lama dipertahankan.
 
 ---
 ---
@@ -84,19 +105,19 @@ diaudit (BR-RPT-09); semua menempel `$e->getMessage()`.
 
 ### Task 1: Organisasi apa pun dan form yang terkunci (C1, C2, K1, K2)
 
-- [ ] Test merah: membuat kontrol akses pada fakultas → tersimpan, dan user di prodi bawahnya bisa
+- [x] Test merah: membuat kontrol akses pada fakultas → tersimpan, dan user di prodi bawahnya bisa
   mengakses form (lewat jalur akses yang ada, ADR 0013); mengganti `form_id` kontrol akses yang
   dipakai detail tahap → ditolak, tak berubah; mengganti permission/organisasinya → tersimpan;
   organisasi nonaktif → ditolak.
-- [ ] Implementasi backend K1, K2 (Action beraudit untuk buat dan ubah).
-- [ ] Vue: opsi "Seluruh <fakultas>" di Create/Edit (dan bulk create bila memakai pemilih yang sama).
-- [ ] Gerbang (`npm run quality` juga); commit `feat(form): kontrol akses bisa dipasang pada fakultas (ADR 0013), form yang dipakai terkunci`
+- [x] Implementasi backend K1, K2 (Action beraudit untuk buat dan ubah).
+- [x] Vue: opsi "Seluruh <fakultas>" di Create/Edit (dan bulk create bila memakai pemilih yang sama).
+- [x] Gerbang (`npm run quality` juga); commit `feat(form): kontrol akses bisa dipasang pada fakultas (ADR 0013), form yang dipakai terkunci`
 
 ### Task 2: Hapus, massal, daftar (C3, C4, K3–K5)
 
-- [ ] Test merah: hapus massal [tak terpakai, terpakai] → tidak ada yang terhapus, alasan terbaca;
+- [x] Test merah: hapus massal [tak terpakai, terpakai] → tidak ada yang terhapus, alasan terbaca;
   hapus dan buat massal diaudit; pesan bahasa Indonesia; filter fakultas menemukan kontrol akses di
   prodi bawah departemen dan pada fakultas itu sendiri.
-- [ ] Implementasi; `tools/limits.php`/`prosa.php` bersih; hapus baris controller; plafon 104 → 103;
+- [x] Implementasi; `tools/limits.php`/`prosa.php` bersih; hapus baris controller; plafon 104 → 103;
   status dokumen + *Yang berbeda dari rencana*.
-- [ ] Commit `refactor(form): kontrol akses lewat Action beraudit dan keluar dari daftar legacy`
+- [x] Commit `refactor(form): kontrol akses lewat Action beraudit dan keluar dari daftar legacy`

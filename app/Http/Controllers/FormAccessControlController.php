@@ -3,107 +3,42 @@
 namespace App\Http\Controllers;
 
 use App\Actions\Form\GrantFormAccess;
+use App\Actions\Form\GrantFormAccessInBulk;
 use App\Actions\Form\ReviseFormAccess;
+use App\Actions\Form\RevokeFormAccess;
+use App\Actions\Form\RevokeFormAccessInBulk;
+use App\Http\Requests\Form\FormAccessBulkRequest;
 use App\Http\Requests\Form\FormAccessControlRequest;
-use App\Models\Form;
+use App\Http\Requests\Form\FormAccessListRequest;
 use App\Models\FormAccessControl;
 use App\Models\Organization;
+use App\Models\User;
+use App\Queries\Form\FormAccessControlDirectory;
+use App\Queries\Form\FormAccessControlFormOptions;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 
 class FormAccessControlController extends Controller
 {
-    public function index(Request $request)
+    public function index(FormAccessListRequest $request)
     {
-        $query = FormAccessControl::with(['form', 'studyProgram.faculty']);
-
-        if ($request->has('form_id') && $request->form_id) {
-            $query->where('form_id', $request->form_id);
-        }
-
-        if ($request->filled('permission')) {
-            $query->where('permission', $request->permission);
-        }
-
-        if ($request->has('faculty_id') && $request->faculty_id) {
-            $query->whereHas('studyProgram', function ($q) use ($request) {
-                $q->where('parent_id', $request->faculty_id);
-            });
-        }
-
-        if ($request->filled('study_program_id')) {
-            $query->where('organization_id', $request->study_program_id);
-        }
-
-        if ($request->has('search') && $request->search) {
-            $search = $request->search;
-            $query->where(function ($q) use ($search) {
-                $q->whereHas('form', function ($subQ) use ($search) {
-                    $subQ->where('title', 'ilike', "%{$search}%");
-                })
-                    ->orWhere('permission', 'ilike', "%{$search}%")
-                    ->orWhereHas('studyProgram', function ($subQ) use ($search) {
-                        $subQ->where('name', 'ilike', "%{$search}%");
-                    });
-            });
-        }
-
-        $groupAccessControls = $query->select('form_id')
-            ->selectRaw('COUNT(*) as jumlah_access_controls')
-            ->groupBy('form_id')
-            ->with('form')
-            ->orderByRaw('MAX(created_at) DESC')
-            ->paginate(10);
-
-        $form_id = $groupAccessControls->pluck('form_id');
-
-        $controls = FormAccessControl::with(['studyProgram.faculty'])
-            ->whereIn('form_id', $form_id)
-            ->get()
-            ->groupBy('form_id');
-
-        $groupAccessControls->getCollection()->transform(function ($item) use ($controls) {
-            $item->setAttribute(
-                'controls',
-                $controls[$item->form_id] ?? collect()
-            );
-
-            return $item;
-        });
-
-        $forms = Form::where('is_active', true)->orderBy('title')->get(['id', 'title']);
-        $faculties = Organization::facultyOptions();
+        $directory = FormAccessControlDirectory::run($request->toInput());
 
         return Inertia::render('FormAccessControls/IndexPage', [
-            'groupAccessControls' => $groupAccessControls,
-            'forms' => $forms,
-            'permissions' => FormAccessControl::ALLOWED_PERMISSIONS,
-            'faculties' => $faculties,
-            'filters' => $request->only(['form_id', 'permission', 'faculty_id', 'study_program_id', 'search']),
+            'groupAccessControls' => $directory['groups'],
+            ...FormAccessControlFormOptions::run(),
+            'filters' => $directory['filters'],
         ]);
     }
 
     public function create()
     {
-        $forms = Form::where('is_active', true)->orderBy('title')->get(['id', 'title']);
-        $faculties = Organization::facultyOptions();
-
-        return Inertia::render('FormAccessControls/CreatePage', [
-            'forms' => $forms,
-            'permissions' => FormAccessControl::ALLOWED_PERMISSIONS,
-            'faculties' => $faculties,
-        ]);
+        return Inertia::render('FormAccessControls/CreatePage', FormAccessControlFormOptions::run());
     }
 
     public function store(FormAccessControlRequest $request)
     {
-        $actor = $request->user();
-
-        abort_unless($actor !== null, 403);
-
-        GrantFormAccess::run($request->toInput(), $actor);
+        GrantFormAccess::run($request->toInput(), $this->actor($request));
 
         return redirect()->route('admin.form-access-controls.index')
             ->with('success', 'Kontrol Akses Formulir berhasil dibuat.');
@@ -122,150 +57,55 @@ class FormAccessControlController extends Controller
     {
         $formAccessControl->load(['form', 'studyProgram.faculty']);
 
-        $forms = Form::where('is_active', true)->orderBy('title')->get(['id', 'title']);
-        $faculties = Organization::facultyOptions();
-
         return Inertia::render('FormAccessControls/EditPage', [
             'formAccessControl' => $formAccessControl,
-            'forms' => $forms,
-            'permissions' => FormAccessControl::ALLOWED_PERMISSIONS,
-            'faculties' => $faculties,
+            ...FormAccessControlFormOptions::run(),
         ]);
     }
 
     public function update(FormAccessControlRequest $request, FormAccessControl $formAccessControl)
     {
-        $actor = $request->user();
-
-        abort_unless($actor !== null, 403);
-
         // BR-FE-20 — form kontrol akses yang dipakai detail tahap terkunci.
-        ReviseFormAccess::run($formAccessControl, $request->toInput(), $actor);
+        ReviseFormAccess::run($formAccessControl, $request->toInput(), $this->actor($request));
 
         return redirect()->route('admin.form-access-controls.index')
             ->with('success', 'Kontrol Akses Formulir berhasil diperbarui.');
     }
 
-    public function destroy(FormAccessControl $formAccessControl)
+    public function destroy(Request $request, FormAccessControl $formAccessControl)
     {
-        try {
-            DB::beginTransaction();
+        // BR-FE-20 — penjaga yang sama dengan hapus massal; penolakannya validasi.
+        RevokeFormAccess::run($formAccessControl, $this->actor($request));
 
-            $usageCount = $formAccessControl->formPhaseDetails()->count();
-
-            if ($usageCount > 0) {
-                return back()->withErrors([
-                    'error' => "Tidak dapat menghapus kontrol akses ini. Kontrol akses ini sedang digunakan dalam {$usageCount} detail fase formulir.",
-                ]);
-            }
-
-            $formAccessControl->delete();
-
-            DB::commit();
-
-            return redirect()->route('admin.form-access-controls.index')
-                ->with('success', 'Kontrol Akses Formulir berhasil dihapus.');
-
-        } catch (\Exception $e) {
-            DB::rollback();
-
-            return back()->withErrors(['error' => 'Gagal menghapus kontrol akses formulir: '.$e->getMessage()]);
-        }
+        return redirect()->route('admin.form-access-controls.index')
+            ->with('success', 'Kontrol Akses Formulir berhasil dihapus.');
     }
 
-    public function bulkCreate(Request $request)
+    public function bulkCreate(FormAccessBulkRequest $request)
     {
-        $request->validate([
-            'form_id' => 'required|exists:forms,id',
-            'combinations' => 'required|array|min:1',
-            'combinations.*.permission' => ['required', 'string', Rule::in(FormAccessControl::ALLOWED_PERMISSIONS)],
-            'combinations.*.study_program_id' => ['required', Rule::exists('organizations', 'id')->where('is_active', true)],
-        ]);
+        $result = GrantFormAccessInBulk::run($request->toInputs(), $this->actor($request));
 
-        try {
-            DB::beginTransaction();
-
-            $created = 0;
-            $skipped = 0;
-
-            foreach ($request->combinations as $combination) {
-                $exists = FormAccessControl::where([
-                    'form_id' => $request->form_id,
-                    'permission' => $combination['permission'],
-                    'organization_id' => $combination['study_program_id'],
-                ])->exists();
-
-                if ($exists) {
-                    $skipped++;
-
-                    continue;
-                }
-
-                FormAccessControl::create([
-                    'form_id' => $request->form_id,
-                    'permission' => $combination['permission'],
-                    'organization_id' => $combination['study_program_id'],
-                ]);
-
-                $created++;
-            }
-
-            DB::commit();
-
-            $message = "Bulk creation completed. Created: {$created}, Skipped (duplicates): {$skipped}";
-
-            return redirect()->route('admin.form-access-controls.index')
-                ->with('success', $message);
-
-        } catch (\Exception $e) {
-            DB::rollback();
-
-            return back()->withErrors(['error' => 'Gagal membuat kontrol akses formulir secara massal: '.$e->getMessage()]);
-        }
+        return redirect()->route('admin.form-access-controls.index')->with(
+            'success',
+            "{$result['created']} kontrol akses formulir dibuat; {$result['skipped']} dilewati karena sudah terdaftar.",
+        );
     }
 
     public function bulkDelete(Request $request)
     {
         $request->validate([
             'ids' => 'required|array|min:1',
-            'ids.*' => 'exists:form_access_controls,id',
+            'ids.*' => 'integer|exists:form_access_controls,id',
         ]);
 
-        try {
-            DB::beginTransaction();
+        // BR-FE-20 — semua atau tidak; alasannya menyebut kontrol akses yang dipakai.
+        $deleted = RevokeFormAccessInBulk::run(
+            array_values(array_map(intval(...), $request->array('ids'))),
+            $this->actor($request),
+        );
 
-            $accessControls = FormAccessControl::whereIn('id', $request->ids)->get();
-            $cannotDelete = [];
-            $deleted = 0;
-
-            foreach ($accessControls as $control) {
-                $usageCount = $control->formPhaseDetails()->count();
-
-                if ($usageCount > 0) {
-                    $cannotDelete[] = "ID {$control->id} (used in {$usageCount} phase details)";
-
-                    continue;
-                }
-
-                $control->delete();
-                $deleted++;
-            }
-
-            DB::commit();
-
-            $message = "Bulk deletion completed. Deleted: {$deleted}";
-            if (!empty($cannotDelete)) {
-                $message .= '. Could not delete: '.implode(', ', $cannotDelete);
-            }
-
-            return redirect()->route('admin.form-access-controls.index')
-                ->with('success', $message);
-
-        } catch (\Exception $e) {
-            DB::rollback();
-
-            return back()->withErrors(['error' => 'Gagal menghapus kontrol akses formulir secara massal: '.$e->getMessage()]);
-        }
+        return redirect()->route('admin.form-access-controls.index')
+            ->with('success', "{$deleted} kontrol akses formulir berhasil dihapus.");
     }
 
     public function getStudyPrograms(Request $request)
@@ -277,5 +117,14 @@ class FormAccessControlController extends Controller
             ->get(['id', 'name']);
 
         return response()->json($studyPrograms);
+    }
+
+    private function actor(Request $request): User
+    {
+        $actor = $request->user();
+
+        abort_unless($actor instanceof User, 403);
+
+        return $actor;
     }
 }

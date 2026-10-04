@@ -332,10 +332,10 @@ const deleteFormAccessControl = (id: number) => {
                     description: 'Kontrol akses formulir berhasil dihapus.',
                 })
             },
-            onError: () => {
+            onError: (errors) => {
                 toast({
                     title: 'Error',
-                    description: 'Gagal menghapus kontrol akses formulir.',
+                    description: errors.id ?? 'Gagal menghapus kontrol akses formulir.',
                     variant: 'destructive',
                 })
             },
@@ -362,10 +362,11 @@ const bulkDelete = () => {
                         description: 'Kontrol akses formulir yang dipilih berhasil dihapus.',
                     })
                 },
-                onError: () => {
+                onError: (errors) => {
                     toast({
                         title: 'Error',
-                        description: 'Gagal menghapus kontrol akses formulir yang dipilih.',
+                        description:
+                            errors.id ?? 'Gagal menghapus kontrol akses formulir yang dipilih.',
                         variant: 'destructive',
                     })
                 },

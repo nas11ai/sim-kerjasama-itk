@@ -7,7 +7,6 @@
 #
 # Inilah antrean kerja refactor. Ambil dari atas.
 app/Http/Controllers/BiodataController.php
-app/Http/Controllers/FormAccessControlController.php
 app/Http/Controllers/FormController.php
 app/Http/Controllers/ReviewEvaluationFormController.php
 app/Http/Controllers/ReviewFormResponseController.php
