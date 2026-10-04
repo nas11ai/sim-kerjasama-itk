@@ -334,3 +334,24 @@ it('BR-REV-09 — create tidak menawarkan user yang masa tugasnya berakhir hari 
             ->has('users', 1)
             ->where('users.0.id', $sudahBerakhir->id));
 });
+
+it('BR-IAM-11 dan BR-REV-11 — destroy duplikat kosong tidak mencabut role record yang tersisa', function () {
+    $user = calonReviewer();
+    $user->assignRole(Role::findOrCreate('reviewer_internal', 'web'));
+    $tersisa = Reviewer::factory()->create(['user_id' => $user->id, 'reviewer_type' => 'internal']);
+    $duplikat = Reviewer::factory()->create(['user_id' => $user->id, 'reviewer_type' => 'internal']);
+
+    $this->actingAs($this->operator)->delete(route('admin.reviewers.destroy', $duplikat))
+        ->assertRedirect(route('admin.reviewers.index'));
+
+    expect(Reviewer::whereKey($duplikat->id)->exists())->toBeFalse()
+        ->and(Reviewer::whereKey($tersisa->id)->exists())->toBeTrue()
+        ->and($user->fresh()->hasRole('reviewer_internal'))->toBeTrue();
+});
+
+it('BR-REV-09 — index menyebut reviewer yang belum mulai sebagai nonaktif', function () {
+    Reviewer::factory()->create(['start_date' => today()->addDay()->toDateString(), 'end_date' => null]);
+
+    $this->actingAs($this->operator)->get(route('admin.reviewers.index', ['status' => 'inactive']))
+        ->assertInertia(fn ($page) => $page->has('reviewers.data', 1)->where('reviewers.data.0.is_active', false));
+});

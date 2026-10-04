@@ -31,7 +31,14 @@ class DismissReviewer
         }
 
         DB::transaction(function () use ($reviewer): void {
-            $reviewer->user?->removeRole(...array_values(AppointReviewer::ROLES));
+            // BR-IAM-11 — bisa ada duplikat lama; role dicabut hanya bila tak ada record
+            // lain milik user ini, supaya yang tersisa tetap reviewer (BR-REV-11).
+            $punyaRecordLain = Reviewer::where('user_id', $reviewer->user_id)
+                ->whereKeyNot($reviewer->id)->exists();
+
+            if (!$punyaRecordLain) {
+                $reviewer->user?->removeRole(...array_values(AppointReviewer::ROLES));
+            }
 
             // BR-RPT-09 — dicatat sebelum record hilang agar subjek audit masih utuh.
             AuditTrail::record('Reviewer dihapus', $reviewer);
