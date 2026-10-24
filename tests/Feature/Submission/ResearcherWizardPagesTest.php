@@ -170,6 +170,40 @@ it('menyimpan draft dengan satu entri audit', function () {
             ->count())->toBe(1);
 });
 
+it('[SM-WIZARD-02] simpan dari halaman yang dibuka ulang tidak menghapus isian tersimpan', function () {
+    $fx = wizardFixture();
+    $submission = StartSubmission::run($fx['form']->id, $fx['period']->id, $fx['detail'], $fx['user']);
+    $first = draftPayload($fx['form'], $fx['period'], $fx['phase'], $submission->updated_at->toISOString());
+    $judul = $first['responses'][0]['form_field_id'];
+
+    $this->actingAs($fx['user'])->post(route('user.form-submission.save-draft'), $first)->assertSessionHasNoErrors();
+
+    // Layar wizard mulai kosong setiap dibuka, jadi Judul terkirim '' sementara field lain diisi.
+    $second = draftPayload($fx['form'], $fx['period'], $fx['phase'], $submission->fresh()->updated_at->toISOString());
+    $abstrak = $second['responses'][0]['form_field_id'];
+    $second['responses'][] = ['form_field_id' => $judul, 'value' => ''];
+    $second['responses'][0]['value'] = 'Abstrak baru';
+
+    $this->actingAs($fx['user'])->post(route('user.form-submission.save-draft'), $second)->assertSessionHasNoErrors();
+
+    $answers = FormFieldResponse::where('form_submission_id', $submission->id)->pluck('value', 'form_field_id');
+
+    expect($answers->all())->toBe([$judul => 'Contoh nilai', $abstrak => 'Abstrak baru']);
+});
+
+it('menimpa jawaban field yang diisi ulang', function () {
+    $fx = wizardFixture();
+    $submission = StartSubmission::run($fx['form']->id, $fx['period']->id, $fx['detail'], $fx['user']);
+    $payload = draftPayload($fx['form'], $fx['period'], $fx['phase'], $submission->updated_at->toISOString());
+
+    $this->actingAs($fx['user'])->post(route('user.form-submission.save-draft'), $payload);
+    $payload['responses'][0]['value'] = 'Judul revisi';
+    $payload['last_updated_at'] = $submission->fresh()->updated_at->toISOString();
+    $this->actingAs($fx['user'])->post(route('user.form-submission.save-draft'), $payload)->assertSessionHasNoErrors();
+
+    expect(FormFieldResponse::where('form_submission_id', $submission->id)->pluck('value')->all())->toBe(['Judul revisi']);
+});
+
 it('menolak jawaban untuk field milik form lain', function () {
     $fx = wizardFixture();
     $submission = StartSubmission::run($fx['form']->id, $fx['period']->id, $fx['detail'], $fx['user']);

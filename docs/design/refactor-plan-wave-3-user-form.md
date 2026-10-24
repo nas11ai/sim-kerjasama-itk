@@ -51,10 +51,17 @@ yang terbuka lewat dua kontrol akses (ADR 0013) terhitung dua kali, padahal wiza
 - **K6** — Statistik review dasbor peneliti dari `BuildReviewerDashboard`; kartu "Ditolak" dicabut. Dua
   route mati dicabut beserta entri Ziggy-nya.
 
-## Utang yang tersisa
+- **K7** — Jalur wizard memakai `FieldAnswerWriter::fill()`: hanya field yang terisi yang ditimpa
+  ([SM-WIZARD-02]). Biodata tetap `replace()` karena layarnya memuat ulang jawaban.
 
-`User/FormPhase.vue` tidak mengisi ulang jawaban tersimpan (`user_submission.responses` dikirim tapi tak
-dibaca), sedangkan simpan menggantikan seluruh jawaban. Membuka ulang wizard lalu menyimpan menghapus
-jawaban sebelumnya. Tidak diperbaiki di sini — layar ini diganti layar SIMPAS v2.
+## F8 dan konsekuensi K7
+
+**F8 — Simpan wizard menghapus isian sebelumnya.** `User/FormPhase.vue` tidak mengisi ulang jawaban
+tersimpan (`user_submission.responses` dikirim tapi tak dibaca) dan mengirim setiap field kosong sebagai
+`''`, sementara simpan menggantikan seluruh jawaban. Membuka ulang wizard lalu menyimpan menghapus semuanya.
+
+Diperbaiki di backend saja. Konsekuensinya, jawaban wizard yang sudah tersimpan tidak bisa dikosongkan
+lagi lewat simpan — kosong dibaca "belum disentuh". Layar SIMPAS v2 yang memuat ulang jawaban dan butuh
+mengosongkan field perlu jalur eksplisit untuk itu.
 
 Test: `tests/Feature/Submission/ResearcherWizardPagesTest.php`.

@@ -9,14 +9,14 @@ use Illuminate\Http\UploadedFile;
 use Illuminate\Validation\ValidationException;
 
 /**
- * Jawaban peneliti menggantikan seluruh jawaban sebuah pengajuan. Dipanggil dari dalam transaksi
- * SaveSubmissionDraft dan SaveBiodata, yang menulis jejak auditnya.
+ * Jawaban peneliti ke sebuah pengajuan. Dipanggil dari dalam transaksi SaveSubmissionDraft dan
+ * SaveBiodata, yang menulis jejak auditnya.
  */
 final class FieldAnswerWriter
 {
     /**
-     * Berkas disimpan setelah field-nya terbukti milik form ini, supaya kiriman yang ditolak
-     * tidak meninggalkan berkas yatim.
+     * Seluruh jawaban digantikan: field yang dikosongkan ikut terhapus. Untuk layar yang memuat ulang
+     * jawaban tersimpan sebelum disunting.
      *
      * @param  array<int, ?string>  $answers  id field => nilai; null berarti kosong
      * @param  array<int, UploadedFile>  $uploads  id field => berkas, menimpa jawaban field itu
@@ -25,15 +25,57 @@ final class FieldAnswerWriter
      */
     public static function replace(FormSubmission $submission, array $answers, array $uploads, string $directory): void
     {
+        $values = self::storedValues($submission, $answers, $uploads, $directory);
+
+        $submission->formFieldResponses()->delete();
+
+        self::create($submission, $values);
+    }
+
+    /**
+     * [SM-WIZARD-02] Hanya field yang terisi yang ditimpa; jawaban kosong membiarkan jawaban tersimpan.
+     * Layar wizard tidak memuat ulang jawaban, jadi kosong di sana berarti belum disentuh — dulu setiap
+     * simpan setelah halaman dibuka ulang menghapus isian sebelumnya. Akibatnya jawaban tak bisa dikosongkan.
+     *
+     * @param  array<int, ?string>  $answers  id field => nilai; null berarti kosong
+     * @param  array<int, UploadedFile>  $uploads  id field => berkas, menimpa jawaban field itu
+     *
+     * @throws ValidationException
+     */
+    public static function fill(FormSubmission $submission, array $answers, array $uploads, string $directory): void
+    {
+        $values = array_filter(self::storedValues($submission, $answers, $uploads, $directory), fn (?string $value): bool => $value !== null);
+
+        $submission->formFieldResponses()->whereIn('form_field_id', array_keys($values))->delete();
+
+        self::create($submission, $values);
+    }
+
+    /**
+     * Berkas disimpan setelah field-nya terbukti milik form ini, supaya kiriman yang ditolak tidak
+     * meninggalkan berkas yatim.
+     *
+     * @param  array<int, ?string>  $answers
+     * @param  array<int, UploadedFile>  $uploads
+     * @return array<int, ?string>
+     *
+     * @throws ValidationException
+     */
+    private static function storedValues(FormSubmission $submission, array $answers, array $uploads, string $directory): array
+    {
         self::assertOwnFields($submission, array_keys($answers + $uploads));
 
         foreach ($uploads as $fieldId => $file) {
             $answers[$fieldId] = $file->store($directory, 'public') ?: null;
         }
 
-        $submission->formFieldResponses()->delete();
+        return $answers;
+    }
 
-        foreach ($answers as $fieldId => $value) {
+    /** @param  array<int, ?string>  $values */
+    private static function create(FormSubmission $submission, array $values): void
+    {
+        foreach ($values as $fieldId => $value) {
             if ($value === null) {
                 continue;
             }

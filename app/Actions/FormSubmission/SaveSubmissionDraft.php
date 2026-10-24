@@ -47,7 +47,7 @@ class SaveSubmissionDraft
             // dibandingkan adalah nilai yang benar-benar akan ditimpa.
             OptimisticLock::assertNotStale($submission, $input->lastUpdatedAt);
 
-            FieldAnswerWriter::replace($submission, $input->answers, $input->uploads, self::UPLOAD_DIRECTORY);
+            FieldAnswerWriter::fill($submission, $input->answers, $input->uploads, self::UPLOAD_DIRECTORY);
 
             // BR-SCH-04/BR-SCH-10 (ADR 0005) — pilihan scheme_selector dipindahkan ke kolom scheme_id
             // begitu jawabannya tersimpan. Batas anggaran, anggota, dan tipe luaran menanyakan kolom itu;
