@@ -40,7 +40,7 @@ class HandleInertiaRequests extends Middleware
                     // Add any other user properties you need
                     'roles' => $request->user()->getRoleNames(), // If you're using Spatie Laravel Permission
                     'is_reviewer' => $request->user()->is_reviewer,
-                    'permissions' => EffectivePermissionNames::run($request->user()),
+                    'permissions' => fn () => EffectivePermissionNames::run($request->user()),
                 ] : null,
             ],
             'flash' => [

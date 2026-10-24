@@ -3,6 +3,7 @@
 // Union SubmissionStatusKey di frontend harus sama dengan state backend,
 // supaya status baru tidak lolos vue-tsc tanpa tampil di UI.
 
+use App\Models\FormSubmission;
 use App\States\Submission\SubmissionStatus;
 use Tests\TestCase;
 
@@ -19,4 +20,15 @@ it('menjaga types/submission-status.ts sinkron dengan app/States/Submission', fu
         ->sort()->values()->all();
 
     expect($frontend)->toBe($backend, 'types/submission-status.ts tidak sinkron dengan app/States/Submission');
+});
+
+it('memakai variant() yang ada di union BadgeVariant', function () {
+    $source = (string) file_get_contents(resource_path('js/types/BadgeVariant.ts'));
+    preg_match('/type BadgeVariant\s*=([^\n]*(?:\n\s*\|[^\n]*)*)/', $source, $match);
+    preg_match_all("/'([a-z]+)'/", $match[1] ?? '', $variants);
+
+    expect($variants[1])->not->toBeEmpty();
+
+    SubmissionStatus::all()->each(fn (string $class) => expect((new $class(new FormSubmission))->variant())
+        ->toBeIn($variants[1], $class.'::variant() tidak ada di types/BadgeVariant.ts'));
 });

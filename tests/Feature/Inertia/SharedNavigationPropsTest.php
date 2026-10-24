@@ -6,6 +6,7 @@ use App\Models\Form;
 use App\Models\FormSubmission;
 use App\Models\FormType;
 use App\Models\User;
+use App\Queries\Identity\EffectivePermissionNames;
 use App\States\Submission\Approved;
 use Database\Seeders\PermissionSeeder;
 use Spatie\Permission\Models\Role;
@@ -72,4 +73,20 @@ it('pengajuan disetujui milik orang lain tidak menyalakan flag', function () {
 
     $this->actingAs($user)->get(route('profile.edit'))->assertInertia(fn ($page) => $page
         ->where('navigation.hasApprovedSubmission', false));
+});
+
+it('partial reload yang tidak meminta auth tidak menghitung permission', function () {
+    $user = User::factory()->create();
+
+    $this->actingAs($user)->get(route('profile.edit'))->assertInertia(function ($page) {
+        EffectivePermissionNames::shouldNotRun();
+        $page->reloadOnly('navigation');
+    });
+});
+
+it('tamu menerima auth.user dan navigation null', function () {
+    $this->get(route('login'))->assertInertia(fn ($page) => $page
+        ->component('Auth/LoginPage')
+        ->where('auth.user', null)
+        ->where('navigation', null));
 });
