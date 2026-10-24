@@ -12,7 +12,6 @@
 # perintahkan tetap di model. Ukur ulang sebelum mencoba lagi —
 # docs/design/refactor-plan-wave-2-formsubmission.md Task 6.
 app/Models/FormSubmission.php
-app/Models/Organization.php
 app/Services/EmailNotificationService.php
 resources/js/Components/AppSidebar.vue
 resources/js/Components/AssignReviewerDialog.vue

@@ -16,7 +16,7 @@ hard.comment.prose:      3
 hard.contract.leak:      0
 
 # --- Plafon yang menyusut ---
-max.legacy.files:       96
+max.legacy.files:       95
 # Sisa mixed yang dibiarkan dengan sadar (spec §3.1), dihitung MixedMetrics:
 #    6  tanda tangan Laravel: rules() di lima FormRequest, share() HandleInertiaRequests
 #    2  aksesor JSON generik Scheme::getRule (parameter dan kembaliannya)
@@ -25,7 +25,7 @@ max.legacy.files:       96
 #         ResearchOutput.metadata — model 1, ResearchOutputGuard 2, SaveResearchOutput 2,
 #         ResearchOutputController 2; AuditEntry.properties 1; SchemeInput.rules 1
 max.mixed:              19
-max.comment.overflow:   32
+max.comment.overflow:   31
 max.id.nonenglish:     159
 max.untyped.json:       22
 max.duplicate.blocks: 1467
