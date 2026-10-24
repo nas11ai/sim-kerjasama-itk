@@ -6,7 +6,6 @@
 # memenuhi ambang tapi masih terdaftar, jadi keduanya tidak bisa berselisih.
 #
 # Inilah antrean kerja refactor. Ambil dari atas.
-app/Http/Controllers/ReviewFormResponseController.php
 app/Http/Controllers/SubmissionViewController.php
 app/Http/Controllers/UserFormController.php
 app/Models/FormPhaseDetail.php

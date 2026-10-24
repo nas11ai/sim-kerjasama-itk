@@ -3,8 +3,10 @@
 namespace App\Providers;
 
 use App\Models\FormSubmission;
+use App\Models\ReviewerFormAssignment;
 use App\Policies\BudgetLineItemPolicy;
 use App\Policies\FormSubmissionPolicy;
+use App\Policies\ReviewerFormAssignmentPolicy;
 use App\Services\Storage\S3StorageService;
 use App\Services\Storage\StorageService;
 use Illuminate\Support\Facades\Gate;
@@ -15,13 +17,13 @@ use Illuminate\Support\ServiceProvider;
 class AppServiceProvider extends ServiceProvider
 {
     /**
-     * BR-SM-04 — ability yang menyandang invarian domain, bukan sekadar
-     * kewenangan: submit dan resubmit mengikat `submitted_by` pada dirinya
-     * sendiri. Untuk orang lain: transfer kepemilikan (BR-SM-09) yang berjejak.
+     * BR-SM-04 — ability yang menyandang invarian domain, bukan sekadar kewenangan: submit dan
+     * resubmit mengikat `submitted_by` pada dirinya sendiri. Untuk orang lain: transfer kepemilikan
+     * (BR-SM-09) yang berjejak. `evaluate` sama: jawaban evaluasi mengikat reviewer yang ditugaskan.
      *
      * @var list<string>
      */
-    private const INVARIANT_ABILITIES = ['submit', 'resubmit', 'update-budget'];
+    private const INVARIANT_ABILITIES = ['submit', 'resubmit', 'update-budget', 'evaluate'];
 
     /**
      * Register any application services.
@@ -51,6 +53,7 @@ class AppServiceProvider extends ServiceProvider
             return $user->hasRole('Super Admin') ? true : null;
         });
         Gate::policy(FormSubmission::class, FormSubmissionPolicy::class);
+        Gate::policy(ReviewerFormAssignment::class, ReviewerFormAssignmentPolicy::class);
         // BR-BUD-02, BR-BUD-09 (register #24) — `update-budget` menyusul dengan
         // alasan sama: daftarnya tertutup, dan angka anggaran yang sudah
         // diputuskan adalah dasar pencairan — koreksinya lewat transisi status.

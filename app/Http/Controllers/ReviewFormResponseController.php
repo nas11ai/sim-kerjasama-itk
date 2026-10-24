@@ -2,451 +2,134 @@
 
 namespace App\Http\Controllers;
 
-use App\Actions\Monev\NotifyMonevEvaluationSubmitted;
-use App\Actions\Review\RecalculateEvaluationStatus;
-use App\Actions\Review\SubmitEvaluationForm;
-use App\Models\FormSubmission;
+use App\Actions\Review\OpenEvaluationResponse;
+use App\Actions\Review\SaveEvaluationDraft;
+use App\Actions\Review\StartEvaluationForm;
+use App\Actions\Review\SubmitEvaluationAnswers;
+use App\Http\Controllers\Concerns\ResolvesActor;
+use App\Http\Requests\Review\EvaluationAnswersRequest;
+use App\Http\Requests\Review\StartEvaluationFormRequest;
 use App\Models\ReviewerFormAssignment;
-use App\Models\ReviewEvaluationForm;
 use App\Models\ReviewFormResponse;
-use App\Models\SubmissionPeriod;
-use App\Queries\Review\ActiveReviewerAssignment;
+use App\Models\User;
+use App\Queries\Review\EvaluationAssignmentProgress;
 use App\Queries\Review\EvaluationFormCompletion;
-use App\Support\Review\FieldResponseValidator;
+use App\Queries\Review\EvaluationSummaryText;
+use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 
 class ReviewFormResponseController extends Controller
 {
-    /**
-     * Get default due date for evaluation
-     */
-    protected function getDefaultDueDate(FormSubmission $submission): ?\DateTime
+    use ResolvesActor;
+
+    public function showOrCreate(StartEvaluationFormRequest $request)
     {
-        $submissionPeriod = SubmissionPeriod::whereHas(
-            'submissionPeriodPhases.formPhase.formPhaseDetails.formAccessControl',
-            function ($query) use ($submission) {
-                $query->where('form_id', $submission->form_id);
-            }
-        )->first();
+        $assignment = StartEvaluationForm::run($request->submission(), $request->evaluationForm(), $this->actor($request));
 
-        if (!$submissionPeriod) {
-            // Default to 7 days from now
-            return new \DateTime('+7 days');
-        }
-
-        // Get the latest submission date
-        $latestDate = $submissionPeriod->submissionDates()
-            ->orderBy('datetime', 'desc')
-            ->first();
-
-        if ($latestDate) {
-            // Pastikan dikonversi ke objek DateTime
-            return new \DateTime($latestDate->datetime);
-        }
-
-        return new \DateTime('+7 days');
-    }
-
-    public function showOrCreate(Request $request)
-    {
-        $validated = $request->validate([
-            'submission_id' => 'required|exists:form_submissions,id',
-            'review_evaluation_form_id' => 'required|exists:review_evaluation_forms,id',
-        ]);
-
-        $user = Auth::user();
-        $submission = FormSubmission::findOrFail($validated['submission_id']);
-
-        // Get reviewer
-        $reviewer = $user->reviewers()->first();
-        if (!$reviewer) {
-            abort(403, 'Anda tidak terdaftar sebagai reviewer.');
-        }
-
-        // Check if assigned to this submission
-        $submissionReviewer = ActiveReviewerAssignment::run($submission, $reviewer->id);
-
-        if (!$submissionReviewer) {
-            abort(403, 'Anda tidak ditugaskan sebagai reviewer untuk pengajuan ini.');
-        }
-
-        // Verify form belongs to correct form phase
-        $formPhaseDetail = $submission->getFormPhaseDetail();
-        $evaluationForm = ReviewEvaluationForm::findOrFail($validated['review_evaluation_form_id']);
-
-        if (!$formPhaseDetail || $evaluationForm->form_phase_detail_id !== $formPhaseDetail->id) {
-            abort(403, 'Formulir evaluasi ini tidak tersedia untuk pengajuan ini.');
-        }
-
-        // Find or create assignment
-        $assignment = ReviewerFormAssignment::firstOrCreate(
-            [
-                'submission_reviewer_id' => $submissionReviewer->id,
-                'review_evaluation_form_id' => $evaluationForm->id,
-            ],
-            [
-                'is_required' => $evaluationForm->is_required,
-                'assigned_at' => now(),
-                'due_date' => $this->getDefaultDueDate($submission),
-                'is_active' => true,
-            ]
-        );
-
-        // Update evaluation status
-        RecalculateEvaluationStatus::run($submissionReviewer);
-
-        // Redirect to show page
         return redirect()->route('reviewer.evaluation-form.show', $assignment->id);
     }
 
-    public function show(ReviewerFormAssignment $assignment)
+    public function show(Request $request, ReviewerFormAssignment $assignment)
     {
-        $this->authorizeAssignment($assignment);
+        $actor = $this->viewer($request, $assignment);
+        $canEvaluate = $actor->can('evaluate', $assignment);
+        $this->loadSheet($assignment);
 
-        $assignment->load([
-            'reviewEvaluationForm' => function ($query) {
-                $query->with([
-                    'reviewFormFields' => function ($q) {
-                        $q->ordered()->with([
-                            'fieldType:id,name',
-                            'reviewFormFieldOptions' => function ($opt) {
-                                $opt->ordered();
-                            },
-                        ]);
-                    },
-                ]);
-            },
-            'submissionReviewer.formSubmission.form:id,title',
-            'submissionReviewer.formSubmission.submittedBy:id,name',
-            'reviewFormResponse.reviewFormFieldResponses',
-        ]);
-
-        // Get or create response
-
-        /** @var ReviewFormResponse $response */
-        $response = $assignment->reviewFormResponse ?? ReviewFormResponse::create([
-            'reviewer_form_assignment_id' => $assignment->id,
-            'status' => 'draft',
-        ]);
-
-        // Map existing responses
-        $existingResponses = $response->reviewFormFieldResponses
-            ->mapWithKeys(function ($fieldResponse) {
-                return [$fieldResponse->review_form_field_id => $fieldResponse->value];
-            });
+        // Draft dibuat hanya bagi reviewernya; admin yang sekadar membaca tidak meninggalkan apa pun.
+        $response = $canEvaluate
+            ? OpenEvaluationResponse::run($assignment, $actor)
+            : $assignment->reviewFormResponse ?? new ReviewFormResponse(['reviewer_form_assignment_id' => $assignment->id, 'status' => 'draft']);
 
         return Inertia::render('Reviewer/EvaluationForm/ShowPage', [
             'assignment' => $assignment,
             'response' => $response,
-            'existingResponses' => $existingResponses,
-            'canEdit' => $response->canBeEdited(),
-            'canSubmit' => $response->canBeSubmitted(),
+            'existingResponses' => $response->reviewFormFieldResponses->pluck('value', 'review_form_field_id'),
+            'canEdit' => $canEvaluate && $response->canBeEdited(),
+            'canSubmit' => $canEvaluate && $response->canBeSubmitted(),
             'completionPercentage' => EvaluationFormCompletion::run($response),
         ]);
     }
 
-    public function saveDraft(Request $request, ReviewerFormAssignment $assignment)
+    public function saveDraft(EvaluationAnswersRequest $request, ReviewerFormAssignment $assignment)
     {
-        $this->authorizeAssignment($assignment);
+        SaveEvaluationDraft::run($assignment, $request->toInput(), $this->actor($request));
 
-        /** @var ReviewFormResponse $response */
-        $response = $assignment->reviewFormResponse ?? ReviewFormResponse::create([
-            'reviewer_form_assignment_id' => $assignment->id,
-            'status' => 'draft',
-        ]);
-
-        if (!$response->canBeEdited()) {
-            return back()->withErrors(['error' => 'Formulir ini tidak dapat diedit lagi.']);
-        }
-
-        $validated = $request->validate([
-            'responses' => 'required|array',
-            'responses.*' => 'nullable|string',
-            'final_notes' => 'nullable|string|max:2000',
-        ]);
-
-        try {
-            DB::beginTransaction();
-
-            // Save field responses
-            foreach ($validated['responses'] as $fieldId => $value) {
-                $response->saveFieldResponse((int) $fieldId, $value);
-            }
-
-            // Update final notes
-            $response->update([
-                'final_notes' => $validated['final_notes'] ?? null,
-            ]);
-
-            DB::commit();
-
-            return back()->with('success', 'Draft berhasil disimpan.');
-
-        } catch (\Exception $e) {
-            DB::rollback();
-
-            return back()->withErrors(['error' => 'Gagal menyimpan draft: '.$e->getMessage()]);
-        }
+        return back()->with('success', 'Draft berhasil disimpan.');
     }
 
-    public function submit(Request $request, ReviewerFormAssignment $assignment)
+    public function submit(EvaluationAnswersRequest $request, ReviewerFormAssignment $assignment)
     {
-        $this->authorizeAssignment($assignment);
+        SubmitEvaluationAnswers::run($assignment, $request->toInput(), $this->actor($request));
 
+        return redirect()->route('reviewer.assignments.index')
+            ->with('success', 'Formulir evaluasi berhasil dikirim.');
+    }
+
+    public function showSubmitted(Request $request, ReviewerFormAssignment $assignment)
+    {
+        $this->viewer($request, $assignment);
         $response = $assignment->reviewFormResponse;
 
-        if ($response === null) {
-            return back()->withErrors(['error' => 'Tidak ditemukan draft respons. Silakan simpan draft terlebih dahulu.']);
-        }
-
-        if (
-            !$response->canBeSubmitted()
-        ) {
-            return back()->withErrors(['error' => 'Formulir tidak dapat dikirim. Harap lengkapi semua bidang yang diperlukan.']);
-        }
-
-        $validated = $request->validate([
-            'responses' => 'required|array',
-            'responses.*' => 'nullable|string',
-            'final_notes' => 'nullable|string|max:2000',
-        ]);
-
-        try {
-            DB::beginTransaction();
-
-            // Save final responses
-            foreach ($validated['responses'] as $fieldId => $value) {
-                $response->saveFieldResponse((int) $fieldId, $value);
-            }
-
-            // Update final notes
-            $response->update([
-                'final_notes' => $validated['final_notes'] ?? null,
-            ]);
-
-            // Validate all required fields are completed
-            $errors = $this->validateRequiredFields($response);
-            if (!empty($errors)) {
-                throw ValidationException::withMessages(['responses' => $errors]);
-            }
-
-            // Submit the response
-            if (!SubmitEvaluationForm::run($response)) {
-                throw new \Exception('Gagal mengirim respons formulir.');
-            }
-
-            DB::commit();
-
-            // BR-MON-10 — untuk laporan monev, hasilnya langsung terbuka bagi
-            // peneliti (BR-MON-09), jadi ia diberi tahu. Pengajuan awal sengaja
-            // tidak: skornya masih ditahan sampai keputusan akhir, dan
-            // mengabarkannya hanya mengundang orang membuka halaman kosong.
-            NotifyMonevEvaluationSubmitted::run($response->refresh());
-
-            return redirect()->route('reviewer.assignments.index')
-                ->with('success', 'Formulir evaluasi berhasil dikirim.');
-
-        } catch (ValidationException $e) {
-            DB::rollback();
-            throw $e;
-        } catch (\Exception $e) {
-            DB::rollback();
-
-            return back()->withErrors(['error' => 'Gagal mengirim formulir: '.$e->getMessage()]);
-        }
-    }
-
-    public function showSubmitted(ReviewerFormAssignment $assignment)
-    {
-        $this->authorizeAssignment($assignment);
-
-        if (!$assignment->reviewFormResponse || !$assignment->reviewFormResponse->isSubmitted()) {
+        if ($response === null || !$response->isSubmitted()) {
             return redirect()->route('reviewer.evaluation-form.show', $assignment);
         }
 
-        $assignment->load([
-            'reviewEvaluationForm.reviewFormFields' => function ($query) {
-                $query->ordered()->with([
-                    'fieldType:id,name',
-                    'reviewFormFieldOptions' => function ($q) {
-                        $q->ordered();
-                    },
-                ]);
-            },
-            'submissionReviewer.formSubmission.form:id,title',
-            'submissionReviewer.formSubmission.submittedBy:id,name',
-            'reviewFormResponse.reviewFormFieldResponses',
-        ]);
-
-        /** @var ReviewFormResponse $response */
-        $response = $assignment->reviewFormResponse;
-
-        // Map responses for display
-        $formattedResponses = $response->reviewFormFieldResponses
-            ->mapWithKeys(function ($fieldResponse) {
-                return [
-                    $fieldResponse->review_form_field_id => [
-                        'value' => $fieldResponse->value,
-                        'formatted_value' => $fieldResponse->formatted_value,
-                    ],
-                ];
-            });
+        $this->loadSheet($assignment);
 
         return Inertia::render('Reviewer/EvaluationForm/SubmittedPage', [
             'assignment' => $assignment,
             'response' => $response,
-            'formattedResponses' => $formattedResponses,
+            'formattedResponses' => $response->reviewFormFieldResponses->mapWithKeys(fn ($answer) => [
+                $answer->review_form_field_id => ['value' => $answer->value, 'formatted_value' => $answer->formatted_value],
+            ]),
         ]);
     }
 
-    public function downloadSummary(ReviewerFormAssignment $assignment)
+    public function downloadSummary(Request $request, ReviewerFormAssignment $assignment)
     {
-        $this->authorizeAssignment($assignment);
-
+        $this->viewer($request, $assignment);
         $response = $assignment->reviewFormResponse;
-        if (!$response instanceof ReviewFormResponse || !$response->isSubmitted()) {
+
+        if ($response === null || !$response->isSubmitted()) {
             return back()->withErrors(['error' => 'Tidak ditemukan respons yang telah dikirim.']);
         }
 
-        $assignment->load([
-            'reviewEvaluationForm.reviewFormFields' => function ($query) {
-                $query->ordered()->with('reviewFormFieldOptions');
-            },
-            'submissionReviewer.formSubmission.form:id,title',
-            'submissionReviewer.formSubmission.submittedBy:id,name',
-            'reviewFormResponse.reviewFormFieldResponses',
-        ]);
+        $summary = EvaluationSummaryText::run($assignment, $response);
 
-        $summaryContent = $this->generateSummaryContent($assignment, $response);
-
-        return response()->streamDownload(function () use ($summaryContent) {
-            echo $summaryContent;
+        return response()->streamDownload(function () use ($summary) {
+            echo $summary;
         }, "evaluation-summary-{$assignment->id}.txt", [
             'Content-Type' => 'text/plain',
         ]);
     }
 
-    protected function authorizeAssignment(ReviewerFormAssignment $assignment): void
+    public function getProgress(Request $request, ReviewerFormAssignment $assignment)
     {
-        $user = Auth::user();
+        $this->viewer($request, $assignment);
 
-        // Admin can view any assignment
-        if ($user->can('users.manage')) {
-            return;
-        }
-
-        $reviewer = $user->reviewers()->first();
-        if (!$reviewer) {
-            abort(403, 'Akses tidak sah ke formulir evaluasi ini.');
-        }
-
-        // BR-SM-07, BR-REV-10 — form milik penugasan yang sudah diganti tertutup,
-        // termasuk untuk dibaca, sama seperti halaman pengajuannya.
-        $submissionReviewer = $assignment->submissionReviewer;
-        $active = ActiveReviewerAssignment::run($submissionReviewer->formSubmission, $reviewer->id);
-
-        if ($active?->id !== $submissionReviewer->id) {
-            abort(403, 'Akses tidak sah ke formulir evaluasi ini.');
-        }
+        return response()->json(EvaluationAssignmentProgress::run($assignment));
     }
 
-    protected function validateRequiredFields(ReviewFormResponse $response): array
+    private function viewer(Request $request, ReviewerFormAssignment $assignment): User
     {
-        $errors = [];
-        $evaluationForm = $response->reviewerFormAssignment->reviewEvaluationForm;
+        $actor = $this->actor($request);
 
-        foreach ($evaluationForm->reviewFormFields()->required()->get() as $field) {
-            $fieldResponse = $response->reviewFormFieldResponses()
-                ->where('review_form_field_id', $field->id)
-                ->first();
+        abort_unless($actor->can('view', $assignment), 403, 'Akses tidak sah ke formulir evaluasi ini.');
 
-            if (!$fieldResponse || !$fieldResponse->hasValue()) {
-                $errors[] = "Field '{$field->label}' wajib diisi.";
-            } else {
-                // Field-specific validation
-                $fieldErrors = FieldResponseValidator::errorsFor($fieldResponse);
-                $errors = array_merge($errors, $fieldErrors);
-            }
-        }
-
-        return $errors;
+        return $actor;
     }
 
-    protected function generateSummaryContent(ReviewerFormAssignment $assignment, ReviewFormResponse $response): string
+    private function loadSheet(ReviewerFormAssignment $assignment): void
     {
-        $submission = $assignment->submissionReviewer->formSubmission;
-        $form = $assignment->reviewEvaluationForm;
-        $reviewer = $assignment->submissionReviewer->reviewer;
-
-        $content = "RANGKUMAN EVALUASI\n";
-        $content .= str_repeat('=', 50)."\n\n";
-
-        $content .= "Pengajuan: {$submission->form->title}\n";
-        $content .= "Dikirim oleh: {$submission->submittedBy->name}\n";
-        $content .= "Reviewer: {$reviewer->user->name} ({$reviewer->reviewer_type})\n";
-        $content .= "Formulir Evaluasi: {$form->title}\n";
-        $content .= "Diselesaikan pada: {$response->submitted_at->format('d M Y H:i')}\n\n";
-
-        $content .= str_repeat('-', 50)."\n\n";
-
-        foreach ($form->reviewFormFields()->ordered()->get() as $field) {
-            $fieldResponse = $response->reviewFormFieldResponses()
-                ->where('review_form_field_id', $field->id)
-                ->first();
-
-            $content .= "{$field->label}\n";
-            if ($field->description) {
-                $content .= "Deskripsi: {$field->description}\n";
-            }
-
-            if ($fieldResponse && $fieldResponse->hasValue()) {
-                $content .= "Response: {$fieldResponse->formatted_value}\n";
-            } else {
-                $content .= "Response: [No response]\n";
-            }
-            $content .= "\n";
-        }
-
-        if ($response->final_notes) {
-            $content .= str_repeat('-', 50)."\n";
-            $content .= "Catatan Tambahan:\n";
-            $content .= $response->final_notes."\n\n";
-        }
-
-        $content .= str_repeat('=', 50)."\n";
-        $content .= 'Generated on: '.now()->format('d M Y H:i:s')."\n";
-
-        return $content;
-    }
-
-    public function getProgress(ReviewerFormAssignment $assignment)
-    {
-        $this->authorizeAssignment($assignment);
-
-        $response = $assignment->reviewFormResponse;
-
-        if ($response === null) {
-            return response()->json([
-                'status' => 'not_started',
-                'completion_percentage' => 0,
-                'can_submit' => false,
-                'is_overdue' => $assignment->isOverdue(),
-                'days_until_due' => $assignment->getDaysUntilDue(),
-            ]);
-        }
-
-        return response()->json([
-            'status' => $response->status,
-            'completion_percentage' => EvaluationFormCompletion::run($response),
-            'can_submit' => $response->canBeSubmitted(),
-            'can_edit' => $response->canBeEdited(),
-            'is_overdue' => $assignment->isOverdue(),
-            'days_until_due' => $assignment->getDaysUntilDue(),
-            'submitted_at' => $response->submitted_at,
+        $assignment->load([
+            'reviewEvaluationForm.reviewFormFields' => fn (Relation $fields) => $fields->orderBy('order')->with([
+                'fieldType:id,name',
+                'reviewFormFieldOptions' => fn (Relation $options) => $options->orderBy('order'),
+            ]),
+            'submissionReviewer.formSubmission.form:id,title',
+            'submissionReviewer.formSubmission.submittedBy:id,name',
+            'reviewFormResponse.reviewFormFieldResponses',
         ]);
     }
 }

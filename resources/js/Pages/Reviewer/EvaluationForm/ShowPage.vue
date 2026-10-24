@@ -80,6 +80,7 @@ interface ReviewFormResponse {
     id: number
     status: string
     submitted_at?: string
+    final_notes?: string | null
 }
 
 interface ReviewerFormAssignment {
@@ -104,20 +105,23 @@ interface Props {
 
 const props = defineProps<Props>()
 
+// Catatan yang tersimpan dimuat ulang; tanpa itu simpan berikutnya mengosongkannya.
+const savedFinalNotes = computed(() => props.response.final_notes ?? '')
+
 // Forms
 const form = useForm({
     responses: { ...props.existingResponses },
-    final_notes: '',
+    final_notes: savedFinalNotes.value,
 })
 
 const saveDraftForm = useForm({
     responses: { ...props.existingResponses },
-    final_notes: '',
+    final_notes: savedFinalNotes.value,
 })
 
 const submitForm = useForm({
     responses: { ...props.existingResponses },
-    final_notes: '',
+    final_notes: savedFinalNotes.value,
 })
 
 // State
@@ -130,7 +134,7 @@ const isSaving = ref(false)
 const hasChanges = computed(() => {
     return (
         JSON.stringify(form.responses) !== JSON.stringify(props.existingResponses) ||
-        form.final_notes !== ''
+        form.final_notes !== savedFinalNotes.value
     )
 })
 
