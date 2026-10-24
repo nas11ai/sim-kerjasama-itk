@@ -7,13 +7,13 @@ use App\Actions\Form\GrantFormAccessInBulk;
 use App\Actions\Form\ReviseFormAccess;
 use App\Actions\Form\RevokeFormAccess;
 use App\Actions\Form\RevokeFormAccessInBulk;
+use App\Http\Controllers\Concerns\ResolvesActor;
 use App\Http\Requests\Form\FormAccessBulkDeleteRequest;
 use App\Http\Requests\Form\FormAccessBulkRequest;
 use App\Http\Requests\Form\FormAccessControlRequest;
 use App\Http\Requests\Form\FormAccessListRequest;
 use App\Models\FormAccessControl;
 use App\Models\Organization;
-use App\Models\User;
 use App\Queries\Form\FormAccessControlDirectory;
 use App\Queries\Form\FormAccessControlFormOptions;
 use Illuminate\Http\Request;
@@ -21,6 +21,8 @@ use Inertia\Inertia;
 
 class FormAccessControlController extends Controller
 {
+    use ResolvesActor;
+
     public function index(FormAccessListRequest $request)
     {
         $directory = FormAccessControlDirectory::run($request->toInput());
@@ -110,14 +112,5 @@ class FormAccessControlController extends Controller
             ->get(['id', 'name']);
 
         return response()->json($studyPrograms);
-    }
-
-    private function actor(Request $request): User
-    {
-        $actor = $request->user();
-
-        abort_unless($actor instanceof User, 403);
-
-        return $actor;
     }
 }

@@ -17,7 +17,10 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 /**
  * @property int $id
  * @property string $title
+ * @property string|null $description
+ * @property int $form_type_id
  * @property bool $is_active
+ * @property int $form_submissions_count
  */
 class Form extends Model
 {
@@ -69,5 +72,19 @@ class Form extends Model
     public function formAccessControls(): HasMany
     {
         return $this->hasMany(FormAccessControl::class);
+    }
+
+    /** @return array{title: string, description: string|null, form_type_id: int, is_active: bool, fields: array<int, string>} */
+    public function auditSnapshot(): array
+    {
+        return [
+            'title' => $this->title,
+            'description' => $this->description,
+            'form_type_id' => $this->form_type_id,
+            'is_active' => $this->is_active,
+            'fields' => $this->formFields()->orderBy('order')->get()
+                ->mapWithKeys(fn (FormField $field): array => [$field->id => $field->label])
+                ->all(),
+        ];
     }
 }

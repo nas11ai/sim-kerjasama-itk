@@ -3,14 +3,16 @@
 namespace App\Http\Controllers;
 
 use App\Actions\Identity\SaveBiodata;
+use App\Http\Controllers\Concerns\ResolvesActor;
 use App\Http\Requests\Identity\BiodataRequest;
-use App\Models\User;
 use App\Queries\Identity\BiodataFormView;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
 class BiodataController extends Controller
 {
+    use ResolvesActor;
+
     public function showBiodataForm(Request $request)
     {
         $view = BiodataFormView::run($this->actor($request));
@@ -36,14 +38,5 @@ class BiodataController extends Controller
             'success',
             $input->isSubmitted ? 'Biodata berhasil diserahkan dan menunggu persetujuan.' : null,
         );
-    }
-
-    private function actor(Request $request): User
-    {
-        $actor = $request->user();
-
-        abort_unless($actor instanceof User, 403);
-
-        return $actor;
     }
 }

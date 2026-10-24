@@ -2,72 +2,36 @@
 
 namespace App\Http\Controllers;
 
+use App\Actions\Form\CreateForm;
+use App\Actions\Form\DeleteForm;
+use App\Actions\Form\DeleteFormsInBulk;
+use App\Actions\Form\DuplicateForm;
 use App\Actions\Form\NotifyFormChange;
+use App\Actions\Form\ReviseForm;
+use App\Http\Controllers\Concerns\ResolvesActor;
+use App\Http\Requests\Form\FormBulkDeleteRequest;
+use App\Http\Requests\Form\FormDefinitionRequest;
+use App\Http\Requests\Form\FormListRequest;
 use App\Models\FieldType;
 use App\Models\Form;
-use App\Models\FormField;
-use App\Models\FormFieldOption;
 use App\Models\FormType;
+use App\Queries\Form\FormDirectory;
 use App\Support\AffectedDraftOwners;
-use App\Support\SchemeFieldGuard;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 
 class FormController extends Controller
 {
-    public function index(Request $request)
+    use ResolvesActor;
+
+    public function index(FormListRequest $request)
     {
-        $search = $request->get('search');
-        $perPage = $request->get('per_page', 10);
-        $sortBy = $request->get('sort_by', 'created_at');
-        $sortOrder = $request->get('sort_order', 'desc');
-        $formTypeFilter = $request->get('form_type');
-        $isActiveFilter = $request->get('is_active');
-
-        $query = Form::with(['formType', 'formFields']);
-
-        if ($search) {
-            $query->where(function ($q) use ($search) {
-                $q->where('title', 'ilike', '%'.$search.'%')
-                    ->orWhere('description', 'ilike', '%'.$search.'%')
-                    ->orWhereHas('formType', function ($typeQuery) use ($search) {
-                        $typeQuery->where('name', 'ilike', '%'.$search.'%');
-                    });
-            });
-        }
-
-        if ($formTypeFilter && $formTypeFilter !== 'all') {
-            $query->where('form_type_id', $formTypeFilter);
-        }
-
-        if ($isActiveFilter && $isActiveFilter !== 'all') {
-            $query->where('is_active', $isActiveFilter === 'active' ? 1 : 0);
-        }
-
-        if ($sortBy === 'form_type') {
-            $query->join('form_types', 'forms.form_type_id', '=', 'form_types.id')
-                ->select('forms.*')
-                ->orderBy('form_types.name', $sortOrder);
-        } else {
-            $query->orderBy($sortBy, $sortOrder);
-        }
-
-        $forms = $query->paginate($perPage)->withQueryString();
-
-        $formTypes = FormType::orderBy('name')->get();
+        $directory = FormDirectory::run($request->toInput());
 
         return Inertia::render('Forms/IndexPage', [
-            'forms' => $forms,
-            'formTypes' => $formTypes,
-            'filters' => [
-                'search' => $search,
-                'per_page' => $perPage,
-                'sort_by' => $sortBy,
-                'sort_order' => $sortOrder,
-                'form_type' => $formTypeFilter,
-                'is_active' => $isActiveFilter,
-            ],
+            'forms' => $directory['forms'],
+            'formTypes' => FormType::orderBy('name')->get(),
+            'filters' => $directory['filters'],
         ]);
     }
 
@@ -79,56 +43,9 @@ class FormController extends Controller
         ]);
     }
 
-    public function store(Request $request)
+    public function store(FormDefinitionRequest $request)
     {
-        $validated = $request->validate([
-            'title' => 'required|string|max:255',
-            'description' => 'nullable|string',
-            'form_type_id' => 'required|exists:form_types,id',
-            'is_active' => 'boolean',
-            'fields' => 'array',
-            'fields.*.field_type_id' => 'required|exists:field_types,id',
-            'fields.*.label' => 'required|string|max:255',
-            'fields.*.is_required' => 'boolean',
-            'fields.*.options' => 'array',
-            'fields.*.options.*.label' => 'required|string|max:255',
-        ]);
-
-        // BR-SCH-05 — trl_selector tidak berdiri sendiri; pilihannya disaring
-        // oleh skema, jadi scheme_selector harus ada di Form yang sama.
-        SchemeFieldGuard::assertTrlHasSchemeSelector(
-            array_column($validated['fields'] ?? [], 'field_type_id')
-        );
-
-        DB::transaction(function () use ($validated) {
-            $form = Form::create([
-                'title' => $validated['title'],
-                'description' => $validated['description'] ?? null,
-                'form_type_id' => $validated['form_type_id'],
-                'is_active' => $validated['is_active'] ?? true,
-            ]);
-
-            if (isset($validated['fields'])) {
-                foreach ($validated['fields'] as $index => $fieldData) {
-                    $field = FormField::create([
-                        'form_id' => $form->id,
-                        'field_type_id' => $fieldData['field_type_id'],
-                        'label' => $fieldData['label'],
-                        'is_required' => $fieldData['is_required'] ?? false,
-                        'order' => $index + 1,
-                    ]);
-
-                    if (isset($fieldData['options'])) {
-                        foreach ($fieldData['options'] as $optionData) {
-                            FormFieldOption::create([
-                                'form_field_id' => $field->id,
-                                'label' => $optionData['label'],
-                            ]);
-                        }
-                    }
-                }
-            }
-        });
+        CreateForm::run($request->toInput(), $this->actor($request));
 
         return redirect()->route('admin.forms.index')
             ->with('success', 'Formulir berhasil dibuat!');
@@ -151,106 +68,17 @@ class FormController extends Controller
             'form' => $form,
             'formTypes' => FormType::orderBy('name')->get(),
             'fieldTypes' => FieldType::orderBy('name')->get(),
-            // BR-FE-13 — Admin diberi tahu berapa draft berjalan yang terdampak
-            // **sebelum** ia menyimpan. Memberitahukannya sesudah tidak menolong
-            // siapa pun: keputusan mengirim notifikasi harus diambil sambil
-            // melihat angkanya.
+            // BR-FE-13 — angkanya terlihat **sebelum** Admin menyimpan, saat keputusan
+            // mengirim notifikasi diambil. Sesudah menyimpan tidak menolong siapa pun.
             'affectedDrafts' => AffectedDraftOwners::countForForm($form),
         ]);
     }
 
-    public function update(Request $request, Form $form)
+    public function update(FormDefinitionRequest $request, Form $form)
     {
-        $validated = $request->validate([
-            'title' => 'required|string|max:255',
-            'description' => 'nullable|string',
-            'form_type_id' => 'required|exists:form_types,id',
-            'is_active' => 'boolean',
-            'fields' => 'array',
-            'fields.*.id' => 'nullable|exists:form_fields,id',
-            'fields.*.field_type_id' => 'required|exists:field_types,id',
-            'fields.*.label' => 'required|string|max:255',
-            'fields.*.is_required' => 'boolean',
-            'fields.*.options' => 'array',
-            'fields.*.options.*.id' => 'nullable|exists:form_field_options,id',
-            'fields.*.options.*.label' => 'required|string|max:255',
-        ]);
+        ReviseForm::run($form, $request->toInput(), $this->actor($request));
 
-        // BR-SCH-05 — berlaku sama saat Form disunting, bukan hanya saat dibuat.
-        SchemeFieldGuard::assertTrlHasSchemeSelector(
-            array_column($validated['fields'] ?? [], 'field_type_id')
-        );
-
-        DB::transaction(function () use ($validated, $form) {
-            $form->update([
-                'title' => $validated['title'],
-                'description' => $validated['description'] ?? null,
-                'form_type_id' => $validated['form_type_id'],
-                'is_active' => $validated['is_active'] ?? true,
-            ]);
-
-            // Delete existing fields that are not in the request
-            $existingFieldIds = collect($validated['fields'] ?? [])
-                ->pluck('id')
-                ->filter()
-                ->toArray();
-
-            $form->formFields()
-                ->whereNotIn('id', $existingFieldIds)
-                ->delete();
-
-            // Update or create fields
-            if (isset($validated['fields'])) {
-                foreach ($validated['fields'] as $index => $fieldData) {
-                    $field = isset($fieldData['id'])
-                        ? FormField::find($fieldData['id'])
-                        : new FormField;
-
-                    $field->form_id = $form->id;
-                    $field->field_type_id = $fieldData['field_type_id'];
-                    $field->label = $fieldData['label'];
-                    $field->is_required = $fieldData['is_required'] ?? false;
-                    $field->order = $index + 1;
-                    $field->save();
-
-                    // BR-FE-24 — opsi yang hilang dari payload di-soft-delete
-                    // satu per satu, bukan dihapus massal lewat query builder:
-                    // yang massal tidak memicu SoftDeletes maupun event model.
-                    //
-                    // Payload tanpa kunci `options` berarti "tidak ada
-                    // perubahan opsi", bukan "hapus semuanya". Versi lama
-                    // menghapus seluruh pilihan sebuah field hanya karena satu
-                    // permintaan kekurangan satu kunci.
-                    if (isset($fieldData['options'])) {
-                        $existingOptionIds = collect($fieldData['options'])
-                            ->pluck('id')
-                            ->filter()
-                            ->toArray();
-
-                        $field->formFieldOptions()
-                            ->whereNotIn('id', $existingOptionIds)
-                            ->get()
-                            ->each(fn (FormFieldOption $option) => $option->delete());
-
-                        foreach ($fieldData['options'] as $optionData) {
-                            if (isset($optionData['id'])) {
-                                $option = FormFieldOption::findOrFail($optionData['id']);
-                            } else {
-                                $option = new FormFieldOption;
-                            }
-
-                            /** @var FormFieldOption $option */
-                            $option->form_field_id = $field->id;
-                            $option->label = $optionData['label'];
-                            $option->save();
-                        }
-                    }
-                }
-            }
-        });
-
-        // BR-FE-13 — Admin diberi tahu berapa draft berjalan yang terdampak,
-        // dan pemberitahuan ke penelitinya ditawarkan, bukan dikirim diam-diam.
+        // BR-FE-13 — pemberitahuan ke peneliti ditawarkan, bukan dikirim diam-diam.
         // Tanpa draft berjalan, tidak ada peringatan sama sekali.
         $terdampak = NotifyFormChange::run($form, $request->boolean('notify_affected'));
 
@@ -259,52 +87,28 @@ class FormController extends Controller
             ->with('affectedDrafts', $terdampak);
     }
 
-    public function destroy(Form $form)
+    public function destroy(Request $request, Form $form)
     {
-        $form->delete();
+        DeleteForm::run($form, $this->actor($request));
 
         return redirect()->route('admin.forms.index')
             ->with('success', 'Formulir berhasil dihapus!');
     }
 
-    public function duplicate(Form $form)
+    public function duplicate(Request $request, Form $form)
     {
-        DB::transaction(function () use ($form) {
-            $newForm = $form->replicate();
-            $newForm->title = $form->title.' (Copy)';
-            $newForm->save();
-
-            foreach ($form->formFields as $field) {
-                $newField = $field->replicate();
-                $newField->form_id = $newForm->id;
-                $newField->save();
-
-                foreach ($field->formFieldOptions as $option) {
-                    $newOption = $option->replicate();
-                    $newOption->form_field_id = $newField->id;
-                    $newOption->save();
-                }
-            }
-        });
+        DuplicateForm::run($form, $this->actor($request));
 
         return redirect()->route('admin.forms.index')
             ->with('success', 'Formulir berhasil diduplikasi!');
     }
 
-    public function bulkDelete(Request $request)
+    public function bulkDelete(FormBulkDeleteRequest $request)
     {
-        $validated = $request->validate([
-            'ids' => 'required|array|min:1',
-            'ids.*' => 'exists:forms,id',
-        ]);
-
-        // BR-FE-19 — satu per satu, bukan ->delete() massal. Penghapusan lewat
-        // query builder tidak memicu event model, jadi penjagaan yang menolak
-        // Form yang masih punya pengajuan tidak akan pernah dijalankan — dan
-        // form_submissions.form_id dulunya ber-cascade.
-        Form::whereIn('id', $validated['ids'])->get()->each(fn (Form $form) => $form->delete());
+        // BR-FE-19 — semua atau tidak; alasannya menyebut formulir yang masih dipakai.
+        $deleted = DeleteFormsInBulk::run($request->ids(), $this->actor($request));
 
         return redirect()->route('admin.forms.index')
-            ->with('success', 'Formulir terpilih berhasil dihapus!');
+            ->with('success', "{$deleted} formulir berhasil dihapus!");
     }
 }

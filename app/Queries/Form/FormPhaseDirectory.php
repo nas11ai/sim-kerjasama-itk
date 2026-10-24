@@ -6,6 +6,7 @@ use App\Actions\Concerns\ChangesNoState;
 use App\Data\Request\FormPhaseListInput;
 use App\Models\FormPhase;
 use App\Models\FormPhaseDetail;
+use App\Queries\Concerns\NormalisesListFilters;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Lorisleiva\Actions\Concerns\AsAction;
@@ -21,12 +22,9 @@ use Lorisleiva\Actions\Concerns\AsAction;
 class FormPhaseDirectory implements ChangesNoState
 {
     use AsAction;
+    use NormalisesListFilters;
 
     private const SORTABLE = ['created_at', 'title', 'is_active'];
-
-    private const DEFAULT_PER_PAGE = 10;
-
-    private const MAX_PER_PAGE = 100;
 
     /** @return array{phases: LengthAwarePaginator<int, FormPhase>, filters: Filters} */
     public function handle(FormPhaseListInput $input): array
@@ -57,10 +55,8 @@ class FormPhaseDirectory implements ChangesNoState
             'search' => $input->search === '' ? null : $input->search,
             'is_active' => $input->active === '' ? null : $input->active,
             'sort_by' => in_array($input->sortBy, self::SORTABLE, true) ? $input->sortBy : 'created_at',
-            'sort_order' => $input->sortOrder === 'asc' ? 'asc' : 'desc',
-            'per_page' => $input->perPage < 1
-                ? self::DEFAULT_PER_PAGE
-                : min($input->perPage, self::MAX_PER_PAGE),
+            'sort_order' => $this->sortOrder($input->sortOrder),
+            'per_page' => $this->perPage($input->perPage),
         ];
     }
 
@@ -83,10 +79,7 @@ class FormPhaseDirectory implements ChangesNoState
                 ->orWhereLike('description', '%'.$filters['search'].'%'));
         }
 
-        // Kolom is_active bertipe boolean di PostgreSQL; bandingkan dengan boolean.
-        if ($filters['is_active'] === 'active' || $filters['is_active'] === 'inactive') {
-            $query->where('is_active', $filters['is_active'] === 'active');
-        }
+        $this->whereActiveState($query, $filters['is_active']);
 
         return $query;
     }
