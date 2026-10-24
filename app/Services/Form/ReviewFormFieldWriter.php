@@ -102,6 +102,7 @@ final class ReviewFormFieldWriter
     {
         $existing = $field->reviewFormFieldOptions()->get()->keyBy('id');
 
+        // Cermin BR-FE-24 — satu per satu lewat model, bukan hapus massal yang melewati SoftDeletes.
         $existing->except(array_filter(array_column($options, 'id')))
             ->each(fn (ReviewFormFieldOption $option) => $option->delete());
 

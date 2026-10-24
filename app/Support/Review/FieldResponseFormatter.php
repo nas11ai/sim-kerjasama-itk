@@ -76,7 +76,9 @@ final class FieldResponseFormatter
     {
         // Pembungkus closure-nya wajib: tanpa itu `OR` menyatu dengan penyaringan
         // per field, dan opsi milik field lain ikut terjaring.
+        // withTrashed — opsi yang sudah dibuang tetap memberi label pada jawaban lamanya.
         $option = $field->reviewFormFieldOptions()
+            ->withTrashed()
             ->where(function (Builder $query) use ($value): void {
                 $query->where('value', $value)->orWhere('label', $value);
             })

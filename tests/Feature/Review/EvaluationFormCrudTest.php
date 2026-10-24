@@ -140,6 +140,20 @@ it('refuses to change the type of an answered field', function () {
     expect($field->fresh()->field_type_id)->toBe($field->field_type_id);
 });
 
+it('soft-deletes a dropped option: no longer offered, old answers still read its label', function () {
+    $answer = evaluationFieldResponse('select', 'layak');
+    $field = $answer->reviewFormField;
+    $option = ReviewFormFieldOption::create(['review_form_field_id' => $field->id, 'label' => 'Layak', 'value' => 'layak', 'order' => 1]);
+
+    $this->actingAs($this->admin)->patch(route('admin.review-evaluation-forms.update', $field->reviewEvaluationForm), evaluationPayload($field->reviewEvaluationForm, [
+        ['id' => $field->id, 'field_type_id' => $field->field_type_id, 'label' => 'Uji', 'options' => []],
+    ]))->assertSessionHasNoErrors();
+
+    expect($field->reviewFormFieldOptions()->count())->toBe(0)
+        ->and(ReviewFormFieldOption::withTrashed()->find($option->id))->not->toBeNull()
+        ->and($answer->fresh()->formatted_value)->toBe('Layak');
+});
+
 it('revises fields and drops an unanswered one, audited', function () {
     $form = ($this->evaluation)();
     $kept = ($this->field)($form, 'Tetap');
