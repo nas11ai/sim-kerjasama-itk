@@ -34,6 +34,7 @@ class Organization extends Model
         ];
     }
 
+    /** @return BelongsTo<Organization, $this> */
     public function parent(): BelongsTo
     {
         return $this->belongsTo(Organization::class, 'parent_id');
