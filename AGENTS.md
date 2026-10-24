@@ -123,7 +123,7 @@ saat mengusulkan perubahan bentuk kode.
 | Tipe untuk Inertia props | `resources/js/types/`   |                                  |
 
 Direktori di `app/` **selain** `Http`, `Models`, `Services`, `Providers`,
-`Console`, `Mail`, `Exports` otomatis kena tier strict. Level-nya ditetapkan
+`Console`, `Exports` otomatis kena tier strict. Level-nya ditetapkan
 `phpstan-strict.neon`, bukan berkas ini — supaya tidak ada dua angka yang
 berbeda saat level dinaikkan. Jangan menambah pengecualian baru di sana:
 daftarnya hanya boleh menyusut.

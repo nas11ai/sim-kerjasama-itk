@@ -6,10 +6,12 @@ use App\Models\FormSubmission;
 use App\Models\ReviewSummary;
 use App\Models\ReviewSummaryAttachment;
 use App\Models\SubmissionReviewer;
-use App\Services\EmailNotificationService;
+use App\Notifications\ReviewThreadOpenedNotification;
+use App\Queries\Review\DiscussionParticipants;
 use App\States\Submission\Submitted;
 use App\States\Submission\UnderReview;
 use App\Support\Audit\AuditTrail;
+use App\Support\Notification\Deliver;
 use App\Support\ReviewSummaryGuard;
 use Illuminate\Support\Facades\DB;
 use Lorisleiva\Actions\Concerns\AsAction;
@@ -22,8 +24,6 @@ use Lorisleiva\Actions\Concerns\AsAction;
 class OpenReviewThread
 {
     use AsAction;
-
-    public function __construct(private readonly EmailNotificationService $email) {}
 
     /** @param  list<string>  $attachmentPaths */
     public function handle(
@@ -52,13 +52,19 @@ class OpenReviewThread
             }
 
             $this->moveToReview($submission);
-            $this->email->notifyReviewThreadCreated($summary);
 
             return $summary;
         });
 
         // BR-RPT-09 — satu Action, satu entri audit.
         AuditTrail::record('Ulir review dibuka', $summary);
+
+        // BR-NOT-03 — dikirim sesudah ulirnya tersimpan; pembukanya tak perlu diberi tahu.
+        Deliver::to(
+            DiscussionParticipants::run($submission, $assignment->reviewer->user_id),
+            new ReviewThreadOpenedNotification($summary),
+            ['review_summary_id' => $summary->id],
+        );
 
         return $summary;
     }

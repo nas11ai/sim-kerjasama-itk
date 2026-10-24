@@ -82,9 +82,8 @@ class NotifyActiveSubmissionPeriods extends Command
     /** @return Collection<int, User> */
     private function recipients(): Collection
     {
-        // Recipients: semua user non-admin — perilaku yang sama
-        // seperti EmailNotificationService::notifySubmissionPeriodActive()
-        // sebelumnya.
+        // Recipients: semua user non-admin — perilaku yang sama dengan
+        // service email lama yang digantikan command ini.
         return User::whereDoesntHave('roles', function ($query) {
             $query->whereIn('name', ['Super Admin', 'Admin']);
         })->get();

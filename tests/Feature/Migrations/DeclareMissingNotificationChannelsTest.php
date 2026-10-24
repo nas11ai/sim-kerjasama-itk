@@ -44,3 +44,13 @@ it('tidak menimpa deklarasi yang sudah disunting Admin', function () {
     expect($edited->channels)->toBe([NotificationChannels::EMAIL])
         ->and($edited->updated_by)->toBe($admin->id);
 });
+
+it('mendeklarasikan kanal dua event ulir diskusi di database yang sudah hidup', function () {
+    NotificationChannelSetting::query()->whereIn('event_type', ['ReviewThreadOpened', 'ReviewCommentAdded'])->delete();
+
+    $migration = require database_path('migrations/2026_10_24_130000_declare_review_discussion_notification_channels.php');
+    $migration->up();
+
+    expect(NotificationChannels::for('ReviewThreadOpened'))->toBe(NotificationEventCatalog::defaults()['ReviewThreadOpened'])
+        ->and(NotificationChannels::for('ReviewCommentAdded'))->toBe(NotificationEventCatalog::defaults()['ReviewCommentAdded']);
+});

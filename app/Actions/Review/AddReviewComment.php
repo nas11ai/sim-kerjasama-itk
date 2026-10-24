@@ -7,11 +7,12 @@ use App\Models\Reviewer;
 use App\Models\ReviewSummary;
 use App\Models\SubmissionReviewer;
 use App\Models\User;
+use App\Notifications\ReviewCommentAddedNotification;
 use App\Queries\Review\ActiveReviewerAssignment;
-use App\Services\EmailNotificationService;
+use App\Queries\Review\DiscussionParticipants;
 use App\Support\Audit\AuditTrail;
+use App\Support\Notification\Deliver;
 use Illuminate\Auth\Access\AuthorizationException;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use Lorisleiva\Actions\Concerns\AsAction;
 
@@ -24,8 +25,6 @@ class AddReviewComment
 {
     use AsAction;
 
-    public function __construct(private readonly EmailNotificationService $email) {}
-
     /**
      * @throws AuthorizationException
      * @throws ValidationException
@@ -35,22 +34,23 @@ class AddReviewComment
         $reviewerId = $this->authorize($summary, $author);
         $this->guardParent($summary, $parentId);
 
-        $comment = DB::transaction(function () use ($summary, $author, $text, $parentId, $reviewerId): ReviewComment {
-            $comment = ReviewComment::create([
-                'review_summary_id' => $summary->id,
-                'parent_comment_id' => $parentId,
-                'user_id' => $reviewerId === null ? $author->id : null,
-                'reviewer_id' => $reviewerId,
-                'comment_text' => $text,
-            ]);
-
-            $this->email->notifyReviewComment($comment);
-
-            return $comment;
-        });
+        $comment = ReviewComment::create([
+            'review_summary_id' => $summary->id,
+            'parent_comment_id' => $parentId,
+            'user_id' => $reviewerId === null ? $author->id : null,
+            'reviewer_id' => $reviewerId,
+            'comment_text' => $text,
+        ]);
 
         // BR-RPT-09 — satu Action, satu entri audit.
         AuditTrail::record('Komentar review ditambahkan', $comment, $author);
+
+        // BR-NOT-03 — dikirim sesudah komentarnya tersimpan; penulisnya tak perlu diberi tahu.
+        Deliver::to(
+            DiscussionParticipants::run($summary->formSubmission, $author->id),
+            new ReviewCommentAddedNotification($comment, $summary->form_submission_id),
+            ['review_comment_id' => $comment->id],
+        );
 
         return $comment;
     }

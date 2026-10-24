@@ -29,8 +29,6 @@ parameters:
             - app/Console
             - app/Exports
             - app/Http
-            - app/Mail
             - app/Models
             - app/Providers
-            - app/Services/EmailNotificationService.php
             - app/Services/FormAccessService.php

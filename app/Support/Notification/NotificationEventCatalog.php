@@ -30,6 +30,8 @@ final class NotificationEventCatalog
         'PhaseOverrideGranted' => [NotificationChannels::IN_APP, NotificationChannels::EMAIL],
         'ProposalSubmitted' => [NotificationChannels::IN_APP, NotificationChannels::EMAIL],
         'ReviewerAppointed' => [NotificationChannels::IN_APP, NotificationChannels::EMAIL],
+        'ReviewCommentAdded' => [NotificationChannels::IN_APP, NotificationChannels::EMAIL],
+        'ReviewThreadOpened' => [NotificationChannels::IN_APP, NotificationChannels::EMAIL],
         'ReviewerAssigned' => [NotificationChannels::IN_APP, NotificationChannels::EMAIL],
         'RevisionResolved' => [NotificationChannels::IN_APP],
         'SubmissionDeadlineExtended' => [NotificationChannels::IN_APP, NotificationChannels::EMAIL],

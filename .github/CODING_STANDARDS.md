@@ -433,5 +433,4 @@ mendiskusikannya.
 | `Faculty` & `StudyProgram` sudah digantikan `Organization` tree tapi masih ada | Dihapus di M3 |
 | Enum `SubmissionStatus` frontend (5 nilai) tidak cocok dengan state backend (8 nilai) | Diselaraskan saat kontrak Inertia props disusun |
 | `declare(strict_types=1)` belum dipakai                                        | Menyentuh 546 file dan mengubah perilaku runtime — butuh PR terpisah yang disengaja |
-| `AddReviewComment` dan `OpenReviewThread` masih memanggil `EmailNotificationService`/`DynamicEmailNotification` (`@deprecated`), bukan pola Laravel Notification Task 10 | Dipindahkan saat M1/M2 menyentuh alur ulir review (ADR 0008) |
 | `AppServiceProvider`'s `Gate::before` memberi Super Admin keempat ability `FormSubmissionPolicy` tanpa syarat, tidak peduli ownership atau state — bertentangan dengan `SubmitFormSubmission::run()` yang menegakkan BR-SM-04 sendiri (lihat `SuperAdminSubmitDivergenceTest`, yang mendokumentasikan divergensi ini, bukan menyetujuinya) | M1 harus membereskan ini sebelum UI mengonsumsi objek `can` — kalau tidak, tombol yang tampil untuk Super Admin bisa memicu `AuthorizationException` saat diklik |
