@@ -329,7 +329,7 @@ perkiraan saat dokumen ditulis. Verifikasi di awal irisan.
 
 | # | Status | Irisan | Frame | Halaman baru | BE | Legacy yang dihapus (perkiraan) | Bergantung |
 | --- | --- | --- | --- | --- | --- | --- | --- |
-| F0 | ☐ | Shell & fondasi | (shell.yaml) | `AppLayout`, `AuthLayout`, `AppSidebar`, `AppTopbar`, `PageHeader`, `StatusBadge`, peta status, `auth.user.permissions` | ◐ shared props | — (layout lama tetap sampai F99) | — |
+| F0 | ☑ | Shell & fondasi | (shell.yaml) | `AppLayout`, `AuthLayout`, `AppSidebar`, `AppTopbar`, `PageHeader`, `StatusBadge`, peta status, `auth.user.permissions` | ◐ shared props | — (layout lama tetap sampai F99) | — |
 | S1 | ☐ | Auth | SHARED-01-01..05, 01-08, 01-09 | `Auth/*` | ✓ | `Pages/Auth/*` | F0 |
 | S2a | ☐ | Pengajuan peneliti: daftar & detail | RESEARCHER-02-01, 02-03, 02-12 | `Submission/IndexPage`, `Submission/ShowPage` + section | ◐ | `User/Submissions/*` | F0 |
 | S2b | ☐ | Wizard pengajuan | RESEARCHER-02-02, 02-06..02-10 | `Submission/WizardPage` + `Components/Submission/Wizard*` | ◐ (ADR 0012) | `User/FormPhase`, `ResearchMemberManager`, `TargetOutputManager` | S2a |
