@@ -356,6 +356,8 @@ perkiraan saat dokumen ditulis. Verifikasi di awal irisan.
 | K2 | Pencarian global topbar ada di wireframe dan `topbar.md`, tapi endpoint-nya belum ada dan bertentangan dengan "tanpa REST API". | Pemilik, 2026-10-25: ditunda; irisan tersendiri setelah F99, dengan Query ber-scope BR-SM-07. |
 | K3 | Layar legacy yang tidak ada di wireframe maupun DDD/UX: Announcements (admin & user), layar mendefinisikan Roles/Permissions, empat halaman Statistics, `WelcomePage`. Memberi role ke user tetap ada di OPERATOR-08-03. | Pemilik, 2026-10-25: dibuang di F99; statistik digabung ke `Reporting/StatsPage` di R1. |
 | K4 | Satu dashboard atau empat untuk user dua peran. | Penulis dokumen: satu halaman, section per permission (§4.4). |
+| W1 | `sidebar.md` menampilkan Daftar Monev dan Luaran Penelitian hanya bila ada "submission APPROVED milik user"; DDD lebih luas: BR-RO-07 membolehkan `co_investigator` aktif mengelola luaran, BR-RO-06 menyimpan luaran sebagai data historis setelah WITHDRAWN, BR-MON-08 membekukan (bukan menghapus) monev saat WITHDRAWN. `HasApprovedSubmission` di F0 mengikuti `sidebar.md` (`submitted_by` + Approved saja); tanpa efek di F0 karena kedua item masih `routeName: null`. | Ditunda ke M1/O1: kemungkinan Approved ∪ Withdrawn dan keanggotaan `co_investigator` aktif; diputuskan di rencana irisan itu (DDD menang atas UX). |
+| W2 | `sidebar.md` menampilkan Daftar Pengajuan untuk `submissions.view-own` ATAU `submissions.view-all`; F0 hanya memakai `view-own` karena operator sudah mendapat Semua Pengajuan. | Penulis rencana F0: hanya view-own; operator memakai Semua Pengajuan. |
 
 Selisih wireframe↔DDD yang ditemukan saat mengerjakan irisan dicatat di sini
 dengan kode `W1`, `W2`, …, beserta keputusan yang diambil.
