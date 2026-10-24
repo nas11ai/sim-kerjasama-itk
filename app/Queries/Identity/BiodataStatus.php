@@ -49,8 +49,10 @@ class BiodataStatus implements ChangesNoState
             ];
         }
 
+        // Submission terakhir: biodata yang ditolak tetap ada sebagai riwayat di bawahnya.
         $submission = FormSubmission::where('form_id', $form->id)
             ->where('submitted_by', $user->id)
+            ->latest('id')
             ->first();
 
         return $this->forSubmission($form, $submission);
