@@ -257,23 +257,6 @@ it('menyembunyikan pengajuan dari daftar reviewer yang sudah diganti', function 
             ->where('submissions.data.0.id', $other->id));
 });
 
-it('menyembunyikan pengajuan dari daftar ulir reviewer yang sudah diganti', function () {
-    [$user, $reviewer, $submission] = replacedReviewerFixture();
-
-    // Ulirnya sendiri dari sebelum diganti — daftar ini menyaring lewat ulir.
-    ReviewSummary::create([
-        'form_submission_id' => $submission->id,
-        'reviewer_id' => $reviewer->id,
-        'status' => 'open',
-        'summary_notes' => 'Catatan lama.',
-    ]);
-
-    $this->actingAs($user)
-        ->get(route('submissions.index'))
-        ->assertOk()
-        ->assertInertia(fn (Assert $page) => $page->has('submissions.data', 0));
-});
-
 it('menyembunyikan form evaluasi dari daftar tugas reviewer yang sudah diganti', function () {
     [$user, $reviewer, , $assignment] = replacedReviewerFixture();
     replacedReviewerFormAssignment($assignment);

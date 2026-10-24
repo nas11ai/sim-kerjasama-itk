@@ -30,7 +30,6 @@ const Ziggy = {
             uri: 'review-attachments\/download',
             methods: ['GET', 'HEAD'],
         },
-        'submissions.index': { uri: 'submissions', methods: ['GET', 'HEAD'] },
         'reviewer.evaluation-form.start': {
             uri: 'reviewer\/evaluation-forms\/start',
             methods: ['POST'],
@@ -93,10 +92,6 @@ const Ziggy = {
             methods: ['POST'],
         },
         'user.form-submission.submit': { uri: 'user\/form-submission\/submit', methods: ['POST'] },
-        'user.form-submission.data': {
-            uri: 'user\/form-submission\/data',
-            methods: ['GET', 'HEAD'],
-        },
         'user.submissions.index': { uri: 'user\/submissions', methods: ['GET', 'HEAD'] },
         'user.submissions.period': {
             uri: 'user\/submissions\/period\/{period}',

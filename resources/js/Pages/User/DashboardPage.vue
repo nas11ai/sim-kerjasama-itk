@@ -16,7 +16,6 @@ import {
     MessageSquare,
     Star,
     Users,
-    XCircle,
     ArrowUpRight,
 } from 'lucide-vue-next'
 
@@ -56,7 +55,6 @@ interface ReviewStats {
     total_assigned: number
     pending_reviews: number
     completed_reviews: number
-    rejected_reviews: number
 }
 
 interface Reviewer {
@@ -179,7 +177,7 @@ const isPhaseCompleted = (phase: FormPhase) => {
 
         <div class="space-y-6">
             <!-- Review Stats (jika user adalah reviewer) -->
-            <div v-if="isReviewer && reviewStats" class="grid gap-4 md:grid-cols-4">
+            <div v-if="isReviewer && reviewStats" class="grid gap-4 md:grid-cols-3">
                 <Card>
                     <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle class="text-sm font-medium"> Total Penugasan </CardTitle>
@@ -218,19 +216,6 @@ const isPhaseCompleted = (phase: FormPhase) => {
                             {{ reviewStats.completed_reviews }}
                         </div>
                         <p class="text-xs text-muted-foreground">Review berhasil diselesaikan</p>
-                    </CardContent>
-                </Card>
-
-                <Card>
-                    <CardHeader class="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle class="text-sm font-medium"> Ditolak </CardTitle>
-                        <XCircle class="h-4 w-4 text-muted-foreground" />
-                    </CardHeader>
-                    <CardContent>
-                        <div class="text-2xl font-bold text-red-600">
-                            {{ reviewStats.rejected_reviews }}
-                        </div>
-                        <p class="text-xs text-muted-foreground">Review ditolak</p>
                     </CardContent>
                 </Card>
             </div>

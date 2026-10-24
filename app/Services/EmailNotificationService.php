@@ -18,9 +18,9 @@ use Illuminate\Support\Facades\Mail;
  * Task 10 — lihat `App\Notifications\ProposalSubmittedNotification` sebagai
  * contoh yang harus diikuti. Jangan tambah pemanggil baru ke class ini.
  *
- * Class ini masih dipakai oleh `UserFormController` dan `ReviewController`
+ * Class ini masih dipakai oleh `AddReviewComment` dan `OpenReviewThread`
  * (lihat entri "Utang yang Diketahui" di `.github/CODING_STANDARDS.md`) dan
- * baru dipindahkan saat M1/M2 menyentuh kedua controller itu — lihat ADR 0008
+ * baru dipindahkan saat M1/M2 menyentuh alur ulir review — lihat ADR 0008
  * (strangler refactor: refactor kode yang disentuh, bukan yang kebetulan
  * terlihat).
  */

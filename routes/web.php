@@ -80,9 +80,6 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/review-attachments/download', ReviewAttachmentDownloadController::class)
         ->name('review-attachments.download');
 
-    Route::get('/submissions', [UserFormController::class, 'reviewerSubmissions'])
-        ->name('submissions.index');
-
     // NEW: Evaluation form routes for reviewers
     Route::prefix('reviewer/evaluation-forms')->name('reviewer.evaluation-form.')->group(function () {
         // NEW: Start or continue evaluation form (auto-create assignment)
@@ -146,9 +143,6 @@ Route::middleware(['auth', 'check_biodata'])->prefix('user')->name('user.')->gro
 
     Route::post('/form-submission/submit', [UserFormController::class, 'submitForm'])
         ->name('form-submission.submit');
-
-    Route::get('/form-submission/data', [UserFormController::class, 'getFormSubmissionData'])
-        ->name('form-submission.data');
 
     // ADR 0012 langkah 1 — satu-satunya jalur yang boleh melahirkan baris pengajuan.
     Route::post('/submissions', [UserFormController::class, 'startSubmission'])

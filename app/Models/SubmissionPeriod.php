@@ -20,7 +20,6 @@ use Illuminate\Support\Facades\Log;
  * @property bool $is_force_closed
  * @property Carbon|string|null $start_date
  * @property Carbon|string|null $end_date
- * @property list<array{id: int, title: string, description: string|null, user_can_access: bool, user_progress: array{total_forms: int, completed_forms: int, pending_review: int, can_proceed: bool}}> $form_phases
  * @property int|null $days_remaining
  * @property int $user_submissions_count
  * @property int $user_draft_count

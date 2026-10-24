@@ -3,11 +3,14 @@
 namespace App\Http\Requests\Identity;
 
 use App\Data\Request\BiodataInput;
+use App\Http\Requests\Concerns\ReadsFieldAnswers;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Http\UploadedFile;
 
 class BiodataRequest extends FormRequest
 {
+    use ReadsFieldAnswers;
+
     public function authorize(): bool
     {
         return true;
@@ -35,25 +38,10 @@ class BiodataRequest extends FormRequest
 
     public function toInput(): BiodataInput
     {
-        $responses = [];
-
-        foreach (array_keys($this->array('responses')) as $index) {
-            $fieldId = $this->integer("responses.{$index}.form_field_id");
-            $value = $this->input("responses.{$index}.value");
-
-            // Kosong (null, '', false, []) jadi null; larik disimpan sebagai JSON.
-            $responses[$fieldId] = match (true) {
-                $value === null, $value === '', $value === false, $value === [] => null,
-                is_array($value) => json_encode($value) ?: null,
-                is_scalar($value) => (string) $value,
-                default => null,
-            };
-        }
-
         return new BiodataInput(
             formId: $this->integer('form_id'),
             isSubmitted: $this->boolean('is_submitted'),
-            responses: $responses,
+            responses: $this->fieldAnswers(),
             uploads: $this->uploads(),
         );
     }

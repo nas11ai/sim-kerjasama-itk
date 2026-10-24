@@ -17,7 +17,7 @@ use Lorisleiva\Actions\Concerns\AsAction;
  * Periode yang punya fase terbuka bagi peneliti, beserta jumlah pengajuannya di tiap periode.
  * Hitungan memakai FK periode pengajuan; fase yang sama boleh dipakai beberapa periode.
  *
- * @phpstan-type StudyProgram array{id: int, name: string, faculty: array{name: string}}
+ * @phpstan-import-type StudyProgram from ResearcherStudyProgram
  *
  * @method static array{submissionPeriods: Collection<int, SubmissionPeriod>, userRole: string|null, studyProgram: StudyProgram|null} run(User $user)
  */
@@ -46,7 +46,7 @@ class ResearcherPeriodOverview implements ChangesNoState
         return [
             'submissionPeriods' => $periods,
             'userRole' => $this->firstRole($user),
-            'studyProgram' => $this->studyProgram($user),
+            'studyProgram' => ResearcherStudyProgram::make()->handle($user),
         ];
     }
 
@@ -71,21 +71,5 @@ class ResearcherPeriodOverview implements ChangesNoState
         $role = $user->getRoleNames()->first();
 
         return is_string($role) ? $role : null;
-    }
-
-    /** @return StudyProgram|null */
-    private function studyProgram(User $user): ?array
-    {
-        $organization = $user->organization;
-
-        if ($organization === null) {
-            return null;
-        }
-
-        return [
-            'id' => $organization->id,
-            'name' => $organization->name,
-            'faculty' => ['name' => $organization->parent->name ?? ''],
-        ];
     }
 }

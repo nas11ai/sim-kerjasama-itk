@@ -6,9 +6,9 @@ use App\Actions\Form\AssertFormAccessible;
 use App\Data\Request\BiodataInput;
 use App\Models\Form;
 use App\Models\FormField;
-use App\Models\FormFieldResponse;
 use App\Models\FormSubmission;
 use App\Models\User;
+use App\Services\Submission\FieldAnswerWriter;
 use App\States\Submission\NeedsRevision;
 use App\States\Submission\Rejected;
 use App\States\Submission\Resubmitted;
@@ -45,9 +45,7 @@ class SaveBiodata
             $this->guardRequiredFields($form, $input);
         }
 
-        $values = $this->valuesWithUploads($input);
-
-        return DB::transaction(function () use ($user, $form, $input, $values): FormSubmission {
+        return DB::transaction(function () use ($user, $form, $input): FormSubmission {
             $submission = $this->currentOrFresh($form, $user);
             $submission->fill([
                 'is_submitted' => $input->isSubmitted,
@@ -58,7 +56,7 @@ class SaveBiodata
                 $this->markSubmitted($submission);
             }
 
-            $this->replaceResponses($submission, $values);
+            FieldAnswerWriter::replace($submission, $input->responses, $input->uploads, 'biodata-uploads');
 
             AuditTrail::record($input->isSubmitted ? 'Biodata dikirim' : 'Biodata disimpan', $submission, $user);
 
@@ -130,35 +128,5 @@ class SaveBiodata
 
         return isset($input->uploads[$field->id])
             || ($value !== null && $value !== '0' && filter_var($value, FILTER_VALIDATE_URL) === false);
-    }
-
-    /** @return array<int, ?string> */
-    private function valuesWithUploads(BiodataInput $input): array
-    {
-        $values = $input->responses;
-
-        foreach ($input->uploads as $fieldId => $file) {
-            $values[$fieldId] = $file->store('biodata-uploads', 'public') ?: null;
-        }
-
-        return $values;
-    }
-
-    /** @param  array<int, ?string>  $values */
-    private function replaceResponses(FormSubmission $submission, array $values): void
-    {
-        $submission->formFieldResponses()->delete();
-
-        foreach ($values as $fieldId => $value) {
-            if ($value === null) {
-                continue;
-            }
-
-            FormFieldResponse::create([
-                'form_submission_id' => $submission->id,
-                'form_field_id' => $fieldId,
-                'value' => $value,
-            ]);
-        }
     }
 }
