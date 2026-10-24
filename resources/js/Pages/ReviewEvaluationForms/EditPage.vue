@@ -3,6 +3,7 @@
 import { route } from 'ziggy-js'
 import { computed, onMounted } from 'vue'
 import { Head, useForm } from '@inertiajs/vue3'
+import { useToast } from '@/Components/ui/toast/use-toast'
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
 import { Button } from '@/Components/ui/button'
 import { Input } from '@/Components/ui/input'
@@ -106,6 +107,7 @@ interface Props {
 }
 
 const props = defineProps<Props>()
+const { toast } = useToast()
 
 // Form
 const form = useForm<ReviewEvaluationFormData>({
@@ -185,7 +187,16 @@ const onFieldTypeChange = (fieldIndex: number) => {
 }
 
 const submit = () => {
-    form.patch(route('admin.review-evaluation-forms.update', props.evaluationForm.id))
+    form.patch(route('admin.review-evaluation-forms.update', props.evaluationForm.id), {
+        // Galat field (id bukan milik form ini, field yang sudah dijawab) tak punya tempat di layar.
+        onError: (errors) => {
+            const fieldError = Object.entries(errors).find(([key]) => key.startsWith('fields'))
+
+            if (fieldError) {
+                toast({ title: 'Error', description: fieldError[1], variant: 'destructive' })
+            }
+        },
+    })
 }
 
 // Computed

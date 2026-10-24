@@ -3,6 +3,7 @@
 import { route } from 'ziggy-js'
 import { computed, ref } from 'vue'
 import { Head, useForm, router } from '@inertiajs/vue3'
+import { useToast } from '@/Components/ui/toast/use-toast'
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
 import { Button } from '@/Components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card'
@@ -93,6 +94,7 @@ interface Props {
 }
 
 const props = defineProps<Props>()
+const { toast } = useToast()
 
 // State
 const createFormDialog = ref(false)
@@ -174,6 +176,13 @@ const deleteForm = () => {
         onSuccess: () => {
             deleteFormDialog.value = false
             selectedForm.value = null
+        },
+        onError: (errors) => {
+            toast({
+                title: 'Error',
+                description: errors.id ?? 'Gagal menghapus formulir evaluasi.',
+                variant: 'destructive',
+            })
         },
     })
 }

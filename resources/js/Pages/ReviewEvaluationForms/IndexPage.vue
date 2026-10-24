@@ -3,6 +3,7 @@
 import { route } from 'ziggy-js'
 import { computed, ref, watch } from 'vue'
 import { Head, Link, router } from '@inertiajs/vue3'
+import { useToast } from '@/Components/ui/toast/use-toast'
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
 import { Button } from '@/Components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card'
@@ -108,6 +109,7 @@ interface Props {
 }
 
 const props = defineProps<Props>()
+const { toast } = useToast()
 
 const searchTerm = ref(props.filters.search || '')
 const formPhaseFilter = ref(props.filters.form_phase_id || '')
@@ -169,7 +171,15 @@ const clearFilters = () => {
 
 const deleteForm = (form: ReviewEvaluationForm) => {
     if (confirm(`Are you sure you want to delete "${form.title}"?`)) {
-        router.delete(route('admin.review-evaluation-forms.destroy', form.id))
+        router.delete(route('admin.review-evaluation-forms.destroy', form.id), {
+            onError: (errors) => {
+                toast({
+                    title: 'Error',
+                    description: errors.id ?? 'Gagal menghapus formulir evaluasi.',
+                    variant: 'destructive',
+                })
+            },
+        })
     }
 }
 
