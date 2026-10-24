@@ -33,7 +33,15 @@ export interface NavigationFlags {
     hasApprovedSubmission: boolean
 }
 
+export interface FlashMessages {
+    message: string | null
+    error: string | null
+    success: string | null
+    workloadWarnings: unknown[] | null
+}
+
 export type PageProps<T extends Record<string, unknown> = Record<string, unknown>> = T & {
     auth: Auth
     navigation: NavigationFlags | null
+    flash: FlashMessages
 }
