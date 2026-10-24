@@ -6,7 +6,6 @@
 # memenuhi ambang tapi masih terdaftar, jadi keduanya tidak bisa berselisih.
 #
 # Inilah antrean kerja refactor. Ambil dari atas.
-app/Models/FormPhaseDetail.php
 # FormSubmission.php tidak bisa keluar dari daftar ini, dan itu bukan utang:
 # 215 baris kode tanpa komentar, baris kosong, dan import, sementara
 # hard.php.file.loc = 200. Sisanya 21 relasi plus invarian yang spec §2.5

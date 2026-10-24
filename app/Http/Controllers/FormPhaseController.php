@@ -50,6 +50,7 @@ class FormPhaseController extends Controller
     public function show(FormPhase $formPhase)
     {
         $formPhase->load([
+            'formPhaseDetails' => fn ($details) => $details->withCount(FormPhaseDetail::EVALUATION_FORM_COUNTS),
             'formPhaseDetails.formAccessControl.form',
             'formPhaseDetails.formAccessControl.studyProgram.faculty',
             'formPhaseDetails.phaseType',
@@ -65,11 +66,11 @@ class FormPhaseController extends Controller
 
         // Hitung total dari seluruh detail
         $formPhase->review_evaluation_forms_count = $formPhase->formPhaseDetails->sum(
-            fn ($detail) => $detail->reviewEvaluationFormsCount
+            fn ($detail) => $detail->review_evaluation_forms_count
         );
 
         $formPhase->required_review_evaluation_forms_count = $formPhase->formPhaseDetails->sum(
-            fn ($detail) => $detail->requiredReviewEvaluationFormsCount
+            fn ($detail) => $detail->required_review_evaluation_forms_count
         );
 
         return Inertia::render('FormPhases/ShowPage', [

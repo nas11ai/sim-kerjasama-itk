@@ -8,6 +8,7 @@ use App\Models\FormPhase;
 use App\Models\FormPhaseDetail;
 use App\Queries\Concerns\NormalisesListFilters;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Lorisleiva\Actions\Concerns\AsAction;
 
@@ -38,10 +39,10 @@ class FormPhaseDirectory implements ChangesNoState
 
         $phases->getCollection()->each(function (FormPhase $phase) {
             $phase->review_evaluation_forms_count = $phase->formPhaseDetails->sum(
-                fn (FormPhaseDetail $detail) => $detail->reviewEvaluationFormsCount
+                fn (FormPhaseDetail $detail) => $detail->review_evaluation_forms_count
             );
             $phase->required_review_evaluation_forms_count = $phase->formPhaseDetails->sum(
-                fn (FormPhaseDetail $detail) => $detail->requiredReviewEvaluationFormsCount
+                fn (FormPhaseDetail $detail) => $detail->required_review_evaluation_forms_count
             );
         });
 
@@ -67,6 +68,7 @@ class FormPhaseDirectory implements ChangesNoState
     private function query(array $filters): Builder
     {
         $query = FormPhase::query()->with([
+            'formPhaseDetails' => fn (Relation $details) => $details->withCount(FormPhaseDetail::EVALUATION_FORM_COUNTS),
             'formPhaseDetails.formAccessControl.form',
             'formPhaseDetails.formAccessControl.studyProgram.faculty',
             'formPhaseDetails.phaseType',
