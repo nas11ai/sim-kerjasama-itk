@@ -29,7 +29,8 @@ function frontendRouteNames(): array
         ->name(['*.vue', '*.ts'])->notName('ziggy.js')->sortByName();
 
     foreach ($files as $file) {
-        preg_match_all("/\broute\(\s*'([^']+)'/", $file->getContents(), $found);
+        // route('nama') di template/script, dan routeName: 'nama' di konfigurasi navigasi
+        preg_match_all("/\b(?:route\(\s*|routeName:\s*)'([^']+)'/", $file->getContents(), $found);
 
         foreach ($found[1] as $name) {
             $names[$name][] = $file->getRelativePathname();
