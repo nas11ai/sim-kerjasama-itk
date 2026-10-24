@@ -1,6 +1,6 @@
 # Desain Frontend SIMPAS v2 — Tulis Ulang per Layar Mengikuti Wireframe
 
-**Versi:** 0.2
+**Versi:** 0.3
 **Tanggal:** 2026-10-25
 **Status:** Draf; keputusan terbuka K1–K3 sudah diputuskan pemilik (§9)
 
@@ -248,12 +248,13 @@ backend biasa (Action/Query/Policy + Pest).
 
 ### 4.6 Status submission
 
-Satu definisi di `types/submission.ts`: union 8 state sesuai state class backend
-(`Draft`, `Submitted`, `UnderReview`, `NeedsRevision`, `Resubmitted`,
-`Approved`, `Rejected`, `Withdrawn`; nama tepatnya diambil dari
-`app/States/`). Label dan varian badge ada dalam satu peta bertipe
-`Record<SubmissionStatus, …>`, supaya state baru yang belum diberi label
-menjadi error vue-tsc.
+State class backend (`app/States/Submission/`) sudah memiliki `key()`, `label()`
+berbahasa Indonesia, dan `variant()`. Label karenanya **dikirim backend**
+(`app/Data/View/SubmissionStatusData`) dan frontend hanya merendernya lewat
+`StatusBadge`, tanpa peta label kedua. Frontend tetap punya union
+`SubmissionStatusKey` (8 key) di `types/submission-status.ts` untuk logika, dan
+sinkronnya dijaga test arsitektur Pest. (v0.3: menggantikan rencana peta label
+di frontend setelah ditemukan bahwa backend sudah memegangnya.)
 
 ## 5. Testing
 
@@ -271,6 +272,16 @@ skenario itu sudah dicakup Pest, `pending.txt` tidak berubah.
 ## 6. Protokol per session
 
 Tujuannya hemat token: satu session = satu irisan, tanpa survei ulang.
+
+**Rencana per irisan.** Setiap irisan punya rencana implementasinya sendiri di
+`docs/plans/YYYY-MM-DD-fe-<irisan>.md`, ditulis dengan skill
+`superpowers:writing-plans` **tepat sebelum** irisan itu dikerjakan, supaya
+nama komponen dari irisan sebelumnya sudah pasti. Rencana F0 sudah ada:
+`docs/plans/2026-10-25-fe-f0-shell.md`. Irisan besar (S2b, S4, E2, E3)
+dikerjakan dalam dua session: satu untuk menulis rencana, satu untuk
+menjalankannya. Irisan kecil boleh dikerjakan dalam satu session. Kalimat
+pembuka session cukup:
+*"Kerjakan irisan berikutnya di docs/design/fe-v2-design.md"*.
 
 **Mulai session**
 
