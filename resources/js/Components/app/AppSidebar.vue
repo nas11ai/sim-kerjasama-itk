@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { usePage } from '@inertiajs/vue3'
-import { computed } from 'vue'
+import { router, usePage } from '@inertiajs/vue3'
+import { computed, onUnmounted } from 'vue'
 
 import AppSidebarGroup from '@/Components/app/AppSidebarGroup.vue'
 import AppSidebarUser from '@/Components/app/AppSidebarUser.vue'
@@ -10,11 +10,16 @@ import {
     SidebarFooter,
     SidebarHeader,
     SidebarRail,
+    useSidebar,
 } from '@/Components/ui/sidebar'
 import { navGroups, visibleNavGroups } from '@/lib/navigation'
 import type { PageProps } from '@/types'
 
 const page = usePage<PageProps>()
+const { setOpenMobile } = useSidebar()
+
+// Layout persisten tidak dirender ulang, jadi drawer mobile ditutup tiap pindah halaman.
+onUnmounted(router.on('navigate', () => setOpenMobile(false)))
 
 // navigation null hanya untuk tamu; di dalam layout aplikasi selalu terisi.
 const groups = computed(() =>

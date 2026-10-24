@@ -1,6 +1,11 @@
 import { describe, expect, it } from 'vitest'
 
-import { isNavItemActive, navGroups, visibleNavGroups, type NavGroup } from '@/lib/navigation'
+import {
+    isNavItemActive,
+    navGroups,
+    visibleNavGroups,
+    type VisibleNavGroup,
+} from '@/lib/navigation'
 
 const RESEARCHER = [
     'submissions.create',
@@ -34,8 +39,8 @@ const FULL_CATALOG = [
 ]
 const NO_APPROVED = { hasApprovedSubmission: false }
 
-const labels = (groups: NavGroup[]) => groups.flatMap((g) => g.items.map((i) => i.label))
-const groupLabels = (groups: NavGroup[]) => groups.map((g) => g.label)
+const labels = (groups: VisibleNavGroup[]) => groups.flatMap((g) => g.items.map((i) => i.label))
+const groupLabels = (groups: VisibleNavGroup[]) => groups.map((g) => g.label)
 
 describe('visibleNavGroups', () => {
     it('peneliti hanya melihat Dashboard dan Daftar Pengajuan', () => {
@@ -103,7 +108,8 @@ describe('visibleNavGroups', () => {
 })
 
 describe('isNavItemActive', () => {
-    const item = navGroups.flatMap((g) => g.items).find((i) => i.label === 'Daftar Pengajuan')
+    const visible = visibleNavGroups(navGroups, FULL_CATALOG, NO_APPROVED).flatMap((g) => g.items)
+    const item = visible.find((i) => i.label === 'Daftar Pengajuan')
 
     it('isNavItemActive memakai activePattern untuk halaman detail', () => {
         expect(item).toBeDefined()
@@ -111,7 +117,7 @@ describe('isNavItemActive', () => {
     })
 
     it('memakai routeName bila tidak ada activePattern', () => {
-        const dashboard = navGroups[0].items[0]
+        const dashboard = visible[0]
 
         expect(isNavItemActive(dashboard, (p) => p === 'dashboard')).toBe(true)
         expect(isNavItemActive(dashboard, () => false)).toBe(false)

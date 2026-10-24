@@ -201,8 +201,19 @@ export const navGroups: NavGroup[] = [
     },
 ]
 
-function isItemVisible(item: NavItem, permissions: string[], flags: NavigationFlags): boolean {
-    if (item.routeName === null) return false
+/** Item yang lolos penyaringan selalu punya halaman tujuan. */
+export type VisibleNavItem = NavItem & { routeName: string }
+
+export interface VisibleNavGroup {
+    label: string | null
+    items: VisibleNavItem[]
+}
+
+function hasRoute(item: NavItem): item is VisibleNavItem {
+    return item.routeName !== null
+}
+
+function isPermitted(item: NavItem, permissions: string[], flags: NavigationFlags): boolean {
     if (item.requiresApprovedSubmission && !flags.hasApprovedSubmission) return false
     if (item.anyPermission.length === 0) return true
 
@@ -213,17 +224,20 @@ export function visibleNavGroups(
     groups: NavGroup[],
     permissions: string[],
     flags: NavigationFlags
-): NavGroup[] {
+): VisibleNavGroup[] {
     return groups
         .map((group) => ({
-            ...group,
-            items: group.items.filter((item) => isItemVisible(item, permissions, flags)),
+            label: group.label,
+            items: group.items
+                .filter(hasRoute)
+                .filter((item) => isPermitted(item, permissions, flags)),
         }))
         .filter((group) => group.items.length > 0)
 }
 
-export function isNavItemActive(item: NavItem, current: (pattern: string) => boolean): boolean {
-    const pattern = item.activePattern ?? item.routeName
-
-    return pattern !== null && current(pattern)
+export function isNavItemActive(
+    item: VisibleNavItem,
+    current: (pattern: string) => boolean
+): boolean {
+    return current(item.activePattern ?? item.routeName)
 }

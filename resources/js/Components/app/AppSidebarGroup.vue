@@ -9,9 +9,9 @@ import {
     SidebarMenuButton,
     SidebarMenuItem,
 } from '@/Components/ui/sidebar'
-import { isNavItemActive, type NavGroup } from '@/lib/navigation'
+import { isNavItemActive, type VisibleNavGroup } from '@/lib/navigation'
 
-defineProps<{ group: NavGroup }>()
+defineProps<{ group: VisibleNavGroup }>()
 
 const isActive = (pattern: string) => route().current(pattern)
 </script>
@@ -23,7 +23,7 @@ const isActive = (pattern: string) => route().current(pattern)
             <SidebarMenu>
                 <SidebarMenuItem v-for="item in group.items" :key="item.label">
                     <SidebarMenuButton as-child :is-active="isNavItemActive(item, isActive)">
-                        <Link :href="route(item.routeName ?? '')">
+                        <Link :href="route(item.routeName)">
                             <component :is="item.icon" />
                             <span>{{ item.label }}</span>
                         </Link>

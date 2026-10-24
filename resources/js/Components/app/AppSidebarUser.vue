@@ -11,8 +11,12 @@ const user = computed(() => page.props.auth.user)
 const initial = computed(() => user.value.name.charAt(0).toUpperCase())
 
 const confirmingLogout = ref(false)
+const loggingOut = ref(false)
 
-const logout = () => router.post(route('logout'))
+const logout = () => {
+    loggingOut.value = true
+    router.post(route('logout'), {}, { onFinish: () => (loggingOut.value = false) })
+}
 </script>
 
 <template>
@@ -50,6 +54,7 @@ const logout = () => router.post(route('logout'))
         title="Keluar dari SIMPAS?"
         description="Sesi Anda akan diakhiri dan Anda perlu masuk kembali."
         confirm-label="Keluar"
+        :processing="loggingOut"
         @confirm="logout"
     />
 </template>
