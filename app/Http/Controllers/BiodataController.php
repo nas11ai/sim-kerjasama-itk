@@ -2,243 +2,48 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\Form;
-use App\Models\FormFieldOption;
-use App\Models\FormFieldResponse;
-use App\Models\FormSubmission;
-use App\Models\FormType;
-use App\Services\FormAccessService;
-use App\States\Submission\Submitted;
-use Exception;
+use App\Actions\Identity\SaveBiodata;
+use App\Http\Requests\Identity\BiodataRequest;
+use App\Models\User;
+use App\Queries\Identity\BiodataFormView;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 
 class BiodataController extends Controller
 {
-    public function __construct(private FormAccessService $formAccessService) {}
-
-    public function showBiodataForm()
+    public function showBiodataForm(Request $request)
     {
-        $user = Auth::user();
+        $view = BiodataFormView::run($this->actor($request));
 
-        $biodataForm = Form::where('form_type_id', FormType::BIODATA_ID)
-            ->where('is_active', true)
-            ->first();
-
-        if (!$biodataForm) {
+        if ($view === null) {
             return redirect()->route('user.dashboard')
                 ->with('error', 'Form biodata tidak ditemukan atau tidak aktif.');
         }
 
-        if (!$this->formAccessService->canAccessForm($user, $biodataForm)) {
-            return redirect()->route('user.dashboard')
-                ->with('error', 'Anda tidak memiliki akses ke form biodata ini.');
-        }
-
-        $biodataForm->load([
-            'formFields' => function ($query) {
-                $query->orderBy('order');
-            },
-            'formFields.fieldType',
-            'formFields.formFieldOptions',
-        ]);
-
-        $submission = FormSubmission::with('formFieldResponses')
-            ->where('form_id', $biodataForm->id)
-            ->where('submitted_by', $user->id)
-            ->latest()
-            ->first();
-
-        $existingResponses = $submission
-            ? $submission->formFieldResponses->mapWithKeys(fn ($r) => [$r->form_field_id => $r->value])->toArray()
-            : [];
-
-        $status = $submission?->status;
-
-        if ($submission?->status instanceof \BackedEnum) {
-            $status = $submission->status->value;
-        }
-
-        $canEdit = !$submission || in_array($status, ['rejected', 'needs_revision']);
-
         return Inertia::render('User/Biodata/IndexPage', [
-            'form' => [
-                'id' => $biodataForm->id,
-                'title' => $biodataForm->title,
-                'description' => $biodataForm->description,
-                'form_fields' => $biodataForm->formFields->map(fn ($field) => [
-                    'id' => $field->id,
-                    'label' => $field->label,
-                    'is_required' => $field->is_required,
-                    'order' => $field->order,
-                    'field_type' => [
-                        'id' => $field->fieldType->id,
-                        'name' => $field->fieldType->name,
-                    ],
-                    'form_field_options' => $field->formFieldOptions
-                        ->map(fn (FormFieldOption $option): array => [
-                            'id' => $option->id,
-                            'label' => $option->label,
-                        ])->values()->toArray(),
-                ]),
-
-            ],
-            'existingSubmission' => $submission ? [
-                'id' => $submission->id,
-                'is_submitted' => $submission->is_submitted,
-                'status' => $status,
-                'created_at' => $submission->created_at->toISOString(),
-                'updated_at' => $submission->updated_at->toISOString(),
-            ] : null,
-            'existingResponses' => $existingResponses,
-            'canEdit' => $canEdit,
+            ...$view,
             'biodataStatus' => session('biodataStatus'),
         ]);
     }
 
-    public function submitForm(Request $request)
+    public function submitForm(BiodataRequest $request)
     {
-        try {
-            $user = Auth::user();
+        $input = $request->toInput();
 
-            $validated = $request->validate([
-                'form_id' => 'required|exists:forms,id',
-                'is_submitted' => 'required|boolean',
-                'responses' => 'required|array',
-                'responses.*.form_field_id' => 'required|exists:form_fields,id',
-                'responses.*.value' => 'nullable',
-            ]);
+        SaveBiodata::run($this->actor($request), $input);
 
-            $fileUploads = [];
-            if ($request->hasFile('file_uploads')) {
-                foreach ($request->file('file_uploads') as $fieldId => $file) {
-                    if ($file->isValid()) {
-                        // file size max 10MB
-                        if ($file->getSize() > 10 * 1024 * 1024) {
-                            return back()
-                                ->withErrors(['file_'.$fieldId => 'Ukuran file terlalu besar. Maksimal 10MB.'])
-                                ->with('error', 'Upload file gagal: File terlalu besar.')
-                                ->withInput();
-                        }
+        return redirect()->route('user.dashboard')->with(
+            'success',
+            $input->isSubmitted ? 'Biodata berhasil diserahkan dan menunggu persetujuan.' : null,
+        );
+    }
 
-                        $path = $file->store('biodata-uploads', 'public');
-                        $fileUploads[$fieldId] = $path;
-                    }
-                }
-            }
+    private function actor(Request $request): User
+    {
+        $actor = $request->user();
 
-            // form with required fields
-            $form = Form::with([
-                'formFields' => function ($query) {
-                    $query->where('is_required', true);
-                },
-            ])->findOrFail($validated['form_id']);
+        abort_unless($actor instanceof User, 403);
 
-            if (!$this->formAccessService->canAccessForm($user, $form)) {
-                abort(403, 'Anda tidak memiliki akses ke form biodata ini.');
-            }
-
-            // if is_submitted = true
-            if ($validated['is_submitted']) {
-                $requiredFields = $form->formFields;
-                $responseValues = collect($validated['responses'])->keyBy('form_field_id');
-
-                foreach ($requiredFields as $field) {
-                    $response = $responseValues->get($field->id);
-                    $value = $response ? $response['value'] : null;
-
-                    if ($field->fieldType->name === 'file') {
-                        $hasFile = isset($fileUploads[$field->id]) ||
-                            (!empty($value) && filter_var($value, FILTER_VALIDATE_URL) === false);
-
-                        if (!$hasFile) {
-
-                            return back()
-                                ->withErrors(['field_'.$field->id => "Field '{$field->label}' wajib diisi."])
-                                ->with('error', 'Silakan lengkapi semua field yang wajib diisi.')
-                                ->withInput();
-                        }
-                    } else {
-                        if (blank($value)) {
-                            return back()
-                                ->withErrors(['field_'.$field->id => "Field '{$field->label}' wajib diisi."])
-                                ->with('error', 'Silakan lengkapi semua field yang wajib diisi.')
-                                ->withInput();
-                        }
-                    }
-                }
-            }
-
-            DB::beginTransaction();
-
-            try {
-                // updateOrCreate submission
-                $submission = FormSubmission::updateOrCreate(
-                    [
-                        'form_id' => $validated['form_id'],
-                        'submitted_by' => $user->id,
-                    ],
-                    [
-                        'is_submitted' => $validated['is_submitted'],
-                        'submitted_at' => $validated['is_submitted'] ? now() : null,
-                    ]
-                );
-
-                // BR-SM-03 — status hanya boleh berpindah lewat transitionTo(),
-                // bukan assignment mentah. Draft->Submitted adalah satu-satunya
-                // transisi keluar dari Draft (SubmissionStatus::config()), jadi
-                // itulah satu-satunya state yang sah saat is_submitted=true. Guard
-                // di bawah mencegah transisi Submitted->Submitted yang ilegal saat
-                // biodata yang sudah submitted disimpan ulang (updateOrCreate() di
-                // atas berjalan untuk create maupun update).
-                if ($validated['is_submitted'] && !$submission->status instanceof Submitted) {
-                    $submission->status->transitionTo(Submitted::class);
-                }
-
-                $submission->formFieldResponses()->delete();
-
-                foreach ($validated['responses'] as $responseData) {
-                    $fieldId = $responseData['form_field_id'];
-                    $value = $responseData['value'];
-
-                    if (isset($fileUploads[$fieldId])) {
-                        $value = $fileUploads[$fieldId];
-                    }
-
-                    if (!empty($value) || $value === '0' || $value === 0) {
-                        FormFieldResponse::create([
-                            'form_submission_id' => $submission->id,
-                            'form_field_id' => $fieldId,
-                            'value' => is_array($value) ? json_encode($value) : (string) $value,
-                        ]);
-                    }
-                }
-
-                DB::commit();
-
-                $message = $validated['is_submitted']
-                    ? 'Biodata berhasil diserahkan dan menunggu persetujuan.'
-                    : null;
-
-                return redirect()
-                    ->route('user.dashboard')
-                    ->with('success', $message);
-            } catch (Exception $e) {
-                DB::rollBack();
-                throw $e;
-            }
-        } catch (ValidationException $e) {
-            return back()
-                ->withErrors($e->errors())
-                ->with('error', 'Validasi gagal. Silakan periksa input Anda.')
-                ->withInput();
-        } catch (Exception $e) {
-            return back()
-                ->with('error', 'Terjadi kesalahan saat menyimpan biodata. Silakan coba lagi.')
-                ->withInput();
-        }
+        return $actor;
     }
 }
