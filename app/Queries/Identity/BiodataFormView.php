@@ -11,6 +11,7 @@ use App\Models\FormFieldResponse;
 use App\Models\FormSubmission;
 use App\Models\FormType;
 use App\Models\User;
+use App\States\Submission\Draft;
 use App\States\Submission\NeedsRevision;
 use App\States\Submission\Rejected;
 use Illuminate\Auth\Access\AuthorizationException;
@@ -18,7 +19,8 @@ use Lorisleiva\Actions\Concerns\AsAction;
 
 /**
  * Isi layar biodata: form aktif beserta field-nya, submission biodata terakhir milik user,
- * dan apakah ia masih boleh menyuntingnya. Null kalau tidak ada form biodata yang aktif.
+ * dan apakah ia masih boleh menyuntingnya (Draft dan NeedsRevision; Rejected mulai baru).
+ * Null kalau tidak ada form biodata yang aktif.
  *
  * @phpstan-type FieldView array{id: int, label: string, is_required: bool, order: int, field_type: array{id: int|null, name: string|null}, form_field_options: array<int, array{id: int, label: string}>}
  * @phpstan-type FormView array{id: int, title: string, description: string|null, form_fields: array<int, FieldView>}
@@ -65,7 +67,7 @@ class BiodataFormView implements ChangesNoState
             'existingResponses' => $rejected ? [] : $submission?->formFieldResponses
                 ->mapWithKeys(fn (FormFieldResponse $response): array => [$response->form_field_id => $response->value])
                 ->all() ?? [],
-            'canEdit' => !$submission || $rejected || $submission->status instanceof NeedsRevision,
+            'canEdit' => !$submission || $rejected || $submission->status instanceof Draft || $submission->status instanceof NeedsRevision,
         ];
     }
 

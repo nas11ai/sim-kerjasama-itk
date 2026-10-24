@@ -15,6 +15,7 @@ use App\Models\FormType;
 use App\Models\Organization;
 use App\Models\User;
 use App\Models\UserProfile;
+use App\States\Submission\Draft;
 use App\States\Submission\NeedsRevision;
 use App\States\Submission\Rejected;
 use App\States\Submission\Resubmitted;
@@ -148,7 +149,7 @@ it('records an audit entry when biodata is saved', function () {
     $this->assertDatabaseHas('activity_log', ['description' => 'Biodata dikirim', 'causer_id' => $user->id]);
 });
 
-it('lets the user edit only a rejected or revision-needed biodata', function (string $state, bool $canEdit) {
+it('lets the user edit only a draft, rejected or revision-needed biodata', function (string $state, bool $canEdit) {
     [$user, $form] = biodataFixture();
     $submission = FormSubmission::create([
         'form_id' => $form->id,
@@ -165,7 +166,9 @@ it('lets the user edit only a rejected or revision-needed biodata', function (st
             ->where('canEdit', $canEdit)
         );
 })->with([
+    'draft' => [Draft::class, true],
     'rejected' => [Rejected::class, true],
+    'needs revision' => [NeedsRevision::class, true],
     'under review' => [UnderReview::class, false],
 ]);
 
