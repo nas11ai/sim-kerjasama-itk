@@ -2,444 +2,131 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\FieldType;
-use App\Models\FormPhase;
-use App\Models\FormPhaseDetail;
+use App\Actions\Review\CreateReviewEvaluationForm;
+use App\Actions\Review\DeleteReviewEvaluationForm;
+use App\Actions\Review\DuplicateReviewEvaluationForm;
+use App\Actions\Review\ReorderReviewEvaluationForms;
+use App\Actions\Review\ReviseReviewEvaluationForm;
+use App\Http\Controllers\Concerns\ResolvesActor;
+use App\Http\Requests\Review\ReviewEvaluationFormListRequest;
+use App\Http\Requests\Review\ReviewEvaluationFormOrderRequest;
+use App\Http\Requests\Review\ReviewEvaluationFormRequest;
 use App\Models\ReviewEvaluationForm;
-use App\Models\ReviewFormField;
-use App\Models\ReviewFormFieldOption;
+use App\Queries\Review\EvaluationFormUsage;
+use App\Queries\Review\ReviewEvaluationFormChoices;
+use App\Queries\Review\ReviewEvaluationFormDirectory;
+use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 
 class ReviewEvaluationFormController extends Controller
 {
-    public function index(Request $request)
+    use ResolvesActor;
+
+    public function index(ReviewEvaluationFormListRequest $request)
     {
-        $query = ReviewEvaluationForm::with([
-            'formPhaseDetail.formPhase:id,title',
-            'formPhaseDetail.formAccessControl.form:id,title',
-            'formPhaseDetail.formAccessControl',
-            'reviewFormFields',
-        ]);
-
-        // Filter by form phase
-        if ($request->has('form_phase_id') && $request->form_phase_id) {
-            $query->whereHas('formPhaseDetail', function ($q) use ($request) {
-                $q->where('form_phase_id', $request->form_phase_id);
-            });
-        }
-
-        // Filter by form phase detail
-        if ($request->has('form_phase_detail_id') && $request->form_phase_detail_id) {
-            $query->where('form_phase_detail_id', $request->form_phase_detail_id);
-        }
-
-        // Search functionality
-        if ($request->has('search') && $request->search) {
-            $search = $request->search;
-            $query->where(function ($q) use ($search) {
-                $q->where('title', 'ilike', "%{$search}%")
-                    ->orWhere('description', 'ilike', "%{$search}%");
-            });
-        }
-
-        $evaluationForms = $query->orderBy('order')->paginate(15);
-
-        $formPhases = FormPhase::where('is_active', true)
-            ->orderBy('title')
-            ->get(['id', 'title']);
-
-        $formPhaseDetails = FormPhaseDetail::with([
-            'formPhase:id,title',
-            'formAccessControl.form:id,title',
-        ])
-            ->whereHas('formPhase', function ($q) {
-                $q->where('is_active', true);
-            })
-            ->get();
+        $directory = ReviewEvaluationFormDirectory::run(
+            $request->idFilter('form_phase_id'),
+            $request->idFilter('form_phase_detail_id'),
+            $request->search(),
+        );
 
         return Inertia::render('ReviewEvaluationForms/IndexPage', [
-            'evaluationForms' => $evaluationForms,
-            'formPhases' => $formPhases,
-            'formPhaseDetails' => $formPhaseDetails,
+            ...$directory,
             'filters' => $request->only(['form_phase_id', 'form_phase_detail_id', 'search']),
         ]);
     }
 
     public function create()
     {
-        $formPhases = FormPhase::where('is_active', true)
-            ->with([
-                'formPhaseDetails.formAccessControl.form',
-                'formPhaseDetails.formAccessControl',
-                'formPhaseDetails.formAccessControl.studyProgram',
-            ])
-            ->orderBy('title')
-            ->get();
-
-        $fieldTypes = FieldType::orderBy('name')->get(['id', 'name']);
-
-        return Inertia::render('ReviewEvaluationForms/CreatePage', [
-            'formPhases' => $formPhases,
-            'fieldTypes' => $fieldTypes,
-        ]);
+        return Inertia::render('ReviewEvaluationForms/CreatePage', ReviewEvaluationFormChoices::run());
     }
 
-    public function store(Request $request)
+    public function store(ReviewEvaluationFormRequest $request)
     {
-        $validated = $request->validate([
-            'title' => 'required|string|max:255',
-            'description' => 'nullable|string',
-            'form_phase_detail_id' => 'required|exists:form_phase_details,id',
-            'is_required' => 'boolean',
-            'is_active' => 'boolean',
-            'fields' => 'array',
-            'fields.*.field_type_id' => 'required|exists:field_types,id',
-            'fields.*.label' => 'required|string|max:255',
-            'fields.*.description' => 'nullable|string',
-            'fields.*.is_required' => 'boolean',
-            'fields.*.validation_rules' => 'nullable|array',
-            'fields.*.options' => 'array',
-            'fields.*.options.*.label' => 'required|string|max:255',
-            'fields.*.options.*.value' => 'nullable|string|max:255',
-        ]);
+        CreateReviewEvaluationForm::run($request->toInput(), $this->actor($request));
 
-        try {
-            DB::beginTransaction();
-
-            // Get next order number for this form phase detail
-            $nextOrder = ReviewEvaluationForm::where('form_phase_detail_id', $validated['form_phase_detail_id'])
-                ->max('order') + 1;
-
-            $evaluationForm = ReviewEvaluationForm::create([
-                'title' => $validated['title'],
-                'description' => $validated['description'],
-                'form_phase_detail_id' => $validated['form_phase_detail_id'],
-                'is_required' => $validated['is_required'] ?? true,
-                'is_active' => $validated['is_active'] ?? true,
-                'order' => $nextOrder,
-            ]);
-
-            // Create fields
-            if (isset($validated['fields'])) {
-                foreach ($validated['fields'] as $index => $fieldData) {
-                    $field = ReviewFormField::create([
-                        'review_evaluation_form_id' => $evaluationForm->id,
-                        'field_type_id' => $fieldData['field_type_id'],
-                        'label' => $fieldData['label'],
-                        'description' => $fieldData['description'] ?? null,
-                        'is_required' => $fieldData['is_required'] ?? false,
-                        'order' => $index + 1,
-                        'validation_rules' => $fieldData['validation_rules'] ?? null,
-                    ]);
-
-                    // Create field options
-                    if (isset($fieldData['options'])) {
-                        foreach ($fieldData['options'] as $optionIndex => $optionData) {
-                            ReviewFormFieldOption::create([
-                                'review_form_field_id' => $field->id,
-                                'label' => $optionData['label'],
-                                'value' => $optionData['value'] ?? null,
-                                'order' => $optionIndex + 1,
-                            ]);
-                        }
-                    }
-                }
-            }
-
-            DB::commit();
-
-            return redirect()->back()
-                ->with('success', 'Formulir evaluasi review berhasil dibuat.');
-
-        } catch (\Exception $e) {
-            DB::rollback();
-
-            return back()->withErrors(['error' => 'Gagal membuat formulir evaluasi review: '.$e->getMessage()]);
-        }
+        return redirect()->back()
+            ->with('success', 'Formulir evaluasi review berhasil dibuat.');
     }
 
     public function show(ReviewEvaluationForm $reviewEvaluationForm)
     {
-        $reviewEvaluationForm->load([
+        $this->loadFields($reviewEvaluationForm, [
             'formPhaseDetail.formPhase:id,title,description',
             'formPhaseDetail.formAccessControl.form',
-            'formPhaseDetail.formAccessControl',
-            'reviewFormFields' => function ($query) {
-                $query->ordered()->with([
-                    'fieldType:id,name',
-                    'reviewFormFieldOptions' => function ($q) {
-                        $q->ordered();
-                    },
-                ]);
-            },
         ]);
-
-        // Get usage statistics
-        $assignmentStats = [
-            'total_assignments' => $reviewEvaluationForm->reviewerFormAssignments()->count(),
-            'completed_responses' => $reviewEvaluationForm->reviewerFormAssignments()
-                ->whereHas('reviewFormResponse', function ($q) {
-                    $q->where('status', 'submitted');
-                })->count(),
-            'pending_responses' => $reviewEvaluationForm->reviewerFormAssignments()
-                ->whereDoesntHave('reviewFormResponse', function ($q) {
-                    $q->where('status', 'submitted');
-                })->count(),
-        ];
 
         return Inertia::render('ReviewEvaluationForms/ShowPage', [
             'evaluationForm' => $reviewEvaluationForm,
-            'assignmentStats' => $assignmentStats,
+            'assignmentStats' => EvaluationFormUsage::run($reviewEvaluationForm),
         ]);
     }
 
     public function edit(ReviewEvaluationForm $reviewEvaluationForm)
     {
-        $reviewEvaluationForm->load([
+        $this->loadFields($reviewEvaluationForm, [
             'formPhaseDetail.formPhase',
             'formPhaseDetail.formAccessControl.form',
-            'reviewFormFields' => function ($query) {
-                $query->ordered()->with([
-                    'fieldType:id,name',
-                    'reviewFormFieldOptions' => function ($q) {
-                        $q->ordered();
-                    },
-                ]);
-            },
         ]);
-
-        $formPhases = FormPhase::where('is_active', true)
-            ->with([
-                'formPhaseDetails.formAccessControl.form',
-                'formPhaseDetails.formAccessControl',
-                'formPhaseDetails.formAccessControl.studyProgram',
-            ])
-            ->orderBy('title')
-            ->get();
-
-        $fieldTypes = FieldType::orderBy('name')->get(['id', 'name']);
 
         return Inertia::render('ReviewEvaluationForms/EditPage', [
             'evaluationForm' => $reviewEvaluationForm,
-            'formPhases' => $formPhases,
-            'fieldTypes' => $fieldTypes,
+            ...ReviewEvaluationFormChoices::run(),
         ]);
     }
 
-    public function update(Request $request, ReviewEvaluationForm $reviewEvaluationForm)
+    public function update(ReviewEvaluationFormRequest $request, ReviewEvaluationForm $reviewEvaluationForm)
     {
-        $validated = $request->validate([
-            'title' => 'required|string|max:255',
-            'description' => 'nullable|string',
-            'form_phase_detail_id' => 'required|exists:form_phase_details,id',
-            'is_required' => 'boolean',
-            'is_active' => 'boolean',
-            'fields' => 'array',
-            'fields.*.id' => 'nullable|exists:review_form_fields,id',
-            'fields.*.field_type_id' => 'required|exists:field_types,id',
-            'fields.*.label' => 'required|string|max:255',
-            'fields.*.description' => 'nullable|string',
-            'fields.*.is_required' => 'boolean',
-            'fields.*.validation_rules' => 'nullable|array',
-            'fields.*.options' => 'array',
-            'fields.*.options.*.id' => 'nullable|exists:review_form_field_options,id',
-            'fields.*.options.*.label' => 'required|string|max:255',
-            'fields.*.options.*.value' => 'nullable|string|max:255',
-        ]);
+        ReviseReviewEvaluationForm::run($reviewEvaluationForm, $request->toInput($reviewEvaluationForm), $this->actor($request));
 
-        try {
-            DB::beginTransaction();
-
-            // Update evaluation form
-            $reviewEvaluationForm->update([
-                'title' => $validated['title'],
-                'description' => $validated['description'],
-                'form_phase_detail_id' => $validated['form_phase_detail_id'],
-                'is_required' => $validated['is_required'] ?? true,
-                'is_active' => $validated['is_active'] ?? true,
-            ]);
-
-            // Handle fields
-            $existingFieldIds = collect($validated['fields'] ?? [])
-                ->pluck('id')
-                ->filter()
-                ->toArray();
-
-            // Delete fields not in the request
-            $reviewEvaluationForm->reviewFormFields()
-                ->whereNotIn('id', $existingFieldIds)
-                ->delete();
-
-            // Update or create fields
-            if (isset($validated['fields'])) {
-                foreach ($validated['fields'] as $index => $fieldData) {
-                    $field = isset($fieldData['id'])
-                        ? ReviewFormField::find($fieldData['id'])
-                        : new ReviewFormField;
-
-                    $field->review_evaluation_form_id = $reviewEvaluationForm->id;
-                    $field->field_type_id = $fieldData['field_type_id'];
-                    $field->label = $fieldData['label'];
-                    $field->description = $fieldData['description'] ?? null;
-                    $field->is_required = $fieldData['is_required'] ?? false;
-                    $field->order = $index + 1;
-                    $field->validation_rules = $fieldData['validation_rules'] ?? null;
-                    $field->save();
-
-                    // Handle options
-                    if (isset($fieldData['options'])) {
-                        $existingOptionIds = collect($fieldData['options'])
-                            ->pluck('id')
-                            ->filter()
-                            ->toArray();
-
-                        $field->reviewFormFieldOptions()
-                            ->whereNotIn('id', $existingOptionIds)
-                            ->delete();
-
-                        foreach ($fieldData['options'] as $optionIndex => $optionData) {
-                            $option = isset($optionData['id'])
-                                ? ReviewFormFieldOption::find($optionData['id'])
-                                : new ReviewFormFieldOption;
-
-                            $option->review_form_field_id = $field->id;
-                            $option->label = $optionData['label'];
-                            $option->value = $optionData['value'] ?? null;
-                            $option->order = $optionIndex + 1;
-                            $option->save();
-                        }
-                    } else {
-                        $field->reviewFormFieldOptions()->delete();
-                    }
-                }
-            }
-
-            DB::commit();
-
-            return redirect()->back()
-                ->with('success', 'Formulir evaluasi review berhasil diperbarui.');
-
-        } catch (\Exception $e) {
-            DB::rollback();
-
-            return back()->withErrors(['error' => 'Gagal memperbarui formulir evaluasi review: '.$e->getMessage()]);
-        }
+        return redirect()->back()
+            ->with('success', 'Formulir evaluasi review berhasil diperbarui.');
     }
 
-    public function destroy(ReviewEvaluationForm $reviewEvaluationForm)
+    public function destroy(Request $request, ReviewEvaluationForm $reviewEvaluationForm)
     {
-        // Check if form is being used
-        $assignmentCount = $reviewEvaluationForm->reviewerFormAssignments()->count();
+        // BR-FE-22 — form yang pernah ditugaskan ditolak beserta jumlah penugasannya.
+        DeleteReviewEvaluationForm::run($reviewEvaluationForm, $this->actor($request));
 
-        if ($assignmentCount > 0) {
-            return back()->withErrors([
-                'error' => "Tidak dapat menghapus formulir evaluasi ini. Formulir ini saat ini ditugaskan kepada {$assignmentCount} reviewer.",
-            ]);
-        }
-
-        try {
-            DB::beginTransaction();
-
-            // Delete all related data
-            foreach ($reviewEvaluationForm->reviewFormFields as $field) {
-                $field->reviewFormFieldOptions()->delete();
-            }
-            $reviewEvaluationForm->reviewFormFields()->delete();
-            $reviewEvaluationForm->delete();
-
-            DB::commit();
-
-            return redirect()->route('admin.review-evaluation-forms.index')
-                ->with('success', 'Formulir evaluasi review berhasil dihapus.');
-
-        } catch (\Exception $e) {
-            DB::rollback();
-
-            return back()->withErrors(['error' => 'Gagal menghapus formulir evaluasi review: '.$e->getMessage()]);
-        }
+        return redirect()->route('admin.review-evaluation-forms.index')
+            ->with('success', 'Formulir evaluasi review berhasil dihapus.');
     }
 
-    public function duplicate(ReviewEvaluationForm $reviewEvaluationForm)
+    public function duplicate(Request $request, ReviewEvaluationForm $reviewEvaluationForm)
     {
-        try {
-            DB::beginTransaction();
+        $copy = DuplicateReviewEvaluationForm::run($reviewEvaluationForm, $this->actor($request));
 
-            $newForm = $reviewEvaluationForm->replicate();
-            $newForm->title = $reviewEvaluationForm->title.' (Copy)';
-            $newForm->order = ReviewEvaluationForm::where('form_phase_detail_id', $reviewEvaluationForm->form_phase_detail_id)
-                ->max('order') + 1;
-            $newForm->save();
-
-            // Duplicate fields
-            foreach ($reviewEvaluationForm->reviewFormFields as $field) {
-                $newField = $field->replicate();
-                $newField->review_evaluation_form_id = $newForm->id;
-                $newField->save();
-
-                // Duplicate options
-                foreach ($field->reviewFormFieldOptions as $option) {
-                    $newOption = $option->replicate();
-                    $newOption->review_form_field_id = $newField->id;
-                    $newOption->save();
-                }
-            }
-
-            DB::commit();
-
-            return redirect()->route('admin.review-evaluation-forms.edit', $newForm)
-                ->with('success', 'Formulir evaluasi review berhasil diduplikasi.');
-
-        } catch (\Exception $e) {
-            DB::rollback();
-
-            return back()->withErrors(['error' => 'Gagal menduplikasi formulir evaluasi review: '.$e->getMessage()]);
-        }
+        return redirect()->route('admin.review-evaluation-forms.edit', $copy)
+            ->with('success', 'Formulir evaluasi review berhasil diduplikasi.');
     }
 
-    public function updateOrder(Request $request)
+    public function updateOrder(ReviewEvaluationFormOrderRequest $request)
     {
-        $validated = $request->validate([
-            'items' => 'required|array',
-            'items.*.id' => 'required|exists:review_evaluation_forms,id',
-            'items.*.order' => 'required|integer|min:1',
-        ]);
+        ReorderReviewEvaluationForms::run($request->orders(), $this->actor($request));
 
-        try {
-            DB::beginTransaction();
-
-            foreach ($validated['items'] as $item) {
-                ReviewEvaluationForm::where('id', $item['id'])
-                    ->update(['order' => $item['order']]);
-            }
-
-            DB::commit();
-
-            return response()->json(['message' => 'Urutan berhasil diperbarui.']);
-
-        } catch (\Exception $e) {
-            DB::rollback();
-
-            return response()->json(['error' => 'Gagal memperbarui urutan.'], 500);
-        }
+        // Dipanggil lewat useForm Inertia; balasan JSON dulu ditolak Inertia sebagai galat.
+        return redirect()->back()->with('success', 'Urutan berhasil diperbarui.');
     }
 
     public function preview(ReviewEvaluationForm $reviewEvaluationForm)
     {
-        $reviewEvaluationForm->load([
-            'reviewFormFields' => function ($query) {
-                $query->ordered()->with([
-                    'fieldType:id,name',
-                    'reviewFormFieldOptions' => function ($q) {
-                        $q->ordered();
-                    },
-                ]);
-            },
-        ]);
+        $this->loadFields($reviewEvaluationForm);
 
         return Inertia::render('ReviewEvaluationForms/PreviewPage', [
             'evaluationForm' => $reviewEvaluationForm,
+        ]);
+    }
+
+    /** @param  list<string>  $relations */
+    private function loadFields(ReviewEvaluationForm $form, array $relations = []): void
+    {
+        $form->load([
+            ...$relations,
+            'reviewFormFields' => fn (Relation $fields) => $fields->orderBy('order')->with([
+                'fieldType:id,name',
+                'reviewFormFieldOptions' => fn (Relation $options) => $options->orderBy('order'),
+            ]),
         ]);
     }
 }

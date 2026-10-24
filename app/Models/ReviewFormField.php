@@ -7,10 +7,13 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
+ * @property int $id
+ * @property int $field_type_id
  * @property bool $is_required
  * @property string $label
  * @property array<string, scalar|null>|null $validation_rules
  * @property-read FieldType|null $fieldType
+ * @property-read int|null $review_form_field_responses_count
  */
 class ReviewFormField extends Model
 {

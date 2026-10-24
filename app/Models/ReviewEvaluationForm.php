@@ -12,6 +12,10 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property int $id
  * @property int $form_phase_detail_id
  * @property string $title
+ * @property string|null $description
+ * @property bool $is_required
+ * @property bool $is_active
+ * @property int $order
  * @property-read FormPhaseDetail|null $formPhaseDetail
  */
 class ReviewEvaluationForm extends Model
@@ -47,26 +51,13 @@ class ReviewEvaluationForm extends Model
         'is_active' => 'boolean',
     ];
 
-    /**
-     * Get the form phase detail that owns the review evaluation form.
-     *
-     * @return BelongsTo<FormPhaseDetail, $this>
-     */
     /** @return BelongsTo<FormPhaseDetail, $this> */
     public function formPhaseDetail(): BelongsTo
     {
         return $this->belongsTo(FormPhaseDetail::class, 'form_phase_detail_id');
     }
 
-    /**
-     * Get the review form fields for the evaluation form.
-     *
-     * @return HasMany<ReviewFormField, $this>
-     */
-
-    /**
-     * @return HasMany<ReviewFormField, $this>
-     */
+    /** @return HasMany<ReviewFormField, $this> */
     public function reviewFormFields(): HasMany
     {
         return $this->hasMany(ReviewFormField::class);
@@ -104,5 +95,28 @@ class ReviewEvaluationForm extends Model
     public function scopeOrdered($query)
     {
         return $query->orderBy('order');
+    }
+
+    /** Form evaluasi baru diletakkan paling akhir di antara form evaluasi detail yang sama. */
+    public static function nextOrderFor(int $formPhaseDetailId): int
+    {
+        $last = static::query()->where('form_phase_detail_id', $formPhaseDetailId)->orderByDesc('order')->first();
+
+        return ($last->order ?? 0) + 1;
+    }
+
+    /** @return array{title: string, description: string|null, form_phase_detail_id: int, is_required: bool, is_active: bool, fields: array<int, string>} */
+    public function auditSnapshot(): array
+    {
+        return [
+            'title' => $this->title,
+            'description' => $this->description,
+            'form_phase_detail_id' => $this->form_phase_detail_id,
+            'is_required' => $this->is_required,
+            'is_active' => $this->is_active,
+            'fields' => $this->reviewFormFields()->orderBy('order')->get()
+                ->mapWithKeys(fn (ReviewFormField $field): array => [$field->id => $field->label])
+                ->all(),
+        ];
     }
 }
