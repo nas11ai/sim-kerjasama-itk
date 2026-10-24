@@ -4,6 +4,8 @@ declare module 'ziggy-js' {
     export type RouteParams = Record<string, unknown> | string | number | string[]
 
     export interface Router {
+        // Tanpa argumen, Ziggy mengembalikan router (dipakai untuk route().current()).
+        (): { current: (pattern: string) => boolean }
         (
             name?: string,
             params?: RouteParams,

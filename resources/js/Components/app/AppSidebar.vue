@@ -1,0 +1,49 @@
+<script setup lang="ts">
+import { usePage } from '@inertiajs/vue3'
+import { computed } from 'vue'
+
+import AppSidebarGroup from '@/Components/app/AppSidebarGroup.vue'
+import AppSidebarUser from '@/Components/app/AppSidebarUser.vue'
+import {
+    Sidebar,
+    SidebarContent,
+    SidebarFooter,
+    SidebarHeader,
+    SidebarRail,
+} from '@/Components/ui/sidebar'
+import { navGroups, visibleNavGroups } from '@/lib/navigation'
+import type { PageProps } from '@/types'
+
+const page = usePage<PageProps>()
+
+// navigation null hanya untuk tamu; di dalam layout aplikasi selalu terisi.
+const groups = computed(() =>
+    visibleNavGroups(
+        navGroups,
+        page.props.auth.user.permissions,
+        page.props.navigation ?? { hasApprovedSubmission: false }
+    )
+)
+</script>
+
+<template>
+    <Sidebar collapsible="offcanvas">
+        <SidebarHeader class="px-4 py-4">
+            <div class="text-lg leading-tight font-semibold">SIMPAS v2</div>
+            <div class="text-muted-foreground text-xs">LPPM ITK</div>
+        </SidebarHeader>
+
+        <SidebarContent>
+            <AppSidebarGroup
+                v-for="(group, index) in groups"
+                :key="group.label ?? index"
+                :group="group"
+            />
+        </SidebarContent>
+
+        <SidebarFooter>
+            <AppSidebarUser />
+        </SidebarFooter>
+        <SidebarRail />
+    </Sidebar>
+</template>
