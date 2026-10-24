@@ -2,6 +2,8 @@
 
 namespace App\Http\Middleware;
 
+use App\Queries\Identity\EffectivePermissionNames;
+use App\Queries\Submission\HasApprovedSubmission;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
@@ -38,6 +40,7 @@ class HandleInertiaRequests extends Middleware
                     // Add any other user properties you need
                     'roles' => $request->user()->getRoleNames(), // If you're using Spatie Laravel Permission
                     'is_reviewer' => $request->user()->is_reviewer,
+                    'permissions' => EffectivePermissionNames::run($request->user()),
                 ] : null,
             ],
             'flash' => [
@@ -49,6 +52,9 @@ class HandleInertiaRequests extends Middleware
                 // flash tersendiri supaya tidak tertukar dengan kegagalan.
                 'workloadWarnings' => fn () => $request->session()->get('workloadWarnings'),
             ],
+            'navigation' => fn () => $request->user()
+                ? ['hasApprovedSubmission' => HasApprovedSubmission::run($request->user())]
+                : null,
             'biodataStatus' => fn () => $request->session()->get('biodataStatus'),
         ]);
     }

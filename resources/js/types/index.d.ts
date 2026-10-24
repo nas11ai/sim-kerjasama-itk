@@ -10,7 +10,7 @@ export interface User {
     is_active: boolean
     is_reviewer: boolean
     roles: Role[]
-    permissions: Permission[]
+    permissions: string[]
 }
 export interface Role {
     id: number
@@ -29,6 +29,11 @@ export interface Permission {
     updated_at?: string
 }
 
+export interface NavigationFlags {
+    hasApprovedSubmission: boolean
+}
+
 export type PageProps<T extends Record<string, unknown> = Record<string, unknown>> = T & {
     auth: Auth
+    navigation: NavigationFlags | null
 }

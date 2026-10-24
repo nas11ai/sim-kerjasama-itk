@@ -29,13 +29,16 @@ import { ColumnDef, FlexRender, getCoreRowModel, useVueTable } from '@tanstack/v
 import { ArrowLeft, LoaderCircle } from 'lucide-vue-next'
 import { h } from 'vue'
 
+// Prop halaman ini membawa permission sebagai model, beda dari shared props (string[]).
+type EditedUser = Omit<User, 'permissions'> & { permissions?: Permission[] }
+
 const props = defineProps<{
     roles: Role[]
-    user: User
+    user: EditedUser
     permissions: Permission[]
 }>()
 
-const user = props.user as User
+const user = props.user
 
 const form = useForm<UpdateUserRequest>({
     name: user.name,
