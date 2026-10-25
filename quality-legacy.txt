@@ -32,7 +32,6 @@ resources/js/Pages/Announcements/IndexPage.vue
 resources/js/Pages/Announcements/ShowPage.vue
 resources/js/Pages/Audit/IndexPage.vue
 resources/js/Pages/Auth/ForgotPassword.vue
-resources/js/Pages/Auth/LoginPage.vue
 resources/js/Pages/Auth/RegisterPage.vue
 resources/js/Pages/Auth/ResetPassword.vue
 resources/js/Pages/Config/ReferenceEntitiesPage.vue

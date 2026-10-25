@@ -68,10 +68,7 @@ class HandleInertiaRequests extends Middleware
      */
     private function bridgeSessionFlash(Request $request): void
     {
-        $flash = array_filter(
-            $request->session()->only(['message', 'error', 'success']),
-            static fn (mixed $value): bool => is_string($value) && $value !== '',
-        );
+        $flash = array_filter(array_filter($request->session()->only(['message', 'error', 'success']), is_string(...)));
 
         if ($flash !== []) {
             Inertia::flash($flash);

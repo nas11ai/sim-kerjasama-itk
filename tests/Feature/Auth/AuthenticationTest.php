@@ -6,7 +6,10 @@ use Spatie\Permission\Models\Permission;
 test('login screen can be rendered', function () {
     $response = $this->get('/login');
 
-    $response->assertStatus(200);
+    $response->assertStatus(200)->assertInertia(fn ($page) => $page
+        ->component('Auth/LoginPage')
+        ->where('canResetPassword', true)
+        ->where('status', null));
 });
 
 test('users can authenticate using the login screen', function () {
