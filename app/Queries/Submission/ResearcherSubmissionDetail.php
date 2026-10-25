@@ -53,7 +53,7 @@ class ResearcherSubmissionDetail implements ChangesNoState
     {
         $submission->loadMissing(['form:id,title', 'scheme:id,name', 'submissionPeriod', 'trl', 'submittedBy:id,name', 'formPhaseDetail']);
         $detail = $submission->getFormPhaseDetail();
-        $history = SubmissionHistory::run($submission);
+        $history = SubmissionHistory::run($viewer, $submission);
 
         return [
             'submission' => $this->header($viewer, $submission, $detail, $history),

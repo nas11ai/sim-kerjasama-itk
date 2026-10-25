@@ -12,7 +12,9 @@ use App\Models\FormFieldResponse;
 use App\Models\FormPhaseDetail;
 use App\Models\FormSubmission;
 use App\Models\ResearchMember;
+use App\Models\Reviewer;
 use App\Models\SubmissionPeriod;
+use App\Models\SubmissionReviewer;
 use App\Models\User;
 use App\Models\UserProfile;
 use App\Queries\Submission\ResearcherSubmissionDetail;
@@ -193,6 +195,21 @@ it('anggota nonaktif tidak tercantum', function () {
     expect($members)->toHaveCount(2)
         ->and($members[0]->roleLabel)->toBe('Ketua')
         ->and($members[1]->roleLabel)->toBe('Anggota');
+});
+
+it('reviewer yang ditugaskan tidak membaca jejak audit pengajuan (BR-RPT-05)', function () {
+    $submission = FormSubmission::factory()->create(['status' => UnderReview::class, 'is_submitted' => true]);
+    AuditTrail::record('Pengajuan disubmit', $submission, $submission->submittedBy);
+    $user = User::factory()->create();
+    SubmissionReviewer::create([
+        'form_submission_id' => $submission->id,
+        'reviewer_id' => Reviewer::factory()->create(['user_id' => $user->id])->id,
+        'evaluation_status' => 'pending',
+        'status' => 'active',
+    ]);
+
+    expect($submission->isAccessibleBy($user))->toBeTrue()
+        ->and(detailOf($user, $submission)['history'])->toBe([]);
 });
 
 it('riwayat memuat entri audit pengajuan ini, terbaru dulu, tanpa entri pengajuan lain', function () {
