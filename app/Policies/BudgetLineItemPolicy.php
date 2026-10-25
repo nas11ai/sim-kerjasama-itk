@@ -16,7 +16,7 @@ class BudgetLineItemPolicy
     {
         // BR-BUD-02 — sumbu keadaan lebih dulu: status terminal mengunci
         // anggaran bagi siapa pun, termasuk ketua pengaju.
-        if ($this->isLockedByState($submission)) {
+        if (self::lockedByState($submission)) {
             return false;
         }
 
@@ -39,9 +39,10 @@ class BudgetLineItemPolicy
 
     /**
      * NEEDS_REVISION sengaja **tidak** di sini: BR-BUD-03 menuntut anggaran
-     * tetap bisa disunting saat revisi.
+     * tetap bisa disunting saat revisi. Publik supaya layar bisa membedakan
+     * "terkunci status" dari "hanya baca karena peran" tanpa salinan kedua.
      */
-    private function isLockedByState(FormSubmission $submission): bool
+    public static function lockedByState(FormSubmission $submission): bool
     {
         return $submission->status instanceof Approved
             || $submission->status instanceof Rejected

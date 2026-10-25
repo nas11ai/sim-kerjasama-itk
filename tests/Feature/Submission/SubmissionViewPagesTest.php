@@ -98,7 +98,7 @@ it('menyaring pengajuan periode Operator menurut nama state', function () {
         ->assertInertia(fn (Assert $page) => $page->where('submissions.total', 0));
 });
 
-it('menghitung pengajuan peneliti per periode dari periode milik pengajuan', function () {
+it('menyaring pengajuan peneliti per periode dari periode milik pengajuan', function () {
     $fixture = wizardFixture();
     $other = SubmissionPeriod::factory()->create();
 
@@ -116,10 +116,14 @@ it('menghitung pengajuan peneliti per periode dari periode milik pengajuan', fun
         'submitted_by' => $fixture['user']->id,
     ]);
 
+    // Filter periode di daftar memakai FK yang sama, bukan pivot fase yang dipakai dua periode.
     $this->actingAs($fixture['user'])
-        ->get(route('user.submissions.index'))
-        ->assertInertia(fn (Assert $page) => $page->where('submissionPeriods', fn ($rows) => collect($rows)->firstWhere('id', $fixture['period']->id)['user_submissions_count'] === 1
-            && collect($rows)->firstWhere('id', $other->id)['user_submissions_count'] === 0));
+        ->get(route('user.submissions.index', ['period' => $fixture['period']->id]))
+        ->assertInertia(fn (Assert $page) => $page->where('submissions.data.0.id', $submission->id));
+
+    $this->actingAs($fixture['user'])
+        ->get(route('user.submissions.index', ['period' => $other->id]))
+        ->assertInertia(fn (Assert $page) => $page->has('submissions.data', 0));
 
     $this->actingAs($fixture['user'])
         ->get(route('user.submissions.period', $fixture['period']))
