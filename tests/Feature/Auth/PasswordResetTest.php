@@ -7,7 +7,9 @@ use Illuminate\Support\Facades\Notification;
 test('reset password link screen can be rendered', function () {
     $response = $this->get('/forgot-password');
 
-    $response->assertStatus(200);
+    $response->assertStatus(200)->assertInertia(fn ($page) => $page
+        ->component('Auth/ForgotPasswordPage')
+        ->where('status', null));
 });
 
 test('reset password link can be requested', function () {
@@ -27,10 +29,13 @@ test('reset password screen can be rendered', function () {
 
     $this->post('/forgot-password', ['email' => $user->email]);
 
-    Notification::assertSentTo($user, ResetPassword::class, function ($notification) {
-        $response = $this->get('/reset-password/'.$notification->token);
+    Notification::assertSentTo($user, ResetPassword::class, function ($notification) use ($user) {
+        $response = $this->get('/reset-password/'.$notification->token.'?email='.urlencode($user->email));
 
-        $response->assertStatus(200);
+        $response->assertStatus(200)->assertInertia(fn ($page) => $page
+            ->component('Auth/ResetPasswordPage')
+            ->where('email', $user->email)
+            ->where('token', $notification->token));
 
         return true;
     });

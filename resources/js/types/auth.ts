@@ -33,3 +33,13 @@ export interface AccountVerification {
 export interface VerificationStatusPageProps {
     verification: AccountVerification
 }
+
+export interface ForgotPasswordPageProps {
+    status: string | null
+}
+
+// email null bila tautan reset dibuka tanpa query ?email=.
+export interface ResetPasswordPageProps {
+    email: string | null
+    token: string
+}
