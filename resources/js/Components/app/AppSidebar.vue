@@ -16,10 +16,16 @@ import { navGroups, visibleNavGroups } from '@/lib/navigation'
 import type { PageProps } from '@/types'
 
 const page = usePage<PageProps>()
-const { setOpenMobile } = useSidebar()
+const { isMobile, setOpenMobile } = useSidebar()
 
 // Layout persisten tidak dirender ulang, jadi drawer mobile ditutup tiap pindah halaman.
 onUnmounted(router.on('navigate', () => setOpenMobile(false)))
+
+// Mengetuk menu halaman yang sedang dibuka hanya replace tanpa 'navigate'.
+const closeOnLinkTap = (event: MouseEvent) => {
+    if (!isMobile.value || !(event.target instanceof Element)) return
+    if (event.target.closest('a')) setOpenMobile(false)
+}
 
 // navigation null hanya untuk tamu; di dalam layout aplikasi selalu terisi.
 const groups = computed(() =>
@@ -38,7 +44,7 @@ const groups = computed(() =>
             <div class="text-muted-foreground text-xs">LPPM ITK</div>
         </SidebarHeader>
 
-        <SidebarContent>
+        <SidebarContent @click="closeOnLinkTap">
             <AppSidebarGroup
                 v-for="(group, index) in groups"
                 :key="group.label ?? index"
@@ -46,7 +52,7 @@ const groups = computed(() =>
             />
         </SidebarContent>
 
-        <SidebarFooter>
+        <SidebarFooter @click="closeOnLinkTap">
             <AppSidebarUser />
         </SidebarFooter>
         <SidebarRail />

@@ -153,6 +153,34 @@ describe('AppSidebar di layar sempit', () => {
         expect(document.querySelector('[data-mobile="true"]')).toBeNull()
     })
 
+    // Kunjungan ke URL yang sama hanya replace, tanpa event navigate.
+    it('menutup drawer saat menu halaman aktif diketuk', async () => {
+        currentPattern = 'user.submissions.*'
+        wrapper = mountSidebar()
+        await wrapper.get('[data-sidebar="trigger"]').trigger('click')
+        await flushPromises()
+
+        const link = menuButton('Daftar Pengajuan')
+        expect(link?.getAttribute('data-active')).toBe('true')
+        link?.dispatchEvent(new MouseEvent('click', { bubbles: true }))
+        await flushPromises()
+
+        expect(document.querySelector('[data-mobile="true"]')).toBeNull()
+    })
+
+    it('menutup drawer saat tautan profil di footer diketuk', async () => {
+        wrapper = mountSidebar()
+        await wrapper.get('[data-sidebar="trigger"]').trigger('click')
+        await flushPromises()
+
+        document
+            .querySelector('[aria-label="Pengaturan"]')
+            ?.dispatchEvent(new MouseEvent('click', { bubbles: true }))
+        await flushPromises()
+
+        expect(document.querySelector('[data-mobile="true"]')).toBeNull()
+    })
+
     it('berhenti mendengarkan navigasi setelah dilepas', () => {
         wrapper = mountSidebar()
         wrapper.unmount()
