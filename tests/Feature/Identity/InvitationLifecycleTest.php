@@ -133,6 +133,17 @@ it('[IAM-INVITE-07] tautan undangan yang sah menampilkan form registrasi', funct
         );
 });
 
+// BR-IAM-06 — hak akses dari token ditampilkan read-only sebelum mendaftar.
+it('[IAM-INVITE-07] form registrasi undangan menampilkan hak akses token, urut abjad', function () {
+    $undangan = invitationToken(identityOrg(), ['permissions' => ['submissions.view-own', 'submissions.create']]);
+
+    $this->get(route('register.invitation.show', $undangan->token))
+        ->assertInertia(fn ($page) => $page
+            ->where('token', $undangan->token)
+            ->where('permissions', ['submissions.create', 'submissions.view-own'])
+        );
+});
+
 it('[IAM-INVITE-08] tautan undangan tidak berlaku mendarat di layar penolakan', function (array $override) {
     $undangan = invitationToken(identityOrg(), $override);
 

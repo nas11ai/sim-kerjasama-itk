@@ -1,37 +1,33 @@
 <script setup lang="ts">
-/**
- * BR-IAM-06 — SHARED-01-04, tautan undangan yang tidak berlaku.
- *
- * Sebabnya sengaja tidak dirinci. Keempat sebab — kuota habis, kedaluwarsa,
- * dicabut, organisasinya nonaktif — hanya berguna bagi Operator, sementara
- * bagi penebak token ia memberi tahu seberapa dekat tebakannya. Yang perlu
- * diketahui pendaftar adalah kepada siapa ia bertanya.
- */
+// Frame: SHARED-01-04
+// BR-IAM-06 — sebabnya sengaja tidak dirinci: kuota habis, kedaluwarsa, dicabut, atau
+// organisasi nonaktif hanya berguna bagi Operator, sedangkan bagi penebak token ia
+// memberi tahu seberapa dekat tebakannya. Pendaftar cukup tahu kepada siapa bertanya.
 import { Head, Link } from '@inertiajs/vue3'
-import { route } from 'ziggy-js'
+import { CircleAlert } from 'lucide-vue-next'
+
 import { Button } from '@/Components/ui/button'
-import { Card, CardContent, CardHeader, CardTitle } from '@/Components/ui/card'
-import { AlertTriangle } from 'lucide-vue-next'
+import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from '@/Components/ui/empty'
+import AuthLayout from '@/Layouts/AuthLayout.vue'
 </script>
 
 <template>
-    <Head title="Undangan Tidak Berlaku" />
+    <Head title="Undangan Tidak Valid" />
+    <AuthLayout>
+        <Empty class="p-0 md:p-0">
+            <EmptyHeader>
+                <EmptyMedia variant="icon"><CircleAlert /></EmptyMedia>
+                <EmptyTitle>Link undangan tidak valid</EmptyTitle>
+                <EmptyDescription>
+                    Link undangan sudah kedaluwarsa atau kuota penggunaannya habis. Hubungi Operator
+                    LPPM untuk meminta undangan baru.
+                </EmptyDescription>
+            </EmptyHeader>
+        </Empty>
 
-    <div class="flex min-h-screen items-center justify-center p-4">
-        <Card class="w-full max-w-md">
-            <CardHeader class="space-y-2">
-                <AlertTriangle class="text-destructive size-8" />
-                <CardTitle>Undangan tidak berlaku</CardTitle>
-            </CardHeader>
-            <CardContent class="space-y-4">
-                <p class="text-muted-foreground text-sm">
-                    Tautan undangan ini sudah tidak dapat dipakai untuk mendaftar. Hubungi
-                    penghubung Anda di LPPM untuk meminta undangan baru.
-                </p>
-                <Button :as="Link" :href="route('login')" variant="outline" class="w-full">
-                    Kembali ke Halaman Masuk
-                </Button>
-            </CardContent>
-        </Card>
-    </div>
+        <Button as-child variant="outline" class="mt-6 w-full">
+            <Link :href="route('login')">Kembali ke Halaman Login</Link>
+        </Button>
+        <p class="mt-4 text-center text-sm text-muted-foreground">Kontak: lppm@itk.ac.id</p>
+    </AuthLayout>
 </template>

@@ -83,6 +83,7 @@ class RegisteredUserController extends Controller
         return Inertia::render('Auth/RegisterInvitationPage', [
             'token' => $token,
             'organization' => $invitation->organization?->name,
+            'permissions' => collect($invitation->permissions)->sort()->values()->all(),
         ]);
     }
 

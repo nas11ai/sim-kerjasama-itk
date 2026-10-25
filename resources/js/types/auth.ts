@@ -14,3 +14,9 @@ export interface RegistrableFaculty {
 export interface RegisterPageProps {
     faculties: RegistrableFaculty[]
 }
+
+export interface RegisterInvitationPageProps {
+    token: string
+    organization: string | null
+    permissions: string[]
+}
