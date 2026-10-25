@@ -2,6 +2,8 @@
 
 namespace App\Data\View;
 
+use App\Models\FormSubmission;
+use App\States\Submission\Draft;
 use App\States\Submission\SubmissionStatus;
 use Spatie\LaravelData\Data;
 
@@ -24,5 +26,11 @@ final class SubmissionStatusData extends Data
             label: $state->label(),
             variant: $state->variant(),
         );
+    }
+
+    /** Null hanya pada model yang belum tersimpan; kolomnya ber-default Draft (StateConfig). */
+    public static function of(FormSubmission $submission): self
+    {
+        return self::fromState($submission->status ?? new Draft($submission));
     }
 }

@@ -27,13 +27,22 @@ final class SubmissionVisibility
      */
     public static function for(User $user): Builder
     {
-        $query = FormSubmission::query();
-
         if (self::seesEverything($user)) {
-            return $query;
+            return FormSubmission::query();
         }
 
-        return $query->where(function (Builder $milik) use ($user): void {
+        return self::ownedOrJoinedBy($user);
+    }
+
+    /**
+     * Pengajuan yang diketuai atau diikuti $user sebagai anggota aktif, tanpa
+     * memandang `view-all` — "pengajuan saya" di daftar peneliti.
+     *
+     * @return Builder<FormSubmission>
+     */
+    public static function ownedOrJoinedBy(User $user): Builder
+    {
+        return FormSubmission::query()->where(function (Builder $milik) use ($user): void {
             $milik
                 ->where('submitted_by', $user->id)
                 // BR-SM-07 — anggota tim ikut terhitung: menyempitkan ke

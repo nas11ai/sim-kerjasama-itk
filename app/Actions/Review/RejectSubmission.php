@@ -24,6 +24,9 @@ class RejectSubmission
 {
     use AsAction;
 
+    /** Entri terbaru dengan deskripsi ini adalah "Diputuskan oleh/Tanggal" di detail. */
+    public const AUDIT_DESCRIPTION = 'Pengajuan ditolak';
+
     /**
      * @throws AuthorizationException|ValidationException
      */
@@ -58,7 +61,7 @@ class RejectSubmission
         $tercatat = $submission->refresh();
 
         // BR-RPT-09 — satu Action, satu entri audit.
-        AuditTrail::record('Pengajuan ditolak', $tercatat, $operator);
+        AuditTrail::record(self::AUDIT_DESCRIPTION, $tercatat, $operator);
 
         return $tercatat;
     }

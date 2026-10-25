@@ -23,6 +23,9 @@ class SubmitFormSubmission
 {
     use AsAction;
 
+    /** Entri pertama dengan deskripsi ini adalah "Tanggal Submit" di daftar peneliti. */
+    public const AUDIT_DESCRIPTION = 'Pengajuan disubmit';
+
     /** SQLSTATE PostgreSQL untuk pelanggaran unique constraint. */
     private const UNIQUE_VIOLATION = '23505';
 
@@ -57,7 +60,7 @@ class SubmitFormSubmission
         $tercatat = $submission;
 
         // BR-RPT-09 — satu Action, satu entri audit.
-        AuditTrail::record('Pengajuan disubmit', $tercatat, $user);
+        AuditTrail::record(self::AUDIT_DESCRIPTION, $tercatat, $user);
 
         return $tercatat;
     }
