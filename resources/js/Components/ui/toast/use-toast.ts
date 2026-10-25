@@ -72,15 +72,23 @@ const state = shallowRef<State>({
     toasts: [],
 })
 
+// shallowRef hanya bereaksi pada penggantian `.value` utuh. Menyunting `state.value.toasts`
+// di tempat membuat Toaster tak pernah menggambar toast apa pun.
+function setToasts(toasts: ToasterToast[]) {
+    state.value = { toasts }
+}
+
 function dispatch(action: Action) {
     switch (action.type) {
         case actionTypes.ADD_TOAST:
-            state.value.toasts = [action.toast, ...state.value.toasts].slice(0, TOAST_LIMIT)
+            setToasts([action.toast, ...state.value.toasts].slice(0, TOAST_LIMIT))
             break
 
         case actionTypes.UPDATE_TOAST:
-            state.value.toasts = state.value.toasts.map((t) =>
-                t.id === action.toast.id ? { ...t, ...action.toast } : t
+            setToasts(
+                state.value.toasts.map((t) =>
+                    t.id === action.toast.id ? { ...t, ...action.toast } : t
+                )
             )
             break
 
@@ -95,21 +103,20 @@ function dispatch(action: Action) {
                 })
             }
 
-            state.value.toasts = state.value.toasts.map((t) =>
-                t.id === toastId || toastId === undefined
-                    ? {
-                          ...t,
-                          open: false,
-                      }
-                    : t
+            setToasts(
+                state.value.toasts.map((t) =>
+                    t.id === toastId || toastId === undefined ? { ...t, open: false } : t
+                )
             )
             break
         }
 
         case actionTypes.REMOVE_TOAST:
-            if (action.toastId === undefined) state.value.toasts = []
-            else state.value.toasts = state.value.toasts.filter((t) => t.id !== action.toastId)
-
+            setToasts(
+                action.toastId === undefined
+                    ? []
+                    : state.value.toasts.filter((t) => t.id !== action.toastId)
+            )
             break
     }
 }
