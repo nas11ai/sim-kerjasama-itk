@@ -9,15 +9,15 @@ import FormField from '@/Components/app/FormField.vue'
 import { Button } from '@/Components/ui/button'
 import { Input } from '@/Components/ui/input'
 import AuthLayout from '@/Layouts/AuthLayout.vue'
-import type { RegisterPageProps } from '@/types/auth'
+import type { RegisterForm, RegisterPageProps } from '@/types/auth'
 
 defineProps<RegisterPageProps>()
 
-const form = useForm({
+const form = useForm<RegisterForm>({
     name: '',
     email: '',
     nidn: '',
-    organization_id: null as number | null,
+    organization_id: null,
     password: '',
     password_confirmation: '',
 })

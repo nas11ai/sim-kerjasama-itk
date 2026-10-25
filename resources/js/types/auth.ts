@@ -15,6 +15,16 @@ export interface RegisterPageProps {
     faculties: RegistrableFaculty[]
 }
 
+// type, bukan interface: useForm butuh index signature implisit.
+export type RegisterForm = {
+    name: string
+    email: string
+    nidn: string
+    organization_id: number | null
+    password: string
+    password_confirmation: string
+}
+
 export interface RegisterInvitationPageProps {
     token: string
     organization: string | null
