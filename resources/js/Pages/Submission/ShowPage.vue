@@ -8,10 +8,12 @@ import PageHeader from '@/Components/app/PageHeader.vue'
 import SectionCard from '@/Components/app/SectionCard.vue'
 import StatusBadge from '@/Components/app/StatusBadge.vue'
 import BudgetSection from '@/Components/Submission/BudgetSection.vue'
+import DecisionSection from '@/Components/Submission/DecisionSection.vue'
 import FilesSection from '@/Components/Submission/FilesSection.vue'
 import HistoryTimeline from '@/Components/Submission/HistoryTimeline.vue'
 import InfoSection from '@/Components/Submission/InfoSection.vue'
 import MembersSection from '@/Components/Submission/MembersSection.vue'
+import ScoreSection from '@/Components/Submission/ScoreSection.vue'
 import SubmissionActions from '@/Components/Submission/SubmissionActions.vue'
 import TargetOutputsSection from '@/Components/Submission/TargetOutputsSection.vue'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/Components/ui/tabs'
@@ -56,6 +58,8 @@ const tabs = [
             Akses fase ini diperpanjang Operator sampai {{ formatDate(activeOverride.expires_at) }}.
         </AppBanner>
 
+        <DecisionSection v-if="decision" :decision="decision" class="mb-6" />
+
         <div class="grid gap-6 lg:grid-cols-[1fr_20rem]">
             <Tabs default-value="info" class="min-w-0">
                 <TabsList class="flex-wrap">
@@ -87,6 +91,7 @@ const tabs = [
                         :printable-documents="printableDocuments"
                     />
                 </SectionCard>
+                <ScoreSection :scores="scores" />
                 <SectionCard title="Timeline Status">
                     <HistoryTimeline :entries="history.slice(0, 3)" />
                 </SectionCard>
