@@ -13,6 +13,7 @@ use App\Models\Reviewer;
 use App\Models\ReviewSummary;
 use App\Models\SubmissionReviewer;
 use App\Models\User;
+use App\Queries\Review\ReviewThreads;
 use App\States\Submission\UnderReview;
 use Inertia\Testing\AssertableInertia as Assert;
 use Spatie\Permission\Models\Permission;
@@ -52,17 +53,16 @@ function threadAuthorFixture(): array
     return [$owner, $author, $submission];
 }
 
-it('mengirim penulis ulir ke layar pemilik pengajuan', function () {
-    [$owner, $author, $submission] = threadAuthorFixture();
+// Layar peneliti yang membaca ulir (RESEARCHER-02-05) lahir di S2c; sampai itu Query-nya
+// yang dijaga, karena layar Operator dan reviewer memakai kunci relasi yang sama.
+it('memuat penulis ulir lewat ReviewThreads untuk layar pemilik pengajuan', function () {
+    [, $author, $submission] = threadAuthorFixture();
 
-    $this->actingAs($owner)
-        ->get(route('user.submissions.show', $submission))
-        ->assertOk()
-        ->assertInertia(fn (Assert $page) => $page
-            ->where('submission.review_summaries.0.reviewer.user.id', $author->id)
-            ->where('submission.review_summaries.0.reviewer.user.name', 'Penilai Ulir')
-            ->where('submission.review_summaries.0.reviewer.reviewer_type', 'internal')
-            ->etc());
+    $reviewer = ReviewThreads::run($submission)['summaries']->first()?->reviewer;
+
+    expect($reviewer?->user?->id)->toBe($author->id)
+        ->and($reviewer?->user?->name)->toBe('Penilai Ulir')
+        ->and($reviewer?->reviewer_type)->toBe('internal');
 });
 
 it('mengirim penulis ulir ke layar Operator', function () {

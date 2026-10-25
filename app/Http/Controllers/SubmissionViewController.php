@@ -14,8 +14,8 @@ use App\Queries\Submission\OperatorPeriodDirectory;
 use App\Queries\Submission\OperatorPeriodSubmissions;
 use App\Queries\Submission\OperatorSubmissionView;
 use App\Queries\Submission\ResearcherPeriodPhases;
+use App\Queries\Submission\ResearcherSubmissionDetail;
 use App\Queries\Submission\ResearcherSubmissionList;
-use App\Queries\Submission\ResearcherSubmissionView;
 use App\Queries\Submission\SubmissionStatusChoices;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -78,7 +78,7 @@ class SubmissionViewController extends Controller
         // buatan sendiri di sini dulu melewatkan anggota penelitian dan pemegang submissions.view-all.
         abort_unless($submission->isAccessibleBy($user), 403, 'Akses tidak sah terhadap pengajuan.');
 
-        return Inertia::render('User/Submissions/ShowSubmission', ResearcherSubmissionView::run($user, $submission));
+        return Inertia::render('Submission/ShowPage', ResearcherSubmissionDetail::run($user, $submission));
     }
 
     public function adminShowSubmission(Request $request, FormSubmission $submission): Response

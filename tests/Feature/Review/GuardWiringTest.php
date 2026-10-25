@@ -116,8 +116,8 @@ it('[REV-VIS-04] keterlihatan skor ikut terkirim ke layar detail', function () {
             // Keputusannya ada di payload, bukan di dua boolean terpisah yang
             // tidak dibaca siapa pun: skor yang tidak boleh dilihat tidak
             // dikirim sama sekali.
-            ->where('reviewerScores.visible', false)
-            ->where('reviewerScores.scores', [])
+            ->where('scores.visible', false)
+            ->where('scores.scores', [])
             ->etc());
 });
 
@@ -144,10 +144,10 @@ it('[REV-VIS-05] peneliti tidak menerima skor sebelum keputusan final', function
         ->get(route('user.submissions.show', $submission))
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
-            ->where('reviewerScores.visible', false)
-            ->where('reviewerScores.scores', [])
+            ->where('scores.visible', false)
+            ->where('scores.scores', [])
             // Ruang kosong tanpa penjelasan membuat orang mengira sistemnya rusak.
-            ->where('reviewerScores.reason', 'Hasil review terbuka setelah keputusan akhir atas pengajuan ini diambil.')
+            ->where('scores.reason', 'Hasil review terbuka setelah keputusan akhir atas pengajuan ini diambil.')
             ->etc());
 });
 
@@ -168,7 +168,7 @@ it('[REV-VIS-06] peneliti menerima skor setelah keputusan final', function () {
         ->get(route('user.submissions.show', $submission))
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
-            ->where('reviewerScores.visible', true)
-            ->where('reviewerScores.reason', null)
+            ->where('scores.visible', true)
+            ->where('scores.reason', null)
             ->etc());
 });

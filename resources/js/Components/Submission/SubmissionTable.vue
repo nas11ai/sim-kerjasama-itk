@@ -3,10 +3,10 @@ import { Link } from '@inertiajs/vue3'
 import { ArrowRight, FileText } from 'lucide-vue-next'
 
 import DataTable from '@/Components/app/DataTable.vue'
+import EmptyState from '@/Components/app/EmptyState.vue'
 import StatusBadge from '@/Components/app/StatusBadge.vue'
 import { Badge } from '@/Components/ui/badge'
 import { Button } from '@/Components/ui/button'
-import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from '@/Components/ui/empty'
 import { formatDate } from '@/lib/format'
 import type { SubmissionRow } from '@/types/submission-page'
 
@@ -64,21 +64,19 @@ const columns = [
             </Button>
         </template>
         <template #empty>
-            <Empty>
-                <EmptyHeader>
-                    <EmptyMedia variant="icon"><FileText /></EmptyMedia>
-                    <EmptyTitle>
-                        {{
-                            filtered
-                                ? 'Tidak ada pengajuan yang cocok dengan filter'
-                                : 'Belum ada pengajuan'
-                        }}
-                    </EmptyTitle>
-                    <EmptyDescription v-if="!filtered">
-                        Pengajuan yang Anda ketuai atau ikuti sebagai anggota tim tampil di sini.
-                    </EmptyDescription>
-                </EmptyHeader>
-            </Empty>
+            <EmptyState
+                :icon="FileText"
+                :title="
+                    filtered
+                        ? 'Tidak ada pengajuan yang cocok dengan filter'
+                        : 'Belum ada pengajuan'
+                "
+                :description="
+                    filtered
+                        ? undefined
+                        : 'Pengajuan yang Anda ketuai atau ikuti sebagai anggota tim tampil di sini.'
+                "
+            />
         </template>
     </DataTable>
 </template>

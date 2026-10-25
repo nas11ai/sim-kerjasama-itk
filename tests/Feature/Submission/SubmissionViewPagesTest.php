@@ -6,16 +6,11 @@
 // pengajuan adalah FK-nya sendiri (ADR 0004), bukan pivot fase yang boleh
 // dimiliki banyak periode.
 
-use App\Models\FormPhaseDetail;
 use App\Models\FormSubmission;
-use App\Models\Reviewer;
-use App\Models\ReviewEvaluationForm;
 use App\Models\SubmissionPeriod;
-use App\Models\SubmissionReviewer;
 use App\Models\User;
 use App\States\Submission\Approved;
 use App\States\Submission\Rejected;
-use App\States\Submission\UnderReview;
 use Illuminate\Support\Facades\DB;
 use Inertia\Testing\AssertableInertia as Assert;
 use Spatie\Permission\Models\Permission;
@@ -132,58 +127,4 @@ it('menyaring pengajuan peneliti per periode dari periode milik pengajuan', func
     $this->actingAs($fixture['user'])
         ->get(route('user.submissions.period', $other))
         ->assertInertia(fn (Assert $page) => $page->where('formPhases.0.user_submissions', []));
-});
-
-/** @return array{0: User, 1: FormSubmission} */
-function viewPagesReviewer(string $evaluationStatus, bool $requiredForm): array
-{
-    $detail = FormPhaseDetail::factory()->create(['needs_review' => true]);
-    $submission = FormSubmission::factory()->create([
-        'form_phase_detail_id' => $detail->id,
-        'submitted_by' => User::factory()->create()->id,
-        'status' => UnderReview::class,
-    ]);
-
-    $user = User::factory()->create();
-    $reviewer = Reviewer::factory()->create([
-        'user_id' => $user->id,
-        'start_date' => now()->subMonth(),
-        'end_date' => now()->addMonth(),
-    ]);
-
-    SubmissionReviewer::create([
-        'form_submission_id' => $submission->id,
-        'reviewer_id' => $reviewer->id,
-        'evaluation_status' => $evaluationStatus,
-        'status' => 'active',
-    ]);
-
-    ReviewEvaluationForm::create([
-        'title' => 'Substansi',
-        'form_phase_detail_id' => $detail->id,
-        'is_active' => true,
-        'is_required' => $requiredForm,
-        'order' => 1,
-    ]);
-
-    return [$user, $submission];
-}
-
-it('[REV-EVAL-04] menahan tombol ulir reviewer selama evaluasinya belum beres', function () {
-    [$user, $submission] = viewPagesReviewer('pending', false);
-
-    $this->actingAs($user)
-        ->get(route('user.submissions.show', $submission))
-        ->assertInertia(fn (Assert $page) => $page->where('userRole', 'reviewer')
-            ->where('hasPendingEvaluations', true)
-            ->where('canCreateThread', false));
-});
-
-it('[REV-EVAL-06] membuka tombol ulir reviewer not_required walau form wajib menganggur', function () {
-    [$user, $submission] = viewPagesReviewer('not_required', true);
-
-    $this->actingAs($user)
-        ->get(route('user.submissions.show', $submission))
-        ->assertInertia(fn (Assert $page) => $page->where('hasPendingEvaluations', false)
-            ->where('canCreateThread', true));
 });

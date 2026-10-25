@@ -42,12 +42,12 @@ it('mengirim jawaban Policy ke layar pengajuan', function () {
         ->get(route('user.submissions.show', $fx['submission']))
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
-            ->component('User/Submissions/ShowSubmission')
-            ->where('abilities.view', true)
-            ->where('abilities.update', true)
-            ->where('abilities.submit', true)
-            ->where('abilities.resubmit', false)
-            ->where('abilities.withdraw', false)
+            ->component('Submission/ShowPage')
+            ->where('can.view', true)
+            ->where('can.update', true)
+            ->where('can.submit', true)
+            ->where('can.resubmit', false)
+            ->where('can.withdraw', false)
             ->etc());
 });
 
@@ -62,7 +62,7 @@ it('menutup penyuntingan draft di periode yang sudah diarsipkan', function () {
         ->get(route('user.submissions.show', $fx['submission']))
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
-            ->where('abilities.update', false)
+            ->where('can.update', false)
             ->etc());
 });
 
@@ -73,7 +73,7 @@ it('menutup penyuntingan pada status terminal', function () {
         ->get(route('user.submissions.show', $fx['submission']))
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
-            ->where('abilities.update', false)
+            ->where('can.update', false)
             ->etc());
 });
 
@@ -84,7 +84,7 @@ it('membuka resubmit hanya pada NEEDS_REVISION', function () {
         ->get(route('user.submissions.show', $fx['submission']))
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
-            ->where('abilities.update', true)
-            ->where('abilities.resubmit', true)
+            ->where('can.update', true)
+            ->where('can.resubmit', true)
             ->etc());
 });

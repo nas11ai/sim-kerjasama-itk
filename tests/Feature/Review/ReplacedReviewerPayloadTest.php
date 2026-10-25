@@ -11,8 +11,9 @@ use App\Models\FormSubmission;
 use App\Models\Reviewer;
 use App\Models\SubmissionReviewer;
 use App\Models\User;
+use App\Queries\Review\AssignedReviewerCards;
 use App\Queries\Review\EvaluationProgress;
-use Inertia\Testing\AssertableInertia as Assert;
+use App\Queries\Review\ReviewThreads;
 
 function payloadReviewer(FormSubmission $submission, string $status, string $evaluationStatus): void
 {
@@ -24,7 +25,7 @@ function payloadReviewer(FormSubmission $submission, string $status, string $eva
     ]);
 }
 
-it('tidak menghitung reviewer yang diganti di ringkasan layar peneliti', function () {
+it('tidak menghitung reviewer yang diganti di ringkasan ulir dan kartu reviewer', function () {
     $owner = User::factory()->create();
     $submission = FormSubmission::factory()->create(['submitted_by' => $owner->id]);
 
@@ -32,13 +33,8 @@ it('tidak menghitung reviewer yang diganti di ringkasan layar peneliti', functio
     payloadReviewer($submission, 'active', 'completed');
     payloadReviewer($submission, 'replaced', 'pending');
 
-    $this->actingAs($owner)
-        ->get(route('user.submissions.show', $submission))
-        ->assertOk()
-        ->assertInertia(fn (Assert $page) => $page
-            ->where('reviewStats.total_reviewers', 2)
-            ->count('assignedReviewers', 2)
-            ->etc());
+    expect(ReviewThreads::run($submission)['stats']['total_reviewers'])->toBe(2)
+        ->and(AssignedReviewerCards::run($submission))->toHaveCount(2);
 });
 
 it('sepakat dengan EvaluationProgress atas pengajuan yang sama', function () {
@@ -51,10 +47,5 @@ it('sepakat dengan EvaluationProgress atas pengajuan yang sama', function () {
 
     $progress = EvaluationProgress::run($submission->fresh());
 
-    $this->actingAs($owner)
-        ->get(route('user.submissions.show', $submission))
-        ->assertOk()
-        ->assertInertia(fn (Assert $page) => $page
-            ->where('reviewStats.total_reviewers', $progress->totalReviewers)
-            ->etc());
+    expect(ReviewThreads::run($submission)['stats']['total_reviewers'])->toBe($progress->totalReviewers);
 });

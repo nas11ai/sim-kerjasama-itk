@@ -94,7 +94,6 @@ resources/js/Pages/User/Biodata/IndexPage.vue
 resources/js/Pages/User/DashboardPage.vue
 resources/js/Pages/User/FormPhase.vue
 resources/js/Pages/User/Submissions/ShowPeriod.vue
-resources/js/Pages/User/Submissions/ShowSubmission.vue
 resources/js/Pages/Users/Components/DataTablePagination.vue
 resources/js/Pages/Users/Components/UserTableList.vue
 resources/js/Pages/Users/CreatePage.vue

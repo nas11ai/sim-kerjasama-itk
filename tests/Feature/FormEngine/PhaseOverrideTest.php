@@ -239,7 +239,7 @@ it('[FE-OVERRIDE-09] peneliti melihat status override tapi tidak alasannya', fun
         ->get(route('user.submissions.show', $fx['submission']))
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
-            ->component('User/Submissions/ShowSubmission')
+            ->component('Submission/ShowPage')
             ->where('phaseAccess.is_open', true)
             ->where('phaseAccess.override.status', 'active')
             ->where('phaseAccess.override.reason', null)
@@ -269,7 +269,7 @@ it('[FE-OVERRIDE-10] fase yang lewat batas tetap terbaca tapi terkunci', functio
         ->get(route('user.submissions.show', $fx['submission']))
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
-            ->component('User/Submissions/ShowSubmission')
+            ->component('Submission/ShowPage')
             // Terbaca: pengajuannya tetap dikirim ke layar, tidak 404 dan
             // tidak dikosongkan.
             ->where('submission.id', $fx['submission']->id)
