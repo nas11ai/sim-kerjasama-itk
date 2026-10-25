@@ -10,7 +10,9 @@ test('email verification screen can be rendered', function () {
 
     $response = $this->actingAs($user)->get('/verify-email');
 
-    $response->assertStatus(200);
+    $response->assertStatus(200)->assertInertia(fn ($page) => $page
+        ->component('Auth/VerifyEmailPage')
+        ->where('status', null));
 });
 
 test('email can be verified', function () {

@@ -7,7 +7,7 @@ test('confirm password screen can be rendered', function () {
 
     $response = $this->actingAs($user)->get('/confirm-password');
 
-    $response->assertStatus(200);
+    $response->assertStatus(200)->assertInertia(fn ($page) => $page->component('Auth/ConfirmPasswordPage'));
 });
 
 test('password can be confirmed', function () {

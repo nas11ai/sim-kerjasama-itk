@@ -43,3 +43,7 @@ export interface ResetPasswordPageProps {
     email: string | null
     token: string
 }
+
+export interface VerifyEmailPageProps {
+    status: string | null
+}
