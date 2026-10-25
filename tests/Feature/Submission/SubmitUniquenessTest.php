@@ -124,13 +124,10 @@ it('[SM-SUBMIT-03] dua draft ke skema berbeda boleh hidup bersamaan', function (
     // Then: "P-001" dan "P-002" sama-sama terbaca.
     $response->assertOk()
         ->assertInertia(fn (Assert $page) => $page
-            // shouldExist=false: config inertia.pages.paths bawaan paket
-            // ('js/pages') tidak cocok dengan struktur direktori repo ini.
-            ->component('User/Submissions/IndexPage')
-            ->has('submissionPeriods', 1)
-            ->where('submissionPeriods.0.id', $period->id)
-            ->where('submissionPeriods.0.user_submissions_count', 2)
-            ->where('submissionPeriods.0.user_draft_count', 2));
+            ->component('Submission/IndexPage')
+            ->has('submissions.data', 2)
+            ->where('submissions.data.0.status.key', 'draft')
+            ->where('submissions.data.1.status.key', 'draft'));
 
     // And: tidak ada penolakan karena pengajuan aktif. Predikat index BR-SM-01
     // menyaring `is_submitted = true`, jadi dua DRAFT tidak pernah saling

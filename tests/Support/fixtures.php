@@ -94,8 +94,10 @@ function actingResearcher(): array
     $user = User::factory()->create();
     UserProfile::factory()->create(['user_id' => $user->id, 'organization_id' => $organization->id]);
 
+    // Sepasang izin yang dipegang peran `researcher` di PermissionSeeder.
     Permission::findOrCreate('submissions.create', 'web');
-    $user->givePermissionTo('submissions.create');
+    Permission::findOrCreate('submissions.view-own', 'web');
+    $user->givePermissionTo('submissions.create', 'submissions.view-own');
 
     return [$user, $organization];
 }

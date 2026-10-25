@@ -149,7 +149,9 @@ Route::middleware(['auth', 'check_biodata'])->prefix('user')->name('user.')->gro
         ->name('submissions.store');
 
     // Submission viewing routes
+    // fe-v2-design §4.4 — dijaga permission DDD, bukan sekadar login.
     Route::get('/submissions', [SubmissionViewController::class, 'userIndex'])
+        ->middleware('can:submissions.view-own')
         ->name('submissions.index');
 
     Route::get('/submissions/period/{period}', [SubmissionViewController::class, 'userShowPeriod'])

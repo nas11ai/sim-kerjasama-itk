@@ -13,8 +13,8 @@ use App\Queries\Review\ReviewerSubmissionView;
 use App\Queries\Submission\OperatorPeriodDirectory;
 use App\Queries\Submission\OperatorPeriodSubmissions;
 use App\Queries\Submission\OperatorSubmissionView;
-use App\Queries\Submission\ResearcherPeriodOverview;
 use App\Queries\Submission\ResearcherPeriodPhases;
+use App\Queries\Submission\ResearcherSubmissionList;
 use App\Queries\Submission\ResearcherSubmissionView;
 use App\Queries\Submission\SubmissionStatusChoices;
 use Illuminate\Http\Request;
@@ -25,7 +25,16 @@ class SubmissionViewController extends Controller
 {
     public function userIndex(Request $request): Response
     {
-        return Inertia::render('User/Submissions/IndexPage', ResearcherPeriodOverview::run($this->viewer($request)));
+        $filters = [
+            'search' => $request->string('search')->value(),
+            'status' => $request->string('status')->value(),
+            'period' => $request->string('period')->value(),
+        ];
+
+        return Inertia::render('Submission/IndexPage', [
+            'filters' => $filters,
+            ...ResearcherSubmissionList::run($this->viewer($request), $filters),
+        ]);
     }
 
     public function adminIndex(Request $request): Response
