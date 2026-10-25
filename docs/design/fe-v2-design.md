@@ -1,8 +1,10 @@
 # Desain Frontend SIMPAS v2 — Tulis Ulang per Layar Mengikuti Wireframe
 
-**Versi:** 0.3
+**Versi:** 0.4
 **Tanggal:** 2026-10-25
-**Status:** Draf; keputusan terbuka K1–K3 sudah diputuskan pemilik (§9)
+**Status:** Draf; keputusan terbuka K1–K3 dan K5 sudah diputuskan pemilik (§9).
+v0.4: pengumuman dipertahankan dan diberi pembatasan akses per peran (§4.7, irisan
+A1), mengubah K3.
 
 Dokumen ini menetapkan **bagaimana** frontend SIMPAS v2 dibangun ulang: apa yang
 dibuang, apa yang dipertahankan, bentuk kode barunya, dan urutan pengerjaannya.
@@ -55,6 +57,8 @@ lama tidak perlu tetap berfungsi selama pembangunan.
 - Setiap frame wireframe yang ada di §8 punya halaman Vue yang menggambar
   isi dan **semua state** frame itu (happy path + `@denial`/`@boundary` dari
   `STATE-COVERAGE.md`).
+- Pengumuman, satu-satunya layar tanpa frame wireframe, mengikuti aturan di
+  §4.7 dan disusun dari komponen shell yang sudah ada (§9 K5).
 - Semua kosakata UI dan kode memakai `02_ubiquitous_language.md`.
 - Semua halaman legacy terhapus; `max.legacy.files` turun ke 1
   (`app/Models/FormSubmission.php`, permanen).
@@ -64,7 +68,8 @@ lama tidak perlu tetap berfungsi selama pembangunan.
 **Non-tujuan**
 
 - Menambah aturan bisnis baru. Kalau sebuah layar butuh perilaku yang belum ada
-  di DDD/BDD, berhenti dan tanyakan.
+  di DDD/BDD, berhenti dan tanyakan. Satu-satunya yang sudah ditanyakan dan
+  diputuskan: pengumuman (§4.7, §9 K5).
 - REST API, SSR, i18n multi-bahasa, dark mode. UI satu bahasa (Indonesia).
 - Pencarian global topbar (Ctrl+K, `ux/ia/00_navigation/topbar.md`). Ditunda
   (§9 K2): topbar dirender tanpa kotak pencarian sampai irisan tersendiri
@@ -118,6 +123,7 @@ resources/js/
 │   ├── Auth/            SHARED-01-*
 │   ├── Dashboard/       SHARED-02-01..04
 │   ├── Notification/    SHARED-02-05
+│   ├── Announcement/    tanpa frame (§4.7)
 │   ├── Profile/         SHARED-01-06, 01-07
 │   ├── Submission/      RESEARCHER-02-*, OPERATOR-02-*, RESEARCHER-07-01
 │   ├── Review/          REVIEWER-03-*, OPERATOR-03-*
@@ -256,6 +262,56 @@ berbahasa Indonesia, dan `variant()`. Label karenanya **dikirim backend**
 sinkronnya dijaga test arsitektur Pest. (v0.3: menggantikan rencana peta label
 di frontend setelah ditemukan bahwa backend sudah memegangnya.)
 
+### 4.7 Pengumuman
+
+Pengumuman tidak punya BR, skenario BDD, maupun frame wireframe. Aturan di
+bawah ini diputuskan pemilik (§9 K5) dan menjadi acuan satu-satunya. Komentar
+kode merujuk `fe-v2-design §4.7`, bukan kode BR karangan.
+
+**Siapa membuat.** Operator (dan Admin lewat katalog penuhnya) memakai
+permission baru `announcements.manage`, ditambahkan ke
+`PermissionSeeder::PERMISSIONS` dan ke peran `operator`. Grup route kelola
+pengumuman keluar dari `can:users.manage` (pola K1). Saat ini Operator belum
+bisa membuat pengumuman karena route itu hanya untuk Admin.
+
+**Siapa melihat.** Ada dua jenis, `public` dan `private`, keduanya sudah ada di
+kolom `announcements.type`. Pengumuman privat bisa dipersempit ke peran:
+
+| Jenis | Target peran | Terlihat oleh |
+| --- | --- | --- |
+| `public` | tidak boleh diisi | tamu dan semua pengguna login |
+| `private` | kosong | semua pengguna login |
+| `private` | satu atau lebih peran | pengguna login yang punya minimal satu peran itu |
+
+- Target peran disimpan di tabel pivot baru `announcement_roles`
+  (`announcement_id`, `role_id`). Migration hanya dijalankan ke DB dev/test.
+- Peran yang bisa dipilih adalah lima peran DDD di `PermissionSeeder::ROLE_PERMISSIONS`
+  (`researcher`, `reviewer_internal`, `reviewer_external`, `operator`, `admin`),
+  bukan role legacy `Admin`. Labelnya dikirim backend, sehingga frontend tidak
+  memeriksa nama peran (§2 anti-tujuan).
+- Validasi: target peran pada pengumuman `public` ditolak (`AnnouncementRequest`).
+- Pengumuman yang `expired_at`-nya lewat tidak terlihat oleh pembaca. Layar kelola
+  tetap menampilkannya dengan badge "Kedaluwarsa".
+- Satu definisi visibilitas: `Queries/Announcement/VisibleAnnouncements` diperluas
+  dengan filter peran. Semua jalur pembaca (daftar, detail, dashboard, umpan
+  publik, hitungan belum dibaca) wajib lewat Query ini. Pengumuman yang tidak
+  terlihat oleh penanya dijawab **404** (perilaku yang sudah ada, A1 wave 3).
+
+**Sudah dibaca.** Tabel `announcement_users` tetap menjadi penanda baca. Halaman
+detail mengirim `router.post(route('user.announcements.markRead'))` sekali saat
+dibuka bila belum dibaca. Endpoint-nya diubah dari JSON menjadi redirect back
+Inertia. Sidebar item "Pengumuman" menampilkan jumlah belum dibaca
+(`auth.user.unread_announcements`, lazy shared prop).
+
+**Isi.** Isi pengumuman berupa teks biasa yang dirender dengan
+`whitespace-pre-line`, **tanpa `v-html`**. Legacy (`AnnouncementDetail.vue`)
+menerima teks dari `Textarea` tetapi merendernya sebagai HTML, sehingga terjadi
+XSS tersimpan. Lampiran tetap mengikuti `AnnouncementRequest` (jpg/png/pdf, 2 MB).
+
+**Di luar cakupan:** notifikasi/email saat terbit, target per form/skema atau
+per user, jadwal terbit di masa depan, rich text. Kalau dibutuhkan, buka
+keputusan baru di §9.
+
 ## 5. Testing
 
 | Lapis | Alat | Isi |
@@ -336,7 +392,8 @@ perkiraan saat dokumen ditulis. Verifikasi di awal irisan.
 | S2c | ☐ | Edit draft, revisi, target luaran, audit saya | RESEARCHER-02-04, 02-05, 02-11, 07-01 | `Submission/EditPage`, `RevisionPage`, `TargetOutputPage`, `AuditPage` | ◐ / ✗ audit peneliti | sisa `User/*` pengajuan | S2b |
 | S3a | ☐ | Review oleh reviewer | REVIEWER-03-01..04 | `Review/AssignmentIndexPage`, `HistoryPage`, `EvaluationPage`, `SummaryPage` | ◐ | `Reviewer/*`, `ReviewSystem`, `ReviewScorePanel` | S2a |
 | S4 | ☐ | Pengajuan sisi operator | OPERATOR-02-01..06, OPERATOR-03-01, 03-02 | `Submission/ManageIndexPage`, `ManageShowPage` + dialog perpanjang/alihkan/tolak/tarik/tugaskan/ganti | ◐ | `Submissions/*`, `AssignReviewerDialog`, `ReplaceReviewerDialog`, `RejectSubmissionDialog`, `TransferOwnershipDialog`, `SubmissionEvaluationManager/*`, `ReviewerAssignments/*` | S2a, S3a |
-| D1 | ☐ | Dashboard & notifikasi | SHARED-02-01..05 | `Dashboard/IndexPage` (section per permission, §4.4), `Notification/IndexPage` | ◐ | `DashboardPage`, `User/DashboardPage`, `Reviewer/DashboardPage`, `Notifications/*` | S2a, S3a, S4 |
+| A1 | ☐ | Pengumuman: baca & kelola | tanpa frame (§4.7) | `Announcement/IndexPage`, `Announcement/ShowPage` (pembaca; tamu untuk yang publik), `Announcement/ManageIndexPage`, `Announcement/FormPage` (buat & sunting), panel pengumuman publik di halaman login (§9 K5) | ◐ permission `announcements.manage`, pivot `announcement_roles`, `VisibleAnnouncements` + filter peran, `markRead` → redirect Inertia | `Announcements/*`, `AnnouncementDetail`, `User/Announcements/*` | S1 |
+| D1 | ☐ | Dashboard & notifikasi | SHARED-02-01..05 | `Dashboard/IndexPage` (section per permission, §4.4, + section "Pengumuman terbaru" lewat `VisibleAnnouncements`), `Notification/IndexPage` | ◐ | `DashboardPage`, `User/DashboardPage`, `Reviewer/DashboardPage`, `Notifications/*` | S2a, S3a, S4, A1 |
 | I1 | ☐ | User, verifikasi, undangan, reviewer | OPERATOR-08-01..04, ADMIN-08-01 | `Identity/*` | ◐ | `Users/*`, `Identity/*`, `Reviewers/*` | F0 |
 | P1 | ☐ | Profil | SHARED-01-06, 01-07 | `Profile/CompletePage`, `Profile/ShowPage` | ◐ | `Profile/*`, `User/Biodata/*` | S1 |
 | E1 | ☐ | Periode pengajuan | OPERATOR-09-01 | `FormEngine/PeriodIndexPage` | ◐ | `SubmissionPeriods/*` | F0 |
@@ -346,7 +403,7 @@ perkiraan saat dokumen ditulis. Verifikasi di awal irisan.
 | M1 | ☐ | Monev | RESEARCHER-05-01..03, OPERATOR-05-01, 05-02 | `Monev/*` | ✗ daftar peneliti / ◐ siklus | `Monev/CyclePage` | S2a |
 | O1 | ☐ | Luaran penelitian | RESEARCHER-06-01..03 | `ResearchOutput/*` | ✗ daftar / ✓ simpan | `ResearchOutputManager` | S2a |
 | R1 | ☐ | Statistik, export, audit sistem | OPERATOR-07-01..03 | `Reporting/StatsPage` (menggantikan empat halaman statistik legacy), `ExportPage`, `AuditPage` | ◐ empat aksi `StatController` digabung jadi satu / ✓ export, audit | `Statistics/*`, `Exports/*`, `Audit/*`, `StatisticSection` | D1 |
-| F99 | ☐ | Bersih-bersih | — | — | hapus `roles`/`is_reviewer` dari shared props | `AuthenticatedLayout`, sisa `Components/*` di luar `ui/` & `app/`, `Constants/`, `Utils/`; layar tanpa wireframe beserta route & controller-nya (§9 K3): `Announcements/*`, `AnnouncementDetail`, `User/Announcements/*`, `Roles/*`, `Permissions/*`, `WelcomePage` (`/` dialihkan ke dashboard atau login); `max.legacy.files` → 1; Playwright smoke | semua |
+| F99 | ☐ | Bersih-bersih | — | — | hapus `roles`/`is_reviewer` dari shared props | `AuthenticatedLayout`, sisa `Components/*` di luar `ui/` & `app/`, `Constants/`, `Utils/`; layar tanpa wireframe beserta route & controller-nya (§9 K3): `Roles/*`, `Permissions/*`, `WelcomePage` (`/` dialihkan ke dashboard atau login; umpan publik sudah pindah ke halaman login di A1); `max.legacy.files` → 1; Playwright smoke | semua |
 
 ## 9. Keputusan terbuka dan selisih
 
@@ -354,13 +411,15 @@ perkiraan saat dokumen ditulis. Verifikasi di awal irisan.
 | --- | --- | --- |
 | K1 | Route operator dijaga `can:users.manage` (hanya Admin), sedangkan sidebar memakai permission DDD; `forms.manage` dan `reporting.view` di `sidebar.md` tidak ada di DDD/seeder. | Pemilik, 2026-10-25: tiap irisan menjaga ulang route-nya dengan permission DDD + test 200/403; dua permission dipetakan ke yang ada (§4.4). DDD tidak disunting. |
 | K2 | Pencarian global topbar ada di wireframe dan `topbar.md`, tapi endpoint-nya belum ada dan bertentangan dengan "tanpa REST API". | Pemilik, 2026-10-25: ditunda; irisan tersendiri setelah F99, dengan Query ber-scope BR-SM-07. |
-| K3 | Layar legacy yang tidak ada di wireframe maupun DDD/UX: Announcements (admin & user), layar mendefinisikan Roles/Permissions, empat halaman Statistics, `WelcomePage`. Memberi role ke user tetap ada di OPERATOR-08-03. | Pemilik, 2026-10-25: dibuang di F99; statistik digabung ke `Reporting/StatsPage` di R1. |
+| K3 | Layar legacy yang tidak ada di wireframe maupun DDD/UX: Announcements (admin & user), layar mendefinisikan Roles/Permissions, empat halaman Statistics, `WelcomePage`. Memberi role ke user tetap ada di OPERATOR-08-03. | Pemilik, 2026-10-25: dibuang di F99; statistik digabung ke `Reporting/StatsPage` di R1. **Diubah oleh K5:** Announcements tidak dibuang. |
 | K4 | Satu dashboard atau empat untuk user dua peran. | Penulis dokumen: satu halaman, section per permission (§4.4). |
+| K5 | Kebutuhan bisnis: operator membuat pengumuman secara manual (contoh: format file baru untuk input form pengajuan), dan aksesnya harus bisa dibatasi. Tidak ada di wireframe/DDD/BDD. | Pemilik, 2026-10-25: dipertahankan sebagai irisan A1; publik/privat tetap, privat bisa dipersempit **per peran** (bukan per form/skema). Aturannya di §4.7. Penulis dokumen: permission `announcements.manage` untuk Operator, isi teks biasa tanpa `v-html`, tanpa notifikasi saat terbit, umpan publik tampil sebagai panel di halaman login (SHARED-01-01) karena `/` dialihkan ke login (K3). |
 | W1 | `sidebar.md` menampilkan Daftar Monev dan Luaran Penelitian hanya bila ada "submission APPROVED milik user"; DDD lebih luas: BR-RO-07 membolehkan `co_investigator` aktif mengelola luaran, BR-RO-06 menyimpan luaran sebagai data historis setelah WITHDRAWN, BR-MON-08 membekukan (bukan menghapus) monev saat WITHDRAWN. `HasApprovedSubmission` di F0 mengikuti `sidebar.md` (`submitted_by` + Approved saja); tanpa efek di F0 karena kedua item masih `routeName: null`. | Ditunda ke M1/O1: kemungkinan Approved ∪ Withdrawn dan keanggotaan `co_investigator` aktif; diputuskan di rencana irisan itu (DDD menang atas UX). |
 | W2 | `sidebar.md` menampilkan Daftar Pengajuan untuk `submissions.view-own` ATAU `submissions.view-all`; F0 hanya memakai `view-own` karena operator sudah mendapat Semua Pengajuan. | Penulis rencana F0: hanya view-own; operator memakai Semua Pengajuan. |
 | W3 | Wireframe auth vs backend: tautan "Punya link undangan?" di SHARED-01-01 tidak punya tujuan (undangan masuk lewat tautannya sendiri); empat state sebab undangan tidak valid di SHARED-01-04 sengaja dilebur satu oleh backend (anti-enumerasi token); layar verifikasi email dan konfirmasi password hidup di backend (`verified`, `password.confirm`) tapi tidak ada di wireframe. | Penulis rencana S1: tautan undangan tidak digambar, satu pesan penolakan, dua layar Breeze dipindah ke `AuthLayout` apa adanya. |
 | W4 | "Hak Akses" di SHARED-01-03 butuh label permission yang terbaca manusia; belum ada peta label permission. | S1 menampilkan nama permission mentah; peta label diputuskan di I1 (OPERATOR-08-04 butuh peta yang sama). |
 | W5 | "Ditolak pada" di state penolakan SHARED-01-05 tidak punya kolom; `user_profiles` hanya menyimpan `rejection_reason`. | Tidak digambar di S1; menambah kolom waktu penolakan diputuskan di I1 (verifikasi NIDN). |
+| W6 | `sidebar.md`/`shell.yaml` tidak punya item pengumuman, dan SHARED-01-01 tidak punya panel pengumuman publik. | Penulis dokumen (K5): item "Pengumuman" untuk semua pengguna login (dengan jumlah belum dibaca) dan "Kelola Pengumuman" untuk `announcements.manage`, ditaruh di grup operator dekat "Periode Pengajuan"; panel publik di sisi form login, paling banyak 5 terbaru. Dokumen UX tidak disunting. |
 
 Selisih wireframe↔DDD yang ditemukan saat mengerjakan irisan dicatat di sini
 dengan kode `W1`, `W2`, …, beserta keputusan yang diambil.
