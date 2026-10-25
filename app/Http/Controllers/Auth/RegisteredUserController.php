@@ -57,12 +57,12 @@ class RegisteredUserController extends Controller
 
         event(new Registered($user));
 
-        // BR-IAM-04 — akun `pending` boleh masuk. Kalau tidak, layar
-        // "Menunggu Verifikasi" tidak akan pernah terbaca dan pendaftar
-        // menghadapi jalan buntu selama verifikasi berjalan berhari-hari.
+        // BR-IAM-04 — akun `pending` boleh masuk dan langsung melihat layar
+        // "Menunggu Verifikasi"; tanpa itu pendaftar menghadapi jalan buntu
+        // selama verifikasi berjalan berhari-hari.
         Auth::login($user);
 
-        return redirect()->route('dashboard');
+        return redirect()->route('verification.status');
     }
 
     /**

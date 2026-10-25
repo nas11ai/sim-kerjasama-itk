@@ -20,3 +20,16 @@ export interface RegisterInvitationPageProps {
     organization: string | null
     permissions: string[]
 }
+
+// Sumber: app/Data/View/AccountVerificationData.php. Akun aktif tidak pernah sampai ke layar ini.
+export interface AccountVerification {
+    status: 'pending' | 'rejected'
+    statusLabel: string
+    nidn: string | null
+    email: string
+    rejectionReason: string | null
+}
+
+export interface VerificationStatusPageProps {
+    verification: AccountVerification
+}

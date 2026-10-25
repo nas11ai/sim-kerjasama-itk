@@ -82,7 +82,7 @@ test('new users can register with an ITK email', function () {
         'password_confirmation' => 'password',
         'nidn' => '0011223344',
         'organization_id' => $organization->id,
-    ])->assertRedirect(route('dashboard'));
+    ])->assertRedirect(route('verification.status'));
 
     $this->assertAuthenticated();
 

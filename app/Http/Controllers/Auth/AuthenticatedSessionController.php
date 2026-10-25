@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
+use App\Queries\Identity\PostLoginDestination;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -33,16 +34,13 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerate();
 
-        $user = Auth::user();
+        $user = $request->user();
 
-        // Cabang `app()->environment('testing')` yang dulu ada di sini dicabut: ia
-        // mengalihkan test ke route('dashboard'), sehingga percabangan produksi asli
-        // (admin vs dasbor peneliti) tidak pernah teruji — itu sebab aturannya.
-        if ($user !== null && $user->can('users.manage')) {
-            return redirect()->intended(route('admin.dashboard'));
+        if ($user === null) {
+            return redirect()->route('login');
         }
 
-        return redirect()->intended(route('user.dashboard'));
+        return redirect()->intended(route(PostLoginDestination::run($user)));
     }
 
     /**

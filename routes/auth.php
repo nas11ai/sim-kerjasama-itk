@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Auth\AccountVerificationController;
 use App\Http\Controllers\Auth\AuthenticatedSessionController;
 use App\Http\Controllers\Auth\ConfirmablePasswordController;
 use App\Http\Controllers\Auth\EmailVerificationNotificationController;
@@ -46,6 +47,10 @@ Route::middleware('guest')->group(function () {
 });
 
 Route::middleware('auth')->group(function () {
+    // BR-IAM-04 — tanpa `verified`: pendaftar baru belum memverifikasi emailnya.
+    Route::get('account/verification', AccountVerificationController::class)
+        ->name('verification.status');
+
     Route::get('verify-email', EmailVerificationPromptController::class)
         ->name('verification.notice');
 
