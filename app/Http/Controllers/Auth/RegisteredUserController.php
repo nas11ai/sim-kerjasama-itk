@@ -6,8 +6,8 @@ use App\Actions\Identity\RegisterByInvitation;
 use App\Actions\Identity\RegisterResearcher;
 use App\Http\Controllers\Controller;
 use App\Models\InvitationToken;
-use App\Models\Organization;
 use App\Models\User;
+use App\Queries\Identity\RegistrableStudyPrograms;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -17,7 +17,6 @@ use Illuminate\Validation\Rules;
 use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
-use Spatie\Permission\Models\Role;
 
 class RegisteredUserController extends Controller
 {
@@ -26,18 +25,8 @@ class RegisteredUserController extends Controller
      */
     public function create(): Response
     {
-        $roles = Role::whereIn('id', [3, 4])
-            ->select('id', 'name')
-            ->get();
-
-        $organizations = Organization::where('type', 'study_program')
-            ->select('id', 'name')
-            ->orderBy('id')
-            ->get();
-
         return Inertia::render('Auth/RegisterPage', [
-            'roles' => $roles,
-            'studyPrograms' => $organizations,
+            'faculties' => RegistrableStudyPrograms::run(),
         ]);
     }
 

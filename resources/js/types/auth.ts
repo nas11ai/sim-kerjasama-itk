@@ -4,3 +4,13 @@ export interface LoginPageProps {
     canResetPassword: boolean
     status: string | null
 }
+
+export interface RegistrableFaculty {
+    id: number
+    name: string
+    study_programs: { id: number; name: string }[]
+}
+
+export interface RegisterPageProps {
+    faculties: RegistrableFaculty[]
+}
