@@ -19,4 +19,9 @@ declare module 'vue' {
 
 declare module '@inertiajs/core' {
     interface PageProps extends InertiaPageProps, AppPageProps {}
+
+    // Bentuk flash native dari HandleInertiaRequests::bridgeSessionFlash(); kunci kosong tidak dikirim.
+    interface InertiaConfig {
+        flashDataType: { message?: string; error?: string; success?: string }
+    }
 }

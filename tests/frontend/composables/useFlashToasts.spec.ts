@@ -1,16 +1,16 @@
-import { effectScope, nextTick, reactive } from 'vue'
+import { effectScope } from 'vue'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 const { toast, page, handlers } = vi.hoisted(() => ({
     toast: vi.fn(),
     page: { props: {} as Record<string, unknown> },
-    handlers: new Map<string, Set<() => void>>(),
+    handlers: new Map<string, Set<(event: unknown) => void>>(),
 }))
 
 vi.mock('@inertiajs/vue3', () => ({
     usePage: () => page,
     router: {
-        on: (type: string, callback: () => void) => {
+        on: (type: string, callback: (event: unknown) => void) => {
             const set = handlers.get(type) ?? new Set()
             set.add(callback)
             handlers.set(type, set)
@@ -22,22 +22,12 @@ vi.mock('@/Components/ui/toast', () => ({ toast }))
 
 import { useFlashToasts } from '@/composables/useFlashToasts'
 
-const empty = { message: null, error: null, success: null, workloadWarnings: null }
+// Meniru Inertia: event 'flash' muncul untuk halaman awal dan respons server,
+// tidak untuk pemulihan riwayat. 'finish' muncul untuk semua request.
+const emit = (type: string, detail: unknown = {}) =>
+    handlers.get(type)?.forEach((callback) => callback({ detail }))
 
-// props reaktif seperti usePage() asli; tiap respons menimpa objek flash.
-const props = () => page.props as { flash: Record<string, unknown> }
-const setFlash = (flash: Record<string, unknown>) => {
-    props().flash = { ...empty, ...flash }
-}
-
-// Meniru Inertia: respons server menimpa props lalu memicu 'finish';
-// pemulihan riwayat (popstate) hanya menukar page dan memicu 'navigate'.
-const emit = (type: string) => handlers.get(type)?.forEach((callback) => callback())
-
-const serverResponse = (flash: Record<string, unknown>) => {
-    setFlash(flash)
-    emit('finish')
-}
+const flash = (data: Record<string, unknown>) => emit('flash', { flash: data })
 
 let scope: ReturnType<typeof effectScope>
 
@@ -47,7 +37,7 @@ const start = () => {
 }
 
 beforeEach(() => {
-    page.props = reactive({ flash: { ...empty } })
+    page.props = { flash: { success: 'Lama', error: null, message: null, workloadWarnings: null } }
 })
 
 afterEach(() => {
@@ -57,79 +47,59 @@ afterEach(() => {
 })
 
 describe('useFlashToasts', () => {
-    it('menampilkan flash halaman awal sekali', () => {
-        setFlash({ success: 'Tersimpan' })
+    it('menampilkan flash dari event flash', () => {
         start()
-        emit('finish')
+        flash({ success: 'Tersimpan' })
 
-        expect(toast).toHaveBeenCalledTimes(1)
-        expect(toast).toHaveBeenCalledWith({ title: 'Tersimpan' })
-    })
-
-    it('menampilkan flash dari respons server', () => {
-        start()
-        serverResponse({ success: 'Tersimpan' })
-
-        expect(toast).toHaveBeenCalledWith({ title: 'Tersimpan' })
+        expect(toast).toHaveBeenCalledExactlyOnceWith({ title: 'Tersimpan' })
     })
 
     it('memakai varian destructive untuk flash error', () => {
         start()
-        serverResponse({ error: 'Gagal' })
+        flash({ error: 'Gagal' })
 
         expect(toast).toHaveBeenCalledWith({ title: 'Gagal', variant: 'destructive' })
     })
 
     it('menampilkan toast untuk flash message', () => {
         start()
-        serverResponse({ message: 'Info' })
+        flash({ message: 'Info' })
 
         expect(toast).toHaveBeenCalledWith({ title: 'Info' })
     })
 
-    it('teks sama pada dua respons server berturut-turut tampil dua kali', () => {
+    it('tidak menoast saat setup walau props.flash legacy terisi', () => {
         start()
-        serverResponse({ success: 'Tersimpan' })
-        serverResponse({ success: 'Tersimpan' })
+
+        expect(toast).not.toHaveBeenCalled()
+    })
+
+    it('tidak menoast saat finish, mis. partial reload sesudah Back', () => {
+        start()
+        emit('finish')
+
+        expect(toast).not.toHaveBeenCalled()
+    })
+
+    it('flash identik dua kali berturut-turut tetap dua toast', () => {
+        start()
+        flash({ success: 'Tersimpan' })
+        flash({ success: 'Tersimpan' })
 
         expect(toast).toHaveBeenCalledTimes(2)
     })
 
-    it('mengosongkan flash yang sudah tampil supaya respons berikutnya tidak dianggap sama', () => {
+    it('mengabaikan nilai kosong', () => {
         start()
-        serverResponse({ success: 'Tersimpan', workloadWarnings: ['x'] })
-
-        expect(props().flash).toEqual({ ...empty, workloadWarnings: ['x'] })
-    })
-
-    it('partial reload tanpa flash baru tidak menampilkan ulang', () => {
-        start()
-        serverResponse({ success: 'Tersimpan' })
-        emit('finish')
-
-        expect(toast).toHaveBeenCalledTimes(1)
-    })
-
-    it('pemulihan riwayat lewat Back/Forward tidak menampilkan ulang', async () => {
-        start()
-        setFlash({ success: 'Tersimpan' })
-        emit('navigate')
-        await nextTick()
+        flash({ success: '', error: undefined })
 
         expect(toast).not.toHaveBeenCalled()
     })
 
-    it('mengabaikan nilai null dan string kosong serta workloadWarnings', () => {
-        start()
-        serverResponse({ success: '', workloadWarnings: ['x'] })
-
-        expect(toast).not.toHaveBeenCalled()
-    })
-
-    it('berhenti mendengarkan saat layout dilepas', () => {
+    it('berhenti mendengarkan saat scope dihentikan', () => {
         start()
         scope.stop()
-        serverResponse({ success: 'Tersimpan' })
+        flash({ success: 'Tersimpan' })
 
         expect(toast).not.toHaveBeenCalled()
     })

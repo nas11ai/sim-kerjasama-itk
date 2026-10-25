@@ -5,6 +5,7 @@ namespace App\Http\Middleware;
 use App\Queries\Identity\EffectivePermissionNames;
 use App\Queries\Submission\HasApprovedSubmission;
 use Illuminate\Http\Request;
+use Inertia\Inertia;
 use Inertia\Middleware;
 
 class HandleInertiaRequests extends Middleware
@@ -31,6 +32,8 @@ class HandleInertiaRequests extends Middleware
      */
     public function share(Request $request): array
     {
+        $this->bridgeSessionFlash($request);
+
         return array_merge(parent::share($request), [
             'auth' => [
                 'user' => $request->user() ? [
@@ -57,5 +60,21 @@ class HandleInertiaRequests extends Middleware
                 : null,
             'biodataStatus' => fn () => $request->session()->get('biodataStatus'),
         ]);
+    }
+
+    /**
+     * Flash native Inertia tidak disimpan di riwayat browser; prop `flash` tersimpan
+     * dan terputar ulang saat Back. Prop itu tetap dibagikan untuk halaman legacy.
+     */
+    private function bridgeSessionFlash(Request $request): void
+    {
+        $flash = array_filter(
+            $request->session()->only(['message', 'error', 'success']),
+            static fn (mixed $value): bool => is_string($value) && $value !== '',
+        );
+
+        if ($flash !== []) {
+            Inertia::flash($flash);
+        }
     }
 }
