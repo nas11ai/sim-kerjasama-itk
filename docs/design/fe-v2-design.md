@@ -330,7 +330,7 @@ perkiraan saat dokumen ditulis. Verifikasi di awal irisan.
 | # | Status | Irisan | Frame | Halaman baru | BE | Legacy yang dihapus (perkiraan) | Bergantung |
 | --- | --- | --- | --- | --- | --- | --- | --- |
 | F0 | ☑ | Shell & fondasi | (shell.yaml) | `AppLayout`, `AuthLayout`, `AppSidebar`, `AppTopbar`, `PageHeader`, `StatusBadge`, peta status, `auth.user.permissions` | ◐ shared props | — (layout lama tetap sampai F99) | — |
-| S1 | ☐ | Auth | SHARED-01-01..05, 01-08, 01-09 | `Auth/*` | ✓ | `Pages/Auth/*` | F0 |
+| S1 | ☑ | Auth | SHARED-01-01..05, 01-08, 01-09 | `Auth/*` | ✓ | `Pages/Auth/*` | F0 |
 | S2a | ☐ | Pengajuan peneliti: daftar & detail | RESEARCHER-02-01, 02-03, 02-12 | `Submission/IndexPage`, `Submission/ShowPage` + section | ◐ | `User/Submissions/*` | F0 |
 | S2b | ☐ | Wizard pengajuan | RESEARCHER-02-02, 02-06..02-10 | `Submission/WizardPage` + `Components/Submission/Wizard*` | ◐ (ADR 0012) | `User/FormPhase`, `ResearchMemberManager`, `TargetOutputManager` | S2a |
 | S2c | ☐ | Edit draft, revisi, target luaran, audit saya | RESEARCHER-02-04, 02-05, 02-11, 07-01 | `Submission/EditPage`, `RevisionPage`, `TargetOutputPage`, `AuditPage` | ◐ / ✗ audit peneliti | sisa `User/*` pengajuan | S2b |
@@ -358,6 +358,9 @@ perkiraan saat dokumen ditulis. Verifikasi di awal irisan.
 | K4 | Satu dashboard atau empat untuk user dua peran. | Penulis dokumen: satu halaman, section per permission (§4.4). |
 | W1 | `sidebar.md` menampilkan Daftar Monev dan Luaran Penelitian hanya bila ada "submission APPROVED milik user"; DDD lebih luas: BR-RO-07 membolehkan `co_investigator` aktif mengelola luaran, BR-RO-06 menyimpan luaran sebagai data historis setelah WITHDRAWN, BR-MON-08 membekukan (bukan menghapus) monev saat WITHDRAWN. `HasApprovedSubmission` di F0 mengikuti `sidebar.md` (`submitted_by` + Approved saja); tanpa efek di F0 karena kedua item masih `routeName: null`. | Ditunda ke M1/O1: kemungkinan Approved ∪ Withdrawn dan keanggotaan `co_investigator` aktif; diputuskan di rencana irisan itu (DDD menang atas UX). |
 | W2 | `sidebar.md` menampilkan Daftar Pengajuan untuk `submissions.view-own` ATAU `submissions.view-all`; F0 hanya memakai `view-own` karena operator sudah mendapat Semua Pengajuan. | Penulis rencana F0: hanya view-own; operator memakai Semua Pengajuan. |
+| W3 | Wireframe auth vs backend: tautan "Punya link undangan?" di SHARED-01-01 tidak punya tujuan (undangan masuk lewat tautannya sendiri); empat state sebab undangan tidak valid di SHARED-01-04 sengaja dilebur satu oleh backend (anti-enumerasi token); layar verifikasi email dan konfirmasi password hidup di backend (`verified`, `password.confirm`) tapi tidak ada di wireframe. | Penulis rencana S1: tautan undangan tidak digambar, satu pesan penolakan, dua layar Breeze dipindah ke `AuthLayout` apa adanya. |
+| W4 | "Hak Akses" di SHARED-01-03 butuh label permission yang terbaca manusia; belum ada peta label permission. | S1 menampilkan nama permission mentah; peta label diputuskan di I1 (OPERATOR-08-04 butuh peta yang sama). |
+| W5 | "Ditolak pada" di state penolakan SHARED-01-05 tidak punya kolom; `user_profiles` hanya menyimpan `rejection_reason`. | Tidak digambar di S1; menambah kolom waktu penolakan diputuskan di I1 (verifikasi NIDN). |
 
 Selisih wireframe↔DDD yang ditemukan saat mengerjakan irisan dicatat di sini
 dengan kode `W1`, `W2`, …, beserta keputusan yang diambil.
