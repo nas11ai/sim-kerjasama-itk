@@ -8,6 +8,7 @@ use Spatie\LaravelData\Data;
 final class SubmissionTargetOutputData extends Data
 {
     public function __construct(
+        public int $id,
         public string $type,
         public ?string $description,
     ) {}

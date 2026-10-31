@@ -28,6 +28,29 @@ final class WizardStepGate
     // Submit-nya, dijaga `RequiredFieldGuard`.
     public const STEP_REVIEW = 7;
 
+    public const LABELS = [
+        self::STEP_FORM_PERIOD => 'Pilih Form & Periode',
+        self::STEP_BASIC_INFO => 'Informasi Dasar',
+        self::STEP_SCHEME => 'Skema, TRL & Target Luaran',
+        self::STEP_MEMBERS => 'Anggota Penelitian',
+        self::STEP_BUDGET => 'Rencana Anggaran',
+        self::STEP_FILES => 'Upload Berkas',
+        self::STEP_REVIEW => 'Review & Submit',
+    ];
+
+    /**
+     * Langkah tempat sebuah field Form Engine diisi. Form Engine tidak menyimpan
+     * langkah per field, jadi tipe field-lah yang menentukannya (fe-v2-design W13).
+     */
+    public static function stepForFieldType(string $type): int
+    {
+        return match ($type) {
+            'scheme_selector', 'trl_selector' => self::STEP_SCHEME,
+            'file' => self::STEP_FILES,
+            default => self::STEP_BASIC_INFO,
+        };
+    }
+
     public static function isOpen(FormSubmission $submission, int $step): bool
     {
         return self::blockedReason($submission, $step) === null;

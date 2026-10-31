@@ -16,9 +16,7 @@ use App\Data\View\Submission\SubmissionTargetOutputData;
 use App\Data\View\SubmissionStatusData;
 use App\Models\FormPhaseDetail;
 use App\Models\FormSubmission;
-use App\Models\OutputTypeDefinition;
 use App\Models\ResearchMember;
-use App\Models\SubmissionTargetOutput;
 use App\Models\User;
 use App\Queries\Review\VisibleReviewerScores;
 use App\States\Submission\Rejected;
@@ -59,7 +57,7 @@ class ResearcherSubmissionDetail implements ChangesNoState
             'submission' => $this->header($viewer, $submission, $detail, $history),
             'answers' => ReadableSubmissionAnswers::run($submission),
             'members' => $this->members($submission),
-            'targetOutputs' => $this->targetOutputs($submission),
+            'targetOutputs' => SubmissionTargetOutputs::run($submission),
             'budget' => SubmissionBudgetSummary::run($viewer, $submission),
             'history' => $history,
             'decision' => $this->decision($submission, $history),
@@ -139,22 +137,6 @@ class ResearcherSubmissionDetail implements ChangesNoState
         }
 
         return $members;
-    }
-
-    /** @return list<SubmissionTargetOutputData> */
-    private function targetOutputs(FormSubmission $submission): array
-    {
-        $targets = $submission->targetOutputs()->orderBy('id')->get(['id', 'output_type', 'description']);
-        $names = [];
-
-        foreach (OutputTypeDefinition::query()->whereIn('code', $targets->pluck('output_type'))->get(['code', 'name']) as $type) {
-            $names[$type->code] = $type->name;
-        }
-
-        return array_values($targets->map(fn (SubmissionTargetOutput $target): SubmissionTargetOutputData => new SubmissionTargetOutputData(
-            type: $names[$target->output_type] ?? $target->output_type,
-            description: $target->description,
-        ))->all());
     }
 
     /** @param  list<SubmissionHistoryEntryData>  $history */

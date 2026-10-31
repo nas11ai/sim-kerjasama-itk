@@ -70,6 +70,7 @@ export interface SubmissionMember {
 }
 
 export interface SubmissionTargetOutput {
+    id: number
     type: string
     description: string | null
 }

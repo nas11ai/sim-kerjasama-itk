@@ -38,6 +38,7 @@ use App\Http\Controllers\Submission\ResearchMemberController;
 use App\Http\Controllers\Submission\ResearchOutputController;
 use App\Http\Controllers\Submission\ResubmitController;
 use App\Http\Controllers\Submission\SubmissionDecisionController;
+use App\Http\Controllers\Submission\SubmissionWizardController;
 use App\Http\Controllers\Submission\TargetOutputController;
 use App\Http\Controllers\SubmissionPeriodController;
 use App\Http\Controllers\SubmissionViewController;
@@ -156,6 +157,15 @@ Route::middleware(['auth', 'check_biodata'])->prefix('user')->name('user.')->gro
 
     Route::get('/submissions/period/{period}', [SubmissionViewController::class, 'userShowPeriod'])
         ->name('submissions.period');
+
+    // Dideklarasikan sebelum /submissions/{submission} supaya "create" tidak terbaca sebagai id.
+    Route::get('/submissions/create', [SubmissionWizardController::class, 'create'])
+        ->middleware('can:submissions.create')
+        ->name('submissions.create');
+
+    Route::get('/submissions/{submission}/wizard/{step?}', [SubmissionWizardController::class, 'edit'])
+        ->whereNumber('step')
+        ->name('submissions.wizard');
 
     Route::get('/submissions/{submission}', [SubmissionViewController::class, 'userShowSubmission'])
         ->name('submissions.show');

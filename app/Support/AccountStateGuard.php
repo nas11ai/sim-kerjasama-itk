@@ -22,15 +22,23 @@ final class AccountStateGuard
      */
     public static function assertVerified(User $user): void
     {
-        if (self::verificationStatus($user) === VerificationStatus::Active) {
+        $reason = self::submitBlockReason($user);
+
+        if ($reason === null) {
             return;
         }
 
-        throw ValidationException::withMessages([
-            'verification_status' => self::verificationStatus($user) === VerificationStatus::Rejected
-                ? 'Verifikasi NIDN Anda ditolak. Hubungi Operator LPPM untuk koreksi sebelum mengirim pengajuan.'
-                : 'Akun Anda belum terverifikasi. Pengajuan dapat disiapkan, tapi belum dapat dikirim.',
-        ]);
+        throw ValidationException::withMessages(['verification_status' => $reason]);
+    }
+
+    /** Alasan akun belum boleh mengirim, atau null bila sudah aktif; langkah 7 wizard menampilkannya. */
+    public static function submitBlockReason(User $user): ?string
+    {
+        return match (self::verificationStatus($user)) {
+            VerificationStatus::Active => null,
+            VerificationStatus::Rejected => 'Verifikasi NIDN Anda ditolak. Hubungi Operator LPPM untuk koreksi sebelum mengirim pengajuan.',
+            default => 'Akun Anda belum terverifikasi. Pengajuan dapat disiapkan, tapi belum dapat dikirim.',
+        };
     }
 
     /**
