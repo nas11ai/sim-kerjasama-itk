@@ -25,7 +25,7 @@ const wizardUrl = (step: number) =>
 </script>
 
 <template>
-    <SectionCard title="Edit Pengajuan">
+    <SectionCard title="Bagian yang Dapat Disunting">
         <!-- BR-SM-02 — field wajib diperiksa ulang saat kirim ulang -->
         <AppBanner v-if="missingFields.length > 0" tone="warning">
             {{ missingFields.length }} field wajib masih kosong. Lengkapi sebelum mengirim ulang.
