@@ -33,7 +33,7 @@ const initialTab = props.activeFormId === null ? undefined : String(props.active
         <AppBanner v-if="evaluationSettled" tone="success" class="mb-4">
             Evaluasi Anda selesai.
             <Link
-                :href="route('reviewer.submissions.show', String(submission.id))"
+                :href="route('reviewer.assignments.summary', String(submission.id))"
                 class="font-medium underline underline-offset-4"
             >
                 Lanjutkan ke ringkasan dan diskusi

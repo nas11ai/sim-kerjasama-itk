@@ -15,7 +15,6 @@ const subtitle = computed(() =>
     [props.card.leadName, props.card.scheme].filter(Boolean).join(' · ')
 )
 
-// Ringkasan & diskusi masih di layar legacy sampai S3a-2.
 const action = computed(() => {
     const id = String(props.card.submissionId)
 
@@ -24,7 +23,7 @@ const action = computed(() => {
     }
 
     const label = props.card.state === 'discussion_open' ? 'Buka Diskusi' : 'Lihat Summary'
-    return { label, href: route('reviewer.submissions.show', id) }
+    return { label, href: route('reviewer.assignments.summary', id) }
 })
 </script>
 

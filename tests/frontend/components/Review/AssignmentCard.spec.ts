@@ -52,6 +52,7 @@ describe('AssignmentCard', () => {
         const wrapper = mountCard({ state: 'discussion_open', stateLabel: 'Butuh Respon Diskusi' })
 
         expect(wrapper.find('a').text()).toContain('Buka Diskusi')
+        expect(wrapper.find('a').attributes('href')).toBe('/reviewer.assignments.summary/9')
     })
 
     it('tanpa tenggat baris deadline tidak dirender', () => {

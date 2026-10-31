@@ -1,7 +1,10 @@
 <script setup lang="ts">
-import { useForm } from '@inertiajs/vue3'
+import { router, useForm } from '@inertiajs/vue3'
+import { Check } from 'lucide-vue-next'
+import { ref } from 'vue'
 
 import AppBanner from '@/Components/app/AppBanner.vue'
+import ConfirmDialog from '@/Components/app/ConfirmDialog.vue'
 import SectionCard from '@/Components/app/SectionCard.vue'
 import ReviewAttachmentLinks from '@/Components/Submission/Revision/ReviewAttachmentLinks.vue'
 import ReviewCommentItem from '@/Components/Submission/Revision/ReviewCommentItem.vue'
@@ -11,8 +14,11 @@ import { Textarea } from '@/Components/ui/textarea'
 import { formatDate } from '@/lib/format'
 import type { ReviewThread } from '@/types/submission-revision'
 
-// `canReply` dari Policy discussReview (ADR 0015); tombol tandai selesai milik reviewer.
-const props = defineProps<{ thread: ReviewThread; canReply: boolean }>()
+// `canReply` dari Policy discussReview (ADR 0015); `canResolve` hanya diberikan layar reviewer.
+const props = withDefaults(
+    defineProps<{ thread: ReviewThread; canReply: boolean; canResolve?: boolean }>(),
+    { canResolve: false }
+)
 
 const form = useForm({ comment_text: '' })
 const replyId = `reply-${props.thread.id}`
@@ -22,11 +28,37 @@ const reply = () =>
         preserveScroll: true,
         onSuccess: () => form.reset(),
     })
+
+const confirming = ref(false)
+const resolving = ref(false)
+
+const resolve = () =>
+    router.post(
+        route('review-summaries.resolve', String(props.thread.id)),
+        {},
+        {
+            preserveScroll: true,
+            onStart: () => (resolving.value = true),
+            onFinish: () => {
+                resolving.value = false
+                confirming.value = false
+            },
+        }
+    )
 </script>
 
 <template>
     <SectionCard :title="thread.reviewer" :description="formatDate(thread.at)">
         <template #actions>
+            <Button
+                v-if="canResolve && thread.isOpen"
+                data-test="resolve-thread"
+                variant="outline"
+                size="sm"
+                @click="confirming = true"
+            >
+                <Check class="size-4" /> Tandai Selesai
+            </Button>
             <Badge :variant="thread.isOpen ? 'default' : 'secondary'">
                 {{ thread.isOpen ? 'Terbuka' : 'Selesai' }}
             </Badge>
@@ -39,7 +71,7 @@ const reply = () =>
         </ul>
 
         <!-- BR-REV-06 — ulir ditutup reviewer yang membukanya, bukan peneliti -->
-        <AppBanner v-if="thread.isOpen" tone="lock">
+        <AppBanner v-if="thread.isOpen && !canResolve" tone="lock">
             Hanya reviewer yang membuka catatan ini yang dapat menandainya selesai. Balas untuk
             menyampaikan perbaikan Anda.
         </AppBanner>
@@ -65,5 +97,15 @@ const reply = () =>
                 Kirim Balasan
             </Button>
         </form>
+
+        <ConfirmDialog
+            v-if="canResolve"
+            v-model:open="confirming"
+            title="Tandai catatan selesai?"
+            description="Bila ini catatan terbuka terakhir dan seluruh evaluasi sudah masuk, pengajuan langsung disetujui."
+            confirm-label="Tandai Selesai"
+            :processing="resolving"
+            @confirm="resolve"
+        />
     </SectionCard>
 </template>

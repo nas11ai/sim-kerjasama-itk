@@ -2,13 +2,15 @@ import { mount } from '@vue/test-utils'
 import { reactive } from 'vue'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-const { post } = vi.hoisted(() => ({ post: vi.fn() }))
+const { post, routerPost } = vi.hoisted(() => ({ post: vi.fn(), routerPost: vi.fn() }))
 
 vi.mock('@inertiajs/vue3', () => ({
+    router: { post: routerPost },
     useForm: <T extends object>(data: T) =>
         reactive({ ...data, errors: {}, processing: false, post, reset: vi.fn() }),
 }))
 
+import ConfirmDialog from '@/Components/app/ConfirmDialog.vue'
 import ReviewThreadCard from '@/Components/Submission/Revision/ReviewThreadCard.vue'
 import type { ReviewThread } from '@/types/submission-revision'
 
@@ -40,11 +42,16 @@ const thread: ReviewThread = {
     ],
 }
 
-const mountCard = (canReply = true) => mount(ReviewThreadCard, { props: { thread, canReply } })
+const mountCard = (canReply = true, canResolve = false) =>
+    mount(ReviewThreadCard, {
+        props: { thread, canReply, canResolve },
+        global: { stubs: { teleport: true } },
+    })
 
 beforeEach(() => {
     vi.stubGlobal('route', (name: string, params: unknown) => `/${name}/${String(params)}`)
     post.mockReset()
+    routerPost.mockReset()
 })
 
 describe('ReviewThreadCard', () => {
@@ -82,5 +89,19 @@ describe('ReviewThreadCard', () => {
         expect(wrapper.find('b').exists()).toBe(false)
         expect(wrapper.text()).toContain('<b>Perbaiki</b> metodologi.')
         expect(wrapper.find('a[href="/unduh/catatan.pdf"]').text()).toContain('catatan.pdf')
+    })
+
+    it('[REV-DISCUSS-03] reviewer menandai ulir selesai', async () => {
+        const wrapper = mountCard(true, true)
+
+        expect(wrapper.text()).not.toContain('Hanya reviewer yang membuka catatan ini')
+        await wrapper.find('[data-test="resolve-thread"]').trigger('click')
+        wrapper.findComponent(ConfirmDialog).vm.$emit('confirm')
+
+        expect(routerPost).toHaveBeenCalledWith(
+            '/review-summaries.resolve/11',
+            {},
+            expect.objectContaining({ preserveScroll: true })
+        )
     })
 })

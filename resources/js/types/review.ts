@@ -1,5 +1,6 @@
 // Kontrak props halaman Review/*, mengikuti app/Data/View/Review dan app/Queries/Review/Reviewer*.
-import type { SubmissionAnswer } from '@/types/submission-page'
+import type { ReviewerScores, SubmissionAnswer } from '@/types/submission-page'
+import type { ReviewThread } from '@/types/submission-revision'
 import type { SubmissionStatusView } from '@/types/submission-status'
 import type { WizardField } from '@/types/submission-wizard'
 
@@ -55,4 +56,19 @@ export interface EvaluationPageProps {
     forms: EvaluationForm[]
     activeFormId: number | null
     evaluationSettled: boolean
+}
+
+// Sumber: OutcomeConditionsData. Hanya hitungan, tanpa nama reviewer lain (BR-REV-11).
+export interface OutcomeConditions {
+    reviewerCount: number
+    unsettledCount: number
+    openThreadCount: number
+}
+
+export interface SummaryPageProps {
+    submission: EvaluationSubmission
+    threads: ReviewThread[]
+    canCreateThread: boolean
+    scores: ReviewerScores
+    outcome: OutcomeConditions
 }

@@ -5,7 +5,10 @@ import InfoGrid from '@/Components/app/InfoGrid.vue'
 import SectionCard from '@/Components/app/SectionCard.vue'
 import type { ReviewerScore, ReviewerScores } from '@/types/submission-page'
 
-defineProps<{ scores: ReviewerScores }>()
+// `note` menjelaskan kapan skor terbuka bagi pembaca layar; bawaannya untuk peneliti (BR-REV-12).
+withDefaults(defineProps<{ scores: ReviewerScores; note?: string }>(), {
+    note: 'Skor evaluasi baru terbuka setelah pengajuan dinyatakan disetujui atau ditolak.',
+})
 
 const answersOf = (score: ReviewerScore) =>
     score.answers.map((answer) => ({ label: answer.label, value: answer.value ?? '—' }))
@@ -22,8 +25,6 @@ const answersOf = (score: ReviewerScore) =>
             <InfoGrid :items="answersOf(score)" />
         </div>
         <EmptyState v-if="scores.scores.length === 0" title="Belum ada evaluasi yang disubmit." />
-        <p class="text-xs text-muted-foreground">
-            Skor evaluasi baru terbuka setelah pengajuan dinyatakan disetujui atau ditolak.
-        </p>
+        <p class="text-xs text-muted-foreground">{{ note }}</p>
     </SectionCard>
 </template>
