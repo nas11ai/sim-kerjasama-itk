@@ -31,6 +31,7 @@ export interface SubmissionIndexPageProps {
     filters: SubmissionIndexFilters
     statusOptions: FilterOption[]
     periodOptions: FilterOption[]
+    canCreate: boolean
 }
 
 // Sumber: SubmissionDetailData. `viewerRole` hanya untuk label; tombol membaca `can`.
@@ -62,6 +63,7 @@ export interface SubmissionAnswer {
     label: string
     value: string | null
     isFile: boolean
+    downloadUrl: string | null
 }
 
 export interface SubmissionMember {

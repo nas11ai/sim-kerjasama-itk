@@ -33,6 +33,7 @@ class SubmissionViewController extends Controller
 
         return Inertia::render('Submission/IndexPage', [
             'filters' => $filters,
+            'canCreate' => $this->viewer($request)->can('submissions.create'),
             ...ResearcherSubmissionList::run($this->viewer($request), $filters),
         ]);
     }

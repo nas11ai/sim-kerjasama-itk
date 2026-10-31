@@ -6,6 +6,7 @@
 use App\Models\FormSubmission;
 use App\Models\User;
 use Inertia\Testing\AssertableInertia as Assert;
+use Spatie\Permission\Models\Permission;
 
 it('peneliti membuka Submission/IndexPage', function () {
     [$researcher] = actingResearcher();
@@ -26,4 +27,19 @@ it('user tanpa submissions.view-own ditolak', function () {
     $this->actingAs(User::factory()->create())
         ->get(route('user.submissions.index'))
         ->assertForbidden();
+});
+
+it('IndexPage membawa canCreate', function () {
+    [$researcher] = actingResearcher();
+
+    $this->actingAs($researcher)
+        ->get(route('user.submissions.index'))
+        ->assertInertia(fn (Assert $page) => $page->where('canCreate', true));
+
+    $viewer = User::factory()->create();
+    $viewer->givePermissionTo(Permission::findOrCreate('submissions.view-own', 'web'));
+
+    $this->actingAs($viewer)
+        ->get(route('user.submissions.index'))
+        ->assertInertia(fn (Assert $page) => $page->where('canCreate', false));
 });

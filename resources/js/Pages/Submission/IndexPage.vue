@@ -1,12 +1,14 @@
 <script setup lang="ts">
 // Frame: RESEARCHER-02-01
-import { Head } from '@inertiajs/vue3'
+import { Head, Link } from '@inertiajs/vue3'
+import { Plus } from 'lucide-vue-next'
 import { computed } from 'vue'
 
 import FilterSelect from '@/Components/app/FilterSelect.vue'
 import PageHeader from '@/Components/app/PageHeader.vue'
 import PaginationBar from '@/Components/app/PaginationBar.vue'
 import SubmissionTable from '@/Components/Submission/SubmissionTable.vue'
+import { Button } from '@/Components/ui/button'
 import { Input } from '@/Components/ui/input'
 import { useFilters } from '@/composables/useFilters'
 import AppLayout from '@/Layouts/AppLayout.vue'
@@ -25,7 +27,15 @@ const filtered = computed(() => Object.values(props.filters).some((value) => val
         <PageHeader
             title="Daftar Pengajuan"
             subtitle="Semua pengajuan di mana Anda menjadi ketua atau anggota tim."
-        />
+        >
+            <template v-if="canCreate" #actions>
+                <Button as-child>
+                    <Link :href="route('user.submissions.create')">
+                        <Plus class="size-4" /> Buat Pengajuan Baru
+                    </Link>
+                </Button>
+            </template>
+        </PageHeader>
         <div class="mb-4 flex flex-col gap-2 sm:flex-row">
             <Input
                 v-model="filters.search"
