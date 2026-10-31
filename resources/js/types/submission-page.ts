@@ -58,6 +58,7 @@ export interface SubmissionAbilities {
     resubmit: boolean
     withdraw: boolean
     manageTargetOutput: boolean
+    discussReview: boolean
 }
 
 export interface SubmissionAnswer {

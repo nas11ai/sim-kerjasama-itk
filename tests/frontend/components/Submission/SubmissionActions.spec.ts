@@ -40,6 +40,7 @@ const can: SubmissionAbilities = {
     resubmit: false,
     withdraw: false,
     manageTargetOutput: false,
+    discussReview: false,
 }
 
 const mountActions = (

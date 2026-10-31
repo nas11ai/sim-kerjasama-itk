@@ -77,6 +77,7 @@ const editProps = (step: number, fields: WizardField[]): Partial<SubmissionWizar
         resubmit: false,
         withdraw: false,
         manageTargetOutput: true,
+        discussReview: true,
     },
 })
 

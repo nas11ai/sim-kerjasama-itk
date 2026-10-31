@@ -1,0 +1,69 @@
+<script setup lang="ts">
+import { useForm } from '@inertiajs/vue3'
+
+import AppBanner from '@/Components/app/AppBanner.vue'
+import SectionCard from '@/Components/app/SectionCard.vue'
+import ReviewAttachmentLinks from '@/Components/Submission/Revision/ReviewAttachmentLinks.vue'
+import ReviewCommentItem from '@/Components/Submission/Revision/ReviewCommentItem.vue'
+import { Badge } from '@/Components/ui/badge'
+import { Button } from '@/Components/ui/button'
+import { Textarea } from '@/Components/ui/textarea'
+import { formatDate } from '@/lib/format'
+import type { ReviewThread } from '@/types/submission-revision'
+
+// `canReply` dari Policy discussReview (ADR 0015); tombol tandai selesai milik reviewer.
+const props = defineProps<{ thread: ReviewThread; canReply: boolean }>()
+
+const form = useForm({ comment_text: '' })
+const replyId = `reply-${props.thread.id}`
+
+const reply = () =>
+    form.post(route('review-comments.store', String(props.thread.id)), {
+        preserveScroll: true,
+        onSuccess: () => form.reset(),
+    })
+</script>
+
+<template>
+    <SectionCard :title="thread.reviewer" :description="formatDate(thread.at)">
+        <template #actions>
+            <Badge :variant="thread.isOpen ? 'default' : 'secondary'">
+                {{ thread.isOpen ? 'Terbuka' : 'Selesai' }}
+            </Badge>
+        </template>
+        <p v-if="thread.notes" class="text-sm whitespace-pre-line">{{ thread.notes }}</p>
+        <ReviewAttachmentLinks :attachments="thread.attachments" />
+
+        <ul v-if="thread.comments.length > 0" class="flex flex-col gap-4 border-t pt-4">
+            <ReviewCommentItem v-for="item in thread.comments" :key="item.id" :comment="item" />
+        </ul>
+
+        <!-- BR-REV-06 — ulir ditutup reviewer yang membukanya, bukan peneliti -->
+        <AppBanner v-if="thread.isOpen" tone="lock">
+            Hanya reviewer yang membuka catatan ini yang dapat menandainya selesai. Balas untuk
+            menyampaikan perbaikan Anda.
+        </AppBanner>
+
+        <form v-if="canReply" class="flex flex-col gap-2" @submit.prevent="reply">
+            <label :for="replyId" class="sr-only">Balas catatan {{ thread.reviewer }}</label>
+            <Textarea
+                :id="replyId"
+                v-model="form.comment_text"
+                rows="3"
+                placeholder="Tulis balasan…"
+                :aria-invalid="form.errors.comment_text ? true : undefined"
+            />
+            <p v-if="form.errors.comment_text" class="text-xs text-destructive">
+                {{ form.errors.comment_text }}
+            </p>
+            <Button
+                type="submit"
+                size="sm"
+                class="self-end"
+                :disabled="form.processing || form.comment_text.trim() === ''"
+            >
+                Kirim Balasan
+            </Button>
+        </form>
+    </SectionCard>
+</template>
