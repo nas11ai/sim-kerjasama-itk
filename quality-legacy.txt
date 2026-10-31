@@ -61,7 +61,6 @@ resources/js/Pages/ReviewEvaluationForms/EditPage.vue
 resources/js/Pages/ReviewEvaluationForms/IndexPage.vue
 resources/js/Pages/ReviewEvaluationForms/PreviewPage.vue
 resources/js/Pages/ReviewEvaluationForms/ShowPage.vue
-resources/js/Pages/Reviewer/Submissions/ShowPage.vue
 resources/js/Pages/ReviewerAssignments/IndexPage.vue
 resources/js/Pages/Reviewers/CreatePage.vue
 resources/js/Pages/Reviewers/EditPage.vue
