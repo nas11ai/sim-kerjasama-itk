@@ -2,13 +2,18 @@
 
 namespace App\Http\Controllers\Submission;
 
+use App\Actions\FormSubmission\SaveWizardStep;
+use App\Actions\FormSubmission\SubmitFormSubmission;
 use App\Http\Controllers\Concerns\ResolvesActor;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Submission\WizardStepRequest;
 use App\Models\FormSubmission;
 use App\Queries\Submission\ResearcherStartOptions;
 use App\Queries\Submission\SubmissionWizard;
 use App\Support\WizardStepGate;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\ValidationException;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -50,5 +55,28 @@ class SubmissionWizardController extends Controller
             'startOptions' => [],
             ...SubmissionWizard::run($viewer, $submission, $step),
         ]);
+    }
+
+    /** Setiap perpindahan langkah — Lanjut, Sebelumnya, atau Stepper — lewat sini. */
+    public function save(WizardStepRequest $request, FormSubmission $submission, int $step): RedirectResponse
+    {
+        $input = $request->toStepInput($step);
+
+        SaveWizardStep::run($submission, $input, $this->actor($request));
+
+        return redirect()->route('user.submissions.wizard', [$submission, $input->goto]);
+    }
+
+    public function submit(Request $request, FormSubmission $submission): RedirectResponse
+    {
+        try {
+            SubmitFormSubmission::run($submission, $this->actor($request));
+        } catch (ValidationException $e) {
+            // [SM-WIZARD-08] — penolakan dibaca di langkah 7, tempat daftar kelengkapannya.
+            return redirect()->route('user.submissions.wizard', [$submission, WizardStepGate::STEP_REVIEW])
+                ->withErrors($e->errors());
+        }
+
+        return redirect()->route('user.submissions.show', $submission)->with('success', 'Pengajuan berhasil dikirim.');
     }
 }

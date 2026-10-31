@@ -72,7 +72,14 @@ class SubmissionAnswersRequest extends FormRequest
             answers: $this->fieldAnswers(),
             uploads: $uploads,
             lastUpdatedAt: $this->filled('last_updated_at') ? $this->string('last_updated_at')->toString() : null,
+            clearsEmptyAnswers: $this->clearsEmptyAnswers(),
         );
+    }
+
+    /** Layar legacy tidak memuat ulang jawaban tersimpan, jadi kosong berarti belum disentuh. */
+    protected function clearsEmptyAnswers(): bool
+    {
+        return false;
     }
 
     /** @return array<array-key, UploadedFile> indeks jawaban => berkas */

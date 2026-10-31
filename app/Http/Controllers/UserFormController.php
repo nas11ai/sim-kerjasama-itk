@@ -17,6 +17,7 @@ use App\Queries\Submission\AccessibleFormPhaseDetail;
 use App\Queries\Submission\ResearcherDashboardPeriods;
 use App\Queries\Submission\ResearcherFormPhaseSteps;
 use App\Queries\Submission\ResearcherStudyProgram;
+use App\Support\WizardStepGate;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -74,9 +75,9 @@ class UserFormController extends Controller
         $detail = AccessibleFormPhaseDetail::run($request->integer('form_phase_id'), $request->integer('form_id'), $user)
             ?? abort(422, 'Kombinasi form dan fase formulir tidak ditemukan.');
 
-        StartSubmission::run($request->integer('form_id'), $request->integer('submission_period_id'), $detail, $user);
+        $submission = StartSubmission::run($request->integer('form_id'), $request->integer('submission_period_id'), $detail, $user);
 
-        return redirect()->back();
+        return redirect()->route('user.submissions.wizard', [$submission, WizardStepGate::STEP_BASIC_INFO]);
     }
 
     public function saveDraft(SubmissionAnswersRequest $request): RedirectResponse

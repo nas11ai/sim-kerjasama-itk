@@ -52,6 +52,25 @@ final class FieldAnswerWriter
     }
 
     /**
+     * Hanya field yang dikirim yang diganti, dan jawaban kosong menghapusnya. Untuk wizard v2, yang
+     * memuat ulang jawaban tersimpan: kosong di sana berarti dikosongkan, sementara field berkas yang
+     * tidak diunggah ulang memang tidak dikirim dan karenanya tetap.
+     *
+     * @param  array<int, ?string>  $answers  id field => nilai; null berarti kosong
+     * @param  array<int, UploadedFile>  $uploads  id field => berkas, menimpa jawaban field itu
+     *
+     * @throws ValidationException
+     */
+    public static function overwrite(FormSubmission $submission, array $answers, array $uploads, string $directory): void
+    {
+        $values = self::storedValues($submission, $answers, $uploads, $directory);
+
+        $submission->formFieldResponses()->whereIn('form_field_id', array_keys($values))->delete();
+
+        self::create($submission, $values);
+    }
+
+    /**
      * Berkas disimpan setelah field-nya terbukti milik form ini, supaya kiriman yang ditolak tidak
      * meninggalkan berkas yatim.
      *

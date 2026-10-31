@@ -167,6 +167,13 @@ Route::middleware(['auth', 'check_biodata'])->prefix('user')->name('user.')->gro
         ->whereNumber('step')
         ->name('submissions.wizard');
 
+    Route::post('/submissions/{submission}/wizard/{step}', [SubmissionWizardController::class, 'save'])
+        ->whereNumber('step')
+        ->name('submissions.wizard.save');
+
+    Route::post('/submissions/{submission}/submit', [SubmissionWizardController::class, 'submit'])
+        ->name('submissions.submit');
+
     Route::get('/submissions/{submission}', [SubmissionViewController::class, 'userShowSubmission'])
         ->name('submissions.show');
 });

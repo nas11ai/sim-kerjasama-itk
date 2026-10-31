@@ -11,6 +11,7 @@ use App\States\Submission\Submitted;
 use App\States\Submission\Withdrawn;
 use App\Support\AccountStateGuard;
 use App\Support\Audit\AuditTrail;
+use App\Support\PhaseAccessGate;
 use App\Support\RequiredFieldGuard;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Database\QueryException;
@@ -37,6 +38,10 @@ class SubmitFormSubmission
     public function handle(FormSubmission $submission, User $user): FormSubmission
     {
         $status = $this->guardSubmittable($submission, $user);
+
+        // BR-FE-08 — jalur legacy lolos dari batas fase hanya karena ia menyimpan draft lebih
+        // dulu; submit dari langkah 7 tidak menyimpan apa pun, jadi gerbangnya di sini.
+        PhaseAccessGate::assertOpenFor($submission, $submission->formPhaseDetail);
 
         // BR-IAM-04/BR-IAM-13 — akun yang belum terverifikasi (atau yang
         // verifikasinya ditolak) boleh menyiapkan draft, tapi tidak boleh

@@ -47,7 +47,7 @@ class SaveSubmissionDraft
             // dibandingkan adalah nilai yang benar-benar akan ditimpa.
             OptimisticLock::assertNotStale($submission, $input->lastUpdatedAt);
 
-            FieldAnswerWriter::fill($submission, $input->answers, $input->uploads, self::UPLOAD_DIRECTORY);
+            $this->writeAnswers($submission, $input);
 
             // BR-SCH-04/BR-SCH-10 (ADR 0005) — pilihan scheme_selector dipindahkan ke kolom scheme_id
             // begitu jawabannya tersimpan. Batas anggaran, anggota, dan tipe luaran menanyakan kolom itu;
@@ -59,6 +59,19 @@ class SaveSubmissionDraft
 
             return $submission;
         });
+    }
+
+    /** @throws ValidationException */
+    private function writeAnswers(FormSubmission $submission, SubmissionAnswersInput $input): void
+    {
+        // Layar legacy tidak memuat ulang jawaban, jadi kosong di sana berarti belum disentuh.
+        if ($input->clearsEmptyAnswers) {
+            FieldAnswerWriter::overwrite($submission, $input->answers, $input->uploads, self::UPLOAD_DIRECTORY);
+
+            return;
+        }
+
+        FieldAnswerWriter::fill($submission, $input->answers, $input->uploads, self::UPLOAD_DIRECTORY);
     }
 
     /** @throws AuthorizationException */
