@@ -79,7 +79,7 @@ export const navGroups: NavGroup[] = [
             {
                 label: 'Riwayat Review',
                 icon: BookOpen,
-                routeName: null,
+                routeName: 'reviewer.history.index',
                 anyPermission: ['reviewers.evaluate'],
             },
         ],

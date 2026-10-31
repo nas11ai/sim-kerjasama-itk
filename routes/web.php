@@ -203,6 +203,8 @@ Route::middleware(['auth'])->prefix('reviewer')->name('reviewer.')->group(functi
             ->name('assignments.evaluation');
         Route::get('/assignments/{submission}/summary', [ReviewerAssignmentController::class, 'summary'])
             ->name('assignments.summary');
+        Route::get('/history', [ReviewerAssignmentController::class, 'history'])
+            ->name('history.index');
     });
 });
 

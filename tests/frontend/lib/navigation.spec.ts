@@ -65,6 +65,7 @@ describe('visibleNavGroups', () => {
             'Dashboard',
             'Daftar Pengajuan',
             'Penugasan Review',
+            'Riwayat Review',
         ])
     })
 
@@ -121,6 +122,12 @@ describe('isNavItemActive', () => {
 
         expect(review).toBeDefined()
         expect(isNavItemActive(review!, (p) => p === 'reviewer.assignments.*')).toBe(true)
+    })
+
+    it('Riwayat Review menaut ke halaman riwayat', () => {
+        const history = visible.find((i) => i.label === 'Riwayat Review')
+
+        expect(history?.routeName).toBe('reviewer.history.index')
     })
 
     it('memakai routeName bila tidak ada activePattern', () => {

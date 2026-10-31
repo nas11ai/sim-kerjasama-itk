@@ -10,6 +10,7 @@ use App\Models\SubmissionReviewer;
 use App\Queries\Review\ActiveReviewerAssignment;
 use App\Queries\Review\ReviewerAssignmentCards;
 use App\Queries\Review\ReviewerEvaluation;
+use App\Queries\Review\ReviewerHistory;
 use App\Queries\Review\ReviewerSummary;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -46,6 +47,18 @@ class ReviewerAssignmentController extends Controller
         $assignment = $this->assignmentOf($request, $submission);
 
         return Inertia::render('Review/SummaryPage', ReviewerSummary::run($this->actor($request), $assignment));
+    }
+
+    public function history(Request $request): Response
+    {
+        $search = $request->string('search')->trim()->toString();
+        $year = $request->integer('year');
+
+        return Inertia::render('Review/HistoryPage', [
+            ...ReviewerHistory::run($this->actor($request), $search, $year > 0 ? $year : null),
+            // Tahun yang bukan angka diabaikan, bukan dikembalikan ke kotak saring.
+            'filters' => ['search' => $search, 'year' => $year > 0 ? $request->string('year')->toString() : ''],
+        ]);
     }
 
     private function assignmentOf(Request $request, FormSubmission $submission): SubmissionReviewer

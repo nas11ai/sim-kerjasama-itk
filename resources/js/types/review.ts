@@ -1,5 +1,6 @@
 // Kontrak props halaman Review/*, mengikuti app/Data/View/Review dan app/Queries/Review/Reviewer*.
-import type { ReviewerScores, SubmissionAnswer } from '@/types/submission-page'
+import type { Paginated } from '@/types/pagination'
+import type { FilterOption, ReviewerScores, SubmissionAnswer } from '@/types/submission-page'
 import type { ReviewThread } from '@/types/submission-revision'
 import type { SubmissionStatusView } from '@/types/submission-status'
 import type { WizardField } from '@/types/submission-wizard'
@@ -71,4 +72,22 @@ export interface SummaryPageProps {
     canCreateThread: boolean
     scores: ReviewerScores
     outcome: OutcomeConditions
+}
+
+// Sumber: ReviewHistoryRowData. `summaryUrl` null = penugasan digantikan (BR-REV-10).
+export interface ReviewHistoryRow {
+    id: number
+    title: string
+    scheme: string | null
+    context: string | null
+    completedAt: string | null
+    status: 'completed' | 'pending' | 'replaced'
+    statusLabel: string
+    summaryUrl: string | null
+}
+
+export interface HistoryPageProps {
+    history: Paginated<ReviewHistoryRow>
+    filters: { search: string; year: string }
+    yearOptions: FilterOption[]
 }
