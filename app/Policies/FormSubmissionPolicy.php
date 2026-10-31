@@ -68,6 +68,12 @@ class FormSubmissionPolicy
      * BR-SM-15 — target luaran boleh diubah sampai REJECTED atau WITHDRAWN,
      * termasuk setelah APPROVED: target menyesuaikan jalannya kegiatan.
      */
+    public function discussReview(User $user, FormSubmission $submission): bool
+    {
+        // BR-REV-06 — dari pihak peneliti hanya ketua pengaju yang berdiskusi; ia juga yang mengirim ulang (BR-SM-04).
+        return $submission->submitted_by === $user->id;
+    }
+
     public function manageTargetOutput(User $user, FormSubmission $submission): bool
     {
         // Hanya `submitted_by`, sengaja berbeda dari BR-RO-07 yang membolehkan

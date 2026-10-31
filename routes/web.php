@@ -39,6 +39,7 @@ use App\Http\Controllers\Submission\ResearchOutputController;
 use App\Http\Controllers\Submission\ResubmitController;
 use App\Http\Controllers\Submission\SubmissionDecisionController;
 use App\Http\Controllers\Submission\SubmissionFileController;
+use App\Http\Controllers\Submission\SubmissionRevisionController;
 use App\Http\Controllers\Submission\SubmissionWizardController;
 use App\Http\Controllers\Submission\TargetOutputController;
 use App\Http\Controllers\SubmissionPeriodController;
@@ -171,6 +172,9 @@ Route::middleware(['auth', 'check_biodata'])->prefix('user')->name('user.')->gro
 
     Route::post('/submissions/{submission}/submit', [SubmissionWizardController::class, 'submit'])
         ->name('submissions.submit');
+
+    Route::get('/submissions/{submission}/revision', SubmissionRevisionController::class)
+        ->name('submissions.revision');
 
     Route::get('/submissions/{submission}', [SubmissionViewController::class, 'userShowSubmission'])
         ->name('submissions.show');

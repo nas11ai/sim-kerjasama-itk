@@ -143,7 +143,7 @@ it('ketua draft menyunting anggaran dan totalnya dijumlahkan', function () {
         ->and($budget->total)->toBe(2500);
 });
 
-it('editUrl menaut ke wizard', function (string $status) {
+it('editUrl menaut ke wizard untuk draft dan ke halaman revisi untuk revisi', function (string $status, string $routeName) {
     $detail = FormPhaseDetail::factory()->create();
     $period = SubmissionPeriod::factory()->create();
     $submission = FormSubmission::factory()->create([
@@ -152,11 +152,13 @@ it('editUrl menaut ke wizard', function (string $status) {
         'form_phase_detail_id' => $detail->id,
     ]);
 
-    // Revisi tetap lewat wizard sampai RevisionPage lahir di S2c.
     expect(detailOf($submission->submittedBy, $submission)['submission']->editUrl)
-        ->toBe(route('user.submissions.wizard', $submission->id))
+        ->toBe(route($routeName, $submission->id))
         ->and(detailOf(memberOf($submission), $submission)['submission']->editUrl)->toBeNull();
-})->with([Draft::class, NeedsRevision::class]);
+})->with([
+    [Draft::class, 'user.submissions.wizard'],
+    [NeedsRevision::class, 'user.submissions.revision'],
+]);
 
 it('pengajuan tanpa periode dan fase tetap terbaca', function () {
     $submission = FormSubmission::factory()->create(['status' => Draft::class]);

@@ -20,6 +20,7 @@ use App\Models\FormSubmission;
 use App\Models\ResearchMember;
 use App\Models\User;
 use App\Queries\Review\VisibleReviewerScores;
+use App\States\Submission\NeedsRevision;
 use App\States\Submission\Rejected;
 use App\Support\PhaseAccessGate;
 use Illuminate\Database\Eloquent\Builder;
@@ -122,7 +123,11 @@ class ResearcherSubmissionDetail implements ChangesNoState
             return null;
         }
 
-        // Draft dan revisi sama-sama disunting lewat wizard sampai RevisionPage lahir di S2c.
+        // Revisi dimulai dari catatan reviewer (RESEARCHER-02-05); draft langsung ke wizard.
+        if ($submission->status instanceof NeedsRevision) {
+            return route('user.submissions.revision', $submission->id);
+        }
+
         return route('user.submissions.wizard', $submission->id);
     }
 

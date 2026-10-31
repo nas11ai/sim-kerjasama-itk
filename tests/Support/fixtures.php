@@ -22,6 +22,7 @@ use App\Models\ReviewEvaluationForm;
 use App\Models\ReviewFormField;
 use App\Models\ReviewFormFieldResponse;
 use App\Models\ReviewFormResponse;
+use App\Models\ReviewSummary;
 use App\Models\SubmissionDate;
 use App\Models\SubmissionDateLabel;
 use App\Models\SubmissionPeriod;
@@ -29,6 +30,7 @@ use App\Models\SubmissionReviewer;
 use App\Models\User;
 use App\Models\UserProfile;
 use App\States\Submission\Approved;
+use App\States\Submission\UnderReview;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Spatie\Permission\Models\Permission;
@@ -376,4 +378,43 @@ function evaluationFieldResponse(string $fieldType, ?string $value, bool $isRequ
         'review_form_field_id' => $field->id,
         'value' => $value,
     ]);
+}
+
+/**
+ * Pengajuan dengan satu ulir terbuka dari reviewer internal "Penilai Ulir".
+ *
+ * @return array{0: User, 1: User, 2: FormSubmission}
+ */
+function threadAuthorFixture(string $status = UnderReview::class): array
+{
+    $owner = User::factory()->create();
+    $submission = FormSubmission::factory()->create([
+        'submitted_by' => $owner->id,
+        'status' => $status,
+        'is_submitted' => true,
+    ]);
+
+    $author = User::factory()->create(['name' => 'Penilai Ulir']);
+    $reviewer = Reviewer::factory()->create([
+        'user_id' => $author->id,
+        'reviewer_type' => 'internal',
+        'start_date' => now()->subMonth(),
+        'end_date' => now()->addMonth(),
+    ]);
+
+    SubmissionReviewer::create([
+        'form_submission_id' => $submission->id,
+        'reviewer_id' => $reviewer->id,
+        'evaluation_status' => 'completed',
+        'status' => 'active',
+    ]);
+
+    ReviewSummary::create([
+        'form_submission_id' => $submission->id,
+        'reviewer_id' => $reviewer->id,
+        'status' => 'open',
+        'summary_notes' => 'Perbaiki metodologi.',
+    ]);
+
+    return [$owner, $author, $submission];
 }

@@ -12,6 +12,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property-read Reviewer|null $reviewer
  * @property-read ReviewSummary $reviewSummary
  * @property Collection<int, ReviewCommentAttachment> $attachments
+ * @property-read Collection<int, ReviewComment> $replies
  */
 class ReviewComment extends Model
 {
@@ -33,7 +34,8 @@ class ReviewComment extends Model
         return $this->belongsTo(ReviewComment::class, 'parent_comment_id');
     }
 
-    public function replies()
+    /** @return HasMany<ReviewComment, $this> */
+    public function replies(): HasMany
     {
         return $this->hasMany(ReviewComment::class, 'parent_comment_id');
     }

@@ -67,7 +67,7 @@ class AddReviewComment
     {
         $submission = $summary->formSubmission;
 
-        if ($author->can('users.manage') || $submission->submitted_by === $author->id) {
+        if ($author->can('users.manage') || $author->can('discussReview', $submission)) {
             return null;
         }
 

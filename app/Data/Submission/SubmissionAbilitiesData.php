@@ -20,6 +20,7 @@ class SubmissionAbilitiesData extends Data
         public bool $resubmit,
         public bool $withdraw,
         public bool $manageTargetOutput,
+        public bool $discussReview,
     ) {}
 
     public static function forUser(User $user, FormSubmission $submission): self
@@ -34,6 +35,8 @@ class SubmissionAbilitiesData extends Data
             withdraw: $user->can('withdraw', $submission),
             // BR-SM-15 — hanya ketua pengaju, sampai REJECTED atau WITHDRAWN.
             manageTargetOutput: $user->can('manageTargetOutput', $submission),
+            // BR-REV-06 — kotak balas ulir; sumbernya sama dengan AddReviewComment.
+            discussReview: $user->can('discussReview', $submission),
         );
     }
 }
