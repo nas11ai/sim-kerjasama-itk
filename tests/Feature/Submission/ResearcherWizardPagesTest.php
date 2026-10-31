@@ -2,7 +2,7 @@
 
 // tests/Feature/Submission/ResearcherWizardPagesTest.php
 //
-// Dasbor peneliti, layar tahap formulir, dan simpan langkah wizard. Pengajuan
+// Dasbor peneliti dan simpan draft lewat jalur legacy. Pengajuan
 // yang ditampilkan dan dihitung adalah baris yang juga ditulis wizard: form,
 // periode, dan peneliti yang sama (ResolveWizardSubmission).
 
@@ -120,37 +120,6 @@ it('menghitung statistik review dasbor peneliti dari penugasan yang masih berlak
                 'completed_reviews' => 0,
                 'pending_reviews' => 1,
             ]));
-});
-
-it('menolak membuka tahap yang tidak terpasang di periode pada URL', function () {
-    $fx = wizardFixture();
-
-    $this->actingAs($fx['user'])
-        ->get(route('user.form-phase', ['period' => $fx['period']->id, 'phase' => $fx['phase']->id]))
-        ->assertRedirect(route('user.dashboard'))
-        ->assertSessionHas('error');
-});
-
-it('membuka tahap formulir dengan pengajuan periode itu saja', function () {
-    $fx = wizardFixture();
-    $other = SubmissionPeriod::factory()->create();
-    wizardPhaseIn($fx['period'], $fx['phase']);
-    wizardPhaseIn($other, $fx['phase']);
-    $mine = wizardSubmitted($fx, $fx['period']);
-
-    $this->actingAs($fx['user'])
-        ->get(route('user.form-phase', ['period' => $other->id, 'phase' => $fx['phase']->id]))
-        ->assertOk()
-        ->assertInertia(fn (Assert $page) => $page
-            ->component('User/FormPhase')
-            ->where('formPhase.form_access_controls.0.user_submission', null));
-
-    $this->actingAs($fx['user'])
-        ->get(route('user.form-phase', ['period' => $fx['period']->id, 'phase' => $fx['phase']->id, 'step' => 2]))
-        ->assertInertia(fn (Assert $page) => $page
-            ->where('currentStep', 2)
-            ->where('formPhase.form_access_controls.0.user_submission.id', $mine->id)
-            ->where('formPhase.form_access_controls.0.user_submission.updated_at', $mine->updated_at->toISOString()));
 });
 
 it('menyimpan draft dengan satu entri audit', function () {

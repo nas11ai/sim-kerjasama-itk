@@ -8,16 +8,25 @@ import type { SubmissionAnswer } from '@/types/submission-page'
 const props = defineProps<{ answers: SubmissionAnswer[] }>()
 
 const files = computed(() => props.answers.filter((answer) => answer.isFile))
+
+const fileName = (path: string | null) => path?.split('/').pop() ?? ''
 </script>
 
 <template>
-    <!-- Unduhan menyusul di S2b: belum ada route unduh berkas jawaban (fe-v2-design §9 W8). -->
+    <!-- BR-SM-07 — berkas dibaca lewat route unduh ber-scope, bukan URL publik (W15) -->
     <SectionCard title="Berkas Lampiran">
         <dl v-if="files.length > 0" class="divide-y rounded-md border text-sm">
             <div v-for="file in files" :key="file.label" class="flex justify-between gap-2 p-3">
                 <dt class="font-medium">{{ file.label }}</dt>
                 <dd class="break-all text-muted-foreground">
-                    {{ file.value ?? 'Belum diunggah' }}
+                    <a
+                        v-if="file.downloadUrl"
+                        :href="file.downloadUrl"
+                        class="text-primary underline-offset-4 hover:underline"
+                    >
+                        {{ fileName(file.value) }}
+                    </a>
+                    <template v-else>Belum diunggah</template>
                 </dd>
             </div>
         </dl>

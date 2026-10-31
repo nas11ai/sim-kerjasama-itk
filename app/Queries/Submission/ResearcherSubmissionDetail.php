@@ -120,7 +120,8 @@ class ResearcherSubmissionDetail implements ChangesNoState
             return null;
         }
 
-        return route('user.form-phase', [$submission->submission_period_id, $detail->form_phase_id]);
+        // Draft dan revisi sama-sama disunting lewat wizard sampai RevisionPage lahir di S2c.
+        return route('user.submissions.wizard', $submission->id);
     }
 
     /** @return list<SubmissionMemberData> */

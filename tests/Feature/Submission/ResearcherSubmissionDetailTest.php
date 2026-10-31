@@ -20,6 +20,7 @@ use App\Models\UserProfile;
 use App\Queries\Submission\ResearcherSubmissionDetail;
 use App\States\Submission\Approved;
 use App\States\Submission\Draft;
+use App\States\Submission\NeedsRevision;
 use App\States\Submission\Rejected;
 use App\States\Submission\UnderReview;
 use App\Support\Audit\AuditTrail;
@@ -142,19 +143,20 @@ it('ketua draft menyunting anggaran dan totalnya dijumlahkan', function () {
         ->and($budget->total)->toBe(2500);
 });
 
-it('editUrl hanya bila boleh disunting', function () {
+it('editUrl menaut ke wizard', function (string $status) {
     $detail = FormPhaseDetail::factory()->create();
     $period = SubmissionPeriod::factory()->create();
     $submission = FormSubmission::factory()->create([
-        'status' => Draft::class,
+        'status' => $status,
         'submission_period_id' => $period->id,
         'form_phase_detail_id' => $detail->id,
     ]);
 
+    // Revisi tetap lewat wizard sampai RevisionPage lahir di S2c.
     expect(detailOf($submission->submittedBy, $submission)['submission']->editUrl)
-        ->toBe(route('user.form-phase', [$period->id, $detail->form_phase_id]))
+        ->toBe(route('user.submissions.wizard', $submission->id))
         ->and(detailOf(memberOf($submission), $submission)['submission']->editUrl)->toBeNull();
-});
+})->with([Draft::class, NeedsRevision::class]);
 
 it('pengajuan tanpa periode dan fase tetap terbaca', function () {
     $submission = FormSubmission::factory()->create(['status' => Draft::class]);

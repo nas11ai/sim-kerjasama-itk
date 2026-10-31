@@ -414,12 +414,7 @@ const isPhaseCompleted = (phase: FormPhase) => {
                                                     phase.user_can_access &&
                                                     phase.user_progress.can_proceed
                                                 "
-                                                :href="
-                                                    route('user.form-phase', {
-                                                        period: period.id,
-                                                        phase: phase.id,
-                                                    })
-                                                "
+                                                :href="route('user.submissions.create')"
                                             >
                                                 <Button size="sm">
                                                     <PlayCircle class="h-4 w-4 mr-2" />

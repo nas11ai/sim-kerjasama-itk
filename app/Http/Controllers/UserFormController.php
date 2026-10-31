@@ -10,12 +10,9 @@ use App\Actions\Review\BuildReviewerDashboard;
 use App\Http\Controllers\Concerns\ResolvesActor;
 use App\Http\Requests\Submission\StartSubmissionRequest;
 use App\Http\Requests\Submission\SubmissionAnswersRequest;
-use App\Models\FormPhase;
 use App\Models\Reviewer;
-use App\Models\SubmissionPeriod;
 use App\Queries\Submission\AccessibleFormPhaseDetail;
 use App\Queries\Submission\ResearcherDashboardPeriods;
-use App\Queries\Submission\ResearcherFormPhaseSteps;
 use App\Queries\Submission\ResearcherStudyProgram;
 use App\Support\WizardStepGate;
 use Illuminate\Http\RedirectResponse;
@@ -41,27 +38,6 @@ class UserFormController extends Controller
             // termasuk ulir penugasan yang sudah diganti (BR-REV-10).
             'reviewStats' => $reviewer === null ? null : BuildReviewerDashboard::run($reviewer)['stats'],
             'reviewer' => $reviewer === null ? null : ['id' => $reviewer->id, 'reviewer_type' => $reviewer->reviewer_type],
-        ]);
-    }
-
-    public function showFormPhase(Request $request, SubmissionPeriod $period, FormPhase $phase): Response|RedirectResponse
-    {
-        $steps = ResearcherFormPhaseSteps::run($period, $phase, $this->actor($request));
-
-        if ($steps === []) {
-            return redirect()->route('user.dashboard')
-                ->with('error', 'Anda tidak memiliki akses ke tahap formulir ini.');
-        }
-
-        return Inertia::render('User/FormPhase', [
-            'submissionPeriod' => ['id' => $period->id, 'name' => $period->name],
-            'formPhase' => [
-                'id' => $phase->id,
-                'title' => $phase->title,
-                'description' => $phase->description,
-                'form_access_controls' => $steps,
-            ],
-            'currentStep' => $request->integer('step', 1),
         ]);
     }
 

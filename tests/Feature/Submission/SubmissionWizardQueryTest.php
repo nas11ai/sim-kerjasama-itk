@@ -209,3 +209,24 @@ it('opsi mulai menautkan draft yang masih bisa disunting', function () {
 
     expect(ResearcherStartOptions::run($fx['user'])[0]->forms[0]->draftId)->toBeNull();
 });
+
+it('fase yang tidak terpasang di periode tidak ditawarkan', function () {
+    // Pindahan dari layar tahap formulir legacy: tahap di luar periode tidak punya langkah.
+    $fx = wizardFixture();
+
+    expect(ResearcherStartOptions::run($fx['user']))->toBe([]);
+});
+
+it('draft periode lain tidak ditautkan', function () {
+    // Pindahan dari layar legacy: fase yang dipakai dua periode memuat draft periode itu saja.
+    $fx = wizardFixture();
+    $other = SubmissionPeriod::factory()->create();
+    wizardQueryPhaseInPeriod($fx['period']->id, $fx['phase']->id);
+    wizardQueryPhaseInPeriod($other->id, $fx['phase']->id);
+    $draft = StartSubmission::run($fx['form']->id, $fx['period']->id, $fx['detail'], $fx['user']);
+
+    $byPeriod = collect(ResearcherStartOptions::run($fx['user']))->keyBy('id');
+
+    expect($byPeriod[$fx['period']->id]->forms[0]->draftId)->toBe($draft->id)
+        ->and($byPeriod[$other->id]->forms[0]->draftId)->toBeNull();
+});

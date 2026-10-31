@@ -139,10 +139,6 @@ Route::middleware(['auth', 'check_biodata'])->prefix('user')->name('user.')->gro
     Route::post('/announcements/{announcement}/markRead', [AnnouncementController::class, 'markAsRead'])
         ->name('announcements.markRead');
 
-    // Form Phase Routes
-    Route::get('/submission-period/{period}/form-phase/{phase}', [UserFormController::class, 'showFormPhase'])
-        ->name('form-phase');
-
     // Form Submission Routes
     Route::post('/form-submission/save-draft', [UserFormController::class, 'saveDraft'])
         ->name('form-submission.save-draft');
@@ -159,9 +155,6 @@ Route::middleware(['auth', 'check_biodata'])->prefix('user')->name('user.')->gro
     Route::get('/submissions', [SubmissionViewController::class, 'userIndex'])
         ->middleware('can:submissions.view-own')
         ->name('submissions.index');
-
-    Route::get('/submissions/period/{period}', [SubmissionViewController::class, 'userShowPeriod'])
-        ->name('submissions.period');
 
     // Dideklarasikan sebelum /submissions/{submission} supaya "create" tidak terbaca sebagai id.
     Route::get('/submissions/create', [SubmissionWizardController::class, 'create'])

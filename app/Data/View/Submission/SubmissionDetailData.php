@@ -7,7 +7,7 @@ use Spatie\LaravelData\Data;
 
 /**
  * Kepala RESEARCHER-02-03. `viewerRole` hanya untuk label; tombol tetap membaca `can`.
- * `editUrl` menaut wizard legacy sampai EditPage/RevisionPage lahir di S2c.
+ * `editUrl` menaut wizard pengajuan (S2b); RevisionPage menyusul di S2c.
  */
 final class SubmissionDetailData extends Data
 {

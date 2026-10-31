@@ -81,24 +81,12 @@ const Ziggy = {
             parameters: ['announcement'],
             bindings: { announcement: 'id' },
         },
-        'user.form-phase': {
-            uri: 'user\/submission-period\/{period}\/form-phase\/{phase}',
-            methods: ['GET', 'HEAD'],
-            parameters: ['period', 'phase'],
-            bindings: { period: 'id', phase: 'id' },
-        },
         'user.form-submission.save-draft': {
             uri: 'user\/form-submission\/save-draft',
             methods: ['POST'],
         },
         'user.form-submission.submit': { uri: 'user\/form-submission\/submit', methods: ['POST'] },
         'user.submissions.index': { uri: 'user\/submissions', methods: ['GET', 'HEAD'] },
-        'user.submissions.period': {
-            uri: 'user\/submissions\/period\/{period}',
-            methods: ['GET', 'HEAD'],
-            parameters: ['period'],
-            bindings: { period: 'id' },
-        },
         'user.submissions.show': {
             uri: 'user\/submissions\/{submission}',
             methods: ['GET', 'HEAD'],

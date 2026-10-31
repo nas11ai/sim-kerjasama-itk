@@ -13,7 +13,6 @@ use App\Queries\Review\ReviewerSubmissionView;
 use App\Queries\Submission\OperatorPeriodDirectory;
 use App\Queries\Submission\OperatorPeriodSubmissions;
 use App\Queries\Submission\OperatorSubmissionView;
-use App\Queries\Submission\ResearcherPeriodPhases;
 use App\Queries\Submission\ResearcherSubmissionDetail;
 use App\Queries\Submission\ResearcherSubmissionList;
 use App\Queries\Submission\SubmissionStatusChoices;
@@ -43,14 +42,6 @@ class SubmissionViewController extends Controller
         return Inertia::render('Submissions/IndexPage', [
             'submissionPeriods' => OperatorPeriodDirectory::run($request->string('search')->value()),
             'filters' => $request->only(['search']),
-        ]);
-    }
-
-    public function userShowPeriod(Request $request, SubmissionPeriod $period): Response
-    {
-        return Inertia::render('User/Submissions/ShowPeriod', [
-            'submissionPeriod' => $period->load('submissionDates.submissionDateLabel'),
-            'formPhases' => ResearcherPeriodPhases::run($period, $this->viewer($request)),
         ]);
     }
 

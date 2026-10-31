@@ -119,12 +119,4 @@ it('menyaring pengajuan peneliti per periode dari periode milik pengajuan', func
     $this->actingAs($fixture['user'])
         ->get(route('user.submissions.index', ['period' => $other->id]))
         ->assertInertia(fn (Assert $page) => $page->has('submissions.data', 0));
-
-    $this->actingAs($fixture['user'])
-        ->get(route('user.submissions.period', $fixture['period']))
-        ->assertInertia(fn (Assert $page) => $page->where('formPhases.0.user_submissions.0.id', $submission->id));
-
-    $this->actingAs($fixture['user'])
-        ->get(route('user.submissions.period', $other))
-        ->assertInertia(fn (Assert $page) => $page->where('formPhases.0.user_submissions', []));
 });
