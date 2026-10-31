@@ -23,7 +23,6 @@ use App\States\Submission\UnderReview;
 use App\Support\Audit\AuditTrail;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Cache;
-use Inertia\Testing\AssertableInertia as Assert;
 use Spatie\Activitylog\Models\Activity;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
@@ -159,28 +158,20 @@ it('refuses to start a form of another phase detail, an inactive form, or by som
     expect(ReviewerFormAssignment::count())->toBe(0);
 });
 
-it('opens a draft for the reviewer but leaves none behind when an admin only reads', function () {
+it('sends the old form links to the tab of that form on the evaluation page, leaving no draft behind', function () {
     $assignment = evalResponseAssignment($this->submissionReviewer, $this->form);
+    $page = route('reviewer.assignments.evaluation', ['submission' => $this->submission->id, 'form' => $this->form->id]);
 
-    $this->actingAs(evalResponseAdmin())
+    foreach (['reviewer.evaluation-form.show', 'reviewer.evaluation-form.submitted'] as $name) {
+        $this->actingAs($this->reviewerUser)->get(route($name, $assignment))->assertRedirect($page);
+    }
+
+    $this->actingAs(User::factory()->create())
         ->get(route('reviewer.evaluation-form.show', $assignment))
-        ->assertOk()
-        ->assertInertia(fn (Assert $page) => $page->where('canEdit', false)->where('canSubmit', false));
+        ->assertForbidden();
 
+    // Draft baru dibuat saat reviewer menyimpan (REV-EVAL-01), bukan saat membuka.
     expect(ReviewFormResponse::count())->toBe(0);
-
-    $this->actingAs($this->reviewerUser)
-        ->get(route('reviewer.evaluation-form.show', $assignment))
-        ->assertOk()
-        ->assertInertia(fn (Assert $page) => $page
-            ->component('Reviewer/EvaluationForm/ShowPage')
-            ->where('canEdit', true)
-            ->where('completionPercentage', 0));
-
-    $response = ReviewFormResponse::sole();
-
-    expect($response->status)->toBe('draft')
-        ->and(evalResponseAudit($response, 'Draft evaluasi dibuat'))->toBeTrue();
 });
 
 it('[REV-EVAL-01] saves a draft of the answers and the final notes, audited', function () {
@@ -238,11 +229,14 @@ it('[REV-EVAL-03] submits fresh answers in one request, completing the assignmen
     $assignment = evalResponseAssignment($this->submissionReviewer, $this->form);
 
     // Layar mengaktifkan tombol kirim dari isian di peramban; draft belum tentu tersimpan dulu.
+    $page = route('reviewer.assignments.evaluation', $this->submission);
+
     $this->actingAs($this->reviewerUser)
+        ->from($page)
         ->post(route('reviewer.evaluation-form.submit', $assignment), [
             'responses' => [$this->required->id => 'Layak'],
         ])
-        ->assertRedirect(route('reviewer.assignments.index'));
+        ->assertRedirect($page);
 
     $response = ReviewFormResponse::sole();
 
@@ -284,7 +278,7 @@ it('lets neither an admin nor a super admin answer on behalf of the reviewer', f
     expect(ReviewFormResponse::count())->toBe(0);
 });
 
-it('shows and downloads a submitted evaluation, and reports its progress', function () {
+it('downloads a submitted evaluation and reports its progress', function () {
     $assignment = evalResponseAssignment($this->submissionReviewer, $this->form);
     $response = ReviewFormResponse::create([
         'reviewer_form_assignment_id' => $assignment->id,
@@ -293,13 +287,6 @@ it('shows and downloads a submitted evaluation, and reports its progress', funct
         'final_notes' => 'Catatan penutup',
     ]);
     $response->saveFieldResponse($this->required->id, 'Layak');
-
-    $this->actingAs($this->reviewerUser)
-        ->get(route('reviewer.evaluation-form.submitted', $assignment))
-        ->assertOk()
-        ->assertInertia(fn (Assert $page) => $page
-            ->component('Reviewer/EvaluationForm/SubmittedPage')
-            ->where("formattedResponses.{$this->required->id}.value", 'Layak'));
 
     $download = $this->actingAs($this->reviewerUser)
         ->get(route('reviewer.evaluation-form.download-summary', $assignment))

@@ -14,7 +14,7 @@ class ReviewerFormAssignmentPolicy
      */
     public function view(User $user, ReviewerFormAssignment $assignment): bool
     {
-        return $user->can('users.manage') || $this->evaluate($user, $assignment);
+        return $user->can('users.manage') || $this->ownsActive($user, $assignment);
     }
 
     /**
@@ -22,6 +22,13 @@ class ReviewerFormAssignmentPolicy
      * reviewer menilai padahal bukan dia — alasan ADR 0015 memasukkannya ke INVARIANT_ABILITIES.
      */
     public function evaluate(User $user, ReviewerFormAssignment $assignment): bool
+    {
+        // BR-FE-17 — tenggat evaluasi mengikat reviewer sendiri; lewat tenggat isian tertutup
+        // (FE-WINDOW-02), sedangkan membacanya tetap boleh lewat `view`.
+        return !$assignment->isOverdue() && $this->ownsActive($user, $assignment);
+    }
+
+    private function ownsActive(User $user, ReviewerFormAssignment $assignment): bool
     {
         $submissionReviewer = $assignment->submissionReviewer;
 

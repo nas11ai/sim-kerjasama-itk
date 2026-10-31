@@ -2,7 +2,6 @@
 
 namespace App\Http\Controllers;
 
-use App\Actions\Review\OpenEvaluationResponse;
 use App\Actions\Review\SaveEvaluationDraft;
 use App\Actions\Review\StartEvaluationForm;
 use App\Actions\Review\SubmitEvaluationAnswers;
@@ -10,14 +9,11 @@ use App\Http\Controllers\Concerns\ResolvesActor;
 use App\Http\Requests\Review\EvaluationAnswersRequest;
 use App\Http\Requests\Review\StartEvaluationFormRequest;
 use App\Models\ReviewerFormAssignment;
-use App\Models\ReviewFormResponse;
 use App\Models\User;
 use App\Queries\Review\EvaluationAssignmentProgress;
-use App\Queries\Review\EvaluationFormCompletion;
 use App\Queries\Review\EvaluationSummaryText;
-use Illuminate\Database\Eloquent\Relations\Relation;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Inertia\Inertia;
 
 class ReviewFormResponseController extends Controller
 {
@@ -27,28 +23,15 @@ class ReviewFormResponseController extends Controller
     {
         $assignment = StartEvaluationForm::run($request->submission(), $request->evaluationForm(), $this->actor($request));
 
-        return redirect()->route('reviewer.evaluation-form.show', $assignment->id);
+        return $this->toEvaluationPage($assignment);
     }
 
-    public function show(Request $request, ReviewerFormAssignment $assignment)
+    /** Nama route lama dipertahankan: `ReviewSystem.vue` operator masih menautnya sampai S4. */
+    public function show(Request $request, ReviewerFormAssignment $assignment): RedirectResponse
     {
-        $actor = $this->viewer($request, $assignment);
-        $canEvaluate = $actor->can('evaluate', $assignment);
-        $this->loadSheet($assignment);
+        $this->viewer($request, $assignment);
 
-        // Draft dibuat hanya bagi reviewernya; admin yang sekadar membaca tidak meninggalkan apa pun.
-        $response = $canEvaluate
-            ? OpenEvaluationResponse::run($assignment, $actor)
-            : $assignment->reviewFormResponse ?? new ReviewFormResponse(['reviewer_form_assignment_id' => $assignment->id, 'status' => 'draft']);
-
-        return Inertia::render('Reviewer/EvaluationForm/ShowPage', [
-            'assignment' => $assignment,
-            'response' => $response,
-            'existingResponses' => $response->reviewFormFieldResponses->pluck('value', 'review_form_field_id'),
-            'canEdit' => $canEvaluate && $response->canBeEdited(),
-            'canSubmit' => $canEvaluate && $response->canBeSubmitted(),
-            'completionPercentage' => EvaluationFormCompletion::run($response),
-        ]);
+        return $this->toEvaluationPage($assignment);
     }
 
     public function saveDraft(EvaluationAnswersRequest $request, ReviewerFormAssignment $assignment)
@@ -62,28 +45,14 @@ class ReviewFormResponseController extends Controller
     {
         SubmitEvaluationAnswers::run($assignment, $request->toInput(), $this->actor($request));
 
-        return redirect()->route('reviewer.assignments.index')
-            ->with('success', 'Formulir evaluasi berhasil dikirim.');
+        // REVIEWER-03-03 menampilkan form yang baru terkunci di tempat yang sama.
+        return back()->with('success', 'Formulir evaluasi berhasil dikirim.');
     }
 
-    public function showSubmitted(Request $request, ReviewerFormAssignment $assignment)
+    /** Lembar terkirim kini dibaca di tab formnya sendiri; lihat `show`. */
+    public function showSubmitted(Request $request, ReviewerFormAssignment $assignment): RedirectResponse
     {
-        $this->viewer($request, $assignment);
-        $response = $assignment->reviewFormResponse;
-
-        if ($response === null || !$response->isSubmitted()) {
-            return redirect()->route('reviewer.evaluation-form.show', $assignment);
-        }
-
-        $this->loadSheet($assignment);
-
-        return Inertia::render('Reviewer/EvaluationForm/SubmittedPage', [
-            'assignment' => $assignment,
-            'response' => $response,
-            'formattedResponses' => $response->reviewFormFieldResponses->mapWithKeys(fn ($answer) => [
-                $answer->review_form_field_id => ['value' => $answer->value, 'formatted_value' => $answer->formatted_value],
-            ]),
-        ]);
+        return $this->show($request, $assignment);
     }
 
     public function downloadSummary(Request $request, ReviewerFormAssignment $assignment)
@@ -120,16 +89,11 @@ class ReviewFormResponseController extends Controller
         return $actor;
     }
 
-    private function loadSheet(ReviewerFormAssignment $assignment): void
+    private function toEvaluationPage(ReviewerFormAssignment $assignment): RedirectResponse
     {
-        $assignment->load([
-            'reviewEvaluationForm.reviewFormFields' => fn (Relation $fields) => $fields->orderBy('order')->with([
-                'fieldType:id,name',
-                'reviewFormFieldOptions' => fn (Relation $options) => $options->orderBy('order'),
-            ]),
-            'submissionReviewer.formSubmission.form:id,title',
-            'submissionReviewer.formSubmission.submittedBy:id,name',
-            'reviewFormResponse.reviewFormFieldResponses',
+        return redirect()->route('reviewer.assignments.evaluation', [
+            'submission' => $assignment->submissionReviewer->form_submission_id,
+            'form' => $assignment->review_evaluation_form_id,
         ]);
     }
 }

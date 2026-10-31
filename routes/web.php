@@ -21,6 +21,7 @@ use App\Http\Controllers\PermissionController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Review\ReplaceReviewerController;
 use App\Http\Controllers\Review\ReviewAttachmentDownloadController;
+use App\Http\Controllers\Review\ReviewerAssignmentController;
 use App\Http\Controllers\Review\ReviewSummaryResolutionController;
 use App\Http\Controllers\ReviewController;
 use App\Http\Controllers\ReviewerController;
@@ -198,6 +199,12 @@ Route::middleware(['auth'])->prefix('reviewer')->name('reviewer.')->group(functi
 
     Route::post('/review-summaries/{reviewSummary}/comments', [ReviewController::class, 'addComment'])
         ->name('review-comments.store');
+
+    // REVIEWER-03-* (S3a) — dijaga permission DDD, bukan role (§4.4 K1).
+    Route::middleware('can:reviewers.evaluate')->group(function () {
+        Route::get('/assignments/{submission}/evaluation', [ReviewerAssignmentController::class, 'evaluation'])
+            ->name('assignments.evaluation');
+    });
 });
 
 // Admin Routes - permission-based (users.manage; Super Admin via Gate::before)
