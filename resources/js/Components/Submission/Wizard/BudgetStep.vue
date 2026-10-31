@@ -54,22 +54,24 @@ const remove = (item: BudgetItem) =>
         <template v-else>
             <BudgetTable v-if="budget.items.length" :items="budget.items">
                 <template v-if="budget.editable" #actions="{ item }">
-                    <Button
-                        variant="ghost"
-                        size="sm"
-                        data-action="edit-item"
-                        @click="editing = item"
-                    >
-                        Ubah
-                    </Button>
-                    <Button
-                        variant="ghost"
-                        size="sm"
-                        data-action="remove-item"
-                        @click="remove(item)"
-                    >
-                        Hapus
-                    </Button>
+                    <div class="flex justify-end gap-1">
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            data-action="edit-item"
+                            @click="editing = item"
+                        >
+                            Ubah
+                        </Button>
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            data-action="remove-item"
+                            @click="remove(item)"
+                        >
+                            Hapus
+                        </Button>
+                    </div>
                 </template>
             </BudgetTable>
             <EmptyState v-else title="Belum ada item anggaran" />
