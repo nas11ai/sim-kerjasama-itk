@@ -8,7 +8,6 @@ use App\Models\Reviewer;
 use App\Models\SubmissionPeriod;
 use App\Models\User;
 use App\Queries\Review\ActiveReviewerAssignment;
-use App\Queries\Review\ReviewerSubmissionList;
 use App\Queries\Review\ReviewerSubmissionView;
 use App\Queries\Submission\OperatorPeriodDirectory;
 use App\Queries\Submission\OperatorPeriodSubmissions;
@@ -95,21 +94,6 @@ class SubmissionViewController extends Controller
             ],
             'stats' => $dashboard['stats'],
             'assignments' => $dashboard['assignments'],
-        ]);
-    }
-
-    public function reviewerSubmissions(Request $request): Response
-    {
-        $reviewer = $this->reviewerOf($request);
-
-        return Inertia::render('Reviewer/Submissions/IndexPage', [
-            'submissions' => ReviewerSubmissionList::run(
-                $reviewer,
-                $request->string('status')->value(),
-                $request->string('search')->value(),
-            ),
-            'filters' => $request->only(['status', 'search']),
-            'reviewer' => ['id' => $reviewer->id, 'reviewer_type' => $reviewer->reviewer_type],
         ]);
     }
 

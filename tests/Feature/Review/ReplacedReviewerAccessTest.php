@@ -234,51 +234,13 @@ it('tidak mengirim isi ulir baru ke reviewer yang sudah diganti', function () {
     Notification::assertNotSentTo($user, ReviewThreadOpenedNotification::class);
 });
 
-it('menyembunyikan pengajuan dari daftar reviewer yang sudah diganti', function () {
+it('menyembunyikan pengajuan dari penugasan reviewer yang sudah diganti', function () {
     [$user, $reviewer] = replacedReviewerFixture();
+    $user->givePermissionTo(Permission::findOrCreate('reviewers.evaluate', 'web'));
 
-    // Penugasan aktif di pengajuan lain: daftarnya tidak kosong karena hal lain.
-    [, , $other] = replacedReviewerFixture();
-    SubmissionReviewer::create([
-        'form_submission_id' => $other->id,
-        'reviewer_id' => $reviewer->id,
-        'evaluation_status' => 'pending',
-        'status' => 'active',
-    ]);
-
-    $this->actingAs($user)
-        ->get(route('reviewer.submissions.index'))
-        ->assertOk()
-        ->assertInertia(fn (Assert $page) => $page
-            ->has('submissions.data', 1)
-            ->where('submissions.data.0.id', $other->id));
-});
-
-it('menyembunyikan form evaluasi dari daftar tugas reviewer yang sudah diganti', function () {
-    [$user, $reviewer, , $assignment] = replacedReviewerFixture();
-    replacedReviewerFormAssignment($assignment);
-
-    [, , $other] = replacedReviewerFixture();
-    $current = replacedReviewerFormAssignment(SubmissionReviewer::create([
-        'form_submission_id' => $other->id,
-        'reviewer_id' => $reviewer->id,
-        'evaluation_status' => 'pending',
-        'status' => 'active',
-    ]));
-
-    $this->actingAs($user)
-        ->get(route('reviewer.assignments.index'))
-        ->assertOk()
-        ->assertInertia(fn (Assert $page) => $page
-            ->has('assignments.data', 1)
-            ->where('assignments.data.0.id', $current->id)
-            ->where('stats.total', 1));
-});
-
-it('menampilkan form evaluasi reviewer yang aktif di dua pengajuan', function () {
-    // Subkueri `=` dulu meledak begitu reviewer punya lebih dari satu penugasan.
-    [$user, $reviewer] = replacedReviewerFixture();
-
+    // Dua penugasan aktif di pengajuan lain: subkueri `=` dulu meledak begitu reviewer
+    // punya lebih dari satu penugasan.
+    $active = [];
     for ($i = 0; $i < 2; $i++) {
         [, , $submission] = replacedReviewerFixture();
         replacedReviewerFormAssignment(SubmissionReviewer::create([
@@ -287,12 +249,14 @@ it('menampilkan form evaluasi reviewer yang aktif di dua pengajuan', function ()
             'evaluation_status' => 'pending',
             'status' => 'active',
         ]));
+        $active[] = $submission->id;
     }
 
     $this->actingAs($user)
-        ->get(route('reviewer.assignments.index'))
+        ->get(route('reviewer.assignments.index', ['filter' => 'all']))
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
-            ->has('assignments.data', 2)
-            ->where('stats.total', 2));
+            ->has('needsAction', 2)
+            ->has('done', 0)
+            ->where('needsAction', fn ($cards) => collect($cards)->pluck('submissionId')->sort()->values()->all() === $active));
 });

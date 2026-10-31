@@ -8,10 +8,8 @@ use App\Data\Request\FormAssignmentInput;
 use App\Data\Review\BulkFormAssignmentResult;
 use App\Models\FormSubmission;
 use App\Models\ReviewerFormAssignment;
-use App\Queries\Review\ReviewerAssignmentList;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
-use Inertia\Inertia;
 
 class ReviewerFormAssignmentController extends Controller
 {
@@ -45,30 +43,6 @@ class ReviewerFormAssignmentController extends Controller
         $result = AssignEvaluationFormsInBulk::run($submission, array_map('intval', $validated['reviewer_ids']), $forms);
 
         return back()->with('success', $this->bulkMessage($result));
-    }
-
-    public function getMyAssignments(Request $request)
-    {
-        $reviewer = $request->user()->reviewers()->first();
-
-        if (!$reviewer) {
-            return Inertia::render('Reviewer/Assignments/IndexPage', [
-                'assignments' => [],
-                'stats' => ['total' => 0, 'pending' => 0, 'completed' => 0, 'overdue' => 0],
-            ]);
-        }
-
-        $listing = ReviewerAssignmentList::run(
-            $reviewer,
-            $request->query('status'),
-            $request->query('search'),
-        );
-
-        return Inertia::render('Reviewer/Assignments/IndexPage', [
-            'assignments' => $listing->assignments,
-            'stats' => $listing->stats,
-            'filters' => $request->only(['status', 'search']),
-        ]);
     }
 
     private function bulkMessage(BulkFormAssignmentResult $result): string

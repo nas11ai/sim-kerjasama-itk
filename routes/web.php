@@ -119,10 +119,6 @@ Route::middleware(['auth'])->group(function () {
         Route::get('/{assignment}/progress', [ReviewFormResponseController::class, 'getProgress'])
             ->name('progress');
     });
-
-    // NEW: Reviewer assignments management
-    Route::get('/reviewer/assignments', [ReviewerFormAssignmentController::class, 'getMyAssignments'])
-        ->name('reviewer.assignments.index');
 });
 
 Route::middleware(['auth'])->prefix('user')->name('user.')->group(function () {
@@ -187,9 +183,8 @@ Route::middleware(['auth'])->prefix('reviewer')->name('reviewer.')->group(functi
     Route::get('/dashboard', [SubmissionViewController::class, 'reviewerDashboard'])
         ->name('dashboard');
 
-    // List submissions yang di-assign untuk review
-    Route::get('/submissions', [SubmissionViewController::class, 'reviewerSubmissions'])
-        ->name('submissions.index');
+    // Nama lama dipertahankan: AppSidebar dan dasbor peneliti legacy masih menautnya.
+    Route::redirect('/submissions', '/reviewer/assignments')->name('submissions.index');
 
     Route::get('/submissions/{submission}', [SubmissionViewController::class, 'reviewerShowSubmission'])
         ->name('submissions.show');
@@ -202,6 +197,8 @@ Route::middleware(['auth'])->prefix('reviewer')->name('reviewer.')->group(functi
 
     // REVIEWER-03-* (S3a) — dijaga permission DDD, bukan role (§4.4 K1).
     Route::middleware('can:reviewers.evaluate')->group(function () {
+        Route::get('/assignments', [ReviewerAssignmentController::class, 'index'])
+            ->name('assignments.index');
         Route::get('/assignments/{submission}/evaluation', [ReviewerAssignmentController::class, 'evaluation'])
             ->name('assignments.evaluation');
     });

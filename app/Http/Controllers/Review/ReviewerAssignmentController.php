@@ -8,6 +8,7 @@ use App\Models\FormSubmission;
 use App\Models\Reviewer;
 use App\Models\SubmissionReviewer;
 use App\Queries\Review\ActiveReviewerAssignment;
+use App\Queries\Review\ReviewerAssignmentCards;
 use App\Queries\Review\ReviewerEvaluation;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -17,6 +18,19 @@ use Inertia\Response;
 class ReviewerAssignmentController extends Controller
 {
     use ResolvesActor;
+
+    public function index(Request $request): Response
+    {
+        $reviewer = Reviewer::where('user_id', $this->actor($request)->id)->first();
+        $cards = $reviewer === null ? ['needsAction' => [], 'done' => []] : ReviewerAssignmentCards::run($reviewer);
+        $filter = $request->query('filter') === 'all' ? 'all' : 'action';
+
+        return Inertia::render('Review/AssignmentIndexPage', [
+            'needsAction' => $cards['needsAction'],
+            'done' => $filter === 'all' ? $cards['done'] : [],
+            'filter' => $filter,
+        ]);
+    }
 
     public function evaluation(Request $request, FormSubmission $submission): Response
     {
