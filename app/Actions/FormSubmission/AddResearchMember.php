@@ -58,9 +58,9 @@ class AddResearchMember
      */
     private function guardCapacity(FormSubmission $submission): void
     {
-        $max = $submission->scheme?->max_members;
+        $max = $submission->scheme?->memberLimit();
 
-        if (!is_int($max) || $max <= 0) {
+        if ($max === null) {
             return;
         }
 

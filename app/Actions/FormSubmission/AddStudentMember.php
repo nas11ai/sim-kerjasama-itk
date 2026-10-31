@@ -74,9 +74,9 @@ class AddStudentMember
      */
     private function guardCapacity(FormSubmission $submission): void
     {
-        $max = $submission->scheme?->getRule('max_student_members');
+        $max = $submission->scheme?->studentMemberLimit();
 
-        if (!is_int($max) || $max <= 0) {
+        if ($max === null) {
             return;
         }
 

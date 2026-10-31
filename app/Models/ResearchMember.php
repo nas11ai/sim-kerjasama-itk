@@ -23,6 +23,12 @@ class ResearchMember extends Model
 
     public const ROLE_MEMBER = 'member';
 
+    /** Peran yang bisa diberikan kepada anggota, dengan label ubiquitous language. */
+    public const ROLE_LABELS = [
+        self::ROLE_CO_INVESTIGATOR => 'Co-Investigator',
+        self::ROLE_MEMBER => 'Anggota',
+    ];
+
     protected $fillable = [
         'form_submission_id',
         'user_profile_id',

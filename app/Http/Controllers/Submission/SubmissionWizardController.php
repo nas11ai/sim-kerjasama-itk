@@ -9,6 +9,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Submission\WizardStepRequest;
 use App\Models\FormSubmission;
 use App\Queries\Submission\ResearcherStartOptions;
+use App\Queries\Submission\ResearchMemberCandidates;
 use App\Queries\Submission\SubmissionWizard;
 use App\Support\WizardStepGate;
 use Illuminate\Http\RedirectResponse;
@@ -36,6 +37,8 @@ class SubmissionWizardController extends Controller
             'targetOutputs' => [],
             'targetOutputTypes' => [],
             'review' => null,
+            'members' => null,
+            'budget' => null,
             'can' => null,
         ]);
     }
@@ -54,6 +57,11 @@ class SubmissionWizardController extends Controller
         return Inertia::render(self::PAGE, [
             'startOptions' => [],
             ...SubmissionWizard::run($viewer, $submission, $step),
+            // Hanya dimuat lewat partial reload pencarian anggota langkah 4.
+            'memberCandidates' => Inertia::optional(fn () => ResearchMemberCandidates::run(
+                $submission,
+                $request->string('member_search')->value(),
+            )),
         ]);
     }
 

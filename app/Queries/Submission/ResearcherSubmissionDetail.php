@@ -41,8 +41,7 @@ class ResearcherSubmissionDetail implements ChangesNoState
 
     private const ROLE_LABELS = [
         'lead_researcher' => 'Ketua',
-        ResearchMember::ROLE_CO_INVESTIGATOR => 'Co-Investigator',
-        ResearchMember::ROLE_MEMBER => 'Anggota',
+        ...ResearchMember::ROLE_LABELS,
         'viewer' => 'Tidak terlibat',
     ];
 

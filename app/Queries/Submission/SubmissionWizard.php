@@ -5,7 +5,9 @@ namespace App\Queries\Submission;
 use App\Actions\Concerns\ChangesNoState;
 use App\Data\Submission\SubmissionAbilitiesData;
 use App\Data\View\Submission\SubmissionTargetOutputData;
+use App\Data\View\Submission\Wizard\WizardBudgetData;
 use App\Data\View\Submission\Wizard\WizardFieldData;
+use App\Data\View\Submission\Wizard\WizardMembersData;
 use App\Data\View\Submission\Wizard\WizardReviewData;
 use App\Data\View\Submission\Wizard\WizardStepData;
 use App\Data\View\Submission\Wizard\WizardSubmissionData;
@@ -21,7 +23,7 @@ use Lorisleiva\Actions\Concerns\AsAction;
  * Props Submission/WizardPage untuk satu langkah; hanya langkah aktif yang dimuat. Hak
  * menyunting (`update`, BR-SM-07) dijaga controller sebelum Query ini dipanggil.
  *
- * @phpstan-type Wizard array{step: int, steps: list<WizardStepData>, submission: WizardSubmissionData, fields: list<WizardFieldData>, targetOutputs: list<SubmissionTargetOutputData>, targetOutputTypes: list<array{value: string, label: string}>, review: WizardReviewData|null, can: SubmissionAbilitiesData}
+ * @phpstan-type Wizard array{step: int, steps: list<WizardStepData>, submission: WizardSubmissionData, fields: list<WizardFieldData>, targetOutputs: list<SubmissionTargetOutputData>, targetOutputTypes: list<array{value: string, label: string}>, review: WizardReviewData|null, members: WizardMembersData|null, budget: WizardBudgetData|null, can: SubmissionAbilitiesData}
  *
  * @method static Wizard run(User $viewer, FormSubmission $submission, int $step)
  */
@@ -43,6 +45,8 @@ class SubmissionWizard implements ChangesNoState
             'targetOutputs' => $isSchemeStep ? SubmissionTargetOutputs::run($submission) : [],
             'targetOutputTypes' => $isSchemeStep ? $this->targetOutputTypes($submission) : [],
             'review' => $step === WizardStepGate::STEP_REVIEW ? WizardReviewSummary::run($viewer, $submission) : null,
+            'members' => $step === WizardStepGate::STEP_MEMBERS ? WizardMembers::run($viewer, $submission) : null,
+            'budget' => $step === WizardStepGate::STEP_BUDGET ? WizardBudget::run($viewer, $submission) : null,
             'can' => SubmissionAbilitiesData::forUser($viewer, $submission),
         ];
     }

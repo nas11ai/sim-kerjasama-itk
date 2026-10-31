@@ -87,6 +87,23 @@ class Scheme extends Model
         return data_get($this->rules, $key, $default);
     }
 
+    /**
+     * BR-SCH-03 — batas anggota aktif; null bila skema tidak menyatakannya, sehingga tidak
+     * membatasi (sejajar `allowed_output_types` di BR-SM-14).
+     */
+    public function memberLimit(): ?int
+    {
+        return $this->max_members > 0 ? $this->max_members : null;
+    }
+
+    /** BR-SM-20 — batas anggota mahasiswa; null bila skema tidak menyatakannya. */
+    public function studentMemberLimit(): ?int
+    {
+        $max = $this->getRule('max_student_members');
+
+        return is_int($max) && $max > 0 ? $max : null;
+    }
+
     public function minReviewerCount(): int
     {
         return (int) $this->getRule('min_reviewer_count', 2);
