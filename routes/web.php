@@ -186,8 +186,8 @@ Route::middleware(['auth'])->prefix('reviewer')->name('reviewer.')->group(functi
     // Nama lama dipertahankan: AppSidebar dan dasbor peneliti legacy masih menautnya.
     Route::redirect('/submissions', '/reviewer/assignments')->name('submissions.index');
 
-    Route::get('/submissions/{submission}', [SubmissionViewController::class, 'reviewerShowSubmission'])
-        ->name('submissions.show');
+    // Nama lama dipertahankan: Reviewer/DashboardPage legacy menautnya sampai D1.
+    Route::redirect('/submissions/{submission}', '/reviewer/assignments/{submission}/summary')->name('submissions.show');
 
     Route::post('/submissions/{submission}/review-threads', [ReviewController::class, 'createReviewThread'])
         ->name('review-threads.store');
@@ -201,6 +201,8 @@ Route::middleware(['auth'])->prefix('reviewer')->name('reviewer.')->group(functi
             ->name('assignments.index');
         Route::get('/assignments/{submission}/evaluation', [ReviewerAssignmentController::class, 'evaluation'])
             ->name('assignments.evaluation');
+        Route::get('/assignments/{submission}/summary', [ReviewerAssignmentController::class, 'summary'])
+            ->name('assignments.summary');
     });
 });
 

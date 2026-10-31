@@ -42,13 +42,12 @@ it('mengirim penulis ulir ke layar Operator', function () {
 
 it('mengirim penulis ulir ke layar reviewer yang menulisnya', function () {
     [, $author, $submission] = threadAuthorFixture();
+    $author->givePermissionTo(Permission::findOrCreate('reviewers.evaluate', 'web'));
 
     $this->actingAs($author)
-        ->get(route('reviewer.submissions.show', $submission))
+        ->get(route('reviewer.assignments.summary', $submission))
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
-            ->where('myReviewSummary.reviewer.user.id', $author->id)
-            ->where('myReviewSummary.reviewer.user.name', 'Penilai Ulir')
-            ->where('myReviewSummary.reviewer.reviewer_type', 'internal')
+            ->where('threads.0.reviewer', 'Penilai Ulir')
             ->etc());
 });

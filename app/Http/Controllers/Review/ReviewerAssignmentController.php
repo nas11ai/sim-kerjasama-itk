@@ -10,6 +10,7 @@ use App\Models\SubmissionReviewer;
 use App\Queries\Review\ActiveReviewerAssignment;
 use App\Queries\Review\ReviewerAssignmentCards;
 use App\Queries\Review\ReviewerEvaluation;
+use App\Queries\Review\ReviewerSummary;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -38,6 +39,13 @@ class ReviewerAssignmentController extends Controller
         $form = $request->integer('form');
 
         return Inertia::render('Review/EvaluationPage', ReviewerEvaluation::run($assignment, $form === 0 ? null : $form));
+    }
+
+    public function summary(Request $request, FormSubmission $submission): Response
+    {
+        $assignment = $this->assignmentOf($request, $submission);
+
+        return Inertia::render('Review/SummaryPage', ReviewerSummary::run($this->actor($request), $assignment));
     }
 
     private function assignmentOf(Request $request, FormSubmission $submission): SubmissionReviewer

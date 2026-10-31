@@ -7,8 +7,6 @@ use App\Models\FormSubmission;
 use App\Models\Reviewer;
 use App\Models\SubmissionPeriod;
 use App\Models\User;
-use App\Queries\Review\ActiveReviewerAssignment;
-use App\Queries\Review\ReviewerSubmissionView;
 use App\Queries\Submission\OperatorPeriodDirectory;
 use App\Queries\Submission\OperatorPeriodSubmissions;
 use App\Queries\Submission\OperatorSubmissionView;
@@ -95,21 +93,6 @@ class SubmissionViewController extends Controller
             'stats' => $dashboard['stats'],
             'assignments' => $dashboard['assignments'],
         ]);
-    }
-
-    public function reviewerShowSubmission(Request $request, FormSubmission $submission): Response
-    {
-        $reviewer = $this->reviewerOf($request);
-
-        // BR-SM-07 — hanya penugasan yang masih berlaku yang memberi akses; record reviewer yang
-        // sudah diganti disimpan sebagai sejarah (BR-REV-10).
-        abort_if(
-            ActiveReviewerAssignment::run($submission, $reviewer->id) === null,
-            403,
-            'Anda tidak ditugaskan untuk review pengajuan ini.',
-        );
-
-        return Inertia::render('Reviewer/Submissions/ShowPage', ReviewerSubmissionView::run($reviewer, $submission));
     }
 
     private function viewer(Request $request): User
