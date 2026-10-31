@@ -54,6 +54,9 @@ export interface WizardField {
     downloadUrl: string | null
 }
 
+// Isian satu field di klien: teks, berkas baru, atau kosong.
+export type WizardFieldValue = string | File | null
+
 // Sumber: WizardMissingFieldData.
 export interface WizardMissingField {
     fieldId: number
