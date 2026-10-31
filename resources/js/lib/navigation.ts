@@ -73,6 +73,7 @@ export const navGroups: NavGroup[] = [
                 label: 'Penugasan Review',
                 icon: ClipboardList,
                 routeName: 'reviewer.assignments.index',
+                activePattern: 'reviewer.assignments.*',
                 anyPermission: ['reviewers.evaluate'],
             },
             {

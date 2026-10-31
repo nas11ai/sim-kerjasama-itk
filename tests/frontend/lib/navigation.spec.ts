@@ -116,6 +116,13 @@ describe('isNavItemActive', () => {
         expect(isNavItemActive(item!, (p) => p === 'user.submissions.*')).toBe(true)
     })
 
+    it('Penugasan Review aktif di halaman evaluasi', () => {
+        const review = visible.find((i) => i.label === 'Penugasan Review')
+
+        expect(review).toBeDefined()
+        expect(isNavItemActive(review!, (p) => p === 'reviewer.assignments.*')).toBe(true)
+    })
+
     it('memakai routeName bila tidak ada activePattern', () => {
         const dashboard = visible[0]
 

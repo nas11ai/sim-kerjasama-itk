@@ -32,6 +32,23 @@ export interface EvaluationForm {
     fields: WizardField[]
 }
 
+// Sumber: AssignmentCardData. `state` memilih aksi kartu.
+export interface AssignmentCard {
+    submissionId: number
+    title: string
+    leadName: string
+    scheme: string | null
+    dueDate: string | null
+    state: 'evaluation_pending' | 'discussion_open' | 'done'
+    stateLabel: string
+}
+
+export interface AssignmentIndexPageProps {
+    needsAction: AssignmentCard[]
+    done: AssignmentCard[]
+    filter: 'action' | 'all'
+}
+
 export interface EvaluationPageProps {
     submission: EvaluationSubmission
     answers: SubmissionAnswer[]
