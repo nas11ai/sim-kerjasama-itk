@@ -54,6 +54,8 @@ const createProps: SubmissionWizardPageProps = {
     targetOutputs: [],
     targetOutputTypes: [],
     review: null,
+    members: null,
+    budget: null,
     can: null,
 }
 
@@ -104,5 +106,38 @@ describe('WizardPage', () => {
 
         expect(post.mock.calls[0][0]).toBe('/user.submissions.wizard.save/7,6')
         expect(post.mock.calls[0][1].responses).toEqual([{ form_field_id: 9, value: 'isi' }])
+    })
+
+    it('langkah 4 dan 5 dirender di dalam wizard draft', async () => {
+        const wrapper = mountPage({
+            ...createProps,
+            ...editProps(4, []),
+            members: {
+                members: [],
+                students: [],
+                partners: [],
+                memberLimit: null,
+                studentLimit: null,
+                roleOptions: [],
+            },
+        })
+
+        expect(wrapper.text()).toContain('Step 4 — Anggota Penelitian')
+
+        await wrapper.setProps({
+            ...editProps(5, []),
+            members: null,
+            budget: {
+                items: [],
+                total: 0,
+                maxBudget: null,
+                components: [],
+                blockedReason: null,
+                editable: true,
+            },
+        })
+
+        expect(wrapper.text()).toContain('Step 5 — Rencana Anggaran')
+        expect(wrapper.text()).not.toContain('irisan berikutnya')
     })
 })

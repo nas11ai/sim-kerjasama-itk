@@ -78,6 +78,8 @@ export interface SubmissionTargetOutput {
 }
 
 export interface BudgetItem {
+    id: number
+    componentId: number
     component: string
     item: string
     volume: number

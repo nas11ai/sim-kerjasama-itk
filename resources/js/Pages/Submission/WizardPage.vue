@@ -42,6 +42,9 @@ const title = computed(() =>
                 :target-outputs="targetOutputs"
                 :target-output-types="targetOutputTypes"
                 :review="review"
+                :members="members"
+                :budget="budget"
+                :member-candidates="memberCandidates"
                 :can="can"
             />
         </template>

@@ -1,6 +1,7 @@
 // Kontrak props Submission/WizardPage, mengikuti app/Data/View/Submission/Wizard dan
 // app/Queries/Submission/SubmissionWizard + ResearcherStartOptions.
 import type {
+    BudgetItem,
     FilterOption,
     SubmissionAbilities,
     SubmissionTargetOutput,
@@ -78,6 +79,60 @@ export interface WizardReview {
     accountBlock: string | null
 }
 
+// Sumber: WizardMemberRowData. Ketua ber-`id` 0 dan tidak pernah `removable`.
+export interface WizardMemberRow {
+    id: number
+    name: string
+    role: string
+    roleLabel: string
+    unit: string | null
+    nidn: string | null
+    removable: boolean
+}
+
+// Sumber: WizardStudentRowData.
+export interface WizardStudentRow {
+    id: number
+    name: string
+    studentId: string
+    studyProgram: string | null
+}
+
+// Sumber: WizardPartnerRowData.
+export interface WizardPartnerRow {
+    id: number
+    institutionName: string
+    contactPerson: string | null
+}
+
+// Sumber: WizardMembersData. Batas null = skema tidak membatasi.
+export interface WizardMembers {
+    members: WizardMemberRow[]
+    students: WizardStudentRow[]
+    partners: WizardPartnerRow[]
+    memberLimit: number | null
+    studentLimit: number | null
+    roleOptions: FilterOption[]
+}
+
+// Sumber: MemberCandidateData.
+export interface MemberCandidate {
+    id: number
+    name: string
+    nidn: string | null
+    blockedReason: string | null
+}
+
+// Sumber: WizardBudgetData.
+export interface WizardBudget {
+    items: BudgetItem[]
+    total: number
+    maxBudget: number | null
+    components: FilterOption[]
+    blockedReason: string | null
+    editable: boolean
+}
+
 // Sumber: StartFormOptionData.
 export interface StartFormOption {
     formId: number
@@ -103,5 +158,9 @@ export interface SubmissionWizardPageProps {
     targetOutputs: SubmissionTargetOutput[]
     targetOutputTypes: FilterOption[]
     review: WizardReview | null
+    members: WizardMembers | null
+    budget: WizardBudget | null
+    // Hanya ada setelah partial reload pencarian anggota langkah 4.
+    memberCandidates?: MemberCandidate[]
     can: SubmissionAbilities | null
 }

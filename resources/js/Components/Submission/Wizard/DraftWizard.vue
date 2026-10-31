@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import AppStepper from '@/Components/app/AppStepper.vue'
-import EmptyState from '@/Components/app/EmptyState.vue'
 import AnswersStep from '@/Components/Submission/Wizard/AnswersStep.vue'
+import BudgetStep from '@/Components/Submission/Wizard/BudgetStep.vue'
+import MembersStep from '@/Components/Submission/Wizard/MembersStep.vue'
 import ReviewStep from '@/Components/Submission/Wizard/ReviewStep.vue'
 import SchemeStep from '@/Components/Submission/Wizard/SchemeStep.vue'
 import StartStep from '@/Components/Submission/Wizard/StartStep.vue'
@@ -13,8 +14,11 @@ import type {
     SubmissionTargetOutput,
 } from '@/types/submission-page'
 import type {
+    MemberCandidate,
+    WizardBudget,
     WizardField,
     WizardFieldValue,
+    WizardMembers,
     WizardReview,
     WizardStep,
     WizardSubmission,
@@ -31,6 +35,9 @@ const props = defineProps<{
     targetOutputs: SubmissionTargetOutput[]
     targetOutputTypes: FilterOption[]
     review: WizardReview | null
+    members: WizardMembers | null
+    budget: WizardBudget | null
+    memberCandidates?: MemberCandidate[]
     can: SubmissionAbilities
 }>()
 
@@ -63,6 +70,18 @@ const update = (fieldId: number, value: WizardFieldValue) => (values[fieldId] = 
                 :target-output-types="targetOutputTypes"
                 @update="update"
             />
+            <MembersStep
+                v-else-if="step === 4 && members"
+                :submission-id="submission.id"
+                :members="members"
+                :candidates="memberCandidates"
+            />
+            <BudgetStep
+                v-else-if="step === 5 && budget"
+                :submission-id="submission.id"
+                :budget="budget"
+                @goto="go"
+            />
             <ReviewStep
                 v-else-if="step === 7 && review"
                 :submission="submission"
@@ -70,7 +89,6 @@ const update = (fieldId: number, value: WizardFieldValue) => (values[fieldId] = 
                 :can="can"
                 @goto="go"
             />
-            <EmptyState v-else title="Langkah ini disiapkan di irisan berikutnya." />
             <WizardFooter
                 :step="step"
                 :saved-at="submission.lastUpdatedAt"

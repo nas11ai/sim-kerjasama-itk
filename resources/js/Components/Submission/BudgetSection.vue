@@ -4,14 +4,7 @@ import { computed } from 'vue'
 import EmptyState from '@/Components/app/EmptyState.vue'
 import InfoGrid from '@/Components/app/InfoGrid.vue'
 import SectionCard from '@/Components/app/SectionCard.vue'
-import {
-    Table,
-    TableBody,
-    TableCell,
-    TableHead,
-    TableHeader,
-    TableRow,
-} from '@/Components/ui/table'
+import BudgetTable from '@/Components/Submission/BudgetTable.vue'
 import { formatRupiah } from '@/lib/format'
 import type { SubmissionBudget } from '@/types/submission-page'
 
@@ -32,30 +25,7 @@ const summary = computed(() => [
 <template>
     <SectionCard title="Rencana Anggaran">
         <InfoGrid :items="summary" />
-        <div v-if="budget.items.length > 0" class="rounded-md border">
-            <Table>
-                <TableHeader>
-                    <TableRow>
-                        <TableHead>Komponen</TableHead>
-                        <TableHead>Item</TableHead>
-                        <TableHead class="text-right">Volume</TableHead>
-                        <TableHead>Satuan</TableHead>
-                        <TableHead class="text-right">Harga Satuan</TableHead>
-                        <TableHead class="text-right">Total</TableHead>
-                    </TableRow>
-                </TableHeader>
-                <TableBody>
-                    <TableRow v-for="(line, index) in budget.items" :key="index">
-                        <TableCell>{{ line.component }}</TableCell>
-                        <TableCell>{{ line.item }}</TableCell>
-                        <TableCell class="text-right">{{ line.volume }}</TableCell>
-                        <TableCell>{{ line.unit }}</TableCell>
-                        <TableCell class="text-right">{{ formatRupiah(line.unitPrice) }}</TableCell>
-                        <TableCell class="text-right">{{ formatRupiah(line.total) }}</TableCell>
-                    </TableRow>
-                </TableBody>
-            </Table>
-        </div>
+        <BudgetTable v-if="budget.items.length > 0" :items="budget.items" />
         <EmptyState v-else title="Belum ada rencana anggaran" />
         <p class="text-xs text-muted-foreground">
             Anggaran terkunci otomatis setelah pengajuan disetujui, ditolak, atau ditarik.

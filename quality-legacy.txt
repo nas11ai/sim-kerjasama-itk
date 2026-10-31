@@ -17,10 +17,8 @@ resources/js/Components/AssignReviewerDialog.vue
 resources/js/Components/DataTable.vue
 resources/js/Components/DataTablePagination.vue
 resources/js/Components/RejectSubmissionDialog.vue
-resources/js/Components/ResearchMemberManager.vue
 resources/js/Components/ReviewSystem.vue
 resources/js/Components/StatisticSection.vue
-resources/js/Components/TransferOwnershipDialog.vue
 resources/js/Components/ui/dialog/DialogContent.vue
 resources/js/Components/ui/dialog/DialogScrollContent.vue
 resources/js/Components/ui/input/UiInput.vue
