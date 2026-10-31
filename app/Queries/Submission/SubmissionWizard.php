@@ -11,6 +11,7 @@ use App\Data\View\Submission\Wizard\WizardStepData;
 use App\Data\View\Submission\Wizard\WizardSubmissionData;
 use App\Data\View\SubmissionStatusData;
 use App\Models\FormField;
+use App\Models\FormFieldResponse;
 use App\Models\FormSubmission;
 use App\Models\User;
 use App\Support\WizardStepGate;
@@ -95,22 +96,25 @@ class SubmissionWizard implements ChangesNoState
     /** @return list<WizardFieldData> */
     private function fields(FormSubmission $submission, int $step): array
     {
-        $values = SubmissionAnswers::run($submission);
+        // Memuat field Form beserta tipe, opsi, dan jawaban pengajuan ini.
+        SubmissionAnswers::run($submission);
+        $responses = $submission->formFieldResponses->keyBy('form_field_id');
         $fields = [];
 
         foreach ($submission->form->formFields as $field) {
             $type = $field->fieldType->name ?? '';
 
             if (WizardStepGate::stepForFieldType($type) === $step) {
-                $fields[] = $this->field($submission, $field, $type, $values[$field->id] ?? null);
+                $fields[] = $this->field($submission, $field, $type, $responses->get($field->id));
             }
         }
 
         return $fields;
     }
 
-    private function field(FormSubmission $submission, FormField $field, string $type, ?string $value): WizardFieldData
+    private function field(FormSubmission $submission, FormField $field, string $type, ?FormFieldResponse $response): WizardFieldData
     {
+        $value = $response?->value;
         $isFile = $type === 'file';
         $hasFile = $isFile && $value !== null && $value !== '';
 
@@ -124,7 +128,7 @@ class SubmissionWizard implements ChangesNoState
             value: $isFile ? null : $value,
             options: WizardFieldOptions::run($submission, $field, $type),
             fileName: $hasFile ? basename($value) : null,
-            downloadUrl: null,
+            downloadUrl: $hasFile ? route('user.submissions.files.show', [$submission->id, $response->id]) : null,
         );
     }
 

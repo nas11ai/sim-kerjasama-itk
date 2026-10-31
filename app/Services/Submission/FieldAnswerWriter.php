@@ -5,6 +5,7 @@ namespace App\Services\Submission;
 use App\Models\FormField;
 use App\Models\FormFieldResponse;
 use App\Models\FormSubmission;
+use App\Support\PrivateUploadDisk;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Validation\ValidationException;
 
@@ -85,7 +86,7 @@ final class FieldAnswerWriter
         self::assertOwnFields($submission, array_keys($answers + $uploads));
 
         foreach ($uploads as $fieldId => $file) {
-            $answers[$fieldId] = $file->store($directory, 'public') ?: null;
+            $answers[$fieldId] = $file->store($directory, PrivateUploadDisk::NAME) ?: null;
         }
 
         return $answers;

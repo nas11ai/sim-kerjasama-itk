@@ -4,6 +4,7 @@ namespace App\Actions\FormSubmission;
 
 use App\Actions\Form\AssertFormAccessible;
 use App\Actions\Scheme\SyncSchemeSelection;
+use App\Actions\Scheme\SyncTrlSelection;
 use App\Data\Request\SubmissionAnswersInput;
 use App\Models\Form;
 use App\Models\FormSubmission;
@@ -53,6 +54,7 @@ class SaveSubmissionDraft
             // begitu jawabannya tersimpan. Batas anggaran, anggota, dan tipe luaran menanyakan kolom itu;
             // kalau hanya jadi jawaban form, setiap penanya harus tahu field mana yang menyimpannya.
             SyncSchemeSelection::run($submission);
+            SyncTrlSelection::run($submission);
 
             // BR-RPT-09 — satu Action, satu entri audit.
             AuditTrail::record('Draft pengajuan disimpan', $submission, $user);

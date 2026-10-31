@@ -219,7 +219,7 @@ it('menolak jawaban untuk field milik form lain', function () {
 });
 
 it('membatasi ukuran berkas juga saat simpan draft', function () {
-    Storage::fake('public');
+    Storage::fake('local');
     $fx = wizardFixture();
     $submission = StartSubmission::run($fx['form']->id, $fx['period']->id, $fx['detail'], $fx['user']);
     $payload = draftPayload($fx['form'], $fx['period'], $fx['phase'], $submission->updated_at->toISOString());
@@ -229,11 +229,11 @@ it('membatasi ukuran berkas juga saat simpan draft', function () {
         ->post(route('user.form-submission.save-draft'), $payload)
         ->assertSessionHasErrors('responses.0.value');
 
-    expect(Storage::disk('public')->allFiles())->toBe([]);
+    expect(Storage::disk('local')->allFiles())->toBe([]);
 });
 
 it('tidak menyimpan berkas dari kiriman yang ditolak tanpa baris pengajuan', function () {
-    Storage::fake('public');
+    Storage::fake('local');
     $fx = wizardFixture();
     $type = FieldType::firstOrCreate(['name' => 'file']);
     $field = FormField::create([
@@ -253,13 +253,13 @@ it('tidak menyimpan berkas dari kiriman yang ditolak tanpa baris pengajuan', fun
         ])
         ->assertStatus(409);
 
-    expect(Storage::disk('public')->allFiles())->toBe([]);
+    expect(Storage::disk('local')->allFiles())->toBe([]);
 });
 
 it('menyimpan berkas unggahan wizard sebagai jawaban field-nya', function () {
     // hasFile('responses') hanya memeriksa elemen tingkat pertama, sedangkan berkas
     // dikirim di responses.*.value — dulu setiap unggahan wizard hilang diam-diam.
-    Storage::fake('public');
+    Storage::fake('local');
     $fx = wizardFixture();
     $submission = StartSubmission::run($fx['form']->id, $fx['period']->id, $fx['detail'], $fx['user']);
     $payload = draftPayload($fx['form'], $fx['period'], $fx['phase'], $submission->updated_at->toISOString());
@@ -273,7 +273,7 @@ it('menyimpan berkas unggahan wizard sebagai jawaban field-nya', function () {
     $path = FormFieldResponse::where('form_submission_id', $submission->id)->where('form_field_id', $fieldId)->value('value');
 
     expect($path)->toStartWith('form-uploads/');
-    Storage::disk('public')->assertExists($path);
+    Storage::disk('local')->assertExists($path);
 });
 
 it('tidak lagi mendaftarkan endpoint yang tidak dipanggil layar mana pun', function () {

@@ -88,7 +88,7 @@ it('lets a draft leave a required field blank', function () {
 });
 
 it('stores an uploaded file as the answer of a required file field', function () {
-    Storage::fake('public');
+    Storage::fake('local');
     [$user, $form, $field] = biodataFixture(fieldType: 'file');
 
     $this->actingAs($user)
@@ -104,11 +104,31 @@ it('stores an uploaded file as the answer of a required file field', function ()
         ->formFieldResponses()->where('form_field_id', $field->id)->value('value');
 
     expect($path)->toStartWith('biodata-uploads/');
-    Storage::disk('public')->assertExists($path);
+    Storage::disk('local')->assertExists($path);
+});
+
+it('[BR-SM-07] unggahan biodata tersimpan di disk privat', function () {
+    // fe-v2-design W15 — KTP dan berkas biodata lain tidak pernah punya URL publik.
+    Storage::fake('local');
+    Storage::fake('public');
+    [$user, $form, $field] = biodataFixture(fieldType: 'file');
+
+    $this->actingAs($user)->post(route('user.biodata.submit'), [
+        'form_id' => $form->id,
+        'is_submitted' => true,
+        'responses' => [['form_field_id' => $field->id, 'value' => '']],
+        'file_uploads' => [$field->id => UploadedFile::fake()->create('ktp.pdf', 100)],
+    ]);
+
+    $path = FormSubmission::where('form_id', $form->id)->firstOrFail()
+        ->formFieldResponses()->where('form_field_id', $field->id)->value('value');
+
+    Storage::disk('local')->assertExists($path);
+    Storage::disk('public')->assertMissing($path);
 });
 
 it('rejects an upload larger than 10MB', function () {
-    Storage::fake('public');
+    Storage::fake('local');
     [$user, $form, $field] = biodataFixture(fieldType: 'file');
 
     $this->actingAs($user)

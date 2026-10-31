@@ -11,6 +11,7 @@ use App\Models\Reviewer;
 use App\Models\ReviewSummary;
 use App\Models\SubmissionReviewer;
 use App\Queries\Review\ActiveReviewerAssignment;
+use App\Support\PrivateUploadDisk;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -90,7 +91,7 @@ class ReviewController extends Controller
         $paths = [];
 
         foreach ($request->file('attachments') as $file) {
-            $paths[] = (string) $file->store('review-attachments/'.$submission->id, 'public');
+            $paths[] = (string) $file->store('review-attachments/'.$submission->id, PrivateUploadDisk::NAME);
         }
 
         return $paths;

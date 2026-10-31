@@ -185,6 +185,18 @@ it('field berkas ditandai isFile dan field pemilih kolom dilewati', function () 
     expect($answers)->toHaveCount(1)->and($answers[0]->isFile)->toBeTrue();
 });
 
+it('berkas membawa downloadUrl', function () {
+    $submission = FormSubmission::factory()->create();
+    $file = answerField($submission, 'file', 'Proposal', 'form-uploads/proposal.pdf', 1);
+    answerField($submission, 'text', 'Judul', 'Judul', 2);
+    $response = FormFieldResponse::where('form_field_id', $file->id)->sole();
+
+    $answers = detailOf($submission->submittedBy, $submission)['answers'];
+
+    expect($answers[0]->downloadUrl)->toBe(route('user.submissions.files.show', [$submission, $response]))
+        ->and($answers[1]->downloadUrl)->toBeNull();
+});
+
 it('anggota nonaktif tidak tercantum', function () {
     $submission = FormSubmission::factory()->create();
     memberOf($submission);

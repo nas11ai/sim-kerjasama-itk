@@ -27,6 +27,7 @@ class ReadableSubmissionAnswers implements ChangesNoState
     public function handle(FormSubmission $submission): array
     {
         $values = SubmissionAnswers::run($submission);
+        $responseIds = $submission->formFieldResponses->pluck('id', 'form_field_id');
         $answers = [];
 
         foreach ($submission->form->formFields as $field) {
@@ -36,10 +37,15 @@ class ReadableSubmissionAnswers implements ChangesNoState
                 continue;
             }
 
+            $value = $values[$field->id] ?? null;
+            $hasFile = $type === 'file' && $value !== null && $value !== '';
+
             $answers[] = new SubmissionAnswerData(
                 label: $field->label,
-                value: $this->readable($field, $type, $values[$field->id] ?? null),
+                value: $this->readable($field, $type, $value),
                 isFile: $type === 'file',
+                // BR-SM-07 — satu-satunya jalan baca berkas: route unduh ber-scope (W15).
+                downloadUrl: $hasFile ? route('user.submissions.files.show', [$submission->id, $responseIds[$field->id]]) : null,
             );
         }
 

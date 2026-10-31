@@ -38,6 +38,7 @@ use App\Http\Controllers\Submission\ResearchMemberController;
 use App\Http\Controllers\Submission\ResearchOutputController;
 use App\Http\Controllers\Submission\ResubmitController;
 use App\Http\Controllers\Submission\SubmissionDecisionController;
+use App\Http\Controllers\Submission\SubmissionFileController;
 use App\Http\Controllers\Submission\SubmissionWizardController;
 use App\Http\Controllers\Submission\TargetOutputController;
 use App\Http\Controllers\SubmissionPeriodController;
@@ -70,6 +71,10 @@ Route::get('announcements/{announcement}', [AnnouncementController::class, 'deta
 Route::middleware(['auth'])->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+
+    // BR-SM-07 — berkas jawaban pengajuan hanya terbaca lewat route ber-scope ini (W15).
+    Route::get('/user/submissions/{submission}/files/{response}', [SubmissionFileController::class, 'show'])
+        ->name('user.submissions.files.show');
 
     Route::post('/submissions/{submission}/review-threads', [ReviewController::class, 'createReviewThread'])
         ->name('review-threads.store');

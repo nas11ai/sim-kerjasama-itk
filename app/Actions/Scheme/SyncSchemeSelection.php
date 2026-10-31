@@ -2,10 +2,9 @@
 
 namespace App\Actions\Scheme;
 
-use App\Models\FormField;
-use App\Models\FormFieldResponse;
 use App\Models\FormSubmission;
 use App\Models\Scheme;
+use App\Queries\Submission\ColumnSelectorAnswer;
 use App\Support\Audit\AuditChange;
 use App\Support\Audit\AuditTrail;
 use Illuminate\Validation\ValidationException;
@@ -57,28 +56,12 @@ class SyncSchemeSelection
 
     private function selectedSchemeId(FormSubmission $submission): ?int
     {
-        $field = FormField::query()
-            ->where('form_id', $submission->form_id)
-            ->whereHas('fieldType', fn ($q) => $q->where('name', 'scheme_selector'))
-            ->first();
-
         // BR-SCH-04 — skema **sepenuhnya opsional per Form**: tanpa
         // scheme_selector, `scheme_id` pengajuan kosong. Itu bentuk yang sah,
         // bukan kesalahan.
-        if ($field === null) {
-            return null;
-        }
+        $value = ColumnSelectorAnswer::run($submission, 'scheme_selector')['value'] ?? null;
 
-        $response = FormFieldResponse::query()
-            ->where('form_submission_id', $submission->id)
-            ->where('form_field_id', $field->id)
-            ->first();
-
-        if ($response === null || $response->value === null || $response->value === '') {
-            return null;
-        }
-
-        return (int) $response->value;
+        return $value === null ? null : (int) $value;
     }
 
     /**

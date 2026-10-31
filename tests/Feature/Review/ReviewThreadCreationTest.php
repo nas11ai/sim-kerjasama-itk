@@ -14,6 +14,8 @@ use App\Models\ReviewSummary;
 use App\Models\SubmissionReviewer;
 use App\Models\User;
 use App\States\Submission\UnderReview;
+use Illuminate\Http\UploadedFile;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Testing\AssertableInertia as Assert;
 use Spatie\Permission\Models\Permission;
 
@@ -122,4 +124,26 @@ it('tidak menawarkan tombol membuka ulir kepada Operator', function () {
     $this->actingAs($operator)
         ->get(route('admin.submissions.show', $submission))
         ->assertInertia(fn (Assert $page) => $page->where('canCreateThread', false));
+});
+
+it('[BR-SM-07] lampiran review tersimpan di disk privat dan tetap bisa diunduh pihak yang berhak', function () {
+    Storage::fake('local');
+    Storage::fake('public');
+    [$user, $submission] = threadFixture('not_required', formWajib: true);
+
+    $this->actingAs($user)
+        ->post(route('reviewer.review-threads.store', $submission), [
+            'summary_notes' => 'Catatan berlampiran.',
+            'attachments' => [UploadedFile::fake()->create('catatan.pdf', 10)],
+        ])
+        ->assertSessionHasNoErrors();
+
+    $path = ReviewSummary::where('form_submission_id', $submission->id)->sole()->attachments()->value('file_path');
+
+    Storage::disk('local')->assertExists($path);
+    Storage::disk('public')->assertMissing($path);
+
+    $this->actingAs($submission->submittedBy)
+        ->get(route('review-attachments.download', ['path' => $path]))
+        ->assertOk();
 });

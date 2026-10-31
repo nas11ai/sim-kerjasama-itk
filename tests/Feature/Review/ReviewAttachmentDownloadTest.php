@@ -16,7 +16,7 @@ use Illuminate\Support\Facades\Storage;
 /** @return array{0: User, 1: FormSubmission, 2: ReviewSummary} */
 function attachmentFixture(): array
 {
-    Storage::fake('public');
+    Storage::fake('local');
 
     $detail = FormPhaseDetail::factory()->create(['needs_review' => true]);
     $owner = User::factory()->create();
@@ -50,7 +50,7 @@ function download(User $user, string $path)
 it('[BR-SM-07] pengaju mengunduh lampiran ulir pengajuannya', function () {
     [$owner, $submission, $summary] = attachmentFixture();
     $path = 'review-attachments/'.$submission->id.'/catatan.pdf';
-    Storage::disk('public')->put($path, 'isi');
+    Storage::disk('local')->put($path, 'isi');
     ReviewSummaryAttachment::create(['review_summary_id' => $summary->id, 'file_path' => $path]);
 
     download($owner, $path)->assertOk();
@@ -59,7 +59,7 @@ it('[BR-SM-07] pengaju mengunduh lampiran ulir pengajuannya', function () {
 it('[BR-SM-07] pengguna tanpa akses ke pengajuan ditolak', function () {
     [, $submission, $summary] = attachmentFixture();
     $path = 'review-attachments/'.$submission->id.'/catatan.pdf';
-    Storage::disk('public')->put($path, 'isi');
+    Storage::disk('local')->put($path, 'isi');
     ReviewSummaryAttachment::create(['review_summary_id' => $summary->id, 'file_path' => $path]);
 
     download(User::factory()->create(), $path)->assertForbidden();
@@ -67,7 +67,7 @@ it('[BR-SM-07] pengguna tanpa akses ke pengajuan ditolak', function () {
 
 it('[BR-SM-07] berkas yang bukan lampiran review tidak bisa diunduh', function () {
     [$owner] = attachmentFixture();
-    Storage::disk('public')->put('avatars/x.png', 'isi');
+    Storage::disk('local')->put('avatars/x.png', 'isi');
 
     download($owner, 'avatars/x.png')->assertNotFound();
 });
@@ -80,7 +80,7 @@ it('[BR-SM-07] lampiran komentar mengikuti aturan yang sama', function () {
         'comment_text' => 'balasan',
     ]);
     $path = 'review-attachments/'.$submission->id.'/komentar.pdf';
-    Storage::disk('public')->put($path, 'isi');
+    Storage::disk('local')->put($path, 'isi');
     ReviewCommentAttachment::create(['review_comment_id' => $comment->id, 'file_path' => $path]);
 
     download($owner, $path)->assertOk();
