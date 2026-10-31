@@ -57,6 +57,7 @@ export interface SubmissionAbilities {
     submit: boolean
     resubmit: boolean
     withdraw: boolean
+    manageTargetOutput: boolean
 }
 
 export interface SubmissionAnswer {
@@ -101,6 +102,15 @@ export interface SubmissionHistoryEntry {
     at: string | null
 }
 
+// Sumber: TargetOutputChangeData. `from`/`to` berupa nama tipe.
+export interface TargetOutputChange {
+    description: string
+    actor: string | null
+    at: string | null
+    from: string | null
+    to: string | null
+}
+
 export interface SubmissionDecision {
     reason: string | null
     decidedBy: string | null
@@ -139,6 +149,8 @@ export interface SubmissionShowPageProps {
     answers: SubmissionAnswer[]
     members: SubmissionMember[]
     targetOutputs: SubmissionTargetOutput[]
+    targetOutputTypes: FilterOption[]
+    targetHistory: TargetOutputChange[]
     budget: SubmissionBudget
     history: SubmissionHistoryEntry[]
     decision: SubmissionDecision | null

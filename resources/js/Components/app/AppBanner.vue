@@ -1,15 +1,22 @@
 <script setup lang="ts">
-import { CircleAlert, CircleCheck, Info, TriangleAlert } from 'lucide-vue-next'
+import { CircleAlert, CircleCheck, Info, Lock, TriangleAlert } from 'lucide-vue-next'
 import { computed } from 'vue'
 
 import { Alert, AlertDescription, AlertTitle } from '@/Components/ui/alert'
 
+// `lock` = banner gembok wireframe: tindakan sengaja ditutup aturan, bukan galat.
 const props = defineProps<{
-    tone: 'info' | 'warning' | 'denial' | 'success'
+    tone: 'info' | 'warning' | 'denial' | 'success' | 'lock'
     title?: string
 }>()
 
-const icons = { info: Info, warning: TriangleAlert, denial: CircleAlert, success: CircleCheck }
+const icons = {
+    info: Info,
+    warning: TriangleAlert,
+    denial: CircleAlert,
+    success: CircleCheck,
+    lock: Lock,
+}
 const icon = computed(() => icons[props.tone])
 </script>
 

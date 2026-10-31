@@ -1,5 +1,5 @@
 <script setup lang="ts">
-// Frame: RESEARCHER-02-03, RESEARCHER-02-12
+// Frame: RESEARCHER-02-03, RESEARCHER-02-11, RESEARCHER-02-12, RESEARCHER-07-01
 import { Head } from '@inertiajs/vue3'
 import { computed } from 'vue'
 
@@ -72,11 +72,22 @@ const tabs = [
                 </TabsContent>
                 <TabsContent value="members"><MembersSection :members="members" /></TabsContent>
                 <TabsContent value="targets">
-                    <TargetOutputsSection :target-outputs="targetOutputs" />
+                    <TargetOutputsSection
+                        :submission="submission"
+                        :target-outputs="targetOutputs"
+                        :types="targetOutputTypes"
+                        :history="targetHistory"
+                        :can-manage="can.manageTargetOutput"
+                    />
                 </TabsContent>
                 <TabsContent value="budget"><BudgetSection :budget="budget" /></TabsContent>
                 <TabsContent value="files"><FilesSection :answers="answers" /></TabsContent>
-                <TabsContent value="history">
+                <TabsContent value="history" class="flex flex-col gap-4">
+                    <!-- BR-RPT-05 — jejak pengajuan hanya untuk tim pengajuan -->
+                    <AppBanner v-if="submission.viewerRole !== 'viewer'" tone="lock">
+                        Riwayat ini mencatat seluruh aktivitas pada pengajuan Anda. Hanya Anda dan
+                        tim pengajuan yang dapat melihatnya.
+                    </AppBanner>
                     <SectionCard title="Riwayat">
                         <HistoryTimeline :entries="history" />
                     </SectionCard>

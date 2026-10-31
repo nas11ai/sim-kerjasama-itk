@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import EmptyState from '@/Components/app/EmptyState.vue'
-import { formatDate } from '@/lib/format'
+import TimelineItem from '@/Components/Submission/TimelineItem.vue'
 import type { SubmissionHistoryEntry } from '@/types/submission-page'
 
 defineProps<{ entries: SubmissionHistoryEntry[] }>()
@@ -8,13 +8,13 @@ defineProps<{ entries: SubmissionHistoryEntry[] }>()
 
 <template>
     <ol v-if="entries.length > 0" class="flex flex-col gap-3 border-l pl-4 text-sm">
-        <li v-for="(entry, index) in entries" :key="index" class="relative">
-            <span class="absolute top-1.5 -left-[1.3rem] size-2 rounded-full bg-primary" />
-            <p class="font-medium">{{ entry.description }}</p>
-            <p class="text-xs text-muted-foreground">
-                {{ [formatDate(entry.at), entry.actor].filter(Boolean).join(' · ') }}
-            </p>
-        </li>
+        <TimelineItem
+            v-for="(entry, index) in entries"
+            :key="index"
+            :title="entry.description"
+            :at="entry.at"
+            :actor="entry.actor"
+        />
     </ol>
     <EmptyState v-else title="Belum ada riwayat" />
 </template>

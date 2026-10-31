@@ -70,7 +70,14 @@ const editProps = (step: number, fields: WizardField[]): Partial<SubmissionWizar
         form: 'Form Proposal',
         lastUpdatedAt: '2026-10-31T01:00:00.000000Z',
     },
-    can: { view: true, update: true, submit: true, resubmit: false, withdraw: false },
+    can: {
+        view: true,
+        update: true,
+        submit: true,
+        resubmit: false,
+        withdraw: false,
+        manageTargetOutput: true,
+    },
 })
 
 const route = (name: string, params?: unknown) =>

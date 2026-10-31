@@ -17,6 +17,8 @@ const props = defineProps<{
 }>()
 
 const outputType = ref<string | null>(null)
+const editingId = ref<number | null>(null)
+const editType = ref<string | null>(null)
 
 const add = () => {
     if (outputType.value === null) return
@@ -27,14 +29,28 @@ const add = () => {
     )
 }
 
-const remove = (target: SubmissionTargetOutput) =>
-    router.delete(
-        route('user.submissions.target-outputs.destroy', [
-            String(props.submissionId),
-            String(target.id),
-        ]),
-        { preserveScroll: true }
+const targetRoute = (name: string, target: SubmissionTargetOutput) =>
+    route(name, [String(props.submissionId), String(target.id)])
+
+// Target membawa nama tipe, jadi nilai awal dicari dari label.
+const startEdit = (target: SubmissionTargetOutput) => {
+    editingId.value = target.id
+    editType.value = props.types.find((type) => type.label === target.type)?.value ?? null
+}
+
+const save = (target: SubmissionTargetOutput) => {
+    if (editType.value === null) return
+    router.put(
+        targetRoute('user.submissions.target-outputs.update', target),
+        { output_type: editType.value },
+        { preserveScroll: true, onSuccess: () => (editingId.value = null) }
     )
+}
+
+const remove = (target: SubmissionTargetOutput) =>
+    router.delete(targetRoute('user.submissions.target-outputs.destroy', target), {
+        preserveScroll: true,
+    })
 </script>
 
 <template>
@@ -43,20 +59,48 @@ const remove = (target: SubmissionTargetOutput) =>
             <li
                 v-for="target in targetOutputs"
                 :key="target.id"
-                class="flex items-center justify-between gap-3 p-3"
+                class="flex flex-wrap items-center justify-between gap-3 p-3"
             >
-                <div class="flex min-w-0 items-center gap-2">
-                    <Badge variant="outline">{{ target.type }}</Badge>
-                    <span v-if="target.description" class="text-sm">{{ target.description }}</span>
-                </div>
-                <Button
-                    variant="ghost"
-                    size="sm"
-                    data-action="remove-target"
-                    @click="remove(target)"
-                >
-                    Hapus
-                </Button>
+                <template v-if="editingId === target.id">
+                    <OptionSelect v-model="editType" :options="types" class="sm:max-w-xs" />
+                    <div class="flex gap-2">
+                        <Button
+                            size="sm"
+                            data-action="save-target"
+                            :disabled="editType === null"
+                            @click="save(target)"
+                        >
+                            Simpan
+                        </Button>
+                        <Button variant="ghost" size="sm" @click="editingId = null">Batal</Button>
+                    </div>
+                </template>
+                <template v-else>
+                    <div class="flex min-w-0 items-center gap-2">
+                        <Badge variant="outline">{{ target.type }}</Badge>
+                        <span v-if="target.description" class="text-sm">
+                            {{ target.description }}
+                        </span>
+                    </div>
+                    <div class="flex gap-2">
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            data-action="edit-target"
+                            @click="startEdit(target)"
+                        >
+                            Ubah
+                        </Button>
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            data-action="remove-target"
+                            @click="remove(target)"
+                        >
+                            Hapus
+                        </Button>
+                    </div>
+                </template>
             </li>
         </ul>
         <div class="flex flex-col gap-2 sm:flex-row">

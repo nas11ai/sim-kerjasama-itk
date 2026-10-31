@@ -40,6 +40,7 @@ const can: SubmissionAbilities = {
     submit: true,
     resubmit: false,
     withdraw: false,
+    manageTargetOutput: false,
 }
 
 const mountReview = (r: Partial<WizardReview> = {}, c: Partial<SubmissionAbilities> = {}) =>
