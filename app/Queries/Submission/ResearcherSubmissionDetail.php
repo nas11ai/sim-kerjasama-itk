@@ -13,6 +13,7 @@ use App\Data\View\Submission\SubmissionDetailData;
 use App\Data\View\Submission\SubmissionHistoryEntryData;
 use App\Data\View\Submission\SubmissionMemberData;
 use App\Data\View\Submission\SubmissionTargetOutputData;
+use App\Data\View\Submission\TargetOutputChangeData;
 use App\Data\View\SubmissionStatusData;
 use App\Models\FormPhaseDetail;
 use App\Models\FormSubmission;
@@ -31,7 +32,7 @@ use Lorisleiva\Actions\Concerns\AsAction;
  * @phpstan-import-type Score from VisibleReviewerScores
  *
  * @phpstan-type PhaseAccess array{is_open: bool, deadline: string|null, form_phase_detail_id: int|null, override: array{id: int, status: string, expires_at: string|null, reason: string|null}|null}
- * @phpstan-type Detail array{submission: SubmissionDetailData, answers: list<SubmissionAnswerData>, members: list<SubmissionMemberData>, targetOutputs: list<SubmissionTargetOutputData>, budget: SubmissionBudgetData, history: list<SubmissionHistoryEntryData>, decision: SubmissionDecisionData|null, scores: array{visible: bool, reason: string|null, scores: list<Score>}, phaseAccess: PhaseAccess, printableDocuments: list<array{value: string, label: string}>, can: SubmissionAbilitiesData}
+ * @phpstan-type Detail array{submission: SubmissionDetailData, answers: list<SubmissionAnswerData>, members: list<SubmissionMemberData>, targetOutputs: list<SubmissionTargetOutputData>, targetOutputTypes: list<array{value: string, label: string}>, targetHistory: list<TargetOutputChangeData>, budget: SubmissionBudgetData, history: list<SubmissionHistoryEntryData>, decision: SubmissionDecisionData|null, scores: array{visible: bool, reason: string|null, scores: list<Score>}, phaseAccess: PhaseAccess, printableDocuments: list<array{value: string, label: string}>, can: SubmissionAbilitiesData}
  *
  * @method static Detail run(User $viewer, FormSubmission $submission)
  */
@@ -57,6 +58,8 @@ class ResearcherSubmissionDetail implements ChangesNoState
             'answers' => ReadableSubmissionAnswers::run($submission),
             'members' => $this->members($submission),
             'targetOutputs' => SubmissionTargetOutputs::run($submission),
+            'targetOutputTypes' => $this->targetOutputTypes($viewer, $submission),
+            'targetHistory' => TargetOutputHistory::run($viewer, $submission),
             'budget' => SubmissionBudgetSummary::run($viewer, $submission),
             'history' => $history,
             'decision' => $this->decision($submission, $history),
@@ -121,6 +124,20 @@ class ResearcherSubmissionDetail implements ChangesNoState
 
         // Draft dan revisi sama-sama disunting lewat wizard sampai RevisionPage lahir di S2c.
         return route('user.submissions.wizard', $submission->id);
+    }
+
+    /** @return list<array{value: string, label: string}> */
+    private function targetOutputTypes(User $viewer, FormSubmission $submission): array
+    {
+        // BR-SM-15 — pilihan hanya untuk yang boleh menyunting; penonton lain tidak butuh daftarnya.
+        if (!$viewer->can('manageTargetOutput', $submission)) {
+            return [];
+        }
+
+        return array_map(
+            fn (array $type): array => ['value' => $type['code'], 'label' => $type['name']],
+            TargetOutputTypeChoices::run($submission),
+        );
     }
 
     /** @return list<SubmissionMemberData> */

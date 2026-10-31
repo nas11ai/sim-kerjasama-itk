@@ -13,6 +13,7 @@
 
 use App\Actions\FormSubmission\DeleteTargetOutput;
 use App\Actions\FormSubmission\SaveTargetOutput;
+use App\Models\AuditEntry;
 use App\Models\FormSubmission;
 use App\Models\OutputTypeDefinition;
 use App\Models\ResearchMember;
@@ -172,6 +173,25 @@ it('[SM-TARGET-09] perubahan pasca-approved tercatat dengan nilai lama dan baru'
     expect($entry)->not->toBeNull()
         ->and($entry->properties['old']['output_type'])->toBe('publikasi')
         ->and($entry->properties['attributes']['output_type'])->toBe('haki');
+});
+
+it('[SM-TARGET-09] mengubah target dicatat di jejak audit pengajuan dengan nilai lama dan baru', function () {
+    [$owner, $submission] = targetFixture(Approved::class);
+    $target = SubmissionTargetOutput::create([
+        'form_submission_id' => $submission->id,
+        'output_type' => 'publikasi',
+    ]);
+
+    SaveTargetOutput::run($submission, $owner, 'haki', $target);
+
+    $entry = AuditEntry::query()->auditOnly()
+        ->where('subject_type', FormSubmission::class)
+        ->where('subject_id', $submission->id)
+        ->where('description', 'Target luaran diubah')
+        ->sole();
+
+    expect($entry->properties['old']['output_type'])->toBe('publikasi')
+        ->and($entry->properties['new']['output_type'])->toBe('haki');
 });
 
 // ---------- BR-SM-19: menghapus target luaran ----------

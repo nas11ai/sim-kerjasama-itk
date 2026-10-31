@@ -23,6 +23,8 @@ class DeleteTargetOutput
 {
     use AsAction;
 
+    public const AUDIT_DESCRIPTION = 'Target luaran dihapus';
+
     /**
      * @throws AuthorizationException|ValidationException
      */
@@ -40,9 +42,10 @@ class DeleteTargetOutput
             ]);
         }
 
+        // BR-SM-15, BR-RPT-05 — target adalah bagian aggregate pengajuan; jejaknya ikut terbaca tim lewat AuditScope.
         AuditTrail::record(
-            'Target luaran dihapus',
-            $target,
+            self::AUDIT_DESCRIPTION,
+            $submission,
             $user,
             new AuditChange(
                 old: ['output_type' => $target->output_type],

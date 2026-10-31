@@ -6,6 +6,7 @@ use App\Models\FormSubmission;
 use App\Models\OutputTypeDefinition;
 use App\Models\SubmissionTargetOutput;
 use App\Models\User;
+use App\Support\Audit\AuditChange;
 use App\Support\Audit\AuditTrail;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Validation\ValidationException;
@@ -19,6 +20,10 @@ use Lorisleiva\Actions\Concerns\AsAction;
 class SaveTargetOutput
 {
     use AsAction;
+
+    public const AUDIT_CREATED = 'Target luaran disimpan';
+
+    public const AUDIT_UPDATED = 'Target luaran diubah';
 
     /**
      * @throws AuthorizationException|ValidationException
@@ -38,9 +43,7 @@ class SaveTargetOutput
         $this->guardType($submission, $outputType);
 
         if ($target !== null) {
-            $target->update(['output_type' => $outputType]);
-
-            return $target;
+            return $this->change($submission, $target, $user, $outputType);
         }
 
         $tercatat = SubmissionTargetOutput::create([
@@ -48,10 +51,26 @@ class SaveTargetOutput
             'output_type' => $outputType,
         ]);
 
-        // BR-RPT-09 — satu Action, satu entri audit.
-        AuditTrail::record('Target luaran disimpan', $tercatat, $user);
+        // BR-SM-15, BR-RPT-05 — target adalah bagian aggregate pengajuan; jejaknya ikut terbaca tim lewat AuditScope.
+        AuditTrail::record(self::AUDIT_CREATED, $submission, $user, new AuditChange(new: ['output_type' => $outputType]));
 
         return $tercatat;
+    }
+
+    private function change(FormSubmission $submission, SubmissionTargetOutput $target, User $user, string $outputType): SubmissionTargetOutput
+    {
+        $old = $target->output_type;
+        $target->update(['output_type' => $outputType]);
+
+        // BR-SM-15, BR-RPT-09 — perubahan janji, termasuk pasca-APPROVED, tercatat dengan nilai lama dan baru.
+        AuditTrail::record(
+            self::AUDIT_UPDATED,
+            $submission,
+            $user,
+            new AuditChange(old: ['output_type' => $old], new: ['output_type' => $outputType]),
+        );
+
+        return $target;
     }
 
     /**

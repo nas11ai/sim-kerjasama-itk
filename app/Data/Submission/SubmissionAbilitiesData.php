@@ -19,6 +19,7 @@ class SubmissionAbilitiesData extends Data
         public bool $submit,
         public bool $resubmit,
         public bool $withdraw,
+        public bool $manageTargetOutput,
     ) {}
 
     public static function forUser(User $user, FormSubmission $submission): self
@@ -31,6 +32,8 @@ class SubmissionAbilitiesData extends Data
             // tombolnya berbeda dari Submit di layar.
             resubmit: $user->can('resubmit', $submission),
             withdraw: $user->can('withdraw', $submission),
+            // BR-SM-15 — hanya ketua pengaju, sampai REJECTED atau WITHDRAWN.
+            manageTargetOutput: $user->can('manageTargetOutput', $submission),
         );
     }
 }
