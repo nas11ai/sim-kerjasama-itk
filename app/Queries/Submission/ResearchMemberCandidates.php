@@ -38,6 +38,8 @@ class ResearchMemberCandidates implements ChangesNoState
             ->map(fn (SubmissionReviewer $assignment): int => $assignment->reviewer->user_id)
             ->all();
         $candidates = User::permission('submissions.create')
+            // BR-IAM-05 — akun yang dinonaktifkan sudah keluar; ia tidak ditawarkan lagi.
+            ->where('is_active', true)
             // Ketua dan anggota aktif sudah berperan; anggota nonaktif boleh ditawarkan lagi.
             ->whereKeyNot($submission->submitted_by)
             ->whereDoesntHave('userProfile.researchMembers', fn (Builder $m) => $m

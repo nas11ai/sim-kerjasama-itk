@@ -227,6 +227,13 @@ it('tanpa izin submissions.create tidak ditawarkan', function () {
     expect(ResearchMemberCandidates::run($submission, 'Staf'))->toBe([]);
 });
 
+it('[BR-IAM-05] akun nonaktif tidak ditawarkan', function () {
+    $submission = membersDraft();
+    lecturer('Pensiun Purnama')->update(['is_active' => false]);
+
+    expect(ResearchMemberCandidates::run($submission, 'Purnama'))->toBe([]);
+});
+
 it('pencarian pendek tidak memuat apa pun', function () {
     $submission = membersDraft();
     lecturer('A Pendek');
