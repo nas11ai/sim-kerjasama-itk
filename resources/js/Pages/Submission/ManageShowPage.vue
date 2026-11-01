@@ -13,6 +13,7 @@ import DecisionSection from '@/Components/Submission/DecisionSection.vue'
 import FilesSection from '@/Components/Submission/FilesSection.vue'
 import HistoryTimeline from '@/Components/Submission/HistoryTimeline.vue'
 import InfoSection from '@/Components/Submission/InfoSection.vue'
+import ExtendDeadlineDialog from '@/Components/Submission/Manage/ExtendDeadlineDialog.vue'
 import OperatorActions from '@/Components/Submission/Manage/OperatorActions.vue'
 import RejectDialog from '@/Components/Submission/Manage/RejectDialog.vue'
 import ReviewersSection from '@/Components/Submission/Manage/ReviewersSection.vue'
@@ -147,6 +148,13 @@ const print = (document: FilterOption) =>
             </aside>
         </div>
 
+        <ExtendDeadlineDialog
+            :open="openAction === 'extend'"
+            :submission-id="submission.id"
+            :phase-access="phaseAccess"
+            :target="overrideTarget"
+            @update:open="closeAction"
+        />
         <RejectDialog
             :open="openAction === 'reject'"
             :submission="submission"
