@@ -2,6 +2,7 @@
 
 namespace App\Notifications;
 
+use App\Data\Contract\NotificationPayload;
 use App\Models\FormSubmission;
 use App\Notifications\Concerns\UsesConfiguredChannels;
 use Illuminate\Bus\Queueable;
@@ -19,16 +20,19 @@ class ProposalSubmittedNotification extends Notification implements ShouldQueue
 
     public function __construct(private readonly FormSubmission $submission) {}
 
-    /** @return array{title: string, message: string, action_url: string, type: string, meta: array{submission_id: int}} */
-    public function toDatabase(object $notifiable): array
+    /**
+     * W39 — tanpa `action_url`: tujuan "Buka" dihitung NotificationDestination saat diklik.
+     *
+     * @return array<string, int|string|null>
+     */
+    public function toArray(object $notifiable): array
     {
-        return [
-            'title' => 'Pengajuan Baru Masuk',
-            'message' => "Pengajuan #{$this->submission->id} telah disubmit dan menunggu penugasan reviewer.",
-            'action_url' => "/submissions/{$this->submission->id}",
-            'type' => 'info',
-            'meta' => ['submission_id' => $this->submission->id],
-        ];
+        return (new NotificationPayload(
+            type: 'proposal_submitted',
+            title: 'Pengajuan Baru Masuk',
+            message: "Pengajuan #{$this->submission->id} telah disubmit dan menunggu penugasan reviewer.",
+            context: ['form_submission_id' => $this->submission->id],
+        ))->toArray();
     }
 
     public function toMail(object $notifiable): MailMessage

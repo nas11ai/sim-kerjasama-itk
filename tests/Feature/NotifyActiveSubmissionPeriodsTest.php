@@ -61,7 +61,7 @@ it('keeps notifying remaining periods when one period fails, per BR-NOT-03', fun
         ->twice()
         ->andReturnUsing(function ($notifiables, SubmissionPeriodActiveNotification $notification) use (&$notifiedPeriodIds, $failingPeriod) {
             $notifiable = collect($notifiables)->first();
-            $periodId = $notification->toDatabase($notifiable)['meta']['submission_period_id'];
+            $periodId = $notification->toArray($notifiable)['submission_period_id'];
             $notifiedPeriodIds[] = $periodId;
 
             if ($periodId === $failingPeriod->id) {
@@ -102,7 +102,7 @@ it('keeps notifying remaining periods when one period throws a TypeError, per BR
         ->twice()
         ->andReturnUsing(function ($notifiables, SubmissionPeriodActiveNotification $notification) use (&$notifiedPeriodIds, $failingPeriod) {
             $notifiable = collect($notifiables)->first();
-            $periodId = $notification->toDatabase($notifiable)['meta']['submission_period_id'];
+            $periodId = $notification->toArray($notifiable)['submission_period_id'];
             $notifiedPeriodIds[] = $periodId;
 
             if ($periodId === $failingPeriod->id) {
@@ -133,7 +133,7 @@ it('notifies non-admin users when a submission period is newly active', function
     Notification::assertSentTo(
         $researcher,
         SubmissionPeriodActiveNotification::class,
-        fn (SubmissionPeriodActiveNotification $notification) => $notification->toDatabase($researcher)['meta']['submission_period_id'] === $period->id,
+        fn (SubmissionPeriodActiveNotification $notification) => $notification->toArray($researcher)['submission_period_id'] === $period->id,
     );
 
     Notification::assertNotSentTo($admin, SubmissionPeriodActiveNotification::class);

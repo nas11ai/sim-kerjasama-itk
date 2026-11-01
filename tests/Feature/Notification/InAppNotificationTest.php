@@ -17,6 +17,7 @@ use App\Models\SubmissionReviewer;
 use App\Models\User;
 use App\Notifications\FormChangedNotification;
 use App\Notifications\MonevStageOpenedNotification;
+use App\Queries\Notification\UnreadNotificationCount;
 use App\States\Submission\Draft;
 use App\Support\Notification\Deliver;
 use Illuminate\Notifications\DatabaseNotification;
@@ -94,6 +95,24 @@ it('[NOT-INAPP-03] read_at terisi saat notifikasinya diklik', function () {
 
     expect($notifikasi->refresh()->read_at)->not->toBeNull()
         ->and($budi->unreadNotifications()->count())->toBe(0);
+});
+
+it('[NOT-INAPP-04] user menandai semua notifikasinya dibaca', function () {
+    $budi = User::factory()->create();
+    $dewi = User::factory()->create();
+    Deliver::to($budi, new FormChangedNotification(Form::factory()->create()));
+    Deliver::to($budi, new FormChangedNotification(Form::factory()->create()));
+    Deliver::to($dewi, new FormChangedNotification(Form::factory()->create()));
+
+    $this->actingAs($budi)
+        ->post(route('notifications.read-all'))
+        ->assertRedirect()
+        ->assertSessionHas('success');
+
+    // BR-NOT-01 — dibaca, bukan dibuang; BR-NOT-04 — hanya kotak masuk Budi.
+    expect($budi->notifications()->count())->toBe(2)
+        ->and(UnreadNotificationCount::run($budi))->toBe(0)
+        ->and(UnreadNotificationCount::run($dewi))->toBe(1);
 });
 
 it('[NOT-CHANNEL-05] satu event bisa punya lebih dari satu penerima', function () {

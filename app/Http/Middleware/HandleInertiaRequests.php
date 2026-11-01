@@ -4,6 +4,7 @@ namespace App\Http\Middleware;
 
 use App\Queries\Announcement\UnreadAnnouncementCount;
 use App\Queries\Identity\EffectivePermissionNames;
+use App\Queries\Notification\UnreadNotificationCount;
 use App\Queries\Submission\HasApprovedSubmission;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -61,6 +62,8 @@ class HandleInertiaRequests extends Middleware
                     'hasApprovedSubmission' => HasApprovedSubmission::run($request->user()),
                     // W32 — badge sidebar "Pengumuman" (fe-v2-design §4.7).
                     'unreadAnnouncements' => UnreadAnnouncementCount::run($request->user()),
+                    // W38/W41 — badge sidebar "Notifikasi", ber-cache (BR-NOT-05).
+                    'unreadNotifications' => UnreadNotificationCount::run($request->user()),
                 ]
                 : null,
             'biodataStatus' => fn () => $request->session()->get('biodataStatus'),

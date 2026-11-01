@@ -13,7 +13,9 @@ it('sends over both database and mail channels', function () {
         ->toBe(['database', 'mail']);
 });
 
-it('stores an in-app payload with title, message, action url, type, and meta', function () {
+it('menyimpan payload NotificationPayload tanpa action_url (W39)', function () {
+    // Tujuan "Buka" dihitung saat diklik (NotificationDestination), bukan
+    // disimpan: URL tersimpan basi dan melewati pemeriksaan akses BR-SM-07.
     $operator = User::factory()->create();
     $submission = FormSubmission::factory()->create();
 
@@ -24,9 +26,9 @@ it('stores an in-app payload with title, message, action url, type, and meta', f
     expect($row)->not->toBeNull()
         ->and($row->data['title'])->toBe('Pengajuan Baru Masuk')
         ->and($row->data['message'])->toBe("Pengajuan #{$submission->id} telah disubmit dan menunggu penugasan reviewer.")
-        ->and($row->data['action_url'])->toBe("/submissions/{$submission->id}")
-        ->and($row->data['type'])->toBe('info')
-        ->and($row->data['meta']['submission_id'])->toBe($submission->id);
+        ->and($row->data['type'])->toBe('proposal_submitted')
+        ->and($row->data['form_submission_id'])->toBe($submission->id)
+        ->and($row->data)->not->toHaveKey('action_url');
 });
 
 it('implements ShouldQueue so each channel runs as its own queued job', function () {

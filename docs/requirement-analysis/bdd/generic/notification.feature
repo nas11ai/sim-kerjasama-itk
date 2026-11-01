@@ -23,6 +23,15 @@ Feature: Notifikasi
     Then read_at notifikasi itu masih kosong
     And penghitung belum-dibaca "Budi" tetap 1
 
+  @BR-NOT-04 @M5 @SHARED-02-05 @happy
+  Scenario: [NOT-INAPP-04] User menandai semua notifikasinya dibaca
+    Given "Budi" punya dua notifikasi in-app yang belum dibaca
+    And "Dewi" punya satu notifikasi in-app yang belum dibaca
+    When "Budi" menandai semua notifikasinya dibaca
+    Then penghitung belum-dibaca "Budi" menjadi 0
+    And kedua notifikasi "Budi" tetap ada di daftar
+    And penghitung belum-dibaca "Dewi" tetap 1
+
   @BR-NOT-02 @M5 @SHARED-02-01 @happy
   Scenario: [NOT-CHANNEL-01] ProposalApproved terkirim in-app dan email
     When event ProposalApproved dipublish untuk "Budi"

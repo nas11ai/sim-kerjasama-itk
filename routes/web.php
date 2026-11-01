@@ -549,10 +549,12 @@ Route::middleware(['auth'])->group(function () {
     // jalurnya memang tidak dibuat.
     Route::get('/audit-log', [AuditLogController::class, 'index'])->name('audit-log.index');
 
-    // BR-NOT-01, BR-NOT-04. Tidak ada rute "tandai semua dibaca" di sini:
-    // membaca adalah tindakan per notifikasi, dan menandai borongan
-    // mengosongkan penghitung tanpa ada yang benar-benar dilihat.
+    // BR-NOT-01, BR-NOT-04. "Tandai semua dibaca" (W37) mengikuti activity
+    // diagram DDD: yang dilarang BR-NOT-04 adalah menandai saat halaman dibuka,
+    // bukan tindakan eksplisit pengguna.
     Route::get('/notifications', [NotificationController::class, 'index'])->name('notifications.index');
+    Route::post('/notifications/read-all', [NotificationController::class, 'readAll'])
+        ->name('notifications.read-all');
     Route::post('/notifications/{notification}/read', [NotificationController::class, 'read'])
         ->name('notifications.read');
     Route::delete('/notifications/{notification}', [NotificationController::class, 'destroy'])

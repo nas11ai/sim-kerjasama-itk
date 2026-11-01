@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Notification;
 
 use App\Http\Controllers\Controller;
+use App\Models\User;
+use App\Queries\Notification\UnreadNotificationCount;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Notifications\DatabaseNotification;
@@ -47,10 +49,25 @@ class NotificationController extends Controller
         $entry = $this->own($request, $notification);
 
         $entry->markAsRead();
+        UnreadNotificationCount::forget($this->viewer($request));
 
         $url = is_string($entry->data['action_url'] ?? null) ? $entry->data['action_url'] : null;
 
         return $url !== null ? redirect($url) : back();
+    }
+
+    /**
+     * BR-NOT-04, W37 — "Tandai Semua Dibaca" adalah tindakan eksplisit, bukan
+     * efek membuka halaman. Notifikasinya tetap tersimpan (BR-NOT-01).
+     */
+    public function readAll(Request $request): RedirectResponse
+    {
+        $user = $this->viewer($request);
+
+        $user->unreadNotifications()->update(['read_at' => now()]);
+        UnreadNotificationCount::forget($user);
+
+        return back()->with('success', 'Semua notifikasi ditandai dibaca.');
     }
 
     /**
@@ -60,23 +77,31 @@ class NotificationController extends Controller
      */
     public function destroy(Request $request, string $notification): RedirectResponse
     {
-        $this->own($request, $notification)->delete();
+        $entry = $this->own($request, $notification);
+
+        $entry->delete();
+        UnreadNotificationCount::forget($this->viewer($request));
 
         return back()->with('success', 'Notifikasi dihapus.');
     }
 
     private function own(Request $request, string $id): DatabaseNotification
     {
-        $user = $request->user();
-
-        abort_if($user === null, 403);
-
-        $entry = $user->notifications()->whereKey($id)->first();
+        $entry = $this->viewer($request)->notifications()->whereKey($id)->first();
 
         // 404, bukan 403: memberitahu bahwa notifikasi orang lain "ada tapi
         // bukan milikmu" sudah membocorkan keberadaannya.
         abort_if($entry === null, 404);
 
         return $entry;
+    }
+
+    private function viewer(Request $request): User
+    {
+        $user = $request->user();
+
+        abort_if($user === null, 403);
+
+        return $user;
     }
 }

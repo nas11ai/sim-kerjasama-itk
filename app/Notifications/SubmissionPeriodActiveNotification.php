@@ -2,6 +2,7 @@
 
 namespace App\Notifications;
 
+use App\Data\Contract\NotificationPayload;
 use App\Models\SubmissionDate;
 use App\Models\SubmissionPeriod;
 use App\Notifications\Concerns\UsesConfiguredChannels;
@@ -21,16 +22,19 @@ class SubmissionPeriodActiveNotification extends Notification implements ShouldQ
 
     public function __construct(private readonly SubmissionPeriod $submissionPeriod) {}
 
-    /** @return array{title: string, message: string, action_url: string, type: string, meta: array{submission_period_id: int}} */
-    public function toDatabase(object $notifiable): array
+    /**
+     * W39 — tanpa `action_url`: tujuan "Buka" dihitung NotificationDestination saat diklik.
+     *
+     * @return array<string, int|string|null>
+     */
+    public function toArray(object $notifiable): array
     {
-        return [
-            'title' => 'Periode Submission Baru Aktif',
-            'message' => "Periode submission '{$this->submissionPeriod->name}' telah aktif dari {$this->startDate()} hingga {$this->endDate()}.",
-            'action_url' => route('user.dashboard'),
-            'type' => 'info',
-            'meta' => ['submission_period_id' => $this->submissionPeriod->id],
-        ];
+        return (new NotificationPayload(
+            type: 'submission_period_active',
+            title: 'Periode Submission Baru Aktif',
+            message: "Periode submission '{$this->submissionPeriod->name}' telah aktif dari {$this->startDate()} hingga {$this->endDate()}.",
+            context: ['submission_period_id' => $this->submissionPeriod->id],
+        ))->toArray();
     }
 
     public function toMail(object $notifiable): MailMessage
