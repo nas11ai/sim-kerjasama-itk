@@ -64,6 +64,12 @@ class Announcement extends Model
         return $this->belongsToMany(Role::class, 'announcement_roles');
     }
 
+    /** @return list<string> */
+    public function targetRoleNames(): array
+    {
+        return array_values($this->targetRoles->map(static fn (Role $role): string => $role->name)->all());
+    }
+
     /**
      * Menulis lewat Model, bukan Support: Support dilarang menulis state (SupportPurityTest).
      *

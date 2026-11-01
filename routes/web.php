@@ -340,16 +340,6 @@ Route::middleware(['auth', 'can:users.manage'])->prefix('admin')->name('admin.')
         'destroy' => 'submission-periods.destroy',
     ]);
 
-    Route::resource('announcements', AnnouncementController::class)->names([
-        'index' => 'announcements.index',
-        'create' => 'announcements.create',
-        'store' => 'announcements.store',
-        'show' => 'announcements.show',
-        'edit' => 'announcements.edit',
-        'update' => 'announcements.update',
-        'destroy' => 'announcements.destroy',
-    ]);
-
     Route::post('/submission-date-labels', StoreSubmissionDateLabelController::class)
         ->name('submission-date-labels.store');
 
@@ -407,6 +397,8 @@ Route::middleware(['auth', 'can:announcements.manage'])->prefix('admin')->name('
     // K6a — gambar sisipan editor; didaftarkan sebelum resource supaya tidak tertimpa.
     Route::post('/announcements/images', AnnouncementImageController::class)
         ->name('announcements.images.store');
+    // W35 — tanpa layar detail kelola; pembaca memakai `announcements.detail`.
+    Route::resource('announcements', AnnouncementController::class)->except(['show']);
 });
 
 // BR-SM-11 — penarikan pengajuan. Sengaja di luar grup `can:users.manage`:

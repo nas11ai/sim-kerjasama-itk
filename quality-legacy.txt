@@ -21,10 +21,6 @@ resources/js/Components/ui/dialog/DialogScrollContent.vue
 resources/js/Components/ui/input/UiInput.vue
 resources/js/Components/ui/textarea/UiTextarea.vue
 resources/js/Pages/AnnouncementDetail.vue
-resources/js/Pages/Announcements/CreatePage.vue
-resources/js/Pages/Announcements/EditPage.vue
-resources/js/Pages/Announcements/IndexPage.vue
-resources/js/Pages/Announcements/ShowPage.vue
 resources/js/Pages/Audit/IndexPage.vue
 resources/js/Pages/Config/ReferenceEntitiesPage.vue
 resources/js/Pages/EvaluationForms/ShowPage.vue

@@ -5,26 +5,25 @@ namespace App\Http\Controllers;
 use App\Actions\Announcement\PublishAnnouncement;
 use App\Actions\Announcement\RetractAnnouncement;
 use App\Actions\Announcement\ReviseAnnouncement;
+use App\Data\View\Announcement\AnnouncementFormData;
 use App\Http\Requests\Announcement\AnnouncementRequest;
 use App\Models\Announcement;
 use App\Models\AnnouncementUser;
+use App\Queries\Announcement\ManagedAnnouncementList;
 use App\Queries\Announcement\VisibleAnnouncements;
+use App\Support\Announcement\AnnouncementAudience;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
 class AnnouncementController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
+    public function index(Request $request)
     {
-        $announcements = Announcement::with(['announcementFiles', 'announcementCreator'])
-            ->orderBy('created_at', 'desc')
-            ->paginate(10);
+        $search = $request->string('search')->trim()->value();
 
-        return Inertia::render('Announcements/IndexPage', [
-            'announcements' => $announcements,
+        return Inertia::render('Announcement/ManageIndexPage', [
+            'announcements' => ManagedAnnouncementList::run($search),
+            'filters' => ['search' => $search],
         ]);
     }
 
@@ -43,14 +42,12 @@ class AnnouncementController extends Controller
         ]);
     }
 
-    /**
-     * Show the form for creating a new resource.
-     */
     public function create()
     {
-        // Tanpa data awal: dulu mengirim seluruh tabel AnnouncementFile dan sebuah
-        // Announcement kosong yang tak dibaca layar — satu tabel penuh tiap halaman dibuka.
-        return Inertia::render('Announcements/CreatePage');
+        return Inertia::render('Announcement/FormPage', [
+            'announcement' => null,
+            'roleOptions' => AnnouncementAudience::options(),
+        ]);
     }
 
     public function store(AnnouncementRequest $request)
@@ -61,27 +58,12 @@ class AnnouncementController extends Controller
             ->with('success', 'Pengumuman berhasil dibuat.');
     }
 
-    /**
-     * Display the specified resource.
-     */
-    public function show(Announcement $announcement)
-    {
-        $announcement->load('announcementFiles', 'announcementCreator');
-
-        return Inertia::render('Announcements/ShowPage', [
-            'announcement' => $announcement,
-        ]);
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     */
+    // W35 — tanpa layar detail kelola: pengelola membaca isinya di FormPage.
     public function edit(Announcement $announcement)
     {
-        $announcement->load('announcementFiles');
-
-        return Inertia::render('Announcements/EditPage', [
-            'announcement' => $announcement,
+        return Inertia::render('Announcement/FormPage', [
+            'announcement' => AnnouncementFormData::of($announcement),
+            'roleOptions' => AnnouncementAudience::options(),
         ]);
     }
 
