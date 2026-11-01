@@ -28,12 +28,11 @@ const closeOnLinkTap = (event: MouseEvent) => {
 }
 
 // navigation null hanya untuk tamu; di dalam layout aplikasi selalu terisi.
+const flags = computed(
+    () => page.props.navigation ?? { hasApprovedSubmission: false, unreadAnnouncements: 0 }
+)
 const groups = computed(() =>
-    visibleNavGroups(
-        navGroups,
-        page.props.auth.user.permissions,
-        page.props.navigation ?? { hasApprovedSubmission: false }
-    )
+    visibleNavGroups(navGroups, page.props.auth.user.permissions, flags.value)
 )
 </script>
 
@@ -49,6 +48,7 @@ const groups = computed(() =>
                 v-for="(group, index) in groups"
                 :key="group.label ?? index"
                 :group="group"
+                :flags="flags"
             />
         </SidebarContent>
 

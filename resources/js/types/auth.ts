@@ -1,8 +1,11 @@
 // Kontrak props halaman Auth/*, mengikuti controller di app/Http/Controllers/Auth.
+import type { AnnouncementSummary } from '@/types/announcement'
 
 export interface LoginPageProps {
     canResetPassword: boolean
     status: string | null
+    // fe-v2-design §4.7, W6 — pengumuman publik terbaru, paling banyak 5.
+    announcements: AnnouncementSummary[]
 }
 
 export interface RegistrableFaculty {

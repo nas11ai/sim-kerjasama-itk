@@ -12,6 +12,7 @@ import {
     Folder,
     Layers,
     LayoutDashboard,
+    Megaphone,
     Settings,
     SquarePen,
     SquarePlus,
@@ -29,6 +30,8 @@ export interface NavItem {
     /** kosong = semua pengguna; selain itu cukup memegang salah satu */
     anyPermission: string[]
     requiresApprovedSubmission?: true
+    /** flag `navigation` berisi jumlah yang ditampilkan sebagai badge bila > 0 */
+    countKey?: 'unreadAnnouncements'
 }
 
 export interface NavGroup {
@@ -45,6 +48,13 @@ export const navGroups: NavGroup[] = [
                 icon: LayoutDashboard,
                 routeName: 'dashboard',
                 anyPermission: [],
+            },
+            {
+                label: 'Pengumuman',
+                icon: Megaphone,
+                routeName: 'user.announcements.index',
+                anyPermission: [],
+                countKey: 'unreadAnnouncements',
             },
         ],
     },
@@ -130,6 +140,13 @@ export const navGroups: NavGroup[] = [
                 routeName: 'admin.submission-periods.index',
                 activePattern: 'admin.submission-periods.*',
                 anyPermission: ['periods.manage'],
+            },
+            {
+                label: 'Kelola Pengumuman',
+                icon: Megaphone,
+                routeName: 'admin.announcements.index',
+                activePattern: 'admin.announcements.*',
+                anyPermission: ['announcements.manage'],
             },
             {
                 label: 'Reviewer',
@@ -241,4 +258,12 @@ export function isNavItemActive(
     current: (pattern: string) => boolean
 ): boolean {
     return current(item.activePattern ?? item.routeName)
+}
+
+/** Jumlah untuk badge item, atau null bila item tak berhitungan atau hitungannya nol. */
+export function navItemCount(item: NavItem, flags: NavigationFlags): number | null {
+    if (item.countKey === undefined) return null
+    const count = flags[item.countKey]
+
+    return count > 0 ? count : null
 }

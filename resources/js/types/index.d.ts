@@ -31,6 +31,8 @@ export interface Permission {
 
 export interface NavigationFlags {
     hasApprovedSubmission: boolean
+    // W32 — jumlah pengumuman terlihat yang belum dibaca (fe-v2-design §4.7).
+    unreadAnnouncements: number
 }
 
 export interface FlashMessages {

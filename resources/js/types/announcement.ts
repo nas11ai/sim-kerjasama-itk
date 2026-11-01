@@ -44,3 +44,33 @@ export interface AnnouncementFormPageProps {
     announcement: AnnouncementForm | null
     roleOptions: FilterOption[]
 }
+
+// Sumber: AnnouncementSummaryData. `excerpt` teks polos; `isRead` null untuk tamu.
+export interface AnnouncementSummary {
+    id: number
+    title: string
+    excerpt: string
+    publishedAt: string
+    attachmentCount: number
+    isRead: boolean | null
+}
+
+// Sumber: AnnouncementDetailData. `contentHtml` keluaran AnnouncementHtml::sanitize (K6).
+export interface AnnouncementDetail {
+    id: number
+    title: string
+    contentHtml: string
+    publishedAt: string
+    expiresAt: string | null
+    author: string | null
+    files: AnnouncementFile[]
+    isRead: boolean | null
+}
+
+export interface AnnouncementIndexPageProps {
+    announcements: Paginated<AnnouncementSummary>
+}
+
+export interface AnnouncementShowPageProps {
+    announcement: AnnouncementDetail
+}

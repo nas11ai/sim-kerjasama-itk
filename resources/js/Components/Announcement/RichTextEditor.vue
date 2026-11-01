@@ -68,39 +68,3 @@ onBeforeUnmount(() => editor.value?.destroy())
         <EditorContent :editor="editor" />
     </div>
 </template>
-
-<style scoped>
-:deep(.ProseMirror h2) {
-    font-size: 1.125rem;
-    font-weight: 600;
-    margin: 0.75rem 0 0.25rem;
-}
-:deep(.ProseMirror h3) {
-    font-weight: 600;
-    margin: 0.5rem 0 0.25rem;
-}
-:deep(.ProseMirror ul) {
-    list-style: disc;
-    padding-left: 1.25rem;
-}
-:deep(.ProseMirror ol) {
-    list-style: decimal;
-    padding-left: 1.25rem;
-}
-:deep(.ProseMirror blockquote) {
-    border-left: 3px solid var(--border);
-    padding-left: 0.75rem;
-    color: var(--muted-foreground);
-}
-:deep(.ProseMirror a) {
-    text-decoration: underline;
-}
-:deep(.ProseMirror img) {
-    max-width: 100%;
-    height: auto;
-    border-radius: 0.375rem;
-}
-:deep(.ProseMirror img.ProseMirror-selectednode) {
-    outline: 2px solid var(--ring);
-}
-</style>

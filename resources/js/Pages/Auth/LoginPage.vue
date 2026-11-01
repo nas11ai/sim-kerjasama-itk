@@ -2,6 +2,7 @@
 // Frame: SHARED-01-01
 import { Head, Link, useForm } from '@inertiajs/vue3'
 
+import PublicAnnouncementPanel from '@/Components/Announcement/PublicAnnouncementPanel.vue'
 import AuthHeading from '@/Components/Auth/AuthHeading.vue'
 import AppBanner from '@/Components/app/AppBanner.vue'
 import FormField from '@/Components/app/FormField.vue'
@@ -76,5 +77,8 @@ const submit = () => form.post(route('login'), { onFinish: () => form.reset('pas
                 Daftar sebagai Dosen ITK
             </Link>
         </p>
+        <template v-if="announcements.length > 0" #aside>
+            <PublicAnnouncementPanel :announcements="announcements" />
+        </template>
     </AuthLayout>
 </template>

@@ -6,12 +6,14 @@ import {
     SidebarGroupContent,
     SidebarGroupLabel,
     SidebarMenu,
+    SidebarMenuBadge,
     SidebarMenuButton,
     SidebarMenuItem,
 } from '@/Components/ui/sidebar'
-import { isNavItemActive, type VisibleNavGroup } from '@/lib/navigation'
+import { isNavItemActive, navItemCount, type VisibleNavGroup } from '@/lib/navigation'
+import type { NavigationFlags } from '@/types'
 
-defineProps<{ group: VisibleNavGroup }>()
+defineProps<{ group: VisibleNavGroup; flags: NavigationFlags }>()
 
 const isActive = (pattern: string) => route().current(pattern)
 </script>
@@ -28,6 +30,9 @@ const isActive = (pattern: string) => route().current(pattern)
                             <span>{{ item.label }}</span>
                         </Link>
                     </SidebarMenuButton>
+                    <SidebarMenuBadge v-if="navItemCount(item, flags) !== null">
+                        {{ navItemCount(item, flags) }}
+                    </SidebarMenuBadge>
                 </SidebarMenuItem>
             </SidebarMenu>
         </SidebarGroupContent>
