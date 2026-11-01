@@ -31,8 +31,8 @@ function remaining(daysLeft: number): string {
                 data-deadline
                 :data-urgent="deadline.urgent"
                 :class="[
-                    'rounded-md border-l-4 px-3 py-2 text-sm',
-                    deadline.urgent ? 'border-destructive bg-destructive/5' : 'border-border',
+                    'rounded-md border px-3 py-2 text-sm',
+                    deadline.urgent ? 'border-destructive/30 bg-destructive/5' : 'border-border',
                 ]"
             >
                 <Link
