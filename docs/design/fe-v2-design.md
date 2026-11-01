@@ -301,16 +301,28 @@ kolom `announcements.type`. Pengumuman privat bisa dipersempit ke peran:
 detail mengirim `router.post(route('user.announcements.markRead'))` sekali saat
 dibuka bila belum dibaca. Endpoint-nya diubah dari JSON menjadi redirect back
 Inertia. Sidebar item "Pengumuman" menampilkan jumlah belum dibaca
-(`auth.user.unread_announcements`, lazy shared prop).
+(`navigation.unreadAnnouncements`, lazy shared prop; §9 W32).
 
-**Isi.** Isi pengumuman berupa teks biasa yang dirender dengan
-`whitespace-pre-line`, **tanpa `v-html`**. Legacy (`AnnouncementDetail.vue`)
-menerima teks dari `Textarea` tetapi merendernya sebagai HTML, sehingga terjadi
-XSS tersimpan. Lampiran tetap mengikuti `AnnouncementRequest` (jpg/png/pdf, 2 MB).
+**Isi (§9 K6, K6a).** Isi pengumuman ditulis dengan editor rich text (Tiptap,
+hanya dimuat `Announcement/FormPage`) dan disimpan sebagai HTML di kolom
+`content` yang sama. Server adalah batas kepercayaan:
+`Support/Announcement/AnnouncementHtml::sanitize` (HTMLPurifier) menyaring isi
+saat ditulis (Publish/Revise) **dan** saat dibaca, dengan daftar izin `p, br,
+strong, em, u, s, h2, h3, ul, ol, li, blockquote, a[href], img[src|alt]`.
+Tautan hanya `http`/`https`/`mailto` dan selalu `target="_blank"
+rel="noopener noreferrer"`. Gambar hanya lewat unggahan
+(`admin.announcements.images.store`: JPG/PNG, maks 2 MB dan 4096 px, disandi
+ulang GD sehingga metadata EXIF hilang, nama acak); `src` hanya lolos bila
+menunjuk `/storage/announcements/inline/<acak>.<jpg|png>`, jadi URL luar,
+`data:`, dan path traversal dibuang. Gambar sisipan yang tak lagi dirujuk ikut
+dihapus saat revisi atau penarikan. `Components/Announcement/RichTextContent.vue`
+adalah satu-satunya pemakai `v-html` di v2. Daftar, panel login, dan kutipan
+memakai teks polos (`AnnouncementHtml::plainText`). Lampiran tetap mengikuti
+`AnnouncementRequest` (jpg/png/pdf, 2 MB).
 
 **Di luar cakupan:** notifikasi/email saat terbit, target per form/skema atau
-per user, jadwal terbit di masa depan, rich text. Kalau dibutuhkan, buka
-keputusan baru di §9.
+per user, jadwal terbit di masa depan, tabel/warna di isi. Kalau dibutuhkan,
+buka keputusan baru di §9.
 
 ## 5. Testing
 
@@ -395,7 +407,7 @@ perkiraan saat dokumen ditulis. Verifikasi di awal irisan.
 | S3a-2 | ☑ | Review oleh reviewer: ringkasan, diskusi, riwayat | REVIEWER-03-02, 03-04 | `Review/SummaryPage`, `Review/HistoryPage` | ◐ (rencana yang sama, Task 6–9) | `Reviewer/Submissions/ShowPage` | S3a-1 |
 | S4-1 | ☑ | Pengajuan sisi operator: daftar & detail baca | OPERATOR-02-01, 02-02 | `Submission/ManageIndexPage`, `ManageShowPage` + `Components/Submission/Manage/*` | ◐ (rencana `docs/plans/2026-11-01-fe-s4-operator.md`, Task 1–4) | `Submissions/*`, `AssignReviewerDialog`, `ReplaceReviewerDialog`, `RejectSubmissionDialog`, `TransferOwnershipDialog`, `ReviewSystem`, `ReviewScorePanel`, `PhaseAccessPanel` (semuanya hanya dipakai `ShowSubmission` operator) | S2a, S3a-2 |
 | S4-2 | ☑ | Pengajuan sisi operator: enam aksi | OPERATOR-02-03..06, OPERATOR-03-01, 03-02 | dialog perpanjang/alihkan/tolak/tarik/tugaskan/ganti di `ManageShowPage` (W30) | ◐ (rencana yang sama, Task 5–11) | — (yatim `SubmissionEvaluationManager/*`, `ReviewerAssignments/*` pindah ke F99) | S4-1 |
-| A1 | ☐ | Pengumuman: baca & kelola | tanpa frame (§4.7) | `Announcement/IndexPage`, `Announcement/ShowPage` (pembaca; tamu untuk yang publik), `Announcement/ManageIndexPage`, `Announcement/FormPage` (buat & sunting), panel pengumuman publik di halaman login (§9 K5) | ◐ permission `announcements.manage`, pivot `announcement_roles`, `VisibleAnnouncements` + filter peran, `markRead` → redirect Inertia | `Announcements/*`, `AnnouncementDetail`, `User/Announcements/*` | S1 |
+| A1 | ☑ | Pengumuman: baca & kelola | tanpa frame (§4.7) | `Announcement/IndexPage`, `Announcement/ShowPage` (pembaca; tamu untuk yang publik), `Announcement/ManageIndexPage`, `Announcement/FormPage` (buat & sunting), panel pengumuman publik di halaman login (§9 K5) | ◐ permission `announcements.manage`, pivot `announcement_roles`, `VisibleAnnouncements` + filter peran, `markRead` → redirect Inertia (rencana `docs/plans/2026-11-01-fe-a1-announcement.md`; isi rich text K6/K6a) | `Announcements/*`, `AnnouncementDetail`, `User/Announcements/*` | S1 |
 | D1 | ☐ | Dashboard & notifikasi | SHARED-02-01..05 | `Dashboard/IndexPage` (section per permission, §4.4, + section "Pengumuman terbaru" lewat `VisibleAnnouncements`), `Notification/IndexPage` | ◐ | `DashboardPage`, `User/DashboardPage`, `Reviewer/DashboardPage`, `Notifications/*` | S2a, S3a, S4, A1 |
 | I1 | ☐ | User, verifikasi, undangan, reviewer | OPERATOR-08-01..04, ADMIN-08-01 | `Identity/*` | ◐ | `Users/*`, `Identity/*`, `Reviewers/*` | F0 |
 | P1 | ☐ | Profil | SHARED-01-06, 01-07 | `Profile/CompletePage`, `Profile/ShowPage` | ◐ | `Profile/*`, `User/Biodata/*` | S1 |
@@ -406,7 +418,7 @@ perkiraan saat dokumen ditulis. Verifikasi di awal irisan.
 | M1 | ☐ | Monev | RESEARCHER-05-01..03, OPERATOR-05-01, 05-02 | `Monev/*` | ✗ daftar peneliti / ◐ siklus | `Monev/CyclePage` | S2a |
 | O1 | ☐ | Luaran penelitian | RESEARCHER-06-01..03 | `ResearchOutput/*` | ✗ daftar / ✓ simpan | `ResearchOutputManager` | S2a |
 | R1 | ☐ | Statistik, export, audit sistem | OPERATOR-07-01..03 | `Reporting/StatsPage` (menggantikan empat halaman statistik legacy), `ExportPage`, `AuditPage` | ◐ empat aksi `StatController` digabung jadi satu / ✓ export, audit | `Statistics/*`, `Exports/*`, `Audit/*`, `StatisticSection` | D1 |
-| F99 | ☐ | Bersih-bersih | — | — | hapus `roles`/`is_reviewer` dari shared props | `AuthenticatedLayout`, sisa `Components/*` di luar `ui/` & `app/`, `Constants/`, `Utils/`; layar tanpa wireframe beserta route & controller-nya (§9 K3): `Roles/*`, `Permissions/*`, `WelcomePage` (`/` dialihkan ke dashboard atau login; umpan publik sudah pindah ke halaman login di A1); `max.legacy.files` → 1; Playwright smoke; halaman yatim `SubmissionEvaluationManager/*`, `ReviewerAssignments/*` (dipindah dari S4-2) | semua |
+| F99 | ☐ | Bersih-bersih | — | — | hapus `roles`/`is_reviewer` dari shared props | `AuthenticatedLayout`, sisa `Components/*` di luar `ui/` & `app/`, `Constants/`, `Utils/`; layar tanpa wireframe beserta route & controller-nya (§9 K3): `Roles/*`, `Permissions/*`, `WelcomePage` beserta `Queries/Announcement/PublicAnnouncementFeed` (`/` dialihkan ke dashboard atau login; umpan publik sudah pindah ke halaman login di A1), tautan `admin.announcements.index` di `Components/AppSidebar.vue` legacy; `max.legacy.files` → 1; Playwright smoke; halaman yatim `SubmissionEvaluationManager/*`, `ReviewerAssignments/*` (dipindah dari S4-2) | semua |
 
 ## 9. Keputusan terbuka dan selisih
 
@@ -448,6 +460,13 @@ perkiraan saat dokumen ditulis. Verifikasi di awal irisan.
 | W29 | 02-06 menggambar "Siklus Monev Aktif" dan "Luaran Terdaftar" di ringkasan penarikan. | S4-2: tidak digambar (belum ada read model monev/luaran operator, M1/O1); ringkasan = Judul, Ketua, Skema. |
 | W30 | Frame 02-03..06, 03-01, 03-02 berupa halaman tersendiri. | S4-2: dibangun sebagai dialog di `ManageShowPage` (§8), dengan kerangka bersama `Manage/ActionDialog`. |
 | W31 | 02-02 tidak menggambar aksi sunting isi untuk Super Admin, padahal SM-SUBMIT-14 menyebut Super Admin "bisa menyunting isi". | S4: tidak digambar; aturannya tetap terikat di Policy/Pest. Wizard untuk Super Admin bukan pemilik masih 409 saat menyimpan (catatan S2b). |
+| K6 | Isi pengumuman berupa teks biasa (§4.7 lama) dirasa kurang untuk pengumuman berformat. | Pemilik, 2026-11-01: isi ditulis dengan editor rich text. Penulis rencana A1: Tiptap 3 hanya di `FormPage`, HTML tersaring HTMLPurifier saat tulis dan baca, `v-html` hanya di `RichTextContent.vue`; HTMLPurifier (sudah terpasang lewat phpspreadsheet) dijadikan dependency langsung tanpa mengubah versinya. Data dev teks biasa tidak dimigrasi. |
+| K6a | Editor juga perlu gambar dan tautan, "dalam batas kepatuhan keamanan dan praktik terbaik". | Pemilik, 2026-11-01 (saat eksekusi A1): gambar hanya lewat unggahan ber-permission `announcements.manage` (JPG/PNG, maks 2 MB/4096 px; WebP ditolak karena GD tidak menjamin penyandiannya), disandi ulang GD (EXIF/GPS hilang), bernama acak, diaudit; saringan hanya meloloskan `src` gambar sisipan milik sendiri; berkas yang tak lagi dirujuk dihapus saat revisi/penarikan. Unggahan yang tidak pernah disimpan ke pengumuman tertinggal di disk (tercatat di audit); pembersihannya belum dibangun. Tautan `http`/`https`/`mailto` dengan `target="_blank" rel="noopener noreferrer"`. |
+| W32 | §4.7 menaruh jumlah belum dibaca di `auth.user.unread_announcements`. | Penulis rencana A1: `navigation.unreadAnnouncements`, karena `navigation` sudah menjadi tempat flag sidebar yang bergantung pada data (§4.4). |
+| W33 | `user.announcements.markRead` berada di grup `check_biodata`, sehingga pembaca berbiodata belum lengkap terlempar ke form biodata saat membuka detail. | Penulis rencana A1: route itu keluar dari `check_biodata` (nama dan path tetap); daftar `user.announcements.index` tetap di balik gerbang. |
+| W34 | "Berlaku sampai" tanpa jam. | Penulis rencana A1: tanggal saja, disimpan pukul 23:59:59 hari itu (pola tenggat Perpanjang Tenggat). |
+| W35 | Layar detail khusus kelola (`admin.announcements.show`) tidak dibutuhkan. | Penulis rencana A1: dihapus; pengelola membaca isi di `FormPage`, pembaca memakai `Announcement/ShowPage`. |
+| W36 | Target peran hanya lima peran DDD, sementara Super Admin dan role legacy `Admin` ada di luar daftar itu. | Penulis rencana A1: Query pembaca tidak mengecualikan Super Admin; pengumuman privat bertarget tidak tampil di jalur pembacanya kecuali ia memegang peran itu. Layar kelola tetap menampilkan semuanya. |
 
 Selisih wireframe↔DDD yang ditemukan saat mengerjakan irisan dicatat di sini
 dengan kode `W1`, `W2`, …, beserta keputusan yang diambil.
