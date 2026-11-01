@@ -39,16 +39,17 @@ const FULL_CATALOG = [
     'reporting.view-audit-log',
     'announcements.manage',
 ]
-const NO_APPROVED = { hasApprovedSubmission: false, unreadAnnouncements: 0 }
+const NO_APPROVED = { hasApprovedSubmission: false, unreadAnnouncements: 0, unreadNotifications: 0 }
 
 const labels = (groups: VisibleNavGroup[]) => groups.flatMap((g) => g.items.map((i) => i.label))
 const groupLabels = (groups: VisibleNavGroup[]) => groups.map((g) => g.label)
 
 describe('visibleNavGroups', () => {
-    it('peneliti hanya melihat Dashboard, Pengumuman, dan Daftar Pengajuan', () => {
+    it('peneliti hanya melihat Dashboard, Pengumuman, Notifikasi, dan Daftar Pengajuan', () => {
         expect(labels(visibleNavGroups(navGroups, RESEARCHER, NO_APPROVED))).toEqual([
             'Dashboard',
             'Pengumuman',
+            'Notifikasi',
             'Daftar Pengajuan',
         ])
     })
@@ -67,6 +68,7 @@ describe('visibleNavGroups', () => {
         expect(labels(visibleNavGroups(navGroups, permissions, NO_APPROVED))).toEqual([
             'Dashboard',
             'Pengumuman',
+            'Notifikasi',
             'Daftar Pengajuan',
             'Penugasan Review',
             'Riwayat Review',
@@ -128,6 +130,7 @@ describe('pengumuman (fe-v2-design §4.7, W6)', () => {
         expect(labels(visibleNavGroups(navGroups, [], NO_APPROVED))).toEqual([
             'Dashboard',
             'Pengumuman',
+            'Notifikasi',
         ])
     })
 
@@ -175,5 +178,25 @@ describe('isNavItemActive', () => {
 
         expect(isNavItemActive(dashboard, (p) => p === 'dashboard')).toBe(true)
         expect(isNavItemActive(dashboard, () => false)).toBe(false)
+    })
+})
+
+describe('notifikasi (W38, BR-NOT-05)', () => {
+    const notifItem = () =>
+        visibleNavGroups(navGroups, [], NO_APPROVED)
+            .flatMap((g) => g.items)
+            .find((i) => i.label === 'Notifikasi')
+
+    it('Notifikasi terlihat untuk semua pengguna dan menaut ke daftar notifikasi', () => {
+        expect(notifItem()?.routeName).toBe('notifications.index')
+    })
+
+    it('badge tampil saat unreadNotifications > 0', () => {
+        const item = notifItem()
+
+        expect(item).toBeDefined()
+        expect(navItemCount(item!, NO_APPROVED)).toBeNull()
+        expect(navItemCount(item!, { ...NO_APPROVED, unreadNotifications: 4 })).toBe(4)
+        expect(navItemCount(item!, { ...NO_APPROVED, unreadAnnouncements: 4 })).toBeNull()
     })
 })

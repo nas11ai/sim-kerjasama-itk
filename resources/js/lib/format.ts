@@ -17,3 +17,22 @@ export function formatDate(iso: string | null): string {
 export function formatRupiah(amount: number): string {
     return rupiahFormat.format(amount)
 }
+
+const RELATIVE_UNITS: [label: string, seconds: number][] = [
+    ['minggu', 7 * 24 * 3600],
+    ['hari', 24 * 3600],
+    ['jam', 3600],
+    ['menit', 60],
+]
+const RELATIVE_LIMIT_SECONDS = 4 * 7 * 24 * 3600
+
+/** "2 jam lalu" ala wireframe; lewat empat minggu jarak relatif tak lagi berguna, jadi tanggal. */
+export function formatRelative(iso: string, now: Date = new Date()): string {
+    const elapsed = Math.floor((now.getTime() - new Date(iso).getTime()) / 1000)
+
+    if (elapsed >= RELATIVE_LIMIT_SECONDS) return formatDate(iso)
+
+    const unit = RELATIVE_UNITS.find(([, seconds]) => elapsed >= seconds)
+
+    return unit === undefined ? 'Baru saja' : `${Math.floor(elapsed / unit[1])} ${unit[0]} lalu`
+}

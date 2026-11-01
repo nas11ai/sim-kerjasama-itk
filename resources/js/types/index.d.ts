@@ -33,6 +33,8 @@ export interface NavigationFlags {
     hasApprovedSubmission: boolean
     // W32 — jumlah pengumuman terlihat yang belum dibaca (fe-v2-design §4.7).
     unreadAnnouncements: number
+    // W38/W41 — notifikasi in-app belum dibaca, ber-cache (BR-NOT-05).
+    unreadNotifications: number
 }
 
 export interface FlashMessages {

@@ -1,6 +1,7 @@
 import type { NavigationFlags } from '@/types'
 import {
     BookOpen,
+    Bell,
     Building2,
     ChartBar,
     ClipboardList,
@@ -31,7 +32,7 @@ export interface NavItem {
     anyPermission: string[]
     requiresApprovedSubmission?: true
     /** flag `navigation` berisi jumlah yang ditampilkan sebagai badge bila > 0 */
-    countKey?: 'unreadAnnouncements'
+    countKey?: 'unreadAnnouncements' | 'unreadNotifications'
 }
 
 export interface NavGroup {
@@ -55,6 +56,14 @@ export const navGroups: NavGroup[] = [
                 routeName: 'user.announcements.index',
                 anyPermission: [],
                 countKey: 'unreadAnnouncements',
+            },
+            // W38 — sidebar adalah navbar app ini; badge belum dibaca BR-NOT-05.
+            {
+                label: 'Notifikasi',
+                icon: Bell,
+                routeName: 'notifications.index',
+                anyPermission: [],
+                countKey: 'unreadNotifications',
             },
         ],
     },

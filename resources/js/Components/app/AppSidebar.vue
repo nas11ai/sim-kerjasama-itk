@@ -29,7 +29,12 @@ const closeOnLinkTap = (event: MouseEvent) => {
 
 // navigation null hanya untuk tamu; di dalam layout aplikasi selalu terisi.
 const flags = computed(
-    () => page.props.navigation ?? { hasApprovedSubmission: false, unreadAnnouncements: 0 }
+    () =>
+        page.props.navigation ?? {
+            hasApprovedSubmission: false,
+            unreadAnnouncements: 0,
+            unreadNotifications: 0,
+        }
 )
 const groups = computed(() =>
     visibleNavGroups(navGroups, page.props.auth.user.permissions, flags.value)
