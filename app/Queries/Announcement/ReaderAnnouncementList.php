@@ -25,15 +25,27 @@ class ReaderAnnouncementList implements ChangesNoState
     /** @return LengthAwarePaginator<int, AnnouncementSummaryData> */
     public function handle(User $reader): LengthAwarePaginator
     {
+        return self::newestFor($reader)
+            ->paginate(self::PER_PAGE)
+            ->through(self::summary(...));
+    }
+
+    /**
+     * Urutan dan penanda baca yang sama untuk daftar ini dan "Pengumuman terbaru" dasbor.
+     *
+     * @return Builder<Announcement>
+     */
+    public static function newestFor(User $reader): Builder
+    {
         return VisibleAnnouncements::run($reader)
             ->withCount('announcementFiles')
             ->withExists(['announcementReader as is_read' => static fn (Builder $query) => $query->whereKey($reader->id)])
             ->latest()
-            ->orderByDesc('id')
-            ->paginate(self::PER_PAGE)
-            ->through(static fn (Announcement $announcement): AnnouncementSummaryData => AnnouncementSummaryData::of(
-                $announcement,
-                $announcement->getAttribute('is_read') === true,
-            ));
+            ->orderByDesc('id');
+    }
+
+    public static function summary(Announcement $announcement): AnnouncementSummaryData
+    {
+        return AnnouncementSummaryData::of($announcement, $announcement->getAttribute('is_read') === true);
     }
 }
