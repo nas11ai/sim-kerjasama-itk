@@ -22,10 +22,31 @@ class VisibleAnnouncements implements ChangesNoState
     /** @return Builder<Announcement> */
     public function handle(?User $viewer): Builder
     {
-        return Announcement::query()
-            ->when($viewer === null, static fn (Builder $query) => $query->where('type', 'public'))
-            ->where(static function (Builder $query): void {
-                $query->whereNull('expired_at')->orWhere('expired_at', '>', now());
-            });
+        $query = Announcement::query()->where(static function (Builder $query): void {
+            $query->whereNull('expired_at')->orWhere('expired_at', '>', now());
+        });
+
+        if ($viewer === null) {
+            return $query->where('type', 'public');
+        }
+
+        return $this->targeting($query, $viewer);
+    }
+
+    /**
+     * fe-v2-design §4.7 — privat dipersempit per peran; cukup cocok satu.
+     * Super Admin tidak dikecualikan (W36): layar kelola membaca tanpa Query ini.
+     *
+     * @param  Builder<Announcement>  $query
+     * @return Builder<Announcement>
+     */
+    private function targeting(Builder $query, User $viewer): Builder
+    {
+        $roleIds = $viewer->roles()->pluck('roles.id')->all();
+
+        return $query->where(static function (Builder $query) use ($roleIds): void {
+            $query->whereDoesntHave('targetRoles')
+                ->orWhereHas('targetRoles', static fn (Builder $roles) => $roles->whereIn('roles.id', $roleIds));
+        });
     }
 }

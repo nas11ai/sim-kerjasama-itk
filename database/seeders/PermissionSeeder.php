@@ -34,6 +34,8 @@ class PermissionSeeder extends Seeder
         'users.manage',
         'reporting.export',
         'reporting.view-audit-log',
+        // fe-v2-design §4.7 K5 — di luar katalog DDD, diputuskan pemilik 2026-10-25.
+        'announcements.manage',
     ];
 
     /**
@@ -65,6 +67,7 @@ class PermissionSeeder extends Seeder
             'users.verify',
             'reporting.export',
             'reporting.view-audit-log',
+            'announcements.manage',
         ],
         // admin is synced to the full catalog in run()
         'admin' => [],
