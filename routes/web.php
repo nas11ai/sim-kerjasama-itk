@@ -278,10 +278,6 @@ Route::middleware(['auth', 'can:users.manage'])->prefix('admin')->name('admin.')
     Route::get('review-evaluation-forms/{reviewEvaluationForm}/preview', [ReviewEvaluationFormController::class, 'preview'])
         ->name('review-evaluation-forms.preview');
 
-    // Submission viewing routes
-    Route::get('/submissions/{submission}', [SubmissionViewController::class, 'adminShowSubmission'])
-        ->name('submissions.show');
-
     // Enhanced reviewer assignment with evaluation forms
     Route::post('/submissions/{submission}/assign-reviewers', [ReviewController::class, 'assignReviewers'])
         ->name('submissions.assign-reviewers');
@@ -405,6 +401,8 @@ require __DIR__.'/auth.php';
 Route::middleware(['auth', 'can:submissions.view-all'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/submissions', [OperatorSubmissionController::class, 'index'])
         ->name('submissions.index');
+    Route::get('/submissions/{submission}', [OperatorSubmissionController::class, 'show'])
+        ->name('submissions.show');
 });
 
 // BR-SM-11 — penarikan pengajuan. Sengaja di luar grup `can:users.manage`:

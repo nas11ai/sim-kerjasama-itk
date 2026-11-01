@@ -118,11 +118,13 @@ export interface SubmissionDecision {
     decidedAt: string | null
 }
 
-// Sumber: VisibleReviewerScores (@phpstan-type Score).
+// Sumber: SubmittedEvaluationSheets (@phpstan-type Score).
 export interface ReviewerScore {
     reviewer: string
     reviewer_type: string
     submitted_at: string | null
+    // Lembar milik Reviewer yang digantikan; hanya sampai ke layar Operator (W22).
+    replaced: boolean
     answers: { label: string; value: string | null }[]
 }
 

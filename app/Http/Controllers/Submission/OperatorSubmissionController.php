@@ -3,6 +3,9 @@
 namespace App\Http\Controllers\Submission;
 
 use App\Http\Controllers\Controller;
+use App\Models\FormSubmission;
+use App\Models\User;
+use App\Queries\Submission\OperatorSubmissionDetail;
 use App\Queries\Submission\OperatorSubmissionList;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -27,5 +30,15 @@ class OperatorSubmissionController extends Controller
             'filters' => $filters,
             ...OperatorSubmissionList::run($filters),
         ]);
+    }
+
+    // BR-SM-07 — view-all; draft belum diajukan, bagi Operator ia belum ada.
+    public function show(Request $request, FormSubmission $submission): Response
+    {
+        abort_unless($submission->is_submitted, 404, 'Pengajuan tidak ditemukan.');
+        $viewer = $request->user();
+        abort_unless($viewer instanceof User, 403);
+
+        return Inertia::render('Submission/ManageShowPage', OperatorSubmissionDetail::run($viewer, $submission));
     }
 }

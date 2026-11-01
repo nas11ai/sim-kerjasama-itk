@@ -121,9 +121,10 @@ it('tidak menawarkan tombol membuka ulir kepada Operator', function () {
     $operator = User::factory()->create();
     $operator->givePermissionTo(['users.manage', 'submissions.view-all']);
 
+    // BR-REV-15 — Operator bukan reviewer bertugas: layar Operator tidak membawa kunci itu sama sekali.
     $this->actingAs($operator)
         ->get(route('admin.submissions.show', $submission))
-        ->assertInertia(fn (Assert $page) => $page->where('canCreateThread', false));
+        ->assertInertia(fn (Assert $page) => $page->missing('canCreateThread'));
 });
 
 it('[BR-SM-07] lampiran review tersimpan di disk privat dan tetap bisa diunduh pihak yang berhak', function () {

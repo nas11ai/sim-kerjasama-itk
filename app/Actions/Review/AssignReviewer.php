@@ -12,6 +12,7 @@ use App\States\Submission\UnderReview;
 use App\Support\Audit\AuditTrail;
 use App\Support\ConflictOfInterestGuard;
 use App\Support\Notification\Deliver;
+use App\Support\Review\MinimumReviewers;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use Lorisleiva\Actions\Concerns\AsAction;
@@ -26,13 +27,6 @@ use RuntimeException;
 class AssignReviewer
 {
     use AsAction;
-
-    /**
-     * Ambang bawaan kalau skema tidak menyatakannya atau submission tak
-     * punya skema. Bukan pengganti `min_reviewer_count` (BR-REV-01:
-     * ambangnya milik skema); hanya berlaku bila skema tak bisa ditanya.
-     */
-    private const DEFAULT_MIN_REVIEWERS = 2;
 
     public function handle(FormSubmission $submission, Reviewer $reviewer): SubmissionReviewer
     {
@@ -138,30 +132,10 @@ class AssignReviewer
 
         $assigned = $submission->activeSubmissionReviewers()->count();
 
-        if ($assigned < $this->minimumReviewers($submission)) {
+        if ($assigned < MinimumReviewers::for($submission)) {
             return;
         }
 
         $status->transitionTo(UnderReview::class);
-    }
-
-    /**
-     * Ambang dari `scheme.rules.min_reviewer_count`. Nilainya berasal dari
-     * kolom JSONB, jadi bentuknya diperiksa — bukan di-cast — supaya angka
-     * yang salah bentuk tidak diam-diam berubah jadi ambang yang keliru.
-     */
-    private function minimumReviewers(FormSubmission $submission): int
-    {
-        $rules = $submission->scheme?->rules;
-
-        if (!is_array($rules)) {
-            return self::DEFAULT_MIN_REVIEWERS;
-        }
-
-        $configured = $rules['min_reviewer_count'] ?? null;
-
-        return is_int($configured) && $configured > 0
-            ? $configured
-            : self::DEFAULT_MIN_REVIEWERS;
     }
 }

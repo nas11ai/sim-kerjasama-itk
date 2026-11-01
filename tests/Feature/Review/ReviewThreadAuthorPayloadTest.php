@@ -23,7 +23,7 @@ it('mengirim penulis ulir ke halaman revisi pemilik pengajuan', function () {
 });
 
 it('mengirim penulis ulir ke layar Operator', function () {
-    [, $author, $submission] = threadAuthorFixture();
+    [, , $submission] = threadAuthorFixture();
 
     Permission::findOrCreate('users.manage', 'web');
     Permission::findOrCreate('submissions.view-all', 'web');
@@ -34,9 +34,7 @@ it('mengirim penulis ulir ke layar Operator', function () {
         ->get(route('admin.submissions.show', $submission))
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
-            ->where('submission.review_summaries.0.reviewer.user.id', $author->id)
-            ->where('submission.review_summaries.0.reviewer.user.name', 'Penilai Ulir')
-            ->where('submission.review_summaries.0.reviewer.reviewer_type', 'internal')
+            ->where('threads.0.reviewer', 'Penilai Ulir')
             ->etc());
 });
 

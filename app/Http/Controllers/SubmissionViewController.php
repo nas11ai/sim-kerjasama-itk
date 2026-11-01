@@ -6,7 +6,6 @@ use App\Actions\Review\BuildReviewerDashboard;
 use App\Models\FormSubmission;
 use App\Models\Reviewer;
 use App\Models\User;
-use App\Queries\Submission\OperatorSubmissionView;
 use App\Queries\Submission\ResearcherSubmissionDetail;
 use App\Queries\Submission\ResearcherSubmissionList;
 use Illuminate\Http\Request;
@@ -39,14 +38,6 @@ class SubmissionViewController extends Controller
         abort_unless($submission->isAccessibleBy($user), 403, 'Akses tidak sah terhadap pengajuan.');
 
         return Inertia::render('Submission/ShowPage', ResearcherSubmissionDetail::run($user, $submission));
-    }
-
-    public function adminShowSubmission(Request $request, FormSubmission $submission): Response
-    {
-        // Draft belum diajukan; bagi Operator ia belum ada.
-        abort_unless($submission->is_submitted, 404, 'Pengajuan tidak ditemukan.');
-
-        return Inertia::render('Submissions/ShowSubmission', OperatorSubmissionView::run($this->viewer($request), $submission));
     }
 
     /** Dasbor reviewer: penugasan aktif dan sisa pekerjaannya. */
