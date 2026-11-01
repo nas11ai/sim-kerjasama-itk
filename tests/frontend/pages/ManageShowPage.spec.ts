@@ -1,12 +1,13 @@
 import { mount } from '@vue/test-utils'
-import { defineComponent, h } from 'vue'
+import { defineComponent, h, reactive } from 'vue'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 const { router } = vi.hoisted(() => ({ router: { post: vi.fn() } }))
 
 vi.mock('@inertiajs/vue3', () => ({
     router,
-    useForm: vi.fn(),
+    useForm: <T extends object>(data: T) =>
+        reactive({ ...data, errors: {}, processing: false, post: vi.fn(), reset: vi.fn() }),
     Head: defineComponent({ setup: () => () => null }),
     Link: defineComponent({
         props: { href: { type: String, default: '' } },

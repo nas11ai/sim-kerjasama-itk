@@ -14,8 +14,11 @@ import FilesSection from '@/Components/Submission/FilesSection.vue'
 import HistoryTimeline from '@/Components/Submission/HistoryTimeline.vue'
 import InfoSection from '@/Components/Submission/InfoSection.vue'
 import OperatorActions from '@/Components/Submission/Manage/OperatorActions.vue'
+import RejectDialog from '@/Components/Submission/Manage/RejectDialog.vue'
 import ReviewersSection from '@/Components/Submission/Manage/ReviewersSection.vue'
 import ReviewTab from '@/Components/Submission/Manage/ReviewTab.vue'
+import TransferOwnershipDialog from '@/Components/Submission/Manage/TransferOwnershipDialog.vue'
+import WithdrawDialog from '@/Components/Submission/Manage/WithdrawDialog.vue'
 import MembersSection from '@/Components/Submission/MembersSection.vue'
 import { Button } from '@/Components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/Components/ui/tabs'
@@ -44,9 +47,14 @@ const sections = computed(() => [
     { value: 'history', label: 'Riwayat' },
 ])
 
-// Dialog aksi Operator dipasang di S4-2; halaman ini hanya menyimpan pilihan.
+// Satu dialog aksi terbuka pada satu waktu; menutupnya mengosongkan pilihan.
 const openAction = ref<OperatorActionKey | null>(null)
 const replacing = ref<number | null>(null)
+const closeAction = (open: boolean) => {
+    if (!open) {
+        openAction.value = null
+    }
+}
 
 // RPT-PRINT-01 — dokumen sudah disaring backend (BR-RPT-11).
 const print = (document: FilterOption) =>
@@ -138,5 +146,23 @@ const print = (document: FilterOption) =>
                 </SectionCard>
             </aside>
         </div>
+
+        <RejectDialog
+            :open="openAction === 'reject'"
+            :submission="submission"
+            :active-reviewer-count="activeReviewerCount"
+            @update:open="closeAction"
+        />
+        <WithdrawDialog
+            :open="openAction === 'withdraw'"
+            :submission="submission"
+            @update:open="closeAction"
+        />
+        <TransferOwnershipDialog
+            :open="openAction === 'transfer'"
+            :submission="submission"
+            :candidates="ownershipCandidates"
+            @update:open="closeAction"
+        />
     </AppLayout>
 </template>

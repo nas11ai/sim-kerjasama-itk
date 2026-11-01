@@ -53,4 +53,14 @@ describe('ConfirmDialog', () => {
 
         expect(button('Hapus')?.disabled).toBe(true)
     })
+
+    it('tidak bisa ditutup selama proses', async () => {
+        await mountDialog({ processing: true })
+
+        expect(button('Batal')?.disabled).toBe(true)
+        document.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }))
+        await flushPromises()
+
+        expect(wrapper.emitted('update:open')).toBeUndefined()
+    })
 })
