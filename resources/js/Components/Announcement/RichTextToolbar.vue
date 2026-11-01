@@ -109,6 +109,7 @@ const history: Tool[] = [
             :aria-label="tool.label"
             :title="tool.label"
             :aria-pressed="tool.active?.() ?? false"
+            @mousedown.prevent
             @click="tool.run"
         >
             <component :is="tool.icon" class="size-4" />
@@ -125,6 +126,7 @@ const history: Tool[] = [
             class="size-8"
             :aria-label="tool.label"
             :title="tool.label"
+            @mousedown.prevent
             @click="tool.run"
         >
             <component :is="tool.icon" class="size-4" />
