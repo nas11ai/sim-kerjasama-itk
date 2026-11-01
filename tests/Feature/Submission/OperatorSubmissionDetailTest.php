@@ -39,7 +39,7 @@ function detailOperator(array $permissions = ['submissions.view-all', 'reviewers
     return $operator;
 }
 
-function superAdmin(): User
+function detailSuperAdmin(): User
 {
     $admin = User::factory()->create();
     $admin->assignRole(Role::findOrCreate('Super Admin', 'web'));
@@ -139,7 +139,7 @@ it('peneliti tanpa view-all ditolak', function () {
 });
 
 it('[SM-SUBMIT-14] Super Admin membuka detail dan bisa menarik pengajuan APPROVED', function () {
-    showOperatorPage(superAdmin(), sentFor(Approved::class))
+    showOperatorPage(detailSuperAdmin(), sentFor(Approved::class))
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page->where('operatorCan.withdraw', true));
 });
@@ -172,7 +172,7 @@ it('[SM-WITHDRAW-04] pengajuan WITHDRAWN tetap membawa anggaran, anggota, dan be
 });
 
 it('[BUD-LOCK-03] anggaran APPROVED tetap baca-saja bagi Super Admin', function () {
-    showOperatorPage(superAdmin(), sentFor(Approved::class))
+    showOperatorPage(detailSuperAdmin(), sentFor(Approved::class))
         ->assertInertia(fn (Assert $page) => $page->where('budget.editable', false));
 });
 
