@@ -11,16 +11,6 @@ use Inertia\Response;
 
 class StatController extends Controller
 {
-    public function dashboard(): Response
-    {
-        return Inertia::render('DashboardPage', [
-            'formPhase' => FormPhaseStatistics::run(),
-            'formSubmission' => FormSubmissionStatistics::run(),
-            'user' => UserStatistics::run(),
-            'submissionReviewer' => SubmissionReviewerStatistics::run(),
-        ]);
-    }
-
     public function formPhaseStatIndex(): Response
     {
         return Inertia::render('Statistics/FormPhaseStats', FormPhaseStatistics::run());

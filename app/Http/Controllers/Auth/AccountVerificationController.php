@@ -21,7 +21,7 @@ class AccountVerificationController extends Controller
         $profile = $user?->userProfile;
 
         if ($user === null || $profile === null || $profile->verification_status->canSubmit()) {
-            return redirect()->route('user.dashboard');
+            return redirect()->route('dashboard');
         }
 
         return Inertia::render('Auth/VerificationStatusPage', [

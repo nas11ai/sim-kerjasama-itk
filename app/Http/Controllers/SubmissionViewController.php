@@ -2,9 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Actions\Review\BuildReviewerDashboard;
 use App\Models\FormSubmission;
-use App\Models\Reviewer;
 use App\Models\User;
 use App\Queries\Submission\ResearcherSubmissionDetail;
 use App\Queries\Submission\ResearcherSubmissionList;
@@ -40,36 +38,11 @@ class SubmissionViewController extends Controller
         return Inertia::render('Submission/ShowPage', ResearcherSubmissionDetail::run($user, $submission));
     }
 
-    /** Dasbor reviewer: penugasan aktif dan sisa pekerjaannya. */
-    public function reviewerDashboard(Request $request): Response
-    {
-        $reviewer = $this->reviewerOf($request);
-        $dashboard = BuildReviewerDashboard::run($reviewer);
-
-        return Inertia::render('Reviewer/DashboardPage', [
-            'reviewer' => [
-                'id' => $reviewer->id,
-                'reviewer_type' => $reviewer->reviewer_type,
-                'user' => ['name' => $reviewer->user?->name, 'email' => $reviewer->user?->email],
-            ],
-            'stats' => $dashboard['stats'],
-            'assignments' => $dashboard['assignments'],
-        ]);
-    }
-
     private function viewer(Request $request): User
     {
         $user = $request->user();
         abort_unless($user instanceof User, 403);
 
         return $user;
-    }
-
-    private function reviewerOf(Request $request): Reviewer
-    {
-        $reviewer = Reviewer::where('user_id', $this->viewer($request)->id)->first();
-        abort_if($reviewer === null, 403, 'Anda tidak terdaftar sebagai reviewer.');
-
-        return $reviewer;
     }
 }

@@ -142,7 +142,7 @@ it('stores the selected option id, not its label, as the response value for sele
                 ['form_field_id' => $radioField->id, 'value' => (string) $radioOption->id],
             ],
         ])
-        ->assertRedirect(route('user.dashboard'));
+        ->assertRedirect(route('dashboard'));
 
     $submission = FormSubmission::where('form_id', $form->id)
         ->where('submitted_by', $user->id)

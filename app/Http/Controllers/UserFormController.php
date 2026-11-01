@@ -6,40 +6,16 @@ use App\Actions\Form\AssertFormAccessible;
 use App\Actions\FormSubmission\SaveSubmissionDraft;
 use App\Actions\FormSubmission\StartSubmission;
 use App\Actions\FormSubmission\SubmitFormSubmission;
-use App\Actions\Review\BuildReviewerDashboard;
 use App\Http\Controllers\Concerns\ResolvesActor;
 use App\Http\Requests\Submission\StartSubmissionRequest;
 use App\Http\Requests\Submission\SubmissionAnswersRequest;
-use App\Models\Reviewer;
 use App\Queries\Submission\AccessibleFormPhaseDetail;
-use App\Queries\Submission\ResearcherDashboardPeriods;
-use App\Queries\Submission\ResearcherStudyProgram;
 use App\Support\WizardStepGate;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\Request;
-use Inertia\Inertia;
-use Inertia\Response;
 
 class UserFormController extends Controller
 {
     use ResolvesActor;
-
-    public function dashboard(Request $request): Response
-    {
-        $user = $this->actor($request);
-        $reviewer = Reviewer::firstWhere('user_id', $user->id);
-
-        return Inertia::render('User/DashboardPage', [
-            'submissionPeriods' => ResearcherDashboardPeriods::run($user),
-            'userRole' => $user->getRoleNames()->first() ?? 'user',
-            'studyProgram' => ResearcherStudyProgram::run($user),
-            'isReviewer' => $reviewer !== null,
-            // Dihitung dari penugasan, sama dengan dasbor reviewer. Dulu dari ulir diskusi,
-            // termasuk ulir penugasan yang sudah diganti (BR-REV-10).
-            'reviewStats' => $reviewer === null ? null : BuildReviewerDashboard::run($reviewer)['stats'],
-            'reviewer' => $reviewer === null ? null : ['id' => $reviewer->id, 'reviewer_type' => $reviewer->reviewer_type],
-        ]);
-    }
 
     public function startSubmission(StartSubmissionRequest $request): RedirectResponse
     {

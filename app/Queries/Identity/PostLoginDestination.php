@@ -17,16 +17,14 @@ class PostLoginDestination implements ChangesNoState
 
     public function handle(User $user): string
     {
-        if ($user->can('users.manage')) {
-            return 'admin.dashboard';
-        }
-
         // BR-IAM-04 — akun pending dan ditolak boleh masuk, dan mendarat di layar yang
-        // menjelaskan kenapa tombol Submit-nya masih tertutup (IAM-VERIFY-01).
-        if ($user->userProfile !== null && !$user->userProfile->verification_status->canSubmit()) {
+        // menjelaskan kenapa tombol Submit-nya masih tertutup (IAM-VERIFY-01). Pengelola
+        // pengguna tidak tertahan di sana oleh profilnya sendiri.
+        if (!$user->can('users.manage') && $user->userProfile !== null && !$user->userProfile->verification_status->canSubmit()) {
             return 'verification.status';
         }
 
-        return 'user.dashboard';
+        // §4.4 K4 — satu dasbor untuk semua peran.
+        return 'dashboard';
     }
 }

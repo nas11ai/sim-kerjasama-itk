@@ -89,7 +89,7 @@ it('reports a pending biodata and redirects to the dashboard', function () {
 
     $this->actingAs($user)
         ->get(route('user.announcements.index'))
-        ->assertRedirect(route('user.dashboard'));
+        ->assertRedirect(route('dashboard'));
 
     expect(session('biodataStatus'))->toBe([
         'required' => true,

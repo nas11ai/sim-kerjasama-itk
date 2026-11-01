@@ -6,6 +6,7 @@ use App\Http\Controllers\Audit\AuditLogController;
 use App\Http\Controllers\BiodataController;
 use App\Http\Controllers\CompleteFormBuilderController;
 use App\Http\Controllers\Config\ReferenceEntityController;
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Export\DocumentPrintController;
 use App\Http\Controllers\Export\ExportController;
 use App\Http\Controllers\FormAccessControlController;
@@ -66,9 +67,18 @@ Route::get('/', function () {
     ]);
 })->name('welcome');
 
-Route::middleware(['auth', 'verified'])->get('/dashboard', function () {
-    return redirect()->route('user.dashboard');
-})->name('dashboard');
+// SHARED-02-01..04 — satu dasbor untuk semua peran (§4.4 K4). check_biodata ikut,
+// karena dasbor adalah tujuan redirect-nya: banner biodata tampil di sini.
+Route::middleware(['auth', 'verified', 'check_biodata'])->get('/dashboard', DashboardController::class)
+    ->name('dashboard');
+
+// W46 — nama lama tetap ada sebagai redirect: legacy AppSidebar dan halaman legacy
+// lain masih menautnya sampai F99.
+Route::middleware('auth')->group(function () {
+    Route::redirect('/user/dashboard', '/dashboard')->name('user.dashboard');
+    Route::redirect('/reviewer/dashboard', '/dashboard')->name('reviewer.dashboard');
+    Route::redirect('/admin/dashboard', '/dashboard')->name('admin.dashboard');
+});
 
 Route::get('announcements/{announcement}', [AnnouncementController::class, 'detail'])->name('announcements.detail');
 
@@ -135,9 +145,6 @@ Route::middleware(['auth'])->prefix('user')->name('user.')->group(function () {
 });
 
 Route::middleware(['auth', 'check_biodata'])->prefix('user')->name('user.')->group(function () {
-    Route::get('/dashboard', [UserFormController::class, 'dashboard'])
-        ->name('dashboard');
-
     Route::get('/announcements', [AnnouncementController::class, 'userIndex'])
         ->name('announcements.index');
 
@@ -183,15 +190,8 @@ Route::middleware(['auth', 'check_biodata'])->prefix('user')->name('user.')->gro
 
 // Reviewer Routes - untuk user yang bertindak sebagai reviewer
 Route::middleware(['auth'])->prefix('reviewer')->name('reviewer.')->group(function () {
-    // Dashboard khusus reviewer
-    Route::get('/dashboard', [SubmissionViewController::class, 'reviewerDashboard'])
-        ->name('dashboard');
-
     // Nama lama dipertahankan: AppSidebar dan dasbor peneliti legacy masih menautnya.
     Route::redirect('/submissions', '/reviewer/assignments')->name('submissions.index');
-
-    // Nama lama dipertahankan: Reviewer/DashboardPage legacy menautnya sampai D1.
-    Route::redirect('/submissions/{submission}', '/reviewer/assignments/{submission}/summary')->name('submissions.show');
 
     Route::post('/submissions/{submission}/review-threads', [ReviewController::class, 'createReviewThread'])
         ->name('review-threads.store');
@@ -214,9 +214,6 @@ Route::middleware(['auth'])->prefix('reviewer')->name('reviewer.')->group(functi
 
 // Admin Routes - permission-based (users.manage; Super Admin via Gate::before)
 Route::middleware(['auth', 'can:users.manage'])->prefix('admin')->name('admin.')->group(function () {
-    // Admin Dashboard
-    Route::get('/dashboard', [StatController::class, 'dashboard'])->middleware(['auth', 'verified'])->name('dashboard');
-
     // stat
     Route::get('/stats/form-phases', [StatController::class, 'formPhaseStatIndex'])->name('stats.form-phase');
     Route::get('/stats/form-submissions', [StatController::class, 'formSubmissionStatIndex'])->name('stats.form-submission');

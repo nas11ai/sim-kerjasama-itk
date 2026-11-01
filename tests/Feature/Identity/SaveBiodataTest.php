@@ -80,7 +80,7 @@ it('lets a draft leave a required field blank', function () {
             'is_submitted' => false,
             'responses' => [['form_field_id' => $field->id, 'value' => '']],
         ])
-        ->assertRedirect(route('user.dashboard'));
+        ->assertRedirect(route('dashboard'));
 
     $submission = FormSubmission::where('form_id', $form->id)->firstOrFail();
 
@@ -98,7 +98,7 @@ it('stores an uploaded file as the answer of a required file field', function ()
             'responses' => [['form_field_id' => $field->id, 'value' => '']],
             'file_uploads' => [$field->id => UploadedFile::fake()->create('ktp.pdf', 100)],
         ])
-        ->assertRedirect(route('user.dashboard'));
+        ->assertRedirect(route('dashboard'));
 
     $path = FormSubmission::where('form_id', $form->id)->firstOrFail()
         ->formFieldResponses()->where('form_field_id', $field->id)->value('value');
@@ -198,7 +198,7 @@ it('sends the user back to the dashboard when no biodata form is active', functi
 
     $this->actingAs($user)
         ->get(route('user.biodata.index'))
-        ->assertRedirect(route('user.dashboard'))
+        ->assertRedirect(route('dashboard'))
         ->assertSessionHas('error');
 });
 
@@ -217,7 +217,7 @@ it('resubmits a biodata that needs revision', function () {
             'is_submitted' => true,
             'responses' => [['form_field_id' => $field->id, 'value' => 'Budi Revisi']],
         ])
-        ->assertRedirect(route('user.dashboard'))
+        ->assertRedirect(route('dashboard'))
         ->assertSessionHas('success');
 
     expect($submission->fresh()->status)->toBeInstanceOf(Resubmitted::class)
@@ -247,7 +247,7 @@ it('starts a fresh biodata after a rejection and keeps the rejected one as histo
             'is_submitted' => true,
             'responses' => [['form_field_id' => $field->id, 'value' => 'Baru']],
         ])
-        ->assertRedirect(route('user.dashboard'));
+        ->assertRedirect(route('dashboard'));
 
     $fresh = FormSubmission::where('form_id', $form->id)->latest('id')->firstOrFail();
 

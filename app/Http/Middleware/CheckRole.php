@@ -27,7 +27,7 @@ class CheckRole
                 return redirect('/dashboard')
                     ->with('error', 'Anda tidak memiliki akses ke halaman ini.');
             } else {
-                return redirect('/user/dashboard')
+                return redirect('/dashboard')
                     ->with('error', 'Anda tidak memiliki akses ke halaman ini.');
             }
         }

@@ -71,18 +71,6 @@ test('halaman statistik fase form dan user dirender tanpa error SQL', function (
             ]));
 });
 
-test('dasbor admin membawa keempat kelompok statistik', function () {
-    $this->actingAs(statsAdmin())
-        ->get(route('admin.dashboard'))
-        ->assertOk()
-        ->assertInertia(fn (Assert $page) => $page
-            ->component('DashboardPage')
-            ->has('formPhase')
-            ->has('formSubmission')
-            ->has('user')
-            ->has('submissionReviewer'));
-});
-
 test('endpoint JSON statistik untuk testing sudah tidak terdaftar', function (string $name) {
     expect(Route::has($name))->toBeFalse();
 })->with([

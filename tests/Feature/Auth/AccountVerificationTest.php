@@ -51,12 +51,12 @@ it('mengalihkan akun terverifikasi ke dashboard', function () {
     $user = accountWithProfile(fn ($factory) => $factory);
 
     $this->actingAs($user)->get(route('verification.status'))
-        ->assertRedirect(route('user.dashboard'));
+        ->assertRedirect(route('dashboard'));
 });
 
 it('mengalihkan akun tanpa profil ke dashboard', function () {
     $this->actingAs(User::factory()->create())->get(route('verification.status'))
-        ->assertRedirect(route('user.dashboard'));
+        ->assertRedirect(route('dashboard'));
 });
 
 it('user pending dengan deep link tetap diantar ke tujuannya', function () {

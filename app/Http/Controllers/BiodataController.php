@@ -18,7 +18,7 @@ class BiodataController extends Controller
         $view = BiodataFormView::run($this->actor($request));
 
         if ($view === null) {
-            return redirect()->route('user.dashboard')
+            return redirect()->route('dashboard')
                 ->with('error', 'Form biodata tidak ditemukan atau tidak aktif.');
         }
 
@@ -34,7 +34,7 @@ class BiodataController extends Controller
 
         SaveBiodata::run($this->actor($request), $input);
 
-        return redirect()->route('user.dashboard')->with(
+        return redirect()->route('dashboard')->with(
             'success',
             $input->isSubmitted ? 'Biodata berhasil diserahkan dan menunggu persetujuan.' : null,
         );

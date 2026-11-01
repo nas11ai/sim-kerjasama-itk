@@ -69,7 +69,7 @@ it('leaves the submission in Draft when saved without submitting', function () {
                 ['form_field_id' => $field->id, 'value' => 'Budi'],
             ],
         ])
-        ->assertRedirect(route('user.dashboard'));
+        ->assertRedirect(route('dashboard'));
 
     $submission = FormSubmission::where('form_id', $form->id)
         ->where('submitted_by', $user->id)
@@ -89,7 +89,7 @@ it('transitions the submission to Submitted when submitted as final', function (
                 ['form_field_id' => $field->id, 'value' => 'Budi'],
             ],
         ])
-        ->assertRedirect(route('user.dashboard'))
+        ->assertRedirect(route('dashboard'))
         ->assertSessionHas('success');
 
     $submission = FormSubmission::where('form_id', $form->id)
@@ -112,7 +112,7 @@ it('does not throw when an already-submitted biodata is submitted again', functi
 
     $this->actingAs($user)
         ->post(route('user.biodata.submit'), $payload)
-        ->assertRedirect(route('user.dashboard'));
+        ->assertRedirect(route('dashboard'));
 
     // Submit ulang biodata yang statusnya sudah Submitted — updateOrCreate()
     // di submitForm() menemukan baris yang sama (form_id + submitted_by) dan
@@ -121,7 +121,7 @@ it('does not throw when an already-submitted biodata is submitted again', functi
     // mengizinkan Draft->Submitted.
     $this->actingAs($user)
         ->post(route('user.biodata.submit'), $payload)
-        ->assertRedirect(route('user.dashboard'))
+        ->assertRedirect(route('dashboard'))
         ->assertSessionHas('success');
 
     $submission = FormSubmission::where('form_id', $form->id)

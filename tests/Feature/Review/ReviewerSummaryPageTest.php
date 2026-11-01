@@ -159,9 +159,3 @@ it('[SM-ACCESS-06] reviewer yang digantikan ditolak di halaman ringkasan', funct
         ->get(route('reviewer.assignments.summary', $this->submission))
         ->assertForbidden();
 });
-
-it('reviewer.submissions.show dialihkan ke halaman ringkasan', function () {
-    $this->actingAs($this->user)
-        ->get(route('reviewer.submissions.show', $this->submission))
-        ->assertRedirect(route('reviewer.assignments.summary', $this->submission));
-});

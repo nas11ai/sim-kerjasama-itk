@@ -11,7 +11,8 @@ use Symfony\Component\HttpFoundation\Response;
 class CheckBiodata
 {
     private const ALLOWED_ROUTES = [
-        'user.dashboard',
+        // Dasbor adalah tujuan redirect di bawah: ia harus lolos, atau terjadi loop.
+        'dashboard',
         'user.biodata.index',
         'user.biodata.submit',
         'profile.edit',
@@ -41,7 +42,7 @@ class CheckBiodata
         }
 
         return redirect()
-            ->route('user.dashboard')
+            ->route('dashboard')
             ->with('info', $status['message'].' Akses menu lain akan dibuka setelah biodata disetujui.');
     }
 

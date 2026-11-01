@@ -15,7 +15,6 @@ app/Models/FormSubmission.php
 resources/js/Components/AppSidebar.vue
 resources/js/Components/DataTable.vue
 resources/js/Components/DataTablePagination.vue
-resources/js/Components/StatisticSection.vue
 resources/js/Components/ui/dialog/DialogContent.vue
 resources/js/Components/ui/dialog/DialogScrollContent.vue
 resources/js/Components/ui/input/UiInput.vue
@@ -70,7 +69,6 @@ resources/js/Pages/SubmissionPeriods/EditPage.vue
 resources/js/Pages/SubmissionPeriods/IndexPage.vue
 resources/js/Pages/SubmissionPeriods/ShowPage.vue
 resources/js/Pages/User/Biodata/IndexPage.vue
-resources/js/Pages/User/DashboardPage.vue
 resources/js/Pages/Users/Components/DataTablePagination.vue
 resources/js/Pages/Users/Components/UserTableList.vue
 resources/js/Pages/Users/CreatePage.vue

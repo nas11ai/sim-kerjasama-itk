@@ -43,7 +43,7 @@ class SubmissionPeriodActiveNotification extends Notification implements ShouldQ
             ->subject('Periode Submission Baru Aktif — SIMPAS')
             ->line("Periode submission '{$this->submissionPeriod->name}' telah dibuka.")
             ->line("Berlangsung dari {$this->startDate()} hingga {$this->endDate()}.")
-            ->action('Buka Dashboard', route('user.dashboard'));
+            ->action('Buka Dashboard', route('dashboard'));
     }
 
     /** @return Collection<int, SubmissionDate> */
