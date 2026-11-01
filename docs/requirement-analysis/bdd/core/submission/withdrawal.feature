@@ -31,3 +31,15 @@ Feature: Penarikan Pengajuan
     Given submission "P-001" berstatus WITHDRAWN
     When Operator mencoba mengembalikan "P-001" ke APPROVED
     Then perpindahan ditolak
+
+  @BR-SM-11 @BR-RPT-09 @M1 @OPERATOR-02-06 @denial
+  Scenario: [SM-WITHDRAW-06] Penarikan tanpa alasan ditolak
+    When Operator menarik "P-001" dengan alasan kosong
+    Then penarikan ditolak dengan error validasi pada field alasan
+    And status "P-001" tetap APPROVED
+
+  @BR-SM-11 @BR-RPT-09 @M1 @OPERATOR-02-06 @happy
+  Scenario: [SM-WITHDRAW-07] Alasan penarikan tercatat di jejak audit
+    When Operator menarik "P-001" dengan alasan "Duplikasi pendanaan"
+    Then status "P-001" menjadi WITHDRAWN
+    And perubahan tercatat di jejak audit beserta alasan "Duplikasi pendanaan"

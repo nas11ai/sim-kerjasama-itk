@@ -6,6 +6,7 @@ use App\Models\FormSubmission;
 use App\Models\User;
 use App\States\Submission\SubmissionStatus;
 use App\States\Submission\Withdrawn;
+use App\Support\Audit\AuditChange;
 use App\Support\Audit\AuditTrail;
 use Illuminate\Auth\Access\AuthorizationException;
 use Lorisleiva\Actions\Concerns\AsAction;
@@ -23,7 +24,7 @@ class WithdrawSubmission
     /**
      * @throws AuthorizationException
      */
-    public function handle(FormSubmission $submission, User $operator): FormSubmission
+    public function handle(FormSubmission $submission, User $operator, string $reason): FormSubmission
     {
         // Bukan self-service (hanya pemegang `submissions.view-all`, bukan pemiliknya) dan hanya
         // dari APPROVED — yang belum diputuskan dibatalkan lewat jalur lain. Keduanya di Policy
@@ -49,8 +50,8 @@ class WithdrawSubmission
 
         $tercatat = $submission->refresh();
 
-        // BR-RPT-09 — satu Action, satu entri audit.
-        AuditTrail::record('Pengajuan ditarik', $tercatat, $operator);
+        // BR-RPT-09 — satu Action, satu entri audit; alasannya ikut di entri itu (W26).
+        AuditTrail::record('Pengajuan ditarik', $tercatat, $operator, new AuditChange(new: ['reason' => $reason]));
 
         return $tercatat;
     }

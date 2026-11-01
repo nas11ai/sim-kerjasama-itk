@@ -184,7 +184,7 @@ it('[SM-OWNER-01] Operator memindahkan kepemilikan lewat endpoint', function () 
     ]);
 
     $this->actingAs(httpOperator())
-        ->post(route('admin.submissions.transfer-ownership', $submission), ['successor_id' => $successor->id])
+        ->post(route('admin.submissions.transfer-ownership', $submission), ['successor_id' => $successor->id, 'reason' => 'Ketua pindah institusi'])
         ->assertRedirect();
 
     expect($submission->fresh()->submitted_by)->toBe($successor->id);
@@ -264,7 +264,10 @@ it('[REV-REASSIGN-01] Operator mengganti reviewer lewat endpoint', function () {
         'start_date' => now()->subMonth(), 'end_date' => now()->addMonth(),
     ]);
 
-    $this->actingAs(httpOperator())
+    $operator = httpOperator();
+    $operator->givePermissionTo(Permission::findOrCreate('reviewers.assign', 'web'));
+
+    $this->actingAs($operator)
         ->post(route('admin.submissions.replace-reviewer', [$submission, $outgoing]), [
             'incoming_reviewer_id' => $incoming->id,
         ])

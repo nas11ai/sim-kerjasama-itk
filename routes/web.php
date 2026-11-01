@@ -278,10 +278,6 @@ Route::middleware(['auth', 'can:users.manage'])->prefix('admin')->name('admin.')
     Route::get('review-evaluation-forms/{reviewEvaluationForm}/preview', [ReviewEvaluationFormController::class, 'preview'])
         ->name('review-evaluation-forms.preview');
 
-    // Enhanced reviewer assignment with evaluation forms
-    Route::post('/submissions/{submission}/assign-reviewers', [ReviewController::class, 'assignReviewers'])
-        ->name('submissions.assign-reviewers');
-
     // NEW: Reviewer form assignment management
     Route::post('/submissions/{submission}/reviewers/{reviewer}/assign-forms', [ReviewController::class, 'assignEvaluationFormsToReviewer'])
         ->name('submissions.assign-evaluation-forms');
@@ -476,6 +472,9 @@ Route::middleware(['auth'])->group(function () {
             ->name('submissions.transfer-ownership');
         Route::post('/submissions/{submission}/reviewers/{reviewer}/replace', ReplaceReviewerController::class)
             ->name('submissions.replace-reviewer');
+        // BR-REV-01 — dijaga Policy `assignReviewers` (reviewers.assign), bukan users.manage.
+        Route::post('/submissions/{submission}/assign-reviewers', [ReviewController::class, 'assignReviewers'])
+            ->name('submissions.assign-reviewers');
         Route::post('/users/{user}/deactivate', UserDeactivationController::class)
             ->name('users.deactivate');
         // BR-IAM-16 — penerbitan dan pencabutan undangan (ADMIN-08-01).

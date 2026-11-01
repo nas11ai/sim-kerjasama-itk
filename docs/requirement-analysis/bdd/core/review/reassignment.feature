@@ -25,3 +25,13 @@ Feature: Penggantian Reviewer
     When Operator mengganti reviewer "Sari" dengan "Andi" pada "P-001"
     Then evaluation_status "Andi" pada "P-001" adalah pending
     And "Andi" tidak melihat isi evaluasi "Sari"
+
+  @BR-REV-10 @BR-RPT-09 @M2 @OPERATOR-03-02 @boundary
+  Scenario: [REV-REASSIGN-04] Penggantian tanpa catatan tetap berhasil
+    When Operator mengganti reviewer "Sari" dengan "Andi" pada "P-001" tanpa catatan
+    Then penugasan "Sari" pada "P-001" berstatus replaced
+
+  @BR-REV-10 @BR-RPT-09 @M2 @OPERATOR-03-02 @happy
+  Scenario: [REV-REASSIGN-05] Catatan penggantian tercatat di jejak audit
+    When Operator mengganti reviewer "Sari" dengan "Andi" pada "P-001" dengan catatan "Tidak responsif lebih dari 7 hari"
+    Then perubahan tercatat di jejak audit beserta catatan "Tidak responsif lebih dari 7 hari"

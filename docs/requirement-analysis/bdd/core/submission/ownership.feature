@@ -30,3 +30,15 @@ Feature: Transfer Kepemilikan Pengajuan
     When Operator menonaktifkan "Budi"
     Then deaktivasi ditolak karena masih ada pengajuan aktif
     And Operator melihat alasan bahwa tidak ada co_investigator aktif
+
+  @BR-SM-09 @BR-RPT-09 @M1 @OPERATOR-02-04 @denial
+  Scenario: [SM-OWNER-05] Pemindahan kepemilikan tanpa alasan ditolak
+    Given "Sari" terdaftar sebagai co_investigator aktif di "P-001"
+    When Operator memindahkan kepemilikan "P-001" ke "Sari" dengan alasan kosong
+    Then pemindahan ditolak dengan error validasi pada field alasan
+
+  @BR-SM-09 @BR-RPT-09 @M1 @OPERATOR-02-04 @happy
+  Scenario: [SM-OWNER-06] Alasan pemindahan kepemilikan tercatat di jejak audit
+    Given "Sari" terdaftar sebagai co_investigator aktif di "P-001"
+    When Operator memindahkan kepemilikan "P-001" ke "Sari" dengan alasan "Ketua pindah institusi"
+    Then perubahan tercatat di jejak audit beserta alasan "Ketua pindah institusi"

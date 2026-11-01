@@ -21,6 +21,9 @@ class ReviewController extends Controller
     // BR-REV-01/02/03/04/09 — penegakan dan peringatan beban ada di AssignReviewers.
     public function assignReviewers(Request $request, FormSubmission $submission)
     {
+        // ADR 0015 — satu sumber otorisasi: Policy yang sama mengisi `operatorCan.assignReviewers`.
+        abort_unless($request->user()?->can('assignReviewers', $submission) === true, 403);
+
         $validated = $request->validate([
             'reviewer_ids' => 'required|array|min:1',
             'reviewer_ids.*' => 'integer|exists:reviewers,id',

@@ -36,11 +36,15 @@ class SubmissionDecisionController extends Controller
         $user = Auth::user();
 
         // BR-IAM-10 — pemindahan kepemilikan tindakan Operator, bukan pemilik.
-        abort_unless($user !== null && $user->can('submissions.view-all'), 403);
+        abort_unless($user !== null && $user->can('transferOwnership', $submission), 403);
 
-        $validated = $request->validate(['successor_id' => 'required|exists:users,id']);
+        // W26 — alasan wajib; tercatat di entri audit Action-nya.
+        $validated = $request->validate([
+            'successor_id' => 'required|exists:users,id',
+            'reason' => 'required|string|min:3|max:2000',
+        ]);
 
-        TransferSubmissionOwnership::run($submission, User::findOrFail($validated['successor_id']));
+        TransferSubmissionOwnership::run($submission, User::findOrFail($validated['successor_id']), $validated['reason']);
 
         return back()->with('success', 'Kepemilikan pengajuan dipindahkan.');
     }

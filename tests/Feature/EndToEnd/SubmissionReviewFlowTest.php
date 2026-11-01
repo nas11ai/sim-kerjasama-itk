@@ -32,9 +32,10 @@ use Spatie\Permission\Models\Permission;
 function operatorUser(): User
 {
     Permission::findOrCreate('users.manage', 'web');
+    Permission::findOrCreate('reviewers.assign', 'web');
 
     $operator = User::factory()->create();
-    $operator->givePermissionTo('users.manage');
+    $operator->givePermissionTo(['users.manage', 'reviewers.assign']);
 
     return $operator;
 }

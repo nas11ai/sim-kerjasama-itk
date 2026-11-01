@@ -35,10 +35,10 @@ use Spatie\Permission\Models\Permission;
 /** @return array{0: User, 1: FormSubmission} */
 function assignHttpFixture(int $minReviewers = 2): array
 {
-    Permission::findOrCreate('users.manage', 'web');
+    Permission::findOrCreate('reviewers.assign', 'web');
 
     $operator = User::factory()->create();
-    $operator->givePermissionTo('users.manage');
+    $operator->givePermissionTo('reviewers.assign');
 
     $scheme = Scheme::factory()->create([
         'rules' => ['min_reviewer_count' => $minReviewers, 'max_reviewer_workload' => 10],
@@ -187,10 +187,10 @@ it('menstempel tenggat dari detail pemilik form, bukan tanggal terakhir period',
     // BR-FE-17 di level HTTP. Jalur lama menebak period lewat pivot
     // submission_period_phases lalu mengambil tanggal TERAKHIR-nya — tenggat
     // milik tahap lain, dan milik period lain (ADR 0004).
-    Permission::findOrCreate('users.manage', 'web');
+    Permission::findOrCreate('reviewers.assign', 'web');
 
     $operator = User::factory()->create();
-    $operator->givePermissionTo('users.manage');
+    $operator->givePermissionTo('reviewers.assign');
 
     $scheme = Scheme::factory()->create([
         'rules' => ['min_reviewer_count' => 2, 'max_reviewer_workload' => 10],

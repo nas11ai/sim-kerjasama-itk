@@ -55,7 +55,7 @@ it('[SM-OWNER-01] kepemilikan pindah ke co-investigator aktif', function () {
     [$owner, $submission] = ownershipFixture();
     $successor = memberOn($submission, ResearchMember::ROLE_CO_INVESTIGATOR);
 
-    TransferSubmissionOwnership::run($submission, $successor);
+    TransferSubmissionOwnership::run($submission, $successor, 'Ketua pindah institusi');
 
     expect($submission->fresh()->submitted_by)->toBe($successor->id);
 });
@@ -64,7 +64,7 @@ it('[SM-OWNER-01] pemilik lama tetap terdaftar sebagai anggota', function () {
     [$owner, $submission] = ownershipFixture();
     $successor = memberOn($submission, ResearchMember::ROLE_CO_INVESTIGATOR);
 
-    TransferSubmissionOwnership::run($submission, $successor);
+    TransferSubmissionOwnership::run($submission, $successor, 'Ketua pindah institusi');
 
     // Kalau pemilik lama hilang dari daftar, jejak siapa yang mengerjakan
     // penelitian ini ikut hilang.
@@ -79,14 +79,14 @@ it('[SM-OWNER-02] transfer ke member biasa ditolak', function () {
     [, $submission] = ownershipFixture();
     $plainMember = memberOn($submission, ResearchMember::ROLE_MEMBER);
 
-    TransferSubmissionOwnership::run($submission, $plainMember);
+    TransferSubmissionOwnership::run($submission, $plainMember, 'Ketua pindah institusi');
 })->throws(ValidationException::class);
 
 it('[SM-OWNER-02] transfer ke co-investigator non-aktif ditolak', function () {
     [, $submission] = ownershipFixture();
     $inactive = memberOn($submission, ResearchMember::ROLE_CO_INVESTIGATOR, 'inactive');
 
-    TransferSubmissionOwnership::run($submission, $inactive);
+    TransferSubmissionOwnership::run($submission, $inactive, 'Ketua pindah institusi');
 })->throws(ValidationException::class);
 
 it('[SM-OWNER-03] deaktivasi lead ditolak selama masih ada pengajuan aktif', function () {
@@ -115,7 +115,7 @@ it('[SM-OWNER-03] deaktivasi lolos setelah kepemilikan dipindahkan', function ()
     [$owner, $submission] = ownershipFixture();
     $successor = memberOn($submission, ResearchMember::ROLE_CO_INVESTIGATOR);
 
-    TransferSubmissionOwnership::run($submission, $successor);
+    TransferSubmissionOwnership::run($submission, $successor, 'Ketua pindah institusi');
     DeactivateUser::run($owner);
 
     expect($owner->fresh()->is_active)->toBeFalse();

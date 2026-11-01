@@ -95,7 +95,7 @@ it('[REV-EVAL-06] not_required membuka pembuatan ringkasan', function () {
 it('[REV-DISCUSS-06] ulir reviewer yang digantikan tampil bagi penggantinya', function () {
     $thread = summaryPageThread($this->submission, $this->reviewer);
     $incomingUser = User::factory()->create();
-    ReplaceReviewer::run($this->submission, $this->reviewer, summaryPageReviewer($incomingUser));
+    ReplaceReviewer::run($this->submission, $this->reviewer, summaryPageReviewer($incomingUser), null);
 
     $this->actingAs($incomingUser)
         ->get(route('reviewer.assignments.summary', $this->submission))
@@ -153,7 +153,7 @@ it('[REV-OUTCOME-02] syarat keputusan menghitung reviewer yang belum selesai', f
 });
 
 it('[SM-ACCESS-06] reviewer yang digantikan ditolak di halaman ringkasan', function () {
-    ReplaceReviewer::run($this->submission, $this->reviewer, summaryPageReviewer());
+    ReplaceReviewer::run($this->submission, $this->reviewer, summaryPageReviewer(), null);
 
     $this->actingAs($this->user)
         ->get(route('reviewer.assignments.summary', $this->submission))

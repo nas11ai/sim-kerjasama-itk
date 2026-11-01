@@ -47,7 +47,7 @@ function withdrawFixture(string $state = Approved::class): array
 it('[SM-WITHDRAW-01] Operator menarik pengajuan yang sudah disetujui', function () {
     [, $submission] = withdrawFixture();
 
-    WithdrawSubmission::run($submission, withdrawOperator());
+    WithdrawSubmission::run($submission, withdrawOperator(), 'Duplikasi pendanaan');
 
     expect($submission->fresh()->status)->toBeInstanceOf(Withdrawn::class);
 });
@@ -58,13 +58,13 @@ it('[SM-WITHDRAW-02] researcher tidak bisa menarik pengajuannya sendiri', functi
     // Penarikan bukan self-service — pemilik justru pihak yang tidak boleh.
     expect($owner->can('withdraw', $submission))->toBeFalse();
 
-    WithdrawSubmission::run($submission, $owner);
+    WithdrawSubmission::run($submission, $owner, 'Duplikasi pendanaan');
 })->throws(AuthorizationException::class);
 
 it('[SM-WITHDRAW-03] menarik pengajuan yang belum disetujui ditolak', function () {
     [, $submission] = withdrawFixture(UnderReview::class);
 
-    WithdrawSubmission::run($submission, withdrawOperator());
+    WithdrawSubmission::run($submission, withdrawOperator(), 'Duplikasi pendanaan');
 })->throws(AuthorizationException::class);
 
 it('[SM-WITHDRAW-04] data historis tetap utuh setelah penarikan', function () {
@@ -79,7 +79,7 @@ it('[SM-WITHDRAW-04] data historis tetap utuh setelah penarikan', function () {
     ]);
     BudgetLineItem::factory()->create(['form_submission_id' => $submission->id]);
 
-    WithdrawSubmission::run($submission, withdrawOperator());
+    WithdrawSubmission::run($submission, withdrawOperator(), 'Duplikasi pendanaan');
 
     // Membekukan bukan menghapus: angka anggaran dan daftar anggota tetap
     // jadi dasar audit setelah pengajuan ditarik.
@@ -91,7 +91,7 @@ it('[SM-WITHDRAW-04] data historis tetap utuh setelah penarikan', function () {
 it('[SM-WITHDRAW-05] penarikan tidak dapat dibatalkan', function () {
     [, $submission] = withdrawFixture();
 
-    WithdrawSubmission::run($submission, withdrawOperator());
+    WithdrawSubmission::run($submission, withdrawOperator(), 'Duplikasi pendanaan');
 
     // WITHDRAWN terminal. Kalau perpindahan ini sah, seluruh pembekuan
     // hilir — siklus monev, luaran — harus ikut dipulihkan, dan tidak ada
@@ -103,7 +103,7 @@ it('[SM-WITHDRAW-01] Operator menarik lewat jalur HTTP', function () {
     [, $submission] = withdrawFixture();
 
     $this->actingAs(withdrawOperator())
-        ->post(route('admin.submissions.withdraw', $submission))
+        ->post(route('admin.submissions.withdraw', $submission), ['reason' => 'Duplikasi pendanaan'])
         ->assertRedirect();
 
     expect($submission->fresh()->status)->toBeInstanceOf(Withdrawn::class);
@@ -113,7 +113,7 @@ it('[SM-WITHDRAW-02] pemilik ditolak lewat jalur HTTP', function () {
     [$owner, $submission] = withdrawFixture();
 
     $this->actingAs($owner)
-        ->post(route('admin.submissions.withdraw', $submission))
+        ->post(route('admin.submissions.withdraw', $submission), ['reason' => 'Duplikasi pendanaan'])
         ->assertForbidden();
 
     expect($submission->fresh()->status)->toBeInstanceOf(Approved::class);

@@ -67,7 +67,7 @@ it('reviewer membuka Review/HistoryPage dengan penugasannya', function () {
 
 it('[REV-REASSIGN-02] penugasan yang digantikan tetap terdaftar sebagai riwayat', function () {
     $assignment = historyPageAssignment($this->reviewer, 'Katalis Limbah Sawit');
-    ReplaceReviewer::run($assignment->formSubmission, $this->reviewer, historyPageReviewer());
+    ReplaceReviewer::run($assignment->formSubmission, $this->reviewer, historyPageReviewer(), null);
 
     $this->actingAs($this->user)
         ->get(route('reviewer.history.index'))

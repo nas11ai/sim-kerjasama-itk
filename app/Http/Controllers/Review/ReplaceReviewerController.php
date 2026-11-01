@@ -17,13 +17,20 @@ class ReplaceReviewerController extends Controller
     {
         $user = Auth::user();
 
-        abort_unless($user !== null && $user->can('submissions.view-all'), 403);
+        abort_unless($user !== null && $user->can('replaceReviewer', $submission), 403);
 
+        // W26 — catatan opsional; tercatat di entri audit Action-nya bila diisi.
         $validated = $request->validate([
             'incoming_reviewer_id' => 'required|exists:reviewers,id',
+            'note' => 'nullable|string|max:2000',
         ]);
 
-        ReplaceReviewer::run($submission, $reviewer, Reviewer::findOrFail($validated['incoming_reviewer_id']));
+        ReplaceReviewer::run(
+            $submission,
+            $reviewer,
+            Reviewer::findOrFail($validated['incoming_reviewer_id']),
+            $validated['note'] ?? null,
+        );
 
         return back()->with('success', 'Reviewer berhasil diganti.');
     }

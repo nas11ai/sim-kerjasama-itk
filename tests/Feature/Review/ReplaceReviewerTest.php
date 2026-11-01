@@ -57,7 +57,7 @@ function incomingReviewer(): Reviewer
 it('[REV-REASSIGN-01] record lama ditandai replaced, bukan dihapus', function () {
     [$submission, $outgoing, $assignment] = replaceFixture();
 
-    ReplaceReviewer::run($submission, $outgoing, incomingReviewer());
+    ReplaceReviewer::run($submission, $outgoing, incomingReviewer(), null);
 
     expect($assignment->fresh()->status)->toBe('replaced')
         ->and(SubmissionReviewer::find($assignment->id))->not->toBeNull();
@@ -66,7 +66,7 @@ it('[REV-REASSIGN-01] record lama ditandai replaced, bukan dihapus', function ()
 it('[REV-REASSIGN-02] evaluasi reviewer lama tetap terbaca sebagai riwayat', function () {
     [$submission, $outgoing, $assignment] = replaceFixture();
 
-    ReplaceReviewer::run($submission, $outgoing, incomingReviewer());
+    ReplaceReviewer::run($submission, $outgoing, incomingReviewer(), null);
 
     // Menghapusnya menghilangkan alasan di balik keputusan yang sudah diambil.
     expect($assignment->fresh()->evaluation_status)->toBe('completed');
@@ -76,7 +76,7 @@ it('[REV-REASSIGN-03] reviewer pengganti mendapat penugasan bersih', function ()
     [$submission, $outgoing] = replaceFixture();
     $incoming = incomingReviewer();
 
-    $fresh = ReplaceReviewer::run($submission, $outgoing, $incoming);
+    $fresh = ReplaceReviewer::run($submission, $outgoing, $incoming, null);
 
     expect($fresh->evaluation_status)->toBe('pending')
         ->and($fresh->status)->toBe('active')
@@ -94,7 +94,7 @@ it('[REV-DISCUSS-06] ulir terbuka diwarisi pengganti, penulis asli tetap terbaca
         'summary_notes' => 'Metodologi perlu diperjelas.',
     ]);
 
-    ReplaceReviewer::run($submission, $outgoing, $incoming);
+    ReplaceReviewer::run($submission, $outgoing, $incoming, null);
 
     // BR-REV-15 — pengganti yang berwenang menutupnya, tapi isi catatannya
     // tetap milik penulis asli.
@@ -112,7 +112,7 @@ it('[REV-DISCUSS-06] ulir yang sudah resolved tidak ikut dialihkan', function ()
         'summary_notes' => 'Sudah selesai.',
     ]);
 
-    ReplaceReviewer::run($submission, $outgoing, incomingReviewer());
+    ReplaceReviewer::run($submission, $outgoing, incomingReviewer(), null);
 
     // Yang sudah ditutup tidak menuntut siapa pun — mengalihkannya justru
     // mengaburkan siapa yang dulu menutupnya.
@@ -130,7 +130,7 @@ it('[REV-REASSIGN-01] mengganti dengan reviewer yang sudah bertugas ditolak', fu
         'status' => 'active',
     ]);
 
-    ReplaceReviewer::run($submission, $outgoing, $existing);
+    ReplaceReviewer::run($submission, $outgoing, $existing, null);
 })->throws(ValidationException::class);
 
 it('[REV-DISCUSS-06] pengganti menutup ulir warisan lewat resolve', function () {
@@ -144,7 +144,7 @@ it('[REV-DISCUSS-06] pengganti menutup ulir warisan lewat resolve', function () 
         'summary_notes' => 'Metodologi perlu diperjelas.',
     ]);
 
-    ReplaceReviewer::run($submission, $outgoing, $incoming);
+    ReplaceReviewer::run($submission, $outgoing, $incoming, null);
 
     // BR-REV-15, BR-REV-10 — guard penugasan aktif tidak boleh menolak pengganti.
     $this->actingAs(User::findOrFail($incoming->user_id))

@@ -73,6 +73,10 @@ yang skenarionya butuh, jangan menambah varian di antaranya.
 | `Then penambahan ditolak karena <alasan>` | Penolakan penambahan beserta alasan domainnya |
 | `Then penyimpanan ditolak karena <alasan>` | Penolakan penyimpanan beserta alasan domainnya |
 | `Then perubahan tercatat di jejak audit dengan nilai lama dan nilai baru` | Efek audit trail |
+| `When Operator <aksi> "<id>" … dengan alasan kosong` | Aksi operator yang sengaja tanpa alasan — uji negatif alasan wajib |
+| `When Operator <aksi> "<id>" … dengan alasan "<teks>"` | Aksi operator beserta alasannya |
+| `Then <aksi> ditolak dengan error validasi pada field alasan` | Penolakan karena alasan kosong, menyebut field-nya |
+| `Then perubahan tercatat di jejak audit beserta alasan "<teks>"` | Alasan aksi ikut tersimpan di entri audit (pasangan: `beserta catatan "<teks>"`) |
 | `Then "<id>" ditandai diarsipkan` | Hasil computed `isArchived()` |
 
 Tabel ketiga adalah hasil **tinjauan Fase B**: frasa yang terbukti dipakai tiga kali

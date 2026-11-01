@@ -5,6 +5,7 @@ namespace App\Actions\Review;
 use App\Models\FormSubmission;
 use App\Models\Reviewer;
 use App\Models\SubmissionReviewer;
+use App\Support\Audit\AuditChange;
 use App\Support\Audit\AuditTrail;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
@@ -20,7 +21,7 @@ class ReplaceReviewer
     /**
      * @throws ValidationException
      */
-    public function handle(FormSubmission $submission, Reviewer $outgoing, Reviewer $incoming): SubmissionReviewer
+    public function handle(FormSubmission $submission, Reviewer $outgoing, Reviewer $incoming, ?string $note): SubmissionReviewer
     {
         $current = $submission->submissionReviewers()
             ->where('reviewer_id', $outgoing->id)
@@ -57,8 +58,9 @@ class ReplaceReviewer
             return $fresh;
         });
 
-        // BR-RPT-09 — satu Action, satu entri audit.
-        AuditTrail::record('Reviewer diganti', $tercatat);
+        // BR-RPT-09 — satu Action, satu entri audit; catatan opsional ikut di entri itu (W26).
+        $change = ($note === null || $note === '') ? null : new AuditChange(new: ['note' => $note]);
+        AuditTrail::record('Reviewer diganti', $tercatat, change: $change);
 
         return $tercatat;
     }
