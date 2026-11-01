@@ -54,10 +54,14 @@ class EndToEndFlowSeeder extends Seeder
         $operator = $this->user('operator@itk.ac.id', 'Operator LPPM', $organization);
         Permission::findOrCreate('users.manage', 'web');
         Permission::findOrCreate('submissions.view-all', 'web');
-        $operator->givePermissionTo(['users.manage', 'submissions.view-all']);
+        // BR-REV-01 — penugasan reviewer dijaga Policy `assignReviewers` (reviewers.assign).
+        Permission::findOrCreate('reviewers.assign', 'web');
+        $operator->givePermissionTo(['users.manage', 'submissions.view-all', 'reviewers.assign']);
 
         foreach (['reviewer1@itk.ac.id' => 'Dr. Sari Wijaya', 'reviewer2@itk.ac.id' => 'Dr. Andi Mappa'] as $email => $name) {
             $user = $this->user($email, $name, $organization);
+            // REVIEWER-03-* dijaga permission, bukan sekadar baris Reviewer.
+            $user->givePermissionTo(Permission::findOrCreate('reviewers.evaluate', 'web'));
 
             Reviewer::firstOrCreate(
                 ['user_id' => $user->id],
