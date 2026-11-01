@@ -55,6 +55,13 @@ class RejectSubmission
             );
         }
 
+        // Super Admin lolos Policy lewat Gate::before; transisi yang tak terdaftar dijawab galat, bukan 500.
+        if (!$status->canTransitionTo(Rejected::class)) {
+            throw ValidationException::withMessages([
+                'status' => 'Penolakan manual hanya untuk pengajuan yang sedang direview.',
+            ]);
+        }
+
         $submission->update(['rejection_reason' => $reason]);
         $status->transitionTo(Rejected::class);
 

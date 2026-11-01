@@ -151,6 +151,20 @@ describe('AssignReviewersDialog', () => {
         expect(text()).toContain('Reviewer ini sudah ditugaskan pada siklus review ini.')
         expect(wrapper.emitted('update:open')).toBeUndefined()
     })
+
+    it('kandidat dimuat ulang setelah galat penugasan', async () => {
+        // Respons galat penuh tidak membawa prop opsional reviewerCandidates.
+        post.mockImplementation((form, _url, options) => {
+            form.errors = { user_id: 'Konflik kepentingan.' }
+            options.onError?.()
+        })
+        await assign([candidate()])
+
+        await click('Dr. Sari Lestari')
+        await click('Tugaskan')
+
+        expect(reload).toHaveBeenCalledTimes(2)
+    })
 })
 
 describe('ReplaceReviewerDialog', () => {

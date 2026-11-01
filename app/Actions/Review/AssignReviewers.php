@@ -8,6 +8,7 @@ use App\Models\Reviewer;
 use App\Models\SubmissionReviewer;
 use App\Queries\Submission\EvaluationDueDate;
 use App\Support\Audit\AuditTrail;
+use App\Support\Review\AwaitingDecision;
 use App\Support\ReviewerWorkload;
 use Illuminate\Support\Facades\DB;
 use Lorisleiva\Actions\Concerns\AsAction;
@@ -30,6 +31,8 @@ class AssignReviewers
      */
     public function handle(FormSubmission $submission, array $reviewerIds, bool $autoAssignForms): array
     {
+        AwaitingDecision::guard($submission);
+
         $detail = $submission->getFormPhaseDetail();
         // null berarti fase ini tanpa form evaluasi; dicek sekali per permintaan.
         $formOwner = $detail && $detail->hasReviewEvaluationForms() ? $detail : null;

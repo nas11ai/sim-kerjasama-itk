@@ -7,6 +7,7 @@ use App\Models\Reviewer;
 use App\Models\SubmissionReviewer;
 use App\Support\Audit\AuditChange;
 use App\Support\Audit\AuditTrail;
+use App\Support\Review\AwaitingDecision;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use Lorisleiva\Actions\Concerns\AsAction;
@@ -23,16 +24,9 @@ class ReplaceReviewer
      */
     public function handle(FormSubmission $submission, Reviewer $outgoing, Reviewer $incoming, ?string $note): SubmissionReviewer
     {
-        $current = $submission->submissionReviewers()
-            ->where('reviewer_id', $outgoing->id)
-            ->where('status', 'active')
-            ->first();
+        AwaitingDecision::guard($submission);
 
-        if ($current === null) {
-            throw ValidationException::withMessages([
-                'reviewer_id' => 'Reviewer yang hendak diganti tidak sedang bertugas pada pengajuan ini.',
-            ]);
-        }
+        $current = $this->activeSeat($submission, $outgoing);
 
         $tercatat = DB::transaction(function () use ($submission, $outgoing, $incoming, $current): SubmissionReviewer {
             // Record lama ditandai `replaced`, **tidak dihapus**: evaluasinya adalah alasan
@@ -61,6 +55,23 @@ class ReplaceReviewer
         $this->audit($tercatat, $note);
 
         return $tercatat;
+    }
+
+    /** @throws ValidationException */
+    private function activeSeat(FormSubmission $submission, Reviewer $outgoing): SubmissionReviewer
+    {
+        $current = $submission->submissionReviewers()
+            ->where('reviewer_id', $outgoing->id)
+            ->where('status', 'active')
+            ->first();
+
+        if ($current === null) {
+            throw ValidationException::withMessages([
+                'reviewer_id' => 'Reviewer yang hendak diganti tidak sedang bertugas pada pengajuan ini.',
+            ]);
+        }
+
+        return $current;
     }
 
     // BR-RPT-09 — satu Action, satu entri audit; catatan opsional ikut di entri itu (W26).

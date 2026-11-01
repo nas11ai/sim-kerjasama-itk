@@ -13,7 +13,7 @@ import type { SubmissionDetail } from '@/types/submission-page'
 const props = defineProps<{ submission: SubmissionDetail }>()
 const open = defineModel<boolean>('open', { required: true })
 
-const { form, confirming, send } = useConfirmedReason(
+const { form, confirming, denials, send } = useConfirmedReason(
     () => route('admin.submissions.withdraw', String(props.submission.id)),
     open
 )
@@ -41,6 +41,9 @@ const summary = computed(() => [
             untuk penelitian ini akan dihentikan.
         </AppBanner>
         <InfoGrid :items="summary" />
+        <AppBanner v-for="message in denials" :key="message" tone="denial">
+            {{ message }}
+        </AppBanner>
         <ReasonField
             id="withdraw-reason"
             v-model="form.reason"

@@ -13,7 +13,7 @@ import type { SubmissionDetail } from '@/types/submission-page'
 const props = defineProps<{ submission: SubmissionDetail; activeReviewerCount: number }>()
 const open = defineModel<boolean>('open', { required: true })
 
-const { form, confirming, send } = useConfirmedReason(
+const { form, confirming, denials, send } = useConfirmedReason(
     () => route('admin.submissions.reject', String(props.submission.id)),
     open
 )
@@ -45,6 +45,9 @@ const summary = computed(() => [
             administratif.
         </AppBanner>
         <InfoGrid :items="summary" />
+        <AppBanner v-for="message in denials" :key="message" tone="denial">
+            {{ message }}
+        </AppBanner>
         <ReasonField
             id="reject-reason"
             v-model="form.reason"

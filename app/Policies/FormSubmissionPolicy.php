@@ -9,10 +9,9 @@ use App\States\Submission\Approved;
 use App\States\Submission\Draft;
 use App\States\Submission\NeedsRevision;
 use App\States\Submission\Rejected;
-use App\States\Submission\Resubmitted;
-use App\States\Submission\Submitted;
 use App\States\Submission\UnderReview;
 use App\States\Submission\Withdrawn;
+use App\Support\Review\AwaitingDecision;
 
 class FormSubmissionPolicy
 {
@@ -134,13 +133,13 @@ class FormSubmissionPolicy
     public function assignReviewers(User $user, FormSubmission $submission): bool
     {
         // BR-REV-01, BR-SM-05 — penugasan bertahap selama pengajuan terkirim dan belum diputuskan.
-        return $user->can('reviewers.assign') && $this->awaitsDecision($submission);
+        return $user->can('reviewers.assign') && AwaitingDecision::holds($submission);
     }
 
     public function replaceReviewer(User $user, FormSubmission $submission): bool
     {
         // BR-REV-10 — penggantian adalah penugasan juga; terkunci pada sumbu yang sama.
-        return $user->can('reviewers.assign') && $this->awaitsDecision($submission);
+        return $user->can('reviewers.assign') && AwaitingDecision::holds($submission);
     }
 
     /**
@@ -188,13 +187,5 @@ class FormSubmissionPolicy
     public function viewOverrideReason(User $user, FormSubmission $submission): bool
     {
         return $user->can('submissions.view-all');
-    }
-
-    private function awaitsDecision(FormSubmission $submission): bool
-    {
-        return $submission->status instanceof Submitted
-            || $submission->status instanceof UnderReview
-            || $submission->status instanceof NeedsRevision
-            || $submission->status instanceof Resubmitted;
     }
 }

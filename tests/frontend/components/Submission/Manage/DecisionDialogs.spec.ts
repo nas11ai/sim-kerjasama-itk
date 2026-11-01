@@ -175,4 +175,16 @@ describe('dialog keputusan Operator', () => {
             'Ketua pindah institusi'
         )
     })
+
+    it('galat status dari Action tampil di dialog tolak', async () => {
+        failWith('status', 'Penolakan manual hanya untuk pengajuan yang sedang direview.')
+        await open(RejectDialog, { activeReviewerCount: 0 })
+
+        await click('Tolak Pengajuan')
+        await click('Tolak')
+
+        expect(document.body.textContent).toContain(
+            'Penolakan manual hanya untuk pengajuan yang sedang direview.'
+        )
+    })
 })

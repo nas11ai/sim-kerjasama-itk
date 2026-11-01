@@ -9,6 +9,7 @@ use App\States\Submission\Withdrawn;
 use App\Support\Audit\AuditChange;
 use App\Support\Audit\AuditTrail;
 use Illuminate\Auth\Access\AuthorizationException;
+use Illuminate\Validation\ValidationException;
 use Lorisleiva\Actions\Concerns\AsAction;
 use RuntimeException;
 
@@ -22,7 +23,7 @@ class WithdrawSubmission
     use AsAction;
 
     /**
-     * @throws AuthorizationException
+     * @throws AuthorizationException|ValidationException
      */
     public function handle(FormSubmission $submission, User $operator, string $reason): FormSubmission
     {
@@ -41,6 +42,13 @@ class WithdrawSubmission
             throw new RuntimeException(
                 "FormSubmission {$submission->id} tidak punya status — tidak bisa ditarik."
             );
+        }
+
+        // Super Admin lolos Policy lewat Gate::before; transisi yang tak terdaftar dijawab galat, bukan 500.
+        if (!$status->canTransitionTo(Withdrawn::class)) {
+            throw ValidationException::withMessages([
+                'status' => 'Penarikan hanya untuk pengajuan yang sudah disetujui.',
+            ]);
         }
 
         // **Tidak dapat dibatalkan**: `SubmissionStatus::config()` tidak punya transisi

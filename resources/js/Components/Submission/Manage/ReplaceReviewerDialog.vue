@@ -53,6 +53,8 @@ const send = () =>
                 open.value = false
                 form.reset()
             },
+            // Respons galat penuh tak membawa prop opsional reviewerCandidates; muat ulang daftarnya.
+            onError: load,
         }
     )
 </script>
