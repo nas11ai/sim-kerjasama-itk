@@ -96,6 +96,7 @@ sudah terbukti, bukan karena diperkirakan.
 | `When lead researcher menyimpan "<id>" dengan last_updated_at "<datetime>"` | Penyimpanan yang menguji optimistic lock |
 | `When Lead Researcher submit "<id>" tanpa mengisi "<field>"` | Submit yang sengaja belum mengisi satu field — uji negatif Temporal Field Binding |
 | `When Operator membuat override untuk "<id>" pada fase "<fase>" yang berlaku sampai "<datetime>"` | Operator memberi perpanjangan akses satu fase |
+| `Given form evaluasi "<orang>" melekat pada detail "<detail>"` | Form evaluasi reviewer hidup di detail tahap pengajuannya, bukan detail tersendiri — override detail itulah yang membuka kembali evaluasinya |
 | `Then submit berhasil` | Submit diterima — pasangan positif `Then submit ditolak karena <alasan>` |
 | `Then submit ditolak dengan error validasi pada field "<nama>"` | Penolakan submit yang menyebut field-nya |
 | `Then "<id>" muncul di daftar` | Kehadiran baris di daftar |

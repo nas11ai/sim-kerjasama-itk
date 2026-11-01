@@ -24,8 +24,8 @@ class ReviewerFormAssignmentPolicy
     public function evaluate(User $user, ReviewerFormAssignment $assignment): bool
     {
         // BR-FE-17 — tenggat evaluasi mengikat reviewer sendiri; lewat tenggat isian tertutup
-        // (FE-WINDOW-02), sedangkan membacanya tetap boleh lewat `view`.
-        return !$assignment->isOverdue() && $this->ownsActive($user, $assignment);
+        // (FE-WINDOW-02) kecuali dibuka override (W25), sedangkan membacanya tetap boleh lewat `view`.
+        return !$assignment->isClosedByDeadline() && $this->ownsActive($user, $assignment);
     }
 
     private function ownsActive(User $user, ReviewerFormAssignment $assignment): bool

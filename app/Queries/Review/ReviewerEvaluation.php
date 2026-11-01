@@ -111,7 +111,7 @@ class ReviewerEvaluation implements ChangesNoState
             return $status;
         }
 
-        return $started->isOverdue() ? 'overdue' : 'draft';
+        return $started->isClosedByDeadline() ? 'overdue' : 'draft';
     }
 
     private function field(ReviewFormField $field, ?string $value): WizardFieldData

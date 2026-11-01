@@ -271,3 +271,20 @@ it('target perpanjangan menyebut fase dan reviewer yang evaluasinya lewat tengga
             ->where('overrideTarget.phaseLabel', $detail->formPhase->title.' — '.$detail->submissionDate->submissionDateLabel->name)
             ->where('overrideTarget.affectedReviewers', ['Reviewer Telat']));
 });
+
+it('[FE-WINDOW-07] reviewer terdampak hanya yang form evaluasinya melekat pada detail pengajuan ini', function () {
+    $detail = FormPhaseDetail::factory()->create();
+    $submission = sentFor(UnderReview::class, $detail);
+    $elsewhere = seatReviewer($submission, 'active', 'Reviewer Detail Lain');
+    $form = ReviewEvaluationForm::create([
+        'title' => 'Substansi Monev', 'form_phase_detail_id' => FormPhaseDetail::factory()->create()->id,
+        'is_active' => true, 'is_required' => true, 'order' => 1,
+    ]);
+    ReviewerFormAssignment::create([
+        'submission_reviewer_id' => $elsewhere->id, 'review_evaluation_form_id' => $form->id,
+        'is_required' => true, 'assigned_at' => now()->subWeek(), 'due_date' => now()->subDay(), 'is_active' => true,
+    ]);
+
+    showOperatorPage(detailOperator(), $submission)
+        ->assertInertia(fn (Assert $page) => $page->where('overrideTarget.affectedReviewers', []));
+});

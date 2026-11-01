@@ -35,3 +35,33 @@ Feature: Jendela Kerja Tiap Tahap
     Given detail Pengajuan dan detail Kelengkapan sama-sama beraktor researcher
     When admin menetapkan keduanya memakai SubmissionDate "Batas Submit"
     Then penyimpanan berhasil
+
+  @BR-FE-17 @BR-FE-08 @M2 @OPERATOR-02-03 @REVIEWER-03-03 @happy
+  Scenario: [FE-WINDOW-05] Override yang berlaku membuka kembali evaluasi yang lewat batas
+    Given waktu sekarang "2026-03-25 09:00:00"
+    And detail Evaluasi berbatas "Batas Evaluasi" pada "2026-03-20"
+    And "Sari" ditugaskan sebagai reviewer "P-001"
+    And form evaluasi "Sari" melekat pada detail "Pengajuan"
+    And Operator membuat override untuk "P-001" pada fase "Pengajuan" yang berlaku sampai "2026-03-31 23:59:59"
+    When "Sari" membuka fase "Evaluasi"
+    Then detail terbuka
+
+  @BR-FE-17 @BR-FE-08 @M2 @OPERATOR-02-03 @REVIEWER-03-03 @denial
+  Scenario: [FE-WINDOW-06] Override yang kedaluwarsa tidak membuka kembali evaluasi
+    Given waktu sekarang "2026-04-02 09:00:00"
+    And detail Evaluasi berbatas "Batas Evaluasi" pada "2026-03-20"
+    And "Sari" ditugaskan sebagai reviewer "P-001"
+    And form evaluasi "Sari" melekat pada detail "Pengajuan"
+    And Operator membuat override untuk "P-001" pada fase "Pengajuan" yang berlaku sampai "2026-03-31 23:59:59"
+    When "Sari" membuka fase "Evaluasi"
+    Then akses ditolak dengan 403
+
+  @BR-FE-10 @BR-FE-17 @M2 @OPERATOR-02-03 @REVIEWER-03-03 @denial
+  Scenario: [FE-WINDOW-07] Override fase lain tidak membuka kembali evaluasi
+    Given waktu sekarang "2026-03-25 09:00:00"
+    And detail Evaluasi berbatas "Batas Evaluasi" pada "2026-03-20"
+    And "Sari" ditugaskan sebagai reviewer "P-001"
+    And form evaluasi "Sari" melekat pada detail "Pengajuan"
+    And Operator membuat override untuk "P-001" pada fase "Laporan Monev I" yang berlaku sampai "2026-03-31 23:59:59"
+    When "Sari" membuka fase "Evaluasi"
+    Then akses ditolak dengan 403

@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Support\PhaseAccessGate;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -79,6 +80,23 @@ class ReviewerFormAssignment extends Model
         }
 
         return $this->due_date->isPast() && !$this->isCompleted();
+    }
+
+    // BR-FE-17, BR-FE-08 — tenggat evaluasi bisa dibuka kembali hanya lewat override detail pemiliknya (ADR 0014, W25).
+    public function isClosedByDeadline(): bool
+    {
+        if (!$this->isOverdue()) {
+            return false;
+        }
+
+        $detail = $this->reviewEvaluationForm->formPhaseDetail;
+
+        // BR-FE-10 — override detail lain tidak berlaku; form tanpa detail tidak punya pintu override.
+        if ($detail === null) {
+            return true;
+        }
+
+        return PhaseAccessGate::activeOverride($this->submissionReviewer->formSubmission, $detail) === null;
     }
 
     public function isCompleted(): bool

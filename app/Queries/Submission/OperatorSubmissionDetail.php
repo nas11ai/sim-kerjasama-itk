@@ -88,17 +88,18 @@ class OperatorSubmissionDetail implements ChangesNoState
         return $parts === [] ? null : implode(' — ', $parts);
     }
 
-    /** @return list<string> reviewer aktif yang punya form evaluasi lewat tenggat */
+    /** @return list<string> reviewer aktif yang evaluasinya lewat tenggat dan dibuka override detail ini (W25) */
     private function overdueReviewers(FormSubmission $submission): array
     {
         $names = [];
         $seats = $submission->activeSubmissionReviewers()
-            ->with(['reviewer.user:id,name', 'reviewerFormAssignments.reviewFormResponse:id,reviewer_form_assignment_id,status'])
+            ->with(['reviewer.user:id,name', 'reviewerFormAssignments.reviewFormResponse:id,reviewer_form_assignment_id,status',
+                'reviewerFormAssignments.reviewEvaluationForm:id,form_phase_detail_id'])
             ->orderBy('id')
             ->get();
 
         foreach ($seats as $seat) {
-            if ($this->hasOverdueForm($seat)) {
+            if ($this->hasOverdueForm($seat, $submission->form_phase_detail_id)) {
                 $names[] = $seat->reviewer->user->name ?? 'Reviewer';
             }
         }
@@ -106,8 +107,12 @@ class OperatorSubmissionDetail implements ChangesNoState
         return $names;
     }
 
-    private function hasOverdueForm(SubmissionReviewer $seat): bool
+    // BR-FE-10 — aturan yang sama dengan isClosedByDeadline(): override detail ini hanya membuka form evaluasi yang melekat padanya.
+    private function hasOverdueForm(SubmissionReviewer $seat, ?int $detailId): bool
     {
-        return $seat->reviewerFormAssignments->contains(fn (ReviewerFormAssignment $form): bool => $form->isOverdue());
+        return $seat->reviewerFormAssignments->contains(
+            fn (ReviewerFormAssignment $form): bool => $form->isOverdue()
+                && $form->reviewEvaluationForm->form_phase_detail_id === $detailId
+        );
     }
 }
