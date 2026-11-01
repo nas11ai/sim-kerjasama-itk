@@ -58,10 +58,16 @@ class ReplaceReviewer
             return $fresh;
         });
 
-        // BR-RPT-09 — satu Action, satu entri audit; catatan opsional ikut di entri itu (W26).
-        $change = ($note === null || $note === '') ? null : new AuditChange(new: ['note' => $note]);
-        AuditTrail::record('Reviewer diganti', $tercatat, change: $change);
+        $this->audit($tercatat, $note);
 
         return $tercatat;
+    }
+
+    // BR-RPT-09 — satu Action, satu entri audit; catatan opsional ikut di entri itu (W26).
+    private function audit(SubmissionReviewer $fresh, ?string $note): void
+    {
+        $change = ($note === null || $note === '') ? null : new AuditChange(new: ['note' => $note]);
+
+        AuditTrail::record('Reviewer diganti', $fresh, change: $change);
     }
 }
