@@ -32,6 +32,23 @@ Feature: Notifikasi
     And kedua notifikasi "Budi" tetap ada di daftar
     And penghitung belum-dibaca "Dewi" tetap 1
 
+  @BR-NOT-04 @M5 @SHARED-02-05 @happy
+  Scenario: [NOT-INAPP-05] Membuka notifikasi membawa ke halaman yang relevan
+    Given reviewer "Rina" ditugaskan mengevaluasi "P-001"
+    And "Rina" punya notifikasi ReviewerAssigned untuk "P-001" yang belum dibaca
+    When "Rina" membuka notifikasi itu
+    Then read_at notifikasi itu terisi
+    And "Rina" dibawa ke form evaluasi "P-001"
+
+  @BR-NOT-04 @M5 @SHARED-02-05 @denial
+  Scenario: [NOT-INAPP-06] Notifikasi yang pengajuannya tak lagi bisa diakses tidak membuka datanya
+    Given reviewer "Rina" punya notifikasi ReviewerAssigned untuk "P-001" yang belum dibaca
+    And penugasan "Rina" pada "P-001" sudah diganti
+    When "Rina" membuka notifikasi itu
+    Then read_at notifikasi itu terisi
+    And "Rina" tetap di daftar notifikasi
+    And "Rina" tidak dibawa ke data "P-001"
+
   @BR-NOT-02 @M5 @SHARED-02-01 @happy
   Scenario: [NOT-CHANNEL-01] ProposalApproved terkirim in-app dan email
     When event ProposalApproved dipublish untuk "Budi"

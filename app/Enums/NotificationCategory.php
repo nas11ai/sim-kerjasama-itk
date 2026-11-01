@@ -82,12 +82,19 @@ enum NotificationCategory: string
 
     public static function forClass(string $class): self
     {
+        return self::tryForClass($class)
+            ?? throw new InvalidArgumentException("Kelas notifikasi {$class} belum punya kategori (W40).");
+    }
+
+    /** Baris lama bisa memuat kelas yang sudah dihapus; pembacanya tidak boleh ikut gagal. */
+    public static function tryForClass(string $class): ?self
+    {
         foreach (self::cases() as $category) {
             if (in_array($class, $category->classes(), true)) {
                 return $category;
             }
         }
 
-        throw new InvalidArgumentException("Kelas notifikasi {$class} belum punya kategori (W40).");
+        return null;
     }
 }

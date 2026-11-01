@@ -4,6 +4,8 @@ namespace App\Http\Controllers\Notification;
 
 use App\Http\Controllers\Controller;
 use App\Models\User;
+use App\Queries\Notification\NotificationDestination;
+use App\Queries\Notification\NotificationInbox;
 use App\Queries\Notification\UnreadNotificationCount;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -18,27 +20,11 @@ class NotificationController extends Controller
 {
     public function index(Request $request): Response
     {
-        $user = $request->user();
-
-        abort_if($user === null, 403);
-
-        // Membuka daftar tidak menandai apa pun dibaca: kalau menandai,
-        // penghitung "belum dibaca" langsung nol di kunjungan pertama, dan
-        // notifikasi yang belum sempat dilihat ikut terkubur — kebalikan gunanya.
-        return Inertia::render('Notifications/IndexPage', [
-            'notifications' => $user->notifications()
-                ->latest()
-                ->paginate(20)
-                ->withQueryString()
-                ->through(fn (DatabaseNotification $notification) => [
-                    'id' => $notification->id,
-                    'type' => class_basename($notification->type),
-                    'data' => $notification->data,
-                    'read_at' => $notification->read_at?->toIso8601String(),
-                    'created_at' => $notification->created_at?->toIso8601String(),
-                ]),
-            'unreadCount' => $user->unreadNotifications()->count(),
-        ]);
+        // BR-NOT-04 — membuka daftar tidak menandai apa pun dibaca.
+        return Inertia::render('Notification/IndexPage', NotificationInbox::run(
+            $this->viewer($request),
+            $request->string('filter')->toString(),
+        ));
     }
 
     /**
@@ -51,9 +37,8 @@ class NotificationController extends Controller
         $entry->markAsRead();
         UnreadNotificationCount::forget($this->viewer($request));
 
-        $url = is_string($entry->data['action_url'] ?? null) ? $entry->data['action_url'] : null;
-
-        return $url !== null ? redirect($url) : back();
+        // W39, BR-SM-07 — tujuan dihitung sekarang; yang tak lagi boleh dibuka kembali ke daftar.
+        return redirect(NotificationDestination::run($entry, $this->viewer($request)) ?? route('notifications.index'));
     }
 
     /**
