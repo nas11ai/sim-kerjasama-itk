@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
+use App\Queries\Announcement\PublicAnnouncementPanel;
 use App\Queries\Identity\PostLoginDestination;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -22,6 +23,8 @@ class AuthenticatedSessionController extends Controller
         return Inertia::render('Auth/LoginPage', [
             'canResetPassword' => Route::has('password.request'),
             'status' => session('status'),
+            // W6 — panel pengumuman publik di samping form login (fe-v2-design §4.7).
+            'announcements' => PublicAnnouncementPanel::run(),
         ]);
     }
 

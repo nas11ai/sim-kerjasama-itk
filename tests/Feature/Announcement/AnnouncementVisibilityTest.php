@@ -59,7 +59,7 @@ it('leaves expired announcements out of the user list', function () {
     $this->actingAs(User::factory()->create())
         ->get(route('user.announcements.index'))
         ->assertInertia(fn (Assert $page) => $page
-            ->component('User/Announcements/IndexPage')
+            ->component('Announcement/IndexPage')
             ->has('announcements.data', 1)
             ->where('announcements.data.0.title', 'Masih berlaku'));
 });
@@ -75,7 +75,7 @@ it('marks only the announcements the user has read in the user list', function (
         ->get(route('user.announcements.index'))
         ->assertInertia(fn (Assert $page) => $page
             ->where('announcements.data', fn ($rows) => collect($rows)
-                ->mapWithKeys(fn ($row) => [$row['id'] => $row['is_read']])
+                ->mapWithKeys(fn ($row) => [$row['id'] => $row['isRead']])
                 ->all() == [$unread->id => false, $read->id => true]));
 });
 

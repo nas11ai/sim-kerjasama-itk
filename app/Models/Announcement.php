@@ -48,7 +48,12 @@ class Announcement extends Model
         return $this->hasMany(AnnouncementFile::class);
     }
 
-    public function announcementReader()
+    /**
+     * Penanda baca (`announcement_users`), bukan state domain.
+     *
+     * @return BelongsToMany<User, $this>
+     */
+    public function announcementReader(): BelongsToMany
     {
         return $this->belongsToMany(User::class, 'announcement_users')
             ->withTimestamps();

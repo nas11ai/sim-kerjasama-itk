@@ -8,8 +8,9 @@ use App\Actions\Announcement\ReviseAnnouncement;
 use App\Data\View\Announcement\AnnouncementFormData;
 use App\Http\Requests\Announcement\AnnouncementRequest;
 use App\Models\Announcement;
-use App\Models\AnnouncementUser;
 use App\Queries\Announcement\ManagedAnnouncementList;
+use App\Queries\Announcement\ReaderAnnouncementDetail;
+use App\Queries\Announcement\ReaderAnnouncementList;
 use App\Queries\Announcement\VisibleAnnouncements;
 use App\Support\Announcement\AnnouncementAudience;
 use Illuminate\Http\Request;
@@ -29,16 +30,8 @@ class AnnouncementController extends Controller
 
     public function userIndex(Request $request)
     {
-        $user = $request->user();
-
-        $announcements = VisibleAnnouncements::run($user)
-            ->with('announcementFiles')
-            ->withExists(['announcementReader as is_read' => static fn ($query) => $query->where('users.id', $user?->id)])
-            ->orderBy('created_at', 'desc')
-            ->paginate(10);
-
-        return Inertia::render('User/Announcements/IndexPage', [
-            'announcements' => $announcements,
+        return Inertia::render('Announcement/IndexPage', [
+            'announcements' => ReaderAnnouncementList::run($request->user()),
         ]);
     }
 
@@ -87,35 +80,23 @@ class AnnouncementController extends Controller
     {
         // Pengumuman yang tak terlihat oleh penanya dijawab 404, bukan 403:
         // keberadaannya tidak dibocorkan ke tamu yang menebak id.
-        abort_unless(
-            VisibleAnnouncements::run($request->user())->whereKey($announcement->id)->exists(),
-            404,
-        );
+        $detail = ReaderAnnouncementDetail::run($announcement, $request->user());
+        abort_if($detail === null, 404);
 
-        $announcement->load('announcementFiles', 'announcementCreator');
-
-        return Inertia::render('AnnouncementDetail', [
-            'announcement' => $announcement,
-        ]);
+        return Inertia::render('Announcement/ShowPage', ['announcement' => $detail]);
     }
 
-    public function markAsRead(Announcement $announcement)
+    /**
+     * fe-v2-design §4.7 — penanda baca bukan state domain dan tidak diaudit (preseden
+     * BR-NOT-04, `NotificationController::read`). Hanya yang terlihat boleh ditandai.
+     */
+    public function markAsRead(Request $request, Announcement $announcement)
     {
-        $user = auth()->user();
+        $user = $request->user();
+        abort_unless(VisibleAnnouncements::run($user)->whereKey($announcement->id)->exists(), 404);
 
-        $reader = AnnouncementUser::updateOrCreate(
-            [
-                'announcement_id' => $announcement->id,
-                'user_id' => $user->id,
-            ],
-            [
-                'updated_at' => now(),
-            ]
-        );
+        $announcement->announcementReader()->syncWithoutDetaching([$user->id]);
 
-        return response()->json([
-            'message' => 'Pengumuman berhasil ditandai sebagai dibaca.',
-            'data' => $reader,
-        ]);
+        return back();
     }
 }

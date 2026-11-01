@@ -127,6 +127,11 @@ Route::middleware(['auth'])->prefix('user')->name('user.')->group(function () {
     // khusus form biodata
     Route::get('/biodata', [BiodataController::class, 'showBiodataForm'])->name('biodata.index');
     Route::post('/biodata', [BiodataController::class, 'submitForm'])->name('biodata.submit');
+
+    // W33 — di luar check_biodata: pembaca yang biodatanya belum lengkap tidak dilempar
+    // dari pengumuman yang sedang dibukanya ke form biodata.
+    Route::post('/announcements/{announcement}/markRead', [AnnouncementController::class, 'markAsRead'])
+        ->name('announcements.markRead');
 });
 
 Route::middleware(['auth', 'check_biodata'])->prefix('user')->name('user.')->group(function () {
@@ -135,9 +140,6 @@ Route::middleware(['auth', 'check_biodata'])->prefix('user')->name('user.')->gro
 
     Route::get('/announcements', [AnnouncementController::class, 'userIndex'])
         ->name('announcements.index');
-
-    Route::post('/announcements/{announcement}/markRead', [AnnouncementController::class, 'markAsRead'])
-        ->name('announcements.markRead');
 
     // Form Submission Routes
     Route::post('/form-submission/save-draft', [UserFormController::class, 'saveDraft'])

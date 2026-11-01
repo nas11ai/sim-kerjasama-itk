@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Queries\Announcement\UnreadAnnouncementCount;
 use App\Queries\Identity\EffectivePermissionNames;
 use App\Queries\Submission\HasApprovedSubmission;
 use Illuminate\Http\Request;
@@ -56,7 +57,11 @@ class HandleInertiaRequests extends Middleware
                 'workloadWarnings' => fn () => $request->session()->get('workloadWarnings'),
             ],
             'navigation' => fn () => $request->user()
-                ? ['hasApprovedSubmission' => HasApprovedSubmission::run($request->user())]
+                ? [
+                    'hasApprovedSubmission' => HasApprovedSubmission::run($request->user()),
+                    // W32 — badge sidebar "Pengumuman" (fe-v2-design §4.7).
+                    'unreadAnnouncements' => UnreadAnnouncementCount::run($request->user()),
+                ]
                 : null,
             'biodataStatus' => fn () => $request->session()->get('biodataStatus'),
         ]);

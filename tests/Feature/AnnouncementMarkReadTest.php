@@ -29,10 +29,8 @@ it('marks an announcement as read and stores the row in announcement_users', fun
 
     $this->actingAs($user)
         ->post(route('user.announcements.markRead', $announcement))
-        ->assertOk()
-        ->assertJson([
-            'message' => 'Pengumuman berhasil ditandai sebagai dibaca.',
-        ]);
+        // fe-v2-design §4.7 — redirect back Inertia, bukan JSON.
+        ->assertRedirect();
 
     expect(
         AnnouncementUser::query()->getModel()->getTable()
