@@ -104,4 +104,8 @@ describe('ReviewThreadCard', () => {
             expect.objectContaining({ preserveScroll: true })
         )
     })
+
+    it('pembaca tanpa hak balas tidak diajak membalas', () => {
+        expect(mountCard(false).text()).not.toContain('Balas untuk menyampaikan perbaikan Anda.')
+    })
 })
