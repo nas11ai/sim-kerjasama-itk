@@ -34,6 +34,7 @@ use App\Http\Controllers\StatController;
 use App\Http\Controllers\StoreSubmissionDateLabelController;
 use App\Http\Controllers\Submission\BudgetLineItemController;
 use App\Http\Controllers\Submission\ChildSubmissionController;
+use App\Http\Controllers\Submission\OperatorSubmissionController;
 use App\Http\Controllers\Submission\PhaseOverrideController;
 use App\Http\Controllers\Submission\ResearchMemberController;
 use App\Http\Controllers\Submission\ResearchOutputController;
@@ -278,12 +279,6 @@ Route::middleware(['auth', 'can:users.manage'])->prefix('admin')->name('admin.')
         ->name('review-evaluation-forms.preview');
 
     // Submission viewing routes
-    Route::get('/submissions', [SubmissionViewController::class, 'adminIndex'])
-        ->name('submissions.index');
-
-    Route::get('/submissions/period/{period}', [SubmissionViewController::class, 'adminShowPeriod'])
-        ->name('submissions.period');
-
     Route::get('/submissions/{submission}', [SubmissionViewController::class, 'adminShowSubmission'])
         ->name('submissions.show');
 
@@ -404,6 +399,13 @@ Route::middleware(['auth', 'can:users.manage'])->group(function () {
 });
 
 require __DIR__.'/auth.php';
+
+// BR-SM-07 — layar pengajuan Operator dijaga view-all, bukan users.manage:
+// pemegang view-all tanpa hak kelola pengguna tetap harus bisa membacanya (§4.4 K1).
+Route::middleware(['auth', 'can:submissions.view-all'])->prefix('admin')->name('admin.')->group(function () {
+    Route::get('/submissions', [OperatorSubmissionController::class, 'index'])
+        ->name('submissions.index');
+});
 
 // BR-SM-11 — penarikan pengajuan. Sengaja di luar grup `can:users.manage`:
 // Policy menuntut `submissions.view-all`, dan dua sumber otorisasi untuk satu

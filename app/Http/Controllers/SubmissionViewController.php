@@ -5,14 +5,10 @@ namespace App\Http\Controllers;
 use App\Actions\Review\BuildReviewerDashboard;
 use App\Models\FormSubmission;
 use App\Models\Reviewer;
-use App\Models\SubmissionPeriod;
 use App\Models\User;
-use App\Queries\Submission\OperatorPeriodDirectory;
-use App\Queries\Submission\OperatorPeriodSubmissions;
 use App\Queries\Submission\OperatorSubmissionView;
 use App\Queries\Submission\ResearcherSubmissionDetail;
 use App\Queries\Submission\ResearcherSubmissionList;
-use App\Queries\Submission\SubmissionStatusChoices;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -31,31 +27,6 @@ class SubmissionViewController extends Controller
             'filters' => $filters,
             'canCreate' => $this->viewer($request)->can('submissions.create'),
             ...ResearcherSubmissionList::run($this->viewer($request), $filters),
-        ]);
-    }
-
-    public function adminIndex(Request $request): Response
-    {
-        return Inertia::render('Submissions/IndexPage', [
-            'submissionPeriods' => OperatorPeriodDirectory::run($request->string('search')->value()),
-            'filters' => $request->only(['search']),
-        ]);
-    }
-
-    public function adminShowPeriod(SubmissionPeriod $period, Request $request): Response
-    {
-        $listing = OperatorPeriodSubmissions::run($period, [
-            'form_phase_id' => $request->string('form_phase_id')->value(),
-            'status' => $request->string('status')->value(),
-            'search' => $request->string('search')->value(),
-        ]);
-
-        return Inertia::render('Submissions/ShowPeriod', [
-            'submissionPeriod' => $period->load('submissionDates.submissionDateLabel'),
-            'formPhases' => $listing['formPhases'],
-            'submissions' => $listing['submissions'],
-            'submissionStatuses' => SubmissionStatusChoices::run(),
-            'filters' => $request->only(['form_phase_id', 'status', 'search']),
         ]);
     }
 

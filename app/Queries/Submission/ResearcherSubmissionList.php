@@ -3,9 +3,7 @@
 namespace App\Queries\Submission;
 
 use App\Actions\Concerns\ChangesNoState;
-use App\Actions\FormSubmission\SubmitFormSubmission;
 use App\Data\View\Submission\SubmissionRowData;
-use App\Models\AuditEntry;
 use App\Models\FormSubmission;
 use App\Models\SubmissionPeriod;
 use App\Models\User;
@@ -38,7 +36,7 @@ class ResearcherSubmissionList implements ChangesNoState
         $statusOptions = SubmissionStatusChoices::run();
         $query = SubmissionVisibility::ownedOrJoinedBy($viewer)
             ->with(['form:id,title', 'scheme:id,name', 'submissionPeriod'])
-            ->addSelect(['form_submissions.*', 'submitted_at' => $this->firstSubmitAt()]);
+            ->addSelect(['form_submissions.*', 'submitted_at' => FirstSubmitAt::subquery()]);
 
         $this->filter($query, $filters, array_column($statusOptions, 'value'));
 
@@ -50,16 +48,6 @@ class ResearcherSubmissionList implements ChangesNoState
             'statusOptions' => $statusOptions,
             'periodOptions' => $this->periodOptions($viewer),
         ];
-    }
-
-    /** @return Builder<AuditEntry> */
-    private function firstSubmitAt(): Builder
-    {
-        return AuditEntry::query()->auditOnly()
-            ->selectRaw('min(created_at)')
-            ->where('subject_type', FormSubmission::class)
-            ->whereColumn('subject_id', 'form_submissions.id')
-            ->where('description', SubmitFormSubmission::AUDIT_DESCRIPTION);
     }
 
     /**
