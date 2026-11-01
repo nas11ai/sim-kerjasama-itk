@@ -18,12 +18,14 @@ const opened: ReviewerScores = {
             reviewer: 'Reviewer 1',
             reviewer_type: 'internal',
             submitted_at: '2026-03-01T08:00:00',
+            replaced: false,
             answers: [{ label: 'Skor', value: '62' }],
         },
         {
             reviewer: 'Reviewer 2',
             reviewer_type: 'external',
             submitted_at: '2026-03-02T08:00:00',
+            replaced: true,
             answers: [{ label: 'Skor', value: '58' }],
         },
     ],
@@ -51,5 +53,11 @@ describe('ScoreSection', () => {
         const text = mount(ScoreSection, { props: { scores: { ...opened, scores: [] } } }).text()
 
         expect(text).toContain('Belum ada evaluasi yang disubmit.')
+    })
+
+    it('[REV-REASSIGN-02] lembar reviewer yang digantikan berlabel', () => {
+        const wrapper = mount(ScoreSection, { props: { scores: opened } })
+
+        expect(wrapper.text().match(/Digantikan/g)).toHaveLength(1)
     })
 })

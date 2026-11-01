@@ -13,11 +13,8 @@
 # docs/design/refactor-plan-wave-2-formsubmission.md Task 6.
 app/Models/FormSubmission.php
 resources/js/Components/AppSidebar.vue
-resources/js/Components/AssignReviewerDialog.vue
 resources/js/Components/DataTable.vue
 resources/js/Components/DataTablePagination.vue
-resources/js/Components/RejectSubmissionDialog.vue
-resources/js/Components/ReviewSystem.vue
 resources/js/Components/StatisticSection.vue
 resources/js/Components/ui/dialog/DialogContent.vue
 resources/js/Components/ui/dialog/DialogScrollContent.vue
@@ -79,7 +76,6 @@ resources/js/Pages/SubmissionPeriods/CreatePage.vue
 resources/js/Pages/SubmissionPeriods/EditPage.vue
 resources/js/Pages/SubmissionPeriods/IndexPage.vue
 resources/js/Pages/SubmissionPeriods/ShowPage.vue
-resources/js/Pages/Submissions/ShowSubmission.vue
 resources/js/Pages/User/Announcements/IndexPage.vue
 resources/js/Pages/User/Biodata/IndexPage.vue
 resources/js/Pages/User/DashboardPage.vue

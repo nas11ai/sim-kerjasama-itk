@@ -3,6 +3,7 @@ import AppBanner from '@/Components/app/AppBanner.vue'
 import EmptyState from '@/Components/app/EmptyState.vue'
 import InfoGrid from '@/Components/app/InfoGrid.vue'
 import SectionCard from '@/Components/app/SectionCard.vue'
+import { Badge } from '@/Components/ui/badge'
 import type { ReviewerScore, ReviewerScores } from '@/types/submission-page'
 
 // `note` menjelaskan kapan skor terbuka bagi pembaca layar; bawaannya untuk peneliti (BR-REV-12).
@@ -20,8 +21,16 @@ const answersOf = (score: ReviewerScore) =>
         {{ scores.reason }}
     </AppBanner>
     <SectionCard v-else title="Hasil Evaluasi Reviewer">
-        <div v-for="score in scores.scores" :key="score.reviewer" class="flex flex-col gap-2">
-            <p class="text-sm font-medium">{{ score.reviewer }}</p>
+        <div
+            v-for="(score, index) in scores.scores"
+            :key="`${score.reviewer}-${index}`"
+            class="flex flex-col gap-2"
+        >
+            <p class="flex items-center gap-2 text-sm font-medium">
+                {{ score.reviewer }}
+                <!-- BR-REV-10 — lembar reviewer yang digantikan tetap terbaca -->
+                <Badge v-if="score.replaced" variant="outline">Digantikan</Badge>
+            </p>
             <InfoGrid :items="answersOf(score)" />
         </div>
         <EmptyState v-if="scores.scores.length === 0" title="Belum ada evaluasi yang disubmit." />
