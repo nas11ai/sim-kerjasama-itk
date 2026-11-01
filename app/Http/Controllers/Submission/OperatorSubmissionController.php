@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Submission;
 use App\Http\Controllers\Controller;
 use App\Models\FormSubmission;
 use App\Models\User;
+use App\Queries\Review\ReviewerCandidates;
 use App\Queries\Submission\OperatorSubmissionDetail;
 use App\Queries\Submission\OperatorSubmissionList;
 use Illuminate\Http\Request;
@@ -39,6 +40,13 @@ class OperatorSubmissionController extends Controller
         $viewer = $request->user();
         abort_unless($viewer instanceof User, 403);
 
-        return Inertia::render('Submission/ManageShowPage', OperatorSubmissionDetail::run($viewer, $submission));
+        return Inertia::render('Submission/ManageShowPage', [
+            ...OperatorSubmissionDetail::run($viewer, $submission),
+            // Hanya lewat partial reload dialog penugasan, jadi pencarian tetap di server.
+            'reviewerCandidates' => Inertia::optional(fn () => ReviewerCandidates::run(
+                $submission,
+                $request->string('reviewer_search')->trim()->toString(),
+            )),
+        ]);
     }
 }

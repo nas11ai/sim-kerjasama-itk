@@ -39,7 +39,7 @@ final class ReviewerWorkload
     }
 
     /** Skema yang tidak menyatakan batasnya tidak membatasi apa pun. */
-    private static function limitFor(FormSubmission $submission): ?int
+    public static function limitFor(FormSubmission $submission): ?int
     {
         $rules = $submission->scheme?->rules;
 

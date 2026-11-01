@@ -3,7 +3,9 @@
 namespace App\Support;
 
 use App\Models\FormSubmission;
+use App\Models\Reviewer;
 use App\Models\User;
+use App\Models\UserProfile;
 use Illuminate\Validation\ValidationException;
 
 /**
@@ -18,26 +20,36 @@ final class ConflictOfInterestGuard
      */
     public static function conflicts(User $user, FormSubmission $submission): bool
     {
+        return in_array($user->id, self::conflictingUserIds($submission), true);
+    }
+
+    /**
+     * Seluruh user yang sudah berperan pada $submission — dipakai sekaligus oleh daftar kandidat
+     * supaya tidak dua query per baris. `ResearchMember` menunjuk `UserProfile`, `SubmissionReviewer`
+     * menunjuk `Reviewer`; keduanya diresolusi ke `User` karena id beda jenis selalu lolos.
+     *
+     * @return list<int>
+     */
+    public static function conflictingUserIds(FormSubmission $submission): array
+    {
         // BR-SM-04 — ketua pengaju adalah pihak yang dinilai, bukan penilai.
-        if ($submission->submitted_by === $user->id) {
-            return true;
-        }
+        $members = UserProfile::query()
+            ->whereHas('researchMembers', fn ($q) => $q
+                ->where('form_submission_id', $submission->id)
+                ->where('status', 'active'))
+            ->get(['id', 'user_id'])
+            ->map(fn (UserProfile $profile): int => $profile->user_id);
 
-        // `ResearchMember` menunjuk `UserProfile`, `SubmissionReviewer`
-        // menunjuk `Reviewer`; keduanya diresolusi ke `User` lebih dulu karena
-        // membandingkan id yang berbeda jenis akan selalu lolos.
-        $asMember = $submission->researchMembers()
-            ->where('status', 'active')
-            ->whereHas('userProfile', fn ($q) => $q->where('user_id', $user->id))
-            ->exists();
+        $reviewers = Reviewer::query()
+            ->whereHas('submissionReviewers', fn ($q) => $q->where('form_submission_id', $submission->id))
+            ->get(['id', 'user_id'])
+            ->map(fn (Reviewer $reviewer): int => $reviewer->user_id);
 
-        if ($asMember) {
-            return true;
-        }
-
-        return $submission->submissionReviewers()
-            ->whereHas('reviewer', fn ($q) => $q->where('user_id', $user->id))
-            ->exists();
+        return array_values(array_unique([
+            $submission->submitted_by,
+            ...$members->all(),
+            ...$reviewers->all(),
+        ]));
     }
 
     /**
