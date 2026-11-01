@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AnnouncementController;
+use App\Http\Controllers\AnnouncementImageController;
 use App\Http\Controllers\Audit\AuditLogController;
 use App\Http\Controllers\BiodataController;
 use App\Http\Controllers\CompleteFormBuilderController;
@@ -399,6 +400,13 @@ Route::middleware(['auth', 'can:submissions.view-all'])->prefix('admin')->name('
         ->name('submissions.index');
     Route::get('/submissions/{submission}', [OperatorSubmissionController::class, 'show'])
         ->name('submissions.show');
+});
+
+// fe-v2-design §4.7 K5 — Operator mengelola pengumuman tanpa users.manage.
+Route::middleware(['auth', 'can:announcements.manage'])->prefix('admin')->name('admin.')->group(function () {
+    // K6a — gambar sisipan editor; didaftarkan sebelum resource supaya tidak tertimpa.
+    Route::post('/announcements/images', AnnouncementImageController::class)
+        ->name('announcements.images.store');
 });
 
 // BR-SM-11 — penarikan pengajuan. Sengaja di luar grup `can:users.manage`:
