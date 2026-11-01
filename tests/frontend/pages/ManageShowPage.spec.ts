@@ -2,10 +2,14 @@ import { mount } from '@vue/test-utils'
 import { defineComponent, h, reactive } from 'vue'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-const { router } = vi.hoisted(() => ({ router: { post: vi.fn() } }))
+const { router, page } = vi.hoisted(() => ({
+    router: { post: vi.fn(), reload: vi.fn() },
+    page: { props: { flash: { workloadWarnings: null as string[] | null } } },
+}))
 
 vi.mock('@inertiajs/vue3', () => ({
     router,
+    usePage: () => page,
     useForm: <T extends object>(data: T) =>
         reactive({ ...data, errors: {}, processing: false, post: vi.fn(), reset: vi.fn() }),
     Head: defineComponent({ setup: () => () => null }),
@@ -107,6 +111,7 @@ const mountPage = (pageProps: ManageShowPageProps) =>
 beforeEach(() => {
     vi.stubGlobal('route', route)
     router.post.mockClear()
+    page.props.flash.workloadWarnings = null
 })
 
 describe('ManageShowPage', () => {
@@ -200,5 +205,13 @@ describe('ManageShowPage', () => {
         expect(mountPage(props()).text()).toContain(
             'Penelitian DIPA 2026 · Ketua: Dr. Budi Santoso · FTI — Teknik Mesin'
         )
+    })
+
+    it('[REV-ASSIGN-06] peringatan beban dari flash ditampilkan', () => {
+        const warning =
+            'Reviewer ini sedang memegang 9 penugasan aktif, melebihi batas 8 yang ditetapkan skema. Penugasan tetap dapat dilanjutkan.'
+        page.props.flash.workloadWarnings = [warning]
+
+        expect(mountPage(props()).text()).toContain(warning)
     })
 })

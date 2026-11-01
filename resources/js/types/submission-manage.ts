@@ -64,6 +64,17 @@ export interface OverrideTarget {
     affectedReviewers: string[]
 }
 
+// Sumber: ReviewerCandidateData — `blockedReason` = penugasan pasti ditolak (BR-REV-02/03).
+export interface ReviewerCandidate {
+    reviewerId: number
+    name: string
+    nidn: string | null
+    type: string
+    activeLoad: number
+    overloaded: boolean
+    blockedReason: string | null
+}
+
 export type OperatorActionKey = 'assign' | 'extend' | 'transfer' | 'reject' | 'withdraw'
 
 // Sumber: OperatorSubmissionDetail — detail peneliti tanpa pilihan target luaran.
@@ -78,4 +89,6 @@ export interface ManageShowPageProps extends Omit<SubmissionShowPageProps, 'targ
     ownershipCandidates: OwnershipCandidate[]
     overrideTarget: OverrideTarget
     operatorCan: OperatorAbilities
+    // Inertia::optional — hanya ada setelah partial reload dialog penugasan.
+    reviewerCandidates?: ReviewerCandidate[]
 }

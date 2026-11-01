@@ -1,6 +1,6 @@
 <script setup lang="ts">
 // Frame: OPERATOR-02-02
-import { Head, router } from '@inertiajs/vue3'
+import { Head, router, usePage } from '@inertiajs/vue3'
 import { Printer } from 'lucide-vue-next'
 import { computed, ref } from 'vue'
 
@@ -13,9 +13,11 @@ import DecisionSection from '@/Components/Submission/DecisionSection.vue'
 import FilesSection from '@/Components/Submission/FilesSection.vue'
 import HistoryTimeline from '@/Components/Submission/HistoryTimeline.vue'
 import InfoSection from '@/Components/Submission/InfoSection.vue'
+import AssignReviewersDialog from '@/Components/Submission/Manage/AssignReviewersDialog.vue'
 import ExtendDeadlineDialog from '@/Components/Submission/Manage/ExtendDeadlineDialog.vue'
 import OperatorActions from '@/Components/Submission/Manage/OperatorActions.vue'
 import RejectDialog from '@/Components/Submission/Manage/RejectDialog.vue'
+import ReplaceReviewerDialog from '@/Components/Submission/Manage/ReplaceReviewerDialog.vue'
 import ReviewersSection from '@/Components/Submission/Manage/ReviewersSection.vue'
 import ReviewTab from '@/Components/Submission/Manage/ReviewTab.vue'
 import TransferOwnershipDialog from '@/Components/Submission/Manage/TransferOwnershipDialog.vue'
@@ -24,6 +26,7 @@ import MembersSection from '@/Components/Submission/MembersSection.vue'
 import { Button } from '@/Components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/Components/ui/tabs'
 import AppLayout from '@/Layouts/AppLayout.vue'
+import type { PageProps } from '@/types'
 import type { ManageShowPageProps, OperatorActionKey } from '@/types/submission-manage'
 import type { FilterOption } from '@/types/submission-page'
 
@@ -56,6 +59,16 @@ const closeAction = (open: boolean) => {
         openAction.value = null
     }
 }
+const outgoing = computed(() => props.reviewers.find((r) => r.reviewerId === replacing.value))
+const closeReplace = (open: boolean) => {
+    if (!open) {
+        replacing.value = null
+    }
+}
+
+// REV-ASSIGN-06 — beban berlebih tidak menolak penugasan, hanya memperingatkan.
+const page = usePage<PageProps>()
+const workloadWarnings = computed(() => page.props.flash.workloadWarnings ?? [])
 
 // RPT-PRINT-01 — dokumen sudah disaring backend (BR-RPT-11).
 const print = (document: FilterOption) =>
@@ -89,6 +102,9 @@ const print = (document: FilterOption) =>
         </PageHeader>
 
         <div class="mb-6 flex flex-col gap-4">
+            <AppBanner v-for="warning in workloadWarnings" :key="warning" tone="warning">
+                {{ warning }}
+            </AppBanner>
             <AppBanner v-if="awaitingReviewers" tone="info">
                 Pengajuan menunggu penugasan reviewer.
             </AppBanner>
@@ -148,6 +164,22 @@ const print = (document: FilterOption) =>
             </aside>
         </div>
 
+        <AssignReviewersDialog
+            :open="openAction === 'assign'"
+            :submission-id="submission.id"
+            :active-count="activeReviewerCount"
+            :minimum="minimumReviewers"
+            :candidates="reviewerCandidates"
+            @update:open="closeAction"
+        />
+        <ReplaceReviewerDialog
+            v-if="outgoing"
+            :open="replacing !== null"
+            :submission-id="submission.id"
+            :outgoing="outgoing"
+            :candidates="reviewerCandidates"
+            @update:open="closeReplace"
+        />
         <ExtendDeadlineDialog
             :open="openAction === 'extend'"
             :submission-id="submission.id"

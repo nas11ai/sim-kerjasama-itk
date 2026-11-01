@@ -37,7 +37,7 @@ export interface FlashMessages {
     message: string | null
     error: string | null
     success: string | null
-    workloadWarnings: unknown[] | null
+    workloadWarnings: string[] | null
 }
 
 export type PageProps<T extends Record<string, unknown> = Record<string, unknown>> = T & {
