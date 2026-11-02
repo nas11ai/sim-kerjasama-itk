@@ -28,6 +28,8 @@ declare module '@inertiajs/core' {
             error?: string
             success?: string
             issuedInvitationUrl?: string
+            // BR-SCH-08 — jumlah pemilik draft yang diberi tahu; hanya ada bila tenggat mundur (W73).
+            deadlineExtended?: number
         }
     }
 }

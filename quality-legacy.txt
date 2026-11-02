@@ -55,7 +55,4 @@ resources/js/Pages/Statistics/FormSubmissionStats.vue
 resources/js/Pages/Statistics/SubmissionReviewerStats.vue
 resources/js/Pages/Statistics/UserStats.vue
 resources/js/Pages/SubmissionEvaluationManager/IndexPage.vue
-resources/js/Pages/SubmissionPeriods/CreatePage.vue
-resources/js/Pages/SubmissionPeriods/EditPage.vue
-resources/js/Pages/SubmissionPeriods/ShowPage.vue
 resources/js/Pages/WelcomePage.vue

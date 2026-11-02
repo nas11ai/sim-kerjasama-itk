@@ -29,7 +29,7 @@ class CreateSubmissionPeriod
             foreach ($input->dates as $row) {
                 SubmissionDate::create([
                     'submission_period_id' => $period->id,
-                    'submission_date_label_id' => SubmissionDateLabel::where('name', $row['label'])->firstOrFail()->id,
+                    'submission_date_label_id' => SubmissionDateLabel::named($row['label'])->id,
                     'datetime' => $row['date'],
                 ]);
             }

@@ -11,6 +11,7 @@ use App\Actions\Period\ExtendSubmissionDates;
 use App\Models\User;
 use App\Models\UserProfile;
 use App\Notifications\SubmissionDeadlineExtendedNotification;
+use Database\Seeders\PermissionSeeder;
 use Illuminate\Support\Facades\Notification;
 use Inertia\Testing\AssertableInertia as Assert;
 use Spatie\Activitylog\Models\Activity;
@@ -28,7 +29,8 @@ it('[SCH-RULE-11] perpanjangan memberi tahu pemilik draft', function () {
         ['label' => $label, 'date' => now()->addMonth()->toDateTimeString()],
     ]);
 
-    expect($diberitahu)->toBe(1);
+    expect($diberitahu->notified)->toBe(1)
+        ->and($diberitahu->extended)->toBeTrue();
     Notification::assertSentTo($fx['user'], SubmissionDeadlineExtendedNotification::class);
 });
 
@@ -60,7 +62,8 @@ it('[SCH-RULE-13] tanpa draft berjalan tidak ada notifikasi terkirim', function 
         ['label' => $label, 'date' => now()->addMonth()->toDateTimeString()],
     ]);
 
-    expect($diberitahu)->toBe(0);
+    expect($diberitahu->notified)->toBe(0)
+        ->and($diberitahu->extended)->toBeTrue();
     Notification::assertNothingSent();
 });
 
@@ -78,7 +81,8 @@ it('[SCH-RULE-11] memajukan tanggal tidak memicu notifikasi perpanjangan', funct
         ['label' => $label, 'date' => now()->addDay()->toDateTimeString()],
     ]);
 
-    expect($diberitahu)->toBe(0);
+    expect($diberitahu->notified)->toBe(0)
+        ->and($diberitahu->extended)->toBeFalse();
     Notification::assertNothingSent();
 });
 
@@ -139,4 +143,49 @@ it('[SCH-RULE-11] daftar periode membawa jumlah pemilik draft berjalan', functio
             ->where('periods.data.0.id', $fx['period']->id)
             ->where('periods.data.0.draftOwnerCount', 1)
             ->etc());
+});
+
+// W73 — BR-SCH-08 menyasar pemilik DRAFT aktif. Draft di periode yang ditutup Operator
+// terarsip (BR-SM-13) dan tetap terkunci walau tanggalnya mundur (BR-SCH-07).
+it('perpanjangan di periode yang ditutup Operator tidak memberi tahu siapa pun', function () {
+    Notification::fake();
+
+    $fx = wizardFixture();
+    StartSubmission::run($fx['form']->id, $fx['period']->id, $fx['detail'], $fx['user']);
+    $fx['period']->update(['is_force_closed' => true]);
+    $label = $fx['period']->submissionDates->first()->submissionDateLabel->name;
+
+    $hasil = ExtendSubmissionDates::run($fx['period']->fresh(), [
+        ['label' => $label, 'date' => now()->addMonths(2)->toDateTimeString()],
+    ]);
+
+    expect($hasil->extended)->toBeTrue()
+        ->and($hasil->notified)->toBe(0)
+        ->and(Activity::query()->where('description', 'Tenggat periode diperpanjang')->exists())->toBeFalse();
+    Notification::assertNothingSent();
+});
+
+it('flash deadlineExtended hanya saat tenggat mundur', function () {
+    Notification::fake();
+    $this->seed(PermissionSeeder::class);
+    $operator = User::factory()->create();
+    $operator->assignRole('operator');
+
+    $fx = wizardFixture();
+    $date = $fx['period']->submissionDates()->with('submissionDateLabel')->firstOrFail();
+    $payload = fn (string $at) => [
+        'name' => $fx['period']->name,
+        'submission_dates' => [['label' => $date->submissionDateLabel->name, 'date' => $at]],
+        'form_phase_ids' => [$fx['phase']->id],
+    ];
+
+    $this->actingAs($operator)
+        ->put(route('admin.submission-periods.update', $fx['period']), $payload($date->datetime->copy()->subDay()->toDateTimeString()))
+        ->assertSessionHasNoErrors()
+        ->assertInertiaFlashMissing('deadlineExtended');
+
+    // SCH-RULE-13 — mundur tanpa draft berjalan: layar tetap tahu ada perpanjangan.
+    $this->actingAs($operator)
+        ->put(route('admin.submission-periods.update', $fx['period']), $payload(now()->addMonths(3)->toDateTimeString()))
+        ->assertInertiaFlash('deadlineExtended', 0);
 });

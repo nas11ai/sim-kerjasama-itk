@@ -36,7 +36,6 @@ use App\Http\Controllers\ReviewFormResponseController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\SchemeController;
 use App\Http\Controllers\StatController;
-use App\Http\Controllers\StoreSubmissionDateLabelController;
 use App\Http\Controllers\Submission\BudgetLineItemController;
 use App\Http\Controllers\Submission\ChildSubmissionController;
 use App\Http\Controllers\Submission\OperatorSubmissionController;
@@ -320,17 +319,8 @@ Route::middleware(['auth', 'can:users.manage'])->prefix('admin')->name('admin.')
         'destroy' => 'form-access-controls.destroy',
     ]);
 
-    Route::resource('submission-periods', SubmissionPeriodController::class)->except(['index'])->names([
-        'create' => 'submission-periods.create',
-        'store' => 'submission-periods.store',
-        'show' => 'submission-periods.show',
-        'edit' => 'submission-periods.edit',
-        'update' => 'submission-periods.update',
-        'destroy' => 'submission-periods.destroy',
-    ]);
-
-    Route::post('/submission-date-labels', StoreSubmissionDateLabelController::class)
-        ->name('submission-date-labels.store');
+    Route::delete('submission-periods/{submissionPeriod}', [SubmissionPeriodController::class, 'destroy'])
+        ->name('submission-periods.destroy');
 
     // Additional routes for Form Access Controls
     Route::post('form-access-controls/bulk-create', [FormAccessControlController::class, 'bulkCreate'])
@@ -447,6 +437,10 @@ Route::middleware(['auth', 'can:submissions.view-all'])->prefix('admin')->name('
 Route::middleware(['auth', 'can:periods.manage'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/submission-periods', [PeriodController::class, 'index'])
         ->name('submission-periods.index');
+    Route::post('/submission-periods', [PeriodController::class, 'store'])
+        ->name('submission-periods.store');
+    Route::put('/submission-periods/{submissionPeriod}', [PeriodController::class, 'update'])
+        ->name('submission-periods.update');
 });
 
 Route::middleware(['auth', 'can:periods.manage'])->get('/submission-periods', fn () => redirect()->route('admin.submission-periods.index'));

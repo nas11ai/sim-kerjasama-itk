@@ -19,7 +19,8 @@ class SubmissionPeriodRequest extends FormRequest
         return [
             'name' => 'required|string|max:255',
             'submission_dates' => 'required|array|min:1',
-            'submission_dates.*.label' => 'required|string|max:255|exists:submission_date_labels,name',
+            // W72 — label teks bebas; label baru dibuat saat periode disimpan (BR-FE-17).
+            'submission_dates.*.label' => 'required|string|max:255',
             'submission_dates.*.date' => 'required|date',
             'form_phase_ids' => 'required|array|min:1',
             'form_phase_ids.*' => 'exists:form_phases,id',
@@ -64,7 +65,7 @@ class SubmissionPeriodRequest extends FormRequest
                 continue;
             }
 
-            $rows[] = ['label' => $row['label'], 'date' => $row['date']];
+            $rows[] = ['label' => trim($row['label']), 'date' => $row['date']];
         }
 
         return $rows;

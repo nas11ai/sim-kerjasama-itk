@@ -11,14 +11,15 @@ use App\Models\SubmissionPeriodPhase;
 use App\Models\User;
 use App\Notifications\SubmissionDeadlineExtendedNotification;
 use App\Support\Audit\AuditTrail;
+use Database\Seeders\PermissionSeeder;
 use Illuminate\Support\Facades\Notification;
 use Spatie\Activitylog\Models\Activity;
-use Spatie\Permission\Models\Role;
 
 beforeEach(function () {
-    Role::findOrCreate('Super Admin');
+    $this->seed(PermissionSeeder::class);
+    // OPERATOR-09-01 — pemegang periods.manage (§4.4 K1), bukan users.manage.
     $this->admin = User::factory()->create();
-    $this->admin->assignRole('Super Admin');
+    $this->admin->assignRole('operator');
     $this->phase = FormPhase::create(['title' => 'Fase Satu', 'is_active' => true]);
     $this->labelA = SubmissionDateLabel::create(['name' => 'Batas Awal']);
     $this->labelB = SubmissionDateLabel::create(['name' => 'Batas Akhir']);
@@ -137,7 +138,7 @@ it('sends the extension notice after a successful revision (BR-SCH-08)', functio
 
     $this->actingAs($this->admin)
         ->put(route('admin.submission-periods.update', $fx['period']), $payload)
-        ->assertSessionHas('notifiedDraftOwners', 1);
+        ->assertInertiaFlash('deadlineExtended', 1);
 
     Notification::assertSentTo($fx['user'], SubmissionDeadlineExtendedNotification::class);
 });
@@ -154,4 +155,50 @@ it('does not paste the exception message onto the screen', function () {
     expect(fn () => $this->actingAs($this->admin)->post(route('admin.submission-periods.store'), $payload))
         ->toThrow(RuntimeException::class);
     expect(SubmissionPeriod::count())->toBe(0);
+});
+
+it('label di-trim dan dipakai ulang', function () {
+    $payload = periodPayload([['label' => '  Batas Awal ', 'date' => '2030-01-01']]);
+
+    $this->actingAs($this->admin)
+        ->post(route('admin.submission-periods.store'), $payload)
+        ->assertSessionHasNoErrors();
+
+    expect(SubmissionDateLabel::count())->toBe(2)
+        ->and(SubmissionPeriod::firstOrFail()->submissionDates()->sole()->submission_date_label_id)->toBe($this->labelA->id);
+});
+
+it('label baru dibuat saat periode disimpan — BR-FE-17 butuh tenggat per tahap', function () {
+    $payload = periodPayload([
+        ['label' => 'Batas Awal', 'date' => '2030-01-01'],
+        ['label' => 'Batas Evaluasi', 'date' => '2030-02-01'],
+    ]);
+
+    $this->actingAs($this->admin)
+        ->post(route('admin.submission-periods.store'), $payload)
+        ->assertSessionHasNoErrors()
+        ->assertRedirect(route('admin.submission-periods.index'));
+
+    expect(SubmissionDateLabel::where('name', 'Batas Evaluasi')->exists())->toBeTrue();
+});
+
+it('dua label yang sama setelah di-trim ditolak', function () {
+    $payload = periodPayload([
+        ['label' => 'Batas Awal', 'date' => '2030-01-01'],
+        ['label' => ' Batas Awal', 'date' => '2030-02-01'],
+    ]);
+
+    $this->actingAs($this->admin)
+        ->post(route('admin.submission-periods.store'), $payload)
+        ->assertSessionHasErrors('submission_dates');
+});
+
+it('peneliti tidak bisa menyimpan atau merevisi periode', function () {
+    $researcher = User::factory()->create();
+    $researcher->assignRole('researcher');
+    $period = SubmissionPeriod::factory()->create();
+    $payload = periodPayload([['label' => 'Batas Awal', 'date' => '2030-01-01']]);
+
+    $this->actingAs($researcher)->post(route('admin.submission-periods.store'), $payload)->assertForbidden();
+    $this->actingAs($researcher)->put(route('admin.submission-periods.update', $period), $payload)->assertForbidden();
 });

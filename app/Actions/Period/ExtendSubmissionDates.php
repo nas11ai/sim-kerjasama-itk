@@ -2,6 +2,7 @@
 
 namespace App\Actions\Period;
 
+use App\Data\Result\DeadlineExtension;
 use App\Models\SubmissionDate;
 use App\Models\SubmissionDateLabel;
 use App\Models\SubmissionPeriod;
@@ -20,7 +21,7 @@ use Lorisleiva\Actions\Concerns\AsAction;
  * lama dibandingkan dengan baru); memajukan atau mengganti nama tidak memberi
  * peneliti kesempatan baru, memperpanjang memberi.
  *
- * @method static int run(SubmissionPeriod $period, array<int, array{label: string, date: string}> $dates, ?User $actor = null)
+ * @method static DeadlineExtension run(SubmissionPeriod $period, array<int, array{label: string, date: string}> $dates, ?User $actor = null)
  */
 class ExtendSubmissionDates
 {
@@ -28,22 +29,27 @@ class ExtendSubmissionDates
 
     /**
      * @param  array<int, array{label: string, date: string}>  $dates
-     * @return int jumlah peneliti yang diberi tahu
      */
-    public function handle(SubmissionPeriod $period, array $dates, ?User $actor = null): int
+    public function handle(SubmissionPeriod $period, array $dates, ?User $actor = null): DeadlineExtension
     {
-        return DB::transaction(function () use ($period, $dates, $actor): int {
+        return DB::transaction(function () use ($period, $dates, $actor): DeadlineExtension {
             // Mengirim untuk setiap penyuntingan membuat notifikasi ini cepat
             // diabaikan, dan yang hilang justru yang penting.
             if (!$this->syncDates($period, $dates)) {
-                return 0;
+                return new DeadlineExtension(extended: false, notified: 0);
+            }
+
+            // W73 — draft di periode yang ditutup Operator terarsip (BR-SM-13) dan tetap
+            // terkunci (BR-SCH-07): bukan DRAFT aktif, jadi tidak ada janji yang dikirim.
+            if ($period->is_force_closed) {
+                return new DeadlineExtension(extended: true, notified: 0);
             }
 
             $pemilikDraft = PeriodDraftOwners::run($period);
 
             // SCH-RULE-13 — tanpa draft berjalan, tidak ada yang perlu diberi tahu.
             if ($pemilikDraft->isEmpty()) {
-                return 0;
+                return new DeadlineExtension(extended: true, notified: 0);
             }
 
             // BR-RPT-09 — revisi periode bisa menulis dua entri berbeda: periode
@@ -57,7 +63,7 @@ class ExtendSubmissionDates
                 Deliver::to($pemilikDraft, new SubmissionDeadlineExtendedNotification($period));
             });
 
-            return $pemilikDraft->count();
+            return new DeadlineExtension(extended: true, notified: $pemilikDraft->count());
         });
     }
 
@@ -76,7 +82,7 @@ class ExtendSubmissionDates
 
         foreach ($dates as $row) {
             $baru = Carbon::parse($row['date']);
-            $lama = $existing->get($row['label']);
+            $lama = $existing->get(trim($row['label']));
 
             if ($lama instanceof SubmissionDate) {
                 if ($baru->gt($lama->datetime)) {
@@ -94,7 +100,7 @@ class ExtendSubmissionDates
 
             $terpakai[] = SubmissionDate::create([
                 'submission_period_id' => $period->id,
-                'submission_date_label_id' => SubmissionDateLabel::where('name', $row['label'])->firstOrFail()->id,
+                'submission_date_label_id' => SubmissionDateLabel::named($row['label'])->id,
                 'datetime' => $baru,
             ])->id;
         }

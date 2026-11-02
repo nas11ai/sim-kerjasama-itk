@@ -149,6 +149,45 @@ describe('FormEngine/PeriodIndexPage', () => {
         expect(plain.text()).toContain('42')
     })
 
+    it('[SCH-RULE-13] banner tanpa peneliti saat flash 0', () => {
+        page.flash = { deadlineExtended: 0 }
+        expect(mountPage([periodRow()]).text()).toContain(
+            'Tenggat diperbarui. Tidak ada peneliti yang perlu diberi tahu.'
+        )
+    })
+
+    it('[SCH-RULE-11] banner menyebut jumlah yang diberi tahu', () => {
+        page.flash = { deadlineExtended: 7 }
+        const text = mountPage([periodRow()]).text()
+        expect(text).toContain('Tenggat diperbarui. 7 peneliti yang masih punya draft diberi tahu.')
+    })
+
+    it('tanpa flash perpanjangan tidak ada banner tenggat', () => {
+        expect(mountPage([periodRow()]).text()).not.toContain('Tenggat diperbarui')
+    })
+
+    it('"Buat Periode Baru" dan "Edit" membuka dialog periode', async () => {
+        const wrapper = mountPage([periodRow()])
+        const click = async (label: string) => {
+            await wrapper
+                .findAll('button')
+                .find((b) => b.text().trim() === label)
+                ?.trigger('click')
+        }
+
+        await click('Buat Periode Baru')
+        expect(document.body.textContent).toContain('Simpan Periode')
+        expect(document.body.textContent).not.toContain('Sunting Periode')
+        wrapper.unmount()
+
+        const second = mountPage([periodRow()])
+        await second
+            .findAll('button')
+            .find((b) => b.text().trim() === 'Edit')
+            ?.trigger('click')
+        expect(document.body.textContent).toContain('Sunting Periode')
+    })
+
     it('daftar kosong menampilkan state kosong', () => {
         expect(mountPage([]).text()).toContain('Belum ada periode pengajuan')
     })

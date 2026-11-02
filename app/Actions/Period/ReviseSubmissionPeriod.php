@@ -3,6 +3,7 @@
 namespace App\Actions\Period;
 
 use App\Data\Request\SubmissionPeriodInput;
+use App\Data\Result\DeadlineExtension;
 use App\Models\SubmissionPeriod;
 use App\Models\User;
 use App\Support\Audit\AuditChange;
@@ -15,16 +16,15 @@ use Lorisleiva\Actions\Concerns\AsAction;
  * perpanjangan (BR-SCH-08) baru terkirim sesudah commit transaksi ini, sehingga
  * revisi yang gagal tidak pernah mengabari peneliti.
  *
- * @method static int run(SubmissionPeriod $period, SubmissionPeriodInput $input, User $actor)
+ * @method static DeadlineExtension run(SubmissionPeriod $period, SubmissionPeriodInput $input, User $actor)
  */
 class ReviseSubmissionPeriod
 {
     use AsAction;
 
-    /** @return int jumlah peneliti yang akan diberi tahu */
-    public function handle(SubmissionPeriod $period, SubmissionPeriodInput $input, User $actor): int
+    public function handle(SubmissionPeriod $period, SubmissionPeriodInput $input, User $actor): DeadlineExtension
     {
-        return DB::transaction(function () use ($period, $input, $actor): int {
+        return DB::transaction(function () use ($period, $input, $actor): DeadlineExtension {
             $old = [
                 'name' => $period->name,
                 'form_phase_ids' => $period->submissionPeriodPhases()->pluck('form_phase_id')->all(),
@@ -35,7 +35,7 @@ class ReviseSubmissionPeriod
 
             // Tanggal disinkronkan di antara dua penulisan tahap: galat sesudahnya
             // menggulung kembali semuanya, termasuk notifikasi yang tertunda.
-            $notified = ExtendSubmissionDates::run($period, $input->dates, $actor);
+            $extension = ExtendSubmissionDates::run($period, $input->dates, $actor);
 
             foreach ($input->formPhaseIds as $formPhaseId) {
                 $period->submissionPeriodPhases()->create(['form_phase_id' => $formPhaseId]);
@@ -52,7 +52,7 @@ class ReviseSubmissionPeriod
                 ),
             );
 
-            return $notified;
+            return $extension;
         });
     }
 }
