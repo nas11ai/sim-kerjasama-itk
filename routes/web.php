@@ -14,6 +14,7 @@ use App\Http\Controllers\FormController;
 use App\Http\Controllers\FormPhaseController;
 use App\Http\Controllers\Identity\InvitationController;
 use App\Http\Controllers\Identity\NidnVerificationController;
+use App\Http\Controllers\Identity\ReviewerManagementController;
 use App\Http\Controllers\Identity\UserAccessController;
 use App\Http\Controllers\Identity\UserController;
 use App\Http\Controllers\Identity\VerificationFileController;
@@ -28,7 +29,6 @@ use App\Http\Controllers\Review\ReviewAttachmentDownloadController;
 use App\Http\Controllers\Review\ReviewerAssignmentController;
 use App\Http\Controllers\Review\ReviewSummaryResolutionController;
 use App\Http\Controllers\ReviewController;
-use App\Http\Controllers\ReviewerController;
 use App\Http\Controllers\ReviewerFormAssignmentController;
 use App\Http\Controllers\ReviewEvaluationFormController;
 use App\Http\Controllers\ReviewFormResponseController;
@@ -290,13 +290,6 @@ Route::middleware(['auth', 'can:users.manage'])->prefix('admin')->name('admin.')
     Route::post('/review-summaries/{reviewSummary}/comments', [ReviewController::class, 'addComment'])
         ->name('review-comments.store');
 
-    // Reviewer Management
-    Route::resource('reviewers', ReviewerController::class);
-    Route::patch('reviewers/{reviewer}/deactivate', [ReviewerController::class, 'deactivate'])
-        ->name('reviewers.deactivate');
-    Route::patch('reviewers/{reviewer}/activate', [ReviewerController::class, 'activate'])
-        ->name('reviewers.activate');
-
     Route::resource('form-phases', FormPhaseController::class)->names([
         'index' => 'form-phases.index',
         'create' => 'form-phases.create',
@@ -432,6 +425,17 @@ Route::middleware(['auth', 'can:manage,App\\Models\\InvitationToken'])->prefix('
         ->name('invitations.revoke');
 });
 
+// BR-IAM-11, BR-REV-09, W47 — manajemen reviewer: reviewers.assign, bukan users.manage.
+// W50 — tanpa hapus/aktifkan/nonaktifkan; masa tugas diakhiri lewat update.
+Route::middleware(['auth', 'can:reviewers.assign'])->prefix('admin')->name('admin.')->group(function () {
+    Route::get('/reviewers', [ReviewerManagementController::class, 'index'])
+        ->name('reviewers.index');
+    Route::post('/reviewers', [ReviewerManagementController::class, 'store'])
+        ->name('reviewers.store');
+    Route::put('/reviewers/{reviewer}', [ReviewerManagementController::class, 'update'])
+        ->name('reviewers.update');
+});
+
 // BR-SM-07 — layar pengajuan Operator dijaga view-all, bukan users.manage:
 // pemegang view-all tanpa hak kelola pengguna tetap harus bisa membacanya (§4.4 K1).
 Route::middleware(['auth', 'can:submissions.view-all'])->prefix('admin')->name('admin.')->group(function () {
@@ -550,9 +554,6 @@ Route::middleware(['auth'])->group(function () {
             ->name('organizations.move-user');
         Route::post('/organizations/{organization}/deactivate', [OrganizationController::class, 'deactivate'])
             ->name('organizations.deactivate');
-        // BR-IAM-11 — penunjukan reviewer (pindah ke reviewers.assign di I1-2).
-        Route::post('/users/{user}/appoint-reviewer', [UserAccessController::class, 'appointReviewer'])
-            ->name('users.appoint-reviewer');
         // BR-FE-08/09/10 — perpanjangan akses satu fase untuk satu pengajuan.
         // BR-MON-04/07/10 — pengelolaan siklus monev.
         Route::get('/submissions/{submission}/monev', [MonevCycleController::class, 'show'])

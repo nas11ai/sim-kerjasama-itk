@@ -3,68 +3,75 @@
 namespace App\Queries\Review;
 
 use App\Actions\Concerns\ChangesNoState;
+use App\Data\View\Identity\ReviewerRowData;
+use App\Enums\ReviewerStanding;
 use App\Models\Reviewer;
-use Illuminate\Contracts\Pagination\LengthAwarePaginator;
+use App\Models\SubmissionReviewer;
+use App\Support\Search\LikePattern;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Lorisleiva\Actions\Concerns\AsAction;
 
 /**
- * BR-REV-09 — daftar reviewer untuk Operator. Filter status memakai definisi masa tugas
- * yang sama dengan penugasan (ReviewersWithinTenure), dan `is_active` tiap baris dari
- * Reviewer::isWithinTenure(), sehingga daftar tidak berbeda pendapat dengan penugasan.
+ * BR-REV-09 — daftar reviewer untuk Operator (OPERATOR-08-04). Kedudukan memakai definisi
+ * masa tugas yang sama dengan penugasan (ReviewerStanding), sehingga daftar tidak berbeda
+ * pendapat dengan penugasan. Nilai filter tak dikenal diabaikan.
  *
- * @method static LengthAwarePaginator<int, Reviewer> run(?string $search, ?string $type, ?string $status)
+ * @phpstan-type Filters array{search: string, type: string, standing: string}
+ *
+ * @method static LengthAwarePaginator<int, ReviewerRowData> run(Filters $filters, bool $linksHistory)
  */
 class ReviewerDirectory implements ChangesNoState
 {
     use AsAction;
 
-    /** @return LengthAwarePaginator<int, Reviewer> */
-    public function handle(?string $search, ?string $type, ?string $status): LengthAwarePaginator
+    private const PER_PAGE = 20;
+
+    /**
+     * @param  Filters  $filters
+     * @return LengthAwarePaginator<int, ReviewerRowData>
+     */
+    public function handle(array $filters, bool $linksHistory): LengthAwarePaginator
     {
-        $query = Reviewer::query()->with('user:id,name,email');
+        $query = Reviewer::query()
+            ->with('user:id,name,email,is_active')
+            // W54 — beban tugas = penugasan aktif yang evaluasinya belum beres.
+            ->withCount(['submissionReviewers as running_assignments' => $this->unsettled(...)])
+            ->orderByDesc('created_at')
+            ->orderByDesc('id');
 
-        $this->filterSearch($query, $search);
-        $this->filterStatus($query, $status);
+        $this->filter($query, $filters);
 
-        if ($type !== null && $type !== '') {
-            $query->where('reviewer_type', $type);
-        }
-
-        $reviewers = $query->orderByDesc('created_at')->paginate(10);
-
-        $reviewers->getCollection()->each(function (Reviewer $reviewer): void {
-            $reviewer->is_active = $reviewer->isWithinTenure();
-        });
-
-        return $reviewers;
+        return $query->paginate(self::PER_PAGE)->withQueryString()
+            ->through(fn (Reviewer $reviewer): ReviewerRowData => ReviewerRowData::fromModel($reviewer, $linksHistory));
     }
 
-    /** @param Builder<Reviewer> $query */
-    private function filterSearch(Builder $query, ?string $search): void
+    /** @param  Builder<SubmissionReviewer>  $assignments */
+    private function unsettled(Builder $assignments): void
     {
-        if ($search === null || $search === '') {
-            return;
-        }
-
-        $query->where(fn ($q) => $q
-            ->whereHas('user', fn ($u) => $u
-                ->whereLike('name', "%{$search}%")
-                ->orWhereLike('email', "%{$search}%"))
-            ->orWhereLike('reviewer_type', "%{$search}%"));
+        $assignments->unsettledEvaluation();
     }
 
-    /** @param Builder<Reviewer> $query */
-    private function filterStatus(Builder $query, ?string $status): void
+    /**
+     * @param  Builder<Reviewer>  $query
+     * @param  Filters  $filters
+     */
+    private function filter(Builder $query, array $filters): void
     {
-        if ($status === null || $status === '') {
-            return;
+        if ($filters['search'] !== '') {
+            $pattern = LikePattern::contains($filters['search']);
+            $query->whereHas('user', fn (Builder $user) => $user
+                ->where(fn (Builder $q) => $q->whereLike('name', $pattern)->orWhereLike('email', $pattern)));
         }
 
-        $withinTenure = ReviewersWithinTenure::run()->select('id');
+        if (in_array($filters['type'], ['internal', 'external'], true)) {
+            $query->where('reviewer_type', $filters['type']);
+        }
 
-        $status === 'active'
-            ? $query->whereIn('id', $withinTenure)
-            : $query->whereNotIn('id', $withinTenure);
+        $standing = ReviewerStanding::tryFrom($filters['standing']);
+
+        if ($standing !== null) {
+            ReviewerStanding::scope($query, $standing);
+        }
     }
 }

@@ -170,17 +170,23 @@ it('[IAM-REVIEWER-02] penunjukan eksternal memberi role pembatas', function () {
 });
 
 it('[IAM-REVIEWER-03] menunjuk orang tanpa akun ditolak', function () {
-    Permission::findOrCreate('users.manage', 'web');
+    Permission::findOrCreate('reviewers.assign', 'web');
     $operator = registeredPerson();
-    $operator->givePermissionTo('users.manage');
+    $operator->givePermissionTo('reviewers.assign');
+    $before = Reviewer::count();
 
     // Tidak ada user dengan id ini — penunjukan memilih dari yang sudah ada,
     // bukan membuat akun baru.
     $this->actingAs($operator)
-        ->post(route('admin.users.appoint-reviewer', 999999), [
+        ->post(route('admin.reviewers.store'), [
+            'user_id' => 999999,
             'reviewer_type' => 'external',
+            'start_date' => today()->toDateString(),
+            'end_date' => today()->addYear()->toDateString(),
         ])
-        ->assertNotFound();
+        ->assertSessionHasErrors('user_id');
+
+    expect(Reviewer::count())->toBe($before);
 });
 
 it('[IAM-REVIEWER-04] menunjuk ulang tidak membuat record kedua', function () {

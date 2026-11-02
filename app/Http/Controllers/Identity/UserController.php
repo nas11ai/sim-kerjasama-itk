@@ -12,6 +12,7 @@ use App\Models\User;
 use App\Models\UserProfile;
 use App\Queries\Identity\UserDetail;
 use App\Queries\Identity\UserDirectory;
+use App\Support\Identity\ReviewerTypeCatalog;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -50,7 +51,11 @@ class UserController extends Controller
         $viewer = $request->user();
         abort_unless($viewer instanceof User, 403);
 
-        return Inertia::render('Identity/UserShowPage', UserDetail::run($viewer, $user, $request->string('tab')->value()));
+        return Inertia::render('Identity/UserShowPage', [
+            ...UserDetail::run($viewer, $user, $request->string('tab')->value()),
+            // BR-IAM-11 — dialog "Tunjuk sebagai Reviewer".
+            'reviewerTypeOptions' => ReviewerTypeCatalog::options(),
+        ]);
     }
 
     public function updateRoles(ChangeUserRolesRequest $request, User $user): RedirectResponse
