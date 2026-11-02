@@ -6,6 +6,7 @@ use App\Actions\Identity\RejectNidnVerification;
 use App\Models\User;
 use App\Models\UserProfile;
 use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Facades\Route;
 use Inertia\Testing\AssertableInertia;
 use Spatie\Permission\Models\Permission;
 
@@ -40,7 +41,7 @@ it('kontrak kartu pending', function () {
                 ->where('nidn', '0654321098')
                 ->where('rejectedAt', null)
                 ->where('rejectionReason', null)
-                ->where('files', [])
+                ->missing('files')
                 ->hasAll(['email', 'organization', 'registeredAt']))
             ->has('rejected', 0));
 });
@@ -102,4 +103,17 @@ it('akun ditolak membaca rejectedAt di layar status', function () {
         ->assertInertia(fn (AssertableInertia $page) => $page
             ->where('verification.status', 'rejected')
             ->where('verification.rejectedAt', fn (?string $value) => $value !== null));
+});
+
+// W61 (pemilik, 2026-11-02) — aplikasi tidak menyimpan KTP; pembaca berkas biodata W58 dihapus.
+it('kartu verifikasi tidak membawa berkas identitas', function () {
+    queueProfile('Dr. Maya Sari', '0654321098');
+
+    $this->actingAs(queueVerifier())
+        ->get(route('admin.verifications.index'))
+        ->assertInertia(fn (AssertableInertia $page) => $page->missing('pending.0.files'));
+});
+
+it('route berkas biodata tidak ada lagi', function () {
+    expect(Route::has('admin.verifications.files.show'))->toBeFalse();
 });

@@ -54,11 +54,3 @@ export interface DashboardIndexPageProps {
 export interface ProfileCompletion {
     missing: string[]
 }
-
-// Shared prop `biodataStatus` dari CheckBiodata (sesi); null di luar grup check_biodata.
-export interface BiodataStatusFlags {
-    required: boolean
-    completed: boolean
-    status?: string
-    message?: string
-}

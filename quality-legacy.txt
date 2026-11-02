@@ -59,5 +59,4 @@ resources/js/Pages/SubmissionPeriods/CreatePage.vue
 resources/js/Pages/SubmissionPeriods/EditPage.vue
 resources/js/Pages/SubmissionPeriods/IndexPage.vue
 resources/js/Pages/SubmissionPeriods/ShowPage.vue
-resources/js/Pages/User/Biodata/IndexPage.vue
 resources/js/Pages/WelcomePage.vue

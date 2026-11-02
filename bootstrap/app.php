@@ -1,6 +1,5 @@
 <?php
 
-use App\Http\Middleware\CheckBiodata;
 use App\Http\Middleware\CheckRole;
 use App\Http\Middleware\EnsureAccountActive;
 use App\Http\Middleware\HandleInertiaRequests;
@@ -30,7 +29,6 @@ return Application::configure(basePath: dirname(__DIR__))
             'role' => CheckRole::class,
             'permission' => PermissionMiddleware::class,
             'role_or_permission' => RoleOrPermissionMiddleware::class,
-            'check_biodata' => CheckBiodata::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {

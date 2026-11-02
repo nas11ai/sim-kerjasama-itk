@@ -66,7 +66,6 @@ class HandleInertiaRequests extends Middleware
                     'unreadNotifications' => UnreadNotificationCount::run($request->user()),
                 ]
                 : null,
-            'biodataStatus' => fn () => $request->session()->get('biodataStatus'),
         ]);
     }
 

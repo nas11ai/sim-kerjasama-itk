@@ -84,8 +84,8 @@ it('tamu diarahkan ke login', function () {
     $this->get(route('dashboard'))->assertRedirect(route('login'));
 });
 
-it('dasbor terbuka bagi biodata pending dan menampilkan statusnya', function () {
-    // Dasbor adalah tujuan redirect CheckBiodata: kalau ia ikut dialihkan, terjadi loop.
+it('dasbor tidak lagi mengirim biodataStatus', function () {
+    // W61 — gerbang biodata Form-Engine dihapus; sisa data biodata lama tidak memunculkannya lagi.
     $type = FormType::forceCreate(['id' => FormType::BIODATA_ID, 'name' => 'Biodata']);
     $form = Form::factory()->create(['form_type_id' => $type->id, 'is_active' => true]);
     $user = User::factory()->create();
@@ -102,9 +102,7 @@ it('dasbor terbuka bagi biodata pending dan menampilkan statusnya', function () 
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
             ->component('Dashboard/IndexPage')
-            ->where('biodataStatus.required', true)
-            ->where('biodataStatus.completed', false)
-            ->where('biodataStatus.status', 'submitted')
+            ->missing('biodataStatus')
         );
 });
 

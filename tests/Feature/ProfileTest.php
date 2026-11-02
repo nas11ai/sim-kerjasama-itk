@@ -5,11 +5,15 @@
 // (BR-IAM-01/02/18), tanpa notifikasi (BR-IAM-15), diaudit (BR-RPT-09).
 
 use App\Enums\VerificationStatus;
+use App\Models\Form;
+use App\Models\FormType;
 use App\Models\User;
 use App\Models\UserProfile;
 use App\Support\Audit\AuditTrail;
 use Illuminate\Support\Facades\Notification;
 use Spatie\Activitylog\Models\Activity;
+use Spatie\Permission\Models\Permission;
+use Spatie\Permission\Models\Role;
 
 function profileOwner(array $profile = []): User
 {
@@ -118,4 +122,20 @@ it('akun nonaktif tidak bisa menyunting profil', function () {
         ->assertRedirect(route('login'));
 
     expect($user->fresh()->name)->toBe('Budi Santoso');
+});
+
+// W61 — biodata Form-Engine dihapus; nama route lama tetap sebagai redirect sampai F99 (pola W46).
+it('tautan biodata lama dialihkan ke Profil Saya', function () {
+    $this->actingAs(profileOwner())->get('/user/biodata')->assertRedirect('/profile');
+});
+
+it('pengguna role Mahasiswa tanpa biodata tidak dialihkan', function () {
+    // Tiga gerbang DDD (verifikasi, keaktifan, kelengkapan profil), bukan empat.
+    $type = FormType::forceCreate(['id' => FormType::BIODATA_ID, 'name' => 'Biodata']);
+    Form::factory()->create(['form_type_id' => $type->id, 'is_active' => true]);
+    $user = profileOwner();
+    $user->assignRole(Role::findOrCreate('Mahasiswa', 'web'));
+    $user->givePermissionTo(Permission::findOrCreate('submissions.view-own', 'web'));
+
+    $this->actingAs($user)->get(route('user.submissions.index'))->assertOk();
 });

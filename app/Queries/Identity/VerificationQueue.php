@@ -31,11 +31,9 @@ class VerificationQueue implements ChangesNoState
             ->where('verification_status', VerificationStatus::Rejected->value)
             ->orderByRaw('rejected_at desc nulls last'));
 
-        $files = BiodataFiles::forProfiles($pending->concat($rejected));
-
         return [
-            'pending' => $this->cards($pending, $files),
-            'rejected' => $this->cards($rejected, $files),
+            'pending' => $this->cards($pending),
+            'rejected' => $this->cards($rejected),
         ];
     }
 
@@ -55,15 +53,13 @@ class VerificationQueue implements ChangesNoState
 
     /**
      * @param  Collection<int, UserProfile>  $profiles
-     * @param  array<int, list<array{label: string, url: string}>>  $files
      * @return list<VerificationCardData>
      */
-    private function cards(Collection $profiles, array $files): array
+    private function cards(Collection $profiles): array
     {
         return array_values($profiles->map(fn (UserProfile $profile): VerificationCardData => VerificationCardData::fromModel(
             $profile,
             $this->rejectedAt($profile),
-            $files[$profile->id] ?? [],
         ))->all());
     }
 

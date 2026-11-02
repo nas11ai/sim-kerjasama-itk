@@ -3,7 +3,6 @@
 use App\Http\Controllers\AnnouncementController;
 use App\Http\Controllers\AnnouncementImageController;
 use App\Http\Controllers\Audit\AuditLogController;
-use App\Http\Controllers\BiodataController;
 use App\Http\Controllers\CompleteFormBuilderController;
 use App\Http\Controllers\Config\ReferenceEntityController;
 use App\Http\Controllers\DashboardController;
@@ -20,7 +19,6 @@ use App\Http\Controllers\Identity\ProfilePhotoController;
 use App\Http\Controllers\Identity\ReviewerManagementController;
 use App\Http\Controllers\Identity\UserAccessController;
 use App\Http\Controllers\Identity\UserController;
-use App\Http\Controllers\Identity\VerificationFileController;
 use App\Http\Controllers\Monev\MonevCycleController;
 use App\Http\Controllers\Notification\NotificationChannelController;
 use App\Http\Controllers\Notification\NotificationController;
@@ -70,9 +68,8 @@ Route::get('/', function () {
     ]);
 })->name('welcome');
 
-// SHARED-02-01..04 — satu dasbor untuk semua peran (§4.4 K4). check_biodata ikut,
-// karena dasbor adalah tujuan redirect-nya: banner biodata tampil di sini.
-Route::middleware(['auth', 'verified', 'check_biodata'])->get('/dashboard', DashboardController::class)
+// SHARED-02-01..04 — satu dasbor untuk semua peran (§4.4 K4).
+Route::middleware(['auth', 'verified'])->get('/dashboard', DashboardController::class)
     ->name('dashboard');
 
 // W46 — nama lama tetap ada sebagai redirect: legacy AppSidebar dan halaman legacy
@@ -145,17 +142,13 @@ Route::middleware(['auth'])->group(function () {
 });
 
 Route::middleware(['auth'])->prefix('user')->name('user.')->group(function () {
-    // khusus form biodata
-    Route::get('/biodata', [BiodataController::class, 'showBiodataForm'])->name('biodata.index');
-    Route::post('/biodata', [BiodataController::class, 'submitForm'])->name('biodata.submit');
+    // W61 — biodata Form-Engine dihapus (tanpa KTP); nama lama tetap sebagai redirect sampai
+    // F99 karena legacy AppSidebar masih menautnya (pola W46).
+    Route::redirect('/biodata', '/profile')->name('biodata.index');
 
-    // W33 — di luar check_biodata: pembaca yang biodatanya belum lengkap tidak dilempar
-    // dari pengumuman yang sedang dibukanya ke form biodata.
     Route::post('/announcements/{announcement}/markRead', [AnnouncementController::class, 'markAsRead'])
         ->name('announcements.markRead');
-});
 
-Route::middleware(['auth', 'check_biodata'])->prefix('user')->name('user.')->group(function () {
     Route::get('/announcements', [AnnouncementController::class, 'userIndex'])
         ->name('announcements.index');
 
@@ -409,8 +402,8 @@ Route::middleware(['auth', 'can:viewAny,App\\Models\\User'])->prefix('admin')->n
         ->can('managePermissions', 'user');
 });
 
-// BR-IAM-04/12/13, W47 — antrian verifikasi NIDN, koreksi NIDN, dan berkas biodata (W58):
-// users.verify, bukan users.manage.
+// BR-IAM-04/12/13, W47 — antrian verifikasi NIDN dan koreksi NIDN: users.verify, bukan
+// users.manage. Tanpa berkas identitas: aplikasi tidak menyimpan KTP (W61).
 Route::middleware(['auth', 'can:users.verify'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/verifications', [NidnVerificationController::class, 'index'])
         ->name('verifications.index');
@@ -420,8 +413,6 @@ Route::middleware(['auth', 'can:users.verify'])->prefix('admin')->name('admin.')
         ->name('verifications.reject');
     Route::post('/verifications/{profile}/nidn', [NidnVerificationController::class, 'correctNidn'])
         ->name('verifications.nidn');
-    Route::get('/verifications/{profile}/files/{response}', [VerificationFileController::class, 'show'])
-        ->name('verifications.files.show');
 });
 
 // BR-IAM-16, W47 (pemilik 2026-11-02) — undangan: users.verify atau users.manage. Tanpa

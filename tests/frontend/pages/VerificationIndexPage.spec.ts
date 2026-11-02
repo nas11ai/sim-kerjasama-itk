@@ -52,7 +52,6 @@ const card = (overrides: Partial<VerificationCardData> = {}): VerificationCardDa
     registeredAt: '2026-07-01T08:00:00+08:00',
     rejectedAt: null,
     rejectionReason: null,
-    files: [],
     ...overrides,
 })
 
@@ -196,15 +195,6 @@ describe('VerificationIndexPage', () => {
         expect(text).toContain(
             'Antrian ini hanya memuat pendaftar jalur mandiri. Peneliti yang masuk lewat undangan tidak punya NIDN untuk diperiksa dan akunnya sudah aktif sejak mendaftar.'
         )
-    })
-
-    it('berkas biodata tampil sebagai tautan unduh bila ada', () => {
-        const wrapper = mountPage({
-            pending: [card({ files: [{ label: 'Scan KTP', url: '/files/ktp' }] })],
-        })
-
-        const link = wrapper.find('a[href="/files/ktp"]')
-        expect(link.text()).toContain('Scan KTP')
     })
 
     it('Koreksi NIDN hanya di kartu ditolak, memposting nidn, dan menampilkan form.errors.nidn', async () => {

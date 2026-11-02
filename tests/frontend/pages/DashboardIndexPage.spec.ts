@@ -29,11 +29,7 @@ vi.mock('@/Layouts/AppLayout.vue', () => ({
 }))
 
 import IndexPage from '@/Pages/Dashboard/IndexPage.vue'
-import type {
-    BiodataStatusFlags,
-    DashboardIndexPageProps,
-    DashboardSection,
-} from '@/types/dashboard'
+import type { DashboardIndexPageProps, DashboardSection } from '@/types/dashboard'
 
 const section = (key: DashboardSection['key'], title: string): DashboardSection => ({
     key,
@@ -57,10 +53,9 @@ const route = (name: string) => `/${name}`
 const mountPage = (overrides: Partial<DashboardIndexPageProps> = {}) =>
     mount(IndexPage, { props: props(overrides), global: { mocks: { route } } })
 
-const share = (permissions: string[], biodataStatus: BiodataStatusFlags | null = null) => {
+const share = (permissions: string[]) => {
     page.props = reactive({
         auth: { user: { name: 'Dr. Budi Santoso', permissions } },
-        biodataStatus,
     })
 }
 
@@ -92,20 +87,6 @@ describe('Dashboard/IndexPage', () => {
 
         const text = mountPage({ pending: { awaitingReviewer: 3, awaitingVerification: 2 } }).text()
         expect(text).toContain('3 pengajuan butuh reviewer · 2 user menunggu verifikasi NIDN')
-    })
-
-    it('banner biodata bila wajib dan belum lengkap, menaut ke biodata', () => {
-        share([], { required: true, completed: false, message: 'Biodata Anda sedang ditinjau.' })
-        const wrapper = mountPage()
-
-        expect(wrapper.text()).toContain('Biodata Anda sedang ditinjau.')
-        expect(wrapper.find('a[href="/user.biodata.index"]').exists()).toBe(true)
-    })
-
-    it('banner biodata tidak tampil bila sudah lengkap', () => {
-        share([], { required: true, completed: true })
-
-        expect(mountPage().find('a[href="/user.biodata.index"]').exists()).toBe(false)
     })
 
     it('[IAM-VERIFY-04] profil belum lengkap: banner dan Buat Pengajuan Baru nonaktif', () => {

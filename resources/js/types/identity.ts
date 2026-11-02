@@ -134,7 +134,6 @@ export interface VerificationCardData {
     registeredAt: string | null
     rejectedAt: string | null
     rejectionReason: string | null
-    files: { label: string; url: string }[]
 }
 
 export interface VerificationIndexPageProps {

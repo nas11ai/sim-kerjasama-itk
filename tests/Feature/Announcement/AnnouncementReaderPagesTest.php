@@ -4,12 +4,9 @@
 // belum dibaca (W32), panel login (W6), dan isi yang tersaring saat dibaca (K6).
 
 use App\Models\Announcement;
-use App\Models\Form;
-use App\Models\FormType;
 use App\Models\User;
 use Database\Seeders\PermissionSeeder;
 use Inertia\Testing\AssertableInertia as Assert;
-use Spatie\Permission\Models\Role;
 
 beforeEach(function () {
     $this->seed(PermissionSeeder::class);
@@ -62,21 +59,6 @@ it('markRead pada pengumuman tak terlihat dijawab 404', function () {
     $this->post(route('user.announcements.markRead', 999999))->assertNotFound();
 
     $this->assertDatabaseCount('announcement_users', 0);
-});
-
-it('markRead tidak dihadang gerbang biodata', function () {
-    $type = FormType::forceCreate(['id' => FormType::BIODATA_ID, 'name' => 'Biodata']);
-    Form::factory()->create(['form_type_id' => $type->id, 'is_active' => true]);
-    $user = User::factory()->create();
-    $user->assignRole(Role::findOrCreate('Mahasiswa', 'web'));
-    $announcement = readerAnnouncement();
-
-    $this->actingAs($user)
-        ->from(route('announcements.detail', $announcement))
-        ->post(route('user.announcements.markRead', $announcement))
-        ->assertRedirect(route('announcements.detail', $announcement));
-
-    $this->assertDatabaseHas('announcement_users', ['announcement_id' => $announcement->id, 'user_id' => $user->id]);
 });
 
 it('markRead dua kali tidak menggandakan baris', function () {

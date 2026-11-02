@@ -10,29 +10,11 @@ use Illuminate\Http\UploadedFile;
 use Illuminate\Validation\ValidationException;
 
 /**
- * Jawaban peneliti ke sebuah pengajuan. Dipanggil dari dalam transaksi SaveSubmissionDraft dan
- * SaveBiodata, yang menulis jejak auditnya.
+ * Jawaban peneliti ke sebuah pengajuan. Dipanggil dari dalam transaksi Action pemanggilnya
+ * (mis. SaveSubmissionDraft), yang menulis jejak auditnya.
  */
 final class FieldAnswerWriter
 {
-    /**
-     * Seluruh jawaban digantikan: field yang dikosongkan ikut terhapus. Untuk layar yang memuat ulang
-     * jawaban tersimpan sebelum disunting.
-     *
-     * @param  array<int, ?string>  $answers  id field => nilai; null berarti kosong
-     * @param  array<int, UploadedFile>  $uploads  id field => berkas, menimpa jawaban field itu
-     *
-     * @throws ValidationException
-     */
-    public static function replace(FormSubmission $submission, array $answers, array $uploads, string $directory): void
-    {
-        $values = self::storedValues($submission, $answers, $uploads, $directory);
-
-        $submission->formFieldResponses()->delete();
-
-        self::create($submission, $values);
-    }
-
     /**
      * [SM-WIZARD-02] Hanya field yang terisi yang ditimpa; jawaban kosong membiarkan jawaban tersimpan.
      * Layar wizard tidak memuat ulang jawaban, jadi kosong di sana berarti belum disentuh — dulu setiap

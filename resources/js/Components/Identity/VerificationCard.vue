@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { FileText } from 'lucide-vue-next'
 import { computed } from 'vue'
 
 import AppBanner from '@/Components/app/AppBanner.vue'
@@ -37,15 +36,6 @@ const meta = computed(() =>
                     </div>
                     <div class="text-sm text-muted-foreground">{{ card.email }}</div>
                     <div class="mt-0.5 text-xs text-muted-foreground">{{ meta }}</div>
-                    <ul v-if="card.files.length > 0" class="mt-2 flex flex-wrap gap-3 text-sm">
-                        <li v-for="file in card.files" :key="file.url">
-                            <a
-                                :href="file.url"
-                                class="inline-flex items-center gap-1 text-primary hover:underline"
-                                ><FileText class="size-4" />{{ file.label }}</a
-                            >
-                        </li>
-                    </ul>
                 </div>
                 <div class="flex items-center gap-2">
                     <slot name="actions" />
