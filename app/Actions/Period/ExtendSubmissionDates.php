@@ -32,39 +32,48 @@ class ExtendSubmissionDates
      */
     public function handle(SubmissionPeriod $period, array $dates, ?User $actor = null): DeadlineExtension
     {
-        return DB::transaction(function () use ($period, $dates, $actor): DeadlineExtension {
-            // Mengirim untuk setiap penyuntingan membuat notifikasi ini cepat
-            // diabaikan, dan yang hilang justru yang penting.
-            if (!$this->syncDates($period, $dates)) {
-                return new DeadlineExtension(extended: false, notified: 0);
-            }
+        return DB::transaction(fn (): DeadlineExtension => $this->extend($period, $dates, $actor));
+    }
 
-            // W73 — draft di periode yang ditutup Operator terarsip (BR-SM-13) dan tetap
-            // terkunci (BR-SCH-07): bukan DRAFT aktif, jadi tidak ada janji yang dikirim.
-            if ($period->is_force_closed) {
-                return new DeadlineExtension(extended: true, notified: 0);
-            }
+    /** @param  array<int, array{label: string, date: string}>  $dates */
+    private function extend(SubmissionPeriod $period, array $dates, ?User $actor): DeadlineExtension
+    {
+        // Mengirim untuk setiap penyuntingan membuat notifikasi ini cepat
+        // diabaikan, dan yang hilang justru yang penting.
+        if (!$this->syncDates($period, $dates)) {
+            return new DeadlineExtension(extended: false, notified: 0);
+        }
 
-            $pemilikDraft = PeriodDraftOwners::run($period);
+        $pemilikDraft = $this->recipients($period);
 
-            // SCH-RULE-13 — tanpa draft berjalan, tidak ada yang perlu diberi tahu.
-            if ($pemilikDraft->isEmpty()) {
-                return new DeadlineExtension(extended: true, notified: 0);
-            }
+        // SCH-RULE-13 — tanpa draft berjalan, tidak ada yang perlu diberi tahu.
+        if ($pemilikDraft->isEmpty()) {
+            return new DeadlineExtension(extended: true, notified: 0);
+        }
 
-            // BR-RPT-09 — revisi periode bisa menulis dua entri berbeda: periode
-            // direvisi dan tenggat diperpanjang.
-            AuditTrail::record('Tenggat periode diperpanjang', $period, $actor);
+        // BR-RPT-09 — revisi periode bisa menulis dua entri berbeda: periode
+        // direvisi dan tenggat diperpanjang.
+        AuditTrail::record('Tenggat periode diperpanjang', $period, $actor);
 
-            // Transaksi luar (ReviseSubmissionPeriod) bisa menggulung semuanya, jadi kirim
-            // sesudah commit. ChannelNotDeclared (BR-NOT-06) muncul di sini, sesudah commit:
-            // deklarasi kanal wajib sudah ada.
-            DB::afterCommit(static function () use ($pemilikDraft, $period): void {
-                Deliver::to($pemilikDraft, new SubmissionDeadlineExtendedNotification($period));
-            });
-
-            return new DeadlineExtension(extended: true, notified: $pemilikDraft->count());
+        // Transaksi luar (ReviseSubmissionPeriod) bisa menggulung semuanya, jadi kirim
+        // sesudah commit. ChannelNotDeclared (BR-NOT-06) muncul di sini, sesudah commit:
+        // deklarasi kanal wajib sudah ada.
+        DB::afterCommit(static function () use ($pemilikDraft, $period): void {
+            Deliver::to($pemilikDraft, new SubmissionDeadlineExtendedNotification($period));
         });
+
+        return new DeadlineExtension(extended: true, notified: $pemilikDraft->count());
+    }
+
+    /**
+     * W73 — draft di periode yang ditutup Operator terarsip (BR-SM-13) dan tetap
+     * terkunci (BR-SCH-07): bukan DRAFT aktif, jadi tidak ada yang diberi tahu.
+     *
+     * @return Collection<int, User>
+     */
+    private function recipients(SubmissionPeriod $period): Collection
+    {
+        return $period->is_force_closed ? new Collection : PeriodDraftOwners::run($period);
     }
 
     /**
