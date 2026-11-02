@@ -8,6 +8,14 @@ export interface FilterOption {
     label: string
 }
 
+// Satu dropdown filter di FilterToolbar; `key` = nama parameter query.
+export interface FilterSelectSpec<K extends string = string> {
+    key: K
+    label: string
+    allLabel: string
+    options: FilterOption[]
+}
+
 // Sumber: SubmissionRowData.
 export interface SubmissionRow {
     id: number
