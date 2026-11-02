@@ -13,6 +13,7 @@ use App\Models\Reviewer;
 use App\Models\SubmissionReviewer;
 use App\Models\User;
 use App\Models\UserProfile;
+use App\Notifications\AccountReactivatedNotification;
 use App\Notifications\ExportCompletedNotification;
 use App\Notifications\FormChangedNotification;
 use App\Notifications\MonevStageOpenedNotification;
@@ -179,6 +180,11 @@ it('export_* membuka riwayat ekspor', function () {
 it('reviewer_appointed membuka daftar penugasan', function () {
     expect(ndDestination(User::factory()->create(), ReviewerAppointedNotification::class, ['type' => 'reviewer_appointed']))
         ->toBe(route('reviewer.assignments.index'));
+});
+
+it('[IAM-REACT-01] account_reactivated membuka dasbor', function () {
+    expect(ndDestination(User::factory()->create(), AccountReactivatedNotification::class, ['type' => 'account_reactivated']))
+        ->toBe(route('dashboard'));
 });
 
 it('account_deactivated dan tipe tak dikenal tidak punya tujuan', function () {

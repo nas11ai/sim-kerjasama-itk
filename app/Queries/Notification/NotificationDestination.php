@@ -26,6 +26,7 @@ class NotificationDestination implements ChangesNoState
         'submission_period_closed' => 'user.submissions.index',
         'submission_deadline_extended' => 'user.submissions.index',
         'form_changed' => 'user.submissions.index',
+        'account_reactivated' => 'dashboard',
         'nidn_verified' => 'verification.status',
         'nidn_verification_rejected' => 'verification.status',
         'new_registration_awaiting_verification' => 'admin.verifications.index',

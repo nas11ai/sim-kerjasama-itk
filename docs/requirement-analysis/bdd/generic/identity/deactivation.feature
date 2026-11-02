@@ -88,3 +88,40 @@ Feature: Deaktivasi User
     Given "Joko" berstatus tidak aktif
     When peneliti menambahkan "Joko" sebagai anggota "P-001"
     Then penambahan ditolak karena akun "Joko" nonaktif
+
+  @BR-IAM-20 @BR-IAM-15 @M3 @OPERATOR-08-03 @happy
+  Scenario: [IAM-REACT-01] Akun yang diaktifkan kembali bisa login lagi dengan data utuh
+    Given "Sari" berperan Operator dan akunnya nonaktif
+    When Admin mengaktifkan kembali "Sari"
+    Then "Sari" bisa login
+    And peran dan profil "Sari" tidak berubah
+    And "Sari" menerima notifikasi bahwa akunnya aktif kembali
+
+  @BR-IAM-20 @BR-SM-09 @BR-REV-10 @M3 @OPERATOR-08-03 @boundary
+  Scenario: [IAM-REACT-02] Pengaktifan tidak mengembalikan apa yang sudah diserahkan
+    Given kepemilikan "P-001" sudah dialihkan dari "Budi" ke "Sari" sebelum "Budi" dinonaktifkan
+    And penugasan "Budi" sebagai reviewer "P-002" sudah berstatus replaced
+    When Admin mengaktifkan kembali "Budi"
+    Then pemilik "P-001" tetap "Sari"
+    And penugasan "Budi" pada "P-002" tetap berstatus replaced
+
+  @BR-IAM-20 @BR-REV-09 @M3 @OPERATOR-08-04 @boundary
+  Scenario: [IAM-REACT-03] Reviewer yang diaktifkan tetap terikat masa tugasnya
+    Given masa tugas reviewer "Andi" sudah lewat dan akunnya nonaktif
+    When Admin mengaktifkan kembali "Andi"
+    And Operator menugaskan "Andi" sebagai reviewer "P-001"
+    Then penugasan ditolak karena di luar masa tugas
+
+  @BR-IAM-20 @M3 @OPERATOR-08-03 @denial
+  Scenario: [IAM-REACT-04] Operator tanpa users.manage tidak bisa mengaktifkan kembali
+    Given "Sari" berstatus tidak aktif
+    When Operator pemegang users.verify saja mengaktifkan kembali "Sari"
+    Then pengaktifan ditolak
+    And akun "Sari" tetap nonaktif
+
+  @BR-IAM-20 @M3 @OPERATOR-08-03 @boundary
+  Scenario: [IAM-REACT-05] Mengaktifkan akun yang sudah aktif tidak mengubah apa pun
+    Given "Budi" adalah user aktif
+    When Admin mengaktifkan kembali "Budi"
+    Then tidak ada yang berubah
+    And tidak ada entri jejak audit maupun notifikasi baru

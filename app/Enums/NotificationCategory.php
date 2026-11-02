@@ -3,6 +3,7 @@
 namespace App\Enums;
 
 use App\Notifications\AccountDeactivatedNotification;
+use App\Notifications\AccountReactivatedNotification;
 use App\Notifications\ExportCompletedNotification;
 use App\Notifications\ExportFailedNotification;
 use App\Notifications\FormChangedNotification;
@@ -74,6 +75,7 @@ enum NotificationCategory: string
                 NidnVerifiedNotification::class,
                 NidnVerificationRejectedNotification::class,
                 AccountDeactivatedNotification::class,
+                AccountReactivatedNotification::class,
                 NewRegistrationAwaitingVerification::class,
             ],
             self::Export => [ExportCompletedNotification::class, ExportFailedNotification::class],

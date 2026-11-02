@@ -103,6 +103,7 @@ const props = (overrides: Partial<UserShowPageProps> = {}): UserShowPageProps =>
         managePermissions: true,
         appointReviewer: true,
         endSessions: true,
+        reactivate: true,
     },
     ...overrides,
 })
@@ -161,6 +162,8 @@ describe('UserShowPage', () => {
                 changeRoles: false,
                 managePermissions: false,
                 appointReviewer: false,
+                endSessions: false,
+                reactivate: false,
             },
         })
         expect(button(denied, 'Nonaktifkan')).toBeUndefined()
@@ -201,7 +204,6 @@ describe('UserShowPage', () => {
         )
         expect(wrapper.text()).toContain('Analisis Biochar')
         expect(button(wrapper, 'Nonaktifkan')).toBeUndefined()
-        expect(button(wrapper, 'Aktifkan')).toBeUndefined()
     })
 
     it('Nonaktifkan membuka ConfirmDialog lalu router.post ke admin.users.deactivate', async () => {
@@ -280,6 +282,8 @@ describe('UserShowPage', () => {
                 changeRoles: true,
                 managePermissions: false,
                 appointReviewer: false,
+                endSessions: false,
+                reactivate: false,
             },
         })
 
@@ -302,6 +306,8 @@ describe('UserShowPage', () => {
                 changeRoles: false,
                 managePermissions: true,
                 appointReviewer: false,
+                endSessions: false,
+                reactivate: false,
             },
         })
         expect(button(denied, 'Ubah Peran')).toBeUndefined()
@@ -362,5 +368,38 @@ describe('UserShowPage', () => {
         const wrapper = mountPage({ can: { ...base.can, endSessions: false } })
 
         expect(button(wrapper, 'Akhiri Semua Sesi')).toBeUndefined()
+    })
+
+    it('[IAM-DEACT-03][IAM-REACT-04] tanpa can.reactivate tidak ada tombol Aktifkan', () => {
+        const base = props()
+        const wrapper = mountPage({
+            user: { ...base.user, status: { ...base.user.status, active: false } },
+            can: { ...base.can, reactivate: false },
+        })
+
+        expect(button(wrapper, 'Aktifkan')).toBeUndefined()
+    })
+
+    it('[IAM-REACT-01] Aktifkan pada akun nonaktif lewat ConfirmDialog lalu router.post', async () => {
+        const base = props()
+        const wrapper = mountPage({
+            user: { ...base.user, status: { ...base.user.status, active: false } },
+        })
+
+        expect(button(wrapper, 'Nonaktifkan')).toBeUndefined()
+        await button(wrapper, 'Aktifkan')?.trigger('click')
+        const dialog = confirmDialog(wrapper, 'Aktifkan')
+        expect(dialog.props('open')).toBe(true)
+        dialog.vm.$emit('confirm')
+
+        expect(router.post).toHaveBeenCalledWith(
+            '/admin.users.reactivate/5',
+            {},
+            expect.objectContaining({ preserveScroll: true })
+        )
+    })
+
+    it('akun aktif tidak menawarkan Aktifkan', () => {
+        expect(button(mountPage(), 'Aktifkan')).toBeUndefined()
     })
 })

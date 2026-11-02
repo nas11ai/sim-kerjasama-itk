@@ -38,6 +38,7 @@ final class NotificationEventCatalog
         'SubmissionPeriodActive' => [NotificationChannels::IN_APP, NotificationChannels::EMAIL],
         'SubmissionPeriodClosed' => [NotificationChannels::IN_APP],
         'UserDeactivated' => [NotificationChannels::IN_APP, NotificationChannels::EMAIL],
+        'UserReactivated' => [NotificationChannels::IN_APP, NotificationChannels::EMAIL],
         'UserRegistered' => [NotificationChannels::IN_APP, NotificationChannels::EMAIL],
         'UserVerificationRejected' => [NotificationChannels::IN_APP, NotificationChannels::EMAIL],
         'UserVerified' => [NotificationChannels::IN_APP, NotificationChannels::EMAIL],

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Identity;
 
 use App\Actions\Identity\ChangeUserRoles;
 use App\Actions\Identity\EndUserSessions;
+use App\Actions\Identity\ReactivateUser;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Identity\ChangeUserRolesRequest;
 use App\Models\InvitationToken;
@@ -71,5 +72,16 @@ class UserController extends Controller
         EndUserSessions::run($actor, $user);
 
         return back()->with('success', 'Seluruh sesi user diakhiri.');
+    }
+
+    // BR-IAM-20 — wewenang dijaga route (UserPolicy::reactivate).
+    public function reactivate(Request $request, User $user): RedirectResponse
+    {
+        $actor = $request->user();
+        abort_unless($actor instanceof User, 403);
+
+        ReactivateUser::run($actor, $user);
+
+        return back()->with('success', 'Akun diaktifkan kembali.');
     }
 }

@@ -108,6 +108,7 @@ export interface UserAbilities {
     managePermissions: boolean
     appointReviewer: boolean
     endSessions: boolean
+    reactivate: boolean
 }
 
 export interface UserShowPageProps {

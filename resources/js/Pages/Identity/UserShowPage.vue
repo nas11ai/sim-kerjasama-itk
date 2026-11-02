@@ -10,6 +10,7 @@ import SectionCard from '@/Components/app/SectionCard.vue'
 import AccountStatusBadges from '@/Components/Identity/AccountStatusBadges.vue'
 import ChangeRolesDialog from '@/Components/Identity/ChangeRolesDialog.vue'
 import DeactivationPanel from '@/Components/Identity/DeactivationPanel.vue'
+import ReactivationPanel from '@/Components/Identity/ReactivationPanel.vue'
 import UserAccessSection from '@/Components/Identity/UserAccessSection.vue'
 import UserProfileSection from '@/Components/Identity/UserProfileSection.vue'
 import UserSessionPanel from '@/Components/Identity/UserSessionPanel.vue'
@@ -94,6 +95,10 @@ const summaryItems = computed(() => [
                             ><InfoGrid :items="summaryItems"
                         /></SectionCard>
                         <UserSessionPanel :user="user" :can-end="can.endSessions" />
+                        <ReactivationPanel
+                            v-if="!user.status.active && can.reactivate"
+                            :user="user"
+                        />
                         <DeactivationPanel
                             :user="user"
                             :blockers="deactivationBlockers"

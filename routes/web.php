@@ -390,6 +390,10 @@ Route::middleware(['auth', 'can:viewAny,App\\Models\\User'])->prefix('admin')->n
     Route::post('/users/{user}/sessions/end', [UserController::class, 'endSessions'])
         ->name('users.sessions.end')
         ->can('endSessions', 'user');
+    // BR-IAM-20 — pengaktifan kembali, wewenang sama dengan deaktivasi.
+    Route::post('/users/{user}/reactivate', [UserController::class, 'reactivate'])
+        ->name('users.reactivate')
+        ->can('reactivate', 'user');
     Route::post('/users/{user}/deactivate', UserDeactivationController::class)
         ->name('users.deactivate')
         ->can('deactivate', 'user');

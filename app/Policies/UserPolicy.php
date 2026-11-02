@@ -35,6 +35,12 @@ class UserPolicy
         return $this->administers($actor, $user);
     }
 
+    /** BR-IAM-20 — wewenang yang sama dengan deaktivasi. */
+    public function reactivate(User $actor, User $user): bool
+    {
+        return $this->deactivate($actor, $user);
+    }
+
     /** BR-IAM-21 — mengakhiri seluruh sesi user lain. */
     public function endSessions(User $actor, User $user): bool
     {

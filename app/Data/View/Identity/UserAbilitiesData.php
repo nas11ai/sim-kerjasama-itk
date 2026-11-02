@@ -14,6 +14,7 @@ final class UserAbilitiesData extends Data
         public bool $managePermissions,
         public bool $appointReviewer,
         public bool $endSessions,
+        public bool $reactivate,
     ) {}
 
     public static function for(User $viewer, User $user): self
@@ -24,6 +25,7 @@ final class UserAbilitiesData extends Data
             managePermissions: $viewer->can('managePermissions', $user),
             appointReviewer: $viewer->can('reviewers.assign'),
             endSessions: $viewer->can('endSessions', $user),
+            reactivate: $viewer->can('reactivate', $user),
         );
     }
 }
