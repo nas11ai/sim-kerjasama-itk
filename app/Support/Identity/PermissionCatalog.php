@@ -2,6 +2,7 @@
 
 namespace App\Support\Identity;
 
+use Illuminate\Validation\ValidationException;
 use Spatie\Permission\Models\Permission;
 
 /**
@@ -30,6 +31,18 @@ final class PermissionCatalog
         'reporting.view-audit-log' => 'Melihat audit log',
         'announcements.manage' => 'Mengelola pengumuman',
     ];
+
+    /**
+     * Hak akses langsung hanya dari katalog DDD; nama lain (legacy, karangan) ditolak.
+     *
+     * @throws ValidationException
+     */
+    public static function guardKnown(string $name): void
+    {
+        if (!array_key_exists($name, self::LABELS)) {
+            throw ValidationException::withMessages(['permission' => 'Hak akses tidak dikenal.']);
+        }
+    }
 
     public static function label(string $name): string
     {

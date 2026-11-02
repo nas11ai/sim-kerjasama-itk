@@ -44,13 +44,23 @@ final class RoleCatalog
      */
     public static function optionsOf(iterable $roles): array
     {
+        return self::options(self::namesOf($roles));
+    }
+
+    /**
+     * @param  iterable<object>  $roles
+     * @return list<string> urut abjad
+     */
+    public static function namesOf(iterable $roles): array
+    {
         $names = [];
         foreach ($roles as $role) {
             if ($role instanceof Role) {
                 $names[] = $role->name;
             }
         }
+        sort($names);
 
-        return self::options($names);
+        return $names;
     }
 }

@@ -15,7 +15,7 @@ use App\Http\Controllers\FormPhaseController;
 use App\Http\Controllers\Identity\InvitationController;
 use App\Http\Controllers\Identity\NidnVerificationController;
 use App\Http\Controllers\Identity\UserAccessController;
-use App\Http\Controllers\Identity\UserController as IdentityUserController;
+use App\Http\Controllers\Identity\UserController;
 use App\Http\Controllers\Monev\MonevCycleController;
 use App\Http\Controllers\Notification\NotificationChannelController;
 use App\Http\Controllers\Notification\NotificationController;
@@ -50,7 +50,6 @@ use App\Http\Controllers\Submission\TargetOutputController;
 use App\Http\Controllers\SubmissionPeriodController;
 use App\Http\Controllers\SubmissionViewController;
 use App\Http\Controllers\SubmissionWithdrawalController;
-use App\Http\Controllers\UserController;
 use App\Http\Controllers\UserDeactivationController;
 use App\Http\Controllers\UserFormController;
 use App\Queries\Announcement\PublicAnnouncementFeed;
@@ -221,10 +220,6 @@ Route::middleware(['auth', 'can:users.manage'])->prefix('admin')->name('admin.')
     Route::get('/stats/reviewers', [StatController::class, 'submissionReviewerStatIndex'])->name('stats.reviewer');
     Route::get('/stats/users', [StatController::class, 'userStatIndex'])->name('stats.user');
 
-    // Legacy sunting user — dihapus I1 Task 5 (W50).
-    Route::get('/users/{user}/edit', [UserController::class, 'edit'])->name('users.edit');
-    Route::put('/users/{user}', [UserController::class, 'update'])->name('users.update');
-
     // Role Management
     Route::resource('roles', RoleController::class)->except(['show'])->names([
         'index' => 'roles.index',
@@ -382,11 +377,24 @@ require __DIR__.'/auth.php';
 
 // W47 — daftar dan detail user: users.verify atau users.manage (UserPolicy::viewAny/view).
 Route::middleware(['auth', 'can:viewAny,App\\Models\\User'])->prefix('admin')->name('admin.')->group(function () {
-    Route::get('/users', [IdentityUserController::class, 'index'])
+    Route::get('/users', [UserController::class, 'index'])
         ->name('users.index');
-    Route::get('/users/{user}', [IdentityUserController::class, 'show'])
+    Route::get('/users/{user}', [UserController::class, 'show'])
         ->name('users.show')
         ->can('view', 'user');
+    // BR-IAM-05/09, W57 — mengubah akun: users.manage, bukan diri sendiri, bukan Super Admin.
+    Route::put('/users/{user}/roles', [UserController::class, 'updateRoles'])
+        ->name('users.roles.update')
+        ->can('changeRoles', 'user');
+    Route::post('/users/{user}/deactivate', UserDeactivationController::class)
+        ->name('users.deactivate')
+        ->can('deactivate', 'user');
+    Route::post('/users/{user}/permissions', [UserAccessController::class, 'grantPermission'])
+        ->name('users.permissions.grant')
+        ->can('managePermissions', 'user');
+    Route::delete('/users/{user}/permissions', [UserAccessController::class, 'revokePermission'])
+        ->name('users.permissions.revoke')
+        ->can('managePermissions', 'user');
 });
 
 // BR-SM-07 — layar pengajuan Operator dijaga view-all, bukan users.manage:
@@ -481,8 +489,6 @@ Route::middleware(['auth'])->group(function () {
         // BR-REV-01 — dijaga Policy `assignReviewers` (reviewers.assign), bukan users.manage.
         Route::post('/submissions/{submission}/assign-reviewers', [ReviewController::class, 'assignReviewers'])
             ->name('submissions.assign-reviewers');
-        Route::post('/users/{user}/deactivate', UserDeactivationController::class)
-            ->name('users.deactivate');
         // BR-IAM-16 — penerbitan dan pencabutan undangan (ADMIN-08-01).
         // Tanpa pencabutan, tautan yang bocor hanya bisa ditunggu kedaluwarsa.
         Route::get('/invitations', [InvitationController::class, 'index'])
@@ -524,13 +530,9 @@ Route::middleware(['auth'])->group(function () {
             ->name('verifications.verify');
         Route::post('/verifications/{profile}/reject', [NidnVerificationController::class, 'reject'])
             ->name('verifications.reject');
-        // BR-IAM-09/11 — hak akses langsung dan penunjukan reviewer.
+        // BR-IAM-11 — penunjukan reviewer (pindah ke reviewers.assign di I1-2).
         Route::post('/users/{user}/appoint-reviewer', [UserAccessController::class, 'appointReviewer'])
             ->name('users.appoint-reviewer');
-        Route::post('/users/{user}/permissions', [UserAccessController::class, 'grantPermission'])
-            ->name('users.permissions.grant');
-        Route::delete('/users/{user}/permissions', [UserAccessController::class, 'revokePermission'])
-            ->name('users.permissions.revoke');
         // BR-FE-08/09/10 — perpanjangan akses satu fase untuk satu pengajuan.
         // BR-MON-04/07/10 — pengelolaan siklus monev.
         Route::get('/submissions/{submission}/monev', [MonevCycleController::class, 'show'])

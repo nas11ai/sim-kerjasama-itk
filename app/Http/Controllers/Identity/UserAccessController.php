@@ -3,7 +3,10 @@
 namespace App\Http\Controllers\Identity;
 
 use App\Actions\Identity\AppointReviewer;
+use App\Actions\Identity\GrantDirectPermission;
+use App\Actions\Identity\RevokeDirectPermission;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Identity\DirectPermissionRequest;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -38,34 +41,29 @@ class UserAccessController extends Controller
         return back()->with('success', 'Reviewer ditunjuk.');
     }
 
-    public function grantPermission(Request $request, User $user): RedirectResponse
+    public function grantPermission(DirectPermissionRequest $request, User $user): RedirectResponse
     {
-        $this->authorizeManage();
-
-        $validated = $request->validate([
-            'permission' => 'required|string|exists:permissions,name',
-        ]);
-
-        $user->givePermissionTo($validated['permission']);
+        GrantDirectPermission::run($this->actor($request), $user, $request->permissionName());
 
         return back()->with('success', 'Hak akses ditambahkan.');
     }
 
-    public function revokePermission(Request $request, User $user): RedirectResponse
+    public function revokePermission(DirectPermissionRequest $request, User $user): RedirectResponse
     {
-        $this->authorizeManage();
-
-        $validated = $request->validate([
-            'permission' => 'required|string|exists:permissions,name',
-        ]);
-
-        // BR-IAM-09 — hanya hak akses **langsung** yang dicabut. Yang datang
-        // dari role tetap, dan itulah yang membuat "additive" berarti sesuatu.
-        $user->revokePermissionTo($validated['permission']);
+        RevokeDirectPermission::run($this->actor($request), $user, $request->permissionName());
 
         return back()->with('success', 'Hak akses langsung dicabut.');
     }
 
+    private function actor(Request $request): User
+    {
+        $actor = $request->user();
+        abort_unless($actor instanceof User, 403);
+
+        return $actor;
+    }
+
+    // Penunjukan reviewer pindah ke reviewers.assign di I1-2 (W47); sampai itu tetap users.manage.
     private function authorizeManage(): void
     {
         $actor = Auth::user();

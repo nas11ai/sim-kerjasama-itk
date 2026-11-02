@@ -10,6 +10,9 @@
 
 use App\Actions\FormSubmission\DeactivateUser;
 use App\Actions\Identity\AppointReviewer;
+use App\Actions\Identity\ChangeUserRoles;
+use App\Actions\Identity\GrantDirectPermission;
+use App\Actions\Identity\RevokeDirectPermission;
 use App\Models\FormSubmission;
 use App\Models\Reviewer;
 use App\Models\User;
@@ -36,31 +39,33 @@ function registeredPerson(): User
 
 it('[IAM-PERM-01] hak akses langsung menambah yang datang dari role', function () {
     Permission::findOrCreate('submissions.view-all', 'web');
-    Permission::findOrCreate('reports.export', 'web');
+    Permission::findOrCreate('reporting.export', 'web');
     $operator = Role::findOrCreate('operator', 'web');
     $operator->givePermissionTo('submissions.view-all');
 
     $sari = registeredPerson();
-    $sari->assignRole('operator');
-    $sari->givePermissionTo('reports.export');
+    $admin = registeredPerson();
+    ChangeUserRoles::run($admin, $sari, ['operator']);
+    GrantDirectPermission::run($admin, $sari, 'reporting.export');
 
-    expect($sari->can('submissions.view-all'))->toBeTrue()
-        ->and($sari->can('reports.export'))->toBeTrue();
+    expect($sari->fresh()->can('submissions.view-all'))->toBeTrue()
+        ->and($sari->fresh()->can('reporting.export'))->toBeTrue();
 });
 
 it('[IAM-PERM-02] mencabut role tidak mencabut hak akses langsung', function () {
     Permission::findOrCreate('submissions.view-all', 'web');
-    Permission::findOrCreate('reports.export', 'web');
+    Permission::findOrCreate('reporting.export', 'web');
     $operator = Role::findOrCreate('operator', 'web');
     $operator->givePermissionTo('submissions.view-all');
 
     $sari = registeredPerson();
-    $sari->assignRole('operator');
-    $sari->givePermissionTo('reports.export');
+    $admin = registeredPerson();
+    ChangeUserRoles::run($admin, $sari, ['operator']);
+    GrantDirectPermission::run($admin, $sari, 'reporting.export');
 
-    $sari->removeRole('operator');
+    ChangeUserRoles::run($admin, $sari, []);
 
-    expect($sari->fresh()->can('reports.export'))->toBeTrue()
+    expect($sari->fresh()->can('reporting.export'))->toBeTrue()
         ->and($sari->fresh()->can('submissions.view-all'))->toBeFalse();
 });
 
@@ -83,11 +88,12 @@ it('[IAM-PERM-04] mencabut hak akses langsung tidak mencabut yang dari role', fu
     Role::findOrCreate('operator', 'web')->givePermissionTo('submissions.view-all');
 
     $sari = registeredPerson();
-    $sari->assignRole('operator');
+    $admin = registeredPerson();
+    ChangeUserRoles::run($admin, $sari, ['operator']);
     // Sumber ganda: satu hak akses datang dari role DAN diberikan langsung.
-    $sari->givePermissionTo('submissions.view-all');
+    GrantDirectPermission::run($admin, $sari, 'submissions.view-all');
 
-    $sari->revokePermissionTo('submissions.view-all');
+    RevokeDirectPermission::run($admin, $sari, 'submissions.view-all');
 
     // Pembungkus yang meratakan hak akses efektif jadi satu daftar akan
     // mencabut keduanya di sini.

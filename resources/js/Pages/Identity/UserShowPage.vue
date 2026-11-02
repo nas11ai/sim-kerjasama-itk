@@ -1,24 +1,28 @@
 <script setup lang="ts">
 // Frame: OPERATOR-08-03
 import { Head } from '@inertiajs/vue3'
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 
 import AppBanner from '@/Components/app/AppBanner.vue'
 import InfoGrid from '@/Components/app/InfoGrid.vue'
 import PageHeader from '@/Components/app/PageHeader.vue'
 import SectionCard from '@/Components/app/SectionCard.vue'
 import AccountStatusBadges from '@/Components/Identity/AccountStatusBadges.vue'
+import ChangeRolesDialog from '@/Components/Identity/ChangeRolesDialog.vue'
 import DeactivationPanel from '@/Components/Identity/DeactivationPanel.vue'
 import UserAccessSection from '@/Components/Identity/UserAccessSection.vue'
 import UserProfileSection from '@/Components/Identity/UserProfileSection.vue'
 import UserReviewHistory from '@/Components/Identity/UserReviewHistory.vue'
 import UserSubmissionHistory from '@/Components/Identity/UserSubmissionHistory.vue'
+import { Button } from '@/Components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/Components/ui/tabs'
 import AppLayout from '@/Layouts/AppLayout.vue'
 import { formatDate } from '@/lib/format'
 import type { UserShowPageProps } from '@/types/identity'
 
 const props = defineProps<UserShowPageProps>()
+
+const changingRoles = ref(false)
 
 const subtitle = computed(() =>
     props.user.nidn ? `${props.user.email} · NIDN ${props.user.nidn}` : props.user.email
@@ -69,6 +73,19 @@ const summaryItems = computed(() => [
                             :user-id="user.id"
                             :access="access"
                             :can-manage="can.managePermissions"
+                        >
+                            <template v-if="can.changeRoles" #actions>
+                                <Button variant="outline" size="sm" @click="changingRoles = true"
+                                    >Ubah Peran</Button
+                                >
+                            </template>
+                        </UserAccessSection>
+                        <ChangeRolesDialog
+                            v-if="can.changeRoles"
+                            v-model:open="changingRoles"
+                            :user-id="user.id"
+                            :roles="access.roles"
+                            :assignable-roles="access.assignableRoles"
                         />
                     </div>
                     <div class="flex flex-col gap-6">

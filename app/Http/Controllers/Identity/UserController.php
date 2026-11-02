@@ -2,12 +2,15 @@
 
 namespace App\Http\Controllers\Identity;
 
+use App\Actions\Identity\ChangeUserRoles;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Identity\ChangeUserRolesRequest;
 use App\Models\InvitationToken;
 use App\Models\User;
 use App\Models\UserProfile;
 use App\Queries\Identity\UserDetail;
 use App\Queries\Identity\UserDirectory;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -45,5 +48,15 @@ class UserController extends Controller
         abort_unless($viewer instanceof User, 403);
 
         return Inertia::render('Identity/UserShowPage', UserDetail::run($viewer, $user, $request->string('tab')->value()));
+    }
+
+    public function updateRoles(ChangeUserRolesRequest $request, User $user): RedirectResponse
+    {
+        $actor = $request->user();
+        abort_unless($actor instanceof User, 403);
+
+        ChangeUserRoles::run($actor, $user, $request->roleNames());
+
+        return back()->with('success', 'Peran user diperbarui.');
     }
 }

@@ -2,21 +2,27 @@ import { mount } from '@vue/test-utils'
 import { defineComponent, h, nextTick } from 'vue'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-const { router } = vi.hoisted(() => ({
+const { router, put } = vi.hoisted(() => ({
     router: { post: vi.fn(), delete: vi.fn() },
+    put: vi.fn(),
 }))
 
-vi.mock('@inertiajs/vue3', () => ({
-    router,
-    Head: defineComponent({ setup: () => () => null }),
-    Link: defineComponent({
-        props: { href: { type: String, required: true } },
-        setup:
-            (props, { slots }) =>
-            () =>
-                h('a', { href: props.href }, slots.default?.()),
-    }),
-}))
+vi.mock('@inertiajs/vue3', async () => {
+    const { reactive } = await import('vue')
+    return {
+        router,
+        useForm: <T extends object>(data: T) =>
+            reactive({ ...data, processing: false, errors: {}, put, clearErrors: vi.fn() }),
+        Head: defineComponent({ setup: () => () => null }),
+        Link: defineComponent({
+            props: { href: { type: String, required: true } },
+            setup:
+                (props, { slots }) =>
+                () =>
+                    h('a', { href: props.href }, slots.default?.()),
+        }),
+    }
+})
 vi.mock('@/Layouts/AppLayout.vue', () => ({
     default: defineComponent({
         setup:
@@ -26,6 +32,7 @@ vi.mock('@/Layouts/AppLayout.vue', () => ({
     }),
 }))
 
+import ActionDialog from '@/Components/app/ActionDialog.vue'
 import ConfirmDialog from '@/Components/app/ConfirmDialog.vue'
 import OptionSelect from '@/Components/app/OptionSelect.vue'
 import UserShowPage from '@/Pages/Identity/UserShowPage.vue'
@@ -102,6 +109,7 @@ beforeEach(() => {
     vi.stubGlobal('route', route)
     router.post.mockClear()
     router.delete.mockClear()
+    put.mockClear()
 })
 
 describe('UserShowPage', () => {
@@ -253,5 +261,51 @@ describe('UserShowPage', () => {
         expect(wrapper.find('a[href="/s/42"]').text()).toBe('Analisis Biochar')
         expect(wrapper.text()).toContain('Draf Tanpa Kirim')
         expect(wrapper.findAll('a').some((a) => a.text() === 'Draf Tanpa Kirim')).toBe(false)
+    })
+
+    it('Ubah Peran hanya bila can.changeRoles dan mengirim roles tercentang', async () => {
+        const denied = mountPage({
+            can: {
+                deactivate: true,
+                changeRoles: false,
+                managePermissions: true,
+                appointReviewer: false,
+            },
+        })
+        expect(button(denied, 'Ubah Peran')).toBeUndefined()
+
+        const base = props()
+        const wrapper = mount(UserShowPage, {
+            props: props({
+                access: {
+                    ...base.access,
+                    roles: [
+                        { value: 'researcher', label: 'Peneliti' },
+                        { value: 'reviewer_internal', label: 'Reviewer (internal)' },
+                    ],
+                    assignableRoles: [
+                        { value: 'researcher', label: 'Peneliti' },
+                        { value: 'operator', label: 'Operator' },
+                    ],
+                },
+            }),
+            global: { mocks: { route } },
+            attachTo: document.body,
+        })
+        await button(wrapper, 'Ubah Peran')?.trigger('click')
+        await nextTick()
+        expect(document.body.textContent).toContain('Tidak diubah di sini: Reviewer (internal)')
+
+        document.querySelector<HTMLButtonElement>('#assign-role-operator')?.click()
+        await nextTick()
+        wrapper.findComponent(ActionDialog).vm.$emit('submit')
+
+        expect(put).toHaveBeenCalledWith(
+            '/admin.users.roles.update/5',
+            expect.objectContaining({ preserveScroll: true })
+        )
+        const form = put.mock.contexts[0] as { roles: string[] }
+        expect([...form.roles].sort()).toEqual(['operator', 'researcher'])
+        wrapper.unmount()
     })
 })
