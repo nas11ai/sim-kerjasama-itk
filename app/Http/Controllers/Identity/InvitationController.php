@@ -4,89 +4,49 @@ namespace App\Http\Controllers\Identity;
 
 use App\Actions\Identity\IssueInvitation;
 use App\Actions\Identity\RevokeInvitation;
+use App\Http\Controllers\Concerns\ResolvesActor;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Identity\IssueInvitationRequest;
 use App\Models\InvitationToken;
 use App\Models\Organization;
+use App\Queries\Identity\InvitationList;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 use Inertia\Response;
 
-/**
- * BR-IAM-16 — penerbitan dan pencabutan undangan registrasi (ADMIN-08-01).
- */
+/** BR-IAM-16, ADMIN-08-01 — route-nya dijaga `InvitationPolicy::manage` (W47). */
 class InvitationController extends Controller
 {
+    use ResolvesActor;
+
     public function index(): Response
     {
-        $user = Auth::user();
-
-        abort_unless($user !== null && $user->can('users.manage'), 403);
-
-        return Inertia::render('Identity/InvitationsPage', [
-            // Token-nya sendiri tidak ikut dikirim ke daftar: yang perlu
-            // terlihat adalah keadaan undangan, bukan kredensialnya. Tautannya
-            // diberikan sekali saat diterbitkan.
-            'invitations' => InvitationToken::query()
-                ->with('organization:id,name')
-                ->latest('id')
-                ->get()
-                ->map(fn (InvitationToken $invitation): array => [
-                    'id' => $invitation->id,
-                    'organization' => $invitation->organization?->name,
-                    'permissions' => $invitation->permissions,
-                    'used_count' => $invitation->used_count,
-                    'max_uses' => $invitation->max_uses,
-                    'expires_at' => $invitation->expires_at?->toDateTimeString(),
-                    'revoked_at' => $invitation->revoked_at?->toDateTimeString(),
-                    'is_valid' => $invitation->isValid(),
-                ]),
-            'organizations' => Organization::query()
-                ->where('is_active', true)
-                ->orderBy('name')
-                ->get(['id', 'name']),
-        ]);
+        return Inertia::render('Identity/InvitationIndexPage', InvitationList::run());
     }
 
-    public function store(Request $request): RedirectResponse
+    public function store(IssueInvitationRequest $request): RedirectResponse
     {
-        $user = Auth::user();
-
-        abort_unless($user !== null && $user->can('users.manage'), 403);
-
-        $validated = $request->validate([
-            'organization_id' => 'required|exists:organizations,id',
-            'permissions' => 'array',
-            'permissions.*' => 'string',
-            'max_uses' => 'nullable|integer|min:1',
-            'expires_at' => 'nullable|date',
-        ]);
-
         $invitation = IssueInvitation::run(
-            $user,
-            Organization::findOrFail($validated['organization_id']),
+            $this->actor($request),
+            Organization::findOrFail($request->organizationId()),
             [
-                'permissions' => $validated['permissions'] ?? [],
-                'max_uses' => $validated['max_uses'] ?? null,
-                'expires_at' => $validated['expires_at'] ?? null,
+                'permissions' => $request->preset()->permissions(),
+                'max_uses' => $request->maxUses(),
+                'expires_at' => $request->expiresAt(),
             ],
         );
 
-        // Tautannya muncul sekali, di sini. Menyimpannya untuk ditampilkan
-        // ulang berarti menyimpan kredensial yang bisa dibaca siapa pun yang
-        // membuka layar itu belakangan.
-        return back()->with('success', 'Undangan diterbitkan.')
-            ->with('invitation_url', route('register.invitation.show', $invitation->token));
+        // W51 — tautan tampil sekali lewat flash native, yang tidak tersimpan di riwayat
+        // browser; menyimpannya berarti menyimpan kredensial bagi pembuka layar berikutnya.
+        Inertia::flash('issuedInvitationUrl', route('register.invitation.show', $invitation->token));
+
+        return back()->with('success', 'Undangan diterbitkan.');
     }
 
-    public function destroy(InvitationToken $invitation): RedirectResponse
+    public function destroy(Request $request, InvitationToken $invitation): RedirectResponse
     {
-        $user = Auth::user();
-
-        abort_unless($user !== null && $user->can('users.manage'), 403);
-
-        RevokeInvitation::run($user, $invitation);
+        RevokeInvitation::run($this->actor($request), $invitation);
 
         return back()->with('success', 'Undangan dicabut.');
     }

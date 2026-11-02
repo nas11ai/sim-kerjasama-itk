@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Models\InvitationToken;
 use App\Models\User;
 use App\Queries\Identity\RegistrableStudyPrograms;
+use App\Support\Identity\PermissionCatalog;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -83,7 +84,8 @@ class RegisteredUserController extends Controller
         return Inertia::render('Auth/RegisterInvitationPage', [
             'token' => $token,
             'organization' => $invitation->organization?->name,
-            'permissions' => collect($invitation->permissions)->sort()->values()->all(),
+            // W4 — label manusia, urut abjad.
+            'permissions' => collect($invitation->permissions)->map(PermissionCatalog::label(...))->sort()->values()->all(),
         ]);
     }
 

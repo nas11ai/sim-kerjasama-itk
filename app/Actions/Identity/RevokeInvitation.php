@@ -26,7 +26,7 @@ class RevokeInvitation
      */
     public function handle(User $actor, InvitationToken $invitation): void
     {
-        if (!$actor->can('users.manage')) {
+        if (!$actor->can('manage', InvitationToken::class)) {
             throw new AuthorizationException('Hanya Operator yang dapat mencabut undangan registrasi.');
         }
 

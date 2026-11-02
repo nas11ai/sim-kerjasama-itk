@@ -113,9 +113,9 @@ it('[IAM-INVITE-06] undangan yang dicabut tetap terbaca sebagai riwayat', functi
         ->get(route('admin.invitations.index'))
         ->assertOk()
         ->assertInertia(fn ($page) => $page
-            ->component('Identity/InvitationsPage')
-            ->where('invitations.0.revoked_at', fn ($v) => $v !== null)
-            ->where('invitations.0.used_count', 3)
+            ->component('Identity/InvitationIndexPage')
+            ->where('invitations.0.status.value', 'revoked')
+            ->where('invitations.0.usedCount', 3)
             // Token-nya sendiri tidak ikut ke layar: daftar memperlihatkan
             // keadaan undangan, bukan kredensialnya.
             ->missing('invitations.0.token')
@@ -135,12 +135,13 @@ it('[IAM-INVITE-07] tautan undangan yang sah menampilkan form registrasi', funct
 
 // BR-IAM-06 — hak akses dari token ditampilkan read-only sebelum mendaftar.
 it('[IAM-INVITE-07] form registrasi undangan menampilkan hak akses token, urut abjad', function () {
-    $undangan = invitationToken(identityOrg(), ['permissions' => ['submissions.view-own', 'submissions.create']]);
+    $undangan = invitationToken(identityOrg(), ['permissions' => ['submissions.create', 'submissions.view-own']]);
 
+    // W4 — label manusia dari PermissionCatalog, bukan nama teknis.
     $this->get(route('register.invitation.show', $undangan->token))
         ->assertInertia(fn ($page) => $page
             ->where('token', $undangan->token)
-            ->where('permissions', ['submissions.create', 'submissions.view-own'])
+            ->where('permissions', ['Melihat pengajuan sendiri', 'Membuat pengajuan'])
         );
 });
 

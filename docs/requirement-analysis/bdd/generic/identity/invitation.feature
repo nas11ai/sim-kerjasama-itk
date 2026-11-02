@@ -69,3 +69,9 @@ Feature: Penerbitan dan Pencabutan Undangan
       | sudah lewat masa berlakunya |
       | sudah dicabut Operator      |
       | organisasinya sudah nonaktif |
+
+  @BR-IAM-16 @M3 @ADMIN-08-01 @happy
+  Scenario: [IAM-INVITE-09] Operator tanpa users.manage menerbitkan dan mencabut undangan
+    Given "Sari" berperan Operator tanpa permission "users.manage"
+    When Sari menerbitkan undangan untuk "Mitra Industri" lalu mencabutnya
+    Then undangan tersimpan dan kemudian berhenti berlaku

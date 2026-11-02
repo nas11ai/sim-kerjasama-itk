@@ -70,7 +70,7 @@ class IssueInvitation
      */
     private function guardIssuable(User $actor, Organization $organization): void
     {
-        if (!$actor->can('users.manage')) {
+        if (!$actor->can('manage', InvitationToken::class)) {
             throw new AuthorizationException('Hanya Operator yang dapat menerbitkan undangan registrasi.');
         }
 

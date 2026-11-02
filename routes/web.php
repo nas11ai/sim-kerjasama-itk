@@ -421,6 +421,17 @@ Route::middleware(['auth', 'can:users.verify'])->prefix('admin')->name('admin.')
         ->name('verifications.files.show');
 });
 
+// BR-IAM-16, W47 (pemilik 2026-11-02) — undangan: users.verify atau users.manage. Tanpa
+// pencabutan, tautan yang bocor hanya bisa ditunggu kedaluwarsa.
+Route::middleware(['auth', 'can:manage,App\\Models\\InvitationToken'])->prefix('admin')->name('admin.')->group(function () {
+    Route::get('/invitations', [InvitationController::class, 'index'])
+        ->name('invitations.index');
+    Route::post('/invitations', [InvitationController::class, 'store'])
+        ->name('invitations.store');
+    Route::delete('/invitations/{invitation}', [InvitationController::class, 'destroy'])
+        ->name('invitations.revoke');
+});
+
 // BR-SM-07 — layar pengajuan Operator dijaga view-all, bukan users.manage:
 // pemegang view-all tanpa hak kelola pengguna tetap harus bisa membacanya (§4.4 K1).
 Route::middleware(['auth', 'can:submissions.view-all'])->prefix('admin')->name('admin.')->group(function () {
@@ -513,14 +524,6 @@ Route::middleware(['auth'])->group(function () {
         // BR-REV-01 — dijaga Policy `assignReviewers` (reviewers.assign), bukan users.manage.
         Route::post('/submissions/{submission}/assign-reviewers', [ReviewController::class, 'assignReviewers'])
             ->name('submissions.assign-reviewers');
-        // BR-IAM-16 — penerbitan dan pencabutan undangan (ADMIN-08-01).
-        // Tanpa pencabutan, tautan yang bocor hanya bisa ditunggu kedaluwarsa.
-        Route::get('/invitations', [InvitationController::class, 'index'])
-            ->name('invitations.index');
-        Route::post('/invitations', [InvitationController::class, 'store'])
-            ->name('invitations.store');
-        Route::delete('/invitations/{invitation}', [InvitationController::class, 'destroy'])
-            ->name('invitations.revoke');
         // BR-SCH-01/02/03 — sebelum ini skema hanya bisa dibuat lewat seeder.
         Route::get('/schemes', [SchemeController::class, 'index'])
             ->name('schemes.index');
