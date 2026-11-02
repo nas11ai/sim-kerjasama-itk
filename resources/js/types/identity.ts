@@ -121,3 +121,21 @@ export interface UserShowPageProps {
     tab: UserTab
     can: UserAbilities
 }
+
+// Sumber: VerificationCardData (OPERATOR-08-02). `rejectedAt` dari entri audit penolakan terbaru (W53).
+export interface VerificationCardData {
+    profileId: number
+    name: string
+    email: string
+    nidn: string | null
+    organization: string | null
+    registeredAt: string
+    rejectedAt: string | null
+    rejectionReason: string | null
+    files: { label: string; url: string }[]
+}
+
+export interface VerificationIndexPageProps {
+    pending: VerificationCardData[]
+    rejected: VerificationCardData[]
+}

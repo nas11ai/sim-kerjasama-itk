@@ -8,6 +8,7 @@ defineProps<{
     label: string
     placeholder: string
     error?: string
+    hint?: string
     required?: boolean
 }>()
 
@@ -15,7 +16,7 @@ const model = defineModel<string>({ required: true })
 </script>
 
 <template>
-    <FormField :id="id" :label="label" :required="required" :error="error">
+    <FormField :id="id" :label="label" :required="required" :hint="hint" :error="error">
         <template #default="{ describedBy }">
             <Textarea
                 :id="id"
