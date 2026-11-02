@@ -14,6 +14,7 @@ use App\Http\Controllers\FormController;
 use App\Http\Controllers\FormPhaseController;
 use App\Http\Controllers\Identity\InvitationController;
 use App\Http\Controllers\Identity\NidnVerificationController;
+use App\Http\Controllers\Identity\ProfileCompletionController;
 use App\Http\Controllers\Identity\ProfileController;
 use App\Http\Controllers\Identity\ProfilePhotoController;
 use App\Http\Controllers\Identity\ReviewerManagementController;
@@ -87,6 +88,10 @@ Route::get('announcements/{announcement}', [AnnouncementController::class, 'deta
 Route::middleware(['auth'])->group(function () {
     Route::get('/profile', [ProfileController::class, 'show'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+
+    // SHARED-01-06 — BR-IAM-03; terbuka bagi semua status verifikasi (BR-IAM-04, W63).
+    Route::get('/profile/complete', [ProfileCompletionController::class, 'create'])->name('profile.complete');
+    Route::post('/profile/complete', [ProfileCompletionController::class, 'store'])->name('profile.complete.store');
 
     // W65 — foto profil milik sendiri di disk privat (W15); tanpa parameter, tanpa IDOR.
     Route::get('/profile/photo', [ProfilePhotoController::class, 'show'])->name('profile.photo.show');

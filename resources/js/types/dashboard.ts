@@ -47,6 +47,12 @@ export interface DashboardIndexPageProps {
     activities: Activity[]
     deadlines: Deadline[]
     announcements: AnnouncementSummary[]
+    profileCompletion: ProfileCompletion | null
+}
+
+// Sumber: ProfileCompletionData — BR-IAM-03; null bila bukan pembuat pengajuan atau sudah lengkap.
+export interface ProfileCompletion {
+    missing: string[]
 }
 
 // Shared prop `biodataStatus` dari CheckBiodata (sesi); null di luar grup check_biodata.

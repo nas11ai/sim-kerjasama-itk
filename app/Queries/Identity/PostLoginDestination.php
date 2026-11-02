@@ -24,6 +24,12 @@ class PostLoginDestination implements ChangesNoState
             return 'verification.status';
         }
 
+        // BR-IAM-03, W63 — flow UX: pembuat pengajuan berprofil belum lengkap mulai dari
+        // Lengkapi Profil; "Nanti Saja" di sana membawanya ke dasbor.
+        if ($user->can('submissions.create') && $user->userProfile !== null && !$user->userProfile->isComplete()) {
+            return 'profile.complete';
+        }
+
         // §4.4 K4 — satu dasbor untuk semua peran.
         return 'dashboard';
     }

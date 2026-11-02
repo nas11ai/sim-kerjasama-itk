@@ -15,8 +15,10 @@
 
 use App\Actions\FormSubmission\DeactivateUser;
 use App\Actions\Identity\AppointReviewer;
+use App\Actions\Identity\CompleteProfile;
 use App\Actions\Identity\RegisterResearcher;
 use App\Actions\Identity\VerifyNidn;
+use App\Data\Request\ProfileDetailsInput;
 use App\Models\Organization;
 use App\Models\User;
 use App\Models\UserProfile;
@@ -24,7 +26,9 @@ use App\Notifications\AccountDeactivatedNotification;
 use App\Notifications\NewRegistrationAwaitingVerification;
 use App\Notifications\NidnVerifiedNotification;
 use App\Notifications\ReviewerAppointedNotification;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Facades\Storage;
 use Spatie\Permission\Models\Permission;
 use Spatie\Permission\Models\Role;
 
@@ -87,16 +91,20 @@ it('[IAM-EVENT-04] penunjukan reviewer memberi tahu yang ditunjuk', function () 
 it('[IAM-EVENT-05] perubahan yang dilakukan user sendiri tidak memberitahunya', function () {
     Notification::fake();
 
-    $budi = User::factory()->create();
-    $profile = UserProfile::factory()->incomplete()->create(['user_id' => $budi->id]);
+    Storage::fake('local');
 
-    // Melengkapi profil sendiri: tidak ada keputusan orang lain, jadi tidak
-    // ada yang perlu diberitahukan kembali kepadanya.
-    $profile->update([
-        'phone' => '0813-9876-5432',
-        'expertise' => 'Data Science',
-        'photo_path' => 'profil/budi.jpg',
-    ]);
+    $budi = User::factory()->create();
+    UserProfile::factory()->incomplete()->create(['user_id' => $budi->id]);
+
+    // Melengkapi profil sendiri lewat jalur produksinya (SHARED-01-06): tidak ada
+    // keputusan orang lain, jadi tidak ada yang perlu diberitahukan kembali kepadanya.
+    CompleteProfile::run(
+        $budi->fresh(),
+        new ProfileDetailsInput('0813-9876-5432', 'Data Science'),
+        UploadedFile::fake()->image('budi.jpg'),
+    );
+
+    expect($budi->fresh()->userProfile->isComplete())->toBeTrue();
 
     Notification::assertNothingSent();
 });

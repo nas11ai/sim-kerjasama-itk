@@ -61,6 +61,25 @@ it('terbuka bagi peneliti, reviewer, operator, dan admin', function (array $perm
     'admin' => [['submissions.view-all', 'users.manage', 'schemes.manage'], 1],
 ]);
 
+// BR-IAM-03 — banner "Lengkapi profil" (frame IAM-VERIFY-04) hanya bagi pembuat pengajuan.
+it('profileCompletion menyebut kekurangan bagi pembuat pengajuan', function () {
+    $user = dpUser('submissions.create', 'submissions.view-own');
+    UserProfile::factory()->partiallyComplete()->create(['user_id' => $user->id]);
+
+    $this->actingAs($user)->get(route('dashboard'))->assertInertia(fn (Assert $page) => $page
+        ->where('profileCompletion.missing', ['Bidang Keahlian', 'Foto Profil']));
+});
+
+it('profileCompletion null bila lengkap atau tanpa submissions.create', function () {
+    $lengkap = dpUser('submissions.create', 'submissions.view-own');
+    UserProfile::factory()->create(['user_id' => $lengkap->id]);
+    $reviewer = dpUser('reviewers.evaluate');
+    UserProfile::factory()->incomplete()->create(['user_id' => $reviewer->id]);
+
+    $this->actingAs($lengkap)->get(route('dashboard'))->assertInertia(fn (Assert $page) => $page->where('profileCompletion', null));
+    $this->actingAs($reviewer)->get(route('dashboard'))->assertInertia(fn (Assert $page) => $page->where('profileCompletion', null));
+});
+
 it('tamu diarahkan ke login', function () {
     $this->get(route('dashboard'))->assertRedirect(route('login'));
 });

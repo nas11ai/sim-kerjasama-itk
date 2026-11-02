@@ -18,7 +18,12 @@ export interface QuickAction {
     params?: Record<string, string>
     icon: LucideIcon
     primary: boolean
+    /** Diisi bila aksi tampil tapi tertahan gerbang backend; tombol dirender nonaktif. */
+    disabledReason?: string
 }
+
+// BR-IAM-03 — gerbang profil menahan pembuatan pengajuan (state IAM-VERIFY-04).
+const PROFILE_INCOMPLETE = 'Lengkapi profil Anda sebelum membuat pengajuan.'
 
 type QuickActionDef = Omit<QuickAction, 'primary'> & {
     /** kosong = semua pengguna */
@@ -92,7 +97,7 @@ const definitions: QuickActionDef[] = [
 ]
 
 /** Aksi cepat dasbor; satu daftar tetap, jadi user dua peran tidak mendapat duplikat. */
-export function quickActions(permissions: string[]): QuickAction[] {
+export function quickActions(permissions: string[], profileIncomplete = false): QuickAction[] {
     return definitions
         .filter((d) => d.permission === null || permissions.includes(d.permission))
         .map((d, index) => ({
@@ -101,5 +106,9 @@ export function quickActions(permissions: string[]): QuickAction[] {
             params: d.params,
             icon: d.icon,
             primary: index === 0,
+            disabledReason:
+                profileIncomplete && d.routeName === 'user.submissions.create'
+                    ? PROFILE_INCOMPLETE
+                    : undefined,
         }))
 }

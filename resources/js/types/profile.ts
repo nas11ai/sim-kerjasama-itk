@@ -15,3 +15,9 @@ export interface OwnProfile {
 export interface ProfileShowPageProps {
     profile: OwnProfile
 }
+
+export interface ProfileCompletePageProps {
+    profile: OwnProfile
+    /** Satu-satunya tujuan lanjutan yang diterima backend: kembali ke wizard. */
+    next: 'submission' | null
+}

@@ -41,6 +41,17 @@ describe('quickActions (W45, §4.4)', () => {
         expect(assign?.params).toEqual({ status: 'submitted' })
     })
 
+    it('[IAM-VERIFY-04] profil belum lengkap menonaktifkan Buat Pengajuan Baru dengan alasan', () => {
+        const create = quickActions(RESEARCHER, true).find((a) => a.label === 'Buat Pengajuan Baru')
+        const list = quickActions(RESEARCHER, true).find(
+            (a) => a.label === 'Lihat Daftar Pengajuan'
+        )
+
+        expect(create?.disabledReason).toBe('Lengkapi profil Anda sebelum membuat pengajuan.')
+        expect(list?.disabledReason).toBeUndefined()
+        expect(quickActions(RESEARCHER)[0].disabledReason).toBeUndefined()
+    })
+
     it('tepat satu primary: item pertama yang lolos', () => {
         for (const permissions of [[], RESEARCHER, REVIEWER, OPERATOR, ['schemes.manage']]) {
             const actions = quickActions(permissions)

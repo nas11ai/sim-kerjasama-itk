@@ -6,6 +6,7 @@
 use App\Models\User;
 use App\Models\UserProfile;
 use Illuminate\Database\Eloquent\Factories\Factory;
+use Spatie\Permission\Models\Permission;
 
 /** @param  callable(Factory<UserProfile>): Factory<UserProfile>  $state */
 function accountWithProfile(callable $state): User
@@ -67,6 +68,31 @@ it('user pending dengan deep link tetap diantar ke tujuannya', function () {
 
     $this->post(route('login'), ['email' => $user->email, 'password' => 'password'])
         ->assertRedirect(route('profile.edit'));
+});
+
+// W63 — flow diagram UX: akun aktif berprofil belum lengkap → Lengkapi Profil (BR-IAM-03).
+it('akun terverifikasi berprofil belum lengkap mendarat di Lengkapi Profil', function () {
+    $user = accountWithProfile(fn ($factory) => $factory->incomplete());
+    $user->givePermissionTo(Permission::findOrCreate('submissions.create', 'web'));
+
+    $this->post(route('login'), ['email' => $user->email, 'password' => 'password'])
+        ->assertRedirect(route('profile.complete'));
+});
+
+it('[IAM-VERIFY-01] akun pending berprofil belum lengkap tetap mendarat di layar verifikasi', function () {
+    $user = accountWithProfile(fn ($factory) => $factory->pending()->incomplete());
+    $user->givePermissionTo(Permission::findOrCreate('submissions.create', 'web'));
+
+    $this->post(route('login'), ['email' => $user->email, 'password' => 'password'])
+        ->assertRedirect(route('verification.status'));
+});
+
+it('pengelola tanpa profil tetap mendarat di dasbor', function () {
+    $user = User::factory()->create(['email' => 'admin@itk.ac.id']);
+    $user->givePermissionTo(Permission::findOrCreate('users.manage', 'web'), Permission::findOrCreate('submissions.create', 'web'));
+
+    $this->post(route('login'), ['email' => $user->email, 'password' => 'password'])
+        ->assertRedirect(route('dashboard'));
 });
 
 it('tamu dialihkan ke login', function () {

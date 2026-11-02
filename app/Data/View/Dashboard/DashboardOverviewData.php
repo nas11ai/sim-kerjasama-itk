@@ -21,5 +21,6 @@ final class DashboardOverviewData extends Data
         public array $activities,
         public array $deadlines,
         public array $announcements,
+        public ?ProfileCompletionData $profileCompletion,
     ) {}
 }

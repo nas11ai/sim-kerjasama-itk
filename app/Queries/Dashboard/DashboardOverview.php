@@ -5,6 +5,7 @@ namespace App\Queries\Dashboard;
 use App\Actions\Concerns\ChangesNoState;
 use App\Data\View\Dashboard\DashboardOverviewData;
 use App\Data\View\Dashboard\DashboardSectionData;
+use App\Data\View\Dashboard\ProfileCompletionData;
 use App\Models\Reviewer;
 use App\Models\User;
 use App\Queries\Announcement\LatestAnnouncements;
@@ -47,6 +48,7 @@ class DashboardOverview implements ChangesNoState
             activities: RecentActivity::run($user),
             deadlines: DashboardDeadlines::run($user, $reviewerDeadlines),
             announcements: LatestAnnouncements::run($user),
+            profileCompletion: ProfileCompletionData::of($user),
         );
     }
 

@@ -15,12 +15,14 @@ import { quickActions } from '@/lib/dashboardActions'
 import type { PageProps } from '@/types'
 import type { BiodataStatusFlags, DashboardIndexPageProps } from '@/types/dashboard'
 
-defineProps<DashboardIndexPageProps>()
+const props = defineProps<DashboardIndexPageProps>()
 
 const page = usePage<PageProps<{ biodataStatus: BiodataStatusFlags | null }>>()
 
 // §4.4 — section dari backend, aksi cepat dari permissions; nama peran tak dibaca.
-const actions = computed(() => quickActions(page.props.auth.user.permissions))
+const actions = computed(() =>
+    quickActions(page.props.auth.user.permissions, props.profileCompletion !== null)
+)
 const biodata = computed(() => {
     const status = page.props.biodataStatus
 
@@ -37,6 +39,16 @@ const biodata = computed(() => {
                 {{ biodata.message ?? 'Silakan lengkapi biodata Anda terlebih dahulu.' }}
                 <Link :href="route('user.biodata.index')" class="font-medium underline">
                     Buka biodata
+                </Link>
+            </AppBanner>
+            <!-- BR-IAM-03 — profil belum lengkap menahan pembuatan pengajuan (IAM-VERIFY-04) -->
+            <AppBanner v-if="profileCompletion" tone="warning" title="Profil belum lengkap">
+                Lengkapi profil Anda sebelum membuat pengajuan.
+                <template v-if="profileCompletion.missing.length < 3">
+                    {{ profileCompletion.missing.length }} dari 3 data tambahan belum terisi.
+                </template>
+                <Link :href="route('profile.complete')" class="font-medium underline">
+                    Lengkapi Profil
                 </Link>
             </AppBanner>
             <AppBanner v-if="pending" tone="warning">

@@ -48,6 +48,7 @@ const props = (overrides: Partial<DashboardIndexPageProps> = {}): DashboardIndex
     activities: [],
     deadlines: [],
     announcements: [],
+    profileCompletion: null,
     ...overrides,
 })
 
@@ -105,6 +106,31 @@ describe('Dashboard/IndexPage', () => {
         share([], { required: true, completed: true })
 
         expect(mountPage().find('a[href="/user.biodata.index"]').exists()).toBe(false)
+    })
+
+    it('[IAM-VERIFY-04] profil belum lengkap: banner dan Buat Pengajuan Baru nonaktif', () => {
+        share(['submissions.create', 'submissions.view-own'])
+        const wrapper = mountPage({
+            profileCompletion: { missing: ['Bidang Keahlian', 'Foto Profil'] },
+        })
+
+        expect(wrapper.text()).toContain('Lengkapi profil Anda sebelum membuat pengajuan.')
+        expect(wrapper.text()).toContain('2 dari 3 data tambahan belum terisi.')
+        expect(wrapper.find('a[href="/profile.complete"]').exists()).toBe(true)
+        expect(wrapper.find('a[href="/user.submissions.create"]').exists()).toBe(false)
+
+        const create = wrapper
+            .findAll('button')
+            .find((b) => b.text().includes('Buat Pengajuan Baru'))
+        expect(create?.attributes('disabled')).toBeDefined()
+    })
+
+    it('tanpa profileCompletion tidak ada banner profil', () => {
+        share(['submissions.create', 'submissions.view-own'])
+        const wrapper = mountPage()
+
+        expect(wrapper.text()).not.toContain('Lengkapi profil Anda')
+        expect(wrapper.find('a[href="/user.submissions.create"]').exists()).toBe(true)
     })
 
     it('EmptyState untuk aktivitas, deadline, dan pengumuman kosong', () => {

@@ -11,6 +11,7 @@ use App\Models\FormSubmission;
 use App\Queries\Submission\ResearcherStartOptions;
 use App\Queries\Submission\ResearchMemberCandidates;
 use App\Queries\Submission\SubmissionWizard;
+use App\Support\AccountStateGuard;
 use App\Support\WizardStepGate;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -26,13 +27,20 @@ class SubmissionWizardController extends Controller
     private const PAGE = 'Submission/WizardPage';
 
     /** Langkah 1 sebelum baris pengajuan lahir; barisnya dibuat `user.submissions.store`. */
-    public function create(Request $request): Response
+    public function create(Request $request): Response|RedirectResponse
     {
+        $user = $this->actor($request);
+
+        // BR-IAM-03 — pintu UX; penegaknya tetap StartSubmission (IAM-VERIFY-04).
+        if (!AccountStateGuard::isProfileComplete($user)) {
+            return redirect()->route('profile.complete', ['next' => 'submission']);
+        }
+
         return Inertia::render(self::PAGE, [
             'step' => WizardStepGate::STEP_FORM_PERIOD,
             'steps' => SubmissionWizard::stepsBeforeStart(),
             'submission' => null,
-            'startOptions' => ResearcherStartOptions::run($this->actor($request)),
+            'startOptions' => ResearcherStartOptions::run($user),
             'fields' => [],
             'targetOutputs' => [],
             'targetOutputTypes' => [],
