@@ -27,7 +27,14 @@ class ProfileCompletionController extends Controller
         $user = $this->actor($request);
         $profile = $user->userProfile;
 
-        if ($profile === null || $profile->isComplete()) {
+        // W63 — tanpa UserProfile tidak ada data tambahan untuk diisi; katakan alasannya
+        // (mis. Admin pemegang submissions.create yang datang dari "Buat Pengajuan Baru").
+        if ($profile === null) {
+            return redirect()->route('profile.edit')
+                ->with('error', 'Akun ini tidak memiliki profil peneliti, jadi tidak dapat membuat pengajuan.');
+        }
+
+        if ($profile->isComplete()) {
             return redirect()->route('profile.edit');
         }
 

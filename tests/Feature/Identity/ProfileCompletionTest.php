@@ -13,6 +13,7 @@ use App\Support\Audit\AuditTrail;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Facades\Storage;
 use Spatie\Activitylog\Models\Activity;
+use Spatie\Permission\Models\Permission;
 
 beforeEach(fn () => Storage::fake('local'));
 
@@ -51,6 +52,18 @@ it('profil lengkap atau tanpa profil dialihkan ke Profil Saya', function () {
 
     $this->actingAs($lengkap)->get(route('profile.complete'))->assertRedirect(route('profile.edit'));
     $this->actingAs(User::factory()->create())->get(route('profile.complete'))->assertRedirect(route('profile.edit'));
+});
+
+it('pembuat pengajuan tanpa profil diberi tahu alasannya, bukan dipantulkan diam-diam', function () {
+    // Admin memegang katalog penuh (termasuk submissions.create) tanpa UserProfile (W63).
+    $admin = User::factory()->create();
+    $admin->givePermissionTo(Permission::findOrCreate('submissions.create', 'web'));
+
+    $this->actingAs($admin)->get(route('user.submissions.create'))
+        ->assertRedirect(route('profile.complete', ['next' => 'submission']));
+    $this->actingAs($admin)->get(route('profile.complete', ['next' => 'submission']))
+        ->assertRedirect(route('profile.edit'))
+        ->assertSessionHas('error', 'Akun ini tidak memiliki profil peneliti, jadi tidak dapat membuat pengajuan.');
 });
 
 it('akun pending dan rejected tetap bisa melengkapi profil', function (string $status) {
