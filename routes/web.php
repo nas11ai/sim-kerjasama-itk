@@ -14,6 +14,7 @@ use App\Http\Controllers\FormController;
 use App\Http\Controllers\FormPhaseController;
 use App\Http\Controllers\Identity\InvitationController;
 use App\Http\Controllers\Identity\NidnVerificationController;
+use App\Http\Controllers\Identity\ProfileController;
 use App\Http\Controllers\Identity\ProfilePhotoController;
 use App\Http\Controllers\Identity\ReviewerManagementController;
 use App\Http\Controllers\Identity\UserAccessController;
@@ -24,7 +25,6 @@ use App\Http\Controllers\Notification\NotificationChannelController;
 use App\Http\Controllers\Notification\NotificationController;
 use App\Http\Controllers\OrganizationController;
 use App\Http\Controllers\PermissionController;
-use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Review\ReplaceReviewerController;
 use App\Http\Controllers\Review\ReviewAttachmentDownloadController;
 use App\Http\Controllers\Review\ReviewerAssignmentController;
@@ -85,7 +85,7 @@ Route::middleware('auth')->group(function () {
 Route::get('announcements/{announcement}', [AnnouncementController::class, 'detail'])->name('announcements.detail');
 
 Route::middleware(['auth'])->group(function () {
-    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::get('/profile', [ProfileController::class, 'show'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
 
     // W65 — foto profil milik sendiri di disk privat (W15); tanpa parameter, tanpa IDOR.
