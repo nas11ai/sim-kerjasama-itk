@@ -23,7 +23,8 @@ final class UserAbilitiesData extends Data
             deactivate: $viewer->can('deactivate', $user),
             changeRoles: $viewer->can('changeRoles', $user),
             managePermissions: $viewer->can('managePermissions', $user),
-            appointReviewer: $viewer->can('reviewers.assign'),
+            // BR-IAM-05 — akun nonaktif tidak bisa ditunjuk; AppointReviewer menolaknya juga.
+            appointReviewer: $user->is_active && $viewer->can('reviewers.assign'),
             endSessions: $viewer->can('endSessions', $user),
             reactivate: $viewer->can('reactivate', $user),
         );

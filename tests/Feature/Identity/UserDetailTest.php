@@ -166,3 +166,11 @@ it('tab tak dikenal menjadi profile', function () {
     $this->actingAs($viewer)->get(route('admin.users.show', [$target, 'tab' => 'rahasia']))
         ->assertInertia(fn (Assert $page) => $page->where('tab', 'profile'));
 });
+
+it('BR-IAM-05 — akun nonaktif tidak ditawari "Tunjuk sebagai Reviewer"', function () {
+    $target = User::factory()->create(['is_active' => false]);
+
+    $this->actingAs(detailViewer('users.manage', 'reviewers.assign'))
+        ->get(route('admin.users.show', $target))
+        ->assertInertia(fn (Assert $page) => $page->where('can.appointReviewer', false));
+});
