@@ -1,12 +1,13 @@
 <script setup lang="ts">
 // Frame: OPERATOR-08-02
 import { Head, router } from '@inertiajs/vue3'
-import { Check, UserCheck, X } from 'lucide-vue-next'
+import { Check, PencilLine, UserCheck, X } from 'lucide-vue-next'
 import { ref } from 'vue'
 
 import AppBanner from '@/Components/app/AppBanner.vue'
 import EmptyState from '@/Components/app/EmptyState.vue'
 import PageHeader from '@/Components/app/PageHeader.vue'
+import CorrectNidnDialog from '@/Components/Identity/CorrectNidnDialog.vue'
 import RejectVerificationDialog from '@/Components/Identity/RejectVerificationDialog.vue'
 import VerificationCard from '@/Components/Identity/VerificationCard.vue'
 import { Badge } from '@/Components/ui/badge'
@@ -18,11 +19,18 @@ defineProps<VerificationIndexPageProps>()
 
 const rejecting = ref<VerificationCardData | null>(null)
 const rejectOpen = ref(false)
+const correcting = ref<VerificationCardData | null>(null)
+const correctOpen = ref(false)
 const verifying = ref<number | null>(null)
 
 const openReject = (card: VerificationCardData) => {
     rejecting.value = card
     rejectOpen.value = true
+}
+
+const openCorrect = (card: VerificationCardData) => {
+    correcting.value = card
+    correctOpen.value = true
 }
 
 // BR-IAM-13 — verifikasi berlaku juga untuk akun yang pernah ditolak (IAM-VERIFY-10).
@@ -78,6 +86,9 @@ const verify = (card: VerificationCardData) => {
                 <h2 class="text-lg font-semibold">Ditolak</h2>
                 <VerificationCard v-for="card in rejected" :key="card.profileId" :card="card">
                     <template #actions>
+                        <Button size="sm" variant="outline" @click="openCorrect(card)"
+                            ><PencilLine class="size-4" />Koreksi NIDN</Button
+                        >
                         <Button
                             size="sm"
                             :disabled="verifying === card.profileId"
@@ -93,6 +104,13 @@ const verify = (card: VerificationCardData) => {
             :key="rejecting.profileId"
             v-model:open="rejectOpen"
             :card="rejecting"
+        />
+        <CorrectNidnDialog
+            v-if="correcting"
+            :key="`${correcting.profileId}-${correcting.nidn}`"
+            v-model:open="correctOpen"
+            :profile-id="correcting.profileId"
+            :current-nidn="correcting.nidn"
         />
     </AppLayout>
 </template>

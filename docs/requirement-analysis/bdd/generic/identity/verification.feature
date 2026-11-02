@@ -74,6 +74,7 @@ Feature: Verifikasi NIDN dan Kelengkapan Profil
   @BR-IAM-13 @M3 @OPERATOR-08-02 @boundary
   Scenario: [IAM-VERIFY-10] Akun yang ditolak masih bisa diverifikasi setelah NIDN dikoreksi
     Given "Budi" berstatus rejected
+    And Operator sudah mengoreksi NIDN "Budi"
     When Operator memverifikasi NIDN "Budi"
     Then akun "Budi" berstatus aktif
 
@@ -90,3 +91,19 @@ Feature: Verifikasi NIDN dan Kelengkapan Profil
     And profil "Budi" terisi nomor telepon tapi tanpa bidang keahlian
     When "Budi" memulai pengajuan baru pada "Pengajuan Penelitian"
     Then penambahan ditolak karena profil belum lengkap
+
+  @BR-IAM-13 @BR-IAM-02 @M3 @OPERATOR-08-02 @happy
+  Scenario: [IAM-VERIFY-13] Operator mengoreksi NIDN akun yang ditolak
+    Given "Budi" berstatus rejected dengan NIDN "0543210987"
+    When Operator mengoreksi NIDN "Budi" menjadi "0543210978"
+    Then NIDN "Budi" menjadi "0543210978"
+    And akun "Budi" tetap berstatus rejected
+    And jejak audit memuat NIDN lama dan NIDN baru
+
+  @BR-IAM-02 @M3 @OPERATOR-08-02 @denial
+  Scenario: [IAM-VERIFY-14] Koreksi ke NIDN yang sudah dipakai akun lain ditolak
+    Given "Budi" berstatus rejected dengan NIDN "0543210987"
+    And akun "Sari" memakai NIDN "0654321098"
+    When Operator mengoreksi NIDN "Budi" menjadi "0654321098"
+    Then koreksi ditolak karena NIDN sudah terdaftar
+    And NIDN "Budi" tetap "0543210987"

@@ -21,6 +21,9 @@ class RejectNidnVerification
 {
     use AsAction;
 
+    /** Dibaca RejectedAt sebagai "Ditolak pada" (W53). */
+    public const AUDIT_DESCRIPTION = 'Verifikasi NIDN ditolak';
+
     /**
      * @throws ValidationException
      */
@@ -47,7 +50,7 @@ class RejectNidnVerification
         $tercatat = $profile->refresh();
 
         // BR-RPT-09 — satu Action, satu entri audit.
-        AuditTrail::record('Verifikasi NIDN ditolak', $tercatat);
+        AuditTrail::record(self::AUDIT_DESCRIPTION, $tercatat);
 
         return $tercatat;
     }

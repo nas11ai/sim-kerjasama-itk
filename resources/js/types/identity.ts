@@ -129,7 +129,7 @@ export interface VerificationCardData {
     email: string
     nidn: string | null
     organization: string | null
-    registeredAt: string
+    registeredAt: string | null
     rejectedAt: string | null
     rejectionReason: string | null
     files: { label: string; url: string }[]

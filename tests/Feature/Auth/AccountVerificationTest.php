@@ -32,6 +32,7 @@ it('[IAM-VERIFY-01] user pending yang login melihat layar menunggu verifikasi', 
                 'nidn' => '0011223344',
                 'email' => 'budi@itk.ac.id',
                 'rejectionReason' => null,
+                'rejectedAt' => null,
             ]));
 });
 

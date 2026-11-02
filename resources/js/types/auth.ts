@@ -41,6 +41,7 @@ export interface AccountVerification {
     nidn: string | null
     email: string
     rejectionReason: string | null
+    rejectedAt: string | null
 }
 
 export interface VerificationStatusPageProps {

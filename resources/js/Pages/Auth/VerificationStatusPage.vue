@@ -9,6 +9,7 @@ import InfoGrid from '@/Components/app/InfoGrid.vue'
 import { Button } from '@/Components/ui/button'
 import { Empty, EmptyDescription, EmptyHeader, EmptyMedia, EmptyTitle } from '@/Components/ui/empty'
 import AuthLayout from '@/Layouts/AuthLayout.vue'
+import { formatDate } from '@/lib/format'
 import type { VerificationStatusPageProps } from '@/types/auth'
 
 const props = defineProps<VerificationStatusPageProps>()
@@ -22,6 +23,10 @@ const details = computed(() => [
     },
     { label: 'Email', value: props.verification.email },
     { label: 'Status', value: props.verification.statusLabel },
+    // W5 — kapan penolakan terjadi, dari jejak audit (W53).
+    ...(rejected.value
+        ? [{ label: 'Ditolak pada', value: formatDate(props.verification.rejectedAt) }]
+        : []),
 ])
 </script>
 

@@ -14,9 +14,11 @@
 
 use App\Actions\FormSubmission\StartSubmission;
 use App\Actions\FormSubmission\SubmitFormSubmission;
+use App\Actions\Identity\CorrectNidn;
 use App\Actions\Identity\RejectNidnVerification;
 use App\Actions\Identity\VerifyNidn;
 use App\Enums\VerificationStatus;
+use App\Models\AuditEntry;
 use App\Models\FormSubmission;
 use App\Models\User;
 use App\Models\UserProfile;
@@ -179,10 +181,13 @@ it('[IAM-VERIFY-09] akun yang verifikasinya ditolak tidak bisa submit', function
 it('[IAM-VERIFY-10] akun yang ditolak masih bisa diverifikasi setelah NIDN dikoreksi', function () {
     Notification::fake();
     ['profile' => $profile] = verificationFixture('rejected');
+    $operator = verifierOperator();
 
-    VerifyNidn::run($profile);
+    CorrectNidn::run($operator, $profile, '0543210978');
+    VerifyNidn::run($profile->fresh());
 
     expect($profile->fresh()->verification_status)->toBe(VerificationStatus::Active)
+        ->and($profile->fresh()->nidn)->toBe('0543210978')
         // Alasan lama dibersihkan — ia sudah tidak berlaku.
         ->and($profile->fresh()->rejection_reason)->toBeNull();
 });
@@ -207,8 +212,56 @@ it('[IAM-VERIFY-01] Operator membuka antrian verifikasi', function () {
         ->get(route('admin.verifications.index'))
         ->assertOk()
         ->assertInertia(fn (AssertableInertia $page) => $page
-            ->component('Identity/VerificationQueuePage')
+            ->component('Identity/VerificationIndexPage')
             ->has('pending', 1)
-            ->where('pending.0.id', $profile->id)
+            ->where('pending.0.profileId', $profile->id)
             ->etc());
+});
+
+it('[IAM-VERIFY-13] Operator mengoreksi NIDN akun yang ditolak', function () {
+    ['profile' => $profile] = verificationFixture('rejected');
+    $profile->update(['nidn' => '0543210987']);
+
+    $this->actingAs(verifierOperator())
+        ->post(route('admin.verifications.nidn', $profile), ['nidn' => ' 0543210978 '])
+        ->assertRedirect()
+        ->assertSessionHasNoErrors();
+
+    $entry = AuditEntry::query()->auditOnly()->where('description', CorrectNidn::AUDIT_DESCRIPTION)->sole();
+
+    expect($profile->fresh()->nidn)->toBe('0543210978')
+        // Koreksi bukan verifikasi — status tetap ditolak sampai Operator memverifikasi.
+        ->and($profile->fresh()->verification_status)->toBe(VerificationStatus::Rejected)
+        ->and($entry->subject_id)->toBe($profile->id)
+        ->and($entry->properties['old'])->toBe(['nidn' => '0543210987'])
+        ->and($entry->properties['new'])->toBe(['nidn' => '0543210978']);
+});
+
+it('[IAM-VERIFY-14] koreksi ke NIDN yang sudah dipakai ditolak', function () {
+    ['profile' => $profile] = verificationFixture('rejected');
+    $profile->update(['nidn' => '0543210987']);
+    UserProfile::factory()->create(['user_id' => User::factory()->create()->id, 'nidn' => '0654321098']);
+
+    $this->actingAs(verifierOperator())
+        ->post(route('admin.verifications.nidn', $profile), ['nidn' => '0654321098'])
+        ->assertSessionHasErrors(['nidn' => 'NIDN ini sudah terdaftar pada akun lain.']);
+
+    expect($profile->fresh()->nidn)->toBe('0543210987')
+        ->and(AuditEntry::query()->auditOnly()->where('description', CorrectNidn::AUDIT_DESCRIPTION)->count())->toBe(0);
+});
+
+it('koreksi ke NIDN yang sama tidak mengaudit', function () {
+    ['profile' => $profile] = verificationFixture('rejected');
+    $profile->update(['nidn' => '0543210987']);
+
+    CorrectNidn::run(verifierOperator(), $profile, '0543210987');
+
+    expect(AuditEntry::query()->auditOnly()->where('description', CorrectNidn::AUDIT_DESCRIPTION)->count())->toBe(0);
+});
+
+it('koreksi ke NIDN kosong ditolak', function () {
+    ['profile' => $profile] = verificationFixture('rejected');
+
+    expect(fn () => CorrectNidn::run(verifierOperator(), $profile, '   '))
+        ->toThrow(ValidationException::class);
 });

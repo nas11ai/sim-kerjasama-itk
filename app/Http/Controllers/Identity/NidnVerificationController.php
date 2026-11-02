@@ -2,89 +2,48 @@
 
 namespace App\Http\Controllers\Identity;
 
+use App\Actions\Identity\CorrectNidn;
 use App\Actions\Identity\RejectNidnVerification;
 use App\Actions\Identity\VerifyNidn;
+use App\Http\Controllers\Concerns\ResolvesActor;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Identity\CorrectNidnRequest;
+use App\Http\Requests\Identity\RejectVerificationRequest;
 use App\Models\UserProfile;
+use App\Queries\Identity\VerificationQueue;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 use Inertia\Response;
 
-/**
- * BR-IAM-04, BR-IAM-12, BR-IAM-13 — antrian verifikasi NIDN. Dibangun dari status
- * `pending`, bukan "belum diverifikasi": akun undangan lahir `active` tanpa NIDN —
- * antrian dari negasi memuat baris yang tak pernah bisa diverifikasi atau ditolak jujur.
- */
+/** OPERATOR-08-02 — antrian verifikasi NIDN; route-nya dijaga `can:users.verify` (W47). */
 class NidnVerificationController extends Controller
 {
+    use ResolvesActor;
+
     public function index(): Response
     {
-        $this->authorizeVerify();
-
-        return Inertia::render('Identity/VerificationQueuePage', [
-            'pending' => UserProfile::query()
-                ->awaitingVerification()
-                ->with(['user:id,name,email', 'organization:id,name'])
-                ->orderBy('created_at')
-                ->get()
-                ->map(fn (UserProfile $profile): array => [
-                    'id' => $profile->id,
-                    'name' => $profile->user?->name,
-                    'email' => $profile->user?->email,
-                    'nidn' => $profile->nidn,
-                    'organization' => $profile->organization?->name,
-                    'registered_at' => $profile->created_at?->toDateString(),
-                ])
-                ->values(),
-            // BR-IAM-13 — akun yang ditolak tetap terdaftar dan masih bisa
-            // diverifikasi setelah NIDN-nya dikoreksi.
-            'rejected' => UserProfile::query()
-                ->where('verification_status', 'rejected')
-                ->with(['user:id,name,email'])
-                ->orderByDesc('updated_at')
-                ->get()
-                ->map(fn (UserProfile $profile): array => [
-                    'id' => $profile->id,
-                    'name' => $profile->user?->name,
-                    'email' => $profile->user?->email,
-                    'nidn' => $profile->nidn,
-                    'reason' => $profile->rejection_reason,
-                ])
-                ->values(),
-        ]);
+        return Inertia::render('Identity/VerificationIndexPage', VerificationQueue::run());
     }
 
     public function verify(UserProfile $profile): RedirectResponse
     {
-        $this->authorizeVerify();
-
         VerifyNidn::run($profile);
 
         return back()->with('success', 'NIDN diverifikasi.');
     }
 
-    public function reject(Request $request, UserProfile $profile): RedirectResponse
+    public function reject(RejectVerificationRequest $request, UserProfile $profile): RedirectResponse
     {
-        $this->authorizeVerify();
-
-        // BR-IAM-13 — alasan wajib. Ditegakkan di FormRequest maupun di Action:
-        // penolakan juga bisa datang dari jalur lain, dan penolakan tanpa
-        // alasan tidak memberi pendaftar apa pun untuk diperbaiki.
-        $validated = $request->validate([
-            'reason' => 'required|string|min:3|max:2000',
-        ]);
-
-        RejectNidnVerification::run($profile, $validated['reason']);
+        RejectNidnVerification::run($profile, $request->reason());
 
         return back()->with('success', 'Pendaftaran ditolak dan alasannya dikirimkan.');
     }
 
-    private function authorizeVerify(): void
+    // BR-IAM-13 — koreksi tidak memverifikasi; Operator tetap menekan Verifikasi sesudahnya.
+    public function correctNidn(CorrectNidnRequest $request, UserProfile $profile): RedirectResponse
     {
-        $user = Auth::user();
+        CorrectNidn::run($this->actor($request), $profile, $request->nidn());
 
-        abort_unless($user !== null && $user->can('users.verify'), 403);
+        return back()->with('success', 'NIDN dikoreksi.');
     }
 }

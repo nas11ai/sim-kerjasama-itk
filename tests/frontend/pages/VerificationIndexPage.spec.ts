@@ -2,9 +2,10 @@ import { mount } from '@vue/test-utils'
 import { defineComponent, h, nextTick } from 'vue'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-const { router, post } = vi.hoisted(() => ({
+const { router, post, formErrors } = vi.hoisted(() => ({
     router: { post: vi.fn() },
     post: vi.fn(),
+    formErrors: { value: {} as Record<string, string> },
 }))
 
 vi.mock('@inertiajs/vue3', async () => {
@@ -12,7 +13,13 @@ vi.mock('@inertiajs/vue3', async () => {
     return {
         router,
         useForm: <T extends object>(data: T) =>
-            reactive({ ...data, processing: false, errors: {}, post, reset: vi.fn() }),
+            reactive({
+                ...data,
+                processing: false,
+                errors: { ...formErrors.value },
+                post,
+                reset: vi.fn(),
+            }),
         Head: defineComponent({ setup: () => () => null }),
         Link: defineComponent({
             props: { href: { type: String, required: true } },
@@ -95,6 +102,7 @@ beforeEach(() => {
     vi.stubGlobal('route', route)
     router.post.mockClear()
     post.mockClear()
+    formErrors.value = {}
     document.body.innerHTML = ''
 })
 
@@ -197,6 +205,36 @@ describe('VerificationIndexPage', () => {
 
         const link = wrapper.find('a[href="/files/ktp"]')
         expect(link.text()).toContain('Scan KTP')
+    })
+
+    it('Koreksi NIDN hanya di kartu ditolak, memposting nidn, dan menampilkan form.errors.nidn', async () => {
+        const wrapper = mountPage({ pending: [card()], rejected: [rejectedCard] })
+
+        expect(buttons(wrapper, 'Koreksi NIDN')).toHaveLength(1)
+        await buttons(wrapper, 'Koreksi NIDN')[0]?.trigger('click')
+        await nextTick()
+
+        const dialog = wrapper
+            .findAllComponents(ActionDialog)
+            .find((d) => d.props('submitLabel') === 'Simpan Koreksi')
+        if (!dialog) throw new Error('dialog koreksi tidak ada')
+        const input = document.body.querySelector<HTMLInputElement>('input#correct-nidn')
+        expect(input?.value).toBe('0543210978')
+
+        dialog.vm.$emit('submit')
+        expect(post).toHaveBeenCalledWith(
+            '/admin.verifications.nidn/12',
+            expect.objectContaining({ preserveScroll: true })
+        )
+    })
+
+    it('Koreksi NIDN menampilkan galat nidn dari server', async () => {
+        formErrors.value = { nidn: 'NIDN ini sudah terdaftar pada akun lain.' }
+        const wrapper = mountPage({ pending: [], rejected: [rejectedCard] })
+        await buttons(wrapper, 'Koreksi NIDN')[0]?.trigger('click')
+        await nextTick()
+
+        expect(document.body.textContent).toContain('NIDN ini sudah terdaftar pada akun lain.')
     })
 
     it('EmptyState saat antrian kosong', () => {

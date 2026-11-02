@@ -40,7 +40,6 @@ resources/js/Pages/Forms/EditPage.vue
 resources/js/Pages/Forms/IndexPage.vue
 resources/js/Pages/Forms/ShowPage.vue
 resources/js/Pages/Identity/InvitationsPage.vue
-resources/js/Pages/Identity/VerificationQueuePage.vue
 resources/js/Pages/Permissions/components/CreateDialogue.vue
 resources/js/Pages/Permissions/components/EditDialogue.vue
 resources/js/Pages/ReviewEvaluationForms/CreatePage.vue

@@ -16,7 +16,7 @@ hard.comment.prose:      3
 hard.contract.leak:      0
 
 # --- Plafon yang menyusut ---
-max.legacy.files:       56
+max.legacy.files:       55
 # Sisa mixed yang dibiarkan dengan sadar (spec §3.1), dihitung MixedMetrics:
 #    6  tanda tangan Laravel: rules() di lima FormRequest, share() HandleInertiaRequests
 #    2  aksesor JSON generik Scheme::getRule (parameter dan kembaliannya)

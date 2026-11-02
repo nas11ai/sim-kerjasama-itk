@@ -2,8 +2,10 @@
 
 namespace App\Data\View;
 
+use App\Enums\VerificationStatus;
 use App\Models\User;
 use App\Models\UserProfile;
+use App\Queries\Identity\RejectedAt;
 use Spatie\LaravelData\Data;
 
 /**
@@ -19,6 +21,7 @@ final class AccountVerificationData extends Data
         public ?string $nidn,
         public string $email,
         public ?string $rejectionReason,
+        public ?string $rejectedAt,
     ) {}
 
     public static function fromProfile(User $user, UserProfile $profile): self
@@ -29,6 +32,10 @@ final class AccountVerificationData extends Data
             nidn: $profile->nidn,
             email: $user->email,
             rejectionReason: $profile->rejection_reason,
+            // W5/W53 — "Ditolak pada" dari jejak audit penolakan terbaru.
+            rejectedAt: $profile->verification_status === VerificationStatus::Rejected
+                ? RejectedAt::of($profile)?->toIso8601String()
+                : null,
         );
     }
 }

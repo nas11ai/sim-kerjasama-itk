@@ -16,6 +16,7 @@ use App\Http\Controllers\Identity\InvitationController;
 use App\Http\Controllers\Identity\NidnVerificationController;
 use App\Http\Controllers\Identity\UserAccessController;
 use App\Http\Controllers\Identity\UserController;
+use App\Http\Controllers\Identity\VerificationFileController;
 use App\Http\Controllers\Monev\MonevCycleController;
 use App\Http\Controllers\Notification\NotificationChannelController;
 use App\Http\Controllers\Notification\NotificationController;
@@ -405,6 +406,21 @@ Route::middleware(['auth', 'can:viewAny,App\\Models\\User'])->prefix('admin')->n
         ->can('managePermissions', 'user');
 });
 
+// BR-IAM-04/12/13, W47 — antrian verifikasi NIDN, koreksi NIDN, dan berkas biodata (W58):
+// users.verify, bukan users.manage.
+Route::middleware(['auth', 'can:users.verify'])->prefix('admin')->name('admin.')->group(function () {
+    Route::get('/verifications', [NidnVerificationController::class, 'index'])
+        ->name('verifications.index');
+    Route::post('/verifications/{profile}/verify', [NidnVerificationController::class, 'verify'])
+        ->name('verifications.verify');
+    Route::post('/verifications/{profile}/reject', [NidnVerificationController::class, 'reject'])
+        ->name('verifications.reject');
+    Route::post('/verifications/{profile}/nidn', [NidnVerificationController::class, 'correctNidn'])
+        ->name('verifications.nidn');
+    Route::get('/verifications/{profile}/files/{response}', [VerificationFileController::class, 'show'])
+        ->name('verifications.files.show');
+});
+
 // BR-SM-07 — layar pengajuan Operator dijaga view-all, bukan users.manage:
 // pemegang view-all tanpa hak kelola pengguna tetap harus bisa membacanya (§4.4 K1).
 Route::middleware(['auth', 'can:submissions.view-all'])->prefix('admin')->name('admin.')->group(function () {
@@ -531,13 +547,6 @@ Route::middleware(['auth'])->group(function () {
             ->name('organizations.move-user');
         Route::post('/organizations/{organization}/deactivate', [OrganizationController::class, 'deactivate'])
             ->name('organizations.deactivate');
-        // BR-IAM-04/12/13 — antrian verifikasi NIDN beserta dua keputusannya.
-        Route::get('/verifications', [NidnVerificationController::class, 'index'])
-            ->name('verifications.index');
-        Route::post('/verifications/{profile}/verify', [NidnVerificationController::class, 'verify'])
-            ->name('verifications.verify');
-        Route::post('/verifications/{profile}/reject', [NidnVerificationController::class, 'reject'])
-            ->name('verifications.reject');
         // BR-IAM-11 — penunjukan reviewer (pindah ke reviewers.assign di I1-2).
         Route::post('/users/{user}/appoint-reviewer', [UserAccessController::class, 'appointReviewer'])
             ->name('users.appoint-reviewer');
