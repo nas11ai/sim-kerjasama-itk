@@ -4,7 +4,7 @@ import { useForm } from '@inertiajs/vue3'
 import { computed, watch } from 'vue'
 
 import AppBanner from '@/Components/app/AppBanner.vue'
-import ActionDialog from '@/Components/Submission/Manage/ActionDialog.vue'
+import ActionDialog from '@/Components/app/ActionDialog.vue'
 import ReviewerPicker from '@/Components/Submission/Manage/ReviewerPicker.vue'
 import { useReviewerCandidates } from '@/composables/useReviewerCandidates'
 import type { ReviewerCandidate } from '@/types/submission-manage'

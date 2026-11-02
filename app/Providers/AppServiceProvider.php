@@ -3,10 +3,14 @@
 namespace App\Providers;
 
 use App\Models\FormSubmission;
+use App\Models\InvitationToken;
 use App\Models\ReviewerFormAssignment;
+use App\Models\User;
 use App\Policies\BudgetLineItemPolicy;
 use App\Policies\FormSubmissionPolicy;
+use App\Policies\InvitationPolicy;
 use App\Policies\ReviewerFormAssignmentPolicy;
+use App\Policies\UserPolicy;
 use App\Services\Storage\S3StorageService;
 use App\Services\Storage\StorageService;
 use Illuminate\Support\Facades\Gate;
@@ -54,6 +58,8 @@ class AppServiceProvider extends ServiceProvider
         });
         Gate::policy(FormSubmission::class, FormSubmissionPolicy::class);
         Gate::policy(ReviewerFormAssignment::class, ReviewerFormAssignmentPolicy::class);
+        Gate::policy(User::class, UserPolicy::class);
+        Gate::policy(InvitationToken::class, InvitationPolicy::class);
         // BR-BUD-02, BR-BUD-09 (register #24) — `update-budget` menyusul dengan
         // alasan sama: daftarnya tertutup, dan angka anggaran yang sudah
         // diputuskan adalah dasar pencairan — koreksinya lewat transisi status.

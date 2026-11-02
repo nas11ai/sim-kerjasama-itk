@@ -10,7 +10,7 @@ import {
 } from '@/Components/ui/dialog'
 import { useLockedOpen } from '@/composables/useLockedOpen'
 
-// Kerangka keenam dialog aksi Operator (W30: frame berupa halaman, dibangun sebagai dialog).
+// Kerangka dialog aksi dengan alasan/konfirmasi (W30: frame berupa halaman, dibangun sebagai dialog).
 const props = withDefaults(
     defineProps<{
         title: string

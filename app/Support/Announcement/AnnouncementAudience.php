@@ -3,8 +3,8 @@
 namespace App\Support\Announcement;
 
 /**
- * fe-v2-design §4.7 — sasaran pengumuman: lima peran DDD yang bisa dipilih beserta
- * labelnya (02_ubiquitous_language §Actors). Frontend tidak memeriksa nama peran.
+ * fe-v2-design §4.7 — sasaran pengumuman: lima peran `RoleCatalog` dengan label versi
+ * pengumuman yang sudah tampil sejak A1 (IdentityCatalogTest menjaga himpunannya sama).
  */
 final class AnnouncementAudience
 {

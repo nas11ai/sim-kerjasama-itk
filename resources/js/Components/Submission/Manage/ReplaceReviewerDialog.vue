@@ -5,7 +5,7 @@ import { computed, watch } from 'vue'
 
 import AppBanner from '@/Components/app/AppBanner.vue'
 import InfoGrid from '@/Components/app/InfoGrid.vue'
-import ActionDialog from '@/Components/Submission/Manage/ActionDialog.vue'
+import ActionDialog from '@/Components/app/ActionDialog.vue'
 import ReasonField from '@/Components/Submission/Manage/ReasonField.vue'
 import ReviewerPicker from '@/Components/Submission/Manage/ReviewerPicker.vue'
 import { useReviewerCandidates } from '@/composables/useReviewerCandidates'
