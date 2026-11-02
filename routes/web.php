@@ -15,6 +15,7 @@ use App\Http\Controllers\FormPhaseController;
 use App\Http\Controllers\Identity\InvitationController;
 use App\Http\Controllers\Identity\NidnVerificationController;
 use App\Http\Controllers\Identity\UserAccessController;
+use App\Http\Controllers\Identity\UserController as IdentityUserController;
 use App\Http\Controllers\Monev\MonevCycleController;
 use App\Http\Controllers\Notification\NotificationChannelController;
 use App\Http\Controllers\Notification\NotificationController;
@@ -220,11 +221,8 @@ Route::middleware(['auth', 'can:users.manage'])->prefix('admin')->name('admin.')
     Route::get('/stats/reviewers', [StatController::class, 'submissionReviewerStatIndex'])->name('stats.reviewer');
     Route::get('/stats/users', [StatController::class, 'userStatIndex'])->name('stats.user');
 
-    // User Management
-    Route::get('/users', [UserController::class, 'index'])->name('users.index');
-    Route::get('/users/create', [UserController::class, 'create'])->name('users.create');
-    Route::post('/users/store', [UserController::class, 'store'])->name('users.store');
-    Route::get('/users/{user}', [UserController::class, 'edit'])->name('users.edit');
+    // Legacy sunting user — dihapus I1 Task 5 (W50).
+    Route::get('/users/{user}/edit', [UserController::class, 'edit'])->name('users.edit');
     Route::put('/users/{user}', [UserController::class, 'update'])->name('users.update');
 
     // Role Management
@@ -381,6 +379,15 @@ Route::middleware(['auth', 'can:users.manage'])->group(function () {
 });
 
 require __DIR__.'/auth.php';
+
+// W47 — daftar dan detail user: users.verify atau users.manage (UserPolicy::viewAny/view).
+Route::middleware(['auth', 'can:viewAny,App\\Models\\User'])->prefix('admin')->name('admin.')->group(function () {
+    Route::get('/users', [IdentityUserController::class, 'index'])
+        ->name('users.index');
+    Route::get('/users/{user}', [IdentityUserController::class, 'show'])
+        ->name('users.show')
+        ->can('view', 'user');
+});
 
 // BR-SM-07 — layar pengajuan Operator dijaga view-all, bukan users.manage:
 // pemegang view-all tanpa hak kelola pengguna tetap harus bisa membacanya (§4.4 K1).

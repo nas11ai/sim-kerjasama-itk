@@ -11,7 +11,7 @@ use Spatie\LaravelData\Data;
  */
 final class ManagedReviewerData extends Data
 {
-    private const EVALUATION_LABELS = [
+    public const EVALUATION_LABELS = [
         'pending' => 'Evaluasi berjalan',
         'completed' => 'Selesai',
         'not_required' => 'Tanpa form evaluasi',

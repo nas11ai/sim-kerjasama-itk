@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Enums\RoleEnum;
-use App\Http\Requests\Admin\CreateUserRequest;
 use App\Http\Requests\Admin\UpdateUserRequest;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -13,48 +12,6 @@ use Spatie\Permission\Models\Role;
 
 class UserController extends Controller
 {
-    /**
-     * Display a listing of the resource.
-     */
-    public function index()
-    {
-        $users = User::with('roles')->get();
-
-        return Inertia::render('Users/IndexPage', [
-            'users' => $users,
-        ]);
-    }
-
-    /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        $roles = Role::all();
-
-        return inertia('Users/CreatePage', [
-            'roles' => $roles,
-        ]);
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(CreateUserRequest $request)
-    {
-        $data = $request->validated();
-
-        $user = User::create([
-            'name' => $data['name'],
-            'email' => $data['email'],
-            'password' => bcrypt($data['password']),
-        ]);
-
-        $user->assignRole($data['role']);
-
-        return to_route('admin.users.index')->with('success', 'User berhasil dibuat');
-    }
-
     /**
      * Show the form for editing the specified resource.
      */
@@ -101,8 +58,4 @@ class UserController extends Controller
 
         return to_route('admin.users.index')->with('success', 'User berhasil diperbarui');
     }
-
-    /**
-     * Remove the specified resource from storage.
-     */
 }

@@ -3,11 +3,9 @@
 namespace App\Actions\FormSubmission;
 
 use App\Models\FormSubmission;
-use App\Models\ResearchMember;
 use App\Models\User;
 use App\Notifications\AccountDeactivatedNotification;
-use App\States\Submission\Rejected;
-use App\States\Submission\Withdrawn;
+use App\Queries\Identity\DeactivationBlockers;
 use App\Support\Audit\AuditTrail;
 use App\Support\Notification\Deliver;
 use Illuminate\Support\Collection;
@@ -23,20 +21,12 @@ class DeactivateUser
 {
     use AsAction;
 
-    /** Status yang tidak lagi menuntut penanggung jawab. */
-    private const SETTLED = [Rejected::class, Withdrawn::class];
-
     /**
      * @throws ValidationException
      */
     public function handle(User $user): User
     {
-        $blocking = FormSubmission::query()
-            ->where('submitted_by', $user->id)
-            // whereNotState, bukan whereNotIn: kolomnya menyimpan morph name
-            // ("rejected"), jadi membandingkan class-string tidak pernah cocok.
-            ->whereNotState('status', self::SETTLED)
-            ->get();
+        $blocking = DeactivationBlockers::run($user);
 
         if ($blocking->isNotEmpty()) {
             throw ValidationException::withMessages([
@@ -67,11 +57,8 @@ class DeactivateUser
      */
     private function reason($blocking): string
     {
-        $withoutSuccessor = $blocking->filter(
-            fn (FormSubmission $s) => !$s->researchMembers()
-                ->where('role', ResearchMember::ROLE_CO_INVESTIGATOR)
-                ->where('status', 'active')
-                ->exists()
+        $withoutSuccessor = $blocking->reject(
+            fn (FormSubmission $s): bool => $s->getAttribute('has_active_co_investigator') === true
         );
 
         $base = "Masih ada {$blocking->count()} pengajuan aktif atas nama user ini. Pindahkan kepemilikannya lebih dulu.";

@@ -30,5 +30,4 @@ it('membuka halaman-halaman yang namanya sempat menyimpang', function (string $r
 })->with([
     ['admin.permissions.index', 'Permissions/IndexPage'],
     ['admin.roles.create', 'Roles/CreatePage'],
-    ['admin.users.create', 'Users/CreatePage'],
 ]);

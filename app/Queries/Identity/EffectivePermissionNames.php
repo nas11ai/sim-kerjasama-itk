@@ -4,6 +4,7 @@ namespace App\Queries\Identity;
 
 use App\Actions\Concerns\ChangesNoState;
 use App\Models\User;
+use App\Support\Identity\PermissionCatalog;
 use Lorisleiva\Actions\Concerns\AsAction;
 use Spatie\Permission\Models\Permission;
 
@@ -24,14 +25,6 @@ class EffectivePermissionNames implements ChangesNoState
             ? Permission::query()->get()
             : $user->getAllPermissions();
 
-        $names = [];
-        foreach ($permissions as $permission) {
-            if ($permission instanceof Permission) {
-                $names[] = $permission->name;
-            }
-        }
-        sort($names);
-
-        return $names;
+        return PermissionCatalog::namesOf($permissions);
     }
 }

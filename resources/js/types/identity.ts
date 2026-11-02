@@ -49,7 +49,7 @@ export interface UserDetailData {
     phone: string | null
     organization: string | null
     expertise: string | null
-    registeredAt: string
+    registeredAt: string | null
     status: AccountStatus
 }
 
@@ -65,7 +65,7 @@ export interface UserAccessData {
 export interface UserSummaryData {
     activeLeadSubmissions: number
     runningReviews: number
-    registeredAt: string
+    registeredAt: string | null
 }
 
 // Sumber: DeactivationBlockerData (SM-OWNER-03/04).
@@ -92,7 +92,7 @@ export interface UserReviewRowData {
     title: string
     assignmentStatus: Option
     evaluationStatus: Option
-    assignedAt: string
+    assignedAt: string | null
 }
 
 export type UserTab = 'profile' | 'submissions' | 'reviews'

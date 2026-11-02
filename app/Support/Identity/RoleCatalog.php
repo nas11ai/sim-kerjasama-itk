@@ -2,6 +2,8 @@
 
 namespace App\Support\Identity;
 
+use Spatie\Permission\Models\Role;
+
 /**
  * Peran DDD beserta label layarnya (02_ubiquitous_language §Actors). ASSIGNABLE = peran yang
  * boleh disunting langsung; peran reviewer hanya lewat penunjukan (BR-IAM-11, W57).
@@ -32,5 +34,23 @@ final class RoleCatalog
     public static function options(array $names): array
     {
         return array_map(static fn (string $name): array => ['value' => $name, 'label' => self::label($name)], $names);
+    }
+
+    /**
+     * Opsi dari koleksi role Spatie; role legacy tetap tampil dengan nama mentahnya.
+     *
+     * @param  iterable<object>  $roles
+     * @return list<array{value: string, label: string}>
+     */
+    public static function optionsOf(iterable $roles): array
+    {
+        $names = [];
+        foreach ($roles as $role) {
+            if ($role instanceof Role) {
+                $names[] = $role->name;
+            }
+        }
+
+        return self::options($names);
     }
 }

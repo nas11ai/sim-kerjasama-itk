@@ -2,6 +2,8 @@
 
 namespace App\Support\Identity;
 
+use Spatie\Permission\Models\Permission;
+
 /**
  * W4 — label manusia untuk setiap permission `PermissionSeeder::PERMISSIONS`
  * (IdentityCatalogTest menjaga keduanya tetap sama).
@@ -41,5 +43,24 @@ final class PermissionCatalog
     public static function options(array $names): array
     {
         return array_map(static fn (string $name): array => ['value' => $name, 'label' => self::label($name)], $names);
+    }
+
+    /**
+     * Nama permission dari koleksi model Spatie, urut abjad.
+     *
+     * @param  iterable<object>  $permissions
+     * @return list<string>
+     */
+    public static function namesOf(iterable $permissions): array
+    {
+        $names = [];
+        foreach ($permissions as $permission) {
+            if ($permission instanceof Permission) {
+                $names[] = $permission->name;
+            }
+        }
+        sort($names);
+
+        return $names;
     }
 }
