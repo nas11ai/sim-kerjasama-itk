@@ -40,16 +40,35 @@ class UserProfile extends Model
         'verification_status' => VerificationStatus::class,
     ];
 
+    public function isComplete(): bool
+    {
+        return $this->missingDetails() === [];
+    }
+
     /**
      * BR-IAM-03 — kelengkapan profil, gerbang berbeda dari status verifikasi
      * dan keaktifan akun. Ketiganya wajib terisi; berhenti di field pertama
      * meloloskan profil yang baru sepertiga jadi, ketahuan jauh di hilir.
+     *
+     * @return list<'phone'|'expertise'|'photo'>
      */
-    public function isComplete(): bool
+    public function missingDetails(): array
     {
-        return filled($this->phone)
-            && filled($this->expertise)
-            && filled($this->photo_path);
+        $missing = [];
+
+        if (blank($this->phone)) {
+            $missing[] = 'phone';
+        }
+
+        if (blank($this->expertise)) {
+            $missing[] = 'expertise';
+        }
+
+        if (blank($this->photo_path)) {
+            $missing[] = 'photo';
+        }
+
+        return $missing;
     }
 
     /**

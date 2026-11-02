@@ -14,6 +14,7 @@ use App\Http\Controllers\FormController;
 use App\Http\Controllers\FormPhaseController;
 use App\Http\Controllers\Identity\InvitationController;
 use App\Http\Controllers\Identity\NidnVerificationController;
+use App\Http\Controllers\Identity\ProfilePhotoController;
 use App\Http\Controllers\Identity\ReviewerManagementController;
 use App\Http\Controllers\Identity\UserAccessController;
 use App\Http\Controllers\Identity\UserController;
@@ -86,6 +87,10 @@ Route::get('announcements/{announcement}', [AnnouncementController::class, 'deta
 Route::middleware(['auth'])->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+
+    // W65 — foto profil milik sendiri di disk privat (W15); tanpa parameter, tanpa IDOR.
+    Route::get('/profile/photo', [ProfilePhotoController::class, 'show'])->name('profile.photo.show');
+    Route::post('/profile/photo', [ProfilePhotoController::class, 'update'])->name('profile.photo.update');
 
     // BR-SM-07 — berkas jawaban pengajuan hanya terbaca lewat route ber-scope ini (W15).
     Route::get('/user/submissions/{submission}/files/{response}', [SubmissionFileController::class, 'show'])

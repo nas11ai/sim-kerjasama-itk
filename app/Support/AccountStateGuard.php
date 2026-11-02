@@ -50,9 +50,7 @@ final class AccountStateGuard
      */
     public static function assertProfileComplete(User $user): void
     {
-        $profile = $user->userProfile;
-
-        if ($profile !== null && $profile->isComplete()) {
+        if (self::isProfileComplete($user)) {
             return;
         }
 
@@ -60,6 +58,12 @@ final class AccountStateGuard
             'profile' => 'Lengkapi profil Anda — nomor telepon, bidang keahlian, dan foto — '
                 .'sebelum membuat pengajuan.',
         ]);
+    }
+
+    /** BR-IAM-03 — user tanpa profil tidak punya data tambahan, jadi belum lengkap. */
+    public static function isProfileComplete(User $user): bool
+    {
+        return $user->userProfile?->isComplete() ?? false;
     }
 
     public static function isVerified(User $user): bool
