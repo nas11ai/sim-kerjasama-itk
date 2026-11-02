@@ -2,6 +2,7 @@
 
 use App\Http\Middleware\CheckBiodata;
 use App\Http\Middleware\CheckRole;
+use App\Http\Middleware\EnsureAccountActive;
 use App\Http\Middleware\HandleInertiaRequests;
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -20,6 +21,8 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->web(append: [
             HandleInertiaRequests::class,
             AddLinkHeadersForPreloadedAssets::class,
+            // BR-IAM-05 — setelah sesi dibuka, sebelum route berjalan.
+            EnsureAccountActive::class,
         ]);
 
         // Register middleware aliases

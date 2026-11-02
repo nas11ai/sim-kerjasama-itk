@@ -43,6 +43,16 @@ class User extends Authenticatable implements MustVerifyEmail
     }
 
     /**
+     * BR-IAM-05 — sama dengan default kolom. Tanpanya model yang baru dibuat membawa
+     * `is_active = null` sampai di-refresh, dan EnsureAccountActive membacanya sebagai nonaktif.
+     *
+     * @var array<string, bool>
+     */
+    protected $attributes = [
+        'is_active' => true,
+    ];
+
+    /**
      * The attributes that are mass assignable.
      *
      * @var list<string>

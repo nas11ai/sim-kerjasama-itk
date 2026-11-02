@@ -35,6 +35,12 @@ class UserPolicy
         return $this->administers($actor, $user);
     }
 
+    /** BR-IAM-21 — mengakhiri seluruh sesi user lain. */
+    public function endSessions(User $actor, User $user): bool
+    {
+        return $this->administers($actor, $user);
+    }
+
     private function administers(User $actor, User $user): bool
     {
         if (!$actor->can('users.manage') || $actor->is($user)) {

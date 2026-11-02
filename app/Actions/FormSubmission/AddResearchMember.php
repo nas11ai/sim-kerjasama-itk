@@ -30,6 +30,13 @@ class AddResearchMember
 
         $this->guardCapacity($submission);
 
+        // BR-IAM-05, IAM-DEACT-12 — akun nonaktif tidak menerima keterlibatan baru.
+        if (!$candidate->is_active) {
+            throw ValidationException::withMessages([
+                'user_id' => 'Akun user ini nonaktif, jadi tidak dapat ditambahkan sebagai anggota.',
+            ]);
+        }
+
         $profile = $candidate->userProfile;
 
         if ($profile === null) {

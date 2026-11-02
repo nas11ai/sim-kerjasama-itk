@@ -6,9 +6,12 @@ import type { SubmissionStatusView } from '@/types/submission-status'
 export type Option = FilterOption
 
 // Sumber: AccountStatusData. `verification` null = terverifikasi, akun undangan, atau tanpa profil (W49).
+// `online` = aktivitas sesi ≤ 5 menit (BR-IAM-21); `lastActiveAt` null = tak ada sesi tercatat.
 export interface AccountStatus {
     active: boolean
     verification: Option | null
+    online: boolean
+    lastActiveAt: string | null
 }
 
 // Sumber: UserRowData.
@@ -28,6 +31,7 @@ export type UserIndexFilters = {
     role: string
     account: string
     verification: string
+    presence: string
 }
 
 export interface UserIndexPageProps {
@@ -36,6 +40,7 @@ export interface UserIndexPageProps {
     roleOptions: Option[]
     accountOptions: Option[]
     verificationOptions: Option[]
+    presenceOptions: Option[]
     awaitingVerification: number
     can: { verify: boolean; manageInvitations: boolean }
 }
@@ -102,6 +107,7 @@ export interface UserAbilities {
     changeRoles: boolean
     managePermissions: boolean
     appointReviewer: boolean
+    endSessions: boolean
 }
 
 export interface UserShowPageProps {

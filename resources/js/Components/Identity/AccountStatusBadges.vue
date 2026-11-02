@@ -14,5 +14,12 @@ defineProps<{ status: AccountStatus }>()
         <Badge v-if="status.verification" variant="secondary">{{
             status.verification.label
         }}</Badge>
+        <!-- BR-IAM-21 — aktivitas sesi ≤ 5 menit -->
+        <span
+            v-if="status.online"
+            class="inline-flex items-center gap-1 text-xs text-muted-foreground"
+        >
+            <span class="size-2 rounded-full bg-green-500" aria-hidden="true" />Sedang aktif
+        </span>
     </span>
 </template>

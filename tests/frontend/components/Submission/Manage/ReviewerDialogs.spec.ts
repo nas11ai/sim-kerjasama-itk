@@ -50,6 +50,7 @@ const outgoing: ManagedReviewer = {
     type: 'external',
     replaced: false,
     evaluationLabel: 'Evaluasi berjalan',
+    accountActive: true,
 }
 
 const text = () => document.body.textContent ?? ''

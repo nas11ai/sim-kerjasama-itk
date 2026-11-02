@@ -35,6 +35,13 @@ const typeLabel = (type: string) => (type === 'external' ? 'Eksternal' : 'Intern
                         NIDN {{ reviewer.nidn ?? '—' }} · {{ typeLabel(reviewer.type) }} ·
                         {{ reviewer.evaluationLabel }}
                     </p>
+                    <!-- BR-IAM-05, IAM-DEACT-11 — penugasan tetap berjalan sampai Operator menggantinya -->
+                    <Badge
+                        v-if="!reviewer.replaced && !reviewer.accountActive"
+                        variant="destructive"
+                        class="mt-1"
+                        >Akun nonaktif — perlu diganti</Badge
+                    >
                 </div>
                 <!-- BR-REV-10 — yang digantikan tinggal sejarah, tidak diganti lagi -->
                 <Badge v-if="reviewer.replaced" variant="outline">Digantikan</Badge>

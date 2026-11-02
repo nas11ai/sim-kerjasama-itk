@@ -4,11 +4,14 @@ namespace App\Data\View\Identity;
 
 use App\Enums\VerificationStatus;
 use App\Models\User;
+use App\Support\Identity\SessionRegistry;
+use Carbon\CarbonImmutable;
 use Spatie\LaravelData\Data;
 
 /**
  * W49 — dua sumbu keadaan akun (DDD "Status Akun dan Status Organisasi"): keaktifan login dan
  * status verifikasi NIDN. Verifikasi null = terverifikasi, akun undangan, atau tanpa profil.
+ * Kehadiran (BR-IAM-21) ikut di sini karena tampil di badge yang sama.
  */
 final class AccountStatusData extends Data
 {
@@ -16,9 +19,12 @@ final class AccountStatusData extends Data
     public function __construct(
         public bool $active,
         public ?array $verification,
+        public bool $online,
+        public ?string $lastActiveAt,
     ) {}
 
-    public static function of(User $user): self
+    /** BR-IAM-21 — `$lastActiveAt` dari SessionRegistry; null = tak ada sesi tercatat. */
+    public static function of(User $user, ?CarbonImmutable $lastActiveAt): self
     {
         $status = $user->userProfile?->verification_status;
 
@@ -27,6 +33,8 @@ final class AccountStatusData extends Data
             verification: $status === null || $status === VerificationStatus::Active
                 ? null
                 : ['value' => $status->value, 'label' => $status->label()],
+            online: SessionRegistry::isOnline($lastActiveAt),
+            lastActiveAt: $lastActiveAt?->toIso8601String(),
         );
     }
 }

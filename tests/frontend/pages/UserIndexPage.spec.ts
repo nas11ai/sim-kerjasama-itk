@@ -35,7 +35,12 @@ const pendingRow: UserRowData = {
     nidn: '0654321098',
     organization: 'FSTI — Matematika',
     roles: [{ value: 'researcher', label: 'Peneliti' }],
-    status: { active: true, verification: { value: 'pending', label: 'Menunggu Verifikasi' } },
+    status: {
+        active: true,
+        verification: { value: 'pending', label: 'Menunggu Verifikasi' },
+        online: true,
+        lastActiveAt: '2026-11-02T08:00:00+08:00',
+    },
     showUrl: '/admin/users/7',
 }
 
@@ -44,11 +49,17 @@ const invitedRow: UserRowData = {
     id: 8,
     name: 'Ir. Joko Susilo',
     nidn: null,
-    status: { active: false, verification: null },
+    status: { active: false, verification: null, online: false, lastActiveAt: null },
     showUrl: '/admin/users/8',
 }
 
-const noFilters: UserIndexFilters = { search: '', role: '', account: '', verification: '' }
+const noFilters: UserIndexFilters = {
+    search: '',
+    role: '',
+    account: '',
+    verification: '',
+    presence: '',
+}
 
 const props = (
     rows: UserRowData[],
@@ -69,6 +80,7 @@ const props = (
     roleOptions: [{ value: 'operator', label: 'Operator' }],
     accountOptions: [{ value: 'inactive', label: 'Nonaktif' }],
     verificationOptions: [{ value: 'pending', label: 'Menunggu Verifikasi' }],
+    presenceOptions: [{ value: 'online', label: 'Sedang aktif' }],
     awaitingVerification: 2,
     can: { verify: true, manageInvitations: true },
     ...overrides,
@@ -165,6 +177,29 @@ describe('UserIndexPage', () => {
         expect(mountPage([]).text()).toContain('Belum ada user.')
         expect(mountPage([], { filters: { ...noFilters, role: 'operator' } }).text()).toContain(
             'Tidak ada user yang cocok dengan filter.'
+        )
+    })
+
+    it('[IAM-SESSION-02] titik "Sedang aktif" hanya untuk user yang sedang aktif', () => {
+        const rows = mountPage([pendingRow, invitedRow]).findAll('tbody tr')
+
+        expect(rows[0].text()).toContain('Sedang aktif')
+        expect(rows[1].text()).not.toContain('Sedang aktif')
+    })
+
+    it('filter Kehadiran meminta presence=online', async () => {
+        const wrapper = mountPage([pendingRow])
+        const presence = wrapper
+            .findAllComponents(FilterSelect)
+            .find((select) => select.props('label') === 'Kehadiran')
+
+        presence?.vm.$emit('update:modelValue', 'online')
+        await nextTick()
+
+        expect(router.get).toHaveBeenCalledWith(
+            '/admin.users.index',
+            { presence: 'online' },
+            expect.objectContaining({ preserveState: true })
         )
     })
 })

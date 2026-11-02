@@ -41,6 +41,7 @@ const reviewer = (overrides: Partial<ManagedReviewer> = {}): ManagedReviewer => 
     type: 'internal',
     replaced: false,
     evaluationLabel: 'Evaluasi berjalan',
+    accountActive: true,
     ...overrides,
 })
 

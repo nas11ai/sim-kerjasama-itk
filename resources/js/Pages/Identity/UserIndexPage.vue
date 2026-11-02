@@ -30,6 +30,12 @@ const selects = computed((): FilterSelectSpec<Exclude<keyof UserIndexFilters, 's
         allLabel: 'Semua verifikasi',
         options: props.verificationOptions,
     },
+    {
+        key: 'presence',
+        label: 'Kehadiran',
+        allLabel: 'Semua kehadiran',
+        options: props.presenceOptions,
+    },
 ])
 </script>
 

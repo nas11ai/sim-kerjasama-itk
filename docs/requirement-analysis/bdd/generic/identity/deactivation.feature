@@ -61,3 +61,30 @@ Feature: Deaktivasi User
     When Operator menonaktifkan "Budi"
     Then "Budi" tidak bisa login
     And seluruh data "Budi" tetap utuh
+
+  @BR-IAM-05 @M3 @OPERATOR-08-03 @denial
+  Scenario: [IAM-DEACT-09] Sesi yang sedang login berakhir saat akun dinonaktifkan
+    Given "Sari" sedang login
+    When Operator menonaktifkan "Sari"
+    Then permintaan berikutnya dari "Sari" ditolak dan ia keluar dari aplikasi
+    And cookie "ingat saya" milik "Sari" tidak lagi membuatnya masuk
+
+  @BR-IAM-05 @BR-REV-10 @M3 @OPERATOR-03-02 @denial
+  Scenario: [IAM-DEACT-10] Reviewer yang akunnya nonaktif tidak bisa menjadi pengganti
+    Given "Andi" adalah reviewer dalam masa tugas yang akunnya nonaktif
+    When Operator mengganti reviewer "Sari" dengan "Andi" pada "P-001"
+    Then penggantian ditolak karena akun reviewer nonaktif
+    And penugasan "Sari" pada "P-001" tetap aktif
+
+  @BR-IAM-05 @BR-REV-10 @M3 @OPERATOR-08-04 @boundary
+  Scenario: [IAM-DEACT-11] Penugasan berjalan milik reviewer yang dinonaktifkan tetap ada sampai diganti
+    Given "Sari" ditugaskan sebagai reviewer "P-001" dan sudah menyimpan draf evaluasi
+    When Operator menonaktifkan "Sari"
+    Then penugasan "Sari" pada "P-001" tetap aktif dan ditandai perlu diganti
+    And draf evaluasinya tetap terbaca Operator
+
+  @BR-IAM-05 @M3 @RESEARCHER-02-08 @denial
+  Scenario: [IAM-DEACT-12] User nonaktif tidak bisa ditambahkan sebagai anggota penelitian
+    Given "Joko" berstatus tidak aktif
+    When peneliti menambahkan "Joko" sebagai anggota "P-001"
+    Then penambahan ditolak karena akun "Joko" nonaktif

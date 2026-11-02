@@ -55,7 +55,8 @@ class TransferSubmissionOwnership
      */
     private function guardSuccessor(FormSubmission $submission, User $successor): void
     {
-        $eligible = $submission->researchMembers()
+        // BR-SM-09, SM-OWNER-07 — co_investigator aktif **dan** akunnya aktif (BR-IAM-05).
+        $eligible = $successor->is_active && $submission->researchMembers()
             ->where('role', ResearchMember::ROLE_CO_INVESTIGATOR)
             ->where('status', 'active')
             ->whereHas('userProfile', fn ($q) => $q->where('user_id', $successor->id))

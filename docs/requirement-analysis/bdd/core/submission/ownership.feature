@@ -42,3 +42,11 @@ Feature: Transfer Kepemilikan Pengajuan
     Given "Sari" terdaftar sebagai co_investigator aktif di "P-001"
     When Operator memindahkan kepemilikan "P-001" ke "Sari" dengan alasan "Ketua pindah institusi"
     Then perubahan tercatat di jejak audit beserta alasan "Ketua pindah institusi"
+
+  @BR-SM-09 @BR-IAM-05 @M3 @OPERATOR-02-04 @denial
+  Scenario: [SM-OWNER-07] Kepemilikan tidak bisa dialihkan ke co-investigator yang akunnya nonaktif
+    Given "Sari" terdaftar sebagai co_investigator aktif di "P-001" tetapi akunnya nonaktif
+    When Operator memindahkan kepemilikan "P-001" ke "Sari"
+    Then "Sari" tidak ditawarkan sebagai calon penerima
+    And pemindahan ditolak
+    And deaktivasi ketua "P-001" menyebut belum ada co-investigator aktif

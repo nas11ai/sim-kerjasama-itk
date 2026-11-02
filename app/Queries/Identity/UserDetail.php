@@ -13,6 +13,7 @@ use App\Data\View\Identity\UserSummaryData;
 use App\Models\FormSubmission;
 use App\Models\SubmissionReviewer;
 use App\Models\User;
+use App\Support\Identity\SessionRegistry;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Lorisleiva\Actions\Concerns\AsAction;
@@ -39,7 +40,7 @@ class UserDetail implements ChangesNoState
         $blockers = DeactivationBlockers::run($user);
 
         return [
-            'user' => UserDetailData::fromModel($user),
+            'user' => UserDetailData::fromModel($user, SessionRegistry::lastActiveAt($user)),
             'access' => UserAccessData::fromModel($user),
             'summary' => new UserSummaryData(
                 activeLeadSubmissions: $blockers->count(),

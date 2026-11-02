@@ -45,6 +45,7 @@ class AssignReviewer
         // penambahan anggota. Jangan diulang isinya di sini.
         ConflictOfInterestGuard::assertNone($candidate, $submission);
 
+        $this->guardAccountActive($candidate);
         $this->guardTenure($reviewer);
         $this->guardNotAlreadyAssigned($submission, $reviewer);
 
@@ -73,6 +74,18 @@ class AssignReviewer
         Deliver::to($candidate, new ReviewerAssignedNotification($submission));
 
         return $assignment;
+    }
+
+    /** BR-IAM-05, IAM-DEACT-04 — akun nonaktif tidak menerima penugasan baru, termasuk sebagai pengganti. */
+    private function guardAccountActive(User $candidate): void
+    {
+        if ($candidate->is_active) {
+            return;
+        }
+
+        throw ValidationException::withMessages([
+            'reviewer_id' => 'Akun reviewer ini nonaktif, jadi tidak dapat ditugaskan.',
+        ]);
     }
 
     /** BR-REV-09 — hanya dalam masa tugas; inklusif per hari, end_date hari terakhir. */

@@ -136,7 +136,7 @@ it('[IAM-DEACT-03] pengajuan milik user nonaktif tetap terbaca', function () {
         ->and($submission->fresh()->submitted_by)->toBe($sari->id);
 });
 
-it('[IAM-DEACT-04] reviewer nonaktif tidak menerima penunjukan baru', function () {
+it('BR-IAM-05 — akun nonaktif tidak bisa ditunjuk sebagai reviewer', function () {
     $sari = registeredPerson();
     $sari->update(['is_active' => false]);
 

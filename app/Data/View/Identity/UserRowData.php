@@ -4,6 +4,7 @@ namespace App\Data\View\Identity;
 
 use App\Models\User;
 use App\Support\Identity\RoleCatalog;
+use Carbon\CarbonImmutable;
 use Spatie\LaravelData\Data;
 
 /** Satu baris OPERATOR-08-01; relasi `roles`, `userProfile`, `organization` dimuat UserDirectory. */
@@ -21,7 +22,7 @@ final class UserRowData extends Data
         public string $showUrl,
     ) {}
 
-    public static function fromModel(User $user): self
+    public static function fromModel(User $user, ?CarbonImmutable $lastActiveAt): self
     {
         return new self(
             id: $user->id,
@@ -30,7 +31,7 @@ final class UserRowData extends Data
             nidn: $user->userProfile?->nidn,
             organization: $user->organization?->name,
             roles: RoleCatalog::optionsOf($user->roles),
-            status: AccountStatusData::of($user),
+            status: AccountStatusData::of($user, $lastActiveAt),
             showUrl: route('admin.users.show', $user),
         );
     }

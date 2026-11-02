@@ -12,6 +12,7 @@ import ChangeRolesDialog from '@/Components/Identity/ChangeRolesDialog.vue'
 import DeactivationPanel from '@/Components/Identity/DeactivationPanel.vue'
 import UserAccessSection from '@/Components/Identity/UserAccessSection.vue'
 import UserProfileSection from '@/Components/Identity/UserProfileSection.vue'
+import UserSessionPanel from '@/Components/Identity/UserSessionPanel.vue'
 import UserReviewHistory from '@/Components/Identity/UserReviewHistory.vue'
 import UserSubmissionHistory from '@/Components/Identity/UserSubmissionHistory.vue'
 import { Button } from '@/Components/ui/button'
@@ -92,10 +93,12 @@ const summaryItems = computed(() => [
                         <SectionCard title="Ringkasan"
                             ><InfoGrid :items="summaryItems"
                         /></SectionCard>
+                        <UserSessionPanel :user="user" :can-end="can.endSessions" />
                         <DeactivationPanel
                             :user="user"
                             :blockers="deactivationBlockers"
                             :can-deactivate="can.deactivate"
+                            :running-reviews="summary.runningReviews"
                         />
                     </div>
                 </div>

@@ -49,6 +49,8 @@ export interface ManagedReviewer {
     type: string
     replaced: boolean
     evaluationLabel: string
+    // BR-IAM-05 — false = akun reviewer dinonaktifkan; penugasan tetap, perlu diganti.
+    accountActive: boolean
 }
 
 // Sumber: OwnershipCandidateData.

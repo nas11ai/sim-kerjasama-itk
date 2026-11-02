@@ -1,7 +1,7 @@
 # BC: Identity & Access
 
 **Klasifikasi:** 🟢 Generic Domain  
-**Versi:** 2.4  
+**Versi:** 2.5  
 **Status:** Draft
 
 ---
@@ -242,6 +242,7 @@ tapi ia bukan jawaban untuk access control. Jejak lengkapnya di
 | BR-IAM-17 | Unit organisasi dibuat, diganti nama, dan dipindah induknya oleh Operator. Pemindahan **ditolak** kalau menjadikan sebuah unit keturunan dirinya sendiri: access control [BR-FE-02](01_form_engine.md) menelusuri rantai leluhur lewat CTE rekursif, dan pohon bersiklus membuat penelusuran itu tidak berhenti — kegagalannya muncul sebagai timeout di layar peneliti yang tidak bersalah |
 | BR-IAM-18 | `UserProfile` dipindah antar unit organisasi oleh Operator. Ini **prasyarat yang disebut [BR-IAM-14](#business-rules)**: deaktivasi unit menuntut "pindahkan orangnya lebih dulu", dan aturan yang memberi resep wajib menyediakan obatnya. Tanpa jalur ini satu-satunya jalan keluar Operator adalah menonaktifkan orangnya — mengubah keadaan manusia demi merapikan struktur |
 | BR-IAM-19 | `User` **tidak pernah dihapus**, hanya dinonaktifkan ([BR-IAM-05](#business-rules)). Jalur penghapusan menembus penjagaan yang dipasang jalur deaktivasi: [BR-IAM-10](#business-rules) menolak menonaktifkan lead researcher yang masih memegang pengajuan aktif sampai kepemilikannya dipindah, dan aturan itu kehilangan artinya kalau tersedia jalur lain yang lebih merusak tanpa penjagaan apa pun |
+| BR-IAM-21 | Sesi login adalah keadaan akun yang dapat dibaca dan diakhiri. Pemegang `users.verify` atau `users.manage` melihat kapan seorang user terakhir aktif dan apakah ia sedang aktif. Yang dimaksud "sedang aktif" adalah ada sesi dengan aktivitas dalam 5 menit terakhir; datanya diturunkan dari sesi, bukan dari pelacakan halaman. Pemegang `users.manage` dapat mengakhiri seluruh sesi seorang user tanpa menonaktifkannya (perangkat hilang, kata sandi bocor), dan tindakan itu diaudit. Deaktivasi ([BR-IAM-05](#business-rules)) selalu mengakhiri seluruh sesi |
 
 ---
 

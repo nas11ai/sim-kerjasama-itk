@@ -108,7 +108,7 @@ it('status verifikasi null untuk akun terverifikasi dan akun tanpa profil', func
     $this->actingAs(directoryViewer())->get(route('admin.users.index'))
         ->assertInertia(fn (Assert $page) => $page
             ->where('users.data.1.name', 'Budi Terverifikasi')
-            ->where('users.data.1.status', ['active' => true, 'verification' => null])
+            ->where('users.data.1.status', ['active' => true, 'verification' => null, 'online' => false, 'lastActiveAt' => null])
             ->where('users.data.2.status.verification', null)
             ->where('users.data.3.status.verification', ['value' => 'rejected', 'label' => 'Ditolak'])
             ->where('users.data.1.showUrl', route('admin.users.show', User::query()->where('name', 'Budi Terverifikasi')->value('id'))));

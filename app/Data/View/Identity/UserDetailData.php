@@ -3,6 +3,7 @@
 namespace App\Data\View\Identity;
 
 use App\Models\User;
+use Carbon\CarbonImmutable;
 use Spatie\LaravelData\Data;
 
 /** "Data Personal" OPERATOR-08-03. */
@@ -20,7 +21,7 @@ final class UserDetailData extends Data
         public AccountStatusData $status,
     ) {}
 
-    public static function fromModel(User $user): self
+    public static function fromModel(User $user, ?CarbonImmutable $lastActiveAt): self
     {
         $profile = $user->userProfile;
 
@@ -33,7 +34,7 @@ final class UserDetailData extends Data
             organization: $user->organization?->name,
             expertise: $profile?->expertise,
             registeredAt: $user->created_at?->toIso8601String(),
-            status: AccountStatusData::of($user),
+            status: AccountStatusData::of($user, $lastActiveAt),
         );
     }
 }

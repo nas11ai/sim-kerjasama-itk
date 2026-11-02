@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { Link, router } from '@inertiajs/vue3'
 import { UserX, Users } from 'lucide-vue-next'
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 
 import AppBanner from '@/Components/app/AppBanner.vue'
 import ConfirmDialog from '@/Components/app/ConfirmDialog.vue'
@@ -14,7 +14,22 @@ const props = defineProps<{
     user: UserDetailData
     blockers: DeactivationBlockerData[]
     canDeactivate: boolean
+    runningReviews: number
 }>()
+
+// W59 — dampak deaktivasi disebut sebelum dikonfirmasi (BR-IAM-05, BR-REV-10).
+const impact = computed(() =>
+    [
+        `${props.user.name} tidak akan bisa masuk dan tidak menerima penugasan baru.`,
+        props.runningReviews > 0
+            ? `${props.runningReviews} penugasan review berjalan akan tetap ada dan perlu diganti Operator.`
+            : null,
+        'Sesi yang sedang login akan diakhiri.',
+        'Pengajuan, evaluasi, dan riwayatnya tetap tersimpan.',
+    ]
+        .filter((sentence) => sentence !== null)
+        .join(' ')
+)
 
 const confirming = ref(false)
 const processing = ref(false)
@@ -71,7 +86,7 @@ const deactivate = () => {
         <ConfirmDialog
             v-model:open="confirming"
             title="Nonaktifkan akun?"
-            :description="`${user.name} tidak akan bisa masuk dan tidak menerima penugasan baru.`"
+            :description="impact"
             confirm-label="Nonaktifkan"
             destructive
             :processing="processing"

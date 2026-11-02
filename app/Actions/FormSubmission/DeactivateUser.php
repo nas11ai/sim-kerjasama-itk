@@ -6,9 +6,12 @@ use App\Models\FormSubmission;
 use App\Models\User;
 use App\Notifications\AccountDeactivatedNotification;
 use App\Queries\Identity\DeactivationBlockers;
+use App\Support\Audit\AuditChange;
 use App\Support\Audit\AuditTrail;
+use App\Support\Identity\SessionRegistry;
 use App\Support\Notification\Deliver;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Str;
 use Illuminate\Validation\ValidationException;
 use Lorisleiva\Actions\Concerns\AsAction;
 
@@ -34,7 +37,10 @@ class DeactivateUser
             ]);
         }
 
-        $user->update(['is_active' => false]);
+        // BR-IAM-05, IAM-DEACT-09 — remember-me lama tak berlaku lagi dan sesi database diakhiri;
+        // sesi lain (driver apa pun) ditutup EnsureAccountActive di request berikutnya.
+        $user->forceFill(['is_active' => false, 'remember_token' => Str::random(60)])->save();
+        $sessionsEnded = SessionRegistry::of($user)->delete();
 
         // BR-IAM-15 — keputusan orang lain atas akunnya; ia tidak akan
         // menemukan sendiri selain lewat layar login yang menolaknya.
@@ -43,7 +49,7 @@ class DeactivateUser
         $tercatat = $user->refresh();
 
         // BR-RPT-09 — satu Action, satu entri audit.
-        AuditTrail::record('Akun dinonaktifkan', $tercatat);
+        AuditTrail::record('Akun dinonaktifkan', $tercatat, null, new AuditChange(new: ['sessions_ended' => $sessionsEnded]));
 
         return $tercatat;
     }

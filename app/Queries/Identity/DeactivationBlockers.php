@@ -37,7 +37,9 @@ class DeactivationBlockers implements ChangesNoState
             ->with('form:id,title')
             ->withExists(['researchMembers as has_active_co_investigator' => fn (Builder $member) => $member
                 ->where('role', ResearchMember::ROLE_CO_INVESTIGATOR)
-                ->where('status', 'active')])
+                ->where('status', 'active')
+                // SM-OWNER-07 — co-investigator berakun nonaktif bukan calon penerima.
+                ->whereHas('userProfile.user', fn (Builder $user) => $user->where('is_active', true))])
             ->orderBy('id')
             ->get();
     }

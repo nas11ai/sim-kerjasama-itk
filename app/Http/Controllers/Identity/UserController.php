@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Identity;
 
 use App\Actions\Identity\ChangeUserRoles;
+use App\Actions\Identity\EndUserSessions;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Identity\ChangeUserRolesRequest;
 use App\Models\InvitationToken;
@@ -29,6 +30,7 @@ class UserController extends Controller
             'role' => $request->string('role')->value(),
             'account' => $request->string('account')->value(),
             'verification' => $request->string('verification')->value(),
+            'presence' => $request->string('presence')->value(),
         ];
 
         return Inertia::render('Identity/UserIndexPage', [
@@ -58,5 +60,16 @@ class UserController extends Controller
         ChangeUserRoles::run($actor, $user, $request->roleNames());
 
         return back()->with('success', 'Peran user diperbarui.');
+    }
+
+    // BR-IAM-21 — wewenang dijaga route (UserPolicy::endSessions).
+    public function endSessions(Request $request, User $user): RedirectResponse
+    {
+        $actor = $request->user();
+        abort_unless($actor instanceof User, 403);
+
+        EndUserSessions::run($actor, $user);
+
+        return back()->with('success', 'Seluruh sesi user diakhiri.');
     }
 }

@@ -386,6 +386,10 @@ Route::middleware(['auth', 'can:viewAny,App\\Models\\User'])->prefix('admin')->n
     Route::put('/users/{user}/roles', [UserController::class, 'updateRoles'])
         ->name('users.roles.update')
         ->can('changeRoles', 'user');
+    // BR-IAM-21 — mengakhiri sesi tanpa menonaktifkan.
+    Route::post('/users/{user}/sessions/end', [UserController::class, 'endSessions'])
+        ->name('users.sessions.end')
+        ->can('endSessions', 'user');
     Route::post('/users/{user}/deactivate', UserDeactivationController::class)
         ->name('users.deactivate')
         ->can('deactivate', 'user');

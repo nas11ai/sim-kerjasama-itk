@@ -6,6 +6,7 @@ use App\Actions\Concerns\ChangesNoState;
 use App\Data\View\Submission\Manage\OwnershipCandidateData;
 use App\Models\FormSubmission;
 use App\Models\ResearchMember;
+use Illuminate\Database\Eloquent\Builder;
 use Lorisleiva\Actions\Concerns\AsAction;
 
 /**
@@ -25,6 +26,8 @@ class OwnershipCandidates implements ChangesNoState
         $members = $submission->researchMembers()
             ->where('role', ResearchMember::ROLE_CO_INVESTIGATOR)
             ->where('status', 'active')
+            // SM-OWNER-07 — akun nonaktif tidak bisa menerima kepemilikan (BR-IAM-05).
+            ->whereHas('userProfile.user', fn (Builder $user) => $user->where('is_active', true))
             ->with(['userProfile.user:id,name', 'userProfile.organization:id,name'])
             ->orderBy('id')
             ->get();

@@ -59,7 +59,12 @@ const props = (overrides: Partial<UserShowPageProps> = {}): UserShowPageProps =>
         organization: 'FSTI — Sistem Informasi',
         expertise: 'Data Science',
         registeredAt: '2025-09-03T08:00:00+08:00',
-        status: { active: true, verification: null },
+        status: {
+            active: true,
+            verification: null,
+            online: false,
+            lastActiveAt: '2026-11-02T07:00:00+08:00',
+        },
     },
     access: {
         roles: [{ value: 'researcher', label: 'Peneliti' }],
@@ -92,7 +97,13 @@ const props = (overrides: Partial<UserShowPageProps> = {}): UserShowPageProps =>
         },
     ],
     tab: 'profile',
-    can: { deactivate: true, changeRoles: true, managePermissions: true, appointReviewer: true },
+    can: {
+        deactivate: true,
+        changeRoles: true,
+        managePermissions: true,
+        appointReviewer: true,
+        endSessions: true,
+    },
     ...overrides,
 })
 
@@ -104,6 +115,14 @@ const mountPage = (overrides: Partial<UserShowPageProps> = {}) =>
 
 const button = (wrapper: ReturnType<typeof mountPage>, label: string) =>
     wrapper.findAll('button').find((b) => b.text() === label)
+
+const confirmDialog = (wrapper: ReturnType<typeof mountPage>, label: string) => {
+    const found = wrapper
+        .findAllComponents(ConfirmDialog)
+        .find((d) => d.props('confirmLabel') === label)
+    if (!found) throw new Error(`ConfirmDialog "${label}" tidak ada`)
+    return found
+}
 
 beforeEach(() => {
     vi.stubGlobal('route', route)
@@ -189,7 +208,7 @@ describe('UserShowPage', () => {
         const wrapper = mountPage()
 
         await button(wrapper, 'Nonaktifkan')?.trigger('click')
-        const dialog = wrapper.findComponent(ConfirmDialog)
+        const dialog = confirmDialog(wrapper, 'Nonaktifkan')
         expect(dialog.props('open')).toBe(true)
         dialog.vm.$emit('confirm')
 
@@ -198,6 +217,19 @@ describe('UserShowPage', () => {
             {},
             expect.objectContaining({ preserveScroll: true })
         )
+    })
+
+    it('[IAM-DEACT-11] dialog Nonaktifkan menyebut dampaknya', async () => {
+        const wrapper = mountPage()
+
+        await button(wrapper, 'Nonaktifkan')?.trigger('click')
+        const description = confirmDialog(wrapper, 'Nonaktifkan').props('description')
+
+        expect(description).toContain(
+            '2 penugasan review berjalan akan tetap ada dan perlu diganti Operator.'
+        )
+        expect(description).toContain('Sesi yang sedang login akan diakhiri.')
+        expect(description).toContain('Pengajuan, evaluasi, dan riwayatnya tetap tersimpan.')
     })
 
     it('[IAM-PERM-03] hak akses efektif tampil sebagai gabungan', () => {
@@ -307,5 +339,28 @@ describe('UserShowPage', () => {
         const form = put.mock.contexts[0] as { roles: string[] }
         expect([...form.roles].sort()).toEqual(['operator', 'researcher'])
         wrapper.unmount()
+    })
+
+    it('[IAM-SESSION-01] Akhiri Semua Sesi lewat ConfirmDialog lalu router.post', async () => {
+        const wrapper = mountPage()
+
+        expect(wrapper.text()).toContain('Terakhir aktif')
+        await button(wrapper, 'Akhiri Semua Sesi')?.trigger('click')
+        const dialog = confirmDialog(wrapper, 'Akhiri Semua Sesi')
+        expect(dialog.props('open')).toBe(true)
+        dialog.vm.$emit('confirm')
+
+        expect(router.post).toHaveBeenCalledWith(
+            '/admin.users.sessions.end/5',
+            {},
+            expect.objectContaining({ preserveScroll: true })
+        )
+    })
+
+    it('[IAM-SESSION-03] tanpa can.endSessions tidak ada tombol Akhiri Semua Sesi', () => {
+        const base = props()
+        const wrapper = mountPage({ can: { ...base.can, endSessions: false } })
+
+        expect(button(wrapper, 'Akhiri Semua Sesi')).toBeUndefined()
     })
 })
