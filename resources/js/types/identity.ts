@@ -139,3 +139,30 @@ export interface VerificationIndexPageProps {
     pending: VerificationCardData[]
     rejected: VerificationCardData[]
 }
+
+// Sumber: InvitationRowData (ADMIN-08-01). `preset` null = token lama/kustom; `maxUses` null = tanpa kuota.
+export type InvitationStatusValue =
+    | 'valid'
+    | 'revoked'
+    | 'organization_inactive'
+    | 'exhausted'
+    | 'expired'
+
+export interface InvitationRowData {
+    id: number
+    organization: string | null
+    organizationId: number | null
+    preset: Option | null
+    usedCount: number
+    maxUses: number | null
+    remainingUses: number | null
+    expiresAt: string | null
+    status: { value: InvitationStatusValue; label: string }
+    revocable: boolean
+}
+
+export interface InvitationIndexPageProps {
+    invitations: InvitationRowData[]
+    organizationOptions: Option[]
+    presetOptions: Option[]
+}

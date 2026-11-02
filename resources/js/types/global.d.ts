@@ -22,6 +22,12 @@ declare module '@inertiajs/core' {
 
     // Bentuk flash native dari HandleInertiaRequests::bridgeSessionFlash(); kunci kosong tidak dikirim.
     interface InertiaConfig {
-        flashDataType: { message?: string; error?: string; success?: string }
+        // `issuedInvitationUrl` — tautan undangan tampil sekali, tak terputar ulang saat Back (W51).
+        flashDataType: {
+            message?: string
+            error?: string
+            success?: string
+            issuedInvitationUrl?: string
+        }
     }
 }
