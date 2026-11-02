@@ -1,23 +1,6 @@
-import { router } from '@inertiajs/vue3'
-import { ref, watch } from 'vue'
+import { usePartialSearch } from '@/composables/usePartialSearch'
 
-const SEARCH_DEBOUNCE_MS = 300
-
-// Kandidat reviewer lewat partial reload prop `reviewerCandidates`, jadi pencarian tetap di server.
+// Kandidat reviewer penugasan lewat partial reload prop `reviewerCandidates`.
 export function useReviewerCandidates() {
-    const search = ref('')
-    let timer: ReturnType<typeof setTimeout> | undefined
-
-    const load = () =>
-        router.reload({
-            only: ['reviewerCandidates'],
-            data: { reviewer_search: search.value },
-        })
-
-    watch(search, () => {
-        clearTimeout(timer)
-        timer = setTimeout(load, SEARCH_DEBOUNCE_MS)
-    })
-
-    return { search, load }
+    return usePartialSearch('reviewerCandidates', 'reviewer_search')
 }

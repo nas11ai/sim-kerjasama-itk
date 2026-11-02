@@ -1,6 +1,7 @@
 <script setup lang="ts">
 // Frame: OPERATOR-08-03
 import { Head } from '@inertiajs/vue3'
+import { UserCheck } from 'lucide-vue-next'
 import { computed, ref } from 'vue'
 
 import AppBanner from '@/Components/app/AppBanner.vue'
@@ -8,6 +9,7 @@ import InfoGrid from '@/Components/app/InfoGrid.vue'
 import PageHeader from '@/Components/app/PageHeader.vue'
 import SectionCard from '@/Components/app/SectionCard.vue'
 import AccountStatusBadges from '@/Components/Identity/AccountStatusBadges.vue'
+import AppointReviewerDialog from '@/Components/Identity/AppointReviewerDialog.vue'
 import ChangeRolesDialog from '@/Components/Identity/ChangeRolesDialog.vue'
 import DeactivationPanel from '@/Components/Identity/DeactivationPanel.vue'
 import ReactivationPanel from '@/Components/Identity/ReactivationPanel.vue'
@@ -25,6 +27,7 @@ import type { UserShowPageProps } from '@/types/identity'
 const props = defineProps<UserShowPageProps>()
 
 const changingRoles = ref(false)
+const appointing = ref(false)
 
 const subtitle = computed(() =>
     props.user.nidn ? `${props.user.email} · NIDN ${props.user.nidn}` : props.user.email
@@ -54,7 +57,18 @@ const summaryItems = computed(() => [
             back-label="Daftar User"
         >
             <template #badge><AccountStatusBadges :status="user.status" /></template>
+            <template v-if="can.appointReviewer" #actions>
+                <Button variant="outline" @click="appointing = true"
+                    ><UserCheck class="size-4" />Tunjuk sebagai Reviewer</Button
+                >
+            </template>
         </PageHeader>
+        <AppointReviewerDialog
+            v-if="can.appointReviewer"
+            v-model:open="appointing"
+            :type-options="reviewerTypeOptions"
+            :locked-user="{ userId: user.id, name: user.name }"
+        />
         <!-- IAM-DEACT-03 — tampil di setiap tab: riwayat di bawahnya milik akun nonaktif. -->
         <AppBanner v-if="!user.status.active" tone="lock" class="mb-6">
             Akun nonaktif. Data dan seluruh jejaknya tetap tersimpan; yang berhenti hanya kemampuan

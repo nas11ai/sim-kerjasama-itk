@@ -97,6 +97,10 @@ const props = (overrides: Partial<UserShowPageProps> = {}): UserShowPageProps =>
         },
     ],
     tab: 'profile',
+    reviewerTypeOptions: [
+        { value: 'internal', label: 'Internal' },
+        { value: 'external', label: 'Eksternal' },
+    ],
     can: {
         deactivate: true,
         changeRoles: true,
@@ -149,6 +153,21 @@ describe('UserShowPage', () => {
         expect(tabs).toEqual(['Profil', 'Riwayat Submission (2)', 'Riwayat Reviewer (1)'])
         expect(mountPage({ tab: 'reviews' }).text()).toContain('Kajian Mangrove')
         expect(mountPage().text()).not.toContain('Kajian Mangrove')
+    })
+
+    it('Tunjuk sebagai Reviewer hanya bila can.appointReviewer', async () => {
+        const wrapper = mountPage()
+        await button(wrapper, 'Tunjuk sebagai Reviewer')?.trigger('click')
+        await nextTick()
+
+        const appoint = wrapper
+            .findAllComponents(ActionDialog)
+            .find((d) => d.props('title') === 'Tunjuk sebagai Reviewer')
+        expect(appoint?.props('open')).toBe(true)
+
+        const base = props()
+        const denied = mountPage({ can: { ...base.can, appointReviewer: false } })
+        expect(button(denied, 'Tunjuk sebagai Reviewer')).toBeUndefined()
     })
 
     it('[IAM-DEACT-07] tidak ada aksi hapus; aksi yang tersedia Nonaktifkan bila can.deactivate', () => {
@@ -336,7 +355,10 @@ describe('UserShowPage', () => {
 
         document.querySelector<HTMLButtonElement>('#assign-role-operator')?.click()
         await nextTick()
-        wrapper.findComponent(ActionDialog).vm.$emit('submit')
+        wrapper
+            .findAllComponents(ActionDialog)
+            .find((d) => d.props('title') === 'Ubah Peran')
+            ?.vm.$emit('submit')
 
         expect(put).toHaveBeenCalledWith(
             '/admin.users.roles.update/5',

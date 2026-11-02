@@ -112,6 +112,8 @@ export interface UserAbilities {
 }
 
 export interface UserShowPageProps {
+    // Tipe reviewer untuk dialog "Tunjuk sebagai Reviewer" (BR-IAM-11).
+    reviewerTypeOptions: Option[]
     user: UserDetailData
     access: UserAccessData
     summary: UserSummaryData
@@ -165,4 +167,46 @@ export interface InvitationIndexPageProps {
     invitations: InvitationRowData[]
     organizationOptions: Option[]
     presetOptions: Option[]
+}
+
+// Sumber: ReviewerRowData (OPERATOR-08-04). Tanggal masa tugas berbentuk YYYY-MM-DD.
+export type ReviewerStanding = 'active' | 'not_started' | 'ended' | 'account_inactive'
+
+export interface ReviewerRowData {
+    id: number
+    userId: number
+    name: string
+    type: Option
+    tenureStart: string
+    tenureEnd: string | null
+    // W54 — penugasan aktif yang evaluasinya belum beres.
+    runningAssignments: number
+    standing: { value: ReviewerStanding; label: string }
+    historyUrl: string | null
+}
+
+// Sumber: AppointmentCandidateData. `currentReviewer` terisi = penunjukan memperbarui (IAM-REVIEWER-04).
+export interface AppointmentCandidateData {
+    userId: number
+    name: string
+    email: string
+    nidn: string | null
+    organization: string | null
+    currentReviewer: {
+        type: Option
+        tenureStart: string
+        tenureEnd: string | null
+        standing: Option
+    } | null
+}
+
+export type ReviewerIndexFilters = { search: string; type: string; standing: string }
+
+export interface ReviewerIndexPageProps {
+    reviewers: Paginated<ReviewerRowData>
+    filters: ReviewerIndexFilters
+    typeOptions: Option[]
+    standingOptions: Option[]
+    appointmentCandidates?: AppointmentCandidateData[]
+    can: { manageInvitations: boolean }
 }
