@@ -2,12 +2,12 @@
 
 namespace App\Actions\Period;
 
-use App\Models\FormSubmission;
 use App\Models\SubmissionDate;
 use App\Models\SubmissionDateLabel;
 use App\Models\SubmissionPeriod;
 use App\Models\User;
 use App\Notifications\SubmissionDeadlineExtendedNotification;
+use App\Queries\Period\PeriodDraftOwners;
 use App\Support\Audit\AuditTrail;
 use App\Support\Notification\Deliver;
 use Illuminate\Database\Eloquent\Collection;
@@ -39,7 +39,7 @@ class ExtendSubmissionDates
                 return 0;
             }
 
-            $pemilikDraft = $this->draftOwners($period);
+            $pemilikDraft = PeriodDraftOwners::run($period);
 
             // SCH-RULE-13 — tanpa draft berjalan, tidak ada yang perlu diberi tahu.
             if ($pemilikDraft->isEmpty()) {
@@ -126,21 +126,5 @@ class ExtendSubmissionDates
             ->whereNotIn('id', $keptIds)
             ->whereDoesntHave('formPhaseDetails')
             ->delete();
-    }
-
-    /**
-     * Draft **aktif** di periode itu: sudah dimulai tapi belum dikirim.
-     * Pengajuan yang sudah masuk tidak terdampak batas pengisian.
-     *
-     * @return Collection<int, User>
-     */
-    private function draftOwners(SubmissionPeriod $period): Collection
-    {
-        return User::query()
-            ->whereIn('id', FormSubmission::query()
-                ->where('submission_period_id', $period->id)
-                ->where('is_submitted', false)
-                ->select('submitted_by'))
-            ->get();
     }
 }

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { formatDate, formatRelative, formatRupiah } from '@/lib/format'
+import { formatDate, formatDateTime, formatRelative, formatRupiah } from '@/lib/format'
 
 // Intl memakai spasi tak-putus; disamakan supaya assertion terbaca.
 const plain = (value: string) => value.replace(/\s/g, ' ')
@@ -12,6 +12,13 @@ describe('formatDate', () => {
 
     it('menulis tanda pisah untuk tanggal kosong', () => {
         expect(formatDate(null)).toBe('—')
+    })
+})
+
+describe('formatDateTime', () => {
+    it('menulis tanggal dan jam di zona aplikasi (WITA), apa pun zona peramban', () => {
+        expect(plain(formatDateTime('2026-02-15T23:59:00+08:00'))).toBe('15 Feb 2026 23.59')
+        expect(plain(formatDateTime('2026-02-15T15:59:00Z'))).toBe('15 Feb 2026 23.59')
     })
 })
 

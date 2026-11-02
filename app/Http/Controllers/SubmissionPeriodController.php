@@ -11,44 +11,11 @@ use App\Models\FormSubmission;
 use App\Models\SubmissionDateLabel;
 use App\Models\SubmissionPeriod;
 use App\Support\SubmissionPeriodGate;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 
 class SubmissionPeriodController extends Controller
 {
-    public function index(Request $request)
-    {
-        $query = SubmissionPeriod::with([
-            'submissionDates',
-            'submissionPeriodPhases.formPhase',
-        ]);
-
-        // Search functionality
-        if ($request->has('search') && $request->search) {
-            $search = $request->search;
-            $query->where('name', 'ilike', "%{$search}%");
-        }
-
-        $submissionPeriods = $query->orderBy('created_at', 'desc')->paginate(10);
-
-        // Add computed properties for each period
-        $submissionPeriods->getCollection()->transform(function ($period) {
-            $dates = $period->submissionDates->sortBy('datetime');
-            $period->start_date = $dates->first()?->datetime;
-            $period->end_date = $dates->last()?->datetime;
-            $period->is_active = $this->isPeriodActive($period);
-            $period->status = $this->getPeriodStatus($period);
-
-            return $period;
-        });
-
-        return Inertia::render('SubmissionPeriods/IndexPage', [
-            'submissionPeriods' => $submissionPeriods,
-            'filters' => $request->only(['search']),
-        ]);
-    }
-
     public function create()
     {
         $formPhases = FormPhase::where('is_active', true)

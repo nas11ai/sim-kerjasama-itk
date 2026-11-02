@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
  * @property \Illuminate\Support\Carbon $datetime
+ * @property int $form_phase_details_count hasil withCount SubmissionPeriodList
  * @property-read SubmissionDateLabel|null $submissionDateLabel
  * @property-read SubmissionPeriod|null $submissionPeriod
  */

@@ -10,6 +10,7 @@ use App\Http\Controllers\Export\DocumentPrintController;
 use App\Http\Controllers\Export\ExportController;
 use App\Http\Controllers\FormAccessControlController;
 use App\Http\Controllers\FormController;
+use App\Http\Controllers\FormEngine\SubmissionPeriodController as PeriodController;
 use App\Http\Controllers\FormPhaseController;
 use App\Http\Controllers\Identity\InvitationController;
 use App\Http\Controllers\Identity\NidnVerificationController;
@@ -319,8 +320,7 @@ Route::middleware(['auth', 'can:users.manage'])->prefix('admin')->name('admin.')
         'destroy' => 'form-access-controls.destroy',
     ]);
 
-    Route::resource('submission-periods', SubmissionPeriodController::class)->names([
-        'index' => 'submission-periods.index',
+    Route::resource('submission-periods', SubmissionPeriodController::class)->except(['index'])->names([
         'create' => 'submission-periods.create',
         'store' => 'submission-periods.store',
         'show' => 'submission-periods.show',
@@ -357,9 +357,6 @@ Route::middleware(['auth', 'can:users.manage'])->group(function () {
     });
     Route::get('/form-access-controls', function () {
         return redirect()->route('admin.form-access-controls.index');
-    });
-    Route::get('/submission-periods', function () {
-        return redirect()->route('admin.submission-periods.index');
     });
     Route::get('/announcements', function () {
         return redirect()->route('admin.announcements.index');
@@ -445,6 +442,14 @@ Route::middleware(['auth', 'can:submissions.view-all'])->prefix('admin')->name('
     Route::get('/submissions/{submission}', [OperatorSubmissionController::class, 'show'])
         ->name('submissions.show');
 });
+
+// OPERATOR-09-01 — periode dikelola pemegang periods.manage, bukan users.manage (§4.4 K1).
+Route::middleware(['auth', 'can:periods.manage'])->prefix('admin')->name('admin.')->group(function () {
+    Route::get('/submission-periods', [PeriodController::class, 'index'])
+        ->name('submission-periods.index');
+});
+
+Route::middleware(['auth', 'can:periods.manage'])->get('/submission-periods', fn () => redirect()->route('admin.submission-periods.index'));
 
 // fe-v2-design §4.7 K5 — Operator mengelola pengumuman tanpa users.manage.
 Route::middleware(['auth', 'can:announcements.manage'])->prefix('admin')->name('admin.')->group(function () {

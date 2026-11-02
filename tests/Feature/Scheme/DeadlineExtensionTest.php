@@ -122,20 +122,21 @@ it('BR-RPT-09 entri audit perpanjangan mencatat Operator sebagai pelaku', functi
 // apakah ada yang dikabari — dan perpanjangan yang diam praktis sama dengan
 // tidak diberikan.
 
-it('[SCH-RULE-11] halaman edit periode membawa jumlah draft berjalan', function () {
+it('[SCH-RULE-11] daftar periode membawa jumlah pemilik draft berjalan', function () {
     $fx = wizardFixture();
     StartSubmission::run($fx['form']->id, $fx['period']->id, $fx['detail'], $fx['user']);
 
-    Permission::findOrCreate('users.manage', 'web');
+    Permission::findOrCreate('periods.manage', 'web');
     $operator = User::factory()->create();
     UserProfile::factory()->create(['user_id' => $operator->id]);
-    $operator->givePermissionTo('users.manage');
+    $operator->givePermissionTo('periods.manage');
 
     $this->actingAs($operator->refresh())
-        ->get(route('admin.submission-periods.edit', $fx['period']))
+        ->get(route('admin.submission-periods.index'))
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
-            ->component('SubmissionPeriods/EditPage')
-            ->where('runningDrafts', 1)
+            ->component('FormEngine/PeriodIndexPage')
+            ->where('periods.data.0.id', $fx['period']->id)
+            ->where('periods.data.0.draftOwnerCount', 1)
             ->etc());
 });

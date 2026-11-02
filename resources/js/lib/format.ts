@@ -14,6 +14,20 @@ export function formatDate(iso: string | null): string {
     return iso === null ? '—' : dateFormat.format(new Date(iso))
 }
 
+// Tenggat dibaca di zona aplikasi (config app.timezone), bukan zona peramban.
+const dateTimeFormat = new Intl.DateTimeFormat('id-ID', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit',
+    timeZone: 'Asia/Makassar',
+})
+
+export function formatDateTime(iso: string): string {
+    return dateTimeFormat.format(new Date(iso)).replace(',', '')
+}
+
 export function formatRupiah(amount: number): string {
     return rupiahFormat.format(amount)
 }

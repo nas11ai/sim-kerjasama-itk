@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Notifications\SubmissionPeriodClosedNotification;
+use App\Queries\Period\PeriodDraftOwners;
 use App\Queries\Period\SubmissionPeriodReferences;
 use App\Support\Lifecycle\ReferenceGuard;
 use App\Support\Notification\Deliver;
@@ -27,6 +28,7 @@ use Illuminate\Support\Facades\Log;
  * @property int $total_submissions
  * @property int $approved_submissions
  * @property int $pending_review
+ * @property int $submitted_count hasil withCount SubmissionPeriodList
  * @property-read Collection<int, SubmissionDate> $submissionDates
  * @property-read Collection<int, SubmissionPeriodPhase> $submissionPeriodPhases
  */
@@ -71,6 +73,12 @@ class SubmissionPeriod extends Model
         return $this->hasMany(SubmissionDate::class);
     }
 
+    /** @return HasMany<FormSubmission, $this> */
+    public function formSubmissions(): HasMany
+    {
+        return $this->hasMany(FormSubmission::class);
+    }
+
     /** @return HasMany<SubmissionPeriodPhase, $this> */
     public function submissionPeriodPhases(): HasMany
     {
@@ -100,15 +108,7 @@ class SubmissionPeriod extends Model
     {
         $this->update(['is_force_closed' => true]);
 
-        $owners = User::query()
-            ->whereIn(
-                'id',
-                FormSubmission::query()
-                    ->where('submission_period_id', $this->id)
-                    ->where('is_submitted', false)
-                    ->select('submitted_by')
-            )
-            ->get();
+        $owners = PeriodDraftOwners::run($this);
 
         Deliver::to($owners, new SubmissionPeriodClosedNotification($this));
     }
