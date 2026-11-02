@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers\FormEngine;
 
+use App\Actions\Period\CloseSubmissionPeriod;
 use App\Actions\Period\CreateSubmissionPeriod;
+use App\Actions\Period\DeleteSubmissionPeriod;
 use App\Actions\Period\ReviseSubmissionPeriod;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Period\SubmissionPeriodRequest;
@@ -63,5 +65,30 @@ class SubmissionPeriodController extends Controller
 
         return redirect()->route('admin.submission-periods.index')
             ->with('success', 'Periode pengajuan diperbarui.');
+    }
+
+    // BR-FE-21 — penjaga rujukan berjalan di Action sebelum tanggal dan tahapnya disentuh.
+    public function destroy(Request $request, SubmissionPeriod $submissionPeriod): RedirectResponse
+    {
+        $actor = $request->user();
+        abort_unless($actor instanceof User, 403);
+
+        DeleteSubmissionPeriod::run($submissionPeriod, $actor);
+
+        return redirect()->route('admin.submission-periods.index')
+            ->with('success', 'Periode pengajuan dihapus.');
+    }
+
+    // Close Early (W68) — BR-SCH-07 mengunci fasenya, BR-SM-10 memberi tahu pemilik draft.
+    public function close(Request $request, SubmissionPeriod $submissionPeriod): RedirectResponse
+    {
+        $actor = $request->user();
+        abort_unless($actor instanceof User, 403);
+
+        $notified = CloseSubmissionPeriod::run($submissionPeriod, $actor);
+
+        return back()->with('success', $notified > 0
+            ? "Periode ditutup. {$notified} peneliti diberi tahu."
+            : 'Periode ditutup. Tidak ada draft berjalan.');
     }
 }

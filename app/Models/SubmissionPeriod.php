@@ -2,18 +2,14 @@
 
 namespace App\Models;
 
-use App\Notifications\SubmissionPeriodClosedNotification;
-use App\Queries\Period\PeriodDraftOwners;
 use App\Queries\Period\SubmissionPeriodReferences;
 use App\Support\Lifecycle\ReferenceGuard;
-use App\Support\Notification\Deliver;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Support\Facades\Log;
 
 /**
  * @property bool $is_active
@@ -83,33 +79,5 @@ class SubmissionPeriod extends Model
     public function submissionPeriodPhases(): HasMany
     {
         return $this->hasMany(SubmissionPeriodPhase::class);
-    }
-
-    public function forceClose(): void
-    {
-        $this->update([
-            'is_force_closed' => true,
-        ]);
-
-        Log::info('Submission period force closed', [
-            'submission_period_id' => $this->id,
-            'submission_period_name' => $this->name,
-            'closed_at' => now(),
-        ]);
-    }
-
-    /**
-     * BR-SM-10 — menutup periode dan memberi tahu pemilik draft terdampak.
-     *
-     * Menutup periode membekukan draft, tidak menghapusnya. Pemberitahuan
-     * bagian aksi ini: tanpa itu peneliti baru sadar saat gagal menyunting.
-     */
-    public function closeAndNotifyDraftOwners(): void
-    {
-        $this->update(['is_force_closed' => true]);
-
-        $owners = PeriodDraftOwners::run($this);
-
-        Deliver::to($owners, new SubmissionPeriodClosedNotification($this));
     }
 }

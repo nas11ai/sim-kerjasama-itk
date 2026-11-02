@@ -5,13 +5,16 @@ import { Plus } from 'lucide-vue-next'
 import { computed, ref } from 'vue'
 
 import AppBanner from '@/Components/app/AppBanner.vue'
+import ConfirmDialog from '@/Components/app/ConfirmDialog.vue'
 import FilterToolbar from '@/Components/app/FilterToolbar.vue'
 import PageHeader from '@/Components/app/PageHeader.vue'
 import PaginationBar from '@/Components/app/PaginationBar.vue'
+import PeriodDeleteBlockedDialog from '@/Components/FormEngine/PeriodDeleteBlockedDialog.vue'
 import PeriodFormDialog from '@/Components/FormEngine/PeriodFormDialog.vue'
 import PeriodTable from '@/Components/FormEngine/PeriodTable.vue'
 import { Button } from '@/Components/ui/button'
 import { useFilters } from '@/composables/useFilters'
+import { usePeriodActions } from '@/composables/usePeriodActions'
 import AppLayout from '@/Layouts/AppLayout.vue'
 import type { PeriodIndexFilters, PeriodIndexPageProps, PeriodRowData } from '@/types/form-engine'
 import type { FilterSelectSpec } from '@/types/submission-page'
@@ -30,6 +33,9 @@ const selects = computed((): FilterSelectSpec<Exclude<keyof PeriodIndexFilters, 
 // BR-SCH-08 / SCH-RULE-13 — flash native hanya ada bila sebuah tenggat mundur (W73).
 const page = usePage()
 const extended = computed(() => page.flash.deadlineExtended)
+
+const actions = usePeriodActions()
+const { target, blockedOpen, deleteOpen, closeOpen, processing } = actions
 
 const formOpen = ref(false)
 const editing = ref<PeriodRowData | null>(null)
@@ -71,6 +77,8 @@ const openForm = (row: PeriodRowData | null) => {
             :filtered="filtered"
             :can-view-submissions="can.viewSubmissions"
             @edit="openForm"
+            @close="actions.askClose"
+            @delete="actions.askDelete"
         />
         <PaginationBar :page="periods" />
         <div class="mt-4 flex flex-col gap-3">
@@ -87,6 +95,29 @@ const openForm = (row: PeriodRowData | null) => {
                 diberikan.
             </AppBanner>
         </div>
+        <PeriodDeleteBlockedDialog
+            v-model:open="blockedOpen"
+            :period="target"
+            @close="target && actions.askClose(target)"
+        />
+        <ConfirmDialog
+            v-model:open="deleteOpen"
+            title="Hapus periode?"
+            :description="`Periode ${target?.name ?? ''} beserta tenggatnya dihapus permanen.`"
+            confirm-label="Hapus Periode"
+            destructive
+            :processing="processing"
+            @confirm="actions.confirmDelete"
+        />
+        <ConfirmDialog
+            v-model:open="closeOpen"
+            title="Tutup periode?"
+            :description="actions.closeImpact.value"
+            confirm-label="Tutup Periode"
+            destructive
+            :processing="processing"
+            @confirm="actions.confirmClose"
+        />
         <PeriodFormDialog
             v-model:open="formOpen"
             :period="editing"

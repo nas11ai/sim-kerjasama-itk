@@ -1,4 +1,4 @@
-import { mount } from '@vue/test-utils'
+import { flushPromises, mount, type VueWrapper } from '@vue/test-utils'
 import { defineComponent, h } from 'vue'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
@@ -104,6 +104,17 @@ const mountPage = (rows: PeriodRowData[], overrides: Partial<PeriodIndexPageProp
         attachTo: document.body,
     })
 
+const clickIn = async (wrapper: VueWrapper, label: string) => {
+    await wrapper
+        .findAll('button')
+        .find((b) => b.text().trim() === label)
+        ?.trigger('click')
+    await flushPromises()
+}
+
+const bodyButton = (label: string) =>
+    Array.from(document.querySelectorAll('button')).find((b) => b.textContent?.trim() === label)
+
 beforeEach(() => {
     vi.stubGlobal('route', route)
     page.flash = {}
@@ -186,6 +197,79 @@ describe('FormEngine/PeriodIndexPage', () => {
             .find((b) => b.text().trim() === 'Edit')
             ?.trigger('click')
         expect(document.body.textContent).toContain('Sunting Periode')
+    })
+
+    it('[FE-DELETE-10] hapus periode berpengajuan membuka penjelasan, bukan konfirmasi', async () => {
+        const wrapper = mountPage([
+            periodRow({ deleteBlockers: [{ label: 'pengajuan', count: 8 }] }),
+        ])
+        await clickIn(wrapper, 'Hapus')
+
+        expect(document.body.textContent).toContain('Periode tidak bisa dihapus')
+        expect(document.body.textContent).toContain('8 pengajuan')
+        expect(document.body.textContent).toContain('dinonaktifkan, bukan dihapus')
+        expect(document.body.textContent).not.toContain('Hapus periode?')
+        expect(router.delete).not.toHaveBeenCalled()
+    })
+
+    it('[FE-DELETE-11] penjelasan menyebut detail tahap yang memakai tanggalnya', async () => {
+        const wrapper = mountPage([
+            periodRow({
+                closable: false,
+                deleteBlockers: [{ label: 'detail tahap yang memakai tanggalnya', count: 1 }],
+            }),
+        ])
+        await clickIn(wrapper, 'Hapus')
+
+        expect(document.body.textContent).toContain('1 detail tahap yang memakai tanggalnya')
+        expect(bodyButton('Tutup Periode')).toBeUndefined()
+    })
+
+    it('penjelasan menawarkan Tutup Periode bila periode masih terbuka', async () => {
+        const wrapper = mountPage([
+            periodRow({ deleteBlockers: [{ label: 'pengajuan', count: 8 }] }),
+        ])
+        await clickIn(wrapper, 'Hapus')
+        bodyButton('Tutup Periode')?.click()
+        await flushPromises()
+
+        expect(document.body.textContent).toContain('Tutup periode?')
+    })
+
+    it('[FE-DELETE-12] periode kosong dikonfirmasi lalu dihapus', async () => {
+        const wrapper = mountPage([periodRow()])
+        await clickIn(wrapper, 'Hapus')
+
+        expect(document.body.textContent).toContain('Hapus periode?')
+        bodyButton('Hapus Periode')?.click()
+        await flushPromises()
+        expect(router.delete).toHaveBeenCalledWith(
+            '/admin.submission-periods.destroy/4',
+            expect.anything()
+        )
+    })
+
+    it('tutup menyebut jumlah draft lalu memanggil route close', async () => {
+        const wrapper = mountPage([periodRow()])
+        await clickIn(wrapper, 'Tutup')
+
+        expect(document.body.textContent).toContain(
+            '3 peneliti dengan draft berjalan akan diberi tahu dan draftnya diarsipkan.'
+        )
+        bodyButton('Tutup Periode')?.click()
+        await flushPromises()
+        expect(router.post).toHaveBeenCalledWith(
+            '/admin.submission-periods.close/4',
+            {},
+            expect.anything()
+        )
+    })
+
+    it('tutup tanpa draft berjalan mengatakannya', async () => {
+        const wrapper = mountPage([periodRow({ draftOwnerCount: 0 })])
+        await clickIn(wrapper, 'Tutup')
+
+        expect(document.body.textContent).toContain('Tidak ada draft berjalan.')
     })
 
     it('daftar kosong menampilkan state kosong', () => {

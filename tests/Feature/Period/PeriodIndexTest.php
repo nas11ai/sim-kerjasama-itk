@@ -183,3 +183,32 @@ it('tahap nonaktif yang sudah melekat tetap ditawarkan', function () {
             ['value' => (string) $nonaktif->id, 'label' => 'Lama (nonaktif)'],
         ]));
 });
+
+it('[FE-DELETE-12] hapus periode kosong lewat HTTP', function () {
+    $period = periodWithDates(['+1 month']);
+
+    $this->actingAs(periodManager())
+        ->delete(route('admin.submission-periods.destroy', $period))
+        ->assertRedirect(route('admin.submission-periods.index'));
+
+    expect(SubmissionPeriod::query()->whereKey($period->id)->exists())->toBeFalse();
+});
+
+it('[FE-DELETE-10] hapus periode berpengajuan lewat HTTP ditolak', function () {
+    $period = periodWithDates(['+1 month']);
+    FormSubmission::factory()->create(['submission_period_id' => $period->id]);
+
+    $this->actingAs(periodManager())
+        ->delete(route('admin.submission-periods.destroy', $period))
+        ->assertSessionHasErrors();
+
+    expect(SubmissionPeriod::query()->whereKey($period->id)->exists())->toBeTrue();
+});
+
+it('peneliti tidak bisa menghapus periode', function () {
+    $period = periodWithDates([]);
+
+    $this->actingAs(periodManager('researcher'))
+        ->delete(route('admin.submission-periods.destroy', $period))
+        ->assertForbidden();
+});

@@ -10,7 +10,7 @@ use App\Http\Controllers\Export\DocumentPrintController;
 use App\Http\Controllers\Export\ExportController;
 use App\Http\Controllers\FormAccessControlController;
 use App\Http\Controllers\FormController;
-use App\Http\Controllers\FormEngine\SubmissionPeriodController as PeriodController;
+use App\Http\Controllers\FormEngine\SubmissionPeriodController;
 use App\Http\Controllers\FormPhaseController;
 use App\Http\Controllers\Identity\InvitationController;
 use App\Http\Controllers\Identity\NidnVerificationController;
@@ -48,7 +48,6 @@ use App\Http\Controllers\Submission\SubmissionFileController;
 use App\Http\Controllers\Submission\SubmissionRevisionController;
 use App\Http\Controllers\Submission\SubmissionWizardController;
 use App\Http\Controllers\Submission\TargetOutputController;
-use App\Http\Controllers\SubmissionPeriodController;
 use App\Http\Controllers\SubmissionViewController;
 use App\Http\Controllers\SubmissionWithdrawalController;
 use App\Http\Controllers\UserDeactivationController;
@@ -319,9 +318,6 @@ Route::middleware(['auth', 'can:users.manage'])->prefix('admin')->name('admin.')
         'destroy' => 'form-access-controls.destroy',
     ]);
 
-    Route::delete('submission-periods/{submissionPeriod}', [SubmissionPeriodController::class, 'destroy'])
-        ->name('submission-periods.destroy');
-
     // Additional routes for Form Access Controls
     Route::post('form-access-controls/bulk-create', [FormAccessControlController::class, 'bulkCreate'])
         ->name('form-access-controls.bulk-create');
@@ -435,12 +431,16 @@ Route::middleware(['auth', 'can:submissions.view-all'])->prefix('admin')->name('
 
 // OPERATOR-09-01 — periode dikelola pemegang periods.manage, bukan users.manage (§4.4 K1).
 Route::middleware(['auth', 'can:periods.manage'])->prefix('admin')->name('admin.')->group(function () {
-    Route::get('/submission-periods', [PeriodController::class, 'index'])
+    Route::get('/submission-periods', [SubmissionPeriodController::class, 'index'])
         ->name('submission-periods.index');
-    Route::post('/submission-periods', [PeriodController::class, 'store'])
+    Route::post('/submission-periods', [SubmissionPeriodController::class, 'store'])
         ->name('submission-periods.store');
-    Route::put('/submission-periods/{submissionPeriod}', [PeriodController::class, 'update'])
+    Route::put('/submission-periods/{submissionPeriod}', [SubmissionPeriodController::class, 'update'])
         ->name('submission-periods.update');
+    Route::delete('/submission-periods/{submissionPeriod}', [SubmissionPeriodController::class, 'destroy'])
+        ->name('submission-periods.destroy');
+    Route::post('/submission-periods/{submissionPeriod}/close', [SubmissionPeriodController::class, 'close'])
+        ->name('submission-periods.close');
 });
 
 Route::middleware(['auth', 'can:periods.manage'])->get('/submission-periods', fn () => redirect()->route('admin.submission-periods.index'));

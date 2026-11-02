@@ -13,9 +13,7 @@ use App\Models\SubmissionDate;
 use App\Models\SubmissionDateLabel;
 use App\Models\SubmissionPeriod;
 use App\Models\User;
-use App\Notifications\SubmissionPeriodClosedNotification;
 use App\States\Submission\Draft;
-use Illuminate\Support\Facades\Notification;
 
 /** @return array{0: User, 1: FormSubmission, 2: SubmissionPeriod} */
 function archiveFixture(bool $submitted = false): array
@@ -89,16 +87,6 @@ it('[SM-ARCHIVE-03] draft yang diarsipkan tidak bisa disunting', function () {
     // Statusnya masih DRAFT, jadi pemeriksaan status saja tidak cukup —
     // arsip adalah sumbu kedua yang harus ikut menutup penyuntingan.
     expect($owner->can('update', $submission->fresh()))->toBeFalse();
-});
-
-it('[SM-ARCHIVE-02] pemilik draft diberi tahu saat periode ditutup', function () {
-    Notification::fake();
-
-    [$owner, , $period] = archiveFixture();
-
-    $period->closeAndNotifyDraftOwners();
-
-    Notification::assertSentTo($owner, SubmissionPeriodClosedNotification::class);
 });
 
 it('[SM-ARCHIVE-04] periode tanpa tanggal belum terhitung lewat', function () {
