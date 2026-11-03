@@ -20,7 +20,9 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property string|null $description
  * @property int $form_type_id
  * @property bool $is_active
- * @property int $form_submissions_count
+ * @property int $field_count dimuat `withCount` FormDirectory
+ * @property int $active_submission_count dimuat `withCount` FormDirectory
+ * @property int $submission_count dimuat `withCount` FormDirectory
  */
 class Form extends Model
 {

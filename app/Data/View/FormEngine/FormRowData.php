@@ -1,0 +1,36 @@
+<?php
+
+namespace App\Data\View\FormEngine;
+
+use App\Models\Form;
+use Spatie\LaravelData\Data;
+
+/**
+ * Satu baris ADMIN-08-05. Hitungan dimuat FormDirectory lewat `withCount`, jadi
+ * membangun baris tidak menambah kueri.
+ */
+final class FormRowData extends Data
+{
+    public function __construct(
+        public int $id,
+        public string $title,
+        public string $typeName,
+        public int $fieldCount,
+        public int $activeSubmissionCount,
+        public int $submissionCount,
+        public bool $isActive,
+    ) {}
+
+    public static function fromModel(Form $form): self
+    {
+        return new self(
+            id: $form->id,
+            title: $form->title,
+            typeName: $form->formType->name ?? '',
+            fieldCount: $form->field_count,
+            activeSubmissionCount: $form->active_submission_count,
+            submissionCount: $form->submission_count,
+            isActive: $form->is_active,
+        );
+    }
+}

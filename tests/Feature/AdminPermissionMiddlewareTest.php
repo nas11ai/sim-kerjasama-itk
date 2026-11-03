@@ -15,7 +15,7 @@ test('admin routes reject users without users.manage permission', function () {
     $user = User::factory()->create();
 
     $this->actingAs($user)
-        ->get('/forms')
+        ->get('/announcements')
         ->assertForbidden();
 });
 
@@ -26,8 +26,8 @@ test('admin routes allow users with users.manage permission', function () {
     $user->givePermissionTo('users.manage');
 
     $this->actingAs($user)
-        ->get('/forms')
-        ->assertRedirect(route('admin.forms.index'));
+        ->get('/announcements')
+        ->assertRedirect(route('admin.announcements.index'));
 });
 
 test('admin routes allow Super Admin via Gate before', function () {
@@ -37,8 +37,8 @@ test('admin routes allow Super Admin via Gate before', function () {
     $user->assignRole('Super Admin');
 
     $this->actingAs($user)
-        ->get('/forms')
-        ->assertRedirect(route('admin.forms.index'));
+        ->get('/announcements')
+        ->assertRedirect(route('admin.announcements.index'));
 });
 
 test('route files have no role middleware aliases', function () {

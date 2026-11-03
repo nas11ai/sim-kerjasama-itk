@@ -3,7 +3,7 @@
 // tests/Feature/FormEngine/FormCrudTest.php
 //
 // Layar Form lewat Action beraudit (BR-RPT-09): field dan opsi hanya milik form yang
-// disunting, hapus massal semua-atau-tidak (BR-FE-19), parameter daftar dibatasi whitelist.
+// disunting, hapus ditolak bila ada pengajuan (BR-FE-19).
 
 use App\Models\FieldType;
 use App\Models\Form;
@@ -110,31 +110,6 @@ it('soft-deletes a field dropped from the payload and audits old and new (BR-FE-
         ->and($audit?->properties['new']['fields'])->not->toContain('Dibuang');
 });
 
-it('deletes nothing in a bulk delete when one form has submissions (BR-FE-19)', function () {
-    $unused = Form::factory()->create();
-    $used = FormSubmission::factory()->create()->form;
-
-    $this->actingAs($this->admin)
-        ->post(route('admin.forms.bulk-delete'), ['ids' => [$unused->id, $used->id]])
-        ->assertSessionHasErrors('ids');
-
-    expect(session('errors')->first('ids'))->toContain('Tidak ada yang dihapus', $used->title)
-        ->and(Form::query()->whereKey([$unused->id, $used->id])->count())->toBe(2)
-        ->and(formAudit($unused, 'Formulir dihapus'))->toBeNull();
-});
-
-it('bulk deletes unused forms with one audit entry each', function () {
-    $forms = Form::factory()->count(2)->create();
-
-    $this->actingAs($this->admin)
-        ->post(route('admin.forms.bulk-delete'), ['ids' => $forms->modelKeys()])
-        ->assertSessionHas('success', '2 formulir berhasil dihapus!');
-
-    expect(Form::query()->whereKey($forms->modelKeys())->count())->toBe(0)
-        ->and(formAudit($forms[0], 'Formulir dihapus'))->not->toBeNull()
-        ->and(formAudit($forms[1], 'Formulir dihapus'))->not->toBeNull();
-});
-
 it('refuses to delete a form with submissions and leaves no audit trace (BR-FE-19)', function () {
     $used = FormSubmission::factory()->create()->form;
 
@@ -142,41 +117,4 @@ it('refuses to delete a form with submissions and leaves no audit trace (BR-FE-1
 
     expect($used->fresh())->not->toBeNull()
         ->and(formAudit($used, 'Formulir dihapus'))->toBeNull();
-});
-
-it('duplicates live fields and options only, audited with its source', function () {
-    $form = Form::factory()->create();
-    $field = ($this->field)($form, 'Aktif');
-    ($this->field)($form, 'Terhapus')->delete();
-    FormFieldOption::create(['form_field_id' => $field->id, 'label' => 'Opsi Aktif']);
-    FormFieldOption::create(['form_field_id' => $field->id, 'label' => 'Opsi Terhapus'])->delete();
-
-    $this->actingAs($this->admin)->post(route('admin.forms.duplicate', $form))->assertRedirect();
-
-    $copy = Form::query()->where('title', $form->title.' (Copy)')->firstOrFail();
-
-    expect($copy->formFields()->pluck('label')->all())->toBe(['Aktif'])
-        ->and($copy->formFields()->first()?->formFieldOptions()->pluck('label')->all())->toBe(['Opsi Aktif'])
-        ->and(formAudit($copy, 'Formulir diduplikasi')?->properties['new']['source_form_id'])->toBe($form->id);
-});
-
-it('falls back to defaults for unknown list parameters instead of failing', function () {
-    Form::factory()->create();
-
-    $this->actingAs($this->admin)
-        ->get(route('admin.forms.index', ['sort_by' => 'nope', 'sort_order' => 'sideways', 'per_page' => 'x']))
-        ->assertOk()
-        ->assertInertia(fn ($page) => $page
-            ->where('filters.sort_by', 'created_at')
-            ->where('filters.sort_order', 'desc')
-            ->where('filters.per_page', 10));
-});
-
-it('sorts by form type and filters by active state', function () {
-    Form::factory()->create(['is_active' => false]);
-
-    $this->actingAs($this->admin)
-        ->get(route('admin.forms.index', ['sort_by' => 'form_type', 'is_active' => 'inactive']))
-        ->assertOk()
-        ->assertInertia(fn ($page) => $page->where('forms.total', 1));
 });

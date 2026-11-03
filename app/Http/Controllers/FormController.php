@@ -4,18 +4,13 @@ namespace App\Http\Controllers;
 
 use App\Actions\Form\CreateForm;
 use App\Actions\Form\DeleteForm;
-use App\Actions\Form\DeleteFormsInBulk;
-use App\Actions\Form\DuplicateForm;
 use App\Actions\Form\NotifyFormChange;
 use App\Actions\Form\ReviseForm;
 use App\Http\Controllers\Concerns\ResolvesActor;
-use App\Http\Requests\Form\FormBulkDeleteRequest;
 use App\Http\Requests\Form\FormDefinitionRequest;
-use App\Http\Requests\Form\FormListRequest;
 use App\Models\FieldType;
 use App\Models\Form;
 use App\Models\FormType;
-use App\Queries\Form\FormDirectory;
 use App\Support\AffectedDraftOwners;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -23,17 +18,6 @@ use Inertia\Inertia;
 class FormController extends Controller
 {
     use ResolvesActor;
-
-    public function index(FormListRequest $request)
-    {
-        $directory = FormDirectory::run($request->toInput());
-
-        return Inertia::render('Forms/IndexPage', [
-            'forms' => $directory['forms'],
-            'formTypes' => FormType::orderBy('name')->get(),
-            'filters' => $directory['filters'],
-        ]);
-    }
 
     public function create()
     {
@@ -93,22 +77,5 @@ class FormController extends Controller
 
         return redirect()->route('admin.forms.index')
             ->with('success', 'Formulir berhasil dihapus!');
-    }
-
-    public function duplicate(Request $request, Form $form)
-    {
-        DuplicateForm::run($form, $this->actor($request));
-
-        return redirect()->route('admin.forms.index')
-            ->with('success', 'Formulir berhasil diduplikasi!');
-    }
-
-    public function bulkDelete(FormBulkDeleteRequest $request)
-    {
-        // BR-FE-19 — semua atau tidak; alasannya menyebut formulir yang masih dipakai.
-        $deleted = DeleteFormsInBulk::run($request->ids(), $this->actor($request));
-
-        return redirect()->route('admin.forms.index')
-            ->with('success', "{$deleted} formulir berhasil dihapus!");
     }
 }

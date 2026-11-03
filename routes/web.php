@@ -10,6 +10,7 @@ use App\Http\Controllers\Export\DocumentPrintController;
 use App\Http\Controllers\Export\ExportController;
 use App\Http\Controllers\FormAccessControlController;
 use App\Http\Controllers\FormController;
+use App\Http\Controllers\FormEngine\FormController as FormBuilderController;
 use App\Http\Controllers\FormEngine\SubmissionPeriodController;
 use App\Http\Controllers\FormPhaseController;
 use App\Http\Controllers\Identity\InvitationController;
@@ -241,11 +242,7 @@ Route::middleware(['auth', 'can:users.manage'])->prefix('admin')->name('admin.')
         'destroy' => 'permissions.destroy',
     ]);
 
-    Route::resource('forms', FormController::class);
-    Route::post('forms/{form}/duplicate', [FormController::class, 'duplicate'])
-        ->name('forms.duplicate');
-    Route::post('forms/bulk-delete', [FormController::class, 'bulkDelete'])
-        ->name('forms.bulk-delete');
+    Route::resource('forms', FormController::class)->except('index');
 
     // Complete Form Builder Routes
     Route::get('/form-builder/create', [CompleteFormBuilderController::class, 'create'])
@@ -335,14 +332,8 @@ Route::middleware(['auth', 'can:users.manage'])->prefix('admin')->name('admin.')
 
 // For backwards compatibility, you can add redirects for admin routes without prefix
 Route::middleware(['auth', 'can:users.manage'])->group(function () {
-    Route::get('/forms', function () {
-        return redirect()->route('admin.forms.index');
-    });
     Route::get('/form-phases', function () {
         return redirect()->route('admin.form-phases.index');
-    });
-    Route::get('/form-access-controls', function () {
-        return redirect()->route('admin.form-access-controls.index');
     });
     Route::get('/announcements', function () {
         return redirect()->route('admin.announcements.index');
@@ -427,6 +418,11 @@ Route::middleware(['auth', 'can:submissions.view-all'])->prefix('admin')->name('
         ->name('submissions.index');
     Route::get('/submissions/{submission}', [OperatorSubmissionController::class, 'show'])
         ->name('submissions.show');
+});
+
+// ADMIN-08-05 — Form Builder dikelola pemegang schemes.manage (W88).
+Route::middleware(['auth', 'can:schemes.manage'])->prefix('admin')->name('admin.')->group(function () {
+    Route::get('/forms', [FormBuilderController::class, 'index'])->name('forms.index');
 });
 
 // OPERATOR-09-01 — periode dikelola pemegang periods.manage, bukan users.manage (§4.4 K1).

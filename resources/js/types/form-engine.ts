@@ -53,3 +53,28 @@ export interface PeriodIndexPageProps {
     phaseOptions: FilterOption[]
     can: { viewSubmissions: boolean }
 }
+
+// Sumber: App\Data\View\FormEngine\FormRowData.
+export interface FormRowData {
+    id: number
+    title: string
+    typeName: string
+    fieldCount: number
+    activeSubmissionCount: number
+    submissionCount: number
+    isActive: boolean
+}
+
+export type FormIndexFilters = {
+    search: string
+    type: string
+    status: string
+}
+
+// Sumber: FormEngine\FormController::index + FormDirectory.
+export interface FormIndexPageProps {
+    forms: Paginated<FormRowData>
+    filters: FormIndexFilters
+    typeOptions: FilterOption[]
+    statusOptions: FilterOption[]
+}
