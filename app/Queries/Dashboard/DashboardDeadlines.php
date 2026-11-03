@@ -73,7 +73,8 @@ class DashboardDeadlines implements ChangesNoState
             ->filter(static fn (SubmissionPeriod $period): bool => SubmissionPeriodGate::isOpen($period));
 
         foreach ($periods as $period) {
-            $closesAt = $period->submissionDates->sortBy('datetime')->last();
+            // K8d — periode berhenti menerima pengajuan baru pada Batas Submit siklus utamanya.
+            $closesAt = SubmissionPeriodGate::submitDeadline($period);
 
             if ($closesAt instanceof SubmissionDate) {
                 $deadlines[$period->id] = DeadlineData::until(

@@ -13,6 +13,7 @@
 // Delegasi diuji sebagai perilaku, bukan lewat mock: kalau controller
 // diam-diam berhenti memanggil Action-nya, test di sini memerah.
 
+use App\Enums\DeadlineType;
 use App\Models\Form;
 use App\Models\FormPhaseDetail;
 use App\Models\FormSubmission;
@@ -20,6 +21,7 @@ use App\Models\Reviewer;
 use App\Models\ReviewerFormAssignment;
 use App\Models\ReviewEvaluationForm;
 use App\Models\Scheme;
+use App\Models\SubmissionDate;
 use App\Models\SubmissionPeriod;
 use App\Models\SubmissionReviewer;
 use App\Models\User;
@@ -275,9 +277,14 @@ it('tidak pernah mengarang tenggat dari jam dinding', function () {
 
     $submission->update(['submission_period_id' => SubmissionPeriod::create(['name' => 'Periode Tanpa Tanggal'])->id]);
 
-    // Digeser menjauh dari +7 hari: factory-nya kebetulan memakai addWeek(),
-    // dan tanpa ini assertion di bawah lulus karena kebetulan, bukan karena benar.
-    $submission->formPhaseDetail->submissionDate->update(['datetime' => now()->addDays(11)->startOfSecond()]);
+    // BR-FE-26 — Batas Evaluasi detailnya, digeser menjauh dari +7 hari: tanpa itu assertion
+    // di bawah lulus karena kebetulan cocok dengan fallback seminggu, bukan karena benar.
+    $detail = $submission->formPhaseDetail;
+    $detail->update(['evaluation_date_id' => SubmissionDate::create([
+        'type' => DeadlineType::Evaluation,
+        'datetime' => now()->addDays(11)->startOfSecond(),
+        'submission_period_id' => $detail->submissionDate->submission_period_id,
+    ])->id]);
 
     $this->actingAs($operator)
         ->post(route('admin.submissions.assign-reviewers', $submission), [
@@ -286,7 +293,7 @@ it('tidak pernah mengarang tenggat dari jam dinding', function () {
         ->assertRedirect();
 
     $assignment = ReviewerFormAssignment::query()->sole();
-    $detailDate = $submission->formPhaseDetail->submissionDate->fresh()->datetime;
+    $detailDate = $detail->fresh()->evaluationDate->datetime;
 
     expect($assignment->due_date->format('Y-m-d H:i:s'))->toBe($detailDate->format('Y-m-d H:i:s'))
         ->and($assignment->due_date->format('Y-m-d H:i:s'))->not->toBe(now()->addDays(7)->format('Y-m-d H:i:s'));

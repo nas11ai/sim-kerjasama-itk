@@ -264,6 +264,12 @@ function phaseSharedByTwoPeriods(string $tag, bool $needsReview = false): array
         'datetime' => $dueA,
         'submission_period_id' => $periodA->id,
     ]);
+    // BR-FE-26 — detail yang direview memegang Batas Evaluasi dari periode yang sama.
+    $evaluationA = $needsReview ? SubmissionDate::create([
+        'type' => DeadlineType::Evaluation,
+        'datetime' => $dueA,
+        'submission_period_id' => $periodA->id,
+    ]) : null;
 
     $periodB = SubmissionPeriod::create(['name' => "Periode B {$tag}"]);
     $dueB = now()->addDays(20)->startOfSecond();
@@ -284,6 +290,7 @@ function phaseSharedByTwoPeriods(string $tag, bool $needsReview = false): array
         'phase_type_id' => $phaseType->id,
         'order' => 1,
         'submission_date_id' => $dateA->id,
+        'evaluation_date_id' => $evaluationA?->id,
         'needs_review' => $needsReview,
     ]);
 
@@ -291,11 +298,11 @@ function phaseSharedByTwoPeriods(string $tag, bool $needsReview = false): array
 }
 
 /**
- * Satu FormPhase dengan dua detail seperti docs/…/supporting/02_monev.md:
- * detail pengajuan bertenggat "Batas Submit", dan detail evaluasi bertenggat
- * "Batas Evaluasi" sendiri yang memiliki ReviewEvaluationForm-nya (BR-FE-17).
+ * Detail pengajuan ber-review seperti jalur produksi (AssertReviewedPhaseDetail): ia memegang
+ * "Batas Submit" peneliti dan "Batas Evaluasi" reviewer sendiri (BR-FE-26), dan memiliki
+ * ReviewEvaluationForm-nya. Periodenya punya tanggal lain yang lebih akhir, milik Monev I.
  *
- * @return array{form: Form, submitDetail: FormPhaseDetail, evaluationDetail: FormPhaseDetail, evaluationForm: ReviewEvaluationForm, period: SubmissionPeriod, dueSubmit: Carbon, dueEvaluation: Carbon}
+ * @return array{form: Form, submitDetail: FormPhaseDetail, evaluationForm: ReviewEvaluationForm, period: SubmissionPeriod, dueSubmit: Carbon, dueEvaluation: Carbon}
  */
 function phaseWithOwnEvaluationDeadline(string $tag): array
 {
@@ -338,26 +345,19 @@ function phaseWithOwnEvaluationDeadline(string $tag): array
         'phase_type_id' => PhaseType::create(['name' => "Tipe Pengajuan {$tag}"])->id,
         'order' => 1,
         'submission_date_id' => $submitDate->id,
+        'evaluation_date_id' => $evaluationDate->id,
         'needs_review' => true,
-    ]);
-
-    $evaluationDetail = FormPhaseDetail::create([
-        'form_phase_id' => $formPhase->id,
-        'form_access_control_id' => $accessControl->id,
-        'phase_type_id' => PhaseType::create(['name' => "Tipe Evaluasi {$tag}"])->id,
-        'order' => 2,
-        'submission_date_id' => $evaluationDate->id,
     ]);
 
     $evaluationForm = ReviewEvaluationForm::create([
         'title' => "Substansi {$tag}",
-        'form_phase_detail_id' => $evaluationDetail->id,
+        'form_phase_detail_id' => $submitDetail->id,
         'is_active' => true,
         'is_required' => true,
         'order' => 1,
     ]);
 
-    return compact('form', 'submitDetail', 'evaluationDetail', 'evaluationForm', 'period', 'dueSubmit', 'dueEvaluation');
+    return compact('form', 'submitDetail', 'evaluationForm', 'period', 'dueSubmit', 'dueEvaluation');
 }
 
 /**

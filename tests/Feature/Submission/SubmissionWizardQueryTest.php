@@ -6,6 +6,7 @@
 // ke langkah menurut tipenya, karena Form Engine tidak menyimpan langkah per field.
 
 use App\Actions\FormSubmission\StartSubmission;
+use App\Enums\DeadlineType;
 use App\Models\FieldType;
 use App\Models\Form;
 use App\Models\FormAccessControl;
@@ -221,6 +222,8 @@ it('draft periode lain tidak ditautkan', function () {
     // Pindahan dari layar legacy: fase yang dipakai dua periode memuat draft periode itu saja.
     $fx = wizardFixture();
     $other = SubmissionPeriod::factory()->create();
+    // BR-FE-01 (K8d) — periode tanpa Batas Submit belum menerima pengajuan, jadi tak ditawarkan.
+    $other->submissionDates()->create(['type' => DeadlineType::Submit, 'datetime' => now()->addMonth()]);
     wizardQueryPhaseInPeriod($fx['period']->id, $fx['phase']->id);
     wizardQueryPhaseInPeriod($other->id, $fx['phase']->id);
     $draft = StartSubmission::run($fx['form']->id, $fx['period']->id, $fx['detail'], $fx['user']);

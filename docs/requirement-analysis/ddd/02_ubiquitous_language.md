@@ -205,6 +205,7 @@ DRAFT → SUBMITTED → UNDER_REVIEW → NEEDS_REVISION → RESUBMITTED → APPR
 | Term              | Definisi                                                                                                                              |
 | ----------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
 | **Close Early**   | Operator menutup period sebelum semua SubmissionDate terlewat via flag `is_force_closed`.                                             |
+| **Dibuka**        | Period menerima pengajuan baru: Batas Submit siklus pengajuan utamanya belum lewat dan tidak `is_force_closed` (BR-FE-01). Tanggal lain yang masih di depan tidak membuatnya Dibuka. |
 | **Extend Period** | Operator memperbarui `SubmissionDate.datetime` ke tanggal baru. Submission yang sudah DRAFT tetap bisa disubmit sampai deadline baru. |
 
 ---

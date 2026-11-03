@@ -45,7 +45,7 @@ it('tidak memakai tanggal terakhir period, yang milik tahap lain', function () {
 it('tidak bergantung pada pivot submission_period_phases — ADR 0004', function () {
     // Jawabannya kini ditempuh lewat FK langsung, jadi period lain yang
     // kebetulan berbagi fase tidak bisa lagi menyeretnya.
-    $fx = phaseSharedByTwoPeriods('Uji Due Date Ambigu');
+    $fx = phaseSharedByTwoPeriods('Uji Due Date Ambigu', needsReview: true);
 
     $form = ReviewEvaluationForm::create([
         'title' => 'Substansi',

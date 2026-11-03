@@ -2,9 +2,12 @@
 
 namespace App\Support;
 
+use App\Enums\DeadlineType;
 use App\Models\FormPhaseDetail;
 use App\Models\FormSubmission;
 use App\Models\FormSubmissionOverride;
+use App\Models\SubmissionDate;
+use App\States\Submission\NeedsRevision;
 use Illuminate\Support\Carbon;
 
 /**
@@ -30,11 +33,26 @@ final class PhaseAccessGate
             return false;
         }
 
-        if ($detail->isWithinDeadline()) {
+        if ($detail->isWithinDeadline(self::typeFor($submission))) {
             return true;
         }
 
         return self::activeOverride($submission, $detail) !== null;
+    }
+
+    /**
+     * BR-FE-26 (K8c) — tenggat yang sedang menggerbangi pengisi: Batas Revisi selama
+     * NEEDS_REVISION (kembali ke Batas Submit bila detailnya tak punya), selain itu Batas
+     * Submit. Reviewer digerbangi Batas Evaluasi lewat penugasannya (EvaluationDueDate).
+     */
+    public static function deadlineFor(FormSubmission $submission, FormPhaseDetail $detail): ?SubmissionDate
+    {
+        return $detail->deadlineOf(self::typeFor($submission));
+    }
+
+    private static function typeFor(FormSubmission $submission): DeadlineType
+    {
+        return $submission->status?->equals(NeedsRevision::class) === true ? DeadlineType::Revision : DeadlineType::Submit;
     }
 
     /**
@@ -67,7 +85,7 @@ final class PhaseAccessGate
 
         return [
             'is_open' => self::isOpenFor($submission, $detail),
-            'deadline' => $detail?->submissionDate->datetime->toDateTimeString(),
+            'deadline' => $detail === null ? null : self::deadlineFor($submission, $detail)?->datetime->toDateTimeString(),
             'form_phase_detail_id' => $detail?->id,
             'override' => $latest === null ? null : [
                 'id' => $latest->id,

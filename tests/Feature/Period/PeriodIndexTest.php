@@ -2,6 +2,7 @@
 
 // OPERATOR-09-01 — kontrak daftar periode, filter, dan wewenang `periods.manage` (K1).
 
+use App\Enums\DeadlineType;
 use App\Enums\PeriodStatus;
 use App\Models\FormPhase;
 use App\Models\FormPhaseDetail;
@@ -118,6 +119,21 @@ it('filter status sama dengan displayStatus', function () {
     }
 
     expect(listedPeriodIds(['status' => 'tak-dikenal']))->toHaveCount(4);
+});
+
+it('status Dibuka mengikuti Batas Submit siklus utama, bukan tanggal mana pun (K8d)', function () {
+    // Slot 0 = Batas Submit, slot 1 = Batas Evaluasi (deadlineSlot).
+    $submitLewat = periodWithDates(['-1 day', '+1 month']);
+    $tanpaSubmit = SubmissionPeriod::factory()->create();
+    $tanpaSubmit->submissionDates()->create(['type' => DeadlineType::Evaluation, 'datetime' => now()->addMonth()]);
+    $periods = [$submitLewat, $tanpaSubmit, periodWithDates(['+1 day', '-1 day'])];
+
+    expect(array_map(fn (SubmissionPeriod $p) => SubmissionPeriodGate::displayStatus($p->fresh()), $periods))
+        ->toBe(['expired', 'no_dates', 'active']);
+
+    foreach (['expired' => $submitLewat, 'no_dates' => $tanpaSubmit] as $status => $period) {
+        expect(listedPeriodIds(['status' => $status]))->toContain($period->id);
+    }
 });
 
 it('filter tahun dan pencarian nama tidak peka huruf', function () {

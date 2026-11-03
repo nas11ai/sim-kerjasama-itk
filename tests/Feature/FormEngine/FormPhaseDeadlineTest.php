@@ -13,6 +13,7 @@ use App\Models\SubmissionDate;
 use App\Models\SubmissionPeriod;
 use App\Models\SubmissionPeriodPhase;
 use App\Models\User;
+use Illuminate\Testing\TestResponse;
 use Spatie\Permission\Models\Role;
 
 beforeEach(function () {
@@ -173,4 +174,111 @@ it('offers deadlines of periods not force-closed when editing a phase no period 
     $ids = deadlineOptionIds(route('admin.form-phases.edit', $this->phase));
 
     expect($ids)->toContain($open->id)->not->toContain($closed->id);
+});
+
+// ---------- BR-FE-26: tiga tenggat per detail ----------
+
+/**
+ * Tenggat periode baru per label tampilan (BR-FE-25).
+ *
+ * @return array<string, SubmissionDate>
+ */
+function typedDeadlines(array $labels, ?SubmissionPeriod $period = null): array
+{
+    $period ??= SubmissionPeriod::factory()->create();
+    $dates = [];
+
+    foreach ($labels as $label) {
+        $dates[$label] = SubmissionDate::create([
+            ...deadlineTypeOf($label),
+            'datetime' => now()->addWeek(),
+            'submission_period_id' => $period->id,
+        ]);
+    }
+
+    return $dates;
+}
+
+/** @return array<string, mixed> */
+function typedRow(FormPhaseDetail $detail, bool $needsReview, ?SubmissionDate $submit, ?SubmissionDate $evaluation = null, ?SubmissionDate $revision = null): array
+{
+    return [
+        ...deadlineRow($detail, $submit?->id, withId: false),
+        'needs_review' => $needsReview,
+        'evaluation_date_id' => $evaluation?->id,
+        'revision_date_id' => $revision?->id,
+    ];
+}
+
+function storeTypedPhase(array $row): TestResponse
+{
+    return test()->actingAs(test()->admin)->post(route('admin.form-phases.store'), deadlinePayload([$row]));
+}
+
+it('saves the three deadlines of a reviewed detail (BR-FE-26)', function () {
+    $d = typedDeadlines(['Batas Submit', 'Batas Evaluasi', 'Batas Revisi']);
+
+    storeTypedPhase(typedRow($this->detail, true, $d['Batas Submit'], $d['Batas Evaluasi'], $d['Batas Revisi']))
+        ->assertSessionHasNoErrors();
+
+    $saved = FormPhase::query()->where('title', 'Tahap Tenggat')->sole()->formPhaseDetails()->sole();
+    expect($saved->submission_date_id)->toBe($d['Batas Submit']->id)
+        ->and($saved->evaluation_date_id)->toBe($d['Batas Evaluasi']->id)
+        ->and($saved->revision_date_id)->toBe($d['Batas Revisi']->id);
+});
+
+it('[FE-WINDOW-08] rejects a reviewed detail without Batas Evaluasi', function () {
+    $d = typedDeadlines(['Batas Submit']);
+
+    storeTypedPhase(typedRow($this->detail, true, $d['Batas Submit']))
+        ->assertSessionHasErrors('phase_details.0.evaluation_date_id');
+
+    expect(FormPhase::query()->where('title', 'Tahap Tenggat')->exists())->toBeFalse();
+});
+
+it('[FE-WINDOW-09] rejects a Batas Submit used as the Batas Evaluasi', function () {
+    $d = typedDeadlines(['Batas Submit']);
+
+    storeTypedPhase(typedRow($this->detail, true, $d['Batas Submit'], $d['Batas Submit']))
+        ->assertSessionHasErrors('phase_details.0.evaluation_date_id');
+});
+
+it('[FE-WINDOW-09] rejects a Batas Evaluasi used as the Batas Submit', function () {
+    $d = typedDeadlines(['Batas Evaluasi']);
+
+    storeTypedPhase(typedRow($this->detail, false, $d['Batas Evaluasi']))
+        ->assertSessionHasErrors('phase_details.0.submission_date_id');
+});
+
+it('rejects a revision deadline of another type (BR-FE-26)', function () {
+    $d = typedDeadlines(['Batas Submit', 'Batas Evaluasi']);
+
+    storeTypedPhase(typedRow($this->detail, false, $d['Batas Submit'], revision: $d['Batas Evaluasi']))
+        ->assertSessionHasErrors('phase_details.0.revision_date_id');
+});
+
+it('[FE-WINDOW-11] rejects a Monev I detail using the main-cycle Batas Evaluasi', function () {
+    $d = typedDeadlines(['Batas Laporan Monev I', 'Batas Evaluasi', 'Batas Evaluasi Monev I']);
+
+    storeTypedPhase(typedRow($this->detail, true, $d['Batas Laporan Monev I'], $d['Batas Evaluasi']))
+        ->assertSessionHasErrors('phase_details.0.evaluation_date_id');
+
+    storeTypedPhase(typedRow($this->detail, true, $d['Batas Laporan Monev I'], $d['Batas Evaluasi Monev I']))
+        ->assertSessionHasNoErrors();
+});
+
+it('rejects deadlines of two different periods on one detail (BR-FE-26)', function () {
+    $submit = typedDeadlines(['Batas Submit'])['Batas Submit'];
+    $evaluation = typedDeadlines(['Batas Evaluasi'])['Batas Evaluasi'];
+
+    storeTypedPhase(typedRow($this->detail, true, $submit, $evaluation))
+        ->assertSessionHasErrors('phase_details.0.evaluation_date_id');
+});
+
+it('offers each deadline with its type and cycle so the screen can filter them', function () {
+    $d = typedDeadlines(['Batas Evaluasi Monev I']);
+
+    $this->actingAs($this->admin)->get(route('admin.form-phases.create'))->assertInertia(fn ($page) => $page
+        ->where('submissionDates', fn ($options) => collect($options)->contains(fn ($o) => $o['id'] === $d['Batas Evaluasi Monev I']->id
+            && $o['type'] === 'evaluation' && $o['cycle'] === 1)));
 });

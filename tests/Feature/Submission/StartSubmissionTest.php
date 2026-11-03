@@ -142,3 +142,27 @@ it('[FE-ACCESS-08] batas yang sebagian masih di depan menjaga periode tetap terb
 
     expect($submission->status)->toBeInstanceOf(Draft::class);
 });
+
+it('[FE-ACCESS-09] pengajuan baru ditolak setelah Batas Submit meski Batas Evaluasi masih di depan', function () {
+    $fx = wizardFixture();
+
+    // BR-FE-01 (K8d) — yang membuka periode bagi pengajuan baru hanya Batas Submit siklus
+    // utamanya; tanggal lain di depan milik tahap sesudah submit (E1b, temuan 4).
+    $fx['period']->submissionDates()->update(['datetime' => now()->subDay()]);
+    SubmissionDate::create([
+        'type' => DeadlineType::Evaluation,
+        'datetime' => now()->addMonth(),
+        'submission_period_id' => $fx['period']->id,
+    ]);
+
+    expect(fn () => StartSubmission::run($fx['form']->id, $fx['period']->id, $fx['detail'], $fx['user']))
+        ->toThrow(HttpException::class, 'Periode pengajuan sudah berakhir.');
+});
+
+it('[FE-ACCESS-09] periode tanpa Batas Submit belum menerima pengajuan', function () {
+    $fx = wizardFixture();
+    $fx['period']->submissionDates()->update(['type' => DeadlineType::Evaluation]);
+
+    expect(fn () => StartSubmission::run($fx['form']->id, $fx['period']->id, $fx['detail'], $fx['user']))
+        ->toThrow(HttpException::class);
+});

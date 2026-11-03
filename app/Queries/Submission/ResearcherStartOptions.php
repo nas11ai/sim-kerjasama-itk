@@ -48,7 +48,7 @@ class ResearcherStartOptions implements ChangesNoState
                 $options[] = new StartPeriodOptionData(
                     id: $period->id,
                     name: $period->name,
-                    closesAt: $period->submissionDates->sortBy('datetime')->last()?->datetime?->toISOString(),
+                    closesAt: SubmissionPeriodGate::submitDeadline($period)?->datetime->toISOString(),
                     forms: $forms,
                 );
             }

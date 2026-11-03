@@ -6,12 +6,14 @@
 // menghapus semua detail lewat query massal lalu membuat ulang: form evaluasi ikut
 // ter-cascade, pengajuan kehilangan tahapnya, dan tautan tenggatnya hilang.
 
+use App\Enums\DeadlineType;
 use App\Models\FormAccessControl;
 use App\Models\FormPhase;
 use App\Models\FormPhaseDetail;
 use App\Models\FormSubmission;
 use App\Models\PhaseType;
 use App\Models\ReviewEvaluationForm;
+use App\Models\SubmissionDate;
 use App\Models\User;
 use App\Support\Audit\AuditTrail;
 use Illuminate\Testing\TestResponse;
@@ -30,6 +32,16 @@ beforeEach(function () {
         'order' => 2,
     ]);
 });
+
+/** BR-FE-26 — Batas Evaluasi di periode Batas Submit detail itu, untuk baris yang direview. */
+function revisionEvaluationDate(FormPhaseDetail $detail): int
+{
+    return SubmissionDate::create([
+        'type' => DeadlineType::Evaluation,
+        'datetime' => now()->addMonth(),
+        'submission_period_id' => $detail->submissionDate->submission_period_id,
+    ])->id;
+}
 
 /** @return array<string, mixed> */
 function revisionRow(FormPhaseDetail $detail): array
@@ -115,6 +127,7 @@ it('deletes an unused dropped detail and creates a detail sent without id', func
         'needs_review' => true,
         // BR-FE-07 — detail baru wajib membawa tenggatnya sendiri.
         'submission_date_id' => $this->dropped->submission_date_id,
+        'evaluation_date_id' => revisionEvaluationDate($this->dropped),
         'temp_id' => 'temp_new',
     ];
 
@@ -246,7 +259,7 @@ it('saves a new order and needs_review on a detail used by a submission (BR-FE-2
 
     reviseFormPhase(revisionPayload([
         revisionRow($this->dropped),
-        array_merge(revisionRow($this->kept), ['needs_review' => true]),
+        array_merge(revisionRow($this->kept), ['needs_review' => true, 'evaluation_date_id' => revisionEvaluationDate($this->kept)]),
     ]))->assertSessionHasNoErrors();
 
     $kept = $this->kept->fresh();

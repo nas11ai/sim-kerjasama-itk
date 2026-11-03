@@ -4,6 +4,8 @@ import { route } from 'ziggy-js'
 import { computed } from 'vue'
 import { Head, useForm } from '@inertiajs/vue3'
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue'
+import PhaseDeadlineSelect from '@/Components/FormEngine/PhaseDeadlineSelect.vue'
+import type { SubmissionDateOption } from '@/types/form-engine'
 import { Button } from '@/Components/ui/button'
 import { Input } from '@/Components/ui/input'
 import { Label } from '@/Components/ui/label'
@@ -55,17 +57,14 @@ interface FormAccessControl {
     study_program: StudyProgram
 }
 
-interface SubmissionDateOption {
-    id: number
-    label: string
-}
-
 interface PhaseDetail {
     form_access_control_id: number | null
     phase_type_id: number | null
     order: number
     needs_review: boolean
     submission_date_id: number | null
+    evaluation_date_id: number | null
+    revision_date_id: number | null
     temp_id: string
 }
 
@@ -107,6 +106,8 @@ const addPhaseDetail = () => {
         order: form.phase_details.length + 1,
         needs_review: false,
         submission_date_id: null,
+        evaluation_date_id: null,
+        revision_date_id: null,
         temp_id: generateTempId(),
     })
 }
@@ -343,40 +344,44 @@ const submit = () => {
                                                         </div>
                                                     </div>
 
-                                                    <!-- Submission Date (deadline, BR-FE-07) -->
-                                                    <div class="space-y-2">
-                                                        <Label>Tenggat *</Label>
-                                                        <Select v-model="detail.submission_date_id">
-                                                            <SelectTrigger>
-                                                                <SelectValue
-                                                                    placeholder="Pilih tenggat"
-                                                                />
-                                                            </SelectTrigger>
-                                                            <SelectContent>
-                                                                <SelectItem
-                                                                    v-for="date in props.submissionDates"
-                                                                    :key="date.id"
-                                                                    :value="date.id"
-                                                                >
-                                                                    {{ date.label }}
-                                                                </SelectItem>
-                                                            </SelectContent>
-                                                        </Select>
-                                                        <p
-                                                            v-if="
-                                                                errors[
-                                                                    `phase_details.${index}.submission_date_id`
-                                                                ]
-                                                            "
-                                                            class="text-sm text-destructive"
-                                                        >
-                                                            {{
-                                                                errors[
-                                                                    `phase_details.${index}.submission_date_id`
-                                                                ]
-                                                            }}
-                                                        </p>
-                                                    </div>
+                                                    <!-- Tenggat per aktor (BR-FE-07, BR-FE-26) -->
+                                                    <PhaseDeadlineSelect
+                                                        v-model="detail.submission_date_id"
+                                                        :options="props.submissionDates"
+                                                        type="submit"
+                                                        label="Batas Submit *"
+                                                        :error="
+                                                            errors[
+                                                                `phase_details.${index}.submission_date_id`
+                                                            ]
+                                                        "
+                                                    />
+                                                    <PhaseDeadlineSelect
+                                                        v-model="detail.evaluation_date_id"
+                                                        :options="props.submissionDates"
+                                                        type="evaluation"
+                                                        :label="
+                                                            detail.needs_review
+                                                                ? 'Batas Evaluasi *'
+                                                                : 'Batas Evaluasi'
+                                                        "
+                                                        :error="
+                                                            errors[
+                                                                `phase_details.${index}.evaluation_date_id`
+                                                            ]
+                                                        "
+                                                    />
+                                                    <PhaseDeadlineSelect
+                                                        v-model="detail.revision_date_id"
+                                                        :options="props.submissionDates"
+                                                        type="revision"
+                                                        label="Batas Revisi"
+                                                        :error="
+                                                            errors[
+                                                                `phase_details.${index}.revision_date_id`
+                                                            ]
+                                                        "
+                                                    />
 
                                                     <!-- Needs Review switch -->
                                                     <div class="flex items-center space-x-2">

@@ -313,9 +313,9 @@ class FormSubmission extends Model
     }
 
     /**
-     * BR-SM-13 — draft terarsip kalau periodenya sudah tertutup. Predikat
-     * "periode tertutup" dipinjam dari SubmissionPeriodGate (BR-FE-01) supaya
-     * hanya ada satu salinan yang ingat `is_force_closed`.
+     * BR-SM-13 — draft terarsip kalau periodenya tak lagi menampung kerja apa pun.
+     * Predikatnya dipinjam dari SubmissionPeriodGate supaya hanya ada satu salinan
+     * yang ingat `is_force_closed`.
      */
     public function resolveIsArchived(): bool
     {
@@ -323,7 +323,7 @@ class FormSubmission extends Model
             return false;
         }
 
-        return SubmissionPeriodGate::isClosed($this->submissionPeriod);
+        return SubmissionPeriodGate::isFullyClosed($this->submissionPeriod);
     }
 
     public function getIsArchivedAttribute(): bool

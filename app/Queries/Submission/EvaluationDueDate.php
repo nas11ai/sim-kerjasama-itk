@@ -8,9 +8,9 @@ use DateTime;
 use Lorisleiva\Actions\Concerns\AsAction;
 
 /**
- * BR-FE-17 — tenggat evaluasi milik FormPhaseDetail yang memiliki form ini,
- * bukan batas submit peneliti dan bukan tanggal terakhir period. Ditempuh
- * lewat FK, jadi pivot submission_period_phases tak bisa menyeretnya (ADR 0004).
+ * BR-FE-17 + BR-FE-26 — tenggat evaluasi = Batas Evaluasi FormPhaseDetail yang memiliki form
+ * ini, bukan Batas Submit peneliti dan bukan tanggal terakhir period. Ditempuh lewat FK, jadi
+ * pivot submission_period_phases tak bisa menyeretnya (ADR 0004).
  *
  * @method static DateTime|null run(ReviewEvaluationForm $form)
  */
@@ -20,6 +20,6 @@ class EvaluationDueDate implements ChangesNoState
 
     public function handle(ReviewEvaluationForm $form): ?DateTime
     {
-        return $form->formPhaseDetail?->submissionDate?->datetime;
+        return $form->formPhaseDetail?->evaluationDate?->datetime;
     }
 }

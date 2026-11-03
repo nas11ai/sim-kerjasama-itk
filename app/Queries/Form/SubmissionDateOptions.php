@@ -8,17 +8,17 @@ use App\Models\SubmissionDate;
 use Lorisleiva\Actions\Concerns\AsAction;
 
 /**
- * BR-FE-07 — pilihan tenggat untuk satu detail tahap formulir, berlabel
- * "Periode — Label — tanggal" supaya Admin tahu tenggat milik periode mana. Hanya tenggat
- * yang boleh dipilih menurut BR-FE-17 (`SubmissionDate::selectableFor`).
+ * BR-FE-07 — pilihan tenggat detail tahap, berlabel "Periode — Label — tanggal", hanya yang
+ * boleh dipilih menurut BR-FE-17 (`selectableFor`). Jenis dan siklusnya ikut dikirim supaya
+ * layar menawarkan tiap tenggat hanya di kolom jenisnya (BR-FE-26).
  *
- * @method static list<array{id: int, label: string}> run(?FormPhase $phase = null)
+ * @method static list<array{id: int, type: string, cycle: int|null, label: string}> run(?FormPhase $phase = null)
  */
 class SubmissionDateOptions implements ChangesNoState
 {
     use AsAction;
 
-    /** @return list<array{id: int, label: string}> */
+    /** @return list<array{id: int, type: string, cycle: int|null, label: string}> */
     public function handle(?FormPhase $phase = null): array
     {
         $options = [];
@@ -32,6 +32,8 @@ class SubmissionDateOptions implements ChangesNoState
         foreach ($dates as $date) {
             $options[] = [
                 'id' => $date->id,
+                'type' => $date->type->value,
+                'cycle' => $date->cycle,
                 'label' => implode(' — ', [
                     $date->submissionPeriod->name ?? '',
                     $date->label(),

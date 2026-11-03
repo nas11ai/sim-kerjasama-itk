@@ -32,6 +32,9 @@ class FormPhaseRequest extends FormRequest
                 ? 'required'
                 : 'nullable|required_without:phase_details.*.id')
                 .'|integer|exists:submission_dates,id',
+            // BR-FE-26 — jenis, periode, dan siklusnya diperiksa AssertPhaseDeadlines.
+            'phase_details.*.evaluation_date_id' => 'nullable|integer|exists:submission_dates,id',
+            'phase_details.*.revision_date_id' => 'nullable|integer|exists:submission_dates,id',
         ];
     }
 
@@ -58,9 +61,9 @@ class FormPhaseRequest extends FormRequest
                 formAccessControlId: $this->integer("phase_details.{$index}.form_access_control_id"),
                 phaseTypeId: $this->integer("phase_details.{$index}.phase_type_id"),
                 needsReview: $this->boolean("phase_details.{$index}.needs_review"),
-                submissionDateId: filter_var(
-                    $row['submission_date_id'] ?? null, FILTER_VALIDATE_INT, FILTER_NULL_ON_FAILURE,
-                ),
+                submissionDateId: filter_var($row['submission_date_id'] ?? null, FILTER_VALIDATE_INT, FILTER_NULL_ON_FAILURE),
+                evaluationDateId: filter_var($row['evaluation_date_id'] ?? null, FILTER_VALIDATE_INT, FILTER_NULL_ON_FAILURE),
+                revisionDateId: filter_var($row['revision_date_id'] ?? null, FILTER_VALIDATE_INT, FILTER_NULL_ON_FAILURE),
             );
         }
 

@@ -33,7 +33,7 @@ class CloseSubmissionPeriod
     {
         // W68 — periode yang sudah tertutup (ditutup Operator atau tenggatnya habis) tidak
         // ditutup lagi: tanpa penjaga ini pemilik draft menerima pemberitahuan kedua.
-        if (SubmissionPeriodGate::isClosed($period)) {
+        if (SubmissionPeriodGate::isFullyClosed($period)) {
             throw ValidationException::withMessages(['period' => 'Periode ini sudah tertutup.']);
         }
 

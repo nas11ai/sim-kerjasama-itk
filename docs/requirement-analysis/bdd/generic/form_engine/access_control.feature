@@ -60,3 +60,10 @@ Feature: Akses Form — Permission dan Organisasi
     And periode berjalan aktif dan belum force closed
     When "Budi" memulai pengajuan baru pada "Pengajuan Penelitian"
     Then submission DRAFT terbentuk pada langkah 1
+
+  @BR-FE-01 @M0 @denial
+  Scenario: [FE-ACCESS-09] Pengajuan baru ditolak setelah Batas Submit meski Batas Evaluasi masih di depan
+    Given "Budi" berorganisasi "FTI" dan punya permission "submissions.create"
+    And periode berjalan punya "Batas Submit" yang sudah lewat dan "Batas Evaluasi" yang belum lewat
+    When "Budi" memulai pengajuan baru pada "Pengajuan Penelitian"
+    Then pembuatan ditolak karena periode sudah berakhir

@@ -95,13 +95,14 @@ class SubmissionPeriodList implements ChangesNoState
             return;
         }
 
-        $upcoming = fn (Builder $d) => $d->where('datetime', '>', now());
+        // K8d — status dibaca dari Batas Submit siklus utama, sama dengan SubmissionPeriodGate.
+        $submit = static fn (Builder $d): Builder => $d->where('type', DeadlineType::Submit->value)->whereNull('cycle');
         $query->where('is_force_closed', false);
 
         match ($status) {
-            PeriodStatus::NoDates => $query->doesntHave('submissionDates'),
-            PeriodStatus::Active => $query->whereHas('submissionDates', $upcoming),
-            default => $query->has('submissionDates')->whereDoesntHave('submissionDates', $upcoming),
+            PeriodStatus::NoDates => $query->whereDoesntHave('submissionDates', $submit),
+            PeriodStatus::Active => $query->whereHas('submissionDates', fn (Builder $d) => $submit($d)->where('datetime', '>', now())),
+            default => $query->whereHas('submissionDates', fn (Builder $d) => $submit($d)->where('datetime', '<=', now())),
         };
     }
 

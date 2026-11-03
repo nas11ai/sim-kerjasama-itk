@@ -1,6 +1,17 @@
 import type { Paginated } from '@/types/pagination'
 import type { FilterOption } from '@/types/submission-page'
 
+// Sumber: App\Enums\DeadlineType (BR-FE-25).
+export type DeadlineTypeValue = 'submit' | 'evaluation' | 'revision'
+
+// Sumber: App\Queries\Form\SubmissionDateOptions.
+export interface SubmissionDateOption {
+    id: number
+    type: DeadlineTypeValue
+    cycle: number | null
+    label: string
+}
+
 // Sumber: App\Data\View\FormEngine\PeriodDateData.
 export interface PeriodDateData {
     id: number

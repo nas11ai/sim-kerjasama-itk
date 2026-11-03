@@ -106,3 +106,18 @@ it('[SM-ARCHIVE-04] periode tanpa tanggal belum terhitung lewat', function () {
     expect($submission->fresh()->is_archived)->toBeFalse()
         ->and($owner->can('update', $submission->fresh()))->toBeTrue();
 });
+
+it('[SM-ARCHIVE-04] draft tidak terarsip selama Batas Revisi periodenya masih di depan', function () {
+    [, $submission, $period] = archiveFixture();
+
+    // BR-SM-13 tetap "seluruh tanggal lewat", bukan Batas Submit (K8d): pengajuan yang sedang
+    // direvisi tidak boleh beku sebelum Batas Revisi.
+    $period->submissionDates()->update(['datetime' => now()->subDay()]);
+    SubmissionDate::create([
+        'type' => DeadlineType::Revision,
+        'submission_period_id' => $period->id,
+        'datetime' => now()->addWeek(),
+    ]);
+
+    expect($submission->fresh()->is_archived)->toBeFalse();
+});

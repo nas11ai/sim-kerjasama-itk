@@ -6,6 +6,7 @@
 // penugasannya masih berlaku yang boleh menjawab — admin cuma membaca — dan jawabannya
 // hanya untuk field milik form itu sendiri.
 
+use App\Enums\DeadlineType;
 use App\Models\FieldType;
 use App\Models\FormPhaseDetail;
 use App\Models\FormSubmission;
@@ -96,10 +97,11 @@ function evalResponseAudit(Model $subject, string $description): bool
         ->exists();
 }
 
-it('lets the active reviewer start an evaluation form, due on the latest date of the submission period', function () {
-    foreach ([now()->addDays(3), now()->addDays(20)] as $i => $datetime) {
-        SubmissionDate::create([...deadlineSlot($i + 1), 'datetime' => $datetime, 'submission_period_id' => $this->period->id]);
-    }
+it('lets the active reviewer start an evaluation form, due on the Batas Evaluasi of its detail (BR-FE-26)', function () {
+    // Tanggal terakhir periode (+30, Batas Revisi) milik tahap lain; reviewer memakai Batas Evaluasi.
+    $evaluation = SubmissionDate::create(['type' => DeadlineType::Evaluation, 'datetime' => now()->addDays(20), 'submission_period_id' => $this->period->id]);
+    SubmissionDate::create(['type' => DeadlineType::Revision, 'datetime' => now()->addDays(30), 'submission_period_id' => $this->period->id]);
+    $this->submission->formPhaseDetail->update(['evaluation_date_id' => $evaluation->id]);
 
     $this->actingAs($this->reviewerUser)
         ->post(route('reviewer.evaluation-form.start'), [

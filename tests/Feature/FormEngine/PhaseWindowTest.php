@@ -2,89 +2,135 @@
 
 // tests/Feature/FormEngine/PhaseWindowTest.php
 //
-// BR-FE-17 — deadline sebuah FormPhaseDetail mengikat **aktor detail itu
-// sendiri**, bukan seluruh alur.
+// BR-FE-17 + BR-FE-26 — deadline sebuah FormPhaseDetail mengikat **aktor detail itu
+// sendiri**, bukan seluruh alur. Detail yang direview memegang tiga tenggat: Batas Submit
+// (pengisi), Batas Evaluasi (reviewer form evaluasi yang melekat padanya), dan Batas Revisi
+// (pengisi saat NEEDS_REVISION).
 //
-// Ditemukan saat audit tiga sumbu (ADR 0014): contoh lifecycle memberi
-// detail Pengajuan dan detail Evaluasi tanggal yang sama, "Batas Submit".
-// Akibatnya reviewer tidak punya waktu kerja sama sekali, dan revisi
-// mustahil karena detail researcher-nya sudah terkunci begitu status
-// NEEDS_REVISION tercapai.
+// Fixture lama memasang form evaluasi ke detail evaluasi terpisah — bentuk yang ditolak jalur
+// produksi (AssertReviewedPhaseDetail). Akibatnya test lolos sementara produksi memakai Batas
+// Submit peneliti sebagai tenggat reviewer (E1b, temuan 2). Di sini form evaluasi melekat pada
+// detail ber-`needs_review`, sama seperti produksi.
 
+use App\Actions\FormSubmission\StartSubmission;
+use App\Actions\Review\AssignEvaluationForm;
 use App\Enums\DeadlineType;
 use App\Models\FormPhase;
 use App\Models\FormPhaseDetail;
+use App\Models\FormSubmission;
+use App\Models\Reviewer;
+use App\Models\ReviewerFormAssignment;
+use App\Models\ReviewEvaluationForm;
 use App\Models\SubmissionDate;
 use App\Models\SubmissionPeriod;
+use App\Models\SubmissionReviewer;
+use App\Models\User;
+use App\Queries\Submission\EvaluationDueDate;
+use App\States\Submission\Draft;
+use App\States\Submission\NeedsRevision;
+use App\States\Submission\UnderReview;
+use App\Support\PhaseAccessGate;
+use Spatie\Permission\Models\Permission;
 
-function detailWithDeadline(SubmissionPeriod $period, FormPhase $phase, string $label, string $when, int $order): FormPhaseDetail
+function windowDate(SubmissionPeriod $period, string $label, string $when): SubmissionDate
 {
-    $date = SubmissionDate::create([
+    return SubmissionDate::create([
         ...deadlineTypeOf($label),
         'submission_period_id' => $period->id,
         'datetime' => $when,
     ]);
-
-    return FormPhaseDetail::factory()->create([
-        'form_phase_id' => $phase->id,
-        'submission_date_id' => $date->id,
-        'order' => $order,
-        'needs_review' => $order === 2,
-    ]);
 }
 
-/** @return array{0: SubmissionPeriod, 1: FormPhase} */
-function windowFixture(): array
+/**
+ * Detail pengajuan ber-review dengan Batas Submit dan Batas Evaluasi periodenya, form evaluasi
+ * yang melekat padanya, dan reviewer aktif yang ditugaskan lewat jalur produksi.
+ *
+ * @return array{detail: FormPhaseDetail, period: SubmissionPeriod, reviewer: User, assignment: ReviewerFormAssignment}
+ */
+function reviewedWindow(string $submitWhen, string $evaluationWhen): array
 {
     $period = SubmissionPeriod::factory()->create(['is_force_closed' => false]);
-    // form_phases tidak punya submission_period_id — periodenya menempel
-    // pada SubmissionDate tiap detail, bukan pada fasenya.
-    $phase = FormPhase::create([
-        'title' => 'Fase Uji Jendela '.fake()->unique()->numerify('####'),
-        'is_active' => true,
+    $detail = FormPhaseDetail::factory()->create([
+        'needs_review' => true,
+        'submission_date_id' => windowDate($period, 'Batas Submit', $submitWhen)->id,
+        'evaluation_date_id' => windowDate($period, 'Batas Evaluasi', $evaluationWhen)->id,
+    ]);
+    $form = ReviewEvaluationForm::create([
+        'title' => 'Form Substansi', 'form_phase_detail_id' => $detail->id,
+        'is_active' => true, 'is_required' => true, 'order' => 1,
+    ]);
+    $submission = FormSubmission::factory()->create([
+        'form_phase_detail_id' => $detail->id,
+        'submission_period_id' => $period->id,
+        'status' => UnderReview::class,
+        'is_submitted' => true,
+    ]);
+    $reviewer = User::factory()->create()->givePermissionTo(Permission::findOrCreate('reviewers.evaluate', 'web'));
+    $seat = SubmissionReviewer::create([
+        'form_submission_id' => $submission->id,
+        'reviewer_id' => Reviewer::factory()->create(['user_id' => $reviewer->id])->id,
+        'evaluation_status' => 'pending',
+        'status' => 'active',
     ]);
 
-    return [$period, $phase];
+    // Jalur AssignReviewers: tenggat penugasan dihitung EvaluationDueDate per form.
+    AssignEvaluationForm::run($seat, $form->id, true, EvaluationDueDate::run($form));
+
+    return [
+        'detail' => $detail,
+        'period' => $period,
+        'reviewer' => $reviewer,
+        'assignment' => ReviewerFormAssignment::query()->where('submission_reviewer_id', $seat->id)->sole(),
+    ];
 }
 
 it('[FE-WINDOW-01] evaluasi tetap terbuka setelah batas submit lewat', function () {
-    [$period, $phase] = windowFixture();
+    $fx = reviewedWindow(now()->subDay()->toDateTimeString(), now()->addWeek()->toDateTimeString());
 
-    $pengajuan = detailWithDeadline($period, $phase, 'Batas Submit', now()->subDay()->toDateTimeString(), 1);
-    $evaluasi = detailWithDeadline($period, $phase, 'Batas Evaluasi', now()->addWeek()->toDateTimeString(), 2);
-
-    // Tenggat researcher sudah lewat, tapi reviewer punya jendelanya sendiri.
-    expect($pengajuan->isWithinDeadline())->toBeFalse()
-        ->and($evaluasi->isWithinDeadline())->toBeTrue();
+    // Tenggat peneliti sudah lewat, tapi reviewer punya jendelanya sendiri.
+    expect($fx['detail']->isWithinDeadline())->toBeFalse()
+        ->and($fx['detail']->isWithinDeadline(DeadlineType::Evaluation))->toBeTrue()
+        ->and($fx['assignment']->due_date->equalTo($fx['detail']->evaluationDate->datetime))->toBeTrue()
+        ->and($fx['reviewer']->can('evaluate', $fx['assignment']))->toBeTrue();
 });
 
 it('[FE-WINDOW-02] evaluasi ditolak setelah batas evaluasinya sendiri lewat', function () {
-    [$period, $phase] = windowFixture();
+    $fx = reviewedWindow(now()->subWeek()->toDateTimeString(), now()->subDay()->toDateTimeString());
 
-    $evaluasi = detailWithDeadline($period, $phase, 'Batas Evaluasi', now()->subDay()->toDateTimeString(), 2);
-
-    expect($evaluasi->isWithinDeadline())->toBeFalse();
+    expect($fx['detail']->isWithinDeadline(DeadlineType::Evaluation))->toBeFalse()
+        ->and($fx['reviewer']->can('evaluate', $fx['assignment']))->toBeFalse();
 });
 
 it('[FE-WINDOW-03] revisi punya jendelanya sendiri', function () {
-    [$period, $phase] = windowFixture();
+    $period = SubmissionPeriod::factory()->create();
+    $detail = FormPhaseDetail::factory()->create([
+        'submission_date_id' => windowDate($period, 'Batas Submit', now()->subDay()->toDateTimeString())->id,
+        'revision_date_id' => windowDate($period, 'Batas Revisi', now()->addWeek()->toDateTimeString())->id,
+    ]);
+    $revisi = FormSubmission::factory()->create(['form_phase_detail_id' => $detail->id, 'status' => NeedsRevision::class]);
+    $draft = FormSubmission::factory()->create(['form_phase_detail_id' => $detail->id, 'status' => Draft::class]);
 
-    detailWithDeadline($period, $phase, 'Batas Submit', now()->subDay()->toDateTimeString(), 1);
-    $revisi = detailWithDeadline($period, $phase, 'Batas Revisi', now()->addWeek()->toDateTimeString(), 3);
+    // Tanpa jendela terpisah, janji BR-BUD-03 — anggaran tetap bisa disunting saat
+    // NEEDS_REVISION — bergantung pada Batas Submit (E1b, temuan 3).
+    expect(PhaseAccessGate::isOpenFor($revisi, $detail))->toBeTrue()
+        ->and(PhaseAccessGate::isOpenFor($draft, $detail))->toBeFalse()
+        ->and(PhaseAccessGate::deadlineFor($revisi, $detail)?->type)->toBe(DeadlineType::Revision);
+});
 
-    // Tanpa jendela terpisah, janji BR-BUD-03 — anggaran tetap bisa disunting
-    // saat NEEDS_REVISION — tidak bisa ditepati.
-    expect($revisi->isWithinDeadline())->toBeTrue();
+it('[FE-WINDOW-03] tanpa Batas Revisi, revisi kembali memakai Batas Submit', function () {
+    $period = SubmissionPeriod::factory()->create();
+    $detail = FormPhaseDetail::factory()->create([
+        'submission_date_id' => windowDate($period, 'Batas Submit', now()->addWeek()->toDateTimeString())->id,
+    ]);
+    $revisi = FormSubmission::factory()->create(['form_phase_detail_id' => $detail->id, 'status' => NeedsRevision::class]);
+
+    expect(PhaseAccessGate::deadlineFor($revisi, $detail)?->id)->toBe($detail->submission_date_id)
+        ->and(PhaseAccessGate::isOpenFor($revisi, $detail))->toBeTrue();
 });
 
 it('[FE-WINDOW-04] dua detail beraktor sama boleh berbagi satu tanggal', function () {
-    [$period, $phase] = windowFixture();
-
-    $date = SubmissionDate::create([
-        'type' => DeadlineType::Submit,
-        'submission_period_id' => $period->id,
-        'datetime' => now()->addWeek(),
-    ]);
+    $phase = FormPhase::create(['title' => 'Fase Uji Jendela', 'is_active' => true]);
+    $date = windowDate(SubmissionPeriod::factory()->create(), 'Batas Submit', now()->addWeek()->toDateTimeString());
 
     // Yang dilarang berbagi tanggal adalah detail dengan aktor **berbeda**.
     // Dua tahap researcher berurutan wajar memakai batas yang sama.
@@ -103,14 +149,37 @@ it('[FE-WINDOW-04] dua detail beraktor sama boleh berbagi satu tanggal', functio
 });
 
 it('[FE-WINDOW-02] periode yang ditutup paksa menutup semua jendela', function () {
-    [$period, $phase] = windowFixture();
+    $fx = reviewedWindow(now()->addDay()->toDateTimeString(), now()->addWeek()->toDateTimeString());
 
-    $evaluasi = detailWithDeadline($period, $phase, 'Batas Evaluasi', now()->addWeek()->toDateTimeString(), 2);
+    $fx['period']->update(['is_force_closed' => true]);
 
-    $period->update(['is_force_closed' => true]);
+    // Force close mengalahkan tanggal per detail — sumbu yang berbeda (BR-SCH-07).
+    expect($fx['detail']->fresh()->isWithinDeadline())->toBeFalse()
+        ->and($fx['detail']->fresh()->isWithinDeadline(DeadlineType::Evaluation))->toBeFalse();
+});
 
-    // Force close mengalahkan tanggal per detail — sumbu yang berbeda.
-    expect($evaluasi->fresh()->isWithinDeadline())->toBeFalse();
+it('[FE-WINDOW-10] revisi digerbangi Batas Revisi, bukan Batas Submit', function () {
+    $fx = wizardFixture();
+    $submission = StartSubmission::run($fx['form']->id, $fx['period']->id, $fx['detail'], $fx['user']);
+    $submission->forceFill(['status' => NeedsRevision::class, 'is_submitted' => true])->save();
+
+    $fx['detail']->submissionDate->update(['datetime' => now()->subDay()]);
+    $fx['detail']->update(['revision_date_id' => windowDate($fx['period'], 'Batas Revisi', now()->addWeek()->toDateTimeString())->id]);
+
+    $payload = draftPayload($fx['form'], $fx['period'], $fx['phase'], $submission->fresh()->updated_at->toISOString());
+
+    $this->actingAs($fx['user'])
+        ->post(route('user.form-submission.save-draft'), $payload)
+        ->assertSessionHasNoErrors()
+        ->assertRedirect()
+        ->assertSessionHas('success');
+
+    $this->travel(8)->days();
+    $payload['last_updated_at'] = $submission->fresh()->updated_at->toISOString();
+
+    $this->actingAs($fx['user'])
+        ->post(route('user.form-submission.save-draft'), $payload)
+        ->assertForbidden();
 });
 
 // Catatan: tests/Unit/FormPhaseDetailTest.php dihapus dan digantikan berkas

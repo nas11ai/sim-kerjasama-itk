@@ -35,7 +35,7 @@ class ReviseFormPhase
         $this->assertOwnedBy($existing, $input->details);
         AssertUsedPhaseDetailsKeepTheirForm::run($existing, $input->details);
         AssertPhaseDeadlines::run($phase, $input->details, $existing->mapWithKeys(
-            fn (FormPhaseDetail $detail): array => [$detail->id => $detail->submission_date_id],
+            fn (FormPhaseDetail $detail): array => [$detail->id => $detail],
         )->all());
 
         DB::transaction(function () use ($phase, $input, $actor, $existing): void {
@@ -126,10 +126,10 @@ class ReviseFormPhase
             $current = $detail->id === null ? null : $existing->get($detail->id);
 
             if ($current !== null) {
-                // BR-FE-07 — tenggat boleh dipindah, tak boleh dikosongkan: null/absen
+                // BR-FE-07/26 — tenggat boleh dipindah, tak boleh dikosongkan: null/absen
                 // mempertahankan nilai yang ada.
                 $current->update($attributes + array_filter(
-                    ['submission_date_id' => $detail->submissionDateId],
+                    $detail->deadlineIds(),
                     fn (?int $id): bool => $id !== null,
                 ));
                 $ids[] = $current->id;
@@ -138,9 +138,7 @@ class ReviseFormPhase
             }
 
             // BR-FE-07 — detail baru membawa tenggatnya sendiri (wajib di FormPhaseRequest).
-            $ids[] = $phase->formPhaseDetails()->create($attributes + [
-                'submission_date_id' => $detail->submissionDateId,
-            ])->id;
+            $ids[] = $phase->formPhaseDetails()->create($attributes + $detail->deadlineIds())->id;
         }
 
         return $ids;

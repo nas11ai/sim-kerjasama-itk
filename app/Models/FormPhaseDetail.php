@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\DeadlineType;
 use App\Support\Lifecycle\ReferenceGuard;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -66,31 +67,19 @@ class FormPhaseDetail extends Model
         'needs_review' => 'boolean',
     ];
 
-    /**
-     * Get the form phase that owns the detail.
-     *
-     * @return BelongsTo<FormPhase, $this>
-     */
+    /** @return BelongsTo<FormPhase, $this> */
     public function formPhase(): BelongsTo
     {
         return $this->belongsTo(FormPhase::class);
     }
 
-    /**
-     * Get the form access control for the detail.
-     *
-     * @return BelongsTo<FormAccessControl, $this>
-     */
+    /** @return BelongsTo<FormAccessControl, $this> */
     public function formAccessControl(): BelongsTo
     {
         return $this->belongsTo(FormAccessControl::class);
     }
 
-    /**
-     * Get the submission date for the detail.
-     *
-     * @return BelongsTo<SubmissionDate, $this>
-     */
+    /** @return BelongsTo<SubmissionDate, $this> */
     public function submissionDate(): BelongsTo
     {
         return $this->belongsTo(SubmissionDate::class);
@@ -116,35 +105,25 @@ class FormPhaseDetail extends Model
         return $this->belongsTo(SubmissionDate::class, 'revision_date_id');
     }
 
-    /**
-     * Get the phase type for the detail.
-     *
-     * @return BelongsTo<PhaseType, $this>
-     */
+    /** @return BelongsTo<PhaseType, $this> */
     public function phaseType(): BelongsTo
     {
         return $this->belongsTo(PhaseType::class);
     }
 
-    /**
-     * @return HasMany<ReviewEvaluationForm, $this>
-     */
+    /** @return HasMany<ReviewEvaluationForm, $this> */
     public function reviewEvaluationForms(): HasMany
     {
         return $this->hasMany(ReviewEvaluationForm::class);
     }
 
-    /**
-     * @return HasMany<ReviewEvaluationForm, $this>
-     */
+    /** @return HasMany<ReviewEvaluationForm, $this> */
     public function activeReviewEvaluationForms(): HasMany
     {
         return $this->reviewEvaluationForms()->active()->ordered();
     }
 
-    /**
-     * @return HasMany<ReviewEvaluationForm, $this>
-     */
+    /** @return HasMany<ReviewEvaluationForm, $this> */
     public function requiredReviewEvaluationForms(): HasMany
     {
         return $this->reviewEvaluationForms()->required()->active()->ordered();
@@ -156,21 +135,33 @@ class FormPhaseDetail extends Model
     }
 
     /**
-     * BR-FE-17 — jendela kerja detail ini sendiri. Periodenya dibaca dari `SubmissionDate`
+     * BR-FE-26 — tenggat detail ini untuk satu jenis. Batas Revisi yang kosong kembali ke
+     * Batas Submit (perilaku sebelum E1b); Batas Evaluasi yang kosong berarti tak bertenggat.
+     */
+    public function deadlineOf(DeadlineType $type): ?SubmissionDate
+    {
+        return match ($type) {
+            DeadlineType::Submit => $this->submissionDate,
+            DeadlineType::Evaluation => $this->evaluationDate,
+            DeadlineType::Revision => $this->revisionDate ?? $this->submissionDate,
+        };
+    }
+
+    /**
+     * BR-FE-17 — jendela kerja satu aktor detail ini. Periodenya dibaca dari `SubmissionDate`
      * milik detail (ADR 0014), bukan `formPhase->submissionPeriod`: `form_phases` tidak
      * punya kolom `submission_period_id`, jadi relasi itu selalu null.
      */
-    public function isWithinDeadline(): bool
+    public function isWithinDeadline(DeadlineType $type = DeadlineType::Submit): bool
     {
-        $date = $this->submissionDate;
-        $period = $date->submissionPeriod;
-
-        // Force close mengalahkan tanggal per detail — sumbu yang berbeda.
-        if ($period !== null && $period->is_force_closed) {
+        // BR-SCH-07 — force close mengalahkan tanggal per detail — sumbu yang berbeda.
+        if ($this->submissionDate->submissionPeriod?->is_force_closed === true) {
             return false;
         }
 
-        return now()->lte($date->datetime);
+        $date = $this->deadlineOf($type);
+
+        return $date === null || now()->lte($date->datetime);
     }
 
     /**

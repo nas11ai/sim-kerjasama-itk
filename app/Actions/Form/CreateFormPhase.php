@@ -75,7 +75,7 @@ class CreateFormPhase
                 'phase_type_id' => $detail->phaseTypeId,
                 'order' => $orders[$index],
                 'needs_review' => $detail->needsReview,
-                'submission_date_id' => $detail->submissionDateId,
+                ...$detail->deadlineIds(),
             ])->id;
         }
 
