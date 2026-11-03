@@ -177,6 +177,10 @@ describe('FormEngine/FormIndexPage', () => {
         expect(document.body.textContent).toContain(
             '42 pengajuan aktif tetap berjalan dan terbaca.'
         )
+        // W89 — kewajiban monev kegiatan yang sudah disetujui tidak ikut berhenti.
+        expect(document.body.textContent).toContain(
+            'Laporan monev dari pengajuan yang sudah disetujui tetap bisa dikirim.'
+        )
         bodyButton('Nonaktifkan Form')?.click()
         await flushPromises()
         expect(router.patch).toHaveBeenCalledWith(

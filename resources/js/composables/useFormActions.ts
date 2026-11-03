@@ -31,7 +31,7 @@ export function useFormActions() {
         if (row.isActive) {
             return {
                 title: 'Nonaktifkan form?',
-                description: `${row.title} berhenti menerima pengajuan baru. ${row.activeSubmissionCount} pengajuan aktif tetap berjalan dan terbaca.`,
+                description: `${row.title} berhenti menerima pengajuan baru. ${row.activeSubmissionCount} pengajuan aktif tetap berjalan dan terbaca. Laporan monev dari pengajuan yang sudah disetujui tetap bisa dikirim.`,
                 confirmLabel: 'Nonaktifkan Form',
             }
         }

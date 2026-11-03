@@ -67,6 +67,18 @@ it('[FE-CHILD-02] child bisa dibuat dari induk yang sudah disetujui', function (
         ->and($child->submission_period_id)->toBe($fx['parent']->submission_period_id);
 });
 
+// W89 — menonaktifkan Form menghentikan pengajuan baru (BR-FE-19), bukan kewajiban
+// melapor dari kegiatan yang sudah disetujui.
+it('laporan tahap tetap bisa dimulai walau Form-nya dinonaktifkan', function () {
+    $fx = childFixture(Approved::class);
+    $fx['detail']->formAccessControl?->form?->update(['is_active' => false]);
+
+    $child = StartChildSubmission::run($fx['parent'], $fx['detail'], $fx['user']);
+
+    expect($child->parent_submission_id)->toBe($fx['parent']->id)
+        ->and($child->form?->is_active)->toBeFalse();
+});
+
 it('[FE-CHILD-02] jalur HTTP menolak induk yang belum disetujui', function () {
     $fx = childFixture(UnderReview::class);
 

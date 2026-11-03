@@ -48,6 +48,8 @@ class StartChildSubmission
 
         $accessControl = $this->accessControlOf($detail);
 
+        // W89 — sengaja tanpa gerbang `forms.is_active`: BR-FE-19 menghentikan pengajuan baru,
+        // sedangkan laporan ini kewajiban dari kegiatan yang sudah APPROVED.
         $tercatat = FormSubmission::create([
             'form_id' => $accessControl->form_id,
             'submitted_by' => $user->id,
