@@ -28,7 +28,6 @@ resources/js/Pages/FormBuilder/Steps/Step1BasicForm.vue
 resources/js/Pages/FormBuilder/Steps/Step2AccessControl.vue
 resources/js/Pages/FormBuilder/Steps/Step3FormPhase.vue
 resources/js/Pages/FormBuilder/Steps/Step4ReviewSettings.vue
-resources/js/Pages/FormBuilder/Steps/Step5SubmissionPeriod.vue
 resources/js/Pages/FormBuilder/Steps/Step6Review.vue
 resources/js/Pages/FormPhases/CreatePage.vue
 resources/js/Pages/FormPhases/EditPage.vue

@@ -240,7 +240,11 @@ it('offers only usable periods to the wizard (BR-SCH-07)', function () {
         ->get(route('admin.form-builder.create'))
         ->assertInertia(fn ($page) => $page
             ->has('submissionPeriods', 1)
-            ->where('submissionPeriods.0.id', $usable->id));
+            ->where('submissionPeriods.0.id', $usable->id)
+            // K8g — label diturunkan dari jenis dan siklus (BR-FE-25); katalog label tak ada lagi.
+            ->where('submissionPeriods.0.submission_dates.0.label', 'Batas Submit')
+            ->where('submissionPeriods.0.submission_dates.1.label', 'Batas Evaluasi')
+            ->missing('submissionDateLabels'));
 });
 
 it('rejects a trl_selector without a scheme_selector through the wizard (BR-SCH-05)', function () {

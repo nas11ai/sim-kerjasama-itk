@@ -9,6 +9,7 @@ use App\Models\FormAccessControl;
 use App\Models\FormPhase;
 use App\Models\FormType;
 use App\Models\PhaseType;
+use App\Models\SubmissionDate;
 use App\Models\SubmissionPeriod;
 use App\Queries\Identity\FacultyOptions;
 use Inertia\Inertia;
@@ -32,10 +33,20 @@ class CompleteFormBuilderController extends Controller
                 ->with('formPhaseDetails')
                 ->orderBy('title')
                 ->get(),
-            'submissionPeriods' => SubmissionPeriod::with('submissionDates')
+            // K8g — wizard hanya memilih periode yang ada; labelnya diturunkan (BR-FE-25).
+            'submissionPeriods' => SubmissionPeriod::with(['submissionDates' => fn ($dates) => $dates->orderBy('datetime')])
                 ->usable()
                 ->orderBy('name')
-                ->get(),
+                ->get()
+                ->map(fn (SubmissionPeriod $period): array => [
+                    'id' => $period->id,
+                    'name' => $period->name,
+                    'submission_dates' => $period->submissionDates->map(fn (SubmissionDate $date): array => [
+                        'id' => $date->id,
+                        'label' => $date->label(),
+                        'datetime' => $date->datetime->toIso8601String(),
+                    ])->all(),
+                ]),
         ]);
     }
 

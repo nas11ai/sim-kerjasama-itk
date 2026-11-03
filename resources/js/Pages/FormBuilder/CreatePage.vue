@@ -22,7 +22,6 @@ import type {
     FieldType,
     PhaseType,
     FormPhase,
-    SubmissionDateLabel,
     SubmissionPeriod,
 } from '@/types/form-builder'
 import type { Faculty } from '@/Pages/FormBuilder/Steps/Step2AccessControl.vue'
@@ -35,7 +34,6 @@ interface Props {
     phaseTypes: PhaseType[]
     formPhases: FormPhase[]
     submissionPeriods: SubmissionPeriod[]
-    submissionDateLabels: SubmissionDateLabel[]
 }
 
 defineProps<Props>()
@@ -61,16 +59,9 @@ const form = useForm({
         needs_review: false as boolean,
     },
     evaluation_forms: [],
+    // K8g — hanya periode yang sudah ada.
     submission_period: {
-        use_existing: true,
-        existing_period_id: null,
-        new_period_name: '',
-        dates: [] as Array<{
-            label_id: number | null
-            label: string
-            date: string
-            temp_id: string
-        }>,
+        existing_period_id: null as number | null,
     },
 })
 
@@ -100,14 +91,7 @@ const canGoNext = computed(() => {
             if (!form.phase.needs_review) return true
             return form.evaluation_forms.length > 0
         case 5:
-            if (form.submission_period.use_existing) {
-                return form.submission_period.existing_period_id
-            }
-            return (
-                form.submission_period.new_period_name &&
-                form.submission_period.dates.length > 0 &&
-                form.submission_period.dates.every((d) => d.label_id && d.date)
-            )
+            return form.submission_period.existing_period_id !== null
         default:
             return true
     }
@@ -281,7 +265,6 @@ const submit = () => {
                         v-if="currentStep === 5"
                         v-model="form.submission_period"
                         :submission-periods="submissionPeriods"
-                        :submission-date-labels="submissionDateLabels"
                         :errors="form.errors"
                     />
 

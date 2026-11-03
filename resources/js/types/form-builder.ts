@@ -21,15 +21,11 @@ export interface FormPhase {
     form_phase_details?: Array<{ id: number }>
 }
 
-export interface SubmissionDateLabel {
-    id: number
-    name: string
-}
-
+// Sumber: CompleteFormBuilderController::create — label diturunkan dari jenis × siklus (BR-FE-25).
 export interface SubmissionDate {
     id: number
+    label: string
     datetime: string
-    submission_date_label?: SubmissionDateLabel
 }
 
 export interface SubmissionPeriod {

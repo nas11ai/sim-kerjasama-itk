@@ -42,13 +42,6 @@ interface EvalForm {
     fields: unknown[]
 }
 
-interface SubmissionDate {
-    temp_id: string
-    label_id: number | null
-    label: string
-    date: string | null
-}
-
 interface Props {
     formData: {
         form: {
@@ -69,10 +62,7 @@ interface Props {
         }
         evaluation_forms: EvalForm[]
         submission_period: {
-            use_existing: boolean
             existing_period_id: number | null
-            new_period_name: string
-            dates: SubmissionDate[]
         }
     }
     formTypes: FormType[]
@@ -135,15 +125,8 @@ const validationIssues = computed(() => {
         issues.push('Minimal satu formulir evaluasi wajib ditambahkan jika review diaktifkan')
     }
 
-    if (props.formData.submission_period.use_existing) {
-        if (!props.formData.submission_period.existing_period_id)
-            issues.push('Periode yang sudah ada harus dipilih')
-    } else {
-        if (!props.formData.submission_period.new_period_name)
-            issues.push('Judul periode baru wajib diisi')
-        if (props.formData.submission_period.dates.length === 0)
-            issues.push('Minimal satu tanggal pengajuan diperlukan')
-    }
+    if (!props.formData.submission_period.existing_period_id)
+        issues.push('Periode pengajuan harus dipilih')
 
     return issues
 })
@@ -454,51 +437,13 @@ const totalEvaluationFields = computed(() =>
             </CardHeader>
             <CardContent class="space-y-3">
                 <div>
-                    <p class="text-sm text-muted-foreground">Mode</p>
-                    <Badge variant="outline">
-                        {{
-                            formData.submission_period.use_existing
-                                ? 'Menggunakan Periode yang Ada'
-                                : 'Membuat Periode Baru'
-                        }}
-                    </Badge>
-                </div>
-                <div>
-                    <p class="text-sm text-muted-foreground">
-                        {{
-                            formData.submission_period.use_existing
-                                ? 'Periode Terpilih'
-                                : 'Nama Periode Baru'
-                        }}
-                    </p>
+                    <p class="text-sm text-muted-foreground">Periode Terpilih</p>
                     <p class="font-medium">
                         {{
-                            formData.submission_period.use_existing
-                                ? getPeriodName(formData.submission_period.existing_period_id) ||
-                                  'Belum dipilih'
-                                : formData.submission_period.new_period_name || 'Belum diatur'
+                            getPeriodName(formData.submission_period.existing_period_id) ||
+                            'Belum dipilih'
                         }}
                     </p>
-                </div>
-                <div
-                    v-if="
-                        !formData.submission_period.use_existing &&
-                        formData.submission_period.dates.length > 0
-                    "
-                >
-                    <p class="text-sm text-muted-foreground mb-2">Tanggal yang Dikonfigurasi</p>
-                    <div class="space-y-1">
-                        <div
-                            v-for="date in formData.submission_period.dates"
-                            :key="date.temp_id"
-                            class="text-sm flex items-center justify-between p-2 bg-muted rounded"
-                        >
-                            <span class="font-medium">{{ date.label }}</span>
-                            <span class="text-muted-foreground">{{
-                                date.date || 'Belum diatur'
-                            }}</span>
-                        </div>
-                    </div>
                 </div>
             </CardContent>
         </Card>
