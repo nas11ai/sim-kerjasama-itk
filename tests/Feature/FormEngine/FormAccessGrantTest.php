@@ -2,27 +2,26 @@
 
 // tests/Feature/FormEngine/FormAccessGrantTest.php
 //
-// Buat dan ubah kontrol akses lewat Action beraudit (BR-RPT-09), pada organisasi aktif apa
-// pun (ADR 0013); form kontrol akses yang dipakai terkunci (BR-FE-20).
+// Memasang kontrol akses lewat Action beraudit (BR-RPT-09), pada organisasi aktif apa pun
+// (ADR 0013), lewat route bersarang tab Access Control (ADMIN-08-07).
 
 use App\Models\Form;
 use App\Models\FormAccessControl;
-use App\Models\FormPhaseDetail;
 use App\Models\Organization;
 use App\Models\User;
 use App\Models\UserProfile;
 use App\Services\FormAccessService;
 use App\Support\Audit\AuditTrail;
+use Database\Seeders\PermissionSeeder;
 use Illuminate\Support\Facades\Cache;
 use Spatie\Activitylog\Models\Activity;
 use Spatie\Permission\Models\Permission;
-use Spatie\Permission\Models\Role;
 
 beforeEach(function () {
     Cache::flush();
-    Role::findOrCreate('Super Admin');
+    $this->seed(PermissionSeeder::class);
     $this->admin = User::factory()->create();
-    $this->admin->assignRole('Super Admin');
+    $this->admin->assignRole('admin');
 
     $institution = Organization::create(['name' => 'ITK Uji', 'type' => 'institution']);
     $this->faculty = Organization::create([
@@ -43,22 +42,14 @@ function accessAudit(string $description, FormAccessControl $control): ?Activity
         ->first();
 }
 
-function usedAccessControl(): FormAccessControl
-{
-    $control = FormPhaseDetail::factory()->create()->formAccessControl;
-
-    return $control ?? throw new LogicException('Detail pabrik tanpa kontrol akses.');
-}
-
 it('grants access on a faculty that a study program below it can reach (ADR 0013, BR-FE-02)', function () {
     $this->actingAs($this->admin)
-        ->post(route('admin.form-access-controls.store'), [
-            'form_id' => $this->form->id,
+        ->post(route('admin.forms.access.store', $this->form), [
             'permission' => 'submissions.create',
-            'study_program_id' => $this->faculty->id,
+            'organization_id' => $this->faculty->id,
         ])
         ->assertSessionHasNoErrors()
-        ->assertRedirect(route('admin.form-access-controls.index'));
+        ->assertRedirect(route('admin.forms.access.index', $this->form));
 
     $control = FormAccessControl::query()->where('organization_id', $this->faculty->id)->firstOrFail();
 
@@ -74,94 +65,11 @@ it('rejects access on an inactive organization (ADR 0013)', function () {
     $this->faculty->update(['is_active' => false]);
 
     $this->actingAs($this->admin)
-        ->post(route('admin.form-access-controls.store'), [
-            'form_id' => $this->form->id,
+        ->post(route('admin.forms.access.store', $this->form), [
             'permission' => 'submissions.create',
-            'study_program_id' => $this->faculty->id,
+            'organization_id' => $this->faculty->id,
         ])
-        ->assertSessionHasErrors('study_program_id');
+        ->assertSessionHasErrors('organization_id');
 
     expect(FormAccessControl::query()->where('form_id', $this->form->id)->exists())->toBeFalse();
-});
-
-it('accepts a faculty in a bulk grant (ADR 0013)', function () {
-    $this->actingAs($this->admin)
-        ->post(route('admin.form-access-controls.bulk-create'), [
-            'form_id' => $this->form->id,
-            'combinations' => [['permission' => 'submissions.create', 'study_program_id' => $this->faculty->id]],
-        ])
-        ->assertSessionHasNoErrors();
-
-    expect(FormAccessControl::query()->where('organization_id', $this->faculty->id)->exists())->toBeTrue();
-});
-
-it('rejects changing the form of an access control used by a phase detail (BR-FE-20)', function () {
-    $control = usedAccessControl();
-    $formId = $control->form_id;
-
-    $this->actingAs($this->admin)
-        ->patch(route('admin.form-access-controls.update', $control), [
-            'form_id' => $this->form->id,
-            'permission' => $control->permission,
-            'study_program_id' => $control->organization_id,
-        ])
-        ->assertSessionHasErrors('form_id');
-
-    expect($control->fresh()?->form_id)->toBe($formId)
-        ->and(accessAudit('Kontrol akses formulir diubah', $control))->toBeNull();
-});
-
-it('saves a new permission and organization for a used access control, audited (BR-RPT-09)', function () {
-    $control = usedAccessControl();
-
-    $this->actingAs($this->admin)
-        ->patch(route('admin.form-access-controls.update', $control), [
-            'form_id' => $control->form_id,
-            'permission' => 'submissions.view-own',
-            'study_program_id' => $this->faculty->id,
-        ])
-        ->assertSessionHasNoErrors()
-        ->assertRedirect(route('admin.form-access-controls.index'));
-
-    $fresh = $control->fresh();
-
-    expect($fresh?->permission)->toBe('submissions.view-own')
-        ->and($fresh?->organization_id)->toBe($this->faculty->id)
-        ->and(accessAudit('Kontrol akses formulir diubah', $control)?->causer_id)->toBe($this->admin->id);
-});
-
-it('keeps an access control on its now inactive organization when only the permission changes (ADR 0013)', function () {
-    $control = FormAccessControl::create([
-        'form_id' => $this->form->id, 'permission' => 'submissions.create',
-        'organization_id' => $this->faculty->id,
-    ]);
-    $this->faculty->update(['is_active' => false]);
-
-    $this->actingAs($this->admin)
-        ->patch(route('admin.form-access-controls.update', $control), [
-            'form_id' => $control->form_id,
-            'permission' => 'submissions.view-own',
-            'study_program_id' => $this->faculty->id,
-        ])
-        ->assertSessionHasNoErrors();
-
-    expect($control->fresh()?->permission)->toBe('submissions.view-own');
-});
-
-it('rejects moving an access control to a different inactive organization (ADR 0013)', function () {
-    $control = FormAccessControl::create([
-        'form_id' => $this->form->id, 'permission' => 'submissions.create',
-        'organization_id' => $this->faculty->id,
-    ]);
-    $this->studyProgram->update(['is_active' => false]);
-
-    $this->actingAs($this->admin)
-        ->patch(route('admin.form-access-controls.update', $control), [
-            'form_id' => $control->form_id,
-            'permission' => $control->permission,
-            'study_program_id' => $this->studyProgram->id,
-        ])
-        ->assertSessionHasErrors('study_program_id');
-
-    expect($control->fresh()?->organization_id)->toBe($this->faculty->id);
 });

@@ -7,7 +7,7 @@ use App\Http\Controllers\Config\ReferenceEntityController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Export\DocumentPrintController;
 use App\Http\Controllers\Export\ExportController;
-use App\Http\Controllers\FormAccessControlController;
+use App\Http\Controllers\FormEngine\FormAccessController;
 use App\Http\Controllers\FormEngine\FormController;
 use App\Http\Controllers\FormEngine\SubmissionPeriodController;
 use App\Http\Controllers\FormPhaseController;
@@ -295,27 +295,6 @@ Route::middleware(['auth', 'can:users.manage'])->prefix('admin')->name('admin.')
     Route::get('form-phases/{formPhase}/evaluation-forms', [FormPhaseController::class, 'evaluationForms'])
         ->name('form-phases.evaluation-forms');
 
-    Route::resource('form-access-controls', FormAccessControlController::class)->names([
-        'index' => 'form-access-controls.index',
-        'create' => 'form-access-controls.create',
-        'store' => 'form-access-controls.store',
-        'show' => 'form-access-controls.show',
-        'edit' => 'form-access-controls.edit',
-        'update' => 'form-access-controls.update',
-        'destroy' => 'form-access-controls.destroy',
-    ]);
-
-    // Additional routes for Form Access Controls
-    Route::post('form-access-controls/bulk-create', [FormAccessControlController::class, 'bulkCreate'])
-        ->name('form-access-controls.bulk-create');
-
-    Route::post('form-access-controls/bulk-delete', [FormAccessControlController::class, 'bulkDelete'])
-        ->name('form-access-controls.bulk-delete');
-
-    // API endpoint untuk mendapatkan study programs berdasarkan faculty
-    Route::get('api/study-programs', [FormAccessControlController::class, 'getStudyPrograms'])
-        ->name('api.study-programs');
-
     Route::patch('api/form-phases/{formPhase}/status', [FormPhaseController::class, 'updateStatus'])
         ->name('form-phases.update-status');
 });
@@ -410,7 +389,7 @@ Route::middleware(['auth', 'can:submissions.view-all'])->prefix('admin')->name('
         ->name('submissions.show');
 });
 
-// ADMIN-08-05/06 — Form Builder dikelola pemegang schemes.manage (W88).
+// ADMIN-08-05/06/07 — Form Builder dikelola pemegang schemes.manage (W88).
 Route::middleware(['auth', 'can:schemes.manage'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/forms', [FormController::class, 'index'])->name('forms.index');
     Route::get('/forms/create', [FormController::class, 'create'])->name('forms.create');
@@ -419,6 +398,12 @@ Route::middleware(['auth', 'can:schemes.manage'])->prefix('admin')->name('admin.
     Route::put('/forms/{form}', [FormController::class, 'update'])->name('forms.update');
     Route::patch('/forms/{form}/active', [FormController::class, 'setActive'])->name('forms.active');
     Route::delete('/forms/{form}', [FormController::class, 'destroy'])->name('forms.destroy');
+
+    // ADMIN-08-07 — aturan akses bersarang di Form; scopeBindings menolak aturan Form lain (404).
+    Route::get('/forms/{form}/access', [FormAccessController::class, 'index'])->name('forms.access.index');
+    Route::post('/forms/{form}/access', [FormAccessController::class, 'store'])->name('forms.access.store');
+    Route::delete('/forms/{form}/access/{formAccessControl}', [FormAccessController::class, 'destroy'])
+        ->scopeBindings()->name('forms.access.destroy');
 });
 
 // OPERATOR-09-01 — periode dikelola pemegang periods.manage, bukan users.manage (§4.4 K1).

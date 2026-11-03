@@ -3,8 +3,7 @@
 namespace App\Data\Request;
 
 /**
- * Satu kontrol akses formulir. Organisasinya boleh unit bertipe apa pun (ADR 0013); di
- * layar lama kuncinya tetap `study_program_id`, jadi nama itu berhenti di FormRequest.
+ * Satu kontrol akses formulir. Organisasinya boleh unit bertipe apa pun (ADR 0013).
  */
 final class FormAccessInput
 {

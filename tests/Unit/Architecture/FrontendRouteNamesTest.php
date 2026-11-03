@@ -17,9 +17,7 @@ uses(TestCase::class);
  * menyusut: hapus barisnya begitu tautannya dibetulkan atau halamannya
  * diganti layar SIMPAS v2. Jangan menambah nama baru ke sini.
  */
-const KNOWN_BROKEN_FRONTEND_ROUTES = [
-    'form-phases.show',               // FormAccessControls/ShowPage.vue
-];
+const KNOWN_BROKEN_FRONTEND_ROUTES = [];
 
 /** @return array<string, list<string>> nama route => berkas yang memakainya */
 function frontendRouteNames(): array

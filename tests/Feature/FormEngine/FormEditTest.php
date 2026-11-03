@@ -167,10 +167,10 @@ it('update tanpa continue kembali ke daftar', function () {
         ->assertRedirect(route('admin.forms.index'))
         ->assertSessionHas('success', 'Form diperbarui.');
 
-    // W86 — tab Access Control belum ada; "Lanjut" tetap di halaman sunting (Task 5 memindahkannya).
+    // W86 — "Lanjut" menyimpan lalu membuka tab Access Control.
     $this->actingAs($actor)
         ->put(route('admin.forms.update', $form), formEditPayload($this->regularType->id, ['continue' => true]))
-        ->assertRedirect(route('admin.forms.edit', $form));
+        ->assertRedirect(route('admin.forms.access.index', $form));
 });
 
 it('wewenang: operator 403 untuk create, store, edit, update', function () {

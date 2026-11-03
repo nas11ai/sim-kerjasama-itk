@@ -70,8 +70,8 @@ class FormController extends Controller
         $notify = $request->boolean('notify_affected');
         $affected = NotifyFormChange::run($form, $notify);
 
-        // W86 — "Lanjut" menyimpan lalu tetap di Form ini sampai tab Access Control tersedia.
-        $target = $request->boolean('continue') ? route('admin.forms.edit', $form) : route('admin.forms.index');
+        // W86 — "Lanjut" menyimpan lalu membuka tab Access Control Form ini.
+        $target = $request->boolean('continue') ? route('admin.forms.access.index', $form) : route('admin.forms.index');
 
         return redirect($target)->with('success', $notify && $affected > 0
             ? "Form diperbarui. {$affected} peneliti diberi tahu."

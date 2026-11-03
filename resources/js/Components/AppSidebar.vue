@@ -110,11 +110,6 @@ const adminNavItems = [
                 url: route('admin.form-phases.index'),
                 icon: Settings,
             },
-            {
-                title: 'Kontrol Akses',
-                url: route('admin.form-access-controls.index'),
-                icon: Shield,
-            },
         ],
     },
     {

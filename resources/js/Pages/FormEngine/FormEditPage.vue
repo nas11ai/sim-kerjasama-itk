@@ -4,6 +4,7 @@ import { Head } from '@inertiajs/vue3'
 import { computed } from 'vue'
 
 import PageHeader from '@/Components/app/PageHeader.vue'
+import FormAccessTab from '@/Components/FormEngine/FormAccessTab.vue'
 import FormEditTabs from '@/Components/FormEngine/FormEditTabs.vue'
 import FormGeneralTab from '@/Components/FormEngine/FormGeneralTab.vue'
 import { Badge } from '@/Components/ui/badge'
@@ -15,6 +16,11 @@ const props = defineProps<FormEditPageProps>()
 const title = computed(() =>
     props.form === null ? 'Buat Form Baru' : `Edit Form — ${props.form.title}`
 )
+
+const subtitle = computed(() => (props.tab === 'access' ? 'Access Control' : 'General & Fields'))
+// Penyempitan union per tab: template tidak menyempitkan props yang dipisah satu per satu.
+const generalProps = computed(() => (props.tab === 'general' ? props : null))
+const accessProps = computed(() => (props.tab === 'access' ? props : null))
 </script>
 
 <template>
@@ -22,7 +28,7 @@ const title = computed(() =>
     <AppLayout>
         <PageHeader
             :title="title"
-            subtitle="General & Fields"
+            :subtitle="subtitle"
             :back-href="route('admin.forms.index')"
             back-label="Form Builder"
         >
@@ -35,11 +41,20 @@ const title = computed(() =>
         <FormEditTabs :form="form" :active="tab" />
         <!-- Trap S2b — Inertia memakai ulang halaman antar-tab; state tab hidup di child ber-key -->
         <FormGeneralTab
+            v-if="generalProps"
             :key="`${tab}-${form?.id ?? 'new'}`"
-            :form="form"
-            :general="general"
-            :field-type-options="fieldTypeOptions"
-            :form-type-options="formTypeOptions"
+            :form="generalProps.form"
+            :general="generalProps.general"
+            :field-type-options="generalProps.fieldTypeOptions"
+            :form-type-options="generalProps.formTypeOptions"
+        />
+        <FormAccessTab
+            v-else-if="accessProps"
+            :key="`${tab}-${form?.id ?? 'new'}`"
+            :form="accessProps.form"
+            :rules="accessProps.rules"
+            :permission-options="accessProps.permissionOptions"
+            :organization-options="accessProps.organizationOptions"
         />
     </AppLayout>
 </template>

@@ -22,7 +22,11 @@ const tabs = computed((): Tab[] => {
     }
     return [
         { key: 'general', label: 'General & Fields', href: route('admin.forms.edit', form.id) },
-        { key: 'access', label: 'Access Control', href: null },
+        {
+            key: 'access',
+            label: 'Access Control',
+            href: route('admin.forms.access.index', form.id),
+        },
         { key: 'phases', label: 'Phases', href: route('admin.form-phases.index') },
     ]
 })

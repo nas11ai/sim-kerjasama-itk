@@ -122,8 +122,16 @@ export interface FormGeneralData {
     affectedDrafts: number
 }
 
-// Sumber: FormEngine\FormController::create/edit. Satu komponen untuk semua tab (W86);
-// varian `'access'` menyusul bersama tab Access Control.
+// Sumber: App\Data\View\FormEngine\FormAccessRuleData — `phaseDetailCount` > 0 mengunci hapus (BR-FE-20).
+export interface FormAccessRuleData {
+    id: number
+    permission: string
+    permissionLabel: string
+    organizationLabel: string
+    phaseDetailCount: number
+}
+
+// Sumber: FormEngine\FormController::create/edit. Satu komponen untuk semua tab (W86).
 export interface FormEditGeneralProps {
     tab: 'general'
     form: FormHeaderData | null
@@ -132,4 +140,13 @@ export interface FormEditGeneralProps {
     formTypeOptions: FilterOption[]
 }
 
-export type FormEditPageProps = FormEditGeneralProps
+// Sumber: FormEngine\FormAccessController::index.
+export interface FormEditAccessProps {
+    tab: 'access'
+    form: FormHeaderData
+    rules: FormAccessRuleData[]
+    permissionOptions: FilterOption[]
+    organizationOptions: FilterOption[]
+}
+
+export type FormEditPageProps = FormEditGeneralProps | FormEditAccessProps
