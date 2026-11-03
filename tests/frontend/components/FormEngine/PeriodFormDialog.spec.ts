@@ -25,6 +25,7 @@ vi.mock('@inertiajs/vue3', async () => {
     }
 })
 
+import OptionSelect from '@/Components/app/OptionSelect.vue'
 import PeriodFormDialog from '@/Components/FormEngine/PeriodFormDialog.vue'
 import type { PeriodRowData } from '@/types/form-engine'
 
@@ -38,6 +39,8 @@ const period = (overrides: Partial<PeriodRowData> = {}): PeriodRowData => ({
     dates: [
         {
             id: 11,
+            type: 'submit',
+            cycle: null,
             label: 'Batas Submit',
             at: '2026-02-15T23:59:00+08:00',
             inputValue: '2026-02-15T23:59',
@@ -73,12 +76,24 @@ const fill = async (selector: string, value: string) => {
 
 let wrapper: VueWrapper
 
+// Baris ke-n punya dua OptionSelect: jenis (2n) dan siklus (2n + 1).
+const choose = async (row: number, field: 'type' | 'cycle', value: string) => {
+    const select = wrapper.findAllComponents(OptionSelect)[row * 2 + (field === 'type' ? 0 : 1)]
+    if (select === undefined) throw new Error(`select ${field} baris ${row} tidak ada`)
+    select.vm.$emit('update:modelValue', value)
+    await flushPromises()
+}
+
 const open = async (row: PeriodRowData | null) => {
     wrapper = mount(PeriodFormDialog, {
         props: {
             open: true,
             period: row,
-            labelOptions: ['Batas Submit', 'Batas Evaluasi'],
+            typeOptions: [
+                { value: 'submit', label: 'Batas Submit' },
+                { value: 'evaluation', label: 'Batas Evaluasi' },
+                { value: 'revision', label: 'Batas Revisi' },
+            ],
             phaseOptions: [
                 { value: '2', label: 'Proposal' },
                 { value: '5', label: 'Monev' },
@@ -102,8 +117,9 @@ describe('PeriodFormDialog', () => {
     it('[FE-DELETE-11] baris tanggal yang dipakai detail tahap terkunci', async () => {
         await open(period())
 
-        const label = document.querySelector<HTMLInputElement>('#period-date-label-0')
-        expect(label?.readOnly).toBe(true)
+        const [type, cycle] = wrapper.findAllComponents(OptionSelect)
+        expect(type?.props('disabled')).toBe(true)
+        expect(cycle?.props('disabled')).toBe(true)
         expect(
             document.querySelector<HTMLButtonElement>('[aria-label="Buang tenggat 1"]')?.disabled
         ).toBe(true)
@@ -114,7 +130,7 @@ describe('PeriodFormDialog', () => {
         await open(period())
 
         expect(text()).toContain(
-            'Memundurkan tenggat akan memberi tahu 3 peneliti yang masih punya draft di periode ini.'
+            'Memundurkan Batas Submit atau Batas Revisi akan memberi tahu 3 peneliti yang masih punya draft di periode ini.'
         )
     })
 
@@ -122,15 +138,16 @@ describe('PeriodFormDialog', () => {
         await open(period({ status: { value: 'force_closed', label: 'Ditutup Operator' } }))
 
         expect(text()).toContain('Periode ini ditutup Operator.')
-        expect(text()).not.toContain('Memundurkan tenggat akan memberi tahu')
+        expect(text()).not.toContain('akan memberi tahu')
     })
 
-    it('mengirim store saat membuat, hanya label dan tanggal tiap baris', async () => {
+    it('[FE-WINDOW-12] mengirim store saat membuat, jenis, siklus, dan tanggal tiap baris', async () => {
         await open(null)
         expect(text()).toContain('Buat Periode Baru')
 
         await fill('#period-name', 'Pengabdian 2027')
-        await fill('#period-date-label-0', 'Batas Evaluasi')
+        await choose(0, 'type', 'evaluation')
+        await choose(0, 'cycle', '1')
         await fill('#period-date-at-0', '2027-03-01T23:59')
         document.querySelector<HTMLButtonElement>('#period-phase-5')?.click()
         await flushPromises()
@@ -142,7 +159,7 @@ describe('PeriodFormDialog', () => {
         expect(url).toBe('/admin.submission-periods.store')
         expect(form.name).toBe('Pengabdian 2027')
         expect(form.submission_dates).toEqual([
-            { label: 'Batas Evaluasi', date: '2027-03-01T23:59' },
+            { type: 'evaluation', cycle: 1, date: '2027-03-01T23:59' },
         ])
         expect(form.form_phase_ids).toEqual([5])
     })
@@ -153,7 +170,7 @@ describe('PeriodFormDialog', () => {
 
         button('Tambah Tenggat').click()
         await flushPromises()
-        await fill('#period-date-label-1', 'Batas Revisi')
+        await choose(1, 'type', 'revision')
         await fill('#period-date-at-1', '2026-03-15T23:59')
         button('Simpan Periode').click()
         await flushPromises()
@@ -161,9 +178,24 @@ describe('PeriodFormDialog', () => {
         const [form, url] = put.mock.calls[0]
         expect(url).toBe('/admin.submission-periods.update/4')
         expect(form.submission_dates).toEqual([
-            { label: 'Batas Submit', date: '2026-02-15T23:59' },
-            { label: 'Batas Revisi', date: '2026-03-15T23:59' },
+            { type: 'submit', cycle: null, date: '2026-02-15T23:59' },
+            { type: 'revision', cycle: null, date: '2026-03-15T23:59' },
         ])
         expect(form.form_phase_ids).toEqual([2])
+    })
+
+    it('baris baru dimulai sebagai Batas Submit pengajuan utama', async () => {
+        await open(null)
+
+        const [type, cycle] = wrapper.findAllComponents(OptionSelect)
+        expect(type?.props('modelValue')).toBe('submit')
+        expect(cycle?.props('modelValue')).toBe('main')
+        expect(cycle?.props('options')).toContainEqual({ value: '2', label: 'Monev II' })
+    })
+
+    it('menjelaskan bahwa periode menerima pengajuan baru sampai Batas Submit (K8d)', async () => {
+        await open(null)
+
+        expect(text()).toContain('menerima pengajuan baru sampai Batas Submit')
     })
 })

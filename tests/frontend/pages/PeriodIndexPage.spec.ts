@@ -52,6 +52,8 @@ const periodRow = (overrides: Partial<PeriodRowData> = {}): PeriodRowData => ({
     dates: [
         {
             id: 11,
+            type: 'submit',
+            cycle: null,
             label: 'Batas Submit',
             at: '2026-02-15T23:59:00+08:00',
             inputValue: '2026-02-15T23:59',
@@ -85,7 +87,7 @@ const props = (
     filters: { search: '', status: '', year: '' },
     statusOptions: [{ value: 'active', label: 'Dibuka' }],
     yearOptions: [{ value: '2026', label: '2026' }],
-    labelOptions: ['Batas Submit'],
+    typeOptions: [{ value: 'submit', label: 'Batas Submit' }],
     phaseOptions: [{ value: '2', label: 'Proposal' }],
     can: { viewSubmissions: true },
     ...overrides,

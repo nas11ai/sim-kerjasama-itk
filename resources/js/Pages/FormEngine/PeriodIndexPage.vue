@@ -121,7 +121,7 @@ const openForm = (row: PeriodRowData | null) => {
         <PeriodFormDialog
             v-model:open="formOpen"
             :period="editing"
-            :label-options="labelOptions"
+            :type-options="typeOptions"
             :phase-options="phaseOptions"
         />
     </AppLayout>

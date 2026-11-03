@@ -15,6 +15,8 @@ export interface SubmissionDateOption {
 // Sumber: App\Data\View\FormEngine\PeriodDateData.
 export interface PeriodDateData {
     id: number
+    type: DeadlineTypeValue
+    cycle: number | null
     label: string
     at: string
     inputValue: string
@@ -47,7 +49,7 @@ export interface PeriodIndexPageProps {
     filters: PeriodIndexFilters
     statusOptions: FilterOption[]
     yearOptions: FilterOption[]
-    labelOptions: string[]
+    typeOptions: FilterOption[]
     phaseOptions: FilterOption[]
     can: { viewSubmissions: boolean }
 }

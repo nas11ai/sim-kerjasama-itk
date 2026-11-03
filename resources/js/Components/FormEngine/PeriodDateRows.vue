@@ -1,40 +1,73 @@
 <script setup lang="ts">
 import { Plus, Trash2 } from 'lucide-vue-next'
 
+import OptionSelect from '@/Components/app/OptionSelect.vue'
 import { Button } from '@/Components/ui/button'
 import { Input } from '@/Components/ui/input'
 import { Label } from '@/Components/ui/label'
+import type { DeadlineTypeValue } from '@/types/form-engine'
+import type { FilterOption } from '@/types/submission-page'
 
-// Satu baris = satu tenggat (SubmissionDate). `locked` = jumlah detail tahap yang memakainya.
-export type PeriodDateRow = { label: string; date: string; locked: number }
+// Satu baris = satu tenggat (SubmissionDate): jenis × siklus (BR-FE-25). `locked` = jumlah
+// detail tahap yang memakainya; siklus null = pengajuan utama.
+export type PeriodDateRow = {
+    type: DeadlineTypeValue
+    cycle: number | null
+    date: string
+    locked: number
+}
 
-defineProps<{ labelOptions: string[] }>()
+defineProps<{ typeOptions: FilterOption[] }>()
 const rows = defineModel<PeriodDateRow[]>({ required: true })
 
-const add = () => (rows.value = [...rows.value, { label: '', date: '', locked: 0 }])
+const ROMAN = ['I', 'II', 'III', 'IV', 'V']
+const MAIN = 'main'
+const cycleOptions: FilterOption[] = [
+    { value: MAIN, label: 'Pengajuan utama' },
+    ...ROMAN.map((numeral, i) => ({ value: String(i + 1), label: `Monev ${numeral}` })),
+]
+
+const types: readonly string[] = ['submit', 'evaluation', 'revision']
+const isType = (value: string): value is DeadlineTypeValue => types.includes(value)
+
+const setType = (row: PeriodDateRow, value: string | null) => {
+    if (value !== null && isType(value)) row.type = value
+}
+const setCycle = (row: PeriodDateRow, value: string | null) => {
+    row.cycle = value === null || value === MAIN ? null : Number(value)
+}
+
+const add = () =>
+    (rows.value = [...rows.value, { type: 'submit', cycle: null, date: '', locked: 0 }])
 const remove = (index: number) => (rows.value = rows.value.filter((_, i) => i !== index))
 </script>
 
 <template>
     <fieldset class="flex flex-col gap-2">
         <legend class="mb-1.5 text-sm font-medium">Tenggat</legend>
-        <!-- W72 — label teks bebas dengan saran; label baru dibuat saat disimpan (BR-FE-17) -->
-        <datalist id="period-date-labels">
-            <option v-for="name in labelOptions" :key="name" :value="name" />
-        </datalist>
         <div v-for="(row, index) in rows" :key="index" class="flex flex-col gap-1">
-            <div class="flex items-end gap-2">
-                <div class="flex-1 space-y-1">
-                    <Label :for="`period-date-label-${index}`" class="text-xs">Label</Label>
-                    <Input
-                        :id="`period-date-label-${index}`"
-                        v-model="row.label"
-                        list="period-date-labels"
-                        placeholder="mis. Batas Submit"
-                        :readonly="row.locked > 0"
+            <div class="flex flex-wrap items-end gap-2">
+                <div class="min-w-36 flex-1 space-y-1">
+                    <Label :for="`period-date-type-${index}`" class="text-xs">Jenis</Label>
+                    <OptionSelect
+                        :id="`period-date-type-${index}`"
+                        :model-value="row.type"
+                        :options="typeOptions"
+                        :disabled="row.locked > 0"
+                        @update:model-value="(value) => setType(row, value)"
                     />
                 </div>
-                <div class="flex-1 space-y-1">
+                <div class="min-w-36 flex-1 space-y-1">
+                    <Label :for="`period-date-cycle-${index}`" class="text-xs">Siklus</Label>
+                    <OptionSelect
+                        :id="`period-date-cycle-${index}`"
+                        :model-value="row.cycle === null ? MAIN : String(row.cycle)"
+                        :options="cycleOptions"
+                        :disabled="row.locked > 0"
+                        @update:model-value="(value) => setCycle(row, value)"
+                    />
+                </div>
+                <div class="min-w-44 flex-1 space-y-1">
                     <Label :for="`period-date-at-${index}`" class="text-xs">Batas akhir</Label>
                     <Input
                         :id="`period-date-at-${index}`"

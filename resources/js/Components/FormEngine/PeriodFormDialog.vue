@@ -9,20 +9,20 @@ import PeriodDateRows, { type PeriodDateRow } from '@/Components/FormEngine/Peri
 import { Checkbox } from '@/Components/ui/checkbox'
 import { Input } from '@/Components/ui/input'
 import { Label } from '@/Components/ui/label'
-import type { PeriodRowData } from '@/types/form-engine'
+import type { DeadlineTypeValue, PeriodRowData } from '@/types/form-engine'
 import type { FilterOption } from '@/types/submission-page'
 
 // W71 — buat & sunting periode dalam satu dialog; tanpa frame tersendiri.
 const props = defineProps<{
     period: PeriodRowData | null
-    labelOptions: string[]
+    typeOptions: FilterOption[]
     phaseOptions: FilterOption[]
 }>()
 const open = defineModel<boolean>('open', { required: true })
 
 const form = useForm<{
     name: string
-    submission_dates: { label: string; date: string }[]
+    submission_dates: { type: DeadlineTypeValue; cycle: number | null; date: string }[]
     form_phase_ids: number[]
 }>({ name: '', submission_dates: [], form_phase_ids: [] })
 const rows = ref<PeriodDateRow[]>([])
@@ -33,11 +33,12 @@ const fill = () => {
     form.form_phase_ids = period ? [...period.formPhaseIds] : []
     rows.value = period
         ? period.dates.map((d) => ({
-              label: d.label,
+              type: d.type,
+              cycle: d.cycle,
               date: d.inputValue,
               locked: d.phaseDetailCount,
           }))
-        : [{ label: '', date: '', locked: 0 }]
+        : [{ type: 'submit', cycle: null, date: '', locked: 0 }]
     form.clearErrors()
 }
 watch(open, (isOpen) => isOpen && fill(), { immediate: true })
@@ -57,7 +58,7 @@ const toggle = (id: number, checked: boolean | 'indeterminate') => {
 }
 
 const send = () => {
-    form.submission_dates = rows.value.map(({ label, date }) => ({ label, date }))
+    form.submission_dates = rows.value.map(({ type, cycle, date }) => ({ type, cycle, date }))
     const options = { preserveScroll: true, onSuccess: () => (open.value = false) }
     if (props.period) {
         form.put(route('admin.submission-periods.update', props.period.id), options)
@@ -71,7 +72,7 @@ const send = () => {
     <ActionDialog
         v-model:open="open"
         :title="period ? 'Sunting Periode' : 'Buat Periode Baru'"
-        description="Setiap tanggal adalah batas akhir; periode menerima pengajuan sejak dibuat."
+        description="Setiap tanggal adalah batas akhir; periode menerima pengajuan baru sampai Batas Submit."
         submit-label="Simpan Periode"
         :processing="form.processing"
         @submit="send"
@@ -83,13 +84,13 @@ const send = () => {
         </AppBanner>
         <!-- BR-SCH-08 — jumlah yang akan diberi tahu terlihat sebelum menggeser tanggal -->
         <AppBanner v-else-if="period && period.draftOwnerCount > 0" tone="info">
-            Memundurkan tenggat akan memberi tahu {{ period.draftOwnerCount }} peneliti yang masih
-            punya draft di periode ini.
+            Memundurkan Batas Submit atau Batas Revisi akan memberi tahu
+            {{ period.draftOwnerCount }} peneliti yang masih punya draft di periode ini.
         </AppBanner>
         <FormField id="period-name" label="Nama Periode" required :error="form.errors.name">
             <Input id="period-name" v-model="form.name" placeholder="mis. Penelitian DIPA 2027" />
         </FormField>
-        <PeriodDateRows v-model="rows" :label-options="labelOptions" />
+        <PeriodDateRows v-model="rows" :type-options="typeOptions" />
         <p v-for="message in dateErrors" :key="message" class="text-xs text-destructive">
             {{ message }}
         </p>
