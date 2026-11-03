@@ -5,15 +5,34 @@ import PhaseDeadlineSelect from '@/Components/FormEngine/PhaseDeadlineSelect.vue
 import type { SubmissionDateOption } from '@/types/form-engine'
 
 const options: SubmissionDateOption[] = [
-    { id: 1, type: 'submit', cycle: null, label: 'Periode A — Batas Submit — 01/03/2026' },
-    { id: 2, type: 'evaluation', cycle: null, label: 'Periode A — Batas Evaluasi — 20/03/2026' },
+    {
+        id: 1,
+        type: 'submit',
+        cycle: null,
+        periodId: 1,
+        label: 'Periode A — Batas Submit — 01/03/2026',
+    },
+    {
+        id: 2,
+        type: 'evaluation',
+        cycle: null,
+        periodId: 1,
+        label: 'Periode A — Batas Evaluasi — 20/03/2026',
+    },
     {
         id: 3,
         type: 'evaluation',
         cycle: 1,
+        periodId: 1,
         label: 'Periode A — Batas Evaluasi Monev I — 20/06/2026',
     },
-    { id: 4, type: 'revision', cycle: null, label: 'Periode A — Batas Revisi — 15/04/2026' },
+    {
+        id: 4,
+        type: 'revision',
+        cycle: null,
+        periodId: 1,
+        label: 'Periode A — Batas Revisi — 15/04/2026',
+    },
 ]
 
 const stubs = {

@@ -34,6 +34,7 @@ class ReviseFormPhase
 
         $this->assertOwnedBy($existing, $input->details);
         AssertUsedPhaseDetailsKeepTheirForm::run($existing, $input->details);
+        AssertEvaluatedDetailsStayReviewed::run($existing, $input->details);
         AssertPhaseDeadlines::run($phase, $input->details, $existing->mapWithKeys(
             fn (FormPhaseDetail $detail): array => [$detail->id => $detail],
         )->all());

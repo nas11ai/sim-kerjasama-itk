@@ -13,7 +13,8 @@ use Illuminate\Support\Collection;
 use Lorisleiva\Actions\Concerns\AsAction;
 
 /**
- * Aturan akses satu Form (ADMIN-08-07), urut permission lalu nama organisasi.
+ * Aturan akses satu Form (ADMIN-08-07), urut permission lalu nama organisasi. `forForms`
+ * memberi aturan beberapa Form sekaligus untuk pilihan akses detail tahap (W102).
  *
  * @method static list<FormAccessRuleData> run(Form $form)
  */
@@ -24,8 +25,19 @@ class FormAccessRules implements ChangesNoState
     /** @return list<FormAccessRuleData> */
     public function handle(Form $form): array
     {
+        return self::forForms([$form->id])[$form->id] ?? [];
+    }
+
+    /**
+     * Aturan akses beberapa Form sekaligus, ber-key id Form; urutan sama dengan `handle`.
+     *
+     * @param  list<int>  $formIds
+     * @return array<int, list<FormAccessRuleData>>
+     */
+    public static function forForms(array $formIds): array
+    {
         $rules = FormAccessControl::query()
-            ->where('form_id', $form->id)
+            ->whereIn('form_id', $formIds)
             ->withCount('formPhaseDetails')
             ->with('organization:id,name')
             ->get()
@@ -34,25 +46,30 @@ class FormAccessRules implements ChangesNoState
                 ['organization.name', 'asc'],
             ]);
 
-        $withChildren = $this->organizationsWithActiveChildren($rules);
+        $withChildren = self::organizationsWithActiveChildren($rules);
+        $grouped = [];
 
-        return array_values($rules->map(fn (FormAccessControl $rule): FormAccessRuleData => new FormAccessRuleData(
-            id: $rule->id,
-            permission: $rule->permission,
-            permissionLabel: PermissionCatalog::label($rule->permission),
-            organizationLabel: OrganizationOptions::label(
-                $rule->organization->name ?? '',
-                in_array($rule->organization_id, $withChildren, true),
-            ),
-            phaseDetailCount: $rule->form_phase_details_count,
-        ))->all());
+        foreach ($rules as $rule) {
+            $grouped[$rule->form_id][] = new FormAccessRuleData(
+                id: $rule->id,
+                permission: $rule->permission,
+                permissionLabel: PermissionCatalog::label($rule->permission),
+                organizationLabel: OrganizationOptions::label(
+                    $rule->organization->name ?? '',
+                    in_array($rule->organization_id, $withChildren, true),
+                ),
+                phaseDetailCount: $rule->form_phase_details_count,
+            );
+        }
+
+        return $grouped;
     }
 
     /**
      * @param  Collection<int, FormAccessControl>  $rules
      * @return array<int, int>
      */
-    private function organizationsWithActiveChildren(Collection $rules): array
+    private static function organizationsWithActiveChildren(Collection $rules): array
     {
         return Organization::query()
             ->where('is_active', true)

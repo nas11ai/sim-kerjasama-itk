@@ -22,11 +22,15 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property int|null $revision_date_id
  * @property int $review_evaluation_forms_count hanya setelah withCount(EVALUATION_FORM_COUNTS)
  * @property int $required_review_evaluation_forms_count
+ * @property int $submission_count hanya setelah PhaseEdit
+ * @property int $assignment_count hanya setelah PhaseEdit
+ * @property int $evaluation_form_count hanya setelah PhaseEdit
  * @property-read FormPhase|null $formPhase
  * @property-read SubmissionDate $submissionDate
  * @property-read SubmissionDate|null $evaluationDate
  * @property-read SubmissionDate|null $revisionDate
  * @property-read FormAccessControl|null $formAccessControl
+ * @property-read PhaseType|null $phaseType
  */
 class FormPhaseDetail extends Model
 {
@@ -39,7 +43,8 @@ class FormPhaseDetail extends Model
     ];
 
     /**
-     * BR-FE-20 — detail yang dirujuk pengajuan tidak bisa dihapus.
+     * BR-FE-20 — detail yang dirujuk pengajuan tidak bisa dihapus. BR-FE-22 — begitu pula detail
+     * yang form evaluasinya pernah ditugaskan: tanpa penjaga ini form evaluasinya ikut ter-cascade.
      */
     protected static function booted(): void
     {
@@ -47,6 +52,9 @@ class FormPhaseDetail extends Model
             ReferenceGuard::assertUnreferenced('Detail tahap', [
                 'pengajuan' => FormSubmission::query()
                     ->where('form_phase_detail_id', $detail->id)
+                    ->count(),
+                'penugasan form evaluasi' => ReviewerFormAssignment::query()
+                    ->whereIn('review_evaluation_form_id', $detail->reviewEvaluationForms()->select('id'))
                     ->count(),
             ]);
         });

@@ -23,6 +23,7 @@ beforeEach(function () {
 
     $this->detail = FormPhaseDetail::factory()->create();
     $this->phase = $this->detail->formPhase;
+    $this->form = $this->detail->formAccessControl?->form;
 });
 
 function deadlineOf(SubmissionPeriod $period): SubmissionDate
@@ -65,12 +66,12 @@ function deadlinePayload(array $rows): array
 }
 
 /** @return list<int> */
-function deadlineOptionIds(string $url): array
+function deadlineOptionIds(string $url, string $prop = 'submissionDates'): array
 {
     $ids = [];
 
-    test()->actingAs(test()->admin)->get($url)->assertInertia(function ($page) use (&$ids) {
-        $ids = collect($page->toArray()['props']['submissionDates'])->pluck('id')->all();
+    test()->actingAs(test()->admin)->get($url)->assertInertia(function ($page) use (&$ids, $prop) {
+        $ids = collect($page->toArray()['props'][$prop])->pluck('id')->all();
     });
 
     return $ids;
@@ -82,7 +83,7 @@ it('rejects moving a detail to a deadline outside the periods using its phase (B
     $dateId = $this->detail->submission_date_id;
 
     $this->actingAs($this->admin)
-        ->put(route('admin.form-phases.update', $this->phase), deadlinePayload([
+        ->put(route('admin.forms.phases.update', [$this->form, $this->phase]), deadlinePayload([
             deadlineRow($this->detail, $foreign->id),
         ]))
         ->assertSessionHasErrors('phase_details.0.submission_date_id');
@@ -96,7 +97,7 @@ it('rejects a new detail whose deadline is outside the periods using its phase (
     $foreign = deadlineOf(SubmissionPeriod::factory()->create());
 
     $this->actingAs($this->admin)
-        ->put(route('admin.form-phases.update', $this->phase), deadlinePayload([
+        ->put(route('admin.forms.phases.update', [$this->form, $this->phase]), deadlinePayload([
             deadlineRow($this->detail, null),
             deadlineRow($this->detail, $foreign->id, withId: false),
         ]))
@@ -109,7 +110,7 @@ it('saves a detail moved to a deadline of a period using its phase (BR-FE-17)', 
     $own = deadlineOf(linkedPeriodOf($this->phase));
 
     $this->actingAs($this->admin)
-        ->put(route('admin.form-phases.update', $this->phase), deadlinePayload([
+        ->put(route('admin.forms.phases.update', [$this->form, $this->phase]), deadlinePayload([
             deadlineRow($this->detail, $own->id),
         ]))
         ->assertSessionHasNoErrors();
@@ -121,7 +122,7 @@ it('keeps an unchanged deadline of a detail even if it predates the period link'
     linkedPeriodOf($this->phase);
 
     $this->actingAs($this->admin)
-        ->put(route('admin.form-phases.update', $this->phase), deadlinePayload([
+        ->put(route('admin.forms.phases.update', [$this->form, $this->phase]), deadlinePayload([
             deadlineRow($this->detail, $this->detail->submission_date_id),
         ]))
         ->assertSessionHasNoErrors();
@@ -131,7 +132,7 @@ it('rejects a deadline of a force-closed period for a phase no period uses (BR-F
     $closed = deadlineOf(SubmissionPeriod::factory()->create(['is_force_closed' => true]));
 
     $this->actingAs($this->admin)
-        ->put(route('admin.form-phases.update', $this->phase), deadlinePayload([
+        ->put(route('admin.forms.phases.update', [$this->form, $this->phase]), deadlinePayload([
             deadlineRow($this->detail, $closed->id),
         ]))
         ->assertSessionHasErrors('phase_details.0.submission_date_id');
@@ -162,7 +163,7 @@ it('offers only deadlines of the periods using the phase when editing (BR-FE-17)
     $own = deadlineOf(linkedPeriodOf($this->phase));
     $other = deadlineOf(SubmissionPeriod::factory()->create());
 
-    $ids = deadlineOptionIds(route('admin.form-phases.edit', $this->phase));
+    $ids = deadlineOptionIds(route('admin.forms.phases.edit', [$this->form, $this->phase]), 'deadlineOptions');
 
     expect($ids)->toBe([$own->id])->not->toContain($other->id);
 });
@@ -171,7 +172,7 @@ it('offers deadlines of periods not force-closed when editing a phase no period 
     $open = deadlineOf(SubmissionPeriod::factory()->create());
     $closed = deadlineOf(SubmissionPeriod::factory()->create(['is_force_closed' => true]));
 
-    $ids = deadlineOptionIds(route('admin.form-phases.edit', $this->phase));
+    $ids = deadlineOptionIds(route('admin.forms.phases.edit', [$this->form, $this->phase]), 'deadlineOptions');
 
     expect($ids)->toContain($open->id)->not->toContain($closed->id);
 });

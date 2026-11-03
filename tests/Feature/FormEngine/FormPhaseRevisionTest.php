@@ -31,6 +31,7 @@ beforeEach(function () {
         'form_phase_id' => $this->phase->id,
         'order' => 2,
     ]);
+    $this->form = $this->kept->formAccessControl?->form;
 });
 
 /** BR-FE-26 — Batas Evaluasi di periode Batas Submit detail itu, untuk baris yang direview. */
@@ -73,10 +74,12 @@ function revisionPayload(array $rows, string $title = 'Tahap Baru'): array
 function reviseFormPhase(array $payload): TestResponse
 {
     return test()->actingAs(test()->admin)
-        ->put(route('admin.form-phases.update', test()->phase), $payload);
+        ->put(route('admin.forms.phases.update', [test()->form, test()->phase]), $payload);
 }
 
 it('keeps the evaluation forms of a detail the revision retains (BR-FE-20)', function () {
+    // Form evaluasi hanya melekat pada detail yang direview (AssertReviewedPhaseDetail, W97).
+    $this->kept->update(['needs_review' => true, 'evaluation_date_id' => revisionEvaluationDate($this->kept)]);
     $evaluation = ReviewEvaluationForm::create([
         'title' => 'Lembar Penilaian',
         'form_phase_detail_id' => $this->kept->id,
@@ -87,7 +90,7 @@ it('keeps the evaluation forms of a detail the revision retains (BR-FE-20)', fun
 
     reviseFormPhase(revisionPayload([revisionRow($this->kept)]))
         ->assertSessionHasNoErrors()
-        ->assertRedirect(route('admin.forms.index'));
+        ->assertRedirect(route('admin.forms.phases.index', $this->form));
 
     expect(ReviewEvaluationForm::query()->whereKey($evaluation->id)->exists())->toBeTrue();
 });

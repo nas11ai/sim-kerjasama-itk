@@ -4,11 +4,12 @@ import type { FilterOption } from '@/types/submission-page'
 // Sumber: App\Enums\DeadlineType (BR-FE-25).
 export type DeadlineTypeValue = 'submit' | 'evaluation' | 'revision'
 
-// Sumber: App\Queries\Form\SubmissionDateOptions.
+// Sumber: App\Queries\Form\SubmissionDateOptions — `periodId`/`cycle` menyaring Batas Evaluasi/Revisi (W102).
 export interface SubmissionDateOption {
     id: number
     type: DeadlineTypeValue
     cycle: number | null
+    periodId: number
     label: string
 }
 
@@ -171,3 +172,47 @@ export interface FormEditPhasesProps {
 }
 
 export type FormEditPageProps = FormEditGeneralProps | FormEditAccessProps | FormEditPhasesProps
+
+// Sumber: App\Data\View\FormEngine\PhaseDetailEditData — hitungan mengunci hapus/form/tipe/review.
+export interface PhaseDetailEditData {
+    id: number
+    order: number
+    formAccessControlId: number
+    formTitle: string
+    accessLabel: string
+    phaseTypeId: number
+    phaseTypeName: string
+    needsReview: boolean
+    submissionDateId: number
+    evaluationDateId: number | null
+    revisionDateId: number | null
+    currentDeadlines: SubmissionDateOption[]
+    submissionCount: number
+    assignmentCount: number
+    evaluationFormCount: number
+}
+
+// Sumber: App\Data\View\FormEngine\PhaseEditData — `id` null = mode buat (W94).
+export interface PhaseEditData {
+    id: number | null
+    title: string
+    description: string | null
+    isActive: boolean
+    details: PhaseDetailEditData[]
+}
+
+// Sumber: App\Queries\Form\PhaseAccessOptions — `value` id aturan akses sebagai string (W102).
+export interface PhaseAccessOption {
+    value: string
+    label: string
+    formId: number
+}
+
+// Sumber: FormEngine\FormPhaseController::edit.
+export interface PhaseEditPageProps {
+    form: FormHeaderData
+    phase: PhaseEditData
+    accessOptions: PhaseAccessOption[]
+    phaseTypeOptions: FilterOption[]
+    deadlineOptions: SubmissionDateOption[]
+}

@@ -50,9 +50,9 @@ const summary = computed(() => {
                 @click="emit('link-period', phase)"
                 ><Link2 class="size-4" />Hubungkan ke Periode</Button
             >
-            <!-- Sementara menaut ke layar legacy; editor v2 menggantinya di Task 4 -->
             <Button as-child size="sm" variant="outline">
-                <Link :href="route('admin.form-phases.edit', phase.id)"
+                <Link
+                    :href="route('admin.forms.phases.edit', { form: formId, formPhase: phase.id })"
                     ><Pencil class="size-4" />Edit</Link
                 >
             </Button>

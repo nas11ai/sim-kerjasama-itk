@@ -19,9 +19,11 @@ use App\Models\FormPhaseDetail;
 use App\Models\FormSubmission;
 use App\Models\SubmissionDate;
 use App\Models\SubmissionPeriod;
+use App\Models\User;
 use App\States\Submission\Draft;
 use App\States\Submission\NeedsRevision;
 use App\Support\PhaseAccessGate;
+use Spatie\Permission\Models\Role;
 
 function windowDate(SubmissionPeriod $period, string $label, string $when): SubmissionDate
 {
@@ -94,6 +96,33 @@ it('[FE-WINDOW-04] dua detail beraktor sama boleh berbagi satu tanggal', functio
     expect($satu->submission_date_id)->toBe($dua->submission_date_id)
         ->and($satu->isWithinDeadline())->toBeTrue()
         ->and($dua->isWithinDeadline())->toBeTrue();
+});
+
+it('[FE-WINDOW-04] admin menyimpan dua detail beraktor sama dengan satu Batas Submit', function () {
+    Role::findOrCreate('Super Admin');
+    $admin = User::factory()->create();
+    $admin->assignRole('Super Admin');
+    $satu = FormPhaseDetail::factory()->create(['needs_review' => false]);
+    $dua = FormPhaseDetail::factory()->create(['needs_review' => false, 'form_phase_id' => $satu->form_phase_id]);
+    $row = fn (FormPhaseDetail $detail): array => [
+        'id' => $detail->id,
+        'form_access_control_id' => $detail->form_access_control_id,
+        'phase_type_id' => $detail->phase_type_id,
+        'order' => 1,
+        'needs_review' => false,
+        'submission_date_id' => $satu->submission_date_id,
+    ];
+
+    $this->actingAs($admin)
+        ->put(route('admin.forms.phases.update', [$satu->formAccessControl?->form, $satu->formPhase]), [
+            'title' => 'Fase Uji Jendela',
+            'is_active' => true,
+            'phase_details' => [$row($satu), $row($dua)],
+        ])
+        ->assertStatus(302)
+        ->assertSessionHasNoErrors();
+
+    expect($dua->fresh()?->submission_date_id)->toBe($satu->submission_date_id);
 });
 
 it('[FE-WINDOW-02] periode yang ditutup paksa menutup semua jendela', function () {

@@ -280,16 +280,10 @@ Route::middleware(['auth', 'can:users.manage'])->prefix('admin')->name('admin.')
     Route::post('/review-summaries/{reviewSummary}/comments', [ReviewController::class, 'addComment'])
         ->name('review-comments.store');
 
-    Route::resource('form-phases', FormPhaseController::class)->except('index', 'destroy')->names([
+    Route::resource('form-phases', FormPhaseController::class)->only('create', 'store')->names([
         'create' => 'form-phases.create',
         'store' => 'form-phases.store',
-        'show' => 'form-phases.show',
-        'edit' => 'form-phases.edit',
-        'update' => 'form-phases.update',
     ]);
-
-    Route::get('form-phases/{formPhase}/evaluation-forms', [FormPhaseController::class, 'evaluationForms'])
-        ->name('form-phases.evaluation-forms');
 });
 
 // For backwards compatibility, you can add redirects for admin routes without prefix
@@ -397,6 +391,11 @@ Route::middleware(['auth', 'can:schemes.manage'])->prefix('admin')->name('admin.
 
     // ADMIN-08-08 — tahap yang memakai Form ini (W92).
     Route::get('/forms/{form}/phases', [FormPhaseTabController::class, 'index'])->name('forms.phases.index');
+    // ADMIN-08-09 — editor tahap beserta semua detailnya.
+    Route::get('/forms/{form}/phases/{formPhase}/edit', [FormPhaseTabController::class, 'edit'])
+        ->name('forms.phases.edit');
+    Route::put('/forms/{form}/phases/{formPhase}', [FormPhaseTabController::class, 'update'])
+        ->name('forms.phases.update');
     Route::patch('/forms/{form}/phases/{formPhase}/active', [FormPhaseTabController::class, 'setActive'])
         ->name('forms.phases.active');
     Route::delete('/forms/{form}/phases/{formPhase}', [FormPhaseTabController::class, 'destroy'])

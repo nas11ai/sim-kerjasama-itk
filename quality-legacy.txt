@@ -20,9 +20,6 @@ resources/js/Components/ui/textarea/UiTextarea.vue
 resources/js/Pages/Config/ReferenceEntitiesPage.vue
 resources/js/Pages/EvaluationForms/ShowPage.vue
 resources/js/Pages/FormPhases/CreatePage.vue
-resources/js/Pages/FormPhases/EditPage.vue
-resources/js/Pages/FormPhases/EvaluationForms.vue
-resources/js/Pages/FormPhases/ShowPage.vue
 resources/js/Pages/Permissions/components/CreateDialogue.vue
 resources/js/Pages/Permissions/components/EditDialogue.vue
 resources/js/Pages/ReviewEvaluationForms/CreatePage.vue

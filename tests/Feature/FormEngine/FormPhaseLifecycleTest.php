@@ -165,9 +165,14 @@ it('passes deadline options labelled period, label and date to create and edit',
     $label = $date->submissionPeriod?->name.' — '.$date->label().' — '
         .$date->datetime->format('d/m/Y H:i');
 
-    foreach ([route('admin.form-phases.create'), route('admin.form-phases.edit', $detail->formPhase)] as $url) {
+    $screens = [
+        'submissionDates' => route('admin.form-phases.create'),
+        'deadlineOptions' => route('admin.forms.phases.edit', [$detail->formAccessControl?->form, $detail->formPhase]),
+    ];
+
+    foreach ($screens as $prop => $url) {
         $this->actingAs($this->admin)->get($url)->assertInertia(
-            fn ($page) => $page->where('submissionDates', fn ($options) => collect($options)
+            fn ($page) => $page->where($prop, fn ($options) => collect($options)
                 ->contains(fn ($option) => $option['id'] === $date->id && $option['label'] === $label))
         );
     }
