@@ -75,6 +75,14 @@ describe('StartStep', () => {
         expect(wrapper.text()).toContain('Form ini sudah tidak menerima pengajuan baru.')
     })
 
+    it('menampilkan alasan penolakan tahap (errors.form_phase_id)', () => {
+        pageErrors.form_phase_id = 'Tahap ini belum bertenggat di periode ini.'
+
+        const wrapper = mountStart()
+
+        expect(wrapper.text()).toContain('Tahap ini belum bertenggat di periode ini.')
+    })
+
     it('form tersaring periode terpilih', async () => {
         const wrapper = mountStart()
 

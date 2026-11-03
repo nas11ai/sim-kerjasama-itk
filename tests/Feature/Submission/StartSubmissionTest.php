@@ -7,6 +7,7 @@
 
 use App\Actions\FormSubmission\StartSubmission;
 use App\Enums\DeadlineType;
+use App\Models\FormPhaseDetail;
 use App\Models\FormSubmission;
 use App\Models\SubmissionDate;
 use App\Models\SubmissionPeriod;
@@ -275,6 +276,45 @@ it('[FE-WINDOW-13] detail yang tenggatnya milik periode lain tidak membuka penga
     $started = StartSubmission::run($fx['form']->id, $fx['period']->id, $fx['detail'], $fx['user']);
 
     expect($started->submission_period_id)->toBe($fx['period']->id);
+});
+
+it('[FE-WINDOW-13] mulai lewat HTTP di periode lain ditolak dengan galat form_phase_id', function () {
+    $fx = wizardFixture();
+    $second = windowSecondPeriod($fx);
+
+    $this->actingAs($fx['user'])
+        ->post(route('user.submissions.store'), [
+            'form_id' => $fx['form']->id,
+            'submission_period_id' => $second->id,
+            'form_phase_id' => $fx['phase']->id,
+        ])
+        ->assertSessionHasErrors(['form_phase_id' => 'Tahap ini belum bertenggat di periode ini.']);
+
+    expect(FormSubmission::where('form_id', $fx['form']->id)->count())->toBe(0);
+});
+
+it('[FE-WINDOW-13] mulai lewat HTTP memakai detail yang tenggatnya milik periode tujuan', function () {
+    $fx = wizardFixture();
+    $second = windowSecondPeriod($fx);
+    // Detail kedua (order 2) bertenggat di periode kedua; tanpa pemilihan, first() jatuh ke detail order 1.
+    $secondDetail = FormPhaseDetail::create([
+        'form_phase_id' => $fx['phase']->id,
+        'form_access_control_id' => $fx['detail']->form_access_control_id,
+        'phase_type_id' => $fx['detail']->phase_type_id,
+        'order' => 2,
+        'submission_date_id' => $second->submissionDates()->sole()->id,
+    ]);
+
+    $this->actingAs($fx['user'])
+        ->post(route('user.submissions.store'), [
+            'form_id' => $fx['form']->id,
+            'submission_period_id' => $second->id,
+            'form_phase_id' => $fx['phase']->id,
+        ])
+        ->assertSessionHasNoErrors()
+        ->assertRedirect();
+
+    expect(FormSubmission::where('form_id', $fx['form']->id)->sole()->form_phase_detail_id)->toBe($secondDetail->id);
 });
 
 it('draft yang sudah ada di periode itu tetap bisa dilanjutkan', function () {
