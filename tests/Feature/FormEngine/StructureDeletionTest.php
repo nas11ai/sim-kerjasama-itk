@@ -11,6 +11,8 @@
 // riwayat sebuah form beserta anggota, anggaran, evaluasi, dan luarannya.
 
 use App\Actions\Form\DeleteFormPhase;
+use App\Actions\Form\SetFormActive;
+use App\Actions\FormSubmission\StartSubmission;
 use App\Actions\Period\DeleteSubmissionPeriod;
 use App\Enums\DeadlineType;
 use App\Models\Form;
@@ -90,12 +92,16 @@ it('[FE-DELETE-04] Form tanpa satu pun pengajuan bisa dihapus', function () {
 });
 
 it('[FE-DELETE-05] Form yang masih dipakai dinonaktifkan, bukan dihapus', function () {
-    $form = Form::factory()->create(['is_active' => true]);
+    $fx = wizardFixture();
+    $form = $fx['form'];
+    $form->update(['is_active' => true]);
     FormSubmission::factory()->count(2)->create(['form_id' => $form->id]);
 
-    $form->update(['is_active' => false]);
+    SetFormActive::run($form, false, adminPenghapus());
 
     expect($form->fresh()->is_active)->toBeFalse()
+        ->and(fn () => StartSubmission::run($form->id, $fx['period']->id, $fx['detail'], $fx['user']))
+        ->toThrow(ValidationException::class)
         ->and(FormSubmission::query()->where('form_id', $form->id)->count())->toBe(2);
 });
 

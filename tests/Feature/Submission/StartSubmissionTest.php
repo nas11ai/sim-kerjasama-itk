@@ -9,9 +9,11 @@ use App\Actions\FormSubmission\StartSubmission;
 use App\Enums\DeadlineType;
 use App\Models\FormSubmission;
 use App\Models\SubmissionDate;
+use App\Queries\Submission\ResearcherStartOptions;
 use App\States\Submission\Draft;
 use App\States\Submission\NeedsRevision;
 use App\States\Submission\Rejected;
+use Illuminate\Validation\ValidationException;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 
 it('[SM-WIZARD-01] langkah 1 membuat draft beserta jangkar temporalnya', function () {
@@ -165,4 +167,40 @@ it('[FE-ACCESS-09] periode tanpa Batas Submit belum menerima pengajuan', functio
 
     expect(fn () => StartSubmission::run($fx['form']->id, $fx['period']->id, $fx['detail'], $fx['user']))
         ->toThrow(HttpException::class);
+});
+
+it('draft yang sudah ada tetap bisa dilanjutkan di Form nonaktif', function () {
+    $fx = wizardFixture();
+    $draft = StartSubmission::run($fx['form']->id, $fx['period']->id, $fx['detail'], $fx['user']);
+
+    $fx['form']->update(['is_active' => false]);
+
+    // BR-FE-19 / W77 — draft yang masih boleh disunting bukan pengajuan baru.
+    $again = StartSubmission::run($fx['form']->id, $fx['period']->id, $fx['detail'], $fx['user']);
+
+    expect($again->id)->toBe($draft->id);
+});
+
+it('Form nonaktif tidak ditawarkan dan ditolak saat dimulai', function () {
+    $fx = wizardFixture();
+    wizardQueryPhaseInPeriod($fx['period']->id, $fx['phase']->id);
+
+    $offeredForm = fn () => collect(ResearcherStartOptions::run($fx['user']))
+        ->flatMap(fn ($period) => $period->forms)->firstWhere('formId', $fx['form']->id);
+
+    // Kontrol: selagi aktif, Form ini memang ditawarkan.
+    expect($offeredForm())->not->toBeNull();
+
+    $fx['form']->update(['is_active' => false]);
+
+    expect($offeredForm())->toBeNull()
+        ->and(fn () => StartSubmission::run($fx['form']->id, $fx['period']->id, $fx['detail'], $fx['user']))
+        ->toThrow(ValidationException::class);
+
+    // Peneliti yang sudah punya draft tetap melihat Form itu, dengan draftId terisi.
+    $fx['form']->update(['is_active' => true]);
+    $draft = StartSubmission::run($fx['form']->id, $fx['period']->id, $fx['detail'], $fx['user']);
+    $fx['form']->update(['is_active' => false]);
+
+    expect($offeredForm()?->draftId)->toBe($draft->id);
 });

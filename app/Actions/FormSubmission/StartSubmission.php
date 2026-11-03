@@ -2,6 +2,7 @@
 
 namespace App\Actions\FormSubmission;
 
+use App\Models\Form;
 use App\Models\FormPhaseDetail;
 use App\Models\FormSubmission;
 use App\Models\SubmissionPeriod;
@@ -9,6 +10,7 @@ use App\Models\User;
 use App\Support\AccountStateGuard;
 use App\Support\Audit\AuditTrail;
 use App\Support\SubmissionPeriodGate;
+use Illuminate\Validation\ValidationException;
 use Lorisleiva\Actions\Concerns\AsAction;
 
 class StartSubmission
@@ -48,6 +50,8 @@ class StartSubmission
             return $existing;
         }
 
+        $this->assertAcceptsNewSubmissions($formId);
+
         // ADR 0012 — created_at baris ini menjadi jangkar Temporal Field Binding
         // (BR-FE-11), jadi ia harus lahir saat peneliti mulai mengisi.
         $tercatat = FormSubmission::create([
@@ -63,5 +67,16 @@ class StartSubmission
         AuditTrail::record('Draft pengajuan dibuat', $tercatat, $user);
 
         return $tercatat;
+    }
+
+    // BR-FE-19 / FE-DELETE-05 — Form nonaktif tidak menerima pengajuan baru; draft yang
+    // masih boleh disunting sudah dikembalikan lebih dulu, jadi tidak ikut tertolak (W77).
+    private function assertAcceptsNewSubmissions(int $formId): void
+    {
+        if (!Form::query()->whereKey($formId)->where('is_active', false)->exists()) {
+            return;
+        }
+
+        throw ValidationException::withMessages(['form_id' => 'Form ini sudah tidak menerima pengajuan baru.']);
     }
 }

@@ -242,7 +242,7 @@ Route::middleware(['auth', 'can:users.manage'])->prefix('admin')->name('admin.')
         'destroy' => 'permissions.destroy',
     ]);
 
-    Route::resource('forms', FormController::class)->except('index');
+    Route::resource('forms', FormController::class)->except(['index', 'destroy']);
 
     // Complete Form Builder Routes
     Route::get('/form-builder/create', [CompleteFormBuilderController::class, 'create'])
@@ -423,6 +423,8 @@ Route::middleware(['auth', 'can:submissions.view-all'])->prefix('admin')->name('
 // ADMIN-08-05 — Form Builder dikelola pemegang schemes.manage (W88).
 Route::middleware(['auth', 'can:schemes.manage'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/forms', [FormBuilderController::class, 'index'])->name('forms.index');
+    Route::patch('/forms/{form}/active', [FormBuilderController::class, 'setActive'])->name('forms.active');
+    Route::delete('/forms/{form}', [FormBuilderController::class, 'destroy'])->name('forms.destroy');
 });
 
 // OPERATOR-09-01 — periode dikelola pemegang periods.manage, bukan users.manage (§4.4 K1).

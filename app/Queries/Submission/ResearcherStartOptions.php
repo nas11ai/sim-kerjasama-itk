@@ -33,7 +33,7 @@ class ResearcherStartOptions implements ChangesNoState
                 'submissionPeriodPhases.formPhase.formPhaseDetails' => fn (Relation $q) => $q
                     ->whereIn('form_access_control_id', FormAccessControl::query()->accessibleBy($user)->select('id'))
                     ->orderBy('order')
-                    ->with('formAccessControl.form:id,title'),
+                    ->with('formAccessControl.form:id,title,is_active'),
             ])
             ->orderBy('id')
             ->get()
@@ -70,14 +70,23 @@ class ResearcherStartOptions implements ChangesNoState
             foreach ($periodPhase->formPhase->formPhaseDetails ?? [] as $detail) {
                 $form = $detail->formAccessControl?->form;
 
-                if ($form !== null && !isset($forms[$form->id])) {
-                    $forms[$form->id] = new StartFormOptionData(
-                        formId: $form->id,
-                        formPhaseId: $detail->form_phase_id,
-                        title: $form->title,
-                        draftId: $this->draftId($form->id, $period, $user),
-                    );
+                if ($form === null || isset($forms[$form->id])) {
+                    continue;
                 }
+
+                $draftId = $this->draftId($form->id, $period, $user);
+
+                // BR-FE-19 / W77 — Form nonaktif hanya ditawarkan bila peneliti punya draft di sana.
+                if (!$form->is_active && $draftId === null) {
+                    continue;
+                }
+
+                $forms[$form->id] = new StartFormOptionData(
+                    formId: $form->id,
+                    formPhaseId: $detail->form_phase_id,
+                    title: $form->title,
+                    draftId: $draftId,
+                );
             }
         }
 

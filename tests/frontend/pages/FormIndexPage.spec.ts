@@ -1,9 +1,13 @@
-import { mount } from '@vue/test-utils'
+import { flushPromises, mount, type VueWrapper } from '@vue/test-utils'
 import { defineComponent, h } from 'vue'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
+const { router } = vi.hoisted(() => ({
+    router: { get: vi.fn(), patch: vi.fn(), delete: vi.fn() },
+}))
+
 vi.mock('@inertiajs/vue3', () => ({
-    router: { get: vi.fn() },
+    router,
     Head: defineComponent({ setup: () => () => null }),
     Link: defineComponent({
         props: { href: { type: String, required: true } },
@@ -68,8 +72,21 @@ const mountPage = (rows: FormRowData[], overrides: Partial<FormIndexPageProps> =
         global: { mocks: { route } },
     })
 
+const clickIn = async (wrapper: VueWrapper, label: string) => {
+    await wrapper
+        .findAll('button')
+        .find((b) => b.text().trim() === label)
+        ?.trigger('click')
+    await flushPromises()
+}
+
+const bodyButton = (label: string) =>
+    Array.from(document.querySelectorAll('button')).find((b) => b.textContent?.trim() === label)
+
 beforeEach(() => {
     vi.stubGlobal('route', route)
+    document.body.innerHTML = ''
+    Object.values(router).forEach((fn) => fn.mockClear())
 })
 
 describe('FormEngine/FormIndexPage', () => {
@@ -112,5 +129,72 @@ describe('FormEngine/FormIndexPage', () => {
         expect(
             mountPage([], { filters: { search: 'xyz', type: '', status: '' } }).text()
         ).toContain('Tidak ada form yang cocok')
+    })
+
+    it('[FE-DELETE-01] hapus form berpengajuan membuka penjelasan berangka, bukan konfirmasi', async () => {
+        const wrapper = mountPage([formRow({ submissionCount: 45 })])
+        await clickIn(wrapper, 'Hapus')
+
+        expect(document.body.textContent).toContain('Form tidak bisa dihapus')
+        expect(document.body.textContent).toContain('Form ini dipakai 45 pengajuan')
+        expect(document.body.textContent).not.toContain('Hapus form?')
+        expect(router.delete).not.toHaveBeenCalled()
+    })
+
+    it('[FE-DELETE-02] satu draft pun membuka penjelasan', async () => {
+        const wrapper = mountPage([formRow({ submissionCount: 1, activeSubmissionCount: 1 })])
+        await clickIn(wrapper, 'Hapus')
+
+        expect(document.body.textContent).toContain('Form ini dipakai 1 pengajuan')
+    })
+
+    it('penjelasan menawarkan Nonaktifkan Form hanya bila form masih aktif', async () => {
+        const active = mountPage([formRow()])
+        await clickIn(active, 'Hapus')
+        expect(bodyButton('Nonaktifkan Form')).toBeDefined()
+
+        document.body.innerHTML = ''
+        const inactive = mountPage([formRow({ isActive: false })])
+        await clickIn(inactive, 'Hapus')
+        expect(bodyButton('Nonaktifkan Form')).toBeUndefined()
+    })
+
+    it('[FE-DELETE-04] form kosong dikonfirmasi lalu dihapus', async () => {
+        const wrapper = mountPage([formRow({ submissionCount: 0, activeSubmissionCount: 0 })])
+        await clickIn(wrapper, 'Hapus')
+
+        expect(document.body.textContent).toContain('Hapus form?')
+        bodyButton('Hapus Form')?.click()
+        await flushPromises()
+        expect(router.delete).toHaveBeenCalledWith('/admin.forms.destroy/3', expect.anything())
+    })
+
+    it('[FE-DELETE-05] nonaktifkan dikonfirmasi lalu memanggil route active', async () => {
+        const wrapper = mountPage([formRow()])
+        await clickIn(wrapper, 'Nonaktifkan')
+
+        expect(document.body.textContent).toContain('Nonaktifkan form?')
+        expect(document.body.textContent).toContain('42 pengajuan aktif tetap berjalan dan terbaca.')
+        bodyButton('Nonaktifkan Form')?.click()
+        await flushPromises()
+        expect(router.patch).toHaveBeenCalledWith(
+            '/admin.forms.active/3',
+            { active: false },
+            expect.anything()
+        )
+    })
+
+    it('mengaktifkan form nonaktif memanggil route active dengan true', async () => {
+        const wrapper = mountPage([formRow({ isActive: false })])
+        await clickIn(wrapper, 'Aktifkan')
+
+        expect(document.body.textContent).toContain('Aktifkan form?')
+        bodyButton('Aktifkan Form')?.click()
+        await flushPromises()
+        expect(router.patch).toHaveBeenCalledWith(
+            '/admin.forms.active/3',
+            { active: true },
+            expect.anything()
+        )
     })
 })
