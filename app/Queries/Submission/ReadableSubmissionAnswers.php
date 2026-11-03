@@ -4,6 +4,7 @@ namespace App\Queries\Submission;
 
 use App\Actions\Concerns\ChangesNoState;
 use App\Data\View\Submission\SubmissionAnswerData;
+use App\Models\FieldType;
 use App\Models\FormField;
 use App\Models\FormFieldOption;
 use App\Models\FormSubmission;
@@ -20,8 +21,6 @@ class ReadableSubmissionAnswers implements ChangesNoState
     use AsAction;
 
     private const COLUMN_BACKED_TYPES = ['scheme_selector', 'trl_selector'];
-
-    private const OPTION_TYPES = ['select', 'radio'];
 
     /** @return list<SubmissionAnswerData> */
     public function handle(FormSubmission $submission): array
@@ -62,7 +61,7 @@ class ReadableSubmissionAnswers implements ChangesNoState
             return in_array($value, ['1', 'true'], true) ? 'Ya' : 'Tidak';
         }
 
-        if (!in_array($type, self::OPTION_TYPES, true)) {
+        if (!in_array($type, FieldType::OPTION_TYPES, true)) {
             return $value;
         }
 

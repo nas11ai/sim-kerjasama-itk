@@ -25,16 +25,16 @@ use Inertia\Testing\AssertableInertia as Assert;
 use Spatie\Permission\Models\Permission;
 
 /**
- * Admin yang benar-benar bisa membuka layar Form: grup rute admin dijaga
- * `can:users.manage`, jadi role saja tidak cukup.
+ * Admin yang benar-benar bisa membuka layar Form: grup rute Form dijaga
+ * `can:schemes.manage` (W88), jadi role saja tidak cukup.
  */
 function formAdmin(): User
 {
-    Permission::findOrCreate('users.manage', 'web');
+    Permission::findOrCreate('schemes.manage', 'web');
 
     $admin = User::factory()->create();
     UserProfile::factory()->create(['user_id' => $admin->id]);
-    $admin->givePermissionTo('users.manage');
+    $admin->givePermissionTo('schemes.manage');
 
     return $admin->refresh();
 }
@@ -151,8 +151,8 @@ it('[FE-CHANGE-02] halaman edit Form membawa jumlah draft terdampak', function (
         ->get(route('admin.forms.edit', $fx['form']))
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
-            ->component('Forms/EditPage')
-            ->where('affectedDrafts', 1)
+            ->component('FormEngine/FormEditPage')
+            ->where('general.affectedDrafts', 1)
             ->etc());
 });
 
@@ -171,7 +171,8 @@ it('[FE-CHANGE-03] menyimpan dengan notify_affected mengirim notifikasi', functi
             'fields' => [],
             'notify_affected' => true,
         ])
-        ->assertRedirect();
+        ->assertRedirect()
+        ->assertSessionHas('success', 'Form diperbarui. 1 peneliti diberi tahu.');
 
     Notification::assertSentTo($fx['user'], FormChangedNotification::class);
 });

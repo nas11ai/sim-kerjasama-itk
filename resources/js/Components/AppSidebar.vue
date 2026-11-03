@@ -39,7 +39,6 @@ import {
     MessageSquare,
     CheckCircle,
     Clock,
-    Wand2,
     Megaphone,
     User,
     Bolt,
@@ -101,11 +100,6 @@ const adminNavItems = [
         title: 'Manajemen Formulir',
         icon: FileText,
         items: [
-            {
-                title: 'Form Builder',
-                url: route('admin.form-builder.create'),
-                icon: Wand2,
-            },
             {
                 title: 'Formulir',
                 url: route('admin.forms.index'),

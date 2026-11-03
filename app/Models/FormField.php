@@ -18,6 +18,7 @@ use Illuminate\Validation\ValidationException;
  * @property bool $is_required
  * @property Carbon|null $required_since
  * @property int $order
+ * @property int $form_field_responses_count dimuat `withCount` FormGeneral (BR-FE-23)
  * @property-read Form|null $form
  * @property-read FieldType|null $fieldType
  * @property-read Collection<int, FormFieldOption> $formFieldOptions

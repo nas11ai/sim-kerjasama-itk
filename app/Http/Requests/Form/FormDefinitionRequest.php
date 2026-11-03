@@ -4,7 +4,12 @@ namespace App\Http\Requests\Form;
 
 use App\Data\Request\FormFieldInput;
 use App\Data\Request\FormInput;
+use App\Models\Form;
+use App\Models\FormType;
+use App\Queries\Form\FormTypeOptions;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
+use Illuminate\Validation\Rules\NotIn;
 
 /**
  * Buat dan Ubah Form. `id` field dan opsi hanya diperiksa keberadaannya di sini;
@@ -17,14 +22,15 @@ class FormDefinitionRequest extends FormRequest
         return true;
     }
 
-    /** @return array<string, string> */
+    /** @return array<string, string|list<string|NotIn>> */
     public function rules(): array
     {
         return [
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
-            'form_type_id' => 'required|integer|exists:form_types,id',
+            'form_type_id' => $this->formTypeRules(),
             'is_active' => 'boolean',
+            'continue' => 'boolean',
             'fields' => 'array',
             'fields.*.id' => 'nullable|integer|exists:form_fields,id',
             'fields.*.field_type_id' => 'required|integer|exists:field_types,id',
@@ -34,6 +40,30 @@ class FormDefinitionRequest extends FormRequest
             'fields.*.options.*.id' => 'nullable|integer|exists:form_field_options,id',
             'fields.*.options.*.label' => 'required|string|max:255',
         ];
+    }
+
+    /** @return array<string, string> */
+    public function messages(): array
+    {
+        return ['form_type_id.not_in' => 'Tipe Biodata tidak tersedia untuk form ini.'];
+    }
+
+    /**
+     * W80 — Biodata tidak bisa dipilih untuk Form baru maupun sebagai tipe pengganti;
+     * Form yang sudah bertipe Biodata boleh disimpan dengan tipenya sendiri.
+     *
+     * @return list<string|NotIn>
+     */
+    private function formTypeRules(): array
+    {
+        $rules = ['required', 'integer', 'exists:form_types,id'];
+        $form = $this->route('form');
+
+        if (FormTypeOptions::keepsBiodata($form instanceof Form ? $form : null)) {
+            return $rules;
+        }
+
+        return [...$rules, Rule::notIn([FormType::BIODATA_ID])];
     }
 
     public function toInput(): FormInput

@@ -5,7 +5,6 @@ namespace App\Models;
 use App\Queries\Period\SubmissionPeriodReferences;
 use App\Support\Lifecycle\ReferenceGuard;
 use Carbon\Carbon;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -49,19 +48,6 @@ class SubmissionPeriod extends Model
     protected $casts = [
         'is_force_closed' => 'boolean',
     ];
-
-    /**
-     * BR-SCH-07 — periode yang masih bisa dipakai tahap baru: belum ditutup paksa dan
-     * masih punya tanggal di depan.
-     *
-     * @param  Builder<SubmissionPeriod>  $query
-     * @return Builder<SubmissionPeriod>
-     */
-    public function scopeUsable(Builder $query): Builder
-    {
-        return $query->where('is_force_closed', false)
-            ->whereHas('submissionDates', fn (Builder $dates) => $dates->where('datetime', '>', now()));
-    }
 
     /** @return HasMany<SubmissionDate, $this> */
     public function submissionDates(): HasMany

@@ -56,7 +56,8 @@ class SubmissionPeriodRequest extends FormRequest
         return new SubmissionPeriodInput(
             name: $this->string('name')->value(),
             dates: $this->submissionDates(),
-            formPhaseIds: array_map(intval(...), $this->array('form_phase_ids')),
+            // Satu tahap ditautkan ke periode sekali saja; pivotnya tanpa unique constraint.
+            formPhaseIds: array_values(array_unique(array_map(intval(...), $this->array('form_phase_ids')))),
         );
     }
 

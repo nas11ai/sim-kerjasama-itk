@@ -16,6 +16,7 @@ use App\Models\FormField;
 use App\Models\FormPhase;
 use App\Models\FormPhaseDetail;
 use App\Models\FormSubmission;
+use App\Models\FormType;
 use App\Models\Organization;
 use App\Models\PhaseType;
 use App\Models\Reviewer;
@@ -499,4 +500,22 @@ function reviewedDetailFixture(string $submit, string $evaluation, ?string $revi
         'reviewer' => $reviewer,
         'assignment' => ReviewerFormAssignment::query()->where('submission_reviewer_id', $seat->id)->sole(),
     ];
+}
+
+/**
+ * W80 — tipe Form yang boleh dipilih Form baru. Basis data segar memberi id pertama
+ * tipe mana pun yang dibuat lebih dulu, dan id itu adalah BIODATA_ID.
+ */
+function regularFormType(): FormType
+{
+    $type = FormType::factory()->create();
+
+    return $type->id === FormType::BIODATA_ID ? FormType::factory()->create() : $type;
+}
+
+/** Tipe Biodata pada id-nya yang tetap; dipanggil sesudah regularFormType() agar urutan id tak bentrok. */
+function biodataFormType(): FormType
+{
+    return FormType::query()->find(FormType::BIODATA_ID)
+        ?? FormType::forceCreate(['id' => FormType::BIODATA_ID, 'name' => 'Biodata']);
 }

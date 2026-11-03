@@ -75,6 +75,18 @@ it('audits the creation of a period (BR-RPT-09)', function () {
     expect($period->submissionPeriodPhases()->count())->toBe(1);
 });
 
+it('menautkan tahap yang terkirim dua kali hanya sekali', function () {
+    $payload = periodPayload([['type' => 'submit', 'date' => '2030-01-01']], [
+        'form_phase_ids' => [$this->phase->id, $this->phase->id],
+    ]);
+
+    $this->actingAs($this->admin)
+        ->post(route('admin.submission-periods.store'), $payload)
+        ->assertSessionHasNoErrors();
+
+    expect(SubmissionPeriodPhase::query()->where('form_phase_id', $this->phase->id)->count())->toBe(1);
+});
+
 it('audits the revision of a period (BR-RPT-09)', function () {
     $period = SubmissionPeriod::factory()->create(['name' => 'Lama']);
     $payload = periodPayload([['type' => 'submit', 'date' => '2030-01-01']], ['name' => 'Baru']);

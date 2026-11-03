@@ -78,3 +78,58 @@ export interface FormIndexPageProps {
     typeOptions: FilterOption[]
     statusOptions: FilterOption[]
 }
+
+// Sumber: App\Queries\Form\FieldTypeOptions — `value` id tipe sebagai string.
+export interface FieldTypeOption {
+    value: string
+    label: string
+    hasOptions: boolean
+}
+
+// Sumber: App\Data\View\FormEngine\FormHeaderData.
+export interface FormHeaderData {
+    id: number
+    title: string
+    isActive: boolean
+}
+
+// Sumber: App\Data\View\FormEngine\FormFieldEditData — `answerCount` > 0 mengunci tipe (BR-FE-23).
+export interface FormFieldEditData {
+    id: number
+    label: string
+    fieldTypeId: number
+    isRequired: boolean
+    requiredSince: string | null
+    answerCount: number
+    options: { id: number; label: string }[]
+}
+
+// Sumber: App\Data\View\FormEngine\ArchivedFieldData (BR-FE-12).
+export interface ArchivedFieldData {
+    id: number
+    label: string
+    typeName: string
+}
+
+// Sumber: App\Data\View\FormEngine\FormGeneralData.
+export interface FormGeneralData {
+    title: string
+    description: string | null
+    formTypeId: number | null
+    isActive: boolean
+    fields: FormFieldEditData[]
+    archivedFields: ArchivedFieldData[]
+    affectedDrafts: number
+}
+
+// Sumber: FormEngine\FormController::create/edit. Satu komponen untuk semua tab (W86);
+// varian `'access'` menyusul bersama tab Access Control.
+export interface FormEditGeneralProps {
+    tab: 'general'
+    form: FormHeaderData | null
+    general: FormGeneralData
+    fieldTypeOptions: FieldTypeOption[]
+    formTypeOptions: FilterOption[]
+}
+
+export type FormEditPageProps = FormEditGeneralProps

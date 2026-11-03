@@ -19,9 +19,9 @@ use Spatie\Permission\Models\Permission;
 
 function actingFormAdmin(): User
 {
-    Permission::findOrCreate('users.manage');
+    Permission::findOrCreate('schemes.manage');
     $user = User::factory()->create();
-    $user->givePermissionTo('users.manage');
+    $user->givePermissionTo('schemes.manage');
 
     return $user;
 }

@@ -77,6 +77,18 @@ it('creates an evaluation form without a description, with its fields and option
         ->and(evaluationAudit($form, 'Form evaluasi dibuat')?->properties['new']['fields'])->toContain('Rekomendasi');
 });
 
+it('rejects an evaluation field without a field type as a validation error', function () {
+    $detail = FormPhaseDetail::factory()->create(['needs_review' => true]);
+
+    $this->actingAs($this->admin)->post(route('admin.review-evaluation-forms.store'), [
+        'title' => 'Kelayakan',
+        'form_phase_detail_id' => $detail->id,
+        'fields' => [['label' => 'Skor']],
+    ])->assertStatus(302)->assertSessionHasErrors('fields.0.field_type_id');
+
+    expect(ReviewEvaluationForm::query()->count())->toBe(0);
+});
+
 it('rejects a phase detail that is not reviewed', function () {
     $detail = FormPhaseDetail::factory()->create(['needs_review' => false]);
 

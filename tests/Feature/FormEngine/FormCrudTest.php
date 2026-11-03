@@ -48,18 +48,29 @@ function formPayload(Form $form, array $fields): array
 }
 
 it('creates a form with its fields and options, audited', function () {
-    $type = Form::factory()->create()->form_type_id;
-
-    $this->actingAs($this->admin)->post(route('admin.forms.store'), [
+    $response = $this->actingAs($this->admin)->post(route('admin.forms.store'), [
         'title' => 'Form Baru',
-        'form_type_id' => $type,
+        'form_type_id' => regularFormType()->id,
         'fields' => [['field_type_id' => $this->fieldType->id, 'label' => 'Skema', 'options' => [['label' => 'A']]]],
-    ])->assertRedirect(route('admin.forms.index'));
+    ]);
 
     $form = Form::query()->where('title', 'Form Baru')->firstOrFail();
+    $response->assertRedirect(route('admin.forms.edit', $form));
 
     expect($form->formFields()->first()?->formFieldOptions()->pluck('label')->all())->toBe(['A'])
         ->and(formAudit($form, 'Formulir dibuat')?->properties['new']['fields'])->toContain('Skema');
+});
+
+it('rejects a trl_selector without a scheme_selector on the Form screen and saves nothing (BR-SCH-05)', function () {
+    $trl = FieldType::firstOrCreate(['name' => 'trl_selector']);
+
+    $this->actingAs($this->admin)->post(route('admin.forms.store'), [
+        'title' => 'Form TRL',
+        'form_type_id' => regularFormType()->id,
+        'fields' => [['field_type_id' => $trl->id, 'label' => 'TRL', 'is_required' => true]],
+    ])->assertSessionHasErrors('fields');
+
+    expect(Form::query()->where('title', 'Form TRL')->exists())->toBeFalse();
 });
 
 it('rejects a field id that belongs to another form and leaves that form intact', function () {
