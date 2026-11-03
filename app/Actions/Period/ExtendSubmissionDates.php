@@ -4,6 +4,8 @@ namespace App\Actions\Period;
 
 use App\Data\Request\PeriodDateInput;
 use App\Data\Result\DeadlineExtension;
+use App\Enums\DeadlineType;
+use App\Models\ReviewerFormAssignment;
 use App\Models\SubmissionDate;
 use App\Models\SubmissionPeriod;
 use App\Models\User;
@@ -11,15 +13,16 @@ use App\Notifications\SubmissionDeadlineExtendedNotification;
 use App\Queries\Period\PeriodDraftOwners;
 use App\Support\Audit\AuditTrail;
 use App\Support\Notification\Deliver;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Lorisleiva\Actions\Concerns\AsAction;
 
 /**
- * BR-SCH-08 — memberi tahu pemilik draft kalau batas bergeser LEBIH LAMA (nilai
- * lama dibandingkan dengan baru); memajukan atau mengganti nama tidak memberi
- * peneliti kesempatan baru, memperpanjang memberi.
+ * BR-SCH-08 — memberi tahu pemilik draft kalau Batas Submit/Revisi bergeser LEBIH LAMA;
+ * memajukan, atau menggeser Batas Evaluasi, tidak memberi peneliti kesempatan baru.
+ * K8e — tenggat yang digeser berlaku untuk semua, termasuk penugasan reviewer yang sudah ada.
  *
  * @method static DeadlineExtension run(SubmissionPeriod $period, list<PeriodDateInput> $dates, ?User $actor = null)
  */
@@ -94,14 +97,7 @@ class ExtendSubmissionDates
             $lama = $existing->get($row->key());
 
             if ($lama instanceof SubmissionDate) {
-                if ($baru->gt($lama->datetime)) {
-                    $adaPerpanjangan = true;
-                }
-
-                // Hapus-lalu-buat-ulang gagal di periode terpakai: foreign key
-                // `form_phase_details.submission_date_id` menunjuknya, dan bila
-                // lolos, tiap FormPhaseDetail kehilangan tanggalnya.
-                $lama->update(['datetime' => $baru]);
+                $adaPerpanjangan = $this->move($lama, $baru) || $adaPerpanjangan;
                 $terpakai[] = $lama->id;
 
                 continue;
@@ -118,6 +114,37 @@ class ExtendSubmissionDates
         $this->deleteUnlisted($period, $terpakai);
 
         return $adaPerpanjangan;
+    }
+
+    /**
+     * Menggeser satu tanggal di tempat. Hapus-lalu-buat-ulang gagal di periode terpakai: foreign
+     * key `form_phase_details` menunjuknya, dan bila lolos, tiap detail kehilangan tanggalnya.
+     *
+     * @return bool apakah pemilik draft perlu diberi tahu (BR-SCH-08)
+     */
+    private function move(SubmissionDate $date, Carbon $to): bool
+    {
+        $later = $to->gt($date->datetime);
+
+        if ($date->type === DeadlineType::Evaluation) {
+            $this->followEvaluation($date, $to);
+        }
+
+        $date->update(['datetime' => $to]);
+
+        return $later && $date->type !== DeadlineType::Evaluation;
+    }
+
+    /**
+     * K8e — penugasan menyimpan salinan Batas Evaluasi (`due_date`, EvaluationDueDate). Salinan
+     * yang masih sama dengan tanggal lama ikut bergeser; tenggat yang disetel tangan dibiarkan.
+     */
+    private function followEvaluation(SubmissionDate $date, Carbon $to): void
+    {
+        ReviewerFormAssignment::query()
+            ->where('due_date', $date->datetime)
+            ->whereHas('reviewEvaluationForm.formPhaseDetail', fn (Builder $q) => $q->where('evaluation_date_id', $date->id))
+            ->update(['due_date' => $to]);
     }
 
     /** @return Collection<string, SubmissionDate> BR-FE-25 — kunci (jenis, siklus) unik per periode. */

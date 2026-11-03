@@ -9,6 +9,8 @@
 use App\Actions\FormSubmission\StartSubmission;
 use App\Actions\Period\ExtendSubmissionDates;
 use App\Data\Request\PeriodDateInput;
+use App\Enums\DeadlineType;
+use App\Models\SubmissionDate;
 use App\Models\User;
 use App\Models\UserProfile;
 use App\Notifications\SubmissionDeadlineExtendedNotification;
@@ -189,4 +191,78 @@ it('flash deadlineExtended hanya saat tenggat mundur', function () {
     $this->actingAs($operator)
         ->put(route('admin.submission-periods.update', $fx['period']), $payload(now()->addMonths(3)->toDateTimeString()))
         ->assertInertiaFlash('deadlineExtended', 0);
+});
+
+it('[SCH-RULE-16] menggeser Batas Evaluasi tidak memberi tahu pemilik draft', function () {
+    Notification::fake();
+
+    $fx = wizardFixture();
+    StartSubmission::run($fx['form']->id, $fx['period']->id, $fx['detail'], $fx['user']);
+    $submit = $fx['period']->submissionDates()->firstOrFail();
+    SubmissionDate::create([
+        'type' => DeadlineType::Evaluation,
+        'datetime' => now()->addWeek(),
+        'submission_period_id' => $fx['period']->id,
+    ]);
+
+    // BR-SCH-08 (K8e) — Batas Evaluasi tidak dikerjakan peneliti: memundurkannya bukan kesempatan baru baginya.
+    $hasil = ExtendSubmissionDates::run($fx['period']->fresh(), [
+        new PeriodDateInput(DeadlineType::Submit, null, $submit->datetime->toDateTimeString()),
+        new PeriodDateInput(DeadlineType::Evaluation, null, now()->addMonth()->toDateTimeString()),
+    ]);
+
+    expect($hasil->notified)->toBe(0)
+        ->and($hasil->extended)->toBeFalse();
+    Notification::assertNothingSent();
+});
+
+it('[SCH-RULE-11] memundurkan Batas Revisi memberi tahu pemilik draft', function () {
+    Notification::fake();
+
+    $fx = wizardFixture();
+    StartSubmission::run($fx['form']->id, $fx['period']->id, $fx['detail'], $fx['user']);
+    $submit = $fx['period']->submissionDates()->firstOrFail();
+    SubmissionDate::create([
+        'type' => DeadlineType::Revision,
+        'datetime' => now()->addWeek(),
+        'submission_period_id' => $fx['period']->id,
+    ]);
+
+    $hasil = ExtendSubmissionDates::run($fx['period']->fresh(), [
+        new PeriodDateInput(DeadlineType::Submit, null, $submit->datetime->toDateTimeString()),
+        new PeriodDateInput(DeadlineType::Revision, null, now()->addMonth()->toDateTimeString()),
+    ]);
+
+    expect($hasil->notified)->toBe(1);
+    Notification::assertSentTo($fx['user'], SubmissionDeadlineExtendedNotification::class);
+});
+
+it('[SCH-RULE-12] Batas Evaluasi yang dimundurkan langsung berlaku bagi reviewer yang sudah ditugaskan', function () {
+    $fx = reviewedDetailFixture(now()->subWeeks(2)->toDateTimeString(), now()->subDay()->startOfSecond()->toDateTimeString());
+    expect($fx['reviewer']->can('evaluate', $fx['assignment']))->toBeFalse();
+
+    $baru = now()->addMonth()->startOfSecond();
+    ExtendSubmissionDates::run($fx['period']->fresh(), [
+        new PeriodDateInput(DeadlineType::Submit, null, $fx['detail']->submissionDate->datetime->toDateTimeString()),
+        new PeriodDateInput(DeadlineType::Evaluation, null, $baru->toDateTimeString()),
+    ]);
+
+    // K8e — pemegang periods.manage menggeser tenggat untuk semua; penugasan menyimpan salinan
+    // tenggatnya (due_date), jadi salinan yang diturunkan dari tanggal itu ikut bergeser.
+    $assignment = $fx['assignment']->fresh();
+    expect($assignment->due_date->equalTo($baru))->toBeTrue()
+        ->and($fx['reviewer']->can('evaluate', $assignment))->toBeTrue();
+});
+
+it('[SCH-RULE-12] tenggat penugasan yang disetel tangan tidak ditimpa pergeseran Batas Evaluasi', function () {
+    $fx = reviewedDetailFixture(now()->subWeeks(2)->toDateTimeString(), now()->addDay()->startOfSecond()->toDateTimeString());
+    $tangan = now()->addDays(3)->startOfSecond();
+    $fx['assignment']->update(['due_date' => $tangan]);
+
+    ExtendSubmissionDates::run($fx['period']->fresh(), [
+        new PeriodDateInput(DeadlineType::Submit, null, $fx['detail']->submissionDate->datetime->toDateTimeString()),
+        new PeriodDateInput(DeadlineType::Evaluation, null, now()->addMonth()->toDateTimeString()),
+    ]);
+
+    expect($fx['assignment']->fresh()->due_date->equalTo($tangan))->toBeTrue();
 });

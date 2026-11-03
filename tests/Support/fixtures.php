@@ -7,6 +7,7 @@
 // dimuat — test yang dijalankan sendirian langsung pecah. Di sini ia selalu
 // tersedia, dan tempatnya jelas saat ada yang perlu menambah.
 
+use App\Actions\Review\AssignEvaluationForm;
 use App\Enums\DeadlineType;
 use App\Models\FieldType;
 use App\Models\Form;
@@ -29,6 +30,7 @@ use App\Models\SubmissionPeriod;
 use App\Models\SubmissionReviewer;
 use App\Models\User;
 use App\Models\UserProfile;
+use App\Queries\Submission\EvaluationDueDate;
 use App\States\Submission\Approved;
 use App\States\Submission\UnderReview;
 use Illuminate\Support\Carbon;
@@ -449,4 +451,52 @@ function threadAuthorFixture(string $status = UnderReview::class): array
     ]);
 
     return [$owner, $author, $submission];
+}
+
+/**
+ * Detail "Pengajuan" ber-review seperti jalur produksi: tiga tenggatnya sendiri (BR-FE-26), form
+ * evaluasi yang melekat padanya, satu pengajuan UNDER_REVIEW, dan reviewer aktif yang ditugaskan
+ * lewat AssignEvaluationForm + EvaluationDueDate (jalur AssignReviewers).
+ *
+ * @return array{period: SubmissionPeriod, detail: FormPhaseDetail, submission: FormSubmission, reviewer: User, assignment: ReviewerFormAssignment}
+ */
+function reviewedDetailFixture(string $submit, string $evaluation, ?string $revision = null): array
+{
+    $period = SubmissionPeriod::factory()->create(['is_force_closed' => false]);
+    $date = fn (DeadlineType $type, ?string $at): ?int => $at === null ? null : SubmissionDate::create([
+        'type' => $type, 'datetime' => $at, 'submission_period_id' => $period->id,
+    ])->id;
+    $detail = FormPhaseDetail::factory()->create([
+        'needs_review' => true,
+        'submission_date_id' => $date(DeadlineType::Submit, $submit),
+        'evaluation_date_id' => $date(DeadlineType::Evaluation, $evaluation),
+        'revision_date_id' => $date(DeadlineType::Revision, $revision),
+    ]);
+    $form = ReviewEvaluationForm::create([
+        'title' => 'Form Substansi', 'form_phase_detail_id' => $detail->id,
+        'is_active' => true, 'is_required' => true, 'order' => 1,
+    ]);
+    $submission = FormSubmission::factory()->create([
+        'form_phase_detail_id' => $detail->id,
+        'submission_period_id' => $period->id,
+        'submitted_by' => User::factory()->create()->id,
+        'status' => UnderReview::class,
+        'is_submitted' => true,
+    ]);
+    $reviewer = User::factory()->create()->givePermissionTo(Permission::findOrCreate('reviewers.evaluate', 'web'));
+    $seat = SubmissionReviewer::create([
+        'form_submission_id' => $submission->id,
+        'reviewer_id' => Reviewer::factory()->create(['user_id' => $reviewer->id])->id,
+        'evaluation_status' => 'pending',
+        'status' => 'active',
+    ]);
+    AssignEvaluationForm::run($seat, $form->id, true, EvaluationDueDate::run($form));
+
+    return [
+        'period' => $period,
+        'detail' => $detail,
+        'submission' => $submission,
+        'reviewer' => $reviewer,
+        'assignment' => ReviewerFormAssignment::query()->where('submission_reviewer_id', $seat->id)->sole(),
+    ];
 }

@@ -83,3 +83,33 @@ Feature: Deadline dan Override
     And periode berjalan berstatus is_force_closed
     When "Budi" membuka fase "Pengajuan"
     Then akses ditolak dengan 403
+
+  @BR-FE-27 @BR-FE-08 @M2 @OPERATOR-02-03 @REVIEWER-03-03 @happy
+  Scenario: [FE-OVERRIDE-12] Override membuka evaluasi reviewer yang lewat Batas Evaluasi
+    Given waktu sekarang "2026-03-25 09:00:00"
+    And detail "Pengajuan" punya "Batas Evaluasi" pada "2026-03-20"
+    And "Sari" ditugaskan sebagai reviewer "P-001"
+    And Operator membuat override untuk "P-001" pada fase "Pengajuan" yang berlaku sampai "2026-03-31 23:59:59"
+    When "Sari" membuka evaluasinya
+    Then evaluasi bisa diisi
+
+  @BR-FE-27 @BR-FE-08 @M2 @OPERATOR-02-03 @RESEARCHER-02-05 @happy
+  Scenario: [FE-OVERRIDE-13] Override membuka revisi yang lewat Batas Revisi
+    Given waktu sekarang "2026-03-20 09:00:00"
+    And detail "Pengajuan" punya "Batas Revisi" pada "2026-03-15"
+    And submission "P-001" milik "Budi" berstatus NEEDS_REVISION
+    And Operator membuat override untuk "P-001" pada fase "Pengajuan" yang berlaku sampai "2026-03-31 23:59:59"
+    When "Budi" menyunting isi "P-001"
+    Then penyuntingan berhasil
+
+  @BR-FE-27 @M2 @OPERATOR-02-03 @denial
+  Scenario Outline: [FE-OVERRIDE-14] Hanya pemegang submissions.view-all yang bisa membuat override
+    Given "<aktor>" tidak punya permission "submissions.view-all"
+    When "<aktor>" membuat override untuk "P-001" pada fase "Pengajuan"
+    Then permintaan ditolak dengan 403
+
+    Examples:
+      | aktor                         |
+      | peneliti pemilik P-001        |
+      | reviewer P-001                |
+      | pemegang periods.manage saja  |

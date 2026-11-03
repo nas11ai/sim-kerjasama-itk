@@ -87,6 +87,12 @@ Feature: Skema Penelitian
     When Operator memperpanjang SubmissionDate "Batas Submit" ke "2026-04-01"
     Then tidak ada notifikasi perpanjangan yang terkirim
 
+  @BR-SCH-08 @M2 @OPERATOR-09-01 @boundary
+  Scenario: [SCH-RULE-16] Menggeser Batas Evaluasi tidak memberi tahu pemilik draft
+    Given 3 peneliti punya submission DRAFT di periode berjalan
+    When Operator memundurkan SubmissionDate "Batas Evaluasi" ke "2026-04-15"
+    Then tidak ada notifikasi perpanjangan yang terkirim
+
   @BR-SCH-10 @M0 @RESEARCHER-02-07 @boundary
   Scenario: [SCH-RULE-14] Skema tidak aktif tidak bisa dipilih pengajuan baru
     Given skema "DIPA Lama" berstatus tidak aktif

@@ -13,24 +13,15 @@
 // detail ber-`needs_review`, sama seperti produksi.
 
 use App\Actions\FormSubmission\StartSubmission;
-use App\Actions\Review\AssignEvaluationForm;
 use App\Enums\DeadlineType;
 use App\Models\FormPhase;
 use App\Models\FormPhaseDetail;
 use App\Models\FormSubmission;
-use App\Models\Reviewer;
-use App\Models\ReviewerFormAssignment;
-use App\Models\ReviewEvaluationForm;
 use App\Models\SubmissionDate;
 use App\Models\SubmissionPeriod;
-use App\Models\SubmissionReviewer;
-use App\Models\User;
-use App\Queries\Submission\EvaluationDueDate;
 use App\States\Submission\Draft;
 use App\States\Submission\NeedsRevision;
-use App\States\Submission\UnderReview;
 use App\Support\PhaseAccessGate;
-use Spatie\Permission\Models\Permission;
 
 function windowDate(SubmissionPeriod $period, string $label, string $when): SubmissionDate
 {
@@ -41,51 +32,8 @@ function windowDate(SubmissionPeriod $period, string $label, string $when): Subm
     ]);
 }
 
-/**
- * Detail pengajuan ber-review dengan Batas Submit dan Batas Evaluasi periodenya, form evaluasi
- * yang melekat padanya, dan reviewer aktif yang ditugaskan lewat jalur produksi.
- *
- * @return array{detail: FormPhaseDetail, period: SubmissionPeriod, reviewer: User, assignment: ReviewerFormAssignment}
- */
-function reviewedWindow(string $submitWhen, string $evaluationWhen): array
-{
-    $period = SubmissionPeriod::factory()->create(['is_force_closed' => false]);
-    $detail = FormPhaseDetail::factory()->create([
-        'needs_review' => true,
-        'submission_date_id' => windowDate($period, 'Batas Submit', $submitWhen)->id,
-        'evaluation_date_id' => windowDate($period, 'Batas Evaluasi', $evaluationWhen)->id,
-    ]);
-    $form = ReviewEvaluationForm::create([
-        'title' => 'Form Substansi', 'form_phase_detail_id' => $detail->id,
-        'is_active' => true, 'is_required' => true, 'order' => 1,
-    ]);
-    $submission = FormSubmission::factory()->create([
-        'form_phase_detail_id' => $detail->id,
-        'submission_period_id' => $period->id,
-        'status' => UnderReview::class,
-        'is_submitted' => true,
-    ]);
-    $reviewer = User::factory()->create()->givePermissionTo(Permission::findOrCreate('reviewers.evaluate', 'web'));
-    $seat = SubmissionReviewer::create([
-        'form_submission_id' => $submission->id,
-        'reviewer_id' => Reviewer::factory()->create(['user_id' => $reviewer->id])->id,
-        'evaluation_status' => 'pending',
-        'status' => 'active',
-    ]);
-
-    // Jalur AssignReviewers: tenggat penugasan dihitung EvaluationDueDate per form.
-    AssignEvaluationForm::run($seat, $form->id, true, EvaluationDueDate::run($form));
-
-    return [
-        'detail' => $detail,
-        'period' => $period,
-        'reviewer' => $reviewer,
-        'assignment' => ReviewerFormAssignment::query()->where('submission_reviewer_id', $seat->id)->sole(),
-    ];
-}
-
 it('[FE-WINDOW-01] evaluasi tetap terbuka setelah batas submit lewat', function () {
-    $fx = reviewedWindow(now()->subDay()->toDateTimeString(), now()->addWeek()->toDateTimeString());
+    $fx = reviewedDetailFixture(now()->subDay()->toDateTimeString(), now()->addWeek()->toDateTimeString());
 
     // Tenggat peneliti sudah lewat, tapi reviewer punya jendelanya sendiri.
     expect($fx['detail']->isWithinDeadline())->toBeFalse()
@@ -95,7 +43,7 @@ it('[FE-WINDOW-01] evaluasi tetap terbuka setelah batas submit lewat', function 
 });
 
 it('[FE-WINDOW-02] evaluasi ditolak setelah batas evaluasinya sendiri lewat', function () {
-    $fx = reviewedWindow(now()->subWeek()->toDateTimeString(), now()->subDay()->toDateTimeString());
+    $fx = reviewedDetailFixture(now()->subWeek()->toDateTimeString(), now()->subDay()->toDateTimeString());
 
     expect($fx['detail']->isWithinDeadline(DeadlineType::Evaluation))->toBeFalse()
         ->and($fx['reviewer']->can('evaluate', $fx['assignment']))->toBeFalse();
@@ -149,7 +97,7 @@ it('[FE-WINDOW-04] dua detail beraktor sama boleh berbagi satu tanggal', functio
 });
 
 it('[FE-WINDOW-02] periode yang ditutup paksa menutup semua jendela', function () {
-    $fx = reviewedWindow(now()->addDay()->toDateTimeString(), now()->addWeek()->toDateTimeString());
+    $fx = reviewedDetailFixture(now()->addDay()->toDateTimeString(), now()->addWeek()->toDateTimeString());
 
     $fx['period']->update(['is_force_closed' => true]);
 

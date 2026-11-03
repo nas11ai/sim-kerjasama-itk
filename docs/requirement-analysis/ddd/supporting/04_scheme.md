@@ -176,7 +176,7 @@ classDiagram
 | BR-SCH-05 | `trl_selector` hanya valid jika ada `scheme_selector` di Form yang sama                                                             |
 | BR-SCH-06 | Menambah rule baru ke `scheme.rules` JSONB tidak butuh migration — cukup update via admin panel                                     |
 | BR-SCH-07 | Jika `SubmissionPeriod.is_force_closed = true`, semua FormPhaseDetail di period tersebut di-hard-block terlepas dari SubmissionDate |
-| BR-SCH-08 | Perpanjangan deadline (update SubmissionDate) wajib diikuti notifikasi ke researcher yang punya DRAFT aktif                         |
+| BR-SCH-08 | Perpanjangan Batas Submit atau Batas Revisi (update SubmissionDate berjenis `submit`/`revision`) wajib diikuti notifikasi ke researcher yang punya DRAFT aktif. Batas Evaluasi tidak dikerjakan researcher, jadi menggesernya tidak memberi tahu pemilik draft |
 | BR-SCH-09 | `scheme_selector` dan `trl_selector` menulis ke `form_submissions.scheme_id` / `.trl_id` — tidak pernah ke `form_field_responses`   |
 | BR-SCH-10 | Scheme dengan `is_active = false` tidak ditawarkan sebagai pilihan pada pengajuan baru; submission yang sudah terlanjur memakainya tidak terpengaruh |
 
