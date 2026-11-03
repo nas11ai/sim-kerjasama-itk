@@ -6,6 +6,7 @@ use App\Actions\Concerns\ChangesNoState;
 use App\Models\FormPhase;
 use App\Models\FormPhaseDetail;
 use App\Models\SubmissionPeriodPhase;
+use App\Support\SubmissionPeriodGate;
 use Illuminate\Support\Collection;
 
 /**
@@ -31,13 +32,19 @@ class PhaseDeadlineGaps implements ChangesNoState
 
         $links = SubmissionPeriodPhase::query()
             ->whereIn('form_phase_id', $phases->pluck('id'))
-            ->with('submissionPeriod:id,name')
+            ->with('submissionPeriod.submissionDates')
             ->get()
             ->sortBy(fn (SubmissionPeriodPhase $link): string => $link->submissionPeriod->name ?? '');
 
         $gaps = [];
 
         foreach ($links as $link) {
+            // BR-FE-17 / K9b — periode lama yang sudah tutup sepenuhnya tidak perlu dikejar
+            // tenggatnya; periode terbuka atau tanpa tanggal (target baru) tetap diperingatkan.
+            if (SubmissionPeriodGate::isFullyClosed($link->submissionPeriod)) {
+                continue;
+            }
+
             $count = count(array_filter(
                 $ownerPeriods[$link->form_phase_id] ?? [],
                 fn (int $owner): bool => $owner !== $link->submission_period_id,

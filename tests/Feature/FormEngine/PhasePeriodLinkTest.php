@@ -143,9 +143,26 @@ it('kartu menyebut detail yang masih bertenggat periode lain', function () {
     $p2Date = $p2->submissionDates()->firstOrFail();
     FormPhaseDetail::whereIn('id', [$first->id, $second->id])->update(['submission_date_id' => $p2Date->id]);
 
-    // Tenggat dipindah ke P2: kini P1 yang kehilangan pemilik tenggatnya, P2 bersih.
+    // Tenggat dipindah ke P2 dan P1 sudah tutup sepenuhnya: tidak ada peringatan tersisa.
+    $p1->submissionDates()->update(['datetime' => now()->subDay()]);
     $this->get($url)->assertInertia(fn (AssertableInertia $page) => $page
-        ->where('phases.0.deadlineGaps', [['period' => 'P1', 'count' => 2]]));
+        ->where('phases.0.deadlineGaps', []));
+});
+
+it('kartu tetap memperingatkan periode lama yang masih terbuka setelah tenggat dipindah', function () {
+    $phase = linkPhase();
+    $p1 = linkPeriodNamed('P1');
+    $p2 = linkPeriodNamed('P2');
+    $first = linkDetail($this->form, $phase, $p1);
+    $second = linkDetail($this->form, $phase, $p1);
+    SubmissionPeriodPhase::create(['submission_period_id' => $p1->id, 'form_phase_id' => $phase->id]);
+    SubmissionPeriodPhase::create(['submission_period_id' => $p2->id, 'form_phase_id' => $phase->id]);
+    FormPhaseDetail::whereIn('id', [$first->id, $second->id])
+        ->update(['submission_date_id' => $p2->submissionDates()->firstOrFail()->id]);
+
+    $this->actingAs($this->admin)->get(route('admin.forms.phases.index', $this->form))
+        ->assertInertia(fn (AssertableInertia $page) => $page
+            ->where('phases.0.deadlineGaps', [['period' => 'P1', 'count' => 2]]));
 });
 
 it('wewenang: operator 403 (schemes.manage), pengguna schemes.manage tanpa periods.manage 403', function () {
