@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 
 import {
     blankField,
-    moveField,
+    moveItem,
     toDefinitionFields,
     toEditableFields,
     type EditableField,
@@ -62,7 +62,7 @@ describe('lib/formDefinition', () => {
             options: [{ id: null, label: 'A' }],
         }
         let fields = [...toEditableFields(saved), fresh]
-        fields = moveField(fields, 2, 0)
+        fields = moveItem(fields, 2, 0)
         fields = fields.filter((field) => field.label !== 'Judul')
         const payload = toDefinitionFields(fields, types)
 
@@ -77,13 +77,13 @@ describe('lib/formDefinition', () => {
         expect(toEditableFields(saved).map((field) => field.key)).toEqual(['field-11', 'field-12'])
     })
 
-    it('moveField di luar batas tidak mengubah urutan', () => {
+    it('moveItem di luar batas tidak mengubah urutan', () => {
         const fields = toEditableFields(saved)
 
-        expect(moveField(fields, 0, -1)).toEqual(fields)
-        expect(moveField(fields, 1, 2)).toEqual(fields)
-        expect(moveField(fields, 5, 0)).toEqual(fields)
-        expect(moveField(fields, 0, 1).map((field) => field.id)).toEqual([12, 11])
+        expect(moveItem(fields, 0, -1)).toEqual(fields)
+        expect(moveItem(fields, 1, 2)).toEqual(fields)
+        expect(moveItem(fields, 5, 0)).toEqual(fields)
+        expect(moveItem(fields, 0, 1).map((field) => field.id)).toEqual([12, 11])
         expect(fields.map((field) => field.id)).toEqual([11, 12])
     })
 })

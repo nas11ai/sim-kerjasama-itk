@@ -46,8 +46,8 @@ export function toEditableFields(fields: FormFieldEditData[]): EditableField[] {
     }))
 }
 
-export function moveField(fields: EditableField[], from: number, to: number): EditableField[] {
-    const copy = [...fields]
+export function moveItem<T>(items: T[], from: number, to: number): T[] {
+    const copy = [...items]
     const inside = (index: number) => index >= 0 && index < copy.length
     if (!inside(from) || !inside(to)) return copy
     const [moved] = copy.splice(from, 1)

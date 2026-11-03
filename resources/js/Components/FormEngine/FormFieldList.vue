@@ -1,15 +1,15 @@
 <script setup lang="ts">
-import { ArrowDown, ArrowUp, GripVertical, Pencil, Plus, Trash2 } from 'lucide-vue-next'
+import { Pencil, Plus, Trash2 } from 'lucide-vue-next'
 import { computed, ref } from 'vue'
-import draggable from 'vuedraggable'
 
 import ConfirmDialog from '@/Components/app/ConfirmDialog.vue'
 import SectionCard from '@/Components/app/SectionCard.vue'
+import SortableRows from '@/Components/app/SortableRows.vue'
 import FormFieldDialog from '@/Components/FormEngine/FormFieldDialog.vue'
 import { Badge } from '@/Components/ui/badge'
 import { Button } from '@/Components/ui/button'
 import { formatDate } from '@/lib/format'
-import { moveField, type EditableField } from '@/lib/formDefinition'
+import type { EditableField } from '@/lib/formDefinition'
 import type { ArchivedFieldData, FieldTypeOption } from '@/types/form-engine'
 
 const props = defineProps<{
@@ -43,8 +43,6 @@ const openDialog = (index: number) => {
     editing.value = index
     dialogOpen.value = true
 }
-const shift = (index: number, by: number) =>
-    (fields.value = moveField(fields.value, index, index + by))
 const store = (field: EditableField) => {
     const next = [...fields.value]
     if (editing.value === null || editing.value === NEW) next.push(field)
@@ -71,73 +69,45 @@ const confirmRemove = () => {
                 ><Plus class="size-4" />Tambah Field</Button
             >
         </template>
-        <draggable v-model="fields" tag="ul" item-key="key" handle=".drag-handle" class="divide-y">
-            <template #item="{ element, index }">
-                <li class="flex flex-wrap items-center justify-between gap-3 py-2">
-                    <div class="flex items-center gap-2">
-                        <GripVertical
-                            class="drag-handle size-4 cursor-grab text-muted-foreground"
-                            aria-hidden="true"
-                        />
-                        <div>
-                            <p class="text-sm font-medium">{{ element.label }}</p>
-                            <p class="text-xs text-muted-foreground">
-                                {{ typeLabel(element.fieldTypeId) }}
-                                <template v-if="element.isRequired && element.requiredSince">
-                                    · wajib sejak {{ formatDate(element.requiredSince) }}
-                                </template>
-                            </p>
-                            <p
-                                v-for="message in rowErrors(index)"
-                                :key="message"
-                                class="text-xs text-destructive"
-                            >
-                                {{ message }}
-                            </p>
-                        </div>
-                    </div>
-                    <div class="flex items-center gap-1">
-                        <Badge :variant="element.isRequired ? 'default' : 'outline'">{{
-                            element.isRequired ? 'Wajib' : 'Opsional'
-                        }}</Badge>
-                        <Button
-                            type="button"
-                            variant="ghost"
-                            size="icon"
-                            :disabled="index === 0"
-                            :aria-label="`Naik: ${element.label}`"
-                            @click="shift(index, -1)"
-                            ><ArrowUp class="size-4"
-                        /></Button>
-                        <Button
-                            type="button"
-                            variant="ghost"
-                            size="icon"
-                            :disabled="index === fields.length - 1"
-                            :aria-label="`Turun: ${element.label}`"
-                            @click="shift(index, 1)"
-                            ><ArrowDown class="size-4"
-                        /></Button>
-                        <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            :aria-label="`Edit ${element.label}`"
-                            @click="openDialog(index)"
-                            ><Pencil class="size-4" />Edit</Button
-                        >
-                        <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            :aria-label="`Hapus ${element.label}`"
-                            @click="remove(index)"
-                            ><Trash2 class="size-4" />Hapus</Button
-                        >
-                    </div>
-                </li>
+        <SortableRows v-model="fields" :label-of="(field) => field.label">
+            <template #row="{ item, index }">
+                <p class="text-sm font-medium">{{ item.label }}</p>
+                <p class="text-xs text-muted-foreground">
+                    {{ typeLabel(item.fieldTypeId) }}
+                    <template v-if="item.isRequired && item.requiredSince">
+                        · wajib sejak {{ formatDate(item.requiredSince) }}
+                    </template>
+                </p>
+                <p
+                    v-for="message in rowErrors(index)"
+                    :key="message"
+                    class="text-xs text-destructive"
+                >
+                    {{ message }}
+                </p>
             </template>
-        </draggable>
+            <template #actions="{ item, index }">
+                <Badge :variant="item.isRequired ? 'default' : 'outline'">{{
+                    item.isRequired ? 'Wajib' : 'Opsional'
+                }}</Badge>
+                <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    :aria-label="`Edit ${item.label}`"
+                    @click="openDialog(index)"
+                    ><Pencil class="size-4" />Edit</Button
+                >
+                <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    :aria-label="`Hapus ${item.label}`"
+                    @click="remove(index)"
+                    ><Trash2 class="size-4" />Hapus</Button
+                >
+            </template>
+        </SortableRows>
         <ul v-if="archived.length > 0" class="divide-y">
             <!-- BR-FE-12 / W83 — field terhapus diarsipkan, read-only -->
             <li
