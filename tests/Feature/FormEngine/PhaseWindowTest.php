@@ -11,18 +11,16 @@
 // mustahil karena detail researcher-nya sudah terkunci begitu status
 // NEEDS_REVISION tercapai.
 
+use App\Enums\DeadlineType;
 use App\Models\FormPhase;
 use App\Models\FormPhaseDetail;
 use App\Models\SubmissionDate;
-use App\Models\SubmissionDateLabel;
 use App\Models\SubmissionPeriod;
 
 function detailWithDeadline(SubmissionPeriod $period, FormPhase $phase, string $label, string $when, int $order): FormPhaseDetail
 {
-    $dateLabel = SubmissionDateLabel::firstOrCreate(['name' => $label]);
-
     $date = SubmissionDate::create([
-        'submission_date_label_id' => $dateLabel->id,
+        ...deadlineTypeOf($label),
         'submission_period_id' => $period->id,
         'datetime' => $when,
     ]);
@@ -82,9 +80,8 @@ it('[FE-WINDOW-03] revisi punya jendelanya sendiri', function () {
 it('[FE-WINDOW-04] dua detail beraktor sama boleh berbagi satu tanggal', function () {
     [$period, $phase] = windowFixture();
 
-    $dateLabel = SubmissionDateLabel::firstOrCreate(['name' => 'Batas Submit']);
     $date = SubmissionDate::create([
-        'submission_date_label_id' => $dateLabel->id,
+        'type' => DeadlineType::Submit,
         'submission_period_id' => $period->id,
         'datetime' => now()->addWeek(),
     ]);

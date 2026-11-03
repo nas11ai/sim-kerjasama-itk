@@ -264,11 +264,11 @@ it('target perpanjangan menyebut fase dan reviewer yang evaluasinya lewat tengga
         'is_required' => true, 'assigned_at' => now()->subWeek(), 'due_date' => now()->subDay(), 'is_active' => true,
     ]);
     seatReviewer($submission, 'active', 'Reviewer Tepat');
-    $detail->load('formPhase', 'submissionDate.submissionDateLabel');
+    $detail->load('formPhase', 'submissionDate');
 
     showOperatorPage(detailOperator(), $submission)
         ->assertInertia(fn (Assert $page) => $page
-            ->where('overrideTarget.phaseLabel', $detail->formPhase->title.' — '.$detail->submissionDate->submissionDateLabel->name)
+            ->where('overrideTarget.phaseLabel', $detail->formPhase->title.' — '.$detail->submissionDate->label())
             ->where('overrideTarget.affectedReviewers', ['Reviewer Telat']));
 });
 

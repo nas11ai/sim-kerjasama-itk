@@ -6,7 +6,6 @@ use App\Enums\PeriodStatus;
 use App\Models\FormPhase;
 use App\Models\FormPhaseDetail;
 use App\Models\FormSubmission;
-use App\Models\SubmissionDateLabel;
 use App\Models\SubmissionPeriod;
 use App\Models\User;
 use App\Support\SubmissionPeriodGate;
@@ -33,7 +32,7 @@ function periodWithDates(array $offsets, bool $forceClosed = false, string $name
 
     foreach ($offsets as $i => $offset) {
         $period->submissionDates()->create([
-            'submission_date_label_id' => SubmissionDateLabel::firstOrCreate(['name' => 'Batas '.$i])->id,
+            ...deadlineSlot($i),
             'datetime' => now()->modify($offset),
         ]);
     }
@@ -73,7 +72,9 @@ it('kontrak layar periode', function () {
                 ->where('status', ['value' => 'active', 'label' => 'Dibuka'])
                 ->has('dates', 1)
                 ->has('dates.0', fn (AssertableInertia $date) => $date
-                    ->where('label', 'Batas 0')
+                    ->where('type', 'submit')
+                    ->where('cycle', null)
+                    ->where('label', 'Batas Submit')
                     ->where('passed', false)
                     ->where('phaseDetailCount', 0)
                     ->has('id')->has('at')->has('inputValue'))
@@ -85,7 +86,7 @@ it('kontrak layar periode', function () {
             ->where('filters', ['search' => '', 'status' => '', 'year' => ''])
             ->has('statusOptions', 4)
             ->has('yearOptions')
-            ->has('labelOptions')
+            ->has('typeOptions', 3)
             ->where('phaseOptions', [['value' => (string) $phase->id, 'label' => 'Proposal']])
             ->where('can.viewSubmissions', true));
 });

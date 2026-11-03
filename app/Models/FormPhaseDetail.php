@@ -17,10 +17,14 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property int $order
  * @property bool $needs_review
  * @property int $submission_date_id
+ * @property int|null $evaluation_date_id
+ * @property int|null $revision_date_id
  * @property int $review_evaluation_forms_count hanya setelah withCount(EVALUATION_FORM_COUNTS)
  * @property int $required_review_evaluation_forms_count
  * @property-read FormPhase|null $formPhase
  * @property-read SubmissionDate $submissionDate
+ * @property-read SubmissionDate|null $evaluationDate
+ * @property-read SubmissionDate|null $revisionDate
  * @property-read FormAccessControl|null $formAccessControl
  */
 class FormPhaseDetail extends Model
@@ -54,6 +58,8 @@ class FormPhaseDetail extends Model
         'order',
         'needs_review',
         'submission_date_id',
+        'evaluation_date_id',
+        'revision_date_id',
     ];
 
     protected $casts = [
@@ -88,6 +94,26 @@ class FormPhaseDetail extends Model
     public function submissionDate(): BelongsTo
     {
         return $this->belongsTo(SubmissionDate::class);
+    }
+
+    /**
+     * BR-FE-26 — Batas Evaluasi reviewer form evaluasi di detail ini; wajib bila `needs_review`.
+     *
+     * @return BelongsTo<SubmissionDate, $this>
+     */
+    public function evaluationDate(): BelongsTo
+    {
+        return $this->belongsTo(SubmissionDate::class, 'evaluation_date_id');
+    }
+
+    /**
+     * BR-FE-26 — Batas Revisi pengisi saat NEEDS_REVISION; tanpanya revisi memakai Batas Submit.
+     *
+     * @return BelongsTo<SubmissionDate, $this>
+     */
+    public function revisionDate(): BelongsTo
+    {
+        return $this->belongsTo(SubmissionDate::class, 'revision_date_id');
     }
 
     /**
@@ -145,6 +171,20 @@ class FormPhaseDetail extends Model
         }
 
         return now()->lte($date->datetime);
+    }
+
+    /**
+     * BR-FE-21 — detail yang digerbangi salah satu tanggal ini, lewat kolom tenggat mana pun.
+     *
+     * @param  Builder<FormPhaseDetail>  $query
+     * @param  Builder<SubmissionDate>  $dates  subquery `select id`
+     * @return Builder<FormPhaseDetail>
+     */
+    public function scopeDeadlinedBy(Builder $query, Builder $dates): Builder
+    {
+        return $query->where(fn (Builder $q) => $q->whereIn('submission_date_id', $dates)
+            ->orWhereIn('evaluation_date_id', $dates)
+            ->orWhereIn('revision_date_id', $dates));
     }
 
     /**

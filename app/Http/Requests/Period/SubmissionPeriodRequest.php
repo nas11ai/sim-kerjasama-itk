@@ -2,9 +2,13 @@
 
 namespace App\Http\Requests\Period;
 
+use App\Data\Request\PeriodDateInput;
 use App\Data\Request\SubmissionPeriodInput;
+use App\Enums\DeadlineType;
 use Illuminate\Contracts\Validation\Validator;
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
+use Illuminate\Validation\Rules\Enum;
 
 class SubmissionPeriodRequest extends FormRequest
 {
@@ -13,14 +17,15 @@ class SubmissionPeriodRequest extends FormRequest
         return true;
     }
 
-    /** @return array<string, string> */
+    /** @return array<string, string|list<string|Enum>> */
     public function rules(): array
     {
         return [
             'name' => 'required|string|max:255',
             'submission_dates' => 'required|array|min:1',
-            // W72 — label teks bebas; label baru dibuat saat periode disimpan (BR-FE-17).
-            'submission_dates.*.label' => 'required|string|max:255',
+            // BR-FE-25 — jenis tenggat tetap × siklus menggantikan label teks bebas (W72).
+            'submission_dates.*.type' => ['required', Rule::enum(DeadlineType::class)],
+            'submission_dates.*.cycle' => 'nullable|integer|min:1|max:32767',
             'submission_dates.*.date' => 'required|date',
             'form_phase_ids' => 'required|array|min:1',
             'form_phase_ids.*' => 'exists:form_phases,id',
@@ -30,20 +35,20 @@ class SubmissionPeriodRequest extends FormRequest
     /** @return list<callable(Validator): void> */
     public function after(): array
     {
-        return [$this->assertLabelsDistinct(...)];
+        return [$this->assertTypesDistinct(...)];
     }
 
-    private function assertLabelsDistinct(Validator $validator): void
+    private function assertTypesDistinct(Validator $validator): void
     {
-        // Setiap tanggal adalah batas akhir (SubmissionPeriodGate), bukan jendela
-        // mulai–selesai; yang bisa salah hanyalah satu label diberi dua tanggal.
-        $labels = array_column($this->submissionDates(), 'label');
+        // BR-FE-25 — setiap tanggal adalah batas akhir (SubmissionPeriodGate), bukan jendela
+        // mulai–selesai; yang bisa salah hanyalah satu (jenis, siklus) diberi dua tanggal.
+        $keys = array_map(fn (PeriodDateInput $row): string => $row->key(), $this->submissionDates());
 
-        if (count($labels) === count(array_unique($labels))) {
+        if (count($keys) === count(array_unique($keys))) {
             return;
         }
 
-        $validator->errors()->add('submission_dates', 'Setiap label tanggal hanya boleh muncul satu kali.');
+        $validator->errors()->add('submission_dates', 'Setiap jenis tenggat hanya boleh muncul satu kali per siklus.');
     }
 
     public function toInput(): SubmissionPeriodInput
@@ -55,19 +60,21 @@ class SubmissionPeriodRequest extends FormRequest
         );
     }
 
-    /** @return list<array{label: string, date: string}> */
+    /** @return list<PeriodDateInput> */
     private function submissionDates(): array
     {
-        $rows = [];
+        return array_values(array_filter(array_map($this->dateInput(...), $this->array('submission_dates'))));
+    }
 
-        foreach ($this->array('submission_dates') as $row) {
-            if (!is_array($row) || !is_string($row['label'] ?? null) || !is_string($row['date'] ?? null)) {
-                continue;
-            }
-
-            $rows[] = ['label' => trim($row['label']), 'date' => $row['date']];
+    private function dateInput(mixed $row): ?PeriodDateInput
+    {
+        if (!is_array($row) || !is_string($row['type'] ?? null) || !is_string($row['date'] ?? null)) {
+            return null;
         }
 
-        return $rows;
+        $type = DeadlineType::tryFrom($row['type']);
+        $cycle = filter_var($row['cycle'] ?? null, FILTER_VALIDATE_INT, FILTER_NULL_ON_FAILURE);
+
+        return $type === null ? null : new PeriodDateInput($type, $cycle, $row['date']);
     }
 }

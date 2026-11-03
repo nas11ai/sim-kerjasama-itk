@@ -1,7 +1,7 @@
 <?php
 
+use App\Enums\DeadlineType;
 use App\Models\SubmissionDate;
-use App\Models\SubmissionDateLabel;
 use App\Models\SubmissionPeriod;
 use App\Models\User;
 use App\Notifications\SubmissionPeriodActiveNotification;
@@ -17,18 +17,14 @@ function createActivePeriod(): SubmissionPeriod
 {
     $period = SubmissionPeriod::factory()->create();
 
-    $label = SubmissionDateLabel::create([
-        'name' => 'Label '.fake()->unique()->numerify('####-####'),
-    ]);
-
     SubmissionDate::create([
-        'submission_date_label_id' => $label->id,
+        'type' => DeadlineType::Submit,
         'datetime' => now()->startOfDay(),
         'submission_period_id' => $period->id,
     ]);
 
     SubmissionDate::create([
-        'submission_date_label_id' => $label->id,
+        'type' => DeadlineType::Evaluation,
         'datetime' => now()->addWeek(),
         'submission_period_id' => $period->id,
     ]);

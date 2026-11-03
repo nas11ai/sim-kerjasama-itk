@@ -4,7 +4,6 @@ namespace App\Actions\Period;
 
 use App\Data\Request\SubmissionPeriodInput;
 use App\Models\SubmissionDate;
-use App\Models\SubmissionDateLabel;
 use App\Models\SubmissionPeriod;
 use App\Models\User;
 use App\Support\Audit\AuditChange;
@@ -29,8 +28,9 @@ class CreateSubmissionPeriod
             foreach ($input->dates as $row) {
                 SubmissionDate::create([
                     'submission_period_id' => $period->id,
-                    'submission_date_label_id' => SubmissionDateLabel::named($row['label'])->id,
-                    'datetime' => $row['date'],
+                    'type' => $row->type,
+                    'cycle' => $row->cycle,
+                    'datetime' => $row->date,
                 ]);
             }
 

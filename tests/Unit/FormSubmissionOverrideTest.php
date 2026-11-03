@@ -1,5 +1,6 @@
 <?php
 
+use App\Enums\DeadlineType;
 use App\Models\Form;
 use App\Models\FormAccessControl;
 use App\Models\FormPhase;
@@ -9,7 +10,6 @@ use App\Models\FormSubmissionOverride;
 use App\Models\Organization;
 use App\Models\PhaseType;
 use App\Models\SubmissionDate;
-use App\Models\SubmissionDateLabel;
 use App\Models\SubmissionPeriod;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -63,10 +63,9 @@ it('revoke sets is_active to false', function () {
         'organization_id' => $organization->id,
     ]);
     $period = SubmissionPeriod::create(['name' => 'Period 1']);
-    $label = SubmissionDateLabel::create(['name' => 'Default']);
     $submissionDate = new SubmissionDate;
     $submissionDate->forceFill([
-        'submission_date_label_id' => $label->id,
+        'type' => DeadlineType::Submit,
         'datetime' => now(),
         'submission_period_id' => $period->id,
     ])->save();

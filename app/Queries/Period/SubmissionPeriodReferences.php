@@ -32,8 +32,9 @@ class SubmissionPeriodReferences implements ChangesNoState
             'pengajuan' => FormSubmission::query()
                 ->where('submission_period_id', $period->id)
                 ->count(),
+            // BR-FE-26 — Batas Evaluasi dan Batas Revisi detail ikut menghalangi.
             'detail tahap yang memakai tanggalnya' => FormPhaseDetail::query()
-                ->whereIn('submission_date_id', SubmissionDate::query()
+                ->deadlinedBy(SubmissionDate::query()
                     ->where('submission_period_id', $period->id)
                     ->select('id'))
                 ->count(),

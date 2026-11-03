@@ -25,7 +25,7 @@ class SubmissionDateOptions implements ChangesNoState
 
         $dates = SubmissionDate::query()
             ->selectableFor($phase)
-            ->with(['submissionPeriod:id,name', 'submissionDateLabel:id,name'])
+            ->with(['submissionPeriod:id,name'])
             ->orderByDesc('datetime')
             ->get();
 
@@ -34,7 +34,7 @@ class SubmissionDateOptions implements ChangesNoState
                 'id' => $date->id,
                 'label' => implode(' — ', [
                     $date->submissionPeriod->name ?? '',
-                    $date->submissionDateLabel->name ?? '',
+                    $date->label(),
                     $date->datetime->format('d/m/Y H:i'),
                 ]),
             ];

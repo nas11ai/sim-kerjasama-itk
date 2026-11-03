@@ -19,6 +19,7 @@ final class FormBuilderInput
         public readonly array $accessControls,
         public readonly FormBuilderPhaseInput $phase,
         public readonly array $evaluationForms,
-        public readonly FormBuilderPeriodInput $period,
+        // K8g — periode yang sudah ada (dibuat di layar Periode); wizard tidak membuatnya.
+        public readonly int $periodId,
     ) {}
 }

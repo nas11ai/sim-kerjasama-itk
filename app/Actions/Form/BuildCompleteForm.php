@@ -4,9 +4,9 @@ namespace App\Actions\Form;
 
 use App\Data\Request\FormBuilderFieldInput;
 use App\Data\Request\FormBuilderInput;
-use App\Data\Request\FormBuilderPeriodInput;
 use App\Data\Request\FormBuilderPhaseInput;
 use App\Data\Result\BuiltForm;
+use App\Enums\DeadlineType;
 use App\Models\Form;
 use App\Models\FormAccessControl;
 use App\Models\FormPhase;
@@ -23,8 +23,9 @@ use Illuminate\Validation\ValidationException;
 use Lorisleiva\Actions\Concerns\AsAction;
 
 /**
- * Wizard enam langkah dalam satu transaksi. Periode diselesaikan lebih dulu: BR-FE-07
- * mewajibkan setiap detail lahir dengan tenggat, yaitu tanggal terakhir periode itu.
+ * Wizard enam langkah dalam satu transaksi. Periode diselesaikan lebih dulu: BR-FE-07 mewajibkan
+ * setiap detail lahir dengan tenggat. K8g — periodenya sudah ada; detail mendapat Batas Submit
+ * siklus pengajuan utamanya, dan Batas Evaluasi bila tahapnya direview (BR-FE-26).
  *
  * @method static BuiltForm run(FormBuilderInput $input, User $actor)
  */
@@ -44,8 +45,11 @@ class BuildCompleteForm
         ));
 
         return DB::transaction(function () use ($input, $actor): BuiltForm {
-            $period = $this->resolvePeriod($input->period);
-            $deadline = $this->latestDate($period);
+            $period = $this->usablePeriod($input->periodId);
+            $deadline = $this->mainDate($period, DeadlineType::Submit, 'Periode wajib punya Batas Submit.');
+            $evaluation = $input->phase->needsReview
+                ? $this->mainDate($period, DeadlineType::Evaluation, 'Tahap yang direview butuh Batas Evaluasi di periode ini.')
+                : null;
             $form = $this->createForm($input);
             $phase = $this->resolvePhase($input->phase);
 
@@ -53,8 +57,10 @@ class BuildCompleteForm
             $period->submissionPeriodPhases()->firstOrCreate(['form_phase_id' => $phase->id]);
 
             // BR-FE-17 — tenggatnya milik periode yang baru saja memakai tahap ini.
-            $detailIds = $this->createDetails($form, $phase, $input, $deadline);
-            $periodCreated = $input->period->existingPeriodId === null;
+            $detailIds = $this->createDetails($form, $phase, $input, [
+                'submission_date_id' => $deadline->id,
+                'evaluation_date_id' => $evaluation?->id,
+            ]);
 
             // BR-RPT-09 — di dalam transaksi: pembuatan yang gagal tidak meninggalkan jejak.
             AuditTrail::record('Form dibangun lewat wizard', $form, $actor, new AuditChange(new: [
@@ -62,31 +68,11 @@ class BuildCompleteForm
                 'form_phase_id' => $phase->id,
                 'phase_created' => $input->phase->existingPhaseId === null,
                 'submission_period_id' => $period->id,
-                'period_created' => $periodCreated,
-                'created_date_ids' => $periodCreated ? $period->submissionDates()->pluck('id')->all() : [],
                 'detail_ids' => $detailIds,
             ]));
 
-            return new BuiltForm($form, $deadline->loadMissing('submissionDateLabel'));
+            return new BuiltForm($form, $deadline);
         });
-    }
-
-    private function resolvePeriod(FormBuilderPeriodInput $input): SubmissionPeriod
-    {
-        if ($input->existingPeriodId !== null) {
-            return $this->usablePeriod($input->existingPeriodId);
-        }
-
-        $period = SubmissionPeriod::create(['name' => $input->newName]);
-
-        foreach ($input->dates as $date) {
-            $period->submissionDates()->create([
-                'submission_date_label_id' => $date['labelId'],
-                'datetime' => $date['date'],
-            ]);
-        }
-
-        return $period;
     }
 
     /**
@@ -108,18 +94,20 @@ class BuildCompleteForm
         return $period;
     }
 
-    /** @throws ValidationException */
-    private function latestDate(SubmissionPeriod $period): SubmissionDate
+    /**
+     * BR-FE-26 — tenggat jenis ini pada siklus pengajuan utama periode (BR-FE-25: paling banyak satu).
+     *
+     * @throws ValidationException
+     */
+    private function mainDate(SubmissionPeriod $period, DeadlineType $type, string $missing): SubmissionDate
     {
-        $latest = $period->submissionDates()->orderByDesc('datetime')->orderByDesc('id')->first();
+        $date = $period->submissionDates()->ofType($type)->first();
 
-        if ($latest === null) {
-            throw ValidationException::withMessages([
-                'submission_period' => 'Periode wajib punya setidaknya satu tanggal.',
-            ]);
+        if ($date === null) {
+            throw ValidationException::withMessages(['submission_period.existing_period_id' => $missing]);
         }
 
-        return $latest;
+        return $date;
     }
 
     private function createForm(FormBuilderInput $input): Form
@@ -160,8 +148,11 @@ class BuildCompleteForm
         ]);
     }
 
-    /** @return list<int> */
-    private function createDetails(Form $form, FormPhase $phase, FormBuilderInput $input, SubmissionDate $deadline): array
+    /**
+     * @param  array{submission_date_id: int, evaluation_date_id: int|null}  $deadlines
+     * @return list<int>
+     */
+    private function createDetails(Form $form, FormPhase $phase, FormBuilderInput $input, array $deadlines): array
     {
         // Detail satu form berbagi satu urutan, di belakang form yang sudah ada di tahap.
         $last = filter_var($phase->formPhaseDetails()->max('order'), FILTER_VALIDATE_INT, FILTER_NULL_ON_FAILURE);
@@ -178,7 +169,7 @@ class BuildCompleteForm
                 'phase_type_id' => $input->phase->phaseTypeId,
                 'needs_review' => $input->phase->needsReview,
                 'order' => ($last ?? 0) + 1,
-                'submission_date_id' => $deadline->id,
+                ...$deadlines,
             ]);
 
             EvaluationFormWriter::write($detail, $input->phase->needsReview ? $input->evaluationForms : []);

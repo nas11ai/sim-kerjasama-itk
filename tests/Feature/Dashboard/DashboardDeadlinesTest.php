@@ -7,8 +7,8 @@
 // predikat baru: periode yang tertutup paksa tidak menagih apa pun.
 
 use App\Data\View\Dashboard\DeadlineData;
+use App\Enums\DeadlineType;
 use App\Models\SubmissionDate;
-use App\Models\SubmissionDateLabel;
 use App\Models\SubmissionPeriod;
 use App\Models\SubmissionPeriodPhase;
 use App\Models\User;
@@ -19,7 +19,7 @@ function ddPeriod(string $name, string $closesIn, bool $forceClosed = false): Su
 {
     $period = SubmissionPeriod::factory()->create(['name' => $name, 'is_force_closed' => $forceClosed]);
     SubmissionDate::create([
-        'submission_date_label_id' => SubmissionDateLabel::create(['name' => 'Label '.fake()->unique()->numerify('####-####')])->id,
+        'type' => DeadlineType::Submit,
         'datetime' => now()->modify($closesIn),
         'submission_period_id' => $period->id,
     ]);

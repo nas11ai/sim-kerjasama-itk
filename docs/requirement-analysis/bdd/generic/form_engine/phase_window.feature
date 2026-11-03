@@ -65,3 +65,10 @@ Feature: Jendela Kerja Tiap Tahap
     And Operator membuat override untuk "P-001" pada fase "Laporan Monev I" yang berlaku sampai "2026-03-31 23:59:59"
     When "Sari" membuka fase "Evaluasi"
     Then akses ditolak dengan 403
+
+  @BR-FE-25 @M2 @OPERATOR-09-01 @denial
+  Scenario: [FE-WINDOW-12] Satu periode tidak boleh punya dua tanggal berjenis dan bersiklus sama
+    Given periode "2026 Gelombang 1" punya "Batas Evaluasi" pada "2026-03-20"
+    When Operator menambah "Batas Evaluasi" kedua pada "2026-03-25" ke periode itu
+    Then penyimpanan ditolak
+    And "Batas Evaluasi Monev I" pada periode yang sama tetap boleh ditambahkan

@@ -2,11 +2,11 @@
 
 namespace App\Data\Request;
 
-/** Masukan satu periode: nama, batas akhir per label, dan tahap yang dibuka. */
+/** Masukan satu periode: nama, batas akhir per (jenis, siklus), dan tahap yang dibuka. */
 final class SubmissionPeriodInput
 {
     /**
-     * @param  list<array{label: string, date: string}>  $dates
+     * @param  list<PeriodDateInput>  $dates
      * @param  list<int>  $formPhaseIds
      */
     public function __construct(

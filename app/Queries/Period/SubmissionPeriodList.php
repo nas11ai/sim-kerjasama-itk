@@ -4,10 +4,10 @@ namespace App\Queries\Period;
 
 use App\Actions\Concerns\ChangesNoState;
 use App\Data\View\FormEngine\PeriodRowData;
+use App\Enums\DeadlineType;
 use App\Enums\PeriodStatus;
 use App\Models\FormPhase;
 use App\Models\SubmissionDate;
-use App\Models\SubmissionDateLabel;
 use App\Models\SubmissionPeriod;
 use App\Models\SubmissionPeriodPhase;
 use App\Support\Search\LikePattern;
@@ -21,7 +21,7 @@ use Lorisleiva\Actions\Concerns\AsAction;
  *
  * @phpstan-type Filters array{search: string, status: string, year: string}
  * @phpstan-type Option array{value: string, label: string}
- * @phpstan-type Result array{periods: LengthAwarePaginator<int, PeriodRowData>, statusOptions: list<Option>, yearOptions: list<Option>, labelOptions: list<string>, phaseOptions: list<Option>}
+ * @phpstan-type Result array{periods: LengthAwarePaginator<int, PeriodRowData>, statusOptions: list<Option>, yearOptions: list<Option>, typeOptions: list<Option>, phaseOptions: list<Option>}
  *
  * @method static Result run(Filters $filters)
  */
@@ -39,7 +39,7 @@ class SubmissionPeriodList implements ChangesNoState
     {
         $query = SubmissionPeriod::query()
             ->with([
-                'submissionDates' => fn (Relation $dates) => $dates->with('submissionDateLabel')->withCount('formPhaseDetails'),
+                'submissionDates' => fn (Relation $dates) => $dates->withCount(SubmissionDate::PHASE_DETAIL_RELATIONS),
                 'submissionPeriodPhases',
             ])
             // Predikat yang sama dengan Semua Pengajuan (OperatorSubmissionList): induk yang terkirim.
@@ -56,8 +56,10 @@ class SubmissionPeriodList implements ChangesNoState
                 ->through(fn (SubmissionPeriod $period): PeriodRowData => PeriodRowData::fromModel($period)),
             'statusOptions' => array_map(fn (PeriodStatus $s): array => $s->option(), PeriodStatus::cases()),
             'yearOptions' => $this->yearOptions(),
-            'labelOptions' => array_values(SubmissionDateLabel::query()->orderBy('name')->get(['name'])
-                ->map(fn (SubmissionDateLabel $label): string => $label->name)->all()),
+            'typeOptions' => array_map(
+                fn (DeadlineType $type): array => ['value' => $type->value, 'label' => $type->label()],
+                DeadlineType::cases(),
+            ),
             'phaseOptions' => $this->phaseOptions(),
         ];
     }

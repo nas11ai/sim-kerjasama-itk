@@ -7,6 +7,7 @@
 // dimuat — test yang dijalankan sendirian langsung pecah. Di sini ia selalu
 // tersedia, dan tempatnya jelas saat ada yang perlu menambah.
 
+use App\Enums\DeadlineType;
 use App\Models\FieldType;
 use App\Models\Form;
 use App\Models\FormAccessControl;
@@ -24,7 +25,6 @@ use App\Models\ReviewFormFieldResponse;
 use App\Models\ReviewFormResponse;
 use App\Models\ReviewSummary;
 use App\Models\SubmissionDate;
-use App\Models\SubmissionDateLabel;
 use App\Models\SubmissionPeriod;
 use App\Models\SubmissionReviewer;
 use App\Models\User;
@@ -36,6 +36,38 @@ use Illuminate\Support\Facades\DB;
 use Spatie\Permission\Models\Permission;
 
 /**
+ * BR-FE-25 — jenis dan siklus dari label tampilannya, supaya fixture skenario tetap menyebut
+ * "Batas Evaluasi" atau "Batas Laporan Monev I" seperti teks BDD-nya.
+ *
+ * @return array{type: DeadlineType, cycle: int|null}
+ */
+function deadlineTypeOf(string $label): array
+{
+    foreach (DeadlineType::cases() as $type) {
+        foreach ([null, ...range(1, 10)] as $cycle) {
+            if ($type->label($cycle) === $label) {
+                return ['type' => $type, 'cycle' => $cycle];
+            }
+        }
+    }
+
+    throw new InvalidArgumentException("Label tenggat tak dikenal: {$label}");
+}
+
+/**
+ * Pasangan (jenis, siklus) ke-$i yang berbeda-beda, untuk test yang hanya butuh beberapa
+ * tanggal dalam satu periode tanpa peduli jenisnya (BR-FE-25: unik per periode).
+ *
+ * @return array{type: DeadlineType, cycle: int|null}
+ */
+function deadlineSlot(int $i): array
+{
+    $cases = DeadlineType::cases();
+
+    return ['type' => $cases[$i % count($cases)], 'cycle' => $i < count($cases) ? null : intdiv($i, count($cases))];
+}
+
+/**
  * Satu FormPhaseDetail yang benar-benar bisa diakses $user, lengkap dengan
  * periode dan tanggalnya.
  *
@@ -45,9 +77,8 @@ function buildAccessibleFormPhaseDetail(User $user, Organization $organization, 
 {
     $phaseType = PhaseType::create(['name' => 'Tipe Fase '.fake()->unique()->numerify('####-####')]);
     $period = SubmissionPeriod::factory()->create();
-    $dateLabel = SubmissionDateLabel::create(['name' => 'Label '.fake()->unique()->numerify('####-####')]);
     $submissionDate = SubmissionDate::create([
-        'submission_date_label_id' => $dateLabel->id,
+        'type' => DeadlineType::Submit,
         'datetime' => now()->addWeek(),
         'submission_period_id' => $period->id,
     ]);
@@ -168,7 +199,7 @@ function draftPayload(Form $form, SubmissionPeriod $period, FormPhase $formPhase
 function monevDetail(FormPhase $phase, int $order, string $label, bool $needsReview = false, string $when = '+1 month'): FormPhaseDetail
 {
     $date = SubmissionDate::create([
-        'submission_date_label_id' => SubmissionDateLabel::firstOrCreate(['name' => $label])->id,
+        ...deadlineTypeOf($label),
         'submission_period_id' => SubmissionPeriod::factory()->create()->id,
         'datetime' => now()->modify($when),
     ]);
@@ -191,8 +222,8 @@ function monevFixture(bool $monev1NeedsReview = false, string $parentStatus = Ap
     $phase = FormPhase::create(['title' => 'Siklus '.fake()->unique()->numerify('####'), 'is_active' => true]);
 
     $pengajuan = monevDetail($phase, 1, 'Batas Submit');
-    $monev1 = monevDetail($phase, 3, 'Batas Monev I', $monev1NeedsReview);
-    $monev2 = monevDetail($phase, 5, 'Batas Monev II');
+    $monev1 = monevDetail($phase, 3, 'Batas Laporan Monev I', $monev1NeedsReview);
+    $monev2 = monevDetail($phase, 5, 'Batas Laporan Monev II');
 
     $owner = verifiedResearcher();
 
@@ -229,7 +260,7 @@ function phaseSharedByTwoPeriods(string $tag, bool $needsReview = false): array
     $periodA = SubmissionPeriod::create(['name' => "Periode A {$tag}"]);
     $dueA = now()->addDays(5)->startOfSecond();
     $dateA = SubmissionDate::create([
-        'submission_date_label_id' => SubmissionDateLabel::create(['name' => "Label A {$tag}"])->id,
+        'type' => DeadlineType::Submit,
         'datetime' => $dueA,
         'submission_period_id' => $periodA->id,
     ]);
@@ -237,7 +268,7 @@ function phaseSharedByTwoPeriods(string $tag, bool $needsReview = false): array
     $periodB = SubmissionPeriod::create(['name' => "Periode B {$tag}"]);
     $dueB = now()->addDays(20)->startOfSecond();
     SubmissionDate::create([
-        'submission_date_label_id' => SubmissionDateLabel::create(['name' => "Label B {$tag}"])->id,
+        'type' => DeadlineType::Submit,
         'datetime' => $dueB,
         'submission_period_id' => $periodB->id,
     ]);
@@ -281,21 +312,22 @@ function phaseWithOwnEvaluationDeadline(string $tag): array
 
     $dueSubmit = now()->addDays(3)->startOfSecond();
     $submitDate = SubmissionDate::create([
-        'submission_date_label_id' => SubmissionDateLabel::create(['name' => "Batas Submit {$tag}"])->id,
+        'type' => DeadlineType::Submit,
         'datetime' => $dueSubmit,
         'submission_period_id' => $period->id,
     ]);
 
     $dueEvaluation = now()->addDays(17)->startOfSecond();
     $evaluationDate = SubmissionDate::create([
-        'submission_date_label_id' => SubmissionDateLabel::create(['name' => "Batas Evaluasi {$tag}"])->id,
+        'type' => DeadlineType::Evaluation,
         'datetime' => $dueEvaluation,
         'submission_period_id' => $period->id,
     ]);
 
     // Tanggal terakhir period, milik tahap lain — bukan tenggat evaluasi.
     SubmissionDate::create([
-        'submission_date_label_id' => SubmissionDateLabel::create(['name' => "Batas Akhir {$tag}"])->id,
+        'type' => DeadlineType::Submit,
+        'cycle' => 1,
         'datetime' => now()->addDays(40)->startOfSecond(),
         'submission_period_id' => $period->id,
     ]);

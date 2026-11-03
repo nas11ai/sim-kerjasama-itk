@@ -15,7 +15,6 @@ use App\Models\ReviewEvaluationForm;
 use App\Models\ReviewFormField;
 use App\Models\ReviewFormResponse;
 use App\Models\SubmissionDate;
-use App\Models\SubmissionDateLabel;
 use App\Models\SubmissionPeriod;
 use App\Models\SubmissionReviewer;
 use App\Models\User;
@@ -98,9 +97,8 @@ function evalResponseAudit(Model $subject, string $description): bool
 }
 
 it('lets the active reviewer start an evaluation form, due on the latest date of the submission period', function () {
-    $label = SubmissionDateLabel::create(['name' => 'Batas Evaluasi '.fake()->unique()->numerify('####')]);
-    foreach ([now()->addDays(3), now()->addDays(20)] as $datetime) {
-        SubmissionDate::create(['submission_date_label_id' => $label->id, 'datetime' => $datetime, 'submission_period_id' => $this->period->id]);
+    foreach ([now()->addDays(3), now()->addDays(20)] as $i => $datetime) {
+        SubmissionDate::create([...deadlineSlot($i + 1), 'datetime' => $datetime, 'submission_period_id' => $this->period->id]);
     }
 
     $this->actingAs($this->reviewerUser)

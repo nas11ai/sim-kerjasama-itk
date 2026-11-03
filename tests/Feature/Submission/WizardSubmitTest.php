@@ -7,13 +7,13 @@
 // ada di SubmitFormSubmission sendiri (BR-FE-08).
 
 use App\Actions\FormSubmission\StartSubmission;
+use App\Enums\DeadlineType;
 use App\Enums\VerificationStatus;
 use App\Models\FieldType;
 use App\Models\FormField;
 use App\Models\FormSubmission;
 use App\Models\Scheme;
 use App\Models\SubmissionDate;
-use App\Models\SubmissionDateLabel;
 use App\States\Submission\Draft;
 use App\States\Submission\Submitted;
 
@@ -92,7 +92,7 @@ it('[BR-FE-08] submit lewat batas fase ditolak', function () {
     ['fx' => $fx, 'submission' => $submission] = wizardSubmitFixture();
     // Periode masih terbuka lewat tanggal lain; hanya batas fase pengajuan ini yang lewat.
     SubmissionDate::create([
-        'submission_date_label_id' => SubmissionDateLabel::firstOrCreate(['name' => 'Batas Laporan'])->id,
+        'type' => DeadlineType::Evaluation,
         'submission_period_id' => $fx['period']->id,
         'datetime' => now()->addMonths(2),
     ]);

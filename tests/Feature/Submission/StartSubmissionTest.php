@@ -6,6 +6,7 @@
 // menjadi jangkar Temporal Field Binding (BR-FE-11).
 
 use App\Actions\FormSubmission\StartSubmission;
+use App\Enums\DeadlineType;
 use App\Models\FormSubmission;
 use App\Models\SubmissionDate;
 use App\States\Submission\Draft;
@@ -132,7 +133,7 @@ it('[FE-ACCESS-08] batas yang sebagian masih di depan menjaga periode tetap terb
     // di depan — predikat warisan yang membacanya sebagai jendela justru
     // menolak pengajuan sebelum batas pertama tiba.
     SubmissionDate::create([
-        'submission_date_label_id' => $fx['period']->submissionDates->first()->submission_date_label_id,
+        'type' => DeadlineType::Evaluation,
         'datetime' => now()->subDay(),
         'submission_period_id' => $fx['period']->id,
     ]);

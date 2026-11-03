@@ -6,10 +6,10 @@
 // Tahap yang belum dipakai periode mana pun boleh memakai tenggat periode yang belum
 // ditutup paksa.
 
+use App\Enums\DeadlineType;
 use App\Models\FormPhase;
 use App\Models\FormPhaseDetail;
 use App\Models\SubmissionDate;
-use App\Models\SubmissionDateLabel;
 use App\Models\SubmissionPeriod;
 use App\Models\SubmissionPeriodPhase;
 use App\Models\User;
@@ -27,9 +27,7 @@ beforeEach(function () {
 function deadlineOf(SubmissionPeriod $period): SubmissionDate
 {
     return SubmissionDate::create([
-        'submission_date_label_id' => SubmissionDateLabel::create([
-            'name' => 'Label Tenggat '.fake()->unique()->numerify('####-####'),
-        ])->id,
+        'type' => DeadlineType::Submit,
         'datetime' => now()->addWeek(),
         'submission_period_id' => $period->id,
     ]);

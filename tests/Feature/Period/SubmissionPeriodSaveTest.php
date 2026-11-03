@@ -4,8 +4,8 @@
 // batas akhir (SubmissionPeriodGate), bukan jendela mulai–selesai.
 
 use App\Actions\FormSubmission\StartSubmission;
+use App\Enums\DeadlineType;
 use App\Models\FormPhase;
-use App\Models\SubmissionDateLabel;
 use App\Models\SubmissionPeriod;
 use App\Models\SubmissionPeriodPhase;
 use App\Models\User;
@@ -21,8 +21,6 @@ beforeEach(function () {
     $this->admin = User::factory()->create();
     $this->admin->assignRole('operator');
     $this->phase = FormPhase::create(['title' => 'Fase Satu', 'is_active' => true]);
-    $this->labelA = SubmissionDateLabel::create(['name' => 'Batas Awal']);
-    $this->labelB = SubmissionDateLabel::create(['name' => 'Batas Akhir']);
 });
 
 function periodPayload(array $dates, array $overrides = []): array
@@ -34,10 +32,10 @@ function periodPayload(array $dates, array $overrides = []): array
     ], $overrides);
 }
 
-it('rejects two rows with the same label in one request', function () {
+it('[FE-WINDOW-12] rejects two rows with the same type and cycle in one request', function () {
     $payload = periodPayload([
-        ['label' => 'Batas Awal', 'date' => '2030-01-01'],
-        ['label' => 'Batas Awal', 'date' => '2030-02-01'],
+        ['type' => 'submit', 'date' => '2030-01-01'],
+        ['type' => 'submit', 'date' => '2030-02-01'],
     ]);
 
     $this->actingAs($this->admin)
@@ -47,10 +45,10 @@ it('rejects two rows with the same label in one request', function () {
     expect(SubmissionPeriod::count())->toBe(0);
 });
 
-it('accepts two deadlines with different labels on the same date', function () {
+it('accepts two deadlines of different types on the same date', function () {
     $payload = periodPayload([
-        ['label' => 'Batas Awal', 'date' => '2030-01-01'],
-        ['label' => 'Batas Akhir', 'date' => '2030-01-01'],
+        ['type' => 'submit', 'date' => '2030-01-01'],
+        ['type' => 'evaluation', 'date' => '2030-01-01'],
     ]);
 
     $this->actingAs($this->admin)
@@ -62,7 +60,7 @@ it('accepts two deadlines with different labels on the same date', function () {
 });
 
 it('audits the creation of a period (BR-RPT-09)', function () {
-    $payload = periodPayload([['label' => 'Batas Awal', 'date' => '2030-01-01']]);
+    $payload = periodPayload([['type' => 'submit', 'date' => '2030-01-01']]);
 
     $this->actingAs($this->admin)->post(route('admin.submission-periods.store'), $payload);
 
@@ -79,7 +77,7 @@ it('audits the creation of a period (BR-RPT-09)', function () {
 
 it('audits the revision of a period (BR-RPT-09)', function () {
     $period = SubmissionPeriod::factory()->create(['name' => 'Lama']);
-    $payload = periodPayload([['label' => 'Batas Awal', 'date' => '2030-01-01']], ['name' => 'Baru']);
+    $payload = periodPayload([['type' => 'submit', 'date' => '2030-01-01']], ['name' => 'Baru']);
 
     $this->actingAs($this->admin)
         ->put(route('admin.submission-periods.update', $period), $payload)
@@ -101,7 +99,7 @@ it('sends no extension notice when the revision fails after the dates were exten
 
     $fx = wizardFixture();
     StartSubmission::run($fx['form']->id, $fx['period']->id, $fx['detail'], $fx['user']);
-    $date = $fx['period']->submissionDates()->with('submissionDateLabel')->firstOrFail();
+    $date = $fx['period']->submissionDates()->firstOrFail();
     $before = $date->datetime->copy();
 
     // Galat sesudah tanggal disinkronkan: tahap ditulis ulang paling akhir.
@@ -110,7 +108,7 @@ it('sends no extension notice when the revision fails after the dates were exten
     });
 
     $payload = periodPayload(
-        [['label' => $date->submissionDateLabel->name, 'date' => $before->copy()->addMonth()->toDateTimeString()]],
+        [['type' => $date->type->value, 'cycle' => $date->cycle, 'date' => $before->copy()->addMonth()->toDateTimeString()]],
         ['form_phase_ids' => [$fx['phase']->id]],
     );
 
@@ -129,10 +127,10 @@ it('sends the extension notice after a successful revision (BR-SCH-08)', functio
 
     $fx = wizardFixture();
     StartSubmission::run($fx['form']->id, $fx['period']->id, $fx['detail'], $fx['user']);
-    $date = $fx['period']->submissionDates()->with('submissionDateLabel')->firstOrFail();
+    $date = $fx['period']->submissionDates()->firstOrFail();
 
     $payload = periodPayload(
-        [['label' => $date->submissionDateLabel->name, 'date' => $date->datetime->copy()->addMonth()->toDateTimeString()]],
+        [['type' => $date->type->value, 'cycle' => $date->cycle, 'date' => $date->datetime->copy()->addMonth()->toDateTimeString()]],
         ['form_phase_ids' => [$fx['phase']->id]],
     );
 
@@ -148,7 +146,7 @@ it('does not paste the exception message onto the screen', function () {
         throw new RuntimeException('rahasia internal');
     });
 
-    $payload = periodPayload([['label' => 'Batas Awal', 'date' => '2030-01-01']]);
+    $payload = periodPayload([['type' => 'submit', 'date' => '2030-01-01']]);
 
     $this->withoutExceptionHandling();
 
@@ -157,21 +155,11 @@ it('does not paste the exception message onto the screen', function () {
     expect(SubmissionPeriod::count())->toBe(0);
 });
 
-it('label di-trim dan dipakai ulang', function () {
-    $payload = periodPayload([['label' => '  Batas Awal ', 'date' => '2030-01-01']]);
-
-    $this->actingAs($this->admin)
-        ->post(route('admin.submission-periods.store'), $payload)
-        ->assertSessionHasNoErrors();
-
-    expect(SubmissionDateLabel::count())->toBe(2)
-        ->and(SubmissionPeriod::firstOrFail()->submissionDates()->sole()->submission_date_label_id)->toBe($this->labelA->id);
-});
-
-it('label baru dibuat saat periode disimpan — BR-FE-17 butuh tenggat per tahap', function () {
+it('stores the deadline type and cycle — BR-FE-25', function () {
     $payload = periodPayload([
-        ['label' => 'Batas Awal', 'date' => '2030-01-01'],
-        ['label' => 'Batas Evaluasi', 'date' => '2030-02-01'],
+        ['type' => 'submit', 'cycle' => null, 'date' => '2030-01-01'],
+        ['type' => 'evaluation', 'cycle' => null, 'date' => '2030-02-01'],
+        ['type' => 'submit', 'cycle' => 1, 'date' => '2030-06-01'],
     ]);
 
     $this->actingAs($this->admin)
@@ -179,25 +167,51 @@ it('label baru dibuat saat periode disimpan — BR-FE-17 butuh tenggat per tahap
         ->assertSessionHasNoErrors()
         ->assertRedirect(route('admin.submission-periods.index'));
 
-    expect(SubmissionDateLabel::where('name', 'Batas Evaluasi')->exists())->toBeTrue();
+    $labels = SubmissionPeriod::firstOrFail()->submissionDates()->orderBy('datetime')->get()
+        ->map(fn ($date) => [$date->type, $date->cycle, $date->label()])->all();
+
+    expect($labels)->toBe([
+        [DeadlineType::Submit, null, 'Batas Submit'],
+        [DeadlineType::Evaluation, null, 'Batas Evaluasi'],
+        [DeadlineType::Submit, 1, 'Batas Laporan Monev I'],
+    ]);
 });
 
-it('dua label yang sama setelah di-trim ditolak', function () {
-    $payload = periodPayload([
-        ['label' => 'Batas Awal', 'date' => '2030-01-01'],
-        ['label' => ' Batas Awal', 'date' => '2030-02-01'],
-    ]);
+it('rejects an unknown deadline type — the labels are fixed, not typed (W72)', function () {
+    $this->actingAs($this->admin)
+        ->post(route('admin.submission-periods.store'), periodPayload([['type' => 'batas awal', 'date' => '2030-01-01']]))
+        ->assertSessionHasErrors('submission_dates.0.type');
+
+    expect(SubmissionPeriod::count())->toBe(0);
+});
+
+it('rejects cycle zero', function () {
+    $this->actingAs($this->admin)
+        ->post(route('admin.submission-periods.store'), periodPayload([['type' => 'submit', 'cycle' => 0, 'date' => '2030-01-01']]))
+        ->assertSessionHasErrors('submission_dates.0.cycle');
+});
+
+it('[FE-WINDOW-12] rejects a second Batas Evaluasi Monev I but accepts the main-cycle one', function () {
+    $this->actingAs($this->admin)
+        ->post(route('admin.submission-periods.store'), periodPayload([
+            ['type' => 'evaluation', 'cycle' => 1, 'date' => '2030-01-01'],
+            ['type' => 'evaluation', 'cycle' => '1', 'date' => '2030-02-01'],
+        ]))
+        ->assertSessionHasErrors('submission_dates');
 
     $this->actingAs($this->admin)
-        ->post(route('admin.submission-periods.store'), $payload)
-        ->assertSessionHasErrors('submission_dates');
+        ->post(route('admin.submission-periods.store'), periodPayload([
+            ['type' => 'evaluation', 'cycle' => 1, 'date' => '2030-01-01'],
+            ['type' => 'evaluation', 'cycle' => null, 'date' => '2030-02-01'],
+        ]))
+        ->assertSessionHasNoErrors();
 });
 
 it('peneliti tidak bisa menyimpan atau merevisi periode', function () {
     $researcher = User::factory()->create();
     $researcher->assignRole('researcher');
     $period = SubmissionPeriod::factory()->create();
-    $payload = periodPayload([['label' => 'Batas Awal', 'date' => '2030-01-01']]);
+    $payload = periodPayload([['type' => 'submit', 'date' => '2030-01-01']]);
 
     $this->actingAs($researcher)->post(route('admin.submission-periods.store'), $payload)->assertForbidden();
     $this->actingAs($researcher)->put(route('admin.submission-periods.update', $period), $payload)->assertForbidden();

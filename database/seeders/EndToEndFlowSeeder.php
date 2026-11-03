@@ -2,6 +2,7 @@
 
 namespace Database\Seeders;
 
+use App\Enums\DeadlineType;
 use App\Models\FieldType;
 use App\Models\Form;
 use App\Models\FormAccessControl;
@@ -15,7 +16,6 @@ use App\Models\Reviewer;
 use App\Models\Scheme;
 use App\Models\SchemeType;
 use App\Models\SubmissionDate;
-use App\Models\SubmissionDateLabel;
 use App\Models\SubmissionPeriod;
 use App\Models\SubmissionType;
 use App\Models\User;
@@ -190,11 +190,9 @@ class EndToEndFlowSeeder extends Seeder
             'organization_id' => $organization->id,
         ])->firstOrFail();
 
-        $label = SubmissionDateLabel::firstOrCreate(['name' => 'Batas Submit']);
-
         $date = SubmissionDate::firstOrCreate(
             [
-                'submission_date_label_id' => $label->id,
+                'type' => DeadlineType::Submit,
                 'submission_period_id' => $period->id,
             ],
             ['datetime' => now()->addMonths(3)]

@@ -2,6 +2,7 @@
 
 // tests/Feature/Migrations/AddRelationsToFormSubmissionsTest.php
 
+use App\Enums\DeadlineType;
 use App\Models\Form;
 use App\Models\FormAccessControl;
 use App\Models\FormPhase;
@@ -10,14 +11,13 @@ use App\Models\FormSubmission;
 use App\Models\Organization;
 use App\Models\PhaseType;
 use App\Models\SubmissionDate;
-use App\Models\SubmissionDateLabel;
 use App\Models\SubmissionPeriod;
 use Illuminate\Support\Facades\Schema;
 
-function createSubmissionDate(int $labelId, int $periodId): int
+function createSubmissionDate(int $periodId): int
 {
     return SubmissionDate::create([
-        'submission_date_label_id' => $labelId,
+        'type' => DeadlineType::Submit,
         'datetime' => now(),
         'submission_period_id' => $periodId,
     ])->id;
@@ -62,8 +62,7 @@ it('backfills form_phase_detail_id and submission_period_id when the mapping is 
     $phaseType = PhaseType::create(['name' => 'Tipe Fase Uji Backfill']);
     $formPhase = FormPhase::create(['title' => 'Fase Uji Backfill', 'is_active' => true]);
     $period = SubmissionPeriod::create(['name' => 'Periode Uji Backfill']);
-    $dateLabel = SubmissionDateLabel::create(['name' => 'Label Tanggal Uji Backfill']);
-    $submissionDateId = createSubmissionDate($dateLabel->id, $period->id);
+    $submissionDateId = createSubmissionDate($period->id);
     $phaseDetail = FormPhaseDetail::create([
         'form_phase_id' => $formPhase->id,
         'form_access_control_id' => $accessControl->id,
@@ -96,8 +95,7 @@ it('fails hard instead of guessing when a form maps to more than one phase detai
     ]);
     $phaseType = PhaseType::create(['name' => 'Tipe Fase Uji Ambigu']);
     $period = SubmissionPeriod::create(['name' => 'Periode Uji Ambigu']);
-    $dateLabel = SubmissionDateLabel::create(['name' => 'Label Tanggal Uji Ambigu']);
-    $submissionDateId = createSubmissionDate($dateLabel->id, $period->id);
+    $submissionDateId = createSubmissionDate($period->id);
 
     // Dua FormPhaseDetail untuk form_access_control yang sama -> satu form_id
     // punya lebih dari satu kandidat form_phase_detail, jadi ambigu.

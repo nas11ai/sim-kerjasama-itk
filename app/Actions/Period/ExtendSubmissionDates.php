@@ -2,9 +2,9 @@
 
 namespace App\Actions\Period;
 
+use App\Data\Request\PeriodDateInput;
 use App\Data\Result\DeadlineExtension;
 use App\Models\SubmissionDate;
-use App\Models\SubmissionDateLabel;
 use App\Models\SubmissionPeriod;
 use App\Models\User;
 use App\Notifications\SubmissionDeadlineExtendedNotification;
@@ -21,21 +21,21 @@ use Lorisleiva\Actions\Concerns\AsAction;
  * lama dibandingkan dengan baru); memajukan atau mengganti nama tidak memberi
  * peneliti kesempatan baru, memperpanjang memberi.
  *
- * @method static DeadlineExtension run(SubmissionPeriod $period, array<int, array{label: string, date: string}> $dates, ?User $actor = null)
+ * @method static DeadlineExtension run(SubmissionPeriod $period, list<PeriodDateInput> $dates, ?User $actor = null)
  */
 class ExtendSubmissionDates
 {
     use AsAction;
 
     /**
-     * @param  array<int, array{label: string, date: string}>  $dates
+     * @param  list<PeriodDateInput>  $dates
      */
     public function handle(SubmissionPeriod $period, array $dates, ?User $actor = null): DeadlineExtension
     {
         return DB::transaction(fn (): DeadlineExtension => $this->extend($period, $dates, $actor));
     }
 
-    /** @param  array<int, array{label: string, date: string}>  $dates */
+    /** @param  list<PeriodDateInput>  $dates */
     private function extend(SubmissionPeriod $period, array $dates, ?User $actor): DeadlineExtension
     {
         // Mengirim untuk setiap penyuntingan membuat notifikasi ini cepat
@@ -79,19 +79,19 @@ class ExtendSubmissionDates
     /**
      * Menyelaraskan tanggal periode dengan daftar masukan.
      *
-     * @param  array<int, array{label: string, date: string}>  $dates
+     * @param  list<PeriodDateInput>  $dates
      * @return bool apakah ada batas yang mundur
      */
     private function syncDates(SubmissionPeriod $period, array $dates): bool
     {
-        $existing = $this->datesByLabel($period);
+        $existing = $this->datesByKey($period);
 
         $adaPerpanjangan = false;
         $terpakai = [];
 
         foreach ($dates as $row) {
-            $baru = Carbon::parse($row['date']);
-            $lama = $existing->get(trim($row['label']));
+            $baru = Carbon::parse($row->date);
+            $lama = $existing->get($row->key());
 
             if ($lama instanceof SubmissionDate) {
                 if ($baru->gt($lama->datetime)) {
@@ -109,7 +109,8 @@ class ExtendSubmissionDates
 
             $terpakai[] = SubmissionDate::create([
                 'submission_period_id' => $period->id,
-                'submission_date_label_id' => SubmissionDateLabel::named($row['label'])->id,
+                'type' => $row->type,
+                'cycle' => $row->cycle,
                 'datetime' => $baru,
             ])->id;
         }
@@ -119,27 +120,22 @@ class ExtendSubmissionDates
         return $adaPerpanjangan;
     }
 
-    /** @return Collection<string, SubmissionDate> */
-    private function datesByLabel(SubmissionPeriod $period): Collection
+    /** @return Collection<string, SubmissionDate> BR-FE-25 — kunci (jenis, siklus) unik per periode. */
+    private function datesByKey(SubmissionPeriod $period): Collection
     {
         return $period->submissionDates()
-            ->with('submissionDateLabel')
             ->get()
-            ->keyBy(function (SubmissionDate $d): string {
-                $label = $d->submissionDateLabel;
-
-                return $label instanceof SubmissionDateLabel ? $label->name : (string) $d->id;
-            });
+            ->keyBy(fn (SubmissionDate $d): string => PeriodDateInput::keyOf($d->type, $d->cycle));
     }
 
     /** @param  list<int>  $keptIds */
     private function deleteUnlisted(SubmissionPeriod $period, array $keptIds): void
     {
-        // Tanggal yang tidak lagi disebut dihapus — kecuali masih ditunjuk
-        // sebuah FormPhaseDetail, yang berarti ia masih menggerbangi fase.
+        // Tanggal yang tidak lagi disebut dihapus — kecuali masih ditunjuk sebuah
+        // FormPhaseDetail lewat kolom tenggat mana pun (BR-FE-26): ia masih menggerbangi fase.
         $period->submissionDates()
             ->whereNotIn('id', $keptIds)
-            ->whereDoesntHave('formPhaseDetails')
+            ->withoutPhaseDetail()
             ->delete();
     }
 }

@@ -2,6 +2,7 @@
 
 namespace Database\Factories;
 
+use App\Enums\DeadlineType;
 use App\Models\Form;
 use App\Models\FormAccessControl;
 use App\Models\FormPhase;
@@ -9,7 +10,6 @@ use App\Models\FormPhaseDetail;
 use App\Models\Organization;
 use App\Models\PhaseType;
 use App\Models\SubmissionDate;
-use App\Models\SubmissionDateLabel;
 use App\Models\SubmissionPeriod;
 use Illuminate\Database\Eloquent\Factories\Factory;
 
@@ -46,12 +46,8 @@ class FormPhaseDetailFactory extends Factory
             'name' => 'Periode Uji Factory '.fake()->unique()->numerify('####-####'),
         ]);
 
-        $dateLabel = SubmissionDateLabel::create([
-            'name' => 'Label Tanggal '.fake()->unique()->numerify('####-####'),
-        ]);
-
         $submissionDate = SubmissionDate::create([
-            'submission_date_label_id' => $dateLabel->id,
+            'type' => DeadlineType::Submit,
             'datetime' => now()->addWeek(),
             'submission_period_id' => $period->id,
         ]);

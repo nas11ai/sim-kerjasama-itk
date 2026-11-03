@@ -12,6 +12,7 @@
 
 use App\Actions\Form\DeleteFormPhase;
 use App\Actions\Period\DeleteSubmissionPeriod;
+use App\Enums\DeadlineType;
 use App\Models\Form;
 use App\Models\FormPhase;
 use App\Models\FormPhaseDetail;
@@ -19,7 +20,6 @@ use App\Models\FormSubmission;
 use App\Models\Reviewer;
 use App\Models\ReviewerFormAssignment;
 use App\Models\ReviewEvaluationForm;
-use App\Models\SubmissionDateLabel;
 use App\Models\SubmissionPeriod;
 use App\Models\SubmissionReviewer;
 use App\Models\User;
@@ -191,7 +191,7 @@ it('penghapusan periode yang ditolak tidak meninggalkan jejak audit — BR-RPT-0
 it('[FE-DELETE-11] SubmissionDate yang jadi deadline sebuah detail tidak ikut terhapus', function () {
     $period = SubmissionPeriod::factory()->create();
     $tanggal = $period->submissionDates()->create([
-        'submission_date_label_id' => SubmissionDateLabel::firstOrCreate(['name' => 'Batas Proposal'])->id,
+        'type' => DeadlineType::Submit,
         'datetime' => now()->addMonth(),
     ]);
     $detail = FormPhaseDetail::factory()->create(['submission_date_id' => $tanggal->id]);

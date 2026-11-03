@@ -8,9 +8,9 @@
 // BR-SM-10 — draft yang diarsipkan berubah read-only, tapi tidak pernah
 // dihapus. Periode yang tutup membekukan, bukan membuang.
 
+use App\Enums\DeadlineType;
 use App\Models\FormSubmission;
 use App\Models\SubmissionDate;
-use App\Models\SubmissionDateLabel;
 use App\Models\SubmissionPeriod;
 use App\Models\User;
 use App\States\Submission\Draft;
@@ -21,9 +21,8 @@ function archiveFixture(bool $submitted = false): array
     $owner = User::factory()->create();
     $period = SubmissionPeriod::factory()->create(['is_force_closed' => false]);
 
-    $label = SubmissionDateLabel::create(['name' => 'Batas '.fake()->unique()->numerify('####')]);
     SubmissionDate::create([
-        'submission_date_label_id' => $label->id,
+        'type' => DeadlineType::Submit,
         'submission_period_id' => $period->id,
         'datetime' => now()->addWeek(),
     ]);

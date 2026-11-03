@@ -9,7 +9,6 @@ use App\Models\FormAccessControl;
 use App\Models\FormPhase;
 use App\Models\FormType;
 use App\Models\PhaseType;
-use App\Models\SubmissionDateLabel;
 use App\Models\SubmissionPeriod;
 use App\Queries\Identity\FacultyOptions;
 use Inertia\Inertia;
@@ -37,8 +36,6 @@ class CompleteFormBuilderController extends Controller
                 ->usable()
                 ->orderBy('name')
                 ->get(),
-            // Label dari basis data; id-nya tidak boleh ditulis tangan di layar.
-            'submissionDateLabels' => SubmissionDateLabel::query()->orderBy('name')->get(['id', 'name']),
         ]);
     }
 
@@ -52,7 +49,7 @@ class CompleteFormBuilderController extends Controller
 
         // BR-FE-17 — wizard tidak menanyakan tenggat, jadi Operator diberi tahu apa yang dipakai.
         $deadline = $built->deadline;
-        $label = $deadline->submissionDateLabel->name ?? 'tanpa label';
+        $label = $deadline->label();
 
         return redirect()->route('admin.forms.show', $built->form->id)
             ->with('success', 'Form dan seluruh konfigurasinya berhasil dibuat!')

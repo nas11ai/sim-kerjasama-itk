@@ -150,7 +150,7 @@ it('audits a status change and answers with the same JSON keys (BR-RPT-09)', fun
 it('passes deadline options labelled period, label and date to create and edit', function () {
     $detail = FormPhaseDetail::factory()->create();
     $date = $detail->submissionDate;
-    $label = $date->submissionPeriod?->name.' — '.$date->submissionDateLabel?->name.' — '
+    $label = $date->submissionPeriod?->name.' — '.$date->label().' — '
         .$date->datetime->format('d/m/Y H:i');
 
     foreach ([route('admin.form-phases.create'), route('admin.form-phases.edit', $detail->formPhase)] as $url) {

@@ -17,7 +17,6 @@ use App\Models\FormPhaseDetail;
 use App\Models\FormSubmission;
 use App\Models\FormSubmissionOverride;
 use App\Models\SubmissionDate;
-use App\Models\SubmissionDateLabel;
 use App\Models\SubmissionPeriod;
 use App\Models\User;
 use App\Notifications\PhaseOverrideGrantedNotification;
@@ -32,7 +31,7 @@ use Symfony\Component\HttpKernel\Exception\HttpException;
 function overrideDetail(SubmissionPeriod $period, FormPhase $phase, string $label, string $when, int $order = 1): FormPhaseDetail
 {
     $date = SubmissionDate::create([
-        'submission_date_label_id' => SubmissionDateLabel::firstOrCreate(['name' => $label])->id,
+        ...deadlineTypeOf($label),
         'submission_period_id' => $period->id,
         'datetime' => $when,
     ]);
@@ -155,7 +154,7 @@ it('[FE-OVERRIDE-07] override tidak melebar ke fase lain', function () {
     $this->travelTo('2026-06-02 08:00:00');
     $fx = overrideFixture();
 
-    $monev = overrideDetail($fx['period'], $fx['phase'], 'Batas Monev I', '2026-06-01 23:59:00', 2);
+    $monev = overrideDetail($fx['period'], $fx['phase'], 'Batas Laporan Monev I', '2026-06-01 23:59:00', 2);
 
     GrantPhaseOverride::run($fx['submission'], $fx['detail'], $fx['operator'],
         new PhaseOverrideInput('Kendala jaringan', '2026-07-01 23:59:00'));

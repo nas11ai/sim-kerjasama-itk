@@ -82,8 +82,8 @@ class OperatorSubmissionDetail implements ChangesNoState
             return null;
         }
 
-        $detail->loadMissing(['formPhase:id,title', 'submissionDate.submissionDateLabel:id,name']);
-        $parts = array_filter([$detail->formPhase?->title, $detail->submissionDate->submissionDateLabel?->name]);
+        $detail->loadMissing(['formPhase:id,title', 'submissionDate']);
+        $parts = array_filter([$detail->formPhase?->title, $detail->submissionDate->label()]);
 
         return $parts === [] ? null : implode(' — ', $parts);
     }

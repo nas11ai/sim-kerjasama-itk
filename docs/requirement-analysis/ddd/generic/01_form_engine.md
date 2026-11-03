@@ -131,6 +131,8 @@ classDiagram
         +FormPhaseId form_phase_id
         +FormAccessControlId form_access_control_id
         +SubmissionDateId submission_date_id
+        +SubmissionDateId evaluation_date_id
+        +SubmissionDateId revision_date_id
         +PhaseTypeId phase_type_id
         +int order
         +bool needs_review
@@ -147,8 +149,10 @@ classDiagram
     class SubmissionDate {
         +SubmissionDateId id
         +SubmissionPeriodId period_id
-        +string label
+        +DeadlineType type
+        +int cycle
         +DateTime datetime
+        +label() string
     }
 
     class FormSubmission {
@@ -249,6 +253,8 @@ classDiagram
     FormField "1" --> "0..*" FormFieldOption : has
     FormPhase "1" --> "1..*" FormPhaseDetail : has
     FormPhaseDetail "*" --> "1" SubmissionDate : deadline
+    FormPhaseDetail "*" --> "0..1" SubmissionDate : evaluation_deadline
+    FormPhaseDetail "*" --> "0..1" SubmissionDate : revision_deadline
     FormPhaseDetail "1" --> "0..*" ReviewEvaluationForm : has
     FormPhaseDetail "1" --> "0..*" FormSubmissionOverride : overridden_by
     ReviewEvaluationForm "1" --> "1..*" ReviewFormField : has
@@ -338,6 +344,7 @@ if ($submission->updated_at->ne($request->last_updated_at)) {
 | BR-FE-22 | `ReviewEvaluationForm` dinonaktifkan, bukan dihapus, begitu ia pernah dipakai `ReviewerFormAssignment`. Form evaluasi adalah dasar sebuah keputusan review — menghapusnya berarti menghapus alasan kenapa sebuah pengajuan dinilai sebagaimana ia dinilai |
 | BR-FE-23 | `field_type_id` sebuah `FormField` **tidak bisa diubah** begitu ada `FormFieldResponse` yang merujuknya. `value` disimpan sebagai satu kolom tanpa tipe, jadi mengubah tipenya membuat jawaban lama tetap tersimpan tapi berhenti bisa dibaca renderer dan validator tipe barunya — rusak tanpa satu pun kegagalan yang terlihat. Yang dibutuhkan adalah **field baru**, bukan field lama yang berganti rupa |
 | BR-FE-24 | **Cermin [BR-BUD-05](../supporting/01_budget.md) pada opsi field.** `FormFieldOption` memakai soft delete: opsi yang pernah dipilih ditandai tidak aktif — berhenti ditawarkan untuk jawaban baru, tapi jawaban lama tetap terbaca. `FormFieldResponse.value` menyimpan nilainya sebagai string tanpa foreign key, jadi opsi yang dihapus keras meninggalkan jawaban yatim yang tidak bisa dipilih ulang dan diam-diam hilang dari setiap laporan |
+| BR-FE-25 | Setiap `SubmissionDate` punya **jenis tenggat** tetap — `submit` (Batas Submit), `evaluation` (Batas Evaluasi), atau `revision` (Batas Revisi) — dan **siklus**: kosong untuk pengajuan utama, `n ≥ 1` untuk Monev n. Satu periode punya paling banyak satu tanggal per pasangan (jenis, siklus), siklus kosong ikut dihitung. Labelnya diturunkan dari jenis dan siklus ("Batas Laporan Monev I", "Batas Evaluasi Monev I"), bukan diketik: label teks bebas tidak berarti apa pun bagi gerbang, jadi [BR-FE-17](#business-rules) hanya bisa ditegakkan bila setiap tanggal tahu tahap mana yang ia batasi |
 
 ---
 

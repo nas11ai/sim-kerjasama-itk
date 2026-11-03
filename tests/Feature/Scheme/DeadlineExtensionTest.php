@@ -8,6 +8,7 @@
 
 use App\Actions\FormSubmission\StartSubmission;
 use App\Actions\Period\ExtendSubmissionDates;
+use App\Data\Request\PeriodDateInput;
 use App\Models\User;
 use App\Models\UserProfile;
 use App\Notifications\SubmissionDeadlineExtendedNotification;
@@ -23,10 +24,10 @@ it('[SCH-RULE-11] perpanjangan memberi tahu pemilik draft', function () {
     $fx = wizardFixture();
     StartSubmission::run($fx['form']->id, $fx['period']->id, $fx['detail'], $fx['user']);
 
-    $label = $fx['period']->submissionDates->first()->submissionDateLabel->name;
+    $tenggat = $fx['period']->submissionDates->first();
 
     $diberitahu = ExtendSubmissionDates::run($fx['period'], [
-        ['label' => $label, 'date' => now()->addMonth()->toDateTimeString()],
+        new PeriodDateInput($tenggat->type, $tenggat->cycle, now()->addMonth()->toDateTimeString()),
     ]);
 
     expect($diberitahu->notified)->toBe(1)
@@ -41,10 +42,10 @@ it('[SCH-RULE-12] deadline baru langsung berlaku sebagai gerbang akses', functio
     $fx['period']->submissionDates()->update(['datetime' => now()->subWeek()]);
     expect($fx['detail']->fresh()->isWithinDeadline())->toBeFalse();
 
-    $label = $fx['period']->submissionDates()->first()->submissionDateLabel->name;
+    $tenggat = $fx['period']->submissionDates()->first();
 
     ExtendSubmissionDates::run($fx['period'], [
-        ['label' => $label, 'date' => now()->addMonth()->toDateTimeString()],
+        new PeriodDateInput($tenggat->type, $tenggat->cycle, now()->addMonth()->toDateTimeString()),
     ]);
 
     // Tidak ada penyambungan ulang: tanggalnya diperbarui di tempat, jadi
@@ -56,10 +57,10 @@ it('[SCH-RULE-13] tanpa draft berjalan tidak ada notifikasi terkirim', function 
     Notification::fake();
 
     $fx = wizardFixture();
-    $label = $fx['period']->submissionDates->first()->submissionDateLabel->name;
+    $tenggat = $fx['period']->submissionDates->first();
 
     $diberitahu = ExtendSubmissionDates::run($fx['period'], [
-        ['label' => $label, 'date' => now()->addMonth()->toDateTimeString()],
+        new PeriodDateInput($tenggat->type, $tenggat->cycle, now()->addMonth()->toDateTimeString()),
     ]);
 
     expect($diberitahu->notified)->toBe(0)
@@ -73,12 +74,12 @@ it('[SCH-RULE-11] memajukan tanggal tidak memicu notifikasi perpanjangan', funct
     $fx = wizardFixture();
     StartSubmission::run($fx['form']->id, $fx['period']->id, $fx['detail'], $fx['user']);
 
-    $label = $fx['period']->submissionDates->first()->submissionDateLabel->name;
+    $tenggat = $fx['period']->submissionDates->first();
 
     // Batas dimajukan, bukan dimundurkan — tidak ada kesempatan baru yang
     // diberikan, jadi tidak ada yang perlu diberitahukan.
     $diberitahu = ExtendSubmissionDates::run($fx['period'], [
-        ['label' => $label, 'date' => now()->addDay()->toDateTimeString()],
+        new PeriodDateInput($tenggat->type, $tenggat->cycle, now()->addDay()->toDateTimeString()),
     ]);
 
     expect($diberitahu->notified)->toBe(0)
@@ -94,10 +95,10 @@ it('[SCH-RULE-11] hanya pemilik draft di periode itu yang diberi tahu', function
 
     $orangLain = User::factory()->create();
 
-    $label = $fx['period']->submissionDates->first()->submissionDateLabel->name;
+    $tenggat = $fx['period']->submissionDates->first();
 
     ExtendSubmissionDates::run($fx['period'], [
-        ['label' => $label, 'date' => now()->addMonth()->toDateTimeString()],
+        new PeriodDateInput($tenggat->type, $tenggat->cycle, now()->addMonth()->toDateTimeString()),
     ]);
 
     Notification::assertNotSentTo($orangLain, SubmissionDeadlineExtendedNotification::class);
@@ -110,10 +111,10 @@ it('BR-RPT-09 entri audit perpanjangan mencatat Operator sebagai pelaku', functi
     StartSubmission::run($fx['form']->id, $fx['period']->id, $fx['detail'], $fx['user']);
 
     $operator = User::factory()->create();
-    $label = $fx['period']->submissionDates->first()->submissionDateLabel->name;
+    $tenggat = $fx['period']->submissionDates->first();
 
     ExtendSubmissionDates::run($fx['period'], [
-        ['label' => $label, 'date' => now()->addMonth()->toDateTimeString()],
+        new PeriodDateInput($tenggat->type, $tenggat->cycle, now()->addMonth()->toDateTimeString()),
     ], $operator);
 
     $entry = Activity::query()->where('description', 'Tenggat periode diperpanjang')->firstOrFail();
@@ -153,10 +154,10 @@ it('perpanjangan di periode yang ditutup Operator tidak memberi tahu siapa pun',
     $fx = wizardFixture();
     StartSubmission::run($fx['form']->id, $fx['period']->id, $fx['detail'], $fx['user']);
     $fx['period']->update(['is_force_closed' => true]);
-    $label = $fx['period']->submissionDates->first()->submissionDateLabel->name;
+    $tenggat = $fx['period']->submissionDates->first();
 
     $hasil = ExtendSubmissionDates::run($fx['period']->fresh(), [
-        ['label' => $label, 'date' => now()->addMonths(2)->toDateTimeString()],
+        new PeriodDateInput($tenggat->type, $tenggat->cycle, now()->addMonths(2)->toDateTimeString()),
     ]);
 
     expect($hasil->extended)->toBeTrue()
@@ -172,10 +173,10 @@ it('flash deadlineExtended hanya saat tenggat mundur', function () {
     $operator->assignRole('operator');
 
     $fx = wizardFixture();
-    $date = $fx['period']->submissionDates()->with('submissionDateLabel')->firstOrFail();
+    $date = $fx['period']->submissionDates()->firstOrFail();
     $payload = fn (string $at) => [
         'name' => $fx['period']->name,
-        'submission_dates' => [['label' => $date->submissionDateLabel->name, 'date' => $at]],
+        'submission_dates' => [['type' => $date->type->value, 'cycle' => $date->cycle, 'date' => $at]],
         'form_phase_ids' => [$fx['phase']->id],
     ];
 

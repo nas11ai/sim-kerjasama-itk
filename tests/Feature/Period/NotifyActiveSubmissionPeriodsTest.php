@@ -7,7 +7,6 @@
 // refactor, bukan menilai aturannya.
 
 use App\Models\SubmissionDate;
-use App\Models\SubmissionDateLabel;
 use App\Models\SubmissionPeriod;
 use App\Models\User;
 use App\Notifications\SubmissionPeriodActiveNotification;
@@ -21,10 +20,10 @@ function periodeDenganTanggal(string $buka, string $tutup): SubmissionPeriod
 {
     $period = SubmissionPeriod::factory()->create();
 
-    foreach (['Buka' => $buka, 'Tutup' => $tutup] as $label => $kapan) {
+    foreach ([$buka, $tutup] as $i => $kapan) {
         SubmissionDate::create([
             'submission_period_id' => $period->id,
-            'submission_date_label_id' => SubmissionDateLabel::firstOrCreate(['name' => $label])->id,
+            ...deadlineSlot($i),
             'datetime' => $kapan,
         ]);
     }

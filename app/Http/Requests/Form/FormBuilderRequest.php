@@ -6,7 +6,6 @@ use App\Data\Request\EvaluationFieldInput;
 use App\Data\Request\EvaluationFormInput;
 use App\Data\Request\FormBuilderFieldInput;
 use App\Data\Request\FormBuilderInput;
-use App\Data\Request\FormBuilderPeriodInput;
 use App\Data\Request\FormBuilderPhaseInput;
 use App\Models\FormAccessControl;
 use Illuminate\Foundation\Http\FormRequest;
@@ -81,18 +80,9 @@ class FormBuilderRequest extends FormRequest
     /** @return array<string, string> */
     private function periodRules(): array
     {
-        $useExisting = 'submission_period.use_existing';
-
+        // K8g — wizard hanya memilih periode yang ada; tenggatnya diikat Action (BR-FE-26).
         return [
-            $useExisting => 'required|boolean',
-            'submission_period.existing_period_id' => "nullable|required_if_accepted:{$useExisting}|integer"
-                .'|exists:submission_periods,id',
-            'submission_period.new_period_name' => "nullable|required_if_declined:{$useExisting}|string|max:255",
-            // Periode tanpa tanggal ditolak Action-nya, untuk periode baru maupun yang ada.
-            'submission_period.dates' => 'nullable|array',
-            // Satu tanggal per label, selaras layar periode; setiap tanggal batas akhir.
-            'submission_period.dates.*.label_id' => 'required|integer|distinct|exists:submission_date_labels,id',
-            'submission_period.dates.*.date' => 'required|date',
+            'submission_period.existing_period_id' => 'required|integer|exists:submission_periods,id',
         ];
     }
 
@@ -110,7 +100,7 @@ class FormBuilderRequest extends FormRequest
             ], $this->indexesOf('access_controls')),
             phase: $this->phase(),
             evaluationForms: array_map($this->evaluationForm(...), $this->indexesOf('evaluation_forms')),
-            period: $this->period(),
+            periodId: $this->integer('submission_period.existing_period_id'),
         );
     }
 
@@ -167,20 +157,6 @@ class FormBuilderRequest extends FormRequest
             // Nilai opsi jatuh ke labelnya bila Operator tidak mengisinya.
             return ['label' => $label, 'value' => $this->optionalString("{$key}.{$o}.value") ?? $label];
         }, $this->indexesOf($key));
-    }
-
-    private function period(): FormBuilderPeriodInput
-    {
-        $useExisting = $this->boolean('submission_period.use_existing');
-
-        return new FormBuilderPeriodInput(
-            existingPeriodId: $useExisting ? $this->integer('submission_period.existing_period_id') : null,
-            newName: $this->string('submission_period.new_period_name')->value(),
-            dates: $useExisting ? [] : array_map(fn (int|string $i): array => [
-                'labelId' => $this->integer("submission_period.dates.{$i}.label_id"),
-                'date' => $this->string("submission_period.dates.{$i}.date")->value(),
-            ], $this->indexesOf('submission_period.dates')),
-        );
     }
 
     /** @return list<int|string> */

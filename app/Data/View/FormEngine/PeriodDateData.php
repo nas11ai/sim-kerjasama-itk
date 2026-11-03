@@ -13,6 +13,8 @@ final class PeriodDateData extends Data
 {
     public function __construct(
         public int $id,
+        public string $type,
+        public ?int $cycle,
         public string $label,
         public string $at,
         public string $inputValue,
@@ -20,7 +22,7 @@ final class PeriodDateData extends Data
         public int $phaseDetailCount,
     ) {}
 
-    /** Relasi `submissionDateLabel` dan hitungan `form_phase_details_count` dimuat SubmissionPeriodList. */
+    /** Hitungan detail per kolom tenggat dimuat SubmissionPeriodList (BR-FE-26). */
     public static function fromModel(SubmissionDate $date): self
     {
         // Cast `datetime` Eloquent sudah berada di zona aplikasi.
@@ -28,11 +30,13 @@ final class PeriodDateData extends Data
 
         return new self(
             id: $date->id,
-            label: $date->submissionDateLabel->name ?? '',
+            type: $date->type->value,
+            cycle: $date->cycle,
+            label: $date->label(),
             at: $local->toIso8601String(),
             inputValue: $local->format('Y-m-d\TH:i'),
             passed: $date->isPassed(),
-            phaseDetailCount: $date->form_phase_details_count,
+            phaseDetailCount: $date->phaseDetailCount(),
         );
     }
 }

@@ -4,8 +4,8 @@
 // masih terbuka: BR-SCH-07 mengunci seluruh fasenya, BR-SM-10 memberi tahu pemilik draft.
 
 use App\Actions\Period\CloseSubmissionPeriod;
+use App\Enums\DeadlineType;
 use App\Models\FormSubmission;
-use App\Models\SubmissionDateLabel;
 use App\Models\SubmissionPeriod;
 use App\Models\User;
 use App\Notifications\SubmissionPeriodClosedNotification;
@@ -24,7 +24,7 @@ function closingFixture(string $deadline = '+1 week'): array
     $owner = User::factory()->create();
     $period = SubmissionPeriod::factory()->create(['is_force_closed' => false]);
     $period->submissionDates()->create([
-        'submission_date_label_id' => SubmissionDateLabel::firstOrCreate(['name' => 'Batas Submit'])->id,
+        'type' => DeadlineType::Submit,
         'datetime' => now()->modify($deadline),
     ]);
     FormSubmission::factory()->create(['submitted_by' => $owner->id, 'submission_period_id' => $period->id]);
