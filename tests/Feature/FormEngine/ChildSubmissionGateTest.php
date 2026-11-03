@@ -79,6 +79,16 @@ it('laporan tahap tetap bisa dimulai walau Form-nya dinonaktifkan', function () 
         ->and($child->form?->is_active)->toBeFalse();
 });
 
+// W89 / K9a — menonaktifkan tahap menghentikan pengajuan baru, bukan laporan monev.
+it('laporan tahap tetap bisa dimulai walau tahapnya dinonaktifkan', function () {
+    $fx = childFixture(Approved::class);
+    $fx['detail']->formPhase->update(['is_active' => false]);
+
+    $child = StartChildSubmission::run($fx['parent'], $fx['detail'], $fx['user']);
+
+    expect($child->parent_submission_id)->toBe($fx['parent']->id);
+});
+
 it('[FE-CHILD-02] jalur HTTP menolak induk yang belum disetujui', function () {
     $fx = childFixture(UnderReview::class);
 

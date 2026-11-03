@@ -4,12 +4,12 @@ import { Head, Link } from '@inertiajs/vue3'
 import { Plus } from 'lucide-vue-next'
 import { computed } from 'vue'
 
-import ConfirmDialog from '@/Components/app/ConfirmDialog.vue'
 import FilterToolbar from '@/Components/app/FilterToolbar.vue'
 import PageHeader from '@/Components/app/PageHeader.vue'
 import PaginationBar from '@/Components/app/PaginationBar.vue'
 import FormDeleteBlockedDialog from '@/Components/FormEngine/FormDeleteBlockedDialog.vue'
 import FormTable from '@/Components/FormEngine/FormTable.vue'
+import ToggleDeleteDialogs from '@/Components/FormEngine/ToggleDeleteDialogs.vue'
 import { Button } from '@/Components/ui/button'
 import { useFilters } from '@/composables/useFilters'
 import { useFormActions } from '@/composables/useFormActions'
@@ -72,23 +72,17 @@ const selects = computed((): FilterSelectSpec<Exclude<keyof FormIndexFilters, 's
             :form="target"
             @deactivate="target && actions.requestToggle(target)"
         />
-        <ConfirmDialog
-            v-model:open="toggling"
-            :title="actions.toggleCopy.value.title"
-            :description="actions.toggleCopy.value.description"
-            :confirm-label="actions.toggleCopy.value.confirmLabel"
-            :destructive="target?.isActive"
+        <ToggleDeleteDialogs
+            v-model:toggling="toggling"
+            v-model:deleting="deleting"
+            :toggle-copy="actions.toggleCopy.value"
+            delete-title="Hapus form?"
+            :delete-description="`${target?.title ?? ''} beserta field-nya dihapus permanen.`"
+            delete-confirm-label="Hapus Form"
+            :destructive-toggle="target?.isActive ?? false"
             :processing="processing"
-            @confirm="actions.confirmToggle"
-        />
-        <ConfirmDialog
-            v-model:open="deleting"
-            title="Hapus form?"
-            :description="`${target?.title ?? ''} beserta field-nya dihapus permanen.`"
-            confirm-label="Hapus Form"
-            destructive
-            :processing="processing"
-            @confirm="actions.confirmDelete"
+            @confirm-toggle="actions.confirmToggle"
+            @confirm-delete="actions.confirmDelete"
         />
     </AppLayout>
 </template>

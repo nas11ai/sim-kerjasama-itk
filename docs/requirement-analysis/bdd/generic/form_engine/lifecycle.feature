@@ -71,6 +71,13 @@ Feature: Penghapusan Struktur Form
     When Admin menghapus FormPhase "Uji Coba"
     Then penghapusan berhasil
 
+  @BR-FE-20 @M0 @ADMIN-08-08 @denial
+  Scenario: [FE-DELETE-15] FormPhase yang masih dipakai dinonaktifkan, bukan dihapus
+    Given FormPhase "Pengajuan" punya 2 pengajuan
+    When Admin menonaktifkan FormPhase "Pengajuan"
+    Then FormPhase itu berhenti menerima pengajuan baru
+    And kedua pengajuan lama tetap terbaca
+
   @BR-FE-21 @M0 @OPERATOR-09-01 @denial
   Scenario: [FE-DELETE-10] SubmissionPeriod yang punya pengajuan tidak bisa dihapus
     Given SubmissionPeriod "Gelombang I 2026" punya 8 pengajuan

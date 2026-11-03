@@ -280,20 +280,16 @@ Route::middleware(['auth', 'can:users.manage'])->prefix('admin')->name('admin.')
     Route::post('/review-summaries/{reviewSummary}/comments', [ReviewController::class, 'addComment'])
         ->name('review-comments.store');
 
-    Route::resource('form-phases', FormPhaseController::class)->except('index')->names([
+    Route::resource('form-phases', FormPhaseController::class)->except('index', 'destroy')->names([
         'create' => 'form-phases.create',
         'store' => 'form-phases.store',
         'show' => 'form-phases.show',
         'edit' => 'form-phases.edit',
         'update' => 'form-phases.update',
-        'destroy' => 'form-phases.destroy',
     ]);
 
     Route::get('form-phases/{formPhase}/evaluation-forms', [FormPhaseController::class, 'evaluationForms'])
         ->name('form-phases.evaluation-forms');
-
-    Route::patch('api/form-phases/{formPhase}/status', [FormPhaseController::class, 'updateStatus'])
-        ->name('form-phases.update-status');
 });
 
 // For backwards compatibility, you can add redirects for admin routes without prefix
@@ -401,6 +397,10 @@ Route::middleware(['auth', 'can:schemes.manage'])->prefix('admin')->name('admin.
 
     // ADMIN-08-08 — tahap yang memakai Form ini (W92).
     Route::get('/forms/{form}/phases', [FormPhaseTabController::class, 'index'])->name('forms.phases.index');
+    Route::patch('/forms/{form}/phases/{formPhase}/active', [FormPhaseTabController::class, 'setActive'])
+        ->name('forms.phases.active');
+    Route::delete('/forms/{form}/phases/{formPhase}', [FormPhaseTabController::class, 'destroy'])
+        ->name('forms.phases.destroy');
 });
 
 // OPERATOR-09-01 — periode dikelola pemegang periods.manage, bukan users.manage (§4.4 K1).

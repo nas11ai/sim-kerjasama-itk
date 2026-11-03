@@ -144,3 +144,27 @@ it('usesForm: tahap memakai Form lewat salah satu detailnya (W92)', function () 
     expect($phase->usesForm($this->form))->toBeTrue()
         ->and($phase->usesForm(Form::factory()->create()))->toBeFalse();
 });
+
+it('wewenang aktif dan hapus: operator 403', function () {
+    $phase = phaseTabDetail($this->form)->formPhase;
+
+    $this->actingAs(phaseTabActor('operator'))
+        ->patch(route('admin.forms.phases.active', [$this->form, $phase]), ['active' => false])
+        ->assertForbidden();
+    $this->delete(route('admin.forms.phases.destroy', [$this->form, $phase]))->assertForbidden();
+
+    expect($phase->fresh()?->is_active)->toBeTrue();
+});
+
+it('tahap milik Form lain lewat URL: 404 dan tidak berubah', function () {
+    $other = Form::factory()->create();
+    $phase = phaseTabDetail($other)->formPhase;
+
+    $this->actingAs(phaseTabActor())
+        ->patch(route('admin.forms.phases.active', [$this->form, $phase]), ['active' => false])
+        ->assertNotFound();
+    $this->delete(route('admin.forms.phases.destroy', [$this->form, $phase]))->assertNotFound();
+
+    expect($phase->fresh()?->is_active)->toBeTrue()
+        ->and(FormPhase::query()->whereKey($phase->id)->exists())->toBeTrue();
+});

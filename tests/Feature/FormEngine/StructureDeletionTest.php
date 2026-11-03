@@ -12,6 +12,7 @@
 
 use App\Actions\Form\DeleteFormPhase;
 use App\Actions\Form\SetFormActive;
+use App\Actions\Form\SetFormPhaseActive;
 use App\Actions\FormSubmission\StartSubmission;
 use App\Actions\Period\DeleteSubmissionPeriod;
 use App\Enums\DeadlineType;
@@ -164,6 +165,23 @@ it('[FE-DELETE-09] FormPhase tanpa pengajuan bisa dihapus', function () {
 
     expect(FormPhase::query()->whereKey($phase->id)->exists())->toBeFalse()
         ->and(FormPhaseDetail::query()->where('form_phase_id', $phase->id)->exists())->toBeFalse();
+});
+
+it('[FE-DELETE-15] tahap yang masih dipakai dinonaktifkan, bukan dihapus', function () {
+    $fx = wizardFixture();
+    FormSubmission::factory()->count(2)->create(['form_phase_detail_id' => $fx['detail']->id]);
+
+    SetFormPhaseActive::run($fx['phase'], false, adminPenghapus());
+
+    // BR-FE-20 — tahap berhenti menerima pengajuan baru, pengajuan lama tetap terbaca.
+    try {
+        StartSubmission::run($fx['form']->id, $fx['period']->id, $fx['detail'], $fx['user']);
+        $this->fail('Tahap nonaktif seharusnya menolak pengajuan baru.');
+    } catch (ValidationException $e) {
+        expect($e->errors())->toBe(['form_phase_id' => ['Tahap ini sudah tidak menerima pengajuan baru.']]);
+    }
+
+    expect(FormSubmission::query()->where('form_phase_detail_id', $fx['detail']->id)->count())->toBe(2);
 });
 
 // ---------- BR-FE-21: periode ----------

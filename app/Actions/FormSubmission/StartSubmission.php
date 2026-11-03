@@ -3,6 +3,7 @@
 namespace App\Actions\FormSubmission;
 
 use App\Models\Form;
+use App\Models\FormPhase;
 use App\Models\FormPhaseDetail;
 use App\Models\FormSubmission;
 use App\Models\SubmissionPeriod;
@@ -50,7 +51,7 @@ class StartSubmission
             return $existing;
         }
 
-        $this->assertAcceptsNewSubmissions($formId);
+        $this->assertAcceptsNewSubmissions($formId, $submissionPeriodId, $formPhaseDetail);
 
         // ADR 0012 — created_at baris ini menjadi jangkar Temporal Field Binding
         // (BR-FE-11), jadi ia harus lahir saat peneliti mulai mengisi.
@@ -69,14 +70,19 @@ class StartSubmission
         return $tercatat;
     }
 
-    // BR-FE-19 / FE-DELETE-05 — Form nonaktif tidak menerima pengajuan baru; draft yang
-    // masih boleh disunting sudah dikembalikan lebih dulu, jadi tidak ikut tertolak (W77).
-    private function assertAcceptsNewSubmissions(int $formId): void
+    // BR-FE-19 / FE-DELETE-05 — Form nonaktif tidak menerima pengajuan baru; draft yang masih
+    // boleh disunting sudah dikembalikan lebih dulu, jadi tidak ikut tertolak (W77).
+    // BR-FE-20 / FE-DELETE-15 — tahap nonaktif menutup pengajuan baru dengan cara yang sama.
+    private function assertAcceptsNewSubmissions(int $formId, int $submissionPeriodId, FormPhaseDetail $detail): void
     {
-        if (!Form::query()->whereKey($formId)->where('is_active', false)->exists()) {
-            return;
+        if (Form::query()->whereKey($formId)->where('is_active', false)->exists()) {
+            throw ValidationException::withMessages(['form_id' => 'Form ini sudah tidak menerima pengajuan baru.']);
         }
 
-        throw ValidationException::withMessages(['form_id' => 'Form ini sudah tidak menerima pengajuan baru.']);
+        if (FormPhase::query()->whereKey($detail->form_phase_id)->where('is_active', false)->exists()) {
+            throw ValidationException::withMessages([
+                'form_phase_id' => 'Tahap ini sudah tidak menerima pengajuan baru.',
+            ]);
+        }
     }
 }

@@ -6,7 +6,9 @@ use App\Actions\Concerns\ChangesNoState;
 use App\Actions\FormSubmission\ResolveWizardSubmission;
 use App\Data\View\Submission\Wizard\StartFormOptionData;
 use App\Data\View\Submission\Wizard\StartPeriodOptionData;
+use App\Models\Form;
 use App\Models\FormAccessControl;
+use App\Models\FormPhase;
 use App\Models\SubmissionPeriod;
 use App\Models\User;
 use App\Support\SubmissionPeriodGate;
@@ -67,7 +69,13 @@ class ResearcherStartOptions implements ChangesNoState
         $forms = [];
 
         foreach ($period->submissionPeriodPhases as $periodPhase) {
-            foreach ($periodPhase->formPhase->formPhaseDetails ?? [] as $detail) {
+            $phase = $periodPhase->formPhase;
+
+            if ($phase === null) {
+                continue;
+            }
+
+            foreach ($phase->formPhaseDetails as $detail) {
                 $form = $detail->formAccessControl?->form;
 
                 if ($form === null || isset($forms[$form->id])) {
@@ -76,8 +84,7 @@ class ResearcherStartOptions implements ChangesNoState
 
                 $draftId = $this->draftId($form->id, $period, $user);
 
-                // BR-FE-19 / W77 — Form nonaktif hanya ditawarkan bila peneliti punya draft di sana.
-                if (!$form->is_active && $draftId === null) {
+                if ($this->isClosedToNewSubmissions($form, $phase) && $draftId === null) {
                     continue;
                 }
 
@@ -91,6 +98,12 @@ class ResearcherStartOptions implements ChangesNoState
         }
 
         return array_values($forms);
+    }
+
+    // BR-FE-19 / BR-FE-20 / W77 — Form atau tahap nonaktif hanya ditawarkan bila peneliti punya draft di sana.
+    private function isClosedToNewSubmissions(Form $form, FormPhase $phase): bool
+    {
+        return !$form->is_active || !$phase->is_active;
     }
 
     private function draftId(int $formId, SubmissionPeriod $period, User $user): ?int

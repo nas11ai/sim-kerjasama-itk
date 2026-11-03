@@ -2,13 +2,15 @@ import { flushPromises, mount } from '@vue/test-utils'
 import { defineComponent, h } from 'vue'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-const { submitted } = vi.hoisted(() => ({
+const { submitted, router } = vi.hoisted(() => ({
     submitted: vi.fn<(method: string, url: string, data: Record<string, unknown>) => void>(),
+    router: { patch: vi.fn(), delete: vi.fn() },
 }))
 
 vi.mock('@inertiajs/vue3', async () => {
     const { reactive } = await import('vue')
     return {
+        router,
         useForm: <T extends object>(data: T) => {
             const form = reactive({
                 ...data,
@@ -43,7 +45,12 @@ vi.mock('@/Layouts/AppLayout.vue', () => ({
 }))
 
 import FormEditPage from '@/Pages/FormEngine/FormEditPage.vue'
-import type { FormEditPageProps, FormGeneralData } from '@/types/form-engine'
+import type {
+    FormEditPageProps,
+    FormEditPhasesProps,
+    FormGeneralData,
+    PhaseCardData,
+} from '@/types/form-engine'
 
 const general = (overrides: Partial<FormGeneralData> = {}): FormGeneralData => ({
     title: '',
@@ -87,23 +94,26 @@ const editing = (): FormEditPageProps =>
         }),
     })
 
-const phases = (): FormEditPageProps => ({
+const phaseCard = (overrides: Partial<PhaseCardData> = {}): PhaseCardData => ({
+    id: 1,
+    title: 'Pengajuan Proposal',
+    description: null,
+    isActive: true,
+    detailCount: 2,
+    periodNames: ['Penelitian DIPA 2026'],
+    submissionCount: 0,
+    linkablePeriods: [],
+    deadlineGaps: [],
+    ...overrides,
+})
+
+const phases = (overrides: Partial<FormEditPhasesProps> = {}): FormEditPhasesProps => ({
     tab: 'phases',
     form: { id: 7, title: 'Form Proposal Penelitian', isActive: true },
     can: { linkPeriod: true },
     phases: [
-        {
-            id: 1,
-            title: 'Pengajuan Proposal',
-            description: null,
-            isActive: true,
-            detailCount: 2,
-            periodNames: ['Penelitian DIPA 2026'],
-            submissionCount: 0,
-            linkablePeriods: [],
-            deadlineGaps: [],
-        },
-        {
+        phaseCard(),
+        phaseCard({
             id: 2,
             title: 'Tahap Lama',
             description: 'Sudah tidak dipakai',
@@ -111,13 +121,16 @@ const phases = (): FormEditPageProps => ({
             detailCount: 1,
             periodNames: [],
             submissionCount: 4,
-            linkablePeriods: [],
-            deadlineGaps: [],
-        },
+        }),
     ],
+    ...overrides,
 })
 
-const route = (name: string, id?: number) => (id === undefined ? `/${name}` : `/${name}/${id}`)
+const route = (name: string, params?: number | Record<string, number>) => {
+    if (params === undefined) return `/${name}`
+    const ids = typeof params === 'number' ? [params] : Object.values(params)
+    return `/${name}/${ids.join('/')}`
+}
 
 const mountPage = (pageProps: FormEditPageProps) =>
     mount(FormEditPage, { props: pageProps, global: { mocks: { route } } })
@@ -145,6 +158,8 @@ const clickButton = async (wrapper: ReturnType<typeof mountPage>, label: string)
 beforeEach(() => {
     vi.stubGlobal('route', route)
     submitted.mockClear()
+    document.body.innerHTML = ''
+    Object.values(router).forEach((fn) => fn.mockClear())
 })
 
 describe('FormEngine/FormEditPage', () => {
@@ -232,16 +247,13 @@ describe('FormEngine/FormEditPage', () => {
         })
 
         it('tombol Hubungkan ke Periode tersembunyi tanpa periods.manage', () => {
-            const wrapper = mountPage({
-                ...phases(),
-                can: { linkPeriod: false },
-            } as FormEditPageProps)
+            const wrapper = mountPage(phases({ can: { linkPeriod: false } }))
 
             expect(wrapper.text()).not.toContain('Hubungkan ke Periode')
         })
 
         it('kosong: pesan dan tombol selesai menaut ke Daftar Form', () => {
-            const wrapper = mountPage({ ...phases(), phases: [] } as FormEditPageProps)
+            const wrapper = mountPage(phases({ phases: [] }))
 
             expect(wrapper.text()).toContain('Belum ada tahap yang memakai form ini.')
             expect(wrapper.find('a[href="/admin.forms.index"]').exists()).toBe(true)
@@ -252,6 +264,73 @@ describe('FormEngine/FormEditPage', () => {
             const done = wrapper.findAll('a').find((a) => a.text() === 'Selesai — ke Daftar Form')
 
             expect(done?.attributes('href')).toBe('/admin.forms.index')
+        })
+
+        const bodyButton = (label: string) =>
+            Array.from(document.querySelectorAll('button')).find(
+                (b) => b.textContent?.trim() === label
+            )
+
+        it('[FE-DELETE-06] hapus tahap berpengajuan membuka penjelasan berangka, bukan konfirmasi', async () => {
+            const wrapper = mountPage(phases())
+            await wrapper.findAll('article')[1].findAll('button').at(-1)?.trigger('click')
+            await flushPromises()
+
+            expect(document.body.textContent).toContain('Tahap tidak bisa dihapus')
+            expect(document.body.textContent).toContain('Tahap ini dirujuk 4 pengajuan')
+            expect(document.body.textContent).not.toContain('Hapus tahap?')
+            expect(router.delete).not.toHaveBeenCalled()
+        })
+
+        it('penjelasan menawarkan Nonaktifkan Tahap hanya bila tahap masih aktif', async () => {
+            const wrapper = mountPage(phases({ phases: [phaseCard({ submissionCount: 2 })] }))
+            await clickButton(wrapper, 'Hapus')
+
+            expect(bodyButton('Nonaktifkan Tahap')).toBeDefined()
+        })
+
+        it('[FE-DELETE-09] tahap kosong dikonfirmasi lalu dihapus', async () => {
+            const wrapper = mountPage(phases())
+            await clickButton(wrapper, 'Hapus')
+
+            expect(document.body.textContent).toContain('Hapus tahap?')
+            expect(document.body.textContent).toContain(
+                'Pengajuan Proposal beserta 2 detail dan form evaluasinya dihapus permanen.'
+            )
+            bodyButton('Hapus Tahap')?.click()
+            await flushPromises()
+            expect(router.delete).toHaveBeenCalledWith(
+                '/admin.forms.phases.destroy/7/1',
+                expect.anything()
+            )
+        })
+
+        it('nonaktifkan dikonfirmasi lalu memanggil route active', async () => {
+            const wrapper = mountPage(phases())
+            await clickButton(wrapper, 'Nonaktifkan')
+
+            expect(document.body.textContent).toContain('Nonaktifkan tahap?')
+            bodyButton('Nonaktifkan Tahap')?.click()
+            await flushPromises()
+            expect(router.patch).toHaveBeenCalledWith(
+                '/admin.forms.phases.active/7/1',
+                { active: false },
+                expect.anything()
+            )
+        })
+
+        it('mengaktifkan tahap nonaktif memanggil route active dengan true', async () => {
+            const wrapper = mountPage(phases({ phases: [phaseCard({ isActive: false })] }))
+            await clickButton(wrapper, 'Aktifkan')
+
+            expect(document.body.textContent).toContain('Aktifkan tahap?')
+            bodyButton('Aktifkan Tahap')?.click()
+            await flushPromises()
+            expect(router.patch).toHaveBeenCalledWith(
+                '/admin.forms.phases.active/7/1',
+                { active: true },
+                expect.anything()
+            )
         })
     })
 })

@@ -21,6 +21,11 @@ class SetFormPhaseActive
 
     public function handle(FormPhase $phase, bool $isActive, User $actor): FormPhase
     {
+        // Nilai yang sama bukan perubahan, jadi tidak meninggalkan jejak audit.
+        if ($phase->is_active === $isActive) {
+            return $phase;
+        }
+
         return DB::transaction(function () use ($phase, $isActive, $actor): FormPhase {
             $old = ['is_active' => $phase->is_active];
 

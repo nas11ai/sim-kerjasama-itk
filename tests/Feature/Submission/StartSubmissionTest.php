@@ -204,3 +204,35 @@ it('Form nonaktif tidak ditawarkan dan ditolak saat dimulai', function () {
 
     expect($offeredForm()?->draftId)->toBe($draft->id);
 });
+
+it('draft yang sudah ada tetap bisa dilanjutkan di tahap nonaktif', function () {
+    $fx = wizardFixture();
+    $draft = StartSubmission::run($fx['form']->id, $fx['period']->id, $fx['detail'], $fx['user']);
+
+    $fx['phase']->update(['is_active' => false]);
+
+    // BR-FE-20 / W77 — draft yang masih boleh disunting bukan pengajuan baru.
+    $again = StartSubmission::run($fx['form']->id, $fx['period']->id, $fx['detail'], $fx['user']);
+
+    expect($again->id)->toBe($draft->id);
+});
+
+it('tahap nonaktif tidak ditawarkan kecuali ada draft', function () {
+    $fx = wizardFixture();
+    wizardQueryPhaseInPeriod($fx['period']->id, $fx['phase']->id);
+
+    $offeredForm = fn () => collect(ResearcherStartOptions::run($fx['user']))
+        ->flatMap(fn ($period) => $period->forms)->firstWhere('formId', $fx['form']->id);
+
+    expect($offeredForm())->not->toBeNull();
+
+    $fx['phase']->update(['is_active' => false]);
+
+    expect($offeredForm())->toBeNull();
+
+    $fx['phase']->update(['is_active' => true]);
+    $draft = StartSubmission::run($fx['form']->id, $fx['period']->id, $fx['detail'], $fx['user']);
+    $fx['phase']->update(['is_active' => false]);
+
+    expect($offeredForm()?->draftId)->toBe($draft->id);
+});

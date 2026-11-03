@@ -3,9 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Actions\Form\CreateFormPhase;
-use App\Actions\Form\DeleteFormPhase;
 use App\Actions\Form\ReviseFormPhase;
-use App\Actions\Form\SetFormPhaseActive;
 use App\Http\Requests\Form\FormPhaseRequest;
 use App\Models\FieldType;
 use App\Models\FormPhase;
@@ -89,38 +87,6 @@ class FormPhaseController extends Controller
 
         return redirect()->route('admin.forms.index')
             ->with('success', 'Tahap Formulir berhasil diperbarui.');
-    }
-
-    public function destroy(Request $request, FormPhase $formPhase)
-    {
-        $actor = $request->user();
-
-        abort_unless($actor !== null, 403);
-
-        // BR-FE-20 — penjaga yang sama dengan hapus massal; penolakannya validasi.
-        DeleteFormPhase::run($formPhase, $actor);
-
-        return redirect()->route('admin.forms.index')
-            ->with('success', 'Tahap Formulir berhasil dihapus.');
-    }
-
-    public function updateStatus(Request $request, FormPhase $formPhase)
-    {
-        $request->validate([
-            'is_active' => 'required|boolean',
-        ]);
-
-        $actor = $request->user();
-
-        abort_unless($actor !== null, 403);
-
-        SetFormPhaseActive::run($formPhase, $request->boolean('is_active'), $actor);
-
-        return response()->json([
-            'success' => true,
-            'message' => 'Status berhasil diperbarui',
-            'is_active' => $formPhase->is_active,
-        ]);
     }
 
     /**

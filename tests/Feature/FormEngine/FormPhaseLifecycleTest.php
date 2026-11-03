@@ -107,7 +107,7 @@ it('rejects single delete of a phase used by a submission and keeps its evaluati
     FormSubmission::factory()->create(['form_phase_detail_id' => $detail->id]);
 
     $this->actingAs($this->admin)
-        ->delete(route('admin.form-phases.destroy', $phase))
+        ->delete(route('admin.forms.phases.destroy', [$detail->formAccessControl?->form, $phase]))
         ->assertSessionHasErrors('id');
 
     expect(FormPhase::query()->whereKey($phase->id)->exists())->toBeTrue()
@@ -120,31 +120,43 @@ it('audits a single delete of an unused phase (BR-RPT-09)', function () {
     $phase = $detail->formPhase;
 
     $this->actingAs($this->admin)
-        ->delete(route('admin.form-phases.destroy', $phase))
+        ->delete(route('admin.forms.phases.destroy', [$detail->formAccessControl?->form, $phase]))
         ->assertSessionHasNoErrors()
-        ->assertRedirect(route('admin.forms.index'));
+        ->assertRedirect(route('admin.forms.phases.index', $detail->formAccessControl?->form));
 
     expect(FormPhase::query()->whereKey($phase->id)->exists())->toBeFalse()
         ->and(auditEntry('Tahap formulir dihapus', $phase))->not->toBeNull();
 });
 
-it('audits a status change and answers with the same JSON keys (BR-RPT-09)', function () {
-    $phase = FormPhase::create(['title' => 'Tahap Status', 'is_active' => true]);
+it('mengaktifkan dan menonaktifkan tahap mengaudit perubahan, nilai sama tidak (BR-RPT-09)', function () {
+    $detail = FormPhaseDetail::factory()->create();
+    $phase = $detail->formPhase;
+    $form = $detail->formAccessControl?->form;
+    $url = route('admin.forms.phases.active', [$form, $phase]);
 
-    $this->actingAs($this->admin)
-        ->patchJson(route('admin.form-phases.update-status', $phase), ['is_active' => false])
-        ->assertOk()
-        ->assertExactJson([
-            'success' => true,
-            'message' => 'Status berhasil diperbarui',
-            'is_active' => false,
-        ]);
+    $this->actingAs($this->admin)->from('/back')->patch($url, ['active' => false])
+        ->assertRedirect('/back')
+        ->assertSessionHas('success', 'Tahap dinonaktifkan.');
 
     $entry = auditEntry('Status tahap formulir diubah', $phase);
 
     expect($phase->fresh()?->is_active)->toBeFalse()
         ->and($entry)->not->toBeNull()
         ->and($entry?->causer_id)->toBe($this->admin->id);
+
+    $this->patch($url, ['active' => false])->assertSessionHasNoErrors();
+    expect(Activity::inLog(AuditTrail::LOG_NAME)->where('description', 'Status tahap formulir diubah')->count())->toBe(1);
+
+    $this->from('/back')->patch($url, ['active' => true])->assertSessionHas('success', 'Tahap diaktifkan.');
+    expect($phase->fresh()?->is_active)->toBeTrue();
+});
+
+it('menolak kiriman active yang bukan boolean', function () {
+    $detail = FormPhaseDetail::factory()->create();
+
+    $this->actingAs($this->admin)
+        ->patch(route('admin.forms.phases.active', [$detail->formAccessControl?->form, $detail->formPhase]), [])
+        ->assertSessionHasErrors('active');
 });
 
 it('passes deadline options labelled period, label and date to create and edit', function () {
