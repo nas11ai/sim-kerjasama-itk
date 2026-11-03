@@ -102,7 +102,7 @@ const phaseCard = (overrides: Partial<PhaseCardData> = {}): PhaseCardData => ({
     detailCount: 2,
     periodNames: ['Penelitian DIPA 2026'],
     submissionCount: 0,
-    linkablePeriods: [],
+    linkablePeriods: [{ value: '9', label: '2026 Gelombang 2' }],
     deadlineGaps: [],
     ...overrides,
 })

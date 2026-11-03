@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
  * @property int $form_phase_id
+ * @property int $submission_period_id
  * @property-read FormPhase|null $formPhase
  * @property-read SubmissionPeriod|null $submissionPeriod
  */

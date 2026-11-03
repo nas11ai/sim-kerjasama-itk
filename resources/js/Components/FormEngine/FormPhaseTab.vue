@@ -1,9 +1,11 @@
 <script setup lang="ts">
 import { Link } from '@inertiajs/vue3'
+import { ref } from 'vue'
 import { Layers } from 'lucide-vue-next'
 
 import EmptyState from '@/Components/app/EmptyState.vue'
 import PhaseCard from '@/Components/FormEngine/PhaseCard.vue'
+import PhasePeriodDialog from '@/Components/FormEngine/PhasePeriodDialog.vue'
 import PhaseDeleteBlockedDialog from '@/Components/FormEngine/PhaseDeleteBlockedDialog.vue'
 import ToggleDeleteDialogs from '@/Components/FormEngine/ToggleDeleteDialogs.vue'
 import { Button } from '@/Components/ui/button'
@@ -18,6 +20,13 @@ const props = defineProps<{
 
 const actions = usePhaseActions(props.form.id)
 const { target, toggling, deleting, blocked, processing } = actions
+
+const linking = ref(false)
+const linkTarget = ref<PhaseCardData | null>(null)
+const requestLink = (phase: PhaseCardData) => {
+    linkTarget.value = phase
+    linking.value = true
+}
 </script>
 
 <template>
@@ -36,11 +45,13 @@ const { target, toggling, deleting, blocked, processing } = actions
                 :can-link-period="can.linkPeriod"
                 @toggle-active="actions.requestToggle"
                 @delete="actions.requestDelete"
+                @link-period="requestLink"
             />
         </div>
         <Button as-child>
             <Link :href="route('admin.forms.index')">Selesai — ke Daftar Form</Link>
         </Button>
+        <PhasePeriodDialog v-model:open="linking" :phase="linkTarget" :form-id="form.id" />
         <PhaseDeleteBlockedDialog
             v-model:open="blocked"
             :phase="target"

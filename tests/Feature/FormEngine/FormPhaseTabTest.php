@@ -85,8 +85,8 @@ it('menghitung detail, periode, dan pengajuan per tahap', function () {
             ->where('phases.0.detailCount', 2)
             ->where('phases.0.periodNames', ['Penelitian DIPA 2026'])
             ->where('phases.0.submissionCount', 3)
-            ->where('phases.0.linkablePeriods', [])
-            ->where('phases.0.deadlineGaps', [])
+            ->where('phases.0.linkablePeriods', fn ($options) => collect($options)->doesntContain('label', 'Penelitian DIPA 2026'))
+            ->where('phases.0.deadlineGaps', [['period' => 'Penelitian DIPA 2026', 'count' => 2]])
             ->where('phases.1.id', $bare->id)
             ->where('phases.1.periodNames', [])
             ->where('phases.1.submissionCount', 0));

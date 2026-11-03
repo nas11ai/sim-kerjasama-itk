@@ -84,5 +84,12 @@ class StartSubmission
                 'form_phase_id' => 'Tahap ini sudah tidak menerima pengajuan baru.',
             ]);
         }
+
+        // BR-FE-17 / ADR 0014 — periode dibaca dari tenggat detail (FE-WINDOW-13).
+        if ($detail->submissionDate->submission_period_id !== $submissionPeriodId) {
+            throw ValidationException::withMessages([
+                'form_phase_id' => 'Tahap ini belum bertenggat di periode ini.',
+            ]);
+        }
     }
 }

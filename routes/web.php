@@ -401,6 +401,9 @@ Route::middleware(['auth', 'can:schemes.manage'])->prefix('admin')->name('admin.
         ->name('forms.phases.active');
     Route::delete('/forms/{form}/phases/{formPhase}', [FormPhaseTabController::class, 'destroy'])
         ->name('forms.phases.destroy');
+    // K9b — menautkan tahap ke periode butuh wewenang periode, selain schemes.manage.
+    Route::post('/forms/{form}/phases/{formPhase}/periods', [FormPhaseTabController::class, 'linkPeriod'])
+        ->middleware('can:periods.manage')->name('forms.phases.periods.store');
 });
 
 // OPERATOR-09-01 — periode dikelola pemegang periods.manage, bukan users.manage (§4.4 K1).

@@ -3,14 +3,18 @@
 namespace App\Http\Controllers\FormEngine;
 
 use App\Actions\Form\DeleteFormPhase;
+use App\Actions\Form\LinkPhaseToPeriod;
 use App\Actions\Form\SetFormPhaseActive;
 use App\Data\View\FormEngine\FormHeaderData;
 use App\Http\Controllers\Concerns\ResolvesActor;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Form\FormPhaseActiveRequest;
+use App\Http\Requests\Form\PhasePeriodRequest;
 use App\Models\Form;
 use App\Models\FormPhase;
+use App\Models\SubmissionPeriod;
 use App\Queries\Form\FormPhaseCards;
+use App\Queries\Form\PhaseDeadlineGaps;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -52,5 +56,22 @@ class FormPhaseController extends Controller
         DeleteFormPhase::run($formPhase, $this->actor($request));
 
         return redirect()->route('admin.forms.phases.index', $form)->with('success', 'Tahap dihapus.');
+    }
+
+    // K9b — penautan longgar; pesan menyebut keadaan antara bila tenggat detail masih milik periode lain.
+    public function linkPeriod(PhasePeriodRequest $request, Form $form, FormPhase $formPhase): RedirectResponse
+    {
+        abort_unless($formPhase->usesForm($form), 404);
+
+        $period = SubmissionPeriod::query()->findOrFail($request->integer('submission_period_id'));
+
+        LinkPhaseToPeriod::run($formPhase, $period, $this->actor($request));
+
+        $gaps = PhaseDeadlineGaps::forPhases(collect([$formPhase]))[$formPhase->id] ?? [];
+        $hasGap = collect($gaps)->contains(fn (array $gap): bool => $gap['period'] === $period->name);
+
+        return back()->with('success', $hasGap
+            ? "Tahap dihubungkan ke periode {$period->name}. Perbarui tenggat detailnya agar terbuka di periode ini."
+            : "Tahap dihubungkan ke periode {$period->name}.");
     }
 }

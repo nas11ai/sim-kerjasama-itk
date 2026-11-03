@@ -9,6 +9,7 @@ use App\Actions\FormSubmission\StartSubmission;
 use App\Enums\DeadlineType;
 use App\Models\FormSubmission;
 use App\Models\SubmissionDate;
+use App\Models\SubmissionPeriod;
 use App\Queries\Submission\ResearcherStartOptions;
 use App\States\Submission\Draft;
 use App\States\Submission\NeedsRevision;
@@ -235,4 +236,62 @@ it('tahap nonaktif tidak ditawarkan kecuali ada draft', function () {
     $fx['phase']->update(['is_active' => false]);
 
     expect($offeredForm()?->draftId)->toBe($draft->id);
+});
+
+/** Periode kedua yang terbuka dan memakai tahap yang sama; Batas Submit detail tetap milik periode pertama. */
+function windowSecondPeriod(array $fx): SubmissionPeriod
+{
+    $second = SubmissionPeriod::factory()->create();
+    SubmissionDate::create([
+        'type' => DeadlineType::Submit,
+        'datetime' => now()->addWeeks(2),
+        'submission_period_id' => $second->id,
+    ]);
+    foreach ([$fx['period'], $second] as $period) {
+        $fx['phase']->submissionPeriodPhases()->create(['submission_period_id' => $period->id]);
+    }
+
+    return $second;
+}
+
+it('[FE-WINDOW-13] detail yang tenggatnya milik periode lain tidak membuka pengajuan di periode itu', function () {
+    $fx = wizardFixture();
+    $second = windowSecondPeriod($fx);
+
+    $offeredIn = fn (SubmissionPeriod $period) => collect(ResearcherStartOptions::run($fx['user']))
+        ->firstWhere('id', $period->id)?->forms;
+
+    try {
+        StartSubmission::run($fx['form']->id, $second->id, $fx['detail'], $fx['user']);
+        $this->fail('Harus ditolak.');
+    } catch (ValidationException $e) {
+        expect($e->errors()['form_phase_id'] ?? null)->toBe(['Tahap ini belum bertenggat di periode ini.']);
+    }
+
+    expect(FormSubmission::where('form_id', $fx['form']->id)->count())->toBe(0)
+        ->and($offeredIn($second))->toBeNull()
+        ->and($offeredIn($fx['period']))->toHaveCount(1);
+
+    $started = StartSubmission::run($fx['form']->id, $fx['period']->id, $fx['detail'], $fx['user']);
+
+    expect($started->submission_period_id)->toBe($fx['period']->id);
+});
+
+it('draft yang sudah ada di periode itu tetap bisa dilanjutkan', function () {
+    $fx = wizardFixture();
+    $second = windowSecondPeriod($fx);
+    $draft = FormSubmission::factory()->create([
+        'form_id' => $fx['form']->id,
+        'submitted_by' => $fx['user']->id,
+        'submission_period_id' => $second->id,
+        'form_phase_detail_id' => $fx['detail']->id,
+        'status' => Draft::class,
+        'is_submitted' => false,
+    ]);
+
+    $offered = collect(ResearcherStartOptions::run($fx['user']))->firstWhere('id', $second->id)?->forms;
+
+    expect(StartSubmission::run($fx['form']->id, $second->id, $fx['detail'], $fx['user'])->id)->toBe($draft->id)
+        ->and($offered)->toHaveCount(1)
+        ->and($offered[0]->draftId)->toBe($draft->id);
 });

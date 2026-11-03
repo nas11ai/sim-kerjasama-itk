@@ -9,6 +9,7 @@ use App\Data\View\Submission\Wizard\StartPeriodOptionData;
 use App\Models\Form;
 use App\Models\FormAccessControl;
 use App\Models\FormPhase;
+use App\Models\FormPhaseDetail;
 use App\Models\SubmissionPeriod;
 use App\Models\User;
 use App\Support\SubmissionPeriodGate;
@@ -35,7 +36,7 @@ class ResearcherStartOptions implements ChangesNoState
                 'submissionPeriodPhases.formPhase.formPhaseDetails' => fn (Relation $q) => $q
                     ->whereIn('form_access_control_id', FormAccessControl::query()->accessibleBy($user)->select('id'))
                     ->orderBy('order')
-                    ->with('formAccessControl.form:id,title,is_active'),
+                    ->with(['formAccessControl.form:id,title,is_active', 'submissionDate:id,submission_period_id']),
             ])
             ->orderBy('id')
             ->get()
@@ -76,28 +77,41 @@ class ResearcherStartOptions implements ChangesNoState
             }
 
             foreach ($phase->formPhaseDetails as $detail) {
-                $form = $detail->formAccessControl?->form;
+                $option = $this->offer($detail, $phase, $period, $user);
 
-                if ($form === null || isset($forms[$form->id])) {
-                    continue;
+                // Cek sudah-ditawarkan sesudah semua lewati, supaya detail lain Form ini tetap terpilih.
+                if ($option !== null && !isset($forms[$option->formId])) {
+                    $forms[$option->formId] = $option;
                 }
-
-                $draftId = $this->draftId($form->id, $period, $user);
-
-                if ($this->isClosedToNewSubmissions($form, $phase) && $draftId === null) {
-                    continue;
-                }
-
-                $forms[$form->id] = new StartFormOptionData(
-                    formId: $form->id,
-                    formPhaseId: $detail->form_phase_id,
-                    title: $form->title,
-                    draftId: $draftId,
-                );
             }
         }
 
         return array_values($forms);
+    }
+
+    private function offer(FormPhaseDetail $detail, FormPhase $phase, SubmissionPeriod $period, User $user): ?StartFormOptionData
+    {
+        $form = $detail->formAccessControl?->form;
+
+        if ($form === null) {
+            return null;
+        }
+
+        $draftId = $this->draftId($form->id, $period, $user);
+
+        // BR-FE-17 / ADR 0014 — tenggat milik periode lain dilewati; draft yang ada tetap ditawarkan (K9b).
+        $ownedElsewhere = $detail->submissionDate->submission_period_id !== $period->id;
+
+        if (($ownedElsewhere || $this->isClosedToNewSubmissions($form, $phase)) && $draftId === null) {
+            return null;
+        }
+
+        return new StartFormOptionData(
+            formId: $form->id,
+            formPhaseId: $detail->form_phase_id,
+            title: $form->title,
+            draftId: $draftId,
+        );
     }
 
     // BR-FE-19 / BR-FE-20 / W77 — Form atau tahap nonaktif hanya ditawarkan bila peneliti punya draft di sana.

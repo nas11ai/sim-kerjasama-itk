@@ -12,6 +12,7 @@ use App\Models\Form;
 use App\Models\FormAccessControl;
 use App\Models\FormField;
 use App\Models\FormFieldResponse;
+use App\Models\FormPhaseDetail;
 use App\Models\FormSubmission;
 use App\Models\Organization;
 use App\Models\Scheme;
@@ -223,7 +224,16 @@ it('draft periode lain tidak ditautkan', function () {
     $fx = wizardFixture();
     $other = SubmissionPeriod::factory()->create();
     // BR-FE-01 (K8d) — periode tanpa Batas Submit belum menerima pengajuan, jadi tak ditawarkan.
-    $other->submissionDates()->create(['type' => DeadlineType::Submit, 'datetime' => now()->addMonth()]);
+    $otherDate = $other->submissionDates()->create(['type' => DeadlineType::Submit, 'datetime' => now()->addMonth()]);
+    // BR-FE-17 (K9b) — periode lain hanya menawarkan detail yang tenggatnya miliknya, jadi tahap ini
+    // diberi detail kedua (aturan akses sama) yang berbatas Batas Submit periode itu.
+    FormPhaseDetail::create([
+        'form_phase_id' => $fx['phase']->id,
+        'form_access_control_id' => $fx['detail']->form_access_control_id,
+        'phase_type_id' => $fx['detail']->phase_type_id,
+        'order' => 2,
+        'submission_date_id' => $otherDate->id,
+    ]);
     wizardQueryPhaseInPeriod($fx['period']->id, $fx['phase']->id);
     wizardQueryPhaseInPeriod($other->id, $fx['phase']->id);
     $draft = StartSubmission::run($fx['form']->id, $fx['period']->id, $fx['detail'], $fx['user']);

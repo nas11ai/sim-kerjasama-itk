@@ -36,6 +36,8 @@ class FormPhaseCards implements ChangesNoState
             ->get();
 
         $periods = $this->periodNames($phases);
+        $linkable = LinkablePeriods::forPhases($phases);
+        $gaps = PhaseDeadlineGaps::forPhases($phases);
 
         return array_values($phases->map(fn (FormPhase $phase): PhaseCardData => new PhaseCardData(
             id: $phase->id,
@@ -45,8 +47,8 @@ class FormPhaseCards implements ChangesNoState
             detailCount: $phase->form_phase_details_count,
             periodNames: $periods[$phase->id] ?? [],
             submissionCount: $phase->submission_count,
-            linkablePeriods: [],
-            deadlineGaps: [],
+            linkablePeriods: $linkable[$phase->id] ?? [],
+            deadlineGaps: $gaps[$phase->id] ?? [],
         ))->all());
     }
 

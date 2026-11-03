@@ -1,0 +1,136 @@
+import { flushPromises, mount } from '@vue/test-utils'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+
+type FakeForm = { submission_period_id: string | null; errors: Record<string, string> }
+
+const { posted } = vi.hoisted(() => ({
+    posted: vi.fn<(url: string, data: { submission_period_id: string | null }) => void>(),
+}))
+
+vi.mock('@inertiajs/vue3', async () => {
+    const { reactive } = await import('vue')
+    return {
+        useForm: (data: { submission_period_id: string | null }) => {
+            const form: FakeForm & Record<string, unknown> = reactive({
+                ...data,
+                errors: {},
+                processing: false,
+                reset() {},
+                clearErrors() {},
+                post(url: string, options?: { onSuccess?: () => void }) {
+                    posted(url, { submission_period_id: form.submission_period_id })
+                    options?.onSuccess?.()
+                },
+            })
+            return form
+        },
+        Link: { template: '<a><slot /></a>' },
+    }
+})
+
+import OptionSelect from '@/Components/app/OptionSelect.vue'
+import PhaseCard from '@/Components/FormEngine/PhaseCard.vue'
+import PhasePeriodDialog from '@/Components/FormEngine/PhasePeriodDialog.vue'
+import type { PhaseCardData } from '@/types/form-engine'
+
+const route = (name: string, params?: number | Record<string, number>) =>
+    [`/${name}`, typeof params === 'object' ? Object.values(params).join('/') : params]
+        .filter((part) => part !== undefined)
+        .join('/')
+
+const phase = (overrides: Partial<PhaseCardData> = {}): PhaseCardData => ({
+    id: 7,
+    title: 'Pengajuan',
+    description: null,
+    isActive: true,
+    detailCount: 2,
+    periodNames: ['2026 Gelombang 1'],
+    submissionCount: 0,
+    linkablePeriods: [{ value: '9', label: '2026 Gelombang 2' }],
+    deadlineGaps: [],
+    ...overrides,
+})
+
+const mountCard = (props: { phase: PhaseCardData; canLinkPeriod: boolean }) =>
+    mount(PhaseCard, { props: { formId: 3, ...props }, global: { mocks: { route } } })
+
+beforeEach(() => vi.stubGlobal('route', route))
+afterEach(() => posted.mockClear())
+
+describe('PhaseCard — hubungkan ke periode', () => {
+    it('tombol tersembunyi tanpa wewenang atau tanpa periode layak', () => {
+        const noRight = mountCard({ phase: phase(), canLinkPeriod: false })
+        const noPeriod = mountCard({ phase: phase({ linkablePeriods: [] }), canLinkPeriod: true })
+
+        expect(noRight.text()).not.toContain('Hubungkan ke Periode')
+        expect(noPeriod.text()).not.toContain('Hubungkan ke Periode')
+    })
+
+    it('tombol tampil dan memancarkan link-period', async () => {
+        const wrapper = mountCard({ phase: phase(), canLinkPeriod: true })
+
+        const button = wrapper.findAll('button').find((b) => b.text() === 'Hubungkan ke Periode')
+        await button?.trigger('click')
+
+        expect(wrapper.emitted('link-period')?.[0]).toEqual([phase()])
+    })
+
+    it('[FE-WINDOW-13] deadlineGaps menjadi peringatan per periode', () => {
+        const wrapper = mountCard({
+            phase: phase({
+                deadlineGaps: [
+                    { period: '2026 Gelombang 2', count: 2 },
+                    { period: '2027 Gelombang 1', count: 1 },
+                ],
+            }),
+            canLinkPeriod: false,
+        })
+
+        expect(wrapper.text()).toContain(
+            '2 detail masih bertenggat periode lain — perbarui tenggatnya agar terbuka di 2026 Gelombang 2.'
+        )
+        expect(wrapper.text()).toContain(
+            '1 detail masih bertenggat periode lain — perbarui tenggatnya agar terbuka di 2027 Gelombang 1.'
+        )
+    })
+
+    it('tanpa deadlineGaps tidak ada peringatan', () => {
+        const wrapper = mountCard({ phase: phase(), canLinkPeriod: true })
+
+        expect(wrapper.text()).not.toContain('masih bertenggat periode lain')
+    })
+})
+
+describe('PhasePeriodDialog', () => {
+    afterEach(() => {
+        document.body.innerHTML = ''
+    })
+
+    it('memilih periode lalu Hubungkan mengirim submission_period_id', async () => {
+        const wrapper = mount(PhasePeriodDialog, {
+            props: { open: true, phase: phase(), formId: 3 },
+            attachTo: document.body,
+            global: { mocks: { route } },
+        })
+        await flushPromises()
+
+        const select = wrapper.findComponent(OptionSelect)
+        expect(select.props('options')).toEqual([{ value: '9', label: '2026 Gelombang 2' }])
+        expect(document.body.textContent).toContain(
+            'Detail tahap baru terbuka di periode ini setelah tenggatnya dipindah ke tanggal periode ini.'
+        )
+        select.vm.$emit('update:modelValue', '9')
+        await flushPromises()
+
+        const submit = Array.from(document.querySelectorAll('button')).find(
+            (b) => b.textContent?.trim() === 'Hubungkan'
+        )
+        submit?.click()
+        await flushPromises()
+
+        expect(posted).toHaveBeenCalledWith('/admin.forms.phases.periods.store/3/7', {
+            submission_period_id: '9',
+        })
+        wrapper.unmount()
+    })
+})

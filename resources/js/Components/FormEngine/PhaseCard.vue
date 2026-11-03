@@ -3,6 +3,7 @@ import { Link } from '@inertiajs/vue3'
 import { computed } from 'vue'
 import { Link2, Pencil, Power, Trash2 } from 'lucide-vue-next'
 
+import AppBanner from '@/Components/app/AppBanner.vue'
 import { Badge } from '@/Components/ui/badge'
 import { Button } from '@/Components/ui/button'
 import type { PhaseCardData } from '@/types/form-engine'
@@ -35,10 +36,15 @@ const summary = computed(() => {
                 {{ phase.description }}
             </p>
             <p class="text-sm text-muted-foreground">{{ summary }}</p>
+            <!-- BR-FE-17 / ADR 0014 -->
+            <AppBanner v-for="gap in phase.deadlineGaps" :key="gap.period" tone="warning">
+                {{ gap.count }} detail masih bertenggat periode lain — perbarui tenggatnya agar
+                terbuka di {{ gap.period }}.
+            </AppBanner>
         </div>
         <div class="flex flex-wrap justify-end gap-2">
             <Button
-                v-if="canLinkPeriod"
+                v-if="canLinkPeriod && phase.linkablePeriods.length > 0"
                 size="sm"
                 variant="outline"
                 @click="emit('link-period', phase)"
