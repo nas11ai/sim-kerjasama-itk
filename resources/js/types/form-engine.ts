@@ -206,9 +206,10 @@ export interface PhaseAccessOption {
     value: string
     label: string
     formId: number
+    formTitle: string
 }
 
-// Sumber: FormEngine\FormPhaseController::edit.
+// Sumber: FormEngine\FormPhaseController::edit/create.
 export interface PhaseEditPageProps {
     form: FormHeaderData
     phase: PhaseEditData

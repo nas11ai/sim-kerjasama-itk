@@ -213,3 +213,80 @@ it('membuang detail yang form evaluasinya pernah ditugaskan ditolak', function (
         ->and(ReviewEvaluationForm::query()->whereKey($evaluation->id)->exists())->toBeTrue()
         ->and(ReviewerFormAssignment::query()->whereKey($assignment->id)->exists())->toBeTrue();
 });
+
+it('kontrak layar buat tahap', function () {
+    phaseEditDetail($this->form);
+    $foreign = phaseEditDetail(Form::factory()->create(['title' => 'Form Lain']));
+
+    $this->actingAs(phaseEditActor())
+        ->get(route('admin.forms.phases.create', $this->form))
+        ->assertOk()
+        ->assertInertia(fn (AssertableInertia $page) => $page
+            ->component('FormEngine/PhaseEditPage')
+            ->where('form.id', $this->form->id)
+            ->where('phase.id', null)
+            ->where('phase.title', '')
+            ->where('phase.isActive', true)
+            ->where('phase.details', [])
+            ->where('accessOptions.0.formId', $this->form->id)
+            ->where('accessOptions.0.formTitle', $this->form->title)
+            ->where('accessOptions', fn ($options) => collect($options)->contains('formId', $foreign->formAccessControl?->form_id))
+            ->hasAll(['phaseTypeOptions', 'deadlineOptions']));
+});
+
+it('tahap baru tampil di tab Phases Form-nya', function () {
+    $reference = phaseEditDetail($this->form);
+
+    $this->actingAs(phaseEditActor())
+        ->post(route('admin.forms.phases.store', $this->form), phaseEditPayload([phaseEditRow($reference, ['id' => null])]))
+        ->assertSessionHasNoErrors();
+
+    $created = FormPhase::query()->where('title', 'Tahap Disunting')->firstOrFail();
+
+    $this->get(route('admin.forms.phases.index', $this->form))
+        ->assertInertia(fn (AssertableInertia $page) => $page
+            ->where('phases', fn ($phases) => collect($phases)->contains('id', $created->id)));
+});
+
+it('menyimpan tahap baru mengarah ke editornya dengan pesan W95', function () {
+    $reference = phaseEditDetail($this->form);
+
+    $this->actingAs(phaseEditActor())
+        ->post(route('admin.forms.phases.store', $this->form), phaseEditPayload([phaseEditRow($reference, ['id' => null])]))
+        ->assertRedirect(route('admin.forms.phases.edit', [$this->form, FormPhase::query()->where('title', 'Tahap Disunting')->firstOrFail()]))
+        ->assertSessionHas('success', 'Tahap dibuat. Tambahkan form evaluasi untuk detail yang direview.');
+});
+
+it('tahap yang hanya memakai Form lain kembali ke tab Phases, bukan 404', function () {
+    $foreign = phaseEditDetail(Form::factory()->create());
+
+    $this->actingAs(phaseEditActor())
+        ->post(route('admin.forms.phases.store', $this->form), phaseEditPayload([phaseEditRow($foreign, ['id' => null])]))
+        ->assertRedirect(route('admin.forms.phases.index', $this->form));
+});
+
+it('Form tanpa aturan akses tidak bisa membuat tahap', function () {
+    $empty = Form::factory()->create();
+
+    $this->actingAs(phaseEditActor())
+        ->get(route('admin.forms.phases.create', $empty))
+        ->assertInertia(fn (AssertableInertia $page) => $page
+            ->where('accessOptions', fn ($options) => collect($options)->where('formId', $empty->id)->isEmpty()));
+
+    $this->post(route('admin.forms.phases.store', $empty), ['title' => 'Kosong', 'is_active' => true])
+        ->assertSessionHasErrors('phase_details');
+
+    expect(FormPhase::query()->where('title', 'Kosong')->exists())->toBeFalse();
+});
+
+it('wewenang buat: operator 403', function () {
+    $reference = phaseEditDetail($this->form);
+
+    $this->actingAs(phaseEditActor('operator'))
+        ->get(route('admin.forms.phases.create', $this->form))
+        ->assertForbidden();
+    $this->post(route('admin.forms.phases.store', $this->form), phaseEditPayload([phaseEditRow($reference, ['id' => null])]))
+        ->assertForbidden();
+
+    expect(FormPhase::query()->where('title', 'Tahap Disunting')->exists())->toBeFalse();
+});

@@ -134,8 +134,10 @@ it('tidak lagi mengekspos endpoint JSON akses form yang tak dipakai', function (
 });
 
 it('daftar tahap global, hapus massal, dan redirect lama sudah dicabut (W100)', function () {
-    expect(Route::has('admin.form-phases.index'))->toBeFalse()
-        ->and(Route::has('admin.form-phases.bulk-delete'))->toBeFalse();
+    $legacy = collect(array_keys(Route::getRoutes()->getRoutesByName()))
+        ->filter(fn (string $name): bool => str_starts_with($name, 'admin.form-phases'));
+
+    expect($legacy)->toBeEmpty();
 });
 
 it('usesForm: tahap memakai Form lewat salah satu detailnya (W92)', function () {

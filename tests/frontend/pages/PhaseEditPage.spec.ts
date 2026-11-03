@@ -23,6 +23,9 @@ vi.mock('@inertiajs/vue3', async () => {
                 put(url: string) {
                     submitted('put', url, transformer({ ...data, ...form }))
                 },
+                post(url: string) {
+                    submitted('post', url, transformer({ ...data, ...form }))
+                },
             })
             forms.push(form)
             return form
@@ -71,7 +74,14 @@ const detail = (overrides: Partial<PhaseDetailEditData> = {}): PhaseDetailEditDa
 const props = (details: PhaseDetailEditData[]): PhaseEditPageProps => ({
     form: { id: 7, title: 'Form Proposal', isActive: true },
     phase: { id: 3, title: 'Tahap Proposal', description: null, isActive: true, details },
-    accessOptions: [{ value: '41', label: 'Form Proposal — Pengaju — Fakultas Sains', formId: 7 }],
+    accessOptions: [
+        {
+            value: '41',
+            label: 'Form Proposal — Pengaju — Fakultas Sains',
+            formId: 7,
+            formTitle: 'Form Proposal',
+        },
+    ],
     phaseTypeOptions: [{ value: '5', label: 'Isi Proposal' }],
     deadlineOptions: [
         { id: 1, type: 'submit', cycle: null, periodId: 10, label: 'P10 — Batas Submit' },
@@ -209,5 +219,56 @@ describe('FormEngine/PhaseEditPage', () => {
                 phase_details: [expect.objectContaining({ id: 31, submission_date_id: 1 })],
             })
         )
+    })
+
+    describe('mode buat', () => {
+        const creating = (accessOptions = props([]).accessOptions): PhaseEditPageProps => ({
+            ...props([]),
+            phase: { id: null, title: '', description: null, isActive: true, details: [] },
+            accessOptions,
+        })
+        const saveButton = (wrapper: ReturnType<typeof mountPage>) =>
+            wrapper.findAll('button').find((b) => b.text().trim() === 'Simpan Tahap')
+
+        it('judul Buat Tahap Baru dan satu detail kosong berakses aturan pertama Form ini', () => {
+            const wrapper = mountPage(creating())
+
+            expect(wrapper.find('h1').text()).toBe('Buat Tahap Baru')
+            expect(wrapper.findAll('li')).toHaveLength(1)
+            expect(wrapper.findAll('li')[0].text()).toContain('Isi Proposal — Form Proposal')
+            expect(wrapper.findAll('li')[0].text()).toContain('Baru')
+            expect(wrapper.text()).not.toContain('Tambahkan aturan akses Form ini lebih dulu')
+        })
+
+        it('Simpan Tahap mengirim post ke admin.forms.phases.store', async () => {
+            const wrapper = mountPage(creating())
+
+            await wrapper.find('form').trigger('submit')
+
+            expect(submitted).toHaveBeenCalledWith(
+                'post',
+                '/admin.forms.phases.store/7',
+                expect.objectContaining({
+                    phase_details: [expect.objectContaining({ form_access_control_id: 41 })],
+                })
+            )
+        })
+
+        it('[W94] Form tanpa aturan akses menampilkan banner dan menonaktifkan Simpan Tahap', () => {
+            const foreign = {
+                value: '90',
+                label: 'Form Lain — Pengaju — X',
+                formId: 8,
+                formTitle: 'Form Lain',
+            }
+            const wrapper = mountPage(creating([foreign]))
+
+            expect(wrapper.text()).toContain(
+                'Tambahkan aturan akses Form ini lebih dulu — detail tahap memakai aturan akses sebagai pengisinya.'
+            )
+            expect(wrapper.find('a[href="/admin.forms.access.index/7"]').exists()).toBe(true)
+            expect(wrapper.findAll('li')).toHaveLength(0)
+            expect(saveButton(wrapper)?.attributes('disabled')).toBeDefined()
+        })
     })
 })

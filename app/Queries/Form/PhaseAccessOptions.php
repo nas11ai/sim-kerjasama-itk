@@ -14,7 +14,7 @@ use Lorisleiva\Actions\Concerns\AsAction;
  * W102 — pilihan akses detail tahap: aturan akses semua Form aktif, Form yang sedang dibuka,
  * dan Form yang sudah dipakai detail tahap ini. Form yang dibuka lebih dulu, sisanya urut judul.
  *
- * @phpstan-type Option array{value: string, label: string, formId: int}
+ * @phpstan-type Option array{value: string, label: string, formId: int, formTitle: string}
  *
  * @method static list<Option> run(Form $form, ?FormPhase $phase)
  */
@@ -48,6 +48,7 @@ class PhaseAccessOptions implements ChangesNoState
                     'value' => (string) $rule->id,
                     'label' => implode(' — ', [$candidate->title, $rule->permissionLabel, $rule->organizationLabel]),
                     'formId' => $candidate->id,
+                    'formTitle' => $candidate->title,
                 ];
             }
         }

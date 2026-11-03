@@ -9,9 +9,8 @@ use App\Http\Controllers\Export\DocumentPrintController;
 use App\Http\Controllers\Export\ExportController;
 use App\Http\Controllers\FormEngine\FormAccessController;
 use App\Http\Controllers\FormEngine\FormController;
-use App\Http\Controllers\FormEngine\FormPhaseController as FormPhaseTabController;
+use App\Http\Controllers\FormEngine\FormPhaseController;
 use App\Http\Controllers\FormEngine\SubmissionPeriodController;
-use App\Http\Controllers\FormPhaseController;
 use App\Http\Controllers\Identity\InvitationController;
 use App\Http\Controllers\Identity\NidnVerificationController;
 use App\Http\Controllers\Identity\ProfileCompletionController;
@@ -279,11 +278,6 @@ Route::middleware(['auth', 'can:users.manage'])->prefix('admin')->name('admin.')
     // Admin add comments
     Route::post('/review-summaries/{reviewSummary}/comments', [ReviewController::class, 'addComment'])
         ->name('review-comments.store');
-
-    Route::resource('form-phases', FormPhaseController::class)->only('create', 'store')->names([
-        'create' => 'form-phases.create',
-        'store' => 'form-phases.store',
-    ]);
 });
 
 // For backwards compatibility, you can add redirects for admin routes without prefix
@@ -390,18 +384,20 @@ Route::middleware(['auth', 'can:schemes.manage'])->prefix('admin')->name('admin.
         ->scopeBindings()->name('forms.access.destroy');
 
     // ADMIN-08-08 — tahap yang memakai Form ini (W92).
-    Route::get('/forms/{form}/phases', [FormPhaseTabController::class, 'index'])->name('forms.phases.index');
-    // ADMIN-08-09 — editor tahap beserta semua detailnya.
-    Route::get('/forms/{form}/phases/{formPhase}/edit', [FormPhaseTabController::class, 'edit'])
+    Route::get('/forms/{form}/phases', [FormPhaseController::class, 'index'])->name('forms.phases.index');
+    // ADMIN-08-09 — editor tahap beserta semua detailnya; mode buat di /create.
+    Route::get('/forms/{form}/phases/create', [FormPhaseController::class, 'create'])->name('forms.phases.create');
+    Route::post('/forms/{form}/phases', [FormPhaseController::class, 'store'])->name('forms.phases.store');
+    Route::get('/forms/{form}/phases/{formPhase}/edit', [FormPhaseController::class, 'edit'])
         ->name('forms.phases.edit');
-    Route::put('/forms/{form}/phases/{formPhase}', [FormPhaseTabController::class, 'update'])
+    Route::put('/forms/{form}/phases/{formPhase}', [FormPhaseController::class, 'update'])
         ->name('forms.phases.update');
-    Route::patch('/forms/{form}/phases/{formPhase}/active', [FormPhaseTabController::class, 'setActive'])
+    Route::patch('/forms/{form}/phases/{formPhase}/active', [FormPhaseController::class, 'setActive'])
         ->name('forms.phases.active');
-    Route::delete('/forms/{form}/phases/{formPhase}', [FormPhaseTabController::class, 'destroy'])
+    Route::delete('/forms/{form}/phases/{formPhase}', [FormPhaseController::class, 'destroy'])
         ->name('forms.phases.destroy');
     // K9b — menautkan tahap ke periode butuh wewenang periode, selain schemes.manage.
-    Route::post('/forms/{form}/phases/{formPhase}/periods', [FormPhaseTabController::class, 'linkPeriod'])
+    Route::post('/forms/{form}/phases/{formPhase}/periods', [FormPhaseController::class, 'linkPeriod'])
         ->middleware('can:periods.manage')->name('forms.phases.periods.store');
 });
 

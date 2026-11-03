@@ -20,8 +20,6 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property int $submission_date_id
  * @property int|null $evaluation_date_id
  * @property int|null $revision_date_id
- * @property int $review_evaluation_forms_count hanya setelah withCount(EVALUATION_FORM_COUNTS)
- * @property int $required_review_evaluation_forms_count
  * @property int $submission_count hanya setelah PhaseEdit
  * @property int $assignment_count hanya setelah PhaseEdit
  * @property int $evaluation_form_count hanya setelah PhaseEdit
@@ -35,12 +33,6 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class FormPhaseDetail extends Model
 {
     use HasFactory;
-
-    /** Untuk withCount: satu subquery per hitungan, bukan dua COUNT per detail saat dijumlah per tahap. */
-    public const EVALUATION_FORM_COUNTS = [
-        'activeReviewEvaluationForms as review_evaluation_forms_count',
-        'requiredReviewEvaluationForms as required_review_evaluation_forms_count',
-    ];
 
     /**
      * BR-FE-20 — detail yang dirujuk pengajuan tidak bisa dihapus. BR-FE-22 — begitu pula detail

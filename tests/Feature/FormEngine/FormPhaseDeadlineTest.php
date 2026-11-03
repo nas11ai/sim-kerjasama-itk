@@ -66,7 +66,7 @@ function deadlinePayload(array $rows): array
 }
 
 /** @return list<int> */
-function deadlineOptionIds(string $url, string $prop = 'submissionDates'): array
+function deadlineOptionIds(string $url, string $prop = 'deadlineOptions'): array
 {
     $ids = [];
 
@@ -142,7 +142,7 @@ it('rejects creating a phase with a deadline of a force-closed period (BR-FE-17)
     $closed = deadlineOf(SubmissionPeriod::factory()->create(['is_force_closed' => true]));
 
     $this->actingAs($this->admin)
-        ->post(route('admin.form-phases.store'), deadlinePayload([
+        ->post(route('admin.forms.phases.store', $this->form), deadlinePayload([
             deadlineRow($this->detail, $closed->id, withId: false),
         ]))
         ->assertSessionHasErrors('phase_details.0.submission_date_id');
@@ -154,7 +154,7 @@ it('offers deadlines of periods not force-closed when creating (BR-FE-17)', func
     $open = deadlineOf(SubmissionPeriod::factory()->create());
     $closed = deadlineOf(SubmissionPeriod::factory()->create(['is_force_closed' => true]));
 
-    $ids = deadlineOptionIds(route('admin.form-phases.create'));
+    $ids = deadlineOptionIds(route('admin.forms.phases.create', $this->form));
 
     expect($ids)->toContain($open->id)->not->toContain($closed->id);
 });
@@ -213,7 +213,7 @@ function typedRow(FormPhaseDetail $detail, bool $needsReview, ?SubmissionDate $s
 
 function storeTypedPhase(array $row): TestResponse
 {
-    return test()->actingAs(test()->admin)->post(route('admin.form-phases.store'), deadlinePayload([$row]));
+    return test()->actingAs(test()->admin)->post(route('admin.forms.phases.store', test()->form), deadlinePayload([$row]));
 }
 
 it('saves the three deadlines of a reviewed detail (BR-FE-26)', function () {
@@ -279,7 +279,7 @@ it('rejects deadlines of two different periods on one detail (BR-FE-26)', functi
 it('offers each deadline with its type and cycle so the screen can filter them', function () {
     $d = typedDeadlines(['Batas Evaluasi Monev I']);
 
-    $this->actingAs($this->admin)->get(route('admin.form-phases.create'))->assertInertia(fn ($page) => $page
-        ->where('submissionDates', fn ($options) => collect($options)->contains(fn ($o) => $o['id'] === $d['Batas Evaluasi Monev I']->id
+    $this->actingAs($this->admin)->get(route('admin.forms.phases.create', $this->form))->assertInertia(fn ($page) => $page
+        ->where('deadlineOptions', fn ($options) => collect($options)->contains(fn ($o) => $o['id'] === $d['Batas Evaluasi Monev I']->id
             && $o['type'] === 'evaluation' && $o['cycle'] === 1)));
 });

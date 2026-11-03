@@ -5,6 +5,7 @@
 // Membuat, menghapus tunggal, dan mengubah status tahap formulir lewat Action beraudit
 // (BR-RPT-09). Hapus tunggal memakai penjaga BR-FE-20 yang sama dengan hapus massal.
 
+use App\Models\Form;
 use App\Models\FormPhase;
 use App\Models\FormPhaseDetail;
 use App\Models\FormSubmission;
@@ -18,6 +19,7 @@ beforeEach(function () {
     Role::findOrCreate('Super Admin');
     $this->admin = User::factory()->create();
     $this->admin->assignRole('Super Admin');
+    $this->form = Form::factory()->create();
 });
 
 function auditEntry(string $description, FormPhase $phase): ?Activity
@@ -37,6 +39,7 @@ function auditEntry(string $description, FormPhase $phase): ?Activity
 function newPhaseRow(?int $submissionDateId = null): array
 {
     $reference = FormPhaseDetail::factory()->create();
+    $reference->formAccessControl?->update(['form_id' => test()->form->id]);
 
     return array_filter([
         'form_access_control_id' => $reference->form_access_control_id,
@@ -60,9 +63,9 @@ it('saves a created phase with the deadline of each detail (BR-FE-07)', function
     $row = newPhaseRow();
 
     $this->actingAs($this->admin)
-        ->post(route('admin.form-phases.store'), createPayload([$row]))
+        ->post(route('admin.forms.phases.store', $this->form), createPayload([$row]))
         ->assertSessionHasNoErrors()
-        ->assertRedirect(route('admin.forms.index'));
+        ->assertRedirect(route('admin.forms.phases.edit', [$this->form, FormPhase::query()->where('title', 'Tahap Baru')->firstOrFail()]));
 
     $phase = FormPhase::query()->where('title', 'Tahap Baru')->firstOrFail();
     $detail = $phase->formPhaseDetails()->firstOrFail();
@@ -76,7 +79,7 @@ it('rejects a created phase whose detail has no deadline as validation (BR-FE-07
     unset($row['submission_date_id']);
 
     $this->actingAs($this->admin)
-        ->post(route('admin.form-phases.store'), createPayload([$row]))
+        ->post(route('admin.forms.phases.store', $this->form), createPayload([$row]))
         ->assertSessionHasErrors('phase_details.0.submission_date_id');
 
     expect(FormPhase::query()->where('title', 'Tahap Baru')->exists())->toBeFalse();
@@ -84,7 +87,7 @@ it('rejects a created phase whose detail has no deadline as validation (BR-FE-07
 
 it('audits the creation of a form phase (BR-RPT-09)', function () {
     $this->actingAs($this->admin)
-        ->post(route('admin.form-phases.store'), createPayload([newPhaseRow()]))
+        ->post(route('admin.forms.phases.store', $this->form), createPayload([newPhaseRow()]))
         ->assertSessionHasNoErrors();
 
     $phase = FormPhase::query()->where('title', 'Tahap Baru')->firstOrFail();
@@ -166,13 +169,13 @@ it('passes deadline options labelled period, label and date to create and edit',
         .$date->datetime->format('d/m/Y H:i');
 
     $screens = [
-        'submissionDates' => route('admin.form-phases.create'),
-        'deadlineOptions' => route('admin.forms.phases.edit', [$detail->formAccessControl?->form, $detail->formPhase]),
+        route('admin.forms.phases.create', $this->form),
+        route('admin.forms.phases.edit', [$detail->formAccessControl?->form, $detail->formPhase]),
     ];
 
-    foreach ($screens as $prop => $url) {
+    foreach ($screens as $url) {
         $this->actingAs($this->admin)->get($url)->assertInertia(
-            fn ($page) => $page->where($prop, fn ($options) => collect($options)
+            fn ($page) => $page->where('deadlineOptions', fn ($options) => collect($options)
                 ->contains(fn ($option) => $option['id'] === $date->id && $option['label'] === $label))
         );
     }

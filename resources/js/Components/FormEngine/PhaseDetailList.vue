@@ -41,7 +41,10 @@ const heading = (detail: EditableDetail) => {
             access: saved.accessLabel,
         }
     const access = props.accessOptions.find((o) => o.value === String(detail.formAccessControlId))
-    return { title: typeName(detail.phaseTypeId), access: access?.label ?? '' }
+    return {
+        title: [typeName(detail.phaseTypeId), access?.formTitle].filter(Boolean).join(' — '),
+        access: access?.label ?? '',
+    }
 }
 // W96 — nomor urut diturunkan backend dari Form; detail baru belum punya.
 const orderOf = (detail: EditableDetail) =>

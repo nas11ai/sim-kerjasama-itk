@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\FormEngine;
 
+use App\Actions\Form\CreateFormPhase;
 use App\Actions\Form\DeleteFormPhase;
 use App\Actions\Form\LinkPhaseToPeriod;
 use App\Actions\Form\ReviseFormPhase;
@@ -44,17 +45,29 @@ class FormPhaseController extends Controller
         ]);
     }
 
+    public function create(Form $form): Response
+    {
+        return $this->editor($form, null);
+    }
+
+    // BR-FE-07 — tahap baru belum dipakai periode mana pun; W95 — lanjut ke editornya.
+    public function store(FormPhaseRequest $request, Form $form): RedirectResponse
+    {
+        $phase = CreateFormPhase::run($request->toInput(), $this->actor($request));
+
+        // W92 — tahap yang hanya memakai Form lain tidak punya editor di bawah Form ini.
+        $route = $phase->usesForm($form)
+            ? redirect()->route('admin.forms.phases.edit', [$form, $phase])
+            : redirect()->route('admin.forms.phases.index', $form);
+
+        return $route->with('success', 'Tahap dibuat. Tambahkan form evaluasi untuk detail yang direview.');
+    }
+
     public function edit(Form $form, FormPhase $formPhase): Response
     {
         abort_unless($formPhase->usesForm($form), 404);
 
-        return Inertia::render('FormEngine/PhaseEditPage', [
-            'form' => FormHeaderData::fromModel($form),
-            'phase' => PhaseEdit::run($form, $formPhase),
-            'accessOptions' => PhaseAccessOptions::run($form, $formPhase),
-            'phaseTypeOptions' => PhaseTypeOptions::run(),
-            'deadlineOptions' => SubmissionDateOptions::run($formPhase),
-        ]);
+        return $this->editor($form, $formPhase);
     }
 
     // BR-FE-20 — disinkronkan per id; penjaga detail berjalan di Action (W97, BR-FE-22).
@@ -103,5 +116,17 @@ class FormPhaseController extends Controller
         return back()->with('success', $hasGap
             ? "Tahap dihubungkan ke periode {$period->name}. Perbarui tenggat detailnya agar terbuka di periode ini."
             : "Tahap dihubungkan ke periode {$period->name}.");
+    }
+
+    // `$phase` null = mode buat (W94); layar yang sama, state-nya di child ber-key.
+    private function editor(Form $form, ?FormPhase $phase): Response
+    {
+        return Inertia::render('FormEngine/PhaseEditPage', [
+            'form' => FormHeaderData::fromModel($form),
+            'phase' => PhaseEdit::run($form, $phase),
+            'accessOptions' => PhaseAccessOptions::run($form, $phase),
+            'phaseTypeOptions' => PhaseTypeOptions::run(),
+            'deadlineOptions' => SubmissionDateOptions::run($phase),
+        ]);
     }
 }

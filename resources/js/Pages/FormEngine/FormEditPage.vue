@@ -41,10 +41,9 @@ const phasesProps = computed(() => (props.tab === 'phases' ? props : null))
             :back-href="route('admin.forms.index')"
             back-label="Form Builder"
         >
-            <template v-if="tab === 'phases'" #actions>
-                <!-- Sementara menaut ke layar legacy; editor v2 menggantinya di Task 5 -->
+            <template v-if="tab === 'phases' && form" #actions>
                 <Button as-child>
-                    <Link :href="route('admin.form-phases.create')"
+                    <Link :href="route('admin.forms.phases.create', form.id)"
                         ><Plus class="size-4" />Buat Tahap Baru</Link
                     >
                 </Button>

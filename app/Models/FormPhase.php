@@ -10,8 +10,6 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
  * @property int $id
- * @property int $review_evaluation_forms_count
- * @property int $required_review_evaluation_forms_count
  * @property string $title
  * @property string|null $description
  * @property bool $is_active

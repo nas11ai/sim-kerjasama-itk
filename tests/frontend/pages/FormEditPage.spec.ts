@@ -229,7 +229,7 @@ describe('FormEngine/FormEditPage', () => {
 
             expect(tab(wrapper, 'Phases')?.attributes('aria-current')).toBe('page')
             expect(wrapper.text()).toContain('Phases & Deadlines')
-            expect(wrapper.find('a[href="/admin.form-phases.create"]').text()).toContain(
+            expect(wrapper.find('a[href^="/admin.forms.phases.create"]').text()).toContain(
                 'Buat Tahap Baru'
             )
         })
