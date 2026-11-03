@@ -4,12 +4,14 @@ import { computed } from 'vue'
 
 import type { FormHeaderData } from '@/types/form-engine'
 
-const props = defineProps<{ form: FormHeaderData | null; active: 'general' | 'access' }>()
+const props = defineProps<{
+    form: FormHeaderData | null
+    active: 'general' | 'access' | 'phases'
+}>()
 
 type Tab = { key: string; label: string; href: string | null; title?: string }
 
-// W86 — tab = route. Mode buat: tab lain menunggu Form tersimpan; tab Phases menaut ke
-// layar tahap legacy sampai penggantinya ada.
+// W86 — tab = route. Mode buat: tab lain menunggu Form tersimpan.
 const tabs = computed((): Tab[] => {
     const form = props.form
     if (form === null) {
@@ -27,7 +29,7 @@ const tabs = computed((): Tab[] => {
             label: 'Access Control',
             href: route('admin.forms.access.index', form.id),
         },
-        { key: 'phases', label: 'Phases', href: route('admin.form-phases.index') },
+        { key: 'phases', label: 'Phases', href: route('admin.forms.phases.index', form.id) },
     ]
 })
 

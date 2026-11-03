@@ -147,7 +147,7 @@ const remove = () => {
             Menghapus aturan memerlukan konfirmasi.
         </p>
         <Button as-child variant="outline">
-            <Link :href="route('admin.form-phases.index')"
+            <Link :href="route('admin.forms.phases.index', form.id)"
                 >Lanjut: Phases<ArrowRight class="size-4"
             /></Link>
         </Button>

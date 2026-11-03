@@ -62,7 +62,7 @@ it('saves a created phase with the deadline of each detail (BR-FE-07)', function
     $this->actingAs($this->admin)
         ->post(route('admin.form-phases.store'), createPayload([$row]))
         ->assertSessionHasNoErrors()
-        ->assertRedirect(route('admin.form-phases.index'));
+        ->assertRedirect(route('admin.forms.index'));
 
     $phase = FormPhase::query()->where('title', 'Tahap Baru')->firstOrFail();
     $detail = $phase->formPhaseDetails()->firstOrFail();
@@ -122,7 +122,7 @@ it('audits a single delete of an unused phase (BR-RPT-09)', function () {
     $this->actingAs($this->admin)
         ->delete(route('admin.form-phases.destroy', $phase))
         ->assertSessionHasNoErrors()
-        ->assertRedirect(route('admin.form-phases.index'));
+        ->assertRedirect(route('admin.forms.index'));
 
     expect(FormPhase::query()->whereKey($phase->id)->exists())->toBeFalse()
         ->and(auditEntry('Tahap formulir dihapus', $phase))->not->toBeNull();
@@ -159,18 +159,4 @@ it('passes deadline options labelled period, label and date to create and edit',
                 ->contains(fn ($option) => $option['id'] === $date->id && $option['label'] === $label))
         );
     }
-});
-
-it('deletes nothing in a bulk delete when one phase is used, and audits nothing (BR-FE-20)', function () {
-    $unused = FormPhaseDetail::factory()->create()->formPhase;
-    $usedDetail = FormPhaseDetail::factory()->create();
-    FormSubmission::factory()->create(['form_phase_detail_id' => $usedDetail->id]);
-
-    $this->actingAs($this->admin)
-        ->post(route('admin.form-phases.bulk-delete'), ['ids' => [$unused->id, $usedDetail->form_phase_id]])
-        ->assertSessionHasErrors('id');
-
-    expect(FormPhase::query()->whereKey($unused->id)->exists())->toBeTrue()
-        ->and(FormPhase::query()->whereKey($usedDetail->form_phase_id)->exists())->toBeTrue()
-        ->and(auditEntry('Tahap formulir dihapus', $unused))->toBeNull();
 });

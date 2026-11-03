@@ -1,13 +1,16 @@
 <script setup lang="ts">
-// Frame: ADMIN-08-06, ADMIN-08-07
-import { Head } from '@inertiajs/vue3'
+// Frame: ADMIN-08-06, ADMIN-08-07, ADMIN-08-08
+import { Head, Link } from '@inertiajs/vue3'
+import { Plus } from 'lucide-vue-next'
 import { computed } from 'vue'
 
 import PageHeader from '@/Components/app/PageHeader.vue'
 import FormAccessTab from '@/Components/FormEngine/FormAccessTab.vue'
 import FormEditTabs from '@/Components/FormEngine/FormEditTabs.vue'
 import FormGeneralTab from '@/Components/FormEngine/FormGeneralTab.vue'
+import FormPhaseTab from '@/Components/FormEngine/FormPhaseTab.vue'
 import { Badge } from '@/Components/ui/badge'
+import { Button } from '@/Components/ui/button'
 import AppLayout from '@/Layouts/AppLayout.vue'
 import type { FormEditPageProps } from '@/types/form-engine'
 
@@ -17,10 +20,16 @@ const title = computed(() =>
     props.form === null ? 'Buat Form Baru' : `Edit Form — ${props.form.title}`
 )
 
-const subtitle = computed(() => (props.tab === 'access' ? 'Access Control' : 'General & Fields'))
+const subtitles = {
+    general: 'General & Fields',
+    access: 'Access Control',
+    phases: 'Phases & Deadlines',
+}
+const subtitle = computed(() => subtitles[props.tab])
 // Penyempitan union per tab: template tidak menyempitkan props yang dipisah satu per satu.
 const generalProps = computed(() => (props.tab === 'general' ? props : null))
 const accessProps = computed(() => (props.tab === 'access' ? props : null))
+const phasesProps = computed(() => (props.tab === 'phases' ? props : null))
 </script>
 
 <template>
@@ -32,6 +41,14 @@ const accessProps = computed(() => (props.tab === 'access' ? props : null))
             :back-href="route('admin.forms.index')"
             back-label="Form Builder"
         >
+            <template v-if="tab === 'phases'" #actions>
+                <!-- Sementara menaut ke layar legacy; editor v2 menggantinya di Task 5 -->
+                <Button as-child>
+                    <Link :href="route('admin.form-phases.create')"
+                        ><Plus class="size-4" />Buat Tahap Baru</Link
+                    >
+                </Button>
+            </template>
             <template v-if="form" #badge>
                 <Badge :variant="form.isActive ? 'success' : 'outline'">{{
                     form.isActive ? 'Aktif' : 'Nonaktif'
@@ -55,6 +72,13 @@ const accessProps = computed(() => (props.tab === 'access' ? props : null))
             :rules="accessProps.rules"
             :permission-options="accessProps.permissionOptions"
             :organization-options="accessProps.organizationOptions"
+        />
+        <FormPhaseTab
+            v-else-if="phasesProps"
+            :key="`${tab}-${form?.id ?? 'new'}`"
+            :form="phasesProps.form"
+            :phases="phasesProps.phases"
+            :can="phasesProps.can"
         />
     </AppLayout>
 </template>

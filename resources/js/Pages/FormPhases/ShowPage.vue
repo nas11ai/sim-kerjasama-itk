@@ -195,7 +195,7 @@ const isGroupOpen = (formId: number) => openGroups.value.has(formId)
         <template #header>
             <div class="flex items-center justify-between">
                 <div class="flex items-center gap-4">
-                    <Link :href="route('admin.form-phases.index')">
+                    <Link :href="route('admin.forms.index')">
                         <Button variant="ghost" size="sm">
                             <ArrowLeft class="h-4 w-4 mr-2" />
                             Kembali

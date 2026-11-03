@@ -87,6 +87,36 @@ const editing = (): FormEditPageProps =>
         }),
     })
 
+const phases = (): FormEditPageProps => ({
+    tab: 'phases',
+    form: { id: 7, title: 'Form Proposal Penelitian', isActive: true },
+    can: { linkPeriod: true },
+    phases: [
+        {
+            id: 1,
+            title: 'Pengajuan Proposal',
+            description: null,
+            isActive: true,
+            detailCount: 2,
+            periodNames: ['Penelitian DIPA 2026'],
+            submissionCount: 0,
+            linkablePeriods: [],
+            deadlineGaps: [],
+        },
+        {
+            id: 2,
+            title: 'Tahap Lama',
+            description: 'Sudah tidak dipakai',
+            isActive: false,
+            detailCount: 1,
+            periodNames: [],
+            submissionCount: 4,
+            linkablePeriods: [],
+            deadlineGaps: [],
+        },
+    ],
+})
+
 const route = (name: string, id?: number) => (id === undefined ? `/${name}` : `/${name}/${id}`)
 
 const mountPage = (pageProps: FormEditPageProps) =>
@@ -97,6 +127,12 @@ const heading = (wrapper: ReturnType<typeof mountPage>) =>
 
 const tab = (wrapper: ReturnType<typeof mountPage>, label: string) =>
     wrapper.findAll('nav a, nav span').find((el) => el.text().trim() === label)
+
+const statusBadge = (wrapper: ReturnType<typeof mountPage>, index: number) =>
+    wrapper
+        .findAll('article')
+        [index].findAll('*')
+        .find((el) => el.text() === 'Nonaktif')
 
 const clickButton = async (wrapper: ReturnType<typeof mountPage>, label: string) => {
     await wrapper
@@ -132,7 +168,7 @@ describe('FormEngine/FormEditPage', () => {
         expect(wrapper.find('h1').text()).toBe('Edit Form — Form Proposal Penelitian')
         expect(heading(wrapper)).toContain('Nonaktif')
         expect(tab(wrapper, 'General & Fields')?.attributes('href')).toBe('/admin.forms.edit/7')
-        expect(tab(wrapper, 'Phases')?.attributes('href')).toBe('/admin.form-phases.index')
+        expect(tab(wrapper, 'Phases')?.attributes('href')).toBe('/admin.forms.phases.index/7')
         expect(wrapper.find('a[href="/admin.forms.index"]').text()).toContain('Form Builder')
     })
 
@@ -170,5 +206,52 @@ describe('FormEngine/FormEditPage', () => {
         expect(data?.fields).toEqual([
             { id: 11, field_type_id: 1, label: 'Judul Penelitian', is_required: true },
         ])
+    })
+
+    describe('tab Phases', () => {
+        it('tab aktif, subjudul, dan aksi header menaut ke layar buat', () => {
+            const wrapper = mountPage(phases())
+
+            expect(tab(wrapper, 'Phases')?.attributes('aria-current')).toBe('page')
+            expect(wrapper.text()).toContain('Phases & Deadlines')
+            expect(wrapper.find('a[href="/admin.form-phases.create"]').text()).toContain(
+                'Buat Tahap Baru'
+            )
+        })
+
+        it('kartu menampilkan jumlah tahapan, periode, status, dan aksi', () => {
+            const wrapper = mountPage(phases())
+
+            expect(wrapper.text()).toContain('2 tahapan · Periode: Penelitian DIPA 2026')
+            expect(wrapper.text()).toContain('1 tahapan · Belum terhubung')
+            expect(statusBadge(wrapper, 0)).toBeUndefined()
+            expect(statusBadge(wrapper, 1)).toBeDefined()
+            expect(wrapper.findAll('article')[1].text()).toContain('Aktifkan')
+            expect(wrapper.findAll('article')[0].text()).toContain('Hubungkan ke Periode')
+            expect(wrapper.find('a[href="/admin.form-phases.edit/1"]').text()).toContain('Edit')
+        })
+
+        it('tombol Hubungkan ke Periode tersembunyi tanpa periods.manage', () => {
+            const wrapper = mountPage({
+                ...phases(),
+                can: { linkPeriod: false },
+            } as FormEditPageProps)
+
+            expect(wrapper.text()).not.toContain('Hubungkan ke Periode')
+        })
+
+        it('kosong: pesan dan tombol selesai menaut ke Daftar Form', () => {
+            const wrapper = mountPage({ ...phases(), phases: [] } as FormEditPageProps)
+
+            expect(wrapper.text()).toContain('Belum ada tahap yang memakai form ini.')
+            expect(wrapper.find('a[href="/admin.forms.index"]').exists()).toBe(true)
+        })
+
+        it('Selesai — ke Daftar Form menaut admin.forms.index', () => {
+            const wrapper = mountPage(phases())
+            const done = wrapper.findAll('a').find((a) => a.text() === 'Selesai — ke Daftar Form')
+
+            expect(done?.attributes('href')).toBe('/admin.forms.index')
+        })
     })
 })

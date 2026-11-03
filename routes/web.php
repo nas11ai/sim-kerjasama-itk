@@ -9,6 +9,7 @@ use App\Http\Controllers\Export\DocumentPrintController;
 use App\Http\Controllers\Export\ExportController;
 use App\Http\Controllers\FormEngine\FormAccessController;
 use App\Http\Controllers\FormEngine\FormController;
+use App\Http\Controllers\FormEngine\FormPhaseController as FormPhaseTabController;
 use App\Http\Controllers\FormEngine\SubmissionPeriodController;
 use App\Http\Controllers\FormPhaseController;
 use App\Http\Controllers\Identity\InvitationController;
@@ -279,8 +280,7 @@ Route::middleware(['auth', 'can:users.manage'])->prefix('admin')->name('admin.')
     Route::post('/review-summaries/{reviewSummary}/comments', [ReviewController::class, 'addComment'])
         ->name('review-comments.store');
 
-    Route::resource('form-phases', FormPhaseController::class)->names([
-        'index' => 'form-phases.index',
+    Route::resource('form-phases', FormPhaseController::class)->except('index')->names([
         'create' => 'form-phases.create',
         'store' => 'form-phases.store',
         'show' => 'form-phases.show',
@@ -288,9 +288,6 @@ Route::middleware(['auth', 'can:users.manage'])->prefix('admin')->name('admin.')
         'update' => 'form-phases.update',
         'destroy' => 'form-phases.destroy',
     ]);
-
-    Route::post('form-phases/bulk-delete', [FormPhaseController::class, 'bulkDelete'])
-        ->name('form-phases.bulk-delete');
 
     Route::get('form-phases/{formPhase}/evaluation-forms', [FormPhaseController::class, 'evaluationForms'])
         ->name('form-phases.evaluation-forms');
@@ -301,9 +298,6 @@ Route::middleware(['auth', 'can:users.manage'])->prefix('admin')->name('admin.')
 
 // For backwards compatibility, you can add redirects for admin routes without prefix
 Route::middleware(['auth', 'can:users.manage'])->group(function () {
-    Route::get('/form-phases', function () {
-        return redirect()->route('admin.form-phases.index');
-    });
     Route::get('/announcements', function () {
         return redirect()->route('admin.announcements.index');
     });
@@ -404,6 +398,9 @@ Route::middleware(['auth', 'can:schemes.manage'])->prefix('admin')->name('admin.
     Route::post('/forms/{form}/access', [FormAccessController::class, 'store'])->name('forms.access.store');
     Route::delete('/forms/{form}/access/{formAccessControl}', [FormAccessController::class, 'destroy'])
         ->scopeBindings()->name('forms.access.destroy');
+
+    // ADMIN-08-08 — tahap yang memakai Form ini (W92).
+    Route::get('/forms/{form}/phases', [FormPhaseTabController::class, 'index'])->name('forms.phases.index');
 });
 
 // OPERATOR-09-01 — periode dikelola pemegang periods.manage, bukan users.manage (§4.4 K1).

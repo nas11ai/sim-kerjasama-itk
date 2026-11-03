@@ -244,7 +244,7 @@ const submit = () => {
                 <Button
                     variant="ghost"
                     size="sm"
-                    @click="$inertia.visit(route('admin.form-phases.index'))"
+                    @click="$inertia.visit(route('admin.forms.index'))"
                 >
                     <ArrowLeft class="h-4 w-4 mr-2" />
                     Kembali
@@ -610,7 +610,7 @@ const submit = () => {
                     <Button
                         type="button"
                         variant="outline"
-                        @click="$inertia.visit(route('admin.form-phases.index'))"
+                        @click="$inertia.visit(route('admin.forms.index'))"
                     >
                         Batal
                     </Button>

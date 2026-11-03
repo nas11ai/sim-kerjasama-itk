@@ -25,7 +25,6 @@ import {
 import {
     Home,
     FileText,
-    Settings,
     Calendar,
     Users,
     Building2,
@@ -104,11 +103,6 @@ const adminNavItems = [
                 title: 'Formulir',
                 url: route('admin.forms.index'),
                 icon: FileText,
-            },
-            {
-                title: 'Tahap Formulir',
-                url: route('admin.form-phases.index'),
-                icon: Settings,
             },
         ],
     },

@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Support\Lifecycle\ReferenceGuard;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -11,6 +12,11 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property int $id
  * @property int $review_evaluation_forms_count
  * @property int $required_review_evaluation_forms_count
+ * @property string $title
+ * @property string|null $description
+ * @property bool $is_active
+ * @property int $form_phase_details_count hanya setelah withCount('formPhaseDetails')
+ * @property int $submission_count hanya setelah FormPhaseCards
  * @property-read SubmissionPeriod|null $submissionPeriod
  */
 class FormPhase extends Model
@@ -55,5 +61,24 @@ class FormPhase extends Model
     public function submissionPeriod(): BelongsTo
     {
         return $this->belongsTo(SubmissionPeriod::class);
+    }
+
+    /**
+     * W92 — tahap milik sebuah Form bila salah satu detailnya memakai aturan akses Form itu.
+     *
+     * @param  Builder<FormPhase>  $query
+     * @return Builder<FormPhase>
+     */
+    public function scopeUsingForm(Builder $query, Form $form): Builder
+    {
+        return $query->whereHas(
+            'formPhaseDetails.formAccessControl',
+            fn (Builder $rules) => $rules->where('form_id', $form->id),
+        );
+    }
+
+    public function usesForm(Form $form): bool
+    {
+        return self::query()->whereKey($this->id)->usingForm($form)->exists();
     }
 }

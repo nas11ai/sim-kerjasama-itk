@@ -149,4 +149,25 @@ export interface FormEditAccessProps {
     organizationOptions: FilterOption[]
 }
 
-export type FormEditPageProps = FormEditGeneralProps | FormEditAccessProps
+// Sumber: App\Data\View\FormEngine\PhaseCardData — `submissionCount` > 0 mengunci hapus (BR-FE-20).
+export interface PhaseCardData {
+    id: number
+    title: string
+    description: string | null
+    isActive: boolean
+    detailCount: number
+    periodNames: string[]
+    submissionCount: number
+    linkablePeriods: FilterOption[]
+    deadlineGaps: { period: string; count: number }[]
+}
+
+// Sumber: FormEngine\FormPhaseController::index.
+export interface FormEditPhasesProps {
+    tab: 'phases'
+    form: FormHeaderData
+    phases: PhaseCardData[]
+    can: { linkPeriod: boolean }
+}
+
+export type FormEditPageProps = FormEditGeneralProps | FormEditAccessProps | FormEditPhasesProps

@@ -6,30 +6,16 @@ use App\Actions\Form\CreateFormPhase;
 use App\Actions\Form\DeleteFormPhase;
 use App\Actions\Form\ReviseFormPhase;
 use App\Actions\Form\SetFormPhaseActive;
-use App\Http\Requests\Form\FormPhaseListRequest;
 use App\Http\Requests\Form\FormPhaseRequest;
 use App\Models\FieldType;
 use App\Models\FormPhase;
 use App\Models\FormPhaseDetail;
-use App\Queries\Form\FormPhaseDirectory;
 use App\Queries\Form\FormPhaseFormOptions;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
 
 class FormPhaseController extends Controller
 {
-    public function index(FormPhaseListRequest $request)
-    {
-        $directory = FormPhaseDirectory::run($request->toInput());
-
-        return Inertia::render('FormPhases/IndexPage', [
-            'formPhases' => $directory['phases'],
-            'filters' => $directory['filters'],
-        ]);
-    }
-
     public function create()
     {
         return Inertia::render('FormPhases/CreatePage', FormPhaseFormOptions::run());
@@ -43,7 +29,7 @@ class FormPhaseController extends Controller
 
         CreateFormPhase::run($request->toInput(), $actor);
 
-        return redirect()->route('admin.form-phases.index')
+        return redirect()->route('admin.forms.index')
             ->with('success', 'Tahap Formulir berhasil dibuat.');
     }
 
@@ -101,7 +87,7 @@ class FormPhaseController extends Controller
         // BR-FE-20 — disinkronkan per id, bukan dihapus lalu dibuat ulang.
         ReviseFormPhase::run($formPhase, $request->toInput(), $actor);
 
-        return redirect()->route('admin.form-phases.index')
+        return redirect()->route('admin.forms.index')
             ->with('success', 'Tahap Formulir berhasil diperbarui.');
     }
 
@@ -114,7 +100,7 @@ class FormPhaseController extends Controller
         // BR-FE-20 — penjaga yang sama dengan hapus massal; penolakannya validasi.
         DeleteFormPhase::run($formPhase, $actor);
 
-        return redirect()->route('admin.form-phases.index')
+        return redirect()->route('admin.forms.index')
             ->with('success', 'Tahap Formulir berhasil dihapus.');
     }
 
@@ -172,27 +158,5 @@ class FormPhaseController extends Controller
             'formPhaseDetail' => $formPhaseDetail,
             'fieldTypes' => $fieldTypes,
         ]);
-    }
-
-    public function bulkDelete(Request $request)
-    {
-        $validated = $request->validate([
-            'ids' => 'required|array|min:1',
-            'ids.*' => 'exists:form_phases,id',
-        ]);
-
-        $actor = Auth::user();
-
-        abort_unless($actor !== null, 403);
-
-        // BR-FE-20 — penjaga di Action, sebelum apa pun disentuh; dulu foreign key yang
-        // menolak, jadi Admin menerima SQLSTATE mentah. Semua atau tidak sama sekali: satu
-        // tahap terpakai menggulung kembali tahap yang sudah terhapus beserta auditnya.
-        DB::transaction(fn () => FormPhase::whereIn('id', $validated['ids'])
-            ->get()
-            ->each(fn (FormPhase $phase) => DeleteFormPhase::run($phase, $actor)));
-
-        return redirect()->route('admin.form-phases.index')
-            ->with('success', 'Tahap Formulir terpilih berhasil dihapus.');
     }
 }
