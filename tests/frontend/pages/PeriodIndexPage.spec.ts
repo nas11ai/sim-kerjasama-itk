@@ -133,8 +133,17 @@ describe('FormEngine/PeriodIndexPage', () => {
         for (const column of ['Nama Periode', 'Tanggal Penting', 'Pengajuan Masuk', 'Status']) {
             expect(text).toContain(column)
         }
-        expect(text).toContain('Periode ditutup otomatis saat seluruh tenggatnya terlewat.')
-        expect(text).toContain('Memundurkan salah satu tanggal periode akan otomatis memberi tahu')
+        // K8d — "Dibuka" berakhir di Batas Submit; arsip draft menunggu seluruh tenggat (BR-SM-13).
+        expect(text).toContain(
+            'Periode berhenti menerima pengajuan baru saat Batas Submit terlewat.'
+        )
+        expect(text).toContain(
+            'Draft yang belum disubmit diarsipkan setelah seluruh tenggat periode terlewat'
+        )
+        // BR-SCH-08 — hanya Batas Submit dan Batas Revisi yang dikerjakan peneliti.
+        expect(text).toContain(
+            'Memundurkan Batas Submit atau Batas Revisi akan otomatis memberi tahu'
+        )
         expect(text).toContain('Batas Submit: 15 Feb 2026')
     })
 

@@ -82,17 +82,17 @@ const openForm = (row: PeriodRowData | null) => {
         />
         <PaginationBar :page="periods" />
         <div class="mt-4 flex flex-col gap-3">
-            <!-- BR-SM-10/13 — draft terarsip saat seluruh tenggat lewat atau periode ditutup (W67) -->
+            <!-- K8d + BR-SM-10/13 — "Dibuka" berakhir di Batas Submit; arsip menunggu seluruh tenggat -->
             <AppBanner tone="info">
-                Periode ditutup otomatis saat seluruh tenggatnya terlewat. Draft yang belum disubmit
-                ketika periode ditutup akan diarsipkan dan tidak dapat diedit lagi. Menutup periode
-                secara manual memerlukan konfirmasi.
+                Periode berhenti menerima pengajuan baru saat Batas Submit terlewat. Draft yang
+                belum disubmit diarsipkan setelah seluruh tenggat periode terlewat atau periode
+                ditutup, dan tidak dapat diedit lagi. Menutup periode secara manual memerlukan
+                konfirmasi.
             </AppBanner>
-            <!-- BR-SCH-08 — hanya perpanjangan yang memberi tahu pemilik draft -->
+            <!-- BR-SCH-08 — hanya perpanjangan tenggat peneliti yang memberi tahu pemilik draft -->
             <AppBanner tone="info">
-                Memundurkan salah satu tanggal periode akan otomatis memberi tahu peneliti yang
-                masih punya draft di sana. Memajukannya tidak — tidak ada kesempatan baru yang
-                diberikan.
+                Memundurkan Batas Submit atau Batas Revisi akan otomatis memberi tahu peneliti yang
+                masih punya draft di sana. Memajukannya, atau menggeser Batas Evaluasi, tidak.
             </AppBanner>
         </div>
         <PeriodDeleteBlockedDialog
