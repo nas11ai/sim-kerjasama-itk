@@ -35,13 +35,19 @@ class FieldTypeOptions implements ChangesNoState
         'trl_selector' => 'Pilihan TRL',
     ];
 
+    /** Nama tipe yang tak dikenal tampil apa adanya. */
+    public static function label(string $name): string
+    {
+        return self::LABELS[$name] ?? $name;
+    }
+
     /** @return list<FieldTypeOption> */
     public function handle(): array
     {
         return array_values(FieldType::query()->orderBy('id')->get(['id', 'name'])
             ->map(fn (FieldType $type): array => [
                 'value' => (string) $type->id,
-                'label' => self::LABELS[$type->name] ?? $type->name,
+                'label' => self::label($type->name),
                 'hasOptions' => in_array($type->name, FieldType::OPTION_TYPES, true),
             ])
             ->all());

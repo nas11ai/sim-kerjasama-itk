@@ -99,7 +99,7 @@ it('kontrak mode sunting', function () {
                 ->where('options', [['id' => $first->formFieldOptions()->sole()->id, 'label' => 'Internal']]))
             ->where('general.fields.1.id', $second->id)
             // FE-CHANGE-01 / BR-FE-12 — field terhapus diarsipkan dan tetap terlihat.
-            ->where('general.archivedFields', [['id' => FormField::onlyTrashed()->sole()->id, 'label' => 'Lokasi Penelitian (lama)', 'typeName' => 'text']]));
+            ->where('general.archivedFields', [['id' => FormField::onlyTrashed()->sole()->id, 'label' => 'Lokasi Penelitian (lama)', 'typeName' => 'Teks']]));
 });
 
 it('answerCount menghitung jawaban field', function () {

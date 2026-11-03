@@ -1,21 +1,18 @@
 <script setup lang="ts">
 import { useForm } from '@inertiajs/vue3'
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 
+import AppBanner from '@/Components/app/AppBanner.vue'
 import FormField from '@/Components/app/FormField.vue'
 import OptionSelect from '@/Components/app/OptionSelect.vue'
 import SectionCard from '@/Components/app/SectionCard.vue'
-import { Badge } from '@/Components/ui/badge'
+import AffectedDraftsNotice from '@/Components/FormEngine/AffectedDraftsNotice.vue'
+import FormFieldList from '@/Components/FormEngine/FormFieldList.vue'
 import { Button } from '@/Components/ui/button'
 import { Input } from '@/Components/ui/input'
 import { Textarea } from '@/Components/ui/textarea'
-import { formatDate } from '@/lib/format'
-import type {
-    FieldTypeOption,
-    FormFieldEditData,
-    FormGeneralData,
-    FormHeaderData,
-} from '@/types/form-engine'
+import { toDefinitionFields, toEditableFields } from '@/lib/formDefinition'
+import type { FieldTypeOption, FormGeneralData, FormHeaderData } from '@/types/form-engine'
 import type { FilterOption } from '@/types/submission-page'
 
 const props = defineProps<{
@@ -25,21 +22,14 @@ const props = defineProps<{
     formTypeOptions: FilterOption[]
 }>()
 
-// FE-CHANGE-14 — tanpa kunci `options`, opsi field tersimpan tidak berubah (BR-FE-24).
-const keptFields = (fields: FormFieldEditData[]) =>
-    fields.map((field) => ({
-        id: field.id,
-        field_type_id: field.fieldTypeId,
-        label: field.label,
-        is_required: field.isRequired,
-    }))
+const editable = ref(toEditableFields(props.general.fields))
 
 const definition = useForm({
     title: props.general.title,
     description: props.general.description ?? '',
     form_type_id: props.general.formTypeId === null ? null : String(props.general.formTypeId),
     is_active: props.general.isActive,
-    fields: keptFields(props.general.fields),
+    fields: toDefinitionFields(editable.value, props.fieldTypeOptions),
     notify_affected: false,
     continue: false,
 })
@@ -55,11 +45,17 @@ const status = computed({
     },
 })
 
-const typeLabel = (id: number) =>
-    props.fieldTypeOptions.find((option) => option.value === String(id))?.label ?? ''
+// Galat `fields.{i}.*` tampil di baris; galat selain kartu General (mis. field_type_id) di banner.
+const GENERAL_KEYS = ['title', 'description', 'form_type_id', 'is_active']
+const otherErrors = computed(() =>
+    Object.entries(definition.errors)
+        .filter(([key]) => !GENERAL_KEYS.includes(key) && !key.startsWith('fields.'))
+        .map(([, message]) => message)
+)
 
 function save(next: boolean) {
     definition.continue = next
+    definition.fields = toDefinitionFields(editable.value, props.fieldTypeOptions)
     if (props.form === null) {
         definition.post(route('admin.forms.store'))
         return
@@ -104,49 +100,24 @@ function save(next: boolean) {
                 </FormField>
             </div>
         </SectionCard>
-        <SectionCard title="Fields (seret untuk mengubah urutan)">
-            <ul class="divide-y">
-                <li
-                    v-for="field in general.fields"
-                    :key="field.id"
-                    class="flex flex-wrap items-center justify-between gap-3 py-2"
-                >
-                    <div>
-                        <p class="text-sm font-medium">{{ field.label }}</p>
-                        <p class="text-xs text-muted-foreground">
-                            {{ typeLabel(field.fieldTypeId) }}
-                            <template v-if="field.isRequired && field.requiredSince">
-                                · wajib sejak {{ formatDate(field.requiredSince) }}
-                            </template>
-                        </p>
-                    </div>
-                    <Badge :variant="field.isRequired ? 'default' : 'outline'">{{
-                        field.isRequired ? 'Wajib' : 'Opsional'
-                    }}</Badge>
-                </li>
-                <!-- BR-FE-12 / W83 — field terhapus diarsipkan, read-only -->
-                <li
-                    v-for="field in general.archivedFields"
-                    :key="`archived-${field.id}`"
-                    class="flex flex-wrap items-center justify-between gap-3 py-2 opacity-60"
-                >
-                    <div>
-                        <p class="text-sm font-medium">{{ field.label }}</p>
-                        <p class="text-xs text-muted-foreground">{{ field.typeName }}</p>
-                    </div>
-                    <Badge variant="outline">Diarsipkan</Badge>
-                </li>
-            </ul>
-            <p
-                v-if="general.fields.length === 0 && general.archivedFields.length === 0"
-                class="text-sm text-muted-foreground"
-            >
-                Belum ada field.
-            </p>
-            <p v-if="definition.errors.fields" class="text-xs text-destructive">
-                {{ definition.errors.fields }}
-            </p>
-        </SectionCard>
+        <AppBanner v-if="otherErrors.length > 0" tone="denial">
+            <p v-for="message in otherErrors" :key="message">{{ message }}</p>
+        </AppBanner>
+        <FormFieldList
+            v-model="editable"
+            :field-type-options="fieldTypeOptions"
+            :archived="general.archivedFields"
+            :errors="definition.errors"
+        />
+        <AppBanner tone="info">
+            Menghapus field memerlukan konfirmasi; field yang dihapus diarsipkan, bukan dihilangkan
+            permanen. Mengubah field menjadi wajib saat ada draft berjalan akan menawarkan
+            pengiriman notifikasi ke peneliti terdampak; draft lama tidak dipaksa mengisi ulang.
+        </AppBanner>
+        <AffectedDraftsNotice
+            v-model="definition.notify_affected"
+            :count="general.affectedDrafts"
+        />
         <div class="flex flex-wrap gap-2">
             <Button
                 v-if="form !== null"

@@ -23,7 +23,15 @@ class FormGeneral implements ChangesNoState
     public function handle(?Form $form): FormGeneralData
     {
         if ($form === null) {
-            return new FormGeneralData('', null, null, true, [], [], 0);
+            return new FormGeneralData(
+                title: '',
+                description: null,
+                formTypeId: null,
+                isActive: true,
+                fields: [],
+                archivedFields: [],
+                affectedDrafts: 0,
+            );
         }
 
         return new FormGeneralData(
@@ -60,7 +68,11 @@ class FormGeneral implements ChangesNoState
             ->orderBy('order')
             ->orderBy('id')
             ->get()
-            ->map(fn (FormField $field): ArchivedFieldData => ArchivedFieldData::fromModel($field))
+            ->map(fn (FormField $field): ArchivedFieldData => new ArchivedFieldData(
+                id: $field->id,
+                label: $field->label,
+                typeName: FieldTypeOptions::label($field->fieldType->name ?? ''),
+            ))
             ->all());
     }
 }

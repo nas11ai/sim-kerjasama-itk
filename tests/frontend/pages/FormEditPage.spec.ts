@@ -83,7 +83,7 @@ const editing = (): FormEditPageProps =>
                     options: [],
                 },
             ],
-            archivedFields: [{ id: 12, label: 'Lokasi Penelitian (lama)', typeName: 'text' }],
+            archivedFields: [{ id: 12, label: 'Lokasi Penelitian (lama)', typeName: 'Teks' }],
         }),
     })
 

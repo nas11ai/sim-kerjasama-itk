@@ -174,7 +174,9 @@ describe('FormEngine/FormIndexPage', () => {
         await clickIn(wrapper, 'Nonaktifkan')
 
         expect(document.body.textContent).toContain('Nonaktifkan form?')
-        expect(document.body.textContent).toContain('42 pengajuan aktif tetap berjalan dan terbaca.')
+        expect(document.body.textContent).toContain(
+            '42 pengajuan aktif tetap berjalan dan terbaca.'
+        )
         bodyButton('Nonaktifkan Form')?.click()
         await flushPromises()
         expect(router.patch).toHaveBeenCalledWith(
