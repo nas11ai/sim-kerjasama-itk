@@ -2,11 +2,14 @@ import { mount } from '@vue/test-utils'
 import { defineComponent, h } from 'vue'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-const { post } = vi.hoisted(() => ({ post: vi.fn() }))
+const { post, pageErrors } = vi.hoisted(() => ({
+    post: vi.fn(),
+    pageErrors: {} as Record<string, string>,
+}))
 
 vi.mock('@inertiajs/vue3', () => ({
     router: { post },
-    usePage: () => ({ props: { errors: {} } }),
+    usePage: () => ({ props: { errors: pageErrors } }),
     Link: defineComponent({
         props: { href: { type: String, default: '' } },
         setup:
@@ -60,9 +63,18 @@ beforeEach(() => {
         params === undefined ? `/${name}` : `/${name}/${String(params)}`
     )
     post.mockReset()
+    for (const key of Object.keys(pageErrors)) delete pageErrors[key]
 })
 
 describe('StartStep', () => {
+    it('menampilkan alasan penolakan Form nonaktif (errors.form_id)', () => {
+        pageErrors.form_id = 'Form ini sudah tidak menerima pengajuan baru.'
+
+        const wrapper = mountStart()
+
+        expect(wrapper.text()).toContain('Form ini sudah tidak menerima pengajuan baru.')
+    })
+
     it('form tersaring periode terpilih', async () => {
         const wrapper = mountStart()
 

@@ -44,6 +44,8 @@ class Form extends Model
 
     protected $fillable = ['title', 'description', 'is_active', 'form_type_id'];
 
+    protected $casts = ['is_active' => 'boolean'];
+
     /**
      * @return BelongsTo<FormType, $this>
      */

@@ -144,6 +144,7 @@ class EndToEndFlowSeeder extends Seeder
             [
                 'description' => 'Form pengajuan penelitian untuk periode 2026.',
                 'form_type_id' => $formType->id,
+                'is_active' => true,
             ]
         );
 

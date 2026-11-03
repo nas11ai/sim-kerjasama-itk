@@ -70,8 +70,8 @@ class FormDirectory implements ChangesNoState
     private function filter(Builder $query, array $filters): void
     {
         $query->when($filters['search'] !== '', fn (Builder $q) => $q->whereLike('title', LikePattern::contains($filters['search'])));
-        // Selain angka (termasuk 'all') berarti tanpa filter; bigint vs teks galat di PostgreSQL.
-        $query->when(ctype_digit($filters['type']), fn (Builder $q) => $q->where('form_type_id', $filters['type']));
+        // Selain angka (termasuk 'all') atau lebih dari 9 digit (di luar rentang int) berarti tanpa filter.
+        $query->when(ctype_digit($filters['type']) && strlen($filters['type']) <= 9, fn (Builder $q) => $q->where('form_type_id', $filters['type']));
 
         match ($filters['status']) {
             'active' => $query->where('is_active', true),

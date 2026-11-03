@@ -185,3 +185,13 @@ it('wewenang: operator 403 untuk create, store, edit, update', function () {
 
     expect(Form::query()->count())->toBe(1);
 });
+
+it('PUT tanpa is_active mempertahankan status Form nonaktif', function () {
+    $form = Form::factory()->create(['form_type_id' => $this->regularType->id, 'is_active' => false]);
+    $payload = formEditPayload($this->regularType->id);
+    unset($payload['is_active']);
+
+    $this->actingAs(formEditActor())->put(route('admin.forms.update', $form), $payload)->assertRedirect();
+
+    expect($form->fresh()->is_active)->toBeFalse();
+});

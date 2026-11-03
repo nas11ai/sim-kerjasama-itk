@@ -72,9 +72,17 @@ class FormDefinitionRequest extends FormRequest
             title: $this->string('title')->value(),
             description: $this->filled('description') ? $this->string('description')->value() : null,
             formTypeId: $this->integer('form_type_id'),
-            isActive: $this->boolean('is_active', true),
+            isActive: $this->boolean('is_active', $this->currentIsActive()),
             fields: $this->has('fields') ? array_map($this->field(...), $this->indexesOf('fields')) : null,
         );
+    }
+
+    /** Tanpa kiriman is_active: sunting mempertahankan status Form, buat baru aktif. */
+    private function currentIsActive(): bool
+    {
+        $form = $this->route('form');
+
+        return $form instanceof Form ? $form->is_active : true;
     }
 
     private function field(int|string $i): FormFieldInput

@@ -92,3 +92,9 @@ it('hapus form berpengajuan lewat HTTP ditolak dengan angkanya', function () {
     expect(session('errors')->first('id'))->toContain('2 pengajuan')
         ->and(Form::query()->whereKey($form->id)->exists())->toBeTrue();
 });
+
+it('Form baru tanpa is_active aktif secara bawaan', function () {
+    $form = Form::create(['title' => 'Tanpa flag', 'form_type_id' => regularFormType()->id]);
+
+    expect($form->fresh()->is_active)->toBeTrue();
+});

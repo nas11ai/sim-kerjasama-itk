@@ -115,3 +115,9 @@ it('filter tipe, status, dan pencarian tidak peka huruf', function () {
         ->and(listedFormIds(['status' => 'active']))->toBe([$a->id])
         ->and(listedFormIds(['status' => 'nope']))->toBe([$a->id, $b->id]);
 });
+
+it('filter tipe di luar rentang integer diabaikan, bukan 500', function () {
+    $form = Form::factory()->create();
+
+    expect(listedFormIds(['type' => '99999999999999999999']))->toBe([$form->id]);
+});

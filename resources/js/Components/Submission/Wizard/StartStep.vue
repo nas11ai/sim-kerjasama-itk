@@ -95,8 +95,8 @@ const start = () => {
                 />
             </FormField>
             <!-- BR-IAM-03 — profil yang belum lengkap menahan pembuatan pengajuan -->
-            <AppBanner v-if="page.props.errors.profile" tone="denial">
-                {{ page.props.errors.profile }}
+            <AppBanner v-if="page.props.errors.profile || page.props.errors.form_id" tone="denial">
+                {{ page.props.errors.profile ?? page.props.errors.form_id }}
             </AppBanner>
             <div class="flex justify-end">
                 <Button v-if="draftHref" as-child variant="outline">

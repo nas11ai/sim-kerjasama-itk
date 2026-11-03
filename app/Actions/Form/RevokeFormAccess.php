@@ -11,7 +11,7 @@ use Illuminate\Validation\ValidationException;
 use Lorisleiva\Actions\Concerns\AsAction;
 
 /**
- * Menghapus satu kontrol akses formulir; penjaganya sama dengan hapus massal (BR-FE-20).
+ * Menghapus satu kontrol akses formulir; ditolak bila dipakai detail tahap (BR-FE-20).
  *
  * @method static void run(FormAccessControl $control, User $actor)
  */

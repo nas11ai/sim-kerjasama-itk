@@ -116,6 +116,40 @@ describe('FormEngine/FormFieldDialog', () => {
         expect(wrapper.emitted('save')).toBeUndefined()
     })
 
+    it('opsi tersimpan yang dikosongkan memblokir simpan, bukan diam-diam diarsipkan', async () => {
+        await open(
+            field({
+                fieldTypeId: 5,
+                options: [
+                    { id: 21, label: 'Dasar' },
+                    { id: 22, label: 'Terapan' },
+                ],
+            })
+        )
+        const input = document.querySelector<HTMLInputElement>('input[aria-label="Opsi 2"]')
+        if (input === null) throw new Error('opsi tidak ada')
+        input.value = '  '
+        input.dispatchEvent(new Event('input'))
+        await flushPromises()
+        button('Simpan Field').click()
+        await flushPromises()
+
+        expect(text()).toContain('Label opsi tidak boleh kosong')
+        expect(wrapper.emitted('save')).toBeUndefined()
+    })
+
+    it('opsi baru yang kosong dibuang saat simpan', async () => {
+        await open(field({ fieldTypeId: 5, options: [{ id: 21, label: 'Dasar' }] }))
+        button('Tambah Opsi').click()
+        await flushPromises()
+        button('Simpan Field').click()
+        await flushPromises()
+
+        expect(wrapper.emitted('save')?.[0]?.[0]).toMatchObject({
+            options: [{ id: 21, label: 'Dasar' }],
+        })
+    })
+
     it('field baru: menyimpan label dengan tipe pertama dan tanpa id', async () => {
         await open(null)
 
