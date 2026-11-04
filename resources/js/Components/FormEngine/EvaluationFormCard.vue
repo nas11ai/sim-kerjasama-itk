@@ -1,11 +1,12 @@
 <script setup lang="ts">
 import { useForm } from '@inertiajs/vue3'
 import { Check, Plus } from 'lucide-vue-next'
-import { computed, ref } from 'vue'
+import { computed, ref, watch } from 'vue'
 
 import ActiveStatusSelect from '@/Components/app/ActiveStatusSelect.vue'
 import AppBanner from '@/Components/app/AppBanner.vue'
 import FormField from '@/Components/app/FormField.vue'
+import RowErrors from '@/Components/app/RowErrors.vue'
 import SectionCard from '@/Components/app/SectionCard.vue'
 import SortableRows from '@/Components/app/SortableRows.vue'
 import EvaluationFieldDialog from '@/Components/FormEngine/EvaluationFieldDialog.vue'
@@ -22,6 +23,7 @@ import {
     toEvaluationPayload,
     type EditableEvaluationField,
 } from '@/lib/evaluationDefinition'
+import { errorsUnder } from '@/lib/formErrors'
 import type { EvaluationFormEditData, FieldTypeOption } from '@/types/form-engine'
 
 // W95 — satu kartu satu form evaluasi, disimpan sendiri; `form` null = kartu baru (post).
@@ -36,6 +38,13 @@ const editor = useForm({
     ...toEvaluationGeneral(props.form),
     fields: toEditableEvaluationFields(props.form?.fields ?? []),
 })
+// BR-FE-22 — Nonaktifkan/Aktifkan dari header memuat ulang props tanpa pasang ulang kartu.
+watch(
+    () => props.form?.isActive,
+    (isActive) => {
+        if (isActive !== undefined) editor.isActive = isActive
+    }
+)
 const prefix = `evaluation-${props.form?.id ?? 'new'}-${props.detailId}`
 const heading = computed(
     () => `Form Evaluasi — ${props.form?.title ?? (editor.title.trim() || 'Baru')}`
@@ -49,10 +58,7 @@ const otherErrors = computed(() =>
         OWN_KEYS.includes(key) || key.startsWith('fields.') ? [] : [message]
     )
 )
-const fieldErrors = (index: number) =>
-    Object.keys(errors.value)
-        .filter((key) => key.startsWith(`fields.${index}.`))
-        .map((key) => errors.value[key])
+const fieldErrors = (index: number) => errorsUnder(errors.value, `fields.${index}.`)
 
 const typeLabel = (id: number) =>
     props.fieldTypeOptions.find((type) => type.value === String(id))?.label ?? ''
@@ -124,13 +130,7 @@ function save() {
                             · {{ item.answerCount }} jawaban reviewer
                         </template>
                     </p>
-                    <p
-                        v-for="message in fieldErrors(index)"
-                        :key="message"
-                        class="text-xs text-destructive"
-                    >
-                        {{ message }}
-                    </p>
+                    <RowErrors :messages="fieldErrors(index)" />
                 </template>
                 <template #actions="{ item }">
                     <!-- Cermin BR-FE-23 — field yang sudah dijawab tidak dihapus (W103) -->

@@ -84,7 +84,7 @@ it('hanya detail yang direview punya bagian form evaluasi', function () {
             ->where('evaluation.0.detailId', $reviewed->id)
             ->where('evaluation.0.forms', []));
 
-    // Ruling 13 — mode buat belum punya detail tersimpan, jadi belum ada bagian evaluasi.
+    // W95 — mode buat belum punya detail tersimpan, jadi belum ada bagian evaluasi.
     $this->get(route('admin.forms.phases.create', $this->form))
         ->assertInertia(fn (AssertableInertia $page) => $page
             ->where('evaluation', [])

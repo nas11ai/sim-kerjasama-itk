@@ -184,6 +184,22 @@ describe('FormEngine/EvaluationFormCard', () => {
         )
     })
 
+    it('[BR-FE-22] form dinonaktifkan dari header: Status ikut terkini tanpa pasang ulang', async () => {
+        mountCard(evaluation([field()]))
+
+        await wrapper.setProps({ form: evaluation([field()], { isActive: false }) })
+        await flushPromises()
+        button('Simpan Form Evaluasi').click()
+        await flushPromises()
+
+        expect(wrapper.text()).toContain('Nonaktif')
+        expect(submitted).toHaveBeenCalledWith(
+            'put',
+            '/admin.evaluation-forms.update/9',
+            expect.objectContaining({ is_active: false })
+        )
+    })
+
     it('kartu baru memanggil post ke admin.phase-details.evaluation-forms.store', async () => {
         mountCard(null)
 

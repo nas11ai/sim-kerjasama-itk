@@ -4,8 +4,6 @@ namespace App\Http\Requests\Review;
 
 use App\Data\Request\ReviewEvaluationFormInput;
 use App\Data\Request\ReviewFormFieldInput;
-use App\Models\FormPhaseDetail;
-use App\Models\ReviewEvaluationForm;
 use Illuminate\Foundation\Http\FormRequest;
 
 /**
@@ -50,24 +48,16 @@ class ReviewEvaluationFormRequest extends FormRequest
         ];
     }
 
-    public function toInput(?ReviewEvaluationForm $current = null): ReviewEvaluationFormInput
+    public function toInput(int $formPhaseDetailId): ReviewEvaluationFormInput
     {
         return new ReviewEvaluationFormInput(
             title: $this->string('title')->value(),
             description: $this->optionalString('description'),
-            formPhaseDetailId: $current->form_phase_detail_id ?? $this->routeDetailId(),
+            formPhaseDetailId: $formPhaseDetailId,
             isRequired: $this->boolean('is_required', true),
             isActive: $this->boolean('is_active', true),
             fields: $this->has('fields') ? array_map($this->field(...), $this->indexesOf('fields')) : null,
         );
-    }
-
-    // Tanpa route ber-detail (layar legacy) hasilnya 0, yang ditolak AssertReviewedPhaseDetail.
-    private function routeDetailId(): int
-    {
-        $detail = $this->route('formPhaseDetail');
-
-        return $detail instanceof FormPhaseDetail ? $detail->id : 0;
     }
 
     private function field(int|string $i): ReviewFormFieldInput

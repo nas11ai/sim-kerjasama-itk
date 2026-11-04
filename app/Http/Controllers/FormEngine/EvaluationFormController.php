@@ -21,18 +21,18 @@ class EvaluationFormController extends Controller
 {
     use ResolvesActor;
 
-    // Binding `formPhaseDetail` memberi 404 untuk detail tak dikenal; request membaca detailnya dari
-    // route, dan detail tak direview ditolak AssertReviewedPhaseDetail di Action, apa adanya.
+    // Binding `formPhaseDetail` memberi 404 untuk detail tak dikenal; detail tak direview
+    // ditolak AssertReviewedPhaseDetail di Action, apa adanya.
     public function store(ReviewEvaluationFormRequest $request, FormPhaseDetail $formPhaseDetail): RedirectResponse
     {
-        CreateReviewEvaluationForm::run($request->toInput(), $this->actor($request));
+        CreateReviewEvaluationForm::run($request->toInput($formPhaseDetail->id), $this->actor($request));
 
         return back()->with('success', 'Form evaluasi dibuat.');
     }
 
     public function update(ReviewEvaluationFormRequest $request, ReviewEvaluationForm $reviewEvaluationForm): RedirectResponse
     {
-        ReviseReviewEvaluationForm::run($reviewEvaluationForm, $request->toInput($reviewEvaluationForm), $this->actor($request));
+        ReviseReviewEvaluationForm::run($reviewEvaluationForm, $request->toInput($reviewEvaluationForm->form_phase_detail_id), $this->actor($request));
 
         return back()->with('success', 'Form evaluasi diperbarui.');
     }

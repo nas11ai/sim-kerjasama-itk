@@ -3,10 +3,15 @@ import { describe, expect, it } from 'vitest'
 import { moveItem } from '@/lib/formDefinition'
 import {
     blankEvaluationField,
+    evaluationCardKey,
     toEditableEvaluationFields,
     toEvaluationPayload,
 } from '@/lib/evaluationDefinition'
-import type { EvaluationFieldEditData, FieldTypeOption } from '@/types/form-engine'
+import type {
+    EvaluationFieldEditData,
+    EvaluationFormEditData,
+    FieldTypeOption,
+} from '@/types/form-engine'
 
 const types: FieldTypeOption[] = [
     { value: '1', label: 'Teks', hasOptions: false, limitKind: 'length' },
@@ -104,5 +109,42 @@ describe('lib/evaluationDefinition', () => {
 
         expect(payload).not.toHaveProperty('id')
         expect(payload.options).toEqual([])
+    })
+})
+
+describe('evaluationCardKey', () => {
+    const form = (fields: EvaluationFieldEditData[], title = 'Lembar'): EvaluationFormEditData => ({
+        id: 9,
+        title,
+        description: null,
+        isRequired: true,
+        isActive: true,
+        assignmentCount: 0,
+        fields,
+    })
+    const textField = (id: number | null, label = 'Metodologi'): EvaluationFieldEditData => ({
+        id,
+        label,
+        description: null,
+        fieldTypeId: 1,
+        isRequired: true,
+        limits: noLimits,
+        answerCount: 0,
+        options: [],
+    })
+
+    it('berubah saat field atau opsi baru mendapat id', () => {
+        const before = evaluationCardKey(form([textField(11)]))
+
+        expect(evaluationCardKey(form([textField(11), textField(12)]))).not.toBe(before)
+        const withOption = textField(11)
+        withOption.options = [{ id: 5, label: 'A', value: 'a' }]
+        expect(evaluationCardKey(form([withOption]))).not.toBe(before)
+    })
+
+    it('stabil bila hanya label berubah', () => {
+        expect(evaluationCardKey(form([textField(11, 'Lain')], 'Judul Baru'))).toBe(
+            evaluationCardKey(form([textField(11)]))
+        )
     })
 })

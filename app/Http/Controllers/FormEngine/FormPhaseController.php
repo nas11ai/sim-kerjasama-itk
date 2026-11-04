@@ -121,7 +121,7 @@ class FormPhaseController extends Controller
     }
 
     // `$phase` null = mode buat (W94); layar yang sama, state-nya di child ber-key. Form evaluasi
-    // butuh detail tersimpan (W95), jadi mode buat belum punya bagiannya (Ruling 13).
+    // butuh detail tersimpan, jadi mode buat belum punya bagiannya (W95).
     private function editor(Form $form, ?FormPhase $phase): Response
     {
         return Inertia::render('FormEngine/PhaseEditPage', [

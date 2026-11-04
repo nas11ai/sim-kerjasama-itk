@@ -1,11 +1,14 @@
 <script setup lang="ts">
-import { Pencil, Plus, Trash2 } from 'lucide-vue-next'
+import { Plus } from 'lucide-vue-next'
 import { computed, ref } from 'vue'
 
+import RowErrors from '@/Components/app/RowErrors.vue'
 import SectionCard from '@/Components/app/SectionCard.vue'
+import FieldRowActions from '@/Components/FormEngine/FieldRowActions.vue'
 import PhaseDetailDialog from '@/Components/FormEngine/PhaseDetailDialog.vue'
 import { Badge } from '@/Components/ui/badge'
 import { Button } from '@/Components/ui/button'
+import { errorsUnder } from '@/lib/formErrors'
 import { blankDetail, type EditableDetail } from '@/lib/phaseDefinition'
 import type {
     PhaseAccessOption,
@@ -67,10 +70,7 @@ const removeHint = (detail: EditableDetail) => {
         return `Form evaluasinya pernah ditugaskan ${detail.assignmentCount} kali.`
     return undefined
 }
-const rowErrors = (index: number) =>
-    Object.entries(props.errors).flatMap(([key, message]) =>
-        key.startsWith(`phase_details.${index}.`) ? [message] : []
-    )
+const rowErrors = (index: number) => errorsUnder(props.errors, `phase_details.${index}.`)
 
 // W97 — kartu form evaluasi menyimpan sendiri lalu props dimuat ulang; `saved` selalu terbaru.
 const evaluationFormsOf = (detail: EditableDetail | null) =>
@@ -125,30 +125,20 @@ const remove = (key: string) => (details.value = details.value.filter((d) => d.k
                         <p v-if="removeHint(detail)" class="text-xs text-muted-foreground">
                             {{ removeHint(detail) }}
                         </p>
-                        <p
-                            v-for="message in rowErrors(index)"
-                            :key="message"
-                            class="text-xs text-destructive"
-                        >
-                            {{ message }}
-                        </p>
+                        <RowErrors :messages="rowErrors(index)" />
                     </div>
                 </div>
                 <div class="flex items-center gap-1">
-                    <Badge :variant="detail.needsReview ? 'default' : 'outline'">{{
-                        detail.needsReview ? 'Perlu Review' : 'Tanpa Review'
-                    }}</Badge>
-                    <Button type="button" variant="ghost" size="sm" @click="open(detail)"
-                        ><Pencil class="size-4" />Edit</Button
+                    <FieldRowActions
+                        :label="heading(detail).title"
+                        :remove-disabled="removeHint(detail) !== undefined"
+                        @edit="open(detail)"
+                        @remove="remove(detail.key)"
                     >
-                    <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        :disabled="removeHint(detail) !== undefined"
-                        @click="remove(detail.key)"
-                        ><Trash2 class="size-4" />Hapus</Button
-                    >
+                        <Badge :variant="detail.needsReview ? 'default' : 'outline'">{{
+                            detail.needsReview ? 'Perlu Review' : 'Tanpa Review'
+                        }}</Badge>
+                    </FieldRowActions>
                 </div>
             </li>
         </ul>

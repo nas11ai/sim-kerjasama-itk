@@ -3,6 +3,7 @@ import { Plus } from 'lucide-vue-next'
 import { computed, ref } from 'vue'
 
 import ConfirmDialog from '@/Components/app/ConfirmDialog.vue'
+import RowErrors from '@/Components/app/RowErrors.vue'
 import SectionCard from '@/Components/app/SectionCard.vue'
 import SortableRows from '@/Components/app/SortableRows.vue'
 import FieldRowActions from '@/Components/FormEngine/FieldRowActions.vue'
@@ -10,6 +11,7 @@ import FormFieldDialog from '@/Components/FormEngine/FormFieldDialog.vue'
 import { Badge } from '@/Components/ui/badge'
 import { Button } from '@/Components/ui/button'
 import { formatDate } from '@/lib/format'
+import { errorsUnder } from '@/lib/formErrors'
 import type { EditableField } from '@/lib/formDefinition'
 import type { ArchivedFieldData, FieldTypeOption } from '@/types/form-engine'
 
@@ -35,10 +37,7 @@ const removingLabel = computed(() =>
 
 const typeLabel = (id: number) =>
     props.fieldTypeOptions.find((option) => option.value === String(id))?.label ?? ''
-const rowErrors = (index: number) =>
-    Object.entries(props.errors)
-        .filter(([key]) => key.startsWith(`fields.${index}.`))
-        .map(([, message]) => message)
+const rowErrors = (index: number) => errorsUnder(props.errors, `fields.${index}.`)
 
 const openDialog = (index: number) => {
     editing.value = index
@@ -79,13 +78,7 @@ const confirmRemove = () => {
                         · wajib sejak {{ formatDate(item.requiredSince) }}
                     </template>
                 </p>
-                <p
-                    v-for="message in rowErrors(index)"
-                    :key="message"
-                    class="text-xs text-destructive"
-                >
-                    {{ message }}
-                </p>
+                <RowErrors :messages="rowErrors(index)" />
             </template>
             <template #actions="{ item, index }">
                 <FieldRowActions
