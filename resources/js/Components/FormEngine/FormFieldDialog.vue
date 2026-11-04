@@ -3,12 +3,13 @@ import { computed, ref, watch } from 'vue'
 
 import ActionDialog from '@/Components/app/ActionDialog.vue'
 import FormField from '@/Components/app/FormField.vue'
-import OptionSelect from '@/Components/app/OptionSelect.vue'
+import FieldTypeSelect from '@/Components/FormEngine/FieldTypeSelect.vue'
 import FormFieldOptions from '@/Components/FormEngine/FormFieldOptions.vue'
 import { Checkbox } from '@/Components/ui/checkbox'
 import { Input } from '@/Components/ui/input'
 import { Label } from '@/Components/ui/label'
-import { blankField, keptOptions, optionError, type EditableField } from '@/lib/formDefinition'
+import { useFieldDraftSave } from '@/composables/useFieldDraftSave'
+import { blankField, type EditableField } from '@/lib/formDefinition'
 import type { FieldTypeOption } from '@/types/form-engine'
 
 const props = defineProps<{ field: EditableField | null; fieldTypeOptions: FieldTypeOption[] }>()
@@ -17,7 +18,7 @@ const emit = defineEmits<{ save: [EditableField] }>()
 
 const draft = ref<EditableField>(blankField(0))
 const wasRequired = ref(false)
-const errors = ref<{ label?: string; options?: string }>({})
+const { errors, save } = useFieldDraftSave(draft, props, open, emit)
 
 const fill = () => {
     const first = Number(props.fieldTypeOptions[0]?.value ?? 0)
@@ -46,24 +47,6 @@ const hasOptions = computed(
 const becomesRequired = computed(
     () => draft.value.id !== null && !wasRequired.value && draft.value.isRequired
 )
-
-const type = computed({
-    get: () => String(draft.value.fieldTypeId),
-    set: (value: string | null) => {
-        if (value !== null) draft.value.fieldTypeId = Number(value)
-    },
-})
-
-function save() {
-    const label = draft.value.label.trim()
-    errors.value = {
-        label: label === '' ? 'Label wajib diisi' : undefined,
-        options: optionError(draft.value.options, hasOptions.value),
-    }
-    if (errors.value.label || errors.value.options) return
-    emit('save', { ...draft.value, label, options: keptOptions(draft.value.options) })
-    open.value = false
-}
 </script>
 
 <template>
@@ -76,17 +59,13 @@ function save() {
         <FormField id="field-label" label="Label" required :error="errors.label">
             <Input id="field-label" v-model="draft.label" maxlength="255" />
         </FormField>
-        <FormField id="field-type" label="Tipe" :hint="lockHint">
-            <template #default="{ describedBy }">
-                <OptionSelect
-                    id="field-type"
-                    v-model="type"
-                    :options="fieldTypeOptions"
-                    :disabled="locked"
-                    :described-by="describedBy"
-                />
-            </template>
-        </FormField>
+        <FieldTypeSelect
+            id="field-type"
+            v-model="draft.fieldTypeId"
+            :options="fieldTypeOptions"
+            :locked="locked"
+            :hint="lockHint"
+        />
         <div class="space-y-1.5">
             <div class="flex items-center gap-2">
                 <Checkbox

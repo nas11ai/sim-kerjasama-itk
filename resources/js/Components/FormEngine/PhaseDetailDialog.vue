@@ -18,6 +18,7 @@ import type { FilterOption } from '@/types/submission-page'
 
 const props = defineProps<{
     detail: EditableDetail | null
+    evaluationFormCount: number
     accessOptions: PhaseAccessOption[]
     phaseTypeOptions: FilterOption[]
     deadlineOptions: SubmissionDateOption[]
@@ -38,7 +39,8 @@ const usedHint = computed(() =>
         ? 'Detail ini sudah dipakai pengajuan; form dan tipe tahapnya tidak dapat diubah.'
         : undefined
 )
-const evaluated = computed(() => draft.value.evaluationFormCount)
+// W97 — hitungan hidup dari props server: form evaluasi bisa dibuat di layar ini tanpa remount.
+const evaluated = computed(() => props.evaluationFormCount)
 
 const idField = (key: 'formAccessControlId' | 'phaseTypeId') =>
     computed({

@@ -72,6 +72,10 @@ const rowErrors = (index: number) =>
         key.startsWith(`phase_details.${index}.`) ? [message] : []
     )
 
+// W97 — kartu form evaluasi menyimpan sendiri lalu props dimuat ulang; `saved` selalu terbaru.
+const evaluationFormsOf = (detail: EditableDetail | null) =>
+    props.saved.find((saved) => saved.id === detail?.id)?.evaluationFormCount ?? 0
+
 const open = (detail: EditableDetail | null) => {
     const first = props.accessOptions.find((option) => option.formId === props.formId)
     editing.value =
@@ -152,6 +156,7 @@ const remove = (key: string) => (details.value = details.value.filter((d) => d.k
         <PhaseDetailDialog
             v-model:open="dialogOpen"
             :detail="editing"
+            :evaluation-form-count="evaluationFormsOf(editing)"
             :access-options="accessOptions"
             :phase-type-options="phaseTypeOptions"
             :deadline-options="deadlineOptions"

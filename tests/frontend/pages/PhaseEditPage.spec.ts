@@ -225,6 +225,27 @@ describe('FormEngine/PhaseEditPage', () => {
         expect(document.body.textContent).toContain('Detail ini punya 2 form evaluasi aktif.')
     })
 
+    it('form evaluasi pertama tersimpan di layar ini langsung mengunci Perlu Review (W97)', async () => {
+        const pageProps = props([detail({ needsReview: true, evaluationFormCount: 0 })])
+        const wrapper = mountPage(pageProps)
+        await wrapper.find('#phase-title').setValue('Judul belum disimpan')
+
+        // Simpan kartu form evaluasi memuat ulang props; PhaseEditor tidak dipasang ulang.
+        await wrapper.setProps({
+            phase: {
+                ...pageProps.phase,
+                details: [detail({ needsReview: true, evaluationFormCount: 1 })],
+            },
+        })
+        await openRow(wrapper, 0)
+
+        expect(document.body.querySelector('[role="switch"]')?.hasAttribute('disabled')).toBe(true)
+        expect(document.body.textContent).toContain('Detail ini punya 1 form evaluasi aktif.')
+        expect(wrapper.find<HTMLInputElement>('#phase-title').element.value).toBe(
+            'Judul belum disimpan'
+        )
+    })
+
     it('Simpan Tahap mengirim put ke admin.forms.phases.update', async () => {
         const wrapper = mountPage(props([detail()]))
         const saveButton = wrapper.findAll('button').find((b) => b.text().trim() === 'Simpan Tahap')

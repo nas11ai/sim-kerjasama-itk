@@ -3,18 +3,19 @@ import { computed, ref, watch } from 'vue'
 
 import ActionDialog from '@/Components/app/ActionDialog.vue'
 import FormField from '@/Components/app/FormField.vue'
-import OptionSelect from '@/Components/app/OptionSelect.vue'
+import FieldTypeSelect from '@/Components/FormEngine/FieldTypeSelect.vue'
 import FormFieldOptions from '@/Components/FormEngine/FormFieldOptions.vue'
 import { Input } from '@/Components/ui/input'
 import { Label } from '@/Components/ui/label'
 import { Switch } from '@/Components/ui/switch'
 import { Textarea } from '@/Components/ui/textarea'
+import { useFieldDraftSave } from '@/composables/useFieldDraftSave'
 import {
     blankEvaluationField,
     LIMIT_KEYS,
     type EditableEvaluationField,
 } from '@/lib/evaluationDefinition'
-import { keptOptions, optionError, type EditableOption } from '@/lib/formDefinition'
+import type { EditableOption } from '@/lib/formDefinition'
 import type { EvaluationLimits, FieldTypeOption } from '@/types/form-engine'
 
 const props = defineProps<{
@@ -25,7 +26,7 @@ const open = defineModel<boolean>('open', { required: true })
 const emit = defineEmits<{ save: [EditableEvaluationField] }>()
 
 const draft = ref<EditableEvaluationField>(blankEvaluationField(0))
-const errors = ref<{ label?: string; options?: string }>({})
+const { errors, save } = useFieldDraftSave(draft, props, open, emit)
 
 watch(
     open,
@@ -49,10 +50,6 @@ const selected = computed(() =>
 )
 // Cermin BR-FE-23 / W103 — field yang sudah dijawab reviewer tidak berganti tipe.
 const locked = computed(() => draft.value.answerCount > 0)
-const type = computed({
-    get: () => String(draft.value.fieldTypeId),
-    set: (value: string | null) => value !== null && (draft.value.fieldTypeId = Number(value)),
-})
 const description = computed({
     get: () => draft.value.description ?? '',
     set: (value: string | number) => (draft.value.description = String(value)),
@@ -80,18 +77,6 @@ const options = computed({
             (o) => draft.value.options.find((old) => old === o) ?? { ...o, value: null }
         )),
 })
-
-function save() {
-    const label = draft.value.label.trim()
-    const hasOptions = selected.value?.hasOptions === true
-    errors.value = {
-        label: label === '' ? 'Label wajib diisi' : undefined,
-        options: optionError(draft.value.options, hasOptions),
-    }
-    if (errors.value.label !== undefined || errors.value.options !== undefined) return
-    emit('save', { ...draft.value, label, options: keptOptions(draft.value.options) })
-    open.value = false
-}
 </script>
 
 <template>
@@ -107,23 +92,17 @@ function save() {
         <FormField id="evaluation-field-description" label="Deskripsi">
             <Textarea id="evaluation-field-description" v-model="description" rows="2" />
         </FormField>
-        <FormField
+        <FieldTypeSelect
             id="evaluation-field-type"
-            label="Tipe"
+            v-model="draft.fieldTypeId"
+            :options="fieldTypeOptions"
+            :locked="locked"
             :hint="
-                locked ? 'Field ini sudah dijawab reviewer; buat field baru untuk tipe lain.' : ''
+                locked
+                    ? 'Field ini sudah dijawab reviewer; buat field baru untuk tipe lain.'
+                    : undefined
             "
-        >
-            <template #default="{ describedBy }">
-                <OptionSelect
-                    id="evaluation-field-type"
-                    v-model="type"
-                    :options="fieldTypeOptions"
-                    :disabled="locked"
-                    :described-by="describedBy"
-                />
-            </template>
-        </FormField>
+        />
         <div class="flex items-center gap-2">
             <Switch id="evaluation-field-required" v-model="draft.isRequired" />
             <Label for="evaluation-field-required" class="font-normal">Wajib diisi</Label>

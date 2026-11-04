@@ -126,6 +126,27 @@ describe('FormEngine/EvaluationFormCard', () => {
         )
     })
 
+    it('Tambah Field: label wajib, lalu baris baru masuk kartu', async () => {
+        mountCard(evaluation([]))
+
+        button('Tambah Field').click()
+        await flushPromises()
+        button('Simpan Field').click()
+        await flushPromises()
+        expect(document.body.textContent).toContain('Label wajib diisi')
+
+        const label = document.querySelector<HTMLInputElement>('#evaluation-field-label')
+        if (label === null) throw new Error('isian label tidak ada')
+        label.value = 'Catatan Kualitatif'
+        label.dispatchEvent(new Event('input'))
+        await flushPromises()
+        button('Simpan Field').click()
+        await flushPromises()
+
+        expect(wrapper.text()).toContain('Catatan Kualitatif')
+        expect(wrapper.text()).not.toContain('Belum ada field.')
+    })
+
     it('field yang belum dijawab bisa dihapus dari kartu', async () => {
         mountCard(evaluation([field(), field({ id: 12, label: 'Luaran' })]))
 
