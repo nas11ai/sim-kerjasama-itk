@@ -1,13 +1,15 @@
 import { flushPromises, mount, type VueWrapper } from '@vue/test-utils'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-const { submitted } = vi.hoisted(() => ({
+const { submitted, deleted } = vi.hoisted(() => ({
     submitted: vi.fn<(method: string, url: string, data: unknown) => void>(),
+    deleted: vi.fn<(url: string) => void>(),
 }))
 
 vi.mock('@inertiajs/vue3', async () => {
     const { reactive } = await import('vue')
     return {
+        router: { delete: deleted },
         useForm: <T extends object>(data: T) => {
             let transformer = (value: T): unknown => value
             const form = reactive({
@@ -55,7 +57,10 @@ const field = (overrides: Partial<EvaluationFieldEditData> = {}): EvaluationFiel
     ...overrides,
 })
 
-const evaluation = (fields: EvaluationFieldEditData[]): EvaluationFormEditData => ({
+const evaluation = (
+    fields: EvaluationFieldEditData[],
+    overrides: Partial<EvaluationFormEditData> = {}
+): EvaluationFormEditData => ({
     id: 9,
     title: 'Lembar Substansi',
     description: null,
@@ -63,6 +68,7 @@ const evaluation = (fields: EvaluationFieldEditData[]): EvaluationFormEditData =
     isActive: true,
     assignmentCount: 0,
     fields,
+    ...overrides,
 })
 
 const route = (name: string, params?: number | Record<string, number>) =>
@@ -81,10 +87,10 @@ const mountCard = (form: EvaluationFormEditData | null) => {
     return wrapper
 }
 
-const button = (label: string) => {
-    const found = Array.from(document.querySelectorAll('button')).find(
+const button = (label: string, nth = 0) => {
+    const found = Array.from(document.querySelectorAll('button')).filter(
         (b) => b.textContent?.trim() === label || b.getAttribute('aria-label') === label
-    )
+    )[nth]
     if (found === undefined) throw new Error(`tombol "${label}" tidak ada`)
     return found
 }
@@ -92,6 +98,7 @@ const button = (label: string) => {
 beforeEach(() => {
     vi.stubGlobal('route', route)
     submitted.mockClear()
+    deleted.mockClear()
 })
 
 afterEach(() => {
@@ -188,5 +195,58 @@ describe('FormEngine/EvaluationFormCard', () => {
             '/admin.phase-details.evaluation-forms.store/31',
             expect.objectContaining({ fields: [] })
         )
+    })
+
+    it('[FE-DELETE-13] hapus form evaluasi yang pernah ditugaskan membuka penjelasan berangka', async () => {
+        mountCard(evaluation([field()], { assignmentCount: 4 }))
+
+        button('Hapus').click()
+        await flushPromises()
+
+        expect(document.body.textContent).toContain('Form evaluasi tidak bisa dihapus')
+        expect(document.body.textContent).toContain('Form ini pernah ditugaskan 4 kali.')
+        expect(button('Mengerti')).toBeDefined()
+        expect(button('Nonaktifkan')).toBeDefined()
+        expect(deleted).not.toHaveBeenCalled()
+    })
+
+    it('[FE-DELETE-14] form evaluasi yang belum dipakai dikonfirmasi lalu dihapus', async () => {
+        mountCard(evaluation([field()]))
+
+        button('Hapus').click()
+        await flushPromises()
+        expect(deleted).not.toHaveBeenCalled()
+        button('Hapus', 2).click()
+        await flushPromises()
+
+        expect(deleted).toHaveBeenCalledWith('/admin.evaluation-forms.destroy/9', expect.anything())
+    })
+
+    it('nonaktifkan dikonfirmasi lalu memanggil put tanpa kunci fields', async () => {
+        mountCard(evaluation([field()]))
+
+        button('Nonaktifkan').click()
+        await flushPromises()
+        expect(document.body.textContent).toContain('Nonaktifkan form evaluasi?')
+        button('Nonaktifkan', 1).click()
+        await flushPromises()
+
+        expect(submitted).toHaveBeenCalledTimes(1)
+        const [method, url, data] = submitted.mock.calls[0]
+        expect(method).toBe('put')
+        expect(url).toBe('/admin.evaluation-forms.update/9')
+        expect(data).toMatchObject({ title: 'Lembar Substansi', is_active: false })
+        expect(data).not.toHaveProperty('fields')
+    })
+
+    it('form nonaktif ditawarkan Aktifkan', async () => {
+        mountCard(evaluation([field()], { isActive: false }))
+
+        button('Aktifkan').click()
+        await flushPromises()
+        button('Aktifkan', 1).click()
+        await flushPromises()
+
+        expect(submitted.mock.calls[0][2]).toMatchObject({ is_active: true })
     })
 })

@@ -196,8 +196,9 @@ it('deletes an unassigned evaluation form with its fields, audited', function ()
     $form = ($this->evaluation)();
     $field = ($this->field)($form, 'Rekomendasi');
 
-    $this->actingAs($this->admin)->delete(route('admin.review-evaluation-forms.destroy', $form))
-        ->assertRedirect(route('admin.review-evaluation-forms.index'));
+    $this->actingAs($this->admin)->delete(route('admin.evaluation-forms.destroy', $form))
+        ->assertRedirect()
+        ->assertSessionHas('success', 'Form evaluasi dihapus.');
 
     expect(ReviewEvaluationForm::query()->whereKey($form->id)->exists())->toBeFalse()
         ->and(ReviewFormField::query()->whereKey($field->id)->exists())->toBeFalse()
@@ -207,53 +208,20 @@ it('deletes an unassigned evaluation form with its fields, audited', function ()
 it('refuses to delete an assigned evaluation form and leaves no audit entry', function () {
     $form = evaluationFieldResponse('select', 'layak')->reviewFormField->reviewEvaluationForm;
 
-    $this->actingAs($this->admin)->delete(route('admin.review-evaluation-forms.destroy', $form))
+    $this->actingAs($this->admin)->delete(route('admin.evaluation-forms.destroy', $form))
         ->assertSessionHasErrors('id');
 
     expect(ReviewEvaluationForm::query()->whereKey($form->id)->exists())->toBeTrue()
         ->and(evaluationAudit($form, 'Form evaluasi dihapus'))->toBeNull();
 });
 
-it('duplicates an evaluation form with its fields and options, audited', function () {
+it('wewenang hapus: operator 403', function () {
     $form = ($this->evaluation)();
-    ReviewFormFieldOption::create(['review_form_field_id' => ($this->field)($form, 'Rekomendasi')->id, 'label' => 'Layak', 'order' => 1]);
+    Role::findOrCreate('Operator');
+    $operator = User::factory()->create();
+    $operator->assignRole('Operator');
 
-    $this->actingAs($this->admin)->post(route('admin.review-evaluation-forms.duplicate', $form));
+    $this->actingAs($operator)->delete(route('admin.evaluation-forms.destroy', $form))->assertForbidden();
 
-    $copy = ReviewEvaluationForm::query()->where('title', 'Substansi (Copy)')->firstOrFail();
-
-    expect($copy->order)->toBe(2)
-        ->and($copy->reviewFormFields()->firstOrFail()->reviewFormFieldOptions()->pluck('label')->all())->toBe(['Layak'])
-        ->and(evaluationAudit($copy, 'Form evaluasi diduplikasi')?->properties['new']['source_evaluation_form_id'])->toBe($form->id);
-});
-
-it('reorders evaluation forms, audited', function () {
-    $form = ($this->evaluation)();
-
-    $this->actingAs($this->admin)->post(route('admin.review-evaluation-forms.update-order'), [
-        'items' => [['id' => $form->id, 'order' => 3]],
-    ])->assertSessionHasNoErrors();
-
-    expect($form->fresh()->order)->toBe(3)
-        ->and(evaluationAudit($form, 'Urutan form evaluasi diubah'))->not->toBeNull();
-});
-
-it('ignores non-numeric list filters instead of failing', function () {
-    ($this->evaluation)();
-
-    $this->actingAs($this->admin)
-        ->get(route('admin.review-evaluation-forms.index', ['form_phase_id' => 'semua', 'form_phase_detail_id' => 'x']))
-        ->assertOk();
-});
-
-it('counts a locked answer as completed in the usage figures', function () {
-    $answer = evaluationFieldResponse('select', 'layak');
-    $answer->reviewFormResponse->update(['status' => 'locked', 'submitted_at' => now(), 'locked_at' => now()]);
-    $form = $answer->reviewFormField->reviewEvaluationForm;
-
-    $this->actingAs($this->admin)->get(route('admin.review-evaluation-forms.show', $form))
-        ->assertInertia(fn ($page) => $page
-            ->where('assignmentStats.total_assignments', 1)
-            ->where('assignmentStats.completed_responses', 1)
-            ->where('assignmentStats.pending_responses', 0));
+    expect(ReviewEvaluationForm::query()->whereKey($form->id)->exists())->toBeTrue();
 });

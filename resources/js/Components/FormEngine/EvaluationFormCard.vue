@@ -9,6 +9,7 @@ import FormField from '@/Components/app/FormField.vue'
 import SectionCard from '@/Components/app/SectionCard.vue'
 import SortableRows from '@/Components/app/SortableRows.vue'
 import EvaluationFieldDialog from '@/Components/FormEngine/EvaluationFieldDialog.vue'
+import EvaluationFormLifecycle from '@/Components/FormEngine/EvaluationFormLifecycle.vue'
 import FieldRowActions from '@/Components/FormEngine/FieldRowActions.vue'
 import { Button } from '@/Components/ui/button'
 import { Input } from '@/Components/ui/input'
@@ -29,7 +30,7 @@ const props = defineProps<{
     form: EvaluationFormEditData | null
     fieldTypeOptions: FieldTypeOption[]
 }>()
-const emit = defineEmits<{ created: [] }>()
+const emit = defineEmits<{ created: []; discard: [] }>()
 
 const editor = useForm({
     ...toEvaluationGeneral(props.form),
@@ -89,6 +90,11 @@ function save() {
     <form @submit.prevent="save">
         <SectionCard :title="heading">
             <template #actions>
+                <EvaluationFormLifecycle v-if="form !== null" :form="form" />
+                <!-- Draf belum ada di server: membuangnya cukup lokal -->
+                <Button v-else type="button" variant="outline" size="sm" @click="emit('discard')"
+                    >Buang Draf</Button
+                >
                 <Button type="button" size="sm" @click="edit(null)"
                     ><Plus class="size-4" />Tambah Field</Button
                 >

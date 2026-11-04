@@ -42,6 +42,7 @@ const discard = (key: string) => (drafts.value = drafts.value.filter((draft) => 
             :form="null"
             :field-type-options="fieldTypeOptions"
             @created="discard(key)"
+            @discard="discard(key)"
         />
         <p
             v-if="section.forms.length === 0 && drafts.length === 0"

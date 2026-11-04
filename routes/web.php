@@ -31,7 +31,6 @@ use App\Http\Controllers\Review\ReviewerAssignmentController;
 use App\Http\Controllers\Review\ReviewSummaryResolutionController;
 use App\Http\Controllers\ReviewController;
 use App\Http\Controllers\ReviewerFormAssignmentController;
-use App\Http\Controllers\ReviewEvaluationFormController;
 use App\Http\Controllers\ReviewFormResponseController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\SchemeController;
@@ -241,27 +240,6 @@ Route::middleware(['auth', 'can:users.manage'])->prefix('admin')->name('admin.')
         'destroy' => 'permissions.destroy',
     ]);
 
-    // NEW: Review Evaluation Forms Management
-    Route::resource('review-evaluation-forms', ReviewEvaluationFormController::class)->names([
-        'index' => 'review-evaluation-forms.index',
-        'create' => 'review-evaluation-forms.create',
-        'store' => 'review-evaluation-forms.store',
-        'show' => 'review-evaluation-forms.show',
-        'edit' => 'review-evaluation-forms.edit',
-        'update' => 'review-evaluation-forms.update',
-        'destroy' => 'review-evaluation-forms.destroy',
-    ]);
-
-    // NEW: Additional review evaluation form routes
-    Route::post('review-evaluation-forms/{reviewEvaluationForm}/duplicate', [ReviewEvaluationFormController::class, 'duplicate'])
-        ->name('review-evaluation-forms.duplicate');
-
-    Route::post('review-evaluation-forms/update-order', [ReviewEvaluationFormController::class, 'updateOrder'])
-        ->name('review-evaluation-forms.update-order');
-
-    Route::get('review-evaluation-forms/{reviewEvaluationForm}/preview', [ReviewEvaluationFormController::class, 'preview'])
-        ->name('review-evaluation-forms.preview');
-
     // NEW: Reviewer form assignment management
     Route::post('/submissions/{submission}/reviewers/{reviewer}/assign-forms', [ReviewController::class, 'assignEvaluationFormsToReviewer'])
         ->name('submissions.assign-evaluation-forms');
@@ -285,10 +263,6 @@ Route::middleware(['auth', 'can:users.manage'])->prefix('admin')->name('admin.')
 Route::middleware(['auth', 'can:users.manage'])->group(function () {
     Route::get('/announcements', function () {
         return redirect()->route('admin.announcements.index');
-    });
-
-    Route::get('/review-evaluation-forms', function () {
-        return redirect()->route('admin.review-evaluation-forms.index');
     });
 });
 
@@ -406,6 +380,8 @@ Route::middleware(['auth', 'can:schemes.manage'])->prefix('admin')->name('admin.
         ->name('phase-details.evaluation-forms.store');
     Route::put('/evaluation-forms/{reviewEvaluationForm}', [EvaluationFormController::class, 'update'])
         ->name('evaluation-forms.update');
+    Route::delete('/evaluation-forms/{reviewEvaluationForm}', [EvaluationFormController::class, 'destroy'])
+        ->name('evaluation-forms.destroy');
 });
 
 // OPERATOR-09-01 — periode dikelola pemegang periods.manage, bukan users.manage (§4.4 K1).

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\FormEngine;
 
 use App\Actions\Review\CreateReviewEvaluationForm;
+use App\Actions\Review\DeleteReviewEvaluationForm;
 use App\Actions\Review\ReviseReviewEvaluationForm;
 use App\Http\Controllers\Concerns\ResolvesActor;
 use App\Http\Controllers\Controller;
@@ -10,6 +11,7 @@ use App\Http\Requests\Review\ReviewEvaluationFormRequest;
 use App\Models\FormPhaseDetail;
 use App\Models\ReviewEvaluationForm;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 
 /**
  * Kartu form evaluasi di editor tahap ADMIN-08-09, disimpan per kartu (W95). Route dijaga
@@ -33,5 +35,13 @@ class EvaluationFormController extends Controller
         ReviseReviewEvaluationForm::run($reviewEvaluationForm, $request->toInput($reviewEvaluationForm), $this->actor($request));
 
         return back()->with('success', 'Form evaluasi diperbarui.');
+    }
+
+    // BR-FE-22 — penolakan form yang pernah ditugaskan datang dari Action sebagai galat validasi.
+    public function destroy(Request $request, ReviewEvaluationForm $reviewEvaluationForm): RedirectResponse
+    {
+        DeleteReviewEvaluationForm::run($reviewEvaluationForm, $this->actor($request));
+
+        return back()->with('success', 'Form evaluasi dihapus.');
     }
 }
