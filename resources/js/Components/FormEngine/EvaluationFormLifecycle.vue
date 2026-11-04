@@ -16,12 +16,13 @@ const deleting = ref(false)
 const blocked = ref(false)
 const processing = ref(false)
 
-const toggle = useForm({
+// Payload dibangun saat kirim dari props terkini: kartu tidak dipasang ulang setelah simpan/toggle.
+const toggle = useForm({}).transform(() => ({
     title: props.form.title,
     description: props.form.description,
     is_required: props.form.isRequired,
     is_active: !props.form.isActive,
-})
+}))
 
 const requestDelete = () => {
     if (props.form.assignmentCount > 0) blocked.value = true

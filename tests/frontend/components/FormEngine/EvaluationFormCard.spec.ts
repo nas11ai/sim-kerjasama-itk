@@ -249,4 +249,21 @@ describe('FormEngine/EvaluationFormCard', () => {
 
         expect(submitted.mock.calls[0][2]).toMatchObject({ is_active: true })
     })
+
+    it('aktifkan ulang memakai data terkini, bukan potret saat kartu dipasang', async () => {
+        mountCard(evaluation([field()]))
+        await wrapper.setProps({
+            form: evaluation([field()], { isActive: false, title: 'Judul Baru' }),
+        })
+
+        button('Aktifkan').click()
+        await flushPromises()
+        button('Aktifkan', 1).click()
+        await flushPromises()
+
+        const [, url, data] = submitted.mock.calls[0]
+        expect(url).toBe('/admin.evaluation-forms.update/9')
+        expect(data).toMatchObject({ title: 'Judul Baru', is_active: true })
+        expect(data).not.toHaveProperty('fields')
+    })
 })
