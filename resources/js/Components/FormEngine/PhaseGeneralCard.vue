@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 
+import ActiveStatusSelect from '@/Components/app/ActiveStatusSelect.vue'
 import FormField from '@/Components/app/FormField.vue'
-import OptionSelect from '@/Components/app/OptionSelect.vue'
 import SectionCard from '@/Components/app/SectionCard.vue'
 import { Input } from '@/Components/ui/input'
 import { Textarea } from '@/Components/ui/textarea'
@@ -12,15 +12,9 @@ import type { PhaseGeneral } from '@/lib/phaseDefinition'
 defineProps<{ errors: Record<string, string> }>()
 const general = defineModel<PhaseGeneral>({ required: true })
 
-const ACTIVE = 'aktif'
-const states = [
-    { value: ACTIVE, label: 'Aktif' },
-    { value: 'nonaktif', label: 'Nonaktif' },
-]
-const state = computed({
-    get: () => (general.value.isActive ? ACTIVE : 'nonaktif'),
-    set: (value: string | null) =>
-        (general.value = { ...general.value, isActive: value === ACTIVE }),
+const active = computed({
+    get: () => general.value.isActive,
+    set: (isActive: boolean) => (general.value = { ...general.value, isActive }),
 })
 const update = (key: 'title' | 'description', value: string | number) =>
     (general.value = { ...general.value, [key]: String(value) })
@@ -45,7 +39,7 @@ const update = (key: 'title' | 'description', value: string | number) =>
             />
         </FormField>
         <FormField id="phase-status" label="Status" :error="errors.is_active">
-            <OptionSelect id="phase-status" v-model="state" :options="states" />
+            <ActiveStatusSelect id="phase-status" v-model="active" />
         </FormField>
     </SectionCard>
 </template>

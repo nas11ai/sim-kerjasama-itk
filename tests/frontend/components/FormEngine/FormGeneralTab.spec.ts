@@ -66,7 +66,9 @@ const mountTab = (overrides: Partial<FormGeneralData> = {}) =>
         props: {
             form: { id: 7, title: 'Form Proposal', isActive: true },
             general: general(overrides),
-            fieldTypeOptions: [{ value: '1', label: 'Teks', hasOptions: false }],
+            fieldTypeOptions: [
+                { value: '1', label: 'Teks', hasOptions: false, limitKind: 'length' },
+            ],
             formTypeOptions: [{ value: '2', label: 'Penelitian' }],
         },
         attachTo: document.body,

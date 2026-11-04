@@ -10,8 +10,8 @@ import {
 import type { FieldTypeOption, FormFieldEditData } from '@/types/form-engine'
 
 const types: FieldTypeOption[] = [
-    { value: '1', label: 'Teks', hasOptions: false },
-    { value: '5', label: 'Pilihan (dropdown)', hasOptions: true },
+    { value: '1', label: 'Teks', hasOptions: false, limitKind: 'length' },
+    { value: '5', label: 'Pilihan (dropdown)', hasOptions: true, limitKind: null },
 ]
 
 const saved: FormFieldEditData[] = [

@@ -4,6 +4,7 @@ import { Head } from '@inertiajs/vue3'
 import { computed } from 'vue'
 
 import PageHeader from '@/Components/app/PageHeader.vue'
+import EvaluationSection from '@/Components/FormEngine/EvaluationSection.vue'
 import PhaseEditor from '@/Components/FormEngine/PhaseEditor.vue'
 import AppLayout from '@/Layouts/AppLayout.vue'
 import type { PhaseEditPageProps } from '@/types/form-engine'
@@ -33,5 +34,14 @@ const title = computed(() =>
             :phase-type-options="phaseTypeOptions"
             :deadline-options="deadlineOptions"
         />
+        <!-- W95 — form evaluasi disimpan per kartu, terpisah dari Simpan Tahap; key per detail (S2b) -->
+        <div v-if="evaluation.length > 0" class="mt-8 max-w-3xl space-y-8">
+            <EvaluationSection
+                v-for="section in evaluation"
+                :key="section.detailId"
+                :section="section"
+                :field-type-options="fieldTypeOptions"
+            />
+        </div>
     </AppLayout>
 </template>

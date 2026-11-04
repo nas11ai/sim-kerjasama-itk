@@ -46,6 +46,19 @@ export function toEditableFields(fields: FormFieldEditData[]): EditableField[] {
     }))
 }
 
+// BR-FE-24 — opsi tersimpan tidak boleh diarsipkan diam-diam; buang lewat tombol Buang.
+export function optionError(options: EditableOption[], hasOptions: boolean): string | undefined {
+    if (!hasOptions) return undefined
+    if (options.some((o) => o.id !== null && o.label.trim() === ''))
+        return 'Label opsi tidak boleh kosong'
+    if (options.every((o) => o.label.trim() === '')) return 'Tambahkan minimal satu opsi'
+    return undefined
+}
+
+// Baris opsi baru yang dibiarkan kosong dibuang saat field disimpan.
+export const keptOptions = <T extends EditableOption>(options: T[]): T[] =>
+    options.filter((o) => o.id !== null || o.label.trim() !== '')
+
 export function moveItem<T>(items: T[], from: number, to: number): T[] {
     const copy = [...items]
     const inside = (index: number) => index >= 0 && index < copy.length

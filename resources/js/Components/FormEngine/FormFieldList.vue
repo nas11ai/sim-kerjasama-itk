@@ -1,10 +1,11 @@
 <script setup lang="ts">
-import { Pencil, Plus, Trash2 } from 'lucide-vue-next'
+import { Plus } from 'lucide-vue-next'
 import { computed, ref } from 'vue'
 
 import ConfirmDialog from '@/Components/app/ConfirmDialog.vue'
 import SectionCard from '@/Components/app/SectionCard.vue'
 import SortableRows from '@/Components/app/SortableRows.vue'
+import FieldRowActions from '@/Components/FormEngine/FieldRowActions.vue'
 import FormFieldDialog from '@/Components/FormEngine/FormFieldDialog.vue'
 import { Badge } from '@/Components/ui/badge'
 import { Button } from '@/Components/ui/button'
@@ -87,25 +88,12 @@ const confirmRemove = () => {
                 </p>
             </template>
             <template #actions="{ item, index }">
-                <Badge :variant="item.isRequired ? 'default' : 'outline'">{{
-                    item.isRequired ? 'Wajib' : 'Opsional'
-                }}</Badge>
-                <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    :aria-label="`Edit ${item.label}`"
-                    @click="openDialog(index)"
-                    ><Pencil class="size-4" />Edit</Button
-                >
-                <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    :aria-label="`Hapus ${item.label}`"
-                    @click="remove(index)"
-                    ><Trash2 class="size-4" />Hapus</Button
-                >
+                <FieldRowActions
+                    :label="item.label"
+                    :is-required="item.isRequired"
+                    @edit="openDialog(index)"
+                    @remove="remove(index)"
+                />
             </template>
         </SortableRows>
         <ul v-if="archived.length > 0" class="divide-y">

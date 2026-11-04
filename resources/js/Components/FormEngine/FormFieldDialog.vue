@@ -8,7 +8,7 @@ import FormFieldOptions from '@/Components/FormEngine/FormFieldOptions.vue'
 import { Checkbox } from '@/Components/ui/checkbox'
 import { Input } from '@/Components/ui/input'
 import { Label } from '@/Components/ui/label'
-import { blankField, type EditableField } from '@/lib/formDefinition'
+import { blankField, keptOptions, optionError, type EditableField } from '@/lib/formDefinition'
 import type { FieldTypeOption } from '@/types/form-engine'
 
 const props = defineProps<{ field: EditableField | null; fieldTypeOptions: FieldTypeOption[] }>()
@@ -56,24 +56,12 @@ const type = computed({
 
 function save() {
     const label = draft.value.label.trim()
-    const noOptions = hasOptions.value && draft.value.options.every((o) => o.label.trim() === '')
-    // BR-FE-24 — opsi tersimpan tidak boleh diarsipkan diam-diam; buang lewat tombol Buang.
-    const blankSaved =
-        hasOptions.value && draft.value.options.some((o) => o.id !== null && o.label.trim() === '')
     errors.value = {
         label: label === '' ? 'Label wajib diisi' : undefined,
-        options: blankSaved
-            ? 'Label opsi tidak boleh kosong'
-            : noOptions
-              ? 'Tambahkan minimal satu opsi'
-              : undefined,
+        options: optionError(draft.value.options, hasOptions.value),
     }
     if (errors.value.label || errors.value.options) return
-    emit('save', {
-        ...draft.value,
-        label,
-        options: draft.value.options.filter((o) => o.id !== null || o.label.trim() !== ''),
-    })
+    emit('save', { ...draft.value, label, options: keptOptions(draft.value.options) })
     open.value = false
 }
 </script>

@@ -80,11 +80,12 @@ export interface FormIndexPageProps {
     statusOptions: FilterOption[]
 }
 
-// Sumber: App\Queries\Form\FieldTypeOptions — `value` id tipe sebagai string.
+// Sumber: App\Queries\Form\FieldTypeOptions — `value` id tipe sebagai string; `limitKind` batas W103.
 export interface FieldTypeOption {
     value: string
     label: string
     hasOptions: boolean
+    limitKind: 'length' | 'value' | null
 }
 
 // Sumber: App\Data\View\FormEngine\FormHeaderData.
@@ -209,11 +210,50 @@ export interface PhaseAccessOption {
     formTitle: string
 }
 
-// Sumber: FormEngine\FormPhaseController::edit/create.
+// Sumber: App\Data\View\FormEngine\EvaluationFieldEditData — `answerCount` > 0 mengunci tipe dan hapus (W103).
+export interface EvaluationFieldEditData {
+    id: number
+    label: string
+    description: string | null
+    fieldTypeId: number
+    isRequired: boolean
+    limits: EvaluationLimits
+    answerCount: number
+    options: { id: number; label: string; value: string | null }[]
+}
+
+export interface EvaluationLimits {
+    minLength: number | null
+    maxLength: number | null
+    minValue: number | null
+    maxValue: number | null
+}
+
+// Sumber: App\Data\View\FormEngine\EvaluationFormEditData — `assignmentCount` menentukan hapus (BR-FE-22).
+export interface EvaluationFormEditData {
+    id: number
+    title: string
+    description: string | null
+    isRequired: boolean
+    isActive: boolean
+    assignmentCount: number
+    fields: EvaluationFieldEditData[]
+}
+
+// Sumber: App\Data\View\FormEngine\EvaluationSectionData — satu per detail ber-needs_review.
+export interface EvaluationSectionData {
+    detailId: number
+    detailLabel: string
+    forms: EvaluationFormEditData[]
+}
+
+// Sumber: FormEngine\FormPhaseController::edit/create — mode buat: `evaluation`/`fieldTypeOptions` kosong.
 export interface PhaseEditPageProps {
     form: FormHeaderData
     phase: PhaseEditData
     accessOptions: PhaseAccessOption[]
     phaseTypeOptions: FilterOption[]
     deadlineOptions: SubmissionDateOption[]
+    evaluation: EvaluationSectionData[]
+    fieldTypeOptions: FieldTypeOption[]
 }

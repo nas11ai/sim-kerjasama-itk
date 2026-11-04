@@ -67,7 +67,7 @@ const props = (overrides: Partial<FormEditPageProps> = {}): FormEditPageProps =>
     tab: 'general',
     form: null,
     general: general(),
-    fieldTypeOptions: [{ value: '1', label: 'Teks', hasOptions: false }],
+    fieldTypeOptions: [{ value: '1', label: 'Teks', hasOptions: false, limitKind: 'length' }],
     formTypeOptions: [{ value: '2', label: 'Penelitian' }],
     ...overrides,
 })

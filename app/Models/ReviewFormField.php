@@ -8,9 +8,12 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
  * @property int $id
+ * @property int $review_evaluation_form_id
  * @property int $field_type_id
  * @property bool $is_required
  * @property string $label
+ * @property string|null $description
+ * @property int $order
  * @property array<string, scalar|null>|null $validation_rules
  * @property-read FieldType|null $fieldType
  * @property-read int|null $review_form_field_responses_count

@@ -4,12 +4,14 @@ namespace App\Http\Requests\Review;
 
 use App\Data\Request\ReviewEvaluationFormInput;
 use App\Data\Request\ReviewFormFieldInput;
+use App\Models\FormPhaseDetail;
 use App\Models\ReviewEvaluationForm;
 use Illuminate\Foundation\Http\FormRequest;
 
 /**
  * Buat dan Ubah form evaluasi reviewer. `id` field dan opsi hanya diperiksa keberadaannya di
- * sini; kepemilikannya, dan apakah detailnya direview, diperiksa Action-nya.
+ * sini; kepemilikannya, dan apakah detailnya direview, diperiksa Action-nya. Detailnya tidak
+ * pernah dari kiriman: route `formPhaseDetail` saat buat, form yang disunting saat ubah (W100).
  */
 class ReviewEvaluationFormRequest extends FormRequest
 {
@@ -28,8 +30,6 @@ class ReviewEvaluationFormRequest extends FormRequest
         return [
             'title' => 'required|string|max:255',
             'description' => 'nullable|string',
-            // Dialog Ubah di layar tahap formulir tak mengirim detail; tanpa kunci berarti tetap.
-            'form_phase_detail_id' => ($this->isMethod('POST') ? '' : 'sometimes|').'required|integer|exists:form_phase_details,id',
             'is_required' => 'boolean',
             'is_active' => 'boolean',
             'fields' => 'array',
@@ -55,11 +55,19 @@ class ReviewEvaluationFormRequest extends FormRequest
         return new ReviewEvaluationFormInput(
             title: $this->string('title')->value(),
             description: $this->optionalString('description'),
-            formPhaseDetailId: $this->integer('form_phase_detail_id', $current->form_phase_detail_id ?? 0),
+            formPhaseDetailId: $current->form_phase_detail_id ?? $this->routeDetailId(),
             isRequired: $this->boolean('is_required', true),
             isActive: $this->boolean('is_active', true),
             fields: $this->has('fields') ? array_map($this->field(...), $this->indexesOf('fields')) : null,
         );
+    }
+
+    // Tanpa route ber-detail (layar legacy) hasilnya 0, yang ditolak AssertReviewedPhaseDetail.
+    private function routeDetailId(): int
+    {
+        $detail = $this->route('formPhaseDetail');
+
+        return $detail instanceof FormPhaseDetail ? $detail->id : 0;
     }
 
     private function field(int|string $i): ReviewFormFieldInput

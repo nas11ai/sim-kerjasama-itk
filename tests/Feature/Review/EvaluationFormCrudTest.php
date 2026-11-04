@@ -52,15 +52,14 @@ function evaluationAudit(ReviewEvaluationForm $form, string $description): ?Acti
 /** @param  list<array<string, mixed>>  $fields */
 function evaluationPayload(ReviewEvaluationForm $form, array $fields): array
 {
-    return ['title' => 'Substansi Disunting', 'form_phase_detail_id' => $form->form_phase_detail_id, 'fields' => $fields];
+    return ['title' => 'Substansi Disunting', 'fields' => $fields];
 }
 
 it('creates an evaluation form without a description, with its fields and options, audited', function () {
     $detail = FormPhaseDetail::factory()->create(['needs_review' => true]);
 
-    $this->actingAs($this->admin)->post(route('admin.review-evaluation-forms.store'), [
+    $this->actingAs($this->admin)->post(route('admin.phase-details.evaluation-forms.store', $detail), [
         'title' => 'Kelayakan',
-        'form_phase_detail_id' => $detail->id,
         'fields' => [[
             'field_type_id' => $this->fieldType->id,
             'label' => 'Rekomendasi',
@@ -80,9 +79,8 @@ it('creates an evaluation form without a description, with its fields and option
 it('rejects an evaluation field without a field type as a validation error', function () {
     $detail = FormPhaseDetail::factory()->create(['needs_review' => true]);
 
-    $this->actingAs($this->admin)->post(route('admin.review-evaluation-forms.store'), [
+    $this->actingAs($this->admin)->post(route('admin.phase-details.evaluation-forms.store', $detail), [
         'title' => 'Kelayakan',
-        'form_phase_detail_id' => $detail->id,
         'fields' => [['label' => 'Skor']],
     ])->assertStatus(302)->assertSessionHasErrors('fields.0.field_type_id');
 
@@ -92,9 +90,8 @@ it('rejects an evaluation field without a field type as a validation error', fun
 it('rejects a phase detail that is not reviewed', function () {
     $detail = FormPhaseDetail::factory()->create(['needs_review' => false]);
 
-    $this->actingAs($this->admin)->post(route('admin.review-evaluation-forms.store'), [
+    $this->actingAs($this->admin)->post(route('admin.phase-details.evaluation-forms.store', $detail), [
         'title' => 'Kelayakan',
-        'form_phase_detail_id' => $detail->id,
     ])->assertSessionHasErrors('form_phase_detail_id');
 
     expect(ReviewEvaluationForm::query()->where('title', 'Kelayakan')->exists())->toBeFalse();
@@ -104,7 +101,7 @@ it('rejects a field id that belongs to another evaluation form and leaves that f
     $form = ($this->evaluation)();
     $foreign = ($this->field)(($this->evaluation)(), 'Milik Form Lain');
 
-    $this->actingAs($this->admin)->patch(route('admin.review-evaluation-forms.update', $form), evaluationPayload($form, [
+    $this->actingAs($this->admin)->put(route('admin.evaluation-forms.update', $form), evaluationPayload($form, [
         ['id' => $foreign->id, 'field_type_id' => $this->fieldType->id, 'label' => 'Dibajak'],
     ]))->assertSessionHasErrors('fields.0.id');
 
@@ -121,7 +118,7 @@ it('rejects an option id that belongs to another field', function () {
         'order' => 1,
     ]);
 
-    $this->actingAs($this->admin)->patch(route('admin.review-evaluation-forms.update', $form), evaluationPayload($form, [[
+    $this->actingAs($this->admin)->put(route('admin.evaluation-forms.update', $form), evaluationPayload($form, [[
         'id' => $field->id,
         'field_type_id' => $this->fieldType->id,
         'label' => 'Rekomendasi',
@@ -135,7 +132,7 @@ it('refuses to drop a field that reviewers have answered, keeping the answers', 
     $answer = evaluationFieldResponse('select', 'layak');
     $form = $answer->reviewFormField->reviewEvaluationForm;
 
-    $this->actingAs($this->admin)->patch(route('admin.review-evaluation-forms.update', $form), evaluationPayload($form, []))
+    $this->actingAs($this->admin)->put(route('admin.evaluation-forms.update', $form), evaluationPayload($form, []))
         ->assertSessionHasErrors('fields');
 
     expect(ReviewFormFieldResponse::query()->whereKey($answer->id)->exists())->toBeTrue();
@@ -145,7 +142,7 @@ it('refuses to change the type of an answered field', function () {
     $answer = evaluationFieldResponse('select', 'layak');
     $field = $answer->reviewFormField;
 
-    $this->actingAs($this->admin)->patch(route('admin.review-evaluation-forms.update', $field->reviewEvaluationForm), evaluationPayload($field->reviewEvaluationForm, [
+    $this->actingAs($this->admin)->put(route('admin.evaluation-forms.update', $field->reviewEvaluationForm), evaluationPayload($field->reviewEvaluationForm, [
         ['id' => $field->id, 'field_type_id' => FieldType::firstOrCreate(['name' => 'textarea'])->id, 'label' => 'Uji'],
     ]))->assertSessionHasErrors('fields.0.field_type_id');
 
@@ -157,7 +154,7 @@ it('soft-deletes a dropped option: no longer offered, old answers still read its
     $field = $answer->reviewFormField;
     $option = ReviewFormFieldOption::create(['review_form_field_id' => $field->id, 'label' => 'Layak', 'value' => 'layak', 'order' => 1]);
 
-    $this->actingAs($this->admin)->patch(route('admin.review-evaluation-forms.update', $field->reviewEvaluationForm), evaluationPayload($field->reviewEvaluationForm, [
+    $this->actingAs($this->admin)->put(route('admin.evaluation-forms.update', $field->reviewEvaluationForm), evaluationPayload($field->reviewEvaluationForm, [
         ['id' => $field->id, 'field_type_id' => $field->field_type_id, 'label' => 'Uji', 'options' => []],
     ]))->assertSessionHasNoErrors();
 
@@ -171,7 +168,7 @@ it('revises fields and drops an unanswered one, audited', function () {
     $kept = ($this->field)($form, 'Tetap');
     $dropped = ($this->field)($form, 'Dibuang');
 
-    $this->actingAs($this->admin)->patch(route('admin.review-evaluation-forms.update', $form), evaluationPayload($form, [
+    $this->actingAs($this->admin)->put(route('admin.evaluation-forms.update', $form), evaluationPayload($form, [
         ['id' => $kept->id, 'field_type_id' => $this->fieldType->id, 'label' => 'Tetap Diubah'],
     ]))->assertSessionHasNoErrors();
 
@@ -184,7 +181,7 @@ it('saves the phase-screen edit dialog, which sends neither the detail nor the f
     $answer = evaluationFieldResponse('select', 'layak');
     $form = $answer->reviewFormField->reviewEvaluationForm;
 
-    $this->actingAs($this->admin)->patch(route('admin.review-evaluation-forms.update', $form), [
+    $this->actingAs($this->admin)->put(route('admin.evaluation-forms.update', $form), [
         'title' => 'Judul Baru',
         'description' => '',
         'is_required' => true,
@@ -193,19 +190,6 @@ it('saves the phase-screen edit dialog, which sends neither the detail nor the f
 
     expect($form->fresh()->title)->toBe('Judul Baru')
         ->and(ReviewFormFieldResponse::query()->whereKey($answer->id)->exists())->toBeTrue();
-});
-
-it('refuses to move an assigned evaluation form to another phase detail', function () {
-    $answer = evaluationFieldResponse('select', 'layak');
-    $form = $answer->reviewFormField->reviewEvaluationForm;
-    $other = FormPhaseDetail::factory()->create(['needs_review' => true]);
-
-    $this->actingAs($this->admin)->patch(route('admin.review-evaluation-forms.update', $form), [
-        'title' => $form->title,
-        'form_phase_detail_id' => $other->id,
-    ])->assertSessionHasErrors('form_phase_detail_id');
-
-    expect($form->fresh()->form_phase_detail_id)->not->toBe($other->id);
 });
 
 it('deletes an unassigned evaluation form with its fields, audited', function () {

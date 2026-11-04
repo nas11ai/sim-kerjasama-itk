@@ -16,10 +16,12 @@ use App\Http\Requests\Form\PhasePeriodRequest;
 use App\Models\Form;
 use App\Models\FormPhase;
 use App\Models\SubmissionPeriod;
+use App\Queries\Form\FieldTypeOptions;
 use App\Queries\Form\FormPhaseCards;
 use App\Queries\Form\PhaseAccessOptions;
 use App\Queries\Form\PhaseDeadlineGaps;
 use App\Queries\Form\PhaseEdit;
+use App\Queries\Form\PhaseEvaluationForms;
 use App\Queries\Form\PhaseTypeOptions;
 use App\Queries\Form\SubmissionDateOptions;
 use Illuminate\Http\RedirectResponse;
@@ -118,7 +120,8 @@ class FormPhaseController extends Controller
             : "Tahap dihubungkan ke periode {$period->name}.");
     }
 
-    // `$phase` null = mode buat (W94); layar yang sama, state-nya di child ber-key.
+    // `$phase` null = mode buat (W94); layar yang sama, state-nya di child ber-key. Form evaluasi
+    // butuh detail tersimpan (W95), jadi mode buat belum punya bagiannya (Ruling 13).
     private function editor(Form $form, ?FormPhase $phase): Response
     {
         return Inertia::render('FormEngine/PhaseEditPage', [
@@ -127,6 +130,8 @@ class FormPhaseController extends Controller
             'accessOptions' => PhaseAccessOptions::run($form, $phase),
             'phaseTypeOptions' => PhaseTypeOptions::run(),
             'deadlineOptions' => SubmissionDateOptions::run($phase),
+            'evaluation' => $phase === null ? [] : PhaseEvaluationForms::run($phase),
+            'fieldTypeOptions' => $phase === null ? [] : FieldTypeOptions::run(),
         ]);
     }
 }

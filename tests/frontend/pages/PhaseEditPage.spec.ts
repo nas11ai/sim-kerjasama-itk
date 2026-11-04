@@ -87,6 +87,8 @@ const props = (details: PhaseDetailEditData[]): PhaseEditPageProps => ({
         { id: 1, type: 'submit', cycle: null, periodId: 10, label: 'P10 — Batas Submit' },
         { id: 2, type: 'evaluation', cycle: null, periodId: 10, label: 'P10 — Batas Evaluasi' },
     ],
+    evaluation: [],
+    fieldTypeOptions: [],
 })
 
 const route = (name: string, params?: number | Record<string, number>) => {
@@ -140,6 +142,26 @@ describe('FormEngine/PhaseEditPage', () => {
         expect(wrapper.findAll('li')[0].text()).toContain('Isi Proposal — Form Proposal')
         expect(wrapper.findAll('li')[0].text()).toContain('Akses: Pengaju · Fakultas Sains')
         expect(wrapper.findAll('li')[0].text()).toContain('Batas Submit: P10 — Batas Submit')
+    })
+
+    it('bagian form evaluasi per detail yang direview; Tambah Form Evaluasi membuka kartu baru', async () => {
+        const wrapper = mountPage({
+            ...props([detail({ needsReview: true })]),
+            evaluation: [{ detailId: 31, detailLabel: 'Isi Proposal — Form Proposal', forms: [] }],
+        })
+
+        expect(wrapper.text()).toContain('Form evaluasi untuk Isi Proposal — Form Proposal')
+        expect(wrapper.text()).toContain('Belum ada form evaluasi.')
+        expect(wrapper.text()).toContain(
+            'Form evaluasi hanya tersedia pada tahapan reviewer yang ditandai "Perlu Review". Urutan field dapat diubah dengan menyeret.'
+        )
+        await wrapper
+            .findAll('button')
+            .find((b) => b.text().trim() === 'Tambah Form Evaluasi')
+            ?.trigger('click')
+
+        expect(wrapper.text()).toContain('Form Evaluasi — Baru')
+        expect(wrapper.text()).not.toContain('Belum ada form evaluasi.')
     })
 
     it('[FE-WINDOW-04] dua detail boleh memilih Batas Submit yang sama', async () => {

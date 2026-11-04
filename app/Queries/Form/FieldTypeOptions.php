@@ -7,10 +7,10 @@ use App\Models\FieldType;
 use Lorisleiva\Actions\Concerns\AsAction;
 
 /**
- * Pilihan tipe field di editor Form. `hasOptions` memberi tahu editor kapan opsi diminta,
- * supaya daftar tipe ber-opsi hanya hidup di FieldType::OPTION_TYPES.
+ * Pilihan tipe field di editor Form. `hasOptions` memberi tahu editor kapan opsi diminta dan
+ * `limitKind` batas mana yang ditawarkan (W103), supaya daftar tipe hanya hidup di FieldType.
  *
- * @phpstan-type FieldTypeOption array{value: string, label: string, hasOptions: bool}
+ * @phpstan-type FieldTypeOption array{value: string, label: string, hasOptions: bool, limitKind: 'length'|'value'|null}
  *
  * @method static list<FieldTypeOption> run()
  */
@@ -49,7 +49,18 @@ class FieldTypeOptions implements ChangesNoState
                 'value' => (string) $type->id,
                 'label' => self::label($type->name),
                 'hasOptions' => in_array($type->name, FieldType::OPTION_TYPES, true),
+                'limitKind' => self::limitKind($type->name),
             ])
             ->all());
+    }
+
+    /** @return 'length'|'value'|null */
+    private static function limitKind(string $name): ?string
+    {
+        return match (true) {
+            in_array($name, FieldType::LENGTH_LIMIT_TYPES, true) => 'length',
+            in_array($name, FieldType::VALUE_LIMIT_TYPES, true) => 'value',
+            default => null,
+        };
     }
 }

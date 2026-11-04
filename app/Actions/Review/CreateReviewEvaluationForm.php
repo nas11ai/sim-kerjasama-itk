@@ -13,7 +13,7 @@ use Illuminate\Validation\ValidationException;
 use Lorisleiva\Actions\Concerns\AsAction;
 
 /**
- * Form evaluasi baru beserta field dan opsinya dari layar Buat Form Evaluasi, diletakkan
+ * Form evaluasi baru beserta field dan opsinya dari kartu baru di editor tahap, diletakkan
  * paling akhir di antara form evaluasi detail tahapnya.
  *
  * @method static ReviewEvaluationForm run(ReviewEvaluationFormInput $input, User $actor)

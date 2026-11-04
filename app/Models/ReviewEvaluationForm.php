@@ -17,6 +17,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property bool $is_active
  * @property int $order
  * @property-read FormPhaseDetail|null $formPhaseDetail
+ * @property-read int|null $reviewer_form_assignments_count hanya setelah withCount
  */
 class ReviewEvaluationForm extends Model
 {

@@ -7,6 +7,7 @@ use App\Http\Controllers\Config\ReferenceEntityController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Export\DocumentPrintController;
 use App\Http\Controllers\Export\ExportController;
+use App\Http\Controllers\FormEngine\EvaluationFormController;
 use App\Http\Controllers\FormEngine\FormAccessController;
 use App\Http\Controllers\FormEngine\FormController;
 use App\Http\Controllers\FormEngine\FormPhaseController;
@@ -399,6 +400,12 @@ Route::middleware(['auth', 'can:schemes.manage'])->prefix('admin')->name('admin.
     // K9b — menautkan tahap ke periode butuh wewenang periode, selain schemes.manage.
     Route::post('/forms/{form}/phases/{formPhase}/periods', [FormPhaseController::class, 'linkPeriod'])
         ->middleware('can:periods.manage')->name('forms.phases.periods.store');
+
+    // ADMIN-08-09 — form evaluasi disimpan per kartu (W95); detailnya dari route, bukan kiriman (W100).
+    Route::post('/phase-details/{formPhaseDetail}/evaluation-forms', [EvaluationFormController::class, 'store'])
+        ->name('phase-details.evaluation-forms.store');
+    Route::put('/evaluation-forms/{reviewEvaluationForm}', [EvaluationFormController::class, 'update'])
+        ->name('evaluation-forms.update');
 });
 
 // OPERATOR-09-01 — periode dikelola pemegang periods.manage, bukan users.manage (§4.4 K1).
