@@ -94,7 +94,7 @@ function save() {
     errorMessage.value = null
 
     router.post(
-        route('user.submissions.outputs.store', props.submissionId),
+        route('research-outputs.store', props.submissionId),
         {
             output_type: selectedType.value,
             metadata: metadata.value,

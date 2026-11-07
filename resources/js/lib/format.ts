@@ -50,3 +50,13 @@ export function formatRelative(iso: string, now: Date = new Date()): string {
 
     return unit === undefined ? 'Baru saja' : `${Math.floor(elapsed / unit[1])} ${unit[0]} lalu`
 }
+
+const sizeFormat = new Intl.NumberFormat('id-ID', { maximumFractionDigits: 1 })
+
+/** "240 KB", "1,1 MB" ala wireframe (W141). */
+export function formatFileSize(bytes: number): string {
+    if (bytes < 1024) return `${bytes} B`
+    if (bytes < 1024 * 1024) return `${Math.round(bytes / 1024)} KB`
+
+    return `${sizeFormat.format(bytes / (1024 * 1024))} MB`
+}

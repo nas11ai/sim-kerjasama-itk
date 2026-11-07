@@ -43,7 +43,6 @@ use App\Http\Controllers\Submission\BudgetLineItemController;
 use App\Http\Controllers\Submission\OperatorSubmissionController;
 use App\Http\Controllers\Submission\PhaseOverrideController;
 use App\Http\Controllers\Submission\ResearchMemberController;
-use App\Http\Controllers\Submission\ResearchOutputController as SubmissionResearchOutputController;
 use App\Http\Controllers\Submission\ResubmitController;
 use App\Http\Controllers\Submission\SubmissionDecisionController;
 use App\Http\Controllers\Submission\SubmissionFileController;
@@ -214,6 +213,12 @@ Route::middleware(['auth'])->prefix('monev')->name('monev.')->group(function () 
 // W145 — luaran penelitian (ux/ia/06_research_output). Siapa/kapan/keadaan: OutputWriteAccess (W146).
 Route::middleware(['auth'])->prefix('research-outputs')->name('research-outputs.')->group(function () {
     Route::get('/', [ResearchOutputController::class, 'index'])->name('index');
+    Route::get('/create', [ResearchOutputController::class, 'create'])->name('create');
+    // BR-RO-01..09 — luaran terealisasi. Tidak ada route hapus (BR-RO-06, RO-OUTPUT-23).
+    Route::post('/submissions/{submission}', [ResearchOutputController::class, 'store'])->name('store');
+    Route::get('/{output}', [ResearchOutputController::class, 'show'])->whereNumber('output')->name('show');
+    Route::get('/{output}/edit', [ResearchOutputController::class, 'edit'])->whereNumber('output')->name('edit');
+    Route::put('/{output}', [ResearchOutputController::class, 'update'])->whereNumber('output')->name('update');
     // W141 — berkas bukti luaran hanya terbaca lewat route ber-scope ini.
     Route::get('/{output}/files/{file}', [ResearchOutputFileController::class, 'show'])
         ->whereNumber('file')
@@ -533,11 +538,6 @@ Route::middleware(['auth'])->group(function () {
         // BR-SM-03 — tanpa ini alur revisi tidak punya jalan kembali.
         Route::post('/submissions/{submission}/resubmit', ResubmitController::class)
             ->name('submissions.resubmit');
-        // BR-RO-01..09 — luaran terealisasi.
-        Route::post('/submissions/{submission}/outputs', [SubmissionResearchOutputController::class, 'store'])
-            ->name('submissions.outputs.store');
-        Route::put('/submissions/{submission}/outputs/{output}', [SubmissionResearchOutputController::class, 'update'])
-            ->name('submissions.outputs.update');
     });
 
     Route::prefix('admin')->name('admin.')->group(function () {

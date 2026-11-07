@@ -6,11 +6,8 @@ use App\Actions\Concerns\ChangesNoState;
 use App\Data\View\Monev\MonevSubmissionData;
 use App\Data\View\SubmissionStatusData;
 use App\Models\FormSubmission;
-use App\Models\FormType;
 use App\Models\User;
-use App\States\Submission\Approved;
-use App\States\Submission\Withdrawn;
-use App\Support\Reporting\SubmissionVisibility;
+use App\Queries\Submission\TeamParentSubmissions;
 use Illuminate\Database\Eloquent\Builder;
 use Lorisleiva\Actions\Concerns\AsAction;
 
@@ -28,21 +25,13 @@ class ResearcherMonevList implements ChangesNoState
     /** @return Builder<FormSubmission> */
     public static function query(User $user): Builder
     {
-        return SubmissionVisibility::ownedOrJoinedBy($user)
-            ->whereNull('parent_submission_id')
-            ->whereHas('form', fn (Builder $form) => $form->where('form_type_id', '!=', FormType::BIODATA_ID))
-            ->where(fn (Builder $status) => $status
-                ->whereState('status', Approved::class)
-                // Induk tarikan tanpa laporan tidak punya isi untuk dibaca.
-                ->orWhere(fn (Builder $withdrawn) => $withdrawn->whereState('status', Withdrawn::class)->has('children')));
+        return TeamParentSubmissions::query($user, 'children');
     }
 
     /** @return list<MonevSubmissionData> */
     public function handle(User $user): array
     {
         return array_values(self::query($user)
-            ->with(['form:id,title', 'scheme:id,name', 'formPhaseDetail'])
-            ->latest('id')
             ->get()
             ->map(fn (FormSubmission $parent): MonevSubmissionData => new MonevSubmissionData(
                 id: $parent->id,

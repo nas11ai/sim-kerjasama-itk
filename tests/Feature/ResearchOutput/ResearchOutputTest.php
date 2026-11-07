@@ -318,7 +318,7 @@ it('[RO-OUTPUT-25] peneliti di luar tim tidak bisa menambah luaran meski memegan
     $stranger = seededRole('researcher');
 
     $this->actingAs($stranger)
-        ->post(route('user.submissions.outputs.store', $s), ['output_type' => 'publication'])
+        ->post(route('research-outputs.store', $s), ['output_type' => 'publication'])
         ->assertForbidden();
 
     expect(ResearchOutput::count())->toBe(0);
@@ -351,7 +351,7 @@ it('[RO-OUTPUT-14] lewat batas Upload Luaran, penyuntingan ditolak', function ()
     $fx = approvedLongAgo();
 
     $this->actingAs($fx['user'])
-        ->post(route('user.submissions.outputs.store', $fx['submission']), ['output_type' => 'publication'])
+        ->post(route('research-outputs.store', $fx['submission']), ['output_type' => 'publication'])
         ->assertForbidden();
 
     expect(ResearchOutput::count())->toBe(0);
@@ -362,7 +362,7 @@ it('luaran bisa ditambahkan sebelum Batas Akhir meski Batas Submit pengajuan sud
     $fx = approvedLongAgo();
 
     $this->actingAs($fx['user'])
-        ->post(route('user.submissions.outputs.store', $fx['submission']), ['output_type' => 'publication'])
+        ->post(route('research-outputs.store', $fx['submission']), ['output_type' => 'publication'])
         ->assertRedirect();
 
     expect(ResearchOutput::count())->toBe(1);
@@ -396,7 +396,7 @@ it('[RO-OUTPUT-16] override yang berlaku membuka kembali penyuntingan luaran', f
     );
 
     $this->actingAs($fx['user'])
-        ->post(route('user.submissions.outputs.store', $fx['submission']), ['output_type' => 'publication'])
+        ->post(route('research-outputs.store', $fx['submission']), ['output_type' => 'publication'])
         ->assertRedirect();
 
     expect(ResearchOutput::count())->toBe(1);
@@ -408,7 +408,7 @@ it('[RO-OUTPUT-26] tanpa detail Upload Luaran, luaran tetap bisa ditambahkan set
     $fx['outputDetail']->delete();
 
     $this->actingAs($fx['user'])
-        ->post(route('user.submissions.outputs.store', $fx['submission']), ['output_type' => 'publication'])
+        ->post(route('research-outputs.store', $fx['submission']), ['output_type' => 'publication'])
         ->assertRedirect();
 
     expect(ResearchOutput::count())->toBe(1);
@@ -421,7 +421,7 @@ it('[RO-OUTPUT-27] penutupan paksa periode tidak menutup Upload Luaran', functio
     $fx['period']->update(['is_force_closed' => true]);
 
     $this->actingAs($fx['user'])
-        ->post(route('user.submissions.outputs.store', $fx['submission']), ['output_type' => 'publication'])
+        ->post(route('research-outputs.store', $fx['submission']), ['output_type' => 'publication'])
         ->assertRedirect();
 
     expect(ResearchOutput::count())->toBe(1);
@@ -463,7 +463,7 @@ it('path berkas dari klien tidak diterima', function () {
     outputType('ip', ['requires_files' => true]);
 
     $this->actingAs($fx['user'])
-        ->post(route('user.submissions.outputs.store', $fx['submission']), [
+        ->post(route('research-outputs.store', $fx['submission']), [
             'output_type' => 'ip',
             'files' => [['file_path' => 'submissions/lain.pdf']],
         ])
@@ -480,7 +480,7 @@ it('sunting HKI tanpa unggah ulang', function () {
     $output = SaveResearchOutput::run($fx['submission'], $fx['user'], outputInput('ip', ['title' => 'Paten Lama'], files: 1));
 
     $this->actingAs($fx['user'])
-        ->put(route('user.submissions.outputs.update', [$fx['submission'], $output]), [
+        ->put(route('research-outputs.update', $output), [
             'output_type' => 'ip',
             'metadata' => ['title' => 'Paten Baru'],
         ])

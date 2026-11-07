@@ -1,6 +1,12 @@
 import { describe, expect, it } from 'vitest'
 
-import { formatDate, formatDateTime, formatRelative, formatRupiah } from '@/lib/format'
+import {
+    formatDate,
+    formatDateTime,
+    formatFileSize,
+    formatRelative,
+    formatRupiah,
+} from '@/lib/format'
 
 // Intl memakai spasi tak-putus; disamakan supaya assertion terbaca.
 const plain = (value: string) => value.replace(/\s/g, ' ')
@@ -41,5 +47,13 @@ describe('formatRelative', () => {
 
     it('lewat empat minggu kembali ke tanggal', () => {
         expect(formatRelative('2026-05-01T12:00:00', now)).toBe('01 Mei 2026')
+    })
+})
+
+describe('formatFileSize', () => {
+    it('menulis ukuran berkas ala wireframe', () => {
+        expect(formatFileSize(245760)).toBe('240 KB')
+        expect(formatFileSize(1153434)).toBe('1,1 MB')
+        expect(formatFileSize(512)).toBe('512 B')
     })
 })
