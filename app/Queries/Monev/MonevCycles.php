@@ -121,7 +121,7 @@ class MonevCycles implements ChangesNoState
             blockedReason: $reason,
             reportId: $report?->id,
             submittedAt: is_string($submittedAt) ? CarbonImmutable::parse($submittedAt)->toIso8601String() : null,
-            openedAt: null,
+            openedAt: $report?->cycle_opened_at?->toIso8601String(),
         );
     }
 

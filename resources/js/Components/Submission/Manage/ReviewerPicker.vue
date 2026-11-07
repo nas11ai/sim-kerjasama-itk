@@ -7,7 +7,13 @@ import { Input } from '@/Components/ui/input'
 import type { ReviewerCandidate } from '@/types/submission-manage'
 
 // Pilihan reviewer OPERATOR-03-01/03-02; daftarnya disaring server lewat `search`.
-defineProps<{ candidates: ReviewerCandidate[]; selected: number[]; multiple: boolean }>()
+// `suggested` = saran BR-MON-07 (monev): hanya label, tidak menyaring.
+defineProps<{
+    candidates: ReviewerCandidate[]
+    selected: number[]
+    multiple: boolean
+    suggested?: number[]
+}>()
 const emit = defineEmits<{ toggle: [reviewerId: number] }>()
 const search = defineModel<string>('search', { required: true })
 
@@ -45,6 +51,9 @@ const typeLabel = (type: string) => (type === 'external' ? 'Eksternal' : 'Intern
                         </span>
                     </span>
                     <span class="flex shrink-0 items-center gap-2">
+                        <Badge v-if="suggested?.includes(candidate.reviewerId)" variant="secondary">
+                            Reviewer pengajuan awal
+                        </Badge>
                         <Badge v-if="candidate.blockedReason" variant="outline">
                             {{ candidate.blockedReason }}
                         </Badge>

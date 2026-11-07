@@ -6,6 +6,7 @@
 // dijaga submissions.view-all (W129), status dari siklus berjalan.
 
 use App\Actions\FormSubmission\StartChildSubmission;
+use App\Actions\Monev\OpenMonevCycle;
 use App\Models\FormSubmission;
 use App\Models\Reviewer;
 use App\Models\Scheme;
@@ -138,6 +139,13 @@ it('status siklus berjalan: Belum Aktif, Laporan Masuk, Selesai', function () {
         ->assertInertia(fn (AssertableInertia $page) => $page
             ->where('rows.data.0.currentCycle', null)
             ->where('rows.data.1.currentCycle', 'Monev I'));
+});
+
+it('status siklus berjalan Menunggu Laporan setelah siklus diaktifkan', function () {
+    $fx = monevFixture();
+    OpenMonevCycle::run($fx['parent'], $fx['monev1'], monevBoardOperator());
+
+    expect(monevBoardStatuses())->toBe([$fx['parent']->id => 'awaiting_report']);
 });
 
 it('filter periode, skema, dan pencarian judul atau ketua', function () {

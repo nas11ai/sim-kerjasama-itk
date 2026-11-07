@@ -224,6 +224,6 @@ it('[MON-REVIEW-10] notifikasi siklus dibuka membuka Daftar Monev bagi peneliti'
 
     expect(ndDestination($fx['owner'], MonevStageOpenedNotification::class, $data))->toBe(route('monev.index'))
         ->and(ndDestination($reviewer, MonevStageOpenedNotification::class, $data))->toBe(route('reviewer.assignments.index'))
-        ->and(ndDestination($operator, MonevStageOpenedNotification::class, $data))->toBe(route('admin.submissions.show', $fx['parent']))
+        ->and(ndDestination($operator, MonevStageOpenedNotification::class, $data))->toBe(route('monev.manage.show', $fx['parent']))
         ->and(ndDestination(User::factory()->create(), MonevStageOpenedNotification::class, $data))->toBeNull();
 });

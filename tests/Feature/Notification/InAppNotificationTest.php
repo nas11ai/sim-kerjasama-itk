@@ -219,7 +219,7 @@ it('[NOT-CHANNEL-05] satu event bisa punya lebih dari satu penerima', function (
         'status' => 'active',
     ]);
 
-    OpenMonevCycle::run($fx['parent'], $fx['monev1']);
+    OpenMonevCycle::run($fx['parent'], $fx['monev1'], User::factory()->create());
 
     $terkirim = fn (User $u) => $u->notifications()
         ->where('type', MonevStageOpenedNotification::class)
@@ -233,7 +233,7 @@ it('[NOT-CHANNEL-06] penerima yang tidak berkepentingan tidak dikirimi', functio
     $fx = monevFixture();
     $orangLain = User::factory()->create();
 
-    OpenMonevCycle::run($fx['parent'], $fx['monev1']);
+    OpenMonevCycle::run($fx['parent'], $fx['monev1'], User::factory()->create());
 
     expect($orangLain->notifications()->count())->toBe(0);
 });

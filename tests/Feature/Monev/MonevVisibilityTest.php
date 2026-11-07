@@ -16,6 +16,7 @@ use App\Models\Reviewer;
 use App\Models\ReviewerFormAssignment;
 use App\Models\ReviewEvaluationForm;
 use App\Models\ReviewFormResponse;
+use App\Models\User;
 use App\Notifications\MonevEvaluationSubmittedNotification;
 use App\Notifications\MonevStageOpenedNotification;
 use App\States\Submission\UnderReview;
@@ -56,7 +57,7 @@ it('[MON-REVIEW-10] pembukaan siklus memberi tahu peneliti', function () {
     Notification::fake();
     $fx = monevFixture();
 
-    $diberitahu = OpenMonevCycle::run($fx['parent'], $fx['monev1']);
+    $diberitahu = OpenMonevCycle::run($fx['parent'], $fx['monev1'], User::factory()->create());
 
     expect($diberitahu)->toBe(1);
     Notification::assertSentTo($fx['owner'], MonevStageOpenedNotification::class);
@@ -68,7 +69,7 @@ it('[MON-REVIEW-11] pembukaan siklus memberi tahu reviewer yang ditugaskan', fun
 
     ['reviewer' => $reviewer] = monevReportWithEvaluation($fx, 'draft');
 
-    $diberitahu = OpenMonevCycle::run($fx['parent'], $fx['monev1']);
+    $diberitahu = OpenMonevCycle::run($fx['parent'], $fx['monev1'], User::factory()->create());
 
     expect($diberitahu)->toBe(2);
     Notification::assertSentTo($reviewer->user, MonevStageOpenedNotification::class);
@@ -125,7 +126,7 @@ it('[MON-REVIEW-13] siklus yang belum dibuka tidak memberi tahu siapa pun', func
     $fx = monevFixture();
 
     // Monev II belum boleh dibuka — Monev I belum tuntas.
-    expect(fn () => OpenMonevCycle::run($fx['parent'], $fx['monev2']))
+    expect(fn () => OpenMonevCycle::run($fx['parent'], $fx['monev2'], User::factory()->create()))
         ->toThrow(ValidationException::class);
 
     Notification::assertNothingSent();

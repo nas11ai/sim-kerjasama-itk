@@ -8,6 +8,7 @@ use App\Models\User;
 use App\Queries\Review\ReviewerCandidates;
 use App\Queries\Submission\OperatorSubmissionDetail;
 use App\Queries\Submission\OperatorSubmissionList;
+use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -34,8 +35,13 @@ class OperatorSubmissionController extends Controller
     }
 
     // BR-SM-07 — view-all; draft belum diajukan, bagi Operator ia belum ada.
-    public function show(Request $request, FormSubmission $submission): Response
+    public function show(Request $request, FormSubmission $submission): Response|RedirectResponse
     {
+        // W130 — laporan monev dikelola di layar siklus induknya.
+        if ($submission->parent_submission_id !== null) {
+            return redirect()->route('monev.manage.show', $submission->parent_submission_id);
+        }
+
         abort_unless($submission->is_submitted, 404, 'Pengajuan tidak ditemukan.');
         $viewer = $request->user();
         abort_unless($viewer instanceof User, 403);

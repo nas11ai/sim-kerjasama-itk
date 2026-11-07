@@ -11,7 +11,7 @@ use Lorisleiva\Actions\Concerns\AsAction;
 
 /**
  * BR-MON-10 — tujuan notifikasi "siklus monev dibuka" (konteks induk + detail siklus). Ketua
- * dan anggota ke Daftar Monev, Operator ke induk, reviewer laporan siklus itu ke penugasannya;
+ * dan anggota ke Daftar Monev, Operator ke aktivasi siklus induk (W130), reviewer laporan siklus itu ke penugasannya;
  * selain itu tanpa tujuan (BR-SM-07).
  *
  * @method static string|null run(DatabaseNotification $notification, User $recipient)
@@ -34,7 +34,7 @@ class MonevCycleDestination implements ChangesNoState
         }
 
         if (SubmissionVisibility::seesEverything($recipient)) {
-            return route('admin.submissions.show', $parentId);
+            return route('monev.manage.show', $parentId);
         }
 
         return $this->reviewsReport($parentId, $detailId, $recipient) ? route('reviewer.assignments.index') : null;

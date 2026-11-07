@@ -100,6 +100,8 @@ describe('MonevManageIndexPage', () => {
         expect(rows[2]).toContain('Menunggu Laporan')
         expect(rows[3]).toContain('Selesai')
         expect(rows[3]).toContain('—')
+        expect(wrapper.find('tbody tr a').attributes('href')).toBe('/monev.manage.show/7')
+        expect(rows[0]).toContain('Kelola')
     })
 
     it('kosong tanpa filter dan dengan filter', () => {

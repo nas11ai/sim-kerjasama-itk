@@ -1,4 +1,5 @@
 import type { Paginated } from '@/types/pagination'
+import type { ManagedReviewer, OverrideTarget, ReviewerCandidate } from '@/types/submission-manage'
 import type {
     FilterOption,
     PhaseAccess,
@@ -100,4 +101,23 @@ export interface MonevManageIndexPageProps {
     filters: MonevBoardFilters
     periodOptions: FilterOption[]
     schemeOptions: FilterOption[]
+}
+
+// Sumber: MonevManagedCycleData — kelayakan tombol dihitung backend (MonevCycleManagement).
+export interface MonevManagedCycle {
+    cycle: MonevCycle
+    reviewers: ManagedReviewer[]
+    phaseAccess: PhaseAccess | null
+    overrideTarget: OverrideTarget | null
+    canOpen: boolean
+    openHint: string | null
+    canAssign: boolean
+    canExtend: boolean
+}
+
+export interface MonevManageShowPageProps {
+    submission: { id: number; title: string; leader: string; status: SubmissionStatusView }
+    cycles: MonevManagedCycle[]
+    suggestedReviewerIds: number[]
+    reviewerCandidates?: ReviewerCandidate[]
 }

@@ -1,9 +1,11 @@
 <script setup lang="ts">
-import { Inbox } from 'lucide-vue-next'
+import { Link } from '@inertiajs/vue3'
+import { ArrowRight, Inbox } from 'lucide-vue-next'
 
 import DataTable from '@/Components/app/DataTable.vue'
 import EmptyState from '@/Components/app/EmptyState.vue'
 import { Badge } from '@/Components/ui/badge'
+import { Button } from '@/Components/ui/button'
 import { BOARD_STATUS } from '@/lib/monev'
 import type { MonevBoardRow } from '@/types/monev'
 
@@ -36,6 +38,13 @@ const columns = [
                 />
                 {{ BOARD_STATUS[row.status].label }}
             </Badge>
+        </template>
+        <template #cell-action="{ row }">
+            <Button as-child variant="ghost" size="sm">
+                <Link :href="route('monev.manage.show', row.id)">
+                    Kelola <ArrowRight class="size-4" />
+                </Link>
+            </Button>
         </template>
         <template #empty>
             <EmptyState

@@ -15,9 +15,7 @@ use App\Support\Review\AwaitingDecision;
 
 class FormSubmissionPolicy
 {
-    /**
-     * BR-SM-07 — akses level submission, lapis terpisah dari FormAccessControl.
-     */
+    /** BR-SM-07 — akses level submission, lapis terpisah dari FormAccessControl. */
     public function view(User $user, FormSubmission $submission): bool
     {
         return $submission->isAccessibleBy($user);
@@ -97,10 +95,7 @@ class FormSubmissionPolicy
             && !$submission->status instanceof Withdrawn;
     }
 
-    /**
-     * BR-SM-18 — mengeluarkan anggota penelitian. Sumbunya sama dengan
-     * BR-SM-15: hanya `submitted_by`, hanya selama belum terminal.
-     */
+    /** BR-SM-18 — mengeluarkan anggota; sumbunya sama dengan BR-SM-15: hanya `submitted_by`, selama belum terminal. */
     public function manageResearchMembers(User $user, FormSubmission $submission): bool
     {
         if ($submission->submitted_by !== $user->id) {
@@ -116,9 +111,8 @@ class FormSubmissionPolicy
     }
 
     /**
-     * BR-REV-07 — penolakan hanya oleh Operator, dan hanya atas pengajuan
-     * yang masih berjalan. Keputusan yang sudah diambil dibatalkan lewat
-     * penarikan, bukan penolakan susulan.
+     * BR-REV-07 — penolakan hanya oleh Operator atas pengajuan yang masih berjalan. Keputusan
+     * yang sudah diambil dibatalkan lewat penarikan, bukan penolakan susulan.
      */
     public function reject(User $user, FormSubmission $submission): bool
     {
@@ -145,6 +139,12 @@ class FormSubmissionPolicy
         return $user->can('reviewers.assign') && AwaitingDecision::holds($submission);
     }
 
+    /** BR-MON-04, W129 — penugasan reviewer per siklus monev; laporan anak tidak pernah AwaitingDecision. */
+    public function assignMonevReviewer(User $user, FormSubmission $parent): bool
+    {
+        return $user->can('reviewers.assign');
+    }
+
     public function replaceReviewer(User $user, FormSubmission $submission): bool
     {
         // BR-REV-10 — penggantian adalah penugasan juga; terkunci pada sumbu yang sama.
@@ -152,10 +152,8 @@ class FormSubmissionPolicy
     }
 
     /**
-     * BR-FE-09, BR-FE-10 — perpanjangan akses adalah wewenang Operator.
-     *
-     * Sengaja tidak diberikan kepada pemilik pengajuan: kalau peneliti bisa
-     * memperpanjang batasnya sendiri, batas itu berhenti menjadi batas.
+     * BR-FE-09, BR-FE-10 — perpanjangan akses wewenang Operator, sengaja bukan pemilik pengajuan:
+     * kalau peneliti bisa memperpanjang batasnya sendiri, batas itu berhenti menjadi batas.
      */
     public function grantOverride(User $user, FormSubmission $submission): bool
     {

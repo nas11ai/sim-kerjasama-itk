@@ -207,3 +207,18 @@ Feature: Siklus Monitoring dan Evaluasi
     Given siklus "Laporan Monev II" pada "P-001" belum dibuka
     When Operator membuka daftar siklus "P-001"
     Then "Budi" tidak menerima notifikasi in-app
+
+  @BR-MON-10 @M4 @OPERATOR-05-02 @boundary
+  Scenario: [MON-REVIEW-14] Siklus yang sudah dibuka tidak dibuka dan diberitahukan dua kali
+    Given Operator sudah membuka siklus "Laporan Monev I" pada "P-001"
+    When Operator membuka siklus "Laporan Monev I" pada "P-001" lagi
+    Then pembukaan ditolak dengan pesan "Siklus ini sudah diaktifkan pada {tanggal}."
+    And "Budi" hanya menerima satu notifikasi in-app
+    And "P-001" tetap punya satu laporan "Laporan Monev I"
+
+  @BR-REV-02 @BR-MON-04 @M4 @OPERATOR-05-02 @denial
+  Scenario: [MON-REVIEW-15] Anggota tim induk tidak bisa menjadi reviewer laporan monev
+    Given "Ani" anggota aktif "P-001"
+    And "Ani" terdaftar sebagai reviewer
+    When Operator menugaskan "Ani" sebagai reviewer siklus "Laporan Monev I" pada "P-001"
+    Then penugasan ditolak karena konflik kepentingan

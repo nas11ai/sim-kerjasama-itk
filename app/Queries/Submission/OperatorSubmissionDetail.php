@@ -71,12 +71,18 @@ class OperatorSubmissionDetail implements ChangesNoState
             'evaluationSheets' => SubmittedEvaluationSheets::run($submission, true),
             'threads' => ReviewThreadData::many($threads['summaries'], $threads['comments']),
             'ownershipCandidates' => OwnershipCandidates::run($submission),
-            'overrideTarget' => new OverrideTargetData($this->phaseLabel($phaseDetail), $this->overdueReviewers($submission)),
+            'overrideTarget' => self::overrideTarget($submission),
             'operatorCan' => OperatorAbilitiesData::forUser($viewer, $submission),
         ];
     }
 
-    private function phaseLabel(?FormPhaseDetail $detail): ?string
+    /** OPERATOR-02-03 — juga dipakai perpanjangan laporan monev (OPERATOR-05-02). */
+    public static function overrideTarget(FormSubmission $submission): OverrideTargetData
+    {
+        return new OverrideTargetData(self::phaseLabel($submission->getFormPhaseDetail()), self::overdueReviewers($submission));
+    }
+
+    private static function phaseLabel(?FormPhaseDetail $detail): ?string
     {
         if ($detail === null) {
             return null;
@@ -89,7 +95,7 @@ class OperatorSubmissionDetail implements ChangesNoState
     }
 
     /** @return list<string> reviewer aktif yang evaluasinya lewat tenggat dan dibuka override detail ini (W25) */
-    private function overdueReviewers(FormSubmission $submission): array
+    private static function overdueReviewers(FormSubmission $submission): array
     {
         $names = [];
         $seats = $submission->activeSubmissionReviewers()
@@ -99,7 +105,7 @@ class OperatorSubmissionDetail implements ChangesNoState
             ->get();
 
         foreach ($seats as $seat) {
-            if ($this->hasOverdueForm($seat, $submission->form_phase_detail_id)) {
+            if (self::hasOverdueForm($seat, $submission->form_phase_detail_id)) {
                 $names[] = $seat->reviewer->user->name ?? 'Reviewer';
             }
         }
@@ -108,7 +114,7 @@ class OperatorSubmissionDetail implements ChangesNoState
     }
 
     // BR-FE-10 — aturan yang sama dengan isClosedByDeadline(): override detail ini hanya membuka form evaluasi yang melekat padanya.
-    private function hasOverdueForm(SubmissionReviewer $seat, ?int $detailId): bool
+    private static function hasOverdueForm(SubmissionReviewer $seat, ?int $detailId): bool
     {
         return $seat->reviewerFormAssignments->contains(
             fn (ReviewerFormAssignment $form): bool => $form->isOverdue()

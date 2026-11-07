@@ -9,6 +9,7 @@ use App\States\Submission\SubmissionStatus;
 use App\States\Submission\Submitted;
 use App\States\Submission\Withdrawn;
 use App\Support\SubmissionPeriodGate;
+use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -30,6 +31,7 @@ use Spatie\ModelStates\HasStates;
  * @property int|null $trl_id
  * @property int $last_completed_step
  * @property bool $is_submitted
+ * @property CarbonImmutable|null $cycle_opened_at
  * @property-read bool $is_archived
  * @property SubmissionStatus|null $status
  * @property-read Form $form
@@ -69,6 +71,8 @@ class FormSubmission extends Model
         'status' => SubmissionStatus::class,
         'is_submitted' => 'boolean',
         'last_completed_step' => 'integer',
+        // W126 — hanya laporan anak; kapan Operator mengaktifkan siklusnya.
+        'cycle_opened_at' => 'immutable_datetime',
     ];
 
     /** @return BelongsTo<FormSubmission, $this> */

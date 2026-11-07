@@ -22,7 +22,6 @@ use App\Http\Controllers\Identity\ReviewerManagementController;
 use App\Http\Controllers\Identity\UserAccessController;
 use App\Http\Controllers\Identity\UserController;
 use App\Http\Controllers\Monev\MonevController;
-use App\Http\Controllers\Monev\MonevCycleController;
 use App\Http\Controllers\Monev\MonevManageController;
 use App\Http\Controllers\Monev\MonevReportController;
 use App\Http\Controllers\Notification\NotificationChannelController;
@@ -213,6 +212,12 @@ Route::middleware(['auth'])->prefix('monev')->name('monev.')->group(function () 
 // W129 — kelola siklus monev: membaca semua pengajuan (BR-SM-07), bukan periods.manage.
 Route::middleware(['auth', 'can:submissions.view-all'])->prefix('monev/manage')->name('monev.manage.')->group(function () {
     Route::get('/', [MonevManageController::class, 'index'])->name('index');
+    Route::get('/{submission}', [MonevManageController::class, 'show'])->name('show');
+    // BR-MON-10 — aktivasi sekali per siklus (W126).
+    Route::post('/{submission}/cycles/{detail}/open', [MonevManageController::class, 'open'])->name('open');
+    // BR-MON-04 — penugasan manual per siklus; Policy assignMonevReviewer di FormRequest.
+    Route::post('/{submission}/cycles/{detail}/reviewers', [MonevManageController::class, 'assignReviewer'])
+        ->name('reviewers.store');
 });
 
 // Reviewer Routes - untuk user yang bertindak sebagai reviewer
@@ -535,11 +540,6 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/submissions/{submission}/assign-reviewers', [ReviewController::class, 'assignReviewers'])
             ->name('submissions.assign-reviewers');
         // BR-FE-08/09/10 — perpanjangan akses satu fase untuk satu pengajuan.
-        // BR-MON-04/07/10 — pengelolaan siklus monev.
-        Route::get('/submissions/{submission}/monev', [MonevCycleController::class, 'show'])
-            ->name('submissions.monev.show');
-        Route::post('/submissions/{submission}/monev/open', [MonevCycleController::class, 'open'])
-            ->name('submissions.monev.open');
         Route::post('/submissions/{submission}/overrides', [PhaseOverrideController::class, 'store'])
             ->name('submissions.overrides.store');
         Route::delete('/submissions/{submission}/overrides/{override}', [PhaseOverrideController::class, 'destroy'])
