@@ -15,7 +15,8 @@ export function useMonevReport(report: MonevReportHeader, fields: WizardField[])
 
     const update = (fieldId: number, value: WizardFieldValue) => (values[fieldId] = value)
 
-    const send = (name: 'monev.reports.save' | 'monev.reports.submit', onSuccess?: () => void) => {
+    // `settled` dipanggil saat berhasil maupun ditolak (mis. menutup dialog konfirmasi).
+    const send = (name: 'monev.reports.save' | 'monev.reports.submit', settled?: () => void) => {
         const responses = fieldResponses(fields, values)
         sentFieldIds.value = responses.map((r) => r.form_field_id)
         router.post(
@@ -26,7 +27,8 @@ export function useMonevReport(report: MonevReportHeader, fields: WizardField[])
                 preserveScroll: true,
                 onStart: () => (processing.value = true),
                 onFinish: () => (processing.value = false),
-                onSuccess,
+                onSuccess: settled,
+                onError: settled,
             }
         )
     }
@@ -34,13 +36,20 @@ export function useMonevReport(report: MonevReportHeader, fields: WizardField[])
     const errors = computed(() =>
         responseErrorsToFields(page.props.errors ?? {}, sentFieldIds.value)
     )
+    // BR-IAM-04, BR-MON-05/08 — penolakan yang bukan milik satu field (akun, pembekuan, tenggat).
+    const generalErrors = computed(() =>
+        Object.entries(errors.value).flatMap(([key, message]) =>
+            key.startsWith('field_') ? [] : [message]
+        )
+    )
 
     return {
         values,
         errors,
+        generalErrors,
         processing,
         update,
         save: () => send('monev.reports.save'),
-        submit: (onSuccess?: () => void) => send('monev.reports.submit', onSuccess),
+        submit: (settled?: () => void) => send('monev.reports.submit', settled),
     }
 }

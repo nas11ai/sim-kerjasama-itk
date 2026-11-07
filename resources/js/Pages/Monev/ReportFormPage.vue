@@ -18,7 +18,7 @@ import type { MonevReportFormPageProps } from '@/types/monev'
 
 const props = defineProps<MonevReportFormPageProps>()
 
-const { values, errors, processing, update, save, submit } = useMonevReport(
+const { values, errors, generalErrors, processing, update, save, submit } = useMonevReport(
     props.report,
     props.fields
 )
@@ -63,6 +63,9 @@ const confirmSubmit = () => submit(() => (confirmOpen.value = false))
                 {{ cycle.blockedReason ?? 'Laporan ini tidak dapat disunting.' }}
             </AppBanner>
             <template v-else>
+                <AppBanner v-for="message in generalErrors" :key="message" tone="denial">
+                    {{ message }}
+                </AppBanner>
                 <SectionCard title="Laporan Kemajuan">
                     <WizardFieldList
                         :fields="fields"

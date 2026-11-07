@@ -192,4 +192,32 @@ describe('Monev/ReportFormPage', () => {
             expect.anything()
         )
     })
+    it('galat di luar field tampil sebagai banner (BR-IAM-04, BR-MON-08)', () => {
+        page.props.errors = {
+            verification_status:
+                'Akun Anda belum terverifikasi. Pengajuan dapat disiapkan, tapi belum dapat dikirim.',
+            field_51: 'Wajib diisi.',
+        }
+        const text = mountPage().text()
+
+        expect(text).toContain('Akun Anda belum terverifikasi.')
+        expect(text.match(/Wajib diisi\./g)?.length).toBe(1)
+    })
+
+    it('dialog konfirmasi tertutup saat submit ditolak', async () => {
+        mountPage()
+        button('Submit Laporan')?.click()
+        await flushPromises()
+        const confirms = Array.from(document.querySelectorAll('button')).filter(
+            (b) => b.textContent?.trim() === 'Submit Laporan'
+        )
+        confirms[confirms.length - 1]?.click()
+        await flushPromises()
+
+        const options = router.post.mock.calls[0][2] as { onError?: () => void }
+        options.onError?.()
+        await flushPromises()
+
+        expect(document.body.textContent).not.toContain('Submit laporan Monev I?')
+    })
 })
