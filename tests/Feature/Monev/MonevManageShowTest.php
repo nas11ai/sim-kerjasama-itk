@@ -210,17 +210,14 @@ it('[MON-REVIEW-05] reviewer lewat masa tugas tidak disarankan tapi reviewer lai
     $lain->user->update(['name' => 'Dr. Rina Wijaya']);
 
     $this->actingAs(monevManager())
-        ->get(route('monev.manage.show', ['submission' => $fx['parent'], 'reviewer_cycle' => $fx['monev1']->id, 'reviewer_search' => 'rina']), [
-            'X-Inertia' => 'true',
-            'X-Inertia-Partial-Component' => 'Monev/ManageShowPage',
-            'X-Inertia-Partial-Data' => 'reviewerCandidates',
-        ])
-        ->assertJsonPath('props.reviewerCandidates.0.reviewerId', $lain->id)
-        ->assertJsonPath('props.reviewerCandidates.0.blockedReason', null)
-        ->assertJsonCount(1, 'props.reviewerCandidates');
-
-    $this->actingAs(monevManager())->get(route('monev.manage.show', $fx['parent']))
-        ->assertInertia(fn (AssertableInertia $page) => $page->where('suggestedReviewerIds', []));
+        ->get(route('monev.manage.show', ['submission' => $fx['parent'], 'reviewer_cycle' => $fx['monev1']->id, 'reviewer_search' => 'rina']))
+        ->assertInertia(fn (AssertableInertia $page) => $page
+            ->where('suggestedReviewerIds', [])
+            ->missing('reviewerCandidates')
+            ->reloadOnly('reviewerCandidates', fn (AssertableInertia $reload) => $reload
+                ->has('reviewerCandidates', 1)
+                ->where('reviewerCandidates.0.reviewerId', $lain->id)
+                ->where('reviewerCandidates.0.blockedReason', null)));
     // Kandidat siklus tanpa laporan tidak membuat laporan (GET tidak mengubah state).
     expect(monevReportOf($fx, 'monev1'))->toBeNull();
 });
