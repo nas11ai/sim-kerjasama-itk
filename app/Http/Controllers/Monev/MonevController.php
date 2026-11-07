@@ -36,9 +36,14 @@ class MonevController extends Controller
         abort_unless($actor instanceof User, 403);
 
         // BR-MON-03 — pemanggilan kedua mengembalikan laporan yang sama (MON-CYCLE-06).
-        StartChildSubmission::run($submission, $detail, $actor);
+        $report = StartChildSubmission::run($submission, $detail, $actor);
 
-        return redirect()->route('monev.index')
+        // Laporan yang sudah dikirim tidak disunting lagi (Task 4: ke detail laporannya).
+        if ($report->is_submitted) {
+            return redirect()->route('monev.index');
+        }
+
+        return redirect()->route('monev.reports.edit', $report)
             ->with('success', 'Laporan '.MonevCycles::nameOf($detail).' dibuat.');
     }
 }

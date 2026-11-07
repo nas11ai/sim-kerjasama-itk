@@ -37,6 +37,14 @@ class SubmitFormSubmission
      */
     public function handle(FormSubmission $submission, User $user): FormSubmission
     {
+        // W121 — jalur ini memancarkan ProposalSubmitted ("pengajuan baru") dan melewatkan
+        // BR-MON-08; laporan monev punya jalurnya sendiri (SubmitMonevReport).
+        if ($submission->parent_submission_id !== null) {
+            throw ValidationException::withMessages([
+                'form_phase_detail_id' => 'Laporan monev dikirim dari halaman laporannya.',
+            ]);
+        }
+
         $status = $this->guardSubmittable($submission, $user);
 
         // BR-FE-08 — jalur legacy lolos dari batas fase hanya karena ia menyimpan draft lebih

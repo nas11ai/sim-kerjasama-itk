@@ -243,6 +243,35 @@ function monevFixture(bool $monev1NeedsReview = false, string $parentStatus = Ap
 }
 
 /**
+ * `monevFixture` + Form laporan Monev I: satu field teks wajib dan satu field berkas opsional.
+ * Field dibuat sebelum laporan, jadi wajibnya berlaku (BR-FE-11).
+ *
+ * @return array{parent: FormSubmission, owner: User, pengajuan: FormPhaseDetail, monev1: FormPhaseDetail, monev2: FormPhaseDetail, summary: FormField, logbook: FormField}
+ */
+function monevFormFixture(): array
+{
+    $fx = monevFixture();
+    $form = $fx['monev1']->formAccessControl->form;
+
+    $summary = FormField::create([
+        'form_id' => $form->id,
+        'label' => 'Ringkasan Kemajuan',
+        'is_required' => true,
+        'field_type_id' => FieldType::firstOrCreate(['name' => 'textarea'])->id,
+        'order' => 1,
+    ]);
+    $logbook = FormField::create([
+        'form_id' => $form->id,
+        'label' => 'Logbook Penelitian',
+        'is_required' => false,
+        'field_type_id' => FieldType::firstOrCreate(['name' => 'file'])->id,
+        'order' => 2,
+    ]);
+
+    return [...$fx, 'summary' => $summary, 'logbook' => $logbook];
+}
+
+/**
  * Dua SubmissionPeriod berbagi satu FormPhase lewat pivot
  * `submission_period_phases` — bentuk yang ADR 0004 dibuat untuk dijinakkan.
  * Period A dimiliki pengajuan lewat FK; period B hanya kebetulan sefase.

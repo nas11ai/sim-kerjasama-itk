@@ -87,6 +87,22 @@ Feature: Siklus Monitoring dan Evaluasi
     When Operator mencoba membatalkan penarikan "P-001"
     Then pembatalan ditolak karena WITHDRAWN bersifat terminal
 
+  @BR-MON-08 @M4 @RESEARCHER-05-02 @denial
+  Scenario: [MON-CYCLE-13] Draft laporan yang terlanjur dibuat tidak bisa disubmit setelah penarikan
+    Given laporan "Laporan Monev I" pada "P-001" masih draft dengan jawaban lengkap
+    And submission "P-001" berstatus WITHDRAWN
+    When "Budi" submit laporan "Laporan Monev I" pada "P-001"
+    Then submit ditolak karena siklus monevnya dibekukan
+    And laporan "Laporan Monev I" tetap draft
+
+  @BR-SM-04 @BR-MON-03 @M4 @RESEARCHER-05-02 @denial
+  Scenario: [MON-CYCLE-14] Hanya ketua induk yang mengisi laporan monev
+    Given "Ani" terdaftar sebagai co_investigator aktif di "P-001"
+    And laporan "Laporan Monev I" pada "P-001" masih draft
+    When "Ani" menyimpan laporan "Laporan Monev I" pada "P-001"
+    Then penyimpanan ditolak dengan 403
+    And "Ani" juga tidak bisa memulai maupun mengirim laporan itu
+
   @BR-MON-04 @M4 @OPERATOR-05-01 @OPERATOR-05-02 @happy
   Scenario: [MON-REVIEW-01] Reviewer monev ditugaskan manual per siklus
     When Operator menugaskan "Sari" sebagai reviewer siklus "Laporan Monev I" pada "P-001"

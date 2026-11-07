@@ -23,6 +23,7 @@ use App\Http\Controllers\Identity\UserAccessController;
 use App\Http\Controllers\Identity\UserController;
 use App\Http\Controllers\Monev\MonevController;
 use App\Http\Controllers\Monev\MonevCycleController;
+use App\Http\Controllers\Monev\MonevReportController;
 use App\Http\Controllers\Notification\NotificationChannelController;
 use App\Http\Controllers\Notification\NotificationController;
 use App\Http\Controllers\PermissionController;
@@ -198,6 +199,12 @@ Route::middleware(['auth'])->prefix('monev')->name('monev.')->group(function () 
     Route::post('/{submission}/cycles/{detail}', [MonevController::class, 'store'])
         ->middleware('can:startMonevReport,submission')
         ->name('reports.store');
+    Route::get('/reports/{report}/fill', [MonevReportController::class, 'edit'])
+        ->name('reports.edit');
+    Route::post('/reports/{report}/draft', [MonevReportController::class, 'save'])
+        ->name('reports.save');
+    Route::post('/reports/{report}/submit', [MonevReportController::class, 'submit'])
+        ->name('reports.submit');
 });
 
 // Reviewer Routes - untuk user yang bertindak sebagai reviewer

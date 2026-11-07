@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { router } from '@inertiajs/vue3'
+import { Link, router } from '@inertiajs/vue3'
 import { SquarePen } from 'lucide-vue-next'
 import { computed } from 'vue'
 
@@ -18,6 +18,10 @@ const nodes = computed(() => phaseNodes(props.submission.cycles))
 const withdrawn = computed(() => props.submission.status.key === 'withdrawn')
 const fillable = computed(() =>
     props.submission.canFill ? props.submission.cycles.filter((c) => c.state === 'open') : []
+)
+const startable = computed(() => fillable.value.filter((c) => c.reportId === null))
+const drafts = computed(() =>
+    fillable.value.flatMap((c) => (c.reportId === null ? [] : [{ ...c, reportId: c.reportId }]))
 )
 const closed = computed(() => props.submission.cycles.filter((c) => c.state === 'closed'))
 const memberOnly = computed(
@@ -45,8 +49,13 @@ const start = (cycle: MonevCycle) =>
             v-if="fillable.length || closed.length || memberOnly"
             class="flex flex-wrap items-center gap-2"
         >
-            <Button v-for="cycle in fillable" :key="cycle.detailId" @click="start(cycle)">
+            <Button v-for="cycle in startable" :key="cycle.detailId" @click="start(cycle)">
                 <SquarePen class="size-4" /> Isi Laporan {{ cycle.name }}
+            </Button>
+            <Button v-for="cycle in drafts" :key="cycle.detailId" as-child>
+                <Link :href="route('monev.reports.edit', cycle.reportId)">
+                    <SquarePen class="size-4" /> Lanjutkan Laporan {{ cycle.name }}
+                </Link>
             </Button>
             <span
                 v-for="cycle in closed"

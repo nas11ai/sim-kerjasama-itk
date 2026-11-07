@@ -12,8 +12,6 @@ use App\Data\View\Submission\Wizard\WizardReviewData;
 use App\Data\View\Submission\Wizard\WizardStepData;
 use App\Data\View\Submission\Wizard\WizardSubmissionData;
 use App\Data\View\SubmissionStatusData;
-use App\Models\FormField;
-use App\Models\FormFieldResponse;
 use App\Models\FormSubmission;
 use App\Models\User;
 use App\Support\WizardStepGate;
@@ -109,31 +107,11 @@ class SubmissionWizard implements ChangesNoState
             $type = $field->fieldType->name ?? '';
 
             if (WizardStepGate::stepForFieldType($type) === $step) {
-                $fields[] = $this->field($submission, $field, $type, $responses->get($field->id));
+                $fields[] = WizardFieldFactory::of($submission, $field, $responses->get($field->id));
             }
         }
 
         return $fields;
-    }
-
-    private function field(FormSubmission $submission, FormField $field, string $type, ?FormFieldResponse $response): WizardFieldData
-    {
-        $value = $response?->value;
-        $isFile = $type === 'file';
-        $hasFile = $isFile && $value !== null && $value !== '';
-
-        return new WizardFieldData(
-            id: $field->id,
-            label: $field->label,
-            type: $type,
-            // BR-FE-11 — kewajiban dihitung terhadap created_at pengajuan ini.
-            required: $field->isRequiredFor($submission),
-            // Path penyimpanan berkas tidak dikirim ke browser; yang tampil nama dan tautannya.
-            value: $isFile ? null : $value,
-            options: WizardFieldOptions::run($submission, $field, $type),
-            fileName: $hasFile ? basename($value) : null,
-            downloadUrl: $hasFile ? route('user.submissions.files.show', [$submission->id, $response->id]) : null,
-        );
     }
 
     /** @return list<array{value: string, label: string}> */

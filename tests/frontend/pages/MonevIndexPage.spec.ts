@@ -184,6 +184,16 @@ describe('Monev/IndexPage', () => {
         )
     })
 
+    it('draft laporan ketua menawarkan Lanjutkan Laporan ke halaman isi', () => {
+        const wrapper = mountPage([submission({ cycles: [cycle({ reportId: 90 })] })])
+
+        expect(button(wrapper, 'Isi Laporan Monev I')).toBeUndefined()
+        const link = wrapper
+            .findAll('a')
+            .find((a) => a.text().includes('Lanjutkan Laporan Monev I'))
+        expect(link?.attributes('href')).toBe(route('monev.reports.edit', 90))
+    })
+
     it('error gerbang tampil sebagai banner di atas daftar', () => {
         page.props.errors = {
             form_phase_detail_id: 'Selesaikan "Monev I" lebih dulu — tahapannya berurutan.',

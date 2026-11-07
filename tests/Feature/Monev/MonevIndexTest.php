@@ -130,13 +130,13 @@ it('anggota tim melihat siklus tanpa tombol isi', function () {
 it('[MON-CYCLE-02] memulai laporan mengarah ke halaman isi', function () {
     $fx = monevIndexFixture();
 
-    $this->actingAs($fx['owner'])
+    $response = $this->actingAs($fx['owner'])
         ->post(route('monev.reports.store', [$fx['parent'], $fx['monev1']]))
-        ->assertRedirect(route('monev.index'))
         ->assertSessionHasNoErrors();
+    $report = FormSubmission::where('parent_submission_id', $fx['parent']->id)->sole();
 
-    expect(FormSubmission::where('parent_submission_id', $fx['parent']->id)->sole()->submitted_by)
-        ->toBe($fx['owner']->id);
+    $response->assertRedirect(route('monev.reports.edit', $report));
+    expect($report->submitted_by)->toBe($fx['owner']->id);
 });
 
 it('[MON-CYCLE-06] memulai kedua kali mengarah ke laporan yang sama', function () {

@@ -30,6 +30,26 @@ final class MonevAccessGate
         throw ValidationException::withMessages([$reason[0] => $reason[1]]);
     }
 
+    /**
+     * W122 — gerbang yang sama untuk laporan yang **sudah ada**: pembekuan BR-MON-08 mencakup
+     * draft yang dibuat sebelum induknya ditarik, bukan hanya laporan baru.
+     *
+     * @throws ValidationException
+     */
+    public static function assertReportOpen(FormSubmission $report): void
+    {
+        $parent = $report->parent;
+        $detail = $report->formPhaseDetail;
+
+        if ($parent === null || $detail === null) {
+            throw ValidationException::withMessages([
+                'form_phase_detail_id' => 'Pengajuan ini bukan laporan monev.',
+            ]);
+        }
+
+        self::assertCycleOpen($parent, $detail);
+    }
+
     public static function isCycleOpen(FormSubmission $parent, FormPhaseDetail $detail): bool
     {
         return self::refusal($parent, $detail) === null;
