@@ -103,6 +103,13 @@ Feature: Siklus Monitoring dan Evaluasi
     Then penyimpanan ditolak dengan 403
     And "Ani" juga tidak bisa memulai maupun mengirim laporan itu
 
+  @BR-SM-07 @M4 @RESEARCHER-05-03 @happy
+  Scenario: [MON-CYCLE-15] Anggota tim induk membaca laporan monev
+    Given "Ani" terdaftar sebagai co_investigator aktif di "P-001"
+    And laporan "Laporan Monev I" pada "P-001" milik "Budi"
+    When "Ani" membuka detail laporan "Laporan Monev I" pada "P-001"
+    Then detail terbuka tanpa tombol isi maupun balas diskusi
+
   @BR-SCH-07 @BR-MON-05 @M4 @RESEARCHER-05-02 @boundary
   Scenario: [MON-CYCLE-16] Penutupan paksa periode tidak menutup siklus monev
     Given Batas Submit "P-001" dan Batas Laporan Monev I berada di periode yang sama

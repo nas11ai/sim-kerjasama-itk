@@ -9,7 +9,6 @@
 // masih bisa dikoreksi. [MON-REVIEW-09] menjaga batas itu supaya
 // pengecualiannya tidak pelan-pelan melebar ke pengajuan awal.
 
-use App\Actions\FormSubmission\StartChildSubmission;
 use App\Actions\Monev\NotifyMonevEvaluationSubmitted;
 use App\Actions\Monev\OpenMonevCycle;
 use App\Actions\Review\AssignReviewer;
@@ -23,43 +22,6 @@ use App\States\Submission\UnderReview;
 use App\Support\ScoreVisibility;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Validation\ValidationException;
-
-/** Laporan monev yang sudah punya satu evaluasi reviewer berstatus tertentu. */
-function monevReportWithEvaluation(array $fx, string $responseStatus): array
-{
-    $laporan = StartChildSubmission::run($fx['parent'], $fx['monev1'], $fx['owner']);
-
-    $reviewer = Reviewer::factory()->create([
-        'user_id' => verifiedResearcher()->id,
-        'reviewer_type' => 'internal',
-        'start_date' => now()->subYear(),
-        'end_date' => now()->addYear(),
-    ]);
-
-    $penugasan = AssignReviewer::run($laporan, $reviewer);
-
-    $form = ReviewEvaluationForm::create([
-        'title' => 'Lembar Penilaian Monev',
-        'form_phase_detail_id' => $fx['monev1']->id,
-        'is_required' => true,
-        'is_active' => true,
-        'order' => 1,
-    ]);
-
-    $assignment = ReviewerFormAssignment::create([
-        'submission_reviewer_id' => $penugasan->id,
-        'review_evaluation_form_id' => $form->id,
-        'is_required' => true,
-    ]);
-
-    $response = ReviewFormResponse::create([
-        'reviewer_form_assignment_id' => $assignment->id,
-        'status' => $responseStatus,
-        'submitted_at' => $responseStatus === 'submitted' ? now() : null,
-    ]);
-
-    return ['laporan' => $laporan, 'response' => $response, 'reviewer' => $reviewer];
-}
 
 it('[MON-REVIEW-07] hasil evaluasi monev terlihat begitu reviewer submit', function () {
     Notification::fake();

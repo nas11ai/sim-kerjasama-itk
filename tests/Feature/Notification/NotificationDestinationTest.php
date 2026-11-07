@@ -7,6 +7,7 @@
 // (BR-SM-07): notifikasi lama tidak boleh menjadi pintu ke data yang kini
 // tertutup bagi penerimanya.
 
+use App\Actions\FormSubmission\StartChildSubmission;
 use App\Models\FormSubmission;
 use App\Models\ResearchMember;
 use App\Models\Reviewer;
@@ -16,6 +17,7 @@ use App\Models\UserProfile;
 use App\Notifications\AccountReactivatedNotification;
 use App\Notifications\ExportCompletedNotification;
 use App\Notifications\FormChangedNotification;
+use App\Notifications\MonevEvaluationSubmittedNotification;
 use App\Notifications\MonevStageOpenedNotification;
 use App\Notifications\NewRegistrationAwaitingVerification;
 use App\Notifications\NidnVerifiedNotification;
@@ -97,8 +99,8 @@ it('anggota tim aktif dibawa ke halaman pemilik (BR-SM-07)', function () {
         'status' => 'active',
     ]);
 
-    expect(ndDestination($member, MonevStageOpenedNotification::class, [
-        'type' => 'monev_stage_opened',
+    expect(ndDestination($member, ReviewThreadOpenedNotification::class, [
+        'type' => 'review_thread_opened',
         'form_submission_id' => $submission->id,
     ]))->toBe(route('user.submissions.show', $submission));
 });
@@ -193,4 +195,35 @@ it('account_deactivated dan tipe tak dikenal tidak punya tujuan', function () {
     expect(ndDestination($user, NidnVerifiedNotification::class, ['type' => 'account_deactivated']))->toBeNull()
         ->and(ndDestination($user, NidnVerifiedNotification::class, ['type' => 'entah_apa']))->toBeNull()
         ->and(ndDestination($user, NidnVerifiedNotification::class, []))->toBeNull();
+});
+
+it('[MON-REVIEW-12] notifikasi evaluasi monev membuka detail laporan', function () {
+    $fx = monevFixture();
+    $laporan = StartChildSubmission::run($fx['parent'], $fx['monev1'], $fx['owner']);
+    $reviewer = ndReviewerOf($laporan);
+
+    $data = ['type' => 'monev_evaluation_submitted', 'form_submission_id' => $laporan->id];
+
+    expect(ndDestination($fx['owner'], MonevEvaluationSubmittedNotification::class, $data))
+        ->toBe(route('monev.reports.show', $laporan))
+        ->and(ndDestination($reviewer, MonevEvaluationSubmittedNotification::class, $data))
+        ->toBe(route('reviewer.assignments.summary', $laporan));
+});
+
+it('[MON-REVIEW-10] notifikasi siklus dibuka membuka Daftar Monev bagi peneliti', function () {
+    $fx = monevFixture();
+    $laporan = StartChildSubmission::run($fx['parent'], $fx['monev1'], $fx['owner']);
+    $reviewer = ndReviewerOf($laporan);
+    $operator = User::factory()->create();
+    $operator->givePermissionTo(Permission::findOrCreate('submissions.view-all', 'web'));
+    $data = [
+        'type' => 'monev_stage_opened',
+        'form_submission_id' => $fx['parent']->id,
+        'form_phase_detail_id' => $fx['monev1']->id,
+    ];
+
+    expect(ndDestination($fx['owner'], MonevStageOpenedNotification::class, $data))->toBe(route('monev.index'))
+        ->and(ndDestination($reviewer, MonevStageOpenedNotification::class, $data))->toBe(route('reviewer.assignments.index'))
+        ->and(ndDestination($operator, MonevStageOpenedNotification::class, $data))->toBe(route('admin.submissions.show', $fx['parent']))
+        ->and(ndDestination(User::factory()->create(), MonevStageOpenedNotification::class, $data))->toBeNull();
 });

@@ -205,6 +205,8 @@ Route::middleware(['auth'])->prefix('monev')->name('monev.')->group(function () 
         ->name('reports.save');
     Route::post('/reports/{report}/submit', [MonevReportController::class, 'submit'])
         ->name('reports.submit');
+    Route::get('/reports/{report}', [MonevReportController::class, 'show'])
+        ->name('reports.show');
 });
 
 // Reviewer Routes - untuk user yang bertindak sebagai reviewer

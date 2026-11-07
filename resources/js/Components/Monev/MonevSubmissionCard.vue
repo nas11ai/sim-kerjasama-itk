@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Link, router } from '@inertiajs/vue3'
-import { SquarePen } from 'lucide-vue-next'
+import { FileText, SquarePen } from 'lucide-vue-next'
 import { computed } from 'vue'
 
 import AppBanner from '@/Components/app/AppBanner.vue'
@@ -24,6 +24,13 @@ const drafts = computed(() =>
     fillable.value.flatMap((c) => (c.reportId === null ? [] : [{ ...c, reportId: c.reportId }]))
 )
 const closed = computed(() => props.submission.cycles.filter((c) => c.state === 'closed'))
+const sent = computed(() =>
+    props.submission.cycles.flatMap((c) =>
+        (c.state === 'submitted' || c.state === 'done') && c.reportId !== null
+            ? [{ ...c, reportId: c.reportId }]
+            : []
+    )
+)
 const memberOnly = computed(
     () => !props.submission.canFill && props.submission.cycles.some((c) => c.state === 'open')
 )
@@ -46,7 +53,7 @@ const start = (cycle: MonevCycle) =>
             pengajuan baru yang merujuk yang lama.
         </AppBanner>
         <div
-            v-if="fillable.length || closed.length || memberOnly"
+            v-if="fillable.length || sent.length || closed.length || memberOnly"
             class="flex flex-wrap items-center gap-2"
         >
             <Button v-for="cycle in startable" :key="cycle.detailId" @click="start(cycle)">
@@ -55,6 +62,11 @@ const start = (cycle: MonevCycle) =>
             <Button v-for="cycle in drafts" :key="cycle.detailId" as-child>
                 <Link :href="route('monev.reports.edit', cycle.reportId)">
                     <SquarePen class="size-4" /> Lanjutkan Laporan {{ cycle.name }}
+                </Link>
+            </Button>
+            <Button v-for="cycle in sent" :key="cycle.detailId" variant="outline" as-child>
+                <Link :href="route('monev.reports.show', cycle.reportId)">
+                    <FileText class="size-4" /> Lihat Laporan {{ cycle.name }}
                 </Link>
             </Button>
             <span

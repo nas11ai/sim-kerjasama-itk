@@ -9,6 +9,7 @@ use App\Http\Requests\Monev\MonevReportRequest;
 use App\Models\FormSubmission;
 use App\Models\User;
 use App\Queries\Monev\MonevCycles;
+use App\Queries\Monev\MonevReportDetail;
 use App\Queries\Monev\MonevReportForm;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -16,7 +17,7 @@ use Inertia\Inertia;
 use Inertia\Response;
 
 /**
- * Isi laporan monev (RESEARCHER-05-02). Penegakannya di SaveMonevReport/SubmitMonevReport;
+ * Isi dan detail laporan monev (RESEARCHER-05-02/03). Penegakannya di SaveMonevReport/SubmitMonevReport;
  * controller hanya memilih halaman.
  */
 class MonevReportController extends Controller
@@ -27,7 +28,7 @@ class MonevReportController extends Controller
 
         // MON-CYCLE-06 — laporan yang sudah dikirim dibuka, bukan disunting; anggota membaca saja.
         if ($report->is_submitted || $report->submitted_by !== $viewer->id) {
-            return redirect()->route('monev.index');
+            return redirect()->route('monev.reports.show', $report);
         }
 
         return Inertia::render('Monev/ReportFormPage', MonevReportForm::run($viewer, $report));
@@ -49,8 +50,15 @@ class MonevReportController extends Controller
 
         $name = $report->formPhaseDetail === null ? 'monev' : MonevCycles::nameOf($report->formPhaseDetail);
 
-        // W132 — Task 4 mengalihkan ke detail laporan.
-        return redirect()->route('monev.index')->with('success', "Laporan {$name} disubmit.");
+        // W132 — frame menaut ke detail laporan, bukan ke Daftar Monev.
+        return redirect()->route('monev.reports.show', $report)->with('success', "Laporan {$name} disubmit.");
+    }
+
+    public function show(Request $request, FormSubmission $report): Response
+    {
+        $viewer = $this->viewer($request, $report);
+
+        return Inertia::render('Monev/ReportShowPage', MonevReportDetail::run($viewer, $report));
     }
 
     /** BR-SM-07 — hanya pihak yang boleh membaca laporan; bukan laporan anak → 404. */

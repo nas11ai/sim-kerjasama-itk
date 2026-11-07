@@ -115,7 +115,7 @@ it('submit laporan lengkap memindah ke SUBMITTED tanpa ProposalSubmitted', funct
 
     $this->actingAs($this->fx['owner'])
         ->post(route('monev.reports.submit', $this->report), monevReportPayload($this->report, $this->fx['summary']->id, 'Capaian 45%'))
-        ->assertRedirect(route('monev.index'))
+        ->assertRedirect(route('monev.reports.show', $this->report))
         ->assertSessionHasNoErrors();
 
     $report = $this->report->fresh();
@@ -191,7 +191,7 @@ it('[MON-CYCLE-14] anggota tim tidak bisa mengisi maupun mengirim laporan', func
 
     $this->actingAs($ani)->post(route('monev.reports.save', $this->report), $payload)->assertForbidden();
     $this->actingAs($ani)->post(route('monev.reports.submit', $this->report), $payload)->assertForbidden();
-    $this->actingAs($ani)->get(route('monev.reports.edit', $this->report))->assertRedirect(route('monev.index'));
+    $this->actingAs($ani)->get(route('monev.reports.edit', $this->report))->assertRedirect(route('monev.reports.show', $this->report));
 });
 
 it('override terlihat tanpa alasan', function () {

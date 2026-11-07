@@ -41,7 +41,6 @@ class NotificationDestination implements ChangesNoState
         'review_comment_added',
         'revision_resolved',
         'phase_override_granted',
-        'monev_stage_opened',
         'monev_evaluation_submitted',
         'proposal_submitted',
     ];
@@ -54,10 +53,16 @@ class NotificationDestination implements ChangesNoState
             return null;
         }
 
-        if (array_key_exists($type, self::FIXED_ROUTES)) {
-            return route(self::FIXED_ROUTES[$type]);
-        }
+        return match (true) {
+            array_key_exists($type, self::FIXED_ROUTES) => route(self::FIXED_ROUTES[$type]),
+            // BR-MON-10 — konteksnya induk + detail siklus, bukan satu pengajuan yang dibuka.
+            $type === 'monev_stage_opened' => MonevCycleDestination::run($notification, $recipient),
+            default => $this->submissionDestination($type, $notification, $recipient),
+        };
+    }
 
+    private function submissionDestination(string $type, DatabaseNotification $notification, User $recipient): ?string
+    {
         $isSubmissionType = $type === 'reviewer_assigned' || in_array($type, self::SUBMISSION_TYPES, true);
         $submission = $isSubmissionType ? $this->accessibleSubmission($notification, $recipient) : null;
 
@@ -88,13 +93,16 @@ class NotificationDestination implements ChangesNoState
 
     private function submissionPage(FormSubmission $submission, User $recipient): string
     {
+        $isReport = $submission->parent_submission_id !== null;
+
         // Kursi ketua/anggota didahulukan: Operator yang juga ketua membaca pengajuannya sendiri sebagai peneliti.
         if (SubmissionVisibility::ownedOrJoinedBy($recipient)->whereKey($submission->id)->exists()) {
-            return route('user.submissions.show', $submission);
+            return route($isReport ? 'monev.reports.show' : 'user.submissions.show', $submission);
         }
 
+        // W130 — laporan monev dibaca Operator di halaman laporannya juga.
         if (SubmissionVisibility::seesEverything($recipient)) {
-            return route('admin.submissions.show', $submission);
+            return route($isReport ? 'monev.reports.show' : 'admin.submissions.show', $submission);
         }
 
         // Lolos isAccessibleBy tanpa dua kursi di atas berarti reviewer aktif.

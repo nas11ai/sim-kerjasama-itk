@@ -38,9 +38,9 @@ class MonevController extends Controller
         // BR-MON-03 — pemanggilan kedua mengembalikan laporan yang sama (MON-CYCLE-06).
         $report = StartChildSubmission::run($submission, $detail, $actor);
 
-        // Laporan yang sudah dikirim tidak disunting lagi (Task 4: ke detail laporannya).
+        // Laporan yang sudah dikirim tidak disunting lagi: dibuka detailnya.
         if ($report->is_submitted) {
-            return redirect()->route('monev.index');
+            return redirect()->route('monev.reports.show', $report);
         }
 
         return redirect()->route('monev.reports.edit', $report)

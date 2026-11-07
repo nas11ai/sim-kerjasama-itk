@@ -7,7 +7,9 @@
 // dimuat — test yang dijalankan sendirian langsung pecah. Di sini ia selalu
 // tersedia, dan tempatnya jelas saat ada yang perlu menambah.
 
+use App\Actions\FormSubmission\StartChildSubmission;
 use App\Actions\Review\AssignEvaluationForm;
+use App\Actions\Review\AssignReviewer;
 use App\Enums\DeadlineType;
 use App\Models\FieldType;
 use App\Models\Form;
@@ -269,6 +271,47 @@ function monevFormFixture(): array
     ]);
 
     return [...$fx, 'summary' => $summary, 'logbook' => $logbook];
+}
+
+/**
+ * Laporan monev yang sudah punya satu evaluasi reviewer berstatus tertentu.
+ *
+ * @return array{laporan: FormSubmission, response: ReviewFormResponse, reviewer: Reviewer}
+ */
+function monevReportWithEvaluation(array $fx, string $responseStatus): array
+{
+    $laporan = StartChildSubmission::run($fx['parent'], $fx['monev1'], $fx['owner']);
+
+    $reviewer = Reviewer::factory()->create([
+        'user_id' => verifiedResearcher()->id,
+        'reviewer_type' => 'internal',
+        'start_date' => now()->subYear(),
+        'end_date' => now()->addYear(),
+    ]);
+
+    $penugasan = AssignReviewer::run($laporan, $reviewer);
+
+    $form = ReviewEvaluationForm::create([
+        'title' => 'Lembar Penilaian Monev',
+        'form_phase_detail_id' => $fx['monev1']->id,
+        'is_required' => true,
+        'is_active' => true,
+        'order' => 1,
+    ]);
+
+    $assignment = ReviewerFormAssignment::create([
+        'submission_reviewer_id' => $penugasan->id,
+        'review_evaluation_form_id' => $form->id,
+        'is_required' => true,
+    ]);
+
+    $response = ReviewFormResponse::create([
+        'reviewer_form_assignment_id' => $assignment->id,
+        'status' => $responseStatus,
+        'submitted_at' => $responseStatus === 'submitted' ? now() : null,
+    ]);
+
+    return ['laporan' => $laporan, 'response' => $response, 'reviewer' => $reviewer];
 }
 
 /**
