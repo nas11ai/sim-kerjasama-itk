@@ -1,4 +1,10 @@
-import type { PhaseAccess, ReviewerScores, SubmissionAnswer } from '@/types/submission-page'
+import type { Paginated } from '@/types/pagination'
+import type {
+    FilterOption,
+    PhaseAccess,
+    ReviewerScores,
+    SubmissionAnswer,
+} from '@/types/submission-page'
 import type { ReviewThread } from '@/types/submission-revision'
 import type { SubmissionStatusView } from '@/types/submission-status'
 import type { WizardField } from '@/types/submission-wizard'
@@ -68,4 +74,30 @@ export interface PhaseNode {
     label: string
     meta: string
     state: PhaseNodeState
+}
+
+// Cermin App\Enums\MonevBoardStatus — status siklus berjalan, dihitung MonevCycleBoard.
+export type MonevBoardStatus = 'not_opened' | 'awaiting_report' | 'report_in' | 'completed'
+
+// Sumber: MonevBoardRowData.
+export interface MonevBoardRow {
+    id: number
+    title: string
+    leader: string
+    scheme: string | null
+    currentCycle: string | null
+    status: MonevBoardStatus
+}
+
+export type MonevBoardFilters = {
+    search: string
+    period: string
+    scheme: string
+}
+
+export interface MonevManageIndexPageProps {
+    rows: Paginated<MonevBoardRow>
+    filters: MonevBoardFilters
+    periodOptions: FilterOption[]
+    schemeOptions: FilterOption[]
 }

@@ -13,7 +13,9 @@ use App\States\Submission\Approved;
 use App\States\Submission\Withdrawn;
 use App\Support\PhaseAccessGate;
 use Carbon\CarbonImmutable;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Database\Query\Builder as QueryBuilder;
 use Lorisleiva\Actions\Concerns\AsAction;
 
 /**
@@ -49,6 +51,22 @@ class MonevCycles implements ChangesNoState
             ->with(['submissionDate.submissionPeriod', 'phaseType', 'formAccessControl'])
             ->ordered()
             ->get();
+    }
+
+    /**
+     * Padanan SQL `details()`: induk yang punya ≥ 1 siklus, supaya papan Operator bisa
+     * dipaginasi di server tanpa menghitung siklus semua baris.
+     *
+     * @param  Builder<FormSubmission>  $parents
+     * @return Builder<FormSubmission>
+     */
+    public static function whereHasCycles(Builder $parents): Builder
+    {
+        return $parents->whereHas('formPhaseDetail', fn (Builder $own) => $own->whereExists(
+            fn (QueryBuilder $later) => $later->from('form_phase_details as later')
+                ->whereColumn('later.form_phase_id', 'form_phase_details.form_phase_id')
+                ->whereColumn('later.order', '>', 'form_phase_details.order')
+        ));
     }
 
     /** W125 — siklus tenggat Batas Laporan, lalu nama tipe tahap, lalu urutannya. */

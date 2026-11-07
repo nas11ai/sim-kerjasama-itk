@@ -119,8 +119,10 @@ export const navGroups: NavGroup[] = [
             {
                 label: 'Kelola Siklus Monev',
                 icon: Layers,
-                routeName: null,
-                anyPermission: ['periods.manage'],
+                routeName: 'monev.manage.index',
+                activePattern: 'monev.manage.*',
+                // W129 — layar membaca semua pengajuan (BR-SM-07), bukan pengelolaan periode.
+                anyPermission: ['submissions.view-all'],
             },
         ],
     },

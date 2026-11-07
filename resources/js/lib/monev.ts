@@ -1,5 +1,11 @@
 import { formatDate } from '@/lib/format'
-import type { MonevCycle, MonevCycleState, PhaseNode, PhaseNodeState } from '@/types/monev'
+import type {
+    MonevBoardStatus,
+    MonevCycle,
+    MonevCycleState,
+    PhaseNode,
+    PhaseNodeState,
+} from '@/types/monev'
 
 const NODE_STATE: Record<MonevCycleState, PhaseNodeState> = {
     done: 'done',
@@ -39,4 +45,17 @@ export function phaseNodes(cycles: MonevCycle[]): PhaseNode[] {
             state: NODE_STATE[cycle.state],
         })),
     ]
+}
+
+type BadgeVariant = 'default' | 'secondary' | 'outline'
+
+// Cermin label App\Enums\MonevBoardStatus; titik menandai status yang menunggu tindakan.
+export const BOARD_STATUS: Record<
+    MonevBoardStatus,
+    { label: string; variant: BadgeVariant; dot: string | null }
+> = {
+    report_in: { label: 'Laporan Masuk', variant: 'default', dot: 'bg-primary-foreground' },
+    awaiting_report: { label: 'Menunggu Laporan', variant: 'outline', dot: 'bg-amber-500' },
+    not_opened: { label: 'Belum Aktif', variant: 'outline', dot: null },
+    completed: { label: 'Selesai', variant: 'secondary', dot: null },
 }

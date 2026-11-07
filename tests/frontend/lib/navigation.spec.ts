@@ -166,6 +166,21 @@ describe('visibleNavGroups', () => {
         expect(isNavItemActive(visible, on('monev.reports.edit'))).toBe(true)
         expect(isNavItemActive(visible, on('monev.manage.index'))).toBe(false)
     })
+
+    it('Kelola Siklus Monev untuk submissions.view-all, tidak untuk periods.manage saja (W129)', () => {
+        const item = navGroups
+            .flatMap((g) => g.items)
+            .find((i) => i.label === 'Kelola Siklus Monev')
+
+        expect(item?.routeName).toBe('monev.manage.index')
+        expect(item?.activePattern).toBe('monev.manage.*')
+        expect(
+            labels(visibleNavGroups(navGroups, ['submissions.view-all'], NO_APPROVED))
+        ).toContain('Kelola Siklus Monev')
+        expect(labels(visibleNavGroups(navGroups, ['periods.manage'], NO_APPROVED))).not.toContain(
+            'Kelola Siklus Monev'
+        )
+    })
 })
 
 describe('pengumuman (fe-v2-design §4.7, W6)', () => {

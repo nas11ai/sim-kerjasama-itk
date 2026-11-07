@@ -23,6 +23,7 @@ use App\Http\Controllers\Identity\UserAccessController;
 use App\Http\Controllers\Identity\UserController;
 use App\Http\Controllers\Monev\MonevController;
 use App\Http\Controllers\Monev\MonevCycleController;
+use App\Http\Controllers\Monev\MonevManageController;
 use App\Http\Controllers\Monev\MonevReportController;
 use App\Http\Controllers\Notification\NotificationChannelController;
 use App\Http\Controllers\Notification\NotificationController;
@@ -207,6 +208,11 @@ Route::middleware(['auth'])->prefix('monev')->name('monev.')->group(function () 
         ->name('reports.submit');
     Route::get('/reports/{report}', [MonevReportController::class, 'show'])
         ->name('reports.show');
+});
+
+// W129 — kelola siklus monev: membaca semua pengajuan (BR-SM-07), bukan periods.manage.
+Route::middleware(['auth', 'can:submissions.view-all'])->prefix('monev/manage')->name('monev.manage.')->group(function () {
+    Route::get('/', [MonevManageController::class, 'index'])->name('index');
 });
 
 // Reviewer Routes - untuk user yang bertindak sebagai reviewer

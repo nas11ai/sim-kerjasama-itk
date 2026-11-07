@@ -49,8 +49,20 @@ class OperatorSubmissionList implements ChangesNoState
                 ->withQueryString()
                 ->through(fn (FormSubmission $s): OperatorSubmissionRowData => OperatorSubmissionRowData::fromModel($s)),
             'statusOptions' => $statusOptions,
-            'periodOptions' => $this->options(SubmissionPeriod::query()->latest('id')),
-            'schemeOptions' => $this->options(Scheme::query()->orderBy('name')),
+            ...self::periodAndSchemeOptions(),
+        ];
+    }
+
+    /**
+     * Juga dipakai papan monev Operator (OPERATOR-05-01), supaya kedua filter bersumber sama.
+     *
+     * @return array{periodOptions: list<Option>, schemeOptions: list<Option>}
+     */
+    public static function periodAndSchemeOptions(): array
+    {
+        return [
+            'periodOptions' => self::options(SubmissionPeriod::query()->latest('id')),
+            'schemeOptions' => self::options(Scheme::query()->orderBy('name')),
         ];
     }
 
@@ -85,7 +97,7 @@ class OperatorSubmissionList implements ChangesNoState
      * @param  Builder<SubmissionPeriod>|Builder<Scheme>  $query
      * @return list<Option>
      */
-    private function options(Builder $query): array
+    private static function options(Builder $query): array
     {
         return array_values($query->get(['id', 'name'])
             ->map(fn (SubmissionPeriod|Scheme $m): array => ['value' => (string) $m->id, 'label' => $m->name])
