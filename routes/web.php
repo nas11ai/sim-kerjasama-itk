@@ -33,7 +33,7 @@ use App\Http\Controllers\ReviewController;
 use App\Http\Controllers\ReviewerFormAssignmentController;
 use App\Http\Controllers\ReviewFormResponseController;
 use App\Http\Controllers\RoleController;
-use App\Http\Controllers\SchemeController;
+use App\Http\Controllers\Scheme\SchemeController;
 use App\Http\Controllers\StatController;
 use App\Http\Controllers\Submission\BudgetLineItemController;
 use App\Http\Controllers\Submission\ChildSubmissionController;
@@ -384,6 +384,16 @@ Route::middleware(['auth', 'can:schemes.manage'])->prefix('admin')->name('admin.
         ->name('evaluation-forms.destroy');
 });
 
+// ADMIN-08-03/04 — skema dikelola pemegang schemes.manage (W105). Nama route tidak berubah.
+Route::middleware(['auth', 'can:schemes.manage'])->prefix('admin')->name('admin.')->group(function () {
+    Route::get('/schemes', [SchemeController::class, 'index'])->name('schemes.index');
+    Route::post('/schemes', [SchemeController::class, 'store'])->name('schemes.store');
+    Route::put('/schemes/{scheme}', [SchemeController::class, 'update'])->name('schemes.update');
+    // BR-SCH-01 — penonaktifan diblokir selama skema dipakai pengajuan aktif.
+    Route::post('/schemes/{scheme}/deactivate', [SchemeController::class, 'deactivate'])->name('schemes.deactivate');
+    Route::post('/schemes/{scheme}/activate', [SchemeController::class, 'activate'])->name('schemes.activate');
+});
+
 // OPERATOR-09-01 — periode dikelola pemegang periods.manage, bukan users.manage (§4.4 K1).
 Route::middleware(['auth', 'can:periods.manage'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/submission-periods', [SubmissionPeriodController::class, 'index'])
@@ -483,17 +493,6 @@ Route::middleware(['auth'])->group(function () {
         // BR-REV-01 — dijaga Policy `assignReviewers` (reviewers.assign), bukan users.manage.
         Route::post('/submissions/{submission}/assign-reviewers', [ReviewController::class, 'assignReviewers'])
             ->name('submissions.assign-reviewers');
-        // BR-SCH-01/02/03 — sebelum ini skema hanya bisa dibuat lewat seeder.
-        Route::get('/schemes', [SchemeController::class, 'index'])
-            ->name('schemes.index');
-        Route::post('/schemes', [SchemeController::class, 'store'])
-            ->name('schemes.store');
-        Route::put('/schemes/{scheme}', [SchemeController::class, 'update'])
-            ->name('schemes.update');
-        Route::post('/schemes/{scheme}/deactivate', [SchemeController::class, 'deactivate'])
-            ->name('schemes.deactivate');
-        Route::post('/schemes/{scheme}/activate', [SchemeController::class, 'activate'])
-            ->name('schemes.activate');
         // BR-IAM-08 — penghapusan unit; undangan yang belum terpakai ikut
         // tercabut alih-alih menghalangi (register #18).
         Route::delete('/organizations/{organization}', [OrganizationController::class, 'destroy'])

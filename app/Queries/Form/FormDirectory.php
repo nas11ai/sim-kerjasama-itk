@@ -7,6 +7,7 @@ use App\Data\View\FormEngine\FormRowData;
 use App\Models\Form;
 use App\Models\FormSubmission;
 use App\Models\FormType;
+use App\Support\Search\ActiveStatusFilter;
 use App\Support\Search\LikePattern;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Pagination\LengthAwarePaginator;
@@ -50,10 +51,7 @@ class FormDirectory implements ChangesNoState
                 ->withQueryString()
                 ->through(fn (Form $form): FormRowData => FormRowData::fromModel($form)),
             'typeOptions' => $this->typeOptions(),
-            'statusOptions' => [
-                ['value' => 'active', 'label' => 'Aktif'],
-                ['value' => 'inactive', 'label' => 'Nonaktif'],
-            ],
+            'statusOptions' => ActiveStatusFilter::OPTIONS,
         ];
     }
 
@@ -70,14 +68,9 @@ class FormDirectory implements ChangesNoState
     private function filter(Builder $query, array $filters): void
     {
         $query->when($filters['search'] !== '', fn (Builder $q) => $q->whereLike('title', LikePattern::contains($filters['search'])));
-        // Selain angka (termasuk 'all') atau lebih dari 9 digit (di luar rentang int) berarti tanpa filter.
-        $query->when(ctype_digit($filters['type']) && strlen($filters['type']) <= 9, fn (Builder $q) => $q->where('form_type_id', $filters['type']));
-
-        match ($filters['status']) {
-            'active' => $query->where('is_active', true),
-            'inactive' => $query->where('is_active', false),
-            default => null,
-        };
+        $typeId = ActiveStatusFilter::id($filters['type']);
+        $query->when($typeId !== null, fn (Builder $q) => $q->where('form_type_id', $typeId));
+        ActiveStatusFilter::apply($query, $filters['status']);
     }
 
     /**

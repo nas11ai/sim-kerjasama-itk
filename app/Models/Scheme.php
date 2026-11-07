@@ -14,9 +14,12 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property string $name
  * @property string $code
  * @property-read SubmissionType|null $submissionType
+ * @property-read SchemeType|null $schemeType
+ * @property int $id
  * @property int $max_budget
  * @property int $max_members
  * @property int $duration_months
+ * @property int $active_submissions_count dimuat `withCount` SchemeDirectory
  */
 class Scheme extends Model
 {

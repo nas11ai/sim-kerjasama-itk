@@ -24,7 +24,6 @@ resources/js/Pages/Permissions/components/EditDialogue.vue
 resources/js/Pages/ReviewerAssignments/IndexPage.vue
 resources/js/Pages/Roles/CreatePage.vue
 resources/js/Pages/Roles/EditPage.vue
-resources/js/Pages/Schemes/IndexPage.vue
 resources/js/Pages/Statistics/FormPhaseStats.vue
 resources/js/Pages/Statistics/FormSubmissionStats.vue
 resources/js/Pages/Statistics/SubmissionReviewerStats.vue
