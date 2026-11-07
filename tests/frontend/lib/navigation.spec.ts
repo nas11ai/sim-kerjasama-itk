@@ -40,8 +40,8 @@ const FULL_CATALOG = [
     'reporting.view-audit-log',
     'announcements.manage',
 ]
-const NO_APPROVED = {
-    hasApprovedSubmission: false,
+const NO_FLAGS = {
+    hasOutputSubmission: false,
     hasMonevSubmission: false,
     unreadAnnouncements: 0,
     unreadNotifications: 0,
@@ -52,7 +52,7 @@ const groupLabels = (groups: VisibleNavGroup[]) => groups.map((g) => g.label)
 
 describe('visibleNavGroups', () => {
     it('peneliti hanya melihat Dashboard, Pengumuman, Notifikasi, dan Daftar Pengajuan', () => {
-        expect(labels(visibleNavGroups(navGroups, RESEARCHER, NO_APPROVED))).toEqual([
+        expect(labels(visibleNavGroups(navGroups, RESEARCHER, NO_FLAGS))).toEqual([
             'Dashboard',
             'Pengumuman',
             'Notifikasi',
@@ -61,7 +61,7 @@ describe('visibleNavGroups', () => {
     })
 
     it('grup tanpa item yang tampil ikut hilang beserta labelnya', () => {
-        const result = groupLabels(visibleNavGroups(navGroups, RESEARCHER, NO_APPROVED))
+        const result = groupLabels(visibleNavGroups(navGroups, RESEARCHER, NO_FLAGS))
 
         expect(result).toEqual([null, 'Pengajuan'])
         expect(result).not.toContain('Review')
@@ -71,7 +71,7 @@ describe('visibleNavGroups', () => {
     it('peneliti + reviewer internal melihat gabungan Pengajuan dan Review', () => {
         const permissions = [...RESEARCHER, ...REVIEWER_INTERNAL]
 
-        expect(labels(visibleNavGroups(navGroups, permissions, NO_APPROVED))).toEqual([
+        expect(labels(visibleNavGroups(navGroups, permissions, NO_FLAGS))).toEqual([
             'Dashboard',
             'Pengumuman',
             'Notifikasi',
@@ -82,18 +82,18 @@ describe('visibleNavGroups', () => {
     })
 
     it('User & Verifikasi tampil cukup dengan users.verify', () => {
-        expect(labels(visibleNavGroups(navGroups, ['users.verify'], NO_APPROVED))).toContain(
+        expect(labels(visibleNavGroups(navGroups, ['users.verify'], NO_FLAGS))).toContain(
             'User & Verifikasi'
         )
     })
 
     it('Organisasi tampil untuk organizations.manage, tidak untuk users.manage atau schemes.manage saja (W105)', () => {
-        const granted = visibleNavGroups(navGroups, ['organizations.manage'], NO_APPROVED)
+        const granted = visibleNavGroups(navGroups, ['organizations.manage'], NO_FLAGS)
         const organisasi = granted.flatMap((g) => g.items).find((i) => i.label === 'Organisasi')
 
         expect(organisasi?.routeName).toBe('admin.organizations.index')
         for (const permission of ['users.manage', 'schemes.manage']) {
-            expect(labels(visibleNavGroups(navGroups, [permission], NO_APPROVED))).not.toContain(
+            expect(labels(visibleNavGroups(navGroups, [permission], NO_FLAGS))).not.toContain(
                 'Organisasi'
             )
         }
@@ -103,8 +103,8 @@ describe('visibleNavGroups', () => {
         const hidden = navGroups.flatMap((g) => g.items).filter((i) => i.routeName === null)
         const shown = labels(
             visibleNavGroups(navGroups, FULL_CATALOG, {
-                ...NO_APPROVED,
-                hasApprovedSubmission: true,
+                ...NO_FLAGS,
+                hasOutputSubmission: true,
             })
         )
 
@@ -114,7 +114,7 @@ describe('visibleNavGroups', () => {
         }
     })
 
-    it('item requiresApprovedSubmission butuh flag hasApprovedSubmission', () => {
+    it('item requiresOutputSubmission butuh flag hasOutputSubmission', () => {
         const gated = {
             label: null,
             items: [
@@ -123,32 +123,50 @@ describe('visibleNavGroups', () => {
                     icon: navGroups[0].items[0].icon,
                     routeName: 'dashboard',
                     anyPermission: [],
-                    requiresApprovedSubmission: true as const,
+                    requiresOutputSubmission: true as const,
                 },
             ],
         }
 
-        expect(labels(visibleNavGroups([gated], [], NO_APPROVED))).toEqual([])
+        expect(labels(visibleNavGroups([gated], [], NO_FLAGS))).toEqual([])
         expect(
-            labels(visibleNavGroups([gated], [], { ...NO_APPROVED, hasApprovedSubmission: true }))
+            labels(visibleNavGroups([gated], [], { ...NO_FLAGS, hasOutputSubmission: true }))
         ).toEqual(['Gated'])
     })
 
     it('Daftar Monev muncul hanya bila hasMonevSubmission (W128)', () => {
-        const withMonev = { ...NO_APPROVED, hasMonevSubmission: true }
+        const withMonev = { ...NO_FLAGS, hasMonevSubmission: true }
 
-        expect(labels(visibleNavGroups(navGroups, RESEARCHER, NO_APPROVED))).not.toContain(
+        expect(labels(visibleNavGroups(navGroups, RESEARCHER, NO_FLAGS))).not.toContain(
             'Daftar Monev'
         )
         expect(labels(visibleNavGroups(navGroups, RESEARCHER, withMonev))).toContain('Daftar Monev')
         expect(
             labels(
                 visibleNavGroups(navGroups, RESEARCHER, {
-                    ...NO_APPROVED,
-                    hasApprovedSubmission: true,
+                    ...NO_FLAGS,
+                    hasOutputSubmission: true,
                 })
             )
         ).not.toContain('Daftar Monev')
+    })
+
+    it('Luaran Penelitian muncul hanya bila hasOutputSubmission (W142)', () => {
+        const withOutputs = { ...NO_FLAGS, hasOutputSubmission: true }
+
+        expect(labels(visibleNavGroups(navGroups, RESEARCHER, NO_FLAGS))).not.toContain(
+            'Luaran Penelitian'
+        )
+        expect(labels(visibleNavGroups(navGroups, RESEARCHER, withOutputs))).toContain(
+            'Luaran Penelitian'
+        )
+    })
+
+    it('Luaran Penelitian aktif di setiap halaman luaran', () => {
+        const item = navGroups.flatMap((g) => g.items).find((i) => i.label === 'Luaran Penelitian')
+
+        expect(item?.routeName).toBe('research-outputs.index')
+        expect(item?.activePattern).toBe('research-outputs.*')
     })
 
     it('Daftar Monev aktif di halaman laporan monev', () => {
@@ -174,10 +192,10 @@ describe('visibleNavGroups', () => {
 
         expect(item?.routeName).toBe('monev.manage.index')
         expect(item?.activePattern).toBe('monev.manage.*')
-        expect(
-            labels(visibleNavGroups(navGroups, ['submissions.view-all'], NO_APPROVED))
-        ).toContain('Kelola Siklus Monev')
-        expect(labels(visibleNavGroups(navGroups, ['periods.manage'], NO_APPROVED))).not.toContain(
+        expect(labels(visibleNavGroups(navGroups, ['submissions.view-all'], NO_FLAGS))).toContain(
+            'Kelola Siklus Monev'
+        )
+        expect(labels(visibleNavGroups(navGroups, ['periods.manage'], NO_FLAGS))).not.toContain(
             'Kelola Siklus Monev'
         )
     })
@@ -185,15 +203,15 @@ describe('visibleNavGroups', () => {
 
 describe('pengumuman (fe-v2-design §4.7, W6)', () => {
     it('Kelola Pengumuman hanya untuk announcements.manage', () => {
-        expect(labels(visibleNavGroups(navGroups, RESEARCHER, NO_APPROVED))).not.toContain(
+        expect(labels(visibleNavGroups(navGroups, RESEARCHER, NO_FLAGS))).not.toContain(
             'Kelola Pengumuman'
         )
-        const manage = labels(visibleNavGroups(navGroups, ['announcements.manage'], NO_APPROVED))
+        const manage = labels(visibleNavGroups(navGroups, ['announcements.manage'], NO_FLAGS))
         expect(manage).toContain('Kelola Pengumuman')
     })
 
     it('Pengumuman tampil untuk semua pengguna login', () => {
-        expect(labels(visibleNavGroups(navGroups, [], NO_APPROVED))).toEqual([
+        expect(labels(visibleNavGroups(navGroups, [], NO_FLAGS))).toEqual([
             'Dashboard',
             'Pengumuman',
             'Notifikasi',
@@ -201,16 +219,16 @@ describe('pengumuman (fe-v2-design §4.7, W6)', () => {
     })
 
     it('badge hanya tampil bila belum dibaca > 0', () => {
-        const item = visibleNavGroups(navGroups, [], NO_APPROVED)
+        const item = visibleNavGroups(navGroups, [], NO_FLAGS)
             .flatMap((g) => g.items)
             .find((i) => i.label === 'Pengumuman')
 
         expect(item).toBeDefined()
-        expect(navItemCount(item!, NO_APPROVED)).toBeNull()
-        expect(navItemCount(item!, { ...NO_APPROVED, unreadAnnouncements: 3 })).toBe(3)
+        expect(navItemCount(item!, NO_FLAGS)).toBeNull()
+        expect(navItemCount(item!, { ...NO_FLAGS, unreadAnnouncements: 3 })).toBe(3)
         expect(
-            navItemCount(visibleNavGroups(navGroups, [], NO_APPROVED)[0].items[0], {
-                ...NO_APPROVED,
+            navItemCount(visibleNavGroups(navGroups, [], NO_FLAGS)[0].items[0], {
+                ...NO_FLAGS,
                 unreadAnnouncements: 3,
             })
         ).toBeNull()
@@ -218,7 +236,7 @@ describe('pengumuman (fe-v2-design §4.7, W6)', () => {
 })
 
 describe('isNavItemActive', () => {
-    const visible = visibleNavGroups(navGroups, FULL_CATALOG, NO_APPROVED).flatMap((g) => g.items)
+    const visible = visibleNavGroups(navGroups, FULL_CATALOG, NO_FLAGS).flatMap((g) => g.items)
     const item = visible.find((i) => i.label === 'Daftar Pengajuan')
 
     it('isNavItemActive memakai activePattern untuk halaman detail', () => {
@@ -249,7 +267,7 @@ describe('isNavItemActive', () => {
 
 describe('notifikasi (W38, BR-NOT-05)', () => {
     const notifItem = () =>
-        visibleNavGroups(navGroups, [], NO_APPROVED)
+        visibleNavGroups(navGroups, [], NO_FLAGS)
             .flatMap((g) => g.items)
             .find((i) => i.label === 'Notifikasi')
 
@@ -261,8 +279,8 @@ describe('notifikasi (W38, BR-NOT-05)', () => {
         const item = notifItem()
 
         expect(item).toBeDefined()
-        expect(navItemCount(item!, NO_APPROVED)).toBeNull()
-        expect(navItemCount(item!, { ...NO_APPROVED, unreadNotifications: 4 })).toBe(4)
-        expect(navItemCount(item!, { ...NO_APPROVED, unreadAnnouncements: 4 })).toBeNull()
+        expect(navItemCount(item!, NO_FLAGS)).toBeNull()
+        expect(navItemCount(item!, { ...NO_FLAGS, unreadNotifications: 4 })).toBe(4)
+        expect(navItemCount(item!, { ...NO_FLAGS, unreadAnnouncements: 4 })).toBeNull()
     })
 })

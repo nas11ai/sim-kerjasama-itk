@@ -44,27 +44,27 @@ it('memberi Super Admin seluruh katalog permission', function () {
         ->where('auth.user.permissions', collect(PermissionSeeder::PERMISSIONS)->sort()->values()->all()));
 });
 
-it('flag hasApprovedSubmission false tanpa pengajuan disetujui', function () {
+it('flag hasOutputSubmission false tanpa pengajuan disetujui', function () {
     $user = User::factory()->create();
 
     $this->actingAs($user)->get(route('profile.edit'))->assertInertia(fn ($page) => $page
-        ->where('navigation.hasApprovedSubmission', false));
+        ->where('navigation.hasOutputSubmission', false));
 });
 
-it('flag hasApprovedSubmission true saat pengajuan riset milik user Approved', function () {
+it('flag hasOutputSubmission true saat pengajuan riset milik user Approved', function () {
     $user = User::factory()->create();
     approvedSubmissionFor($user, 2);
 
     $this->actingAs($user)->get(route('profile.edit'))->assertInertia(fn ($page) => $page
-        ->where('navigation.hasApprovedSubmission', true));
+        ->where('navigation.hasOutputSubmission', true));
 });
 
-it('biodata yang disetujui tidak menyalakan hasApprovedSubmission', function () {
+it('biodata yang disetujui tidak menyalakan hasOutputSubmission', function () {
     $user = User::factory()->create();
     approvedSubmissionFor($user, FormType::BIODATA_ID);
 
     $this->actingAs($user)->get(route('profile.edit'))->assertInertia(fn ($page) => $page
-        ->where('navigation.hasApprovedSubmission', false));
+        ->where('navigation.hasOutputSubmission', false));
 });
 
 it('pengajuan disetujui milik orang lain tidak menyalakan flag', function () {
@@ -72,7 +72,7 @@ it('pengajuan disetujui milik orang lain tidak menyalakan flag', function () {
     approvedSubmissionFor(User::factory()->create(), 2);
 
     $this->actingAs($user)->get(route('profile.edit'))->assertInertia(fn ($page) => $page
-        ->where('navigation.hasApprovedSubmission', false));
+        ->where('navigation.hasOutputSubmission', false));
 });
 
 it('partial reload yang tidak meminta auth tidak menghitung permission', function () {

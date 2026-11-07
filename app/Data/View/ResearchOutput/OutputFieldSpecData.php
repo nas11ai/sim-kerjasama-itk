@@ -2,6 +2,7 @@
 
 namespace App\Data\View\ResearchOutput;
 
+use Carbon\CarbonImmutable;
 use Spatie\LaravelData\Data;
 
 /**
@@ -52,6 +53,18 @@ final class OutputFieldSpecData extends Data
     public function optionValues(): array
     {
         return array_column($this->options, 'value');
+    }
+
+    /** Nilai tampilan satu isian: label opsi untuk select, `d M Y` untuk tanggal, selain itu apa adanya. */
+    public function displayValue(string|int $value): string
+    {
+        $text = (string) $value;
+
+        return match ($this->type) {
+            'select' => $this->optionLabel($text) ?? $text,
+            'date' => CarbonImmutable::parse($text)->settings(['locale' => 'id'])->translatedFormat('d M Y'),
+            default => $text,
+        };
     }
 
     public function optionLabel(string $value): ?string

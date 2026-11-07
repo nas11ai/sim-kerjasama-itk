@@ -27,6 +27,7 @@ use App\Http\Controllers\Monev\MonevReportController;
 use App\Http\Controllers\Notification\NotificationChannelController;
 use App\Http\Controllers\Notification\NotificationController;
 use App\Http\Controllers\PermissionController;
+use App\Http\Controllers\ResearchOutput\ResearchOutputController;
 use App\Http\Controllers\ResearchOutput\ResearchOutputFileController;
 use App\Http\Controllers\Review\ReplaceReviewerController;
 use App\Http\Controllers\Review\ReviewAttachmentDownloadController;
@@ -42,7 +43,7 @@ use App\Http\Controllers\Submission\BudgetLineItemController;
 use App\Http\Controllers\Submission\OperatorSubmissionController;
 use App\Http\Controllers\Submission\PhaseOverrideController;
 use App\Http\Controllers\Submission\ResearchMemberController;
-use App\Http\Controllers\Submission\ResearchOutputController;
+use App\Http\Controllers\Submission\ResearchOutputController as SubmissionResearchOutputController;
 use App\Http\Controllers\Submission\ResubmitController;
 use App\Http\Controllers\Submission\SubmissionDecisionController;
 use App\Http\Controllers\Submission\SubmissionFileController;
@@ -97,11 +98,6 @@ Route::middleware(['auth'])->group(function () {
     // BR-SM-07 — berkas jawaban pengajuan hanya terbaca lewat route ber-scope ini (W15).
     Route::get('/user/submissions/{submission}/files/{response}', [SubmissionFileController::class, 'show'])
         ->name('user.submissions.files.show');
-
-    // W141 — berkas bukti luaran hanya terbaca lewat route ber-scope ini.
-    Route::get('/research-outputs/{output}/files/{file}', [ResearchOutputFileController::class, 'show'])
-        ->whereNumber('file')
-        ->name('research-outputs.files.show');
 
     Route::post('/submissions/{submission}/review-threads', [ReviewController::class, 'createReviewThread'])
         ->name('review-threads.store');
@@ -213,6 +209,15 @@ Route::middleware(['auth'])->prefix('monev')->name('monev.')->group(function () 
         ->name('reports.submit');
     Route::get('/reports/{report}', [MonevReportController::class, 'show'])
         ->name('reports.show');
+});
+
+// W145 — luaran penelitian (ux/ia/06_research_output). Siapa/kapan/keadaan: OutputWriteAccess (W146).
+Route::middleware(['auth'])->prefix('research-outputs')->name('research-outputs.')->group(function () {
+    Route::get('/', [ResearchOutputController::class, 'index'])->name('index');
+    // W141 — berkas bukti luaran hanya terbaca lewat route ber-scope ini.
+    Route::get('/{output}/files/{file}', [ResearchOutputFileController::class, 'show'])
+        ->whereNumber('file')
+        ->name('files.show');
 });
 
 // W129 — kelola siklus monev: membaca semua pengajuan (BR-SM-07), bukan periods.manage.
@@ -529,9 +534,9 @@ Route::middleware(['auth'])->group(function () {
         Route::post('/submissions/{submission}/resubmit', ResubmitController::class)
             ->name('submissions.resubmit');
         // BR-RO-01..09 — luaran terealisasi.
-        Route::post('/submissions/{submission}/outputs', [ResearchOutputController::class, 'store'])
+        Route::post('/submissions/{submission}/outputs', [SubmissionResearchOutputController::class, 'store'])
             ->name('submissions.outputs.store');
-        Route::put('/submissions/{submission}/outputs/{output}', [ResearchOutputController::class, 'update'])
+        Route::put('/submissions/{submission}/outputs/{output}', [SubmissionResearchOutputController::class, 'update'])
             ->name('submissions.outputs.update');
     });
 

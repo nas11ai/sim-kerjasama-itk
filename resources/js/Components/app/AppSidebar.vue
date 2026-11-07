@@ -31,7 +31,7 @@ const closeOnLinkTap = (event: MouseEvent) => {
 const flags = computed(
     () =>
         page.props.navigation ?? {
-            hasApprovedSubmission: false,
+            hasOutputSubmission: false,
             hasMonevSubmission: false,
             unreadAnnouncements: 0,
             unreadNotifications: 0,

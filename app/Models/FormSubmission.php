@@ -230,7 +230,8 @@ class FormSubmission extends Model
             ->exists();
     }
 
-    private function hasAssignedReviewer(User $user): bool
+    /** BR-SM-07 — reviewer yang penugasannya masih aktif; dipakai juga alasan baca-saja luaran (W143). */
+    public function hasAssignedReviewer(User $user): bool
     {
         return $this->submissionReviewers()
             ->where('status', 'active')

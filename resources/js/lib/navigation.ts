@@ -30,7 +30,8 @@ export interface NavItem {
     activePattern?: string
     /** kosong = semua pengguna; selain itu cukup memegang salah satu */
     anyPermission: string[]
-    requiresApprovedSubmission?: true
+    /** W142 — Luaran Penelitian: pengajuan APPROVED, atau ditarik dengan luaran */
+    requiresOutputSubmission?: true
     /** W128 — Daftar Monev: induk APPROVED, atau ditarik dengan laporan */
     requiresMonevSubmission?: true
     /** flag `navigation` berisi jumlah yang ditampilkan sebagai badge bila > 0 */
@@ -132,9 +133,10 @@ export const navGroups: NavGroup[] = [
             {
                 label: 'Luaran Penelitian',
                 icon: Folder,
-                routeName: null,
+                routeName: 'research-outputs.index',
+                activePattern: 'research-outputs.*',
                 anyPermission: ['submissions.view-own', 'outputs.manage'],
-                requiresApprovedSubmission: true,
+                requiresOutputSubmission: true,
             },
         ],
     },
@@ -249,7 +251,7 @@ function hasRoute(item: NavItem): item is VisibleNavItem {
 }
 
 function isPermitted(item: NavItem, permissions: string[], flags: NavigationFlags): boolean {
-    if (item.requiresApprovedSubmission && !flags.hasApprovedSubmission) return false
+    if (item.requiresOutputSubmission && !flags.hasOutputSubmission) return false
     if (item.requiresMonevSubmission && !flags.hasMonevSubmission) return false
     if (item.anyPermission.length === 0) return true
 

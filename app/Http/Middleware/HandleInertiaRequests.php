@@ -6,7 +6,7 @@ use App\Queries\Announcement\UnreadAnnouncementCount;
 use App\Queries\Identity\EffectivePermissionNames;
 use App\Queries\Monev\HasMonevSubmission;
 use App\Queries\Notification\UnreadNotificationCount;
-use App\Queries\Submission\HasApprovedSubmission;
+use App\Queries\ResearchOutput\HasOutputSubmission;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Middleware;
@@ -60,7 +60,8 @@ class HandleInertiaRequests extends Middleware
             ],
             'navigation' => fn () => $request->user()
                 ? [
-                    'hasApprovedSubmission' => HasApprovedSubmission::run($request->user()),
+                    // W142 — "Luaran Penelitian" tampil bila daftarnya berisi.
+                    'hasOutputSubmission' => HasOutputSubmission::run($request->user()),
                     // W128 — "Daftar Monev" tampil bila daftarnya berisi.
                     'hasMonevSubmission' => HasMonevSubmission::run($request->user()),
                     // W32 — badge sidebar "Pengumuman" (fe-v2-design §4.7).

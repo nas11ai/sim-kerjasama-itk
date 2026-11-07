@@ -30,7 +30,8 @@ export interface Permission {
 }
 
 export interface NavigationFlags {
-    hasApprovedSubmission: boolean
+    // W142 — Daftar Luaran berisi pengajuan yang luarannya bisa dibaca.
+    hasOutputSubmission: boolean
     // W128 — Daftar Monev berisi induk yang bisa dipantau.
     hasMonevSubmission: boolean
     // W32 — jumlah pengumuman terlihat yang belum dibaca (fe-v2-design §4.7).

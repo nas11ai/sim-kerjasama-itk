@@ -19,7 +19,7 @@ const page = {
                 permissions: ['submissions.view-own', 'submissions.create'],
             },
         },
-        navigation: { hasApprovedSubmission: false },
+        navigation: { hasOutputSubmission: false },
     },
 }
 
