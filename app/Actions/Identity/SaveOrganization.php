@@ -130,8 +130,9 @@ class SaveOrganization
             ]);
         }
 
-        // Induk baru di subtree unit ini menutup pohon jadi lingkaran, dan penelusuran leluhur
-        // BR-FE-02 tak berhenti lagi. Subtree-nya struktural, juga lewat unit nonaktif (W116).
+        // Induk baru di subtree struktural unit ini (juga lewat unit nonaktif, W116) menutup pohon
+        // jadi lingkaran: penelusuran leluhur BR-FE-02 tak berhenti lagi, timeout di layar peneliti
+        // yang tak bersalah, jauh dari sebabnya.
         if (in_array($parentId, OrganizationSubtree::run($organization->id), true)) {
             throw ValidationException::withMessages([
                 'parent_id' => 'Unit ini tidak bisa dipindah ke bawah turunannya sendiri — '
