@@ -6,6 +6,7 @@ import { ref } from 'vue'
 
 import PageHeader from '@/Components/app/PageHeader.vue'
 import SectionCard from '@/Components/app/SectionCard.vue'
+import MoveUserDialog from '@/Components/SystemConfig/MoveUserDialog.vue'
 import OrganizationTree from '@/Components/SystemConfig/OrganizationTree.vue'
 import OrganizationUnitDialog, {
     type OrganizationUnitDialogMode,
@@ -19,6 +20,7 @@ defineProps<OrganizationPageProps>()
 
 const dialogOpen = ref(false)
 const dialogMode = ref<OrganizationUnitDialogMode>('root')
+const moveOpen = ref(false)
 
 function openDialog(mode: OrganizationUnitDialogMode) {
     dialogMode.value = mode
@@ -59,6 +61,7 @@ function select(id: number) {
                 :unit="selected"
                 @add-child="openDialog('child')"
                 @edit="openDialog('edit')"
+                @move-user="moveOpen = true"
             />
         </div>
         <OrganizationUnitDialog
@@ -66,6 +69,12 @@ function select(id: number) {
             :mode="dialogMode"
             :unit="selected"
             :type-options="typeOptions"
+            :parent-options="parentOptions"
+        />
+        <MoveUserDialog
+            v-if="selected"
+            v-model:open="moveOpen"
+            :candidates="memberCandidates"
             :parent-options="parentOptions"
         />
     </AppLayout>

@@ -216,3 +216,75 @@ it('unit nonaktif tidak bisa dinonaktifkan lagi', function () {
 
     expect(organizationScreenProps(['unit' => $unit->id])['selected']['canDeactivate'])->toBeFalse();
 });
+
+// ---------- BR-IAM-18: memindahkan user dari panel unit (W120) ----------
+
+/** @return list<array<string, mixed>> */
+function organizationScreenCandidates(Organization $unit, string $search = ''): array
+{
+    $candidates = [];
+    test()->actingAs(organizationScreenActor())
+        ->get(route('admin.organizations.index', ['unit' => $unit->id, 'member_search' => $search]))
+        ->assertInertia(function (AssertableInertia $page) use (&$candidates) {
+            $page->reloadOnly('memberCandidates', function (AssertableInertia $reload) use (&$candidates) {
+                $candidates = $reload->toArray()['props']['memberCandidates'];
+            });
+        });
+
+    return $candidates;
+}
+
+it('kandidat pindah hanya anggota subtree unit terpilih', function () {
+    $fti = organizationScreenUnit('FTI');
+    $informatika = organizationScreenUnit('Informatika', $fti);
+    $sains = organizationScreenUnit('Fakultas Sains');
+    $budi = organizationScreenMember($informatika);
+    $budi->update(['name' => 'Budi Santoso']);
+    $sari = organizationScreenMember($informatika, active: false);
+    $sari->update(['name' => 'Sari Dewi']);
+    organizationScreenMember($sains)->update(['name' => 'Rina Wijaya']);
+
+    expect(organizationScreenCandidates($fti))->toBe([
+        ['value' => (string) $budi->id, 'label' => 'Budi Santoso', 'hint' => 'Informatika · Aktif', 'organizationId' => $informatika->id],
+        ['value' => (string) $sari->id, 'label' => 'Sari Dewi', 'hint' => 'Informatika · Nonaktif', 'organizationId' => $informatika->id],
+    ])->and(array_column(organizationScreenCandidates($fti, 'SARI'), 'label'))->toBe(['Sari Dewi'])
+        ->and(organizationScreenCandidates($sains, 'budi'))->toBe([]);
+});
+
+it('kandidat dihitung hanya saat diminta', function () {
+    $unit = organizationScreenUnit('Informatika');
+    organizationScreenMember($unit);
+
+    $this->actingAs(organizationScreenActor())
+        ->get(route('admin.organizations.index', ['unit' => $unit->id, 'member_search' => '']))
+        ->assertInertia(fn (AssertableInertia $page) => $page->missing('memberCandidates'));
+
+    $this->actingAs(organizationScreenActor())
+        ->get(route('admin.organizations.index'))
+        ->assertInertia(fn (AssertableInertia $page) => $page
+            ->reloadOnly('memberCandidates', fn (AssertableInertia $reload) => $reload->has('memberCandidates', 0)));
+});
+
+it('[IAM-ORG-15] memindahkan user lewat layar membuka jalan deaktivasi', function () {
+    $kimia = organizationScreenUnit('Teknik Kimia');
+    $mesin = organizationScreenUnit('Teknik Mesin');
+    $budi = organizationScreenMember($kimia);
+
+    expect(organizationScreenProps(['unit' => $kimia->id])['selected']['canDeactivate'])->toBeFalse();
+
+    $this->actingAs(organizationScreenActor())
+        ->from(route('admin.organizations.index', ['unit' => $kimia->id]))
+        ->post(route('admin.organizations.move-user', $mesin), ['user_id' => $budi->id])
+        ->assertSessionHasNoErrors()
+        ->assertRedirect(route('admin.organizations.index', ['unit' => $kimia->id]));
+
+    expect(organizationScreenProps(['unit' => $kimia->id])['selected']['canDeactivate'])->toBeTrue();
+});
+
+it('memindahkan user tanpa user_id yang valid ditolak di field', function (mixed $userId) {
+    $unit = organizationScreenUnit('Teknik Mesin');
+
+    $this->actingAs(organizationScreenActor())
+        ->post(route('admin.organizations.move-user', $unit), ['user_id' => $userId])
+        ->assertSessionHasErrors('user_id');
+})->with([null, 'abc', 999999]);

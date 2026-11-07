@@ -63,12 +63,22 @@ export interface OrganizationUnitData {
     canDelete: boolean
 }
 
+// Sumber: App\Queries\Identity\OrganizationMembers (W120).
+export interface MemberCandidate {
+    value: string
+    label: string
+    hint: string
+    organizationId: number
+}
+
 // Sumber: Identity\OrganizationController::index.
 export interface OrganizationPageProps {
     tree: OrganizationNodeData[]
     selected: OrganizationUnitData | null
     typeOptions: FilterOption[]
     parentOptions: FilterOption[]
+    // Prop opsional: hanya ada setelah partial reload pencarian anggota.
+    memberCandidates?: MemberCandidate[]
 }
 
 // Sumber: Config\ReferenceEntityController::index.

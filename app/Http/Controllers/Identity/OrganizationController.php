@@ -9,10 +9,11 @@ use App\Actions\Identity\SaveOrganization;
 use App\Data\View\SystemConfig\OrganizationUnitData;
 use App\Http\Controllers\Concerns\ResolvesActor;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Identity\MoveUserRequest;
 use App\Http\Requests\Identity\OrganizationRequest;
 use App\Models\Organization;
-use App\Models\User;
 use App\Queries\Identity\OrganizationCensus;
+use App\Queries\Identity\OrganizationMembers;
 use App\Queries\Identity\OrganizationOptions;
 use App\Queries\Identity\OrganizationTree;
 use App\Support\Identity\OrganizationTypeCatalog;
@@ -36,6 +37,8 @@ class OrganizationController extends Controller
             'selected' => fn (): ?OrganizationUnitData => $this->selectedUnit($request->string('unit')->value()),
             'typeOptions' => OrganizationTypeCatalog::options(),
             'parentOptions' => fn (): array => OrganizationOptions::run(),
+            // W120 — hanya dimuat lewat partial reload pencarian di dialog Pindahkan User.
+            'memberCandidates' => Inertia::optional(fn (): array => $this->memberCandidates($request)),
         ]);
     }
 
@@ -81,21 +84,30 @@ class OrganizationController extends Controller
     }
 
     /** BR-IAM-18 — memindahkan user antar unit; prasyarat deaktivasi BR-IAM-14. */
-    public function moveUser(Request $request, Organization $organization): RedirectResponse
+    public function moveUser(MoveUserRequest $request, Organization $organization): RedirectResponse
     {
-        $validated = $request->validate([
-            'user_id' => 'required|exists:users,id',
-        ]);
-
-        MoveUserToOrganization::run($this->actor($request), User::findOrFail($validated['user_id']), $organization);
+        MoveUserToOrganization::run($this->actor($request), $request->movedUser(), $organization);
 
         return back()->with('success', 'User dipindahkan.');
     }
 
     private function selectedUnit(string $id): ?OrganizationUnitData
     {
-        $unit = ctype_digit($id) ? Organization::query()->find($id) : null;
+        $unit = $this->unitFromQuery($id);
 
         return $unit === null ? null : OrganizationUnitData::of($unit, OrganizationCensus::run($unit));
+    }
+
+    /** @return list<array{value: string, label: string, hint: string, organizationId: int}> */
+    private function memberCandidates(Request $request): array
+    {
+        $unit = $this->unitFromQuery($request->string('unit')->value());
+
+        return $unit === null ? [] : OrganizationMembers::run($unit, $request->string('member_search')->value());
+    }
+
+    private function unitFromQuery(string $id): ?Organization
+    {
+        return ctype_digit($id) ? Organization::query()->find($id) : null;
     }
 }
