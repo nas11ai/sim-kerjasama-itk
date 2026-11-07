@@ -20,9 +20,11 @@ final class OrganizationUnitData extends Data
         public OrganizationCensusData $census,
         public bool $canDeactivate,
         public bool $canDelete,
+        public bool $canReactivate,
+        public int $revivableInvitations,
     ) {}
 
-    public static function of(Organization $unit, OrganizationCensusData $census): self
+    public static function of(Organization $unit, OrganizationCensusData $census, int $revivableInvitations): self
     {
         return new self(
             id: $unit->id,
@@ -34,6 +36,9 @@ final class OrganizationUnitData extends Data
             census: $census,
             canDeactivate: $unit->is_active && !$census->blocksDeactivation(),
             canDelete: !$census->blocksDeletion(),
+            // BR-IAM-22 — induk nonaktif menolak pengaktifan; akar selalu boleh.
+            canReactivate: !$unit->is_active && ($unit->parent === null || $unit->parent->is_active),
+            revivableInvitations: $revivableInvitations,
         );
     }
 }

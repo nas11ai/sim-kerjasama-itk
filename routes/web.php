@@ -408,6 +408,8 @@ Route::middleware(['auth', 'can:organizations.manage'])->prefix('admin')->name('
     // BR-IAM-14 — ambangnya user aktif; BR-IAM-08 — penghapusan, undangan yang belum
     // terpakai ikut tercabut alih-alih menghalangi (register #18).
     Route::post('/organizations/{organization}/deactivate', [OrganizationController::class, 'deactivate'])->name('organizations.deactivate');
+    // BR-IAM-22 — mengaktifkan kembali satu unit, ditolak selama induknya nonaktif.
+    Route::post('/organizations/{organization}/reactivate', [OrganizationController::class, 'reactivate'])->name('organizations.reactivate');
     Route::delete('/organizations/{organization}', [OrganizationController::class, 'destroy'])->name('organizations.destroy');
 });
 

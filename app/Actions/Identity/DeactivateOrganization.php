@@ -47,8 +47,8 @@ class DeactivateOrganization
 
         $tercatat = DB::transaction(function () use ($subtree): int {
             // Tokennya tidak dicabut: organisasi nonaktif sudah membuat `isValid()`
-            // menolaknya (BR-IAM-06). Kalau unit ini diaktifkan kembali, undangan yang belum
-            // lewat masa berlakunya ikut hidup lagi — tidak ada keputusan untuk mencabutnya.
+            // menolaknya (BR-IAM-06). Kalau unit ini diaktifkan kembali (BR-IAM-22), undangan
+            // yang masih sah ikut hidup lagi — tidak ada keputusan untuk mencabutnya.
             $terdampak = InvitationToken::query()
                 ->whereIn('organization_id', $subtree)
                 ->whereNull('revoked_at')

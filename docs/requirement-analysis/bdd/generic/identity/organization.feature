@@ -116,3 +116,32 @@ Feature: Penghapusan dan Deaktivasi Organisasi
     When Operator membuat sub-unit di bawahnya
     Then pembuatan ditolak
     And pesannya menyebut unit induk sudah nonaktif
+
+  @BR-IAM-22 @M3 @ADMIN-08-02 @happy
+  Scenario: [IAM-ORG-17] Mengaktifkan kembali unit memulihkan rantai akses Form
+    Given Organization "ITK" membawahi "FTI", dan "FTI" membawahi "Informatika"
+    And Form "Pengajuan Penelitian" punya FormAccessControl permission "submissions.create" pada organisasi "ITK"
+    And "Sari" berorganisasi "Informatika" dan "FTI" berstatus nonaktif
+    When Operator mengaktifkan kembali "FTI"
+    Then "Pengajuan Penelitian" muncul lagi di daftar Form "Sari"
+
+  @BR-IAM-22 @M3 @ADMIN-08-02 @denial
+  Scenario: [IAM-ORG-18] Unit di bawah induk nonaktif tidak bisa diaktifkan kembali
+    Given "ITK" dan "FTI" sama-sama nonaktif
+    When Operator mengaktifkan kembali "FTI"
+    Then pengaktifan ditolak
+    And pesannya meminta induknya diaktifkan lebih dulu
+
+  @BR-IAM-22 @M3 @ADMIN-08-02 @boundary
+  Scenario: [IAM-ORG-19] Pengaktifan hanya berlaku untuk unit itu
+    Given "FTI" dinonaktifkan beserta "Informatika" di bawahnya
+    When Operator mengaktifkan kembali "FTI"
+    Then "FTI" aktif
+    And "Informatika" tetap nonaktif
+
+  @BR-IAM-22 @BR-IAM-06 @M3 @ADMIN-08-02 @boundary
+  Scenario: [IAM-ORG-20] Undangan yang masih sah berlaku lagi setelah unit diaktifkan kembali
+    Given unit "Mitra Lama" nonaktif dengan 1 undangan sah, 1 dicabut, 1 kedaluwarsa, dan 1 habis kuota
+    When Operator membuka konfirmasi pengaktifan "Mitra Lama"
+    Then layar konfirmasi menyebut 1 undangan yang berlaku lagi
+    And undangan yang dicabut, kedaluwarsa, atau habis kuota tetap tidak berlaku

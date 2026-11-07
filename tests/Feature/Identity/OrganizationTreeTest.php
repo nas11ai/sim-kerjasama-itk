@@ -101,7 +101,9 @@ it('kontrak struktur organisasi', function () {
                     ->where('unitsWithActiveUsers', 0)
                     ->where('pendingInvitations', 0))
                 ->where('canDeactivate', true)
-                ->where('canDelete', true))
+                ->where('canDelete', true)
+                ->where('canReactivate', false)
+                ->where('revivableInvitations', 0))
             ->has('typeOptions', 4)
             ->has('parentOptions', 2));
 });
@@ -124,6 +126,7 @@ it('wewenang: organizations.manage 200, users.manage saja 403, schemes.manage sa
         $this->actingAs($actor)->post(route('admin.organizations.move-user', $unit), ['user_id' => $actor->id])->assertForbidden();
         $this->actingAs($actor)->post(route('admin.organizations.deactivate', $unit))->assertForbidden();
         $this->actingAs($actor)->delete(route('admin.organizations.destroy', $unit))->assertForbidden();
+        $this->actingAs($actor)->post(route('admin.organizations.reactivate', $unit))->assertForbidden();
     }
 
     expect($unit->fresh())->not->toBeNull()
@@ -309,3 +312,15 @@ it('memindahkan user tanpa user_id yang valid ditolak di field', function (mixed
         ->post(route('admin.organizations.move-user', $unit), ['user_id' => $userId])
         ->assertSessionHasErrors('user_id');
 })->with([null, 'abc', 999999]);
+
+it('canReactivate mengikuti status induk', function () {
+    $active = organizationScreenUnit('Aktif');
+    $root = organizationScreenUnit('Akar Lama', active: false);
+    $under = organizationScreenUnit('Cabang Lama', $root, active: false);
+
+    $canReactivate = fn (Organization $unit) => organizationScreenProps(['unit' => $unit->id])['selected']['canReactivate'];
+
+    expect($canReactivate($root))->toBeTrue()
+        ->and($canReactivate($under))->toBeFalse()
+        ->and($canReactivate($active))->toBeFalse();
+});

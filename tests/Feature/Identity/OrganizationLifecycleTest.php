@@ -14,16 +14,20 @@
 use App\Actions\Identity\DeactivateOrganization;
 use App\Actions\Identity\DeleteOrganization;
 use App\Actions\Identity\MoveUserToOrganization;
+use App\Actions\Identity\ReactivateOrganization;
 use App\Actions\Identity\SaveOrganization;
 use App\Models\Form;
 use App\Models\FormAccessControl;
 use App\Models\FormSubmission;
+use App\Models\InvitationToken;
 use App\Models\Organization;
 use App\Models\User;
 use App\Models\UserProfile;
 use App\Services\FormAccessService;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Validation\ValidationException;
+use Inertia\Testing\AssertableInertia;
+use Spatie\Activitylog\Models\Activity;
 use Spatie\Permission\Models\Permission;
 
 function orgTree(): array
@@ -359,4 +363,85 @@ it('tipe di luar katalog ditolak, tipe lama unit itu sendiri diterima', function
     expect(Organization::query()->where('name', 'Pusat Baru')->exists())->toBeFalse()
         ->and($pusat->fresh()->name)->toBe('Pusat Studi Energi Terbarukan')
         ->and($pusat->fresh()->type)->toBe('research_center');
+});
+
+// ---------- BR-IAM-22 (W119): mengaktifkan kembali unit ----------
+
+function organizationReactivationAudits(Organization $unit): int
+{
+    return Activity::query()
+        ->whereMorphedTo('subject', $unit)
+        ->where('description', 'Organisasi diaktifkan kembali')
+        ->count();
+}
+
+it('[IAM-ORG-17] mengaktifkan kembali unit memulihkan rantai akses Form', function () {
+    $t = orgTree();
+    Permission::findOrCreate('submissions.create', 'web');
+    $sari = User::factory()->create();
+    UserProfile::factory()->create(['user_id' => $sari->id, 'organization_id' => $t['prodi']->id]);
+    $sari->givePermissionTo('submissions.create');
+    $form = Form::factory()->create();
+    FormAccessControl::create(['form_id' => $form->id, 'permission' => 'submissions.create', 'organization_id' => $t['itk']->id]);
+    $service = app(FormAccessService::class);
+
+    $t['fti']->update(['is_active' => false]);
+    // Rantai leluhur yang terputus kini ada di cache (30 menit).
+    expect($service->canAccessForm($sari->fresh(), $form))->toBeFalse();
+
+    ReactivateOrganization::run($t['fti']->fresh());
+
+    expect($t['fti']->fresh()->is_active)->toBeTrue()
+        ->and($service->canAccessForm($sari->fresh(), $form))->toBeTrue()
+        ->and(organizationReactivationAudits($t['fti']))->toBe(1);
+});
+
+it('[IAM-ORG-18] unit di bawah induk nonaktif tidak bisa diaktifkan kembali', function () {
+    $t = orgTree();
+    $t['itk']->update(['is_active' => false]);
+    $t['fti']->update(['is_active' => false]);
+
+    $this->actingAs(operatorOrganisasi())
+        ->post(route('admin.organizations.reactivate', $t['fti']))
+        ->assertSessionHasErrors(['organization_id' => 'Induk unit ini masih nonaktif. Aktifkan induknya lebih dulu.']);
+
+    expect($t['fti']->fresh()->is_active)->toBeFalse()
+        ->and(organizationReactivationAudits($t['fti']))->toBe(0);
+});
+
+it('[IAM-ORG-19] pengaktifan hanya untuk unit itu, turunannya tetap nonaktif', function () {
+    $t = orgTree();
+    DeactivateOrganization::run($t['fti']);
+
+    $this->actingAs(operatorOrganisasi())
+        ->post(route('admin.organizations.reactivate', $t['fti']))
+        ->assertSessionHasNoErrors();
+
+    expect($t['fti']->fresh()->is_active)->toBeTrue()
+        ->and($t['prodi']->fresh()->is_active)->toBeFalse();
+});
+
+it('[IAM-ORG-20] undangan yang masih sah berlaku lagi dan disebut sebelum konfirmasi', function () {
+    $unit = Organization::create(['name' => 'Mitra Lama', 'type' => 'unit', 'is_active' => false]);
+    $valid = InvitationToken::factory()->create(['organization_id' => $unit->id]);
+    InvitationToken::factory()->create(['organization_id' => $unit->id, 'revoked_at' => now()]);
+    InvitationToken::factory()->create(['organization_id' => $unit->id, 'expires_at' => now()->subDay()]);
+    InvitationToken::factory()->create(['organization_id' => $unit->id, 'max_uses' => 2, 'used_count' => 2]);
+
+    $this->actingAs(operatorOrganisasi())
+        ->get(route('admin.organizations.index', ['unit' => $unit->id]))
+        ->assertInertia(fn (AssertableInertia $page) => $page
+            ->where('selected.revivableInvitations', 1)
+            ->where('selected.canReactivate', true));
+
+    expect($valid->fresh()->isValid())->toBeFalse()
+        ->and(ReactivateOrganization::run($unit))->toBe(1)
+        ->and($valid->fresh()->isValid())->toBeTrue();
+});
+
+it('mengaktifkan unit yang sudah aktif tidak mengubah apa pun', function () {
+    $t = orgTree();
+
+    expect(ReactivateOrganization::run($t['fti']))->toBe(0)
+        ->and(organizationReactivationAudits($t['fti']))->toBe(0);
 });

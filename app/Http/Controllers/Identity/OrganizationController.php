@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Identity;
 use App\Actions\Identity\DeactivateOrganization;
 use App\Actions\Identity\DeleteOrganization;
 use App\Actions\Identity\MoveUserToOrganization;
+use App\Actions\Identity\ReactivateOrganization;
 use App\Actions\Identity\SaveOrganization;
 use App\Data\View\SystemConfig\OrganizationUnitData;
 use App\Http\Controllers\Concerns\ResolvesActor;
@@ -16,6 +17,7 @@ use App\Queries\Identity\OrganizationCensus;
 use App\Queries\Identity\OrganizationMembers;
 use App\Queries\Identity\OrganizationOptions;
 use App\Queries\Identity\OrganizationTree;
+use App\Queries\Identity\RevivableInvitations;
 use App\Support\Identity\OrganizationTypeCatalog;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -52,6 +54,19 @@ class OrganizationController extends Controller
             $terdampak === 0
                 ? 'Unit organisasi dinonaktifkan.'
                 : "Unit organisasi dinonaktifkan. {$terdampak} undangan registrasi ikut tidak berlaku."
+        );
+    }
+
+    /** BR-IAM-22 — satu unit saja; turunannya tetap nonaktif. */
+    public function reactivate(Organization $organization): RedirectResponse
+    {
+        $revived = ReactivateOrganization::run($organization);
+
+        return back()->with(
+            'success',
+            $revived === 0
+                ? 'Unit organisasi diaktifkan kembali.'
+                : "Unit organisasi diaktifkan kembali. {$revived} undangan registrasi berlaku lagi."
         );
     }
 
@@ -95,7 +110,9 @@ class OrganizationController extends Controller
     {
         $unit = $this->unitFromQuery($id);
 
-        return $unit === null ? null : OrganizationUnitData::of($unit, OrganizationCensus::run($unit));
+        return $unit === null
+            ? null
+            : OrganizationUnitData::of($unit, OrganizationCensus::run($unit), RevivableInvitations::run($unit));
     }
 
     /** @return list<array{value: string, label: string, hint: string, organizationId: int}> */
