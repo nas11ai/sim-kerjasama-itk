@@ -8,6 +8,7 @@ use App\Actions\Config\ToggleReferenceEntity;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Config\ReferenceEntityRequest;
 use App\Queries\Config\ReferenceCategories;
+use App\Queries\Notification\NotificationChannelDeclarations;
 use App\Support\Config\ReferenceEntity;
 use App\Support\Config\ReferenceEntityRegistry;
 use Illuminate\Database\Eloquent\Model;
@@ -27,6 +28,9 @@ class ReferenceEntityController extends Controller
     {
         return Inertia::render('SystemConfig/GeneralPage', [
             'categories' => ReferenceCategories::run(),
+            // BR-NOT-06 — channel per tipe event tinggal di layar konfigurasi yang sama (W112: tab Lainnya).
+            'notificationChannels' => NotificationChannelDeclarations::run(),
+            'channelOptions' => NotificationChannelDeclarations::channelOptions(),
         ]);
     }
 

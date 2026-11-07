@@ -34,7 +34,7 @@ function schemeFormPayload(Scheme $scheme, array $override = []): array
     ], $override);
 }
 
-function outputType(string $code, bool $active = true): OutputTypeDefinition
+function schemeOutputType(string $code, bool $active = true): OutputTypeDefinition
 {
     return OutputTypeDefinition::updateOrCreate(['code' => $code], [
         'name' => strtoupper($code), 'is_active' => $active, 'requires_files' => false,
@@ -184,9 +184,9 @@ it('[SC-CONFIG-05] tipe skema nonaktif tidak ditawarkan di skema baru, tetap tam
 });
 
 it('tipe luaran yang diizinkan tersimpan dan dibaca TargetOutputTypeChoices', function () {
-    outputType('jurnal');
-    outputType('hki');
-    outputType('arsip', active: false);
+    schemeOutputType('jurnal');
+    schemeOutputType('hki');
+    schemeOutputType('arsip', active: false);
     $scheme = Scheme::factory()->create(['rules' => null]);
 
     $this->actingAs(schemeFormActor())

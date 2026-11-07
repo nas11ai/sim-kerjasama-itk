@@ -11,6 +11,7 @@
 // menunggunya.
 
 use App\Actions\FormSubmission\SubmitFormSubmission;
+use App\Actions\Notification\DeclareNotificationChannels;
 use App\Models\Form;
 use App\Models\FormSubmission;
 use App\Models\NotificationChannelSetting;
@@ -25,6 +26,9 @@ use App\Support\Notification\Deliver;
 use App\Support\Notification\NotificationChannels;
 use App\Support\Notification\NotificationEventCatalog;
 use Illuminate\Support\Facades\Notification;
+use Illuminate\Validation\ValidationException;
+use Inertia\Testing\AssertableInertia;
+use Spatie\Activitylog\Models\Activity;
 use Spatie\Permission\Models\Permission;
 
 function setChannels(string $eventType, array $channels): void
@@ -184,4 +188,107 @@ it('[NOT-DELIVERY-01] deklarasi channel yang hilang tetap melempar', function ()
         User::factory()->create(),
         new FormChangedNotification(Form::factory()->create()),
     ))->toThrow(ChannelNotDeclared::class);
+});
+
+// ---------- ADMIN-08-10 — channel dari layar Konfigurasi Umum (W113) ----------
+
+function channelAdmin(string $permission = 'schemes.manage'): User
+{
+    Permission::findOrCreate($permission, 'web');
+    $admin = User::factory()->create();
+    $admin->givePermissionTo($permission);
+
+    return $admin;
+}
+
+it('[NOT-CHANNEL-07] deklarasi channel tidak boleh kosong', function () {
+    setChannels('ProposalSubmitted', [NotificationChannels::IN_APP, NotificationChannels::EMAIL]);
+
+    $this->actingAs(channelAdmin())
+        ->put(route('admin.reference.notification-channels.update', 'ProposalSubmitted'), ['channels' => []])
+        ->assertSessionHasErrors('channels');
+
+    NotificationChannels::forget();
+    expect(NotificationChannels::for('ProposalSubmitted'))->toBe([NotificationChannels::IN_APP, NotificationChannels::EMAIL])
+        ->and(Activity::query()->where('description', 'Channel notifikasi diubah')->count())->toBe(0);
+});
+
+it('[NOT-CHANNEL-07] Action menolak deklarasi kosong walau tanpa FormRequest', function () {
+    setChannels('ProposalSubmitted', [NotificationChannels::IN_APP]);
+
+    expect(fn () => DeclareNotificationChannels::run('ProposalSubmitted', [], channelAdmin()))
+        ->toThrow(ValidationException::class, 'Pilih minimal satu channel: in-app, email, atau keduanya.');
+
+    NotificationChannels::forget();
+    expect(NotificationChannels::for('ProposalSubmitted'))->toBe([NotificationChannels::IN_APP]);
+});
+
+it('[NOT-CHANNEL-04] event kelas notifikasi tanpa deklarasi bisa ditetapkan dari layar', function () {
+    NotificationChannelSetting::query()->where('event_type', FormChangedNotification::EVENT_TYPE)->delete();
+    $admin = channelAdmin();
+
+    $this->actingAs($admin)
+        ->put(route('admin.reference.notification-channels.update', FormChangedNotification::EVENT_TYPE), [
+            'channels' => [NotificationChannels::IN_APP],
+        ])
+        ->assertSessionHasNoErrors();
+
+    NotificationChannels::forget();
+    $entry = Activity::query()->where('description', 'Channel notifikasi diubah')->sole();
+
+    expect(NotificationChannels::for(FormChangedNotification::EVENT_TYPE))->toBe([NotificationChannels::IN_APP])
+        ->and($entry->causer_id)->toBe($admin->id)
+        ->and($entry->properties['old'])->toBe(['channels' => []])
+        ->and($entry->properties['new'])->toBe(['channels' => [NotificationChannels::IN_APP]]);
+});
+
+it('event di luar kelas notifikasi 404', function () {
+    $this->actingAs(channelAdmin())
+        ->put(route('admin.reference.notification-channels.update', 'ProposalArchived'), [
+            'channels' => [NotificationChannels::IN_APP],
+        ])
+        ->assertNotFound();
+
+    expect(NotificationChannelSetting::query()->where('event_type', 'ProposalArchived')->exists())->toBeFalse();
+});
+
+it('daftar channel memuat event yang belum dideklarasikan', function () {
+    NotificationChannelSetting::query()->where('event_type', FormChangedNotification::EVENT_TYPE)->delete();
+    setChannels('ProposalSubmitted', [NotificationChannels::IN_APP, NotificationChannels::EMAIL]);
+
+    $props = [];
+    $this->actingAs(channelAdmin())
+        ->get(route('admin.reference.index'))
+        ->assertOk()
+        ->assertInertia(function (AssertableInertia $page) use (&$props) {
+            $props = $page->toArray()['props'];
+        });
+    $rows = collect($props['notificationChannels'])->keyBy('eventType')->all();
+
+    expect($props['channelOptions'])->toBe([
+        ['value' => NotificationChannels::IN_APP, 'label' => 'In-app'],
+        ['value' => NotificationChannels::EMAIL, 'label' => 'Email'],
+    ])
+        ->and(array_keys($rows))->toEqualCanonicalizing(array_keys(NotificationEventCatalog::declaredByClasses()))
+        ->and($rows[FormChangedNotification::EVENT_TYPE])->toBe([
+            'eventType' => FormChangedNotification::EVENT_TYPE, 'channels' => [], 'declared' => false,
+        ])
+        ->and($rows['ProposalSubmitted'])->toBe([
+            'eventType' => 'ProposalSubmitted',
+            'channels' => [NotificationChannels::IN_APP, NotificationChannels::EMAIL],
+            'declared' => true,
+        ]);
+});
+
+it('wewenang: users.manage saja 403', function () {
+    setChannels('ProposalSubmitted', [NotificationChannels::IN_APP]);
+
+    $this->actingAs(channelAdmin('users.manage'))
+        ->put(route('admin.reference.notification-channels.update', 'ProposalSubmitted'), [
+            'channels' => [NotificationChannels::IN_APP, NotificationChannels::EMAIL],
+        ])
+        ->assertForbidden();
+
+    NotificationChannels::forget();
+    expect(NotificationChannels::for('ProposalSubmitted'))->toBe([NotificationChannels::IN_APP]);
 });

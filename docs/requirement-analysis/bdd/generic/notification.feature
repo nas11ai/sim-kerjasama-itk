@@ -95,3 +95,10 @@ Feature: Notifikasi
     When ekspor itu selesai
     Then "Dewi" menerima notifikasi in-app
     And "Budi" tidak menerima notifikasi in-app
+
+  @BR-NOT-06 @M5 @ADMIN-08-10 @denial
+  Scenario: [NOT-CHANNEL-07] Deklarasi channel tidak boleh kosong
+    Given event ProposalSubmitted dideklarasikan in-app dan email
+    When admin mengosongkan seluruh channel ProposalSubmitted
+    Then penyimpanan ditolak
+    And deklarasi in-app dan email tetap berlaku

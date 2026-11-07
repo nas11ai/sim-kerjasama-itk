@@ -60,6 +60,13 @@ const props = (): GeneralPageProps => ({
             ],
         }),
     ],
+    notificationChannels: [
+        { eventType: 'RevisionResolved', channels: ['database'], declared: true },
+    ],
+    channelOptions: [
+        { value: 'database', label: 'In-app' },
+        { value: 'mail', label: 'Email' },
+    ],
 })
 
 const route = (name: string, params?: string) =>
@@ -101,6 +108,24 @@ describe('SystemConfig/GeneralPage', () => {
         expect(wrapper.text()).toContain('Tipe Luaran')
         expect(wrapper.text()).not.toContain('Komponen Anggaran')
         expect(wrapper.text()).not.toContain('Referensi Skema & Submission')
+    })
+
+    it('channel notifikasi tampil di Semua Kategori dan Lainnya saja', async () => {
+        const wrapper = mountPage()
+        expect(wrapper.text()).toContain('Channel Notifikasi')
+        expect(wrapper.text()).toContain('RevisionResolved')
+
+        const select = async (label: string) => {
+            const tab = wrapper.findAll('button[role="tab"]').find((t) => t.text() === label)
+            await tab?.trigger('mousedown', { button: 0 })
+            await flushPromises()
+        }
+        await select('Referensi Skema')
+        expect(wrapper.text()).not.toContain('Channel Notifikasi')
+        await select('Lainnya')
+        expect(wrapper.text()).toContain('Channel Notifikasi')
+        expect(wrapper.text()).toContain('Komponen Anggaran')
+        expect(wrapper.text()).not.toContain('Tipe Luaran')
     })
 
     it('Kelola membuka daftar item kategori itu', async () => {

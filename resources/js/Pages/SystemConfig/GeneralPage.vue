@@ -4,6 +4,7 @@ import { Head } from '@inertiajs/vue3'
 import { computed, ref } from 'vue'
 
 import PageHeader from '@/Components/app/PageHeader.vue'
+import NotificationChannelCard from '@/Components/SystemConfig/NotificationChannelCard.vue'
 import ReferenceCategoryCard from '@/Components/SystemConfig/ReferenceCategoryCard.vue'
 import ReferenceItemCreateCard from '@/Components/SystemConfig/ReferenceItemCreateCard.vue'
 import ReferenceItemsDialog from '@/Components/SystemConfig/ReferenceItemsDialog.vue'
@@ -36,6 +37,9 @@ const visibleCards = computed(() =>
         }))
         .filter((card) => card.categories.length > 0)
 )
+
+// BR-NOT-06 — channel notifikasi termasuk tab "Lainnya" (W112).
+const showsChannels = computed(() => tab.value === 'all' || tab.value === 'other')
 
 const managedKey = ref<string | null>(null)
 const managing = ref(false)
@@ -74,6 +78,12 @@ function manage(category: ReferenceCategoryData) {
             />
             <ReferenceItemCreateCard :categories="categories" />
         </div>
+        <NotificationChannelCard
+            v-if="showsChannels"
+            class="mt-6"
+            :rows="notificationChannels"
+            :options="channelOptions"
+        />
         <ReferenceItemsDialog v-model:open="managing" :category="managed" />
     </AppLayout>
 </template>
