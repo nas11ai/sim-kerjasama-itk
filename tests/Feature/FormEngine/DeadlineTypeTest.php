@@ -20,6 +20,8 @@ it('derives the label from type and cycle', function (DeadlineType $type, ?int $
     [DeadlineType::Evaluation, 2, 'Batas Evaluasi Monev II'],
     [DeadlineType::Revision, 10, 'Batas Revisi Monev X'],
     [DeadlineType::Submit, 11, 'Batas Laporan Monev 11'],
+    // W139 — Batas Akhir tidak bersiklus.
+    [DeadlineType::Output, null, 'Batas Akhir'],
 ]);
 
 it('reads the label of a stored date from its type and cycle', function () {

@@ -87,7 +87,8 @@ it('kontrak layar periode', function () {
             ->where('filters', ['search' => '', 'status' => '', 'year' => ''])
             ->has('statusOptions', 4)
             ->has('yearOptions')
-            ->has('typeOptions', 3)
+            // BR-FE-25 v2.4 — empat jenis, termasuk Batas Akhir (W139).
+            ->has('typeOptions', 4)
             ->where('phaseOptions', [['value' => (string) $phase->id, 'label' => 'Proposal']])
             ->where('can.viewSubmissions', true));
 });

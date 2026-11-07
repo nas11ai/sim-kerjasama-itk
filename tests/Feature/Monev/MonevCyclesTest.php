@@ -232,3 +232,16 @@ it('nama siklus monev memakai angka romawi sampai X', function () {
         ->and(DeadlineType::cycleName(11))->toBe('Monev 11')
         ->and(DeadlineType::Submit->label(2))->toBe('Batas Laporan Monev II');
 });
+
+it('[MON-CYCLE-18] detail Upload Luaran bukan siklus monev', function () {
+    $fx = monevFixture();
+    monevDetail($fx['pengajuan']->formPhase, 7, 'Batas Akhir');
+
+    expect(array_map(fn ($cycle) => $cycle->detailId, MonevCycles::run($fx['parent'])))
+        ->toBe([$fx['monev1']->id, $fx['monev2']->id]);
+
+    // Induk yang tahapnya hanya punya Upload Luaran tidak masuk papan monev Operator.
+    $only = outputUploadFixture();
+    expect(MonevCycles::whereHasCycles(FormSubmission::query()->whereKey($only['submission']->id))->exists())
+        ->toBeFalse();
+});

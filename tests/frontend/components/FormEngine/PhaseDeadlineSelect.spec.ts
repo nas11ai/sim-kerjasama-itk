@@ -33,6 +33,13 @@ const options: SubmissionDateOption[] = [
         periodId: 1,
         label: 'Periode A — Batas Revisi — 15/04/2026',
     },
+    {
+        id: 5,
+        type: 'output',
+        cycle: null,
+        periodId: 1,
+        label: 'Periode A — Batas Akhir — 01/12/2026',
+    },
 ]
 
 const stubs = {
@@ -56,6 +63,15 @@ describe('PhaseDeadlineSelect', () => {
             .map((item) => item.attributes('data-id'))
 
         expect(ids).toEqual(['2', '3'])
+    })
+
+    // W139 — kolom Batas Submit juga menampung Batas Akhir detail Upload Luaran.
+    it('kolom Batas Submit juga menawarkan Batas Akhir', () => {
+        const ids = mountSelect('submit')
+            .findAll('.item')
+            .map((item) => item.attributes('data-id'))
+
+        expect(ids).toEqual(['1', '5'])
     })
 
     it('menampilkan galat validasi kolomnya', () => {

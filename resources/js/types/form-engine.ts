@@ -2,7 +2,8 @@ import type { Paginated } from '@/types/pagination'
 import type { FilterOption } from '@/types/submission-page'
 
 // Sumber: App\Enums\DeadlineType (BR-FE-25).
-export type DeadlineTypeValue = 'submit' | 'evaluation' | 'revision'
+// `output` = Batas Akhir detail Upload Luaran, selalu tanpa siklus (W139).
+export type DeadlineTypeValue = 'submit' | 'evaluation' | 'revision' | 'output'
 
 // Sumber: App\Queries\Form\SubmissionDateOptions — `periodId`/`cycle` menyaring Batas Evaluasi/Revisi (W102).
 export interface SubmissionDateOption {

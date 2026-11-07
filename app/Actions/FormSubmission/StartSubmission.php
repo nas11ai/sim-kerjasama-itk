@@ -85,6 +85,13 @@ class StartSubmission
             ]);
         }
 
+        // W139 — detail Upload Luaran menampung luaran pengajuan yang sudah disetujui.
+        if ($detail->isOutputUpload()) {
+            throw ValidationException::withMessages([
+                'form_phase_detail_id' => 'Detail Upload Luaran tidak menerima pengajuan.',
+            ]);
+        }
+
         // BR-FE-17 / ADR 0014 — periode dibaca dari tenggat detail (FE-WINDOW-13).
         if ($detail->submissionDate->submission_period_id !== $submissionPeriodId) {
             throw ValidationException::withMessages([

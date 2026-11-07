@@ -216,6 +216,41 @@ function draftPayload(Form $form, SubmissionPeriod $period, FormPhase $formPhase
     ];
 }
 
+/**
+ * `wizardFixture` + pengajuan APPROVED di detail pengajuan + detail "Upload Luaran" (DDD monev
+ * Detail 7) di tahap yang sama, bertenggat Batas Akhir pada `$deadline` (W139).
+ *
+ * @return array{user: User, form: Form, period: SubmissionPeriod, detail: FormPhaseDetail, phase: FormPhase, outputDetail: FormPhaseDetail, submission: FormSubmission}
+ */
+function outputUploadFixture(string $deadline = '2026-12-01 23:59:00'): array
+{
+    $fx = wizardFixture();
+
+    $outputDetail = FormPhaseDetail::create([
+        'form_phase_id' => $fx['phase']->id,
+        'form_access_control_id' => $fx['detail']->form_access_control_id,
+        'phase_type_id' => $fx['detail']->phase_type_id,
+        'order' => $fx['detail']->order + 6,
+        'needs_review' => false,
+        'submission_date_id' => SubmissionDate::create([
+            'type' => DeadlineType::Output,
+            'datetime' => $deadline,
+            'submission_period_id' => $fx['period']->id,
+        ])->id,
+    ]);
+
+    $submission = FormSubmission::factory()->create([
+        'form_id' => $fx['form']->id,
+        'submitted_by' => $fx['user']->id,
+        'submission_period_id' => $fx['period']->id,
+        'form_phase_detail_id' => $fx['detail']->id,
+        'status' => Approved::class,
+        'is_submitted' => true,
+    ]);
+
+    return [...$fx, 'outputDetail' => $outputDetail, 'submission' => $submission];
+}
+
 function monevDetail(FormPhase $phase, int $order, string $label, bool $needsReview = false, string $when = '+1 month'): FormPhaseDetail
 {
     $date = SubmissionDate::create([

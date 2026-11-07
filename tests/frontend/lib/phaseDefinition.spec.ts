@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest'
 import {
     blankDetail,
     deadlineChoices,
+    submitDateChoices,
     toEditableDetails,
     toPhasePayload,
     type EditableDetail,
@@ -93,6 +94,16 @@ describe('lib/phaseDefinition', () => {
         expect(ids(deadlineChoices(options, 'revision', detail({ submissionDateId: 1 })))).toEqual([
             5,
         ])
+    })
+
+    // W139 — detail Upload Luaran memegang Batas Akhir di kolom Batas Submit-nya.
+    it('Batas Submit juga menawarkan Batas Akhir untuk detail Upload Luaran', () => {
+        const withOutput: SubmissionDateOption[] = [
+            ...options,
+            { id: 7, type: 'output', cycle: null, periodId: 10, label: 'P10 — Batas Akhir' },
+        ]
+
+        expect(ids(submitDateChoices(withOutput, detail()))).toEqual([1, 6, 7])
     })
 
     it('payload mempertahankan id detail dan mengosongkan Batas Evaluasi saat tanpa review', () => {

@@ -157,3 +157,18 @@ Feature: Luaran Penelitian Terealisasi
     Given "Joko" berperan researcher dan tidak terdaftar di tim "P-001"
     When "Joko" menambahkan luaran bertipe "publication" ke "P-001"
     Then penambahan ditolak dengan 403
+
+  @BR-RO-08 @M4 @RESEARCHER-06-02 @boundary
+  Scenario: [RO-OUTPUT-26] Tanpa detail Upload Luaran, luaran tetap bisa ditambahkan setelah Batas Submit pengajuan lewat
+    Given waktu sekarang "2026-12-10 09:00:00"
+    And Batas Submit detail pengajuan "P-001" sudah lewat
+    And tahap "P-001" tidak punya detail "Upload Luaran"
+    When "Budi" menambahkan luaran bertipe "publication" ke "P-001"
+    Then penambahan berhasil
+
+  @BR-RO-08 @BR-SCH-07 @M4 @RESEARCHER-06-02 @boundary
+  Scenario: [RO-OUTPUT-27] Penutupan paksa periode tidak menutup Upload Luaran
+    Given detail "Upload Luaran" berbatas "Batas Akhir" pada "2026-12-01"
+    And Operator menutup paksa periode "P-001"
+    When "Budi" menambahkan luaran bertipe "publication" ke "P-001" pada "2026-11-20"
+    Then penambahan berhasil

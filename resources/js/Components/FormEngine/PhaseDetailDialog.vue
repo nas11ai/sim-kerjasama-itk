@@ -8,7 +8,12 @@ import OptionSelect from '@/Components/app/OptionSelect.vue'
 import PhaseDeadlineSelect from '@/Components/FormEngine/PhaseDeadlineSelect.vue'
 import { Label } from '@/Components/ui/label'
 import { Switch } from '@/Components/ui/switch'
-import { blankDetail, deadlineChoices, type EditableDetail } from '@/lib/phaseDefinition'
+import {
+    blankDetail,
+    deadlineChoices,
+    submitDateChoices,
+    type EditableDetail,
+} from '@/lib/phaseDefinition'
 import type {
     DeadlineTypeValue,
     PhaseAccessOption,
@@ -118,7 +123,7 @@ const save = () => {
         </div>
         <PhaseDeadlineSelect
             v-model="submitDate"
-            :options="choices('submit')"
+            :options="submitDateChoices(deadlineOptions, draft)"
             type="submit"
             label="Batas Submit *"
         />

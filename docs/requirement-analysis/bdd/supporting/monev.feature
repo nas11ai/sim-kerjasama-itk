@@ -222,3 +222,9 @@ Feature: Siklus Monitoring dan Evaluasi
     And "Ani" terdaftar sebagai reviewer
     When Operator menugaskan "Ani" sebagai reviewer siklus "Laporan Monev I" pada "P-001"
     Then penugasan ditolak karena konflik kepentingan
+
+  @BR-FE-26 @BR-MON-01 @M4 @RESEARCHER-05-01 @boundary
+  Scenario: [MON-CYCLE-18] Detail Upload Luaran bukan siklus monev
+    Given tahap "P-001" punya detail "Laporan Monev I", "Laporan Monev II", dan "Upload Luaran" berbatas "Batas Akhir"
+    When "Budi" membuka Daftar Monev
+    Then "P-001" menampilkan dua siklus: "Monev I" dan "Monev II"

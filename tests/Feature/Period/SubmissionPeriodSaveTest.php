@@ -228,3 +228,27 @@ it('peneliti tidak bisa menyimpan atau merevisi periode', function () {
     $this->actingAs($researcher)->post(route('admin.submission-periods.store'), $payload)->assertForbidden();
     $this->actingAs($researcher)->put(route('admin.submission-periods.update', $period), $payload)->assertForbidden();
 });
+
+it('rejects a cycle on Batas Akhir (BR-FE-25, W139)', function () {
+    $payload = periodPayload([
+        ['type' => 'submit', 'date' => '2030-01-01'],
+        ['type' => 'output', 'cycle' => 1, 'date' => '2030-06-01'],
+    ]);
+
+    $this->actingAs($this->admin)
+        ->post(route('admin.submission-periods.store'), $payload)
+        ->assertSessionHasErrors('submission_dates.1.cycle');
+});
+
+it('stores Batas Akhir without a cycle (BR-FE-25, W139)', function () {
+    $payload = periodPayload([
+        ['type' => 'submit', 'date' => '2030-01-01'],
+        ['type' => 'output', 'date' => '2030-06-01'],
+    ]);
+
+    $this->actingAs($this->admin)
+        ->post(route('admin.submission-periods.store'), $payload)
+        ->assertSessionHasNoErrors();
+
+    expect(SubmissionPeriod::firstOrFail()->submissionDates()->where('type', 'output')->value('cycle'))->toBeNull();
+});

@@ -27,11 +27,14 @@ const cycleOptions: FilterOption[] = [
     ...ROMAN.map((numeral, i) => ({ value: String(i + 1), label: `Monev ${numeral}` })),
 ]
 
-const types: readonly string[] = ['submit', 'evaluation', 'revision']
+const types: readonly string[] = ['submit', 'evaluation', 'revision', 'output']
 const isType = (value: string): value is DeadlineTypeValue => types.includes(value)
 
 const setType = (row: PeriodDateRow, value: string | null) => {
-    if (value !== null && isType(value)) row.type = value
+    if (value === null || !isType(value)) return
+    row.type = value
+    // W139 — Batas Akhir tidak bersiklus.
+    if (value === 'output') row.cycle = null
 }
 const setCycle = (row: PeriodDateRow, value: string | null) => {
     row.cycle = value === null || value === MAIN ? null : Number(value)
@@ -57,7 +60,7 @@ const remove = (index: number) => (rows.value = rows.value.filter((_, i) => i !=
                         @update:model-value="(value) => setType(row, value)"
                     />
                 </div>
-                <div class="min-w-36 flex-1 space-y-1">
+                <div v-if="row.type !== 'output'" class="min-w-36 flex-1 space-y-1">
                     <Label :for="`period-date-cycle-${index}`" class="text-xs">Siklus</Label>
                     <OptionSelect
                         :id="`period-date-cycle-${index}`"

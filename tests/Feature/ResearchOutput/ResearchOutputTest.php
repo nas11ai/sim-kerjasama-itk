@@ -23,9 +23,8 @@ use App\States\Submission\Approved;
 use App\States\Submission\UnderReview;
 use App\States\Submission\Withdrawn;
 use App\Support\Lifecycle\DeletionNotPermitted;
-use Illuminate\Validation\ValidationException;
 use Database\Seeders\PermissionSeeder;
-use Spatie\Permission\Models\Permission;
+use Illuminate\Validation\ValidationException;
 use Spatie\Permission\Models\Role;
 
 function outputType(string $code, array $override = []): OutputTypeDefinition
@@ -305,53 +304,49 @@ it('Operator seeder memegang outputs.manage', function () {
 // override; hanya menulis yang tertutup (BR-FE-15) — membedakannya memangkas
 // jumlah perpanjangan yang harus diterbitkan Operator.
 
-it('[RO-OUTPUT-14] lewat batas Upload Luaran, penyuntingan ditolak', function () {
-    $this->travelTo('2026-12-10 09:00:00');
-
-    $fx = wizardFixture();
+// Fixture W139: Batas Submit detail pengajuan sudah lewat di setiap test di bawah, karena
+// begitulah keadaan setiap pengajuan yang sudah disetujui. Yang menggerbangi hanya Batas Akhir.
+function approvedLongAgo(string $deadline = '2026-12-01 23:59:00'): array
+{
+    $fx = outputUploadFixture($deadline);
+    $fx['detail']->submissionDate->update(['datetime' => '2026-06-01 23:59:00']);
     outputType('publication');
 
-    $submission = FormSubmission::factory()->create([
-        'form_id' => $fx['form']->id,
-        'submitted_by' => $fx['user']->id,
-        'submission_period_id' => $fx['period']->id,
-        'form_phase_detail_id' => $fx['detail']->id,
-        'status' => Approved::class,
-        'is_submitted' => true,
-    ]);
+    return $fx;
+}
 
-    $fx['detail']->submissionDate->update(['datetime' => '2026-12-01 23:59:00']);
+it('[RO-OUTPUT-14] lewat batas Upload Luaran, penyuntingan ditolak', function () {
+    $this->travelTo('2026-12-10 09:00:00');
+    $fx = approvedLongAgo();
 
     $this->actingAs($fx['user'])
-        ->post(route('user.submissions.outputs.store', $submission), [
-            'output_type' => 'publication',
-        ])
+        ->post(route('user.submissions.outputs.store', $fx['submission']), ['output_type' => 'publication'])
         ->assertForbidden();
 
     expect(ResearchOutput::count())->toBe(0);
 });
 
+it('luaran bisa ditambahkan sebelum Batas Akhir meski Batas Submit pengajuan sudah lewat', function () {
+    $this->travelTo('2026-11-20 09:00:00');
+    $fx = approvedLongAgo();
+
+    $this->actingAs($fx['user'])
+        ->post(route('user.submissions.outputs.store', $fx['submission']), ['output_type' => 'publication'])
+        ->assertRedirect();
+
+    expect(ResearchOutput::count())->toBe(1);
+});
+
 it('[RO-OUTPUT-15] lewat batas, luaran lama tetap terbaca tanpa override', function () {
-    $fx = wizardFixture();
-    outputType('publication');
-
-    $submission = FormSubmission::factory()->create([
-        'form_id' => $fx['form']->id,
-        'submitted_by' => $fx['user']->id,
-        'submission_period_id' => $fx['period']->id,
-        'form_phase_detail_id' => $fx['detail']->id,
-        'status' => Approved::class,
-        'is_submitted' => true,
-    ]);
-
-    $output = SaveResearchOutput::run($submission, $fx['user'], ['output_type' => 'publication']);
+    $this->travelTo('2026-11-20 09:00:00');
+    $fx = approvedLongAgo();
+    $output = SaveResearchOutput::run($fx['submission'], $fx['user'], ['output_type' => 'publication']);
 
     $this->travelTo('2026-12-10 09:00:00');
-    $fx['detail']->submissionDate->update(['datetime' => '2026-12-01 23:59:00']);
 
     // Membaca tidak pernah bergerbang deadline — yang tertutup hanya menulis.
     $this->actingAs($fx['user'])
-        ->get(route('user.submissions.show', $submission))
+        ->get(route('user.submissions.show', $fx['submission']))
         ->assertOk();
 
     expect(ResearchOutput::find($output->id))->not->toBeNull();
@@ -359,36 +354,43 @@ it('[RO-OUTPUT-15] lewat batas, luaran lama tetap terbaca tanpa override', funct
 
 it('[RO-OUTPUT-16] override yang berlaku membuka kembali penyuntingan luaran', function () {
     $this->travelTo('2026-12-10 09:00:00');
-
-    $fx = wizardFixture();
-    outputType('publication');
-
-    $submission = FormSubmission::factory()->create([
-        'form_id' => $fx['form']->id,
-        'submitted_by' => $fx['user']->id,
-        'submission_period_id' => $fx['period']->id,
-        'form_phase_detail_id' => $fx['detail']->id,
-        'status' => Approved::class,
-        'is_submitted' => true,
-    ]);
-
-    $fx['detail']->submissionDate->update(['datetime' => '2026-12-01 23:59:00']);
-
-    Permission::findOrCreate('submissions.view-all', 'web');
-    $operator = verifiedResearcher();
-    $operator->givePermissionTo('submissions.view-all');
+    $fx = approvedLongAgo();
+    $operator = seededRole('operator');
 
     GrantPhaseOverride::run(
-        $submission,
-        $fx['detail']->fresh(),
+        $fx['submission'],
+        $fx['outputDetail']->fresh(),
         $operator,
         new PhaseOverrideInput('Kendala unggah berkas pada hari terakhir', '2026-12-20 23:59:00'),
     );
 
     $this->actingAs($fx['user'])
-        ->post(route('user.submissions.outputs.store', $submission), [
-            'output_type' => 'publication',
-        ])
+        ->post(route('user.submissions.outputs.store', $fx['submission']), ['output_type' => 'publication'])
+        ->assertRedirect();
+
+    expect(ResearchOutput::count())->toBe(1);
+});
+
+it('[RO-OUTPUT-26] tanpa detail Upload Luaran, luaran tetap bisa ditambahkan setelah Batas Submit pengajuan lewat', function () {
+    $this->travelTo('2026-12-10 09:00:00');
+    $fx = approvedLongAgo();
+    $fx['outputDetail']->delete();
+
+    $this->actingAs($fx['user'])
+        ->post(route('user.submissions.outputs.store', $fx['submission']), ['output_type' => 'publication'])
+        ->assertRedirect();
+
+    expect(ResearchOutput::count())->toBe(1);
+});
+
+it('[RO-OUTPUT-27] penutupan paksa periode tidak menutup Upload Luaran', function () {
+    $this->travelTo('2026-11-20 09:00:00');
+    $fx = approvedLongAgo();
+    // Langsung di kolomnya: CloseSubmissionPeriod melewati periode yang Batas Submit-nya sudah lewat (W68).
+    $fx['period']->update(['is_force_closed' => true]);
+
+    $this->actingAs($fx['user'])
+        ->post(route('user.submissions.outputs.store', $fx['submission']), ['output_type' => 'publication'])
         ->assertRedirect();
 
     expect(ResearchOutput::count())->toBe(1);

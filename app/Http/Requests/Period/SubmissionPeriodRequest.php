@@ -35,7 +35,7 @@ class SubmissionPeriodRequest extends FormRequest
     /** @return list<callable(Validator): void> */
     public function after(): array
     {
-        return [$this->assertTypesDistinct(...)];
+        return [$this->assertTypesDistinct(...), $this->assertOutputHasNoCycle(...)];
     }
 
     private function assertTypesDistinct(Validator $validator): void
@@ -49,6 +49,16 @@ class SubmissionPeriodRequest extends FormRequest
         }
 
         $validator->errors()->add('submission_dates', 'Setiap jenis tenggat hanya boleh muncul satu kali per siklus.');
+    }
+
+    // W139 — Batas Akhir (Upload Luaran) satu per periode, tidak per siklus monev.
+    private function assertOutputHasNoCycle(Validator $validator): void
+    {
+        foreach ($this->array('submission_dates') as $index => $row) {
+            if (is_array($row) && ($row['type'] ?? null) === DeadlineType::Output->value && !blank($row['cycle'] ?? null)) {
+                $validator->errors()->add("submission_dates.{$index}.cycle", 'Batas Akhir tidak bersiklus.');
+            }
+        }
     }
 
     public function toInput(): SubmissionPeriodInput

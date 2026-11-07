@@ -48,6 +48,8 @@ class MonevCycles implements ChangesNoState
         return FormPhaseDetail::query()
             ->where('form_phase_id', $own->form_phase_id)
             ->where('order', '>', $own->order)
+            // W139 — detail Upload Luaran milik luaran, bukan siklus monev.
+            ->whereHas('submissionDate', fn (Builder $date) => $date->where('type', '!=', DeadlineType::Output->value))
             ->with(['submissionDate.submissionPeriod', 'phaseType', 'formAccessControl'])
             ->ordered()
             ->get();
@@ -66,6 +68,9 @@ class MonevCycles implements ChangesNoState
             fn (QueryBuilder $later) => $later->from('form_phase_details as later')
                 ->whereColumn('later.form_phase_id', 'form_phase_details.form_phase_id')
                 ->whereColumn('later.order', '>', 'form_phase_details.order')
+                ->whereExists(fn (QueryBuilder $date) => $date->from('submission_dates')
+                    ->whereColumn('submission_dates.id', 'later.submission_date_id')
+                    ->where('submission_dates.type', '!=', DeadlineType::Output->value))
         ));
     }
 

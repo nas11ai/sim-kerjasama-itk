@@ -283,3 +283,16 @@ it('offers each deadline with its type and cycle so the screen can filter them',
         ->where('deadlineOptions', fn ($options) => collect($options)->contains(fn ($o) => $o['id'] === $d['Batas Evaluasi Monev I']->id
             && $o['type'] === 'evaluation' && $o['cycle'] === 1)));
 });
+
+it('saves an Upload Luaran detail bound to Batas Akhir (BR-FE-26, W139)', function () {
+    $d = typedDeadlines(['Batas Akhir']);
+
+    storeTypedPhase(typedRow($this->detail, false, $d['Batas Akhir']))->assertSessionHasNoErrors();
+});
+
+it('rejects a reviewed Upload Luaran detail (BR-FE-26, W139)', function () {
+    $d = typedDeadlines(['Batas Akhir', 'Batas Evaluasi']);
+
+    storeTypedPhase(typedRow($this->detail, true, $d['Batas Akhir'], $d['Batas Evaluasi']))
+        ->assertSessionHasErrors('phase_details.0.needs_review');
+});

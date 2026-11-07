@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Models\FormSubmission;
 use App\Models\ResearchOutput;
 use App\Models\User;
+use App\Queries\ResearchOutput\OutputUploadDetail;
 use App\Support\PhaseAccessGate;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -70,10 +71,9 @@ class ResearchOutputController extends Controller
         abort_unless($user !== null && $submission->isAccessibleBy($user), 403);
         abort_unless($user->can('manageResearchOutput', $submission), 403);
 
-        // BR-RO-08 — sumbu **kapan**. Batasnya milik FormPhaseDetail tempat
-        // luaran bergantung, bukan mekanisme tersendiri; membaca tetap terbuka
-        // setelah tenggat, hanya menulis yang tertutup (BR-FE-15).
-        PhaseAccessGate::assertOpenFor($submission, $submission->formPhaseDetail);
+        // BR-RO-08 — sumbu **kapan**: Batas Akhir detail Upload Luaran (W139), bukan Batas Submit
+        // pengajuan yang selalu lewat saat disetujui. Membaca tetap terbuka (BR-FE-15).
+        PhaseAccessGate::assertOpenFor($submission, OutputUploadDetail::for($submission));
 
         return $user;
     }

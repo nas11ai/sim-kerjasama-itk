@@ -23,10 +23,11 @@ class AssertPhaseDeadlines implements ChangesNoState
 {
     use AsAction;
 
+    /** Jenis yang sah per kolom; Batas Submit detail Upload Luaran berjenis `output` (W139). */
     private const COLUMNS = [
-        'submission_date_id' => DeadlineType::Submit,
-        'evaluation_date_id' => DeadlineType::Evaluation,
-        'revision_date_id' => DeadlineType::Revision,
+        'submission_date_id' => [DeadlineType::Submit, DeadlineType::Output],
+        'evaluation_date_id' => [DeadlineType::Evaluation],
+        'revision_date_id' => [DeadlineType::Revision],
     ];
 
     /**
@@ -98,16 +99,12 @@ class AssertPhaseDeadlines implements ChangesNoState
      */
     private function bindingErrors(int $index, bool $needsReview, array $ids, Collection $dates): array
     {
-        $errors = [];
         $submit = $dates->get($ids['submission_date_id'] ?? 0);
+        $errors = $needsReview ? $this->reviewErrors($index, $ids, $submit) : [];
 
-        if ($needsReview && $ids['evaluation_date_id'] === null) {
-            $errors["phase_details.{$index}.evaluation_date_id"] = 'Detail yang direview wajib punya Batas Evaluasi.';
-        }
-
-        foreach (self::COLUMNS as $column => $type) {
+        foreach (self::COLUMNS as $column => $types) {
             $date = $dates->get($ids[$column] ?? 0);
-            $message = $date === null ? null : $this->mismatch($date, $type, $submit);
+            $message = $date === null ? null : $this->mismatch($date, $types, $submit);
 
             if ($message !== null) {
                 $errors["phase_details.{$index}.{$column}"] = $message;
@@ -117,10 +114,33 @@ class AssertPhaseDeadlines implements ChangesNoState
         return $errors;
     }
 
-    private function mismatch(SubmissionDate $date, DeadlineType $type, ?SubmissionDate $submit): ?string
+    /**
+     * Detail yang direview: wajib punya Batas Evaluasi, dan bukan detail Upload Luaran (W139,
+     * DDD monev Detail 7).
+     *
+     * @param  array<string, int|null>  $ids
+     * @return array<string, string>
+     */
+    private function reviewErrors(int $index, array $ids, ?SubmissionDate $submit): array
     {
-        if ($date->type !== $type) {
-            return "Tenggat ini harus berjenis {$type->label()}.";
+        $errors = [];
+
+        if ($submit?->type === DeadlineType::Output) {
+            $errors["phase_details.{$index}.needs_review"] = 'Detail Upload Luaran tidak direview.';
+        }
+
+        if ($ids['evaluation_date_id'] === null) {
+            $errors["phase_details.{$index}.evaluation_date_id"] = 'Detail yang direview wajib punya Batas Evaluasi.';
+        }
+
+        return $errors;
+    }
+
+    /** @param  list<DeadlineType>  $types */
+    private function mismatch(SubmissionDate $date, array $types, ?SubmissionDate $submit): ?string
+    {
+        if (!in_array($date->type, $types, true)) {
+            return "Tenggat ini harus berjenis {$types[0]->label()}.";
         }
 
         if ($submit === null || ($date->submission_period_id === $submit->submission_period_id && $date->cycle === $submit->cycle)) {

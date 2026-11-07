@@ -142,10 +142,17 @@ class FormPhaseDetail extends Model
     public function deadlineOf(DeadlineType $type): ?SubmissionDate
     {
         return match ($type) {
-            DeadlineType::Submit => $this->submissionDate,
+            // W139 — detail Upload Luaran memegang Batas Akhir di kolom Batas Submit-nya.
+            DeadlineType::Submit, DeadlineType::Output => $this->submissionDate,
             DeadlineType::Evaluation => $this->evaluationDate,
             DeadlineType::Revision => $this->revisionDate ?? $this->submissionDate,
         };
+    }
+
+    /** W139 — detail Upload Luaran (DDD monev Detail 7): Batas Submit-nya berjenis `output`. */
+    public function isOutputUpload(): bool
+    {
+        return $this->submissionDate->type === DeadlineType::Output;
     }
 
     /**

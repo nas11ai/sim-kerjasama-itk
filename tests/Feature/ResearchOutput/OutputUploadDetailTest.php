@@ -1,0 +1,69 @@
+<?php
+
+// tests/Feature/ResearchOutput/OutputUploadDetailTest.php
+//
+// W139 — detail "Upload Luaran" (DDD monev Detail 7) dikenali dari tenggat berjenis `output`
+// (Batas Akhir). Hanya detail itu yang menggerbangi luaran; ia tidak menerima pengajuan.
+
+use App\Actions\FormSubmission\StartSubmission;
+use App\Models\Form;
+use App\Models\FormAccessControl;
+use App\Models\FormPhase;
+use App\Models\FormPhaseDetail;
+use App\Queries\ResearchOutput\OutputUploadDetail;
+use App\Queries\Submission\ResearcherStartOptions;
+use Illuminate\Validation\ValidationException;
+
+it('mengenali detail Upload Luaran induknya', function () {
+    $fx = outputUploadFixture();
+
+    expect(OutputUploadDetail::for($fx['submission'])?->id)->toBe($fx['outputDetail']->id);
+});
+
+it('tanpa detail Upload Luaran hasilnya null', function () {
+    $fx = outputUploadFixture();
+    $fx['outputDetail']->delete();
+
+    expect(OutputUploadDetail::for($fx['submission']))->toBeNull();
+});
+
+it('detail Upload Luaran tahap lain atau sebelum detail induk tidak dihitung', function () {
+    $fx = outputUploadFixture();
+    $fx['outputDetail']->update(['order' => 0]);
+
+    $otherPhase = FormPhase::create(['title' => 'Tahap Lain', 'is_active' => true]);
+    FormPhaseDetail::create([
+        ...$fx['outputDetail']->only(['form_access_control_id', 'phase_type_id', 'submission_date_id']),
+        'form_phase_id' => $otherPhase->id,
+        'order' => 9,
+    ]);
+
+    expect(OutputUploadDetail::for($fx['submission']))->toBeNull();
+});
+
+it('detail Upload Luaran tidak menerima pengajuan', function () {
+    $fx = outputUploadFixture();
+
+    // Form tersendiri untuk detail Upload Luaran: kalau berbagi Form pengajuan, detail
+    // pengajuan (order lebih kecil) selalu menang dan detail ini tak pernah ditawarkan.
+    $form = Form::factory()->create();
+    $control = FormAccessControl::create([
+        'form_id' => $form->id,
+        'permission' => 'submissions.create',
+        'organization_id' => $fx['user']->userProfile->organization_id,
+    ]);
+    $fx['outputDetail']->update(['form_access_control_id' => $control->id]);
+
+    $offered = collect(ResearcherStartOptions::run($fx['user']))
+        ->flatMap(fn ($period) => $period->forms)
+        ->map(fn ($option) => $option->formId);
+
+    expect($offered)->not->toContain($form->id);
+
+    expect(fn () => StartSubmission::run($form->id, $fx['period']->id, $fx['outputDetail']->fresh(), $fx['user']))
+        ->toThrow(fn (ValidationException $e) => expect($e->errors())->toHaveKey('form_phase_detail_id'));
+});
+
+it('tenggat Upload Luaran berlabel Batas Akhir', function () {
+    expect(outputUploadFixture()['outputDetail']->submissionDate->label())->toBe('Batas Akhir');
+});

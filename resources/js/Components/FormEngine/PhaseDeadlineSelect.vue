@@ -20,7 +20,10 @@ const props = defineProps<{
 }>()
 const model = defineModel<number | null>({ required: true })
 
-const choices = computed(() => props.options.filter((option) => option.type === props.type))
+// Cermin AssertPhaseDeadlines::COLUMNS: kolom Batas Submit juga menampung Batas Akhir (W139).
+const accepts = (type: DeadlineTypeValue) =>
+    type === props.type || (props.type === 'submit' && type === 'output')
+const choices = computed(() => props.options.filter((option) => accepts(option.type)))
 </script>
 
 <template>

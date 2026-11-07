@@ -36,7 +36,7 @@ class ResearcherStartOptions implements ChangesNoState
                 'submissionPeriodPhases.formPhase.formPhaseDetails' => fn (Relation $q) => $q
                     ->whereIn('form_access_control_id', FormAccessControl::query()->accessibleBy($user)->select('id'))
                     ->orderBy('order')
-                    ->with(['formAccessControl.form:id,title,is_active', 'submissionDate:id,submission_period_id']),
+                    ->with(['formAccessControl.form:id,title,is_active', 'submissionDate:id,submission_period_id,type']),
             ])
             ->orderBy('id')
             ->get()
@@ -93,7 +93,8 @@ class ResearcherStartOptions implements ChangesNoState
     {
         $form = $detail->formAccessControl?->form;
 
-        if ($form === null) {
+        // W139 — detail Upload Luaran bukan pintu pengajuan baru.
+        if ($form === null || $detail->isOutputUpload()) {
             return null;
         }
 

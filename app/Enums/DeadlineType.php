@@ -4,13 +4,15 @@ namespace App\Enums;
 
 /**
  * BR-FE-25 — jenis tenggat tetap, pengganti label teks bebas (W72). Tiap jenis punya satu
- * pemakai (BR-FE-26): `submit` pengisi, `evaluation` reviewer, `revision` pengisi saat revisi.
+ * pemakai (BR-FE-26): `submit` pengisi, `evaluation` reviewer, `revision` pengisi saat revisi,
+ * `output` penulis luaran di detail Upload Luaran (W139, tanpa siklus).
  */
 enum DeadlineType: string
 {
     case Submit = 'submit';
     case Evaluation = 'evaluation';
     case Revision = 'revision';
+    case Output = 'output';
 
     private const ROMAN = [1 => 'I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X'];
 
@@ -31,6 +33,7 @@ enum DeadlineType: string
                 self::Submit => 'Batas Submit',
                 self::Evaluation => 'Batas Evaluasi',
                 self::Revision => 'Batas Revisi',
+                self::Output => 'Batas Akhir',
             };
         }
 
@@ -40,6 +43,7 @@ enum DeadlineType: string
             self::Submit => "Batas Laporan {$monev}",
             self::Evaluation => "Batas Evaluasi {$monev}",
             self::Revision => "Batas Revisi {$monev}",
+            self::Output => 'Batas Akhir',
         };
     }
 }

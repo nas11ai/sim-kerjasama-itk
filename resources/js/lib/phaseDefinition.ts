@@ -85,6 +85,17 @@ export function deadlineChoices(
     return ofType.filter((o) => o.periodId === submit.periodId && o.cycle === submit.cycle)
 }
 
+// W139 — kolom Batas Submit juga menampung Batas Akhir: detail itu menjadi detail Upload Luaran.
+export function submitDateChoices(
+    options: SubmissionDateOption[],
+    detail: EditableDetail
+): SubmissionDateOption[] {
+    return [
+        ...deadlineChoices(options, 'submit', detail),
+        ...deadlineChoices(options, 'output', detail),
+    ]
+}
+
 // W96 — `order` diwajibkan FormPhaseRequest, tetapi NormalisePhaseDetailOrder yang menentukannya.
 export function toPhasePayload(general: PhaseGeneral, details: EditableDetail[]) {
     return {
