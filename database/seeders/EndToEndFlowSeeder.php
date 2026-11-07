@@ -56,7 +56,7 @@ class EndToEndFlowSeeder extends Seeder
         Permission::findOrCreate('submissions.view-all', 'web');
         // BR-REV-01 — penugasan reviewer dijaga Policy `assignReviewers` (reviewers.assign).
         Permission::findOrCreate('reviewers.assign', 'web');
-        $operator->givePermissionTo(['users.manage', 'submissions.view-all', 'reviewers.assign']);
+        $operator->givePermissionTo(['users.manage', 'organizations.manage', 'submissions.view-all', 'reviewers.assign']);
 
         foreach (['reviewer1@itk.ac.id' => 'Dr. Sari Wijaya', 'reviewer2@itk.ac.id' => 'Dr. Andi Mappa'] as $email => $name) {
             $user = $this->user($email, $name, $organization);

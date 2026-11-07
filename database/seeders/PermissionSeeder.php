@@ -32,6 +32,8 @@ class PermissionSeeder extends Seeder
         'outputs.manage',
         'users.verify',
         'users.manage',
+        // W105 — keputusan pemilik 2026-11-07: struktur organisasi bukan wewenang akun.
+        'organizations.manage',
         'reporting.export',
         'reporting.view-audit-log',
         // fe-v2-design §4.7 K5 — di luar katalog DDD, diputuskan pemilik 2026-10-25.
@@ -65,6 +67,7 @@ class PermissionSeeder extends Seeder
             'reviewers.assign',
             'periods.manage',
             'users.verify',
+            'organizations.manage',
             'reporting.export',
             'reporting.view-audit-log',
             'announcements.manage',

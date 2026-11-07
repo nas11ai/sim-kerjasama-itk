@@ -5,7 +5,7 @@ namespace App\Http\Requests\Identity;
 use App\Models\User;
 use Illuminate\Foundation\Http\FormRequest;
 
-/** BR-IAM-18 — memindahkan user ke unit lain (ADMIN-08-02). Wewenang dijaga `can:users.manage`. */
+/** BR-IAM-18 — memindahkan user ke unit lain (ADMIN-08-02). Wewenang dijaga `can:organizations.manage`. */
 class MoveUserRequest extends FormRequest
 {
     public function authorize(): bool

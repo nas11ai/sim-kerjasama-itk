@@ -1,7 +1,7 @@
 # BC: Identity & Access
 
 **Klasifikasi:** 🟢 Generic Domain  
-**Versi:** 2.5  
+**Versi:** 2.6  
 **Status:** Draft
 
 ---
@@ -166,7 +166,7 @@ reviewers.evaluate        reviewers.view-scores-others
 periods.manage            schemes.manage
 outputs.manage            users.verify
 users.manage              reporting.export
-reporting.view-audit-log
+reporting.view-audit-log  organizations.manage
 ```
 
 **Roles:**
@@ -176,7 +176,7 @@ reporting.view-audit-log
 | `researcher`        | submissions.create, view-own, budget.edit, members.manage, outputs.manage              |
 | `reviewer_internal` | reviewers.evaluate, submissions.view-assigned, reviewers.view-scores-others            |
 | `reviewer_external` | reviewers.evaluate, submissions.view-assigned                                          |
-| `operator`          | submissions.view-all, reviewers.assign, periods.manage, users.verify, reporting.export |
+| `operator`          | submissions.view-all, reviewers.assign, periods.manage, users.verify, organizations.manage, reporting.export |
 | `admin`             | semua                                                                                  |
 
 ---

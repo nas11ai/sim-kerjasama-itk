@@ -258,9 +258,9 @@ it('[IAM-REG-19] domain yang ditulis huruf besar tetap diterima', function () {
 });
 
 it('[IAM-ORG-01] jalur HTTP menolak penghapusan unit yang masih berisi profil', function () {
-    Permission::findOrCreate('users.manage', 'web');
+    Permission::findOrCreate('organizations.manage', 'web');
     $admin = User::factory()->create();
-    $admin->givePermissionTo('users.manage');
+    $admin->givePermissionTo('organizations.manage');
 
     $org = identityOrg();
     UserProfile::factory()->create(['user_id' => User::factory()->create()->id, 'organization_id' => $org->id]);

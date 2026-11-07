@@ -23,7 +23,7 @@ use Inertia\Inertia;
 use Inertia\Response;
 
 /**
- * ADMIN-08-02 — struktur organisasi. Route dijaga `can:users.manage` (W105, Given IAM-ORG-09).
+ * ADMIN-08-02 — struktur organisasi. Route dijaga `can:organizations.manage` (W105).
  * Hapus (BR-IAM-08) dan nonaktifkan (BR-IAM-14) dua endpoint karena ambangnya berbeda.
  */
 class OrganizationController extends Controller

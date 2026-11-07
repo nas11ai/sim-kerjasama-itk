@@ -52,10 +52,10 @@ Keuntungan pendekatan ini:
 │    Export Data              │  permission: reporting.export
 │    Audit Log                │  permission: reporting.view-audit-log
 │                             │
-│  ── Konfigurasi ────────    │  permission: forms.manage ATAU schemes.manage
+│  ── Konfigurasi ────────    │  permission: forms.manage / schemes.manage / organizations.manage
 │    Form Builder             │  permission: forms.manage
 │    Skema Penelitian         │  permission: schemes.manage
-│    Organisasi               │  permission: schemes.manage
+│    Organisasi               │  permission: organizations.manage
 │    Konfigurasi Umum         │  permission: schemes.manage
 │                             │
 ├─────────────────────────────┤
@@ -87,7 +87,7 @@ Keuntungan pendekatan ini:
 | Audit Log           | `reporting.view-audit-log`                         | —                                  |
 | Form Builder        | `forms.manage`                                     | —                                  |
 | Skema Penelitian    | `schemes.manage`                                   | —                                  |
-| Organisasi          | `schemes.manage`                                   | —                                  |
+| Organisasi          | `organizations.manage`                             | —                                  |
 | Konfigurasi Umum    | `schemes.manage`                                   | —                                  |
 
 > Referensi permission ke role mapping: `→ ddd/generic/02_identity_access.md` (tabel Spatie Permission Design)

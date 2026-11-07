@@ -1,6 +1,6 @@
 <?php
 
-// ADMIN-08-02 — kontrak Struktur Organisasi, wewenang `users.manage` (W105), pohon yang memuat
+// ADMIN-08-02 — kontrak Struktur Organisasi, wewenang `organizations.manage` (W105), pohon yang memuat
 // unit nonaktif dan data bersiklus, dan sensus yang sama dengan penjaga Action (W116).
 
 use App\Actions\Identity\DeactivateOrganization;
@@ -20,7 +20,7 @@ beforeEach(fn () => $this->seed(PermissionSeeder::class));
 function organizationScreenActor(): User
 {
     $user = User::factory()->create();
-    $user->givePermissionTo('users.manage');
+    $user->givePermissionTo('organizations.manage');
 
     return $user;
 }
@@ -106,8 +106,10 @@ it('kontrak struktur organisasi', function () {
             ->has('parentOptions', 2));
 });
 
-it('wewenang: users.manage 200, schemes.manage saja 403, peneliti 403', function () {
+it('wewenang: organizations.manage 200, users.manage saja 403, schemes.manage saja 403, peneliti 403', function () {
     $unit = organizationScreenUnit('Pusat Studi');
+    $usersOnly = User::factory()->create();
+    $usersOnly->givePermissionTo('users.manage');
     $schemesOnly = User::factory()->create();
     $schemesOnly->givePermissionTo('schemes.manage');
     $researcher = User::factory()->create();
@@ -115,7 +117,7 @@ it('wewenang: users.manage 200, schemes.manage saja 403, peneliti 403', function
 
     $this->actingAs(organizationScreenActor())->get(route('admin.organizations.index'))->assertOk();
 
-    foreach ([$schemesOnly, $researcher] as $actor) {
+    foreach ([$usersOnly, $schemesOnly, $researcher] as $actor) {
         $this->actingAs($actor)->get(route('admin.organizations.index'))->assertForbidden();
         $this->actingAs($actor)->post(route('admin.organizations.store'), ['name' => 'Baru', 'type' => 'unit'])->assertForbidden();
         $this->actingAs($actor)->put(route('admin.organizations.update', $unit), ['name' => 'Lain'])->assertForbidden();
@@ -127,6 +129,25 @@ it('wewenang: users.manage 200, schemes.manage saja 403, peneliti 403', function
     expect($unit->fresh())->not->toBeNull()
         ->and($unit->fresh()->name)->toBe('Pusat Studi')
         ->and($unit->fresh()->is_active)->toBeTrue();
+});
+
+it('wewenang: operator peran seeder mengelola organisasi tanpa users.manage', function () {
+    $from = organizationScreenUnit('Teknik Kimia');
+    $to = organizationScreenUnit('Teknik Mesin');
+    $budi = organizationScreenMember($from);
+    $operator = User::factory()->create();
+    $operator->assignRole('operator');
+
+    $this->actingAs($operator)->get(route('admin.organizations.index'))->assertOk();
+    $this->actingAs($operator)
+        ->post(route('admin.organizations.move-user', $to), ['user_id' => $budi->id])
+        ->assertSessionHasNoErrors();
+    // Wewenang akun (ubah peran) tetap milik users.manage.
+    $this->actingAs($operator)
+        ->put(route('admin.users.roles.update', $budi), ['roles' => ['researcher']])
+        ->assertForbidden();
+
+    expect($budi->fresh()->userProfile->organization_id)->toBe($to->id);
 });
 
 it('pohon memuat unit nonaktif dan urut depth-first', function () {

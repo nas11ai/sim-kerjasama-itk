@@ -27,6 +27,7 @@ final class PermissionCatalog
         'outputs.manage' => 'Mengelola luaran',
         'users.verify' => 'Memverifikasi NIDN',
         'users.manage' => 'Mengelola user & hak akses',
+        'organizations.manage' => 'Mengelola struktur organisasi',
         'reporting.export' => 'Mengekspor laporan',
         'reporting.view-audit-log' => 'Melihat audit log',
         'announcements.manage' => 'Mengelola pengumuman',

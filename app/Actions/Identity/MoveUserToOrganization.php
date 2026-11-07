@@ -26,7 +26,7 @@ class MoveUserToOrganization
      */
     public function handle(User $actor, User $user, Organization $tujuan): void
     {
-        if (!$actor->can('users.manage')) {
+        if (!$actor->can('organizations.manage')) {
             throw new AuthorizationException('Hanya Operator yang dapat memindahkan user antar unit.');
         }
 

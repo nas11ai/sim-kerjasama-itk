@@ -54,3 +54,12 @@ test('PermissionSeeder is idempotent for permissions and role grants', function 
         ->and(Role::findByName('operator', PermissionSeeder::GUARD)->permissions->pluck('name')->all())
         ->toEqualCanonicalizing(PermissionSeeder::ROLE_PERMISSIONS['operator']);
 });
+
+test('seeder memberi organizations.manage ke operator dan admin', function () {
+    $this->seed(PermissionSeeder::class);
+
+    // W105 — keputusan pemilik 2026-11-07: struktur organisasi bukan wewenang users.manage.
+    expect(Role::findByName('operator', PermissionSeeder::GUARD)->hasPermissionTo('organizations.manage'))->toBeTrue()
+        ->and(Role::findByName('admin', PermissionSeeder::GUARD)->hasPermissionTo('organizations.manage'))->toBeTrue()
+        ->and(Role::findByName('operator', PermissionSeeder::GUARD)->hasPermissionTo('users.manage'))->toBeFalse();
+});

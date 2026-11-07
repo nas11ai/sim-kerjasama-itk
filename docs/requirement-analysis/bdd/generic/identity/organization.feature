@@ -67,7 +67,7 @@ Feature: Penghapusan dan Deaktivasi Organisasi
 
   @BR-IAM-17 @M3 @ADMIN-08-02 @happy
   Scenario: [IAM-ORG-09] Operator membuat unit induk baru
-    Given Operator memegang permission "users.manage"
+    Given Operator memegang permission "organizations.manage"
     When Operator membuat unit "Pusat Studi Energi" tanpa induk
     Then unit itu tersimpan sebagai akar pohon organisasi
 

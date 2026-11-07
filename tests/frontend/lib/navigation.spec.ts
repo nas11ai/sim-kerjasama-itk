@@ -35,6 +35,7 @@ const FULL_CATALOG = [
     'outputs.manage',
     'users.verify',
     'users.manage',
+    'organizations.manage',
     'reporting.export',
     'reporting.view-audit-log',
     'announcements.manage',
@@ -81,14 +82,16 @@ describe('visibleNavGroups', () => {
         )
     })
 
-    it('Organisasi tampil untuk users.manage, tidak untuk schemes.manage saja (W105)', () => {
-        const usersManage = visibleNavGroups(navGroups, ['users.manage'], NO_APPROVED)
-        const organisasi = usersManage.flatMap((g) => g.items).find((i) => i.label === 'Organisasi')
+    it('Organisasi tampil untuk organizations.manage, tidak untuk users.manage atau schemes.manage saja (W105)', () => {
+        const granted = visibleNavGroups(navGroups, ['organizations.manage'], NO_APPROVED)
+        const organisasi = granted.flatMap((g) => g.items).find((i) => i.label === 'Organisasi')
 
         expect(organisasi?.routeName).toBe('admin.organizations.index')
-        expect(labels(visibleNavGroups(navGroups, ['schemes.manage'], NO_APPROVED))).not.toContain(
-            'Organisasi'
-        )
+        for (const permission of ['users.manage', 'schemes.manage']) {
+            expect(labels(visibleNavGroups(navGroups, [permission], NO_APPROVED))).not.toContain(
+                'Organisasi'
+            )
+        }
     })
 
     it('item ber-routeName null tidak pernah tampil, termasuk untuk katalog penuh', () => {

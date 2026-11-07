@@ -397,8 +397,8 @@ Route::middleware(['auth', 'can:schemes.manage'])->prefix('admin')->name('admin.
     Route::post('/schemes/{scheme}/activate', [SchemeController::class, 'activate'])->name('schemes.activate');
 });
 
-// ADMIN-08-02 — struktur organisasi dikelola pemegang users.manage (W105: Given IAM-ORG-09).
-Route::middleware(['auth', 'can:users.manage'])->prefix('admin')->name('admin.')->group(function () {
+// ADMIN-08-02 — struktur organisasi dikelola pemegang organizations.manage (W105, pemilik 2026-11-07).
+Route::middleware(['auth', 'can:organizations.manage'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/organizations', [OrganizationController::class, 'index'])->name('organizations.index');
     // BR-IAM-17 — menyusun pohon organisasi.
     Route::post('/organizations', [OrganizationController::class, 'store'])->name('organizations.store');

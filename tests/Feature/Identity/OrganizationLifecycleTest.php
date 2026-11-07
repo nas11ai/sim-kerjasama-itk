@@ -22,6 +22,7 @@ use App\Models\Organization;
 use App\Models\User;
 use App\Models\UserProfile;
 use App\Services\FormAccessService;
+use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Validation\ValidationException;
 use Spatie\Permission\Models\Permission;
 
@@ -129,9 +130,9 @@ it('[IAM-ORG-08] organisasi nonaktif memutus rantai leluhur access control', fun
 });
 
 it('[IAM-ORG-04] jalur HTTP menolak deaktivasi unit berisi user aktif', function () {
-    Permission::findOrCreate('users.manage', 'web');
+    Permission::findOrCreate('organizations.manage', 'web');
     $admin = User::factory()->create();
-    $admin->givePermissionTo('users.manage');
+    $admin->givePermissionTo('organizations.manage');
 
     $t = orgTree();
     userIn($t['prodi'], active: true);
@@ -147,10 +148,10 @@ it('[IAM-ORG-04] jalur HTTP menolak deaktivasi unit berisi user aktif', function
 
 function operatorOrganisasi(): User
 {
-    Permission::findOrCreate('users.manage', 'web');
+    Permission::findOrCreate('organizations.manage', 'web');
     $user = User::factory()->create(['is_active' => true]);
     UserProfile::factory()->create(['user_id' => $user->id]);
-    $user->givePermissionTo('users.manage');
+    $user->givePermissionTo('organizations.manage');
 
     return $user->fresh();
 }
@@ -164,6 +165,16 @@ it('[IAM-ORG-09] operator membuat unit induk baru', function () {
 
     expect($unit->parent_id)->toBeNull()
         ->and($unit->is_active)->toBeTrue();
+});
+
+it('[IAM-ORG-09] pemegang users.manage saja tidak bisa menyusun struktur', function () {
+    // W105 — struktur organisasi milik organizations.manage, bukan wewenang akun.
+    Permission::findOrCreate('users.manage', 'web');
+    $usersOnly = User::factory()->create();
+    $usersOnly->givePermissionTo('users.manage');
+
+    expect(fn () => SaveOrganization::run($usersOnly, ['name' => 'Pusat Baru', 'type' => 'unit']))
+        ->toThrow(AuthorizationException::class);
 });
 
 it('[IAM-ORG-10] operator membuat sub-unit di bawah unit yang ada', function () {

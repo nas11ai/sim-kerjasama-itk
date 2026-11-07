@@ -29,7 +29,7 @@ class SaveOrganization
      */
     public function handle(User $actor, array $attributes, ?Organization $organization = null): Organization
     {
-        if (!$actor->can('users.manage')) {
+        if (!$actor->can('organizations.manage')) {
             throw new AuthorizationException('Hanya Operator yang dapat menyusun struktur organisasi.');
         }
 

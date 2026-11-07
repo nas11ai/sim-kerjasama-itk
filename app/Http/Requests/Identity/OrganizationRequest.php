@@ -8,7 +8,7 @@ use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\In;
 
-/** ADMIN-08-02 — membuat dan menyunting unit (BR-IAM-17). Wewenang dijaga `can:users.manage`. */
+/** ADMIN-08-02 — membuat dan menyunting unit (BR-IAM-17). Wewenang dijaga `can:organizations.manage`. */
 class OrganizationRequest extends FormRequest
 {
     public function authorize(): bool
