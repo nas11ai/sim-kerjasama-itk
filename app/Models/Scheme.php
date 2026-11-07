@@ -16,6 +16,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property-read SubmissionType|null $submissionType
  * @property-read SchemeType|null $schemeType
  * @property int $id
+ * @property int|null $scheme_type_id
+ * @property int|null $submission_type_id
  * @property int $max_budget
  * @property int $max_members
  * @property int $duration_months
@@ -102,9 +104,23 @@ class Scheme extends Model
     /** BR-SM-20 — batas anggota mahasiswa; null bila skema tidak menyatakannya. */
     public function studentMemberLimit(): ?int
     {
-        $max = $this->getRule('max_student_members');
+        return $this->positiveIntRule('max_student_members');
+    }
 
-        return is_int($max) && $max > 0 ? $max : null;
+    /** W107 — aturan bilangan bulat positif; nilai lain dibaca kosong, sama seperti pembacanya. */
+    public function positiveIntRule(string $key): ?int
+    {
+        $value = $this->getRule($key);
+
+        return is_int($value) && $value > 0 ? $value : null;
+    }
+
+    /** @return list<string> aturan berupa daftar kode; selain teks dibuang */
+    public function codeListRule(string $key): array
+    {
+        $value = $this->getRule($key);
+
+        return is_array($value) ? array_values(array_filter($value, is_string(...))) : [];
     }
 
     public function minReviewerCount(): int

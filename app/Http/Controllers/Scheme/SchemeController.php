@@ -5,14 +5,14 @@ namespace App\Http\Controllers\Scheme;
 use App\Actions\Scheme\ActivateScheme;
 use App\Actions\Scheme\DeactivateScheme;
 use App\Actions\Scheme\SaveScheme;
-use App\Data\Request\SchemeInput;
+use App\Data\View\Scheme\SchemeEditData;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Scheme\SchemeRequest;
 use App\Models\Scheme;
 use App\Queries\Scheme\SchemeDirectory;
+use App\Queries\Scheme\SchemeFormOptions;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\ValidatedInput;
-use Illuminate\Validation\Rule;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -35,16 +35,30 @@ class SchemeController extends Controller
         ]);
     }
 
-    public function store(Request $request): RedirectResponse
+    public function create(): Response
     {
-        SaveScheme::run($this->validated($request, null));
-
-        return back()->with('success', 'Skema dibuat.');
+        return Inertia::render('Scheme/FormPage', ['scheme' => null, 'options' => SchemeFormOptions::run(null)]);
     }
 
-    public function update(Request $request, Scheme $scheme): RedirectResponse
+    public function store(SchemeRequest $request): RedirectResponse
     {
-        SaveScheme::run($this->validated($request, $scheme), $scheme);
+        $scheme = SaveScheme::run($request->toInput());
+
+        // W106 — skema baru langsung dibuka di halaman suntingnya.
+        return redirect()->route('admin.schemes.edit', $scheme)->with('success', 'Skema dibuat.');
+    }
+
+    public function edit(Scheme $scheme): Response
+    {
+        return Inertia::render('Scheme/FormPage', [
+            'scheme' => SchemeEditData::fromModel($scheme),
+            'options' => SchemeFormOptions::run($scheme),
+        ]);
+    }
+
+    public function update(SchemeRequest $request, Scheme $scheme): RedirectResponse
+    {
+        SaveScheme::run($request->toInput(), $scheme);
 
         return back()->with('success', 'Skema diperbarui.');
     }
@@ -62,25 +76,5 @@ class SchemeController extends Controller
         ActivateScheme::run($scheme);
 
         return back()->with('success', 'Skema diaktifkan kembali.');
-    }
-
-    private function validated(Request $request, ?Scheme $scheme): SchemeInput
-    {
-        $data = $request->validate([
-            'name' => 'required|string|max:255',
-            // BR-SCH-03 — kode unik; aturan ini memberi pesan pada field yang benar alih-alih 500.
-            'code' => ['required', 'string', 'max:64', Rule::unique('schemes', 'code')->ignore($scheme?->id)],
-            // BR-SCH-02 — batas bernilai nol menolak setiap anggaran dan anggota tanpa sebab yang terlihat.
-            'max_budget' => 'required|integer|min:1',
-            'max_members' => 'required|integer|min:1',
-            'duration_months' => 'required|integer|min:1',
-            'scheme_type_id' => 'nullable|exists:scheme_types,id',
-            'submission_type_id' => 'nullable|exists:submission_types,id',
-            'rules' => 'nullable|array',
-            'allowed_trl_ids' => 'nullable|array',
-            'allowed_trl_ids.*' => 'integer|exists:technology_readiness_levels,id',
-        ]);
-
-        return SchemeInput::fromValidated(new ValidatedInput($data));
     }
 }

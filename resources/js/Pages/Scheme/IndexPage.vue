@@ -1,6 +1,7 @@
 <script setup lang="ts">
 // Frame: ADMIN-08-03
-import { Head, router } from '@inertiajs/vue3'
+import { Head, Link, router } from '@inertiajs/vue3'
+import { Plus } from 'lucide-vue-next'
 import { computed, ref } from 'vue'
 
 import ConfirmDialog from '@/Components/app/ConfirmDialog.vue'
@@ -8,6 +9,7 @@ import FilterToolbar from '@/Components/app/FilterToolbar.vue'
 import PageHeader from '@/Components/app/PageHeader.vue'
 import PaginationBar from '@/Components/app/PaginationBar.vue'
 import SchemeTable from '@/Components/Scheme/SchemeTable.vue'
+import { Button } from '@/Components/ui/button'
 import { useFilters } from '@/composables/useFilters'
 import AppLayout from '@/Layouts/AppLayout.vue'
 import type { SchemeIndexFilters, SchemeIndexPageProps, SchemeRowData } from '@/types/scheme'
@@ -58,7 +60,15 @@ function activate(row: SchemeRowData) {
         <PageHeader
             title="Skema Penelitian"
             subtitle="Kelola skema pendanaan beserta aturan dan batasannya."
-        />
+        >
+            <template #actions>
+                <Button as-child>
+                    <Link :href="route('admin.schemes.create')"
+                        ><Plus class="size-4" /> Buat Skema Baru</Link
+                    >
+                </Button>
+            </template>
+        </PageHeader>
         <FilterToolbar
             v-model:search="filters.search"
             :selects="selects"

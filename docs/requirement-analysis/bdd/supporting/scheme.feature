@@ -105,3 +105,9 @@ Feature: Skema Penelitian
     When Admin menonaktifkan skema "DIPA Internal"
     Then penonaktifan ditolak karena masih ada pengajuan aktif
     And skema "DIPA Internal" tetap aktif
+
+  @BR-SCH-06 @M0 @ADMIN-08-04 @boundary
+  Scenario: [SCH-RULE-17] Menyunting skema tanpa mengirim aturan tambahan tidak menghapus aturannya
+    Given skema "DIPA Internal" punya aturan "min_reviewer_count" bernilai 3
+    When Admin mengganti nama skema "DIPA Internal" tanpa mengubah aturan tambahannya
+    Then aturan "min_reviewer_count" skema itu tetap 3

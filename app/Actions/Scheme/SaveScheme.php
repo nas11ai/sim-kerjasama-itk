@@ -6,6 +6,7 @@ use App\Data\Request\SchemeInput;
 use App\Models\Scheme;
 use App\Models\SchemeAllowedTrl;
 use App\Support\Audit\AuditTrail;
+use App\Support\Scheme\SchemeRuleCatalog;
 use Illuminate\Support\Facades\DB;
 use Lorisleiva\Actions\Concerns\AsAction;
 
@@ -33,8 +34,12 @@ class SaveScheme
             'duration_months' => $input->durationMonths,
             'scheme_type_id' => $input->schemeTypeId,
             'submission_type_id' => $input->submissionTypeId,
-            'rules' => $input->rules,
         ];
+
+        // BR-SCH-06, W108 — null berarti "jangan sentuh"; kiriman digabung ke aturan yang ada.
+        if ($input->rules !== null) {
+            $attributes['rules'] = SchemeRuleCatalog::merge($scheme?->rules, $input->rules);
+        }
 
         $saved = DB::transaction(function () use ($attributes, $input, $scheme): Scheme {
             if ($scheme === null) {
@@ -44,16 +49,7 @@ class SaveScheme
                 $scheme->refresh();
             }
 
-            // BR-SCH-05 — null berarti "jangan sentuh", daftar kosong berarti "hapus semua".
-            if ($input->allowedTrlIds !== null) {
-                // Disimpan sebagai relasi, bukan kolom JSON, karena ia dipakai sebagai penyaring
-                // pilihan (BR-SCH-05) dan penyaring itu jauh lebih murah sebagai join.
-                SchemeAllowedTrl::query()->where('scheme_id', $scheme->id)->delete();
-
-                foreach (array_unique($input->allowedTrlIds) as $trlId) {
-                    SchemeAllowedTrl::create(['scheme_id' => $scheme->id, 'trl_id' => $trlId]);
-                }
-            }
+            $this->syncAllowedTrls($scheme, $input->allowedTrlIds);
 
             return $scheme;
         });
@@ -62,5 +58,24 @@ class SaveScheme
         AuditTrail::record('Skema disimpan', $saved);
 
         return $saved;
+    }
+
+    /**
+     * BR-SCH-05 — null berarti "jangan sentuh", daftar kosong berarti "hapus semua". Disimpan
+     * sebagai relasi, bukan kolom JSON, karena dipakai sebagai penyaring pilihan (join murah).
+     *
+     * @param  list<int>|null  $trlIds
+     */
+    private function syncAllowedTrls(Scheme $scheme, ?array $trlIds): void
+    {
+        if ($trlIds === null) {
+            return;
+        }
+
+        SchemeAllowedTrl::query()->where('scheme_id', $scheme->id)->delete();
+
+        foreach (array_unique($trlIds) as $trlId) {
+            SchemeAllowedTrl::create(['scheme_id' => $scheme->id, 'trl_id' => $trlId]);
+        }
     }
 }

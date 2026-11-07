@@ -21,10 +21,11 @@ max.legacy.files:       19
 #    6  tanda tangan Laravel: rules() di lima FormRequest, share() HandleInertiaRequests
 #    2  aksesor JSON generik Scheme::getRule (parameter dan kembaliannya)
 #    2  konstruktor AuditChange ($old, $new)
-#    9  kolom JSON yang bentuknya berubah per baris, beserta nilai yang mengalirinya:
+#    8  kolom JSON yang bentuknya berubah per baris, beserta nilai yang mengalirinya:
 #         ResearchOutput.metadata — model 1, ResearchOutputGuard 2, SaveResearchOutput 2,
-#         ResearchOutputController 2; AuditEntry.properties 1; SchemeInput.rules 1
-max.mixed:              19
+#         ResearchOutputController 2; AuditEntry.properties 1
+#  (SchemeInput.rules bertipe sejak C1-1, W107: kunci SchemeRuleCatalog.)
+max.mixed:              17
 max.comment.overflow:   31
 max.id.nonenglish:     159
 max.untyped.json:       22

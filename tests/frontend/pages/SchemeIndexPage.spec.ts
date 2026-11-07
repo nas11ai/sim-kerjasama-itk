@@ -114,6 +114,13 @@ describe('Scheme/IndexPage', () => {
         )
     })
 
+    it('"Buat Skema Baru" dan "Edit" menaut ke halaman form skema', () => {
+        const wrapper = mountPage([schemeRow()])
+
+        expect(wrapper.find('a[href="/admin.schemes.create"]').text()).toContain('Buat Skema Baru')
+        expect(wrapper.find('a[href="/admin.schemes.edit/4"]').text()).toContain('Edit')
+    })
+
     it('[SCH-RULE-04] nonaktifkan dimatikan dan menyebut jumlah pengajuan aktif', () => {
         const wrapper = mountPage([schemeRow({ activeSubmissionCount: 3 })])
 

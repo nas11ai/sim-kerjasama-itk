@@ -387,7 +387,10 @@ Route::middleware(['auth', 'can:schemes.manage'])->prefix('admin')->name('admin.
 // ADMIN-08-03/04 — skema dikelola pemegang schemes.manage (W105). Nama route tidak berubah.
 Route::middleware(['auth', 'can:schemes.manage'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/schemes', [SchemeController::class, 'index'])->name('schemes.index');
+    // W106 — buat/sunting skema adalah halaman sendiri (ADMIN-08-04).
+    Route::get('/schemes/create', [SchemeController::class, 'create'])->name('schemes.create');
     Route::post('/schemes', [SchemeController::class, 'store'])->name('schemes.store');
+    Route::get('/schemes/{scheme}/edit', [SchemeController::class, 'edit'])->name('schemes.edit');
     Route::put('/schemes/{scheme}', [SchemeController::class, 'update'])->name('schemes.update');
     // BR-SCH-01 — penonaktifan diblokir selama skema dipakai pengajuan aktif.
     Route::post('/schemes/{scheme}/deactivate', [SchemeController::class, 'deactivate'])->name('schemes.deactivate');

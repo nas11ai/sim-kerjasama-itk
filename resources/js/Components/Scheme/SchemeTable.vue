@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { Check, Layers, X } from 'lucide-vue-next'
+import { Link } from '@inertiajs/vue3'
+import { Check, Layers, Pencil, X } from 'lucide-vue-next'
 
 import DataTable from '@/Components/app/DataTable.vue'
 import EmptyState from '@/Components/app/EmptyState.vue'
@@ -46,6 +47,11 @@ const columns = [
         <template #cell-action="{ row }">
             <div class="flex flex-col items-end gap-1">
                 <div class="flex justify-end gap-2">
+                    <Button as-child size="sm" variant="outline">
+                        <Link :href="route('admin.schemes.edit', row.id)"
+                            ><Pencil class="size-4" />Edit</Link
+                        >
+                    </Button>
                     <Button
                         v-if="row.isActive"
                         size="sm"
