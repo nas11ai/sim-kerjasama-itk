@@ -50,9 +50,10 @@ class StartChildSubmission
 
         // W89 — sengaja tanpa gerbang `forms.is_active`: BR-FE-19 menghentikan pengajuan baru,
         // sedangkan laporan ini kewajiban dari kegiatan yang sudah APPROVED.
+        // W123, BR-SM-04 — laporan milik ketua induk siapa pun yang memulainya; $user tetap pelaku di audit.
         $tercatat = FormSubmission::create([
             'form_id' => $accessControl->form_id,
-            'submitted_by' => $user->id,
+            'submitted_by' => $parent->submitted_by,
             'submission_period_id' => $parent->submission_period_id,
             'form_phase_detail_id' => $detail->id,
             'parent_submission_id' => $parent->id,

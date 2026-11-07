@@ -25,10 +25,16 @@ class TransferSubmissionOwnership
     {
         $this->guardSuccessor($submission, $successor);
 
-        $tercatat = DB::transaction(function () use ($submission, $successor): FormSubmission {
+        $reportsMoved = 0;
+
+        $tercatat = DB::transaction(function () use ($submission, $successor, &$reportsMoved): FormSubmission {
             $previousOwner = $submission->submitted_by;
 
             $submission->update(['submitted_by' => $successor->id]);
+
+            // W134 — satu kegiatan, satu pemilik: laporan monev (draft maupun terkirim) ikut
+            // pindah. Siapa yang dulu mengirimnya tetap terbaca di audit (causer).
+            $reportsMoved = $submission->children()->update(['submitted_by' => $successor->id]);
 
             // Penerima berhenti jadi anggota — ia kini ketua.
             $submission->researchMembers()
@@ -41,7 +47,10 @@ class TransferSubmissionOwnership
         });
 
         // BR-RPT-09 — satu Action, satu entri audit; alasannya ikut di entri itu (W26).
-        AuditTrail::record('Kepemilikan pengajuan dialihkan', $tercatat, change: new AuditChange(new: ['reason' => $reason]));
+        AuditTrail::record('Kepemilikan pengajuan dialihkan', $tercatat, change: new AuditChange(new: [
+            'reason' => $reason,
+            'reports_moved' => $reportsMoved,
+        ]));
 
         return $tercatat;
     }

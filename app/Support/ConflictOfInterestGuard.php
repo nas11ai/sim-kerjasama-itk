@@ -32,10 +32,11 @@ final class ConflictOfInterestGuard
      */
     public static function conflictingUserIds(FormSubmission $submission): array
     {
-        // BR-SM-04 — ketua pengaju adalah pihak yang dinilai, bukan penilai.
+        // BR-SM-04 — ketua pengaju adalah pihak yang dinilai, bukan penilai. W124 — laporan
+        // monev dinilai atas tim induknya; reviewer induk tidak dihitung (saran BR-MON-07).
         $members = UserProfile::query()
             ->whereHas('researchMembers', fn ($q) => $q
-                ->where('form_submission_id', $submission->id)
+                ->where('form_submission_id', $submission->teamSubmissionId())
                 ->where('status', 'active'))
             ->get(['id', 'user_id'])
             ->map(fn (UserProfile $profile): int => $profile->user_id);

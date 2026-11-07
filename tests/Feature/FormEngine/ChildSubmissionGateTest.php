@@ -37,7 +37,10 @@ function childFixture(string $status): array
         'is_submitted' => $status !== Draft::class,
     ]);
 
-    return ['parent' => $parent, 'detail' => $fx['detail'], 'user' => $fx['user']];
+    // W125 — laporan lahir di siklus induk: detail sesudah detail induk dalam tahap yang sama.
+    $cycle = monevDetail($fx['detail']->formPhase, $fx['detail']->order + 1, 'Batas Laporan Monev I');
+
+    return ['parent' => $parent, 'detail' => $cycle, 'user' => $fx['user']];
 }
 
 it('[FE-CHILD-01] child tidak bisa dibuat dari induk yang belum disetujui', function (string $status) {

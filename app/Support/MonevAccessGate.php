@@ -2,9 +2,9 @@
 
 namespace App\Support;
 
-use App\Models\FormPhase;
 use App\Models\FormPhaseDetail;
 use App\Models\FormSubmission;
+use App\Queries\Monev\MonevCycles;
 use App\States\Submission\Approved;
 use App\States\Submission\Withdrawn;
 use Illuminate\Validation\ValidationException;
@@ -21,62 +21,61 @@ final class MonevAccessGate
      */
     public static function assertCycleOpen(FormSubmission $parent, FormPhaseDetail $detail): void
     {
-        // BR-MON-08 — diperiksa lebih dulu: pembekuan mengalahkan segalanya,
-        // dan pesannya paling menjelaskan.
-        if ($parent->status instanceof Withdrawn) {
-            throw ValidationException::withMessages([
-                'parent_submission_id' => 'Pengajuan ini sudah ditarik. Siklus monevnya dibekukan dan '
-                    .'tidak menerima laporan baru.',
-            ]);
+        $reason = self::refusal($parent, $detail);
+
+        if ($reason === null) {
+            return;
         }
 
-        // BR-MON-01 — monev memantau kegiatan yang sudah berjalan; selama
-        // pengajuannya belum disetujui, tidak ada yang dipantau.
-        if (!$parent->status instanceof Approved) {
-            throw ValidationException::withMessages([
-                'parent_submission_id' => 'Siklus monev terbuka setelah pengajuan disetujui.',
-            ]);
-        }
-
-        // BR-MON-02 — urutan siklus: turunan keadaan lewat `canProceed()`,
-        // bukan kolom, jadi tidak ada tombol "buka paksa".
-        $blocking = self::unfinishedPredecessor($parent, $detail);
-
-        if ($blocking !== null) {
-            throw ValidationException::withMessages([
-                'form_phase_detail_id' => 'Selesaikan "'.self::labelFor($blocking).'" lebih dulu — '
-                    .'tahapannya berurutan.',
-            ]);
-        }
+        throw ValidationException::withMessages([$reason[0] => $reason[1]]);
     }
 
     public static function isCycleOpen(FormSubmission $parent, FormPhaseDetail $detail): bool
     {
-        if ($parent->status instanceof Withdrawn || !$parent->status instanceof Approved) {
-            return false;
-        }
-
-        return self::unfinishedPredecessor($parent, $detail) === null;
+        return self::refusal($parent, $detail) === null;
     }
 
     /**
-     * BR-MON-02 — detail sebelumnya yang belum tuntas, kalau ada. Yang
-     * diperiksa laporan **milik induk ini**; detail yang belum pernah punya
-     * laporan sama menghalangi dengan yang laporannya belum disubmit.
+     * Alasan penolakan pertama sebagai [kunci error, pesan], atau null bila terbuka.
+     *
+     * @return array{0: string, 1: string}|null
      */
-    private static function unfinishedPredecessor(
-        FormSubmission $parent,
-        FormPhaseDetail $detail
-    ): ?FormPhaseDetail {
-        $predecessors = FormPhaseDetail::query()
-            ->where('form_phase_id', $detail->form_phase_id)
-            ->where('order', '<', $detail->order)
-            // Detail pengajuan awal bukan siklus monev: ketuntasannya sudah
-            // dinyatakan oleh status APPROVED induknya.
-            ->where('id', '!=', $parent->form_phase_detail_id)
-            ->orderBy('order')
-            ->get();
+    private static function refusal(FormSubmission $parent, FormPhaseDetail $detail): ?array
+    {
+        // BR-MON-08 — diperiksa lebih dulu: pembekuan mengalahkan segalanya,
+        // dan pesannya paling menjelaskan.
+        if ($parent->status instanceof Withdrawn) {
+            return ['parent_submission_id', 'Pengajuan ini sudah ditarik. Siklus monevnya dibekukan dan '
+                .'tidak menerima laporan baru.'];
+        }
 
+        // BR-MON-01 — selama pengajuannya belum disetujui, tidak ada yang dipantau.
+        if (!$parent->status instanceof Approved) {
+            return ['parent_submission_id', 'Siklus monev terbuka setelah pengajuan disetujui.'];
+        }
+
+        $cycles = MonevCycles::details($parent);
+
+        // W125 — hanya siklus milik induk ini; detail lain bukan laporannya.
+        if (!$cycles->contains('id', $detail->id)) {
+            return ['form_phase_detail_id', 'Tahap ini bukan siklus monev pengajuan tersebut.'];
+        }
+
+        $blocking = self::unfinishedPredecessor($parent, $cycles->takeWhile(fn (FormPhaseDetail $c): bool => $c->id !== $detail->id));
+
+        // BR-MON-02 — urutan siklus: turunan keadaan lewat `canProceed()`, bukan kolom.
+        return $blocking === null ? null : ['form_phase_detail_id', 'Selesaikan "'.MonevCycles::nameOf($blocking).'" lebih dulu — '
+            .'tahapannya berurutan.'];
+    }
+
+    /**
+     * BR-MON-02 — siklus sebelumnya yang belum tuntas, kalau ada. Siklus yang belum
+     * pernah punya laporan menghalangi sama dengan yang laporannya belum disubmit.
+     *
+     * @param  iterable<FormPhaseDetail>  $predecessors
+     */
+    private static function unfinishedPredecessor(FormSubmission $parent, iterable $predecessors): ?FormPhaseDetail
+    {
         foreach ($predecessors as $predecessor) {
             $report = FormSubmission::query()
                 ->where('parent_submission_id', $parent->id)
@@ -89,12 +88,5 @@ final class MonevAccessGate
         }
 
         return null;
-    }
-
-    private static function labelFor(FormPhaseDetail $detail): string
-    {
-        $phase = $detail->formPhase;
-
-        return $phase instanceof FormPhase ? $phase->title : 'tahap sebelumnya';
     }
 }

@@ -14,13 +14,17 @@ use Illuminate\Database\Eloquent\Builder;
  */
 final class FirstSubmitAt implements ChangesNoState
 {
-    /** @return Builder<AuditEntry> */
-    public static function subquery(): Builder
+    /**
+     * Laporan monev ditulis dengan deskripsi audit sendiri (`MonevCycles::REPORT_SUBMITTED_AUDIT`).
+     *
+     * @return Builder<AuditEntry>
+     */
+    public static function subquery(string $description = SubmitFormSubmission::AUDIT_DESCRIPTION): Builder
     {
         return AuditEntry::query()->auditOnly()
             ->selectRaw('min(created_at)')
             ->where('subject_type', FormSubmission::class)
             ->whereColumn('subject_id', 'form_submissions.id')
-            ->where('description', SubmitFormSubmission::AUDIT_DESCRIPTION);
+            ->where('description', $description);
     }
 }

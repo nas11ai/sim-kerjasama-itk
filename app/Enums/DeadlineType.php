@@ -14,6 +14,12 @@ enum DeadlineType: string
 
     private const ROMAN = [1 => 'I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X'];
 
+    /** W125 — nama siklus monev ke-n: romawi sampai X, angka sesudahnya. */
+    public static function cycleName(int $cycle): string
+    {
+        return 'Monev '.(self::ROMAN[$cycle] ?? "{$cycle}");
+    }
+
     /**
      * Label tampilan. Siklus kosong = pengajuan utama; siklus n = Monev n. Batas Submit
      * siklus monev dibaca "Batas Laporan Monev n" karena yang dikirim adalah laporan.
@@ -28,7 +34,7 @@ enum DeadlineType: string
             };
         }
 
-        $monev = 'Monev '.(self::ROMAN[$cycle] ?? "{$cycle}");
+        $monev = self::cycleName($cycle);
 
         return match ($this) {
             self::Submit => "Batas Laporan {$monev}",

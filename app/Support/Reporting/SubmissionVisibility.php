@@ -42,18 +42,19 @@ final class SubmissionVisibility
      */
     public static function ownedOrJoinedBy(User $user): Builder
     {
-        return FormSubmission::query()->where(function (Builder $milik) use ($user): void {
+        $joined = fn (Builder $q) => $q
+            ->where('status', 'active')
+            ->whereHas('userProfile', fn (Builder $p) => $p->where('user_id', $user->id));
+
+        return FormSubmission::query()->where(function (Builder $milik) use ($user, $joined): void {
             $milik
                 ->where('submitted_by', $user->id)
                 // BR-SM-07 — anggota tim ikut terhitung: menyempitkan ke
                 // `submitted_by` menyembunyikan pengajuan dari orang yang
                 // justru ikut membuatnya.
-                ->orWhereHas(
-                    'researchMembers',
-                    fn (Builder $q) => $q
-                        ->where('status', 'active')
-                        ->whereHas('userProfile', fn (Builder $p) => $p->where('user_id', $user->id))
-                );
+                ->orWhereHas('researchMembers', $joined)
+                // W123 — laporan monev ikut tim induknya.
+                ->orWhereHas('parent', fn (Builder $parent) => $parent->whereHas('researchMembers', $joined));
         });
     }
 

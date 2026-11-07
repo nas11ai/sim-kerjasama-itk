@@ -209,9 +209,18 @@ class FormSubmission extends Model
         return $this->hasAssignedReviewer($user);
     }
 
+    /**
+     * W123 — tim laporan anak adalah tim induknya; laporan tidak punya `research_members` sendiri.
+     */
+    public function teamSubmissionId(): int
+    {
+        return $this->parent_submission_id ?? $this->id;
+    }
+
     private function hasActiveResearchMember(User $user): bool
     {
-        return $this->researchMembers()
+        return ResearchMember::query()
+            ->where('form_submission_id', $this->teamSubmissionId())
             ->where('status', 'active')
             ->whereHas('userProfile', fn ($query) => $query->where('user_id', $user->id))
             ->exists();

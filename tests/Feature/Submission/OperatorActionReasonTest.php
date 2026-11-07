@@ -123,7 +123,7 @@ it('[SM-OWNER-06] alasan pemindahan kepemilikan tercatat di jejak audit', functi
         ->assertSessionHasNoErrors();
 
     expect($submission->fresh()->submitted_by)->toBe($successor->id)
-        ->and(latestAuditNew('Kepemilikan pengajuan dialihkan'))->toBe(['reason' => 'Ketua pindah institusi']);
+        ->and(latestAuditNew('Kepemilikan pengajuan dialihkan'))->toBe(['reason' => 'Ketua pindah institusi', 'reports_moved' => 0]);
 });
 
 /* ---------------- penarikan ---------------- */

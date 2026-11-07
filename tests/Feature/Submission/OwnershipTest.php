@@ -10,7 +10,9 @@
 // memindahkan masalah.
 
 use App\Actions\FormSubmission\DeactivateUser;
+use App\Actions\FormSubmission\StartChildSubmission;
 use App\Actions\FormSubmission\TransferSubmissionOwnership;
+use App\Models\AuditEntry;
 use App\Models\FormSubmission;
 use App\Models\ResearchMember;
 use App\Models\User;
@@ -119,6 +121,28 @@ it('[SM-OWNER-03] deaktivasi lolos setelah kepemilikan dipindahkan', function ()
     DeactivateUser::run($owner);
 
     expect($owner->fresh()->is_active)->toBeFalse();
+});
+
+it('[SM-OWNER-08] pemindahan kepemilikan ikut memindah laporan monev', function () {
+    $fx = monevFixture();
+    $budi = $fx['owner'];
+    $terkirim = StartChildSubmission::run($fx['parent'], $fx['monev1'], $budi);
+    $terkirim->update(['is_submitted' => true]);
+    $draft = StartChildSubmission::run($fx['parent'], $fx['monev2'], $budi);
+    $sari = memberOn($fx['parent'], ResearchMember::ROLE_CO_INVESTIGATOR);
+
+    TransferSubmissionOwnership::run($fx['parent'], $sari, 'Ketua pindah institusi');
+
+    $started = AuditEntry::query()->where('subject_type', FormSubmission::class)
+        ->where('subject_id', $draft->id)->where('description', 'Laporan tahap dimulai')->sole();
+    $transfer = AuditEntry::query()->where('subject_id', $fx['parent']->id)
+        ->where('description', 'Kepemilikan pengajuan dialihkan')->sole();
+
+    expect($terkirim->fresh()->submitted_by)->toBe($sari->id)
+        ->and($draft->fresh()->submitted_by)->toBe($sari->id)
+        ->and($sari->can('submit', $draft->fresh()))->toBeTrue()
+        ->and($started->causer_id)->toBe($budi->id)
+        ->and($transfer->properties['new']['reports_moved'])->toBe(2);
 });
 
 it('[SM-OWNER-03] pengajuan yang sudah mati tidak menghalangi deaktivasi', function () {

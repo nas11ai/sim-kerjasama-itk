@@ -50,3 +50,12 @@ Feature: Transfer Kepemilikan Pengajuan
     Then "Sari" tidak ditawarkan sebagai calon penerima
     And pemindahan ditolak
     And deaktivasi ketua "P-001" menyebut belum ada co-investigator aktif
+
+  @BR-SM-09 @BR-IAM-10 @M4 @OPERATOR-02-04 @happy
+  Scenario: [SM-OWNER-08] Pemindahan kepemilikan ikut memindah laporan monev
+    Given "P-001" berstatus APPROVED dengan laporan Monev I terkirim dan laporan Monev II draft
+    And "Sari" terdaftar sebagai co_investigator aktif di "P-001"
+    When Operator memindahkan kepemilikan "P-001" ke "Sari"
+    Then submitted_by kedua laporan monev "P-001" menjadi "Sari"
+    And "Sari" dapat mengirim laporan Monev II
+    And jejak audit tetap mencatat "Budi" sebagai yang memulai laporan
