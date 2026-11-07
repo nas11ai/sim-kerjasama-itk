@@ -40,7 +40,12 @@ const FULL_CATALOG = [
     'reporting.view-audit-log',
     'announcements.manage',
 ]
-const NO_APPROVED = { hasApprovedSubmission: false, unreadAnnouncements: 0, unreadNotifications: 0 }
+const NO_APPROVED = {
+    hasApprovedSubmission: false,
+    hasMonevSubmission: false,
+    unreadAnnouncements: 0,
+    unreadNotifications: 0,
+}
 
 const labels = (groups: VisibleNavGroup[]) => groups.flatMap((g) => g.items.map((i) => i.label))
 const groupLabels = (groups: VisibleNavGroup[]) => groups.map((g) => g.label)
@@ -127,6 +132,39 @@ describe('visibleNavGroups', () => {
         expect(
             labels(visibleNavGroups([gated], [], { ...NO_APPROVED, hasApprovedSubmission: true }))
         ).toEqual(['Gated'])
+    })
+
+    it('Daftar Monev muncul hanya bila hasMonevSubmission (W128)', () => {
+        const withMonev = { ...NO_APPROVED, hasMonevSubmission: true }
+
+        expect(labels(visibleNavGroups(navGroups, RESEARCHER, NO_APPROVED))).not.toContain(
+            'Daftar Monev'
+        )
+        expect(labels(visibleNavGroups(navGroups, RESEARCHER, withMonev))).toContain('Daftar Monev')
+        expect(
+            labels(
+                visibleNavGroups(navGroups, RESEARCHER, {
+                    ...NO_APPROVED,
+                    hasApprovedSubmission: true,
+                })
+            )
+        ).not.toContain('Daftar Monev')
+    })
+
+    it('Daftar Monev aktif di halaman laporan monev', () => {
+        const item = navGroups.flatMap((g) => g.items).find((i) => i.label === 'Daftar Monev')
+
+        expect(item?.routeName).toBe('monev.index')
+        expect(item?.activePattern).toBe('monev.reports.*')
+
+        if (item === undefined) throw new Error('Daftar Monev hilang dari navigasi')
+        const visible = { ...item, routeName: 'monev.index' }
+        const on = (name: string) => (pattern: string) =>
+            pattern === name || (pattern.endsWith('.*') && name.startsWith(pattern.slice(0, -1)))
+
+        expect(isNavItemActive(visible, on('monev.index'))).toBe(true)
+        expect(isNavItemActive(visible, on('monev.reports.edit'))).toBe(true)
+        expect(isNavItemActive(visible, on('monev.manage.index'))).toBe(false)
     })
 })
 

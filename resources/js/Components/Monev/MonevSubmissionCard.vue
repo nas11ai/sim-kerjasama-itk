@@ -1,0 +1,64 @@
+<script setup lang="ts">
+import { router } from '@inertiajs/vue3'
+import { SquarePen } from 'lucide-vue-next'
+import { computed } from 'vue'
+
+import AppBanner from '@/Components/app/AppBanner.vue'
+import SectionCard from '@/Components/app/SectionCard.vue'
+import StatusBadge from '@/Components/app/StatusBadge.vue'
+import PhaseProgression from '@/Components/Monev/PhaseProgression.vue'
+import { Badge } from '@/Components/ui/badge'
+import { Button } from '@/Components/ui/button'
+import { phaseNodes } from '@/lib/monev'
+import type { MonevCycle, MonevSubmission } from '@/types/monev'
+
+const props = defineProps<{ submission: MonevSubmission }>()
+
+const nodes = computed(() => phaseNodes(props.submission.cycles))
+const withdrawn = computed(() => props.submission.status.key === 'withdrawn')
+const fillable = computed(() =>
+    props.submission.canFill ? props.submission.cycles.filter((c) => c.state === 'open') : []
+)
+const closed = computed(() => props.submission.cycles.filter((c) => c.state === 'closed'))
+const memberOnly = computed(
+    () => !props.submission.canFill && props.submission.cycles.some((c) => c.state === 'open')
+)
+
+const start = (cycle: MonevCycle) =>
+    router.post(
+        route('monev.reports.store', { submission: props.submission.id, detail: cycle.detailId }),
+        {},
+        { preserveScroll: true }
+    )
+</script>
+
+<template>
+    <SectionCard :title="submission.title" :description="submission.scheme ?? undefined">
+        <template #actions><StatusBadge :status="submission.status" /></template>
+        <PhaseProgression :nodes="nodes" />
+        <!-- BR-MON-08 -->
+        <AppBanner v-if="withdrawn" tone="lock">
+            Pengajuan yang ditarik tidak dapat dikembalikan. Kalau penarikannya keliru, jalurnya
+            pengajuan baru yang merujuk yang lama.
+        </AppBanner>
+        <div
+            v-if="fillable.length || closed.length || memberOnly"
+            class="flex flex-wrap items-center gap-2"
+        >
+            <Button v-for="cycle in fillable" :key="cycle.detailId" @click="start(cycle)">
+                <SquarePen class="size-4" /> Isi Laporan {{ cycle.name }}
+            </Button>
+            <span
+                v-for="cycle in closed"
+                :key="cycle.detailId"
+                title="Batas waktu terlewat. Hubungi Operator LPPM bila membutuhkan perpanjangan."
+            >
+                <Badge variant="outline">{{ cycle.name }} Ditutup</Badge>
+            </span>
+            <!-- BR-SM-04 -->
+            <p v-if="memberOnly" class="text-sm text-muted-foreground">
+                Laporan diisi oleh ketua pengajuan.
+            </p>
+        </div>
+    </SectionCard>
+</template>

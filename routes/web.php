@@ -21,6 +21,7 @@ use App\Http\Controllers\Identity\ProfilePhotoController;
 use App\Http\Controllers\Identity\ReviewerManagementController;
 use App\Http\Controllers\Identity\UserAccessController;
 use App\Http\Controllers\Identity\UserController;
+use App\Http\Controllers\Monev\MonevController;
 use App\Http\Controllers\Monev\MonevCycleController;
 use App\Http\Controllers\Notification\NotificationChannelController;
 use App\Http\Controllers\Notification\NotificationController;
@@ -36,7 +37,6 @@ use App\Http\Controllers\RoleController;
 use App\Http\Controllers\Scheme\SchemeController;
 use App\Http\Controllers\StatController;
 use App\Http\Controllers\Submission\BudgetLineItemController;
-use App\Http\Controllers\Submission\ChildSubmissionController;
 use App\Http\Controllers\Submission\OperatorSubmissionController;
 use App\Http\Controllers\Submission\PhaseOverrideController;
 use App\Http\Controllers\Submission\ResearchMemberController;
@@ -188,6 +188,16 @@ Route::middleware(['auth'])->prefix('user')->name('user.')->group(function () {
 
     Route::get('/submissions/{submission}', [SubmissionViewController::class, 'userShowSubmission'])
         ->name('submissions.show');
+});
+
+// W130 — Monev peneliti (ux/ia/05_monev). BR-SM-04 — hanya ketua induk yang memulai laporan.
+Route::middleware(['auth'])->prefix('monev')->name('monev.')->group(function () {
+    Route::get('/', [MonevController::class, 'index'])
+        ->middleware('can:submissions.view-own')
+        ->name('index');
+    Route::post('/{submission}/cycles/{detail}', [MonevController::class, 'store'])
+        ->middleware('can:startMonevReport,submission')
+        ->name('reports.store');
 });
 
 // Reviewer Routes - untuk user yang bertindak sebagai reviewer
@@ -492,9 +502,6 @@ Route::middleware(['auth'])->group(function () {
         // BR-SM-03 — tanpa ini alur revisi tidak punya jalan kembali.
         Route::post('/submissions/{submission}/resubmit', ResubmitController::class)
             ->name('submissions.resubmit');
-        // BR-FE-04 — laporan turunan hanya lahir dari induk yang disetujui.
-        Route::post('/submissions/{submission}/children', [ChildSubmissionController::class, 'store'])
-            ->name('submissions.children.store');
         // BR-RO-01..09 — luaran terealisasi.
         Route::post('/submissions/{submission}/outputs', [ResearchOutputController::class, 'store'])
             ->name('submissions.outputs.store');

@@ -27,7 +27,7 @@ class AppServiceProvider extends ServiceProvider
      *
      * @var list<string>
      */
-    private const INVARIANT_ABILITIES = ['submit', 'resubmit', 'update-budget', 'evaluate'];
+    private const INVARIANT_ABILITIES = ['submit', 'resubmit', 'update-budget', 'evaluate', 'startMonevReport'];
 
     /**
      * Register any application services.

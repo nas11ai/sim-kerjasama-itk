@@ -231,6 +231,8 @@ function monevFixture(bool $monev1NeedsReview = false, string $parentStatus = Ap
     $owner = verifiedResearcher();
 
     $parent = FormSubmission::factory()->create([
+        // Bukan Biodata: daftar monev mengecualikannya (W128).
+        'form_id' => Form::factory()->create(['form_type_id' => regularFormType()->id])->id,
         'submitted_by' => $owner->id,
         'form_phase_detail_id' => $pengajuan->id,
         'status' => $parentStatus,

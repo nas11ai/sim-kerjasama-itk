@@ -52,6 +52,15 @@ class FormSubmissionPolicy
         return $submission->submitted_by === $user->id;
     }
 
+    /**
+     * BR-SM-04, W123 — laporan monev dimulai, diisi, dan dikirim ketua induk. ADR 0015:
+     * invarian, Super Admin tidak mengisi laporan atas nama peneliti.
+     */
+    public function startMonevReport(User $user, FormSubmission $parent): bool
+    {
+        return $parent->submitted_by === $user->id;
+    }
+
     public function resubmit(User $user, FormSubmission $submission): bool
     {
         // BR-SM-04 — resubmit sama seperti submit: tindakan submitted_by mengikat

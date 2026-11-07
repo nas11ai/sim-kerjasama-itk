@@ -32,6 +32,7 @@ const flags = computed(
     () =>
         page.props.navigation ?? {
             hasApprovedSubmission: false,
+            hasMonevSubmission: false,
             unreadAnnouncements: 0,
             unreadNotifications: 0,
         }

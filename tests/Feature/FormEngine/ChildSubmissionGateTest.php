@@ -96,9 +96,7 @@ it('[FE-CHILD-02] jalur HTTP menolak induk yang belum disetujui', function () {
     $fx = childFixture(UnderReview::class);
 
     $this->actingAs($fx['user'])
-        ->post(route('user.submissions.children.store', $fx['parent']), [
-            'form_phase_detail_id' => $fx['detail']->id,
-        ])
+        ->post(route('monev.reports.store', [$fx['parent'], $fx['detail']]))
         ->assertSessionHasErrors('parent_submission_id');
 
     expect(FormSubmission::whereNotNull('parent_submission_id')->count())->toBe(0);

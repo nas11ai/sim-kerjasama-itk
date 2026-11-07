@@ -31,6 +31,8 @@ export interface NavItem {
     /** kosong = semua pengguna; selain itu cukup memegang salah satu */
     anyPermission: string[]
     requiresApprovedSubmission?: true
+    /** W128 — Daftar Monev: induk APPROVED, atau ditarik dengan laporan */
+    requiresMonevSubmission?: true
     /** flag `navigation` berisi jumlah yang ditampilkan sebagai badge bila > 0 */
     countKey?: 'unreadAnnouncements' | 'unreadNotifications'
 }
@@ -109,9 +111,10 @@ export const navGroups: NavGroup[] = [
             {
                 label: 'Daftar Monev',
                 icon: Flag,
-                routeName: null,
+                routeName: 'monev.index',
+                activePattern: 'monev.reports.*',
                 anyPermission: ['submissions.view-own'],
-                requiresApprovedSubmission: true,
+                requiresMonevSubmission: true,
             },
             {
                 label: 'Kelola Siklus Monev',
@@ -245,6 +248,7 @@ function hasRoute(item: NavItem): item is VisibleNavItem {
 
 function isPermitted(item: NavItem, permissions: string[], flags: NavigationFlags): boolean {
     if (item.requiresApprovedSubmission && !flags.hasApprovedSubmission) return false
+    if (item.requiresMonevSubmission && !flags.hasMonevSubmission) return false
     if (item.anyPermission.length === 0) return true
 
     return item.anyPermission.some((permission) => permissions.includes(permission))
@@ -269,7 +273,10 @@ export function isNavItemActive(
     item: VisibleNavItem,
     current: (pattern: string) => boolean
 ): boolean {
-    return current(item.activePattern ?? item.routeName)
+    // Pola tambahan tidak menggantikan halaman item itu sendiri (Daftar Monev + laporannya).
+    return (
+        current(item.routeName) || (item.activePattern !== undefined && current(item.activePattern))
+    )
 }
 
 /** Jumlah untuk badge item, atau null bila item tak berhitungan atau hitungannya nol. */
