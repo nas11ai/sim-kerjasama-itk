@@ -1,7 +1,7 @@
 # BC: Research Output
 
 **Klasifikasi:** 🟡 Supporting Domain  
-**Versi:** 2.4  
+**Versi:** 2.5  
 **Status:** Draft
 
 ---
@@ -130,7 +130,13 @@ CREATE INDEX idx_research_outputs_metadata ON research_outputs USING GIN (metada
 | `ResearchMember` role `co_investigator` | Bisa tambah dan edit                        |
 | `ResearchMember` role `member`          | Read only                                   |
 | Reviewer (via SubmissionReviewer)       | Read only                                   |
-| Operator / Admin                        | Full access via `outputs.manage` permission |
+| Operator / Admin                        | Full access via `outputs.manage` **dan** `submissions.view-all` |
+
+> **v2.5 — jalan staf butuh dua izin.** Peran `researcher` juga memegang `outputs.manage`
+> ([identity v2.7](../generic/02_identity_access.md)) untuk melaporkan luaran timnya sendiri.
+> Kalau `outputs.manage` saja sudah membuka jalan staf, setiap peneliti bisa menyunting luaran
+> pengajuan siapa pun, termasuk yang ia tidak ikuti. Staf karenanya dikenali dari
+> `outputs.manage` bersama `submissions.view-all` (membaca semua pengajuan, BR-SM-07).
 
 > **Kecocokan dengan target luaran sengaja TIDAK ditegakkan.** `SubmissionTargetOutput`
 > (BR-SM-14/15) adalah luaran yang *dijanjikan*; `ResearchOutput` yang *terwujud*.

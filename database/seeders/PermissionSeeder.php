@@ -71,6 +71,8 @@ class PermissionSeeder extends Seeder
             'reporting.export',
             'reporting.view-audit-log',
             'announcements.manage',
+            // BR-RO-07 — Operator mengoreksi luaran (identity v2.7, W138).
+            'outputs.manage',
         ],
         // admin is synced to the full catalog in run()
         'admin' => [],

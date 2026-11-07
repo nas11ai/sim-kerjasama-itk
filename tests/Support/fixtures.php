@@ -36,6 +36,7 @@ use App\Models\UserProfile;
 use App\Queries\Submission\EvaluationDueDate;
 use App\States\Submission\Approved;
 use App\States\Submission\UnderReview;
+use Database\Seeders\PermissionSeeder;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Spatie\Permission\Models\Permission;
@@ -113,6 +114,20 @@ function verifiedResearcher(): User
     $user = User::factory()->create();
 
     UserProfile::factory()->create(['user_id' => $user->id]);
+
+    return $user->refresh();
+}
+
+/**
+ * User terverifikasi yang memegang peran DDD sungguhan dari `PermissionSeeder`, bukan izin
+ * tempelan: lubang W138 lolos dari setiap test yang memberi izin satu per satu.
+ */
+function seededRole(string $role): User
+{
+    test()->seed(PermissionSeeder::class);
+
+    $user = verifiedResearcher();
+    $user->assignRole($role);
 
     return $user->refresh();
 }

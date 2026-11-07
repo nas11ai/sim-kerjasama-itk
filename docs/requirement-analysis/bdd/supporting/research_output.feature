@@ -151,3 +151,9 @@ Feature: Luaran Penelitian Terealisasi
     When submitted_by memperbaiki judul luaran itu
     Then judul barunya tersimpan
     And tidak ada baris luaran yang hilang
+
+  @BR-RO-07 @M4 @RESEARCHER-06-02 @denial
+  Scenario: [RO-OUTPUT-25] Peneliti di luar tim tidak bisa menambah luaran meski memegang outputs.manage
+    Given "Joko" berperan researcher dan tidak terdaftar di tim "P-001"
+    When "Joko" menambahkan luaran bertipe "publication" ke "P-001"
+    Then penambahan ditolak dengan 403

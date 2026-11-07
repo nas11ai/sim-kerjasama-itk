@@ -66,7 +66,9 @@ class ResearchOutputController extends Controller
     {
         $user = Auth::user();
 
-        abort_unless($user !== null && $user->can('manageResearchOutput', $submission), 403);
+        // BR-SM-07 lebih dulu: pengajuan yang tak boleh dibaca juga tak boleh ditulisi.
+        abort_unless($user !== null && $submission->isAccessibleBy($user), 403);
+        abort_unless($user->can('manageResearchOutput', $submission), 403);
 
         // BR-RO-08 — sumbu **kapan**. Batasnya milik FormPhaseDetail tempat
         // luaran bergantung, bukan mekanisme tersendiri; membaca tetap terbuka

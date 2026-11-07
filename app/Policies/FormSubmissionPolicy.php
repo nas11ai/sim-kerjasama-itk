@@ -167,10 +167,10 @@ class FormSubmissionPolicy
      */
     public function manageResearchOutput(User $user, FormSubmission $submission): bool
     {
-        // Staf pemegang `outputs.manage` tetap bisa menyunting: luaran memasok
-        // pelaporan LPPM dan merapikan datanya memang tugas mereka. Menutupnya
-        // mengunci Operator dari data yang ia pertanggungjawabkan ke luar.
-        if ($user->can('outputs.manage')) {
+        // Staf = `outputs.manage` + `submissions.view-all` (W138): peran researcher juga
+        // memegang `outputs.manage` untuk timnya sendiri, jadi izin itu saja bukan tanda staf.
+        // Staf mengoreksi karena luaran memasok pelaporan LPPM yang ia pertanggungjawabkan.
+        if ($user->can('outputs.manage') && $user->can('submissions.view-all')) {
             return true;
         }
 

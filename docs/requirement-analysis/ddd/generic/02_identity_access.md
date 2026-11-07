@@ -1,7 +1,7 @@
 # BC: Identity & Access
 
 **Klasifikasi:** 🟢 Generic Domain  
-**Versi:** 2.6  
+**Versi:** 2.7  
 **Status:** Draft
 
 ---
@@ -176,8 +176,13 @@ reporting.view-audit-log  organizations.manage
 | `researcher`        | submissions.create, view-own, budget.edit, members.manage, outputs.manage              |
 | `reviewer_internal` | reviewers.evaluate, submissions.view-assigned, reviewers.view-scores-others            |
 | `reviewer_external` | reviewers.evaluate, submissions.view-assigned                                          |
-| `operator`          | submissions.view-all, reviewers.assign, periods.manage, users.verify, organizations.manage, reporting.export |
+| `operator`          | submissions.view-all, reviewers.assign, periods.manage, users.verify, organizations.manage, reporting.export, outputs.manage |
 | `admin`             | semua                                                                                  |
+
+> **v2.7 — `outputs.manage` dipegang dua peran dengan makna berbeda.** Bagi `researcher` ia
+> izin melaporkan luaran **timnya sendiri** (tetap tunduk pada peran tim, BR-RO-07). Bagi
+> `operator` ia izin mengoreksi luaran semua pengajuan, dan hanya berlaku bersama
+> `submissions.view-all`. Tanpa syarat kedua itu, setiap peneliti terbaca sebagai staf.
 
 ---
 

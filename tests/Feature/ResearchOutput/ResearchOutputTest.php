@@ -24,7 +24,9 @@ use App\States\Submission\UnderReview;
 use App\States\Submission\Withdrawn;
 use App\Support\Lifecycle\DeletionNotPermitted;
 use Illuminate\Validation\ValidationException;
+use Database\Seeders\PermissionSeeder;
 use Spatie\Permission\Models\Permission;
+use Spatie\Permission\Models\Role;
 
 function outputType(string $code, array $override = []): OutputTypeDefinition
 {
@@ -245,7 +247,8 @@ it('[RO-OUTPUT-12] co-investigator juga boleh menyunting luaran', function () {
 it('[RO-OUTPUT-13] member biasa hanya bisa membaca luaran', function () {
     ['submission' => $s] = outputFixture();
 
-    $member = verifiedResearcher();
+    // Peran `researcher` memegang outputs.manage (W138): anggota tetap hanya membaca.
+    $member = seededRole('researcher');
     ResearchMember::create([
         'form_submission_id' => $s->id,
         'user_profile_id' => $member->userProfile->id,
@@ -262,7 +265,8 @@ it('[RO-OUTPUT-19] reviewer hanya bisa membaca luaran', function () {
     // Reviewer menilai; ia tidak melaporkan — dan luaran adalah laporan
     // peneliti. Satu-satunya peran di tabel Access Control yang tidak pernah
     // punya skenario sampai audit M4.
-    $reviewer = verifiedResearcher();
+    $reviewer = seededRole('researcher');
+    $reviewer->assignRole('reviewer_internal');
 
     expect($reviewer->can('manageResearchOutput', $s))->toBeFalse();
 });
@@ -270,13 +274,30 @@ it('[RO-OUTPUT-19] reviewer hanya bisa membaca luaran', function () {
 it('[RO-OUTPUT-20] Operator pemegang outputs.manage boleh menyunting luaran', function () {
     ['submission' => $s] = outputFixture();
 
-    Permission::findOrCreate('outputs.manage', 'web');
-    $operator = verifiedResearcher();
-    $operator->givePermissionTo('outputs.manage');
+    $operator = seededRole('operator');
 
     // Register #35 — sengaja berbeda dari anggaran: anggaran komitmen peneliti,
     // luaran laporan fakta yang memasok pelaporan LPPM.
-    expect($operator->fresh()->can('manageResearchOutput', $s))->toBeTrue();
+    expect($operator->can('manageResearchOutput', $s))->toBeTrue();
+});
+
+it('[RO-OUTPUT-25] peneliti di luar tim tidak bisa menambah luaran meski memegang outputs.manage', function () {
+    ['submission' => $s] = outputFixture();
+    outputType('publication');
+
+    $stranger = seededRole('researcher');
+
+    $this->actingAs($stranger)
+        ->post(route('user.submissions.outputs.store', $s), ['output_type' => 'publication'])
+        ->assertForbidden();
+
+    expect(ResearchOutput::count())->toBe(0);
+});
+
+it('Operator seeder memegang outputs.manage', function () {
+    $this->seed(PermissionSeeder::class);
+
+    expect(Role::findByName('operator', 'web')->hasPermissionTo('outputs.manage'))->toBeTrue();
 });
 
 // BR-RO-08 — sumbu **kapan**. Batasnya milik FormPhaseDetail "Upload Luaran",
