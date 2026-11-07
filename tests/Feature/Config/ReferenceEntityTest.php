@@ -29,9 +29,10 @@ use Spatie\Permission\Models\Permission;
 
 function configAdmin(): User
 {
-    Permission::findOrCreate('users.manage', 'web');
+    // W105 — Konfigurasi Umum dikelola pemegang schemes.manage, bukan users.manage.
+    Permission::findOrCreate('schemes.manage', 'web');
     $admin = User::factory()->create();
-    $admin->givePermissionTo('users.manage');
+    $admin->givePermissionTo('schemes.manage');
 
     return $admin;
 }
@@ -131,15 +132,19 @@ it('menampilkan jumlah pemakai sebelum tombol Hapus ditekan', function () {
         ->get(route('admin.reference.index'))
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
-            ->component('Config/ReferenceEntitiesPage')
-            ->where('entities.0.key', 'scheme-types')
-            ->where('entities.0.records.0.usage_count', 2)
-            ->where('entities.1.editable', false)
+            ->component('SystemConfig/GeneralPage')
+            ->where('categories.0.key', 'scheme-types')
+            ->where('categories.0.items.0.usageCount', 2)
+            ->where('categories.1.editable', false)
             ->etc());
 });
 
-it('menolak pengelolaan konfigurasi tanpa permission users.manage', function () {
-    $this->actingAs(User::factory()->create())
+it('menolak pengelolaan konfigurasi tanpa permission schemes.manage', function () {
+    Permission::findOrCreate('users.manage', 'web');
+    $usersOnly = User::factory()->create();
+    $usersOnly->givePermissionTo('users.manage');
+
+    $this->actingAs($usersOnly)
         ->get(route('admin.reference.index'))
         ->assertForbidden();
 });

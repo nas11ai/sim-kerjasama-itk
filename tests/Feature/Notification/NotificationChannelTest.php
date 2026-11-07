@@ -85,9 +85,9 @@ it('[NOT-CHANNEL-03] channel event diubah lewat konfigurasi tanpa deploy', funct
 });
 
 it('[NOT-CHANNEL-03] Admin mengubah channel lewat layar konfigurasi', function () {
-    Permission::findOrCreate('users.manage', 'web');
+    Permission::findOrCreate('schemes.manage', 'web');
     $admin = User::factory()->create();
-    $admin->givePermissionTo('users.manage');
+    $admin->givePermissionTo('schemes.manage');
 
     $this->actingAs($admin)
         ->put(route('admin.reference.notification-channels.update', FormChangedNotification::EVENT_TYPE), [

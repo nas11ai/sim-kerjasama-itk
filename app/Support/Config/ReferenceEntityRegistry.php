@@ -44,6 +44,7 @@ final class ReferenceEntityRegistry
                 model: SchemeType::class,
                 usageRelation: 'schemes',
                 usedBy: 'Skema',
+                group: 'scheme',
             ),
             // BR-SC-02 — tak dapat disunting: mengikat Scheme, Submission,
             // Review, Monev sekaligus, nilai ketiga tak ditangani satu pun
@@ -54,6 +55,7 @@ final class ReferenceEntityRegistry
                 model: SubmissionType::class,
                 usageRelation: 'schemes',
                 usedBy: 'Skema, Submission, Review, Monev',
+                group: 'scheme',
                 // Tampil read-only: Admin yang tak menemukannya akan mengira
                 // ada layar lain.
                 editable: false,
@@ -64,6 +66,7 @@ final class ReferenceEntityRegistry
                 model: BudgetComponent::class,
                 usageRelation: 'budgetLineItems',
                 usedBy: 'Rencana anggaran pengajuan',
+                group: 'other',
             ),
         ];
     }
@@ -83,6 +86,7 @@ final class ReferenceEntityRegistry
                 model: OutputTypeDefinition::class,
                 usageRelation: 'researchOutputs',
                 usedBy: 'luaran dan target luaran pengajuan',
+                group: 'output',
                 additionalUsageRelations: ['submissionTargetOutputs'],
                 codeColumn: 'code',
             ),
@@ -92,6 +96,7 @@ final class ReferenceEntityRegistry
                 model: TechnologyReadinessLevel::class,
                 usageRelation: 'schemes',
                 usedBy: 'Skema dan form pengajuan',
+                group: 'scheme',
                 // Tabelnya tidak punya `is_active`. Dinyatakan di sini alih-alih
                 // ditebak layar, supaya tombol Nonaktifkan tidak muncul lalu
                 // gagal pada kolom yang memang tidak ada.

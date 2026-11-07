@@ -561,7 +561,8 @@ Route::middleware(['auth'])->group(function () {
 // BR-SC-01/02/03 — Konfigurasi Umum. Satu himpunan rute untuk semua data
 // acuan: yang membedakan mereka adalah entri registry, bukan controller
 // masing-masing, sehingga aturan hapus dan nonaktif tertulis sekali.
-Route::middleware(['auth', 'can:users.manage'])->prefix('admin/reference')->name('admin.reference.')->group(function () {
+// ADMIN-08-10 — Konfigurasi Umum dikelola pemegang schemes.manage (W105, sidebar.md).
+Route::middleware(['auth', 'can:schemes.manage'])->prefix('admin/reference')->name('admin.reference.')->group(function () {
     Route::get('/', [ReferenceEntityController::class, 'index'])->name('index');
 
     // BR-NOT-06 — hanya isi deklarasi yang bisa disunting, bukan ada-tidaknya.

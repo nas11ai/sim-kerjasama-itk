@@ -2,6 +2,7 @@
 
 namespace App\Actions\Config;
 
+use App\Queries\Config\ReferenceEntityUsage;
 use App\Support\Audit\AuditChange;
 use App\Support\Audit\AuditTrail;
 use App\Support\Config\ReferenceEntity;
@@ -28,7 +29,7 @@ class DeleteReferenceEntity
      */
     public function handle(ReferenceEntity $entity, Model $record): void
     {
-        $pemakai = CountReferenceEntityUsage::run($entity, $record);
+        $pemakai = ReferenceEntityUsage::of($entity, $record);
 
         if ($pemakai > 0) {
             throw ValidationException::withMessages([

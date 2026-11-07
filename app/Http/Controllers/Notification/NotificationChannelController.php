@@ -9,7 +9,6 @@ use App\Support\Audit\AuditTrail;
 use App\Support\Notification\NotificationChannels;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 
 /**
  * BR-NOT-06 — Admin menyunting channel per tipe event tanpa deploy.
@@ -21,9 +20,9 @@ class NotificationChannelController extends Controller
 {
     public function update(Request $request, string $eventType): RedirectResponse
     {
-        $user = Auth::user();
-
-        abort_unless($user !== null && $user->can('users.manage'), 403);
+        // W105 — wewenangnya `can:schemes.manage` di grup route /admin/reference.
+        $user = $request->user();
+        abort_if($user === null, 403);
 
         $validated = $request->validate([
             'channels' => ['array'],
