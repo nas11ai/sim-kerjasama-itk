@@ -103,6 +103,22 @@ Feature: Siklus Monitoring dan Evaluasi
     Then penyimpanan ditolak dengan 403
     And "Ani" juga tidak bisa memulai maupun mengirim laporan itu
 
+  @BR-SCH-07 @BR-MON-05 @M4 @RESEARCHER-05-02 @boundary
+  Scenario: [MON-CYCLE-16] Penutupan paksa periode tidak menutup siklus monev
+    Given Batas Submit "P-001" dan Batas Laporan Monev I berada di periode yang sama
+    And laporan "Laporan Monev I" pada "P-001" masih draft
+    When Operator menutup periode itu lebih awal
+    Then "Budi" tetap bisa menyimpan laporan "Laporan Monev I"
+    And draft pengajuan di periode itu tertutup
+
+  @BR-SM-13 @BR-MON-05 @M4 @RESEARCHER-05-02 @boundary
+  Scenario: [MON-CYCLE-17] Laporan monev tidak terarsip saat seluruh tanggal periode lewat
+    Given laporan "Laporan Monev I" pada "P-001" masih draft
+    And seluruh tanggal periode "P-001" sudah lewat
+    When Operator memberi perpanjangan akses laporan "Laporan Monev I"
+    Then "Budi" bisa menyimpan laporan "Laporan Monev I"
+    And tanpa perpanjangan penyimpanan ditolak dengan 403
+
   @BR-MON-04 @M4 @OPERATOR-05-01 @OPERATOR-05-02 @happy
   Scenario: [MON-REVIEW-01] Reviewer monev ditugaskan manual per siklus
     When Operator menugaskan "Sari" sebagai reviewer siklus "Laporan Monev I" pada "P-001"

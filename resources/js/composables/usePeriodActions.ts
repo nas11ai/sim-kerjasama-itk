@@ -32,7 +32,7 @@ export function usePeriodActions() {
                 ? `${owners} peneliti dengan draft berjalan akan diberi tahu dan draftnya diarsipkan.`
                 : 'Tidak ada draft berjalan.'
 
-        return `Pengajuan baru tidak bisa dibuat dan semua tahap periode ini terkunci, termasuk yang tenggatnya belum lewat. ${drafts} Penutupan tidak bisa dibatalkan dari layar ini.`
+        return `Pengajuan baru tidak bisa dibuat dan semua tahap pengajuan periode ini terkunci, termasuk yang tenggatnya belum lewat. Siklus monev tetap mengikuti tenggatnya sendiri. ${drafts} Penutupan tidak bisa dibatalkan dari layar ini.`
     })
 
     const visit = (done: () => void) => ({

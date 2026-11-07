@@ -78,7 +78,7 @@ Feature: Deadline dan Override
     And fase "Pengajuan" tidak bisa diubah
 
   @BR-SCH-07 @M0 @denial
-  Scenario: [FE-OVERRIDE-11] Periode force closed menutup semua fase meski deadline belum lewat
+  Scenario: [FE-OVERRIDE-11] Periode force closed menutup tahap pengajuan meski deadline belum lewat
     Given waktu sekarang "2026-02-20 10:00"
     And periode berjalan berstatus is_force_closed
     When "Budi" membuka fase "Pengajuan"

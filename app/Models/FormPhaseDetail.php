@@ -4,6 +4,7 @@ namespace App\Models;
 
 use App\Enums\DeadlineType;
 use App\Support\Lifecycle\ReferenceGuard;
+use App\Support\SubmissionPeriodGate;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -155,7 +156,7 @@ class FormPhaseDetail extends Model
     public function isWithinDeadline(DeadlineType $type = DeadlineType::Submit): bool
     {
         // BR-SCH-07 — force close mengalahkan tanggal per detail — sumbu yang berbeda.
-        if ($this->submissionDate->submissionPeriod?->is_force_closed === true) {
+        if (SubmissionPeriodGate::isForceClosed($this)) {
             return false;
         }
 

@@ -26,6 +26,8 @@ class PeriodDraftOwners implements ChangesNoState
         return User::query()
             ->whereIn('id', FormSubmission::query()
                 ->where('submission_period_id', $period->id)
+                // BR-SM-10 (v2.5) — hanya draft pengajuan; laporan monev tidak terdampak Close Early.
+                ->whereNull('parent_submission_id')
                 ->where('is_submitted', false)
                 ->select('submitted_by'))
             ->get();

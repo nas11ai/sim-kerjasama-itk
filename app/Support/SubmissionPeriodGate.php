@@ -100,7 +100,9 @@ final class SubmissionPeriodGate
      */
     public static function isForceClosed(FormPhaseDetail $detail): bool
     {
-        return $detail->submissionDate->submissionPeriod?->is_force_closed === true;
+        // BR-SCH-07 (v2.5) — Close Early menutup tahap pengajuan; siklus monev mengikuti BR-MON-05.
+        return $detail->submissionDate->cycle === null
+            && $detail->submissionDate->submissionPeriod?->is_force_closed === true;
     }
 
     public static function assertOpen(?SubmissionPeriod $period): void

@@ -328,7 +328,9 @@ class FormSubmission extends Model
      */
     public function resolveIsArchived(): bool
     {
-        if ($this->is_submitted) {
+        // BR-SM-13 (v2.5) — laporan anak tidak pernah terarsip: jendelanya BR-MON-05, dan
+        // pengarsipan akan mengunci laporan yang masih bisa dibuka override.
+        if ($this->is_submitted || $this->parent_submission_id !== null) {
             return false;
         }
 

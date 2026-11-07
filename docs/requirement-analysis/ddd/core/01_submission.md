@@ -1,9 +1,14 @@
 # BC: Submission
 
 **Klasifikasi:** 🔴 Core Domain  
-**Versi:** 2.4  
+**Versi:** 2.5  
 **Status:** Draft
 
+> **Perubahan v2.4 → v2.5.** BR-SM-10 dan BR-SM-13 diberi catatan laporan anak
+> (keputusan pemilik 2026-11-07, W135), turunan BR-SCH-07 v2.5: laporan monev
+> tidak pernah terarsip dan tidak diberi tahu saat period tutup, karena
+> jendelanya BR-MON-05 dan override tetap bisa membukanya.
+>
 > **Perubahan v2.3 → v2.4.** Alur pembuatan mengikuti **wizard tujuh langkah**
 > ([ADR 0012](../../../adr/0012-wizard-driven-submission-lifecycle.md)), dan
 > `form_submissions` mendapat lima kolom baru
@@ -254,10 +259,10 @@ classDiagram
 | BR-SM-07 | Semua query yang return submission data wajib scope via `isAccessibleBy()` — tidak cukup hanya cek FormAccessControl                                                                                                                               |
 | BR-SM-08 | **Sisi anggota dari [BR-REV-02](../core/02_review.md).** ResearchMember tidak bisa ditambahkan jika user tersebut sudah jadi `SubmissionReviewer` untuk submission yang sama (mutual conflict of interest). Satu Policy, dua pemanggil                                                                                                  |
 | BR-SM-09 | **Cermin [BR-IAM-10](../generic/02_identity_access.md).** Jika lead researcher dinonaktifkan dengan submission aktif, Operator wajib transfer ownership ke Co-Investigator yang aktif                                                                                                                        |
-| BR-SM-10 | DRAFT tidak dihapus saat period tutup — scheduled job mengirim notifikasi ke researcher, submission menjadi archived read-only                                                                                                                     |
+| BR-SM-10 | DRAFT tidak dihapus saat period tutup — scheduled job mengirim notifikasi ke researcher, submission menjadi archived read-only. Pemberitahuan dan pengarsipan ini hanya untuk draft **pengajuan**; laporan anak (child FormSubmission) tidak terdampak penutupan period |
 | BR-SM-11 | Withdrawal setelah APPROVED hanya bisa dilakukan Operator via override — tidak bisa self-service oleh Researcher. **WITHDRAWN bersifat terminal dan tidak dapat dibatalkan**: membalikkannya menuntut seluruh pembekuan hilir (kunci anggaran, freeze monev BR-MON-08, penugasan reviewer) ikut dipulihkan dengan benar, untuk peristiwa yang jarang. State machine sengaja dijaga asiklik. Kalau penarikan keliru, jalurnya pengajuan baru yang merujuk yang lama |
 | BR-SM-12 | **Cermin [BR-FE-14](../generic/01_form_engine.md).** Concurrent edit dicegah via optimistic locking — `updated_at` di request harus sama dengan yang ada di DB                                                                                                                                          |
-| BR-SM-13 | `isArchived()` adalah computed property — bukan status di DB. DRAFT dianggap archived jika `is_submitted = false` DAN period sudah tutup (`is_force_closed = true` ATAU semua SubmissionDate sudah terlewat). Archived submission tampil read-only |
+| BR-SM-13 | `isArchived()` adalah computed property — bukan status di DB. DRAFT dianggap archived jika `is_submitted = false` DAN period sudah tutup (`is_force_closed = true` ATAU semua SubmissionDate sudah terlewat). Archived submission tampil read-only. Laporan anak (child FormSubmission) tidak pernah dianggap archived: jendelanya BR-MON-05, dan pengarsipan akan mengunci laporan yang masih bisa dibuka override |
 | BR-SM-14 | Target luaran hanya boleh dari `output_type` yang terdaftar di `output_type_definitions`. Jika submission punya scheme, pilihan dibatasi lagi oleh `scheme.rules.allowed_output_types`; scheme tanpa key itu tidak membatasi apa pun |
 | BR-SM-15 | Target luaran bisa diubah sampai submission REJECTED atau WITHDRAWN — termasuk setelah APPROVED, karena target menyesuaikan jalannya kegiatan. Hanya `submitted_by` yang boleh mengubahnya, dan setiap perubahan setelah APPROVED wajib tercatat di audit trail dengan nilai lama dan baru |
 | BR-SM-16 | Pelanggaran BR-SM-01 dicegat **sebelum** menyentuh database: submit ditolak dengan pesan validasi yang menyebut pengajuan aktif yang sudah ada beserta tautannya. Draft yang gagal disubmit **tetap DRAFT dan tetap bisa disunting** — tidak dihapus, tidak diubah statusnya. Index unik parsial tetap ada sebagai jaring pengaman untuk lomba-balap; kalau ia yang menangkap, pesannya sama, bukan galat database mentah |
