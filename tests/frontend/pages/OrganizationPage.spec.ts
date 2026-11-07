@@ -1,5 +1,5 @@
 import { mount } from '@vue/test-utils'
-import { defineComponent, h } from 'vue'
+import { defineComponent, h, reactive } from 'vue'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 const { router } = vi.hoisted(() => ({
@@ -8,6 +8,8 @@ const { router } = vi.hoisted(() => ({
 
 vi.mock('@inertiajs/vue3', () => ({
     router,
+    useForm: <T extends object>(data: T) =>
+        reactive({ ...data, errors: {}, processing: false, clearErrors: vi.fn() }),
     Head: defineComponent({ setup: () => () => null }),
     Link: defineComponent({
         setup:
@@ -145,5 +147,24 @@ describe('OrganizationPage', () => {
         const nodes = mountPage(unit()).findAll('[role="treeitem"]')
 
         expect(nodes.map((n) => n.attributes('aria-selected'))).toEqual(['false', 'false', 'true'])
+    })
+
+    it('header menawarkan Tambah Unit Induk; unit aktif menawarkan Tambah Sub-unit dan Edit', () => {
+        const labels = mountPage(unit())
+            .findAll('button')
+            .map((b) => b.text().trim())
+
+        expect(labels).toContain('Tambah Unit Induk')
+        expect(labels).toContain('Tambah Sub-unit')
+        expect(labels).toContain('Edit Nama / Tipe')
+    })
+
+    it('[IAM-ORG-16] unit nonaktif tidak menawarkan Tambah Sub-unit', () => {
+        const labels = mountPage(unit({ isActive: false }))
+            .findAll('button')
+            .map((b) => b.text().trim())
+
+        expect(labels).not.toContain('Tambah Sub-unit')
+        expect(labels).toContain('Edit Nama / Tipe')
     })
 })

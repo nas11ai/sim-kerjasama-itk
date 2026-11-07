@@ -296,3 +296,56 @@ it('[IAM-ORG-13] siklus lewat unit nonaktif ditolak', function () {
         ->toThrow(ValidationException::class)
         ->and($t['itk']->fresh()->parent_id)->toBeNull();
 });
+
+// ---------- W117: induk nonaktif dan tipe unit dari katalog ----------
+
+it('[IAM-ORG-16] unit nonaktif tidak bisa menjadi induk unit baru', function () {
+    $operator = operatorOrganisasi();
+    $lama = Organization::create(['name' => 'Teknik Kimia Lama', 'type' => 'study_program', 'is_active' => false]);
+    $lain = Organization::create(['name' => 'Teknik Mesin', 'type' => 'study_program', 'is_active' => true]);
+
+    $this->actingAs($operator)
+        ->post(route('admin.organizations.store'), ['name' => 'Lab Katalis', 'type' => 'unit', 'parent_id' => $lama->id])
+        ->assertSessionHasErrors(['parent_id' => 'Unit induk sudah nonaktif, jadi tidak menerima sub-unit baru.']);
+
+    // Memindah unit yang ada ke bawahnya sama dengan menambah sub-unit baru di sana.
+    $this->actingAs($operator)
+        ->put(route('admin.organizations.update', $lain), ['parent_id' => $lama->id])
+        ->assertSessionHasErrors('parent_id');
+
+    expect(Organization::query()->where('name', 'Lab Katalis')->exists())->toBeFalse()
+        ->and($lain->fresh()->parent_id)->toBeNull();
+});
+
+it('mengganti nama unit di bawah induk nonaktif tetap boleh', function () {
+    $induk = Organization::create(['name' => 'FSTI', 'type' => 'faculty', 'is_active' => false]);
+    $unit = Organization::create(['name' => 'Teknik Kimia', 'type' => 'study_program', 'parent_id' => $induk->id, 'is_active' => false]);
+
+    $this->actingAs(operatorOrganisasi())
+        ->put(route('admin.organizations.update', $unit), ['name' => 'Teknik Kimia (2019–2024)', 'parent_id' => $induk->id])
+        ->assertSessionHasNoErrors();
+
+    expect($unit->fresh()->name)->toBe('Teknik Kimia (2019–2024)')
+        ->and($unit->fresh()->parent_id)->toBe($induk->id);
+});
+
+it('tipe di luar katalog ditolak, tipe lama unit itu sendiri diterima', function () {
+    $operator = operatorOrganisasi();
+    $pusat = Organization::create(['name' => 'Pusat Studi Energi', 'type' => 'research_center', 'is_active' => true]);
+
+    $this->actingAs($operator)
+        ->post(route('admin.organizations.store'), ['name' => 'Pusat Baru', 'type' => 'research_center'])
+        ->assertSessionHasErrors('type');
+
+    $this->actingAs($operator)
+        ->put(route('admin.organizations.update', $pusat), ['name' => 'Pusat Studi Energi Terbarukan', 'type' => 'research_center'])
+        ->assertSessionHasNoErrors();
+
+    $this->actingAs($operator)
+        ->put(route('admin.organizations.update', $pusat), ['type' => 'laboratory'])
+        ->assertSessionHasErrors('type');
+
+    expect(Organization::query()->where('name', 'Pusat Baru')->exists())->toBeFalse()
+        ->and($pusat->fresh()->name)->toBe('Pusat Studi Energi Terbarukan')
+        ->and($pusat->fresh()->type)->toBe('research_center');
+});

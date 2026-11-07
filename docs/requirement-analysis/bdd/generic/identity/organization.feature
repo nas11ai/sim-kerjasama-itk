@@ -109,3 +109,10 @@ Feature: Penghapusan dan Deaktivasi Organisasi
     When Operator memindahkan user itu ke unit lain
     And Operator menonaktifkan "Teknik Kimia"
     Then deaktivasi berhasil
+
+  @BR-IAM-14 @BR-IAM-17 @M3 @ADMIN-08-02 @denial
+  Scenario: [IAM-ORG-16] Unit nonaktif tidak bisa menjadi induk unit baru
+    Given unit "Teknik Kimia Lama" nonaktif
+    When Operator membuat sub-unit di bawahnya
+    Then pembuatan ditolak
+    And pesannya menyebut unit induk sudah nonaktif

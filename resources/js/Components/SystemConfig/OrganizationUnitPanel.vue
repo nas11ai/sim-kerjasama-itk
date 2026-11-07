@@ -1,13 +1,16 @@
 <script setup lang="ts">
+import { Pencil, Plus } from 'lucide-vue-next'
 import { computed } from 'vue'
 
 import AppBanner from '@/Components/app/AppBanner.vue'
 import EmptyState from '@/Components/app/EmptyState.vue'
 import InfoGrid from '@/Components/app/InfoGrid.vue'
 import SectionCard from '@/Components/app/SectionCard.vue'
+import { Button } from '@/Components/ui/button'
 import type { OrganizationUnitData } from '@/types/system-config'
 
 const props = defineProps<{ unit: OrganizationUnitData | null }>()
+const emit = defineEmits<{ addChild: []; edit: [] }>()
 
 const directUsers = (unit: OrganizationUnitData) => {
     const { directProfiles, directActiveUsers } = unit.census
@@ -45,7 +48,16 @@ const facts = computed(() =>
             />
             <template v-else>
                 <InfoGrid :items="facts" />
-                <slot name="actions" />
+                <div class="flex flex-col gap-2">
+                    <!-- BR-IAM-14 — unit nonaktif berhenti ditawarkan, juga sebagai induk (W117). -->
+                    <Button v-if="unit.isActive" variant="outline" @click="emit('addChild')">
+                        <Plus class="size-4" />Tambah Sub-unit
+                    </Button>
+                    <Button variant="outline" @click="emit('edit')">
+                        <Pencil class="size-4" />Edit Nama / Tipe
+                    </Button>
+                    <slot name="actions" />
+                </div>
             </template>
         </SectionCard>
         <AppBanner tone="info">

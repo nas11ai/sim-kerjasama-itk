@@ -112,6 +112,14 @@ class SaveOrganization
             ]);
         }
 
+        // BR-IAM-14 — W117: unit nonaktif berhenti ditawarkan, juga sebagai induk. Unit yang
+        // induknya tidak berubah tetap boleh diganti nama.
+        if (!$parent->is_active && $parentId !== $organization?->parent_id) {
+            throw ValidationException::withMessages([
+                'parent_id' => 'Unit induk sudah nonaktif, jadi tidak menerima sub-unit baru.',
+            ]);
+        }
+
         if ($organization === null) {
             return;
         }

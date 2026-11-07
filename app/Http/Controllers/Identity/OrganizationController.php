@@ -9,6 +9,7 @@ use App\Actions\Identity\SaveOrganization;
 use App\Data\View\SystemConfig\OrganizationUnitData;
 use App\Http\Controllers\Concerns\ResolvesActor;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Identity\OrganizationRequest;
 use App\Models\Organization;
 use App\Models\User;
 use App\Queries\Identity\OrganizationCensus;
@@ -64,29 +65,17 @@ class OrganizationController extends Controller
     }
 
     /** BR-IAM-17 — membuat unit baru, akar maupun sub-unit. */
-    public function store(Request $request): RedirectResponse
+    public function store(OrganizationRequest $request): RedirectResponse
     {
-        $validated = $request->validate([
-            'name' => 'required|string|max:191',
-            'type' => 'required|string|max:64',
-            'parent_id' => 'nullable|exists:organizations,id',
-        ]);
-
-        SaveOrganization::run($this->actor($request), $validated);
+        SaveOrganization::run($this->actor($request), $request->toAttributes());
 
         return back()->with('success', 'Unit organisasi dibuat.');
     }
 
     /** BR-IAM-17 — mengganti nama, tipe, atau induk sebuah unit. */
-    public function update(Request $request, Organization $organization): RedirectResponse
+    public function update(OrganizationRequest $request, Organization $organization): RedirectResponse
     {
-        $validated = $request->validate([
-            'name' => 'sometimes|string|max:191',
-            'type' => 'sometimes|string|max:64',
-            'parent_id' => 'sometimes|nullable|exists:organizations,id',
-        ]);
-
-        SaveOrganization::run($this->actor($request), $validated, $organization);
+        SaveOrganization::run($this->actor($request), $request->toAttributes(), $organization);
 
         return back()->with('success', 'Unit organisasi diperbarui.');
     }

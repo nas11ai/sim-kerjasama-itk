@@ -1,15 +1,29 @@
 <script setup lang="ts">
 // Frame: ADMIN-08-02
 import { Head, router } from '@inertiajs/vue3'
+import { Plus } from 'lucide-vue-next'
+import { ref } from 'vue'
 
 import PageHeader from '@/Components/app/PageHeader.vue'
 import SectionCard from '@/Components/app/SectionCard.vue'
 import OrganizationTree from '@/Components/SystemConfig/OrganizationTree.vue'
+import OrganizationUnitDialog, {
+    type OrganizationUnitDialogMode,
+} from '@/Components/SystemConfig/OrganizationUnitDialog.vue'
 import OrganizationUnitPanel from '@/Components/SystemConfig/OrganizationUnitPanel.vue'
+import { Button } from '@/Components/ui/button'
 import AppLayout from '@/Layouts/AppLayout.vue'
 import type { OrganizationPageProps } from '@/types/system-config'
 
 defineProps<OrganizationPageProps>()
+
+const dialogOpen = ref(false)
+const dialogMode = ref<OrganizationUnitDialogMode>('root')
+
+function openDialog(mode: OrganizationUnitDialogMode) {
+    dialogMode.value = mode
+    dialogOpen.value = true
+}
 
 function select(id: number) {
     router.get(
@@ -26,7 +40,13 @@ function select(id: number) {
         <PageHeader
             title="Struktur Organisasi"
             subtitle="Susun unit kerja secara berjenjang — klik untuk membuka atau menutup cabang."
-        />
+        >
+            <template #actions>
+                <Button @click="openDialog('root')"
+                    ><Plus class="size-4" />Tambah Unit Induk</Button
+                >
+            </template>
+        </PageHeader>
         <div class="grid gap-6 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
             <SectionCard title="Struktur Organisasi">
                 <OrganizationTree
@@ -35,7 +55,18 @@ function select(id: number) {
                     @select="select"
                 />
             </SectionCard>
-            <OrganizationUnitPanel :unit="selected" />
+            <OrganizationUnitPanel
+                :unit="selected"
+                @add-child="openDialog('child')"
+                @edit="openDialog('edit')"
+            />
         </div>
+        <OrganizationUnitDialog
+            v-model:open="dialogOpen"
+            :mode="dialogMode"
+            :unit="selected"
+            :type-options="typeOptions"
+            :parent-options="parentOptions"
+        />
     </AppLayout>
 </template>
