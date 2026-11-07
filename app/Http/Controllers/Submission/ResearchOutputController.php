@@ -4,13 +4,13 @@ namespace App\Http\Controllers\Submission;
 
 use App\Actions\ResearchOutput\SaveResearchOutput;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\ResearchOutput\ResearchOutputRequest;
 use App\Models\FormSubmission;
 use App\Models\ResearchOutput;
 use App\Models\User;
 use App\Queries\ResearchOutput\OutputUploadDetail;
 use App\Support\PhaseAccessGate;
 use Illuminate\Http\RedirectResponse;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 /**
@@ -21,19 +21,17 @@ use Illuminate\Support\Facades\Auth;
  */
 class ResearchOutputController extends Controller
 {
-    public function store(Request $request, FormSubmission $submission): RedirectResponse
+    public function store(ResearchOutputRequest $request, FormSubmission $submission): RedirectResponse
     {
         $user = $this->authorizeManage($submission);
 
-        $validated = $this->validated($request);
-
-        SaveResearchOutput::run($submission, $user, $validated);
+        SaveResearchOutput::run($submission, $user, $request->toInput());
 
         return back()->with('success', 'Luaran tersimpan.');
     }
 
     public function update(
-        Request $request,
+        ResearchOutputRequest $request,
         FormSubmission $submission,
         ResearchOutput $output
     ): RedirectResponse {
@@ -41,26 +39,9 @@ class ResearchOutputController extends Controller
 
         abort_unless($output->form_submission_id === $submission->id, 404);
 
-        SaveResearchOutput::run($submission, $user, $this->validated($request), $output);
+        SaveResearchOutput::run($submission, $user, $request->toInput(), $output);
 
         return back()->with('success', 'Luaran diperbarui.');
-    }
-
-    /**
-     * @return array{output_type: string, metadata?: array<string, mixed>, files?: list<array{file_path: string, file_url?: string|null}>}
-     */
-    private function validated(Request $request): array
-    {
-        /** @var array{output_type: string, metadata?: array<string, mixed>, files?: list<array{file_path: string, file_url?: string|null}>} $data */
-        $data = $request->validate([
-            'output_type' => 'required|string|max:64',
-            'metadata' => 'nullable|array',
-            'files' => 'nullable|array',
-            'files.*.file_path' => 'required|string|max:2048',
-            'files.*.file_url' => 'nullable|string|max:2048',
-        ]);
-
-        return $data;
     }
 
     private function authorizeManage(FormSubmission $submission): User

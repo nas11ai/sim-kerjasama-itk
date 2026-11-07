@@ -27,6 +27,7 @@ use App\Http\Controllers\Monev\MonevReportController;
 use App\Http\Controllers\Notification\NotificationChannelController;
 use App\Http\Controllers\Notification\NotificationController;
 use App\Http\Controllers\PermissionController;
+use App\Http\Controllers\ResearchOutput\ResearchOutputFileController;
 use App\Http\Controllers\Review\ReplaceReviewerController;
 use App\Http\Controllers\Review\ReviewAttachmentDownloadController;
 use App\Http\Controllers\Review\ReviewerAssignmentController;
@@ -96,6 +97,11 @@ Route::middleware(['auth'])->group(function () {
     // BR-SM-07 — berkas jawaban pengajuan hanya terbaca lewat route ber-scope ini (W15).
     Route::get('/user/submissions/{submission}/files/{response}', [SubmissionFileController::class, 'show'])
         ->name('user.submissions.files.show');
+
+    // W141 — berkas bukti luaran hanya terbaca lewat route ber-scope ini.
+    Route::get('/research-outputs/{output}/files/{file}', [ResearchOutputFileController::class, 'show'])
+        ->whereNumber('file')
+        ->name('research-outputs.files.show');
 
     Route::post('/submissions/{submission}/review-threads', [ReviewController::class, 'createReviewThread'])
         ->name('review-threads.store');

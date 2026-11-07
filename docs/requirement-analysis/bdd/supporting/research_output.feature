@@ -172,3 +172,11 @@ Feature: Luaran Penelitian Terealisasi
     And Operator menutup paksa periode "P-001"
     When "Budi" menambahkan luaran bertipe "publication" ke "P-001" pada "2026-11-20"
     Then penambahan berhasil
+
+  @BR-SM-07 @BR-RO-04 @M4 @RESEARCHER-06-03 @denial
+  Scenario: [RO-OUTPUT-28] Berkas bukti hanya terunduh oleh yang boleh membaca pengajuannya
+    Given "P-001" punya luaran bertipe "ip" dengan satu berkas bukti
+    And "Joko" bukan anggota, reviewer, maupun staf yang membaca "P-001"
+    When "Joko" mengunduh berkas bukti itu
+    Then pengunduhan ditolak dengan 403
+    And "Budi", anggota "P-001", dan reviewer "P-001" bisa mengunduhnya

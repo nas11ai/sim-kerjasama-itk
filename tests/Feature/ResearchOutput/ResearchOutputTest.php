@@ -12,6 +12,7 @@
 use App\Actions\Override\GrantPhaseOverride;
 use App\Actions\ResearchOutput\SaveResearchOutput;
 use App\Data\Request\PhaseOverrideInput;
+use App\Models\AuditEntry;
 use App\Models\FormSubmission;
 use App\Models\OutputTypeDefinition;
 use App\Models\ResearchMember;
@@ -25,8 +26,11 @@ use App\States\Submission\Withdrawn;
 use App\Support\Lifecycle\DeletionNotPermitted;
 use Database\Seeders\OutputTypeDefinitionSeeder;
 use Database\Seeders\PermissionSeeder;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\ValidationException;
 use Spatie\Permission\Models\Role;
+
+beforeEach(fn () => Storage::fake('local'));
 
 function outputType(string $code, array $override = []): OutputTypeDefinition
 {
@@ -65,7 +69,7 @@ it('[RO-OUTPUT-01] luaran ditolak pada submission yang belum APPROVED', function
     ['submission' => $s, 'owner' => $owner] = outputFixture(UnderReview::class);
     outputType('publication');
 
-    expect(fn () => SaveResearchOutput::run($s, $owner, ['output_type' => 'publication']))
+    expect(fn () => SaveResearchOutput::run($s, $owner, outputInput('publication')))
         ->toThrow(ValidationException::class)
         ->and(ResearchOutput::count())->toBe(0);
 });
@@ -74,7 +78,7 @@ it('[RO-OUTPUT-02] submission APPROVED bisa menerima luaran', function () {
     ['submission' => $s, 'owner' => $owner] = outputFixture();
     outputType('publication');
 
-    $output = SaveResearchOutput::run($s, $owner, ['output_type' => 'publication']);
+    $output = SaveResearchOutput::run($s, $owner, outputInput('publication'));
 
     expect($output->form_submission_id)->toBe($s->id)
         ->and($output->created_by)->toBe($owner->id);
@@ -84,7 +88,7 @@ it('[RO-OUTPUT-03] tipe pks ditolak di luar CommunityService', function () {
     ['submission' => $s, 'owner' => $owner] = outputFixture(submissionTypeName: 'Research');
     outputType('pks', ['submission_type' => 'CommunityService']);
 
-    expect(fn () => SaveResearchOutput::run($s, $owner, ['output_type' => 'pks']))
+    expect(fn () => SaveResearchOutput::run($s, $owner, outputInput('pks')))
         ->toThrow(ValidationException::class);
 });
 
@@ -92,7 +96,7 @@ it('[RO-OUTPUT-04] tipe pks diterima pada CommunityService', function () {
     ['submission' => $s, 'owner' => $owner] = outputFixture(submissionTypeName: 'CommunityService');
     outputType('pks', ['submission_type' => 'CommunityService']);
 
-    $output = SaveResearchOutput::run($s, $owner, ['output_type' => 'pks']);
+    $output = SaveResearchOutput::run($s, $owner, outputInput('pks'));
 
     expect($output->output_type)->toBe('pks');
 });
@@ -109,7 +113,7 @@ it('[RO-OUTPUT-05] PKS yang masih berjalan boleh tanpa end_date', function () {
 
     // end_date tidak wajib: kerja sama yang masih berjalan memang belum punya tanggal
     // berakhir, dan memaksanya membuat orang mengarang.
-    $output = SaveResearchOutput::run($s, $owner, ['output_type' => 'pks', 'metadata' => runningPks()]);
+    $output = SaveResearchOutput::run($s, $owner, outputInput('pks', runningPks()));
 
     expect($output->metadata['end_date'] ?? null)->toBeNull();
 });
@@ -118,7 +122,7 @@ it('[RO-OUTPUT-06] tipe ip tanpa berkas ditolak', function () {
     ['submission' => $s, 'owner' => $owner] = outputFixture();
     outputType('ip', ['requires_files' => true]);
 
-    expect(fn () => SaveResearchOutput::run($s, $owner, ['output_type' => 'ip']))
+    expect(fn () => SaveResearchOutput::run($s, $owner, outputInput('ip')))
         ->toThrow(ValidationException::class);
 });
 
@@ -126,12 +130,13 @@ it('[RO-OUTPUT-07] tipe ip dengan satu berkas tersimpan', function () {
     ['submission' => $s, 'owner' => $owner] = outputFixture();
     outputType('ip', ['requires_files' => true]);
 
-    $output = SaveResearchOutput::run($s, $owner, [
-        'output_type' => 'ip',
-        'files' => [['file_path' => 'luaran/paten.pdf']],
-    ]);
+    $output = SaveResearchOutput::run($s, $owner, outputInput('ip', files: 1));
 
-    expect($output->files()->count())->toBe(1);
+    $file = $output->files()->sole();
+    expect($file->original_name)->toBe('bukti-1.pdf')
+        ->and($file->size)->toBeGreaterThan(0)
+        ->and(Storage::disk('local')->exists($file->file_path))->toBeTrue()
+        ->and($file->file_path)->toStartWith("research-outputs/{$s->id}/");
 });
 
 it('[RO-OUTPUT-17] tipe prototype tanpa berkas ditolak', function () {
@@ -140,7 +145,7 @@ it('[RO-OUTPUT-17] tipe prototype tanpa berkas ditolak', function () {
 
     // BR-RO-04 menyebut DUA tipe. Implementasi yang menuliskan `ip` saja lolos
     // tanpa ada yang gagal — sampai ada prototipe kosong masuk laporan LPPM.
-    expect(fn () => SaveResearchOutput::run($s, $owner, ['output_type' => 'prototype']))
+    expect(fn () => SaveResearchOutput::run($s, $owner, outputInput('prototype')))
         ->toThrow(ValidationException::class);
 });
 
@@ -148,10 +153,7 @@ it('[RO-OUTPUT-18] tipe prototype dengan satu berkas tersimpan', function () {
     ['submission' => $s, 'owner' => $owner] = outputFixture();
     outputType('prototype', ['requires_files' => true]);
 
-    $output = SaveResearchOutput::run($s, $owner, [
-        'output_type' => 'prototype',
-        'files' => [['file_path' => 'luaran/prototipe.zip']],
-    ]);
+    $output = SaveResearchOutput::run($s, $owner, outputInput('prototype', files: 1));
 
     expect($output->files()->count())->toBe(1);
 });
@@ -159,7 +161,7 @@ it('[RO-OUTPUT-18] tipe prototype dengan satu berkas tersimpan', function () {
 it('[RO-OUTPUT-08] tipe di luar output_type_definitions ditolak', function () {
     ['submission' => $s, 'owner' => $owner] = outputFixture();
 
-    expect(fn () => SaveResearchOutput::run($s, $owner, ['output_type' => 'sertifikat-halal']))
+    expect(fn () => SaveResearchOutput::run($s, $owner, outputInput('sertifikat-halal')))
         ->toThrow(ValidationException::class);
 });
 
@@ -169,7 +171,7 @@ it('[RO-OUTPUT-09] tipe baru yang terdaftar langsung bisa dipakai', function () 
     // Menambah tipe adalah perubahan data, bukan perubahan kode.
     outputType('sertifikat-halal');
 
-    $output = SaveResearchOutput::run($s, $owner, ['output_type' => 'sertifikat-halal']);
+    $output = SaveResearchOutput::run($s, $owner, outputInput('sertifikat-halal'));
 
     expect($output->output_type)->toBe('sertifikat-halal');
 });
@@ -189,7 +191,7 @@ it('[RO-OUTPUT-21] metadata wajib yang kosong ditolak', function () {
     ['submission' => $s, 'owner' => $owner] = outputFixture();
     $this->seed(OutputTypeDefinitionSeeder::class);
 
-    expect(fn () => SaveResearchOutput::run($s, $owner, ['output_type' => 'article', 'metadata' => article(['title' => '  '])]))
+    expect(fn () => SaveResearchOutput::run($s, $owner, outputInput('article', article(['title' => '  ']))))
         ->toThrow(fn (ValidationException $e) => expect($e->errors()['metadata.title'])
             ->toBe(['Isian "Judul Artikel" wajib diisi untuk tipe Artikel Jurnal.']));
 });
@@ -198,7 +200,7 @@ it('[RO-OUTPUT-22] metadata yang tidak wajib boleh kosong', function () {
     ['submission' => $s, 'owner' => $owner] = outputFixture(submissionTypeName: 'CommunityService');
     $this->seed(OutputTypeDefinitionSeeder::class);
 
-    $output = SaveResearchOutput::run($s, $owner, ['output_type' => 'pks', 'metadata' => [...runningPks(), 'end_date' => '']]);
+    $output = SaveResearchOutput::run($s, $owner, outputInput('pks', [...runningPks(), 'end_date' => '']));
 
     expect($output->metadata['end_date'])->toBeNull()
         ->and($output->metadata['title'])->toBe('Kerja sama pendampingan UMKM');
@@ -208,7 +210,7 @@ it('kunci di luar spesifikasi dibuang dan angka disimpan sebagai bilangan', func
     ['submission' => $s, 'owner' => $owner] = outputFixture();
     $this->seed(OutputTypeDefinitionSeeder::class);
 
-    $output = SaveResearchOutput::run($s, $owner, ['output_type' => 'article', 'metadata' => article(['is_verified' => true])]);
+    $output = SaveResearchOutput::run($s, $owner, outputInput('article', article(['is_verified' => true])));
 
     expect($output->metadata)->not->toHaveKey('is_verified')
         ->and($output->metadata['year'])->toBe(2026)
@@ -220,7 +222,7 @@ it('nilai yang tidak sesuai tipe field ditolak', function (array $override, stri
     ['submission' => $s, 'owner' => $owner] = outputFixture();
     $this->seed(OutputTypeDefinitionSeeder::class);
 
-    expect(fn () => SaveResearchOutput::run($s, $owner, ['output_type' => 'article', 'metadata' => article($override)]))
+    expect(fn () => SaveResearchOutput::run($s, $owner, outputInput('article', article($override))))
         ->toThrow(fn (ValidationException $e) => expect($e->errors())->toHaveKey("metadata.{$key}"));
 
     expect(ResearchOutput::count())->toBe(0);
@@ -236,7 +238,7 @@ it('[RO-OUTPUT-06] luaran ditolak setelah pengajuan ditarik', function () {
 
     $s->status->transitionTo(Withdrawn::class);
 
-    expect(fn () => SaveResearchOutput::run($s->fresh(), $owner, ['output_type' => 'publication']))
+    expect(fn () => SaveResearchOutput::run($s->fresh(), $owner, outputInput('publication')))
         ->toThrow(ValidationException::class);
 });
 
@@ -244,7 +246,7 @@ it('[RO-OUTPUT-10] luaran tetap ada sebagai data historis setelah penarikan', fu
     ['submission' => $s, 'owner' => $owner] = outputFixture();
     outputType('publication');
 
-    $output = SaveResearchOutput::run($s, $owner, ['output_type' => 'publication']);
+    $output = SaveResearchOutput::run($s, $owner, outputInput('publication'));
 
     $s->status->transitionTo(Withdrawn::class);
 
@@ -369,7 +371,7 @@ it('luaran bisa ditambahkan sebelum Batas Akhir meski Batas Submit pengajuan sud
 it('[RO-OUTPUT-15] lewat batas, luaran lama tetap terbaca tanpa override', function () {
     $this->travelTo('2026-11-20 09:00:00');
     $fx = approvedLongAgo();
-    $output = SaveResearchOutput::run($fx['submission'], $fx['user'], ['output_type' => 'publication']);
+    $output = SaveResearchOutput::run($fx['submission'], $fx['user'], outputInput('publication'));
 
     $this->travelTo('2026-12-10 09:00:00');
 
@@ -431,7 +433,7 @@ it('[RO-OUTPUT-23] luaran tidak bisa dihapus peneliti', function () {
     ['submission' => $s, 'owner' => $owner] = outputFixture();
     outputType('artikel');
 
-    $output = SaveResearchOutput::run($s, $owner, ['output_type' => 'artikel']);
+    $output = SaveResearchOutput::run($s, $owner, outputInput('artikel'));
 
     // Dijaga di model, bukan di Policy: penghapusan lewat relasi, tinker, atau
     // seeder tidak melewati Policy mana pun.
@@ -443,18 +445,70 @@ it('[RO-OUTPUT-24] luaran yang salah dikoreksi lewat penyuntingan', function () 
     ['submission' => $s, 'owner' => $owner] = outputFixture();
     outputType('artikel', ['fields' => [['key' => 'title', 'required' => true]]]);
 
-    $output = SaveResearchOutput::run($s, $owner, [
-        'output_type' => 'artikel',
-        'metadata' => ['title' => 'Judul Keliru'],
-    ]);
+    $output = SaveResearchOutput::run($s, $owner, outputInput('artikel', ['title' => 'Judul Keliru']));
 
-    SaveResearchOutput::run($s, $owner, [
-        'output_type' => 'artikel',
-        'metadata' => ['title' => 'Judul Benar'],
-    ], $output);
+    SaveResearchOutput::run($s, $owner, outputInput('artikel', ['title' => 'Judul Benar']), $output);
 
     expect($output->fresh()->metadata['title'])->toBe('Judul Benar')
         // Koreksi tidak boleh berwujud "hapus lalu buat ulang" — baris yang sama
         // harus bertahan, karena itulah yang menautkan luaran ke laporan lama.
         ->and(ResearchOutput::query()->where('form_submission_id', $s->id)->count())->toBe(1);
+});
+
+// ---------- W141: berkas bukti sungguhan ----------
+
+it('path berkas dari klien tidak diterima', function () {
+    $this->travelTo('2026-11-20 09:00:00');
+    $fx = outputUploadFixture();
+    outputType('ip', ['requires_files' => true]);
+
+    $this->actingAs($fx['user'])
+        ->post(route('user.submissions.outputs.store', $fx['submission']), [
+            'output_type' => 'ip',
+            'files' => [['file_path' => 'submissions/lain.pdf']],
+        ])
+        ->assertSessionHasErrors('files.0');
+
+    expect(ResearchOutput::count())->toBe(0);
+});
+
+it('sunting HKI tanpa unggah ulang', function () {
+    $this->travelTo('2026-11-20 09:00:00');
+    $fx = outputUploadFixture();
+    outputType('ip', ['requires_files' => true, 'fields' => [['key' => 'title', 'required' => true]]]);
+    outputType('prototype', ['requires_files' => true]);
+    $output = SaveResearchOutput::run($fx['submission'], $fx['user'], outputInput('ip', ['title' => 'Paten Lama'], files: 1));
+
+    $this->actingAs($fx['user'])
+        ->put(route('user.submissions.outputs.update', [$fx['submission'], $output]), [
+            'output_type' => 'ip',
+            'metadata' => ['title' => 'Paten Baru'],
+        ])
+        ->assertRedirect();
+
+    // Berkas lama tetap dihitung untuk BR-RO-04, juga saat tipenya diganti.
+    SaveResearchOutput::run($fx['submission'], $fx['user'], outputInput('prototype'), $output->fresh());
+
+    expect($output->fresh()->output_type)->toBe('prototype')
+        ->and($output->files()->count())->toBe(1);
+});
+
+it('berkas tidak tertinggal saat penyimpanan ditolak', function () {
+    ['submission' => $s, 'owner' => $owner] = outputFixture();
+    outputType('ip', ['requires_files' => true, 'fields' => [['key' => 'title', 'required' => true]]]);
+
+    expect(fn () => SaveResearchOutput::run($s, $owner, outputInput('ip', files: 1)))
+        ->toThrow(ValidationException::class);
+
+    expect(Storage::disk('local')->allFiles())->toBe([]);
+});
+
+it('menyimpan luaran mencatat jumlah berkas di audit', function () {
+    ['submission' => $s, 'owner' => $owner] = outputFixture();
+    outputType('ip', ['requires_files' => true]);
+
+    $output = SaveResearchOutput::run($s, $owner, outputInput('ip', files: 2));
+
+    expect(AuditEntry::query()->where('description', 'Luaran penelitian disimpan')->where('subject_id', $output->id)->sole()
+        ->properties['new']['files_added'] ?? null)->toBe(2);
 });

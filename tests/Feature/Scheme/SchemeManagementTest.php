@@ -251,7 +251,7 @@ it('skema yang dibuat lewat layar memenuhi BR-RO-02 untuk luaran PKS', function 
         'is_submitted' => true,
     ]);
 
-    $output = SaveResearchOutput::run($submission, $owner, ['output_type' => 'pks']);
+    $output = SaveResearchOutput::run($submission, $owner, outputInput('pks'));
 
     expect($output->output_type)->toBe('pks');
 });

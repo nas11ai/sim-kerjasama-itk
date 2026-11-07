@@ -14,10 +14,15 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property int $research_output_id
  * @property string $file_path
  * @property string|null $file_url
+ * @property string|null $original_name nama asli unggahan (W141); null untuk baris lama
+ * @property int|null $size byte
  */
 class ResearchOutputFile extends Model
 {
-    protected $fillable = ['research_output_id', 'file_path', 'file_url'];
+    protected $fillable = ['research_output_id', 'file_path', 'file_url', 'original_name', 'size'];
+
+    /** @var array<string, string> */
+    protected $casts = ['size' => 'integer'];
 
     /** @return BelongsTo<ResearchOutput, $this> */
     public function researchOutput(): BelongsTo

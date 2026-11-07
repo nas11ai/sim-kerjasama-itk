@@ -10,6 +10,7 @@
 use App\Actions\FormSubmission\StartChildSubmission;
 use App\Actions\Review\AssignEvaluationForm;
 use App\Actions\Review\AssignReviewer;
+use App\Data\Request\ResearchOutputInput;
 use App\Enums\DeadlineType;
 use App\Models\FieldType;
 use App\Models\Form;
@@ -37,6 +38,7 @@ use App\Queries\Submission\EvaluationDueDate;
 use App\States\Submission\Approved;
 use App\States\Submission\UnderReview;
 use Database\Seeders\PermissionSeeder;
+use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Spatie\Permission\Models\Permission;
@@ -249,6 +251,22 @@ function outputUploadFixture(string $deadline = '2026-12-01 23:59:00'): array
     ]);
 
     return [...$fx, 'outputDetail' => $outputDetail, 'submission' => $submission];
+}
+
+/**
+ * Masukan luaran (W141): berkas berupa unggahan palsu `bukti-{n}.pdf`, bukan path karangan klien.
+ *
+ * @param  array<string, mixed>  $metadata
+ */
+function outputInput(string $type, array $metadata = [], int $files = 0): ResearchOutputInput
+{
+    $uploads = [];
+
+    for ($n = 1; $n <= $files; $n++) {
+        $uploads[] = UploadedFile::fake()->create("bukti-{$n}.pdf", 120, 'application/pdf');
+    }
+
+    return new ResearchOutputInput($type, $metadata, $uploads);
 }
 
 function monevDetail(FormPhase $phase, int $order, string $label, bool $needsReview = false, string $when = '+1 month'): FormPhaseDetail
