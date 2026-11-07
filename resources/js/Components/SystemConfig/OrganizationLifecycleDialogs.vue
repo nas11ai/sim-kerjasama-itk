@@ -5,9 +5,9 @@ import { computed, ref } from 'vue'
 import ConfirmDialog from '@/Components/app/ConfirmDialog.vue'
 import type { OrganizationUnitData } from '@/types/system-config'
 
-export type OrganizationLifecycleAction = 'deactivate' | 'delete'
+export type OrganizationLifecycleAction = 'deactivate' | 'delete' | 'reactivate'
 
-// BR-IAM-14 / BR-IAM-08 — konfirmasi dua operasi berambang beda; angkanya dari sensus backend.
+// BR-IAM-14 / BR-IAM-08 / BR-IAM-22 — konfirmasi siklus hidup unit; angkanya dari backend.
 const props = defineProps<{ unit: OrganizationUnitData }>()
 const action = defineModel<OrganizationLifecycleAction | null>('action', { required: true })
 const emit = defineEmits<{ failed: [message: string] }>()
@@ -22,6 +22,7 @@ const openFor = (name: OrganizationLifecycleAction) =>
     })
 const deactivateOpen = openFor('deactivate')
 const deleteOpen = openFor('delete')
+const reactivateOpen = openFor('reactivate')
 
 const invitations = computed(() => props.unit.census.pendingInvitations)
 // W118 — pratinjau "memutus akses n peneliti" tidak dibangun: BR-IAM-14 membuatnya selalu 0.
@@ -40,6 +41,16 @@ const deleteText = computed(() =>
         ? `Menghapus unit ini akan mencabut ${invitations.value} undangan registrasi yang belum terpakai. Siapa pun yang membuka tautannya akan melihat halaman undangan tidak berlaku.`
         : `${props.unit.name} beserta seluruh unit di bawahnya dihapus permanen.`
 )
+
+// BR-IAM-22 — satu unit saja; undangan yang masih sah disebut sebelum konfirmasi.
+const reactivateText = computed(() => {
+    const revived = props.unit.revivableInvitations
+    const base =
+        'Unit ini kembali ditawarkan dan rantai akses Form-nya tersambung lagi. Unit turunannya tetap nonaktif; aktifkan satu per satu bila perlu.'
+    return revived > 0
+        ? `${base} ${revived} undangan registrasi yang belum kedaluwarsa berlaku lagi.`
+        : base
+})
 
 const callbacks = (onSuccess: () => void) => ({
     preserveScroll: true,
@@ -61,6 +72,12 @@ const deactivate = () =>
         {},
         callbacks(() => undefined)
     )
+const reactivate = () =>
+    router.post(
+        route('admin.organizations.reactivate', props.unit.id),
+        {},
+        callbacks(() => undefined)
+    )
 const destroy = () =>
     router.delete(
         route('admin.organizations.destroy', props.unit.id),
@@ -77,6 +94,14 @@ const destroy = () =>
         destructive
         :processing="processing"
         @confirm="deactivate"
+    />
+    <ConfirmDialog
+        v-model:open="reactivateOpen"
+        title="Aktifkan kembali unit?"
+        :description="reactivateText"
+        confirm-label="Aktifkan Kembali"
+        :processing="processing"
+        @confirm="reactivate"
     />
     <ConfirmDialog
         v-model:open="deleteOpen"

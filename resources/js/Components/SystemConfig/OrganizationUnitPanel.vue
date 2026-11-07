@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ArrowRightLeft, Pencil, Plus, Trash2, X } from 'lucide-vue-next'
+import { ArrowRightLeft, Pencil, Plus, RotateCcw, Trash2, X } from 'lucide-vue-next'
 import { computed, ref, watch } from 'vue'
 
 import ActionPanel from '@/Components/app/ActionPanel.vue'
@@ -66,6 +66,19 @@ const actions = computed<ActionItem[]>(() => {
     if (unit === null) return []
 
     const items: ActionItem[] = []
+    // BR-IAM-22 — kelayakan dibaca dari backend: nonaktif dan induknya aktif.
+    if (!unit.isActive) {
+        items.push({
+            key: 'reactivate',
+            label: 'Aktifkan Kembali',
+            icon: RotateCcw,
+            available: unit.canReactivate,
+            hint: unit.canReactivate
+                ? 'Hanya unit ini yang aktif kembali; unit turunannya tetap nonaktif.'
+                : 'Induk unit ini masih nonaktif. Aktifkan induknya lebih dulu.',
+            onSelect: () => (pending.value = 'reactivate'),
+        })
+    }
     if (unit.isActive) {
         items.push({
             key: 'deactivate',

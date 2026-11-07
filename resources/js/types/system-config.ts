@@ -61,6 +61,9 @@ export interface OrganizationUnitData {
     census: OrganizationCensusData
     canDeactivate: boolean
     canDelete: boolean
+    // BR-IAM-22 — nonaktif dan induknya aktif (atau tanpa induk).
+    canReactivate: boolean
+    revivableInvitations: number
 }
 
 // Sumber: App\Queries\Identity\OrganizationMembers (W120).

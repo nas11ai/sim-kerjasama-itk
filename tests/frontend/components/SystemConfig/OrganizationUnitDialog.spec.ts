@@ -58,6 +58,8 @@ const unit: OrganizationUnitData = {
     },
     canDeactivate: true,
     canDelete: true,
+    canReactivate: false,
+    revivableInvitations: 0,
 }
 
 const route = (name: string, id?: number) => (id === undefined ? `/${name}` : `/${name}/${id}`)

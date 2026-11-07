@@ -33,6 +33,8 @@ const unit = (
     census: census(counts),
     canDeactivate: true,
     canDelete: true,
+    canReactivate: false,
+    revivableInvitations: 0,
     ...overrides,
 })
 
@@ -165,6 +167,53 @@ describe('OrganizationUnitPanel', () => {
 
         expect(bodyButton('Nonaktifkan')).toBeUndefined()
         expect(bodyButton('Hapus Unit')).toBeDefined()
+    })
+
+    it('[IAM-ORG-18] aktifkan kembali terhalang induk nonaktif', async () => {
+        await mountPanel(unit({ isActive: false, canDeactivate: false, canReactivate: false }))
+
+        expect(bodyButton('Aktifkan Kembali')?.disabled).toBe(true)
+        expect(bodyText()).toContain('Induk unit ini masih nonaktif. Aktifkan induknya lebih dulu.')
+    })
+
+    it('[IAM-ORG-20] konfirmasi aktifkan kembali menyebut undangan yang berlaku lagi', async () => {
+        await mountPanel(
+            unit({
+                isActive: false,
+                canDeactivate: false,
+                canReactivate: true,
+                revivableInvitations: 2,
+            })
+        )
+
+        expect(bodyText()).toContain(
+            'Hanya unit ini yang aktif kembali; unit turunannya tetap nonaktif.'
+        )
+        bodyButton('Aktifkan Kembali')?.click()
+        await flushPromises()
+
+        expect(bodyText()).toContain('Aktifkan kembali unit?')
+        expect(bodyText()).toContain(
+            'Unit ini kembali ditawarkan dan rantai akses Form-nya tersambung lagi. Unit turunannya tetap nonaktif; aktifkan satu per satu bila perlu.'
+        )
+        expect(bodyText()).toContain('2 undangan registrasi yang belum kedaluwarsa berlaku lagi.')
+
+        const confirm = Array.from(document.querySelectorAll('[role="dialog"] button')).find(
+            (b) => b.textContent?.trim() === 'Aktifkan Kembali'
+        )
+        ;(confirm as HTMLButtonElement | undefined)?.click()
+
+        expect(router.post).toHaveBeenCalledWith(
+            '/admin.organizations.reactivate/3',
+            {},
+            expect.objectContaining({ preserveScroll: true })
+        )
+    })
+
+    it('unit aktif tidak menawarkan Aktifkan Kembali', async () => {
+        await mountPanel(unit())
+
+        expect(bodyButton('Aktifkan Kembali')).toBeUndefined()
     })
 
     it('Pindahkan User hanya ditawarkan bila subtree berisi profil', async () => {

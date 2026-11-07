@@ -47,6 +47,8 @@ const unit = (overrides: Partial<OrganizationUnitData> = {}): OrganizationUnitDa
     },
     canDeactivate: false,
     canDelete: false,
+    canReactivate: false,
+    revivableInvitations: 0,
     ...overrides,
 })
 
