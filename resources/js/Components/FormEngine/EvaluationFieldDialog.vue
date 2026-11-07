@@ -63,8 +63,8 @@ const LIMIT_LABELS: Record<keyof EvaluationLimits, string> = {
     maxValue: 'Nilai maksimum',
 }
 const limitKeys = computed(() => {
-    const kind = selected.value?.limitKind ?? null
-    return kind === null ? [] : LIMIT_KEYS[kind].map(([key]) => key)
+    const limitType = selected.value?.limitType ?? null
+    return limitType === null ? [] : LIMIT_KEYS[limitType].map(([key]) => key)
 })
 const setLimit = (key: keyof EvaluationLimits, value: string | number) =>
     (draft.value.limits = { ...draft.value.limits, [key]: value === '' ? null : Number(value) })

@@ -67,7 +67,7 @@ const mountTab = (overrides: Partial<FormGeneralData> = {}) =>
             form: { id: 7, title: 'Form Proposal', isActive: true },
             general: general(overrides),
             fieldTypeOptions: [
-                { value: '1', label: 'Teks', hasOptions: false, limitKind: 'length' },
+                { value: '1', label: 'Teks', hasOptions: false, limitType: 'length' },
             ],
             formTypeOptions: [{ value: '2', label: 'Penelitian' }],
         },

@@ -41,8 +41,8 @@ import type {
 } from '@/types/form-engine'
 
 const types: FieldTypeOption[] = [
-    { value: '1', label: 'Teks', hasOptions: false, limitKind: 'length' },
-    { value: '3', label: 'Angka', hasOptions: false, limitKind: 'value' },
+    { value: '1', label: 'Teks', hasOptions: false, limitType: 'length' },
+    { value: '3', label: 'Angka', hasOptions: false, limitType: 'value' },
 ]
 
 const field = (overrides: Partial<EvaluationFieldEditData> = {}): EvaluationFieldEditData => ({

@@ -80,12 +80,12 @@ export interface FormIndexPageProps {
     statusOptions: FilterOption[]
 }
 
-// Sumber: App\Queries\Form\FieldTypeOptions — `value` id tipe sebagai string; `limitKind` batas W103.
+// Sumber: App\Queries\Form\FieldTypeOptions — `value` id tipe sebagai string; `limitType` batas W103.
 export interface FieldTypeOption {
     value: string
     label: string
     hasOptions: boolean
-    limitKind: 'length' | 'value' | null
+    limitType: 'length' | 'value' | null
 }
 
 // Sumber: App\Data\View\FormEngine\FormHeaderData.

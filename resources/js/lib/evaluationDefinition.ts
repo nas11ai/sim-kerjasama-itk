@@ -53,7 +53,7 @@ const NO_LIMITS: EvaluationLimits = {
     maxValue: null,
 }
 
-// W103 — batas per jenis tipe, dibaca dari `limitKind` backend.
+// W103 — batas per jenis tipe, dibaca dari `limitType` backend.
 export const LIMIT_KEYS = {
     length: [
         ['minLength', 'min_length'],
@@ -104,10 +104,10 @@ const typeOf = (types: FieldTypeOption[], id: number) =>
     types.find((type) => type.value === String(id))
 
 // W103 — hanya batas yang terisi dan sesuai jenis tipenya; tanpa batas berarti null.
-function limitRules(field: EditableEvaluationField, kind: FieldTypeOption['limitKind']) {
-    if (kind === null) return null
+function limitRules(field: EditableEvaluationField, limitType: FieldTypeOption['limitType']) {
+    if (limitType === null) return null
     const rules: LimitRules = {}
-    for (const [key, rule] of LIMIT_KEYS[kind]) {
+    for (const [key, rule] of LIMIT_KEYS[limitType]) {
         const value = field.limits[key]
         if (value !== null) rules[rule] = value
     }
@@ -133,7 +133,7 @@ export function toEvaluationPayload(
                 label: field.label,
                 description: field.description || null,
                 is_required: field.isRequired,
-                validation_rules: limitRules(field, type?.limitKind ?? null),
+                validation_rules: limitRules(field, type?.limitType ?? null),
             }
             if (type?.hasOptions !== true) return payload
             payload.options = field.options.map((option) => ({

@@ -59,7 +59,7 @@ it('kontrak bagian form evaluasi', function () {
         ->assertInertia(fn (AssertableInertia $page) => $page
             ->component('FormEngine/PhaseEditPage')
             ->has('fieldTypeOptions.0', fn (AssertableInertia $option) => $option
-                ->hasAll(['value', 'label', 'hasOptions', 'limitKind']))
+                ->hasAll(['value', 'label', 'hasOptions', 'limitType']))
             ->has('evaluation.0', fn (AssertableInertia $section) => $section
                 ->where('detailId', $detail->id)
                 ->where('detailLabel', "{$detail->phaseType?->name} — Form Proposal")

@@ -14,9 +14,9 @@ import type {
 } from '@/types/form-engine'
 
 const types: FieldTypeOption[] = [
-    { value: '1', label: 'Teks', hasOptions: false, limitKind: 'length' },
-    { value: '3', label: 'Angka', hasOptions: false, limitKind: 'value' },
-    { value: '5', label: 'Pilihan (dropdown)', hasOptions: true, limitKind: null },
+    { value: '1', label: 'Teks', hasOptions: false, limitType: 'length' },
+    { value: '3', label: 'Angka', hasOptions: false, limitType: 'value' },
+    { value: '5', label: 'Pilihan (dropdown)', hasOptions: true, limitType: null },
 ]
 
 const noLimits = { minLength: null, maxLength: null, minValue: null, maxValue: null }
