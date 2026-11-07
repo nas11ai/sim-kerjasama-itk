@@ -3,6 +3,7 @@
 // RESEARCHER-02-01 — daftar datar "pengajuan saya": yang diketuai dan yang diikuti sebagai
 // anggota aktif. Operator tetap melihat miliknya saja; seluruh sistem ada di layar operator.
 
+use App\Actions\FormSubmission\StartChildSubmission;
 use App\Actions\FormSubmission\SubmitFormSubmission;
 use App\Data\View\Submission\SubmissionRowData;
 use App\Models\Form;
@@ -53,6 +54,20 @@ it('[SM-ACCESS-02] memuat pengajuan yang ia ikuti sebagai anggota aktif', functi
     $rows = myRows($member);
 
     expect($rows)->toHaveCount(1)->and($rows[0]->isLead)->toBeFalse();
+});
+
+it('laporan monev tidak tercantum sebagai pengajuan, bagi ketua maupun anggota', function () {
+    $fx = monevFixture();
+    $laporan = StartChildSubmission::run($fx['parent'], $fx['monev1'], $fx['owner']);
+    $member = User::factory()->create();
+    joinAs($member, $fx['parent']);
+
+    $ownerIds = collect(myRows($fx['owner']))->pluck('id')->all();
+    $memberIds = collect(myRows($member))->pluck('id')->all();
+
+    expect($ownerIds)->toBe([$fx['parent']->id])
+        ->and($memberIds)->toBe([$fx['parent']->id])
+        ->and($ownerIds)->not->toContain($laporan->id);
 });
 
 it('[SM-ACCESS-03] tidak memuat pengajuan peneliti lain', function () {

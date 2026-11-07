@@ -35,6 +35,8 @@ class ResearcherSubmissionList implements ChangesNoState
     {
         $statusOptions = SubmissionStatusChoices::run();
         $query = SubmissionVisibility::ownedOrJoinedBy($viewer)
+            // Laporan monev punya Daftar Monev sendiri (W128), bukan baris pengajuan.
+            ->whereNull('parent_submission_id')
             ->with(['form:id,title', 'scheme:id,name', 'submissionPeriod'])
             ->addSelect(['form_submissions.*', 'submitted_at' => FirstSubmitAt::subquery()]);
 
