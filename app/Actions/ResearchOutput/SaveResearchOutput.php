@@ -42,7 +42,8 @@ class SaveResearchOutput
         // HKI tidak boleh menuntut mengunggah ulang lampirannya.
         $fileCount = count($incomingFiles) + ($output?->files()->count() ?? 0);
 
-        ResearchOutputGuard::assertValid($submission, $data['output_type'], $metadata, $fileCount);
+        // Yang disimpan metadata bersih Guard, bukan kiriman klien (W140).
+        $metadata = ResearchOutputGuard::assertValid($submission, $data['output_type'], $metadata, $fileCount);
 
         $tercatat = DB::transaction(function () use ($submission, $actor, $data, $metadata, $incomingFiles, $output): ResearchOutput {
             $attributes = [

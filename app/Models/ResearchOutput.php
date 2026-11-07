@@ -20,7 +20,7 @@ use Spatie\Activitylog\Traits\LogsActivity;
  * @property int $id
  * @property int $form_submission_id
  * @property string $output_type
- * @property array<string, mixed>|null $metadata
+ * @property array<string, string|int|null>|null $metadata hanya ditulis `SaveResearchOutput` lewat Guard (W140)
  * @property int $created_by
  * @property-read FormSubmission $formSubmission
  * @property-read Collection<int, ResearchOutputFile> $files

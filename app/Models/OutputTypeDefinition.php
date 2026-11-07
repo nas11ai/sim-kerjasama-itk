@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Data\View\ResearchOutput\OutputFieldSpecData;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -14,7 +15,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property string $code
  * @property string $name
  * @property bool $is_active
- * @property array<int, array{key?: string, required?: bool}>|null $fields
+ * @property array<int, array{key?: string, label?: string, type?: string, required?: bool, options?: list<array{value: string, label: string}>, hint?: string, empty_label?: string}>|null $fields
  * @property bool $requires_files
  * @property string|null $submission_type
  */
@@ -53,29 +54,21 @@ class OutputTypeDefinition extends Model
     }
 
     /**
-     * BR-RO-09 — kunci metadata yang wajib diisi untuk tipe ini.
+     * BR-RO-09, W140 — spesifikasi field metadata tipe ini. Spesifikasinya tinggal di tabel,
+     * bukan config kode: kalau menambah tipe masih menuntut menyunting kode, janji BR-RO-05
+     * baru terpenuhi separuh. Entri tanpa `key` dilewati; tanpa `label`, kuncinya yang tampil.
      *
-     * Spesifikasinya tinggal di tabel, bukan config kode — kalau menambah
-     * tipe masih menuntut menyunting kode, janji BR-RO-05 baru terpenuhi separuh.
-     *
-     * @return list<string>
+     * @return list<OutputFieldSpecData>
      */
-    public function requiredMetadataKeys(): array
+    public function fieldSpecs(): array
     {
-        $keys = [];
+        return array_values(array_filter(array_map(OutputFieldSpecData::fromEntry(...), $this->fields ?? [])));
+    }
 
-        foreach ($this->fields ?? [] as $field) {
-            // Bentuk tiap entri sudah dinyatakan docblock `fields`; yang perlu
-            // dijaga cuma entri yang tidak menandai wajib atau tidak menyebut
-            // kunci — keduanya data belum lengkap, bukan tipe yang salah.
-            if (($field['required'] ?? false) !== true || !isset($field['key'])) {
-                continue;
-            }
-
-            $keys[] = $field['key'];
-        }
-
-        return $keys;
+    /** Kunci field pertama: judul baris luaran di daftar. Tanpa spesifikasi, null. */
+    public function headlineKey(): ?string
+    {
+        return $this->fieldSpecs()[0]->key ?? null;
     }
 
     /** Kode yang boleh dipakai saat ini. @return list<string> */

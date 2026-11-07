@@ -23,6 +23,7 @@ use App\States\Submission\Approved;
 use App\States\Submission\UnderReview;
 use App\States\Submission\Withdrawn;
 use App\Support\Lifecycle\DeletionNotPermitted;
+use Database\Seeders\OutputTypeDefinitionSeeder;
 use Database\Seeders\PermissionSeeder;
 use Illuminate\Validation\ValidationException;
 use Spatie\Permission\Models\Role;
@@ -96,22 +97,19 @@ it('[RO-OUTPUT-04] tipe pks diterima pada CommunityService', function () {
     expect($output->output_type)->toBe('pks');
 });
 
+/** Isian wajib PKS hasil seeder, tanpa end_date: kerja sama yang masih berjalan. */
+function runningPks(): array
+{
+    return ['title' => 'Kerja sama pendampingan UMKM', 'involved_parties' => 'Dinas Koperasi Balikpapan', 'start_date' => '2026-02-01'];
+}
+
 it('[RO-OUTPUT-05] PKS yang masih berjalan boleh tanpa end_date', function () {
     ['submission' => $s, 'owner' => $owner] = outputFixture(submissionTypeName: 'CommunityService');
-    outputType('pks', [
-        'submission_type' => 'CommunityService',
-        'fields' => [
-            ['key' => 'title', 'required' => true],
-            // end_date tidak wajib: kerja sama yang masih berjalan memang belum
-            // punya tanggal berakhir, dan memaksanya membuat orang mengarang.
-            ['key' => 'end_date', 'required' => false],
-        ],
-    ]);
+    $this->seed(OutputTypeDefinitionSeeder::class);
 
-    $output = SaveResearchOutput::run($s, $owner, [
-        'output_type' => 'pks',
-        'metadata' => ['title' => 'Kerja sama pendampingan UMKM'],
-    ]);
+    // end_date tidak wajib: kerja sama yang masih berjalan memang belum punya tanggal
+    // berakhir, dan memaksanya membuat orang mengarang.
+    $output = SaveResearchOutput::run($s, $owner, ['output_type' => 'pks', 'metadata' => runningPks()]);
 
     expect($output->metadata['end_date'] ?? null)->toBeNull();
 });
@@ -176,30 +174,61 @@ it('[RO-OUTPUT-09] tipe baru yang terdaftar langsung bisa dipakai', function () 
     expect($output->output_type)->toBe('sertifikat-halal');
 });
 
+/** Artikel lengkap menurut spesifikasi seeder. */
+function article(array $override = []): array
+{
+    return [...[
+        'title' => 'Optimasi Nutrisi Hidroponik Berbasis IoT',
+        'journal_name' => 'Jurnal Teknologi Pertanian Indonesia',
+        'journal_type' => 'national_accredited',
+        'year' => '2026',
+    ], ...$override];
+}
+
 it('[RO-OUTPUT-21] metadata wajib yang kosong ditolak', function () {
     ['submission' => $s, 'owner' => $owner] = outputFixture();
-    outputType('article', ['fields' => [['key' => 'title', 'required' => true]]]);
+    $this->seed(OutputTypeDefinitionSeeder::class);
 
-    expect(fn () => SaveResearchOutput::run($s, $owner, [
-        'output_type' => 'article',
-        'metadata' => ['journal_name' => 'Jurnal Uji'],
-    ]))->toThrow(ValidationException::class);
+    expect(fn () => SaveResearchOutput::run($s, $owner, ['output_type' => 'article', 'metadata' => article(['title' => '  '])]))
+        ->toThrow(fn (ValidationException $e) => expect($e->errors()['metadata.title'])
+            ->toBe(['Isian "Judul Artikel" wajib diisi untuk tipe Artikel Jurnal.']));
 });
 
 it('[RO-OUTPUT-22] metadata yang tidak wajib boleh kosong', function () {
-    ['submission' => $s, 'owner' => $owner] = outputFixture();
-    outputType('article', ['fields' => [
-        ['key' => 'title', 'required' => true],
-        ['key' => 'doi', 'required' => false],
-    ]]);
+    ['submission' => $s, 'owner' => $owner] = outputFixture(submissionTypeName: 'CommunityService');
+    $this->seed(OutputTypeDefinitionSeeder::class);
 
-    $output = SaveResearchOutput::run($s, $owner, [
-        'output_type' => 'article',
-        'metadata' => ['title' => 'Optimasi Nutrisi Hidroponik'],
-    ]);
+    $output = SaveResearchOutput::run($s, $owner, ['output_type' => 'pks', 'metadata' => [...runningPks(), 'end_date' => '']]);
 
-    expect($output->metadata['title'])->toBe('Optimasi Nutrisi Hidroponik');
+    expect($output->metadata['end_date'])->toBeNull()
+        ->and($output->metadata['title'])->toBe('Kerja sama pendampingan UMKM');
 });
+
+it('kunci di luar spesifikasi dibuang dan angka disimpan sebagai bilangan', function () {
+    ['submission' => $s, 'owner' => $owner] = outputFixture();
+    $this->seed(OutputTypeDefinitionSeeder::class);
+
+    $output = SaveResearchOutput::run($s, $owner, ['output_type' => 'article', 'metadata' => article(['is_verified' => true])]);
+
+    expect($output->metadata)->not->toHaveKey('is_verified')
+        ->and($output->metadata['year'])->toBe(2026)
+        // jsonb menata ulang urutan kunci; yang diuji himpunannya.
+        ->and(array_keys($output->metadata))->toEqualCanonicalizing(['title', 'journal_name', 'journal_type', 'year', 'doi', 'url']);
+});
+
+it('nilai yang tidak sesuai tipe field ditolak', function (array $override, string $key) {
+    ['submission' => $s, 'owner' => $owner] = outputFixture();
+    $this->seed(OutputTypeDefinitionSeeder::class);
+
+    expect(fn () => SaveResearchOutput::run($s, $owner, ['output_type' => 'article', 'metadata' => article($override)]))
+        ->toThrow(fn (ValidationException $e) => expect($e->errors())->toHaveKey("metadata.{$key}"));
+
+    expect(ResearchOutput::count())->toBe(0);
+})->with([
+    'tahun bukan angka' => [['year' => 'dua ribu'], 'year'],
+    'tipe jurnal di luar pilihan' => [['journal_type' => 'predator'], 'journal_type'],
+    'URL bukan http' => [['url' => 'javascript:alert(1)'], 'url'],
+]);
 
 it('[RO-OUTPUT-06] luaran ditolak setelah pengajuan ditarik', function () {
     ['submission' => $s, 'owner' => $owner] = outputFixture();

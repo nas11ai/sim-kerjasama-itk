@@ -17,6 +17,7 @@ final class ResearchOutputGuard
 {
     /**
      * @param  array<string, mixed>  $metadata
+     * @return array<string, string|int|null> metadata bersih menurut spesifikasi tipenya (W140)
      *
      * @throws ValidationException
      */
@@ -25,7 +26,7 @@ final class ResearchOutputGuard
         string $outputType,
         array $metadata,
         int $fileCount
-    ): OutputTypeDefinition {
+    ): array {
         self::assertSubmissionEligible($submission);
 
         $definition = OutputTypeDefinition::query()
@@ -44,13 +45,12 @@ final class ResearchOutputGuard
 
         self::assertMatchesSubmissionType($submission, $definition);
 
-        // Taksonomi yang terkendali baru menjaga separuh: tipenya benar,
-        // isinya belum. Luaran berisi objek kosong lolos ke pelaporan sebagai
-        // kegiatan yang seolah terlaporkan.
-        self::assertMetadataComplete($definition, $metadata);
+        // BR-RO-09 — taksonomi terkendali baru menjaga separuh: tipenya benar, isinya belum.
+        // Luaran berisi objek kosong lolos ke pelaporan sebagai kegiatan yang seolah terlaporkan.
+        $clean = ResearchOutputMetadata::validated($definition, $metadata);
         self::assertFilesPresent($definition, $fileCount);
 
-        return $definition;
+        return $clean;
     }
 
     /**
@@ -95,28 +95,6 @@ final class ResearchOutputGuard
             'output_type' => 'Tipe "'.$definition->name.'" hanya tersedia untuk pengajuan '
                 .$restrictedTo.'.',
         ]);
-    }
-
-    /**
-     * BR-RO-09 — field yang ditandai `required` di definisi tipenya. Yang
-     * tidak ditandai boleh kosong, termasuk `end_date` untuk PKS yang masih
-     * berjalan (BR-RO-03) — memaksanya terisi membuat peneliti mengarang.
-     *
-     * @param  array<string, mixed>  $metadata
-     */
-    private static function assertMetadataComplete(
-        OutputTypeDefinition $definition,
-        array $metadata
-    ): void {
-        foreach ($definition->requiredMetadataKeys() as $key) {
-            if (!blank($metadata[$key] ?? null)) {
-                continue;
-            }
-
-            throw ValidationException::withMessages([
-                'metadata.'.$key => 'Isian "'.$key.'" wajib diisi untuk tipe '.$definition->name.'.',
-            ]);
-        }
     }
 
     /** BR-RO-04 — `ip` dan `prototype`, dua tipe, bukan satu. */
