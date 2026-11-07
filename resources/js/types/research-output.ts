@@ -56,6 +56,22 @@ export interface OutputFile {
     url: string
 }
 
+// Props ResearchOutput/ShowPage — `fields` sudah berupa nilai tampilan (label opsi, tanggal).
+export interface OutputDetail {
+    id: number
+    submissionId: number
+    submissionTitle: string
+    typeName: string
+    headline: string
+    fields: { label: string; value: string }[]
+    files: OutputFile[]
+    access: OutputWriteAccess
+}
+
+export interface ResearchOutputShowPageProps {
+    output: OutputDetail
+}
+
 export type OutputMetadataValue = string | number | null
 
 // Props ResearchOutput/FormPage — `outputId` null = tambah (RESEARCHER-06-02), selain itu sunting.

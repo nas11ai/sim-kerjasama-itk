@@ -78,7 +78,7 @@ class MonevCycleManagement implements ChangesNoState
             cycle: $cycle,
             reviewers: $report === null ? [] : ManagedReviewers::run($report),
             phaseAccess: $report === null ? null : PhaseAccessGate::presentFor($report, $report->formPhaseDetail, true),
-            overrideTarget: $report === null ? null : OperatorSubmissionDetail::overrideTarget($report),
+            overrideTarget: $report === null ? null : OperatorSubmissionDetail::overrideTargetFor($report, $report->getFormPhaseDetail()),
             canOpen: self::canOpen($cycle),
             openHint: self::openHint($cycle, $previous),
             canAssign: $viewer->can('assignMonevReviewer', $parent) && self::assignable($cycle),

@@ -100,6 +100,10 @@ const props = (
             reject: false,
             withdraw: false,
         },
+        outputs: null,
+        outputAccess: null,
+        outputPhaseAccess: null,
+        outputOverrideTarget: null,
     }
     return { ...base, ...overrides }
 }
@@ -214,5 +218,27 @@ describe('ManageShowPage', () => {
         page.props.flash.workloadWarnings = [warning]
 
         expect(mountPage(props()).text()).toContain(warning)
+    })
+
+    it('[RO-OUTPUT-20] tab Luaran hanya tampil bila backend mengirim luaran (W144)', () => {
+        const output = { id: 4, typeName: 'Buku', headline: 'Panduan', meta: null, fileCount: 0 }
+
+        expect(mountPage(props()).text()).not.toContain('Luaran (')
+        expect(
+            mountPage(
+                props(
+                    {
+                        outputs: [output],
+                        outputAccess: {
+                            canWrite: true,
+                            blockedReason: null,
+                            deadline: null,
+                            overrideUntil: null,
+                        },
+                    },
+                    'approved'
+                )
+            ).text()
+        ).toContain('Luaran (1)')
     })
 })

@@ -11,6 +11,7 @@ use App\Models\ResearchOutput;
 use App\Models\User;
 use App\Queries\ResearchOutput\OutputUploadDetail;
 use App\Queries\ResearchOutput\ResearcherOutputList;
+use App\Queries\ResearchOutput\ResearchOutputDetail;
 use App\Queries\ResearchOutput\ResearchOutputForm;
 use App\Support\PhaseAccessGate;
 use Illuminate\Http\RedirectResponse;
@@ -50,6 +51,13 @@ class ResearchOutputController extends Controller
         $output = SaveResearchOutput::run($submission, $user, $request->toInput());
 
         return redirect()->route('research-outputs.show', $output)->with('success', 'Luaran tersimpan.');
+    }
+
+    public function show(Request $request, ResearchOutput $output): Response
+    {
+        return Inertia::render('ResearchOutput/ShowPage', [
+            'output' => ResearchOutputDetail::run($this->actor($request), $output),
+        ]);
     }
 
     public function edit(Request $request, ResearchOutput $output): Response

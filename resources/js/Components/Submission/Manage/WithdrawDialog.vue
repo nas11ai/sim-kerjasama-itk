@@ -10,7 +10,7 @@ import ReasonField from '@/Components/Submission/Manage/ReasonField.vue'
 import { useConfirmedReason } from '@/composables/useConfirmedReason'
 import type { SubmissionDetail } from '@/types/submission-page'
 
-const props = defineProps<{ submission: SubmissionDetail }>()
+const props = defineProps<{ submission: SubmissionDetail; outputCount: number }>()
 const open = defineModel<boolean>('open', { required: true })
 
 const { form, confirming, denials, send } = useConfirmedReason(
@@ -18,11 +18,12 @@ const { form, confirming, denials, send } = useConfirmedReason(
     open
 )
 
-// W29 — "Siklus Monev Aktif" dan "Luaran Terdaftar" di frame tidak digambar.
+// W29 — "Siklus Monev Aktif" di frame tidak digambar. W144 — luaran tetap tersimpan (BR-RO-06).
 const summary = computed(() => [
     { label: 'Judul', value: props.submission.title },
     { label: 'Ketua', value: props.submission.leadName },
     { label: 'Skema', value: props.submission.scheme ?? '—' },
+    { label: 'Luaran Terdaftar', value: String(props.outputCount) },
 ])
 </script>
 

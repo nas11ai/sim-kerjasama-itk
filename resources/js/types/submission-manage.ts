@@ -1,7 +1,13 @@
 // Props layar pengajuan sisi Operator (OPERATOR-02-*), cermin Data PHP di
 // app/Data/View/Submission/Manage.
 import type { Paginated } from '@/types/pagination'
-import type { FilterOption, ReviewerScore, SubmissionShowPageProps } from '@/types/submission-page'
+import type { OutputRow, OutputWriteAccess } from '@/types/research-output'
+import type {
+    FilterOption,
+    PhaseAccess,
+    ReviewerScore,
+    SubmissionShowPageProps,
+} from '@/types/submission-page'
 import type { SubmissionStatusView } from '@/types/submission-status'
 import type { ReviewThread } from '@/types/submission-revision'
 
@@ -91,6 +97,11 @@ export interface ManageShowPageProps extends Omit<SubmissionShowPageProps, 'targ
     ownershipCandidates: OwnershipCandidate[]
     overrideTarget: OverrideTarget
     operatorCan: OperatorAbilities
+    // W144 — tab "Luaran"; null kecuali APPROVED/WITHDRAWN. Fase null = tanpa detail Upload Luaran.
+    outputs: OutputRow[] | null
+    outputAccess: OutputWriteAccess | null
+    outputPhaseAccess: PhaseAccess | null
+    outputOverrideTarget: OverrideTarget | null
     // Inertia::optional — hanya ada setelah partial reload dialog penugasan.
     reviewerCandidates?: ReviewerCandidate[]
 }

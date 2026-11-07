@@ -118,8 +118,10 @@ describe('dialog keputusan Operator', () => {
     })
 
     it('[SM-WITHDRAW-01] tarik mengirim alasan setelah konfirmasi kedua', async () => {
-        await open(WithdrawDialog, {})
+        await open(WithdrawDialog, { outputCount: 2 })
 
+        // W144 — luaran yang sudah terdaftar tetap tersimpan setelah penarikan (BR-RO-06).
+        expect(document.body.textContent).toContain('Luaran Terdaftar')
         await type('#withdraw-reason', 'Duplikasi pendanaan')
         await click('Tarik Pengajuan')
         expect(post).not.toHaveBeenCalled()
@@ -133,7 +135,7 @@ describe('dialog keputusan Operator', () => {
 
     it('[SM-WITHDRAW-06] alasan penarikan kosong ditampilkan sebagai galat field', async () => {
         failWith('reason', 'Alasan wajib diisi.')
-        await open(WithdrawDialog, {})
+        await open(WithdrawDialog, { outputCount: 2 })
 
         await click('Tarik Pengajuan')
         await click('Tarik')

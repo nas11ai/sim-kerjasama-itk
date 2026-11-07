@@ -3,6 +3,7 @@
 // OPERATOR-02-02 — detail pengajuan bagi pemegang submissions.view-all: isi yang sama dengan
 // detail peneliti, ditambah reviewer, lembar evaluasi (W22), ulir, dan aksi Operator (ADR 0015).
 
+use App\Actions\ResearchOutput\SaveResearchOutput;
 use App\Models\BudgetLineItem;
 use App\Models\FieldType;
 use App\Models\FormField;
@@ -22,6 +23,8 @@ use App\States\Submission\Draft;
 use App\States\Submission\Submitted;
 use App\States\Submission\UnderReview;
 use App\States\Submission\Withdrawn;
+use Database\Seeders\OutputTypeDefinitionSeeder;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Testing\TestResponse;
 use Inertia\Testing\AssertableInertia as Assert;
 use Spatie\Permission\Models\Permission;
@@ -287,4 +290,76 @@ it('[FE-WINDOW-07] reviewer terdampak hanya yang form evaluasinya melekat pada d
 
     showOperatorPage(detailOperator(), $submission)
         ->assertInertia(fn (Assert $page) => $page->where('overrideTarget.affectedReviewers', []));
+});
+
+// ---------- W144: tab Luaran ----------
+
+/** @return array<string, mixed> */
+function managedOutputFixture(): array
+{
+    Storage::fake('local');
+    test()->seed(OutputTypeDefinitionSeeder::class);
+    $fx = outputUploadFixture();
+
+    $fx['output'] = SaveResearchOutput::run($fx['submission'], $fx['user'], outputInput('book', [
+        'title' => 'Panduan Hidroponik Kampus',
+        'publisher' => 'ITK Press',
+        'year' => '2026',
+    ]));
+
+    return $fx;
+}
+
+it('[RO-OUTPUT-20] Operator mengoreksi luaran dari tab Luaran', function () {
+    $fx = managedOutputFixture();
+
+    showOperatorPage(seededRole('operator'), $fx['submission'])
+        ->assertInertia(fn (Assert $page) => $page
+            ->has('outputs', 1)
+            ->where('outputs.0.headline', 'Panduan Hidroponik Kampus')
+            ->where('outputs.0.meta', 'ITK Press · 2026')
+            ->where('outputAccess.canWrite', true)
+            ->where('outputPhaseAccess.form_phase_detail_id', $fx['outputDetail']->id)
+            ->where('outputOverrideTarget.affectedReviewers', []));
+});
+
+it('perpanjang batas unggah luaran dari tab Luaran', function () {
+    $fx = managedOutputFixture();
+    $operator = seededRole('operator');
+    $this->travelTo('2026-12-10 09:00:00');
+
+    showOperatorPage($operator, $fx['submission'])
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('outputAccess.canWrite', false)
+            ->where('outputPhaseAccess.is_open', false));
+
+    $this->actingAs($operator)
+        ->post(route('admin.submissions.overrides.store', $fx['submission']), [
+            'form_phase_detail_id' => $fx['outputDetail']->id,
+            'reason' => 'Kendala unggah berkas pada hari terakhir',
+            'expires_at' => '2026-12-20 23:59:00',
+        ])
+        ->assertRedirect();
+
+    // Review Focus 5 — peneliti menulis lagi tanpa melihat alasan override (BR-FE-16).
+    $this->actingAs($fx['user'])
+        ->put(route('research-outputs.update', $fx['output']), [
+            'output_type' => 'book',
+            'metadata' => ['title' => 'Panduan Hidroponik Kampus Edisi 2', 'publisher' => 'ITK Press', 'year' => '2026'],
+        ])
+        ->assertRedirect(route('research-outputs.show', $fx['output']));
+
+    $this->actingAs($fx['user'])->get(route('research-outputs.index'))
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('groups.0.access.canWrite', true)
+            ->where('groups.0.access.overrideUntil', fn (string $until) => str_starts_with($until, '2026-12-20T23:59:00')));
+});
+
+it('tab Luaran hanya untuk pengajuan APPROVED dan WITHDRAWN', function () {
+    showOperatorPage(detailOperator(), sentFor(UnderReview::class))
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('outputs', null)
+            ->where('outputAccess', null)
+            ->where('outputPhaseAccess', null)
+            ->where('outputOverrideTarget', null));
 });

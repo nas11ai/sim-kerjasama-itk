@@ -8,6 +8,7 @@ import AppBanner from '@/Components/app/AppBanner.vue'
 import PageHeader from '@/Components/app/PageHeader.vue'
 import SectionCard from '@/Components/app/SectionCard.vue'
 import StatusBadge from '@/Components/app/StatusBadge.vue'
+import ManagedOutputsTab from '@/Components/ResearchOutput/ManagedOutputsTab.vue'
 import BudgetSection from '@/Components/Submission/BudgetSection.vue'
 import DecisionSection from '@/Components/Submission/DecisionSection.vue'
 import FilesSection from '@/Components/Submission/FilesSection.vue'
@@ -42,12 +43,16 @@ const subtitle = computed(() =>
 const awaitingReviewers = computed(() => props.needsReview && props.activeReviewerCount === 0)
 const recentHistory = computed(() => props.history.slice(0, 3))
 
+// W144 — tab Luaran hanya bila backend mengirimnya (APPROVED/WITHDRAWN).
 const sections = computed(() => [
     { value: 'info', label: 'Informasi' },
     { value: 'members', label: 'Anggota' },
     { value: 'budget', label: 'Anggaran' },
     { value: 'files', label: 'Berkas' },
     { value: 'review', label: `Review (${props.activeReviewerCount})` },
+    ...(props.outputs === null
+        ? []
+        : [{ value: 'outputs', label: `Luaran (${props.outputs.length})` }]),
     { value: 'history', label: 'Riwayat' },
 ])
 
@@ -136,6 +141,16 @@ const print = (document: FilterOption) =>
                 <TabsContent value="review">
                     <ReviewTab :sheets="evaluationSheets" :threads="threads" />
                 </TabsContent>
+                <TabsContent v-if="outputs && outputAccess" value="outputs">
+                    <ManagedOutputsTab
+                        :submission-id="submission.id"
+                        :outputs="outputs"
+                        :access="outputAccess"
+                        :phase-access="outputPhaseAccess"
+                        :target="outputOverrideTarget"
+                        :can-extend="operatorCan.grantOverride"
+                    />
+                </TabsContent>
                 <TabsContent value="history">
                     <SectionCard title="Riwayat"
                         ><HistoryTimeline :entries="history"
@@ -196,6 +211,7 @@ const print = (document: FilterOption) =>
         <WithdrawDialog
             :open="openAction === 'withdraw'"
             :submission="submission"
+            :output-count="outputs?.length ?? 0"
             @update:open="closeAction"
         />
         <TransferOwnershipDialog

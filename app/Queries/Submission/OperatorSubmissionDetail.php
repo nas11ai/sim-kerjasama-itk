@@ -4,6 +4,8 @@ namespace App\Queries\Submission;
 
 use App\Actions\Concerns\ChangesNoState;
 use App\Data\Submission\SubmissionAbilitiesData;
+use App\Data\View\ResearchOutput\OutputRowData;
+use App\Data\View\ResearchOutput\OutputWriteAccessData;
 use App\Data\View\Submission\Manage\ManagedReviewerData;
 use App\Data\View\Submission\Manage\OperatorAbilitiesData;
 use App\Data\View\Submission\Manage\OverrideTargetData;
@@ -22,9 +24,15 @@ use App\Models\FormSubmission;
 use App\Models\ReviewerFormAssignment;
 use App\Models\SubmissionReviewer;
 use App\Models\User;
+use App\Queries\ResearchOutput\OutputRows;
+use App\Queries\ResearchOutput\OutputUploadDetail;
+use App\Queries\ResearchOutput\OutputWriteAccess;
 use App\Queries\Review\ManagedReviewers;
 use App\Queries\Review\ReviewThreads;
 use App\Queries\Review\SubmittedEvaluationSheets;
+use App\States\Submission\Approved;
+use App\States\Submission\Withdrawn;
+use App\Support\PhaseAccessGate;
 use App\Support\Review\MinimumReviewers;
 use Lorisleiva\Actions\Concerns\AsAction;
 
@@ -36,8 +44,9 @@ use Lorisleiva\Actions\Concerns\AsAction;
  * @phpstan-import-type PhaseAccess from ResearcherSubmissionDetail
  * @phpstan-import-type Score from SubmittedEvaluationSheets
  *
+ * @phpstan-type OutputExtras array{outputs: list<OutputRowData>|null, outputAccess: OutputWriteAccessData|null, outputPhaseAccess: PhaseAccess|null, outputOverrideTarget: OverrideTargetData|null}
  * @phpstan-type OperatorExtras array{organization: string|null, reviewers: list<ManagedReviewerData>, activeReviewerCount: int, minimumReviewers: int, needsReview: bool, evaluationSheets: list<Score>, threads: list<ReviewThreadData>, ownershipCandidates: list<OwnershipCandidateData>, overrideTarget: OverrideTargetData, operatorCan: OperatorAbilitiesData}
- * @phpstan-type ManageDetail array{submission: SubmissionDetailData, answers: list<SubmissionAnswerData>, members: list<SubmissionMemberData>, targetOutputs: list<SubmissionTargetOutputData>, targetHistory: list<TargetOutputChangeData>, budget: SubmissionBudgetData, history: list<SubmissionHistoryEntryData>, decision: SubmissionDecisionData|null, scores: array{visible: bool, reason: string|null, scores: list<Score>}, phaseAccess: PhaseAccess, printableDocuments: list<array{value: string, label: string}>, can: SubmissionAbilitiesData, organization: string|null, reviewers: list<ManagedReviewerData>, activeReviewerCount: int, minimumReviewers: int, needsReview: bool, evaluationSheets: list<Score>, threads: list<ReviewThreadData>, ownershipCandidates: list<OwnershipCandidateData>, overrideTarget: OverrideTargetData, operatorCan: OperatorAbilitiesData}
+ * @phpstan-type ManageDetail array{submission: SubmissionDetailData, answers: list<SubmissionAnswerData>, members: list<SubmissionMemberData>, targetOutputs: list<SubmissionTargetOutputData>, targetHistory: list<TargetOutputChangeData>, budget: SubmissionBudgetData, history: list<SubmissionHistoryEntryData>, decision: SubmissionDecisionData|null, scores: array{visible: bool, reason: string|null, scores: list<Score>}, phaseAccess: PhaseAccess, printableDocuments: list<array{value: string, label: string}>, can: SubmissionAbilitiesData, organization: string|null, reviewers: list<ManagedReviewerData>, activeReviewerCount: int, minimumReviewers: int, needsReview: bool, evaluationSheets: list<Score>, threads: list<ReviewThreadData>, ownershipCandidates: list<OwnershipCandidateData>, overrideTarget: OverrideTargetData, operatorCan: OperatorAbilitiesData, outputs: list<OutputRowData>|null, outputAccess: OutputWriteAccessData|null, outputPhaseAccess: PhaseAccess|null, outputOverrideTarget: OverrideTargetData|null}
  *
  * @method static ManageDetail run(User $viewer, FormSubmission $submission)
  */
@@ -51,7 +60,7 @@ class OperatorSubmissionDetail implements ChangesNoState
         $detail = ResearcherSubmissionDetail::run($viewer, $submission);
         unset($detail['targetOutputTypes']);
 
-        return [...$detail, ...$this->extras($viewer, $submission)];
+        return [...$detail, ...$this->extras($viewer, $submission), ...self::outputExtras($viewer, $submission)];
     }
 
     /** @return OperatorExtras */
@@ -71,15 +80,37 @@ class OperatorSubmissionDetail implements ChangesNoState
             'evaluationSheets' => SubmittedEvaluationSheets::run($submission, true),
             'threads' => ReviewThreadData::many($threads['summaries'], $threads['comments']),
             'ownershipCandidates' => OwnershipCandidates::run($submission),
-            'overrideTarget' => self::overrideTarget($submission),
+            'overrideTarget' => self::overrideTargetFor($submission, $phaseDetail),
             'operatorCan' => OperatorAbilitiesData::forUser($viewer, $submission),
         ];
     }
 
-    /** OPERATOR-02-03 — juga dipakai perpanjangan laporan monev (OPERATOR-05-02). */
-    public static function overrideTarget(FormSubmission $submission): OverrideTargetData
+    /**
+     * W144 — tab "Luaran": baris luaran, hak tulis Operator, dan perpanjangan Batas Akhir detail
+     * Upload Luaran (RO-OUTPUT-16). Hanya APPROVED dan WITHDRAWN yang bisa punya luaran (BR-RO-01).
+     *
+     * @return OutputExtras
+     */
+    private static function outputExtras(User $viewer, FormSubmission $submission): array
     {
-        return new OverrideTargetData(self::phaseLabel($submission->getFormPhaseDetail()), self::overdueReviewers($submission));
+        if (!$submission->status instanceof Approved && !$submission->status instanceof Withdrawn) {
+            return ['outputs' => null, 'outputAccess' => null, 'outputPhaseAccess' => null, 'outputOverrideTarget' => null];
+        }
+
+        $detail = OutputUploadDetail::for($submission);
+
+        return [
+            'outputs' => OutputRows::forSubmission($submission),
+            'outputAccess' => OutputWriteAccess::for($viewer, $submission),
+            'outputPhaseAccess' => $detail === null ? null : PhaseAccessGate::presentFor($submission, $detail, true),
+            'outputOverrideTarget' => $detail === null ? null : self::overrideTargetFor($submission, $detail),
+        ];
+    }
+
+    /** OPERATOR-02-03 — detail mana pun milik pengajuan: pengajuan, laporan monev (OPERATOR-05-02), Upload Luaran. */
+    public static function overrideTargetFor(FormSubmission $submission, ?FormPhaseDetail $detail): OverrideTargetData
+    {
+        return new OverrideTargetData(self::phaseLabel($detail), self::overdueReviewers($submission, $detail?->id));
     }
 
     private static function phaseLabel(?FormPhaseDetail $detail): ?string
@@ -95,7 +126,7 @@ class OperatorSubmissionDetail implements ChangesNoState
     }
 
     /** @return list<string> reviewer aktif yang evaluasinya lewat tenggat dan dibuka override detail ini (W25) */
-    private static function overdueReviewers(FormSubmission $submission): array
+    private static function overdueReviewers(FormSubmission $submission, ?int $detailId): array
     {
         $names = [];
         $seats = $submission->activeSubmissionReviewers()
@@ -105,7 +136,7 @@ class OperatorSubmissionDetail implements ChangesNoState
             ->get();
 
         foreach ($seats as $seat) {
-            if (self::hasOverdueForm($seat, $submission->form_phase_detail_id)) {
+            if (self::hasOverdueForm($seat, $detailId)) {
                 $names[] = $seat->reviewer->user->name ?? 'Reviewer';
             }
         }
