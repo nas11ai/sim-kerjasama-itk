@@ -81,6 +81,16 @@ describe('visibleNavGroups', () => {
         )
     })
 
+    it('Organisasi tampil untuk users.manage, tidak untuk schemes.manage saja (W105)', () => {
+        const usersManage = visibleNavGroups(navGroups, ['users.manage'], NO_APPROVED)
+        const organisasi = usersManage.flatMap((g) => g.items).find((i) => i.label === 'Organisasi')
+
+        expect(organisasi?.routeName).toBe('admin.organizations.index')
+        expect(labels(visibleNavGroups(navGroups, ['schemes.manage'], NO_APPROVED))).not.toContain(
+            'Organisasi'
+        )
+    })
+
     it('item ber-routeName null tidak pernah tampil, termasuk untuk katalog penuh', () => {
         const hidden = navGroups.flatMap((g) => g.items).filter((i) => i.routeName === null)
         const shown = labels(

@@ -270,3 +270,29 @@ it('[IAM-ORG-15] memindahkan user membuka jalan deaktivasi unit', function () {
 
     expect($kimia->fresh()->is_active)->toBeFalse();
 });
+
+// ---------- W116: penjaga pohon melihat struktur, bukan rantai akses ----------
+
+it('[IAM-ORG-02] profil di bawah unit nonaktif tetap menghalangi penghapusan', function () {
+    $t = orgTree();
+    $t['fti']->update(['is_active' => false]);
+    userIn($t['prodi'], active: false);
+
+    // Rantai akses berhenti di FTI nonaktif; struktur tidak. Profil di Informatika
+    // tetap jejak yang tidak boleh hilang (BR-IAM-08).
+    $this->actingAs(operatorOrganisasi())
+        ->delete(route('admin.organizations.destroy', $t['itk']))
+        ->assertSessionHasErrors('organization_id');
+
+    expect(Organization::find($t['itk']->id))->not->toBeNull()
+        ->and($t['fti']->fresh()->parent_id)->toBe($t['itk']->id);
+});
+
+it('[IAM-ORG-13] siklus lewat unit nonaktif ditolak', function () {
+    $t = orgTree();
+    $t['fti']->update(['is_active' => false]);
+
+    expect(fn () => SaveOrganization::run(operatorOrganisasi(), ['parent_id' => $t['prodi']->id], $t['itk']))
+        ->toThrow(ValidationException::class)
+        ->and($t['itk']->fresh()->parent_id)->toBeNull();
+});

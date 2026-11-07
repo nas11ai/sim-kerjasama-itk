@@ -4,8 +4,8 @@ namespace App\Actions\Identity;
 
 use App\Models\InvitationToken;
 use App\Models\Organization;
-use App\Models\User;
-use App\Models\UserProfile;
+use App\Queries\Identity\OrganizationCensus;
+use App\Queries\Identity\OrganizationSubtree;
 use App\Support\Audit\AuditTrail;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
@@ -33,22 +33,17 @@ class DeactivateOrganization
      */
     public function handle(Organization $organization): int
     {
-        $subtree = Organization::subtreeIds($organization->id);
+        $census = OrganizationCensus::run($organization);
 
-        $activeUsers = User::query()
-            ->where('is_active', true)
-            ->whereIn(
-                'id',
-                UserProfile::query()->whereIn('organization_id', $subtree)->select('user_id')
-            )
-            ->count();
-
-        if ($activeUsers > 0) {
+        if ($census->blocksDeactivation()) {
             throw ValidationException::withMessages([
-                'organization_id' => "Masih ada {$activeUsers} user aktif di unit ini atau turunannya. "
+                'organization_id' => "Masih ada {$census->subtreeActiveUsers} user aktif di unit ini atau turunannya. "
                     .'Pindahkan atau nonaktifkan orangnya lebih dulu.',
             ]);
         }
+
+        // W116 — subtree struktural: cabang di bawah unit yang sudah nonaktif ikut terhitung.
+        $subtree = OrganizationSubtree::run($organization->id);
 
         $tercatat = DB::transaction(function () use ($subtree): int {
             // Tokennya tidak dicabut: organisasi nonaktif sudah membuat `isValid()`

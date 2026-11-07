@@ -4,7 +4,8 @@ namespace App\Actions\Identity;
 
 use App\Models\InvitationToken;
 use App\Models\Organization;
-use App\Models\UserProfile;
+use App\Queries\Identity\OrganizationCensus;
+use App\Queries\Identity\OrganizationSubtree;
 use App\Support\Audit\AuditTrail;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
@@ -26,19 +27,19 @@ class DeleteOrganization
      */
     public function handle(Organization $organization): int
     {
-        $subtree = Organization::subtreeIds($organization->id);
+        // Ambangnya **UserProfile apa pun** di subtree struktural (W116), lebih ketat daripada
+        // deaktivasi (BR-IAM-14): jejak siapa yang pernah bekerja di unit ini tidak boleh hilang.
+        // Sehari-harinya deaktivasi; penghapusan untuk unit yang belum terpakai.
+        $census = OrganizationCensus::run($organization);
 
-        // Ambangnya **UserProfile apa pun** di seluruh subtree — lebih ketat daripada deaktivasi
-        // (BR-IAM-14), dan sengaja: jejak siapa yang pernah bekerja di unit ini tidak boleh
-        // hilang. Sehari-harinya deaktivasi; penghapusan untuk unit yang belum terpakai.
-        $profiles = UserProfile::query()->whereIn('organization_id', $subtree)->count();
-
-        if ($profiles > 0) {
+        if ($census->blocksDeletion()) {
             throw ValidationException::withMessages([
-                'organization_id' => "Masih ada {$profiles} profil user di unit ini atau turunannya. "
+                'organization_id' => "Masih ada {$census->subtreeProfiles} profil user di unit ini atau turunannya. "
                     .'Nonaktifkan unit ini kalau yang Anda maksud adalah memensiunkannya.',
             ]);
         }
+
+        $subtree = OrganizationSubtree::run($organization->id);
 
         $tercatat = DB::transaction(function () use ($subtree): int {
             // Undangan yang belum terpakai **tidak menghalangi**, ia dicabut (register #18): token

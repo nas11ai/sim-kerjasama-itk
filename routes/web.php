@@ -14,6 +14,7 @@ use App\Http\Controllers\FormEngine\FormPhaseController;
 use App\Http\Controllers\FormEngine\SubmissionPeriodController;
 use App\Http\Controllers\Identity\InvitationController;
 use App\Http\Controllers\Identity\NidnVerificationController;
+use App\Http\Controllers\Identity\OrganizationController;
 use App\Http\Controllers\Identity\ProfileCompletionController;
 use App\Http\Controllers\Identity\ProfileController;
 use App\Http\Controllers\Identity\ProfilePhotoController;
@@ -23,7 +24,6 @@ use App\Http\Controllers\Identity\UserController;
 use App\Http\Controllers\Monev\MonevCycleController;
 use App\Http\Controllers\Notification\NotificationChannelController;
 use App\Http\Controllers\Notification\NotificationController;
-use App\Http\Controllers\OrganizationController;
 use App\Http\Controllers\PermissionController;
 use App\Http\Controllers\Review\ReplaceReviewerController;
 use App\Http\Controllers\Review\ReviewAttachmentDownloadController;
@@ -397,6 +397,20 @@ Route::middleware(['auth', 'can:schemes.manage'])->prefix('admin')->name('admin.
     Route::post('/schemes/{scheme}/activate', [SchemeController::class, 'activate'])->name('schemes.activate');
 });
 
+// ADMIN-08-02 — struktur organisasi dikelola pemegang users.manage (W105: Given IAM-ORG-09).
+Route::middleware(['auth', 'can:users.manage'])->prefix('admin')->name('admin.')->group(function () {
+    Route::get('/organizations', [OrganizationController::class, 'index'])->name('organizations.index');
+    // BR-IAM-17 — menyusun pohon organisasi.
+    Route::post('/organizations', [OrganizationController::class, 'store'])->name('organizations.store');
+    Route::put('/organizations/{organization}', [OrganizationController::class, 'update'])->name('organizations.update');
+    // BR-IAM-18 — memindahkan orangnya, prasyarat yang diminta BR-IAM-14.
+    Route::post('/organizations/{organization}/move-user', [OrganizationController::class, 'moveUser'])->name('organizations.move-user');
+    // BR-IAM-14 — ambangnya user aktif; BR-IAM-08 — penghapusan, undangan yang belum
+    // terpakai ikut tercabut alih-alih menghalangi (register #18).
+    Route::post('/organizations/{organization}/deactivate', [OrganizationController::class, 'deactivate'])->name('organizations.deactivate');
+    Route::delete('/organizations/{organization}', [OrganizationController::class, 'destroy'])->name('organizations.destroy');
+});
+
 // OPERATOR-09-01 — periode dikelola pemegang periods.manage, bukan users.manage (§4.4 K1).
 Route::middleware(['auth', 'can:periods.manage'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/submission-periods', [SubmissionPeriodController::class, 'index'])
@@ -496,21 +510,6 @@ Route::middleware(['auth'])->group(function () {
         // BR-REV-01 — dijaga Policy `assignReviewers` (reviewers.assign), bukan users.manage.
         Route::post('/submissions/{submission}/assign-reviewers', [ReviewController::class, 'assignReviewers'])
             ->name('submissions.assign-reviewers');
-        // BR-IAM-08 — penghapusan unit; undangan yang belum terpakai ikut
-        // tercabut alih-alih menghalangi (register #18).
-        Route::delete('/organizations/{organization}', [OrganizationController::class, 'destroy'])
-            ->name('organizations.destroy');
-        // BR-IAM-14 — ambangnya user aktif, berbeda dari penghapusan.
-        // BR-IAM-17, BR-IAM-18 — menyusun pohon organisasi dan memindahkan
-        // orangnya. Yang kedua adalah prasyarat yang diminta BR-IAM-14.
-        Route::post('/organizations', [OrganizationController::class, 'store'])
-            ->name('organizations.store');
-        Route::put('/organizations/{organization}', [OrganizationController::class, 'update'])
-            ->name('organizations.update');
-        Route::post('/organizations/{organization}/move-user', [OrganizationController::class, 'moveUser'])
-            ->name('organizations.move-user');
-        Route::post('/organizations/{organization}/deactivate', [OrganizationController::class, 'deactivate'])
-            ->name('organizations.deactivate');
         // BR-FE-08/09/10 — perpanjangan akses satu fase untuk satu pengajuan.
         // BR-MON-04/07/10 — pengelolaan siklus monev.
         Route::get('/submissions/{submission}/monev', [MonevCycleController::class, 'show'])

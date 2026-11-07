@@ -29,6 +29,48 @@ export interface NotificationChannelData {
     declared: boolean
 }
 
+// Sumber: App\Data\View\SystemConfig\OrganizationNodeData (urut depth-first).
+export interface OrganizationNodeData {
+    id: number
+    name: string
+    typeLabel: string
+    isActive: boolean
+    parentId: number | null
+    depth: number
+    hasChildren: boolean
+}
+
+// Sumber: App\Data\Result\OrganizationCensusData.
+export interface OrganizationCensusData {
+    directProfiles: number
+    directActiveUsers: number
+    subtreeProfiles: number
+    subtreeActiveUsers: number
+    unitsWithActiveUsers: number
+    pendingInvitations: number
+}
+
+// Sumber: App\Data\View\SystemConfig\OrganizationUnitData.
+export interface OrganizationUnitData {
+    id: number
+    name: string
+    type: string
+    typeLabel: string
+    isActive: boolean
+    parentId: number | null
+    census: OrganizationCensusData
+    canDeactivate: boolean
+    canDelete: boolean
+}
+
+// Sumber: Identity\OrganizationController::index.
+export interface OrganizationPageProps {
+    tree: OrganizationNodeData[]
+    selected: OrganizationUnitData | null
+    typeOptions: FilterOption[]
+    parentOptions: FilterOption[]
+}
+
 // Sumber: Config\ReferenceEntityController::index.
 export interface GeneralPageProps {
     categories: ReferenceCategoryData[]

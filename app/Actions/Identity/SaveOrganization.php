@@ -4,6 +4,7 @@ namespace App\Actions\Identity;
 
 use App\Models\Organization;
 use App\Models\User;
+use App\Queries\Identity\OrganizationSubtree;
 use App\Support\Audit\AuditChange;
 use App\Support\Audit\AuditTrail;
 use Illuminate\Auth\Access\AuthorizationException;
@@ -121,10 +122,9 @@ class SaveOrganization
             ]);
         }
 
-        // Induk baru di subtree unit ini menutup pohon jadi lingkaran, dan
-        // penelusuran leluhur BR-FE-02 (CTE rekursif) tak berhenti lagi:
-        // timeout di layar peneliti yang tak bersalah, jauh dari sebabnya.
-        if (in_array($parentId, Organization::subtreeIds($organization->id), true)) {
+        // Induk baru di subtree unit ini menutup pohon jadi lingkaran, dan penelusuran leluhur
+        // BR-FE-02 tak berhenti lagi. Subtree-nya struktural, juga lewat unit nonaktif (W116).
+        if (in_array($parentId, OrganizationSubtree::run($organization->id), true)) {
             throw ValidationException::withMessages([
                 'parent_id' => 'Unit ini tidak bisa dipindah ke bawah turunannya sendiri — '
                     .'pohon organisasi akan menjadi lingkaran dan penelusuran akses tidak pernah berhenti.',

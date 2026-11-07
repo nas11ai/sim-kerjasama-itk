@@ -217,8 +217,9 @@ export const navGroups: NavGroup[] = [
             {
                 label: 'Organisasi',
                 icon: Building2,
-                routeName: null,
-                anyPermission: ['schemes.manage'],
+                routeName: 'admin.organizations.index',
+                // W105 — Given IAM-ORG-09: Operator memegang users.manage.
+                anyPermission: ['users.manage'],
             },
             {
                 label: 'Konfigurasi Umum',
