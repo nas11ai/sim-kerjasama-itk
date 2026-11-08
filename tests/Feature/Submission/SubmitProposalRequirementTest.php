@@ -95,22 +95,13 @@ it('[SM-SUBMIT-07] error per field pada Proposal PDF muncul di jalur submit wiza
         'order' => 1,
     ]);
 
-    // #28 — submitForm() tidak lagi membuat baris; langkah 1 wizard sudah
-    // melahirkannya.
+    // #28 — submit tidak membuat baris; langkah 1 wizard sudah melahirkannya.
     StartSubmission::run($form->id, $dibangun['period']->id, $dibangun['detail'], $budi);
 
     // Field `file` wajib dikirim tanpa berkas sama sekali.
     $pengajuan = FormSubmission::where('form_id', $form->id)->sole();
 
-    $respons = $this->actingAs($budi)->post(route('user.form-submission.submit'), [
-        'form_id' => $form->id,
-        'submission_period_id' => $dibangun['period']->id,
-        'form_phase_id' => $formPhase->id,
-        'last_updated_at' => $pengajuan->updated_at->toIso8601String(),
-        'responses' => [
-            ['form_field_id' => $field->id, 'value' => null],
-        ],
-    ]);
+    $respons = $this->actingAs($budi)->post(route('user.submissions.submit', $pengajuan));
 
     $respons->assertRedirect()
         ->assertSessionHasErrors('field_'.$field->id);

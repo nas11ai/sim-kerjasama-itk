@@ -143,20 +143,17 @@ it('[FE-WINDOW-10] revisi digerbangi Batas Revisi, bukan Batas Submit', function
     $fx['detail']->submissionDate->update(['datetime' => now()->subDay()]);
     $fx['detail']->update(['revision_date_id' => windowDate($fx['period'], 'Batas Revisi', now()->addWeek()->toDateTimeString())->id]);
 
-    $payload = draftPayload($fx['form'], $fx['period'], $fx['phase'], $submission->fresh()->updated_at->toISOString());
+    $responses = [['form_field_id' => wizardTextField($fx['form'])->id, 'value' => 'Contoh nilai']];
+    $save = fn () => $this->actingAs($fx['user'])->post(
+        route('user.submissions.wizard.save', [$submission, 2]),
+        wizardPayload($submission->fresh()->updated_at->toISOString(), 3, $responses),
+    );
 
-    $this->actingAs($fx['user'])
-        ->post(route('user.form-submission.save-draft'), $payload)
-        ->assertSessionHasNoErrors()
-        ->assertRedirect()
-        ->assertSessionHas('success');
+    $save()->assertSessionHasNoErrors()->assertRedirect(route('user.submissions.wizard', [$submission, 3]));
 
     $this->travel(8)->days();
-    $payload['last_updated_at'] = $submission->fresh()->updated_at->toISOString();
 
-    $this->actingAs($fx['user'])
-        ->post(route('user.form-submission.save-draft'), $payload)
-        ->assertForbidden();
+    $save()->assertForbidden();
 });
 
 // Catatan: tests/Unit/FormPhaseDetailTest.php dihapus dan digantikan berkas

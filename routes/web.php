@@ -103,13 +103,6 @@ Route::middleware(['auth'])->prefix('user')->name('user.')->group(function () {
     Route::get('/announcements', [AnnouncementController::class, 'userIndex'])
         ->name('announcements.index');
 
-    // Form Submission Routes
-    Route::post('/form-submission/save-draft', [UserFormController::class, 'saveDraft'])
-        ->name('form-submission.save-draft');
-
-    Route::post('/form-submission/submit', [UserFormController::class, 'submitForm'])
-        ->name('form-submission.submit');
-
     // ADR 0012 langkah 1 — satu-satunya jalur yang boleh melahirkan baris pengajuan.
     Route::post('/submissions', [UserFormController::class, 'startSubmission'])
         ->name('submissions.store');

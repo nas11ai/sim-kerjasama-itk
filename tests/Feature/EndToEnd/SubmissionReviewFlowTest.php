@@ -84,20 +84,18 @@ it('menyusuri alur pengajuan sampai disetujui lewat HTTP', function () {
     $submission->update(['scheme_id' => $scheme->id]);
 
     // ---------- 2. Mengisi lalu submit (BR-SM-02, BR-FE-11) ----------
+    // BR-FE-14 — simpan wizard membawa cap waktu yang dilihat penyunting.
     $this->actingAs($researcher)
-        ->post(route('user.form-submission.submit'), [
-            'form_id' => $fx['form']->id,
-            'submission_period_id' => $fx['period']->id,
-            'form_phase_id' => $fx['detail']->form_phase_id,
-            'is_submitted' => true,
-            // BR-FE-14 — jalur simpan membawa cap waktu yang dilihat penyunting.
-            'last_updated_at' => $submission->fresh()->updated_at->toIso8601String(),
-            // Bentuk yang dituntut submitForm(): daftar objek berisi
-            // form_field_id + value, bukan peta field_{id} => nilai.
-            'responses' => [
-                ['form_field_id' => $judul->id, 'value' => 'Analisis Potensi Biochar'],
-            ],
-        ])
+        ->post(route('user.submissions.wizard.save', [$submission, 2]), wizardPayload(
+            $submission->fresh()->updated_at->toIso8601String(),
+            7,
+            [['form_field_id' => $judul->id, 'value' => 'Analisis Potensi Biochar']],
+        ))
+        ->assertSessionHasNoErrors();
+
+    $this->actingAs($researcher)
+        ->post(route('user.submissions.submit', $submission))
+        ->assertSessionHasNoErrors()
         ->assertRedirect();
 
     expect($submission->fresh()->status)->toBeInstanceOf(Submitted::class);

@@ -21,8 +21,7 @@ use Symfony\Component\HttpKernel\Exception\ConflictHttpException;
 
 /**
  * Menyimpan jawaban satu langkah wizard ke baris yang dilahirkan langkah 1 (ADR 0012), tanpa
- * validasi kelengkapan [FE-TEMPORAL-09]. Submit memanggilnya lebih dulu, baru
- * SubmitFormSubmission.
+ * validasi kelengkapan [FE-TEMPORAL-09]. Dipanggil SaveWizardStep untuk langkah yang membawa jawaban.
  *
  * @method static FormSubmission run(SubmissionAnswersInput $input, User $user)
  */
@@ -48,7 +47,11 @@ class SaveSubmissionDraft
             // dibandingkan adalah nilai yang benar-benar akan ditimpa.
             OptimisticLock::assertNotStale($submission, $input->lastUpdatedAt);
 
-            $this->writeAnswers($submission, $input);
+            FieldAnswerWriter::overwrite($submission, $input->answers, $input->uploads, self::UPLOAD_DIRECTORY);
+
+            // W161, BR-FE-14 — jawaban yang berubah menggeser cap kunci, supaya tab lain yang masih
+            // membawa cap lama ditolak 409 alih-alih menimpa diam-diam.
+            $submission->touch();
 
             // BR-SCH-04/BR-SCH-10 (ADR 0005) — pilihan scheme_selector dipindahkan ke kolom scheme_id
             // begitu jawabannya tersimpan. Batas anggaran, anggota, dan tipe luaran menanyakan kolom itu;
@@ -61,19 +64,6 @@ class SaveSubmissionDraft
 
             return $submission;
         });
-    }
-
-    /** @throws ValidationException */
-    private function writeAnswers(FormSubmission $submission, SubmissionAnswersInput $input): void
-    {
-        // Layar legacy tidak memuat ulang jawaban, jadi kosong di sana berarti belum disentuh.
-        if ($input->clearsEmptyAnswers) {
-            FieldAnswerWriter::overwrite($submission, $input->answers, $input->uploads, self::UPLOAD_DIRECTORY);
-
-            return;
-        }
-
-        FieldAnswerWriter::fill($submission, $input->answers, $input->uploads, self::UPLOAD_DIRECTORY);
     }
 
     /** @throws AuthorizationException */

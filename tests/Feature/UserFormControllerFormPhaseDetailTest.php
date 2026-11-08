@@ -7,10 +7,9 @@
 // StartSubmission-lah yang menulis kedua kolom itu saat baris lahir di
 // langkah 1 — resolveFormPhaseDetail() (dengan disambiguasi ADR 0004: form
 // yang dipakai lebih dari satu FormPhaseDetail, dan lintas organisasi) tetap
-// hidup di sana. Test di sini memastikan saveDraft() tidak menuliskan ulang
+// hidup di sana. Test di sini memastikan simpan wizard tidak menuliskan ulang
 // atau merusak apa yang sudah ditulis StartSubmission, sehingga fixture-nya
-// memanggil StartSubmission::run() langsung alih-alih lewat endpoint
-// save-draft.
+// memanggil StartSubmission::run() langsung.
 
 use App\Actions\FormSubmission\StartSubmission;
 use App\Models\Form;
@@ -19,7 +18,6 @@ use App\Models\FormPhase;
 use App\Models\FormPhaseDetail;
 use App\Models\FormSubmission;
 use App\Models\Organization;
-use App\Models\SubmissionPeriod;
 use App\Models\User;
 
 it('persists form_phase_detail_id and submission_period_id when saving a draft', function () {
@@ -37,10 +35,10 @@ it('persists form_phase_detail_id and submission_period_id when saving a draft',
 
     // #28 — saveDraft() tidak lagi membuat baris; langkah 1 wizard sudah
     // menulis form_phase_detail_id dan submission_period_id saat lahir.
-    StartSubmission::run($form->id, $built['period']->id, $built['detail'], $user);
+    $started = StartSubmission::run($form->id, $built['period']->id, $built['detail'], $user);
 
     $this->actingAs($user)
-        ->post(route('user.form-submission.save-draft'), draftPayload($form, $built['period'], $formPhase))
+        ->post(route('user.submissions.wizard.save', [$started, 2]), wizardPayload($started->updated_at->toISOString(), 3, [['form_field_id' => wizardTextField($form)->id, 'value' => 'Contoh nilai']]))
         ->assertRedirect();
 
     $submission = FormSubmission::where('form_id', $form->id)->where('submitted_by', $user->id)->firstOrFail();
@@ -72,10 +70,10 @@ it('resolves the correct form_phase_detail when the form is shared by two phase 
 
     // #28 — StartSubmission (bukan saveDraft()) yang menjalankan
     // resolveFormPhaseDetail() dan menulis hasilnya.
-    StartSubmission::run($form->id, $correct['period']->id, $correct['detail'], $user);
+    $started = StartSubmission::run($form->id, $correct['period']->id, $correct['detail'], $user);
 
     $this->actingAs($user)
-        ->post(route('user.form-submission.save-draft'), draftPayload($form, $correct['period'], $formPhaseB))
+        ->post(route('user.submissions.wizard.save', [$started, 2]), wizardPayload($started->updated_at->toISOString(), 3, [['form_field_id' => wizardTextField($form)->id, 'value' => 'Contoh nilai']]))
         ->assertRedirect();
 
     $submission = FormSubmission::where('form_id', $form->id)->where('submitted_by', $user->id)->firstOrFail();
@@ -123,40 +121,13 @@ it('resolves the form_phase_detail of the user\'s own organization when the same
 
     // #28 — StartSubmission (bukan saveDraft()) yang menjalankan
     // resolveFormPhaseDetail() dan menulis hasilnya.
-    StartSubmission::run($form->id, $own['period']->id, $own['detail'], $user);
+    $started = StartSubmission::run($form->id, $own['period']->id, $own['detail'], $user);
 
     $this->actingAs($user)
-        ->post(route('user.form-submission.save-draft'), draftPayload($form, $own['period'], $formPhase))
+        ->post(route('user.submissions.wizard.save', [$started, 2]), wizardPayload($started->updated_at->toISOString(), 3, [['form_field_id' => wizardTextField($form)->id, 'value' => 'Contoh nilai']]))
         ->assertRedirect();
 
     $submission = FormSubmission::where('form_id', $form->id)->where('submitted_by', $user->id)->firstOrFail();
 
     expect($submission->form_phase_detail_id)->toBe($own['detail']->id);
-});
-
-// #25/#28 — resolveFormPhaseDetail() dulu berjalan di dalam saveDraft() dan
-// men-422-kan kombinasi form/fase yang tidak ada. Sekarang saveDraft() tidak
-// lagi meresolusi form_phase_detail_id sama sekali: ia hanya menanyakan
-// ResolveWizardSubmission apakah baris untuk (form, periode, peneliti) sudah
-// ada. Fase yang tidak mempunyai FormPhaseDetail berarti langkah 1 tidak
-// pernah bisa dilalui untuknya, jadi tidak akan pernah ada baris — dan itu
-// tetap gagal *loudly*, hanya dengan kode yang berbeda (409, bukan 422),
-// karena penyebabnya sekarang seragam dengan "belum ada baris sama sekali".
-it('fails loudly with 409 instead of writing null when the form/phase combination does not exist', function () {
-    [$user, $organization] = actingResearcher();
-
-    $form = Form::factory()->create();
-    FormAccessControl::create([
-        'form_id' => $form->id,
-        'permission' => 'submissions.create',
-        'organization_id' => $organization->id,
-    ]);
-    $unrelatedPhase = FormPhase::create(['title' => 'Fase Tanpa Detail', 'is_active' => true]);
-    $period = SubmissionPeriod::factory()->create();
-
-    $this->actingAs($user)
-        ->post(route('user.form-submission.save-draft'), draftPayload($form, $period, $unrelatedPhase))
-        ->assertStatus(409);
-
-    expect(FormSubmission::where('form_id', $form->id)->exists())->toBeFalse();
 });

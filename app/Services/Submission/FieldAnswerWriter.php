@@ -16,25 +16,6 @@ use Illuminate\Validation\ValidationException;
 final class FieldAnswerWriter
 {
     /**
-     * [SM-WIZARD-02] Hanya field yang terisi yang ditimpa; jawaban kosong membiarkan jawaban tersimpan.
-     * Layar wizard tidak memuat ulang jawaban, jadi kosong di sana berarti belum disentuh — dulu setiap
-     * simpan setelah halaman dibuka ulang menghapus isian sebelumnya. Akibatnya jawaban tak bisa dikosongkan.
-     *
-     * @param  array<int, ?string>  $answers  id field => nilai; null berarti kosong
-     * @param  array<int, UploadedFile>  $uploads  id field => berkas, menimpa jawaban field itu
-     *
-     * @throws ValidationException
-     */
-    public static function fill(FormSubmission $submission, array $answers, array $uploads, string $directory): void
-    {
-        $values = array_filter(self::storedValues($submission, $answers, $uploads, $directory), fn (?string $value): bool => $value !== null);
-
-        $submission->formFieldResponses()->whereIn('form_field_id', array_keys($values))->delete();
-
-        self::create($submission, $values);
-    }
-
-    /**
      * Hanya field yang dikirim yang diganti, dan jawaban kosong menghapusnya. Untuk wizard v2, yang
      * memuat ulang jawaban tersimpan: kosong di sana berarti dikosongkan, sementara field berkas yang
      * tidak diunggah ulang memang tidak dikirim dan karenanya tetap.

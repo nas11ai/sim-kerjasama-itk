@@ -190,35 +190,28 @@ function wizardFixture(): array
     ];
 }
 
-/**
- * Bangun satu FormAccessControl yang bisa diakses $user (permission +
- * organization subtree cocok), berikut satu FormPhaseDetail di bawah
- * $formPhase yang diberikan.
- *
- * @return array{form: Form, detail: FormPhaseDetail, period: SubmissionPeriod}
- */
-function draftPayload(Form $form, SubmissionPeriod $period, FormPhase $formPhase, ?string $lastUpdatedAt = null): array
+/** Field teks pada $form; wizard v2 menyimpannya di langkah 2 (isian). */
+function wizardTextField(Form $form, string $label = 'Judul'): FormField
 {
-    $fieldType = FieldType::create(['name' => 'text '.fake()->unique()->numerify('####-####')]);
-    $field = FormField::create([
+    return FormField::create([
         'form_id' => $form->id,
-        'label' => 'Judul',
+        'label' => $label,
         'is_required' => false,
-        'field_type_id' => $fieldType->id,
+        'field_type_id' => FieldType::firstOrCreate(['name' => 'text'])->id,
         'order' => 1,
     ]);
+}
 
-    return [
-        'form_id' => $form->id,
-        'submission_period_id' => $period->id,
-        'form_phase_id' => $formPhase->id,
-        // BR-FE-14 — cap waktu optimistic lock. Dibiarkan null kalau pemanggil
-        // memang sedang menguji jalur tanpa baris pengajuan.
-        'last_updated_at' => $lastUpdatedAt,
-        'responses' => [
-            ['form_field_id' => $field->id, 'value' => 'Contoh nilai'],
-        ],
-    ];
+/**
+ * Isi POST `user.submissions.wizard.save`. Form, periode, dan tahap diisi WizardStepRequest dari
+ * pengajuan di route, jadi yang dikirim hanya jawaban, cap optimistic lock (BR-FE-14), dan tujuan.
+ *
+ * @param  list<array{form_field_id: int, value: mixed}>  $responses
+ * @return array{last_updated_at: ?string, goto: int, responses: list<array{form_field_id: int, value: mixed}>}
+ */
+function wizardPayload(?string $lastUpdatedAt, int $goto, array $responses = []): array
+{
+    return ['last_updated_at' => $lastUpdatedAt, 'goto' => $goto, 'responses' => $responses];
 }
 
 /**
