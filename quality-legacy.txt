@@ -12,16 +12,7 @@
 # perintahkan tetap di model. Ukur ulang sebelum mencoba lagi —
 # docs/design/refactor-plan-wave-2-formsubmission.md Task 6.
 app/Models/FormSubmission.php
-resources/js/Components/AppSidebar.vue
 resources/js/Components/ui/dialog/DialogContent.vue
 resources/js/Components/ui/dialog/DialogScrollContent.vue
 resources/js/Components/ui/input/UiInput.vue
 resources/js/Components/ui/textarea/UiTextarea.vue
-resources/js/Pages/EvaluationForms/ShowPage.vue
-resources/js/Pages/Permissions/components/CreateDialogue.vue
-resources/js/Pages/Permissions/components/EditDialogue.vue
-resources/js/Pages/ReviewerAssignments/IndexPage.vue
-resources/js/Pages/Roles/CreatePage.vue
-resources/js/Pages/Roles/EditPage.vue
-resources/js/Pages/SubmissionEvaluationManager/IndexPage.vue
-resources/js/Pages/WelcomePage.vue

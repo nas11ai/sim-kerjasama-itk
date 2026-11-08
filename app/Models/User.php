@@ -2,7 +2,6 @@
 
 namespace App\Models;
 
-use App\Queries\Review\ReviewersWithinTenure;
 use App\Support\Lifecycle\DeletionNotPermitted;
 use Database\Factories\UserFactory;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
@@ -16,7 +15,6 @@ use Illuminate\Notifications\Notifiable;
 use Spatie\Permission\Traits\HasRoles;
 
 /**
- * @property bool $is_reviewer
  * @property-read UserProfile|null $userProfile
  * @property-read Organization|null $organization
  * @property-read Reviewer|null $reviewer
@@ -89,7 +87,6 @@ class User extends Authenticatable implements MustVerifyEmail
     }
 
     // App\Models\User.php
-    protected $appends = ['is_reviewer'];
 
     public function formSubmissions()
     {
@@ -105,13 +102,6 @@ class User extends Authenticatable implements MustVerifyEmail
     public function reviewers()
     {
         return $this->hasMany(Reviewer::class);
-    }
-
-    // BR-REV-09 — reviewer = sedang dalam masa tugas, satu definisi (inklusif per hari).
-    // Dulu cukup punya record, sehingga reviewer yang masa tugasnya habis tetap tampil.
-    public function getIsReviewerAttribute(): bool
-    {
-        return ReviewersWithinTenure::run()->where('user_id', $this->id)->exists();
     }
 
     public function reviewer()

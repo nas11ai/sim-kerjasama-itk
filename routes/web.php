@@ -24,7 +24,6 @@ use App\Http\Controllers\Monev\MonevManageController;
 use App\Http\Controllers\Monev\MonevReportController;
 use App\Http\Controllers\Notification\NotificationChannelController;
 use App\Http\Controllers\Notification\NotificationController;
-use App\Http\Controllers\PermissionController;
 use App\Http\Controllers\Reporting\AuditController;
 use App\Http\Controllers\Reporting\ExportController;
 use App\Http\Controllers\Reporting\StatisticsController;
@@ -37,7 +36,6 @@ use App\Http\Controllers\Review\ReviewSummaryResolutionController;
 use App\Http\Controllers\ReviewController;
 use App\Http\Controllers\ReviewerFormAssignmentController;
 use App\Http\Controllers\ReviewFormResponseController;
-use App\Http\Controllers\RoleController;
 use App\Http\Controllers\Scheme\SchemeController;
 use App\Http\Controllers\Submission\BudgetLineItemController;
 use App\Http\Controllers\Submission\OperatorSubmissionController;
@@ -53,20 +51,10 @@ use App\Http\Controllers\SubmissionViewController;
 use App\Http\Controllers\SubmissionWithdrawalController;
 use App\Http\Controllers\UserDeactivationController;
 use App\Http\Controllers\UserFormController;
-use App\Queries\Announcement\PublicAnnouncementFeed;
-use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
-use Inertia\Inertia;
 
-Route::get('/', function () {
-    return Inertia::render('WelcomePage', [
-        'canLogin' => Route::has('login'),
-        'canRegister' => Route::has('register'),
-        'laravelVersion' => Application::VERSION,
-        'phpVersion' => PHP_VERSION,
-        'announcements' => PublicAnnouncementFeed::run(),
-    ]);
-})->name('welcome');
+// W157 — tanpa layar sambutan (K3): umpan pengumuman publik ada di halaman login sejak A1.
+Route::get('/', fn () => redirect()->route(auth()->check() ? 'dashboard' : 'login'))->name('home');
 
 // SHARED-02-01..04 — satu dasbor untuk semua peran (§4.4 K4).
 Route::middleware(['auth', 'verified'])->get('/dashboard', DashboardController::class)
@@ -262,24 +250,6 @@ Route::middleware(['auth'])->prefix('reviewer')->name('reviewer.')->group(functi
 
 // Admin Routes - permission-based (users.manage; Super Admin via Gate::before)
 Route::middleware(['auth', 'can:users.manage'])->prefix('admin')->name('admin.')->group(function () {
-    // Role Management
-    Route::resource('roles', RoleController::class)->except(['show'])->names([
-        'index' => 'roles.index',
-        'create' => 'roles.create',
-        'store' => 'roles.store',
-        'edit' => 'roles.edit',
-        'update' => 'roles.update',
-        'destroy' => 'roles.destroy',
-    ]);
-
-    // Permission Management
-    Route::resource('permissions', PermissionController::class)->except(['create', 'show', 'edit'])->names([
-        'index' => 'permissions.index',
-        'store' => 'permissions.store',
-        'update' => 'permissions.update',
-        'destroy' => 'permissions.destroy',
-    ]);
-
     // NEW: Reviewer form assignment management
     Route::post('/submissions/{submission}/reviewers/{reviewer}/assign-forms', [ReviewController::class, 'assignEvaluationFormsToReviewer'])
         ->name('submissions.assign-evaluation-forms');

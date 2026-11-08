@@ -480,21 +480,3 @@ it('BR-REV-09 dan BR-RPT-09 — tanggal sama berformat waktu tidak ditulis dan t
 
     expect(auditDeskripsi('Masa tugas reviewer diubah'))->toBe(0);
 });
-
-it('BR-REV-09 — auth.user.is_reviewer false untuk reviewer yang masa tugasnya habis', function () {
-    reviewerHabis($this->operator);
-
-    $this->actingAs($this->operator)->get(route('admin.reviewers.index'))
-        ->assertInertia(fn ($page) => $page->where('auth.user.is_reviewer', false));
-});
-
-it('BR-REV-09 — auth.user.is_reviewer true untuk reviewer yang end_date-nya hari ini', function () {
-    Reviewer::factory()->create([
-        'user_id' => $this->operator->id,
-        'start_date' => today()->subMonth()->toDateString(),
-        'end_date' => today()->toDateString(),
-    ]);
-
-    $this->actingAs($this->operator)->get(route('admin.reviewers.index'))
-        ->assertInertia(fn ($page) => $page->where('auth.user.is_reviewer', true));
-});

@@ -21,14 +21,14 @@ const page = usePage<PageProps>()
 
 // §4.4 — section dari backend, aksi cepat dari permissions; nama peran tak dibaca.
 const actions = computed(() =>
-    quickActions(page.props.auth.user.permissions, props.profileCompletion !== null)
+    quickActions(page.props.auth.user?.permissions ?? [], props.profileCompletion !== null)
 )
 </script>
 
 <template>
     <Head title="Dashboard" />
     <AppLayout>
-        <WelcomeBanner :name="page.props.auth.user.name" :subtitle="subtitle" />
+        <WelcomeBanner :name="page.props.auth.user?.name ?? ''" :subtitle="subtitle" />
         <div class="flex flex-col gap-6">
             <!-- BR-IAM-03 — profil belum lengkap menahan pembuatan pengajuan (IAM-VERIFY-04) -->
             <AppBanner v-if="profileCompletion" tone="warning" title="Profil belum lengkap">

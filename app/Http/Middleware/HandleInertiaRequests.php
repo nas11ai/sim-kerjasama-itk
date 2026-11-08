@@ -43,16 +43,10 @@ class HandleInertiaRequests extends Middleware
                     'id' => $request->user()->id,
                     'name' => $request->user()->name,
                     'email' => $request->user()->email,
-                    // Add any other user properties you need
-                    'roles' => $request->user()->getRoleNames(), // If you're using Spatie Laravel Permission
-                    'is_reviewer' => $request->user()->is_reviewer,
                     'permissions' => fn () => EffectivePermissionNames::run($request->user()),
                 ] : null,
             ],
             'flash' => [
-                'message' => fn () => $request->session()->get('message'),
-                'error' => fn () => $request->session()->get('error'),
-                'success' => fn () => $request->session()->get('success'),
                 // BR-REV-04 — peringatan beban reviewer bukan error: penugasan
                 // berhasil, Operator yang menilai kewajaran beban. Dibagikan sebagai
                 // flash tersendiri supaya tidak tertukar dengan kegagalan.
@@ -74,8 +68,8 @@ class HandleInertiaRequests extends Middleware
     }
 
     /**
-     * Flash native Inertia tidak disimpan di riwayat browser; prop `flash` tersimpan
-     * dan terputar ulang saat Back. Prop itu tetap dibagikan untuk halaman legacy.
+     * W162 — pesan sukses/galat dari `redirect()->with(...)` diteruskan sebagai flash native
+     * Inertia (toast). Flash native tidak disimpan di riwayat, jadi Back tidak memutarnya ulang.
      */
     private function bridgeSessionFlash(Request $request): void
     {

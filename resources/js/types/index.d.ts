@@ -1,32 +1,13 @@
 export interface Auth {
-    user: User
+    user: User | null
 }
 
+// Sumber: HandleInertiaRequests::share — `auth.user`, null bagi tamu (W162).
 export interface User {
     id: number
     name: string
     email: string
-    email_verified_at?: string
-    is_active: boolean
-    is_reviewer: boolean
-    roles: Role[]
     permissions: string[]
-}
-export interface Role {
-    id: number
-    name: string
-    guard_name: string
-    created_at?: string
-    updated_at?: string
-    permissions: Permission[]
-}
-
-export interface Permission {
-    id: number
-    name: string
-    guard_name: string
-    created_at?: string
-    updated_at?: string
 }
 
 export interface NavigationFlags {
@@ -41,9 +22,6 @@ export interface NavigationFlags {
 }
 
 export interface FlashMessages {
-    message: string | null
-    error: string | null
-    success: string | null
     workloadWarnings: string[] | null
 }
 

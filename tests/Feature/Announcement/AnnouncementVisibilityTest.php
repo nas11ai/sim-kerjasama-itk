@@ -78,18 +78,3 @@ it('marks only the announcements the user has read in the user list', function (
                 ->mapWithKeys(fn ($row) => [$row['id'] => $row['isRead']])
                 ->all() == [$unread->id => false, $read->id => true]));
 });
-
-it('shows only unexpired public announcements on the welcome page, at most ten', function () {
-    makeAnnouncement('private', null, 'Privat');
-    makeAnnouncement('public', now()->subDay(), 'Lewat');
-    foreach (range(1, 12) as $i) {
-        makeAnnouncement('public', null, "Publik {$i}");
-    }
-
-    $this->get(route('welcome'))
-        ->assertInertia(fn (Assert $page) => $page
-            ->has('announcements.data', 10)
-            ->where('announcements.total', 12)
-            ->where('announcements.data', fn ($rows) => collect($rows)
-                ->every(fn ($row) => str_starts_with($row['title'], 'Publik'))));
-});

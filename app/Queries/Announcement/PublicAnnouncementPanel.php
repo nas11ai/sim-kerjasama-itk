@@ -9,7 +9,7 @@ use Lorisleiva\Actions\Concerns\AsAction;
 
 /**
  * W6 — panel pengumuman publik di halaman login: yang berlaku bagi tamu, paling banyak lima
- * terbaru. `PublicAnnouncementFeed` (WelcomePage) hidup sampai F99.
+ * terbaru.
  *
  * @method static list<AnnouncementSummaryData> run()
  */

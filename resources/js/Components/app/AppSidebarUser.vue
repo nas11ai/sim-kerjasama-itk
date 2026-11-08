@@ -8,7 +8,7 @@ import type { PageProps } from '@/types'
 
 const page = usePage<PageProps>()
 const user = computed(() => page.props.auth.user)
-const initial = computed(() => user.value.name.charAt(0).toUpperCase())
+const initial = computed(() => user.value?.name.charAt(0).toUpperCase() ?? '')
 
 const confirmingLogout = ref(false)
 const loggingOut = ref(false)
@@ -20,7 +20,8 @@ const logout = () => {
 </script>
 
 <template>
-    <div class="flex items-center gap-2 rounded-md p-2">
+    <!-- W162 — `auth.user` null bagi tamu; shell hanya dirender di balik auth. -->
+    <div v-if="user" class="flex items-center gap-2 rounded-md p-2">
         <Link :href="route('profile.edit')" class="flex min-w-0 flex-1 items-center gap-2">
             <span
                 class="flex size-8 shrink-0 items-center justify-center rounded-full bg-primary text-sm font-medium text-primary-foreground"

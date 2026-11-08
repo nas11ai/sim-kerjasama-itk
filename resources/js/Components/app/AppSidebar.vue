@@ -38,7 +38,7 @@ const flags = computed(
         }
 )
 const groups = computed(() =>
-    visibleNavGroups(navGroups, page.props.auth.user.permissions, flags.value)
+    visibleNavGroups(navGroups, page.props.auth.user?.permissions ?? [], flags.value)
 )
 </script>
 
