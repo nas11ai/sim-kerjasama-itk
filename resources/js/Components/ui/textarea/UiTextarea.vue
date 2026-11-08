@@ -1,21 +1,14 @@
 <script setup lang="ts">
-import type { HTMLAttributes } from 'vue'
-import { useVModel } from '@vueuse/core'
+import {
+    type TextControlEmits,
+    type TextControlProps,
+    useTextModel,
+} from '@/Components/ui/useTextModel'
 import { cn } from '@/lib/utils'
 
-const props = defineProps<{
-    class?: HTMLAttributes['class']
-    defaultValue?: string | number
-    modelValue?: string | number
-}>()
-
-const emits = defineEmits<{
-    'update:modelValue': [payload: string | number]
-}>()
-const modelValue = useVModel(props, 'modelValue', emits, {
-    passive: true,
-    defaultValue: props.defaultValue,
-})
+const props = defineProps<TextControlProps>()
+const emits = defineEmits<TextControlEmits>()
+const modelValue = useTextModel(props, emits)
 </script>
 
 <template>
