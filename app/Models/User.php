@@ -86,8 +86,6 @@ class User extends Authenticatable implements MustVerifyEmail
         ];
     }
 
-    // App\Models\User.php
-
     public function formSubmissions()
     {
         return $this->hasMany(FormSubmission::class, 'submitted_by');

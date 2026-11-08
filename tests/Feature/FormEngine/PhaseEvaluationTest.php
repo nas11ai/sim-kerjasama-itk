@@ -16,6 +16,8 @@ use App\Models\SubmissionReviewer;
 use App\Models\User;
 use App\Queries\Form\PhaseEvaluationForms;
 use App\States\Submission\Approved;
+use App\States\Submission\NeedsRevision;
+use App\States\Submission\Resubmitted;
 use App\States\Submission\Submitted;
 use App\States\Submission\UnderReview;
 use Database\Seeders\PermissionSeeder;
@@ -155,6 +157,10 @@ it('reviewsInProgress menghitung pengajuan ber-reviewer aktif yang belum diputus
 
     phaseEvaluationReviewed($detail, UnderReview::class, ['active']);
     phaseEvaluationReviewed($detail, Submitted::class, ['active']);
+    phaseEvaluationReviewed($detail, NeedsRevision::class, ['active']);
+    phaseEvaluationReviewed($detail, Resubmitted::class, ['active']);
+    // Dua reviewer aktif pada satu pengajuan tetap satu pengajuan.
+    phaseEvaluationReviewed($detail, UnderReview::class, ['active', 'active']);
     phaseEvaluationReviewed($detail, Submitted::class, []);
     phaseEvaluationReviewed($detail, Approved::class, ['active']);
     phaseEvaluationReviewed($detail, UnderReview::class, ['replaced']);
@@ -162,6 +168,6 @@ it('reviewsInProgress menghitung pengajuan ber-reviewer aktif yang belum diputus
 
     $sections = collect(PhaseEvaluationForms::run($detail->formPhase))->keyBy('detailId');
 
-    expect($sections[$detail->id]->reviewsInProgress)->toBe(2)
+    expect($sections[$detail->id]->reviewsInProgress)->toBe(5)
         ->and($sections[$other->id]->reviewsInProgress)->toBe(1);
 });
