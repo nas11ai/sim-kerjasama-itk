@@ -2,61 +2,62 @@
 
 namespace App\Support\Reporting;
 
-use App\Models\ResearchOutput;
-use App\Models\User;
-use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Eloquent\Model;
+use App\Support\Reporting\Exports\AuditLogExport;
+use App\Support\Reporting\Exports\BudgetDetailExport;
+use App\Support\Reporting\Exports\ExportDefinition;
+use App\Support\Reporting\Exports\MonevRecapExport;
+use App\Support\Reporting\Exports\ResearchOutputListExport;
+use App\Support\Reporting\Exports\SubmissionRecapExport;
 use InvalidArgumentException;
 
 /**
- * Jenis ekspor yang didukung, beserta query-nya. Query-nya selalu berangkat
- * dari `SubmissionVisibility` — jenis ekspor tidak boleh menyusun batasnya
- * sendiri (BR-RPT-10); menambah jenis cukup satu entri, batasnya ikut.
+ * W154 — registry kelima jenis ekspor tabular DDD. Isi, filter, dan batas tiap jenis milik
+ * `ExportDefinition`-nya (Replace Conditional with Polymorphism); menambah jenis = satu entri.
  */
 final class ExportType
 {
     public const SUBMISSIONS = 'submissions';
 
+    public const BUDGET = 'budget';
+
     public const RESEARCH_OUTPUTS = 'research-outputs';
 
-    /** @return array<int, string> */
+    public const MONEV = 'monev';
+
+    public const AUDIT_LOG = 'audit-log';
+
+    private const DEFINITIONS = [
+        self::SUBMISSIONS => SubmissionRecapExport::class,
+        self::BUDGET => BudgetDetailExport::class,
+        self::RESEARCH_OUTPUTS => ResearchOutputListExport::class,
+        self::MONEV => MonevRecapExport::class,
+        self::AUDIT_LOG => AuditLogExport::class,
+    ];
+
+    /** @return list<string> */
     public static function all(): array
     {
-        return [self::SUBMISSIONS, self::RESEARCH_OUTPUTS];
+        return array_keys(self::DEFINITIONS);
     }
 
-    public static function assertSupported(string $type): void
+    public static function definition(string $type): ExportDefinition
     {
-        if (!in_array($type, self::all(), true)) {
+        $class = self::DEFINITIONS[$type] ?? null;
+
+        if ($class === null) {
             throw new InvalidArgumentException("Jenis ekspor \"{$type}\" tidak dikenal.");
         }
+
+        return new $class;
     }
 
+    /** Juga untuk baris cetak PDF di tabel yang sama (BR-RPT-11); nilai tak dikenal tampil apa adanya. */
     public static function label(string $type): string
     {
-        return match ($type) {
-            self::SUBMISSIONS => 'Rekap Submission',
-            self::RESEARCH_OUTPUTS => 'Daftar Luaran',
-            default => $type,
-        };
-    }
+        if (isset(self::DEFINITIONS[$type])) {
+            return self::definition($type)->label();
+        }
 
-    /**
-     * @return Builder<covariant Model>
-     */
-    public static function query(string $type, User $user): Builder
-    {
-        self::assertSupported($type);
-
-        $submissions = SubmissionVisibility::for($user);
-
-        return match ($type) {
-            self::SUBMISSIONS => $submissions,
-            // Luaran ikut batas induknya: yang tidak boleh dibaca pengajuannya
-            // juga tidak boleh dibaca luarannya.
-            self::RESEARCH_OUTPUTS => ResearchOutput::query()
-                ->whereIn('form_submission_id', SubmissionVisibility::idsFor($user)),
-            default => $submissions,
-        };
+        return in_array($type, PrintableDocument::all(), true) ? PrintableDocument::label($type) : $type;
     }
 }

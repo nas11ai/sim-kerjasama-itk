@@ -2,6 +2,7 @@
 
 namespace App\Actions\Export;
 
+use App\Data\Reporting\ExportRequestData;
 use App\Jobs\GenerateExport;
 use App\Models\ExportJob;
 use App\Models\User;
@@ -14,30 +15,36 @@ use Lorisleiva\Actions\Concerns\AsAction;
 /**
  * BR-RPT-02, BR-RPT-10 — permintaan ekspor.
  *
- * @method static ExportJob run(User $user, string $type)
+ * @method static ExportJob run(User $user, ExportRequestData $request)
  */
 class RequestExport
 {
     use AsAction;
 
-    public function handle(User $user, string $type): ExportJob
+    public function handle(User $user, ExportRequestData $request): ExportJob
     {
-        ExportType::assertSupported($type);
+        $definition = ExportType::definition($request->type);
+        // W154 — filter yang tidak berlaku bagi jenisnya dibuang, bukan diam-diam diabaikan.
+        $filters = $request->filters->restrictedTo($definition->filterKeys());
 
         // Ambangnya dihitung dari **jumlah baris yang akan benar-benar diekspor**, bukan
-        // dari seluruh isi tabel: batasnya sudah ter-scope (BR-RPT-10), jadi peneliti
-        // dengan tiga pengajuan tidak masuk background job karena sistem punya sepuluh ribu.
-        $rowCount = ExportType::query($type, $user)->count();
+        // dari seluruh isi tabel: batas dan filternya sudah diterapkan (BR-RPT-10,
+        // [RPT-EXPORT-13]), jadi peneliti dengan tiga pengajuan tidak masuk background job.
+        $rowCount = $definition->rowCount($user, $filters);
 
         $job = ExportJob::create([
             'requested_by' => $user->id,
-            'type' => $type,
+            'type' => $request->type,
+            'format' => $request->format->value,
+            'filters' => $filters->toStored(),
             'status' => ExportJob::STATUS_QUEUED,
             'row_count' => $rowCount,
         ]);
 
         AuditTrail::record('Ekspor diminta', $job, $user, new AuditChange(new: [
-            'type' => $type,
+            'type' => $request->type,
+            'format' => $request->format->value,
+            'filters' => $filters->toStored(),
             'row_count' => $rowCount,
         ]));
 

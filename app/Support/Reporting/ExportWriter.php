@@ -2,10 +2,12 @@
 
 namespace App\Support\Reporting;
 
+use App\Data\Reporting\ExportFilters;
+use App\Enums\ExportFormat;
 use App\Models\ExportJob;
 use App\Models\User;
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Facades\Storage;
+use App\Support\Reporting\Exports\TabularSheet;
+use Maatwebsite\Excel\Facades\Excel;
 
 /**
  * Menulis berkas hasil ekspor ke disk dan mengembalikan path-nya. Dipisahkan
@@ -18,51 +20,18 @@ final class ExportWriter
 
     public const DIRECTORY = 'exports';
 
+    // W154 — kolom dari definisi jenisnya, format dari permintaan (xlsx bila tak dikenal).
     public static function write(ExportJob $job, User $user): string
     {
-        $rows = ExportType::query($job->type, $user)->get();
+        $definition = ExportType::definition($job->type);
+        $filters = ExportFilters::fromStored($job->filters);
+        $format = ExportFormat::tryFrom($job->format) ?? ExportFormat::Xlsx;
 
-        $path = self::DIRECTORY.'/'.$job->type.'-'.$job->id.'-'.now()->format('Ymd-His').'.csv';
+        $path = self::DIRECTORY.'/'.$job->type.'-'.$job->id.'-'.now()->format('Ymd-His').'.'.$format->extension();
+        $sheet = new TabularSheet($definition->headings(), $definition->rows($user, $filters));
 
-        Storage::disk(self::DISK)->put($path, self::toCsv($rows->all()));
+        Excel::store($sheet, $path, self::DISK, $format->writerType());
 
         return $path;
-    }
-
-    /**
-     * @param  array<int, Model>  $rows
-     */
-    private static function toCsv(array $rows): string
-    {
-        if ($rows === []) {
-            return '';
-        }
-
-        $columns = array_keys($rows[0]->attributesToArray());
-        $lines = [self::line($columns)];
-
-        foreach ($rows as $row) {
-            $values = [];
-
-            foreach ($columns as $column) {
-                $value = $row->getAttribute($column);
-                $values[] = is_scalar($value) ? (string) $value : json_encode($value);
-            }
-
-            $lines[] = self::line($values);
-        }
-
-        return implode("\n", $lines)."\n";
-    }
-
-    /**
-     * @param  array<int, string|false|null>  $values
-     */
-    private static function line(array $values): string
-    {
-        return implode(',', array_map(
-            static fn (string|false|null $v): string => '"'.str_replace('"', '""', (string) $v).'"',
-            $values,
-        ));
     }
 }

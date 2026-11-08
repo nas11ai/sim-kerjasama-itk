@@ -75,3 +75,17 @@ Feature: Ekspor Data
     Given ekspor "E-001" selesai 23 jam lalu
     When Operator membuka berkas hasil ekspor "E-001"
     Then berkas hasil ekspor bisa diunduh
+
+  @BR-RPT-10 @M5 @RESEARCHER-02-01 @boundary
+  Scenario: [RPT-EXPORT-12] Filter ekspor tidak melebarkan scope peneliti
+    Given submission "P-001" milik "Budi" berstatus APPROVED
+    And submission "P-007" milik "Sari" berstatus APPROVED
+    When "Budi" meminta ekspor data submission dengan filter status APPROVED tanpa skema
+    Then hasil ekspor memuat "P-001"
+    And hasil ekspor tidak memuat "P-007"
+
+  @BR-RPT-02 @M5 @OPERATOR-07-02 @boundary
+  Scenario: [RPT-EXPORT-13] Ambang dihitung dari baris setelah filter
+    Given ada 101 submission dan 40 di antaranya pada skema "A"
+    When Operator meminta ekspor data submission dengan filter skema "A"
+    Then ekspor selesai langsung

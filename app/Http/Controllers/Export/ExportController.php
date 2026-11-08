@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Export;
 
 use App\Actions\Export\RequestExport;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Reporting\ExportRequest;
 use App\Models\ExportJob;
 use App\Queries\Reporting\ExportHistory;
 use App\Support\Reporting\ExportRetention;
@@ -41,17 +42,13 @@ class ExportController extends Controller
         ]);
     }
 
-    public function store(Request $request): RedirectResponse
+    public function store(ExportRequest $request): RedirectResponse
     {
         $user = $request->user();
 
         abort_if($user === null, 403);
 
-        $validated = $request->validate([
-            'type' => ['required', 'string', 'in:'.implode(',', ExportType::all())],
-        ]);
-
-        $job = RequestExport::run($user, $validated['type']);
+        $job = RequestExport::run($user, $request->toData());
 
         return back()->with(
             'success',

@@ -37,6 +37,25 @@ final class SubmissionYear implements ChangesNoState
     }
 
     /**
+     * W154 — rentang tahun ekspor; ujung yang null terbuka. Tanpa ujung sama sekali = tanpa filter.
+     *
+     * @param  Builder<FormSubmission>  $query
+     * @return Builder<FormSubmission>
+     */
+    public static function between(Builder $query, ?int $from, ?int $to): Builder
+    {
+        if ($from === null && $to === null) {
+            return $query;
+        }
+
+        $years = FirstSubmitAt::entries()->select('subject_id')->groupBy('subject_id')
+            ->when($from !== null, fn (Builder $q) => $q->havingRaw('EXTRACT(YEAR FROM min(created_at)) >= ?', [$from]))
+            ->when($to !== null, fn (Builder $q) => $q->havingRaw('EXTRACT(YEAR FROM min(created_at)) <= ?', [$to]));
+
+        return $query->whereIn('form_submissions.id', $years);
+    }
+
+    /**
      * Tahun-tahun yang punya pengajuan induk terkirim, terbaru dulu (pilihan filter).
      *
      * @return list<int>

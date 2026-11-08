@@ -27,7 +27,6 @@ parameters:
     excludePaths:
         analyse:
             - app/Console
-            - app/Exports
             - app/Http
             - app/Models
             - app/Providers

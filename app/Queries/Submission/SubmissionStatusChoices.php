@@ -3,6 +3,7 @@
 namespace App\Queries\Submission;
 
 use App\Actions\Concerns\ChangesNoState;
+use App\States\Submission\Draft;
 use App\States\Submission\SubmissionStatus;
 use Lorisleiva\Actions\Concerns\AsAction;
 
@@ -15,6 +16,18 @@ use Lorisleiva\Actions\Concerns\AsAction;
 class SubmissionStatusChoices implements ChangesNoState
 {
     use AsAction;
+
+    /**
+     * Tanpa Draft: bagi Operator dan ekspor (W154) ia belum ada. Dipakai daftar Operator dan ekspor.
+     *
+     * @return list<array{value: string, label: string}>
+     */
+    public static function submitted(): array
+    {
+        $draft = Draft::getMorphClass();
+
+        return array_values(array_filter(self::run(), fn (array $o): bool => $o['value'] !== $draft));
+    }
 
     /** @return list<array{value: string, label: string}> */
     public function handle(): array

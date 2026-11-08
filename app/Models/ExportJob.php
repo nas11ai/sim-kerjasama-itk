@@ -13,6 +13,8 @@ use Illuminate\Support\Carbon;
  *
  * @property int $id
  * @property string $type
+ * @property string $format W154 — nilai `ExportFormat`, bawaan xlsx (cetak PDF tidak membacanya)
+ * @property array<string, int|string>|null $filters W154 `ExportFilters::toStored()`, atau `form_submission_id` cetak
  * @property string $status
  * @property int $row_count
  * @property int $attempts
@@ -35,6 +37,7 @@ class ExportJob extends Model
     protected $fillable = [
         'requested_by',
         'type',
+        'format',
         'filters',
         'status',
         'row_count',

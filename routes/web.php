@@ -382,6 +382,16 @@ Route::middleware(['auth', 'can:submissions.view-all'])->prefix('admin')->name('
         ->name('submissions.show');
 });
 
+// OPERATOR-07-02 — Export Data (W154). BR-RPT-02/03/10/12 — satu layar untuk Operator dan
+// peneliti tanpa permission; yang membedakan mereka SubmissionVisibility, bukan rutenya.
+Route::middleware(['auth'])->prefix('reporting')->name('reporting.')->group(function () {
+    Route::get('/export', [ExportController::class, 'index'])->name('exports.index');
+    Route::post('/export', [ExportController::class, 'store'])->name('exports.store');
+    Route::get('/export/{export}/download', [ExportController::class, 'download'])
+        ->middleware('signed')
+        ->name('exports.download');
+});
+
 // OPERATOR-07-01 — Dashboard Statistik (W148, W156); tab = route, tab tak dikenal 404.
 Route::middleware(['auth', 'can:view-statistics'])->prefix('reporting')->name('reporting.')->group(function () {
     Route::get('/stats/{tab?}', [StatisticsController::class, 'show'])->name('stats');

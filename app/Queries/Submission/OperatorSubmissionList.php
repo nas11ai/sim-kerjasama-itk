@@ -7,7 +7,6 @@ use App\Data\View\Submission\Manage\OperatorSubmissionRowData;
 use App\Models\FormSubmission;
 use App\Models\Scheme;
 use App\Models\SubmissionPeriod;
-use App\States\Submission\Draft;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Lorisleiva\Actions\Concerns\AsAction;
@@ -33,7 +32,7 @@ class OperatorSubmissionList implements ChangesNoState
      */
     public function handle(array $filters): array
     {
-        $statusOptions = $this->statusOptions();
+        $statusOptions = SubmissionStatusChoices::submitted();
         $query = FormSubmission::query()
             ->where('is_submitted', true)
             ->whereNull('parent_submission_id')
@@ -65,14 +64,6 @@ class OperatorSubmissionList implements ChangesNoState
             'periodOptions' => self::options(SubmissionPeriod::query()->latest('id')),
             'schemeOptions' => self::options(Scheme::query()->orderBy('name')),
         ];
-    }
-
-    /** @return list<Option> Draft tidak ditawarkan: bagi Operator ia belum ada. */
-    private function statusOptions(): array
-    {
-        $draft = Draft::getMorphClass();
-
-        return array_values(array_filter(SubmissionStatusChoices::run(), fn (array $o): bool => $o['value'] !== $draft));
     }
 
     /**
