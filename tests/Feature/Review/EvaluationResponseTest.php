@@ -158,22 +158,6 @@ it('refuses to start a form of another phase detail, an inactive form, or by som
     expect(ReviewerFormAssignment::count())->toBe(0);
 });
 
-it('sends the old form links to the tab of that form on the evaluation page, leaving no draft behind', function () {
-    $assignment = evalResponseAssignment($this->submissionReviewer, $this->form);
-    $page = route('reviewer.assignments.evaluation', ['submission' => $this->submission->id, 'form' => $this->form->id]);
-
-    foreach (['reviewer.evaluation-form.show', 'reviewer.evaluation-form.submitted'] as $name) {
-        $this->actingAs($this->reviewerUser)->get(route($name, $assignment))->assertRedirect($page);
-    }
-
-    $this->actingAs(User::factory()->create())
-        ->get(route('reviewer.evaluation-form.show', $assignment))
-        ->assertForbidden();
-
-    // Draft baru dibuat saat reviewer menyimpan (REV-EVAL-01), bukan saat membuka.
-    expect(ReviewFormResponse::count())->toBe(0);
-});
-
 it('[REV-EVAL-01] saves a draft of the answers and the final notes, audited', function () {
     $assignment = evalResponseAssignment($this->submissionReviewer, $this->form);
 
@@ -276,29 +260,4 @@ it('lets neither an admin nor a super admin answer on behalf of the reviewer', f
     }
 
     expect(ReviewFormResponse::count())->toBe(0);
-});
-
-it('downloads a submitted evaluation and reports its progress', function () {
-    $assignment = evalResponseAssignment($this->submissionReviewer, $this->form);
-    $response = ReviewFormResponse::create([
-        'reviewer_form_assignment_id' => $assignment->id,
-        'status' => 'submitted',
-        'submitted_at' => now(),
-        'final_notes' => 'Catatan penutup',
-    ]);
-    $response->saveFieldResponse($this->required->id, 'Layak');
-
-    $download = $this->actingAs($this->reviewerUser)
-        ->get(route('reviewer.evaluation-form.download-summary', $assignment))
-        ->assertOk();
-
-    expect($download->streamedContent())
-        ->toContain("Kelayakan\nResponse: Layak")
-        ->toContain("Saran\nResponse: [No response]")
-        ->toContain("Catatan Tambahan:\nCatatan penutup");
-
-    $this->actingAs($this->reviewerUser)
-        ->getJson(route('reviewer.evaluation-form.progress', $assignment))
-        ->assertOk()
-        ->assertJson(['status' => 'submitted', 'completion_percentage' => 50, 'can_edit' => false]);
 });

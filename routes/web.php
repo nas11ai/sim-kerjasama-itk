@@ -34,7 +34,6 @@ use App\Http\Controllers\Review\ReviewAttachmentDownloadController;
 use App\Http\Controllers\Review\ReviewerAssignmentController;
 use App\Http\Controllers\Review\ReviewSummaryResolutionController;
 use App\Http\Controllers\ReviewController;
-use App\Http\Controllers\ReviewerFormAssignmentController;
 use App\Http\Controllers\ReviewFormResponseController;
 use App\Http\Controllers\Scheme\SchemeController;
 use App\Http\Controllers\Submission\BudgetLineItemController;
@@ -60,14 +59,6 @@ Route::get('/', fn () => redirect()->route(auth()->check() ? 'dashboard' : 'logi
 Route::middleware(['auth', 'verified'])->get('/dashboard', DashboardController::class)
     ->name('dashboard');
 
-// W46 — nama lama tetap ada sebagai redirect: legacy AppSidebar dan halaman legacy
-// lain masih menautnya sampai F99.
-Route::middleware('auth')->group(function () {
-    Route::redirect('/user/dashboard', '/dashboard')->name('user.dashboard');
-    Route::redirect('/reviewer/dashboard', '/dashboard')->name('reviewer.dashboard');
-    Route::redirect('/admin/dashboard', '/dashboard')->name('admin.dashboard');
-});
-
 Route::get('announcements/{announcement}', [AnnouncementController::class, 'detail'])->name('announcements.detail');
 
 Route::middleware(['auth'])->group(function () {
@@ -86,9 +77,7 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/user/submissions/{submission}/files/{response}', [SubmissionFileController::class, 'show'])
         ->name('user.submissions.files.show');
 
-    Route::post('/submissions/{submission}/review-threads', [ReviewController::class, 'createReviewThread'])
-        ->name('review-threads.store');
-
+    // W159 — satu route komentar untuk reviewer, Operator, dan peneliti; Action yang memutuskan.
     Route::post('/review-summaries/{reviewSummary}/comments', [ReviewController::class, 'addComment'])
         ->name('review-comments.store');
 
@@ -96,44 +85,18 @@ Route::middleware(['auth'])->group(function () {
     Route::get('/review-attachments/download', ReviewAttachmentDownloadController::class)
         ->name('review-attachments.download');
 
-    // NEW: Evaluation form routes for reviewers
+    // REVIEWER-03-02 — aksi tulis lembar evaluasi; bacaannya di reviewer.assignments.evaluation.
     Route::prefix('reviewer/evaluation-forms')->name('reviewer.evaluation-form.')->group(function () {
-        // NEW: Start or continue evaluation form (auto-create assignment)
-        // This is the key route that enables auto-assignment
         Route::post('/start', [ReviewFormResponseController::class, 'showOrCreate'])
             ->name('start');
-
-        // Show evaluation form (existing or newly created)
-        Route::get('/{assignment}', [ReviewFormResponseController::class, 'show'])
-            ->name('show');
-
-        // Save draft
         Route::post('/{assignment}/save-draft', [ReviewFormResponseController::class, 'saveDraft'])
             ->name('save-draft');
-
-        // Submit evaluation
         Route::post('/{assignment}/submit', [ReviewFormResponseController::class, 'submit'])
             ->name('submit');
-
-        // View submitted evaluation
-        Route::get('/{assignment}/submitted', [ReviewFormResponseController::class, 'showSubmitted'])
-            ->name('submitted');
-
-        // Download summary
-        Route::get('/{assignment}/download-summary', [ReviewFormResponseController::class, 'downloadSummary'])
-            ->name('download-summary');
-
-        // Get progress (optional - for ajax calls)
-        Route::get('/{assignment}/progress', [ReviewFormResponseController::class, 'getProgress'])
-            ->name('progress');
     });
 });
 
 Route::middleware(['auth'])->prefix('user')->name('user.')->group(function () {
-    // W61 — biodata Form-Engine dihapus (tanpa KTP); nama lama tetap sebagai redirect sampai
-    // F99 karena legacy AppSidebar masih menautnya (pola W46).
-    Route::redirect('/biodata', '/profile')->name('biodata.index');
-
     Route::post('/announcements/{announcement}/markRead', [AnnouncementController::class, 'markAsRead'])
         ->name('announcements.markRead');
 
@@ -226,14 +189,8 @@ Route::middleware(['auth', 'can:submissions.view-all'])->prefix('monev/manage')-
 
 // Reviewer Routes - untuk user yang bertindak sebagai reviewer
 Route::middleware(['auth'])->prefix('reviewer')->name('reviewer.')->group(function () {
-    // Nama lama dipertahankan: AppSidebar dan dasbor peneliti legacy masih menautnya.
-    Route::redirect('/submissions', '/reviewer/assignments')->name('submissions.index');
-
     Route::post('/submissions/{submission}/review-threads', [ReviewController::class, 'createReviewThread'])
         ->name('review-threads.store');
-
-    Route::post('/review-summaries/{reviewSummary}/comments', [ReviewController::class, 'addComment'])
-        ->name('review-comments.store');
 
     // REVIEWER-03-* (S3a) — dijaga permission DDD, bukan role (§4.4 K1).
     Route::middleware('can:reviewers.evaluate')->group(function () {
@@ -246,27 +203,6 @@ Route::middleware(['auth'])->prefix('reviewer')->name('reviewer.')->group(functi
         Route::get('/history', [ReviewerAssignmentController::class, 'history'])
             ->name('history.index');
     });
-});
-
-// Admin Routes - permission-based (users.manage; Super Admin via Gate::before)
-Route::middleware(['auth', 'can:users.manage'])->prefix('admin')->name('admin.')->group(function () {
-    // NEW: Reviewer form assignment management
-    Route::post('/submissions/{submission}/reviewers/{reviewer}/assign-forms', [ReviewController::class, 'assignEvaluationFormsToReviewer'])
-        ->name('submissions.assign-evaluation-forms');
-
-    Route::post('/submissions/{submission}/assign-forms-bulk', [ReviewerFormAssignmentController::class, 'bulkAssignForms'])
-        ->name('submissions.assign-forms-bulk');
-
-    Route::delete('/form-assignments/{assignment}', [ReviewerFormAssignmentController::class, 'removeFormAssignment'])
-        ->name('form-assignments.remove');
-
-    // Admin create review thread
-    Route::post('/submissions/{submission}/review-threads', [ReviewController::class, 'createReviewThread'])
-        ->name('review-threads.store');
-
-    // Admin add comments
-    Route::post('/review-summaries/{reviewSummary}/comments', [ReviewController::class, 'addComment'])
-        ->name('review-comments.store');
 });
 
 // For backwards compatibility, you can add redirects for admin routes without prefix

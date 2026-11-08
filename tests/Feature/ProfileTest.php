@@ -125,10 +125,6 @@ it('akun nonaktif tidak bisa menyunting profil', function () {
 });
 
 // W61 — biodata Form-Engine dihapus; nama route lama tetap sebagai redirect sampai F99 (pola W46).
-it('tautan biodata lama dialihkan ke Profil Saya', function () {
-    $this->actingAs(profileOwner())->get('/user/biodata')->assertRedirect('/profile');
-});
-
 it('pengguna role Mahasiswa tanpa biodata tidak dialihkan', function () {
     // Tiga gerbang DDD (verifikasi, keaktifan, kelengkapan profil), bukan empat.
     $type = FormType::forceCreate(['id' => FormType::BIODATA_ID, 'name' => 'Biodata']);

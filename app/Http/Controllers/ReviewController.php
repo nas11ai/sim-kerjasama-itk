@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Actions\Review\AddReviewComment;
-use App\Actions\Review\AssignEvaluationForm;
 use App\Actions\Review\AssignReviewers;
 use App\Actions\Review\OpenReviewThread;
 use App\Models\FormSubmission;
@@ -14,7 +13,6 @@ use App\Queries\Review\ActiveReviewerAssignment;
 use App\Support\PrivateUploadDisk;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
 
 class ReviewController extends Controller
 {
@@ -116,44 +114,5 @@ class ReviewController extends Controller
         );
 
         return back()->with('success', 'Komentar berhasil ditambahkan.');
-    }
-
-    // Assign specific evaluation forms to reviewer
-    public function assignEvaluationFormsToReviewer(Request $request, FormSubmission $submission, Reviewer $reviewer)
-    {
-        $request->validate([
-            'form_assignments' => 'required|array|min:1',
-            'form_assignments.*.form_id' => 'required|exists:review_evaluation_forms,id',
-            'form_assignments.*.is_required' => 'boolean',
-            'form_assignments.*.due_date' => 'nullable|date|after:now',
-        ]);
-
-        $submissionReviewer = ActiveReviewerAssignment::run($submission, $reviewer->id);
-
-        if (!$submissionReviewer) {
-            return back()->withErrors(['error' => 'Reviewer tidak ditugaskan untuk pengajuan ini.']);
-        }
-
-        try {
-            DB::beginTransaction();
-
-            foreach ($request->form_assignments as $assignment) {
-                AssignEvaluationForm::run(
-                    $submissionReviewer,
-                    $assignment['form_id'],
-                    $assignment['is_required'] ?? true,
-                    $assignment['due_date'] ? new \DateTime($assignment['due_date']) : null
-                );
-            }
-
-            DB::commit();
-
-            return back()->with('success', 'Formulir evaluasi berhasil ditugaskan.');
-
-        } catch (\Exception $e) {
-            DB::rollback();
-
-            return back()->withErrors(['error' => 'Gagal menugaskan formulir evaluasi: '.$e->getMessage()]);
-        }
     }
 }

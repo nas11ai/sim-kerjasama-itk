@@ -126,7 +126,7 @@ it('menolak reviewer yang sudah diganti berkomentar di ulir', function () {
     $thread = replacedReviewerOpenThread($submission);
 
     $this->actingAs($user)
-        ->post(route('reviewer.review-comments.store', $thread), ['comment_text' => 'Saya setuju.'])
+        ->post(route('review-comments.store', $thread), ['comment_text' => 'Saya setuju.'])
         ->assertForbidden();
 });
 
@@ -149,50 +149,12 @@ it('menolak reviewer yang sudah diganti mengubah status ulir', function () {
     expect($thread->fresh()?->status)->toBe('open');
 });
 
-it('menolak menugaskan form evaluasi kepada reviewer yang sudah diganti', function () {
-    [, $reviewer, $submission] = replacedReviewerFixture();
-    $form = ReviewEvaluationForm::create([
-        'title' => 'Substansi',
-        'form_phase_detail_id' => $submission->form_phase_detail_id,
-        'is_active' => true,
-        'is_required' => true,
-        'order' => 1,
-    ]);
-
-    $this->actingAs(replacedReviewerOperator())
-        ->post(route('admin.submissions.assign-evaluation-forms', [$submission, $reviewer]), [
-            'form_assignments' => [['form_id' => $form->id, 'is_required' => true, 'due_date' => null]],
-        ])
-        ->assertSessionHasErrors('error');
-
-    expect(ReviewerFormAssignment::count())->toBe(0);
-});
-
-it('menolak penugasan massal kepada reviewer yang sudah diganti', function () {
-    [, $reviewer, $submission] = replacedReviewerFixture();
-    $form = ReviewEvaluationForm::create([
-        'title' => 'Substansi',
-        'form_phase_detail_id' => $submission->form_phase_detail_id,
-        'is_active' => true,
-        'is_required' => true,
-        'order' => 1,
-    ]);
-
-    $this->actingAs(replacedReviewerOperator())
-        ->post(route('admin.submissions.assign-forms-bulk', $submission), [
-            'reviewer_ids' => [$reviewer->id],
-            'form_assignments' => [['form_id' => $form->id, 'is_required' => true, 'due_date' => null]],
-        ]);
-
-    expect(ReviewerFormAssignment::count())->toBe(0);
-});
-
 it('menolak reviewer yang sudah diganti membuka form evaluasi', function () {
-    [$user, , , $assignment] = replacedReviewerFixture();
-    $formAssignment = replacedReviewerFormAssignment($assignment);
+    [$user, , $submission, $assignment] = replacedReviewerFixture();
+    replacedReviewerFormAssignment($assignment);
 
     $this->actingAs($user)
-        ->get(route('reviewer.evaluation-form.show', $formAssignment))
+        ->get(route('reviewer.assignments.evaluation', $submission))
         ->assertForbidden();
 
     // Membuka form lama diam-diam membuat draft respons baru.

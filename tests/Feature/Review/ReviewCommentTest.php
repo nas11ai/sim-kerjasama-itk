@@ -69,7 +69,7 @@ it('reviewer aktif yang evaluasinya beres berkomentar atas nama reviewer', funct
     [, $reviewerUser, , $reviewer, $thread] = commentFixture();
 
     $this->actingAs($reviewerUser)
-        ->post(route('reviewer.review-comments.store', $thread), ['comment_text' => 'Terima kasih.'])
+        ->post(route('review-comments.store', $thread), ['comment_text' => 'Terima kasih.'])
         ->assertRedirect();
 
     $comment = ReviewComment::firstOrFail();
@@ -81,7 +81,7 @@ it('menolak reviewer aktif yang evaluasinya belum beres tanpa formulir tertunda'
     [, $reviewerUser, , , $thread] = commentFixture('pending');
 
     $this->actingAs($reviewerUser)
-        ->post(route('reviewer.review-comments.store', $thread), ['comment_text' => 'Terlalu dini.'])
+        ->post(route('review-comments.store', $thread), ['comment_text' => 'Terlalu dini.'])
         ->assertForbidden()
         ->assertSee('Selesaikan evaluasi Anda sebelum berpartisipasi dalam diskusi.', false)
         ->assertDontSee('Selesaikan 0 formulir', false);
@@ -114,7 +114,7 @@ it('menyebut jumlah formulir evaluasi yang masih tertunda', function () {
     }
 
     $this->actingAs($reviewerUser)
-        ->post(route('reviewer.review-comments.store', $thread), ['comment_text' => 'Terlalu dini.'])
+        ->post(route('review-comments.store', $thread), ['comment_text' => 'Terlalu dini.'])
         ->assertForbidden()
         ->assertSee('Selesaikan 2 formulir evaluasi yang tertunda', false);
 });
@@ -177,7 +177,7 @@ it('menolak reviewer yang hanya ditugaskan di pengajuan lain', function () {
     ]);
 
     $this->actingAs($stranger)
-        ->post(route('reviewer.review-comments.store', $thread), ['comment_text' => 'Bukan urusan saya.'])
+        ->post(route('review-comments.store', $thread), ['comment_text' => 'Bukan urusan saya.'])
         ->assertForbidden()
         ->assertSee('Anda tidak memiliki izin untuk mengomentari review ini', false);
 
@@ -192,7 +192,7 @@ it('Operator berkomentar atas namanya sendiri', function () {
     $operator->givePermissionTo('users.manage');
 
     $this->actingAs($operator)
-        ->post(route('admin.review-comments.store', $thread), ['comment_text' => 'Mohon dipercepat.'])
+        ->post(route('review-comments.store', $thread), ['comment_text' => 'Mohon dipercepat.'])
         ->assertRedirect();
 
     $comment = ReviewComment::firstOrFail();
@@ -206,7 +206,7 @@ it('menolak reviewer yang penugasannya sudah diganti', function () {
     SubmissionReviewer::query()->update(['status' => 'replaced']);
 
     $this->actingAs($reviewerUser)
-        ->post(route('reviewer.review-comments.store', $thread), ['comment_text' => 'Masih ikut.'])
+        ->post(route('review-comments.store', $thread), ['comment_text' => 'Masih ikut.'])
         ->assertForbidden();
 
     expect(ReviewComment::count())->toBe(0);

@@ -106,12 +106,6 @@ it('dasbor tidak lagi mengirim biodataStatus', function () {
         );
 });
 
-it('nama dasbor lama dialihkan ke /dashboard', function (string $name) {
-    $this->actingAs(dpUser())
-        ->get(route($name))
-        ->assertRedirect('/dashboard');
-})->with(['user.dashboard', 'reviewer.dashboard', 'admin.dashboard']);
-
 it('rute dasbor lama tidak lagi merender halaman', function () {
     expect(Route::has('reviewer.submissions.show'))->toBeFalse();
 });

@@ -106,7 +106,7 @@ it('menolak Operator tanpa penugasan membuka ulir', function () {
     $operator->givePermissionTo('users.manage');
 
     $this->actingAs($operator)
-        ->post(route('admin.review-threads.store', $submission), ['summary_notes' => 'Catatan operator.'])
+        ->post(route('reviewer.review-threads.store', $submission), ['summary_notes' => 'Catatan operator.'])
         ->assertForbidden();
 
     expect(ReviewSummary::count())->toBe(0);

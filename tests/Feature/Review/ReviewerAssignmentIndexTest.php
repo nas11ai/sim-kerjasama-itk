@@ -137,9 +137,3 @@ it('penugasan reviewer lain tidak terdaftar', function () {
 it('pengguna tanpa reviewers.evaluate ditolak', function () {
     assignmentIndexVisit(User::factory()->create())->assertForbidden();
 });
-
-it('daftar reviewer legacy dialihkan ke penugasan', function () {
-    $this->actingAs($this->user)
-        ->get(route('reviewer.submissions.index'))
-        ->assertRedirect(route('reviewer.assignments.index'));
-});

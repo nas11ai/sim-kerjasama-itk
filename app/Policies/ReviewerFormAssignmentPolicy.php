@@ -9,22 +9,14 @@ use App\Queries\Review\ActiveReviewerAssignment;
 class ReviewerFormAssignmentPolicy
 {
     /**
-     * BR-SM-07, BR-REV-10 — admin membaca penugasan siapa pun. Selebihnya hanya reviewernya,
-     * dan form milik penugasan yang sudah diganti tertutup, termasuk untuk dibaca.
-     */
-    public function view(User $user, ReviewerFormAssignment $assignment): bool
-    {
-        return $user->can('users.manage') || $this->ownsActive($user, $assignment);
-    }
-
-    /**
      * Menjawab evaluasi atas nama reviewernya. Admin tidak ikut: record akan menyatakan
      * reviewer menilai padahal bukan dia — alasan ADR 0015 memasukkannya ke INVARIANT_ABILITIES.
      */
     public function evaluate(User $user, ReviewerFormAssignment $assignment): bool
     {
         // BR-FE-17 — tenggat evaluasi mengikat reviewer sendiri; lewat tenggat isian tertutup
-        // (FE-WINDOW-02) kecuali dibuka override (W25), sedangkan membacanya tetap boleh lewat `view`.
+        // (FE-WINDOW-02) kecuali dibuka override (W25). Bacaan lembar ada di ReviewerEvaluation.
+        // BR-REV-10 — penugasan yang sudah diganti tertutup (ownsActive).
         return !$assignment->isClosedByDeadline() && $this->ownsActive($user, $assignment);
     }
 
