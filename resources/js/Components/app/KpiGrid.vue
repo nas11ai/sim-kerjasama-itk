@@ -26,7 +26,14 @@ const XL_COLUMNS = { 4: 'xl:grid-cols-4', 5: 'xl:grid-cols-5' } as const
             <Card class="h-full">
                 <CardContent class="flex flex-col gap-1">
                     <p class="text-sm text-muted-foreground">{{ card.label }}</p>
-                    <p class="text-2xl font-semibold tabular-nums">{{ card.value }}</p>
+                    <p
+                        :class="[
+                            'font-semibold whitespace-nowrap tabular-nums',
+                            columns === 5 ? 'text-xl 2xl:text-2xl' : 'text-2xl',
+                        ]"
+                    >
+                        {{ card.value }}
+                    </p>
                     <p v-if="card.meta" class="truncate text-xs text-muted-foreground">
                         {{ card.meta }}
                     </p>

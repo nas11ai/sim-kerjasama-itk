@@ -103,6 +103,6 @@ class StatisticsOverview implements ChangesNoState
         $decided = $approved + $count(Rejected::getMorphClass());
         $value = $decided === 0 ? '—' : round($approved / $decided * 100).'%';
 
-        return new KpiCardData('approvalRate', 'Tingkat Persetujuan', $value, 'Dari pengajuan yang diputuskan', null);
+        return new KpiCardData('approvalRate', 'Tingkat Persetujuan', $value, 'Dari yang sudah diputuskan', null);
     }
 }
