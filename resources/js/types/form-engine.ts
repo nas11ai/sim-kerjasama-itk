@@ -246,6 +246,8 @@ export interface EvaluationSectionData {
     detailId: number
     detailLabel: string
     forms: EvaluationFormEditData[]
+    // W158 — pengajuan ber-reviewer aktif yang tetap memakai set form saat penugasannya.
+    reviewsInProgress: number
 }
 
 // Sumber: FormEngine\FormPhaseController::edit/create — mode buat: `evaluation`/`fieldTypeOptions` kosong.

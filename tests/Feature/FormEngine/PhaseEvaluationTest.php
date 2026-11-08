@@ -7,10 +7,17 @@ use App\Models\FieldType;
 use App\Models\Form;
 use App\Models\FormPhase;
 use App\Models\FormPhaseDetail;
+use App\Models\FormSubmission;
+use App\Models\Reviewer;
 use App\Models\ReviewEvaluationForm;
 use App\Models\ReviewFormField;
 use App\Models\ReviewFormFieldOption;
+use App\Models\SubmissionReviewer;
 use App\Models\User;
+use App\Queries\Form\PhaseEvaluationForms;
+use App\States\Submission\Approved;
+use App\States\Submission\Submitted;
+use App\States\Submission\UnderReview;
 use Database\Seeders\PermissionSeeder;
 use Inertia\Testing\AssertableInertia;
 
@@ -63,6 +70,7 @@ it('kontrak bagian form evaluasi', function () {
             ->has('evaluation.0', fn (AssertableInertia $section) => $section
                 ->where('detailId', $detail->id)
                 ->where('detailLabel', "{$detail->phaseType?->name} — Form Proposal")
+                ->where('reviewsInProgress', 0)
                 ->has('forms.0', fn (AssertableInertia $form) => $form
                     ->where('id', $evaluation->id)
                     ->hasAll(['title', 'description', 'isRequired', 'isActive', 'assignmentCount'])
@@ -124,4 +132,36 @@ it('membuat form evaluasi untuk detail dari route-nya', function () {
 
     expect(ReviewEvaluationForm::query()->where('title', 'Lembar Kelayakan')->sole()->form_phase_detail_id)
         ->toBe($detail->id);
+});
+
+/** Pengajuan pada $detail berstatus $state dengan reviewer berstatus $reviewerStatuses. */
+function phaseEvaluationReviewed(FormPhaseDetail $detail, string $state, array $reviewerStatuses): void
+{
+    $submission = FormSubmission::factory()->create(['form_phase_detail_id' => $detail->id, 'status' => $state]);
+    foreach ($reviewerStatuses as $status) {
+        SubmissionReviewer::create([
+            'form_submission_id' => $submission->id,
+            'reviewer_id' => Reviewer::factory()->create()->id,
+            'evaluation_status' => 'pending',
+            'status' => $status,
+        ]);
+    }
+}
+
+// W158, BR-FE-22 — set form dibekukan saat penugasan; kartu memberi tahu siapa yang tetap memakai form lama.
+it('reviewsInProgress menghitung pengajuan ber-reviewer aktif yang belum diputus pada detail itu', function () {
+    $detail = phaseEvaluationDetail($this->form, true);
+    $other = phaseEvaluationDetail($this->form, true, $detail->formPhase);
+
+    phaseEvaluationReviewed($detail, UnderReview::class, ['active']);
+    phaseEvaluationReviewed($detail, Submitted::class, ['active']);
+    phaseEvaluationReviewed($detail, Submitted::class, []);
+    phaseEvaluationReviewed($detail, Approved::class, ['active']);
+    phaseEvaluationReviewed($detail, UnderReview::class, ['replaced']);
+    phaseEvaluationReviewed($other, UnderReview::class, ['active']);
+
+    $sections = collect(PhaseEvaluationForms::run($detail->formPhase))->keyBy('detailId');
+
+    expect($sections[$detail->id]->reviewsInProgress)->toBe(2)
+        ->and($sections[$other->id]->reviewsInProgress)->toBe(1);
 });

@@ -17,9 +17,11 @@ final class EvaluationSectionData extends Data
         public int $detailId,
         public string $detailLabel,
         public array $forms,
+        // W158 — pengajuan yang tetap memakai set form saat penugasannya (BR-FE-22).
+        public int $reviewsInProgress,
     ) {}
 
-    public static function fromModel(FormPhaseDetail $detail): self
+    public static function fromModel(FormPhaseDetail $detail, int $reviewsInProgress): self
     {
         return new self(
             detailId: $detail->id,
@@ -27,6 +29,7 @@ final class EvaluationSectionData extends Data
             forms: array_values($detail->reviewEvaluationForms
                 ->map(fn (ReviewEvaluationForm $form): EvaluationFormEditData => EvaluationFormEditData::fromModel($form))
                 ->all()),
+            reviewsInProgress: $reviewsInProgress,
         );
     }
 }

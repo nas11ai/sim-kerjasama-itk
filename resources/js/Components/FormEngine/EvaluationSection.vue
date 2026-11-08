@@ -2,6 +2,7 @@
 import { Plus } from 'lucide-vue-next'
 import { ref } from 'vue'
 
+import AppBanner from '@/Components/app/AppBanner.vue'
 import EvaluationFormCard from '@/Components/FormEngine/EvaluationFormCard.vue'
 import { Button } from '@/Components/ui/button'
 import { evaluationCardKey } from '@/lib/evaluationDefinition'
@@ -28,6 +29,11 @@ const discard = (key: string) => (drafts.value = drafts.value.filter((draft) => 
                 ><Plus class="size-4" />Tambah Form Evaluasi</Button
             >
         </div>
+        <!-- W158, BR-FE-22 — set form dibekukan saat penugasan; ini fakta, bukan aturan baru. -->
+        <AppBanner v-if="section.reviewsInProgress > 0" tone="info">
+            {{ section.reviewsInProgress }} pengajuan yang sedang direview tetap memakai form lama;
+            form ini berlaku untuk penugasan berikutnya.
+        </AppBanner>
         <EvaluationFormCard
             v-for="form in section.forms"
             :key="evaluationCardKey(form)"
