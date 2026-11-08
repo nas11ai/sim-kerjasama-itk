@@ -8,6 +8,7 @@
 // tersedia, dan tempatnya jelas saat ada yang perlu menambah.
 
 use App\Actions\FormSubmission\StartChildSubmission;
+use App\Actions\FormSubmission\SubmitFormSubmission;
 use App\Actions\Review\AssignEvaluationForm;
 use App\Actions\Review\AssignReviewer;
 use App\Data\Request\ResearchOutputInput;
@@ -36,7 +37,9 @@ use App\Models\User;
 use App\Models\UserProfile;
 use App\Queries\Submission\EvaluationDueDate;
 use App\States\Submission\Approved;
+use App\States\Submission\Submitted;
 use App\States\Submission\UnderReview;
+use App\Support\Audit\AuditTrail;
 use Database\Seeders\PermissionSeeder;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Carbon;
@@ -660,4 +663,23 @@ function biodataFormType(): FormType
 {
     return FormType::query()->find(FormType::BIODATA_ID)
         ?? FormType::forceCreate(['id' => FormType::BIODATA_ID, 'name' => 'Biodata']);
+}
+
+/**
+ * R1 — pengajuan induk terkirim dengan entri submit pertama pada $submittedAt (W149),
+ * diajukan dari $unit bila ada (fakultas/prodi menurut unit pengaju).
+ *
+ * @param  array<string, mixed>  $attributes
+ */
+function reportedSubmission(array $attributes = [], string $submittedAt = '2026-03-02 08:00:00', ?Organization $unit = null): FormSubmission
+{
+    if ($unit !== null) {
+        $attributes['submitted_by'] = UserProfile::factory()->create(['organization_id' => $unit->id])->user_id;
+    }
+    $submission = FormSubmission::factory()->create(['is_submitted' => true, 'status' => Submitted::class, ...$attributes]);
+    test()->travelTo($submittedAt);
+    AuditTrail::record(SubmitFormSubmission::AUDIT_DESCRIPTION, $submission, $submission->submittedBy);
+    test()->travelBack();
+
+    return $submission;
 }

@@ -30,6 +30,19 @@ final class StatisticsFilters extends Data
         );
     }
 
+    /**
+     * Param route daftar drill-down (`admin.submissions.index`); kunci bernilai null dibuang.
+     *
+     * @return array<string, int>
+     */
+    public function query(): array
+    {
+        return array_filter(
+            ['year' => $this->year, 'period' => $this->period, 'scheme' => $this->scheme],
+            fn (?int $value): bool => $value !== null,
+        );
+    }
+
     private static function number(Request $request, string $key): ?int
     {
         $value = $request->string($key)->value();

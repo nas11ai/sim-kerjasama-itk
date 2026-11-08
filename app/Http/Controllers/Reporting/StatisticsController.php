@@ -6,6 +6,7 @@ use App\Data\Reporting\StatisticsFilters;
 use App\Enums\StatisticsTab;
 use App\Http\Controllers\Controller;
 use App\Queries\Reporting\StatisticsFilterOptions;
+use App\Queries\Reporting\StatisticsOverview;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -19,15 +20,22 @@ class StatisticsController extends Controller
     {
         $active = StatisticsTab::tryFrom($tab ?? StatisticsTab::Overview->value);
         abort_if($active === null, 404);
+        $filters = StatisticsFilters::fromRequest($request);
+        // BR-SM-07 — daftar bernama dan drill-down ke daftar pengajuan hanya bagi view-all (W148).
+        $viewSubmissions = $request->user()?->can('submissions.view-all') ?? false;
 
         return Inertia::render('Reporting/StatsPage', [
             'tab' => $active->value,
             'tabs' => $this->tabs($request),
-            'filters' => StatisticsFilters::fromRequest($request),
+            'filters' => $filters,
             'filterKeys' => $active->filterKeys(),
             ...StatisticsFilterOptions::run(),
-            // BR-SM-07 — daftar bernama pengajuan hanya bagi view-all (W148).
-            'can' => ['viewSubmissions' => $request->user()?->can('submissions.view-all') ?? false],
+            'can' => ['viewSubmissions' => $viewSubmissions],
+            ...match ($active) {
+                StatisticsTab::Overview => StatisticsOverview::run($filters, $viewSubmissions),
+                // R1-2 (Task 5–7) mengisi tab lainnya.
+                StatisticsTab::Now, StatisticsTab::History, StatisticsTab::FollowUp => [],
+            },
         ]);
     }
 
