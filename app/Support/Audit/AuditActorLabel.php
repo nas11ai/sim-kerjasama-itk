@@ -5,6 +5,10 @@ namespace App\Support\Audit;
 use App\Models\AuditEntry;
 use App\Models\User;
 use App\Support\Identity\RoleCatalog;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Relations\MorphTo;
+use Illuminate\Database\Eloquent\Relations\Relation;
+use Illuminate\Database\Eloquent\SoftDeletingScope;
 
 /**
  * W155 — kolom Pelaku Audit Log: "{nama} ({semua peran DDD, urutan RoleCatalog})". Satu label
@@ -13,6 +17,21 @@ use App\Support\Identity\RoleCatalog;
 final class AuditActorLabel
 {
     public const SYSTEM = 'Sistem';
+
+    /**
+     * E2E-08 — dipasang di `with(['causer' => AuditActorLabel::eager(...), 'causer.roles'])`:
+     * baris user ber-deleted_at (data lama, sebelum BR-IAM-19) tetap bernama.
+     *
+     * @param  Relation<*, *, *>  $causer
+     */
+    public static function eager(Relation $causer): void
+    {
+        if (!$causer instanceof MorphTo) {
+            return;
+        }
+
+        $causer->constrain([User::class => fn (Builder $user) => $user->withoutGlobalScope(SoftDeletingScope::class)]);
+    }
 
     public static function for(AuditEntry $entry): string
     {

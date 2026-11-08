@@ -145,6 +145,17 @@ it('baris Audit Log', function () {
         ->and(array_column($rows, 2))->toBe(['Ekspor diminta', 'Pengajuan disubmit']);
 });
 
+it('[E2E-08] Audit Log menulis nama pelaku yang sudah soft-delete', function () {
+    $submission = biocharSubmission();
+    AuditTrail::record('Ekspor diminta', $submission, $submission->submittedBy);
+    // BR-IAM-19 melarang menghapus akun; baris ber-deleted_at hanya warisan data lama.
+    User::query()->whereKey($submission->submitted_by)->update(['deleted_at' => now()]);
+
+    $rows = ExportType::definition(ExportType::AUDIT_LOG)->rows(definitionsOperator(), new ExportFilters);
+
+    expect($rows[0][3])->toBe('Budi');
+});
+
 it('Audit Log memuat IP hanya bagi pembaca seluruh sistem', function () {
     $submission = biocharSubmission();
     Context::addHidden(AuditTrail::IP_CONTEXT, '10.10.2.14');

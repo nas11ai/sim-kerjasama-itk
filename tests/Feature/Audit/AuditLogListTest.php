@@ -5,11 +5,13 @@
 // OPERATOR-07-03 — daftar audit terfilter (W155): subjek, pelaku, IP, dan filter frame
 // (cari, Waktu, Tipe Aksi, Pelaku). Cakupan tetap dari AuditScope (BR-RPT-05).
 
+use App\Models\Announcement;
 use App\Models\BudgetComponent;
 use App\Models\Form;
 use App\Models\FormSubmission;
 use App\Models\Scheme;
 use App\Models\User;
+use App\Queries\Monev\MonevCycles;
 use App\States\Submission\Approved;
 use App\Support\Audit\AuditChange;
 use App\Support\Audit\AuditScope;
@@ -181,3 +183,80 @@ it('peneliti tidak menerima alamat IP', function () {
 it('rute audit lama sudah tidak terdaftar', function () {
     expect(Route::has('audit-log.index'))->toBeFalse();
 });
+
+it('[E2E-06] subjek laporan monev memakai nama siklus dan judul induk', function () {
+    $fx = monevFixture();
+    $fx['parent']->form->update(['title' => 'Smart Farming']);
+    $laporan = FormSubmission::factory()->create([
+        'parent_submission_id' => $fx['parent']->id,
+        'form_phase_detail_id' => $fx['monev1']->id,
+        'submitted_by' => $fx['owner']->id,
+    ]);
+    AuditTrail::record('Laporan monev disubmit', $laporan, $fx['owner']);
+
+    $rows = auditListProps(auditListOperator())['entries']['data'];
+
+    expect($rows[0]['subject'])->toBe(MonevCycles::nameOf($fx['monev1']).' — Smart Farming')
+        ->and($rows[0]['subject'])->toBe('Monev I — Smart Farming');
+});
+
+it('[E2E-07] pencarian mencocokkan nama subjek non-pengajuan', function (Closure $subject, string $search) {
+    $operator = auditListOperator();
+    AuditTrail::record('Subjek dicari', $subject(), $operator);
+    AuditTrail::record('Pengajuan disubmit', auditListSubmission(verifiedResearcher(), 'Biochar Kaltim'), $operator);
+
+    expect(array_column(auditListProps($operator, ['search' => $search])['entries']['data'], 'action'))
+        ->toBe(['Subjek dicari']);
+})->with([
+    'Skema' => [fn () => Scheme::factory()->create(['name' => 'DIPA Internal']), 'dipa'],
+    'Form' => [fn () => Form::factory()->create(['title' => 'Formulir Hibah Kompetitif']), 'kompetitif'],
+    'User' => [fn () => User::factory()->create(['name' => 'Rina Wulandari']), 'wulandari'],
+    'Pengumuman' => [fn () => Announcement::create([
+        'title' => 'Pendaftaran Hibah Dibuka',
+        'content' => 'Isi.',
+        'type' => 'public',
+        'created_by' => User::factory()->create()->id,
+    ]), 'pendaftaran hibah'],
+]);
+
+it('[E2E-07] laporan monev bisa dicari lewat judul induknya', function () {
+    $fx = monevFixture();
+    $fx['parent']->form->update(['title' => 'Smart Farming']);
+    $laporan = FormSubmission::factory()->create([
+        'parent_submission_id' => $fx['parent']->id,
+        'form_phase_detail_id' => $fx['monev1']->id,
+        'submitted_by' => $fx['owner']->id,
+    ]);
+    $operator = auditListOperator();
+    AuditTrail::record('Laporan monev disubmit', $laporan, $fx['owner']);
+    AuditTrail::record('Pengajuan disubmit', auditListSubmission(verifiedResearcher(), 'Biochar Kaltim'), $operator);
+
+    expect(array_column(auditListProps($operator, ['search' => 'smart farming'])['entries']['data'], 'action'))
+        ->toBe(['Laporan monev disubmit']);
+});
+
+it('[E2E-08] pelaku yang sudah soft-delete tetap bernama', function () {
+    $budi = seededRole('researcher');
+    $budi->update(['name' => 'Dr. Budi Santoso']);
+    AuditTrail::record('Pengajuan disubmit', auditListSubmission($budi), $budi);
+    // BR-IAM-19 melarang menghapus akun; baris ber-deleted_at hanya warisan data lama.
+    User::query()->whereKey($budi->id)->update(['deleted_at' => now()]);
+
+    $rows = auditListProps(auditListOperator())['entries']['data'];
+
+    expect($rows[0]['actor'])->toBe('Dr. Budi Santoso (Peneliti)');
+});
+
+it('[E2E-10] tanda % dan _ dicari sebagai karakter biasa', function (string $search, string $expected) {
+    $operator = auditListOperator();
+    $submission = auditListSubmission(verifiedResearcher());
+    AuditTrail::record('Diskon 100% disetujui', $submission, $operator);
+    AuditTrail::record('kode_baru dipasang', $submission, $operator);
+    AuditTrail::record('Pengajuan disubmit', $submission, $operator);
+
+    expect(array_column(auditListProps($operator, ['search' => $search])['entries']['data'], 'action'))
+        ->toBe([$expected]);
+})->with([
+    'persen' => ['%', 'Diskon 100% disetujui'],
+    'garis bawah' => ['_', 'kode_baru dipasang'],
+]);

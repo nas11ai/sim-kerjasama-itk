@@ -40,6 +40,7 @@ final class AuditLogExport implements ExportDefinition
     public function rows(User $user, ExportFilters $filters): array
     {
         $entries = $this->query($user, $filters)->with([
+            'causer' => AuditActorLabel::eager(...),
             'causer.roles',
             'subject' => AuditSubjectLabel::eager(...),
         ])->latest('id')->get();

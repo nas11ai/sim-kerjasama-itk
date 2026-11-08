@@ -6,13 +6,14 @@ use App\Actions\Concerns\ChangesNoState;
 use App\Data\Reporting\AuditFilters;
 use App\Data\View\Reporting\AuditEntryRowData;
 use App\Models\AuditEntry;
-use App\Models\FormSubmission;
 use App\Models\User;
 use App\Support\Audit\AuditActorLabel;
 use App\Support\Audit\AuditScope;
 use App\Support\Audit\AuditSubjectLabel;
+use App\Support\Database\LikePattern;
 use App\Support\Identity\RoleCatalog;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\SoftDeletingScope;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Lorisleiva\Actions\Concerns\AsAction;
 
@@ -36,6 +37,7 @@ class AuditLogList implements ChangesNoState
     {
         $seesEverything = $user->can(AuditScope::READ_ALL_PERMISSION);
         $query = AuditScope::forUser($user)->with([
+            'causer' => AuditActorLabel::eager(...),
             'causer.roles',
             'subject' => AuditSubjectLabel::eager(...),
         ]);
@@ -78,17 +80,20 @@ class AuditLogList implements ChangesNoState
     }
 
     /**
-     * PostgreSQL — whereLike tidak peka huruf: aksi, nama pelaku, atau judul form pengajuan.
+     * PostgreSQL — whereLike tidak peka huruf: aksi, nama pelaku, atau nama subjek (E2E-07).
+     * Wildcard dari input di-escape (E2E-10).
      *
      * @param  Builder<AuditEntry>  $query
      */
     private function search(Builder $query, string $search): void
     {
-        $query->when($search !== '', fn (Builder $q) => $q->where(fn (Builder $any) => $any
-            ->whereLike('description', "%{$search}%")
-            ->orWhereHasMorph('causer', [User::class], fn (Builder $causer) => $causer->whereLike('name', "%{$search}%"))
-            ->orWhereHasMorph('subject', [FormSubmission::class], fn (Builder $submission) => $submission
-                ->whereHas('form', fn (Builder $form) => $form->whereLike('title', "%{$search}%")))));
+        $pattern = LikePattern::contains($search);
+
+        $query->when($search !== '', fn (Builder $q) => $q->where(fn (Builder $any) => AuditSubjectLabel::searchable(
+            $any->whereLike('description', $pattern)
+                ->orWhereHasMorph('causer', [User::class], fn (Builder $causer) => $causer->withoutGlobalScope(SoftDeletingScope::class)->whereLike('name', $pattern)),
+            $pattern,
+        )));
     }
 
     private function row(AuditEntry $entry, bool $seesEverything): AuditEntryRowData
