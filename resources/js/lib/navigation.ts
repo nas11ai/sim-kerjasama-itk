@@ -186,9 +186,9 @@ export const navGroups: NavGroup[] = [
             {
                 label: 'Statistik',
                 icon: ChartBar,
-                // R1 menggantinya dengan Reporting/StatsPage; sampai itu, halaman statistik pertama.
-                routeName: 'admin.stats.form-submission',
-                activePattern: 'admin.stats.*',
+                // W148/W156 — satu route untuk keempat tab Reporting/StatsPage.
+                routeName: 'reporting.stats',
+                activePattern: 'reporting.stats',
                 anyPermission: ['reporting.export', 'reporting.view-audit-log'],
             },
             {

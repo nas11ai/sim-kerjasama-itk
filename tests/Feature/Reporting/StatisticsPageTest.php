@@ -8,6 +8,7 @@ use App\Models\FormSubmission;
 use App\Models\User;
 use App\Support\Audit\AuditTrail;
 use Database\Seeders\PermissionSeeder;
+use Illuminate\Support\Facades\Route;
 use Inertia\Testing\AssertableInertia as Assert;
 
 beforeEach(function () {
@@ -93,3 +94,7 @@ it('opsi tahun = tahun submit pertama ditambah tahun berjalan dan semua tahun', 
                 ['value' => '2024', 'label' => '2024'],
             ]));
 });
+
+it('rute statistik legacy sudah tidak terdaftar', function (string $name) {
+    expect(Route::has($name))->toBeFalse();
+})->with(['admin.stats.form-phase', 'admin.stats.form-submission', 'admin.stats.reviewer', 'admin.stats.user']);

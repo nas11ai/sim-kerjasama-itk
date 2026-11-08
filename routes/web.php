@@ -39,7 +39,6 @@ use App\Http\Controllers\ReviewerFormAssignmentController;
 use App\Http\Controllers\ReviewFormResponseController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\Scheme\SchemeController;
-use App\Http\Controllers\StatController;
 use App\Http\Controllers\Submission\BudgetLineItemController;
 use App\Http\Controllers\Submission\OperatorSubmissionController;
 use App\Http\Controllers\Submission\PhaseOverrideController;
@@ -263,12 +262,6 @@ Route::middleware(['auth'])->prefix('reviewer')->name('reviewer.')->group(functi
 
 // Admin Routes - permission-based (users.manage; Super Admin via Gate::before)
 Route::middleware(['auth', 'can:users.manage'])->prefix('admin')->name('admin.')->group(function () {
-    // stat
-    Route::get('/stats/form-phases', [StatController::class, 'formPhaseStatIndex'])->name('stats.form-phase');
-    Route::get('/stats/form-submissions', [StatController::class, 'formSubmissionStatIndex'])->name('stats.form-submission');
-    Route::get('/stats/reviewers', [StatController::class, 'submissionReviewerStatIndex'])->name('stats.reviewer');
-    Route::get('/stats/users', [StatController::class, 'userStatIndex'])->name('stats.user');
-
     // Role Management
     Route::resource('roles', RoleController::class)->except(['show'])->names([
         'index' => 'roles.index',

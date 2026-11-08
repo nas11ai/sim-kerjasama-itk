@@ -44,9 +44,6 @@ import {
     BookCheck,
     UserPenIcon,
     ChartPie,
-    FileUserIcon,
-    FileChartPieIcon,
-    UserCheck2Icon,
     FileBarChart2,
 } from 'lucide-vue-next'
 
@@ -159,24 +156,9 @@ const adminNavItems = [
         icon: ChartPie,
         items: [
             {
-                title: 'Statistik Tahap Formulir',
-                url: route('admin.stats.form-phase'),
+                title: 'Dashboard Statistik',
+                url: route('reporting.stats'),
                 icon: FileBarChart2,
-            },
-            {
-                title: 'Statistik Pengajuan Formulir',
-                url: route('admin.stats.form-submission'),
-                icon: FileChartPieIcon,
-            },
-            {
-                title: 'Statistik Reviewer',
-                url: route('admin.stats.reviewer'),
-                icon: UserCheck2Icon,
-            },
-            {
-                title: 'Statistik User',
-                url: route('admin.stats.user'),
-                icon: FileUserIcon,
             },
         ],
     },

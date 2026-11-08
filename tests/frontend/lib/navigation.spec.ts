@@ -284,3 +284,15 @@ describe('notifikasi (W38, BR-NOT-05)', () => {
         expect(navItemCount(item!, { ...NO_FLAGS, unreadAnnouncements: 4 })).toBeNull()
     })
 })
+
+describe('statistik (W148, W156)', () => {
+    it('Statistik membuka reporting.stats dan aktif di setiap tabnya', () => {
+        const item = navGroups.flatMap((g) => g.items).find((i) => i.label === 'Statistik')
+
+        expect(item?.routeName).toBe('reporting.stats')
+        expect(item?.activePattern).toBe('reporting.stats')
+        expect(
+            labels(visibleNavGroups(navGroups, ['reporting.view-audit-log'], NO_FLAGS))
+        ).toContain('Statistik')
+    })
+})
