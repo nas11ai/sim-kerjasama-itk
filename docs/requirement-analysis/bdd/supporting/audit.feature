@@ -48,3 +48,9 @@ Feature: Jejak Audit
   Scenario: [RPT-AUDIT-07] Cakupan audit diturunkan dari arsitektur
     When Action mana pun yang mengubah state dijalankan
     Then entri audit tercatat tanpa perlu didaftarkan manual
+
+  @BR-RPT-09 @M5 @OPERATOR-07-03 @happy
+  Scenario: [RPT-AUDIT-08] Entri audit mencatat alamat IP pelaku
+    Given submission "P-001" milik "Budi" berstatus DRAFT
+    When "Budi" submit "P-001" dari alamat 10.10.2.14
+    Then entri audit "Pengajuan disubmit" untuk "P-001" mencatat IP 10.10.2.14

@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Middleware\CaptureAuditIp;
 use App\Http\Middleware\CheckRole;
 use App\Http\Middleware\EnsureAccountActive;
 use App\Http\Middleware\HandleInertiaRequests;
@@ -22,6 +23,8 @@ return Application::configure(basePath: dirname(__DIR__))
             AddLinkHeadersForPreloadedAssets::class,
             // BR-IAM-05 — setelah sesi dibuka, sebelum route berjalan.
             EnsureAccountActive::class,
+            // W155 — IP pelaku untuk jejak audit.
+            CaptureAuditIp::class,
         ]);
 
         // Register middleware aliases

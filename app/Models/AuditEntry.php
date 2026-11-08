@@ -13,6 +13,7 @@ use Spatie\Activitylog\Models\Activity;
  * termasuk tinker dan seeder yang tidak melewati HTTP.
  *
  * @property string $description
+ * @property string|null $ip_address
  * @property array<string, mixed>|null $properties
  */
 class AuditEntry extends Activity

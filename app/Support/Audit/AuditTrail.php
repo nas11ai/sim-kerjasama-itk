@@ -2,8 +2,10 @@
 
 namespace App\Support\Audit;
 
+use App\Models\AuditEntry;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Context;
 use Spatie\Activitylog\Contracts\Activity;
 
 /**
@@ -14,6 +16,9 @@ use Spatie\Activitylog\Contracts\Activity;
 final class AuditTrail
 {
     public const LOG_NAME = 'audit';
+
+    /** W155 — kunci Context tersembunyi yang diisi `CaptureAuditIp`. */
+    public const IP_CONTEXT = 'audit.ip';
 
     public static function record(
         string $description,
@@ -37,6 +42,11 @@ final class AuditTrail
             // aktor; jangan ditambal aktor palsu.
             ->causedBy($causer ?? Auth::user())
             ->withProperties($properties)
+            // W155 — DDD Reporting: Audit Log "dari IP mana". Scheduler/CLI tanpa request → null.
+            ->tap(function (AuditEntry $entry): void {
+                $ip = Context::getHidden(self::IP_CONTEXT);
+                $entry->ip_address = is_string($ip) ? $ip : null;
+            })
             ->log($description);
 
         // `log()` bertipe Activity|null karena logging bisa dimatikan global.
