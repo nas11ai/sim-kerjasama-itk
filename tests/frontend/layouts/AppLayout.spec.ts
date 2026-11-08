@@ -20,6 +20,15 @@ describe('AppLayout', () => {
         expect(mountLayout().get('main').text()).toBe('Isi halaman')
     })
 
+    // E2E-01 — tanpa min-w-0 pada anak baris flex (SidebarInset, yang merender <main>), tabel
+    // lebar mendorong seluruh halaman ke samping di 390px.
+    it('satu-satunya main boleh menyusut di bawah lebar isinya', () => {
+        const mains = mountLayout().findAll('main')
+
+        expect(mains).toHaveLength(1)
+        expect(mains[0].classes()).toContain('min-w-0')
+    })
+
     it('memasang Toaster dan memanggil useFlashToasts sekali', () => {
         useFlashToasts.mockClear()
         const wrapper = mountLayout()

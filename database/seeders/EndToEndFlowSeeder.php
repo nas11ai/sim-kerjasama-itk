@@ -3,6 +3,7 @@
 namespace Database\Seeders;
 
 use App\Enums\DeadlineType;
+use App\Enums\VerificationStatus;
 use App\Models\FieldType;
 use App\Models\Form;
 use App\Models\FormAccessControl;
@@ -13,15 +14,17 @@ use App\Models\FormType;
 use App\Models\Organization;
 use App\Models\PhaseType;
 use App\Models\Reviewer;
+use App\Models\ReviewEvaluationForm;
+use App\Models\ReviewFormField;
 use App\Models\Scheme;
 use App\Models\SchemeType;
 use App\Models\SubmissionDate;
 use App\Models\SubmissionPeriod;
+use App\Models\SubmissionPeriodPhase;
 use App\Models\SubmissionType;
 use App\Models\User;
 use App\Models\UserProfile;
 use Illuminate\Database\Seeder;
-use Spatie\Permission\Models\Permission;
 
 /**
  * Data minimum supaya alur pengajuan bisa dicoba langsung di dev:
@@ -47,21 +50,21 @@ class EndToEndFlowSeeder extends Seeder
             ['type' => 'study_program']
         );
 
-        $researcher = $this->user('peneliti@itk.ac.id', 'Dr. Budi Santoso', $organization);
-        Permission::findOrCreate('submissions.create', 'web');
-        $researcher->givePermissionTo('submissions.create');
+        // Peran DDD dari matriks PermissionSeeder, bukan permission pilihan tangan: peneliti
+        // butuh submissions.view-own untuk membuka daftar pengajuannya sendiri.
+        $this->call(PermissionSeeder::class);
+
+        $this->user('peneliti@itk.ac.id', 'Dr. Budi Santoso', $organization)->assignRole('researcher');
 
         $operator = $this->user('operator@itk.ac.id', 'Operator LPPM', $organization);
-        Permission::findOrCreate('users.manage', 'web');
-        Permission::findOrCreate('submissions.view-all', 'web');
-        // BR-REV-01 — penugasan reviewer dijaga Policy `assignReviewers` (reviewers.assign).
-        Permission::findOrCreate('reviewers.assign', 'web');
-        $operator->givePermissionTo(['users.manage', 'organizations.manage', 'submissions.view-all', 'reviewers.assign']);
+        // BR-REV-01 — penugasan reviewer dijaga Policy `assignReviewers` (reviewers.assign, peran operator).
+        $operator->assignRole('operator');
+        $operator->givePermissionTo('users.manage');
 
         foreach (['reviewer1@itk.ac.id' => 'Dr. Sari Wijaya', 'reviewer2@itk.ac.id' => 'Dr. Andi Mappa'] as $email => $name) {
             $user = $this->user($email, $name, $organization);
             // REVIEWER-03-* dijaga permission, bukan sekadar baris Reviewer.
-            $user->givePermissionTo(Permission::findOrCreate('reviewers.evaluate', 'web'));
+            $user->assignRole('reviewer_internal');
 
             Reviewer::firstOrCreate(
                 ['user_id' => $user->id],
@@ -82,7 +85,7 @@ class EndToEndFlowSeeder extends Seeder
         $this->command->info('Selesai. Coba alurnya:');
         $this->command->info('  1. Masuk sebagai peneliti@itk.ac.id, buat pengajuan pada Form "'.$form->title.'"');
         $this->command->info('  2. Masuk sebagai operator@itk.ac.id, tugaskan '.$scheme->rules['min_reviewer_count'].' reviewer');
-        $this->command->info('  3. Setelah evaluasi masuk dan ringkasan ditutup, status menjadi Disetujui');
+        $this->command->info('  3. Kedua reviewer mengirim evaluasi; tanpa ulir terbuka, status menjadi Disetujui (BR-REV-05)');
     }
 
     private function user(string $email, string $name, Organization $organization): User
@@ -99,7 +102,8 @@ class EndToEndFlowSeeder extends Seeder
 
         UserProfile::firstOrCreate(
             ['user_id' => $user->id],
-            ['organization_id' => $organization->id]
+            // BR-IAM-04 — akun `pending` bisa menyiapkan pengajuan, tapi tidak mengirimnya.
+            ['organization_id' => $organization->id, 'verification_status' => VerificationStatus::Active]
         );
 
         return $user;
@@ -151,10 +155,14 @@ class EndToEndFlowSeeder extends Seeder
         $text = FieldType::firstOrCreate(['name' => 'text']);
         $textarea = FieldType::firstOrCreate(['name' => 'textarea']);
 
+        // BR-SCH-04 — tanpa pemilih skema, batas anggaran dan jumlah reviewer skema tidak berlaku.
+        $schemeSelector = FieldType::firstOrCreate(['name' => 'scheme_selector']);
+
         $fields = [
             ['Judul Penelitian', $text, true, 1],
             ['Abstrak', $textarea, true, 2],
             ['Kata Kunci', $text, false, 3],
+            ['Skema Penelitian', $schemeSelector, true, 4],
         ];
 
         foreach ($fields as [$label, $type, $required, $order]) {
@@ -199,9 +207,16 @@ class EndToEndFlowSeeder extends Seeder
             ['datetime' => now()->addMonths(3)]
         );
 
+        // ADR 0014 — periode menawarkan form lewat tahap yang ditautkan kepadanya; tanpa tautan
+        // ini langkah 1 wizard berbunyi "Belum ada periode pengajuan yang dibuka".
+        SubmissionPeriodPhase::firstOrCreate([
+            'submission_period_id' => $period->id,
+            'form_phase_id' => $phase->id,
+        ]);
+
         $phaseType = PhaseType::firstOrCreate(['name' => 'Pengajuan']);
 
-        FormPhaseDetail::firstOrCreate(
+        $detail = FormPhaseDetail::firstOrCreate(
             [
                 'form_phase_id' => $phase->id,
                 'form_access_control_id' => $accessControl->id,
@@ -214,6 +229,17 @@ class EndToEndFlowSeeder extends Seeder
                 // di sini (ADR 0017).
                 'needs_review' => true,
             ]
+        );
+
+        // W158 — AssignReviewers membagikan form evaluasi aktif detail ini ke tiap reviewer yang
+        // ditugaskan, jadi keputusan Operator punya dasar penilaian.
+        $evaluation = ReviewEvaluationForm::firstOrCreate(
+            ['title' => 'Penilaian Substansi', 'form_phase_detail_id' => $detail->id],
+            ['is_active' => true, 'is_required' => true, 'order' => 1],
+        );
+        ReviewFormField::firstOrCreate(
+            ['review_evaluation_form_id' => $evaluation->id, 'label' => 'Kebaruan Penelitian'],
+            ['field_type_id' => FieldType::firstOrCreate(['name' => 'text'])->id, 'is_required' => false, 'order' => 1],
         );
     }
 }

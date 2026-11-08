@@ -11,11 +11,11 @@ useFlashToasts()
 <template>
     <SidebarProvider>
         <AppSidebar />
-        <SidebarInset>
+        <SidebarInset class="min-w-0">
             <AppTopbar />
-            <main class="flex-1 p-4 md:p-6">
+            <div class="min-w-0 flex-1 p-4 md:p-6">
                 <slot />
-            </main>
+            </div>
         </SidebarInset>
         <Toaster />
     </SidebarProvider>
