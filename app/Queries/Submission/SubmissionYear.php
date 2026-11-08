@@ -56,6 +56,19 @@ final class SubmissionYear implements ChangesNoState
     }
 
     /**
+     * `years()` ditambah tahun berjalan (nilai bawaan filter), terbaru dulu.
+     *
+     * @return list<int>
+     */
+    public static function withCurrent(): array
+    {
+        $years = array_values(array_unique([now()->year, ...self::years()]));
+        rsort($years);
+
+        return $years;
+    }
+
+    /**
      * Tahun-tahun yang punya pengajuan induk terkirim, terbaru dulu (pilihan filter).
      *
      * @return list<int>

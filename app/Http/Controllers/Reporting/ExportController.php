@@ -1,11 +1,13 @@
 <?php
 
-namespace App\Http\Controllers\Export;
+namespace App\Http\Controllers\Reporting;
 
 use App\Actions\Export\RequestExport;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Reporting\ExportRequest;
+use App\Jobs\GenerateExport;
 use App\Models\ExportJob;
+use App\Queries\Reporting\ExportFormOptions;
 use App\Queries\Reporting\ExportHistory;
 use App\Support\Reporting\ExportRetention;
 use App\Support\Reporting\ExportThreshold;
@@ -32,13 +34,17 @@ class ExportController extends Controller
 
         abort_if($user === null, 403);
 
-        return Inertia::render('Exports/IndexPage', [
-            'types' => collect(ExportType::all())
-                ->map(fn (string $type) => ['value' => $type, 'label' => ExportType::label($type)])
-                ->all(),
+        $type = $request->string('type')->value();
+
+        // OPERATOR-07-02. Partial reload `only: ['jobs']` (polling, Minta Tautan Baru) hanya
+        // menghitung ulang riwayat; pilihan formulir tidak disentuh.
+        return Inertia::render('Reporting/ExportPage', [
+            ...ExportFormOptions::run(),
             'threshold' => ExportThreshold::SYNCHRONOUS_ROWS,
             'retentionHours' => ExportRetention::HOURS,
-            'jobs' => ExportHistory::run($user),
+            'maxAttempts' => (new GenerateExport(0))->tries,
+            'initialType' => in_array($type, ExportType::all(), true) ? $type : null,
+            'jobs' => fn () => ExportHistory::run($user),
         ]);
     }
 

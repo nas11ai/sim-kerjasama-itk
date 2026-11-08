@@ -32,12 +32,9 @@ class StatisticsFilterOptions implements ChangesNoState
     /** @return list<Option> */
     private function yearOptions(): array
     {
-        $years = array_unique([now()->year, ...SubmissionYear::years()]);
-        rsort($years);
-
         return [
             ['value' => StatisticsFilters::ALL_YEARS, 'label' => 'Semua tahun'],
-            ...array_map(fn (int $year): array => ['value' => (string) $year, 'label' => (string) $year], $years),
+            ...array_map(fn (int $year): array => ['value' => (string) $year, 'label' => (string) $year], SubmissionYear::withCurrent()),
         ];
     }
 }

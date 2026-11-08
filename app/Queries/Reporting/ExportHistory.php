@@ -17,7 +17,7 @@ use Lorisleiva\Actions\Concerns\AsAction;
  * BR-RPT-03 — riwayat ekspor milik satu user (25 terbaru) untuk layar Ekspor. Baris cetak
  * PDF ikut tabel yang sama (BR-RPT-11) dan ditandai `kind: print`.
  *
- * @phpstan-type HistoryRow array{id: int, kind: 'export'|'print', type: string, type_value: string, format: string, filters: array<string, int|string>, parameters: string, status: string, row_count: int, attempts: int, failure_reason: string|null, requested_at: string|null, completed_at: string|null, file_is_gone: bool, download_url: string|null, link_expires_at: string|null, submission_href: string|null}
+ * @phpstan-type HistoryRow array{id: int, kind: 'export'|'print', type: string, type_value: string, format: string, filters: array<string, int|string>, parameters: string, status: string, row_count: int, attempts: int, failure_reason: string|null, requested_at: string|null, completed_at: string|null, file_is_gone: bool, file_expires_at: string|null, download_url: string|null, link_expires_at: string|null, submission_href: string|null}
  *
  * @method static list<HistoryRow> run(User $user)
  */
@@ -61,6 +61,8 @@ class ExportHistory implements ChangesNoState
             'requested_at' => $job->created_at?->toIso8601String(),
             'completed_at' => $job->completed_at?->toIso8601String(),
             'file_is_gone' => $job->fileIsGone(),
+            // BR-RPT-12 — batas masa simpan; lewat dari sini unduhan 410 meski penjadwal belum jalan.
+            'file_expires_at' => $job->completed_at?->copy()->addHours(ExportRetention::HOURS)->toIso8601String(),
             'download_url' => $download,
             'link_expires_at' => $download === null ? null : now()->addHours(ExportRetention::SIGNED_URL_HOURS)->toIso8601String(),
             'submission_href' => $print ? $this->submissionHref($job, $user) : null,

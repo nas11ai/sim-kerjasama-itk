@@ -268,7 +268,7 @@ it('BR-RPT-03 riwayat ekspor memuat tautan unduh hanya selama berkasnya ada', fu
     $this->actingAs($operator)
         ->get(route('reporting.exports.index'))
         ->assertInertia(fn ($page) => $page
-            ->component('Exports/IndexPage')
+            ->component('Reporting/ExportPage')
             ->has('jobs', 2)
             ->where('jobs.1.id', $ada->id)
             ->where('jobs.1.type', ExportType::label($ada->type))

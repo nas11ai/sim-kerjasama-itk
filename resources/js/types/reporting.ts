@@ -136,3 +136,51 @@ export interface StatsPageProps {
     history?: StatisticsHistory
     followUp?: FollowUpList[]
 }
+
+// --- Export Data (OPERATOR-07-02), cermin ExportFormOptions dan ExportHistory (W154) ---
+
+export type ExportFilterKey = 'year' | 'scheme' | 'status'
+
+export interface ExportTypeOption {
+    value: string
+    label: string
+    filterKeys: ExportFilterKey[]
+}
+
+// Sumber: ExportHistory. `file_is_gone` juga true selama berkas belum dibuat (antrean).
+export interface ExportJobRow {
+    id: number
+    kind: 'export' | 'print'
+    type: string
+    type_value: string
+    format: string
+    filters: Record<string, number | string>
+    parameters: string
+    status: 'queued' | 'processing' | 'completed' | 'failed'
+    row_count: number
+    attempts: number
+    failure_reason: string | null
+    requested_at: string | null
+    completed_at: string | null
+    file_is_gone: boolean
+    file_expires_at: string | null
+    download_url: string | null
+    link_expires_at: string | null
+    submission_href: string | null
+}
+
+export interface ExportFormOptions {
+    types: ExportTypeOption[]
+    formats: FilterOption[]
+    schemeOptions: FilterOption[]
+    statusOptions: FilterOption[]
+    yearOptions: FilterOption[]
+}
+
+export interface ExportPageProps extends ExportFormOptions {
+    threshold: number
+    retentionHours: number
+    maxAttempts: number
+    initialType: string | null
+    jobs: ExportJobRow[]
+}
