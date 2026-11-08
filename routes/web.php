@@ -27,6 +27,7 @@ use App\Http\Controllers\Monev\MonevReportController;
 use App\Http\Controllers\Notification\NotificationChannelController;
 use App\Http\Controllers\Notification\NotificationController;
 use App\Http\Controllers\PermissionController;
+use App\Http\Controllers\Reporting\StatisticsController;
 use App\Http\Controllers\ResearchOutput\ResearchOutputController;
 use App\Http\Controllers\ResearchOutput\ResearchOutputFileController;
 use App\Http\Controllers\Review\ReplaceReviewerController;
@@ -386,6 +387,11 @@ Route::middleware(['auth', 'can:submissions.view-all'])->prefix('admin')->name('
         ->name('submissions.index');
     Route::get('/submissions/{submission}', [OperatorSubmissionController::class, 'show'])
         ->name('submissions.show');
+});
+
+// OPERATOR-07-01 — Dashboard Statistik (W148, W156); tab = route, tab tak dikenal 404.
+Route::middleware(['auth', 'can:view-statistics'])->prefix('reporting')->name('reporting.')->group(function () {
+    Route::get('/stats/{tab?}', [StatisticsController::class, 'show'])->name('stats');
 });
 
 // ADMIN-08-05/06/07 — Form Builder dikelola pemegang schemes.manage (W88).

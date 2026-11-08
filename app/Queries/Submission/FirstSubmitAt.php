@@ -21,10 +21,20 @@ final class FirstSubmitAt implements ChangesNoState
      */
     public static function subquery(string $description = SubmitFormSubmission::AUDIT_DESCRIPTION): Builder
     {
-        return AuditEntry::query()->auditOnly()
+        return self::entries($description)
             ->selectRaw('min(created_at)')
+            ->whereColumn('subject_id', 'form_submissions.id');
+    }
+
+    /**
+     * Entri submit seluruh pengajuan; juga dipakai SubmissionYear.
+     *
+     * @return Builder<AuditEntry>
+     */
+    public static function entries(string $description = SubmitFormSubmission::AUDIT_DESCRIPTION): Builder
+    {
+        return AuditEntry::query()->auditOnly()
             ->where('subject_type', FormSubmission::class)
-            ->whereColumn('subject_id', 'form_submissions.id')
             ->where('description', $description);
     }
 }

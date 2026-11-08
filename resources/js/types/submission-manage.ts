@@ -27,6 +27,8 @@ export type ManageIndexFilters = {
     status: string
     period: string
     scheme: string
+    // W149 — tahun submit pertama, definisi yang sama dengan statistik (drill-down).
+    year: string
 }
 
 export interface ManageIndexPageProps {
@@ -35,6 +37,7 @@ export interface ManageIndexPageProps {
     statusOptions: FilterOption[]
     periodOptions: FilterOption[]
     schemeOptions: FilterOption[]
+    yearOptions: FilterOption[]
 }
 
 // Sumber: OperatorAbilitiesData — Policy yang sama dengan endpoint-nya (ADR 0015).

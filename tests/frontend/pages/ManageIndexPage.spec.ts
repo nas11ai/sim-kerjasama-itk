@@ -43,7 +43,7 @@ const row: OperatorSubmissionRow = {
     reviewerCount: 2,
 }
 
-const noFilters: ManageIndexFilters = { search: '', status: '', period: '', scheme: '' }
+const noFilters: ManageIndexFilters = { search: '', status: '', period: '', scheme: '', year: '' }
 
 const props = (rows: OperatorSubmissionRow[], filters = noFilters): ManageIndexPageProps => ({
     submissions: {
@@ -61,6 +61,7 @@ const props = (rows: OperatorSubmissionRow[], filters = noFilters): ManageIndexP
     statusOptions: [{ value: 'approved', label: 'Disetujui' }],
     periodOptions: [{ value: '3', label: 'DIPA 2026' }],
     schemeOptions: [{ value: '7', label: 'Penelitian DIPA 2026' }],
+    yearOptions: [{ value: '2026', label: '2026' }],
 })
 
 const route = (name: string, param?: number) =>
@@ -95,6 +96,25 @@ describe('ManageIndexPage', () => {
         expect(router.get).toHaveBeenCalledWith(
             '/admin.submissions.index',
             { scheme: '7' },
+            expect.objectContaining({ preserveState: true })
+        )
+    })
+
+    // W149 — tahun dari drill-down statistik terlihat dan bisa dilepas, bukan filter tersembunyi.
+    it('filter tahun dari drill-down tampil dan ikut terkirim saat filter lain berubah', async () => {
+        const wrapper = mountPage([row], { ...noFilters, year: '2026' })
+        const selects = wrapper.findAllComponents(FilterSelect)
+        const year = selects.find((select) => select.props('label') === 'Tahun')
+
+        expect(year?.props('modelValue')).toBe('2026')
+        selects
+            .find((select) => select.props('label') === 'Skema')
+            ?.vm.$emit('update:modelValue', '7')
+        await nextTick()
+
+        expect(router.get).toHaveBeenCalledWith(
+            '/admin.submissions.index',
+            { scheme: '7', year: '2026' },
             expect.objectContaining({ preserveState: true })
         )
     })

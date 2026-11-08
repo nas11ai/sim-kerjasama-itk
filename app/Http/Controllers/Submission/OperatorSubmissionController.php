@@ -26,6 +26,7 @@ class OperatorSubmissionController extends Controller
             'status' => $request->string('status')->value(),
             'period' => $request->string('period')->value(),
             'scheme' => $request->string('scheme')->value(),
+            'year' => $request->string('year')->value(),
         ];
 
         return Inertia::render('Submission/ManageIndexPage', [

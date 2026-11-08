@@ -24,6 +24,7 @@ const selects = computed((): FilterSelectSpec<Exclude<keyof ManageIndexFilters, 
     { key: 'status', label: 'Status', allLabel: 'Semua status', options: props.statusOptions },
     { key: 'period', label: 'Periode', allLabel: 'Semua periode', options: props.periodOptions },
     { key: 'scheme', label: 'Skema', allLabel: 'Semua skema', options: props.schemeOptions },
+    { key: 'year', label: 'Tahun', allLabel: 'Semua tahun', options: props.yearOptions },
 ])
 </script>
 

@@ -10,6 +10,7 @@ use App\Policies\BudgetLineItemPolicy;
 use App\Policies\FormSubmissionPolicy;
 use App\Policies\InvitationPolicy;
 use App\Policies\ReviewerFormAssignmentPolicy;
+use App\Policies\StatisticsPolicy;
 use App\Policies\UserPolicy;
 use App\Services\Storage\S3StorageService;
 use App\Services\Storage\StorageService;
@@ -64,5 +65,6 @@ class AppServiceProvider extends ServiceProvider
         // alasan sama: daftarnya tertutup, dan angka anggaran yang sudah
         // diputuskan adalah dasar pencairan — koreksinya lewat transisi status.
         Gate::define('update-budget', [BudgetLineItemPolicy::class, 'update']);
+        Gate::define('view-statistics', [StatisticsPolicy::class, 'view']);
     }
 }

@@ -83,7 +83,7 @@ it('[SM-ACCESS-04] pemegang submissions.view-all membuka Submission/ManageIndexP
             ->has('statusOptions')
             ->has('periodOptions')
             ->has('schemeOptions')
-            ->where('filters', ['search' => '', 'status' => '', 'period' => '', 'scheme' => '']));
+            ->where('filters', ['search' => '', 'status' => '', 'period' => '', 'scheme' => '', 'year' => '']));
 });
 
 it('peneliti tanpa view-all ditolak', function () {
@@ -138,6 +138,28 @@ it('tanggal submit dari jejak audit', function () {
         ->get(route('admin.submissions.index'))
         ->assertInertia(fn (Assert $page) => $page
             ->where('submissions.data.0.submittedAt', fn (string $at) => str_starts_with($at, '2026-01-12')));
+});
+
+// W149 — drill-down statistik membuka daftar yang barisnya sama dengan angkanya.
+it('filter tahun memakai tahun submit pertama', function () {
+    $resubmittedIn2026 = sentSubmission();
+    $firstIn2026 = sentSubmission();
+    $this->travelTo('2025-11-03 08:00:00');
+    AuditTrail::record(SubmitFormSubmission::AUDIT_DESCRIPTION, $resubmittedIn2026, $resubmittedIn2026->submittedBy);
+    $this->travelTo('2026-02-01 08:00:00');
+    AuditTrail::record(SubmitFormSubmission::AUDIT_DESCRIPTION, $resubmittedIn2026, $resubmittedIn2026->submittedBy);
+    AuditTrail::record(SubmitFormSubmission::AUDIT_DESCRIPTION, $firstIn2026, $firstIn2026->submittedBy);
+    $this->travelBack();
+
+    expect(listedIds(['year' => '2025']))->toBe([$resubmittedIn2026->id])
+        ->and(listedIds(['year' => '2026']))->toBe([$firstIn2026->id])
+        ->and(listedIds(['year' => 'abc']))->toHaveCount(2);
+
+    $this->actingAs(listOperator())
+        ->get(route('admin.submissions.index', ['year' => '2025']))
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('filters.year', '2025')
+            ->where('yearOptions', [['value' => '2026', 'label' => '2026'], ['value' => '2025', 'label' => '2025']]));
 });
 
 it('opsi status tidak menawarkan draft', function () {
