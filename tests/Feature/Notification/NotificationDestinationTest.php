@@ -176,7 +176,7 @@ it('pendaftaran baru membuka antrian verifikasi', function () {
 
 it('export_* membuka riwayat ekspor', function () {
     expect(ndDestination(User::factory()->create(), ExportCompletedNotification::class, ['type' => 'export_completed']))
-        ->toBe(route('exports.index'));
+        ->toBe(route('reporting.exports.index'));
 });
 
 it('reviewer_appointed membuka daftar penugasan', function () {

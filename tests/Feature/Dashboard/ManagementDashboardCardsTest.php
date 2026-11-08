@@ -110,7 +110,7 @@ it('Export Selesai hanya ekspor milik viewer yang selesai minggu ini (BR-RPT-07)
     expect(array_keys($cards))->toBe(['exports'])
         ->and($cards['exports']->value)->toBe('1')
         ->and($cards['exports']->meta)->toBe('Minggu ini')
-        ->and($cards['exports']->href)->toBe(route('exports.index'));
+        ->and($cards['exports']->href)->toBe(route('reporting.exports.index'));
 });
 
 it('users.manage memberi kartu User Aktif', function () {

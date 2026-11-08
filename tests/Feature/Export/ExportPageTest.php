@@ -14,6 +14,7 @@ use App\Support\Reporting\ExportThreshold;
 use App\Support\Reporting\ExportType;
 use App\Support\Reporting\ExportWriter;
 use App\Support\Reporting\SubmissionVisibility;
+use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Storage;
 use Inertia\Testing\AssertableInertia;
 use Spatie\Permission\Models\Permission;
@@ -74,3 +75,7 @@ it('baris riwayat membawa batas masa simpan berkas', function () {
         ->assertInertia(fn (AssertableInertia $page) => $page
             ->where('jobs.0.file_expires_at', now()->addHours(ExportRetention::HOURS)->toIso8601String()));
 });
+
+it('rute ekspor lama sudah tidak terdaftar', function (string $name) {
+    expect(Route::has($name))->toBeFalse();
+})->with(['exports.index', 'exports.store', 'exports.download']);

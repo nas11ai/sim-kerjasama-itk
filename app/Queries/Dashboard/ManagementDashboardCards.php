@@ -83,7 +83,7 @@ class ManagementDashboardCards implements ChangesNoState
             ->where('completed_at', '>=', now()->startOfWeek())
             ->count();
 
-        return [new KpiCardData('exports', 'Export Selesai', strval($completed), 'Minggu ini', route('exports.index'))];
+        return [new KpiCardData('exports', 'Export Selesai', strval($completed), 'Minggu ini', route('reporting.exports.index'))];
     }
 
     /** @return list<KpiCardData> */

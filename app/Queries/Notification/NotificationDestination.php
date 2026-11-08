@@ -30,8 +30,8 @@ class NotificationDestination implements ChangesNoState
         'nidn_verified' => 'verification.status',
         'nidn_verification_rejected' => 'verification.status',
         'new_registration_awaiting_verification' => 'admin.verifications.index',
-        'export_completed' => 'exports.index',
-        'export_failed' => 'exports.index',
+        'export_completed' => 'reporting.exports.index',
+        'export_failed' => 'reporting.exports.index',
         'reviewer_appointed' => 'reviewer.assignments.index',
     ];
 

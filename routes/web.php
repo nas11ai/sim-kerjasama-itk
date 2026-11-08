@@ -587,14 +587,6 @@ Route::middleware(['auth'])->group(function () {
     Route::delete('/notifications/{notification}', [NotificationController::class, 'destroy'])
         ->name('notifications.destroy');
 
-    // BR-RPT-02/03/10/12 — satu layar untuk Operator dan peneliti; yang
-    // membedakan mereka SubmissionVisibility, bukan rutenya.
-    Route::get('/exports', [ExportController::class, 'index'])->name('exports.index');
-    Route::post('/exports', [ExportController::class, 'store'])->name('exports.store');
-    Route::get('/exports/{export}/download', [ExportController::class, 'download'])
-        ->middleware('signed')
-        ->name('exports.download');
-
     // BR-RPT-11 — cetak memakai penyimpanan, retensi, dan unduhan yang sama
     // dengan ekspor; yang berbeda hanya penulisnya.
     Route::post('/submissions/{submission}/print/{document}', DocumentPrintController::class)

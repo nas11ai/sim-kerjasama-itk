@@ -37,7 +37,9 @@ const selects = computed((): FilterSelectSpec<Exclude<keyof ManageIndexFilters, 
         >
             <template #actions>
                 <Button as-child variant="outline">
-                    <Link :href="route('exports.index')"><Download class="size-4" /> Export</Link>
+                    <Link :href="route('reporting.exports.index')"
+                        ><Download class="size-4" /> Export</Link
+                    >
                 </Button>
             </template>
         </PageHeader>

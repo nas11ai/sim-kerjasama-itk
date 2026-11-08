@@ -296,3 +296,11 @@ describe('statistik (W148, W156)', () => {
         ).toContain('Statistik')
     })
 })
+
+describe('export data (W154)', () => {
+    it('Export Data membuka reporting.exports.index', () => {
+        const item = navGroups.flatMap((g) => g.items).find((i) => i.label === 'Export Data')
+
+        expect(item?.routeName).toBe('reporting.exports.index')
+    })
+})

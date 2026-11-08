@@ -194,7 +194,7 @@ export const navGroups: NavGroup[] = [
             {
                 label: 'Export Data',
                 icon: Download,
-                routeName: 'exports.index',
+                routeName: 'reporting.exports.index',
                 anyPermission: ['reporting.export'],
             },
             {
