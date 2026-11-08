@@ -36,22 +36,7 @@ class EvaluateSubmissionOutcome
             );
         }
 
-        // Hanya status yang menunggu keputusan yang bisa diputuskan; pemicunya (evaluasi masuk,
-        // ulir ditutup) bisa datang di status lain, mis. pengganti mengevaluasi saat NEEDS_REVISION.
-        if (!$status->equals(...self::AWAITING_DECISION)) {
-            return $submission;
-        }
-
-        // Arti "selesai" dipegang `SubmissionReviewer::SETTLED_EVALUATION` — satu kosakata,
-        // dipakai juga oleh `ReviewSummaryGuard` (BR-FE-06).
-        if (!$this->everyEvaluationSettled($submission)) {
-            return $submission;
-        }
-
-        // ADR 0017 — persetujuan hampa hanya sah kalau fase memang dinyatakan tidak membutuhkan
-        // review. Fase yang butuh review tapi belum punya reviewer bukan "semua selesai",
-        // melainkan salah konfigurasi: ia menggantung di SUBMITTED sampai Operator menugaskan.
-        if ($this->hasNoReviewers($submission) && $this->phaseNeedsReview($submission)) {
+        if (!$this->isDecidable($submission, $status)) {
             return $submission;
         }
 
@@ -70,6 +55,26 @@ class EvaluateSubmissionOutcome
         AuditTrail::record('Keputusan hasil review ditetapkan', $tercatat);
 
         return $tercatat;
+    }
+
+    private function isDecidable(FormSubmission $submission, SubmissionStatus $status): bool
+    {
+        // Hanya status yang menunggu keputusan yang bisa diputuskan; pemicunya (evaluasi masuk,
+        // ulir ditutup) bisa datang di status lain, mis. pengganti mengevaluasi saat NEEDS_REVISION.
+        if (!$status->equals(...self::AWAITING_DECISION)) {
+            return false;
+        }
+
+        // Arti "selesai" dipegang `SubmissionReviewer::SETTLED_EVALUATION` — satu kosakata,
+        // dipakai juga oleh `ReviewSummaryGuard` (BR-FE-06).
+        if (!$this->everyEvaluationSettled($submission)) {
+            return false;
+        }
+
+        // ADR 0017 — persetujuan hampa hanya sah kalau fase memang dinyatakan tidak membutuhkan
+        // review. Fase yang butuh review tapi belum punya reviewer bukan "semua selesai",
+        // melainkan salah konfigurasi: ia menggantung di SUBMITTED sampai Operator menugaskan.
+        return !($this->hasNoReviewers($submission) && $this->phaseNeedsReview($submission));
     }
 
     private function everyEvaluationSettled(FormSubmission $submission): bool

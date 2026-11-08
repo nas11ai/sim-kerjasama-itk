@@ -5,6 +5,7 @@
 // fe-v2-design W10/W163 — 403/404 (dan 500/503 saat debug mati) tampil sebagai halaman
 // Inertia `Error/ErrorPage` di shell v2, bukan halaman bawaan Laravel.
 
+use App\Http\Middleware\HandleInertiaRequests;
 use App\Models\FormSubmission;
 use App\Models\User;
 use Illuminate\Auth\Access\AuthorizationException;
@@ -47,7 +48,12 @@ it('bookmark legacy milik user yang masuk tampil 404 dengan shell aplikasi', fun
 
 it('kunjungan Inertia yang ditolak menerima objek halaman error', function () {
     $this->actingAs(User::factory()->create())
-        ->withHeaders(['X-Inertia' => 'true', 'X-Requested-With' => 'XMLHttpRequest'])
+        ->withHeaders([
+            'X-Inertia' => 'true',
+            // Sama dengan middleware: ada hash manifest bila aset sudah di-build.
+            'X-Inertia-Version' => (string) app(HandleInertiaRequests::class)->version(request()),
+            'X-Requested-With' => 'XMLHttpRequest',
+        ])
         ->get(route('user.submissions.show', FormSubmission::factory()->create()))
         ->assertForbidden()
         ->assertJsonPath('component', 'Error/ErrorPage')
