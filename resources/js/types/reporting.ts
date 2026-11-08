@@ -53,6 +53,29 @@ export interface StatisticsOverview {
     byOutputType: RankedCount[]
 }
 
+// Sumber: StageBacklogData. oldestAgeDays null bila tahap kosong.
+export interface StageBacklog {
+    key: string
+    label: string
+    count: number
+    oldestAgeDays: number | null
+    href: string | null
+}
+
+// Sumber: ReviewerWorkloadData.
+export interface ReviewerWorkload {
+    rows: RankedCount[]
+    idleCount: number
+}
+
+// Tab Saat Ini (W152): StageBacklog, MonevStatusCounts, ReviewerCoverage, ReviewerWorkload.
+export interface StatisticsNow {
+    backlog: StageBacklog[]
+    monev: RankedCount[]
+    coverage: RankedCount[]
+    workload: ReviewerWorkload
+}
+
 export interface StatsPageProps {
     tab: StatisticsTab
     tabs: StatisticsTabLink[]
@@ -64,4 +87,5 @@ export interface StatsPageProps {
     can: { viewSubmissions: boolean }
     // Hanya tab aktif yang dikirim (W156).
     overview?: StatisticsOverview
+    now?: StatisticsNow
 }

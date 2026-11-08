@@ -3,6 +3,8 @@
 namespace App\Enums;
 
 use App\Data\View\Monev\MonevCycleData;
+use App\Models\FormSubmission;
+use App\Queries\Monev\MonevCycles;
 
 /**
  * Status satu induk di OPERATOR-05-01, dibaca dari siklus berjalan (siklus pertama yang
@@ -14,6 +16,12 @@ enum MonevBoardStatus: string
     case AwaitingReport = 'awaiting_report';
     case ReportIn = 'report_in';
     case Completed = 'completed';
+
+    /** W153 — satu definisi status induk untuk papan monev dan statistik. */
+    public static function forParent(FormSubmission $parent): self
+    {
+        return self::of(MonevCycles::current($parent));
+    }
 
     public static function of(?MonevCycleData $current): self
     {

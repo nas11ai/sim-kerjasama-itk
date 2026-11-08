@@ -43,6 +43,12 @@ final class StatisticsFilters extends Data
         );
     }
 
+    /** Panel keadaan sekarang (W152): tanpa tahun, jadi drill-down-nya pun tanpa `year`. */
+    public function withoutYear(): self
+    {
+        return new self(null, $this->period, $this->scheme);
+    }
+
     private static function number(Request $request, string $key): ?int
     {
         $value = $request->string($key)->value();

@@ -4,9 +4,7 @@ namespace App\Queries\Monev;
 
 use App\Actions\Concerns\ChangesNoState;
 use App\Data\View\Monev\MonevBoardRowData;
-use App\Data\View\Monev\MonevCycleData;
 use App\Enums\MonevBoardStatus;
-use App\Enums\MonevCycleState;
 use App\Models\FormSubmission;
 use App\Models\FormType;
 use App\Queries\Submission\OperatorSubmissionList;
@@ -37,10 +35,7 @@ class MonevCycleBoard implements ChangesNoState
      */
     public function handle(array $filters): array
     {
-        $query = MonevCycles::whereHasCycles(FormSubmission::query())
-            ->whereNull('parent_submission_id')
-            ->whereState('status', Approved::class)
-            ->whereHas('form', fn (Builder $form) => $form->where('form_type_id', '!=', FormType::BIODATA_ID))
+        $query = self::parents(FormSubmission::query())
             ->with(['form:id,title', 'scheme:id,name', 'submittedBy:id,name', 'formPhaseDetail']);
 
         $this->filter($query, $filters);
@@ -54,10 +49,24 @@ class MonevCycleBoard implements ChangesNoState
         ];
     }
 
+    /**
+     * Induk yang tampil di papan; statistik (W153) menghitung dari himpunan yang sama.
+     *
+     * @param  Builder<FormSubmission>  $query
+     * @return Builder<FormSubmission>
+     */
+    public static function parents(Builder $query): Builder
+    {
+        return MonevCycles::whereHasCycles($query)
+            ->whereNull('form_submissions.parent_submission_id')
+            ->whereState('status', Approved::class)
+            ->whereHas('form', fn (Builder $form) => $form->where('form_type_id', '!=', FormType::BIODATA_ID));
+    }
+
     private function row(FormSubmission $parent): MonevBoardRowData
     {
-        $current = collect(MonevCycles::run($parent))
-            ->first(fn (MonevCycleData $cycle): bool => $cycle->state !== MonevCycleState::Done);
+        // Status papan = MonevBoardStatus::forParent; siklusnya dibaca sekali untuk nama sekaligus status.
+        $current = MonevCycles::current($parent);
 
         return new MonevBoardRowData(
             id: $parent->id,

@@ -86,6 +86,13 @@ class MonevCycles implements ChangesNoState
         return $detail->phaseType->name ?? "Tahap {$detail->order}";
     }
 
+    /** W153 — siklus berjalan = siklus pertama yang belum Done; null bila semuanya selesai. */
+    public static function current(FormSubmission $parent): ?MonevCycleData
+    {
+        return collect(self::run($parent))
+            ->first(fn (MonevCycleData $cycle): bool => $cycle->state !== MonevCycleState::Done);
+    }
+
     /** @return list<MonevCycleData> */
     public function handle(FormSubmission $parent): array
     {

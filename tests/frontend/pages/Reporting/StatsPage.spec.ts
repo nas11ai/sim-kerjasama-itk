@@ -33,7 +33,12 @@ vi.mock('@/Components/ui/chart-bar', () => ({
 import FilterSelect from '@/Components/app/FilterSelect.vue'
 import OptionSelect from '@/Components/app/OptionSelect.vue'
 import StatsPage from '@/Pages/Reporting/StatsPage.vue'
-import type { StatisticsOverview, StatisticsTab, StatsPageProps } from '@/types/reporting'
+import type {
+    StatisticsNow,
+    StatisticsOverview,
+    StatisticsTab,
+    StatsPageProps,
+} from '@/types/reporting'
 
 const overview: StatisticsOverview = {
     kpis: [
@@ -73,6 +78,15 @@ const overview: StatisticsOverview = {
     byOutputType: [],
 }
 
+const now: StatisticsNow = {
+    backlog: [
+        { key: 'submitted', label: 'Menunggu Review', count: 3, oldestAgeDays: 12, href: '/s' },
+    ],
+    monev: [{ label: 'Belum Aktif', count: 2, href: '/monev' }],
+    coverage: [{ label: 'Tanpa reviewer', count: 1, href: null }],
+    workload: { rows: [{ label: 'Dr. Sari (Internal)', count: 3, href: null }], idleCount: 2 },
+}
+
 const props = (tab: StatisticsTab = 'overview'): StatsPageProps => ({
     tab,
     tabs: [
@@ -91,6 +105,7 @@ const props = (tab: StatisticsTab = 'overview'): StatsPageProps => ({
     schemeOptions: [{ value: '7', label: 'Penelitian DIPA' }],
     can: { viewSubmissions: true },
     overview: tab === 'overview' ? overview : undefined,
+    now: tab === 'now' ? now : undefined,
 })
 
 const route = (name: string, params?: { tab?: string }) =>
@@ -139,6 +154,21 @@ describe('StatsPage', () => {
             expect(wrapper.text()).toContain(title)
         }
         expect(wrapper.find('a[href="/admin/submissions?year=2026"]').text()).toContain('86')
+    })
+
+    it('tab Saat Ini menampilkan keempat panel W152', () => {
+        const wrapper = mountPage('now')
+
+        for (const title of [
+            'Pengajuan Berjalan',
+            'Siklus Monev',
+            'Cakupan Reviewer',
+            'Beban Reviewer',
+        ]) {
+            expect(wrapper.text()).toContain(title)
+        }
+        expect(wrapper.find('a[href="/s"]').text()).toContain('terlama 12 hari')
+        expect(wrapper.text()).toContain('2 reviewer aktif belum punya tugas evaluasi.')
     })
 
     it('filter hanya yang ada di filterKeys', () => {
