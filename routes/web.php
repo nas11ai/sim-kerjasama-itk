@@ -2,7 +2,6 @@
 
 use App\Http\Controllers\AnnouncementController;
 use App\Http\Controllers\AnnouncementImageController;
-use App\Http\Controllers\Audit\AuditLogController;
 use App\Http\Controllers\Config\ReferenceEntityController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Export\DocumentPrintController;
@@ -26,6 +25,7 @@ use App\Http\Controllers\Monev\MonevReportController;
 use App\Http\Controllers\Notification\NotificationChannelController;
 use App\Http\Controllers\Notification\NotificationController;
 use App\Http\Controllers\PermissionController;
+use App\Http\Controllers\Reporting\AuditController;
 use App\Http\Controllers\Reporting\ExportController;
 use App\Http\Controllers\Reporting\StatisticsController;
 use App\Http\Controllers\ResearchOutput\ResearchOutputController;
@@ -390,6 +390,11 @@ Route::middleware(['auth'])->prefix('reporting')->name('reporting.')->group(func
     Route::get('/export/{export}/download', [ExportController::class, 'download'])
         ->middleware('signed')
         ->name('exports.download');
+    // OPERATOR-07-03 — Audit Log (W155). BR-RPT-05 — satu rute untuk dua pembaca. Yang membedakan
+    // Operator dan peneliti adalah cakupan datanya (AuditScope), bukan rutenya: dua rute yang
+    // menyaring sendiri-sendiri adalah dua aturan yang akan menyimpang. Tidak ada rute hapus atau
+    // sunting — append-only (BR-RPT-04) berarti jalurnya memang tidak dibuat.
+    Route::get('/audit', [AuditController::class, 'index'])->name('audit.index');
 });
 
 // OPERATOR-07-01 — Dashboard Statistik (W148, W156); tab = route, tab tak dikenal 404.
@@ -568,13 +573,6 @@ Route::middleware(['auth'])->group(function () {
 
     Route::post('/review-summaries/{reviewSummary}/resolve', ReviewSummaryResolutionController::class)
         ->name('review-summaries.resolve');
-
-    // BR-RPT-05 — satu rute untuk dua pembaca. Yang membedakan Operator dan
-    // peneliti adalah cakupan datanya (AuditScope), bukan rutenya: dua rute
-    // yang menyaring sendiri-sendiri adalah dua aturan yang akan menyimpang.
-    // Tidak ada rute hapus atau sunting — append-only (BR-RPT-04) berarti
-    // jalurnya memang tidak dibuat.
-    Route::get('/audit-log', [AuditLogController::class, 'index'])->name('audit-log.index');
 
     // BR-NOT-01, BR-NOT-04. "Tandai semua dibaca" (W37) mengikuti activity
     // diagram DDD: yang dilarang BR-NOT-04 adalah menandai saat halaman dibuka,

@@ -361,12 +361,15 @@ it('ekspor audit peneliti ter-scope AuditScope', function () {
     }
     $p001 = FormSubmission::query()->where('submitted_by', $budi->id)->sole();
     $p007 = FormSubmission::query()->where('submitted_by', $sari->id)->sole();
+    // Subjek ditulis lewat judul form (W155); factory memberi semua form judul yang sama.
+    $p001->form->update(['title' => 'Biochar Kaltim']);
+    $p007->form->update(['title' => 'Smart Farming']);
 
     $job = RequestExport::run($budi, exportOf(ExportType::AUDIT_LOG));
     $subjects = array_column(array_slice(exportedSheet($job), 1), 1);
 
-    expect($subjects)->toContain('FormSubmission #'.$p001->id)
-        ->not->toContain('FormSubmission #'.$p007->id)
+    expect($subjects)->toContain('Submission — Biochar Kaltim')
+        ->not->toContain('Submission — Smart Farming')
         ->and(AuditEntry::query()->where('description', 'Ekspor diminta')->count())->toBe(1);
 });
 

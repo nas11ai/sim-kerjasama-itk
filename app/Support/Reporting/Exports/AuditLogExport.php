@@ -5,7 +5,9 @@ namespace App\Support\Reporting\Exports;
 use App\Data\Reporting\ExportFilters;
 use App\Models\AuditEntry;
 use App\Models\User;
+use App\Support\Audit\AuditActorLabel;
 use App\Support\Audit\AuditScope;
+use App\Support\Audit\AuditSubjectLabel;
 use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Builder;
 
@@ -37,15 +39,19 @@ final class AuditLogExport implements ExportDefinition
 
     public function rows(User $user, ExportFilters $filters): array
     {
-        $entries = $this->query($user, $filters)->with('causer')->latest('id')->get();
+        $entries = $this->query($user, $filters)->with([
+            'causer.roles',
+            'subject' => AuditSubjectLabel::eager(...),
+        ])->latest('id')->get();
+        // W155 — label dan aturan kolom IP sama dengan layar Audit Log (UX pattern 07).
+        $seesEverything = $user->can(AuditScope::READ_ALL_PERMISSION);
 
         return array_values($entries->map(fn (AuditEntry $entry): array => [
             $entry->created_at?->format('Y-m-d H:i:s'),
-            // W155 — label subjek, label peran pelaku, dan IP menyusul di R1-4.
-            class_basename($entry->subject_type ?? '').' #'.$entry->subject_id,
+            AuditSubjectLabel::for($entry),
             $entry->description,
-            $entry->causer instanceof User ? $entry->causer->name : 'Sistem',
-            null,
+            AuditActorLabel::for($entry),
+            $seesEverything ? $entry->ip_address : null,
         ])->all());
     }
 

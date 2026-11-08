@@ -179,10 +179,10 @@ it('membuka layar audit bagi Operator dengan cakupan penuh', function () {
     AuditTrail::record('Pengajuan disubmit', auditedSubmission($budi), $budi);
 
     $this->actingAs(auditOperator())
-        ->get(route('audit-log.index'))
+        ->get(route('reporting.audit.index'))
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
-            ->component('Audit/IndexPage')
+            ->component('Reporting/AuditPage')
             ->where('seesEverything', true)
             ->has('entries.data', 1)
         );
@@ -196,7 +196,7 @@ it('membuka layar audit bagi peneliti dengan cakupan miliknya', function () {
     AuditTrail::record('Pengajuan disubmit', auditedSubmission($sari), $sari);
 
     $this->actingAs($budi)
-        ->get(route('audit-log.index'))
+        ->get(route('reporting.audit.index'))
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
             ->where('seesEverything', false)

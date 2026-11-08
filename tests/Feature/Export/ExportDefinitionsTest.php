@@ -18,6 +18,7 @@ use App\States\Submission\Approved;
 use App\Support\Audit\AuditTrail;
 use App\Support\Reporting\ExportType;
 use App\Support\Reporting\SubmissionVisibility;
+use Illuminate\Support\Facades\Context;
 use Spatie\Permission\Models\Permission;
 
 function definitionsOperator(): User
@@ -139,9 +140,21 @@ it('baris Audit Log', function () {
 
     $rows = ExportType::definition(ExportType::AUDIT_LOG)->rows(definitionsOperator(), new ExportFilters(yearFrom: 2026, yearTo: 2026));
 
-    // Terbaru dulu; IP baru tercatat sejak R1-4 (W155).
-    expect($rows[0])->toBe(['2026-03-01 09:15:00', 'FormSubmission #'.$submission->id, 'Ekspor diminta', 'Budi', null])
+    // Terbaru dulu; label subjek dan pelaku sama dengan layar Audit Log (W155).
+    expect($rows[0])->toBe(['2026-03-01 09:15:00', 'Submission — Biochar Kaltim', 'Ekspor diminta', 'Budi', null])
         ->and(array_column($rows, 2))->toBe(['Ekspor diminta', 'Pengajuan disubmit']);
+});
+
+it('Audit Log memuat IP hanya bagi pembaca seluruh sistem', function () {
+    $submission = biocharSubmission();
+    Context::addHidden(AuditTrail::IP_CONTEXT, '10.10.2.14');
+    AuditTrail::record('Ekspor diminta', $submission, $submission->submittedBy);
+    Context::forgetHidden(AuditTrail::IP_CONTEXT);
+    $definition = ExportType::definition(ExportType::AUDIT_LOG);
+
+    // UX pattern 07 — kolom IP hanya untuk Operator/Admin, sama dengan layar (W155).
+    expect($definition->rows(definitionsOperator(), new ExportFilters)[0][4])->toBe('10.10.2.14')
+        ->and($definition->rows($submission->submittedBy, new ExportFilters)[0][4])->toBeNull();
 });
 
 it('Audit Log tanpa pelaku ditulis Sistem', function () {
