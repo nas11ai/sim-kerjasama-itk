@@ -2,8 +2,9 @@ import { mount } from '@vue/test-utils'
 import { defineComponent, h } from 'vue'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-const { post, reload, poll } = vi.hoisted(() => ({
+const { post, reload, poll, toast } = vi.hoisted(() => ({
     post: vi.fn(),
+    toast: vi.fn(),
     reload: vi.fn(),
     poll: { start: vi.fn(), stop: vi.fn() },
 }))
@@ -19,6 +20,7 @@ vi.mock('@inertiajs/vue3', () => ({
     router: { post, reload },
     usePoll: () => poll,
 }))
+vi.mock('@/Components/ui/toast', () => ({ toast }))
 vi.mock('@/Layouts/AppLayout.vue', () => ({
     default: defineComponent({
         setup:
@@ -89,8 +91,29 @@ describe('ExportPage', () => {
         expect(post).toHaveBeenCalledWith(
             '/reporting/export',
             { type: 'submissions', format: 'csv', year_from: 2025, status: 'approved' },
-            { preserveScroll: true }
+            expect.objectContaining({ preserveScroll: true })
         )
+    })
+
+    it('[E2E-02] Coba Lagi yang ditolak validasi memberi tahu lewat toast', async () => {
+        post.mockImplementation(
+            (
+                _url: string,
+                _data: unknown,
+                options: { onError: (e: Record<string, string>) => void }
+            ) => options.onError({ scheme: 'Skema yang dipilih tidak valid.' })
+        )
+
+        await button(
+            mountPage([exportJob({ status: 'failed', download_url: null })]),
+            'Coba Lagi'
+        )?.trigger('click')
+
+        expect(toast).toHaveBeenCalledWith({
+            title: 'Ekspor tidak dapat dijalankan ulang',
+            description: 'Skema yang dipilih tidak valid.',
+            variant: 'destructive',
+        })
     })
 
     it('Minta Tautan Baru memuat ulang riwayat saja', async () => {
