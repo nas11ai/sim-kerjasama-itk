@@ -21,6 +21,11 @@ includes:
 parameters:
     level: 10
 
+    # Mesin dev WSL 8 GB: bawaan phpstan = 1 worker per core (12 × s.d. 1G)
+    # menghabiskan RAM dan membuat WSL crash (2026-11-08). Batasi.
+    parallel:
+        maximumNumberOfProcesses: 2
+
     paths:
         - app
 
