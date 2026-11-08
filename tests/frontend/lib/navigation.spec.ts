@@ -304,3 +304,11 @@ describe('export data (W154)', () => {
         expect(item?.routeName).toBe('reporting.exports.index')
     })
 })
+
+describe('audit log (W155)', () => {
+    it('Audit Log membuka reporting.audit.index', () => {
+        const item = navGroups.flatMap((g) => g.items).find((i) => i.label === 'Audit Log')
+
+        expect(item?.routeName).toBe('reporting.audit.index')
+    })
+})

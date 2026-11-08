@@ -1,6 +1,7 @@
 // Props Dashboard Statistik (OPERATOR-07-01), cermin StatisticsController dan Data PHP di
 // app/Data/View/Reporting. Semua angka, persen, dan tautan dikirim backend.
 import type { KpiCard } from '@/types/dashboard'
+import type { Paginated } from '@/types/pagination'
 import type { FilterOption } from '@/types/submission-page'
 
 export type StatisticsTab = 'overview' | 'now' | 'history' | 'follow-up'
@@ -185,4 +186,36 @@ export interface ExportPageProps {
     maxAttempts: number
     initialType: string | null
     jobs: ExportJobRow[]
+}
+
+// Audit Log (OPERATOR-07-03, W155). Sumber: AuditEntryRowData; nilai bersarang sudah teks.
+export type AuditValue = string | number | boolean | null
+
+export interface AuditEntryRow {
+    id: number
+    createdAt: string
+    subject: string
+    action: string
+    actor: string
+    // null bagi pembaca tanpa cakupan penuh (UX pattern 07) dan entri tanpa request.
+    ipAddress: string | null
+    old: Record<string, AuditValue> | null
+    new: Record<string, AuditValue> | null
+}
+
+// Sumber: AuditFilters. range ∈ 7d|30d|90d|all; actor = peran DDD atau 'system'.
+export type AuditFilters = {
+    search: string
+    range: string
+    action: string
+    actor: string
+}
+
+export interface AuditPageProps {
+    entries: Paginated<AuditEntryRow>
+    filters: AuditFilters
+    actionOptions: FilterOption[]
+    actorOptions: FilterOption[]
+    rangeOptions: FilterOption[]
+    seesEverything: boolean
 }

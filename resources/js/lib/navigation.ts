@@ -200,7 +200,7 @@ export const navGroups: NavGroup[] = [
             {
                 label: 'Audit Log',
                 icon: BookOpen,
-                routeName: 'audit-log.index',
+                routeName: 'reporting.audit.index',
                 anyPermission: ['reporting.view-audit-log'],
             },
         ],
