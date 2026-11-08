@@ -1,15 +1,18 @@
 <script setup lang="ts">
-// Frame: SHARED-02-01..04
+// Frame: SHARED-02-01..04, OPERATOR-07-01 (lima KPI statistik).
 import { Link } from '@inertiajs/vue3'
 
 import { Card, CardContent } from '@/Components/ui/card'
 import type { KpiCard } from '@/types/dashboard'
 
-defineProps<{ cards: KpiCard[] }>()
+withDefaults(defineProps<{ cards: KpiCard[]; columns?: 4 | 5 }>(), { columns: 4 })
+
+// Kelas literal: Tailwind tidak membangkitkan kelas yang disusun saat runtime.
+const XL_COLUMNS = { 4: 'xl:grid-cols-4', 5: 'xl:grid-cols-5' } as const
 </script>
 
 <template>
-    <div class="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+    <div :class="['grid gap-4 sm:grid-cols-2', XL_COLUMNS[columns]]">
         <component
             :is="card.href ? Link : 'div'"
             v-for="card in cards"

@@ -19,7 +19,9 @@ const start = <T extends Record<string, string>>(initial: T) => {
 }
 
 beforeEach(() => {
-    vi.stubGlobal('route', (name: string) => `/${name}`)
+    vi.stubGlobal('route', (name: string, params?: { tab?: string }) =>
+        params?.tab ? `/${name}/${params.tab}` : `/${name}`
+    )
     vi.useFakeTimers()
 })
 
@@ -84,5 +86,18 @@ describe('useFilters', () => {
         vi.advanceTimersByTime(1)
         expect(get).toHaveBeenCalledTimes(1)
         expect(get).toHaveBeenCalledWith('/user.submissions.index', { search: 'biochar' }, options)
+    })
+
+    it('parameter route ikut, jadi filter tetap di tab yang sama', async () => {
+        scope = effectScope()
+        const filters = scope.run(() =>
+            useFilters('reporting.stats', { scheme: '' }, { tab: 'now' })
+        )?.filters
+        if (filters === undefined) throw new Error('scope tidak berjalan')
+
+        filters.scheme = '7'
+        await nextTick()
+
+        expect(get).toHaveBeenCalledWith('/reporting.stats/now', { scheme: '7' }, options)
     })
 })

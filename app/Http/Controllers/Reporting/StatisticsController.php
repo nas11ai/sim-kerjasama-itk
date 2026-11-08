@@ -32,7 +32,7 @@ class StatisticsController extends Controller
             ...StatisticsFilterOptions::run(),
             'can' => ['viewSubmissions' => $viewSubmissions],
             ...match ($active) {
-                StatisticsTab::Overview => StatisticsOverview::run($filters, $viewSubmissions),
+                StatisticsTab::Overview => ['overview' => StatisticsOverview::run($filters, $viewSubmissions)],
                 // R1-2 (Task 5–7) mengisi tab lainnya.
                 StatisticsTab::Now, StatisticsTab::History, StatisticsTab::FollowUp => [],
             },

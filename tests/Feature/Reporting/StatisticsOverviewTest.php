@@ -180,11 +180,11 @@ it('tab Ringkasan mengirim KPI dan keempat panel', function () {
 
     $this->actingAs($operator)->get(route('reporting.stats'))
         ->assertInertia(fn (Assert $page) => $page
-            ->has('kpis', 5)
-            ->has('byStatus', 7)
-            ->has('bySchemeYear.years')
-            ->has('byFaculty')
-            ->has('byStudyProgram')
-            ->has('byOutputType')
-            ->where('kpis.0.href', route('admin.submissions.index', ['year' => now()->year])));
+            ->has('overview.kpis', 5)
+            ->has('overview.byStatus', 7)
+            ->has('overview.bySchemeYear.years')
+            ->has('overview.byFaculty')
+            ->has('overview.byStudyProgram')
+            ->has('overview.byOutputType')
+            ->where('overview.kpis.0.href', route('admin.submissions.index', ['year' => now()->year])));
 });

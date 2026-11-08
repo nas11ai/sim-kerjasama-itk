@@ -1,0 +1,67 @@
+// Props Dashboard Statistik (OPERATOR-07-01), cermin StatisticsController dan Data PHP di
+// app/Data/View/Reporting. Semua angka, persen, dan tautan dikirim backend.
+import type { KpiCard } from '@/types/dashboard'
+import type { FilterOption } from '@/types/submission-page'
+
+export type StatisticsTab = 'overview' | 'now' | 'history' | 'follow-up'
+
+export type StatisticsFilterKey = 'year' | 'period' | 'scheme'
+
+export interface StatisticsTabLink {
+    value: StatisticsTab
+    label: string
+    href: string
+}
+
+// Sumber: StatisticsFilters. year null = semua tahun.
+export interface StatisticsFilters {
+    year: number | null
+    period: number | null
+    scheme: number | null
+}
+
+// Sumber: StatusShareData. `share` 0–1; href null tanpa submissions.view-all.
+export interface StatusShare {
+    key: string
+    label: string
+    variant: string
+    count: number
+    share: number
+    href: string | null
+}
+
+// Sumber: RankedCountData.
+export interface RankedCount {
+    label: string
+    count: number
+    href: string | null
+}
+
+// Sumber: SchemeYearData. `counts` dikunci tahun.
+export interface SchemeYearChart {
+    years: number[]
+    rows: { scheme: string; counts: Record<string, number> }[]
+}
+
+// Sumber: StatisticsOverview (tab Ringkasan).
+export interface StatisticsOverview {
+    kpis: KpiCard[]
+    byStatus: StatusShare[]
+    bySchemeYear: SchemeYearChart
+    byFaculty: RankedCount[]
+    byStudyProgram: RankedCount[]
+    byOutputType: RankedCount[]
+}
+
+export interface StatsPageProps {
+    tab: StatisticsTab
+    tabs: StatisticsTabLink[]
+    filters: StatisticsFilters
+    filterKeys: StatisticsFilterKey[]
+    yearOptions: FilterOption[]
+    periodOptions: FilterOption[]
+    schemeOptions: FilterOption[]
+    can: { viewSubmissions: boolean }
+    // Hanya tab aktif yang dikirim (W156).
+    overview?: StatisticsOverview
+}
