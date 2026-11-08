@@ -49,11 +49,7 @@ const refreshLinks = () => router.reload({ only: ['jobs'] })
         />
         <div class="flex flex-col gap-6">
             <ExportRequestCard
-                :types="types"
-                :formats="formats"
-                :scheme-options="schemeOptions"
-                :status-options="statusOptions"
-                :year-options="yearOptions"
+                v-bind="options"
                 :threshold="threshold"
                 :initial-type="initialType"
             />

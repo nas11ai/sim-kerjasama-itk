@@ -177,7 +177,9 @@ export interface ExportFormOptions {
     yearOptions: FilterOption[]
 }
 
-export interface ExportPageProps extends ExportFormOptions {
+// Pilihan formulir satu prop lazy: polling `only: ['jobs']` tidak menghitungnya (E2E-03).
+export interface ExportPageProps {
+    options: ExportFormOptions
     threshold: number
     retentionHours: number
     maxAttempts: number

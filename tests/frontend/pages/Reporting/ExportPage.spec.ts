@@ -44,11 +44,7 @@ vi.stubGlobal('route', route)
 
 const mountPage = (jobs: ExportJobRow[]) => {
     const props: ExportPageProps = {
-        types: [],
-        formats: [],
-        schemeOptions: [],
-        statusOptions: [],
-        yearOptions: [],
+        options: { types: [], formats: [], schemeOptions: [], statusOptions: [], yearOptions: [] },
         threshold: 100,
         retentionHours: 24,
         maxAttempts: 3,

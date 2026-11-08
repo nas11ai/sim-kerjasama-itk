@@ -36,10 +36,10 @@ class ExportController extends Controller
 
         $type = $request->string('type')->value();
 
-        // OPERATOR-07-02. Partial reload `only: ['jobs']` (polling, Minta Tautan Baru) hanya
-        // menghitung ulang riwayat; pilihan formulir tidak disentuh.
+        // OPERATOR-07-02. Pilihan formulir dan riwayat berupa closure, jadi partial reload
+        // `only: ['jobs']` (polling, Minta Tautan Baru) tidak menjalankan kueri pilihan (E2E-03).
         return Inertia::render('Reporting/ExportPage', [
-            ...ExportFormOptions::run(),
+            'options' => fn () => ExportFormOptions::run(),
             'threshold' => ExportThreshold::SYNCHRONOUS_ROWS,
             'retentionHours' => ExportRetention::HOURS,
             'maxAttempts' => (new GenerateExport(0))->tries,
