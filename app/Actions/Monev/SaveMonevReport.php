@@ -49,7 +49,13 @@ class SaveMonevReport
             OptimisticLock::assertNotStale($report, $input->lastUpdatedAt);
 
             // Layar memuat ulang jawaban tersimpan, jadi kosong berarti dikosongkan.
-            FieldAnswerWriter::overwrite($report, $input->answers, $input->uploads, self::UPLOAD_DIRECTORY);
+            $changed = FieldAnswerWriter::overwrite($report, $input->answers, $input->uploads, self::UPLOAD_DIRECTORY);
+
+            // W161, BR-FE-14 — hanya jawaban yang berubah menggeser cap kunci, sama dengan
+            // SaveSubmissionDraft: tab lain yang membawa cap lama ditolak 409.
+            if ($changed) {
+                $report->touch();
+            }
 
             // BR-RPT-09 — satu Action, satu entri audit.
             AuditTrail::record('Draft laporan monev disimpan', $report, $user);

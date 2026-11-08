@@ -110,6 +110,35 @@ it('simpan draft dengan cap waktu basi ditolak 409', function () {
         ->assertStatus(409);
 });
 
+it('[FE-LOCK-02] simpanan laporan kedua dari cap yang sama ditolak 409', function () {
+    // W161 — simpanan pertama sendiri yang harus menggeser cap kunci.
+    $cap = monevReportPayload($this->report, $this->fx['summary']->id, 'Versi tab A');
+    $this->travel(1)->seconds();
+
+    $this->actingAs($this->fx['owner'])
+        ->post(route('monev.reports.save', $this->report), $cap)
+        ->assertSessionHasNoErrors();
+    $this->actingAs($this->fx['owner'])
+        ->post(route('monev.reports.save', $this->report), [...$cap, 'responses' => [['form_field_id' => $this->fx['summary']->id, 'value' => 'Versi tab B']]])
+        ->assertStatus(409);
+
+    expect($this->report->formFieldResponses()->where('form_field_id', $this->fx['summary']->id)->value('value'))
+        ->toBe('Versi tab A');
+});
+
+it('simpanan laporan tanpa perubahan jawaban tidak menggeser cap kunci', function () {
+    $payload = monevReportPayload($this->report, $this->fx['summary']->id, 'Capaian 45%');
+    $this->actingAs($this->fx['owner'])->post(route('monev.reports.save', $this->report), $payload);
+    $cap = $this->report->fresh()->updated_at?->toISOString();
+    $this->travel(1)->seconds();
+
+    $this->actingAs($this->fx['owner'])
+        ->post(route('monev.reports.save', $this->report), [...$payload, 'last_updated_at' => $cap])
+        ->assertSessionHasNoErrors();
+
+    expect($this->report->fresh()->updated_at?->toISOString())->toBe($cap);
+});
+
 it('submit laporan lengkap memindah ke SUBMITTED tanpa ProposalSubmitted', function () {
     Event::fake([ProposalSubmitted::class]);
 
