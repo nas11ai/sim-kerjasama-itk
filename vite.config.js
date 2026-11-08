@@ -32,5 +32,10 @@ export default defineConfig({
         hmr: {
             host: 'localhost',
         },
+        // Watcher bawaan mencakup seluruh root; worktree agen (salinan repo + vendor)
+        // dan vendor/storage ikut dipantau dan memakan RAM/CPU WSL (2026-11-08).
+        watch: {
+            ignored: ['**/.claude/**', '**/vendor/**', '**/storage/**', '**/tests/**'],
+        },
     },
 })
