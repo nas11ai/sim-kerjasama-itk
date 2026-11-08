@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\ErrorPage;
 use App\Http\Middleware\CaptureAuditIp;
 use App\Http\Middleware\CheckRole;
 use App\Http\Middleware\EnsureAccountActive;
@@ -35,5 +36,6 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {
-        //
+        // W163 — halaman error di shell v2, bukan halaman bawaan Laravel.
+        $exceptions->respond(ErrorPage::respond(...));
     })->create();

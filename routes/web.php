@@ -509,3 +509,7 @@ Route::middleware(['auth', 'can:schemes.manage'])->prefix('admin/reference')->na
     Route::delete('/{entity}/{id}', [ReferenceEntityController::class, 'destroy'])->name('destroy');
     Route::post('/{entity}/{id}/toggle', [ReferenceEntityController::class, 'toggle'])->name('toggle');
 });
+
+// W163 — URL tak dikenal melewati middleware `web` supaya halaman 404 tahu siapa yang
+// masuk (shell aplikasi vs. halaman tamu).
+Route::fallback(fn () => abort(404));

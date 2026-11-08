@@ -70,7 +70,8 @@ it('no longer changes state through GET on the markRead URL', function () {
 
     $this->actingAs($user)
         ->get(route('user.announcements.markRead', $announcement))
-        ->assertStatus(405);
+        // W163 — route fallback GET menjawab lebih dulu daripada 405 milik router.
+        ->assertNotFound();
 
     $this->assertDatabaseMissing('announcement_users', ['announcement_id' => $announcement->id]);
 });

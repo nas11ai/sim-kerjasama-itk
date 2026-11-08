@@ -1,7 +1,13 @@
 <script setup lang="ts">
+import { Toaster } from '@/Components/ui/toast'
+import { useFlashToasts } from '@/composables/useFlashToasts'
+
 // `aside`: panel di samping kartu (pengumuman publik di halaman login, W6).
 // `wide`: kartu lebih lebar untuk bacaan panjang (pengumuman yang dibuka tamu).
 defineProps<{ wide?: boolean }>()
+
+// W163 — form tamu (login, daftar) juga bisa kena 419; toast "Sesi kedaluwarsa" harus tampil.
+useFlashToasts()
 </script>
 
 <template>
@@ -22,5 +28,6 @@ defineProps<{ wide?: boolean }>()
             </div>
             <slot name="aside" />
         </div>
+        <Toaster />
     </div>
 </template>

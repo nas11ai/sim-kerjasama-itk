@@ -14,6 +14,7 @@ vi.mock('@inertiajs/vue3', () => ({
                 h('a', { href: props.href }, slots.default?.()),
     }),
 }))
+vi.mock('@/composables/useFlashToasts', () => ({ useFlashToasts: vi.fn() }))
 
 import LoginPage from '@/Pages/Auth/LoginPage.vue'
 import type { AnnouncementSummary } from '@/types/announcement'
