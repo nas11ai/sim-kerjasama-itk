@@ -21,10 +21,12 @@ use App\Models\ReviewSummary;
 use App\Models\SubmissionReviewer;
 use App\Models\User;
 use App\States\Submission\Approved;
+use App\States\Submission\Draft;
 use App\States\Submission\NeedsRevision;
 use App\States\Submission\Rejected;
 use App\States\Submission\Submitted;
 use App\States\Submission\UnderReview;
+use App\States\Submission\Withdrawn;
 
 function outcomeSubmission(string $state = UnderReview::class, bool $needsReview = true): FormSubmission
 {
@@ -69,6 +71,23 @@ it('[REV-OUTCOME-01] semua selesai tanpa summary terbuka menjadi APPROVED', func
 
     expect($submission->fresh()->status)->toBeInstanceOf(Approved::class);
 });
+
+// Pemicunya kini juga evaluasi yang masuk (ADR 0006), yang bisa terjadi di status mana pun
+// tempat reviewer masih bertugas. Hanya status yang menunggu keputusan yang boleh diputuskan.
+it('status yang tidak menunggu keputusan review dibiarkan', function (string $state) {
+    $submission = outcomeSubmission($state);
+    reviewerOn($submission, 'completed');
+
+    EvaluateSubmissionOutcome::run($submission);
+
+    expect($submission->fresh()->status)->toBeInstanceOf($state);
+})->with([
+    'Draft' => Draft::class,
+    'NeedsRevision' => NeedsRevision::class,
+    'Approved' => Approved::class,
+    'Rejected' => Rejected::class,
+    'Withdrawn' => Withdrawn::class,
+]);
 
 it('[REV-OUTCOME-02] satu evaluasi belum selesai menahan transisi', function () {
     $submission = outcomeSubmission();

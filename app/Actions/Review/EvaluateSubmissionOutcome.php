@@ -6,7 +6,9 @@ use App\Models\FormSubmission;
 use App\Models\SubmissionReviewer;
 use App\States\Submission\Approved;
 use App\States\Submission\NeedsRevision;
+use App\States\Submission\Resubmitted;
 use App\States\Submission\SubmissionStatus;
+use App\States\Submission\Submitted;
 use App\States\Submission\UnderReview;
 use App\Support\Audit\AuditTrail;
 use Lorisleiva\Actions\Concerns\AsAction;
@@ -21,6 +23,9 @@ class EvaluateSubmissionOutcome
 {
     use AsAction;
 
+    /** Status yang punya jalur ke UNDER_REVIEW, tempat APPROVED/NEEDS_REVISION diputuskan. */
+    private const AWAITING_DECISION = [Submitted::class, UnderReview::class, Resubmitted::class];
+
     public function handle(FormSubmission $submission): FormSubmission
     {
         $status = $submission->status;
@@ -29,6 +34,12 @@ class EvaluateSubmissionOutcome
             throw new RuntimeException(
                 "FormSubmission {$submission->id} tidak punya status — hasil review tidak bisa dievaluasi."
             );
+        }
+
+        // Hanya status yang menunggu keputusan yang bisa diputuskan; pemicunya (evaluasi masuk,
+        // ulir ditutup) bisa datang di status lain, mis. pengganti mengevaluasi saat NEEDS_REVISION.
+        if (!$status->equals(...self::AWAITING_DECISION)) {
+            return $submission;
         }
 
         // Arti "selesai" dipegang `SubmissionReviewer::SETTLED_EVALUATION` — satu kosakata,

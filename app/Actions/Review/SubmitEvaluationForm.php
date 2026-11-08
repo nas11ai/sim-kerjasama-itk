@@ -28,9 +28,14 @@ class SubmitEvaluationForm
         ]);
 
         // BR-REV-05 — satu definisi hitung ulang, dipakai seluruh pemicu.
-        RecalculateEvaluationStatus::run($response->reviewerFormAssignment->submissionReviewer);
+        $seat = $response->reviewerFormAssignment->submissionReviewer;
+        RecalculateEvaluationStatus::run($seat);
 
         AuditTrail::record('Evaluasi disubmit', $response);
+
+        // BR-REV-05/06, ADR 0006 — evaluasi yang masuk memicu evaluasi ulang hasil review, sama
+        // dengan menutup ulir (ResolveReviewSummary): tanpa ulir, tak ada pemicu lain.
+        EvaluateSubmissionOutcome::run($seat->formSubmission);
 
         return true;
     }
