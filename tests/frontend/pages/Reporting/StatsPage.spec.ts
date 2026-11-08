@@ -34,6 +34,7 @@ import FilterSelect from '@/Components/app/FilterSelect.vue'
 import OptionSelect from '@/Components/app/OptionSelect.vue'
 import StatsPage from '@/Pages/Reporting/StatsPage.vue'
 import type {
+    FollowUpList,
     StatisticsHistory,
     StatisticsNow,
     StatisticsOverview,
@@ -105,6 +106,25 @@ const history: StatisticsHistory = {
     ],
 }
 
+const followUp: FollowUpList[] = [
+    {
+        key: 'awaitingReviewer',
+        title: 'Menunggu Penugasan Reviewer',
+        hint: 'Tugaskan reviewer dari detail pengajuan.',
+        count: 1,
+        items: [{ id: 4, title: 'Sensor', leader: 'Budi', scheme: null, ageDays: 3, href: '/a/4' }],
+        href: null,
+    },
+    {
+        key: 'approvedWithoutOutput',
+        title: 'Disetujui tanpa Luaran',
+        hint: 'Ingatkan tim untuk mendaftarkan luaran.',
+        count: 0,
+        items: [],
+        href: null,
+    },
+]
+
 const props = (tab: StatisticsTab = 'overview'): StatsPageProps => ({
     tab,
     tabs: [
@@ -125,6 +145,7 @@ const props = (tab: StatisticsTab = 'overview'): StatsPageProps => ({
     overview: tab === 'overview' ? overview : undefined,
     now: tab === 'now' ? now : undefined,
     history: tab === 'history' ? history : undefined,
+    followUp: tab === 'follow-up' ? followUp : undefined,
 })
 
 const route = (name: string, params?: { tab?: string }) =>
@@ -197,6 +218,14 @@ describe('StatsPage', () => {
         expect(wrapper.text()).toContain('Luaran Terdaftar per Bulan')
         expect(wrapper.findAll('[data-testid="bar-chart"]')).toHaveLength(1)
         expect(wrapper.find('a[href="/scheme"]').text()).toBe('DIPA')
+    })
+
+    it('tab Tindak Lanjut menampilkan kartu per daftar', () => {
+        const wrapper = mountPage('follow-up')
+
+        expect(wrapper.text()).toContain('Menunggu Penugasan Reviewer')
+        expect(wrapper.find('a[href="/a/4"]').text()).toContain('3 hari sejak submit')
+        expect(wrapper.text()).toContain('Tidak ada yang menunggu.')
     })
 
     it('filter hanya yang ada di filterKeys', () => {

@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Reporting;
 use App\Data\Reporting\StatisticsFilters;
 use App\Enums\StatisticsTab;
 use App\Http\Controllers\Controller;
+use App\Queries\Reporting\FollowUpLists;
 use App\Queries\Reporting\MonevStatusCounts;
 use App\Queries\Reporting\MonthlyTrend;
 use App\Queries\Reporting\ReviewerCoverage;
@@ -49,8 +50,7 @@ class StatisticsController extends Controller
                     ...MonthlyTrend::run($filters),
                     'schemes' => SchemePerformance::run($filters, $viewSubmissions),
                 ]],
-                // R1-2 (Task 7) mengisi tab Tindak Lanjut.
-                StatisticsTab::FollowUp => [],
+                StatisticsTab::FollowUp => ['followUp' => FollowUpLists::run($filters, $viewSubmissions)],
             },
         ]);
     }

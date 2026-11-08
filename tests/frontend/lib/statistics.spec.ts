@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { formatAge, formatShare } from '@/lib/statistics'
+import { formatAge, formatShare, formatSinceSubmit } from '@/lib/statistics'
 
 describe('formatShare', () => {
     it('membulatkan pangsa ke persen utuh', () => {
@@ -21,5 +21,12 @@ describe('formatAge', () => {
     it('umur lain ditulis dalam hari', () => {
         expect(formatAge(1)).toBe('1 hari')
         expect(formatAge(12)).toBe('12 hari')
+    })
+})
+
+describe('formatSinceSubmit', () => {
+    it('umur item tindak lanjut sejak submit', () => {
+        expect(formatSinceSubmit(12)).toBe('12 hari sejak submit')
+        expect(formatSinceSubmit(0)).toBe('disubmit hari ini')
     })
 })

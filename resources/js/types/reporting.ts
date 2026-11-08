@@ -101,6 +101,26 @@ export interface StatisticsHistory {
     schemes: SchemePerformance[]
 }
 
+// Sumber: FollowUpItemData.
+export interface FollowUpItem {
+    id: number
+    title: string
+    leader: string
+    scheme: string | null
+    ageDays: number
+    href: string
+}
+
+// Sumber: FollowUpListData. items [] dan href null tanpa submissions.view-all (W148).
+export interface FollowUpList {
+    key: 'awaitingReviewer' | 'awaitingRevision' | 'approvedWithoutOutput'
+    title: string
+    hint: string
+    count: number
+    items: FollowUpItem[]
+    href: string | null
+}
+
 export interface StatsPageProps {
     tab: StatisticsTab
     tabs: StatisticsTabLink[]
@@ -114,4 +134,5 @@ export interface StatsPageProps {
     overview?: StatisticsOverview
     now?: StatisticsNow
     history?: StatisticsHistory
+    followUp?: FollowUpList[]
 }

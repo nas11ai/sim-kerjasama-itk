@@ -12,7 +12,6 @@ use App\States\Submission\Resubmitted;
 use App\States\Submission\SubmissionStatus;
 use App\States\Submission\Submitted;
 use App\States\Submission\UnderReview;
-use Carbon\CarbonImmutable;
 use Illuminate\Support\Facades\DB;
 use Lorisleiva\Actions\Concerns\AsAction;
 
@@ -48,7 +47,7 @@ class StageBacklog implements ChangesNoState
                 key: $state->key(),
                 label: $state->label(),
                 count: $count,
-                oldestAgeDays: $oldest === null ? null : (int) floor(CarbonImmutable::parse($oldest)->diffInDays(now())),
+                oldestAgeDays: $oldest === null ? null : FirstSubmitAt::ageDays($oldest),
                 href: $withLinks ? route('admin.submissions.index', ['status' => $state->key(), ...$filters->withoutYear()->query()]) : null,
             );
         }, self::RUNNING);

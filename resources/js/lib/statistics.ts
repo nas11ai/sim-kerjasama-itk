@@ -8,3 +8,8 @@ export function formatShare(share: number): string {
 export function formatAge(days: number): string {
     return days === 0 ? 'hari ini' : `${days} hari`
 }
+
+// Umur item Tindak Lanjut (W152): "12 hari sejak submit" / "disubmit hari ini".
+export function formatSinceSubmit(days: number): string {
+    return days === 0 ? 'disubmit hari ini' : `${formatAge(days)} sejak submit`
+}

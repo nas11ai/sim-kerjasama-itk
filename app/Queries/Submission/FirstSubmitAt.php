@@ -6,6 +6,7 @@ use App\Actions\Concerns\ChangesNoState;
 use App\Actions\FormSubmission\SubmitFormSubmission;
 use App\Models\AuditEntry;
 use App\Models\FormSubmission;
+use Carbon\CarbonImmutable;
 use Illuminate\Database\Eloquent\Builder;
 
 /**
@@ -24,6 +25,12 @@ final class FirstSubmitAt implements ChangesNoState
         return self::entries($description)
             ->selectRaw('min(created_at)')
             ->whereColumn('subject_id', 'form_submissions.id');
+    }
+
+    /** W152 — umur sebagai hari penuh sejak submit pertama (statistik Saat Ini dan Tindak Lanjut). */
+    public static function ageDays(string $firstSubmitAt): int
+    {
+        return (int) floor(CarbonImmutable::parse($firstSubmitAt)->diffInDays(now()));
     }
 
     /**
