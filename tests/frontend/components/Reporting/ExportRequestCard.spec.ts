@@ -61,14 +61,25 @@ const labels = (wrapper: ReturnType<typeof mountCard>) =>
 describe('ExportRequestCard', () => {
     it('field Skema dan Status hanya untuk jenis yang menerimanya', () => {
         expect(labels(mountCard(null))).toEqual(
-            expect.arrayContaining(['Jenis Export *', 'Rentang Tahun', 'Skema', 'Status'])
+            expect.arrayContaining(['Jenis Export *', 'Skema', 'Status'])
         )
 
         const audit = labels(mountCard('audit-log'))
 
-        expect(audit).toEqual(expect.arrayContaining(['Jenis Export *', 'Rentang Tahun']))
+        expect(audit).toEqual(expect.arrayContaining(['Jenis Export *']))
         expect(audit).not.toContain('Skema')
         expect(audit).not.toContain('Status')
+    })
+
+    it('[E2E-05] Rentang Tahun mengelompokkan kedua select tahun lewat fieldset', () => {
+        const fieldset = mountCard(null).find('fieldset')
+
+        expect(fieldset.find('legend').text()).toBe('Rentang Tahun')
+        expect(fieldset.findAll('[aria-label]').map((el) => el.attributes('aria-label'))).toEqual([
+            'Dari tahun',
+            'Sampai tahun',
+        ])
+        expect(mountCard(null).find('label[for="export-years"]').exists()).toBe(false)
     })
 
     it('hint ambang berasal dari threshold', () => {

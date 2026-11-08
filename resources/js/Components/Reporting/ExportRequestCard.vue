@@ -26,6 +26,7 @@ const keys = computed<ExportFilterKey[]>(
     () => props.types.find((t) => t.value === form.type)?.filterKeys ?? []
 )
 const accepts = (key: ExportFilterKey) => keys.value.includes(key)
+const yearError = computed(() => form.errors.year_to ?? form.errors.year_from)
 const filterOf: Record<string, ExportFilterKey> = {
     year_from: 'year',
     year_to: 'year',
@@ -68,11 +69,12 @@ const submit = () =>
                         />
                     </template>
                 </FormField>
-                <FormField
-                    id="export-years"
-                    label="Rentang Tahun"
-                    :error="form.errors.year_to ?? form.errors.year_from"
+                <!-- E2E-05 — dua select satu kelompok: legend memberi nama kelompok, aria-label tiap select. -->
+                <fieldset
+                    class="space-y-1.5"
+                    :aria-describedby="yearError ? 'export-years-error' : undefined"
                 >
+                    <legend class="mb-1.5 text-sm font-medium leading-none">Rentang Tahun</legend>
                     <div class="flex items-center gap-2">
                         <FilterSelect
                             v-model="form.year_from"
@@ -88,7 +90,10 @@ const submit = () =>
                             label="Sampai tahun"
                         />
                     </div>
-                </FormField>
+                    <p v-if="yearError" id="export-years-error" class="text-xs text-destructive">
+                        {{ yearError }}
+                    </p>
+                </fieldset>
                 <FormField
                     v-if="accepts('scheme')"
                     id="export-scheme"
