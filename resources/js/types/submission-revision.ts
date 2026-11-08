@@ -30,7 +30,10 @@ export interface ReviewComment {
 // Sumber: ReviewThreadData. `reviewer` adalah penulis asli ulir.
 export interface ReviewThread {
     id: number
+    // Penulis asli ulir (BR-REV-15).
     reviewer: string
+    // Pemegang sekarang bila ulir diwarisi reviewer pengganti; null bila tidak.
+    inheritedBy: string | null
     isOpen: boolean
     notes: string | null
     at: string | null

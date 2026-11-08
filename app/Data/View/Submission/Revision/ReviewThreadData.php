@@ -9,8 +9,8 @@ use Illuminate\Database\Eloquent\Collection;
 use Spatie\LaravelData\Data;
 
 /**
- * Satu ulir reviewer untuk peneliti. `reviewer` adalah penulis asli ulir, bukan reviewer aktif:
- * ulir tetap milik penulisnya meski ia sudah diganti (BR-REV-15).
+ * Satu ulir reviewer. `reviewer` adalah penulis asli ulir; `inheritedBy` adalah pemegangnya
+ * sekarang bila ulir diwarisi reviewer pengganti (BR-REV-15), selain itu null.
  */
 final class ReviewThreadData extends Data
 {
@@ -21,6 +21,7 @@ final class ReviewThreadData extends Data
     public function __construct(
         public int $id,
         public string $reviewer,
+        public ?string $inheritedBy,
         public bool $isOpen,
         public ?string $notes,
         public ?string $at,
@@ -47,8 +48,11 @@ final class ReviewThreadData extends Data
     {
         return new self(
             id: $summary->id,
-            // BR-REV-15 — penulis asli, meski penugasannya sudah diganti.
-            reviewer: $summary->reviewer?->user->name ?? 'Reviewer',
+            // BR-REV-15 — penulis asli tetap; pemegang yang berhak me-resolve bisa berpindah.
+            reviewer: $summary->author->user->name ?? 'Reviewer',
+            inheritedBy: $summary->reviewer_id === $summary->author_reviewer_id
+                ? null
+                : ($summary->reviewer?->user->name ?? 'Reviewer'),
             isOpen: $summary->status === 'open',
             notes: $summary->summary_notes,
             at: $summary->created_at?->toIso8601String(),

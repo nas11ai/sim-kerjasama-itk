@@ -3,12 +3,12 @@
 // Kontrak RESEARCHER-02-05 (fe-v2-design §4.5): halaman revisi membaca ulir reviewer, hak balas
 // (BR-REV-06), hak kirim ulang (BR-SM-03/04), dan field wajib yang masih kosong (BR-SM-02).
 
+use App\Actions\Review\ReplaceReviewer;
 use App\Models\FieldType;
 use App\Models\FormField;
 use App\Models\ResearchMember;
 use App\Models\Reviewer;
 use App\Models\ReviewSummary;
-use App\Models\SubmissionReviewer;
 use App\Models\User;
 use App\Models\UserProfile;
 use App\States\Submission\NeedsRevision;
@@ -49,19 +49,26 @@ it('[REV-DISCUSS-02] balasan ketua tampil di ulir yang sama', function () {
             ->where('threads.0.comments.0.author', $owner->name));
 });
 
-it('[REV-DISCUSS-06] penulis ulir tetap reviewer asli setelah diganti', function () {
-    [$owner, , $submission] = threadAuthorFixture(NeedsRevision::class);
-    SubmissionReviewer::query()->where('form_submission_id', $submission->id)->update(['status' => 'replaced']);
-    SubmissionReviewer::create([
-        'form_submission_id' => $submission->id,
-        'reviewer_id' => Reviewer::factory()->create(['user_id' => User::factory()->create(['name' => 'Pengganti'])->id])->id,
-        'evaluation_status' => 'pending',
-        'status' => 'active',
+it('[REV-DISCUSS-06] pengganti me-resolve ulir warisan; peneliti tetap membaca penulis asli', function () {
+    [$owner, $author, $submission] = threadAuthorFixture(NeedsRevision::class);
+    $incomingUser = User::factory()->create(['name' => 'Pengganti']);
+    $incoming = Reviewer::factory()->create([
+        'user_id' => $incomingUser->id,
+        'start_date' => now()->subMonth(),
+        'end_date' => now()->addMonth(),
     ]);
+    ReplaceReviewer::run($submission, Reviewer::query()->where('user_id', $author->id)->sole(), $incoming, null);
+
+    $this->actingAs($incomingUser)
+        ->post(route('review-summaries.resolve', ReviewSummary::query()->where('form_submission_id', $submission->id)->sole()))
+        ->assertRedirect();
 
     $this->actingAs($owner)
         ->get(route('user.submissions.revision', $submission))
-        ->assertInertia(fn (Assert $page) => $page->where('threads.0.reviewer', 'Penilai Ulir'));
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('threads.0.isOpen', false)
+            ->where('threads.0.reviewer', 'Penilai Ulir')
+            ->where('threads.0.inheritedBy', 'Pengganti'));
 });
 
 it('co-investigator membaca tanpa hak balas dan kirim ulang', function () {

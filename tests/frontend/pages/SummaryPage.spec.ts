@@ -42,6 +42,7 @@ const baseProps: SummaryPageProps = {
         {
             id: 11,
             reviewer: 'Sari',
+            inheritedBy: null,
             isOpen: true,
             notes: 'Perkuat metodologi.',
             at: null,

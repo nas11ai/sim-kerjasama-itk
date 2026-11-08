@@ -17,6 +17,7 @@ import type { ReviewThread } from '@/types/submission-revision'
 const thread: ReviewThread = {
     id: 11,
     reviewer: 'Penilai Ulir',
+    inheritedBy: null,
     isOpen: true,
     notes: '<b>Perbaiki</b> metodologi.',
     at: '2026-10-01T08:00:00+08:00',
@@ -42,9 +43,9 @@ const thread: ReviewThread = {
     ],
 }
 
-const mountCard = (canReply = true, canResolve = false) =>
+const mountCard = (canReply = true, canResolve = false, overrides: Partial<ReviewThread> = {}) =>
     mount(ReviewThreadCard, {
-        props: { thread, canReply, canResolve },
+        props: { thread: { ...thread, ...overrides }, canReply, canResolve },
         global: { stubs: { teleport: true } },
     })
 
@@ -55,6 +56,19 @@ beforeEach(() => {
 })
 
 describe('ReviewThreadCard', () => {
+    it('[REV-DISCUSS-06] judul ulir warisan memuat penulis asli dan pewarisnya', () => {
+        const wrapper = mountCard(false, true, { reviewer: 'Sari', inheritedBy: 'Andi' })
+
+        expect(wrapper.text()).toContain('Sari · diwarisi Andi')
+    })
+
+    it('judul ulir yang tidak diwarisi hanya nama penulis', () => {
+        const wrapper = mountCard(false, false, { reviewer: 'Sari', inheritedBy: null })
+
+        expect(wrapper.text()).toContain('Sari')
+        expect(wrapper.text()).not.toContain('diwarisi')
+    })
+
     it('[REV-DISCUSS-02] ketua membalas lewat review-comments.store', async () => {
         const wrapper = mountCard()
 

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { router, useForm } from '@inertiajs/vue3'
 import { Check } from 'lucide-vue-next'
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 
 import AppBanner from '@/Components/app/AppBanner.vue'
 import ConfirmDialog from '@/Components/app/ConfirmDialog.vue'
@@ -29,6 +29,13 @@ const reply = () =>
         onSuccess: () => form.reset(),
     })
 
+// BR-REV-15 — pengganti perlu tahu kenapa ia berhak me-resolve ulir orang lain.
+const title = computed(() =>
+    props.thread.inheritedBy
+        ? `${props.thread.reviewer} · diwarisi ${props.thread.inheritedBy}`
+        : props.thread.reviewer
+)
+
 const confirming = ref(false)
 const resolving = ref(false)
 
@@ -48,7 +55,7 @@ const resolve = () =>
 </script>
 
 <template>
-    <SectionCard :title="thread.reviewer" :description="formatDate(thread.at)">
+    <SectionCard :title="title" :description="formatDate(thread.at)">
         <template #actions>
             <Button
                 v-if="canResolve && thread.isOpen"

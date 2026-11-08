@@ -18,6 +18,7 @@ use App\Models\ReviewSummary;
 use App\Models\SubmissionReviewer;
 use App\Models\User;
 use App\States\Submission\UnderReview;
+use Illuminate\Database\QueryException;
 use Illuminate\Validation\ValidationException;
 
 /** @return array{0: FormSubmission, 1: Reviewer, 2: SubmissionReviewer} */
@@ -117,6 +118,54 @@ it('[REV-DISCUSS-06] ulir yang sudah resolved tidak ikut dialihkan', function ()
     // Yang sudah ditutup tidak menuntut siapa pun — mengalihkannya justru
     // mengaburkan siapa yang dulu menutupnya.
     expect($done->fresh()->reviewer_id)->toBe($outgoing->id);
+});
+
+it('[REV-DISCUSS-06] penggantian tidak pernah mengubah penulis ulir', function () {
+    [$submission, $outgoing] = replaceFixture();
+    $open = ReviewSummary::create([
+        'form_submission_id' => $submission->id,
+        'reviewer_id' => $outgoing->id,
+        'status' => 'open',
+        'summary_notes' => 'Masih terbuka.',
+    ]);
+    $resolved = ReviewSummary::create([
+        'form_submission_id' => $submission->id,
+        'reviewer_id' => $outgoing->id,
+        'status' => 'resolved',
+        'summary_notes' => 'Sudah selesai.',
+    ]);
+
+    ReplaceReviewer::run($submission, $outgoing, incomingReviewer(), null);
+
+    expect($open->fresh()?->author_reviewer_id)->toBe($outgoing->id)
+        ->and($resolved->fresh()?->author_reviewer_id)->toBe($outgoing->id);
+});
+
+it('penulis ulir tidak bisa dipasang lewat mass assignment', function () {
+    [$submission, $outgoing] = replaceFixture();
+
+    $summary = ReviewSummary::create([
+        'form_submission_id' => $submission->id,
+        'reviewer_id' => $outgoing->id,
+        'author_reviewer_id' => incomingReviewer()->id,
+        'status' => 'open',
+        'summary_notes' => 'Catatan.',
+    ]);
+
+    expect($summary->fresh()?->author_reviewer_id)->toBe($outgoing->id);
+});
+
+it('reviewer yang menulis ulir warisan tidak bisa dihapus dari basis data', function () {
+    [$submission, $outgoing] = replaceFixture();
+    ReviewSummary::create([
+        'form_submission_id' => $submission->id,
+        'reviewer_id' => $outgoing->id,
+        'status' => 'open',
+        'summary_notes' => 'Diwarisi.',
+    ]);
+    ReplaceReviewer::run($submission, $outgoing, incomingReviewer(), null);
+
+    expect(fn () => $outgoing->delete())->toThrow(QueryException::class);
 });
 
 it('[REV-REASSIGN-01] mengganti dengan reviewer yang sudah bertugas ditolak', function () {

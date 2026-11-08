@@ -25,9 +25,15 @@ class ReviewThreads implements ChangesNoState
     public function handle(FormSubmission $submission): array
     {
         // Kolom terpilih wajib memuat kunci relasi (id, user_id); tanpanya Eloquent tak bisa
-        // mencocokkan baris, `reviewer` menjadi null, dan penulis ulir hilang dari layar.
+        // mencocokkan baris, relasinya menjadi null, dan nama di ulir hilang dari layar.
         $summaries = $submission->reviewSummaries()
-            ->with(['reviewer.user:id,name', 'reviewer:id,user_id,reviewer_type', 'attachments'])
+            ->with([
+                'reviewer:id,user_id,reviewer_type',
+                'reviewer.user:id,name',
+                'author:id,user_id',
+                'author.user:id,name',
+                'attachments',
+            ])
             ->get();
 
         $comments = ReviewComment::query()

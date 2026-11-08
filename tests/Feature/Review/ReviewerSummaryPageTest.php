@@ -92,10 +92,14 @@ it('[REV-EVAL-06] not_required membuka pembuatan ringkasan', function () {
         ->assertInertia(fn (Assert $page) => $page->where('canCreateThread', true)->etc());
 });
 
-it('[REV-DISCUSS-06] ulir reviewer yang digantikan tampil bagi penggantinya', function () {
+it('[REV-DISCUSS-06] ulir reviewer yang digantikan tampil bagi penggantinya dengan penulis asli', function () {
     $thread = summaryPageThread($this->submission, $this->reviewer);
-    $incomingUser = User::factory()->create();
+    $incomingUser = User::factory()->create(['name' => 'Andi']);
     ReplaceReviewer::run($this->submission, $this->reviewer, summaryPageReviewer($incomingUser), null);
+
+    $this->actingAs($incomingUser)
+        ->post(route('review-summaries.resolve', $thread))
+        ->assertRedirect();
 
     $this->actingAs($incomingUser)
         ->get(route('reviewer.assignments.summary', $this->submission))
@@ -103,6 +107,20 @@ it('[REV-DISCUSS-06] ulir reviewer yang digantikan tampil bagi penggantinya', fu
         ->assertInertia(fn (Assert $page) => $page
             ->has('threads', 1)
             ->where('threads.0.id', $thread->id)
+            ->where('threads.0.isOpen', false)
+            ->where('threads.0.reviewer', 'Sari')
+            ->where('threads.0.inheritedBy', 'Andi')
+            ->etc());
+});
+
+it('ulir yang tidak diwarisi ber-inheritedBy null', function () {
+    summaryPageThread($this->submission, $this->reviewer);
+
+    $this->actingAs($this->user)
+        ->get(route('reviewer.assignments.summary', $this->submission))
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('threads.0.reviewer', 'Sari')
+            ->where('threads.0.inheritedBy', null)
             ->etc());
 });
 
