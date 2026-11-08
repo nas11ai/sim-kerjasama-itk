@@ -29,10 +29,11 @@ const discard = (key: string) => (drafts.value = drafts.value.filter((draft) => 
                 ><Plus class="size-4" />Tambah Form Evaluasi</Button
             >
         </div>
-        <!-- W158, BR-FE-22 — set form dibekukan saat penugasan; ini fakta, bukan aturan baru. -->
+        <!-- W158 — form ditugaskan otomatis hanya saat reviewer ditugaskan (AssignReviewers); fakta, bukan aturan baru. -->
         <AppBanner v-if="section.reviewsInProgress > 0" tone="info">
-            {{ section.reviewsInProgress }} pengajuan yang sedang direview tetap memakai form lama;
-            form ini berlaku untuk penugasan berikutnya.
+            Form baru tidak otomatis ditugaskan ke reviewer
+            {{ section.reviewsInProgress }} pengajuan yang sedang direview; reviewernya tetap bisa
+            memulainya dari halaman evaluasi.
         </AppBanner>
         <EvaluationFormCard
             v-for="form in section.forms"

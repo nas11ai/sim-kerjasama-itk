@@ -17,7 +17,7 @@ final class EvaluationSectionData extends Data
         public int $detailId,
         public string $detailLabel,
         public array $forms,
-        // W158 — pengajuan yang tetap memakai set form saat penugasannya (BR-FE-22).
+        // W158 — pengajuan ber-reviewer aktif yang tak otomatis menerima form baru.
         public int $reviewsInProgress,
     ) {}
 

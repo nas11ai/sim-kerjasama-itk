@@ -47,11 +47,13 @@ class SaveSubmissionDraft
             // dibandingkan adalah nilai yang benar-benar akan ditimpa.
             OptimisticLock::assertNotStale($submission, $input->lastUpdatedAt);
 
-            FieldAnswerWriter::overwrite($submission, $input->answers, $input->uploads, self::UPLOAD_DIRECTORY);
+            $changed = FieldAnswerWriter::overwrite($submission, $input->answers, $input->uploads, self::UPLOAD_DIRECTORY);
 
-            // W161, BR-FE-14 — jawaban yang berubah menggeser cap kunci, supaya tab lain yang masih
-            // membawa cap lama ditolak 409 alih-alih menimpa diam-diam.
-            $submission->touch();
+            // W161, BR-FE-14 — hanya jawaban yang berubah menggeser cap kunci: tab lain yang membawa cap
+            // lama ditolak 409, sedangkan Lanjut tanpa perubahan tidak mengunci siapa pun.
+            if ($changed) {
+                $submission->touch();
+            }
 
             // BR-SCH-04/BR-SCH-10 (ADR 0005) — pilihan scheme_selector dipindahkan ke kolom scheme_id
             // begitu jawabannya tersimpan. Batas anggaran, anggota, dan tipe luaran menanyakan kolom itu;

@@ -17,11 +17,12 @@ const mountSection = (reviewsInProgress: number) =>
         global: { stubs: { EvaluationFormCard: true } },
     })
 
-// W158, BR-FE-22 — set form dibekukan saat penugasan.
+// W158 — form hanya ditugaskan otomatis saat reviewer ditugaskan (AssignReviewers); reviewer yang sudah
+// bertugas tetap bisa memulai form baru sendiri dari halaman evaluasinya (StartEvaluationForm).
 describe('EvaluationSection', () => {
-    it('memberi tahu pengajuan yang tetap memakai form lama', () => {
+    it('memberi tahu bahwa form baru tidak otomatis ditugaskan ke reviewer yang sedang bekerja', () => {
         expect(mountSection(2).text()).toContain(
-            '2 pengajuan yang sedang direview tetap memakai form lama; form ini berlaku untuk penugasan berikutnya.'
+            'Form baru tidak otomatis ditugaskan ke reviewer 2 pengajuan yang sedang direview; reviewernya tetap bisa memulainya dari halaman evaluasi.'
         )
     })
 

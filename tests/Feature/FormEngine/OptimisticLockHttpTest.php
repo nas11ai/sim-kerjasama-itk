@@ -108,3 +108,22 @@ it('[FE-LOCK-02] simpanan kedua dari cap yang sama ditolak 409', function () {
 
     expect(FormFieldResponse::query()->where('form_field_id', $field->id)->value('value'))->toBe('Versi tab A');
 });
+
+it('[FE-LOCK-01] Lanjut tanpa mengubah isian tidak menggeser cap kunci', function () {
+    // W161 — klien selalu mengirim semua field non-berkas (lib/fieldResponses.ts); yang tak berubah
+    // tidak boleh membuat tab lain kena 409 (SaveWizardStep::recordProgress).
+    ['fx' => $fx, 'submission' => $submission] = optimisticLockFixture();
+    $judul = wizardTextField($fx['form']);
+    $abstrak = wizardTextField($fx['form'], 'Abstrak');
+    $responses = [['form_field_id' => $judul->id, 'value' => 'Judul A'], ['form_field_id' => $abstrak->id, 'value' => null]];
+    $save = fn (string $cap) => $this->actingAs($fx['user'])
+        ->post(route('user.submissions.wizard.save', [$submission, 2]), wizardPayload($cap, 3, $responses));
+
+    $save($submission->updated_at->toIso8601String())->assertSessionHasNoErrors();
+    $capSetelahSimpan = $submission->fresh()->updated_at->toIso8601String();
+    $this->travel(1)->seconds();
+
+    $save($capSetelahSimpan)->assertSessionHasNoErrors()->assertRedirect();
+
+    expect($submission->fresh()->updated_at->toIso8601String())->toBe($capSetelahSimpan);
+});

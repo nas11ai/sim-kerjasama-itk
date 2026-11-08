@@ -148,7 +148,7 @@ function phaseEvaluationReviewed(FormPhaseDetail $detail, string $state, array $
     }
 }
 
-// W158, BR-FE-22 — set form dibekukan saat penugasan; kartu memberi tahu siapa yang tetap memakai form lama.
+// W158 — form ditugaskan otomatis hanya saat reviewer ditugaskan; kartu menghitung pengajuan yang terlewat.
 it('reviewsInProgress menghitung pengajuan ber-reviewer aktif yang belum diputus pada detail itu', function () {
     $detail = phaseEvaluationDetail($this->form, true);
     $other = phaseEvaluationDetail($this->form, true, $detail->formPhase);

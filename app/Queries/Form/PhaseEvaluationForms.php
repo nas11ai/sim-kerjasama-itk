@@ -18,8 +18,8 @@ use Lorisleiva\Actions\Concerns\AsAction;
 
 /**
  * Form evaluasi di editor tahap ADMIN-08-09: satu bagian per detail ber-`needs_review`, urut
- * `order`, aktif maupun nonaktif, tanpa kueri per form atau per field. W158/BR-FE-22: form baru
- * tak sampai ke reviewer yang sudah bertugas; `reviewsInProgress` menghitung pengajuannya.
+ * `order`, aktif maupun nonaktif, tanpa kueri per form atau per field. W158: form baru tak ditugaskan
+ * otomatis ke reviewer yang sudah bertugas; `reviewsInProgress` menghitung pengajuannya.
  *
  * @method static list<EvaluationSectionData> run(FormPhase $phase)
  */

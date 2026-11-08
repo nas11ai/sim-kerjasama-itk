@@ -246,7 +246,7 @@ export interface EvaluationSectionData {
     detailId: number
     detailLabel: string
     forms: EvaluationFormEditData[]
-    // W158 — pengajuan ber-reviewer aktif yang tetap memakai set form saat penugasannya.
+    // W158 — pengajuan ber-reviewer aktif yang tak otomatis menerima form baru.
     reviewsInProgress: number
 }
 

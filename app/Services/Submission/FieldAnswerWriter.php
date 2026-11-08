@@ -22,16 +22,35 @@ final class FieldAnswerWriter
      *
      * @param  array<int, ?string>  $answers  id field => nilai; null berarti kosong
      * @param  array<int, UploadedFile>  $uploads  id field => berkas, menimpa jawaban field itu
+     * @return bool ada jawaban tersimpan yang berubah (W161: hanya itu yang menggeser cap kunci)
      *
      * @throws ValidationException
      */
-    public static function overwrite(FormSubmission $submission, array $answers, array $uploads, string $directory): void
+    public static function overwrite(FormSubmission $submission, array $answers, array $uploads, string $directory): bool
     {
         $values = self::storedValues($submission, $answers, $uploads, $directory);
+        $before = $submission->formFieldResponses()->whereIn('form_field_id', array_keys($values))->pluck('value', 'form_field_id')->all();
 
         $submission->formFieldResponses()->whereIn('form_field_id', array_keys($values))->delete();
 
         self::create($submission, $values);
+
+        return $uploads !== [] || self::differs($before, $values);
+    }
+
+    /**
+     * @param  array<array-key, mixed>  $before  id field => nilai tersimpan
+     * @param  array<int, ?string>  $values  id field => nilai baru; null berarti tanpa baris
+     */
+    private static function differs(array $before, array $values): bool
+    {
+        foreach ($values as $fieldId => $value) {
+            if (($before[$fieldId] ?? null) !== $value) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**
