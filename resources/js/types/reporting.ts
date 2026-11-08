@@ -76,6 +76,31 @@ export interface StatisticsNow {
     workload: ReviewerWorkload
 }
 
+// Sumber: TrendData. unit 'month' = 12 titik Jan..Des; 'year' = satu titik per tahun.
+export interface Trend {
+    unit: 'month' | 'year'
+    points: { label: string; count: number }[]
+}
+
+// Sumber: SchemePerformanceData. href null tanpa submissions.view-all atau tanpa skema.
+export interface SchemePerformance {
+    scheme: string
+    submitted: number
+    approved: number
+    rejected: number
+    withdrawn: number
+    approvalRate: string
+    approvedBudget: string
+    href: string | null
+}
+
+// Tab Riwayat (W152): MonthlyTrend + SchemePerformance.
+export interface StatisticsHistory {
+    submitted: Trend
+    outputs: Trend
+    schemes: SchemePerformance[]
+}
+
 export interface StatsPageProps {
     tab: StatisticsTab
     tabs: StatisticsTabLink[]
@@ -88,4 +113,5 @@ export interface StatsPageProps {
     // Hanya tab aktif yang dikirim (W156).
     overview?: StatisticsOverview
     now?: StatisticsNow
+    history?: StatisticsHistory
 }

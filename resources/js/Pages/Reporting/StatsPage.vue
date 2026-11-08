@@ -4,6 +4,7 @@ import { Head } from '@inertiajs/vue3'
 
 import EmptyState from '@/Components/app/EmptyState.vue'
 import PageHeader from '@/Components/app/PageHeader.vue'
+import HistorySection from '@/Components/Reporting/HistorySection.vue'
 import NowSection from '@/Components/Reporting/NowSection.vue'
 import StatsFilterBar from '@/Components/Reporting/StatsFilterBar.vue'
 import StatsOverviewSection from '@/Components/Reporting/StatsOverviewSection.vue'
@@ -36,7 +37,8 @@ defineProps<StatsPageProps>()
         <StatsTabs :tabs="tabs" :active="tab" />
         <StatsOverviewSection v-if="tab === 'overview' && overview" :overview="overview" />
         <NowSection v-else-if="tab === 'now' && now" :now="now" />
-        <!-- R1-2 (Task 6–7) mengisi tab Riwayat dan Tindak Lanjut. -->
+        <HistorySection v-else-if="tab === 'history' && history" :history="history" />
+        <!-- R1-2 (Task 7) mengisi tab Tindak Lanjut. -->
         <EmptyState v-else title="Tidak ada data" />
     </AppLayout>
 </template>

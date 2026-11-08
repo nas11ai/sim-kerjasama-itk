@@ -8,7 +8,6 @@ use App\Data\View\Dashboard\KpiCardData;
 use App\Data\View\Reporting\RankedCountData;
 use App\Data\View\Reporting\SchemeYearData;
 use App\Data\View\Reporting\StatusShareData;
-use App\Models\BudgetLineItem;
 use App\Queries\Review\ReviewersWithinTenure;
 use App\States\Submission\Approved;
 use App\States\Submission\Rejected;
@@ -61,15 +60,10 @@ class StatisticsOverview implements ChangesNoState
         );
     }
 
-    // W150 — item yang dihapus (soft delete) tidak ikut; hanya pengajuan ber-state Approved.
     private function approvedBudget(StatisticsFilters $filters): int
     {
-        $approved = ReportingSubmissions::base($filters)
-            ->where('form_submissions.status', Approved::getMorphClass())
-            ->select('form_submissions.id');
-
         // PostgreSQL mengembalikan SUM bigint sebagai numeric-string.
-        return (int) BudgetLineItem::query()->whereIn('form_submission_id', $approved)->sum('total');
+        return (int) KpiDefinitions::approvedBudgetLines($filters)->sum('total');
     }
 
     // W150 — definisi yang sama dengan ReviewerCandidates; keadaan sekarang, tanpa filter tahun.
@@ -89,7 +83,7 @@ class StatisticsOverview implements ChangesNoState
     }
 
     /**
-     * W150 — Disetujui ÷ (Disetujui + Ditolak); WITHDRAWN bukan keputusan review.
+     * W150 — definisi di KpiDefinitions::approvalRate.
      *
      * @param  list<StatusShareData>  $byStatus
      */
@@ -99,9 +93,7 @@ class StatisticsOverview implements ChangesNoState
             fn (StatusShareData $s): int => $s->key === $key ? $s->count : 0,
             $byStatus,
         ));
-        $approved = $count(Approved::getMorphClass());
-        $decided = $approved + $count(Rejected::getMorphClass());
-        $value = $decided === 0 ? '—' : round($approved / $decided * 100).'%';
+        $value = KpiDefinitions::approvalRate($count(Approved::getMorphClass()), $count(Rejected::getMorphClass()));
 
         return new KpiCardData('approvalRate', 'Tingkat Persetujuan', $value, 'Dari yang sudah diputuskan', null);
     }

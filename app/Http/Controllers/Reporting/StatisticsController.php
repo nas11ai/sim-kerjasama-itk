@@ -6,8 +6,10 @@ use App\Data\Reporting\StatisticsFilters;
 use App\Enums\StatisticsTab;
 use App\Http\Controllers\Controller;
 use App\Queries\Reporting\MonevStatusCounts;
+use App\Queries\Reporting\MonthlyTrend;
 use App\Queries\Reporting\ReviewerCoverage;
 use App\Queries\Reporting\ReviewerWorkload;
+use App\Queries\Reporting\SchemePerformance;
 use App\Queries\Reporting\StageBacklog;
 use App\Queries\Reporting\StatisticsFilterOptions;
 use App\Queries\Reporting\StatisticsOverview;
@@ -43,8 +45,12 @@ class StatisticsController extends Controller
                     'coverage' => ReviewerCoverage::run($filters),
                     'workload' => ReviewerWorkload::run(),
                 ]],
-                // R1-2 (Task 6–7) mengisi tab lainnya.
-                StatisticsTab::History, StatisticsTab::FollowUp => [],
+                StatisticsTab::History => ['history' => [
+                    ...MonthlyTrend::run($filters),
+                    'schemes' => SchemePerformance::run($filters, $viewSubmissions),
+                ]],
+                // R1-2 (Task 7) mengisi tab Tindak Lanjut.
+                StatisticsTab::FollowUp => [],
             },
         ]);
     }

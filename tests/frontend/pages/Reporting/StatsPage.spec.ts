@@ -34,6 +34,7 @@ import FilterSelect from '@/Components/app/FilterSelect.vue'
 import OptionSelect from '@/Components/app/OptionSelect.vue'
 import StatsPage from '@/Pages/Reporting/StatsPage.vue'
 import type {
+    StatisticsHistory,
     StatisticsNow,
     StatisticsOverview,
     StatisticsTab,
@@ -87,6 +88,23 @@ const now: StatisticsNow = {
     workload: { rows: [{ label: 'Dr. Sari (Internal)', count: 3, href: null }], idleCount: 2 },
 }
 
+const history: StatisticsHistory = {
+    submitted: { unit: 'month', points: [{ label: 'Jan', count: 2 }] },
+    outputs: { unit: 'month', points: [{ label: 'Jan', count: 0 }] },
+    schemes: [
+        {
+            scheme: 'DIPA',
+            submitted: 2,
+            approved: 1,
+            rejected: 0,
+            withdrawn: 0,
+            approvalRate: '100%',
+            approvedBudget: 'Rp 0',
+            href: '/scheme',
+        },
+    ],
+}
+
 const props = (tab: StatisticsTab = 'overview'): StatsPageProps => ({
     tab,
     tabs: [
@@ -106,6 +124,7 @@ const props = (tab: StatisticsTab = 'overview'): StatsPageProps => ({
     can: { viewSubmissions: true },
     overview: tab === 'overview' ? overview : undefined,
     now: tab === 'now' ? now : undefined,
+    history: tab === 'history' ? history : undefined,
 })
 
 const route = (name: string, params?: { tab?: string }) =>
@@ -169,6 +188,15 @@ describe('StatsPage', () => {
         }
         expect(wrapper.find('a[href="/s"]').text()).toContain('terlama 12 hari')
         expect(wrapper.text()).toContain('2 reviewer aktif belum punya tugas evaluasi.')
+    })
+
+    it('tab Riwayat menampilkan dua tren dan kinerja skema', () => {
+        const wrapper = mountPage('history')
+
+        expect(wrapper.text()).toContain('Pengajuan Disubmit per Bulan')
+        expect(wrapper.text()).toContain('Luaran Terdaftar per Bulan')
+        expect(wrapper.findAll('[data-testid="bar-chart"]')).toHaveLength(1)
+        expect(wrapper.find('a[href="/scheme"]').text()).toBe('DIPA')
     })
 
     it('filter hanya yang ada di filterKeys', () => {
