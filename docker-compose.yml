@@ -1,3 +1,52 @@
+# ─────────────────────────────────────────
+# Konfigurasi Laravel bersama untuk app, queue, reverb, scheduler. Nilai di sini menimpa .env
+# supaya setiap proses memakai sesi, antrean, dan broadcast yang sama.
+# ─────────────────────────────────────────
+x-laravel-env: &laravel-env
+    DB_CONNECTION: pgsql
+    DB_HOST: postgres
+    DB_PORT: 5432
+    DB_DATABASE: ${DB_DATABASE:-simpas}
+    DB_USERNAME: ${DB_USERNAME:-simpas}
+    DB_PASSWORD: ${DB_PASSWORD:-secret}
+    REDIS_HOST: dragonfly
+    REDIS_PORT: 6379
+    MINIO_ENDPOINT: http://minio:9000
+    # BR-IAM-21, W60 — kehadiran dan "Akhiri Semua Sesi" membaca tabel `sessions`.
+    SESSION_DRIVER: database
+    SESSION_LIFETIME: ${SESSION_LIFETIME:-120}
+    # W169 — broadcast diantrekan; `sync` membuat Reverb yang mati menggagalkan request.
+    QUEUE_CONNECTION: database
+    # Throttle session.active (BroadcastSessionActivity) dibagi antar proses web.
+    CACHE_STORE: database
+    BROADCAST_CONNECTION: reverb
+    REVERB_APP_ID: ${REVERB_APP_ID:-simpas-local}
+    REVERB_APP_KEY: ${REVERB_APP_KEY:-simpas-local-key}
+    REVERB_APP_SECRET: ${REVERB_APP_SECRET:-simpas-local-secret}
+    # Server (worker antrean) menerbitkan ke service reverb; browser memakai port yang dipublikasikan.
+    REVERB_HOST: reverb
+    REVERB_PORT: 8080
+    REVERB_SCHEME: http
+    VITE_REVERB_APP_KEY: ${REVERB_APP_KEY:-simpas-local-key}
+    VITE_REVERB_HOST: ${VITE_REVERB_HOST:-localhost}
+    VITE_REVERB_PORT: ${REVERB_PORT:-8080}
+    VITE_REVERB_SCHEME: ${VITE_REVERB_SCHEME:-http}
+
+# Proses artisan jangka panjang: image yang sama, tanpa entrypoint pemasang dependency
+# (hanya `app` yang memasang, supaya tidak ada composer install paralel).
+x-laravel-worker: &laravel-worker
+    build:
+        context: .
+        dockerfile: Dockerfile
+    restart: unless-stopped
+    entrypoint: ['php', 'artisan']
+    environment: *laravel-env
+    volumes:
+        - .:/var/www/html
+    depends_on:
+        app:
+            condition: service_healthy
+
 services:
     # ─────────────────────────────────────────
     # PostgreSQL — Primary Database
@@ -62,7 +111,7 @@ services:
             retries: 5
 
     # ─────────────────────────────────────────
-    # PHP App — Laravel Application
+    # PHP App — Laravel Application (web + Vite)
     # ─────────────────────────────────────────
     app:
         build:
@@ -70,23 +119,20 @@ services:
             dockerfile: Dockerfile
         container_name: simpas_app
         restart: unless-stopped
+        # `serve --no-reload`: tanpa itu `artisan serve` membuang environment di bawah dan hanya membaca .env.
+        command: ['composer', 'run', 'dev:docker']
         ports:
             - '${APP_PORT:-8000}:8000'
             - '${VITE_PORT:-5173}:5173'
-        environment:
-            - DB_CONNECTION=pgsql
-            - DB_HOST=postgres
-            - DB_PORT=5432
-            - DB_DATABASE=${DB_DATABASE:-simpas}
-            - DB_USERNAME=${DB_USERNAME:-simpas}
-            - DB_PASSWORD=${DB_PASSWORD:-secret}
-            - REDIS_HOST=dragonfly
-            - REDIS_PORT=6379
-            - MINIO_ENDPOINT=http://minio:9000
-            # RT1 — worker di container ini menerbitkan broadcast ke service reverb.
-            - REVERB_HOST=reverb
+        environment: *laravel-env
         volumes:
             - .:/var/www/html
+        # Entrypoint memasang vendor/ dan membuat .env + APP_KEY; service lain menunggu ini.
+        healthcheck:
+            test: ['CMD-SHELL', 'test -f vendor/autoload.php && grep -q "^APP_KEY=base64:" .env']
+            interval: 5s
+            timeout: 3s
+            retries: 120
         depends_on:
             postgres:
                 condition: service_healthy
@@ -96,26 +142,30 @@ services:
                 condition: service_healthy
 
     # ─────────────────────────────────────────
+    # Queue — broadcast RT1 diantrekan (W169), notifikasi, ekspor
+    # ─────────────────────────────────────────
+    queue:
+        <<: *laravel-worker
+        container_name: simpas_queue
+        command: ['queue:listen', '--tries=1']
+
+    # ─────────────────────────────────────────
     # Reverb — WebSocket untuk RT1 (logout seketika, kehadiran langsung)
     # ─────────────────────────────────────────
     reverb:
-        build:
-            context: .
-            dockerfile: Dockerfile
+        <<: *laravel-worker
         container_name: simpas_reverb
-        restart: unless-stopped
-        command: php artisan reverb:start --host=0.0.0.0 --port=8080
+        command: ['reverb:start', '--host=0.0.0.0', '--port=8080']
         ports:
             - '${REVERB_PORT:-8080}:8080'
-        volumes:
-            - .:/var/www/html
-        depends_on:
-            postgres:
-                condition: service_healthy
-            dragonfly:
-                condition: service_healthy
-            minio:
-                condition: service_healthy
+
+    # ─────────────────────────────────────────
+    # Scheduler — routes/console.php (pengingat periode, prune ekspor)
+    # ─────────────────────────────────────────
+    scheduler:
+        <<: *laravel-worker
+        container_name: simpas_scheduler
+        command: ['schedule:work']
 
 volumes:
     postgres_data:

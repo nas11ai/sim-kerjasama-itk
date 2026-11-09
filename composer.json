@@ -75,6 +75,10 @@
             "Composer\\Config::disableProcessTimeout",
             "npx concurrently -c \"#93c5fd,#c4b5fd,#fb7185,#fdba74,#86efac\" \"php artisan serve --host=0.0.0.0\" \"php artisan queue:listen --tries=1\" \"npm run dev\" \"php artisan reverb:start\" --names=server,queue,vite,reverb"
         ],
+        "dev:docker": [
+            "Composer\\Config::disableProcessTimeout",
+            "npx concurrently -c \"#93c5fd,#fdba74\" \"php artisan serve --host=0.0.0.0 --no-reload\" \"npm run dev\" --names=server,vite"
+        ],
         "test": [
             "@php artisan config:clear --ansi",
             "@php artisan test"
