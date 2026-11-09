@@ -10,6 +10,7 @@ use App\Http\Controllers\FormEngine\FormAccessController;
 use App\Http\Controllers\FormEngine\FormController;
 use App\Http\Controllers\FormEngine\FormPhaseController;
 use App\Http\Controllers\FormEngine\SubmissionPeriodController;
+use App\Http\Controllers\GlobalSearchController;
 use App\Http\Controllers\Identity\InvitationController;
 use App\Http\Controllers\Identity\NidnVerificationController;
 use App\Http\Controllers\Identity\OrganizationController;
@@ -62,6 +63,9 @@ Route::middleware(['auth', 'verified'])->get('/dashboard', DashboardController::
 Route::get('announcements/{announcement}', [AnnouncementController::class, 'detail'])->name('announcements.detail');
 
 Route::middleware(['auth'])->group(function () {
+    // K2 (W171) — JSON internal command palette; bersesi sama dengan halaman, bukan API publik.
+    Route::get('/cari', GlobalSearchController::class)->middleware('throttle:60,1')->name('search');
+
     Route::get('/profile', [ProfileController::class, 'show'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
 
