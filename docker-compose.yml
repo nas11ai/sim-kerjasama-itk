@@ -3,6 +3,10 @@
 # supaya setiap proses memakai sesi, antrean, dan broadcast yang sama.
 # ─────────────────────────────────────────
 x-laravel-env: &laravel-env
+    # Ziggy membangun URL absolut dari APP_URL; tanpa port, link frontend mengarah ke port 80.
+    APP_URL: http://localhost:${APP_PORT:-8000}
+    # Unggahan pribadi selalu di disk `local` (W15); MinIO opsional (profil `s3`).
+    FILESYSTEM_DISK: local
     DB_CONNECTION: pgsql
     DB_HOST: postgres
     DB_PORT: 5432
@@ -59,8 +63,9 @@ services:
             POSTGRES_DB: ${DB_DATABASE:-simpas}
             POSTGRES_USER: ${DB_USERNAME:-simpas}
             POSTGRES_PASSWORD: ${DB_PASSWORD:-secret}
+        # Bukan DB_PORT: .env memakai DB_PORT untuk PostgreSQL test (55432) dan port itu bentrok.
         ports:
-            - '${DB_PORT:-5432}:5432'
+            - '${COMPOSE_DB_PORT:-5433}:5432'
         volumes:
             - postgres_data:/var/lib/postgresql
         healthcheck:
@@ -76,6 +81,8 @@ services:
         image: docker.dragonflydb.io/dragonflydb/dragonfly:v1.27.1
         container_name: simpas_dragonfly
         restart: unless-stopped
+        # Default-nya satu thread per core × 256 MB (12 core = 3 GB) dan menolak start di WSL yang sempit.
+        command: ['--proactor_threads=2', '--maxmemory=512mb']
         ulimits:
             memlock: -1
         ports:
@@ -91,7 +98,10 @@ services:
     # ─────────────────────────────────────────
     # MinIO — S3-compatible Local File Storage
     # ─────────────────────────────────────────
+    # MinIO berhenti menerbitkan image publik (tag ini hilang dari Docker Hub dan Quay), jadi
+    # service ini hanya jalan dengan `--profile s3` dan image yang tersedia bagimu.
     minio:
+        profiles: ['s3']
         image: minio/minio:RELEASE.2024-05-10T01-41-38Z
         container_name: simpas_minio
         restart: unless-stopped
@@ -137,8 +147,6 @@ services:
             postgres:
                 condition: service_healthy
             dragonfly:
-                condition: service_healthy
-            minio:
                 condition: service_healthy
 
     # ─────────────────────────────────────────

@@ -9,7 +9,7 @@ Proyek ini menggunakan Docker Compose untuk menyederhanakan proses setup di ling
 - **PHP App** (Laravel 13, Vue 3, Vite, PHP 8.3)
 - **PostgreSQL 18** (Primary Database)
 - **Dragonfly** (Redis-compatible Cache & Queue)
-- **MinIO** (S3-compatible Local File Storage)
+- **MinIO** (opsional, profil `s3`; image publiknya sudah tidak diterbitkan, file disimpan di disk `local`)
 
 ### Prasyarat
 
@@ -37,7 +37,7 @@ Proyek ini menggunakan Docker Compose untuk menyederhanakan proses setup di ling
 3. **Akses Aplikasi**
     - Laravel App: http://localhost:8000
     - Vite (Hot Module Replacement): http://localhost:5173
-    - MinIO Console: http://localhost:9001 (User/Pass default: `minioadmin` / `minioadmin`)
+    - PostgreSQL dari host: `localhost:5433` (ubah lewat `COMPOSE_DB_PORT`)
 
 ### Konfigurasi Lanjutan
 
