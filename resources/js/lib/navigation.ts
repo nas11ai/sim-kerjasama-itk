@@ -290,3 +290,22 @@ export function navItemCount(item: NavItem, flags: NavigationFlags): number | nu
 
     return count > 0 ? count : null
 }
+
+/**
+ * K2 — grup Navigasi command palette, langsung di klien (topbar.md). Masukannya grup yang
+ * sudah tersaring izin; label cocok tanpa peka huruf, satu route cukup muncul sekali.
+ */
+export function searchNavItems(groups: VisibleNavGroup[], term: string): VisibleNavItem[] {
+    const needle = term.trim().toLocaleLowerCase('id')
+    const seen = new Set<string>()
+
+    return groups
+        .flatMap((group) => group.items)
+        .filter((item) => {
+            if (seen.has(item.routeName)) return false
+            if (!item.label.toLocaleLowerCase('id').includes(needle)) return false
+            seen.add(item.routeName)
+
+            return true
+        })
+}
