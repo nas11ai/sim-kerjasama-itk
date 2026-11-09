@@ -24,8 +24,8 @@ class GlobalSearch implements ChangesNoState
     {
         return [
             'submissions' => SearchSubmissions::run($viewer, $term),
-            'users' => [],
-            'reviewers' => [],
+            'users' => SearchUsers::run($viewer, $term),
+            'reviewers' => SearchReviewers::run($viewer, $term),
         ];
     }
 }

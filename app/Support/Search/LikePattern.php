@@ -10,6 +10,17 @@ final class LikePattern
 {
     public static function contains(string $term): string
     {
-        return '%'.addcslashes($term, '\\%_').'%';
+        return '%'.self::escape($term).'%';
+    }
+
+    /** Untuk mengurutkan nama yang diawali istilah lebih dulu (K2). */
+    public static function startsWith(string $term): string
+    {
+        return self::escape($term).'%';
+    }
+
+    private static function escape(string $term): string
+    {
+        return addcslashes($term, '\\%_');
     }
 }
