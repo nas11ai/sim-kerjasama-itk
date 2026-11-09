@@ -8,16 +8,6 @@ use App\Support\Audit\AuditTrail;
 use Illuminate\Support\Facades\DB;
 use Inertia\Testing\AssertableInertia as Assert;
 use Spatie\Activitylog\Models\Activity;
-use Spatie\Permission\Models\Permission;
-
-function sessionViewer(string $permission): User
-{
-    $user = User::factory()->create(['is_active' => true, 'name' => 'Aaa Penonton']);
-    Permission::findOrCreate($permission, 'web');
-    $user->givePermissionTo($permission);
-
-    return $user;
-}
 
 function seedSession(User $user, string $id, int $minutesAgo): void
 {

@@ -676,3 +676,13 @@ function reportedSubmission(array $attributes = [], string $submittedAt = '2026-
 
     return $submission;
 }
+
+/** BR-IAM-21, W47 — pemegang izin baca user yang boleh melihat aktivitas sesi. */
+function sessionViewer(string $permission): User
+{
+    $user = User::factory()->create(['is_active' => true, 'name' => 'Aaa Penonton']);
+    Permission::findOrCreate($permission, 'web');
+    $user->givePermissionTo($permission);
+
+    return $user;
+}
