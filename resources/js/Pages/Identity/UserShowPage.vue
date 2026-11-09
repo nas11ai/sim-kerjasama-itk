@@ -56,7 +56,9 @@ const summaryItems = computed(() => [
             :back-href="route('admin.users.index')"
             back-label="Daftar User"
         >
-            <template #badge><AccountStatusBadges :status="user.status" /></template>
+            <template #badge
+                ><AccountStatusBadges :user-id="user.id" :status="user.status"
+            /></template>
             <template v-if="can.appointReviewer" #actions>
                 <Button variant="outline" @click="appointing = true"
                     ><UserCheck class="size-4" />Tunjuk sebagai Reviewer</Button

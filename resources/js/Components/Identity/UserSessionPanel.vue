@@ -6,6 +6,7 @@ import { computed, ref } from 'vue'
 import ConfirmDialog from '@/Components/app/ConfirmDialog.vue'
 import SectionCard from '@/Components/app/SectionCard.vue'
 import { Button } from '@/Components/ui/button'
+import { useLiveAccountStatus } from '@/composables/useSessionActivity'
 import { formatRelative } from '@/lib/format'
 import type { UserDetailData } from '@/types/identity'
 
@@ -15,9 +16,15 @@ const props = defineProps<{ user: UserDetailData; canEnd: boolean }>()
 const confirming = ref(false)
 const processing = ref(false)
 
+// RT1 — kehadiran ikut dorongan session.active tanpa reload.
+const live = useLiveAccountStatus(
+    () => props.user.id,
+    () => props.user.status
+)
+
 const presence = computed(() => {
-    if (props.user.status.online) return 'Sedang aktif'
-    const lastActiveAt = props.user.status.lastActiveAt
+    if (live.value.online) return 'Sedang aktif'
+    const lastActiveAt = live.value.lastActiveAt
     return lastActiveAt
         ? `Terakhir aktif ${formatRelative(lastActiveAt)}`
         : 'Belum ada sesi tercatat'

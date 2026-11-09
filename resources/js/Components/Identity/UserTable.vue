@@ -38,7 +38,9 @@ const columns = [
                 }}</Badge>
             </span>
         </template>
-        <template #cell-status="{ row }"><AccountStatusBadges :status="row.status" /></template>
+        <template #cell-status="{ row }"
+            ><AccountStatusBadges :user-id="row.id" :status="row.status"
+        /></template>
         <template #cell-action="{ row }">
             <Button as-child variant="ghost" size="sm">
                 <Link :href="row.showUrl">Detail <ArrowRight class="size-4" /></Link>

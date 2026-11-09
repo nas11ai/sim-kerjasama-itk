@@ -181,10 +181,13 @@ describe('UserIndexPage', () => {
     })
 
     it('[IAM-SESSION-02] titik "Sedang aktif" hanya untuk user yang sedang aktif', () => {
+        // RT1 — klien menghitung ulang `online` dari lastActiveAt, jadi jam dipatok ke saat fixture.
+        vi.useFakeTimers({ now: new Date('2026-11-02T08:01:00+08:00') })
         const rows = mountPage([pendingRow, invitedRow]).findAll('tbody tr')
 
         expect(rows[0].text()).toContain('Sedang aktif')
         expect(rows[1].text()).not.toContain('Sedang aktif')
+        vi.useRealTimers()
     })
 
     it('filter Kehadiran meminta presence=online', async () => {
