@@ -119,6 +119,24 @@ it('view-all tidak melihat draft dan laporan monev', function () {
         ->toBe([['id' => $induk->id, 'url' => route('admin.submissions.show', $induk->id)]]);
 });
 
+it('[E2E-19] view-all + view-own juga menemukan draft sendiri, URL per baris', function () {
+    $operator = pemegang('submissions.view-all', 'submissions.view-own');
+    $lead = verifiedResearcher();
+    $draftSendiri = pengajuanBerjudul('Kajian Mangrove', $operator, ['updated_at' => now()->subDays(1)]);
+    $ikutTim = pengajuanTerkirim('Kajian Mangrove', $lead, ['updated_at' => now()->subDays(2)]);
+    ikutTimAktif($operator, $ikutTim);
+    $terkirimLain = pengajuanTerkirim('Kajian Mangrove', $lead, ['updated_at' => now()->subDays(3)]);
+    pengajuanBerjudul('Kajian Mangrove', $lead);
+
+    $hits = cariSebagai($operator, 'mangrove')['submissions'];
+
+    expect(array_map(fn (array $h) => Arr::only($h, ['id', 'url']), $hits))->toBe([
+        ['id' => $draftSendiri->id, 'url' => route('user.submissions.show', $draftSendiri->id)],
+        ['id' => $ikutTim->id, 'url' => route('user.submissions.show', $ikutTim->id)],
+        ['id' => $terkirimLain->id, 'url' => route('admin.submissions.show', $terkirimLain->id)],
+    ]);
+});
+
 it('tanpa view-own maupun view-all grup Pengajuan kosong', function () {
     $tanpaIzin = verifiedResearcher();
     pengajuanBerjudul('Kajian Mangrove', $tanpaIzin);

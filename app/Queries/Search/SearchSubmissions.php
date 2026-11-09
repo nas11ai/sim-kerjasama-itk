@@ -26,21 +26,15 @@ class SearchSubmissions implements ChangesNoState
     public function handle(User $viewer, string $term): array
     {
         $viewAll = $viewer->can('submissions.view-all');
+        $viewOwn = $viewer->can('submissions.view-own');
 
         // W172 — reviewer memakai Penugasan Review, bukan grup ini.
-        if (!$viewAll && !$viewer->can('submissions.view-own')) {
+        if (!$viewAll && !$viewOwn) {
             return [];
         }
 
-        // BR-SM-07 — view-all melihat semua pengajuan terkirim (OperatorSubmissionList);
-        // selain itu hanya yang diketuai atau diikuti sebagai anggota aktif.
-        $query = $viewAll
-            ? FormSubmission::query()->where('is_submitted', true)
-            : SubmissionVisibility::ownedOrJoinedBy($viewer);
-        $showRoute = $viewAll ? 'admin.submissions.show' : 'user.submissions.show';
         $pattern = LikePattern::contains($term);
-
-        return array_values($query
+        $found = $this->scope($viewer, $viewAll, $viewOwn)
             ->whereNull('parent_submission_id')
             ->where(fn (Builder $any) => $any
                 ->whereHas('form', fn (Builder $form) => $form->whereLike('title', $pattern))
@@ -49,14 +43,63 @@ class SearchSubmissions implements ChangesNoState
             ->orderByDesc('updated_at')
             ->orderByDesc('id')
             ->limit(GlobalSearch::LIMIT)
-            ->get()
+            ->get();
+        $own = $this->ownIds($viewer, $viewAll, $viewOwn, $found->map(fn (FormSubmission $s): int => $s->id)->all());
+
+        return array_values($found
             ->map(fn (FormSubmission $s): SearchHitData => new SearchHitData(
                 id: $s->id,
                 // E2E-11 — label = judul Form, sama dengan daftar pengajuan.
                 label: $s->form->title,
                 sublabel: SubmissionStatusData::of($s)->label.' · '.$s->submittedBy->name,
-                url: route($showRoute, $s->id),
+                // E2E-19 — milik sendiri ke halaman peneliti, selebihnya ke halaman Operator.
+                url: route(in_array($s->id, $own, true) ? 'user.submissions.show' : 'admin.submissions.show', $s->id),
             ))
             ->all());
+    }
+
+    /**
+     * BR-SM-07 — view-all melihat semua pengajuan terkirim (OperatorSubmissionList); view-own
+     * hanya yang diketuai atau diikuti sebagai anggota aktif. Pemegang keduanya mendapat
+     * gabungannya, supaya draft miliknya sendiri tetap ditemukan (E2E-19).
+     *
+     * @return Builder<FormSubmission>
+     */
+    private function scope(User $viewer, bool $viewAll, bool $viewOwn): Builder
+    {
+        if (!$viewAll) {
+            return SubmissionVisibility::ownedOrJoinedBy($viewer);
+        }
+
+        if (!$viewOwn) {
+            return FormSubmission::query()->where('is_submitted', true);
+        }
+
+        return FormSubmission::query()->where(fn (Builder $any) => $any
+            ->where('is_submitted', true)
+            ->orWhereIn('id', SubmissionVisibility::ownedOrJoinedBy($viewer)->select('id')));
+    }
+
+    /**
+     * Id hasil yang diketuai atau diikuti $viewer — satu kueri untuk seluruh hasil.
+     *
+     * @param  array<int, int>  $ids
+     * @return array<int, int>
+     */
+    private function ownIds(User $viewer, bool $viewAll, bool $viewOwn, array $ids): array
+    {
+        if (!$viewAll) {
+            return $ids;
+        }
+
+        if (!$viewOwn || $ids === []) {
+            return [];
+        }
+
+        return SubmissionVisibility::ownedOrJoinedBy($viewer)
+            ->whereKey($ids)
+            ->get(['id'])
+            ->map(fn (FormSubmission $s): int => $s->id)
+            ->all();
     }
 }
