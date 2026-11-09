@@ -79,6 +79,14 @@ describe('syncAccountChannel', () => {
         expect(assign).toHaveBeenCalledWith('/login?sesi=nonaktif')
     })
 
+    it('tamu tidak membuka koneksi Reverb sama sekali', async () => {
+        const sync = await freshSync()
+
+        sync(null)
+
+        expect(echoMock).not.toHaveBeenCalled()
+    })
+
     it('tanpa Reverb (echo() null) tidak melakukan apa pun', async () => {
         echoMock.mockReturnValue(null)
         const sync = await freshSync()

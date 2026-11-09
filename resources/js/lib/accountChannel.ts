@@ -21,8 +21,13 @@ function leaveToLogin(event: SessionsEnded): void {
 }
 
 export function syncAccountChannel(userId: number | null): void {
+    // Tamu yang belum pernah login tidak membuka koneksi Reverb sama sekali.
+    if (userId === currentId) {
+        return
+    }
+
     const connection = echo()
-    if (connection === null || userId === currentId) {
+    if (connection === null) {
         return
     }
 
