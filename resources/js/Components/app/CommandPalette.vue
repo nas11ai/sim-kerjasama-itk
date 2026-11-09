@@ -102,7 +102,7 @@ function goToNav(item: VisibleNavItem) {
                         auto-focus
                         aria-label="Cari halaman, pengajuan, user"
                         placeholder="Cari halaman, pengajuan, user..."
-                        class="placeholder:text-muted-foreground flex h-11 w-full bg-transparent py-3 text-sm outline-hidden"
+                        class="placeholder:text-muted-foreground flex h-11 w-full border-0 bg-transparent px-0 py-3 text-sm outline-hidden focus:ring-0"
                     />
                 </div>
 
