@@ -2,6 +2,8 @@
 
 namespace App\Actions\FormSubmission;
 
+use App\Enums\SessionEndReason;
+use App\Events\Identity\UserSessionsEnded;
 use App\Models\FormSubmission;
 use App\Models\User;
 use App\Notifications\AccountDeactivatedNotification;
@@ -41,6 +43,8 @@ class DeactivateUser
         // sesi lain (driver apa pun) ditutup EnsureAccountActive di request berikutnya.
         $user->forceFill(['is_active' => false, 'remember_token' => Str::random(60)])->save();
         $sessionsEnded = SessionRegistry::of($user)->delete();
+        // BR-IAM-21, K7 — dorongan; penegakan tetap di server.
+        UserSessionsEnded::dispatch($user->id, SessionEndReason::Deactivated);
 
         // BR-IAM-15 — keputusan orang lain atas akunnya; ia tidak akan
         // menemukan sendiri selain lewat layar login yang menolaknya.

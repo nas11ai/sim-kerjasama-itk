@@ -4,6 +4,8 @@ import type { AnnouncementSummary } from '@/types/announcement'
 export interface LoginPageProps {
     canResetPassword: boolean
     status: string | null
+    // W170 — alasan sesi berakhir dari ?sesi= (deaktivasi atau diakhiri admin); null bila tidak ada.
+    notice: string | null
     // fe-v2-design §4.7, W6 — pengumuman publik terbaru, paling banyak 5.
     announcements: AnnouncementSummary[]
 }

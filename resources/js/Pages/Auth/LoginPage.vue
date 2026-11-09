@@ -29,6 +29,10 @@ const submit = () => form.post(route('login'), { onFinish: () => form.reset('pas
         />
 
         <form class="space-y-4" @submit.prevent="submit">
+            <!-- W170 — tab yang dikeluarkan lewat sessions.ended mendarat di sini -->
+            <AppBanner v-if="notice" tone="denial" data-testid="session-notice">{{
+                notice
+            }}</AppBanner>
             <AppBanner v-if="status" tone="success">{{ status }}</AppBanner>
 
             <FormField id="email" label="Email" required>

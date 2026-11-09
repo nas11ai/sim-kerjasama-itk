@@ -2,6 +2,8 @@
 
 namespace App\Actions\Identity;
 
+use App\Enums\SessionEndReason;
+use App\Events\Identity\UserSessionsEnded;
 use App\Models\User;
 use App\Support\Audit\AuditChange;
 use App\Support\Audit\AuditTrail;
@@ -23,6 +25,8 @@ class EndUserSessions
     {
         $user->forceFill(['remember_token' => Str::random(60)])->save();
         $ended = SessionRegistry::of($user)->delete();
+        // BR-IAM-21, K7 — dorongan; penegakan tetap di server.
+        UserSessionsEnded::dispatch($user->id, SessionEndReason::Ended);
 
         // BR-RPT-09 — satu Action, satu entri audit.
         AuditTrail::record('Sesi user diakhiri', $user, $actor, new AuditChange(new: ['sessions_ended' => $ended]));

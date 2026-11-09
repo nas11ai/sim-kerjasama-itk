@@ -31,9 +31,9 @@ const summary: AnnouncementSummary = {
 const route = (name: string, param?: number) =>
     param === undefined ? `/${name}` : `/${name}/${param}`
 
-const mountPage = (announcements: AnnouncementSummary[]) =>
+const mountPage = (announcements: AnnouncementSummary[], notice: string | null = null) =>
     mount(LoginPage, {
-        props: { canResetPassword: true, status: null, announcements },
+        props: { canResetPassword: true, status: null, notice, announcements },
         global: { mocks: { route } },
     })
 
@@ -54,5 +54,17 @@ describe('Auth/LoginPage', () => {
         expect(wrapper.find('a[href="/announcements.detail/12"]').text()).toContain(
             'Pendaftaran hibah dibuka'
         )
+    })
+
+    it('[IAM-DEACT-09] alasan sesi berakhir tampil sebagai banner penolakan', () => {
+        const wrapper = mountPage([], 'Akun Anda dinonaktifkan. Hubungi LPPM bila ini keliru.')
+
+        const banner = wrapper.find('[data-testid="session-notice"]')
+        expect(banner.exists()).toBe(true)
+        expect(banner.text()).toContain('Akun Anda dinonaktifkan. Hubungi LPPM bila ini keliru.')
+    })
+
+    it('tanpa notice tidak ada banner sesi berakhir', () => {
+        expect(mountPage([]).find('[data-testid="session-notice"]').exists()).toBe(false)
     })
 })

@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers\Auth;
 
+use App\Enums\SessionEndReason;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Auth\LoginRequest;
 use App\Queries\Announcement\PublicAnnouncementPanel;
@@ -18,11 +19,13 @@ class AuthenticatedSessionController extends Controller
     /**
      * Display the login view.
      */
-    public function create(): Response
+    public function create(Request $request): Response
     {
         return Inertia::render('Auth/LoginPage', [
             'canResetPassword' => Route::has('password.request'),
             'status' => session('status'),
+            // W170 — tab yang menerima `sessions.ended` mendarat di sini dengan ?sesi=<alasan>.
+            'notice' => SessionEndReason::tryFrom($request->string('sesi')->toString())?->notice(),
             // W6 — panel pengumuman publik di samping form login (fe-v2-design §4.7).
             'announcements' => PublicAnnouncementPanel::run(),
         ]);

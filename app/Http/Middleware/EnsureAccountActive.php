@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Enums\SessionEndReason;
 use App\Models\User;
 use Closure;
 use Illuminate\Http\Request;
@@ -28,6 +29,6 @@ class EnsureAccountActive
         $request->session()->invalidate();
         $request->session()->regenerateToken();
 
-        return redirect()->route('login')->with('error', 'Akun Anda dinonaktifkan. Hubungi LPPM bila ini keliru.');
+        return redirect()->route('login')->with('error', SessionEndReason::Deactivated->notice());
     }
 }
