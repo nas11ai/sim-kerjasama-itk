@@ -14,12 +14,22 @@ vi.mock('@/Components/app/CommandPalette.vue', () => ({
     }),
 }))
 
+vi.mock('@inertiajs/vue3', () => ({
+    Link: defineComponent({
+        props: { href: { type: String, default: '' } },
+        setup:
+            (props, { slots }) =>
+            () =>
+                h('a', { href: props.href }, slots.default?.()),
+    }),
+}))
+
 let wrapper: ReturnType<typeof mount>
 
 function mountTopbar() {
     wrapper = mount(
         defineComponent({ render: () => h(SidebarProvider, null, () => h(AppTopbar)) }),
-        { attachTo: document.body }
+        { global: { mocks: { route: (name: string) => `/${name}` } }, attachTo: document.body }
     )
 
     return wrapper
@@ -50,6 +60,14 @@ describe('AppTopbar', () => {
         await button?.trigger('click')
 
         expect(palette().props('open')).toBe(true)
+    })
+
+    it('topbar.md — Logo ITK kembali ke Dashboard', () => {
+        const logo = mountTopbar().find('a[href="/dashboard"] img')
+
+        expect(logo.exists()).toBe(true)
+        expect(logo.attributes('alt')).toBe('Logo ITK')
+        expect(logo.attributes('src')).toBe('/images/Logo-ITK.png')
     })
 
     it.each([{ ctrlKey: true }, { metaKey: true }])('%o + K membuka palette', async (modifier) => {

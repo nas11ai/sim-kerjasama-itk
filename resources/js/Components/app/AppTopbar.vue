@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { Link } from '@inertiajs/vue3'
 import { useEventListener } from '@vueuse/core'
 import { Search } from 'lucide-vue-next'
 import { ref } from 'vue'
@@ -21,6 +22,16 @@ useEventListener(window, 'keydown', (event: KeyboardEvent) => {
 <template>
     <header class="flex h-14 shrink-0 items-center gap-2 border-b px-4">
         <SidebarTrigger />
+        <!-- topbar.md — Logo ITK kembali ke Dashboard; di ponsel sidebar tertutup (E2E-18). -->
+        <Link :href="route('dashboard')" class="shrink-0 rounded-sm">
+            <img
+                src="/images/Logo-ITK.png"
+                alt="Logo ITK"
+                width="947"
+                height="1172"
+                class="h-8 w-auto"
+            />
+        </Link>
         <Button
             variant="outline"
             class="text-muted-foreground w-full max-w-md min-w-0 justify-start font-normal"
