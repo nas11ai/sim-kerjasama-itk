@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\ErrorPage;
+use App\Http\Middleware\BroadcastSessionActivity;
 use App\Http\Middleware\CaptureAuditIp;
 use App\Http\Middleware\CheckRole;
 use App\Http\Middleware\EnsureAccountActive;
@@ -25,6 +26,8 @@ return Application::configure(basePath: dirname(__DIR__))
             AddLinkHeadersForPreloadedAssets::class,
             // BR-IAM-05 — setelah sesi dibuka, sebelum route berjalan.
             EnsureAccountActive::class,
+            // RT1, W168 — dorongan kehadiran untuk layar user; sumbernya tetap SessionRegistry.
+            BroadcastSessionActivity::class,
             // W155 — IP pelaku untuk jejak audit.
             CaptureAuditIp::class,
         ]);

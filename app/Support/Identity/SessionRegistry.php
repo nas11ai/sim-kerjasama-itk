@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\DB;
 /**
  * BR-IAM-21, W60 — satu-satunya pemilik tabel `sessions` (driver `database`, konfigurasi
  * produksi). Di sini hanya dibaca; penghapusan dilakukan Action beraudit lewat `of()`.
- * RT1 kelak mengganti sumber kehadiran di sini tanpa menyentuh layar.
+ * Sumber kehadiran tetap di sini (W168); RT1 hanya mendorong `session.active`.
  */
 final class SessionRegistry
 {
