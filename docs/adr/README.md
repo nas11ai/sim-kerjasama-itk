@@ -63,3 +63,4 @@ keputusan sama berharganya dengan keputusan itu sendiri.
 | [0016](0016-submit-never-approves.md)                            | Submit tidak pernah menyetujui                                | Diterima |
 | [0017](0017-vacuous-approval-only-when-configured.md)             | Persetujuan hampa hanya kalau dikonfigurasi begitu            | Digantikan 0018 |
 | [0018](0018-review-outcome-at-round-end-operator-approves.md)     | Hasil review dihitung di akhir putaran; persetujuan oleh Operator | Diterima |
+| [0019](0019-fase-template-jadwal-periode-form-evaluasi-berversi.md) | Fase sebagai template, jadwal milik periode, Form Evaluasi berversi | Diterima |

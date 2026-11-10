@@ -1,8 +1,13 @@
 # BC: Scheme
 
 **Klasifikasi:** 🟡 Supporting Domain  
-**Versi:** 2.5  
+**Versi:** 2.6  
 **Status:** Draft
+
+> **Perubahan v2.5 → v2.6** ([ADR 0019](../../../adr/0019-fase-template-jadwal-periode-form-evaluasi-berversi.md)).
+> BR-SCH-07 dibaca terhadap **periode milik pengajuan**: satu fase bisa ditautkan ke
+> banyak periode, dan force close periode A tidak menutup pengajuan periode B pada fase
+> yang sama. Substansinya tetap.
 
 > **Perubahan v2.4 → v2.5.** BR-SCH-07 dipersempit ke **tahap pengajuan**
 > (keputusan pemilik 2026-11-07, W135). Periode memegang dua peran — jendela
@@ -182,7 +187,7 @@ classDiagram
 | BR-SCH-04 | Form tidak diwajibkan punya `scheme_selector` field — Scheme sepenuhnya opsional per Form                                           |
 | BR-SCH-05 | `trl_selector` hanya valid jika ada `scheme_selector` di Form yang sama                                                             |
 | BR-SCH-06 | Menambah rule baru ke `scheme.rules` JSONB tidak butuh migration — cukup update via admin panel                                     |
-| BR-SCH-07 | Jika `SubmissionPeriod.is_force_closed = true`, semua FormPhaseDetail **tahap pengajuan** (Batas Submit tanpa siklus) di period tersebut di-hard-block terlepas dari SubmissionDate dan FormSubmissionOverride. Detail siklus monev (Batas Laporan Monev n) tidak tersentuh: jendelanya hanya tenggatnya sendiri dan override ([BR-MON-05](02_monev.md)). |
+| BR-SCH-07 | Jika `SubmissionPeriod.is_force_closed = true`, semua FormPhaseDetail **tahap pengajuan** (Batas Submit tanpa siklus) di period tersebut di-hard-block **bagi pengajuan milik period tersebut** terlepas dari SubmissionDate dan FormSubmissionOverride; pengajuan periode lain pada fase yang sama tidak tersentuh. Detail siklus monev (Batas Laporan Monev n) tidak tersentuh: jendelanya hanya tenggatnya sendiri dan override ([BR-MON-05](02_monev.md)). |
 | BR-SCH-08 | Perpanjangan Batas Submit atau Batas Revisi (update SubmissionDate berjenis `submit`/`revision`) wajib diikuti notifikasi ke researcher yang punya DRAFT aktif. Batas Evaluasi tidak dikerjakan researcher, jadi menggesernya tidak memberi tahu pemilik draft |
 | BR-SCH-09 | `scheme_selector` dan `trl_selector` menulis ke `form_submissions.scheme_id` / `.trl_id` — tidak pernah ke `form_field_responses`   |
 | BR-SCH-10 | Scheme dengan `is_active = false` tidak ditawarkan sebagai pilihan pada pengajuan baru; submission yang sudah terlanjur memakainya tidak terpengaruh |

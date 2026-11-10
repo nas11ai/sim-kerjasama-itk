@@ -1,7 +1,11 @@
 # 02 — Ubiquitous Language
 
-**Versi:** 2.4  
+**Versi:** 2.5  
 **Status:** Draft
+
+> **Perubahan v2.4 → v2.5** ([ADR 0019](../../adr/0019-fase-template-jadwal-periode-form-evaluasi-berversi.md)).
+> Istilah baru **Angkatan**, **Kalender periode**, **Langkah**. FormPhaseDetail tidak lagi
+> menunjuk SubmissionDate; ia menyebut jenis tenggat + siklus.
 
 > **Perubahan v2.3 → v2.4.** `scheme_selector` dan `trl_selector` kini menulis ke
 > kolom sungguhan, bukan ke `form_field_responses`
@@ -62,11 +66,13 @@ kasus berperilaku salah tanpa ada yang gagal mencolok.
 | **Temporal Field Binding** | Kebijakan validasi field saat submit: field hanya di-enforce `is_required` jika field tersebut sudah ada (`created_at ≤ submission.created_at`) DAN sudah required (`required_since ≤ submission.created_at`) sebelum submission dibuat. Memastikan perubahan form tidak memblok draft yang sudah ada. |
 | **FormFieldOption**        | Pilihan untuk field bertipe `select` atau `radio`.                                                                                                                                                                                                                                                     |
 | **FormPhase**              | Satu lifecycle workflow (pengajuan, review, monev I, monev II, luaran).                                                                                                                                                                                                                                |
-| **FormPhaseDetail**        | Step dalam FormPhase — menghubungkan FormAccessControl, SubmissionDate (hard deadline), PhaseType, urutan, dan `needs_review`.                                                                                                                                                                         |
+| **FormPhaseDetail** (**Langkah**) | Step dalam FormPhase — menghubungkan FormAccessControl, PhaseType, urutan, `needs_review`, dan **jenis tenggat + siklus** (`deadline_type`, `deadline_cycle`). Tidak menunjuk tanggal: tanggalnya dibaca dari kalender periode pengajuan (BR-FE-26). `submit` tanpa siklus = langkah pengajuan, `submit` siklus n = laporan Monev n, `output` = Upload Luaran. |
 | **FormAccessControl**      | Aturan akses sebuah Form: kombinasi `permission` (string via Spatie) + `organization_id`.                                                                                                                                                                                                              |
-| **SubmissionPeriod**       | Periode pengajuan yang aktif.                                                                                                                                                                                                                                                                          |
-| **SubmissionDate**         | Hard deadline untuk satu atau lebih FormPhaseDetail. Satu tanggal boleh dipakai beberapa detail **dengan aktor yang sama**; detail dengan aktor berbeda wajib punya tanggalnya sendiri (BR-FE-17). Setiap tanggal punya **Jenis Tenggat** dan **Siklus** (BR-FE-25); labelnya diturunkan dari keduanya. |
-| **Jenis Tenggat** (`DeadlineType`) | Tahap yang dibatasi sebuah SubmissionDate: `submit` "Batas Submit" (pengisi mengirim), `evaluation` "Batas Evaluasi" (reviewer menilai), `revision` "Batas Revisi" (pengisi merevisi). Tetap, bukan dikonfigurasi Operator. |
+| **SubmissionPeriod**       | Periode pengajuan yang aktif. Memegang satu **kalender periode** untuk semua fase yang ditautkannya.                                                                                                                                                                                                    |
+| **Kalender periode** (**Jadwal**) | Himpunan SubmissionDate milik satu periode, satu per pasangan (jenis tenggat, siklus) (BR-FE-25). Setiap gerbang waktu membaca tanggalnya di sini lewat `SubmissionPeriod::deadlineFor()`. Jadwal berbeda = periode berbeda. |
+| **Angkatan**               | Pasangan Periode × Fase: pengajuan-pengajuan pada satu fase di satu periode. Tidak punya tabel sendiri. Angkatan lama tetap memakai kalender periodenya walaupun fase yang sama ditautkan ke periode baru. |
+| **SubmissionDate**         | Satu tanggal di kalender periode. Dibaca oleh setiap langkah yang menyebut jenis + siklusnya; langkah dengan aktor berbeda membaca jenis tenggat berbeda (BR-FE-17). Setiap tanggal punya **Jenis Tenggat** dan **Siklus** (BR-FE-25); labelnya diturunkan dari keduanya. |
+| **Jenis Tenggat** (`DeadlineType`) | Tahap yang dibatasi sebuah SubmissionDate: `submit` "Batas Submit" (pengisi mengirim), `evaluation` "Batas Evaluasi" (reviewer menilai), `revision` "Batas Revisi" (pengisi merevisi), `output` "Batas Akhir" (Upload Luaran). Langkah fase hanya menyebut `submit` atau `output`. Tetap, bukan dikonfigurasi Operator. |
 | **Siklus**                 | Putaran yang dibatasi sebuah SubmissionDate: kosong untuk pengajuan utama, `n` untuk Monev n. Batas Submit siklus n dibaca "Batas Laporan Monev n". |
 | **FormSubmission**         | Entitas submission universal. `parent_submission_id` nullable — diisi untuk child submissions (laporan monev, kelengkapan).                                                                                                                                                                            |
 | **FormFieldResponse**      | Jawaban scalar untuk satu FormField.                                                                                                                                                                                                                                                                   |

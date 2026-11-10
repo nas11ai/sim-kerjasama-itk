@@ -1,8 +1,14 @@
 # BC: Monev (Monitoring & Evaluation)
 
 **Klasifikasi:** 🟡 Supporting Domain  
-**Versi:** 2.5  
+**Versi:** 2.6  
 **Status:** Draft
+
+> **Perubahan v2.5 → v2.6** ([ADR 0019](../../../adr/0019-fase-template-jadwal-periode-form-evaluasi-berversi.md),
+> pemilik 2026-11-10). Tenggat setiap siklus dibaca dari **kalender periode pengajuan
+> induk** pada jenis + siklus langkahnya ([BR-FE-26](../generic/01_form_engine.md)), bukan
+> dari tanggal yang melekat di langkah. Fase yang sama boleh ditautkan ke periode baru
+> tanpa mengubah tanggal monev angkatan lama.
 
 > **Perubahan v2.3 → v2.4.** BR-MON-03 diperbaiki dari "satu **researcher**"
 > menjadi "satu **parent FormSubmission**" per FormPhaseDetail — bacaan lama
@@ -23,8 +29,9 @@ Mengelola siklus monitoring dan evaluasi untuk Submission yang sudah APPROVED. M
 ## Konsep Kunci: Satu FormPhase, Satu Lifecycle
 
 ```
-FormPhase: "Penelitian DIPA 2025"
-│
+FormPhase: "Penelitian DIPA"            (template tanpa tanggal; dipakai banyak periode)
+│                                        deadline = jenis + siklus langkah, tanggalnya
+│                                        dibaca dari kalender periode pengajuan induk
 ├── Detail 1  order=1  Pengajuan          researcher    needs_review=true   deadline="Batas Submit"
 │             ← saat status NEEDS_REVISION, detail ini dibuka lagi sampai "Batas Revisi"
 ├── Detail 2  order=2  Evaluasi Pengajuan reviewer      ReviewEvaluationForm deadline="Batas Evaluasi"
@@ -41,6 +48,12 @@ FormPhase: "Penelitian DIPA 2025"
 ```
 
 Semua FormSubmission dalam lifecycle ini terhubung via `parent_submission_id` ke submission pengajuan utama. Tidak ada ambiguitas "monev ini dari pengajuan yang mana."
+
+Tanggal di diagram adalah **nama tanggal di kalender periode**, bukan tanggal milik
+detail. Pengajuan 2025 membaca "Batas Monev II" periode 2025 — walaupun tanggal itu jatuh
+di 2026 dan fase yang sama sudah ditautkan ke periode 2026 dengan "Batas Monev II"-nya
+sendiri. Kalender periode yang tidak memuat tanggal sebuah siklus menutup siklus itu
+sampai Operator mengisinya ([BR-FE-26](../generic/01_form_engine.md)).
 
 Perhatikan Detail 1 dan Detail 2 memakai **tanggal yang berbeda**. Keduanya punya aktor
 berbeda — researcher dan reviewer — dan tahapannya berurutan, jadi memakai ulang

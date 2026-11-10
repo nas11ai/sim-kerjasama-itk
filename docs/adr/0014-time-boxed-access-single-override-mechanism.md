@@ -4,6 +4,12 @@
 **Tanggal:** 2026-09-04
 **Melengkapi:** BR-FE-08, BR-FE-15, BR-RO-01..07
 
+> **Catatan 2026-11-10 ([ADR 0019](0019-fase-template-jadwal-periode-form-evaluasi-berversi.md)).**
+> Sumbu "kapan" kini dibaca dari **kalender periode milik pengajuan**: langkah fase
+> menyebut jenis tenggat + siklus, bukan menunjuk `SubmissionDate`. Substansi ADR ini
+> tetap — pengecualian waktu tetap satu mekanisme, `FormSubmissionOverride` per
+> pengajuan + langkah.
+
 ## Konteks
 
 Muncul kebutuhan berulang: setelah periode tutup, sebuah data kadang **tetap perlu bisa
