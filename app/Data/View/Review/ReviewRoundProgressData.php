@@ -2,6 +2,7 @@
 
 namespace App\Data\View\Review;
 
+use App\Models\ReviewRound;
 use Spatie\LaravelData\Data;
 
 /**
@@ -16,4 +17,16 @@ final class ReviewRoundProgressData extends Data
         public int $finished,
         public int $total,
     ) {}
+
+    public static function of(ReviewRound $round): self
+    {
+        $total = $round->participants()->count();
+
+        return new self(
+            kind: $round->kind->value,
+            number: $round->number,
+            finished: $total - $round->unfinishedParticipants()->count(),
+            total: $total,
+        );
+    }
 }

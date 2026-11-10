@@ -39,7 +39,7 @@ class DecisionReadiness implements ChangesNoState
             approvable: $ready && $openThreadCount === 0,
             blockers: $this->blockers($submission, $running, $openThreadCount),
             openThreadCount: $openThreadCount,
-            round: $latest === null ? null : $this->progress($latest),
+            round: $latest === null ? null : ReviewRoundProgressData::of($latest),
         );
     }
 
@@ -93,7 +93,7 @@ class DecisionReadiness implements ChangesNoState
         }
 
         if ($running !== null) {
-            $progress = $this->progress($running);
+            $progress = ReviewRoundProgressData::of($running);
             $waiting = $progress->total - $progress->finished;
             $blockers[] = "{$waiting} dari {$progress->total} reviewer belum menyelesaikan putaran.";
         }
@@ -103,18 +103,6 @@ class DecisionReadiness implements ChangesNoState
         }
 
         return $blockers;
-    }
-
-    private function progress(ReviewRound $round): ReviewRoundProgressData
-    {
-        $total = $round->participants()->count();
-
-        return new ReviewRoundProgressData(
-            kind: $round->kind->value,
-            number: $round->number,
-            finished: $total - $round->unfinishedParticipants()->count(),
-            total: $total,
-        );
     }
 
     private function awaitsDecision(FormSubmission $submission): bool

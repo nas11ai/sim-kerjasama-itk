@@ -7,7 +7,7 @@ import EmptyState from '@/Components/app/EmptyState.vue'
 import PageHeader from '@/Components/app/PageHeader.vue'
 import StatusBadge from '@/Components/app/StatusBadge.vue'
 import NewThreadForm from '@/Components/Review/NewThreadForm.vue'
-import OutcomeConditions from '@/Components/Review/OutcomeConditions.vue'
+import ReviewRoundCard from '@/Components/Review/ReviewRoundCard.vue'
 import ReviewThreadCard from '@/Components/Submission/Revision/ReviewThreadCard.vue'
 import ScoreSection from '@/Components/Submission/ScoreSection.vue'
 import AppLayout from '@/Layouts/AppLayout.vue'
@@ -29,6 +29,7 @@ defineProps<SummaryPageProps>()
         </PageHeader>
 
         <div class="mx-auto flex max-w-3xl flex-col gap-6">
+            <ReviewRoundCard :round="round" :submission-id="submission.id" />
             <NewThreadForm :submission-id="submission.id" :can-create="canCreateThread" />
 
             <section class="flex flex-col gap-4">
@@ -49,12 +50,9 @@ defineProps<SummaryPageProps>()
                 :scores="scores"
                 note="Skor rekan terbuka bagi reviewer internal setelah seluruh evaluasi selesai."
             />
-            <OutcomeConditions :outcome="outcome" :status="submission.status" />
-
             <AppBanner tone="info">
-                Jika seluruh catatan telah diselesaikan dan semua evaluasi masuk, pengajuan
-                disetujui secara otomatis. Peneliti dapat melihat ringkasan ini setelah statusnya
-                menjadi Perlu Revisi.
+                Catatan yang masih terbuka saat putaran selesai dikirim ke peneliti sebagai
+                permintaan revisi. Persetujuan dan penolakan diputuskan Operator.
             </AppBanner>
         </div>
     </AppLayout>

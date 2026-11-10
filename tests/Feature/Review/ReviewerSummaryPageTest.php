@@ -3,8 +3,9 @@
 // tests/Feature/Review/ReviewerSummaryPageTest.php
 //
 // REVIEWER-03-04 — kontrak props `Review/SummaryPage`: ulir milik penugasan, syarat membuka
-// ulir (BR-FE-06), skor rekan (BR-REV-11), dan hitungan syarat keputusan (BR-REV-05/06).
+// ulir (BR-FE-06, BR-REV-17), skor rekan (BR-REV-11), dan putaran review berjalan (BR-REV-16).
 
+use App\Actions\Review\JoinReviewRound;
 use App\Actions\Review\ReplaceReviewer;
 use App\Models\FormSubmission;
 use App\Models\Reviewer;
@@ -41,12 +42,16 @@ function summaryPageReviewer(?User $user = null, string $type = 'internal'): Rev
 
 function summaryPageAssign(FormSubmission $submission, Reviewer $reviewer, string $evaluation): SubmissionReviewer
 {
-    return SubmissionReviewer::create([
+    $seat = SubmissionReviewer::create([
         'form_submission_id' => $submission->id,
         'reviewer_id' => $reviewer->id,
         'evaluation_status' => $evaluation,
         'status' => 'active',
     ]);
+    // BR-REV-16 — seperti AssignReviewer: kursi baru ikut putaran penilaian.
+    JoinReviewRound::run($seat);
+
+    return $seat;
 }
 
 function summaryPageThread(FormSubmission $submission, Reviewer $reviewer, string $status = 'open'): ReviewSummary
@@ -155,18 +160,66 @@ it('[REV-VIS-03] skor rekan tertutup selama ada yang belum selesai', function ()
         ->assertInertia(fn (Assert $page) => $page->where('scores.visible', false)->etc());
 });
 
-it('[REV-OUTCOME-02] syarat keputusan menghitung reviewer yang belum selesai', function () {
-    $peer = summaryPageReviewer();
-    summaryPageAssign($this->submission, $peer, 'pending');
-    summaryPageThread($this->submission, $peer);
-    summaryPageThread($this->submission, $this->reviewer, 'resolved');
+it('[REV-OUTCOME-02] kemajuan putaran menghitung peserta yang belum Selesai', function () {
+    summaryPageAssign($this->submission, summaryPageReviewer(), 'pending');
 
     $this->actingAs($this->user)
         ->get(route('reviewer.assignments.summary', $this->submission))
         ->assertInertia(fn (Assert $page) => $page
-            ->where('outcome.reviewerCount', 2)
-            ->where('outcome.unsettledCount', 1)
-            ->where('outcome.openThreadCount', 1)
+            ->where('round.progress.number', 1)
+            ->where('round.progress.finished', 0)
+            ->where('round.progress.total', 2)
+            ->missing('outcome')
+            ->etc());
+});
+
+it('peserta dengan evaluasi completed boleh menekan Selesai menilai', function () {
+    $this->actingAs($this->user)
+        ->get(route('reviewer.assignments.summary', $this->submission))
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('round.kind', 'assessment')
+            ->where('round.finishLabel', 'Selesai menilai')
+            ->where('round.isParticipant', true)
+            ->where('round.finished', false)
+            ->where('round.canFinish', true)
+            ->where('round.reason', null)
+            ->etc());
+});
+
+it('[REV-OUTCOME-14] evaluasi pending menahan Selesai menilai dengan alasan', function () {
+    $this->assignment->update(['evaluation_status' => 'pending']);
+
+    $this->actingAs($this->user)
+        ->get(route('reviewer.assignments.summary', $this->submission))
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('round.canFinish', false)
+            ->where('round.reason', 'Kirim lembar penilaian lebih dulu.')
+            ->etc());
+});
+
+it('[REV-OUTCOME-15] setelah Selesai, ulir baru ditutup dan tanda Selesai terbaca', function () {
+    summaryPageAssign($this->submission, summaryPageReviewer(), 'pending');
+    $this->actingAs($this->user)->post(route('reviewer.assignments.finish', $this->submission));
+
+    $this->actingAs($this->user)
+        ->get(route('reviewer.assignments.summary', $this->submission))
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('round.finished', true)
+            ->where('round.canFinish', false)
+            ->where('round.reason', 'Anda sudah menyelesaikan putaran ini.')
+            ->where('round.progress.finished', 1)
+            ->where('canCreateThread', false)
+            ->etc());
+});
+
+it('tanpa putaran berjalan, round null dan ulir baru ditutup', function () {
+    $this->submission->latestReviewRound()->update(['completed_at' => now(), 'outcome' => 'ready']);
+
+    $this->actingAs($this->user)
+        ->get(route('reviewer.assignments.summary', $this->submission))
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('round', null)
+            ->where('canCreateThread', false)
             ->etc());
 });
 

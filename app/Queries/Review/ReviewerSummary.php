@@ -4,7 +4,7 @@ namespace App\Queries\Review;
 
 use App\Actions\Concerns\ChangesNoState;
 use App\Data\View\Review\EvaluationSubmissionData;
-use App\Data\View\Review\OutcomeConditionsData;
+use App\Data\View\Review\ReviewerRoundData;
 use App\Data\View\Submission\Revision\ReviewThreadData;
 use App\Models\SubmissionReviewer;
 use App\Models\User;
@@ -16,7 +16,7 @@ use Lorisleiva\Actions\Concerns\AsAction;
  *
  * @phpstan-import-type Score from VisibleReviewerScores
  *
- * @phpstan-type Summary array{submission: EvaluationSubmissionData, threads: list<ReviewThreadData>, canCreateThread: bool, scores: array{visible: bool, reason: string|null, scores: list<Score>}, outcome: OutcomeConditionsData}
+ * @phpstan-type Summary array{submission: EvaluationSubmissionData, threads: list<ReviewThreadData>, canCreateThread: bool, scores: array{visible: bool, reason: string|null, scores: list<Score>}, round: ReviewerRoundData|null}
  *
  * @method static Summary run(User $viewer, SubmissionReviewer $assignment)
  */
@@ -29,6 +29,8 @@ class ReviewerSummary implements ChangesNoState
     {
         $submission = $assignment->formSubmission;
         $threads = ReviewThreads::run($submission);
+        $running = $submission->runningReviewRound();
+        $round = $running === null ? null : ReviewerRoundData::of($running, $assignment);
 
         return [
             'submission' => EvaluationSubmissionData::of($submission),
@@ -38,14 +40,16 @@ class ReviewerSummary implements ChangesNoState
                 $threads['summaries']->where('reviewer_id', $assignment->reviewer_id)->values(),
                 $threads['comments'],
             ),
-            // BR-FE-06 — definisi yang sama dengan ReviewSummaryGuard.
-            'canCreateThread' => $assignment->hasSettledEvaluation(),
+            // BR-FE-06 dan BR-REV-17 — definisi yang sama dengan ReviewSummaryGuard dan OpenReviewThread.
+            'canCreateThread' => $assignment->hasSettledEvaluation() && $this->mayOpenThread($submission->parent_submission_id, $round),
             'scores' => VisibleReviewerScores::run($viewer, $submission),
-            'outcome' => new OutcomeConditionsData(
-                reviewerCount: $threads['stats']['total_reviewers'],
-                unsettledCount: $submission->submissionReviewers()->unsettledEvaluation()->count(),
-                openThreadCount: $threads['stats']['open_reviews'],
-            ),
+            'round' => $round,
         ];
+    }
+
+    /** Laporan monev tidak punya putaran (BR-MON-02); pengajuan utama: peserta yang belum Selesai. */
+    private function mayOpenThread(?int $parentId, ?ReviewerRoundData $round): bool
+    {
+        return $parentId !== null || ($round !== null && $round->isParticipant && !$round->finished);
     }
 }

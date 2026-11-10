@@ -59,11 +59,25 @@ export interface EvaluationPageProps {
     evaluationSettled: boolean
 }
 
-// Sumber: OutcomeConditionsData. Hanya hitungan, tanpa nama reviewer lain (BR-REV-11).
-export interface OutcomeConditions {
-    reviewerCount: number
-    unsettledCount: number
-    openThreadCount: number
+// Sumber: ReviewRoundProgressData. Hanya hitungan, tanpa nama reviewer lain (BR-REV-11).
+export interface ReviewRoundProgress {
+    kind: ReviewRoundKind
+    number: number
+    finished: number
+    total: number
+}
+
+export type ReviewRoundKind = 'assessment' | 'recheck'
+
+// Sumber: ReviewerRoundData — putaran berjalan dari sisi reviewer ini (BR-REV-16).
+export interface ReviewerRound {
+    kind: ReviewRoundKind
+    finishLabel: string
+    isParticipant: boolean
+    finished: boolean
+    canFinish: boolean
+    reason: string | null
+    progress: ReviewRoundProgress
 }
 
 export interface SummaryPageProps {
@@ -71,7 +85,8 @@ export interface SummaryPageProps {
     threads: ReviewThread[]
     canCreateThread: boolean
     scores: ReviewerScores
-    outcome: OutcomeConditions
+    // null = tidak ada putaran berjalan.
+    round: ReviewerRound | null
 }
 
 // Sumber: ReviewHistoryRowData. `summaryUrl` null = penugasan digantikan (BR-REV-10).
