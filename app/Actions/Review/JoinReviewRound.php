@@ -7,6 +7,7 @@ use App\Models\FormSubmission;
 use App\Models\ReviewRound;
 use App\Models\SubmissionReviewer;
 use App\Support\Audit\AuditTrail;
+use Illuminate\Support\Facades\DB;
 use Lorisleiva\Actions\Concerns\AsAction;
 
 /**
@@ -29,13 +30,23 @@ class JoinReviewRound
             return;
         }
 
-        $round = $submission->runningReviewRound() ?? $this->openAssessment($submission);
+        $round = DB::transaction(function () use ($submission, $seat): ?ReviewRound {
+            // Dua penugasan bersamaan tidak boleh sama-sama membuka putaran bernomor sama.
+            FormSubmission::query()->whereKey($submission->id)->lockForUpdate()->value('id');
+            $round = $submission->runningReviewRound() ?? $this->openAssessment($submission);
 
-        if ($round->kind === ReviewRoundKind::Recheck) {
+            if ($round->kind === ReviewRoundKind::Recheck) {
+                return null;
+            }
+
+            $round->participants()->firstOrCreate(['submission_reviewer_id' => $seat->id]);
+
+            return $round;
+        });
+
+        if ($round === null) {
             return;
         }
-
-        $round->participants()->firstOrCreate(['submission_reviewer_id' => $seat->id]);
 
         // BR-RPT-09 — satu Action, satu entri audit.
         AuditTrail::record('Reviewer masuk putaran review', $round);

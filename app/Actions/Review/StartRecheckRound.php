@@ -30,6 +30,8 @@ class StartRecheckRound
         $seats = $this->seatsWithOpenNotes($submission);
 
         $round = DB::transaction(function () use ($submission, $seats): ReviewRound {
+            // Baris pengajuan dikunci seperti JoinReviewRound: satu putaran baru, satu nomor.
+            FormSubmission::query()->whereKey($submission->id)->lockForUpdate()->value('id');
             // Putaran penilaian bisa masih berjalan bila Operator menambah reviewer selama
             // NEEDS_REVISION; pemilik catatan bergabung ke sana, bukan membuka putaran kedua.
             $round = $submission->runningReviewRound() ?? $submission->reviewRounds()->create([
