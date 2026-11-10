@@ -2,6 +2,7 @@
 
 namespace App\Data\View\Submission\Manage;
 
+use App\Data\View\Review\DecisionReadinessData;
 use App\Models\FormSubmission;
 use App\Models\User;
 use Spatie\LaravelData\Data;
@@ -22,15 +23,16 @@ final class OperatorAbilitiesData extends Data
         public bool $withdraw,
     ) {}
 
-    public static function forUser(User $user, FormSubmission $submission): self
+    /** `$readiness` dihitung sekali oleh pemanggil, lalu dipakai Policy approve dan reject. */
+    public static function forUser(User $user, FormSubmission $submission, DecisionReadinessData $readiness): self
     {
         return new self(
             assignReviewers: $user->can('assignReviewers', $submission),
             replaceReviewer: $user->can('replaceReviewer', $submission),
             grantOverride: $user->can('grantOverride', $submission),
             transferOwnership: $user->can('transferOwnership', $submission),
-            approve: $user->can('approve', $submission),
-            reject: $user->can('reject', $submission),
+            approve: $user->can('approve', [$submission, $readiness]),
+            reject: $user->can('reject', [$submission, $readiness]),
             withdraw: $user->can('withdraw', $submission),
         );
     }

@@ -152,3 +152,16 @@ it('laporan monev tidak pernah siap diputuskan', function () {
 
     expect(DecisionReadiness::run($report)->ready)->toBeFalse();
 });
+
+it('Setujui dan Tolak menghitung kesiapan keputusan sekali per permintaan', function (string $route, array $payload) {
+    $submission = readyForDecision();
+    DecisionReadiness::partialMock()->shouldReceive('handle')->once()->passthru();
+
+    $this->actingAs(approveOperator())
+        ->post(route($route, $submission), $payload)
+        ->assertSessionHasNoErrors()
+        ->assertRedirect();
+})->with([
+    'setujui' => ['admin.submissions.approve', []],
+    'tolak' => ['admin.submissions.reject', ['reason' => 'Metodologi tidak memadai.']],
+]);

@@ -35,7 +35,10 @@ class RejectSubmission
      */
     public function handle(FormSubmission $submission, User $operator, string $reason): FormSubmission
     {
-        if (!$operator->can('reject', $submission)) {
+        // Satu hasil kesiapan untuk Policy dan pemeriksaan ulang di bawah.
+        $readiness = DecisionReadiness::run($submission);
+
+        if (!$operator->can('reject', [$submission, $readiness])) {
             throw new AuthorizationException(
                 'Penolakan hanya dapat dilakukan Operator atas pengajuan yang siap diputuskan.'
             );
@@ -52,7 +55,7 @@ class RejectSubmission
 
         // Super Admin lolos Policy lewat Gate::before (ADR 0015); syarat siap diputuskan dibaca ulang
         // supaya keputusan tetap menunggu putaran selesai (BR-REV-07), dijawab galat, bukan 500.
-        if (!DecisionReadiness::run($submission)->ready) {
+        if (!$readiness->ready) {
             throw ValidationException::withMessages([
                 'status' => 'Penolakan hanya untuk pengajuan yang siap diputuskan.',
             ]);

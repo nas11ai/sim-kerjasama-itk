@@ -18,6 +18,7 @@ use App\Models\ReviewFormResponse;
 use App\Models\SubmissionReviewer;
 use App\Models\User;
 use App\Models\UserProfile;
+use App\Queries\Review\DecisionReadiness;
 use App\States\Submission\Approved;
 use App\States\Submission\Draft;
 use App\States\Submission\Submitted;
@@ -383,4 +384,16 @@ it('tab Luaran hanya untuk pengajuan APPROVED dan WITHDRAWN', function () {
             ->where('outputAccess', null)
             ->where('outputPhaseAccess', null)
             ->where('outputOverrideTarget', null));
+});
+
+it('kesiapan keputusan dihitung sekali per halaman kelola', function () {
+    $submission = readyForDecision();
+    // Kebijakan approve/reject dan prop decisionReadiness memakai satu hasil yang sama.
+    DecisionReadiness::partialMock()->shouldReceive('handle')->once()->passthru();
+
+    showOperatorPage(detailOperator(), $submission)
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('operatorCan.approve', true)
+            ->where('operatorCan.reject', true)
+            ->where('decisionReadiness.ready', true));
 });

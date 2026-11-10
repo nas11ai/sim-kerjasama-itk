@@ -35,14 +35,15 @@ class ApproveSubmission
      */
     public function handle(FormSubmission $submission, User $operator): FormSubmission
     {
-        if (!$operator->can('approve', $submission)) {
+        // Satu hasil kesiapan untuk Policy dan pemeriksaan ulang: Super Admin lolos Policy lewat
+        // Gate::before, jadi syaratnya dibaca ulang di sini (ADR 0015).
+        $readiness = DecisionReadiness::run($submission);
+
+        if (!$operator->can('approve', [$submission, $readiness])) {
             throw new AuthorizationException(
                 'Persetujuan hanya dapat dilakukan Operator atas pengajuan yang siap diputuskan.'
             );
         }
-
-        // Super Admin lolos Policy lewat Gate::before, jadi syaratnya dibaca ulang di sini (ADR 0015).
-        $readiness = DecisionReadiness::run($submission);
 
         if (!$readiness->approvable) {
             throw ValidationException::withMessages([

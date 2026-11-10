@@ -23,9 +23,9 @@ class SubmissionDecisionController extends Controller
     {
         $user = Auth::user();
 
-        // BR-REV-05 — Setujui menunggu putaran selesai (ADR 0018).
-        abort_unless($user !== null && $user->can('approve', $submission), 403);
+        abort_unless($user !== null, 403);
 
+        // BR-REV-05 — Setujui menunggu putaran selesai (ADR 0018); wewenangnya diperiksa Action.
         ApproveSubmission::run($submission, $user);
 
         return back()->with('success', 'Pengajuan disetujui.');
@@ -35,11 +35,10 @@ class SubmissionDecisionController extends Controller
     {
         $user = Auth::user();
 
-        abort_unless($user !== null && $user->can('reject', $submission), 403);
+        abort_unless($user !== null, 403);
 
-        $validated = $request->validate(['reason' => 'required|string|min:1']);
-
-        RejectSubmission::run($submission, $user, $validated['reason']);
+        // BR-REV-07 — wewenang lebih dulu, lalu alasan wajib: keduanya diperiksa Action, berurutan.
+        RejectSubmission::run($submission, $user, $request->string('reason')->toString());
 
         return back()->with('success', 'Pengajuan ditolak.');
     }

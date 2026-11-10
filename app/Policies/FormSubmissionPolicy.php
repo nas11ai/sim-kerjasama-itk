@@ -2,6 +2,7 @@
 
 namespace App\Policies;
 
+use App\Data\View\Review\DecisionReadinessData;
 use App\Models\FormSubmission;
 use App\Models\ResearchMember;
 use App\Models\User;
@@ -111,14 +112,14 @@ class FormSubmissionPolicy
     }
 
     /** BR-REV-05, BR-REV-07 (ADR 0018) — Setujui dan Tolak oleh Operator, hanya atas pengajuan siap diputuskan. */
-    public function approve(User $user, FormSubmission $submission): bool
+    public function approve(User $user, FormSubmission $submission, ?DecisionReadinessData $readiness = null): bool
     {
-        return $user->can('submissions.view-all') && DecisionReadiness::run($submission)->ready;
+        return $user->can('submissions.view-all') && ($readiness ?? DecisionReadiness::run($submission))->ready;
     }
 
-    public function reject(User $user, FormSubmission $submission): bool
+    public function reject(User $user, FormSubmission $submission, ?DecisionReadinessData $readiness = null): bool
     {
-        return $this->approve($user, $submission);
+        return $this->approve($user, $submission, $readiness);
     }
 
     public function withdraw(User $user, FormSubmission $submission): bool

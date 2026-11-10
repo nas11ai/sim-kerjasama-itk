@@ -71,6 +71,7 @@ class OperatorSubmissionDetail implements ChangesNoState
         $reviewers = ManagedReviewers::run($submission);
         $threads = ReviewThreads::run($submission);
         $phaseDetail = $submission->getFormPhaseDetail();
+        $readiness = DecisionReadiness::run($submission);
 
         return [
             'organization' => $submission->submittedBy->organization?->name,
@@ -83,9 +84,9 @@ class OperatorSubmissionDetail implements ChangesNoState
             'threads' => ReviewThreadData::many($threads['summaries'], $threads['comments']),
             'ownershipCandidates' => OwnershipCandidates::run($submission),
             'overrideTarget' => self::overrideTargetFor($submission, $phaseDetail),
-            'operatorCan' => OperatorAbilitiesData::forUser($viewer, $submission),
+            'operatorCan' => OperatorAbilitiesData::forUser($viewer, $submission, $readiness),
             // BR-REV-05, BR-REV-07 — kesiapan keputusan; `decision` sudah dipakai "Diputuskan oleh".
-            'decisionReadiness' => DecisionReadiness::run($submission),
+            'decisionReadiness' => $readiness,
         ];
     }
 
