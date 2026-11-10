@@ -14,6 +14,7 @@ use App\Models\FormSubmission;
 use App\Models\Reviewer;
 use App\Models\Scheme;
 use App\Models\User;
+use App\States\Submission\NeedsRevision;
 use App\States\Submission\Submitted;
 use App\States\Submission\UnderReview;
 use Illuminate\Validation\ValidationException;
@@ -116,4 +117,15 @@ it('[REV-ASSIGN-01] penugasan lahir dengan evaluation_status pending', function 
 
     expect($assignment->evaluation_status)->toBe('pending')
         ->and($assignment->status)->toBe('active');
+});
+
+it('[REV-ASSIGN-01] penugasan selama NEEDS_REVISION tidak memindahkan status', function () {
+    [$submission] = assignSliceSubmission(minReviewers: 1);
+    $submission->update(['status' => NeedsRevision::class]);
+
+    // BR-REV-01 memindahkan SUBMITTED → UNDER_REVIEW saja; revisi kembali ke antrean lewat kirim ulang (BR-SM-03).
+    AssignReviewer::run($submission, activeReviewer());
+
+    expect($submission->fresh()->status)->toBeInstanceOf(NeedsRevision::class)
+        ->and($submission->activeSubmissionReviewers()->count())->toBe(1);
 });

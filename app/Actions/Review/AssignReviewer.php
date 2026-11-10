@@ -7,7 +7,9 @@ use App\Models\Reviewer;
 use App\Models\SubmissionReviewer;
 use App\Models\User;
 use App\Notifications\ReviewerAssignedNotification;
+use App\States\Submission\Resubmitted;
 use App\States\Submission\SubmissionStatus;
+use App\States\Submission\Submitted;
 use App\States\Submission\UnderReview;
 use App\Support\Audit\AuditTrail;
 use App\Support\ConflictOfInterestGuard;
@@ -142,7 +144,9 @@ class AssignReviewer
             );
         }
 
-        if ($status->equals(UnderReview::class)) {
+        // SUBMITTED/RESUBMITTED menunggu penugasan; NEEDS_REVISION kembali ke antrean lewat kirim
+        // ulang (BR-SM-03) — transisi langsung ke UNDER_REVIEW tidak terdaftar dan menjawab 500.
+        if (!$status->equals(Submitted::class, Resubmitted::class)) {
             return;
         }
 
