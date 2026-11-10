@@ -2,6 +2,7 @@
 
 namespace App\Actions\Review;
 
+use App\Actions\Concerns\SettlesThroughUnderReview;
 use App\Models\FormSubmission;
 use App\Models\ReviewRound;
 use App\Models\User;
@@ -18,7 +19,6 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Facades\DB;
 use Lorisleiva\Actions\Concerns\AsAction;
-use RuntimeException;
 
 /**
  * BR-REV-06, BR-REV-16 — satu-satunya tempat hasil review dihitung, sekali per putaran: catatan `open`
@@ -30,6 +30,7 @@ use RuntimeException;
 class ConcludeReviewRound
 {
     use AsAction;
+    use SettlesThroughUnderReview;
 
     /** Status yang menunggu keputusan; hanya di sini hasil putaran memindahkan status. */
     private const AWAITING_DECISION = [Submitted::class, UnderReview::class, Resubmitted::class];
@@ -77,7 +78,7 @@ class ConcludeReviewRound
         $revisionRequested = $needsRevision && $this->awaitsDecision($submission);
 
         if ($revisionRequested) {
-            $this->moveToRevision($submission);
+            $this->settleInto($submission, NeedsRevision::class);
         }
 
         return [$locked, $revisionRequested];
@@ -88,26 +89,6 @@ class ConcludeReviewRound
         $status = $submission->status;
 
         return $status instanceof SubmissionStatus && $status->equals(...self::AWAITING_DECISION);
-    }
-
-    /**
-     * NEEDS_REVISION hanya bisa dimasuki dari UNDER_REVIEW; yang belum ke sana dilewatkan lebih
-     * dulu, bukan dengan melebarkan state machine.
-     */
-    private function moveToRevision(FormSubmission $submission): void
-    {
-        $status = $submission->status;
-
-        if ($status instanceof SubmissionStatus && !$status->equals(UnderReview::class)) {
-            $status->transitionTo(UnderReview::class);
-            $status = $submission->refresh()->status;
-        }
-
-        if (!$status instanceof SubmissionStatus) {
-            throw new RuntimeException("FormSubmission {$submission->id} kehilangan status sebelum NEEDS_REVISION.");
-        }
-
-        $status->transitionTo(NeedsRevision::class);
     }
 
     /**

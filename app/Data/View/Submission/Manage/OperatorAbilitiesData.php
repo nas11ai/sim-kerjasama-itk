@@ -17,6 +17,7 @@ final class OperatorAbilitiesData extends Data
         public bool $replaceReviewer,
         public bool $grantOverride,
         public bool $transferOwnership,
+        public bool $approve,
         public bool $reject,
         public bool $withdraw,
     ) {}
@@ -28,6 +29,7 @@ final class OperatorAbilitiesData extends Data
             replaceReviewer: $user->can('replaceReviewer', $submission),
             grantOverride: $user->can('grantOverride', $submission),
             transferOwnership: $user->can('transferOwnership', $submission),
+            approve: $user->can('approve', $submission),
             reject: $user->can('reject', $submission),
             withdraw: $user->can('withdraw', $submission),
         );

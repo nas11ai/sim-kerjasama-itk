@@ -2,15 +2,17 @@
 
 namespace App\Actions\Review;
 
+use App\Actions\Concerns\SettlesThroughUnderReview;
 use App\Models\FormSubmission;
 use App\Models\User;
+use App\Notifications\ProposalRejectedNotification;
+use App\Queries\Review\DecisionReadiness;
 use App\States\Submission\Rejected;
-use App\States\Submission\SubmissionStatus;
 use App\Support\Audit\AuditTrail;
+use App\Support\Notification\Deliver;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Validation\ValidationException;
 use Lorisleiva\Actions\Concerns\AsAction;
-use RuntimeException;
 
 /**
  * BR-REV-07 dan BR-REV-14 — **satu-satunya** jalur menuju REJECTED.
@@ -23,6 +25,7 @@ use RuntimeException;
 class RejectSubmission
 {
     use AsAction;
+    use SettlesThroughUnderReview;
 
     /** Entri terbaru dengan deskripsi ini adalah "Diputuskan oleh/Tanggal" di detail. */
     public const AUDIT_DESCRIPTION = 'Pengajuan ditolak';
@@ -34,7 +37,7 @@ class RejectSubmission
     {
         if (!$operator->can('reject', $submission)) {
             throw new AuthorizationException(
-                'Penolakan hanya dapat dilakukan Operator atas pengajuan yang sedang direview.'
+                'Penolakan hanya dapat dilakukan Operator atas pengajuan yang siap diputuskan.'
             );
         }
 
@@ -47,28 +50,24 @@ class RejectSubmission
             ]);
         }
 
-        $status = $submission->status;
-
-        if (!$status instanceof SubmissionStatus) {
-            throw new RuntimeException(
-                "FormSubmission {$submission->id} tidak punya status — tidak bisa ditolak."
-            );
-        }
-
-        // Super Admin lolos Policy lewat Gate::before; transisi yang tak terdaftar dijawab galat, bukan 500.
-        if (!$status->canTransitionTo(Rejected::class)) {
+        // Super Admin lolos Policy lewat Gate::before (ADR 0015); syarat siap diputuskan dibaca ulang
+        // supaya keputusan tetap menunggu putaran selesai (BR-REV-07), dijawab galat, bukan 500.
+        if (!DecisionReadiness::run($submission)->ready) {
             throw ValidationException::withMessages([
-                'status' => 'Penolakan manual hanya untuk pengajuan yang sedang direview.',
+                'status' => 'Penolakan hanya untuk pengajuan yang siap diputuskan.',
             ]);
         }
 
         $submission->update(['rejection_reason' => $reason]);
-        $status->transitionTo(Rejected::class);
+        $this->settleInto($submission, Rejected::class);
 
         $tercatat = $submission->refresh();
 
         // BR-RPT-09 — satu Action, satu entri audit.
         AuditTrail::record(self::AUDIT_DESCRIPTION, $tercatat, $operator);
+
+        // BR-REV-07 — peneliti utama diberi tahu beserta alasannya.
+        Deliver::to($tercatat->submittedBy, new ProposalRejectedNotification($tercatat));
 
         return $tercatat;
     }

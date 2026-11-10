@@ -462,6 +462,9 @@ Route::middleware(['auth'])->group(function () {
     });
 
     Route::prefix('admin')->name('admin.')->group(function () {
+        // BR-REV-05, ADR 0018 — Setujui oleh Operator, sebelah Tolak.
+        Route::post('/submissions/{submission}/approve', [SubmissionDecisionController::class, 'approve'])
+            ->name('submissions.approve');
         Route::post('/submissions/{submission}/reject', [SubmissionDecisionController::class, 'reject'])
             ->name('submissions.reject');
         Route::post('/submissions/{submission}/transfer-ownership', [SubmissionDecisionController::class, 'transferOwnership'])

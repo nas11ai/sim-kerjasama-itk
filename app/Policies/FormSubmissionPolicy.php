@@ -5,11 +5,11 @@ namespace App\Policies;
 use App\Models\FormSubmission;
 use App\Models\ResearchMember;
 use App\Models\User;
+use App\Queries\Review\DecisionReadiness;
 use App\States\Submission\Approved;
 use App\States\Submission\Draft;
 use App\States\Submission\NeedsRevision;
 use App\States\Submission\Rejected;
-use App\States\Submission\UnderReview;
 use App\States\Submission\Withdrawn;
 use App\Support\Review\AwaitingDecision;
 
@@ -110,19 +110,20 @@ class FormSubmissionPolicy
             && !$submission->status instanceof Withdrawn;
     }
 
-    /**
-     * BR-REV-07 — penolakan hanya oleh Operator atas pengajuan yang masih berjalan. Keputusan
-     * yang sudah diambil dibatalkan lewat penarikan, bukan penolakan susulan.
-     */
+    /** BR-REV-05, BR-REV-07 (ADR 0018) — Setujui dan Tolak oleh Operator, hanya atas pengajuan siap diputuskan. */
+    public function approve(User $user, FormSubmission $submission): bool
+    {
+        return $user->can('submissions.view-all') && DecisionReadiness::run($submission)->ready;
+    }
+
     public function reject(User $user, FormSubmission $submission): bool
     {
-        return $user->can('submissions.view-all')
-            && $submission->status instanceof UnderReview;
+        return $this->approve($user, $submission);
     }
 
     public function withdraw(User $user, FormSubmission $submission): bool
     {
-        // BR-SM-11 — withdrawal hanya oleh Operator, bukan self-service.
+        // BR-SM-11 — oleh Operator, bukan self-service; keputusan dibatalkan lewat penarikan, bukan keputusan susulan.
         return $user->can('submissions.view-all')
             && $submission->status instanceof Approved;
     }

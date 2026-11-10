@@ -23,12 +23,13 @@ Feature: Hasil Review
     Then putaran penilaian "P-001" masih berjalan
     And "P-001" belum siap diputuskan
 
-  @BR-REV-05 @M2 @REVIEWER-03-04 @boundary
-  Scenario: [REV-OUTCOME-03] Summary open menahan APPROVED
-    Given evaluasi "Sari" dan "Andi" atas "P-001" berstatus completed
-    And ada ReviewSummary berstatus open pada "P-001"
-    When sistem mengevaluasi hasil review "P-001"
-    Then status "P-001" tidak menjadi APPROVED
+  @BR-REV-05 @M2 @OPERATOR-02-05 @denial
+  Scenario: [REV-OUTCOME-03] Setujui ditolak selama ada catatan terbuka
+    Given "P-001" siap diputuskan
+    And ada 1 ReviewSummary berstatus open pada "P-001"
+    When Operator menyetujui "P-001"
+    Then aksi ditolak dengan pesan "1 catatan reviewer masih terbuka."
+    And status "P-001" tetap UNDER_REVIEW
 
   @BR-REV-06 @M2 @REVIEWER-03-04 @happy
   Scenario: [REV-OUTCOME-04] Peserta terakhir Selesai dengan catatan terbuka menjadikan NEEDS_REVISION
@@ -56,10 +57,10 @@ Feature: Hasil Review
 
   @BR-REV-07 @M2 @OPERATOR-02-05 @happy
   Scenario: [REV-OUTCOME-07] Penolakan hanya lewat aksi eksplisit Operator
-    Given evaluasi "Sari" dan "Andi" atas "P-001" berstatus completed
+    Given "P-001" siap diputuskan
     When Operator menolak "P-001" dengan alasan tertulis
     Then status "P-001" menjadi REJECTED
-    And "Budi" menerima notifikasi SubmissionRejected
+    And "Budi" menerima notifikasi ProposalRejected
 
   @BR-REV-07 @BR-REV-14 @M2 @REVIEWER-03-04 @denial
   Scenario: [REV-OUTCOME-08] Tidak ada kombinasi yang menghasilkan REJECTED
@@ -69,20 +70,22 @@ Feature: Hasil Review
     And status "P-001" tidak menjadi APPROVED
 
   @BR-REV-05 @M2 @RESEARCHER-02-10 @boundary
-  Scenario: [REV-OUTCOME-09] Fase tanpa review disetujui secara hampa
+  Scenario: [REV-OUTCOME-09] Fase tanpa review langsung siap diputuskan, tidak disetujui otomatis
     Given fase pengajuan "P-002" tidak membutuhkan review
     And submission "P-002" milik "Budi" berstatus SUBMITTED
     And tidak ada reviewer ditugaskan pada "P-002"
-    When sistem mengevaluasi hasil review "P-002"
+    Then "P-002" siap diputuskan
+    And status "P-002" tetap SUBMITTED
+    When Operator menyetujui "P-002"
     Then status "P-002" menjadi APPROVED
 
   @BR-REV-05 @M2 @OPERATOR-03-01 @denial
-  Scenario: [REV-OUTCOME-10] Fase yang butuh review tidak disetujui tanpa reviewer
+  Scenario: [REV-OUTCOME-10] Fase yang butuh review tidak siap diputuskan tanpa reviewer
     Given fase pengajuan "P-003" membutuhkan review
     And submission "P-003" milik "Budi" berstatus SUBMITTED
     And tidak ada reviewer ditugaskan pada "P-003"
-    When sistem mengevaluasi hasil review "P-003"
-    Then status "P-003" tetap SUBMITTED
+    Then "P-003" belum siap diputuskan dengan penahan "Belum ada reviewer."
+    And status "P-003" tetap SUBMITTED
 
   @BR-REV-16 @M2 @RESEARCHER-02-05 @happy
   Scenario: [REV-OUTCOME-16] Kirim ulang membuka putaran pemeriksaan untuk reviewer bercatatan terbuka
@@ -99,6 +102,21 @@ Feature: Hasil Review
     When Operator mengganti "Sari" dengan "Dewi"
     Then "Dewi" menjadi peserta putaran berjalan "P-001" yang belum selesai
     And "Sari" bukan lagi peserta putaran itu
+
+  @BR-REV-05 @M2 @OPERATOR-02-05 @happy
+  Scenario: [REV-OUTCOME-11] Operator menyetujui pengajuan yang siap diputuskan
+    Given "P-001" siap diputuskan tanpa ReviewSummary berstatus open
+    And "Rina" anggota tim aktif "P-001"
+    When Operator menyetujui "P-001"
+    Then status "P-001" menjadi APPROVED
+    And "Budi" dan "Rina" menerima notifikasi ProposalApproved
+
+  @BR-REV-05 @BR-REV-07 @M2 @OPERATOR-02-05 @denial
+  Scenario: [REV-OUTCOME-12] Selama putaran berjalan Setujui dan Tolak ditolak
+    Given putaran penilaian "P-001" masih berjalan
+    When Operator menyetujui atau menolak "P-001"
+    Then aksi ditolak
+    And status "P-001" tetap UNDER_REVIEW
 
   @BR-REV-16 @BR-FE-06 @M2 @REVIEWER-03-04 @happy
   Scenario: [REV-OUTCOME-13] Reviewer terakhir masih bisa meminta revisi setelah mengirim lembarnya

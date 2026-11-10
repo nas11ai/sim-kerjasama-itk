@@ -6,6 +6,7 @@ use App\Actions\Concerns\ChangesNoState;
 use App\Data\Submission\SubmissionAbilitiesData;
 use App\Data\View\ResearchOutput\OutputRowData;
 use App\Data\View\ResearchOutput\OutputWriteAccessData;
+use App\Data\View\Review\DecisionReadinessData;
 use App\Data\View\Submission\Manage\ManagedReviewerData;
 use App\Data\View\Submission\Manage\OperatorAbilitiesData;
 use App\Data\View\Submission\Manage\OverrideTargetData;
@@ -27,6 +28,7 @@ use App\Models\User;
 use App\Queries\ResearchOutput\OutputRows;
 use App\Queries\ResearchOutput\OutputUploadDetail;
 use App\Queries\ResearchOutput\OutputWriteAccess;
+use App\Queries\Review\DecisionReadiness;
 use App\Queries\Review\ManagedReviewers;
 use App\Queries\Review\ReviewThreads;
 use App\Queries\Review\SubmittedEvaluationSheets;
@@ -45,8 +47,8 @@ use Lorisleiva\Actions\Concerns\AsAction;
  * @phpstan-import-type Score from SubmittedEvaluationSheets
  *
  * @phpstan-type OutputExtras array{outputs: list<OutputRowData>|null, outputAccess: OutputWriteAccessData|null, outputPhaseAccess: PhaseAccess|null, outputOverrideTarget: OverrideTargetData|null}
- * @phpstan-type OperatorExtras array{organization: string|null, reviewers: list<ManagedReviewerData>, activeReviewerCount: int, minimumReviewers: int, needsReview: bool, evaluationSheets: list<Score>, threads: list<ReviewThreadData>, ownershipCandidates: list<OwnershipCandidateData>, overrideTarget: OverrideTargetData, operatorCan: OperatorAbilitiesData}
- * @phpstan-type ManageDetail array{submission: SubmissionDetailData, answers: list<SubmissionAnswerData>, members: list<SubmissionMemberData>, targetOutputs: list<SubmissionTargetOutputData>, targetHistory: list<TargetOutputChangeData>, budget: SubmissionBudgetData, history: list<SubmissionHistoryEntryData>, decision: SubmissionDecisionData|null, scores: array{visible: bool, reason: string|null, scores: list<Score>}, phaseAccess: PhaseAccess, printableDocuments: list<array{value: string, label: string}>, can: SubmissionAbilitiesData, organization: string|null, reviewers: list<ManagedReviewerData>, activeReviewerCount: int, minimumReviewers: int, needsReview: bool, evaluationSheets: list<Score>, threads: list<ReviewThreadData>, ownershipCandidates: list<OwnershipCandidateData>, overrideTarget: OverrideTargetData, operatorCan: OperatorAbilitiesData, outputs: list<OutputRowData>|null, outputAccess: OutputWriteAccessData|null, outputPhaseAccess: PhaseAccess|null, outputOverrideTarget: OverrideTargetData|null}
+ * @phpstan-type OperatorExtras array{organization: string|null, reviewers: list<ManagedReviewerData>, activeReviewerCount: int, minimumReviewers: int, needsReview: bool, evaluationSheets: list<Score>, threads: list<ReviewThreadData>, ownershipCandidates: list<OwnershipCandidateData>, overrideTarget: OverrideTargetData, operatorCan: OperatorAbilitiesData, decisionReadiness: DecisionReadinessData}
+ * @phpstan-type ManageDetail array{submission: SubmissionDetailData, answers: list<SubmissionAnswerData>, members: list<SubmissionMemberData>, targetOutputs: list<SubmissionTargetOutputData>, targetHistory: list<TargetOutputChangeData>, budget: SubmissionBudgetData, history: list<SubmissionHistoryEntryData>, decision: SubmissionDecisionData|null, scores: array{visible: bool, reason: string|null, scores: list<Score>}, phaseAccess: PhaseAccess, printableDocuments: list<array{value: string, label: string}>, can: SubmissionAbilitiesData, organization: string|null, reviewers: list<ManagedReviewerData>, activeReviewerCount: int, minimumReviewers: int, needsReview: bool, evaluationSheets: list<Score>, threads: list<ReviewThreadData>, ownershipCandidates: list<OwnershipCandidateData>, overrideTarget: OverrideTargetData, operatorCan: OperatorAbilitiesData, decisionReadiness: DecisionReadinessData, outputs: list<OutputRowData>|null, outputAccess: OutputWriteAccessData|null, outputPhaseAccess: PhaseAccess|null, outputOverrideTarget: OverrideTargetData|null}
  *
  * @method static ManageDetail run(User $viewer, FormSubmission $submission)
  */
@@ -82,6 +84,8 @@ class OperatorSubmissionDetail implements ChangesNoState
             'ownershipCandidates' => OwnershipCandidates::run($submission),
             'overrideTarget' => self::overrideTargetFor($submission, $phaseDetail),
             'operatorCan' => OperatorAbilitiesData::forUser($viewer, $submission),
+            // BR-REV-05, BR-REV-07 — kesiapan keputusan; `decision` sudah dipakai "Diputuskan oleh".
+            'decisionReadiness' => DecisionReadiness::run($submission),
         ];
     }
 

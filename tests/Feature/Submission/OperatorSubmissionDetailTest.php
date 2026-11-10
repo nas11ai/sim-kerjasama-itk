@@ -148,10 +148,29 @@ it('[SM-SUBMIT-14] Super Admin membuka detail dan bisa menarik pengajuan APPROVE
 });
 
 it('[SM-WITHDRAW-03] pengajuan UNDER_REVIEW tidak bisa ditarik', function () {
-    showOperatorPage(detailOperator(), sentFor(UnderReview::class))
+    // BR-REV-05, BR-REV-07 — siap diputuskan: Setujui dan Tolak tersedia, tarik tidak.
+    showOperatorPage(detailOperator(), readyForDecision())
         ->assertInertia(fn (Assert $page) => $page
             ->where('operatorCan.withdraw', false)
-            ->where('operatorCan.reject', true));
+            ->where('operatorCan.approve', true)
+            ->where('operatorCan.reject', true)
+            ->where('decisionReadiness.ready', true)
+            ->where('decisionReadiness.approvable', true));
+});
+
+it('[REV-OUTCOME-12] putaran berjalan menahan Setujui dan Tolak di halaman kelola', function () {
+    $submission = outcomeSubmission();
+    reviewerOn($submission, 'completed');
+
+    showOperatorPage(detailOperator(), $submission)
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('operatorCan.approve', false)
+            ->where('operatorCan.reject', false)
+            ->where('decisionReadiness.ready', false)
+            ->where('decisionReadiness.blockers', ['1 dari 1 reviewer belum menyelesaikan putaran.'])
+            ->where('decisionReadiness.round.kind', 'assessment')
+            ->where('decisionReadiness.round.finished', 0)
+            ->where('decisionReadiness.round.total', 1));
 });
 
 it('[SM-WITHDRAW-04] pengajuan WITHDRAWN tetap membawa anggaran, anggota, dan berkas', function () {
@@ -202,7 +221,9 @@ it('[REV-OUTCOME-10] fase butuh review tanpa reviewer', function () {
         ->assertInertia(fn (Assert $page) => $page
             ->where('needsReview', true)
             ->where('activeReviewerCount', 0)
-            ->where('submission.status.key', 'submitted'));
+            ->where('submission.status.key', 'submitted')
+            ->where('decisionReadiness.ready', false)
+            ->where('decisionReadiness.blockers', ['Belum ada reviewer.']));
 });
 
 it('[REV-REASSIGN-01] reviewer yang digantikan tetap terdaftar', function () {
@@ -247,7 +268,7 @@ it('[SM-OWNER-02] member biasa tidak ditawarkan sebagai penerima', function () {
 });
 
 it('operatorCan mengikuti reviewers.assign', function () {
-    showOperatorPage(detailOperator(['submissions.view-all']), sentFor(UnderReview::class))
+    showOperatorPage(detailOperator(['submissions.view-all']), readyForDecision())
         ->assertInertia(fn (Assert $page) => $page
             ->where('operatorCan.assignReviewers', false)
             ->where('operatorCan.replaceReviewer', false)

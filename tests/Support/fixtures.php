@@ -704,6 +704,8 @@ function outcomeSubmission(string $state = UnderReview::class, bool $needsReview
         'scheme_id' => null,
         'status' => $state,
         'form_phase_detail_id' => $detail->id,
+        // Pengajuan yang sudah masuk review sudah tersubmit; halaman kelola Operator menuntutnya.
+        'is_submitted' => true,
     ]);
 }
 
@@ -741,4 +743,16 @@ function openSummaryOn(FormSubmission $submission, SubmissionReviewer $assignmen
 function finishSeat(SubmissionReviewer $seat): ReviewRound
 {
     return FinishReviewRound::run($seat->refresh(), $seat->reviewer->user);
+}
+
+/**
+ * BR-REV-05 — pengajuan siap diputuskan: satu kursi `completed` yang sudah Selesai menilai, sehingga
+ * putaran penilaiannya selesai `ready`, lewat jalur produksi (FinishReviewRound).
+ */
+function readyForDecision(): FormSubmission
+{
+    $submission = outcomeSubmission();
+    finishSeat(reviewerOn($submission, 'completed'));
+
+    return $submission->refresh();
 }

@@ -7,8 +7,9 @@
 //
 //   peneliti mulai → isi → submit  (M1)
 //   operator tugaskan reviewer     (M2, BR-REV-01)
-//   evaluasi masuk                 (M2)
-//   ringkasan ditutup → APPROVED   (M2, BR-REV-05)
+//   evaluasi masuk, ulir dibuka lalu ditutup (M2)
+//   reviewer Selesai menilai       (M2, BR-REV-16)
+//   Operator Setujui → APPROVED    (M2, BR-REV-05, ADR 0018)
 //
 // Gunanya bukan menggantikan test per-skenario, melainkan membuktikan
 // bahwa potongan-potongan itu benar-benar tersambung. Test unit yang semuanya
@@ -19,6 +20,7 @@ use App\Models\FieldType;
 use App\Models\FormField;
 use App\Models\FormSubmission;
 use App\Models\Reviewer;
+use App\Models\ReviewEvaluationForm;
 use App\Models\ReviewSummary;
 use App\Models\Scheme;
 use App\Models\SubmissionReviewer;
@@ -34,8 +36,10 @@ function operatorUser(): User
     Permission::findOrCreate('users.manage', 'web');
     Permission::findOrCreate('reviewers.assign', 'web');
 
+    Permission::findOrCreate('submissions.view-all', 'web');
+
     $operator = User::factory()->create();
-    $operator->givePermissionTo(['users.manage', 'reviewers.assign']);
+    $operator->givePermissionTo(['users.manage', 'reviewers.assign', 'submissions.view-all']);
 
     return $operator;
 }
@@ -59,6 +63,11 @@ it('menyusuri alur pengajuan sampai disetujui lewat HTTP', function () {
     ]);
 
     $fx['detail']->update(['needs_review' => true]);
+    // Fase punya lembar penilaian, jadi kursi reviewer menunggu evaluasi (bukan `not_required`).
+    ReviewEvaluationForm::create([
+        'title' => 'Substansi', 'form_phase_detail_id' => $fx['detail']->id,
+        'is_active' => true, 'is_required' => true, 'order' => 1,
+    ]);
 
     $textType = FieldType::firstOrCreate(['name' => 'text']);
     $judul = FormField::create([
@@ -118,18 +127,31 @@ it('menyusuri alur pengajuan sampai disetujui lewat HTTP', function () {
     SubmissionReviewer::where('form_submission_id', $submission->id)
         ->update(['evaluation_status' => 'completed']);
 
-    $summary = ReviewSummary::create([
-        'form_submission_id' => $submission->id,
-        'reviewer_id' => $reviewerA->id,
-        'status' => 'open',
-        'summary_notes' => 'Perkuat metodologi sampling.',
-    ]);
+    $userA = User::findOrFail($reviewerA->user_id)->givePermissionTo(Permission::findOrCreate('reviewers.evaluate', 'web'));
+    $userB = User::findOrFail($reviewerB->user_id)->givePermissionTo('reviewers.evaluate');
 
-    // ---------- 5. Ringkasan ditutup → disetujui (BR-REV-05) ----------
+    $this->actingAs($userA)
+        ->post(route('reviewer.review-threads.store', $submission), ['summary_notes' => 'Perkuat metodologi sampling.'])
+        ->assertSessionHasNoErrors();
+
+    // ---------- 5. Ringkasan ditutup — tidak memutuskan apa pun (BR-REV-16) ----------
     // Hanya reviewer yang menutup ulir — Operator tidak (REV-DISCUSS-04).
-    $this->actingAs(User::findOrFail($reviewerA->user_id))
-        ->post(route('review-summaries.resolve', $summary))
+    $this->actingAs($userA)
+        ->post(route('review-summaries.resolve', ReviewSummary::where('form_submission_id', $submission->id)->sole()))
         ->assertRedirect();
+
+    expect($submission->fresh()->status)->toBeInstanceOf(UnderReview::class);
+
+    // ---------- 6. Kedua reviewer Selesai menilai → siap diputuskan ----------
+    $this->actingAs($userA)->post(route('reviewer.assignments.finish', $submission))->assertSessionHasNoErrors();
+    $this->actingAs($userB)->post(route('reviewer.assignments.finish', $submission))->assertSessionHasNoErrors();
+
+    expect($submission->fresh()->status)->toBeInstanceOf(UnderReview::class);
+
+    // ---------- 7. Operator menyetujui (BR-REV-05, ADR 0018) ----------
+    $this->actingAs($operator)
+        ->post(route('admin.submissions.approve', $submission))
+        ->assertSessionHas('success', 'Pengajuan disetujui.');
 
     expect($submission->fresh()->status)->toBeInstanceOf(Approved::class);
 });

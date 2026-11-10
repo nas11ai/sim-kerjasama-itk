@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Submission;
 
 use App\Actions\FormSubmission\TransferSubmissionOwnership;
+use App\Actions\Review\ApproveSubmission;
 use App\Actions\Review\RejectSubmission;
 use App\Http\Controllers\Controller;
 use App\Models\FormSubmission;
@@ -12,12 +13,24 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 
 /**
- * Keputusan Operator atas pengajuan: menolak dan memindahkan kepemilikan.
- * Penolakan sengaja bukan cabang endpoint status generik — bersyarat sendiri
- * (hanya UNDER_REVIEW, wajib beralasan), dan menumpang akan mengaburkan keduanya.
+ * Keputusan Operator atas pengajuan: menyetujui, menolak, dan memindahkan kepemilikan.
+ * Keputusan sengaja bukan cabang endpoint status generik — bersyarat sendiri
+ * (siap diputuskan, Tolak wajib beralasan), dan menumpang akan mengaburkan keduanya.
  */
 class SubmissionDecisionController extends Controller
 {
+    public function approve(FormSubmission $submission): RedirectResponse
+    {
+        $user = Auth::user();
+
+        // BR-REV-05 — Setujui menunggu putaran selesai (ADR 0018).
+        abort_unless($user !== null && $user->can('approve', $submission), 403);
+
+        ApproveSubmission::run($submission, $user);
+
+        return back()->with('success', 'Pengajuan disetujui.');
+    }
+
     public function reject(Request $request, FormSubmission $submission): RedirectResponse
     {
         $user = Auth::user();

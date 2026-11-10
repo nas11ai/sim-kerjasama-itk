@@ -14,7 +14,6 @@ use App\Models\FormSubmission;
 use App\Models\User;
 use App\States\Submission\Approved;
 use App\States\Submission\Rejected;
-use App\States\Submission\UnderReview;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Validation\ValidationException;
 use Spatie\Permission\Models\Permission;
@@ -29,18 +28,23 @@ function rejectOperator(): User
     return $operator;
 }
 
-/** @return array{0: User, 1: FormSubmission} */
-function rejectFixture(string $state = UnderReview::class): array
+/**
+ * BR-REV-07 — Tolak menunggu pengajuan siap diputuskan (ADR 0018): fixture-nya `readyForDecision()`,
+ * kecuali status lain diminta.
+ *
+ * @return array{0: User, 1: FormSubmission}
+ */
+function rejectFixture(?string $state = null): array
 {
-    $owner = User::factory()->create();
+    $submission = $state === null
+        ? readyForDecision()
+        : FormSubmission::factory()->create([
+            'submitted_by' => User::factory()->create()->id,
+            'scheme_id' => null,
+            'status' => $state,
+        ]);
 
-    $submission = FormSubmission::factory()->create([
-        'submitted_by' => $owner->id,
-        'scheme_id' => null,
-        'status' => $state,
-    ]);
-
-    return [$owner, $submission];
+    return [$submission->submittedBy, $submission];
 }
 
 it('[REV-OUTCOME-07] Operator menolak lewat aksi eksplisit', function () {

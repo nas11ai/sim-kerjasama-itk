@@ -142,9 +142,7 @@ it('[SM-MEMBER-01] menolak anggota yang sudah jadi reviewer lewat endpoint', fun
 /* ---------------- penolakan manual ---------------- */
 
 it('[REV-OUTCOME-07] Operator menolak lewat endpoint', function () {
-    $submission = FormSubmission::factory()->create([
-        'submitted_by' => httpOwner()->id, 'scheme_id' => null, 'status' => UnderReview::class,
-    ]);
+    $submission = readyForDecision();
 
     $this->actingAs(httpOperator())
         ->post(route('admin.submissions.reject', $submission), [
@@ -156,9 +154,7 @@ it('[REV-OUTCOME-07] Operator menolak lewat endpoint', function () {
 });
 
 it('[REV-OUTCOME-07] penolakan tanpa alasan ditolak lewat endpoint', function () {
-    $submission = FormSubmission::factory()->create([
-        'submitted_by' => httpOwner()->id, 'scheme_id' => null, 'status' => UnderReview::class,
-    ]);
+    $submission = readyForDecision();
 
     $this->actingAs(httpOperator())
         ->post(route('admin.submissions.reject', $submission), ['reason' => ''])
