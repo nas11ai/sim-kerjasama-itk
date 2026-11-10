@@ -33,6 +33,7 @@ use App\Http\Controllers\ResearchOutput\ResearchOutputFileController;
 use App\Http\Controllers\Review\ReplaceReviewerController;
 use App\Http\Controllers\Review\ReviewAttachmentDownloadController;
 use App\Http\Controllers\Review\ReviewerAssignmentController;
+use App\Http\Controllers\Review\ReviewRoundController;
 use App\Http\Controllers\Review\ReviewSummaryResolutionController;
 use App\Http\Controllers\ReviewController;
 use App\Http\Controllers\ReviewFormResponseController;
@@ -197,6 +198,9 @@ Route::middleware(['auth'])->prefix('reviewer')->name('reviewer.')->group(functi
             ->name('assignments.evaluation');
         Route::get('/assignments/{submission}/summary', [ReviewerAssignmentController::class, 'summary'])
             ->name('assignments.summary');
+        // BR-REV-16 — tanda Selesai menilai / Selesai memeriksa pada putaran berjalan.
+        Route::post('/assignments/{submission}/finish', [ReviewRoundController::class, 'finish'])
+            ->name('assignments.finish');
         Route::get('/history', [ReviewerAssignmentController::class, 'history'])
             ->name('history.index');
     });

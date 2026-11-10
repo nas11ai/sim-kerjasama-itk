@@ -8,6 +8,7 @@
 // (BR-SM-07, BR-REV-10).
 
 use App\Actions\Review\AddReviewComment;
+use App\Actions\Review\JoinReviewRound;
 use App\Actions\Review\OpenReviewThread;
 use App\Models\FormPhaseDetail;
 use App\Models\FormSubmission;
@@ -40,6 +41,8 @@ function discussionAudience(): array
         'evaluation_status' => 'completed',
         'status' => 'active',
     ]);
+    // BR-REV-16 — seperti AssignReviewer: kursi baru ikut putaran penilaian (BR-REV-17).
+    JoinReviewRound::run($assignment);
 
     $replaced = User::factory()->create();
     SubmissionReviewer::create([

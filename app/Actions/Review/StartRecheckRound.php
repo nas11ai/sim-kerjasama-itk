@@ -50,7 +50,11 @@ class StartRecheckRound
         // Spec §4.8 — yang diberi tahu adalah pihak yang harus bertindak (sejalan BR-MON-10).
         Deliver::to($this->usersOf($seats), new RecheckRequestedNotification($submission));
 
-        return $round;
+        // Semua catatan sudah ditutup selama NEEDS_REVISION → tidak ada yang perlu memeriksa;
+        // putaran tanpa peserta disimpulkan sekarang dan Operator diberi tahu.
+        ConcludeReviewRound::run($round);
+
+        return $round->refresh();
     }
 
     /** @return Collection<int, SubmissionReviewer> */

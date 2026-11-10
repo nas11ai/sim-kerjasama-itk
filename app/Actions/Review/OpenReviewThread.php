@@ -14,6 +14,7 @@ use App\Support\Audit\AuditTrail;
 use App\Support\Notification\Deliver;
 use App\Support\ReviewSummaryGuard;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\ValidationException;
 use Lorisleiva\Actions\Concerns\AsAction;
 
 /**
@@ -35,6 +36,7 @@ class OpenReviewThread
         // BR-FE-06 — satu definisi "evaluasi beres", yang sama dengan BR-REV-05
         // dan BR-REV-06.
         ReviewSummaryGuard::assertMayCreate($assignment);
+        $this->guardRunningSeat($submission, $assignment);
 
         $summary = DB::transaction(function () use ($submission, $assignment, $summaryNotes, $attachmentPaths): ReviewSummary {
             $summary = ReviewSummary::create([
@@ -67,6 +69,33 @@ class OpenReviewThread
         );
 
         return $summary;
+    }
+
+    /**
+     * BR-REV-17 — catatan pengajuan utama hanya dari peserta putaran berjalan yang belum Selesai: catatan
+     * sesudah putaran disimpulkan mengunci Setujui tanpa ada putaran yang memicu revisi, jadi pengajuan
+     * buntu (keputusan rencana P1-W3). Laporan monev tidak punya putaran (BR-MON-02).
+     *
+     * @throws ValidationException
+     */
+    private function guardRunningSeat(FormSubmission $submission, SubmissionReviewer $assignment): void
+    {
+        if ($submission->parent_submission_id !== null) {
+            return;
+        }
+
+        $mayOpen = $submission->runningReviewRound()?->participants()
+            ->where('submission_reviewer_id', $assignment->id)
+            ->whereNull('finished_at')
+            ->exists();
+
+        if ($mayOpen === true) {
+            return;
+        }
+
+        throw ValidationException::withMessages([
+            'review_summary' => 'Catatan hanya bisa dibuka selama putaran Anda berjalan.',
+        ]);
     }
 
     /** Ulir pertama menandai review sudah berjalan; yang sudah berjalan dibiarkan. */

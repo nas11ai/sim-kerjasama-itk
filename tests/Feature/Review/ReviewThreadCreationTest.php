@@ -6,6 +6,7 @@
 // guard-nya langsung; berkas ini membuktikan endpoint-nya memang memanggil
 // guard itu, bukan definisi "evaluasi selesai" karangannya sendiri.
 
+use App\Actions\Review\JoinReviewRound;
 use App\Models\FormPhaseDetail;
 use App\Models\FormSubmission;
 use App\Models\Reviewer;
@@ -37,12 +38,13 @@ function threadFixture(string $evaluationStatus, bool $formWajib): array
         'end_date' => now()->addMonth(),
     ]);
 
-    SubmissionReviewer::create([
+    // BR-REV-16 — seperti AssignReviewer: kursi baru ikut putaran penilaian (BR-REV-17).
+    JoinReviewRound::run(SubmissionReviewer::create([
         'form_submission_id' => $submission->id,
         'reviewer_id' => $reviewer->id,
         'evaluation_status' => $evaluationStatus,
         'status' => 'active',
-    ]);
+    ]));
 
     // Fase ini selalu punya form evaluasi; yang berbeda hanya wajib-tidaknya.
     ReviewEvaluationForm::create([

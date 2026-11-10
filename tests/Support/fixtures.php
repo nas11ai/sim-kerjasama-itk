@@ -11,6 +11,7 @@ use App\Actions\FormSubmission\StartChildSubmission;
 use App\Actions\FormSubmission\SubmitFormSubmission;
 use App\Actions\Review\AssignEvaluationForm;
 use App\Actions\Review\AssignReviewer;
+use App\Actions\Review\FinishReviewRound;
 use App\Actions\Review\JoinReviewRound;
 use App\Data\Request\ResearchOutputInput;
 use App\Enums\DeadlineType;
@@ -30,6 +31,7 @@ use App\Models\ReviewEvaluationForm;
 use App\Models\ReviewFormField;
 use App\Models\ReviewFormFieldResponse;
 use App\Models\ReviewFormResponse;
+use App\Models\ReviewRound;
 use App\Models\ReviewSummary;
 use App\Models\SubmissionDate;
 use App\Models\SubmissionPeriod;
@@ -631,6 +633,8 @@ function reviewedDetailFixture(string $submit, string $evaluation, ?string $revi
         'status' => 'active',
     ]);
     AssignEvaluationForm::run($seat, $form->id, true, EvaluationDueDate::run($form));
+    // BR-REV-16 — seperti AssignReviewer: kursi baru ikut putaran penilaian.
+    JoinReviewRound::run($seat);
 
     return [
         'period' => $period,
@@ -731,4 +735,10 @@ function openSummaryOn(FormSubmission $submission, SubmissionReviewer $assignmen
         'status' => $status,
         'summary_notes' => 'Perkuat metodologi.',
     ]);
+}
+
+/** BR-REV-16 — pemegang kursi menekan Selesai menilai/memeriksa. */
+function finishSeat(SubmissionReviewer $seat): ReviewRound
+{
+    return FinishReviewRound::run($seat->refresh(), $seat->reviewer->user);
 }

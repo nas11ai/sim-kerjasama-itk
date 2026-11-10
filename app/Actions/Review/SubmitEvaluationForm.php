@@ -31,11 +31,9 @@ class SubmitEvaluationForm
         $seat = $response->reviewerFormAssignment->submissionReviewer;
         RecalculateEvaluationStatus::run($seat);
 
+        // BR-REV-16, ADR 0018 — mengirim lembar tidak memicu hasil review: reviewer masih boleh
+        // menulis catatan lalu menekan Selesai menilai, dan baru itu yang dihitung.
         AuditTrail::record('Evaluasi disubmit', $response);
-
-        // BR-REV-05/06, ADR 0006 — evaluasi yang masuk memicu evaluasi ulang hasil review, sama
-        // dengan menutup ulir (ResolveReviewSummary): tanpa ulir, tak ada pemicu lain.
-        EvaluateSubmissionOutcome::run($seat->formSubmission);
 
         return true;
     }

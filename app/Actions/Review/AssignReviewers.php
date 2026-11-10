@@ -60,6 +60,14 @@ class AssignReviewers
         // BR-RPT-09 — satu permintaan, satu entri audit (di samping entri tiap reviewer).
         AuditTrail::record('Penugasan reviewer diproses', $submission);
 
+        // BR-REV-16 — kursi `not_required` dihitung selesai; bila itu peserta terakhir yang
+        // ditunggu, putaran disimpulkan sekarang, sekali untuk seluruh permintaan.
+        $round = $submission->runningReviewRound();
+
+        if ($round !== null) {
+            ConcludeReviewRound::run($round);
+        }
+
         return $workloadWarnings;
     }
 

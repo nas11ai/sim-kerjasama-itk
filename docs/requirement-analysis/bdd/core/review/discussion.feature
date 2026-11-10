@@ -1,8 +1,9 @@
 Feature: Diskusi Terulir Review
   ReviewSummary hanya berstatus open atau resolved — tidak ada closed di domain
   ini (BR-REV-13). Yang boleh me-resolve adalah reviewer, bukan researcher:
-  kalau researcher bisa menutup ulirnya sendiri, ia bisa memaksa APPROVED tanpa
-  persetujuan siapa pun.
+  kalau researcher bisa menutup ulirnya sendiri, ia menghapus permintaan revisi
+  tanpa persetujuan siapa pun. Menutup ulir tidak memutuskan hasil review: hasil
+  dihitung saat putaran review selesai (BR-REV-16).
 
   Background:
     Given submission "P-001" milik "Budi" berstatus UNDER_REVIEW
@@ -34,12 +35,13 @@ Feature: Diskusi Terulir Review
     When "Budi" menandai ReviewSummary itu resolved
     Then penyuntingan ditolak karena hanya reviewer yang boleh me-resolve
 
-  @BR-REV-06 @M2 @REVIEWER-03-04 @boundary
-  Scenario: [REV-DISCUSS-05] Ulir terakhir yang resolved memicu evaluasi ulang
+  @BR-REV-16 @M2 @REVIEWER-03-04 @boundary
+  Scenario: [REV-DISCUSS-05] Ulir yang resolved tidak memutuskan hasil review
     Given evaluasi seluruh reviewer "P-001" berstatus completed
     And ada satu ReviewSummary berstatus open pada "P-001"
     When "Sari" menandai ReviewSummary itu resolved
-    Then sistem mengevaluasi ulang hasil review "P-001"
+    Then status "P-001" tetap UNDER_REVIEW
+    And putaran review "P-001" masih menunggu "Sari" menekan Selesai
 
   @BR-REV-15 @M2 @REVIEWER-03-04 @happy
   Scenario: [REV-DISCUSS-06] Ulir reviewer yang diganti diwarisi penggantinya

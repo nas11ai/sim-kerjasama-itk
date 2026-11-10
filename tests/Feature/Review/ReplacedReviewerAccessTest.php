@@ -6,6 +6,7 @@
 // sejarah, bukan sebagai wewenang. Fixture-nya sengaja realistis: evaluasinya
 // selesai sebelum diganti, jadi gerbang "evaluasi beres" saja tidak menolaknya.
 
+use App\Actions\Review\JoinReviewRound;
 use App\Models\FieldType;
 use App\Models\FormPhaseDetail;
 use App\Models\FormSubmission;
@@ -96,12 +97,13 @@ function replacedReviewerOpenThread(FormSubmission $submission): ReviewSummary
 {
     $other = Reviewer::factory()->create(['user_id' => User::factory()->create()->id]);
 
-    SubmissionReviewer::create([
+    // BR-REV-16 — seperti AssignReviewer: kursi baru ikut putaran penilaian (BR-REV-17).
+    JoinReviewRound::run(SubmissionReviewer::create([
         'form_submission_id' => $submission->id,
         'reviewer_id' => $other->id,
         'evaluation_status' => 'completed',
         'status' => 'active',
-    ]);
+    ]));
 
     return ReviewSummary::create([
         'form_submission_id' => $submission->id,

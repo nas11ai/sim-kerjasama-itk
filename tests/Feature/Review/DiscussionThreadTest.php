@@ -3,12 +3,12 @@
 // tests/Feature/Review/DiscussionThreadTest.php
 //
 // Ulir diskusi review. Yang menutup ulir adalah reviewer, bukan researcher —
-// kalau researcher bisa menutup sendiri, ia bisa memaksa pengajuannya
-// APPROVED tanpa persetujuan siapa pun (BR-REV-06).
+// kalau researcher bisa menutup sendiri, ia menghapus permintaan revisi tanpa
+// persetujuan siapa pun (BR-REV-06).
 //
-// Menutup ulir terakhir memicu evaluasi ulang: kalau seluruh evaluasi sudah
-// masuk, saat itu juga pengajuan berpindah tanpa aksi tambahan.
+// BR-REV-16 — menutup ulir tidak memutuskan hasil; hasil dihitung di akhir putaran.
 
+use App\Actions\Review\JoinReviewRound;
 use App\Actions\Review\ResolveReviewSummary;
 use App\Models\FormPhaseDetail;
 use App\Models\FormSubmission;
@@ -18,8 +18,6 @@ use App\Models\ReviewSummary;
 use App\Models\SubmissionReviewer;
 use App\Models\User;
 use App\Notifications\RevisionResolvedNotification;
-use App\States\Submission\Approved;
-use App\States\Submission\NeedsRevision;
 use App\States\Submission\UnderReview;
 use App\Support\Audit\AuditTrail;
 use App\Support\Notification\NotificationChannels;
@@ -50,6 +48,7 @@ function discussionFixture(string $evaluation = 'completed'): array
         'evaluation_status' => $evaluation,
         'status' => 'active',
     ]);
+    JoinReviewRound::run($assignment);
 
     return [$owner, $reviewerUser, $submission, $reviewer, $assignment];
 }
@@ -112,27 +111,27 @@ it('[REV-DISCUSS-04] researcher tidak bisa me-resolve ulirnya sendiri', function
     ResolveReviewSummary::run($summary, $owner);
 })->throws(AuthorizationException::class);
 
-it('[REV-DISCUSS-05] ulir terakhir yang resolved memicu evaluasi ulang', function () {
+it('[REV-DISCUSS-05] ulir terakhir yang resolved tidak memutuskan hasil review', function () {
     [, $reviewerUser, $submission, $reviewer] = discussionFixture();
     $summary = openThread($submission, $reviewer);
 
     ResolveReviewSummary::run($summary, $reviewerUser);
 
-    // Seluruh evaluasi sudah masuk dan tidak ada ulir terbuka lagi —
-    // BR-REV-05 terpenuhi saat itu juga.
-    expect($submission->fresh()->status)->toBeInstanceOf(Approved::class);
+    // Seluruh evaluasi sudah masuk dan tidak ada ulir terbuka lagi, tapi hasil menunggu
+    // Selesai menilai (BR-REV-16) — dan APPROVED hanya lewat Operator (BR-REV-05).
+    expect($submission->fresh()->status)->toBeInstanceOf(UnderReview::class)
+        ->and($submission->runningReviewRound())->not->toBeNull();
 });
 
-it('[REV-DISCUSS-05] ulir lain yang masih terbuka mengarahkan ke revisi', function () {
+it('[REV-DISCUSS-05] ulir lain yang masih terbuka tidak mengembalikan ke revisi', function () {
     [, $reviewerUser, $submission, $reviewer] = discussionFixture();
     $first = openThread($submission, $reviewer);
     openThread($submission, $reviewer);
 
     ResolveReviewSummary::run($first, $reviewerUser);
 
-    // Bukan tetap UNDER_REVIEW: seluruh evaluasi sudah masuk, jadi BR-REV-06
-    // berlaku — ada ulir terbuka berarti NEEDS_REVISION, bukan menggantung.
-    expect($submission->fresh()->status)->toBeInstanceOf(NeedsRevision::class);
+    // Celah 3 ADR 0018: menutup satu ulir saat ulir lain terbuka tidak memicu NEEDS_REVISION.
+    expect($submission->fresh()->status)->toBeInstanceOf(UnderReview::class);
 });
 
 it('[BR-NOT-02] ulir yang ditutup memberi tahu peneliti utama lewat in-app saja', function () {

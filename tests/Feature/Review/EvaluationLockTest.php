@@ -92,7 +92,7 @@ it('[REV-EVAL-03] submit evaluasi menyelesaikan penugasan', function () {
     SubmitEvaluationForm::run($response);
 
     // Seluruh form wajib sudah tersubmit, jadi penugasannya selesai —
-    // itulah yang kemudian dibaca EvaluateSubmissionOutcome (BR-REV-05).
+    // itulah syarat tombol Selesai menilai (BR-REV-16).
     expect($response->fresh()->status)->toBe('submitted')
         ->and($assignment->fresh()->evaluation_status)->toBe('completed')
         ->and($assignment->fresh()->hasSettledEvaluation())->toBeTrue();

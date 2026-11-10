@@ -10,7 +10,6 @@ use App\Queries\Review\ActiveReviewerAssignment;
 use App\Support\Audit\AuditTrail;
 use App\Support\Notification\Deliver;
 use Illuminate\Auth\Access\AuthorizationException;
-use Illuminate\Support\Facades\DB;
 use Lorisleiva\Actions\Concerns\AsAction;
 
 /**
@@ -35,16 +34,10 @@ class ResolveReviewSummary
             return $summary;
         }
 
-        $resolved = DB::transaction(function () use ($summary): ReviewSummary {
-            $summary->update(['status' => 'resolved']);
-
-            // Menutup ulir terakhir memicu evaluasi ulang: syarat BR-REV-05 bisa terpenuhi saat
-            // itu juga, dan transisinya tidak boleh menunggu aksi lain. `form_submission_id`
-            // NOT NULL, jadi PHPStan menolak pengecekan null yang tak tercapai.
-            EvaluateSubmissionOutcome::run($summary->formSubmission);
-
-            return $summary->refresh();
-        });
+        // BR-REV-16, ADR 0018 — menutup catatan tidak memicu hasil review. Selama putaran pemeriksaan
+        // catatan rekan bisa masih terbuka; hasilnya baru dihitung saat semua peserta Selesai.
+        $summary->update(['status' => 'resolved']);
+        $resolved = $summary->refresh();
 
         // BR-RPT-09 — satu Action, satu entri audit.
         AuditTrail::record('Diskusi review ditutup', $resolved, $user);
@@ -58,8 +51,8 @@ class ResolveReviewSummary
 
     /**
      * Yang boleh menutup adalah **reviewer**, bukan researcher: kalau researcher bisa menandai
-     * catatannya sendiri selesai, ia memaksa pengajuannya ke APPROVED tanpa persetujuan siapa
-     * pun — dan itu justru yang dijaga `[REV-DISCUSS-04]`.
+     * catatannya sendiri selesai, ia menghapus permintaan revisi tanpa persetujuan siapa pun —
+     * dan itu justru yang dijaga `[REV-DISCUSS-04]`.
      *
      * @throws AuthorizationException
      */
