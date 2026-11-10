@@ -117,6 +117,12 @@ kasus berperilaku salah tanpa ada yang gagal mencolok.
 | ------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Reviewer Workload**     | Jumlah submission aktif yang sedang di-review oleh seorang reviewer. Dibatasi oleh `scheme.rules.max_reviewer_workload` — operator mendapat warning jika batas terlampaui. |
 | **Reviewer Reassignment** | Aksi Operator mengganti reviewer yang tidak bisa melanjutkan. Record lama di-mark `replaced`, reviewer baru mendapat assignment fresh. History review lama tetap ada.      |
+| **Putaran Review**        | Satu babak review milik pengajuan utama, dengan daftar peserta (reviewer) dan tanda Selesai per peserta. Hasil review hanya dihitung saat putaran selesai — yaitu saat peserta terakhir menekan Selesai (BR-REV-16). Riwayat putaran lama tetap terbaca. Laporan monev tidak punya putaran. |
+| **Putaran Penilaian**     | Putaran review yang dibuka saat reviewer ditugaskan. Pesertanya semua `SubmissionReviewer` aktif; `not_required` dihitung selesai. |
+| **Putaran Pemeriksaan**   | Putaran review yang dibuka saat peneliti mengirim ulang revisi. Pesertanya hanya reviewer aktif yang punya `ReviewSummary` `open`. Lembar penilaian tidak diisi ulang (BR-REV-08). |
+| **Selesai menilai**       | Tanda peserta Putaran Penilaian bahwa penilaiannya — lembar dan catatan revisinya — sudah lengkap. Baru bisa ditekan setelah evaluasinya `completed`; tidak bisa dibatalkan. |
+| **Selesai memeriksa**     | Tanda peserta Putaran Pemeriksaan bahwa ia sudah memeriksa revisi dan menutup catatan yang dipenuhi. Tidak bisa dibatalkan. |
+| **Siap diputuskan**       | Keadaan turunan, bukan kolom: pengajuan utama yang menunggu keputusan, putaran review terakhirnya selesai tanpa NEEDS_REVISION (atau fasenya tanpa review). Hanya pengajuan yang siap diputuskan boleh disetujui atau ditolak Operator (BR-REV-05, BR-REV-07). |
 
 ---
 
@@ -165,7 +171,7 @@ kasus berperilaku salah tanpa ada yang gagal mencolok.
 
 ```
 DRAFT → SUBMITTED → UNDER_REVIEW → NEEDS_REVISION → RESUBMITTED → APPROVED → WITHDRAWN
-                                 → REJECTED (semi-manual via operator)
+                                 → REJECTED (manual via operator)
 ```
 
 | Status           | Trigger                                                           | Deskripsi                   |
@@ -173,9 +179,9 @@ DRAFT → SUBMITTED → UNDER_REVIEW → NEEDS_REVISION → RESUBMITTED → APPR
 | `DRAFT`          | Submission dibuat                                                 | Sedang diisi Researcher     |
 | `SUBMITTED`      | Researcher submit                                                 | Menunggu reviewer di-assign |
 | `UNDER_REVIEW`   | Operator assign reviewer terakhir                                 | Sedang dinilai              |
-| `NEEDS_REVISION` | **Otomatis** — semua reviewer done + ada ReviewSummary open       | Diminta revisi              |
+| `NEEDS_REVISION` | **Otomatis** — putaran review selesai + ada ReviewSummary open    | Diminta revisi              |
 | `RESUBMITTED`    | Researcher resubmit                                               | Kembali ke reviewer         |
-| `APPROVED`       | **Otomatis** — semua reviewer done + tidak ada ReviewSummary open | Disetujui                   |
+| `APPROVED`       | **Manual** — aksi Setujui Operator atas pengajuan siap diputuskan tanpa ReviewSummary open | Disetujui |
 | `REJECTED`       | **Manual** — hanya lewat aksi eksplisit Operator, tidak pernah otomatis | Ditolak                |
 | `WITHDRAWN`      | Operator override (bukan self-service)                            | Dibatalkan setelah approved |
 

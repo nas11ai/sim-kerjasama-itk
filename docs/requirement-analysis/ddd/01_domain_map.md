@@ -127,18 +127,19 @@ flowchart TD
     end
 
     subgraph REVIEWER["🔍 Reviewer"]
-        J[Isi ReviewEvaluationForm]
-        J --> K{Semua reviewer<br/>selesai?}
+        J[Isi ReviewEvaluationForm<br/>lalu Selesai menilai / memeriksa]
+        J --> K{Semua peserta putaran<br/>Selesai?}
         K -->|Belum| WAIT([Tunggu])
         K -->|Ya| L{Ada ReviewSummary<br/>open?}
         L -->|Ya| REV_REQ[Status → NEEDS_REVISION<br/>Otomatis]
-        L -->|Tidak| AUTO_APP[Status → APPROVED<br/>Otomatis]
+        L -->|Tidak| READY[Siap diputuskan]
     end
 
     H --> I --> J
     REV_REQ --> N[Researcher Revisi & Resubmit]
     N --> J
-    AUTO_APP --> APPROVE[✅ Approved]
+    READY --> DEC[Operator: Setujui / Tolak]
+    DEC --> APPROVE[✅ Approved]
     APPROVE --> P[Monev — dalam satu FormPhase<br/>yang sama dengan pengajuan]
     P --> Q[Laporan Kemajuan<br/>child FormSubmission]
     Q --> R[Reviewer Isi Evaluation Monev]

@@ -1,6 +1,6 @@
 # 0017 — Persetujuan hampa hanya kalau memang dikonfigurasi begitu
 
-**Status:** Diterima
+**Status:** Digantikan [ADR 0018](0018-review-outcome-at-round-end-operator-approves.md)
 **Tanggal:** 2026-09-06
 **Melanjutkan:** [ADR 0016](0016-submit-never-approves.md)
 

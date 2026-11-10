@@ -177,6 +177,8 @@ Untuk SIMPAS, **Opsi A sudah lebih dari cukup**. Opsi B bisa dipertimbangkan kal
 | Review            | `ReviewerAssigned`         | Reviewer                           | In-app + Email  |
 | Review            | `RevisionRequested`        | Lead Researcher                    | In-app + Email  |
 | Review            | `RevisionResolved`         | Lead Researcher                    | In-app          |
+| Review            | `RecheckRequested`         | Peserta Putaran Pemeriksaan        | In-app + Email  |
+| Review            | `SubmissionReadyForDecision` | LPPM Operator                    | In-app          |
 | Monev             | `MonevStageOpened`         | Lead Researcher + reviewer siklus itu | In-app + Email |
 | Monev             | `MonevEvaluationSubmitted` | Lead Researcher + LPPM Operator    | In-app          |
 | Identity & Access | `UserRegistered`           | User baru (welcome) + Operator pemegang `users.verify` | Email + In-app |

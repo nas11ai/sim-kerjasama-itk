@@ -140,11 +140,11 @@ stateDiagram-v2
 
     SUBMITTED --> UNDER_REVIEW : Operator assign reviewer terakhir<br/>guard: jumlah reviewer ≥ scheme.rules.min_reviewer_count
 
-    UNDER_REVIEW --> NEEDS_REVISION : OTOMATIS<br/>trigger: semua evaluation_status = completed<br/>DAN ada ReviewSummary open
+    UNDER_REVIEW --> NEEDS_REVISION : OTOMATIS<br/>trigger: putaran review selesai<br/>DAN ada ReviewSummary open — BR-REV-06
 
-    UNDER_REVIEW --> APPROVED : OTOMATIS<br/>trigger: semua evaluation_status = completed<br/>DAN tidak ada ReviewSummary open
+    UNDER_REVIEW --> APPROVED : MANUAL<br/>hanya via aksi Setujui Operator<br/>guard: siap diputuskan, tanpa ReviewSummary open — BR-REV-05
 
-    UNDER_REVIEW --> REJECTED : MANUAL<br/>hanya via Action RejectSubmission<br/>tidak pernah otomatis — BR-REV-14
+    UNDER_REVIEW --> REJECTED : MANUAL<br/>hanya via Action RejectSubmission<br/>guard: siap diputuskan — BR-REV-07, BR-REV-14
 
     NEEDS_REVISION --> RESUBMITTED : Researcher resubmit<br/>guard: ada perubahan setelah revision request
 
@@ -280,7 +280,7 @@ classDiagram
 | ------------------------ | -------------------------------------- | ----------------------------------------- |
 | `ProposalSubmitted`      | Status → SUBMITTED                     | Review, Notification                      |
 | `ProposalResubmitted`    | Status → RESUBMITTED                   | Review, Notification                      |
-| `ProposalApproved`       | Status → APPROVED (otomatis)           | Budget (lock), Notification               |
+| `ProposalApproved`       | Operator menyetujui (aksi Setujui, BR-REV-05) | Budget (lock), Notification        |
 | `ProposalRejected`       | Status → REJECTED (operator)           | Notification                              |
 | `ProposalWithdrawn`      | Status → WITHDRAWN (operator override) | Budget (lock), Notification               |
 | `OwnershipTransferred`   | submitted_by berubah                   | Notification, Reporting (audit)           |

@@ -1,8 +1,14 @@
 # BC: Review
 
 **Klasifikasi:** 🔴 Core Domain  
-**Versi:** 2.4  
+**Versi:** 2.5  
 **Status:** Draft
+
+> **Perubahan v2.4 → v2.5.** Hasil review dihitung di **akhir putaran review**
+> (BR-REV-16), dan APPROVED hanya lewat aksi **Setujui** Operator (BR-REV-05). Revisi
+> tetap otomatis dari catatan reviewer (BR-REV-06), tapi baru dihitung setelah setiap
+> peserta putaran menekan *Selesai*. Lihat
+> [ADR 0018](../../../adr/0018-review-outcome-at-round-end-operator-approves.md).
 
 > **Perubahan v2.3 → v2.4.** Ditegaskan bahwa **tidak ada jalur otomatis menuju
 > REJECTED**. Kode warisan fork sempat men-set `Rejected` otomatis dari
@@ -13,7 +19,7 @@
 
 ## Responsibility
 
-Mengelola penugasan reviewer, evaluasi kuantitatif, dan diskusi revisi. Approval terjadi **otomatis** oleh sistem ketika kondisi terpenuhi. Rejection adalah satu-satunya transisi yang membutuhkan konfirmasi manual operator — karena berimplikasi besar bagi researcher dan butuh pertimbangan.
+Mengelola penugasan reviewer, evaluasi kuantitatif, diskusi revisi, dan **putaran review**. Skor dan catatan reviewer adalah masukan; **persetujuan dan penolakan adalah keputusan Operator**, diambil setelah pengajuan siap diputuskan. Revisi adalah wewenang reviewer: catatan yang masih terbuka saat putaran selesai mengembalikan pengajuan ke peneliti secara otomatis.
 
 ---
 
@@ -36,7 +42,7 @@ flowchart TD
         C -->|Belum| B
         C -->|Ya| D[Buat SubmissionReviewer records]
         D --> E[Auto-assign ReviewerFormAssignments]
-        E --> F[Status → UNDER_REVIEW]
+        E --> F[Status → UNDER_REVIEW<br/>Putaran Penilaian dibuka]
     end
 
     subgraph REVIEWER["🔍 Reviewer"]
@@ -45,31 +51,35 @@ flowchart TD
         H --> I[Submit ReviewFormResponse<br/>evaluation_status → completed]
         I --> J{Perlu catatan<br/>revisi?}
         J -->|Ya| K[Buat ReviewSummary status=open<br/>Tulis ReviewComment]
-        J -->|Tidak| L[Buat ReviewSummary status=resolved]
+        J -->|Tidak| L[Klik Selesai menilai]
+        K --> L
     end
 
     F --> G
 
-    subgraph AUTO["🔄 Sistem — Auto Check"]
-        M{Semua SubmissionReviewer<br/>evaluation_status = completed?}
-        M -->|Belum| WAIT([Tunggu])
+    subgraph AUTO["🔄 Sistem — Kesimpulan Putaran"]
+        M{Semua peserta putaran<br/>sudah Selesai?<br/>not_required dihitung selesai}
+        M -->|Belum| WAIT([Putaran berjalan])
         M -->|Ya| N{Ada ReviewSummary<br/>status = open?}
-        N -->|Ya| REV[Status → NEEDS_REVISION<br/>OTOMATIS]
-        N -->|Tidak| APP[Status → APPROVED<br/>OTOMATIS]
+        N -->|Ya| REV[Status → NEEDS_REVISION<br/>OTOMATIS, serentak]
+        N -->|Tidak| READY[Siap diputuskan<br/>Operator diberi tahu]
     end
 
-    K --> M
     L --> M
     REV --> O([Researcher revisi & resubmit])
-    O --> H
-    APP --> END_A([Event: ProposalApproved])
+    O --> RC[Putaran Pemeriksaan dibuka<br/>peserta = reviewer bercatatan open]
+    RC --> CHK[Reviewer menutup catatan yang dipenuhi<br/>lalu klik Selesai memeriksa]
+    CHK --> M
 
-    subgraph MANUAL_REJ["🏢 Operator — Manual Reject"]
-        P[Operator review hasil evaluasi]
-        P --> Q[Operator klik Reject]
-        Q --> R[Konfirmasi + isi alasan]
-        R --> REJ[Status → REJECTED]
+    subgraph DECIDE["🏢 Operator — Keputusan"]
+        P[Operator membaca skor & catatan]
+        P --> Q{Keputusan}
+        Q -->|Setujui<br/>tanpa catatan open| APP[Status → APPROVED]
+        Q -->|Tolak + alasan| REJ[Status → REJECTED]
     end
+
+    READY --> P
+    APP --> END_A([Event: ProposalApproved])
 ```
 
 ### Alur Threaded Discussion (Revisi)
@@ -84,9 +94,12 @@ flowchart TD
     E -->|Belum| F[Reviewer reply balik]
     F --> D
     E -->|Ya| G[Update ReviewSummary status = resolved]
-    G --> H{Semua ReviewSummary<br/>resolved?}
-    H -->|Belum| WAIT([Tunggu summary lain])
-    H -->|Ya| AUTO([Sistem trigger auto approve])
+    E -->|Tidak, di Putaran Pemeriksaan| K[Biarkan open]
+    G --> H[Reviewer klik Selesai memeriksa]
+    K --> H
+    H --> I{Semua peserta putaran<br/>sudah Selesai?}
+    I -->|Belum| WAIT([Putaran berjalan —<br/>menutup catatan tidak memicu hasil])
+    I -->|Ya| AUTO([Kesimpulan putaran<br/>BR-REV-06 / siap diputuskan])
 ```
 
 ### Reviewer Reassignment
@@ -198,9 +211,9 @@ Tabel `reviewers` menyimpan `reviewer_type varchar` (`internal` / `external`) un
 | BR-REV-02 | Reviewer tidak bisa di-assign ke submission yang ia menjadi `submitted_by` atau `ResearchMember`-nya (mutual block — juga berlaku sebaliknya saat add member) Sisi anggota dinyatakan [BR-SM-08](../core/01_submission.md); pembatasan per-role dinyatakan [BR-IAM-07](../generic/02_identity_access.md). |
 | BR-REV-03 | Reviewer yang sama tidak bisa di-assign dua kali ke submission yang sama dalam satu siklus                                                                    |
 | BR-REV-04 | Jika workload reviewer melebihi `scheme.rules.max_reviewer_workload`, operator mendapat warning — bukan hard block                                            |
-| BR-REV-05 | Submission di-approve **otomatis** jika setiap `SubmissionReviewer` aktif sudah selesai (`evaluation_status` = `completed` **atau** `not_required`) DAN tidak ada ReviewSummary `open`. `not_required` ikut dihitung selesai — kalau tidak, reviewer berstatus itu tidak akan pernah menjadi `completed` dan submission terkunci selamanya |
-| BR-REV-06 | Submission masuk NEEDS_REVISION **otomatis** jika setiap `SubmissionReviewer` aktif sudah selesai (`completed` atau `not_required`) DAN ada ReviewSummary `open`. Definisi "selesai" sama persis dengan BR-REV-05 dan BR-FE-06 — satu definisi, tiga pemakai |
-| BR-REV-07 | Rejection harus dikonfirmasi manual oleh Operator — tidak bisa otomatis                                                                                       |
+| BR-REV-05 | Submission menjadi APPROVED **hanya** lewat aksi Setujui Operator, dan hanya bila siap diputuskan (putaran review terakhir selesai, atau fase tanpa review) dan tidak ada ReviewSummary `open`. Lihat [ADR 0018](../../../adr/0018-review-outcome-at-round-end-operator-approves.md) |
+| BR-REV-06 | Saat putaran review selesai dan masih ada ReviewSummary `open`, Submission masuk NEEDS_REVISION otomatis — serentak untuk semua catatan putaran itu |
+| BR-REV-07 | Rejection harus dikonfirmasi manual oleh Operator — tidak bisa otomatis — dan hanya bila Submission siap diputuskan |
 | BR-REV-08 | **Cermin [BR-FE-05](../generic/01_form_engine.md).** ReviewFormResponse tidak bisa diedit setelah `status = submitted`                                                                                             |
 | BR-REV-09 | Reviewer hanya aktif selama rentang `start_date` hingga `end_date`                                                                                            |
 | BR-REV-10 | Saat reviewer diganti (reassignment), SubmissionReviewer lama di-mark `replaced` — tidak dihapus                                                              |
@@ -209,6 +222,8 @@ Tabel `reviewers` menyimpan `reviewer_type varchar` (`internal` / `external`) un
 | BR-REV-13 | `ReviewSummary.status` hanya boleh `open` atau `resolved`. Tidak ada `closed` — status itu tidak pernah ada di domain ini                                     |
 | BR-REV-14 | Tidak boleh ada jalur kode yang men-transisikan submission ke REJECTED secara otomatis. Satu-satunya jalur masuk adalah Action `RejectSubmission` yang dipanggil Operator dengan alasan wajib |
 | BR-REV-15 | ReviewSummary `open` milik reviewer yang di-`replaced` **diwarisi reviewer penggantinya**, yang berhak me-resolve-nya. Penulis aslinya tetap terbaca dari record lama (BR-REV-10). Tanpa aturan ini summary itu tidak akan pernah bisa ditutup dan submission terkunci di NEEDS_REVISION selamanya — reviewer lama sudah tidak berwenang, reviewer baru tidak merasa berhak |
+| BR-REV-16 | Hasil review dihitung di akhir putaran. Putaran penilaian: peserta = semua SubmissionReviewer aktif; masing-masing menekan *Selesai menilai* setelah evaluasinya `completed`. Putaran pemeriksaan (setelah resubmit): peserta = reviewer aktif yang punya ReviewSummary `open`; masing-masing menekan *Selesai memeriksa*. `not_required` dihitung selesai. Tanda Selesai per reviewer per putaran, tidak bisa dibatalkan. Mengirim lembar penilaian atau menutup catatan tidak memicu hasil. Reviewer pengganti (BR-REV-10) menjadi peserta yang belum selesai |
+| BR-REV-17 | ReviewSummary untuk Submission utama hanya boleh dibuka peserta putaran berjalan yang belum menekan Selesai |
 
 ---
 
@@ -217,10 +232,13 @@ Tabel `reviewers` menyimpan `reviewer_type varchar` (`internal` / `external`) un
 | Event                      | Trigger                                                | Consumer                        |
 | -------------------------- | ------------------------------------------------------ | ------------------------------- |
 | `ReviewerAssigned`         | Operator assign reviewer                               | Notification                    |
-| `EvaluationSubmitted`      | Reviewer submit ReviewFormResponse                     | (internal: trigger auto check)  |
-| `RevisionRequested`        | ReviewSummary dibuat status open → auto NEEDS_REVISION | Submission, Notification        |
-| `RevisionResolved`         | ReviewSummary → resolved → trigger auto check          | (internal)                      |
-| `ProposalApprovedByReview` | Kondisi auto approve terpenuhi                         | Submission (status → APPROVED)  |
+| `EvaluationSubmitted`      | Reviewer submit ReviewFormResponse                     | (internal — tidak memicu hasil) |
+| `ReviewRoundFinishedByReviewer` | Reviewer menekan Selesai menilai / Selesai memeriksa | (internal: kesimpulan putaran) |
+| `RevisionRequested`        | Putaran selesai dengan ReviewSummary open → NEEDS_REVISION | Submission, Notification   |
+| `RevisionResolved`         | ReviewSummary → resolved                               | Notification (tidak memicu hasil) |
+| `RecheckRequested`         | Researcher resubmit → Putaran Pemeriksaan dibuka       | Notification (peserta putaran)  |
+| `SubmissionReadyForDecision` | Putaran selesai tanpa ReviewSummary open             | Notification (LPPM Operator)    |
+| `ProposalApproved`         | Operator menyetujui                                    | Submission (status → APPROVED), Notification |
 | `ProposalRejectedByReview` | Operator konfirmasi reject                             | Submission (status → REJECTED)  |
 | `ReviewerReassigned`       | Operator ganti reviewer                                | Notification, Reporting (audit) |
 
