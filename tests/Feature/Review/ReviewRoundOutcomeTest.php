@@ -32,8 +32,10 @@ use App\States\Submission\Rejected;
 use App\States\Submission\Submitted;
 use App\States\Submission\UnderReview;
 use Illuminate\Auth\Access\AuthorizationException;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Validation\ValidationException;
+use Spatie\Activitylog\Models\Activity;
 use Spatie\Permission\Models\Permission;
 
 beforeEach(function () {
@@ -348,7 +350,7 @@ it('Selesai yang kalah balapan dengan permintaan kembarnya ditolak tanpa audit k
     // Permintaan kembar menulis tanda Selesai tepat setelah baris peserta dibaca permintaan ini.
     ReviewRoundParticipant::retrieved(function (ReviewRoundParticipant $participant) use ($a): void {
         if ($participant->submission_reviewer_id === $a->id) {
-            Illuminate\Support\Facades\DB::table('review_round_participants')
+            DB::table('review_round_participants')
                 ->where('id', $participant->id)->update(['finished_at' => now()]);
         }
     });
@@ -360,6 +362,6 @@ it('Selesai yang kalah balapan dengan permintaan kembarnya ditolak tanpa audit k
         expect($e->errors()['round'][0])->toBe('Anda sudah menyelesaikan putaran ini.');
     }
 
-    expect(Spatie\Activitylog\Models\Activity::query()
+    expect(Activity::query()
         ->where('description', 'Putaran review diselesaikan reviewer')->count())->toBe(0);
 });
