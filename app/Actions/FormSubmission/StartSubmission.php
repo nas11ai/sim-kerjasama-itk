@@ -7,6 +7,7 @@ use App\Models\FormPhase;
 use App\Models\FormPhaseDetail;
 use App\Models\FormSubmission;
 use App\Models\SubmissionPeriod;
+use App\Models\SubmissionPeriodPhase;
 use App\Models\User;
 use App\Support\AccountStateGuard;
 use App\Support\Audit\AuditTrail;
@@ -92,11 +93,15 @@ class StartSubmission
             ]);
         }
 
-        // BR-FE-17 / ADR 0014 — periode dibaca dari tenggat detail (FE-WINDOW-13).
-        if ($detail->submissionDate->submission_period_id !== $submissionPeriodId) {
-            throw ValidationException::withMessages([
-                'form_phase_id' => 'Tahap ini belum bertenggat di periode ini.',
-            ]);
+        // R1-W2, BR-FE-26 (ADR 0019) — tanggalnya milik periode, jadi syaratnya tahap ditautkan
+        // periode itu (FE-WINDOW-13), bukan "tenggat langkah milik periode ini".
+        $linked = SubmissionPeriodPhase::query()
+            ->where('submission_period_id', $submissionPeriodId)
+            ->where('form_phase_id', $detail->form_phase_id)
+            ->exists();
+
+        if (!$linked) {
+            throw ValidationException::withMessages(['form_phase_id' => 'Tahap ini tidak dibuka di periode ini.']);
         }
     }
 }

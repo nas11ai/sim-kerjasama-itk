@@ -21,7 +21,7 @@ final class PhaseDetailEditData extends Data
         public int $phaseTypeId,
         public string $phaseTypeName,
         public bool $needsReview,
-        public int $submissionDateId,
+        public ?int $submissionDateId,
         public ?int $evaluationDateId,
         public ?int $revisionDateId,
         public array $currentDeadlines,

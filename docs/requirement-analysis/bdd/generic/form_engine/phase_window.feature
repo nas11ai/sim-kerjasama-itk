@@ -106,13 +106,13 @@ Feature: Jendela Kerja Tiap Tahap
     And Monev II bertenggat "2026-09-01"
 
   @BR-FE-17 @BR-FE-01 @M2 @RESEARCHER-02-02 @denial
-  Scenario: [FE-WINDOW-13] Detail yang tenggatnya milik periode lain tidak membuka pengajuan di periode itu
-    Given tahap "Pengajuan" terhubung ke periode "2026 Gelombang 1" dan "2026 Gelombang 2"
-    And detail "Pengajuan" berbatas "Batas Submit" milik "2026 Gelombang 1"
-    When "Budi" memulai pengajuan detail itu di "2026 Gelombang 2"
-    Then penyimpanan ditolak dengan 422
-    And detail itu tidak ditawarkan di "2026 Gelombang 2"
-    And di "2026 Gelombang 1" pengajuan berhasil dimulai
+  Scenario: [FE-WINDOW-13] Pengajuan baru ditolak di periode yang tidak menautkan fasenya
+    Given tahap "Pengajuan" terhubung ke periode "2026 Gelombang 1" saja
+    And periode "2026 Gelombang 1" dan "2026 Gelombang 2" sama-sama punya "Batas Submit" yang belum lewat
+    When "Budi" memulai pengajuan tahap itu di "2026 Gelombang 2"
+    Then penyimpanan ditolak dengan 422 "Tahap ini tidak dibuka di periode ini."
+    And tahap itu tidak ditawarkan di "2026 Gelombang 2"
+    And di "2026 Gelombang 1" tahap itu ditawarkan
 
   @BR-FE-26 @M2 @RESEARCHER-02-05 @happy
   Scenario: [FE-WINDOW-14] Satu fase di dua periode: tiap pengajuan digerbangi tanggal periodenya

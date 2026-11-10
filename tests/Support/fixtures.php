@@ -105,6 +105,8 @@ function buildAccessibleFormPhaseDetail(User $user, Organization $organization, 
         'order' => 1,
         'submission_date_id' => $submissionDate->id,
     ]);
+    // R1-W2 — pengajuan baru mensyaratkan fase tertaut periode (submission_period_phases).
+    SubmissionPeriodPhase::query()->firstOrCreate(['submission_period_id' => $period->id, 'form_phase_id' => $formPhase->id]);
 
     return ['form' => $accessControl->form, 'detail' => $detail, 'period' => $period];
 }

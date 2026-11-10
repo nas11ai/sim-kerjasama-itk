@@ -36,7 +36,7 @@ class ResearcherStartOptions implements ChangesNoState
                 'submissionPeriodPhases.formPhase.formPhaseDetails' => fn (Relation $q) => $q
                     ->whereIn('form_access_control_id', FormAccessControl::query()->accessibleBy($user)->select('id'))
                     ->orderBy('order')
-                    ->with(['formAccessControl.form:id,title,is_active', 'submissionDate:id,submission_period_id,type,cycle']),
+                    ->with('formAccessControl.form:id,title,is_active'),
             ])
             ->orderBy('id')
             ->get()
@@ -100,10 +100,9 @@ class ResearcherStartOptions implements ChangesNoState
 
         $draftId = $this->draftId($form->id, $period, $user);
 
-        // BR-FE-17 / ADR 0014 — tenggat milik periode lain dilewati; draft yang ada tetap ditawarkan (K9b).
-        $ownedElsewhere = $detail->submissionDate->submission_period_id !== $period->id;
-
-        if (($ownedElsewhere || $this->isClosedToNewSubmissions($form, $phase)) && $draftId === null) {
+        // R1-W2 — `forms()` hanya melintasi tahap yang ditautkan periode ini; tanggalnya milik
+        // periode (BR-FE-26), jadi tak ada lagi tenggat "milik periode lain" yang dilewati.
+        if ($this->isClosedToNewSubmissions($form, $phase) && $draftId === null) {
             return null;
         }
 

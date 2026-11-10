@@ -185,7 +185,7 @@ export interface PhaseDetailEditData {
     phaseTypeId: number
     phaseTypeName: string
     needsReview: boolean
-    submissionDateId: number
+    submissionDateId: number | null
     evaluationDateId: number | null
     revisionDateId: number | null
     currentDeadlines: SubmissionDateOption[]

@@ -71,6 +71,6 @@ it('detail siklus monev tidak menerima pengajuan baru', function () {
 it('langkah 1 wizard tidak memilih detail siklus monev', function () {
     $fx = monevCycleStartFixture();
 
-    expect(AccessibleFormPhaseDetail::run($fx['phase']->id, $fx['monevForm']->id, $fx['period']->id, $fx['user']))
+    expect(AccessibleFormPhaseDetail::run($fx['phase']->id, $fx['monevForm']->id, $fx['user']))
         ->toBeNull();
 });

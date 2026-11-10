@@ -21,7 +21,7 @@ class UserFormController extends Controller
         AssertFormAccessible::run($user, $request->form(), 'Anda tidak memiliki akses ke formulir ini.');
 
         // Gagal keras kalau tidak ketemu, bukan menulis NULL ke form_phase_detail_id.
-        $detail = AccessibleFormPhaseDetail::run($request->integer('form_phase_id'), $request->integer('form_id'), $request->integer('submission_period_id'), $user)
+        $detail = AccessibleFormPhaseDetail::run($request->integer('form_phase_id'), $request->integer('form_id'), $user)
             ?? abort(422, 'Kombinasi form dan fase formulir tidak ditemukan.');
 
         $submission = StartSubmission::run($request->integer('form_id'), $request->integer('submission_period_id'), $detail, $user);

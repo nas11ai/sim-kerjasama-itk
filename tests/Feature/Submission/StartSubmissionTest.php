@@ -7,10 +7,10 @@
 
 use App\Actions\FormSubmission\StartSubmission;
 use App\Enums\DeadlineType;
-use App\Models\FormPhaseDetail;
 use App\Models\FormSubmission;
 use App\Models\SubmissionDate;
 use App\Models\SubmissionPeriod;
+use App\Models\User;
 use App\Queries\Submission\ResearcherStartOptions;
 use App\States\Submission\Draft;
 use App\States\Submission\NeedsRevision;
@@ -239,48 +239,46 @@ it('tahap nonaktif tidak ditawarkan kecuali ada draft', function () {
     expect($offeredForm()?->draftId)->toBe($draft->id);
 });
 
-/** Periode kedua yang terbuka dan memakai tahap yang sama; Batas Submit detail tetap milik periode pertama. */
-function windowSecondPeriod(array $fx): SubmissionPeriod
+/** Periode kedua yang terbuka (Batas Submit di depan); menautkan tahap fixture hanya bila `$linked`. */
+function windowSecondPeriod(array $fx, bool $linked): SubmissionPeriod
 {
     $second = SubmissionPeriod::factory()->create();
-    SubmissionDate::create([
-        'type' => DeadlineType::Submit,
-        'datetime' => now()->addWeeks(2),
-        'submission_period_id' => $second->id,
-    ]);
-    foreach ([$fx['period'], $second] as $period) {
-        $fx['phase']->submissionPeriodPhases()->create(['submission_period_id' => $period->id]);
+    calendarDate($second, DeadlineType::Submit, now()->addWeeks(2));
+
+    if ($linked) {
+        $fx['phase']->submissionPeriodPhases()->create(['submission_period_id' => $second->id]);
     }
 
     return $second;
 }
 
-it('[FE-WINDOW-13] detail yang tenggatnya milik periode lain tidak membuka pengajuan di periode itu', function () {
-    $fx = wizardFixture();
-    $second = windowSecondPeriod($fx);
+/** @return list<int>|null id Form yang ditawarkan langkah 1 wizard di `$period`; null = periode tak ditawarkan */
+function offeredFormsIn(User $user, SubmissionPeriod $period): ?array
+{
+    $option = collect(ResearcherStartOptions::run($user))->firstWhere('id', $period->id);
 
-    $offeredIn = fn (SubmissionPeriod $period) => collect(ResearcherStartOptions::run($fx['user']))
-        ->firstWhere('id', $period->id)?->forms;
+    return $option === null ? null : array_map(fn ($form) => $form->formId, $option->forms);
+}
+
+it('[FE-WINDOW-13] menolak pengajuan baru di periode yang tidak menautkan fasenya', function () {
+    $fx = wizardFixture();
+    $second = windowSecondPeriod($fx, linked: false);
 
     try {
         StartSubmission::run($fx['form']->id, $second->id, $fx['detail'], $fx['user']);
         $this->fail('Harus ditolak.');
     } catch (ValidationException $e) {
-        expect($e->errors()['form_phase_id'] ?? null)->toBe(['Tahap ini belum bertenggat di periode ini.']);
+        expect($e->errors()['form_phase_id'] ?? null)->toBe(['Tahap ini tidak dibuka di periode ini.']);
     }
 
     expect(FormSubmission::where('form_id', $fx['form']->id)->count())->toBe(0)
-        ->and($offeredIn($second))->toBeNull()
-        ->and($offeredIn($fx['period']))->toHaveCount(1);
-
-    $started = StartSubmission::run($fx['form']->id, $fx['period']->id, $fx['detail'], $fx['user']);
-
-    expect($started->submission_period_id)->toBe($fx['period']->id);
+        ->and(offeredFormsIn($fx['user'], $second))->toBeNull()
+        ->and(offeredFormsIn($fx['user'], $fx['period']))->toBe([$fx['form']->id]);
 });
 
-it('[FE-WINDOW-13] mulai lewat HTTP di periode lain ditolak dengan galat form_phase_id', function () {
+it('[FE-WINDOW-13] mulai lewat HTTP di periode yang tidak menautkan fasenya ditolak dengan galat form_phase_id', function () {
     $fx = wizardFixture();
-    $second = windowSecondPeriod($fx);
+    $second = windowSecondPeriod($fx, linked: false);
 
     $this->actingAs($fx['user'])
         ->post(route('user.submissions.store'), [
@@ -288,38 +286,39 @@ it('[FE-WINDOW-13] mulai lewat HTTP di periode lain ditolak dengan galat form_ph
             'submission_period_id' => $second->id,
             'form_phase_id' => $fx['phase']->id,
         ])
-        ->assertSessionHasErrors(['form_phase_id' => 'Tahap ini belum bertenggat di periode ini.']);
+        ->assertSessionHasErrors(['form_phase_id' => 'Tahap ini tidak dibuka di periode ini.']);
 
     expect(FormSubmission::where('form_id', $fx['form']->id)->count())->toBe(0);
 });
 
-it('[FE-WINDOW-13] mulai lewat HTTP memakai detail yang tenggatnya milik periode tujuan', function () {
+it('menawarkan fase yang sama di dua periode terbuka yang menautkannya', function () {
+    // BR-FE-26 (ADR 0019) — tanggal milik periode, bukan langkah: tak ada lagi "tenggat milik
+    // periode lain" yang menyembunyikan fase dari periode kedua (K9b dicabut).
     $fx = wizardFixture();
-    $second = windowSecondPeriod($fx);
-    // Detail kedua (order 2) bertenggat di periode kedua; tanpa pemilihan, first() jatuh ke detail order 1.
-    $secondDetail = FormPhaseDetail::create([
-        'form_phase_id' => $fx['phase']->id,
-        'form_access_control_id' => $fx['detail']->form_access_control_id,
-        'phase_type_id' => $fx['detail']->phase_type_id,
-        'order' => 2,
-        'submission_date_id' => $second->submissionDates()->sole()->id,
-    ]);
+    $second = windowSecondPeriod($fx, linked: true);
 
-    $this->actingAs($fx['user'])
-        ->post(route('user.submissions.store'), [
-            'form_id' => $fx['form']->id,
-            'submission_period_id' => $second->id,
-            'form_phase_id' => $fx['phase']->id,
-        ])
-        ->assertSessionHasNoErrors()
-        ->assertRedirect();
+    expect(offeredFormsIn($fx['user'], $fx['period']))->toBe([$fx['form']->id])
+        ->and(offeredFormsIn($fx['user'], $second))->toBe([$fx['form']->id]);
 
-    expect(FormSubmission::where('form_id', $fx['form']->id)->sole()->form_phase_detail_id)->toBe($secondDetail->id);
+    $started = StartSubmission::run($fx['form']->id, $second->id, $fx['detail'], $fx['user']);
+
+    expect($started->submission_period_id)->toBe($second->id)
+        ->and($started->form_phase_detail_id)->toBe($fx['detail']->id);
+});
+
+it('tidak menawarkan fase di periode tertaut yang belum bertanggal', function () {
+    $fx = wizardFixture();
+    $undated = SubmissionPeriod::factory()->create();
+    $fx['phase']->submissionPeriodPhases()->create(['submission_period_id' => $undated->id]);
+
+    expect(offeredFormsIn($fx['user'], $undated))->toBeNull();
+
+    $this->actingAs($fx['user'])->get(route('user.submissions.create'))->assertOk();
 });
 
 it('draft yang sudah ada di periode itu tetap bisa dilanjutkan', function () {
     $fx = wizardFixture();
-    $second = windowSecondPeriod($fx);
+    $second = windowSecondPeriod($fx, linked: true);
     $draft = FormSubmission::factory()->create([
         'form_id' => $fx['form']->id,
         'submitted_by' => $fx['user']->id,

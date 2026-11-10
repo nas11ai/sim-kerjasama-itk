@@ -21,14 +21,7 @@ class PhaseDeadlineGaps implements ChangesNoState
      */
     public static function forPhases(Collection $phases): array
     {
-        $ownerPeriods = [];
-
-        foreach (FormPhaseDetail::query()
-            ->whereIn('form_phase_id', $phases->pluck('id'))
-            ->with('submissionDate:id,submission_period_id')
-            ->get(['id', 'form_phase_id', 'submission_date_id']) as $detail) {
-            $ownerPeriods[$detail->form_phase_id][] = $detail->submissionDate->submission_period_id;
-        }
+        $ownerPeriods = self::ownerPeriods($phases);
 
         $links = SubmissionPeriodPhase::query()
             ->whereIn('form_phase_id', $phases->pluck('id'))
@@ -56,5 +49,28 @@ class PhaseDeadlineGaps implements ChangesNoState
         }
 
         return $gaps;
+    }
+
+    /**
+     * Periode pemilik Batas Submit tiap langkah, per tahap. Langkah tanpa rujukan tanggal
+     * (BR-FE-07, ADR 0019) tidak punya periode pemilik.
+     *
+     * @param  Collection<int, FormPhase>  $phases
+     * @return array<int, list<int>>
+     */
+    private static function ownerPeriods(Collection $phases): array
+    {
+        $owners = [];
+
+        foreach (FormPhaseDetail::query()
+            ->whereIn('form_phase_id', $phases->pluck('id'))
+            ->with('submissionDate:id,submission_period_id')
+            ->get(['id', 'form_phase_id', 'submission_date_id']) as $detail) {
+            if ($detail->submissionDate !== null) {
+                $owners[$detail->form_phase_id][] = $detail->submissionDate->submission_period_id;
+            }
+        }
+
+        return $owners;
     }
 }

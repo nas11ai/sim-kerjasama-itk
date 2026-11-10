@@ -12,7 +12,6 @@ use App\Models\Form;
 use App\Models\FormAccessControl;
 use App\Models\FormField;
 use App\Models\FormFieldResponse;
-use App\Models\FormPhaseDetail;
 use App\Models\FormSubmission;
 use App\Models\Organization;
 use App\Models\Scheme;
@@ -50,7 +49,8 @@ function wizardQueryDraft(Form $form, User $owner, array $attributes = []): Form
 
 function wizardQueryPhaseInPeriod(int $periodId, int $phaseId): void
 {
-    DB::table('submission_period_phases')->insert(['submission_period_id' => $periodId, 'form_phase_id' => $phaseId]);
+    // Idempoten: wizardFixture sudah menautkan fase ke periodenya sendiri (R1-W2).
+    DB::table('submission_period_phases')->updateOrInsert(['submission_period_id' => $periodId, 'form_phase_id' => $phaseId]);
 }
 
 /** @return list<string> */
@@ -215,6 +215,7 @@ it('opsi mulai menautkan draft yang masih bisa disunting', function () {
 it('fase yang tidak terpasang di periode tidak ditawarkan', function () {
     // Pindahan dari layar tahap formulir legacy: tahap di luar periode tidak punya langkah.
     $fx = wizardFixture();
+    $fx['phase']->submissionPeriodPhases()->delete();
 
     expect(ResearcherStartOptions::run($fx['user']))->toBe([]);
 });
@@ -224,16 +225,7 @@ it('draft periode lain tidak ditautkan', function () {
     $fx = wizardFixture();
     $other = SubmissionPeriod::factory()->create();
     // BR-FE-01 (K8d) — periode tanpa Batas Submit belum menerima pengajuan, jadi tak ditawarkan.
-    $otherDate = $other->submissionDates()->create(['type' => DeadlineType::Submit, 'datetime' => now()->addMonth()]);
-    // BR-FE-17 (K9b) — periode lain hanya menawarkan detail yang tenggatnya miliknya, jadi tahap ini
-    // diberi detail kedua (aturan akses sama) yang berbatas Batas Submit periode itu.
-    FormPhaseDetail::create([
-        'form_phase_id' => $fx['phase']->id,
-        'form_access_control_id' => $fx['detail']->form_access_control_id,
-        'phase_type_id' => $fx['detail']->phase_type_id,
-        'order' => 2,
-        'submission_date_id' => $otherDate->id,
-    ]);
+    $other->submissionDates()->create(['type' => DeadlineType::Submit, 'datetime' => now()->addMonth()]);
     wizardQueryPhaseInPeriod($fx['period']->id, $fx['phase']->id);
     wizardQueryPhaseInPeriod($other->id, $fx['phase']->id);
     $draft = StartSubmission::run($fx['form']->id, $fx['period']->id, $fx['detail'], $fx['user']);
