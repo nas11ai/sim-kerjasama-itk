@@ -3,9 +3,11 @@
 namespace App\Queries\Submission;
 
 use App\Actions\Concerns\ChangesNoState;
+use App\Enums\DeadlineType;
 use App\Models\FormAccessControl;
 use App\Models\FormPhaseDetail;
 use App\Models\User;
+use Illuminate\Database\Eloquent\Builder;
 use Lorisleiva\Actions\Concerns\AsAction;
 
 /**
@@ -27,6 +29,11 @@ class AccessibleFormPhaseDetail implements ChangesNoState
                 ->where('form_id', $formId)
                 ->accessibleBy($user)
                 ->select('id'))
+            // BR-MON-01 — padanan SQL FormPhaseDetail::opensSubmission(): laporan monev dan Upload
+            // Luaran tidak pernah dipilih sebagai detail pengajuan baru.
+            ->whereHas('submissionDate', fn (Builder $date) => $date
+                ->where('type', DeadlineType::Submit->value)
+                ->whereNull('cycle'))
             // BR-FE-17 / K9b — detail yang tenggatnya milik periode tujuan didahulukan, lalu urutan.
             ->orderByRaw(
                 'CASE WHEN (SELECT submission_period_id FROM submission_dates WHERE submission_dates.id = form_phase_details.submission_date_id) = ? THEN 0 ELSE 1 END',

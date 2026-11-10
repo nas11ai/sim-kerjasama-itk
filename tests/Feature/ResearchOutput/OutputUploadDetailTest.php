@@ -10,6 +10,7 @@ use App\Models\Form;
 use App\Models\FormAccessControl;
 use App\Models\FormPhase;
 use App\Models\FormPhaseDetail;
+use App\Models\SubmissionPeriodPhase;
 use App\Queries\ResearchOutput\OutputUploadDetail;
 use App\Queries\Submission\ResearcherStartOptions;
 use Illuminate\Validation\ValidationException;
@@ -43,6 +44,8 @@ it('detail Upload Luaran tahap lain atau sebelum detail induk tidak dihitung', f
 
 it('detail Upload Luaran tidak menerima pengajuan', function () {
     $fx = outputUploadFixture();
+    // Tanpa tautan periode, ResearcherStartOptions tidak menawarkan apa pun dan assert-nya hampa.
+    SubmissionPeriodPhase::create(['submission_period_id' => $fx['period']->id, 'form_phase_id' => $fx['phase']->id]);
 
     // Form tersendiri untuk detail Upload Luaran: kalau berbagi Form pengajuan, detail
     // pengajuan (order lebih kecil) selalu menang dan detail ini tak pernah ditawarkan.
@@ -58,7 +61,8 @@ it('detail Upload Luaran tidak menerima pengajuan', function () {
         ->flatMap(fn ($period) => $period->forms)
         ->map(fn ($option) => $option->formId);
 
-    expect($offered)->not->toContain($form->id);
+    expect($offered)->not->toContain($form->id)
+        ->and($offered)->toContain($fx['form']->id);
 
     expect(fn () => StartSubmission::run($form->id, $fx['period']->id, $fx['outputDetail']->fresh(), $fx['user']))
         ->toThrow(fn (ValidationException $e) => expect($e->errors())->toHaveKey('form_phase_detail_id'));

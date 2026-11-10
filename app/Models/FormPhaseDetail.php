@@ -149,10 +149,13 @@ class FormPhaseDetail extends Model
         };
     }
 
-    /** W139 — detail Upload Luaran (DDD monev Detail 7): Batas Submit-nya berjenis `output`. */
-    public function isOutputUpload(): bool
+    /**
+     * BR-MON-01 — pintu pengajuan baru hanya Batas Submit tanpa siklus. Laporan monev (bersiklus)
+     * dan Upload Luaran (W139, `output`) lahir dari pengajuan APPROVED, tidak pernah tanpa induk.
+     */
+    public function opensSubmission(): bool
     {
-        return $this->submissionDate->type === DeadlineType::Output;
+        return $this->submissionDate->type === DeadlineType::Submit && $this->submissionDate->cycle === null;
     }
 
     /**

@@ -85,10 +85,10 @@ class StartSubmission
             ]);
         }
 
-        // W139 — detail Upload Luaran menampung luaran pengajuan yang sudah disetujui.
-        if ($detail->isOutputUpload()) {
+        // BR-MON-01, W139 — laporan monev dan Upload Luaran lahir dari pengajuan yang sudah disetujui.
+        if (!$detail->opensSubmission()) {
             throw ValidationException::withMessages([
-                'form_phase_detail_id' => 'Detail Upload Luaran tidak menerima pengajuan.',
+                'form_phase_detail_id' => 'Tahap ini tidak menerima pengajuan baru. Laporan monev dan luaran diisi dari pengajuan yang sudah disetujui.',
             ]);
         }
 
