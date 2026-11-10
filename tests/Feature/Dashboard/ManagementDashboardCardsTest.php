@@ -18,6 +18,7 @@ use App\States\Submission\Rejected;
 use App\States\Submission\Submitted;
 use App\States\Submission\UnderReview;
 use App\Support\Reporting\ExportType;
+use Illuminate\Support\Facades\Notification;
 use Spatie\Permission\Models\Permission;
 
 function mdUser(string ...$permissions): User
@@ -67,7 +68,7 @@ it('tanpa permission manajemen tidak ada section', function () {
         ->and($result['pending'])->toBeNull();
 });
 
-it('submissions.view-all memberi dua kartu pengajuan; draft dan laporan anak tidak terhitung', function () {
+it('submissions.view-all memberi tiga kartu pengajuan; draft dan laporan anak tidak terhitung', function () {
     $operator = mdUser('submissions.view-all');
     mdSubmission(Submitted::class);
     $parent = mdSubmission(UnderReview::class);
@@ -77,7 +78,7 @@ it('submissions.view-all memberi dua kartu pengajuan; draft dan laporan anak tid
 
     $cards = mdCards($operator);
 
-    expect(array_keys($cards))->toBe(['active', 'awaitingReviewer'])
+    expect(array_keys($cards))->toBe(['active', 'awaitingReviewer', 'awaitingDecision'])
         ->and($cards['active']->value)->toBe('2')
         ->and($cards['active']->meta)->toBe('Semua skema')
         ->and($cards['awaitingReviewer']->value)->toBe('1')
@@ -127,7 +128,7 @@ it('users.manage memberi kartu User Aktif', function () {
 it('operator di sistem kosong mendapat angka nol', function () {
     $cards = mdCards(mdUser('submissions.view-all', 'users.verify', 'reporting.export'));
 
-    expect(array_map(fn (KpiCardData $c) => $c->value, array_values($cards)))->toBe(['0', '0', '0', '0']);
+    expect(array_map(fn (KpiCardData $c) => $c->value, array_values($cards)))->toBe(['0', '0', '0', '0', '0']);
 });
 
 it('banner antrian untuk pemegang reviewers.assign bila ada yang menunggu', function () {
@@ -142,4 +143,17 @@ it('banner antrian untuk pemegang reviewers.assign bila ada yang menunggu', func
 
     expect($pending?->awaitingReviewer)->toBe(1)
         ->and($pending?->awaitingVerification)->toBe(2);
+});
+
+it('[REV-OUTCOME-21] kartu Menunggu Keputusan menghitung pengajuan siap diputuskan', function () {
+    Notification::fake();
+    readyForDecision();
+    $running = outcomeSubmission();
+    reviewerOn($running, 'completed');
+
+    $card = mdCards(mdUser('submissions.view-all'))['awaitingDecision'];
+
+    expect($card->value)->toBe('1')
+        ->and($card->label)->toBe('Menunggu Keputusan')
+        ->and($card->href)->toBe(route('admin.submissions.index', ['decision' => 'awaiting']));
 });

@@ -14,7 +14,9 @@ import DecisionSection from '@/Components/Submission/DecisionSection.vue'
 import FilesSection from '@/Components/Submission/FilesSection.vue'
 import HistoryTimeline from '@/Components/Submission/HistoryTimeline.vue'
 import InfoSection from '@/Components/Submission/InfoSection.vue'
+import ApproveDialog from '@/Components/Submission/Manage/ApproveDialog.vue'
 import AssignReviewersDialog from '@/Components/Submission/Manage/AssignReviewersDialog.vue'
+import DecisionReadinessCard from '@/Components/Submission/Manage/DecisionReadinessCard.vue'
 import ExtendDeadlineDialog from '@/Components/Submission/Manage/ExtendDeadlineDialog.vue'
 import OperatorActions from '@/Components/Submission/Manage/OperatorActions.vue'
 import RejectDialog from '@/Components/Submission/Manage/RejectDialog.vue'
@@ -139,7 +141,10 @@ const print = (document: FilterOption) =>
                 <TabsContent value="budget"><BudgetSection :budget="budget" /></TabsContent>
                 <TabsContent value="files"><FilesSection :answers="answers" /></TabsContent>
                 <TabsContent value="review">
-                    <ReviewTab :sheets="evaluationSheets" :threads="threads" />
+                    <div class="flex flex-col gap-4">
+                        <DecisionReadinessCard :readiness="decisionReadiness" />
+                        <ReviewTab :sheets="evaluationSheets" :threads="threads" />
+                    </div>
                 </TabsContent>
                 <TabsContent v-if="outputs && outputAccess" value="outputs">
                     <ManagedOutputsTab
@@ -162,6 +167,7 @@ const print = (document: FilterOption) =>
                 <SectionCard title="Aksi Operator">
                     <OperatorActions
                         :can="operatorCan"
+                        :readiness="decisionReadiness"
                         :has-ownership-candidates="ownershipCandidates.length > 0"
                         @select="openAction = $event"
                     />
@@ -200,6 +206,12 @@ const print = (document: FilterOption) =>
             :submission-id="submission.id"
             :phase-access="phaseAccess"
             :target="overrideTarget"
+            @update:open="closeAction"
+        />
+        <ApproveDialog
+            :open="openAction === 'approve'"
+            :submission="submission"
+            :readiness="decisionReadiness"
             @update:open="closeAction"
         />
         <RejectDialog

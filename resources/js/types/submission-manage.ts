@@ -1,6 +1,7 @@
 // Props layar pengajuan sisi Operator (OPERATOR-02-*), cermin Data PHP di
 // app/Data/View/Submission/Manage.
 import type { Paginated } from '@/types/pagination'
+import type { ReviewRoundProgress } from '@/types/review'
 import type { OutputRow, OutputWriteAccess } from '@/types/research-output'
 import type {
     FilterOption,
@@ -29,6 +30,8 @@ export type ManageIndexFilters = {
     scheme: string
     // W149 — tahun submit pertama, definisi yang sama dengan statistik (drill-down).
     year: string
+    // BR-REV-05 — '' = semua, 'awaiting' = hanya yang siap diputuskan.
+    decision: string
 }
 
 export interface ManageIndexPageProps {
@@ -46,6 +49,7 @@ export interface OperatorAbilities {
     replaceReviewer: boolean
     grantOverride: boolean
     transferOwnership: boolean
+    approve: boolean
     reject: boolean
     withdraw: boolean
 }
@@ -86,7 +90,16 @@ export interface ReviewerCandidate {
     blockedReason: string | null
 }
 
-export type OperatorActionKey = 'assign' | 'extend' | 'transfer' | 'reject' | 'withdraw'
+export type OperatorActionKey = 'assign' | 'extend' | 'transfer' | 'approve' | 'reject' | 'withdraw'
+
+// Sumber: DecisionReadinessData — BR-REV-05, BR-REV-07. `approvable` juga menunggu catatan ditutup.
+export interface DecisionReadiness {
+    ready: boolean
+    approvable: boolean
+    blockers: string[]
+    openThreadCount: number
+    round: ReviewRoundProgress | null
+}
 
 // Sumber: OperatorSubmissionDetail — detail peneliti tanpa pilihan target luaran.
 export interface ManageShowPageProps extends Omit<SubmissionShowPageProps, 'targetOutputTypes'> {
@@ -100,6 +113,8 @@ export interface ManageShowPageProps extends Omit<SubmissionShowPageProps, 'targ
     ownershipCandidates: OwnershipCandidate[]
     overrideTarget: OverrideTarget
     operatorCan: OperatorAbilities
+    // `decision` sudah dipakai "Diputuskan oleh" (SubmissionDecisionData).
+    decisionReadiness: DecisionReadiness
     // W144 — tab "Luaran"; null kecuali APPROVED/WITHDRAWN. Fase null = tanpa detail Upload Luaran.
     outputs: OutputRow[] | null
     outputAccess: OutputWriteAccess | null

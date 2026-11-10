@@ -160,3 +160,12 @@ Feature: Hasil Review
     Given tidak ada ReviewSummary berstatus open pada "P-001"
     When peserta terakhir putaran "P-001" menekan Selesai
     Then Operator menerima notifikasi SubmissionReadyForDecision
+
+  @BR-REV-05 @M2 @OPERATOR-02-01 @happy
+  Scenario: [REV-OUTCOME-21] Penyaring "Menunggu keputusan" hanya memuat pengajuan siap diputuskan
+    Given "P-001" siap diputuskan
+    And putaran penilaian "P-004" masih berjalan
+    And laporan monev "L-001" berstatus SUBMITTED
+    When Operator menyaring daftar pengajuan dengan "Menunggu keputusan"
+    Then daftar hanya memuat "P-001"
+    And kartu dashboard "Menunggu Keputusan" menghitung 1

@@ -1,14 +1,22 @@
 <script setup lang="ts">
-import { Clock, LogOut, UserCog, Users, XCircle } from 'lucide-vue-next'
+import { CheckCircle, Clock, LogOut, UserCog, Users, XCircle } from 'lucide-vue-next'
 import { computed } from 'vue'
 
 import ActionPanel from '@/Components/app/ActionPanel.vue'
 import AppBanner from '@/Components/app/AppBanner.vue'
 import type { ActionItem } from '@/types/action'
-import type { OperatorAbilities, OperatorActionKey } from '@/types/submission-manage'
+import type {
+    DecisionReadiness,
+    OperatorAbilities,
+    OperatorActionKey,
+} from '@/types/submission-manage'
 
 // Ketersediaan dari Policy (`operatorCan`, ADR 0015); hint menjelaskan kapan aksi terbuka.
-const props = defineProps<{ can: OperatorAbilities; hasOwnershipCandidates: boolean }>()
+const props = defineProps<{
+    can: OperatorAbilities
+    readiness: DecisionReadiness
+    hasOwnershipCandidates: boolean
+}>()
 
 const emit = defineEmits<{ select: [OperatorActionKey] }>()
 
@@ -40,10 +48,22 @@ const actions = computed<ActionItem[]>(() => [
         icon: UserCog,
         hint: 'Perlu anggota tim inti yang aktif.',
     }),
+    // BR-REV-05 — Setujui hanya bila siap diputuskan; catatan terbuka menonaktifkannya.
+    ...(props.can.approve
+        ? [
+              item('approve', props.readiness.approvable, {
+                  label: 'Setujui',
+                  icon: CheckCircle,
+                  hint:
+                      props.readiness.blockers[0] ??
+                      'Semua reviewer selesai tanpa catatan terbuka.',
+              }),
+          ]
+        : []),
     item('reject', props.can.reject, {
         label: 'Tolak Manual',
         icon: XCircle,
-        hint: 'Tersedia saat status Direview.',
+        hint: 'Tersedia saat pengajuan siap diputuskan.',
     }),
     item('withdraw', props.can.withdraw, {
         label: 'Tarik Pengajuan',

@@ -97,8 +97,16 @@ const props = (
             replaceReviewer: true,
             grantOverride: true,
             transferOwnership: true,
+            approve: false,
             reject: false,
             withdraw: false,
+        },
+        decisionReadiness: {
+            ready: false,
+            approvable: false,
+            blockers: ['Belum ada reviewer.'],
+            openThreadCount: 0,
+            round: null,
         },
         outputs: null,
         outputAccess: null,
@@ -162,6 +170,7 @@ describe('ManageShowPage', () => {
                         replaceReviewer: false,
                         grantOverride: false,
                         transferOwnership: false,
+                        approve: false,
                         reject: false,
                         withdraw: false,
                     },
@@ -182,6 +191,58 @@ describe('ManageShowPage', () => {
             const button = wrapper.findAll('button').find((b) => b.text().includes(label))
             expect(button?.attributes('disabled')).toBeDefined()
         }
+    })
+
+    it('[REV-OUTCOME-12] item Setujui tidak ada selama belum siap diputuskan', () => {
+        const labels = mountPage(props())
+            .findAll('button')
+            .map((b) => b.text())
+
+        expect(labels.some((label) => label.includes('Setujui'))).toBe(false)
+    })
+
+    it('[REV-OUTCOME-03] Setujui nonaktif dengan penahan pertama selama catatan terbuka', () => {
+        const wrapper = mountPage(
+            props(
+                {
+                    operatorCan: { ...props().operatorCan, approve: true, reject: true },
+                    decisionReadiness: {
+                        ready: true,
+                        approvable: false,
+                        blockers: ['1 catatan reviewer masih terbuka.'],
+                        openThreadCount: 1,
+                        round: { kind: 'assessment', number: 1, finished: 2, total: 2 },
+                    },
+                },
+                'under_review'
+            )
+        )
+
+        const approve = wrapper.findAll('button').find((b) => b.text().includes('Setujui'))
+        expect(approve?.attributes('disabled')).toBeDefined()
+        expect(wrapper.text()).toContain('1 catatan reviewer masih terbuka.')
+    })
+
+    it('[REV-OUTCOME-11] Setujui tersedia bila siap tanpa catatan terbuka', () => {
+        const wrapper = mountPage(
+            props(
+                {
+                    operatorCan: { ...props().operatorCan, approve: true, reject: true },
+                    decisionReadiness: {
+                        ready: true,
+                        approvable: true,
+                        blockers: [],
+                        openThreadCount: 0,
+                        round: { kind: 'assessment', number: 1, finished: 2, total: 2 },
+                    },
+                },
+                'under_review'
+            )
+        )
+
+        const approve = wrapper.findAll('button').find((b) => b.text().includes('Setujui'))
+        expect(approve).toBeDefined()
+        expect(approve?.attributes('disabled')).toBeUndefined()
     })
 
     it('[BUD-WHO-04] anggaran tampil baca-saja', async () => {

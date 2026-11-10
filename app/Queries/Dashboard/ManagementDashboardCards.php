@@ -10,6 +10,7 @@ use App\Models\ExportJob;
 use App\Models\FormSubmission;
 use App\Models\User;
 use App\Models\UserProfile;
+use App\Queries\Review\DecisionReadiness;
 use App\States\Submission\Submitted;
 use Illuminate\Database\Eloquent\Builder;
 use Lorisleiva\Actions\Concerns\AsAction;
@@ -52,6 +53,8 @@ class ManagementDashboardCards implements ChangesNoState
         return [
             new KpiCardData('active', 'Total Submission Aktif', strval($this->visibleToOperator()->active()->count()), 'Semua skema', route('admin.submissions.index')),
             new KpiCardData('awaitingReviewer', 'Perlu Penugasan Reviewer', strval($awaitingReviewer), 'Status Disubmit', route('admin.submissions.index', ['status' => Submitted::$name])),
+            // BR-REV-05 — padanan penyaring "Menunggu keputusan" di daftar (W42).
+            new KpiCardData('awaitingDecision', 'Menunggu Keputusan', strval(DecisionReadiness::whereReady($this->visibleToOperator())->count()), 'Siap disetujui atau ditolak', route('admin.submissions.index', ['decision' => 'awaiting'])),
         ];
     }
 

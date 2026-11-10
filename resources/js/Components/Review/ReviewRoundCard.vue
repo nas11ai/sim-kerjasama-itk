@@ -6,6 +6,7 @@ import AppBanner from '@/Components/app/AppBanner.vue'
 import ConfirmDialog from '@/Components/app/ConfirmDialog.vue'
 import SectionCard from '@/Components/app/SectionCard.vue'
 import { Button } from '@/Components/ui/button'
+import { roundProgressLabel } from '@/lib/reviewRound'
 import type { ReviewerRound } from '@/types/review'
 
 const props = defineProps<{ round: ReviewerRound | null; submissionId: number }>()
@@ -14,9 +15,7 @@ const confirming = ref(false)
 const sending = ref(false)
 
 const progress = computed(() =>
-    props.round === null
-        ? null
-        : `Putaran ${props.round.progress.number}: ${props.round.progress.finished} dari ${props.round.progress.total} reviewer selesai`
+    props.round === null ? null : roundProgressLabel(props.round.progress)
 )
 
 // BR-REV-16 — tanda Selesai per reviewer per putaran; aturannya dijaga FinishReviewRound.

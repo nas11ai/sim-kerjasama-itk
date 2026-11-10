@@ -16,6 +16,7 @@ use App\States\Submission\Approved;
 use App\States\Submission\Submitted;
 use App\States\Submission\UnderReview;
 use App\Support\Audit\AuditTrail;
+use Illuminate\Support\Facades\Notification;
 use Inertia\Testing\AssertableInertia as Assert;
 use Spatie\Permission\Models\Permission;
 
@@ -83,7 +84,7 @@ it('[SM-ACCESS-04] pemegang submissions.view-all membuka Submission/ManageIndexP
             ->has('statusOptions')
             ->has('periodOptions')
             ->has('schemeOptions')
-            ->where('filters', ['search' => '', 'status' => '', 'period' => '', 'scheme' => '', 'year' => '']));
+            ->where('filters', ['search' => '', 'status' => '', 'period' => '', 'scheme' => '', 'year' => '', 'decision' => '']));
 });
 
 it('peneliti tanpa view-all ditolak', function () {
@@ -167,4 +168,35 @@ it('opsi status tidak menawarkan draft', function () {
         ->get(route('admin.submissions.index'))
         ->assertInertia(fn (Assert $page) => $page
             ->where('statusOptions', fn ($options) => !collect($options)->contains('value', 'draft')));
+});
+
+it('[REV-OUTCOME-21] penyaring Menunggu keputusan hanya memuat pengajuan siap diputuskan', function () {
+    Notification::fake();
+    $ready = readyForDecision();
+    $running = outcomeSubmission();
+    reviewerOn($running, 'completed');
+    // Induk APPROVED; laporannya SUBMITTED tapi laporan monev tidak pernah diputuskan.
+    $fx = monevFixture();
+    FormSubmission::factory()->create([
+        'parent_submission_id' => $fx['parent']->id,
+        'form_phase_detail_id' => $fx['monev1']->id,
+        'submitted_by' => $fx['owner']->id,
+        'status' => Submitted::class,
+        'is_submitted' => true,
+    ]);
+
+    $this->actingAs(listOperator())
+        ->get(route('admin.submissions.index', ['decision' => 'awaiting']))
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('filters.decision', 'awaiting')
+            ->has('submissions.data', 1)
+            ->where('submissions.data.0.id', $ready->id));
+});
+
+it('nilai penyaring keputusan yang tidak dikenal diabaikan', function () {
+    sentSubmission();
+
+    $this->actingAs(listOperator())
+        ->get(route('admin.submissions.index', ['decision' => 'entah']))
+        ->assertInertia(fn (Assert $page) => $page->has('submissions.data', 1));
 });

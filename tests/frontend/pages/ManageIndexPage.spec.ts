@@ -43,7 +43,14 @@ const row: OperatorSubmissionRow = {
     reviewerCount: 2,
 }
 
-const noFilters: ManageIndexFilters = { search: '', status: '', period: '', scheme: '', year: '' }
+const noFilters: ManageIndexFilters = {
+    search: '',
+    status: '',
+    period: '',
+    scheme: '',
+    year: '',
+    decision: '',
+}
 
 const props = (rows: OperatorSubmissionRow[], filters = noFilters): ManageIndexPageProps => ({
     submissions: {
@@ -96,6 +103,25 @@ describe('ManageIndexPage', () => {
         expect(router.get).toHaveBeenCalledWith(
             '/admin.submissions.index',
             { scheme: '7' },
+            expect.objectContaining({ preserveState: true })
+        )
+    })
+
+    it('[REV-OUTCOME-21] penyaring Menunggu keputusan meminta ulang ke server', async () => {
+        const wrapper = mountPage([row])
+        const decision = wrapper
+            .findAllComponents(FilterSelect)
+            .find((select) => select.props('label') === 'Keputusan')
+
+        expect(decision?.props('options')).toEqual([
+            { value: 'awaiting', label: 'Menunggu keputusan' },
+        ])
+        decision?.vm.$emit('update:modelValue', 'awaiting')
+        await nextTick()
+
+        expect(router.get).toHaveBeenCalledWith(
+            '/admin.submissions.index',
+            { decision: 'awaiting' },
             expect.objectContaining({ preserveState: true })
         )
     })

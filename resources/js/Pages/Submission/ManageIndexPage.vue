@@ -16,6 +16,8 @@ import type { FilterSelectSpec } from '@/types/submission-page'
 
 const props = defineProps<ManageIndexPageProps>()
 
+const decisionOptions = [{ value: 'awaiting', label: 'Menunggu keputusan' }]
+
 const { filters } = useFilters('admin.submissions.index', props.filters)
 
 const filtered = computed(() => Object.values(props.filters).some((value) => value !== ''))
@@ -25,6 +27,8 @@ const selects = computed((): FilterSelectSpec<Exclude<keyof ManageIndexFilters, 
     { key: 'period', label: 'Periode', allLabel: 'Semua periode', options: props.periodOptions },
     { key: 'scheme', label: 'Skema', allLabel: 'Semua skema', options: props.schemeOptions },
     { key: 'year', label: 'Tahun', allLabel: 'Semua tahun', options: props.yearOptions },
+    // BR-REV-05 — pengajuan siap diputuskan; definisi SQL-nya DecisionReadiness::whereReady.
+    { key: 'decision', label: 'Keputusan', allLabel: 'Semua', options: decisionOptions },
 ])
 </script>
 

@@ -7,6 +7,7 @@ use App\Data\View\Submission\Manage\OperatorSubmissionRowData;
 use App\Models\FormSubmission;
 use App\Models\Scheme;
 use App\Models\SubmissionPeriod;
+use App\Queries\Review\DecisionReadiness;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Lorisleiva\Actions\Concerns\AsAction;
@@ -15,7 +16,7 @@ use Lorisleiva\Actions\Concerns\AsAction;
  * OPERATOR-02-01 — seluruh pengajuan induk yang sudah terkirim (BR-SM-07, view-all).
  * Laporan monev (anak) milik layar M1, jadi tidak terdaftar di sini.
  *
- * @phpstan-type Filters array{search: string, status: string, period: string, scheme: string, year: string}
+ * @phpstan-type Filters array{search: string, status: string, period: string, scheme: string, year: string, decision: string}
  * @phpstan-type Option array{value: string, label: string}
  *
  * @method static array{submissions: LengthAwarePaginator<int, OperatorSubmissionRowData>, statusOptions: list<Option>, periodOptions: list<Option>, schemeOptions: list<Option>, yearOptions: list<Option>} run(Filters $filters)
@@ -85,6 +86,8 @@ class OperatorSubmissionList implements ChangesNoState
         $query->when(ctype_digit($filters['scheme']), fn (Builder $q) => $q->where('scheme_id', (int) $filters['scheme']));
         // W149 — tahun submit pertama, definisi yang sama dengan statistik (drill-down).
         $query->when(ctype_digit($filters['year']), fn (Builder $q) => SubmissionYear::apply($q, (int) $filters['year']));
+        // BR-REV-05 — "Menunggu keputusan": definisi SQL yang sama dengan kartu dashboard.
+        $query->when($filters['decision'] === 'awaiting', fn (Builder $q) => DecisionReadiness::whereReady($q));
     }
 
     /**

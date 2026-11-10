@@ -25,6 +25,7 @@ vi.mock('@inertiajs/vue3', async () => {
 })
 
 import OptionSelect from '@/Components/app/OptionSelect.vue'
+import ApproveDialog from '@/Components/Submission/Manage/ApproveDialog.vue'
 import RejectDialog from '@/Components/Submission/Manage/RejectDialog.vue'
 import TransferOwnershipDialog from '@/Components/Submission/Manage/TransferOwnershipDialog.vue'
 import WithdrawDialog from '@/Components/Submission/Manage/WithdrawDialog.vue'
@@ -99,6 +100,41 @@ beforeEach(() => {
 afterEach(() => wrapper.unmount())
 
 describe('dialog keputusan Operator', () => {
+    it('[REV-OUTCOME-11] Setujui mengirim ke admin.submissions.approve setelah konfirmasi', async () => {
+        await open(ApproveDialog, {
+            readiness: {
+                ready: true,
+                approvable: true,
+                blockers: [],
+                openThreadCount: 0,
+                round: { kind: 'assessment', number: 1, finished: 2, total: 2 },
+            },
+        })
+
+        expect(document.body.textContent).toContain('Putaran 1: 2 dari 2 reviewer selesai')
+        await click('Setujui Pengajuan')
+
+        const [, url] = post.mock.calls[0]
+        expect(url).toBe('/admin.submissions.approve/9')
+    })
+
+    it('[REV-OUTCOME-03] penolakan Setujui dari backend tampil sebagai banner', async () => {
+        failWith('approve', '1 catatan reviewer masih terbuka.')
+        await open(ApproveDialog, {
+            readiness: {
+                ready: true,
+                approvable: true,
+                blockers: [],
+                openThreadCount: 0,
+                round: null,
+            },
+        })
+
+        await click('Setujui Pengajuan')
+
+        expect(document.body.textContent).toContain('1 catatan reviewer masih terbuka.')
+    })
+
     it('[REV-OUTCOME-07] tolak mengirim alasan setelah konfirmasi kedua', async () => {
         await open(RejectDialog, { activeReviewerCount: 2 })
 
