@@ -1,7 +1,7 @@
 # Desain: Persetujuan dan Penolakan oleh Operator, Revisi oleh Reviewer
 
 **Tanggal:** 2026-11-10 (revisi kedua, setelah memeriksa sistem lama)
-**Status:** Disetujui pemilik 2026-11-10 — kecuali pertanyaan terbuka R2 (§8)
+**Status:** Disetujui pemilik 2026-11-10
 **Basis kode:** `feat/init-be-development` @ `061f44ae`
 **Terkait:** `2026-11-10-fase-reuse-dan-versi-form-design.md` §9 P1
 
@@ -114,7 +114,8 @@ Sebuah pengajuan **siap diputuskan** bila semua kondisi berikut terpenuhi:
 - setiap `SubmissionReviewer` aktif sudah selesai (`completed` atau `not_required`,
   definisi `SubmissionReviewer::SETTLED_EVALUATION` yang sudah ada);
 - fase yang butuh review punya minimal satu reviewer aktif (sama dengan ADR 0017:
-  fase butuh review tanpa reviewer adalah salah konfigurasi).
+  fase butuh review tanpa reviewer adalah salah konfigurasi);
+- tidak ada putaran pemeriksaan revisi yang masih berjalan (§4.10).
 
 Syarat "semua reviewer selesai" berlaku untuk Setujui **dan** Tolak (keputusan
 pemilik). Tolak yang sekarang bisa ditekan kapan saja selama UNDER_REVIEW ikut
@@ -136,7 +137,9 @@ sejajar `canProceed()` (BR-MON-02) dan `isArchived()` (BR-SM-13).
 ### 4.4 Yang berubah di kode dan aturan
 
 - `EvaluateSubmissionOutcome` **berhenti memindahkan ke APPROVED**. Cabang
-  NEEDS_REVISION tetap.
+  NEEDS_REVISION tetap, dan setelah pengiriman ulang hanya dijalankan saat putaran
+  pemeriksaan selesai (§4.10).
+- Aksi baru reviewer **"Selesai memeriksa"** beserta penanda per reviewer per putaran.
 - BR-REV-05 diganti aturan persetujuan operator. BR-REV-06 tetap.
 - ADR 0017 (persetujuan hampa) diganti: pengajuan pada fase tanpa review langsung siap
   diputuskan setelah disubmit dan menunggu Setujui/Tolak operator.
@@ -150,8 +153,9 @@ sejajar `canProceed()` (BR-MON-02) dan `isArchived()` (BR-SM-13).
 
 - Operator pemegang `submissions.view-all` diberi tahu in-app **setiap kali sebuah
   pengajuan menjadi siap diputuskan tanpa catatan terbuka**, apa pun pemicunya:
-  reviewer terakhir selesai, catatan terbuka terakhir ditutup, reviewer yang belum
-  selesai diganti atau dijadikan `not_required`, atau fase tanpa review disubmit.
+  reviewer terakhir selesai, putaran pemeriksaan revisi selesai tanpa catatan terbuka,
+  reviewer yang belum selesai diganti atau dijadikan `not_required`, atau fase tanpa
+  review disubmit.
   Karena keadaannya dihitung, setiap Action pemicu membandingkan keadaan sebelum dan
   sesudah aksinya sendiri; tidak ada kolom bendera (**keputusan penulis**).
 - Daftar pengajuan operator punya penyaring **"Menunggu keputusan"**, dan dashboard
@@ -192,7 +196,36 @@ Keputusan pemilik R1, pilihan (a):
   lalu **menutup catatannya**. Lembar penilaian tidak diisi ulang, skor tetap, dan
   BR-REV-08 tidak berubah.
 - Setujui terkunci selama masih ada catatan terbuka.
-- Bagaimana revisi putaran kedua dipicu belum diputuskan — lihat R2 (§8).
+
+### 4.10 Putaran pemeriksaan revisi (serentak)
+
+Keputusan pemilik R2, pilihan (iii). Prinsipnya sama dengan putaran pertama: peneliti
+menerima semua catatan yang belum dipenuhi **sekaligus**, setelah semua reviewer yang
+terlibat selesai memeriksa.
+
+- **Putaran pemeriksaan** dimulai saat peneliti mengirim ulang (RESUBMITTED →
+  UNDER_REVIEW).
+- **Peserta putaran** adalah reviewer aktif yang punya `ReviewSummary` `open` pada saat
+  pengajuan dikirim ulang. Reviewer tanpa catatan terbuka tidak diminta memeriksa.
+  Reviewer pengganti mewarisi catatan (BR-REV-15) dan juga kewajiban memeriksanya.
+- Setiap peserta memeriksa revisi, **menutup** catatan yang sudah dipenuhi, membiarkan
+  terbuka yang belum, lalu menekan **"Selesai memeriksa"**. Penanda ini dicatat per
+  reviewer per putaran.
+- **Menutup satu catatan tidak lagi memicu evaluasi hasil.** `ResolveReviewSummary`
+  berhenti memanggil `EvaluateSubmissionOutcome` selama putaran pemeriksaan berjalan;
+  inilah yang menutup celah "kembali ke revisi sebelum reviewer kedua memeriksa".
+- Begitu **semua peserta** menekan "Selesai memeriksa":
+  - masih ada `ReviewSummary` `open` → NEEDS_REVISION serentak, peneliti menerima
+    `RevisionRequested` (BR-REV-06 berlaku per putaran);
+  - tidak ada → pengajuan **siap diputuskan** dan operator diberi tahu (§4.5).
+- Peserta boleh membuka catatan baru selama memeriksa; catatan itu ikut dihitung
+  terbuka (**keputusan penulis**).
+- Peserta yang tidak kunjung memeriksa ditangani dengan mengganti reviewer
+  (BR-REV-10); penggantinya menjadi peserta putaran itu.
+- Selama putaran pemeriksaan berjalan, pengajuan **tidak** siap diputuskan, jadi Setujui
+  dan Tolak sama-sama menunggu (**keputusan penulis**, konsisten dengan keputusan
+  pemilik butir 2).
+- Putaran berulang sampai tidak ada catatan terbuka, atau operator menolak.
 
 ---
 
@@ -200,12 +233,12 @@ Keputusan pemilik R1, pilihan (a):
 
 | Dokumen | Yang berubah |
 | --- | --- |
-| `ddd/core/02_review.md` | BR-REV-05 diganti aturan persetujuan operator (§4.2–4.3); BR-REV-06 tetap; aturan baru: Setujui ditolak selama ada `ReviewSummary` `open`; Tolak juga menunggu semua reviewer selesai; aturan putaran revisi berikutnya sesuai jawaban R2 |
+| `ddd/core/02_review.md` | BR-REV-05 diganti aturan persetujuan operator (§4.2–4.3); BR-REV-06 tetap; aturan baru: Setujui ditolak selama ada `ReviewSummary` `open`; Tolak juga menunggu semua reviewer selesai; aturan baru putaran pemeriksaan revisi serentak dan aksi "Selesai memeriksa" (§4.10) |
 | `ddd/core/01_submission.md` | event `ProposalApproved` dipicu aksi operator, bukan otomatis |
 | `docs/adr/0017-…` | digantikan ADR baru: fase tanpa review menunggu keputusan operator |
 | `docs/adr/0006-…` | substansinya tetap; diperluas ke persetujuan |
 | `ddd/generic/03_notification.md` | pemberitahuan "siap diputuskan" untuk Operator |
-| `bdd/core/review/outcome.feature` | skenario ditulis ulang sesuai §4.4; skenario baru untuk Setujui, syarat-syaratnya, pemberitahuan, dan fase tanpa review |
+| `bdd/core/review/outcome.feature` | skenario ditulis ulang sesuai §4.4; skenario baru untuk Setujui, syarat-syaratnya, pemberitahuan, fase tanpa review, dan putaran pemeriksaan revisi (menutup satu catatan tidak mengembalikan ke revisi; revisi serentak setelah semua peserta selesai memeriksa; siap diputuskan bila semua catatan tertutup) |
 
 ## 6. Keputusan pemilik (2026-11-10)
 
@@ -221,6 +254,9 @@ Keputusan pemilik R1, pilihan (a):
    reviewer yang terbuka membuat pengajuan NEEDS_REVISION setelah semua reviewer selesai
    (BR-REV-06 tetap). Ini menggantikan butir "Minta revisi oleh operator" pada versi
    pertama dokumen ini.
+7. **R2 (iii):** setelah pengiriman ulang, pengajuan kembali ke NEEDS_REVISION
+   serentak, hanya setelah semua reviewer yang punya catatan terbuka selesai memeriksa
+   (§4.10).
 
 ### Keputusan penulis (untuk diperiksa pemilik)
 
@@ -230,20 +266,21 @@ Keputusan pemilik R1, pilihan (a):
   diputuskan tanpa catatan terbuka, apa pun pemicunya (§4.5).
 - Laporan monev dikecualikan dari "siap diputuskan" (§4.2).
 - Permission keputusan = `submissions.view-all`, sama dengan Tolak sekarang (§4.3).
+- Peserta putaran pemeriksaan hanya reviewer yang punya catatan terbuka; catatan baru
+  selama memeriksa ikut dihitung; selama putaran berjalan Setujui dan Tolak menunggu
+  (§4.10).
 
 ## 7. Diserahkan ke builder
 
 - Nama Action, nama route, dan bentuk FormRequest/DTO.
 - Tata letak layar keputusan, mengikuti `docs/design/fe-v2-design.md`.
 - Apakah `EvaluateSubmissionOutcome` diganti nama setelah cabang APPROVED-nya dicabut.
+- Bentuk penyimpanan putaran pemeriksaan dan penanda "Selesai memeriksa", selama
+  tercatat per reviewer per putaran dan riwayat putaran lama tetap terbaca.
 
 ## 8. Pertanyaan terbuka
 
-- **R2 (milik pemilik, menghalangi):** setelah peneliti mengirim ulang, kapan pengajuan
-  kembali ke NEEDS_REVISION? Sekarang `ResubmitFormSubmission` memindahkannya ke
-  UNDER_REVIEW, dan setiap kali reviewer menutup satu catatan, `ResolveReviewSummary`
-  memanggil `EvaluateSubmissionOutcome`. Karena semua reviewer sudah selesai sejak putaran
-  pertama, pengajuan **langsung kembali ke NEEDS_REVISION begitu reviewer pertama
-  menutup catatannya bila catatan reviewer lain masih terbuka** — sebelum reviewer kedua
-  sempat memeriksa revisinya. Sistem lama menjawabnya dengan reviewer yang secara eksplisit
-  membuat putaran revisi berikutnya (`SubmissionRevisionStatus` "Revisi ke-n").
+Tidak ada yang menghalangi. R1 (§4.9) dan R2 (§4.10) sudah diputuskan pemilik; dasar
+R2 adalah celah sistem sekarang: setelah pengiriman ulang, `ResolveReviewSummary`
+memanggil `EvaluateSubmissionOutcome` pada setiap catatan yang ditutup, sehingga
+pengajuan kembali ke NEEDS_REVISION sebelum reviewer lain sempat memeriksa revisinya.
