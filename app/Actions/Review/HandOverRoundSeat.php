@@ -25,13 +25,19 @@ class HandOverRoundSeat
             return;
         }
 
-        $removed = $round->participants()->where('submission_reviewer_id', $outgoing->id)->delete();
+        $seat = $round->participants()->where('submission_reviewer_id', $outgoing->id)->first();
 
-        if ($removed === 0) {
+        if ($seat === null) {
             return;
         }
 
-        $round->participants()->firstOrCreate(['submission_reviewer_id' => $incoming->id]);
+        // Pengganti memegang tugas kursi itu (menilai/memeriksa), tapi belum Selesai.
+        $kind = $seat->effectiveKind();
+        $seat->delete();
+        $round->participants()->updateOrCreate(
+            ['submission_reviewer_id' => $incoming->id],
+            ['kind' => $kind, 'finished_at' => null],
+        );
 
         // BR-RPT-09 — satu Action, satu entri audit.
         AuditTrail::record('Kursi putaran review diserahkan ke pengganti', $round);

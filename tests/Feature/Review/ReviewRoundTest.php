@@ -36,9 +36,10 @@ function roundReviewer(): Reviewer
     ]);
 }
 
+/** Kursi peserta di putaran terbaru tempat ia terdaftar (putaran lama tetap tersimpan). */
 function seatOf(SubmissionReviewer $seat): ?ReviewRoundParticipant
 {
-    return ReviewRoundParticipant::query()->where('submission_reviewer_id', $seat->id)->first();
+    return ReviewRoundParticipant::query()->where('submission_reviewer_id', $seat->id)->latest('id')->first();
 }
 
 it('penugasan pertama membuka putaran penilaian berisi reviewer itu', function () {
@@ -138,4 +139,30 @@ it('penugasan reviewer siklus monev tidak membuat putaran', function () {
     AssignCycleReviewer::run($fx['parent'], $fx['monev1'], $reviewer, $operator);
 
     expect(ReviewRound::count())->toBe(0);
+});
+
+it('pemilik catatan yang bergabung ke putaran penilaian saat kirim ulang tetap Selesai memeriksa', function () {
+    $submission = outcomeSubmission(NeedsRevision::class);
+    $a = reviewerOn($submission, 'completed');
+    openSummaryOn($submission, $a);
+    $submission->latestReviewRound()->update(['completed_at' => now(), 'outcome' => 'needs_revision']);
+    // Operator menambah reviewer selama NEEDS_REVISION → putaran penilaian baru untuknya (P1-W2).
+    $added = AssignReviewer::run($submission, roundReviewer());
+
+    ResubmitFormSubmission::run($submission, $submission->submittedBy);
+
+    expect(seatOf($a)->kind)->toBe(ReviewRoundKind::Recheck)
+        ->and(seatOf($added)->kind)->toBe(ReviewRoundKind::Assessment);
+});
+
+it('pengganti mewarisi jenis kursi yang digantikannya', function () {
+    $submission = outcomeSubmission(NeedsRevision::class);
+    $a = reviewerOn($submission, 'completed');
+    openSummaryOn($submission, $a);
+    $submission->latestReviewRound()->update(['completed_at' => now(), 'outcome' => 'needs_revision']);
+    ResubmitFormSubmission::run($submission, $submission->submittedBy);
+
+    $incoming = ReplaceReviewer::run($submission, $a->reviewer, roundReviewer(), null);
+
+    expect(seatOf($incoming)->kind)->toBe(ReviewRoundKind::Recheck);
 });

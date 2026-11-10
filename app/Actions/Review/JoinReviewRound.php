@@ -39,7 +39,10 @@ class JoinReviewRound
                 return null;
             }
 
-            $round->participants()->firstOrCreate(['submission_reviewer_id' => $seat->id]);
+            $round->participants()->firstOrCreate(
+                ['submission_reviewer_id' => $seat->id],
+                ['kind' => ReviewRoundKind::Assessment],
+            );
 
             return $round;
         });

@@ -28,8 +28,8 @@ class ReviewRoundController extends Controller
         // BR-SM-07, BR-REV-10 — hanya penugasan yang masih berlaku.
         abort_if($seat === null, 403, 'Anda tidak ditugaskan sebagai reviewer pengajuan ini.');
 
-        $round = FinishReviewRound::run($seat, $actor);
+        FinishReviewRound::run($seat, $actor);
 
-        return back()->with('success', "{$round->kind->finishLabel()} tercatat.");
+        return back()->with('success', 'Tanda Selesai tercatat.');
     }
 }

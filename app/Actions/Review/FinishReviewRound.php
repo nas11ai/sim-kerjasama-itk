@@ -33,7 +33,7 @@ class FinishReviewRound
         $participant = $round->participants()->where('submission_reviewer_id', $seat->id)->first()
             ?? $this->reject('Anda bukan peserta putaran review ini.');
 
-        $this->guardEvaluationSent($round, $seat);
+        $this->guardEvaluationSent($participant, $seat);
         $this->markFinished($participant);
 
         // BR-RPT-09 — satu Action, satu entri audit.
@@ -78,9 +78,9 @@ class FinishReviewRound
      *
      * @throws ValidationException
      */
-    private function guardEvaluationSent(ReviewRound $round, SubmissionReviewer $seat): void
+    private function guardEvaluationSent(ReviewRoundParticipant $participant, SubmissionReviewer $seat): void
     {
-        if ($round->kind !== ReviewRoundKind::Assessment || $seat->hasSettledEvaluation()) {
+        if ($participant->effectiveKind() !== ReviewRoundKind::Assessment || $seat->hasSettledEvaluation()) {
             return;
         }
 

@@ -40,7 +40,11 @@ class StartRecheckRound
             ]);
 
             foreach ($seats as $seat) {
-                $round->participants()->firstOrCreate(['submission_reviewer_id' => $seat->id]);
+                // Pemilik catatan memeriksa, juga saat bergabung ke putaran penilaian yang berjalan.
+                $round->participants()->updateOrCreate(
+                    ['submission_reviewer_id' => $seat->id],
+                    ['kind' => ReviewRoundKind::Recheck],
+                );
             }
 
             return $round;

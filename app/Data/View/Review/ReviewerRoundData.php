@@ -26,17 +26,18 @@ final class ReviewerRoundData extends Data
     public static function of(ReviewRound $round, SubmissionReviewer $seat): self
     {
         $participant = $round->participants()->where('submission_reviewer_id', $seat->id)->first();
+        $kind = $participant?->effectiveKind() ?? $round->kind;
         $finished = $participant?->finished_at !== null;
         $reason = match (true) {
             $participant === null => 'Anda bukan peserta putaran review ini.',
             $finished => 'Anda sudah menyelesaikan putaran ini.',
-            $round->kind === ReviewRoundKind::Assessment && !$seat->hasSettledEvaluation() => 'Kirim lembar penilaian lebih dulu.',
+            $kind === ReviewRoundKind::Assessment && !$seat->hasSettledEvaluation() => 'Kirim lembar penilaian lebih dulu.',
             default => null,
         };
 
         return new self(
-            kind: $round->kind->value,
-            finishLabel: $round->kind->finishLabel(),
+            kind: $kind->value,
+            finishLabel: $kind->finishLabel(),
             isParticipant: $participant !== null,
             finished: $finished,
             canFinish: $reason === null,

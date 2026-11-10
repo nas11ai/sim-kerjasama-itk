@@ -100,7 +100,7 @@ it('reviewer bukan peserta putaran pemeriksaan ditolak 422', function () {
     // Putaran pemeriksaan hanya berisi A (pemilik catatan); B tetap bertugas tapi bukan peserta.
     $submission->latestReviewRound()->update(['completed_at' => now(), 'outcome' => ReviewRound::OUTCOME_NEEDS_REVISION]);
     $submission->reviewRounds()->create(['number' => 2, 'kind' => 'recheck'])
-        ->participants()->create(['submission_reviewer_id' => $a->id]);
+        ->participants()->create(['submission_reviewer_id' => $a->id, 'kind' => 'recheck']);
 
     $this->actingAs(wiringReviewer($b))
         ->from(route('reviewer.assignments.summary', $submission))

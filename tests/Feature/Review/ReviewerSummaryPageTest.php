@@ -5,6 +5,7 @@
 // REVIEWER-03-04 — kontrak props `Review/SummaryPage`: ulir milik penugasan, syarat membuka
 // ulir (BR-FE-06, BR-REV-17), skor rekan (BR-REV-11), dan putaran review berjalan (BR-REV-16).
 
+use App\Actions\FormSubmission\ResubmitFormSubmission;
 use App\Actions\Review\JoinReviewRound;
 use App\Actions\Review\ReplaceReviewer;
 use App\Models\FormSubmission;
@@ -12,6 +13,7 @@ use App\Models\Reviewer;
 use App\Models\ReviewSummary;
 use App\Models\SubmissionReviewer;
 use App\Models\User;
+use App\States\Submission\NeedsRevision;
 use App\States\Submission\UnderReview;
 use Inertia\Testing\AssertableInertia as Assert;
 use Spatie\Permission\Models\Permission;
@@ -229,4 +231,21 @@ it('[SM-ACCESS-06] reviewer yang digantikan ditolak di halaman ringkasan', funct
     $this->actingAs($this->user)
         ->get(route('reviewer.assignments.summary', $this->submission))
         ->assertForbidden();
+});
+
+it('pemilik catatan di putaran penilaian yang masih berjalan melihat Selesai memeriksa', function () {
+    $this->submission->update(['status' => NeedsRevision::class]);
+    summaryPageThread($this->submission, $this->reviewer);
+    $this->submission->latestReviewRound()->update(['completed_at' => now(), 'outcome' => 'needs_revision']);
+    summaryPageAssign($this->submission, summaryPageReviewer(), 'pending');
+
+    ResubmitFormSubmission::run($this->submission->fresh(), $this->submission->submittedBy);
+
+    $this->actingAs($this->user)
+        ->get(route('reviewer.assignments.summary', $this->submission))
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('round.kind', 'recheck')
+            ->where('round.finishLabel', 'Selesai memeriksa')
+            ->where('round.canFinish', true)
+            ->etc());
 });
