@@ -13,15 +13,20 @@ use App\Notifications\NewRegistrationAwaitingVerification;
 use App\Notifications\NidnVerificationRejectedNotification;
 use App\Notifications\NidnVerifiedNotification;
 use App\Notifications\PhaseOverrideGrantedNotification;
+use App\Notifications\ProposalApprovedNotification;
+use App\Notifications\ProposalRejectedNotification;
 use App\Notifications\ProposalSubmittedNotification;
+use App\Notifications\RecheckRequestedNotification;
 use App\Notifications\ReviewCommentAddedNotification;
 use App\Notifications\ReviewerAppointedNotification;
 use App\Notifications\ReviewerAssignedNotification;
 use App\Notifications\ReviewThreadOpenedNotification;
+use App\Notifications\RevisionRequestedNotification;
 use App\Notifications\RevisionResolvedNotification;
 use App\Notifications\SubmissionDeadlineExtendedNotification;
 use App\Notifications\SubmissionPeriodActiveNotification;
 use App\Notifications\SubmissionPeriodClosedNotification;
+use App\Notifications\SubmissionReadyForDecisionNotification;
 use InvalidArgumentException;
 
 /**
@@ -59,12 +64,17 @@ enum NotificationCategory: string
                 ReviewCommentAddedNotification::class,
                 RevisionResolvedNotification::class,
                 ReviewerAppointedNotification::class,
+                RevisionRequestedNotification::class,
+                RecheckRequestedNotification::class,
             ],
             self::Monev => [MonevStageOpenedNotification::class, MonevEvaluationSubmittedNotification::class],
             self::Submission => [
                 ProposalSubmittedNotification::class,
                 PhaseOverrideGrantedNotification::class,
                 FormChangedNotification::class,
+                SubmissionReadyForDecisionNotification::class,
+                ProposalApprovedNotification::class,
+                ProposalRejectedNotification::class,
             ],
             self::Period => [
                 SubmissionPeriodActiveNotification::class,
