@@ -6,68 +6,12 @@
 // kalender periode milik pengajuan. Satu fase dipakai dua periode dengan tanggal masing-masing.
 
 use App\Enums\DeadlineType;
-use App\Models\Form;
-use App\Models\FormAccessControl;
 use App\Models\FormPhase;
-use App\Models\FormPhaseDetail;
-use App\Models\FormSubmission;
-use App\Models\Organization;
-use App\Models\PhaseType;
 use App\Models\ReviewEvaluationForm;
-use App\Models\SubmissionDate;
-use App\Models\SubmissionPeriod;
-use App\Models\SubmissionPeriodPhase;
 use App\Queries\Review\EvaluationDueDate as ReviewEvaluationDueDate;
 use App\Queries\Submission\EvaluationDueDate as FormEvaluationDueDate;
 use App\States\Submission\NeedsRevision;
 use App\Support\PhaseAccessGate;
-use Illuminate\Support\Carbon;
-
-/** Langkah tanpa rujukan tanggal: hanya jenis + siklus (BR-FE-07). */
-function scheduleStep(FormPhase $phase, ?int $cycle = null, bool $needsReview = true, int $order = 1): FormPhaseDetail
-{
-    $access = FormAccessControl::create([
-        'form_id' => Form::factory()->create()->id,
-        'permission' => 'submissions.create',
-        'organization_id' => Organization::create(['name' => 'Organisasi Jadwal '.$order, 'type' => 'faculty'])->id,
-    ]);
-
-    return FormPhaseDetail::create([
-        'form_phase_id' => $phase->id,
-        'form_access_control_id' => $access->id,
-        'phase_type_id' => PhaseType::create(['name' => 'Tipe Jadwal '.$order])->id,
-        'order' => $order,
-        'needs_review' => $needsReview,
-        'deadline_type' => DeadlineType::Submit,
-        'deadline_cycle' => $cycle,
-    ]);
-}
-
-function schedulePeriod(FormPhase $phase, string $name): SubmissionPeriod
-{
-    $period = SubmissionPeriod::create(['name' => $name]);
-    SubmissionPeriodPhase::create(['submission_period_id' => $period->id, 'form_phase_id' => $phase->id]);
-
-    return $period;
-}
-
-function calendarDate(SubmissionPeriod $period, DeadlineType $type, Carbon $at, ?int $cycle = null): SubmissionDate
-{
-    return SubmissionDate::create([
-        'submission_period_id' => $period->id,
-        'type' => $type,
-        'cycle' => $cycle,
-        'datetime' => $at,
-    ]);
-}
-
-function scheduledSubmission(FormPhaseDetail $step, SubmissionPeriod $period, array $attributes = []): FormSubmission
-{
-    return FormSubmission::factory()->create($attributes + [
-        'form_phase_detail_id' => $step->id,
-        'submission_period_id' => $period->id,
-    ]);
-}
 
 beforeEach(function () {
     $this->phase = FormPhase::create(['title' => 'Penelitian DIPA', 'is_active' => true]);

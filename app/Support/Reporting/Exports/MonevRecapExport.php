@@ -9,7 +9,6 @@ use App\Models\FormSubmission;
 use App\Models\User;
 use App\Queries\Monev\MonevCycles;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Database\Query\Builder as QueryBuilder;
 use Illuminate\Database\Query\JoinClause;
 
 /**
@@ -41,9 +40,7 @@ final class MonevRecapExport implements ExportDefinition
             ->join('form_phase_details as later', fn (JoinClause $join) => $join
                 ->on('later.form_phase_id', '=', 'own.form_phase_id')
                 ->on('later.order', '>', 'own.order'))
-            ->whereExists(fn (QueryBuilder $date) => $date->from('submission_dates')
-                ->whereColumn('submission_dates.id', 'later.submission_date_id')
-                ->where('submission_dates.type', '!=', DeadlineType::Output->value))
+            ->where('later.deadline_type', '!=', DeadlineType::Output->value)
             ->count();
     }
 

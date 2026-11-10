@@ -35,6 +35,7 @@ use App\Models\ReviewRound;
 use App\Models\ReviewSummary;
 use App\Models\SubmissionDate;
 use App\Models\SubmissionPeriod;
+use App\Models\SubmissionPeriodPhase;
 use App\Models\SubmissionReviewer;
 use App\Models\User;
 use App\Models\UserProfile;
@@ -286,6 +287,60 @@ function monevDetail(FormPhase $phase, int $order, string $label, bool $needsRev
         'submission_date_id' => $date->id,
         'order' => $order,
         'needs_review' => $needsReview,
+    ]);
+}
+
+/**
+ * BR-FE-07 (ADR 0019) — langkah tanpa rujukan tanggal: hanya jenis + siklus. Tanggalnya dibaca
+ * dari kalender periode pengajuan (`calendarDate`).
+ */
+function scheduleStep(FormPhase $phase, ?int $cycle = null, bool $needsReview = true, int $order = 1, DeadlineType $type = DeadlineType::Submit): FormPhaseDetail
+{
+    $tag = fake()->unique()->numerify('####-####');
+    $access = FormAccessControl::create([
+        'form_id' => Form::factory()->create(['form_type_id' => regularFormType()->id])->id,
+        'permission' => 'submissions.create',
+        'organization_id' => Organization::create(['name' => "Organisasi Jadwal {$tag}", 'type' => 'faculty'])->id,
+    ]);
+
+    return FormPhaseDetail::create([
+        'form_phase_id' => $phase->id,
+        'form_access_control_id' => $access->id,
+        'phase_type_id' => PhaseType::create(['name' => "Tipe Jadwal {$tag}"])->id,
+        'order' => $order,
+        'needs_review' => $needsReview,
+        'deadline_type' => $type,
+        'deadline_cycle' => $cycle,
+    ]);
+}
+
+/** Periode yang menautkan `$phase` (submission_period_phases), tanpa tanggal. */
+function schedulePeriod(FormPhase $phase, string $name): SubmissionPeriod
+{
+    $period = SubmissionPeriod::create(['name' => $name]);
+    SubmissionPeriodPhase::create(['submission_period_id' => $period->id, 'form_phase_id' => $phase->id]);
+
+    return $period;
+}
+
+/** Satu tanggal di kalender periode (BR-FE-25: unik per jenis + siklus). */
+function calendarDate(SubmissionPeriod $period, DeadlineType $type, Carbon|string $at, ?int $cycle = null): SubmissionDate
+{
+    return SubmissionDate::create([
+        'submission_period_id' => $period->id,
+        'type' => $type,
+        'cycle' => $cycle,
+        'datetime' => $at,
+    ]);
+}
+
+/** @param  array<string, mixed>  $attributes */
+function scheduledSubmission(FormPhaseDetail $step, SubmissionPeriod $period, array $attributes = []): FormSubmission
+{
+    return FormSubmission::factory()->create($attributes + [
+        'form_id' => $step->formAccessControl?->form_id,
+        'form_phase_detail_id' => $step->id,
+        'submission_period_id' => $period->id,
     ]);
 }
 

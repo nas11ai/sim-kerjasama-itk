@@ -6,14 +6,17 @@
 // adalah kolom definisi, bukan `attributesToArray()` tabel (JSON, flag internal, id asing).
 
 use App\Data\Reporting\ExportFilters;
+use App\Enums\DeadlineType;
 use App\Models\BudgetComponent;
 use App\Models\BudgetLineItem;
 use App\Models\Form;
+use App\Models\FormPhase;
 use App\Models\FormSubmission;
 use App\Models\OutputTypeDefinition;
 use App\Models\ResearchOutput;
 use App\Models\Scheme;
 use App\Models\User;
+use App\Queries\Monev\MonevCycles;
 use App\States\Submission\Approved;
 use App\Support\Audit\AuditTrail;
 use App\Support\Reporting\ExportType;
@@ -130,6 +133,22 @@ it('baris Rekap Monev per siklus dengan statusnya', function () {
     ])
         // BR-RPT-02 — ambang dihitung dari baris berkas (siklus), bukan jumlah induk.
         ->and($definition->rowCount($operator, new ExportFilters))->toBe(2);
+});
+
+it('menghitung siklus ekspor rekap dari langkah, bukan tanggal', function () {
+    // BR-FE-07 (ADR 0019) — langkah menyebut jenis + siklus; tak ada lagi tanggal yang dirujuk.
+    $phase = FormPhase::create(['title' => 'Fase Rekap', 'is_active' => true]);
+    $pengajuan = scheduleStep($phase, order: 1);
+    scheduleStep($phase, cycle: 1, needsReview: false, order: 3);
+    scheduleStep($phase, cycle: 2, needsReview: false, order: 5);
+    scheduleStep($phase, needsReview: false, order: 7, type: DeadlineType::Output);
+    $parent = scheduledSubmission($pengajuan, schedulePeriod($phase, 'Periode Rekap'), [
+        'status' => Approved::class, 'is_submitted' => true,
+    ]);
+
+    expect(ExportType::definition(ExportType::MONEV)->rowCount(definitionsOperator(), new ExportFilters))
+        ->toBe(count(MonevCycles::details($parent)))
+        ->and(count(MonevCycles::details($parent)))->toBe(2);
 });
 
 it('baris Audit Log', function () {

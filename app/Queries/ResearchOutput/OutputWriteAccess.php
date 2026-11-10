@@ -4,6 +4,7 @@ namespace App\Queries\ResearchOutput;
 
 use App\Actions\Concerns\ChangesNoState;
 use App\Data\View\ResearchOutput\OutputWriteAccessData;
+use App\Enums\DeadlineType;
 use App\Models\FormPhaseDetail;
 use App\Models\FormSubmission;
 use App\Models\User;
@@ -43,7 +44,8 @@ class OutputWriteAccess implements ChangesNoState
         return new OutputWriteAccessData(
             canWrite: $reason === null,
             blockedReason: $reason,
-            deadline: $detail?->submissionDate->datetime->toIso8601String(),
+            // BR-FE-26 — Batas Akhir di kalender periode induk.
+            deadline: $detail === null ? null : $submission->submissionPeriod?->deadlineFor($detail, DeadlineType::Output)?->datetime->toIso8601String(),
             overrideUntil: $override?->expires_at?->toIso8601String(),
         );
     }

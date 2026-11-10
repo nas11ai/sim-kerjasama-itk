@@ -48,9 +48,9 @@ class MonevCycles implements ChangesNoState
         return FormPhaseDetail::query()
             ->where('form_phase_id', $own->form_phase_id)
             ->where('order', '>', $own->order)
-            // W139 — detail Upload Luaran milik luaran, bukan siklus monev.
-            ->whereHas('submissionDate', fn (Builder $date) => $date->where('type', '!=', DeadlineType::Output->value))
-            ->with(['submissionDate.submissionPeriod', 'phaseType', 'formAccessControl'])
+            // W139 — langkah Upload Luaran (BR-FE-07: `output`) milik luaran, bukan siklus monev.
+            ->where('deadline_type', '!=', DeadlineType::Output->value)
+            ->with(['phaseType', 'formAccessControl'])
             ->ordered()
             ->get();
     }
@@ -68,16 +68,14 @@ class MonevCycles implements ChangesNoState
             fn (QueryBuilder $later) => $later->from('form_phase_details as later')
                 ->whereColumn('later.form_phase_id', 'form_phase_details.form_phase_id')
                 ->whereColumn('later.order', '>', 'form_phase_details.order')
-                ->whereExists(fn (QueryBuilder $date) => $date->from('submission_dates')
-                    ->whereColumn('submission_dates.id', 'later.submission_date_id')
-                    ->where('submission_dates.type', '!=', DeadlineType::Output->value))
+                ->where('later.deadline_type', '!=', DeadlineType::Output->value)
         ));
     }
 
-    /** W125 — siklus tenggat Batas Laporan, lalu nama tipe tahap, lalu urutannya. */
+    /** W125 — siklus langkah (BR-FE-07), lalu nama tipe tahap, lalu urutannya. */
     public static function nameOf(FormPhaseDetail $detail): string
     {
-        $cycle = $detail->submissionDate->cycle;
+        $cycle = $detail->deadline_cycle;
 
         if ($cycle !== null) {
             return DeadlineType::cycleName($cycle);
@@ -128,7 +126,8 @@ class MonevCycles implements ChangesNoState
             name: $name,
             order: $detail->order,
             needsReview: $detail->needs_review,
-            deadline: $detail->submissionDate->datetime->toIso8601String(),
+            // BR-FE-26, BR-MON-05 — tanggal siklus di kalender periode induk; null = belum diatur.
+            deadline: $parent->submissionPeriod?->deadlineFor($detail, DeadlineType::Submit)?->datetime->toIso8601String(),
             state: $state,
             blockedReason: $reason,
             reportId: $report?->id,
@@ -167,14 +166,22 @@ class MonevCycles implements ChangesNoState
             return [MonevCycleState::Locked, $locked];
         }
 
-        // BR-MON-05 — penerapan BR-FE-08: tenggat detail, atau override laporan ini.
-        // BR-FE-26 — kalender periode induk (laporan mewarisi periode induknya).
-        $open = $report === null
-            ? $parent->submissionPeriod !== null && $detail->isWithinDeadline($parent->submissionPeriod)
-            : PhaseAccessGate::isOpenFor($report, $detail);
+        return $this->windowState($parent, $detail, $report, $name);
+    }
 
-        return $open
-            ? [MonevCycleState::Open, null]
+    /** @return array{0: MonevCycleState, 1: string|null} BR-MON-05/BR-FE-08 — kalender periode induk (BR-FE-26), atau override laporan */
+    private function windowState(FormSubmission $parent, FormPhaseDetail $detail, ?FormSubmission $report, string $name): array
+    {
+        $period = $parent->submissionPeriod;
+        $open = $report === null ? $period !== null && $detail->isWithinDeadline($period) : PhaseAccessGate::isOpenFor($report, $detail);
+
+        if ($open) {
+            return [MonevCycleState::Open, null];
+        }
+
+        // BR-FE-26 — tanggal yang belum diatur menutup siklus, dengan alasan yang berbeda.
+        return $period?->deadlineFor($detail, DeadlineType::Submit) === null
+            ? [MonevCycleState::Closed, "Jadwal {$name} belum diatur di periode ini. Hubungi Operator LPPM."]
             : [MonevCycleState::Closed, "Batas waktu {$name} sudah lewat. Hubungi Operator LPPM bila membutuhkan perpanjangan."];
     }
 

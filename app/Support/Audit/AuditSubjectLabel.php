@@ -68,7 +68,6 @@ final class AuditSubjectLabel
         $subject->morphWith([FormSubmission::class => [
             'form:id,title',
             'parent.form:id,title',
-            'formPhaseDetail.submissionDate',
             'formPhaseDetail.phaseType',
         ]]);
     }

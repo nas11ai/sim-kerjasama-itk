@@ -97,12 +97,13 @@ Feature: Jendela Kerja Tiap Tahap
     Then penyuntingan berhasil
     And setelah "2026-03-15" penyuntingan ditolak dengan 403
 
-  @BR-FE-26 @BR-MON-05 @M2 @ADMIN-08-09 @denial
-  Scenario: [FE-WINDOW-11] Siklus Monev memakai tenggat siklusnya sendiri
-    Given detail Laporan Monev I berbatas "Batas Laporan Monev I"
-    When admin menetapkan "Batas Evaluasi" pengajuan utama sebagai Batas Evaluasi detail itu
-    Then penyimpanan ditolak dengan 422
-    And "Batas Evaluasi Monev I" diterima
+  @BR-FE-26 @BR-MON-05 @M2 @RESEARCHER-05-01 @happy
+  Scenario: [FE-WINDOW-11] Siklus Monev memakai tanggal siklusnya sendiri di kalender periode
+    Given tahap "Penelitian DIPA" punya langkah "Laporan Monev I" dan "Laporan Monev II"
+    And periode "2025" punya "Batas Laporan Monev I" pada "2026-03-01" dan "Batas Laporan Monev II" pada "2026-09-01"
+    When siklus monev pengajuan APPROVED periode "2025" dibaca
+    Then Monev I bertenggat "2026-03-01"
+    And Monev II bertenggat "2026-09-01"
 
   @BR-FE-17 @BR-FE-01 @M2 @RESEARCHER-02-02 @denial
   Scenario: [FE-WINDOW-13] Detail yang tenggatnya milik periode lain tidak membuka pengajuan di periode itu
@@ -136,3 +137,10 @@ Feature: Jendela Kerja Tiap Tahap
     When Operator menutup paksa periode "A"
     Then langkah Pengajuan tertutup bagi pengajuan periode "A"
     And langkah Pengajuan tetap terbuka bagi pengajuan periode "B"
+
+  @BR-FE-26 @BR-MON-05 @M2 @OPERATOR-09-01 @boundary
+  Scenario: [FE-WINDOW-15] Menyiapkan periode baru tidak mengubah tanggal siklus monev angkatan lama
+    Given pengajuan "P-2025" APPROVED di periode "2025" pada tahap "Penelitian DIPA"
+    And periode "2025" punya "Batas Laporan Monev II" pada "2026-06-01"
+    When Operator menautkan tahap "Penelitian DIPA" ke periode "2026" dengan "Batas Laporan Monev II" pada "2027-06-01"
+    Then Monev II "P-2025" tetap bertenggat "2026-06-01"

@@ -3,9 +3,11 @@
 namespace App\Notifications;
 
 use App\Data\Contract\NotificationPayload;
+use App\Enums\DeadlineType;
 use App\Models\FormPhaseDetail;
 use App\Models\FormSubmission;
 use App\Notifications\Concerns\UsesConfiguredChannels;
+use App\Queries\Monev\MonevCycles;
 use Illuminate\Bus\Queueable;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Notifications\Notification;
@@ -50,9 +52,15 @@ class MonevStageOpenedNotification extends Notification
         ))->toArray();
     }
 
+    /** BR-FE-26 — tanggal siklus di kalender periode induk. */
     private function deadlineLine(): string
     {
-        return 'Batas waktu siklus ini: '
-            .$this->detail->submissionDate->datetime->translatedFormat('d F Y H:i').'.';
+        $deadline = $this->parent->submissionPeriod?->deadlineFor($this->detail, DeadlineType::Submit);
+
+        if ($deadline === null) {
+            return 'Jadwal '.MonevCycles::nameOf($this->detail).' belum diatur di periode ini. Hubungi Operator LPPM.';
+        }
+
+        return 'Batas waktu siklus ini: '.$deadline->datetime->translatedFormat('d F Y H:i').'.';
     }
 }

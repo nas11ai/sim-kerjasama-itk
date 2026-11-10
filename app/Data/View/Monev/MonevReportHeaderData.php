@@ -2,6 +2,7 @@
 
 namespace App\Data\View\Monev;
 
+use App\Enums\DeadlineType;
 use App\Models\FormSubmission;
 use App\Queries\Monev\MonevCycles;
 use Spatie\LaravelData\Data;
@@ -32,7 +33,8 @@ final class MonevReportHeaderData extends Data
             title: $parent->form->title,
             scheme: $parent->scheme?->name,
             cycleName: $detail === null ? 'Monev' : MonevCycles::nameOf($detail),
-            deadline: $detail?->submissionDate->datetime->toIso8601String(),
+            // BR-FE-26 — laporan memakai kalender periode induknya.
+            deadline: $detail === null ? null : $parent->submissionPeriod?->deadlineFor($detail, DeadlineType::Submit)?->datetime->toIso8601String(),
             lastUpdatedAt: $report->updated_at?->toISOString() ?? '',
         );
     }
