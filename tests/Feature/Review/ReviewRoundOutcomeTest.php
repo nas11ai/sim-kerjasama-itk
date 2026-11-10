@@ -339,3 +339,27 @@ it('reviewer not_required di tengah putaran menyimpulkan putaran', function () {
     expect($submission->latestReviewRound()->isRunning())->toBeFalse()
         ->and($submission->latestReviewRound()->outcome)->toBe(ReviewRound::OUTCOME_READY);
 });
+
+it('Selesai yang kalah balapan dengan permintaan kembarnya ditolak tanpa audit kedua', function () {
+    $submission = outcomeSubmission();
+    $a = reviewerOn($submission, 'completed');
+    reviewerOn($submission, 'completed');
+
+    // Permintaan kembar menulis tanda Selesai tepat setelah baris peserta dibaca permintaan ini.
+    ReviewRoundParticipant::retrieved(function (ReviewRoundParticipant $participant) use ($a): void {
+        if ($participant->submission_reviewer_id === $a->id) {
+            Illuminate\Support\Facades\DB::table('review_round_participants')
+                ->where('id', $participant->id)->update(['finished_at' => now()]);
+        }
+    });
+
+    try {
+        finishSeat($a);
+        $this->fail('Tanda Selesai kedua seharusnya ditolak.');
+    } catch (ValidationException $e) {
+        expect($e->errors()['round'][0])->toBe('Anda sudah menyelesaikan putaran ini.');
+    }
+
+    expect(Spatie\Activitylog\Models\Activity::query()
+        ->where('description', 'Putaran review diselesaikan reviewer')->count())->toBe(0);
+});
