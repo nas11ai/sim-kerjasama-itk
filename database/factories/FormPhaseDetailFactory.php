@@ -57,6 +57,8 @@ class FormPhaseDetailFactory extends Factory
             'form_access_control_id' => $formAccessControl->id,
             'phase_type_id' => $phaseType->id,
             'order' => 1,
+            'deadline_type' => DeadlineType::Submit,
+            'deadline_cycle' => null,
             'submission_date_id' => $submissionDate->id,
         ];
     }

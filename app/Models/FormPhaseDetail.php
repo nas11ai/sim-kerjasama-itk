@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use App\Enums\DeadlineType;
+use App\Models\Concerns\HasStepDateReferences;
 use App\Support\Lifecycle\ReferenceGuard;
 use App\Support\SubmissionPeriodGate;
 use Illuminate\Database\Eloquent\Builder;
@@ -18,14 +19,16 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property int $phase_type_id
  * @property int $order
  * @property bool $needs_review
- * @property int $submission_date_id
+ * @property DeadlineType $deadline_type BR-FE-07 — `submit` atau `output`
+ * @property int|null $deadline_cycle BR-FE-07 — null = pengajuan/luaran, n = laporan Monev n
+ * @property int|null $submission_date_id
  * @property int|null $evaluation_date_id
  * @property int|null $revision_date_id
  * @property int $submission_count hanya setelah PhaseEdit
  * @property int $assignment_count hanya setelah PhaseEdit
  * @property int $evaluation_form_count hanya setelah PhaseEdit
  * @property-read FormPhase|null $formPhase
- * @property-read SubmissionDate $submissionDate
+ * @property-read SubmissionDate|null $submissionDate
  * @property-read SubmissionDate|null $evaluationDate
  * @property-read SubmissionDate|null $revisionDate
  * @property-read FormAccessControl|null $formAccessControl
@@ -34,6 +37,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class FormPhaseDetail extends Model
 {
     use HasFactory;
+    use HasStepDateReferences;
 
     /**
      * BR-FE-20 — detail yang dirujuk pengajuan tidak bisa dihapus. BR-FE-22 — begitu pula detail
@@ -59,6 +63,8 @@ class FormPhaseDetail extends Model
         'phase_type_id',
         'order',
         'needs_review',
+        'deadline_type',
+        'deadline_cycle',
         'submission_date_id',
         'evaluation_date_id',
         'revision_date_id',
@@ -66,6 +72,8 @@ class FormPhaseDetail extends Model
 
     protected $casts = [
         'needs_review' => 'boolean',
+        'deadline_type' => DeadlineType::class,
+        'deadline_cycle' => 'integer',
     ];
 
     /** @return BelongsTo<FormPhase, $this> */
@@ -78,32 +86,6 @@ class FormPhaseDetail extends Model
     public function formAccessControl(): BelongsTo
     {
         return $this->belongsTo(FormAccessControl::class);
-    }
-
-    /** @return BelongsTo<SubmissionDate, $this> */
-    public function submissionDate(): BelongsTo
-    {
-        return $this->belongsTo(SubmissionDate::class);
-    }
-
-    /**
-     * BR-FE-26 — Batas Evaluasi reviewer form evaluasi di detail ini; wajib bila `needs_review`.
-     *
-     * @return BelongsTo<SubmissionDate, $this>
-     */
-    public function evaluationDate(): BelongsTo
-    {
-        return $this->belongsTo(SubmissionDate::class, 'evaluation_date_id');
-    }
-
-    /**
-     * BR-FE-26 — Batas Revisi pengisi saat NEEDS_REVISION; tanpanya revisi memakai Batas Submit.
-     *
-     * @return BelongsTo<SubmissionDate, $this>
-     */
-    public function revisionDate(): BelongsTo
-    {
-        return $this->belongsTo(SubmissionDate::class, 'revision_date_id');
     }
 
     /** @return BelongsTo<PhaseType, $this> */
@@ -136,20 +118,6 @@ class FormPhaseDetail extends Model
     }
 
     /**
-     * BR-FE-26 — tenggat detail ini untuk satu jenis. Batas Revisi yang kosong kembali ke
-     * Batas Submit (perilaku sebelum E1b); Batas Evaluasi yang kosong berarti tak bertenggat.
-     */
-    public function deadlineOf(DeadlineType $type): ?SubmissionDate
-    {
-        return match ($type) {
-            // W139 — detail Upload Luaran memegang Batas Akhir di kolom Batas Submit-nya.
-            DeadlineType::Submit, DeadlineType::Output => $this->submissionDate,
-            DeadlineType::Evaluation => $this->evaluationDate,
-            DeadlineType::Revision => $this->revisionDate ?? $this->submissionDate,
-        };
-    }
-
-    /**
      * BR-MON-01 — pintu pengajuan baru hanya Batas Submit tanpa siklus. Laporan monev (bersiklus)
      * dan Upload Luaran (W139, `output`) lahir dari pengajuan APPROVED, tidak pernah tanpa induk.
      */
@@ -173,20 +141,6 @@ class FormPhaseDetail extends Model
         $date = $this->deadlineOf($type);
 
         return $date === null || now()->lte($date->datetime);
-    }
-
-    /**
-     * BR-FE-21 — detail yang digerbangi salah satu tanggal ini, lewat kolom tenggat mana pun.
-     *
-     * @param  Builder<FormPhaseDetail>  $query
-     * @param  Builder<SubmissionDate>  $dates  subquery `select id`
-     * @return Builder<FormPhaseDetail>
-     */
-    public function scopeDeadlinedBy(Builder $query, Builder $dates): Builder
-    {
-        return $query->where(fn (Builder $q) => $q->whereIn('submission_date_id', $dates)
-            ->orWhereIn('evaluation_date_id', $dates)
-            ->orWhereIn('revision_date_id', $dates));
     }
 
     /**

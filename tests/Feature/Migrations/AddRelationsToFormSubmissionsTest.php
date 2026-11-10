@@ -12,6 +12,7 @@ use App\Models\Organization;
 use App\Models\PhaseType;
 use App\Models\SubmissionDate;
 use App\Models\SubmissionPeriod;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 function createSubmissionDate(int $periodId): int
@@ -74,6 +75,9 @@ it('backfills form_phase_detail_id and submission_period_id when the mapping is 
     $submission = FormSubmission::factory()->create(['form_id' => $form->id]);
 
     $migration = require database_path('migrations/2026_08_17_000001_add_relations_to_form_submissions.php');
+    // Constraint periode-wajib (2026_11_12_100000) belum ada saat migrasi ini berjalan; backfill-nya
+    // mengisi langkah lebih dulu lalu periode. DDL di PostgreSQL ikut ter-rollback RefreshDatabase.
+    DB::statement('ALTER TABLE form_submissions DROP CONSTRAINT form_submissions_detail_has_period');
 
     invokeMigrationMethod($migration, 'guardAgainstAmbiguousPhaseDetails');
     invokeMigrationMethod($migration, 'backfillPhaseDetail');
