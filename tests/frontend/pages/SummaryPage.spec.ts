@@ -52,7 +52,15 @@ const baseProps: SummaryPageProps = {
     ],
     canCreateThread: true,
     scores: { visible: false, reason: 'Skor reviewer lain terbuka nanti.', scores: [] },
-    outcome: { reviewerCount: 2, unsettledCount: 0, openThreadCount: 1 },
+    round: {
+        kind: 'assessment',
+        finishLabel: 'Selesai menilai',
+        isParticipant: true,
+        finished: false,
+        canFinish: true,
+        reason: null,
+        progress: { kind: 'assessment', number: 1, finished: 0, total: 2 },
+    },
 }
 
 const route = (name: string, params?: unknown) => `/${name}/${String(params)}`
