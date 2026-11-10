@@ -94,17 +94,13 @@ final class SubmissionPeriodGate
     }
 
     /**
-     * BR-SCH-07 — apakah periode di balik satu FormPhaseDetail ditutup paksa.
-     * Periodenya dibaca lewat SubmissionDate milik detail itu, bukan formPhase:
-     * `form_phases` tidak punya kolom `submission_period_id` (ADR 0014).
+     * BR-SCH-07 — penutupan paksa `$period` menutup langkah pengajuan (BR-FE-07: `submit` tanpa
+     * siklus) bagi pengajuan periode itu saja; siklus monev mengikuti BR-MON-05 dan Upload Luaran
+     * BR-RO-08. Periode lain pada fase yang sama tidak tersentuh (ADR 0019).
      */
-    public static function isForceClosed(FormPhaseDetail $detail): bool
+    public static function isForceClosed(SubmissionPeriod $period, FormPhaseDetail $step): bool
     {
-        // BR-SCH-07 (v2.5) — Close Early menutup tahap pengajuan; siklus monev mengikuti BR-MON-05
-        // dan Upload Luaran BR-RO-08 (W139), walau Batas Akhir juga tanpa siklus.
-        return $detail->submissionDate->cycle === null
-            && $detail->submissionDate->type !== DeadlineType::Output
-            && $detail->submissionDate->submissionPeriod?->is_force_closed === true;
+        return $period->is_force_closed && $step->opensSubmission();
     }
 
     public static function assertOpen(?SubmissionPeriod $period): void

@@ -112,7 +112,7 @@ class AssignReviewers
 
             // BR-FE-17 — tenggat milik detail yang memiliki form ini, dihitung per form;
             // `null` jawaban yang sah (kolomnya nullable, layar menampilkan "No deadline").
-            AssignEvaluationForm::run($assignment, $form->id, true, EvaluationDueDate::run($form));
+            AssignEvaluationForm::run($assignment, $form->id, true, EvaluationDueDate::run($form, $assignment->formSubmission));
         }
     }
 }

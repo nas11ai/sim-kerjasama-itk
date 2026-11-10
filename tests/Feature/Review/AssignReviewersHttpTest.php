@@ -263,8 +263,8 @@ it('[REV-ASSIGN-09] mengirim satu notifikasi penugasan, bukan dua', function () 
 
 it('tidak pernah mengarang tenggat dari jam dinding', function () {
     // Jalur lama jatuh ke `new DateTime('+7 days')` saat periodenya tak
-    // ketemu. Sekarang tenggatnya selalu tanggal milik detail pemilik form,
-    // jadi tak ada lagi tanggal yang lahir dari waktu penugasan.
+    // ketemu. Sekarang tenggatnya Batas Evaluasi di kalender periode pengajuan
+    // (BR-FE-26, ADR 0019), jadi tak ada tanggal yang lahir dari waktu penugasan.
     [$operator, $submission] = assignHttpFixture();
 
     ReviewEvaluationForm::create([
@@ -275,16 +275,16 @@ it('tidak pernah mengarang tenggat dari jam dinding', function () {
         'order' => 1,
     ]);
 
-    $submission->update(['submission_period_id' => SubmissionPeriod::create(['name' => 'Periode Tanpa Tanggal'])->id]);
+    $period = SubmissionPeriod::create(['name' => 'Periode Pengajuan']);
+    $submission->update(['submission_period_id' => $period->id]);
 
-    // BR-FE-26 — Batas Evaluasi detailnya, digeser menjauh dari +7 hari: tanpa itu assertion
-    // di bawah lulus karena kebetulan cocok dengan fallback seminggu, bukan karena benar.
-    $detail = $submission->formPhaseDetail;
-    $detail->update(['evaluation_date_id' => SubmissionDate::create([
+    // Batas Evaluasi periode pengajuan, digeser menjauh dari +7 hari: tanpa itu assertion di
+    // bawah lulus karena kebetulan cocok dengan fallback seminggu, bukan karena benar.
+    $evaluation = SubmissionDate::create([
         'type' => DeadlineType::Evaluation,
         'datetime' => now()->addDays(11)->startOfSecond(),
-        'submission_period_id' => $detail->submissionDate->submission_period_id,
-    ])->id]);
+        'submission_period_id' => $period->id,
+    ]);
 
     $this->actingAs($operator)
         ->post(route('admin.submissions.assign-reviewers', $submission), [
@@ -293,7 +293,7 @@ it('tidak pernah mengarang tenggat dari jam dinding', function () {
         ->assertRedirect();
 
     $assignment = ReviewerFormAssignment::query()->sole();
-    $detailDate = $detail->fresh()->evaluationDate->datetime;
+    $detailDate = $evaluation->datetime;
 
     expect($assignment->due_date->format('Y-m-d H:i:s'))->toBe($detailDate->format('Y-m-d H:i:s'))
         ->and($assignment->due_date->format('Y-m-d H:i:s'))->not->toBe(now()->addDays(7)->format('Y-m-d H:i:s'));

@@ -38,8 +38,8 @@ it('[FE-WINDOW-01] evaluasi tetap terbuka setelah batas submit lewat', function 
     $fx = reviewedDetailFixture(now()->subDay()->toDateTimeString(), now()->addWeek()->toDateTimeString());
 
     // Tenggat peneliti sudah lewat, tapi reviewer punya jendelanya sendiri.
-    expect($fx['detail']->isWithinDeadline())->toBeFalse()
-        ->and($fx['detail']->isWithinDeadline(DeadlineType::Evaluation))->toBeTrue()
+    expect($fx['detail']->isWithinDeadline($fx['period']))->toBeFalse()
+        ->and($fx['detail']->isWithinDeadline($fx['period'], DeadlineType::Evaluation))->toBeTrue()
         ->and($fx['assignment']->due_date->equalTo($fx['detail']->evaluationDate->datetime))->toBeTrue()
         ->and($fx['reviewer']->can('evaluate', $fx['assignment']))->toBeTrue();
 });
@@ -47,7 +47,7 @@ it('[FE-WINDOW-01] evaluasi tetap terbuka setelah batas submit lewat', function 
 it('[FE-WINDOW-02] evaluasi ditolak setelah batas evaluasinya sendiri lewat', function () {
     $fx = reviewedDetailFixture(now()->subWeek()->toDateTimeString(), now()->subDay()->toDateTimeString());
 
-    expect($fx['detail']->isWithinDeadline(DeadlineType::Evaluation))->toBeFalse()
+    expect($fx['detail']->isWithinDeadline($fx['period'], DeadlineType::Evaluation))->toBeFalse()
         ->and($fx['reviewer']->can('evaluate', $fx['assignment']))->toBeFalse();
 });
 
@@ -80,7 +80,8 @@ it('[FE-WINDOW-03] tanpa Batas Revisi, revisi kembali memakai Batas Submit', fun
 
 it('[FE-WINDOW-04] dua detail beraktor sama boleh berbagi satu tanggal', function () {
     $phase = FormPhase::create(['title' => 'Fase Uji Jendela', 'is_active' => true]);
-    $date = windowDate(SubmissionPeriod::factory()->create(), 'Batas Submit', now()->addWeek()->toDateTimeString());
+    $period = SubmissionPeriod::factory()->create();
+    $date = windowDate($period, 'Batas Submit', now()->addWeek()->toDateTimeString());
 
     // Yang dilarang berbagi tanggal adalah detail dengan aktor **berbeda**.
     // Dua tahap researcher berurutan wajar memakai batas yang sama.
@@ -94,8 +95,8 @@ it('[FE-WINDOW-04] dua detail beraktor sama boleh berbagi satu tanggal', functio
     ]);
 
     expect($satu->submission_date_id)->toBe($dua->submission_date_id)
-        ->and($satu->isWithinDeadline())->toBeTrue()
-        ->and($dua->isWithinDeadline())->toBeTrue();
+        ->and($satu->isWithinDeadline($period))->toBeTrue()
+        ->and($dua->isWithinDeadline($period))->toBeTrue();
 });
 
 it('[FE-WINDOW-04] admin menyimpan dua detail beraktor sama dengan satu Batas Submit', function () {
@@ -131,8 +132,8 @@ it('[FE-WINDOW-02] periode yang ditutup paksa menutup semua jendela', function (
     $fx['period']->update(['is_force_closed' => true]);
 
     // Force close mengalahkan tanggal per detail — sumbu yang berbeda (BR-SCH-07).
-    expect($fx['detail']->fresh()->isWithinDeadline())->toBeFalse()
-        ->and($fx['detail']->fresh()->isWithinDeadline(DeadlineType::Evaluation))->toBeFalse();
+    expect($fx['detail']->fresh()->isWithinDeadline($fx['period']->fresh()))->toBeFalse()
+        ->and($fx['detail']->fresh()->isWithinDeadline($fx['period']->fresh(), DeadlineType::Evaluation))->toBeFalse();
 });
 
 it('[FE-WINDOW-10] revisi digerbangi Batas Revisi, bukan Batas Submit', function () {

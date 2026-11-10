@@ -26,14 +26,18 @@ final class PhaseAccessGate
             return true;
         }
 
-        // BR-SCH-07 — hard block, tidak bisa ditembus override: override izin
-        // Operator untuk satu orang, force close keputusannya menghentikan
-        // semua. Kalau yang lebih luas kalah, ada pintu yang tetap terbuka.
-        if (SubmissionPeriodGate::isForceClosed($detail)) {
+        // BR-FE-26 — tanggal dibaca dari kalender periode pengajuan. Pengajuan bertahap tanpa
+        // periode mustahil (constraint `form_submissions_detail_has_period`); bila terjadi,
+        // tidak ada tanggal yang bisa membukanya — hanya override.
+        $period = $submission->submissionPeriod;
+
+        // BR-SCH-07 — hard block, tidak bisa ditembus override: override izin Operator untuk
+        // satu orang, force close keputusannya menghentikan semua.
+        if ($period !== null && SubmissionPeriodGate::isForceClosed($period, $detail)) {
             return false;
         }
 
-        if ($detail->isWithinDeadline(self::typeFor($submission))) {
+        if ($period !== null && $detail->isWithinDeadline($period, self::typeFor($submission))) {
             return true;
         }
 
@@ -41,13 +45,13 @@ final class PhaseAccessGate
     }
 
     /**
-     * BR-FE-26 (K8c) — tenggat yang sedang menggerbangi pengisi: Batas Revisi selama
-     * NEEDS_REVISION (kembali ke Batas Submit bila detailnya tak punya), selain itu Batas
-     * Submit. Reviewer digerbangi Batas Evaluasi lewat penugasannya (EvaluationDueDate).
+     * BR-FE-26 (K8c) — tenggat pengisi di kalender periode pengajuan: Batas Revisi selama
+     * NEEDS_REVISION (atau tanggal kerja langkah bila tak ada), selain itu tanggal kerja langkah.
+     * Reviewer digerbangi Batas Evaluasi lewat penugasannya (EvaluationDueDate).
      */
     public static function deadlineFor(FormSubmission $submission, FormPhaseDetail $detail): ?SubmissionDate
     {
-        return $detail->deadlineOf(self::typeFor($submission));
+        return $submission->submissionPeriod?->deadlineFor($detail, self::typeFor($submission));
     }
 
     private static function typeFor(FormSubmission $submission): DeadlineType

@@ -16,10 +16,20 @@ use Tests\TestCase;
 
 uses(TestCase::class, RefreshDatabase::class);
 
-it('mengambil tenggat dari detail yang memiliki form evaluasi — BR-FE-17', function () {
+/** Pengajuan pada langkah pemilik form evaluasi, di periode fixture-nya (BR-FE-26). */
+function dueDateSubmission(array $fx): FormSubmission
+{
+    return FormSubmission::factory()->create([
+        'form_id' => $fx['form']->id,
+        'form_phase_detail_id' => $fx['submitDetail']->id,
+        'submission_period_id' => $fx['period']->id,
+    ]);
+}
+
+it('mengambil tenggat dari kalender periode pengajuan pada langkah pemilik form — BR-FE-17', function () {
     $fx = phaseWithOwnEvaluationDeadline('Uji Tenggat Evaluasi');
 
-    $dueDate = EvaluationDueDate::run($fx['evaluationForm']);
+    $dueDate = EvaluationDueDate::run($fx['evaluationForm'], dueDateSubmission($fx));
 
     expect($dueDate)->not->toBeNull()
         ->and($dueDate->format('Y-m-d H:i:s'))->toBe($fx['dueEvaluation']->format('Y-m-d H:i:s'));
@@ -28,7 +38,7 @@ it('mengambil tenggat dari detail yang memiliki form evaluasi — BR-FE-17', fun
 it('tidak memakai ulang Batas Submit milik peneliti', function () {
     $fx = phaseWithOwnEvaluationDeadline('Uji Bukan Batas Submit');
 
-    expect(EvaluationDueDate::run($fx['evaluationForm'])->format('Y-m-d H:i:s'))
+    expect(EvaluationDueDate::run($fx['evaluationForm'], dueDateSubmission($fx))->format('Y-m-d H:i:s'))
         ->not->toBe($fx['dueSubmit']->format('Y-m-d H:i:s'));
 });
 
@@ -38,13 +48,13 @@ it('tidak memakai tanggal terakhir period, yang milik tahap lain', function () {
     $latest = $fx['period']->submissionDates()->orderByDesc('datetime')->first();
 
     expect($latest)->not->toBeNull()
-        ->and(EvaluationDueDate::run($fx['evaluationForm'])->format('Y-m-d H:i:s'))
+        ->and(EvaluationDueDate::run($fx['evaluationForm'], dueDateSubmission($fx))->format('Y-m-d H:i:s'))
         ->not->toBe($latest->datetime->format('Y-m-d H:i:s'));
 });
 
-it('tidak bergantung pada pivot submission_period_phases — ADR 0004', function () {
-    // Jawabannya kini ditempuh lewat FK langsung, jadi period lain yang
-    // kebetulan berbagi fase tidak bisa lagi menyeretnya.
+it('membaca periode pengajuan, bukan periode lain yang menautkan fase yang sama — ADR 0019', function () {
+    // Periode B menautkan fase yang sama lewat pivot; pengajuan milik periode A tetap membaca
+    // kalender periode A.
     $fx = phaseSharedByTwoPeriods('Uji Due Date Ambigu', needsReview: true);
 
     $form = ReviewEvaluationForm::create([
@@ -55,14 +65,14 @@ it('tidak bergantung pada pivot submission_period_phases — ADR 0004', function
         'order' => 1,
     ]);
 
-    FormSubmission::factory()->create([
+    $submission = FormSubmission::factory()->create([
         'form_id' => $fx['form']->id,
         'form_phase_detail_id' => $fx['detail']->id,
         'submission_period_id' => $fx['periodA']->id,
     ]);
 
-    expect(EvaluationDueDate::run($form)->format('Y-m-d H:i:s'))
+    expect(EvaluationDueDate::run($form, $submission)->format('Y-m-d H:i:s'))
         ->toBe($fx['dueA']->format('Y-m-d H:i:s'))
-        ->and(EvaluationDueDate::run($form)->format('Y-m-d H:i:s'))
+        ->and(EvaluationDueDate::run($form, $submission)->format('Y-m-d H:i:s'))
         ->not->toBe($fx['dueB']->format('Y-m-d H:i:s'));
 });

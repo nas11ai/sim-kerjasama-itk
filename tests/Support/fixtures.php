@@ -268,13 +268,18 @@ function outputInput(string $type, array $metadata = [], int $files = 0): Resear
     return new ResearchOutputInput($type, $metadata, $uploads);
 }
 
+/**
+ * BR-FE-26 (ADR 0019) — semua langkah satu fase membaca satu kalender periode: tanggalnya masuk
+ * periode langkah pertama fase itu (periode baru bila fasenya belum punya langkah).
+ */
 function monevDetail(FormPhase $phase, int $order, string $label, bool $needsReview = false, string $when = '+1 month'): FormPhaseDetail
 {
-    $date = SubmissionDate::create([
-        ...deadlineTypeOf($label),
-        'submission_period_id' => SubmissionPeriod::factory()->create()->id,
-        'datetime' => now()->modify($when),
-    ]);
+    $periodId = FormPhaseDetail::query()->where('form_phase_id', $phase->id)->orderBy('id')
+        ->first()?->submissionDate?->submission_period_id ?? SubmissionPeriod::factory()->create()->id;
+    $date = SubmissionDate::query()->firstOrCreate(
+        [...deadlineTypeOf($label), 'submission_period_id' => $periodId],
+        ['datetime' => now()->modify($when)],
+    );
 
     return FormPhaseDetail::factory()->create([
         'form_phase_id' => $phase->id,
@@ -632,7 +637,7 @@ function reviewedDetailFixture(string $submit, string $evaluation, ?string $revi
         'evaluation_status' => 'pending',
         'status' => 'active',
     ]);
-    AssignEvaluationForm::run($seat, $form->id, true, EvaluationDueDate::run($form));
+    AssignEvaluationForm::run($seat, $form->id, true, EvaluationDueDate::run($form, $submission));
     // BR-REV-16 — seperti AssignReviewer: kursi baru ikut putaran penilaian.
     JoinReviewRound::run($seat);
 

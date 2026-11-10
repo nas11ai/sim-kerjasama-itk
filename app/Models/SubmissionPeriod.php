@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\DeadlineType;
 use App\Queries\Period\SubmissionPeriodReferences;
 use App\Support\Lifecycle\ReferenceGuard;
 use Carbon\Carbon;
@@ -53,6 +54,32 @@ class SubmissionPeriod extends Model
     public function submissionDates(): HasMany
     {
         return $this->hasMany(SubmissionDate::class);
+    }
+
+    /**
+     * BR-FE-26 (ADR 0019) — satu-satunya pintu dari (langkah, jenis) ke tanggal kalender periode
+     * ini. `submit`/`output` = jenis + siklus langkah; Batas Evaluasi dan Batas Revisi pada siklus
+     * langkah; Batas Revisi yang tak ada kembali ke tanggal kerja langkah. Null = belum diatur.
+     */
+    public function deadlineFor(FormPhaseDetail $step, DeadlineType $type): ?SubmissionDate
+    {
+        $own = $this->calendarDate($step->deadline_type, $step->deadline_cycle);
+
+        return match ($type) {
+            DeadlineType::Submit, DeadlineType::Output => $own,
+            DeadlineType::Evaluation => $this->calendarDate(DeadlineType::Evaluation, $step->deadline_cycle),
+            DeadlineType::Revision => $this->calendarDate(DeadlineType::Revision, $step->deadline_cycle) ?? $own,
+        };
+    }
+
+    /** BR-FE-25 — paling banyak satu tanggal per (jenis, siklus); dibaca dari relasi yang dimuat. */
+    private function calendarDate(DeadlineType $type, ?int $cycle): ?SubmissionDate
+    {
+        $this->loadMissing('submissionDates');
+
+        return $this->submissionDates->first(
+            static fn (SubmissionDate $date): bool => $date->type === $type && $date->cycle === $cycle,
+        );
     }
 
     /** @return HasMany<FormSubmission, $this> */

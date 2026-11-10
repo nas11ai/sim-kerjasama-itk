@@ -42,7 +42,7 @@ it('[SCH-RULE-12] deadline baru langsung berlaku sebagai gerbang akses', functio
 
     // Batasnya dimundurkan ke masa lalu dulu — fase tertutup.
     $fx['period']->submissionDates()->update(['datetime' => now()->subWeek()]);
-    expect($fx['detail']->fresh()->isWithinDeadline())->toBeFalse();
+    expect($fx['detail']->fresh()->isWithinDeadline($fx['period']->fresh()))->toBeFalse();
 
     $tenggat = $fx['period']->submissionDates()->first();
 
@@ -52,7 +52,7 @@ it('[SCH-RULE-12] deadline baru langsung berlaku sebagai gerbang akses', functio
 
     // Tidak ada penyambungan ulang: tanggalnya diperbarui di tempat, jadi
     // FormPhaseDetail yang sama langsung menggerbangi dengan batas yang baru.
-    expect($fx['detail']->fresh()->isWithinDeadline())->toBeTrue();
+    expect($fx['detail']->fresh()->isWithinDeadline($fx['period']->fresh()))->toBeTrue();
 });
 
 it('[SCH-RULE-13] tanpa draft berjalan tidak ada notifikasi terkirim', function () {

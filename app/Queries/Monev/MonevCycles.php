@@ -168,7 +168,10 @@ class MonevCycles implements ChangesNoState
         }
 
         // BR-MON-05 — penerapan BR-FE-08: tenggat detail, atau override laporan ini.
-        $open = $report === null ? $detail->isWithinDeadline() : PhaseAccessGate::isOpenFor($report, $detail);
+        // BR-FE-26 — kalender periode induk (laporan mewarisi periode induknya).
+        $open = $report === null
+            ? $parent->submissionPeriod !== null && $detail->isWithinDeadline($parent->submissionPeriod)
+            : PhaseAccessGate::isOpenFor($report, $detail);
 
         return $open
             ? [MonevCycleState::Open, null]

@@ -60,7 +60,7 @@ it('[FE-OVERRIDE-11] penutupan paksa mengalahkan override evaluasi', function ()
 
     $fx['period']->update(['is_force_closed' => true]);
 
-    expect($fx['detail']->fresh()->isWithinDeadline(DeadlineType::Evaluation))->toBeFalse()
+    expect($fx['detail']->fresh()->isWithinDeadline($fx['period']->fresh(), DeadlineType::Evaluation))->toBeFalse()
         ->and(PhaseAccessGate::isOpenFor($fx['submission']->fresh(), $fx['detail']->fresh()))->toBeFalse();
 });
 

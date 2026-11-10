@@ -1,7 +1,8 @@
 Feature: Jendela Kerja Tiap Tahap
-  Tiap aktor sebuah FormPhaseDetail punya SubmissionDate sendiri: Batas Submit
-  untuk pengisi, Batas Evaluasi untuk reviewer form evaluasi yang melekat pada
-  detail itu, dan Batas Revisi untuk pengisi saat NEEDS_REVISION (BR-FE-26).
+  Tiap aktor sebuah langkah (FormPhaseDetail) membaca jenis tenggatnya sendiri dari
+  kalender periode milik pengajuan: Batas Submit untuk pengisi, Batas Evaluasi untuk
+  reviewer form evaluasi yang melekat pada langkah itu, dan Batas Revisi untuk
+  pengisi saat NEEDS_REVISION — semuanya pada siklus langkah (BR-FE-26, ADR 0019).
   Tanpa itu reviewer tidak punya waktu kerja sama sekali — evaluasi ikut terkunci
   saat "Batas Submit" lewat — dan revisi mustahil (BR-FE-17).
 
@@ -31,11 +32,12 @@ Feature: Jendela Kerja Tiap Tahap
     When "Budi" menyunting isi "P-001"
     Then penyuntingan berhasil
 
-  @BR-FE-17 @M2 @ADMIN-08-09 @boundary
-  Scenario: [FE-WINDOW-04] Dua detail beraktor sama boleh berbagi satu tanggal
-    Given detail Pengajuan dan detail Kelengkapan sama-sama beraktor researcher
-    When admin menetapkan keduanya memakai SubmissionDate "Batas Submit"
-    Then penyimpanan berhasil
+  @BR-FE-26 @M2 @ADMIN-08-09 @boundary
+  Scenario: [FE-WINDOW-04] Dua langkah bersiklus sama di satu periode membaca satu tanggal yang sama
+    Given tahap "Penelitian DIPA" punya dua langkah berjenis "Laporan Monev I"
+    And periode "2026" punya "Batas Laporan Monev I" pada "2027-03-01"
+    When tenggat kedua langkah dibaca untuk pengajuan periode "2026"
+    Then keduanya membaca "Batas Laporan Monev I" yang sama
 
   @BR-FE-17 @BR-FE-08 @M2 @OPERATOR-02-03 @REVIEWER-03-03 @happy
   Scenario: [FE-WINDOW-05] Override yang berlaku membuka kembali evaluasi yang lewat batas
@@ -110,3 +112,27 @@ Feature: Jendela Kerja Tiap Tahap
     Then penyimpanan ditolak dengan 422
     And detail itu tidak ditawarkan di "2026 Gelombang 2"
     And di "2026 Gelombang 1" pengajuan berhasil dimulai
+
+  @BR-FE-26 @M2 @RESEARCHER-02-05 @happy
+  Scenario: [FE-WINDOW-14] Satu fase di dua periode: tiap pengajuan digerbangi tanggal periodenya
+    Given waktu sekarang "2026-03-05 09:00:00"
+    And tahap "Penelitian DIPA" ditautkan ke periode "2025" dan "2026"
+    And periode "2025" punya "Batas Submit" pada "2026-03-01"
+    And periode "2026" punya "Batas Submit" pada "2026-04-01"
+    When pengisi pengajuan periode "2025" dan pengajuan periode "2026" membuka langkah Pengajuan
+    Then langkah tertutup bagi pengajuan periode "2025"
+    And langkah terbuka bagi pengajuan periode "2026"
+
+  @BR-FE-26 @M2 @RESEARCHER-02-05 @denial
+  Scenario: [FE-WINDOW-16] Tanggal kerja yang tidak ada di kalender periode menutup langkah itu
+    Given tahap "Penelitian DIPA" ditautkan ke periode "2026" yang belum punya "Batas Submit"
+    When pengisi pengajuan periode "2026" membuka langkah Pengajuan
+    Then langkah tertutup
+    But reviewer langkah itu tetap terbuka bila periode belum punya "Batas Evaluasi"
+
+  @BR-SCH-07 @M2 @OPERATOR-09-01 @boundary
+  Scenario: [FE-WINDOW-17] Force close periode A tidak menutup pengajuan periode B pada fase yang sama
+    Given tahap "Penelitian DIPA" ditautkan ke periode "A" dan "B" yang Batas Submit-nya belum lewat
+    When Operator menutup paksa periode "A"
+    Then langkah Pengajuan tertutup bagi pengajuan periode "A"
+    And langkah Pengajuan tetap terbuka bagi pengajuan periode "B"

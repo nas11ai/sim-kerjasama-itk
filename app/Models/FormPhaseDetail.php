@@ -118,29 +118,39 @@ class FormPhaseDetail extends Model
     }
 
     /**
-     * BR-MON-01 — pintu pengajuan baru hanya Batas Submit tanpa siklus. Laporan monev (bersiklus)
-     * dan Upload Luaran (W139, `output`) lahir dari pengajuan APPROVED, tidak pernah tanpa induk.
+     * BR-MON-01 — pintu pengajuan baru hanya langkah `submit` tanpa siklus (BR-FE-07). Laporan
+     * monev (bersiklus) dan Upload Luaran (`output`) lahir dari pengajuan APPROVED.
      */
     public function opensSubmission(): bool
     {
-        return $this->submissionDate->type === DeadlineType::Submit && $this->submissionDate->cycle === null;
+        return $this->deadline_type === DeadlineType::Submit && $this->deadline_cycle === null;
+    }
+
+    /** BR-FE-25 — nama tanggal yang dibaca langkah ini di kalender periode, mis. "Batas Laporan Monev I". */
+    public function deadlineLabel(): string
+    {
+        return $this->deadline_type->label($this->deadline_cycle);
     }
 
     /**
-     * BR-FE-17 — jendela kerja satu aktor detail ini. Periodenya dibaca dari `SubmissionDate`
-     * milik detail (ADR 0014), bukan `formPhase->submissionPeriod`: `form_phases` tidak
-     * punya kolom `submission_period_id`, jadi relasi itu selalu null.
+     * BR-FE-17, BR-FE-26 — jendela kerja satu aktor langkah ini di kalender `$period` (periode
+     * pengajuan). Tanggal kerja yang belum diatur menutup; Batas Evaluasi yang belum diatur
+     * berarti tak bertenggat.
      */
-    public function isWithinDeadline(DeadlineType $type = DeadlineType::Submit): bool
+    public function isWithinDeadline(SubmissionPeriod $period, DeadlineType $type = DeadlineType::Submit): bool
     {
-        // BR-SCH-07 — force close mengalahkan tanggal per detail — sumbu yang berbeda.
-        if (SubmissionPeriodGate::isForceClosed($this)) {
+        // BR-SCH-07 — force close mengalahkan tanggal — sumbu yang berbeda.
+        if (SubmissionPeriodGate::isForceClosed($period, $this)) {
             return false;
         }
 
-        $date = $this->deadlineOf($type);
+        $date = $period->deadlineFor($this, $type);
 
-        return $date === null || now()->lte($date->datetime);
+        if ($date === null) {
+            return $type === DeadlineType::Evaluation;
+        }
+
+        return now()->lte($date->datetime);
     }
 
     /**
