@@ -21,10 +21,15 @@ use App\Notifications\MonevEvaluationSubmittedNotification;
 use App\Notifications\MonevStageOpenedNotification;
 use App\Notifications\NewRegistrationAwaitingVerification;
 use App\Notifications\NidnVerifiedNotification;
+use App\Notifications\ProposalApprovedNotification;
+use App\Notifications\ProposalRejectedNotification;
+use App\Notifications\RecheckRequestedNotification;
 use App\Notifications\ReviewerAppointedNotification;
 use App\Notifications\ReviewerAssignedNotification;
 use App\Notifications\ReviewThreadOpenedNotification;
+use App\Notifications\RevisionRequestedNotification;
 use App\Notifications\SubmissionPeriodClosedNotification;
+use App\Notifications\SubmissionReadyForDecisionNotification;
 use App\Queries\Notification\NotificationDestination;
 use Illuminate\Notifications\DatabaseNotification;
 use Illuminate\Support\Str;
@@ -227,3 +232,36 @@ it('[MON-REVIEW-10] notifikasi siklus dibuka membuka Daftar Monev bagi peneliti'
         ->and(ndDestination($operator, MonevStageOpenedNotification::class, $data))->toBe(route('monev.manage.show', $fx['parent']))
         ->and(ndDestination(User::factory()->create(), MonevStageOpenedNotification::class, $data))->toBeNull();
 });
+
+it('submission_ready_for_decision membawa Operator ke halaman kelola pengajuan', function () {
+    $operator = User::factory()->create();
+    $operator->givePermissionTo(Permission::findOrCreate('submissions.view-all', 'web'));
+    $submission = FormSubmission::factory()->create();
+
+    expect(ndDestination($operator, SubmissionReadyForDecisionNotification::class, [
+        'type' => 'submission_ready_for_decision',
+        'form_submission_id' => $submission->id,
+    ]))->toBe(route('admin.submissions.show', $submission));
+});
+
+it('recheck_requested membawa peserta ke ringkasan review', function () {
+    $submission = FormSubmission::factory()->create();
+    $reviewer = ndReviewerOf($submission);
+
+    expect(ndDestination($reviewer, RecheckRequestedNotification::class, [
+        'type' => 'recheck_requested',
+        'form_submission_id' => $submission->id,
+    ]))->toBe(route('reviewer.assignments.summary', $submission));
+});
+
+it('hasil review membawa peneliti ke halaman pengajuannya', function (string $class, string $type) {
+    $owner = User::factory()->create();
+    $submission = FormSubmission::factory()->create(['submitted_by' => $owner->id]);
+
+    expect(ndDestination($owner, $class, ['type' => $type, 'form_submission_id' => $submission->id]))
+        ->toBe(route('user.submissions.show', $submission));
+})->with([
+    'revision_requested' => [RevisionRequestedNotification::class, 'revision_requested'],
+    'proposal_approved' => [ProposalApprovedNotification::class, 'proposal_approved'],
+    'proposal_rejected' => [ProposalRejectedNotification::class, 'proposal_rejected'],
+]);

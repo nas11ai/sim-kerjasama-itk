@@ -43,6 +43,13 @@ class NotificationDestination implements ChangesNoState
         'phase_override_granted',
         'monev_evaluation_submitted',
         'proposal_submitted',
+        // ADR 0018 — keputusan review: Operator ke halaman kelola, peserta pemeriksaan ke
+        // ringkasan review, peneliti ke halaman pengajuannya — semua menurut kursinya.
+        'submission_ready_for_decision',
+        'recheck_requested',
+        'revision_requested',
+        'proposal_approved',
+        'proposal_rejected',
     ];
 
     public function handle(DatabaseNotification $notification, User $recipient): ?string
