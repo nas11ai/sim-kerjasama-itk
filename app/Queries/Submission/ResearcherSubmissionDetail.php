@@ -4,6 +4,7 @@ namespace App\Queries\Submission;
 
 use App\Actions\Concerns\ChangesNoState;
 use App\Actions\FormSubmission\SubmitFormSubmission;
+use App\Actions\Review\ApproveSubmission;
 use App\Actions\Review\RejectSubmission;
 use App\Data\Submission\SubmissionAbilitiesData;
 use App\Data\View\Submission\SubmissionAnswerData;
@@ -20,6 +21,7 @@ use App\Models\FormSubmission;
 use App\Models\ResearchMember;
 use App\Models\User;
 use App\Queries\Review\VisibleReviewerScores;
+use App\States\Submission\Approved;
 use App\States\Submission\NeedsRevision;
 use App\States\Submission\Rejected;
 use App\Support\PhaseAccessGate;
@@ -164,13 +166,20 @@ class ResearcherSubmissionDetail implements ChangesNoState
     /** @param  list<SubmissionHistoryEntryData>  $history */
     private function decision(FormSubmission $submission, array $history): ?SubmissionDecisionData
     {
-        if (!$submission->status instanceof Rejected) {
+        // BR-REV-05, BR-REV-07 — kedua keputusan diambil Operator; pemutusnya dibaca dari audit.
+        [$outcome, $audit, $reason] = match (true) {
+            $submission->status instanceof Rejected => ['rejected', RejectSubmission::AUDIT_DESCRIPTION, $submission->rejection_reason],
+            $submission->status instanceof Approved => ['approved', ApproveSubmission::AUDIT_DESCRIPTION, null],
+            default => [null, '', null],
+        };
+
+        if ($outcome === null) {
             return null;
         }
 
-        $entry = $this->firstMatching($history, RejectSubmission::AUDIT_DESCRIPTION);
+        $entry = $this->firstMatching($history, $audit);
 
-        return new SubmissionDecisionData($submission->rejection_reason, $entry?->actor, $entry?->at);
+        return new SubmissionDecisionData($outcome, $reason, $entry?->actor, $entry?->at);
     }
 
     /** @param  list<SubmissionHistoryEntryData>  $history */

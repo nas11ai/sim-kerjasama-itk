@@ -3,6 +3,7 @@
 // RESEARCHER-02-03 dan 02-12 — isi detail pengajuan bagi penontonnya. Skor, kunci anggaran,
 // dan tombol edit diputus backend; layar hanya merender jawaban ini.
 
+use App\Actions\Review\ApproveSubmission;
 use App\Actions\Review\RejectSubmission;
 use App\Models\BudgetLineItem;
 use App\Models\FieldType;
@@ -93,6 +94,7 @@ it('[REV-VIS-06] skor terbuka dan keputusan tercatat setelah REJECTED', function
     $detail = detailOf($submission->submittedBy, $submission);
 
     expect($detail['scores']['visible'])->toBeTrue()
+        ->and($detail['decision']->outcome)->toBe('rejected')
         ->and($detail['decision']->reason)->toBe('Mitra belum memiliki perjanjian kerja sama.')
         ->and($detail['decision']->decidedBy)->toBe('Siti Aminah')
         ->and($detail['decision']->decidedAt)->not->toBeNull();
@@ -108,8 +110,21 @@ it('penolakan tanpa entri audit tetap membawa alasan', function () {
         ->and($decision->decidedAt)->toBeNull();
 });
 
-it('decision null untuk status selain REJECTED', function () {
-    $submission = FormSubmission::factory()->create(['status' => Approved::class]);
+it('[REV-OUTCOME-11] persetujuan Operator tercatat sebagai keputusan, tanpa alasan', function () {
+    $operator = User::factory()->create(['name' => 'Siti Aminah']);
+    $submission = FormSubmission::factory()->create(['status' => Approved::class, 'is_submitted' => true]);
+    AuditTrail::record(ApproveSubmission::AUDIT_DESCRIPTION, $submission, $operator);
+
+    $decision = detailOf($submission->submittedBy, $submission)['decision'];
+
+    expect($decision->outcome)->toBe('approved')
+        ->and($decision->reason)->toBeNull()
+        ->and($decision->decidedBy)->toBe('Siti Aminah')
+        ->and($decision->decidedAt)->not->toBeNull();
+});
+
+it('decision null selama pengajuan belum diputuskan', function () {
+    $submission = FormSubmission::factory()->create(['status' => UnderReview::class]);
 
     expect(detailOf($submission->submittedBy, $submission)['decision'])->toBeNull();
 });

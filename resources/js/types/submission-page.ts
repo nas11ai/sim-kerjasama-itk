@@ -120,7 +120,9 @@ export interface TargetOutputChange {
     to: string | null
 }
 
+// Sumber: SubmissionDecisionData — BR-REV-05, BR-REV-07; `reason` hanya pada penolakan.
 export interface SubmissionDecision {
+    outcome: 'approved' | 'rejected'
     reason: string | null
     decidedBy: string | null
     decidedAt: string | null

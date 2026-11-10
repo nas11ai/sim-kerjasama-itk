@@ -9,11 +9,14 @@ import type { SubmissionDecision } from '@/types/submission-page'
 
 const props = defineProps<{ decision: SubmissionDecision }>()
 
-const opening = computed(() =>
-    props.decision.decidedAt
-        ? `Pengajuan ini ditolak Operator LPPM pada ${formatDate(props.decision.decidedAt)}.`
-        : 'Pengajuan ini ditolak Operator LPPM.'
-)
+const approved = computed(() => props.decision.outcome === 'approved')
+
+const opening = computed(() => {
+    const verb = approved.value ? 'disetujui' : 'ditolak'
+    return props.decision.decidedAt
+        ? `Pengajuan ini ${verb} Operator LPPM pada ${formatDate(props.decision.decidedAt)}.`
+        : `Pengajuan ini ${verb} Operator LPPM.`
+})
 
 const details = computed(() => [
     { label: 'Diputuskan oleh', value: props.decision.decidedBy ?? '—' },
@@ -22,7 +25,17 @@ const details = computed(() => [
 </script>
 
 <template>
-    <div class="flex flex-col gap-4">
+    <!-- BR-REV-05 — persetujuan selalu keputusan manual Operator (ADR 0018) -->
+    <div v-if="approved" class="flex flex-col gap-4">
+        <AppBanner tone="success">
+            {{ opening }} Persetujuan selalu merupakan keputusan manual — tidak pernah terjadi
+            otomatis dari hasil penilaian reviewer.
+        </AppBanner>
+        <SectionCard title="Keputusan">
+            <InfoGrid :items="details" />
+        </SectionCard>
+    </div>
+    <div v-else class="flex flex-col gap-4">
         <!-- BR-REV-07 — penolakan selalu keputusan manual, tidak pernah otomatis dari skor -->
         <AppBanner tone="denial">
             {{ opening }} Penolakan selalu merupakan keputusan manual — tidak pernah terjadi
