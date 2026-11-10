@@ -2,6 +2,7 @@
 
 namespace App\Actions\FormSubmission;
 
+use App\Actions\Review\StartRecheckRound;
 use App\Models\FormSubmission;
 use App\Models\User;
 use App\States\Submission\Resubmitted;
@@ -82,6 +83,9 @@ class ResubmitFormSubmission
             if ($resubmitted instanceof SubmissionStatus) {
                 $resubmitted->transitionTo(UnderReview::class);
                 $submission->refresh();
+
+                // BR-REV-16 — reviewer bercatatan terbuka memeriksa revisinya di putaran baru.
+                StartRecheckRound::run($submission);
             }
         }
     }

@@ -68,6 +68,9 @@ class AssignReviewer
 
         $this->moveToReviewWhenMinimumReached($submission);
 
+        // BR-REV-16 — reviewer baru ikut putaran penilaian (laporan monev dikecualikan di sana).
+        JoinReviewRound::run($assignment);
+
         // BR-REV-01 — reviewer diberi tahu. Beban tinggi (BR-REV-04)
         // sengaja tidak menghalangi: itu peringatan untuk Operator,
         // bukan penolakan.

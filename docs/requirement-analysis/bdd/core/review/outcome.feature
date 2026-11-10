@@ -80,3 +80,19 @@ Feature: Hasil Review
     And tidak ada reviewer ditugaskan pada "P-003"
     When sistem mengevaluasi hasil review "P-003"
     Then status "P-003" tetap SUBMITTED
+
+  @BR-REV-16 @M2 @RESEARCHER-02-05 @happy
+  Scenario: [REV-OUTCOME-16] Kirim ulang membuka putaran pemeriksaan untuk reviewer bercatatan terbuka
+    Given status "P-001" NEEDS_REVISION setelah putaran penilaian selesai
+    And hanya "Sari" yang punya ReviewSummary berstatus open pada "P-001"
+    When "Budi" mengirim ulang "P-001"
+    Then putaran pemeriksaan "P-001" dibuka dengan peserta "Sari" saja
+    And "Sari" menerima notifikasi RecheckRequested
+    And "Andi" tidak menerima notifikasi RecheckRequested
+
+  @BR-REV-10 @BR-REV-16 @M2 @OPERATOR-03-02 @boundary
+  Scenario: [REV-OUTCOME-19] Pengganti reviewer menjadi peserta belum selesai di putaran berjalan
+    Given "Sari" sudah menekan Selesai menilai pada putaran berjalan "P-001"
+    When Operator mengganti "Sari" dengan "Dewi"
+    Then "Dewi" menjadi peserta putaran berjalan "P-001" yang belum selesai
+    And "Sari" bukan lagi peserta putaran itu

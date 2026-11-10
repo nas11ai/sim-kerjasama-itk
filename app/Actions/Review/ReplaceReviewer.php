@@ -39,6 +39,9 @@ class ReplaceReviewer
             // penggantian tunduk pada aturan yang sama dengan penugasan baru.
             $fresh = AssignReviewer::run($submission, $incoming);
 
+            // BR-REV-10, BR-REV-16 — pengganti mengambil kursi putaran berjalan, belum selesai.
+            HandOverRoundSeat::run($current, $fresh);
+
             // BR-REV-15 — ulir diskusi yang masih terbuka diwarisi penggantinya. Tanpa itu ulir
             // tersebut tidak akan pernah bisa ditutup: penulis lama sudah tidak berwenang,
             // pengganti tidak merasa berhak, dan submission terkunci di NEEDS_REVISION selamanya.

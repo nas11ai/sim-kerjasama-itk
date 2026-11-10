@@ -11,6 +11,7 @@ use App\Actions\FormSubmission\StartChildSubmission;
 use App\Actions\FormSubmission\SubmitFormSubmission;
 use App\Actions\Review\AssignEvaluationForm;
 use App\Actions\Review\AssignReviewer;
+use App\Actions\Review\JoinReviewRound;
 use App\Data\Request\ResearchOutputInput;
 use App\Enums\DeadlineType;
 use App\Models\FieldType;
@@ -685,4 +686,49 @@ function sessionViewer(string $permission): User
     $user->givePermissionTo($permission);
 
     return $user;
+}
+
+/**
+ * Pengajuan utama pada fase yang (tidak) butuh review — fixture skenario `outcome.feature`.
+ */
+function outcomeSubmission(string $state = UnderReview::class, bool $needsReview = true): FormSubmission
+{
+    $detail = FormPhaseDetail::factory()->create(['needs_review' => $needsReview]);
+
+    return FormSubmission::factory()->create([
+        'submitted_by' => User::factory()->create()->id,
+        'scheme_id' => null,
+        'status' => $state,
+        'form_phase_detail_id' => $detail->id,
+    ]);
+}
+
+/**
+ * Satu kursi reviewer aktif. BR-REV-16 — ikut putaran review lewat jalur produksi
+ * (`JoinReviewRound`, dipanggil `AssignReviewer`), jadi fixture tidak menyimpang darinya.
+ */
+function reviewerOn(FormSubmission $submission, string $evaluationStatus): SubmissionReviewer
+{
+    $reviewer = Reviewer::factory()->create(['user_id' => User::factory()->create()->id]);
+
+    $seat = SubmissionReviewer::create([
+        'form_submission_id' => $submission->id,
+        'reviewer_id' => $reviewer->id,
+        'evaluation_status' => $evaluationStatus,
+        'status' => 'active',
+    ]);
+
+    JoinReviewRound::run($seat);
+
+    return $seat;
+}
+
+function openSummaryOn(FormSubmission $submission, SubmissionReviewer $assignment, string $status = 'open'): ReviewSummary
+{
+    return ReviewSummary::create([
+        'form_submission_id' => $submission->id,
+        'reviewer_id' => $assignment->reviewer_id,
+        'status' => $status,
+        'summary_notes' => 'Perkuat metodologi.',
+    ]);
 }

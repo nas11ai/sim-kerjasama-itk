@@ -12,14 +12,10 @@
 // `not_required` dihitung selesai (register #14): dibaca harfiah sebagai
 // "completed" saja, reviewer yang tidak diwajibkan menilai akan mengunci
 // submission selamanya.
+//
+// Fixture `outcomeSubmission`, `reviewerOn`, `openSummaryOn` ada di tests/Support/fixtures.php.
 
 use App\Actions\Review\EvaluateSubmissionOutcome;
-use App\Models\FormPhaseDetail;
-use App\Models\FormSubmission;
-use App\Models\Reviewer;
-use App\Models\ReviewSummary;
-use App\Models\SubmissionReviewer;
-use App\Models\User;
 use App\States\Submission\Approved;
 use App\States\Submission\Draft;
 use App\States\Submission\NeedsRevision;
@@ -27,40 +23,6 @@ use App\States\Submission\Rejected;
 use App\States\Submission\Submitted;
 use App\States\Submission\UnderReview;
 use App\States\Submission\Withdrawn;
-
-function outcomeSubmission(string $state = UnderReview::class, bool $needsReview = true): FormSubmission
-{
-    $detail = FormPhaseDetail::factory()->create(['needs_review' => $needsReview]);
-
-    return FormSubmission::factory()->create([
-        'submitted_by' => User::factory()->create()->id,
-        'scheme_id' => null,
-        'status' => $state,
-        'form_phase_detail_id' => $detail->id,
-    ]);
-}
-
-function reviewerOn(FormSubmission $submission, string $evaluationStatus): SubmissionReviewer
-{
-    $reviewer = Reviewer::factory()->create(['user_id' => User::factory()->create()->id]);
-
-    return SubmissionReviewer::create([
-        'form_submission_id' => $submission->id,
-        'reviewer_id' => $reviewer->id,
-        'evaluation_status' => $evaluationStatus,
-        'status' => 'active',
-    ]);
-}
-
-function openSummaryOn(FormSubmission $submission, SubmissionReviewer $assignment, string $status = 'open'): void
-{
-    ReviewSummary::create([
-        'form_submission_id' => $submission->id,
-        'reviewer_id' => $assignment->reviewer_id,
-        'status' => $status,
-        'summary_notes' => 'Perkuat metodologi.',
-    ]);
-}
 
 it('[REV-OUTCOME-01] semua selesai tanpa summary terbuka menjadi APPROVED', function () {
     $submission = outcomeSubmission();

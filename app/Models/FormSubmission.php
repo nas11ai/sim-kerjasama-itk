@@ -43,6 +43,7 @@ use Spatie\ModelStates\HasStates;
  * @property-read Collection<int, FormFieldResponse> $formFieldResponses
  * @property-read Collection<int, SubmissionReviewer> $submissionReviewers
  * @property-read Collection<int, ReviewSummary> $reviewSummaries
+ * @property-read Collection<int, ReviewRound> $reviewRounds
  * @property-read Collection<int, BudgetLineItem> $budgetLineItems
  * @property-read Collection<int, ResearchMember> $researchMembers
  * @property-read Collection<int, SubmissionTargetOutput> $targetOutputs
@@ -153,6 +154,28 @@ class FormSubmission extends Model
     public function reviewSummaries(): HasMany
     {
         return $this->hasMany(ReviewSummary::class);
+    }
+
+    /**
+     * BR-REV-16 — putaran review pengajuan utama, lama dan baru. Laporan monev tidak punya.
+     *
+     * @return HasMany<ReviewRound, $this>
+     */
+    public function reviewRounds(): HasMany
+    {
+        return $this->hasMany(ReviewRound::class);
+    }
+
+    /** BR-REV-16 — putaran yang belum disimpulkan; paling banyak satu. */
+    public function runningReviewRound(): ?ReviewRound
+    {
+        return $this->reviewRounds()->whereNull('completed_at')->orderByDesc('number')->first();
+    }
+
+    /** BR-REV-16 — putaran bernomor terbesar, berjalan atau sudah selesai. */
+    public function latestReviewRound(): ?ReviewRound
+    {
+        return $this->reviewRounds()->orderByDesc('number')->first();
     }
 
     /** @return HasMany<BudgetLineItem, $this> */
