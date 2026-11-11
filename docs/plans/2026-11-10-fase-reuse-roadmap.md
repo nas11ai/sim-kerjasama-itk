@@ -6,7 +6,8 @@
 Spec mencakup delapan subsistem yang masing-masing bisa dirilis sendiri. Satu rencana untuk
 semuanya akan menjadi transkrip kode; jadi spec dipecah menjadi irisan **R1–R8**, satu rencana
 per irisan, ditulis tepat sebelum irisan itu dikerjakan (supaya rencana R5 membaca kode hasil R3,
-bukan kode hari ini). Rencana rinci yang sudah ada: **R1** (`2026-11-10-r1-jadwal-periode.md`).
+bukan kode hari ini). Rencana rinci yang sudah ada: **R1** (`2026-11-10-r1-jadwal-periode.md`, selesai),
+**R2** (`2026-11-11-r2-pustaka-fase.md`; R2-a = Task 1–2, R2-b = Task 3–4).
 
 ## Keputusan bentuk yang mengikat semua irisan (spec §8, diserahkan ke builder)
 
