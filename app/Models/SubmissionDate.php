@@ -88,7 +88,7 @@ class SubmissionDate extends Model
     /**
      * Langkah yang membaca tanggal ini lewat `SubmissionPeriod::deadlineFor` — fasenya ditautkan
      * periode itu atau dipakai pengajuannya (angkatan berjalan tetap terjaga walau fasenya dilepas);
-     * submit/output pada jenis + siklus, evaluasi/revisi pada siklus. Berkorelasi ke `submission_dates`.
+     * submit/output pada jenis + siklus, evaluasi/revisi pada siklus langkah direview. Berkorelasi ke `submission_dates`.
      *
      * @return Builder<FormPhaseDetail>
      */
@@ -104,8 +104,12 @@ class SubmissionDate extends Model
                     ->whereColumn('used_steps.form_phase_id', 'form_phase_details.form_phase_id')
                     ->whereColumn('form_submissions.submission_period_id', 'submission_dates.submission_period_id')))
             ->whereRaw('form_phase_details.deadline_cycle IS NOT DISTINCT FROM submission_dates.cycle')
+            // BR-FE-26 — Batas Evaluasi hanya dibaca langkah yang direview, dan NEEDS_REVISION hanya
+            // lahir dari review: langkah tanpa review tidak mengunci keduanya (sama dengan PeriodScheduleGaps).
             ->where(fn (Builder $q) => $q->whereColumn('form_phase_details.deadline_type', 'submission_dates.type')
-                ->orWhereIn('submission_dates.type', [DeadlineType::Evaluation->value, DeadlineType::Revision->value]));
+                ->orWhere(fn (Builder $reviewed) => $reviewed
+                    ->where('form_phase_details.needs_review', true)
+                    ->whereIn('submission_dates.type', [DeadlineType::Evaluation->value, DeadlineType::Revision->value])));
     }
 
     public function isPassed(): bool

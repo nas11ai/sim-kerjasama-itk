@@ -22,6 +22,7 @@ use App\Support\Audit\AuditTrail;
 use App\Support\Reporting\ExportType;
 use App\Support\Reporting\SubmissionVisibility;
 use Illuminate\Support\Facades\Context;
+use Illuminate\Support\Facades\DB;
 use Spatie\Permission\Models\Permission;
 
 function definitionsOperator(): User
@@ -133,6 +134,23 @@ it('baris Rekap Monev per siklus dengan statusnya', function () {
     ])
         // BR-RPT-02 — ambang dihitung dari baris berkas (siklus), bukan jumlah induk.
         ->and($definition->rowCount($operator, new ExportFilters))->toBe(2);
+});
+
+it('membaca kalender periode semua induk Rekap Monev sekali, bukan per induk', function () {
+    monevFixture();
+    monevFixture();
+    monevFixture();
+    $operator = definitionsOperator();
+
+    DB::enableQueryLog();
+    $rows = ExportType::definition(ExportType::MONEV)->rows($operator, new ExportFilters);
+    $reads = fn (string $table): int => collect(DB::getQueryLog())
+        ->filter(fn (array $query): bool => str_contains($query['query'], "from \"{$table}\""))
+        ->count();
+
+    expect($rows)->toHaveCount(6)
+        ->and($reads('submission_periods'))->toBe(1)
+        ->and($reads('submission_dates'))->toBe(1);
 });
 
 it('menghitung siklus ekspor rekap dari langkah, bukan tanggal', function () {

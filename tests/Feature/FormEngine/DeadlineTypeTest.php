@@ -6,6 +6,7 @@ use App\Models\FormPhase;
 use App\Models\SubmissionDate;
 use App\Models\SubmissionPeriod;
 use Illuminate\Database\QueryException;
+use Illuminate\Support\Facades\DB;
 
 // BR-FE-25 — jenis tenggat tetap × siklus menggantikan label teks bebas (W72, K8a).
 
@@ -109,3 +110,57 @@ it('keeps an evaluation or revision date a linked step reads', function (Deadlin
 
     expect(SubmissionDate::query()->whereKey($date->id)->exists())->toBeTrue();
 })->with([DeadlineType::Evaluation, DeadlineType::Revision]);
+
+// BR-FE-26 (ADR 0019) — hanya langkah yang direview membaca Batas Evaluasi; NEEDS_REVISION hanya
+// lahir dari review, jadi Batas Revisi pun begitu. Langkah tanpa review tidak mengunci keduanya.
+it('drops an evaluation or revision date no reviewed step reads', function (DeadlineType $type) {
+    $phase = FormPhase::create(['title' => 'Fase Tanpa Review', 'is_active' => true]);
+    scheduleStep($phase, needsReview: false);
+    $period = schedulePeriod($phase, 'Periode Tanpa Review');
+    $date = calendarDate($period, $type, now()->addMonth());
+
+    expect(SubmissionDate::query()->whereKey($date->id)->unneededByLinkedPhases()->exists())->toBeTrue()
+        ->and(SubmissionDate::query()->whereKey($date->id)
+            ->addSelect(['needing_step_count' => SubmissionDate::needingStepCount()])->first()?->needing_step_count)->toBe(0);
+
+    ExtendSubmissionDates::run($period, []);
+
+    expect(SubmissionDate::query()->whereKey($date->id)->exists())->toBeFalse();
+})->with([DeadlineType::Evaluation, DeadlineType::Revision]);
+
+// BR-FE-25 — basis data menegakkan jenis dan siklus sendiri, bukan hanya validasi aplikasi.
+it('rejects a calendar date outside the fixed types and cycles', function (string $type, ?int $cycle) {
+    expect(fn () => DB::table('submission_dates')->insert([
+        'submission_period_id' => SubmissionPeriod::factory()->create()->id,
+        'type' => $type,
+        'cycle' => $cycle,
+        'datetime' => now()->addWeek(),
+    ]))->toThrow(QueryException::class);
+})->with([
+    'jenis asing' => ['deadline', null],
+    'siklus di atas MAX_CYCLE' => ['submit', DeadlineType::MAX_CYCLE + 1],
+    'Batas Akhir bersiklus' => ['output', 1],
+]);
+
+it('rejects a phase step outside the step kinds and cycles', function (string $type, ?int $cycle) {
+    $step = scheduleStep(FormPhase::create(['title' => 'Fase Cek', 'is_active' => true]));
+
+    expect(fn () => DB::table('form_phase_details')->where('id', $step->id)
+        ->update(['deadline_type' => $type, 'deadline_cycle' => $cycle]))->toThrow(QueryException::class);
+})->with([
+    // K5 — langkah hanya menyebut submit atau output.
+    'jenis evaluasi' => ['evaluation', null],
+    'siklus nol' => ['submit', 0],
+    'siklus di atas MAX_CYCLE' => ['submit', DeadlineType::MAX_CYCLE + 1],
+    'Upload Luaran bersiklus' => ['output', 1],
+]);
+
+it('accepts the widest type and cycle the application allows', function () {
+    $step = scheduleStep(FormPhase::create(['title' => 'Fase Batas', 'is_active' => true]), cycle: DeadlineType::MAX_CYCLE);
+    $period = SubmissionPeriod::factory()->create();
+    calendarDate($period, DeadlineType::Revision, now()->addWeek(), DeadlineType::MAX_CYCLE);
+    calendarDate($period, DeadlineType::Output, now()->addWeek());
+
+    expect($step->fresh()->deadline_cycle)->toBe(DeadlineType::MAX_CYCLE)
+        ->and($period->submissionDates()->count())->toBe(2);
+});

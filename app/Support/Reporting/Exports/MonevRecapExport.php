@@ -48,7 +48,13 @@ final class MonevRecapExport implements ExportDefinition
     {
         $rows = [];
 
-        foreach ($this->parents($user, $filters)->with('form:id,title')->orderBy('form_submissions.id')->get() as $parent) {
+        // MonevCycles membaca langkah dan kalender periode tiap induk; dimuat sekali untuk semua induk.
+        $parents = $this->parents($user, $filters)
+            ->with(['form:id,title', 'formPhaseDetail', 'submissionPeriod.submissionDates'])
+            ->orderBy('form_submissions.id')
+            ->get();
+
+        foreach ($parents as $parent) {
             foreach (MonevCycles::run($parent) as $cycle) {
                 $rows[] = self::row($parent, $cycle);
             }
