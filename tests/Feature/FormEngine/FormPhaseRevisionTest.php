@@ -229,6 +229,30 @@ it('rejects changing the phase type of a detail used by a submission (BR-FE-20)'
         ->and(FormPhaseDetail::query()->whereKey($this->dropped->id)->exists())->toBeTrue();
 });
 
+// K-1 (pemilik 2026-11-11) — jenis langkah menentukan tanggal mana yang dibaca pengajuannya;
+// mengubahnya diam-diam memindahkan tenggat semua pengajuan di langkah itu.
+it('rejects changing the step kind of a detail used by a submission (BR-FE-20, K-1)', function () {
+    FormSubmission::factory()->create(['form_phase_detail_id' => $this->kept->id]);
+
+    reviseFormPhase(revisionPayload([
+        array_merge(revisionRow($this->kept), ['deadline_type' => DeadlineType::Output->value, 'needs_review' => false]),
+        revisionRow($this->dropped),
+    ]))->assertSessionHasErrors('phase_details.0.deadline_type');
+
+    expect($this->kept->fresh()->deadline_type)->toBe(DeadlineType::Submit);
+});
+
+it('rejects changing the cycle of a detail used by a submission (BR-FE-20, K-1)', function () {
+    FormSubmission::factory()->create(['form_phase_detail_id' => $this->kept->id]);
+
+    reviseFormPhase(revisionPayload([
+        array_merge(revisionRow($this->kept), ['deadline_cycle' => 2]),
+        revisionRow($this->dropped),
+    ]))->assertSessionHasErrors('phase_details.0.deadline_cycle');
+
+    expect($this->kept->fresh()->deadline_cycle)->toBeNull();
+});
+
 it('saves a new order and needs_review on a detail used by a submission (BR-FE-20)', function () {
     FormSubmission::factory()->create(['form_phase_detail_id' => $this->kept->id]);
 

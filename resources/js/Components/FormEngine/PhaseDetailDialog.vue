@@ -31,11 +31,12 @@ const fill = (isOpen: boolean) => {
 }
 watch(open, fill, { immediate: true })
 
-// BR-FE-20 — detail berpengajuan terkunci form dan tipe tahapnya; W97 — review terkunci form evaluasi.
+// BR-FE-20 + K-1 — detail berpengajuan terkunci form, tipe tahap, dan jenis langkahnya;
+// W97 — review terkunci form evaluasi.
 const used = computed(() => draft.value.submissionCount > 0)
 const usedHint = computed(() =>
     used.value
-        ? 'Detail ini sudah dipakai pengajuan; form dan tipe tahapnya tidak dapat diubah.'
+        ? 'Detail ini sudah dipakai pengajuan; form, tipe tahap, dan jenis langkahnya tidak dapat diubah.'
         : undefined
 )
 // W97 — hitungan hidup dari props server: form evaluasi bisa dibuat di layar ini tanpa remount.
@@ -106,13 +107,14 @@ const save = () => {
             id="detail-kind"
             label="Jenis langkah"
             required
-            hint="Tanggalnya dibaca dari kalender periode pengajuan."
+            :hint="usedHint ?? 'Tanggalnya dibaca dari kalender periode pengajuan.'"
         >
             <template #default="{ describedBy }">
                 <OptionSelect
                     id="detail-kind"
                     v-model="stepKind"
                     :options="kindOptions"
+                    :disabled="used"
                     :described-by="describedBy"
                 />
             </template>

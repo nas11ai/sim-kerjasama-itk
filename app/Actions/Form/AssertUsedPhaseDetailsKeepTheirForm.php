@@ -11,9 +11,9 @@ use Illuminate\Validation\ValidationException;
 use Lorisleiva\Actions\Concerns\AsAction;
 
 /**
- * BR-FE-20 (semangat BR-FE-23) — detail yang dipakai pengajuan tetap pada form dan tipe
- * tahapnya: mengubahnya diam-diam memindahkan pengajuan itu. Urutan, needs_review, dan
- * tenggat tetap boleh. Hanya membaca dan menolak, **tidak menulis audit (BR-RPT-09).**
+ * BR-FE-20 (semangat BR-FE-23), ADR 0019 — detail berpengajuan tetap pada form, tipe tahap,
+ * dan jenis langkahnya (tanggal yang dibaca pengajuan); mengubahnya memindahkan pengajuan itu.
+ * Urutan dan needs_review boleh. Hanya menolak, **tanpa audit (BR-RPT-09).**
  *
  * @method static void run(Collection<int, FormPhaseDetail> $existing, list<FormPhaseDetailInput> $details)
  */
@@ -46,12 +46,14 @@ class AssertUsedPhaseDetailsKeepTheirForm implements ChangesNoState
             $errors += array_filter([
                 "phase_details.{$index}.form_access_control_id" => $current->form_access_control_id !== $detail->formAccessControlId,
                 "phase_details.{$index}.phase_type_id" => $current->phase_type_id !== $detail->phaseTypeId,
+                "phase_details.{$index}.deadline_type" => $current->deadline_type !== $detail->deadlineType,
+                "phase_details.{$index}.deadline_cycle" => $current->deadline_cycle !== $detail->deadlineCycle,
             ]);
         }
 
         if ($errors !== []) {
             throw ValidationException::withMessages(array_map(
-                fn (): string => 'Detail ini sudah dipakai pengajuan; form dan tipe tahapnya tidak dapat diubah.',
+                fn (): string => 'Detail ini sudah dipakai pengajuan; form, tipe tahap, dan jenis langkahnya tidak dapat diubah.',
                 $errors,
             ));
         }
