@@ -46,4 +46,17 @@ enum DeadlineType: string
             self::Output => 'Batas Akhir',
         };
     }
+
+    /**
+     * Label jenis langkah fase (ADR 0019) — pilihan editor tahap: "Pengajuan", "Laporan Monev n",
+     * "Upload Luaran". Hanya `submit` dan `output` yang menjadi jenis langkah.
+     */
+    public function stepLabel(?int $cycle = null): string
+    {
+        return match (true) {
+            $this === self::Output => 'Upload Luaran',
+            $cycle === null => 'Pengajuan',
+            default => 'Laporan '.self::cycleName($cycle),
+        };
+    }
 }

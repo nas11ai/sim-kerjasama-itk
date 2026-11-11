@@ -17,7 +17,7 @@ use Lorisleiva\Actions\Concerns\AsAction;
 /**
  * BR-FE-20 — merevisi tahap formulir dengan menyinkronkan detailnya per id. Versi lama
  * menghapus semua detail lewat query massal lalu membuat ulang: form evaluasi ikut
- * ter-cascade, pengajuan kehilangan tahapnya, dan `submission_date_id` hilang.
+ * ter-cascade dan pengajuan kehilangan tahapnya.
  *
  * @method static void run(FormPhase $phase, FormPhaseInput $input, User $actor)
  */
@@ -35,9 +35,7 @@ class ReviseFormPhase
         $this->assertOwnedBy($existing, $input->details);
         AssertUsedPhaseDetailsKeepTheirForm::run($existing, $input->details);
         AssertEvaluatedDetailsStayReviewed::run($existing, $input->details);
-        AssertPhaseDeadlines::run($phase, $input->details, $existing->mapWithKeys(
-            fn (FormPhaseDetail $detail): array => [$detail->id => $detail],
-        )->all());
+        AssertPhaseSteps::run($input->details);
 
         DB::transaction(function () use ($phase, $input, $actor, $existing): void {
             $old = $this->snapshot($phase, $existing->modelKeys());
@@ -122,24 +120,20 @@ class ReviseFormPhase
                 'phase_type_id' => $detail->phaseTypeId,
                 'order' => $orders[$index],
                 'needs_review' => $detail->needsReview,
+                // BR-FE-07 + BR-FE-26 (ADR 0019) — jenis + siklus langkah; tanggalnya milik periode.
+                ...$detail->stepKind(),
             ];
 
             $current = $detail->id === null ? null : $existing->get($detail->id);
 
             if ($current !== null) {
-                // BR-FE-07/26 — tenggat boleh dipindah, tak boleh dikosongkan: null/absen
-                // mempertahankan nilai yang ada.
-                $current->update($attributes + array_filter(
-                    $detail->deadlineIds(),
-                    fn (?int $id): bool => $id !== null,
-                ));
+                $current->update($attributes);
                 $ids[] = $current->id;
 
                 continue;
             }
 
-            // BR-FE-07 — detail baru membawa tenggatnya sendiri (wajib di FormPhaseRequest).
-            $ids[] = $phase->formPhaseDetails()->create($attributes + $detail->deadlineIds())->id;
+            $ids[] = $phase->formPhaseDetails()->create($attributes)->id;
         }
 
         return $ids;

@@ -15,6 +15,7 @@ use App\Actions\Form\SetFormActive;
 use App\Actions\Form\SetFormPhaseActive;
 use App\Actions\FormSubmission\StartSubmission;
 use App\Actions\Period\DeleteSubmissionPeriod;
+use App\Actions\Period\ExtendSubmissionDates;
 use App\Enums\DeadlineType;
 use App\Models\Form;
 use App\Models\FormPhase;
@@ -23,6 +24,7 @@ use App\Models\FormSubmission;
 use App\Models\Reviewer;
 use App\Models\ReviewerFormAssignment;
 use App\Models\ReviewEvaluationForm;
+use App\Models\SubmissionDate;
 use App\Models\SubmissionPeriod;
 use App\Models\SubmissionReviewer;
 use App\Models\User;
@@ -212,19 +214,17 @@ it('penghapusan periode yang ditolak tidak meninggalkan jejak audit — BR-RPT-0
         ->exists())->toBeFalse();
 });
 
-it('[FE-DELETE-11] SubmissionDate yang jadi deadline sebuah detail tidak ikut terhapus', function () {
-    $period = SubmissionPeriod::factory()->create();
-    $tanggal = $period->submissionDates()->create([
-        'type' => DeadlineType::Submit,
-        'datetime' => now()->addMonth(),
-    ]);
-    $detail = FormPhaseDetail::factory()->create(['submission_date_id' => $tanggal->id]);
+it('[FE-DELETE-11] tanggal periode yang dibaca langkah fase tertaut tidak ikut terhapus', function () {
+    $phase = FormPhase::create(['title' => 'Proposal Awal', 'is_active' => true]);
+    scheduleStep($phase, needsReview: false);
+    $period = schedulePeriod($phase, 'Gelombang Uji');
+    $tanggal = calendarDate($period, DeadlineType::Submit, now()->addMonth());
 
-    expect(fn () => DeleteSubmissionPeriod::run($period, adminPenghapus()))
-        ->toThrow(ValidationException::class)
-        // BR-FE-07 mewajibkan tiap detail punya deadline; menghapus tanggalnya
-        // membuat aturan itu berhenti terpenuhi di tempat yang jauh dari sini.
-        ->and($detail->fresh()->submission_date_id)->toBe($tanggal->id);
+    // BR-FE-26 (ADR 0019) — langkah membaca Batas Submit dari kalender periode ini; menghapusnya
+    // menutup langkah itu jauh dari tempat Operator menyunting periode.
+    ExtendSubmissionDates::run($period, []);
+
+    expect(SubmissionDate::query()->whereKey($tanggal->id)->exists())->toBeTrue();
 });
 
 it('[FE-DELETE-12] periode tanpa pengajuan bisa dihapus', function () {

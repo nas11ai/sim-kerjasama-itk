@@ -33,9 +33,7 @@ class SubmissionPeriod extends Model
     use HasFactory;
 
     /**
-     * BR-FE-21 — perluasan BR-FE-19 ke periode; SubmissionDate miliknya ikut
-     * terlindungi: BR-FE-07 mewajibkan setiap FormPhaseDetail punya deadline,
-     * jadi menghapus tanggalnya membuat aturan Form Engine tak terpenuhi.
+     * BR-FE-21 — perluasan BR-FE-19 ke periode: periode yang dipakai pengajuan tidak dihapus.
      */
     protected static function booted(): void
     {

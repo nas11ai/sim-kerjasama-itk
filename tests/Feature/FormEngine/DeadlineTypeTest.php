@@ -2,10 +2,9 @@
 
 use App\Actions\Period\ExtendSubmissionDates;
 use App\Enums\DeadlineType;
-use App\Models\FormPhaseDetail;
+use App\Models\FormPhase;
 use App\Models\SubmissionDate;
 use App\Models\SubmissionPeriod;
-use App\Queries\Period\SubmissionPeriodReferences;
 use Illuminate\Database\QueryException;
 
 // BR-FE-25 — jenis tenggat tetap × siklus menggantikan label teks bebas (W72, K8a).
@@ -94,22 +93,19 @@ it('scopes dates by type and cycle', function () {
         ->and(SubmissionDate::query()->ofType(DeadlineType::Submit, 1)->count())->toBe(1);
 });
 
-// BR-FE-21 + BR-FE-26 — tanggal yang hanya menjadi Batas Evaluasi atau Batas Revisi sebuah
-// detail tetap menggerbangi detail itu, jadi tetap terlindung seperti Batas Submit.
-it('counts a date used only as an evaluation or revision deadline as a phase reference', function (string $column) {
-    $period = SubmissionPeriod::factory()->create();
-    $date = SubmissionDate::create([
-        'submission_period_id' => $period->id,
-        'type' => $column === 'evaluation_date_id' ? DeadlineType::Evaluation : DeadlineType::Revision,
-        'datetime' => now()->addMonth(),
-    ]);
-    FormPhaseDetail::factory()->create([$column => $date->id]);
+// BR-FE-21 + BR-FE-26 (ADR 0019) — Batas Evaluasi dan Batas Revisi siklus langkah fase tertaut
+// tetap menggerbangi langkah itu, jadi terlindung seperti Batas Submit saat periode direvisi.
+it('keeps an evaluation or revision date a linked step reads', function (DeadlineType $type) {
+    $phase = FormPhase::create(['title' => 'Fase Lindung', 'is_active' => true]);
+    scheduleStep($phase, needsReview: true);
+    $period = schedulePeriod($phase, 'Periode Lindung');
+    $date = calendarDate($period, $type, now()->addMonth());
 
-    expect(SubmissionPeriodReferences::run($period)['detail tahap yang memakai tanggalnya'])->toBe(1)
-        ->and(SubmissionDate::query()->whereKey($date->id)->withoutPhaseDetail()->exists())->toBeFalse()
-        ->and(SubmissionDate::query()->find($date->id)?->phaseDetailCount())->toBe(1);
+    expect(SubmissionDate::query()->whereKey($date->id)->unneededByLinkedPhases()->exists())->toBeFalse()
+        ->and(SubmissionDate::query()->whereKey($date->id)
+            ->addSelect(['needing_step_count' => SubmissionDate::needingStepCount()])->first()?->needing_step_count)->toBe(1);
 
     ExtendSubmissionDates::run($period, []);
 
     expect(SubmissionDate::query()->whereKey($date->id)->exists())->toBeTrue();
-})->with(['evaluation_date_id', 'revision_date_id']);
+})->with([DeadlineType::Evaluation, DeadlineType::Revision]);

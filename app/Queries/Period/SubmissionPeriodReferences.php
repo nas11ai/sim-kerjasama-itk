@@ -3,9 +3,7 @@
 namespace App\Queries\Period;
 
 use App\Actions\Concerns\ChangesNoState;
-use App\Models\FormPhaseDetail;
 use App\Models\FormSubmission;
-use App\Models\SubmissionDate;
 use App\Models\SubmissionPeriod;
 use Lorisleiva\Actions\Concerns\AsAction;
 
@@ -20,9 +18,8 @@ class SubmissionPeriodReferences implements ChangesNoState
     use AsAction;
 
     /**
-     * Penghalang kedua halus: BR-FE-07 mewajibkan tiap FormPhaseDetail
-     * punya `submission_date_id`; menghapus tanggal periode ini mematahkan
-     * aturan yang diandalkan seluruh Form Engine, jauh dari tempat hapusnya.
+     * Tanggal periode hanya dibaca langkah lewat kalender periode itu sendiri (ADR 0019), jadi
+     * tidak ada rujukan tanggal dari luar periode yang menghalangi.
      *
      * @return array<string, int>
      */
@@ -31,12 +28,6 @@ class SubmissionPeriodReferences implements ChangesNoState
         return [
             'pengajuan' => FormSubmission::query()
                 ->where('submission_period_id', $period->id)
-                ->count(),
-            // BR-FE-26 — Batas Evaluasi dan Batas Revisi detail ikut menghalangi.
-            'detail tahap yang memakai tanggalnya' => FormPhaseDetail::query()
-                ->deadlinedBy(SubmissionDate::query()
-                    ->where('submission_period_id', $period->id)
-                    ->select('id'))
                 ->count(),
         ];
     }

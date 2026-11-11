@@ -10,15 +10,15 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
  * Rujukan tanggal lama di langkah fase (`submission_date_id`, `evaluation_date_id`,
- * `revision_date_id`) selama expand R1 (ADR 0019). Tulis-ganda dicabut di Task 6; trait ini
- * dihapus utuh di Task 8 bersama ketiga kolomnya.
+ * `revision_date_id`) selama expand R1 (ADR 0019). Penulis aplikasi tidak lagi mengisinya; hanya
+ * fixture lama yang masih menulis kolom ini. Trait ini dihapus utuh di Task 8 bersama ketiga kolomnya.
  *
  * @mixin FormPhaseDetail
  */
 trait HasStepDateReferences
 {
     /**
-     * BR-FE-07 — penulis yang masih memilih `submission_date_id` ikut mengisi jenis + siklus
+     * BR-FE-07 — fixture yang masih memilih `submission_date_id` ikut mengisi jenis + siklus
      * langkah dari tanggal itu.
      */
     protected static function bootHasStepDateReferences(): void

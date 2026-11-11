@@ -117,8 +117,7 @@ class ExtendSubmissionDates
     }
 
     /**
-     * Menggeser satu tanggal di tempat. Hapus-lalu-buat-ulang gagal di periode terpakai: foreign
-     * key `form_phase_details` menunjuknya, dan bila lolos, tiap detail kehilangan tanggalnya.
+     * Menggeser satu tanggal di tempat, supaya id-nya — dan penugasan yang menyalinnya — tetap.
      *
      * @return bool apakah pemilik draft perlu diberi tahu (BR-SCH-08)
      */
@@ -136,14 +135,19 @@ class ExtendSubmissionDates
     }
 
     /**
-     * K8e — penugasan menyimpan salinan Batas Evaluasi (`due_date`, EvaluationDueDate). Salinan
-     * yang masih sama dengan tanggal lama ikut bergeser; tenggat yang disetel tangan dibiarkan.
+     * K8e — salinan Batas Evaluasi di penugasan (`due_date`, EvaluationDueDate) yang masih sama ikut
+     * bergeser; yang disetel tangan dibiarkan. ADR 0019 — hanya pengajuan periode ini, langkah
+     * bersiklus sama: fase yang sama bisa dipakai periode lain dengan Batas Evaluasi-nya sendiri.
      */
     private function followEvaluation(SubmissionDate $date, Carbon $to): void
     {
         ReviewerFormAssignment::query()
             ->where('due_date', $date->datetime)
-            ->whereHas('reviewEvaluationForm.formPhaseDetail', fn (Builder $q) => $q->where('evaluation_date_id', $date->id))
+            ->whereHas('submissionReviewer.formSubmission', fn (Builder $q) => $q
+                ->where('submission_period_id', $date->submission_period_id))
+            ->whereHas('reviewEvaluationForm.formPhaseDetail', fn (Builder $q) => $date->cycle === null
+                ? $q->whereNull('deadline_cycle')
+                : $q->where('deadline_cycle', $date->cycle))
             ->update(['due_date' => $to]);
     }
 
@@ -158,11 +162,11 @@ class ExtendSubmissionDates
     /** @param  list<int>  $keptIds */
     private function deleteUnlisted(SubmissionPeriod $period, array $keptIds): void
     {
-        // Tanggal yang tidak lagi disebut dihapus — kecuali masih ditunjuk sebuah
-        // FormPhaseDetail lewat kolom tenggat mana pun (BR-FE-26): ia masih menggerbangi fase.
+        // Tanggal yang tidak lagi disebut dihapus — kecuali masih dibutuhkan langkah fase yang
+        // ditautkan periode ini (BR-FE-26, ADR 0019): ia masih menggerbangi langkah itu.
         $period->submissionDates()
             ->whereNotIn('id', $keptIds)
-            ->withoutPhaseDetail()
+            ->unneededByLinkedPhases()
             ->delete();
     }
 }

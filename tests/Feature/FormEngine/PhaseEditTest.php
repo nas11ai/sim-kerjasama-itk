@@ -3,7 +3,6 @@
 // ADMIN-08-09 — layar sunting tahap: semua detail tahap (W92), pilihan akses/tipe/tenggat
 // (W102), penjaga needs_review (W97) dan penjaga buang detail ber-penugasan (BR-FE-22).
 
-use App\Enums\DeadlineType;
 use App\Models\Form;
 use App\Models\FormPhase;
 use App\Models\FormPhaseDetail;
@@ -11,9 +10,6 @@ use App\Models\FormSubmission;
 use App\Models\Reviewer;
 use App\Models\ReviewerFormAssignment;
 use App\Models\ReviewEvaluationForm;
-use App\Models\SubmissionDate;
-use App\Models\SubmissionPeriod;
-use App\Models\SubmissionPeriodPhase;
 use App\Models\SubmissionReviewer;
 use App\Models\User;
 use Database\Seeders\PermissionSeeder;
@@ -44,15 +40,10 @@ function phaseEditDetail(Form $form, ?FormPhase $phase = null, array $attributes
     return $detail->fresh() ?? $detail;
 }
 
-/** Detail direview: Batas Evaluasi di periode Batas Submit-nya, plus satu form evaluasi aktif. */
+/** Detail direview dengan satu form evaluasi aktif. */
 function phaseEditReviewedDetail(Form $form, ?FormPhase $phase = null): FormPhaseDetail
 {
     $detail = phaseEditDetail($form, $phase, ['needs_review' => true]);
-    $detail->update(['evaluation_date_id' => SubmissionDate::create([
-        'type' => DeadlineType::Evaluation,
-        'datetime' => now()->addMonth(),
-        'submission_period_id' => $detail->submissionDate->submission_period_id,
-    ])->id]);
     ReviewEvaluationForm::create([
         'title' => 'Lembar Substansi',
         'form_phase_detail_id' => $detail->id,
@@ -73,9 +64,8 @@ function phaseEditRow(FormPhaseDetail $detail, array $overrides = []): array
         'phase_type_id' => $detail->phase_type_id,
         'order' => 1,
         'needs_review' => $detail->needs_review,
-        'submission_date_id' => $detail->submission_date_id,
-        'evaluation_date_id' => $detail->evaluation_date_id,
-        'revision_date_id' => $detail->revision_date_id,
+        'deadline_type' => $detail->deadline_type->value,
+        'deadline_cycle' => $detail->deadline_cycle,
     ], $overrides);
 }
 
@@ -98,11 +88,11 @@ it('kontrak layar sunting tahap', function () {
             ->hasAll(['phase.title', 'phase.description', 'phase.isActive', 'phaseTypeOptions'])
             ->has('phase.details.0', fn (AssertableInertia $row) => $row->hasAll([
                 'id', 'order', 'formAccessControlId', 'formTitle', 'accessLabel', 'phaseTypeId',
-                'phaseTypeName', 'needsReview', 'submissionDateId', 'evaluationDateId', 'revisionDateId',
-                'currentDeadlines', 'submissionCount', 'assignmentCount', 'evaluationFormCount',
+                'phaseTypeName', 'needsReview', 'deadlineType', 'deadlineCycle', 'deadlineLabel',
+                'submissionCount', 'assignmentCount', 'evaluationFormCount',
             ]))
             ->where('accessOptions.0.formId', $this->form->id)
-            ->has('deadlineOptions.0.periodId'));
+            ->missing('deadlineOptions'));
 });
 
 it('wewenang: operator 403; tahap milik Form lain 404', function () {
@@ -141,25 +131,17 @@ it('menampilkan semua detail tahap, termasuk detail Form lain', function () {
             ->where('accessOptions', fn ($options) => collect($options)->contains('formId', $other->id)));
 });
 
-it('menyimpan ulang detail bertenggat lama tidak mengubah tenggatnya', function () {
+it('menyimpan ulang detail tidak mengubah jenis langkahnya', function () {
     $detail = phaseEditDetail($this->form);
-    $dateId = $detail->submission_date_id;
-    // Tahap ditautkan ke periode baru; tenggat lama tidak lagi termasuk pilihan (W102).
-    $period = SubmissionPeriod::factory()->create();
-    SubmissionPeriodPhase::create(['submission_period_id' => $period->id, 'form_phase_id' => $detail->form_phase_id]);
-    $url = route('admin.forms.phases.edit', [$this->form, $detail->formPhase]);
+    $detail->update(['deadline_cycle' => 1]);
 
-    $this->actingAs(phaseEditActor())->get($url)->assertInertia(fn (AssertableInertia $page) => $page
-        ->where('deadlineOptions', fn ($options) => !collect($options)->contains('id', $dateId))
-        ->where('phase.details.0.currentDeadlines.0.id', $dateId)
-        ->where('phase.details.0.currentDeadlines.0.periodId', $detail->submissionDate->submission_period_id));
-
-    $this->put(route('admin.forms.phases.update', [$this->form, $detail->formPhase]), phaseEditPayload([phaseEditRow($detail)]))
+    $this->actingAs(phaseEditActor())
+        ->put(route('admin.forms.phases.update', [$this->form, $detail->formPhase]), phaseEditPayload([phaseEditRow($detail)]))
         ->assertSessionHasNoErrors()
         ->assertRedirect(route('admin.forms.phases.index', $this->form))
         ->assertSessionHas('success', 'Tahap diperbarui.');
 
-    expect($detail->fresh()?->submission_date_id)->toBe($dateId);
+    expect($detail->fresh()?->deadline_cycle)->toBe(1);
 });
 
 it('needs_review tidak bisa dimatikan selama ada form evaluasi aktif', function () {
@@ -171,7 +153,7 @@ it('needs_review tidak bisa dimatikan selama ada form evaluasi aktif', function 
 
     $this->put(
         route('admin.forms.phases.update', [$this->form, $detail->formPhase]),
-        phaseEditPayload([phaseEditRow($detail, ['needs_review' => false, 'evaluation_date_id' => null])]),
+        phaseEditPayload([phaseEditRow($detail, ['needs_review' => false])]),
     )->assertSessionHasErrors([
         'phase_details.0.needs_review' => 'Detail ini punya 1 form evaluasi aktif, jadi tetap harus direview.',
     ]);
@@ -231,7 +213,8 @@ it('kontrak layar buat tahap', function () {
             ->where('accessOptions.0.formId', $this->form->id)
             ->where('accessOptions.0.formTitle', $this->form->title)
             ->where('accessOptions', fn ($options) => collect($options)->contains('formId', $foreign->formAccessControl?->form_id))
-            ->hasAll(['phaseTypeOptions', 'deadlineOptions']));
+            ->has('phaseTypeOptions')
+            ->missing('deadlineOptions'));
 });
 
 it('tahap baru tampil di tab Phases Form-nya', function () {

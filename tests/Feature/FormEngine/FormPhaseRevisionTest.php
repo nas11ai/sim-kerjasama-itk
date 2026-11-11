@@ -4,7 +4,7 @@
 //
 // BR-FE-20 — merevisi tahap formulir menyinkronkan detailnya per id. Versi lama
 // menghapus semua detail lewat query massal lalu membuat ulang: form evaluasi ikut
-// ter-cascade, pengajuan kehilangan tahapnya, dan tautan tenggatnya hilang.
+// ter-cascade dan pengajuan kehilangan tahapnya.
 
 use App\Enums\DeadlineType;
 use App\Models\FormAccessControl;
@@ -13,7 +13,6 @@ use App\Models\FormPhaseDetail;
 use App\Models\FormSubmission;
 use App\Models\PhaseType;
 use App\Models\ReviewEvaluationForm;
-use App\Models\SubmissionDate;
 use App\Models\User;
 use App\Support\Audit\AuditTrail;
 use Illuminate\Testing\TestResponse;
@@ -34,16 +33,6 @@ beforeEach(function () {
     $this->form = $this->kept->formAccessControl?->form;
 });
 
-/** BR-FE-26 — Batas Evaluasi di periode Batas Submit detail itu, untuk baris yang direview. */
-function revisionEvaluationDate(FormPhaseDetail $detail): int
-{
-    return SubmissionDate::create([
-        'type' => DeadlineType::Evaluation,
-        'datetime' => now()->addMonth(),
-        'submission_period_id' => $detail->submissionDate->submission_period_id,
-    ])->id;
-}
-
 /** @return array<string, mixed> */
 function revisionRow(FormPhaseDetail $detail): array
 {
@@ -53,6 +42,8 @@ function revisionRow(FormPhaseDetail $detail): array
         'phase_type_id' => $detail->phase_type_id,
         'order' => $detail->order,
         'needs_review' => $detail->needs_review === true,
+        'deadline_type' => $detail->deadline_type->value,
+        'deadline_cycle' => $detail->deadline_cycle,
         'temp_id' => 'temp_'.$detail->id,
     ];
 }
@@ -79,7 +70,7 @@ function reviseFormPhase(array $payload): TestResponse
 
 it('keeps the evaluation forms of a detail the revision retains (BR-FE-20)', function () {
     // Form evaluasi hanya melekat pada detail yang direview (AssertReviewedPhaseDetail, W97).
-    $this->kept->update(['needs_review' => true, 'evaluation_date_id' => revisionEvaluationDate($this->kept)]);
+    $this->kept->update(['needs_review' => true]);
     $evaluation = ReviewEvaluationForm::create([
         'title' => 'Lembar Penilaian',
         'form_phase_detail_id' => $this->kept->id,
@@ -104,12 +95,14 @@ it('leaves submissions pointing at a retained detail (BR-FE-20)', function () {
     expect($submission->fresh()->form_phase_detail_id)->toBe($this->kept->id);
 });
 
-it('keeps the submission_date_id of a retained detail', function () {
-    $dateId = $this->kept->submission_date_id;
+it('keeps the step kind of a retained detail (ADR 0019)', function () {
+    $this->kept->update(['deadline_cycle' => 2]);
 
-    reviseFormPhase(revisionPayload([revisionRow($this->kept)]))->assertSessionHasNoErrors();
+    reviseFormPhase(revisionPayload([revisionRow($this->kept->fresh())]))->assertSessionHasNoErrors();
 
-    expect(FormPhaseDetail::query()->find($this->kept->id)?->submission_date_id)->toBe($dateId);
+    $kept = FormPhaseDetail::query()->find($this->kept->id);
+    expect($kept?->deadline_type)->toBe(DeadlineType::Submit)
+        ->and($kept?->deadline_cycle)->toBe(2);
 });
 
 it('rejects dropping a detail still used by a submission and changes nothing (BR-FE-20)', function () {
@@ -128,9 +121,9 @@ it('deletes an unused dropped detail and creates a detail sent without id', func
         'phase_type_id' => PhaseType::create(['name' => 'Tipe Baru Revisi'])->id,
         'order' => 2,
         'needs_review' => true,
-        // BR-FE-07 — detail baru wajib membawa tenggatnya sendiri.
-        'submission_date_id' => $this->dropped->submission_date_id,
-        'evaluation_date_id' => revisionEvaluationDate($this->dropped),
+        // BR-FE-07 — detail baru wajib menyebut jenis tenggatnya (ADR 0019).
+        'deadline_type' => 'submit',
+        'deadline_cycle' => null,
         'temp_id' => 'temp_new',
     ];
 
@@ -169,7 +162,6 @@ it('gives details of the same form the same order, numbered by first appearance'
     $sibling = array_merge(revisionRow($this->kept), [
         'form_access_control_id' => $sameForm->id,
         'order' => 9,
-        'submission_date_id' => $this->kept->submission_date_id,
     ]);
     unset($sibling['id']);
 
@@ -201,35 +193,15 @@ it('audits the revision of a form phase (BR-RPT-09)', function () {
         ->and($entry?->causer_id)->toBe($this->admin->id);
 });
 
-it('rejects a new detail without a deadline as validation, not SQLSTATE (BR-FE-07)', function () {
+it('rejects a new detail without a deadline type as validation, not SQLSTATE (BR-FE-07)', function () {
     $newRow = array_merge(revisionRow($this->kept), ['temp_id' => 'temp_new']);
-    unset($newRow['id']);
+    unset($newRow['id'], $newRow['deadline_type']);
 
     reviseFormPhase(revisionPayload([revisionRow($this->kept), $newRow]))
-        ->assertSessionHasErrors('phase_details.1.submission_date_id');
+        ->assertSessionHasErrors('phase_details.1.deadline_type');
 
     expect($this->phase->formPhaseDetails()->count())->toBe(2)
         ->and($this->phase->fresh()->title)->toBe('Tahap Lama');
-});
-
-it('saves an existing detail moved to another deadline (BR-FE-07)', function () {
-    $other = FormPhaseDetail::factory()->create()->submission_date_id;
-
-    reviseFormPhase(revisionPayload([
-        array_merge(revisionRow($this->kept), ['submission_date_id' => $other]),
-    ]))->assertSessionHasNoErrors();
-
-    expect(FormPhaseDetail::query()->find($this->kept->id)?->submission_date_id)->toBe($other);
-});
-
-it('keeps the deadline of an existing detail sent with null (BR-FE-07)', function () {
-    $dateId = $this->kept->submission_date_id;
-
-    reviseFormPhase(revisionPayload([
-        array_merge(revisionRow($this->kept), ['submission_date_id' => null]),
-    ]))->assertSessionHasNoErrors();
-
-    expect(FormPhaseDetail::query()->find($this->kept->id)?->submission_date_id)->toBe($dateId);
 });
 
 it('rejects changing the form of a detail used by a submission (BR-FE-20)', function () {
@@ -262,7 +234,7 @@ it('saves a new order and needs_review on a detail used by a submission (BR-FE-2
 
     reviseFormPhase(revisionPayload([
         revisionRow($this->dropped),
-        array_merge(revisionRow($this->kept), ['needs_review' => true, 'evaluation_date_id' => revisionEvaluationDate($this->kept)]),
+        array_merge(revisionRow($this->kept), ['needs_review' => true]),
     ]))->assertSessionHasNoErrors();
 
     $kept = $this->kept->fresh();

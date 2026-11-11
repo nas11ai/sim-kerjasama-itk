@@ -13,8 +13,8 @@ use Illuminate\Validation\ValidationException;
 use Lorisleiva\Actions\Concerns\AsAction;
 
 /**
- * BR-FE-07 — membuat tahap formulir beserta detailnya; setiap detail membawa tenggatnya
- * (`FormPhaseRequest` mewajibkannya). Urutan detail diturunkan dari form-nya (K3).
+ * BR-FE-07 — membuat tahap formulir beserta detailnya; setiap detail membawa jenis tenggat dan
+ * siklusnya (ADR 0019, `FormPhaseRequest` mewajibkannya). Urutan detail diturunkan dari form-nya (K3).
  *
  * @method static FormPhase run(FormPhaseInput $input, User $actor)
  */
@@ -27,8 +27,7 @@ class CreateFormPhase
      */
     public function handle(FormPhaseInput $input, User $actor): FormPhase
     {
-        // BR-FE-17 — tahap baru belum dipakai periode mana pun.
-        AssertPhaseDeadlines::run(null, $input->details);
+        AssertPhaseSteps::run($input->details);
 
         return DB::transaction(function () use ($input, $actor): FormPhase {
             $phase = FormPhase::create([
@@ -75,7 +74,7 @@ class CreateFormPhase
                 'phase_type_id' => $detail->phaseTypeId,
                 'order' => $orders[$index],
                 'needs_review' => $detail->needsReview,
-                ...$detail->deadlineIds(),
+                ...$detail->stepKind(),
             ])->id;
         }
 

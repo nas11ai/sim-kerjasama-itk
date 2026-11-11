@@ -7,7 +7,7 @@ use Spatie\LaravelData\Data;
 
 /**
  * Satu tenggat periode. `inputValue` dalam zona aplikasi untuk `datetime-local`;
- * `phaseDetailCount` > 0 berarti tanggal ini menggerbangi detail tahap (BR-FE-07).
+ * `phaseDetailCount` > 0 berarti langkah fase tertaut membaca tanggal ini (BR-FE-26, ADR 0019).
  */
 final class PeriodDateData extends Data
 {
@@ -22,7 +22,7 @@ final class PeriodDateData extends Data
         public int $phaseDetailCount,
     ) {}
 
-    /** Hitungan detail per kolom tenggat dimuat SubmissionPeriodList (BR-FE-26). */
+    /** Hitungan langkah dimuat SubmissionPeriodList (`SubmissionDate::needingStepCount`). */
     public static function fromModel(SubmissionDate $date): self
     {
         // Cast `datetime` Eloquent sudah berada di zona aplikasi.
@@ -36,7 +36,7 @@ final class PeriodDateData extends Data
             at: $local->toIso8601String(),
             inputValue: $local->format('Y-m-d\TH:i'),
             passed: $date->isPassed(),
-            phaseDetailCount: $date->phaseDetailCount(),
+            phaseDetailCount: $date->needing_step_count,
         );
     }
 }

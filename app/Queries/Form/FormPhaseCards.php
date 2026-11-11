@@ -8,6 +8,7 @@ use App\Models\Form;
 use App\Models\FormPhase;
 use App\Models\FormSubmission;
 use App\Models\SubmissionPeriodPhase;
+use App\Queries\Period\PeriodScheduleGaps;
 use Illuminate\Support\Collection;
 use Lorisleiva\Actions\Concerns\AsAction;
 
@@ -37,7 +38,7 @@ class FormPhaseCards implements ChangesNoState
 
         $periods = $this->periodNames($phases);
         $linkable = LinkablePeriods::forPhases($phases);
-        $gaps = PhaseDeadlineGaps::forPhases($phases);
+        $gaps = PeriodScheduleGaps::forPhases($phases);
 
         return array_values($phases->map(fn (FormPhase $phase): PhaseCardData => new PhaseCardData(
             id: $phase->id,

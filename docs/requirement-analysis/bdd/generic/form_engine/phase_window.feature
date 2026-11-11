@@ -76,17 +76,20 @@ Feature: Jendela Kerja Tiap Tahap
     Then penyimpanan ditolak
     And "Batas Evaluasi Monev I" pada periode yang sama tetap boleh ditambahkan
 
-  @BR-FE-26 @M2 @ADMIN-08-09 @denial
-  Scenario: [FE-WINDOW-08] Detail yang direview tanpa Batas Evaluasi ditolak
-    Given detail Pengajuan ber-needs_review berbatas "Batas Submit" pada "2026-03-01"
-    When admin menyimpan detail itu tanpa "Batas Evaluasi"
-    Then penyimpanan ditolak dengan 422
+  @BR-FE-26 @M2 @ADMIN-08-08 @denial
+  Scenario: [FE-WINDOW-08] Langkah yang direview di periode tanpa Batas Evaluasi siklusnya muncul sebagai celah jadwal fase
+    Given fase "Penelitian" punya langkah Pengajuan ber-needs_review
+    And fase itu ditautkan ke periode "Periode A" yang hanya punya "Batas Submit"
+    When admin membuka tab Phases form itu
+    Then kartu fase "Penelitian" menyebut "Periode Periode A belum punya 1 tanggal yang dibutuhkan tahap ini."
+    And celah jadwal periode itu memuat "Batas Evaluasi" langkah 1
 
-  @BR-FE-26 @BR-FE-17 @M2 @ADMIN-08-09 @denial
-  Scenario: [FE-WINDOW-09] Batas Evaluasi tidak boleh memakai tanggal berjenis submit
-    Given detail Pengajuan ber-needs_review berbatas "Batas Submit" pada "2026-03-01"
-    When admin menetapkan "Batas Submit" yang sama sebagai Batas Evaluasi detail itu
-    Then penyimpanan ditolak dengan 422
+  @BR-FE-26 @M2 @ADMIN-08-09 @denial
+  Scenario: [FE-WINDOW-09] Langkah Upload Luaran tidak bisa bersiklus dan tidak bisa direview
+    When admin menyimpan langkah berjenis Upload Luaran dengan siklus 1
+    Then penyimpanan ditolak dengan pesan "Upload Luaran tidak bersiklus."
+    When admin menyimpan langkah berjenis Upload Luaran ber-needs_review
+    Then penyimpanan ditolak dengan pesan "Detail Upload Luaran tidak direview."
 
   @BR-FE-26 @BR-FE-17 @M2 @RESEARCHER-02-05 @happy
   Scenario: [FE-WINDOW-10] Revisi digerbangi Batas Revisi, bukan Batas Submit

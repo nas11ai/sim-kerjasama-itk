@@ -14,16 +14,13 @@
 
 use App\Actions\FormSubmission\StartSubmission;
 use App\Enums\DeadlineType;
-use App\Models\FormPhase;
 use App\Models\FormPhaseDetail;
 use App\Models\FormSubmission;
 use App\Models\SubmissionDate;
 use App\Models\SubmissionPeriod;
-use App\Models\User;
 use App\States\Submission\Draft;
 use App\States\Submission\NeedsRevision;
 use App\Support\PhaseAccessGate;
-use Spatie\Permission\Models\Role;
 
 function windowDate(SubmissionPeriod $period, string $label, string $when): SubmissionDate
 {
@@ -76,54 +73,6 @@ it('[FE-WINDOW-03] tanpa Batas Revisi, revisi kembali memakai Batas Submit', fun
 
     expect(PhaseAccessGate::deadlineFor($revisi, $detail)?->id)->toBe($detail->submission_date_id)
         ->and(PhaseAccessGate::isOpenFor($revisi, $detail))->toBeTrue();
-});
-
-it('[FE-WINDOW-04] dua detail beraktor sama boleh berbagi satu tanggal', function () {
-    $phase = FormPhase::create(['title' => 'Fase Uji Jendela', 'is_active' => true]);
-    $period = SubmissionPeriod::factory()->create();
-    $date = windowDate($period, 'Batas Submit', now()->addWeek()->toDateTimeString());
-
-    // Yang dilarang berbagi tanggal adalah detail dengan aktor **berbeda**.
-    // Dua tahap researcher berurutan wajar memakai batas yang sama.
-    $satu = FormPhaseDetail::factory()->create([
-        'form_phase_id' => $phase->id, 'submission_date_id' => $date->id,
-        'order' => 1, 'needs_review' => false,
-    ]);
-    $dua = FormPhaseDetail::factory()->create([
-        'form_phase_id' => $phase->id, 'submission_date_id' => $date->id,
-        'order' => 2, 'needs_review' => false,
-    ]);
-
-    expect($satu->submission_date_id)->toBe($dua->submission_date_id)
-        ->and($satu->isWithinDeadline($period))->toBeTrue()
-        ->and($dua->isWithinDeadline($period))->toBeTrue();
-});
-
-it('[FE-WINDOW-04] admin menyimpan dua detail beraktor sama dengan satu Batas Submit', function () {
-    Role::findOrCreate('Super Admin');
-    $admin = User::factory()->create();
-    $admin->assignRole('Super Admin');
-    $satu = FormPhaseDetail::factory()->create(['needs_review' => false]);
-    $dua = FormPhaseDetail::factory()->create(['needs_review' => false, 'form_phase_id' => $satu->form_phase_id]);
-    $row = fn (FormPhaseDetail $detail): array => [
-        'id' => $detail->id,
-        'form_access_control_id' => $detail->form_access_control_id,
-        'phase_type_id' => $detail->phase_type_id,
-        'order' => 1,
-        'needs_review' => false,
-        'submission_date_id' => $satu->submission_date_id,
-    ];
-
-    $this->actingAs($admin)
-        ->put(route('admin.forms.phases.update', [$satu->formAccessControl?->form, $satu->formPhase]), [
-            'title' => 'Fase Uji Jendela',
-            'is_active' => true,
-            'phase_details' => [$row($satu), $row($dua)],
-        ])
-        ->assertStatus(302)
-        ->assertSessionHasNoErrors();
-
-    expect($dua->fresh()?->submission_date_id)->toBe($satu->submission_date_id);
 });
 
 it('[FE-WINDOW-02] periode yang ditutup paksa menutup semua jendela', function () {

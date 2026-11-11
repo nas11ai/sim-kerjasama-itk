@@ -51,9 +51,6 @@ class PhaseEdit implements ChangesNoState
             ->with([
                 'formAccessControl.form:id,title',
                 'phaseType:id,name',
-                'submissionDate.submissionPeriod:id,name',
-                'evaluationDate.submissionPeriod:id,name',
-                'revisionDate.submissionPeriod:id,name',
             ])
             ->addSelect([
                 'submission_count' => FormSubmission::query()->selectRaw('count(*)')
@@ -95,8 +92,6 @@ class PhaseEdit implements ChangesNoState
     /** @param  array<int, string>  $labels */
     private function toData(FormPhaseDetail $detail, array $labels): PhaseDetailEditData
     {
-        $deadlines = array_filter([$detail->submissionDate, $detail->evaluationDate, $detail->revisionDate]);
-
         return new PhaseDetailEditData(
             id: $detail->id,
             order: $detail->order,
@@ -106,10 +101,9 @@ class PhaseEdit implements ChangesNoState
             phaseTypeId: $detail->phase_type_id,
             phaseTypeName: $detail->phaseType->name ?? '',
             needsReview: $detail->needs_review,
-            submissionDateId: $detail->submission_date_id,
-            evaluationDateId: $detail->evaluation_date_id,
-            revisionDateId: $detail->revision_date_id,
-            currentDeadlines: array_values(array_map(SubmissionDateOptions::option(...), $deadlines)),
+            deadlineType: $detail->deadline_type->value,
+            deadlineCycle: $detail->deadline_cycle,
+            deadlineLabel: $detail->deadline_type->stepLabel($detail->deadline_cycle),
             submissionCount: $detail->submission_count,
             assignmentCount: $detail->assignment_count,
             evaluationFormCount: $detail->evaluation_form_count,

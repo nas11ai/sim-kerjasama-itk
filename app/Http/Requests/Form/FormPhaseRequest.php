@@ -4,6 +4,7 @@ namespace App\Http\Requests\Form;
 
 use App\Data\Request\FormPhaseDetailInput;
 use App\Data\Request\FormPhaseInput;
+use App\Enums\DeadlineType;
 use Illuminate\Foundation\Http\FormRequest;
 
 class FormPhaseRequest extends FormRequest
@@ -26,24 +27,10 @@ class FormPhaseRequest extends FormRequest
             'phase_details.*.phase_type_id' => 'required|exists:phase_types,id',
             'phase_details.*.order' => 'required|integer|min:1',
             'phase_details.*.needs_review' => 'boolean',
-            // BR-FE-07 — kolomnya NOT NULL; detail lama menyimpan tenggatnya sendiri,
-            // sedangkan saat membuat semua baris baru.
-            'phase_details.*.submission_date_id' => ($this->isMethod('POST')
-                ? 'required'
-                : 'nullable|required_without:phase_details.*.id')
-                .'|integer|exists:submission_dates,id',
-            // BR-FE-26 — jenis, periode, dan siklusnya diperiksa AssertPhaseDeadlines.
-            'phase_details.*.evaluation_date_id' => 'nullable|integer|exists:submission_dates,id',
-            'phase_details.*.revision_date_id' => 'nullable|integer|exists:submission_dates,id',
-        ];
-    }
-
-    /** @return array<string, string> */
-    public function messages(): array
-    {
-        return [
-            'phase_details.*.submission_date_id.required_without' => 'Detail baru wajib punya tenggat.',
-            'phase_details.*.submission_date_id.required' => 'Detail wajib punya tenggat.',
+            // BR-FE-07 + BR-FE-26 (ADR 0019) — langkah menyebut jenis tenggat dan siklusnya;
+            // tanggalnya milik kalender periode. Kombinasi Upload Luaran diperiksa AssertPhaseSteps.
+            'phase_details.*.deadline_type' => 'required|in:submit,output',
+            'phase_details.*.deadline_cycle' => 'nullable|integer|min:1|max:10',
         ];
     }
 
@@ -61,9 +48,8 @@ class FormPhaseRequest extends FormRequest
                 formAccessControlId: $this->integer("phase_details.{$index}.form_access_control_id"),
                 phaseTypeId: $this->integer("phase_details.{$index}.phase_type_id"),
                 needsReview: $this->boolean("phase_details.{$index}.needs_review"),
-                submissionDateId: filter_var($row['submission_date_id'] ?? null, FILTER_VALIDATE_INT, FILTER_NULL_ON_FAILURE),
-                evaluationDateId: filter_var($row['evaluation_date_id'] ?? null, FILTER_VALIDATE_INT, FILTER_NULL_ON_FAILURE),
-                revisionDateId: filter_var($row['revision_date_id'] ?? null, FILTER_VALIDATE_INT, FILTER_NULL_ON_FAILURE),
+                deadlineType: DeadlineType::from($this->string("phase_details.{$index}.deadline_type")->value()),
+                deadlineCycle: filter_var($row['deadline_cycle'] ?? null, FILTER_VALIDATE_INT, FILTER_NULL_ON_FAILURE),
             );
         }
 

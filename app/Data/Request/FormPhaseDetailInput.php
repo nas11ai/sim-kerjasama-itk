@@ -2,10 +2,12 @@
 
 namespace App\Data\Request;
 
+use App\Enums\DeadlineType;
+
 /**
- * Satu baris detail tahap. `id` null berarti detail baru. Tenggat yang null pada detail lama
- * mempertahankan nilainya: BR-FE-07 mewajibkan setiap detail punya deadline, dan BR-FE-26
- * memberinya tiga — Batas Submit, Batas Evaluasi (wajib bila direview), Batas Revisi.
+ * Satu baris detail tahap. `id` null berarti detail baru. BR-FE-07 + BR-FE-26 (ADR 0019) — langkah
+ * menyebut jenis tenggat (`submit`/`output`) dan siklusnya; tanggalnya dibaca dari kalender periode
+ * milik pengajuan, jadi tidak ada rujukan tanggal di sini.
  */
 final class FormPhaseDetailInput
 {
@@ -14,18 +16,13 @@ final class FormPhaseDetailInput
         public readonly int $formAccessControlId,
         public readonly int $phaseTypeId,
         public readonly bool $needsReview,
-        public readonly ?int $submissionDateId = null,
-        public readonly ?int $evaluationDateId = null,
-        public readonly ?int $revisionDateId = null,
+        public readonly DeadlineType $deadlineType,
+        public readonly ?int $deadlineCycle,
     ) {}
 
-    /** @return array{submission_date_id: int|null, evaluation_date_id: int|null, revision_date_id: int|null} */
-    public function deadlineIds(): array
+    /** @return array{deadline_type: DeadlineType, deadline_cycle: int|null} */
+    public function stepKind(): array
     {
-        return [
-            'submission_date_id' => $this->submissionDateId,
-            'evaluation_date_id' => $this->evaluationDateId,
-            'revision_date_id' => $this->revisionDateId,
-        ];
+        return ['deadline_type' => $this->deadlineType, 'deadline_cycle' => $this->deadlineCycle];
     }
 }

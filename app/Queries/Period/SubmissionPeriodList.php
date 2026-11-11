@@ -39,7 +39,7 @@ class SubmissionPeriodList implements ChangesNoState
     {
         $query = SubmissionPeriod::query()
             ->with([
-                'submissionDates' => fn (Relation $dates) => $dates->withCount(SubmissionDate::PHASE_DETAIL_RELATIONS),
+                'submissionDates' => fn (Relation $dates) => $dates->addSelect(['needing_step_count' => SubmissionDate::needingStepCount()]),
                 'submissionPeriodPhases',
             ])
             // Predikat yang sama dengan Semua Pengajuan (OperatorSubmissionList): induk yang terkirim.

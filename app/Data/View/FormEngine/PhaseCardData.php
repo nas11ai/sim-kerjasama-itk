@@ -6,7 +6,7 @@ use Spatie\LaravelData\Data;
 
 /**
  * Satu kartu ADMIN-08-08: tahap beserta hitungan pakainya. `linkablePeriods` dan
- * `deadlineGaps` diisi backend (W101); layar tidak menghitung apa pun.
+ * `deadlineGaps` diisi backend (W101; celah jadwal per periode, ADR 0019); layar tidak menghitung apa pun.
  */
 final class PhaseCardData extends Data
 {

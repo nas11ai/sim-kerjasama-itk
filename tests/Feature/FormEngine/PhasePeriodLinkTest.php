@@ -74,18 +74,19 @@ function linkUrl(Form $form, FormPhase $phase): string
 it('menautkan tahap ke periode terbuka mengaudit', function () {
     $phase = linkPhase();
     linkDetail($this->form, $phase, linkPeriodNamed('P1'));
-    $p2 = linkPeriodNamed('P2');
+    // BR-FE-26 (ADR 0019) — P2 belum punya Batas Submit yang dibaca langkah tahap ini.
+    $p2 = SubmissionPeriod::create(['name' => 'P2']);
 
     $this->actingAs($this->admin)
         ->post(linkUrl($this->form, $phase), ['submission_period_id' => $p2->id])
         ->assertRedirect()
-        ->assertSessionHas('success', 'Tahap dihubungkan ke periode P2. Perbarui tenggat detailnya agar terbuka di periode ini.');
+        ->assertSessionHas('success', 'Tahap dihubungkan ke periode P2. Periode P2 belum punya 1 tanggal yang dibutuhkan tahap ini.');
 
     expect(SubmissionPeriodPhase::where(['form_phase_id' => $phase->id, 'submission_period_id' => $p2->id])->exists())->toBeTrue()
         ->and(linkAuditCount())->toBe(1);
 });
 
-it('pesan biasa bila semua detail sudah bertenggat periode itu', function () {
+it('pesan biasa bila kalender periode sudah memuat tanggal yang dibutuhkan', function () {
     $phase = linkPhase();
     $p1 = linkPeriodNamed('P1');
     linkDetail($this->form, $phase, $p1);
@@ -126,43 +127,39 @@ it('periode yang belum tertaut ditawarkan terurut nama', function () {
     expect(offeredLabels($this->form))->toBe(['Alfa', 'Zeta']);
 });
 
-it('kartu menyebut detail yang masih bertenggat periode lain', function () {
+it('kartu menyebut tanggal yang belum ada di kalender periode tertaut', function () {
     $phase = linkPhase();
     $p1 = linkPeriodNamed('P1');
-    $p2 = linkPeriodNamed('P2');
-    $first = linkDetail($this->form, $phase, $p1);
-    $second = linkDetail($this->form, $phase, $p1);
+    $p2 = SubmissionPeriod::create(['name' => 'P2']);
+    linkDetail($this->form, $phase, $p1);
+    linkDetail($this->form, $phase, $p1);
     SubmissionPeriodPhase::create(['submission_period_id' => $p1->id, 'form_phase_id' => $phase->id]);
     SubmissionPeriodPhase::create(['submission_period_id' => $p2->id, 'form_phase_id' => $phase->id]);
     $url = route('admin.forms.phases.index', $this->form);
 
+    // Dua langkah membaca satu Batas Submit: satu tanggal yang kurang, bukan dua (FE-WINDOW-04).
     $this->actingAs($this->admin)->get($url)
         ->assertInertia(fn (AssertableInertia $page) => $page
-            ->where('phases.0.deadlineGaps', [['period' => 'P2', 'count' => 2]]));
+            ->where('phases.0.deadlineGaps', [['period' => 'P2', 'count' => 1]]));
 
-    $p2Date = $p2->submissionDates()->firstOrFail();
-    FormPhaseDetail::whereIn('id', [$first->id, $second->id])->update(['submission_date_id' => $p2Date->id]);
+    SubmissionDate::create(['type' => DeadlineType::Submit, 'datetime' => now()->addMonth(), 'submission_period_id' => $p2->id]);
 
-    // Tenggat dipindah ke P2 dan P1 sudah tutup sepenuhnya: tidak ada peringatan tersisa.
-    $p1->submissionDates()->update(['datetime' => now()->subDay()]);
     $this->get($url)->assertInertia(fn (AssertableInertia $page) => $page
         ->where('phases.0.deadlineGaps', []));
 });
 
-it('kartu tetap memperingatkan periode lama yang masih terbuka setelah tenggat dipindah', function () {
+it('kartu tidak memperingatkan periode yang sudah tutup sepenuhnya', function () {
     $phase = linkPhase();
     $p1 = linkPeriodNamed('P1');
-    $p2 = linkPeriodNamed('P2');
-    $first = linkDetail($this->form, $phase, $p1);
-    $second = linkDetail($this->form, $phase, $p1);
+    $detail = linkDetail($this->form, $phase, $p1);
+    // Langkah Monev I membaca tanggal yang tidak pernah diisi di P1, tetapi P1 sudah lewat.
+    $detail->update(['deadline_cycle' => 1]);
+    $p1->submissionDates()->update(['datetime' => now()->subDay()]);
     SubmissionPeriodPhase::create(['submission_period_id' => $p1->id, 'form_phase_id' => $phase->id]);
-    SubmissionPeriodPhase::create(['submission_period_id' => $p2->id, 'form_phase_id' => $phase->id]);
-    FormPhaseDetail::whereIn('id', [$first->id, $second->id])
-        ->update(['submission_date_id' => $p2->submissionDates()->firstOrFail()->id]);
 
     $this->actingAs($this->admin)->get(route('admin.forms.phases.index', $this->form))
         ->assertInertia(fn (AssertableInertia $page) => $page
-            ->where('phases.0.deadlineGaps', [['period' => 'P1', 'count' => 2]]));
+            ->where('phases.0.deadlineGaps', []));
 });
 
 it('wewenang: operator 403 (schemes.manage), pengguna schemes.manage tanpa periods.manage 403', function () {

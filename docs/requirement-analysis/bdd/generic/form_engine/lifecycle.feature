@@ -84,12 +84,12 @@ Feature: Penghapusan Struktur Form
     When Operator menghapus periode itu
     Then penghapusan ditolak karena masih ada pengajuan yang merujuknya
 
-  @BR-FE-21 @BR-FE-07 @M0 @OPERATOR-09-01 @denial
-  Scenario: [FE-DELETE-11] SubmissionDate yang jadi deadline sebuah detail tidak ikut terhapus
-    Given SubmissionDate "Batas Proposal" dipakai FormPhaseDetail "Proposal Awal"
-    When Operator menghapus periode pemilik tanggal itu
-    Then penghapusan ditolak
-    And "Proposal Awal" tetap punya deadline
+  @BR-FE-21 @BR-FE-26 @M0 @OPERATOR-09-01 @denial
+  Scenario: [FE-DELETE-11] Tanggal periode yang dibaca langkah fase tertaut tidak ikut terhapus
+    Given periode "Gelombang Uji" menautkan fase yang langkah "Proposal Awal"-nya membaca "Batas Submit"
+    When Operator menyimpan periode itu tanpa "Batas Submit"
+    Then "Batas Submit" periode itu tetap ada
+    And baris tanggal itu terkunci di dialog periode
 
   @BR-FE-21 @M0 @OPERATOR-09-01 @happy
   Scenario: [FE-DELETE-12] Periode tanpa pengajuan bisa dihapus

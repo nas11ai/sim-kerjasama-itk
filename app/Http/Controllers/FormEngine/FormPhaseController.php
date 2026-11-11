@@ -19,11 +19,10 @@ use App\Models\SubmissionPeriod;
 use App\Queries\Form\FieldTypeOptions;
 use App\Queries\Form\FormPhaseCards;
 use App\Queries\Form\PhaseAccessOptions;
-use App\Queries\Form\PhaseDeadlineGaps;
 use App\Queries\Form\PhaseEdit;
 use App\Queries\Form\PhaseEvaluationForms;
 use App\Queries\Form\PhaseTypeOptions;
-use App\Queries\Form\SubmissionDateOptions;
+use App\Queries\Period\PeriodScheduleGaps;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -103,7 +102,7 @@ class FormPhaseController extends Controller
         return redirect()->route('admin.forms.phases.index', $form)->with('success', 'Tahap dihapus.');
     }
 
-    // K9b — penautan longgar; pesan menyebut keadaan antara bila tenggat detail masih milik periode lain.
+    // BR-FE-26 (ADR 0019) — penautan longgar; pesan menyebut tanggal kalender yang masih kurang.
     public function linkPeriod(PhasePeriodRequest $request, Form $form, FormPhase $formPhase): RedirectResponse
     {
         abort_unless($formPhase->usesForm($form), 404);
@@ -112,11 +111,10 @@ class FormPhaseController extends Controller
 
         LinkPhaseToPeriod::run($formPhase, $period, $this->actor($request));
 
-        $gaps = PhaseDeadlineGaps::forPhases(collect([$formPhase]))[$formPhase->id] ?? [];
-        $hasGap = collect($gaps)->contains(fn (array $gap): bool => $gap['period'] === $period->name);
+        $missing = PeriodScheduleGaps::missingCount($period, $formPhase);
 
-        return back()->with('success', $hasGap
-            ? "Tahap dihubungkan ke periode {$period->name}. Perbarui tenggat detailnya agar terbuka di periode ini."
+        return back()->with('success', $missing > 0
+            ? "Tahap dihubungkan ke periode {$period->name}. Periode {$period->name} belum punya {$missing} tanggal yang dibutuhkan tahap ini."
             : "Tahap dihubungkan ke periode {$period->name}.");
     }
 
@@ -129,7 +127,6 @@ class FormPhaseController extends Controller
             'phase' => PhaseEdit::run($form, $phase),
             'accessOptions' => PhaseAccessOptions::run($form, $phase),
             'phaseTypeOptions' => PhaseTypeOptions::run(),
-            'deadlineOptions' => SubmissionDateOptions::run($phase),
             'evaluation' => $phase === null ? [] : PhaseEvaluationForms::run($phase),
             'fieldTypeOptions' => $phase === null ? [] : FieldTypeOptions::run(),
         ]);

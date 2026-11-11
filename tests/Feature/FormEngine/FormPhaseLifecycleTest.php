@@ -32,22 +32,23 @@ function auditEntry(string $description, FormPhase $phase): ?Activity
 }
 
 /**
- * Baris detail baru, meminjam akses form, tipe tahap, dan tenggat milik detail pabrik.
+ * Baris detail baru, meminjam akses form dan tipe tahap milik detail pabrik.
  *
  * @return array<string, mixed>
  */
-function newPhaseRow(?int $submissionDateId = null): array
+function newPhaseRow(): array
 {
     $reference = FormPhaseDetail::factory()->create();
     $reference->formAccessControl?->update(['form_id' => test()->form->id]);
 
-    return array_filter([
+    return [
         'form_access_control_id' => $reference->form_access_control_id,
         'phase_type_id' => $reference->phase_type_id,
         'order' => 1,
         'needs_review' => false,
-        'submission_date_id' => $submissionDateId ?? $reference->submission_date_id,
-    ], fn ($value) => $value !== null);
+        'deadline_type' => 'submit',
+        'deadline_cycle' => null,
+    ];
 }
 
 /**
@@ -59,7 +60,7 @@ function createPayload(array $rows): array
     return ['title' => 'Tahap Baru', 'description' => 'Uji', 'is_active' => true, 'phase_details' => $rows];
 }
 
-it('saves a created phase with the deadline of each detail (BR-FE-07)', function () {
+it('saves a created phase with the deadline type of each detail (BR-FE-07)', function () {
     $row = newPhaseRow();
 
     $this->actingAs($this->admin)
@@ -70,17 +71,17 @@ it('saves a created phase with the deadline of each detail (BR-FE-07)', function
     $phase = FormPhase::query()->where('title', 'Tahap Baru')->firstOrFail();
     $detail = $phase->formPhaseDetails()->firstOrFail();
 
-    expect($detail->submission_date_id)->toBe($row['submission_date_id'])
+    expect($detail->deadline_type->value)->toBe($row['deadline_type'])
         ->and($detail->form_access_control_id)->toBe($row['form_access_control_id']);
 });
 
-it('rejects a created phase whose detail has no deadline as validation (BR-FE-07)', function () {
+it('rejects a created phase whose detail has no deadline type as validation (BR-FE-07)', function () {
     $row = newPhaseRow();
-    unset($row['submission_date_id']);
+    unset($row['deadline_type']);
 
     $this->actingAs($this->admin)
         ->post(route('admin.forms.phases.store', $this->form), createPayload([$row]))
-        ->assertSessionHasErrors('phase_details.0.submission_date_id');
+        ->assertSessionHasErrors('phase_details.0.deadline_type');
 
     expect(FormPhase::query()->where('title', 'Tahap Baru')->exists())->toBeFalse();
 });
@@ -160,23 +161,4 @@ it('menolak kiriman active yang bukan boolean', function () {
     $this->actingAs($this->admin)
         ->patch(route('admin.forms.phases.active', [$detail->formAccessControl?->form, $detail->formPhase]), [])
         ->assertSessionHasErrors('active');
-});
-
-it('passes deadline options labelled period, label and date to create and edit', function () {
-    $detail = FormPhaseDetail::factory()->create();
-    $date = $detail->submissionDate;
-    $label = $date->submissionPeriod?->name.' — '.$date->label().' — '
-        .$date->datetime->format('d/m/Y H:i');
-
-    $screens = [
-        route('admin.forms.phases.create', $this->form),
-        route('admin.forms.phases.edit', [$detail->formAccessControl?->form, $detail->formPhase]),
-    ];
-
-    foreach ($screens as $url) {
-        $this->actingAs($this->admin)->get($url)->assertInertia(
-            fn ($page) => $page->where('deadlineOptions', fn ($options) => collect($options)
-                ->contains(fn ($option) => $option['id'] === $date->id && $option['label'] === $label))
-        );
-    }
 });

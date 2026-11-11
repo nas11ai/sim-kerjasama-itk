@@ -7,7 +7,6 @@ use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 
 /**
  * @property int $id
@@ -15,16 +14,11 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property DeadlineType $type
  * @property int|null $cycle
  * @property \Illuminate\Support\Carbon $datetime
- * @property int $form_phase_details_count
- * @property int $evaluation_phase_details_count
- * @property int $revision_phase_details_count
+ * @property int $needing_step_count hanya setelah addSelect needingStepCount()
  * @property-read SubmissionPeriod|null $submissionPeriod
  */
 class SubmissionDate extends Model
 {
-    /** Tiga kolom tenggat `form_phase_details` yang menunjuk tanggal ini (BR-FE-26). */
-    public const PHASE_DETAIL_RELATIONS = ['formPhaseDetails', 'evaluationPhaseDetails', 'revisionPhaseDetails'];
-
     protected $fillable = [
         'type',
         'cycle',
@@ -67,86 +61,44 @@ class SubmissionDate extends Model
     }
 
     /**
-     * FormPhaseDetail yang menggerbangi fasenya dengan tanggal ini. Dipakai
-     * menolak penghapusan tanggal yang masih jadi batas fase — foreign key
-     * sudah menjaga di database, tapi menabraknya menggagalkan seluruh periode.
-     *
-     * @return HasMany<FormPhaseDetail, $this>
-     */
-    public function formPhaseDetails(): HasMany
-    {
-        return $this->hasMany(FormPhaseDetail::class);
-    }
-
-    /**
-     * BR-FE-26 — detail yang memakai tanggal ini sebagai Batas Evaluasi.
-     *
-     * @return HasMany<FormPhaseDetail, $this>
-     */
-    public function evaluationPhaseDetails(): HasMany
-    {
-        return $this->hasMany(FormPhaseDetail::class, 'evaluation_date_id');
-    }
-
-    /**
-     * BR-FE-26 — detail yang memakai tanggal ini sebagai Batas Revisi.
-     *
-     * @return HasMany<FormPhaseDetail, $this>
-     */
-    public function revisionPhaseDetails(): HasMany
-    {
-        return $this->hasMany(FormPhaseDetail::class, 'revision_date_id');
-    }
-
-    /**
-     * BR-FE-21 — tanggal yang tidak menggerbangi detail mana pun, lewat kolom tenggat mana pun.
+     * BR-FE-21 + BR-FE-26 (ADR 0019) — tanggal yang tidak dibutuhkan langkah mana pun dari fase yang
+     * ditautkan periodenya. Tanggal yang dibutuhkan tidak boleh hilang saat periode direvisi: ia
+     * masih menggerbangi langkah itu.
      *
      * @param  Builder<SubmissionDate>  $query
      * @return Builder<SubmissionDate>
      */
-    public function scopeWithoutPhaseDetail(Builder $query): Builder
+    public function scopeUnneededByLinkedPhases(Builder $query): Builder
     {
-        return $query->whereDoesntHave('formPhaseDetails')
-            ->whereDoesntHave('evaluationPhaseDetails')
-            ->whereDoesntHave('revisionPhaseDetails');
+        return $query->whereNotExists(self::stepsNeedingIt()->selectRaw('1')->toBase());
     }
 
     /**
-     * Banyak detail yang digerbangi tanggal ini (BR-FE-07, BR-FE-26). Daftar periode memuat
-     * hitungannya sekaligus (`withCount(PHASE_DETAIL_RELATIONS)`); selain itu dimuat di sini.
-     */
-    public function phaseDetailCount(): int
-    {
-        if (!array_key_exists('form_phase_details_count', $this->getAttributes())) {
-            $this->loadCount(self::PHASE_DETAIL_RELATIONS);
-        }
-
-        return $this->form_phase_details_count
-            + $this->evaluation_phase_details_count
-            + $this->revision_phase_details_count;
-    }
-
-    /**
-     * BR-FE-17 (ADR 0014) — tenggat yang boleh dipasang ke detail tahap: milik periode yang
-     * memakai tahap itu. Tahap yang belum dipakai periode mana pun (mis. saat dibuat) boleh
-     * memakai tenggat periode yang belum ditutup paksa.
+     * Subquery banyak langkah fase tertaut yang membaca tanggal ini; dimuat sebagai
+     * `needing_step_count` (`addSelect`), juga lewat relasi `submissionDates`.
      *
-     * @param  Builder<SubmissionDate>  $query
-     * @return Builder<SubmissionDate>
+     * @return Builder<FormPhaseDetail>
      */
-    public function scopeSelectableFor(Builder $query, ?FormPhase $phase): Builder
+    public static function needingStepCount(): Builder
     {
-        if ($phase === null || !$phase->submissionPeriodPhases()->exists()) {
-            return $query->whereHas(
-                'submissionPeriod',
-                fn (Builder $period) => $period->where('is_force_closed', false),
-            );
-        }
+        return self::stepsNeedingIt()->selectRaw('count(*)');
+    }
 
-        return $query->whereIn(
-            'submission_period_id',
-            $phase->submissionPeriodPhases()->select('submission_period_id'),
-        );
+    /**
+     * Langkah fase tertaut periode tanggal ini yang membacanya lewat `SubmissionPeriod::deadlineFor`:
+     * submit/output pada jenis + siklus langkah, Batas Evaluasi dan Batas Revisi pada siklus langkah.
+     * Subquery berkorelasi ke `submission_dates`.
+     *
+     * @return Builder<FormPhaseDetail>
+     */
+    private static function stepsNeedingIt(): Builder
+    {
+        return FormPhaseDetail::query()
+            ->join('submission_period_phases', 'submission_period_phases.form_phase_id', '=', 'form_phase_details.form_phase_id')
+            ->whereColumn('submission_period_phases.submission_period_id', 'submission_dates.submission_period_id')
+            ->whereRaw('form_phase_details.deadline_cycle IS NOT DISTINCT FROM submission_dates.cycle')
+            ->where(fn (Builder $q) => $q->whereColumn('form_phase_details.deadline_type', 'submission_dates.type')
+                ->orWhereIn('submission_dates.type', [DeadlineType::Evaluation->value, DeadlineType::Revision->value]));
     }
 
     public function isPassed(): bool

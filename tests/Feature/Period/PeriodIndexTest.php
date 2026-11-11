@@ -5,9 +5,9 @@
 use App\Enums\DeadlineType;
 use App\Enums\PeriodStatus;
 use App\Models\FormPhase;
-use App\Models\FormPhaseDetail;
 use App\Models\FormSubmission;
 use App\Models\SubmissionPeriod;
+use App\Models\SubmissionPeriodPhase;
 use App\Models\User;
 use App\Support\SubmissionPeriodGate;
 use Database\Seeders\PermissionSeeder;
@@ -164,11 +164,15 @@ it('pengajuan masuk hanya menghitung induk yang terkirim', function () {
 });
 
 it('baris membawa penghalang hapus dan kunci tanggal', function () {
+    // BR-FE-26 (ADR 0019) — tanggal terkunci bila langkah fase tertaut membacanya; penghalang
+    // hapus hanya pengajuan.
+    $phase = FormPhase::create(['title' => 'Fase Kunci', 'is_active' => true]);
+    scheduleStep($phase, needsReview: false);
     $terpakai = periodWithDates(['+1 month']);
-    FormPhaseDetail::factory()->create(['submission_date_id' => $terpakai->submissionDates()->firstOrFail()->id]);
+    SubmissionPeriodPhase::create(['submission_period_id' => $terpakai->id, 'form_phase_id' => $phase->id]);
+    FormSubmission::factory()->create(['submission_period_id' => $terpakai->id]);
     $kosong = periodWithDates(['+1 month']);
 
-    // Factory FormPhaseDetail membuat periodenya sendiri, jadi baris dicari lewat id.
     $rows = [];
     $this->actingAs(periodManager())
         ->get(route('admin.submission-periods.index'))
@@ -178,7 +182,7 @@ it('baris membawa penghalang hapus dan kunci tanggal', function () {
 
     expect($rows[$kosong->id]['deleteBlockers'])->toBe([])
         ->and($rows[$terpakai->id]['dates'][0]['phaseDetailCount'])->toBe(1)
-        ->and($rows[$terpakai->id]['deleteBlockers'])->toBe([['label' => 'detail tahap yang memakai tanggalnya', 'count' => 1]]);
+        ->and($rows[$terpakai->id]['deleteBlockers'])->toBe([['label' => 'pengajuan', 'count' => 1]]);
 });
 
 it('closable mengikuti Close Early', function () {
