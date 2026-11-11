@@ -132,11 +132,14 @@ it('menampilkan semua detail tahap, termasuk detail Form lain', function () {
 });
 
 it('menyimpan ulang detail tidak mengubah jenis langkahnya', function () {
-    $detail = phaseEditDetail($this->form);
-    $detail->update(['deadline_cycle' => 1]);
+    $submission = phaseEditDetail($this->form);
+    $detail = phaseEditDetail(Form::factory()->create(), $submission->formPhase, ['deadline_cycle' => 1]);
 
     $this->actingAs(phaseEditActor())
-        ->put(route('admin.forms.phases.update', [$this->form, $detail->formPhase]), phaseEditPayload([phaseEditRow($detail)]))
+        ->put(
+            route('admin.forms.phases.update', [$this->form, $submission->formPhase]),
+            phaseEditPayload([phaseEditRow($submission), phaseEditRow($detail)]),
+        )
         ->assertSessionHasNoErrors()
         ->assertRedirect(route('admin.forms.phases.index', $this->form))
         ->assertSessionHas('success', 'Tahap diperbarui.');

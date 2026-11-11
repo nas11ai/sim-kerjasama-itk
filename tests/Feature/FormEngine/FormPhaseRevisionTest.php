@@ -26,9 +26,11 @@ beforeEach(function () {
 
     $this->phase = FormPhase::create(['title' => 'Tahap Lama', 'is_active' => true]);
     $this->kept = FormPhaseDetail::factory()->create(['form_phase_id' => $this->phase->id]);
+    // BR-FE-28 — detail kedua berform lain, jadi langkah Laporan Monev, bukan Pengajuan kedua.
     $this->dropped = FormPhaseDetail::factory()->create([
         'form_phase_id' => $this->phase->id,
         'order' => 2,
+        'deadline_cycle' => 1,
     ]);
     $this->form = $this->kept->formAccessControl?->form;
 });
@@ -96,13 +98,14 @@ it('leaves submissions pointing at a retained detail (BR-FE-20)', function () {
 });
 
 it('keeps the step kind of a retained detail (ADR 0019)', function () {
-    $this->kept->update(['deadline_cycle' => 2]);
+    $this->dropped->update(['deadline_cycle' => 2]);
 
-    reviseFormPhase(revisionPayload([revisionRow($this->kept->fresh())]))->assertSessionHasNoErrors();
+    reviseFormPhase(revisionPayload([revisionRow($this->kept), revisionRow($this->dropped->fresh())]))
+        ->assertSessionHasNoErrors();
 
-    $kept = FormPhaseDetail::query()->find($this->kept->id);
-    expect($kept?->deadline_type)->toBe(DeadlineType::Submit)
-        ->and($kept?->deadline_cycle)->toBe(2);
+    $retained = FormPhaseDetail::query()->find($this->dropped->id);
+    expect($retained?->deadline_type)->toBe(DeadlineType::Submit)
+        ->and($retained?->deadline_cycle)->toBe(2);
 });
 
 it('rejects dropping a detail still used by a submission and changes nothing (BR-FE-20)', function () {
@@ -123,7 +126,7 @@ it('deletes an unused dropped detail and creates a detail sent without id', func
         'needs_review' => true,
         // BR-FE-07 — detail baru wajib menyebut jenis tenggatnya (ADR 0019).
         'deadline_type' => 'submit',
-        'deadline_cycle' => null,
+        'deadline_cycle' => 1,
         'temp_id' => 'temp_new',
     ];
 
@@ -165,9 +168,10 @@ it('gives details of the same form the same order, numbered by first appearance'
     ]);
     unset($sibling['id']);
 
+    // Urutan kiriman (7, 5, 9) diabaikan; saudara berform sama berbagi urutan Form pengajuan.
     $rows = [
-        array_merge(revisionRow($this->dropped), ['order' => 5]),
         array_merge(revisionRow($this->kept), ['order' => 7]),
+        array_merge(revisionRow($this->dropped), ['order' => 5]),
         $sibling,
     ];
 
@@ -175,9 +179,9 @@ it('gives details of the same form the same order, numbered by first appearance'
 
     $orders = $this->phase->formPhaseDetails()->pluck('order', 'form_access_control_id');
 
-    expect($orders[$this->dropped->form_access_control_id])->toBe(1)
-        ->and($orders[$this->kept->form_access_control_id])->toBe(2)
-        ->and($orders[$sameForm->id])->toBe(2);
+    expect($orders[$this->kept->form_access_control_id])->toBe(1)
+        ->and($orders[$this->dropped->form_access_control_id])->toBe(2)
+        ->and($orders[$sameForm->id])->toBe(1);
 });
 
 it('audits the revision of a form phase (BR-RPT-09)', function () {
@@ -254,17 +258,19 @@ it('rejects changing the cycle of a detail used by a submission (BR-FE-20, K-1)'
 });
 
 it('saves a new order and needs_review on a detail used by a submission (BR-FE-20)', function () {
-    FormSubmission::factory()->create(['form_phase_detail_id' => $this->kept->id]);
+    // BR-FE-28 — Pengajuan selalu urutan 1, jadi yang berpindah urutan langkah monevnya.
+    FormSubmission::factory()->create(['form_phase_detail_id' => $this->dropped->id]);
+    $this->dropped->update(['order' => 5]);
 
     reviseFormPhase(revisionPayload([
-        revisionRow($this->dropped),
-        array_merge(revisionRow($this->kept), ['needs_review' => true]),
+        revisionRow($this->kept),
+        array_merge(revisionRow($this->dropped->fresh()), ['needs_review' => true]),
     ]))->assertSessionHasNoErrors();
 
-    $kept = $this->kept->fresh();
+    $used = $this->dropped->fresh();
 
-    expect($kept->order)->toBe(2)
-        ->and($kept->needs_review)->toBeTrue();
+    expect($used->order)->toBe(2)
+        ->and($used->needs_review)->toBeTrue();
 });
 
 it('saves a changed form on a detail no submission uses', function () {

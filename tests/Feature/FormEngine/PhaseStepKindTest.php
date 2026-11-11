@@ -20,6 +20,10 @@ beforeEach(function () {
     $this->detail = FormPhaseDetail::factory()->create();
     $this->phase = $this->detail->formPhase;
     $this->form = $this->detail->formAccessControl?->form;
+    // BR-FE-28 — langkah bersiklus memakai Form selain Form pengajuan, di belakang langkah Pengajuan.
+    $this->monev = FormPhaseDetail::factory()->create([
+        'form_phase_id' => $this->phase->id, 'order' => 2, 'deadline_cycle' => 1,
+    ]);
 });
 
 /**
@@ -47,9 +51,11 @@ function storeStepKinds(array $rows): TestResponse
 }
 
 it('menyimpan langkah dengan jenis dan siklus', function () {
-    storeStepKinds([stepKindRow($this->detail, ['deadline_cycle' => 2])])->assertSessionHasNoErrors();
+    storeStepKinds([stepKindRow($this->detail), stepKindRow($this->monev, ['deadline_cycle' => 2])])
+        ->assertSessionHasNoErrors();
 
-    $saved = FormPhase::query()->where('title', 'Tahap Jenis')->sole()->formPhaseDetails()->sole();
+    $saved = FormPhase::query()->where('title', 'Tahap Jenis')->sole()->formPhaseDetails()
+        ->where('form_access_control_id', $this->monev->form_access_control_id)->sole();
 
     expect($saved->deadline_type)->toBe(DeadlineType::Submit)
         ->and($saved->deadline_cycle)->toBe(2);
@@ -59,11 +65,14 @@ it('merevisi jenis dan siklus langkah lama', function () {
     $this->actingAs($this->admin)
         ->put(route('admin.forms.phases.update', [$this->form, $this->phase]), [
             'title' => 'Tahap Jenis', 'is_active' => true,
-            'phase_details' => [stepKindRow($this->detail, ['id' => $this->detail->id, 'deadline_cycle' => 1])],
+            'phase_details' => [
+                stepKindRow($this->detail, ['id' => $this->detail->id]),
+                stepKindRow($this->monev, ['id' => $this->monev->id, 'deadline_cycle' => 2]),
+            ],
         ])
         ->assertSessionHasNoErrors();
 
-    expect($this->detail->fresh()?->deadline_cycle)->toBe(1);
+    expect($this->monev->fresh()?->deadline_cycle)->toBe(2);
 });
 
 it('menolak langkah tanpa jenis atau dengan jenis kalender lain', function () {
@@ -78,15 +87,17 @@ it('menolak langkah tanpa jenis atau dengan jenis kalender lain', function () {
 });
 
 it('[FE-WINDOW-09] menolak Upload Luaran bersiklus atau direview', function () {
-    storeStepKinds([stepKindRow($this->detail, ['deadline_type' => 'output', 'deadline_cycle' => 1])])
-        ->assertSessionHasErrors(['phase_details.0.deadline_cycle' => 'Upload Luaran tidak bersiklus.']);
+    $submission = stepKindRow($this->detail);
 
-    storeStepKinds([stepKindRow($this->detail, ['deadline_type' => 'output', 'needs_review' => true])])
-        ->assertSessionHasErrors(['phase_details.0.needs_review' => 'Detail Upload Luaran tidak direview.']);
+    storeStepKinds([$submission, stepKindRow($this->monev, ['deadline_type' => 'output', 'deadline_cycle' => 1])])
+        ->assertSessionHasErrors(['phase_details.1.deadline_cycle' => 'Upload Luaran tidak bersiklus.']);
+
+    storeStepKinds([$submission, stepKindRow($this->monev, ['deadline_type' => 'output', 'needs_review' => true])])
+        ->assertSessionHasErrors(['phase_details.1.needs_review' => 'Detail Upload Luaran tidak direview.']);
 
     expect(FormPhase::query()->where('title', 'Tahap Jenis')->exists())->toBeFalse();
 
-    storeStepKinds([stepKindRow($this->detail, ['deadline_type' => 'output'])])->assertSessionHasNoErrors();
+    storeStepKinds([$submission, stepKindRow($this->monev, ['deadline_type' => 'output'])])->assertSessionHasNoErrors();
 });
 
 it('editor tahap mengirim jenis, siklus, dan label langkah tanpa pilihan tanggal', function () {

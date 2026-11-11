@@ -25,4 +25,10 @@ final class FormPhaseDetailInput
     {
         return ['deadline_type' => $this->deadlineType, 'deadline_cycle' => $this->deadlineCycle];
     }
+
+    /** Padanan `FormPhaseDetail::opensSubmission()` untuk masukan: `submit` tanpa siklus (BR-FE-28). */
+    public function opensSubmission(): bool
+    {
+        return $this->deadlineType === DeadlineType::Submit && $this->deadlineCycle === null;
+    }
 }
