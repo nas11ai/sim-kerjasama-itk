@@ -12,6 +12,7 @@ use App\Models\Form;
 use App\Models\FormAccessControl;
 use App\Models\FormField;
 use App\Models\FormFieldResponse;
+use App\Models\FormPhase;
 use App\Models\FormSubmission;
 use App\Models\Organization;
 use App\Models\Scheme;
@@ -234,4 +235,19 @@ it('draft periode lain tidak ditautkan', function () {
 
     expect($byPeriod[$fx['period']->id]->forms[0]->draftId)->toBe($draft->id)
         ->and($byPeriod[$other->id]->forms[0]->draftId)->toBeNull();
+});
+
+it('dua tahap ber-Form pengajuan sama di satu periode: yang ditawarkan selalu tahap tertua', function () {
+    // Pustaka fase (R2) membuat tahap mudah disalin; tanpa urutan, baris tautan menentukan pilihannya.
+    $fx = wizardFixture();
+    $copy = FormPhase::create(['title' => 'Fase Uji Salinan', 'is_active' => true]);
+    $fx['detail']->replicate()->fill(['form_phase_id' => $copy->id])->save();
+    $fx['phase']->submissionPeriodPhases()->delete();
+    wizardQueryPhaseInPeriod($fx['period']->id, $copy->id);
+    wizardQueryPhaseInPeriod($fx['period']->id, $fx['phase']->id);
+
+    $forms = ResearcherStartOptions::run($fx['user'])[0]->forms;
+
+    expect($forms)->toHaveCount(1)
+        ->and($forms[0]->formPhaseId)->toBe($fx['phase']->id);
 });

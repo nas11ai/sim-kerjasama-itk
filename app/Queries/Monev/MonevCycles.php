@@ -32,8 +32,8 @@ class MonevCycles implements ChangesNoState
     public const REPORT_SUBMITTED_AUDIT = 'Laporan monev disubmit';
 
     /**
-     * Detail dalam tahap yang sama dengan detail induk dan ber-`order` lebih besar. Detail
-     * pengajuan Form lain yang berbagi tahap (W92) berurutan lebih dulu, jadi tidak ikut.
+     * Detail tahap induk ber-`order` lebih besar. BR-FE-28: Form pengajuan selalu `order = 1`, jadi
+     * baris Pengajuan aturan akses lain tak ikut; W92 (Form lain berbagi tahap) kini ditolak Action.
      *
      * @return Collection<int, FormPhaseDetail>
      */

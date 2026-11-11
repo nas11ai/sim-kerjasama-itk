@@ -39,7 +39,7 @@ class FormPhaseController extends Controller
     // `?form=` menapis tahap yang langkah mana pun memakai Form itu; id tak dikenal 404.
     public function index(Request $request): Response
     {
-        $form = $request->filled('form') ? Form::query()->findOrFail($request->integer('form')) : null;
+        $form = $this->requestedForm($request);
 
         return Inertia::render('FormEngine/PhaseIndexPage', [
             'phases' => PhaseLibrary::run($form),
@@ -48,9 +48,10 @@ class FormPhaseController extends Controller
         ]);
     }
 
-    public function create(): Response
+    // Dari pustaka bertapis: Form itu menjadi akses bawaan langkah Pengajuan.
+    public function create(Request $request): Response
     {
-        return $this->editor(null);
+        return $this->editor(null, $this->requestedForm($request));
     }
 
     // BR-FE-07 — tahap baru belum dipakai periode mana pun; W95 — lanjut ke editornya.
@@ -108,14 +109,20 @@ class FormPhaseController extends Controller
 
     // `$phase` null = mode buat (W94); layar yang sama, state-nya di child ber-key. Form evaluasi
     // butuh detail tersimpan, jadi mode buat belum punya bagiannya (W95).
-    private function editor(?FormPhase $phase): Response
+    private function editor(?FormPhase $phase, ?Form $preferred = null): Response
     {
         return Inertia::render('FormEngine/PhaseEditPage', [
             'phase' => PhaseEdit::run($phase),
-            'accessOptions' => PhaseAccessOptions::run($phase),
+            'accessOptions' => PhaseAccessOptions::run($phase, $preferred),
             'phaseTypeOptions' => PhaseTypeOptions::run(),
             'evaluation' => $phase === null ? [] : PhaseEvaluationForms::run($phase),
             'fieldTypeOptions' => $phase === null ? [] : FieldTypeOptions::run(),
         ]);
+    }
+
+    // `?form=` = id Form; id tak dikenal 404.
+    private function requestedForm(Request $request): ?Form
+    {
+        return $request->filled('form') ? Form::query()->findOrFail($request->integer('form')) : null;
     }
 }

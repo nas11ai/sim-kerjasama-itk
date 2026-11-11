@@ -134,7 +134,8 @@ it('[FE-PHASE-05] keeps a used phase from gaining a second submission form', fun
     expect(fn () => ReviseFormPhase::run($phase, phaseInput([
         new FormPhaseDetailInput($step->id, $step->form_access_control_id, $this->phaseTypeId, false, DeadlineType::Submit, null),
         phaseStep(libraryAccess('Pengajuan Pengmas')),
-    ]), $this->admin))->toThrow(ValidationException::class);
+    ]), $this->admin))->toThrow(fn (ValidationException $e) => expect($e->errors()['phase_details'][0] ?? null)
+        ->toBe('Satu tahap hanya untuk satu Form pengajuan: Pengajuan Penelitian, Pengajuan Pengmas. Buat tahap terpisah untuk tiap Form.'));
 
     expect($phase->formPhaseDetails()->count())->toBe(1)
         ->and($revisions())->toBe(0);

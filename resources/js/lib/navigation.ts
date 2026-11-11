@@ -19,6 +19,7 @@ import {
     SquarePlus,
     User,
     Users,
+    Workflow,
     type LucideIcon,
 } from 'lucide-vue-next'
 
@@ -218,7 +219,7 @@ export const navGroups: NavGroup[] = [
             {
                 // R2 — pustaka fase: tahap mandiri yang dipakai banyak periode.
                 label: 'Fase',
-                icon: Layers,
+                icon: Workflow,
                 routeName: 'admin.phases.index',
                 activePattern: 'admin.phases.*',
                 anyPermission: ['schemes.manage'],

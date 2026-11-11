@@ -80,7 +80,7 @@ Feature: Jendela Kerja Tiap Tahap
   Scenario: [FE-WINDOW-08] Langkah yang direview di periode tanpa Batas Evaluasi siklusnya muncul sebagai celah jadwal fase
     Given fase "Penelitian" punya langkah Pengajuan ber-needs_review
     And fase itu ditautkan ke periode "Periode A" yang hanya punya "Batas Submit"
-    When admin membuka tab Phases form itu
+    When admin membuka pustaka fase
     Then kartu fase "Penelitian" menyebut "Periode Periode A belum punya 1 tanggal yang dibutuhkan tahap ini."
     And celah jadwal periode itu memuat "Batas Evaluasi" langkah 1
 

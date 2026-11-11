@@ -107,10 +107,11 @@ it('wewenang: operator 403', function () {
     expect($own->formPhase?->fresh()?->title)->toBe('Fase Uji Factory');
 });
 
-it('menampilkan semua detail tahap, termasuk detail Form lain', function () {
+it('menampilkan semua detail tahap, termasuk langkah monev Form lain', function () {
     $first = phaseEditDetail($this->form);
     $other = Form::factory()->create(['title' => 'Form Laporan Lain']);
-    $second = phaseEditDetail($other, $first->formPhase);
+    // BR-FE-28 — Form lain di tahap ini hanya sebagai Laporan Monev, bukan Pengajuan kedua.
+    $second = phaseEditDetail($other, $first->formPhase, ['order' => 2, 'deadline_cycle' => 1]);
     FormSubmission::factory()->count(2)->create(['form_phase_detail_id' => $second->id]);
 
     $this->actingAs(phaseEditActor())
@@ -222,6 +223,21 @@ it('offers access rules of every active form, ordered by form title', function (
         ->assertInertia(fn (AssertableInertia $page) => $page
             ->where('accessOptions', fn ($options) => collect($options)->pluck('formTitle')->all()
                 === ['Alpha Penelitian', 'Zeta Pengabdian']));
+});
+
+it('create editor opened from a Form puts that Form first so its rule is the default', function () {
+    $zeta = Form::factory()->create(['title' => 'Zeta Pengabdian']);
+    $alpha = Form::factory()->create(['title' => 'Alpha Penelitian']);
+    phaseEditDetail($zeta);
+    phaseEditDetail($alpha);
+
+    $this->actingAs(phaseEditActor())
+        ->get(route('admin.phases.create', ['form' => $zeta->id]))
+        ->assertInertia(fn (AssertableInertia $page) => $page
+            ->where('accessOptions', fn ($options) => collect($options)->pluck('formTitle')->all()
+                === ['Zeta Pengabdian', 'Alpha Penelitian']));
+
+    $this->get(route('admin.phases.create', ['form' => 999999]))->assertNotFound();
 });
 
 it('renders the create editor with no access options', function () {

@@ -42,7 +42,12 @@ const emptyTitle = computed(() =>
         <PageHeader title="Fase" subtitle="Pustaka tahap yang bisa dipakai banyak periode.">
             <template #actions>
                 <Button as-child>
-                    <Link :href="route('admin.phases.create')"
+                    <Link
+                        :href="
+                            filterForm
+                                ? route('admin.phases.create', { form: filterForm.id })
+                                : route('admin.phases.create')
+                        "
                         ><Plus class="size-4" />Buat Tahap Baru</Link
                     >
                 </Button>

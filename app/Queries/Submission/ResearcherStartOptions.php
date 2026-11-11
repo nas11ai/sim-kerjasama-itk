@@ -33,6 +33,9 @@ class ResearcherStartOptions implements ChangesNoState
         $periods = SubmissionPeriod::query()
             ->with([
                 'submissionDates',
+                // Dua tahap pustaka ber-Form pengajuan sama di satu periode: tahap tertua yang
+                // ditawarkan, tidak bergantung urutan baris tautan (R2).
+                'submissionPeriodPhases' => fn (Relation $q) => $q->orderBy('form_phase_id'),
                 'submissionPeriodPhases.formPhase.formPhaseDetails' => fn (Relation $q) => $q
                     ->whereIn('form_access_control_id', FormAccessControl::query()->accessibleBy($user)->select('id'))
                     ->orderBy('order')
