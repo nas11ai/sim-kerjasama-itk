@@ -51,7 +51,11 @@ gelombang, bukan per task.
 | G2 | R3 + R4 — Form Evaluasi mandiri & berversi, aksi terapkan versi | 2–3 | Kam 12 – Jum 13 Nov |
 | G3 | R5 + R6 — struktur fase berversi, Draf → Pratinjau → Terbitkan | 3 | Sab 14 – Sen 16 Nov |
 | G4 | R7 + R8 — rekam teks saat submit, cek kesiapan angkatan | 1–2 | Sel 17 Nov |
-| — | Cadangan untuk temuan review & gate | 2 | sampai Selasa 24 Nov |
+| — | Cadangan untuk temuan review & gate — isi `2026-11-11-fase-reuse-catatan-bug.md` | 2 | sampai Selasa 24 Nov |
+
+**Catatan bug (pemilik 2026-11-11):** temuan yang tidak langsung diperbaiki di gelombangnya dicatat di
+`docs/plans/2026-11-11-fase-reuse-catatan-bug.md`, tidak dilaporkan sepotong-sepotong. Isinya dikerjakan
+sekaligus di awal sesi berikutnya atau di slot Cadangan.
 
 **Keputusan pemilik 2026-11-10 (sesudah jadwal dipadatkan):**
 - Semua perubahan DDD/ADR di §6 spec **disetujui sekaligus**. Task dokumen tiap gelombang langsung dikerjakan
