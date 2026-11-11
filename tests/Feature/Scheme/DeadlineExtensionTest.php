@@ -243,7 +243,7 @@ it('[SCH-RULE-12] Batas Evaluasi yang dimundurkan langsung berlaku bagi reviewer
 
     $baru = now()->addMonth()->startOfSecond();
     ExtendSubmissionDates::run($fx['period']->fresh(), [
-        new PeriodDateInput(DeadlineType::Submit, null, $fx['detail']->submissionDate->datetime->toDateTimeString()),
+        new PeriodDateInput(DeadlineType::Submit, null, stepDate($fx['detail'])->datetime->toDateTimeString()),
         new PeriodDateInput(DeadlineType::Evaluation, null, $baru->toDateTimeString()),
     ]);
 
@@ -260,7 +260,7 @@ it('[SCH-RULE-12] tenggat penugasan yang disetel tangan tidak ditimpa pergeseran
     $fx['assignment']->update(['due_date' => $tangan]);
 
     ExtendSubmissionDates::run($fx['period']->fresh(), [
-        new PeriodDateInput(DeadlineType::Submit, null, $fx['detail']->submissionDate->datetime->toDateTimeString()),
+        new PeriodDateInput(DeadlineType::Submit, null, stepDate($fx['detail'])->datetime->toDateTimeString()),
         new PeriodDateInput(DeadlineType::Evaluation, null, now()->addMonth()->toDateTimeString()),
     ]);
 

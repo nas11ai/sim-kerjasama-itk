@@ -47,7 +47,6 @@ use App\Support\Audit\AuditTrail;
 use Database\Seeders\PermissionSeeder;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Carbon;
-use Illuminate\Support\Facades\DB;
 use Spatie\Permission\Models\Permission;
 
 /**
@@ -92,7 +91,7 @@ function buildAccessibleFormPhaseDetail(User $user, Organization $organization, 
 {
     $phaseType = PhaseType::create(['name' => 'Tipe Fase '.fake()->unique()->numerify('####-####')]);
     $period = SubmissionPeriod::factory()->create();
-    $submissionDate = SubmissionDate::create([
+    SubmissionDate::create([
         'type' => DeadlineType::Submit,
         'datetime' => now()->addWeek(),
         'submission_period_id' => $period->id,
@@ -103,7 +102,7 @@ function buildAccessibleFormPhaseDetail(User $user, Organization $organization, 
         'form_access_control_id' => $accessControl->id,
         'phase_type_id' => $phaseType->id,
         'order' => 1,
-        'submission_date_id' => $submissionDate->id,
+        'deadline_type' => DeadlineType::Submit,
     ]);
     // R1-W2 — pengajuan baru mensyaratkan fase tertaut periode (submission_period_phases).
     SubmissionPeriodPhase::query()->firstOrCreate(['submission_period_id' => $period->id, 'form_phase_id' => $formPhase->id]);
@@ -230,17 +229,14 @@ function outputUploadFixture(string $deadline = '2026-12-01 23:59:00'): array
 {
     $fx = wizardFixture();
 
+    calendarDate($fx['period'], DeadlineType::Output, $deadline);
     $outputDetail = FormPhaseDetail::create([
         'form_phase_id' => $fx['phase']->id,
         'form_access_control_id' => $fx['detail']->form_access_control_id,
         'phase_type_id' => $fx['detail']->phase_type_id,
         'order' => $fx['detail']->order + 6,
         'needs_review' => false,
-        'submission_date_id' => SubmissionDate::create([
-            'type' => DeadlineType::Output,
-            'datetime' => $deadline,
-            'submission_period_id' => $fx['period']->id,
-        ])->id,
+        'deadline_type' => DeadlineType::Output,
     ]);
 
     $submission = FormSubmission::factory()->create([
@@ -273,20 +269,22 @@ function outputInput(string $type, array $metadata = [], int $files = 0): Resear
 
 /**
  * BR-FE-26 (ADR 0019) — semua langkah satu fase membaca satu kalender periode: tanggalnya masuk
- * periode langkah pertama fase itu (periode baru bila fasenya belum punya langkah).
+ * periode pertama yang menautkan fase itu (periode baru bila belum tertaut).
  */
 function monevDetail(FormPhase $phase, int $order, string $label, bool $needsReview = false, string $when = '+1 month'): FormPhaseDetail
 {
-    $periodId = FormPhaseDetail::query()->where('form_phase_id', $phase->id)->orderBy('id')
-        ->first()?->submissionDate?->submission_period_id ?? SubmissionPeriod::factory()->create()->id;
-    $date = SubmissionDate::query()->firstOrCreate(
-        [...deadlineTypeOf($label), 'submission_period_id' => $periodId],
+    $period = SubmissionPeriodPhase::query()->where('form_phase_id', $phase->id)->orderBy('id')
+        ->first()?->submissionPeriod ?? SubmissionPeriod::factory()->create();
+    $kind = deadlineTypeOf($label);
+    SubmissionDate::query()->firstOrCreate(
+        [...$kind, 'submission_period_id' => $period->id],
         ['datetime' => now()->modify($when)],
     );
 
-    return FormPhaseDetail::factory()->create([
+    return FormPhaseDetail::factory()->forPeriod($period)->create([
         'form_phase_id' => $phase->id,
-        'submission_date_id' => $date->id,
+        'deadline_type' => $kind['type'],
+        'deadline_cycle' => $kind['cycle'],
         'order' => $order,
         'needs_review' => $needsReview,
     ]);
@@ -465,17 +463,11 @@ function phaseSharedByTwoPeriods(string $tag, bool $needsReview = false): array
 
     $periodA = SubmissionPeriod::create(['name' => "Periode A {$tag}"]);
     $dueA = now()->addDays(5)->startOfSecond();
-    $dateA = SubmissionDate::create([
-        'type' => DeadlineType::Submit,
-        'datetime' => $dueA,
-        'submission_period_id' => $periodA->id,
-    ]);
-    // BR-FE-26 — detail yang direview memegang Batas Evaluasi dari periode yang sama.
-    $evaluationA = $needsReview ? SubmissionDate::create([
-        'type' => DeadlineType::Evaluation,
-        'datetime' => $dueA,
-        'submission_period_id' => $periodA->id,
-    ]) : null;
+    calendarDate($periodA, DeadlineType::Submit, $dueA);
+    // BR-FE-26 — langkah yang direview membaca Batas Evaluasi dari kalender periode yang sama.
+    if ($needsReview) {
+        calendarDate($periodA, DeadlineType::Evaluation, $dueA);
+    }
 
     $periodB = SubmissionPeriod::create(['name' => "Periode B {$tag}"]);
     $dueB = now()->addDays(20)->startOfSecond();
@@ -485,18 +477,17 @@ function phaseSharedByTwoPeriods(string $tag, bool $needsReview = false): array
         'submission_period_id' => $periodB->id,
     ]);
 
-    DB::table('submission_period_phases')->insert([
-        'submission_period_id' => $periodB->id,
-        'form_phase_id' => $formPhase->id,
-    ]);
+    // ADR 0019 — kedua periode menautkan fasenya; A lebih dulu, jadi pabrik pengajuan memilih A.
+    foreach ([$periodA, $periodB] as $period) {
+        SubmissionPeriodPhase::create(['submission_period_id' => $period->id, 'form_phase_id' => $formPhase->id]);
+    }
 
     $detail = FormPhaseDetail::create([
         'form_phase_id' => $formPhase->id,
         'form_access_control_id' => $accessControl->id,
         'phase_type_id' => $phaseType->id,
         'order' => 1,
-        'submission_date_id' => $dateA->id,
-        'evaluation_date_id' => $evaluationA?->id,
+        'deadline_type' => DeadlineType::Submit,
         'needs_review' => $needsReview,
     ]);
 
@@ -524,14 +515,14 @@ function phaseWithOwnEvaluationDeadline(string $tag): array
     $period = SubmissionPeriod::create(['name' => "Periode {$tag}"]);
 
     $dueSubmit = now()->addDays(3)->startOfSecond();
-    $submitDate = SubmissionDate::create([
+    SubmissionDate::create([
         'type' => DeadlineType::Submit,
         'datetime' => $dueSubmit,
         'submission_period_id' => $period->id,
     ]);
 
     $dueEvaluation = now()->addDays(17)->startOfSecond();
-    $evaluationDate = SubmissionDate::create([
+    SubmissionDate::create([
         'type' => DeadlineType::Evaluation,
         'datetime' => $dueEvaluation,
         'submission_period_id' => $period->id,
@@ -545,13 +536,13 @@ function phaseWithOwnEvaluationDeadline(string $tag): array
         'submission_period_id' => $period->id,
     ]);
 
+    SubmissionPeriodPhase::create(['submission_period_id' => $period->id, 'form_phase_id' => $formPhase->id]);
     $submitDetail = FormPhaseDetail::create([
         'form_phase_id' => $formPhase->id,
         'form_access_control_id' => $accessControl->id,
         'phase_type_id' => PhaseType::create(['name' => "Tipe Pengajuan {$tag}"])->id,
         'order' => 1,
-        'submission_date_id' => $submitDate->id,
-        'evaluation_date_id' => $evaluationDate->id,
+        'deadline_type' => DeadlineType::Submit,
         'needs_review' => true,
     ]);
 
@@ -667,15 +658,13 @@ function threadAuthorFixture(string $status = UnderReview::class): array
 function reviewedDetailFixture(string $submit, string $evaluation, ?string $revision = null): array
 {
     $period = SubmissionPeriod::factory()->create(['is_force_closed' => false]);
-    $date = fn (DeadlineType $type, ?string $at): ?int => $at === null ? null : SubmissionDate::create([
-        'type' => $type, 'datetime' => $at, 'submission_period_id' => $period->id,
-    ])->id;
-    $detail = FormPhaseDetail::factory()->create([
-        'needs_review' => true,
-        'submission_date_id' => $date(DeadlineType::Submit, $submit),
-        'evaluation_date_id' => $date(DeadlineType::Evaluation, $evaluation),
-        'revision_date_id' => $date(DeadlineType::Revision, $revision),
-    ]);
+    // ADR 0019 — tiga tanggal kerja langkah ini ada di kalender periodenya (BR-FE-26).
+    foreach ([[DeadlineType::Submit, $submit], [DeadlineType::Evaluation, $evaluation], [DeadlineType::Revision, $revision]] as [$type, $at]) {
+        if ($at !== null) {
+            calendarDate($period, $type, $at);
+        }
+    }
+    $detail = FormPhaseDetail::factory()->forPeriod($period)->create(['needs_review' => true]);
     $form = ReviewEvaluationForm::create([
         'title' => 'Form Substansi', 'form_phase_detail_id' => $detail->id,
         'is_active' => true, 'is_required' => true, 'order' => 1,
@@ -817,4 +806,16 @@ function readyForDecision(): FormSubmission
     finishSeat(reviewerOn($submission, 'completed'));
 
     return $submission->refresh();
+}
+
+/**
+ * ADR 0019 — tanggal yang dibaca langkah di kalender periode (default: periode pertama yang
+ * menautkan fasenya), lewat satu pintu `SubmissionPeriod::deadlineFor`.
+ */
+function stepDate(FormPhaseDetail $step, ?SubmissionPeriod $period = null, ?DeadlineType $type = null): SubmissionDate
+{
+    $period ??= SubmissionPeriodPhase::query()->where('form_phase_id', $step->form_phase_id)->orderBy('id')
+        ->firstOrFail()->submissionPeriod;
+
+    return $period?->deadlineFor($step, $type ?? $step->deadline_type) ?? throw new RuntimeException('Langkah tidak punya tanggal di kalender periode ini.');
 }

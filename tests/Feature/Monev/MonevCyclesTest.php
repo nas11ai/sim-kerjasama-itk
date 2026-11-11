@@ -158,7 +158,7 @@ it('siklus lewat batas berstatus closed', function () {
     expect($cycles[0]->state)->toBe(MonevCycleState::Closed)
         ->and($cycles[0]->blockedReason)
         ->toBe('Batas waktu Monev I sudah lewat. Hubungi Operator LPPM bila membutuhkan perpanjangan.')
-        ->and($cycles[0]->deadline)->toBe($fx['monev1']->submissionDate->datetime->toIso8601String());
+        ->and($cycles[0]->deadline)->toBe(stepDate($fx['monev1'])->datetime->toIso8601String());
 });
 
 it('[MON-CYCLE-09] override yang berlaku membuat siklus tertutup kembali open', function () {

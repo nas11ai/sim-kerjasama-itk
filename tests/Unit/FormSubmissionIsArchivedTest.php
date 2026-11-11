@@ -53,7 +53,7 @@ it('returns false for draft submission with active period', function () {
         'form_phase_id' => $formPhase->id,
         'form_access_control_id' => $formAccessControl->id,
         'phase_type_id' => $phaseType->id,
-        'submission_date_id' => $submissionDate->id,
+        'deadline_type' => DeadlineType::Submit,
         'order' => 1,
     ]);
 
@@ -106,7 +106,7 @@ it('returns true for draft submission with force closed period', function () {
         'form_phase_id' => $formPhase->id,
         'form_access_control_id' => $formAccessControl->id,
         'phase_type_id' => $phaseType->id,
-        'submission_date_id' => $submissionDate->id,
+        'deadline_type' => DeadlineType::Submit,
         'order' => 1,
     ]);
 
@@ -167,7 +167,7 @@ it('returns true for draft submission when all submission dates are in the past'
         'form_phase_id' => $formPhase->id,
         'form_access_control_id' => $formAccessControl->id,
         'phase_type_id' => $phaseType->id,
-        'submission_date_id' => $date1->id,
+        'deadline_type' => DeadlineType::Submit,
         'order' => 1,
     ]);
 
@@ -220,7 +220,7 @@ it('returns false for submitted submission regardless of period state', function
         'form_phase_id' => $formPhase->id,
         'form_access_control_id' => $formAccessControl->id,
         'phase_type_id' => $phaseType->id,
-        'submission_date_id' => $submissionDate->id,
+        'deadline_type' => DeadlineType::Submit,
         'order' => 1,
     ]);
 

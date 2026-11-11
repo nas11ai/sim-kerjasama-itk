@@ -101,7 +101,6 @@ it('lets the active reviewer start an evaluation form, due on the Batas Evaluasi
     // Tanggal terakhir periode (+30, Batas Revisi) milik tahap lain; reviewer memakai Batas Evaluasi.
     $evaluation = SubmissionDate::create(['type' => DeadlineType::Evaluation, 'datetime' => now()->addDays(20), 'submission_period_id' => $this->period->id]);
     SubmissionDate::create(['type' => DeadlineType::Revision, 'datetime' => now()->addDays(30), 'submission_period_id' => $this->period->id]);
-    $this->submission->formPhaseDetail->update(['evaluation_date_id' => $evaluation->id]);
 
     $this->actingAs($this->reviewerUser)
         ->post(route('reviewer.evaluation-form.start'), [

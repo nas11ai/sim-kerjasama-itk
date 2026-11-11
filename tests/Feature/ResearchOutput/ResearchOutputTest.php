@@ -340,7 +340,7 @@ it('Operator seeder memegang outputs.manage', function () {
 function approvedLongAgo(string $deadline = '2026-12-01 23:59:00'): array
 {
     $fx = outputUploadFixture($deadline);
-    $fx['detail']->submissionDate->update(['datetime' => '2026-06-01 23:59:00']);
+    stepDate($fx['detail'])->update(['datetime' => '2026-06-01 23:59:00']);
     outputType('publication');
 
     return $fx;

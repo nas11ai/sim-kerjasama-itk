@@ -24,9 +24,8 @@ beforeEach(function () {
     $fx = monevFormFixture();
     $fx['owner']->assignRole('researcher');
 
-    // Batas Submit induk dan Batas Laporan Monev I berada di periode yang sama.
-    $this->period = SubmissionPeriod::query()->findOrFail($fx['pengajuan']->submissionDate->submission_period_id);
-    $fx['monev1']->submissionDate->update(['submission_period_id' => $this->period->id]);
+    // Batas Submit induk dan Batas Laporan Monev I berada di kalender periode yang sama (ADR 0019).
+    $this->period = SubmissionPeriod::query()->findOrFail(stepDate($fx['pengajuan'])->submission_period_id);
     $fx['parent']->update(['submission_period_id' => $this->period->id]);
 
     $this->fx = $fx;

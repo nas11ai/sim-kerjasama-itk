@@ -73,7 +73,7 @@ it('revoke sets is_active to false', function () {
         'form_phase_id' => $formPhase->id,
         'form_access_control_id' => $formAccessControl->id,
         'phase_type_id' => $phaseType->id,
-        'submission_date_id' => $submissionDate->id,
+        'deadline_type' => DeadlineType::Submit,
         'order' => 1,
     ]);
 

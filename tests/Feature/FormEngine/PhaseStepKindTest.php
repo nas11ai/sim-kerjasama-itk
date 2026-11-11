@@ -52,10 +52,7 @@ it('menyimpan langkah dengan jenis dan siklus', function () {
     $saved = FormPhase::query()->where('title', 'Tahap Jenis')->sole()->formPhaseDetails()->sole();
 
     expect($saved->deadline_type)->toBe(DeadlineType::Submit)
-        ->and($saved->deadline_cycle)->toBe(2)
-        ->and($saved->submission_date_id)->toBeNull()
-        ->and($saved->evaluation_date_id)->toBeNull()
-        ->and($saved->revision_date_id)->toBeNull();
+        ->and($saved->deadline_cycle)->toBe(2);
 });
 
 it('merevisi jenis dan siklus langkah lama', function () {

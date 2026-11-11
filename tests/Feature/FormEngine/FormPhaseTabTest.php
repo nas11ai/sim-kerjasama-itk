@@ -69,14 +69,16 @@ it('hanya tahap yang detailnya memakai aturan akses Form ini (W92)', function ()
 });
 
 it('menghitung detail, periode, dan pengajuan per tahap', function () {
-    $first = phaseTabDetail($this->form);
-    $phase = $first->formPhase;
+    // Fase eksplisit: fase bawaan pabrik langkah sudah tertaut periode ujinya sendiri.
+    $phase = FormPhase::create(['title' => 'Fase Hitung', 'is_active' => true]);
+    $first = phaseTabDetail($this->form, $phase);
     $second = phaseTabDetail($this->form, $phase);
     $period = SubmissionPeriod::create(['name' => 'Penelitian DIPA 2026']);
     SubmissionPeriodPhase::create(['submission_period_id' => $period->id, 'form_phase_id' => $phase->id]);
     FormSubmission::factory()->count(2)->create(['form_phase_detail_id' => $first->id]);
     FormSubmission::factory()->create(['form_phase_detail_id' => $second->id]);
-    $bare = phaseTabDetail($this->form)->formPhase;
+    $bare = FormPhase::create(['title' => 'Fase Polos', 'is_active' => true]);
+    phaseTabDetail($this->form, $bare);
 
     $this->actingAs(phaseTabActor())
         ->get(route('admin.forms.phases.index', $this->form))
@@ -94,8 +96,8 @@ it('menghitung detail, periode, dan pengajuan per tahap', function () {
 });
 
 it('nama periode terurut dan tahap nonaktif tetap terdaftar', function () {
-    $phase = phaseTabDetail($this->form)->formPhase;
-    $phase->update(['is_active' => false]);
+    $phase = FormPhase::create(['title' => 'Fase Nonaktif', 'is_active' => false]);
+    phaseTabDetail($this->form, $phase);
     foreach (['Zeta', 'Alfa'] as $name) {
         $period = SubmissionPeriod::create(['name' => $name]);
         SubmissionPeriodPhase::create(['submission_period_id' => $period->id, 'form_phase_id' => $phase->id]);

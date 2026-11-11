@@ -11,7 +11,6 @@ use App\Enums\DeadlineType;
 use App\Models\Form;
 use App\Models\FormAccessControl;
 use App\Models\FormPhaseDetail;
-use App\Models\SubmissionDate;
 use App\Models\SubmissionPeriodPhase;
 use App\Queries\Submission\AccessibleFormPhaseDetail;
 use App\Queries\Submission\ResearcherStartOptions;
@@ -33,18 +32,15 @@ function monevCycleStartFixture(): array
         'organization_id' => $fx['user']->userProfile->organization_id,
     ]);
 
+    calendarDate($fx['period'], DeadlineType::Submit, now()->addMonths(6), cycle: 1);
     $cycleDetail = FormPhaseDetail::create([
         'form_phase_id' => $fx['phase']->id,
         'form_access_control_id' => $control->id,
         'phase_type_id' => $fx['detail']->phase_type_id,
         'order' => $fx['detail']->order + 2,
         'needs_review' => true,
-        'submission_date_id' => SubmissionDate::create([
-            'type' => DeadlineType::Submit,
-            'cycle' => 1,
-            'datetime' => now()->addMonths(6),
-            'submission_period_id' => $fx['period']->id,
-        ])->id,
+        'deadline_type' => DeadlineType::Submit,
+        'deadline_cycle' => 1,
     ]);
 
     return [...$fx, 'monevForm' => $form, 'cycleDetail' => $cycleDetail];

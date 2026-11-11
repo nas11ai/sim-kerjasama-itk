@@ -32,13 +32,12 @@ function linkPhase(): FormPhase
     return FormPhase::create(['title' => 'Tahap Uji', 'is_active' => true]);
 }
 
-/** Detail di tahap $phase yang aturan aksesnya milik $form; Batas Submit-nya milik $period. */
-function linkDetail(Form $form, FormPhase $phase, SubmissionPeriod $period): FormPhaseDetail
+/** Detail di tahap $phase yang aturan aksesnya milik $form; tautan ke periode dibuat tiap test. */
+function linkDetail(Form $form, FormPhase $phase): FormPhaseDetail
 {
     $detail = FormPhaseDetail::factory()->create();
     $detail->formAccessControl?->update(['form_id' => $form->id]);
-    $date = $period->submissionDates()->firstOrFail();
-    $detail->update(['form_phase_id' => $phase->id, 'submission_date_id' => $date->id]);
+    $detail->update(['form_phase_id' => $phase->id]);
 
     return $detail;
 }
@@ -73,7 +72,8 @@ function linkUrl(Form $form, FormPhase $phase): string
 
 it('menautkan tahap ke periode terbuka mengaudit', function () {
     $phase = linkPhase();
-    linkDetail($this->form, $phase, linkPeriodNamed('P1'));
+    linkPeriodNamed('P1');
+    linkDetail($this->form, $phase);
     // BR-FE-26 (ADR 0019) — P2 belum punya Batas Submit yang dibaca langkah tahap ini.
     $p2 = SubmissionPeriod::create(['name' => 'P2']);
 
@@ -89,7 +89,7 @@ it('menautkan tahap ke periode terbuka mengaudit', function () {
 it('pesan biasa bila kalender periode sudah memuat tanggal yang dibutuhkan', function () {
     $phase = linkPhase();
     $p1 = linkPeriodNamed('P1');
-    linkDetail($this->form, $phase, $p1);
+    linkDetail($this->form, $phase);
 
     $this->actingAs($this->admin)
         ->post(linkUrl($this->form, $phase), ['submission_period_id' => $p1->id])
@@ -99,7 +99,7 @@ it('pesan biasa bila kalender periode sudah memuat tanggal yang dibutuhkan', fun
 it('periode yang ditutup paksa atau sudah tertaut ditolak dan tidak ditawarkan', function () {
     $phase = linkPhase();
     $p1 = linkPeriodNamed('P1');
-    linkDetail($this->form, $phase, $p1);
+    linkDetail($this->form, $phase);
     SubmissionPeriodPhase::create(['submission_period_id' => $p1->id, 'form_phase_id' => $phase->id]);
     $closed = linkPeriodNamed('Ditutup', forceClosed: true);
     $over = linkPeriodNamed('Lewat');
@@ -119,7 +119,8 @@ it('periode yang ditutup paksa atau sudah tertaut ditolak dan tidak ditawarkan',
 
 it('periode yang belum tertaut ditawarkan terurut nama', function () {
     $phase = linkPhase();
-    linkDetail($this->form, $phase, linkPeriodNamed('Zeta'));
+    linkPeriodNamed('Zeta');
+    linkDetail($this->form, $phase);
     linkPeriodNamed('Alfa');
 
     $this->actingAs($this->admin);
@@ -131,8 +132,8 @@ it('kartu menyebut tanggal yang belum ada di kalender periode tertaut', function
     $phase = linkPhase();
     $p1 = linkPeriodNamed('P1');
     $p2 = SubmissionPeriod::create(['name' => 'P2']);
-    linkDetail($this->form, $phase, $p1);
-    linkDetail($this->form, $phase, $p1);
+    linkDetail($this->form, $phase);
+    linkDetail($this->form, $phase);
     SubmissionPeriodPhase::create(['submission_period_id' => $p1->id, 'form_phase_id' => $phase->id]);
     SubmissionPeriodPhase::create(['submission_period_id' => $p2->id, 'form_phase_id' => $phase->id]);
     $url = route('admin.forms.phases.index', $this->form);
@@ -151,7 +152,7 @@ it('kartu menyebut tanggal yang belum ada di kalender periode tertaut', function
 it('kartu tidak memperingatkan periode yang sudah tutup sepenuhnya', function () {
     $phase = linkPhase();
     $p1 = linkPeriodNamed('P1');
-    $detail = linkDetail($this->form, $phase, $p1);
+    $detail = linkDetail($this->form, $phase);
     // Langkah Monev I membaca tanggal yang tidak pernah diisi di P1, tetapi P1 sudah lewat.
     $detail->update(['deadline_cycle' => 1]);
     $p1->submissionDates()->update(['datetime' => now()->subDay()]);
@@ -164,7 +165,8 @@ it('kartu tidak memperingatkan periode yang sudah tutup sepenuhnya', function ()
 
 it('wewenang: operator 403 (schemes.manage), pengguna schemes.manage tanpa periods.manage 403', function () {
     $phase = linkPhase();
-    linkDetail($this->form, $phase, linkPeriodNamed('P1'));
+    linkPeriodNamed('P1');
+    linkDetail($this->form, $phase);
     $p2 = linkPeriodNamed('P2');
     $operator = User::factory()->create();
     $operator->assignRole('operator');
@@ -183,7 +185,8 @@ it('wewenang: operator 403 (schemes.manage), pengguna schemes.manage tanpa perio
 it('tahap milik Form lain lewat URL: 404', function () {
     $other = Form::factory()->create();
     $phase = linkPhase();
-    linkDetail($other, $phase, linkPeriodNamed('P1'));
+    linkPeriodNamed('P1');
+    linkDetail($other, $phase);
     $p2 = linkPeriodNamed('P2');
 
     $this->actingAs($this->admin)

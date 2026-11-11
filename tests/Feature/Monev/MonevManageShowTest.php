@@ -237,7 +237,7 @@ it('[MON-REVIEW-15] anggota tim induk tidak bisa menjadi reviewer laporan monev'
 
 it('perpanjang tenggat laporan membuka kembali siklus tertutup', function () {
     $fx = monevFixture();
-    $fx['monev1']->submissionDate->update(['datetime' => now()->subDay()]);
+    stepDate($fx['monev1'])->update(['datetime' => now()->subDay()]);
     $operator = monevManager();
     openCycle($operator, $fx, 'monev1');
     $laporan = monevReportOf($fx, 'monev1');

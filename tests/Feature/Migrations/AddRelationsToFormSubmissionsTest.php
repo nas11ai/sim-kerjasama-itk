@@ -10,19 +10,7 @@ use App\Models\FormPhaseDetail;
 use App\Models\FormSubmission;
 use App\Models\Organization;
 use App\Models\PhaseType;
-use App\Models\SubmissionDate;
-use App\Models\SubmissionPeriod;
-use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
-
-function createSubmissionDate(int $periodId): int
-{
-    return SubmissionDate::create([
-        'type' => DeadlineType::Submit,
-        'datetime' => now(),
-        'submission_period_id' => $periodId,
-    ])->id;
-}
 
 // tests/Pest.php sudah menerapkan TestCase + RefreshDatabase ke seluruh
 // folder Feature, jadi tidak perlu memanggil uses() lagi di sini.
@@ -52,43 +40,9 @@ it('defaults last_completed_step to zero', function () {
     expect($submission->fresh()->last_completed_step)->toBe(0);
 });
 
-it('backfills form_phase_detail_id and submission_period_id when the mapping is unambiguous', function () {
-    $form = Form::factory()->create();
-    $organization = Organization::create(['name' => 'Fakultas Uji Backfill', 'type' => 'faculty']);
-    $accessControl = FormAccessControl::create([
-        'form_id' => $form->id,
-        'permission' => 'submissions.create',
-        'organization_id' => $organization->id,
-    ]);
-    $phaseType = PhaseType::create(['name' => 'Tipe Fase Uji Backfill']);
-    $formPhase = FormPhase::create(['title' => 'Fase Uji Backfill', 'is_active' => true]);
-    $period = SubmissionPeriod::create(['name' => 'Periode Uji Backfill']);
-    $submissionDateId = createSubmissionDate($period->id);
-    $phaseDetail = FormPhaseDetail::create([
-        'form_phase_id' => $formPhase->id,
-        'form_access_control_id' => $accessControl->id,
-        'phase_type_id' => $phaseType->id,
-        'order' => 1,
-        'submission_date_id' => $submissionDateId,
-    ]);
-
-    $submission = FormSubmission::factory()->create(['form_id' => $form->id]);
-
-    $migration = require database_path('migrations/2026_08_17_000001_add_relations_to_form_submissions.php');
-    // Constraint periode-wajib (2026_11_12_100000) belum ada saat migrasi ini berjalan; backfill-nya
-    // mengisi langkah lebih dulu lalu periode. DDL di PostgreSQL ikut ter-rollback RefreshDatabase.
-    DB::statement('ALTER TABLE form_submissions DROP CONSTRAINT form_submissions_detail_has_period');
-
-    invokeMigrationMethod($migration, 'guardAgainstAmbiguousPhaseDetails');
-    invokeMigrationMethod($migration, 'backfillPhaseDetail');
-    invokeMigrationMethod($migration, 'backfillPeriod');
-
-    $freshSubmission = $submission->fresh();
-
-    expect($freshSubmission->form_phase_detail_id)->toBe($phaseDetail->id)
-        ->and($freshSubmission->submission_period_id)->toBe($period->id);
-});
-
+// Jalur backfill periode (lewat form_phase_details.submission_date_id) tidak bisa diputar ulang
+// di skema sekarang: kolom itu dihapus 2026_11_12_200000 (ADR 0019). Penjaga ambiguitasnya
+// berhenti sebelum backfill, jadi tetap diuji.
 it('fails hard instead of guessing when a form maps to more than one phase detail', function () {
     $form = Form::factory()->create();
     $organization = Organization::create(['name' => 'Fakultas Uji Ambigu', 'type' => 'faculty']);
@@ -98,8 +52,6 @@ it('fails hard instead of guessing when a form maps to more than one phase detai
         'organization_id' => $organization->id,
     ]);
     $phaseType = PhaseType::create(['name' => 'Tipe Fase Uji Ambigu']);
-    $period = SubmissionPeriod::create(['name' => 'Periode Uji Ambigu']);
-    $submissionDateId = createSubmissionDate($period->id);
 
     // Dua FormPhaseDetail untuk form_access_control yang sama -> satu form_id
     // punya lebih dari satu kandidat form_phase_detail, jadi ambigu.
@@ -108,14 +60,14 @@ it('fails hard instead of guessing when a form maps to more than one phase detai
         'form_access_control_id' => $accessControl->id,
         'phase_type_id' => $phaseType->id,
         'order' => 1,
-        'submission_date_id' => $submissionDateId,
+        'deadline_type' => DeadlineType::Submit,
     ]);
     FormPhaseDetail::create([
         'form_phase_id' => FormPhase::create(['title' => 'Fase Ambigu 2', 'is_active' => true])->id,
         'form_access_control_id' => $accessControl->id,
         'phase_type_id' => $phaseType->id,
         'order' => 2,
-        'submission_date_id' => $submissionDateId,
+        'deadline_type' => DeadlineType::Submit,
     ]);
 
     $submission = FormSubmission::factory()->create(['form_id' => $form->id]);

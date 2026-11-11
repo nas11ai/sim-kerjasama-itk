@@ -3,7 +3,6 @@
 namespace App\Models;
 
 use App\Enums\DeadlineType;
-use App\Models\Concerns\HasStepDateReferences;
 use App\Support\Lifecycle\ReferenceGuard;
 use App\Support\SubmissionPeriodGate;
 use Illuminate\Database\Eloquent\Builder;
@@ -21,23 +20,16 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property bool $needs_review
  * @property DeadlineType $deadline_type BR-FE-07 — `submit` atau `output`
  * @property int|null $deadline_cycle BR-FE-07 — null = pengajuan/luaran, n = laporan Monev n
- * @property int|null $submission_date_id
- * @property int|null $evaluation_date_id
- * @property int|null $revision_date_id
  * @property int $submission_count hanya setelah PhaseEdit
  * @property int $assignment_count hanya setelah PhaseEdit
  * @property int $evaluation_form_count hanya setelah PhaseEdit
  * @property-read FormPhase|null $formPhase
- * @property-read SubmissionDate|null $submissionDate
- * @property-read SubmissionDate|null $evaluationDate
- * @property-read SubmissionDate|null $revisionDate
  * @property-read FormAccessControl|null $formAccessControl
  * @property-read PhaseType|null $phaseType
  */
 class FormPhaseDetail extends Model
 {
     use HasFactory;
-    use HasStepDateReferences;
 
     /**
      * BR-FE-20 — detail yang dirujuk pengajuan tidak bisa dihapus. BR-FE-22 — begitu pula detail
@@ -65,9 +57,6 @@ class FormPhaseDetail extends Model
         'needs_review',
         'deadline_type',
         'deadline_cycle',
-        'submission_date_id',
-        'evaluation_date_id',
-        'revision_date_id',
     ];
 
     protected $casts = [

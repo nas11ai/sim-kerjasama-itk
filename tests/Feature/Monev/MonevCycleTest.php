@@ -186,7 +186,7 @@ it('[MON-CYCLE-08] lewat batas monev tanpa override, pengisian ditolak', functio
     $this->travelTo('2026-06-10 09:00:00');
     $fx = monevFixture();
 
-    $fx['monev1']->submissionDate->update(['datetime' => '2026-06-01 23:59:00']);
+    stepDate($fx['monev1'])->update(['datetime' => '2026-06-01 23:59:00']);
 
     $laporan = FormSubmission::factory()->create([
         'parent_submission_id' => $fx['parent']->id,
@@ -202,7 +202,7 @@ it('[MON-CYCLE-09] override yang masih berlaku membuka kembali fase monev', func
     $this->travelTo('2026-06-10 09:00:00');
     $fx = monevFixture();
 
-    $fx['monev1']->submissionDate->update(['datetime' => '2026-06-01 23:59:00']);
+    stepDate($fx['monev1'])->update(['datetime' => '2026-06-01 23:59:00']);
 
     $laporan = FormSubmission::factory()->create([
         'parent_submission_id' => $fx['parent']->id,

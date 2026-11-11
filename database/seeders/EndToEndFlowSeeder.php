@@ -199,7 +199,8 @@ class EndToEndFlowSeeder extends Seeder
             'organization_id' => $organization->id,
         ])->firstOrFail();
 
-        $date = SubmissionDate::firstOrCreate(
+        // ADR 0019 — langkah membaca Batas Submit dari kalender periode ini.
+        SubmissionDate::firstOrCreate(
             [
                 'type' => DeadlineType::Submit,
                 'submission_period_id' => $period->id,
@@ -224,7 +225,8 @@ class EndToEndFlowSeeder extends Seeder
             [
                 'phase_type_id' => $phaseType->id,
                 'order' => 1,
-                'submission_date_id' => $date->id,
+                'deadline_type' => DeadlineType::Submit,
+                'deadline_cycle' => null,
                 // Fase ini memang direview — persetujuan hampa tidak berlaku
                 // di sini (ADR 0017).
                 'needs_review' => true,

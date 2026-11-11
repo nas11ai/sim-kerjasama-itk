@@ -30,15 +30,13 @@ use Symfony\Component\HttpKernel\Exception\HttpException;
 
 function overrideDetail(SubmissionPeriod $period, FormPhase $phase, string $label, string $when, int $order = 1): FormPhaseDetail
 {
-    $date = SubmissionDate::create([
-        ...deadlineTypeOf($label),
-        'submission_period_id' => $period->id,
-        'datetime' => $when,
-    ]);
+    $kind = deadlineTypeOf($label);
+    SubmissionDate::create([...$kind, 'submission_period_id' => $period->id, 'datetime' => $when]);
 
-    return FormPhaseDetail::factory()->create([
+    return FormPhaseDetail::factory()->forPeriod($period)->create([
         'form_phase_id' => $phase->id,
-        'submission_date_id' => $date->id,
+        'deadline_type' => $kind['type'],
+        'deadline_cycle' => $kind['cycle'],
         'order' => $order,
     ]);
 }

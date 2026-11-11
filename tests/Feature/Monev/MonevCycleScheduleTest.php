@@ -75,8 +75,6 @@ it('tidak menghitung Upload Luaran sebagai siklus monev', function () {
 
 it('menggerbangi Upload Luaran dengan Batas Akhir periode induk', function () {
     $fx = outputUploadFixture(now()->subDay()->toDateTimeString());
-    // Langkah gaya baru: hanya jenis `output`, tanpa rujukan tanggal (BR-FE-07).
-    $fx['outputDetail']->update(['submission_date_id' => null]);
     $later = schedulePeriod($fx['phase'], 'Periode Berikutnya');
     calendarDate($later, DeadlineType::Output, now()->addMonth());
     $inLater = scheduledSubmission($fx['detail'], $later, [

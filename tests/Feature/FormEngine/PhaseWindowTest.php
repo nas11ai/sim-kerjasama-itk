@@ -37,7 +37,7 @@ it('[FE-WINDOW-01] evaluasi tetap terbuka setelah batas submit lewat', function 
     // Tenggat peneliti sudah lewat, tapi reviewer punya jendelanya sendiri.
     expect($fx['detail']->isWithinDeadline($fx['period']))->toBeFalse()
         ->and($fx['detail']->isWithinDeadline($fx['period'], DeadlineType::Evaluation))->toBeTrue()
-        ->and($fx['assignment']->due_date->equalTo($fx['detail']->evaluationDate->datetime))->toBeTrue()
+        ->and($fx['assignment']->due_date->equalTo(stepDate($fx['detail'], $fx['period'], DeadlineType::Evaluation)->datetime))->toBeTrue()
         ->and($fx['reviewer']->can('evaluate', $fx['assignment']))->toBeTrue();
 });
 
@@ -50,10 +50,9 @@ it('[FE-WINDOW-02] evaluasi ditolak setelah batas evaluasinya sendiri lewat', fu
 
 it('[FE-WINDOW-03] revisi punya jendelanya sendiri', function () {
     $period = SubmissionPeriod::factory()->create();
-    $detail = FormPhaseDetail::factory()->create([
-        'submission_date_id' => windowDate($period, 'Batas Submit', now()->subDay()->toDateTimeString())->id,
-        'revision_date_id' => windowDate($period, 'Batas Revisi', now()->addWeek()->toDateTimeString())->id,
-    ]);
+    windowDate($period, 'Batas Submit', now()->subDay()->toDateTimeString());
+    windowDate($period, 'Batas Revisi', now()->addWeek()->toDateTimeString());
+    $detail = FormPhaseDetail::factory()->forPeriod($period)->create();
     $revisi = FormSubmission::factory()->create(['form_phase_detail_id' => $detail->id, 'status' => NeedsRevision::class]);
     $draft = FormSubmission::factory()->create(['form_phase_detail_id' => $detail->id, 'status' => Draft::class]);
 
@@ -66,12 +65,11 @@ it('[FE-WINDOW-03] revisi punya jendelanya sendiri', function () {
 
 it('[FE-WINDOW-03] tanpa Batas Revisi, revisi kembali memakai Batas Submit', function () {
     $period = SubmissionPeriod::factory()->create();
-    $detail = FormPhaseDetail::factory()->create([
-        'submission_date_id' => windowDate($period, 'Batas Submit', now()->addWeek()->toDateTimeString())->id,
-    ]);
+    $submit = windowDate($period, 'Batas Submit', now()->addWeek()->toDateTimeString());
+    $detail = FormPhaseDetail::factory()->forPeriod($period)->create();
     $revisi = FormSubmission::factory()->create(['form_phase_detail_id' => $detail->id, 'status' => NeedsRevision::class]);
 
-    expect(PhaseAccessGate::deadlineFor($revisi, $detail)?->id)->toBe($detail->submission_date_id)
+    expect(PhaseAccessGate::deadlineFor($revisi, $detail)?->id)->toBe($submit->id)
         ->and(PhaseAccessGate::isOpenFor($revisi, $detail))->toBeTrue();
 });
 
@@ -90,8 +88,8 @@ it('[FE-WINDOW-10] revisi digerbangi Batas Revisi, bukan Batas Submit', function
     $submission = StartSubmission::run($fx['form']->id, $fx['period']->id, $fx['detail'], $fx['user']);
     $submission->forceFill(['status' => NeedsRevision::class, 'is_submitted' => true])->save();
 
-    $fx['detail']->submissionDate->update(['datetime' => now()->subDay()]);
-    $fx['detail']->update(['revision_date_id' => windowDate($fx['period'], 'Batas Revisi', now()->addWeek()->toDateTimeString())->id]);
+    stepDate($fx['detail'], $fx['period'])->update(['datetime' => now()->subDay()]);
+    windowDate($fx['period'], 'Batas Revisi', now()->addWeek()->toDateTimeString());
 
     $responses = [['form_field_id' => wizardTextField($fx['form'])->id, 'value' => 'Contoh nilai']];
     $save = fn () => $this->actingAs($fx['user'])->post(

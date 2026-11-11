@@ -34,7 +34,7 @@ it('detail Upload Luaran tahap lain atau sebelum detail induk tidak dihitung', f
 
     $otherPhase = FormPhase::create(['title' => 'Tahap Lain', 'is_active' => true]);
     FormPhaseDetail::create([
-        ...$fx['outputDetail']->only(['form_access_control_id', 'phase_type_id', 'submission_date_id']),
+        ...$fx['outputDetail']->only(['form_access_control_id', 'phase_type_id', 'deadline_type']),
         'form_phase_id' => $otherPhase->id,
         'order' => 9,
     ]);
@@ -69,5 +69,7 @@ it('detail Upload Luaran tidak menerima pengajuan', function () {
 });
 
 it('tenggat Upload Luaran berlabel Batas Akhir', function () {
-    expect(outputUploadFixture()['outputDetail']->submissionDate->label())->toBe('Batas Akhir');
+    $fx = outputUploadFixture();
+
+    expect(stepDate($fx['outputDetail'], $fx['period'])->label())->toBe('Batas Akhir');
 });
