@@ -317,7 +317,7 @@ pernah tertukar dengan "memang tidak perlu".
 | `OPERATOR-08-01` Daftar User | Layar daftar; aturannya ada di detail (`OPERATOR-08-03`) |
 | `ADMIN-08-05` Daftar Form | Layar daftar, sejajar `OPERATOR-08-01` |
 | `ADMIN-08-07` Edit Form — Access Control | Batasannya schema-level (`permission` + `organization_id` NOT NULL); perilakunya diuji dari sisi konsumsi lewat `FE-ACCESS-01..06` |
-| `ADMIN-08-08` Edit Form — Phases | BR-FE-07 non-behavioral; jendela kerjanya diuji `FE-WINDOW-04` di `ADMIN-08-09` |
+| `ADMIN-08-08` Fase — pustaka (`/admin/phases`) | BR-FE-07 non-behavioral; jendela kerjanya diuji `FE-WINDOW-04` di `ADMIN-08-09`; aturan satu Form pengajuan di `phase_library.feature` (BR-FE-28) |
 
 **Aturannya:** kalau nanti muncul aturan bisnis untuk salah satu layar ini, aturan itu
 ditambahkan ke `../ddd/` lebih dulu sebagai baris tabel bernomor, baru skenarionya —

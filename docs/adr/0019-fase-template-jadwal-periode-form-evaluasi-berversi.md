@@ -124,7 +124,7 @@ dijaga sinkron dengan `submission_period_phases`.
 | Irisan | Isi | Status |
 | --- | --- | --- |
 | R1 | Jadwal milik periode | Selesai — contract `e7828f84` (rujukan tanggal di langkah dihapus) + perbaikan review akhir `fix(period): tanggal yang dibaca angkatan berjalan tetap terjaga` |
-| R2 | Pustaka Fase, satu jenis pengajuan per fase | Belum |
+| R2 | Pustaka Fase, satu jenis pengajuan per fase | Selesai — `f2643b0d` (pustaka `/admin/phases`, route `admin.forms.phases.*` dihapus); aturan BR-FE-28 `c2488f2f` |
 | R3 | Form Evaluasi mandiri & berversi | Belum |
 | R4 | Terapkan versi baru ke angkatan | Belum |
 | R5 | Struktur fase berversi, dipaku per angkatan | Belum |

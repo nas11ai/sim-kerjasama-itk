@@ -9,13 +9,13 @@
 
 ## Page Inventory
 
-| #   | Page                                | Route                                 | Accessible By |
-| --- | ----------------------------------- | ------------------------------------- | ------------- |
-| 1   | Daftar Form                         | `/admin/forms`                        | Admin         |
-| 2   | Edit Form — General & Fields        | `/admin/forms/{id}/edit`              | Admin         |
-| 3   | Edit Form — Access Control          | `/admin/forms/{id}/access`            | Admin         |
-| 4   | Edit Form — Phases & Deadlines      | `/admin/forms/{id}/phases`            | Admin         |
-| 5   | Edit Phase — Details & Review Forms | `/admin/forms/{id}/phases/{phase_id}` | Admin         |
+| #   | Page                                | Route                           | Accessible By |
+| --- | ----------------------------------- | ------------------------------- | ------------- |
+| 1   | Daftar Form                         | `/admin/forms`                  | Admin         |
+| 2   | Edit Form — General & Fields        | `/admin/forms/{id}/edit`        | Admin         |
+| 3   | Edit Form — Access Control          | `/admin/forms/{id}/access`      | Admin         |
+| 4   | Fase — pustaka                      | `/admin/phases` (`?form={id}`)  | Admin         |
+| 5   | Edit Phase — Details & Review Forms | `/admin/phases/{phase_id}/edit` | Admin         |
 
 ---
 
@@ -95,33 +95,37 @@ Tabel FormAccessControl yang ada: permission string dan organisasi yang diizinka
 
 ---
 
-## Edit Form — Phases & Deadlines
+## Fase — pustaka
 
-**Route:** `/admin/forms/{id}/phases`  
+**Route:** `/admin/phases` (opsional `?form={id}`)  
 **Entry points:**
 
-- Tab "Phases" dari halaman edit form
+- Sidebar → Konfigurasi Sistem → Fase
+- Tab "Phases" dari halaman edit form → pustaka bertapis Form itu (R2)
 
 ### Konten Utama
 
-Daftar FormPhase yang terhubung ke form ini. Setiap phase menampilkan: judul, jumlah FormPhaseDetail, dan periode yang terhubung.
+Semua FormPhase, urut judul. Fase tidak bersarang di satu Form: satu fase memakai tepat satu Form
+pengajuan (BR-FE-28) dan dipakai banyak periode. Setiap phase menampilkan: judul, Form pengajuan,
+jumlah FormPhaseDetail, periode yang terhubung, dan celah jadwal per periode. Tapis `?form=`
+menampilkan fase yang langkah mana pun memakai Form itu.
 
 ### Actions
 
-| Aksi                  | Kondisi |
-| --------------------- | ------- |
-| Buat Phase Baru       | Selalu  |
-| Edit Phase            | Selalu  |
-| Link Phase ke Periode | Selalu  |
+| Aksi                  | Kondisi                |
+| --------------------- | ---------------------- |
+| Buat Phase Baru       | Selalu                 |
+| Edit Phase            | Selalu                 |
+| Link Phase ke Periode | Punya `periods.manage` |
 
 ---
 
 ## Edit Phase — Details & Review Forms
 
-**Route:** `/admin/forms/{id}/phases/{phase_id}`  
+**Route:** `/admin/phases/{phase_id}/edit` (buat: `/admin/phases/create`)  
 **Entry points:**
 
-- Klik "Edit" dari daftar phase
+- Klik "Edit" dari pustaka fase
 
 ### Konten Utama
 
