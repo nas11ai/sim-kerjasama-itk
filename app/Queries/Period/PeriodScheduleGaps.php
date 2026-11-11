@@ -7,9 +7,11 @@ use App\Data\Request\PeriodDateInput;
 use App\Enums\DeadlineType;
 use App\Models\FormPhase;
 use App\Models\FormPhaseDetail;
+use App\Models\FormSubmission;
 use App\Models\SubmissionPeriod;
 use App\Models\SubmissionPeriodPhase;
 use App\Support\SubmissionPeriodGate;
+use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Support\Collection;
 use Lorisleiva\Actions\Concerns\AsAction;
 
@@ -51,8 +53,8 @@ class PeriodScheduleGaps implements ChangesNoState
     }
 
     /**
-     * Kartu fase ADMIN-08-08: per periode tertaut yang belum tutup sepenuhnya, banyak tanggal
-     * (bukan langkah) yang masih kurang. Periode lama yang sudah tutup tidak perlu dikejar.
+     * Kartu fase ADMIN-08-08: per periode tertaut, banyak tanggal (bukan langkah) yang masih kurang.
+     * Periode yang sudah tutup sepenuhnya hanya dikejar bila fase itu punya pengajuan di sana.
      *
      * @param  Collection<int, FormPhase>  $phases
      * @return array<int, list<array{period: string, count: int}>>
@@ -68,12 +70,19 @@ class PeriodScheduleGaps implements ChangesNoState
             ->get()
             ->sortBy(fn (SubmissionPeriodPhase $link): string => $link->submissionPeriod->name ?? '');
 
+        $inUse = self::periodsInUse($steps);
         $gaps = [];
 
         foreach ($links as $link) {
             $period = $link->submissionPeriod;
 
-            if ($period === null || SubmissionPeriodGate::isFullyClosed($period)) {
+            if ($period === null) {
+                continue;
+            }
+
+            $settled = SubmissionPeriodGate::isFullyClosed($period) && !isset($inUse["{$period->id}:{$link->form_phase_id}"]);
+
+            if ($settled) {
                 continue;
             }
 
@@ -85,6 +94,30 @@ class PeriodScheduleGaps implements ChangesNoState
         }
 
         return $gaps;
+    }
+
+    /**
+     * Pasangan "periode:fase" yang punya pengajuan: angkatan berjalan masih butuh tanggal monev
+     * walau semua tanggal periodenya lewat atau periodenya ditutup paksa.
+     *
+     * @param  EloquentCollection<int, FormPhaseDetail>  $steps
+     * @return array<string, true>
+     */
+    private static function periodsInUse(EloquentCollection $steps): array
+    {
+        $pairs = [];
+        $used = FormSubmission::query()
+            ->whereIn('form_phase_detail_id', $steps->modelKeys())
+            ->whereNotNull('submission_period_id')
+            ->distinct()
+            ->get(['submission_period_id', 'form_phase_detail_id']);
+
+        foreach ($used as $submission) {
+            $phaseId = $steps->find($submission->form_phase_detail_id)?->form_phase_id;
+            $pairs["{$submission->submission_period_id}:{$phaseId}"] = true;
+        }
+
+        return $pairs;
     }
 
     /** Banyak tanggal yang masih kurang di `$period` bagi langkah `$phase`. */

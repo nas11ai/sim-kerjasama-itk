@@ -7,6 +7,7 @@ use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Support\Facades\DB;
 
 /**
  * @property int $id
@@ -85,17 +86,23 @@ class SubmissionDate extends Model
     }
 
     /**
-     * Langkah fase tertaut periode tanggal ini yang membacanya lewat `SubmissionPeriod::deadlineFor`:
-     * submit/output pada jenis + siklus langkah, Batas Evaluasi dan Batas Revisi pada siklus langkah.
-     * Subquery berkorelasi ke `submission_dates`.
+     * Langkah yang membaca tanggal ini lewat `SubmissionPeriod::deadlineFor` — fasenya ditautkan
+     * periode itu atau dipakai pengajuannya (angkatan berjalan tetap terjaga walau fasenya dilepas);
+     * submit/output pada jenis + siklus, evaluasi/revisi pada siklus. Berkorelasi ke `submission_dates`.
      *
      * @return Builder<FormPhaseDetail>
      */
     private static function stepsNeedingIt(): Builder
     {
         return FormPhaseDetail::query()
-            ->join('submission_period_phases', 'submission_period_phases.form_phase_id', '=', 'form_phase_details.form_phase_id')
-            ->whereColumn('submission_period_phases.submission_period_id', 'submission_dates.submission_period_id')
+            ->where(fn (Builder $phase) => $phase
+                ->whereExists(DB::table('submission_period_phases')->selectRaw('1')
+                    ->whereColumn('submission_period_phases.form_phase_id', 'form_phase_details.form_phase_id')
+                    ->whereColumn('submission_period_phases.submission_period_id', 'submission_dates.submission_period_id'))
+                ->orWhereExists(DB::table('form_submissions')->selectRaw('1')
+                    ->join('form_phase_details as used_steps', 'used_steps.id', '=', 'form_submissions.form_phase_detail_id')
+                    ->whereColumn('used_steps.form_phase_id', 'form_phase_details.form_phase_id')
+                    ->whereColumn('form_submissions.submission_period_id', 'submission_dates.submission_period_id')))
             ->whereRaw('form_phase_details.deadline_cycle IS NOT DISTINCT FROM submission_dates.cycle')
             ->where(fn (Builder $q) => $q->whereColumn('form_phase_details.deadline_type', 'submission_dates.type')
                 ->orWhereIn('submission_dates.type', [DeadlineType::Evaluation->value, DeadlineType::Revision->value]));

@@ -7,7 +7,9 @@
 // dan Batas Evaluasi yang digeser ikut menggeser salinannya di penugasan (K8e).
 
 use App\Actions\Period\ExtendSubmissionDates;
+use App\Actions\Period\ReviseSubmissionPeriod;
 use App\Data\Request\PeriodDateInput;
+use App\Data\Request\SubmissionPeriodInput;
 use App\Enums\DeadlineType;
 use App\Models\FormPhase;
 use App\Models\FormPhaseDetail;
@@ -17,6 +19,7 @@ use App\Models\ReviewEvaluationForm;
 use App\Models\SubmissionDate;
 use App\Models\SubmissionPeriod;
 use App\Models\SubmissionReviewer;
+use App\Models\User;
 use App\Queries\Form\FormPhaseCards;
 use App\Queries\Period\PeriodScheduleGaps;
 use Illuminate\Support\Carbon;
@@ -128,4 +131,56 @@ it('menggeser due_date penugasan saat Batas Evaluasi periode diperpanjang', func
     expect($own->fresh()?->due_date?->toDateTimeString())->toBe('2026-12-20 23:59:00')
         ->and($otherPeriod->fresh()?->due_date?->toDateTimeString())->toBe('2026-12-10 23:59:00')
         ->and($manual->fresh()?->due_date?->toDateTimeString())->toBe('2026-12-31 23:59:00');
+});
+
+it('revisi periode tidak menghapus tanggal yang dibaca langkah fase yang tetap ditautkan', function () {
+    $phase = gapPhase();
+    scheduleStep($phase, cycle: 1, needsReview: false);
+    $period = schedulePeriod($phase, 'Periode Revisi');
+    $submit = calendarDate($period, DeadlineType::Submit, now()->addWeek());
+    $monev = calendarDate($period, DeadlineType::Submit, now()->addMonth(), cycle: 1);
+
+    ReviseSubmissionPeriod::run($period, new SubmissionPeriodInput(
+        name: 'Periode Revisi',
+        dates: [new PeriodDateInput(DeadlineType::Submit, null, $submit->datetime->toDateTimeString())],
+        formPhaseIds: [$phase->id],
+    ), User::factory()->create());
+
+    expect(SubmissionDate::query()->whereKey($monev->id)->exists())->toBeTrue();
+});
+
+it('tanggal yang dibaca pengajuan periode tetap terjaga walau fasenya dilepas dari periode', function () {
+    $phase = gapPhase();
+    $pengajuan = scheduleStep($phase, needsReview: false);
+    scheduleStep($phase, cycle: 2, needsReview: false, order: 5);
+    $period = schedulePeriod($phase, 'Angkatan 2025');
+    $submit = calendarDate($period, DeadlineType::Submit, now()->subMonth());
+    $monev2 = calendarDate($period, DeadlineType::Submit, now()->addMonth(), cycle: 2);
+    scheduledSubmission($pengajuan, $period);
+
+    // Operator melepas fase dari periode lama, lalu membuang Batas Laporan Monev II.
+    ReviseSubmissionPeriod::run($period, new SubmissionPeriodInput(
+        name: 'Angkatan 2025',
+        dates: [new PeriodDateInput(DeadlineType::Submit, null, $submit->datetime->toDateTimeString())],
+        formPhaseIds: [],
+    ), User::factory()->create());
+
+    expect(SubmissionDate::query()->whereKey($monev2->id)->exists())->toBeTrue();
+});
+
+it('celah jadwal tetap tampil di periode yang sudah tutup bila fase itu masih punya pengajuannya', function () {
+    $phase = gapPhase();
+    $pengajuan = scheduleStep($phase, needsReview: false);
+    scheduleStep($phase, cycle: 2, needsReview: false, order: 5);
+    $period = schedulePeriod($phase, 'Angkatan Lama');
+    calendarDate($period, DeadlineType::Submit, now()->subMonth());
+    $closedEmpty = schedulePeriod($phase, 'Periode Lewat Kosong');
+    calendarDate($closedEmpty, DeadlineType::Submit, now()->subMonth());
+    scheduledSubmission($pengajuan, $period);
+
+    $form = $pengajuan->formAccessControl?->form;
+    expect($form)->not->toBeNull();
+    $card = collect(FormPhaseCards::run($form))->firstWhere('id', $phase->id);
+
+    expect($card?->deadlineGaps)->toBe([['period' => 'Angkatan Lama', 'count' => 1]]);
 });

@@ -33,13 +33,13 @@ class ReviseSubmissionPeriod
             $period->update(['name' => $input->name]);
             $period->submissionPeriodPhases()->delete();
 
-            // Tanggal disinkronkan di antara dua penulisan tahap: galat sesudahnya
-            // menggulung kembali semuanya, termasuk notifikasi yang tertunda.
-            $extension = ExtendSubmissionDates::run($period, $input->dates, $actor);
-
             foreach ($input->formPhaseIds as $formPhaseId) {
                 $period->submissionPeriodPhases()->create(['form_phase_id' => $formPhaseId]);
             }
+
+            // BR-FE-26 (ADR 0019) — tanggal disinkronkan sesudah tautan tahap: tanggal yang dibaca
+            // langkah tertaut tetap. Galat sesudahnya menggulung semuanya, termasuk notifikasi.
+            $extension = ExtendSubmissionDates::run($period, $input->dates, $actor);
 
             // BR-RPT-09 — satu Action, satu entri audit.
             AuditTrail::record(
