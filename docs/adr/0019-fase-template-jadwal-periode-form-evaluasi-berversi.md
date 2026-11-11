@@ -76,6 +76,10 @@ Aturan tenggat yang berlaku sejak R1 (BR-FE-26 versi baru):
 - Laporan monev dan Upload Luaran memakai periode pengajuan induknya.
 - Setiap pengajuan bertahap wajib berperiode
   (`form_phase_detail_id IS NULL OR submission_period_id IS NOT NULL`).
+- **Jenis langkah yang sudah dipakai pengajuan terkunci** (keputusan pemilik 2026-11-11,
+  perluasan kunci form/tipe tahap BR-FE-20). `deadline_type` dan `deadline_cycle` menentukan
+  tanggal yang dibaca pengajuannya, jadi mengubahnya diam-diam memindahkan tenggat mereka.
+  Salah siklus setelah ada pengajuan dibetulkan dengan langkah baru.
 
 ## Konsekuensi
 

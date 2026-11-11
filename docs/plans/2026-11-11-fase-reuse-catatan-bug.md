@@ -22,9 +22,7 @@ Peta irisan: `docs/plans/2026-11-10-fase-reuse-roadmap.md`.
 
 ## Butuh keputusan pemilik
 
-| ID  | Pertanyaan                                                                                                                             | Dampak bila dibiarkan                                                                                                                                                                                                         |
-| --- | -------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| K-1 | Apakah jenis langkah (`deadline_type`/`deadline_cycle`) yang sudah dipakai pengajuan dikunci, seperti form dan tipe tahap di BR-FE-20? | Admin bisa mengubahnya. Semua pengajuan di langkah itu langsung membaca tanggal lain, dan memilih Upload Luaran juga mematikan "Perlu Review". Kalau dikunci, salah ketik siklus tidak bisa dibetulkan setelah ada pengajuan. |
+Tidak ada.
 
 ## Selesai
 
@@ -34,3 +32,4 @@ Peta irisan: `docs/plans/2026-11-10-fase-reuse-roadmap.md`.
 | —   | Siklus periode diterima sampai 32767. Sekarang dibatasi `DeadlineType::MAX_CYCLE` (10), sama dengan langkah.                                                             | `ec10bf7b` |
 | —   | Layar periode hanya menawarkan Monev I–V, jadi langkah bersiklus 6–10 tidak bisa diberi tanggal. Sekarang I–X.                                                           | `ec10bf7b` |
 | —   | `submission_period_phases` tanpa unique index, jadi banner celah bisa dobel.                                                                                             | `ec10bf7b` |
+| K-1 | Jenis langkah yang sudah dipakai pengajuan masih bisa diubah admin. Pemilik memutuskan dikunci (2026-11-11); dicatat di ADR 0019.                                        | `d35c4ce5` |
