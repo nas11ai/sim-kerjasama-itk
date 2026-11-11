@@ -10,11 +10,7 @@ import { Badge } from '@/Components/ui/badge'
 import { Button } from '@/Components/ui/button'
 import { errorsUnder } from '@/lib/formErrors'
 import { blankDetail, type EditableDetail } from '@/lib/phaseDefinition'
-import type {
-    PhaseAccessOption,
-    PhaseDetailEditData,
-    SubmissionDateOption,
-} from '@/types/form-engine'
+import type { PhaseAccessOption, PhaseDetailEditData } from '@/types/form-engine'
 import type { FilterOption } from '@/types/submission-page'
 
 const props = defineProps<{
@@ -22,7 +18,6 @@ const props = defineProps<{
     saved: PhaseDetailEditData[]
     accessOptions: PhaseAccessOption[]
     phaseTypeOptions: FilterOption[]
-    deadlineOptions: SubmissionDateOption[]
     errors: Record<string, string>
 }>()
 const details = defineModel<EditableDetail[]>({ required: true })
@@ -52,15 +47,6 @@ const heading = (detail: EditableDetail) => {
 // W96 — nomor urut diturunkan backend dari Form; detail baru belum punya.
 const orderOf = (detail: EditableDetail) =>
     props.saved.find((saved) => saved.id === detail.id)?.order ?? 'Baru'
-
-const dateLabel = (detail: EditableDetail, id: number | null) =>
-    [...props.deadlineOptions, ...detail.currentDeadlines].find((o) => o.id === id)?.label ?? '—'
-const deadlines = (detail: EditableDetail) =>
-    [
-        `Batas Submit: ${dateLabel(detail, detail.submissionDateId)}`,
-        detail.needsReview ? `Batas Evaluasi: ${dateLabel(detail, detail.evaluationDateId)}` : null,
-        detail.revisionDateId ? `Batas Revisi: ${dateLabel(detail, detail.revisionDateId)}` : null,
-    ].filter((line) => line !== null)
 
 // W98 / BR-FE-22 — hapus terkunci oleh hitungan backend, dengan angkanya.
 const removeHint = (detail: EditableDetail) => {
@@ -115,12 +101,8 @@ const remove = (key: string) => (details.value = details.value.filter((d) => d.k
                         <p class="text-xs text-muted-foreground">
                             Akses: {{ heading(detail).access }}
                         </p>
-                        <p
-                            v-for="line in deadlines(detail)"
-                            :key="line"
-                            class="text-xs text-muted-foreground"
-                        >
-                            {{ line }}
+                        <p class="text-xs text-muted-foreground">
+                            Jenis: {{ detail.deadlineLabel }}
                         </p>
                         <p v-if="removeHint(detail)" class="text-xs text-muted-foreground">
                             {{ removeHint(detail) }}
@@ -149,7 +131,6 @@ const remove = (key: string) => (details.value = details.value.filter((d) => d.k
             :evaluation-form-count="evaluationFormsOf(editing)"
             :access-options="accessOptions"
             :phase-type-options="phaseTypeOptions"
-            :deadline-options="deadlineOptions"
             @save="store"
         />
     </SectionCard>

@@ -5,14 +5,8 @@ import type { FilterOption } from '@/types/submission-page'
 // `output` = Batas Akhir detail Upload Luaran, selalu tanpa siklus (W139).
 export type DeadlineTypeValue = 'submit' | 'evaluation' | 'revision' | 'output'
 
-// Sumber: App\Queries\Form\SubmissionDateOptions — `periodId`/`cycle` menyaring Batas Evaluasi/Revisi (W102).
-export interface SubmissionDateOption {
-    id: number
-    type: DeadlineTypeValue
-    cycle: number | null
-    periodId: number
-    label: string
-}
+// ADR 0019 — jenis tenggat yang dipegang langkah fase; tanggalnya milik kalender periode.
+export type StepDeadlineType = Extract<DeadlineTypeValue, 'submit' | 'output'>
 
 // Sumber: App\Data\View\FormEngine\PeriodDateData.
 export interface PeriodDateData {
@@ -185,10 +179,9 @@ export interface PhaseDetailEditData {
     phaseTypeId: number
     phaseTypeName: string
     needsReview: boolean
-    submissionDateId: number | null
-    evaluationDateId: number | null
-    revisionDateId: number | null
-    currentDeadlines: SubmissionDateOption[]
+    deadlineType: StepDeadlineType
+    deadlineCycle: number | null
+    deadlineLabel: string
     submissionCount: number
     assignmentCount: number
     evaluationFormCount: number
@@ -256,7 +249,6 @@ export interface PhaseEditPageProps {
     phase: PhaseEditData
     accessOptions: PhaseAccessOption[]
     phaseTypeOptions: FilterOption[]
-    deadlineOptions: SubmissionDateOption[]
     evaluation: EvaluationSectionData[]
     fieldTypeOptions: FieldTypeOption[]
 }

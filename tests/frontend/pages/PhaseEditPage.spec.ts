@@ -49,6 +49,7 @@ vi.mock('@/Layouts/AppLayout.vue', () => ({
     }),
 }))
 
+import OptionSelect from '@/Components/app/OptionSelect.vue'
 import PhaseEditPage from '@/Pages/FormEngine/PhaseEditPage.vue'
 import type { PhaseDetailEditData, PhaseEditPageProps } from '@/types/form-engine'
 
@@ -61,10 +62,9 @@ const detail = (overrides: Partial<PhaseDetailEditData> = {}): PhaseDetailEditDa
     phaseTypeId: 5,
     phaseTypeName: 'Isi Proposal',
     needsReview: false,
-    submissionDateId: 1,
-    evaluationDateId: null,
-    revisionDateId: null,
-    currentDeadlines: [],
+    deadlineType: 'submit',
+    deadlineCycle: null,
+    deadlineLabel: 'Pengajuan',
     submissionCount: 0,
     assignmentCount: 0,
     evaluationFormCount: 0,
@@ -83,10 +83,6 @@ const props = (details: PhaseDetailEditData[]): PhaseEditPageProps => ({
         },
     ],
     phaseTypeOptions: [{ value: '5', label: 'Isi Proposal' }],
-    deadlineOptions: [
-        { id: 1, type: 'submit', cycle: null, periodId: 10, label: 'P10 — Batas Submit' },
-        { id: 2, type: 'evaluation', cycle: null, periodId: 10, label: 'P10 — Batas Evaluasi' },
-    ],
     evaluation: [],
     fieldTypeOptions: [],
 })
@@ -97,22 +93,17 @@ const route = (name: string, params?: number | Record<string, number>) => {
     return `/${name}/${ids.join('/')}`
 }
 
-// Pilihan tenggat dibaca dari prop `options`; Select reka-ui tidak merender isinya di jsdom.
-const DeadlineStub = defineComponent({
-    props: { options: { type: Array, required: true }, type: { type: String, required: true } },
-    setup: (p) => () =>
-        h(
-            'div',
-            { 'data-deadline': p.type },
-            p.options.map((option) => JSON.stringify(option))
-        ),
-})
-
 const mountPage = (pageProps: PhaseEditPageProps) =>
-    mount(PhaseEditPage, {
-        props: pageProps,
-        global: { mocks: { route }, stubs: { PhaseDeadlineSelect: DeadlineStub } },
-    })
+    mount(PhaseEditPage, { props: pageProps, global: { mocks: { route } } })
+
+// Select reka-ui tidak merender isinya di jsdom; pilihan dikirim lewat event OptionSelect.
+const chooseStepKind = async (wrapper: ReturnType<typeof mountPage>, value: string) => {
+    const select = wrapper
+        .findAllComponents(OptionSelect)
+        .find((c) => c.props('id') === 'detail-kind')
+    select?.vm.$emit('update:modelValue', value)
+    await flushPromises()
+}
 
 const openRow = async (wrapper: ReturnType<typeof mountPage>, index: number) => {
     await wrapper
@@ -141,7 +132,7 @@ describe('FormEngine/PhaseEditPage', () => {
         expect(wrapper.find('a[href="/admin.forms.phases.index/7"]').text()).toContain('Phases')
         expect(wrapper.findAll('li')[0].text()).toContain('Isi Proposal — Form Proposal')
         expect(wrapper.findAll('li')[0].text()).toContain('Akses: Pengaju · Fakultas Sains')
-        expect(wrapper.findAll('li')[0].text()).toContain('Batas Submit: P10 — Batas Submit')
+        expect(wrapper.findAll('li')[0].text()).toContain('Jenis: Pengajuan')
     })
 
     it('bagian form evaluasi per detail yang direview; Tambah Form Evaluasi membuka kartu baru', async () => {
@@ -164,18 +155,24 @@ describe('FormEngine/PhaseEditPage', () => {
         expect(wrapper.text()).not.toContain('Belum ada form evaluasi.')
     })
 
-    it('[FE-WINDOW-04] dua detail boleh memilih Batas Submit yang sama', async () => {
+    it('daftar langkah menampilkan jenis langkahnya', () => {
         const wrapper = mountPage(
-            props([detail(), detail({ id: 32, needsReview: true, submissionDateId: null })])
+            props([detail({ id: 32, deadlineCycle: 2, deadlineLabel: 'Laporan Monev II' })])
         )
 
-        await openRow(wrapper, 1)
+        expect(wrapper.findAll('li')[0].text()).toContain('Jenis: Laporan Monev II')
+    })
 
-        const submit = document.body.querySelector('[data-deadline="submit"]')
-        expect(submit?.textContent).toContain('"id":1')
-        expect(document.body.textContent).toContain(
-            'Pengajuan dan evaluasinya wajib memakai tanggal berbeda: aktornya berbeda dan tahapannya berurutan.'
-        )
+    it('[FE-WINDOW-09] memilih Upload Luaran mematikan Perlu Review', async () => {
+        const wrapper = mountPage(props([detail({ needsReview: true })]))
+
+        await openRow(wrapper, 0)
+        await chooseStepKind(wrapper, 'output:')
+
+        const toggle = document.body.querySelector('[role="switch"]')
+        expect(toggle?.hasAttribute('disabled')).toBe(true)
+        expect(toggle?.getAttribute('aria-checked')).toBe('false')
+        expect(document.body.textContent).toContain('Detail Upload Luaran tidak direview.')
     })
 
     it('[FE-DELETE-07] hapus detail berpengajuan disabled dan menyebut angkanya', () => {
@@ -201,19 +198,14 @@ describe('FormEngine/PhaseEditPage', () => {
         )
     })
 
-    it('[FE-WINDOW-08] galat Batas Evaluasi tampil di baris detailnya', async () => {
-        const wrapper = mountPage(props([detail(), detail({ id: 32, needsReview: true })]))
+    it('galat jenis langkah tampil di baris detailnya', async () => {
+        const wrapper = mountPage(props([detail(), detail({ id: 32 })]))
 
-        forms[0].errors = {
-            'phase_details.1.evaluation_date_id':
-                'Detail yang direview wajib punya Batas Evaluasi.',
-        }
+        forms[0].errors = { 'phase_details.1.deadline_cycle': 'Upload Luaran tidak bersiklus.' }
         await nextTick()
 
-        expect(wrapper.findAll('li')[1].text()).toContain(
-            'Detail yang direview wajib punya Batas Evaluasi.'
-        )
-        expect(wrapper.findAll('li')[0].text()).not.toContain('wajib punya Batas Evaluasi')
+        expect(wrapper.findAll('li')[1].text()).toContain('Upload Luaran tidak bersiklus.')
+        expect(wrapper.findAll('li')[0].text()).not.toContain('tidak bersiklus')
     })
 
     it('switch Perlu Review disabled selama detail punya form evaluasi aktif (W97)', async () => {
@@ -259,7 +251,9 @@ describe('FormEngine/PhaseEditPage', () => {
             expect.objectContaining({
                 title: 'Tahap Proposal',
                 is_active: true,
-                phase_details: [expect.objectContaining({ id: 31, submission_date_id: 1 })],
+                phase_details: [
+                    expect.objectContaining({ id: 31, deadline_type: 'submit', deadline_cycle: null }),
+                ],
             })
         )
     })

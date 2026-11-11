@@ -83,7 +83,6 @@ function save() {
             :saved="phase.details"
             :access-options="accessOptions"
             :phase-type-options="phaseTypeOptions"
-            :deadline-options="deadlineOptions"
             :errors="errors"
         />
         <div class="flex flex-wrap justify-between gap-2">

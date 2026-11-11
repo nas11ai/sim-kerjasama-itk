@@ -75,7 +75,7 @@ describe('PhaseCard — hubungkan ke periode', () => {
         expect(wrapper.emitted('link-period')?.[0]).toEqual([phase()])
     })
 
-    it('[FE-WINDOW-13] deadlineGaps menjadi peringatan per periode', () => {
+    it('[FE-WINDOW-08] deadlineGaps menjadi peringatan per periode', () => {
         const wrapper = mountCard({
             phase: phase({
                 deadlineGaps: [
@@ -87,17 +87,17 @@ describe('PhaseCard — hubungkan ke periode', () => {
         })
 
         expect(wrapper.text()).toContain(
-            '2 detail masih bertenggat periode lain — perbarui tenggatnya agar terbuka di 2026 Gelombang 2.'
+            'Periode 2026 Gelombang 2 belum punya 2 tanggal yang dibutuhkan tahap ini.'
         )
         expect(wrapper.text()).toContain(
-            '1 detail masih bertenggat periode lain — perbarui tenggatnya agar terbuka di 2027 Gelombang 1.'
+            'Periode 2027 Gelombang 1 belum punya 1 tanggal yang dibutuhkan tahap ini.'
         )
     })
 
     it('tanpa deadlineGaps tidak ada peringatan', () => {
         const wrapper = mountCard({ phase: phase(), canLinkPeriod: true })
 
-        expect(wrapper.text()).not.toContain('masih bertenggat periode lain')
+        expect(wrapper.text()).not.toContain('tanggal yang dibutuhkan tahap ini')
     })
 })
 

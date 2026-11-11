@@ -32,7 +32,6 @@ const title = computed(() =>
             :phase="phase"
             :access-options="accessOptions"
             :phase-type-options="phaseTypeOptions"
-            :deadline-options="deadlineOptions"
         />
         <!-- W95 — form evaluasi disimpan per kartu, terpisah dari Simpan Tahap; key per detail (S2b) -->
         <div v-if="evaluation.length > 0" class="mt-8 max-w-3xl space-y-8">

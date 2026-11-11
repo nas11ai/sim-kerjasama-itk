@@ -223,19 +223,6 @@ describe('FormEngine/PeriodIndexPage', () => {
         expect(router.delete).not.toHaveBeenCalled()
     })
 
-    it('[FE-DELETE-11] penjelasan menyebut detail tahap yang memakai tanggalnya', async () => {
-        const wrapper = mountPage([
-            periodRow({
-                closable: false,
-                deleteBlockers: [{ label: 'detail tahap yang memakai tanggalnya', count: 1 }],
-            }),
-        ])
-        await clickIn(wrapper, 'Hapus')
-
-        expect(document.body.textContent).toContain('1 detail tahap yang memakai tanggalnya')
-        expect(bodyButton('Tutup Periode')).toBeUndefined()
-    })
-
     it('penjelasan menawarkan Tutup Periode bila periode masih terbuka', async () => {
         const wrapper = mountPage([
             periodRow({ deleteBlockers: [{ label: 'pengajuan', count: 8 }] }),

@@ -1,23 +1,15 @@
 import { describe, expect, it } from 'vitest'
 
 import {
+    applyStepKind,
     blankDetail,
-    deadlineChoices,
-    submitDateChoices,
+    stepKindKey,
+    stepKindOptions,
     toEditableDetails,
     toPhasePayload,
     type EditableDetail,
 } from '@/lib/phaseDefinition'
-import type { PhaseDetailEditData, SubmissionDateOption } from '@/types/form-engine'
-
-const options: SubmissionDateOption[] = [
-    { id: 1, type: 'submit', cycle: null, periodId: 10, label: 'P10 — Batas Submit' },
-    { id: 2, type: 'evaluation', cycle: null, periodId: 10, label: 'P10 — Batas Evaluasi' },
-    { id: 3, type: 'evaluation', cycle: 1, periodId: 10, label: 'P10 — Batas Evaluasi Monev I' },
-    { id: 4, type: 'evaluation', cycle: null, periodId: 20, label: 'P20 — Batas Evaluasi' },
-    { id: 5, type: 'revision', cycle: null, periodId: 10, label: 'P10 — Batas Revisi' },
-    { id: 6, type: 'submit', cycle: 1, periodId: 10, label: 'P10 — Batas Submit Monev I' },
-]
+import type { PhaseDetailEditData } from '@/types/form-engine'
 
 const saved = (overrides: Partial<PhaseDetailEditData> = {}): PhaseDetailEditData => ({
     id: 31,
@@ -28,10 +20,9 @@ const saved = (overrides: Partial<PhaseDetailEditData> = {}): PhaseDetailEditDat
     phaseTypeId: 3,
     phaseTypeName: 'Isi Proposal',
     needsReview: true,
-    submissionDateId: 1,
-    evaluationDateId: 2,
-    revisionDateId: null,
-    currentDeadlines: [],
+    deadlineType: 'submit',
+    deadlineCycle: null,
+    deadlineLabel: 'Pengajuan',
     submissionCount: 0,
     assignmentCount: 0,
     evaluationFormCount: 0,
@@ -43,7 +34,11 @@ const detail = (overrides: Partial<EditableDetail> = {}): EditableDetail => ({
     ...overrides,
 })
 
-const ids = (choices: SubmissionDateOption[]) => choices.map((choice) => choice.id)
+const optionByLabel = (label: string) => {
+    const option = stepKindOptions.find((o) => o.label === label)
+    if (option === undefined) throw new Error(`opsi ${label} tidak ada`)
+    return option
+}
 
 describe('lib/phaseDefinition', () => {
     it('detail tersimpan dan detail baru memakai key stabil', () => {
@@ -57,62 +52,53 @@ describe('lib/phaseDefinition', () => {
             id: null,
             formAccessControlId: 7,
             phaseTypeId: 3,
-            submissionDateId: null,
-            submissionCount: 0,
+            deadlineType: 'submit',
+            deadlineCycle: null,
+            deadlineLabel: 'Pengajuan',
         })
     })
 
-    it('tenggat tersimpan di luar pilihan tetap ditawarkan', () => {
-        const old: SubmissionDateOption = {
-            id: 90,
-            type: 'submit',
-            cycle: null,
-            periodId: 5,
-            label: 'P5 — Batas Submit — 01/01/2025',
-        }
+    it('pilihan jenis langkah: Pengajuan, Laporan Monev I…X, Upload Luaran', () => {
+        const labels = stepKindOptions.map((option) => option.label)
+
+        expect(labels[0]).toBe('Pengajuan')
+        expect(labels).toContain('Laporan Monev I')
+        expect(labels).toContain('Laporan Monev X')
+        expect(labels.at(-1)).toBe('Upload Luaran')
+        expect(labels).toHaveLength(12)
+    })
+
+    it('jenis langkah tersimpan menjadi pilihan yang sama', () => {
         const [editable] = toEditableDetails([
-            saved({ submissionDateId: 90, currentDeadlines: [old, { ...options[0] }] }),
+            saved({ deadlineCycle: 2, deadlineLabel: 'Laporan Monev II' }),
         ])
 
-        expect(ids(deadlineChoices(options, 'submit', editable))).toEqual([1, 6, 90])
+        expect(editable === undefined ? '' : stepKindKey(editable)).toBe(
+            optionByLabel('Laporan Monev II').value
+        )
     })
 
-    it('[FE-WINDOW-11] Batas Evaluasi hanya menawarkan tenggat satu periode dan siklus dengan Batas Submit', () => {
-        expect(
-            ids(deadlineChoices(options, 'evaluation', detail({ submissionDateId: 1 })))
-        ).toEqual([2])
-        expect(
-            ids(deadlineChoices(options, 'evaluation', detail({ submissionDateId: 6 })))
-        ).toEqual([3])
-        expect(ids(deadlineChoices(options, 'evaluation', detail()))).toEqual([2, 3, 4])
+    it('[FE-WINDOW-09] Upload Luaran mematikan Perlu Review dan tidak bersiklus', () => {
+        const output = applyStepKind(
+            detail({ needsReview: true, deadlineCycle: 3 }),
+            optionByLabel('Upload Luaran').value
+        )
+
+        expect(output).toMatchObject({
+            deadlineType: 'output',
+            deadlineCycle: null,
+            deadlineLabel: 'Upload Luaran',
+            needsReview: false,
+        })
     })
 
-    it('[FE-WINDOW-09] Batas Evaluasi tidak menawarkan tanggal berjenis submit', () => {
-        const choices = deadlineChoices(options, 'evaluation', detail({ submissionDateId: 1 }))
-
-        expect(choices.every((choice) => choice.type === 'evaluation')).toBe(true)
-        expect(ids(deadlineChoices(options, 'revision', detail({ submissionDateId: 1 })))).toEqual([
-            5,
-        ])
-    })
-
-    // W139 — detail Upload Luaran memegang Batas Akhir di kolom Batas Submit-nya.
-    it('Batas Submit juga menawarkan Batas Akhir untuk detail Upload Luaran', () => {
-        const withOutput: SubmissionDateOption[] = [
-            ...options,
-            { id: 7, type: 'output', cycle: null, periodId: 10, label: 'P10 — Batas Akhir' },
-        ]
-
-        expect(ids(submitDateChoices(withOutput, detail()))).toEqual([1, 6, 7])
-    })
-
-    it('payload mempertahankan id detail dan mengosongkan Batas Evaluasi saat tanpa review', () => {
-        const [kept] = toEditableDetails([saved({ needsReview: false, evaluationDateId: 2 })])
-        const fresh = detail({ needsReview: true, submissionDateId: 1, evaluationDateId: 2 })
+    it('payload membawa jenis dan siklus dari pilihan "Laporan Monev II"', () => {
+        const [kept] = toEditableDetails([saved({ needsReview: false })])
+        const monev = applyStepKind(detail(), optionByLabel('Laporan Monev II').value)
 
         const payload = toPhasePayload({ title: 'Tahap', description: '', isActive: false }, [
-            kept,
-            fresh,
+            ...(kept === undefined ? [] : [kept]),
+            monev,
         ])
 
         expect(payload).toEqual({
@@ -126,18 +112,16 @@ describe('lib/phaseDefinition', () => {
                     phase_type_id: 3,
                     order: 1,
                     needs_review: false,
-                    submission_date_id: 1,
-                    evaluation_date_id: null,
-                    revision_date_id: null,
+                    deadline_type: 'submit',
+                    deadline_cycle: null,
                 },
                 {
                     form_access_control_id: 7,
                     phase_type_id: 3,
                     order: 2,
-                    needs_review: true,
-                    submission_date_id: 1,
-                    evaluation_date_id: 2,
-                    revision_date_id: null,
+                    needs_review: false,
+                    deadline_type: 'submit',
+                    deadline_cycle: 2,
                 },
             ],
         })

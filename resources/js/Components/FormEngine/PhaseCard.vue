@@ -36,10 +36,10 @@ const summary = computed(() => {
                 {{ phase.description }}
             </p>
             <p class="text-sm text-muted-foreground">{{ summary }}</p>
-            <!-- BR-FE-17 / ADR 0014 -->
+            <!-- BR-FE-26 / ADR 0019 — celah jadwal: tanggal yang belum ada di kalender periode -->
             <AppBanner v-for="gap in phase.deadlineGaps" :key="gap.period" tone="warning">
-                {{ gap.count }} detail masih bertenggat periode lain — perbarui tenggatnya agar
-                terbuka di {{ gap.period }}.
+                Periode {{ gap.period }} belum punya {{ gap.count }} tanggal yang dibutuhkan tahap
+                ini.
             </AppBanner>
         </div>
         <div class="flex flex-wrap justify-end gap-2">
