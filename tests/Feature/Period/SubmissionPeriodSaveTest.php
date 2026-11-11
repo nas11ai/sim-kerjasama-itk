@@ -12,6 +12,7 @@ use App\Models\User;
 use App\Notifications\SubmissionDeadlineExtendedNotification;
 use App\Support\Audit\AuditTrail;
 use Database\Seeders\PermissionSeeder;
+use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Support\Facades\Notification;
 use Spatie\Activitylog\Models\Activity;
 
@@ -86,6 +87,13 @@ it('menautkan tahap yang terkirim dua kali hanya sekali', function () {
 
     expect(SubmissionPeriodPhase::query()->where('form_phase_id', $this->phase->id)->count())->toBe(1);
 });
+
+// Tautan ganda membuat celah jadwal fase itu terhitung dua kali di kartu fase.
+it('menolak tautan fase yang sama dua kali di basis data', function () {
+    $period = SubmissionPeriod::factory()->create();
+    SubmissionPeriodPhase::create(['submission_period_id' => $period->id, 'form_phase_id' => $this->phase->id]);
+    SubmissionPeriodPhase::create(['submission_period_id' => $period->id, 'form_phase_id' => $this->phase->id]);
+})->throws(UniqueConstraintViolationException::class);
 
 it('audits the revision of a period (BR-RPT-09)', function () {
     $period = SubmissionPeriod::factory()->create(['name' => 'Lama']);
@@ -200,6 +208,13 @@ it('rejects an unknown deadline type — the labels are fixed, not typed (W72)',
 it('rejects cycle zero', function () {
     $this->actingAs($this->admin)
         ->post(route('admin.submission-periods.store'), periodPayload([['type' => 'submit', 'cycle' => 0, 'date' => '2030-01-01']]))
+        ->assertSessionHasErrors('submission_dates.0.cycle');
+});
+
+// BR-FE-07 — langkah paling jauh Laporan Monev X; tanggal siklus 11 tidak dibaca langkah mana pun.
+it('rejects a cycle beyond the last step cycle', function () {
+    $this->actingAs($this->admin)
+        ->post(route('admin.submission-periods.store'), periodPayload([['type' => 'submit', 'cycle' => 11, 'date' => '2030-01-01']]))
         ->assertSessionHasErrors('submission_dates.0.cycle');
 });
 

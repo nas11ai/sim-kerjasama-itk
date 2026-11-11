@@ -16,7 +16,7 @@ it('menyaring pengajuan peneliti per periode dari periode milik pengajuan', func
     $other = SubmissionPeriod::factory()->create();
 
     foreach ([$fixture['period'], $other] as $period) {
-        DB::table('submission_period_phases')->insert([
+        DB::table('submission_period_phases')->insertOrIgnore([
             'submission_period_id' => $period->id,
             'form_phase_id' => $fixture['phase']->id,
         ]);

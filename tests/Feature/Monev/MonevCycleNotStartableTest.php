@@ -21,7 +21,7 @@ function monevCycleStartFixture(): array
 {
     $fx = wizardFixture();
     // Tanpa tautan periode, ResearcherStartOptions tidak menawarkan apa pun dan assert-nya hampa.
-    SubmissionPeriodPhase::create(['submission_period_id' => $fx['period']->id, 'form_phase_id' => $fx['phase']->id]);
+    SubmissionPeriodPhase::firstOrCreate(['submission_period_id' => $fx['period']->id, 'form_phase_id' => $fx['phase']->id]);
 
     // Form tersendiri untuk laporan monev: kalau berbagi Form pengajuan, detail pengajuan
     // (order lebih kecil) selalu menang dan detail siklus tak pernah ditawarkan.

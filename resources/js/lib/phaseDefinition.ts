@@ -35,14 +35,14 @@ export type StepKindOption = {
     cycle: number | null
 }
 
-// Cermin DeadlineType::cycleName/stepLabel: romawi sampai X (FormPhaseRequest `max:10`).
-const ROMAN = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X']
+// Cermin DeadlineType::cycleName/stepLabel: romawi sampai X (`DeadlineType::MAX_CYCLE`).
+export const CYCLE_NUMERALS = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X']
 
 const kindValue = (type: StepDeadlineType, cycle: number | null) => `${type}:${cycle ?? ''}`
 
 export const stepKindOptions: StepKindOption[] = [
     { value: kindValue('submit', null), label: 'Pengajuan', type: 'submit', cycle: null },
-    ...ROMAN.map((numeral, i) => ({
+    ...CYCLE_NUMERALS.map((numeral, i) => ({
         value: kindValue('submit', i + 1),
         label: `Laporan Monev ${numeral}`,
         type: 'submit' as const,

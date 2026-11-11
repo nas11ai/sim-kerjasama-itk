@@ -36,4 +36,15 @@ describe('PeriodDateRows', () => {
         expect(row).toMatchObject({ type: 'output', cycle: null })
         expect(wrapper.find('#period-date-cycle-0').exists()).toBe(false)
     })
+
+    // BR-FE-07 — langkah bisa sampai Laporan Monev X, jadi kalender harus bisa memberi tanggalnya.
+    it('menawarkan siklus sampai Monev X, sama dengan pilihan jenis langkah', () => {
+        const wrapper = mountRows([{ type: 'submit', cycle: null, date: '', locked: 0 }])
+        const labels = wrapper.findAllComponents(OptionSelect)[1].props('options').map((o) => o.label)
+
+        expect(labels).toEqual([
+            'Pengajuan utama',
+            ...['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X'].map((n) => `Monev ${n}`),
+        ])
+    })
 })

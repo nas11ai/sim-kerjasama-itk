@@ -94,7 +94,7 @@ it('[SM-SUBMIT-03] dua draft ke skema berbeda boleh hidup bersamaan', function (
     buildAccessibleFormPhaseDetail($owner, $organization, $aclEksternal, $formPhase);
 
     $period = $dibangun['period'];
-    SubmissionPeriodPhase::create([
+    SubmissionPeriodPhase::firstOrCreate([
         'submission_period_id' => $period->id,
         'form_phase_id' => $formPhase->id,
     ]);

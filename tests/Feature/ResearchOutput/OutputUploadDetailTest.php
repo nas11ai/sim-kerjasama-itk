@@ -45,7 +45,7 @@ it('detail Upload Luaran tahap lain atau sebelum detail induk tidak dihitung', f
 it('detail Upload Luaran tidak menerima pengajuan', function () {
     $fx = outputUploadFixture();
     // Tanpa tautan periode, ResearcherStartOptions tidak menawarkan apa pun dan assert-nya hampa.
-    SubmissionPeriodPhase::create(['submission_period_id' => $fx['period']->id, 'form_phase_id' => $fx['phase']->id]);
+    SubmissionPeriodPhase::firstOrCreate(['submission_period_id' => $fx['period']->id, 'form_phase_id' => $fx['phase']->id]);
 
     // Form tersendiri untuk detail Upload Luaran: kalau berbagi Form pengajuan, detail
     // pengajuan (order lebih kecil) selalu menang dan detail ini tak pernah ditawarkan.

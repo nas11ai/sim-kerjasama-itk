@@ -21,6 +21,7 @@ use App\Models\SubmissionPeriod;
 use App\States\Submission\Draft;
 use App\States\Submission\NeedsRevision;
 use App\Support\PhaseAccessGate;
+use Symfony\Component\HttpKernel\Exception\HttpException;
 
 function windowDate(SubmissionPeriod $period, string $label, string $when): SubmissionDate
 {
@@ -112,3 +113,24 @@ it('[FE-WINDOW-10] revisi digerbangi Batas Revisi, bukan Batas Submit', function
 //
 // Pelajarannya: stub yang merangkai relasi dengan tangan bisa membuktikan
 // sesuatu yang mustahil. Di sini semuanya record sungguhan.
+
+// BR-FE-26 — tanggal yang belum diatur bukan tanggal yang sudah lewat. Peneliti yang dibilang
+// "sudah lewat" mengira dirinya terlambat, padahal Operator belum mengisi jadwalnya.
+it('[BR-FE-26] langkah tanpa tanggal di kalender ditolak dengan alasan jadwal belum diatur', function () {
+    $period = SubmissionPeriod::factory()->create();
+    $detail = FormPhaseDetail::factory()->forPeriod($period)->create(['deadline_type' => DeadlineType::Submit, 'deadline_cycle' => 2]);
+    $draft = FormSubmission::factory()->create(['form_phase_detail_id' => $detail->id, 'status' => Draft::class]);
+
+    expect(fn () => PhaseAccessGate::assertOpenFor($draft, $detail))
+        ->toThrow(HttpException::class, 'Jadwal Laporan Monev II belum diatur di periode ini. Hubungi Operator LPPM.');
+});
+
+it('[BR-FE-08] langkah yang tanggalnya lewat tetap ditolak dengan alasan batas waktu', function () {
+    $period = SubmissionPeriod::factory()->create();
+    windowDate($period, 'Batas Submit', now()->subDay()->toDateTimeString());
+    $detail = FormPhaseDetail::factory()->forPeriod($period)->create();
+    $draft = FormSubmission::factory()->create(['form_phase_detail_id' => $detail->id, 'status' => Draft::class]);
+
+    expect(fn () => PhaseAccessGate::assertOpenFor($draft, $detail))
+        ->toThrow(HttpException::class, 'Batas waktu fase ini sudah lewat. Hubungi Operator LPPM untuk meminta perpanjangan.');
+});

@@ -25,7 +25,7 @@ class SubmissionPeriodRequest extends FormRequest
             'submission_dates' => 'required|array|min:1',
             // BR-FE-25 — jenis tenggat tetap × siklus menggantikan label teks bebas (W72).
             'submission_dates.*.type' => ['required', Rule::enum(DeadlineType::class)],
-            'submission_dates.*.cycle' => 'nullable|integer|min:1|max:32767',
+            'submission_dates.*.cycle' => 'nullable|integer|min:1|max:'.DeadlineType::MAX_CYCLE,
             'submission_dates.*.date' => 'required|date',
             'form_phase_ids' => 'required|array|min:1',
             'form_phase_ids.*' => 'exists:form_phases,id',

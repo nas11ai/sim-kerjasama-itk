@@ -79,7 +79,7 @@ it('maksimal lima, digabung dengan deadline reviewer', function () {
 it('peneliti melihat periode yang bisa ia ajukan', function () {
     $this->freezeTime();
     $fx = wizardFixture();
-    SubmissionPeriodPhase::create(['submission_period_id' => $fx['period']->id, 'form_phase_id' => $fx['phase']->id]);
+    SubmissionPeriodPhase::firstOrCreate(['submission_period_id' => $fx['period']->id, 'form_phase_id' => $fx['phase']->id]);
 
     $deadlines = DashboardDeadlines::run($fx['user'], []);
 
@@ -89,7 +89,7 @@ it('peneliti melihat periode yang bisa ia ajukan', function () {
 
 it('pemegang dua permission tidak melihat periode yang sama dua kali', function () {
     $fx = wizardFixture();
-    SubmissionPeriodPhase::create(['submission_period_id' => $fx['period']->id, 'form_phase_id' => $fx['phase']->id]);
+    SubmissionPeriodPhase::firstOrCreate(['submission_period_id' => $fx['period']->id, 'form_phase_id' => $fx['phase']->id]);
     $fx['user']->givePermissionTo(Permission::findOrCreate('periods.manage', 'web'));
 
     expect(DashboardDeadlines::run($fx['user'], []))->toHaveCount(1);

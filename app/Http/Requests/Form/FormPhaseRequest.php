@@ -30,7 +30,7 @@ class FormPhaseRequest extends FormRequest
             // BR-FE-07 + BR-FE-26 (ADR 0019) — langkah menyebut jenis tenggat dan siklusnya;
             // tanggalnya milik kalender periode. Kombinasi Upload Luaran diperiksa AssertPhaseSteps.
             'phase_details.*.deadline_type' => 'required|in:submit,output',
-            'phase_details.*.deadline_cycle' => 'nullable|integer|min:1|max:10',
+            'phase_details.*.deadline_cycle' => 'nullable|integer|min:1|max:'.DeadlineType::MAX_CYCLE,
         ];
     }
 

@@ -65,11 +65,19 @@ final class PhaseAccessGate
      */
     public static function assertOpenFor(FormSubmission $submission, ?FormPhaseDetail $detail): void
     {
-        abort_unless(
-            self::isOpenFor($submission, $detail),
-            403,
-            'Batas waktu fase ini sudah lewat. Hubungi Operator LPPM untuk meminta perpanjangan.'
-        );
+        if (self::isOpenFor($submission, $detail)) {
+            return;
+        }
+
+        // BR-FE-26 — tanggal yang belum diatur bukan tanggal yang lewat: yang harus bertindak
+        // Operator (mengisi kalender), bukan peneliti (meminta perpanjangan).
+        if ($detail !== null && self::deadlineFor($submission, $detail) === null) {
+            $name = $detail->deadline_type->stepLabel($detail->deadline_cycle);
+
+            abort(403, "Jadwal {$name} belum diatur di periode ini. Hubungi Operator LPPM.");
+        }
+
+        abort(403, 'Batas waktu fase ini sudah lewat. Hubungi Operator LPPM untuk meminta perpanjangan.');
     }
 
     /**

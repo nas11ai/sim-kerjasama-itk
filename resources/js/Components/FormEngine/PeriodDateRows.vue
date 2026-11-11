@@ -5,6 +5,7 @@ import OptionSelect from '@/Components/app/OptionSelect.vue'
 import { Button } from '@/Components/ui/button'
 import { Input } from '@/Components/ui/input'
 import { Label } from '@/Components/ui/label'
+import { CYCLE_NUMERALS } from '@/lib/phaseDefinition'
 import type { DeadlineTypeValue } from '@/types/form-engine'
 import type { FilterOption } from '@/types/submission-page'
 
@@ -20,11 +21,10 @@ export type PeriodDateRow = {
 defineProps<{ typeOptions: FilterOption[] }>()
 const rows = defineModel<PeriodDateRow[]>({ required: true })
 
-const ROMAN = ['I', 'II', 'III', 'IV', 'V']
 const MAIN = 'main'
 const cycleOptions: FilterOption[] = [
     { value: MAIN, label: 'Pengajuan utama' },
-    ...ROMAN.map((numeral, i) => ({ value: String(i + 1), label: `Monev ${numeral}` })),
+    ...CYCLE_NUMERALS.map((numeral, i) => ({ value: String(i + 1), label: `Monev ${numeral}` })),
 ]
 
 const types: readonly string[] = ['submit', 'evaluation', 'revision', 'output']

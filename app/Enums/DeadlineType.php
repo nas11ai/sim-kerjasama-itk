@@ -14,6 +14,9 @@ enum DeadlineType: string
     case Revision = 'revision';
     case Output = 'output';
 
+    /** BR-FE-07 — siklus terjauh sebuah langkah (Laporan Monev X); kalender periode ikut dibatasi. */
+    public const MAX_CYCLE = 10;
+
     private const ROMAN = [1 => 'I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X'];
 
     /** W125 — nama siklus monev ke-n: romawi sampai X, angka sesudahnya. */
