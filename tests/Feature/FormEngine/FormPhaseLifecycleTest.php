@@ -64,9 +64,9 @@ it('saves a created phase with the deadline type of each detail (BR-FE-07)', fun
     $row = newPhaseRow();
 
     $this->actingAs($this->admin)
-        ->post(route('admin.forms.phases.store', $this->form), createPayload([$row]))
+        ->post(route('admin.phases.store'), createPayload([$row]))
         ->assertSessionHasNoErrors()
-        ->assertRedirect(route('admin.forms.phases.edit', [$this->form, FormPhase::query()->where('title', 'Tahap Baru')->firstOrFail()]));
+        ->assertRedirect(route('admin.phases.edit', FormPhase::query()->where('title', 'Tahap Baru')->firstOrFail()));
 
     $phase = FormPhase::query()->where('title', 'Tahap Baru')->firstOrFail();
     $detail = $phase->formPhaseDetails()->firstOrFail();
@@ -80,7 +80,7 @@ it('rejects a created phase whose detail has no deadline type as validation (BR-
     unset($row['deadline_type']);
 
     $this->actingAs($this->admin)
-        ->post(route('admin.forms.phases.store', $this->form), createPayload([$row]))
+        ->post(route('admin.phases.store'), createPayload([$row]))
         ->assertSessionHasErrors('phase_details.0.deadline_type');
 
     expect(FormPhase::query()->where('title', 'Tahap Baru')->exists())->toBeFalse();
@@ -88,7 +88,7 @@ it('rejects a created phase whose detail has no deadline type as validation (BR-
 
 it('audits the creation of a form phase (BR-RPT-09)', function () {
     $this->actingAs($this->admin)
-        ->post(route('admin.forms.phases.store', $this->form), createPayload([newPhaseRow()]))
+        ->post(route('admin.phases.store'), createPayload([newPhaseRow()]))
         ->assertSessionHasNoErrors();
 
     $phase = FormPhase::query()->where('title', 'Tahap Baru')->firstOrFail();

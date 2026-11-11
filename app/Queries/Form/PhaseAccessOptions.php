@@ -11,19 +11,19 @@ use Illuminate\Database\Eloquent\Builder;
 use Lorisleiva\Actions\Concerns\AsAction;
 
 /**
- * W102 — pilihan akses detail tahap: aturan akses semua Form aktif, Form yang sedang dibuka,
- * dan Form yang sudah dipakai detail tahap ini. Form yang dibuka lebih dulu, sisanya urut judul.
+ * W102 — pilihan akses detail tahap: aturan akses semua Form aktif dan Form yang sudah dipakai
+ * detail tahap ini, urut judul Form. Editor mandiri (BR-FE-28), jadi tidak ada Form yang dibuka.
  *
  * @phpstan-type Option array{value: string, label: string, formId: int, formTitle: string}
  *
- * @method static list<Option> run(Form $form, ?FormPhase $phase)
+ * @method static list<Option> run(?FormPhase $phase)
  */
 class PhaseAccessOptions implements ChangesNoState
 {
     use AsAction;
 
     /** @return list<Option> */
-    public function handle(Form $form, ?FormPhase $phase): array
+    public function handle(?FormPhase $phase): array
     {
         // Mode buat (`$phase` null) tidak punya detail: subquery-nya kosong.
         $used = FormAccessControl::query()->select('form_id')->whereIn(
@@ -33,11 +33,10 @@ class PhaseAccessOptions implements ChangesNoState
 
         $forms = Form::query()
             ->where(fn (Builder $query) => $query->where('is_active', true)
-                ->orWhere('id', $form->id)
                 ->orWhereIn('id', $used))
             ->orderBy('title')
-            ->get(['id', 'title'])
-            ->sortBy(fn (Form $candidate): int => $candidate->id === $form->id ? 0 : 1);
+            ->orderBy('id')
+            ->get(['id', 'title']);
 
         $rules = FormAccessRules::forForms(array_values(array_map(fn (Form $f): int => $f->id, $forms->all())));
         $options = [];

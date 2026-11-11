@@ -43,7 +43,7 @@ const phasesProps = computed(() => (props.tab === 'phases' ? props : null))
         >
             <template v-if="tab === 'phases' && form" #actions>
                 <Button as-child>
-                    <Link :href="route('admin.forms.phases.create', form.id)"
+                    <Link :href="route('admin.phases.create')"
                         ><Plus class="size-4" />Buat Tahap Baru</Link
                     >
                 </Button>

@@ -41,7 +41,6 @@ const requestLink = (phase: PhaseCardData) => {
                 v-for="phase in phases"
                 :key="phase.id"
                 :phase="phase"
-                :form-id="form.id"
                 :can-link-period="can.linkPeriod"
                 @toggle-active="actions.requestToggle"
                 @delete="actions.requestDelete"

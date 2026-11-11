@@ -29,8 +29,8 @@ use Inertia\Inertia;
 use Inertia\Response;
 
 /**
- * Tab Phases Form Builder (ADMIN-08-08) dan editor tahap (ADMIN-08-09). Route dijaga
- * `can:schemes.manage` (W88); tahap yang tidak memakai Form di URL → 404 (W92).
+ * Tab Phases Form Builder (ADMIN-08-08) dan editor tahap mandiri (ADMIN-08-09). Route dijaga
+ * `can:schemes.manage` (W88); tab yang bersarang di Form menolak tahap Form lain (404, W92).
  */
 class FormPhaseController extends Controller
 {
@@ -46,39 +46,31 @@ class FormPhaseController extends Controller
         ]);
     }
 
-    public function create(Form $form): Response
+    public function create(): Response
     {
-        return $this->editor($form, null);
+        return $this->editor(null);
     }
 
     // BR-FE-07 — tahap baru belum dipakai periode mana pun; W95 — lanjut ke editornya.
-    public function store(FormPhaseRequest $request, Form $form): RedirectResponse
+    public function store(FormPhaseRequest $request): RedirectResponse
     {
         $phase = CreateFormPhase::run($request->toInput(), $this->actor($request));
 
-        // W92 — tahap yang hanya memakai Form lain tidak punya editor di bawah Form ini.
-        $route = $phase->usesForm($form)
-            ? redirect()->route('admin.forms.phases.edit', [$form, $phase])
-            : redirect()->route('admin.forms.phases.index', $form);
-
-        return $route->with('success', 'Tahap dibuat. Tambahkan form evaluasi untuk detail yang direview.');
+        return redirect()->route('admin.phases.edit', $phase)
+            ->with('success', 'Tahap dibuat. Tambahkan form evaluasi untuk detail yang direview.');
     }
 
-    public function edit(Form $form, FormPhase $formPhase): Response
+    public function edit(FormPhase $formPhase): Response
     {
-        abort_unless($formPhase->usesForm($form), 404);
-
-        return $this->editor($form, $formPhase);
+        return $this->editor($formPhase);
     }
 
-    // BR-FE-20 — disinkronkan per id; penjaga detail berjalan di Action (W97, BR-FE-22).
-    public function update(FormPhaseRequest $request, Form $form, FormPhase $formPhase): RedirectResponse
+    // BR-FE-20 — disinkronkan per id; penjaga detail berjalan di Action (W97, BR-FE-22, BR-FE-28).
+    public function update(FormPhaseRequest $request, FormPhase $formPhase): RedirectResponse
     {
-        abort_unless($formPhase->usesForm($form), 404);
-
         ReviseFormPhase::run($formPhase, $request->toInput(), $this->actor($request));
 
-        return redirect()->route('admin.forms.phases.index', $form)->with('success', 'Tahap diperbarui.');
+        return redirect()->route('admin.phases.edit', $formPhase)->with('success', 'Tahap diperbarui.');
     }
 
     public function setActive(FormPhaseActiveRequest $request, Form $form, FormPhase $formPhase): RedirectResponse
@@ -120,12 +112,11 @@ class FormPhaseController extends Controller
 
     // `$phase` null = mode buat (W94); layar yang sama, state-nya di child ber-key. Form evaluasi
     // butuh detail tersimpan, jadi mode buat belum punya bagiannya (W95).
-    private function editor(Form $form, ?FormPhase $phase): Response
+    private function editor(?FormPhase $phase): Response
     {
         return Inertia::render('FormEngine/PhaseEditPage', [
-            'form' => FormHeaderData::fromModel($form),
-            'phase' => PhaseEdit::run($form, $phase),
-            'accessOptions' => PhaseAccessOptions::run($form, $phase),
+            'phase' => PhaseEdit::run($phase),
+            'accessOptions' => PhaseAccessOptions::run($phase),
             'phaseTypeOptions' => PhaseTypeOptions::run(),
             'evaluation' => $phase === null ? [] : PhaseEvaluationForms::run($phase),
             'fieldTypeOptions' => $phase === null ? [] : FieldTypeOptions::run(),

@@ -5,7 +5,6 @@ namespace App\Queries\Form;
 use App\Actions\Concerns\ChangesNoState;
 use App\Data\View\FormEngine\PhaseDetailEditData;
 use App\Data\View\FormEngine\PhaseEditData;
-use App\Models\Form;
 use App\Models\FormPhase;
 use App\Models\FormPhaseDetail;
 use App\Models\FormSubmission;
@@ -14,18 +13,18 @@ use Illuminate\Database\Eloquent\Collection;
 use Lorisleiva\Actions\Concerns\AsAction;
 
 /**
- * Isi editor tahap ADMIN-08-09: **semua** detail tahap, termasuk detail Form lain (W92), urut
- * `order` lalu `id`, beserta hitungan pakainya. Semua hitungan lewat subquery, tanpa kueri per detail.
+ * Isi editor tahap ADMIN-08-09: semua detail tahap — Form pengajuan dan Form langkah monevnya
+ * (BR-FE-28) — urut `order` lalu `id`, beserta hitungan pakainya lewat subquery, tanpa kueri per detail.
  *
- * @method static PhaseEditData run(Form $form, ?FormPhase $phase)
+ * @method static PhaseEditData run(?FormPhase $phase)
  */
 class PhaseEdit implements ChangesNoState
 {
     use AsAction;
 
-    public function handle(Form $form, ?FormPhase $phase): PhaseEditData
+    public function handle(?FormPhase $phase): PhaseEditData
     {
-        // W94 — mode buat: detail kosong pertamanya dibuat layar dari pilihan akses Form ini.
+        // W94 — mode buat: detail Pengajuan kosong pertamanya dibuat layar dari pilihan akses pertama.
         if ($phase === null) {
             return new PhaseEditData(id: null, title: '', description: null, isActive: true, details: []);
         }

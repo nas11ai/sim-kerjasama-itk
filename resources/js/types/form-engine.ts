@@ -245,7 +245,6 @@ export interface EvaluationSectionData {
 
 // Sumber: FormEngine\FormPhaseController::edit/create — mode buat: `evaluation`/`fieldTypeOptions` kosong.
 export interface PhaseEditPageProps {
-    form: FormHeaderData
     phase: PhaseEditData
     accessOptions: PhaseAccessOption[]
     phaseTypeOptions: FilterOption[]

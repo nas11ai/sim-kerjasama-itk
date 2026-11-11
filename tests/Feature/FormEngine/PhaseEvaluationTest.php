@@ -63,7 +63,7 @@ it('kontrak bagian form evaluasi', function () {
     ReviewFormFieldOption::create(['review_form_field_id' => $field->id, 'label' => 'Layak', 'value' => 'layak', 'order' => 1]);
 
     $this->actingAs(phaseEvaluationActor())
-        ->get(route('admin.forms.phases.edit', [$this->form, $detail->formPhase]))
+        ->get(route('admin.phases.edit', $detail->formPhase))
         ->assertOk()
         ->assertInertia(fn (AssertableInertia $page) => $page
             ->component('FormEngine/PhaseEditPage')
@@ -87,7 +87,7 @@ it('hanya detail yang direview punya bagian form evaluasi', function () {
     phaseEvaluationDetail($this->form, false, $reviewed->formPhase);
 
     $this->actingAs(phaseEvaluationActor())
-        ->get(route('admin.forms.phases.edit', [$this->form, $reviewed->formPhase]))
+        ->get(route('admin.phases.edit', $reviewed->formPhase))
         ->assertInertia(fn (AssertableInertia $page) => $page
             ->has('phase.details', 2)
             ->has('evaluation', 1)
@@ -95,7 +95,7 @@ it('hanya detail yang direview punya bagian form evaluasi', function () {
             ->where('evaluation.0.forms', []));
 
     // W95 — mode buat belum punya detail tersimpan, jadi belum ada bagian evaluasi.
-    $this->get(route('admin.forms.phases.create', $this->form))
+    $this->get(route('admin.phases.create'))
         ->assertInertia(fn (AssertableInertia $page) => $page
             ->where('evaluation', [])
             ->where('fieldTypeOptions', []));
@@ -123,13 +123,13 @@ it('membuat form evaluasi untuk detail dari route-nya', function () {
     $other = phaseEvaluationDetail($this->form, true);
 
     $this->actingAs(phaseEvaluationActor())
-        ->from(route('admin.forms.phases.edit', [$this->form, $detail->formPhase]))
+        ->from(route('admin.phases.edit', $detail->formPhase))
         ->post(route('admin.phase-details.evaluation-forms.store', $detail), [
             'title' => 'Lembar Kelayakan',
             'form_phase_detail_id' => $other->id,
         ])
         ->assertSessionHasNoErrors()
-        ->assertRedirect(route('admin.forms.phases.edit', [$this->form, $detail->formPhase]))
+        ->assertRedirect(route('admin.phases.edit', $detail->formPhase))
         ->assertSessionHas('success', 'Form evaluasi dibuat.');
 
     expect(ReviewEvaluationForm::query()->where('title', 'Lembar Kelayakan')->sole()->form_phase_detail_id)

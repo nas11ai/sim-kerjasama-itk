@@ -67,7 +67,7 @@ function revisionPayload(array $rows, string $title = 'Tahap Baru'): array
 function reviseFormPhase(array $payload): TestResponse
 {
     return test()->actingAs(test()->admin)
-        ->put(route('admin.forms.phases.update', [test()->form, test()->phase]), $payload);
+        ->put(route('admin.phases.update', test()->phase), $payload);
 }
 
 it('keeps the evaluation forms of a detail the revision retains (BR-FE-20)', function () {
@@ -83,7 +83,7 @@ it('keeps the evaluation forms of a detail the revision retains (BR-FE-20)', fun
 
     reviseFormPhase(revisionPayload([revisionRow($this->kept)]))
         ->assertSessionHasNoErrors()
-        ->assertRedirect(route('admin.forms.phases.index', $this->form));
+        ->assertRedirect(route('admin.phases.edit', $this->phase));
 
     expect(ReviewEvaluationForm::query()->whereKey($evaluation->id)->exists())->toBeTrue();
 });

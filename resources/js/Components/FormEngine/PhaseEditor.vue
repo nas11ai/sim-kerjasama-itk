@@ -18,10 +18,10 @@ import type { PhaseEditPageProps } from '@/types/form-engine'
 // Trap S2b — state editor hidup di sini; halaman memberinya :key per tahap.
 const props = defineProps<Omit<PhaseEditPageProps, 'evaluation' | 'fieldTypeOptions'>>()
 
-// W94 — mode buat: satu detail kosong berakses aturan pertama Form ini; tanpa aturan, tak bisa disimpan.
+// W94 + BR-FE-28 — mode buat: satu detail Pengajuan kosong berakses pilihan pertama; tanpa pilihan,
+// tak bisa disimpan.
 const creating = props.phase.id === null
-const ownRules = props.accessOptions.filter((option) => option.formId === props.form.id)
-const firstRule = ownRules[0]
+const firstRule = props.accessOptions[0]
 const initialDetails = () =>
     creating && firstRule
         ? [blankDetail(Number(firstRule.value), Number(props.phaseTypeOptions[0]?.value ?? 0))]
@@ -55,23 +55,19 @@ const otherErrors = computed(() =>
 function save() {
     const pending = editor.transform((data) => toPhasePayload(data, data.details))
     if (props.phase.id === null) {
-        pending.post(route('admin.forms.phases.store', props.form.id))
+        pending.post(route('admin.phases.store'))
         return
     }
-    pending.put(
-        route('admin.forms.phases.update', { form: props.form.id, formPhase: props.phase.id })
-    )
+    pending.put(route('admin.phases.update', props.phase.id))
 }
 </script>
 
 <template>
     <form class="max-w-3xl space-y-6" @submit.prevent="save">
         <AppBanner v-if="creating && !firstRule" tone="warning">
-            Tambahkan aturan akses Form ini lebih dulu — detail tahap memakai aturan akses sebagai
-            pengisinya.
-            <Link class="underline" :href="route('admin.forms.access.index', form.id)"
-                >Buka Access Control</Link
-            >
+            Belum ada Form aktif yang punya aturan akses. Buat aturan akses di Form Builder lebih
+            dulu.
+            <Link class="underline" :href="route('admin.forms.index')">Buka Form Builder</Link>
         </AppBanner>
         <PhaseGeneralCard v-model="general" :errors="errors" />
         <AppBanner v-if="otherErrors.length > 0" tone="denial">
@@ -79,7 +75,6 @@ function save() {
         </AppBanner>
         <PhaseDetailList
             v-model="editor.details"
-            :form-id="form.id"
             :saved="phase.details"
             :access-options="accessOptions"
             :phase-type-options="phaseTypeOptions"
@@ -87,7 +82,7 @@ function save() {
         />
         <div class="flex flex-wrap justify-between gap-2">
             <Button as-child variant="ghost">
-                <Link :href="route('admin.forms.phases.index', form.id)">Batalkan</Link>
+                <Link :href="route('admin.forms.index')">Batalkan</Link>
             </Button>
             <Button type="submit" :disabled="editor.processing || (creating && !firstRule)"
                 ><Check class="size-4" />Simpan Tahap</Button

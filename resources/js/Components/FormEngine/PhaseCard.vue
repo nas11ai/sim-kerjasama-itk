@@ -8,7 +8,7 @@ import { Badge } from '@/Components/ui/badge'
 import { Button } from '@/Components/ui/button'
 import type { PhaseCardData } from '@/types/form-engine'
 
-const props = defineProps<{ phase: PhaseCardData; formId: number; canLinkPeriod: boolean }>()
+const props = defineProps<{ phase: PhaseCardData; canLinkPeriod: boolean }>()
 const emit = defineEmits<{
     'toggle-active': [phase: PhaseCardData]
     delete: [phase: PhaseCardData]
@@ -51,8 +51,7 @@ const summary = computed(() => {
                 ><Link2 class="size-4" />Hubungkan ke Periode</Button
             >
             <Button as-child size="sm" variant="outline">
-                <Link
-                    :href="route('admin.forms.phases.edit', { form: formId, formPhase: phase.id })"
+                <Link :href="route('admin.phases.edit', phase.id)"
                     ><Pencil class="size-4" />Edit</Link
                 >
             </Button>

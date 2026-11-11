@@ -229,7 +229,7 @@ describe('FormEngine/FormEditPage', () => {
 
             expect(tab(wrapper, 'Phases')?.attributes('aria-current')).toBe('page')
             expect(wrapper.text()).toContain('Phases & Deadlines')
-            expect(wrapper.find('a[href^="/admin.forms.phases.create"]').text()).toContain(
+            expect(wrapper.find('a[href="/admin.phases.create"]').text()).toContain(
                 'Buat Tahap Baru'
             )
         })
@@ -243,7 +243,7 @@ describe('FormEngine/FormEditPage', () => {
             expect(statusBadge(wrapper, 1)).toBeDefined()
             expect(wrapper.findAll('article')[1].text()).toContain('Aktifkan')
             expect(wrapper.findAll('article')[0].text()).toContain('Hubungkan ke Periode')
-            expect(wrapper.find('a[href="/admin.forms.phases.edit/7/1"]').text()).toContain('Edit')
+            expect(wrapper.find('a[href="/admin.phases.edit/1"]').text()).toContain('Edit')
         })
 
         it('tombol Hubungkan ke Periode tersembunyi tanpa periods.manage', () => {

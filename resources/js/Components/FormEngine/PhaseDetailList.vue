@@ -14,7 +14,6 @@ import type { PhaseAccessOption, PhaseDetailEditData } from '@/types/form-engine
 import type { FilterOption } from '@/types/submission-page'
 
 const props = defineProps<{
-    formId: number
     saved: PhaseDetailEditData[]
     accessOptions: PhaseAccessOption[]
     phaseTypeOptions: FilterOption[]
@@ -63,7 +62,7 @@ const evaluationFormsOf = (detail: EditableDetail | null) =>
     props.saved.find((saved) => saved.id === detail?.id)?.evaluationFormCount ?? 0
 
 const open = (detail: EditableDetail | null) => {
-    const first = props.accessOptions.find((option) => option.formId === props.formId)
+    const first = props.accessOptions[0]
     editing.value =
         detail ??
         blankDetail(Number(first?.value ?? 0), Number(props.phaseTypeOptions[0]?.value ?? 0))

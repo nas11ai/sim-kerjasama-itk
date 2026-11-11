@@ -72,7 +72,6 @@ const detail = (overrides: Partial<PhaseDetailEditData> = {}): PhaseDetailEditDa
 })
 
 const props = (details: PhaseDetailEditData[]): PhaseEditPageProps => ({
-    form: { id: 7, title: 'Form Proposal', isActive: true },
     phase: { id: 3, title: 'Tahap Proposal', description: null, isActive: true, details },
     accessOptions: [
         {
@@ -122,14 +121,14 @@ beforeEach(() => {
 })
 
 describe('FormEngine/PhaseEditPage', () => {
-    it('judul, subjudul, dan back Phases', () => {
+    it('judul, subjudul, dan back Form Builder', () => {
         const wrapper = mountPage(props([detail()]))
 
         expect(wrapper.find('h1').text()).toBe('Edit Phase — Tahap Proposal')
         expect(wrapper.text()).toContain(
             'Susun tahapan pengisian beserta form evaluasi reviewer-nya.'
         )
-        expect(wrapper.find('a[href="/admin.forms.phases.index/7"]').text()).toContain('Phases')
+        expect(wrapper.find('a[href="/admin.forms.index"]').text()).toContain('Form Builder')
         expect(wrapper.findAll('li')[0].text()).toContain('Isi Proposal — Form Proposal')
         expect(wrapper.findAll('li')[0].text()).toContain('Akses: Pengaju · Fakultas Sains')
         expect(wrapper.findAll('li')[0].text()).toContain('Jenis: Pengajuan')
@@ -238,7 +237,7 @@ describe('FormEngine/PhaseEditPage', () => {
         )
     })
 
-    it('Simpan Tahap mengirim put ke admin.forms.phases.update', async () => {
+    it('Simpan Tahap mengirim put ke admin.phases.update', async () => {
         const wrapper = mountPage(props([detail()]))
         const saveButton = wrapper.findAll('button').find((b) => b.text().trim() === 'Simpan Tahap')
 
@@ -247,12 +246,16 @@ describe('FormEngine/PhaseEditPage', () => {
 
         expect(submitted).toHaveBeenCalledWith(
             'put',
-            '/admin.forms.phases.update/7/3',
+            '/admin.phases.update/3',
             expect.objectContaining({
                 title: 'Tahap Proposal',
                 is_active: true,
                 phase_details: [
-                    expect.objectContaining({ id: 31, deadline_type: 'submit', deadline_cycle: null }),
+                    expect.objectContaining({
+                        id: 31,
+                        deadline_type: 'submit',
+                        deadline_cycle: null,
+                    }),
                 ],
             })
         )
@@ -267,43 +270,39 @@ describe('FormEngine/PhaseEditPage', () => {
         const saveButton = (wrapper: ReturnType<typeof mountPage>) =>
             wrapper.findAll('button').find((b) => b.text().trim() === 'Simpan Tahap')
 
-        it('judul Buat Tahap Baru dan satu detail kosong berakses aturan pertama Form ini', () => {
+        it('judul Buat Tahap Baru dan satu detail Pengajuan kosong berakses pilihan pertama', () => {
             const wrapper = mountPage(creating())
 
             expect(wrapper.find('h1').text()).toBe('Buat Tahap Baru')
             expect(wrapper.findAll('li')).toHaveLength(1)
             expect(wrapper.findAll('li')[0].text()).toContain('Isi Proposal — Form Proposal')
             expect(wrapper.findAll('li')[0].text()).toContain('Baru')
-            expect(wrapper.text()).not.toContain('Tambahkan aturan akses Form ini lebih dulu')
+            expect(wrapper.findAll('li')[0].text()).toContain('Jenis: Pengajuan')
+            expect(wrapper.text()).not.toContain('Belum ada Form aktif yang punya aturan akses.')
         })
 
-        it('Simpan Tahap mengirim post ke admin.forms.phases.store', async () => {
+        it('Simpan Tahap mengirim post ke admin.phases.store', async () => {
             const wrapper = mountPage(creating())
 
             await wrapper.find('form').trigger('submit')
 
             expect(submitted).toHaveBeenCalledWith(
                 'post',
-                '/admin.forms.phases.store/7',
+                '/admin.phases.store',
                 expect.objectContaining({
                     phase_details: [expect.objectContaining({ form_access_control_id: 41 })],
                 })
             )
         })
 
-        it('[W94] Form tanpa aturan akses menampilkan banner dan menonaktifkan Simpan Tahap', () => {
-            const foreign = {
-                value: '90',
-                label: 'Form Lain — Pengaju — X',
-                formId: 8,
-                formTitle: 'Form Lain',
-            }
-            const wrapper = mountPage(creating([foreign]))
+        it('[W94] tanpa Form aktif beraturan akses menampilkan banner dan menonaktifkan Simpan Tahap', () => {
+            const wrapper = mountPage(creating([]))
 
             expect(wrapper.text()).toContain(
-                'Tambahkan aturan akses Form ini lebih dulu — detail tahap memakai aturan akses sebagai pengisinya.'
+                'Belum ada Form aktif yang punya aturan akses. Buat aturan akses di Form Builder lebih dulu.'
             )
-            expect(wrapper.find('a[href="/admin.forms.access.index/7"]').exists()).toBe(true)
+            const banner = wrapper.findAll('a').find((a) => a.text() === 'Buka Form Builder')
+            expect(banner?.attributes('href')).toBe('/admin.forms.index')
             expect(wrapper.findAll('li')).toHaveLength(0)
             expect(saveButton(wrapper)?.attributes('disabled')).toBeDefined()
         })

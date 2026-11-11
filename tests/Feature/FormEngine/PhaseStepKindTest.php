@@ -45,7 +45,7 @@ function stepKindRow(FormPhaseDetail $detail, array $overrides = []): array
 /** @param  list<array<string, mixed>>  $rows */
 function storeStepKinds(array $rows): TestResponse
 {
-    return test()->actingAs(test()->admin)->post(route('admin.forms.phases.store', test()->form), [
+    return test()->actingAs(test()->admin)->post(route('admin.phases.store'), [
         'title' => 'Tahap Jenis', 'description' => null, 'is_active' => true, 'phase_details' => $rows,
     ]);
 }
@@ -63,7 +63,7 @@ it('menyimpan langkah dengan jenis dan siklus', function () {
 
 it('merevisi jenis dan siklus langkah lama', function () {
     $this->actingAs($this->admin)
-        ->put(route('admin.forms.phases.update', [$this->form, $this->phase]), [
+        ->put(route('admin.phases.update', $this->phase), [
             'title' => 'Tahap Jenis', 'is_active' => true,
             'phase_details' => [
                 stepKindRow($this->detail, ['id' => $this->detail->id]),
@@ -104,7 +104,7 @@ it('editor tahap mengirim jenis, siklus, dan label langkah tanpa pilihan tanggal
     $this->detail->update(['deadline_type' => DeadlineType::Submit, 'deadline_cycle' => 2]);
 
     $this->actingAs($this->admin)
-        ->get(route('admin.forms.phases.edit', [$this->form, $this->phase]))
+        ->get(route('admin.phases.edit', $this->phase))
         ->assertInertia(fn ($page) => $page
             ->missing('deadlineOptions')
             ->where('phase.details.0.deadlineType', 'submit')

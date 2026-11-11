@@ -24,7 +24,7 @@ vi.mock('@inertiajs/vue3', async () => {
             })
             return form
         },
-        Link: { template: '<a><slot /></a>' },
+        Link: { props: ['href'], template: '<a :href="href"><slot /></a>' },
     }
 })
 
@@ -52,7 +52,7 @@ const phase = (overrides: Partial<PhaseCardData> = {}): PhaseCardData => ({
 })
 
 const mountCard = (props: { phase: PhaseCardData; canLinkPeriod: boolean }) =>
-    mount(PhaseCard, { props: { formId: 3, ...props }, global: { mocks: { route } } })
+    mount(PhaseCard, { props, global: { mocks: { route } } })
 
 beforeEach(() => vi.stubGlobal('route', route))
 afterEach(() => posted.mockClear())
@@ -98,6 +98,14 @@ describe('PhaseCard — hubungkan ke periode', () => {
         const wrapper = mountCard({ phase: phase(), canLinkPeriod: true })
 
         expect(wrapper.text()).not.toContain('tanggal yang dibutuhkan tahap ini')
+    })
+})
+
+describe('PhaseCard — tautan Edit', () => {
+    it('menaut ke editor tahap mandiri', () => {
+        const wrapper = mountCard({ phase: phase(), canLinkPeriod: false })
+
+        expect(wrapper.find('a[href="/admin.phases.edit/7"]').text()).toContain('Edit')
     })
 })
 

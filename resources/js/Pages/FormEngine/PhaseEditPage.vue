@@ -22,13 +22,12 @@ const title = computed(() =>
         <PageHeader
             :title="title"
             subtitle="Susun tahapan pengisian beserta form evaluasi reviewer-nya."
-            :back-href="route('admin.forms.phases.index', form.id)"
-            back-label="Phases"
+            :back-href="route('admin.forms.index')"
+            back-label="Form Builder"
         />
         <!-- Trap S2b — Inertia memakai ulang halaman antar-tahap; state editor di child ber-key -->
         <PhaseEditor
             :key="phase.id ?? 'new'"
-            :form="form"
             :phase="phase"
             :access-options="accessOptions"
             :phase-type-options="phaseTypeOptions"
