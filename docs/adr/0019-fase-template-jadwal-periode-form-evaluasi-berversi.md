@@ -119,7 +119,7 @@ dijaga sinkron dengan `submission_period_phases`.
 
 | Irisan | Isi | Status |
 | --- | --- | --- |
-| R1 | Jadwal milik periode | Berjalan |
+| R1 | Jadwal milik periode | Selesai — kode s.d. `e7828f84` (contract: rujukan tanggal di langkah dihapus) |
 | R2 | Pustaka Fase, satu jenis pengajuan per fase | Belum |
 | R3 | Form Evaluasi mandiri & berversi | Belum |
 | R4 | Terapkan versi baru ke angkatan | Belum |
