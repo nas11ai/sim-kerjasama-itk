@@ -325,20 +325,18 @@ Route::middleware(['auth', 'can:schemes.manage'])->prefix('admin')->name('admin.
     Route::delete('/forms/{form}/access/{formAccessControl}', [FormAccessController::class, 'destroy'])
         ->scopeBindings()->name('forms.access.destroy');
 
-    // ADMIN-08-08 — tahap yang memakai Form ini (W92).
-    Route::get('/forms/{form}/phases', [FormPhaseController::class, 'index'])->name('forms.phases.index');
+    // ADMIN-08-08 — pustaka fase (R2): tahap mandiri, `?form=` menapis tahap yang memakai Form itu.
+    Route::get('/phases', [FormPhaseController::class, 'index'])->name('phases.index');
     // ADMIN-08-09 — editor tahap mandiri (BR-FE-28: satu Form pengajuan per tahap); mode buat di /create.
     Route::get('/phases/create', [FormPhaseController::class, 'create'])->name('phases.create');
     Route::post('/phases', [FormPhaseController::class, 'store'])->name('phases.store');
     Route::get('/phases/{formPhase}/edit', [FormPhaseController::class, 'edit'])->name('phases.edit');
     Route::put('/phases/{formPhase}', [FormPhaseController::class, 'update'])->name('phases.update');
-    Route::patch('/forms/{form}/phases/{formPhase}/active', [FormPhaseController::class, 'setActive'])
-        ->name('forms.phases.active');
-    Route::delete('/forms/{form}/phases/{formPhase}', [FormPhaseController::class, 'destroy'])
-        ->name('forms.phases.destroy');
+    Route::patch('/phases/{formPhase}/active', [FormPhaseController::class, 'setActive'])->name('phases.active');
+    Route::delete('/phases/{formPhase}', [FormPhaseController::class, 'destroy'])->name('phases.destroy');
     // K9b — menautkan tahap ke periode butuh wewenang periode, selain schemes.manage.
-    Route::post('/forms/{form}/phases/{formPhase}/periods', [FormPhaseController::class, 'linkPeriod'])
-        ->middleware('can:periods.manage')->name('forms.phases.periods.store');
+    Route::post('/phases/{formPhase}/periods', [FormPhaseController::class, 'linkPeriod'])
+        ->middleware('can:periods.manage')->name('phases.periods.store');
 
     // ADMIN-08-09 — form evaluasi disimpan per kartu (W95); detailnya dari route, bukan kiriman (W100).
     Route::post('/phase-details/{formPhaseDetail}/evaluation-forms', [EvaluationFormController::class, 'store'])

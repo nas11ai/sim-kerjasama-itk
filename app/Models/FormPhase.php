@@ -14,7 +14,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property string|null $description
  * @property bool $is_active
  * @property int $form_phase_details_count hanya setelah withCount('formPhaseDetails')
- * @property int $submission_count hanya setelah FormPhaseCards
+ * @property int $submission_count hanya setelah PhaseLibrary
+ * @property string|null $submission_form_title hanya setelah PhaseLibrary
  * @property-read SubmissionPeriod|null $submissionPeriod
  */
 class FormPhase extends Model
@@ -62,7 +63,7 @@ class FormPhase extends Model
     }
 
     /**
-     * W92 — tahap milik sebuah Form bila salah satu detailnya memakai aturan akses Form itu.
+     * Tahap memakai sebuah Form bila langkah mana pun memakai aturan akses Form itu (tapis pustaka, R2).
      *
      * @param  Builder<FormPhase>  $query
      * @return Builder<FormPhase>
@@ -73,10 +74,5 @@ class FormPhase extends Model
             'formPhaseDetails.formAccessControl',
             fn (Builder $rules) => $rules->where('form_id', $form->id),
         );
-    }
-
-    public function usesForm(Form $form): bool
-    {
-        return self::query()->whereKey($this->id)->usingForm($form)->exists();
     }
 }

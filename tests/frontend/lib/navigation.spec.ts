@@ -101,6 +101,25 @@ describe('visibleNavGroups', () => {
         }
     })
 
+    it('Fase tampil sesudah Form Builder untuk schemes.manage dan aktif di layar tahap (R2)', () => {
+        const items = visibleNavGroups(navGroups, ['schemes.manage'], NO_FLAGS).flatMap(
+            (g) => g.items
+        )
+        const index = items.findIndex((i) => i.label === 'Fase')
+        // Padanan route().current(pattern) Ziggy saat berada di editor tahap.
+        const onEditor = (pattern: string) =>
+            pattern === 'admin.phases.edit' ||
+            (pattern.endsWith('.*') && 'admin.phases.edit'.startsWith(pattern.slice(0, -1)))
+
+        expect(items[index - 1]?.label).toBe('Form Builder')
+        expect(items[index]?.routeName).toBe('admin.phases.index')
+        expect(isNavItemActive(items[index], onEditor)).toBe(true)
+        expect(isNavItemActive(items[index - 1], onEditor)).toBe(false)
+        expect(labels(visibleNavGroups(navGroups, ['periods.manage'], NO_FLAGS))).not.toContain(
+            'Fase'
+        )
+    })
+
     it('item ber-routeName null tidak pernah tampil, termasuk untuk katalog penuh', () => {
         const hidden = navGroups.flatMap((g) => g.items).filter((i) => i.routeName === null)
         const shown = labels(

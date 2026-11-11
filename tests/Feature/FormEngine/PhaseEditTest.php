@@ -133,7 +133,7 @@ it('menyimpan ulang detail tidak mengubah jenis langkahnya', function () {
             phaseEditPayload([phaseEditRow($submission), phaseEditRow($detail)]),
         )
         ->assertSessionHasNoErrors()
-        ->assertRedirect(route('admin.phases.edit', $submission->formPhase))
+        ->assertRedirect(route('admin.phases.index'))
         ->assertSessionHas('success', 'Tahap diperbarui.');
 
     expect($detail->fresh()?->deadline_cycle)->toBe(1);
@@ -238,7 +238,7 @@ it('renders the create editor with no access options', function () {
     expect(FormPhase::query()->where('title', 'Kosong')->exists())->toBeFalse();
 });
 
-it('tahap baru tampil di tab Phases Form-nya', function () {
+it('tahap baru tampil di pustaka bertapis Form-nya', function () {
     $reference = phaseEditDetail($this->form);
 
     $this->actingAs(phaseEditActor())
@@ -247,7 +247,7 @@ it('tahap baru tampil di tab Phases Form-nya', function () {
 
     $created = FormPhase::query()->where('title', 'Tahap Disunting')->firstOrFail();
 
-    $this->get(route('admin.forms.phases.index', $this->form))
+    $this->get(route('admin.phases.index', ['form' => $this->form->id]))
         ->assertInertia(fn (AssertableInertia $page) => $page
             ->where('phases', fn ($phases) => collect($phases)->contains('id', $created->id)));
 });

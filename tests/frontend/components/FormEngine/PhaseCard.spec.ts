@@ -48,6 +48,7 @@ const phase = (overrides: Partial<PhaseCardData> = {}): PhaseCardData => ({
     submissionCount: 0,
     linkablePeriods: [{ value: '9', label: '2026 Gelombang 2' }],
     deadlineGaps: [],
+    submissionFormTitle: 'Proposal Penelitian',
     ...overrides,
 })
 
@@ -101,6 +102,23 @@ describe('PhaseCard — hubungkan ke periode', () => {
     })
 })
 
+describe('PhaseCard — Form pengajuan', () => {
+    it('menyebut Form pengajuan tahap (BR-FE-28)', () => {
+        const wrapper = mountCard({ phase: phase(), canLinkPeriod: false })
+
+        expect(wrapper.text()).toContain('Form pengajuan: Proposal Penelitian')
+    })
+
+    it('tanpa langkah Pengajuan tidak menyebut Form pengajuan', () => {
+        const wrapper = mountCard({
+            phase: phase({ submissionFormTitle: null }),
+            canLinkPeriod: false,
+        })
+
+        expect(wrapper.text()).not.toContain('Form pengajuan:')
+    })
+})
+
 describe('PhaseCard — tautan Edit', () => {
     it('menaut ke editor tahap mandiri', () => {
         const wrapper = mountCard({ phase: phase(), canLinkPeriod: false })
@@ -116,7 +134,7 @@ describe('PhasePeriodDialog', () => {
 
     it('memilih periode lalu Hubungkan mengirim submission_period_id', async () => {
         const wrapper = mount(PhasePeriodDialog, {
-            props: { open: true, phase: phase(), formId: 3 },
+            props: { open: true, phase: phase() },
             attachTo: document.body,
             global: { mocks: { route } },
         })
@@ -136,7 +154,7 @@ describe('PhasePeriodDialog', () => {
         submit?.click()
         await flushPromises()
 
-        expect(posted).toHaveBeenCalledWith('/admin.forms.phases.periods.store/3/7', {
+        expect(posted).toHaveBeenCalledWith('/admin.phases.periods.store/7', {
             submission_period_id: '9',
         })
         wrapper.unmount()

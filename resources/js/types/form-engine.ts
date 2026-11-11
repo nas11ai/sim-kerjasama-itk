@@ -146,7 +146,8 @@ export interface FormEditAccessProps {
     organizationOptions: FilterOption[]
 }
 
-// Sumber: App\Data\View\FormEngine\PhaseCardData — `submissionCount` > 0 mengunci hapus (BR-FE-20).
+// Sumber: App\Data\View\FormEngine\PhaseCardData — `submissionCount` > 0 mengunci hapus (BR-FE-20);
+// `submissionFormTitle` = Form langkah Pengajuan (BR-FE-28), null bila tahap belum punya langkah itu.
 export interface PhaseCardData {
     id: number
     title: string
@@ -157,17 +158,17 @@ export interface PhaseCardData {
     submissionCount: number
     linkablePeriods: FilterOption[]
     deadlineGaps: { period: string; count: number }[]
+    submissionFormTitle: string | null
 }
 
-// Sumber: FormEngine\FormPhaseController::index.
-export interface FormEditPhasesProps {
-    tab: 'phases'
-    form: FormHeaderData
+// Sumber: FormEngine\FormPhaseController::index — pustaka fase; `filterForm` dari `?form=`.
+export interface PhaseIndexPageProps {
     phases: PhaseCardData[]
+    filterForm: FormHeaderData | null
     can: { linkPeriod: boolean }
 }
 
-export type FormEditPageProps = FormEditGeneralProps | FormEditAccessProps | FormEditPhasesProps
+export type FormEditPageProps = FormEditGeneralProps | FormEditAccessProps
 
 // Sumber: App\Data\View\FormEngine\PhaseDetailEditData — hitungan mengunci hapus/form/tipe/review.
 export interface PhaseDetailEditData {

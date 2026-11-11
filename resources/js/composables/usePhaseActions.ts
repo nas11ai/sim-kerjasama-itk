@@ -3,9 +3,9 @@ import { computed, ref } from 'vue'
 
 import type { PhaseCardData } from '@/types/form-engine'
 
-// Aktifkan/nonaktifkan dan hapus satu tahap dari tab Phases (BR-FE-20, W101). Kelayakan hapus
+// Aktifkan/nonaktifkan dan hapus satu tahap dari pustaka fase (BR-FE-20, W101). Kelayakan hapus
 // dibaca dari backend lewat `submissionCount`; layar hanya memilih dialog yang sesuai.
-export function usePhaseActions(formId: number) {
+export function usePhaseActions() {
     const target = ref<PhaseCardData | null>(null)
     const toggling = ref(false)
     const deleting = ref(false)
@@ -57,7 +57,7 @@ export function usePhaseActions(formId: number) {
     const confirmToggle = () => {
         if (!target.value) return
         router.patch(
-            route('admin.forms.phases.active', { form: formId, formPhase: target.value.id }),
+            route('admin.phases.active', target.value.id),
             { active: !target.value.isActive },
             visit(() => (toggling.value = false))
         )
@@ -66,7 +66,7 @@ export function usePhaseActions(formId: number) {
     const confirmDelete = () => {
         if (!target.value) return
         router.delete(
-            route('admin.forms.phases.destroy', { form: formId, formPhase: target.value.id }),
+            route('admin.phases.destroy', target.value.id),
             visit(() => (deleting.value = false))
         )
     }

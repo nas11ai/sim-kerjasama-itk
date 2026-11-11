@@ -7,6 +7,7 @@ use Spatie\LaravelData\Data;
 /**
  * Satu kartu ADMIN-08-08: tahap beserta hitungan pakainya. `linkablePeriods` dan
  * `deadlineGaps` diisi backend (W101; celah jadwal per periode, ADR 0019); layar tidak menghitung apa pun.
+ * `submissionFormTitle` = Form langkah Pengajuan (BR-FE-28), null bila tahap belum punya langkah itu.
  */
 final class PhaseCardData extends Data
 {
@@ -25,5 +26,6 @@ final class PhaseCardData extends Data
         public int $submissionCount,
         public array $linkablePeriods,
         public array $deadlineGaps,
+        public ?string $submissionFormTitle,
     ) {}
 }

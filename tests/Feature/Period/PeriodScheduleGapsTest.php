@@ -20,7 +20,7 @@ use App\Models\SubmissionDate;
 use App\Models\SubmissionPeriod;
 use App\Models\SubmissionReviewer;
 use App\Models\User;
-use App\Queries\Form\FormPhaseCards;
+use App\Queries\Form\PhaseLibrary;
 use App\Queries\Period\PeriodScheduleGaps;
 use Illuminate\Support\Carbon;
 
@@ -41,7 +41,7 @@ it('[FE-WINDOW-08] mendaftar celah Batas Evaluasi langkah yang direview', functi
 
     $form = $step->formAccessControl?->form;
     expect($form)->not->toBeNull();
-    $card = collect(FormPhaseCards::run($form))->firstWhere('id', $phase->id);
+    $card = collect(PhaseLibrary::run($form))->firstWhere('id', $phase->id);
 
     expect($card?->deadlineGaps)->toBe([['period' => 'Periode A', 'count' => 1]]);
 });
@@ -64,7 +64,7 @@ it('menghitung tanggal, bukan langkah: dua langkah bersiklus sama berbagi satu c
 
     $form = $step->formAccessControl?->form;
     expect($form)->not->toBeNull();
-    $card = collect(FormPhaseCards::run($form))->firstWhere('id', $phase->id);
+    $card = collect(PhaseLibrary::run($form))->firstWhere('id', $phase->id);
 
     expect($card?->deadlineGaps)->toBe([['period' => 'Periode C', 'count' => 1]]);
 });
@@ -180,7 +180,7 @@ it('celah jadwal tetap tampil di periode yang sudah tutup bila fase itu masih pu
 
     $form = $pengajuan->formAccessControl?->form;
     expect($form)->not->toBeNull();
-    $card = collect(FormPhaseCards::run($form))->firstWhere('id', $phase->id);
+    $card = collect(PhaseLibrary::run($form))->firstWhere('id', $phase->id);
 
     expect($card?->deadlineGaps)->toBe([['period' => 'Angkatan Lama', 'count' => 1]]);
 });

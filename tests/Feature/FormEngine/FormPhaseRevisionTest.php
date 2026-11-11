@@ -83,7 +83,7 @@ it('keeps the evaluation forms of a detail the revision retains (BR-FE-20)', fun
 
     reviseFormPhase(revisionPayload([revisionRow($this->kept)]))
         ->assertSessionHasNoErrors()
-        ->assertRedirect(route('admin.phases.edit', $this->phase));
+        ->assertRedirect(route('admin.phases.index'));
 
     expect(ReviewEvaluationForm::query()->whereKey($evaluation->id)->exists())->toBeTrue();
 });

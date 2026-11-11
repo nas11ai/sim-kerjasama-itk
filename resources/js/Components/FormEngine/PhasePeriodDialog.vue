@@ -8,7 +8,7 @@ import OptionSelect from '@/Components/app/OptionSelect.vue'
 import type { PhaseCardData } from '@/types/form-engine'
 
 // K9b — penautan longgar: semua periode layak dari backend; tenggat detail dipindah sesudahnya.
-const props = defineProps<{ phase: PhaseCardData | null; formId: number }>()
+const props = defineProps<{ phase: PhaseCardData | null }>()
 const open = defineModel<boolean>('open', { required: true })
 
 const form = useForm<{ submission_period_id: string | null }>({ submission_period_id: null })
@@ -21,13 +21,10 @@ watch(open, (isOpen) => {
 
 const send = () => {
     if (!props.phase) return
-    form.post(
-        route('admin.forms.phases.periods.store', {
-            form: props.formId,
-            formPhase: props.phase.id,
-        }),
-        { preserveScroll: true, onSuccess: () => (open.value = false) }
-    )
+    form.post(route('admin.phases.periods.store', props.phase.id), {
+        preserveScroll: true,
+        onSuccess: () => (open.value = false),
+    })
 }
 </script>
 

@@ -121,14 +121,20 @@ beforeEach(() => {
 })
 
 describe('FormEngine/PhaseEditPage', () => {
-    it('judul, subjudul, dan back Form Builder', () => {
+    it('judul, subjudul, dan back ke pustaka Fase', () => {
         const wrapper = mountPage(props([detail()]))
 
         expect(wrapper.find('h1').text()).toBe('Edit Phase — Tahap Proposal')
         expect(wrapper.text()).toContain(
             'Susun tahapan pengisian beserta form evaluasi reviewer-nya.'
         )
-        expect(wrapper.find('a[href="/admin.forms.index"]').text()).toContain('Form Builder')
+        expect(wrapper.find('a[href="/admin.phases.index"]').text()).toContain('Fase')
+        expect(
+            wrapper
+                .findAll('a')
+                .find((a) => a.text() === 'Batalkan')
+                ?.attributes('href')
+        ).toBe('/admin.phases.index')
         expect(wrapper.findAll('li')[0].text()).toContain('Isi Proposal — Form Proposal')
         expect(wrapper.findAll('li')[0].text()).toContain('Akses: Pengaju · Fakultas Sains')
         expect(wrapper.findAll('li')[0].text()).toContain('Jenis: Pengajuan')

@@ -82,7 +82,7 @@ function save() {
         />
         <div class="flex flex-wrap justify-between gap-2">
             <Button as-child variant="ghost">
-                <Link :href="route('admin.forms.index')">Batalkan</Link>
+                <Link :href="route('admin.phases.index')">Batalkan</Link>
             </Button>
             <Button type="submit" :disabled="editor.processing || (creating && !firstRule)"
                 ><Check class="size-4" />Simpan Tahap</Button

@@ -6,12 +6,13 @@ import type { FormHeaderData } from '@/types/form-engine'
 
 const props = defineProps<{
     form: FormHeaderData | null
-    active: 'general' | 'access' | 'phases'
+    active: 'general' | 'access'
 }>()
 
 type Tab = { key: string; label: string; href: string | null; title?: string }
 
-// W86 — tab = route. Mode buat: tab lain menunggu Form tersimpan.
+// W86 — tab = route. Mode buat: tab lain menunggu Form tersimpan. Phases = pustaka fase bertapis
+// Form ini (R2-W4); tidak pernah aktif di sini karena pustaka punya halaman sendiri.
 const tabs = computed((): Tab[] => {
     const form = props.form
     if (form === null) {
@@ -29,7 +30,7 @@ const tabs = computed((): Tab[] => {
             label: 'Access Control',
             href: route('admin.forms.access.index', form.id),
         },
-        { key: 'phases', label: 'Phases', href: route('admin.forms.phases.index', form.id) },
+        { key: 'phases', label: 'Phases', href: route('admin.phases.index', { form: form.id }) },
     ]
 })
 

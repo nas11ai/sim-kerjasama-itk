@@ -111,7 +111,7 @@ it('rejects single delete of a phase used by a submission and keeps its evaluati
     FormSubmission::factory()->create(['form_phase_detail_id' => $detail->id]);
 
     $this->actingAs($this->admin)
-        ->delete(route('admin.forms.phases.destroy', [$detail->formAccessControl?->form, $phase]))
+        ->delete(route('admin.phases.destroy', $phase))
         ->assertSessionHasErrors('id');
 
     expect(FormPhase::query()->whereKey($phase->id)->exists())->toBeTrue()
@@ -124,9 +124,9 @@ it('audits a single delete of an unused phase (BR-RPT-09)', function () {
     $phase = $detail->formPhase;
 
     $this->actingAs($this->admin)
-        ->delete(route('admin.forms.phases.destroy', [$detail->formAccessControl?->form, $phase]))
+        ->delete(route('admin.phases.destroy', $phase))
         ->assertSessionHasNoErrors()
-        ->assertRedirect(route('admin.forms.phases.index', $detail->formAccessControl?->form));
+        ->assertRedirect(route('admin.phases.index'));
 
     expect(FormPhase::query()->whereKey($phase->id)->exists())->toBeFalse()
         ->and(auditEntry('Tahap formulir dihapus', $phase))->not->toBeNull();
@@ -135,8 +135,7 @@ it('audits a single delete of an unused phase (BR-RPT-09)', function () {
 it('mengaktifkan dan menonaktifkan tahap mengaudit perubahan, nilai sama tidak (BR-RPT-09)', function () {
     $detail = FormPhaseDetail::factory()->create();
     $phase = $detail->formPhase;
-    $form = $detail->formAccessControl?->form;
-    $url = route('admin.forms.phases.active', [$form, $phase]);
+    $url = route('admin.phases.active', $phase);
 
     $this->actingAs($this->admin)->from('/back')->patch($url, ['active' => false])
         ->assertRedirect('/back')
@@ -159,6 +158,6 @@ it('menolak kiriman active yang bukan boolean', function () {
     $detail = FormPhaseDetail::factory()->create();
 
     $this->actingAs($this->admin)
-        ->patch(route('admin.forms.phases.active', [$detail->formAccessControl?->form, $detail->formPhase]), [])
+        ->patch(route('admin.phases.active', $detail->formPhase), [])
         ->assertSessionHasErrors('active');
 });

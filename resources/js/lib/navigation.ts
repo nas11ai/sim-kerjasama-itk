@@ -216,6 +216,14 @@ export const navGroups: NavGroup[] = [
                 anyPermission: ['schemes.manage'],
             },
             {
+                // R2 — pustaka fase: tahap mandiri yang dipakai banyak periode.
+                label: 'Fase',
+                icon: Layers,
+                routeName: 'admin.phases.index',
+                activePattern: 'admin.phases.*',
+                anyPermission: ['schemes.manage'],
+            },
+            {
                 label: 'Skema Penelitian',
                 icon: Settings,
                 routeName: 'admin.schemes.index',

@@ -32,6 +32,10 @@ const summary = computed(() => {
                 <h3 class="font-medium">{{ phase.title }}</h3>
                 <Badge v-if="!phase.isActive" variant="outline">Nonaktif</Badge>
             </div>
+            <!-- BR-FE-28 — satu Form pengajuan per tahap -->
+            <p v-if="phase.submissionFormTitle" class="text-sm">
+                Form pengajuan: {{ phase.submissionFormTitle }}
+            </p>
             <p v-if="phase.description" class="text-sm text-muted-foreground">
                 {{ phase.description }}
             </p>

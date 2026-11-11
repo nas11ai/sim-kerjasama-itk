@@ -17,10 +17,10 @@ use App\Models\Form;
 use App\Models\FormPhase;
 use App\Models\SubmissionPeriod;
 use App\Queries\Form\FieldTypeOptions;
-use App\Queries\Form\FormPhaseCards;
 use App\Queries\Form\PhaseAccessOptions;
 use App\Queries\Form\PhaseEdit;
 use App\Queries\Form\PhaseEvaluationForms;
+use App\Queries\Form\PhaseLibrary;
 use App\Queries\Form\PhaseTypeOptions;
 use App\Queries\Period\PeriodScheduleGaps;
 use Illuminate\Http\RedirectResponse;
@@ -29,19 +29,21 @@ use Inertia\Inertia;
 use Inertia\Response;
 
 /**
- * Tab Phases Form Builder (ADMIN-08-08) dan editor tahap mandiri (ADMIN-08-09). Route dijaga
- * `can:schemes.manage` (W88); tab yang bersarang di Form menolak tahap Form lain (404, W92).
+ * Pustaka fase (ADMIN-08-08) dan editor tahap mandiri (ADMIN-08-09). Route dijaga
+ * `can:schemes.manage` (W88); tahap tidak lagi bersarang di Form (R2, BR-FE-28).
  */
 class FormPhaseController extends Controller
 {
     use ResolvesActor;
 
-    public function index(Request $request, Form $form): Response
+    // `?form=` menapis tahap yang langkah mana pun memakai Form itu; id tak dikenal 404.
+    public function index(Request $request): Response
     {
-        return Inertia::render('FormEngine/FormEditPage', [
-            'tab' => 'phases',
-            'form' => FormHeaderData::fromModel($form),
-            'phases' => FormPhaseCards::run($form),
+        $form = $request->filled('form') ? Form::query()->findOrFail($request->integer('form')) : null;
+
+        return Inertia::render('FormEngine/PhaseIndexPage', [
+            'phases' => PhaseLibrary::run($form),
+            'filterForm' => $form === null ? null : FormHeaderData::fromModel($form),
             'can' => ['linkPeriod' => $request->user()?->can('periods.manage') === true],
         ]);
     }
@@ -70,13 +72,11 @@ class FormPhaseController extends Controller
     {
         ReviseFormPhase::run($formPhase, $request->toInput(), $this->actor($request));
 
-        return redirect()->route('admin.phases.edit', $formPhase)->with('success', 'Tahap diperbarui.');
+        return redirect()->route('admin.phases.index')->with('success', 'Tahap diperbarui.');
     }
 
-    public function setActive(FormPhaseActiveRequest $request, Form $form, FormPhase $formPhase): RedirectResponse
+    public function setActive(FormPhaseActiveRequest $request, FormPhase $formPhase): RedirectResponse
     {
-        abort_unless($formPhase->usesForm($form), 404);
-
         $active = $request->boolean('active');
 
         SetFormPhaseActive::run($formPhase, $active, $this->actor($request));
@@ -85,20 +85,16 @@ class FormPhaseController extends Controller
     }
 
     // BR-FE-20 — penjaga rujukan berjalan di Action; penolakannya sampai apa adanya.
-    public function destroy(Request $request, Form $form, FormPhase $formPhase): RedirectResponse
+    public function destroy(Request $request, FormPhase $formPhase): RedirectResponse
     {
-        abort_unless($formPhase->usesForm($form), 404);
-
         DeleteFormPhase::run($formPhase, $this->actor($request));
 
-        return redirect()->route('admin.forms.phases.index', $form)->with('success', 'Tahap dihapus.');
+        return redirect()->route('admin.phases.index')->with('success', 'Tahap dihapus.');
     }
 
     // BR-FE-26 (ADR 0019) — penautan longgar; pesan menyebut tanggal kalender yang masih kurang.
-    public function linkPeriod(PhasePeriodRequest $request, Form $form, FormPhase $formPhase): RedirectResponse
+    public function linkPeriod(PhasePeriodRequest $request, FormPhase $formPhase): RedirectResponse
     {
-        abort_unless($formPhase->usesForm($form), 404);
-
         $period = SubmissionPeriod::query()->findOrFail($request->integer('submission_period_id'));
 
         LinkPhaseToPeriod::run($formPhase, $period, $this->actor($request));
