@@ -5,8 +5,10 @@
 use App\Actions\Form\GrantFormAccess;
 use App\Models\Form;
 use App\Models\FormAccessControl;
+use App\Models\FormPhase;
 use App\Models\FormPhaseDetail;
 use App\Models\Organization;
+use App\Models\PhaseType;
 use App\Models\User;
 use App\Support\Audit\AuditTrail;
 use Database\Seeders\PermissionSeeder;
@@ -54,7 +56,7 @@ it('kontrak tab access control', function () {
                 'permission' => 'submissions.create',
                 'permissionLabel' => 'Membuat pengajuan',
                 'organizationLabel' => 'Prodi Akses',
-                'phaseDetailCount' => 0,
+                'phaseCount' => 0,
             ])
             ->where('permissionOptions.0', ['value' => 'submissions.create', 'label' => 'Membuat pengajuan'])
             ->has('permissionOptions', count(FormAccessControl::ALLOWED_PERMISSIONS))
@@ -126,20 +128,39 @@ it('menghapus aturan mengaudit (BR-RPT-09)', function () {
         ->and(accessTabAudit('Kontrol akses formulir dihapus', $rule)?->causer_id)->toBe($admin->id);
 });
 
-it('aturan yang dipakai detail tahap tidak bisa dihapus dan menyebut angkanya (BR-FE-20)', function () {
+it('aturan yang dipakai tahap terbit tidak bisa dihapus dan menyebut angkanya (BR-FE-20)', function () {
     $rule = FormPhaseDetail::factory()->create()->formAccessControl ?? throw new LogicException('Detail tanpa aturan.');
     $admin = accessTabActor();
 
     $this->actingAs($admin)
         ->get(route('admin.forms.access.index', $rule->form_id))
-        ->assertInertia(fn (AssertableInertia $page) => $page->where('rules.0.phaseDetailCount', 1));
+        ->assertInertia(fn (AssertableInertia $page) => $page->where('rules.0.phaseCount', 1));
 
     $this->actingAs($admin)
         ->delete(route('admin.forms.access.destroy', [$rule->form_id, $rule]))
         ->assertSessionHasErrors('id');
 
-    expect(session('errors')->first('id'))->toContain('1 detail tahap')
+    expect(session('errors')->first('id'))->toContain('(1 tahap)')
         ->and(FormAccessControl::query()->whereKey($rule->id)->exists())->toBeTrue();
+});
+
+it('aturan di beberapa versi satu tahap dihitung satu tahap, dan pesannya tidak menyuruh melepas dari tahap (BR-FE-32)', function () {
+    $rule = FormAccessControl::create(['form_id' => $this->form->id, 'permission' => 'submissions.create', 'organization_id' => $this->faculty->id]);
+    $phase = FormPhase::create(['title' => 'Hibah Internal', 'is_active' => true]);
+    $step = ['form_access_control_id' => $rule->id, 'phase_type_id' => PhaseType::create(['name' => 'Tipe Akses'])->id, 'order' => 1, 'deadline_type' => 'submit'];
+    phaseVersion($phase, [$step]);
+    phaseVersion($phase, [$step]);
+    phaseVersion($phase, []);
+    $admin = accessTabActor();
+
+    $this->actingAs($admin)
+        ->get(route('admin.forms.access.index', $this->form))
+        ->assertInertia(fn (AssertableInertia $page) => $page->where('rules.0.phaseCount', 1));
+    $this->actingAs($admin)->delete(route('admin.forms.access.destroy', [$this->form, $rule]))->assertSessionHasErrors('id');
+
+    expect(session('errors')->first('id'))
+        ->toContain('versi tahap yang sudah terbit')
+        ->not->toContain('Lepaskan dari tahapnya');
 });
 
 it('aturan form lain tidak bisa dihapus lewat URL form ini', function () {

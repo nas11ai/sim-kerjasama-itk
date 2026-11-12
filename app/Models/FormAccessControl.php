@@ -13,6 +13,7 @@ use Illuminate\Support\Collection;
  * @property int $form_id
  * @property string $permission
  * @property int $organization_id
+ * @property int $phase_count dimuat `withCount` FormAccessRules (BR-FE-20)
  * @property-read Form|null $form
  * @property-read Organization|null $organization
  * @property-read Organization|null $studyProgram

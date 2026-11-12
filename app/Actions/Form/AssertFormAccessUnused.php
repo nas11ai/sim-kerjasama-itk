@@ -27,9 +27,11 @@ class AssertFormAccessUnused implements ChangesNoState
      */
     public function handle(Collection $controls): void
     {
+        // BR-FE-32 — dihitung per tahap: satu aturan di beberapa versi satu tahap tetap satu tahap.
         $usage = FormPhaseDetail::query()
             ->whereIn('form_access_control_id', $controls->modelKeys())
-            ->get(['form_access_control_id'])
+            ->distinct()
+            ->get(['form_access_control_id', 'form_phase_id'])
             ->countBy('form_access_control_id');
 
         if ($usage->isEmpty()) {
@@ -39,7 +41,7 @@ class AssertFormAccessUnused implements ChangesNoState
         $blockers = $controls->load(['form', 'organization'])
             ->filter(fn (FormAccessControl $control): bool => $usage->has($control->id))
             ->map(fn (FormAccessControl $control): string => sprintf(
-                '%s — %s — %s (%d detail tahap)',
+                '%s — %s — %s (%d tahap)',
                 $control->form?->title,
                 $control->permission,
                 $control->organization?->name,
@@ -48,7 +50,8 @@ class AssertFormAccessUnused implements ChangesNoState
 
         throw ValidationException::withMessages([
             'id' => 'Tidak ada kontrol akses yang dihapus: '.$blockers->implode('; ')
-                .' masih dipakai detail tahap formulir. Lepaskan dari tahapnya lebih dulu.',
+                .' masih dipakai versi tahap yang sudah terbit. Versi terbit tidak diubah, jadi aturan ini'
+                .' disimpan sebagai riwayat; angkatan baru berhenti memakainya begitu versi terbaru tahapnya tidak memakainya.',
         ]);
     }
 }

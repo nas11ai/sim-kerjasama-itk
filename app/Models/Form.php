@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Support\Carbon;
 
@@ -27,6 +28,7 @@ use Illuminate\Support\Carbon;
  * @property int $field_count dimuat `withCount` FormDirectory
  * @property int $active_submission_count dimuat `withCount` FormDirectory
  * @property int $submission_count dimuat `withCount` FormDirectory
+ * @property int $step_count dimuat `withCount` FormDirectory
  */
 class Form extends Model
 {
@@ -40,8 +42,10 @@ class Form extends Model
     protected static function booted(): void
     {
         static::deleting(function (Form $form): void {
+            // BR-FE-32 — FK aturan akses ber-cascade ke langkah; langkah versi terbit tidak boleh hilang.
             ReferenceGuard::assertUnreferenced('Formulir', [
                 'pengajuan' => $form->formSubmissions()->count(),
+                'langkah tahap' => $form->formPhaseDetails()->count(),
             ]);
         });
     }
@@ -70,6 +74,12 @@ class Form extends Model
     public function draft(): HasOne
     {
         return $this->hasOne(FormDraft::class, 'draftable_id');
+    }
+
+    /** @return HasManyThrough<FormPhaseDetail, FormAccessControl, $this> langkah tahap di versi mana pun */
+    public function formPhaseDetails(): HasManyThrough
+    {
+        return $this->hasManyThrough(FormPhaseDetail::class, FormAccessControl::class);
     }
 
     /**

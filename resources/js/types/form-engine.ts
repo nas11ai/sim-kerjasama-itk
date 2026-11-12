@@ -87,6 +87,8 @@ export interface FormRowData {
     fieldCount: number
     activeSubmissionCount: number
     submissionCount: number
+    // BR-FE-32 — langkah tahap terbit yang memakai aturan akses Form ini; > 0 menghalangi hapus.
+    stepCount: number
     isActive: boolean
     // BR-FE-34 — false = lencana "Belum terbit".
     isPublished: boolean
@@ -165,13 +167,13 @@ export interface FormGeneralData {
     impact: FormPublishImpact
 }
 
-// Sumber: App\Data\View\FormEngine\FormAccessRuleData — `phaseDetailCount` > 0 mengunci hapus (BR-FE-20).
+// Sumber: App\Data\View\FormEngine\FormAccessRuleData — `phaseCount` > 0 mengunci hapus (BR-FE-20).
 export interface FormAccessRuleData {
     id: number
     permission: string
     permissionLabel: string
     organizationLabel: string
-    phaseDetailCount: number
+    phaseCount: number
 }
 
 // Sumber: FormEngine\FormController::create/edit. Satu komponen untuk semua tab (W86).

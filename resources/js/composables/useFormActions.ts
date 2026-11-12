@@ -20,7 +20,7 @@ export function useFormActions() {
 
     const requestDelete = (row: FormRowData) => {
         target.value = row
-        if (row.submissionCount > 0) blocked.value = true
+        if (row.submissionCount > 0 || row.stepCount > 0) blocked.value = true
         else deleting.value = true
     }
 

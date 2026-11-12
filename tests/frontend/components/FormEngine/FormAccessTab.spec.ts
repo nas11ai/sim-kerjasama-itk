@@ -45,14 +45,14 @@ const rules: FormAccessRuleData[] = [
         permission: 'submissions.create',
         permissionLabel: 'Membuat pengajuan',
         organizationLabel: 'FTI — beserta unit di bawahnya',
-        phaseDetailCount: 0,
+        phaseCount: 0,
     },
     {
         id: 2,
         permission: 'submissions.view-own',
         permissionLabel: 'Melihat pengajuan sendiri',
         organizationLabel: 'Pusat Studi Energi',
-        phaseDetailCount: 2,
+        phaseCount: 2,
     },
 ]
 
@@ -79,14 +79,14 @@ beforeEach(() => {
 })
 
 describe('FormEngine/FormAccessTab', () => {
-    it('hapus disabled bagi aturan yang dipakai detail tahap', () => {
+    it('hapus disabled bagi aturan yang dipakai tahap terbit', () => {
         const wrapper = mountTab()
         const buttons = buttonByText(wrapper, 'Hapus')
 
         expect(buttons).toHaveLength(2)
         expect(buttons[0]?.attributes('disabled')).toBeUndefined()
         expect(buttons[1]?.attributes('disabled')).toBeDefined()
-        expect(wrapper.text()).toContain('Dipakai 2 detail tahap')
+        expect(wrapper.text()).toContain('Dipakai 2 tahap')
     })
 
     it('menambah aturan memanggil route store', async () => {

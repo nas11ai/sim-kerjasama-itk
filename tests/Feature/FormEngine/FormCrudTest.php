@@ -9,11 +9,13 @@ use App\Models\FieldType;
 use App\Models\Form;
 use App\Models\FormField;
 use App\Models\FormFieldOption;
+use App\Models\FormPhaseDetail;
 use App\Models\FormSubmission;
 use App\Models\User;
 use App\Support\Audit\AuditTrail;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Testing\TestResponse;
+use Inertia\Testing\AssertableInertia;
 use Spatie\Activitylog\Models\Activity;
 use Spatie\Permission\Models\Role;
 
@@ -141,4 +143,18 @@ it('refuses to delete a form with submissions and leaves no audit trace (BR-FE-1
 
     expect($used->fresh())->not->toBeNull()
         ->and(formAudit($used, 'Formulir dihapus'))->toBeNull();
+});
+
+it('refuses to delete a form whose access rule a published phase step uses, keeping the frozen step (BR-FE-32)', function () {
+    $step = FormPhaseDetail::factory()->create();
+    $form = $step->formAccessControl?->form ?? throw new LogicException('Langkah tanpa Form.');
+
+    $this->actingAs($this->admin)->delete(route('admin.forms.destroy', $form))->assertSessionHasErrors('id');
+
+    expect(session('errors')->first('id'))->toContain('1 langkah tahap')
+        ->and($form->fresh())->not->toBeNull()
+        ->and($step->fresh())->not->toBeNull();
+
+    $this->actingAs($this->admin)->get(route('admin.forms.index'))
+        ->assertInertia(fn (AssertableInertia $page) => $page->where('forms.data.0.stepCount', 1));
 });

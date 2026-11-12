@@ -18,6 +18,7 @@ final class FormRowData extends Data
         public int $fieldCount,
         public int $activeSubmissionCount,
         public int $submissionCount,
+        public int $stepCount,
         public bool $isActive,
         public bool $isPublished,
     ) {}
@@ -31,6 +32,8 @@ final class FormRowData extends Data
             fieldCount: $form->field_count,
             activeSubmissionCount: $form->active_submission_count,
             submissionCount: $form->submission_count,
+            // BR-FE-32 — langkah tahap terbit (versi mana pun) juga menghalangi hapus.
+            stepCount: $form->step_count,
             isActive: $form->is_active,
             // BR-FE-34 — lencana "Belum terbit": Form ini belum bisa dipakai langkah tahap.
             isPublished: $form->published_at !== null,

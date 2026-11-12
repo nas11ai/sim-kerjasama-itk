@@ -9,7 +9,9 @@ use App\Models\FormAccessControl;
 use App\Models\Organization;
 use App\Queries\Identity\OrganizationOptions;
 use App\Support\Identity\PermissionCatalog;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 use Lorisleiva\Actions\Concerns\AsAction;
 
 /**
@@ -38,7 +40,8 @@ class FormAccessRules implements ChangesNoState
     {
         $rules = FormAccessControl::query()
             ->whereIn('form_id', $formIds)
-            ->withCount('formPhaseDetails')
+            // BR-FE-32 — tahap yang memakainya, bukan baris langkah (yang bertambah tiap terbit).
+            ->withCount(['formPhaseDetails as phase_count' => fn (Builder $steps) => $steps->select(DB::raw('count(distinct form_phase_id)'))])
             ->with('organization:id,name')
             ->get()
             ->sortBy([
@@ -58,7 +61,7 @@ class FormAccessRules implements ChangesNoState
                     $rule->organization->name ?? '',
                     in_array($rule->organization_id, $withChildren, true),
                 ),
-                phaseDetailCount: $rule->form_phase_details_count,
+                phaseCount: $rule->phase_count,
             );
         }
 

@@ -36,6 +36,7 @@ const formRow = (overrides: Partial<FormRowData> = {}): FormRowData => ({
     fieldCount: 18,
     activeSubmissionCount: 42,
     submissionCount: 45,
+    stepCount: 0,
     isActive: true,
     isPublished: true,
     ...overrides,
@@ -152,6 +153,18 @@ describe('FormEngine/FormIndexPage', () => {
         await clickIn(wrapper, 'Hapus')
 
         expect(document.body.textContent).toContain('Form ini dipakai 1 pengajuan')
+    })
+
+    it('Form tanpa pengajuan tapi dipakai langkah tahap terbit membuka penjelasan (BR-FE-32)', async () => {
+        const wrapper = mountPage([
+            formRow({ submissionCount: 0, activeSubmissionCount: 0, stepCount: 2 }),
+        ])
+        await clickIn(wrapper, 'Hapus')
+
+        expect(document.body.textContent).toContain(
+            'Form ini dipakai 2 langkah tahap yang sudah terbit'
+        )
+        expect(document.body.textContent).not.toContain('Hapus form?')
     })
 
     it('penjelasan menawarkan Nonaktifkan Form hanya bila form masih aktif', async () => {

@@ -41,6 +41,7 @@ class FormDirectory implements ChangesNoState
                 'formFields as field_count',
                 'formSubmissions as active_submission_count' => $this->activeSubmissions(...),
                 'formSubmissions as submission_count',
+                'formPhaseDetails as step_count',
             ])
             ->latest('id');
 

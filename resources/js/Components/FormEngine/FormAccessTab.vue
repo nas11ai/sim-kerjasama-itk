@@ -124,15 +124,15 @@ const remove = () => {
             <template #cell-organization="{ row }">{{ row.organizationLabel }}</template>
             <template #cell-action="{ row }">
                 <div class="flex items-center justify-end gap-2">
-                    <!-- BR-FE-20 — aturan yang dipakai detail tahap tidak bisa dihapus -->
-                    <span v-if="row.phaseDetailCount > 0" class="text-xs text-muted-foreground"
-                        >Dipakai {{ row.phaseDetailCount }} detail tahap</span
+                    <!-- BR-FE-20 — aturan yang dipakai tahap terbit (versi mana pun) tidak bisa dihapus -->
+                    <span v-if="row.phaseCount > 0" class="text-xs text-muted-foreground"
+                        >Dipakai {{ row.phaseCount }} tahap</span
                     >
                     <Button
                         size="sm"
                         variant="ghost"
                         type="button"
-                        :disabled="row.phaseDetailCount > 0"
+                        :disabled="row.phaseCount > 0"
                         @click="request(row)"
                         ><Trash2 class="size-4" />Hapus</Button
                     >
