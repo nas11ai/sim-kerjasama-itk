@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Queries\Submission\FieldLabelSnapshot;
 use App\States\Submission\Approved;
 use App\States\Submission\NeedsRevision;
 use App\States\Submission\Rejected;
@@ -19,6 +20,8 @@ use Illuminate\Database\Eloquent\Relations\HasManyThrough;
 use Spatie\ModelStates\HasStates;
 
 /**
+ * @phpstan-import-type FieldLabel from FieldLabelSnapshot
+ *
  * @property int $id
  * @property int $form_id
  * @property int $submitted_by
@@ -31,6 +34,7 @@ use Spatie\ModelStates\HasStates;
  * @property int $last_completed_step
  * @property bool $is_submitted
  * @property CarbonImmutable|null $cycle_opened_at
+ * @property list<FieldLabel>|null $submitted_field_labels
  * @property-read bool $is_archived
  * @property SubmissionStatus|null $status
  * @property-read Form $form
@@ -63,6 +67,7 @@ class FormSubmission extends Model
         'status',
         'submitted_by',
         'parent_submission_id',
+        'submitted_field_labels',
     ];
 
     protected $appends = ['is_archived'];
@@ -73,6 +78,8 @@ class FormSubmission extends Model
         'last_completed_step' => 'integer',
         // W126 — hanya laporan anak; kapan Operator mengaktifkan siklusnya.
         'cycle_opened_at' => 'immutable_datetime',
+        // BR-FE-35 — teks pertanyaan dan opsi saat submit; null = baca teks terkini.
+        'submitted_field_labels' => 'array',
     ];
 
     /** @return BelongsTo<FormSubmission, $this> */

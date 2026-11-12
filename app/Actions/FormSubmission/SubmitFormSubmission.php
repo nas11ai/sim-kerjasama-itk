@@ -5,6 +5,7 @@ namespace App\Actions\FormSubmission;
 use App\Events\ProposalSubmitted;
 use App\Models\FormSubmission;
 use App\Models\User;
+use App\Queries\Submission\FieldLabelSnapshot;
 use App\States\Submission\Rejected;
 use App\States\Submission\SubmissionStatus;
 use App\States\Submission\Submitted;
@@ -125,6 +126,8 @@ class SubmitFormSubmission
             DB::transaction(function () use ($submission): void {
                 $submission->update([
                     'is_submitted' => true,
+                    // BR-FE-35 — teks yang dilihat pengisi saat submit.
+                    'submitted_field_labels' => FieldLabelSnapshot::run($submission),
                 ]);
             });
         } catch (QueryException $e) {

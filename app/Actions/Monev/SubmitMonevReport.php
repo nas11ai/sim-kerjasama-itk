@@ -5,6 +5,7 @@ namespace App\Actions\Monev;
 use App\Models\FormSubmission;
 use App\Models\User;
 use App\Queries\Monev\MonevCycles;
+use App\Queries\Submission\FieldLabelSnapshot;
 use App\States\Submission\SubmissionStatus;
 use App\States\Submission\Submitted;
 use App\Support\AccountStateGuard;
@@ -52,7 +53,8 @@ class SubmitMonevReport
             throw new RuntimeException("Laporan {$report->id} tidak punya status — tidak bisa disubmit.");
         }
 
-        $report->update(['is_submitted' => true]);
+        // BR-FE-35 — teks yang dilihat pengisi saat submit.
+        $report->update(['is_submitted' => true, 'submitted_field_labels' => FieldLabelSnapshot::run($report)]);
         $status->transitionTo(Submitted::class);
         $report->refresh();
 

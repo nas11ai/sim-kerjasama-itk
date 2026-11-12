@@ -5,22 +5,22 @@ namespace App\Queries\Submission;
 use App\Actions\Concerns\ChangesNoState;
 use App\Data\View\Submission\SubmissionAnswerData;
 use App\Models\FieldType;
-use App\Models\FormField;
-use App\Models\FormFieldOption;
 use App\Models\FormSubmission;
+use App\States\Submission\Draft;
+use App\States\Submission\NeedsRevision;
 use Lorisleiva\Actions\Concerns\AsAction;
 
 /**
  * Jawaban form siap baca: id opsi diganti labelnya di sini supaya layar tidak menyimpan
  * logika per tipe field. Field pemilih kolom tidak punya jawaban (BR-SCH-09).
  *
+ * @phpstan-import-type FieldLabel from FieldLabelSnapshot
+ *
  * @method static list<SubmissionAnswerData> run(FormSubmission $submission)
  */
 class ReadableSubmissionAnswers implements ChangesNoState
 {
     use AsAction;
-
-    private const COLUMN_BACKED_TYPES = ['scheme_selector', 'trl_selector'];
 
     /** @return list<SubmissionAnswerData> */
     public function handle(FormSubmission $submission): array
@@ -29,45 +29,70 @@ class ReadableSubmissionAnswers implements ChangesNoState
         $responseIds = $submission->formFieldResponses->pluck('id', 'form_field_id');
         $answers = [];
 
-        foreach ($submission->form->formFields as $field) {
-            $type = $field->fieldType?->name;
-
-            if (in_array($type, self::COLUMN_BACKED_TYPES, true)) {
-                continue;
-            }
-
-            $value = $values[$field->id] ?? null;
-            $hasFile = $type === 'file' && $value !== null && $value !== '';
+        foreach ($this->labels($submission) as $field) {
+            $value = $values[$field['form_field_id']] ?? null;
+            $isFile = $field['type'] === 'file';
+            $hasFile = $isFile && $value !== null && $value !== '';
 
             $answers[] = new SubmissionAnswerData(
-                label: $field->label,
-                value: $this->readable($field, $type, $value),
-                isFile: $type === 'file',
+                label: $field['label'],
+                value: $this->readable($field, $value),
+                isFile: $isFile,
                 // BR-SM-07 — satu-satunya jalan baca berkas: route unduh ber-scope (W15).
-                downloadUrl: $hasFile ? route('user.submissions.files.show', [$submission->id, $responseIds[$field->id]]) : null,
+                downloadUrl: $hasFile ? route('user.submissions.files.show', [$submission->id, $responseIds[$field['form_field_id']]]) : null,
             );
         }
 
         return $answers;
     }
 
-    private function readable(FormField $field, ?string $type, ?string $value): ?string
+    /**
+     * BR-FE-35 — rekaman teks dibaca selama pengisi tidak bisa menyunting; draf, revisi, dan
+     * pengajuan tanpa rekaman memakai teks terkini.
+     *
+     * @return list<FieldLabel>
+     */
+    private function labels(FormSubmission $submission): array
+    {
+        $record = $submission->submitted_field_labels;
+        $editable = $submission->status instanceof Draft || $submission->status instanceof NeedsRevision;
+
+        if ($record === null || $editable) {
+            return FieldLabelSnapshot::run($submission);
+        }
+
+        return $record;
+    }
+
+    /** @param FieldLabel $field */
+    private function readable(array $field, ?string $value): ?string
     {
         if ($value === null || $value === '') {
             return null;
         }
 
-        if ($type === 'checkbox') {
+        if ($field['type'] === 'checkbox') {
             return in_array($value, ['1', 'true'], true) ? 'Ya' : 'Tidak';
         }
 
-        if (!in_array($type, FieldType::OPTION_TYPES, true)) {
+        if (!in_array($field['type'], FieldType::OPTION_TYPES, true)) {
             return $value;
         }
 
-        $id = filter_var($value, FILTER_VALIDATE_INT);
-        $option = $field->formFieldOptions->first(fn (FormFieldOption $o): bool => $o->id === $id);
+        return $this->optionLabel($field['options'], $value) ?? $value;
+    }
 
-        return $option->label ?? $value;
+    /** @param list<array{id: int, label: string}> $options */
+    private function optionLabel(array $options, string $value): ?string
+    {
+        $id = filter_var($value, FILTER_VALIDATE_INT);
+
+        foreach ($options as $option) {
+            if ($option['id'] === $id) {
+                return $option['label'];
+            }
+        }
+
+        return null;
     }
 }

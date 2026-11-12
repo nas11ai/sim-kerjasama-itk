@@ -5,6 +5,7 @@ namespace App\Actions\FormSubmission;
 use App\Actions\Review\StartRecheckRound;
 use App\Models\FormSubmission;
 use App\Models\User;
+use App\Queries\Submission\FieldLabelSnapshot;
 use App\States\Submission\Resubmitted;
 use App\States\Submission\SubmissionStatus;
 use App\States\Submission\UnderReview;
@@ -30,6 +31,8 @@ class ResubmitFormSubmission
         // dalam pengajuan yang sudah berjalan (register #27).
         RequiredFieldGuard::assertComplete($submission);
 
+        // BR-FE-35 — direkam ulang; transitionTo menyimpannya dalam update status yang sama.
+        $submission->submitted_field_labels = FieldLabelSnapshot::run($submission);
         $status->transitionTo(Resubmitted::class);
 
         $submission->refresh();
