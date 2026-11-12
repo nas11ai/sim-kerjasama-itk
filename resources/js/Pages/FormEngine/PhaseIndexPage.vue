@@ -65,6 +65,7 @@ const emptyTitle = computed(() =>
                     :key="phase.id"
                     :phase="phase"
                     :can-link-period="can.linkPeriod"
+                    :return-form="filterForm?.id ?? null"
                     @toggle-active="actions.requestToggle"
                     @delete="actions.requestDelete"
                     @link-period="requestLink"

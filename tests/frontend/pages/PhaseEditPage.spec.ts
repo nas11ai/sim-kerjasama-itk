@@ -84,6 +84,7 @@ const props = (details: PhaseDetailEditData[]): PhaseEditPageProps => ({
     phaseTypeOptions: [{ value: '5', label: 'Isi Proposal' }],
     evaluation: [],
     fieldTypeOptions: [],
+    returnForm: null,
 })
 
 const route = (name: string, params?: number | Record<string, number>) => {
@@ -254,6 +255,7 @@ describe('FormEngine/PhaseEditPage', () => {
             'put',
             '/admin.phases.update/3',
             expect.objectContaining({
+                form: null,
                 title: 'Tahap Proposal',
                 is_active: true,
                 phase_details: [
@@ -264,6 +266,24 @@ describe('FormEngine/PhaseEditPage', () => {
                     }),
                 ],
             })
+        )
+    })
+
+    it('[B5] dari pustaka bertapis: Kembali, Batalkan, dan simpan membawa Form tapisnya', async () => {
+        const wrapper = mountPage({ ...props([detail()]), returnForm: 7 })
+
+        expect(wrapper.find('a[href="/admin.phases.index/7"]').text()).toContain('Fase')
+        expect(
+            wrapper
+                .findAll('a')
+                .find((a) => a.text() === 'Batalkan')
+                ?.attributes('href')
+        ).toBe('/admin.phases.index/7')
+        await wrapper.find('form').trigger('submit')
+        expect(submitted).toHaveBeenCalledWith(
+            'put',
+            '/admin.phases.update/3',
+            expect.objectContaining({ form: 7 })
         )
     })
 

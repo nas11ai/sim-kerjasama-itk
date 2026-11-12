@@ -52,8 +52,18 @@ const otherErrors = computed(() =>
         .map(([, message]) => message)
 )
 
+// B5 — `form` dibawa ke store/update supaya redirect-nya kembali ke pustaka bertapis.
+const libraryHref = computed(() =>
+    props.returnForm === null
+        ? route('admin.phases.index')
+        : route('admin.phases.index', { form: props.returnForm })
+)
+
 function save() {
-    const pending = editor.transform((data) => toPhasePayload(data, data.details))
+    const pending = editor.transform((data) => ({
+        ...toPhasePayload(data, data.details),
+        form: props.returnForm,
+    }))
     if (props.phase.id === null) {
         pending.post(route('admin.phases.store'))
         return
@@ -82,7 +92,7 @@ function save() {
         />
         <div class="flex flex-wrap justify-between gap-2">
             <Button as-child variant="ghost">
-                <Link :href="route('admin.phases.index')">Batalkan</Link>
+                <Link :href="libraryHref">Batalkan</Link>
             </Button>
             <Button type="submit" :disabled="editor.processing || (creating && !firstRule)"
                 ><Check class="size-4" />Simpan Tahap</Button

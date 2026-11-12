@@ -251,4 +251,6 @@ export interface PhaseEditPageProps {
     phaseTypeOptions: FilterOption[]
     evaluation: EvaluationSectionData[]
     fieldTypeOptions: FieldTypeOption[]
+    // B5 — id Form tapis pustaka asal; Kembali/Batalkan/simpan kembali ke pustaka bertapis itu.
+    returnForm: number | null
 }

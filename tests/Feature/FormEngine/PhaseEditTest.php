@@ -288,3 +288,44 @@ it('wewenang buat: operator 403', function () {
 
     expect(FormPhase::query()->where('title', 'Tahap Disunting')->exists())->toBeFalse();
 });
+
+// B5 — admin yang datang dari pustaka bertapis `?form=` kembali ke pustaka bertapis yang sama.
+it('passes the library filter to the editor as returnForm', function () {
+    $detail = phaseEditDetail($this->form);
+    $this->actingAs(phaseEditActor());
+
+    $this->get(route('admin.phases.edit', ['formPhase' => $detail->formPhase, 'form' => $this->form->id]))
+        ->assertInertia(fn (AssertableInertia $page) => $page->where('returnForm', $this->form->id));
+    $this->get(route('admin.phases.edit', $detail->formPhase))
+        ->assertInertia(fn (AssertableInertia $page) => $page->where('returnForm', null));
+    $this->get(route('admin.phases.create', ['form' => $this->form->id]))
+        ->assertInertia(fn (AssertableInertia $page) => $page->where('returnForm', $this->form->id));
+    $this->get(route('admin.phases.edit', ['formPhase' => $detail->formPhase, 'form' => 999999]))
+        ->assertNotFound();
+});
+
+it('returns to the filtered library after update', function () {
+    $detail = phaseEditDetail($this->form);
+
+    $this->actingAs(phaseEditActor())
+        ->put(
+            route('admin.phases.update', $detail->formPhase),
+            [...phaseEditPayload([phaseEditRow($detail)]), 'form' => $this->form->id],
+        )
+        ->assertSessionHasNoErrors()
+        ->assertRedirect(route('admin.phases.index', ['form' => $this->form->id]));
+});
+
+it('keeps the library filter when a new phase opens its editor', function () {
+    $reference = phaseEditDetail($this->form);
+
+    $this->actingAs(phaseEditActor())
+        ->post(route('admin.phases.store'), [
+            ...phaseEditPayload([phaseEditRow($reference, ['id' => null])]),
+            'form' => $this->form->id,
+        ])
+        ->assertRedirect(route('admin.phases.edit', [
+            'formPhase' => FormPhase::query()->where('title', 'Tahap Disunting')->firstOrFail(),
+            'form' => $this->form->id,
+        ]));
+});

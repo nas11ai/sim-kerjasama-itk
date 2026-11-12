@@ -11,6 +11,13 @@ import type { PhaseEditPageProps } from '@/types/form-engine'
 
 const props = defineProps<PhaseEditPageProps>()
 
+// B5 — kembali ke pustaka bertapis bila editor dibuka dari sana.
+const libraryHref = computed(() =>
+    props.returnForm === null
+        ? route('admin.phases.index')
+        : route('admin.phases.index', { form: props.returnForm })
+)
+
 const title = computed(() =>
     props.phase.id === null ? 'Buat Tahap Baru' : `Edit Phase — ${props.phase.title}`
 )
@@ -22,7 +29,7 @@ const title = computed(() =>
         <PageHeader
             :title="title"
             subtitle="Susun tahapan pengisian beserta form evaluasi reviewer-nya."
-            :back-href="route('admin.phases.index')"
+            :back-href="libraryHref"
             back-label="Fase"
         />
         <!-- Trap S2b — Inertia memakai ulang halaman antar-tahap; state editor di child ber-key -->
@@ -31,6 +38,7 @@ const title = computed(() =>
             :phase="phase"
             :access-options="accessOptions"
             :phase-type-options="phaseTypeOptions"
+            :return-form="returnForm"
         />
         <!-- W95 — form evaluasi disimpan per kartu, terpisah dari Simpan Tahap; key per detail (S2b) -->
         <div v-if="evaluation.length > 0" class="mt-8 max-w-3xl space-y-8">

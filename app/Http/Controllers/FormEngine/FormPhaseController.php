@@ -59,13 +59,13 @@ class FormPhaseController extends Controller
     {
         $phase = CreateFormPhase::run($request->toInput(), $this->actor($request));
 
-        return redirect()->route('admin.phases.edit', $phase)
+        return redirect()->route('admin.phases.edit', ['formPhase' => $phase, ...$this->returnTo($request)])
             ->with('success', 'Tahap dibuat. Tambahkan form evaluasi untuk detail yang direview.');
     }
 
-    public function edit(FormPhase $formPhase): Response
+    public function edit(Request $request, FormPhase $formPhase): Response
     {
-        return $this->editor($formPhase);
+        return $this->editor($formPhase, $this->requestedForm($request));
     }
 
     // BR-FE-20 — disinkronkan per id; penjaga detail berjalan di Action (W97, BR-FE-22, BR-FE-28).
@@ -73,7 +73,7 @@ class FormPhaseController extends Controller
     {
         ReviseFormPhase::run($formPhase, $request->toInput(), $this->actor($request));
 
-        return redirect()->route('admin.phases.index')->with('success', 'Tahap diperbarui.');
+        return redirect()->route('admin.phases.index', $this->returnTo($request))->with('success', 'Tahap diperbarui.');
     }
 
     public function setActive(FormPhaseActiveRequest $request, FormPhase $formPhase): RedirectResponse
@@ -90,7 +90,8 @@ class FormPhaseController extends Controller
     {
         DeleteFormPhase::run($formPhase, $this->actor($request));
 
-        return redirect()->route('admin.phases.index')->with('success', 'Tahap dihapus.');
+        // B5 — kembali ke halaman asal (pustaka bertapis), sama dengan aktif/nonaktif.
+        return back()->with('success', 'Tahap dihapus.');
     }
 
     // BR-FE-26 (ADR 0019) — penautan longgar; pesan menyebut tanggal kalender yang masih kurang.
@@ -108,12 +109,14 @@ class FormPhaseController extends Controller
     }
 
     // `$phase` null = mode buat (W94); layar yang sama, state-nya di child ber-key. Form evaluasi
-    // butuh detail tersimpan, jadi mode buat belum punya bagiannya (W95).
-    private function editor(?FormPhase $phase, ?Form $preferred = null): Response
+    // butuh detail tersimpan, jadi mode buat belum punya bagiannya (W95). `$filter` = Form tapis
+    // pustaka asal: di mode buat menjadi akses bawaan, di keduanya tujuan kembali (B5).
+    private function editor(?FormPhase $phase, ?Form $filter = null): Response
     {
         return Inertia::render('FormEngine/PhaseEditPage', [
+            'returnForm' => $filter?->id,
             'phase' => PhaseEdit::run($phase),
-            'accessOptions' => PhaseAccessOptions::run($phase, $preferred),
+            'accessOptions' => PhaseAccessOptions::run($phase, $filter),
             'phaseTypeOptions' => PhaseTypeOptions::run(),
             'evaluation' => $phase === null ? [] : PhaseEvaluationForms::run($phase),
             'fieldTypeOptions' => $phase === null ? [] : FieldTypeOptions::run(),
@@ -124,5 +127,11 @@ class FormPhaseController extends Controller
     private function requestedForm(Request $request): ?Form
     {
         return $request->filled('form') ? Form::query()->findOrFail($request->integer('form')) : null;
+    }
+
+    /** @return array{form?: int} parameter tapis pustaka yang dibawa kiriman editor (B5). */
+    private function returnTo(FormPhaseRequest $request): array
+    {
+        return $request->filled('form') ? ['form' => $request->integer('form')] : [];
     }
 }

@@ -31,6 +31,8 @@ class FormPhaseRequest extends FormRequest
             // tanggalnya milik kalender periode. Kombinasi Upload Luaran diperiksa AssertPhaseSteps.
             'phase_details.*.deadline_type' => 'required|in:submit,output',
             'phase_details.*.deadline_cycle' => 'nullable|integer|min:1|max:'.DeadlineType::MAX_CYCLE,
+            // B5 — id Form tapis pustaka asal; hanya menentukan tujuan redirect.
+            'form' => 'nullable|integer|exists:forms,id',
         ];
     }
 

@@ -153,14 +153,20 @@ describe('FormEngine/PhaseIndexPage', () => {
         expect(all?.attributes('href')).toBe('/admin.phases.index')
     })
 
+    it('[B5] tapis Form: tautan Edit kartu membawa Form tapisnya', () => {
+        const wrapper = mountPage(
+            props({ filterForm: { id: 7, title: 'Laporan Monev', isActive: true } })
+        )
+
+        expect(wrapper.find('a[href="/admin.phases.edit/1/7"]').text()).toContain('Edit')
+    })
+
     it('tapis Form: Buat Tahap Baru membawa Form itu sebagai akses bawaan', () => {
         const wrapper = mountPage(
             props({ filterForm: { id: 7, title: 'Laporan Monev', isActive: true } })
         )
 
-        expect(wrapper.find('a[href="/admin.phases.create/7"]').text()).toContain(
-            'Buat Tahap Baru'
-        )
+        expect(wrapper.find('a[href="/admin.phases.create/7"]').text()).toContain('Buat Tahap Baru')
     })
 
     it('kosong: EmptyState', () => {

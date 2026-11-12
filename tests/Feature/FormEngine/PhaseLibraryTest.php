@@ -233,3 +233,18 @@ it('wewenang aktif dan hapus: operator 403', function () {
 
     expect($phase->fresh()?->is_active)->toBeTrue();
 });
+
+it('stays on the filtered library after destroy', function () {
+    $phase = libraryPhase('Fase Hapus');
+    libraryDetail($this->form, $phase);
+    $filtered = route('admin.phases.index', ['form' => $this->form->id]);
+
+    // B5 — hapus kembali ke halaman asal (pustaka bertapis), sama dengan aktif/nonaktif.
+    $this->actingAs(libraryActor())
+        ->from($filtered)
+        ->delete(route('admin.phases.destroy', $phase))
+        ->assertSessionHasNoErrors()
+        ->assertRedirect($filtered);
+
+    expect(FormPhase::query()->whereKey($phase->id)->exists())->toBeFalse();
+});

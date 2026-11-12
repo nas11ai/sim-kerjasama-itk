@@ -124,6 +124,7 @@ it('audits a single delete of an unused phase (BR-RPT-09)', function () {
     $phase = $detail->formPhase;
 
     $this->actingAs($this->admin)
+        ->from(route('admin.phases.index'))
         ->delete(route('admin.phases.destroy', $phase))
         ->assertSessionHasNoErrors()
         ->assertRedirect(route('admin.phases.index'));
