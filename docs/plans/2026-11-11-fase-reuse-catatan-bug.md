@@ -26,9 +26,7 @@ Peta irisan: `docs/plans/2026-11-10-fase-reuse-roadmap.md`.
 
 ## Butuh keputusan pemilik
 
-| ID  | Pertanyaan | Rekomendasi |
-| --- | ---------- | ----------- |
-| K-4 | Review Focus 4 G3 menyebut "Form langkahnya dinonaktifkan" sebagai kasus tolak saat Terbitkan tahap. Ruling G3-b: **bukan penghalang** — jalur simpan tidak pernah menolak Form nonaktif (pilihan akses tetap memuat Form nonaktif yang sudah dipakai). Tolak atau biarkan? | Biarkan: menonaktifkan Form menghentikan pengajuan baru lewat Form itu, tahapnya tetap bisa dirapikan. |
+Tidak ada.
 
 ## Selesai
 
@@ -53,3 +51,4 @@ Peta irisan: `docs/plans/2026-11-10-fase-reuse-roadmap.md`.
 | K-3 | Apply sesudah Batas Evaluasi mengunci reviewer yang dibuka ulang. Pemilik memilih (b) (2026-11-12): tenggat tidak digeser; baris dan konfirmasi Terapkan menyebut pengajuan yang lewat tenggat tanpa perpanjangan, bertaut ke halamannya (REV-VER-10). | commit `feat(review): peringatkan pengajuan lewat Batas Evaluasi saat Terapkan` |
 | —   | Review akhir G3: hapus Form tanpa pengajuan meng-cascade langkah versi tahap terbit (FK aturan akses), jadi angkatan terpaku kehilangan siklus. Sekarang langkah tahap di versi mana pun menghalangi hapus; daftar Form membuka penjelasan. | `b0fb88fd` |
 | —   | Review akhir G3: aturan akses yang dipakai versi lama dihitung per baris langkah dan pesannya menyuruh "lepaskan dari tahap" yang mustahil. Sekarang dihitung per tahap dan pesannya menjelaskan aturan disimpan sebagai riwayat. `AvailableChildPhases` (tanpa pemanggil) dihapus. | `b0fb88fd` |
+| K-4 | Form langkah yang dinonaktifkan sebagai penghalang Terbitkan tahap. Pemilik memilih rekomendasi (2026-11-12): **bukan penghalang** — menonaktifkan Form menghentikan pengajuan baru lewat Form itu (BR-FE-19), tahapnya tetap bisa dirapikan dan diterbitkan. Perilaku kode sudah begini sejak G3-b; tidak ada perubahan kode. | keputusan pemilik, tanpa commit kode |
