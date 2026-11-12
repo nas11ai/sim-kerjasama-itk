@@ -76,10 +76,24 @@ Aturan tenggat yang berlaku sejak R1 (BR-FE-26 versi baru):
 - Laporan monev dan Upload Luaran memakai periode pengajuan induknya.
 - Setiap pengajuan bertahap wajib berperiode
   (`form_phase_detail_id IS NULL OR submission_period_id IS NOT NULL`).
-- **Jenis langkah yang sudah dipakai pengajuan terkunci** (keputusan pemilik 2026-11-11,
-  perluasan kunci form/tipe tahap BR-FE-20). `deadline_type` dan `deadline_cycle` menentukan
-  tanggal yang dibaca pengajuannya, jadi mengubahnya diam-diam memindahkan tenggat mereka.
-  Salah siklus setelah ada pengajuan dibetulkan dengan langkah baru.
+- ~~**Jenis langkah yang sudah dipakai pengajuan terkunci**~~ (keputusan pemilik 2026-11-11).
+  **Diganti versi beku sejak R5 (G3-W5):** langkah terbit tidak pernah diubah, jadi mengubah
+  jenis/siklus langkah berarti versi berikutnya, dan pengajuan yang sudah ada tetap membaca
+  langkah versinya. Kunci K-1, `AssertUsedPhaseDetailsKeepTheirForm`, dan
+  `AssertEvaluatedDetailsStayReviewed` dihapus.
+
+Struktur fase berversi dan draf/terbit sejak R5/R6 (rencana G3):
+
+- **Langkah membawa tahap dan versinya** (G3-W1). `form_phase_details` mempertahankan
+  `form_phase_id` dan mendapat `form_phase_version_id`; FK komposit menjaga keduanya selaras.
+- **Versi pengajuan = versi langkahnya** (G3-W2). Pin (`phase_version_pins`, unik per angkatan)
+  hanya dibaca untuk pengajuan baru dan layar per angkatan, lewat `PhaseVersionFor`.
+- **Satu tabel draf, subkelas per jenis** (G3-W7). `EvaluationFormDraft`, `PhaseDraft`,
+  `FormDraft` memaku `draftable_type` dan bentuk payload-nya.
+- **Hanya yang sudah terbit yang dipakai** (G3-W6). Tahap belum terbit tidak ditautkan ke
+  periode; langkah tidak memakai Form yang belum terbit (`forms.published_at`).
+- **Field Form tidak berversi** (BR-FE-34). Draf menyimpan id field terbit; Terbitkan menulis
+  baris yang sama, jadi BR-FE-11/12/18/23 membaca waktu terbit tanpa perubahan aturan.
 
 Bentuk Form Evaluasi berversi sejak R3/R4 (rencana G2):
 
@@ -140,7 +154,7 @@ dijaga sinkron dengan `submission_period_phases`.
 | R2 | Pustaka Fase, satu jenis pengajuan per fase | Selesai — `f2643b0d` (pustaka `/admin/phases`, route `admin.forms.phases.*` dihapus); aturan BR-FE-28 `c2488f2f` |
 | R3 | Form Evaluasi mandiri & berversi | Selesai — skema berversi + pemakuan `1abab4e1` (BR-REV-18); pustaka, draf, terbit, pasang `8330ec83` (BR-FE-30/31) |
 | R4 | Terapkan versi baru ke angkatan | Selesai — `d0bbc62d` (BR-REV-19, layar Versi Form Evaluasi per periode) + perbaikan review akhir `d05a5a65` |
-| R5 | Struktur fase berversi, dipaku per angkatan | Belum |
-| R6 | Draf → Pratinjau → Terbitkan untuk Form & Fase | Belum |
+| R5 | Struktur fase berversi, dipaku per angkatan | Selesai — `8c408113` (BR-FE-32, pin per angkatan) + perbaikan review akhir `b0fb88fd` |
+| R6 | Draf → Pratinjau → Terbitkan untuk Form & Fase | Selesai — Fase `704d6b35` (BR-FE-33); Form `ac2927d9` (BR-FE-34) |
 | R7 | Rekam teks saat submit | Belum |
 | R8 | Cek kesiapan angkatan | Belum |
