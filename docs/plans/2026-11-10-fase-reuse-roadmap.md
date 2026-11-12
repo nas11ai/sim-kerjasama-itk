@@ -7,7 +7,8 @@ Spec mencakup delapan subsistem yang masing-masing bisa dirilis sendiri. Satu re
 semuanya akan menjadi transkrip kode; jadi spec dipecah menjadi irisan **R1–R8**, satu rencana
 per irisan, ditulis tepat sebelum irisan itu dikerjakan (supaya rencana R5 membaca kode hasil R3,
 bukan kode hari ini). Rencana rinci yang sudah ada: **R1** (`2026-11-10-r1-jadwal-periode.md`, selesai),
-**R2** (`2026-11-11-r2-pustaka-fase.md`, selesai). **G1 selesai** 2026-11-12; berikutnya rencana G2 (R3 + R4).
+**R2** (`2026-11-11-r2-pustaka-fase.md`, selesai), **G2** (`2026-11-12-g2-form-evaluasi-berversi.md`, R3 + R4,
+selesai). **G1 dan G2 selesai** 2026-11-12; berikutnya rencana G3 (R5 + R6).
 
 ## Keputusan bentuk yang mengikat semua irisan (spec §8, diserahkan ke builder)
 
@@ -49,7 +50,7 @@ gelombang, bukan per task.
 | Gelombang | Irisan | Perkiraan session | Target |
 | --- | --- | --- | --- |
 | G1 | R1 + R2 — jadwal milik periode, pustaka Fase, satu jenis pengajuan per fase — **selesai** | 2–3 | Rab 11 – Kam 12 Nov |
-| G2 | R3 + R4 — Form Evaluasi mandiri & berversi, aksi terapkan versi | 2–3 | Kam 12 – Jum 13 Nov |
+| G2 | R3 + R4 — Form Evaluasi mandiri & berversi, aksi terapkan versi — **selesai** | 2–3 | Kam 12 – Jum 13 Nov |
 | G3 | R5 + R6 — struktur fase berversi, Draf → Pratinjau → Terbitkan | 3 | Sab 14 – Sen 16 Nov |
 | G4 | R7 + R8 — rekam teks saat submit, cek kesiapan angkatan | 1–2 | Sel 17 Nov |
 | — | Cadangan untuk temuan review & gate — isi `2026-11-11-fase-reuse-catatan-bug.md` | 2 | sampai Selasa 24 Nov |

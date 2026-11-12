@@ -81,6 +81,19 @@ Aturan tenggat yang berlaku sejak R1 (BR-FE-26 versi baru):
   tanggal yang dibaca pengajuannya, jadi mengubahnya diam-diam memindahkan tenggat mereka.
   Salah siklus setelah ada pengajuan dibetulkan dengan langkah baru.
 
+Bentuk Form Evaluasi berversi sejak R3/R4 (rencana G2):
+
+- **Penugasan menunjuk Form, jawaban menunjuk versi** (G2-W1). `reviewer_form_assignments`
+  tetap unik per reviewer × Form Evaluasi; `review_form_responses` membawa versinya.
+  Menerapkan versi baru (BR-REV-19) cukup menandai jawaban lama `superseded_at` dan membuka
+  jawaban baru, tanpa memindahkan penugasan.
+- **Aktif dan wajib milik pemasangan** (G2-W2). `is_active` dan `is_required` ada di
+  `step_evaluation_forms`, bukan di Form pustaka: satu Form bisa wajib di satu langkah dan
+  tidak di langkah lain.
+- **Ekspor tanpa label versi** (G2-W6). Tidak ada ekspor yang memuat skor
+  (`app/Support/Reporting/Exports/*`), jadi label versi hanya tampil di layar penilaian.
+  Ekspor skor yang ditambah kelak wajib menyebut versinya.
+
 ## Konsekuensi
 
 - **DDD** — `generic/01_form_engine.md`: `FormPhaseDetail` kehilangan tiga FK tanggal;
@@ -125,8 +138,8 @@ dijaga sinkron dengan `submission_period_phases`.
 | --- | --- | --- |
 | R1 | Jadwal milik periode | Selesai — contract `e7828f84` (rujukan tanggal di langkah dihapus) + perbaikan review akhir `fix(period): tanggal yang dibaca angkatan berjalan tetap terjaga` |
 | R2 | Pustaka Fase, satu jenis pengajuan per fase | Selesai — `f2643b0d` (pustaka `/admin/phases`, route `admin.forms.phases.*` dihapus); aturan BR-FE-28 `c2488f2f` |
-| R3 | Form Evaluasi mandiri & berversi | Belum |
-| R4 | Terapkan versi baru ke angkatan | Belum |
+| R3 | Form Evaluasi mandiri & berversi | Selesai — skema berversi + pemakuan `1abab4e1` (BR-REV-18); pustaka, draf, terbit, pasang `8330ec83` (BR-FE-30/31) |
+| R4 | Terapkan versi baru ke angkatan | Selesai — `d0bbc62d` (BR-REV-19, layar Versi Form Evaluasi per periode) + perbaikan review akhir `d05a5a65` |
 | R5 | Struktur fase berversi, dipaku per angkatan | Belum |
 | R6 | Draf → Pratinjau → Terbitkan untuk Form & Fase | Belum |
 | R7 | Rekam teks saat submit | Belum |
