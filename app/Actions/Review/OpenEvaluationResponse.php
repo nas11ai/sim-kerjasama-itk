@@ -20,9 +20,13 @@ class OpenEvaluationResponse
 
     public function handle(ReviewerFormAssignment $assignment, User $reviewer): ReviewFormResponse
     {
-        $existing = $assignment->reviewFormResponse;
+        // BR-REV-19 — relasi yang dimuat sebelum Apply bisa menunjuk jawaban yang sudah riwayat; jawaban
+        // berlaku dibaca ulang di bawah kunci, jadi simpanan yang berpapasan dengan Apply menunggunya.
+        $existing = $assignment->reviewFormResponse()->lockForUpdate()->first();
 
         if ($existing !== null) {
+            $assignment->setRelation('reviewFormResponse', $existing);
+
             return $existing;
         }
 

@@ -91,6 +91,20 @@ describe('FormEngine/PeriodEvaluationVersionsPage', () => {
         expect(buttons('Terapkan Versi 2')).toHaveLength(0)
     })
 
+    it('angkatan yang belum dinilai tidak diberi alasan penolakan meski langkahnya ada keputusan', () => {
+        mountPage([
+            row({
+                pinId: null,
+                pinnedLabel: null,
+                responseCount: 0,
+                decidedCount: 2,
+                canApply: false,
+            }),
+        ])
+
+        expect(wrapper.text()).not.toContain('Tidak bisa diterapkan')
+    })
+
     it('[REV-VER-08] konfirmasi menyebut jumlah penilaian yang dibuka ulang, lalu mengirim', async () => {
         mountPage([row()])
 

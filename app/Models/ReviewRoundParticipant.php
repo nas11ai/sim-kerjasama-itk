@@ -8,8 +8,8 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 /**
- * BR-REV-16 — satu reviewer dalam satu putaran, beserta tanda Selesai-nya. Tanda itu tidak
- * bisa dibatalkan: `finished_at` hanya diisi, tidak pernah dikosongkan.
+ * BR-REV-16 — satu reviewer dalam satu putaran, beserta tanda Selesai-nya. Reviewer tidak bisa
+ * membatalkannya; `finished_at` hanya dikosongkan saat penilaiannya dibuka ulang (BR-REV-19).
  *
  * @property int $id
  * @property int $review_round_id

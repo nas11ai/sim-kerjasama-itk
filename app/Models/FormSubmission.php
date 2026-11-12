@@ -6,7 +6,6 @@ use App\States\Submission\Approved;
 use App\States\Submission\NeedsRevision;
 use App\States\Submission\Rejected;
 use App\States\Submission\SubmissionStatus;
-use App\States\Submission\Submitted;
 use App\States\Submission\Withdrawn;
 use App\Support\SubmissionPeriodGate;
 use Carbon\CarbonImmutable;
@@ -292,28 +291,6 @@ class FormSubmission extends Model
             'id',
             'id'
         );
-    }
-
-    // NEW: Get all review form responses
-    public function reviewFormResponses()
-    {
-        return $this->hasManyThrough(
-            ReviewFormResponse::class,
-            ReviewerFormAssignment::class,
-            'submission_reviewer_id',
-            'reviewer_form_assignment_id',
-            'id',
-            'id'
-        )->whereIn(
-            'reviewer_form_assignments.submission_reviewer_id',
-            $this->submissionReviewers()->pluck('id')
-        );
-    }
-
-    // NEW: Get submitted review form responses
-    public function submittedReviewFormResponses()
-    {
-        return $this->reviewFormResponses()->where('review_form_responses.status', 'submitted');
     }
 
     /**

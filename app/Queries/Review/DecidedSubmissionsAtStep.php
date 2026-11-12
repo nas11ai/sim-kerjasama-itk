@@ -11,12 +11,13 @@ use App\States\Submission\Approved;
 use App\States\Submission\NeedsRevision;
 use App\States\Submission\Rejected;
 use App\States\Submission\Resubmitted;
+use App\States\Submission\Withdrawn;
 use Illuminate\Database\Eloquent\Builder;
 use Lorisleiva\Actions\Concerns\AsAction;
 
 /**
  * BR-REV-19 — jumlah pengajuan angkatan × langkah ini yang sudah diputuskan (versi baru tak boleh
- * diterapkan lagi). Pengajuan: disetujui, ditolak, atau revisi diminta. Monev: laporan disubmit
+ * diterapkan lagi). Pengajuan: disetujui (termasuk yang lalu ditarik), ditolak, atau revisi diminta. Monev: laporan disubmit
  * yang semua reviewer aktifnya selesai tanpa catatan terbuka (padanan SQL `canProceed()`).
  *
  * @method static int run(SubmissionPeriod $period, FormPhaseDetail $detail)
@@ -25,7 +26,8 @@ class DecidedSubmissionsAtStep implements ChangesNoState
 {
     use AsAction;
 
-    private const DECIDED = [Approved::class, Rejected::class, NeedsRevision::class, Resubmitted::class];
+    // Withdrawn hanya bisa dicapai dari Approved, jadi ia tetap pengajuan yang sudah diputuskan.
+    private const DECIDED = [Approved::class, Rejected::class, NeedsRevision::class, Resubmitted::class, Withdrawn::class];
 
     public function handle(SubmissionPeriod $period, FormPhaseDetail $detail): int
     {

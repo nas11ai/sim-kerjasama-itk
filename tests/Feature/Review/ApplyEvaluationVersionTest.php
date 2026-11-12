@@ -11,6 +11,7 @@ use App\Actions\Review\SaveEvaluationDraft;
 use App\Actions\Review\SubmitEvaluationAnswers;
 use App\Data\Request\EvaluationAnswersInput;
 use App\Data\Request\ReviewFormFieldInput;
+use App\Enums\ReviewRoundKind;
 use App\Models\EvaluationFormPin;
 use App\Models\FieldType;
 use App\Models\FormPhase;
@@ -30,6 +31,7 @@ use App\Queries\Review\VisibleReviewerScores;
 use App\States\Submission\Approved;
 use App\States\Submission\NeedsRevision;
 use App\States\Submission\UnderReview;
+use App\States\Submission\Withdrawn;
 use Illuminate\Auth\Access\AuthorizationException;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Validation\ValidationException;
@@ -215,6 +217,69 @@ it('reopens a round that finished ready, so the operator cannot approve until th
     applySubmitted($sari, 'Orisinal');
     finishSeat($sari->submissionReviewer);
     expect(DecisionReadiness::run($submission->refresh())->ready)->toBeTrue();
+});
+
+it('counts a withdrawn submission as decided', function () {
+    applySubmitted(applySeat(applySubmission($this->step, $this->p2025), $this->form));
+    applySubmission($this->step, $this->p2025, Withdrawn::class);
+    applyVersion2($this->form);
+
+    expect(fn () => ApplyLatestEvaluationVersion::run(cohortPin($this->p2025, $this->step, $this->form), $this->operator))
+        ->toThrow(ValidationException::class, 'Tidak bisa diterapkan: 1 pengajuan di langkah ini sudah diputuskan.');
+});
+
+it('writes a draft saved through an assignment loaded before the apply onto the new version', function () {
+    $sari = applyDrafted(applySeat(applySubmission($this->step, $this->p2025), $this->form));
+    $stale = ReviewerFormAssignment::query()->with('reviewFormResponse')->findOrFail($sari->id);
+    $v2 = applyVersion2($this->form);
+    ApplyLatestEvaluationVersion::run(cohortPin($this->p2025, $this->step, $this->form), $this->operator);
+
+    SaveEvaluationDraft::run($stale, applyAnswers($stale, 'Orisinal'), $stale->submissionReviewer->reviewer->user);
+
+    $history = $sari->supersededResponses()->sole();
+    expect($sari->refresh()->reviewFormResponse?->review_evaluation_form_version_id)->toBe($v2->id)
+        ->and($sari->reviewFormResponse?->reviewFormFieldResponses()->sole()->value)->toBe('Orisinal')
+        ->and($history->reviewFormFieldResponses()->sole()->value)->toBe('Setengah jadi');
+});
+
+/** Kursi yang Selesai di putaran 1 (`ready`), lalu reviewer kedua ditugaskan: putaran 2 hanya berisi kursi baru. */
+function lateSecondReviewer(FormSubmission $submission, ReviewEvaluationForm $form): array
+{
+    $sari = applySubmitted(applySeat($submission, $form));
+    finishSeat($sari->submissionReviewer);
+    $budi = applySeat($submission, $form);
+
+    return [$sari->submissionReviewer, $budi];
+}
+
+it('puts a reopened seat back into a later round it was never part of', function () {
+    $submission = applySubmission($this->step, $this->p2025);
+    [$sari] = lateSecondReviewer($submission, $this->form);
+    expect($submission->latestReviewRound()?->number)->toBe(2);
+    applyVersion2($this->form);
+
+    ApplyLatestEvaluationVersion::run(cohortPin($this->p2025, $this->step, $this->form), $this->operator);
+
+    $round = $submission->latestReviewRound();
+    expect($round?->unfinishedParticipants()->where('submission_reviewer_id', $sari->id)->sole()->kind)->toBe(ReviewRoundKind::Assessment)
+        ->and(DecisionReadiness::run($submission->refresh())->ready)->toBeFalse();
+});
+
+it('reopens a later round that already finished ready and seats the reopened reviewer in it', function () {
+    $submission = applySubmission($this->step, $this->p2025);
+    [$sari, $budi] = lateSecondReviewer($submission, $this->form);
+    applySubmitted($budi);
+    finishSeat($budi->submissionReviewer);
+    expect($submission->latestReviewRound()?->outcome)->toBe(ReviewRound::OUTCOME_READY);
+    applyVersion2($this->form);
+
+    ApplyLatestEvaluationVersion::run(cohortPin($this->p2025, $this->step, $this->form), $this->operator);
+
+    $round = $submission->latestReviewRound();
+    expect($round?->number)->toBe(2)
+        ->and($round?->completed_at)->toBeNull()
+        ->and($round?->unfinishedParticipants()->pluck('submission_reviewer_id')->sort()->values()->all())
+        ->toBe(collect([$sari->id, $budi->submission_reviewer_id])->sort()->values()->all());
 });
 
 it('hides superseded answers from the researcher but shows them to the operator', function () {

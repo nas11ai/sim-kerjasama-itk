@@ -40,12 +40,16 @@ class PinEvaluationVersion
             ['review_evaluation_form_version_id' => $latest->id, 'pinned_at' => now()],
         );
 
-        if ($pin->wasRecentlyCreated) {
-            AuditTrail::record('Versi form evaluasi dipaku', $pin, change: new AuditChange(new: [
-                'review_evaluation_form_id' => $form->id,
-                'version' => $latest->number,
-            ]));
+        if (!$pin->wasRecentlyCreated) {
+            // BR-REV-19 — Apply mengganti versi sambil mengunci baris ini; baca ulang di bawah kunci
+            // supaya draf pertama sesudahnya memakai versi baru, bukan pakuan yang sudah diganti.
+            return EvaluationFormPin::query()->whereKey($pin->id)->lockForUpdate()->firstOrFail()->reviewEvaluationFormVersion;
         }
+
+        AuditTrail::record('Versi form evaluasi dipaku', $pin, change: new AuditChange(new: [
+            'review_evaluation_form_id' => $form->id,
+            'version' => $latest->number,
+        ]));
 
         return $pin->reviewEvaluationFormVersion;
     }

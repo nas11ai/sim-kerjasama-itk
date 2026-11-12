@@ -106,7 +106,11 @@ const apply = () => {
                     <div class="flex justify-end">
                         <!-- BR-REV-19 — keputusan yang sudah diambil tidak dibatalkan -->
                         <p
-                            v-if="row.decidedCount > 0 && row.pinnedLabel !== row.latestLabel"
+                            v-if="
+                                row.pinnedLabel !== null &&
+                                row.decidedCount > 0 &&
+                                row.pinnedLabel !== row.latestLabel
+                            "
                             class="max-w-xs text-right text-sm text-muted-foreground"
                         >
                             Tidak bisa diterapkan: {{ row.decidedCount }} pengajuan di langkah ini
