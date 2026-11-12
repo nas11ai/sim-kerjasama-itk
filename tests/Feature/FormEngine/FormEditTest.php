@@ -67,7 +67,7 @@ it('kontrak mode buat', function () {
             ->where('general.archivedFields', [])
             ->where('general.hasDraft', false)
             ->where('general.publishedAt', null)
-            ->where('general.impact', ['newRequired' => 0, 'runningDrafts' => 0, 'relabelled' => [], 'removed' => 0])
+            ->where('general.impact', ['newRequired' => 0, 'draftOwners' => 0, 'relabelled' => [], 'removed' => 0])
             ->has('fieldTypeOptions.0', fn (AssertableInertia $option) => $option
                 ->hasAll(['value', 'name', 'label', 'hasOptions', 'limitType']))
             ->has('formTypeOptions'));

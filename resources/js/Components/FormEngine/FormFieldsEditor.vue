@@ -88,7 +88,7 @@ const saveDraft = () =>
                     :publish-data="{ notify_affected: notify }"
                     @save="saveDraft"
                 >
-                    <AffectedDraftsNotice v-model="notify" :count="general.impact.runningDrafts" />
+                    <AffectedDraftsNotice v-model="notify" :count="general.impact.draftOwners" />
                 </DraftPublishBar>
             </TabsContent>
 

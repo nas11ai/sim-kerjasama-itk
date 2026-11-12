@@ -167,7 +167,7 @@ export interface FormFieldEditData {
 // Sumber: App\Queries\Form\FormPublishImpact — dampak Terbitkan Form (BR-FE-34).
 export interface FormPublishImpact {
     newRequired: number
-    runningDrafts: number
+    draftOwners: number
     relabelled: { label: string; answered: number }[]
     removed: number
 }

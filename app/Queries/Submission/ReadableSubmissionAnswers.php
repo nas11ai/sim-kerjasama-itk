@@ -5,6 +5,7 @@ namespace App\Queries\Submission;
 use App\Actions\Concerns\ChangesNoState;
 use App\Data\View\Submission\SubmissionAnswerData;
 use App\Models\FieldType;
+use App\Models\FormFieldResponse;
 use App\Models\FormSubmission;
 use App\States\Submission\Draft;
 use App\States\Submission\NeedsRevision;
@@ -25,7 +26,11 @@ class ReadableSubmissionAnswers implements ChangesNoState
     /** @return list<SubmissionAnswerData> */
     public function handle(FormSubmission $submission): array
     {
-        $values = SubmissionAnswers::run($submission);
+        // B17 — hanya jawabannya; field dan opsi dibaca sekali oleh labels(), atau tidak sama sekali dari rekaman.
+        $submission->loadMissing('formFieldResponses');
+        $values = $submission->formFieldResponses
+            ->mapWithKeys(fn (FormFieldResponse $response): array => [$response->form_field_id => $response->value])
+            ->all();
         $responseIds = $submission->formFieldResponses->pluck('id', 'form_field_id');
         $answers = [];
 

@@ -32,13 +32,18 @@ class OpenEvaluationResponse
 
         // BR-REV-18 — "mulai mengisi": jawaban pertama memaku versi bagi seluruh angkatan × langkah.
         $version = PinEvaluationVersion::run($assignment->submissionReviewer->formSubmission, $assignment->reviewEvaluationForm);
-        $response = $assignment->reviewFormResponse()->create([
+        // B10 — indeks unik jawaban berlaku: yang kalah dari "mulai mengisi" bersamaan membaca pemenangnya.
+        $response = $assignment->reviewFormResponse()->createOrFirst([], [
             'status' => 'draft',
             'review_evaluation_form_version_id' => $version->id,
         ]);
-        $response->setRelation('reviewEvaluationFormVersion', $version);
         $assignment->setRelation('reviewFormResponse', $response);
 
+        if (!$response->wasRecentlyCreated) {
+            return $response;
+        }
+
+        $response->setRelation('reviewEvaluationFormVersion', $version);
         AuditTrail::record('Draft evaluasi dibuat', $response, $reviewer);
 
         return $response;

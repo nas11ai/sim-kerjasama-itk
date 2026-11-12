@@ -31,7 +31,9 @@ class PublishFormDraft
     public function handle(Form $form, User $actor): void
     {
         DB::transaction(function () use ($form, $actor): void {
-            // Kunci draf: dua Terbitkan bersamaan tidak boleh menulis draf yang sama dua kali.
+            // Kunci Form lalu draf, urutan yang sama dengan simpan/buang draf (B13); dua Terbitkan
+            // bersamaan tidak menulis draf yang sama dua kali.
+            Form::query()->whereKey($form->id)->lockForUpdate()->firstOrFail();
             $draft = FormDraft::query()->where('draftable_id', $form->id)->lockForUpdate()->first();
 
             if ($draft === null) {

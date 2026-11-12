@@ -17,14 +17,12 @@ final class AffectedDraftOwners
     /** @return Collection<int, User> */
     public static function forForm(Form $form): Collection
     {
-        // Yang dihitung pemilik draft yang **sedang berjalan**: sudah dimulai,
-        // belum dikirim, bukan laporan turunan (monev punya siklus sendiri).
-        // Pengajuan yang sudah masuk tidak lagi diisi, jadi tidak terdampak.
+        // Yang dihitung pemilik draft yang **sedang berjalan**: sudah dimulai, belum dikirim —
+        // termasuk draf laporan monev turunan (B15). Pengajuan yang sudah masuk tidak terdampak.
         return User::query()
             ->whereIn('id', FormSubmission::query()
                 ->where('form_id', $form->id)
                 ->where('is_submitted', false)
-                ->whereNull('parent_submission_id')
                 ->select('submitted_by'))
             ->get();
     }
@@ -34,7 +32,6 @@ final class AffectedDraftOwners
         return FormSubmission::query()
             ->where('form_id', $form->id)
             ->where('is_submitted', false)
-            ->whereNull('parent_submission_id')
             ->distinct()
             ->count('submitted_by');
     }

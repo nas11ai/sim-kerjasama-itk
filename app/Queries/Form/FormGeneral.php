@@ -23,7 +23,7 @@ class FormGeneral implements ChangesNoState
 {
     use AsAction;
 
-    private const NO_IMPACT = ['newRequired' => 0, 'runningDrafts' => 0, 'relabelled' => [], 'removed' => 0];
+    private const NO_IMPACT = ['newRequired' => 0, 'draftOwners' => 0, 'relabelled' => [], 'removed' => 0];
 
     public function handle(?Form $form): FormGeneralData
     {

@@ -64,7 +64,7 @@ const general = (overrides: Partial<FormGeneralData> = {}): FormGeneralData => (
     fields: [],
     publishedFields: [],
     archivedFields: [],
-    impact: { newRequired: 0, runningDrafts: 0, relabelled: [], removed: 0 },
+    impact: { newRequired: 0, draftOwners: 0, relabelled: [], removed: 0 },
     ...overrides,
 })
 

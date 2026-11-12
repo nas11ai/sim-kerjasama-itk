@@ -31,7 +31,9 @@ class PublishPhaseDraft
     public function handle(FormPhase $phase, User $actor): FormPhaseVersion
     {
         return DB::transaction(function () use ($phase, $actor): FormPhaseVersion {
-            // Kunci draf: dua Terbitkan bersamaan tidak boleh menerbitkan draf yang sama dua kali.
+            // Kunci tahap lalu draf, urutan yang sama dengan simpan/buang draf (B13); dua Terbitkan
+            // bersamaan tidak menerbitkan draf yang sama dua kali.
+            FormPhase::query()->whereKey($phase->id)->lockForUpdate()->firstOrFail();
             $draft = PhaseDraft::query()->where('draftable_id', $phase->id)->lockForUpdate()->first();
 
             if ($draft === null) {

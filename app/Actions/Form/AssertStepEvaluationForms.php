@@ -31,21 +31,24 @@ class AssertStepEvaluationForms implements ChangesNoState
             fn (FormPhaseDetailInput $d): array => array_map(fn (StepEvaluationFormInput $a): int => $a->reviewEvaluationFormId, $d->evaluationForms),
             $details,
         ));
-        $published = array_values(ReviewEvaluationForm::query()->whereIn('id', $requested)->whereHas('versions')->get(['id'])
+        $forms = ReviewEvaluationForm::query()->whereIn('id', $requested)->withExists('versions')->get(['id']);
+        $existing = array_values($forms->map(fn (ReviewEvaluationForm $form): int => $form->id)->all());
+        $published = array_values($forms->filter(fn (ReviewEvaluationForm $form): bool => $form->versions_exists === true)
             ->map(fn (ReviewEvaluationForm $form): int => $form->id)
             ->all());
 
         foreach ($details as $index => $detail) {
-            $this->assertStepEvaluationForms($index, $detail, $published);
+            $this->assertStepEvaluationForms($index, $detail, $existing, $published);
         }
     }
 
     /**
+     * @param  list<int>  $existing
      * @param  list<int>  $published
      *
      * @throws ValidationException
      */
-    private function assertStepEvaluationForms(int $index, FormPhaseDetailInput $detail, array $published): void
+    private function assertStepEvaluationForms(int $index, FormPhaseDetailInput $detail, array $existing, array $published): void
     {
         $ids = array_map(fn (StepEvaluationFormInput $a): int => $a->reviewEvaluationFormId, $detail->evaluationForms);
         $active = count(array_filter($detail->evaluationForms, fn (StepEvaluationFormInput $a): bool => $a->isActive));
@@ -53,6 +56,13 @@ class AssertStepEvaluationForms implements ChangesNoState
         if (!$detail->needsReview && $active > 0) {
             throw ValidationException::withMessages([
                 "phase_details.{$index}.needs_review" => "Detail ini punya {$active} form evaluasi aktif, jadi tetap harus direview.",
+            ]);
+        }
+
+        // B12 — draf tidak ber-FK, jadi Form Evaluasi bisa dihapus dari pustaka sesudah draf disimpan.
+        if (array_diff($ids, $existing) !== []) {
+            throw ValidationException::withMessages([
+                "phase_details.{$index}.evaluation_forms" => 'Form evaluasi yang terpasang di langkah ini sudah dihapus dari pustaka. Lepaskan lalu simpan draf.',
             ]);
         }
 

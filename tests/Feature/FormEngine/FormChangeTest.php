@@ -152,7 +152,7 @@ it('[FE-CHANGE-02] halaman edit Form membawa jumlah draft terdampak', function (
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
             ->component('FormEngine/FormEditPage')
-            ->where('general.impact.runningDrafts', 1)
+            ->where('general.impact.draftOwners', 1)
             ->etc());
 });
 

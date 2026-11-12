@@ -21,6 +21,7 @@ use App\Models\FormSubmissionOverride;
 use App\Models\ReviewerFormAssignment;
 use App\Models\ReviewEvaluationForm;
 use App\Models\ReviewEvaluationFormVersion;
+use App\Models\ReviewFormResponse;
 use App\Models\ReviewRound;
 use App\Models\StepEvaluationForm;
 use App\Models\SubmissionPeriod;
@@ -35,6 +36,8 @@ use App\States\Submission\NeedsRevision;
 use App\States\Submission\UnderReview;
 use App\States\Submission\Withdrawn;
 use Illuminate\Auth\Access\AuthorizationException;
+use Illuminate\Database\UniqueConstraintViolationException;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Notification;
 use Illuminate\Validation\ValidationException;
 use Inertia\Testing\AssertableInertia as Assert;
@@ -375,4 +378,85 @@ it('forbids the page and the action without periods.manage', function () {
     $this->actingAs($stranger)->get(route('admin.submission-periods.evaluation-versions', $this->p2025))->assertForbidden();
     $this->actingAs($stranger)->post(route('admin.evaluation-form-pins.apply', $pin))->assertForbidden();
     expect($pin->refresh()->review_evaluation_form_version_id)->not->toBe($this->form->latestVersion()->value('id'));
+});
+
+it('rolls back when a decision lands while the new version is being applied', function () {
+    // B10 — keputusan Operator lain tidak mengunci pin; dihitung ulang sesudah pakuan diganti.
+    $submission = applySubmission($this->step, $this->p2025);
+    $sari = applySubmitted(applySeat($submission, $this->form));
+    applyVersion2($this->form);
+    $pin = cohortPin($this->p2025, $this->step, $this->form);
+    EvaluationFormPin::updated(fn () => FormSubmission::query()->whereKey($submission->id)->update(['status' => Approved::$name]));
+
+    expect(fn () => ApplyLatestEvaluationVersion::run($pin, $this->operator))
+        ->toThrow(ValidationException::class, 'Tidak bisa diterapkan: 1 pengajuan di langkah ini sudah diputuskan.');
+    expect($pin->refresh()->reviewEvaluationFormVersion->number)->toBe(1)
+        ->and($sari->supersededResponses()->count())->toBe(0);
+});
+
+it('tells a reviewer saving from a page loaded before the apply to reload', function () {
+    $sari = applyDrafted(applySeat(applySubmission($this->step, $this->p2025), $this->form));
+    $stalePage = applyAnswers($sari, 'Dari halaman lama');
+    applyVersion2($this->form);
+    ApplyLatestEvaluationVersion::run(cohortPin($this->p2025, $this->step, $this->form), $this->operator);
+
+    expect(fn () => SaveEvaluationDraft::run($sari->refresh(), $stalePage, $sari->submissionReviewer->reviewer->user))
+        ->toThrow(ValidationException::class, 'Form evaluasi ini sudah diganti ke versi baru. Muat ulang halaman lalu isi ulang penilaian Anda.');
+});
+
+it('refuses to apply a pin whose evaluation form is not active at the step, as the page hides it', function () {
+    $hidden = evaluationFormOn($this->step, active: false, title: 'Lembar Nonaktif');
+    applyDrafted(applySeat(applySubmission($this->step, $this->p2025), $hidden));
+    applyVersion2($hidden);
+    $pin = cohortPin($this->p2025, $this->step, $hidden);
+
+    expect(collect(CohortEvaluationVersions::run($this->p2025))->pluck('pinId'))->not->toContain($pin->id)
+        ->and(fn () => ApplyLatestEvaluationVersion::run($pin, $this->operator))
+        ->toThrow(ValidationException::class, 'Form evaluasi ini tidak aktif di langkah ini, jadi versinya tidak diterapkan.');
+});
+
+it('counts the current answers of every pinned row in one query', function () {
+    $second = evaluationFormOn($this->step, title: 'Lembar Kedua');
+    $submission = applySubmission($this->step, $this->p2025);
+    applyDrafted(applySeat($submission, $this->form));
+    applyDrafted(applySeat($submission, $second));
+
+    DB::flushQueryLog();
+    DB::enableQueryLog();
+    $rows = CohortEvaluationVersions::run($this->p2025);
+    DB::disableQueryLog();
+    $counts = array_filter(DB::getQueryLog(), fn (array $query): bool => str_contains(strtolower($query['query']), 'count(*)') && str_contains($query['query'], '"review_form_responses"'));
+
+    expect(array_map(fn ($row): int => $row->responseCount, $rows))->toBe([1, 1])
+        ->and($counts)->toHaveCount(1);
+});
+
+it('keeps one current answer per assignment', function () {
+    // B10 — dua "mulai mengisi" bersamaan dulu bisa melahirkan dua jawaban berlaku satu penugasan.
+    $sari = applyDrafted(applySeat(applySubmission($this->step, $this->p2025), $this->form));
+
+    ReviewFormResponse::query()->insert([
+        'reviewer_form_assignment_id' => $sari->id,
+        'review_evaluation_form_version_id' => $sari->reviewFormResponse?->review_evaluation_form_version_id,
+        'status' => 'draft',
+        'created_at' => now(),
+        'updated_at' => now(),
+    ]);
+})->throws(UniqueConstraintViolationException::class);
+
+it('returns the winning answer to the second of two simultaneous first drafts', function () {
+    $assignment = applySeat(applySubmission($this->step, $this->p2025), $this->form);
+    // Pakuan pertama lahir di antara baca "belum ada jawaban" dan insert: pemenang menyisip di situ.
+    EvaluationFormPin::created(fn (EvaluationFormPin $pin) => ReviewFormResponse::query()->insert([
+        'reviewer_form_assignment_id' => $assignment->id,
+        'review_evaluation_form_version_id' => $pin->review_evaluation_form_version_id,
+        'status' => 'draft',
+        'created_at' => now(),
+        'updated_at' => now(),
+    ]));
+
+    $response = SaveEvaluationDraft::run($assignment, applyAnswers($assignment, 'Kalah cepat'), $assignment->submissionReviewer->reviewer->user);
+
+    expect(ReviewFormResponse::query()->where('reviewer_form_assignment_id', $assignment->id)->count())->toBe(1)
+        ->and($response->reviewFormFieldResponses()->sole()->value)->toBe('Kalah cepat');
 });

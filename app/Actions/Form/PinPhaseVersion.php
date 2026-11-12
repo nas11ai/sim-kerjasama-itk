@@ -2,6 +2,7 @@
 
 namespace App\Actions\Form;
 
+use App\Models\FormPhase;
 use App\Models\FormPhaseDetail;
 use App\Models\FormPhaseVersion;
 use App\Models\PhaseVersionPin;
@@ -29,6 +30,9 @@ class PinPhaseVersion
      */
     public function handle(SubmissionPeriod $period, FormPhaseDetail $detail): FormPhaseVersion
     {
+        // B11 — Terbitkan memegang kunci tahap ini; pakuan menunggunya, jadi cek "belum ada pin"
+        // di sana tidak terlewat dan versi terbaru dibaca sesudah terbit selesai.
+        FormPhase::query()->whereKey($detail->form_phase_id)->sharedLock()->firstOrFail();
         $latest = FormPhaseVersion::query()
             ->where('form_phase_id', $detail->form_phase_id)
             ->orderByDesc('number')

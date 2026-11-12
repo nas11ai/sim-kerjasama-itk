@@ -51,6 +51,7 @@ use Database\Factories\FormPhaseDetailFactory;
 use Database\Seeders\PermissionSeeder;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
 use Spatie\Permission\Models\Permission;
 
 /**
@@ -939,4 +940,22 @@ function evaluationResponseFor(ReviewerFormAssignment $assignment, string $statu
         'status' => $status,
         'submitted_at' => $status === 'submitted' ? now() : null,
     ]);
+}
+
+/**
+ * Apakah `$work` mengunci baris `$table` (`for update`/`for share`) sebelum kueri pertamanya ke
+ * `$next`. RefreshDatabase menahan baris di transaksi terbuka, jadi koneksi kedua tidak melihatnya.
+ */
+function lockedBefore(string $table, string $mode, string $next, callable $work): bool
+{
+    DB::flushQueryLog();
+    DB::enableQueryLog();
+    $work();
+    DB::disableQueryLog();
+    $sql = array_map(fn (array $query): string => strtolower($query['query']), DB::getQueryLog());
+
+    $lock = array_find_key($sql, fn (string $q): bool => str_contains($q, "from \"{$table}\"") && str_ends_with($q, $mode));
+    $first = array_find_key($sql, fn (string $q): bool => str_contains($q, "\"{$next}\""));
+
+    return is_int($lock) && is_int($first) && $lock < $first;
 }

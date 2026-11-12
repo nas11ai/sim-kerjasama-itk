@@ -14,9 +14,9 @@ use Lorisleiva\Actions\Concerns\AsAction;
 
 /**
  * BR-FE-34 — dampak Terbitkan Form: draf dibanding field terbit. Field baru wajib mencakup field
- * lama yang menjadi wajib (BR-FE-18); `runningDrafts` = penerima prompt BR-FE-13. Tanpa draf: nol.
+ * lama yang menjadi wajib (BR-FE-18); `draftOwners` = penerima prompt BR-FE-13. Tanpa draf: nol.
  *
- * @phpstan-type Impact array{newRequired: int, runningDrafts: int, relabelled: list<array{label: string, answered: int}>, removed: int}
+ * @phpstan-type Impact array{newRequired: int, draftOwners: int, relabelled: list<array{label: string, answered: int}>, removed: int}
  *
  * @method static Impact run(Form $form)
  */
@@ -40,7 +40,7 @@ class FormPublishImpact implements ChangesNoState
         return [
             'newRequired' => count(array_filter($fields, fn (FormFieldInput $field): bool => $field->isRequired
                 && $published->get($field->id ?? 0)?->is_required !== true)),
-            'runningDrafts' => AffectedDraftOwners::countForForm($form),
+            'draftOwners' => AffectedDraftOwners::countForForm($form),
             'relabelled' => $this->relabelled($fields, $published),
             'removed' => $published->except($kept)->count(),
         ];

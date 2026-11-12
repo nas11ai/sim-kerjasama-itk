@@ -3,6 +3,9 @@
 // BR-FE-29 (K-2) — satu periode paling banyak punya satu tahap per Form pengajuan. Peneliti memilih
 // Form, bukan tahap, jadi tahap kedua dengan Form yang sama tidak pernah terjangkau.
 
+use App\Actions\Form\PublishPhaseVersion;
+use App\Data\Request\FormPhaseDetailInput;
+use App\Data\Request\PhaseStructureInput;
 use App\Enums\DeadlineType;
 use App\Models\Form;
 use App\Models\FormPhase;
@@ -12,6 +15,7 @@ use App\Models\SubmissionPeriodPhase;
 use App\Models\User;
 use App\Support\Audit\AuditTrail;
 use Database\Seeders\PermissionSeeder;
+use Illuminate\Validation\ValidationException;
 use Spatie\Activitylog\Models\Activity;
 
 beforeEach(function () {
@@ -103,4 +107,24 @@ it('[FE-PHASE-09] does not offer a period that already has a phase for the same 
 
     expect($offers($copy))->toBeFalse()
         ->and($offers($pengmas))->toBeTrue();
+});
+
+it('[FE-PHASE-10] refuses to publish a version that gives a linked phase the submission form of another phase in the period', function () {
+    $pengmas = onePhaseFor('Pengabdian DIPA', Form::factory()->create(['title' => 'Proposal Pengmas']));
+    SubmissionPeriodPhase::create(['submission_period_id' => $this->period->id, 'form_phase_id' => $pengmas->id]);
+    $proposalStep = $this->dipa->currentDetails()->sole();
+    $structure = new PhaseStructureInput([new FormPhaseDetailInput(
+        id: null,
+        formAccessControlId: $proposalStep->form_access_control_id,
+        phaseTypeId: $proposalStep->phase_type_id,
+        needsReview: false,
+        deadlineType: DeadlineType::Submit,
+        deadlineCycle: null,
+    )]);
+
+    expect(fn () => PublishPhaseVersion::run($pengmas, $structure, $this->admin))->toThrow(
+        ValidationException::class,
+        'Tahap Penelitian DIPA dan Pengabdian DIPA sama-sama memakai Form pengajuan Proposal Penelitian. Satu periode hanya boleh punya satu tahap per Form pengajuan.',
+    );
+    expect($pengmas->versions()->count())->toBe(1);
 });

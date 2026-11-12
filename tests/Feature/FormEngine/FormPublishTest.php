@@ -5,6 +5,7 @@ use App\Models\FieldType;
 use App\Models\Form;
 use App\Models\FormDraft;
 use App\Models\FormField;
+use App\Models\FormFieldOption;
 use App\Models\FormFieldResponse;
 use App\Models\FormSubmission;
 use App\Models\User;
@@ -134,7 +135,7 @@ it('[FE-FORMPUB-02] summarises new required fields, running drafts, relabelled a
     $this->actingAs($this->admin)->get(route('admin.forms.edit', $fx['form']))
         ->assertInertia(fn (Assert $page) => $page->where('general.impact', [
             'newRequired' => 1,
-            'runningDrafts' => 2,
+            'draftOwners' => 2,
             'relabelled' => [['label' => 'Judul', 'answered' => 3]],
             'removed' => 1,
         ]));
@@ -306,4 +307,53 @@ it('forbids an operator from the draft and publish routes', function () {
     $this->actingAs($operator)->put(route('admin.forms.draft.update', $form), draftFields([]))->assertForbidden();
     $this->actingAs($operator)->delete(route('admin.forms.draft.destroy', $form))->assertForbidden();
     $this->actingAs($operator)->post(route('admin.forms.publish', $form))->assertForbidden();
+});
+
+it('locks the form before touching its draft on save, discard, and publish', function () {
+    // B13 — urutan kunci sama dengan Terbitkan, jadi simpan/buang yang berpapasan menunggu.
+    $form = Form::factory()->create();
+    $this->actingAs($this->admin);
+    $save = fn () => $this->put(route('admin.forms.draft.update', $form), draftFields([[null, 'Judul']]));
+    $discard = fn () => $this->delete(route('admin.forms.draft.destroy', $form));
+    $publish = fn () => $this->post(route('admin.forms.publish', $form));
+
+    expect(lockedBefore('forms', 'for update', 'configuration_drafts', $save))->toBeTrue()
+        ->and(lockedBefore('forms', 'for update', 'configuration_drafts', $discard))->toBeTrue();
+    $save();
+    expect(lockedBefore('forms', 'for update', 'configuration_drafts', $publish))->toBeTrue();
+});
+
+it('rejects a draft from a stale screen that keeps a field or option another publish deleted', function () {
+    // B14 — field terhapus masih ada di tabel (soft delete); `exists` biasa menerimanya.
+    $form = Form::factory()->create();
+    $field = publishField($form, 'Pilihan', 1);
+    $option = FormFieldOption::create(['form_field_id' => $field->id, 'label' => 'A']);
+    $option->delete();
+    $field->delete();
+    $stale = draftFields([[$field->id, 'Pilihan']]);
+    $stale['fields'][0]['options'] = [['id' => $option->id, 'label' => 'A']];
+
+    $this->actingAs($this->admin)->put(route('admin.forms.draft.update', $form), $stale)
+        ->assertSessionHasErrors([
+            'fields.0.id' => 'Field ini sudah dihapus oleh penerbitan lain. Muat ulang halaman lalu coba lagi.',
+            'fields.0.options.0.id' => 'Opsi ini sudah dihapus oleh penerbitan lain. Muat ulang halaman lalu coba lagi.',
+        ]);
+
+    expect($form->draft()->exists())->toBeFalse();
+});
+
+it('counts and notifies the owner of a running monev report draft', function () {
+    // B15 — BR-FE-13 tidak mengecualikan Form laporan: draf laporan turunan juga sedang diisi.
+    Notification::fake();
+    $form = Form::factory()->create();
+    $parent = FormSubmission::factory()->create(['is_submitted' => true]);
+    $report = FormSubmission::factory()->create(['form_id' => $form->id, 'parent_submission_id' => $parent->id, 'is_submitted' => false]);
+    $this->actingAs($this->admin)->put(route('admin.forms.draft.update', $form), draftFields([[null, 'Capaian', true]]));
+
+    $this->get(route('admin.forms.edit', $form))
+        ->assertInertia(fn (Assert $page) => $page->where('general.impact.draftOwners', 1));
+    $this->post(route('admin.forms.publish', $form), ['notify_affected' => true])
+        ->assertSessionHas('success', 'Form diterbitkan. 1 peneliti diberi tahu.');
+
+    Notification::assertSentTo(User::query()->findOrFail($report->submitted_by), FormChangedNotification::class);
 });

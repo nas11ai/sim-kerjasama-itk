@@ -20,6 +20,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
  * @property-read int|null $reviewer_form_assignments_count hanya setelah withCount
  * @property-read int|null $step_evaluation_forms_count hanya setelah withCount
  * @property-read bool|null $draft_exists hanya setelah withExists
+ * @property-read bool|null $versions_exists hanya setelah withExists
  */
 class ReviewEvaluationForm extends Model
 {

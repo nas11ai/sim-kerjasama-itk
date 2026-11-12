@@ -71,3 +71,10 @@ Feature: Satu Form Pengajuan per Tahap
     When Admin membuka pustaka Fase
     Then kartu "Penelitian DIPA Salinan" tidak menawarkan "2026 Gelombang 1" di Hubungkan ke Periode
     And kartu tahap ber-Form pengajuan lain tetap menawarkannya
+
+  @BR-FE-29 @M2 @ADMIN-08-09 @denial
+  Scenario: [FE-PHASE-10] Terbitkan tidak boleh membuat dua tahap satu periode ber-Form pengajuan sama
+    Given periode "2026 Gelombang 1" menautkan tahap "Penelitian DIPA" berform pengajuan "Proposal Penelitian" dan tahap "Pengabdian DIPA" berform pengajuan lain
+    When Admin menerbitkan versi "Pengabdian DIPA" yang langkah Pengajuannya memakai "Proposal Penelitian"
+    Then penerbitan ditolak dengan pesan yang menyebut kedua tahap dan Form-nya
+    And "Pengabdian DIPA" tetap di versi lamanya

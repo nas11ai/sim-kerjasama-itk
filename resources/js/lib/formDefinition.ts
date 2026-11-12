@@ -52,8 +52,8 @@ export function formPublishImpactText(impact: FormPublishImpact): string {
         impact.newRequired > 0
             ? `${impact.newRequired} field baru wajib — berlaku untuk pengajuan yang dibuat sesudah ini.`
             : null,
-        impact.runningDrafts > 0
-            ? `${impact.runningDrafts} draf berjalan tidak terpengaruh.`
+        impact.draftOwners > 0
+            ? `${impact.draftOwners} peneliti dengan draf berjalan tidak terpengaruh.`
             : null,
         ...impact.relabelled.map(
             (row) =>

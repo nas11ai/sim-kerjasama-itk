@@ -6,6 +6,7 @@ use App\Models\Form;
 use App\Models\User;
 use App\Support\Audit\AuditChange;
 use App\Support\Audit\AuditTrail;
+use Illuminate\Support\Facades\DB;
 use Lorisleiva\Actions\Concerns\AsAction;
 
 /**
@@ -20,14 +21,19 @@ class DiscardFormDraft
 
     public function handle(Form $form, User $actor): void
     {
-        $draft = $form->draft()->first();
+        DB::transaction(function () use ($form, $actor): void {
+            // B13 — draf yang baru dipakai Terbitkan sudah terhapus saat kunci ini didapat, jadi
+            // tidak diaudit sebagai dibuang.
+            Form::query()->whereKey($form->id)->lockForUpdate()->firstOrFail();
+            $draft = $form->draft()->first();
 
-        if ($draft === null) {
-            return;
-        }
+            if ($draft === null) {
+                return;
+            }
 
-        $draft->delete();
-        $form->unsetRelation('draft');
-        AuditTrail::record('Draf formulir dibuang', $form, $actor, new AuditChange(old: ['fields' => count($draft->payload['fields'])]));
+            $draft->delete();
+            $form->unsetRelation('draft');
+            AuditTrail::record('Draf formulir dibuang', $form, $actor, new AuditChange(old: ['fields' => count($draft->payload['fields'])]));
+        });
     }
 }

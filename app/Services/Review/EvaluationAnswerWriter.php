@@ -3,7 +3,9 @@
 namespace App\Services\Review;
 
 use App\Data\Request\EvaluationAnswersInput;
+use App\Models\ReviewFormField;
 use App\Models\ReviewFormResponse;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Validation\ValidationException;
 
 /**
@@ -48,6 +50,19 @@ final class EvaluationAnswerWriter
 
         if ($owned === count($fieldIds)) {
             return;
+        }
+
+        // B10 — layar yang dimuat sebelum Apply masih mengirim field versi lama Form Evaluasi yang sama.
+        $otherVersion = ReviewFormField::query()
+            ->whereIn('id', $fieldIds)
+            ->whereHas('reviewEvaluationFormVersion', fn (Builder $version) => $version
+                ->where('review_evaluation_form_id', $response->reviewEvaluationFormVersion->review_evaluation_form_id))
+            ->exists();
+
+        if ($otherVersion) {
+            throw ValidationException::withMessages([
+                'responses' => 'Form evaluasi ini sudah diganti ke versi baru. Muat ulang halaman lalu isi ulang penilaian Anda.',
+            ]);
         }
 
         throw ValidationException::withMessages([

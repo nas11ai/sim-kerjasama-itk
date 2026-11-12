@@ -19,6 +19,7 @@ use App\States\Submission\NeedsRevision;
 use App\States\Submission\Submitted;
 use App\States\Submission\UnderReview;
 use Database\Seeders\PermissionSeeder;
+use Illuminate\Support\Facades\DB;
 
 /*
  * BR-FE-35 — teks pertanyaan dan label opsi direkam saat submit/kirim ulang, lalu dibaca
@@ -175,4 +176,25 @@ it('excludes column-backed fields from the record', function () {
             'label' => 'Anggaran',
             'options' => [['id' => $this->own->id, 'label' => 'Mandiri']],
         ]);
+});
+
+/** Berapa kali ReadableSubmissionAnswers membaca tabel `form_fields` untuk `$submission`. */
+function fieldReads(FormSubmission $submission): int
+{
+    $fresh = $submission->fresh();
+    DB::flushQueryLog();
+    DB::enableQueryLog();
+    ReadableSubmissionAnswers::run($fresh);
+    DB::disableQueryLog();
+
+    return count(array_filter(DB::getQueryLog(), fn (array $query): bool => str_contains($query['query'], 'from "form_fields"')));
+}
+
+it('reads the form fields once for current labels and not at all from the record', function () {
+    // B17 — dulu jalur jawaban memuat field Form lagi di samping FieldLabelSnapshot.
+    expect(fieldReads($this->submission))->toBe(1);
+
+    SubmitFormSubmission::run($this->submission, $this->owner);
+
+    expect(fieldReads($this->submission))->toBe(0);
 });

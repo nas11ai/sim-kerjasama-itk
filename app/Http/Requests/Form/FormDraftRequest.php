@@ -20,4 +20,10 @@ class FormDraftRequest extends FormRequest
     {
         return $this->fieldRules();
     }
+
+    /** @return array<string, string> */
+    public function messages(): array
+    {
+        return $this->fieldMessages();
+    }
 }

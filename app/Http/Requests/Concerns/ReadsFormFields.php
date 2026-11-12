@@ -7,7 +7,7 @@ use App\Data\Request\FormFieldInput;
 
 /**
  * BR-FE-34 — `fields` kiriman editor Form, urut seperti di layar. `id` field dan opsi hanya
- * diperiksa keberadaannya; kepemilikannya oleh Form ini diperiksa saat terbit (FormFieldWriter).
+ * diperiksa keberadaannya (bukan baris terhapus, B14); kepemilikannya diperiksa saat terbit.
  */
 trait ReadsFormFields
 {
@@ -16,13 +16,22 @@ trait ReadsFormFields
     {
         return [
             'fields' => 'array',
-            'fields.*.id' => 'nullable|integer|exists:form_fields,id',
+            'fields.*.id' => 'nullable|integer|exists:form_fields,id,deleted_at,NULL',
             'fields.*.field_type_id' => 'required|integer|exists:field_types,id',
             'fields.*.label' => 'required|string|max:255',
             'fields.*.is_required' => 'boolean',
             'fields.*.options' => 'array',
-            'fields.*.options.*.id' => 'nullable|integer|exists:form_field_options,id',
+            'fields.*.options.*.id' => 'nullable|integer|exists:form_field_options,id,deleted_at,NULL',
             'fields.*.options.*.label' => 'required|string|max:255',
+        ];
+    }
+
+    /** @return array<string, string> */
+    protected function fieldMessages(): array
+    {
+        return [
+            'fields.*.id.exists' => 'Field ini sudah dihapus oleh penerbitan lain. Muat ulang halaman lalu coba lagi.',
+            'fields.*.options.*.id.exists' => 'Opsi ini sudah dihapus oleh penerbitan lain. Muat ulang halaman lalu coba lagi.',
         ];
     }
 

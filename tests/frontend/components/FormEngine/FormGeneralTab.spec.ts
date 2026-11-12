@@ -69,7 +69,7 @@ const general = (overrides: Partial<FormGeneralData> = {}): FormGeneralData => (
     fields: [judul, abstrak],
     publishedFields: [judul, abstrak],
     archivedFields: [{ id: 13, label: 'Lokasi (lama)', typeName: 'Teks' }],
-    impact: { newRequired: 0, runningDrafts: 0, relabelled: [], removed: 0 },
+    impact: { newRequired: 0, draftOwners: 0, relabelled: [], removed: 0 },
     ...overrides,
 })
 
@@ -208,8 +208,8 @@ describe('FormEngine/FormGeneralTab', () => {
         )
     })
 
-    it('banner Form yang belum pernah terbit', () => {
-        const wrapper = tab({ hasDraft: true, publishedAt: null })
+    it('banner Form yang belum pernah terbit, juga sesudah drafnya dibuang', () => {
+        const wrapper = tab({ hasDraft: false, publishedAt: null })
 
         expect(wrapper.text()).toContain(
             'Draf belum diterbitkan. Form ini belum bisa dipakai tahap.'
@@ -228,7 +228,7 @@ describe('FormEngine/FormGeneralTab', () => {
             hasDraft: true,
             impact: {
                 newRequired: 1,
-                runningDrafts: 2,
+                draftOwners: 2,
                 relabelled: [{ label: 'Judul', answered: 3 }],
                 removed: 1,
             },
@@ -237,7 +237,7 @@ describe('FormEngine/FormGeneralTab', () => {
         await click('Terbitkan')
 
         expect(dialogText()).toContain(
-            '1 field baru wajib — berlaku untuk pengajuan yang dibuat sesudah ini. 2 draf berjalan tidak terpengaruh. Label "Judul" diubah pada field yang sudah dijawab 3 pengajuan. 1 field dihapus — jawaban lamanya tetap tersimpan.'
+            '1 field baru wajib — berlaku untuk pengajuan yang dibuat sesudah ini. 2 peneliti dengan draf berjalan tidak terpengaruh. Label "Judul" diubah pada field yang sudah dijawab 3 pengajuan. 1 field dihapus — jawaban lamanya tetap tersimpan.'
         )
     })
 
@@ -253,7 +253,7 @@ describe('FormEngine/FormGeneralTab', () => {
     it('[FE-CHANGE-02] dialog Terbitkan menawarkan notifikasi ke pemilik draft berjalan', async () => {
         tab({
             hasDraft: true,
-            impact: { newRequired: 0, runningDrafts: 3, relabelled: [], removed: 0 },
+            impact: { newRequired: 0, draftOwners: 3, relabelled: [], removed: 0 },
         })
 
         await click('Terbitkan')

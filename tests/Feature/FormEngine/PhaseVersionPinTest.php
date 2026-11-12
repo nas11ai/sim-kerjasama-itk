@@ -3,6 +3,7 @@
 use App\Actions\Form\PinPhaseVersion;
 use App\Actions\Form\PublishPhaseVersion;
 use App\Actions\FormSubmission\StartSubmission;
+use App\Data\Reporting\ExportFilters;
 use App\Data\Request\FormPhaseDetailInput;
 use App\Data\Request\PhaseStructureInput;
 use App\Data\Request\StepEvaluationFormInput;
@@ -24,7 +25,11 @@ use App\Queries\Form\PhaseVersionFor;
 use App\Queries\Monev\MonevCycles;
 use App\Queries\Submission\AccessibleFormPhaseDetail;
 use App\Queries\Submission\ResearcherStartOptions;
+use App\Support\Reporting\ExportType;
+use App\Support\Reporting\SubmissionVisibility;
+use Illuminate\Database\UniqueConstraintViolationException;
 use Illuminate\Validation\ValidationException;
+use Spatie\Permission\Models\Permission;
 
 /*
  * BR-FE-32 — struktur tahap berversi, dipaku per angkatan (Periode × Tahap) saat pengajuan
@@ -250,3 +255,41 @@ it('offers the pinned version step to a researcher in a pinned cohort', function
         ->and(AccessibleFormPhaseDetail::run($this->phase->id, $this->proposal->id, $p2026->id, $newcomer)?->form_phase_version_id)->toBe($v2->id)
         ->and(AccessibleFormPhaseDetail::run($this->phase->id, $this->proposal->id, $this->p2025->id, $this->researcher)?->id)->toBe(submissionStepOf($this->v1)->id);
 });
+
+it('locks the phase for share before reading its latest version', function () {
+    // B11 — Terbitkan mengunci tahap; pakuan yang berpapasan menunggu lalu membaca versi barunya.
+    $detail = submissionStepOf($this->v1);
+
+    expect(lockedBefore('form_phases', 'for share', 'form_phase_versions', fn () => PinPhaseVersion::run($this->p2025, $detail)))->toBeTrue();
+});
+
+it('lists each cohort in Rekap Monev with the cycles of its own version', function () {
+    // B16 — dua angkatan satu tahap di versi berbeda: baris dan hitungannya mengikuti versi induk.
+    $old = startIn($this, $this->p2025);
+    $p2026 = schedulePeriod($this->phase, 'Periode 2026');
+    calendarDate($p2026, DeadlineType::Submit, now()->addWeek());
+    publishThreeCycles($this);
+    $new = startIn($this, $p2026);
+    FormSubmission::query()->whereKey([$old->id, $new->id])->update(['is_submitted' => true]);
+    Permission::findOrCreate(SubmissionVisibility::READ_ALL_PERMISSION, 'web');
+    $this->admin->givePermissionTo(SubmissionVisibility::READ_ALL_PERMISSION);
+    $recap = ExportType::definition(ExportType::MONEV);
+
+    $rows = array_map(fn (array $row): array => [$row[0], $row[2]], $recap->rows($this->admin, new ExportFilters));
+    expect($rows)->toBe([
+        [$old->id, 'Monev I'], [$old->id, 'Monev II'],
+        [$new->id, 'Monev I'], [$new->id, 'Monev II'], [$new->id, 'Monev III'],
+    ])->and($recap->rowCount($this->admin, new ExportFilters))->toBe(5);
+});
+
+it('refuses a second pin row for one cohort, the guard two simultaneous first submissions meet', function () {
+    // B16 — createOrFirst hanya aman bersamaan karena indeks unik angkatan; tanpanya dua pakuan lahir.
+    PinPhaseVersion::run($this->p2025, submissionStepOf($this->v1));
+
+    PhaseVersionPin::query()->insert([
+        'submission_period_id' => $this->p2025->id,
+        'form_phase_id' => $this->phase->id,
+        'form_phase_version_id' => $this->v1->id,
+        'pinned_at' => now(),
+    ]);
+})->throws(UniqueConstraintViolationException::class);

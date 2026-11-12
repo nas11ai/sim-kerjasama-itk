@@ -2,6 +2,7 @@
 
 namespace App\Actions\Form;
 
+use App\Actions\Period\AssertOnePhasePerSubmissionForm;
 use App\Data\Request\FormPhaseDetailInput;
 use App\Data\Request\PhaseStructureInput;
 use App\Enums\DeadlineType;
@@ -10,6 +11,7 @@ use App\Models\FormPhase;
 use App\Models\FormPhaseDetail;
 use App\Models\FormPhaseVersion;
 use App\Models\PhaseVersionPin;
+use App\Models\SubmissionPeriodPhase;
 use App\Models\User;
 use App\Support\Audit\AuditChange;
 use App\Support\Audit\AuditTrail;
@@ -48,6 +50,7 @@ class PublishPhaseVersion
             ]);
             $this->copySteps($phase, $version, $structure->details);
             $phase->unsetRelation('latestVersion');
+            $this->assertOnePhasePerSubmissionForm($phase);
 
             AuditTrail::record('Struktur tahap diterbitkan', $phase, $actor, new AuditChange(new: [
                 'version' => $version->number,
@@ -56,6 +59,24 @@ class PublishPhaseVersion
 
             return $version;
         });
+    }
+
+    /**
+     * BR-FE-29 — versi baru bisa membawa Form pengajuan tahap lain di periode tertaut. Dicek sesudah
+     * langkah disalin, karena PhaseSubmissionForms membaca versi terbaru; penolakan menggulungnya.
+     *
+     * @throws ValidationException
+     */
+    private function assertOnePhasePerSubmissionForm(FormPhase $phase): void
+    {
+        $links = SubmissionPeriodPhase::query()
+            ->whereIn('submission_period_id', SubmissionPeriodPhase::query()->where('form_phase_id', $phase->id)->select('submission_period_id'))
+            ->get(['submission_period_id', 'form_phase_id'])
+            ->groupBy('submission_period_id');
+
+        foreach ($links as $periodLinks) {
+            AssertOnePhasePerSubmissionForm::run(array_values($periodLinks->map(fn (SubmissionPeriodPhase $link): int => $link->form_phase_id)->all()), 'phase_details');
+        }
     }
 
     /** @param  list<FormPhaseDetailInput>  $details */

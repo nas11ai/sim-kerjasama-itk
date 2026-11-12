@@ -32,6 +32,9 @@ class CohortEvaluationVersions implements ChangesNoState
     /** @var array<int, int> jumlah pengajuan diputuskan per langkah, dihitung sekali */
     private array $decided = [];
 
+    /** @var array<string, int> jawaban berlaku per "langkah:form evaluasi", satu kueri untuk semua baris */
+    private array $responses = [];
+
     /** @return list<CohortEvaluationVersionData> */
     public function handle(SubmissionPeriod $period): array
     {
@@ -40,6 +43,7 @@ class CohortEvaluationVersions implements ChangesNoState
             ->with('reviewEvaluationFormVersion:id,number')
             ->get()
             ->keyBy(fn (EvaluationFormPin $pin): string => "{$pin->form_phase_detail_id}:{$pin->review_evaluation_form_id}");
+        $this->responses = $this->responseCounts($period);
 
         return array_values(StepEvaluationForm::query()
             ->active()
@@ -95,7 +99,7 @@ class CohortEvaluationVersions implements ChangesNoState
             pinnedLabel: $pin?->reviewEvaluationFormVersion->label(),
             // G2-W3 — hanya Form Evaluasi yang sudah terbit bisa dipasang, jadi versi terbarunya ada.
             latestLabel: $latest?->label() ?? '',
-            responseCount: $pin === null ? 0 : ReviewFormResponse::query()->currentInCohortOf($pin)->count(),
+            responseCount: $this->responses["{$detail->id}:{$step->review_evaluation_form_id}"] ?? 0,
             decidedCount: $decided,
             // BR-REV-19 — hanya angkatan yang terpaku ke versi lama dan belum ada yang diputuskan.
             canApply: $pin !== null && $latest !== null && $pin->review_evaluation_form_version_id !== $latest->id && $decided === 0,
@@ -116,6 +120,35 @@ class CohortEvaluationVersions implements ChangesNoState
                 $submission->submittedBy->name,
             ))
             ->all());
+    }
+
+    /**
+     * B10 — padanan berkelompok `ReviewFormResponse::currentInCohortOf()` untuk seluruh periode.
+     *
+     * @return array<string, int>
+     */
+    private function responseCounts(SubmissionPeriod $period): array
+    {
+        $counts = [];
+        $rows = ReviewFormResponse::query()
+            ->join('reviewer_form_assignments as rfa', 'rfa.id', '=', 'review_form_responses.reviewer_form_assignment_id')
+            ->join('submission_reviewers as seat', 'seat.id', '=', 'rfa.submission_reviewer_id')
+            ->join('form_submissions as fs', 'fs.id', '=', 'seat.form_submission_id')
+            ->whereNull('review_form_responses.superseded_at')
+            ->where('seat.status', 'active')
+            ->where('fs.submission_period_id', $period->id)
+            ->groupBy('fs.form_phase_detail_id', 'rfa.review_evaluation_form_id')
+            ->selectRaw("CONCAT(fs.form_phase_detail_id, ':', rfa.review_evaluation_form_id) AS cohort_key, COUNT(*) AS total")
+            ->toBase()
+            ->get();
+
+        foreach ($rows as $row) {
+            if (is_string($row->cohort_key)) {
+                $counts[$row->cohort_key] = is_numeric($row->total) ? (int) $row->total : 0;
+            }
+        }
+
+        return $counts;
     }
 
     private function decidedAt(SubmissionPeriod $period, FormPhaseDetail $detail): int

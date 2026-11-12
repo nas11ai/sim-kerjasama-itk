@@ -163,7 +163,7 @@ it('revalidates the draft at publish and keeps it when an attached evaluation fo
     $sheet->delete();
 
     $this->post(route('admin.phases.publish', $this->phase))
-        ->assertSessionHasErrors(['review_evaluation_form_id' => 'Form evaluasi ini belum pernah diterbitkan, jadi belum bisa dipasang.']);
+        ->assertSessionHasErrors(['phase_details.0.evaluation_forms' => 'Form evaluasi yang terpasang di langkah ini sudah dihapus dari pustaka. Lepaskan lalu simpan draf.']);
 
     expect($this->phase->versions()->count())->toBe(1)
         ->and(PhaseDraft::query()->where('draftable_id', $this->phase->id)->exists())->toBeTrue();
@@ -274,4 +274,17 @@ it('hides the draft routes from users without schemes.manage', function () {
     $this->put(route('admin.phases.draft.update', $this->phase), draftWithThreeCycles())->assertForbidden();
     $this->delete(route('admin.phases.draft.destroy', $this->phase))->assertForbidden();
     $this->post(route('admin.phases.publish', $this->phase))->assertForbidden();
+});
+
+it('locks the phase before touching its draft on save, discard, and publish', function () {
+    // B13 — urutan kunci sama dengan Terbitkan, jadi simpan/buang yang berpapasan menunggu.
+    $this->actingAs($this->admin);
+    $save = fn () => $this->put(route('admin.phases.draft.update', $this->phase), draftWithThreeCycles());
+    $discard = fn () => $this->delete(route('admin.phases.draft.destroy', $this->phase));
+    $publish = fn () => $this->post(route('admin.phases.publish', $this->phase));
+
+    expect(lockedBefore('form_phases', 'for update', 'configuration_drafts', $save))->toBeTrue()
+        ->and(lockedBefore('form_phases', 'for update', 'configuration_drafts', $discard))->toBeTrue();
+    $save();
+    expect(lockedBefore('form_phases', 'for update', 'configuration_drafts', $publish))->toBeTrue();
 });

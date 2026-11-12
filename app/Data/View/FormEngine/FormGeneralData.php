@@ -7,7 +7,7 @@ use Spatie\LaravelData\Data;
 
 /**
  * Isi tab General & Fields. `fields` = isi draf bila ada, kalau tidak field terbit (BR-FE-34);
- * `publishedFields` pembanding peringatan label (G3-W9). `impact.runningDrafts` = penerima BR-FE-13.
+ * `publishedFields` pembanding peringatan label (G3-W9). `impact.draftOwners` = penerima BR-FE-13.
  *
  * @phpstan-import-type Impact from FormPublishImpact
  */
