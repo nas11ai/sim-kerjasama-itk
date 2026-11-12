@@ -11,6 +11,7 @@ use App\Models\SubmissionDate;
 use App\Models\SubmissionPeriod;
 use App\Models\SubmissionPeriodPhase;
 use App\Support\Search\LikePattern;
+use App\Support\SubmissionPeriodGate;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Illuminate\Pagination\LengthAwarePaginator;
@@ -51,7 +52,7 @@ class SubmissionPeriodList implements ChangesNoState
         $this->filter($query, $filters);
 
         $page = $query->paginate(self::PER_PAGE)->withQueryString();
-        $unready = $this->unreadyCohortCounts(array_values(array_map(fn (SubmissionPeriod $period): int => $period->id, $page->items())));
+        $unready = $this->unreadyCohortCounts(array_values($page->items()));
 
         return [
             'periods' => $page->through(fn (SubmissionPeriod $period): PeriodRowData => PeriodRowData::fromModel($period, $unready[$period->id] ?? 0)),
@@ -67,16 +68,21 @@ class SubmissionPeriodList implements ChangesNoState
 
     /**
      * BR-FE-36, G4-W7 — angkatan `blocked` + `needs_fix` per periode, satu penilaian untuk satu halaman.
+     * Seperti kartu fase: periode yang tutup sepenuhnya hanya menghitung angkatan berjalan.
      *
-     * @param  list<int>  $periodIds
+     * @param  list<SubmissionPeriod>  $periods
      * @return array<int, int>
      */
-    private function unreadyCohortCounts(array $periodIds): array
+    private function unreadyCohortCounts(array $periods): array
     {
-        $counts = [];
+        $closed = [];
+        foreach ($periods as $period) {
+            $closed[$period->id] = SubmissionPeriodGate::isFullyClosed($period);
+        }
 
-        foreach (CohortReadiness::run($periodIds) as $cohort) {
-            if ($cohort->hasBlockingIssues()) {
+        $counts = [];
+        foreach (CohortReadiness::run(array_keys($closed)) as $cohort) {
+            if ($cohort->hasBlockingIssues() && ($cohort->running || !($closed[$cohort->periodId] ?? false))) {
                 $counts[$cohort->periodId] = ($counts[$cohort->periodId] ?? 0) + 1;
             }
         }

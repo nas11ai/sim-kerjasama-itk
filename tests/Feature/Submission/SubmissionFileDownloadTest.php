@@ -93,3 +93,15 @@ it('jawaban bukan berkas 404', function () {
         ->get(route('user.submissions.files.show', [$submission, $response]))
         ->assertNotFound();
 });
+
+it('[FE-SNAP-03] berkas field yang dihapus sesudah submit tetap terunduh', function () {
+    // BR-FE-35 — rekaman teks tetap menampilkan field terhapus beserta tautannya, jadi tautan itu harus hidup.
+    [$submission, $response] = uploadedProposal();
+    Storage::disk('local')->put($response->value, 'isi');
+    $response->formField?->delete();
+
+    $this->actingAs($submission->submittedBy)
+        ->get(route('user.submissions.files.show', [$submission, $response]))
+        ->assertOk()
+        ->assertDownload('proposal.pdf');
+});

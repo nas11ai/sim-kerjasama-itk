@@ -40,6 +40,13 @@ const statuses: Record<
     },
 }
 
+// Keadaan baris untuk pembaca layar; ikon dan warna saja tidak terbaca.
+const stateLabels: Record<ReadinessCheck['state'], string> = {
+    passed: 'Lolos',
+    warning: 'Peringatan',
+    failed: 'Gagal',
+}
+
 const icons: Record<ReadinessCheck['state'], { icon: typeof CircleCheck; tone: string }> = {
     passed: { icon: CircleCheck, tone: 'text-green-600' },
     warning: { icon: TriangleAlert, tone: 'text-amber-600' },
@@ -96,7 +103,12 @@ const icons: Record<ReadinessCheck['state'], { icon: typeof CircleCheck; tone: s
                                 aria-hidden="true"
                             />
                             <div class="flex flex-col gap-1">
-                                <span class="text-sm font-medium">{{ row.title }}</span>
+                                <span class="text-sm font-medium"
+                                    >{{ row.title
+                                    }}<span class="sr-only">{{
+                                        ` ${stateLabels[row.state]}`
+                                    }}</span></span
+                                >
                                 <!-- G4-W8 — yang dibutuhkan sekarang memblokir; yang nanti hanya diingatkan -->
                                 <p
                                     v-for="issue in row.issues"
@@ -109,7 +121,10 @@ const icons: Record<ReadinessCheck['state'], { icon: typeof CircleCheck; tone: s
                                     ]"
                                     :data-issue="issue.blocking ? 'blocking' : 'warning'"
                                 >
-                                    {{ issue.message }}
+                                    {{ issue.message
+                                    }}<span v-if="issue.blocking" class="sr-only">{{
+                                        ' (memblokir)'
+                                    }}</span>
                                 </p>
                             </div>
                         </li>

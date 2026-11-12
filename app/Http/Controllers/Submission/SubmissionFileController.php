@@ -24,10 +24,13 @@ class SubmissionFileController extends Controller
         // Setelah otorisasi, supaya 404 tidak bisa dipakai menebak berkas pengajuan lain.
         $path = $response->value;
         $disk = Storage::disk(PrivateUploadDisk::NAME);
+        // BR-FE-35 — field yang dihapus sesudah submit tetap tampil dari rekaman teks,
+        // jadi berkasnya harus tetap terunduh.
+        $field = $response->formField()->withTrashed()->first();
 
         abort_unless(
             $response->form_submission_id === $submission->id
-                && $response->formField?->fieldType?->name === 'file'
+                && $field?->fieldType?->name === 'file'
                 && $path !== null && $disk->exists($path),
             404,
             'Berkas tidak ditemukan.'

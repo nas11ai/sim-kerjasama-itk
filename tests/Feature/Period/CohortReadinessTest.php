@@ -482,3 +482,25 @@ it('leaves no seeded cohort blocked', function () {
     expect($statuses)->not->toBeEmpty()
         ->and(array_filter($statuses, fn (string $s): bool => str_ends_with($s, ': blocked')))->toBe([]);
 });
+
+it('does not count a never-used cohort of a fully closed period as unready', function () {
+    // Sama dengan kartu fase (PeriodScheduleGaps::gapAt): periode tutup tanpa pengajuan tidak dikejar.
+    $phase = readyPhase();
+    $step = scheduleStep($phase, needsReview: true);
+    $closed = schedulePeriod($phase, 'Periode 2025');
+    calendarDate($closed, DeadlineType::Submit, now()->subMonth());
+    $running = schedulePeriod($phase, 'Periode 2024');
+    calendarDate($running, DeadlineType::Submit, now()->subYear());
+    PhaseVersionPin::create([
+        'submission_period_id' => $running->id,
+        'form_phase_id' => $phase->id,
+        'form_phase_version_id' => $step->form_phase_version_id,
+        'pinned_at' => now(),
+    ]);
+
+    $counts = collect(SubmissionPeriodList::run(['search' => '', 'status' => '', 'year' => ''])['periods']->items())
+        ->mapWithKeys(fn ($row) => [$row->name => $row->unreadyCohortCount])
+        ->all();
+
+    expect($counts)->toBe(['Periode 2024' => 1, 'Periode 2025' => 0]);
+});

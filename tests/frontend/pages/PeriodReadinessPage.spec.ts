@@ -133,12 +133,17 @@ describe('FormEngine/PeriodReadinessPage', () => {
         expect(icon(0)).toBe('failed')
         expect(icon(1)).toBe('warning')
         expect(icon(2)).toBe('passed')
-        expect(rows[0].find('[data-issue="blocking"]').text()).toBe('Batas Evaluasi belum diatur.')
+        expect(rows[0].find('[data-issue="blocking"]').text()).toBe(
+            'Batas Evaluasi belum diatur. (memblokir)'
+        )
         expect(rows[1].find('[data-issue="warning"]').text()).toContain(
             'Batas Laporan Monev I belum diatur'
         )
         expect(rows[2].find('[data-issue]').exists()).toBe(false)
-        expect(rows[2].text()).toBe('Langkah yang direview punya Form Evaluasi wajib')
+        expect(rows[2].text()).toBe('Langkah yang direview punya Form Evaluasi wajib Lolos')
+        // Keadaan baris terbaca pembaca layar, bukan hanya lewat ikon dan warna.
+        expect(rows[0].find('.sr-only').text()).toBe('Gagal')
+        expect(rows[1].find('.sr-only').text()).toBe('Peringatan')
     })
 
     it('[FE-READY-06] judul tahap dan label versinya tampil', () => {
