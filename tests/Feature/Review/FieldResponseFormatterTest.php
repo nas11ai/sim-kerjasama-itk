@@ -66,7 +66,7 @@ it('tidak mengambil opsi milik field lain', function () {
     // Field lain, opsinya dibuat lebih dulu supaya barisnya lebih tua. Ia yang
     // menang kalau `orWhere('label')` lolos dari penyaringan per field.
     $lain = ReviewFormField::create([
-        'review_evaluation_form_id' => $field->review_evaluation_form_id,
+        'review_evaluation_form_version_id' => $field->review_evaluation_form_version_id,
         'field_type_id' => $field->field_type_id,
         'label' => 'Field lain',
         'is_required' => false,

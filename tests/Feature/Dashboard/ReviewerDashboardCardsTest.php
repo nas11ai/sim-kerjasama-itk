@@ -14,7 +14,6 @@ use App\Models\FormPhaseDetail;
 use App\Models\FormSubmission;
 use App\Models\Reviewer;
 use App\Models\ReviewerFormAssignment;
-use App\Models\ReviewEvaluationForm;
 use App\Models\ReviewSummary;
 use App\Models\SubmissionReviewer;
 use App\Models\User;
@@ -42,11 +41,7 @@ function rvAssign(Reviewer $reviewer, string $evaluationStatus, string $status =
     if ($due !== null) {
         ReviewerFormAssignment::create([
             'submission_reviewer_id' => $assignment->id,
-            'review_evaluation_form_id' => ReviewEvaluationForm::create([
-                'title' => 'Form '.fake()->unique()->numerify('####'),
-                'form_phase_detail_id' => FormPhaseDetail::factory()->create(['needs_review' => true])->id,
-                'is_active' => true,
-            ])->id,
+            'review_evaluation_form_id' => evaluationFormOn(FormPhaseDetail::factory()->create(['needs_review' => true]), [], title: 'Form '.fake()->unique()->numerify('####'))->id,
             'is_required' => true,
             'assigned_at' => now(),
             'due_date' => $due,

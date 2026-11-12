@@ -10,6 +10,7 @@ use App\Models\FormSubmission;
 use App\Models\Reviewer;
 use App\Models\ReviewerFormAssignment;
 use App\Models\ReviewEvaluationForm;
+use App\Models\StepEvaluationForm;
 use App\Models\SubmissionReviewer;
 use App\Models\User;
 use Database\Seeders\PermissionSeeder;
@@ -44,13 +45,7 @@ function phaseEditDetail(Form $form, ?FormPhase $phase = null, array $attributes
 function phaseEditReviewedDetail(Form $form, ?FormPhase $phase = null): FormPhaseDetail
 {
     $detail = phaseEditDetail($form, $phase, ['needs_review' => true]);
-    ReviewEvaluationForm::create([
-        'title' => 'Lembar Substansi',
-        'form_phase_detail_id' => $detail->id,
-        'is_active' => true,
-        'is_required' => true,
-        'order' => 1,
-    ]);
+    evaluationFormOn($detail, [], title: 'Lembar Substansi');
 
     return $detail->fresh() ?? $detail;
 }
@@ -161,10 +156,10 @@ it('needs_review tidak bisa dimatikan selama ada form evaluasi aktif', function 
 it('membuang detail yang form evaluasinya pernah ditugaskan ditolak', function () {
     $kept = phaseEditDetail($this->form);
     $dropped = phaseEditReviewedDetail($this->form, $kept->formPhase);
-    $evaluation = ReviewEvaluationForm::query()->where('form_phase_detail_id', $dropped->id)->sole();
-    // Kursi reviewer di pengajuan detail lain: detail yang dibuang tidak punya pengajuan.
+    $evaluation = StepEvaluationForm::query()->where('form_phase_detail_id', $dropped->id)->sole()->reviewEvaluationForm;
+    // BR-REV-18 — penugasan form evaluasi selalu milik pengajuan di langkah itu.
     $seat = SubmissionReviewer::create([
-        'form_submission_id' => FormSubmission::factory()->create()->id,
+        'form_submission_id' => FormSubmission::factory()->create(['form_phase_detail_id' => $dropped->id])->id,
         'reviewer_id' => Reviewer::factory()->create()->id,
         'evaluation_status' => 'pending',
         'status' => 'active',
@@ -181,7 +176,7 @@ it('membuang detail yang form evaluasinya pernah ditugaskan ditolak', function (
         ->get(route('admin.phases.edit', $kept->formPhase))
         ->assertInertia(fn (AssertableInertia $page) => $page
             ->where('phase.details.1.assignmentCount', 1)
-            ->where('phase.details.1.submissionCount', 0));
+            ->where('phase.details.1.submissionCount', 1));
 
     $this->putJson(route('admin.phases.update', $kept->formPhase), phaseEditPayload([phaseEditRow($kept)]))
         ->assertStatus(422)

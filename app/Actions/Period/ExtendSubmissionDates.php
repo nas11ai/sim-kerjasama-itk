@@ -145,7 +145,7 @@ class ExtendSubmissionDates
             ->where('due_date', $date->datetime)
             ->whereHas('submissionReviewer.formSubmission', fn (Builder $q) => $q
                 ->where('submission_period_id', $date->submission_period_id))
-            ->whereHas('reviewEvaluationForm.formPhaseDetail', fn (Builder $q) => $date->cycle === null
+            ->whereHas('submissionReviewer.formSubmission.formPhaseDetail', fn (Builder $q) => $date->cycle === null
                 ? $q->whereNull('deadline_cycle')
                 : $q->where('deadline_cycle', $date->cycle))
             ->update(['due_date' => $to]);

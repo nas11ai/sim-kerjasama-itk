@@ -48,13 +48,7 @@ beforeEach(function () {
         'status' => 'active',
     ]);
 
-    $this->form = ReviewEvaluationForm::create([
-        'title' => 'Substansi',
-        'form_phase_detail_id' => $detail->id,
-        'is_active' => true,
-        'is_required' => true,
-        'order' => 1,
-    ]);
+    $this->form = evaluationFormOn($detail, [], title: 'Substansi');
     $this->required = evalResponseField($this->form, 'Kelayakan', true);
     $this->optional = evalResponseField($this->form, 'Saran', false);
 });
@@ -62,7 +56,7 @@ beforeEach(function () {
 function evalResponseField(ReviewEvaluationForm $form, string $label, bool $required): ReviewFormField
 {
     return ReviewFormField::create([
-        'review_evaluation_form_id' => $form->id,
+        'review_evaluation_form_version_id' => $form->latestVersion->id,
         'field_type_id' => FieldType::firstOrCreate(['name' => 'text'])->id,
         'label' => $label,
         'is_required' => $required,
@@ -129,20 +123,8 @@ it('falls back to a week from now when the submission period has no dates', func
 });
 
 it('refuses to start a form of another phase detail, an inactive form, or by someone not assigned', function () {
-    $foreign = ReviewEvaluationForm::create([
-        'title' => 'Lain',
-        'form_phase_detail_id' => FormPhaseDetail::factory()->create(['needs_review' => true])->id,
-        'is_active' => true,
-        'is_required' => true,
-        'order' => 1,
-    ]);
-    $inactive = ReviewEvaluationForm::create([
-        'title' => 'Nonaktif',
-        'form_phase_detail_id' => $this->form->form_phase_detail_id,
-        'is_active' => false,
-        'is_required' => true,
-        'order' => 2,
-    ]);
+    $foreign = evaluationFormOn(FormPhaseDetail::factory()->create(['needs_review' => true]), [], title: 'Lain');
+    $inactive = evaluationFormOn($this->form->stepEvaluationForms()->sole()->formPhaseDetail, [], active: false, title: 'Nonaktif');
     $start = fn (User $user, ReviewEvaluationForm $form) => $this->actingAs($user)
         ->post(route('reviewer.evaluation-form.start'), [
             'submission_id' => $this->submission->id,
@@ -176,13 +158,7 @@ it('[REV-EVAL-01] saves a draft of the answers and the final notes, audited', fu
 
 it('rejects an answer for a field of another evaluation form, saving nothing', function () {
     $assignment = evalResponseAssignment($this->submissionReviewer, $this->form);
-    $other = ReviewEvaluationForm::create([
-        'title' => 'Form lain',
-        'form_phase_detail_id' => $this->form->form_phase_detail_id,
-        'is_active' => true,
-        'is_required' => false,
-        'order' => 2,
-    ]);
+    $other = evaluationFormOn($this->form->stepEvaluationForms()->sole()->formPhaseDetail, [], required: false, title: 'Form lain');
     $foreignField = evalResponseField($other, 'Milik form lain', false);
 
     $this->actingAs($this->reviewerUser)
@@ -197,7 +173,7 @@ it('rejects an answer for a field of another evaluation form, saving nothing', f
 
 it('[REV-EVAL-02] refuses to save a draft over a submitted evaluation', function () {
     $assignment = evalResponseAssignment($this->submissionReviewer, $this->form);
-    $response = ReviewFormResponse::create(['reviewer_form_assignment_id' => $assignment->id, 'status' => 'submitted']);
+    $response = ReviewFormResponse::create(['reviewer_form_assignment_id' => $assignment->id, 'review_evaluation_form_version_id' => $assignment->reviewEvaluationForm->latestVersion->id, 'status' => 'submitted']);
 
     $this->actingAs($this->reviewerUser)
         ->post(route('reviewer.evaluation-form.save-draft', $assignment), [
@@ -230,7 +206,7 @@ it('[REV-EVAL-03] submits fresh answers in one request, completing the assignmen
 
 it('rejects a submission missing a required answer and keeps nothing of it', function () {
     $assignment = evalResponseAssignment($this->submissionReviewer, $this->form);
-    ReviewFormResponse::create(['reviewer_form_assignment_id' => $assignment->id, 'status' => 'draft']);
+    ReviewFormResponse::create(['reviewer_form_assignment_id' => $assignment->id, 'review_evaluation_form_version_id' => $assignment->reviewEvaluationForm->latestVersion->id, 'status' => 'draft']);
 
     $this->actingAs($this->reviewerUser)
         ->post(route('reviewer.evaluation-form.submit', $assignment), [

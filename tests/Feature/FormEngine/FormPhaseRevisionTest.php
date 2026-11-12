@@ -73,13 +73,7 @@ function reviseFormPhase(array $payload): TestResponse
 it('keeps the evaluation forms of a detail the revision retains (BR-FE-20)', function () {
     // Form evaluasi hanya melekat pada detail yang direview (AssertReviewedPhaseDetail, W97).
     $this->kept->update(['needs_review' => true]);
-    $evaluation = ReviewEvaluationForm::create([
-        'title' => 'Lembar Penilaian',
-        'form_phase_detail_id' => $this->kept->id,
-        'is_required' => true,
-        'is_active' => true,
-        'order' => 1,
-    ]);
+    $evaluation = evaluationFormOn($this->kept, [], title: 'Lembar Penilaian');
 
     reviseFormPhase(revisionPayload([revisionRow($this->kept)]))
         ->assertSessionHasNoErrors()

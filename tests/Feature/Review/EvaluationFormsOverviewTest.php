@@ -13,12 +13,7 @@ use App\Queries\Review\EvaluationFormsOverview;
 
 function overviewEvaluationForm(FormPhaseDetail $detail, int $order): ReviewEvaluationForm
 {
-    return ReviewEvaluationForm::create([
-        'title' => "Form Evaluasi {$order}",
-        'form_phase_detail_id' => $detail->id,
-        'is_active' => true,
-        'order' => $order,
-    ]);
+    return evaluationFormOn($detail, [], title: "Form Evaluasi {$order}");
 }
 
 function overviewAssignment(FormSubmission $submission, ReviewEvaluationForm $form, string $responseStatus): void
@@ -38,7 +33,7 @@ function overviewAssignment(FormSubmission $submission, ReviewEvaluationForm $fo
         'is_active' => true,
     ]);
 
-    ReviewFormResponse::create(['reviewer_form_assignment_id' => $assignment->id, 'status' => $responseStatus]);
+    ReviewFormResponse::create(['reviewer_form_assignment_id' => $assignment->id, 'review_evaluation_form_version_id' => $assignment->reviewEvaluationForm->latestVersion->id, 'status' => $responseStatus]);
 }
 
 it('merangkum penugasan dan penyelesaian per form evaluasi', function () {

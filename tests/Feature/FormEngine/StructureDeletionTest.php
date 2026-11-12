@@ -51,13 +51,7 @@ function fasePenghapusan(): FormPhase
 
 function formEvaluasiPenghapusan(): ReviewEvaluationForm
 {
-    return ReviewEvaluationForm::create([
-        'title' => 'Lembar '.fake()->unique()->numerify('####'),
-        'form_phase_detail_id' => FormPhaseDetail::factory()->create()->id,
-        'is_required' => true,
-        'is_active' => true,
-        'order' => 1,
-    ]);
+    return evaluationFormOn(FormPhaseDetail::factory()->create(), [], title: 'Lembar '.fake()->unique()->numerify('####'));
 }
 
 // ---------- BR-FE-19: Form ----------
@@ -256,9 +250,18 @@ it('[FE-DELETE-13] form evaluasi yang pernah ditugaskan tidak bisa dihapus', fun
 });
 
 it('[FE-DELETE-14] form evaluasi yang belum pernah dipakai bisa dihapus', function () {
-    $form = formEvaluasiPenghapusan();
+    // BR-REV-18 — form pustaka yang tak terpasang di langkah mana pun, versinya ikut ter-cascade.
+    $form = ReviewEvaluationForm::create(['title' => 'Lembar Lepas']);
+    publishVersion($form, [['type' => 'Text', 'label' => 'Catatan']]);
 
     $form->delete();
 
     expect(ReviewEvaluationForm::query()->whereKey($form->id)->exists())->toBeFalse();
+});
+
+it('form evaluasi yang masih terpasang di langkah tidak bisa dihapus', function () {
+    $form = formEvaluasiPenghapusan();
+
+    expect(fn () => $form->delete())->toThrow(ValidationException::class, '1 pemasangan di langkah')
+        ->and(ReviewEvaluationForm::query()->whereKey($form->id)->exists())->toBeTrue();
 });

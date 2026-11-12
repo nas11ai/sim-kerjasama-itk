@@ -15,7 +15,6 @@ use App\Models\FormPhase;
 use App\Models\FormPhaseDetail;
 use App\Models\Reviewer;
 use App\Models\ReviewerFormAssignment;
-use App\Models\ReviewEvaluationForm;
 use App\Models\SubmissionDate;
 use App\Models\SubmissionPeriod;
 use App\Models\SubmissionReviewer;
@@ -89,10 +88,7 @@ it('tidak menghapus tanggal yang dibutuhkan fase tertaut', function () {
 /** Penugasan form evaluasi langkah `$step` pada pengajuan baru di `$period`, ber-due_date `$due`. */
 function gapAssignment(FormPhaseDetail $step, SubmissionPeriod $period, Carbon $due): ReviewerFormAssignment
 {
-    $form = ReviewEvaluationForm::query()->firstOrCreate(
-        ['form_phase_detail_id' => $step->id],
-        ['title' => 'Form Substansi', 'is_active' => true, 'is_required' => true, 'order' => 1],
-    );
+    $form = $step->stepEvaluationForms()->first()->reviewEvaluationForm ?? evaluationFormOn($step, [], title: 'Form Substansi');
     $seat = SubmissionReviewer::create([
         'form_submission_id' => scheduledSubmission($step, $period)->id,
         'reviewer_id' => Reviewer::factory()->create()->id,

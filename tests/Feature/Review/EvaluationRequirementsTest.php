@@ -4,7 +4,6 @@
 
 use App\Models\FormPhaseDetail;
 use App\Models\FormSubmission;
-use App\Models\ReviewEvaluationForm;
 use App\Queries\Review\EvaluationRequirements;
 use Illuminate\Support\Facades\DB;
 
@@ -28,14 +27,8 @@ it('menghitung form seluruhnya dan yang wajib saja', function () {
     $submission = FormSubmission::factory()->create(['form_phase_detail_id' => $detail->id]);
 
     // dua aktif, satu di antaranya wajib
-    ReviewEvaluationForm::create([
-        'title' => 'Substansi', 'form_phase_detail_id' => $detail->id,
-        'is_active' => true, 'is_required' => true, 'order' => 1,
-    ]);
-    ReviewEvaluationForm::create([
-        'title' => 'Anggaran', 'form_phase_detail_id' => $detail->id,
-        'is_active' => true, 'is_required' => false, 'order' => 2,
-    ]);
+    evaluationFormOn($detail, [], title: 'Substansi');
+    evaluationFormOn($detail, [], required: false, title: 'Anggaran');
 
     $result = EvaluationRequirements::run($submission->fresh());
 
@@ -47,10 +40,7 @@ it('menghitung form seluruhnya dan yang wajib saja', function () {
 it('menjawab dengan satu kueri, bukan tiga', function () {
     $detail = FormPhaseDetail::factory()->create(['needs_review' => true]);
     $submission = FormSubmission::factory()->create(['form_phase_detail_id' => $detail->id]);
-    ReviewEvaluationForm::create([
-        'title' => 'Substansi', 'form_phase_detail_id' => $detail->id,
-        'is_active' => true, 'is_required' => true, 'order' => 1,
-    ]);
+    evaluationFormOn($detail, [], title: 'Substansi');
 
     // Relasi fase dihangatkan lebih dulu supaya yang terhitung hanya
     // pemindaian tabel form evaluasi — itu yang dulu dijalankan tiga kali.

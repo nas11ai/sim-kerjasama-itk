@@ -12,7 +12,6 @@ use App\Models\FormPhaseDetail;
 use App\Models\FormSubmission;
 use App\Models\Reviewer;
 use App\Models\ReviewerFormAssignment;
-use App\Models\ReviewEvaluationForm;
 use App\Models\ReviewFormField;
 use App\Models\ReviewFormResponse;
 use App\Models\ReviewSummary;
@@ -67,16 +66,10 @@ function replacedReviewerFormAssignment(SubmissionReviewer $assignment): Reviewe
 {
     $submission = $assignment->formSubmission;
 
-    $form = ReviewEvaluationForm::create([
-        'title' => 'Substansi',
-        'form_phase_detail_id' => $submission->form_phase_detail_id,
-        'is_active' => true,
-        'is_required' => true,
-        'order' => 1,
-    ]);
+    $form = evaluationFormOn(FormPhaseDetail::findOrFail($submission->form_phase_detail_id), [], title: 'Substansi');
 
     ReviewFormField::create([
-        'review_evaluation_form_id' => $form->id,
+        'review_evaluation_form_version_id' => $form->latestVersion->id,
         'field_type_id' => FieldType::firstOrCreate(['name' => 'text'])->id,
         'label' => 'Catatan',
         'is_required' => false,
@@ -167,10 +160,10 @@ it('menolak reviewer yang sudah diganti mengirim form evaluasi', function () {
     [$user, , , $assignment] = replacedReviewerFixture();
     $formAssignment = replacedReviewerFormAssignment($assignment);
     $response = ReviewFormResponse::create([
-        'reviewer_form_assignment_id' => $formAssignment->id,
+        'reviewer_form_assignment_id' => $formAssignment->id, 'review_evaluation_form_version_id' => $formAssignment->reviewEvaluationForm->latestVersion->id,
         'status' => 'draft',
     ]);
-    $field = $formAssignment->reviewEvaluationForm->reviewFormFields()->firstOrFail();
+    $field = $formAssignment->reviewEvaluationForm->latestVersion->reviewFormFields()->firstOrFail();
 
     $this->actingAs($user)
         ->post(route('reviewer.evaluation-form.submit', $formAssignment), [

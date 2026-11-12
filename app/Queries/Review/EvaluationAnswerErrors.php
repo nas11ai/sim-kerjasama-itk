@@ -28,10 +28,8 @@ class EvaluationAnswerErrors implements ChangesNoState
             ->get()
             ->keyBy('review_form_field_id');
 
-        $fields = $response->reviewerFormAssignment->reviewEvaluationForm
-            ->reviewFormFields()
-            ->orderBy('order')
-            ->get();
+        // BR-REV-18 — field versi yang diisi jawaban ini.
+        $fields = $response->reviewEvaluationFormVersion->reviewFormFields()->get();
 
         $errors = [];
 

@@ -23,7 +23,6 @@ use App\Data\View\Submission\TargetOutputChangeData;
 use App\Models\FormPhaseDetail;
 use App\Models\FormSubmission;
 use App\Models\ReviewerFormAssignment;
-use App\Models\SubmissionReviewer;
 use App\Models\User;
 use App\Queries\ResearchOutput\OutputRows;
 use App\Queries\ResearchOutput\OutputUploadDetail;
@@ -133,28 +132,24 @@ class OperatorSubmissionDetail implements ChangesNoState
     /** @return list<string> reviewer aktif yang evaluasinya lewat tenggat dan dibuka override detail ini (W25) */
     private static function overdueReviewers(FormSubmission $submission, ?int $detailId): array
     {
+        // BR-FE-10 — override sebuah detail hanya membuka evaluasi langkah itu; penugasan evaluasi
+        // pengajuan ini selalu milik langkah pengajuannya sendiri.
+        if ($detailId === null || $detailId !== $submission->form_phase_detail_id) {
+            return [];
+        }
+
         $names = [];
         $seats = $submission->activeSubmissionReviewers()
-            ->with(['reviewer.user:id,name', 'reviewerFormAssignments.reviewFormResponse:id,reviewer_form_assignment_id,status',
-                'reviewerFormAssignments.reviewEvaluationForm:id,form_phase_detail_id'])
+            ->with(['reviewer.user:id,name', 'reviewerFormAssignments.reviewFormResponse:id,reviewer_form_assignment_id,status'])
             ->orderBy('id')
             ->get();
 
         foreach ($seats as $seat) {
-            if (self::hasOverdueForm($seat, $detailId)) {
+            if ($seat->reviewerFormAssignments->contains(fn (ReviewerFormAssignment $form): bool => $form->isOverdue())) {
                 $names[] = $seat->reviewer->user->name ?? 'Reviewer';
             }
         }
 
         return $names;
-    }
-
-    // BR-FE-10 — aturan yang sama dengan isClosedByDeadline(): override detail ini hanya membuka form evaluasi yang melekat padanya.
-    private static function hasOverdueForm(SubmissionReviewer $seat, ?int $detailId): bool
-    {
-        return $seat->reviewerFormAssignments->contains(
-            fn (ReviewerFormAssignment $form): bool => $form->isOverdue()
-                && $form->reviewEvaluationForm->form_phase_detail_id === $detailId
-        );
     }
 }

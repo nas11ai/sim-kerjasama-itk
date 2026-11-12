@@ -28,11 +28,13 @@ use App\Models\PhaseType;
 use App\Models\Reviewer;
 use App\Models\ReviewerFormAssignment;
 use App\Models\ReviewEvaluationForm;
+use App\Models\ReviewEvaluationFormVersion;
 use App\Models\ReviewFormField;
 use App\Models\ReviewFormFieldResponse;
 use App\Models\ReviewFormResponse;
 use App\Models\ReviewRound;
 use App\Models\ReviewSummary;
+use App\Models\StepEvaluationForm;
 use App\Models\SubmissionDate;
 use App\Models\SubmissionPeriod;
 use App\Models\SubmissionPeriodPhase;
@@ -418,13 +420,7 @@ function monevReportWithEvaluation(array $fx, string $responseStatus): array
 
     $penugasan = AssignReviewer::run($laporan, $reviewer);
 
-    $form = ReviewEvaluationForm::create([
-        'title' => 'Lembar Penilaian Monev',
-        'form_phase_detail_id' => $fx['monev1']->id,
-        'is_required' => true,
-        'is_active' => true,
-        'order' => 1,
-    ]);
+    $form = evaluationFormOn($fx['monev1'], [], title: 'Lembar Penilaian Monev');
 
     $assignment = ReviewerFormAssignment::create([
         'submission_reviewer_id' => $penugasan->id,
@@ -433,7 +429,7 @@ function monevReportWithEvaluation(array $fx, string $responseStatus): array
     ]);
 
     $response = ReviewFormResponse::create([
-        'reviewer_form_assignment_id' => $assignment->id,
+        'reviewer_form_assignment_id' => $assignment->id, 'review_evaluation_form_version_id' => $assignment->reviewEvaluationForm->latestVersion->id,
         'status' => $responseStatus,
         'submitted_at' => $responseStatus === 'submitted' ? now() : null,
     ]);
@@ -546,13 +542,7 @@ function phaseWithOwnEvaluationDeadline(string $tag): array
         'needs_review' => true,
     ]);
 
-    $evaluationForm = ReviewEvaluationForm::create([
-        'title' => "Substansi {$tag}",
-        'form_phase_detail_id' => $submitDetail->id,
-        'is_active' => true,
-        'is_required' => true,
-        'order' => 1,
-    ]);
+    $evaluationForm = evaluationFormOn($submitDetail, [], title: "Substansi {$tag}");
 
     return compact('form', 'submitDetail', 'evaluationForm', 'period', 'dueSubmit', 'dueEvaluation');
 }
@@ -561,7 +551,8 @@ function phaseWithOwnEvaluationDeadline(string $tag): array
  * Satu jawaban field evaluasi lengkap dengan rantai induknya, supaya test
  * formatter dan validator tidak masing-masing merakit tujuh model.
  */
-function evaluationFieldResponse(string $fieldType, ?string $value, bool $isRequired = false): ReviewFormFieldResponse
+/** @param  array<string, scalar|null>|null  $validationRules */
+function evaluationFieldResponse(string $fieldType, ?string $value, bool $isRequired = false, ?array $validationRules = null): ReviewFormFieldResponse
 {
     $detail = FormPhaseDetail::factory()->create(['needs_review' => true]);
     $submission = FormSubmission::factory()->create(['form_phase_detail_id' => $detail->id]);
@@ -573,13 +564,7 @@ function evaluationFieldResponse(string $fieldType, ?string $value, bool $isRequ
         'status' => 'active',
     ]);
 
-    $form = ReviewEvaluationForm::create([
-        'title' => 'Substansi',
-        'form_phase_detail_id' => $detail->id,
-        'is_active' => true,
-        'is_required' => true,
-        'order' => 1,
-    ]);
+    $form = evaluationFormOn($detail, [], title: 'Substansi');
 
     $assignment = ReviewerFormAssignment::create([
         'submission_reviewer_id' => $reviewer->id,
@@ -590,16 +575,17 @@ function evaluationFieldResponse(string $fieldType, ?string $value, bool $isRequ
     ]);
 
     $response = ReviewFormResponse::create([
-        'reviewer_form_assignment_id' => $assignment->id,
+        'reviewer_form_assignment_id' => $assignment->id, 'review_evaluation_form_version_id' => $assignment->reviewEvaluationForm->latestVersion->id,
         'status' => 'draft',
     ]);
 
     $field = ReviewFormField::create([
-        'review_evaluation_form_id' => $form->id,
+        'review_evaluation_form_version_id' => $form->latestVersion->id,
         'field_type_id' => FieldType::firstOrCreate(['name' => $fieldType])->id,
         'label' => 'Uji',
         'is_required' => $isRequired,
         'order' => 1,
+        'validation_rules' => $validationRules,
     ]);
 
     return ReviewFormFieldResponse::create([
@@ -665,10 +651,7 @@ function reviewedDetailFixture(string $submit, string $evaluation, ?string $revi
         }
     }
     $detail = FormPhaseDetail::factory()->forPeriod($period)->create(['needs_review' => true]);
-    $form = ReviewEvaluationForm::create([
-        'title' => 'Form Substansi', 'form_phase_detail_id' => $detail->id,
-        'is_active' => true, 'is_required' => true, 'order' => 1,
-    ]);
+    $form = evaluationFormOn($detail, [], title: 'Form Substansi');
     $submission = FormSubmission::factory()->create([
         'form_phase_detail_id' => $detail->id,
         'submission_period_id' => $period->id,
@@ -683,7 +666,7 @@ function reviewedDetailFixture(string $submit, string $evaluation, ?string $revi
         'evaluation_status' => 'pending',
         'status' => 'active',
     ]);
-    AssignEvaluationForm::run($seat, $form->id, true, EvaluationDueDate::run($form, $submission));
+    AssignEvaluationForm::run($seat, $form->id, true, EvaluationDueDate::run($submission));
     // BR-REV-16 — seperti AssignReviewer: kursi baru ikut putaran penilaian.
     JoinReviewRound::run($seat);
 
@@ -818,4 +801,60 @@ function stepDate(FormPhaseDetail $step, ?SubmissionPeriod $period = null, ?Dead
         ->firstOrFail()->submissionPeriod;
 
     return $period?->deadlineFor($step, $type ?? $step->deadline_type) ?? throw new RuntimeException('Langkah tidak punya tanggal di kalender periode ini.');
+}
+
+/**
+ * BR-REV-18 — Form Evaluasi pustaka dengan Versi 1 terbit dan terpasang di `$detail`, tanpa audit.
+ * Field: `type` nama FieldType, `required` bawaan false.
+ *
+ * @param  list<array{type: string, label: string, required?: bool}>  $fields
+ */
+function evaluationFormOn(FormPhaseDetail $detail, array $fields = [['type' => 'Text', 'label' => 'Catatan']], bool $required = true, bool $active = true, ?string $title = null): ReviewEvaluationForm
+{
+    $form = ReviewEvaluationForm::create(['title' => $title ?? 'Form Evaluasi '.fake()->unique()->numerify('####')]);
+    publishVersion($form, $fields);
+    StepEvaluationForm::create([
+        'form_phase_detail_id' => $detail->id,
+        'review_evaluation_form_id' => $form->id,
+        'is_required' => $required,
+        'is_active' => $active,
+        'order' => StepEvaluationForm::query()->where('form_phase_detail_id', $detail->id)->max('order') + 1,
+    ]);
+
+    return $form;
+}
+
+/**
+ * Versi berikutnya `$form` berisi `$fields`, tanpa audit (jalur produksinya PublishEvaluationFormVersion).
+ *
+ * @param  list<array{type: string, label: string, required?: bool}>  $fields
+ */
+function publishVersion(ReviewEvaluationForm $form, array $fields): ReviewEvaluationFormVersion
+{
+    $version = $form->versions()->create([
+        'number' => (int) $form->versions()->max('number') + 1,
+        'published_at' => now(),
+    ]);
+    foreach ($fields as $index => $field) {
+        $version->reviewFormFields()->create([
+            'field_type_id' => FieldType::firstOrCreate(['name' => $field['type']])->id,
+            'label' => $field['label'],
+            'is_required' => $field['required'] ?? false,
+            'order' => $index + 1,
+        ]);
+    }
+    $form->unsetRelation('latestVersion');
+
+    return $version;
+}
+
+/** Jawaban evaluasi pada versi terbaru form penugasannya, tanpa lewat OpenEvaluationResponse. */
+function evaluationResponseFor(ReviewerFormAssignment $assignment, string $status = 'draft'): ReviewFormResponse
+{
+    return ReviewFormResponse::create([
+        'reviewer_form_assignment_id' => $assignment->id, 'review_evaluation_form_version_id' => $assignment->reviewEvaluationForm->latestVersion->id,
+        'review_evaluation_form_version_id' => $assignment->reviewEvaluationForm->latestVersion?->id,
+        'status' => $status,
+        'submitted_at' => $status === 'submitted' ? now() : null,
+    ]);
 }

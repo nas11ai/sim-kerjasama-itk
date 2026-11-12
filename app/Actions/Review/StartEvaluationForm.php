@@ -16,7 +16,7 @@ use Lorisleiva\Actions\Concerns\AsAction;
 
 /**
  * Reviewer memulai sendiri satu form evaluasi dari detail tahap pengajuannya. Penugasan yang
- * sudah ada dipakai ulang; yang baru menyalin syarat wajib dari formnya.
+ * sudah ada dipakai ulang; yang baru menyalin syarat wajib dari pemasangannya di langkah itu.
  *
  * @method static ReviewerFormAssignment run(FormSubmission $submission, ReviewEvaluationForm $form, User $user)
  */
@@ -31,9 +31,8 @@ class StartEvaluationForm
     {
         $submissionReviewer = $this->activeAssignmentOf($submission, $user);
 
-        if ($form->form_phase_detail_id !== $submission->form_phase_detail_id) {
-            throw new AuthorizationException('Formulir evaluasi ini tidak tersedia untuk pengajuan ini.');
-        }
+        $step = $submission->formPhaseDetail?->stepEvaluationForms()->where('review_evaluation_form_id', $form->id)->first()
+            ?? throw new AuthorizationException('Formulir evaluasi ini tidak tersedia untuk pengajuan ini.');
 
         $existing = $submissionReviewer->reviewerFormAssignments()->where('review_evaluation_form_id', $form->id)->first();
 
@@ -42,13 +41,13 @@ class StartEvaluationForm
         }
 
         // BR-FE-22 — form yang dinonaktifkan berhenti ditawarkan untuk pekerjaan baru.
-        if (!$form->is_active) {
+        if (!$step->is_active) {
             throw new AuthorizationException('Formulir evaluasi ini tidak tersedia untuk pengajuan ini.');
         }
 
         $assignment = $submissionReviewer->reviewerFormAssignments()->create([
             'review_evaluation_form_id' => $form->id,
-            'is_required' => $form->is_required,
+            'is_required' => $step->is_required,
             'assigned_at' => now(),
             'due_date' => EvaluationDueDate::run($submission),
             'is_active' => true,

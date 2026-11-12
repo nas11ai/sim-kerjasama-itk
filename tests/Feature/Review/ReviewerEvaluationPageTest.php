@@ -40,7 +40,7 @@ beforeEach(function () {
     $this->substance = evaluationPageForm($detail, 'Form Substansi', 1);
     $this->administration = evaluationPageForm($detail, 'Form Administrasi', 2);
     $this->field = ReviewFormField::create([
-        'review_evaluation_form_id' => $this->administration->id,
+        'review_evaluation_form_version_id' => $this->administration->latestVersion->id,
         'field_type_id' => FieldType::firstOrCreate(['name' => 'select'])->id,
         'label' => 'Metodologi (1–7)',
         'is_required' => true,
@@ -56,13 +56,7 @@ function evaluationPageReviewerUser(): User
 
 function evaluationPageForm(FormPhaseDetail $detail, string $title, int $order): ReviewEvaluationForm
 {
-    return ReviewEvaluationForm::create([
-        'title' => $title,
-        'form_phase_detail_id' => $detail->id,
-        'is_active' => true,
-        'is_required' => true,
-        'order' => $order,
-    ]);
+    return evaluationFormOn($detail, [], title: $title);
 }
 
 function evaluationPageStarted(SubmissionReviewer $assignment, ReviewEvaluationForm $form, ?string $status, mixed $due = null): ReviewerFormAssignment
@@ -77,7 +71,7 @@ function evaluationPageStarted(SubmissionReviewer $assignment, ReviewEvaluationF
     ]);
 
     if ($status !== null) {
-        ReviewFormResponse::create(['reviewer_form_assignment_id' => $started->id, 'status' => $status, 'submitted_at' => $status === 'submitted' ? now() : null]);
+        ReviewFormResponse::create(['reviewer_form_assignment_id' => $started->id, 'review_evaluation_form_version_id' => $started->reviewEvaluationForm->latestVersion->id, 'status' => $status, 'submitted_at' => $status === 'submitted' ? now() : null]);
     }
 
     return $started;

@@ -20,7 +20,6 @@ use App\Models\FieldType;
 use App\Models\FormField;
 use App\Models\FormSubmission;
 use App\Models\Reviewer;
-use App\Models\ReviewEvaluationForm;
 use App\Models\ReviewSummary;
 use App\Models\Scheme;
 use App\Models\SubmissionReviewer;
@@ -64,10 +63,7 @@ it('menyusuri alur pengajuan sampai disetujui lewat HTTP', function () {
 
     $fx['detail']->update(['needs_review' => true]);
     // Fase punya lembar penilaian, jadi kursi reviewer menunggu evaluasi (bukan `not_required`).
-    ReviewEvaluationForm::create([
-        'title' => 'Substansi', 'form_phase_detail_id' => $fx['detail']->id,
-        'is_active' => true, 'is_required' => true, 'order' => 1,
-    ]);
+    evaluationFormOn($fx['detail'], [], title: 'Substansi');
 
     $textType = FieldType::firstOrCreate(['name' => 'text']);
     $judul = FormField::create([

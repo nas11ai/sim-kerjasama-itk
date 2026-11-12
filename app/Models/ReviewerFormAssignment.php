@@ -89,14 +89,14 @@ class ReviewerFormAssignment extends Model
             return false;
         }
 
-        $detail = $this->reviewEvaluationForm->formPhaseDetail;
-
-        // BR-FE-10 — override detail lain tidak berlaku; form tanpa detail tidak punya pintu override.
+        $submission = $this->submissionReviewer->formSubmission;
+        // BR-FE-10 — override langkah pengajuan yang dinilai; pengajuan tanpa langkah tidak punya pintu override.
+        $detail = $submission->formPhaseDetail;
         if ($detail === null) {
             return true;
         }
 
-        return PhaseAccessGate::activeOverride($this->submissionReviewer->formSubmission, $detail) === null;
+        return PhaseAccessGate::activeOverride($submission, $detail) === null;
     }
 
     public function isCompleted(): bool

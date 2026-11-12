@@ -54,12 +54,13 @@ class PhaseEdit implements ChangesNoState
             ->addSelect([
                 'submission_count' => FormSubmission::query()->selectRaw('count(*)')
                     ->whereColumn('form_submissions.form_phase_detail_id', 'form_phase_details.id'),
-                // BR-FE-22 — penugasan form evaluasi mana pun milik detail ini, aktif atau tidak.
+                // BR-FE-22 — penugasan form evaluasi pada pengajuan di detail ini, aktif atau tidak.
                 'assignment_count' => ReviewerFormAssignment::query()->selectRaw('count(*)')
-                    ->join('review_evaluation_forms', 'review_evaluation_forms.id', '=', 'reviewer_form_assignments.review_evaluation_form_id')
-                    ->whereColumn('review_evaluation_forms.form_phase_detail_id', 'form_phase_details.id'),
+                    ->join('submission_reviewers', 'submission_reviewers.id', '=', 'reviewer_form_assignments.submission_reviewer_id')
+                    ->join('form_submissions', 'form_submissions.id', '=', 'submission_reviewers.form_submission_id')
+                    ->whereColumn('form_submissions.form_phase_detail_id', 'form_phase_details.id'),
             ])
-            ->withCount('activeReviewEvaluationForms as evaluation_form_count')
+            ->withCount('activeStepEvaluationForms as evaluation_form_count')
             ->orderBy('order')
             ->orderBy('id')
             ->get();

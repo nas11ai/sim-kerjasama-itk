@@ -14,7 +14,6 @@ use App\Actions\Monev\OpenMonevCycle;
 use App\Actions\Review\AssignReviewer;
 use App\Models\Reviewer;
 use App\Models\ReviewerFormAssignment;
-use App\Models\ReviewEvaluationForm;
 use App\Models\ReviewFormResponse;
 use App\Models\User;
 use App\Notifications\MonevEvaluationSubmittedNotification;
@@ -97,20 +96,14 @@ it('[MON-REVIEW-12] evaluasi pengajuan awal tidak memberi tahu peneliti', functi
     ]);
     $penugasan = AssignReviewer::run($fx['parent'], $reviewer);
 
-    $form = ReviewEvaluationForm::create([
-        'title' => 'Lembar Penilaian Pengajuan',
-        'form_phase_detail_id' => $fx['pengajuan']->id,
-        'is_required' => true,
-        'is_active' => true,
-        'order' => 1,
-    ]);
+    $form = evaluationFormOn($fx['pengajuan'], [], title: 'Lembar Penilaian Pengajuan');
     $assignment = ReviewerFormAssignment::create([
         'submission_reviewer_id' => $penugasan->id,
         'review_evaluation_form_id' => $form->id,
         'is_required' => true,
     ]);
     $response = ReviewFormResponse::create([
-        'reviewer_form_assignment_id' => $assignment->id,
+        'reviewer_form_assignment_id' => $assignment->id, 'review_evaluation_form_version_id' => $assignment->reviewEvaluationForm->latestVersion->id,
         'status' => 'submitted',
         'submitted_at' => now(),
     ]);

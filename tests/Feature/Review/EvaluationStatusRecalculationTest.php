@@ -31,26 +31,14 @@ function recalcFixture(): array
         'status' => 'active',
     ]);
 
-    $form = ReviewEvaluationForm::create([
-        'title' => 'Substansi',
-        'form_phase_detail_id' => $detail->id,
-        'is_active' => true,
-        'is_required' => true,
-        'order' => 1,
-    ]);
+    $form = evaluationFormOn($detail, [], title: 'Substansi');
 
     return [$reviewer, $form];
 }
 
 function recalcSecondForm(ReviewEvaluationForm $first): ReviewEvaluationForm
 {
-    return ReviewEvaluationForm::create([
-        'title' => 'Anggaran',
-        'form_phase_detail_id' => $first->form_phase_detail_id,
-        'is_active' => true,
-        'is_required' => true,
-        'order' => 2,
-    ]);
+    return evaluationFormOn($first->stepEvaluationForms()->sole()->formPhaseDetail, [], title: 'Anggaran');
 }
 
 it('mengembalikan status ke pending saat form wajib baru ditugaskan', function () {
@@ -58,7 +46,7 @@ it('mengembalikan status ke pending saat form wajib baru ditugaskan', function (
 
     $assignment = AssignEvaluationForm::run($reviewer, $form->id, true);
     ReviewFormResponse::create([
-        'reviewer_form_assignment_id' => $assignment->id,
+        'reviewer_form_assignment_id' => $assignment->id, 'review_evaluation_form_version_id' => $assignment->reviewEvaluationForm->latestVersion->id,
         'status' => 'submitted',
     ]);
     RecalculateEvaluationStatus::run($reviewer);
@@ -81,7 +69,7 @@ it('menyelaraskan status yang sudah melenceng saat submit, bukan membiarkannya',
     // Yang disubmit justru form tidak wajib.
     $optional = AssignEvaluationForm::run($reviewer, recalcSecondForm($form)->id, false);
     $response = ReviewFormResponse::create([
-        'reviewer_form_assignment_id' => $optional->id,
+        'reviewer_form_assignment_id' => $optional->id, 'review_evaluation_form_version_id' => $optional->reviewEvaluationForm->latestVersion->id,
         'status' => 'draft',
     ]);
 
@@ -100,7 +88,7 @@ it('menjatuhkan status ke not_required saat submit tidak menyisakan penugasan ak
 
     $assignment = AssignEvaluationForm::run($reviewer, $form->id, true);
     $response = ReviewFormResponse::create([
-        'reviewer_form_assignment_id' => $assignment->id,
+        'reviewer_form_assignment_id' => $assignment->id, 'review_evaluation_form_version_id' => $assignment->reviewEvaluationForm->latestVersion->id,
         'status' => 'draft',
     ]);
 

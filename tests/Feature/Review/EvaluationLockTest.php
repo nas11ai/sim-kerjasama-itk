@@ -43,11 +43,7 @@ function lockFixture(string $status = 'draft', bool $required = true): array
     // form evaluasi selalu milik satu tahap, bukan mengambang.
     $detail = FormPhaseDetail::factory()->create(['needs_review' => true]);
 
-    $form = ReviewEvaluationForm::create([
-        'title' => 'Form Substansi '.fake()->unique()->numerify('####'),
-        'form_phase_detail_id' => $detail->id,
-        'is_active' => true,
-    ]);
+    $form = evaluationFormOn($detail, [], title: 'Form Substansi '.fake()->unique()->numerify('####'));
 
     $formAssignment = ReviewerFormAssignment::create([
         'submission_reviewer_id' => $assignment->id,
@@ -58,7 +54,7 @@ function lockFixture(string $status = 'draft', bool $required = true): array
     ]);
 
     $response = ReviewFormResponse::create([
-        'reviewer_form_assignment_id' => $formAssignment->id,
+        'reviewer_form_assignment_id' => $formAssignment->id, 'review_evaluation_form_version_id' => $formAssignment->reviewEvaluationForm->latestVersion->id,
         'status' => $status,
     ]);
 

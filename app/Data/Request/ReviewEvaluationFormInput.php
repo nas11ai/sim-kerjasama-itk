@@ -3,7 +3,7 @@
 namespace App\Data\Request;
 
 /**
- * Isi layar Buat/Ubah form evaluasi reviewer. Field null berarti kiriman tak menyebut field:
+ * Isi kartu Buat/Ubah form evaluasi di editor tahap (komposit sementara G2-W4). Field null berarti kiriman tak menyebut field:
  * tidak ada perubahan field. Wizard form builder memakai EvaluationFormInput, bukan ini.
  */
 final class ReviewEvaluationFormInput
@@ -14,21 +14,13 @@ final class ReviewEvaluationFormInput
     public function __construct(
         public readonly string $title,
         public readonly ?string $description,
-        public readonly int $formPhaseDetailId,
         public readonly bool $isRequired,
         public readonly bool $isActive,
         public readonly ?array $fields,
     ) {}
 
-    /** @return array{title: string, description: string|null, form_phase_detail_id: int, is_required: bool, is_active: bool} */
-    public function attributes(): array
+    public function details(): EvaluationFormDetailsInput
     {
-        return [
-            'title' => $this->title,
-            'description' => $this->description,
-            'form_phase_detail_id' => $this->formPhaseDetailId,
-            'is_required' => $this->isRequired,
-            'is_active' => $this->isActive,
-        ];
+        return new EvaluationFormDetailsInput($this->title, $this->description);
     }
 }

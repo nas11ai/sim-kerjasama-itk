@@ -37,12 +37,12 @@ class EvaluationFormsOverview implements ChangesNoState
 
         $overview = [];
 
-        foreach ($detail->activeReviewEvaluationForms()->get() as $form) {
-            $assignedCount = $assigned[$form->id] ?? 0;
-            $completedCount = $completed[$form->id] ?? 0;
+        foreach ($detail->activeStepEvaluationForms()->with('reviewEvaluationForm')->get() as $step) {
+            $assignedCount = $assigned[$step->review_evaluation_form_id] ?? 0;
+            $completedCount = $completed[$step->review_evaluation_form_id] ?? 0;
 
             $overview[] = [
-                'form' => $form,
+                'form' => $step->reviewEvaluationForm,
                 'assigned_count' => $assignedCount,
                 'completed_count' => $completedCount,
                 'completion_percentage' => $assignedCount > 0 ? (int) round($completedCount / $assignedCount * 100) : 0,

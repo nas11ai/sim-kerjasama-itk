@@ -29,13 +29,7 @@ function assignmentFixture(): array
         'status' => 'active',
     ]);
 
-    $form = ReviewEvaluationForm::create([
-        'title' => 'Substansi',
-        'form_phase_detail_id' => $detail->id,
-        'is_active' => true,
-        'is_required' => true,
-        'order' => 1,
-    ]);
+    $form = evaluationFormOn($detail, [], title: 'Substansi');
 
     return [$reviewer, $form];
 }

@@ -5,8 +5,7 @@
 use App\Support\Review\FieldResponseValidator;
 
 it('menuntut field wajib yang kosong', function () {
-    $response = evaluationFieldResponse('text', null);
-    $response->reviewFormField->update(['is_required' => true]);
+    $response = evaluationFieldResponse('text', null, true);
 
     expect(FieldResponseValidator::errorsFor($response->fresh()))
         ->toBe(["Field 'Uji' is required"]);
@@ -38,36 +37,29 @@ it('menolak URL yang bukan URL', function () {
 });
 
 it('menerapkan aturan panjang kustom', function () {
-    $response = evaluationFieldResponse('text', 'ab');
-    $response->reviewFormField->update(['validation_rules' => ['min_length' => 5]]);
+    $response = evaluationFieldResponse('text', 'ab', validationRules: ['min_length' => 5]);
 
     expect(FieldResponseValidator::errorsFor($response->fresh()))
         ->toBe(["Field 'Uji' must be at least 5 characters"]);
 });
 
 it('menghitung panjang dalam karakter, bukan byte', function () {
-    $response = evaluationFieldResponse('text', 'éééé');
-    $response->reviewFormField->update(['validation_rules' => ['max_length' => 4]]);
+    $response = evaluationFieldResponse('text', 'éééé', validationRules: ['max_length' => 4]);
 
     // strlen() menghitung 8 byte dan akan salah menolaknya.
     expect(FieldResponseValidator::errorsFor($response->fresh()))->toBe([]);
 });
 
 it('mengumpulkan galat tipe dan galat kustom sekaligus', function () {
-    $response = evaluationFieldResponse('email', 'ab');
-    $response->reviewFormField->update(['validation_rules' => ['min_length' => 5]]);
+    $response = evaluationFieldResponse('email', 'ab', validationRules: ['min_length' => 5]);
 
     expect(FieldResponseValidator::errorsFor($response->fresh()))->toHaveCount(2);
 });
 
 it('melewati aturan kustom yang nilainya bukan skalar', function () {
-    $response = evaluationFieldResponse('text', 'ab');
-
     // Kolomnya JSON dan jalur tulisnya cuma `nullable|array`, jadi isi seperti
     // ini bisa tersimpan. Aturan yang tak terbaca dilewati, bukan meledak.
-    $response->reviewFormField->update([
-        'validation_rules' => ['min_length' => null, 'max_length' => 4],
-    ]);
+    $response = evaluationFieldResponse('text', 'ab', validationRules: ['min_length' => null, 'max_length' => 4]);
 
     expect(FieldResponseValidator::errorsFor($response->fresh()))->toBe([]);
 });

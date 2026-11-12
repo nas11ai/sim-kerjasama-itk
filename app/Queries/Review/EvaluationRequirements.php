@@ -20,7 +20,7 @@ class EvaluationRequirements implements ChangesNoState
     {
         // Satu pemindaian untuk tiga jawaban: yang wajib adalah himpunan bagian
         // dari yang aktif, jadi menyaringnya di PHP sama dengan kueri keduanya.
-        $forms = $submission->formPhaseDetail?->activeReviewEvaluationForms()->get();
+        $forms = $submission->formPhaseDetail?->activeStepEvaluationForms()->get();
 
         if ($forms === null || $forms->isEmpty()) {
             return [

@@ -48,12 +48,11 @@ class ReviewEvaluationFormRequest extends FormRequest
         ];
     }
 
-    public function toInput(int $formPhaseDetailId): ReviewEvaluationFormInput
+    public function toInput(): ReviewEvaluationFormInput
     {
         return new ReviewEvaluationFormInput(
             title: $this->string('title')->value(),
             description: $this->optionalString('description'),
-            formPhaseDetailId: $formPhaseDetailId,
             isRequired: $this->boolean('is_required', true),
             isActive: $this->boolean('is_active', true),
             fields: $this->has('fields') ? array_map($this->field(...), $this->indexesOf('fields')) : null,

@@ -101,18 +101,18 @@ class AssignReviewers
 
     private function assignRequiredForms(SubmissionReviewer $assignment, FormPhaseDetail $formPhaseDetail): void
     {
-        foreach ($formPhaseDetail->requiredReviewEvaluationForms()->get() as $form) {
+        foreach ($formPhaseDetail->requiredStepEvaluationForms()->get() as $step) {
             $exists = $assignment->reviewerFormAssignments()
-                ->where('review_evaluation_form_id', $form->id)
+                ->where('review_evaluation_form_id', $step->review_evaluation_form_id)
                 ->exists();
 
             if ($exists) {
                 continue;
             }
 
-            // BR-FE-17 — tenggat milik detail yang memiliki form ini, dihitung per form;
+            // BR-FE-17 — tenggat milik langkah pengajuan yang dinilai;
             // `null` jawaban yang sah (kolomnya nullable, layar menampilkan "No deadline").
-            AssignEvaluationForm::run($assignment, $form->id, true, EvaluationDueDate::run($form, $assignment->formSubmission));
+            AssignEvaluationForm::run($assignment, $step->review_evaluation_form_id, true, EvaluationDueDate::run($assignment->formSubmission));
         }
     }
 }

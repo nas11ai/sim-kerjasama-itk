@@ -8,7 +8,6 @@ use App\Actions\Review\SubmitEvaluationForm;
 use App\Models\FormPhaseDetail;
 use App\Models\FormSubmission;
 use App\Models\Reviewer;
-use App\Models\ReviewEvaluationForm;
 use App\Models\ReviewFormResponse;
 use App\Models\SubmissionReviewer;
 
@@ -24,18 +23,12 @@ function lifecycleResponse(string $status = 'draft'): ReviewFormResponse
         'status' => 'active',
     ]);
 
-    $form = ReviewEvaluationForm::create([
-        'title' => 'Substansi',
-        'form_phase_detail_id' => $detail->id,
-        'is_active' => true,
-        'is_required' => true,
-        'order' => 1,
-    ]);
+    $form = evaluationFormOn($detail, [], title: 'Substansi');
 
     $assignment = AssignEvaluationForm::run($reviewer, $form->id);
 
     return ReviewFormResponse::create([
-        'reviewer_form_assignment_id' => $assignment->id,
+        'reviewer_form_assignment_id' => $assignment->id, 'review_evaluation_form_version_id' => $assignment->reviewEvaluationForm->latestVersion->id,
         'status' => $status,
     ]);
 }

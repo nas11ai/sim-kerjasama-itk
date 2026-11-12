@@ -9,7 +9,6 @@ use App\Models\FormSubmission;
 use App\Models\ReviewComment;
 use App\Models\Reviewer;
 use App\Models\ReviewerFormAssignment;
-use App\Models\ReviewEvaluationForm;
 use App\Models\ReviewSummary;
 use App\Models\SubmissionReviewer;
 use App\Models\User;
@@ -97,13 +96,7 @@ it('menyebut jumlah formulir evaluasi yang masih tertunda', function () {
         ->sole();
 
     foreach (['Substansi', 'Metodologi'] as $order => $title) {
-        $form = ReviewEvaluationForm::create([
-            'title' => $title,
-            'form_phase_detail_id' => $submission->form_phase_detail_id,
-            'is_active' => true,
-            'is_required' => true,
-            'order' => $order + 1,
-        ]);
+        $form = evaluationFormOn(FormPhaseDetail::findOrFail($submission->form_phase_detail_id), [], title: $title);
         ReviewerFormAssignment::create([
             'submission_reviewer_id' => $assignment->id,
             'review_evaluation_form_id' => $form->id,

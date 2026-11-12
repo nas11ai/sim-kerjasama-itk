@@ -2,6 +2,11 @@
 
 namespace Database\Seeders;
 
+use App\Actions\Review\AttachEvaluationForm;
+use App\Actions\Review\CreateEvaluationForm;
+use App\Actions\Review\PublishEvaluationFormVersion;
+use App\Data\Request\EvaluationFormDetailsInput;
+use App\Data\Request\ReviewFormFieldInput;
 use App\Enums\DeadlineType;
 use App\Enums\VerificationStatus;
 use App\Models\FieldType;
@@ -14,8 +19,6 @@ use App\Models\FormType;
 use App\Models\Organization;
 use App\Models\PhaseType;
 use App\Models\Reviewer;
-use App\Models\ReviewEvaluationForm;
-use App\Models\ReviewFormField;
 use App\Models\Scheme;
 use App\Models\SchemeType;
 use App\Models\SubmissionDate;
@@ -80,7 +83,7 @@ class EndToEndFlowSeeder extends Seeder
         $period = $this->period();
         [$form, $phase] = $this->form($organization);
 
-        $this->phaseDetail($form, $phase, $period, $organization);
+        $this->phaseDetail($form, $phase, $period, $organization, $operator);
 
         $this->command->info('Selesai. Coba alurnya:');
         $this->command->info('  1. Masuk sebagai peneliti@itk.ac.id, buat pengajuan pada Form "'.$form->title.'"');
@@ -192,7 +195,7 @@ class EndToEndFlowSeeder extends Seeder
         return [$form, $phase];
     }
 
-    private function phaseDetail(Form $form, FormPhase $phase, SubmissionPeriod $period, Organization $organization): void
+    private function phaseDetail(Form $form, FormPhase $phase, SubmissionPeriod $period, Organization $organization, User $actor): void
     {
         $accessControl = FormAccessControl::where([
             'form_id' => $form->id,
@@ -235,13 +238,14 @@ class EndToEndFlowSeeder extends Seeder
 
         // W158 — AssignReviewers membagikan form evaluasi aktif detail ini ke tiap reviewer yang
         // ditugaskan, jadi keputusan Operator punya dasar penilaian.
-        $evaluation = ReviewEvaluationForm::firstOrCreate(
-            ['title' => 'Penilaian Substansi', 'form_phase_detail_id' => $detail->id],
-            ['is_active' => true, 'is_required' => true, 'order' => 1],
-        );
-        ReviewFormField::firstOrCreate(
-            ['review_evaluation_form_id' => $evaluation->id, 'label' => 'Kebaruan Penelitian'],
-            ['field_type_id' => FieldType::firstOrCreate(['name' => 'text'])->id, 'is_required' => false, 'order' => 1],
-        );
+        // BR-REV-18 — lewat jalur pustaka: buat, terbitkan Versi 1, pasang. Idempoten per langkah.
+        if ($detail->stepEvaluationForms()->exists()) {
+            return;
+        }
+        $evaluation = CreateEvaluationForm::run(new EvaluationFormDetailsInput('Penilaian Substansi', null), $actor);
+        PublishEvaluationFormVersion::run($evaluation, [
+            new ReviewFormFieldInput(null, FieldType::firstOrCreate(['name' => 'text'])->id, 'Kebaruan Penelitian', null, false, null, null),
+        ], $actor);
+        AttachEvaluationForm::run($detail, $evaluation, true, $actor);
     }
 }

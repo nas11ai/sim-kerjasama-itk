@@ -12,7 +12,6 @@ use App\Models\FormSubmission;
 use App\Models\FormSubmissionOverride;
 use App\Models\Reviewer;
 use App\Models\ReviewerFormAssignment;
-use App\Models\ReviewEvaluationForm;
 use App\Models\ReviewFormField;
 use App\Models\ReviewFormResponse;
 use App\Models\SubmissionReviewer;
@@ -41,15 +40,9 @@ beforeEach(function () {
         'evaluation_status' => 'pending',
         'status' => 'active',
     ]);
-    $form = ReviewEvaluationForm::create([
-        'title' => 'Form Substansi',
-        'form_phase_detail_id' => $this->detail->id,
-        'is_active' => true,
-        'is_required' => true,
-        'order' => 1,
-    ]);
+    $form = evaluationFormOn($this->detail, [], title: 'Form Substansi');
     $this->field = ReviewFormField::create([
-        'review_evaluation_form_id' => $form->id,
+        'review_evaluation_form_version_id' => $form->latestVersion->id,
         'field_type_id' => FieldType::firstOrCreate(['name' => 'text'])->id,
         'label' => 'Catatan',
         'is_required' => false,
@@ -64,7 +57,7 @@ beforeEach(function () {
         'due_date' => Carbon::parse('2026-03-20 23:59:59'),
         'is_active' => true,
     ]);
-    ReviewFormResponse::create(['reviewer_form_assignment_id' => $this->started->id, 'status' => 'draft']);
+    ReviewFormResponse::create(['reviewer_form_assignment_id' => $this->started->id, 'review_evaluation_form_version_id' => $this->started->reviewEvaluationForm->latestVersion->id, 'status' => 'draft']);
 });
 
 function evaluationOverride(FormSubmission $submission, FormPhaseDetail $detail, array $attributes = []): FormSubmissionOverride

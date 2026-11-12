@@ -5,10 +5,11 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use LogicException;
 
 /**
  * @property int $id
- * @property int $review_evaluation_form_id
+ * @property int $review_evaluation_form_version_id
  * @property int $field_type_id
  * @property bool $is_required
  * @property string $label
@@ -20,8 +21,16 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  */
 class ReviewFormField extends Model
 {
+    // BR-REV-18 — field milik versi yang terbit; versi baru menyalin baris, tidak menyunting.
+    protected static function booted(): void
+    {
+        static::updating(function (): void {
+            throw new LogicException('Field versi form evaluasi yang terbit tidak dapat diubah.');
+        });
+    }
+
     protected $fillable = [
-        'review_evaluation_form_id',
+        'review_evaluation_form_version_id',
         'field_type_id',
         'label',
         'description',
@@ -36,11 +45,11 @@ class ReviewFormField extends Model
     ];
 
     /**
-     * @return BelongsTo<ReviewEvaluationForm, $this>
+     * @return BelongsTo<ReviewEvaluationFormVersion, $this>
      */
-    public function reviewEvaluationForm(): BelongsTo
+    public function reviewEvaluationFormVersion(): BelongsTo
     {
-        return $this->belongsTo(ReviewEvaluationForm::class);
+        return $this->belongsTo(ReviewEvaluationFormVersion::class);
     }
 
     /**

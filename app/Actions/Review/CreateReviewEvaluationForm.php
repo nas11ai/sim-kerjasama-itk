@@ -3,9 +3,9 @@
 namespace App\Actions\Review;
 
 use App\Data\Request\ReviewEvaluationFormInput;
+use App\Models\FormPhaseDetail;
 use App\Models\ReviewEvaluationForm;
 use App\Models\User;
-use App\Services\Form\ReviewFormFieldWriter;
 use App\Support\Audit\AuditChange;
 use App\Support\Audit\AuditTrail;
 use Illuminate\Support\Facades\DB;
@@ -13,10 +13,10 @@ use Illuminate\Validation\ValidationException;
 use Lorisleiva\Actions\Concerns\AsAction;
 
 /**
- * Form evaluasi baru beserta field dan opsinya dari kartu baru di editor tahap, diletakkan
- * paling akhir di antara form evaluasi detail tahapnya.
+ * Komposit sementara G2-W4 untuk kartu baru di editor tahap: buat Form Evaluasi pustaka, terbitkan
+ * Versi 1, lalu pasang di langkah itu. Dihapus bersama kartunya di Task 2 (pustaka Form Evaluasi).
  *
- * @method static ReviewEvaluationForm run(ReviewEvaluationFormInput $input, User $actor)
+ * @method static ReviewEvaluationForm run(FormPhaseDetail $detail, ReviewEvaluationFormInput $input, User $actor)
  */
 class CreateReviewEvaluationForm
 {
@@ -25,18 +25,20 @@ class CreateReviewEvaluationForm
     /**
      * @throws ValidationException
      */
-    public function handle(ReviewEvaluationFormInput $input, User $actor): ReviewEvaluationForm
+    public function handle(FormPhaseDetail $detail, ReviewEvaluationFormInput $input, User $actor): ReviewEvaluationForm
     {
-        AssertReviewedPhaseDetail::run($input->formPhaseDetailId);
+        AssertReviewedPhaseDetail::run($detail->id);
 
-        return DB::transaction(function () use ($input, $actor): ReviewEvaluationForm {
-            $form = ReviewEvaluationForm::create([
-                ...$input->attributes(),
-                'order' => ReviewEvaluationForm::nextOrderFor($input->formPhaseDetailId),
-            ]);
-            ReviewFormFieldWriter::sync($form, $input->fields ?? []);
-
-            AuditTrail::record('Form evaluasi dibuat', $form, $actor, new AuditChange(new: $form->auditSnapshot()));
+        return DB::transaction(function () use ($detail, $input, $actor): ReviewEvaluationForm {
+            // Audit "dibuat" menyebut langkah asal kartunya; CreateEvaluationForm (pustaka) tidak.
+            $form = ReviewEvaluationForm::create($input->details()->attributes());
+            AuditTrail::record('Form evaluasi dibuat', $form, $actor, new AuditChange(new: [
+                ...$form->auditSnapshot(),
+                'form_phase_detail_id' => $detail->id,
+            ]));
+            PublishEvaluationFormVersion::run($form, $input->fields ?? [], $actor);
+            $step = AttachEvaluationForm::run($detail, $form, $input->isRequired, $actor);
+            UpdateStepEvaluationForm::run($step, $input->isRequired, $input->isActive, $actor);
 
             return $form;
         });

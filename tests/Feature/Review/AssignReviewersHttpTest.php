@@ -19,7 +19,6 @@ use App\Models\FormPhaseDetail;
 use App\Models\FormSubmission;
 use App\Models\Reviewer;
 use App\Models\ReviewerFormAssignment;
-use App\Models\ReviewEvaluationForm;
 use App\Models\Scheme;
 use App\Models\SubmissionDate;
 use App\Models\SubmissionPeriod;
@@ -200,13 +199,7 @@ it('menstempel tenggat dari detail pemilik form, bukan tanggal terakhir period',
 
     $fx = phaseSharedByTwoPeriods('Uji Tenggat HTTP', needsReview: true);
 
-    ReviewEvaluationForm::create([
-        'title' => 'Substansi',
-        'form_phase_detail_id' => $fx['detail']->id,
-        'is_active' => true,
-        'is_required' => true,
-        'order' => 1,
-    ]);
+    evaluationFormOn($fx['detail'], [], title: 'Substansi');
 
     $submission = FormSubmission::factory()->create([
         'form_id' => $fx['form']->id,
@@ -241,13 +234,7 @@ it('[REV-ASSIGN-09] mengirim satu notifikasi penugasan, bukan dua', function () 
 
     // Wajib ada: tanpa form evaluasi, `continue` di assignReviewers() keburu
     // menyelamatkan jalurnya dan email keduanya tidak pernah tersentuh.
-    ReviewEvaluationForm::create([
-        'title' => 'Substansi',
-        'form_phase_detail_id' => $submission->form_phase_detail_id,
-        'is_active' => true,
-        'is_required' => true,
-        'order' => 1,
-    ]);
+    evaluationFormOn(FormPhaseDetail::findOrFail($submission->form_phase_detail_id), [], title: 'Substansi');
 
     $reviewer = httpReviewer();
 
@@ -267,13 +254,7 @@ it('tidak pernah mengarang tenggat dari jam dinding', function () {
     // (BR-FE-26, ADR 0019), jadi tak ada tanggal yang lahir dari waktu penugasan.
     [$operator, $submission] = assignHttpFixture();
 
-    ReviewEvaluationForm::create([
-        'title' => 'Substansi',
-        'form_phase_detail_id' => $submission->form_phase_detail_id,
-        'is_active' => true,
-        'is_required' => true,
-        'order' => 1,
-    ]);
+    evaluationFormOn(FormPhaseDetail::findOrFail($submission->form_phase_detail_id), [], title: 'Substansi');
 
     $period = SubmissionPeriod::create(['name' => 'Periode Pengajuan']);
     $submission->update(['submission_period_id' => $period->id]);

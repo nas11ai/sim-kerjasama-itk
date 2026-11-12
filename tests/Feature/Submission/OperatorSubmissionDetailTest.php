@@ -13,12 +13,12 @@ use App\Models\FormSubmission;
 use App\Models\ResearchMember;
 use App\Models\Reviewer;
 use App\Models\ReviewerFormAssignment;
-use App\Models\ReviewEvaluationForm;
 use App\Models\ReviewFormResponse;
 use App\Models\SubmissionReviewer;
 use App\Models\User;
 use App\Models\UserProfile;
 use App\Queries\Review\DecisionReadiness;
+use App\Queries\Submission\OperatorSubmissionDetail;
 use App\States\Submission\Approved;
 use App\States\Submission\Draft;
 use App\States\Submission\Submitted;
@@ -87,13 +87,7 @@ function joinTeam(FormSubmission $submission, string $role, string $name): User
 
 function submittedSheet(SubmissionReviewer $seat): void
 {
-    $form = ReviewEvaluationForm::create([
-        'title' => 'Substansi',
-        'form_phase_detail_id' => FormPhaseDetail::factory()->create()->id,
-        'is_active' => true,
-        'is_required' => true,
-        'order' => 1,
-    ]);
+    $form = evaluationFormOn(FormPhaseDetail::factory()->create(), [], title: 'Substansi');
     $assignment = ReviewerFormAssignment::create([
         'submission_reviewer_id' => $seat->id,
         'review_evaluation_form_id' => $form->id,
@@ -101,7 +95,7 @@ function submittedSheet(SubmissionReviewer $seat): void
         'assigned_at' => now(),
         'is_active' => true,
     ]);
-    ReviewFormResponse::create(['reviewer_form_assignment_id' => $assignment->id, 'status' => 'submitted', 'submitted_at' => now()]);
+    ReviewFormResponse::create(['reviewer_form_assignment_id' => $assignment->id, 'review_evaluation_form_version_id' => $assignment->reviewEvaluationForm->latestVersion->id, 'status' => 'submitted', 'submitted_at' => now()]);
 }
 
 function showOperatorPage(User $viewer, FormSubmission $submission): TestResponse
@@ -280,10 +274,7 @@ it('target perpanjangan menyebut fase dan reviewer yang evaluasinya lewat tengga
     $detail = FormPhaseDetail::factory()->create();
     $submission = sentFor(UnderReview::class, $detail);
     $late = seatReviewer($submission, 'active', 'Reviewer Telat');
-    $form = ReviewEvaluationForm::create([
-        'title' => 'Substansi', 'form_phase_detail_id' => $detail->id,
-        'is_active' => true, 'is_required' => true, 'order' => 1,
-    ]);
+    $form = evaluationFormOn($detail, [], title: 'Substansi');
     ReviewerFormAssignment::create([
         'submission_reviewer_id' => $late->id, 'review_evaluation_form_id' => $form->id,
         'is_required' => true, 'assigned_at' => now()->subWeek(), 'due_date' => now()->subDay(), 'is_active' => true,
@@ -297,21 +288,19 @@ it('target perpanjangan menyebut fase dan reviewer yang evaluasinya lewat tengga
             ->where('overrideTarget.affectedReviewers', ['Reviewer Telat']));
 });
 
-it('[FE-WINDOW-07] reviewer terdampak hanya yang form evaluasinya melekat pada detail pengajuan ini', function () {
+it('[FE-WINDOW-07] reviewer terdampak hanya untuk override langkah pengajuan ini, bukan fase lain', function () {
     $detail = FormPhaseDetail::factory()->create();
     $submission = sentFor(UnderReview::class, $detail);
-    $elsewhere = seatReviewer($submission, 'active', 'Reviewer Detail Lain');
-    $form = ReviewEvaluationForm::create([
-        'title' => 'Substansi Monev', 'form_phase_detail_id' => FormPhaseDetail::factory()->create()->id,
-        'is_active' => true, 'is_required' => true, 'order' => 1,
-    ]);
+    $late = seatReviewer($submission, 'active', 'Reviewer Telat');
+    $form = evaluationFormOn($detail, [], title: 'Substansi');
     ReviewerFormAssignment::create([
-        'submission_reviewer_id' => $elsewhere->id, 'review_evaluation_form_id' => $form->id,
+        'submission_reviewer_id' => $late->id, 'review_evaluation_form_id' => $form->id,
         'is_required' => true, 'assigned_at' => now()->subWeek(), 'due_date' => now()->subDay(), 'is_active' => true,
     ]);
+    $monev = FormPhaseDetail::factory()->create(['form_phase_id' => $detail->form_phase_id, 'deadline_cycle' => 1]);
 
-    showOperatorPage(detailOperator(), $submission)
-        ->assertInertia(fn (Assert $page) => $page->where('overrideTarget.affectedReviewers', []));
+    expect(OperatorSubmissionDetail::overrideTargetFor($submission, $monev)->affectedReviewers)->toBe([])
+        ->and(OperatorSubmissionDetail::overrideTargetFor($submission, $detail)->affectedReviewers)->toBe(['Reviewer Telat']);
 });
 
 // ---------- W144: tab Luaran ----------

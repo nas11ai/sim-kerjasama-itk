@@ -9,7 +9,6 @@ use App\Models\FormPhaseDetail;
 use App\Models\FormSubmission;
 use App\Models\Reviewer;
 use App\Models\ReviewerFormAssignment;
-use App\Models\ReviewEvaluationForm;
 use App\Models\ReviewSummary;
 use App\Models\SubmissionReviewer;
 use App\Models\User;
@@ -49,13 +48,7 @@ function assignmentIndexVisit(User $user, array $query = []): TestResponse
 
 it('reviewer membuka Review/AssignmentIndexPage dengan penugasan perlu tindakan', function () {
     $pending = assignmentIndexCard($this->reviewer);
-    $form = ReviewEvaluationForm::create([
-        'title' => 'Substansi',
-        'form_phase_detail_id' => $pending->formSubmission->form_phase_detail_id,
-        'is_active' => true,
-        'is_required' => true,
-        'order' => 1,
-    ]);
+    $form = evaluationFormOn(FormPhaseDetail::findOrFail($pending->formSubmission->form_phase_detail_id), [], title: 'Substansi');
     ReviewerFormAssignment::create([
         'submission_reviewer_id' => $pending->id,
         'review_evaluation_form_id' => $form->id,

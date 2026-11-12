@@ -101,13 +101,7 @@ it('audits the creation of a form phase (BR-RPT-09)', function () {
 it('rejects single delete of a phase used by a submission and keeps its evaluation forms (BR-FE-20)', function () {
     $detail = FormPhaseDetail::factory()->create();
     $phase = $detail->formPhase;
-    $evaluation = ReviewEvaluationForm::create([
-        'title' => 'Lembar Penilaian',
-        'form_phase_detail_id' => $detail->id,
-        'is_required' => true,
-        'is_active' => true,
-        'order' => 1,
-    ]);
+    $evaluation = evaluationFormOn($detail, [], title: 'Lembar Penilaian');
     FormSubmission::factory()->create(['form_phase_detail_id' => $detail->id]);
 
     $this->actingAs($this->admin)

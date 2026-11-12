@@ -50,12 +50,9 @@ function phaseEvaluationDetail(Form $form, bool $needsReview, ?FormPhase $phase 
 
 it('kontrak bagian form evaluasi', function () {
     $detail = phaseEvaluationDetail($this->form, true);
-    $evaluation = ReviewEvaluationForm::create([
-        'title' => 'Lembar Substansi', 'form_phase_detail_id' => $detail->id,
-        'is_active' => true, 'is_required' => true, 'order' => 1,
-    ]);
+    $evaluation = evaluationFormOn($detail, [], title: 'Lembar Substansi');
     $field = ReviewFormField::create([
-        'review_evaluation_form_id' => $evaluation->id,
+        'review_evaluation_form_version_id' => $evaluation->latestVersion->id,
         'field_type_id' => FieldType::firstOrCreate(['name' => 'number'])->id,
         'label' => 'Metodologi', 'is_required' => true, 'order' => 1,
         'validation_rules' => ['min_value' => 1, 'max_value' => 7],
@@ -103,10 +100,7 @@ it('hanya detail yang direview punya bagian form evaluasi', function () {
 
 it('wewenang store/update: operator 403', function () {
     $detail = phaseEvaluationDetail($this->form, true);
-    $evaluation = ReviewEvaluationForm::create([
-        'title' => 'Lembar Substansi', 'form_phase_detail_id' => $detail->id,
-        'is_active' => true, 'is_required' => true, 'order' => 1,
-    ]);
+    $evaluation = evaluationFormOn($detail, [], title: 'Lembar Substansi');
 
     $this->actingAs(phaseEvaluationActor('operator'))
         ->post(route('admin.phase-details.evaluation-forms.store', $detail), ['title' => 'Dibajak'])
@@ -127,12 +121,14 @@ it('membuat form evaluasi untuk detail dari route-nya', function () {
         ->post(route('admin.phase-details.evaluation-forms.store', $detail), [
             'title' => 'Lembar Kelayakan',
             'form_phase_detail_id' => $other->id,
+            // G2-W3 — kartu baru langsung terbit Versi 1, jadi butuh minimal satu field.
+            'fields' => [['field_type_id' => FieldType::firstOrCreate(['name' => 'text'])->id, 'label' => 'Kelayakan']],
         ])
         ->assertSessionHasNoErrors()
         ->assertRedirect(route('admin.phases.edit', $detail->formPhase))
         ->assertSessionHas('success', 'Form evaluasi dibuat.');
 
-    expect(ReviewEvaluationForm::query()->where('title', 'Lembar Kelayakan')->sole()->form_phase_detail_id)
+    expect(ReviewEvaluationForm::query()->where('title', 'Lembar Kelayakan')->sole()->stepEvaluationForms()->sole()->form_phase_detail_id)
         ->toBe($detail->id);
 });
 

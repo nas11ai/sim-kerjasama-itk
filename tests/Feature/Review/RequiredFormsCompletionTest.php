@@ -30,13 +30,7 @@ function completionFixture(): array
 
 function completionForm(FormPhaseDetail $detail, int $order): ReviewEvaluationForm
 {
-    return ReviewEvaluationForm::create([
-        'title' => "Form {$order}",
-        'form_phase_detail_id' => $detail->id,
-        'is_active' => true,
-        'is_required' => true,
-        'order' => $order,
-    ]);
+    return evaluationFormOn($detail, [], title: "Form {$order}");
 }
 
 it('menganggap reviewer tanpa form wajib sudah selesai', function () {
@@ -58,7 +52,7 @@ it('menyatakan selesai setelah seluruh form wajib tersubmit', function () {
 
     $assignment = AssignEvaluationForm::run($reviewer, completionForm($detail, 1)->id, true);
     ReviewFormResponse::create([
-        'reviewer_form_assignment_id' => $assignment->id,
+        'reviewer_form_assignment_id' => $assignment->id, 'review_evaluation_form_version_id' => $assignment->reviewEvaluationForm->latestVersion->id,
         'status' => 'submitted',
     ]);
 
@@ -79,7 +73,7 @@ it('menghitung form tanpa field sebagai 100 persen', function () {
 
     $assignment = AssignEvaluationForm::run($reviewer, completionForm($detail, 1)->id, true);
     $response = ReviewFormResponse::create([
-        'reviewer_form_assignment_id' => $assignment->id,
+        'reviewer_form_assignment_id' => $assignment->id, 'review_evaluation_form_version_id' => $assignment->reviewEvaluationForm->latestVersion->id,
         'status' => 'draft',
     ]);
 

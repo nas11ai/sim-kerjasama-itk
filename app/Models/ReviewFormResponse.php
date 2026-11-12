@@ -11,17 +11,20 @@ use Illuminate\Support\Carbon;
 /**
  * @property int $id
  * @property int $reviewer_form_assignment_id
+ * @property int $review_evaluation_form_version_id BR-REV-18 — versi yang diisi jawaban ini
  * @property string $status
  * @property string|null $final_notes
  * @property Carbon|null $submitted_at
  * @property Carbon|null $locked_at
  * @property-read ReviewerFormAssignment $reviewerFormAssignment
+ * @property-read ReviewEvaluationFormVersion $reviewEvaluationFormVersion
  * @property-read Collection<int, ReviewFormFieldResponse> $reviewFormFieldResponses
  */
 class ReviewFormResponse extends Model
 {
     protected $fillable = [
         'reviewer_form_assignment_id',
+        'review_evaluation_form_version_id',
         'status',
         'submitted_at',
         'locked_at',
@@ -39,6 +42,12 @@ class ReviewFormResponse extends Model
     public function reviewerFormAssignment(): BelongsTo
     {
         return $this->belongsTo(ReviewerFormAssignment::class);
+    }
+
+    /** @return BelongsTo<ReviewEvaluationFormVersion, $this> */
+    public function reviewEvaluationFormVersion(): BelongsTo
+    {
+        return $this->belongsTo(ReviewEvaluationFormVersion::class);
     }
 
     /**
@@ -78,8 +87,7 @@ class ReviewFormResponse extends Model
     // Check if all required fields are completed
     public function hasRequiredFieldsCompleted(): bool
     {
-        $reviewForm = $this->reviewerFormAssignment->reviewEvaluationForm;
-        $requiredFields = $reviewForm->reviewFormFields()->where('is_required', true)->get();
+        $requiredFields = $this->reviewEvaluationFormVersion->reviewFormFields()->where('is_required', true)->get();
 
         foreach ($requiredFields as $field) {
             $response = $this->reviewFormFieldResponses()

@@ -2,8 +2,9 @@
 
 namespace App\Data\View\FormEngine;
 
-use App\Models\ReviewEvaluationForm;
 use App\Models\ReviewFormField;
+use App\Models\StepEvaluationForm;
+use Illuminate\Database\Eloquent\Collection;
 use Spatie\LaravelData\Data;
 
 /**
@@ -23,16 +24,19 @@ final class EvaluationFormEditData extends Data
         public array $fields,
     ) {}
 
-    public static function fromModel(ReviewEvaluationForm $form): self
+    // Dimuat PhaseEvaluationForms: form beserta field versi terbit terakhirnya (G2-W4, kartu sementara).
+    public static function fromModel(StepEvaluationForm $step): self
     {
+        $form = $step->reviewEvaluationForm;
+
         return new self(
             id: $form->id,
             title: $form->title,
             description: $form->description,
-            isRequired: $form->is_required,
-            isActive: $form->is_active,
+            isRequired: $step->is_required,
+            isActive: $step->is_active,
             assignmentCount: $form->reviewer_form_assignments_count ?? 0,
-            fields: array_values($form->reviewFormFields
+            fields: array_values(($form->latestVersion->reviewFormFields ?? new Collection)
                 ->map(fn (ReviewFormField $field): EvaluationFieldEditData => EvaluationFieldEditData::fromModel($field))
                 ->all()),
         );

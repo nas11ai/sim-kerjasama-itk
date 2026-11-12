@@ -25,14 +25,14 @@ class EvaluationFormController extends Controller
     // ditolak AssertReviewedPhaseDetail di Action, apa adanya.
     public function store(ReviewEvaluationFormRequest $request, FormPhaseDetail $formPhaseDetail): RedirectResponse
     {
-        CreateReviewEvaluationForm::run($request->toInput($formPhaseDetail->id), $this->actor($request));
+        CreateReviewEvaluationForm::run($formPhaseDetail, $request->toInput(), $this->actor($request));
 
         return back()->with('success', 'Form evaluasi dibuat.');
     }
 
     public function update(ReviewEvaluationFormRequest $request, ReviewEvaluationForm $reviewEvaluationForm): RedirectResponse
     {
-        ReviseReviewEvaluationForm::run($reviewEvaluationForm, $request->toInput($reviewEvaluationForm->form_phase_detail_id), $this->actor($request));
+        ReviseReviewEvaluationForm::run($reviewEvaluationForm, $request->toInput(), $this->actor($request));
 
         return back()->with('success', 'Form evaluasi diperbarui.');
     }

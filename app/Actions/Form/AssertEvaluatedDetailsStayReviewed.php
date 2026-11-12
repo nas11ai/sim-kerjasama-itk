@@ -5,7 +5,7 @@ namespace App\Actions\Form;
 use App\Actions\Concerns\ChangesNoState;
 use App\Data\Request\FormPhaseDetailInput;
 use App\Models\FormPhaseDetail;
-use App\Models\ReviewEvaluationForm;
+use App\Models\StepEvaluationForm;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Validation\ValidationException;
 use Lorisleiva\Actions\Concerns\AsAction;
@@ -54,7 +54,7 @@ class AssertEvaluatedDetailsStayReviewed implements ChangesNoState
     private function activeCounts(Collection $existing): array
     {
         $counts = [];
-        $forms = ReviewEvaluationForm::query()
+        $forms = StepEvaluationForm::query()
             ->active()
             ->whereIn('form_phase_detail_id', $existing->modelKeys())
             ->get(['form_phase_detail_id']);

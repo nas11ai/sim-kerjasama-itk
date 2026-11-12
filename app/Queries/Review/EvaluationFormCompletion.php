@@ -18,10 +18,7 @@ class EvaluationFormCompletion implements ChangesNoState
 
     public function handle(ReviewFormResponse $response): int
     {
-        $totalFields = $response->reviewerFormAssignment
-            ->reviewEvaluationForm
-            ->reviewFormFields()
-            ->count();
+        $totalFields = $response->reviewEvaluationFormVersion->reviewFormFields()->count();
 
         if ($totalFields === 0) {
             return 100;

@@ -3,7 +3,7 @@
 namespace App\Data\View\FormEngine;
 
 use App\Models\FormPhaseDetail;
-use App\Models\ReviewEvaluationForm;
+use App\Models\StepEvaluationForm;
 use Spatie\LaravelData\Data;
 
 /**
@@ -26,8 +26,8 @@ final class EvaluationSectionData extends Data
         return new self(
             detailId: $detail->id,
             detailLabel: ($detail->phaseType->name ?? '').' — '.($detail->formAccessControl->form->title ?? ''),
-            forms: array_values($detail->reviewEvaluationForms
-                ->map(fn (ReviewEvaluationForm $form): EvaluationFormEditData => EvaluationFormEditData::fromModel($form))
+            forms: array_values($detail->stepEvaluationForms
+                ->map(fn (StepEvaluationForm $step): EvaluationFormEditData => EvaluationFormEditData::fromModel($step))
                 ->all()),
             reviewsInProgress: $reviewsInProgress,
         );

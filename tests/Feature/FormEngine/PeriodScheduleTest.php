@@ -7,7 +7,6 @@
 
 use App\Enums\DeadlineType;
 use App\Models\FormPhase;
-use App\Models\ReviewEvaluationForm;
 use App\Queries\Review\EvaluationDueDate as ReviewEvaluationDueDate;
 use App\Queries\Submission\EvaluationDueDate as FormEvaluationDueDate;
 use App\States\Submission\NeedsRevision;
@@ -75,16 +74,13 @@ it('memakai Batas Evaluasi periode pengajuan sebagai tenggat penugasan', functio
     $dueA = now()->addDays(10)->startOfSecond();
     calendarDate($this->periodA, DeadlineType::Evaluation, $dueA);
     calendarDate($this->periodB, DeadlineType::Evaluation, now()->addDays(40));
-    $form = ReviewEvaluationForm::create([
-        'title' => 'Substansi', 'form_phase_detail_id' => $this->step->id,
-        'is_active' => true, 'is_required' => true, 'order' => 1,
-    ]);
+    $form = evaluationFormOn($this->step, [], title: 'Substansi');
 
     $inA = scheduledSubmission($this->step, $this->periodA);
     $undated = scheduledSubmission($this->step, schedulePeriod($this->phase, 'Periode Tanpa Tanggal'));
 
     expect(ReviewEvaluationDueDate::run($inA)->toDateTimeString())->toBe($dueA->toDateTimeString())
-        ->and(FormEvaluationDueDate::run($form, $inA)?->format('Y-m-d H:i:s'))->toBe($dueA->toDateTimeString())
+        ->and(FormEvaluationDueDate::run($inA)?->format('Y-m-d H:i:s'))->toBe($dueA->toDateTimeString())
         ->and(ReviewEvaluationDueDate::run($undated)->isSameDay(now()->addWeek()))->toBeTrue()
-        ->and(FormEvaluationDueDate::run($form, $undated))->toBeNull();
+        ->and(FormEvaluationDueDate::run($undated))->toBeNull();
 });

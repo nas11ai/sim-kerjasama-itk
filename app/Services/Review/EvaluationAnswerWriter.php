@@ -40,7 +40,8 @@ final class EvaluationAnswerWriter
     private static function assertOwnFields(ReviewFormResponse $response, EvaluationAnswersInput $input): void
     {
         $fieldIds = array_keys($input->answers);
-        $owned = $response->reviewerFormAssignment->reviewEvaluationForm
+        // BR-REV-18 — hanya field versi yang diisi jawaban ini.
+        $owned = $response->reviewEvaluationFormVersion
             ->reviewFormFields()
             ->whereIn('id', $fieldIds)
             ->count();

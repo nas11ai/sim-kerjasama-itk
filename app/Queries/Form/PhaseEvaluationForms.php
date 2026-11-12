@@ -17,8 +17,8 @@ use Illuminate\Support\Collection;
 use Lorisleiva\Actions\Concerns\AsAction;
 
 /**
- * Form evaluasi di editor tahap ADMIN-08-09: satu bagian per detail ber-`needs_review`, urut
- * `order`, aktif maupun nonaktif, tanpa kueri per form atau per field. W158: form baru tak ditugaskan
+ * Form evaluasi di editor tahap ADMIN-08-09: satu bagian per detail ber-`needs_review`, pemasangan urut
+ * `order`, aktif maupun nonaktif, field dari versi terbit terakhir, tanpa kueri per form atau per field. W158: form baru tak ditugaskan
  * otomatis ke reviewer yang sudah bertugas; `reviewsInProgress` menghitung pengajuannya.
  *
  * @method static list<EvaluationSectionData> run(FormPhase $phase)
@@ -35,15 +35,15 @@ class PhaseEvaluationForms implements ChangesNoState
             ->with([
                 'phaseType:id,name',
                 'formAccessControl.form:id,title',
-                'reviewEvaluationForms' => fn (Relation $forms) => $forms
+                'stepEvaluationForms' => fn (Relation $steps) => $steps
                     ->orderBy('order')
                     ->orderBy('id')
-                    ->withCount('reviewerFormAssignments')
-                    ->with(['reviewFormFields' => fn (Relation $fields) => $fields
-                        ->orderBy('order')
-                        ->orderBy('id')
-                        ->withCount('reviewFormFieldResponses')
-                        ->with(['reviewFormFieldOptions' => fn (Relation $options) => $options->orderBy('order')->orderBy('id')]),
+                    ->with(['reviewEvaluationForm' => fn (Relation $forms) => $forms
+                        ->withCount('reviewerFormAssignments')
+                        ->with(['latestVersion.reviewFormFields' => fn (Relation $fields) => $fields
+                            ->withCount('reviewFormFieldResponses')
+                            ->with(['reviewFormFieldOptions' => fn (Relation $options) => $options->orderBy('order')->orderBy('id')]),
+                        ]),
                     ]),
             ])
             ->orderBy('order')

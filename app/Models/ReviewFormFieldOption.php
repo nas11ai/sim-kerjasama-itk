@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use LogicException;
 
 /**
  * @property int $id
@@ -15,6 +16,14 @@ class ReviewFormFieldOption extends Model
 {
     // Cermin BR-FE-24: opsi yang dibuang berhenti ditawarkan, tapi jawaban lama tetap terbaca.
     use SoftDeletes;
+
+    // BR-REV-18 — opsi milik field versi yang terbit tidak berubah.
+    protected static function booted(): void
+    {
+        static::updating(function (): void {
+            throw new LogicException('Opsi versi form evaluasi yang terbit tidak dapat diubah.');
+        });
+    }
 
     protected $fillable = [
         'review_form_field_id',

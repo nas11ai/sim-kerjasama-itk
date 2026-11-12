@@ -10,7 +10,6 @@ use App\Actions\Review\JoinReviewRound;
 use App\Models\FormPhaseDetail;
 use App\Models\FormSubmission;
 use App\Models\Reviewer;
-use App\Models\ReviewEvaluationForm;
 use App\Models\ReviewSummary;
 use App\Models\SubmissionReviewer;
 use App\Models\User;
@@ -47,13 +46,7 @@ function threadFixture(string $evaluationStatus, bool $formWajib): array
     ]));
 
     // Fase ini selalu punya form evaluasi; yang berbeda hanya wajib-tidaknya.
-    ReviewEvaluationForm::create([
-        'title' => 'Substansi',
-        'form_phase_detail_id' => $detail->id,
-        'is_active' => true,
-        'is_required' => $formWajib,
-        'order' => 1,
-    ]);
+    evaluationFormOn($detail, [], required: $formWajib, title: 'Substansi');
 
     return [$user, $submission];
 }

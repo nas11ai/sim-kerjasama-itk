@@ -224,6 +224,7 @@ Tabel `reviewers` menyimpan `reviewer_type varchar` (`internal` / `external`) un
 | BR-REV-15 | ReviewSummary `open` milik reviewer yang di-`replaced` **diwarisi reviewer penggantinya**, yang berhak me-resolve-nya. Penulis aslinya tetap terbaca dari record lama (BR-REV-10). Tanpa aturan ini summary itu tidak akan pernah bisa ditutup dan submission terkunci di NEEDS_REVISION selamanya — reviewer lama sudah tidak berwenang, reviewer baru tidak merasa berhak |
 | BR-REV-16 | Hasil review dihitung di akhir putaran. Putaran penilaian: peserta = semua SubmissionReviewer aktif; masing-masing menekan *Selesai menilai* setelah evaluasinya `completed`. Putaran pemeriksaan (setelah resubmit): peserta = reviewer aktif yang punya ReviewSummary `open`; masing-masing menekan *Selesai memeriksa*. `not_required` dihitung selesai. Tanda Selesai per reviewer per putaran, tidak bisa dibatalkan. Mengirim lembar penilaian atau menutup catatan tidak memicu hasil. Reviewer pengganti (BR-REV-10) menjadi peserta yang belum selesai |
 | BR-REV-17 | ReviewSummary untuk Submission utama hanya boleh dibuka peserta putaran berjalan yang belum menekan Selesai |
+| BR-REV-18 | Versi Form Evaluasi dipaku per angkatan × langkah × Form Evaluasi saat draf penilaian pertama di sana tersimpan. Sebelumnya berlaku versi terbit terbaru; sesudahnya semua reviewer langkah itu di angkatan itu — termasuk yang ditugaskan belakangan — memakai versi pakuan. Versi yang terbit tidak berubah |
 
 ---
 

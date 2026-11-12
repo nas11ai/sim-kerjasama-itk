@@ -43,7 +43,7 @@ class FormPhaseDetail extends Model
                     ->where('form_phase_detail_id', $detail->id)
                     ->count(),
                 'penugasan form evaluasi' => ReviewerFormAssignment::query()
-                    ->whereIn('review_evaluation_form_id', $detail->reviewEvaluationForms()->select('id'))
+                    ->whereHas('submissionReviewer.formSubmission', fn (Builder $q) => $q->where('form_phase_detail_id', $detail->id))
                     ->count(),
             ]);
         });
@@ -83,27 +83,27 @@ class FormPhaseDetail extends Model
         return $this->belongsTo(PhaseType::class);
     }
 
-    /** @return HasMany<ReviewEvaluationForm, $this> */
-    public function reviewEvaluationForms(): HasMany
+    /** @return HasMany<StepEvaluationForm, $this> Form Evaluasi pustaka yang terpasang di langkah ini */
+    public function stepEvaluationForms(): HasMany
     {
-        return $this->hasMany(ReviewEvaluationForm::class);
+        return $this->hasMany(StepEvaluationForm::class);
     }
 
-    /** @return HasMany<ReviewEvaluationForm, $this> */
-    public function activeReviewEvaluationForms(): HasMany
+    /** @return HasMany<StepEvaluationForm, $this> */
+    public function activeStepEvaluationForms(): HasMany
     {
-        return $this->reviewEvaluationForms()->active()->ordered();
+        return $this->stepEvaluationForms()->active()->ordered();
     }
 
-    /** @return HasMany<ReviewEvaluationForm, $this> */
-    public function requiredReviewEvaluationForms(): HasMany
+    /** @return HasMany<StepEvaluationForm, $this> */
+    public function requiredStepEvaluationForms(): HasMany
     {
-        return $this->reviewEvaluationForms()->required()->active()->ordered();
+        return $this->activeStepEvaluationForms()->required();
     }
 
     public function hasReviewEvaluationForms(): bool
     {
-        return $this->activeReviewEvaluationForms()->exists();
+        return $this->activeStepEvaluationForms()->exists();
     }
 
     /**

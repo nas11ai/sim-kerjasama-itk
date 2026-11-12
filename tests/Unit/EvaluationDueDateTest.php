@@ -9,7 +9,6 @@
 // tenggat milik tahap yang sama sekali lain.
 
 use App\Models\FormSubmission;
-use App\Models\ReviewEvaluationForm;
 use App\Queries\Submission\EvaluationDueDate;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -29,7 +28,7 @@ function dueDateSubmission(array $fx): FormSubmission
 it('mengambil tenggat dari kalender periode pengajuan pada langkah pemilik form — BR-FE-17', function () {
     $fx = phaseWithOwnEvaluationDeadline('Uji Tenggat Evaluasi');
 
-    $dueDate = EvaluationDueDate::run($fx['evaluationForm'], dueDateSubmission($fx));
+    $dueDate = EvaluationDueDate::run(dueDateSubmission($fx));
 
     expect($dueDate)->not->toBeNull()
         ->and($dueDate->format('Y-m-d H:i:s'))->toBe($fx['dueEvaluation']->format('Y-m-d H:i:s'));
@@ -38,7 +37,7 @@ it('mengambil tenggat dari kalender periode pengajuan pada langkah pemilik form 
 it('tidak memakai ulang Batas Submit milik peneliti', function () {
     $fx = phaseWithOwnEvaluationDeadline('Uji Bukan Batas Submit');
 
-    expect(EvaluationDueDate::run($fx['evaluationForm'], dueDateSubmission($fx))->format('Y-m-d H:i:s'))
+    expect(EvaluationDueDate::run(dueDateSubmission($fx))->format('Y-m-d H:i:s'))
         ->not->toBe($fx['dueSubmit']->format('Y-m-d H:i:s'));
 });
 
@@ -48,7 +47,7 @@ it('tidak memakai tanggal terakhir period, yang milik tahap lain', function () {
     $latest = $fx['period']->submissionDates()->orderByDesc('datetime')->first();
 
     expect($latest)->not->toBeNull()
-        ->and(EvaluationDueDate::run($fx['evaluationForm'], dueDateSubmission($fx))->format('Y-m-d H:i:s'))
+        ->and(EvaluationDueDate::run(dueDateSubmission($fx))->format('Y-m-d H:i:s'))
         ->not->toBe($latest->datetime->format('Y-m-d H:i:s'));
 });
 
@@ -57,13 +56,7 @@ it('membaca periode pengajuan, bukan periode lain yang menautkan fase yang sama 
     // kalender periode A.
     $fx = phaseSharedByTwoPeriods('Uji Due Date Ambigu', needsReview: true);
 
-    $form = ReviewEvaluationForm::create([
-        'title' => 'Substansi',
-        'form_phase_detail_id' => $fx['detail']->id,
-        'is_active' => true,
-        'is_required' => true,
-        'order' => 1,
-    ]);
+    $form = evaluationFormOn($fx['detail'], [], title: 'Substansi');
 
     $submission = FormSubmission::factory()->create([
         'form_id' => $fx['form']->id,
@@ -71,8 +64,8 @@ it('membaca periode pengajuan, bukan periode lain yang menautkan fase yang sama 
         'submission_period_id' => $fx['periodA']->id,
     ]);
 
-    expect(EvaluationDueDate::run($form, $submission)->format('Y-m-d H:i:s'))
+    expect(EvaluationDueDate::run($submission)->format('Y-m-d H:i:s'))
         ->toBe($fx['dueA']->format('Y-m-d H:i:s'))
-        ->and(EvaluationDueDate::run($form, $submission)->format('Y-m-d H:i:s'))
+        ->and(EvaluationDueDate::run($submission)->format('Y-m-d H:i:s'))
         ->not->toBe($fx['dueB']->format('Y-m-d H:i:s'));
 });

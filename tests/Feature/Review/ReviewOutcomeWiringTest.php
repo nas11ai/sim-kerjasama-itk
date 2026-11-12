@@ -27,7 +27,7 @@ function wiringReviewer(SubmissionReviewer $seat): User
 function wiringSubmitEvaluation(User $reviewer, ReviewerFormAssignment $assignment): void
 {
     $field = ReviewFormField::create([
-        'review_evaluation_form_id' => $assignment->review_evaluation_form_id,
+        'review_evaluation_form_version_id' => $assignment->reviewEvaluationForm->latestVersion->id,
         'label' => 'Kelayakan',
         'field_type_id' => FieldType::firstOrCreate(['name' => 'text'])->id,
         'is_required' => false,

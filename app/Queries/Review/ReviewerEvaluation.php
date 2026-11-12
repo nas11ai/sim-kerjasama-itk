@@ -9,10 +9,11 @@ use App\Data\View\Submission\SubmissionAnswerData;
 use App\Data\View\Submission\Wizard\WizardFieldData;
 use App\Models\FieldType;
 use App\Models\FormPhaseDetail;
+use App\Models\FormSubmission;
 use App\Models\ReviewerFormAssignment;
-use App\Models\ReviewEvaluationForm;
 use App\Models\ReviewFormField;
 use App\Models\ReviewFormFieldOption;
+use App\Models\StepEvaluationForm;
 use App\Models\SubmissionReviewer;
 use App\Queries\Submission\ReadableSubmissionAnswers;
 use Illuminate\Database\Eloquent\Relations\Relation;
@@ -56,23 +57,32 @@ class ReviewerEvaluation implements ChangesNoState
         }
 
         $started = $assignment->reviewerFormAssignments()
-            ->with('reviewFormResponse.reviewFormFieldResponses')
+            ->with(['reviewFormResponse.reviewFormFieldResponses', 'reviewFormResponse.reviewEvaluationFormVersion'])
             ->get()
             ->keyBy('review_evaluation_form_id');
 
-        return array_values($detail->activeReviewEvaluationForms()
-            ->with(['reviewFormFields' => fn (Relation $fields) => $fields->orderBy('order')->with([
-                'fieldType:id,name',
-                'reviewFormFieldOptions' => fn (Relation $options) => $options->orderBy('order'),
-            ])])
+        return array_values($detail->activeStepEvaluationForms()
+            ->with('reviewEvaluationForm')
             ->get()
-            ->map(fn (ReviewEvaluationForm $form): EvaluationFormData => $this->form($form, $started->get($form->id)))
+            ->map(fn (StepEvaluationForm $step): EvaluationFormData => $this->form(
+                $assignment->formSubmission,
+                $step,
+                $started->get($step->review_evaluation_form_id),
+            ))
             ->all());
     }
 
-    private function form(ReviewEvaluationForm $form, ?ReviewerFormAssignment $started): EvaluationFormData
+    private function form(FormSubmission $submission, StepEvaluationForm $step, ?ReviewerFormAssignment $started): EvaluationFormData
     {
+        $form = $step->reviewEvaluationForm;
         $response = $started?->reviewFormResponse;
+        // BR-REV-18 — jawaban yang ada dibaca dengan versi yang diisinya; sebelum itu versi yang
+        // berlaku di angkatan × langkah ini. Membaca tidak memaku.
+        $version = $response->reviewEvaluationFormVersion ?? EvaluationVersionFor::run($submission, $form);
+        $version->load(['reviewFormFields' => fn (Relation $fields) => $fields->with([
+            'fieldType:id,name',
+            'reviewFormFieldOptions' => fn (Relation $options) => $options->orderBy('order'),
+        ])]);
         $state = $this->state($started);
         $answers = [];
 
@@ -85,7 +95,7 @@ class ReviewerEvaluation implements ChangesNoState
             assignmentId: $started?->id,
             title: $form->title,
             description: $form->description,
-            required: $form->is_required,
+            required: $step->is_required,
             state: $state,
             dueDate: $started?->due_date?->toISOString(),
             submittedAt: $response?->submitted_at?->toISOString(),
@@ -93,7 +103,7 @@ class ReviewerEvaluation implements ChangesNoState
             // Sisa Policy `evaluate` setelah penjagaan controller hanyalah tenggat, yang sudah
             // terbaca di `state` (BR-FE-17); terkirim dan terkunci tak bisa disunting (BR-REV-08).
             canEdit: in_array($state, ['not_started', 'draft'], true),
-            fields: array_values($form->reviewFormFields
+            fields: array_values($version->reviewFormFields
                 ->map(fn (ReviewFormField $field): WizardFieldData => $this->field($field, $answers[$field->id] ?? null))
                 ->all()),
         );
