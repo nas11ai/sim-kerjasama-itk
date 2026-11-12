@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Link } from '@inertiajs/vue3'
-import { CalendarClock, ClipboardList, Pencil, Trash2, X } from 'lucide-vue-next'
+import { CalendarClock, ClipboardList, ListChecks, Pencil, Trash2, X } from 'lucide-vue-next'
 
 import DataTable from '@/Components/app/DataTable.vue'
 import EmptyState from '@/Components/app/EmptyState.vue'
@@ -54,9 +54,15 @@ const columns = [
             <span v-else>{{ row.submittedCount }}</span>
         </template>
         <template #cell-status="{ row }">
-            <Badge :variant="row.status.value === 'active' ? 'success' : 'outline'">{{
-                row.status.label
-            }}</Badge>
+            <div class="flex flex-col items-start gap-1">
+                <Badge :variant="row.status.value === 'active' ? 'success' : 'outline'">{{
+                    row.status.label
+                }}</Badge>
+                <!-- BR-FE-36 — angkatan yang punya isu memblokir; `pending` sudah menerima pengajuan -->
+                <Badge v-if="row.unreadyCohortCount > 0" variant="destructive"
+                    >{{ row.unreadyCohortCount }} angkatan belum siap</Badge
+                >
+            </div>
         </template>
         <template #cell-action="{ row }">
             <div class="flex justify-end gap-2">
@@ -64,6 +70,12 @@ const columns = [
                 <Button as-child size="sm" variant="ghost">
                     <Link :href="route('admin.submission-periods.evaluation-versions', row.id)"
                         ><ClipboardList class="size-4" />Versi Form Evaluasi</Link
+                    >
+                </Button>
+                <!-- BR-FE-36 — daftar cek kesiapan tiap angkatan periode ini -->
+                <Button as-child size="sm" variant="ghost">
+                    <Link :href="route('admin.submission-periods.readiness', row.id)"
+                        ><ListChecks class="size-4" />Kesiapan</Link
                     >
                 </Button>
                 <Button size="sm" variant="outline" @click="emit('edit', row)"

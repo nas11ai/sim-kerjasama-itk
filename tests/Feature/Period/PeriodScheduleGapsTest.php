@@ -20,40 +20,12 @@ use App\Models\SubmissionPeriod;
 use App\Models\SubmissionReviewer;
 use App\Models\User;
 use App\Queries\Form\PhaseLibrary;
-use App\Queries\Period\PeriodScheduleGaps;
 use Illuminate\Support\Carbon;
 
 function gapPhase(string $title = 'Fase Celah'): FormPhase
 {
     return FormPhase::create(['title' => $title, 'is_active' => true]);
 }
-
-it('[FE-WINDOW-08] mendaftar celah Batas Evaluasi langkah yang direview', function () {
-    $phase = gapPhase();
-    $step = scheduleStep($phase, needsReview: true);
-    $period = schedulePeriod($phase, 'Periode A');
-    calendarDate($period, DeadlineType::Submit, now()->addWeek());
-
-    expect(PeriodScheduleGaps::run($period))->toBe([
-        ['phase' => 'Fase Celah', 'step' => 1, 'label' => 'Batas Evaluasi'],
-    ]);
-
-    $form = $step->formAccessControl?->form;
-    expect($form)->not->toBeNull();
-    $card = collect(PhaseLibrary::run($form))->firstWhere('id', $phase->id);
-
-    expect($card?->deadlineGaps)->toBe([['period' => 'Periode A', 'count' => 1]]);
-});
-
-it('mendaftar tanggal kerja yang hilang, tetapi tidak Batas Evaluasi langkah yang tidak direview', function () {
-    $phase = gapPhase();
-    scheduleStep($phase, cycle: 1, needsReview: false, order: 3);
-    $period = schedulePeriod($phase, 'Periode B');
-
-    expect(PeriodScheduleGaps::run($period))->toBe([
-        ['phase' => 'Fase Celah', 'step' => 3, 'label' => 'Batas Laporan Monev I'],
-    ]);
-});
 
 it('menghitung tanggal, bukan langkah: dua langkah bersiklus sama berbagi satu celah', function () {
     $phase = gapPhase();

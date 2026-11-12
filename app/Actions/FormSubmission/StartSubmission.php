@@ -10,6 +10,7 @@ use App\Models\FormSubmission;
 use App\Models\SubmissionPeriod;
 use App\Models\SubmissionPeriodPhase;
 use App\Models\User;
+use App\Queries\Period\CohortReadiness;
 use App\Support\AccountStateGuard;
 use App\Support\Audit\AuditTrail;
 use App\Support\SubmissionPeriodGate;
@@ -115,6 +116,15 @@ class StartSubmission
 
         if (!$linked) {
             throw ValidationException::withMessages(['form_phase_id' => 'Tahap ini tidak dibuka di periode ini.']);
+        }
+
+        // BR-FE-36 — angkatan belum berjalan dengan isu memblokir menolak pengajuan baru.
+        $readiness = CohortReadiness::run([$submissionPeriodId])[CohortReadiness::key($submissionPeriodId, $detail->form_phase_id)] ?? null;
+
+        if ($readiness?->blocksNewSubmissions() === true) {
+            throw ValidationException::withMessages([
+                'form_phase_id' => 'Tahap ini belum siap menerima pengajuan di periode ini. Hubungi Operator LPPM.',
+            ]);
         }
     }
 }

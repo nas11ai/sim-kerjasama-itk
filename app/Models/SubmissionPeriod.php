@@ -70,8 +70,11 @@ class SubmissionPeriod extends Model
         };
     }
 
-    /** BR-FE-25 — paling banyak satu tanggal per (jenis, siklus); dibaca dari relasi yang dimuat. */
-    private function calendarDate(DeadlineType $type, ?int $cycle): ?SubmissionDate
+    /**
+     * BR-FE-25 — paling banyak satu tanggal per (jenis, siklus); dibaca dari relasi yang dimuat.
+     * Tanpa jatuh-balik Batas Revisi: cek urutan BR-FE-36 membandingkan tanggal yang benar-benar ada.
+     */
+    public function calendarDate(DeadlineType $type, ?int $cycle): ?SubmissionDate
     {
         $this->loadMissing('submissionDates');
 

@@ -4,14 +4,15 @@ namespace App\Queries\Submission;
 
 use App\Actions\Concerns\ChangesNoState;
 use App\Actions\FormSubmission\ResolveWizardSubmission;
+use App\Data\View\Period\CohortReadinessData;
 use App\Data\View\Submission\Wizard\StartFormOptionData;
 use App\Data\View\Submission\Wizard\StartPeriodOptionData;
-use App\Models\Form;
 use App\Models\FormAccessControl;
 use App\Models\FormPhase;
 use App\Models\FormPhaseDetail;
 use App\Models\SubmissionPeriod;
 use App\Models\User;
+use App\Queries\Period\CohortReadiness;
 use App\Support\SubmissionPeriodGate;
 use Illuminate\Database\Eloquent\Relations\Relation;
 use Lorisleiva\Actions\Concerns\AsAction;
@@ -48,10 +49,12 @@ class ResearcherStartOptions implements ChangesNoState
             ->get()
             ->filter(fn (SubmissionPeriod $period): bool => SubmissionPeriodGate::isOpen($period));
 
+        // BR-FE-36 — dinilai pada semua langkah angkatan, bukan relasi tersaring akses di atas.
+        $readiness = CohortReadiness::run(array_values($periods->map(fn (SubmissionPeriod $period): int => $period->id)->all()));
         $options = [];
 
         foreach ($periods as $period) {
-            $forms = $this->forms($period, $user);
+            $forms = $this->forms($period, $user, $readiness);
 
             if ($forms !== []) {
                 $options[] = new StartPeriodOptionData(
@@ -69,9 +72,10 @@ class ResearcherStartOptions implements ChangesNoState
     /**
      * Satu form bisa terbuka lewat dua kontrol akses (ADR 0013); ditawarkan sekali.
      *
+     * @param  array<string, CohortReadinessData>  $readiness
      * @return list<StartFormOptionData>
      */
-    private function forms(SubmissionPeriod $period, User $user): array
+    private function forms(SubmissionPeriod $period, User $user, array $readiness): array
     {
         $forms = [];
         foreach ($period->submissionPeriodPhases as $periodPhase) {
@@ -81,8 +85,11 @@ class ResearcherStartOptions implements ChangesNoState
                 continue;
             }
 
+            // BR-FE-20 — tahap nonaktif; BR-FE-36 — angkatan belum siap.
+            $closed = !$phase->is_active || ($readiness[CohortReadiness::key($period->id, $phase->id)] ?? null)?->blocksNewSubmissions() === true;
+
             foreach ($this->cohortSteps($period, $phase) as $detail) {
-                $option = $this->offer($detail, $phase, $period, $user);
+                $option = $this->offer($detail, $period, $user, $closed);
 
                 // Cek sudah-ditawarkan sesudah semua lewati, supaya detail lain Form ini tetap terpilih.
                 if ($option !== null && !isset($forms[$option->formId])) {
@@ -106,7 +113,7 @@ class ResearcherStartOptions implements ChangesNoState
         return ($pin->formPhaseVersion ?? $phase->latestVersion)->formPhaseDetails ?? [];
     }
 
-    private function offer(FormPhaseDetail $detail, FormPhase $phase, SubmissionPeriod $period, User $user): ?StartFormOptionData
+    private function offer(FormPhaseDetail $detail, SubmissionPeriod $period, User $user, bool $cohortClosed): ?StartFormOptionData
     {
         $form = $detail->formAccessControl?->form;
 
@@ -117,9 +124,9 @@ class ResearcherStartOptions implements ChangesNoState
 
         $draftId = $this->draftId($form->id, $period, $user);
 
-        // R1-W2 — `forms()` hanya melintasi tahap yang ditautkan periode ini; tanggalnya milik
-        // periode (BR-FE-26), jadi tak ada lagi tenggat "milik periode lain" yang dilewati.
-        if ($this->isClosedToNewSubmissions($form, $phase) && $draftId === null) {
+        // R1-W2 — `forms()` hanya melintasi tahap tertaut periode ini (tanggalnya milik periode, BR-FE-26).
+        // BR-FE-19 / W77 — Form nonaktif atau angkatan tertutup hanya ditawarkan bila ada draft di sana.
+        if ((!$form->is_active || $cohortClosed) && $draftId === null) {
             return null;
         }
 
@@ -129,12 +136,6 @@ class ResearcherStartOptions implements ChangesNoState
             title: $form->title,
             draftId: $draftId,
         );
-    }
-
-    // BR-FE-19 / BR-FE-20 / W77 — Form atau tahap nonaktif hanya ditawarkan bila peneliti punya draft di sana.
-    private function isClosedToNewSubmissions(Form $form, FormPhase $phase): bool
-    {
-        return !$form->is_active || !$phase->is_active;
     }
 
     private function draftId(int $formId, SubmissionPeriod $period, User $user): ?int

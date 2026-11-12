@@ -50,10 +50,11 @@ class SubmissionPeriodList implements ChangesNoState
 
         $this->filter($query, $filters);
 
+        $page = $query->paginate(self::PER_PAGE)->withQueryString();
+        $unready = $this->unreadyCohortCounts(array_values(array_map(fn (SubmissionPeriod $period): int => $period->id, $page->items())));
+
         return [
-            'periods' => $query->paginate(self::PER_PAGE)
-                ->withQueryString()
-                ->through(fn (SubmissionPeriod $period): PeriodRowData => PeriodRowData::fromModel($period)),
+            'periods' => $page->through(fn (SubmissionPeriod $period): PeriodRowData => PeriodRowData::fromModel($period, $unready[$period->id] ?? 0)),
             'statusOptions' => array_map(fn (PeriodStatus $s): array => $s->option(), PeriodStatus::cases()),
             'yearOptions' => $this->yearOptions(),
             'typeOptions' => array_map(
@@ -62,6 +63,25 @@ class SubmissionPeriodList implements ChangesNoState
             ),
             'phaseOptions' => $this->phaseOptions(),
         ];
+    }
+
+    /**
+     * BR-FE-36, G4-W7 — angkatan `blocked` + `needs_fix` per periode, satu penilaian untuk satu halaman.
+     *
+     * @param  list<int>  $periodIds
+     * @return array<int, int>
+     */
+    private function unreadyCohortCounts(array $periodIds): array
+    {
+        $counts = [];
+
+        foreach (CohortReadiness::run($periodIds) as $cohort) {
+            if ($cohort->hasBlockingIssues()) {
+                $counts[$cohort->periodId] = ($counts[$cohort->periodId] ?? 0) + 1;
+            }
+        }
+
+        return $counts;
     }
 
     /**

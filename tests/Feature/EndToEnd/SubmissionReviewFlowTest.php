@@ -16,6 +16,7 @@
 // hijau tetap bisa menyisakan aplikasi yang tidak jalan — persis keadaan
 // sebelum Action M2 disambungkan ke controller.
 
+use App\Enums\DeadlineType;
 use App\Models\FieldType;
 use App\Models\FormField;
 use App\Models\FormSubmission;
@@ -64,6 +65,8 @@ it('menyusuri alur pengajuan sampai disetujui lewat HTTP', function () {
     $fx['detail'] = restep($fx['detail'], ['needs_review' => true]);
     // Fase punya lembar penilaian, jadi kursi reviewer menunggu evaluasi (bukan `not_required`).
     evaluationFormOn($fx['detail'], [], title: 'Substansi');
+    // BR-FE-36 — langkah Pengajuan yang direview butuh Batas Evaluasi supaya angkatannya siap.
+    calendarDate($fx['period'], DeadlineType::Evaluation, now()->addWeeks(3));
 
     $textType = FieldType::firstOrCreate(['name' => 'text']);
     $judul = FormField::create([

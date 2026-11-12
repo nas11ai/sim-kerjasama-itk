@@ -32,14 +32,15 @@ final class PeriodRowData extends Data
         public int $draftOwnerCount,
         public bool $closable,
         public array $deleteBlockers,
+        public int $unreadyCohortCount,
     ) {}
 
     /**
-     * Relasi tanggal, tahap, dan `submitted_count` dimuat SubmissionPeriodList. Rujukan
-     * dan pemilik draft dibaca lewat Query yang juga dipakai penegaknya (BR-FE-21,
+     * Relasi, `submitted_count`, dan angkatan belum siap (BR-FE-36) dari SubmissionPeriodList.
+     * Rujukan dan pemilik draft dibaca lewat Query yang juga dipakai penegaknya (BR-FE-21,
      * BR-SCH-08), bukan salinannya — beberapa kueri per baris di layar admin.
      */
-    public static function fromModel(SubmissionPeriod $period): self
+    public static function fromModel(SubmissionPeriod $period, int $unreadyCohortCount): self
     {
         $status = PeriodStatus::of($period);
 
@@ -58,6 +59,7 @@ final class PeriodRowData extends Data
             draftOwnerCount: PeriodDraftOwners::run($period)->count(),
             closable: $status->closable(),
             deleteBlockers: self::blockers($period),
+            unreadyCohortCount: $unreadyCohortCount,
         );
     }
 

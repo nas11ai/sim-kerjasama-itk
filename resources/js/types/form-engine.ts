@@ -32,6 +32,8 @@ export interface PeriodRowData {
     draftOwnerCount: number
     closable: boolean
     deleteBlockers: { label: string; count: number }[]
+    // BR-FE-36 — angkatan `blocked` + `needs_fix` periode ini.
+    unreadyCohortCount: number
 }
 
 // Sumber: App\Data\View\FormEngine\CohortEvaluationVersionData — BR-REV-18, BR-REV-19.
@@ -54,6 +56,31 @@ export interface CohortEvaluationVersion {
 export interface PastDeadlineSubmission {
     submissionId: number
     researcherName: string
+}
+
+// Sumber: App\Data\View\Period\ReadinessCheckData — BR-FE-36. `blocking` = dibutuhkan sekarang (G4-W8).
+export interface ReadinessCheck {
+    check: 'missing_date' | 'date_order' | 'required_evaluation_form'
+    title: string
+    issues: { message: string; blocking: boolean }[]
+    state: 'passed' | 'warning' | 'failed'
+}
+
+// Sumber: App\Data\View\Period\CohortReadinessData — BR-FE-36.
+export interface CohortReadiness {
+    periodId: number
+    phaseId: number
+    phaseTitle: string
+    versionLabel: string | null
+    running: boolean
+    status: 'ready' | 'pending' | 'blocked' | 'needs_fix'
+    checks: ReadinessCheck[]
+}
+
+// Sumber: FormEngine\CohortReadinessController::index.
+export interface PeriodReadinessPageProps {
+    period: { id: number; name: string }
+    cohorts: CohortReadiness[]
 }
 
 // Sumber: FormEngine\CohortEvaluationVersionController::index.

@@ -15,43 +15,14 @@ use App\Queries\Form\PhaseVersionFor;
 use App\Support\SubmissionPeriodGate;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Support\Collection;
-use Lorisleiva\Actions\Concerns\AsAction;
 
 /**
  * BR-FE-26 (ADR 0019) — celah jadwal: tanggal yang dibutuhkan langkah fase tertaut tetapi belum ada
- * di kalender periode. Tanggal kerja yang hilang menutup langkahnya; Batas Evaluasi yang hilang
- * membuat evaluasi langkah yang direview tak bertenggat. Keduanya dilaporkan.
- *
- * @method static list<array{phase: string, step: int, label: string}> run(SubmissionPeriod $period)
+ * di kalender periode, untuk kartu fase dan tautan periode. Daftar per angkatan (memblokir atau
+ * peringatan) milik CohortReadiness (BR-FE-36).
  */
 class PeriodScheduleGaps implements ChangesNoState
 {
-    use AsAction;
-
-    /** @return list<array{phase: string, step: int, label: string}> */
-    public function handle(SubmissionPeriod $period): array
-    {
-        $phases = FormPhase::query()
-            ->whereIn('id', $period->submissionPeriodPhases()->select('form_phase_id'))
-            ->orderBy('id')
-            ->get();
-        $steps = $phases->flatMap(fn (FormPhase $phase): array => self::cohortSteps($period, $phase));
-
-        $gaps = [];
-
-        foreach ($steps as $step) {
-            foreach (self::missingTypes($period, $step) as $type) {
-                $gaps[] = [
-                    'phase' => $step->formPhase->title ?? '',
-                    'step' => $step->order,
-                    'label' => $type->label($step->deadline_cycle),
-                ];
-            }
-        }
-
-        return $gaps;
-    }
-
     /**
      * Kartu fase ADMIN-08-08: per periode tertaut, banyak tanggal (bukan langkah) yang masih kurang.
      * Periode yang sudah tutup sepenuhnya hanya dikejar bila fase itu punya pengajuan di sana.
@@ -187,8 +158,12 @@ class PeriodScheduleGaps implements ChangesNoState
         return count($keys);
     }
 
-    /** @return list<DeadlineType> */
-    private static function missingTypes(SubmissionPeriod $period, FormPhaseDetail $step): array
+    /**
+     * Tanggal kerja langkah, ditambah Batas Evaluasi bila direview, yang belum ada di kalender `$period`.
+     *
+     * @return list<DeadlineType>
+     */
+    public static function missingTypes(SubmissionPeriod $period, FormPhaseDetail $step): array
     {
         $needed = $step->needs_review ? [$step->deadline_type, DeadlineType::Evaluation] : [$step->deadline_type];
 

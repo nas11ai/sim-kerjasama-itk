@@ -83,7 +83,9 @@ it('kontrak layar periode', function () {
                 ->where('submittedCount', 0)
                 ->where('draftOwnerCount', 0)
                 ->where('closable', true)
-                ->where('deleteBlockers', []))
+                ->where('deleteBlockers', [])
+                // BR-FE-36 — Versi 1 tanpa langkah: tidak ada isu, jadi tidak ada angkatan belum siap.
+                ->where('unreadyCohortCount', 0))
             ->where('filters', ['search' => '', 'status' => '', 'year' => ''])
             ->has('statusOptions', 4)
             ->has('yearOptions')

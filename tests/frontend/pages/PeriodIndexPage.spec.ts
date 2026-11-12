@@ -66,6 +66,7 @@ const periodRow = (overrides: Partial<PeriodRowData> = {}): PeriodRowData => ({
     draftOwnerCount: 3,
     closable: true,
     deleteBlockers: [],
+    unreadyCohortCount: 0,
     ...overrides,
 })
 
@@ -176,6 +177,20 @@ describe('FormEngine/PeriodIndexPage', () => {
             'a[href="/admin.submission-periods.evaluation-versions/4"]'
         )
         expect(link.text()).toContain('Versi Form Evaluasi')
+    })
+
+    it('[FE-READY-06] tiap baris menaut ke Kesiapan periodenya', () => {
+        const link = mountPage([periodRow()]).find(
+            'a[href="/admin.submission-periods.readiness/4"]'
+        )
+        expect(link.text()).toContain('Kesiapan')
+    })
+
+    it('[FE-READY-06] lencana angkatan belum siap hanya tampil bila ada', () => {
+        expect(mountPage([periodRow({ unreadyCohortCount: 2 })]).text()).toContain(
+            '2 angkatan belum siap'
+        )
+        expect(mountPage([periodRow()]).text()).not.toContain('angkatan belum siap')
     })
 
     it('[SCH-RULE-13] banner tanpa peneliti saat flash 0', () => {

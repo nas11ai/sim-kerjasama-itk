@@ -206,6 +206,8 @@ it('keeps a step evaluation form on the version that was assigned', function () 
         [$this->proposalAccess->id, null, true, [new StepEvaluationFormInput($form->id, isRequired: true, isActive: true)]],
         [$this->reportAccess->id, 1],
     ], $this->phaseType), $this->admin);
+    // BR-FE-36 — langkah Pengajuan yang direview butuh Batas Evaluasi supaya angkatannya siap.
+    calendarDate($this->p2025, DeadlineType::Evaluation, now()->addWeeks(2));
     $submission = startIn($this, $this->p2025);
     $attached = submissionStepOf($v2)->stepEvaluationForms()->sole();
     $assignment = ReviewerFormAssignment::create([

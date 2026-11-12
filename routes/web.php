@@ -6,6 +6,7 @@ use App\Http\Controllers\Config\ReferenceEntityController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Export\DocumentPrintController;
 use App\Http\Controllers\FormEngine\CohortEvaluationVersionController;
+use App\Http\Controllers\FormEngine\CohortReadinessController;
 use App\Http\Controllers\FormEngine\EvaluationFormController;
 use App\Http\Controllers\FormEngine\EvaluationFormDraftController;
 use App\Http\Controllers\FormEngine\FormAccessController;
@@ -413,6 +414,9 @@ Route::middleware(['auth', 'can:periods.manage'])->prefix('admin')->name('admin.
         ->name('submission-periods.evaluation-versions');
     Route::post('/evaluation-form-pins/{evaluationFormPin}/apply', [CohortEvaluationVersionController::class, 'apply'])
         ->name('evaluation-form-pins.apply');
+    // BR-FE-36 — daftar cek kesiapan tiap angkatan periode.
+    Route::get('/submission-periods/{submissionPeriod}/readiness', [CohortReadinessController::class, 'index'])
+        ->name('submission-periods.readiness');
 });
 
 Route::middleware(['auth', 'can:periods.manage'])->get('/submission-periods', fn () => redirect()->route('admin.submission-periods.index'));
