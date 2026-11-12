@@ -46,6 +46,14 @@ export interface CohortEvaluationVersion {
     responseCount: number
     decidedCount: number
     canApply: boolean
+    // K-3 (b) — reviewer-nya terkunci Batas Evaluasi sampai Operator memberi perpanjangan.
+    pastDeadline: PastDeadlineSubmission[]
+}
+
+// Sumber: App\Data\View\FormEngine\PastDeadlineSubmissionData.
+export interface PastDeadlineSubmission {
+    submissionId: number
+    researcherName: string
 }
 
 // Sumber: FormEngine\CohortEvaluationVersionController::index.

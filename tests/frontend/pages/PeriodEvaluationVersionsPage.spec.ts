@@ -37,6 +37,7 @@ const row = (overrides: Partial<CohortEvaluationVersion> = {}): CohortEvaluation
     responseCount: 3,
     decidedCount: 0,
     canApply: true,
+    pastDeadline: [],
     ...overrides,
 })
 
@@ -123,6 +124,22 @@ describe('FormEngine/PeriodEvaluationVersionsPage', () => {
             '/admin.evaluation-form-pins.apply/7',
             {},
             expect.any(Object)
+        )
+    })
+
+    it('[REV-VER-10] pengajuan lewat Batas Evaluasi disebut di baris dan di konfirmasi, bertaut ke halaman perpanjangannya', async () => {
+        mountPage([row({ pastDeadline: [{ submissionId: 41, researcherName: 'Budi Santoso' }] })])
+
+        expect(wrapper.text()).toContain('Lewat Batas Evaluasi tanpa perpanjangan:')
+        buttons('Terapkan Versi 2')[0]?.click()
+        await flushPromises()
+
+        const dialog = document.querySelector('[role="dialog"]')
+        expect(dialog?.textContent).toContain(
+            '1 pengajuan sudah lewat Batas Evaluasi. Reviewer-nya baru bisa mengisi ulang setelah diberi perpanjangan di halaman pengajuan:'
+        )
+        expect(dialog?.querySelector('a[href="/admin.submissions.show/41"]')?.textContent).toBe(
+            'Budi Santoso'
         )
     })
 

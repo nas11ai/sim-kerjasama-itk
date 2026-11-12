@@ -11,6 +11,7 @@ use Spatie\LaravelData\Data;
  */
 final class CohortEvaluationVersionData extends Data
 {
+    /** @param  list<PastDeadlineSubmissionData>  $pastDeadline */
     public function __construct(
         public string $phaseTitle,
         public string $stepLabel,
@@ -21,5 +22,6 @@ final class CohortEvaluationVersionData extends Data
         public int $responseCount,
         public int $decidedCount,
         public bool $canApply,
+        public array $pastDeadline,
     ) {}
 }

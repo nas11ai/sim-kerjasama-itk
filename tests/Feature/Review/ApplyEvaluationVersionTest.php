@@ -17,6 +17,7 @@ use App\Models\FieldType;
 use App\Models\FormPhase;
 use App\Models\FormPhaseDetail;
 use App\Models\FormSubmission;
+use App\Models\FormSubmissionOverride;
 use App\Models\ReviewerFormAssignment;
 use App\Models\ReviewEvaluationForm;
 use App\Models\ReviewEvaluationFormVersion;
@@ -25,6 +26,7 @@ use App\Models\StepEvaluationForm;
 use App\Models\SubmissionPeriod;
 use App\Models\User;
 use App\Notifications\EvaluationVersionAppliedNotification;
+use App\Queries\Period\CohortEvaluationVersions;
 use App\Queries\Review\DecisionReadiness;
 use App\Queries\Review\SubmittedEvaluationSheets;
 use App\Queries\Review\VisibleReviewerScores;
@@ -282,6 +284,36 @@ it('reopens a later round that already finished ready and seats the reopened rev
         ->toBe(collect([$sari->id, $budi->submission_reviewer_id])->sort()->values()->all());
 });
 
+it('[REV-VER-10] names the submissions past their evaluation deadline until they get an extension', function () {
+    $late = applySubmission($this->step, $this->p2025);
+    $sari = applySubmitted(applySeat($late, $this->form));
+    $sari->update(['due_date' => now()->subDay()]);
+    applySubmitted(applySeat(applySubmission($this->step, $this->p2025), $this->form))->update(['due_date' => now()->addWeek()]);
+    applyVersion2($this->form);
+    $pastDeadline = fn (): array => array_map(
+        fn ($row): array => $row->toArray(),
+        CohortEvaluationVersions::run($this->p2025)[0]->pastDeadline,
+    );
+    $expected = [['submissionId' => $late->id, 'researcherName' => $late->submittedBy->name]];
+
+    expect($pastDeadline())->toBe($expected);
+
+    // K-3 (b) — Apply tetap boleh dan tidak menggeser tenggat; reviewer-nya terkunci sampai diberi perpanjangan.
+    ApplyLatestEvaluationVersion::run(cohortPin($this->p2025, $this->step, $this->form), $this->operator);
+    expect($pastDeadline())->toBe($expected)
+        ->and($sari->refresh()->due_date?->isPast())->toBeTrue()
+        ->and($sari->isClosedByDeadline())->toBeTrue();
+
+    FormSubmissionOverride::create([
+        'form_submission_id' => $late->id,
+        'form_phase_detail_id' => $this->step->id,
+        'granted_by' => $this->operator->id,
+        'reason' => 'Lembar penilaian diganti',
+        'is_active' => true,
+    ]);
+    expect($pastDeadline())->toBe([]);
+});
+
 it('hides superseded answers from the researcher but shows them to the operator', function () {
     $submission = applySubmission($this->step, $this->p2025);
     $sari = applySubmitted(applySeat($submission, $this->form));
@@ -315,7 +347,7 @@ it('lists each reviewed step of the period with its pinned and latest version', 
             ->where('rows.0', [
                 'phaseTitle' => 'Penelitian DIPA', 'stepLabel' => 'Pengajuan', 'formTitle' => 'Lembar Proposal',
                 'pinId' => $pin->id, 'pinnedLabel' => 'Versi 1', 'latestLabel' => 'Versi 2',
-                'responseCount' => 2, 'decidedCount' => 0, 'canApply' => true,
+                'responseCount' => 2, 'decidedCount' => 0, 'canApply' => true, 'pastDeadline' => [],
             ])
             ->where('rows.1.pinId', null)
             ->where('rows.1.pinnedLabel', null)

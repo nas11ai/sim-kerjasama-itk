@@ -20,7 +20,7 @@ Peta irisan: `docs/plans/2026-11-10-fase-reuse-roadmap.md`.
 
 ## Butuh keputusan pemilik
 
-- **K-3 (review akhir G2, Important #4)** — Apply sesudah Batas Evaluasi: jawaban dibuka ulang, tetapi penugasan yang tenggatnya lewat terkunci (`isClosedByDeadline`), jadi reviewer tak bisa mengisi ulang dan pengajuan tak bisa disetujui tanpa override. Pilihan: (a) tolak Apply dengan pesan, (b) peringatan di layar + konfirmasi dengan tautan override, (c) Apply memperpanjang `due_date` penugasan tersentuh. Rekomendasi: (b) — tidak mengubah tenggat diam-diam.
+Belum ada.
 
 ## Selesai
 
@@ -42,3 +42,4 @@ Peta irisan: `docs/plans/2026-11-10-fase-reuse-roadmap.md`.
 | B7  | Review akhir G2: pengajuan `Withdrawn` (hanya dari Approved) tidak dihitung diputuskan, jadi Apply membuka ulang lembarnya. Sekarang ikut `DECIDED`.                                                          | commit `fix(review): perbaiki temuan review akhir G2`                |
 | B8  | Review akhir G2: kursi yang dibuka ulang tidak ada di putaran 2 (reviewer ditambah sesudah putaran 1 `ready`) — Setujui lolos atau putaran macet. Sekarang kursinya didudukkan sebagai penilai belum Selesai. | commit `fix(review): perbaiki temuan review akhir G2`                |
 | B9  | Review akhir G2: alasan "Tidak bisa diterapkan" di baris belum terpaku, relasi mati `FormSubmission::reviewFormResponses()`, controller apply tanpa `ResolvesActor`. Ketiganya dibereskan.                    | commit `fix(review): perbaiki temuan review akhir G2`                |
+| K-3 | Apply sesudah Batas Evaluasi mengunci reviewer yang dibuka ulang. Pemilik memilih (b) (2026-11-12): tenggat tidak digeser; baris dan konfirmasi Terapkan menyebut pengajuan yang lewat tenggat tanpa perpanjangan, bertaut ke halamannya (REV-VER-10). | commit `feat(review): peringatkan pengajuan lewat Batas Evaluasi saat Terapkan` |

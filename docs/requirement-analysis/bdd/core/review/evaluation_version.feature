@@ -85,3 +85,16 @@ Feature: Versi Form Evaluasi yang Dipaku per Angkatan
     When Operator menerapkan Versi 2 ke angkatan "2025"
     Then angkatan "2026" tetap memakai Versi 1
     And penilaian "Dodi" tetap terkirim
+
+  # K-3 (b), pemilik 2026-11-12 — Terapkan tidak menggeser Batas Evaluasi; Operator diperingatkan
+  # dan memberi perpanjangan per pengajuan (BR-FE-27).
+  @BR-REV-19 @M2 @OPERATOR-09-01 @boundary
+  Scenario: [REV-VER-10] Pengajuan yang Batas Evaluasinya lewat disebut sebelum dan sesudah Terapkan
+    Given "Sari" mengirim penilaian "P-001" di angkatan "2025" pada Versi 1
+    And Batas Evaluasi penugasan "Sari" atas "P-001" sudah lewat
+    And Admin menerbitkan "Lembar Proposal" Versi 2
+    When Operator membuka konfirmasi Terapkan Versi 2 ke angkatan "2025"
+    Then Operator melihat peringatan "1 pengajuan sudah lewat Batas Evaluasi" bertaut ke "P-001"
+    When Operator menerapkan Versi 2 ke angkatan "2025"
+    Then Batas Evaluasi penugasan "Sari" tidak berubah dan ia belum bisa mengisi ulang
+    And "P-001" tetap disebut sampai Operator memberi perpanjangan

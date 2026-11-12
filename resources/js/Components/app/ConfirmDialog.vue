@@ -34,6 +34,7 @@ const changeOpen = useLockedOpen(open, () => props.processing)
                 <DialogTitle>{{ title }}</DialogTitle>
                 <DialogDescription>{{ description }}</DialogDescription>
             </DialogHeader>
+            <slot />
             <DialogFooter>
                 <Button
                     variant="outline"

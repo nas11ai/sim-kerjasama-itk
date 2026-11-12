@@ -4,12 +4,15 @@ namespace App\Queries\Period;
 
 use App\Actions\Concerns\ChangesNoState;
 use App\Data\View\FormEngine\CohortEvaluationVersionData;
+use App\Data\View\FormEngine\PastDeadlineSubmissionData;
 use App\Models\EvaluationFormPin;
 use App\Models\FormPhaseDetail;
+use App\Models\FormSubmission;
 use App\Models\ReviewFormResponse;
 use App\Models\StepEvaluationForm;
 use App\Models\SubmissionPeriod;
 use App\Queries\Review\DecidedSubmissionsAtStep;
+use App\Queries\Review\SubmissionsPastEvaluationDeadline;
 use Illuminate\Database\Eloquent\Builder;
 use Lorisleiva\Actions\Concerns\AsAction;
 
@@ -74,7 +77,23 @@ class CohortEvaluationVersions implements ChangesNoState
             decidedCount: $decided,
             // BR-REV-19 — hanya angkatan yang terpaku ke versi lama dan belum ada yang diputuskan.
             canApply: $pin !== null && $latest !== null && $pin->review_evaluation_form_version_id !== $latest->id && $decided === 0,
+            pastDeadline: $pin === null ? [] : $this->pastDeadline($pin),
         );
+    }
+
+    /**
+     * K-3 (b) — Apply tidak menggeser tenggat; layar menyebut pengajuan yang butuh perpanjangan.
+     *
+     * @return list<PastDeadlineSubmissionData>
+     */
+    private function pastDeadline(EvaluationFormPin $pin): array
+    {
+        return array_values(SubmissionsPastEvaluationDeadline::run($pin)
+            ->map(fn (FormSubmission $submission): PastDeadlineSubmissionData => new PastDeadlineSubmissionData(
+                $submission->id,
+                $submission->submittedBy->name,
+            ))
+            ->all());
     }
 
     private function decidedAt(SubmissionPeriod $period, FormPhaseDetail $detail): int

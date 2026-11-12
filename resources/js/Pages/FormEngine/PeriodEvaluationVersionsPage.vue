@@ -9,6 +9,7 @@ import ConfirmDialog from '@/Components/app/ConfirmDialog.vue'
 import DataTable from '@/Components/app/DataTable.vue'
 import EmptyState from '@/Components/app/EmptyState.vue'
 import PageHeader from '@/Components/app/PageHeader.vue'
+import PastDeadlineLinks from '@/Components/FormEngine/PastDeadlineLinks.vue'
 import { Badge } from '@/Components/ui/badge'
 import { Button } from '@/Components/ui/button'
 import AppLayout from '@/Layouts/AppLayout.vue'
@@ -101,6 +102,14 @@ const apply = () => {
                             {{ row.responseCount }} penilaian</span
                         >
                     </div>
+                    <!-- K-3 (b) — tenggat tidak digeser; perpanjangan diberi per pengajuan -->
+                    <p
+                        v-if="row.pinnedLabel !== null && row.pastDeadline.length > 0"
+                        class="mt-1 text-sm text-muted-foreground"
+                    >
+                        Lewat Batas Evaluasi tanpa perpanjangan:
+                        <PastDeadlineLinks :submissions="row.pastDeadline" />
+                    </p>
                 </template>
                 <template #cell-action="{ row }">
                     <div class="flex justify-end">
@@ -141,5 +150,11 @@ const apply = () => {
         :confirm-label="`Terapkan ${target?.latestLabel ?? ''}`"
         :processing="processing"
         @confirm="apply"
-    />
+    >
+        <AppBanner v-if="target !== null && target.pastDeadline.length > 0" tone="warning">
+            {{ target.pastDeadline.length }} pengajuan sudah lewat Batas Evaluasi. Reviewer-nya baru
+            bisa mengisi ulang setelah diberi perpanjangan di halaman pengajuan:
+            <PastDeadlineLinks :submissions="target.pastDeadline" />
+        </AppBanner>
+    </ConfirmDialog>
 </template>
