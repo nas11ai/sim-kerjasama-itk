@@ -25,6 +25,10 @@ class ReviseSubmissionPeriod
     public function handle(SubmissionPeriod $period, SubmissionPeriodInput $input, User $actor): DeadlineExtension
     {
         return DB::transaction(function () use ($period, $input, $actor): DeadlineExtension {
+            // BR-FE-29 — sama dengan LinkPhaseToPeriod: kunci baris periode, lalu periksa daftar baru.
+            SubmissionPeriod::query()->whereKey($period->id)->lockForUpdate()->first();
+            AssertOnePhasePerSubmissionForm::run($input->formPhaseIds, 'form_phase_ids');
+
             $old = [
                 'name' => $period->name,
                 'form_phase_ids' => $period->submissionPeriodPhases()->pluck('form_phase_id')->all(),

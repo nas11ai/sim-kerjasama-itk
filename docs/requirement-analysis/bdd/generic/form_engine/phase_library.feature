@@ -3,7 +3,9 @@ Feature: Satu Form Pengajuan per Tahap
   melayani tepat satu Form pengajuan, dan langkah pertamanya adalah langkah Pengajuan
   — jenis "Batas Submit" tanpa siklus (BR-FE-28). Yang dihitung Form-nya, bukan aturan
   aksesnya: satu Form yang dibuka untuk dua fakultas tetap satu Form pengajuan. Tanpa
-  aturan ini siklus monev sebuah pengajuan bisa memuat langkah milik Form lain.
+  aturan ini siklus monev sebuah pengajuan bisa memuat langkah milik Form lain. Sebaliknya,
+  satu periode hanya menautkan satu tahap per Form pengajuan (BR-FE-29), karena peneliti
+  memilih Form, bukan tahap.
 
   @BR-FE-28 @M2 @ADMIN-08-09 @boundary
   Scenario: [FE-PHASE-01] Satu Form pengajuan lewat dua aturan akses dihitung satu
@@ -47,3 +49,25 @@ Feature: Satu Form Pengajuan per Tahap
     Given Form "Laporan Monev"
     When Admin menyimpan tahap yang satu-satunya langkahnya "Laporan Monev I"
     Then penyimpanan ditolak dengan pesan "Tahap butuh satu langkah Pengajuan."
+
+  @BR-FE-29 @M2 @ADMIN-08-08 @denial
+  Scenario: [FE-PHASE-07] Tahap kedua dengan Form pengajuan yang sama tidak bisa ditautkan ke satu periode
+    Given periode "2026 Gelombang 1" sudah menautkan tahap "Penelitian DIPA" berform pengajuan "Proposal Penelitian"
+    And tahap "Penelitian DIPA Salinan" juga berform pengajuan "Proposal Penelitian"
+    When Admin menautkan "Penelitian DIPA Salinan" ke "2026 Gelombang 1" dari pustaka Fase
+    Then penautan ditolak dengan pesan "Tahap Penelitian DIPA dan Penelitian DIPA Salinan sama-sama memakai Form pengajuan Proposal Penelitian. Satu periode hanya boleh punya satu tahap per Form pengajuan."
+    And tahap ber-Form pengajuan lain tetap bisa ditautkan ke periode itu
+
+  @BR-FE-29 @M2 @OPERATOR-09-01 @denial
+  Scenario: [FE-PHASE-08] Layar periode menolak dua tahap dengan Form pengajuan yang sama
+    Given tahap "Penelitian DIPA" dan "Penelitian DIPA Salinan" sama-sama berform pengajuan "Proposal Penelitian"
+    When Operator menyimpan periode yang memilih kedua tahap itu, baru maupun revisi
+    Then penyimpanan ditolak dengan pesan yang menyebut kedua tahap dan Form-nya
+    And tautan tahap periode itu tidak berubah
+
+  @BR-FE-29 @M2 @ADMIN-08-08 @boundary
+  Scenario: [FE-PHASE-09] Periode yang sudah punya tahap untuk Form itu tidak ditawarkan
+    Given periode "2026 Gelombang 1" sudah menautkan tahap "Penelitian DIPA" berform pengajuan "Proposal Penelitian"
+    When Admin membuka pustaka Fase
+    Then kartu "Penelitian DIPA Salinan" tidak menawarkan "2026 Gelombang 1" di Hubungkan ke Periode
+    And kartu tahap ber-Form pengajuan lain tetap menawarkannya

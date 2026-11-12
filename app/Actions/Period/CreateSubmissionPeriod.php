@@ -23,6 +23,8 @@ class CreateSubmissionPeriod
     public function handle(SubmissionPeriodInput $input, User $actor): SubmissionPeriod
     {
         return DB::transaction(function () use ($input, $actor): SubmissionPeriod {
+            AssertOnePhasePerSubmissionForm::run($input->formPhaseIds, 'form_phase_ids');
+
             $period = SubmissionPeriod::create(['name' => $input->name]);
 
             foreach ($input->dates as $row) {
