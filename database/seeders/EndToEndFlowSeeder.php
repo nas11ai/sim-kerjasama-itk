@@ -214,6 +214,14 @@ class EndToEndFlowSeeder extends Seeder
             ],
             ['datetime' => now()->addMonths(3)]
         );
+        // BR-FE-36 — langkah Pengajuan direview, jadi angkatannya baru siap bila Batas Evaluasi ada.
+        SubmissionDate::firstOrCreate(
+            [
+                'type' => DeadlineType::Evaluation,
+                'submission_period_id' => $period->id,
+            ],
+            ['datetime' => now()->addMonths(4)]
+        );
 
         // ADR 0014 — periode menawarkan form lewat tahap yang ditautkan kepadanya; tanpa tautan
         // ini langkah 1 wizard berbunyi "Belum ada periode pengajuan yang dibuka".

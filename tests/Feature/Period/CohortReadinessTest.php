@@ -24,6 +24,8 @@ use App\Queries\Period\CohortReadiness;
 use App\Queries\Period\SubmissionPeriodList;
 use App\Queries\Submission\ResearcherStartOptions;
 use App\Support\PhaseAccessGate;
+use Database\Seeders\DatabaseSeeder;
+use Database\Seeders\EndToEndFlowSeeder;
 use Database\Seeders\PermissionSeeder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
@@ -466,4 +468,17 @@ it('hides the readiness page from users without periods.manage', function () {
     $this->actingAs($researcher)
         ->get(route('admin.submission-periods.readiness', $period))
         ->assertForbidden();
+});
+
+it('leaves no seeded cohort blocked', function () {
+    // Pemilik 2026-11-10 — seeder mengikuti setiap perubahan aturan; angkatan seed tidak boleh "Belum siap".
+    $this->seed([DatabaseSeeder::class, EndToEndFlowSeeder::class]);
+
+    $statuses = array_map(
+        fn (CohortReadinessData $cohort): string => "{$cohort->phaseTitle}: {$cohort->status()}",
+        CohortReadiness::run(SubmissionPeriod::query()->pluck('id')->all()),
+    );
+
+    expect($statuses)->not->toBeEmpty()
+        ->and(array_filter($statuses, fn (string $s): bool => str_ends_with($s, ': blocked')))->toBe([]);
 });
