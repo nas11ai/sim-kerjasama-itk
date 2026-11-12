@@ -8,7 +8,7 @@ semuanya akan menjadi transkrip kode; jadi spec dipecah menjadi irisan **R1–R8
 per irisan, ditulis tepat sebelum irisan itu dikerjakan (supaya rencana R5 membaca kode hasil R3,
 bukan kode hari ini). Rencana rinci yang sudah ada: **R1** (`2026-11-10-r1-jadwal-periode.md`, selesai),
 **R2** (`2026-11-11-r2-pustaka-fase.md`, selesai), **G2** (`2026-11-12-g2-form-evaluasi-berversi.md`, R3 + R4,
-selesai). **G1 dan G2 selesai** 2026-11-12; berikutnya rencana G3 (R5 + R6).
+selesai), **G3** (`2026-11-12-g3-struktur-fase-berversi-dan-terbit.md`, R5 + R6). **G1 dan G2 selesai** 2026-11-12; G3 berjalan.
 
 ## Keputusan bentuk yang mengikat semua irisan (spec §8, diserahkan ke builder)
 
