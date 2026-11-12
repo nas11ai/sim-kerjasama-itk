@@ -91,4 +91,10 @@ class SubmissionPeriod extends Model
     {
         return $this->hasMany(SubmissionPeriodPhase::class);
     }
+
+    /** @return HasMany<PhaseVersionPin, $this> BR-FE-32 — versi struktur tiap angkatan periode ini */
+    public function phaseVersionPins(): HasMany
+    {
+        return $this->hasMany(PhaseVersionPin::class);
+    }
 }

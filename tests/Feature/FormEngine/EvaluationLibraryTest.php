@@ -108,12 +108,14 @@ it('[FE-EVLIB-02] attaches one evaluation form to steps of two phases, once per 
         'is_required' => false,
     ])->assertSessionHasNoErrors();
 
-    $steps = StepEvaluationForm::query()->where('review_evaluation_form_id', $form->id)->get()->keyBy('form_phase_detail_id');
-    expect($steps)->toHaveCount(2)
-        ->and($steps[$this->researchStep->id]->is_required)->toBeTrue()
-        ->and($steps[$this->serviceStep->id]->is_required)->toBeFalse();
+    // BR-FE-32 — tiap pemasangan menerbitkan versi struktur berikutnya tahapnya.
+    $research = $this->research->currentDetails()->sole();
+    $service = $this->service->currentDetails()->sole();
+    expect(StepEvaluationForm::query()->where('review_evaluation_form_id', $form->id)->count())->toBe(2)
+        ->and($research->stepEvaluationForms()->sole()->is_required)->toBeTrue()
+        ->and($service->stepEvaluationForms()->sole()->is_required)->toBeFalse();
 
-    $this->post(route('admin.phase-details.evaluation-forms.store', $this->researchStep), [
+    $this->post(route('admin.phase-details.evaluation-forms.store', $research), [
         'review_evaluation_form_id' => $form->id,
         'is_required' => true,
     ])->assertSessionHasErrors(['review_evaluation_form_id' => 'Form evaluasi ini sudah terpasang di langkah ini.']);
@@ -159,7 +161,7 @@ it('[FE-EVLIB-04] publishes the draft as the next version and deletes the draft'
     expect($form->versions()->count())->toBe(2);
 });
 
-it('[FE-EVLIB-05] refuses to detach a form assigned at that step, but deactivates it and detaches it elsewhere', function () {
+it('[FE-EVLIB-05] detaches an assigned form only from the next version and keeps the assignment', function () {
     $form = evaluationFormOn($this->researchStep, title: 'Lembar Proposal');
     $research = StepEvaluationForm::query()->where('form_phase_detail_id', $this->researchStep->id)->sole();
     $service = StepEvaluationForm::create([
@@ -167,24 +169,21 @@ it('[FE-EVLIB-05] refuses to detach a form assigned at that step, but deactivate
         'review_evaluation_form_id' => $form->id,
         'order' => 1,
     ]);
-    librarySeat($this->researchStep, $form);
+    $assignment = librarySeat($this->researchStep, $form);
 
     $this->actingAs($this->admin)
         ->delete(route('admin.step-evaluation-forms.destroy', $research))
-        ->assertSessionHasErrors([
-            'step_evaluation_form' => 'Form evaluasi ini sudah ditugaskan ke 1 reviewer di langkah ini, jadi tidak bisa dilepas. Nonaktifkan saja.',
-        ]);
-    expect($research->fresh())->not->toBeNull();
-
-    $this->put(route('admin.step-evaluation-forms.update', $research), ['is_required' => true, 'is_active' => false])
-        ->assertSessionHasNoErrors()
-        ->assertSessionHas('success', 'Pemasangan diperbarui.');
-    expect($research->fresh()?->is_active)->toBeFalse();
-
-    $this->delete(route('admin.step-evaluation-forms.destroy', $service))
         ->assertSessionHasNoErrors()
         ->assertSessionHas('success', 'Form evaluasi dilepas.');
-    expect($service->fresh())->toBeNull();
+    expect($research->fresh())->not->toBeNull()
+        ->and($assignment->fresh())->not->toBeNull()
+        ->and($this->research->currentDetails()->sole()->stepEvaluationForms()->count())->toBe(0);
+
+    $this->put(route('admin.step-evaluation-forms.update', $service), ['is_required' => true, 'is_active' => false])
+        ->assertSessionHasNoErrors()
+        ->assertSessionHas('success', 'Pemasangan diperbarui.');
+    expect($this->service->currentDetails()->sole()->stepEvaluationForms()->sole()->is_active)->toBeFalse()
+        ->and($service->fresh()?->is_active)->toBeTrue();
 });
 
 it('lists library forms with their latest version and draft flag', function () {

@@ -7,6 +7,7 @@ use App\Data\View\FormEngine\PhaseCardData;
 use App\Enums\DeadlineType;
 use App\Models\Form;
 use App\Models\FormPhase;
+use App\Models\FormPhaseDetail;
 use App\Models\FormSubmission;
 use App\Models\SubmissionPeriodPhase;
 use App\Queries\Period\PeriodScheduleGaps;
@@ -29,7 +30,7 @@ class PhaseLibrary implements ChangesNoState
     {
         $phases = FormPhase::query()
             ->when($usingForm, fn ($query, Form $form) => $query->usingForm($form))
-            ->withCount('formPhaseDetails')
+            ->withCount('currentDetails as form_phase_details_count')
             ->addSelect(['submission_count' => FormSubmission::query()
                 ->selectRaw('count(*)')
                 ->join('form_phase_details', 'form_phase_details.id', '=', 'form_submissions.form_phase_detail_id')
@@ -71,6 +72,7 @@ class PhaseLibrary implements ChangesNoState
             ->join('form_access_controls', 'form_access_controls.form_id', '=', 'forms.id')
             ->join('form_phase_details', 'form_phase_details.form_access_control_id', '=', 'form_access_controls.id')
             ->whereColumn('form_phase_details.form_phase_id', 'form_phases.id')
+            ->whereIn('form_phase_details.id', FormPhaseDetail::query()->inLatestVersion()->select('form_phase_details.id'))
             ->where('form_phase_details.deadline_type', DeadlineType::Submit)
             ->whereNull('form_phase_details.deadline_cycle')
             ->orderBy('form_phase_details.order')

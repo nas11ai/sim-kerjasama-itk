@@ -2,11 +2,14 @@
 
 namespace Database\Seeders;
 
-use App\Actions\Review\AttachEvaluationForm;
+use App\Actions\Form\PublishPhaseVersion;
 use App\Actions\Review\CreateEvaluationForm;
 use App\Actions\Review\PublishEvaluationFormVersion;
 use App\Data\Request\EvaluationFormDetailsInput;
+use App\Data\Request\FormPhaseDetailInput;
+use App\Data\Request\PhaseStructureInput;
 use App\Data\Request\ReviewFormFieldInput;
+use App\Data\Request\StepEvaluationFormInput;
 use App\Enums\DeadlineType;
 use App\Enums\VerificationStatus;
 use App\Models\FieldType;
@@ -14,7 +17,6 @@ use App\Models\Form;
 use App\Models\FormAccessControl;
 use App\Models\FormField;
 use App\Models\FormPhase;
-use App\Models\FormPhaseDetail;
 use App\Models\FormType;
 use App\Models\Organization;
 use App\Models\PhaseType;
@@ -218,34 +220,27 @@ class EndToEndFlowSeeder extends Seeder
             'form_phase_id' => $phase->id,
         ]);
 
-        $phaseType = PhaseType::firstOrCreate(['name' => 'Pengajuan']);
-
-        $detail = FormPhaseDetail::firstOrCreate(
-            [
-                'form_phase_id' => $phase->id,
-                'form_access_control_id' => $accessControl->id,
-            ],
-            [
-                'phase_type_id' => $phaseType->id,
-                'order' => 1,
-                'deadline_type' => DeadlineType::Submit,
-                'deadline_cycle' => null,
-                // Fase ini memang direview — persetujuan hampa tidak berlaku
-                // di sini (ADR 0017).
-                'needs_review' => true,
-            ]
-        );
-
-        // W158 — AssignReviewers membagikan form evaluasi aktif detail ini ke tiap reviewer yang
-        // ditugaskan, jadi keputusan Operator punya dasar penilaian.
-        // BR-REV-18 — lewat jalur pustaka: buat, terbitkan Versi 1, pasang. Idempoten per langkah.
-        if ($detail->stepEvaluationForms()->exists()) {
+        // BR-FE-32 — langkah lahir lewat penerbitan Versi 1 tahap; idempoten per tahap.
+        if ($phase->latestVersion()->exists()) {
             return;
         }
+
+        // W158 — AssignReviewers membagikan form evaluasi aktif langkah ini ke tiap reviewer yang
+        // ditugaskan, jadi keputusan Operator punya dasar penilaian. BR-REV-18 — lewat jalur pustaka.
         $evaluation = CreateEvaluationForm::run(new EvaluationFormDetailsInput('Penilaian Substansi', null), $actor);
         PublishEvaluationFormVersion::run($evaluation, [
             new ReviewFormFieldInput(null, FieldType::firstOrCreate(['name' => 'text'])->id, 'Kebaruan Penelitian', null, false, null, null),
         ], $actor);
-        AttachEvaluationForm::run($detail, $evaluation, true, $actor);
+
+        PublishPhaseVersion::run($phase, new PhaseStructureInput([new FormPhaseDetailInput(
+            id: null,
+            formAccessControlId: $accessControl->id,
+            phaseTypeId: PhaseType::firstOrCreate(['name' => 'Pengajuan'])->id,
+            // Fase ini memang direview — persetujuan hampa tidak berlaku di sini (ADR 0017).
+            needsReview: true,
+            deadlineType: DeadlineType::Submit,
+            deadlineCycle: null,
+            evaluationForms: [new StepEvaluationFormInput($evaluation->id, isRequired: true, isActive: true)],
+        )]), $actor);
     }
 }

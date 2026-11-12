@@ -31,13 +31,7 @@ function libraryActor(string $role = 'admin'): User
 /** Detail baru yang aturan aksesnya milik $form, di tahap $phase (atau tahap baru). */
 function libraryDetail(Form $form, ?FormPhase $phase = null, array $attributes = []): FormPhaseDetail
 {
-    $detail = FormPhaseDetail::factory()->create($attributes);
-    $detail->formAccessControl?->update(['form_id' => $form->id]);
-    if ($phase !== null) {
-        $detail->update(['form_phase_id' => $phase->id]);
-    }
-
-    return $detail;
+    return formStepIn($form, $phase, $attributes);
 }
 
 function libraryPhase(string $title): FormPhase

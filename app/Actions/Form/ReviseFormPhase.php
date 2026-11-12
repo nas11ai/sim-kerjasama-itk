@@ -4,6 +4,7 @@ namespace App\Actions\Form;
 
 use App\Data\Request\FormPhaseDetailInput;
 use App\Data\Request\FormPhaseInput;
+use App\Data\Request\PhaseStructureInput;
 use App\Models\FormPhase;
 use App\Models\FormPhaseDetail;
 use App\Models\User;
@@ -15,9 +16,9 @@ use Illuminate\Validation\ValidationException;
 use Lorisleiva\Actions\Concerns\AsAction;
 
 /**
- * BR-FE-20 — merevisi tahap formulir dengan menyinkronkan detailnya per id. Versi lama
- * menghapus semua detail lewat query massal lalu membuat ulang: form evaluasi ikut
- * ter-cascade dan pengajuan kehilangan tahapnya.
+ * Merevisi tahap formulir. BR-FE-32 (G3-W4, sementara sampai draf tahap) — langkahnya terbit sebagai
+ * versi berikutnya; langkah ber-`id` membawa Form Evaluasi terpasangnya. Versi lama tidak disentuh,
+ * jadi pengajuan, penugasan, dan angkatan terpaku tetap pada langkah yang persis sama.
  *
  * @method static void run(FormPhase $phase, FormPhaseInput $input, User $actor)
  */
@@ -30,12 +31,9 @@ class ReviseFormPhase
      */
     public function handle(FormPhase $phase, FormPhaseInput $input, User $actor): void
     {
-        $existing = $phase->formPhaseDetails()->get()->keyBy('id');
+        $existing = $phase->currentDetails()->with('stepEvaluationForms')->get()->keyBy('id');
 
-        $this->assertOwnedBy($existing, $input->details);
-        AssertUsedPhaseDetailsKeepTheirForm::run($existing, $input->details);
-        AssertEvaluatedDetailsStayReviewed::run($existing, $input->details);
-        AssertPhaseSteps::run($input->details);
+        $this->assertCurrent($phase, $existing, $input->details);
 
         DB::transaction(function () use ($phase, $input, $actor, $existing): void {
             $old = $this->snapshot($phase, $existing->modelKeys());
@@ -46,8 +44,7 @@ class ReviseFormPhase
                 'is_active' => $input->isActive,
             ]);
 
-            $this->removeDropped($existing, $input->details);
-            $detailIds = $this->syncDetails($phase, $existing, $input->details);
+            $version = PublishPhaseVersion::run($phase, $this->structure($existing, $input->details), $actor);
 
             // BR-RPT-09 — di dalam transaksi: revisi yang ditolak tidak meninggalkan jejak.
             AuditTrail::record(
@@ -56,26 +53,30 @@ class ReviseFormPhase
                 $actor,
                 new AuditChange(
                     old: $old,
-                    new: $this->snapshot($phase, $detailIds),
+                    new: $this->snapshot($phase, $version->formPhaseDetails()->get()->map(fn (FormPhaseDetail $d): int => $d->id)->all()),
                 ),
             );
         });
     }
 
     /**
-     * Id milik tahap lain ditolak: memperbaruinya berarti memindahkan detail itu, beserta
-     * pengajuan dan form evaluasinya, ke tahap ini tanpa ada yang memutuskannya.
+     * Id milik tahap lain ditolak: menyalinnya memindahkan Form Evaluasi langkah tahap lain ke
+     * tahap ini tanpa ada yang memutuskannya. Id versi lama tahap ini berarti layar sudah usang.
      *
      * @param  Collection<int, FormPhaseDetail>  $existing
      * @param  list<FormPhaseDetailInput>  $details
      *
      * @throws ValidationException
      */
-    private function assertOwnedBy(Collection $existing, array $details): void
+    private function assertCurrent(FormPhase $phase, Collection $existing, array $details): void
     {
         foreach ($details as $detail) {
             if ($detail->id === null || $existing->has($detail->id)) {
                 continue;
+            }
+
+            if ($phase->formPhaseDetails()->whereKey($detail->id)->exists()) {
+                throw ValidationException::withMessages(['form_phase_detail_id' => AssertCurrentPhaseStep::REPUBLISHED]);
             }
 
             throw ValidationException::withMessages([
@@ -85,58 +86,16 @@ class ReviseFormPhase
     }
 
     /**
-     * Satu per satu lewat model, bukan ->delete() massal: hanya event model yang menjalankan
-     * penjaga BR-FE-20, dan penolakannya menggulung kembali seluruh revisi.
-     *
      * @param  Collection<int, FormPhaseDetail>  $existing
      * @param  list<FormPhaseDetailInput>  $details
      */
-    private function removeDropped(Collection $existing, array $details): void
+    private function structure(Collection $existing, array $details): PhaseStructureInput
     {
-        $kept = array_filter(array_map(fn (FormPhaseDetailInput $d): ?int => $d->id, $details));
-
-        $existing->except($kept)->each(fn (FormPhaseDetail $detail) => $detail->delete());
-    }
-
-    /**
-     * Detail lama diperbarui di tempat, sehingga form evaluasi dan pengajuannya tetap
-     * menempel. Detail tanpa id dibuat baru.
-     *
-     * @param  Collection<int, FormPhaseDetail>  $existing
-     * @param  list<FormPhaseDetailInput>  $details
-     * @return list<int> id detail tahap ini sesudah revisi
-     */
-    private function syncDetails(FormPhase $phase, Collection $existing, array $details): array
-    {
-        $ids = [];
-        $orders = NormalisePhaseDetailOrder::run(array_map(
-            fn (FormPhaseDetailInput $d): int => $d->formAccessControlId,
-            $details,
-        ));
-
-        foreach ($details as $index => $detail) {
-            $attributes = [
-                'form_access_control_id' => $detail->formAccessControlId,
-                'phase_type_id' => $detail->phaseTypeId,
-                'order' => $orders[$index],
-                'needs_review' => $detail->needsReview,
-                // BR-FE-07 + BR-FE-26 (ADR 0019) — jenis + siklus langkah; tanggalnya milik periode.
-                ...$detail->stepKind(),
-            ];
-
+        return new PhaseStructureInput(array_map(function (FormPhaseDetailInput $detail) use ($existing): FormPhaseDetailInput {
             $current = $detail->id === null ? null : $existing->get($detail->id);
 
-            if ($current !== null) {
-                $current->update($attributes);
-                $ids[] = $current->id;
-
-                continue;
-            }
-
-            $ids[] = $phase->formPhaseDetails()->create($attributes)->id;
-        }
-
-        return $ids;
+            return $current === null ? $detail : $detail->withEvaluationForms(PhaseStructureInput::evaluationFormsOf($current));
+        }, $details));
     }
 
     /**

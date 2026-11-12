@@ -226,6 +226,8 @@ export interface PhaseEditData {
     description: string | null
     isActive: boolean
     details: PhaseDetailEditData[]
+    // BR-FE-32 — "Versi n" terbaru; null di mode buat.
+    versionLabel: string | null
 }
 
 // Sumber: App\Queries\Form\PhaseAccessOptions — `value` id aturan akses sebagai string (W102).

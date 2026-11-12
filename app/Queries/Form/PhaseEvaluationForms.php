@@ -30,7 +30,7 @@ class PhaseEvaluationForms implements ChangesNoState
     /** @return list<EvaluationSectionData> */
     public function handle(FormPhase $phase): array
     {
-        $details = $phase->formPhaseDetails()
+        $details = $phase->currentDetails()
             ->where('needs_review', true)
             ->with([
                 'phaseType:id,name',

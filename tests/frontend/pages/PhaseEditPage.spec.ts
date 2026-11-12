@@ -72,7 +72,7 @@ const detail = (overrides: Partial<PhaseDetailEditData> = {}): PhaseDetailEditDa
 })
 
 const props = (details: PhaseDetailEditData[]): PhaseEditPageProps => ({
-    phase: { id: 3, title: 'Tahap Proposal', description: null, isActive: true, details },
+    phase: { id: 3, title: 'Tahap Proposal', description: null, isActive: true, details, versionLabel: 'Versi 1' },
     accessOptions: [
         {
             value: '41',
@@ -290,7 +290,7 @@ describe('FormEngine/PhaseEditPage', () => {
     describe('mode buat', () => {
         const creating = (accessOptions = props([]).accessOptions): PhaseEditPageProps => ({
             ...props([]),
-            phase: { id: null, title: '', description: null, isActive: true, details: [] },
+            phase: { id: null, title: '', description: null, isActive: true, details: [], versionLabel: null },
             accessOptions,
         })
         const saveButton = (wrapper: ReturnType<typeof mountPage>) =>

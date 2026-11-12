@@ -30,16 +30,19 @@ class ResearcherStartOptions implements ChangesNoState
     /** @return list<StartPeriodOptionData> */
     public function handle(User $user): array
     {
+        $accessible = fn (Relation $q) => $q
+            ->whereIn('form_access_control_id', FormAccessControl::query()->accessibleBy($user)->select('id'))
+            ->with('formAccessControl.form:id,title,is_active');
+
         $periods = SubmissionPeriod::query()
             ->with([
                 'submissionDates',
                 // Dua tahap pustaka ber-Form pengajuan sama di satu periode: tahap tertua yang
                 // ditawarkan, tidak bergantung urutan baris tautan (R2).
                 'submissionPeriodPhases' => fn (Relation $q) => $q->orderBy('form_phase_id'),
-                'submissionPeriodPhases.formPhase.formPhaseDetails' => fn (Relation $q) => $q
-                    ->whereIn('form_access_control_id', FormAccessControl::query()->accessibleBy($user)->select('id'))
-                    ->orderBy('order')
-                    ->with('formAccessControl.form:id,title,is_active'),
+                // BR-FE-32 — langkah versi angkatan: pakuan periode itu, atau versi terbaru tahap.
+                'submissionPeriodPhases.formPhase.latestVersion.formPhaseDetails' => $accessible,
+                'phaseVersionPins.formPhaseVersion.formPhaseDetails' => $accessible,
             ])
             ->orderBy('id')
             ->get()
@@ -71,7 +74,6 @@ class ResearcherStartOptions implements ChangesNoState
     private function forms(SubmissionPeriod $period, User $user): array
     {
         $forms = [];
-
         foreach ($period->submissionPeriodPhases as $periodPhase) {
             $phase = $periodPhase->formPhase;
 
@@ -79,7 +81,7 @@ class ResearcherStartOptions implements ChangesNoState
                 continue;
             }
 
-            foreach ($phase->formPhaseDetails as $detail) {
+            foreach ($this->cohortSteps($period, $phase) as $detail) {
                 $option = $this->offer($detail, $phase, $period, $user);
 
                 // Cek sudah-ditawarkan sesudah semua lewati, supaya detail lain Form ini tetap terpilih.
@@ -90,6 +92,18 @@ class ResearcherStartOptions implements ChangesNoState
         }
 
         return array_values($forms);
+    }
+
+    /**
+     * BR-FE-32 — langkah versi angkatan (pakuan, atau terbaru), dari relasi yang sudah dimuat.
+     *
+     * @return iterable<FormPhaseDetail>
+     */
+    private function cohortSteps(SubmissionPeriod $period, FormPhase $phase): iterable
+    {
+        $pin = $period->phaseVersionPins->firstWhere('form_phase_id', $phase->id);
+
+        return ($pin->formPhaseVersion ?? $phase->latestVersion)->formPhaseDetails ?? [];
     }
 
     private function offer(FormPhaseDetail $detail, FormPhase $phase, SubmissionPeriod $period, User $user): ?StartFormOptionData

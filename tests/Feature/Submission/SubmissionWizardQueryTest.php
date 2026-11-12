@@ -241,7 +241,7 @@ it('dua tahap ber-Form pengajuan sama di satu periode: yang ditawarkan selalu ta
     // Pustaka fase (R2) membuat tahap mudah disalin; tanpa urutan, baris tautan menentukan pilihannya.
     $fx = wizardFixture();
     $copy = FormPhase::create(['title' => 'Fase Uji Salinan', 'is_active' => true]);
-    $fx['detail']->replicate()->fill(['form_phase_id' => $copy->id])->save();
+    phaseStep($copy, $fx['detail']->fresh()->only(['form_access_control_id', 'phase_type_id', 'order', 'needs_review', 'deadline_type', 'deadline_cycle']));
     $fx['phase']->submissionPeriodPhases()->delete();
     wizardQueryPhaseInPeriod($fx['period']->id, $copy->id);
     wizardQueryPhaseInPeriod($fx['period']->id, $fx['phase']->id);

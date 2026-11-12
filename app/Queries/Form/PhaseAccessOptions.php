@@ -29,7 +29,7 @@ class PhaseAccessOptions implements ChangesNoState
         // Mode buat (`$phase` null) tidak punya detail: subquery-nya kosong.
         $used = FormAccessControl::query()->select('form_id')->whereIn(
             'id',
-            FormPhaseDetail::query()->select('form_access_control_id')->where('form_phase_id', $phase?->id),
+            FormPhaseDetail::query()->select('form_access_control_id')->where('form_phase_id', $phase?->id)->inLatestVersion(),
         );
 
         $forms = Form::query()

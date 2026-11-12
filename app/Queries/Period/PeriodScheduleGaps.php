@@ -8,8 +8,10 @@ use App\Enums\DeadlineType;
 use App\Models\FormPhase;
 use App\Models\FormPhaseDetail;
 use App\Models\FormSubmission;
+use App\Models\PhaseVersionPin;
 use App\Models\SubmissionPeriod;
 use App\Models\SubmissionPeriodPhase;
+use App\Queries\Form\PhaseVersionFor;
 use App\Support\SubmissionPeriodGate;
 use Illuminate\Database\Eloquent\Collection as EloquentCollection;
 use Illuminate\Support\Collection;
@@ -29,13 +31,11 @@ class PeriodScheduleGaps implements ChangesNoState
     /** @return list<array{phase: string, step: int, label: string}> */
     public function handle(SubmissionPeriod $period): array
     {
-        $steps = FormPhaseDetail::query()
-            ->whereIn('form_phase_id', $period->submissionPeriodPhases()->select('form_phase_id'))
-            ->with('formPhase:id,title')
-            ->orderBy('form_phase_id')
-            ->orderBy('order')
+        $phases = FormPhase::query()
+            ->whereIn('id', $period->submissionPeriodPhases()->select('form_phase_id'))
             ->orderBy('id')
             ->get();
+        $steps = $phases->flatMap(fn (FormPhase $phase): array => self::cohortSteps($period, $phase));
 
         $gaps = [];
 
@@ -66,30 +66,19 @@ class PeriodScheduleGaps implements ChangesNoState
             ->get();
         $links = SubmissionPeriodPhase::query()
             ->whereIn('form_phase_id', $phases->pluck('id'))
-            ->with('submissionPeriod.submissionDates')
+            ->with(['submissionPeriod.submissionDates', 'formPhase.latestVersion.formPhaseDetails'])
             ->get()
             ->sortBy(fn (SubmissionPeriodPhase $link): string => $link->submissionPeriod->name ?? '');
 
         $inUse = self::periodsInUse($steps);
+        $pins = self::pinsOf($phases);
         $gaps = [];
 
         foreach ($links as $link) {
-            $period = $link->submissionPeriod;
+            $gap = self::gapAt($link, $inUse, $pins);
 
-            if ($period === null) {
-                continue;
-            }
-
-            $settled = SubmissionPeriodGate::isFullyClosed($period) && !isset($inUse["{$period->id}:{$link->form_phase_id}"]);
-
-            if ($settled) {
-                continue;
-            }
-
-            $count = self::missingDateCount($period, $steps->where('form_phase_id', $link->form_phase_id)->all());
-
-            if ($count > 0) {
-                $gaps[$link->form_phase_id][] = ['period' => $period->name, 'count' => $count];
+            if ($gap !== null) {
+                $gaps[$link->form_phase_id][] = $gap;
             }
         }
 
@@ -97,8 +86,46 @@ class PeriodScheduleGaps implements ChangesNoState
     }
 
     /**
-     * Pasangan "periode:fase" yang punya pengajuan: angkatan berjalan masih butuh tanggal monev
-     * walau semua tanggal periodenya lewat atau periodenya ditutup paksa.
+     * Celah satu tautan; null bila tidak ada, atau periodenya sudah tutup tanpa pengajuan fase itu.
+     *
+     * @param  array<string, true>  $inUse
+     * @param  EloquentCollection<string, PhaseVersionPin>  $pins
+     * @return array{period: string, count: int}|null
+     */
+    private static function gapAt(SubmissionPeriodPhase $link, array $inUse, EloquentCollection $pins): ?array
+    {
+        $period = $link->submissionPeriod;
+        $phase = $link->formPhase;
+        $key = "{$link->submission_period_id}:{$link->form_phase_id}";
+
+        if ($period === null || $phase === null || (SubmissionPeriodGate::isFullyClosed($period) && !isset($inUse[$key]))) {
+            return null;
+        }
+
+        $version = $pins->get($key)->formPhaseVersion ?? $phase->latestVersion;
+        $count = self::missingDateCount($period, $version === null ? [] : $version->formPhaseDetails->all());
+
+        return $count > 0 ? ['period' => $period->name, 'count' => $count] : null;
+    }
+
+    /**
+     * BR-FE-32 — versi pakuan tiap angkatan, dimuat sekali untuk semua kartu.
+     *
+     * @param  Collection<int, FormPhase>  $phases
+     * @return EloquentCollection<string, PhaseVersionPin> dikunci "periode:fase"
+     */
+    private static function pinsOf(Collection $phases): EloquentCollection
+    {
+        return PhaseVersionPin::query()
+            ->whereIn('form_phase_id', $phases->pluck('id'))
+            ->with('formPhaseVersion.formPhaseDetails')
+            ->get()
+            ->keyBy(fn (PhaseVersionPin $pin): string => "{$pin->submission_period_id}:{$pin->form_phase_id}");
+    }
+
+    /**
+     * Pasangan "periode:fase" yang punya pengajuan (versi mana pun): angkatan berjalan masih butuh
+     * tanggal monev walau semua tanggal periodenya lewat atau periodenya ditutup paksa.
      *
      * @param  EloquentCollection<int, FormPhaseDetail>  $steps
      * @return array<string, true>
@@ -123,7 +150,23 @@ class PeriodScheduleGaps implements ChangesNoState
     /** Banyak tanggal yang masih kurang di `$period` bagi langkah `$phase`. */
     public static function missingCount(SubmissionPeriod $period, FormPhase $phase): int
     {
-        return self::missingDateCount($period, $phase->formPhaseDetails()->get()->all());
+        return self::missingDateCount($period, self::cohortSteps($period, $phase));
+    }
+
+    /**
+     * BR-FE-32 — langkah versi struktur angkatan (`$period` × `$phase`): pakuan, atau terbaru.
+     *
+     * @return list<FormPhaseDetail>
+     */
+    private static function cohortSteps(SubmissionPeriod $period, FormPhase $phase): array
+    {
+        $version = PhaseVersionFor::run($period, $phase);
+
+        if ($version === null) {
+            return [];
+        }
+
+        return array_values($version->formPhaseDetails()->get()->each(fn (FormPhaseDetail $step) => $step->setRelation('formPhase', $phase))->all());
     }
 
     /**

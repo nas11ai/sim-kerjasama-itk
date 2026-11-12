@@ -7,6 +7,7 @@ use App\Models\Form;
 use App\Models\FormAccessControl;
 use App\Models\FormPhase;
 use App\Models\FormPhaseDetail;
+use App\Models\FormPhaseVersion;
 use App\Models\Organization;
 use App\Models\PhaseType;
 use App\Models\SubmissionDate;
@@ -45,12 +46,21 @@ class FormPhaseDetailFactory extends Factory
 
         return [
             'form_phase_id' => $formPhase->id,
+            // BR-FE-32 — langkah pabrik masuk versi terbaru tahapnya (Versi 1 bila belum ada).
+            'form_phase_version_id' => fn (array $attributes): int => self::versionFor((int) $attributes['form_phase_id'])->id,
             'form_access_control_id' => $formAccessControl->id,
             'phase_type_id' => $phaseType->id,
             'order' => 1,
             'deadline_type' => DeadlineType::Submit,
             'deadline_cycle' => null,
         ];
+    }
+
+    /** Versi terbaru `$phaseId`, atau Versi 1 baru tanpa audit (jalur produksinya PublishPhaseVersion). */
+    public static function versionFor(int $phaseId): FormPhaseVersion
+    {
+        return FormPhaseVersion::query()->where('form_phase_id', $phaseId)->orderByDesc('number')->first()
+            ?? FormPhaseVersion::create(['form_phase_id' => $phaseId, 'number' => 1, 'published_at' => now()]);
     }
 
     /**

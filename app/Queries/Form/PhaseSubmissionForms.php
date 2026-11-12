@@ -20,6 +20,7 @@ class PhaseSubmissionForms implements ChangesNoState
     {
         $steps = FormPhaseDetail::query()
             ->whereIn('form_phase_id', $phaseIds)
+            ->inLatestVersion()
             ->where('deadline_type', DeadlineType::Submit)
             ->whereNull('deadline_cycle')
             ->with(['formAccessControl.form:id,title', 'formPhase:id,title'])

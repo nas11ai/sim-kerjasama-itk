@@ -42,7 +42,7 @@ function libraryAccess(string $title, string $organisation = 'Fakultas A'): Form
     ]);
 }
 
-function phaseStep(FormAccessControl $access, DeadlineType $type = DeadlineType::Submit, ?int $cycle = null, ?int $id = null): FormPhaseDetailInput
+function stepInput(FormAccessControl $access, DeadlineType $type = DeadlineType::Submit, ?int $cycle = null, ?int $id = null): FormPhaseDetailInput
 {
     return new FormPhaseDetailInput($id, $access->id, test()->phaseTypeId, false, $type, $cycle);
 }
@@ -74,9 +74,9 @@ it('[FE-PHASE-01] counts one submission form reached through two access rules', 
     $monev = libraryAccess('Laporan Monev');
 
     $phase = CreateFormPhase::run(phaseInput([
-        phaseStep($facultyA),
-        phaseStep($facultyB),
-        phaseStep($monev, cycle: 1),
+        stepInput($facultyA),
+        stepInput($facultyB),
+        stepInput($monev, cycle: 1),
     ]), $this->admin);
 
     $steps = $phase->formPhaseDetails()->orderBy('id')->get();
@@ -91,8 +91,8 @@ it('[FE-PHASE-01] counts one submission form reached through two access rules', 
 
 it('[FE-PHASE-02] rejects a phase with two submission forms', function () {
     $errors = phaseErrors([
-        phaseStep(libraryAccess('Pengajuan Penelitian')),
-        phaseStep(libraryAccess('Pengajuan Pengmas')),
+        stepInput(libraryAccess('Pengajuan Penelitian')),
+        stepInput(libraryAccess('Pengajuan Pengmas')),
     ]);
 
     expect($errors['phase_details'][0] ?? null)->toBe(
@@ -102,8 +102,8 @@ it('[FE-PHASE-02] rejects a phase with two submission forms', function () {
 
 it('[FE-PHASE-03] rejects a phase whose first step is a monev report', function () {
     $errors = phaseErrors([
-        phaseStep(libraryAccess('Laporan Monev'), cycle: 1),
-        phaseStep(libraryAccess('Pengajuan Penelitian')),
+        stepInput(libraryAccess('Laporan Monev'), cycle: 1),
+        stepInput(libraryAccess('Pengajuan Penelitian')),
     ]);
 
     expect($errors['phase_details.0.deadline_type'][0] ?? null)->toBe('Langkah pertama tahap harus langkah Pengajuan.')
@@ -113,7 +113,7 @@ it('[FE-PHASE-03] rejects a phase whose first step is a monev report', function 
 it('[FE-PHASE-04] rejects a monev report that reuses the submission form', function (DeadlineType $type, ?int $cycle) {
     $submission = libraryAccess('Pengajuan Penelitian');
 
-    $errors = phaseErrors([phaseStep($submission), phaseStep($submission, $type, $cycle)]);
+    $errors = phaseErrors([stepInput($submission), stepInput($submission, $type, $cycle)]);
 
     expect($errors['phase_details.1.form_access_control_id'][0] ?? null)
         ->toBe('Laporan Monev dan Upload Luaran memakai Form selain Form pengajuan.')
@@ -124,7 +124,7 @@ it('[FE-PHASE-04] rejects a monev report that reuses the submission form', funct
 ]);
 
 it('[FE-PHASE-05] keeps a used phase from gaining a second submission form', function () {
-    $phase = CreateFormPhase::run(phaseInput([phaseStep(libraryAccess('Pengajuan Penelitian'))]), $this->admin);
+    $phase = CreateFormPhase::run(phaseInput([stepInput(libraryAccess('Pengajuan Penelitian'))]), $this->admin);
     $step = $phase->formPhaseDetails()->sole();
     scheduledSubmission($step, SubmissionPeriod::create(['name' => 'Periode 2026']));
 
@@ -133,7 +133,7 @@ it('[FE-PHASE-05] keeps a used phase from gaining a second submission form', fun
 
     expect(fn () => ReviseFormPhase::run($phase, phaseInput([
         new FormPhaseDetailInput($step->id, $step->form_access_control_id, $this->phaseTypeId, false, DeadlineType::Submit, null),
-        phaseStep(libraryAccess('Pengajuan Pengmas')),
+        stepInput(libraryAccess('Pengajuan Pengmas')),
     ]), $this->admin))->toThrow(fn (ValidationException $e) => expect($e->errors()['phase_details'][0] ?? null)
         ->toBe('Satu tahap hanya untuk satu Form pengajuan: Pengajuan Penelitian, Pengajuan Pengmas. Buat tahap terpisah untuk tiap Form.'));
 
@@ -142,7 +142,7 @@ it('[FE-PHASE-05] keeps a used phase from gaining a second submission form', fun
 });
 
 it('[FE-PHASE-06] rejects a phase with no submission step', function () {
-    $errors = phaseErrors([phaseStep(libraryAccess('Laporan Monev'), cycle: 1)]);
+    $errors = phaseErrors([stepInput(libraryAccess('Laporan Monev'), cycle: 1)]);
 
     expect($errors['phase_details'][0] ?? null)->toBe('Tahap butuh satu langkah Pengajuan.')
         ->and($errors['phase_details.0.deadline_type'][0] ?? null)->toBe('Langkah pertama tahap harus langkah Pengajuan.')

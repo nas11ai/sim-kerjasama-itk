@@ -4,7 +4,6 @@ use App\Enums\DeadlineType;
 use App\Models\Form;
 use App\Models\FormAccessControl;
 use App\Models\FormPhase;
-use App\Models\FormPhaseDetail;
 use App\Models\FormSubmission;
 use App\Models\FormSubmissionOverride;
 use App\Models\Organization;
@@ -69,8 +68,7 @@ it('revoke sets is_active to false', function () {
         'datetime' => now(),
         'submission_period_id' => $period->id,
     ])->save();
-    $formPhaseDetail = FormPhaseDetail::create([
-        'form_phase_id' => $formPhase->id,
+    $formPhaseDetail = phaseStep($formPhase, [
         'form_access_control_id' => $formAccessControl->id,
         'phase_type_id' => $phaseType->id,
         'deadline_type' => DeadlineType::Submit,

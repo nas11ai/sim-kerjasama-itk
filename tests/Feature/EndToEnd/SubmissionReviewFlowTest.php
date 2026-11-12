@@ -61,7 +61,7 @@ it('menyusuri alur pengajuan sampai disetujui lewat HTTP', function () {
         'rules' => ['min_reviewer_count' => 2, 'max_reviewer_workload' => 10],
     ]);
 
-    $fx['detail']->update(['needs_review' => true]);
+    $fx['detail'] = restep($fx['detail'], ['needs_review' => true]);
     // Fase punya lembar penilaian, jadi kursi reviewer menunggu evaluasi (bukan `not_required`).
     evaluationFormOn($fx['detail'], [], title: 'Substansi');
 
@@ -154,7 +154,7 @@ it('menyusuri alur pengajuan sampai disetujui lewat HTTP', function () {
 
 it('menahan persetujuan selama satu evaluasi belum masuk', function () {
     $fx = wizardFixture();
-    $fx['detail']->update(['needs_review' => true]);
+    $fx['detail'] = restep($fx['detail'], ['needs_review' => true]);
 
     $submission = FormSubmission::factory()->create([
         'form_id' => $fx['form']->id,

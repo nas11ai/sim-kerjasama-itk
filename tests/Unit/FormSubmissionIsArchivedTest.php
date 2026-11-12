@@ -4,7 +4,6 @@ use App\Enums\DeadlineType;
 use App\Models\Form;
 use App\Models\FormAccessControl;
 use App\Models\FormPhase;
-use App\Models\FormPhaseDetail;
 use App\Models\FormSubmission;
 use App\Models\Organization;
 use App\Models\PhaseType;
@@ -49,8 +48,7 @@ it('returns false for draft submission with active period', function () {
         'form_phase_id' => $formPhase->id,
     ]);
 
-    $formPhaseDetail = FormPhaseDetail::create([
-        'form_phase_id' => $formPhase->id,
+    $formPhaseDetail = phaseStep($formPhase, [
         'form_access_control_id' => $formAccessControl->id,
         'phase_type_id' => $phaseType->id,
         'deadline_type' => DeadlineType::Submit,
@@ -102,8 +100,7 @@ it('returns true for draft submission with force closed period', function () {
         'form_phase_id' => $formPhase->id,
     ]);
 
-    $formPhaseDetail = FormPhaseDetail::create([
-        'form_phase_id' => $formPhase->id,
+    $formPhaseDetail = phaseStep($formPhase, [
         'form_access_control_id' => $formAccessControl->id,
         'phase_type_id' => $phaseType->id,
         'deadline_type' => DeadlineType::Submit,
@@ -163,8 +160,7 @@ it('returns true for draft submission when all submission dates are in the past'
         'form_phase_id' => $formPhase->id,
     ]);
 
-    $formPhaseDetail = FormPhaseDetail::create([
-        'form_phase_id' => $formPhase->id,
+    $formPhaseDetail = phaseStep($formPhase, [
         'form_access_control_id' => $formAccessControl->id,
         'phase_type_id' => $phaseType->id,
         'deadline_type' => DeadlineType::Submit,
@@ -216,8 +212,7 @@ it('returns false for submitted submission regardless of period state', function
         'form_phase_id' => $formPhase->id,
     ]);
 
-    $formPhaseDetail = FormPhaseDetail::create([
-        'form_phase_id' => $formPhase->id,
+    $formPhaseDetail = phaseStep($formPhase, [
         'form_access_control_id' => $formAccessControl->id,
         'phase_type_id' => $phaseType->id,
         'deadline_type' => DeadlineType::Submit,

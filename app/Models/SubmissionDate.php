@@ -7,6 +7,7 @@ use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Query\Builder as QueryBuilder;
 use Illuminate\Support\Facades\DB;
 
 /**
@@ -96,12 +97,14 @@ class SubmissionDate extends Model
     {
         return FormPhaseDetail::query()
             ->where(fn (Builder $phase) => $phase
-                ->whereExists(DB::table('submission_period_phases')->selectRaw('1')
-                    ->whereColumn('submission_period_phases.form_phase_id', 'form_phase_details.form_phase_id')
-                    ->whereColumn('submission_period_phases.submission_period_id', 'submission_dates.submission_period_id'))
+                ->where(fn (Builder $linked) => $linked
+                    ->whereExists(DB::table('submission_period_phases')->selectRaw('1')
+                        ->whereColumn('submission_period_phases.form_phase_id', 'form_phase_details.form_phase_id')
+                        ->whereColumn('submission_period_phases.submission_period_id', 'submission_dates.submission_period_id'))
+                    ->where(fn (Builder $version) => self::inCohortVersion($version)))
                 ->orWhereExists(DB::table('form_submissions')->selectRaw('1')
                     ->join('form_phase_details as used_steps', 'used_steps.id', '=', 'form_submissions.form_phase_detail_id')
-                    ->whereColumn('used_steps.form_phase_id', 'form_phase_details.form_phase_id')
+                    ->whereColumn('used_steps.form_phase_version_id', 'form_phase_details.form_phase_version_id')
                     ->whereColumn('form_submissions.submission_period_id', 'submission_dates.submission_period_id')))
             ->whereRaw('form_phase_details.deadline_cycle IS NOT DISTINCT FROM submission_dates.cycle')
             // BR-FE-26 — Batas Evaluasi hanya dibaca langkah yang direview, dan NEEDS_REVISION hanya
@@ -110,6 +113,24 @@ class SubmissionDate extends Model
                 ->orWhere(fn (Builder $reviewed) => $reviewed
                     ->where('form_phase_details.needs_review', true)
                     ->whereIn('submission_dates.type', [DeadlineType::Evaluation->value, DeadlineType::Revision->value])));
+    }
+
+    /**
+     * BR-FE-32 — langkah versi angkatan periode tanggal ini: versi pakuan, atau versi terbaru tahap
+     * bila angkatannya belum terpaku. Berkorelasi ke `form_phase_details` dan `submission_dates`.
+     *
+     * @param  Builder<FormPhaseDetail>  $steps
+     * @return Builder<FormPhaseDetail>
+     */
+    private static function inCohortVersion(Builder $steps): Builder
+    {
+        $pin = fn (): QueryBuilder => DB::table('phase_version_pins')
+            ->whereColumn('phase_version_pins.form_phase_id', 'form_phase_details.form_phase_id')
+            ->whereColumn('phase_version_pins.submission_period_id', 'submission_dates.submission_period_id');
+
+        return $steps
+            ->whereExists($pin()->selectRaw('1')->whereColumn('phase_version_pins.form_phase_version_id', 'form_phase_details.form_phase_version_id'))
+            ->orWhere(fn (Builder $latest) => $latest->whereNotExists($pin()->selectRaw('1'))->inLatestVersion());
     }
 
     public function isPassed(): bool

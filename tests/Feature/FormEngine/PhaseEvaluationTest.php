@@ -38,13 +38,7 @@ function phaseEvaluationActor(string $role = 'admin'): User
 /** Detail beraturan akses milik $form, di tahap $phase (atau tahap baru). */
 function phaseEvaluationDetail(Form $form, bool $needsReview, ?FormPhase $phase = null): FormPhaseDetail
 {
-    $detail = FormPhaseDetail::factory()->create(['needs_review' => $needsReview]);
-    $detail->formAccessControl?->update(['form_id' => $form->id]);
-    if ($phase !== null) {
-        $detail->update(['form_phase_id' => $phase->id]);
-    }
-
-    return $detail->fresh() ?? $detail;
+    return formStepIn($form, $phase, ['needs_review' => $needsReview]);
 }
 
 it('kontrak bagian form evaluasi', function () {
@@ -148,7 +142,9 @@ it('memasang form evaluasi di detail dari route-nya', function () {
         ->assertRedirect(route('admin.phases.edit', $detail->formPhase))
         ->assertSessionHas('success', 'Form evaluasi dipasang.');
 
-    expect($evaluation->stepEvaluationForms()->sole()->form_phase_detail_id)->toBe($detail->id);
+    // BR-FE-32 — pemasangan menerbitkan versi berikutnya; langkah salinannya yang memasang.
+    expect($evaluation->stepEvaluationForms()->sole()->form_phase_detail_id)
+        ->toBe($detail->formPhase->currentDetails()->get()->firstWhere('form_access_control_id', $detail->form_access_control_id)?->id);
 });
 
 it('menolak memasang di detail yang tidak direview', function () {

@@ -2,19 +2,21 @@
 
 namespace App\Actions\Review;
 
-use App\Models\ReviewerFormAssignment;
+use App\Actions\Form\AssertCurrentPhaseStep;
+use App\Actions\Form\PublishPhaseVersion;
+use App\Data\Request\PhaseStructureInput;
+use App\Data\Request\StepEvaluationFormInput;
 use App\Models\StepEvaluationForm;
 use App\Models\User;
 use App\Support\Audit\AuditChange;
 use App\Support\Audit\AuditTrail;
-use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use Lorisleiva\Actions\Concerns\AsAction;
 
 /**
- * Melepas Form Evaluasi dari satu langkah. BR-FE-30, BR-FE-22 — form yang sudah ditugaskan ke
- * reviewer pada pengajuan di langkah itu adalah dasar penilaiannya, jadi hanya bisa dinonaktifkan.
+ * Melepas Form Evaluasi dari satu langkah. BR-FE-30, BR-FE-32 (G3-W5) — pelepasan berlaku mulai
+ * versi struktur berikutnya; pemasangan dan penugasan di versi lama tetap utuh (BR-FE-22).
  *
  * @method static void run(StepEvaluationForm $step, User $actor)
  */
@@ -27,23 +29,21 @@ class DetachEvaluationForm
      */
     public function handle(StepEvaluationForm $step, User $actor): void
     {
-        $assigned = ReviewerFormAssignment::query()
-            ->where('review_evaluation_form_id', $step->review_evaluation_form_id)
-            ->whereHas('submissionReviewer.formSubmission', fn (Builder $q) => $q->where('form_phase_detail_id', $step->form_phase_detail_id))
-            ->count();
+        $detail = $step->formPhaseDetail;
+        $structure = PhaseStructureInput::fromVersion(AssertCurrentPhaseStep::run($detail));
+        $index = $structure->indexOf($detail->id);
+        $kept = array_values(array_filter(
+            $structure->details[$index]->evaluationForms,
+            fn (StepEvaluationFormInput $a): bool => $a->reviewEvaluationFormId !== $step->review_evaluation_form_id,
+        ));
 
-        if ($assigned > 0) {
-            throw ValidationException::withMessages([
-                'step_evaluation_form' => "Form evaluasi ini sudah ditugaskan ke {$assigned} reviewer di langkah ini, jadi tidak bisa dilepas. Nonaktifkan saja.",
-            ]);
-        }
+        DB::transaction(function () use ($step, $actor, $detail, $structure, $index, $kept): void {
+            PublishPhaseVersion::run($detail->formPhase ?? $detail->formPhase()->firstOrFail(), $structure->withEvaluationFormsAt($index, $kept), $actor);
 
-        DB::transaction(function () use ($step, $actor): void {
             AuditTrail::record('Form evaluasi dilepas', $step, $actor, new AuditChange(old: [
                 'form_phase_detail_id' => $step->form_phase_detail_id,
                 'review_evaluation_form_id' => $step->review_evaluation_form_id,
             ]));
-            $step->delete();
         });
     }
 }

@@ -83,6 +83,8 @@ kasus berperilaku salah tanpa ada yang gagal mencolok.
 | **ReviewEvaluationForm**   | Form Evaluasi: pustaka berversi, dipasang ke langkah `needs_review` lewat StepEvaluationForm. Judul dan deskripsinya nama pustaka (tak berversi); isinya (field, opsi, wajib, aturan validasi) berversi. |
 | **Versi Form Evaluasi**    | `ReviewEvaluationFormVersion`: isi Form Evaluasi yang diterbitkan, bernomor "Versi n" mulai 1. Tidak pernah berubah sesudah terbit; jawaban reviewer menunjuk versi yang diisinya. |
 | **Pemakuan versi**         | `EvaluationFormPin`: versi yang dipakai satu angkatan × langkah × Form Evaluasi, dipaku saat draf penilaian pertama di sana tersimpan (BR-REV-18). |
+| **Versi Struktur Fase**    | `FormPhaseVersion`: langkah sebuah tahap beserta urutan, Form + aturan akses, jenis/siklus tenggat, `needs_review`, dan Form Evaluasi terpasang, beku sesudah terbit dan bernomor "Versi n" (BR-FE-32). |
+| **Pemakuan struktur**      | `PhaseVersionPin`: versi struktur yang dipakai satu angkatan (Periode × Tahap), dipaku saat pengajuan pertama angkatan itu dibuat (BR-FE-32). |
 | **Pemasangan**            | `StepEvaluationForm`: Form Evaluasi pustaka yang dipakai satu langkah `needs_review`, dengan wajib/aktif/urutannya sendiri (BR-FE-30). Melepas = menghapus pemasangan; menonaktifkan = berhenti menawarkannya untuk pekerjaan baru. |
 | **Draf**                   | `ConfigurationDraft`: isi konfigurasi yang sedang disunting dan belum berlaku (BR-FE-31). Satu per objek; yang berjalan tetap memakai terbitan terakhir. |
 | **Terbitkan**              | Mengubah draf menjadi versi bernomor berikutnya yang beku, lalu menghapus drafnya (BR-FE-31). |

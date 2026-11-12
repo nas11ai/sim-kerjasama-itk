@@ -22,7 +22,7 @@
 
 ## Responsibility
 
-Mengelola siklus monitoring dan evaluasi untuk Submission yang sudah APPROVED. Monev adalah bagian dari satu FormPhase yang sama dengan pengajuan — bukan phase terpisah. Reviewer untuk setiap siklus monev di-assign manual oleh Operator dengan suggestion dari reviewer pengajuan awal.
+Mengelola siklus monitoring dan evaluasi untuk Submission yang sudah APPROVED. Monev adalah bagian dari satu FormPhase yang sama dengan pengajuan — bukan phase terpisah: siklusnya adalah langkah sesudah langkah induk **di versi struktur langkah induk** (BR-FE-32), sehingga versi tahap yang terbit belakangan tidak mengubah siklus angkatan yang sudah berjalan. Reviewer untuk setiap siklus monev di-assign manual oleh Operator dengan suggestion dari reviewer pengajuan awal.
 
 ---
 

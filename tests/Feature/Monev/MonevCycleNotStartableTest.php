@@ -10,7 +10,6 @@ use App\Actions\FormSubmission\StartSubmission;
 use App\Enums\DeadlineType;
 use App\Models\Form;
 use App\Models\FormAccessControl;
-use App\Models\FormPhaseDetail;
 use App\Models\SubmissionPeriodPhase;
 use App\Queries\Submission\AccessibleFormPhaseDetail;
 use App\Queries\Submission\ResearcherStartOptions;
@@ -33,8 +32,7 @@ function monevCycleStartFixture(): array
     ]);
 
     calendarDate($fx['period'], DeadlineType::Submit, now()->addMonths(6), cycle: 1);
-    $cycleDetail = FormPhaseDetail::create([
-        'form_phase_id' => $fx['phase']->id,
+    $cycleDetail = phaseStep($fx['phase'], [
         'form_access_control_id' => $control->id,
         'phase_type_id' => $fx['detail']->phase_type_id,
         'order' => $fx['detail']->order + 2,
@@ -67,6 +65,6 @@ it('detail siklus monev tidak menerima pengajuan baru', function () {
 it('langkah 1 wizard tidak memilih detail siklus monev', function () {
     $fx = monevCycleStartFixture();
 
-    expect(AccessibleFormPhaseDetail::run($fx['phase']->id, $fx['monevForm']->id, $fx['user']))
+    expect(AccessibleFormPhaseDetail::run($fx['phase']->id, $fx['monevForm']->id, $fx['period']->id, $fx['user']))
         ->toBeNull();
 });

@@ -6,11 +6,13 @@ use App\Actions\Concerns\ChangesNoState;
 use App\Data\View\FormEngine\CohortEvaluationVersionData;
 use App\Data\View\FormEngine\PastDeadlineSubmissionData;
 use App\Models\EvaluationFormPin;
+use App\Models\FormPhase;
 use App\Models\FormPhaseDetail;
 use App\Models\FormSubmission;
 use App\Models\ReviewFormResponse;
 use App\Models\StepEvaluationForm;
 use App\Models\SubmissionPeriod;
+use App\Queries\Form\PhaseVersionFor;
 use App\Queries\Review\DecidedSubmissionsAtStep;
 use App\Queries\Review\SubmissionsPastEvaluationDeadline;
 use Illuminate\Database\Eloquent\Builder;
@@ -43,7 +45,7 @@ class CohortEvaluationVersions implements ChangesNoState
             ->active()
             ->whereHas('formPhaseDetail', fn (Builder $detail) => $detail
                 ->where('needs_review', true)
-                ->whereIn('form_phase_id', $period->submissionPeriodPhases()->select('form_phase_id')))
+                ->whereIn('form_phase_version_id', $this->cohortVersionIds($period)))
             ->with(['formPhaseDetail.formPhase:id,title', 'reviewEvaluationForm.latestVersion'])
             ->get()
             ->sortBy([
@@ -57,6 +59,26 @@ class CohortEvaluationVersions implements ChangesNoState
                 $pins->get("{$step->form_phase_detail_id}:{$step->review_evaluation_form_id}"),
             ))
             ->all());
+    }
+
+    /**
+     * BR-FE-32 — versi struktur tiap angkatan periode ini: pakuan, atau terbaru tahapnya.
+     *
+     * @return list<int>
+     */
+    private function cohortVersionIds(SubmissionPeriod $period): array
+    {
+        $ids = [];
+
+        foreach (FormPhase::query()->whereIn('id', $period->submissionPeriodPhases()->select('form_phase_id'))->get() as $phase) {
+            $version = PhaseVersionFor::run($period, $phase);
+
+            if ($version !== null) {
+                $ids[] = $version->id;
+            }
+        }
+
+        return $ids;
     }
 
     private function row(SubmissionPeriod $period, StepEvaluationForm $step, ?EvaluationFormPin $pin): CohortEvaluationVersionData

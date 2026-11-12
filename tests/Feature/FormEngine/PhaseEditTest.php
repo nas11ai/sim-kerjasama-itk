@@ -32,13 +32,7 @@ function phaseEditActor(string $role = 'admin'): User
 /** Detail baru beraturan akses milik $form, di tahap $phase (atau tahap baru). */
 function phaseEditDetail(Form $form, ?FormPhase $phase = null, array $attributes = []): FormPhaseDetail
 {
-    $detail = FormPhaseDetail::factory()->create($attributes);
-    $detail->formAccessControl?->update(['form_id' => $form->id]);
-    if ($phase !== null) {
-        $detail->update(['form_phase_id' => $phase->id]);
-    }
-
-    return $detail->fresh() ?? $detail;
+    return formStepIn($form, $phase, $attributes);
 }
 
 /** Detail direview dengan satu form evaluasi aktif. */
@@ -153,7 +147,7 @@ it('needs_review tidak bisa dimatikan selama ada form evaluasi aktif', function 
         ->and($detail->formPhase?->fresh()?->title)->toBe('Fase Uji Factory');
 });
 
-it('membuang detail yang form evaluasinya pernah ditugaskan ditolak', function () {
+it('membuang detail yang form evaluasinya pernah ditugaskan hanya dari versi baru (BR-FE-32)', function () {
     $kept = phaseEditDetail($this->form);
     $dropped = phaseEditReviewedDetail($this->form, $kept->formPhase);
     $evaluation = StepEvaluationForm::query()->where('form_phase_detail_id', $dropped->id)->sole()->reviewEvaluationForm;
@@ -178,11 +172,11 @@ it('membuang detail yang form evaluasinya pernah ditugaskan ditolak', function (
             ->where('phase.details.1.assignmentCount', 1)
             ->where('phase.details.1.submissionCount', 1));
 
-    $this->putJson(route('admin.phases.update', $kept->formPhase), phaseEditPayload([phaseEditRow($kept)]))
-        ->assertStatus(422)
-        ->assertJsonValidationErrors(['id' => '1 penugasan form evaluasi']);
+    $this->put(route('admin.phases.update', $kept->formPhase), phaseEditPayload([phaseEditRow($kept)]))
+        ->assertSessionHasNoErrors();
 
-    expect(FormPhaseDetail::query()->whereKey($dropped->id)->exists())->toBeTrue()
+    expect($kept->formPhase->currentDetails()->count())->toBe(1)
+        ->and(FormPhaseDetail::query()->whereKey($dropped->id)->exists())->toBeTrue()
         ->and(ReviewEvaluationForm::query()->whereKey($evaluation->id)->exists())->toBeTrue()
         ->and(ReviewerFormAssignment::query()->whereKey($assignment->id)->exists())->toBeTrue();
 });

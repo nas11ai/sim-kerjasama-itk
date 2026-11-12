@@ -2,6 +2,7 @@
 
 namespace App\Actions\FormSubmission;
 
+use App\Actions\Form\PinPhaseVersion;
 use App\Models\Form;
 use App\Models\FormPhase;
 use App\Models\FormPhaseDetail;
@@ -12,6 +13,7 @@ use App\Models\User;
 use App\Support\AccountStateGuard;
 use App\Support\Audit\AuditTrail;
 use App\Support\SubmissionPeriodGate;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\ValidationException;
 use Lorisleiva\Actions\Concerns\AsAction;
 
@@ -54,21 +56,32 @@ class StartSubmission
 
         $this->assertAcceptsNewSubmissions($formId, $submissionPeriodId, $formPhaseDetail);
 
-        // ADR 0012 — created_at baris ini menjadi jangkar Temporal Field Binding
-        // (BR-FE-11), jadi ia harus lahir saat peneliti mulai mengisi.
-        $tercatat = FormSubmission::create([
-            'form_id' => $formId,
-            'submitted_by' => $user->id,
-            'submission_period_id' => $submissionPeriodId,
-            'form_phase_detail_id' => $formPhaseDetail->id,
-            'is_submitted' => false,
-            'last_completed_step' => 1,
-        ]);
+        return $this->createDraft($formId, $submissionPeriodId, $formPhaseDetail, $user);
+    }
 
-        // BR-RPT-09 — satu Action, satu entri audit.
-        AuditTrail::record('Draft pengajuan dibuat', $tercatat, $user);
+    private function createDraft(int $formId, int $submissionPeriodId, FormPhaseDetail $formPhaseDetail, User $user): FormSubmission
+    {
+        return DB::transaction(function () use ($formId, $submissionPeriodId, $formPhaseDetail, $user): FormSubmission {
+            // BR-FE-32 — pengajuan pertama angkatan memaku versi strukturnya; penolakan langkah
+            // versi lama menggulung pakuannya kembali.
+            PinPhaseVersion::run(SubmissionPeriod::query()->findOrFail($submissionPeriodId), $formPhaseDetail);
 
-        return $tercatat;
+            // ADR 0012 — created_at baris ini menjadi jangkar Temporal Field Binding
+            // (BR-FE-11), jadi ia harus lahir saat peneliti mulai mengisi.
+            $tercatat = FormSubmission::create([
+                'form_id' => $formId,
+                'submitted_by' => $user->id,
+                'submission_period_id' => $submissionPeriodId,
+                'form_phase_detail_id' => $formPhaseDetail->id,
+                'is_submitted' => false,
+                'last_completed_step' => 1,
+            ]);
+
+            // BR-RPT-09 — satu Action, satu entri audit.
+            AuditTrail::record('Draft pengajuan dibuat', $tercatat, $user);
+
+            return $tercatat;
+        });
     }
 
     // BR-FE-19 / FE-DELETE-05 — Form nonaktif tidak menerima pengajuan baru; draft yang masih

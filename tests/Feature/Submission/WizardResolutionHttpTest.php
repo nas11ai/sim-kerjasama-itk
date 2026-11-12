@@ -97,7 +97,7 @@ it('[FE-TEMPORAL-09] menyimpan draft tidak menjalankan validasi penuh', function
 
 it('[SM-SUBMIT-18] fase yang tidak butuh review tetap mendarat di SUBMITTED', function () {
     $fx = wizardFixture();
-    $fx['detail']->update(['needs_review' => false]);
+    $fx['detail'] = restep($fx['detail'], ['needs_review' => false]);
 
     StartSubmission::run(
         $fx['form']->id, $fx['period']->id, $fx['detail'], $fx['user']

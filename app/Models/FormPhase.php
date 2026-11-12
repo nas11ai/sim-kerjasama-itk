@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 /**
  * @property int $id
@@ -17,6 +18,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property int $submission_count hanya setelah PhaseLibrary
  * @property string|null $submission_form_title hanya setelah PhaseLibrary
  * @property-read SubmissionPeriod|null $submissionPeriod
+ * @property-read FormPhaseVersion|null $latestVersion
  */
 class FormPhase extends Model
 {
@@ -43,11 +45,38 @@ class FormPhase extends Model
     ];
 
     /**
+     * Langkah di semua versi (BR-FE-32) — penjaga hapus BR-FE-20 menghitung pengajuan di mana pun.
+     *
      * @return HasMany<FormPhaseDetail, $this>
      */
     public function formPhaseDetails(): HasMany
     {
         return $this->hasMany(FormPhaseDetail::class);
+    }
+
+    /** @return HasMany<FormPhaseVersion, $this> */
+    public function versions(): HasMany
+    {
+        return $this->hasMany(FormPhaseVersion::class)->orderBy('number');
+    }
+
+    /** @return HasOne<FormPhaseVersion, $this> */
+    public function latestVersion(): HasOne
+    {
+        return $this->hasOne(FormPhaseVersion::class)->latestOfMany('number');
+    }
+
+    /**
+     * Langkah versi terbaru — yang disunting editor dan dipakai angkatan yang belum terpaku.
+     *
+     * @return HasMany<FormPhaseDetail, $this>
+     */
+    public function currentDetails(): HasMany
+    {
+        return $this->hasMany(FormPhaseDetail::class)
+            ->inLatestVersion()
+            ->orderBy('form_phase_details.order')
+            ->orderBy('form_phase_details.id');
     }
 
     /** @return HasMany<SubmissionPeriodPhase, $this> */
@@ -63,7 +92,7 @@ class FormPhase extends Model
     }
 
     /**
-     * Tahap memakai sebuah Form bila langkah mana pun memakai aturan akses Form itu (tapis pustaka, R2).
+     * Tahap memakai sebuah Form bila langkah versi terbarunya memakai aturan akses Form itu (tapis pustaka, R2).
      *
      * @param  Builder<FormPhase>  $query
      * @return Builder<FormPhase>
@@ -71,7 +100,7 @@ class FormPhase extends Model
     public function scopeUsingForm(Builder $query, Form $form): Builder
     {
         return $query->whereHas(
-            'formPhaseDetails.formAccessControl',
+            'currentDetails.formAccessControl',
             fn (Builder $rules) => $rules->where('form_id', $form->id),
         );
     }

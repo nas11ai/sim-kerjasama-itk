@@ -10,10 +10,13 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Query\Builder as QueryBuilder;
+use LogicException;
 
 /**
  * @property int $id
  * @property int $form_phase_id
+ * @property int $form_phase_version_id
  * @property int $form_access_control_id
  * @property int $phase_type_id
  * @property int $order
@@ -24,6 +27,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property int $assignment_count hanya setelah PhaseEdit
  * @property int $evaluation_form_count hanya setelah PhaseEdit
  * @property-read FormPhase|null $formPhase
+ * @property-read FormPhaseVersion $formPhaseVersion
  * @property-read FormAccessControl|null $formAccessControl
  * @property-read PhaseType|null $phaseType
  */
@@ -34,9 +38,14 @@ class FormPhaseDetail extends Model
     /**
      * BR-FE-20 — detail yang dirujuk pengajuan tidak bisa dihapus. BR-FE-22 — begitu pula detail
      * yang form evaluasinya pernah ditugaskan: tanpa penjaga ini form evaluasinya ikut ter-cascade.
+     * BR-FE-32 — langkah milik versi terbit, jadi tidak pernah diubah; perubahan = versi baru.
      */
     protected static function booted(): void
     {
+        static::updating(function (): void {
+            throw new LogicException('Langkah versi struktur yang terbit tidak dapat diubah.');
+        });
+
         static::deleting(function (FormPhaseDetail $detail): void {
             ReferenceGuard::assertUnreferenced('Detail tahap', [
                 'pengajuan' => FormSubmission::query()
@@ -51,6 +60,7 @@ class FormPhaseDetail extends Model
 
     protected $fillable = [
         'form_phase_id',
+        'form_phase_version_id',
         'form_access_control_id',
         'phase_type_id',
         'order',
@@ -81,6 +91,12 @@ class FormPhaseDetail extends Model
     public function phaseType(): BelongsTo
     {
         return $this->belongsTo(PhaseType::class);
+    }
+
+    /** @return BelongsTo<FormPhaseVersion, $this> */
+    public function formPhaseVersion(): BelongsTo
+    {
+        return $this->belongsTo(FormPhaseVersion::class);
     }
 
     /** @return HasMany<StepEvaluationForm, $this> Form Evaluasi pustaka yang terpasang di langkah ini */
@@ -140,6 +156,23 @@ class FormPhaseDetail extends Model
         }
 
         return now()->lte($date->datetime);
+    }
+
+    /**
+     * BR-FE-32 — hanya langkah versi terbaru tahapnya (yang disunting editor dan dipakai angkatan
+     * yang belum terpaku). Berkorelasi per baris, jadi aman untuk banyak tahap sekaligus.
+     *
+     * @param  Builder<FormPhaseDetail>  $query
+     * @return Builder<FormPhaseDetail>
+     */
+    public function scopeInLatestVersion(Builder $query): Builder
+    {
+        return $query->where('form_phase_details.form_phase_version_id', fn (QueryBuilder $latest) => $latest
+            ->select('v.id')
+            ->from('form_phase_versions as v')
+            ->whereColumn('v.form_phase_id', 'form_phase_details.form_phase_id')
+            ->orderByDesc('v.number')
+            ->limit(1));
     }
 
     /**

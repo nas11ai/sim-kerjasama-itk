@@ -38,7 +38,7 @@ final class MonevRecapExport implements ExportDefinition
         return $this->parents($user, $filters)
             ->join('form_phase_details as own', 'own.id', '=', 'form_submissions.form_phase_detail_id')
             ->join('form_phase_details as later', fn (JoinClause $join) => $join
-                ->on('later.form_phase_id', '=', 'own.form_phase_id')
+                ->on('later.form_phase_version_id', '=', 'own.form_phase_version_id')
                 ->on('later.order', '>', 'own.order'))
             ->where('later.deadline_type', '!=', DeadlineType::Output->value)
             ->count();

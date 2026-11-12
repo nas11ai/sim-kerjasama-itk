@@ -6,7 +6,6 @@
 use App\Enums\DeadlineType;
 use App\Models\Form;
 use App\Models\FormPhase;
-use App\Models\FormPhaseDetail;
 use App\Models\SubmissionDate;
 use App\Models\SubmissionPeriod;
 use App\Models\SubmissionPeriodPhase;
@@ -34,9 +33,7 @@ beforeEach(function () {
 function onePhaseFor(string $title, Form $form, array $attributes = []): FormPhase
 {
     $phase = FormPhase::create(['title' => $title, 'is_active' => true]);
-    $detail = FormPhaseDetail::factory()->create($attributes);
-    $detail->formAccessControl?->update(['form_id' => $form->id]);
-    $detail->update(['form_phase_id' => $phase->id]);
+    formStepIn($form, $phase, $attributes);
 
     return $phase;
 }

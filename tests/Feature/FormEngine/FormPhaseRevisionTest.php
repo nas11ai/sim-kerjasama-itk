@@ -2,9 +2,9 @@
 
 // tests/Feature/FormEngine/FormPhaseRevisionTest.php
 //
-// BR-FE-20 — merevisi tahap formulir menyinkronkan detailnya per id. Versi lama
-// menghapus semua detail lewat query massal lalu membuat ulang: form evaluasi ikut
-// ter-cascade dan pengajuan kehilangan tahapnya.
+// BR-FE-32 — merevisi tahap formulir menerbitkan versi struktur berikutnya (G3-W4). Langkah
+// ber-id disalin beserta Form Evaluasinya; Versi 1 tidak berubah, jadi pengajuan dan
+// penugasannya tetap pada langkah yang persis sama (BR-FE-20).
 
 use App\Enums\DeadlineType;
 use App\Models\FormAccessControl;
@@ -12,7 +12,6 @@ use App\Models\FormPhase;
 use App\Models\FormPhaseDetail;
 use App\Models\FormSubmission;
 use App\Models\PhaseType;
-use App\Models\ReviewEvaluationForm;
 use App\Models\User;
 use App\Support\Audit\AuditTrail;
 use Illuminate\Testing\TestResponse;
@@ -70,49 +69,59 @@ function reviseFormPhase(array $payload): TestResponse
         ->put(route('admin.phases.update', test()->phase), $payload);
 }
 
-it('keeps the evaluation forms of a detail the revision retains (BR-FE-20)', function () {
+/** @return list<int> */
+function currentStepIds(): array
+{
+    return test()->phase->currentDetails()->pluck('id')->all();
+}
+
+it('copies the evaluation forms of a retained step into the new version', function () {
     // Form evaluasi hanya melekat pada detail yang direview (AssertReviewedPhaseDetail, W97).
-    $this->kept->update(['needs_review' => true]);
+    $this->kept = restep($this->kept, ['needs_review' => true]);
     $evaluation = evaluationFormOn($this->kept, [], title: 'Lembar Penilaian');
 
     reviseFormPhase(revisionPayload([revisionRow($this->kept)]))
         ->assertSessionHasNoErrors()
         ->assertRedirect(route('admin.phases.index'));
 
-    expect(ReviewEvaluationForm::query()->whereKey($evaluation->id)->exists())->toBeTrue();
+    $copy = $this->phase->currentDetails()->sole();
+    expect($copy->id)->not->toBe($this->kept->id)
+        ->and($copy->stepEvaluationForms()->pluck('review_evaluation_form_id')->all())->toBe([$evaluation->id])
+        ->and($this->kept->stepEvaluationForms()->count())->toBe(1);
 });
 
-it('leaves submissions pointing at a retained detail (BR-FE-20)', function () {
+it('leaves submissions on the step of the version they started in', function () {
     $submission = FormSubmission::factory()->create(['form_phase_detail_id' => $this->kept->id]);
 
     reviseFormPhase(revisionPayload([revisionRow($this->kept), revisionRow($this->dropped)]))
         ->assertSessionHasNoErrors();
 
-    expect($submission->fresh()->form_phase_detail_id)->toBe($this->kept->id);
+    expect($submission->fresh()->form_phase_detail_id)->toBe($this->kept->id)
+        ->and(currentStepIds())->not->toContain($this->kept->id)
+        ->and($this->phase->latestVersion()->firstOrFail()->number)->toBe(2);
 });
 
-it('keeps the step kind of a retained detail (ADR 0019)', function () {
-    $this->dropped->update(['deadline_cycle' => 2]);
-
-    reviseFormPhase(revisionPayload([revisionRow($this->kept), revisionRow($this->dropped->fresh())]))
+it('copies the step kind of a retained step (ADR 0019)', function () {
+    reviseFormPhase(revisionPayload([revisionRow($this->kept), array_merge(revisionRow($this->dropped), ['deadline_cycle' => 2])]))
         ->assertSessionHasNoErrors();
 
-    $retained = FormPhaseDetail::query()->find($this->dropped->id);
-    expect($retained?->deadline_type)->toBe(DeadlineType::Submit)
-        ->and($retained?->deadline_cycle)->toBe(2);
+    $copy = $this->phase->currentDetails()->get()->last();
+    expect($copy?->deadline_type)->toBe(DeadlineType::Submit)
+        ->and($copy?->deadline_cycle)->toBe(2)
+        ->and($this->dropped->fresh()?->deadline_cycle)->toBe(1);
 });
 
-it('rejects dropping a detail still used by a submission and changes nothing (BR-FE-20)', function () {
+it('drops a step used by a submission only from the new version (BR-FE-20, BR-FE-32)', function () {
     $submission = FormSubmission::factory()->create(['form_phase_detail_id' => $this->dropped->id]);
 
-    reviseFormPhase(revisionPayload([revisionRow($this->kept)]))->assertSessionHasErrors('id');
+    reviseFormPhase(revisionPayload([revisionRow($this->kept)]))->assertSessionHasNoErrors();
 
-    expect($this->phase->fresh()->title)->toBe('Tahap Lama')
+    expect(currentStepIds())->toHaveCount(1)
         ->and(FormPhaseDetail::query()->whereKey($this->dropped->id)->exists())->toBeTrue()
         ->and($submission->fresh()->form_phase_detail_id)->toBe($this->dropped->id);
 });
 
-it('deletes an unused dropped detail and creates a detail sent without id', function () {
+it('creates a step sent without id in the new version', function () {
     $newRow = [
         'form_access_control_id' => $this->dropped->form_access_control_id,
         'phase_type_id' => PhaseType::create(['name' => 'Tipe Baru Revisi'])->id,
@@ -127,26 +136,31 @@ it('deletes an unused dropped detail and creates a detail sent without id', func
     reviseFormPhase(revisionPayload([revisionRow($this->kept), $newRow]))
         ->assertSessionHasNoErrors();
 
-    $details = $this->phase->formPhaseDetails()->get();
+    $details = $this->phase->currentDetails()->get();
 
-    expect(FormPhaseDetail::query()->whereKey($this->dropped->id)->exists())->toBeFalse()
-        ->and($details)->toHaveCount(2)
-        ->and($details->pluck('id'))->toContain($this->kept->id)
-        ->and($details->firstWhere('phase_type_id', $newRow['phase_type_id'])?->needs_review)
-        ->toBeTrue();
+    expect($details)->toHaveCount(2)
+        ->and($details->firstWhere('phase_type_id', $newRow['phase_type_id'])?->needs_review)->toBeTrue()
+        ->and($this->phase->formPhaseDetails()->count())->toBe(4);
 });
 
 it('rejects a detail id that belongs to another phase', function () {
     $foreign = FormPhaseDetail::factory()->create();
-    $foreignPhaseId = $foreign->form_phase_id;
 
     reviseFormPhase(revisionPayload([revisionRow($this->kept), revisionRow($foreign)]))
         ->assertSessionHasErrors('phase_details');
 
-    expect($foreign->fresh()->form_phase_id)->toBe($foreignPhaseId)
-        ->and($this->phase->fresh()->title)->toBe('Tahap Lama')
-        ->and($this->phase->formPhaseDetails()->pluck('id')->sort()->values()->all())
-        ->toBe(collect([$this->kept->id, $this->dropped->id])->sort()->values()->all());
+    expect($this->phase->fresh()->title)->toBe('Tahap Lama')
+        ->and($this->phase->versions()->count())->toBe(1)
+        ->and(currentStepIds())->toBe([$this->kept->id, $this->dropped->id]);
+});
+
+it('rejects a step id from an older version of this phase', function () {
+    reviseFormPhase(revisionPayload([revisionRow($this->kept), revisionRow($this->dropped)]))->assertSessionHasNoErrors();
+
+    reviseFormPhase(revisionPayload([revisionRow($this->kept)]))
+        ->assertSessionHasErrors(['form_phase_detail_id' => 'Struktur tahap ini baru saja diterbitkan ulang. Muat ulang halaman lalu mulai lagi.']);
+
+    expect($this->phase->versions()->count())->toBe(2);
 });
 
 it('gives details of the same form the same order, numbered by first appearance', function () {
@@ -171,7 +185,7 @@ it('gives details of the same form the same order, numbered by first appearance'
 
     reviseFormPhase(revisionPayload($rows))->assertSessionHasNoErrors();
 
-    $orders = $this->phase->formPhaseDetails()->pluck('order', 'form_access_control_id');
+    $orders = $this->phase->currentDetails()->pluck('order', 'form_access_control_id');
 
     expect($orders[$this->kept->form_access_control_id])->toBe(1)
         ->and($orders[$this->dropped->form_access_control_id])->toBe(2)
@@ -202,75 +216,30 @@ it('rejects a new detail without a deadline type as validation, not SQLSTATE (BR
         ->and($this->phase->fresh()->title)->toBe('Tahap Lama');
 });
 
-it('rejects changing the form of a detail used by a submission (BR-FE-20)', function () {
-    FormSubmission::factory()->create(['form_phase_detail_id' => $this->kept->id]);
-    $formId = $this->kept->form_access_control_id;
-
-    reviseFormPhase(revisionPayload([
-        array_merge(revisionRow($this->kept), ['form_access_control_id' => $this->dropped->form_access_control_id]),
-        revisionRow($this->dropped),
-    ]))->assertSessionHasErrors('phase_details.0.form_access_control_id');
-
-    expect($this->kept->fresh()->form_access_control_id)->toBe($formId)
-        ->and($this->phase->fresh()->title)->toBe('Tahap Lama');
-});
-
-it('rejects changing the phase type of a detail used by a submission (BR-FE-20)', function () {
-    FormSubmission::factory()->create(['form_phase_detail_id' => $this->kept->id]);
-    $typeId = $this->kept->phase_type_id;
-
-    reviseFormPhase(revisionPayload([
-        array_merge(revisionRow($this->kept), ['phase_type_id' => $this->dropped->phase_type_id]),
-    ]))->assertSessionHasErrors('phase_details.0.phase_type_id');
-
-    expect($this->kept->fresh()->phase_type_id)->toBe($typeId)
-        ->and(FormPhaseDetail::query()->whereKey($this->dropped->id)->exists())->toBeTrue();
-});
-
-// K-1 (pemilik 2026-11-11) — jenis langkah menentukan tanggal mana yang dibaca pengajuannya;
-// mengubahnya diam-diam memindahkan tenggat semua pengajuan di langkah itu.
-it('rejects changing the step kind of a detail used by a submission (BR-FE-20, K-1)', function () {
-    FormSubmission::factory()->create(['form_phase_detail_id' => $this->kept->id]);
-
-    reviseFormPhase(revisionPayload([
-        array_merge(revisionRow($this->kept), ['deadline_type' => DeadlineType::Output->value, 'needs_review' => false]),
-        revisionRow($this->dropped),
-    ]))->assertSessionHasErrors('phase_details.0.deadline_type');
-
-    expect($this->kept->fresh()->deadline_type)->toBe(DeadlineType::Submit);
-});
-
-it('rejects changing the cycle of a detail used by a submission (BR-FE-20, K-1)', function () {
-    FormSubmission::factory()->create(['form_phase_detail_id' => $this->kept->id]);
-
-    reviseFormPhase(revisionPayload([
-        array_merge(revisionRow($this->kept), ['deadline_cycle' => 2]),
-        revisionRow($this->dropped),
-    ]))->assertSessionHasErrors('phase_details.0.deadline_cycle');
-
-    expect($this->kept->fresh()->deadline_cycle)->toBeNull();
-});
-
-it('saves a new order and needs_review on a detail used by a submission (BR-FE-20)', function () {
-    // BR-FE-28 — Pengajuan selalu urutan 1, jadi yang berpindah urutan langkah monevnya.
-    FormSubmission::factory()->create(['form_phase_detail_id' => $this->dropped->id]);
-    $this->dropped->update(['order' => 5]);
+// K-1 diganti versi beku (G3-W5): mengubah langkah yang sudah dipakai hanya berlaku di versi baru,
+// jadi tenggat pengajuan lama tidak pernah berpindah diam-diam.
+it('changes a step used by a submission only in the new version (BR-FE-32)', function () {
+    $submission = FormSubmission::factory()->create(['form_phase_detail_id' => $this->dropped->id]);
+    $before = $this->dropped->fresh()?->only(['deadline_cycle', 'needs_review', 'phase_type_id']);
 
     reviseFormPhase(revisionPayload([
         revisionRow($this->kept),
-        array_merge(revisionRow($this->dropped->fresh()), ['needs_review' => true]),
+        array_merge(revisionRow($this->dropped), ['deadline_cycle' => 2, 'needs_review' => true, 'phase_type_id' => $this->kept->phase_type_id]),
     ]))->assertSessionHasNoErrors();
 
-    $used = $this->dropped->fresh();
-
-    expect($used->order)->toBe(2)
-        ->and($used->needs_review)->toBeTrue();
+    $copy = $this->phase->currentDetails()->get()->last();
+    expect($copy?->deadline_cycle)->toBe(2)
+        ->and($copy?->needs_review)->toBeTrue()
+        ->and($copy?->phase_type_id)->toBe($this->kept->phase_type_id)
+        ->and($this->dropped->fresh()?->only(['deadline_cycle', 'needs_review', 'phase_type_id']))->toBe($before)
+        ->and($submission->fresh()->form_phase_detail_id)->toBe($this->dropped->id);
 });
 
-it('saves a changed form on a detail no submission uses', function () {
+it('saves a changed form on a step', function () {
     reviseFormPhase(revisionPayload([
         array_merge(revisionRow($this->kept), ['form_access_control_id' => $this->dropped->form_access_control_id]),
     ]))->assertSessionHasNoErrors();
 
-    expect($this->kept->fresh()->form_access_control_id)->toBe($this->dropped->form_access_control_id);
+    expect($this->phase->currentDetails()->sole()->form_access_control_id)->toBe($this->dropped->form_access_control_id)
+        ->and($this->kept->fresh()?->form_access_control_id)->toBe($this->kept->form_access_control_id);
 });

@@ -32,7 +32,7 @@ class MonevCycles implements ChangesNoState
     public const REPORT_SUBMITTED_AUDIT = 'Laporan monev disubmit';
 
     /**
-     * Detail tahap induk ber-`order` lebih besar. BR-FE-28: Form pengajuan selalu `order = 1`, jadi
+     * Detail versi struktur induk (BR-FE-32) ber-`order` lebih besar. BR-FE-28: Form pengajuan selalu `order = 1`, jadi
      * baris Pengajuan aturan akses lain tak ikut; W92 (Form lain berbagi tahap) kini ditolak Action.
      *
      * @return Collection<int, FormPhaseDetail>
@@ -46,7 +46,7 @@ class MonevCycles implements ChangesNoState
         }
 
         return FormPhaseDetail::query()
-            ->where('form_phase_id', $own->form_phase_id)
+            ->where('form_phase_version_id', $own->form_phase_version_id)
             ->where('order', '>', $own->order)
             // W139 — langkah Upload Luaran (BR-FE-07: `output`) milik luaran, bukan siklus monev.
             ->where('deadline_type', '!=', DeadlineType::Output->value)
@@ -66,7 +66,7 @@ class MonevCycles implements ChangesNoState
     {
         return $parents->whereHas('formPhaseDetail', fn (Builder $own) => $own->whereExists(
             fn (QueryBuilder $later) => $later->from('form_phase_details as later')
-                ->whereColumn('later.form_phase_id', 'form_phase_details.form_phase_id')
+                ->whereColumn('later.form_phase_version_id', 'form_phase_details.form_phase_version_id')
                 ->whereColumn('later.order', '>', 'form_phase_details.order')
                 ->where('later.deadline_type', '!=', DeadlineType::Output->value)
         ));

@@ -28,7 +28,8 @@ class OutputUploadDetail implements ChangesNoState
         }
 
         return FormPhaseDetail::query()
-            ->where('form_phase_id', $own->form_phase_id)
+            // BR-FE-32 — di versi struktur langkah induk.
+            ->where('form_phase_version_id', $own->form_phase_version_id)
             ->where('order', '>', $own->order)
             ->where('deadline_type', DeadlineType::Output->value)
             ->ordered()

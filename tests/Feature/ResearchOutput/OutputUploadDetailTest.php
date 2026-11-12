@@ -9,7 +9,6 @@ use App\Actions\FormSubmission\StartSubmission;
 use App\Models\Form;
 use App\Models\FormAccessControl;
 use App\Models\FormPhase;
-use App\Models\FormPhaseDetail;
 use App\Models\SubmissionPeriodPhase;
 use App\Queries\ResearchOutput\OutputUploadDetail;
 use App\Queries\Submission\ResearcherStartOptions;
@@ -30,14 +29,15 @@ it('tanpa detail Upload Luaran hasilnya null', function () {
 
 it('detail Upload Luaran tahap lain atau sebelum detail induk tidak dihitung', function () {
     $fx = outputUploadFixture();
-    $fx['outputDetail']->update(['order' => 0]);
+    $step = $fx['outputDetail']->only(['form_access_control_id', 'phase_type_id', 'deadline_type']);
+    $fx['outputDetail']->delete();
+    phaseStep($fx['phase'], [...$step, 'order' => 0]);
 
     $otherPhase = FormPhase::create(['title' => 'Tahap Lain', 'is_active' => true]);
-    FormPhaseDetail::create([
-        ...$fx['outputDetail']->only(['form_access_control_id', 'phase_type_id', 'deadline_type']),
-        'form_phase_id' => $otherPhase->id,
-        'order' => 9,
-    ]);
+    phaseStep($otherPhase, [...$step, 'order' => 9]);
+
+    // BR-FE-32 — Upload Luaran versi lain tahap yang sama juga bukan milik induk.
+    phaseVersion($fx['phase'], [[...$step, 'order' => 9]]);
 
     expect(OutputUploadDetail::for($fx['submission']))->toBeNull();
 });
@@ -55,7 +55,9 @@ it('detail Upload Luaran tidak menerima pengajuan', function () {
         'permission' => 'submissions.create',
         'organization_id' => $fx['user']->userProfile->organization_id,
     ]);
-    $fx['outputDetail']->update(['form_access_control_id' => $control->id]);
+    $step = [...$fx['outputDetail']->only(['phase_type_id', 'order', 'needs_review', 'deadline_type']), 'form_access_control_id' => $control->id];
+    $fx['outputDetail']->delete();
+    $fx['outputDetail'] = phaseStep($fx['phase'], $step);
 
     $offered = collect(ResearcherStartOptions::run($fx['user']))
         ->flatMap(fn ($period) => $period->forms)

@@ -40,13 +40,14 @@ class PhaseEdit implements ChangesNoState
             details: array_values($details->map(
                 fn (FormPhaseDetail $detail): PhaseDetailEditData => $this->toData($detail, $labels),
             )->all()),
+            versionLabel: $phase->latestVersion()->first()?->label(),
         );
     }
 
     /** @return Collection<int, FormPhaseDetail> */
     private function details(FormPhase $phase): Collection
     {
-        return $phase->formPhaseDetails()
+        return $phase->currentDetails()
             ->with([
                 'formAccessControl.form:id,title',
                 'phaseType:id,name',

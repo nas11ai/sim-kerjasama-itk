@@ -34,11 +34,7 @@ function linkPhase(): FormPhase
 /** Detail di tahap $phase yang aturan aksesnya milik $form; tautan ke periode dibuat tiap test. */
 function linkDetail(Form $form, FormPhase $phase): FormPhaseDetail
 {
-    $detail = FormPhaseDetail::factory()->create();
-    $detail->formAccessControl?->update(['form_id' => $form->id]);
-    $detail->update(['form_phase_id' => $phase->id]);
-
-    return $detail;
+    return formStepIn($form, $phase);
 }
 
 function linkPeriodNamed(string $name, bool $forceClosed = false): SubmissionPeriod
@@ -158,7 +154,7 @@ it('kartu tidak memperingatkan periode yang sudah tutup sepenuhnya', function ()
     $p1 = linkPeriodNamed('P1');
     $detail = linkDetail($this->form, $phase);
     // Langkah Monev I membaca tanggal yang tidak pernah diisi di P1, tetapi P1 sudah lewat.
-    $detail->update(['deadline_cycle' => 1]);
+    restep($detail, ['deadline_cycle' => 1]);
     $p1->submissionDates()->update(['datetime' => now()->subDay()]);
     SubmissionPeriodPhase::create(['submission_period_id' => $p1->id, 'form_phase_id' => $phase->id]);
 

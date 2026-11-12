@@ -5,10 +5,11 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use LogicException;
 
 /**
  * Pemasangan Form Evaluasi pustaka di satu langkah `needs_review` (G2-W2): wajib, aktif, dan
- * urutannya milik pemasangan, bukan milik formnya.
+ * urutannya milik pemasangan, bukan milik formnya. BR-FE-32 — bagian versi struktur yang beku.
  *
  * @property int $id
  * @property int $form_phase_detail_id
@@ -29,6 +30,13 @@ class StepEvaluationForm extends Model
         'is_active',
         'order',
     ];
+
+    protected static function booted(): void
+    {
+        static::updating(function (): void {
+            throw new LogicException('Pemasangan form evaluasi di versi struktur yang terbit tidak dapat diubah.');
+        });
+    }
 
     protected $casts = [
         'is_required' => 'boolean',

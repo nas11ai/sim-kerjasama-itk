@@ -72,7 +72,9 @@ it('merevisi jenis dan siklus langkah lama', function () {
         ])
         ->assertSessionHasNoErrors();
 
-    expect($this->monev->fresh()?->deadline_cycle)->toBe(2);
+    // BR-FE-32 — revisi menerbitkan versi baru; langkah versi lama tidak berubah.
+    expect($this->phase->currentDetails()->pluck('deadline_cycle')->all())->toBe([null, 2])
+        ->and($this->monev->fresh()?->deadline_cycle)->toBe($this->monev->deadline_cycle);
 });
 
 it('menolak langkah tanpa jenis atau dengan jenis kalender lain', function () {
@@ -101,7 +103,7 @@ it('[FE-WINDOW-09] menolak Upload Luaran bersiklus atau direview', function () {
 });
 
 it('editor tahap mengirim jenis, siklus, dan label langkah tanpa pilihan tanggal', function () {
-    $this->detail->update(['deadline_type' => DeadlineType::Submit, 'deadline_cycle' => 2]);
+    $this->detail = restep($this->detail, ['deadline_type' => DeadlineType::Submit, 'deadline_cycle' => 2]);
 
     $this->actingAs($this->admin)
         ->get(route('admin.phases.edit', $this->phase))

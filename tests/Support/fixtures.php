@@ -21,6 +21,7 @@ use App\Models\FormAccessControl;
 use App\Models\FormField;
 use App\Models\FormPhase;
 use App\Models\FormPhaseDetail;
+use App\Models\FormPhaseVersion;
 use App\Models\FormSubmission;
 use App\Models\FormType;
 use App\Models\Organization;
@@ -46,6 +47,7 @@ use App\States\Submission\Approved;
 use App\States\Submission\Submitted;
 use App\States\Submission\UnderReview;
 use App\Support\Audit\AuditTrail;
+use Database\Factories\FormPhaseDetailFactory;
 use Database\Seeders\PermissionSeeder;
 use Illuminate\Http\UploadedFile;
 use Illuminate\Support\Carbon;
@@ -99,8 +101,7 @@ function buildAccessibleFormPhaseDetail(User $user, Organization $organization, 
         'submission_period_id' => $period->id,
     ]);
 
-    $detail = FormPhaseDetail::create([
-        'form_phase_id' => $formPhase->id,
+    $detail = phaseStep($formPhase, [
         'form_access_control_id' => $accessControl->id,
         'phase_type_id' => $phaseType->id,
         'order' => 1,
@@ -110,6 +111,78 @@ function buildAccessibleFormPhaseDetail(User $user, Organization $organization, 
     SubmissionPeriodPhase::query()->firstOrCreate(['submission_period_id' => $period->id, 'form_phase_id' => $formPhase->id]);
 
     return ['form' => $accessControl->form, 'detail' => $detail, 'period' => $period];
+}
+
+/**
+ * BR-FE-32 — langkah baru di versi terbaru `$phase` (Versi 1 bila belum ada), tanpa audit. Jalur
+ * produksinya PublishPhaseVersion; langkah terbit tidak pernah diubah, jadi test yang dulu
+ * meng-`update` langkah kini membuat langkah atau versi baru.
+ *
+ * @param  array<string, mixed>  $attributes
+ */
+function phaseStep(FormPhase $phase, array $attributes): FormPhaseDetail
+{
+    return FormPhaseDetail::create($attributes + [
+        'form_phase_id' => $phase->id,
+        'form_phase_version_id' => FormPhaseDetailFactory::versionFor($phase->id)->id,
+    ]);
+}
+
+/**
+ * Langkah pabrik yang aturan aksesnya milik `$form`, di `$phase` (atau tahap pabriknya sendiri).
+ * Langkah terbit tidak bisa dipindah (BR-FE-32), jadi langkah pabrik disalin ke `$phase` lalu dihapus.
+ *
+ * @param  array<string, mixed>  $attributes
+ */
+function formStepIn(Form $form, ?FormPhase $phase = null, array $attributes = []): FormPhaseDetail
+{
+    $detail = FormPhaseDetail::factory()->create($attributes);
+    $detail->formAccessControl?->update(['form_id' => $form->id]);
+
+    if ($phase === null) {
+        return $detail->fresh() ?? $detail;
+    }
+
+    $copy = phaseStep($phase, ($detail->fresh() ?? $detail)->only(['form_access_control_id', 'phase_type_id', 'order', 'needs_review', 'deadline_type', 'deadline_cycle']));
+    $detail->delete();
+
+    return $copy->fresh() ?? $copy;
+}
+
+/**
+ * Langkah terbit tidak pernah diubah (BR-FE-32): test yang menyetel langkah sebelum dipakai
+ * menggantinya dengan salinan berubah di versi yang sama. Hanya untuk langkah tanpa pengajuan.
+ *
+ * @param  array<string, mixed>  $changes
+ */
+function restep(FormPhaseDetail $detail, array $changes): FormPhaseDetail
+{
+    $copy = FormPhaseDetail::create($changes + ($detail->fresh() ?? $detail)->only([
+        'form_phase_id', 'form_phase_version_id', 'form_access_control_id', 'phase_type_id',
+        'order', 'needs_review', 'deadline_type', 'deadline_cycle',
+    ]));
+    $detail->delete();
+
+    return $copy;
+}
+
+/**
+ * BR-FE-32 — versi berikutnya `$phase` berisi `$steps` (atribut langkah), tanpa audit.
+ *
+ * @param  list<array<string, mixed>>  $steps
+ */
+function phaseVersion(FormPhase $phase, array $steps): FormPhaseVersion
+{
+    $version = FormPhaseVersion::create([
+        'form_phase_id' => $phase->id,
+        'number' => (int) FormPhaseVersion::query()->where('form_phase_id', $phase->id)->max('number') + 1,
+        'published_at' => now(),
+    ]);
+    foreach ($steps as $step) {
+        FormPhaseDetail::create($step + ['form_phase_id' => $phase->id, 'form_phase_version_id' => $version->id]);
+    }
+
+    return $version;
 }
 
 /**
@@ -232,8 +305,7 @@ function outputUploadFixture(string $deadline = '2026-12-01 23:59:00'): array
     $fx = wizardFixture();
 
     calendarDate($fx['period'], DeadlineType::Output, $deadline);
-    $outputDetail = FormPhaseDetail::create([
-        'form_phase_id' => $fx['phase']->id,
+    $outputDetail = phaseStep($fx['phase'], [
         'form_access_control_id' => $fx['detail']->form_access_control_id,
         'phase_type_id' => $fx['detail']->phase_type_id,
         'order' => $fx['detail']->order + 6,
@@ -305,8 +377,7 @@ function scheduleStep(FormPhase $phase, ?int $cycle = null, bool $needsReview = 
         'organization_id' => Organization::create(['name' => "Organisasi Jadwal {$tag}", 'type' => 'faculty'])->id,
     ]);
 
-    return FormPhaseDetail::create([
-        'form_phase_id' => $phase->id,
+    return phaseStep($phase, [
         'form_access_control_id' => $access->id,
         'phase_type_id' => PhaseType::create(['name' => "Tipe Jadwal {$tag}"])->id,
         'order' => $order,
@@ -478,8 +549,7 @@ function phaseSharedByTwoPeriods(string $tag, bool $needsReview = false): array
         SubmissionPeriodPhase::create(['submission_period_id' => $period->id, 'form_phase_id' => $formPhase->id]);
     }
 
-    $detail = FormPhaseDetail::create([
-        'form_phase_id' => $formPhase->id,
+    $detail = phaseStep($formPhase, [
         'form_access_control_id' => $accessControl->id,
         'phase_type_id' => $phaseType->id,
         'order' => 1,
@@ -533,8 +603,7 @@ function phaseWithOwnEvaluationDeadline(string $tag): array
     ]);
 
     SubmissionPeriodPhase::create(['submission_period_id' => $period->id, 'form_phase_id' => $formPhase->id]);
-    $submitDetail = FormPhaseDetail::create([
-        'form_phase_id' => $formPhase->id,
+    $submitDetail = phaseStep($formPhase, [
         'form_access_control_id' => $accessControl->id,
         'phase_type_id' => PhaseType::create(['name' => "Tipe Pengajuan {$tag}"])->id,
         'order' => 1,

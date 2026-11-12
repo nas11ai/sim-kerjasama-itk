@@ -2,8 +2,8 @@
 
 namespace App\Actions\Form;
 
-use App\Data\Request\FormPhaseDetailInput;
 use App\Data\Request\FormPhaseInput;
+use App\Data\Request\PhaseStructureInput;
 use App\Models\FormPhase;
 use App\Models\User;
 use App\Support\Audit\AuditChange;
@@ -13,8 +13,8 @@ use Illuminate\Validation\ValidationException;
 use Lorisleiva\Actions\Concerns\AsAction;
 
 /**
- * BR-FE-07 — membuat tahap formulir beserta detailnya; setiap detail membawa jenis tenggat dan
- * siklusnya (ADR 0019, `FormPhaseRequest` mewajibkannya). Urutan detail diturunkan dari form-nya (K3).
+ * BR-FE-07 — membuat tahap formulir beserta langkahnya; setiap langkah membawa jenis tenggat dan
+ * siklusnya (ADR 0019). BR-FE-32 (G3-W4, sementara sampai draf tahap) — langkahnya terbit sebagai Versi 1.
  *
  * @method static FormPhase run(FormPhaseInput $input, User $actor)
  */
@@ -27,8 +27,6 @@ class CreateFormPhase
      */
     public function handle(FormPhaseInput $input, User $actor): FormPhase
     {
-        AssertPhaseSteps::run($input->details);
-
         return DB::transaction(function () use ($input, $actor): FormPhase {
             $phase = FormPhase::create([
                 'title' => $input->title,
@@ -36,7 +34,7 @@ class CreateFormPhase
                 'is_active' => $input->isActive,
             ]);
 
-            $detailIds = $this->createDetails($phase, $input->details);
+            $version = PublishPhaseVersion::run($phase, new PhaseStructureInput($input->details), $actor);
 
             // BR-RPT-09 — di dalam transaksi: pembuatan yang gagal tidak meninggalkan jejak.
             AuditTrail::record(
@@ -47,37 +45,11 @@ class CreateFormPhase
                     'title' => $phase->title,
                     'description' => $phase->description,
                     'is_active' => $phase->is_active,
-                    'detail_ids' => $detailIds,
+                    'detail_ids' => $version->formPhaseDetails()->pluck('id')->all(),
                 ]),
             );
 
             return $phase;
         });
-    }
-
-    /**
-     * @param  list<FormPhaseDetailInput>  $details
-     * @return list<int>
-     */
-    private function createDetails(FormPhase $phase, array $details): array
-    {
-        $orders = NormalisePhaseDetailOrder::run(array_map(
-            fn (FormPhaseDetailInput $d): int => $d->formAccessControlId,
-            $details,
-        ));
-
-        $detailIds = [];
-
-        foreach ($details as $index => $detail) {
-            $detailIds[] = $phase->formPhaseDetails()->create([
-                'form_access_control_id' => $detail->formAccessControlId,
-                'phase_type_id' => $detail->phaseTypeId,
-                'order' => $orders[$index],
-                'needs_review' => $detail->needsReview,
-                ...$detail->stepKind(),
-            ])->id;
-        }
-
-        return $detailIds;
     }
 }

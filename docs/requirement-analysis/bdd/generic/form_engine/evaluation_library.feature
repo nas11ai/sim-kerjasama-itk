@@ -41,11 +41,11 @@ Feature: Pustaka Form Evaluasi
     And draf "Lembar Proposal" tidak ada lagi
     And menerbitkan sekali lagi tanpa draf ditolak dengan pesan "Tidak ada draf untuk diterbitkan."
 
-  @BR-FE-30 @M2 @ADMIN-08-09 @denial
-  Scenario: [FE-EVLIB-05] Form Evaluasi yang sudah ditugaskan di sebuah langkah tidak bisa dilepas dari langkah itu
+  @BR-FE-30 @M2 @ADMIN-08-09 @boundary
+  Scenario: [FE-EVLIB-05] Melepas Form Evaluasi yang sudah ditugaskan hanya berlaku untuk versi struktur berikutnya
     Given "Lembar Proposal" terpasang di langkah Pengajuan "Penelitian DIPA" dan "Pengmas DIPA"
     And "Sari" ditugaskan menilai "P-001" dengan "Lembar Proposal" di langkah "Penelitian DIPA"
     When Admin melepas "Lembar Proposal" dari langkah "Penelitian DIPA"
-    Then pelepasan ditolak dengan pesan "Form evaluasi ini sudah ditugaskan ke 1 reviewer di langkah ini, jadi tidak bisa dilepas. Nonaktifkan saja."
-    And Admin tetap bisa menonaktifkan pemasangan itu
-    And melepas "Lembar Proposal" dari langkah "Pengmas DIPA" berhasil
+    Then versi struktur berikutnya "Penelitian DIPA" tidak memasang "Lembar Proposal"
+    And penugasan "Sari" atas "P-001" tetap ada di versi lama
+    And menonaktifkan "Lembar Proposal" di "Pengmas DIPA" hanya berlaku di versi berikutnya tahap itu
