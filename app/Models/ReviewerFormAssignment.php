@@ -4,8 +4,10 @@ namespace App\Models;
 
 use App\Support\PhaseAccessGate;
 use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
 
 /**
@@ -15,6 +17,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
  * @property-read SubmissionReviewer $submissionReviewer
  * @property-read ReviewEvaluationForm $reviewEvaluationForm
  * @property-read ReviewFormResponse|null $reviewFormResponse
+ * @property-read Collection<int, ReviewFormResponse> $supersededResponses
  */
 class ReviewerFormAssignment extends Model
 {
@@ -54,11 +57,23 @@ class ReviewerFormAssignment extends Model
     }
 
     /**
+     * BR-REV-19 — jawaban yang berlaku; yang digantikan versi baru menjadi riwayat.
+     *
      * @return HasOne<ReviewFormResponse, $this>
      */
     public function reviewFormResponse(): HasOne
     {
-        return $this->hasOne(ReviewFormResponse::class);
+        return $this->hasOne(ReviewFormResponse::class)->whereNull('superseded_at');
+    }
+
+    /**
+     * BR-REV-19 — jawaban lama yang digantikan saat Operator menerapkan versi baru; tetap terbaca.
+     *
+     * @return HasMany<ReviewFormResponse, $this>
+     */
+    public function supersededResponses(): HasMany
+    {
+        return $this->hasMany(ReviewFormResponse::class)->whereNotNull('superseded_at')->orderBy('superseded_at');
     }
 
     // Scopes

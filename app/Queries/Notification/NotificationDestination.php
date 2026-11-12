@@ -35,6 +35,12 @@ class NotificationDestination implements ChangesNoState
         'reviewer_appointed' => 'reviewer.assignments.index',
     ];
 
+    /**
+     * Tipe yang membawa reviewer langsung ke lembar penilaiannya: penugasan baru, dan penilaian yang
+     * dibuka ulang karena versi baru diterapkan (BR-REV-19).
+     */
+    private const EVALUATION_TYPES = ['reviewer_assigned', 'evaluation_version_applied'];
+
     /** Tipe yang membuka halaman pengajuan menurut kursi penerimanya. */
     private const SUBMISSION_TYPES = [
         'review_thread_opened',
@@ -70,14 +76,15 @@ class NotificationDestination implements ChangesNoState
 
     private function submissionDestination(string $type, DatabaseNotification $notification, User $recipient): ?string
     {
-        $isSubmissionType = $type === 'reviewer_assigned' || in_array($type, self::SUBMISSION_TYPES, true);
+        $isEvaluationType = in_array($type, self::EVALUATION_TYPES, true);
+        $isSubmissionType = $isEvaluationType || in_array($type, self::SUBMISSION_TYPES, true);
         $submission = $isSubmissionType ? $this->accessibleSubmission($notification, $recipient) : null;
 
         if ($submission === null) {
             return null;
         }
 
-        return $type === 'reviewer_assigned'
+        return $isEvaluationType
             ? route('reviewer.assignments.evaluation', $submission)
             : $this->submissionPage($submission, $recipient);
     }

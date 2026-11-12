@@ -32,6 +32,8 @@ export interface EvaluationForm {
     finalNotes: string | null
     canEdit: boolean
     fields: WizardField[]
+    // BR-REV-18 — versi yang diisi reviewer, mis. "Versi 2"; "Draf" di pratinjau pustaka.
+    versionLabel: string
 }
 
 // Sumber: AssignmentCardData. `state` memilih aksi kartu.

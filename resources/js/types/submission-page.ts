@@ -135,6 +135,10 @@ export interface ReviewerScore {
     submitted_at: string | null
     // Lembar milik Reviewer yang digantikan; hanya sampai ke layar Operator (W22).
     replaced: boolean
+    // BR-REV-18 — versi yang diisi lembar ini, mis. "Versi 2".
+    version_label: string
+    // BR-REV-19 — riwayat yang digantikan versi baru; hanya sampai ke layar Operator.
+    superseded: boolean
     answers: { label: string; value: string | null }[]
 }
 

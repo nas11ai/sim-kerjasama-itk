@@ -8,6 +8,7 @@ import ConfirmDialog from '@/Components/app/ConfirmDialog.vue'
 import FormField from '@/Components/app/FormField.vue'
 import InfoGrid from '@/Components/app/InfoGrid.vue'
 import WizardFieldInput from '@/Components/Submission/Wizard/WizardFieldInput.vue'
+import { Badge } from '@/Components/ui/badge'
 import { Button } from '@/Components/ui/button'
 import { Textarea } from '@/Components/ui/textarea'
 import { formatDate } from '@/lib/format'
@@ -63,6 +64,8 @@ const submit = () =>
 
 <template>
     <div class="flex flex-col gap-4">
+        <!-- BR-REV-18 — reviewer tahu versi lembar yang diisinya -->
+        <Badge variant="outline" class="self-start" data-version>{{ form.versionLabel }}</Badge>
         <p v-if="form.description" class="text-sm text-muted-foreground">{{ form.description }}</p>
         <p v-if="form.dueDate && !closed" class="text-xs text-muted-foreground">
             Batas evaluasi: {{ formatDate(form.dueDate) }}

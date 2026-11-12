@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
@@ -16,6 +17,7 @@ use Illuminate\Support\Carbon;
  * @property string|null $final_notes
  * @property Carbon|null $submitted_at
  * @property Carbon|null $locked_at
+ * @property Carbon|null $superseded_at BR-REV-19 — terisi = riwayat, digantikan versi baru
  * @property-read ReviewerFormAssignment $reviewerFormAssignment
  * @property-read ReviewEvaluationFormVersion $reviewEvaluationFormVersion
  * @property-read Collection<int, ReviewFormFieldResponse> $reviewFormFieldResponses
@@ -28,12 +30,14 @@ class ReviewFormResponse extends Model
         'status',
         'submitted_at',
         'locked_at',
+        'superseded_at',
         'final_notes',
     ];
 
     protected $casts = [
         'submitted_at' => 'datetime',
         'locked_at' => 'datetime',
+        'superseded_at' => 'datetime',
     ];
 
     /**
@@ -56,6 +60,27 @@ class ReviewFormResponse extends Model
     public function reviewFormFieldResponses(): HasMany
     {
         return $this->hasMany(ReviewFormFieldResponse::class);
+    }
+
+    /**
+     * BR-REV-19 — jawaban berlaku atas Form Evaluasi pin itu dari kursi aktif angkatan × langkahnya:
+     * yang dibuka ulang saat versi baru diterapkan. Lembar reviewer yang digantikan sudah menjadi
+     * riwayat (BR-REV-10) dan tidak diisi ulang siapa pun.
+     *
+     * @param  Builder<self>  $query
+     * @return Builder<self>
+     */
+    public function scopeCurrentInCohortOf(Builder $query, EvaluationFormPin $pin): Builder
+    {
+        return $query
+            ->whereNull('superseded_at')
+            ->whereHas('reviewerFormAssignment', fn (Builder $assignment) => $assignment
+                ->where('review_evaluation_form_id', $pin->review_evaluation_form_id)
+                ->whereHas('submissionReviewer', fn (Builder $seat) => $seat
+                    ->where('status', 'active')
+                    ->whereHas('formSubmission', fn (Builder $submission) => $submission
+                        ->where('submission_period_id', $pin->submission_period_id)
+                        ->where('form_phase_detail_id', $pin->form_phase_detail_id))));
     }
 
     // Status checks

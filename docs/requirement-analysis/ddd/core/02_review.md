@@ -214,7 +214,7 @@ Tabel `reviewers` menyimpan `reviewer_type varchar` (`internal` / `external`) un
 | BR-REV-05 | Submission menjadi APPROVED **hanya** lewat aksi Setujui Operator, dan hanya bila siap diputuskan (putaran review terakhir selesai, atau fase tanpa review) dan tidak ada ReviewSummary `open`. Lihat [ADR 0018](../../../adr/0018-review-outcome-at-round-end-operator-approves.md) |
 | BR-REV-06 | Saat putaran review selesai dan masih ada ReviewSummary `open`, Submission masuk NEEDS_REVISION otomatis — serentak untuk semua catatan putaran itu |
 | BR-REV-07 | Rejection harus dikonfirmasi manual oleh Operator — tidak bisa otomatis — dan hanya bila Submission siap diputuskan |
-| BR-REV-08 | **Cermin [BR-FE-05](../generic/01_form_engine.md).** ReviewFormResponse tidak bisa diedit setelah `status = submitted`                                                                                             |
+| BR-REV-08 | **Cermin [BR-FE-05](../generic/01_form_engine.md).** ReviewFormResponse tidak bisa diedit setelah `status = submitted`, kecuali lewat [BR-REV-19](#business-rules)                                                                                             |
 | BR-REV-09 | Reviewer hanya aktif selama rentang `start_date` hingga `end_date`                                                                                            |
 | BR-REV-10 | Saat reviewer diganti (reassignment), SubmissionReviewer lama di-mark `replaced` — tidak dihapus                                                              |
 | BR-REV-11 | `reviewer_internal` bisa lihat skor reviewer lain setelah semua selesai — `reviewer_external` tidak bisa                                                      |
@@ -225,6 +225,7 @@ Tabel `reviewers` menyimpan `reviewer_type varchar` (`internal` / `external`) un
 | BR-REV-16 | Hasil review dihitung di akhir putaran. Putaran penilaian: peserta = semua SubmissionReviewer aktif; masing-masing menekan *Selesai menilai* setelah evaluasinya `completed`. Putaran pemeriksaan (setelah resubmit): peserta = reviewer aktif yang punya ReviewSummary `open`; masing-masing menekan *Selesai memeriksa*. `not_required` dihitung selesai. Tanda Selesai per reviewer per putaran, tidak bisa dibatalkan. Mengirim lembar penilaian atau menutup catatan tidak memicu hasil. Reviewer pengganti (BR-REV-10) menjadi peserta yang belum selesai |
 | BR-REV-17 | ReviewSummary untuk Submission utama hanya boleh dibuka peserta putaran berjalan yang belum menekan Selesai |
 | BR-REV-18 | Versi Form Evaluasi dipaku per angkatan × langkah × Form Evaluasi saat draf penilaian pertama di sana tersimpan. Sebelumnya berlaku versi terbit terbaru; sesudahnya semua reviewer langkah itu di angkatan itu — termasuk yang ditugaskan belakangan — memakai versi pakuan. Versi yang terbit tidak berubah |
+| BR-REV-19 | Operator boleh menerapkan versi terbaru Form Evaluasi ke satu angkatan × langkah. Jawaban yang ada — draf maupun sudah disubmit — menjadi riwayat yang tetap terbaca, dan reviewer-nya mengisi ulang versi baru serta diberi tahu. Pengecualian atas BR-REV-08. Ditolak bila sudah ada pengajuan di langkah itu yang diputuskan; tidak ada transisi status baru dan keputusan yang sudah diambil tidak dibatalkan |
 
 ---
 

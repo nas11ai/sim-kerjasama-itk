@@ -171,6 +171,13 @@ describe('FormEngine/PeriodIndexPage', () => {
         expect(plain.text()).toContain('42')
     })
 
+    it('[REV-VER-06] tiap baris menaut ke Versi Form Evaluasi periodenya', () => {
+        const link = mountPage([periodRow()]).find(
+            'a[href="/admin.submission-periods.evaluation-versions/4"]'
+        )
+        expect(link.text()).toContain('Versi Form Evaluasi')
+    })
+
     it('[SCH-RULE-13] banner tanpa peneliti saat flash 0', () => {
         page.flash = { deadlineExtended: 0 }
         expect(mountPage([periodRow()]).text()).toContain(

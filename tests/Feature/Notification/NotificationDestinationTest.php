@@ -15,6 +15,7 @@ use App\Models\SubmissionReviewer;
 use App\Models\User;
 use App\Models\UserProfile;
 use App\Notifications\AccountReactivatedNotification;
+use App\Notifications\EvaluationVersionAppliedNotification;
 use App\Notifications\ExportCompletedNotification;
 use App\Notifications\FormChangedNotification;
 use App\Notifications\MonevEvaluationSubmittedNotification;
@@ -83,6 +84,16 @@ it('reviewer_assigned membuka form evaluasi', function () {
 
     expect(ndDestination($reviewer, ReviewerAssignedNotification::class, [
         'type' => 'reviewer_assigned',
+        'form_submission_id' => $submission->id,
+    ]))->toBe(route('reviewer.assignments.evaluation', $submission));
+});
+
+it('[REV-VER-08] evaluation_version_applied membuka lembar penilaian yang dibuka ulang', function () {
+    $submission = FormSubmission::factory()->create();
+    $reviewer = ndReviewerOf($submission);
+
+    expect(ndDestination($reviewer, EvaluationVersionAppliedNotification::class, [
+        'type' => 'evaluation_version_applied',
         'form_submission_id' => $submission->id,
     ]))->toBe(route('reviewer.assignments.evaluation', $submission));
 });

@@ -186,3 +186,13 @@ it('[FE-WINDOW-01] tenggat yang belum lewat tetap bisa disimpan', function () {
         ->assertSessionHasNoErrors()
         ->assertRedirect();
 });
+
+it('[REV-VER-05] each form names the version the reviewer fills', function () {
+    publishVersion($this->substance, [['type' => 'Text', 'label' => 'Orisinalitas']]);
+
+    $this->actingAs($this->user)
+        ->get(route('reviewer.assignments.evaluation', $this->submission))
+        ->assertInertia(fn (Assert $page) => $page
+            ->where('forms.0.versionLabel', 'Versi 2')
+            ->where('forms.1.versionLabel', 'Versi 1'));
+});

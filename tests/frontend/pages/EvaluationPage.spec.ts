@@ -39,6 +39,7 @@ const form = (formId: number, title: string): EvaluationForm => ({
     finalNotes: null,
     canEdit: true,
     fields: [],
+    versionLabel: 'Versi 1',
 })
 
 const baseProps: EvaluationPageProps = {

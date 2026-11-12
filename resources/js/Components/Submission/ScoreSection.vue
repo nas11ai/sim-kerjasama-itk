@@ -21,13 +21,20 @@ const answersOf = (score: ReviewerScore) =>
         {{ scores.reason }}
     </AppBanner>
     <SectionCard v-else title="Hasil Evaluasi Reviewer">
+        <!-- BR-REV-19 — lembar yang digantikan versi baru tetap terbaca, diredam sebagai riwayat -->
         <div
             v-for="(score, index) in scores.scores"
             :key="`${score.reviewer}-${index}`"
-            class="flex flex-col gap-2"
+            data-score
+            :class="['flex flex-col gap-2', { 'opacity-60': score.superseded }]"
         >
-            <p class="flex items-center gap-2 text-sm font-medium">
+            <p class="flex flex-wrap items-center gap-2 text-sm font-medium">
                 {{ score.reviewer }}
+                <!-- BR-REV-18 — versi lembar yang diisi reviewer -->
+                <Badge v-if="score.superseded" variant="outline"
+                    >Riwayat · {{ score.version_label }}</Badge
+                >
+                <Badge v-else variant="secondary">{{ score.version_label }}</Badge>
                 <!-- BR-REV-10 — lembar reviewer yang digantikan tetap terbaca -->
                 <Badge v-if="score.replaced" variant="outline">Digantikan</Badge>
             </p>

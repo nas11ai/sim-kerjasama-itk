@@ -34,6 +34,26 @@ export interface PeriodRowData {
     deleteBlockers: { label: string; count: number }[]
 }
 
+// Sumber: App\Data\View\FormEngine\CohortEvaluationVersionData — BR-REV-18, BR-REV-19.
+// `pinId` null = angkatan belum mulai dinilai, jadi otomatis memakai `latestLabel`.
+export interface CohortEvaluationVersion {
+    phaseTitle: string
+    stepLabel: string
+    formTitle: string
+    pinId: number | null
+    pinnedLabel: string | null
+    latestLabel: string
+    responseCount: number
+    decidedCount: number
+    canApply: boolean
+}
+
+// Sumber: FormEngine\CohortEvaluationVersionController::index.
+export interface PeriodEvaluationVersionsPageProps {
+    period: { id: number; name: string }
+    rows: CohortEvaluationVersion[]
+}
+
 export type PeriodIndexFilters = {
     search: string
     status: string

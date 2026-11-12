@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Link } from '@inertiajs/vue3'
-import { CalendarClock, Pencil, Trash2, X } from 'lucide-vue-next'
+import { CalendarClock, ClipboardList, Pencil, Trash2, X } from 'lucide-vue-next'
 
 import DataTable from '@/Components/app/DataTable.vue'
 import EmptyState from '@/Components/app/EmptyState.vue'
@@ -60,6 +60,12 @@ const columns = [
         </template>
         <template #cell-action="{ row }">
             <div class="flex justify-end gap-2">
+                <!-- BR-REV-19, G2-W5 — versi Form Evaluasi tiap angkatan periode ini -->
+                <Button as-child size="sm" variant="ghost">
+                    <Link :href="route('admin.submission-periods.evaluation-versions', row.id)"
+                        ><ClipboardList class="size-4" />Versi Form Evaluasi</Link
+                    >
+                </Button>
                 <Button size="sm" variant="outline" @click="emit('edit', row)"
                     ><Pencil class="size-4" />Edit</Button
                 >

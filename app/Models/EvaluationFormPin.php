@@ -17,6 +17,9 @@ use Illuminate\Support\Carbon;
  * @property int $review_evaluation_form_version_id
  * @property Carbon $pinned_at
  * @property-read ReviewEvaluationFormVersion $reviewEvaluationFormVersion
+ * @property-read SubmissionPeriod $submissionPeriod
+ * @property-read FormPhaseDetail $formPhaseDetail
+ * @property-read ReviewEvaluationForm $reviewEvaluationForm
  */
 class EvaluationFormPin extends Model
 {

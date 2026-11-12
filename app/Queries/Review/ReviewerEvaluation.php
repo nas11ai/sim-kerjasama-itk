@@ -106,6 +106,7 @@ class ReviewerEvaluation implements ChangesNoState
             fields: array_values($version->reviewFormFields
                 ->map(fn (ReviewFormField $field): WizardFieldData => $this->field($field, $answers[$field->id] ?? null))
                 ->all()),
+            versionLabel: $version->label(),
         );
     }
 

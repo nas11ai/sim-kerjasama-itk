@@ -21,6 +21,7 @@ export function toPreviewForm(
         submittedAt: null,
         finalNotes: null,
         canEdit: false,
+        versionLabel: 'Draf',
         fields: fields.map((field, index) => ({
             id: index + 1,
             label: field.label,

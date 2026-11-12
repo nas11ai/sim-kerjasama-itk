@@ -47,3 +47,41 @@ Feature: Versi Form Evaluasi yang Dipaku per Angkatan
     When Admin menerbitkan Versi 2 yang mengganti label field itu menjadi "Orisinalitas"
     Then lembar "Sari" tetap terbaca dengan label "Kebaruan"
     And field Versi 1 tidak bisa diubah
+
+  # BR-REV-19 — Operator menerapkan versi terbaru ke satu angkatan × langkah secara sadar.
+  # Pengecualian atas BR-REV-08: jawaban lama tidak diedit, melainkan menjadi riwayat.
+
+  @BR-REV-19 @M2 @OPERATOR-09-01 @happy
+  Scenario: [REV-VER-06] Terapkan versi baru membuka ulang penilaian yang sudah disubmit
+    Given "Sari" mengirim penilaian "P-001" di angkatan "2025" pada Versi 1
+    And Admin menerbitkan "Lembar Proposal" Versi 2
+    And belum ada pengajuan di langkah Pengajuan angkatan "2025" yang diputuskan
+    When Operator menerapkan Versi 2 ke angkatan "2025"
+    Then penilaian "Sari" atas "P-001" dibuka ulang pada Versi 2
+    And jawaban Versi 1 "Sari" tetap terbaca Operator sebagai "Riwayat · Versi 1"
+
+  @BR-REV-19 @M2 @OPERATOR-09-01 @denial
+  Scenario: [REV-VER-07] Terapkan ditolak bila ada pengajuan di langkah itu yang sudah diputuskan
+    Given "Sari" mengirim penilaian "P-001" di angkatan "2025" pada Versi 1
+    And "P-002" di angkatan "2025" berstatus NEEDS_REVISION
+    And Admin menerbitkan "Lembar Proposal" Versi 2
+    When Operator menerapkan Versi 2 ke angkatan "2025"
+    Then Operator melihat galat "Tidak bisa diterapkan: 1 pengajuan di langkah ini sudah diputuskan."
+    And angkatan "2025" tetap memakai Versi 1
+    And penilaian "Sari" tetap terkirim
+
+  @BR-REV-19 @M2 @OPERATOR-09-01 @happy
+  Scenario: [REV-VER-08] Reviewer yang penilaiannya dibuka ulang diberi tahu
+    Given "Sari" mengirim penilaian "P-001" dan "Dodi" menyimpan draf penilaian "P-002" di angkatan "2025"
+    And Admin menerbitkan "Lembar Proposal" Versi 2
+    When Operator menerapkan Versi 2 ke angkatan "2025"
+    Then "Sari" dan "Dodi" masing-masing menerima notifikasi "Penilaian perlu diisi ulang"
+
+  @BR-REV-19 @M2 @OPERATOR-09-01 @boundary
+  Scenario: [REV-VER-09] Terapkan di satu angkatan tidak menyentuh angkatan lain
+    Given "Sari" mengirim penilaian "P-001" di angkatan "2025" pada Versi 1
+    And "Dodi" mengirim penilaian "P-101" di angkatan "2026" pada Versi 1
+    And Admin menerbitkan "Lembar Proposal" Versi 2
+    When Operator menerapkan Versi 2 ke angkatan "2025"
+    Then angkatan "2026" tetap memakai Versi 1
+    And penilaian "Dodi" tetap terkirim

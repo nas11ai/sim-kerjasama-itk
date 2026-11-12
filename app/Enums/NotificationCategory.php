@@ -4,6 +4,7 @@ namespace App\Enums;
 
 use App\Notifications\AccountDeactivatedNotification;
 use App\Notifications\AccountReactivatedNotification;
+use App\Notifications\EvaluationVersionAppliedNotification;
 use App\Notifications\ExportCompletedNotification;
 use App\Notifications\ExportFailedNotification;
 use App\Notifications\FormChangedNotification;
@@ -66,6 +67,7 @@ enum NotificationCategory: string
                 ReviewerAppointedNotification::class,
                 RevisionRequestedNotification::class,
                 RecheckRequestedNotification::class,
+                EvaluationVersionAppliedNotification::class,
             ],
             self::Monev => [MonevStageOpenedNotification::class, MonevEvaluationSubmittedNotification::class],
             self::Submission => [

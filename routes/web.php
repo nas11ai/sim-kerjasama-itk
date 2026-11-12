@@ -5,6 +5,7 @@ use App\Http\Controllers\AnnouncementImageController;
 use App\Http\Controllers\Config\ReferenceEntityController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Export\DocumentPrintController;
+use App\Http\Controllers\FormEngine\CohortEvaluationVersionController;
 use App\Http\Controllers\FormEngine\EvaluationFormController;
 use App\Http\Controllers\FormEngine\EvaluationFormDraftController;
 use App\Http\Controllers\FormEngine\FormAccessController;
@@ -405,6 +406,11 @@ Route::middleware(['auth', 'can:periods.manage'])->prefix('admin')->name('admin.
         ->name('submission-periods.destroy');
     Route::post('/submission-periods/{submissionPeriod}/close', [SubmissionPeriodController::class, 'close'])
         ->name('submission-periods.close');
+    // BR-REV-19, G2-W5 — versi Form Evaluasi per angkatan dan aksi terapkan versi terbaru.
+    Route::get('/submission-periods/{submissionPeriod}/evaluation-versions', [CohortEvaluationVersionController::class, 'index'])
+        ->name('submission-periods.evaluation-versions');
+    Route::post('/evaluation-form-pins/{evaluationFormPin}/apply', [CohortEvaluationVersionController::class, 'apply'])
+        ->name('evaluation-form-pins.apply');
 });
 
 Route::middleware(['auth', 'can:periods.manage'])->get('/submission-periods', fn () => redirect()->route('admin.submission-periods.index'));

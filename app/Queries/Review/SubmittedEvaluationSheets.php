@@ -11,10 +11,11 @@ use App\Models\SubmissionReviewer;
 use Lorisleiva\Actions\Concerns\AsAction;
 
 /**
- * Lembar evaluasi yang sudah disubmit, tanpa menimbang siapa pembacanya — itu urusan
- * pemanggil. Operator ikut membaca lembar reviewer yang digantikan (BR-REV-10, W22).
+ * Lembar evaluasi yang sudah disubmit, berlabel versinya (BR-REV-18); siapa pembacanya urusan
+ * pemanggil. Operator ikut membaca lembar reviewer yang digantikan (BR-REV-10, W22) dan lembar
+ * riwayat versi lama (BR-REV-19); pembaca lain hanya yang berlaku (BR-REV-11/12, BR-MON-09).
  *
- * @phpstan-type Score array{reviewer: string, reviewer_type: string, submitted_at: string|null, replaced: bool, answers: list<array{label: string, value: string|null}>}
+ * @phpstan-type Score array{reviewer: string, reviewer_type: string, submitted_at: string|null, replaced: bool, version_label: string, superseded: bool, answers: list<array{label: string, value: string|null}>}
  *
  * @method static list<Score> run(FormSubmission $submission, bool $includeReplaced)
  */
@@ -31,31 +32,50 @@ class SubmittedEvaluationSheets implements ChangesNoState
             ->with([
                 'reviewer.user:id,name',
                 'reviewerFormAssignments.reviewFormResponse.reviewFormFieldResponses.reviewFormField:id,label',
+                'reviewerFormAssignments.reviewFormResponse.reviewEvaluationFormVersion:id,number',
             ])
+            ->when($includeReplaced, fn ($q) => $q->with([
+                'reviewerFormAssignments.supersededResponses.reviewFormFieldResponses.reviewFormField:id,label',
+                'reviewerFormAssignments.supersededResponses.reviewEvaluationFormVersion:id,number',
+            ]))
             ->orderBy('id')
             ->get()
             ->flatMap(fn (SubmissionReviewer $assignment): array => $assignment->reviewerFormAssignments
-                ->map(fn (ReviewerFormAssignment $form): ?array => $this->score($assignment, $form))
-                ->filter()
+                ->flatMap(fn (ReviewerFormAssignment $form): array => $this->scores($assignment, $form, $includeReplaced))
                 ->all())
             ->all());
     }
 
-    /** @return Score|null */
-    private function score(SubmissionReviewer $assignment, ReviewerFormAssignment $form): ?array
+    /**
+     * Riwayat lebih dulu, lalu lembar yang berlaku — urutan waktu pengisiannya.
+     *
+     * @return list<Score>
+     */
+    private function scores(SubmissionReviewer $assignment, ReviewerFormAssignment $form, bool $includeReplaced): array
     {
-        $response = $form->reviewFormResponse;
+        $responses = $includeReplaced ? [...$form->supersededResponses, $form->reviewFormResponse] : [$form->reviewFormResponse];
+        $scores = [];
 
-        // Evaluasi yang belum disubmit belum menjadi penilaian sama sekali.
-        if ($response === null || $response->status !== 'submitted') {
-            return null;
+        foreach ($responses as $response) {
+            // Evaluasi yang belum disubmit belum menjadi penilaian sama sekali.
+            if ($response !== null && $response->status === 'submitted') {
+                $scores[] = $this->score($assignment, $response);
+            }
         }
 
+        return $scores;
+    }
+
+    /** @return Score */
+    private function score(SubmissionReviewer $assignment, ReviewFormResponse $response): array
+    {
         return [
             'reviewer' => $assignment->reviewer->user->name ?? 'Reviewer',
             'reviewer_type' => $assignment->reviewer->reviewer_type,
             'submitted_at' => $response->submitted_at?->toDateTimeString(),
             'replaced' => $assignment->status === 'replaced',
+            'version_label' => $response->reviewEvaluationFormVersion->label(),
+            'superseded' => $response->superseded_at !== null,
             'answers' => $this->answers($response),
         ];
     }

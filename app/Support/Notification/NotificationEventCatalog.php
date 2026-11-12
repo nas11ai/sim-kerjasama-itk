@@ -22,6 +22,7 @@ final class NotificationEventCatalog
      * @var array<string, array<int, string>>
      */
     private const DEFAULTS = [
+        'EvaluationVersionApplied' => [NotificationChannels::IN_APP, NotificationChannels::EMAIL],
         'ExportCompleted' => [NotificationChannels::IN_APP],
         'ExportFailed' => [NotificationChannels::IN_APP, NotificationChannels::EMAIL],
         'FormChanged' => [NotificationChannels::IN_APP],

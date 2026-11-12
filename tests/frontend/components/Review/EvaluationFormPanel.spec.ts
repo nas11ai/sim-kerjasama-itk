@@ -32,6 +32,7 @@ const draft: EvaluationForm = {
     submittedAt: null,
     finalNotes: 'Catatan lama',
     canEdit: true,
+    versionLabel: 'Versi 1',
     fields: [
         {
             id: 5,
@@ -73,6 +74,10 @@ beforeEach(() => {
 })
 
 describe('EvaluationFormPanel', () => {
+    it('[REV-VER-05] kepala lembar menyebut versi yang diisi', () => {
+        expect(mountPanel().find('[data-version]').text()).toBe('Versi 1')
+    })
+
     it('form belum dimulai menawarkan Mulai Evaluasi', async () => {
         const wrapper = mountPanel({ state: 'not_started', assignmentId: null })
 

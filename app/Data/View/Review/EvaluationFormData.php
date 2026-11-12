@@ -24,5 +24,7 @@ final class EvaluationFormData extends Data
         public ?string $finalNotes,
         public bool $canEdit,
         public array $fields,
+        // BR-REV-18 — versi yang diisi reviewer, mis. "Versi 2".
+        public string $versionLabel,
     ) {}
 }
