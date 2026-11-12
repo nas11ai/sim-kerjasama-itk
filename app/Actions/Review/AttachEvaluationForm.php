@@ -12,8 +12,9 @@ use Illuminate\Validation\ValidationException;
 use Lorisleiva\Actions\Concerns\AsAction;
 
 /**
- * Memasang Form Evaluasi pustaka di satu langkah `needs_review`, paling akhir di antara pemasangan
- * langkah itu. Hanya form yang sudah terbit (G2-W3): langkah tak pernah memakai form tanpa versi.
+ * BR-FE-30 — memasang Form Evaluasi pustaka di satu langkah `needs_review`, sekali per langkah,
+ * paling akhir di antara pemasangan langkah itu. Hanya form yang sudah terbit: langkah tak pernah
+ * memakai form tanpa versi.
  *
  * @method static StepEvaluationForm run(FormPhaseDetail $detail, ReviewEvaluationForm $form, bool $isRequired, User $actor)
  */

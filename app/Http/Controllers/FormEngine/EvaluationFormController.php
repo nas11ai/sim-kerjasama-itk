@@ -2,46 +2,68 @@
 
 namespace App\Http\Controllers\FormEngine;
 
-use App\Actions\Review\CreateReviewEvaluationForm;
-use App\Actions\Review\DeleteReviewEvaluationForm;
-use App\Actions\Review\ReviseReviewEvaluationForm;
+use App\Actions\Review\CreateEvaluationForm;
+use App\Actions\Review\DeleteEvaluationForm;
+use App\Actions\Review\UpdateEvaluationForm;
 use App\Http\Controllers\Concerns\ResolvesActor;
 use App\Http\Controllers\Controller;
-use App\Http\Requests\Review\ReviewEvaluationFormRequest;
-use App\Models\FormPhaseDetail;
+use App\Http\Requests\Review\EvaluationFormRequest;
 use App\Models\ReviewEvaluationForm;
+use App\Queries\Form\FieldTypeOptions;
+use App\Queries\Review\EvaluationFormEdit;
+use App\Queries\Review\EvaluationFormLibrary;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Inertia\Inertia;
+use Inertia\Response;
 
 /**
- * Kartu form evaluasi di editor tahap ADMIN-08-09, disimpan per kartu (W95). Route dijaga
- * `can:schemes.manage` (W88); detailnya dari route, jadi form tidak bisa dipindah (W100).
+ * Pustaka Form Evaluasi (ADMIN-08-09, BR-FE-30): daftar, buat, ubah nama, hapus. Isinya disunting
+ * lewat draf di EvaluationFormDraftController (BR-FE-31). Route dijaga `can:schemes.manage` (W88).
  */
 class EvaluationFormController extends Controller
 {
     use ResolvesActor;
 
-    // Binding `formPhaseDetail` memberi 404 untuk detail tak dikenal; detail tak direview
-    // ditolak AssertReviewedPhaseDetail di Action, apa adanya.
-    public function store(ReviewEvaluationFormRequest $request, FormPhaseDetail $formPhaseDetail): RedirectResponse
+    public function index(): Response
     {
-        CreateReviewEvaluationForm::run($formPhaseDetail, $request->toInput(), $this->actor($request));
-
-        return back()->with('success', 'Form evaluasi dibuat.');
+        return Inertia::render('FormEngine/EvaluationFormIndexPage', ['forms' => EvaluationFormLibrary::run()]);
     }
 
-    public function update(ReviewEvaluationFormRequest $request, ReviewEvaluationForm $reviewEvaluationForm): RedirectResponse
+    // Mode buat = editor yang sama tanpa form: hanya judul dan deskripsi (W94).
+    public function create(): Response
     {
-        ReviseReviewEvaluationForm::run($reviewEvaluationForm, $request->toInput(), $this->actor($request));
+        return Inertia::render('FormEngine/EvaluationFormEditPage', ['form' => null, 'fieldTypeOptions' => []]);
+    }
+
+    public function store(EvaluationFormRequest $request): RedirectResponse
+    {
+        $form = CreateEvaluationForm::run($request->toInput(), $this->actor($request));
+
+        return redirect()->route('admin.evaluation-forms.edit', $form)
+            ->with('success', 'Form evaluasi dibuat. Susun field-nya lalu terbitkan.');
+    }
+
+    public function edit(ReviewEvaluationForm $reviewEvaluationForm): Response
+    {
+        return Inertia::render('FormEngine/EvaluationFormEditPage', [
+            'form' => EvaluationFormEdit::run($reviewEvaluationForm),
+            'fieldTypeOptions' => FieldTypeOptions::run(),
+        ]);
+    }
+
+    public function update(EvaluationFormRequest $request, ReviewEvaluationForm $reviewEvaluationForm): RedirectResponse
+    {
+        UpdateEvaluationForm::run($reviewEvaluationForm, $request->toInput(), $this->actor($request));
 
         return back()->with('success', 'Form evaluasi diperbarui.');
     }
 
-    // BR-FE-22 — penolakan form yang pernah ditugaskan datang dari Action sebagai galat validasi.
+    // BR-FE-22 — penolakan form yang pernah ditugaskan atau masih terpasang datang dari penjaga model.
     public function destroy(Request $request, ReviewEvaluationForm $reviewEvaluationForm): RedirectResponse
     {
-        DeleteReviewEvaluationForm::run($reviewEvaluationForm, $this->actor($request));
+        DeleteEvaluationForm::run($reviewEvaluationForm, $this->actor($request));
 
-        return back()->with('success', 'Form evaluasi dihapus.');
+        return redirect()->route('admin.evaluation-forms.index')->with('success', 'Form evaluasi dihapus.');
     }
 }

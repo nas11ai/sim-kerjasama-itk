@@ -83,7 +83,7 @@ const props = (details: PhaseDetailEditData[]): PhaseEditPageProps => ({
     ],
     phaseTypeOptions: [{ value: '5', label: 'Isi Proposal' }],
     evaluation: [],
-    fieldTypeOptions: [],
+    evaluationOptions: [],
     returnForm: null,
 })
 
@@ -141,24 +141,24 @@ describe('FormEngine/PhaseEditPage', () => {
         expect(wrapper.findAll('li')[0].text()).toContain('Jenis: Pengajuan')
     })
 
-    it('bagian form evaluasi per detail yang direview; Tambah Form Evaluasi membuka kartu baru', async () => {
+    it('bagian form evaluasi per detail yang direview memasang Form Evaluasi pustaka (BR-FE-30)', () => {
         const wrapper = mountPage({
             ...props([detail({ needsReview: true })]),
-            evaluation: [{ detailId: 31, detailLabel: 'Isi Proposal — Form Proposal', forms: [] }],
+            evaluation: [
+                {
+                    detailId: 31,
+                    detailLabel: 'Isi Proposal — Form Proposal',
+                    attached: [],
+                    reviewsInProgress: 0,
+                },
+            ],
+            evaluationOptions: [{ value: '3', label: 'Lembar Substansi' }],
         })
 
         expect(wrapper.text()).toContain('Form evaluasi untuk Isi Proposal — Form Proposal')
-        expect(wrapper.text()).toContain('Belum ada form evaluasi.')
-        expect(wrapper.text()).toContain(
-            'Form evaluasi hanya tersedia pada tahapan reviewer yang ditandai "Perlu Review". Urutan field dapat diubah dengan menyeret.'
-        )
-        await wrapper
-            .findAll('button')
-            .find((b) => b.text().trim() === 'Tambah Form Evaluasi')
-            ?.trigger('click')
-
-        expect(wrapper.text()).toContain('Form Evaluasi — Baru')
-        expect(wrapper.text()).not.toContain('Belum ada form evaluasi.')
+        expect(wrapper.text()).toContain('Belum ada form evaluasi terpasang.')
+        expect(wrapper.text()).toContain('Pasang Form Evaluasi')
+        expect(wrapper.text()).toContain('Kelola di Form Evaluasi')
     })
 
     it('daftar langkah menampilkan jenis langkahnya', () => {

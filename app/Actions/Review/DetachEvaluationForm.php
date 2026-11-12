@@ -13,8 +13,8 @@ use Illuminate\Validation\ValidationException;
 use Lorisleiva\Actions\Concerns\AsAction;
 
 /**
- * Melepas Form Evaluasi dari satu langkah. BR-FE-22 — form yang sudah ditugaskan ke reviewer pada
- * pengajuan di langkah itu adalah dasar penilaiannya, jadi hanya bisa dinonaktifkan.
+ * Melepas Form Evaluasi dari satu langkah. BR-FE-30, BR-FE-22 — form yang sudah ditugaskan ke
+ * reviewer pada pengajuan di langkah itu adalah dasar penilaiannya, jadi hanya bisa dinonaktifkan.
  *
  * @method static void run(StepEvaluationForm $step, User $actor)
  */

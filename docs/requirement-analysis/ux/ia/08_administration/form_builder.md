@@ -16,6 +16,8 @@
 | 3   | Edit Form — Access Control          | `/admin/forms/{id}/access`      | Admin         |
 | 4   | Fase — pustaka                      | `/admin/phases` (`?form={id}`)  | Admin         |
 | 5   | Edit Phase — Details & Review Forms | `/admin/phases/{phase_id}/edit` | Admin         |
+| 6   | Form Evaluasi — pustaka             | `/admin/evaluation-forms`       | Admin         |
+| 7   | Edit Form Evaluasi                  | `/admin/evaluation-forms/{id}/edit` | Admin     |
 
 ---
 
@@ -131,13 +133,67 @@ menampilkan fase yang langkah mana pun memakai Form itu.
 
 Daftar FormPhaseDetail dalam phase ini (ordered). Setiap detail: tipe (researcher / reviewer), akses control, deadline (SubmissionDate), flag `needs_review`.
 
-Jika detail bertipe reviewer dan `needs_review = true`: tampilkan ReviewEvaluationForm yang terhubung beserta ReviewFormField-nya.
+Jika detail bertipe reviewer dan `needs_review = true`: tampilkan Form Evaluasi yang **terpasang**
+(StepEvaluationForm) beserta label versinya, wajib/aktif per pemasangan, dan jumlah penugasannya di
+langkah itu. Isi Form Evaluasi tidak disusun di sini — tautan "Kelola di Form Evaluasi" membuka
+pustakanya (BR-FE-30).
 
 ### Actions
 
-| Aksi                                   | Kondisi                      |
-| -------------------------------------- | ---------------------------- |
-| Tambah / edit PhaseDetail              | Selalu                       |
-| Tambah ReviewEvaluationForm            | PhaseDetail bertipe reviewer |
-| Tambah / reorder ReviewFormField       | Ada ReviewEvaluationForm     |
-| Set / update deadline (SubmissionDate) | Selalu                       |
+| Aksi                              | Kondisi                                                                    |
+| --------------------------------- | -------------------------------------------------------------------------- |
+| Tambah / edit PhaseDetail         | Selalu                                                                     |
+| Pasang Form Evaluasi              | Detail `needs_review`; Form Evaluasi sudah terbit, belum terpasang di sana |
+| Jadikan wajib / tidak wajib       | Ada pemasangan                                                             |
+| Nonaktifkan / aktifkan pemasangan | Ada pemasangan                                                             |
+| Lepas Form Evaluasi               | Belum ditugaskan ke reviewer di langkah itu (BR-FE-22)                     |
+
+---
+
+## Form Evaluasi — pustaka
+
+**Route:** `/admin/evaluation-forms`  
+**Entry points:**
+
+- Sidebar → Konfigurasi Sistem → Form Evaluasi
+- Tautan "Kelola di Form Evaluasi" dari bagian evaluasi editor tahap
+
+### Konten Utama
+
+Semua ReviewEvaluationForm, urut judul. Setiap kartu: judul, label versi terbit terakhir atau lencana
+"Belum terbit", jumlah langkah pemasang dan penugasan reviewer, serta banner draf bila ada isi yang
+belum diterbitkan (BR-FE-31).
+
+### Actions
+
+| Aksi               | Kondisi                                                                    |
+| ------------------ | -------------------------------------------------------------------------- |
+| Buat Form Evaluasi | Selalu                                                                     |
+| Edit               | Selalu                                                                     |
+| Hapus              | Tidak terpasang di langkah mana pun dan belum pernah ditugaskan (BR-FE-22) |
+
+---
+
+## Edit Form Evaluasi
+
+**Route:** `/admin/evaluation-forms/{id}/edit` (buat: `/admin/evaluation-forms/create`)  
+**Entry points:**
+
+- Kartu pustaka Form Evaluasi
+- "Sunting isi" pada pemasangan di editor tahap
+
+### Konten Utama
+
+Nama pustaka (judul, deskripsi — tak berversi, disimpan langsung), lalu tiga tab: **Field** (draf yang
+disusun), **Pratinjau** (lembar seperti dilihat reviewer, terkunci), dan **Versi & pemakaian** (riwayat
+versi dan tahap yang memasangnya). Banner draf tampil selama ada draf (BR-FE-31).
+
+### Actions
+
+| Aksi                          | Kondisi                                                                                   |
+| ----------------------------- | ----------------------------------------------------------------------------------------- |
+| Simpan nama                   | Selalu                                                                                    |
+| Tambah / edit / reorder field | Selalu (masuk draf)                                                                       |
+| Simpan draf                   | Selalu                                                                                    |
+| Buang draf                    | Ada draf                                                                                  |
+| Terbitkan                     | Ada draf tersimpan tanpa perubahan belum disimpan; minimal satu field. Konfirmasi menyebut versi berikutnya dan angkatan yang tetap di versi lama |

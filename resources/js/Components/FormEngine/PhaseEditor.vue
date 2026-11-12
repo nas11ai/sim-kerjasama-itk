@@ -16,7 +16,7 @@ import {
 import type { PhaseEditPageProps } from '@/types/form-engine'
 
 // Trap S2b — state editor hidup di sini; halaman memberinya :key per tahap.
-const props = defineProps<Omit<PhaseEditPageProps, 'evaluation' | 'fieldTypeOptions'>>()
+const props = defineProps<Omit<PhaseEditPageProps, 'evaluation' | 'evaluationOptions'>>()
 
 // W94 + BR-FE-28 — mode buat: satu detail Pengajuan kosong berakses pilihan pertama; tanpa pilihan,
 // tak bisa disimpan.

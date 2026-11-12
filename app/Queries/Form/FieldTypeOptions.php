@@ -8,9 +8,10 @@ use Lorisleiva\Actions\Concerns\AsAction;
 
 /**
  * Pilihan tipe field di editor Form. `hasOptions` memberi tahu editor kapan opsi diminta dan
- * `limitType` batas mana yang ditawarkan (W103), supaya daftar tipe hanya hidup di FieldType.
+ * `limitType` batas mana yang ditawarkan (W103), supaya daftar tipe hanya hidup di FieldType. `name`
+ * dipakai Pratinjau Form Evaluasi untuk merender field seperti layar reviewer (ReviewerEvaluation).
  *
- * @phpstan-type FieldTypeOption array{value: string, label: string, hasOptions: bool, limitType: 'length'|'value'|null}
+ * @phpstan-type FieldTypeOption array{value: string, name: string, label: string, hasOptions: bool, limitType: 'length'|'value'|null}
  *
  * @method static list<FieldTypeOption> run()
  */
@@ -47,6 +48,7 @@ class FieldTypeOptions implements ChangesNoState
         return array_values(FieldType::query()->orderBy('id')->get(['id', 'name'])
             ->map(fn (FieldType $type): array => [
                 'value' => (string) $type->id,
+                'name' => strtolower($type->name),
                 'label' => self::label($type->name),
                 'hasOptions' => in_array($type->name, FieldType::OPTION_TYPES, true),
                 'limitType' => self::limitType($type->name),

@@ -1,5 +1,6 @@
 import type { Paginated } from '@/types/pagination'
 import type { FilterOption } from '@/types/submission-page'
+import type { WizardFieldType } from '@/types/submission-wizard'
 
 // Sumber: App\Enums\DeadlineType (BR-FE-25).
 // `output` = Batas Akhir detail Upload Luaran, selalu tanpa siklus (W139).
@@ -75,9 +76,11 @@ export interface FormIndexPageProps {
     statusOptions: FilterOption[]
 }
 
-// Sumber: App\Queries\Form\FieldTypeOptions — `value` id tipe sebagai string; `limitType` batas W103.
+// Sumber: App\Queries\Form\FieldTypeOptions — `value` id tipe sebagai string; `limitType` batas W103;
+// `name` = nama FieldType, dipakai Pratinjau Form Evaluasi untuk merender field seperti reviewer.
 export interface FieldTypeOption {
     value: string
+    name: WizardFieldType
     label: string
     hasOptions: boolean
     limitType: 'length' | 'value' | null
@@ -205,16 +208,14 @@ export interface PhaseAccessOption {
     formTitle: string
 }
 
-// Sumber: App\Data\View\FormEngine\EvaluationFieldEditData — `answerCount` > 0 mengunci tipe dan hapus (W103).
+// Sumber: App\Data\View\FormEngine\EvaluationFieldEditData — tanpa id: Terbitkan menyalin baris baru (BR-REV-18).
 export interface EvaluationFieldEditData {
-    id: number
     label: string
     description: string | null
     fieldTypeId: number
     isRequired: boolean
     limits: EvaluationLimits
-    answerCount: number
-    options: { id: number; label: string; value: string | null }[]
+    options: { label: string; value: string | null }[]
 }
 
 export interface EvaluationLimits {
@@ -224,33 +225,68 @@ export interface EvaluationLimits {
     maxValue: number | null
 }
 
-// Sumber: App\Data\View\FormEngine\EvaluationFormEditData — `assignmentCount` menentukan hapus (BR-FE-22).
-export interface EvaluationFormEditData {
+// Sumber: App\Data\View\FormEngine\EvaluationFormCardData — `latestVersionLabel` null = belum terbit (BR-FE-30).
+export interface EvaluationFormCardData {
+    id: number
+    title: string
+    latestVersionLabel: string | null
+    hasDraft: boolean
+    stepCount: number
+    assignmentCount: number
+}
+
+// Sumber: FormEngine\EvaluationFormController::index.
+export interface EvaluationFormIndexPageProps {
+    forms: EvaluationFormCardData[]
+}
+
+// Sumber: App\Data\View\FormEngine\EvaluationFormEditPageData — `fields` dari draf, kalau tidak dari versi terbaru (BR-FE-31).
+export interface EvaluationFormEditPageData {
     id: number
     title: string
     description: string | null
+    fields: EvaluationFieldEditData[]
+    hasDraft: boolean
+    latestVersionLabel: string | null
+    versions: { label: string; publishedAt: string; publishedBy: string | null }[]
+    usedBy: { phaseId: number; phaseTitle: string; stepLabel: string }[]
+    impact: { nextLabel: string; pinnedCohorts: number }
+}
+
+// Sumber: FormEngine\EvaluationFormController::create/edit — `form` null = mode buat.
+export interface EvaluationFormEditPageProps {
+    form: EvaluationFormEditPageData | null
+    fieldTypeOptions: FieldTypeOption[]
+}
+
+// Sumber: App\Data\View\FormEngine\StepEvaluationFormData — `assignmentCount` > 0: lepas ditolak (BR-FE-22).
+export interface StepEvaluationFormData {
+    id: number
+    formId: number
+    title: string
+    versionLabel: string
     isRequired: boolean
     isActive: boolean
     assignmentCount: number
-    fields: EvaluationFieldEditData[]
 }
 
 // Sumber: App\Data\View\FormEngine\EvaluationSectionData — satu per detail ber-needs_review.
 export interface EvaluationSectionData {
     detailId: number
     detailLabel: string
-    forms: EvaluationFormEditData[]
+    attached: StepEvaluationFormData[]
     // W158 — pengajuan ber-reviewer aktif yang tak otomatis menerima form baru.
     reviewsInProgress: number
 }
 
-// Sumber: FormEngine\FormPhaseController::edit/create — mode buat: `evaluation`/`fieldTypeOptions` kosong.
+// Sumber: FormEngine\FormPhaseController::edit/create — mode buat: `evaluation`/`evaluationOptions` kosong.
 export interface PhaseEditPageProps {
     phase: PhaseEditData
     accessOptions: PhaseAccessOption[]
     phaseTypeOptions: FilterOption[]
     evaluation: EvaluationSectionData[]
-    fieldTypeOptions: FieldTypeOption[]
+    // BR-FE-30 — Form Evaluasi terbit, urut judul; tiap bagian menyaring yang sudah terpasang.
+    evaluationOptions: FilterOption[]
     // B5 — id Form tapis pustaka asal; Kembali/Batalkan/simpan kembali ke pustaka bertapis itu.
     returnForm: number | null
 }

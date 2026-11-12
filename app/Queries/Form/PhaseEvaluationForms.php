@@ -7,6 +7,7 @@ use App\Data\View\FormEngine\EvaluationSectionData;
 use App\Models\FormPhase;
 use App\Models\FormPhaseDetail;
 use App\Models\FormSubmission;
+use App\Models\ReviewerFormAssignment;
 use App\States\Submission\NeedsRevision;
 use App\States\Submission\Resubmitted;
 use App\States\Submission\Submitted;
@@ -17,9 +18,8 @@ use Illuminate\Support\Collection;
 use Lorisleiva\Actions\Concerns\AsAction;
 
 /**
- * Form evaluasi di editor tahap ADMIN-08-09: satu bagian per detail ber-`needs_review`, pemasangan urut
- * `order`, aktif maupun nonaktif, field dari versi terbit terakhir, tanpa kueri per form atau per field. W158: form baru tak ditugaskan
- * otomatis ke reviewer yang sudah bertugas; `reviewsInProgress` menghitung pengajuannya.
+ * Editor tahap ADMIN-08-09: satu bagian per detail ber-`needs_review` berisi pemasangannya
+ * (BR-FE-30), tanpa kueri per pemasangan. `reviewsInProgress` untuk banner W158.
  *
  * @method static list<EvaluationSectionData> run(FormPhase $phase)
  */
@@ -36,15 +36,17 @@ class PhaseEvaluationForms implements ChangesNoState
                 'phaseType:id,name',
                 'formAccessControl.form:id,title',
                 'stepEvaluationForms' => fn (Relation $steps) => $steps
+                    ->select('step_evaluation_forms.*')
+                    // BR-FE-22 — penugasan di langkah ini saja; > 0 berarti tak bisa dilepas.
+                    ->addSelect(['assignment_count' => ReviewerFormAssignment::query()->selectRaw('count(*)')
+                        ->join('submission_reviewers', 'submission_reviewers.id', '=', 'reviewer_form_assignments.submission_reviewer_id')
+                        ->join('form_submissions', 'form_submissions.id', '=', 'submission_reviewers.form_submission_id')
+                        ->whereColumn('reviewer_form_assignments.review_evaluation_form_id', 'step_evaluation_forms.review_evaluation_form_id')
+                        ->whereColumn('form_submissions.form_phase_detail_id', 'step_evaluation_forms.form_phase_detail_id'),
+                    ])
                     ->orderBy('order')
                     ->orderBy('id')
-                    ->with(['reviewEvaluationForm' => fn (Relation $forms) => $forms
-                        ->withCount('reviewerFormAssignments')
-                        ->with(['latestVersion.reviewFormFields' => fn (Relation $fields) => $fields
-                            ->withCount('reviewFormFieldResponses')
-                            ->with(['reviewFormFieldOptions' => fn (Relation $options) => $options->orderBy('order')->orderBy('id')]),
-                        ]),
-                    ]),
+                    ->with('reviewEvaluationForm.latestVersion'),
             ])
             ->orderBy('order')
             ->orderBy('id')

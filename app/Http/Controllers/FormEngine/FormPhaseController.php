@@ -16,13 +16,13 @@ use App\Http\Requests\Form\PhasePeriodRequest;
 use App\Models\Form;
 use App\Models\FormPhase;
 use App\Models\SubmissionPeriod;
-use App\Queries\Form\FieldTypeOptions;
 use App\Queries\Form\PhaseAccessOptions;
 use App\Queries\Form\PhaseEdit;
 use App\Queries\Form\PhaseEvaluationForms;
 use App\Queries\Form\PhaseLibrary;
 use App\Queries\Form\PhaseTypeOptions;
 use App\Queries\Period\PeriodScheduleGaps;
+use App\Queries\Review\PublishedEvaluationFormOptions;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -119,7 +119,8 @@ class FormPhaseController extends Controller
             'accessOptions' => PhaseAccessOptions::run($phase, $filter),
             'phaseTypeOptions' => PhaseTypeOptions::run(),
             'evaluation' => $phase === null ? [] : PhaseEvaluationForms::run($phase),
-            'fieldTypeOptions' => $phase === null ? [] : FieldTypeOptions::run(),
+            // BR-FE-30 — isi Form Evaluasi disusun di pustakanya; di sini hanya dipasang.
+            'evaluationOptions' => $phase === null ? [] : PublishedEvaluationFormOptions::run(),
         ]);
     }
 

@@ -111,12 +111,31 @@ describe('visibleNavGroups', () => {
             pattern === 'admin.phases.edit' ||
             (pattern.endsWith('.*') && 'admin.phases.edit'.startsWith(pattern.slice(0, -1)))
 
-        expect(items[index - 1]?.label).toBe('Form Builder')
+        expect(items[index - 2]?.label).toBe('Form Builder')
         expect(items[index]?.routeName).toBe('admin.phases.index')
         expect(isNavItemActive(items[index], onEditor)).toBe(true)
         expect(isNavItemActive(items[index - 1], onEditor)).toBe(false)
         expect(labels(visibleNavGroups(navGroups, ['periods.manage'], NO_FLAGS))).not.toContain(
             'Fase'
+        )
+    })
+
+    it('Form Evaluasi tampil di antara Form Builder dan Fase untuk schemes.manage saja (R3)', () => {
+        const items = visibleNavGroups(navGroups, ['schemes.manage'], NO_FLAGS).flatMap(
+            (g) => g.items
+        )
+        const index = items.findIndex((i) => i.label === 'Form Evaluasi')
+        const onEditor = (pattern: string) =>
+            pattern === 'admin.evaluation-forms.edit' ||
+            (pattern.endsWith('.*') &&
+                'admin.evaluation-forms.edit'.startsWith(pattern.slice(0, -1)))
+
+        expect(items[index - 1]?.label).toBe('Form Builder')
+        expect(items[index + 1]?.label).toBe('Fase')
+        expect(items[index]?.routeName).toBe('admin.evaluation-forms.index')
+        expect(isNavItemActive(items[index], onEditor)).toBe(true)
+        expect(labels(visibleNavGroups(navGroups, ['periods.manage'], NO_FLAGS))).not.toContain(
+            'Form Evaluasi'
         )
     })
 

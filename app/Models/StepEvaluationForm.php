@@ -18,6 +18,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
  * @property int $order
  * @property-read FormPhaseDetail $formPhaseDetail
  * @property-read ReviewEvaluationForm $reviewEvaluationForm
+ * @property-read int|null $assignment_count hanya setelah subquery PhaseEvaluationForms
  */
 class StepEvaluationForm extends Model
 {

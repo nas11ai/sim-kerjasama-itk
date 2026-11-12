@@ -2,11 +2,14 @@
 
 // tests/Feature/Review/EvaluationFormCrudTest.php
 //
-// Kartu form evaluasi di editor tahap lewat Action beraudit (BR-RPT-09). BR-REV-18 — simpan field
-// menerbitkan versi baru (salin baris), jadi versi lama dan jawaban reviewer tidak pernah tersentuh.
+// Pustaka Form Evaluasi lewat Action beraudit (BR-RPT-09). BR-FE-31 — isi disunting sebagai draf;
+// BR-REV-18 — Terbitkan menyalin baris field, jadi versi lama dan jawaban reviewer tidak tersentuh.
 
+use App\Actions\Review\SaveEvaluationFormDraft;
+use App\Data\Request\EvaluationDraftInput;
+use App\Data\Request\ReviewFormFieldInput;
+use App\Models\ConfigurationDraft;
 use App\Models\FieldType;
-use App\Models\FormPhaseDetail;
 use App\Models\ReviewEvaluationForm;
 use App\Models\ReviewFormField;
 use App\Models\ReviewFormFieldOption;
@@ -24,14 +27,6 @@ beforeEach(function () {
     $this->admin->assignRole('Super Admin');
 
     $this->fieldType = FieldType::firstOrCreate(['name' => 'select']);
-    $this->evaluation = fn (?FormPhaseDetail $detail = null): ReviewEvaluationForm => evaluationFormOn($detail ?? FormPhaseDetail::factory()->create(['needs_review' => true]), [], title: 'Substansi');
-    $this->field = fn (ReviewEvaluationForm $form, string $label): ReviewFormField => ReviewFormField::create([
-        'review_evaluation_form_version_id' => $form->latestVersion->id,
-        'field_type_id' => $this->fieldType->id,
-        'label' => $label,
-        'is_required' => false,
-        'order' => 1,
-    ]);
 });
 
 function evaluationAudit(ReviewEvaluationForm $form, string $description): ?Activity
@@ -43,97 +38,64 @@ function evaluationAudit(ReviewEvaluationForm $form, string $description): ?Acti
         ->first();
 }
 
-/** @param  list<array<string, mixed>>  $fields */
-function evaluationPayload(ReviewEvaluationForm $form, array $fields): array
+/** Simpan draf `$fields` lewat route lalu terbitkan. */
+function draftAndPublish(ReviewEvaluationForm $form, array $fields): void
 {
-    return ['title' => 'Substansi Disunting', 'fields' => $fields];
+    test()->put(route('admin.evaluation-forms.draft.update', $form), ['fields' => $fields])->assertSessionHasNoErrors();
+    test()->post(route('admin.evaluation-forms.publish', $form));
 }
 
-it('creates an evaluation form without a description, with its fields and options, audited', function () {
-    $detail = FormPhaseDetail::factory()->create(['needs_review' => true]);
-
-    $this->actingAs($this->admin)->post(route('admin.phase-details.evaluation-forms.store', $detail), [
-        'title' => 'Kelayakan',
-        'fields' => [[
-            'field_type_id' => $this->fieldType->id,
-            'label' => 'Rekomendasi',
-            'validation_rules' => ['max_length' => 500],
-            'options' => [['label' => 'Layak', 'value' => 'layak']],
-        ]],
-    ])->assertSessionHasNoErrors();
-
+it('creates an evaluation form without a description, drafts and publishes its fields and options, audited', function () {
+    $this->actingAs($this->admin)->post(route('admin.evaluation-forms.store'), ['title' => 'Kelayakan'])
+        ->assertSessionHasNoErrors();
     $form = ReviewEvaluationForm::query()->where('title', 'Kelayakan')->firstOrFail();
-    $field = $form->latestVersion->reviewFormFields()->firstOrFail();
 
-    expect($form->latestVersion->label())->toBe('Versi 1')
-        ->and($field->validation_rules)->toBe(['max_length' => 500])
-        ->and($field->reviewFormFieldOptions()->pluck('value')->all())->toBe(['layak'])
+    draftAndPublish($form, [[
+        'field_type_id' => $this->fieldType->id,
+        'label' => 'Rekomendasi',
+        'validation_rules' => ['max_length' => 500],
+        'options' => [['label' => 'Layak', 'value' => 'layak']],
+    ]]);
+
+    $field = $form->fresh()?->latestVersion?->reviewFormFields()->firstOrFail();
+    expect($form->description)->toBeNull()
+        ->and($form->fresh()?->latestVersion?->label())->toBe('Versi 1')
+        ->and($field?->validation_rules)->toBe(['max_length' => 500])
+        ->and($field?->reviewFormFieldOptions()->pluck('value')->all())->toBe(['layak'])
         ->and(evaluationAudit($form, 'Form evaluasi dibuat'))->not->toBeNull()
+        ->and(evaluationAudit($form, 'Draf form evaluasi disimpan'))->not->toBeNull()
         ->and(evaluationAudit($form, 'Form evaluasi diterbitkan')?->properties['new']['fields'])->toBe(['Rekomendasi']);
 });
 
-it('rejects an evaluation field without a field type as a validation error', function () {
-    $detail = FormPhaseDetail::factory()->create(['needs_review' => true]);
+it('ignores field and option ids sent in a draft, leaving other forms intact', function () {
+    $other = evaluationFieldResponse('select', 'layak')->reviewFormField;
+    $option = ReviewFormFieldOption::create(['review_form_field_id' => $other->id, 'label' => 'Asli', 'order' => 1]);
+    $form = ReviewEvaluationForm::create(['title' => 'Substansi']);
 
-    $this->actingAs($this->admin)->post(route('admin.phase-details.evaluation-forms.store', $detail), [
-        'title' => 'Kelayakan',
-        'fields' => [['label' => 'Skor']],
-    ])->assertStatus(302)->assertSessionHasErrors('fields.0.field_type_id');
-
-    expect(ReviewEvaluationForm::query()->count())->toBe(0);
-});
-
-it('rejects a phase detail that is not reviewed', function () {
-    $detail = FormPhaseDetail::factory()->create(['needs_review' => false]);
-
-    $this->actingAs($this->admin)->post(route('admin.phase-details.evaluation-forms.store', $detail), [
-        'title' => 'Kelayakan',
-    ])->assertSessionHasErrors('form_phase_detail_id');
-
-    expect(ReviewEvaluationForm::query()->where('title', 'Kelayakan')->exists())->toBeFalse();
-});
-
-it('ignores a field id from another evaluation form and leaves that form intact', function () {
-    $form = ($this->evaluation)();
-    $foreign = ($this->field)(($this->evaluation)(), 'Milik Form Lain');
-
-    $this->actingAs($this->admin)->put(route('admin.evaluation-forms.update', $form), evaluationPayload($form, [
-        ['id' => $foreign->id, 'field_type_id' => $this->fieldType->id, 'label' => 'Dibajak'],
-    ]))->assertSessionHasNoErrors();
-
-    expect($foreign->fresh()->label)->toBe('Milik Form Lain')
-        ->and($form->fresh()->latestVersion->reviewFormFields()->pluck('label')->all())->toBe(['Dibajak']);
-});
-
-it('ignores an option id from another field and leaves that option intact', function () {
-    $form = ($this->evaluation)();
-    $field = ($this->field)($form, 'Rekomendasi');
-    $foreign = ReviewFormFieldOption::create([
-        'review_form_field_id' => ($this->field)(($this->evaluation)(), 'Lain')->id,
-        'label' => 'Asli',
-        'order' => 1,
-    ]);
-
-    $this->actingAs($this->admin)->put(route('admin.evaluation-forms.update', $form), evaluationPayload($form, [[
-        'id' => $field->id,
+    $this->actingAs($this->admin);
+    draftAndPublish($form, [[
+        'id' => $other->id,
         'field_type_id' => $this->fieldType->id,
-        'label' => 'Rekomendasi',
-        'options' => [['id' => $foreign->id, 'label' => 'Dibajak']],
-    ]]))->assertSessionHasNoErrors();
+        'label' => 'Dibajak',
+        'options' => [['id' => $option->id, 'label' => 'Dibajak']],
+    ]]);
 
-    expect($foreign->fresh()->label)->toBe('Asli')
-        ->and($foreign->fresh()->review_form_field_id)->not->toBe($field->id);
+    expect($other->fresh()?->label)->not->toBe('Dibajak')
+        ->and($option->fresh()?->label)->toBe('Asli')
+        ->and($form->fresh()?->latestVersion?->reviewFormFields()->pluck('label')->all())->toBe(['Dibajak']);
 });
 
-it('refuses to publish a version without fields, keeping the answers', function () {
+it('refuses to publish a draft without fields, keeping the draft and the answers', function () {
     $answer = evaluationFieldResponse('select', 'layak');
     $form = $answer->reviewFormField->reviewEvaluationFormVersion->reviewEvaluationForm;
+    SaveEvaluationFormDraft::run($form, new EvaluationDraftInput([]), $this->admin);
 
-    $this->actingAs($this->admin)->put(route('admin.evaluation-forms.update', $form), evaluationPayload($form, []))
+    $this->actingAs($this->admin)->post(route('admin.evaluation-forms.publish', $form))
         ->assertSessionHasErrors(['fields' => 'Form evaluasi butuh minimal satu field.']);
 
     expect(ReviewFormFieldResponse::query()->whereKey($answer->id)->exists())->toBeTrue()
-        ->and($form->versions()->count())->toBe(1);
+        ->and($form->versions()->count())->toBe(1)
+        ->and(ConfigurationDraft::query()->count())->toBe(1);
 });
 
 it('drops an option in the next version while old answers still read its label', function () {
@@ -142,54 +104,51 @@ it('drops an option in the next version while old answers still read its label',
     ReviewFormFieldOption::create(['review_form_field_id' => $field->id, 'label' => 'Layak', 'value' => 'layak', 'order' => 1]);
     $form = $field->reviewEvaluationFormVersion->reviewEvaluationForm;
 
-    $this->actingAs($this->admin)->put(route('admin.evaluation-forms.update', $form), evaluationPayload($form, [
-        ['id' => $field->id, 'field_type_id' => $field->field_type_id, 'label' => 'Uji', 'options' => []],
-    ]))->assertSessionHasNoErrors();
+    $this->actingAs($this->admin);
+    draftAndPublish($form, [['field_type_id' => $field->field_type_id, 'label' => 'Uji', 'options' => []]]);
 
-    expect($form->fresh()->latestVersion->reviewFormFields()->sole()->reviewFormFieldOptions()->count())->toBe(0)
+    expect($form->fresh()?->latestVersion?->reviewFormFields()->sole()->reviewFormFieldOptions()->count())->toBe(0)
         ->and($field->reviewFormFieldOptions()->count())->toBe(1)
-        ->and($answer->fresh()->formatted_value)->toBe('Layak');
+        ->and($answer->fresh()?->formatted_value)->toBe('Layak');
 });
 
 it('publishes revised fields as the next version, keeping the old version, audited', function () {
-    $form = ($this->evaluation)();
-    $kept = ($this->field)($form, 'Tetap');
-    ($this->field)($form, 'Dibuang');
+    $form = ReviewEvaluationForm::create(['title' => 'Substansi']);
+    publishVersion($form, [['type' => 'select', 'label' => 'Tetap'], ['type' => 'select', 'label' => 'Dibuang']]);
+    $kept = $form->latestVersion?->reviewFormFields()->firstOrFail();
 
-    $this->actingAs($this->admin)->put(route('admin.evaluation-forms.update', $form), evaluationPayload($form, [
-        ['id' => $kept->id, 'field_type_id' => $this->fieldType->id, 'label' => 'Tetap Diubah'],
-    ]))->assertSessionHasNoErrors();
+    $this->actingAs($this->admin);
+    draftAndPublish($form, [['field_type_id' => $this->fieldType->id, 'label' => 'Tetap Diubah']]);
 
     $versions = $form->versions()->get();
     expect($versions->pluck('number')->all())->toBe([1, 2])
         ->and($versions[0]->reviewFormFields()->pluck('label')->all())->toBe(['Tetap', 'Dibuang'])
         ->and($versions[1]->reviewFormFields()->pluck('label')->all())->toBe(['Tetap Diubah'])
-        ->and($kept->fresh()->label)->toBe('Tetap')
+        ->and($kept?->fresh()?->label)->toBe('Tetap')
         ->and(evaluationAudit($form, 'Form evaluasi diterbitkan')?->properties['new'])->toBe(['number' => 2, 'fields' => ['Tetap Diubah']]);
 });
 
-it('saves the phase-screen edit dialog, which sends neither the detail nor the fields', function () {
+it('renames a form without touching its versions or answers, audited', function () {
     $answer = evaluationFieldResponse('select', 'layak');
     $form = $answer->reviewFormField->reviewEvaluationFormVersion->reviewEvaluationForm;
 
     $this->actingAs($this->admin)->put(route('admin.evaluation-forms.update', $form), [
         'title' => 'Judul Baru',
         'description' => '',
-        'is_required' => true,
-        'is_active' => true,
     ])->assertSessionHasNoErrors();
 
-    expect($form->fresh()->title)->toBe('Judul Baru')
+    expect($form->fresh()?->title)->toBe('Judul Baru')
         ->and($form->versions()->count())->toBe(1)
-        ->and(ReviewFormFieldResponse::query()->whereKey($answer->id)->exists())->toBeTrue();
+        ->and(ReviewFormFieldResponse::query()->whereKey($answer->id)->exists())->toBeTrue()
+        ->and(evaluationAudit($form, 'Form evaluasi diubah'))->not->toBeNull();
 });
 
-it('deletes an unassigned evaluation form with its fields, audited', function () {
-    $form = ($this->evaluation)();
-    $field = ($this->field)($form, 'Rekomendasi');
+it('deletes an unattached evaluation form with its versions and fields, audited', function () {
+    $form = ReviewEvaluationForm::create(['title' => 'Substansi']);
+    $field = publishVersion($form, [['type' => 'select', 'label' => 'Rekomendasi']])->reviewFormFields()->firstOrFail();
 
     $this->actingAs($this->admin)->delete(route('admin.evaluation-forms.destroy', $form))
-        ->assertRedirect()
+        ->assertRedirect(route('admin.evaluation-forms.index'))
         ->assertSessionHas('success', 'Form evaluasi dihapus.');
 
     expect(ReviewEvaluationForm::query()->whereKey($form->id)->exists())->toBeFalse()
@@ -201,14 +160,14 @@ it('refuses to delete an assigned evaluation form and leaves no audit entry', fu
     $form = evaluationFieldResponse('select', 'layak')->reviewFormField->reviewEvaluationFormVersion->reviewEvaluationForm;
 
     $this->actingAs($this->admin)->delete(route('admin.evaluation-forms.destroy', $form))
-        ->assertSessionHasErrors(['step_evaluation_form' => 'Form evaluasi ini sudah ditugaskan ke 1 reviewer di langkah ini, jadi tidak bisa dilepas. Nonaktifkan saja.']);
+        ->assertSessionHasErrors('id');
 
     expect(ReviewEvaluationForm::query()->whereKey($form->id)->exists())->toBeTrue()
         ->and(evaluationAudit($form, 'Form evaluasi dihapus'))->toBeNull();
 });
 
 it('wewenang hapus: operator 403', function () {
-    $form = ($this->evaluation)();
+    $form = ReviewEvaluationForm::create(['title' => 'Substansi']);
     Role::findOrCreate('Operator');
     $operator = User::factory()->create();
     $operator->assignRole('Operator');
@@ -216,4 +175,13 @@ it('wewenang hapus: operator 403', function () {
     $this->actingAs($operator)->delete(route('admin.evaluation-forms.destroy', $form))->assertForbidden();
 
     expect(ReviewEvaluationForm::query()->whereKey($form->id)->exists())->toBeTrue();
+});
+
+it('round-trips a draft payload into the same field inputs', function () {
+    $input = new EvaluationDraftInput([
+        new ReviewFormFieldInput(null, 7, 'Skor', 'Skala 1–7', true, ['min_value' => 1.0, 'max_value' => 7.0], null),
+        new ReviewFormFieldInput(null, 8, 'Rekomendasi', null, false, null, [['id' => null, 'label' => 'Layak', 'value' => 'layak']]),
+    ]);
+
+    expect(EvaluationDraftInput::fromPayload($input->toPayload()))->toEqual($input);
 });

@@ -1,24 +1,17 @@
 import type {
     EvaluationFieldEditData,
-    EvaluationFormEditData,
     EvaluationLimits,
     FieldTypeOption,
 } from '@/types/form-engine'
 
-// Field form evaluasi di kartu. `key` stabil untuk seret; field baru `new-<n>`, field lama `field-<id>`.
+// Field draf Form Evaluasi di editor pustaka (BR-FE-31). `key` stabil untuk seret; tanpa id —
+// Terbitkan menyalin baris baru (BR-REV-18). Opsi membawa `id: null` agar cocok dengan
+// FormFieldOptions bersama, yang membuang baris baru yang kosong.
 export type EditableEvaluationOption = { id: number | null; label: string; value: string | null }
 
-export type EditableEvaluationField = Omit<EvaluationFieldEditData, 'id' | 'options'> & {
+export type EditableEvaluationField = Omit<EvaluationFieldEditData, 'options'> & {
     key: string
-    id: number | null
     options: EditableEvaluationOption[]
-}
-
-export type EvaluationGeneral = {
-    title: string
-    description: string
-    isRequired: boolean
-    isActive: boolean
 }
 
 type LimitRules = {
@@ -29,22 +22,15 @@ type LimitRules = {
 }
 
 export type EvaluationFieldPayload = {
-    id?: number
     field_type_id: number
     label: string
     description: string | null
     is_required: boolean
     validation_rules: LimitRules | null
-    options?: { id?: number; label: string; value: string | null }[]
+    options?: { label: string; value: string | null }[]
 }
 
-export type EvaluationPayload = {
-    title: string
-    description: string | null
-    is_required: boolean
-    is_active: boolean
-    fields: EvaluationFieldPayload[]
-}
+export type EvaluationDraftPayload = { fields: EvaluationFieldPayload[] }
 
 const NO_LIMITS: EvaluationLimits = {
     minLength: null,
@@ -65,19 +51,20 @@ export const LIMIT_KEYS = {
     ],
 } as const
 
-let newCounter = 0
+let keyCounter = 0
+const nextKey = () => {
+    keyCounter += 1
+    return `field-${keyCounter}`
+}
 
 export function blankEvaluationField(fieldTypeId: number): EditableEvaluationField {
-    newCounter += 1
     return {
-        key: `new-${newCounter}`,
-        id: null,
+        key: nextKey(),
         label: '',
         description: null,
         fieldTypeId,
         isRequired: false,
         limits: { ...NO_LIMITS },
-        answerCount: 0,
         options: [],
     }
 }
@@ -87,20 +74,26 @@ export function toEditableEvaluationFields(
 ): EditableEvaluationField[] {
     return fields.map((field) => ({
         ...field,
-        key: `field-${field.id}`,
+        key: nextKey(),
         limits: { ...field.limits },
-        options: field.options.map((option) => ({ ...option })),
+        options: field.options.map((option) => ({ ...option, id: null })),
     }))
 }
 
-export const toEvaluationGeneral = (form: EvaluationFormEditData | null): EvaluationGeneral => ({
-    title: form?.title ?? '',
-    description: form?.description ?? '',
-    isRequired: form?.isRequired ?? true,
-    isActive: form?.isActive ?? true,
-})
+// BR-FE-31 / §4.5 — draf yang belum terbit terlihat di daftar dan di editor, sama bunyinya.
+export const draftBannerText = (latestVersionLabel: string | null) =>
+    latestVersionLabel === null
+        ? 'Draf belum diterbitkan. Belum ada versi yang dipakai reviewer.'
+        : `Draf belum diterbitkan. Reviewer masih memakai ${latestVersionLabel}.`
 
-const typeOf = (types: FieldTypeOption[], id: number) =>
+// §4.5 — konfirmasi Terbitkan; kalimat kedua hanya bila ada angkatan yang tetap di versi lama.
+export const publishImpactText = (impact: { nextLabel: string; pinnedCohorts: number }) =>
+    `Terbitkan ${impact.nextLabel}? Berlaku untuk langkah yang belum mulai dinilai.` +
+    (impact.pinnedCohorts > 0
+        ? ` ${impact.pinnedCohorts} angkatan sudah memakai versi lama dan tetap memakainya.`
+        : '')
+
+export const typeOf = (types: FieldTypeOption[], id: number) =>
     types.find((type) => type.value === String(id))
 
 // W103 — hanya batas yang terisi dan sesuai jenis tipenya; tanpa batas berarti null.
@@ -115,20 +108,14 @@ function limitRules(field: EditableEvaluationField, limitType: FieldTypeOption['
 }
 
 // Cermin BR-FE-24 — `options` hanya untuk tipe ber-opsi; `value` tersimpan ikut agar jawaban lama terbaca.
-export function toEvaluationPayload(
-    form: EvaluationGeneral,
+export function toDraftPayload(
     fields: EditableEvaluationField[],
     types: FieldTypeOption[]
-): EvaluationPayload {
+): EvaluationDraftPayload {
     return {
-        title: form.title,
-        description: form.description.trim() === '' ? null : form.description,
-        is_required: form.isRequired,
-        is_active: form.isActive,
         fields: fields.map((field) => {
             const type = typeOf(types, field.fieldTypeId)
             const payload: EvaluationFieldPayload = {
-                ...(field.id === null ? {} : { id: field.id }),
                 field_type_id: field.fieldTypeId,
                 label: field.label,
                 description: field.description || null,
@@ -137,7 +124,6 @@ export function toEvaluationPayload(
             }
             if (type?.hasOptions !== true) return payload
             payload.options = field.options.map((option) => ({
-                ...(option.id === null ? {} : { id: option.id }),
                 label: option.label,
                 value: option.value,
             }))
@@ -145,8 +131,3 @@ export function toEvaluationPayload(
         }),
     }
 }
-
-// Kartu dipasang ulang saat id field/opsinya berubah (sesudah simpan): baris baru mendapat id-nya.
-export const evaluationCardKey = (form: EvaluationFormEditData) =>
-    `form-${form.id}:` +
-    form.fields.map((field) => `${field.id}(${field.options.map((o) => o.id).join(',')})`).join(';')

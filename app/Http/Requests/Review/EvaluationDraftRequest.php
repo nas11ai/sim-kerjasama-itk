@@ -2,16 +2,16 @@
 
 namespace App\Http\Requests\Review;
 
-use App\Data\Request\ReviewEvaluationFormInput;
+use App\Data\Request\EvaluationDraftInput;
 use App\Data\Request\ReviewFormFieldInput;
 use Illuminate\Foundation\Http\FormRequest;
 
 /**
- * Buat dan Ubah form evaluasi reviewer. `id` field dan opsi hanya diperiksa keberadaannya di
- * sini; kepemilikannya, dan apakah detailnya direview, diperiksa Action-nya. Detailnya tidak
- * pernah dari kiriman: route `formPhaseDetail` saat buat, form yang disunting saat ubah (W100).
+ * Simpan draf Form Evaluasi (BR-FE-31): field urut seperti di layar. `id` field dan opsi tidak
+ * dibaca — Terbitkan menyalin baris baru (BR-REV-18), jadi kiriman tak bisa menyentuh baris lain.
+ * Draf boleh kosong; minimal satu field baru ditagih saat Terbitkan.
  */
-class ReviewEvaluationFormRequest extends FormRequest
+class EvaluationDraftRequest extends FormRequest
 {
     private const LENGTH_RULES = ['min_length', 'max_length'];
 
@@ -26,12 +26,7 @@ class ReviewEvaluationFormRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'title' => 'required|string|max:255',
-            'description' => 'nullable|string',
-            'is_required' => 'boolean',
-            'is_active' => 'boolean',
-            'fields' => 'array',
-            'fields.*.id' => 'nullable|integer|exists:review_form_fields,id',
+            'fields' => 'present|array',
             'fields.*.field_type_id' => 'required|integer|exists:field_types,id',
             'fields.*.label' => 'required|string|max:255',
             'fields.*.description' => 'nullable|string',
@@ -42,21 +37,14 @@ class ReviewEvaluationFormRequest extends FormRequest
             'fields.*.validation_rules.min_value' => 'nullable|numeric',
             'fields.*.validation_rules.max_value' => 'nullable|numeric',
             'fields.*.options' => 'array',
-            'fields.*.options.*.id' => 'nullable|integer|exists:review_form_field_options,id',
             'fields.*.options.*.label' => 'required|string|max:255',
             'fields.*.options.*.value' => 'nullable|string|max:255',
         ];
     }
 
-    public function toInput(): ReviewEvaluationFormInput
+    public function toInput(): EvaluationDraftInput
     {
-        return new ReviewEvaluationFormInput(
-            title: $this->string('title')->value(),
-            description: $this->optionalString('description'),
-            isRequired: $this->boolean('is_required', true),
-            isActive: $this->boolean('is_active', true),
-            fields: $this->has('fields') ? array_map($this->field(...), $this->indexesOf('fields')) : null,
-        );
+        return new EvaluationDraftInput(array_map($this->field(...), $this->indexesOf('fields')));
     }
 
     private function field(int|string $i): ReviewFormFieldInput
@@ -64,14 +52,14 @@ class ReviewEvaluationFormRequest extends FormRequest
         $key = "fields.{$i}";
 
         return new ReviewFormFieldInput(
-            id: $this->optionalId("{$key}.id"),
+            id: null,
             fieldTypeId: $this->integer("{$key}.field_type_id"),
             label: $this->string("{$key}.label")->value(),
             description: $this->optionalString("{$key}.description"),
             isRequired: $this->boolean("{$key}.is_required"),
             validationRules: $this->fieldLimits("{$key}.validation_rules"),
             options: $this->has("{$key}.options") ? array_map(fn (int|string $o): array => [
-                'id' => $this->optionalId("{$key}.options.{$o}.id"),
+                'id' => null,
                 'label' => $this->string("{$key}.options.{$o}.label")->value(),
                 'value' => $this->optionalString("{$key}.options.{$o}.value"),
             ], $this->indexesOf("{$key}.options")) : null,
@@ -106,11 +94,6 @@ class ReviewEvaluationFormRequest extends FormRequest
     private function optionalString(string $key): ?string
     {
         return $this->filled($key) ? $this->string($key)->value() : null;
-    }
-
-    private function optionalId(string $key): ?int
-    {
-        return $this->filled($key) ? $this->integer($key) : null;
     }
 
     /** @return list<int|string> */

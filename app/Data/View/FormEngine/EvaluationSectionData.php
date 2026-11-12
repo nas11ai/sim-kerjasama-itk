@@ -7,16 +7,16 @@ use App\Models\StepEvaluationForm;
 use Spatie\LaravelData\Data;
 
 /**
- * Bagian form evaluasi satu detail ber-`needs_review` (ubiquitous language: form evaluasi
- * attached ke detail yang direview). Label "{phaseTypeName} — {formTitle}" seperti baris detail (W93).
+ * Bagian form evaluasi satu detail ber-`needs_review`: Form Evaluasi pustaka yang terpasang di
+ * sana (BR-FE-30). Label "{phaseTypeName} — {formTitle}" seperti baris detail (W93).
  */
 final class EvaluationSectionData extends Data
 {
-    /** @param  list<EvaluationFormEditData>  $forms  urut `order` */
+    /** @param  list<StepEvaluationFormData>  $attached  urut `order` */
     public function __construct(
         public int $detailId,
         public string $detailLabel,
-        public array $forms,
+        public array $attached,
         // W158 — pengajuan ber-reviewer aktif yang tak otomatis menerima form baru.
         public int $reviewsInProgress,
     ) {}
@@ -26,8 +26,8 @@ final class EvaluationSectionData extends Data
         return new self(
             detailId: $detail->id,
             detailLabel: ($detail->phaseType->name ?? '').' — '.($detail->formAccessControl->form->title ?? ''),
-            forms: array_values($detail->stepEvaluationForms
-                ->map(fn (StepEvaluationForm $step): EvaluationFormEditData => EvaluationFormEditData::fromModel($step))
+            attached: array_values($detail->stepEvaluationForms
+                ->map(fn (StepEvaluationForm $step): StepEvaluationFormData => StepEvaluationFormData::fromModel($step))
                 ->all()),
             reviewsInProgress: $reviewsInProgress,
         );

@@ -4,6 +4,7 @@ import {
     Bell,
     Building2,
     ChartBar,
+    ClipboardCheck,
     ClipboardList,
     Clock,
     Cog,
@@ -214,6 +215,14 @@ export const navGroups: NavGroup[] = [
                 icon: SquarePen,
                 routeName: 'admin.forms.index',
                 activePattern: 'admin.forms.*',
+                anyPermission: ['schemes.manage'],
+            },
+            {
+                // R3 — pustaka Form Evaluasi: lembar penilaian berversi yang dipasang di banyak tahap.
+                label: 'Form Evaluasi',
+                icon: ClipboardCheck,
+                routeName: 'admin.evaluation-forms.index',
+                activePattern: 'admin.evaluation-forms.*',
                 anyPermission: ['schemes.manage'],
             },
             {

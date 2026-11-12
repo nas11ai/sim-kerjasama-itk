@@ -6,9 +6,11 @@ use App\Http\Controllers\Config\ReferenceEntityController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Export\DocumentPrintController;
 use App\Http\Controllers\FormEngine\EvaluationFormController;
+use App\Http\Controllers\FormEngine\EvaluationFormDraftController;
 use App\Http\Controllers\FormEngine\FormAccessController;
 use App\Http\Controllers\FormEngine\FormController;
 use App\Http\Controllers\FormEngine\FormPhaseController;
+use App\Http\Controllers\FormEngine\StepEvaluationFormController;
 use App\Http\Controllers\FormEngine\SubmissionPeriodController;
 use App\Http\Controllers\GlobalSearchController;
 use App\Http\Controllers\Identity\InvitationController;
@@ -338,13 +340,28 @@ Route::middleware(['auth', 'can:schemes.manage'])->prefix('admin')->name('admin.
     Route::post('/phases/{formPhase}/periods', [FormPhaseController::class, 'linkPeriod'])
         ->middleware('can:periods.manage')->name('phases.periods.store');
 
-    // ADMIN-08-09 — form evaluasi disimpan per kartu (W95); detailnya dari route, bukan kiriman (W100).
-    Route::post('/phase-details/{formPhaseDetail}/evaluation-forms', [EvaluationFormController::class, 'store'])
+    // ADMIN-08-09 — pustaka Form Evaluasi (BR-FE-30); judul/deskripsi disunting langsung.
+    Route::get('/evaluation-forms', [EvaluationFormController::class, 'index'])->name('evaluation-forms.index');
+    Route::get('/evaluation-forms/create', [EvaluationFormController::class, 'create'])->name('evaluation-forms.create');
+    Route::post('/evaluation-forms', [EvaluationFormController::class, 'store'])->name('evaluation-forms.store');
+    Route::get('/evaluation-forms/{reviewEvaluationForm}/edit', [EvaluationFormController::class, 'edit'])->name('evaluation-forms.edit');
+    Route::put('/evaluation-forms/{reviewEvaluationForm}', [EvaluationFormController::class, 'update'])->name('evaluation-forms.update');
+    Route::delete('/evaluation-forms/{reviewEvaluationForm}', [EvaluationFormController::class, 'destroy'])->name('evaluation-forms.destroy');
+    // BR-FE-31 — isi lewat draf; Terbitkan membentuk versi berikutnya.
+    Route::put('/evaluation-forms/{reviewEvaluationForm}/draft', [EvaluationFormDraftController::class, 'update'])
+        ->name('evaluation-forms.draft.update');
+    Route::delete('/evaluation-forms/{reviewEvaluationForm}/draft', [EvaluationFormDraftController::class, 'destroy'])
+        ->name('evaluation-forms.draft.destroy');
+    Route::post('/evaluation-forms/{reviewEvaluationForm}/publish', [EvaluationFormDraftController::class, 'publish'])
+        ->name('evaluation-forms.publish');
+
+    // BR-FE-30 — pemasangan di langkah dari editor tahap; langkahnya dari route, bukan kiriman (W100).
+    Route::post('/phase-details/{formPhaseDetail}/evaluation-forms', [StepEvaluationFormController::class, 'store'])
         ->name('phase-details.evaluation-forms.store');
-    Route::put('/evaluation-forms/{reviewEvaluationForm}', [EvaluationFormController::class, 'update'])
-        ->name('evaluation-forms.update');
-    Route::delete('/evaluation-forms/{reviewEvaluationForm}', [EvaluationFormController::class, 'destroy'])
-        ->name('evaluation-forms.destroy');
+    Route::put('/step-evaluation-forms/{stepEvaluationForm}', [StepEvaluationFormController::class, 'update'])
+        ->name('step-evaluation-forms.update');
+    Route::delete('/step-evaluation-forms/{stepEvaluationForm}', [StepEvaluationFormController::class, 'destroy'])
+        ->name('step-evaluation-forms.destroy');
 });
 
 // ADMIN-08-03/04 — skema dikelola pemegang schemes.manage (W105). Nama route tidak berubah.

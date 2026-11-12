@@ -48,8 +48,6 @@ watch(
 const selected = computed(() =>
     props.fieldTypeOptions.find((t) => t.value === String(draft.value.fieldTypeId))
 )
-// Cermin BR-FE-23 / W103 — field yang sudah dijawab reviewer tidak berganti tipe.
-const locked = computed(() => draft.value.answerCount > 0)
 const description = computed({
     get: () => draft.value.description ?? '',
     set: (value: string | number) => (draft.value.description = String(value)),
@@ -70,6 +68,7 @@ const setLimit = (key: keyof EvaluationLimits, value: string | number) =>
     (draft.value.limits = { ...draft.value.limits, [key]: value === '' ? null : Number(value) })
 
 // FormFieldOptions membuat baris baru tanpa `value`; baris lama dipertahankan apa adanya.
+// Tipe tidak dikunci: Terbitkan menyalin baris baru, jawaban lama tetap di field versinya (BR-REV-18).
 const options = computed({
     get: (): EditableOption[] => draft.value.options,
     set: (next: EditableOption[]) =>
@@ -96,12 +95,7 @@ const options = computed({
             id="evaluation-field-type"
             v-model="draft.fieldTypeId"
             :options="fieldTypeOptions"
-            :locked="locked"
-            :hint="
-                locked
-                    ? 'Field ini sudah dijawab reviewer; buat field baru untuk tipe lain.'
-                    : undefined
-            "
+            :locked="false"
         />
         <div class="flex items-center gap-2">
             <Switch id="evaluation-field-required" v-model="draft.isRequired" />

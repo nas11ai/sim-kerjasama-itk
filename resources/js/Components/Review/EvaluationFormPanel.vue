@@ -14,7 +14,8 @@ import { formatDate } from '@/lib/format'
 import type { EvaluationForm } from '@/types/review'
 import type { WizardField } from '@/types/submission-wizard'
 
-const props = defineProps<{ submissionId: number; form: EvaluationForm }>()
+// `preview` — Pratinjau editor pustaka (§4.5): field tampil seperti lembar reviewer, terkunci, tanpa aksi.
+const props = defineProps<{ submissionId: number; form: EvaluationForm; preview?: boolean }>()
 
 const saved: Record<string, string | null> = Object.fromEntries(
     props.form.fields.map((field) => [String(field.id), field.value])
@@ -23,7 +24,9 @@ const answers = useForm({ responses: saved, final_notes: props.form.finalNotes ?
 const confirming = ref(false)
 
 const closed = computed(() => props.form.state === 'submitted' || props.form.state === 'locked')
-const editing = computed(() => props.form.state === 'draft' && props.form.canEdit)
+const editing = computed(
+    () => props.form.state === 'draft' && (props.form.canEdit || props.preview === true)
+)
 const assignment = computed(() => String(props.form.assignmentId))
 
 const shown = (field: WizardField) =>
@@ -86,32 +89,38 @@ const submit = () =>
             </Button>
         </div>
 
-        <form v-else-if="editing" class="flex flex-col gap-4" @submit.prevent="confirming = true">
+        <form
+            v-else-if="editing"
+            class="flex flex-col gap-4"
+            @submit.prevent="confirming = !preview"
+        >
             <AppBanner v-if="answers.errors.responses" tone="denial">
                 {{ answers.errors.responses }}
             </AppBanner>
-            <WizardFieldInput
-                v-for="field in form.fields"
-                :key="field.id"
-                :field="field"
-                :model-value="answers.responses[String(field.id)] ?? null"
-                @update:model-value="(value) => setAnswer(field.id, value)"
-            />
-            <FormField
-                :id="`final-notes-${form.formId}`"
-                label="Catatan Kualitatif"
-                :error="answers.errors.final_notes"
-            >
-                <template #default="{ describedBy }">
-                    <Textarea
-                        :id="`final-notes-${form.formId}`"
-                        v-model="answers.final_notes"
-                        placeholder="Masukan perbaikan untuk peneliti..."
-                        :aria-describedby="describedBy"
-                    />
-                </template>
-            </FormField>
-            <div class="flex flex-wrap justify-between gap-2">
+            <fieldset :disabled="preview" class="m-0 flex min-w-0 flex-col gap-4 border-0 p-0">
+                <WizardFieldInput
+                    v-for="field in form.fields"
+                    :key="field.id"
+                    :field="field"
+                    :model-value="answers.responses[String(field.id)] ?? null"
+                    @update:model-value="(value) => setAnswer(field.id, value)"
+                />
+                <FormField
+                    :id="`final-notes-${form.formId}`"
+                    label="Catatan Kualitatif"
+                    :error="answers.errors.final_notes"
+                >
+                    <template #default="{ describedBy }">
+                        <Textarea
+                            :id="`final-notes-${form.formId}`"
+                            v-model="answers.final_notes"
+                            placeholder="Masukan perbaikan untuk peneliti..."
+                            :aria-describedby="describedBy"
+                        />
+                    </template>
+                </FormField>
+            </fieldset>
+            <div v-if="!preview" class="flex flex-wrap justify-between gap-2">
                 <Button
                     type="button"
                     variant="outline"
@@ -125,7 +134,7 @@ const submit = () =>
                     <Check class="size-4" /> Submit Evaluasi
                 </Button>
             </div>
-            <p class="text-xs text-muted-foreground">
+            <p v-if="!preview" class="text-xs text-muted-foreground">
                 Setelah evaluasi disubmit, isian tidak dapat diubah lagi — pastikan skor dan catatan
                 sudah final.
             </p>

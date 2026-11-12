@@ -18,6 +18,7 @@ use LogicException;
  * @property int|null $published_by
  * @property Carbon $published_at
  * @property-read ReviewEvaluationForm $reviewEvaluationForm
+ * @property-read User|null $publisher
  */
 class ReviewEvaluationFormVersion extends Model
 {
@@ -46,6 +47,12 @@ class ReviewEvaluationFormVersion extends Model
         return $this->belongsTo(ReviewEvaluationForm::class);
     }
 
+    /** @return BelongsTo<User, $this> */
+    public function publisher(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'published_by');
+    }
+
     /** @return HasMany<ReviewFormField, $this> */
     public function reviewFormFields(): HasMany
     {
@@ -54,6 +61,12 @@ class ReviewEvaluationFormVersion extends Model
 
     public function label(): string
     {
-        return "Versi {$this->number}";
+        return self::labelFor($this->number);
+    }
+
+    // Juga untuk versi yang belum lahir: konfirmasi Terbitkan menyebut label berikutnya (§4.5).
+    public static function labelFor(int $number): string
+    {
+        return "Versi {$number}";
     }
 }

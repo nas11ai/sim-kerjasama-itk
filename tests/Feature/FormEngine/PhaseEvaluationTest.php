@@ -1,17 +1,16 @@
 <?php
 
 // ADMIN-08-09 — form evaluasi reviewer di layar sunting tahap: satu bagian per detail yang
-// direview (ubiquitous language), disimpan per kartu lewat route ber-detail (W95, W100).
+// direview, tempat memasang Form Evaluasi pustaka lewat route ber-detail (BR-FE-30, W100).
 
-use App\Models\FieldType;
+use App\Actions\Review\AssignEvaluationForm;
 use App\Models\Form;
 use App\Models\FormPhase;
 use App\Models\FormPhaseDetail;
 use App\Models\FormSubmission;
 use App\Models\Reviewer;
 use App\Models\ReviewEvaluationForm;
-use App\Models\ReviewFormField;
-use App\Models\ReviewFormFieldOption;
+use App\Models\StepEvaluationForm;
 use App\Models\SubmissionReviewer;
 use App\Models\User;
 use App\Queries\Form\PhaseEvaluationForms;
@@ -50,33 +49,36 @@ function phaseEvaluationDetail(Form $form, bool $needsReview, ?FormPhase $phase 
 
 it('kontrak bagian form evaluasi', function () {
     $detail = phaseEvaluationDetail($this->form, true);
-    $evaluation = evaluationFormOn($detail, [], title: 'Lembar Substansi');
-    $field = ReviewFormField::create([
-        'review_evaluation_form_version_id' => $evaluation->latestVersion->id,
-        'field_type_id' => FieldType::firstOrCreate(['name' => 'number'])->id,
-        'label' => 'Metodologi', 'is_required' => true, 'order' => 1,
-        'validation_rules' => ['min_value' => 1, 'max_value' => 7],
-    ]);
-    ReviewFormFieldOption::create(['review_form_field_id' => $field->id, 'label' => 'Layak', 'value' => 'layak', 'order' => 1]);
+    $evaluation = evaluationFormOn($detail, title: 'Lembar Substansi');
+    publishVersion($evaluation, [['type' => 'text', 'label' => 'Metodologi']]);
+    $other = ReviewEvaluationForm::create(['title' => 'Lembar Anggaran']);
+    publishVersion($other, [['type' => 'text', 'label' => 'Kewajaran']]);
+    ReviewEvaluationForm::create(['title' => 'Lembar Belum Terbit']);
 
     $this->actingAs(phaseEvaluationActor())
         ->get(route('admin.phases.edit', $detail->formPhase))
         ->assertOk()
         ->assertInertia(fn (AssertableInertia $page) => $page
             ->component('FormEngine/PhaseEditPage')
-            ->has('fieldTypeOptions.0', fn (AssertableInertia $option) => $option
-                ->hasAll(['value', 'label', 'hasOptions', 'limitType']))
+            ->missing('fieldTypeOptions')
+            // BR-FE-30 — hanya Form Evaluasi terbit yang bisa dipasang, urut judul.
+            ->where('evaluationOptions', [
+                ['value' => (string) $other->id, 'label' => 'Lembar Anggaran'],
+                ['value' => (string) $evaluation->id, 'label' => 'Lembar Substansi'],
+            ])
             ->has('evaluation.0', fn (AssertableInertia $section) => $section
                 ->where('detailId', $detail->id)
                 ->where('detailLabel', "{$detail->phaseType?->name} — Form Proposal")
                 ->where('reviewsInProgress', 0)
-                ->has('forms.0', fn (AssertableInertia $form) => $form
-                    ->where('id', $evaluation->id)
-                    ->hasAll(['title', 'description', 'isRequired', 'isActive', 'assignmentCount'])
-                    ->has('fields.0', fn (AssertableInertia $row) => $row
-                        ->where('limits', ['minLength' => null, 'maxLength' => null, 'minValue' => 1, 'maxValue' => 7])
-                        ->where('options.0.value', 'layak')
-                        ->hasAll(['id', 'label', 'description', 'fieldTypeId', 'isRequired', 'answerCount'])))));
+                ->where('attached', [[
+                    'id' => $evaluation->stepEvaluationForms()->sole()->id,
+                    'formId' => $evaluation->id,
+                    'title' => 'Lembar Substansi',
+                    'versionLabel' => 'Versi 2',
+                    'isRequired' => true,
+                    'isActive' => true,
+                    'assignmentCount' => 0,
+                ]])));
 });
 
 it('hanya detail yang direview punya bagian form evaluasi', function () {
@@ -89,47 +91,76 @@ it('hanya detail yang direview punya bagian form evaluasi', function () {
             ->has('phase.details', 2)
             ->has('evaluation', 1)
             ->where('evaluation.0.detailId', $reviewed->id)
-            ->where('evaluation.0.forms', []));
+            ->where('evaluation.0.attached', []));
 
     // W95 — mode buat belum punya detail tersimpan, jadi belum ada bagian evaluasi.
     $this->get(route('admin.phases.create'))
         ->assertInertia(fn (AssertableInertia $page) => $page
             ->where('evaluation', [])
-            ->where('fieldTypeOptions', []));
+            ->where('evaluationOptions', []));
 });
 
-it('wewenang store/update: operator 403', function () {
-    $detail = phaseEvaluationDetail($this->form, true);
-    $evaluation = evaluationFormOn($detail, [], title: 'Lembar Substansi');
-
-    $this->actingAs(phaseEvaluationActor('operator'))
-        ->post(route('admin.phase-details.evaluation-forms.store', $detail), ['title' => 'Dibajak'])
-        ->assertForbidden();
-    $this->put(route('admin.evaluation-forms.update', $evaluation), ['title' => 'Dibajak'])
-        ->assertForbidden();
-
-    expect(ReviewEvaluationForm::query()->count())->toBe(1)
-        ->and($evaluation->fresh()?->title)->toBe('Lembar Substansi');
-});
-
-it('membuat form evaluasi untuk detail dari route-nya', function () {
+it('menghitung penugasan per pemasangan, hanya pada pengajuan di langkah itu', function () {
     $detail = phaseEvaluationDetail($this->form, true);
     $other = phaseEvaluationDetail($this->form, true);
+    $evaluation = evaluationFormOn($detail, title: 'Lembar Substansi');
+    StepEvaluationForm::create(['form_phase_detail_id' => $other->id, 'review_evaluation_form_id' => $evaluation->id, 'order' => 1]);
+    foreach ([$detail, $detail, $other] as $step) {
+        $seat = SubmissionReviewer::create([
+            'form_submission_id' => FormSubmission::factory()->create(['form_phase_detail_id' => $step->id])->id,
+            'reviewer_id' => Reviewer::factory()->create()->id,
+            'evaluation_status' => 'pending',
+            'status' => 'active',
+        ]);
+        AssignEvaluationForm::run($seat, $evaluation->id);
+    }
+
+    $sections = collect(PhaseEvaluationForms::run($detail->formPhase))->keyBy('detailId');
+
+    expect($sections[$detail->id]->attached[0]->assignmentCount)->toBe(2);
+});
+
+it('wewenang pasang: operator 403', function () {
+    $detail = phaseEvaluationDetail($this->form, true);
+    $evaluation = ReviewEvaluationForm::create(['title' => 'Lembar Substansi']);
+    publishVersion($evaluation, [['type' => 'text', 'label' => 'Catatan']]);
+
+    $this->actingAs(phaseEvaluationActor('operator'))
+        ->post(route('admin.phase-details.evaluation-forms.store', $detail), ['review_evaluation_form_id' => $evaluation->id])
+        ->assertForbidden();
+
+    expect(StepEvaluationForm::query()->count())->toBe(0);
+});
+
+it('memasang form evaluasi di detail dari route-nya', function () {
+    $detail = phaseEvaluationDetail($this->form, true);
+    $other = phaseEvaluationDetail($this->form, true);
+    $evaluation = ReviewEvaluationForm::create(['title' => 'Lembar Kelayakan']);
+    publishVersion($evaluation, [['type' => 'text', 'label' => 'Kelayakan']]);
 
     $this->actingAs(phaseEvaluationActor())
         ->from(route('admin.phases.edit', $detail->formPhase))
         ->post(route('admin.phase-details.evaluation-forms.store', $detail), [
-            'title' => 'Lembar Kelayakan',
+            'review_evaluation_form_id' => $evaluation->id,
             'form_phase_detail_id' => $other->id,
-            // G2-W3 — kartu baru langsung terbit Versi 1, jadi butuh minimal satu field.
-            'fields' => [['field_type_id' => FieldType::firstOrCreate(['name' => 'text'])->id, 'label' => 'Kelayakan']],
         ])
         ->assertSessionHasNoErrors()
         ->assertRedirect(route('admin.phases.edit', $detail->formPhase))
-        ->assertSessionHas('success', 'Form evaluasi dibuat.');
+        ->assertSessionHas('success', 'Form evaluasi dipasang.');
 
-    expect(ReviewEvaluationForm::query()->where('title', 'Lembar Kelayakan')->sole()->stepEvaluationForms()->sole()->form_phase_detail_id)
-        ->toBe($detail->id);
+    expect($evaluation->stepEvaluationForms()->sole()->form_phase_detail_id)->toBe($detail->id);
+});
+
+it('menolak memasang di detail yang tidak direview', function () {
+    $detail = phaseEvaluationDetail($this->form, false);
+    $evaluation = ReviewEvaluationForm::create(['title' => 'Lembar Kelayakan']);
+    publishVersion($evaluation, [['type' => 'text', 'label' => 'Kelayakan']]);
+
+    $this->actingAs(phaseEvaluationActor())
+        ->post(route('admin.phase-details.evaluation-forms.store', $detail), ['review_evaluation_form_id' => $evaluation->id])
+        ->assertSessionHasErrors('form_phase_detail_id');
+
+    expect(StepEvaluationForm::query()->count())->toBe(0);
 });
 
 /** Pengajuan pada $detail berstatus $state dengan reviewer berstatus $reviewerStatuses. */
