@@ -287,6 +287,9 @@ angkatan (Periode × Fase)**:
 Minimal yang diperiksa:
 
 - setiap fase yang ditautkan punya tanggal untuk semua langkahnya;
+  > **Keputusan pemilik 2026-11-12 (G4-W8):** hanya tanggal langkah Pengajuan yang menahan
+  > pengajuan baru; tanggal langkah monev/luaran yang kosong tampil sebagai peringatan, karena
+  > saat dipakai langkahnya tetap tertutup (BR-FE-26). Urutan tanggal yang salah selalu menahan.
 - setiap fase memuat tepat satu form pengajuan sebagai langkah pertama;
 - langkah yang `needs_review` punya minimal satu Form Evaluasi wajib yang terbit;
 - urutan tanggal masuk akal (BR-FE-17: evaluasi tidak sebelum submit, revisi tidak

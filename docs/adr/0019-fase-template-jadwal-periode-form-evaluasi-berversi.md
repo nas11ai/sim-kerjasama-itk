@@ -95,6 +95,20 @@ Struktur fase berversi dan draf/terbit sejak R5/R6 (rencana G3):
 - **Field Form tidak berversi** (BR-FE-34). Draf menyimpan id field terbit; Terbitkan menulis
   baris yang sama, jadi BR-FE-11/12/18/23 membaca waktu terbit tanpa perubahan aturan.
 
+Rekaman teks dan kesiapan angkatan sejak R7/R8 (rencana G4):
+
+- **Rekaman teks satu kolom per pengajuan** (G4-W1). `form_submissions.submitted_field_labels`
+  (jsonb) menyimpan field dan opsi yang terlihat saat submit; jawaban tetap di
+  `form_field_responses`. Draf dan revisi membaca teks terkini (G4-W2).
+- **Luaran tidak direkam** (G4-W3). Luaran bukan Form: metadatanya dari
+  `output_type_definitions`, tanpa editor label dan tanpa momen submit.
+- **Cek kesiapan hanya yang masih bisa salah sesudah terbit** (G4-W4): tanggal, urutan tanggal,
+  Form Evaluasi wajib aktif. Satu form pengajuan di langkah pertama dan "tanpa draf yang belum
+  terbit" sudah dijamin BR-FE-28 dan BR-FE-33/34 saat terbit.
+- **Memblokir atau peringatan** (G4-W8, keputusan pemilik 2026-11-12). Isu langkah Pengajuan dan
+  urutan tanggal menolak pengajuan baru; isu langkah monev/luaran hanya peringatan, karena
+  BR-FE-26 menutup langkah bertanggal kosong saat dipakai.
+
 Bentuk Form Evaluasi berversi sejak R3/R4 (rencana G2):
 
 - **Penugasan menunjuk Form, jawaban menunjuk versi** (G2-W1). `reviewer_form_assignments`
@@ -156,5 +170,5 @@ dijaga sinkron dengan `submission_period_phases`.
 | R4 | Terapkan versi baru ke angkatan | Selesai — `d0bbc62d` (BR-REV-19, layar Versi Form Evaluasi per periode) + perbaikan review akhir `d05a5a65` |
 | R5 | Struktur fase berversi, dipaku per angkatan | Selesai — `8c408113` (BR-FE-32, pin per angkatan) + perbaikan review akhir `b0fb88fd` |
 | R6 | Draf → Pratinjau → Terbitkan untuk Form & Fase | Selesai — Fase `704d6b35` (BR-FE-33); Form `ac2927d9` (BR-FE-34) |
-| R7 | Rekam teks saat submit | Belum |
-| R8 | Cek kesiapan angkatan | Belum |
+| R7 | Rekam teks saat submit | Selesai — `d87e2880` (BR-FE-35, `form_submissions.submitted_field_labels`) |
+| R8 | Cek kesiapan angkatan | Selesai — `a26bbbf8` (BR-FE-36, halaman Kesiapan Angkatan); seeder `790274b2` + perbaikan review akhir `f4fc9e25` |
