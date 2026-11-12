@@ -34,6 +34,7 @@ class PublishPhaseVersion
     {
         AssertPhaseSteps::run($structure->details);
         AssertStepEvaluationForms::run($structure->details);
+        AssertStepFormsPublished::run($structure->details);
 
         return DB::transaction(function () use ($phase, $structure, $actor): FormPhaseVersion {
             // Kunci tahap: dua penerbitan bersamaan tidak berebut nomor versi yang sama.

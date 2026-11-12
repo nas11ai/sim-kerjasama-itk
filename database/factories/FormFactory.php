@@ -20,6 +20,8 @@ class FormFactory extends Factory
             'description' => 'This is a sample description',
             'is_active' => true,
             'form_type_id' => FormType::factory(),
+            // BR-FE-34 — Form uji dianggap sudah terbit; Form yang belum terbit menulis null.
+            'published_at' => now(),
         ];
     }
 }

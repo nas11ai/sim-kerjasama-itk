@@ -12,21 +12,21 @@ Feature: Perubahan Form dengan Draft Berjalan
   @BR-FE-13 @M0 @ADMIN-08-06 @happy
   Scenario: [FE-CHANGE-02] Admin diberi tahu jumlah draft terdampak
     Given Form "Pengajuan Penelitian" punya 12 submission berstatus DRAFT
-    When Admin mengubah FormField "Mitra" menjadi wajib
+    When Admin membuka konfirmasi Terbitkan untuk draf yang mengubah FormField "Mitra" menjadi wajib
     Then Admin melihat peringatan bahwa 12 draft terdampak
     And Admin ditawari mengirim notifikasi ke peneliti terdampak
 
   @BR-FE-13 @M0 @ADMIN-08-06 @happy
   Scenario: [FE-CHANGE-03] Admin memilih mengirim notifikasi
-    Given Admin mengubah FormField "Mitra" menjadi wajib pada Form dengan 12 draft
-    When Admin memilih mengirim notifikasi
+    Given Admin menerbitkan draf yang mengubah FormField "Mitra" menjadi wajib pada Form dengan 12 draft
+    When Admin mencentang kirim notifikasi saat menerbitkan
     Then 12 peneliti pemilik draft menerima notifikasi perubahan form
 
   @BR-FE-13 @M0 @ADMIN-08-06 @boundary
   Scenario: [FE-CHANGE-04] Tanpa draft berjalan, tidak ada peringatan
     Given Form "Pengajuan Penelitian" tidak punya submission berstatus DRAFT
-    When Admin mengubah FormField "Mitra" menjadi wajib
-    Then perubahan tersimpan tanpa peringatan draft terdampak
+    When Admin menerbitkan draf yang mengubah FormField "Mitra" menjadi wajib
+    Then perubahan terbit tanpa peringatan draft terdampak
 
   @BR-FE-18 @M2 @ADMIN-08-06 @happy
   Scenario: [FE-CHANGE-05] Field yang baru diwajibkan berlaku sejak saat itu

@@ -4,7 +4,6 @@ namespace App\Http\Controllers\FormEngine;
 
 use App\Actions\Form\CreateForm;
 use App\Actions\Form\DeleteForm;
-use App\Actions\Form\NotifyFormChange;
 use App\Actions\Form\ReviseForm;
 use App\Actions\Form\SetFormActive;
 use App\Data\View\FormEngine\FormHeaderData;
@@ -50,11 +49,11 @@ class FormController extends Controller
 
     public function store(FormDefinitionRequest $request): RedirectResponse
     {
-        $form = CreateForm::run($request->toInput(), $this->actor($request));
+        $form = CreateForm::run($request->toInput(), $request->toFields(), $this->actor($request));
 
-        // W86 — Form baru langsung dibuka di halaman suntingnya supaya tab lain terbuka.
+        // W86 — Form baru langsung dibuka di halaman suntingnya. BR-FE-34 — field-nya masih draf.
         return redirect()->route('admin.forms.edit', $form)
-            ->with('success', 'Form dibuat. Lanjutkan dengan Access Control.');
+            ->with('success', 'Form dibuat. Susun field-nya lalu terbitkan.');
     }
 
     public function edit(Form $form): Response
@@ -62,20 +61,15 @@ class FormController extends Controller
         return $this->general($form);
     }
 
+    // Kartu General saja; field lewat FormDraftController (BR-FE-34).
     public function update(FormDefinitionRequest $request, Form $form): RedirectResponse
     {
         ReviseForm::run($form, $request->toInput(), $this->actor($request));
 
-        // BR-FE-13 — pemberitahuan ke peneliti ditawarkan, bukan dikirim diam-diam.
-        $notify = $request->boolean('notify_affected');
-        $affected = NotifyFormChange::run($form, $notify);
-
         // W86 — "Lanjut" menyimpan lalu membuka tab Access Control Form ini.
-        $target = $request->boolean('continue') ? route('admin.forms.access.index', $form) : route('admin.forms.index');
+        $redirect = $request->boolean('continue') ? redirect()->route('admin.forms.access.index', $form) : back();
 
-        return redirect($target)->with('success', $notify && $affected > 0
-            ? "Form diperbarui. {$affected} peneliti diberi tahu."
-            : 'Form diperbarui.');
+        return $redirect->with('success', 'Form diperbarui.');
     }
 
     public function setActive(FormActiveRequest $request, Form $form): RedirectResponse

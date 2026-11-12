@@ -28,6 +28,7 @@ class DeleteForm
         DB::transaction(function () use ($form, $actor): void {
             AuditTrail::record('Formulir dihapus', $form, $actor, new AuditChange(old: $form->auditSnapshot()));
             $form->delete();
+            $form->draft()->delete();
         });
     }
 }

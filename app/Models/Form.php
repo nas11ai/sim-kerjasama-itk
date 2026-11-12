@@ -8,11 +8,14 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Support\Carbon;
 
 /**
  * @property-read FormType|null $formType
  * @property-read Collection<int, FormField> $formFields
  * @property-read Collection<int, FormAccessControl> $formAccessControls
+ * @property-read FormDraft|null $draft
  */
 /**
  * @property int $id
@@ -20,6 +23,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property string|null $description
  * @property int $form_type_id
  * @property bool $is_active
+ * @property Carbon|null $published_at BR-FE-34 — terbit pertama; null = belum pernah terbit
  * @property int $field_count dimuat `withCount` FormDirectory
  * @property int $active_submission_count dimuat `withCount` FormDirectory
  * @property int $submission_count dimuat `withCount` FormDirectory
@@ -44,7 +48,7 @@ class Form extends Model
 
     protected $fillable = ['title', 'description', 'is_active', 'form_type_id'];
 
-    protected $casts = ['is_active' => 'boolean'];
+    protected $casts = ['is_active' => 'boolean', 'published_at' => 'datetime'];
 
     /**
      * @return BelongsTo<FormType, $this>
@@ -62,9 +66,12 @@ class Form extends Model
         return $this->hasMany(FormField::class);
     }
 
-    /**
-     * @return HasMany<FormAccessControl, $this>
-     */
+    /** @return HasOne<FormDraft, $this> BR-FE-34 — field yang sedang disunting, belum terbit */
+    public function draft(): HasOne
+    {
+        return $this->hasOne(FormDraft::class, 'draftable_id');
+    }
+
     /**
      * @return HasMany<FormSubmission, $this>
      */
@@ -73,6 +80,9 @@ class Form extends Model
         return $this->hasMany(FormSubmission::class);
     }
 
+    /**
+     * @return HasMany<FormAccessControl, $this>
+     */
     public function formAccessControls(): HasMany
     {
         return $this->hasMany(FormAccessControl::class);

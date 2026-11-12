@@ -12,15 +12,22 @@ vi.mock('@inertiajs/vue3', async () => {
     return {
         router,
         useForm: <T extends object>(data: T) => {
+            let transformer = (value: T): Record<string, unknown> => ({ ...value })
             const form = reactive({
                 ...data,
                 errors: {},
                 processing: false,
+                isDirty: false,
+                defaults() {},
+                transform(fn: (value: T) => Record<string, unknown>) {
+                    transformer = fn
+                    return form
+                },
                 post(url: string) {
-                    submitted('post', url, { ...data, ...form })
+                    submitted('post', url, transformer({ ...data, ...form }))
                 },
                 put(url: string) {
-                    submitted('put', url, { ...data, ...form })
+                    submitted('put', url, transformer({ ...data, ...form }))
                 },
             })
             return form
@@ -52,9 +59,12 @@ const general = (overrides: Partial<FormGeneralData> = {}): FormGeneralData => (
     description: null,
     formTypeId: null,
     isActive: true,
+    hasDraft: false,
+    publishedAt: null,
     fields: [],
+    publishedFields: [],
     archivedFields: [],
-    affectedDrafts: 0,
+    impact: { newRequired: 0, runningDrafts: 0, relabelled: [], removed: 0 },
     ...overrides,
 })
 
@@ -74,6 +84,7 @@ const editing = (): FormEditPageProps =>
             title: 'Form Proposal Penelitian',
             formTypeId: 2,
             isActive: false,
+            publishedAt: '2026-01-01T00:00:00+08:00',
             fields: [
                 {
                     id: 11,
@@ -154,11 +165,11 @@ describe('FormEngine/FormEditPage', () => {
         expect(wrapper.text()).toContain('Diarsipkan')
     })
 
-    it('mode buat: Simpan mengirim store tanpa tombol Lanjut', async () => {
+    it('mode buat: Buat Form mengirim store tanpa tombol Lanjut', async () => {
         const wrapper = mountPage(props())
 
         expect(wrapper.findAll('button').some((b) => b.text().includes('Lanjut'))).toBe(false)
-        expect(wrapper.find('button[type="submit"]').text()).toBe('Simpan')
+        expect(wrapper.find('button[type="submit"]').text()).toBe('Buat Form')
         await wrapper.find('form').trigger('submit')
 
         expect(submitted).toHaveBeenCalledWith(
@@ -168,16 +179,24 @@ describe('FormEngine/FormEditPage', () => {
         )
     })
 
-    it('mode sunting: field lama dikirim ulang dengan id, tanpa kunci options', async () => {
+    it('mode sunting: Lanjut menyimpan General saja; field lama ke draf dengan id, tanpa kunci options', async () => {
         const wrapper = mountPage(editing())
 
         await clickButton(wrapper, 'Lanjut: Access Control')
+        await clickButton(wrapper, 'Simpan draf')
 
         const [method, url, data] = submitted.mock.calls[0] ?? []
         expect([method, url]).toEqual(['put', '/admin.forms.update/7'])
         expect(data).toMatchObject({ continue: true, is_active: false, form_type_id: '2' })
-        expect(data?.fields).toEqual([
-            { id: 11, field_type_id: 1, label: 'Judul Penelitian', is_required: true },
+        expect(data).not.toHaveProperty('fields')
+        expect(submitted.mock.calls[1]).toEqual([
+            'put',
+            '/admin.forms.draft.update/7',
+            {
+                fields: [
+                    { id: 11, field_type_id: 1, label: 'Judul Penelitian', is_required: true },
+                ],
+            },
         ])
     })
 })

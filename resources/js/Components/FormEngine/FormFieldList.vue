@@ -13,13 +13,18 @@ import { Button } from '@/Components/ui/button'
 import { formatDate } from '@/lib/format'
 import { errorsUnder } from '@/lib/formErrors'
 import type { EditableField } from '@/lib/formDefinition'
-import type { ArchivedFieldData, FieldTypeOption } from '@/types/form-engine'
+import type { ArchivedFieldData, FieldTypeOption, FormFieldEditData } from '@/types/form-engine'
 
-const props = defineProps<{
-    fieldTypeOptions: FieldTypeOption[]
-    archived: ArchivedFieldData[]
-    errors: Record<string, string>
-}>()
+const props = withDefaults(
+    defineProps<{
+        fieldTypeOptions: FieldTypeOption[]
+        archived: ArchivedFieldData[]
+        errors: Record<string, string>
+        // G3-W9 — field terbit, pembanding peringatan label di dialog.
+        published?: FormFieldEditData[]
+    }>(),
+    { published: () => [] }
+)
 const fields = defineModel<EditableField[]>({ required: true })
 
 const NEW = -1
@@ -31,6 +36,10 @@ const confirmOpen = ref(false)
 const editedField = computed(() =>
     editing.value === null ? null : (fields.value[editing.value] ?? null)
 )
+const publishedOfEdited = computed(() => {
+    const id = editedField.value?.id ?? null
+    return id === null ? undefined : props.published.find((field) => field.id === id)
+})
 const removingLabel = computed(() =>
     removing.value === null ? '' : fields.value[removing.value]?.label
 )
@@ -113,6 +122,7 @@ const confirmRemove = () => {
             v-model:open="dialogOpen"
             :field="editedField"
             :field-type-options="fieldTypeOptions"
+            :published="publishedOfEdited"
             @save="store"
         />
         <ConfirmDialog

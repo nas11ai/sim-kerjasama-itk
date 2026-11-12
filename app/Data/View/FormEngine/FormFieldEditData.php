@@ -7,14 +7,14 @@ use App\Models\FormFieldOption;
 use Spatie\LaravelData\Data;
 
 /**
- * Satu field yang masih aktif di editor. `answerCount` dimuat FormGeneral lewat `withCount`:
- * begitu lebih dari nol, tipe field terkunci (BR-FE-23) — frontend tidak menghitungnya.
+ * Satu field di editor — terbit, atau dari draf (BR-FE-34; `id` null = field baru). `answerCount`
+ * dimuat FormGeneral lewat `withCount`: begitu lebih dari nol, tipe field terkunci (BR-FE-23).
  */
 final class FormFieldEditData extends Data
 {
-    /** @param  list<array{id: int, label: string}>  $options */
+    /** @param  list<array{id: int|null, label: string}>  $options */
     public function __construct(
-        public int $id,
+        public ?int $id,
         public string $label,
         public int $fieldTypeId,
         public bool $isRequired,

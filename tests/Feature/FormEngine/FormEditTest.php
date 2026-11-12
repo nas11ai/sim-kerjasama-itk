@@ -65,7 +65,9 @@ it('kontrak mode buat', function () {
             ->where('general.isActive', true)
             ->where('general.fields', [])
             ->where('general.archivedFields', [])
-            ->where('general.affectedDrafts', 0)
+            ->where('general.hasDraft', false)
+            ->where('general.publishedAt', null)
+            ->where('general.impact', ['newRequired' => 0, 'runningDrafts' => 0, 'relabelled' => [], 'removed' => 0])
             ->has('fieldTypeOptions.0', fn (AssertableInertia $option) => $option
                 ->hasAll(['value', 'name', 'label', 'hasOptions', 'limitType']))
             ->has('formTypeOptions'));
@@ -155,16 +157,17 @@ it('store mengarah ke halaman sunting form baru', function () {
     $this->actingAs(formEditActor())
         ->post(route('admin.forms.store'), formEditPayload($this->regularType->id))
         ->assertRedirect(route('admin.forms.edit', Form::query()->sole()))
-        ->assertSessionHas('success', 'Form dibuat. Lanjutkan dengan Access Control.');
+        ->assertSessionHas('success', 'Form dibuat. Susun field-nya lalu terbitkan.');
 });
 
-it('update tanpa continue kembali ke daftar', function () {
+it('update tanpa continue tetap di editor', function () {
     $form = Form::factory()->create(['form_type_id' => $this->regularType->id]);
     $actor = formEditActor();
 
     $this->actingAs($actor)
+        ->from(route('admin.forms.edit', $form))
         ->put(route('admin.forms.update', $form), formEditPayload($this->regularType->id))
-        ->assertRedirect(route('admin.forms.index'))
+        ->assertRedirect(route('admin.forms.edit', $form))
         ->assertSessionHas('success', 'Form diperbarui.');
 
     // W86 — "Lanjut" menyimpan lalu membuka tab Access Control.

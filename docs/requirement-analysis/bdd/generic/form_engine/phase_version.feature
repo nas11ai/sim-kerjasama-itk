@@ -74,3 +74,11 @@ Feature: Struktur Tahap Berversi, Dipaku per Angkatan
     Then tahap "Hibah Internal" punya Versi 2 dengan Monev III
     And drafnya terhapus
     And angkatan "Periode 2025" × "Hibah Internal" tetap terpaku Versi 1
+
+  @BR-FE-33 @BR-FE-34 @M2 @ADMIN-08-09 @denial
+  Scenario: [FE-PHPUB-04] Langkah yang memakai Form belum terbit menolak penerbitan
+    Given Form "Pengajuan Baru" baru dibuat dan field-nya masih draf
+    And Admin menyimpan draf tahap "Hibah Baru" dengan langkah Pengajuan memakai "Pengajuan Baru"
+    When Admin menerbitkan draf tahap itu
+    Then penerbitan ditolak dengan pesan "Form "Pengajuan Baru" belum pernah diterbitkan."
+    And draf tahap itu tetap ada

@@ -10,6 +10,7 @@ use App\Http\Controllers\FormEngine\EvaluationFormController;
 use App\Http\Controllers\FormEngine\EvaluationFormDraftController;
 use App\Http\Controllers\FormEngine\FormAccessController;
 use App\Http\Controllers\FormEngine\FormController;
+use App\Http\Controllers\FormEngine\FormDraftController;
 use App\Http\Controllers\FormEngine\FormPhaseController;
 use App\Http\Controllers\FormEngine\PhaseDraftController;
 use App\Http\Controllers\FormEngine\SubmissionPeriodController;
@@ -321,6 +322,10 @@ Route::middleware(['auth', 'can:schemes.manage'])->prefix('admin')->name('admin.
     Route::put('/forms/{form}', [FormController::class, 'update'])->name('forms.update');
     Route::patch('/forms/{form}/active', [FormController::class, 'setActive'])->name('forms.active');
     Route::delete('/forms/{form}', [FormController::class, 'destroy'])->name('forms.destroy');
+    // BR-FE-34 — field Form disunting sebagai draf lalu diterbitkan.
+    Route::put('/forms/{form}/draft', [FormDraftController::class, 'update'])->name('forms.draft.update');
+    Route::delete('/forms/{form}/draft', [FormDraftController::class, 'destroy'])->name('forms.draft.destroy');
+    Route::post('/forms/{form}/publish', [FormDraftController::class, 'publish'])->name('forms.publish');
 
     // ADMIN-08-07 — aturan akses bersarang di Form; scopeBindings menolak aturan Form lain (404).
     Route::get('/forms/{form}/access', [FormAccessController::class, 'index'])->name('forms.access.index');

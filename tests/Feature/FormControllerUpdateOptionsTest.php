@@ -2,7 +2,7 @@
 
 // tests/Feature/FormControllerUpdateOptionsTest.php
 //
-// FormController::update() menulis $option->order lalu ->save(), padahal
+// Dulu FormController::update() (kini PublishFormDraft, BR-FE-34) menulis $option->order lalu ->save(), padahal
 // tabel form_field_options (database/migrations/2025_06_04_070309_create_form_field_options_table.php)
 // hanya punya id, form_field_id, label, created_at, updated_at. Assignment
 // langsung (bukan lewat $fillable) melewati mass-assignment guard, jadi
@@ -44,10 +44,6 @@ it('updates a form field with existing options without crashing on a missing ord
     ]);
 
     $payload = [
-        'title' => $form->title,
-        'description' => $form->description,
-        'form_type_id' => $form->form_type_id,
-        'is_active' => $form->is_active,
         'fields' => [
             [
                 'id' => $field->id,
@@ -62,9 +58,8 @@ it('updates a form field with existing options without crashing on a missing ord
         ],
     ];
 
-    $this->actingAs($admin)
-        ->put(route('admin.forms.update', $form), $payload)
-        ->assertRedirect(route('admin.forms.index'));
+    $this->actingAs($admin)->put(route('admin.forms.draft.update', $form), $payload)->assertSessionHasNoErrors();
+    $this->actingAs($admin)->post(route('admin.forms.publish', $form))->assertSessionHasNoErrors();
 
     expect(FormFieldOption::where('form_field_id', $field->id)->pluck('label')->sort()->values()->all())
         ->toBe(['Laki-laki', 'Perempuan']);

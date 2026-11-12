@@ -7,19 +7,23 @@ import AppBanner from '@/Components/app/AppBanner.vue'
 import ConfirmDialog from '@/Components/app/ConfirmDialog.vue'
 import { Button } from '@/Components/ui/button'
 
-// BR-FE-31 / BR-FE-33 — aksi draf editor berversi: Simpan draf (oleh induk), Buang draf, dan
-// Terbitkan dengan ringkasan dampak. Terbitkan memakai draf tersimpan, jadi perubahan yang belum
-// disimpan harus disimpan dulu. Penolakan server tampil di atas tombolnya.
-const props = defineProps<{
-    hasDraft: boolean
-    dirty: boolean
-    saving: boolean
-    publishUrl: string
-    discardUrl: string
-    impactText: string
-    nextLabel: string
-    discardText: string
-}>()
+// BR-FE-31 / BR-FE-33 / BR-FE-34 — aksi draf: Simpan draf (oleh induk), Buang draf, dan Terbitkan
+// dengan ringkasan dampak. Terbitkan memakai draf tersimpan, jadi perubahan yang belum disimpan
+// harus disimpan dulu. Slot default = isian tambahan dialog Terbitkan, dikirim sebagai publishData.
+const props = withDefaults(
+    defineProps<{
+        hasDraft: boolean
+        dirty: boolean
+        saving: boolean
+        publishUrl: string
+        discardUrl: string
+        impactText: string
+        nextLabel?: string | null
+        discardText: string
+        publishData?: Record<string, boolean>
+    }>(),
+    { nextLabel: null, publishData: () => ({}) }
+)
 const emit = defineEmits<{ save: [] }>()
 
 const canPublish = computed(() => props.hasDraft && !props.dirty)
@@ -45,7 +49,7 @@ const visit = {
     onFinish: () => (processing.value = false),
 }
 
-const publish = () => router.post(props.publishUrl, {}, visit)
+const publish = () => router.post(props.publishUrl, props.publishData, visit)
 const discard = () => router.delete(props.discardUrl, visit)
 </script>
 
@@ -72,10 +76,12 @@ const discard = () => router.delete(props.discardUrl, visit)
             v-model:open="publishing"
             title="Terbitkan draf?"
             :description="impactText"
-            :confirm-label="`Terbitkan ${nextLabel}`"
+            :confirm-label="nextLabel === null ? 'Terbitkan' : `Terbitkan ${nextLabel}`"
             :processing="processing"
             @confirm="publish"
-        />
+        >
+            <slot />
+        </ConfirmDialog>
         <ConfirmDialog
             v-model:open="discarding"
             title="Buang draf?"

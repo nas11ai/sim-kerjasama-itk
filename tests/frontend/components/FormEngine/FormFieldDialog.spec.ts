@@ -3,8 +3,8 @@ import { afterEach, describe, expect, it } from 'vitest'
 
 import OptionSelect from '@/Components/app/OptionSelect.vue'
 import FormFieldDialog from '@/Components/FormEngine/FormFieldDialog.vue'
-import type { EditableField } from '@/lib/formDefinition'
-import type { FieldTypeOption } from '@/types/form-engine'
+import { RELABEL_WARNING, type EditableField } from '@/lib/formDefinition'
+import type { FieldTypeOption, FormFieldEditData } from '@/types/form-engine'
 
 const types: FieldTypeOption[] = [
     { value: '1', label: 'Teks', hasOptions: false, limitType: 'length' },
@@ -34,9 +34,9 @@ const button = (label: string) => {
 
 let wrapper: VueWrapper
 
-const open = async (value: EditableField | null) => {
+const open = async (value: EditableField | null, published?: FormFieldEditData) => {
     wrapper = mount(FormFieldDialog, {
-        props: { open: true, field: value, fieldTypeOptions: types },
+        props: { open: true, field: value, fieldTypeOptions: types, published },
         attachTo: document.body,
     })
     await flushPromises()
@@ -84,7 +84,7 @@ describe('FormEngine/FormFieldDialog', () => {
         await flushPromises()
 
         expect(text()).toContain(
-            'Berlaku untuk pengajuan yang dimulai setelah disimpan; draft berjalan tidak dipaksa mengisi ulang.'
+            'Berlaku untuk pengajuan yang dimulai setelah diterbitkan; draft berjalan tidak dipaksa mengisi ulang.'
         )
     })
 
@@ -165,6 +165,66 @@ describe('FormEngine/FormFieldDialog', () => {
             id: null,
             label: 'Mitra',
             fieldTypeId: 1,
+        })
+    })
+
+    describe('[FE-FORMPUB-04] peringatan label field terjawab (G3-W9)', () => {
+        const published = (overrides: Partial<FormFieldEditData> = {}): FormFieldEditData => ({
+            id: 11,
+            label: 'Judul',
+            fieldTypeId: 5,
+            isRequired: false,
+            requiredSince: null,
+            answerCount: 3,
+            options: [{ id: 21, label: 'Hibah Internal' }],
+            ...overrides,
+        })
+        const answered = () =>
+            field({
+                fieldTypeId: 5,
+                answerCount: 3,
+                options: [{ id: 21, label: 'Hibah Internal' }],
+            })
+        const setLabel = async (value: string) => {
+            const input = document.querySelector('#field-label') as HTMLInputElement
+            input.value = value
+            input.dispatchEvent(new Event('input'))
+            await flushPromises()
+        }
+
+        it('muncul saat label diubah dan hilang saat dikembalikan', async () => {
+            await open(answered(), published())
+
+            expect(text()).not.toContain(RELABEL_WARNING)
+            await setLabel('Judul Penelitian')
+            expect(text()).toContain(
+                'Hanya untuk memperbaiki ketikan. Kalau pertanyaannya berbeda, tambahkan field baru — jawaban lama tetap tercatat di field lama.'
+            )
+            await setLabel('Judul')
+            expect(text()).not.toContain(RELABEL_WARNING)
+        })
+
+        it('muncul saat label opsi tersimpan diubah', async () => {
+            await open(
+                field({
+                    fieldTypeId: 5,
+                    answerCount: 3,
+                    options: [{ id: 21, label: 'Hibah Luar' }],
+                }),
+                published()
+            )
+
+            expect(text()).toContain(RELABEL_WARNING)
+        })
+
+        it('tidak muncul untuk field tanpa jawaban, dan tidak memblokir simpan', async () => {
+            await open(field({ answerCount: 0 }), published({ answerCount: 0, fieldTypeId: 1 }))
+            await setLabel('Judul Baru')
+
+            expect(text()).not.toContain(RELABEL_WARNING)
+            button('Simpan Field').click()
+            await flushPromises()
+            expect(wrapper.emitted('save')?.[0]?.[0]).toMatchObject({ label: 'Judul Baru' })
         })
     })
 })

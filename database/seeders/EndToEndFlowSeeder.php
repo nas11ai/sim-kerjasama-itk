@@ -156,6 +156,8 @@ class EndToEndFlowSeeder extends Seeder
                 'is_active' => true,
             ]
         );
+        // BR-FE-34 — field di bawah ditulis langsung, jadi Form ini dianggap sudah terbit (G3-W6).
+        $form->forceFill(['published_at' => $form->published_at ?? now()])->save();
 
         $text = FieldType::firstOrCreate(['name' => 'text']);
         $textarea = FieldType::firstOrCreate(['name' => 'textarea']);

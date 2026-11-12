@@ -152,51 +152,44 @@ it('[FE-CHANGE-02] halaman edit Form membawa jumlah draft terdampak', function (
         ->assertOk()
         ->assertInertia(fn (Assert $page) => $page
             ->component('FormEngine/FormEditPage')
-            ->where('general.affectedDrafts', 1)
+            ->where('general.impact.runningDrafts', 1)
             ->etc());
 });
 
-it('[FE-CHANGE-03] menyimpan dengan notify_affected mengirim notifikasi', function () {
+it('[FE-CHANGE-03] menerbitkan dengan notify_affected mengirim notifikasi', function () {
     Notification::fake();
 
     $fx = wizardFixture();
     StartSubmission::run($fx['form']->id, $fx['period']->id, $fx['detail'], $fx['user']);
 
     $admin = formAdmin();
+    $this->actingAs($admin)->put(route('admin.forms.draft.update', $fx['form']), ['fields' => []]);
 
     $this->actingAs($admin)
-        ->put(route('admin.forms.update', $fx['form']), [
-            'title' => $fx['form']->title,
-            'form_type_id' => $fx['form']->form_type_id,
-            'fields' => [],
-            'notify_affected' => true,
-        ])
+        ->post(route('admin.forms.publish', $fx['form']), ['notify_affected' => true])
         ->assertRedirect()
-        ->assertSessionHas('success', 'Form diperbarui. 1 peneliti diberi tahu.');
+        ->assertSessionHas('success', 'Form diterbitkan. 1 peneliti diberi tahu.');
 
     Notification::assertSentTo($fx['user'], FormChangedNotification::class);
 });
 
-it('[FE-CHANGE-03] tanpa centang, perubahan tersimpan tanpa notifikasi', function () {
+it('[FE-CHANGE-03] tanpa centang, perubahan terbit tanpa notifikasi', function () {
     Notification::fake();
 
     $fx = wizardFixture();
     StartSubmission::run($fx['form']->id, $fx['period']->id, $fx['detail'], $fx['user']);
 
     $admin = formAdmin();
+    $this->actingAs($admin)->put(route('admin.forms.draft.update', $fx['form']), ['fields' => []]);
 
     $this->actingAs($admin)
-        ->put(route('admin.forms.update', $fx['form']), [
-            'title' => 'Judul Baru',
-            'form_type_id' => $fx['form']->form_type_id,
-            'fields' => [],
-            'notify_affected' => false,
-        ])
-        ->assertRedirect();
+        ->post(route('admin.forms.publish', $fx['form']), ['notify_affected' => false])
+        ->assertRedirect()
+        ->assertSessionHas('success', 'Form diterbitkan.');
 
     // Pengiriman ditawarkan, bukan otomatis — Admin yang memutuskan.
     Notification::assertNothingSent();
-    expect($fx['form']->fresh()->title)->toBe('Judul Baru');
+    expect($fx['form']->draft()->exists())->toBeFalse();
 });
 
 // ---------- BR-FE-23: tipe field terkunci begitu ada jawaban ----------
@@ -340,16 +333,15 @@ it('[FE-CHANGE-14] menyimpan field tanpa menyebut opsi tidak menghapus opsinya',
 
     // Payload tanpa kunci `options` berarti "tidak ada perubahan opsi". Versi
     // lama membaca ketiadaan kunci sebagai perintah menghapus semuanya.
-    $this->actingAs($admin)->put(route('admin.forms.update', $field->form_id), [
-        'title' => 'Form Uji',
-        'form_type_id' => $field->form->form_type_id,
+    $this->actingAs($admin)->put(route('admin.forms.draft.update', $field->form_id), [
         'fields' => [[
             'id' => $field->id,
             'field_type_id' => $field->field_type_id,
             'label' => 'Ringkasan',
             'is_required' => false,
         ]],
-    ]);
+    ])->assertSessionHasNoErrors();
+    $this->actingAs($admin)->post(route('admin.forms.publish', $field->form_id))->assertSessionHasNoErrors();
 
     expect($field->fresh()->formFieldOptions()->count())->toBe(4);
 });

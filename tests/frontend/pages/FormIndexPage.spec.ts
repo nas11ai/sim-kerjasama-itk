@@ -37,6 +37,7 @@ const formRow = (overrides: Partial<FormRowData> = {}): FormRowData => ({
     activeSubmissionCount: 42,
     submissionCount: 45,
     isActive: true,
+    isPublished: true,
     ...overrides,
 })
 
@@ -104,6 +105,11 @@ describe('FormEngine/FormIndexPage', () => {
         // W76 — Form yang dipakai dinonaktifkan, bukan dihapus (BR-FE-19).
         expect(text).toContain('Form yang pernah dipakai pengajuan tidak dapat dihapus')
         expect(text).toContain('Menonaktifkan form memerlukan konfirmasi.')
+    })
+
+    it('lencana "Belum terbit" hanya untuk Form yang belum pernah terbit (BR-FE-34)', () => {
+        expect(mountPage([formRow()]).text()).not.toContain('Belum terbit')
+        expect(mountPage([formRow({ isPublished: false })]).text()).toContain('Belum terbit')
     })
 
     it('"Buat Form Baru" dan "Edit" menaut ke rute form', () => {

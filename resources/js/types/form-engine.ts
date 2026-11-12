@@ -88,6 +88,8 @@ export interface FormRowData {
     activeSubmissionCount: number
     submissionCount: number
     isActive: boolean
+    // BR-FE-34 — false = lencana "Belum terbit".
+    isPublished: boolean
 }
 
 export type FormIndexFilters = {
@@ -122,14 +124,23 @@ export interface FormHeaderData {
 }
 
 // Sumber: App\Data\View\FormEngine\FormFieldEditData — `answerCount` > 0 mengunci tipe (BR-FE-23).
+// `id` null = field baru di draf (BR-FE-34).
 export interface FormFieldEditData {
-    id: number
+    id: number | null
     label: string
     fieldTypeId: number
     isRequired: boolean
     requiredSince: string | null
     answerCount: number
-    options: { id: number; label: string }[]
+    options: { id: number | null; label: string }[]
+}
+
+// Sumber: App\Queries\Form\FormPublishImpact — dampak Terbitkan Form (BR-FE-34).
+export interface FormPublishImpact {
+    newRequired: number
+    runningDrafts: number
+    relabelled: { label: string; answered: number }[]
+    removed: number
 }
 
 // Sumber: App\Data\View\FormEngine\ArchivedFieldData (BR-FE-12).
@@ -145,9 +156,13 @@ export interface FormGeneralData {
     description: string | null
     formTypeId: number | null
     isActive: boolean
+    hasDraft: boolean
+    publishedAt: string | null
+    // Isi draf bila ada, kalau tidak field terbit; `publishedFields` pembanding peringatan label (G3-W9).
     fields: FormFieldEditData[]
+    publishedFields: FormFieldEditData[]
     archivedFields: ArchivedFieldData[]
-    affectedDrafts: number
+    impact: FormPublishImpact
 }
 
 // Sumber: App\Data\View\FormEngine\FormAccessRuleData — `phaseDetailCount` > 0 mengunci hapus (BR-FE-20).

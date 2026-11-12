@@ -3,7 +3,7 @@
 // tests/Feature/FormEngine/FormCrudTest.php
 //
 // Layar Form lewat Action beraudit (BR-RPT-09): field dan opsi hanya milik form yang
-// disunting, hapus ditolak bila ada pengajuan (BR-FE-19).
+// disunting (diperiksa saat terbit, BR-FE-34), hapus ditolak bila ada pengajuan (BR-FE-19).
 
 use App\Models\FieldType;
 use App\Models\Form;
@@ -13,6 +13,7 @@ use App\Models\FormSubmission;
 use App\Models\User;
 use App\Support\Audit\AuditTrail;
 use Illuminate\Support\Facades\Cache;
+use Illuminate\Testing\TestResponse;
 use Spatie\Activitylog\Models\Activity;
 use Spatie\Permission\Models\Role;
 
@@ -41,10 +42,16 @@ function formAudit(Form $form, string $description): ?Activity
         ->first();
 }
 
-/** @param  list<array<string, mixed>>  $fields */
-function formPayload(Form $form, array $fields): array
+/**
+ * Simpan draf field lalu terbitkan (BR-FE-34) — jalur yang menulis field ke baris hidup.
+ *
+ * @param  list<array<string, mixed>>  $fields
+ */
+function publishFormFields(User $admin, Form $form, array $fields): TestResponse
 {
-    return ['title' => 'Form Disunting', 'form_type_id' => $form->form_type_id, 'fields' => $fields];
+    test()->actingAs($admin)->put(route('admin.forms.draft.update', $form), ['fields' => $fields])->assertSessionHasNoErrors();
+
+    return test()->actingAs($admin)->post(route('admin.forms.publish', $form));
 }
 
 it('creates a form with its fields and options, audited', function () {
@@ -57,8 +64,14 @@ it('creates a form with its fields and options, audited', function () {
     $form = Form::query()->where('title', 'Form Baru')->firstOrFail();
     $response->assertRedirect(route('admin.forms.edit', $form));
 
+    // BR-FE-34 — field Form baru lahir sebagai draf; Terbitkan yang menulisnya.
+    expect($form->draft()->sole()->payload['fields'][0]['options'])->toBe([['id' => null, 'label' => 'A']])
+        ->and(formAudit($form, 'Formulir dibuat'))->not->toBeNull();
+
+    publishFormFields($this->admin, $form, $form->draft()->sole()->payload['fields'])->assertSessionHasNoErrors();
+
     expect($form->formFields()->first()?->formFieldOptions()->pluck('label')->all())->toBe(['A'])
-        ->and(formAudit($form, 'Formulir dibuat')?->properties['new']['fields'])->toContain('Skema');
+        ->and(formAudit($form, 'Formulir diterbitkan')?->properties['new']['fields'])->toContain('Skema');
 });
 
 it('rejects a trl_selector without a scheme_selector on the Form screen and saves nothing (BR-SCH-05)', function () {
@@ -78,13 +91,13 @@ it('rejects a field id that belongs to another form and leaves that form intact'
     $other = Form::factory()->create();
     $foreign = ($this->field)($other, 'Milik Form Lain');
 
-    $this->actingAs($this->admin)->put(route('admin.forms.update', $form), formPayload($form, [
+    publishFormFields($this->admin, $form, [
         ['id' => $foreign->id, 'field_type_id' => $this->fieldType->id, 'label' => 'Dibajak'],
-    ]))->assertSessionHasErrors('fields.0.id');
+    ])->assertSessionHasErrors('fields.0.id');
 
     expect($foreign->fresh()?->form_id)->toBe($other->id)
         ->and($foreign->fresh()?->label)->toBe('Milik Form Lain')
-        ->and($form->fresh()?->title)->not->toBe('Form Disunting');
+        ->and($form->draft()->exists())->toBeTrue();
 });
 
 it('rejects an option id that belongs to another field', function () {
@@ -95,12 +108,12 @@ it('rejects an option id that belongs to another field', function () {
         'label' => 'Opsi Lain',
     ]);
 
-    $this->actingAs($this->admin)->put(route('admin.forms.update', $form), formPayload($form, [[
+    publishFormFields($this->admin, $form, [[
         'id' => $field->id,
         'field_type_id' => $this->fieldType->id,
         'label' => 'Skema',
         'options' => [['id' => $foreign->id, 'label' => 'Dibajak']],
-    ]]))->assertSessionHasErrors('fields.0.options.0.id');
+    ]])->assertSessionHasErrors('fields.0.options.0.id');
 
     expect($foreign->fresh()?->label)->toBe('Opsi Lain');
 });
@@ -110,11 +123,11 @@ it('soft-deletes a field dropped from the payload and audits old and new (BR-FE-
     $kept = ($this->field)($form, 'Tetap');
     $dropped = ($this->field)($form, 'Dibuang');
 
-    $this->actingAs($this->admin)->put(route('admin.forms.update', $form), formPayload($form, [
+    publishFormFields($this->admin, $form, [
         ['id' => $kept->id, 'field_type_id' => $this->fieldType->id, 'label' => 'Tetap'],
-    ]))->assertRedirect(route('admin.forms.index'));
+    ])->assertSessionHasNoErrors();
 
-    $audit = formAudit($form, 'Formulir diubah');
+    $audit = formAudit($form, 'Formulir diterbitkan');
 
     expect(FormField::withTrashed()->find($dropped->id)?->trashed())->toBeTrue()
         ->and($audit?->properties['old']['fields'])->toContain('Dibuang')

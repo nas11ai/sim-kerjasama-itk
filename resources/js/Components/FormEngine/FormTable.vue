@@ -28,6 +28,8 @@ const columns = [
     <DataTable :rows="rows" :columns="columns">
         <template #cell-title="{ row }">
             <span class="font-medium">{{ row.title }}</span>
+            <!-- BR-FE-34 — Form yang belum pernah terbit belum bisa dipakai langkah tahap -->
+            <Badge v-if="!row.isPublished" variant="outline" class="ml-2">Belum terbit</Badge>
         </template>
         <template #cell-type="{ row }">{{ row.typeName }}</template>
         <template #cell-fields="{ row }">{{ row.fieldCount }}</template>

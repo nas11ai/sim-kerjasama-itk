@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Carbon;
 
 /**
- * BR-FE-31 / BR-FE-33 (K2) — isi konfigurasi yang sedang disunting dan belum berlaku, satu per
+ * BR-FE-31 / BR-FE-33 / BR-FE-34 (K2) — isi konfigurasi yang sedang disunting dan belum berlaku, satu per
  * objek. G3-W7 — basis membaca semua jenis; subkelas memaku `draftable_type` dan bentuk payload-nya.
  *
  * @property int $id
@@ -21,6 +21,8 @@ class ConfigurationDraft extends Model
     public const EVALUATION_FORM = 'review_evaluation_form';
 
     public const PHASE = 'form_phase';
+
+    public const FORM = 'form';
 
     protected $table = 'configuration_drafts';
 

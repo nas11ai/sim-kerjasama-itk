@@ -56,7 +56,8 @@ it('kontrak layar daftar form', function () {
                 ->where('fieldCount', 0)
                 ->where('activeSubmissionCount', 0)
                 ->where('submissionCount', 0)
-                ->where('isActive', true))
+                ->where('isActive', true)
+                ->where('isPublished', true))
             ->where('filters', ['search' => '', 'type' => '', 'status' => ''])
             ->has('typeOptions', 1)
             ->where('statusOptions', [

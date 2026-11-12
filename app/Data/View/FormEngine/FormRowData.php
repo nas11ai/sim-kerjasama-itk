@@ -19,6 +19,7 @@ final class FormRowData extends Data
         public int $activeSubmissionCount,
         public int $submissionCount,
         public bool $isActive,
+        public bool $isPublished,
     ) {}
 
     public static function fromModel(Form $form): self
@@ -31,6 +32,8 @@ final class FormRowData extends Data
             activeSubmissionCount: $form->active_submission_count,
             submissionCount: $form->submission_count,
             isActive: $form->is_active,
+            // BR-FE-34 — lencana "Belum terbit": Form ini belum bisa dipakai langkah tahap.
+            isPublished: $form->published_at !== null,
         );
     }
 }

@@ -55,25 +55,30 @@ Tabel semua form: nama, tipe form, jumlah field aktif, jumlah submission aktif y
 
 ### Konten Utama
 
-**Section General:** judul form, deskripsi, tipe form, status aktif.
+**Section General:** judul form, deskripsi, tipe form, status aktif — disimpan langsung (bukan isi berdraf).
 
-**Section Fields:** daftar FormField yang bisa di-reorder (drag & drop), tambah field baru, edit field existing. Setiap field menampilkan: label, tipe (text/number/select/file/scheme_selector/dll), required atau opsional, `required_since`.
+**Section Fields** (BR-FE-34): daftar FormField yang bisa di-reorder (drag & drop), tambah field baru, edit field existing. Setiap field menampilkan: label, tipe (text/number/select/file/scheme_selector/dll), required atau opsional, `required_since`. Field disimpan sebagai **draf**; peneliti tetap melihat field terbitan terakhir sampai Admin menekan **Terbitkan**. Tab **Pratinjau** merender isi editor persis seperti isian peneliti (G3-W8).
+
+Banner draf: "Draf belum diterbitkan. Peneliti masih melihat field terbitan terakhir." — atau, untuk Form yang belum pernah terbit, "Draf belum diterbitkan. Form ini belum bisa dipakai tahap." Daftar Form memberi lencana "Belum terbit".
 
 ### Actions
 
 | Aksi                        | Kondisi                                                    |
 | --------------------------- | ---------------------------------------------------------- |
-| Tambah field                | Selalu                                                     |
-| Edit field                  | Selalu                                                     |
-| Reorder field (drag & drop) | Selalu                                                     |
-| Soft delete field           | Selalu (tidak bisa hard delete)                            |
-| Toggle is_required          | Ada prompt notifikasi ke researcher jika ada active drafts |
+| Simpan (General)            | Selalu                                                     |
+| Tambah / edit / reorder field | Selalu, masuk ke draf                                    |
+| Soft delete field           | Selalu (tidak bisa hard delete), masuk ke draf             |
+| Simpan draf                 | Selalu                                                     |
+| Buang draf                  | Ada draf                                                   |
+| Terbitkan                   | Ada draf tersimpan tanpa perubahan belum disimpan          |
 
 ### Business Rules yang Mempengaruhi Tampilan
 
+- `→ ddd/generic/01_form_engine.md#BR-FE-34` — konfirmasi Terbitkan memuat ringkasan dampak, satu kalimat per butir yang ada: "{a} field baru wajib — berlaku untuk pengajuan yang dibuat sesudah ini.", "{d} draf berjalan tidak terpengaruh.", "Label "{label}" diubah pada field yang sudah dijawab {k} pengajuan.", "{r} field dihapus — jawaban lamanya tetap tersimpan."; tanpa butir: "Terbitkan perubahan Form ini?".
+- `→ ddd/generic/01_form_engine.md#BR-FE-34` — mengubah label field atau opsi yang sudah dijawab memunculkan peringatan di dialog field: "Hanya untuk memperbaiki ketikan. Kalau pertanyaannya berbeda, tambahkan field baru — jawaban lama tetap tercatat di field lama."
 - `→ ddd/generic/01_form_engine.md#BR-FE-12` — field tidak bisa dihapus permanen, hanya soft delete. Tombol "Hapus" memicu konfirmasi.
-- `→ ddd/generic/01_form_engine.md#BR-FE-13` — mengubah `is_required` saat ada active drafts memunculkan dialog: "Ada N draft aktif yang menggunakan form ini. Kirim notifikasi ke researcher terdampak?"
-- `→ ddd/generic/01_form_engine.md#BR-FE-11` — saat field baru ditambah, sistem otomatis set `required_since = now()` jika `is_required = true`. Ini ditampilkan sebagai info di form field edit.
+- `→ ddd/generic/01_form_engine.md#BR-FE-13` — saat ada active drafts, dialog Terbitkan menawarkan centang "Kirim notifikasi ke N peneliti terdampak".
+- `→ ddd/generic/01_form_engine.md#BR-FE-11` — field yang terbit wajib berlaku sejak terbit (`created_at`/`required_since` = waktu terbit), bukan sejak diketik di draf.
 
 ---
 

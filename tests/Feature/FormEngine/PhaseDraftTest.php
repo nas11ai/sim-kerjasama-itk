@@ -185,6 +185,21 @@ it('revalidates the draft at publish when a step access rule was revoked', funct
         ->and(PhaseDraft::query()->where('draftable_id', $this->phase->id)->exists())->toBeTrue();
 });
 
+it('[FE-PHPUB-04] refuses to publish a step whose Form was never published and keeps the draft', function () {
+    $fresh = Form::factory()->create(['title' => 'Pengajuan Baru', 'published_at' => null, 'form_type_id' => regularFormType()->id]);
+    $access = FormAccessControl::create(['form_id' => $fresh->id, 'permission' => 'submissions.create', 'organization_id' => $this->faculty->id]);
+    $this->actingAs($this->admin)->put(route('admin.phases.draft.update', $this->phase), draftSteps([
+        [$access->id, null],
+        [$this->reportAccess->id, 1],
+    ]))->assertSessionHasNoErrors();
+
+    $this->post(route('admin.phases.publish', $this->phase))
+        ->assertSessionHasErrors(['phase_details' => 'Form "Pengajuan Baru" belum pernah diterbitkan.']);
+
+    expect($this->phase->versions()->count())->toBe(1)
+        ->and(PhaseDraft::query()->where('draftable_id', $this->phase->id)->exists())->toBeTrue();
+});
+
 it('rejects step errors already when the draft is saved', function () {
     $this->actingAs($this->admin)
         ->put(route('admin.phases.draft.update', $this->phase), draftSteps([[$this->reportAccess->id, 1]]))

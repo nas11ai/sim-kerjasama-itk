@@ -1,4 +1,4 @@
-import type { FieldTypeOption, FormFieldEditData } from '@/types/form-engine'
+import type { FieldTypeOption, FormFieldEditData, FormPublishImpact } from '@/types/form-engine'
 
 // Field di editor. `key` stabil untuk v-for/seret; field baru `new-<n>`, field lama `field-<id>`.
 export type EditableOption = { id: number | null; label: string }
@@ -41,9 +41,51 @@ export function blankField(fieldTypeId: number): EditableField {
 export function toEditableFields(fields: FormFieldEditData[]): EditableField[] {
     return fields.map((field) => ({
         ...field,
-        key: `field-${field.id}`,
+        key: field.id === null ? blankField(field.fieldTypeId).key : `field-${field.id}`,
         options: field.options.map((option) => ({ ...option })),
     }))
+}
+
+// BR-FE-34 — ringkasan konfirmasi Terbitkan Form: satu kalimat per butir yang ada, berurutan.
+export function formPublishImpactText(impact: FormPublishImpact): string {
+    const sentences = [
+        impact.newRequired > 0
+            ? `${impact.newRequired} field baru wajib — berlaku untuk pengajuan yang dibuat sesudah ini.`
+            : null,
+        impact.runningDrafts > 0
+            ? `${impact.runningDrafts} draf berjalan tidak terpengaruh.`
+            : null,
+        ...impact.relabelled.map(
+            (row) =>
+                `Label "${row.label}" diubah pada field yang sudah dijawab ${row.answered} pengajuan.`
+        ),
+        impact.removed > 0
+            ? `${impact.removed} field dihapus — jawaban lamanya tetap tersimpan.`
+            : null,
+    ].filter((sentence): sentence is string => sentence !== null)
+    return sentences.length === 0 ? 'Terbitkan perubahan Form ini?' : sentences.join(' ')
+}
+
+// BR-FE-34 — banner editor Form selama ada draf, atau selama Form belum pernah terbit.
+export const formDraftBannerText = (publishedAt: string | null) =>
+    publishedAt === null
+        ? 'Draf belum diterbitkan. Form ini belum bisa dipakai tahap.'
+        : 'Draf belum diterbitkan. Peneliti masih melihat field terbitan terakhir.'
+
+// G3-W9 (spec §4.6) — label field atau opsi terjawab yang berbeda dari terbitan: peringatan, bukan blokir.
+export const RELABEL_WARNING =
+    'Hanya untuk memperbaiki ketikan. Kalau pertanyaannya berbeda, tambahkan field baru — jawaban lama tetap tercatat di field lama.'
+
+export function relabelsAnsweredField(
+    field: EditableField,
+    published: FormFieldEditData | undefined
+): boolean {
+    if (published === undefined || published.answerCount === 0) return false
+    if (field.label !== published.label) return true
+    return field.options.some((option) => {
+        const saved = published.options.find((o) => o.id !== null && o.id === option.id)
+        return saved !== undefined && saved.label !== option.label
+    })
 }
 
 // BR-FE-24 — opsi tersimpan tidak boleh diarsipkan diam-diam; buang lewat tombol Buang.

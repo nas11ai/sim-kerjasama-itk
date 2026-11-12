@@ -3,7 +3,8 @@ import AppBanner from '@/Components/app/AppBanner.vue'
 import { Checkbox } from '@/Components/ui/checkbox'
 import { Label } from '@/Components/ui/label'
 
-// BR-FE-13 / FE-CHANGE-04 — hanya muncul bila ada pemilik draft yang terdampak (W85).
+// BR-FE-13 / FE-CHANGE-04 — hanya muncul bila ada pemilik draft berjalan (W85); BR-FE-34 — di
+// dialog Terbitkan, saat perubahan field benar-benar berlaku.
 defineProps<{ count: number }>()
 const notify = defineModel<boolean>({ required: true })
 </script>
@@ -11,8 +12,8 @@ const notify = defineModel<boolean>({ required: true })
 <template>
     <div v-if="count > 0" class="space-y-3">
         <AppBanner tone="warning">
-            {{ count }} peneliti dengan draft berjalan akan terdampak perubahan ini. Centang untuk
-            mengirimkan pemberitahuan.
+            {{ count }} peneliti punya draft berjalan pada Form ini. Centang untuk mengirimkan
+            pemberitahuan.
         </AppBanner>
         <div class="flex items-center gap-2">
             <Checkbox
