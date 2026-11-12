@@ -7,8 +7,7 @@ import { blankDetail, type EditableDetail } from '@/lib/phaseDefinition'
 
 const detail = (overrides: Partial<EditableDetail> = {}): EditableDetail => ({
     ...blankDetail(1, 1),
-    key: 'detail-7',
-    id: 7,
+    key: 'step-0',
     ...overrides,
 })
 
@@ -22,7 +21,7 @@ const open = async (value: EditableDetail) => {
         props: {
             open: true,
             detail: value,
-            evaluationFormCount: 0,
+            adding: false,
             accessOptions: [],
             phaseTypeOptions: [],
         },
@@ -34,19 +33,39 @@ const open = async (value: EditableDetail) => {
 afterEach(() => wrapper.unmount())
 
 describe('FormEngine/PhaseDetailDialog', () => {
-    // BR-FE-20, K-1 — jenis langkah menentukan tanggal yang dibaca pengajuannya.
-    it('jenis langkah terkunci bila detail sudah dipakai pengajuan', async () => {
-        await open(detail({ submissionCount: 3 }))
-
-        expect(kindSelect()?.props('disabled')).toBe(true)
-        expect(document.body.textContent).toContain(
-            'Detail ini sudah dipakai pengajuan; form, tipe tahap, dan jenis langkahnya tidak dapat diubah.'
-        )
-    })
-
-    it('jenis langkah bisa diganti selama belum ada pengajuan', async () => {
+    // G3-W5 — versi terbit beku: mengganti jenis langkah hanya berlaku sejak versi berikutnya.
+    it('jenis langkah selalu bisa diganti di draf', async () => {
         await open(detail())
 
         expect(kindSelect()?.props('disabled')).toBeFalsy()
+        expect(document.body.textContent).toContain('Edit Langkah')
+    })
+
+    // W97 — review terkunci oleh form evaluasi aktif yang terpasang di langkah draf itu sendiri.
+    it('Perlu Review terkunci selama langkah memasang form evaluasi aktif', async () => {
+        await open(
+            detail({
+                needsReview: true,
+                evaluationForms: [
+                    {
+                        formId: 3,
+                        title: 'Lembar',
+                        versionLabel: 'Versi 1',
+                        isRequired: true,
+                        isActive: true,
+                    },
+                    {
+                        formId: 4,
+                        title: 'Lain',
+                        versionLabel: 'Versi 1',
+                        isRequired: true,
+                        isActive: false,
+                    },
+                ],
+            })
+        )
+
+        expect(document.body.querySelector('[role="switch"]')?.hasAttribute('disabled')).toBe(true)
+        expect(document.body.textContent).toContain('Detail ini punya 1 form evaluasi aktif.')
     })
 })

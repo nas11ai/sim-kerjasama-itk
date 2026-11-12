@@ -2,6 +2,7 @@
 
 namespace App\Actions\Period;
 
+use App\Actions\Form\AssertPhasesPublished;
 use App\Data\Request\SubmissionPeriodInput;
 use App\Data\Result\DeadlineExtension;
 use App\Models\SubmissionPeriod;
@@ -27,6 +28,7 @@ class ReviseSubmissionPeriod
         return DB::transaction(function () use ($period, $input, $actor): DeadlineExtension {
             // BR-FE-29 — sama dengan LinkPhaseToPeriod: kunci baris periode, lalu periksa daftar baru.
             SubmissionPeriod::query()->whereKey($period->id)->lockForUpdate()->first();
+            AssertPhasesPublished::run($input->formPhaseIds, 'form_phase_ids');
             AssertOnePhasePerSubmissionForm::run($input->formPhaseIds, 'form_phase_ids');
 
             $old = [

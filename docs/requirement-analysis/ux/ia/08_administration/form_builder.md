@@ -9,15 +9,15 @@
 
 ## Page Inventory
 
-| #   | Page                                | Route                           | Accessible By |
-| --- | ----------------------------------- | ------------------------------- | ------------- |
-| 1   | Daftar Form                         | `/admin/forms`                  | Admin         |
-| 2   | Edit Form — General & Fields        | `/admin/forms/{id}/edit`        | Admin         |
-| 3   | Edit Form — Access Control          | `/admin/forms/{id}/access`      | Admin         |
-| 4   | Fase — pustaka                      | `/admin/phases` (`?form={id}`)  | Admin         |
-| 5   | Edit Phase — Details & Review Forms | `/admin/phases/{phase_id}/edit` | Admin         |
-| 6   | Form Evaluasi — pustaka             | `/admin/evaluation-forms`       | Admin         |
-| 7   | Edit Form Evaluasi                  | `/admin/evaluation-forms/{id}/edit` | Admin     |
+| #   | Page                                | Route                               | Accessible By |
+| --- | ----------------------------------- | ----------------------------------- | ------------- |
+| 1   | Daftar Form                         | `/admin/forms`                      | Admin         |
+| 2   | Edit Form — General & Fields        | `/admin/forms/{id}/edit`            | Admin         |
+| 3   | Edit Form — Access Control          | `/admin/forms/{id}/access`          | Admin         |
+| 4   | Fase — pustaka                      | `/admin/phases` (`?form={id}`)      | Admin         |
+| 5   | Edit Phase — Details & Review Forms | `/admin/phases/{phase_id}/edit`     | Admin         |
+| 6   | Form Evaluasi — pustaka             | `/admin/evaluation-forms`           | Admin         |
+| 7   | Edit Form Evaluasi                  | `/admin/evaluation-forms/{id}/edit` | Admin         |
 
 ---
 
@@ -109,16 +109,17 @@ Tabel FormAccessControl yang ada: permission string dan organisasi yang diizinka
 
 Semua FormPhase, urut judul. Fase tidak bersarang di satu Form: satu fase memakai tepat satu Form
 pengajuan (BR-FE-28) dan dipakai banyak periode. Setiap phase menampilkan: judul, Form pengajuan,
-jumlah FormPhaseDetail, periode yang terhubung, dan celah jadwal per periode. Tapis `?form=`
-menampilkan fase yang langkah mana pun memakai Form itu.
+jumlah FormPhaseDetail, periode yang terhubung, celah jadwal per periode, label versi terbaru (atau
+lencana "Belum terbit"), dan banner bila ada draf (BR-FE-33). Tapis `?form=` menampilkan fase yang
+langkah mana pun — di versi terbaru atau di drafnya — memakai Form itu.
 
 ### Actions
 
-| Aksi                  | Kondisi                |
-| --------------------- | ---------------------- |
-| Buat Phase Baru       | Selalu                 |
-| Edit Phase            | Selalu                 |
-| Link Phase ke Periode | Punya `periods.manage` |
+| Aksi                  | Kondisi                                                      |
+| --------------------- | ------------------------------------------------------------ |
+| Buat Phase Baru       | Selalu                                                       |
+| Edit Phase            | Selalu                                                       |
+| Link Phase ke Periode | Punya `periods.manage`; tahap sudah pernah terbit (BR-FE-33) |
 
 ---
 
@@ -131,22 +132,29 @@ menampilkan fase yang langkah mana pun memakai Form itu.
 
 ### Konten Utama
 
-Daftar FormPhaseDetail dalam phase ini (ordered). Setiap detail: tipe (researcher / reviewer), akses control, deadline (SubmissionDate), flag `needs_review`.
+Kartu Tahap (judul, deskripsi, status) disimpan langsung — bukan isi berversi. Struktur tahap
+disunting sebagai **draf** (BR-FE-33) dalam tiga tab:
 
-Jika detail bertipe reviewer dan `needs_review = true`: tampilkan Form Evaluasi yang **terpasang**
-(StepEvaluationForm) beserta label versinya, wajib/aktif per pemasangan, dan jumlah penugasannya di
-langkah itu. Isi Form Evaluasi tidak disusun di sini — tautan "Kelola di Form Evaluasi" membuka
-pustakanya (BR-FE-30).
+- **Langkah** — daftar FormPhaseDetail draf (ordered): tipe, aturan akses, jenis langkah (nama
+  tenggat), flag `needs_review`. Langkah `needs_review` memuat Form Evaluasi terpasangnya beserta
+  label versi dan wajib/aktif per pemasangan; isinya disusun di pustaka Form Evaluasi (BR-FE-30).
+- **Pratinjau** — alur langkah baca-saja dari isi editor (G3-W8).
+- **Versi & pemakaian** — riwayat versi terbit dan jumlah angkatan yang terpaku pada tiap versi (BR-FE-32).
+
+Banner draf: "Draf belum diterbitkan. Angkatan baru masih memakai {Versi n}." atau, sebelum pernah
+terbit, "Draf belum diterbitkan. Tahap ini belum bisa dipakai periode."
 
 ### Actions
 
-| Aksi                              | Kondisi                                                                    |
-| --------------------------------- | -------------------------------------------------------------------------- |
-| Tambah / edit PhaseDetail         | Selalu                                                                     |
-| Pasang Form Evaluasi              | Detail `needs_review`; Form Evaluasi sudah terbit, belum terpasang di sana |
-| Jadikan wajib / tidak wajib       | Ada pemasangan                                                             |
-| Nonaktifkan / aktifkan pemasangan | Ada pemasangan                                                             |
-| Lepas Form Evaluasi               | Belum ditugaskan ke reviewer di langkah itu (BR-FE-22)                     |
+| Aksi                                           | Kondisi                                                                     |
+| ---------------------------------------------- | --------------------------------------------------------------------------- |
+| Simpan Tahap (judul/deskripsi/status)          | Selalu                                                                      |
+| Tambah / edit / hapus langkah                  | Selalu — berlaku sejak versi berikutnya                                     |
+| Pasang Form Evaluasi                           | Langkah `needs_review`; Form Evaluasi sudah terbit, belum terpasang di sana |
+| Jadikan wajib / nonaktifkan / lepas pemasangan | Ada pemasangan — berlaku sejak versi berikutnya                             |
+| Simpan draf                                    | Selalu                                                                      |
+| Buang draf                                     | Ada draf                                                                    |
+| Terbitkan (konfirmasi dampak)                  | Ada draf tersimpan, tanpa perubahan yang belum disimpan                     |
 
 ---
 
@@ -190,10 +198,10 @@ versi dan tahap yang memasangnya). Banner draf tampil selama ada draf (BR-FE-31)
 
 ### Actions
 
-| Aksi                          | Kondisi                                                                                   |
-| ----------------------------- | ----------------------------------------------------------------------------------------- |
-| Simpan nama                   | Selalu                                                                                    |
-| Tambah / edit / reorder field | Selalu (masuk draf)                                                                       |
-| Simpan draf                   | Selalu                                                                                    |
-| Buang draf                    | Ada draf                                                                                  |
+| Aksi                          | Kondisi                                                                                                                                           |
+| ----------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Simpan nama                   | Selalu                                                                                                                                            |
+| Tambah / edit / reorder field | Selalu (masuk draf)                                                                                                                               |
+| Simpan draf                   | Selalu                                                                                                                                            |
+| Buang draf                    | Ada draf                                                                                                                                          |
 | Terbitkan                     | Ada draf tersimpan tanpa perubahan belum disimpan; minimal satu field. Konfirmasi menyebut versi berikutnya dan angkatan yang tetap di versi lama |

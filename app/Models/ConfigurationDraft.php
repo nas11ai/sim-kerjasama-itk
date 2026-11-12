@@ -2,27 +2,27 @@
 
 namespace App\Models;
 
-use App\Data\Request\EvaluationDraftInput;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Carbon;
 
 /**
- * BR-FE-31 (K2) — isi konfigurasi yang sedang disunting dan belum berlaku, satu per objek.
- * `draftable_type` konstanta di kelas ini (G2-W7), bukan nama kelas. Satu-satunya jenis kini Form
- * Evaluasi, jadi bentuk payload-nya bentuk draf Form Evaluasi; R6 melebarkannya bila jenis bertambah.
- *
- * @phpstan-import-type DraftPayload from EvaluationDraftInput
+ * BR-FE-31 / BR-FE-33 (K2) — isi konfigurasi yang sedang disunting dan belum berlaku, satu per
+ * objek. G3-W7 — basis membaca semua jenis; subkelas memaku `draftable_type` dan bentuk payload-nya.
  *
  * @property int $id
  * @property string $draftable_type
  * @property int $draftable_id
- * @property DraftPayload $payload
  * @property int|null $updated_by
  * @property Carbon $updated_at
  */
 class ConfigurationDraft extends Model
 {
     public const EVALUATION_FORM = 'review_evaluation_form';
+
+    public const PHASE = 'form_phase';
+
+    protected $table = 'configuration_drafts';
 
     protected $fillable = [
         'draftable_type',
@@ -34,4 +34,22 @@ class ConfigurationDraft extends Model
     protected $casts = [
         'payload' => 'array',
     ];
+
+    /** Jenis yang dipaku subkelas; null = basis, semua jenis. */
+    protected static function draftableType(): ?string
+    {
+        return null;
+    }
+
+    protected static function booted(): void
+    {
+        $type = static::draftableType();
+
+        if ($type === null) {
+            return;
+        }
+
+        static::addGlobalScope('draftable_type', fn (Builder $query) => $query->where('configuration_drafts.draftable_type', $type));
+        static::creating(fn (ConfigurationDraft $draft) => $draft->draftable_type = $type);
+    }
 }

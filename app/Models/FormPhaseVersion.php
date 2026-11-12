@@ -20,6 +20,7 @@ use LogicException;
  * @property Carbon $published_at
  * @property-read FormPhase $formPhase
  * @property-read User|null $publisher
+ * @property int $pins_count hanya setelah withCount('pins')
  */
 class FormPhaseVersion extends Model
 {
@@ -58,6 +59,12 @@ class FormPhaseVersion extends Model
     public function formPhaseDetails(): HasMany
     {
         return $this->hasMany(FormPhaseDetail::class)->orderBy('order')->orderBy('id');
+    }
+
+    /** @return HasMany<PhaseVersionPin, $this> angkatan yang terpaku pada versi ini */
+    public function pins(): HasMany
+    {
+        return $this->hasMany(PhaseVersionPin::class);
     }
 
     public function label(): string

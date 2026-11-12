@@ -120,13 +120,14 @@ class SubmissionPeriodList implements ChangesNoState
 
     /**
      * Tahap aktif ditambah tahap nonaktif yang sudah melekat ke suatu periode, supaya
-     * menyunting periode tidak diam-diam melepas tahap lamanya.
+     * menyunting periode tidak diam-diam melepas tahap lamanya. BR-FE-33 — hanya tahap terbit.
      *
      * @return list<Option>
      */
     private function phaseOptions(): array
     {
         return array_values(FormPhase::query()
+            ->whereHas('versions')
             ->where(fn (Builder $q) => $q->where('is_active', true)
                 ->orWhereIn('id', SubmissionPeriodPhase::query()->select('form_phase_id')))
             ->orderBy('title')

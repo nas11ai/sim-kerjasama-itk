@@ -52,6 +52,8 @@ const phaseCard = (overrides: Partial<PhaseCardData> = {}): PhaseCardData => ({
     linkablePeriods: [{ value: '9', label: '2026 Gelombang 2' }],
     deadlineGaps: [],
     submissionFormTitle: 'Form Proposal Penelitian',
+    versionLabel: 'Versi 1',
+    hasDraft: false,
     ...overrides,
 })
 
@@ -128,6 +130,18 @@ describe('FormEngine/PhaseIndexPage', () => {
         expect(cards[1].text()).toContain('Aktifkan')
         expect(cards[0].text()).toContain('Hubungkan ke Periode')
         expect(wrapper.find('a[href="/admin.phases.edit/1"]').text()).toContain('Edit')
+    })
+
+    // BR-FE-33 — tahap tanpa versi belum bisa dipakai periode.
+    it('kartu tahap yang belum pernah terbit berlencana Belum terbit', () => {
+        const wrapper = mountPage(
+            props({
+                phases: [phaseCard({ versionLabel: null, hasDraft: true, linkablePeriods: [] })],
+            })
+        )
+
+        expect(wrapper.findAll('article')[0].text()).toContain('Belum terbit')
+        expect(wrapper.findAll('article')[0].text()).not.toContain('Hubungkan ke Periode')
     })
 
     it('tombol Hubungkan ke Periode tersembunyi tanpa periods.manage', () => {

@@ -26,6 +26,7 @@ class LinkPhaseToPeriod
 
     public function handle(FormPhase $phase, SubmissionPeriod $period, User $actor): void
     {
+        AssertPhasesPublished::run([$phase->id], 'form_phase_id');
         $period->load('submissionDates');
 
         $alreadyLinked = $phase->submissionPeriodPhases()->where('submission_period_id', $period->id)->exists();

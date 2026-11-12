@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Support\Facades\DB;
 
 /**
  * @property int $id
@@ -19,6 +20,8 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
  * @property string|null $submission_form_title hanya setelah PhaseLibrary
  * @property-read SubmissionPeriod|null $submissionPeriod
  * @property-read FormPhaseVersion|null $latestVersion
+ * @property-read PhaseDraft|null $draft
+ * @property-read bool|null $draft_exists hanya setelah withExists('draft')
  */
 class FormPhase extends Model
 {
@@ -66,6 +69,12 @@ class FormPhase extends Model
         return $this->hasOne(FormPhaseVersion::class)->latestOfMany('number');
     }
 
+    /** @return HasOne<PhaseDraft, $this> BR-FE-33 — struktur yang sedang disunting, belum terbit */
+    public function draft(): HasOne
+    {
+        return $this->hasOne(PhaseDraft::class, 'draftable_id');
+    }
+
     /**
      * Langkah versi terbaru — yang disunting editor dan dipakai angkatan yang belum terpaku.
      *
@@ -92,16 +101,21 @@ class FormPhase extends Model
     }
 
     /**
-     * Tahap memakai sebuah Form bila langkah versi terbarunya memakai aturan akses Form itu (tapis pustaka, R2).
+     * Tahap memakai sebuah Form bila langkah versi terbarunya — atau langkah drafnya, untuk tahap
+     * yang belum terbit (BR-FE-33) — memakai aturan akses Form itu (tapis pustaka, R2).
      *
      * @param  Builder<FormPhase>  $query
      * @return Builder<FormPhase>
      */
     public function scopeUsingForm(Builder $query, Form $form): Builder
     {
-        return $query->whereHas(
-            'currentDetails.formAccessControl',
-            fn (Builder $rules) => $rules->where('form_id', $form->id),
-        );
+        $rules = FormAccessControl::query()->select('id')->where('form_id', $form->id);
+
+        return $query->where(fn (Builder $using) => $using
+            ->whereHas('currentDetails', fn (Builder $steps) => $steps->whereIn('form_access_control_id', $rules))
+            ->orWhereHas('draft', fn (Builder $draft) => $draft->whereExists(fn ($step) => $step
+                ->selectRaw('1')
+                ->fromRaw("jsonb_array_elements(configuration_drafts.payload->'steps') as step")
+                ->whereIn(DB::raw("(step->>'form_access_control_id')::bigint"), $rules))));
     }
 }

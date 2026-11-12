@@ -2,6 +2,7 @@
 
 namespace App\Actions\Period;
 
+use App\Actions\Form\AssertPhasesPublished;
 use App\Data\Request\SubmissionPeriodInput;
 use App\Models\SubmissionDate;
 use App\Models\SubmissionPeriod;
@@ -23,6 +24,7 @@ class CreateSubmissionPeriod
     public function handle(SubmissionPeriodInput $input, User $actor): SubmissionPeriod
     {
         return DB::transaction(function () use ($input, $actor): SubmissionPeriod {
+            AssertPhasesPublished::run($input->formPhaseIds, 'form_phase_ids');
             AssertOnePhasePerSubmissionForm::run($input->formPhaseIds, 'form_phase_ids');
 
             $period = SubmissionPeriod::create(['name' => $input->name]);

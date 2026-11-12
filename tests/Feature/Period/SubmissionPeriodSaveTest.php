@@ -5,7 +5,6 @@
 
 use App\Actions\FormSubmission\StartSubmission;
 use App\Enums\DeadlineType;
-use App\Models\FormPhase;
 use App\Models\SubmissionPeriod;
 use App\Models\SubmissionPeriodPhase;
 use App\Models\User;
@@ -21,7 +20,7 @@ beforeEach(function () {
     // OPERATOR-09-01 — pemegang periods.manage (§4.4 K1), bukan users.manage.
     $this->admin = User::factory()->create();
     $this->admin->assignRole('operator');
-    $this->phase = FormPhase::create(['title' => 'Fase Satu', 'is_active' => true]);
+    $this->phase = publishedPhase(['title' => 'Fase Satu', 'is_active' => true]);
 });
 
 function periodPayload(array $dates, array $overrides = []): array

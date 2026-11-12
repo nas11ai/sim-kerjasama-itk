@@ -46,3 +46,31 @@ Feature: Struktur Tahap Berversi, Dipaku per Angkatan
     When Admin menerbitkan versi yang langkah Pengajuan-nya memakai Form "Proposal Lain"
     Then penerbitan ditolak dengan pesan "Form pengajuan tahap ini sudah dipakai angkatan berjalan, jadi tidak bisa diganti. Buat tahap baru untuk Form lain."
     And tahap itu tetap di Versi 1
+
+  # BR-FE-33 — struktur tahap disunting sebagai draf, lalu diterbitkan menjadi versi berikutnya.
+
+  @BR-FE-33 @M2 @ADMIN-08-09 @denial
+  Scenario: [FE-PHPUB-01] Tahap yang belum pernah terbit tidak bisa ditautkan ke periode
+    Given tahap "Hibah Baru" baru dibuat dan langkahnya masih draf
+    When Admin menautkan "Hibah Baru" ke "Periode 2026"
+    Then penautan ditolak dengan pesan "Tahap ini belum pernah diterbitkan, jadi belum bisa ditautkan ke periode."
+    And "Periode 2026" tidak muncul sebagai pilihan tautan "Hibah Baru"
+
+  @BR-FE-33 @M2 @ADMIN-08-09 @boundary
+  Scenario: [FE-PHPUB-02] Draf tahap tidak berlaku sebelum terbit: pengajuan baru memakai versi terbit
+    Given tahap "Hibah Internal" punya Versi 1 dan ditautkan ke "Periode 2026"
+    And Admin menyimpan draf yang menambah Monev III tanpa menerbitkannya
+    When peneliti "P-001" memulai pengajuan di "Periode 2026"
+    Then angkatan itu terpaku Versi 1
+    And siklus monev "P-001" tidak memuat Monev III
+
+  @BR-FE-33 @M2 @ADMIN-08-09 @happy
+  Scenario: [FE-PHPUB-03] Terbitkan membentuk versi berikutnya, menyebut angkatan yang tetap di versi lama, dan menghapus draf
+    Given tahap "Hibah Internal" punya Versi 1 dan angkatan "Periode 2025" × "Hibah Internal" terpaku Versi 1
+    And Admin menyimpan draf yang menambah Monev III
+    When Admin membuka konfirmasi Terbitkan
+    Then ringkasannya berbunyi "Terbitkan Versi 2? Berlaku untuk angkatan yang belum punya pengajuan. 1 angkatan sudah memakai versi lama dan tetap memakainya."
+    When Admin menerbitkan draf itu
+    Then tahap "Hibah Internal" punya Versi 2 dengan Monev III
+    And drafnya terhapus
+    And angkatan "Periode 2025" × "Hibah Internal" tetap terpaku Versi 1

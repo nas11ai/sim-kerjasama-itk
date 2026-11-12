@@ -68,11 +68,13 @@ it('saves a created phase with the deadline type of each detail (BR-FE-07)', fun
         ->assertSessionHasNoErrors()
         ->assertRedirect(route('admin.phases.edit', FormPhase::query()->where('title', 'Tahap Baru')->firstOrFail()));
 
+    // BR-FE-33 — langkah tahap baru lahir sebagai draf, belum sebagai versi.
     $phase = FormPhase::query()->where('title', 'Tahap Baru')->firstOrFail();
-    $detail = $phase->formPhaseDetails()->firstOrFail();
+    $step = $phase->draft()->sole()->payload['steps'][0];
 
-    expect($detail->deadline_type->value)->toBe($row['deadline_type'])
-        ->and($detail->form_access_control_id)->toBe($row['form_access_control_id']);
+    expect($phase->formPhaseDetails()->exists())->toBeFalse()
+        ->and($step['deadline_type'])->toBe($row['deadline_type'])
+        ->and($step['form_access_control_id'])->toBe($row['form_access_control_id']);
 });
 
 it('rejects a created phase whose detail has no deadline type as validation (BR-FE-07)', function () {

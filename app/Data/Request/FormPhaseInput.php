@@ -2,16 +2,12 @@
 
 namespace App\Data\Request;
 
-/** Masukan satu tahap formulir beserta seluruh detailnya, urut seperti di layar. */
+/** BR-FE-33 — bagian tahap yang tidak berversi: nama pustaka, deskripsi, status aktif. Langkah lewat PhaseDraftInput. */
 final class FormPhaseInput
 {
-    /**
-     * @param  list<FormPhaseDetailInput>  $details
-     */
     public function __construct(
         public readonly string $title,
         public readonly ?string $description,
         public readonly bool $isActive,
-        public readonly array $details,
     ) {}
 }

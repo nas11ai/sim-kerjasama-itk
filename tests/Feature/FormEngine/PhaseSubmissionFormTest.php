@@ -6,9 +6,11 @@
 // dan langkah Laporan Monev / Upload Luaran memakai Form lain.
 
 use App\Actions\Form\CreateFormPhase;
-use App\Actions\Form\ReviseFormPhase;
+use App\Actions\Form\PublishPhaseDraft;
+use App\Actions\Form\SavePhaseDraft;
 use App\Data\Request\FormPhaseDetailInput;
 use App\Data\Request\FormPhaseInput;
+use App\Data\Request\PhaseDraftInput;
 use App\Enums\DeadlineType;
 use App\Models\Form;
 use App\Models\FormAccessControl;
@@ -47,10 +49,20 @@ function stepInput(FormAccessControl $access, DeadlineType $type = DeadlineType:
     return new FormPhaseDetailInput($id, $access->id, test()->phaseTypeId, false, $type, $cycle);
 }
 
-/** @param  list<FormPhaseDetailInput>  $steps */
-function phaseInput(array $steps): FormPhaseInput
+/**
+ * BR-FE-33 — tahap baru beserta draf langkahnya; `$publish` menerbitkannya sebagai Versi 1.
+ *
+ * @param  list<FormPhaseDetailInput>  $steps
+ */
+function createPhase(array $steps, bool $publish = false): FormPhase
 {
-    return new FormPhaseInput('Penelitian DIPA', null, true, $steps);
+    $phase = CreateFormPhase::run(new FormPhaseInput('Penelitian DIPA', null, true), new PhaseDraftInput($steps), test()->admin);
+
+    if ($publish) {
+        PublishPhaseDraft::run($phase, test()->admin);
+    }
+
+    return $phase;
 }
 
 /**
@@ -60,7 +72,7 @@ function phaseInput(array $steps): FormPhaseInput
 function phaseErrors(array $steps): array
 {
     try {
-        CreateFormPhase::run(phaseInput($steps), test()->admin);
+        createPhase($steps);
     } catch (ValidationException $e) {
         return $e->errors();
     }
@@ -73,11 +85,11 @@ it('[FE-PHASE-01] counts one submission form reached through two access rules', 
     $facultyB = libraryAccess('Pengajuan Penelitian', 'Fakultas B');
     $monev = libraryAccess('Laporan Monev');
 
-    $phase = CreateFormPhase::run(phaseInput([
+    $phase = createPhase([
         stepInput($facultyA),
         stepInput($facultyB),
         stepInput($monev, cycle: 1),
-    ]), $this->admin);
+    ], publish: true);
 
     $steps = $phase->formPhaseDetails()->orderBy('id')->get();
     expect($steps->pluck('order')->all())->toBe([1, 1, 2]);
@@ -124,21 +136,23 @@ it('[FE-PHASE-04] rejects a monev report that reuses the submission form', funct
 ]);
 
 it('[FE-PHASE-05] keeps a used phase from gaining a second submission form', function () {
-    $phase = CreateFormPhase::run(phaseInput([stepInput(libraryAccess('Pengajuan Penelitian'))]), $this->admin);
+    $phase = createPhase([stepInput(libraryAccess('Pengajuan Penelitian'))], publish: true);
     $step = $phase->formPhaseDetails()->sole();
     scheduledSubmission($step, SubmissionPeriod::create(['name' => 'Periode 2026']));
 
     $revisions = fn (): int => Activity::inLog(AuditTrail::LOG_NAME)
-        ->where('description', 'Tahap formulir direvisi')->count();
+        ->where('description', 'Draf tahap disimpan')->count();
+    $before = $revisions();
 
-    expect(fn () => ReviseFormPhase::run($phase, phaseInput([
-        new FormPhaseDetailInput($step->id, $step->form_access_control_id, $this->phaseTypeId, false, DeadlineType::Submit, null),
+    expect(fn () => SavePhaseDraft::run($phase, new PhaseDraftInput([
+        new FormPhaseDetailInput(null, $step->form_access_control_id, $this->phaseTypeId, false, DeadlineType::Submit, null),
         stepInput(libraryAccess('Pengajuan Pengmas')),
     ]), $this->admin))->toThrow(fn (ValidationException $e) => expect($e->errors()['phase_details'][0] ?? null)
         ->toBe('Satu tahap hanya untuk satu Form pengajuan: Pengajuan Penelitian, Pengajuan Pengmas. Buat tahap terpisah untuk tiap Form.'));
 
     expect($phase->formPhaseDetails()->count())->toBe(1)
-        ->and($revisions())->toBe(0);
+        ->and($phase->draft()->exists())->toBeFalse()
+        ->and($revisions())->toBe($before);
 });
 
 it('[FE-PHASE-06] rejects a phase with no submission step', function () {

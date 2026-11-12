@@ -2,68 +2,37 @@ import { flushPromises, mount, type VueWrapper } from '@vue/test-utils'
 import { defineComponent, h } from 'vue'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-const { router, posted } = vi.hoisted(() => ({
-    router: { delete: vi.fn(), put: vi.fn() },
-    posted: vi.fn<(url: string, data: unknown) => void>(),
+const { router } = vi.hoisted(() => ({
+    router: { delete: vi.fn(), put: vi.fn(), post: vi.fn() },
 }))
 
-vi.mock('@inertiajs/vue3', async () => {
-    const { reactive } = await import('vue')
-    return {
-        router,
-        useForm: <T extends object>(data: T) => {
-            const form = reactive({
-                ...data,
-                errors: {},
-                processing: false,
-                reset() {},
-                post(url: string) {
-                    posted(
-                        url,
-                        Object.fromEntries(
-                            Object.keys(data).map((key) => [key, Reflect.get(form, key)])
-                        )
-                    )
-                },
-            })
-            return form
-        },
-        Link: defineComponent({
-            props: { href: { type: String, required: true } },
-            setup:
-                (props, { slots, attrs }) =>
-                () =>
-                    h('a', { ...attrs, href: props.href }, slots.default?.()),
-        }),
-    }
-})
+vi.mock('@inertiajs/vue3', () => ({
+    router,
+    Link: defineComponent({
+        props: { href: { type: String, required: true } },
+        setup:
+            (props, { slots, attrs }) =>
+            () =>
+                h('a', { ...attrs, href: props.href }, slots.default?.()),
+    }),
+}))
 
 import OptionSelect from '@/Components/app/OptionSelect.vue'
 import EvaluationSection from '@/Components/FormEngine/EvaluationSection.vue'
-import type { EvaluationSectionData, StepEvaluationFormData } from '@/types/form-engine'
+import type { EvaluationOption, StepEvaluationFormData } from '@/types/form-engine'
 
-const step = (overrides: Partial<StepEvaluationFormData> = {}): StepEvaluationFormData => ({
-    id: 41,
+const attached = (overrides: Partial<StepEvaluationFormData> = {}): StepEvaluationFormData => ({
     formId: 3,
     title: 'Lembar Substansi',
     versionLabel: 'Versi 2',
     isRequired: true,
     isActive: true,
-    assignmentCount: 0,
     ...overrides,
 })
 
-const section = (overrides: Partial<EvaluationSectionData> = {}): EvaluationSectionData => ({
-    detailId: 7,
-    detailLabel: 'Review Proposal — Form Proposal',
-    attached: [],
-    reviewsInProgress: 0,
-    ...overrides,
-})
-
-const options = [
-    { value: '3', label: 'Lembar Substansi' },
-    { value: '5', label: 'Lembar Anggaran' },
+const options: EvaluationOption[] = [
+    { value: '3', label: 'Lembar Substansi', versionLabel: 'Versi 2' },
+    { value: '5', label: 'Lembar Anggaran', versionLabel: 'Versi 1' },
 ]
 
 const route = (name: string, params?: number) =>
@@ -71,127 +40,109 @@ const route = (name: string, params?: number) =>
 
 let wrapper: VueWrapper
 
-const mountSection = (data: EvaluationSectionData) => {
+const mountSection = (list: StepEvaluationFormData[]) => {
     wrapper = mount(EvaluationSection, {
-        props: { section: data, evaluationOptions: options },
+        props: {
+            modelValue: list,
+            'onUpdate:modelValue': (next: StepEvaluationFormData[]) =>
+                wrapper.setProps({ modelValue: next }),
+            stepKey: 'step-0',
+            label: 'Review Proposal — Form Proposal',
+            evaluationOptions: options,
+        },
         global: { mocks: { route } },
-        attachTo: document.body,
     })
     return wrapper
 }
 
+const emitted = () => wrapper.emitted('update:modelValue') ?? []
+const lastValue = () => emitted().at(-1)?.[0] as StepEvaluationFormData[] | undefined
 const button = (label: string) => {
-    const found = Array.from(document.querySelectorAll('button')).find(
-        (b) => b.textContent?.trim() === label
-    )
+    const found = wrapper.findAll('button').find((b) => b.text().trim() === label)
     if (found === undefined) throw new Error(`tombol "${label}" tidak ada`)
     return found
 }
 
-beforeEach(() => {
-    vi.stubGlobal('route', route)
-    router.delete.mockClear()
-    router.put.mockClear()
-    posted.mockClear()
-})
-
+beforeEach(() => vi.stubGlobal('route', route))
 afterEach(() => {
     wrapper.unmount()
-    document.body.innerHTML = ''
+    vi.clearAllMocks()
 })
 
-// W158 — form hanya ditugaskan otomatis saat reviewer ditugaskan (AssignReviewers); reviewer yang sudah
-// bertugas tetap bisa memulai form baru sendiri dari halaman evaluasinya (StartEvaluationForm).
-describe('EvaluationSection', () => {
-    it('memberi tahu bahwa form baru tidak otomatis ditugaskan ke reviewer yang sedang bekerja', () => {
-        expect(mountSection(section({ reviewsInProgress: 2 })).text()).toContain(
-            'Form baru tidak otomatis ditugaskan ke reviewer 2 pengajuan yang sedang direview; reviewernya tetap bisa memulainya dari halaman evaluasi.'
-        )
-    })
-
-    it('diam bila tidak ada pengajuan yang sedang direview', () => {
-        mountSection(section())
-        expect(wrapper.text()).not.toContain('sedang direview')
-    })
-
+describe('FormEngine/EvaluationSection', () => {
     it('mendaftar pemasangan dengan label versinya dan menautkan pustaka', () => {
-        mountSection(
-            section({
-                attached: [
-                    step(),
-                    step({
-                        id: 42,
-                        formId: 9,
-                        title: 'Lembar Etik',
-                        versionLabel: 'Versi 1',
-                        isRequired: false,
-                        isActive: false,
-                    }),
-                ],
-            })
-        )
+        mountSection([attached({ isRequired: false })])
 
+        expect(wrapper.text()).toContain('Form evaluasi untuk Review Proposal — Form Proposal')
         expect(wrapper.text()).toContain('Lembar Substansi')
         expect(wrapper.text()).toContain('Versi 2')
-        expect(wrapper.text()).toContain('Lembar Etik')
-        expect(wrapper.text()).toContain('Nonaktif')
-        expect(wrapper.find('a[href="/admin.evaluation-forms.index"]').text()).toBe(
-            'Kelola di Form Evaluasi'
-        )
+        expect(wrapper.text()).toContain('Tidak wajib')
+        expect(wrapper.find('a[href="/admin.evaluation-forms.edit/3"]').exists()).toBe(true)
+        expect(wrapper.find('a[href="/admin.evaluation-forms.index"]').exists()).toBe(true)
     })
 
-    // BR-FE-30 — sekali per langkah: pilihan hanya Form Evaluasi yang belum terpasang di sini.
-    it('menawarkan hanya Form Evaluasi yang belum terpasang', () => {
-        mountSection(section({ attached: [step()] }))
+    // BR-FE-30 — hanya Form terbit (pilihan dari backend) yang belum terpasang di langkah ini.
+    it('menawarkan hanya Form Evaluasi terbit yang belum terpasang', () => {
+        mountSection([attached()])
 
         expect(wrapper.getComponent(OptionSelect).props('options')).toEqual([
-            { value: '5', label: 'Lembar Anggaran' },
+            { value: '5', label: 'Lembar Anggaran', versionLabel: 'Versi 1' },
         ])
     })
 
-    it('Pasang mengirim form pilihan dan sifat wajibnya ke route langkah', async () => {
-        mountSection(section())
+    // BR-FE-33 — memasang hanya mengubah isi draf; tersimpan lewat Simpan draf.
+    it('Pasang menambah pemasangan ke draf tanpa request', async () => {
+        mountSection([])
+
         wrapper.getComponent(OptionSelect).vm.$emit('update:modelValue', '5')
         await flushPromises()
+        await button('Pasang').trigger('click')
 
-        button('Pasang').click()
-
-        expect(posted).toHaveBeenCalledWith('/admin.phase-details.evaluation-forms.store/7', {
-            review_evaluation_form_id: '5',
-            is_required: true,
-        })
+        expect(lastValue()).toEqual([
+            {
+                formId: 5,
+                title: 'Lembar Anggaran',
+                versionLabel: 'Versi 1',
+                isRequired: true,
+                isActive: true,
+            },
+        ])
+        expect(router.post).not.toHaveBeenCalled()
     })
 
-    it('Lepas meminta konfirmasi lalu menghapus pemasangan', async () => {
-        mountSection(section({ attached: [step()] }))
+    it('ubah wajib, nonaktifkan, dan lepas mengubah draf tanpa request', async () => {
+        mountSection([attached(), attached({ formId: 5, title: 'Lembar Anggaran' })])
 
-        button('Lepas').click()
-        await flushPromises()
-        button('Lepas Form').click()
+        await wrapper
+            .findAll('li')[0]
+            .findAll('button')
+            .find((b) => b.text() === 'Jadikan tidak wajib')
+            ?.trigger('click')
+        expect(lastValue()?.[0]).toMatchObject({ formId: 3, isRequired: false, isActive: true })
 
-        expect(router.delete).toHaveBeenCalledWith(
-            '/admin.step-evaluation-forms.destroy/41',
-            expect.any(Object)
-        )
-    })
+        await wrapper
+            .findAll('li')[0]
+            .findAll('button')
+            .find((b) => b.text() === 'Nonaktifkan')
+            ?.trigger('click')
+        expect(lastValue()?.[0]).toMatchObject({ formId: 3, isRequired: false, isActive: false })
 
-    // BR-FE-22 — pemasangan yang sudah ditugaskan hanya bisa dinonaktifkan.
-    it('Lepas pada pemasangan yang sudah ditugaskan menjelaskan dan menawarkan nonaktifkan', async () => {
-        mountSection(section({ attached: [step({ assignmentCount: 3 })] }))
+        await wrapper
+            .findAll('li')[1]
+            .findAll('button')
+            .find((b) => b.text().trim() === 'Lepas')
+            ?.trigger('click')
+        expect(lastValue()?.map((s) => s.formId)).toEqual([3])
 
-        button('Lepas').click()
-        await flushPromises()
-
-        expect(document.body.textContent).toContain(
-            'Form evaluasi ini sudah ditugaskan ke 3 reviewer di langkah ini, jadi tidak bisa dilepas. Nonaktifkan saja.'
-        )
+        expect(router.put).not.toHaveBeenCalled()
         expect(router.delete).not.toHaveBeenCalled()
+    })
 
-        button('Nonaktifkan').click()
-        expect(router.put).toHaveBeenCalledWith(
-            '/admin.step-evaluation-forms.update/41',
-            { is_required: true, is_active: false },
-            expect.any(Object)
-        )
+    it('pemasangan yang Form-nya sudah dihapus tetap bisa dilepas', () => {
+        mountSection([attached({ title: '', versionLabel: '' })])
+
+        expect(wrapper.text()).toContain('Form evaluasi sudah dihapus dari pustaka')
+        expect(wrapper.find('a[href="/admin.evaluation-forms.edit/3"]').exists()).toBe(false)
+        expect(button('Lepas').exists()).toBe(true)
     })
 })

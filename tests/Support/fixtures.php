@@ -186,6 +186,19 @@ function phaseVersion(FormPhase $phase, array $steps): FormPhaseVersion
 }
 
 /**
+ * BR-FE-33 — tahap yang sudah pernah terbit (Versi 1 tanpa langkah), jadi boleh ditautkan ke periode.
+ *
+ * @param  array<string, mixed>  $attributes
+ */
+function publishedPhase(array $attributes): FormPhase
+{
+    $phase = FormPhase::create($attributes);
+    phaseVersion($phase, []);
+
+    return $phase;
+}
+
+/**
  * User yang benar-benar bisa mengirim pengajuan: punya UserProfile, sudah
  * terverifikasi, dan profilnya lengkap.
  *
@@ -561,7 +574,7 @@ function phaseSharedByTwoPeriods(string $tag, bool $needsReview = false): array
 }
 
 /**
- * Detail pengajuan ber-review seperti jalur produksi (AssertReviewedPhaseDetail): ia memegang
+ * Detail pengajuan ber-review seperti jalur produksi (PublishPhaseVersion): ia memegang
  * "Batas Submit" peneliti dan "Batas Evaluasi" reviewer sendiri (BR-FE-26), dan memiliki
  * ReviewEvaluationForm-nya. Periodenya punya tanggal lain yang lebih akhir, milik Monev I.
  *

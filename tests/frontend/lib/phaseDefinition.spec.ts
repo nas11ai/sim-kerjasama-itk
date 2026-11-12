@@ -3,6 +3,8 @@ import { describe, expect, it } from 'vitest'
 import {
     applyStepKind,
     blankDetail,
+    phaseDraftBannerText,
+    phasePublishImpactText,
     stepKindKey,
     stepKindOptions,
     toEditableDetails,
@@ -12,7 +14,6 @@ import {
 import type { PhaseDetailEditData } from '@/types/form-engine'
 
 const saved = (overrides: Partial<PhaseDetailEditData> = {}): PhaseDetailEditData => ({
-    id: 31,
     order: 1,
     formAccessControlId: 7,
     formTitle: 'Form Proposal',
@@ -23,9 +24,7 @@ const saved = (overrides: Partial<PhaseDetailEditData> = {}): PhaseDetailEditDat
     deadlineType: 'submit',
     deadlineCycle: null,
     deadlineLabel: 'Pengajuan',
-    submissionCount: 0,
-    assignmentCount: 0,
-    evaluationFormCount: 0,
+    evaluationForms: [],
     ...overrides,
 })
 
@@ -44,12 +43,13 @@ describe('lib/phaseDefinition', () => {
     it('detail tersimpan dan detail baru memakai key stabil', () => {
         const [editable] = toEditableDetails([saved()])
 
-        expect(editable?.key).toBe('detail-31')
-        expect(editable?.id).toBe(31)
+        expect(editable?.key).toBe('step-0')
+        expect(editable?.order).toBe(1)
         expect(blankDetail(7, 3).key).toMatch(/^new-\d+$/)
         expect(blankDetail(7, 3).key).not.toBe(blankDetail(7, 3).key)
         expect(blankDetail(7, 3)).toMatchObject({
-            id: null,
+            order: null,
+            evaluationForms: [],
             formAccessControlId: 7,
             phaseTypeId: 3,
             deadlineType: 'submit',
@@ -93,7 +93,19 @@ describe('lib/phaseDefinition', () => {
     })
 
     it('payload membawa jenis dan siklus dari pilihan "Laporan Monev II"', () => {
-        const [kept] = toEditableDetails([saved({ needsReview: false })])
+        const [kept] = toEditableDetails([
+            saved({
+                evaluationForms: [
+                    {
+                        formId: 9,
+                        title: 'Lembar',
+                        versionLabel: 'Versi 1',
+                        isRequired: false,
+                        isActive: true,
+                    },
+                ],
+            }),
+        ])
         const monev = applyStepKind(detail(), optionByLabel('Laporan Monev II').value)
 
         const payload = toPhasePayload({ title: 'Tahap', description: '', isActive: false }, [
@@ -107,23 +119,43 @@ describe('lib/phaseDefinition', () => {
             is_active: false,
             phase_details: [
                 {
-                    id: 31,
                     form_access_control_id: 7,
                     phase_type_id: 3,
-                    order: 1,
-                    needs_review: false,
+                    needs_review: true,
                     deadline_type: 'submit',
                     deadline_cycle: null,
+                    evaluation_forms: [
+                        { review_evaluation_form_id: 9, is_required: false, is_active: true },
+                    ],
                 },
                 {
                     form_access_control_id: 7,
                     phase_type_id: 3,
-                    order: 2,
                     needs_review: false,
                     deadline_type: 'submit',
                     deadline_cycle: 2,
+                    evaluation_forms: [],
                 },
             ],
         })
+    })
+
+    // BR-FE-33 — banner draf dua varian, persis teks Global Constraints.
+    it('banner draf menyebut versi yang masih dipakai, atau bahwa tahap belum bisa dipakai', () => {
+        expect(phaseDraftBannerText('Versi 2')).toBe(
+            'Draf belum diterbitkan. Angkatan baru masih memakai Versi 2.'
+        )
+        expect(phaseDraftBannerText(null)).toBe(
+            'Draf belum diterbitkan. Tahap ini belum bisa dipakai periode.'
+        )
+    })
+
+    it('ringkasan terbit hanya menyebut angkatan lama bila ada', () => {
+        expect(phasePublishImpactText({ nextLabel: 'Versi 2', pinnedCohorts: 0 })).toBe(
+            'Terbitkan Versi 2? Berlaku untuk angkatan yang belum punya pengajuan.'
+        )
+        expect(phasePublishImpactText({ nextLabel: 'Versi 3', pinnedCohorts: 2 })).toBe(
+            'Terbitkan Versi 3? Berlaku untuk angkatan yang belum punya pengajuan. 2 angkatan sudah memakai versi lama dan tetap memakainya.'
+        )
     })
 })

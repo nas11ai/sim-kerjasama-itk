@@ -4,6 +4,7 @@ namespace App\Queries\Form;
 
 use App\Actions\Concerns\ChangesNoState;
 use App\Models\FormPhase;
+use App\Models\FormPhaseVersion;
 use App\Models\SubmissionPeriod;
 use App\Models\SubmissionPeriodPhase;
 use App\Support\SubmissionPeriodGate;
@@ -21,6 +22,20 @@ class LinkablePeriods implements ChangesNoState
      * @return array<int, list<array{value: string, label: string}>>
      */
     public static function forPhases(Collection $phases): array
+    {
+        // BR-FE-33 — tahap yang belum pernah terbit tidak punya pilihan sama sekali.
+        $published = FormPhaseVersion::query()->whereIn('form_phase_id', $phases->pluck('id'))->distinct()->pluck('form_phase_id')->all();
+        $isPublished = fn (FormPhase $phase): bool => in_array($phase->id, $published, true);
+        $unpublished = $phases->reject($isPublished)->map(fn (FormPhase $phase): int => $phase->id)->all();
+
+        return self::linkable($phases->filter($isPublished)) + array_fill_keys($unpublished, []);
+    }
+
+    /**
+     * @param  Collection<int, FormPhase>  $phases
+     * @return array<int, list<array{value: string, label: string}>>
+     */
+    private static function linkable(Collection $phases): array
     {
         $candidates = SubmissionPeriod::query()
             ->where('is_force_closed', false)

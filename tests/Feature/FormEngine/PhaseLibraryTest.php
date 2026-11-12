@@ -57,7 +57,7 @@ it('kontrak pustaka fase', function () {
             ->component('FormEngine/PhaseIndexPage')
             ->where('filterForm', null)
             ->has('phases.0', fn (AssertableInertia $card) => $card
-                ->hasAll(['id', 'title', 'description', 'isActive', 'detailCount', 'periodNames', 'submissionCount', 'linkablePeriods', 'deadlineGaps', 'submissionFormTitle']))
+                ->hasAll(['id', 'title', 'description', 'isActive', 'detailCount', 'periodNames', 'submissionCount', 'linkablePeriods', 'deadlineGaps', 'submissionFormTitle', 'versionLabel', 'hasDraft']))
             ->has('can.linkPeriod'));
 });
 

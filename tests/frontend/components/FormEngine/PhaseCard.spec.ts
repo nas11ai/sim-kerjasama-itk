@@ -49,6 +49,8 @@ const phase = (overrides: Partial<PhaseCardData> = {}): PhaseCardData => ({
     linkablePeriods: [{ value: '9', label: '2026 Gelombang 2' }],
     deadlineGaps: [],
     submissionFormTitle: 'Proposal Penelitian',
+    versionLabel: 'Versi 1',
+    hasDraft: false,
     ...overrides,
 })
 
@@ -158,5 +160,22 @@ describe('PhasePeriodDialog', () => {
             submission_period_id: '9',
         })
         wrapper.unmount()
+    })
+
+    // BR-FE-33 — tahap tanpa versi belum bisa dipakai periode; draf diberi banner.
+    it('lencana versi atau "Belum terbit", dan banner draf', () => {
+        const published = mountCard({ phase: phase(), canLinkPeriod: true })
+        expect(published.text()).toContain('Versi 1')
+        expect(published.text()).not.toContain('Draf belum diterbitkan')
+
+        const fresh = mountCard({
+            phase: phase({ versionLabel: null, hasDraft: true, linkablePeriods: [] }),
+            canLinkPeriod: true,
+        })
+        expect(fresh.text()).toContain('Belum terbit')
+        expect(fresh.text()).toContain(
+            'Draf belum diterbitkan. Tahap ini belum bisa dipakai periode.'
+        )
+        expect(fresh.text()).not.toContain('Hubungkan ke Periode')
     })
 })

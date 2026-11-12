@@ -18,7 +18,7 @@ import type { FilterOption } from '@/types/submission-page'
 
 const props = defineProps<{
     detail: EditableDetail | null
-    evaluationFormCount: number
+    adding: boolean
     accessOptions: PhaseAccessOption[]
     phaseTypeOptions: FilterOption[]
 }>()
@@ -27,20 +27,14 @@ const emit = defineEmits<{ save: [EditableDetail] }>()
 
 const draft = ref<EditableDetail>(blankDetail(0, 0))
 const fill = (isOpen: boolean) => {
-    if (isOpen && props.detail) draft.value = { ...props.detail }
+    if (isOpen && props.detail)
+        draft.value = { ...props.detail, evaluationForms: [...props.detail.evaluationForms] }
 }
 watch(open, fill, { immediate: true })
 
-// BR-FE-20 + K-1 — detail berpengajuan terkunci form, tipe tahap, dan jenis langkahnya;
-// W97 — review terkunci form evaluasi.
-const used = computed(() => draft.value.submissionCount > 0)
-const usedHint = computed(() =>
-    used.value
-        ? 'Detail ini sudah dipakai pengajuan; form, tipe tahap, dan jenis langkahnya tidak dapat diubah.'
-        : undefined
-)
-// W97 — hitungan hidup dari props server: form evaluasi bisa dibuat di layar ini tanpa remount.
-const evaluated = computed(() => props.evaluationFormCount)
+// W97 — review terkunci selama langkah ini memasang form evaluasi aktif (isi draf yang sama).
+// G3-W5 — tanpa kunci pakai: versi terbit beku, perubahan hanya berlaku sejak versi berikutnya.
+const evaluated = computed(() => draft.value.evaluationForms.filter((f) => f.isActive).length)
 
 const idField = (key: 'formAccessControlId' | 'phaseTypeId') =>
     computed({
@@ -77,28 +71,26 @@ const save = () => {
 <template>
     <ActionDialog
         v-model:open="open"
-        :title="draft.id === null ? 'Tambah Detail' : 'Edit Detail'"
-        submit-label="Simpan Detail"
+        :title="adding ? 'Tambah Langkah' : 'Edit Langkah'"
+        submit-label="Simpan Langkah"
         @submit="save"
     >
-        <FormField id="detail-access" label="Akses" required :hint="usedHint">
+        <FormField id="detail-access" label="Akses" required>
             <template #default="{ describedBy }">
                 <OptionSelect
                     id="detail-access"
                     v-model="access"
                     :options="accessOptions"
-                    :disabled="used"
                     :described-by="describedBy"
                 />
             </template>
         </FormField>
-        <FormField id="detail-type" label="Tipe Tahap" required :hint="usedHint">
+        <FormField id="detail-type" label="Tipe Tahap" required>
             <template #default="{ describedBy }">
                 <OptionSelect
                     id="detail-type"
                     v-model="phaseType"
                     :options="phaseTypeOptions"
-                    :disabled="used"
                     :described-by="describedBy"
                 />
             </template>
@@ -107,14 +99,13 @@ const save = () => {
             id="detail-kind"
             label="Jenis langkah"
             required
-            :hint="usedHint ?? 'Tanggalnya dibaca dari kalender periode pengajuan.'"
+            hint="Tanggalnya dibaca dari kalender periode pengajuan."
         >
             <template #default="{ describedBy }">
                 <OptionSelect
                     id="detail-kind"
                     v-model="stepKind"
                     :options="kindOptions"
-                    :disabled="used"
                     :described-by="describedBy"
                 />
             </template>

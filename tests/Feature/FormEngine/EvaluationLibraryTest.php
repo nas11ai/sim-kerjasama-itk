@@ -23,6 +23,7 @@ use App\Queries\Review\ReviewerEvaluation;
 use App\States\Submission\UnderReview;
 use Database\Seeders\PermissionSeeder;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Testing\TestResponse;
 use Inertia\Testing\AssertableInertia;
 
 beforeEach(function () {
@@ -65,6 +66,36 @@ function draftInput(int $text, string ...$labels): EvaluationDraftInput
     ));
 }
 
+/**
+ * BR-FE-33 — kiriman draf satu langkah `$step` dengan pemasangan [form, wajib, aktif].
+ *
+ * @param  list<array{0: ReviewEvaluationForm, 1: bool, 2?: bool}>  $attachments
+ */
+function libraryDraft(FormPhaseDetail $step, array $attachments): array
+{
+    return ['phase_details' => [[
+        'form_access_control_id' => $step->form_access_control_id,
+        'phase_type_id' => $step->phase_type_id,
+        'needs_review' => $step->needs_review,
+        'deadline_type' => $step->deadline_type->value,
+        'deadline_cycle' => $step->deadline_cycle,
+        'evaluation_forms' => array_map(fn (array $a): array => [
+            'review_evaluation_form_id' => $a[0]->id,
+            'is_required' => $a[1],
+            'is_active' => $a[2] ?? true,
+        ], $attachments),
+    ]]];
+}
+
+/** Simpan draf pemasangan `$attachments` di `$step` lalu terbitkan; galat simpan dikembalikan apa adanya. */
+function libraryAttach(FormPhaseDetail $step, array $attachments): TestResponse
+{
+    $phase = $step->formPhase;
+    $saved = test()->put(route('admin.phases.draft.update', $phase), libraryDraft($step, $attachments));
+
+    return session()->has('errors') ? $saved : test()->post(route('admin.phases.publish', $phase));
+}
+
 /** Kursi reviewer yang ditugaskan `$form` pada pengajuan di `$step`. */
 function librarySeat(FormPhaseDetail $step, ReviewEvaluationForm $form, ?string $period = null): ReviewerFormAssignment
 {
@@ -82,43 +113,30 @@ it('[FE-EVLIB-01] refuses to attach an evaluation form that was never published'
         ->assertSessionHasNoErrors();
     $form = ReviewEvaluationForm::query()->where('title', 'Lembar Proposal')->sole();
 
-    $this->post(route('admin.phase-details.evaluation-forms.store', $this->researchStep), [
-        'review_evaluation_form_id' => $form->id,
-        'is_required' => true,
-    ])->assertSessionHasErrors([
+    libraryAttach($this->researchStep, [[$form, true]])->assertSessionHasErrors([
         'review_evaluation_form_id' => 'Form evaluasi ini belum pernah diterbitkan, jadi belum bisa dipasang.',
     ]);
 
-    expect(StepEvaluationForm::query()->where('form_phase_detail_id', $this->researchStep->id)->exists())->toBeFalse();
+    expect(StepEvaluationForm::query()->exists())->toBeFalse()
+        ->and($this->research->draft()->exists())->toBeFalse();
 });
 
 it('[FE-EVLIB-02] attaches one evaluation form to steps of two phases, once per step', function () {
     $form = libraryForm('Lembar Proposal');
 
-    $this->actingAs($this->admin)
-        ->from(route('admin.phases.edit', $this->research))
-        ->post(route('admin.phase-details.evaluation-forms.store', $this->researchStep), [
-            'review_evaluation_form_id' => $form->id,
-            'is_required' => true,
-        ])
-        ->assertRedirect(route('admin.phases.edit', $this->research))
-        ->assertSessionHas('success', 'Form evaluasi dipasang.');
-    $this->post(route('admin.phase-details.evaluation-forms.store', $this->serviceStep), [
-        'review_evaluation_form_id' => $form->id,
-        'is_required' => false,
-    ])->assertSessionHasNoErrors();
+    $this->actingAs($this->admin);
+    libraryAttach($this->researchStep, [[$form, true]])->assertSessionHas('success', 'Versi 2 diterbitkan.');
+    libraryAttach($this->serviceStep, [[$form, false]])->assertSessionHasNoErrors();
 
-    // BR-FE-32 — tiap pemasangan menerbitkan versi struktur berikutnya tahapnya.
+    // BR-FE-33 — pemasangan berlaku sejak versi struktur yang diterbitkan.
     $research = $this->research->currentDetails()->sole();
     $service = $this->service->currentDetails()->sole();
     expect(StepEvaluationForm::query()->where('review_evaluation_form_id', $form->id)->count())->toBe(2)
         ->and($research->stepEvaluationForms()->sole()->is_required)->toBeTrue()
         ->and($service->stepEvaluationForms()->sole()->is_required)->toBeFalse();
 
-    $this->post(route('admin.phase-details.evaluation-forms.store', $research), [
-        'review_evaluation_form_id' => $form->id,
-        'is_required' => true,
-    ])->assertSessionHasErrors(['review_evaluation_form_id' => 'Form evaluasi ini sudah terpasang di langkah ini.']);
+    libraryAttach($research, [[$form, true], [$form, true]])
+        ->assertSessionHasErrors(['review_evaluation_form_id' => 'Form evaluasi ini sudah terpasang di langkah ini.']);
 });
 
 it('[FE-EVLIB-03] keeps reviewers on the published version while a draft is pending', function () {
@@ -171,17 +189,13 @@ it('[FE-EVLIB-05] detaches an assigned form only from the next version and keeps
     ]);
     $assignment = librarySeat($this->researchStep, $form);
 
-    $this->actingAs($this->admin)
-        ->delete(route('admin.step-evaluation-forms.destroy', $research))
-        ->assertSessionHasNoErrors()
-        ->assertSessionHas('success', 'Form evaluasi dilepas.');
+    $this->actingAs($this->admin);
+    libraryAttach($this->researchStep, [])->assertSessionHasNoErrors();
     expect($research->fresh())->not->toBeNull()
         ->and($assignment->fresh())->not->toBeNull()
         ->and($this->research->currentDetails()->sole()->stepEvaluationForms()->count())->toBe(0);
 
-    $this->put(route('admin.step-evaluation-forms.update', $service), ['is_required' => true, 'is_active' => false])
-        ->assertSessionHasNoErrors()
-        ->assertSessionHas('success', 'Pemasangan diperbarui.');
+    libraryAttach($this->serviceStep, [[$form, true, false]])->assertSessionHasNoErrors();
     expect($this->service->currentDetails()->sole()->stepEvaluationForms()->sole()->is_active)->toBeFalse()
         ->and($service->fresh()?->is_active)->toBeTrue();
 });
@@ -356,9 +370,7 @@ it('hides the library from users without schemes.manage', function () {
     $this->actingAs($operator)->get(route('admin.evaluation-forms.index'))->assertForbidden();
     $this->get(route('admin.evaluation-forms.edit', $form))->assertForbidden();
     $this->put(route('admin.evaluation-forms.draft.update', $form), draftPayload($this->text, 'Dibajak'))->assertForbidden();
-    $this->post(route('admin.phase-details.evaluation-forms.store', $this->researchStep), [
-        'review_evaluation_form_id' => $form->id,
-    ])->assertForbidden();
+    $this->put(route('admin.phases.draft.update', $this->research), libraryDraft($this->researchStep, [[$form, true]]))->assertForbidden();
 
     expect(ConfigurationDraft::query()->count())->toBe(0)
         ->and(StepEvaluationForm::query()->count())->toBe(0);

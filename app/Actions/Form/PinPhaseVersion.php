@@ -22,6 +22,8 @@ class PinPhaseVersion
 {
     use AsAction;
 
+    public const REPUBLISHED = 'Struktur tahap ini baru saja diterbitkan ulang. Muat ulang halaman lalu mulai lagi.';
+
     /**
      * @throws ValidationException
      */
@@ -42,7 +44,7 @@ class PinPhaseVersion
         // Layar Mulai memuat langkah versi lama, lalu versi baru terbit sebelum klik peneliti.
         if ($pin->form_phase_version_id !== $detail->form_phase_version_id) {
             throw ValidationException::withMessages([
-                'form_phase_detail_id' => AssertCurrentPhaseStep::REPUBLISHED,
+                'form_phase_detail_id' => self::REPUBLISHED,
             ]);
         }
 

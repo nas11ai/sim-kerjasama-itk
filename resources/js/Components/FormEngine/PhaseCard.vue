@@ -6,6 +6,7 @@ import { Link2, Pencil, Power, Trash2 } from 'lucide-vue-next'
 import AppBanner from '@/Components/app/AppBanner.vue'
 import { Badge } from '@/Components/ui/badge'
 import { Button } from '@/Components/ui/button'
+import { phaseDraftBannerText } from '@/lib/phaseDefinition'
 import type { PhaseCardData } from '@/types/form-engine'
 
 // `returnForm` — id Form tapis pustaka; editor kembali ke pustaka bertapis itu (B5).
@@ -36,6 +37,8 @@ const summary = computed(() => {
             <div class="flex flex-wrap items-center gap-2">
                 <h3 class="font-medium">{{ phase.title }}</h3>
                 <Badge v-if="!phase.isActive" variant="outline">Nonaktif</Badge>
+                <!-- BR-FE-33 — tahap tanpa versi belum bisa dipakai periode -->
+                <Badge variant="outline">{{ phase.versionLabel ?? 'Belum terbit' }}</Badge>
             </div>
             <!-- BR-FE-28 — satu Form pengajuan per tahap -->
             <p v-if="phase.submissionFormTitle" class="text-sm">
@@ -45,6 +48,9 @@ const summary = computed(() => {
                 {{ phase.description }}
             </p>
             <p class="text-sm text-muted-foreground">{{ summary }}</p>
+            <AppBanner v-if="phase.hasDraft" tone="info">
+                {{ phaseDraftBannerText(phase.versionLabel) }}
+            </AppBanner>
             <!-- BR-FE-26 / ADR 0019 — celah jadwal: tanggal yang belum ada di kalender periode -->
             <AppBanner v-for="gap in phase.deadlineGaps" :key="gap.period" tone="warning">
                 Periode {{ gap.period }} belum punya {{ gap.count }} tanggal yang dibutuhkan tahap

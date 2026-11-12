@@ -11,7 +11,7 @@ use App\Http\Controllers\FormEngine\EvaluationFormDraftController;
 use App\Http\Controllers\FormEngine\FormAccessController;
 use App\Http\Controllers\FormEngine\FormController;
 use App\Http\Controllers\FormEngine\FormPhaseController;
-use App\Http\Controllers\FormEngine\StepEvaluationFormController;
+use App\Http\Controllers\FormEngine\PhaseDraftController;
 use App\Http\Controllers\FormEngine\SubmissionPeriodController;
 use App\Http\Controllers\GlobalSearchController;
 use App\Http\Controllers\Identity\InvitationController;
@@ -337,6 +337,10 @@ Route::middleware(['auth', 'can:schemes.manage'])->prefix('admin')->name('admin.
     Route::put('/phases/{formPhase}', [FormPhaseController::class, 'update'])->name('phases.update');
     Route::patch('/phases/{formPhase}/active', [FormPhaseController::class, 'setActive'])->name('phases.active');
     Route::delete('/phases/{formPhase}', [FormPhaseController::class, 'destroy'])->name('phases.destroy');
+    // BR-FE-33 — struktur tahap: simpan/buang draf, terbitkan menjadi versi berikutnya.
+    Route::put('/phases/{formPhase}/draft', [PhaseDraftController::class, 'update'])->name('phases.draft.update');
+    Route::delete('/phases/{formPhase}/draft', [PhaseDraftController::class, 'destroy'])->name('phases.draft.destroy');
+    Route::post('/phases/{formPhase}/publish', [PhaseDraftController::class, 'publish'])->name('phases.publish');
     // K9b — menautkan tahap ke periode butuh wewenang periode, selain schemes.manage.
     Route::post('/phases/{formPhase}/periods', [FormPhaseController::class, 'linkPeriod'])
         ->middleware('can:periods.manage')->name('phases.periods.store');
@@ -356,13 +360,6 @@ Route::middleware(['auth', 'can:schemes.manage'])->prefix('admin')->name('admin.
     Route::post('/evaluation-forms/{reviewEvaluationForm}/publish', [EvaluationFormDraftController::class, 'publish'])
         ->name('evaluation-forms.publish');
 
-    // BR-FE-30 — pemasangan di langkah dari editor tahap; langkahnya dari route, bukan kiriman (W100).
-    Route::post('/phase-details/{formPhaseDetail}/evaluation-forms', [StepEvaluationFormController::class, 'store'])
-        ->name('phase-details.evaluation-forms.store');
-    Route::put('/step-evaluation-forms/{stepEvaluationForm}', [StepEvaluationFormController::class, 'update'])
-        ->name('step-evaluation-forms.update');
-    Route::delete('/step-evaluation-forms/{stepEvaluationForm}', [StepEvaluationFormController::class, 'destroy'])
-        ->name('step-evaluation-forms.destroy');
 });
 
 // ADMIN-08-03/04 — skema dikelola pemegang schemes.manage (W105). Nama route tidak berubah.

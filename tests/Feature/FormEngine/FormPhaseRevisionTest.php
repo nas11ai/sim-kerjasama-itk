@@ -2,16 +2,15 @@
 
 // tests/Feature/FormEngine/FormPhaseRevisionTest.php
 //
-// BR-FE-32 — merevisi tahap formulir menerbitkan versi struktur berikutnya (G3-W4). Langkah
-// ber-id disalin beserta Form Evaluasinya; Versi 1 tidak berubah, jadi pengajuan dan
-// penugasannya tetap pada langkah yang persis sama (BR-FE-20).
+// BR-FE-33 — merevisi struktur tahap = simpan draf lalu Terbitkan, membentuk versi berikutnya
+// (BR-FE-32). Versi 1 tidak berubah, jadi pengajuan dan penugasannya tetap pada langkah yang
+// persis sama (BR-FE-20). Draf tanpa id langkah: setiap terbit menyalin baris baru.
 
 use App\Enums\DeadlineType;
 use App\Models\FormAccessControl;
 use App\Models\FormPhase;
 use App\Models\FormPhaseDetail;
 use App\Models\FormSubmission;
-use App\Models\PhaseType;
 use App\Models\User;
 use App\Support\Audit\AuditTrail;
 use Illuminate\Testing\TestResponse;
@@ -38,14 +37,12 @@ beforeEach(function () {
 function revisionRow(FormPhaseDetail $detail): array
 {
     return [
-        'id' => $detail->id,
         'form_access_control_id' => $detail->form_access_control_id,
         'phase_type_id' => $detail->phase_type_id,
         'order' => $detail->order,
         'needs_review' => $detail->needs_review === true,
         'deadline_type' => $detail->deadline_type->value,
         'deadline_cycle' => $detail->deadline_cycle,
-        'temp_id' => 'temp_'.$detail->id,
     ];
 }
 
@@ -53,20 +50,21 @@ function revisionRow(FormPhaseDetail $detail): array
  * @param  list<array<string, mixed>>  $rows
  * @return array<string, mixed>
  */
-function revisionPayload(array $rows, string $title = 'Tahap Baru'): array
+function revisionPayload(array $rows): array
 {
-    return [
-        'title' => $title,
-        'description' => 'Direvisi',
-        'is_active' => true,
-        'phase_details' => $rows,
-    ];
+    return ['phase_details' => $rows];
 }
 
+/** Simpan draf lalu Terbitkan; respons Terbitkan, atau respons simpan bila draf ditolak. */
 function reviseFormPhase(array $payload): TestResponse
 {
-    return test()->actingAs(test()->admin)
-        ->put(route('admin.phases.update', test()->phase), $payload);
+    $saved = test()->actingAs(test()->admin)->put(route('admin.phases.draft.update', test()->phase), $payload);
+
+    if (session()->has('errors')) {
+        return $saved;
+    }
+
+    return test()->post(route('admin.phases.publish', test()->phase));
 }
 
 /** @return list<int> */
@@ -75,14 +73,15 @@ function currentStepIds(): array
     return test()->phase->currentDetails()->pluck('id')->all();
 }
 
-it('copies the evaluation forms of a retained step into the new version', function () {
-    // Form evaluasi hanya melekat pada detail yang direview (AssertReviewedPhaseDetail, W97).
+it('publishes the evaluation forms of a draft step into the new version', function () {
+    // Form evaluasi hanya melekat pada detail yang direview (PublishPhaseVersion, W97).
     $this->kept = restep($this->kept, ['needs_review' => true]);
     $evaluation = evaluationFormOn($this->kept, [], title: 'Lembar Penilaian');
+    $row = [...revisionRow($this->kept), 'evaluation_forms' => [
+        ['review_evaluation_form_id' => $evaluation->id, 'is_required' => true, 'is_active' => true],
+    ]];
 
-    reviseFormPhase(revisionPayload([revisionRow($this->kept)]))
-        ->assertSessionHasNoErrors()
-        ->assertRedirect(route('admin.phases.index'));
+    reviseFormPhase(revisionPayload([$row]))->assertSessionHasNoErrors();
 
     $copy = $this->phase->currentDetails()->sole();
     expect($copy->id)->not->toBe($this->kept->id)
@@ -101,7 +100,7 @@ it('leaves submissions on the step of the version they started in', function () 
         ->and($this->phase->latestVersion()->firstOrFail()->number)->toBe(2);
 });
 
-it('copies the step kind of a retained step (ADR 0019)', function () {
+it('publishes the step kind of each draft step (ADR 0019)', function () {
     reviseFormPhase(revisionPayload([revisionRow($this->kept), array_merge(revisionRow($this->dropped), ['deadline_cycle' => 2])]))
         ->assertSessionHasNoErrors();
 
@@ -121,48 +120,6 @@ it('drops a step used by a submission only from the new version (BR-FE-20, BR-FE
         ->and($submission->fresh()->form_phase_detail_id)->toBe($this->dropped->id);
 });
 
-it('creates a step sent without id in the new version', function () {
-    $newRow = [
-        'form_access_control_id' => $this->dropped->form_access_control_id,
-        'phase_type_id' => PhaseType::create(['name' => 'Tipe Baru Revisi'])->id,
-        'order' => 2,
-        'needs_review' => true,
-        // BR-FE-07 — detail baru wajib menyebut jenis tenggatnya (ADR 0019).
-        'deadline_type' => 'submit',
-        'deadline_cycle' => 1,
-        'temp_id' => 'temp_new',
-    ];
-
-    reviseFormPhase(revisionPayload([revisionRow($this->kept), $newRow]))
-        ->assertSessionHasNoErrors();
-
-    $details = $this->phase->currentDetails()->get();
-
-    expect($details)->toHaveCount(2)
-        ->and($details->firstWhere('phase_type_id', $newRow['phase_type_id'])?->needs_review)->toBeTrue()
-        ->and($this->phase->formPhaseDetails()->count())->toBe(4);
-});
-
-it('rejects a detail id that belongs to another phase', function () {
-    $foreign = FormPhaseDetail::factory()->create();
-
-    reviseFormPhase(revisionPayload([revisionRow($this->kept), revisionRow($foreign)]))
-        ->assertSessionHasErrors('phase_details');
-
-    expect($this->phase->fresh()->title)->toBe('Tahap Lama')
-        ->and($this->phase->versions()->count())->toBe(1)
-        ->and(currentStepIds())->toBe([$this->kept->id, $this->dropped->id]);
-});
-
-it('rejects a step id from an older version of this phase', function () {
-    reviseFormPhase(revisionPayload([revisionRow($this->kept), revisionRow($this->dropped)]))->assertSessionHasNoErrors();
-
-    reviseFormPhase(revisionPayload([revisionRow($this->kept)]))
-        ->assertSessionHasErrors(['form_phase_detail_id' => 'Struktur tahap ini baru saja diterbitkan ulang. Muat ulang halaman lalu mulai lagi.']);
-
-    expect($this->phase->versions()->count())->toBe(2);
-});
-
 it('gives details of the same form the same order, numbered by first appearance', function () {
     $keptAccess = $this->kept->formAccessControl;
     $sameForm = FormAccessControl::create([
@@ -174,7 +131,6 @@ it('gives details of the same form the same order, numbered by first appearance'
         'form_access_control_id' => $sameForm->id,
         'order' => 9,
     ]);
-    unset($sibling['id']);
 
     // Urutan kiriman (7, 5, 9) diabaikan; saudara berform sama berbagi urutan Form pengajuan.
     $rows = [
@@ -198,7 +154,7 @@ it('audits the revision of a form phase (BR-RPT-09)', function () {
     $entry = Activity::inLog(AuditTrail::LOG_NAME)
         ->where('subject_type', $this->phase->getMorphClass())
         ->where('subject_id', $this->phase->id)
-        ->where('description', 'Tahap formulir direvisi')
+        ->where('description', 'Draf tahap diterbitkan')
         ->first();
 
     expect($entry)->not->toBeNull()
@@ -206,14 +162,14 @@ it('audits the revision of a form phase (BR-RPT-09)', function () {
 });
 
 it('rejects a new detail without a deadline type as validation, not SQLSTATE (BR-FE-07)', function () {
-    $newRow = array_merge(revisionRow($this->kept), ['temp_id' => 'temp_new']);
-    unset($newRow['id'], $newRow['deadline_type']);
+    $newRow = revisionRow($this->kept);
+    unset($newRow['deadline_type']);
 
     reviseFormPhase(revisionPayload([revisionRow($this->kept), $newRow]))
         ->assertSessionHasErrors('phase_details.1.deadline_type');
 
     expect($this->phase->formPhaseDetails()->count())->toBe(2)
-        ->and($this->phase->fresh()->title)->toBe('Tahap Lama');
+        ->and($this->phase->draft()->exists())->toBeFalse();
 });
 
 // K-1 diganti versi beku (G3-W5): mengubah langkah yang sudah dipakai hanya berlaku di versi baru,

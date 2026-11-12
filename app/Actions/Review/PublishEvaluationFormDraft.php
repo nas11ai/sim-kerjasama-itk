@@ -3,7 +3,7 @@
 namespace App\Actions\Review;
 
 use App\Data\Request\EvaluationDraftInput;
-use App\Models\ConfigurationDraft;
+use App\Models\EvaluationFormDraft;
 use App\Models\ReviewEvaluationForm;
 use App\Models\ReviewEvaluationFormVersion;
 use App\Models\User;
@@ -30,8 +30,8 @@ class PublishEvaluationFormDraft
     {
         return DB::transaction(function () use ($form, $actor): ReviewEvaluationFormVersion {
             // Kunci draf: dua Terbitkan bersamaan tidak boleh menerbitkan draf yang sama dua kali.
-            $draft = ConfigurationDraft::query()
-                ->where(['draftable_type' => ConfigurationDraft::EVALUATION_FORM, 'draftable_id' => $form->id])
+            $draft = EvaluationFormDraft::query()
+                ->where(['draftable_id' => $form->id])
                 ->lockForUpdate()
                 ->first();
 

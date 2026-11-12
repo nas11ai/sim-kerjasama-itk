@@ -8,7 +8,7 @@
 // (pengisi saat NEEDS_REVISION).
 //
 // Fixture lama memasang form evaluasi ke detail evaluasi terpisah — bentuk yang ditolak jalur
-// produksi (AssertReviewedPhaseDetail). Akibatnya test lolos sementara produksi memakai Batas
+// produksi (PublishPhaseVersion). Akibatnya test lolos sementara produksi memakai Batas
 // Submit peneliti sebagai tenggat reviewer (E1b, temuan 2). Di sini form evaluasi melekat pada
 // detail ber-`needs_review`, sama seperti produksi.
 

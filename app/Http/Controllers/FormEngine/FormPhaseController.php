@@ -5,11 +5,12 @@ namespace App\Http\Controllers\FormEngine;
 use App\Actions\Form\CreateFormPhase;
 use App\Actions\Form\DeleteFormPhase;
 use App\Actions\Form\LinkPhaseToPeriod;
-use App\Actions\Form\ReviseFormPhase;
 use App\Actions\Form\SetFormPhaseActive;
+use App\Actions\Form\UpdateFormPhase;
 use App\Data\View\FormEngine\FormHeaderData;
 use App\Http\Controllers\Concerns\ResolvesActor;
 use App\Http\Controllers\Controller;
+use App\Http\Requests\Form\CreateFormPhaseRequest;
 use App\Http\Requests\Form\FormPhaseActiveRequest;
 use App\Http\Requests\Form\FormPhaseRequest;
 use App\Http\Requests\Form\PhasePeriodRequest;
@@ -18,7 +19,6 @@ use App\Models\FormPhase;
 use App\Models\SubmissionPeriod;
 use App\Queries\Form\PhaseAccessOptions;
 use App\Queries\Form\PhaseEdit;
-use App\Queries\Form\PhaseEvaluationForms;
 use App\Queries\Form\PhaseLibrary;
 use App\Queries\Form\PhaseTypeOptions;
 use App\Queries\Period\PeriodScheduleGaps;
@@ -54,13 +54,13 @@ class FormPhaseController extends Controller
         return $this->editor(null, $this->requestedForm($request));
     }
 
-    // BR-FE-07 — tahap baru belum dipakai periode mana pun; W95 — lanjut ke editornya.
-    public function store(FormPhaseRequest $request): RedirectResponse
+    // BR-FE-07 + BR-FE-33 — tahap baru lahir dengan draf, belum terbit; W95 — lanjut ke editornya.
+    public function store(CreateFormPhaseRequest $request): RedirectResponse
     {
-        $phase = CreateFormPhase::run($request->toInput(), $this->actor($request));
+        $phase = CreateFormPhase::run($request->toInput(), $request->toSteps(), $this->actor($request));
 
         return redirect()->route('admin.phases.edit', ['formPhase' => $phase, ...$this->returnTo($request)])
-            ->with('success', 'Tahap dibuat. Tambahkan form evaluasi untuk detail yang direview.');
+            ->with('success', 'Tahap dibuat. Susun langkahnya lalu terbitkan.');
     }
 
     public function edit(Request $request, FormPhase $formPhase): Response
@@ -68,12 +68,12 @@ class FormPhaseController extends Controller
         return $this->editor($formPhase, $this->requestedForm($request));
     }
 
-    // BR-FE-20 — disinkronkan per id; penjaga detail berjalan di Action (W97, BR-FE-22, BR-FE-28).
+    // BR-FE-33 — judul/deskripsi/aktif saja; langkah lewat draf (PhaseDraftController). Tetap di editor.
     public function update(FormPhaseRequest $request, FormPhase $formPhase): RedirectResponse
     {
-        ReviseFormPhase::run($formPhase, $request->toInput(), $this->actor($request));
+        UpdateFormPhase::run($formPhase, $request->toInput(), $this->actor($request));
 
-        return redirect()->route('admin.phases.index', $this->returnTo($request))->with('success', 'Tahap diperbarui.');
+        return back()->with('success', 'Tahap diperbarui.');
     }
 
     public function setActive(FormPhaseActiveRequest $request, FormPhase $formPhase): RedirectResponse
@@ -108,9 +108,8 @@ class FormPhaseController extends Controller
             : "Tahap dihubungkan ke periode {$period->name}.");
     }
 
-    // `$phase` null = mode buat (W94); layar yang sama, state-nya di child ber-key. Form evaluasi
-    // butuh detail tersimpan, jadi mode buat belum punya bagiannya (W95). `$filter` = Form tapis
-    // pustaka asal: di mode buat menjadi akses bawaan, di keduanya tujuan kembali (B5).
+    // `$phase` null = mode buat (W94); layar yang sama, state-nya di child ber-key. `$filter` = Form
+    // tapis pustaka asal: di mode buat menjadi akses bawaan, di keduanya tujuan kembali (B5).
     private function editor(?FormPhase $phase, ?Form $filter = null): Response
     {
         return Inertia::render('FormEngine/PhaseEditPage', [
@@ -118,9 +117,8 @@ class FormPhaseController extends Controller
             'phase' => PhaseEdit::run($phase),
             'accessOptions' => PhaseAccessOptions::run($phase, $filter),
             'phaseTypeOptions' => PhaseTypeOptions::run(),
-            'evaluation' => $phase === null ? [] : PhaseEvaluationForms::run($phase),
-            // BR-FE-30 — isi Form Evaluasi disusun di pustakanya; di sini hanya dipasang.
-            'evaluationOptions' => $phase === null ? [] : PublishedEvaluationFormOptions::run(),
+            // BR-FE-30 — isi Form Evaluasi disusun di pustakanya; di sini hanya dipasang, lewat draf.
+            'evaluationOptions' => PublishedEvaluationFormOptions::run(),
         ]);
     }
 

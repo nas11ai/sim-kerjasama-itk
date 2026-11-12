@@ -1,75 +1,83 @@
 <script setup lang="ts">
-import { Link, useForm } from '@inertiajs/vue3'
+import { Link } from '@inertiajs/vue3'
 import { Plus } from 'lucide-vue-next'
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 
-import AppBanner from '@/Components/app/AppBanner.vue'
 import FormField from '@/Components/app/FormField.vue'
 import OptionSelect from '@/Components/app/OptionSelect.vue'
 import StepEvaluationFormRow from '@/Components/FormEngine/StepEvaluationFormRow.vue'
 import { Button } from '@/Components/ui/button'
 import { Label } from '@/Components/ui/label'
 import { Switch } from '@/Components/ui/switch'
-import type { EvaluationSectionData } from '@/types/form-engine'
-import type { FilterOption } from '@/types/submission-page'
+import type { EvaluationOption, StepEvaluationFormData } from '@/types/form-engine'
 
-// BR-FE-30 — bagian evaluasi satu detail ber-needs_review: memasang Form Evaluasi pustaka yang sudah
-// terbit, sekali per langkah. Isinya disusun di pustaka, bukan di sini.
-const props = defineProps<{ section: EvaluationSectionData; evaluationOptions: FilterOption[] }>()
+// BR-FE-30 + BR-FE-33 — Form Evaluasi satu langkah ber-needs_review, bagian isi draf: pasang, ubah,
+// dan lepas hanya mengubah daftar ini; semuanya tersimpan lewat Simpan draf, berlaku sejak terbit.
+const props = defineProps<{
+    stepKey: string
+    label: string
+    evaluationOptions: EvaluationOption[]
+}>()
+const attached = defineModel<StepEvaluationFormData[]>({ required: true })
 
 const available = computed(() => {
-    const attached = new Set(props.section.attached.map((step) => String(step.formId)))
-    return props.evaluationOptions.filter((option) => !attached.has(option.value))
+    const taken = new Set(attached.value.map((step) => String(step.formId)))
+    return props.evaluationOptions.filter((option) => !taken.has(option.value))
 })
 
-const attach = useForm<{ review_evaluation_form_id: string | null; is_required: boolean }>({
-    review_evaluation_form_id: null,
-    is_required: true,
-})
-const prefix = `attach-${props.section.detailId}`
-// AssertReviewedPhaseDetail menolak lewat `form_phase_detail_id`, kunci di luar isian form ini.
-const errors = computed<Record<string, string>>(() => ({ ...attach.errors }))
+const chosen = ref<string | null>(null)
+const required = ref(true)
+const prefix = `attach-${props.stepKey}`
 
-const submit = () =>
-    attach.post(route('admin.phase-details.evaluation-forms.store', props.section.detailId), {
-        preserveScroll: true,
-        onSuccess: () => attach.reset(),
-    })
+const attach = () => {
+    const option = available.value.find((o) => o.value === chosen.value)
+    if (option === undefined) return
+    attached.value = [
+        ...attached.value,
+        {
+            formId: Number(option.value),
+            title: option.label,
+            versionLabel: option.versionLabel,
+            isRequired: required.value,
+            isActive: true,
+        },
+    ]
+    chosen.value = null
+    required.value = true
+}
+
+const replace = (index: number, step: StepEvaluationFormData) =>
+    (attached.value = attached.value.map((s, i) => (i === index ? step : s)))
+const remove = (index: number) => (attached.value = attached.value.filter((_, i) => i !== index))
 </script>
 
 <template>
-    <section class="space-y-4">
+    <section class="space-y-3">
         <div class="flex flex-wrap items-center justify-between gap-2">
-            <h2 class="text-base font-semibold">Form evaluasi untuk {{ section.detailLabel }}</h2>
+            <h3 class="text-sm font-semibold">Form evaluasi untuk {{ label }}</h3>
             <Link class="text-sm underline" :href="route('admin.evaluation-forms.index')"
                 >Kelola di Form Evaluasi</Link
             >
         </div>
-        <!-- W158 — form ditugaskan otomatis hanya saat reviewer ditugaskan (AssignReviewers); fakta, bukan aturan baru. -->
-        <AppBanner v-if="section.reviewsInProgress > 0" tone="info">
-            Form baru tidak otomatis ditugaskan ke reviewer
-            {{ section.reviewsInProgress }} pengajuan yang sedang direview; reviewernya tetap bisa
-            memulainya dari halaman evaluasi.
-        </AppBanner>
-        <ul v-if="section.attached.length > 0" class="space-y-2">
-            <StepEvaluationFormRow v-for="step in section.attached" :key="step.id" :step="step" />
+        <ul v-if="attached.length > 0" class="space-y-2">
+            <StepEvaluationFormRow
+                v-for="(step, index) in attached"
+                :key="step.formId"
+                :step="step"
+                @update="(next) => replace(index, next)"
+                @remove="remove(index)"
+            />
         </ul>
         <p v-else class="text-sm text-muted-foreground">Belum ada form evaluasi terpasang.</p>
-        <form
+        <div
             v-if="available.length > 0"
             class="flex flex-wrap items-end gap-3 rounded-lg border border-dashed p-3"
-            @submit.prevent="submit"
         >
-            <FormField
-                :id="`${prefix}-form`"
-                label="Pasang Form Evaluasi"
-                class="min-w-56 flex-1"
-                :error="attach.errors.review_evaluation_form_id"
-            >
+            <FormField :id="`${prefix}-form`" label="Pasang Form Evaluasi" class="min-w-56 flex-1">
                 <template #default="{ describedBy }">
                     <OptionSelect
                         :id="`${prefix}-form`"
-                        v-model="attach.review_evaluation_form_id"
+                        v-model="chosen"
                         :options="available"
                         placeholder="Pilih Form Evaluasi terbit"
                         :described-by="describedBy"
@@ -77,20 +85,15 @@ const submit = () =>
                 </template>
             </FormField>
             <div class="flex items-center gap-2 pb-2">
-                <Switch :id="`${prefix}-required`" v-model="attach.is_required" />
+                <Switch :id="`${prefix}-required`" v-model="required" />
                 <Label :for="`${prefix}-required`" class="font-normal">Wajib diisi reviewer</Label>
             </div>
-            <Button
-                type="submit"
-                :disabled="attach.processing || attach.review_evaluation_form_id === null"
+            <Button type="button" :disabled="chosen === null" @click="attach"
                 ><Plus class="size-4" />Pasang</Button
             >
-        </form>
+        </div>
         <p v-else-if="evaluationOptions.length === 0" class="text-sm text-muted-foreground">
             Belum ada Form Evaluasi yang terbit. Susun dan terbitkan dulu di pustaka Form Evaluasi.
         </p>
-        <AppBanner v-if="errors.form_phase_detail_id" tone="denial">
-            {{ errors.form_phase_detail_id }}
-        </AppBanner>
     </section>
 </template>

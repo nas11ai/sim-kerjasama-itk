@@ -4,14 +4,12 @@ namespace App\Actions\Form;
 
 use App\Data\Request\FormPhaseDetailInput;
 use App\Data\Request\PhaseStructureInput;
-use App\Data\Request\StepEvaluationFormInput;
 use App\Enums\DeadlineType;
 use App\Models\FormAccessControl;
 use App\Models\FormPhase;
 use App\Models\FormPhaseDetail;
 use App\Models\FormPhaseVersion;
 use App\Models\PhaseVersionPin;
-use App\Models\ReviewEvaluationForm;
 use App\Models\User;
 use App\Support\Audit\AuditChange;
 use App\Support\Audit\AuditTrail;
@@ -35,7 +33,7 @@ class PublishPhaseVersion
     public function handle(FormPhase $phase, PhaseStructureInput $structure, User $actor): FormPhaseVersion
     {
         AssertPhaseSteps::run($structure->details);
-        $this->assertEvaluationForms($structure->details);
+        AssertStepEvaluationForms::run($structure->details);
 
         return DB::transaction(function () use ($phase, $structure, $actor): FormPhaseVersion {
             // Kunci tahap: dua penerbitan bersamaan tidak berebut nomor versi yang sama.
@@ -133,57 +131,5 @@ class PublishPhaseVersion
             ->unique()->sort()->all();
 
         return array_values($forms);
-    }
-
-    /**
-     * BR-FE-30 — pemasangan hanya Form Evaluasi terbit, sekali per langkah; langkah berform evaluasi
-     * aktif tetap direview.
-     *
-     * @param  list<FormPhaseDetailInput>  $details
-     *
-     * @throws ValidationException
-     */
-    private function assertEvaluationForms(array $details): void
-    {
-        $requested = array_merge(...array_map(
-            fn (FormPhaseDetailInput $d): array => array_map(fn (StepEvaluationFormInput $a): int => $a->reviewEvaluationFormId, $d->evaluationForms),
-            $details,
-        ));
-        $published = array_values(ReviewEvaluationForm::query()->whereIn('id', $requested)->whereHas('versions')->get(['id'])
-            ->map(fn (ReviewEvaluationForm $form): int => $form->id)
-            ->all());
-
-        foreach ($details as $index => $detail) {
-            $this->assertStepEvaluationForms($index, $detail, $published);
-        }
-    }
-
-    /**
-     * @param  list<int>  $published
-     *
-     * @throws ValidationException
-     */
-    private function assertStepEvaluationForms(int $index, FormPhaseDetailInput $detail, array $published): void
-    {
-        $ids = array_map(fn (StepEvaluationFormInput $a): int => $a->reviewEvaluationFormId, $detail->evaluationForms);
-        $active = count(array_filter($detail->evaluationForms, fn (StepEvaluationFormInput $a): bool => $a->isActive));
-
-        if (!$detail->needsReview && $active > 0) {
-            throw ValidationException::withMessages([
-                "phase_details.{$index}.needs_review" => "Detail ini punya {$active} form evaluasi aktif, jadi tetap harus direview.",
-            ]);
-        }
-
-        if (array_diff($ids, $published) !== []) {
-            throw ValidationException::withMessages([
-                'review_evaluation_form_id' => 'Form evaluasi ini belum pernah diterbitkan, jadi belum bisa dipasang.',
-            ]);
-        }
-
-        if (count($ids) !== count(array_unique($ids))) {
-            throw ValidationException::withMessages([
-                'review_evaluation_form_id' => 'Form evaluasi ini sudah terpasang di langkah ini.',
-            ]);
-        }
     }
 }

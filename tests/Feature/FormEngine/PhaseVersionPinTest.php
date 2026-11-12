@@ -3,7 +3,6 @@
 use App\Actions\Form\PinPhaseVersion;
 use App\Actions\Form\PublishPhaseVersion;
 use App\Actions\FormSubmission\StartSubmission;
-use App\Actions\Review\DetachEvaluationForm;
 use App\Data\Request\FormPhaseDetailInput;
 use App\Data\Request\PhaseStructureInput;
 use App\Data\Request\StepEvaluationFormInput;
@@ -215,7 +214,11 @@ it('keeps a step evaluation form on the version that was assigned', function () 
         'is_required' => true,
     ]);
 
-    DetachEvaluationForm::run($attached, $this->admin);
+    // BR-FE-30 — melepas = versi berikutnya tanpa pemasangan itu.
+    PublishPhaseVersion::run($this->phase, structureOf([
+        [$this->proposalAccess->id, null, true],
+        [$this->reportAccess->id, 1],
+    ], $this->phaseType), $this->admin);
 
     $v3 = $this->phase->latestVersion()->firstOrFail();
     expect($v3->number)->toBe(3)

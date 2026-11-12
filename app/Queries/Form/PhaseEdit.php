@@ -3,18 +3,26 @@
 namespace App\Queries\Form;
 
 use App\Actions\Concerns\ChangesNoState;
+use App\Actions\Form\NormalisePhaseDetailOrder;
+use App\Data\Request\FormPhaseDetailInput;
+use App\Data\Request\PhaseDraftInput;
+use App\Data\Request\PhaseStructureInput;
+use App\Data\Request\StepEvaluationFormInput;
 use App\Data\View\FormEngine\PhaseDetailEditData;
 use App\Data\View\FormEngine\PhaseEditData;
+use App\Data\View\FormEngine\StepEvaluationFormData;
+use App\Models\FormAccessControl;
 use App\Models\FormPhase;
-use App\Models\FormPhaseDetail;
-use App\Models\FormSubmission;
-use App\Models\ReviewerFormAssignment;
-use Illuminate\Database\Eloquent\Collection;
+use App\Models\FormPhaseVersion;
+use App\Models\PhaseType;
+use App\Models\ReviewEvaluationForm;
+use Illuminate\Support\Collection;
 use Lorisleiva\Actions\Concerns\AsAction;
 
 /**
- * Isi editor tahap ADMIN-08-09: semua detail tahap — Form pengajuan dan Form langkah monevnya
- * (BR-FE-28) — urut `order` lalu `id`, beserta hitungan pakainya lewat subquery, tanpa kueri per detail.
+ * Isi editor tahap ADMIN-08-09. BR-FE-33 — langkah dibaca dari draf bila ada, selain itu dari
+ * versi terbaru (BR-FE-32); label Form, aturan akses, tipe, dan Form Evaluasi dimuat sekali untuk
+ * semua langkah, tanpa kueri per langkah.
  *
  * @method static PhaseEditData run(?FormPhase $phase)
  */
@@ -24,61 +32,121 @@ class PhaseEdit implements ChangesNoState
 
     public function handle(?FormPhase $phase): PhaseEditData
     {
-        // W94 — mode buat: detail Pengajuan kosong pertamanya dibuat layar dari pilihan akses pertama.
+        // W94 — mode buat: langkah Pengajuan kosong pertamanya dibuat layar dari pilihan akses pertama.
         if ($phase === null) {
-            return new PhaseEditData(id: null, title: '', description: null, isActive: true, details: []);
+            return new PhaseEditData(
+                id: null,
+                title: '',
+                description: null,
+                isActive: true,
+                steps: [],
+                hasDraft: false,
+                versionLabel: null,
+                versions: [],
+                impact: ['nextLabel' => FormPhaseVersion::labelFor(1), 'pinnedCohorts' => 0],
+            );
         }
 
-        $details = $this->details($phase);
-        $labels = $this->accessLabels($details);
+        $draft = $phase->draft()->first();
+        $latest = $phase->latestVersion()->first();
+        $steps = match (true) {
+            $draft !== null => PhaseDraftInput::fromPayload($draft->payload)->steps,
+            $latest !== null => PhaseStructureInput::fromVersion($latest)->details,
+            default => [],
+        };
 
         return new PhaseEditData(
             id: $phase->id,
             title: $phase->title,
             description: $phase->description,
             isActive: $phase->is_active,
-            details: array_values($details->map(
-                fn (FormPhaseDetail $detail): PhaseDetailEditData => $this->toData($detail, $labels),
-            )->all()),
-            versionLabel: $phase->latestVersion()->first()?->label(),
+            steps: $this->steps($steps),
+            hasDraft: $draft !== null,
+            versionLabel: $latest?->label(),
+            versions: $this->versions($phase),
+            impact: PhasePublishImpact::run($phase),
         );
     }
 
-    /** @return Collection<int, FormPhaseDetail> */
-    private function details(FormPhase $phase): Collection
+    /**
+     * @param  list<FormPhaseDetailInput>  $steps
+     * @return list<PhaseDetailEditData>
+     */
+    private function steps(array $steps): array
     {
-        return $phase->currentDetails()
-            ->with([
-                'formAccessControl.form:id,title',
-                'phaseType:id,name',
-            ])
-            ->addSelect([
-                'submission_count' => FormSubmission::query()->selectRaw('count(*)')
-                    ->whereColumn('form_submissions.form_phase_detail_id', 'form_phase_details.id'),
-                // BR-FE-22 — penugasan form evaluasi pada pengajuan di detail ini, aktif atau tidak.
-                'assignment_count' => ReviewerFormAssignment::query()->selectRaw('count(*)')
-                    ->join('submission_reviewers', 'submission_reviewers.id', '=', 'reviewer_form_assignments.submission_reviewer_id')
-                    ->join('form_submissions', 'form_submissions.id', '=', 'submission_reviewers.form_submission_id')
-                    ->whereColumn('form_submissions.form_phase_detail_id', 'form_phase_details.id'),
-            ])
-            ->withCount('activeStepEvaluationForms as evaluation_form_count')
-            ->orderBy('order')
-            ->orderBy('id')
-            ->get();
+        $accessIds = array_map(fn (FormPhaseDetailInput $step): int => $step->formAccessControlId, $steps);
+        $accesses = FormAccessControl::query()->whereIn('id', $accessIds)->with('form:id,title')->get()->keyBy('id');
+        $labels = $this->accessLabels($accesses);
+        $types = PhaseType::query()->whereIn('id', array_map(fn (FormPhaseDetailInput $step): int => $step->phaseTypeId, $steps))
+            ->get(['id', 'name'])->keyBy('id');
+        $forms = $this->evaluationForms($steps);
+        $orders = $this->orders($accessIds, $accesses);
+        $data = [];
+
+        foreach ($steps as $index => $step) {
+            $data[] = new PhaseDetailEditData(
+                order: $orders[$index],
+                formAccessControlId: $step->formAccessControlId,
+                formTitle: $accesses->get($step->formAccessControlId)?->form->title ?? '',
+                accessLabel: $labels[$step->formAccessControlId] ?? '',
+                phaseTypeId: $step->phaseTypeId,
+                phaseTypeName: $types->get($step->phaseTypeId)->name ?? '',
+                needsReview: $step->needsReview,
+                deadlineType: $step->deadlineType->value,
+                deadlineCycle: $step->deadlineCycle,
+                deadlineLabel: $step->deadlineType->stepLabel($step->deadlineCycle),
+                evaluationForms: $this->attachments($step->evaluationForms, $forms),
+            );
+        }
+
+        return $data;
+    }
+
+    /**
+     * W96 — nomor urut diturunkan dari Form, sama dengan saat terbit; aturan akses yang sudah
+     * dihapus sesudah draf disimpan bernomor 0.
+     *
+     * @param  list<int>  $accessIds
+     * @param  Collection<int, FormAccessControl>  $accesses
+     * @return list<int> sejajar dengan `$accessIds`
+     */
+    private function orders(array $accessIds, Collection $accesses): array
+    {
+        $known = NormalisePhaseDetailOrder::run(array_values(array_filter($accessIds, fn (int $id): bool => $accesses->has($id))));
+        $orders = [];
+
+        foreach ($accessIds as $id) {
+            $orders[] = $accesses->has($id) ? array_shift($known) ?? 0 : 0;
+        }
+
+        return $orders;
+    }
+
+    /**
+     * @param  list<StepEvaluationFormInput>  $attached
+     * @param  Collection<int, ReviewEvaluationForm>  $forms
+     * @return list<StepEvaluationFormData>
+     */
+    private function attachments(array $attached, Collection $forms): array
+    {
+        return array_map(fn (StepEvaluationFormInput $a): StepEvaluationFormData => new StepEvaluationFormData(
+            formId: $a->reviewEvaluationFormId,
+            title: $forms->get($a->reviewEvaluationFormId)->title ?? '',
+            versionLabel: $forms->get($a->reviewEvaluationFormId)?->latestVersion?->label() ?? '',
+            isRequired: $a->isRequired,
+            isActive: $a->isActive,
+        ), $attached);
     }
 
     /**
      * "{permissionLabel} · {organizationLabel}" per id aturan akses, dari FormAccessRules.
      *
-     * @param  Collection<int, FormPhaseDetail>  $details
+     * @param  Collection<int, FormAccessControl>  $accesses
      * @return array<int, string>
      */
-    private function accessLabels(Collection $details): array
+    private function accessLabels(Collection $accesses): array
     {
-        $formIds = array_values(array_unique(array_map(
-            fn (FormPhaseDetail $detail): int => $detail->formAccessControl->form_id ?? 0,
-            $details->all(),
-        )));
+        $formIds = array_values(array_unique($accesses->map(fn (FormAccessControl $access): int => $access->form_id)->all()));
         $labels = [];
 
         foreach (FormAccessRules::forForms($formIds) as $rules) {
@@ -90,24 +158,34 @@ class PhaseEdit implements ChangesNoState
         return $labels;
     }
 
-    /** @param  array<int, string>  $labels */
-    private function toData(FormPhaseDetail $detail, array $labels): PhaseDetailEditData
+    /**
+     * @param  list<FormPhaseDetailInput>  $steps
+     * @return Collection<int, ReviewEvaluationForm>
+     */
+    private function evaluationForms(array $steps): Collection
     {
-        return new PhaseDetailEditData(
-            id: $detail->id,
-            order: $detail->order,
-            formAccessControlId: $detail->form_access_control_id,
-            formTitle: $detail->formAccessControl->form->title ?? '',
-            accessLabel: $labels[$detail->form_access_control_id] ?? '',
-            phaseTypeId: $detail->phase_type_id,
-            phaseTypeName: $detail->phaseType->name ?? '',
-            needsReview: $detail->needs_review,
-            deadlineType: $detail->deadline_type->value,
-            deadlineCycle: $detail->deadline_cycle,
-            deadlineLabel: $detail->deadline_type->stepLabel($detail->deadline_cycle),
-            submissionCount: $detail->submission_count,
-            assignmentCount: $detail->assignment_count,
-            evaluationFormCount: $detail->evaluation_form_count,
-        );
+        $ids = array_merge(...array_map(
+            fn (FormPhaseDetailInput $step): array => array_map(fn (StepEvaluationFormInput $a): int => $a->reviewEvaluationFormId, $step->evaluationForms),
+            $steps,
+        ));
+
+        return ReviewEvaluationForm::query()->whereIn('id', $ids)->with('latestVersion')->get(['id', 'title'])->keyBy('id');
+    }
+
+    /** @return list<array{label: string, publishedAt: string, publishedBy: string|null, cohortCount: int}> */
+    private function versions(FormPhase $phase): array
+    {
+        return array_values($phase->versions()
+            ->reorder('number', 'desc')
+            ->with('publisher:id,name')
+            ->withCount('pins')
+            ->get()
+            ->map(fn (FormPhaseVersion $version): array => [
+                'label' => $version->label(),
+                'publishedAt' => $version->published_at->toIso8601String(),
+                'publishedBy' => $version->publisher?->name,
+                'cohortCount' => $version->pins_count,
+            ])
+            ->all());
     }
 }

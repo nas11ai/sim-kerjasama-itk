@@ -31,6 +31,8 @@ class PhaseLibrary implements ChangesNoState
         $phases = FormPhase::query()
             ->when($usingForm, fn ($query, Form $form) => $query->usingForm($form))
             ->withCount('currentDetails as form_phase_details_count')
+            ->withExists('draft')
+            ->with('latestVersion')
             ->addSelect(['submission_count' => FormSubmission::query()
                 ->selectRaw('count(*)')
                 ->join('form_phase_details', 'form_phase_details.id', '=', 'form_submissions.form_phase_detail_id')
@@ -56,6 +58,8 @@ class PhaseLibrary implements ChangesNoState
             linkablePeriods: $linkable[$phase->id] ?? [],
             deadlineGaps: $gaps[$phase->id] ?? [],
             submissionFormTitle: $phase->submission_form_title,
+            versionLabel: $phase->latestVersion?->label(),
+            hasDraft: $phase->draft_exists ?? false,
         ))->all());
     }
 

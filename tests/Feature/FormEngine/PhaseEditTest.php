@@ -1,7 +1,7 @@
 <?php
 
-// ADMIN-08-09 — editor tahap mandiri di /admin/phases: semua detail tahap, pilihan akses/tipe/tenggat
-// (W102), penjaga needs_review (W97) dan penjaga buang detail ber-penugasan (BR-FE-22).
+// ADMIN-08-09 — editor tahap mandiri di /admin/phases: langkah draf atau versi terbaru (BR-FE-33),
+// pilihan akses/tipe/tenggat (W102), penjaga needs_review (W97), buang langkah ber-penugasan (BR-FE-22).
 
 use App\Models\Form;
 use App\Models\FormPhase;
@@ -48,7 +48,6 @@ function phaseEditReviewedDetail(Form $form, ?FormPhase $phase = null): FormPhas
 function phaseEditRow(FormPhaseDetail $detail, array $overrides = []): array
 {
     return array_merge([
-        'id' => $detail->id,
         'form_access_control_id' => $detail->form_access_control_id,
         'phase_type_id' => $detail->phase_type_id,
         'order' => 1,
@@ -64,6 +63,22 @@ function phaseEditPayload(array $rows): array
     return ['title' => 'Tahap Disunting', 'description' => null, 'is_active' => true, 'phase_details' => $rows];
 }
 
+/** Bagian tahap yang disunting langsung (BR-FE-33). */
+function phaseGeneralPayload(): array
+{
+    return ['title' => 'Tahap Disunting', 'description' => null, 'is_active' => true];
+}
+
+/** Form Evaluasi terpasang `$detail`, dalam bentuk kiriman draf. */
+function phaseEditAttachments(FormPhaseDetail $detail): array
+{
+    return $detail->stepEvaluationForms()->get()->map(fn (StepEvaluationForm $step): array => [
+        'review_evaluation_form_id' => $step->review_evaluation_form_id,
+        'is_required' => $step->is_required,
+        'is_active' => $step->is_active,
+    ])->all();
+}
+
 it('kontrak layar sunting tahap', function () {
     $detail = phaseEditDetail($this->form);
 
@@ -74,13 +89,18 @@ it('kontrak layar sunting tahap', function () {
             ->component('FormEngine/PhaseEditPage')
             ->missing('form')
             ->where('phase.id', $detail->form_phase_id)
-            ->hasAll(['phase.title', 'phase.description', 'phase.isActive', 'phaseTypeOptions'])
-            ->has('phase.details.0', fn (AssertableInertia $row) => $row->hasAll([
-                'id', 'order', 'formAccessControlId', 'formTitle', 'accessLabel', 'phaseTypeId',
+            ->hasAll(['phase.title', 'phase.description', 'phase.isActive', 'phaseTypeOptions', 'evaluationOptions'])
+            ->where('phase.hasDraft', false)
+            ->where('phase.versionLabel', 'Versi 1')
+            ->where('phase.impact', ['nextLabel' => 'Versi 2', 'pinnedCohorts' => 0])
+            ->has('phase.versions.0', fn (AssertableInertia $row) => $row->hasAll(['label', 'publishedAt', 'publishedBy', 'cohortCount']))
+            ->has('phase.steps.0', fn (AssertableInertia $row) => $row->hasAll([
+                'order', 'formAccessControlId', 'formTitle', 'accessLabel', 'phaseTypeId',
                 'phaseTypeName', 'needsReview', 'deadlineType', 'deadlineCycle', 'deadlineLabel',
-                'submissionCount', 'assignmentCount', 'evaluationFormCount',
+                'evaluationForms',
             ]))
             ->where('accessOptions.0.formId', $this->form->id)
+            ->missing('evaluation')
             ->missing('deadlineOptions'));
 });
 
@@ -90,7 +110,7 @@ it('wewenang: operator 403', function () {
     $this->actingAs(phaseEditActor('operator'))
         ->get(route('admin.phases.edit', $own->formPhase))
         ->assertForbidden();
-    $this->put(route('admin.phases.update', $own->formPhase), phaseEditPayload([phaseEditRow($own)]))
+    $this->put(route('admin.phases.update', $own->formPhase), phaseGeneralPayload())
         ->assertForbidden();
 
     expect($own->formPhase?->fresh()?->title)->toBe('Fase Uji Factory');
@@ -106,27 +126,27 @@ it('menampilkan semua detail tahap, termasuk langkah monev Form lain', function 
     $this->actingAs(phaseEditActor())
         ->get(route('admin.phases.edit', $first->formPhase))
         ->assertInertia(fn (AssertableInertia $page) => $page
-            ->has('phase.details', 2)
-            ->where('phase.details.1.id', $second->id)
-            ->where('phase.details.1.formTitle', 'Form Laporan Lain')
-            ->where('phase.details.1.submissionCount', 2)
+            ->has('phase.steps', 2)
+            ->where('phase.steps.1.formTitle', 'Form Laporan Lain')
+            ->where('phase.steps.1.deadlineLabel', 'Laporan Monev I')
             ->where('accessOptions', fn ($options) => collect($options)->contains('formId', $other->id)));
 });
 
-it('menyimpan ulang detail tidak mengubah jenis langkahnya', function () {
+it('memperbarui judul tahap tidak menyentuh langkahnya', function () {
     $submission = phaseEditDetail($this->form);
     $detail = phaseEditDetail(Form::factory()->create(), $submission->formPhase, ['deadline_cycle' => 1]);
+    $edit = route('admin.phases.edit', $submission->formPhase);
 
     $this->actingAs(phaseEditActor())
-        ->put(
-            route('admin.phases.update', $submission->formPhase),
-            phaseEditPayload([phaseEditRow($submission), phaseEditRow($detail)]),
-        )
+        ->from($edit)
+        ->put(route('admin.phases.update', $submission->formPhase), phaseGeneralPayload())
         ->assertSessionHasNoErrors()
-        ->assertRedirect(route('admin.phases.index'))
+        ->assertRedirect($edit)
         ->assertSessionHas('success', 'Tahap diperbarui.');
 
-    expect($detail->fresh()?->deadline_cycle)->toBe(1);
+    expect($submission->formPhase->fresh()?->title)->toBe('Tahap Disunting')
+        ->and($submission->formPhase->versions()->count())->toBe(1)
+        ->and($detail->fresh()?->deadline_cycle)->toBe(1);
 });
 
 it('needs_review tidak bisa dimatikan selama ada form evaluasi aktif', function () {
@@ -134,17 +154,17 @@ it('needs_review tidak bisa dimatikan selama ada form evaluasi aktif', function 
 
     $this->actingAs(phaseEditActor())
         ->get(route('admin.phases.edit', $detail->formPhase))
-        ->assertInertia(fn (AssertableInertia $page) => $page->where('phase.details.0.evaluationFormCount', 1));
+        ->assertInertia(fn (AssertableInertia $page) => $page->has('phase.steps.0.evaluationForms', 1));
 
     $this->put(
-        route('admin.phases.update', $detail->formPhase),
-        phaseEditPayload([phaseEditRow($detail, ['needs_review' => false])]),
+        route('admin.phases.draft.update', $detail->formPhase),
+        phaseEditPayload([phaseEditRow($detail, ['needs_review' => false, 'evaluation_forms' => phaseEditAttachments($detail)])]),
     )->assertSessionHasErrors([
         'phase_details.0.needs_review' => 'Detail ini punya 1 form evaluasi aktif, jadi tetap harus direview.',
     ]);
 
     expect($detail->fresh()?->needs_review)->toBeTrue()
-        ->and($detail->formPhase?->fresh()?->title)->toBe('Fase Uji Factory');
+        ->and($detail->formPhase?->draft()->exists())->toBeFalse();
 });
 
 it('membuang detail yang form evaluasinya pernah ditugaskan hanya dari versi baru (BR-FE-32)', function () {
@@ -167,13 +187,9 @@ it('membuang detail yang form evaluasinya pernah ditugaskan hanya dari versi bar
     ]);
 
     $this->actingAs(phaseEditActor())
-        ->get(route('admin.phases.edit', $kept->formPhase))
-        ->assertInertia(fn (AssertableInertia $page) => $page
-            ->where('phase.details.1.assignmentCount', 1)
-            ->where('phase.details.1.submissionCount', 1));
-
-    $this->put(route('admin.phases.update', $kept->formPhase), phaseEditPayload([phaseEditRow($kept)]))
+        ->put(route('admin.phases.draft.update', $kept->formPhase), phaseEditPayload([phaseEditRow($kept)]))
         ->assertSessionHasNoErrors();
+    $this->post(route('admin.phases.publish', $kept->formPhase))->assertSessionHasNoErrors();
 
     expect($kept->formPhase->currentDetails()->count())->toBe(1)
         ->and(FormPhaseDetail::query()->whereKey($dropped->id)->exists())->toBeTrue()
@@ -193,7 +209,8 @@ it('kontrak layar buat tahap', function () {
             ->where('phase.id', null)
             ->where('phase.title', '')
             ->where('phase.isActive', true)
-            ->where('phase.details', [])
+            ->where('phase.steps', [])
+            ->where('phase.versionLabel', null)
             ->where('accessOptions.0.formId', $this->form->id)
             ->has('phaseTypeOptions')
             ->missing('deadlineOptions'));
@@ -247,7 +264,7 @@ it('tahap baru tampil di pustaka bertapis Form-nya', function () {
     $reference = phaseEditDetail($this->form);
 
     $this->actingAs(phaseEditActor())
-        ->post(route('admin.phases.store'), phaseEditPayload([phaseEditRow($reference, ['id' => null])]))
+        ->post(route('admin.phases.store'), phaseEditPayload([phaseEditRow($reference)]))
         ->assertSessionHasNoErrors();
 
     $created = FormPhase::query()->where('title', 'Tahap Disunting')->firstOrFail();
@@ -261,9 +278,9 @@ it('menyimpan tahap baru mengarah ke editornya dengan pesan W95', function () {
     $reference = phaseEditDetail($this->form);
 
     $this->actingAs(phaseEditActor())
-        ->post(route('admin.phases.store'), phaseEditPayload([phaseEditRow($reference, ['id' => null])]))
+        ->post(route('admin.phases.store'), phaseEditPayload([phaseEditRow($reference)]))
         ->assertRedirect(route('admin.phases.edit', FormPhase::query()->where('title', 'Tahap Disunting')->firstOrFail()))
-        ->assertSessionHas('success', 'Tahap dibuat. Tambahkan form evaluasi untuk detail yang direview.');
+        ->assertSessionHas('success', 'Tahap dibuat. Susun langkahnya lalu terbitkan.');
 });
 
 it('wewenang buat: operator 403', function () {
@@ -272,7 +289,7 @@ it('wewenang buat: operator 403', function () {
     $this->actingAs(phaseEditActor('operator'))
         ->get(route('admin.phases.create'))
         ->assertForbidden();
-    $this->post(route('admin.phases.store'), phaseEditPayload([phaseEditRow($reference, ['id' => null])]))
+    $this->post(route('admin.phases.store'), phaseEditPayload([phaseEditRow($reference)]))
         ->assertForbidden();
 
     expect(FormPhase::query()->where('title', 'Tahap Disunting')->exists())->toBeFalse();
@@ -293,16 +310,16 @@ it('passes the library filter to the editor as returnForm', function () {
         ->assertNotFound();
 });
 
-it('returns to the filtered library after update', function () {
+// BR-FE-33 — Simpan judul tidak menutup editor: draf dan Terbitkan masih di layar yang sama.
+it('stays in the filtered editor after updating the phase name', function () {
     $detail = phaseEditDetail($this->form);
+    $edit = route('admin.phases.edit', ['formPhase' => $detail->formPhase, 'form' => $this->form->id]);
 
     $this->actingAs(phaseEditActor())
-        ->put(
-            route('admin.phases.update', $detail->formPhase),
-            [...phaseEditPayload([phaseEditRow($detail)]), 'form' => $this->form->id],
-        )
+        ->from($edit)
+        ->put(route('admin.phases.update', $detail->formPhase), [...phaseGeneralPayload(), 'form' => $this->form->id])
         ->assertSessionHasNoErrors()
-        ->assertRedirect(route('admin.phases.index', ['form' => $this->form->id]));
+        ->assertRedirect($edit);
 });
 
 it('keeps the library filter when a new phase opens its editor', function () {
@@ -310,7 +327,7 @@ it('keeps the library filter when a new phase opens its editor', function () {
 
     $this->actingAs(phaseEditActor())
         ->post(route('admin.phases.store'), [
-            ...phaseEditPayload([phaseEditRow($reference, ['id' => null])]),
+            ...phaseEditPayload([phaseEditRow($reference)]),
             'form' => $this->form->id,
         ])
         ->assertRedirect(route('admin.phases.edit', [

@@ -4,62 +4,34 @@ import { computed, ref } from 'vue'
 
 import RowErrors from '@/Components/app/RowErrors.vue'
 import SectionCard from '@/Components/app/SectionCard.vue'
+import EvaluationSection from '@/Components/FormEngine/EvaluationSection.vue'
 import FieldRowActions from '@/Components/FormEngine/FieldRowActions.vue'
 import PhaseDetailDialog from '@/Components/FormEngine/PhaseDetailDialog.vue'
 import { Badge } from '@/Components/ui/badge'
 import { Button } from '@/Components/ui/button'
 import { errorsUnder } from '@/lib/formErrors'
-import { blankDetail, type EditableDetail } from '@/lib/phaseDefinition'
-import type { PhaseAccessOption, PhaseDetailEditData } from '@/types/form-engine'
+import { blankDetail, stepHeading, type EditableDetail } from '@/lib/phaseDefinition'
+import type { EvaluationOption, PhaseAccessOption, PhaseDetailEditData } from '@/types/form-engine'
 import type { FilterOption } from '@/types/submission-page'
 
+// BR-FE-33 — langkah draf. Versi terbit beku (BR-FE-32), jadi tidak ada kunci pakai: menghapus atau
+// mengubah langkah hanya berlaku sejak versi berikutnya.
 const props = defineProps<{
     saved: PhaseDetailEditData[]
     accessOptions: PhaseAccessOption[]
     phaseTypeOptions: FilterOption[]
+    evaluationOptions: EvaluationOption[]
     errors: Record<string, string>
 }>()
 const details = defineModel<EditableDetail[]>({ required: true })
 
 const editing = ref<EditableDetail | null>(null)
 const dialogOpen = ref(false)
+const adding = computed(() => !details.value.some((d) => d.key === editing.value?.key))
 
-// W93 — label baris dari backend: label tersimpan selama aturan aksesnya belum diganti.
-const savedByAccess = computed(
-    () => new Map(props.saved.map((detail) => [detail.formAccessControlId, detail]))
-)
-const typeName = (id: number) =>
-    props.phaseTypeOptions.find((option) => option.value === String(id))?.label ?? ''
-const heading = (detail: EditableDetail) => {
-    const saved = savedByAccess.value.get(detail.formAccessControlId)
-    if (saved)
-        return {
-            title: `${typeName(detail.phaseTypeId)} — ${saved.formTitle}`,
-            access: saved.accessLabel,
-        }
-    const access = props.accessOptions.find((o) => o.value === String(detail.formAccessControlId))
-    return {
-        title: [typeName(detail.phaseTypeId), access?.formTitle].filter(Boolean).join(' — '),
-        access: access?.label ?? '',
-    }
-}
-// W96 — nomor urut diturunkan backend dari Form; detail baru belum punya.
-const orderOf = (detail: EditableDetail) =>
-    props.saved.find((saved) => saved.id === detail.id)?.order ?? 'Baru'
-
-// W98 / BR-FE-22 — hapus terkunci oleh hitungan backend, dengan angkanya.
-const removeHint = (detail: EditableDetail) => {
-    if (detail.submissionCount > 0)
-        return `Dipakai ${detail.submissionCount} pengajuan — nonaktifkan tahapnya bila detail ini tidak boleh dipakai lagi.`
-    if (detail.assignmentCount > 0)
-        return `Form evaluasinya pernah ditugaskan ${detail.assignmentCount} kali.`
-    return undefined
-}
+const heading = (detail: EditableDetail) =>
+    stepHeading(detail, props.saved, props.accessOptions, props.phaseTypeOptions)
 const rowErrors = (index: number) => errorsUnder(props.errors, `phase_details.${index}.`)
-
-// W97 — kartu form evaluasi menyimpan sendiri lalu props dimuat ulang; `saved` selalu terbaru.
-const evaluationFormsOf = (detail: EditableDetail | null) =>
-    props.saved.find((saved) => saved.id === detail?.id)?.evaluationFormCount ?? 0
 
 const open = (detail: EditableDetail | null) => {
     const first = props.accessOptions[0]
@@ -79,40 +51,34 @@ const remove = (key: string) => (details.value = details.value.filter((d) => d.k
 </script>
 
 <template>
-    <SectionCard title="Tahapan Form">
+    <SectionCard title="Langkah">
         <template #actions>
             <Button type="button" size="sm" @click="open(null)"
-                ><Plus class="size-4" />Tambah Detail</Button
+                ><Plus class="size-4" />Tambah Langkah</Button
             >
         </template>
         <ul class="divide-y">
-            <li
-                v-for="(detail, index) in details"
-                :key="detail.key"
-                class="flex flex-wrap items-start justify-between gap-3 py-3"
-            >
-                <div class="flex min-w-0 items-start gap-2">
-                    <span class="rounded border px-1.5 text-xs text-muted-foreground">{{
-                        orderOf(detail)
-                    }}</span>
-                    <div class="min-w-0 space-y-0.5">
-                        <p class="text-sm font-medium">{{ heading(detail).title }}</p>
-                        <p class="text-xs text-muted-foreground">
-                            Akses: {{ heading(detail).access }}
-                        </p>
-                        <p class="text-xs text-muted-foreground">
-                            Jenis: {{ detail.deadlineLabel }}
-                        </p>
-                        <p v-if="removeHint(detail)" class="text-xs text-muted-foreground">
-                            {{ removeHint(detail) }}
-                        </p>
-                        <RowErrors :messages="rowErrors(index)" />
+            <li v-for="(detail, index) in details" :key="detail.key" class="space-y-3 py-3">
+                <div class="flex flex-wrap items-start justify-between gap-3">
+                    <div class="flex min-w-0 items-start gap-2">
+                        <!-- W96 — nomor urut diturunkan backend dari Form; langkah baru belum punya -->
+                        <span class="rounded border px-1.5 text-xs text-muted-foreground">{{
+                            detail.order ?? 'Baru'
+                        }}</span>
+                        <div class="min-w-0 space-y-0.5">
+                            <p class="text-sm font-medium">{{ heading(detail).title }}</p>
+                            <p class="text-xs text-muted-foreground">
+                                Akses: {{ heading(detail).access }}
+                            </p>
+                            <p class="text-xs text-muted-foreground">
+                                Jenis: {{ detail.deadlineLabel }}
+                            </p>
+                            <RowErrors :messages="rowErrors(index)" />
+                        </div>
                     </div>
-                </div>
-                <div class="flex items-center gap-1">
                     <FieldRowActions
                         :label="heading(detail).title"
-                        :remove-disabled="removeHint(detail) !== undefined"
+                        :remove-disabled="false"
                         @edit="open(detail)"
                         @remove="remove(detail.key)"
                     >
@@ -121,13 +87,22 @@ const remove = (key: string) => (details.value = details.value.filter((d) => d.k
                         }}</Badge>
                     </FieldRowActions>
                 </div>
+                <!-- BR-FE-30 — Form Evaluasi hanya di langkah yang direview -->
+                <EvaluationSection
+                    v-if="detail.needsReview"
+                    v-model="detail.evaluationForms"
+                    class="ml-7"
+                    :step-key="detail.key"
+                    :label="heading(detail).title"
+                    :evaluation-options="evaluationOptions"
+                />
             </li>
         </ul>
-        <p v-if="details.length === 0" class="text-sm text-muted-foreground">Belum ada detail.</p>
+        <p v-if="details.length === 0" class="text-sm text-muted-foreground">Belum ada langkah.</p>
         <PhaseDetailDialog
             v-model:open="dialogOpen"
             :detail="editing"
-            :evaluation-form-count="evaluationFormsOf(editing)"
+            :adding="adding"
             :access-options="accessOptions"
             :phase-type-options="phaseTypeOptions"
             @save="store"

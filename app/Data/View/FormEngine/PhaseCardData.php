@@ -5,9 +5,9 @@ namespace App\Data\View\FormEngine;
 use Spatie\LaravelData\Data;
 
 /**
- * Satu kartu ADMIN-08-08: tahap beserta hitungan pakainya. `linkablePeriods` dan
- * `deadlineGaps` diisi backend (W101; celah jadwal per periode, ADR 0019); layar tidak menghitung apa pun.
- * `submissionFormTitle` = Form langkah Pengajuan (BR-FE-28), null bila tahap belum punya langkah itu.
+ * Satu kartu ADMIN-08-08: tahap beserta hitungan pakainya, semuanya dari backend (W101, ADR 0019).
+ * `submissionFormTitle` = Form langkah Pengajuan (BR-FE-28); `versionLabel` null = belum pernah
+ * terbit, `hasDraft` = ada struktur yang belum terbit (BR-FE-33).
  */
 final class PhaseCardData extends Data
 {
@@ -27,5 +27,7 @@ final class PhaseCardData extends Data
         public array $linkablePeriods,
         public array $deadlineGaps,
         public ?string $submissionFormTitle,
+        public ?string $versionLabel,
+        public bool $hasDraft,
     ) {}
 }

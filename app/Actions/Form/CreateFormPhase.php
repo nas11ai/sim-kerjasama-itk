@@ -3,7 +3,7 @@
 namespace App\Actions\Form;
 
 use App\Data\Request\FormPhaseInput;
-use App\Data\Request\PhaseStructureInput;
+use App\Data\Request\PhaseDraftInput;
 use App\Models\FormPhase;
 use App\Models\User;
 use App\Support\Audit\AuditChange;
@@ -13,10 +13,10 @@ use Illuminate\Validation\ValidationException;
 use Lorisleiva\Actions\Concerns\AsAction;
 
 /**
- * BR-FE-07 — membuat tahap formulir beserta langkahnya; setiap langkah membawa jenis tenggat dan
- * siklusnya (ADR 0019). BR-FE-32 (G3-W4, sementara sampai draf tahap) — langkahnya terbit sebagai Versi 1.
+ * BR-FE-07 — membuat tahap formulir; BR-FE-33 — langkahnya lahir sebagai draf, tanpa versi, jadi
+ * tahap baru belum bisa ditautkan ke periode sampai diterbitkan.
  *
- * @method static FormPhase run(FormPhaseInput $input, User $actor)
+ * @method static FormPhase run(FormPhaseInput $input, PhaseDraftInput $steps, User $actor)
  */
 class CreateFormPhase
 {
@@ -25,29 +25,22 @@ class CreateFormPhase
     /**
      * @throws ValidationException
      */
-    public function handle(FormPhaseInput $input, User $actor): FormPhase
+    public function handle(FormPhaseInput $input, PhaseDraftInput $steps, User $actor): FormPhase
     {
-        return DB::transaction(function () use ($input, $actor): FormPhase {
+        return DB::transaction(function () use ($input, $steps, $actor): FormPhase {
             $phase = FormPhase::create([
                 'title' => $input->title,
                 'description' => $input->description,
                 'is_active' => $input->isActive,
             ]);
 
-            $version = PublishPhaseVersion::run($phase, new PhaseStructureInput($input->details), $actor);
-
             // BR-RPT-09 — di dalam transaksi: pembuatan yang gagal tidak meninggalkan jejak.
-            AuditTrail::record(
-                'Tahap formulir dibuat',
-                $phase,
-                $actor,
-                new AuditChange(new: [
-                    'title' => $phase->title,
-                    'description' => $phase->description,
-                    'is_active' => $phase->is_active,
-                    'detail_ids' => $version->formPhaseDetails()->pluck('id')->all(),
-                ]),
-            );
+            AuditTrail::record('Tahap formulir dibuat', $phase, $actor, new AuditChange(new: [
+                'title' => $phase->title,
+                'description' => $phase->description,
+                'is_active' => $phase->is_active,
+            ]));
+            SavePhaseDraft::run($phase, $steps, $actor);
 
             return $phase;
         });

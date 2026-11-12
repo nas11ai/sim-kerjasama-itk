@@ -52,6 +52,8 @@ class DeleteFormPhase
             // builder tidak memicu event model, jadi penjagaan per detail
             // (BR-FE-20) tidak akan pernah dijalankan.
             $phase->formPhaseDetails->each(fn (FormPhaseDetail $detail) => $detail->delete());
+            // Draf tak ber-FK ke tahap (G3-W7), jadi dihapus di sini.
+            $phase->draft()->delete();
 
             $phase->delete();
         });

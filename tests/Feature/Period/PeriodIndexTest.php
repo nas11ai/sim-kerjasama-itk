@@ -57,7 +57,7 @@ function listedPeriodIds(array $query): array
 }
 
 it('kontrak layar periode', function () {
-    $phase = FormPhase::create(['title' => 'Proposal', 'is_active' => true]);
+    $phase = publishedPhase(['title' => 'Proposal', 'is_active' => true]);
     $period = periodWithDates(['+1 month']);
     $period->submissionPeriodPhases()->create(['form_phase_id' => $phase->id]);
 
@@ -166,7 +166,7 @@ it('pengajuan masuk hanya menghitung induk yang terkirim', function () {
 it('baris membawa penghalang hapus dan kunci tanggal', function () {
     // BR-FE-26 (ADR 0019) — tanggal terkunci bila langkah fase tertaut membacanya; penghalang
     // hapus hanya pengajuan.
-    $phase = FormPhase::create(['title' => 'Fase Kunci', 'is_active' => true]);
+    $phase = publishedPhase(['title' => 'Fase Kunci', 'is_active' => true]);
     scheduleStep($phase, needsReview: false);
     $terpakai = periodWithDates(['+1 month']);
     SubmissionPeriodPhase::create(['submission_period_id' => $terpakai->id, 'form_phase_id' => $phase->id]);
@@ -193,8 +193,8 @@ it('closable mengikuti Close Early', function () {
 });
 
 it('tahap nonaktif yang sudah melekat tetap ditawarkan', function () {
-    $aktif = FormPhase::create(['title' => 'Aktif', 'is_active' => true]);
-    $nonaktif = FormPhase::create(['title' => 'Lama', 'is_active' => false]);
+    $aktif = publishedPhase(['title' => 'Aktif', 'is_active' => true]);
+    $nonaktif = publishedPhase(['title' => 'Lama', 'is_active' => false]);
     FormPhase::create(['title' => 'Yatim', 'is_active' => false]);
     periodWithDates(['+1 month'])->submissionPeriodPhases()->create(['form_phase_id' => $nonaktif->id]);
 

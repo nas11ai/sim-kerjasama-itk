@@ -16,7 +16,7 @@ use Illuminate\Database\Eloquent\Relations\HasOne;
  * @property string $title
  * @property string|null $description
  * @property-read ReviewEvaluationFormVersion|null $latestVersion
- * @property-read ConfigurationDraft|null $draft
+ * @property-read EvaluationFormDraft|null $draft
  * @property-read int|null $reviewer_form_assignments_count hanya setelah withCount
  * @property-read int|null $step_evaluation_forms_count hanya setelah withCount
  * @property-read bool|null $draft_exists hanya setelah withExists
@@ -58,11 +58,10 @@ class ReviewEvaluationForm extends Model
         return $this->hasOne(ReviewEvaluationFormVersion::class)->latestOfMany('number');
     }
 
-    /** @return HasOne<ConfigurationDraft, $this> BR-FE-31 — isi yang sedang disunting, belum terbit */
+    /** @return HasOne<EvaluationFormDraft, $this> BR-FE-31 — isi yang sedang disunting, belum terbit */
     public function draft(): HasOne
     {
-        return $this->hasOne(ConfigurationDraft::class, 'draftable_id')
-            ->where('configuration_drafts.draftable_type', ConfigurationDraft::EVALUATION_FORM);
+        return $this->hasOne(EvaluationFormDraft::class, 'draftable_id');
     }
 
     /** @return HasMany<StepEvaluationForm, $this> */

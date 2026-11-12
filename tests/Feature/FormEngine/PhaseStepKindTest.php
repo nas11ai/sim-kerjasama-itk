@@ -53,8 +53,10 @@ function storeStepKinds(array $rows): TestResponse
 it('menyimpan langkah dengan jenis dan siklus', function () {
     storeStepKinds([stepKindRow($this->detail), stepKindRow($this->monev, ['deadline_cycle' => 2])])
         ->assertSessionHasNoErrors();
+    $phase = FormPhase::query()->where('title', 'Tahap Jenis')->sole();
+    $this->post(route('admin.phases.publish', $phase))->assertSessionHasNoErrors();
 
-    $saved = FormPhase::query()->where('title', 'Tahap Jenis')->sole()->formPhaseDetails()
+    $saved = $phase->formPhaseDetails()
         ->where('form_access_control_id', $this->monev->form_access_control_id)->sole();
 
     expect($saved->deadline_type)->toBe(DeadlineType::Submit)
@@ -63,14 +65,12 @@ it('menyimpan langkah dengan jenis dan siklus', function () {
 
 it('merevisi jenis dan siklus langkah lama', function () {
     $this->actingAs($this->admin)
-        ->put(route('admin.phases.update', $this->phase), [
-            'title' => 'Tahap Jenis', 'is_active' => true,
-            'phase_details' => [
-                stepKindRow($this->detail, ['id' => $this->detail->id]),
-                stepKindRow($this->monev, ['id' => $this->monev->id, 'deadline_cycle' => 2]),
-            ],
-        ])
+        ->put(route('admin.phases.draft.update', $this->phase), ['phase_details' => [
+            stepKindRow($this->detail),
+            stepKindRow($this->monev, ['deadline_cycle' => 2]),
+        ]])
         ->assertSessionHasNoErrors();
+    $this->post(route('admin.phases.publish', $this->phase))->assertSessionHasNoErrors();
 
     // BR-FE-32 — revisi menerbitkan versi baru; langkah versi lama tidak berubah.
     expect($this->phase->currentDetails()->pluck('deadline_cycle')->all())->toBe([null, 2])
@@ -109,9 +109,9 @@ it('editor tahap mengirim jenis, siklus, dan label langkah tanpa pilihan tanggal
         ->get(route('admin.phases.edit', $this->phase))
         ->assertInertia(fn ($page) => $page
             ->missing('deadlineOptions')
-            ->where('phase.details.0.deadlineType', 'submit')
-            ->where('phase.details.0.deadlineCycle', 2)
-            ->where('phase.details.0.deadlineLabel', 'Laporan Monev II')
-            ->missing('phase.details.0.submissionDateId')
-            ->missing('phase.details.0.currentDeadlines'));
+            ->where('phase.steps.0.deadlineType', 'submit')
+            ->where('phase.steps.0.deadlineCycle', 2)
+            ->where('phase.steps.0.deadlineLabel', 'Laporan Monev II')
+            ->missing('phase.steps.0.submissionDateId')
+            ->missing('phase.steps.0.currentDeadlines'));
 });
