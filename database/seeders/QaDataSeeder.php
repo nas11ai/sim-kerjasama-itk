@@ -3,10 +3,13 @@
 namespace Database\Seeders;
 
 use App\Enums\VerificationStatus;
+use App\Models\FormSubmission;
 use App\Models\Organization;
 use App\Models\User;
 use App\Models\UserProfile;
 use Database\Seeders\Qa\QaAccounts;
+use Database\Seeders\Qa\QaBackground;
+use Database\Seeders\Qa\QaSet;
 use Database\Seeders\Qa\QaCatalog;
 use Database\Seeders\Qa\QaClock;
 use Database\Seeders\Qa\QaHistory;
@@ -52,6 +55,32 @@ class QaDataSeeder extends Seeder
             QaHistory::build($set, $flow);
             QaScenarios::build($set, $flow);
         }
+
+        QaBackground::build($flow);
+
+        $this->summary($sets);
+    }
+
+    /** @param  list<QaSet>  $sets */
+    private function summary(array $sets): void
+    {
+        $rows = [['-', self::ADMIN_EMAIL, 'Admin']];
+        foreach ($sets as $set) {
+            $rows[] = [$set->tag(), $set->operator->email, 'Operator'];
+            $rows[] = [$set->tag(), "qa{$set->k}-penilai1, -penilai2, -penilai-luar", 'Penilai'];
+            $rows[] = [$set->tag(), "qa{$set->k}-peneliti01 … -peneliti12", 'Peneliti (nomor = skenario)'];
+        }
+
+        $this->command?->info('Data uji QA selesai. Kata sandi setiap akun = alamat emailnya.');
+        $this->command?->table(['Set', 'Akun', 'Peran'], $rows);
+        $this->command?->table(['Status', 'Jumlah pengajuan'], FormSubmission::query()
+            ->whereNull('parent_submission_id')
+            ->selectRaw('status, count(*) as jumlah')
+            ->groupBy('status')
+            ->orderBy('status')
+            ->get()
+            ->map(fn (FormSubmission $row): array => [class_basename((string) $row->getRawOriginal('status')), (string) $row->getAttribute('jumlah')])
+            ->all());
     }
 
     private function guard(): void
