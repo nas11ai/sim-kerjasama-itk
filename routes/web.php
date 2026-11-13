@@ -57,10 +57,11 @@ use App\Http\Controllers\SubmissionViewController;
 use App\Http\Controllers\SubmissionWithdrawalController;
 use App\Http\Controllers\UserDeactivationController;
 use App\Http\Controllers\UserFormController;
+use App\Http\Controllers\WelcomeController;
 use Illuminate\Support\Facades\Route;
 
-// W157 — tanpa layar sambutan (K3): umpan pengumuman publik ada di halaman login sejak A1.
-Route::get('/', fn () => redirect()->route(auth()->check() ? 'dashboard' : 'login'))->name('home');
+// K7 (2026-11-13) — membalik W157: tamu disambut halaman sambutan + pengumuman publik.
+Route::get('/', WelcomeController::class)->name('home');
 
 // SHARED-02-01..04 — satu dasbor untuk semua peran (§4.4 K4).
 Route::middleware(['auth', 'verified'])->get('/dashboard', DashboardController::class)
